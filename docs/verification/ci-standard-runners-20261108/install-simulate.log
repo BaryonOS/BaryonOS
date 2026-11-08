@@ -1,0 +1,63 @@
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  acl libaio1t64 libbrlapi0.8 libcacard0 libdaxctl1 libfdt1 libibverbs1
+  libndctl6 libnl-route-3-200 libpmem1 librdmacm1t64 libslirp0 liburing2
+  libusbredirparser1t64
+Suggested packages:
+  samba vde2
+Recommended packages:
+  ibverbs-providers qemu-utils ipxe-qemu-256k-compat-efi-roms qemu-system-gui
+  qemu-system-modules-spice qemu-system-modules-opengl qemu-block-extra
+  cpu-checker
+The following NEW packages will be installed:
+  acl ipxe-qemu libaio1t64 libbrlapi0.8 libcacard0 libdaxctl1 libfdt1
+  libibverbs1 libndctl6 libnl-route-3-200 libpmem1 librdmacm1t64 libslirp0
+  libtpms0 liburing2 libusbredirparser1t64 ovmf qemu-system-common
+  qemu-system-data qemu-system-x86 seabios swtpm
+0 upgraded, 22 newly installed, 0 to remove and 175 not upgraded.
+Inst libnl-route-3-200 (3.7.0-0.3build1.1 Ubuntu:24.04/noble-updates [amd64])
+Inst libibverbs1 (50.0-2ubuntu0.2 Ubuntu:24.04/noble-updates [amd64])
+Inst acl (2.3.2-1build1.1 Ubuntu:24.04/noble-updates [amd64])
+Inst ipxe-qemu (1.21.1+git-20220113.fbbdc3926-0ubuntu2 Ubuntu:24.04/noble [all])
+Inst libaio1t64 (0.3.113-6build1.1 Ubuntu:24.04/noble-updates [amd64])
+Inst libbrlapi0.8 (6.6-4ubuntu5 Ubuntu:24.04/noble [amd64])
+Inst libcacard0 (1:2.8.0-3build4 Ubuntu:24.04/noble [amd64])
+Inst libdaxctl1 (77-2ubuntu2 Ubuntu:24.04/noble [amd64])
+Inst libndctl6 (77-2ubuntu2 Ubuntu:24.04/noble [amd64])
+Inst libpmem1 (1.13.1-1.1ubuntu2 Ubuntu:24.04/noble [amd64])
+Inst librdmacm1t64 (50.0-2ubuntu0.2 Ubuntu:24.04/noble-updates [amd64])
+Inst libslirp0 (4.7.0-1ubuntu3.1 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Inst libtpms0 (0.9.3-0ubuntu4.24.04.1 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Inst liburing2 (2.5-1build1 Ubuntu:24.04/noble [amd64])
+Inst libusbredirparser1t64 (0.13.0-2.1build1 Ubuntu:24.04/noble [amd64])
+Inst qemu-system-common (1:8.2.2+ds-0ubuntu1.18 Ubuntu:24.04/noble-updates [amd64])
+Inst qemu-system-data (1:8.2.2+ds-0ubuntu1.18 Ubuntu:24.04/noble-updates [all])
+Inst libfdt1 (1.7.0-2build1 Ubuntu:24.04/noble [amd64])
+Inst seabios (1.16.3-2 Ubuntu:24.04/noble [all])
+Inst qemu-system-x86 (1:8.2.2+ds-0ubuntu1.18 Ubuntu:24.04/noble-updates [amd64])
+Inst swtpm (0.7.3-0ubuntu5.24.04.1 Ubuntu:24.04/noble-updates [amd64])
+Inst ovmf (2024.02-2ubuntu0.10 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [all])
+Conf libnl-route-3-200 (3.7.0-0.3build1.1 Ubuntu:24.04/noble-updates [amd64])
+Conf libibverbs1 (50.0-2ubuntu0.2 Ubuntu:24.04/noble-updates [amd64])
+Conf acl (2.3.2-1build1.1 Ubuntu:24.04/noble-updates [amd64])
+Conf ipxe-qemu (1.21.1+git-20220113.fbbdc3926-0ubuntu2 Ubuntu:24.04/noble [all])
+Conf libaio1t64 (0.3.113-6build1.1 Ubuntu:24.04/noble-updates [amd64])
+Conf libbrlapi0.8 (6.6-4ubuntu5 Ubuntu:24.04/noble [amd64])
+Conf libcacard0 (1:2.8.0-3build4 Ubuntu:24.04/noble [amd64])
+Conf libdaxctl1 (77-2ubuntu2 Ubuntu:24.04/noble [amd64])
+Conf libndctl6 (77-2ubuntu2 Ubuntu:24.04/noble [amd64])
+Conf libpmem1 (1.13.1-1.1ubuntu2 Ubuntu:24.04/noble [amd64])
+Conf librdmacm1t64 (50.0-2ubuntu0.2 Ubuntu:24.04/noble-updates [amd64])
+Conf libslirp0 (4.7.0-1ubuntu3.1 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Conf libtpms0 (0.9.3-0ubuntu4.24.04.1 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Conf liburing2 (2.5-1build1 Ubuntu:24.04/noble [amd64])
+Conf libusbredirparser1t64 (0.13.0-2.1build1 Ubuntu:24.04/noble [amd64])
+Conf qemu-system-common (1:8.2.2+ds-0ubuntu1.18 Ubuntu:24.04/noble-updates [amd64])
+Conf qemu-system-data (1:8.2.2+ds-0ubuntu1.18 Ubuntu:24.04/noble-updates [all])
+Conf libfdt1 (1.7.0-2build1 Ubuntu:24.04/noble [amd64])
+Conf seabios (1.16.3-2 Ubuntu:24.04/noble [all])
+Conf qemu-system-x86 (1:8.2.2+ds-0ubuntu1.18 Ubuntu:24.04/noble-updates [amd64])
+Conf swtpm (0.7.3-0ubuntu5.24.04.1 Ubuntu:24.04/noble-updates [amd64])
+Conf ovmf (2024.02-2ubuntu0.10 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [all])

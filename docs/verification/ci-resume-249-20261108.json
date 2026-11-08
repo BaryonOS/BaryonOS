@@ -1,0 +1,500 @@
+{
+  "schema_version": 1,
+  "task": "Hervat PR #249, integreer main, verwerk vier reviewopmerkingen en bevestig CI-startblokkade",
+  "date": "2026-11-08",
+  "head_before": "575a50409ad7a86786bbfc7da2c409a545bed33f",
+  "integrated_main": "5b2189824c32145ad5c110429517dfcea3f2720f",
+  "common_ancestor": "363b486b06023d3d578f8eca2b23ff49045a1757",
+  "branch": "ci/github-hosted-runners-20261108",
+  "task_contract": {
+    "scope": "Vier documentconflicten oplossen, runnerconfiguratie en besluiten behouden, vier CodeRabbit-opmerkingen verifiëren en verwerken, startblokkade vastleggen",
+    "acceptance": "Productcode, testcommando’s en toolinstallatie ongewijzigd; uitsluitend de aanvullende uploadselectie beperkt; beide besluiten/checkpoints; consistente 41/100; fast-forward op PR-branch",
+    "runtime_boundary": "Geen nieuw host-/native acceptatiebewijs; geen wijziging van budget of zichtbaarheid"
+  },
+  "remote_source_import": {
+    "verified_head_tree": "93d3a3b251d682ca84ed67f61acee1288cf48651",
+    "verified_main_tree": "aeba905b32fc1d721943b06196da8d57c2a1ea3e",
+    "exact_commit_object_ids_verified": true,
+    "local_history": "Geisoleerde shallow Git-kopie met hashgecontroleerde remote objecten; oudere geschiedenis niet volledig"
+  },
+  "integration_checks": {
+    "exit_status": 0,
+    "files_outside_current_note_updates_verified": 6539,
+    "main_files_preserved_byte_for_byte": [
+      "LICENSE-PLAN.md",
+      "docs/implementation/EUROPE-AND-RELEASE.md",
+      "docs/verification/public-development-20261108.json"
+    ],
+    "both_decision_and_checkpoint_histories_preserved": true,
+    "single_next_agent_handoff": true,
+    "progress_register_unchanged_except_assessment": true,
+    "json_parsing_passed": true,
+    "conflict_markers_absent": true,
+    "git_diff_check_exit_status": 0,
+    "document_sha256": {
+      "README.md": "726c972452c79cedaccb6f69f225276891392caebd26ad4818ddd16f9814c506",
+      "docs/CI.md": "725a21a835c6c516710679eb4cfca1d0951452765c970e15b9cfb78ef779615c",
+      "docs/DECISIONS.md": "219c33815fe604f22d5e293970ed46aa35adcb2ffabaaf4b74ac2932ec2ae868",
+      "docs/PROGRESS.md": "ac58e1897b813a1578fff788a9f30e57b45e53f8495065a938d0839ce5f508df",
+      "docs/PROJECT-STATE.md": "ceccc7850edbbcf2a36fff4a169690758c7bedc654481f04d9da4d677a3b2e47",
+      "docs/assets/progress.svg": "70502e7a1b3574292a3126dd27036b8c4e0c7dba5732555687bcb76ebb751e29",
+      "docs/progress.json": "463e6ada1d972769cb690be7b82f7c44b5bf974265daab80afafbe868672bcba",
+      "docs/verification/ci-standard-runners-20261108.json": "5902a1b7eaed607cba47519ec668b92b84a8a3b8d69bcf86418a2624559a4e4b"
+    },
+    "product_code_test_commands_tool_installation_unchanged_from_head": true,
+    "workflow_change": {
+      "path": ".github/workflows/ci.yml",
+      "only_changed_yaml_value": "jobs.qemu-smoke.steps[Preserve compact QEMU diagnostics].with.path",
+      "all_other_yaml_equal_to_head": true
+    }
+  },
+  "commands": [
+    {
+      "command": "python3 -B tools/progress.py --write",
+      "exit_status": 0,
+      "score": 41
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_status": 0,
+      "score": 41
+    },
+    {
+      "command": "git diff --check HEAD",
+      "exit_status": 0
+    },
+    {
+      "command": "Tijdelijke Python/YAML-fixture: uploadselectie, behoud overige workflowvelden, bronblob-/historischehashvergelijking en telscope",
+      "exit_status": 0
+    }
+  ],
+  "observed_hosted_execution": {
+    "source_head": "575a50409ad7a86786bbfc7da2c409a545bed33f",
+    "run_ids": [
+      42511934799,
+      42511934789,
+      42511934815,
+      42511934811,
+      42511934805,
+      42511934816,
+      42511934820,
+      42511934872,
+      42511934866,
+      42511934861,
+      42511934810,
+      42511934788,
+      42511934795,
+      42511934852,
+      42511934802,
+      42511934817,
+      42511934828,
+      42511934791,
+      42511934846,
+      42511934859
+    ],
+    "run_count": 20,
+    "job_count": 41,
+    "failed_without_runner": 39,
+    "skipped": 2,
+    "failed_runner_id": 0,
+    "skipped_runner_id": null,
+    "all_step_lists_empty": true,
+    "ci_run_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934820",
+    "annotation_observed_via": "Aangemelde GitHub-runpagina, zichtbare browser-UI op 8 november 2026",
+    "annotation": "The job was not started because an Actions budget is preventing further use.",
+    "budget_amount_or_usage_read": false,
+    "jobs": [
+      {
+        "id": 128826675708,
+        "name": "net-tls-quality",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934799/job/128826675708"
+      },
+      {
+        "id": 128826675671,
+        "name": "b03-native-update",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934789/job/128826675671"
+      },
+      {
+        "id": 128826676204,
+        "name": "component-quality (artifact-store)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676204"
+      },
+      {
+        "id": 128826676396,
+        "name": "component-quality (audio-clip)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676396"
+      },
+      {
+        "id": 128826676411,
+        "name": "component-quality (acpi-power)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676411"
+      },
+      {
+        "id": 128826676438,
+        "name": "component-quality (table-editor)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676438"
+      },
+      {
+        "id": 128826676474,
+        "name": "component-quality (presentation)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676474"
+      },
+      {
+        "id": 128826676481,
+        "name": "component-quality (image-viewer)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676481"
+      },
+      {
+        "id": 128826676524,
+        "name": "component-quality (usb)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676524"
+      },
+      {
+        "id": 128826676536,
+        "name": "component-quality (virtio-snd)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676536"
+      },
+      {
+        "id": 128826676539,
+        "name": "component-quality (ai-model-reader)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676539"
+      },
+      {
+        "id": 128826676549,
+        "name": "component-quality (materiaal-ui)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676549"
+      },
+      {
+        "id": 128826676568,
+        "name": "component-quality (image-export)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676568"
+      },
+      {
+        "id": 128826676569,
+        "name": "component-quality (document-import)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676569"
+      },
+      {
+        "id": 128826676572,
+        "name": "component-quality (spreadsheet)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676572"
+      },
+      {
+        "id": 128826676580,
+        "name": "component-quality (image-crop)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676580"
+      },
+      {
+        "id": 128826676598,
+        "name": "component-quality (document-export)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676598"
+      },
+      {
+        "id": 128826676675,
+        "name": "component-quality (net-config)",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934815/job/128826676675"
+      },
+      {
+        "id": 128826675729,
+        "name": "native-rtc",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934811/job/128826675729"
+      },
+      {
+        "id": 128826675919,
+        "name": "b01-native-supervisor",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934805/job/128826675919"
+      },
+      {
+        "id": 128826675907,
+        "name": "artifact-store-core",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934816/job/128826675907"
+      },
+      {
+        "id": 128826675963,
+        "name": "host-quality",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934820/job/128826675963"
+      },
+      {
+        "id": 128826684981,
+        "name": "qemu-smoke",
+        "conclusion": "skipped",
+        "runner_id": null,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934820/job/128826684981"
+      },
+      {
+        "id": 128826676272,
+        "name": "app-package-core and app-management host/target quality",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934872/job/128826676272"
+      },
+      {
+        "id": 128826676526,
+        "name": "native-smp",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934866/job/128826676526"
+      },
+      {
+        "id": 128826676400,
+        "name": "k07-native",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934861/job/128826676400"
+      },
+      {
+        "id": 128826675962,
+        "name": "native-foundation",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934810/job/128826675962"
+      },
+      {
+        "id": 128826675940,
+        "name": "k05-native-supervisor",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934788/job/128826675940"
+      },
+      {
+        "id": 128826675977,
+        "name": "native-window-session",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934795/job/128826675977"
+      },
+      {
+        "id": 128826676319,
+        "name": "net-broker-quality",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934852/job/128826676319"
+      },
+      {
+        "id": 128826686498,
+        "name": "native-network-service",
+        "conclusion": "skipped",
+        "runner_id": null,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934852/job/128826686498"
+      },
+      {
+        "id": 128826675861,
+        "name": "package-and-verify",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934802/job/128826675861"
+      },
+      {
+        "id": 128826676060,
+        "name": "s08-native-resilience",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934817/job/128826676060"
+      },
+      {
+        "id": 128826675835,
+        "name": "native-system",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934828/job/128826675835"
+      },
+      {
+        "id": 128826676145,
+        "name": "m6e-native-volume",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934791/job/128826676145"
+      },
+      {
+        "id": 128826676385,
+        "name": "nas-native-normal-cold",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934846/job/128826676385"
+      },
+      {
+        "id": 128826676395,
+        "name": "nas-native-volume-host-target",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934846/job/128826676395"
+      },
+      {
+        "id": 128826676620,
+        "name": "nas-native-core-host-target",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934846/job/128826676620"
+      },
+      {
+        "id": 128826676651,
+        "name": "nas-native-client-host-target",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934846/job/128826676651"
+      },
+      {
+        "id": 128826676653,
+        "name": "nas-native-probe-host-target",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934846/job/128826676653"
+      },
+      {
+        "id": 128826676328,
+        "name": "native-display-input",
+        "conclusion": "failure",
+        "runner_id": 0,
+        "step_count": 0,
+        "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934859/job/128826676328"
+      }
+    ]
+  },
+  "review": {
+    "kind": "Afzonderlijke read-only AI-review, geen menselijke audit",
+    "verdict": "Geen inhoudelijke blockers in de geintegreerde werkbestanden",
+    "scope": "Tweede AI controleerde de documentintegratie en concrete uploadproducenten; een afzonderlijke AI verifieerde tellingen en historische hashes. Hoofdagent controleerde het finale JSON en de daadwerkelijke nieuwe selectie.",
+    "limitation": "Geen menselijke audit en geen nieuwe hosted/native testuitvoering."
+  },
+  "previous_results": "224 eerdere Python-hosttests en de gepauzeerde QEMU-toolprobe blijven gebonden aan ci-standard-runners-20261108.json; niet opnieuw uitgevoerd of omgelabeld",
+  "not_run": [
+    "Volledige Rust/Node host-quality-suite",
+    "Hosttests onder exact Python 3.12.12",
+    "Zes eigen-OS qemu-smoke-starts",
+    "Fysieke hardwareacceptatie"
+  ],
+  "progress": {
+    "before": 41,
+    "after": 41,
+    "new_accepted_criteria": []
+  },
+  "rollback": "Gerichte revert via PR; behoud overige main-besluiten en branchbescherming",
+  "configuration_sha256": {
+    ".github/workflows/ci.yml": "724167c9b7c0a3931f57973f1e4e3a0fbe2826461c1c45584090d61968124161"
+  },
+  "upload_selection_check": {
+    "kind": "Tijdelijke synthetische padenfixture; geen guest- of uploaduitvoering",
+    "exit_status": 0,
+    "selection_patterns": 53,
+    "selected_expected_paths": 53,
+    "excluded_decoy_paths": 26,
+    "six_guest_labels_covered": true,
+    "all_patterns_matched_fixture": true,
+    "unrelated_nested_files_images_firmware_and_binaries_excluded": true,
+    "preflight_remains_stdout_only": true,
+    "upload_error_policy_retention_conditions_unchanged": true
+  },
+  "counting_check": {
+    "exit_status": 0,
+    "yaml_parser": "PyYAML 6.0.3",
+    "regular_workflow_yaml": 21,
+    "composite_action_yaml": 2,
+    "non_yaml_requirements": 1,
+    "workflow_shell_blocks": 167,
+    "action_shell_blocks": 3,
+    "combined_shell_blocks": 170,
+    "historical_configuration_hashes_verified": 24
+  },
+  "review_followup": [
+    {
+      "comment_id": 4507375177,
+      "result": "Brede recursieve uploadselectie vervangen door 53 concrete of direct begrensde paden; positieve en negatieve selectiecontrole geslaagd."
+    },
+    {
+      "comment_id": 4507375180,
+      "result": "CI.md labelt geïmplementeerde configuratie, historisch lokaal bewijs en nog niet uitgevoerde hosted setup/gates expliciet; budgetblokkade bevestigd."
+    },
+    {
+      "comment_id": 4507375184,
+      "result": "Historisch runnerbesluit verduidelijkt naar de inmiddels ingevoerde gedeelde setup-qemu; overige voorwaarden behouden."
+    },
+    {
+      "comment_id": 4507375189,
+      "result": "167/170/23 zijn correct binnen hun telscope; scope toegelicht zonder historische resultaten of hashes te vervangen."
+    }
+  ]
+}

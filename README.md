@@ -39,12 +39,12 @@ voor vragen en voorstellen · [Melding of taak](https://github.com/simonvanieper
 Het bestaande **MPL-2.0-plan voor de eigen OS-code** is het uitgangspunt voor
 de licentiecontrole. De projectlicentie is nog niet toegepast; rechten,
 afhankelijkheden, notices en voorwaarden voor documentatie, assets en extern
-bronmateriaal worden vóór publicatie gecontroleerd.
+bronmateriaal worden in de afzonderlijke licentiecontrole beoordeeld.
 
 [Licentieplan en open controles](LICENSE-PLAN.md) ·
 [Vastgelegd besluit](docs/DECISIONS.md#adr-public-development-20261108--openbare-ontwikkeling-met-mpl-20-als-controlebasis).
-De daadwerkelijke openbaarmaking volgt na de publicatiecontroles; dit
-richtingbesluit is geen claim van een voltooide productrelease.
+De repository is openbaar. De licentiecontrole en productacceptatie blijven
+afzonderlijke trajecten; openbare broncode is geen voltooide productrelease.
 
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
@@ -78,10 +78,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`5b218982`](https://github.com/simonvanieperen/nieuw-os/commit/5b2189824c32145ad5c110429517dfcea3f2720f) ·
-**Ontwikkelbranch:** `community/discussions-templates-20261108`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Discussies en bijdrageformulieren inrichten na repositoryonderzoek.
-41/100 blijft 41/100. Communitycategorieën, startdiscussies, issue- en discussieformulieren, PR-template en routing toegevoegd. YAML-, link- en pipelineparsercontrole; geen runtimecode, nieuwe native acceptatie of criteriumwijziging. Activering van templates volgt de bestaande PR- en branchregels. De openbare ontwikkelrichting en MPL-2.0-controlebasis uit PR #250 zijn bij integratie behouden; publicatiecontroles blijven open.
+**Bron:** [`338bec8c`](https://github.com/simonvanieperen/nieuw-os/commit/338bec8ca34ba8eb2451eb660a0f1790c194efd2) ·
+**Ontwikkelbranch:** `ci/github-hosted-runners-20261108`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Publieke GitHub Actions stroomlijnen op standaard hosted runners.
+41/100 blijft 41/100. Runner- en artifactwijzigingen geïntegreerd in bestaande PR #249; 23 workflows op ubuntu-24.04, parallelle vereiste checks, minder dubbele triggers en componentjobs, bijgewerkte hostcache en hosted Copilot-setup. De 248 Python-tests en 179 shellsyntaxcontroles zijn lokaal bewijs voor de working tree op integratiebasis 39586927, gepubliceerd als broncommit 338bec8c; [het controleverslag met bronhashes](docs/verification/ci-public-runners-20261108.json) bindt dat bewijs aan de geteste bestanden. De 224 tests behoren tot het eerdere checkpoint d3d8e3e0. Bestaande testcommando’s en bewijsselecties behouden; GitHub-uitvoering wordt afzonderlijk beoordeeld. Geen productcriterium, gewicht of native acceptatie toegevoegd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

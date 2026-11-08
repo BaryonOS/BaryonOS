@@ -1979,7 +1979,9 @@ regressie werkelijk slagen. Geen authenticatie-, encryptie- of hardwareclaim.
 
 ## ADR-CI-RUNNERS-20261106 — Linux-CI alleen op de Unraid-runners
 
-Status: aangenomen, 6 november 2026 (opdracht Simon, PR #241).
+Status: runnerkeuze vervangen door ADR-CI-HOSTED-20261108; overige afspraken
+over artifacts en verplichte checks blijven gelden. Oorspronkelijk aangenomen
+op 6 november 2026 (opdracht Simon, PR #241).
 
 **Besluit:**
 - Elke workflowjob draait op `[self-hosted, Linux, X64, unraid, build]`.
@@ -2001,6 +2003,84 @@ Status: aangenomen, 6 november 2026 (opdracht Simon, PR #241).
   beoordeeld.
 - De twee Tower-runners delen één fysieke host. Daardoor draaien er maximaal twee zware jobs
   tegelijk, maar CPU, RAM en I/O van die host zijn niet gemeten.
+
+## ADR-CI-HOSTED-20261108 — Standaard GitHub-hosted Ubuntu-runners
+
+Status: aangenomen, 8 november 2026, op expliciete opdracht van Simon om de
+workflows van self-hosted naar GitHub-hosted runners om te zetten.
+
+**Besluit:** alle 24 jobdefinities in de 21 bestaande workflows gebruiken
+`runs-on: ubuntu-24.04`. De component- en toolchainmatrices leveren samen
+42 jobs op. Nieuwe of nog open workflowwijzigingen moeten dezelfde runnerkeuze
+aanhouden; een oude branch mag de self-hosted selectie niet opnieuw invoeren.
+Dit vervangt de runnerkeuze en de eerdere budgetbeperking in
+ADR-CI-RUNNERS-20261106. Het vaste Ubuntu-image behoudt de Linux/x64-omgeving
+voor de bestaande `pc-q35-8.2`-proeven, ook voor het op Linux gebouwde
+Windows-QEMU-testpakket.
+
+De bestaande Rust-pins, testcommando's, time-outs, rechten, verplichte checks,
+padfilters en artifactretentie van drie dagen blijven behouden. De QEMU-/
+firmwarestappen verwijzen inmiddels naar `.github/actions/setup-qemu` volgens
+ADR-CI-PINS-20261108; die gedeelde, gepinde setup vervangt de oorspronkelijke
+losse apt-installatie van ontbrekende pakketten. De host-Rust-buildcache
+krijgt een nieuwe namespace met `ubuntu-24.04`, zodat oude self-hosted
+buildresultaten niet worden hersteld. Cargo-downloadcaches blijven bruikbaar;
+native images en acceptatieresultaten worden niet gecachet.
+
+**Kosten en publicatie:** standaard GitHub-hosted runners zijn gratis en
+onbeperkt te gebruiken voor openbare repositories, binnen de uitvoerings- en
+concurrencylimieten. Voor private repositories geldt het inbegrepen
+computebudget en eventuele extra facturering. Grotere runners vallen niet
+onder deze keuze. De GitHub-API meldde bij deze wijziging `private: true`;
+deze opdracht verandert de zichtbaarheid of betaalinstellingen niet.
+Artifact- en cacheopslag hebben afzonderlijke limieten.
+
+**Bewijsgrens en herstel:** de configuratiecontrole staat in
+`verification/github-hosted-runners-20261108.json`. Een runnerlabel of geldige
+YAML is geen native bootbewijs; daarvoor blijven de bestaande CI-gates op de
+nieuwe PR-head nodig. Terugdraaien kan met een gerichte revert van deze
+migratie, zonder andere bronwijzigingen of branchregels aan te passen.
+
+**Primaire bronnen, geraadpleegd 8 november 2026:**
+- GitHub. (z.d.). *GitHub-hosted runners reference*.
+  https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+- GitHub. (z.d.). *GitHub Actions billing*.
+  https://docs.github.com/en/billing/concepts/product-billing/github-actions
+- GitHub. (z.d.). *Actions limits*.
+  https://docs.github.com/en/actions/reference/limits
+
+
+## ADR-CI-PINS-20261108 — Vaste tools voor reguliere hosted CI
+
+Status: aangenomen, 8 november 2026, op Simons vervolgopdracht. Dit besluit
+vult ADR-CI-HOSTED-20261108 aan en vervangt daar de losse installatie van
+ontbrekende emulatorpakketten. Het betreft 21 reguliere workflows; de
+later toegevoegde private publicatie-audit behoudt zijn afzonderlijke scope.
+
+**Besluit:** gedeelde lokale Actions installeren Python 3.12.12 en QEMU/
+firmware uit Ubuntu-snapshot 20261108T000000Z. Alle pakketversies zijn exact;
+APT verifieert de ondertekende indexen en payloads. Na installatie worden
+versies, TCG, machine pc-q35-8.2 en firmwarehashes gecontroleerd. PyYAML,
+reeds gebruikt door de host-gate, krijgt een exact gehasht 6.0.3-wheel.
+Rust 1.90.0, bestaande 1.91.1-controles en Node 24.22.1 blijven behouden.
+
+**Tests en gevolgen:** 99 bestaande runner-/preflight-/M6c-hosttests komen
+in host-quality. De bestaande zes native rookteststarts, harnasvoorwaarden,
+jobtijdslimieten, rechten en triggers blijven gelijk. Een aanvullende
+compacte QEMU-diagnose-upload is best effort en wijzigt de verplichte
+testuitslag niet. Lokale agent-gates slaan uitsluitend GitHub-setup en
+runnerdiagnostiek over; strikte preflight en native proeven blijven nodig.
+
+**Bewijsgrens:** de runnerdistributie en tools zijn geselecteerd, maar de
+complete VM en vooraf geïnstalleerde gedeelde bibliotheken zijn niet
+immutable. Nieuwe-head Rust/OS-gates blijven afzonderlijk bewijs. Een
+hosttest of QEMU-toolprobe bewijst geen productacceptatie. Score 41/100
+blijft gelijk. Pinupdates vereisen herhaalde controle; herstel gebeurt via
+een gerichte revert zonder branchregels te versoepelen.
+
+Bronnen, versies, uitvoering en herzieningsroute: [CI.md](CI.md),
+[controleverslag](verification/ci-standard-runners-20261108.json) en
+[pakketprovenance](verification/ci-packages-20261108.json).
 
 ## ADR-PUBLIC-DEVELOPMENT-20261108 — Openbare ontwikkeling met MPL-2.0 als controlebasis
 
@@ -2049,3 +2129,123 @@ verleende rechten of verspreide kopieën niet automatisch in.
 **Bronnen:** de gebruikersopdracht van 8 november 2026; het bestaande
 licentieplan; Mozilla's officiële MPL-2.0-tekst en FAQ, met volledige
 bronvermeldingen in [LICENSE-PLAN.md](../LICENSE-PLAN.md).
+
+## ADR-CI-EVIDENCE-20261108 — testuitslag los van artifactopslag
+
+**Status:** besloten en geïmplementeerd op `ci/artifact-storage-20261108`
+in PR #251; opname in main volgt de bestaande checks en reviewregels.
+**Eigenaar:** Simon van Ieperen.
+
+**Datum:** 8 november 2026. Opdracht Simon: artifactopslag mag het bewaren
+van testbewijs en de workflow niet blijven blokkeren. Op main `363b486b`
+slagen de onderzochte native tests, maar upload-artifact weigert nieuwe
+archieven wegens quota. Drie dagen retentie was al ingesteld.
+
+**Alternatieven:** alleen retentie verkorten helpt bestaande quota niet
+direct en stond al op drie dagen. Gerichte opruiming kan ruimte vrijmaken,
+maar is geen structurele bescherming tegen opnieuw volle opslag en vraagt
+eerst een gecontroleerde inventaris van te behouden bewijs. Alleen de oude
+uploads niet-blokkerend maken laat bij uitval geen compact brongebonden
+rapport achter. Externe opslag introduceert een nieuwe opslag- en
+toegangsgrens en is voor deze reparatie niet nodig.
+
+**Besluit:** alle vijftien bewijsuploads gebruiken één lokale composite
+action. Die schrijft eerst begrensde rapporten, bronbinding en ontbrekende
+bestanden naar runlog/summary en een compact receipt. Alleen de uploads
+zijn best effort; tests, builds, validators en de collector blijven
+verplicht. De oorspronkelijke error/warn-keuze voor geheel ontbrekend
+bewijs blijft behouden. Werkelijke upload-outcomes zijn apart zichtbaar.
+
+Normale rapportarchieven zijn begrensd en blijven drie dagen beschikbaar.
+Ruwe images, frames en buildmappen worden uitsluitend op handmatig verzoek
+als volledig archief geüpload, met één dag retentie. Windows-test-ZIPs
+blijven apart beschikbaar na geslaagde controles als hun upload lukt, ook
+één dag. Bij een volledig archief is geen tweede ZIP-upload nodig.
+
+Een rapport met hash vervangt geen ruwe bytes voor onafhankelijke
+hercontrole. Native acceptatievoorwaarden, downloadstatus en vaste
+voortgangscriteria worden niet versoepeld. De runnerkeuze, toolversies,
+checknamen, betaalinstellingen en opslagrechten wijzigen door dit besluit
+niet. Geen artifacts of workflowruns worden ongericht verwijderd.
+
+**Security-invariant:** de compacte collector leest uitsluitend de expliciete
+selectie binnen de checkout, volgt geen symlinks en weigert verborgen paden.
+Inhoud blijft bytegelijk in het compacte pakket; workflowcommando's en
+controlbytes worden alleen voor de runlogweergave inert gemaakt. Bestands-,
+scan- en uitvoerbudgetten zijn begrensd. Het Windows-pakket moet een echt
+bestand binnen de checkout zijn; beide package-workflows selecteren die ZIP
+ook expliciet of via haar bovenliggende directory in het volledige archief.
+De configuratieverifier controleert dit inclusief weggelaten-packagegevallen.
+Dit is geen algemene secretscan; full-evidence behoudt de oorspronkelijke
+workflowselectie en is geen door de compacte collector gefilterd archief.
+
+**Testbewijs:** de oorspronkelijke verificatie omvat 15 collector-hosttests
+en 151 lokale YAML-/shellcontroles, vastgelegd in
+`docs/verification/ci-artifact-storage-20261108.json`. De vervolgcontrole
+staat in `docs/verification/ci-artifact-storage-20261108/review-followup.json`.
+Op mergecheckout `89722c5f` van PR-head `5c291cff` zijn bovendien de echte native-display-input- en
+B03-jobs geslaagd terwijl de rapportupload wegens artifactquota faalde;
+bronbinding en gelabeld rapportbewijs bleven in de runlog staan. Dit bewijst
+de geteste terugval bij uploadfalen; geen geslaagde artifactdownload,
+Windows-uitvoering, volledige raw-hercontrole of nieuwe productacceptatie.
+
+**Migratie/rollback:** opname van PR #251 activeert de gedeelde action voor
+nieuwe runs. Bestaande artifacts, bewaartermijnen en runlogs worden niet
+gewijzigd. Terugdraaien gebeurt met een gerichte revert-PR van deze wijziging;
+dan keren de oorspronkelijke blokkerende uploadstappen terug. Behoud
+wijzigingen van andere branches en bestaand acceptatiebewijs.
+
+**Herzien wanneer:** een volgende job artifacts moet downloaden, een echte
+releaselevering verplicht wordt, of het meetbare rapportbudget structureel
+te klein blijkt. Een benodigde artifactoverdracht krijgt dan een eigen
+verplichte leveringsgate. Werkwijze, bronnen en rollback: [CI-EVIDENCE.md](CI-EVIDENCE.md).
+
+## ADR-CI-PUBLIC-20261108 — publieke CI zonder eigen runners
+
+**Status:** besloten en geïmplementeerd in bestaande PR #249; nieuwe GitHub-
+uitvoering en samenvoeging worden apart vastgelegd. **Eigenaar:** Simon van
+Ieperen. **Datum:** 8 november 2026. De GitHub-repository is aantoonbaar public.
+
+**Besluit:** integreer de vaste hosted toolchain uit #249 met de compacte
+bewijsroute uit #251. Alle jobselectors, ook de private historische audit en
+Copilot-setup, zijn `ubuntu-24.04`. Geen nieuwe self-hosted infrastructuur.
+De private audit behoudt zijn voorwaarde en publiceert niet automatisch
+historische auditinhoud op de publieke repository.
+
+Verwijder de dubbele `ready_for_review`-trigger; test concept-PRs al op
+openen/wijzigen/heropenen. Spiegel bestaande documentfilters naar main-pushes
+van specialistische workflows. Behoud de ongefilterde verplichte checks
+`host-quality` en `qemu-smoke`, die onafhankelijk parallel kunnen draaien.
+Behoud bestaande concurrencygroepen en tijdslimieten. De componentmatrix
+verliest twee dubbele entries; hun checks blijven in de gespecialiseerde
+display/input- en artifact-store-workflows staan, inclusief scalar build.
+Maximaal vier matrixjobs tegelijk. De hostbuildcache krijgt een bron-SHA
+plus een compatibele herstelprefix; geen gecachte native acceptatie.
+
+**Alternatieven:** een tweede migratie-PR zou dezelfde configuratie opnieuw
+laten botsen. Iedere native gate door een nieuw centraal padclassificatie-
+script laten overslaan vergroot de kans op ontbrekende required checks.
+Generieke self-hosted labels of betaalde grotere runners passen niet bij
+de expliciete keuze voor de standaard publieke GitHub-runners.
+
+**Security-invariant:** PR-code behoudt een read-only token, externe Actions
+blijven op commit-SHA gepind en checkout bewaart geen credentials. Geen
+`pull_request_target`-uitvoering van PR-code. Alleen artifactuploads mogen
+falen zonder de testuitslag te vervangen. De YAML-regressietests bewaken
+deze grenzen en het behoud van de vereiste checks. Native orakels, negatieve
+gevallen, markers en productcriteria blijven behouden.
+
+**Testbewijs:** lokale hosttests, configuratie-/shellcontrole, bronbehoud en
+nieuwe GitHub-runs worden brongebonden vastgelegd in
+`verification/ci-public-runners-20261108.json`. Historische testuitslagen
+uit #249/#251 blijven bij hun oorspronkelijke bron. Geen productpunt: 41/100.
+
+**Migratie/rollback:** samenvoegen van de bestaande PR #249 activeert de
+gecombineerde wijziging; #251 pas als ingehaald behandelen na bewezen
+inhoudsopname. Gerichte revert via PR, zonder andere code of opgeslagen
+bewijsarchieven te verwijderen. De oude Copilot-WSL-keuze uit #245 is
+vervangen door een hosted setup; die branch mag geen self-hosted selector
+terugbrengen. **Herzien wanneer:** echte runnerduur, foutlogs of benodigde
+checks een aantoonbare uitvoeringsaanpassing vragen.
+
+Bronnen en uitvoeringsroute: [CI.md](CI.md).

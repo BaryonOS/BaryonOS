@@ -1,11 +1,18 @@
 name: Native RANDOM and image foundation acceptance
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened]
     paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
+    paths-ignore: ['docs/**', '*.md']
 
 permissions:
   contents: read
@@ -20,7 +27,7 @@ defaults:
 
 jobs:
   native-foundation:
-    runs-on: [self-hosted, Linux, X64, unraid, build]
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
@@ -35,6 +42,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
       - name: Pinned Rust, lint tools and real targets
         run: |
           rustup toolchain install 1.90.0 --profile minimal
@@ -47,9 +56,12 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
-      - name: Disposable QEMU and matching OVMF package
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Ubuntu emulator package diagnostics
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
         run: |
-          dpkg -s qemu-system-x86 ovmf >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf; }
           test -f "$OS_OVMF_CODE"
           test -f "$OS_OVMF_VARS"
           mkdir -p "$NOS_BUILD_DIR/logs"
@@ -178,11 +190,11 @@ jobs:
           git diff --exit-code 2>&1 | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/tracked-diff.txt"
           git status --porcelain | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/git-status.txt"
           test -z "$(git status --porcelain)"
-      - name: Preserve complete bound builds, raw runs and failure reports
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: native-foundation-evidence
           path: build/foundation-ci/
-          if-no-files-found: error
-          retention-days: 3
