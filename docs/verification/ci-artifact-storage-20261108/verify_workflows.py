@@ -14,7 +14,7 @@ import datetime as dt
 import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import subprocess
 import tempfile
 
@@ -26,6 +26,7 @@ class UniqueLoader(yaml.BaseLoader):
 
 
 def unique_mapping(loader, node):
+    """Load a mapping without silently replacing an earlier duplicate key."""
     result = {}
     for key_node, value_node in node.value:
         key = loader.construct_object(key_node)
@@ -39,10 +40,12 @@ UniqueLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, uni
 
 
 def digest(value):
+    """Bind recorded evidence to the exact supplied bytes."""
     return hashlib.sha256(value).hexdigest()
 
 
 def shell(script, env, cwd):
+    """Run a repository shell fragment with a ten-second fixture timeout."""
     return subprocess.run(
         ["bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", script],
         env=os.environ | env,
@@ -54,14 +57,41 @@ def shell(script, env, cwd):
     )
 
 
+def package_is_selected(package, selection):
+    """Prove inclusion by an explicit file or directory, without glob guesses.
+
+    The current package workflows use literal paths. Reject exclusions, hidden
+    paths and traversal because a successful raw upload alone does not establish
+    that the separately verified ZIP was included in that upload.
+    """
+    target = PurePosixPath(package)
+    if (not package or target.is_absolute() or ".." in target.parts
+            or any(part.startswith(".") for part in target.parts)
+            or any(char in package for char in "*?[")):
+        return False
+    paths = [line.strip() for line in selection.splitlines() if line.strip()]
+    if any(path.startswith("!") for path in paths):
+        return False
+    for path in paths:
+        selected = PurePosixPath(path)
+        if selected.is_absolute() or ".." in selected.parts or any(char in path for char in "*?["):
+            continue
+        if target == selected or (path.endswith("/") and target.is_relative_to(selected)):
+            return True
+    return False
+
+
 def run(repo, baseline):
+    """Check workflow contracts and execute bounded local reporting fixtures."""
     checks = []
     hashes = {}
 
     def record(name, passed, **detail):
+        """Keep each assertion and its observed evidence in the JSON report."""
         checks.append({"name": name, "passed": bool(passed), **detail})
 
     def read_yaml(path):
+        """Hash and parse a YAML file while preserving Actions scalar spelling."""
         data = path.read_bytes()
         hashes[str(path.relative_to(repo))] = digest(data)
         return yaml.load(data.decode(), Loader=UniqueLoader)
@@ -97,6 +127,18 @@ def run(repo, baseline):
     record("input-env-no-shell-interpolation", all(
         "${{" not in step.get("run", "") for step in steps
     ))
+    for name, package, selection, expected in [
+        ("exact-file", "build/evidence/bundle.zip", "build/evidence/bundle.zip", True),
+        ("parent-directory", "build/evidence/bundle.zip", "build/evidence/", True),
+        ("absent-package", "build/evidence/bundle.zip", "build/result.json", False),
+        ("similar-prefix", "build/evidence-other/bundle.zip", "build/evidence/", False),
+        ("excluded-package", "build/evidence/bundle.zip", "build/evidence/\n!build/evidence/bundle.zip", False),
+        ("hidden-package", "build/.private/bundle.zip", "build/", False),
+        ("outside-workspace", "../bundle.zip", "../bundle.zip", False),
+        ("unproven-glob", "build/evidence/bundle.zip", "build/**/*.zip", False),
+    ]:
+        record("package-selection-fixture:" + name,
+               package_is_selected(package, selection) == expected)
 
     expected_extra_test = "python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'\n"
     archive_workflows = []
@@ -117,6 +159,17 @@ def run(repo, baseline):
                        and old["with"]["name"] == new["with"]["name"])
                 policy = new["with"].get("if-no-files-found", action["inputs"]["if-no-files-found"]["default"])
                 record("no-files-policy:" + path, old["with"].get("if-no-files-found", "warn") == policy)
+                package = new["with"].get("package-path", "")
+                if package:
+                    selection = new["with"]["path"]
+                    record("package-in-full-selection:" + path,
+                           package_is_selected(package, selection), package_path=package)
+                    without_package = "\n".join(
+                        line for line in selection.splitlines()
+                        if not package_is_selected(package, line)
+                    )
+                    record("removed-package-selection-rejected:" + path,
+                           not package_is_selected(package, without_package))
             dispatch = after["on"].get("workflow_dispatch", {})
             record("manual-default-compact:" + path,
                    dispatch.get("inputs", {}).get("full_evidence", {}).get("default") == "false")
@@ -265,6 +318,7 @@ def run(repo, baseline):
 
 
 def main():
+    """Write the verification report and fail when any recorded check fails."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)

@@ -1,39 +1,79 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — CI-artifactopslag — 8 november 2026
+## NEXT AGENT HANDOFF — PR #251 artifactopslag hervat — 8 november 2026
 
-**Bron:** main `363b486b06023d3d578f8eca2b23ff49045a1757`; werkbranch
+**Bron:** PR #251, head `5c291cff3b9c28e4948aeb36adda3acc6ee6a8ab`;
+oorspronkelijke basis `363b486b06023d3d578f8eca2b23ff49045a1757`; geïntegreerde
+main `5b2189824c32145ad5c110429517dfcea3f2720f` (openbare projectrichting); werkbranch
 `ci/artifact-storage-20261108`. **41 → 41/100**; geen criterium gewijzigd.
-Scope: archivering van testbewijs. De afzonderlijke runner-/toolchainmigratie
-blijft een eigen wijziging. Besluit: ADR-CI-EVIDENCE-20261108.
+Scope: bestaande artifactreparatie afronden. De runner-/toolchainmigratie
+blijft een afzonderlijke wijziging. Besluit: ADR-CI-EVIDENCE-20261108.
 
-**Gerealiseerd:** vijftien workflows gebruiken een gedeelde collector/action.
-Bronbinding en compacte rapporten verschijnen vóór de upload in runlog en
-summary. Alleen upload-artifact mag bij quota falen zonder teststatus te
-veranderen. Verplichte outputcontroles en de bestaande testgates blijven
-intact. Volledige raw-archieven zijn een handmatige optie (één dag); compacte
-rapporten blijven drie dagen. Windows-ZIPs hebben een eigen zichtbare
-leveringsstatus. Zie [CI-EVIDENCE.md](CI-EVIDENCE.md).
+**Gerealiseerd:** vijftien workflows gebruiken al de gedeelde collector/action.
+Dit vervolg vult de concrete ADR-reviewvelden en ontbrekende docstrings aan,
+en voegt twaalf configuratiecontroles toe voor opname van het Windows-pakket
+in het volledige archief. De twee huidige package-workflows voldeden al;
+ook het verwijderen van hun betreffende padregel wordt nu gedetecteerd.
+Collector en collectortests hebben na verwijderen van docstrings dezelfde AST
+als de bron. Geen workflow, uploadactie, testgate of runnerkeuze gewijzigd.
+De advisory over veertien callees in `collect()` is beoordeeld: orkestratie
+van expliciete selectie-, lees-, budget- en rapportstappen; geen aangetoond
+defect en geen cosmetische herstructurering van de veiligheidsgrenzen.
 
-**Diagnose:** de zes onderzochte nieuwste native main-jobs hebben geslaagde
-teststappen en falen uitsluitend op artifactquota. Een actuele accountbrede
-opslagtelling is niet beschikbaar; recente rungebonden artifactlijsten zijn
-leeg. Geen verwijderde bytes of volledige quota-opruiming geclaimd.
+**Werkelijk runtimebewijs:** native-display-input (run `42511057121`, job
+`128824002965`) en B03 signed updates (run `42511057222`, job `128824003122`)
+zijn op PR-mergecheckout `89722c5fd132beeecd95ae6777af601c83fd0f6f` geslaagd.
+De compacte uploads falen in beide logs met `Artifact storage quota has been
+hit`; de vooraf geschreven bronbinding, rapporten en waarschuwing blijven
+zichtbaar. Dit bewijst de echte quota-terugval voor deze bron, geen beschikbare
+artifactdownload of volledige raw-hercontrole. De nieuwe documentatiehead
+krijgt eigen CI; de oude run wordt niet naar die head omgelabeld.
 
-**Validatie bij dit checkpoint:** bronbestanden zijn met GitHub-blobhashes
-geverifieerd; de lokale werkmap bevat een gerichte snapshot, geen volledige
-clone. Alle 15 collector-hosttests en 151 gerichte YAML-/shellcontroles slagen;
-voortgangscontrole en diff-check slagen. Commando's, bronhashes en grenzen
-staan in `docs/verification/ci-artifact-storage-20261108.json`. De volledige
-Rust-/QEMU-gates zijn lokaal niet uitgevoerd; Cargo en QEMU ontbreken.
-Een simulatie van uploadfalen is geen echte GitHub-upload.
+**Lokale validatie:** 85 bron-/bewijsbestanden en 22 oorspronkelijke workflows
+zijn tegen Git-blobhashes gecontroleerd. Dit is een deelsnapshot, geen volledige
+clone. Alle 15 collector-hosttests en 163 YAML-/shell/configuratiecontroles
+slagen; voortgangscontrole en diff-check slagen. Bewijs en bronhashes:
+`docs/verification/ci-artifact-storage-20261108/review-followup.json`.
+Geen lokale Rust-/QEMU-uitvoering; Cargo en QEMU ontbreken.
 
-**Open en eerstvolgende controle:** beoordeel de exacte PR-head en diens
-CI-/reviewresultaten; kijk afzonderlijk naar test- en archiefstatus. Laat
-quota-only uploadfouten niet opnieuw als coderegressie gelden. Een ontbrekend
-raw-archief blijft onvoldoende voor acceptatie die die bytes vereist.
-Samenvoegen loopt via de bestaande branchregels; geen productpunten voor
-alleen deze infrastructuurreparatie.
+**Open en hervatstap:** controleer nieuwe PR-head, reviewthreads en verplichte
+`host-quality`/`qemu-smoke`; squash-auto-merge volgt de bestaande regels.
+De reparatie is pas actief op main na merge. Geen artifacts verwijderd en
+geen vrijgemaakte opslag geclaimd. Een ontbrekend raw-archief blijft
+onvoldoende voor acceptatie die die bytes vereist. Lokale hercontrole in
+een volledige clone: `python3 -B docs/verification/ci-artifact-storage-20261108/verify_workflows.py --repo . --output /tmp/ci-evidence-workflow-checks.json`.
+
+## Historisch checkpoint — openbare projectrichting — 8 november 2026
+
+**Bron:** `main` op `363b486b06023d3d578f8eca2b23ff49045a1757`; documentatiebranch
+`docs/public-development-direction-20261108`. **41 → 41/100**; alle criteria,
+gewichten, statussen en bestaande bewijsverwijzingen blijven gelijk.
+
+**Bevestigd:** Simon kiest voor openbare ontwikkeling. Het bestaande
+MPL-2.0-plan voor eigen OS-code is het uitgangspunt voor de licentiecontrole.
+Dit staat in `LICENSE-PLAN.md`, ADR-PUBLIC-DEVELOPMENT-20261108, de README en
+`implementation/EUROPE-AND-RELEASE.md`. De vijf bestaande licentievoorwaarden
+zijn niet afgetekend. Het meegebundelde OSDev-/boekmateriaal heeft afzonderlijke
+rechten en is expliciet onderdeel van de nog open publicatiecontrole.
+
+**Controle en bewijsgrens:** 56 actuele bron-/bewijsbestanden zijn via GitHub
+opgehaald en byte voor byte tegen hun Git-blob-ID gecontroleerd. De bestaande
+voortgangsgenerator en documentatievergelijking zijn op deze bron uitgevoerd;
+uitkomsten staan in [het controlerapport](verification/public-development-20261108.json).
+Dit is documentatiecontrole, geen volledige licentieaudit, secretscan,
+nieuwe Rust-/QEMU-test, menselijke juridische beoordeling of productacceptatie.
+
+**Open:** rechten-/componentinventaris, licentietoepassing, passende notices,
+bijdragenvoorwaarden en de overige publicatiecontroles. De repository was
+bij controle privé. GitHub-hosted runners worden behandeld in
+[PR #249](https://github.com/simonvanieperen/nieuw-os/pull/249); deze opdracht
+verandert geen workflows, zichtbaarheid of branchregels. R03 blijft open.
+
+**Eerstvolgende inhoudelijke stap:** voer de vijf bestaande controles in
+`LICENSE-PLAN.md` uit op de werkelijk te publiceren bron en geschiedenis,
+inclusief alle workspaces en `.agents/skills/os-dev/`.
+Concrete publicatie volgt pas nadat de controles zijn afgehandeld.
+Eerstvolgend documentatiecommando: `python3 -B tools/progress.py --check`.
 
 ## Historisch checkpoint — PR #211 parserintegratie — 7 november 2026
 

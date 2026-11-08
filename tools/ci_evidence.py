@@ -56,6 +56,7 @@ class EvidenceError(RuntimeError):
 
 
 def _prefix_bytes(value: str, limit: int) -> str:
+    """Return a UTF-8 prefix within the byte limit, without partial characters."""
     return value.encode("utf-8")[:limit].decode("utf-8", errors="ignore")
 
 
@@ -75,12 +76,16 @@ def _inert(value: str) -> str:
 
 
 class Console:
+    """Buffer inert preview blocks within the shared console budget."""
+
     def __init__(self) -> None:
+        """Start an empty buffer and count blocks omitted by the size cap."""
         self.parts: list[str] = []
         self.size = 0
         self.omitted_blocks = 0
 
     def add(self, value: str) -> bool:
+        """Append one sanitized block if it fits; otherwise record its omission."""
         rendered = _inert(value)
         size = len(rendered.encode("utf-8"))
         # Keep room for an explicit final cap notice, even for hostile input.
@@ -92,6 +97,7 @@ class Console:
         return True
 
     def emit(self, stream: TextIO) -> None:
+        """Write buffered blocks and an explicit notice for omitted previews."""
         stream.write("".join(self.parts))
         if self.omitted_blocks:
             stream.write(_inert(
@@ -102,6 +108,7 @@ class Console:
 
 
 def _path_label(value: str) -> str:
+    """Bound receipt path labels while retaining a hash of truncated names."""
     if len(value.encode("utf-8")) <= MAX_PATH_BYTES:
         return value
     digest = hashlib.sha256(value.encode("utf-8")).hexdigest()
@@ -112,6 +119,7 @@ class Selection:
     """Expand globs without following symlinks, including at intermediate levels."""
 
     def __init__(self, workspace: Path, output: Path) -> None:
+        """Track unique files, omissions and traversal cost for one collection."""
         self.workspace = workspace
         self.output = output
         self.files: dict[str, Path] = {}
@@ -121,6 +129,7 @@ class Selection:
         self.scanned = 0
 
     def omit(self, path: Path | str, reason: str, size: int | None = None) -> None:
+        """Record the first exclusion reason for a workspace-relative path."""
         label = str(path)
         if isinstance(path, Path):
             label = path.relative_to(self.workspace).as_posix()
@@ -129,6 +138,7 @@ class Selection:
         })
 
     def blocked(self, path: Path) -> bool:
+        """Reject unsafe or reserved paths and retain the exclusion reason."""
         relative = path.relative_to(self.workspace)
         if path == self.output or self.output in path.parents:
             self.omit(path, "collector-output")
@@ -148,6 +158,7 @@ class Selection:
         return False
 
     def entries(self, path: Path) -> list[Path]:
+        """List directory entries deterministically under the traversal limit."""
         entries = []
         with os.scandir(path) as iterator:
             for entry in iterator:
@@ -158,6 +169,7 @@ class Selection:
         return sorted(entries)
 
     def expand(self, current: Path, parts: tuple[str, ...]):
+        """Yield supported glob matches without following symlinked components."""
         if self.blocked(current):
             return
         if not parts:
@@ -180,6 +192,7 @@ class Selection:
             yield from self.expand(current / part, rest)
 
     def add(self, path: Path) -> None:
+        """Recursively select safe regular files and deduplicate overlapping inputs."""
         if self.blocked(path):
             return
         info = path.lstat()
@@ -192,6 +205,7 @@ class Selection:
             self.omit(path, "non-regular-file")
 
     def select(self, patterns: list[str]) -> None:
+        """Resolve workspace patterns and record missing or rejected inputs."""
         for pattern in patterns:
             raw = Path(pattern)
             # Reject traversal before normalization; never expand '~' or variables.
@@ -236,6 +250,7 @@ def _read_report(workspace: Path, relative: str) -> bytes:
 
 
 def _checkout_sha(workspace: Path) -> str | None:
+    """Read the actual checkout commit, or return None when Git cannot identify it."""
     try:
         result = subprocess.run(
             ["git", "-C", str(workspace), "rev-parse", "HEAD"],
@@ -250,10 +265,12 @@ def _checkout_sha(workspace: Path) -> str | None:
 
 
 def _json_bytes(value: dict) -> bytes:
+    """Serialize deterministic, readable UTF-8 JSON with a final newline."""
     return (json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8")
 
 
 def _receipt_bytes(receipt: dict) -> bytes:
+    """Cap receipt metadata without dropping hashes of retained report files."""
     # Metadata is bounded too. Keep every retained hash; explicitly count omitted
     # entries dropped from the receipt if a huge binary tree exhausts its budget.
     receipt["omitted_list_truncated_count"] = 0
@@ -273,6 +290,7 @@ def _receipt_bytes(receipt: dict) -> bytes:
 
 
 def _preview(console: Console, entry: dict, data: bytes) -> None:
+    """Queue an inert, labelled full file or bounded excerpt for the run log."""
     path = entry["path"]
     if len(data) <= MAX_PREVIEW_BYTES:
         label = "COMPLETE FILE (inert display; stored bytes unchanged)"
@@ -287,6 +305,7 @@ def _preview(console: Console, entry: dict, data: bytes) -> None:
 
 
 def _summary(receipt: dict) -> str:
+    """Render provenance, collection counts and evidence limits for the job summary."""
     source = receipt["source"]
     lines = [
         f"### Compact CI evidence: {html.escape(receipt['name'])}",
@@ -440,6 +459,7 @@ def collect(
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run the collector CLI and return a failing exit code for collection errors."""
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     command = commands.add_parser("collect", help="Collect bounded reports and a receipt")

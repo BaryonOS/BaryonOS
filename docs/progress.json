@@ -3,12 +3,13 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-08",
-    "source_commit": "363b486b06023d3d578f8eca2b23ff49045a1757",
+    "source_commit": "5c291cff3b9c28e4948aeb36adda3acc6ee6a8ab",
     "assessment_basis": "source_commit",
     "branch": "ci/artifact-storage-20261108",
-    "task": "CI-bewijs bewaren zonder blokkerende artifactquota",
+    "task": "CI-artifactopslag hervatten, review afronden en echte quotaterugval verifiëren",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Deze wijziging begrenst CI-bewijsopslag, bewaart een terugval in runlogs en maakt alleen uploads niet-blokkerend. Bestaande native testgates blijven verplicht. Geen nieuw OS-productcriterium geaccepteerd; uitvoeringsbewijs en grenzen staan in docs/verification/ci-artifact-storage-20261108.json."
+    "summary": "41/100 blijft 41/100. Reviewvelden en docstrings aangevuld; package-selectie krijgt negatieve configuratiecontroles. Twee echte native CI-jobs op PR-mergecheckout 89722c5f slagen ondanks geweigerde artifactuploads. Dit is infrastructuurbewijs, geen nieuwe productacceptatie; zie docs/verification/ci-artifact-storage-20261108/review-followup.json.",
+    "integrated_main_commit": "5b2189824c32145ad5c110429517dfcea3f2720f"
   },
   "tracks": [
     {

@@ -2002,13 +2002,72 @@ Status: aangenomen, 6 november 2026 (opdracht Simon, PR #241).
 - De twee Tower-runners delen één fysieke host. Daardoor draaien er maximaal twee zware jobs
   tegelijk, maar CPU, RAM en I/O van die host zijn niet gemeten.
 
+## ADR-PUBLIC-DEVELOPMENT-20261108 — Openbare ontwikkeling met MPL-2.0 als controlebasis
+
+**Status:** aangenomen als projectrichting op 8 november 2026, op expliciete
+opdracht van Simon. Licentiecontrole en daadwerkelijke publicatie blijven open.
+
+**Besluit:** Nieuw OS kiest voor openbare ontwikkeling. Het bestaande
+[LICENSE-PLAN.md](../LICENSE-PLAN.md) blijft de basis voor de licentiecontrole,
+met MPL-2.0 als beoogde licentie voor de eigen OS-code. De opdracht bevestigt
+de richting en het controlekader; zij past geen projectlicentie toe en
+verklaart de repository niet publicatieklaar.
+
+**Reden:** de ontwikkeling moet inspecteerbaar en geschikt voor samenwerking
+zijn. Openbaarheid wordt bewust aanvaard als onderdeel van de projectrichting.
+Het plan wordt verder uitgevoerd vanuit de bestaande MPL-keuze, zonder nu
+een nieuwe algemene licentievergelijking te beginnen.
+
+**Consequenties:**
+- Eigen code, bijdragen, documentatie, assets, modellen en externe onderdelen
+  krijgen een expliciete rechten- en licentieafbakening volgens het plan.
+  Bestaande externe voorwaarden blijven behouden.
+- Het meegebundelde OSDev-/boekmateriaal krijgt een afzonderlijke
+  publicatiecontrole volgens het eigen bronregister; het valt niet
+  automatisch onder de MPL-richting voor eigen OS-code.
+- De vijf bestaande publicatievoorwaarden blijven open tot de daadwerkelijke
+  inventaris, compatibiliteit, notices, licentietekst en bronlevering kloppen.
+  Openbaarheid betekent niet dat derden de broncode niet kunnen kopiëren.
+- De overgang naar GitHub-hosted runners wordt afzonderlijk behandeld in
+  [PR #249](https://github.com/simonvanieperen/nieuw-os/pull/249). Dit besluit
+  wijzigt geen workflows, repositoryzichtbaarheid of branchregels.
+- Bronpublicatie en een volwaardige productrelease hebben verschillende
+  acceptatiegrenzen. Er wordt geen OS-criterium afgetekend; de score blijft
+  41/100 en R03 blijft open.
+
+**Uitvoeringsstand bij broncontrole:** `main` op `363b486b06023d3d578f8eca2b23ff49045a1757`
+was privé; de root bevatte `LICENSE-PLAN.md` en nog geen toegepaste
+projectlicentie in `LICENSE`. Deze observatie is geen permanente
+repositoryinstelling. De afzonderlijke publicatiecontroles blijven nodig.
+
+**Herzieningscriteria:** heropen de MPL-reikwijdte of een componentkeuze als
+rechthebbenden, daadwerkelijke dependencies of distributievoorwaarden dat
+vereisen. Een wijziging van de openbare projectrichting vraagt een nieuw
+expliciet projectbesluit. Het terugzetten van documentatie trekt reeds
+verleende rechten of verspreide kopieën niet automatisch in.
+
+**Bronnen:** de gebruikersopdracht van 8 november 2026; het bestaande
+licentieplan; Mozilla's officiële MPL-2.0-tekst en FAQ, met volledige
+bronvermeldingen in [LICENSE-PLAN.md](../LICENSE-PLAN.md).
 
 ## ADR-CI-EVIDENCE-20261108 — testuitslag los van artifactopslag
+
+**Status:** besloten en geïmplementeerd op `ci/artifact-storage-20261108`
+in PR #251; opname in main volgt de bestaande checks en reviewregels.
+**Eigenaar:** Simon van Ieperen.
 
 **Datum:** 8 november 2026. Opdracht Simon: artifactopslag mag het bewaren
 van testbewijs en de workflow niet blijven blokkeren. Op main `363b486b`
 slagen de onderzochte native tests, maar upload-artifact weigert nieuwe
 archieven wegens quota. Drie dagen retentie was al ingesteld.
+
+**Alternatieven:** alleen retentie verkorten helpt bestaande quota niet
+direct en stond al op drie dagen. Gerichte opruiming kan ruimte vrijmaken,
+maar is geen structurele bescherming tegen opnieuw volle opslag en vraagt
+eerst een gecontroleerde inventaris van te behouden bewijs. Alleen de oude
+uploads niet-blokkerend maken laat bij uitval geen compact brongebonden
+rapport achter. Externe opslag introduceert een nieuwe opslag- en
+toegangsgrens en is voor deze reparatie niet nodig.
 
 **Besluit:** alle vijftien bewijsuploads gebruiken één lokale composite
 action. Die schrijft eerst begrensde rapporten, bronbinding en ontbrekende
@@ -2028,6 +2087,33 @@ hercontrole. Native acceptatievoorwaarden, downloadstatus en vaste
 voortgangscriteria worden niet versoepeld. De runnerkeuze, toolversies,
 checknamen, betaalinstellingen en opslagrechten wijzigen door dit besluit
 niet. Geen artifacts of workflowruns worden ongericht verwijderd.
+
+**Security-invariant:** de compacte collector leest uitsluitend de expliciete
+selectie binnen de checkout, volgt geen symlinks en weigert verborgen paden.
+Inhoud blijft bytegelijk in het compacte pakket; workflowcommando's en
+controlbytes worden alleen voor de runlogweergave inert gemaakt. Bestands-,
+scan- en uitvoerbudgetten zijn begrensd. Het Windows-pakket moet een echt
+bestand binnen de checkout zijn; beide package-workflows selecteren die ZIP
+ook expliciet of via haar bovenliggende directory in het volledige archief.
+De configuratieverifier controleert dit inclusief weggelaten-packagegevallen.
+Dit is geen algemene secretscan; full-evidence behoudt de oorspronkelijke
+workflowselectie en is geen door de compacte collector gefilterd archief.
+
+**Testbewijs:** de oorspronkelijke verificatie omvat 15 collector-hosttests
+en 151 lokale YAML-/shellcontroles, vastgelegd in
+`docs/verification/ci-artifact-storage-20261108.json`. De vervolgcontrole
+staat in `docs/verification/ci-artifact-storage-20261108/review-followup.json`.
+Op mergecheckout `89722c5f` van PR-head `5c291cff` zijn bovendien de echte native-display-input- en
+B03-jobs geslaagd terwijl de rapportupload wegens artifactquota faalde;
+bronbinding en gelabeld rapportbewijs bleven in de runlog staan. Dit bewijst
+de geteste terugval bij uploadfalen; geen geslaagde artifactdownload,
+Windows-uitvoering, volledige raw-hercontrole of nieuwe productacceptatie.
+
+**Migratie/rollback:** opname van PR #251 activeert de gedeelde action voor
+nieuwe runs. Bestaande artifacts, bewaartermijnen en runlogs worden niet
+gewijzigd. Terugdraaien gebeurt met een gerichte revert-PR van deze wijziging;
+dan keren de oorspronkelijke blokkerende uploadstappen terug. Behoud
+wijzigingen van andere branches en bestaand acceptatiebewijs.
 
 **Herzien wanneer:** een volgende job artifacts moet downloaden, een echte
 releaselevering verplicht wordt, of het meetbare rapportbudget structureel
