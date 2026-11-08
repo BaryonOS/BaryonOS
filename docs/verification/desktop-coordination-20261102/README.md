@@ -1,6 +1,6 @@
 # Overdracht aan leidende desktopchat — 2 november 2026
 
-Bij expliciet projectbesluit is **Verbeter de Nieuw OS-desktop** als leidende chat aangewezen:
+Op expliciete aanwijzing van de projecteigenaar is **Verbeter de Nieuw OS-desktop** als leidende chat aangewezen:
 `01a19dcf-1da5-7192-bab2-7349f1e4a07a`, host `durable`.
 Deze chat hervat productimplementatie alleen na een concrete taaktoewijzing
 vanuit die chat. Alle eigen builders zijn gepauzeerd; onafgemaakt werk is
