@@ -2046,3 +2046,36 @@ migratie, zonder andere bronwijzigingen of branchregels aan te passen.
   https://docs.github.com/en/billing/concepts/product-billing/github-actions
 - GitHub. (z.d.). *Actions limits*.
   https://docs.github.com/en/actions/reference/limits
+
+
+## ADR-CI-PINS-20261108 — Vaste tools voor reguliere hosted CI
+
+Status: aangenomen, 8 november 2026, op Simons vervolgopdracht. Dit besluit
+vult ADR-CI-HOSTED-20261108 aan en vervangt daar de losse installatie van
+ontbrekende emulatorpakketten. Het betreft 21 reguliere workflows; de
+later toegevoegde private publicatie-audit behoudt zijn afzonderlijke scope.
+
+**Besluit:** gedeelde lokale Actions installeren Python 3.12.12 en QEMU/
+firmware uit Ubuntu-snapshot 20261108T000000Z. Alle pakketversies zijn exact;
+APT verifieert de ondertekende indexen en payloads. Na installatie worden
+versies, TCG, machine pc-q35-8.2 en firmwarehashes gecontroleerd. PyYAML,
+reeds gebruikt door de host-gate, krijgt een exact gehasht 6.0.3-wheel.
+Rust 1.90.0, bestaande 1.91.1-controles en Node 24.22.1 blijven behouden.
+
+**Tests en gevolgen:** 99 bestaande runner-/preflight-/M6c-hosttests komen
+in host-quality. De bestaande zes native rookteststarts, harnasvoorwaarden,
+jobtijdslimieten, rechten en triggers blijven gelijk. Een aanvullende
+compacte QEMU-diagnose-upload is best effort en wijzigt de verplichte
+testuitslag niet. Lokale agent-gates slaan uitsluitend GitHub-setup en
+runnerdiagnostiek over; strikte preflight en native proeven blijven nodig.
+
+**Bewijsgrens:** de runnerdistributie en tools zijn geselecteerd, maar de
+complete VM en vooraf geïnstalleerde gedeelde bibliotheken zijn niet
+immutable. Nieuwe-head Rust/OS-gates blijven afzonderlijk bewijs. Een
+hosttest of QEMU-toolprobe bewijst geen productacceptatie. Score 41/100
+blijft gelijk. Pinupdates vereisen herhaalde controle; herstel gebeurt via
+een gerichte revert zonder branchregels te versoepelen.
+
+Bronnen, versies, uitvoering en herzieningsroute: [CI.md](CI.md),
+[controleverslag](verification/ci-standard-runners-20261108.json) en
+[pakketprovenance](verification/ci-packages-20261108.json).

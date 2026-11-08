@@ -1,5 +1,11 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+Gepinde reguliere CI (8 november 2026), bron PR #249 `d3d8e3e0`:
+**41 → 41/100**. Vaste Python-/QEMU-/firmwareversies en 99 extra bestaande
+hosttests; 224 gerichte hosttests en de configuratiecontrole slagen.
+Geen nieuw native productcriterium; nieuwe-head OS-gates blijven nodig.
+Zie [CI](CI.md) en [het controleverslag](verification/ci-standard-runners-20261108.json).
+
 Runnerwissel op basis main `6e429de9` (8 november 2026): **41 → 41/100**.
 Alle 21 workflows gebruiken standaard GitHub-hosted Ubuntu 24.04-runners;
 24 jobdefinities en 42 uitgewerkte matrixjobs. Alleen CI-infrastructuur en

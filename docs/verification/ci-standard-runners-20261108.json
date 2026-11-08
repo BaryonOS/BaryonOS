@@ -1,0 +1,332 @@
+{
+  "schema_version": 1,
+  "task": "Reguliere CI op standaard GitHub-runners met vaste tools en relevante host/QEMU-controles",
+  "date": "2026-11-08",
+  "base_pr_head": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+  "integrated_main": "363b486b06023d3d578f8eca2b23ff49045a1757",
+  "branch": "ci/github-hosted-runners-20261108",
+  "source_scope": "GitHub-API tekstsnapshot; gelezen ongewijzigde blobs gecontroleerd tegen Git object IDs; geen volledige lokale git-clone",
+  "unchanged_source_blobs_verified_before_documentation_updates": 197,
+  "configuration_sha256": {
+    ".github/workflows/app-management-quality.yml": "4bb60164d78c71231e23e56d92df6f1db705b6c2925f0e0f8a31f79b06f889ac",
+    ".github/workflows/artifact-store-quality.yml": "412fc5c8d80745e1d9e55904a0cd111eed53cd34a0631c771de6e4b437b51397",
+    ".github/workflows/ci.yml": "a60ac8a771bab0b26beff8b361ddf2cb65d23397419156c28ef403774cb6f6a9",
+    ".github/workflows/component-leaves.yml": "a8639267218208640ff35a140aa270bdeb1aec4690db2722b66b5d0ed3c33424",
+    ".github/workflows/entropy-keys.yml": "f6e620a3fe78c587d38ba9f41ad5348591c73e9d959997236400fd0cd92d4014",
+    ".github/workflows/materiaal-probe.yml": "83e3a2b90b68115a421f8dade789a870a1d40f5430c3bfa98c7758a9e834c4e2",
+    ".github/workflows/nas-core.yml": "ee84a8c433845b52d7c75e0adfc754a6f542fcded42f7856d3e5f43ef5133544",
+    ".github/workflows/native-display-input.yml": "8d0cccabcbd3e42a93a24ed48d5b29736eed5fbc98484fd7f094065e5fc1dced",
+    ".github/workflows/native-foundation.yml": "820ad4598858c72ce5dae7963ce45b64dacad299757a82cff1d17e3ed23124dd",
+    ".github/workflows/native-rtc.yml": "dd0a0fe3bb9f6c554a0514c50fd6bfbeb19f01250b458ea3167bef4fd3060ef5",
+    ".github/workflows/native-smp.yml": "62ac16f937909a95e30b28cdbe7e0afc3c61b40d68b358339aeb95fa4db4f410",
+    ".github/workflows/native-system.yml": "161941c321626985884953d36122d0bb19faa84a19976706dd24770e32a42583",
+    ".github/workflows/native-window-session.yml": "a6ea291a1ff95d5c3caef0401692ef63a15bf7bdcccd6e757db2105123847e73",
+    ".github/workflows/net-broker-quality.yml": "a9c5bff8790558606d20d4240ec0d0587196c76809b97ea82677e843d7e3483e",
+    ".github/workflows/net-tls-quality.yml": "ec29839d139960b9092bd256ef67bd49098a4afe2a4326744072f4c4934abd33",
+    ".github/workflows/process-management.yml": "a0b21d65922429cb09aad4e2e494872dc088badb962a6bac22bf9c43b4c12821",
+    ".github/workflows/resource-pressure.yml": "df3a28bf33302dbd02ce9777945ef9df48adf0d299a8a737a8f95e85e26cf87d",
+    ".github/workflows/signed-updates.yml": "caa6a2f7dc63d7da85340874dc458d5ea6348dfbc41e5d1135a51e9bc5ab50b5",
+    ".github/workflows/storage-resilience.yml": "bc1dc2eebc4f3d6d56bba6ad9b6742700f1350fb42f26b286cf55eba04a9e655",
+    ".github/workflows/volume-acceptance.yml": "4cad9755b5a8d0aee54be5049fc456a2a791d57963fc39da17858fd9f67814f6",
+    ".github/workflows/windows-qemu-test-version.yml": "5b6968593dcc28e60c0b1aaa049af88006e7e7554d919f0ac7294c885753b1f3",
+    ".github/actions/setup-python/action.yml": "a7f16024464cead0ef1e3edbe3f860b1ebf91910e2c1d459951e7d3aa0c52219",
+    ".github/actions/setup-python/requirements.txt": "e77583c50ce6dbe4fe69359b171621bc1468d6ab19b4b77d94c8f86c8bf7ce1c",
+    ".github/actions/setup-qemu/action.yml": "7ca59a4e8a284e5e1c5317329be81005a179c5e327675953a2c6219686b573df"
+  },
+  "workflow_preservation": {
+    "exit_status": 0,
+    "regular_workflows": 21,
+    "jobs": 24,
+    "python_jobs": 24,
+    "qemu_jobs": 17,
+    "shell_blocks": 167,
+    "original_test_commands_preserved": true,
+    "job_timeouts_triggers_permissions_unchanged": true,
+    "private_audit_unchanged": true
+  },
+  "action_validation": {
+    "yaml_files": 23,
+    "shell_blocks": 170,
+    "uses_references": 90,
+    "all_external_actions_full_sha": true,
+    "duplicate_yaml_keys": false,
+    "local_qemu_gate_steps": 6,
+    "local_gate_has_no_runner_temp_requirement": true,
+    "exit_status": 0
+  },
+  "host_tests": {
+    "python": "3.12.14",
+    "ci_python_pin": "3.12.12",
+    "total_passed": 224,
+    "checks": [
+      {
+        "name": "test_common.py",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_common.py"
+        ],
+        "exit_status": 0,
+        "timed_out": false,
+        "duration_seconds": 0.119,
+        "test_count": 8,
+        "failure_summary": null,
+        "log": "docs/verification/ci-standard-runners-20261108/test_common.log",
+        "log_sha256": "8642a1ac72c63530bbaa2c1f2526767cc3b14a928c117e4bff18cd4c4a88ad42"
+      },
+      {
+        "name": "test_preflight.py",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_preflight.py"
+        ],
+        "exit_status": 0,
+        "timed_out": false,
+        "duration_seconds": 0.234,
+        "test_count": 24,
+        "failure_summary": null,
+        "log": "docs/verification/ci-standard-runners-20261108/test_preflight.log",
+        "log_sha256": "6f5b50c98e0b1a734f011ec07067cb59fb2b8572a0d6f32453fb985dd07cd73d"
+      },
+      {
+        "name": "test_build_paths.py",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_build_paths.py"
+        ],
+        "exit_status": 0,
+        "timed_out": false,
+        "duration_seconds": 0.139,
+        "test_count": 3,
+        "failure_summary": null,
+        "log": "docs/verification/ci-standard-runners-20261108/test_build_paths.log",
+        "log_sha256": "5279d1fc9a1ced44f9c96da1414ef59e4676f963fbad52e7a1a2903538819b0d"
+      },
+      {
+        "name": "test_guest_harness.py",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_guest_harness.py"
+        ],
+        "exit_status": 0,
+        "timed_out": false,
+        "duration_seconds": 0.067,
+        "test_count": 7,
+        "failure_summary": null,
+        "log": "docs/verification/ci-standard-runners-20261108/test_guest_harness.log",
+        "log_sha256": "83166b089fbcb82fac63f22522fa6ae99bb5e46368cd35d756277fd463dd6346"
+      },
+      {
+        "name": "test_m1_artifact_binding.py",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_m1_artifact_binding.py"
+        ],
+        "exit_status": 0,
+        "timed_out": false,
+        "duration_seconds": 0.148,
+        "test_count": 8,
+        "failure_summary": null,
+        "log": "docs/verification/ci-standard-runners-20261108/test_m1_artifact_binding.log",
+        "log_sha256": "d2c6a9bc981a90f83741abca5675fff24e991855bfffa05d538f02e5aa9ee5cc"
+      },
+      {
+        "name": "test_m6c_*.py",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_m6c_*.py"
+        ],
+        "exit_status": 0,
+        "timed_out": false,
+        "duration_seconds": 1.067,
+        "test_count": 49,
+        "failure_summary": null,
+        "log": "docs/verification/ci-standard-runners-20261108/test_m6c_all.log",
+        "log_sha256": "6e99c627e5dc24d04487db891d708d5f1f3ab49614f8a2fb731bb255ed296101"
+      },
+      {
+        "name": "test_document_session_*.py",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_document_session_*.py"
+        ],
+        "exit_status": 0,
+        "timed_out": false,
+        "duration_seconds": 0.6,
+        "test_count": 35,
+        "failure_summary": null,
+        "log": "docs/verification/ci-standard-runners-20261108/test_document_session_all.log",
+        "log_sha256": "34517651229df87bfad3056a8fb410aa5e147ace08d54b224b64baf3497168ad"
+      },
+      {
+        "name": "test_volume_*.py",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_volume_*.py"
+        ],
+        "exit_status": 0,
+        "timed_out": false,
+        "duration_seconds": 1.552,
+        "test_count": 37,
+        "failure_summary": null,
+        "log": "docs/verification/ci-standard-runners-20261108/test_volume_all.log",
+        "log_sha256": "6b5c2df8a0fd5586a859cba2f4c611c9431ef27da7877b31c82ae1ee81f45a3d"
+      },
+      {
+        "name": "agent-pipeline-Gate",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "tools.tests.test_agent_pipeline.Gate"
+        ],
+        "exit_status": 0,
+        "timed_out": false,
+        "duration_seconds": 0.127,
+        "test_count": 7,
+        "failure_summary": null,
+        "log": "docs/verification/ci-standard-runners-20261108/agent-pipeline-Gate.log",
+        "log_sha256": "0027d35b45398a7ba9c68b451bc8527aca33ffb26ebe324bb5ebae44c6342cff"
+      },
+      {
+        "name": "test_system_*.py",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_system_*.py"
+        ],
+        "exit_status": 0,
+        "timed_out": false,
+        "duration_seconds": 4.376,
+        "test_count": 46,
+        "log": "docs/verification/ci-standard-runners-20261108/test_system_all-complete-snapshot.log",
+        "python": "3.12.14",
+        "finished_utc": "2026-11-08T18:33:16.448090+00:00",
+        "source_completion": [
+          "sdk/examples/tcp-probe/peer.py",
+          "sdk/examples/tcp-probe/test_peer.py"
+        ],
+        "log_sha256": "6b907c3ab97727db42e3bb3d622665f813f49a0e89ca856193675b0ee9667947"
+      }
+    ],
+    "gate_recheck_after_workflow_edits": {
+      "command": "python3 -B -m unittest tools.tests.test_agent_pipeline.Gate",
+      "tests": 7,
+      "exit_status": 0
+    }
+  },
+  "package_validation": {
+    "provenance": "docs/verification/ci-packages-20261108.json",
+    "signed_snapshot_update_exit": 0,
+    "dependency_resolution_exit": 0,
+    "resolution": "0 upgraded, 22 newly installed, 0 to remove; simulation only",
+    "download_only_exit": 0,
+    "system_packages_installed": false,
+    "invalid_swtpm_input_expected_exit": 2,
+    "invalid_swtpm_input_actual_exit": 2
+  },
+  "qemu_tool_probe": {
+    "report": "docs/verification/ci-standard-runners-20261108/qemu-tool-probe.json",
+    "passed": true,
+    "scope": "QEMU 8.2.2 version, machine/TCG availability, three firmware hashes and paused QMP process; no Nieuw OS guest boot"
+  },
+  "progress": {
+    "before": 41,
+    "after": 41,
+    "criteria_changed": false,
+    "commands": [
+      "python3 -B tools/progress.py --write",
+      "python3 -B tools/progress.py --check"
+    ],
+    "exit_status": 0
+  },
+  "review": {
+    "kind": "Separate AI configuration review; not an independent human audit",
+    "resolved_finding": "CI RUNNER_TEMP diagnostics moved out of unconditional Preflight so local agent_gate remains usable",
+    "remaining_blockers_in_review": 0
+  },
+  "not_run": [
+    "Complete Rust/Node host-quality job",
+    "Native Nieuw OS QEMU smoke: six guest starts",
+    "Python host tests under exact CI Python 3.12.12",
+    "Full composite setup under a GitHub Ubuntu runner"
+  ],
+  "environment_limitations": [
+    "Direct git clone lacks authentication; connected GitHub API used for authenticated source reads and writes.",
+    "Exact sudo install attempt stopped before package installation because this container cannot map the sudo service UID.",
+    "APT indexes/downloads used temporary state and APT::Sandbox::User=root in this container; this local option is not in CI.",
+    "Relocated QEMU extraction needed explicit library, module and BIOS paths; initial probes failed until those paths were set.",
+    "Initial system-host discovery missed two source files in the partial snapshot; after verified source retrieval, all 46 system tests passed without product-code edits."
+  ],
+  "prior_github_ci": {
+    "head": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
+    "run_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42506498321",
+    "host_quality": "failure before runner assignment, runner_id 0, no steps",
+    "qemu_smoke": "skipped",
+    "exact_rejection_reason": "not verified; this is not an executed native test failure"
+  },
+  "current_head_ci": "To be evaluated on the pushed commit; prior run is not evidence for this configuration",
+  "rollback": "Gerichte revert via PR; behoud overige wijzigingen en bestaande branchregels."
+}

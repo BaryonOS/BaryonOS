@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`6e429de9`](https://github.com/simonvanieperen/nieuw-os/commit/6e429de98b5c692ccceaa12973818eecb1622062) ·
+**Bron:** [`d3d8e3e0`](https://github.com/simonvanieperen/nieuw-os/commit/d3d8e3e0a3b0b455b1832bdc53220352c2b20960) ·
 **Ontwikkelbranch:** `ci/github-hosted-runners-20261108`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Alle CI-workflows migreren naar standaard GitHub-hosted Ubuntu-runners.
-41/100 blijft 41/100. Alle 21 workflows (24 jobdefinities) gaan naar ubuntu-24.04; de host-buildcache krijgt een nieuwe namespace. Configuratie- en hostcontroles bewijzen geen nieuwe native productfunctie. CI op de nieuwe head en openbaarmaking voor gratis onbeperkte standaardrunners blijven afzonderlijke stappen.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Reguliere GitHub-CI vastzetten en host-/QEMU-controles behouden.
+41/100 blijft 41/100. De 21 reguliere workflows gebruiken standaard Ubuntu-runners met vaste Python- en emulatorversies; 99 bestaande hosttests worden toegevoegd. Host- en configuratiecontroles sluiten geen nieuw productcriterium. Native OS-gates op de nieuwe PR-head blijven afzonderlijk vereist.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -78,6 +78,8 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
+
+Reguliere CI: [vaste tools, hosttests en QEMU-gates](docs/CI.md).
 
 Volledige repository-inventaris: [OS-completeness-audit](docs/audit/os-completeness/README.md).
 Driververgelijking en voorstel: [OS-repositories en hardwaredrivers](docs/research/2026-11-03/os-repos-and-hardware-drivers.md).

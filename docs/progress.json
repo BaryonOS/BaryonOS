@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-08",
-    "source_commit": "6e429de98b5c692ccceaa12973818eecb1622062",
+    "source_commit": "d3d8e3e0a3b0b455b1832bdc53220352c2b20960",
     "assessment_basis": "source_commit",
     "branch": "ci/github-hosted-runners-20261108",
-    "task": "Alle CI-workflows migreren naar standaard GitHub-hosted Ubuntu-runners",
+    "task": "Reguliere GitHub-CI vastzetten en host-/QEMU-controles behouden",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Alle 21 workflows (24 jobdefinities) gaan naar ubuntu-24.04; de host-buildcache krijgt een nieuwe namespace. Configuratie- en hostcontroles bewijzen geen nieuwe native productfunctie. CI op de nieuwe head en openbaarmaking voor gratis onbeperkte standaardrunners blijven afzonderlijke stappen."
+    "summary": "41/100 blijft 41/100. De 21 reguliere workflows gebruiken standaard Ubuntu-runners met vaste Python- en emulatorversies; 99 bestaande hosttests worden toegevoegd. Host- en configuratiecontroles sluiten geen nieuw productcriterium. Native OS-gates op de nieuwe PR-head blijven afzonderlijk vereist."
   },
   "tracks": [
     {

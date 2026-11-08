@@ -23,6 +23,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
       - name: Rust 1.91.1
         run: |
           rustup toolchain install 1.91.1 --profile minimal
@@ -57,15 +59,20 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
       - name: Pinned kernel and service compilers
         run: |
           rustup toolchain install 1.90.0 --profile minimal
           rustup toolchain install 1.91.1 --profile minimal
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
           rustup target add --toolchain 1.91.1 x86_64-unknown-none
-      - name: Disposable QEMU and explicit firmware
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Ubuntu emulator package diagnostics
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
         run: |
-          dpkg -s qemu-system-x86 ovmf >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf; }
           test -f "$OS_OVMF_CODE"
           test -f "$OS_OVMF_VARS"
       - name: Fetch locked inputs before offline native builders

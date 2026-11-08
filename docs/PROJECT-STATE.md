@@ -1,6 +1,46 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — GitHub-hosted runners — 8 november 2026
+## NEXT AGENT HANDOFF — Gepinde reguliere CI — 8 november 2026
+
+**Bron:** PR #249 `d3d8e3e0a3b0b455b1832bdc53220352c2b20960`, met main
+`363b486b06023d3d578f8eca2b23ff49045a1757` (private audit behouden).
+Werkbranch: `ci/github-hosted-runners-20261108`. **41 → 41/100**;
+criteria, gewichten en productacceptatie blijven gelijk.
+
+**Taakcontract en resultaat:** maak reguliere CI uitvoerbaar op standaard
+GitHub-runners met vaste tools. Alle 24 jobdefinities in 21 reguliere
+workflows gebruiken Ubuntu 24.04 en Python 3.12.12. De 17 QEMU-jobs delen
+één snapshotgebonden installatie met exacte pakket- en firmwarecontrole.
+Rust-/Node-pins blijven behouden. De hoofdgate krijgt 99 bestaande
+runner-/preflight-/M6c-hosttests. De zes native starts, time-outs,
+rechten, triggers en testcommando's blijven behouden. Details: `CI.md`;
+besluit: ADR-CI-PINS-20261108.
+
+**Uitgevoerd:** 224 geselecteerde bestaande hosttests geslaagd op lokale
+Python 3.12.14; YAML-/shellcontrole, behoud van bestaande testcommando's en
+APT-resolutie van de exacte pins geslaagd. Pakketindexen, handtekeningen,
+payloads en firmwarehashes zijn gecontroleerd. De uitgepakte QEMU 8.2.2
+start een gepauzeerd pc-q35-8.2/TCG-proces en sluit via QMP af (exit 0);
+dit is geen eigen-OS-boot. Een AI-review vond een
+GitHub-specifieke diagnosekopie in de lokale gate; die is gescheiden van de
+onvoorwaardelijke preflight en opnieuw gecontroleerd. Bewijs en exacte
+grenzen: `verification/ci-standard-runners-20261108.json` en
+`verification/ci-packages-20261108.json`.
+
+**Open:** volledige Rust-/Node-hostkwaliteit en zes eigen-OS-QEMU-starts op
+de nieuwe PR-head. Het lokale hostbewijs is niet op de beoogde Python-pin
+3.12.12 uitgevoerd. De sudo-installatiestap kan hier door een UID-mapping-
+beperking niet letterlijk worden uitgevoerd; APT is afzonderlijk met
+tijdelijke bronnen/indexen gecontroleerd. De vorige hosted CI-run op
+`d3d8e3e0` stopte vóór runner-toewijzing; precieze reden niet geverifieerd.
+Nieuwe CI-status hoort bij de actuele PR-head, niet bij dat oude resultaat.
+
+**Hervatten:** controleer PR #249 en zijn nieuwe `host-quality` en
+`qemu-smoke`-jobs, inclusief eventuele annotatie wanneer GitHub geen stappen
+start. Behoud branchregels; geen zichtbaarheid, facturering of quota aanpassen
+als bijwerking. Bewijs van een toolprobe is geen native OS-acceptatie.
+
+## Historisch checkpoint — GitHub-hosted runners — 8 november 2026
 
 **Bron:** main `6e429de98b5c692ccceaa12973818eecb1622062`, werkbranch
 `ci/github-hosted-runners-20261108`. **41 → 41/100**; geen productcriterium,
