@@ -43,6 +43,7 @@ git push -u origin main
 Gebruik de door Git aangeboden browser-/credential-manager-login. Bestaat `origin` al, inspecteer die eerst en voer niet blind opnieuw `remote add` uit. Een push naar een publieke repository maakt bestanden openbaar: controleer inhoud en licentie vooraf.
 
 ## 4. GitHub of een Europees alternatief?
+
 | Route | Afweging |
 |---|---|
 | GitHub + lokaal Codex | Beste eerste route voor een beginner vanwege de gedocumenteerde koppelingen en praktische samenwerking. Het is een Amerikaanse dienst. |

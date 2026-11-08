@@ -1,5 +1,10 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+Redactiereviewopvolging (9 november 2026), basis main `9922810a`: **41 → 41/100**.
+De herkomst van de desktoptoewijzing is expliciet behouden in de onpersoonlijke
+formulering. Geen technische inhoud, bevoegdheid, criterium of gewicht gewijzigd.
+[Bronvergelijking en reviewcontrole](verification/wetenschappelijke-herkomst-20261109.json).
+
 CodeQL-workflowcontract (9 november 2026), working tree op PR #266
 `3402b30c3d67e769eea28abc07e1aaceeb3e2525`: **41 → 41/100**.
 De noodzakelijke uploadpermissie wordt uitsluitend voor de CodeQL-analysejob

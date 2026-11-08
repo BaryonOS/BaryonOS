@@ -1,6 +1,29 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — CodeQL-workflowcontract — 9 november 2026
+## NEXT AGENT HANDOFF — Herkomst na redactiereview — 9 november 2026
+
+**Bron:** main `9922810a18f2272f534e1539e2d980d3d8922bb3`, branch
+`docs/wetenschappelijke-herkomst-20261109`. De wetenschappelijke redactie uit
+PR #265 en de CodeQL-wijziging uit PR #266 zijn behouden.
+
+**Review en correctie:** CodeRabbit heeft dezelfde redactiedelta in PR #267
+beoordeeld nadat de eerste review door de merge was afgebroken. Eén minor
+bevinding betreft de herkomst van de desktoptoewijzing. De oorspronkelijke
+bron `4c7147da` noemt de projecteigenaar als beslisser; die rol staat nu
+expliciet in de onpersoonlijke formulering. Er wordt geen beslissende
+AI-sessie verzonnen. Een ontbrekende lege regel vóór een Markdown-tabel is hersteld.
+
+**Controle en grens:** voortgangscontrole, diffcontrole en gerichte
+inhoudsvergelijking slagen (exitstatus 0). De afzonderlijke AI-bronbeoordeling
+bevestigt de herkomst. Geen lokale Rust-, QEMU- of fysieke-hardwaretests voor
+deze redactie. **41 → 41/100**; criteria, gewichten en bewijsstatus gelijk.
+[Controleverslag](verification/wetenschappelijke-herkomst-20261109.json).
+
+**Hervatten:** beoordeel GitHub-CI en de review op de nieuwe correctiehead;
+CodeRabbit-resultaten op `bb3c1f6` betreffen de voorafgaande redactieversie.
+Eerste lokale controle: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint — CodeQL-workflowcontract — 9 november 2026
 
 **Bron en scope:** PR #266, branch `simonvanieperen-patch-3`, basis
 `3402b30c3d67e769eea28abc07e1aaceeb3e2525`. De bestaande methode
