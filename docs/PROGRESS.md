@@ -1,5 +1,12 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+Runnerwissel op basis main `6e429de9` (8 november 2026): **41 → 41/100**.
+Alle 21 workflows gebruiken standaard GitHub-hosted Ubuntu 24.04-runners;
+24 jobdefinities en 42 uitgewerkte matrixjobs. Alleen CI-infrastructuur en
+de host-buildcache veranderen; geen productcriterium of gewicht wijzigt.
+Configuratie-/hostcontroles zijn geen nieuw native acceptatiebewijs.
+Zie [de migratiecontrole](verification/github-hosted-runners-20261108.json).
+
 PR #235-herstel (7 november 2026), PR-bron `bff194b5` met main `9bc5f52`:
 **41 → 41/100**. Alleen buildpadcorrecties, twee functiedocstrings en een
 actuele CI-basis; geen criterium of gewicht gewijzigd. Syntax-/AST-controle

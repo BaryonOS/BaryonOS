@@ -22,7 +22,7 @@ defaults:
 jobs:
   component-quality:
     name: component-quality (${{ matrix.component }})
-    runs-on: [self-hosted, Linux, X64, unraid, build]
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
       fail-fast: false

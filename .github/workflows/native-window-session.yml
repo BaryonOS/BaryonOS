@@ -20,7 +20,7 @@ defaults:
 
 jobs:
   native-window-session:
-    runs-on: [self-hosted, Linux, X64, unraid, build]
+    runs-on: ubuntu-24.04
     # Three isolated boots: full regression, library mutation, cold reopen.
     timeout-minutes: 75
     env:

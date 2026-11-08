@@ -1979,7 +1979,9 @@ regressie werkelijk slagen. Geen authenticatie-, encryptie- of hardwareclaim.
 
 ## ADR-CI-RUNNERS-20261106 — Linux-CI alleen op de Unraid-runners
 
-Status: aangenomen, 6 november 2026 (opdracht Simon, PR #241).
+Status: runnerkeuze vervangen door ADR-CI-HOSTED-20261108; overige afspraken
+over artifacts en verplichte checks blijven gelden. Oorspronkelijk aangenomen
+op 6 november 2026 (opdracht Simon, PR #241).
 
 **Besluit:**
 - Elke workflowjob draait op `[self-hosted, Linux, X64, unraid, build]`.
@@ -2001,3 +2003,46 @@ Status: aangenomen, 6 november 2026 (opdracht Simon, PR #241).
   beoordeeld.
 - De twee Tower-runners delen één fysieke host. Daardoor draaien er maximaal twee zware jobs
   tegelijk, maar CPU, RAM en I/O van die host zijn niet gemeten.
+
+## ADR-CI-HOSTED-20261108 — Standaard GitHub-hosted Ubuntu-runners
+
+Status: aangenomen, 8 november 2026, op expliciete opdracht van Simon om de
+workflows van self-hosted naar GitHub-hosted runners om te zetten.
+
+**Besluit:** alle 24 jobdefinities in de 21 bestaande workflows gebruiken
+`runs-on: ubuntu-24.04`. De component- en toolchainmatrices leveren samen
+42 jobs op. Nieuwe of nog open workflowwijzigingen moeten dezelfde runnerkeuze
+aanhouden; een oude branch mag de self-hosted selectie niet opnieuw invoeren.
+Dit vervangt de runnerkeuze en de eerdere budgetbeperking in
+ADR-CI-RUNNERS-20261106. Het vaste Ubuntu-image behoudt de Linux/x64-omgeving
+voor de bestaande `pc-q35-8.2`-proeven, ook voor het op Linux gebouwde
+Windows-QEMU-testpakket.
+
+De bestaande Rust-pins, apt-installatie van ontbrekende QEMU-/firmwarepakketten,
+testcommando's, time-outs, rechten, verplichte checks, padfilters en
+artifactretentie van drie dagen blijven behouden. Alleen de host-Rust-buildcache
+krijgt een nieuwe namespace met `ubuntu-24.04`, zodat oude self-hosted
+buildresultaten niet worden hersteld. Cargo-downloadcaches blijven bruikbaar;
+native images en acceptatieresultaten worden niet gecachet.
+
+**Kosten en publicatie:** standaard GitHub-hosted runners zijn gratis en
+onbeperkt te gebruiken voor openbare repositories, binnen de uitvoerings- en
+concurrencylimieten. Voor private repositories geldt het inbegrepen
+computebudget en eventuele extra facturering. Grotere runners vallen niet
+onder deze keuze. De GitHub-API meldde bij deze wijziging `private: true`;
+deze opdracht verandert de zichtbaarheid of betaalinstellingen niet.
+Artifact- en cacheopslag hebben afzonderlijke limieten.
+
+**Bewijsgrens en herstel:** de configuratiecontrole staat in
+`verification/github-hosted-runners-20261108.json`. Een runnerlabel of geldige
+YAML is geen native bootbewijs; daarvoor blijven de bestaande CI-gates op de
+nieuwe PR-head nodig. Terugdraaien kan met een gerichte revert van deze
+migratie, zonder andere bronwijzigingen of branchregels aan te passen.
+
+**Primaire bronnen, geraadpleegd 8 november 2026:**
+- GitHub. (z.d.). *GitHub-hosted runners reference*.
+  https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+- GitHub. (z.d.). *GitHub Actions billing*.
+  https://docs.github.com/en/billing/concepts/product-billing/github-actions
+- GitHub. (z.d.). *Actions limits*.
+  https://docs.github.com/en/actions/reference/limits

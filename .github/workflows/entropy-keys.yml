@@ -17,7 +17,7 @@ concurrency:
 jobs:
   b01-native-supervisor:
     name: b01-native-supervisor
-    runs-on: [self-hosted, Linux, X64, unraid, build]
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2

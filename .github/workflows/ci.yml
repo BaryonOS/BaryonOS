@@ -16,7 +16,7 @@ concurrency:
 jobs:
   host-quality:
     name: host-quality
-    runs-on: [self-hosted, Linux, X64, unraid, build]
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - name: Checkout
@@ -53,7 +53,7 @@ jobs:
             services/net-protocol/target/debug
             experiments/quantum/target/debug
             experiments/quantum/job-protocol/target/debug
-          key: host-rust-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock', '**/Cargo.toml', '**/.cargo/config.toml', '**/build.rs') }}
+          key: host-rust-v2-ubuntu-24.04-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock', '**/Cargo.toml', '**/.cargo/config.toml', '**/build.rs') }}
       - name: Fetch locked workspace dependencies before offline Python harnesses
         # The snapshot-wipe harness builds capability-core offline. Cargo still
         # resolves the workspace closure, including update-core's dependencies.
@@ -149,7 +149,7 @@ jobs:
   qemu-smoke:
     name: qemu-smoke
     needs: host-quality
-    runs-on: [self-hosted, Linux, X64, unraid, build]
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2

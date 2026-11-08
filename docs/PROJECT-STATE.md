@@ -1,6 +1,43 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR #211 parserintegratie — 7 november 2026
+## NEXT AGENT HANDOFF — GitHub-hosted runners — 8 november 2026
+
+**Bron:** main `6e429de98b5c692ccceaa12973818eecb1622062`, werkbranch
+`ci/github-hosted-runners-20261108`. **41 → 41/100**; geen productcriterium,
+gewicht of bestaand acceptatiebewijs wijzigt.
+
+**Gerealiseerd:** alle 24 jobdefinities in 21 workflows gebruiken
+`ubuntu-24.04` (42 jobs na matrixuitbreiding). De host-Rust-buildcache heeft
+een nieuwe Ubuntu-namespace. Teststappen, toolchainpins, firmwarepaden,
+time-outs, rechten, triggers, caches voor downloads en artifactretentie blijven
+behouden. Besluit: ADR-CI-HOSTED-20261108 in `DECISIONS.md`.
+
+**Taakcontract:** uitsluitend runnerselectie, de bijbehorende hostcache en
+projectregistratie aanpassen. Acceptatie: geen self-hosted selectie meer in
+de workflows, verder gelijke uitvoeringsconfiguratie en consistente
+voortgangsweergave. Bestaande kernel-/runtimefouten worden hiermee niet als
+hersteld beschouwd.
+
+**Controle:** de lokale snapshot is via de GitHub-API op de vaste broncommit
+gelezen en tegen Git-blob-ID's gecontroleerd. YAML-structuur en shellsyntaxis,
+behoud van de overige workflowvelden, de zeven bestaande agent-gate-hosttests
+en `tools/progress.py --write`/`--check` slagen en zijn vastgelegd in
+`verification/github-hosted-runners-20261108.json`. Geen Rust- of QEMU-run
+lokaal: die gereedschappen ontbreken in deze uitvoeromgeving.
+
+**Open:** GitHub-CI op de nieuwe PR-head en de bestaande branchregels blijven
+van toepassing. De repository was bij controle privé; standaard hosted
+runners zijn pas onbeperkt gratis na een afzonderlijke openbaarmaking.
+Open PR #245 introduceert nog een self-hosted Copilot-workflow en moet vóór
+integratie aan de nieuwe runnerkeuze worden aangepast. De huidige
+SMP-run op main `6e429de` faalde alleen bij artifact-upload, niet in de
+teststappen: run `42389248097`, job `128453130104`.
+
+**Hervatten:** controleer de actuele head, reviewbevindingen en CI van de
+runner-PR; houd oude branchwijzigingen met self-hosted labels buiten de
+integratie. Geen runnerregistraties, publicatie- of betaalinstellingen gewijzigd.
+
+## Historisch checkpoint — PR #211 parserintegratie — 7 november 2026
 
 **Bron:** `verify/parser-hardening-20261105`, integratiecommit
 `69265f4b1d1220ea3eee6a9358ca09dc5a8b5e7d`; ouders PR `328ac91d` en main

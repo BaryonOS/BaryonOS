@@ -2,23 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-07",
-    "source_commit": "69265f4b1d1220ea3eee6a9358ca09dc5a8b5e7d",
+    "date": "2026-11-08",
+    "source_commit": "6e429de98b5c692ccceaa12973818eecb1622062",
     "assessment_basis": "source_commit",
-    "reviewed_commit": "328ac91d7b0b5cfa1424972ecf1453ccdc24f25b",
-    "reviewed_commit_context": "Begrensde AI-bronreview van de negenbestandenpatch van PR211; geen onafhankelijke menselijke audit of native integratiebewijs.",
-    "integration_review": {
-      "status": "open",
-      "source_commit": "69265f4b1d1220ea3eee6a9358ca09dc5a8b5e7d",
-      "main_commit": "9bc5f5270ffe2a8f4a214dd4d58c4290a4de6bec",
-      "merge_commit": "69265f4b1d1220ea3eee6a9358ca09dc5a8b5e7d",
-      "evidence_basis": "docs/verification/parser-fuzz-20261105/integration-20261107.json: mergeouders, bytebehoud en daadwerkelijk uitgevoerde 34 Python-hosttests. Geen nieuwe Rust/native uitvoering lokaal.",
-      "missing_evidence": "Vereiste CI en directe netwerk-/volume-/updategates op de integratiehead moeten bij dit checkpoint nog worden beoordeeld; eindresultaten worden met SHA en run-URL aan PR211 gekoppeld."
-    },
-    "branch": "verify/parser-hardening-20261105",
-    "task": "PR #211: parserreparaties op actuele main integreren en verifiëren",
+    "branch": "ci/github-hosted-runners-20261108",
+    "task": "Alle CI-workflows migreren naar standaard GitHub-hosted Ubuntu-runners",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Drie bestaande parserreparaties worden geïntegreerd; 34 Python-hosttests slagen. Rust/native CI en integratiereview zijn bij dit checkpoint nog open. NET-1 blijft een bekende open canary; geen nieuw productcriterium geaccepteerd."
+    "summary": "41/100 blijft 41/100. Alle 21 workflows (24 jobdefinities) gaan naar ubuntu-24.04; de host-buildcache krijgt een nieuwe namespace. Configuratie- en hostcontroles bewijzen geen nieuwe native productfunctie. CI op de nieuwe head en openbaarmaking voor gratis onbeperkte standaardrunners blijven afzonderlijke stappen."
   },
   "tracks": [
     {
