@@ -1,0 +1,284 @@
+{
+  "date": "2026-11-08",
+  "repository": "simonvanieperen/nieuw-os",
+  "visibility_verified": "public",
+  "base_main": "0cf49b584f9264e676d62168caeb2230669ca538",
+  "integrated_runner_head": "0de9d805a99de22e404cba188362950d8d0f4e39",
+  "integrated_evidence_head": "dc6c6bca7fdadf078275999294f8d1c275fa6ffa",
+  "local_integration_base": "3195e659a9671286b36e7dde84b07b83645c2acd",
+  "scope": "Source-bound working-tree configuration and Python host tests; runtime CI is separate.",
+  "configuration": {
+    "workflow_files": 23,
+    "action_files": 3,
+    "job_definitions": 26,
+    "expanded_jobs_maximum": 42,
+    "runner": "ubuntu-24.04",
+    "component_matrix_before": 16,
+    "component_matrix_after": 14,
+    "matrix_max_parallel": 4,
+    "bash_syntax_blocks": 179,
+    "preserved_run_steps_since_integration": 170,
+    "preserved_evidence_path_selections": 16,
+    "required_checks": [
+      "host-quality",
+      "qemu-smoke"
+    ],
+    "required_jobs_parallel": true,
+    "path_filtered_required_workflow": false
+  },
+  "local_validation": {
+    "python": "3.12.14",
+    "commands": [
+      {
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_common.py",
+          "-v"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.107,
+        "tests": 8
+      },
+      {
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_preflight.py",
+          "-v"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.214,
+        "tests": 24
+      },
+      {
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_build_paths.py",
+          "-v"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.112,
+        "tests": 3
+      },
+      {
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_guest_harness.py",
+          "-v"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.058,
+        "tests": 7
+      },
+      {
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_m1_artifact_binding.py",
+          "-v"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.124,
+        "tests": 8
+      },
+      {
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_m6c_*.py",
+          "-v"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.939,
+        "tests": 49
+      },
+      {
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_document_session_*.py",
+          "-v"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.55,
+        "tests": 35
+      },
+      {
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_volume_*.py",
+          "-v"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 1.361,
+        "tests": 37
+      },
+      {
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_system_*.py",
+          "-v"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 4.223,
+        "tests": 46
+      },
+      {
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_ci_evidence*.py",
+          "-v"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 1.044,
+        "tests": 15
+      },
+      {
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tools/tests",
+          "-p",
+          "test_agent_pipeline.py",
+          "-k",
+          "Gate",
+          "-v"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.139,
+        "tests": 7
+      }
+    ],
+    "host_tests": 239,
+    "workflow_policy_tests": 9,
+    "total_python_tests": 248,
+    "all_passed": true,
+    "logs": [
+      "docs/verification/ci-public-runners-20261108/host-tests.txt",
+      "docs/verification/ci-public-runners-20261108/workflow-tests.txt"
+    ]
+  },
+  "not_run_locally": [
+    "Rust builds, unit tests, Clippy and rustfmt (Rust is absent)",
+    "QEMU/OVMF setup and native OS gates (QEMU is absent)",
+    "GitHub expression engine and real artifact uploads",
+    "Windows guest execution or physical hardware"
+  ],
+  "remote_validation": {
+    "state": "pending push; record actual commit/run results separately"
+  },
+  "progress": {
+    "before": 41,
+    "after": 41,
+    "accepted_product_criteria_changed": false
+  },
+  "source_sha256": {
+    ".github/workflows/app-management-quality.yml": "26ee53b98dc1822c6f534fd7b9f3aa5c586a02f91401b1f173de1cb3d404bc4a",
+    ".github/workflows/artifact-store-quality.yml": "213858184e0be8d3af2e915dd6f7c9996a7a228a0580f434ea44b1c31ec64587",
+    ".github/workflows/ci.yml": "fe638ab9e63ca8e028da253e9f8940db542257f43bcb87102f2eefc6c013eeb8",
+    ".github/workflows/component-leaves.yml": "533b2d499ef4a9ffeb5625c1758a747e49b153d5307f62a984c445cd8ad1947b",
+    ".github/workflows/copilot-setup-steps.yml": "c4c78f3d77568bed7b857d8a0ee1f3ff2a7ca0f60c6b6ad828ccfb67af265246",
+    ".github/workflows/entropy-keys.yml": "1ec5bec3b15e868bcd41e2c199c57b651c3198d234ed689634d9bf4418f58cd9",
+    ".github/workflows/materiaal-probe.yml": "aa1459d424aa37fa928f604b67f191c470d1249e06fa7dba4d0c463d911bc144",
+    ".github/workflows/nas-core.yml": "ea4d17b05e1c77d012bf0ad14425a6ecf178cc07883d76abe78f44a8b90b6b98",
+    ".github/workflows/native-display-input.yml": "80ae8f25f5f25f18b9dcdb9fe4782141a5617d809cca5a8eb686fc56859fcd66",
+    ".github/workflows/native-foundation.yml": "2ba775d328539e23ef769170c751164385cee6dcbd0dd2b4b491bad298e5df85",
+    ".github/workflows/native-rtc.yml": "304ff9d0cbcd2291f15ee04a8d51439b79fb7b9c77e683d685e53973bbed6aae",
+    ".github/workflows/native-smp.yml": "37cc806d1891b0bdb86c9714d7b29f8138083e24fab64c150727a1814d772e2a",
+    ".github/workflows/native-system.yml": "ac7e4f95a5b6b7d88ba142fdad30fe528ada51f65414ebe2901b7f6cf023789f",
+    ".github/workflows/native-window-session.yml": "7b25570cf0f491892cb1c859df3e0b7e441de14ee41eaca14eaf03fc018cb6e9",
+    ".github/workflows/net-broker-quality.yml": "e0795c376b7d68ba85f4ba36e7d04866f30b518b28b6617f7e6bd525ac474de6",
+    ".github/workflows/net-tls-quality.yml": "55195f25408c017150e6180ee8255257900ad7de5ef1027ca04dd3b7e4056656",
+    ".github/workflows/private-publication-audit.yml": "cffa577457d87c54d8aadae57523ff6114d89dc7f50f8ab827ab991ab13a4964",
+    ".github/workflows/process-management.yml": "943163773dc34dd487e72414e8633508b74e2f88558ccce647417e7dd9740677",
+    ".github/workflows/resource-pressure.yml": "bf9ab1e91a82b37c0a3bb7a616629107650140f3faae83eb12dadc7b0a4d5231",
+    ".github/workflows/signed-updates.yml": "2879b7d0d475fe273b8c814b9e5ad40791ed75e8f6efd653786dbe482f3179e9",
+    ".github/workflows/storage-resilience.yml": "463e6ad97d8ebcbb03b94f4619e6c95b58e20b013fe1a7ad22d59221447243f5",
+    ".github/workflows/volume-acceptance.yml": "cd78c6c62e54b9a6aff9f071926d326ffe3d3cce41ef11c281f3290175d6f3b5",
+    ".github/workflows/windows-qemu-test-version.yml": "673c16fbb839bd8a7e8fa1cece14d6f564e014ed8d11e7af5f21635c32f37216",
+    ".github/actions/preserve-evidence/action.yml": "6a110d0eda5b059ab9c827976b913ab8291aa2a8c6e23eebd99e62ef09bc744f",
+    ".github/actions/setup-python/action.yml": "a7f16024464cead0ef1e3edbe3f860b1ebf91910e2c1d459951e7d3aa0c52219",
+    ".github/actions/setup-qemu/action.yml": "7ca59a4e8a284e5e1c5317329be81005a179c5e327675953a2c6219686b573df",
+    "tests/test_ci_workflows.py": "ccb1674429d84750900a90584eda12d9d818190de4583a4c5b0c805b2936442e",
+    "tools/ci_evidence.py": "2aedeae1ff61dc0bf5efb9543c068662dca03787346e6aa3a164985d788f81c0",
+    "tests/test_ci_evidence.py": "8b4abe1b71ced36c4d1a498c4b129667e9e8724280e2f4cbf3033a1615a0c8b7",
+    ".github/actions/setup-python/requirements.txt": "e77583c50ce6dbe4fe69359b171621bc1468d6ab19b4b77d94c8f86c8bf7ce1c"
+  },
+  "remote_integration_base": "39586927bea616c9c1e427689f97413320b28383",
+  "integration_tree": "1f3d4c1a6fb7d2d23414803dfa15932204f7b5f9",
+  "static_review": {
+    "blocking_findings": 0,
+    "scope": "26 workflow/action YAMLs, preserved test commands and evidence selections; no runtime execution",
+    "reviewed_yaml_hash_index_sha256": "fbfe9e62abe6d6ad7db6514a7f924867b3858676a36996fa01ba5796d1537ede"
+  }
+}

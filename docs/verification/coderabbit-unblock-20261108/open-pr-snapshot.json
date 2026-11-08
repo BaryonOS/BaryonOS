@@ -1,0 +1,1234 @@
+{
+  "scope": "Read-only pre-repair snapshot; statuses may change independently. Counts overlap and are not additive.",
+  "observed_at_utc": "2026-11-08T21:25:41.423Z",
+  "open_prs": 27,
+  "code_rabbit_changes_requested": 22,
+  "merge_conflicts": 17,
+  "open_code_rabbit_threads": 123,
+  "open_other_threads": 35,
+  "rows": [
+    {
+      "number": 154,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/154",
+      "title": "Simonvanieperen studious spoon",
+      "base": "main",
+      "base_sha": "5c66ec57aaf8eb411a83b8d6e42320ddc379383c",
+      "head": "simonvanieperen-studious-spoon",
+      "head_sha": "5618e7c4e295847ba5825e2d83268f7e8b466f57",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5759912572,
+        "state": "CHANGES_REQUESTED",
+        "sha": "5618e7c4e295847ba5825e2d83268f7e8b466f57",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/154#pullrequestreview-5759912572",
+        "time": "2026-11-03T21:45:17Z",
+        "docstring": false,
+        "actionable": 0
+      },
+      "cr_decisive": {
+        "id": 5759912572,
+        "state": "CHANGES_REQUESTED",
+        "sha": "5618e7c4e295847ba5825e2d83268f7e8b466f57",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/154#pullrequestreview-5759912572",
+        "time": "2026-11-03T21:45:17Z"
+      },
+      "cr_check": {
+        "id": 126219934009,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/126219934009",
+        "title": "Finished"
+      },
+      "cr_unresolved": 15,
+      "cr_unresolved_outdated": 1,
+      "all_unresolved": 15,
+      "required_checks": []
+    },
+    {
+      "number": 155,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/155",
+      "title": "fix(keyring): herstelmateriaal uitsluitend via beheer-ingress; sprintcheckpoint",
+      "base": "main",
+      "base_sha": "ab85d6339ce5bdddb10a2de171d0c1b04e4b62ff",
+      "head": "simonvanieperen-animated-garbanzo",
+      "head_sha": "5468e78546af8b371dfca389bcc3b4125b06120a",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5760437533,
+        "state": "APPROVED",
+        "sha": "5468e78546af8b371dfca389bcc3b4125b06120a",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/155#pullrequestreview-5760437533",
+        "time": "2026-11-03T22:33:12Z",
+        "docstring": false,
+        "actionable": 0
+      },
+      "cr_decisive": {
+        "id": 5760437533,
+        "state": "APPROVED",
+        "sha": "5468e78546af8b371dfca389bcc3b4125b06120a",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/155#pullrequestreview-5760437533",
+        "time": "2026-11-03T22:33:12Z"
+      },
+      "cr_check": {
+        "id": 126243416281,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/126243416281",
+        "title": "Finished"
+      },
+      "cr_unresolved": 0,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 0,
+      "required_checks": [
+        {
+          "name": "qemu-smoke",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41729617598/job/126248460666"
+        },
+        {
+          "name": "host-quality",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/41729617598/job/126243238245"
+        }
+      ]
+    },
+    {
+      "number": 167,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/167",
+      "title": "feat(veld): voeg complete vensterwisselaar met actuele appminiaturen toe",
+      "base": "main",
+      "base_sha": "0cf49b584f9264e676d62168caeb2230669ca538",
+      "head": "veld/next-shell-20261103",
+      "head_sha": "60a186b62b6c3a4a73a6c655e2fe77ddc049dca8",
+      "draft": false,
+      "mergeable": true,
+      "mergeable_state": "blocked",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5819669907,
+        "state": "COMMENTED",
+        "sha": "60a186b62b6c3a4a73a6c655e2fe77ddc049dca8",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/167#pullrequestreview-5819669907",
+        "time": "2026-11-08T21:07:28Z",
+        "docstring": true,
+        "actionable": 0
+      },
+      "cr_decisive": {
+        "id": 5803455552,
+        "state": "CHANGES_REQUESTED",
+        "sha": "fbe6fa6cb1e9a4e79b27a0c5129cea98bd1b977f",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/167#pullrequestreview-5803455552",
+        "time": "2026-11-06T16:29:59Z"
+      },
+      "cr_check": {
+        "id": 128860819640,
+        "name": "CodeRabbit",
+        "status": "in_progress",
+        "conclusion": null,
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128860819640",
+        "title": "Review in progress"
+      },
+      "cr_unresolved": 8,
+      "cr_unresolved_outdated": 1,
+      "all_unresolved": 12,
+      "required_checks": [
+        {
+          "name": "host-quality",
+          "status": "queued",
+          "conclusion": null,
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523121205/job/128860755448"
+        }
+      ]
+    },
+    {
+      "number": 181,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/181",
+      "title": "Add kernel-core device execution lifecycle model",
+      "base": "main",
+      "base_sha": "0cf49b584f9264e676d62168caeb2230669ca538",
+      "head": "system-maturity/device-execution-interface",
+      "head_sha": "325b020f2bbb96801e4e17dedec7c5ba17f51b4a",
+      "draft": false,
+      "mergeable": true,
+      "mergeable_state": "blocked",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5819663702,
+        "state": "COMMENTED",
+        "sha": "325b020f2bbb96801e4e17dedec7c5ba17f51b4a",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/181#pullrequestreview-5819663702",
+        "time": "2026-11-08T21:05:35Z",
+        "docstring": true,
+        "actionable": 0
+      },
+      "cr_decisive": {
+        "id": 5791844164,
+        "state": "CHANGES_REQUESTED",
+        "sha": "a882151f3b687878241e1fce4405bb10d5a758e0",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/181#pullrequestreview-5791844164",
+        "time": "2026-11-05T20:45:39Z"
+      },
+      "cr_check": {
+        "id": 128860973756,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128860973756",
+        "title": "Finished"
+      },
+      "cr_unresolved": 1,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 1,
+      "required_checks": [
+        {
+          "name": "host-quality",
+          "status": "queued",
+          "conclusion": null,
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523164546/job/128860891126"
+        }
+      ]
+    },
+    {
+      "number": 185,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/185",
+      "title": "wip(usb): start typed boot protocol and idle setup requests",
+      "base": "main",
+      "base_sha": "c2c29c5f06d9aaf8f41055acdefc14a77cf8ef77",
+      "head": "copilot/driver-usb-hid-control",
+      "head_sha": "96d8ffec61ae23e1821beed52576105a1df755ef",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": true,
+      "cr_latest": null,
+      "cr_decisive": null,
+      "cr_check": {
+        "id": 127543591637,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "skipped",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/127543591637",
+        "title": "Review skipped"
+      },
+      "cr_unresolved": 0,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 0,
+      "required_checks": []
+    },
+    {
+      "number": 207,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/207",
+      "title": "Modify Dependabot schedule and limits",
+      "base": "main",
+      "base_sha": "0cf49b584f9264e676d62168caeb2230669ca538",
+      "head": "simonvanieperen-patch-1",
+      "head_sha": "81b0f6e1774129f90abf015417351b0999e729b7",
+      "draft": false,
+      "mergeable": true,
+      "mergeable_state": "blocked",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5819660828,
+        "state": "COMMENTED",
+        "sha": "81b0f6e1774129f90abf015417351b0999e729b7",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/207#pullrequestreview-5819660828",
+        "time": "2026-11-08T21:04:46Z",
+        "docstring": false,
+        "actionable": 0
+      },
+      "cr_decisive": null,
+      "cr_check": {
+        "id": 128861114651,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128861114651",
+        "title": "Finished"
+      },
+      "cr_unresolved": 0,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 0,
+      "required_checks": [
+        {
+          "name": "host-quality",
+          "status": "queued",
+          "conclusion": null,
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523215913/job/128861040833"
+        }
+      ]
+    },
+    {
+      "number": 210,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/210",
+      "title": "Veld herbouwd op de vertrouwde sessieshell (vervangt #157, neemt #146-restitems mee)",
+      "base": "main",
+      "base_sha": "2a00d75669e5039f47000f77f6a8aab5f644d39b",
+      "head": "veld/rebuild-on-shell-20261105",
+      "head_sha": "73d8e29ffa9c9b53a1841fc9cdabd438104d811b",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5793579977,
+        "state": "CHANGES_REQUESTED",
+        "sha": "73d8e29ffa9c9b53a1841fc9cdabd438104d811b",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/210#pullrequestreview-5793579977",
+        "time": "2026-11-05T23:28:12Z",
+        "docstring": true,
+        "actionable": 3
+      },
+      "cr_decisive": {
+        "id": 5793579977,
+        "state": "CHANGES_REQUESTED",
+        "sha": "73d8e29ffa9c9b53a1841fc9cdabd438104d811b",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/210#pullrequestreview-5793579977",
+        "time": "2026-11-05T23:28:12Z"
+      },
+      "cr_check": {
+        "id": 127597858739,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/127597858739",
+        "title": "Finished"
+      },
+      "cr_unresolved": 12,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 12,
+      "required_checks": []
+    },
+    {
+      "number": 213,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/213",
+      "title": "H05-stap: native ACPI S5-poweroff door de eigen kernel",
+      "base": "main",
+      "base_sha": "0cf49b584f9264e676d62168caeb2230669ca538",
+      "head": "hw/h05-native-acpi-s5",
+      "head_sha": "7302d6e9435842d7a751b04267d299f187c6b6cc",
+      "draft": false,
+      "mergeable": true,
+      "mergeable_state": "blocked",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5819679106,
+        "state": "COMMENTED",
+        "sha": "7302d6e9435842d7a751b04267d299f187c6b6cc",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/213#pullrequestreview-5819679106",
+        "time": "2026-11-08T21:10:10Z",
+        "docstring": true,
+        "actionable": 0
+      },
+      "cr_decisive": {
+        "id": 5791807958,
+        "state": "CHANGES_REQUESTED",
+        "sha": "72214b89f2d5cdc9b94c1a23342ad7eedf5707eb",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/213#pullrequestreview-5791807958",
+        "time": "2026-11-05T20:43:05Z"
+      },
+      "cr_check": {
+        "id": 128861253578,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128861253578",
+        "title": "Finished"
+      },
+      "cr_unresolved": 2,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 3,
+      "required_checks": [
+        {
+          "name": "host-quality",
+          "status": "queued",
+          "conclusion": null,
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523261367/job/128861178363"
+        }
+      ]
+    },
+    {
+      "number": 214,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/214",
+      "title": "Horizon: eigen futuristische desktopshell (dock, glas, horizonlicht)",
+      "base": "main",
+      "base_sha": "cb3d169c02f76c0ae0aa312c63c0bc31d25efc79",
+      "head": "ui/desktop-2030",
+      "head_sha": "b4e39db2f62775509a36103d025a0d6cee72fa4a",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5792161453,
+        "state": "COMMENTED",
+        "sha": "b4e39db2f62775509a36103d025a0d6cee72fa4a",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/214#pullrequestreview-5792161453",
+        "time": "2026-11-05T21:09:17Z",
+        "docstring": true,
+        "actionable": 0
+      },
+      "cr_decisive": {
+        "id": 5792036479,
+        "state": "CHANGES_REQUESTED",
+        "sha": "4fd6892c2d9c0ee0acd411d8c1e8e5e113cdf954",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/214#pullrequestreview-5792036479",
+        "time": "2026-11-05T20:59:13Z"
+      },
+      "cr_check": {
+        "id": 127531553410,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/127531553410",
+        "title": "Finished"
+      },
+      "cr_unresolved": 1,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 1,
+      "required_checks": []
+    },
+    {
+      "number": 215,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/215",
+      "title": "N04: native intrekking van een live per-app netwerkrecht, met waarneming in het verkeer",
+      "base": "main",
+      "base_sha": "0cf49b584f9264e676d62168caeb2230669ca538",
+      "head": "net/n04-native-revoke-20261105",
+      "head_sha": "774a1d296c3456dec36fbbd3f6608fb112f77612",
+      "draft": false,
+      "mergeable": true,
+      "mergeable_state": "blocked",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5819681093,
+        "state": "COMMENTED",
+        "sha": "774a1d296c3456dec36fbbd3f6608fb112f77612",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/215#pullrequestreview-5819681093",
+        "time": "2026-11-08T21:10:45Z",
+        "docstring": true,
+        "actionable": 0
+      },
+      "cr_decisive": {
+        "id": 5792412400,
+        "state": "CHANGES_REQUESTED",
+        "sha": "b2548df0b2ec959b02b5013e0f0c60daeac2e63b",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/215#pullrequestreview-5792412400",
+        "time": "2026-11-05T21:29:48Z"
+      },
+      "cr_check": {
+        "id": 128861356076,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128861356076",
+        "title": "Finished"
+      },
+      "cr_unresolved": 2,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 4,
+      "required_checks": [
+        {
+          "name": "host-quality",
+          "status": "queued",
+          "conclusion": null,
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523294435/job/128861277680"
+        }
+      ]
+    },
+    {
+      "number": 216,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/216",
+      "title": "Hardware-einddoel: QEMU → VMware Workstation → fysieke pc",
+      "base": "main",
+      "base_sha": "0cf49b584f9264e676d62168caeb2230669ca538",
+      "head": "hw/hardware-targets",
+      "head_sha": "ca138756ec2145fcb1f2a11f721a1b42a19ccd0e",
+      "draft": false,
+      "mergeable": true,
+      "mergeable_state": "blocked",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5804716107,
+        "state": "COMMENTED",
+        "sha": "a8cda96654d70f2c2e979b45c344b4c0b1bbcb56",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/216#pullrequestreview-5804716107",
+        "time": "2026-11-06T18:02:33Z",
+        "docstring": false,
+        "actionable": 0
+      },
+      "cr_decisive": {
+        "id": 5792204184,
+        "state": "CHANGES_REQUESTED",
+        "sha": "a1a8645d430087d723630faeef5e0ed4f0681cb8",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/216#pullrequestreview-5792204184",
+        "time": "2026-11-05T21:12:31Z"
+      },
+      "cr_check": {
+        "id": 128861421177,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128861421177",
+        "title": "Finished"
+      },
+      "cr_unresolved": 2,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 2,
+      "required_checks": [
+        {
+          "name": "host-quality",
+          "status": "queued",
+          "conclusion": null,
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523317689/job/128861349786"
+        }
+      ]
+    },
+    {
+      "number": 218,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/218",
+      "title": "Hw/h05 poweroff capability",
+      "base": "main",
+      "base_sha": "5ae0757de82217ba0961ce580a6d7d530988fc5c",
+      "head": "hw/h05-poweroff-capability",
+      "head_sha": "82f754db5e00d24e99a7a6da18f9e87a04c8d172",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5802654377,
+        "state": "COMMENTED",
+        "sha": "82f754db5e00d24e99a7a6da18f9e87a04c8d172",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/218#pullrequestreview-5802654377",
+        "time": "2026-11-06T15:40:42Z",
+        "docstring": true,
+        "actionable": 0
+      },
+      "cr_decisive": {
+        "id": 5792515737,
+        "state": "CHANGES_REQUESTED",
+        "sha": "81194b955c5c19d6b98d8aa9a33f58def8fa07a2",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/218#pullrequestreview-5792515737",
+        "time": "2026-11-05T21:38:53Z"
+      },
+      "cr_check": {
+        "id": 127981983938,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/127981983938",
+        "title": "Finished"
+      },
+      "cr_unresolved": 6,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 8,
+      "required_checks": []
+    },
+    {
+      "number": 227,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/227",
+      "title": "K06 stap 5b: gecontroleerd spinnen met IF=1 op KERNEL/ASPACE",
+      "base": "main",
+      "base_sha": "8ad1bcf1851db75ca28bf1b7e511a59722d80e73",
+      "head": "feat/k06-5b-spin-irq",
+      "head_sha": "370f2092e5796b93b8898556a91fc664301d379e",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5804817986,
+        "state": "COMMENTED",
+        "sha": "370f2092e5796b93b8898556a91fc664301d379e",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/227#pullrequestreview-5804817986",
+        "time": "2026-11-06T18:11:37Z",
+        "docstring": true,
+        "actionable": 0
+      },
+      "cr_decisive": {
+        "id": 5800756528,
+        "state": "CHANGES_REQUESTED",
+        "sha": "5a8742c147e56161b5fe0f7852cd16cc9c2ba341",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/227#pullrequestreview-5800756528",
+        "time": "2026-11-06T13:32:27Z"
+      },
+      "cr_check": {
+        "id": 128061371467,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128061371467",
+        "title": "Finished"
+      },
+      "cr_unresolved": 4,
+      "cr_unresolved_outdated": 1,
+      "all_unresolved": 4,
+      "required_checks": [
+        {
+          "name": "qemu-smoke",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42266932388/job/128093178038"
+        },
+        {
+          "name": "host-quality",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42266932388/job/128061167065"
+        }
+      ]
+    },
+    {
+      "number": 229,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/229",
+      "title": "K06 stap 5d-1: runqueues per AP, 0xe8-wekken en CR3-wissel met active_cpus",
+      "base": "feat/k06-5b-spin-irq",
+      "base_sha": "d582e47475a348dca4e1df0dec368839bb221198",
+      "head": "feat/k06-5d-runqueues",
+      "head_sha": "c4b3cf2f31c2b63a653c44e417358a46837224a8",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": false,
+      "cr_latest": {
+        "id": 5803397031,
+        "state": "CHANGES_REQUESTED",
+        "sha": "c4b3cf2f31c2b63a653c44e417358a46837224a8",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/229#pullrequestreview-5803397031",
+        "time": "2026-11-06T16:26:12Z",
+        "docstring": true,
+        "actionable": 4
+      },
+      "cr_decisive": {
+        "id": 5803397031,
+        "state": "CHANGES_REQUESTED",
+        "sha": "c4b3cf2f31c2b63a653c44e417358a46837224a8",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/229#pullrequestreview-5803397031",
+        "time": "2026-11-06T16:26:12Z"
+      },
+      "cr_check": {
+        "id": 128005486392,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128005486392",
+        "title": "Finished"
+      },
+      "cr_unresolved": 4,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 6,
+      "required_checks": []
+    },
+    {
+      "number": 231,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/231",
+      "title": "K06 auditbevinding F8: swapgs-discipline voor het per-CPU-GS-anker (ADR-076)",
+      "base": "feat/k06-5d-runqueues",
+      "base_sha": "c4b3cf2f31c2b63a653c44e417358a46837224a8",
+      "head": "fix/k06-f8-swapgs",
+      "head_sha": "27fe51801434c7ff180d5450d5e185f1c8d1a306",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": false,
+      "cr_latest": {
+        "id": 5803367847,
+        "state": "CHANGES_REQUESTED",
+        "sha": "7ffdacfa627714da1a2479633a577388e5de142e",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/231#pullrequestreview-5803367847",
+        "time": "2026-11-06T16:24:15Z",
+        "docstring": true,
+        "actionable": 5
+      },
+      "cr_decisive": {
+        "id": 5803367847,
+        "state": "CHANGES_REQUESTED",
+        "sha": "7ffdacfa627714da1a2479633a577388e5de142e",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/231#pullrequestreview-5803367847",
+        "time": "2026-11-06T16:24:15Z"
+      },
+      "cr_check": {
+        "id": 128861905778,
+        "name": "CodeRabbit",
+        "status": "in_progress",
+        "conclusion": null,
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128861905778",
+        "title": "Review in progress"
+      },
+      "cr_unresolved": 5,
+      "cr_unresolved_outdated": 1,
+      "all_unresolved": 8,
+      "required_checks": []
+    },
+    {
+      "number": 232,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/232",
+      "title": "docs(k06): L0-specificaties voor de resterende K06-stappen (5b-2 t/m 5f)",
+      "base": "main",
+      "base_sha": "8ad1bcf1851db75ca28bf1b7e511a59722d80e73",
+      "head": "docs/k06-step-specs",
+      "head_sha": "bf2a602f6a0b112ec006fc0ef4735395af2142d5",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5803430537,
+        "state": "CHANGES_REQUESTED",
+        "sha": "921cdb00a3119e7dfd26292d81dc92ce15738268",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/232#pullrequestreview-5803430537",
+        "time": "2026-11-06T16:28:24Z",
+        "docstring": false,
+        "actionable": 18
+      },
+      "cr_decisive": {
+        "id": 5803430537,
+        "state": "CHANGES_REQUESTED",
+        "sha": "921cdb00a3119e7dfd26292d81dc92ce15738268",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/232#pullrequestreview-5803430537",
+        "time": "2026-11-06T16:28:24Z"
+      },
+      "cr_check": {
+        "id": 128061645339,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128061645339",
+        "title": "Finished"
+      },
+      "cr_unresolved": 18,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 18,
+      "required_checks": [
+        {
+          "name": "qemu-smoke",
+          "status": "completed",
+          "conclusion": "skipped",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42266981717/job/128061359047"
+        },
+        {
+          "name": "host-quality",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42266981717/job/128061337400"
+        }
+      ]
+    },
+    {
+      "number": 233,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/233",
+      "title": "Add GitHub Actions workflow for integrity checks",
+      "base": "main",
+      "base_sha": "0cf49b584f9264e676d62168caeb2230669ca538",
+      "head": "simonvanieperen-patch-2",
+      "head_sha": "ddfe4d14d32fdd4d40dfe8e9d976166096f7f18a",
+      "draft": false,
+      "mergeable": true,
+      "mergeable_state": "blocked",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5819674140,
+        "state": "COMMENTED",
+        "sha": "ddfe4d14d32fdd4d40dfe8e9d976166096f7f18a",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/233#pullrequestreview-5819674140",
+        "time": "2026-11-08T21:08:42Z",
+        "docstring": false,
+        "actionable": 0
+      },
+      "cr_decisive": {
+        "id": 5803793487,
+        "state": "CHANGES_REQUESTED",
+        "sha": "3eca4ede4816784f94d73ee588913d175ab6fe73",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/233#pullrequestreview-5803793487",
+        "time": "2026-11-06T16:53:17Z"
+      },
+      "cr_check": {
+        "id": 128861810326,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128861810326",
+        "title": "Finished"
+      },
+      "cr_unresolved": 1,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 1,
+      "required_checks": [
+        {
+          "name": "host-quality",
+          "status": "queued",
+          "conclusion": null,
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523453794/job/128861753350"
+        }
+      ]
+    },
+    {
+      "number": 238,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/238",
+      "title": "K06 F5/F7: STUCK-melding ook in release en SERIAL-lock per regel",
+      "base": "fix/k06-f8-swapgs",
+      "base_sha": "27fe51801434c7ff180d5450d5e185f1c8d1a306",
+      "head": "fix/k06-f5-f7-diagnostics",
+      "head_sha": "bebfc1edd154058a43bc1131d3ab7a91be3e6d41",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": false,
+      "cr_latest": null,
+      "cr_decisive": null,
+      "cr_check": {
+        "id": 128862052464,
+        "name": "CodeRabbit",
+        "status": "in_progress",
+        "conclusion": null,
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128862052464",
+        "title": "Review in progress"
+      },
+      "cr_unresolved": 0,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 4,
+      "required_checks": [
+        {
+          "name": "host-quality",
+          "status": "queued",
+          "conclusion": null,
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42270779491/job/128862766286"
+        }
+      ]
+    },
+    {
+      "number": 243,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/243",
+      "title": "ci: KVM-pilot voor native-system, m6e en window session (TCG-fallback)",
+      "base": "main",
+      "base_sha": "9bc5f5270ffe2a8f4a214dd4d58c4290a4de6bec",
+      "head": "ci/kvm-pilot",
+      "head_sha": "a0ad4d21774410c7bc130deaf7309f8b161786c2",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5819691163,
+        "state": "CHANGES_REQUESTED",
+        "sha": "a0ad4d21774410c7bc130deaf7309f8b161786c2",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/243#pullrequestreview-5819691163",
+        "time": "2026-11-08T21:13:36Z",
+        "docstring": true,
+        "actionable": 3
+      },
+      "cr_decisive": {
+        "id": 5819691163,
+        "state": "CHANGES_REQUESTED",
+        "sha": "a0ad4d21774410c7bc130deaf7309f8b161786c2",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/243#pullrequestreview-5819691163",
+        "time": "2026-11-08T21:13:36Z"
+      },
+      "cr_check": {
+        "id": 128862264938,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128862264938",
+        "title": "Finished"
+      },
+      "cr_unresolved": 3,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 3,
+      "required_checks": [
+        {
+          "name": "qemu-smoke",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42299877217/job/128215421571"
+        },
+        {
+          "name": "host-quality",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42299877217/job/128174588631"
+        }
+      ]
+    },
+    {
+      "number": 244,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/244",
+      "title": "K06 stap 5e: procesbrede TLB-shootdown op active_cpus (PS-1..PS-5)",
+      "base": "fix/k06-f8-swapgs",
+      "base_sha": "27fe51801434c7ff180d5450d5e185f1c8d1a306",
+      "head": "feat/k06-5e-proc-shootdown",
+      "head_sha": "7adf3eaf497302ae3c403c30e4059e0a511ae5f2",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": false,
+      "cr_latest": null,
+      "cr_decisive": null,
+      "cr_check": {
+        "id": 128863252874,
+        "name": "CodeRabbit",
+        "status": "in_progress",
+        "conclusion": null,
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128863252874",
+        "title": "Review in progress"
+      },
+      "cr_unresolved": 0,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 9,
+      "required_checks": []
+    },
+    {
+      "number": 245,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/245",
+      "title": "ci: Copilot coding agent op eigen WSL-runner (sudo, KVM, QEMU, Rust)",
+      "base": "main",
+      "base_sha": "0cf49b584f9264e676d62168caeb2230669ca538",
+      "head": "ci/copilot-wsl-runner",
+      "head_sha": "a1ed7cfb28c0c9a1fcf8f0d0e738581b25bdd64e",
+      "draft": false,
+      "mergeable": true,
+      "mergeable_state": "blocked",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5819642241,
+        "state": "COMMENTED",
+        "sha": "a1ed7cfb28c0c9a1fcf8f0d0e738581b25bdd64e",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/245#pullrequestreview-5819642241",
+        "time": "2026-11-08T20:59:02Z",
+        "docstring": false,
+        "actionable": 0
+      },
+      "cr_decisive": {
+        "id": 5807796637,
+        "state": "CHANGES_REQUESTED",
+        "sha": "d87f0aad35fcf21834c8311859d09a0d45fbb8b4",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/245#pullrequestreview-5807796637",
+        "time": "2026-11-06T22:20:14Z"
+      },
+      "cr_check": {
+        "id": 128858907274,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128858907274",
+        "title": "Finished"
+      },
+      "cr_unresolved": 3,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 3,
+      "required_checks": [
+        {
+          "name": "host-quality",
+          "status": "queued",
+          "conclusion": null,
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42522497316/job/128862289674"
+        }
+      ]
+    },
+    {
+      "number": 246,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/246",
+      "title": "Feat/k06 5d2 ring3 smp",
+      "base": "main",
+      "base_sha": "9bc5f5270ffe2a8f4a214dd4d58c4290a4de6bec",
+      "head": "feat/k06-5d2-ring3-smp",
+      "head_sha": "4030c4f41ce0e5e4c900030693fb3746061210ec",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5808154612,
+        "state": "COMMENTED",
+        "sha": "4030c4f41ce0e5e4c900030693fb3746061210ec",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/246#pullrequestreview-5808154612",
+        "time": "2026-11-06T23:00:45Z",
+        "docstring": true,
+        "actionable": 0
+      },
+      "cr_decisive": {
+        "id": 5807979273,
+        "state": "CHANGES_REQUESTED",
+        "sha": "ca0b7e5f875c9e22759c3514088c35e43d3eaaea",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/246#pullrequestreview-5807979273",
+        "time": "2026-11-06T22:40:02Z"
+      },
+      "cr_check": {
+        "id": 128862476243,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "cancelled",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128862476243",
+        "title": "Review cancelled"
+      },
+      "cr_unresolved": 9,
+      "cr_unresolved_outdated": 1,
+      "all_unresolved": 15,
+      "required_checks": [
+        {
+          "name": "host-quality",
+          "status": "queued",
+          "conclusion": null,
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523665535/job/128862398999"
+        },
+        {
+          "name": "qemu-smoke",
+          "status": "completed",
+          "conclusion": "skipped",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42306647823/job/128197947012"
+        }
+      ]
+    },
+    {
+      "number": 249,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/249",
+      "title": "ci: stroomlijn publieke workflows op standaard GitHub-runners",
+      "base": "main",
+      "base_sha": "0cf49b584f9264e676d62168caeb2230669ca538",
+      "head": "ci/github-hosted-runners-20261108",
+      "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+      "draft": false,
+      "mergeable": true,
+      "mergeable_state": "blocked",
+      "auto_merge": true,
+      "cr_decisive": {
+        "id": "PRR_kwDOVZC91s8AAAABWuFGMw",
+        "state": "CHANGES_REQUESTED",
+        "author": "coderabbitai",
+        "submitted_at": "2026-11-08T21:10:33Z"
+      },
+      "cr_unresolved": 3,
+      "all_unresolved": 3,
+      "required_checks": [
+        {
+          "name": "host-quality",
+          "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159827/job/128860876947"
+        },
+        {
+          "name": "qemu-smoke",
+          "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159827/job/128860876818"
+        }
+      ]
+    },
+    {
+      "number": 251,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/251",
+      "title": "ci: bewaar testbewijs zonder blokkade door artifactquota",
+      "base": "main",
+      "base_sha": "5b2189824c32145ad5c110429517dfcea3f2720f",
+      "head": "ci/artifact-storage-20261108",
+      "head_sha": "dc6c6bca7fdadf078275999294f8d1c275fa6ffa",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5819228858,
+        "state": "CHANGES_REQUESTED",
+        "sha": "dc6c6bca7fdadf078275999294f8d1c275fa6ffa",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/251#pullrequestreview-5819228858",
+        "time": "2026-11-08T19:08:59Z",
+        "docstring": false,
+        "actionable": 5
+      },
+      "cr_decisive": {
+        "id": 5819228858,
+        "state": "CHANGES_REQUESTED",
+        "sha": "dc6c6bca7fdadf078275999294f8d1c275fa6ffa",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/251#pullrequestreview-5819228858",
+        "time": "2026-11-08T19:08:59Z"
+      },
+      "cr_check": {
+        "id": 128830221351,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128830221351",
+        "title": "Finished"
+      },
+      "cr_unresolved": 5,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 5,
+      "required_checks": [
+        {
+          "name": "qemu-smoke",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42513055628/job/128844018318"
+        },
+        {
+          "name": "host-quality",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42513055628/job/128830080941"
+        }
+      ]
+    },
+    {
+      "number": 257,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/257",
+      "title": "audit: refresh private Git and Actions publication inventory",
+      "base": "main",
+      "base_sha": "0cf49b584f9264e676d62168caeb2230669ca538",
+      "head": "audit/publication-final-20261108",
+      "head_sha": "7952cbf2138cc0230a648450b5e4eace767e3135",
+      "draft": false,
+      "mergeable": true,
+      "mergeable_state": "blocked",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5819682284,
+        "state": "COMMENTED",
+        "sha": "7952cbf2138cc0230a648450b5e4eace767e3135",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/257#pullrequestreview-5819682284",
+        "time": "2026-11-08T21:11:04Z",
+        "docstring": true,
+        "actionable": 0
+      },
+      "cr_decisive": {
+        "id": 5819159725,
+        "state": "CHANGES_REQUESTED",
+        "sha": "03fc1997f30954501ed3dbce98e938a7cc73d331",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/257#pullrequestreview-5819159725",
+        "time": "2026-11-08T18:51:11Z"
+      },
+      "cr_check": {
+        "id": 128862819676,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128862819676",
+        "title": "Finished"
+      },
+      "cr_unresolved": 4,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 6,
+      "required_checks": [
+        {
+          "name": "host-quality",
+          "status": "queued",
+          "conclusion": null,
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523776670/job/128862734216"
+        }
+      ]
+    },
+    {
+      "number": 259,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/259",
+      "title": "audit: leg publicatiecontrole en herstelde licentienotices vast",
+      "base": "main",
+      "base_sha": "5b2189824c32145ad5c110429517dfcea3f2720f",
+      "head": "audit/publication-review-20261108",
+      "head_sha": "901fb6473de4e6510040c94e114c1a3a3db94d3d",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5819294871,
+        "state": "CHANGES_REQUESTED",
+        "sha": "014018be9307c623a3b5165beab4243d310683df",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/259#pullrequestreview-5819294871",
+        "time": "2026-11-08T19:19:58Z",
+        "docstring": false,
+        "actionable": 9
+      },
+      "cr_decisive": {
+        "id": 5819294871,
+        "state": "CHANGES_REQUESTED",
+        "sha": "014018be9307c623a3b5165beab4243d310683df",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/259#pullrequestreview-5819294871",
+        "time": "2026-11-08T19:19:58Z"
+      },
+      "cr_check": {
+        "id": 128840045235,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128840045235",
+        "title": "Finished"
+      },
+      "cr_unresolved": 9,
+      "cr_unresolved_outdated": 1,
+      "all_unresolved": 9,
+      "required_checks": [
+        {
+          "name": "host-quality",
+          "status": "queued",
+          "conclusion": null,
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42516281445/job/128839894384"
+        }
+      ]
+    },
+    {
+      "number": 260,
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/260",
+      "title": "publication: bereid opschoning van de bestaande repository voor",
+      "base": "main",
+      "base_sha": "5b2189824c32145ad5c110429517dfcea3f2720f",
+      "head": "publication/clean-candidate-20261108",
+      "head_sha": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "draft": false,
+      "mergeable": false,
+      "mergeable_state": "dirty",
+      "auto_merge": true,
+      "cr_latest": {
+        "id": 5819552560,
+        "state": "CHANGES_REQUESTED",
+        "sha": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/260#pullrequestreview-5819552560",
+        "time": "2026-11-08T20:34:00Z",
+        "docstring": false,
+        "actionable": 6
+      },
+      "cr_decisive": {
+        "id": 5819552560,
+        "state": "CHANGES_REQUESTED",
+        "sha": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+        "url": "https://github.com/simonvanieperen/nieuw-os/pull/260#pullrequestreview-5819552560",
+        "time": "2026-11-08T20:34:00Z"
+      },
+      "cr_check": {
+        "id": 128851168437,
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128851168437",
+        "title": "Finished"
+      },
+      "cr_unresolved": 6,
+      "cr_unresolved_outdated": 0,
+      "all_unresolved": 6,
+      "required_checks": [
+        {
+          "name": "qemu-smoke",
+          "status": "completed",
+          "conclusion": "skipped",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42516036901/job/128839154760"
+        },
+        {
+          "name": "host-quality",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42516036901/job/128839145243"
+        }
+      ]
+    }
+  ]
+}

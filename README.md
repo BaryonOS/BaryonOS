@@ -1,8 +1,8 @@
-# Nieuw OS — eigen kernel, sessieroute en bureaublad
+# Baryon OS — eigen kernel, sessieroute en bureaublad
 
 ## Project in het kort
 
-Nieuw OS is een onderzoeksproject voor een zelfstandig besturingssysteem met
+Baryon OS is een onderzoeksproject voor een zelfstandig besturingssysteem met
 een eigen x86_64-kernel en een eigen productervaring rond documenten en
 collecties: **Materiaal**. Het is geen Linux-distributie en gebruikt geen
 bestaande OS-kernel als basis. Veiligheid en privacy steunen onder meer op
@@ -39,12 +39,47 @@ voor vragen en voorstellen · [Melding of taak](https://github.com/simonvanieper
 Het bestaande **MPL-2.0-plan voor de eigen OS-code** is het uitgangspunt voor
 de licentiecontrole. De projectlicentie is nog niet toegepast; rechten,
 afhankelijkheden, notices en voorwaarden voor documentatie, assets en extern
-bronmateriaal worden vóór publicatie gecontroleerd.
+bronmateriaal worden in de afzonderlijke licentiecontrole beoordeeld.
 
 [Licentieplan en open controles](LICENSE-PLAN.md) ·
 [Vastgelegd besluit](docs/DECISIONS.md#adr-public-development-20261108--openbare-ontwikkeling-met-mpl-20-als-controlebasis).
-De daadwerkelijke openbaarmaking volgt na de publicatiecontroles; dit
-richtingbesluit is geen claim van een voltooide productrelease.
+De repository is openbaar. De licentiecontrole en productacceptatie blijven
+afzonderlijke trajecten; openbare broncode is geen voltooide productrelease.
+
+## Waarom de naam Baryon OS?
+
+Baryon OS ontleent zijn naam aan **baryonen**: samengestelde deeltjes zoals
+protonen en neutronen, de bouwstenen van atoomkernen. Gewone baryonen worden
+in het quarkmodel beschreven met drie valentiequarks, gebonden door de sterke
+wisselwerking. Die samenhang vormt de inspiratie voor de naam
+(CERN, z.d.; CMS Collaboration, 2022).
+
+- **Samenhang door modulariteit.** Een kleine eigen kernel, afzonderlijke
+  systeemdiensten en een eigen gebruikersomgeving vormen samen het OS.
+  Het drietal valentiequarks is een metafoor voor die samenhang; deze functionele
+  driedeling zegt niets over het aantal processorringen.
+- **Een zorgvuldig opgebouwde basis.** De microkernelrichting houdt de
+  vertrouwde kern beperkt. Systeemdiensten draaien zoveel mogelijk als
+  geïsoleerde processen buiten de kernel, met expliciete bevoegdheden.
+  Het doel is fouten te begrenzen en herstel beheersbaar te maken.
+  Welke uitval kan worden opgevangen, hangt af van de implementatie,
+  onderlinge afhankelijkheden en hardwaretoegang.
+- **Vernieuwing door onderzoek.** Onderzoek naar moeilijk waarneembare
+  baryonische materie blijft nieuwe kennis opleveren, zoals metingen aan
+  heet gas tussen clusters van sterrenstelsels (European Space Agency, 2025).
+  Voor Baryon OS staat die onderzoekende houding voor zelfstandig ontwerpen,
+  meten en verbeteren.
+
+Stabiliteit, veiligheid en prestaties zijn toetsbare ontwikkeldoelen.
+De [projectstatus](docs/PROJECT-STATE.md) beschrijft wat daadwerkelijk is
+geïmplementeerd en getest; de [teststrategie](docs/TEST-STRATEGY.md) legt de
+bewijsgrenzen vast.
+
+**Bronnen bij de naam**
+
+- CERN. (z.d.). [*Hadron*](https://opendata.cern.ch/glossary/Hadron). CERN Open Data Portal.
+- CMS Collaboration. (2022, 13 juni). [*How are the quarks moving?*](https://cms.cern/news/how-are-quarks-moving). CERN.
+- European Space Agency. (2025, 19 juni). [*“The models were right”: Astronomers find ‘missing’ matter*](https://www.esa.int/Science_Exploration/Space_Science/XMM-Newton/The_models_were_right_astronomers_find_missing_matter).
 
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
@@ -77,11 +112,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`5b218982`](https://github.com/simonvanieperen/nieuw-os/commit/5b2189824c32145ad5c110429517dfcea3f2720f) ·
-**Ontwikkelbranch:** `community/discussions-templates-20261108`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Discussies en bijdrageformulieren inrichten na repositoryonderzoek.
-41/100 blijft 41/100. Communitycategorieën, startdiscussies, issue- en discussieformulieren, PR-template en routing toegevoegd. YAML-, link- en pipelineparsercontrole; geen runtimecode, nieuwe native acceptatie of criteriumwijziging. Activering van templates volgt de bestaande PR- en branchregels. De openbare ontwikkelrichting en MPL-2.0-controlebasis uit PR #250 zijn bij integratie behouden; publicatiecontroles blijven open.
+**Herbeoordeeld:** 2026-11-09 · **Rubric:** v1 ·
+**Bron:** [`1d5bc01e`](https://github.com/simonvanieperen/nieuw-os/commit/1d5bc01e632fd5bab429f3befc9e9546c9f7661c) ·
+**Ontwikkelbranch:** `docs/wetenschappelijke-schrijfstijl-20261109`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Projectdocumentatie corrigeren naar onpersoonlijke wetenschappelijke schrijfstijl.
+41/100 blijft 41/100. De ik-/wij-vorm en persoonlijke auteursvertelling zijn in de eigen documentatie vervangen door onpersoonlijke, wetenschappelijke formuleringen. De eerdere schrijfafspraak uit PR #263 is vervallen. Besluiten, bevoegdheden, technische contracten, criteria, gewichten en bewijsstatus blijven behouden; oorspronkelijke citaten, vaste bewijsarchieven en technische identifiers zijn ongewijzigd. De naamverklaring van Baryon OS blijft behouden. Geen nieuwe OS-functionaliteit of productacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -301,7 +336,7 @@ Voortgang, regressies en resterende grenzen: [PROJECT-STATE.md](docs/PROJECT-STA
 
 **Vervolg N02:** [hybride TLS-transportproef](services/nas/TRANSPORT.md) met echte wederzijdse authenticatie en X25519MLKEM768 op loopback. De gecontroleerde [beveiligings-/PQC-blauwdruk](docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md) onderscheidt formele eigenschappen, eigen kernel, CHERI-onderzoek en native integratie. Dit is hostbewijs; geen native internetstack, formeel bewezen compleet OS of volledige postkwantumauthenticatie. Uitvoering en actuele testresultaten: [PROJECT-STATE.md](docs/PROJECT-STATE.md).
 
-De gebruikerswijziging van 27 oktober 2026 voegt veilige internettoegang, eigen NAS en gedeelde ruimte bij vrienden/familie toe. Inhoud en documentnamen worden op de gebruikersclient versleuteld; de NAS-beheerder kan ruimte intrekken en zijn kopie verwijderen zonder gebruikerssleutel of toestemming. De uitvoerbare hostproef staat in [services/nas/](services/nas/README.md); het browserprototype blijft een simulatie. Contract en native integratiecriteria: [NAS-SHARING-AND-INTERNET.md](docs/implementation/NAS-SHARING-AND-INTERNET.md). Dit voegt nog geen netwerkstack aan de kernel toe en verandert de M6a-bewijsstatus niet.
+Het projectbesluit van 27 oktober 2026 voegt veilige internettoegang, eigen NAS en gedeelde ruimte bij vrienden/familie toe. Inhoud en documentnamen worden op de gebruikersclient versleuteld; de NAS-beheerder kan ruimte intrekken en zijn kopie verwijderen zonder gebruikerssleutel of toestemming. De uitvoerbare hostproef staat in [services/nas/](services/nas/README.md); het browserprototype blijft een simulatie. Contract en native integratiecriteria: [NAS-SHARING-AND-INTERNET.md](docs/implementation/NAS-SHARING-AND-INTERNET.md). Dit voegt nog geen netwerkstack aan de kernel toe en verandert de M6a-bewijsstatus niet.
 
 De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde gebruikersprocessen en verwerkt capabilities/IPC. M5 voegt een echte ring-3-blokdienst met alleen-lezen virtio-I/O toe. De definitieve M1–M5-suites slagen: **77 controlegroepen en 64 echte VM-runs**, plus een normale M5-eindstart. Materiaal en qsim blijven afzonderlijke hostprototypes. Dit is een experimentele ontwikkelversie met synthetische testprogramma's.
 
@@ -317,7 +352,7 @@ De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-
 
 ## Projectrichting en verder lezen
 
-Nieuw OS bouwt een eigen Rust-kernel met expliciete bevoegdheden en afzonderlijke
+Baryon OS bouwt een eigen Rust-kernel met expliciete bevoegdheden en afzonderlijke
 systeemdiensten, plus een oorspronkelijke productervaring: **Materiaal**.
 Documenten en collecties staan centraal; apps zijn verwisselbare gereedschappen.
 De eigen kernel is geen fork van een bestaand besturingssysteem. Rust/LLVM,

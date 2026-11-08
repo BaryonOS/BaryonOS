@@ -4,7 +4,7 @@
 
 ## 1. Productdoel en bewijsgrens
 
-Nieuw OS houdt een eigen kleine Rust-kern, expliciete bevoegdheden en geïsoleerde diensten. Formele verificatie wordt een eigen ontwikkelspoor. seL4 is een voorbeeld van afgebakende bewijzen, geen overgenomen kernel of bewijs voor onze code. CHERI is een afzonderlijke toekomstige platformproef; het huidige x86_64/QEMU-profiel heeft geen CHERI-bescherming.
+Nieuw OS houdt een eigen kleine Rust-kern, expliciete bevoegdheden en geïsoleerde diensten. Formele verificatie wordt een eigen ontwikkelspoor. seL4 is een voorbeeld van afgebakende bewijzen, geen overgenomen kernel of bewijs voor de code van Nieuw OS. CHERI is een afzonderlijke toekomstige platformproef; het huidige x86_64/QEMU-profiel heeft geen CHERI-bescherming.
 
 De ambitie blijft een moderne verbonden consumentenervaring. Gebruikers koppelen een apparaat en kiezen een bevoegdheid eenmaal; normale herhaling binnen die grenzen verloopt automatisch. Een nieuwe identiteit of bevoegdheid vraagt opnieuw toestemming. Formele rechtencontrole vereist geen vraag bij iedere synchronisatie of netwerkovergang. Privacycontract revisie 3 blijft leidend: eigen NAS én ontvangen ruimte bij vrienden/familie, ook via expliciet toegestaan internet; inhoudssleutels blijven bij de gebruiker en de beheerder kan zijn NAS-kopie zonder gasttoestemming verwijderen.
 
@@ -64,7 +64,7 @@ andere provider al werkt op Nieuw OS en geen claim van absolute onkraakbaarheid.
 | Driverisolatie | CPU-pagetables beperken geen willekeurige DMA door een apparaat. Apparaten, mappings, IOMMU en herstel moeten apart onder controle zijn. M5/M6 houden virtio-transport/MMIO/DMA nog deels in de kernel. |
 | Capabilities | Onvervalsbare verwijzingen en beperkte delegatie zijn noodzakelijk. Een verkeerd geconfigureerde broker kan nog steeds eigen rechten verkeerd inzetten. Callerbinding, rights attenuation, generatie/intrekking en initialisatie worden afzonderlijke invarianten. |
 | Rust/CHERI | Safe Rust steunt op correcte unsafe-/compilergrenzen. CHERI gebruikt beschermde hardwaretags/bounds; volledige bescherming van levensduur en subobjecten vraagt passende compiler, ABI, allocator en revocation. Niet iedere use-after-free verdwijnt door de ISA alleen. |
-| Crypto | NIST-algoritmen berusten op onderzochte hardheidsaannames; functionele verificatie bewijst niet dat geen toekomstige cryptanalyse bestaat. Een library met bewezen onderdelen bewijst niet onze integratie of alle backends/machinecode. |
+| Crypto | NIST-algoritmen berusten op onderzochte hardheidsaannames; functionele verificatie bewijst niet dat geen toekomstige cryptanalyse bestaat. Een library met bewezen onderdelen levert geen bewijs voor de integratie in Nieuw OS of voor alle backends/machinecode. |
 | XTS en opslag | AES-XTS geeft vertrouwelijkheid, geen authenticatie. Een Merkleboom vereist een vertrouwd verankerde root, lengte-/positie-/versiebinding en rollbackbeleid. Een losse checksum is geen integriteitsgarantie tegen een aanvaller. |
 | Quantumclaims | Grover/preimage en collision-aanvallen zijn verschillende problemen. Een 256-bit hash heeft niet simpelweg 128-bit quantumcollisionresistentie. Een kleine Grover-simulatie bewijst geen veiligheid van PQC. |
 | Entropy en opruimen | Hashen van voorspelbare klokwaarden schept geen entropy. Zeroize is nuttige geheugenhygiëne, geen garantie dat alle kopieën/registers of crashgeheugen gewist zijn; abort voert Drop niet betrouwbaar uit. |
@@ -125,7 +125,7 @@ Bij P03 blijven pakketauthenticiteit en appautorisatie gescheiden: een geldig pa
 
 ## 6. Primaire bronnen
 
-Geraadpleegd 27 oktober 2026; projectkeuzes en integratiegevolgen zijn onze analyse, geen certificering door de genoemde organisaties.
+Geraadpleegd 27 oktober 2026; de projectkeuzes en integratiegevolgen berusten op een projectanalyse, geen certificering door de genoemde organisaties.
 
 - Proofcraft. (2026, 21 augustus en 21 september). *News 2026*. https://proofcraft.systems/news-2026/
 - seL4 Project. (z.d.). *Verified configurations*; *Frequently asked questions*. https://docs.sel4.systems/projects/sel4/verified-configurations.html ; https://sel4.systems/About/FAQ.html

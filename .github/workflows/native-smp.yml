@@ -1,11 +1,18 @@
 name: Native SMP bring-up (K06 step 1)
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened]
     paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
+    paths-ignore: ['docs/**', '*.md']
 
 permissions:
   contents: read
@@ -21,7 +28,7 @@ defaults:
 
 jobs:
   native-smp:
-    runs-on: [self-hosted, Linux, X64, unraid, build]
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
@@ -34,10 +41,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
       - name: Pinned Rust and emulator
         run: |
           rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
-          dpkg -s qemu-system-x86 ovmf >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf; }
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
       - name: MADT parser, serial oracle and formatting
         run: |
           cargo +1.90.0 test --locked -p boot-protocol
@@ -93,10 +103,12 @@ jobs:
           python3 -B -u tools/run_smp.py --profile test-smp-lockdep-order
       - name: Preserve tracked source integrity
         run: git diff --exit-code
-      - name: Preserve actual run and build artifacts
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: native-smp-evidence
           path: |
             build/k06-*/manifest.json
@@ -105,5 +117,3 @@ jobs:
             build/k06-*/run/smp-*/result.json
             build/k06-*/run/smp-*/serial.txt
             build/k06-*/run/smp-*/stderr.txt
-          if-no-files-found: error
-          retention-days: 3

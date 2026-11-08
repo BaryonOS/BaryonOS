@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-08",
-    "source_commit": "5b2189824c32145ad5c110429517dfcea3f2720f",
-    "assessment_basis": "source_commit",
-    "branch": "community/discussions-templates-20261108",
-    "task": "Discussies en bijdrageformulieren inrichten na repositoryonderzoek",
+    "date": "2026-11-09",
+    "source_commit": "1d5bc01e632fd5bab429f3befc9e9546c9f7661c",
+    "assessment_basis": "working_tree",
+    "branch": "docs/wetenschappelijke-schrijfstijl-20261109",
+    "task": "Projectdocumentatie corrigeren naar onpersoonlijke wetenschappelijke schrijfstijl",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Communitycategorieën, startdiscussies, issue- en discussieformulieren, PR-template en routing toegevoegd. YAML-, link- en pipelineparsercontrole; geen runtimecode, nieuwe native acceptatie of criteriumwijziging. Activering van templates volgt de bestaande PR- en branchregels. De openbare ontwikkelrichting en MPL-2.0-controlebasis uit PR #250 zijn bij integratie behouden; publicatiecontroles blijven open."
+    "summary": "41/100 blijft 41/100. De ik-/wij-vorm en persoonlijke auteursvertelling zijn in de eigen documentatie vervangen door onpersoonlijke, wetenschappelijke formuleringen. De eerdere schrijfafspraak uit PR #263 is vervallen. Besluiten, bevoegdheden, technische contracten, criteria, gewichten en bewijsstatus blijven behouden; oorspronkelijke citaten, vaste bewijsarchieven en technische identifiers zijn ongewijzigd. De naamverklaring van Baryon OS blijft behouden. Geen nieuwe OS-functionaliteit of productacceptatie."
   },
   "tracks": [
     {

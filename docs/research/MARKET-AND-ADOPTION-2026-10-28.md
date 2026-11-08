@@ -8,7 +8,7 @@
 
 De meest kansrijke positie voor Nieuw OS is niet één losse eigenschap zoals privacy, Europese herkomst of lokale AI, maar de **combinatie van dagelijks gebruiksgemak, begrijpelijke zeggenschap over gegevens, herstelbaarheid, hoogwaardige afwerking en een betrouwbare overstaproute**.
 
-De onderzoeken geven geen bewijs dat brede Europese adoptie al is aangetoond. Ze laten vooral zien welke voorwaarden eerst overtuigend moeten werken en welke hypotheses we met echte gebruikers moeten toetsen.
+De onderzoeken geven geen bewijs dat brede Europese adoptie al is aangetoond. Ze laten vooral zien welke voorwaarden eerst overtuigend moeten werken en welke hypotheses met echte gebruikers moeten worden getoetst.
 
 Een bruikbare positioneringshypothese is:
 

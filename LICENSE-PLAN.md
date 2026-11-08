@@ -2,7 +2,7 @@
 
 ## Bevestigd projectbesluit — 8 november 2026
 
-Simon heeft **openbare ontwikkeling van Nieuw OS als projectrichting bevestigd**.
+Er is **gekozen voor openbare ontwikkeling van Nieuw OS**.
 Het bestaande MPL-2.0-plan is het **bevestigde uitgangspunt voor de
 licentiecontrole**, met MPL-2.0 als beoogde licentie voor de eigen OS-code.
 Dit vervangt de eerdere onbesliste ontwikkelrichting; het besluit past de
@@ -14,7 +14,7 @@ De actuele uitvoeringsstand staat in [PROJECT-STATE.md](docs/PROJECT-STATE.md).
 
 | Onderdeel | Status |
 |---|---|
-| Openbare ontwikkeling als projectrichting | Bevestigd door Simon op 8 november 2026 |
+| Openbare ontwikkeling als projectrichting | Bevestigd op 8 november 2026 |
 | MPL-2.0 als controlebasis voor eigen OS-code | Bevestigd uitgangspunt; nog geen toegepaste projectlicentie |
 | Licenties voor documentatie, assets en bijdragen | Afzonderlijk vast te stellen en te controleren |
 | Rechten, componentinventaris, compatibiliteit en notices | Controle nog open |
@@ -102,8 +102,8 @@ blijven van kracht; R03 uit de voortgangsrubric blijft open.
 
 ## Bronnen
 
-Gebruikersbesluit: Simon, opdracht van 8 november 2026: openbare ontwikkeling
-bevestigen met het bestaande MPL-2.0-plan als uitgangspunt voor de controle.
+Projectbesluit: Simon van Ieperen, 8 november 2026. Openbare ontwikkeling
+met het bestaande MPL-2.0-plan als uitgangspunt voor de licentiecontrole.
 Verdere projectafweging: [PRODUCT-AND-SOVEREIGNTY.md](docs/PRODUCT-AND-SOVEREIGNTY.md)
 en [EUROPE-AND-RELEASE.md](docs/implementation/EUROPE-AND-RELEASE.md).
 
