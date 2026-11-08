@@ -1,6 +1,24 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Herkomst na redactiereview — 9 november 2026
+## NEXT AGENT HANDOFF — B03 sleutelbestandgrenzen — 9 november 2026
+
+**Bron:** main `8331b69b`, branch `coderabbit/issue-41-key-file-boundaries`.
+Issue #41 krijgt een beperkte hosttoolcorrectie: sleutelbestanden worden
+exclusief aangemaakt; private seeds krijgen op Unix direct modus `0600`.
+Bestaande bestanden en symlinks worden niet overschreven. Bovenliggende
+mappen moeten vertrouwd blijven.
+
+**Bewijs:** twee nieuwe regressietests faalden vóór de correctie. Daarna
+slagen 18 Rust-hosttests, 14 Python-harnesstests, Clippy en de
+voortgangscontrole. Zie [controleverslag](verification/b03-key-file-boundaries.md).
+QEMU en productie-sleutelrotatie zijn niet uitgevoerd; productieankers,
+releasebeleid en volledige acceptatie van #41 blijven open. **41 → 41/100**,
+zonder nieuwe criteriumacceptatie. Er zijn geen productiekeys aangemaakt.
+
+**Hervatten:** beoordeel de concept-PR en CI; productiebeleid vereist een
+aparte concrete releaseopdracht. Herhaal lokaal de commando's in het verslag.
+
+## Vorige overdracht — Herkomst na redactiereview — 9 november 2026
 
 **Bron:** main `9922810a18f2272f534e1539e2d980d3d8922bb3`, branch
 `docs/wetenschappelijke-herkomst-20261109`. De wetenschappelijke redactie uit
