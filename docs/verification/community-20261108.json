@@ -63,7 +63,7 @@
   "ui_verified": "Zes categorieslugs en ongewijzigde passende formats; vijf gepubliceerde startdiscussies; #252 vastgezet.",
   "checks": [
     {
-      "command": "python3 -B - <<'PY'\nfrom pathlib import Path\nimport json, re, sys\nimport yaml\nroot=Path.cwd()\nslugs={'vragen-en-hulp','architectuur-en-ontwerp','product-en-gebruikservaring','testresultaten-en-demos'}\nforms=list(Path('.github/DISCUSSION_TEMPLATE').glob('*.yml'))+[p for p in Path('.github/ISSUE_TEMPLATE').glob('*.yml') if p.name!='config.yml']\nassert {p.stem for p in Path('.github/DISCUSSION_TEMPLATE').glob('*.yml')}==slugs\nfor p in forms:\n d=yaml.safe_load(p.read_text()); assert isinstance(d,dict) and isinstance(d['body'],list)\n assert not d.get('labels') and not d.get('assignees')\n if 'ISSUE_TEMPLATE' in p.parts: assert len(d['name'])>3 and d['description']\n else: assert set(d)<={'title','labels','body'}\n ids=set(); labels=set(); count=0\n for f in d['body']:\n  assert f['type'] in {'markdown','input','textarea','dropdown','checkboxes'}\n  a=f['attributes']\n  if f['type']=='markdown': assert isinstance(a['value'],str); continue\n  count+=1; fid=f['id']; assert re.fullmatch('[A-Za-z0-9_-]+',fid) and fid not in ids; ids.add(fid)\n  assert a['label'] not in labels; labels.add(a['label'])\n  if 'validations' in f: assert type(f['validations']['required']) is bool\n  if f['type']=='dropdown':\n   opts=a['options']; assert opts and all(isinstance(x,str) for x in opts) and len(set(opts))==len(opts)\n assert count\nconfig=yaml.safe_load(Path('.github/ISSUE_TEMPLATE/config.yml').read_text())\nassert config['blank_issues_enabled'] is False and len(config['contact_links'])==4\nmd=Path('.github/ISSUE_TEMPLATE/implementation_task.md').read_text()\nfm=yaml.safe_load(md.split('---',2)[1]); assert fm['name'] and fm['about']\nassert not fm.get('labels') and not fm.get('assignees')\nsys.path.insert(0,str(root/'tools'))\nfrom agent_pipeline import parse_issue,open_criteria\nprogress=json.loads(Path('docs/progress.json').read_text())\nbody=md.replace('VUL_OPEN_ID_IN','K06').replace('VUL_WORKFLOW.yml#VUL_JOB_IN','ci.yml#host-quality')\nissue={'number':999999,'title':'in-memory template validation','body':body,'labels':[{'name':'pipeline:serial'}]}\ntask=parse_issue(issue,open_criteria(progress))\nassert task.criterion=='K06' and task.gates==['ci.yml#host-quality'] and task.deps==[]\nassert 'host-quality' in yaml.safe_load(Path('.github/workflows/ci.yml').read_text())['jobs']\nissue['body']=body+'\\nAfhankelijk van: #39\\n'\nassert parse_issue(issue,open_criteria(progress)).deps==[39]\nissue['labels']=[]\ntry: parse_issue(issue,open_criteria(progress))\nexcept ValueError: pass\nelse: raise AssertionError('task accepted without pipeline label')\nfiles=forms+[Path('.github/ISSUE_TEMPLATE/config.yml'),Path('.github/ISSUE_TEMPLATE/implementation_task.md'),Path('.github/pull_request_template.md'),Path('docs/COMMUNITY.md')]\nchecked=0\nfor p in files:\n for target in re.findall(r'\\]\\(([^)]+)\\)',p.read_text()):\n  if target.startswith('https://github.com/simonvanieperen/nieuw-os/blob/main/'):\n   dest=root/target.split('/blob/main/',1)[1].split('#')[0]\n  elif '://' not in target and not target.startswith('#'):\n   dest=p.parent/target.split('#')[0]\n  else: continue\n  assert dest.is_file(),(p,str(dest)); checked+=1\nassert 'docs/COMMUNITY.md' in Path('README.md').read_text()\nassert 'docs/COMMUNITY.md' in Path('CONTRIBUTING.md').read_text()\nbaseline=json.loads(__import__('subprocess').check_output(['git','show','363b486b06023d3d578f8eca2b23ff49045a1757:docs/progress.json']))\nassert progress['tracks']==baseline['tracks'] and progress['rubric_version']==baseline['rubric_version']\nprint(json.dumps({'forms':len(forms),'task_parser':'passed; no hidden dependency; rejects missing label','repository_file_links':checked,'score_criteria':'unchanged','category_slugs':sorted(slugs)},ensure_ascii=False))\nPY",
+      "command": "python3 -B - <<'PY'\nfrom pathlib import Path\nimport json, re, sys\nimport yaml\nroot=Path.cwd()\nslugs={'vragen-en-hulp','architectuur-en-ontwerp','product-en-gebruikservaring','testresultaten-en-demos'}\nforms=list(Path('.github/DISCUSSION_TEMPLATE').glob('*.yml'))+[p for p in Path('.github/ISSUE_TEMPLATE').glob('*.yml') if p.name!='config.yml']\nassert {p.stem for p in Path('.github/DISCUSSION_TEMPLATE').glob('*.yml')}==slugs\nfor p in forms:\n d=yaml.safe_load(p.read_text()); assert isinstance(d,dict) and isinstance(d['body'],list)\n assert not d.get('labels') and not d.get('assignees')\n if 'ISSUE_TEMPLATE' in p.parts: assert len(d['name'])>3 and d['description']\n else: assert set(d)<={'title','labels','body'}\n ids=set(); labels=set(); count=0\n for f in d['body']:\n  assert f['type'] in {'markdown','input','textarea','dropdown','checkboxes'}\n  a=f['attributes']\n  if f['type']=='markdown': assert isinstance(a['value'],str); continue\n  count+=1; fid=f['id']; assert re.fullmatch('[A-Za-z0-9_-]+',fid) and fid not in ids; ids.add(fid)\n  assert a['label'] not in labels; labels.add(a['label'])\n  if 'validations' in f: assert type(f['validations']['required']) is bool\n  if f['type']=='dropdown':\n   opts=a['options']; assert opts and all(isinstance(x,str) for x in opts) and len(set(opts))==len(opts)\n assert count\nconfig=yaml.safe_load(Path('.github/ISSUE_TEMPLATE/config.yml').read_text())\nassert config['blank_issues_enabled'] is False and len(config['contact_links'])==4\nmd=Path('.github/ISSUE_TEMPLATE/implementation_task.md').read_text()\nfm=yaml.safe_load(md.split('---',2)[1]); assert fm['name'] and fm['about']\nassert not fm.get('labels') and not fm.get('assignees')\nsys.path.insert(0,str(root/'tools'))\nfrom agent_pipeline import parse_issue,open_criteria\nprogress=json.loads(Path('docs/progress.json').read_text())\nbody=md.replace('VUL_OPEN_ID_IN','K06').replace('VUL_WORKFLOW.yml#VUL_JOB_IN','ci.yml#host-quality')\nissue={'number':999999,'title':'in-memory template validation','body':body,'labels':[{'name':'pipeline:serial'}]}\ntask=parse_issue(issue,open_criteria(progress))\nassert task.criterion=='K06' and task.gates==['ci.yml#host-quality'] and task.deps==[]\nassert 'host-quality' in yaml.safe_load(Path('.github/workflows/ci.yml').read_text())['jobs']\nissue['body']=body+'\\nAfhankelijk van: #39\\n'\nassert parse_issue(issue,open_criteria(progress)).deps==[39]\nissue['labels']=[]\ntry: parse_issue(issue,open_criteria(progress))\nexcept ValueError: pass\nelse: raise AssertionError('task accepted without pipeline label')\nfiles=forms+[Path('.github/ISSUE_TEMPLATE/config.yml'),Path('.github/ISSUE_TEMPLATE/implementation_task.md'),Path('.github/pull_request_template.md'),Path('docs/COMMUNITY.md')]\nchecked=0\nfor p in files:\n for target in re.findall(r'\\]\\(([^)]+)\\)',p.read_text()):\n  if target.startswith('https://github.com/simonvanieperen/nieuw-os/blob/main/'):\n   dest=root/target.split('/blob/main/',1)[1].split('#')[0]\n  elif '://' not in target and not target.startswith('#'):\n   dest=p.parent/target.split('#')[0]\n  else: continue\n  assert dest.is_file(),(p,str(dest)); checked+=1\nassert 'docs/COMMUNITY.md' in Path('README.md').read_text()\nassert 'docs/COMMUNITY.md' in Path('CONTRIBUTING.md').read_text()\nbaseline=json.loads(__import__('subprocess').check_output(['git','show','5b2189824c32145ad5c110429517dfcea3f2720f:docs/progress.json']))\nassert progress['tracks']==baseline['tracks'] and progress['rubric_version']==baseline['rubric_version']\nprint(json.dumps({'forms':len(forms),'task_parser':'passed; no hidden dependency; rejects missing label','repository_file_links':checked,'score_criteria':'unchanged','category_slugs':sorted(slugs)},ensure_ascii=False))\nPY",
       "exit_code": 0,
       "result": {
         "forms": 7,
@@ -89,7 +89,7 @@
       "result": "41/100; berekening, bewijsverwijzingen en weergaven consistent"
     },
     {
-      "command": "git diff 363b486b06023d3d578f8eca2b23ff49045a1757 --check",
+      "command": "git diff 5b2189824c32145ad5c110429517dfcea3f2720f --check",
       "exit_code": 0,
       "result": "Geen whitespacefouten in de volledige PR-wijziging ten opzichte van de vaste broncommit; onafhankelijk van staging."
     }
@@ -141,7 +141,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "26930d448e8176eb9cbf1c7a69ad35b38e6df57255df575d3558ce60f4e2c362"
+      "sha256": "fafee27e96f7fadfeddd1385f4c3eb6ad6f154977f80a9dd10d2a8f254eebc61"
     },
     {
       "path": "docs/COMMUNITY.md",
@@ -153,7 +153,7 @@
     },
     {
       "path": "docs/PROJECT-STATE.md",
-      "sha256": "74eb1b18bc4dfe23fdad6dba1a7d1b4371f2e69b3d4c5dbd17a08a29f9e69c25"
+      "sha256": "d1f4ef143610eff1f4b7ce67524b90e1aec3eb630b254bef4f83431f4b37d457"
     },
     {
       "path": "docs/assets/progress.svg",
@@ -161,7 +161,7 @@
     },
     {
       "path": "docs/progress.json",
-      "sha256": "b8ad73eedcf110d462c159989adc901fe14efb6df4ef50894ffdc70be5bb5e58"
+      "sha256": "817896901955910349f455c3a6f67b7eca06630b4c102d8f75a3e39cc9b47ac6"
     }
   ],
   "score": {
@@ -175,5 +175,7 @@
     "Onafhankelijke menselijke audit: niet uitgevoerd."
   ],
   "rollback": "Revert de template-/documentatiecommit via een PR; categorieën en discussies zijn afzonderlijke GitHub-objecten en blijven behouden.",
-  "review_followup": "CodeRabbit-opmerking over index versus werkboom verwerkt: diffcontrole is expliciet aan de volledige broncommit gebonden. De bewaarde validatie vergelijkt voortgang eveneens met deze vaste bron. Het PR-template heeft een H1 voor consistente Markdownstructuur."
+  "review_followup": "CodeRabbit-opmerking over index versus werkboom verwerkt: diffcontrole is expliciet aan de volledige broncommit gebonden. De bewaarde validatie vergelijkt voortgang eveneens met deze vaste bron. Het PR-template heeft een H1 voor consistente Markdownstructuur.",
+  "integration_base_commit": "5b2189824c32145ad5c110429517dfcea3f2720f",
+  "integration": "PR #250 is als bestaande main-geschiedenis geïntegreerd. Openbare ontwikkelrichting, MPL-2.0-controlebasis, licentievoorwaarden en publicatiecontrole zijn behouden; de communitytemplates blijven naar die leidende bronnen verwijzen."
 }

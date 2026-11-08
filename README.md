@@ -33,6 +33,19 @@ geen bewijs van een complete release of ondersteuning van fysieke hardware.
 voor vragen en voorstellen · [Melding of taak](https://github.com/simonvanieperen/nieuw-os/issues/new/choose)
 · [Communitywegwijzer](docs/COMMUNITY.md) · [Bijdragen](CONTRIBUTING.md).
 
+## Openbare ontwikkeling en licentie
+
+**Bevestigd op 8 november 2026:** Nieuw OS kiest voor openbare ontwikkeling.
+Het bestaande **MPL-2.0-plan voor de eigen OS-code** is het uitgangspunt voor
+de licentiecontrole. De projectlicentie is nog niet toegepast; rechten,
+afhankelijkheden, notices en voorwaarden voor documentatie, assets en extern
+bronmateriaal worden vóór publicatie gecontroleerd.
+
+[Licentieplan en open controles](LICENSE-PLAN.md) ·
+[Vastgelegd besluit](docs/DECISIONS.md#adr-public-development-20261108--openbare-ontwikkeling-met-mpl-20-als-controlebasis).
+De daadwerkelijke openbaarmaking volgt na de publicatiecontroles; dit
+richtingbesluit is geen claim van een voltooide productrelease.
+
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
@@ -65,10 +78,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`363b486b`](https://github.com/simonvanieperen/nieuw-os/commit/363b486b06023d3d578f8eca2b23ff49045a1757) ·
+**Bron:** [`5b218982`](https://github.com/simonvanieperen/nieuw-os/commit/5b2189824c32145ad5c110429517dfcea3f2720f) ·
 **Ontwikkelbranch:** `community/discussions-templates-20261108`.
 Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Discussies en bijdrageformulieren inrichten na repositoryonderzoek.
-41/100 blijft 41/100. Communitycategorieën, startdiscussies, issue- en discussieformulieren, PR-template en routing toegevoegd. YAML-, link- en pipelineparsercontrole; geen runtimecode, nieuwe native acceptatie of criteriumwijziging. Activering van templates volgt de bestaande PR- en branchregels.
+41/100 blijft 41/100. Communitycategorieën, startdiscussies, issue- en discussieformulieren, PR-template en routing toegevoegd. YAML-, link- en pipelineparsercontrole; geen runtimecode, nieuwe native acceptatie of criteriumwijziging. Activering van templates volgt de bestaande PR- en branchregels. De openbare ontwikkelrichting en MPL-2.0-controlebasis uit PR #250 zijn bij integratie behouden; publicatiecontroles blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -300,7 +313,7 @@ De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde
 
 M6b is hervat vanaf `main` (`1f24f99`) op [codex/m6b-storage-errors](https://github.com/simonvanieperen/nieuw-os/tree/codex/m6b-storage-errors). De status staat per spoor in PROJECT-STATE.md. [PR #3](https://github.com/simonvanieperen/nieuw-os/pull/3) bewaart de M5-historie; de oude testmatrix staat in [ACCEPTANCE.md](docs/verification/m5/ACCEPTANCE.md).
 
-De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-feature milestone-m5` en `python tools/run.py --smoke --milestone m5`. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Publieke publicatie en definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
+De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-feature milestone-m5` en `python tools/run.py --smoke --milestone m5`. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Openbare ontwikkeling is op 8 november 2026 als richting bevestigd; de concrete publicatie en licentietoepassing volgen de open controles in LICENSE-PLAN.md.
 
 ## Projectrichting en verder lezen
 
