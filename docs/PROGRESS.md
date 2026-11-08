@@ -300,8 +300,9 @@ historische uitvoeringen; hun exacte bronstatus en vier cloudmain-mergeheads
 zijn afzonderlijk gehasht bewaard, niet nieuwe native acceptatie.
 
 Main-reconciliatie (3 november 2026), bron `cbe28f39`: **41 -> 41**.
-Simons main134-squashcbbc9c99 behoudend opgenomen;10 netwerkservice- en16
-opslaghosttests groen,207 archiefhashes/99manifestentries geldig.
+Mijn handmatige squash-merge van #134 (`cbbc9c99`) is met behoud van inhoud
+opgenomen; 10 netwerkservice- en 16 opslaghosttests geslaagd, 207
+archiefhashes en 99 manifestvermeldingen geldig.
 Rubric buiten assessment identiek; historische134-nativegrenzen niet als
 verse uitvoering gepresenteerd. Volledige nieuwe CI/review blijft vereist.
 

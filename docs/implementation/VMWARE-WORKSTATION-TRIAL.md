@@ -1,17 +1,19 @@
 # VMware Workstation Pro — concrete proefopdracht
 
-2 november 2026. Simon heeft VMware Workstation Pro op zijn Windows-pc
-geïnstalleerd en vraagt om een VMware-route naast de bestaande ontwikkeling.
+2 november 2026. Ik heb VMware Workstation Pro op mijn Windows-pc
+geïnstalleerd. De opdracht is een VMware-route onderzoeken naast de bestaande
+ontwikkelroute.
 Er is nog **geen VMware-uitvoering, ISO of werkende VMware-desktop bewezen**.
 
-De bedoelde uitvoerende chat is **Ontwerp veilige OS-desktop**,
-`01a19c0e-6a17-70e4-8da0-263949812063`, host `durable`. De hoofdchat heeft
-die chat daadwerkelijk gelezen; hij stond stil na Simons afstemmingsverzoek.
-Deze opdracht is **klaargezet, niet verzonden**: de huidige hoofdchat heeft
-`read_thread` maar geen beschikbare `send_message_to_thread` of `handoff_thread`.
-Een opgeslagen opdracht is geen claim dat die andere chat nu werkt.
+De aangewezen uitvoerende sessie is **Ontwerp veilige OS-desktop**,
+`01a19c0e-6a17-70e4-8da0-263949812063`, host `durable`. De coördinerende sessie
+heeft deze sessie gelezen. De uitvoering was gepauzeerd na mijn verzoek om
+afstemming. Deze opdracht is **voorbereid en nog niet verzonden**: in de
+coördinerende sessie was alleen `read_thread` beschikbaar, zonder
+`send_message_to_thread` of `handoff_thread`. Opslag van deze opdracht betekent
+daarom niet dat de uitvoerende sessie is gestart.
 
-## Opdracht voor de uitvoerende chat
+## Opdracht voor de uitvoerende sessie
 
 1. Behoud je bestaande WIP en de nieuwe sessieslice in concept-PR129. Neem geen
    overlappende desktop-, auth-, transport- of scorebestanden opnieuw over.
@@ -60,7 +62,7 @@ De geïsoleerde sessiedesktop vereist daarna geschikte opslag-/entropy-adapters,
 begrensde apparaat-/DMA-contracten en eigen negatieve proeven. Behoud QEMU als
 bestaande regressie- en acceptatieroute totdat VMware zelfstandig bewijs heeft.
 
-## Vastgestelde grenzen van deze hoofdchat
+## Uitvoeromgeving en grenzen
 
 De actieve host is Linux x86_64. VMware, `vmrun`, `xorriso`, `mformat`, `mcopy`
 en `mkfs.fat` zijn hier niet aangetroffen, ook niet na activeren van de
@@ -71,7 +73,8 @@ Primaire bronnen, geraadpleegd op 2 november 2026:
 
 - Broadcom, [Using VMware Workstation Pro 17](https://techdocs2-prod.adobecqms.net/content/dam/broadcom/techdocs/us/en/pdf/vmware/desktop-hypervisors/workstation/vmware-workstation-pro-17-0.pdf):
   controllers, firmware, PS/2, Host VBS Mode en screenshotvoorwaarden
-  (`captureScreen`, p.314). Dit document bewijst niet welke versie Simon heeft.
+  (`captureScreen`, p.314). Dit document bewijst niet welke versie op mijn pc
+  is geïnstalleerd.
 - Broadcom, [Workstation met Hyper-V/VBS en WHP](https://knowledge.broadcom.com/external/article?legacyId=76918):
   ondersteuning hangt van de hostconfiguratie af; lokaal vaststellen.
 - UEFI Forum, [UEFI 2.11, Media Access](https://uefi.org/specs/UEFI/2.11/13_Protocols_Media_Access.html):

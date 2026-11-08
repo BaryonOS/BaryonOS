@@ -9,7 +9,7 @@ versleutelde objecten. Dat is een afzonderlijke P05-route volgens
 [ENCRYPTED-OBJECT-STORAGE.md](ENCRYPTED-OBJECT-STORAGE.md); zij vervangt de NAS
 niet, geeft de provider geen inhoudssleutel en is nooit een stille fallback.
 
-Datum: 27 oktober 2026. Gebruikersbesluit: internettoegang, NAS bij de gebruiker thuis als persoonlijke cloud, dezelfde OS-bediening voor client en NAS, en ruimte delen met vrienden/familie zonder hun inhoud te kunnen lezen. De NAS-beheerder mag zijn ruimte eenzijdig terugnemen.
+Datum: 27 oktober 2026. Projectbesluit: internettoegang, NAS bij de gebruiker thuis als persoonlijke cloud, dezelfde OS-bediening voor client en NAS, en ruimte delen met vrienden/familie zonder hun inhoud te kunnen lezen. De NAS-beheerder mag zijn ruimte eenzijdig terugnemen.
 
 ## Status en scope
 
@@ -31,7 +31,7 @@ De daadwerkelijk uitgevoerde testcommando's, getallen en beperkingen staan onder
 
 ### Productnorm: privacy zonder onnodige bediening
 
-Aanvullende gebruikersinstructie van 27 oktober 2026: de verbonden ervaring en afwerking moeten kunnen overtuigen naast Windows/macOS. Privacy is een standaard onderliggende eigenschap, geen reden om internet, samenwerken, automatisch hervatten of een moderne interface weg te laten. Veiligheid en gebruiksgemak zijn gezamenlijke acceptatiecriteria.
+Aanvullende producteis van 27 oktober 2026: de verbonden ervaring en afwerking moeten kunnen overtuigen naast Windows/macOS. Privacy is een standaard onderliggende eigenschap, geen reden om internet, samenwerken, automatisch hervatten of een moderne interface weg te laten. Veiligheid en gebruiksgemak zijn gezamenlijke acceptatiecriteria.
 
 Een gebruiker bevestigt een nieuwe NAS-identiteit en kiest eenmalig de toegestane verbindingsscope. Daarna kiest de routeplanner automatisch het geverifieerde lokale kanaal, of reeds toegestaan direct internet naar dezelfde peer. Geen nieuwe vraag bij iedere wisseling, bestandsbewerking of normale synchronisatie. Mismatch, intrekking en niet-geautoriseerde bestemmingen blijven blokkeren. Offline werken en hervatten mogen geen verborgen dubbele bestanden of dataverlies veroorzaken; echte sync/conflictafhandeling is een nog te bouwen dienst.
 
@@ -120,4 +120,4 @@ De eerstvolgende kernelmijlpaal blijft de lopende M6a-eindverificatie. N01 wordt
 - Rescorla, E. (2018). *The Transport Layer Security (TLS) protocol version 1.3* (RFC 8446). IETF. https://www.rfc-editor.org/rfc/rfc8446.html
 - Rose, S., Borchert, O., Mitchell, S., & Connelly, S. (2020). *Zero trust architecture* (NIST SP 800-207). NIST. https://doi.org/10.6028/NIST.SP.800-207
 
-Primaire bronnen gecontroleerd 27 oktober 2026. De functionele rolkeuze en het eenzijdige hostverwijderrecht volgen de expliciete gebruikersopdracht. Deze bronnen keuren de implementatie niet goed.
+Primaire bronnen gecontroleerd 27 oktober 2026. De functionele rolkeuze en het eenzijdige hostverwijderrecht volgen uit mijn expliciete opdracht. Deze bronnen keuren de implementatie niet goed.

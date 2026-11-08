@@ -19,7 +19,7 @@ Er bestaat spanning tussen ‘alles zelf’ en ‘zo snel mogelijk hoge zekerhei
 | Onderdeel | Eerste keuze | Reden en grens |
 |---|---|---|
 | Processor | x86_64, één virtuele CPU | Een afgebakende eerste implementatie. Een apart opt-in profiel start AP's begrensd (ADR-070); SMP-scheduling volgt later. |
-| Machine | QEMU, een vastgelegde q35-machineversie | Herhaalbare virtuele hardware; geen afhankelijkheid van Simons exacte laptop. |
+| Machine | QEMU, een vastgelegde q35-machineversie | Herhaalbare virtuele hardware; geen afhankelijkheid van mijn specifieke laptop. |
 | Accelerator | TCG als CI-baseline; lokale acceleratie optioneel | TCG vereist geen beschikbare hardwarevirtualisatie. Gebruik geen TCG-resultaten als bewijs voor prestaties op echte hardware. |
 | Firmware | OVMF/UEFI, versies en hashes vastgelegd | Standaard bootinterface. Firmware is een afhankelijkheid en onderdeel van het dreigingsmodel. |
 | Loader | Kleine eigen UEFI-loader in Rust | Laadt de eigen kernel en geeft gecontroleerd geheugenkaart en bootinformatie door. |
@@ -85,7 +85,7 @@ Eén broncodebasis kan meerdere architecturen ondersteunen; één ongewijzigd ke
 | Microcontrollers zonder MMU | Ander beveiligingsprofiel of buiten scope | Geen identieke procesisolatie beloven; eventueel aparte MPU/RTOS-benadering |
 | Quantumhardware | Vanaf ontwerp Q0–Q4 onderzoeken: lokale uitvoering en eigen OS op hybride quantumcomputer | Exact uitvoeringsmodel en lokale hardware vereist; zie QUANTUM-RESEARCH.md |
 
-Android documenteert dat veel toestellen vergrendeld worden geleverd en dat ontgrendeling apparaatbeleid volgt en gegevens wist [A8]. De HAL-documentatie maakt expliciet dat leveranciers apparaatspecifieke functies moeten implementeren [A9]. **Of dit OS later op Simons OnePlus 13 kan draaien: dit kan ik niet verifiëren.** Hiervoor ontbreekt een modelspecifieke port, driverinventaris en geteste boot-/herstelroute. Nu niet flashen.
+Android documenteert dat veel toestellen vergrendeld worden geleverd en dat ontgrendeling apparaatbeleid volgt en gegevens wist [A8]. De HAL-documentatie maakt expliciet dat leveranciers apparaatspecifieke functies moeten implementeren [A9]. **Ondersteuning van mijn OnePlus 13 is nog niet vastgesteld.** Hiervoor ontbreekt een modelspecifieke port, driverinventaris en geteste boot-/herstelroute. Flash het toestel nu niet.
 
 Compatibiliteit met bestaande apps is een afzonderlijk productproject. Native apps vragen een SDK, API/ABI en distributiepad. Webapps vragen een port van een grote browserengine. Windows-/Android-/Linux-apps vragen compatibiliteitslagen of gast-VM’s, licentiecontrole en extra isolatie; ondersteuning volgt niet uit de keuze Rust of microkernel. Een optionele Linux-gast is een andere keuze dan een Linux-kernel als basis, en wordt pas na expliciete scopebeslissing toegevoegd.
 

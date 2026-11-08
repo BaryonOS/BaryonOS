@@ -1,5 +1,5 @@
 # OSDev als leerroute
-Simon leverde https://wiki.osdev.org/Expanded_Main_Page aan tijdens het onderzoek. De hoofdpagina, Getting Started en Beginner Mistakes zijn geopend op 26 oktober 2026.
+Ik heb de [Expanded Main Page van OSDev](https://wiki.osdev.org/Expanded_Main_Page) voor het onderzoek aangeleverd. De hoofdpagina, Getting Started en Beginner Mistakes zijn geopend op 26 oktober 2026.
 
 Gebruik OSDev als onderwerpindex en uitlegbron. De wiki noemt zelf dat zij geen volledige kopieerbare handleiding is. De eerste index verwijst onder meer naar vereiste voorkennis, booting, UEFI/BIOS, compilers, interrupts en debugging. Deze pagina's geven een route naar vragen; ze leveren geen beveiligingsbewijs voor onze code.
 

@@ -1,10 +1,10 @@
 # Profielen en meerdere gebruikers — stappenplan
 
 Datum: 30 oktober 2026. Status: **ontwerp; gebruikersmodel besloten**
-(ADR-058 in [DECISIONS.md](../DECISIONS.md)). Simon besliste dat inrichting,
+(ADR-058 in [DECISIONS.md](../DECISIONS.md)). Ik heb besloten dat inrichting,
 inloggen en gebruikersbeheer herkenbaar moeten zijn voor consumenten van
-Windows, macOS en Linux en liet de detailkeuzes aan het ontwerp over; §3
-legt die keuzes vast. Er is voor dit plan nog geen code geschreven en niets
+Windows, macOS en Linux. De detailkeuzes heb ik aan het ontwerp overgelaten;
+§3 legt die vast. Er is voor dit plan nog geen code geschreven en niets
 native getest. Het bureaublad zelf staat in [DESKTOP-SHELL.md](DESKTOP-SHELL.md).
 Bronbasis: main `c0b7147b`. Voortgangsvoorstel: **34% → 34%**; dit document
 sluit geen criterium.
@@ -36,7 +36,7 @@ gebruikers.
 
 ### Observaties uit de handmatige proef (agent, geen acceptatie)
 
-Op Simons Windows-pc, bundel `eabc27b`, Windows-QEMU 11.1.0, TCG:
+Op mijn Windows-pc, bundel `eabc27b`, Windows-QEMU 11.1.0, TCG:
 
 - Het eerste beeld verscheen na ongeveer 30 s. Enter op het startscherm
   opende na 15 s geen document; een muisklik op **Nieuw** wel. Een

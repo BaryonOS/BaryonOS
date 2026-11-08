@@ -66,9 +66,9 @@ Rotatie en intrekking verhogen de generatie; stale mutaties falen zonder
 toestandswijziging. Ingetrokken slots blijven tombstones en worden niet
 stilzwijgend hergebruikt.
 
-Intrekking blokkeert nieuwe packageverificatie en updates via die bron. Zoals
-door Simon gekozen op 30 oktober 2026 blijven reeds geïnstalleerde apps
-startbaar; data of apps worden niet stil verwijderd. Beheer van bronkeuze en
+Intrekking blokkeert nieuwe packageverificatie en updates via die bron.
+Reeds geïnstalleerde apps blijven startbaar; data of apps worden niet stil
+verwijderd. Dit volgt uit mijn besluit van 30 oktober 2026. Beheer van bronkeuze en
 rotatie vereist afzonderlijke gebruikersautorisatie. Deze vaste array is
 alleen een in-memory policy-core: geen consent-UI, capabilitycontrole,
 duurzame bronregistratie of transacties. Acht bronnen is geen productlimiet.

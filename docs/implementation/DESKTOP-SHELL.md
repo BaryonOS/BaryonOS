@@ -1,6 +1,6 @@
 # Bureaublad, taakbalk en zoeken — ontwerp
 
-Datum: 30 oktober 2026. Status: **ontwerp** volgens gebruikersbesluit
+Datum: 30 oktober 2026. Status: **ontwerp** volgens projectbesluit
 ADR-058 in [DECISIONS.md](../DECISIONS.md). Er is nog geen code voor deze
 shell en niets native getest. Bronbasis: main `c0b7147b`.
 Voortgangsvoorstel: **34% → 34%**; dit document sluit geen criterium.

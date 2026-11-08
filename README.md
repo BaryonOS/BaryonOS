@@ -113,10 +113,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`4c7147da`](https://github.com/simonvanieperen/nieuw-os/commit/4c7147dae955cbf1ba44d91258ef451b96169f72) ·
+**Bron:** [`b53a576a`](https://github.com/simonvanieperen/nieuw-os/commit/b53a576a04f7cd5df3fc92cf32d2ceeb0c4939aa) ·
 **Ontwikkelbranch:** `docs/baryon-name-20261108`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Naamverklaring Baryon OS op primaire bronnen controleren en in README opnemen.
-De README gebruikt Baryon OS en licht de naam toe met primaire natuurkundige bronnen en begrensde architectuurclaims. Alleen documentatie en assessment gewijzigd; geen runtimecode, acceptatiecriterium, gewicht of nieuw native bewijs.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #264: conflicten met main 9ff3a691 oplossen met behoud van naamverklaring en projectredactie.
+41/100 blijft 41/100. De Baryon-naamverklaring en de professionele projectredactie uit main zijn verenigd. Alleen documentatieconflicten en integratieassessment gewijzigd; technische contracten, criteria, gewichten en bewijsstatus blijven behouden. Geen nieuwe OS-functionaliteit of native acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -336,7 +336,7 @@ Voortgang, regressies en resterende grenzen: [PROJECT-STATE.md](docs/PROJECT-STA
 
 **Vervolg N02:** [hybride TLS-transportproef](services/nas/TRANSPORT.md) met echte wederzijdse authenticatie en X25519MLKEM768 op loopback. De gecontroleerde [beveiligings-/PQC-blauwdruk](docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md) onderscheidt formele eigenschappen, eigen kernel, CHERI-onderzoek en native integratie. Dit is hostbewijs; geen native internetstack, formeel bewezen compleet OS of volledige postkwantumauthenticatie. Uitvoering en actuele testresultaten: [PROJECT-STATE.md](docs/PROJECT-STATE.md).
 
-De gebruikerswijziging van 27 oktober 2026 voegt veilige internettoegang, eigen NAS en gedeelde ruimte bij vrienden/familie toe. Inhoud en documentnamen worden op de gebruikersclient versleuteld; de NAS-beheerder kan ruimte intrekken en zijn kopie verwijderen zonder gebruikerssleutel of toestemming. De uitvoerbare hostproef staat in [services/nas/](services/nas/README.md); het browserprototype blijft een simulatie. Contract en native integratiecriteria: [NAS-SHARING-AND-INTERNET.md](docs/implementation/NAS-SHARING-AND-INTERNET.md). Dit voegt nog geen netwerkstack aan de kernel toe en verandert de M6a-bewijsstatus niet.
+Het projectbesluit van 27 oktober 2026 voegt veilige internettoegang, eigen NAS en gedeelde ruimte bij vrienden/familie toe. Inhoud en documentnamen worden op de gebruikersclient versleuteld; de NAS-beheerder kan ruimte intrekken en zijn kopie verwijderen zonder gebruikerssleutel of toestemming. De uitvoerbare hostproef staat in [services/nas/](services/nas/README.md); het browserprototype blijft een simulatie. Contract en native integratiecriteria: [NAS-SHARING-AND-INTERNET.md](docs/implementation/NAS-SHARING-AND-INTERNET.md). Dit voegt nog geen netwerkstack aan de kernel toe en verandert de M6a-bewijsstatus niet.
 
 De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde gebruikersprocessen en verwerkt capabilities/IPC. M5 voegt een echte ring-3-blokdienst met alleen-lezen virtio-I/O toe. De definitieve M1–M5-suites slagen: **77 controlegroepen en 64 echte VM-runs**, plus een normale M5-eindstart. Materiaal en qsim blijven afzonderlijke hostprototypes. Dit is een experimentele ontwikkelversie met synthetische testprogramma's.
 
