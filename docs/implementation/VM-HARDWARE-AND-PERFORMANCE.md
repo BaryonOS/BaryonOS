@@ -16,7 +16,8 @@ De oorspronkelijke launcher forceerde `tcg,thread=single`, `qemu64`, één
 vCPU, 256 MiB en `pc-q35-8.2`. TCG vertaalt CPU-instructies in software. Ook
 `run_materiaal_preview.py` gebruikt dit expliciete profiel; zijn standaard
 `timeout=45` is een afbreekgrens, geen gemeten schermtijd. Reproduceer de door
-mij gemelde schermvertraging van circa 45 seconden met afzonderlijke fasetijden.
+mij gemelde vertraging van circa 45 seconden per scherm met afzonderlijke
+fasetijden.
 
 Daarnaast toont de code een dure renderroute:
 

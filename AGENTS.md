@@ -1,4 +1,10 @@
 # Projectinstructies
+
+**Projecteigenaar:** Simon van Ieperen.
+De ik-vorm bij persoonlijke besluiten, opdrachten en bevoegdheden verwijst
+in dit document naar de projecteigenaar. Broncitaten behouden hun
+oorspronkelijke spreker.
+
 Dit is een zelfstandig OS-onderzoeksproject. Geen bestaande OS-kernel als basis. Eerst x86_64/QEMU/UEFI; geen installatie op echte apparaten. Dit bestand definieert werkwijze, geen bewijs van systeemveiligheid.
 
 ## Leesroute

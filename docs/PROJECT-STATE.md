@@ -17,6 +17,15 @@ de afzonderlijke AI-redactiereview vond geen inhoudelijke blocker.
 Bewijs en afbakening: [redactiecontrole](verification/professionele-projectstem-20261108.json).
 **41 → 41/100**; geen nieuwe functionaliteit of productacceptatie.
 
+**Reviewcorrectie:** de Graphify-review op `12441cac` bevat één niet-blokkerend
+advies: maak expliciet naar wie de ik-vorm bij mandaten verwijst. De
+projectinstructies en het besluitenregister noemen daarom de projecteigenaar
+in vaste metadata; de schrijfregel behoudt de oorspronkelijke spreker van
+broncitaten. De bestaande bevoegdheden blijven ongewijzigd. CodeRabbit
+meldde één minor issue: de gemelde vertraging moest expliciet ‘per scherm’
+blijven. Die eenheid is hersteld; de instructie om fasetijden te meten blijft
+behouden.
+
 **Review en hervatten:** de lokale CodeRabbit-CLI is niet aangemeld;
 `auth login --agent` meldt `environment_unsupported`. Er is geen lokale
 CodeRabbit-review uitgevoerd. Beoordeel de GitHub-review en verplichte CI op

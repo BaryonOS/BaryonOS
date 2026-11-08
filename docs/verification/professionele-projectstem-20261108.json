@@ -59,7 +59,24 @@
     "local_coderabbit_auth": "not_authenticated",
     "local_coderabbit_login": "environment_unsupported: Browser login is unavailable in this environment.",
     "local_coderabbit_review_performed": false,
-    "github_coderabbit_review": "Afzonderlijk via de PR te beoordelen; dit rapport claimt geen CodeRabbit-uitkomst."
+    "github_coderabbit_review": "Eerste head beoordeeld; één minor issue gecorrigeerd. Een nieuwe review op de vervolgcommit blijft afzonderlijk te beoordelen.",
+    "graphify_first_head": {
+      "commit": "12441cacf4aa5f1a2e0f79ad9f290a2fb313b6ac",
+      "blocking_findings": 0,
+      "advisory_findings": 1,
+      "scope": "Gedeeltelijke review; latere bestanden niet beoordeeld. Geen tests of formeel bewijs.",
+      "advisory": "Maak de referent van ik/mijn expliciet bij het integratiemandaat.",
+      "resolution": "Projecteigenaar expliciet benoemd in AGENTS.md en docs/DECISIONS.md; schrijfregel verwijst naar die metadata en behoudt de oorspronkelijke spreker van broncitaten.",
+      "result_after_fix": "Nog geen nieuwe Graphify- of CodeRabbit-uitkomst geclaimd."
+    },
+    "coderabbit_first_head": {
+      "commit": "12441cacf4aa5f1a2e0f79ad9f290a2fb313b6ac",
+      "issues": 1,
+      "severity": "minor",
+      "path": "docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md",
+      "issue": "De gemelde vertraging van circa 45 seconden moet expliciet per scherm gelden.",
+      "resolution": "Per scherm hersteld; afzonderlijke fasetijden blijven vereist."
+    }
   },
   "progress": {
     "before": 41,
@@ -74,7 +91,7 @@
     {
       "path": "AGENTS.md",
       "base_blob": "881f9eb0674f3178997c09643c6539a654c74690",
-      "sha256_after_edit": "3f819c751f660450187706dbfcae90bc82f72bcbd907daeaf9439c362209b722"
+      "sha256_after_edit": "a807bfb5d4416f0e764b877adc496b4cb6c565f2037b372ebe381432a6528877"
     },
     {
       "path": "LICENSE-PLAN.md",
@@ -89,7 +106,7 @@
     {
       "path": "docs/AGENTS.md",
       "base_blob": "542f464e1d45b42311608ba582dc61c47f452650",
-      "sha256_after_edit": "bdc672b48c81b86d41130cc5d9e7ba8197616d7e90d6ddb5411e92463538c5b9"
+      "sha256_after_edit": "d527d9d0a0cb9f686743ab3f72f7475a1f413330123c120baec8db588e4791ad"
     },
     {
       "path": "docs/ARCHITECTURE.md",
@@ -104,7 +121,7 @@
     {
       "path": "docs/DECISIONS.md",
       "base_blob": "1b13f99262656c92990f4acb987ddd814ca3afd1",
-      "sha256_after_edit": "21a486e6195ca89a03f9970625c4216aff7200fd97a52c9ae68ab65ee52adec8"
+      "sha256_after_edit": "b4a1f6152163861a786e5bcc805b6316b5275efc1c476950f574d718051fab3c"
     },
     {
       "path": "docs/DESIGN-AMBITION.md",
@@ -154,7 +171,7 @@
     {
       "path": "docs/PROJECT-STATE.md",
       "base_blob": "4e9203c2eda70d26ecd2f63b2e821a89be174ff2",
-      "sha256_after_edit": "92317a68ed84ee9182b73b7555614a783dd3d381bd509303fb64625228263ae7"
+      "sha256_after_edit": "b7268b13961862d90a396d7670ce43bcbb7e54682ec387e90450d8b177b87398"
     },
     {
       "path": "docs/ROADMAP.md",
@@ -204,7 +221,7 @@
     {
       "path": "docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md",
       "base_blob": "e0e8b6cab629246d7ee6a3b8663a47d0edddb9d8",
-      "sha256_after_edit": "1ba93f92cca00bd8c244e9b1dd479808945ff9f7a760378f415d6e74b24c9fce"
+      "sha256_after_edit": "58efd30fcd5ea3e47424bfeae1039b8edcdecec642cfc6926f437b15aa6c2ff8"
     },
     {
       "path": "docs/implementation/VMWARE-WORKSTATION-TRIAL.md",

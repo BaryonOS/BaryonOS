@@ -1,5 +1,10 @@
 # Ontwerpbesluiten
 
+**Projecteigenaar:** Simon van Ieperen.
+De ik-vorm bij persoonlijke besluiten, opdrachten en bevoegdheden verwijst
+in dit document naar de projecteigenaar. Broncitaten behouden hun
+oorspronkelijke spreker.
+
 ## ADR-074 — Ticketlock, irqsave en lockdep per CPU (K06 stap 5a)
 
 6 november 2026; alleen in `native-smp`. Dit is de eerste stap naar een
