@@ -11,11 +11,11 @@ De vastgelegde `/goal` luidt:
 > Realiseer de volledige native testrelease van Nieuw OS volgens docs/FULL-TEST-RELEASE.md. Blijf implementeren, integreren, testen en repareren tot alle verplichte functionele, visuele, beveiligings- en herstelcriteria aantoonbaar slagen op het geleverde releaseimage. Behoud de volledige productomvang en architectuur; vervang ontbrekende functies niet door mocks, verborgen bediening of uitstel. Gebruik beschikbare agents voor onafhankelijk werk. Bewaar bij een harde blokkade of limiet de exacte werkstand en hervatstap. Meld voltooiing uitsluitend met het complete testpakket en herleidbaar acceptatiebewijs.
 
 De oorspronkelijke opdracht staat **onverkort** aan het einde van dit document.
-Mijn aanvullende instructie van 30 oktober 2026 is normatief verwerkt in
+De aanvullende instructie van 30 oktober 2026 is normatief verwerkt in
 [uitvoerings- en productcontext](FULL-TEST-RELEASE-CONTEXT.md), inclusief concrete
 gebruikstaken/compatibiliteitsgrenzen, formaatdekking, TCB en duuracceptatie.
 Zij behoudt deze volledige opdracht, stabiele ID's, `/goal` en voortgangsrubric.
-Mijn aanvullende eis luidt: **“externe opslag van uitsluitend
+De aanvullende eis luidt: **“externe opslag van uitsluitend
 versleutelde objecten moet kunnen”**. Daarom blijft een expliciet gekozen
 externe provider toegestaan als onbetrouwbare opslaglaag voor uitsluitend
 client-side versleutelde opaque objecten volgens

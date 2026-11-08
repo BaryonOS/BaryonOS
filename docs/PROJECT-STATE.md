@@ -1,6 +1,34 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR #264 conflictintegratie — 8 november 2026
+## NEXT AGENT HANDOFF — Wetenschappelijke schrijfstijl — 9 november 2026
+
+**Bron en wijziging:** main `1d5bc01e632fd5bab429f3befc9e9546c9f7661c`, branch
+`docs/wetenschappelijke-schrijfstijl-20261109`. De eerste-persoonsredactie
+uit PR #263 is gecorrigeerd naar onpersoonlijke, wetenschappelijke formuleringen.
+`AGENTS.md` en `docs/AGENTS.md` leggen de gecorrigeerde schrijfafspraak vast.
+De repositorybrede tekstzoeking omvat 6.338 UTF-8-bestanden binnen 6.599
+versiebeheerde paden. In 55 Markdown-bestanden is de redactie bijgewerkt.
+
+**Behoud:** besluiten, formele bevoegdheden, getallen, codeblokken, verwijzingen,
+productcriteria en bewijsstatus blijven behouden. De naamverklaring van Baryon OS,
+oorspronkelijke broncitaten, historische bronkopieën en hashgebonden bewijsbestanden
+zijn ongewijzigd. Het eerdere redactieverslag blijft bewijs van de toenmalige
+wijziging; de daarin beschreven ik-vorm geldt niet meer als schrijfafspraak.
+
+**Controle en grens:** `python3 tools/progress.py --write`,
+`python3 tools/progress.py --check` en `git diff --check` slagen (exitstatus 0).
+De inhoudsvergelijking en afzonderlijke AI-redactiereview vonden geen inhoudelijke
+blocker. Deze controles leveren geen nieuwe OS-testresultaten op; lokale Rust-,
+QEMU- en fysieke-hardwaretests zijn voor deze redactie niet uitgevoerd.
+**41 → 41/100**; criteria, gewichten en acceptatiestatus zijn ongewijzigd.
+[Redactiecontrole en afbakening](verification/wetenschappelijke-schrijfstijl-20261109.json).
+
+**Hervatten:** beoordeel de GitHub-reviews en vereiste CI op de gepubliceerde
+PR-head afzonderlijk. De oorspronkelijke implementatietaken behouden hun eigen
+bron en acceptatiecriteria. Eerste lokale controle:
+`python3 tools/progress.py --check`.
+
+## Historisch checkpoint — PR #264 conflictintegratie — 8 november 2026
 
 **Bron en scope:** PR-head `b53a576a04f7cd5df3fc92cf32d2ceeb0c4939aa`,
 branch `docs/baryon-name-20261108`, verenigd met main
@@ -50,8 +78,10 @@ nieuw bewijs voor die gate. Eerste lokale documentatiecontrole:
 `docs/professionele-projectstem-20261108`. De 6.598 versiebeheerde paden zijn
 geïnventariseerd; 6.337 UTF-8-bestanden zijn doorzocht op verwijzingen naar de
 auteur. De redactie van 40 bestaande bestanden formuleert projectdoelen,
-besluiten en instructies rechtstreeks en gebruikt de ik-vorm voor persoonlijke
-keuzes en ervaringen. `docs/AGENTS.md` legt deze schrijfstijl vast.
+besluiten en instructies rechtstreeks en gebruikte de ik-vorm voor persoonlijke
+keuzes en ervaringen. Die schrijfafspraak is na de gebruikerscorrectie vervangen
+door de onpersoonlijke, wetenschappelijke stijl in `docs/AGENTS.md`. Het
+oorspronkelijke redactieverslag hieronder blijft bewijs van de eerdere wijziging.
 
 **Behoud en controle:** technische contracten, bevoegdheden, meetwaarden,
 codeblokken, bronverwijzingen en productcriteria blijven behouden. Exacte
@@ -546,7 +576,7 @@ geen criterium wijzigt. Besluit: ADR-CI-RUNNERS-20261106.
 
 **Gerealiseerd:**
 - Alle 21 workflows draaien op `[self-hosted, Linux, X64, unraid, build]`. Het oude label
-  `[self-hosted, Linux]` matchte ook `MSIMON-wsl`. Dat is WSL op mijn eigen pc, waar
+  `[self-hosted, Linux]` matchte ook `MSIMON-wsl`. Dat is WSL op de persoonlijke ontwikkel-pc, waar
   PR-code als gebruiker `simon` draaide.
 - `upload-artifact` bewaart nu 3 dagen.
 - `apt-get` draait alleen als `dpkg` de pakketten mist.
@@ -559,7 +589,7 @@ geen criterium wijzigt. Besluit: ADR-CI-RUNNERS-20261106.
 - Echte codefout: `test_gs_discipline` in #238.
 - Onbeslist (code of capaciteit): 8-vCPU-timeout in native-smp op de K06-keten.
 
-**Ingrepen met mijn toestemming:**
+**Ingrepen met toestemming van de projecteigenaar:**
 - Runnerservice `MSIMON-wsl` gestopt (`systemctl` is inactive, GitHub meldt hem offline).
 - 38 wachtende PR-runs geannuleerd.
 - Artifacts ouder dan 24 uur verwijderd.
@@ -606,7 +636,7 @@ Een AP met een dode timer leidt tot quarantaine. **Bewijs:** 14/14 native
 gevallen; regressie K05 6/6, `milestone-m2` en `native-rtc` 5/5. Zie
 [k06-smp-preempt](verification/k06-smp-preempt/README.md).
 
-**Open:** merge van de keten (mijn beslissing). Daarna volgt de
+**Open:** merge van de keten (beslissingsbevoegdheid: projecteigenaar). Daarna volgt de
 eigenlijke SMP-scheduler voor processen: per-CPU-runqueues, lockvolgorde,
 interrupts op de BSP, een CR3-wissel per thread met shootdown voor de
 hele procesadresruimte, en de herziening van ADR-024.
@@ -632,7 +662,7 @@ deterministisch het vrijgegeven frame. Regressie: K05 6/6, `milestone-m2`
 en `native-rtc` 5/5. Zie
 [k06-smp-shootdown](verification/k06-smp-shootdown/README.md).
 
-**Open:** de beslissing over #191 ligt bij mij. Volgens de integrator
+**Open:** besluitvorming over #191 door de projecteigenaar. Volgens de integrator
 loopt #191 achter op main, draaide de volledige CI daar niet, en staan er 6
 CodeRabbit-threads open plus de `run_cap_bench`-regel; de integrator kan
 niet op die branch schrijven. Daarna komen CI en integratie van
@@ -745,7 +775,7 @@ documentatiebronnen.
 Lokaal (Rust 1.90.0): test, clippy `-D warnings`, fmt en freestanding build per
 crate exit 0; onafhankelijke AI-reviews MERGE (geen menselijke audit).
 
-**Open:** #155 vraagt mijn besluit (score 41→39, B01-criterium); #181, #191
+**Open:** #155 vraagt een besluit van de projecteigenaar (score 41→39, B01-criterium); #181, #191
 en #177 FIX (reviewcomments op de PR's); calculator #184/#186/#192 onderling
 CONFLICT (26+ hunks, ook in `tools/run_window_session.py`); #133, #135, #146,
 #147, #154, #157 nog niet beoordeeld; concepten #167 #185 #197 niet overgedragen;
@@ -1235,8 +1265,8 @@ worden beoordeeld. Geen nieuwe native/QEMU-acceptatie uitgevoerd.
 
 ## Historische context — eerdere main/statusintegratie op cbbc9c99
 
-Main staat op `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`. Ik heb bevestigd
-dat ik #134 handmatig met een squash-merge heb samengevoegd
+Main staat op `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`. De handmatige
+squash-merge van #134 is als persoonlijke handeling door de projecteigenaar bevestigd
 (3 november, 10:05:36Z).
 Geen concurrerende agent of integratieoverdracht; geen rollback gevraagd.
 Die mainbron is nu behoudend opgenomen. Drie assessment/statusconflicten
@@ -2012,9 +2042,9 @@ Gebruik bestaande tools en behoud andere dirty checkouts/branches.
 
 ## Vorig checkpoint — PR #125-inhoudsbehoud — 2 november 2026
 
-**Integratormandaat:** ik heb op 2 november expliciet het exclusieve
-integratormandaat van sessie `7f895683` aan deze sessie (`f090b913`)
-overgedragen en de #85/#76-mergepauze opgeheven, met behoud van review-, test-
+**Integratormandaat:** op 2 november is door de projecteigenaar expliciet het
+exclusieve integratormandaat van sessie `7f895683` aan deze sessie (`f090b913`)
+overgedragen en is de #85/#76-mergepauze opgeheven, met behoud van review-, test-
 en branchregels. De oude integrator bevestigde geen lopende/verzonden
 transacties, actief WIP of conflictclaim en stopt met operationele integratie.
 De wijziging staat ook in [WORK-QUEUE.md](WORK-QUEUE.md). Dit is de actuele
@@ -2037,7 +2067,7 @@ PR #120 slechts tot `562be4d` was opgenomen. De latere followups tot
   kernel- en runnercontroles.
 - `docs/WORK-QUEUE.md` maakt expliciet dat historische afwezigheid van
   desktopactiviteit geen overdrachtsbewijs is en noteert alleen de nieuwe,
-  rechtstreeks door mij bevestigde overdracht van 2 november.
+  rechtstreeks door de projecteigenaar bevestigde overdracht van 2 november.
 
 **Vervolgpunten uit #120, nu mede opgenomen:**
 - #116: `APP_HANDLE_COUNT` dekt nu de volledige app-handletabel op het

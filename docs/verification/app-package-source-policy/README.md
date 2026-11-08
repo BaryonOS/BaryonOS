@@ -16,7 +16,7 @@ gekozen `SourceId`; pakketten kunnen geen bron of sleutel aanwijzen. Rotatie
 en intrekking vergelijken de verwachte generatie en verhogen die atomair.
 Revocation voorkomt toekomstige packageverificaties en updates. Reeds
 geïnstalleerde apps blijven startbaar; apps/data worden niet automatisch
-verwijderd (mijn besluit van 30 oktober 2026). De registry is alleen
+verwijderd (projectbesluit van 30 oktober 2026). De registry is alleen
 geheugenresident en de mutaties zijn zonder service-autorisatie niet veilig
 aan een app bloot te stellen.
 
