@@ -1,0 +1,34 @@
+name: Documentatie corrigeren
+description: Een onduidelijke uitleg, verouderde status of onvoldoende onderbouwde claim melden
+title: "docs: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        De actuele bron en bewijsgrens zijn leidend. Een oude testuitslag geldt niet vanzelf voor nieuwe code.
+        Gebruik [Vragen en hulp](https://github.com/simonvanieperen/nieuw-os/discussions/categories/vragen-en-hulp)
+        als je vooral uitleg zoekt. Deel geen gevoelige gegevens of kwetsbaarheidsdetails.
+  - type: input
+    id: location
+    attributes:
+      label: Bestand, pagina of link
+      description: Geef de precieze sectie en liefst een URL met commit of versie.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Wat klopt niet of is onduidelijk?
+      description: Citeer alleen het relevante fragment en beschrijf het gevolg voor lezen, uitvoeren of beoordelen.
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: Gewenste correctie
+      description: Welke uitleg ontbreekt of welke tekst moet veranderen? Een precieze vervangtekst is welkom, maar niet verplicht.
+  - type: textarea
+    id: sources
+    attributes:
+      label: Onderbouwing
+      description: Relevante code, versiegebonden testresultaten of primaire bron met titel, organisatie, datum/versie en URL. Benoem wat nog niet te verifiëren is.

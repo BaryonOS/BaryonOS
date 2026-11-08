@@ -1,0 +1,40 @@
+title: "[Ontwerp] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Bespreek hier technische keuzes en voorstellen voordat ze een uitvoerbare taak worden. Een voorstel wijzigt nog geen contract of acceptatiecriterium.
+        Begin bij de relevante [projectcontracten](https://github.com/simonvanieperen/nieuw-os/blob/main/docs/COMMUNITY.md#leidende-projectbronnen). Deel kwetsbaarheidsdetails volgens [SECURITY.md](https://github.com/simonvanieperen/nieuw-os/blob/main/SECURITY.md).
+  - type: textarea
+    id: problem
+    attributes:
+      label: Probleem en huidige situatie
+      description: Welke concrete vraag vraagt om een ontwerpbesluit? Verwijs naar de huidige interface, code of afspraak en vermeld de bronversie waar nodig.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Voorstel en alternatieven
+      description: Beschrijf de aanbevolen route, een bruikbaar alternatief en de belangrijkste afwegingen. Benoem ook wat buiten deze stap valt.
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Interfaces en vertrouwensgrenzen
+      description: Welke componenten, rechten, gegevensstromen of afhankelijkheden veranderen? Behoud de eigen kernel, Security Floor en het privacycontract; licht toe als geen grens verandert.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Onderzoek en acceptatie
+      description: Welk klein experiment of welke controle maakt de keuze toetsbaar? Scheid hostproef, compilatie, native QEMU, fysieke hardware en menselijke review; noem open aannames en relevante criterium-ID's.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Gerelateerde bronnen en werk
+      description: Links naar bestaande issues, discussies, besluiten, specificaties en primaire technische bronnen. Vermeld bij externe specificaties de versie of datum.

@@ -1,6 +1,12 @@
 name: M6e scalable volume acceptance
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
     paths:
       - 'tools/**'
@@ -16,7 +22,7 @@ on:
       - 'Cargo.lock'
       - 'rust-toolchain.toml'
       - '.github/workflows/volume-acceptance.yml'
-  workflow_dispatch:
+      - '.github/actions/preserve-evidence/**'
 
 permissions:
   contents: read
@@ -55,14 +61,15 @@ jobs:
         run: python3 -B tools/preflight.py --strict
       - name: M6e/S06 native volume gate (9 QEMU runs)
         run: python3 -B -u tools/test_volume.py
-      - name: Upload M6e reports
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
-          retention-days: 3
+          job-status: ${{ job.status }}
+          if-no-files-found: warn
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: m6e-volume-reports
           path: |
             build/ci-m6e/volume-gate.json
             build/ci-m6e/run/volume-*/result.json
             build/ci-m6e/run/volume-*/serial.txt
-          if-no-files-found: warn

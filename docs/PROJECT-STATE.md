@@ -1,5 +1,48 @@
 # Actuele projectstatus
 
+## Historisch checkpoint — PR #251 artifactopslag hervat — 8 november 2026
+
+**Bron:** PR #251, head `5c291cff3b9c28e4948aeb36adda3acc6ee6a8ab`;
+oorspronkelijke basis `363b486b06023d3d578f8eca2b23ff49045a1757`; geïntegreerde
+main `5b2189824c32145ad5c110429517dfcea3f2720f` (openbare projectrichting); werkbranch
+`ci/artifact-storage-20261108`. **41 → 41/100**; geen criterium gewijzigd.
+Scope: bestaande artifactreparatie afronden. De runner-/toolchainmigratie
+blijft een afzonderlijke wijziging. Besluit: ADR-CI-EVIDENCE-20261108.
+
+**Gerealiseerd:** vijftien workflows gebruiken al de gedeelde collector/action.
+Dit vervolg vult de concrete ADR-reviewvelden en ontbrekende docstrings aan,
+en voegt twaalf configuratiecontroles toe voor opname van het Windows-pakket
+in het volledige archief. De twee huidige package-workflows voldeden al;
+ook het verwijderen van hun betreffende padregel wordt nu gedetecteerd.
+Collector en collectortests hebben na verwijderen van docstrings dezelfde AST
+als de bron. Geen workflow, uploadactie, testgate of runnerkeuze gewijzigd.
+De advisory over veertien callees in `collect()` is beoordeeld: orkestratie
+van expliciete selectie-, lees-, budget- en rapportstappen; geen aangetoond
+defect en geen cosmetische herstructurering van de veiligheidsgrenzen.
+
+**Werkelijk runtimebewijs:** native-display-input (run `42511057121`, job
+`128824002965`) en B03 signed updates (run `42511057222`, job `128824003122`)
+zijn op PR-mergecheckout `89722c5fd132beeecd95ae6777af601c83fd0f6f` geslaagd.
+De compacte uploads falen in beide logs met `Artifact storage quota has been
+hit`; de vooraf geschreven bronbinding, rapporten en waarschuwing blijven
+zichtbaar. Dit bewijst de echte quota-terugval voor deze bron, geen beschikbare
+artifactdownload of volledige raw-hercontrole. De nieuwe documentatiehead
+krijgt eigen CI; de oude run wordt niet naar die head omgelabeld.
+
+**Lokale validatie:** 85 bron-/bewijsbestanden en 22 oorspronkelijke workflows
+zijn tegen Git-blobhashes gecontroleerd. Dit is een deelsnapshot, geen volledige
+clone. Alle 15 collector-hosttests en 163 YAML-/shell/configuratiecontroles
+slagen; voortgangscontrole en diff-check slagen. Bewijs en bronhashes:
+`docs/verification/ci-artifact-storage-20261108/review-followup.json`.
+Geen lokale Rust-/QEMU-uitvoering; Cargo en QEMU ontbreken.
+
+**Open en hervatstap:** controleer nieuwe PR-head, reviewthreads en verplichte
+`host-quality`/`qemu-smoke`; squash-auto-merge volgt de bestaande regels.
+De reparatie is pas actief op main na merge. Geen artifacts verwijderd en
+geen vrijgemaakte opslag geclaimd. Een ontbrekend raw-archief blijft
+onvoldoende voor acceptatie die die bytes vereist. Lokale hercontrole in
+een volledige clone: `python3 -B docs/verification/ci-artifact-storage-20261108/verify_workflows.py --repo . --output /tmp/ci-evidence-workflow-checks.json`.
+
 ## NEXT AGENT HANDOFF — PR #249 hervat; Actions-budget blokkeert — 8 november 2026
 
 **Bron en taak:** hervat PR #249 op `575a50409ad7a86786bbfc7da2c409a545bed33f`
@@ -121,6 +164,49 @@ teststappen: run `42389248097`, job `128453130104`.
 **Hervatten:** controleer de actuele head, reviewbevindingen en CI van de
 runner-PR; houd oude branchwijzigingen met self-hosted labels buiten de
 integratie. Geen runnerregistraties, publicatie- of betaalinstellingen gewijzigd.
+
+## Historisch checkpoint — Discussies en templates — 8 november 2026
+
+**Onderzoeksbron:** main `363b486b06023d3d578f8eca2b23ff49045a1757`;
+**integratiebasis:** main `5b2189824c32145ad5c110429517dfcea3f2720f`
+(PR #250, openbare projectrichting). Werkbranch
+`community/discussions-templates-20261108`. **41 → 41/100**; criteria,
+gewichten en bestaand acceptatiebewijs blijven ongewijzigd. Deze opdracht
+betreft uitsluitend community-inrichting; CI-, artifact- en publicatiewerk
+in andere PR's blijft bij de betreffende eigenaren.
+
+**Gerealiseerd:** de volledige Git-boom (6.524 bestanden) geïnventariseerd en
+de bronbestanden tegen Git-blobs gecontroleerd. De Graphify-index kwam met
+deze main overeen. Actieve contracten, codegebieden, tests, bestaande
+templates en open issues/PR's onderzocht; geen regel-voor-regel securityaudit.
+Zes bestaande lege discussiecategorieën ingericht en vijf startdiscussies
+gepubliceerd: [wegwijzer #252](https://github.com/simonvanieperen/nieuw-os/discussions/252)
+(vastgezet), [release #253](https://github.com/simonvanieperen/nieuw-os/discussions/253),
+[desktop #254](https://github.com/simonvanieperen/nieuw-os/discussions/254),
+[NAS #255](https://github.com/simonvanieperen/nieuw-os/discussions/255) en
+[TLS #256](https://github.com/simonvanieperen/nieuw-os/discussions/256).
+
+**Repositorywijziging:** drie issueformulieren, één Markdown-taaktemplate,
+issuekeuzescherm, vier categorieformulieren, PR-template en
+[communitywegwijzer](COMMUNITY.md), met links in README en CONTRIBUTING.
+Formulieren kennen geen pipeline-labels toe. Alleen beoordeelde pipeline-
+taken gebruiken de bestaande letterlijke `Criterium:`-/`Gate:`-regels.
+Beveiligingsmeldingen volgen SECURITY.md; geen nieuw meldadres of licentie.
+
+**Controles:** YAML-/veldstructuur en repositorylinks gecontroleerd; een
+ingevuld taaktemplate door de bestaande pipelineparser gelezen, inclusief
+de weigering zonder uitvoeringslabel. `python3 tools/progress.py --write`
+en `python3 tools/progress.py --check`: exit 0, 41/100 consistent.
+Categorieformaten en slugs zijn in GitHub bevestigd. Brongebonden overzicht:
+[communitycontrole](verification/community-20261108.json).
+
+**Open bij dit checkpoint:** [PR #258](https://github.com/simonvanieperen/nieuw-os/pull/258)
+is na de conceptfase gereed voor review; squash-auto-merge is ingesteld.
+Opname volgt de vereiste checks en branchregels; daarna de live formulierweergave controleren.
+Een branchbestand maakt een template nog niet actief. Geen nieuwe Rust-,
+QEMU-, fysieke of menselijke acceptatie uitgevoerd of geclaimd.
+**Eerstvolgende stap:** de checks op de geïntegreerde PR-head volgen;
+na opname de issuekeuze en vier discussieformulieren in GitHub openen. Wijzig geen branchregels om dit af te dwingen.
 
 ## Historisch checkpoint — openbare projectrichting — 8 november 2026
 

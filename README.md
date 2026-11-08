@@ -29,6 +29,10 @@ en de volledige acceptatieopdracht in
 [FULL-TEST-RELEASE.md](docs/FULL-TEST-RELEASE.md). Proeven en builds zijn
 geen bewijs van een complete release of ondersteuning van fysieke hardware.
 
+**Meedoen:** [Discussies](https://github.com/simonvanieperen/nieuw-os/discussions)
+voor vragen en voorstellen · [Melding of taak](https://github.com/simonvanieperen/nieuw-os/issues/new/choose)
+· [Communitywegwijzer](docs/COMMUNITY.md) · [Bijdragen](CONTRIBUTING.md).
+
 ## Openbare ontwikkeling en licentie
 
 **Bevestigd op 8 november 2026:** Nieuw OS kiest voor openbare ontwikkeling.
@@ -74,10 +78,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`575a5040`](https://github.com/simonvanieperen/nieuw-os/commit/575a50409ad7a86786bbfc7da2c409a545bed33f) ·
-**Ontwikkelbranch:** `ci/github-hosted-runners-20261108`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #249 hervatten, main integreren en de CI-budgetblokkade vastleggen.
-41/100 blijft 41/100. De runner-PR is gecombineerd met de openbare ontwikkelrichting uit main 5b218982. GitHub bevestigt een Actions-budgetblokkade vóór runnerstart. De diagnose-upload is begrensd en reviewopmerkingen zijn verwerkt; testcommando’s en productcode blijven gelijk. Geen nieuw native productcriterium.
+**Bron:** [`5b218982`](https://github.com/simonvanieperen/nieuw-os/commit/5b2189824c32145ad5c110429517dfcea3f2720f) ·
+**Ontwikkelbranch:** `community/discussions-templates-20261108`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Discussies en bijdrageformulieren inrichten na repositoryonderzoek.
+41/100 blijft 41/100. Communitycategorieën, startdiscussies, issue- en discussieformulieren, PR-template en routing toegevoegd. YAML-, link- en pipelineparsercontrole; geen runtimecode, nieuwe native acceptatie of criteriumwijziging. Activering van templates volgt de bestaande PR- en branchregels. De openbare ontwikkelrichting en MPL-2.0-controlebasis uit PR #250 zijn bij integratie behouden; publicatiecontroles blijven open.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -91,8 +95,6 @@ productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
 Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
 beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
 <!-- OS-PROGRESS:END -->
-
-Reguliere CI: [vaste tools, hosttests en QEMU-gates](docs/CI.md).
 
 Volledige repository-inventaris: [OS-completeness-audit](docs/audit/os-completeness/README.md).
 Driververgelijking en voorstel: [OS-repositories en hardwaredrivers](docs/research/2026-11-03/os-repos-and-hardware-drivers.md).

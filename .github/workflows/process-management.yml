@@ -1,6 +1,12 @@
 name: K05 process management acceptance
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore: ['docs/**', '*.md']
@@ -41,14 +47,14 @@ jobs:
         run: python3 -B tools/preflight.py --strict
       - name: K05 native supervisor gate (6 QEMU runs, including Waiting kill/reuse)
         run: python3 -B -u tools/test_supervisor.py
-      - name: Upload K05 reports
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
-          retention-days: 3
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: k05-supervisor-reports
           path: |
             build/supervisor-gate.json
             build/run/supervisor-*/result.json
             build/run/supervisor-*/serial.txt
-          if-no-files-found: error
