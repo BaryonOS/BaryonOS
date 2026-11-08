@@ -1,5 +1,12 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+PR #249 hervat (8 november 2026), bron `575a5040` met main `5b218982`:
+**41 → 41/100**. Vier documentconflicten opgelost met behoud van de
+runnerwijziging en openbare ontwikkelrichting. GitHub bevestigt een
+Actions-budgetblokkade vóór runnerstart; review verduidelijkt de bewijsgrens
+en begrenst de diagnose-upload. Geen nieuwe host-/native
+acceptatie. [Integratie- en statusbewijs](verification/ci-resume-249-20261108.json).
+
 Gepinde reguliere CI (8 november 2026), bron PR #249 `d3d8e3e0`:
 **41 → 41/100**. Vaste Python-/QEMU-/firmwareversies en 99 extra bestaande
 hosttests; 224 gerichte hosttests en de configuratiecontrole slagen.

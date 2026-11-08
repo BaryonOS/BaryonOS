@@ -1,5 +1,15 @@
 # Reguliere CI op standaard GitHub-runners
 
+**Status:** geïmplementeerde CI-configuratie; volledige uitvoering van de
+gedeelde setup op een GitHub-runner is nog niet bewezen. De run op PR-head
+`575a5040` stopte vóór runner-toewijzing door een Actions-budgetblokkade.
+
+**Lokaal bewijs:** 224 geselecteerde hosttests, pakket-/firmwarecontrole,
+geïsoleerde APT-resolutie en een gepauzeerd QEMU/TCG-proces zijn vastgelegd
+in [het brongebonden controleverslag](verification/ci-standard-runners-20261108.json).
+Daarbij is Python 3.12.14 gebruikt, niet de CI-pin 3.12.12. De volledige
+sudo-installatiestap, Rust-/Node-hostsuite en eigen-OS-QEMU-starts blijven open.
+
 De 21 reguliere workflows gebruiken `ubuntu-24.04`: 24 jobdefinities en 42
 jobs na de bestaande matrixuitbreidingen. De aparte private publicatie-audit
 valt buiten deze configuratie. `ci.yml` behoudt de verplichte keten
@@ -20,14 +30,15 @@ valt buiten deze configuratie. `ci.yml` behoudt de verplichte keten
 | iPXE-QEMU | `1.21.1+git-20220113.fbbdc3926-0ubuntu2` | Dezelfde QEMU-setup |
 | Optionele swtpm / libtpms0 | `0.7.3-0ubuntu5.24.04.1` / `0.9.3-0ubuntu4.24.04.1` | Alleen `native-system` schakelt deze installatie in |
 
-Alle 17 QEMU-jobs gebruiken één gedeelde installatie. APT leest uitsluitend
+Alle 17 QEMU-jobdefinities verwijzen naar één gedeelde installatieactie.
+Het geïmplementeerde installatiescript laat APT uitsluitend lezen uit
 het Ubuntu-snapshot **20261108T000000Z**, met eigen tijdelijke bronnen en
 indexen en de officiële Ubuntu-archivekeyring. De exacte versies worden ook
 bij vooraf geïnstalleerde pakketten opnieuw geïnstalleerd en gecontroleerd.
 Een onbeschikbare versie geeft een fout; er is geen fallback. Het script
 verwijdert geen conflicterende pakketten.
 
-De setup controleert `pc-q35-8.2`, TCG en SHA256 van OVMF CODE/VARS en het
+De setup bevat controles voor `pc-q35-8.2`, TCG en SHA256 van OVMF CODE/VARS en het
 VGA-ROM. Beide firmwarepaden worden expliciet ingesteld:
 
 ```text
@@ -78,15 +89,40 @@ of QEMU-processtart bewijst geen geslaagde native OS-test.
 ## Diagnostiek en lokaal gebruik
 
 De setup schrijft een omgevingsrapport in `RUNNER_TEMP`. `qemu-smoke`
-bewaart JSON-rapporten en tekst-/buildlogs als `qemu-smoke-evidence`, met
+bewaart alleen de geselecteerde bekende JSON-rapporten en tekst-/buildlogs
+als `qemu-smoke-evidence`, met
 drie dagen retentie. Deze aanvullende upload is best effort: een
 opslagquotafout blijft zichtbaar; de teststappen zelf blijven verplicht en
 bepalend. Diskimages en binaries vallen buiten deze aanvullende upload.
+De preflight schrijft zijn JSON naar de joblog; er wordt geen
+`build/preflight.json` geproduceerd of als opgeslagen bewijs verondersteld.
 
 De lokale `tools/agent_gate.py` slaat GitHub-setupacties en alleen voor
 GitHub bedoelde diagnostiek over. De strikte preflight en echte tests blijven
 onvoorwaardelijk. Geëxporteerde lokale firmwarepaden blijven volgens
 `HOST_KEYS` bruikbaar; een lokale gate vereist geen `RUNNER_TEMP`-rapport.
+
+## Wanneer GitHub geen runner start
+
+Bij [CI-run 42511934820](https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934820)
+op PR-head `575a5040` bevestigt GitHub op 8 november 2026 dat een
+Actions-budget verder gebruik blokkeert. De hostjob voert geen teststappen
+uit; de afhankelijke QEMU-job wordt overgeslagen. Dit is een andere foutfase
+dan een artifactquota na uitvoering van tests. Een codewijziging of herhaling
+onder dezelfde budgetvoorwaarden heft deze blokkade niet op.
+
+De openbare ontwikkelrichting is vastgelegd in
+[LICENSE-PLAN.md](../LICENSE-PLAN.md). De afzonderlijke publicatiecontrole
+blijft nodig voordat zichtbaarheid verandert. Standaard GitHub-hosted
+runners zijn gratis voor openbare repositories; artifactopslag en andere
+limieten hebben een afzonderlijk beleid. De concrete budgetlimiet en
+actueel verbruik zijn in deze controle niet ingezien. Controleer na gewijzigde
+uitvoeringsvoorwaarden opnieuw de actuele PR-head en haar verplichte gates.
+
+Bronnen: GitHub, [Billing and usage](https://docs.github.com/en/actions/concepts/billing-and-usage)
+en [Budgets and alerts](https://docs.github.com/en/billing/concepts/budgets-and-alerts),
+geraadpleegd op 8 november 2026. Het brongebonden incidentbewijs staat in
+[het hervattingsrapport](verification/ci-resume-249-20261108.json).
 
 ## Onderhoud en bewijs
 

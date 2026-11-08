@@ -1,6 +1,51 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Gepinde reguliere CI — 8 november 2026
+## NEXT AGENT HANDOFF — PR #249 hervat; Actions-budget blokkeert — 8 november 2026
+
+**Bron en taak:** hervat PR #249 op `575a50409ad7a86786bbfc7da2c409a545bed33f`
+en neem main `5b2189824c32145ad5c110429517dfcea3f2720f` op met behoud van de
+openbare ontwikkelrichting en het MPL-2.0-controlekader uit PR #250.
+Werkbranch: `ci/github-hosted-runners-20261108`. **41 → 41/100**.
+
+**Gerealiseerd:** vier documentconflicten opgelost. Runnerkeuze, gedeelde
+toolinstallatie, oorspronkelijke testcommando's, private publicatie-audit en
+opgeslagen testlogs blijven behouden. De aanvullende QEMU-upload selecteert
+alleen bekende rapport- en logpaden; brede `build/**`-patronen zijn verwijderd.
+De publicatierichting, licentievoorwaarden en beide checkpointgeschiedenissen
+zijn behouden. Geen productcode gewijzigd.
+
+**Reviewopvolging:** de vier opmerkingen van CodeRabbit op bron `575a5040`
+zijn getoetst: uploadselectie begrensd, geïmplementeerde configuratie duidelijk
+gescheiden van hosted uitvoeringsbewijs, het oude apt-besluit verduidelijkt,
+en de correcte telscopes toegelicht: 21 reguliere workflows + 2 Action-YAMLs
+= 23 YAMLs; 167 workflowstappen + 3 Action-stappen = 170. `requirements.txt`
+is geen YAML. De afzonderlijke private audit valt buiten die telling.
+
+**Bevestigde uitvoeringsblokkade:** de GitHub-runpagina van
+[CI 42511934820](https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934820)
+op bron `575a5040` meldt letterlijk:
+“The job was not started because an Actions budget is preventing further use.”
+`host-quality` faalde vóór uitvoering; `qemu-smoke` is overgeslagen. Dit
+bevestigt de budgetblokkade voor deze run; het is geen testuitslag of
+artifact-uploadfout. De exacte budgetlimiet en het verbruik zijn niet ingezien.
+
+**Controle:** bronbomen en gebruikte commits zijn tegen de Git-object-ID's
+gecontroleerd. Inhoudsbehoud, YAML/JSON, uploadselectie, conflictmarkers en de
+voortgangsgenerator staan in `verification/ci-resume-249-20261108.json`. De 224 eerdere
+hosttests en de gepauzeerde QEMU-toolprobe blijven uitsluitend bij hun
+historische bronbewijs horen. In deze integratie zijn geen Rust-/Node-
+hostsuite, native OS-starts of fysieke tests uitgevoerd.
+
+**Open en hervatten:** rond de afzonderlijke publicatiecontrole af volgens
+`LICENSE-PLAN.md` en de bestaande openbare projectrichting. Zolang de private
+repo onder dezelfde budgetblokkade valt, levert opnieuw starten geen nieuw
+testbewijs. Controleer na gewijzigde uitvoeringsvoorwaarden de actuele PR-head
+en start de vereiste hosted gates; beoordeel ook het historische
+8-vCPU/TCG-timingrisico met een echte meting. Behoud checks en branchregels.
+Deze hervatting wijzigt geen zichtbaarheid, facturering, quota of opslag.
+Eerste lokale controle: `python3 -B tools/progress.py --check`.
+
+## Historisch checkpoint — Gepinde reguliere CI — 8 november 2026
 
 **Bron:** PR #249 `d3d8e3e0a3b0b455b1832bdc53220352c2b20960`, met main
 `363b486b06023d3d578f8eca2b23ff49045a1757` (private audit behouden).
@@ -76,6 +121,38 @@ teststappen: run `42389248097`, job `128453130104`.
 **Hervatten:** controleer de actuele head, reviewbevindingen en CI van de
 runner-PR; houd oude branchwijzigingen met self-hosted labels buiten de
 integratie. Geen runnerregistraties, publicatie- of betaalinstellingen gewijzigd.
+
+## Historisch checkpoint — openbare projectrichting — 8 november 2026
+
+**Bron:** `main` op `363b486b06023d3d578f8eca2b23ff49045a1757`; documentatiebranch
+`docs/public-development-direction-20261108`. **41 → 41/100**; alle criteria,
+gewichten, statussen en bestaande bewijsverwijzingen blijven gelijk.
+
+**Bevestigd:** Simon kiest voor openbare ontwikkeling. Het bestaande
+MPL-2.0-plan voor eigen OS-code is het uitgangspunt voor de licentiecontrole.
+Dit staat in `LICENSE-PLAN.md`, ADR-PUBLIC-DEVELOPMENT-20261108, de README en
+`implementation/EUROPE-AND-RELEASE.md`. De vijf bestaande licentievoorwaarden
+zijn niet afgetekend. Het meegebundelde OSDev-/boekmateriaal heeft afzonderlijke
+rechten en is expliciet onderdeel van de nog open publicatiecontrole.
+
+**Controle en bewijsgrens:** 56 actuele bron-/bewijsbestanden zijn via GitHub
+opgehaald en byte voor byte tegen hun Git-blob-ID gecontroleerd. De bestaande
+voortgangsgenerator en documentatievergelijking zijn op deze bron uitgevoerd;
+uitkomsten staan in [het controlerapport](verification/public-development-20261108.json).
+Dit is documentatiecontrole, geen volledige licentieaudit, secretscan,
+nieuwe Rust-/QEMU-test, menselijke juridische beoordeling of productacceptatie.
+
+**Open:** rechten-/componentinventaris, licentietoepassing, passende notices,
+bijdragenvoorwaarden en de overige publicatiecontroles. De repository was
+bij controle privé. GitHub-hosted runners worden behandeld in
+[PR #249](https://github.com/simonvanieperen/nieuw-os/pull/249); deze opdracht
+verandert geen workflows, zichtbaarheid of branchregels. R03 blijft open.
+
+**Eerstvolgende inhoudelijke stap:** voer de vijf bestaande controles in
+`LICENSE-PLAN.md` uit op de werkelijk te publiceren bron en geschiedenis,
+inclusief alle workspaces en `.agents/skills/os-dev/`.
+Concrete publicatie volgt pas nadat de controles zijn afgehandeld.
+Eerstvolgend documentatiecommando: `python3 -B tools/progress.py --check`.
 
 ## Historisch checkpoint — PR #211 parserintegratie — 7 november 2026
 

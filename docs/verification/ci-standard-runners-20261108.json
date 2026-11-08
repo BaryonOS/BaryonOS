@@ -328,5 +328,24 @@
     "exact_rejection_reason": "not verified; this is not an executed native test failure"
   },
   "current_head_ci": "To be evaluated on the pushed commit; prior run is not evidence for this configuration",
-  "rollback": "Gerichte revert via PR; behoud overige wijzigingen en bestaande branchregels."
+  "rollback": "Gerichte revert via PR; behoud overige wijzigingen en bestaande branchregels.",
+  "counting_scope_clarification": {
+    "date": "2026-11-08",
+    "verified_source_commit": "575a50409ad7a86786bbfc7da2c409a545bed33f",
+    "regular_workflow_yaml_files": 21,
+    "composite_action_yaml_files": 2,
+    "checked_yaml_files": 23,
+    "non_yaml_action_requirements_files": 1,
+    "hashed_configuration_files": 24,
+    "regular_workflow_run_blocks": 167,
+    "composite_action_run_blocks": {
+      "setup-python": 2,
+      "setup-qemu": 1
+    },
+    "checked_run_blocks": 170,
+    "excluded_private_audit_yaml_files": 1,
+    "excluded_private_audit_run_blocks": 3,
+    "explanation": "workflow_preservation.shell_blocks telt alleen de 21 reguliere workflows (167). action_validation telt die workflows plus twee action.yml-bestanden (23 YAMLs; 170 run-blokken). Het derde actiebestand is requirements.txt en is geen YAML. De afzonderlijke private audit valt buiten beide tellingen; inclusief die audit zijn het 173 run-blokken. De oude vermelding van 172 wordt niet als telling gebruikt.",
+    "historical_binding": "Alle 24 configuration_sha256-waarden horen bij head 575a5040 en zijn daarmee gecontroleerd. Deze verduidelijking verandert geen historische testuitslag. De latere upload-padbeperking staat met eigen configuratiehash in ci-resume-249-20261108.json."
+  }
 }

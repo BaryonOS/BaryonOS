@@ -29,6 +29,19 @@ en de volledige acceptatieopdracht in
 [FULL-TEST-RELEASE.md](docs/FULL-TEST-RELEASE.md). Proeven en builds zijn
 geen bewijs van een complete release of ondersteuning van fysieke hardware.
 
+## Openbare ontwikkeling en licentie
+
+**Bevestigd op 8 november 2026:** Nieuw OS kiest voor openbare ontwikkeling.
+Het bestaande **MPL-2.0-plan voor de eigen OS-code** is het uitgangspunt voor
+de licentiecontrole. De projectlicentie is nog niet toegepast; rechten,
+afhankelijkheden, notices en voorwaarden voor documentatie, assets en extern
+bronmateriaal worden vóór publicatie gecontroleerd.
+
+[Licentieplan en open controles](LICENSE-PLAN.md) ·
+[Vastgelegd besluit](docs/DECISIONS.md#adr-public-development-20261108--openbare-ontwikkeling-met-mpl-20-als-controlebasis).
+De daadwerkelijke openbaarmaking volgt na de publicatiecontroles; dit
+richtingbesluit is geen claim van een voltooide productrelease.
+
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
@@ -61,10 +74,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`d3d8e3e0`](https://github.com/simonvanieperen/nieuw-os/commit/d3d8e3e0a3b0b455b1832bdc53220352c2b20960) ·
+**Bron:** [`575a5040`](https://github.com/simonvanieperen/nieuw-os/commit/575a50409ad7a86786bbfc7da2c409a545bed33f) ·
 **Ontwikkelbranch:** `ci/github-hosted-runners-20261108`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Reguliere GitHub-CI vastzetten en host-/QEMU-controles behouden.
-41/100 blijft 41/100. De 21 reguliere workflows gebruiken standaard Ubuntu-runners met vaste Python- en emulatorversies; 99 bestaande hosttests worden toegevoegd. Host- en configuratiecontroles sluiten geen nieuw productcriterium. Native OS-gates op de nieuwe PR-head blijven afzonderlijk vereist.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #249 hervatten, main integreren en de CI-budgetblokkade vastleggen.
+41/100 blijft 41/100. De runner-PR is gecombineerd met de openbare ontwikkelrichting uit main 5b218982. GitHub bevestigt een Actions-budgetblokkade vóór runnerstart. De diagnose-upload is begrensd en reviewopmerkingen zijn verwerkt; testcommando’s en productcode blijven gelijk. Geen nieuw native productcriterium.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
@@ -298,7 +311,7 @@ De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde
 
 M6b is hervat vanaf `main` (`1f24f99`) op [codex/m6b-storage-errors](https://github.com/simonvanieperen/nieuw-os/tree/codex/m6b-storage-errors). De status staat per spoor in PROJECT-STATE.md. [PR #3](https://github.com/simonvanieperen/nieuw-os/pull/3) bewaart de M5-historie; de oude testmatrix staat in [ACCEPTANCE.md](docs/verification/m5/ACCEPTANCE.md).
 
-De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-feature milestone-m5` en `python tools/run.py --smoke --milestone m5`. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Publieke publicatie en definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
+De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-feature milestone-m5` en `python tools/run.py --smoke --milestone m5`. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Openbare ontwikkeling is op 8 november 2026 als richting bevestigd; de concrete publicatie en licentietoepassing volgen de open controles in LICENSE-PLAN.md.
 
 ## Projectrichting en verder lezen
 
