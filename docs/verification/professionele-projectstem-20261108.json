@@ -1,0 +1,276 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-08",
+  "source_commit": "4c7147dae955cbf1ba44d91258ef451b96169f72",
+  "branch": "docs/professionele-projectstem-20261108",
+  "task": "Projectdocumentatie redigeren naar een directe, professionele eigen stem",
+  "scope": "Redactie van huidige projectteksten en bestaande voortgangsmetadata; technische contracten, bevoegdheden en bewijsstatus blijven behouden.",
+  "inventory": {
+    "tracked_paths_at_source": 6598,
+    "utf8_files_searched": 6337,
+    "non_utf8_files_inventoried": 261,
+    "existing_files_changed": 40,
+    "third_person_author_prose_remaining_in_current_documents": 0,
+    "scan_method": "Volledige lijst via git ls-files; UTF-8-teksten doorzocht op naamvarianten en omschrijvingen van de auteur; treffers en gewijzigde alinea’s in context beoordeeld."
+  },
+  "preserved_categories": [
+    "Exacte snapshots onder docs/history/",
+    "Geserialiseerde bronkopieën en oorspronkelijke diff-/reviewbundels",
+    "Ruwe testlogs en historische uitvoeringsmetadata",
+    "Auteurs-, eigenaar- en bronattributie",
+    "Technische identifiers, gebruikersnamen, paden en branchnamen",
+    "Namen als synthetische testinvoer",
+    "Broncode, tests, workflows, dependencies en licentieteksten",
+    "Rubriccriteria, gewichten, statussen en bewijsverwijzingen"
+  ],
+  "checks": [
+    {
+      "command": "python3 tools/progress.py --write",
+      "exit_code": 0,
+      "result": "41/100; assessment en README bijgewerkt, gegenereerde criteriatabel/SVG behouden dezelfde inhoud."
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "exit_code": 0,
+      "result": "Rubric v1 consistent; geen nieuwe native tests of bewijsinhoud beoordeeld."
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -",
+      "exit_code": 0,
+      "method": "Standaardbibliotheekvergelijking van de 38 gewijzigde Markdownbestanden vóór toevoeging van dit checkpoint: fenced codeblokken bytegelijk; numerieke waarden en URL-doelen identiek, behalve de bewust bijgewerkte README-assessmentbron; relatieve Markdown-linkdoelen identiek."
+    },
+    {
+      "command": "python3 -",
+      "exit_code": 0,
+      "method": "JSON-vergelijking: docs/progress.json buiten assessment identiek; public-development-20261108.json buiten observed_before_change.public_direction identiek."
+    },
+    {
+      "check": "Onafhankelijke AI-redactiereview van de 40 bestaande bestanden",
+      "result": "Geen inhoudelijke blocker; mandaten, eindgebruikersrollen, apparaatgrenzen en historische onzekerheden behouden. Geen verwijzingen naar de vijf vervallen kopankers gevonden."
+    }
+  ],
+  "review": {
+    "independent_ai_review": "Geen inhoudelijke blocker; geen menselijke audit.",
+    "local_coderabbit_version": "0.9.3",
+    "local_coderabbit_auth": "not_authenticated",
+    "local_coderabbit_login": "environment_unsupported: Browser login is unavailable in this environment.",
+    "local_coderabbit_review_performed": false,
+    "github_coderabbit_review": "Afzonderlijk via de PR te beoordelen; dit rapport claimt geen CodeRabbit-uitkomst."
+  },
+  "progress": {
+    "before": 41,
+    "after": 41,
+    "new_accepted_criteria": []
+  },
+  "not_performed": [
+    "Nieuwe Rust-, hostfunctie-, QEMU- of fysieke-hardwaretests voor deze uitsluitend redactionele wijziging",
+    "Herschrijven van eerdere Git-commits, oorspronkelijke bewijsarchieven of externe bronattributie"
+  ],
+  "edited_files": [
+    {
+      "path": "AGENTS.md",
+      "base_blob": "881f9eb0674f3178997c09643c6539a654c74690",
+      "sha256_after_edit": "3f819c751f660450187706dbfcae90bc82f72bcbd907daeaf9439c362209b722"
+    },
+    {
+      "path": "LICENSE-PLAN.md",
+      "base_blob": "f573deb9572246d76057eba77198e2f9462d9de6",
+      "sha256_after_edit": "f757936100eec7cf89fb796830b9f79655c3a3a49dd0cd0f12b864680eb25696"
+    },
+    {
+      "path": "README.md",
+      "base_blob": "cfab7d679cc04ef05f4e116400422a97240e7865",
+      "sha256_after_edit": "fc635ee0cbf1bfd1b7068412ff2f9f311b47a64752348caffdfb20e3e632c7a8"
+    },
+    {
+      "path": "docs/AGENTS.md",
+      "base_blob": "542f464e1d45b42311608ba582dc61c47f452650",
+      "sha256_after_edit": "bdc672b48c81b86d41130cc5d9e7ba8197616d7e90d6ddb5411e92463538c5b9"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "base_blob": "b9888b2ffda20483e93633e3d252aa472b6531bc",
+      "sha256_after_edit": "8c321e96fcd1e4b522a5519c54d13244a44ab75e71dd30aa87e364dc86ea9429"
+    },
+    {
+      "path": "docs/CODEX-WORKFLOW.md",
+      "base_blob": "1ed1b9180b7603fdbd2cc7f80b4e7941af269d6a",
+      "sha256_after_edit": "bdc5d4515d24988e7926dd37a95343b0100387c5b929f9f3975a5cd8dfa20996"
+    },
+    {
+      "path": "docs/DECISIONS.md",
+      "base_blob": "1b13f99262656c92990f4acb987ddd814ca3afd1",
+      "sha256_after_edit": "21a486e6195ca89a03f9970625c4216aff7200fd97a52c9ae68ab65ee52adec8"
+    },
+    {
+      "path": "docs/DESIGN-AMBITION.md",
+      "base_blob": "afeeccf00963fe10c5842e99f1d5f36ed4cd13d5",
+      "sha256_after_edit": "b805897a661b856500130acf90d97c9d304bcc9e0721ea09fb9fd61478b126ff"
+    },
+    {
+      "path": "docs/FULL-TEST-RELEASE-CONTEXT.md",
+      "base_blob": "c2eb69b1cc4d0055b77daa7f1b9098a8f3ab3ec8",
+      "sha256_after_edit": "bee6a2ed8c20e99bb573ce7adf306cd52ad0e5234504d233655752f33749f62f"
+    },
+    {
+      "path": "docs/FULL-TEST-RELEASE.md",
+      "base_blob": "22727ecbbcf102941678c78fc84f30dd65d400f4",
+      "sha256_after_edit": "ef2e577bd2946176f77fd41416858559e4c23f1a83806a310cc90bcfe7944d68"
+    },
+    {
+      "path": "docs/KNOWLEDGE-MAP.md",
+      "base_blob": "ae57ada3ece8e869578dfdcbecafaa56442f2133",
+      "sha256_after_edit": "3129e8139a48f4d8556ddbc182a690bd75bc3661f3b58410ec533ed842fe0c7a"
+    },
+    {
+      "path": "docs/LOCAL-PRIVACY-CONTRACT.md",
+      "base_blob": "49cea30ac17fe56ccc454e28a9890f8c527ba9d1",
+      "sha256_after_edit": "fe2a57968950fb28e0fed582917ffb47fdaecc762425d9312366e0482d82176f"
+    },
+    {
+      "path": "docs/OSDEV-LEERROUTE.md",
+      "base_blob": "4b1f987c8fcb0d6b68c2d819d83a9665afd7474a",
+      "sha256_after_edit": "aa16abc682a1aeaa6cd4838fc956943065d74d0dadfa0063656bf52e282fdb53"
+    },
+    {
+      "path": "docs/PRIVACY-BROWSER-RESEARCH.md",
+      "base_blob": "8fef3c7e8e812054e108095288708b185a0f623e",
+      "sha256_after_edit": "61df930792429638f79b8a90819f3b906375ea0b5b4cbaf912cb69a6b6c2f82d"
+    },
+    {
+      "path": "docs/PRODUCT-AND-SOVEREIGNTY.md",
+      "base_blob": "0106339c6017dcdd508c1be7ea6c43c2a145ddc3",
+      "sha256_after_edit": "40a06a4e4dfc5c41047a3476253566106326c6dec53d3f9833922d4666476e5b"
+    },
+    {
+      "path": "docs/PROGRESS.md",
+      "base_blob": "639f2e33d8db11c7c1211da2df61a99566d9ca0f",
+      "sha256_after_edit": "3b5f209964e89a0eb2de35692a5eb0f153b1ae82a0bf63b539e33b77d08358cc"
+    },
+    {
+      "path": "docs/PROJECT-STATE.md",
+      "base_blob": "4e9203c2eda70d26ecd2f63b2e821a89be174ff2",
+      "sha256_after_edit": "92317a68ed84ee9182b73b7555614a783dd3d381bd509303fb64625228263ae7"
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "base_blob": "89540bbd21a5a4bb9b5b5f9794b7b9dd8cba859b",
+      "sha256_after_edit": "2f26a7350e439620c087d8c0f8b8ea132637d98c7ee383161ad3a63636801d61"
+    },
+    {
+      "path": "docs/WORK-QUEUE.md",
+      "base_blob": "1e8fc2ab4383112aa50c363b8caa29f2d2ea3416",
+      "sha256_after_edit": "8ad100c94394cd5d8669800eab022338a27abdc26b23fc55944beca2e5d436d5"
+    },
+    {
+      "path": "docs/implementation/APP-PACKAGES.md",
+      "base_blob": "bbb8231c0896c546489cf814a1739c1940a96ba6",
+      "sha256_after_edit": "34ae9e5f6e100d94be20661e376e2750d3a6d7d851d189e3f00e9a9b48c2df23"
+    },
+    {
+      "path": "docs/implementation/DESKTOP-SHELL.md",
+      "base_blob": "294ee1a2347388c92d499cee4afcfb3888050ff4",
+      "sha256_after_edit": "4eebe24e55b53f5e55352d07e1f26e88e67b0d98a96bd075d0020861531f6a38"
+    },
+    {
+      "path": "docs/implementation/M6A-WRITE-RECOVERY.md",
+      "base_blob": "5a81f112292ba6d479eada2c55e374627ef9eea9",
+      "sha256_after_edit": "3ea6ff48bcc411b3bc2106e0558a516a2946a4d7f94ca86c78deb6a3887e09f4"
+    },
+    {
+      "path": "docs/implementation/NAS-SHARING-AND-INTERNET.md",
+      "base_blob": "d2ce4f56f91f81df228316933ae51b2dc4ef0a62",
+      "sha256_after_edit": "89f0f73efc81fc4acc1708ca56ab9ddb8cede6184dacbd570a3dc14fb84e8c95"
+    },
+    {
+      "path": "docs/implementation/PRODUCT-SPEC.md",
+      "base_blob": "20d99b498f1401d2792015f3eeb33189e2f68f12",
+      "sha256_after_edit": "8b35c930776e31b26e27ad8de71e9fddd1db4eb9171b82875044960cee332e90"
+    },
+    {
+      "path": "docs/implementation/PROFILES-AND-USERS.md",
+      "base_blob": "e90a44b5e92d4a5d7a528899efeed76b0f7a7156",
+      "sha256_after_edit": "2e6c999320d75fb19130b4fb9f0547a2f2f7224446838bf745900e94235f0479"
+    },
+    {
+      "path": "docs/implementation/VERIFICATION.md",
+      "base_blob": "389455786b01da4ca9b5caf3599d524a52a19ac3",
+      "sha256_after_edit": "2d62b3f6be0e9a9c0c8d83bb4106de81f6f7a55ad1ee63cdd4906034f4a2d6a1"
+    },
+    {
+      "path": "docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md",
+      "base_blob": "e0e8b6cab629246d7ee6a3b8663a47d0edddb9d8",
+      "sha256_after_edit": "1ba93f92cca00bd8c244e9b1dd479808945ff9f7a760378f415d6e74b24c9fce"
+    },
+    {
+      "path": "docs/implementation/VMWARE-WORKSTATION-TRIAL.md",
+      "base_blob": "2781076b4b785391901f73053ad1191383d2632c",
+      "sha256_after_edit": "54827186a6867074fc8021f9bcf1a3b624a79daa89320793c01ede792f53e1c4"
+    },
+    {
+      "path": "docs/progress.json",
+      "base_blob": "f881c64849cd939a6a7ef458d80f881360f4943e",
+      "sha256_after_edit": "207f59c7205e57f42c8c23ca9cdf662f8212c16bfbdbb276091c924f1eb6c74e"
+    },
+    {
+      "path": "docs/research/2026-11-03/os-repos-and-hardware-drivers.md",
+      "base_blob": "22d850e2b2129c54937098204b067455fca2d990",
+      "sha256_after_edit": "642bc3f956d90bd67daad20eb0cbef61b1d9205b99cdc263bde667bb8a967278"
+    },
+    {
+      "path": "docs/verification/app-package-source-policy/README.md",
+      "base_blob": "8c90107148b8ae9d4de67f49de92b96b2c559b60",
+      "sha256_after_edit": "32298f92de6a939411729a6689fb147ce9df525973717cede51ebd943beaad73"
+    },
+    {
+      "path": "docs/verification/desktop-coordination-20261102/README.md",
+      "base_blob": "11e1e9a0c60668d5268e8d339d9078af6c1f7e44",
+      "sha256_after_edit": "187a883d4cef70f69135fe840d5779bb3ef86c5b0677a833b715936bc6760122"
+    },
+    {
+      "path": "docs/verification/gui-idle-20261102/windows-ab/README.md",
+      "base_blob": "4b86b226cc2bc853020881522349fd0537fc982e",
+      "sha256_after_edit": "d86f3bc8ec7c1939796dc65c6cf468a6275593c585bf0398f4ea6eb1c43ce85c"
+    },
+    {
+      "path": "docs/verification/public-development-20261108.json",
+      "base_blob": "2bd9995e494e59122041261c2a2944a320512bad",
+      "sha256_after_edit": "b15685ab98c90d1d9c91b8122818708dc71a6f11d334221797d73876c854005a"
+    },
+    {
+      "path": "docs/verification/sparse-frames-117/README.md",
+      "base_blob": "602f669a2749f0034c30229a569ac97c0fd32e4a",
+      "sha256_after_edit": "24b5c4e128004219aee2ff9f005c3235c9d75d5fbef459aa477b0074efd595d3"
+    },
+    {
+      "path": "docs/verification/windows-delivery-21/README.md",
+      "base_blob": "2aa5e03c435c5256d6d19d40bae3e980327dc8ad",
+      "sha256_after_edit": "7ee5e157baffdfdbad5e227a1086e67714045e06fc156cee1a169c5eacf8a292"
+    },
+    {
+      "path": "docs/verification/windows-qemu-interactive-1/README.md",
+      "base_blob": "e0bf79077d59d882a7a5ae3353f5f5733c2b928e",
+      "sha256_after_edit": "befb96e0001d0dd72b71aece612d8f5b65e3fb6fd171f2fa90de402413aaf3c0"
+    },
+    {
+      "path": "docs/verification/windows-qemu-preview/windows-launcher.md",
+      "base_blob": "e590ef004d1fb6f6c4dbe59d2f58d978d812ffa8",
+      "sha256_after_edit": "2071815f26b36412d4f8d26342b9d64945e6a8a2d17f78bcbc96473369fa9420"
+    },
+    {
+      "path": "services/nas/README.md",
+      "base_blob": "4069e43fb0401b1ae9a7b2103275f45f19915a18",
+      "sha256_after_edit": "00c21d5946589a06c8da6b11ff44baf1635995f13d7d383f4932162a6255a3b8"
+    },
+    {
+      "path": "services/nas/native-probe/verification/README.md",
+      "base_blob": "1b3d0e116f907239da5c715586d17a733618c422",
+      "sha256_after_edit": "024a882c31ffecba782dba14d5dbfa95ec632a4a79d2339c23800f428585adbb"
+    }
+  ],
+  "rollback": "Gerichte revert van deze redactiewijziging via een PR; behoud latere, onafhankelijke wijzigingen."
+}

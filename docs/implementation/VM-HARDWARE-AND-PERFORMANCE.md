@@ -2,7 +2,7 @@
 
 Onderzoek en afgebakende launcherwijziging, 2 november 2026. Basis:
 `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. Dit document beschrijft geen
-meting op Simons pc en geen fysieke-hardwareacceptatie.
+meting op mijn pc en geen fysieke-hardwareacceptatie.
 
 ## Contract en feitelijke oorzaak
 
@@ -15,8 +15,8 @@ Windows/WHPX-acceptatie is een afzonderlijke nog open controle.
 De oorspronkelijke launcher forceerde `tcg,thread=single`, `qemu64`, één
 vCPU, 256 MiB en `pc-q35-8.2`. TCG vertaalt CPU-instructies in software. Ook
 `run_materiaal_preview.py` gebruikt dit expliciete profiel; zijn standaard
-`timeout=45` is een afbreekgrens, geen gemeten schermtijd. De door Simon
-ervaren circa 45 seconden per scherm moet met fasetijden worden gereproduceerd.
+`timeout=45` is een afbreekgrens, geen gemeten schermtijd. Reproduceer de door
+mij gemelde schermvertraging van circa 45 seconden met afzonderlijke fasetijden.
 
 Daarnaast toont de code een dure renderroute:
 
@@ -143,8 +143,8 @@ lengte en intrekking. Geef apps geen raw framebuffer of DMA-recht voor snelheid.
   `running` en een ontbrekende quitbevestiging worden geweigerd. Dit is
   Linux-procesbewijs zonder hypervisorinitialisatie, geen Windowsbewijs.
 - Windows PowerShell 5.1, echte WHPX-sessie, KVM/HVF, fysieke pc/periferie en
-  snelheidsvergelijking: **niet uitgevoerd**. De cloudexecutor beschrijft
-  Simons pc niet.
+  snelheidsvergelijking: **niet uitgevoerd**. Deze cloudresultaten beschrijven
+  mijn pc niet.
 
 Rollback: draai de launcher/helper/packagewijziging terug als afzonderlijke
 commit; de expliciete `-Acceleration Tcg` behoudt ondertussen het oude
@@ -172,43 +172,46 @@ in de minimaal toegelaten QEMU 10.2.1-build.
 
 ## Lokale Windowsbevindingen van 2 november 2026
 
-De geautoriseerde lokale Codex-chat rapporteert een Ryzen 9 9950X3D met64 GiB
-en Windows 11 25H2. WHPX initialiseert zonder hostinstellingen te wijzigen.
-Op de oude bundel leverde één koude proef10,453s met WHPX tegenover19,952s
-met TCG tot exact hetzelfde volledige frame. Op bron `7648a8f` slaagde de
-vijfstappenroute met WHPX in43,824s; schermovergangen waren6,856–9,107s.
+De geautoriseerde lokale Codex-sessie rapporteert voor mijn pc een Ryzen 9
+9950X3D met 64 GiB en Windows 11 25H2. WHPX initialiseert zonder hostinstellingen
+te wijzigen. Op de oude bundel leverde één koude proef 10,453 s met WHPX
+tegenover 19,952 s met TCG tot exact hetzelfde volledige frame. Op bron
+`7648a8f` slaagde de vijfstappenroute met WHPX in 43,824 s; schermovergangen
+duurden 6,856–9,107 s.
 Dat is uitvoeringsbewijs voor die specifieke bron, geen productlatentieclaim.
-Ruwe lokale artifacts blijven bij die chat; de gerapporteerde bron-/firmware-/
+Ruwe lokale artifacts blijven bij die sessie; de gerapporteerde bron-/firmware-/
 meetgrens is vastgelegd in [local-pc-reported.json](../verification/session-desktop-20261102/local-pc-reported.json).
 
 De eerste HMP-helper gaf op Windows ten onrechte een time-out: invoer kon
 vóór monitorreadiness aankomen; LF alleen verhielp dit niet. De huidige helper
-wacht op de QMP-greeting en ieder gecorreleerd antwoord. De versie51d883e
+wacht op de QMP-greeting en ieder gecorreleerd antwoord. De versie `51d883e`
 heeft ook de platformsorteerfout in source-v3 hersteld; bytegelijke Windows-
 en Linuxcheckouts leveren sindsdien rechtstreeks dezelfde sourcehash.
 Geen inputbron of integriteitscontrole is verwijderd.
 
 Testmappen horen buiten synchronisatie: OneDrive maakte bij de lokale proef
 extra hardlinks, die het harnas terecht weigerde. De vervolgproef gebruikt
-LocalAppData; hardlinkcontroles blijven actief. De uiteindelijke Windowsruntime op344dc0a staat afzonderlijk in het eindbewijs;
+LocalAppData; hardlinkcontroles blijven actief. De uiteindelijke Windowsruntime
+op `344dc0a` staat afzonderlijk in het eindbewijs;
 de oudere resultaten worden niet als uitvoering op de nieuwe bron gepresenteerd.
 
-De definitieve lokale344dc0a-reeks is afgerond:3WHPX+3TCG, alle8fasen en
-48appbeelden exact, exits0, daarna echte WindowsAuto/WHPX/SDL-start met
-launcherexit0. WHPX eerste account6,625s gemiddeld (6,481–6,823),
-gast→desktop4,070s (3,932–4,231); TCG respectievelijk13,356s en10,023s.
-Volledige route31,481s tegenover71,982s. Drie starts per backend op één pc,
+De definitieve lokale reeks op `344dc0a` is afgerond: 3 WHPX- en 3 TCG-runs,
+alle 8 fasen en 48 appbeelden exact, exitcodes 0. Daarna volgde een echte
+Windows-start met Auto/WHPX/SDL en launcherexit 0. WHPX eerste account:
+gemiddeld 6,625 s (6,481–6,823); gast → desktop: 4,070 s (3,932–4,231).
+TCG: respectievelijk 13,356 s en 10,023 s. Volledige route: 31,481 s tegenover
+71,982 s. Drie starts per backend op mijn pc,
 niet beheerst voor achtergrondlast. Verdere bron-/pakkethashes en de
 afzonderlijke idle-CPU-observatie staan in het lokale eindrapport hierboven.
 
 ## Bekende ABI 1.11 en bestaande idle-wachtroutes
 
 2 november 2026, fixbasis `2bb84c2`. De vensterkernel biedt IPC-wait aan onder
-ABI1.11, maar de bestaande keyring- en volumedienst activeerden hun idle-wait
-uitsluitend bij1.10. Daardoor bleven deze twee diensten in dit profiel lege
+ABI 1.11, maar de bestaande keyring- en volumedienst activeerden hun idle-wait
+uitsluitend bij 1.10. Daardoor bleven deze twee diensten in dit profiel lege
 queues pollen. De gedeelde, syscallvrije SDK-helper `supports_ipc_wait` herkent
-nu uitsluitend de bekende1.10- en1.11-profielen; beide bestaande selectors
-gebruiken hem. Algemene ABI-compatibiliteit, bijvoorbeeld RTC1.9, impliceert
+nu uitsluitend de bekende 1.10- en 1.11-profielen; beide bestaande selectors
+gebruiken hem. Algemene ABI-compatibiliteit, bijvoorbeeld RTC 1.9, impliceert
 geen wachtvoorziening. Onbekende majors/minors blijven uitgesloten.
 
 Keyrings RANDOM-/beheeruitsluitingen, bestaande queuevoorwaarden, absolute
@@ -221,10 +224,10 @@ en strikte SDK-Clippy slagen. Beide echte scalar x86_64-unknown-none-diensten
 bouwen en doorlopen de ELF-inspectie. Logs en servicehashes staan onder
 `build/abi-wait/logs/`. De onafhankelijke diffreview vond geen blocker; geen
 VM is voor deze kandidaat gestart. De uiteindelijke geïntegreerde native gates
-moeten het1.11-wachtpad nog uitvoeren.
+moeten het 1.11-wachtpad nog uitvoeren.
 
 Dit herstelt twee concrete compatibiliteitsfouten en bewijst geen volledige
 VM-idle of latencywinst. De compositor, beide GUI-apps en window-init bevatten
 nog eigen pollinglussen; hun verdere idle-inrichting en daadwerkelijke
-idle-CPU-meting blijven open. CPU100% tijdens actief tekenen is geen
+idle-CPU-meting blijven open. Een CPU-belasting van 100% tijdens actief tekenen is geen
 idle-meting en er worden geen U02-punten toegekend.

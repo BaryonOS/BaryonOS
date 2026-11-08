@@ -252,5 +252,5 @@ Fingerprinting in Web Specifications* (W3C Group Note).
 https://www.w3.org/TR/fingerprinting-guidance/
 
 De voorgestelde uitzonderingsflow, BR-acceptatievragen en ontwikkelvolgorde zijn
-projectontwerp op basis van de gebruikersopdracht en bovenstaande technische
+projectontwerp op basis van mijn opdracht en bovenstaande technische
 referenties; de bronnen certificeren Nieuw OS niet.

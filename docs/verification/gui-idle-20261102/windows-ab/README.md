@@ -1,6 +1,6 @@
 # Volledige Windows-native A/B — 2 november 2026
 
-**Geslaagd:6/6 volledige native gates,3 per arm.** De QEMU-proces-CPU daalt mediaan88,260028%; de vastgehouden, eigenaargecontroleerde vCPU-thread daalt88,526432%. Dit is één afgebakende headlessWHPX-proef op Simons Windows-pc; de percentages hebben één logische CPU als100%, niet de gehele pc.
+**Geslaagd: 6/6 volledige native gates, 3 per arm.** Het mediane CPU-gebruik van het QEMU-proces daalt met 88,260028%; dat van de vastgehouden, op eigenaarschap gecontroleerde vCPU-thread met 88,526432%. Dit is één afgebakende headless WHPX-proef op mijn Windows-pc. Bij deze percentages staat één logische CPU voor 100%; ze beschrijven niet de capaciteit van de gehele pc.
 
 | Meting | Basis A, mediaan | Idle B, mediaan | Daling medianen |
 |---|---:|---:|---:|
