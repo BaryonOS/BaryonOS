@@ -78,10 +78,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`338bec8c`](https://github.com/simonvanieperen/nieuw-os/commit/338bec8ca34ba8eb2451eb660a0f1790c194efd2) ·
-**Ontwikkelbranch:** `ci/github-hosted-runners-20261108`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Publieke GitHub Actions stroomlijnen op standaard hosted runners.
-41/100 blijft 41/100. Runner- en artifactwijzigingen geïntegreerd in bestaande PR #249; 23 workflows op ubuntu-24.04, parallelle vereiste checks, minder dubbele triggers en componentjobs, bijgewerkte hostcache en hosted Copilot-setup. De 248 Python-tests en 179 shellsyntaxcontroles zijn lokaal bewijs voor de working tree op integratiebasis 39586927, gepubliceerd als broncommit 338bec8c; [het controleverslag met bronhashes](docs/verification/ci-public-runners-20261108.json) bindt dat bewijs aan de geteste bestanden. De 224 tests behoren tot het eerdere checkpoint d3d8e3e0. Bestaande testcommando’s en bewijsselecties behouden; GitHub-uitvoering wordt afzonderlijk beoordeeld. Geen productcriterium, gewicht of native acceptatie toegevoegd.
+**Bron:** [`1f3e7b6a`](https://github.com/simonvanieperen/nieuw-os/commit/1f3e7b6acdfd4b5ca84a69422a2d3ed6e424609a) ·
+**Ontwikkelbranch:** `ci/coderabbit-review-policy-20261108`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** CodeRabbit-blokkades onderzoeken en workflowreview herstellen.
+41/100 blijft 41/100. Working tree op de genoemde main-broncommit na merge van PR #249; bronhashes en logs staan in docs/verification/coderabbit-unblock-20261108.json. CodeRabbit blijft automatisch reviewen met gebundelde kleine suggesties; nieuwe automatische botafkeuringen worden uitgezet. De bestaande reviewfixes zijn behouden en de verifier faalt nu expliciet bij ontbrekend vergelijkingsbewijs. 32 gerichte Python-tests, 228 verifiercontroles en schemavalidatie slagen lokaal. Verplichte GitHub-checks en inhoudelijke reviewthreads blijven behouden; nieuwe-head CI en effectieve botconfiguratie worden afzonderlijk beoordeeld. Geen productcriterium of gewicht gewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

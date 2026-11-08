@@ -1,5 +1,12 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+CodeRabbit-reviewopvolging (8 november 2026), working tree op main `1f3e7b6a`:
+**41 → 41/100**. De drie reviewfixes uit de inmiddels gemergede PR #249 zijn
+behouden. 32 gerichte Python-tests, 228 verifiercontroles en officiële
+CodeRabbit-schemavalidatie slagen lokaal. Geen productcriterium of gewicht
+gewijzigd; nieuwe-head CI en effectieve botconfiguratie worden apart getoetst.
+[Bronbinding en controle](verification/coderabbit-unblock-20261108.json).
+
 Publieke hosted CI (8 november 2026), gepubliceerde bron `338bec8c` op
 integratiebasis `39586927` (dezelfde boom als lokaal `3195e659`): **41 → 41/100**.
 23 workflows met standaardrunners; 248 Python-tests en 179 shellsyntaxcontroles

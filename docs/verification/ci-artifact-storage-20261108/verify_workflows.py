@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Read-only workflow review and local shell simulations; no GitHub uploads.
 
-The default baseline is the integrated public-runner configuration. Use
---baseline with the corresponding historical checkout to replay the original
-artifact migration. New workflows are validated but explicitly not compared
-when absent from the selected baseline. GitHub expression evaluation is
-inspected, not emulated as an actual runner. Fixtures use TemporaryDirectory.
+The default baseline is the integrated hosted-runner/evidence configuration.
+Use --baseline for a historical artifact-only comparison. A new or missing
+workflow fails preservation; it is never silently accepted without a baseline.
+GitHub expressions are inspected, not emulated as an actual runner. Test files
+are created only in TemporaryDirectory.
 """
 
 from __future__ import annotations
@@ -22,11 +22,16 @@ import tempfile
 
 import yaml
 
+
 DEFAULT_BASELINE = "338bec8ca34ba8eb2451eb660a0f1790c194efd2"
 
 
 class UniqueLoader(yaml.BaseLoader):
-    """Keep Actions' `on` as text and reject duplicate YAML mapping keys."""
+    """Load text scalars, lists and mappings, rejecting duplicate mapping keys.
+
+    BaseLoader preserves Actions' `on` and boolean spelling as text. It never
+    constructs Python objects from YAML tags; this is not yaml.UnsafeLoader.
+    """
 
 
 def unique_mapping(loader, node):
@@ -85,19 +90,11 @@ def package_is_selected(package, selection):
     return False
 
 
-def run(repo, baseline):
+def run(repo, baseline=DEFAULT_BASELINE):
     """Check workflow contracts and execute bounded local reporting fixtures."""
     checks = []
     hashes = {}
     comparisons = {}
-    baseline = subprocess.check_output(
-        ["git", "rev-parse", "--verify", "--end-of-options", baseline + "^{commit}"],
-        cwd=repo, text=True,
-    ).strip()
-    baseline_paths = set(subprocess.check_output(
-        ["git", "ls-tree", "--full-tree", "-r", "--name-only", baseline,
-         "--", ".github/workflows"], cwd=repo, text=True,
-    ).splitlines())
 
     def record(name, passed, **detail):
         """Keep each assertion and its observed evidence in the JSON report."""
@@ -109,14 +106,36 @@ def run(repo, baseline):
         hashes[str(path.relative_to(repo))] = digest(data)
         return yaml.load(data.decode(), Loader=UniqueLoader)
 
+    resolved = subprocess.run(
+        ["git", "rev-parse", "--verify", "--end-of-options", baseline + "^{commit}"],
+        cwd=repo, text=True, capture_output=True, check=False,
+    )
+    baseline_sha = resolved.stdout.strip() if resolved.returncode == 0 else None
+    record("baseline-resolves-to-commit", baseline_sha is not None,
+           requested=baseline, error=resolved.stderr.strip())
+    baseline_paths = set()
+    if baseline_sha is not None:
+        listing = subprocess.run(
+            ["git", "ls-tree", "-r", "--name-only", baseline_sha, "--", ".github/workflows"],
+            cwd=repo, text=True, capture_output=True, check=False,
+        )
+        record("baseline-workflow-inventory", listing.returncode == 0,
+               error=listing.stderr.strip())
+        if listing.returncode == 0:
+            baseline_paths = {path for path in listing.stdout.splitlines()
+                              if Path(path).suffix in (".yml", ".yaml")}
+
     workflows = {}
-    for path in sorted((repo / ".github/workflows").glob("*.yml")):
+    for path in sorted((repo / ".github/workflows").glob("*.y*ml")):
         try:
             workflows[str(path.relative_to(repo))] = read_yaml(path)
         except Exception as exc:
             record("yaml:" + path.name, False, error=str(exc))
         else:
             record("yaml:" + path.name, True)
+    record("workflow-inventory-preserved", baseline_paths == set(workflows),
+           added=sorted(set(workflows) - baseline_paths),
+           removed=sorted(baseline_paths - set(workflows)))
 
     action_path = repo / ".github/actions/preserve-evidence/action.yml"
     action = read_yaml(action_path)
@@ -137,10 +156,10 @@ def run(repo, baseline):
         "github.event_name == 'workflow_dispatch'", "inputs.full-evidence == 'true'"
     )))
     record("package-check-gates-delivery", "steps.package-check.outputs.present == 'true'" in by_id["package"]["if"])
+    record("default-required-evidence-policy", action["inputs"]["if-no-files-found"]["default"] == "error")
     record("input-env-no-shell-interpolation", all(
         "${{" not in step.get("run", "") for step in steps
     ))
-    record("required-evidence-default", action["inputs"]["if-no-files-found"]["default"] == "error")
     for name, package, selection, expected in [
         ("exact-file", "build/evidence/bundle.zip", "build/evidence/bundle.zip", True),
         ("parent-directory", "build/evidence/bundle.zip", "build/evidence/", True),
@@ -156,6 +175,7 @@ def run(repo, baseline):
 
     expected_extra_test = "python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'\n"
     archive_workflows = []
+    baseline_archive_workflows = []
     for path, after_original in workflows.items():
         after = copy.deepcopy(after_original)
         after_preserve = [step for job in after["jobs"].values() for step in job["steps"]
@@ -181,63 +201,83 @@ def run(repo, baseline):
             dispatch = after["on"].get("workflow_dispatch", {})
             record("manual-default-compact:" + path,
                    dispatch.get("inputs", {}).get("full_evidence", {}).get("default") == "false")
+
         if path not in baseline_paths:
+            record("original-tests-runners-gates-preserved:" + path, False,
+                   error="Workflow has no readable baseline; preservation is not proved.")
             comparisons[path] = {
                 "status": "not-compared",
-                "reason": "Workflow is absent from the selected baseline; current YAML and evidence contracts were validated.",
+                "reason": "Workflow is absent from the selected baseline; preservation is not proved.",
             }
             continue
-        old_text = subprocess.check_output(["git", "show", baseline + ":" + path], cwd=repo, text=True)
-        before = yaml.load(old_text, Loader=UniqueLoader)
+        old = subprocess.run(
+            ["git", "show", baseline_sha + ":" + path],
+            cwd=repo, text=True, capture_output=True, check=False,
+        )
+        try:
+            if old.returncode != 0:
+                raise ValueError(old.stderr.strip())
+            before = yaml.load(old.stdout, Loader=UniqueLoader)
+        except (ValueError, yaml.YAMLError) as exc:
+            record("original-tests-runners-gates-preserved:" + path, False, error=str(exc))
+            comparisons[path] = {"status": "not-compared", "reason": str(exc)}
+            continue
         before_evidence = [step for job in before["jobs"].values() for step in job["steps"]
                            if step.get("uses", "").startswith("actions/upload-artifact@")
                            or step.get("uses") == "./.github/actions/preserve-evidence"]
         before_uploads = [step for step in before_evidence
                           if step.get("uses", "").startswith("actions/upload-artifact@")]
+        before_preserve = [step for step in before_evidence
+                           if step.get("uses") == "./.github/actions/preserve-evidence"]
         if before_evidence:
+            baseline_archive_workflows.append(path)
             record("replacement-count:" + path, len(before_evidence) == len(after_preserve))
-            for old, new in zip(before_evidence, after_preserve):
+            for original, new in zip(before_evidence, after_preserve):
                 record("evidence-path-and-name:" + path,
-                       old["with"]["path"] == new["with"]["path"]
-                       and old["with"]["name"] == new["with"]["name"])
-                old_default = "warn" if old in before_uploads else "error"
-                policy = new["with"].get("if-no-files-found", "error")
-                record("no-files-policy:" + path, old["with"].get("if-no-files-found", old_default) == policy)
-                if old not in before_uploads:
-                    record("existing-preservation-step-unchanged:" + path, old == new)
+                       original["with"]["path"] == new["with"]["path"]
+                       and original["with"]["name"] == new["with"]["name"])
+                old_default = "warn" if original in before_uploads else "error"
+                policy = new["with"].get("if-no-files-found", action["inputs"]["if-no-files-found"]["default"])
+                record("no-files-policy:" + path, original["with"].get("if-no-files-found", old_default) == policy)
+                if original not in before_uploads:
+                    record("existing-preservation-step-unchanged:" + path, original == new)
         if before_uploads:
-            # Only the original upload-to-collector migration adds these inputs.
+            # Only the historical upload-to-collector migration adds these inputs.
             before["on"].pop("workflow_dispatch", None)
             after["on"].pop("workflow_dispatch", None)
+        else:
+            record("preservation-calls-unchanged:" + path, before_preserve == after_preserve)
         if path in (".github/workflows/storage-resilience.yml", ".github/workflows/volume-acceptance.yml"):
             pattern = ".github/actions/preserve-evidence/**"
             current_paths = after["on"]["pull_request"]["paths"]
             record("shared-action-trigger:" + path, pattern in current_paths)
             if pattern not in before["on"]["pull_request"]["paths"] and pattern in current_paths:
                 current_paths.remove(pattern)
-        for doc in (before, after):
-            for job in doc["jobs"].values():
-                job["steps"] = [step for step in job["steps"]
-                                if not step.get("uses", "").startswith("actions/upload-artifact@")
-                                and step.get("uses") != "./.github/actions/preserve-evidence"]
+        if before_uploads:
+            for doc in (before, after):
+                for job in doc["jobs"].values():
+                    job["steps"] = [step for step in job["steps"]
+                                    if not step.get("uses", "").startswith("actions/upload-artifact@")
+                                    and step.get("uses") != "./.github/actions/preserve-evidence"]
         if path == ".github/workflows/ci.yml":
-            previous_occurrences = sum(step.get("run", "").count(expected_extra_test)
+            baseline_occurrences = sum(step.get("run", "").count(expected_extra_test)
                                        for job in before["jobs"].values() for step in job["steps"])
             occurrences = 0
             for job in after["jobs"].values():
                 for step in job["steps"]:
                     if "run" in step:
                         occurrences += step["run"].count(expected_extra_test)
-                        if previous_occurrences == 0:
+                        if baseline_occurrences == 0:
                             step["run"] = step["run"].replace(expected_extra_test, "")
             record("collector-test-present-once", occurrences == 1)
         record("original-tests-runners-gates-preserved:" + path, before == after)
         comparisons[path] = {"status": "compared", "remaining_configuration_preserved": before == after}
-    record("archive-workflows-present", bool(archive_workflows), count=len(archive_workflows))
+    record("archive-workflow-set-preserved", bool(baseline_archive_workflows)
+           and set(baseline_archive_workflows) == set(archive_workflows),
+           baseline=sorted(baseline_archive_workflows), current=sorted(archive_workflows))
     for path in sorted(baseline_paths - workflows.keys()):
-        if path.endswith(".yml"):
-            record("baseline-workflow-still-present:" + path, False)
-            comparisons[path] = {"status": "missing-from-checkout"}
+        record("baseline-workflow-still-present:" + path, False)
+        comparisons[path] = {"status": "missing-from-checkout"}
 
     report_step = steps[-1]
     report_script = report_step["run"]
@@ -346,12 +386,13 @@ def run(repo, baseline):
     return {
         "schema_version": 2,
         "checked_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
-        "scope": "Local YAML and evidence contracts, explicit baseline comparisons where available, and executed report/package-check shell simulations; no GitHub uploads, runner-expression engine, Rust or QEMU execution. Workflows absent from the baseline are not evidence of baseline equivalence.",
-        "repository_path": str(repo),
-        "local_snapshot_baseline": baseline,
-        "upstream_snapshot_source": baseline,
+        "scope": "Local YAML and evidence contracts, preservation of baseline tests/runners/gates and executed report/package-check shell simulations; no GitHub uploads, runner-expression engine, Rust or QEMU execution. A missing baseline comparison fails preservation.",
+        "repository_path": ".",
+        "local_snapshot_baseline": baseline_sha,
+        "requested_baseline": baseline,
         "baseline_comparisons": comparisons,
         "archive_workflows": archive_workflows,
+        "archive_workflow_count": len(archive_workflows),
         "file_sha256": hashes,
         "report_shell_sha256": digest(report_script.encode()),
         "checks": checks,
@@ -367,7 +408,7 @@ def main():
     parser.add_argument("--repo", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--baseline", default=DEFAULT_BASELINE,
-                        help="Comparison source commit; use 363b486b with the historical artifact-migration checkout.")
+                        help="Preservation baseline; defaults to the integrated hosted/evidence source.")
     args = parser.parse_args()
     report = run(args.repo.resolve(), args.baseline)
     report["verifier_sha256"] = digest(Path(__file__).read_bytes())

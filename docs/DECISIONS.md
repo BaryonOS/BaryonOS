@@ -2249,3 +2249,47 @@ terugbrengen. **Herzien wanneer:** echte runnerduur, foutlogs of benodigde
 checks een aantoonbare uitvoeringsaanpassing vragen.
 
 Bronnen en uitvoeringsroute: [CI.md](CI.md).
+
+## ADR-CODERABBIT-20261108 — gerichte reviews zonder extra automatische afkeuring
+
+**Status:** geïmplementeerd op vervolgbranch `ci/coderabbit-review-policy-20261108`
+na merge van PR #249; effectieve CodeRabbit-review en integratie worden
+afzonderlijk gecontroleerd.
+**Eigenaar:** Simon van Ieperen. **Datum:** 8 november 2026.
+
+**Aanleiding:** CodeRabbit dient ook bij kleine documentatiepunten een
+`CHANGES_REQUESTED`-review in. Die kan blijven staan nadat een nieuwe review
+als taak succesvol eindigt. De actieve main-regel vereist al geslaagde
+`host-quality`/`qemu-smoke`, actuele branches en opgeloste reviewgesprekken;
+er is geen vereiste botapproval. Oudere PRs hebben daarnaast conflicten en
+CI die nog verwijderde runners selecteert.
+
+**Besluit:** leg de repo-instellingen vast in `.coderabbit.yaml`: `quiet`
+plaatst de belangrijkste feedback inline en bundelt andere suggesties;
+`auto_approvals.enabled: false` stopt nieuwe automatische afkeuringen en
+goedkeuringen. Automatische incrementele reviews blijven aan en
+docstringdekking blijft een waarschuwing. Overige configuratie wordt geërfd
+om bestaande tools, padinstructies en extra reviewbranches te behouden.
+
+**Alternatieven:** de app verwijderen verliest reviewfeedback. Alle oude
+afkeuringen of threads tegelijk sluiten negeert nog onbeoordeelde fouten.
+De GitHub-regel voor opgeloste gesprekken uitzetten raakt ook andere
+reviewers. Alleen de statuscheck aanpassen helpt niet: `CodeRabbit` is
+in de gecontroleerde main-regel geen vereiste check.
+
+**Behoud en verificatie:** geen bronpad uitgesloten, testgate gewijzigd of
+branchregel omzeild. Herstel concrete bevindingen vóór het oplossen van
+bijbehorende threads. Een dismissal krijgt een inhoudelijke reden en is
+geen nieuw codebewijs. Schema-, host- en workflowcontrole staan met hashes
+in `verification/coderabbit-unblock-20261108.json`. Schema-validatie bewijst
+geen effectieve UI-/globale configuratie; controleer de volgende botreview.
+De OS-score blijft 41/100.
+
+**Migratie/rollback:** CodeRabbit gebruikt de YAML uit de beoordeelde
+PR-branch. Nieuwe branches krijgen de configuratie na integratie; oudere
+branches moeten die samen met de hosted workflows opnemen. Bestaande
+afkeuringen blijven afzonderlijk af te handelen. Een gerichte revert herstelt
+de eerdere reviewconfiguratie; opgeloste gesprekken blijven traceerbaar.
+**Herzien wanneer:** belangrijke fouten alleen nog in samenvattingen
+verschijnen, inherited/global settings de bedoeling veranderen, of de
+vereiste menselijke reviewafspraken wijzigen. Primaire bronnen: [CI.md](CI.md).

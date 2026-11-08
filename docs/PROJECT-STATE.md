@@ -1,6 +1,48 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — hosted CI uitgevoerd, review afgerond in bron — 8 november 2026
+## NEXT AGENT HANDOFF — CodeRabbit-reviewbeleid en verifier — 8 november 2026
+
+**Bron en scope:** working tree op main
+`1f3e7b6acdfd4b5ca84a69422a2d3ed6e424609a`, waarin PR #249 is opgenomen.
+Vervolgbranch `ci/coderabbit-review-policy-20261108`. De nieuwe main-boom is
+exact gelijk aan de eerder geteste PR249-head `7b82315a`; alle gelijktijdige
+reviewfixes en hun bewijsbestanden zijn behouden. **41 → 41/100**.
+
+**Diagnose:** de main-regel vereist `host-quality`, `qemu-smoke`, actuele
+branches en opgeloste reviewgesprekken, maar nul approvals. CodeRabbit is
+geen vereiste statuscheck. In de oorspronkelijke momentopname van 27 open PRs
+hadden 22 een actieve CodeRabbit-afkeuring en 17 bovendien mergeconflicten.
+Bij onder meer #207 wacht CI nog op verwijderde self-hosted runners.
+Herlees actuele heads en reviews vóór verdere afhandeling.
+
+**Gerealiseerd:** `.coderabbit.yaml` kiest `quiet`, behoudt automatische
+incrementele reviews en zet automatische botafkeuringen/goedkeuringen uit.
+Overige instellingen worden geërfd; effectief gebruik en globale overrides
+moeten op de volgende review worden beoordeeld. De GitHub-regels blijven gelden.
+De verifier behoudt de controles uit `7b82315a`, maar ontbrekende workflows
+of onleesbare baselines geven nu expliciete fouten en een bruikbaar rapport.
+Acht regressietests draaien via de bestaande CI-discovery.
+
+**Uitgevoerd:** 23 collector-/verifier-tests en 9 workflowtests geslaagd,
+exit 0. De gecombineerde verifier slaagt voor 228 controles en 16
+bewijsworkflows; de historische artifactbron slaagt voor 189 controles.
+CodeRabbit-YAML voldoet aan het officiële schema. Bronhashes, commando's,
+logs en bewijsgrenzen staan in
+[coderabbit-unblock-20261108.json](verification/coderabbit-unblock-20261108.json).
+Geen lokale Rust-/QEMU-uitvoering of nieuwe productacceptatie.
+
+**Integratie en open werk:** #249 is tijdens deze sessie door parallel werk
+samengevoegd; alle drie eerdere reviewpunten zijn daarin afgehandeld.
+Deze kleine vervolgwijziging wordt als aparte concept-PR gepubliceerd omdat
+#249 al gesloten is. Behoud squash-auto-merge en controleer de nieuwe
+verplichte CI en CodeRabbit-configuratie. De oude hosted momentopname op
+`338bec8c` blijft historisch: de toen lopende venstersessietest eindigde later
+als `cancelled`. Oudere PRs moeten actuele workflows/configuratie opnemen;
+bestaande inhoudelijke bevindingen en conflicten blijven afzonderlijk werk.
+Volgend commando: `python3 tools/progress.py --check`; daarna de actuele
+remote head, review en vereiste checks controleren.
+
+## Historisch checkpoint — hosted CI uitgevoerd, review afgerond in bron — 8 november 2026
 
 **Bron:** PR #249, `338bec8ca34ba8eb2451eb660a0f1790c194efd2`, op
 integratiebasis `39586927`; huidige vervolgwijzigingen betreffen uitsluitend
@@ -56,7 +98,10 @@ samengevoegd met hun specialistische gates, inclusief scalar build; 14
 matrixjobs, maximaal vier tegelijk. De hostcache krijgt een bron-SHA/herstel-
 prefix. Copilot heeft een hosted setup met dezelfde gereedschappen.
 
-**Werkelijk lokaal gecontroleerd:** 239 bestaande host-/gate-/collectortests
+**Werkelijk lokaal gecontroleerd:** de working tree op integratiebasis
+`39586927` (dezelfde basisboom als lokaal `3195e659`), met de aanvullende
+workflowwijzigingen en regressietests. De basiscommit alleen bevat die
+aanvullingen niet. Op deze working tree: 239 bestaande host-/gate-/collectortests
 plus 9 configuratieregressietests = **248 geslaagd**, exit 0. 23 workflow- en
 3 Action-YAMLs met unieke sleutels; **179 bashblokken** syntactisch geldig.
 Alle **170 bestaande run-stappen** sinds de integratiebasis en **16
