@@ -1,5 +1,13 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+Naamverklaring Baryon OS (8 november 2026), working tree op main
+`4c7147da`: **41 → 41/100**. De README beschrijft baryonen als
+samengestelde deeltjes en gebruikt modulariteit en onderzoek als naammetafoor.
+Stabiliteit, veiligheid en prestaties blijven toetsbare ontwikkeldoelen.
+Alleen documentatie en assessment gewijzigd; geen nieuwe productacceptatie.
+[Naamverklaring](../README.md#waarom-de-naam-baryon-os) ·
+[Naamgevingsbesluit](DECISIONS.md#adr-baryon-name-20261108--naamverklaring-in-de-readme).
+
 Materiaal-bootparser en runneropruiming (8 november 2026), working tree op
 main `8c8b5283`: **41 → 41/100**. De hoofd-CI op die main-bron is groen.
 De aparte Materiaal-proef wees verwachte ACPI-diagnostiek ten onrechte af;

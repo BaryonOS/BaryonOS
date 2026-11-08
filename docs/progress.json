@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-08",
-    "source_commit": "4c7147dae955cbf1ba44d91258ef451b96169f72",
+    "source_commit": "b53a576a04f7cd5df3fc92cf32d2ceeb0c4939aa",
     "assessment_basis": "working_tree",
-    "branch": "docs/professionele-projectstem-20261108",
-    "task": "Projectdocumentatie redigeren naar een directe, professionele eigen stem",
+    "branch": "docs/baryon-name-20261108",
+    "task": "PR #264: conflicten met main 9ff3a691 oplossen met behoud van naamverklaring en projectredactie",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Projectdoelen, besluiten, instructies en verslagteksten zijn herschreven in directe projecttaal, met de ik-vorm voor persoonlijke keuzes en ervaringen. Technische contracten, productcriteria, gewichten, bewijsstatus en bronverwijzingen blijven behouden. Exacte historische bronkopieën, ruwe logs, auteursvermeldingen en technische namen blijven ongewijzigd. Deze redactie levert geen nieuwe OS-functionaliteit of productacceptatie op."
+    "summary": "41/100 blijft 41/100. De Baryon-naamverklaring en de professionele projectredactie uit main zijn verenigd. Alleen documentatieconflicten en integratieassessment gewijzigd; technische contracten, criteria, gewichten en bewijsstatus blijven behouden. Geen nieuwe OS-functionaliteit of native acceptatie."
   },
   "tracks": [
     {

@@ -2298,3 +2298,26 @@ de eerdere reviewconfiguratie; opgeloste gesprekken blijven traceerbaar.
 **Herzien wanneer:** belangrijke fouten alleen nog in samenvattingen
 verschijnen, inherited/global settings de bedoeling veranderen, of de
 vereiste menselijke reviewafspraken wijzigen. Primaire bronnen: [CI.md](CI.md).
+
+## ADR-BARYON-NAME-20261108 — naamverklaring in de README
+
+**Datum:** 8 november 2026. **Status:** redactioneel besluit voor de
+projectpresentatie; geen wijziging van architectuur of productacceptatie.
+
+**Besluit:** gebruik Baryon OS in de README en leg de naam uit vanuit
+samengestelde deeltjes met drie valentiequarks. De koppeling met een kleine
+eigen kernel, afzonderlijke systeemdiensten en een eigen gebruikersomgeving
+is een metafoor voor samenhang. Processorringen behouden hun technische
+betekenis. Foutisolatie, herstel, veiligheid en prestaties blijven claims
+die passend implementatie- en testbewijs vereisen.
+
+**Bronnen en gevolgen:** de [naamverklaring](../README.md#waarom-de-naam-baryon-os)
+verwijst naar CERN/CMS en ESA. De oorspronkelijke repositorynaam `nieuw-os`,
+technische identifiers, historische bewijsbestanden en bronverwijzingen
+blijven behouden. Deze opdracht registreert geen domein en stelt geen
+merkbeschikbaarheid vast. De voortgang blijft 41/100.
+
+**Herzien wanneer:** primaire bronnen, de gekozen projectnaam of de
+feitelijke architectuur een inhoudelijke aanpassing vereisen. Een gerichte
+revert van de naamgevingspassages herstelt de vorige presentatie zonder
+code of technische contracten terug te draaien.
