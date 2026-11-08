@@ -1,0 +1,44 @@
+{
+  "source_commit": "8331b69b9b06294ad8a8c5c571580271655ba8d1",
+  "scope": "English translation of docs/LOCAL-PRIVACY-CONTRACT.md only; progress assessment and handoff updated. Broader issue #274 remains open.",
+  "translated_file_sha256": "f6ed4cb9635dd01ae6f92d88cc7accdc8f5a6ae9bbc995176b029da6f95674a4",
+  "checks": [
+    {
+      "command": "python3 tools/progress.py --write",
+      "exit_status": 0
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "exit_status": 0
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_agent_pipeline.py",
+      "exit_status": 0,
+      "tests_passed": 16
+    },
+    {
+      "command": "git diff --check",
+      "exit_status": 0
+    }
+  ],
+  "editorial_review": "Compared English text to the source contract, including all 31 LP acceptance scenarios; no technical claims intentionally changed. AI review is not a human audit.",
+  "ad_hoc_invariants": {
+    "result": "pass",
+    "method": "Compared multisets of inline code, URLs, Markdown destinations and LP identifiers against source; checked all original heading slugs exist as explicit anchors, heading/table-row/list-item counts match, relative destinations exist, and progress register outside assessment is identical.",
+    "legacy_anchors_preserved": 15
+  },
+  "acceptance_score": {
+    "before": 41,
+    "after": 41
+  },
+  "not_run": [
+    "Rust tests",
+    "QEMU/native tests",
+    "physical hardware tests",
+    "external URL availability checks"
+  ],
+  "limitations": [
+    "No Wiki or Discussion settings changed",
+    "Other documentation, UI localization and repository-wide language coverage inventory remain outside this scoped PR"
+  ]
+}

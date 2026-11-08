@@ -113,10 +113,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-09 · **Rubric:** v1 ·
-**Bron:** [`9922810a`](https://github.com/simonvanieperen/nieuw-os/commit/9922810a18f2272f534e1539e2d980d3d8922bb3) ·
-**Ontwikkelbranch:** `docs/wetenschappelijke-herkomst-20261109`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** CodeRabbit-redactiereview opvolgen: herkomst van de desktoptoewijzing expliciet behouden.
-41/100 blijft 41/100. De oorspronkelijke herkomst van de desktoptoewijzing is in onpersoonlijke formulering expliciet behouden; de projecteigenaar is de bron van de aanwijzing. Een Markdown-tabel krijgt de ontbrekende lege regel. De onpersoonlijke wetenschappelijke schrijfafspraak, technische inhoud, bevoegdheden en broncitaten blijven behouden. De CodeQL-wijziging uit main is ongewijzigd. Geen nieuwe OS-functionaliteit, criteria, gewichten of acceptatie.
+**Bron:** [`8331b69b`](https://github.com/simonvanieperen/nieuw-os/commit/8331b69b9b06294ad8a8c5c571580271655ba8d1) ·
+**Ontwikkelbranch:** `coderabbit/issue-274-privacy-contract-english`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Translate the local privacy contract into English (issue #274).
+41/100 remains 41/100. Editorial translation only: acceptance criteria, weights, evidence status and runtime behavior are unchanged. No new native acceptance evidence.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

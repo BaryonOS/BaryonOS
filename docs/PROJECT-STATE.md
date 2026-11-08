@@ -1,6 +1,25 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Herkomst na redactiereview — 9 november 2026
+## NEXT AGENT HANDOFF — English privacy contract — 9 November 2026
+
+**Source:** `8331b69b9b06294ad8a8c5c571580271655ba8d1`; branch
+`coderabbit/issue-274-privacy-contract-english`.
+
+**Scope:** English translation of `LOCAL-PRIVACY-CONTRACT.md` for issue #274,
+including all 31 LP scenarios and legacy section anchors. Contract revision,
+requirements, evidence limits and runtime behavior are preserved. This is one
+scoped documentation contribution; the remaining documents, language inventory,
+UI localization, Wiki and Discussion categories remain outside this PR.
+
+**Validation:** see [verification record](verification/issue-274-privacy-english.json).
+No Rust, QEMU or hardware tests are claimed for this editorial change.
+Product acceptance remains **41 → 41/100** with no new qualifying evidence.
+
+**Next:** review the English contract against the source revision, then continue
+the remaining English documentation coverage tracked in issue #274.
+First local check: `python3 tools/progress.py --check`.
+
+## Historical checkpoint — Herkomst na redactiereview — 9 november 2026
 
 **Bron:** main `9922810a18f2272f534e1539e2d980d3d8922bb3`, branch
 `docs/wetenschappelijke-herkomst-20261109`. De wetenschappelijke redactie uit

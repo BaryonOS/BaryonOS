@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-09",
-    "source_commit": "9922810a18f2272f534e1539e2d980d3d8922bb3",
+    "source_commit": "8331b69b9b06294ad8a8c5c571580271655ba8d1",
     "assessment_basis": "working_tree",
-    "branch": "docs/wetenschappelijke-herkomst-20261109",
-    "task": "CodeRabbit-redactiereview opvolgen: herkomst van de desktoptoewijzing expliciet behouden",
+    "branch": "coderabbit/issue-274-privacy-contract-english",
+    "task": "Translate the local privacy contract into English (issue #274)",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De oorspronkelijke herkomst van de desktoptoewijzing is in onpersoonlijke formulering expliciet behouden; de projecteigenaar is de bron van de aanwijzing. Een Markdown-tabel krijgt de ontbrekende lege regel. De onpersoonlijke wetenschappelijke schrijfafspraak, technische inhoud, bevoegdheden en broncitaten blijven behouden. De CodeQL-wijziging uit main is ongewijzigd. Geen nieuwe OS-functionaliteit, criteria, gewichten of acceptatie."
+    "summary": "41/100 remains 41/100. Editorial translation only: acceptance criteria, weights, evidence status and runtime behavior are unchanged. No new native acceptance evidence."
   },
   "tracks": [
     {
