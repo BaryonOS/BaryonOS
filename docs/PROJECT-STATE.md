@@ -1,6 +1,30 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Wetenschappelijke schrijfstijl — 9 november 2026
+## NEXT AGENT HANDOFF — CodeQL-workflowcontract — 9 november 2026
+
+**Bron en scope:** PR #266, branch `simonvanieperen-patch-3`, basis
+`3402b30c3d67e769eea28abc07e1aaceeb3e2525`. De bestaande methode
+`test_public_prs_keep_read_only_tokens` is vervangen door
+`test_public_prs_keep_minimal_token_permissions`. Alleen de combinatie
+`.github/workflows/codeql.yml` en job `analyze` krijgt de exacte mapping
+`actions: read`, `contents: read`, `security-events: write`.
+De al aanwezige CodeQL-workflow uit de PR is ongewijzigd.
+
+**Controle en grens:** de oorspronkelijke suite faalde op deze uploadpermissie.
+Na de wijziging slagen alle negen contracttests op 24 workflows en drie
+composite actions. Eén toegestane en elf ongeldige permissievarianten geven
+het verwachte resultaat. De geschreven diff is afzonderlijk door een tweede
+AI gecontroleerd; dit is geen menselijke audit. `tools/progress.py --write`,
+`--check` en `git diff --check` slagen met exitstatus 0.
+[Versiegebonden controleverslag](verification/codeql-workflow-contract-20261109.json).
+Geen lokale Rust-, QEMU-, CodeQL- of fysieke-hardwareproeven uitgevoerd voor
+deze contracttestwijziging. De ontwikkelmeter blijft **41 → 41/100**.
+
+**Hervatten:** beoordeel de nieuwe GitHub-CI en CodeQL-resultaten op de
+gepubliceerde PR-head. Eerste lokale controle:
+`python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py' -v`.
+
+## Historisch checkpoint — Wetenschappelijke schrijfstijl — 9 november 2026
 
 **Bron en wijziging:** main `1d5bc01e632fd5bab429f3befc9e9546c9f7661c`, branch
 `docs/wetenschappelijke-schrijfstijl-20261109`. De eerste-persoonsredactie
