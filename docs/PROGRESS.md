@@ -1,5 +1,11 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+PR #235-herstel (7 november 2026), PR-bron `bff194b5` met main `9bc5f52`:
+**41 → 41/100**. Alleen buildpadcorrecties, twee functiedocstrings en een
+actuele CI-basis; geen criterium of gewicht gewijzigd. Syntax-/AST-controle
+slagen; geen nieuwe native uitvoering in deze sessie. Nieuwe-head CI blijft
+vereist. Zie [het reviewbewijs](verification/pr235-review-20261107.json).
+
 Sessie-/bibliotheekintegratie #206 op main `bce6cabc` (5 november 2026): **41 → 41/100**.
 De U03-claim (41→44) uit het hashgebonden branchbewijs wordt op main niet
 overgenomen; U03 blijft open tot de native bibliotheekgates op main slagen
@@ -119,6 +125,13 @@ zijn afzonderlijke beperking. Zie [M6d-acceptatie](verification/M6D-ACCEPTANCE.m
 K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
+
+Community-inrichting (8 november 2026), basis `363b486b`: **41 → 41**.
+Discussiecategorieën, startonderwerpen en bijdrageformulieren zijn toegevoegd;
+deze opdracht wijzigt geen criterium, gewicht of runtimecode. De controles
+betreffen formulierstructuur, links, pipeline-metadata en voortgangsweergaven,
+geen nieuwe native productacceptatie. Zie de actuele handoff in
+[PROJECT-STATE.md](PROJECT-STATE.md).
 
 <!-- coderabbit-ai-generated:v1 -->
 

@@ -2015,3 +2015,76 @@ bron-/profielgebonden wegwerprun. U03 blijft open totdat de volledige route en
 regressie werkelijk slagen. Geen authenticatie-, encryptie- of hardwareclaim.
 
 <a id="adr-058--positieve-volume-identiteit-vóór-toelating-als-lege-opslag"></a>
+
+## ADR-CI-RUNNERS-20261106 — Linux-CI alleen op de Unraid-runners
+
+Status: aangenomen, 6 november 2026 (opdracht Simon, PR #241).
+
+**Besluit:**
+- Elke workflowjob draait op `[self-hosted, Linux, X64, unraid, build]`.
+- Persoonlijke machines (`MSIMON-wsl`, de Windows-host `MSIMON`) voeren geen PR-code uit.
+- GitHub-hosted runners gebruiken we niet zonder expliciete toestemming, vanwege het budget.
+- Artifacts zijn kortlevend (3 dagen). Bewijs van record blijft compact in `docs/verification/`.
+- De verplichte checks `host-quality` en `qemu-smoke` (ci.yml) krijgen geen padfilter.
+  Een overgeslagen workflow zou anders een eeuwig wachtende verplichte check opleveren.
+- Niet-verplichte gates slaan PR's over die alleen `docs/**` of `*.md` in de root wijzigen.
+- Een push naar main draait alles.
+
+**Reden:**
+- Het label `[self-hosted, Linux]` matchte ook een WSL-runner die als de gewone gebruiker
+  draaide, met toegang tot diens credentials.
+- Zo'n 6 GB aan artifacts liet groene gates rood eindigen op de uploadstap.
+
+**Grenzen:**
+- De Unraid-runners en hun containerisolatie, sudo-rechten en mounts zijn hier niet
+  beoordeeld.
+- De twee Tower-runners delen één fysieke host. Daardoor draaien er maximaal twee zware jobs
+  tegelijk, maar CPU, RAM en I/O van die host zijn niet gemeten.
+
+## ADR-PUBLIC-DEVELOPMENT-20261108 — Openbare ontwikkeling met MPL-2.0 als controlebasis
+
+**Status:** aangenomen als projectrichting op 8 november 2026, op expliciete
+opdracht van Simon. Licentiecontrole en daadwerkelijke publicatie blijven open.
+
+**Besluit:** Nieuw OS kiest voor openbare ontwikkeling. Het bestaande
+[LICENSE-PLAN.md](../LICENSE-PLAN.md) blijft de basis voor de licentiecontrole,
+met MPL-2.0 als beoogde licentie voor de eigen OS-code. De opdracht bevestigt
+de richting en het controlekader; zij past geen projectlicentie toe en
+verklaart de repository niet publicatieklaar.
+
+**Reden:** de ontwikkeling moet inspecteerbaar en geschikt voor samenwerking
+zijn. Openbaarheid wordt bewust aanvaard als onderdeel van de projectrichting.
+Het plan wordt verder uitgevoerd vanuit de bestaande MPL-keuze, zonder nu
+een nieuwe algemene licentievergelijking te beginnen.
+
+**Consequenties:**
+- Eigen code, bijdragen, documentatie, assets, modellen en externe onderdelen
+  krijgen een expliciete rechten- en licentieafbakening volgens het plan.
+  Bestaande externe voorwaarden blijven behouden.
+- Het meegebundelde OSDev-/boekmateriaal krijgt een afzonderlijke
+  publicatiecontrole volgens het eigen bronregister; het valt niet
+  automatisch onder de MPL-richting voor eigen OS-code.
+- De vijf bestaande publicatievoorwaarden blijven open tot de daadwerkelijke
+  inventaris, compatibiliteit, notices, licentietekst en bronlevering kloppen.
+  Openbaarheid betekent niet dat derden de broncode niet kunnen kopiëren.
+- De overgang naar GitHub-hosted runners wordt afzonderlijk behandeld in
+  [PR #249](https://github.com/simonvanieperen/nieuw-os/pull/249). Dit besluit
+  wijzigt geen workflows, repositoryzichtbaarheid of branchregels.
+- Bronpublicatie en een volwaardige productrelease hebben verschillende
+  acceptatiegrenzen. Er wordt geen OS-criterium afgetekend; de score blijft
+  41/100 en R03 blijft open.
+
+**Uitvoeringsstand bij broncontrole:** `main` op `363b486b06023d3d578f8eca2b23ff49045a1757`
+was privé; de root bevatte `LICENSE-PLAN.md` en nog geen toegepaste
+projectlicentie in `LICENSE`. Deze observatie is geen permanente
+repositoryinstelling. De afzonderlijke publicatiecontroles blijven nodig.
+
+**Herzieningscriteria:** heropen de MPL-reikwijdte of een componentkeuze als
+rechthebbenden, daadwerkelijke dependencies of distributievoorwaarden dat
+vereisen. Een wijziging van de openbare projectrichting vraagt een nieuw
+expliciet projectbesluit. Het terugzetten van documentatie trekt reeds
+verleende rechten of verspreide kopieën niet automatisch in.
+
+**Bronnen:** de gebruikersopdracht van 8 november 2026; het bestaande
+licentieplan; Mozilla's officiële MPL-2.0-tekst en FAQ, met volledige
+bronvermeldingen in [LICENSE-PLAN.md](../LICENSE-PLAN.md).
