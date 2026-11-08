@@ -29,6 +29,10 @@ en de volledige acceptatieopdracht in
 [FULL-TEST-RELEASE.md](docs/FULL-TEST-RELEASE.md). Proeven en builds zijn
 geen bewijs van een complete release of ondersteuning van fysieke hardware.
 
+**Meedoen:** [Discussies](https://github.com/simonvanieperen/nieuw-os/discussions)
+voor vragen en voorstellen · [Melding of taak](https://github.com/simonvanieperen/nieuw-os/issues/new/choose)
+· [Communitywegwijzer](docs/COMMUNITY.md) · [Bijdragen](CONTRIBUTING.md).
+
 <!-- OS-PROGRESS:BEGIN -->
 ## Voortgang naar een volwaardig zelfstandig OS
 
@@ -60,11 +64,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-07 · **Rubric:** v1 ·
-**Bron:** [`69265f4b`](https://github.com/simonvanieperen/nieuw-os/commit/69265f4b1d1220ea3eee6a9358ca09dc5a8b5e7d) ·
-**Ontwikkelbranch:** `verify/parser-hardening-20261105`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #211: parserreparaties op actuele main integreren en verifiëren.
-41/100 blijft 41/100. Drie bestaande parserreparaties worden geïntegreerd; 34 Python-hosttests slagen. Rust/native CI en integratiereview zijn bij dit checkpoint nog open. NET-1 blijft een bekende open canary; geen nieuw productcriterium geaccepteerd.
+**Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
+**Bron:** [`363b486b`](https://github.com/simonvanieperen/nieuw-os/commit/363b486b06023d3d578f8eca2b23ff49045a1757) ·
+**Ontwikkelbranch:** `community/discussions-templates-20261108`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Discussies en bijdrageformulieren inrichten na repositoryonderzoek.
+41/100 blijft 41/100. Communitycategorieën, startdiscussies, issue- en discussieformulieren, PR-template en routing toegevoegd. YAML-, link- en pipelineparsercontrole; geen runtimecode, nieuwe native acceptatie of criteriumwijziging. Activering van templates volgt de bestaande PR- en branchregels.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

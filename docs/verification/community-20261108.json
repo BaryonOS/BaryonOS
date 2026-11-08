@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-08",
+  "source_commit": "363b486b06023d3d578f8eca2b23ff49045a1757",
+  "branch": "community/discussions-templates-20261108",
+  "scope": "Community-inrichting en templatevalidatie; geen runtimecode, native acceptatie of regel-voor-regel securityaudit.",
+  "research": {
+    "tree_entries": 7687,
+    "files": 6524,
+    "tree_truncated": false,
+    "all_source_blobs_verified": true,
+    "graphify_index_commit": "363b486b06023d3d578f8eca2b23ff49045a1757",
+    "reviewed": "Actieve instructies, architectuur-/privacy-/releasecontracten, hoofdcomponenten en testgrenzen, bestaande templates, open issues en PRs."
+  },
+  "categories": [
+    {
+      "slug": "aankondigingen",
+      "format": "announcement"
+    },
+    {
+      "slug": "architectuur-en-ontwerp",
+      "format": "open"
+    },
+    {
+      "slug": "product-en-gebruikservaring",
+      "format": "open"
+    },
+    {
+      "slug": "vragen-en-hulp",
+      "format": "q-and-a"
+    },
+    {
+      "slug": "testresultaten-en-demos",
+      "format": "open"
+    },
+    {
+      "slug": "peilingen",
+      "format": "poll"
+    }
+  ],
+  "discussions": [
+    {
+      "number": 252,
+      "url": "https://github.com/simonvanieperen/nieuw-os/discussions/252"
+    },
+    {
+      "number": 253,
+      "url": "https://github.com/simonvanieperen/nieuw-os/discussions/253"
+    },
+    {
+      "number": 254,
+      "url": "https://github.com/simonvanieperen/nieuw-os/discussions/254"
+    },
+    {
+      "number": 255,
+      "url": "https://github.com/simonvanieperen/nieuw-os/discussions/255"
+    },
+    {
+      "number": 256,
+      "url": "https://github.com/simonvanieperen/nieuw-os/discussions/256"
+    }
+  ],
+  "ui_verified": "Zes categorieslugs en ongewijzigde passende formats; vijf gepubliceerde startdiscussies; #252 vastgezet.",
+  "checks": [
+    {
+      "command": "python3 -B - <<'PY'\nfrom pathlib import Path\nimport json, re, sys\nimport yaml\nroot=Path.cwd()\nslugs={'vragen-en-hulp','architectuur-en-ontwerp','product-en-gebruikservaring','testresultaten-en-demos'}\nforms=list(Path('.github/DISCUSSION_TEMPLATE').glob('*.yml'))+[p for p in Path('.github/ISSUE_TEMPLATE').glob('*.yml') if p.name!='config.yml']\nassert {p.stem for p in Path('.github/DISCUSSION_TEMPLATE').glob('*.yml')}==slugs\nfor p in forms:\n d=yaml.safe_load(p.read_text()); assert isinstance(d,dict) and isinstance(d['body'],list)\n assert not d.get('labels') and not d.get('assignees')\n if 'ISSUE_TEMPLATE' in p.parts: assert len(d['name'])>3 and d['description']\n else: assert set(d)<={'title','labels','body'}\n ids=set(); labels=set(); count=0\n for f in d['body']:\n  assert f['type'] in {'markdown','input','textarea','dropdown','checkboxes'}\n  a=f['attributes']\n  if f['type']=='markdown': assert isinstance(a['value'],str); continue\n  count+=1; fid=f['id']; assert re.fullmatch('[A-Za-z0-9_-]+',fid) and fid not in ids; ids.add(fid)\n  assert a['label'] not in labels; labels.add(a['label'])\n  if 'validations' in f: assert type(f['validations']['required']) is bool\n  if f['type']=='dropdown':\n   opts=a['options']; assert opts and all(isinstance(x,str) for x in opts) and len(set(opts))==len(opts)\n assert count\nconfig=yaml.safe_load(Path('.github/ISSUE_TEMPLATE/config.yml').read_text())\nassert config['blank_issues_enabled'] is False and len(config['contact_links'])==4\nmd=Path('.github/ISSUE_TEMPLATE/implementation_task.md').read_text()\nfm=yaml.safe_load(md.split('---',2)[1]); assert fm['name'] and fm['about']\nassert not fm.get('labels') and not fm.get('assignees')\nsys.path.insert(0,str(root/'tools'))\nfrom agent_pipeline import parse_issue,open_criteria\nprogress=json.loads(Path('docs/progress.json').read_text())\nbody=md.replace('VUL_OPEN_ID_IN','K06').replace('VUL_WORKFLOW.yml#VUL_JOB_IN','ci.yml#host-quality')\nissue={'number':999999,'title':'in-memory template validation','body':body,'labels':[{'name':'pipeline:serial'}]}\ntask=parse_issue(issue,open_criteria(progress))\nassert task.criterion=='K06' and task.gates==['ci.yml#host-quality'] and task.deps==[]\nassert 'host-quality' in yaml.safe_load(Path('.github/workflows/ci.yml').read_text())['jobs']\nissue['body']=body+'\\nAfhankelijk van: #39\\n'\nassert parse_issue(issue,open_criteria(progress)).deps==[39]\nissue['labels']=[]\ntry: parse_issue(issue,open_criteria(progress))\nexcept ValueError: pass\nelse: raise AssertionError('task accepted without pipeline label')\nfiles=forms+[Path('.github/ISSUE_TEMPLATE/config.yml'),Path('.github/ISSUE_TEMPLATE/implementation_task.md'),Path('.github/pull_request_template.md'),Path('docs/COMMUNITY.md')]\nchecked=0\nfor p in files:\n for target in re.findall(r'\\]\\(([^)]+)\\)',p.read_text()):\n  if target.startswith('https://github.com/simonvanieperen/nieuw-os/blob/main/'):\n   dest=root/target.split('/blob/main/',1)[1].split('#')[0]\n  elif '://' not in target and not target.startswith('#'):\n   dest=p.parent/target.split('#')[0]\n  else: continue\n  assert dest.is_file(),(p,str(dest)); checked+=1\nassert 'docs/COMMUNITY.md' in Path('README.md').read_text()\nassert 'docs/COMMUNITY.md' in Path('CONTRIBUTING.md').read_text()\nbaseline=json.loads(__import__('subprocess').check_output(['git','show','HEAD:docs/progress.json']))\nassert progress['tracks']==baseline['tracks'] and progress['rubric_version']==baseline['rubric_version']\nprint(json.dumps({'forms':len(forms),'task_parser':'passed; no hidden dependency; rejects missing label','repository_file_links':checked,'score_criteria':'unchanged','category_slugs':sorted(slugs)},ensure_ascii=False))\nPY",
+      "exit_code": 0,
+      "result": {
+        "forms": 7,
+        "task_parser": "passed; no hidden dependency; rejects missing label",
+        "repository_file_links": 30,
+        "score_criteria": "unchanged",
+        "category_slugs": [
+          "architectuur-en-ontwerp",
+          "product-en-gebruikservaring",
+          "testresultaten-en-demos",
+          "vragen-en-hulp"
+        ]
+      }
+    },
+    {
+      "command": "python3 tools/progress.py --write",
+      "exit_code": 0,
+      "result": "41/100; weergaven bijgewerkt; geen criteriumwijziging"
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "exit_code": 0,
+      "result": "41/100; berekening, bewijsverwijzingen en weergaven consistent"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "result": "Geen whitespacefouten"
+    }
+  ],
+  "file_hashes": [
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/architectuur-en-ontwerp.yml",
+      "sha256": "52aa580bbaf65b19c2f5cf43f716852e4f3ba993438245c58eb478e415668725"
+    },
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/product-en-gebruikservaring.yml",
+      "sha256": "83548d0ef8edd7a8683e816134d8a7350f69900f2ca0c7dcfac312cd7c76efce"
+    },
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/testresultaten-en-demos.yml",
+      "sha256": "3eaff45d31c9593e8f15b0a0bdbf91b1e6fa9040688fae03fb2d853768d750bc"
+    },
+    {
+      "path": ".github/DISCUSSION_TEMPLATE/vragen-en-hulp.yml",
+      "sha256": "be5df3d7d549253ab6d0e43667df46413b7ca1d0a2b0b93620749084edeccde0"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.yml",
+      "sha256": "88640bdce0cbe2b3bf24bbbe99c1d5611518db6420d0e45ccfa889cbc6caad28"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/ci_test_failure.yml",
+      "sha256": "a2be72cbfeac25d12fad434e187b3bc41affd7fd45b8885640024e8b0119eab2"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/config.yml",
+      "sha256": "91777feb41f5a539721515c5bf21a0c752ba9e6e74cf53bb370f8364ce9c3961"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/documentation.yml",
+      "sha256": "5bfe0ea3bea96abd37c72f1ce4c7c541f7cbfb8c8f737d83b5100c3c3997e080"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/implementation_task.md",
+      "sha256": "dceb612fe419cd551b24081a233ab4d89eee088e169a3c520492b290e4e9b87b"
+    },
+    {
+      "path": ".github/pull_request_template.md",
+      "sha256": "94515693db86b4b42ae0a1abe48c7754a2094934f5bd0bfefc2a4dcde256edcc"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "sha256": "5fc63c6e70924ee62e50e46a5ac657f3cc8ad34090622329051e6b53bd968847"
+    },
+    {
+      "path": "README.md",
+      "sha256": "26930d448e8176eb9cbf1c7a69ad35b38e6df57255df575d3558ce60f4e2c362"
+    },
+    {
+      "path": "docs/COMMUNITY.md",
+      "sha256": "2c1806dbc16af961bb45006f74d6de520fc47bc52c8fd9ab993dac6cd4934a0b"
+    },
+    {
+      "path": "docs/PROGRESS.md",
+      "sha256": "1656704f7e7fc1ff68ddc245a5934b1c9c7b6bc5e34a206c1af682113f1ba469"
+    },
+    {
+      "path": "docs/PROJECT-STATE.md",
+      "sha256": "74eb1b18bc4dfe23fdad6dba1a7d1b4371f2e69b3d4c5dbd17a08a29f9e69c25"
+    },
+    {
+      "path": "docs/assets/progress.svg",
+      "sha256": "70502e7a1b3574292a3126dd27036b8c4e0c7dba5732555687bcb76ebb751e29"
+    },
+    {
+      "path": "docs/progress.json",
+      "sha256": "b8ad73eedcf110d462c159989adc901fe14efb6df4ef50894ffdc70be5bb5e58"
+    }
+  ],
+  "score": {
+    "before": 41,
+    "after": 41,
+    "criteria_changed": false
+  },
+  "not_run": [
+    "Rust-/QEMU-/fysieke productacceptatie: niet nodig voor deze wijziging en niet geclaimd.",
+    "GitHub-formulierrendering op main: volgt na merge; branchbestanden zijn nog niet actief.",
+    "Onafhankelijke menselijke audit: niet uitgevoerd."
+  ],
+  "rollback": "Revert de template-/documentatiecommit via een PR; categorieën en discussies zijn afzonderlijke GitHub-objecten en blijven behouden."
+}

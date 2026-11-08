@@ -126,6 +126,13 @@ K05 (algemeen dienstbeheer) en S08 (algemeen opslagherstel) blijven open.
 
 ## Bij iedere opdracht bijwerken
 
+Community-inrichting (8 november 2026), basis `363b486b`: **41 → 41**.
+Discussiecategorieën, startonderwerpen en bijdrageformulieren zijn toegevoegd;
+deze opdracht wijzigt geen criterium, gewicht of runtimecode. De controles
+betreffen formulierstructuur, links, pipeline-metadata en voortgangsweergaven,
+geen nieuwe native productacceptatie. Zie de actuele handoff in
+[PROJECT-STATE.md](PROJECT-STATE.md).
+
 <!-- coderabbit-ai-generated:v1 -->
 
 <!-- coderabbit-ai-generated-section:v1:ab73c9e98b6e8e4f98c9394ee7fc9b7f34e8e2a2808b0067c5965ffb55c55446 -->
