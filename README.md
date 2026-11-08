@@ -78,10 +78,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`1f3e7b6a`](https://github.com/simonvanieperen/nieuw-os/commit/1f3e7b6acdfd4b5ca84a69422a2d3ed6e424609a) ·
-**Ontwikkelbranch:** `ci/coderabbit-review-policy-20261108`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** CodeRabbit-blokkades onderzoeken en workflowreview herstellen.
-41/100 blijft 41/100. Working tree op de genoemde main-broncommit na merge van PR #249; bronhashes en logs staan in docs/verification/coderabbit-unblock-20261108.json. CodeRabbit blijft automatisch reviewen met gebundelde kleine suggesties; nieuwe automatische botafkeuringen worden uitgezet. De bestaande reviewfixes zijn behouden en de verifier faalt nu expliciet bij ontbrekend vergelijkingsbewijs. 32 gerichte Python-tests, 228 verifiercontroles en schemavalidatie slagen lokaal. Verplichte GitHub-checks en inhoudelijke reviewthreads blijven behouden; nieuwe-head CI en effectieve botconfiguratie worden afzonderlijk beoordeeld. Geen productcriterium of gewicht gewijzigd.
+**Bron:** [`8c8b5283`](https://github.com/simonvanieperen/nieuw-os/commit/8c8b528306f9d0e474c6b5d338cead904564c2df) ·
+**Ontwikkelbranch:** `ci/materiaal-boot-diagnostics-20261108`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Runneropruiming en herstel van de incrementele Materiaal-bootparser.
+41/100 blijft 41/100. De hosted hoofd-CI slaagt op main 8c8b5283. Oude main-runs zijn vervangen en de ingehaalde PR #251 is gesloten. De Materiaal-proef op 1f3e7b6a toonde een parsermismatch met twee verwachte bootdiagnoses. Deze working tree vereist het exacte diagnostiekpaar in de incrementele grammatica; verkeerde, ontbrekende, dubbele en misplaatste meldingen blijven fouten. Brongebonden controles staan in docs/verification/materiaal-boot-parser-20261108/. Nieuwe native Materiaal-acceptatie blijft afzonderlijk te toetsen; geen productcriterium of gewicht gewijzigd.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

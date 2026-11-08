@@ -1,5 +1,12 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+Materiaal-bootparser en runneropruiming (8 november 2026), working tree op
+main `8c8b5283`: **41 → 41/100**. De hoofd-CI op die main-bron is groen.
+De aparte Materiaal-proef wees verwachte ACPI-diagnostiek ten onrechte af;
+de exacte incrementele grammatica en negatieve hosttests herstellen dit.
+Nieuwe native acceptatie blijft afzonderlijk te controleren. Geen criterium
+of gewicht gewijzigd. [Bron en controles](verification/materiaal-boot-parser-20261108/README.md).
+
 CodeRabbit-reviewopvolging (8 november 2026), working tree op main `1f3e7b6a`:
 **41 → 41/100**. De drie reviewfixes uit de inmiddels gemergede PR #249 zijn
 behouden. 32 gerichte Python-tests, 228 verifiercontroles en officiële

@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-08",
-    "source_commit": "1f3e7b6acdfd4b5ca84a69422a2d3ed6e424609a",
+    "source_commit": "8c8b528306f9d0e474c6b5d338cead904564c2df",
     "assessment_basis": "working_tree",
-    "branch": "ci/coderabbit-review-policy-20261108",
-    "task": "CodeRabbit-blokkades onderzoeken en workflowreview herstellen",
+    "branch": "ci/materiaal-boot-diagnostics-20261108",
+    "task": "Runneropruiming en herstel van de incrementele Materiaal-bootparser",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Working tree op de genoemde main-broncommit na merge van PR #249; bronhashes en logs staan in docs/verification/coderabbit-unblock-20261108.json. CodeRabbit blijft automatisch reviewen met gebundelde kleine suggesties; nieuwe automatische botafkeuringen worden uitgezet. De bestaande reviewfixes zijn behouden en de verifier faalt nu expliciet bij ontbrekend vergelijkingsbewijs. 32 gerichte Python-tests, 228 verifiercontroles en schemavalidatie slagen lokaal. Verplichte GitHub-checks en inhoudelijke reviewthreads blijven behouden; nieuwe-head CI en effectieve botconfiguratie worden afzonderlijk beoordeeld. Geen productcriterium of gewicht gewijzigd."
+    "summary": "41/100 blijft 41/100. De hosted hoofd-CI slaagt op main 8c8b5283. Oude main-runs zijn vervangen en de ingehaalde PR #251 is gesloten. De Materiaal-proef op 1f3e7b6a toonde een parsermismatch met twee verwachte bootdiagnoses. Deze working tree vereist het exacte diagnostiekpaar in de incrementele grammatica; verkeerde, ontbrekende, dubbele en misplaatste meldingen blijven fouten. Brongebonden controles staan in docs/verification/materiaal-boot-parser-20261108/. Nieuwe native Materiaal-acceptatie blijft afzonderlijk te toetsen; geen productcriterium of gewicht gewijzigd."
   },
   "tracks": [
     {

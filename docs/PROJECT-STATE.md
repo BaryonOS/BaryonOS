@@ -1,6 +1,44 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — CodeRabbit-reviewbeleid en verifier — 8 november 2026
+## NEXT AGENT HANDOFF — Materiaal-bootparser na runnerherstel — 8 november 2026
+
+**Bron:** working tree op main `8c8b528306f9d0e474c6b5d338cead904564c2df`,
+branch `ci/materiaal-boot-diagnostics-20261108`. PR #249 en #261 zijn
+opgenomen. De verplichte [main-CI](https://github.com/simonvanieperen/nieuw-os/actions/runs/42526645196)
+is geslaagd. De ingehaalde #251 is na inhoudscontrole gesloten; vier oude
+main-runs en de wachtende #251-run zijn geannuleerd. Nieuwe storage- en
+volumeproeven op `1f3e7b6a` slagen; ook SMP op die bron slaagt.
+
+**Concrete fout:** [Materiaal-run 42526590198](https://github.com/simonvanieperen/nieuw-os/actions/runs/42526590198)
+startte op een GitHub-hosted `ubuntu-24.04`-runner, maar stopte na 3,21 s met
+`Wrong boot/manifest sequence`. De kernel meldde na `KS-02:PASS` de voor dit
+q35-profiel verwachte `ACPI:UNAVAILABLE:NO_DMAR` en
+`DEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT`. De parser verwachtte meteen
+`KS-03:PASS` en beëindigde QEMU zelf. Geen gast- of hosttimeout, geen
+artifactquotafout en geen bewezen kernelregressie.
+
+**Reparatie:** `tools/run_materiaal_probe.py` gebruikt het bestaande
+`with_acpi_markers(BOOT)` in de incrementele openingsgrammatica. Het paar is
+verplicht en exact geordend; er wordt niets blind uit het bewijs gefilterd.
+Ook zulke meldingen vóór de bootoverdracht worden geweigerd. De bestaande
+hostfixtures volgen het actuele profiel en regressies controleren elke
+bytegrens en ongeldige/misplaatste diagnostiek. Kernel, hardwareprofiel,
+watchdogs, pixels, schijfcontrole en overige acceptatie blijven gelijk.
+
+**Bewijs en grens:** bronhashes, hosttestuitvoer en oorspronkelijke fout staan
+in [materiaal-boot-parser-20261108](verification/materiaal-boot-parser-20261108/README.md).
+Geen lokale Rust-/QEMU-toolchain beschikbaar; native uitvoering gebeurt via
+het bestaande handmatige `materiaal-probe.yml` op de gepubliceerde branch.
+Die gate moet de rest van de Materiaal-keten nog aantonen. **41 → 41/100**;
+geen productcriterium afgetekend of gewicht aangepast.
+
+**Hervatten:** controleer de actuele PR-head, verplichte CI en de afzonderlijke
+Materiaal-run. Eerste lokale controle:
+`python3 -B tools/tests/test_materiaal_probe.py`; vervolgens
+`python3 tools/progress.py --check`. Oude PR-branches met self-hosted workflows
+moeten main inhoudelijk opnemen; een rerun wijzigt hun oude configuratie niet.
+
+## Historisch checkpoint — CodeRabbit-reviewbeleid en verifier — 8 november 2026
 
 **Bron en scope:** working tree op main
 `1f3e7b6acdfd4b5ca84a69422a2d3ed6e424609a`, waarin PR #249 is opgenomen.
