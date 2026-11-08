@@ -1,6 +1,11 @@
-# Kernelregels
-Lees root-AGENTS.md, ARCHITECTURE.md en SECURITY-AND-QUANTUM.md onder docs/.
-Rust no_std; elk unsafe-blok heeft lokale SAFETY-onderbouwing voor geldigheid, aliasing, alignment en levensduur. Een commentaar alleen bewijst niets: laat het tegenvoorbeelden en review doorstaan.
-Beschrijf eigenaarschap van frames/pagetables, exception- en syscall-ABI, interruptstatus en lockvolgorde. Valideer userpointers en lengtes. Nooit verwijzingen naar onbeheerde guest/userspace-geheugens vasthouden over herplanning zonder geldig model.
-Capabilities zijn procesgebonden kernelgevalideerde handles met rechten en geldigheid. Geen integers/pointers als onbeperkte autoriteit. Test rechtenvergroting, stale handles, uitputting en intrekking.
-Houd kernel klein. Geen GUI, netwerkparser, cryptoprotocol of opslagpolicy in privileged code zonder expliciete ADR. Geen SMP uitbreiden vóór single-core-invarianten aantoonbaar zijn.
+# Kernel rules
+
+Read the root `AGENTS.md`, `docs/ARCHITECTURE.md`, and `docs/SECURITY-AND-QUANTUM.md`.
+
+Use Rust `no_std`. Each `unsafe` block requires a local SAFETY justification addressing validity, aliasing, alignment, and lifetime. A comment is not proof; it must withstand counterexamples and review.
+
+Describe ownership of frames and page tables, exception and syscall ABIs, interrupt state, and lock order. Validate user pointers and lengths. Do not retain references to unmanaged guest/user-space memory across rescheduling without a valid ownership model.
+
+Capabilities are process-scoped, kernel-validated handles with rights and validity. Raw integers/pointers are not unrestricted authority. Test privilege escalation, stale handles, exhaustion, and revocation.
+
+Keep the privileged kernel small. Do not add a GUI, network parser, cryptographic protocol, or storage policy to privileged code without an explicit ADR. Do not expand SMP support before single-core invariants have been demonstrated.

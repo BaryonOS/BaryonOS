@@ -1,7 +1,17 @@
-# Regels voor systeemdiensten
-Lees rootinstructies en beveiligingsmodel. Elke dienst krijgt expliciete taken, inputs, bevoegdheden, quota en herstelgedrag.
-IPC-schema's versieerbaar; grenzen en herkomst altijd valideren. Geen impliciete globale toegang. Controleer confused-deputy-risico en delegatie.
-Pas docs/LOCAL-PRIVACY-CONTRACT.md **revisie 4** en docs/implementation/ENCRYPTED-OBJECT-STORAGE.md toe. Persoonlijke NAS-sync gebruikt een expliciet gekoppelde eigen NAS of NAS van vrienden/familie; LAN is de voorkeursroute en internet vereist expliciete peer-/bestemmingsrechten en echte transportauthenticatie. Een gebruiker mag daarnaast optioneel een **expliciet gekozen externe opslagprovider** koppelen als onbetrouwbare backend voor uitsluitend client-side versleutelde opaque ciphertextobjecten. De provider ontvangt geen plaintext, gevoelige manifestinhoud of Nieuw-OS-inhoudssleutels en is nooit een stille fallback of verplichte OS-relay. Gebruikerssleutels blijven binnen de afgebakende client-/Key-Service-grens; NAS-beheer mag eigen ruimte en ciphertext verwijderen zonder gasttoestemming, maar heeft geen inhoudsleesrecht. Intrekking blokkeert ook oude sessies, uploadcommits en herlevende synchronisatie. De **Security Floor** blijft gelden bij verruimde privacykeuzes: internet- of documenttoegang geeft geen extra systeem-, sleutel- of andere apprechten. AI-inferentiedienst heeft geen netwerkrecht. Model-/updatedownloader krijgt geen persoonlijke data of algemene NAS-credentials. Netwerk is per dienst en bestemming beperkt, niet een globale OS-blokkade; alleen vooraf verleende rechten geven netwerktoegang. Logs lokaal en standaard zonder secrets/persoonlijke inhoud.
-Gebruik onderhouden cryptobibliotheken; maak geen eigen primitives/protocollen. Entropy, key lifecycle, rollbackbescherming en failure modes horen bij de integratie.
-Test dat een crash begrensd blijft en herstel niet ongemerkt ruimere rechten geeft.
+# System-service rules
 
+Read the root instructions and security model. Every service requires explicit responsibilities, inputs, authority, quotas, and recovery behaviour.
+
+Version IPC schemas and always validate boundaries and provenance. No implicit global access. Examine confused-deputy risks and delegation.
+
+Apply revision 4 of `docs/LOCAL-PRIVACY-CONTRACT.md` and `docs/implementation/ENCRYPTED-OBJECT-STORAGE.md`. Personal NAS synchronisation uses an explicitly paired NAS owned by the user or friends/family. LAN is preferred; internet access requires explicit peer/destination permissions and actual transport authentication.
+
+Users may also explicitly select an external storage provider as an untrusted backend for client-side encrypted opaque ciphertext objects only. Providers receive no plaintext, sensitive manifest content, or Baryon OS content keys and are never a silent fallback or mandatory OS relay.
+
+User keys remain within bounded client/Key Service boundaries. NAS administrators may delete their own stored ciphertext and manage quotas without guest consent but have no right to read content. Revocation also blocks old sessions, upload commits, and resumed synchronisation.
+
+The **Security Floor** remains in force when privacy choices are expanded: internet or document access never grants unrelated system, key, or other-app authority. The AI inference service has no network permission. The model/update downloader receives no personal data or general NAS credentials. Network authority is limited per service and destination, not by a global OS ban; only previously granted permissions allow network access. Logs are local and exclude secrets and personal content by default.
+
+Use maintained cryptographic libraries; do not invent primitives or protocols. Entropy, key lifecycle, rollback protection, and failure modes belong in the integration design.
+
+Test that a crash remains contained and recovery does not silently broaden privileges.
