@@ -1,6 +1,143 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — CI-herstel: Unraid-runners en artifactquota — 6 november 2026
+## NEXT AGENT HANDOFF — Discussies en templates — 8 november 2026
+
+**Onderzoeksbron:** main `363b486b06023d3d578f8eca2b23ff49045a1757`;
+**integratiebasis:** main `5b2189824c32145ad5c110429517dfcea3f2720f`
+(PR #250, openbare projectrichting). Werkbranch
+`community/discussions-templates-20261108`. **41 → 41/100**; criteria,
+gewichten en bestaand acceptatiebewijs blijven ongewijzigd. Deze opdracht
+betreft uitsluitend community-inrichting; CI-, artifact- en publicatiewerk
+in andere PR's blijft bij de betreffende eigenaren.
+
+**Gerealiseerd:** de volledige Git-boom (6.524 bestanden) geïnventariseerd en
+de bronbestanden tegen Git-blobs gecontroleerd. De Graphify-index kwam met
+deze main overeen. Actieve contracten, codegebieden, tests, bestaande
+templates en open issues/PR's onderzocht; geen regel-voor-regel securityaudit.
+Zes bestaande lege discussiecategorieën ingericht en vijf startdiscussies
+gepubliceerd: [wegwijzer #252](https://github.com/simonvanieperen/nieuw-os/discussions/252)
+(vastgezet), [release #253](https://github.com/simonvanieperen/nieuw-os/discussions/253),
+[desktop #254](https://github.com/simonvanieperen/nieuw-os/discussions/254),
+[NAS #255](https://github.com/simonvanieperen/nieuw-os/discussions/255) en
+[TLS #256](https://github.com/simonvanieperen/nieuw-os/discussions/256).
+
+**Repositorywijziging:** drie issueformulieren, één Markdown-taaktemplate,
+issuekeuzescherm, vier categorieformulieren, PR-template en
+[communitywegwijzer](COMMUNITY.md), met links in README en CONTRIBUTING.
+Formulieren kennen geen pipeline-labels toe. Alleen beoordeelde pipeline-
+taken gebruiken de bestaande letterlijke `Criterium:`-/`Gate:`-regels.
+Beveiligingsmeldingen volgen SECURITY.md; geen nieuw meldadres of licentie.
+
+**Controles:** YAML-/veldstructuur en repositorylinks gecontroleerd; een
+ingevuld taaktemplate door de bestaande pipelineparser gelezen, inclusief
+de weigering zonder uitvoeringslabel. `python3 tools/progress.py --write`
+en `python3 tools/progress.py --check`: exit 0, 41/100 consistent.
+Categorieformaten en slugs zijn in GitHub bevestigd. Brongebonden overzicht:
+[communitycontrole](verification/community-20261108.json).
+
+**Open bij dit checkpoint:** [PR #258](https://github.com/simonvanieperen/nieuw-os/pull/258)
+is na de conceptfase gereed voor review; squash-auto-merge is ingesteld.
+Opname volgt de vereiste checks en branchregels; daarna de live formulierweergave controleren.
+Een branchbestand maakt een template nog niet actief. Geen nieuwe Rust-,
+QEMU-, fysieke of menselijke acceptatie uitgevoerd of geclaimd.
+**Eerstvolgende stap:** de checks op de geïntegreerde PR-head volgen;
+na opname de issuekeuze en vier discussieformulieren in GitHub openen. Wijzig geen branchregels om dit af te dwingen.
+
+## Checkpoint — openbare projectrichting uit PR #250 — 8 november 2026
+
+**Bron:** `main` op `363b486b06023d3d578f8eca2b23ff49045a1757`; documentatiebranch
+`docs/public-development-direction-20261108`. **41 → 41/100**; alle criteria,
+gewichten, statussen en bestaande bewijsverwijzingen blijven gelijk.
+
+**Bevestigd:** Simon kiest voor openbare ontwikkeling. Het bestaande
+MPL-2.0-plan voor eigen OS-code is het uitgangspunt voor de licentiecontrole.
+Dit staat in `LICENSE-PLAN.md`, ADR-PUBLIC-DEVELOPMENT-20261108, de README en
+`implementation/EUROPE-AND-RELEASE.md`. De vijf bestaande licentievoorwaarden
+zijn niet afgetekend. Het meegebundelde OSDev-/boekmateriaal heeft afzonderlijke
+rechten en is expliciet onderdeel van de nog open publicatiecontrole.
+
+**Controle en bewijsgrens:** 56 actuele bron-/bewijsbestanden zijn via GitHub
+opgehaald en byte voor byte tegen hun Git-blob-ID gecontroleerd. De bestaande
+voortgangsgenerator en documentatievergelijking zijn op deze bron uitgevoerd;
+uitkomsten staan in [het controlerapport](verification/public-development-20261108.json).
+Dit is documentatiecontrole, geen volledige licentieaudit, secretscan,
+nieuwe Rust-/QEMU-test, menselijke juridische beoordeling of productacceptatie.
+
+**Open:** rechten-/componentinventaris, licentietoepassing, passende notices,
+bijdragenvoorwaarden en de overige publicatiecontroles. De repository was
+bij controle privé. GitHub-hosted runners worden behandeld in
+[PR #249](https://github.com/simonvanieperen/nieuw-os/pull/249); deze opdracht
+verandert geen workflows, zichtbaarheid of branchregels. R03 blijft open.
+
+**Eerstvolgende inhoudelijke stap:** voer de vijf bestaande controles in
+`LICENSE-PLAN.md` uit op de werkelijk te publiceren bron en geschiedenis,
+inclusief alle workspaces en `.agents/skills/os-dev/`.
+Concrete publicatie volgt pas nadat de controles zijn afgehandeld.
+Eerstvolgend documentatiecommando: `python3 -B tools/progress.py --check`.
+
+## Historisch checkpoint — PR #211 parserintegratie — 7 november 2026
+
+**Bron:** `verify/parser-hardening-20261105`, integratiecommit
+`69265f4b1d1220ea3eee6a9358ca09dc5a8b5e7d`; ouders PR `328ac91d` en main
+`9bc5f527`. **41 → 41/100**; geen criterium gewijzigd. Deze opdracht behandelt
+uitsluitend PR #211; PR #235 wordt in een andere sessie afgehandeld.
+
+**Gerealiseerd:** main zonder wijziging van de negen PR-bestanden opgenomen.
+De bestaande Unraid-workflows, gates en branchregels blijven behouden.
+Drie reparaties: STOR-1, NET-2 en LOAD-1. De NET-1-smoltcp-canary bewaakt een
+nog open defect. Bewijsformulering over wrap zonder overflowcontroles
+gecorrigeerd naar codeafleiding; die route is niet opnieuw gemeten.
+
+**Werkelijk gecontroleerd op integratiebron `69265f4b`, vóór dit documentatiecheckpoint:**
+de verschillen met de toenmalige main zijn exact de negen PR-paden; 55 lokaal geraadpleegde bron-/bewijsbestanden zijn tegen hun Git
+blob-ID gecontroleerd. `python3 -B -m unittest discover -s tests
+-p 'test_volume_*.py'`: exit 0, 34 tests. Dit is hostbewijs, geen VM-run.
+Receipt: `docs/verification/parser-fuzz-20261105/integration-20261107.json`.
+
+**Open bij dit checkpoint:** nieuwe-head CI, directe netwerk-/volume-/update-
+gates en actuele reviews. Lokaal zijn Rust en QEMU niet beschikbaar. De oude
+rode CI geeft geen geldige acceptatie van deze nieuwe bron. Er zijn geen
+workflowchecks versoepeld of quota-artefacten verwijderd. De PR-beschrijving
+registreert de uiteindelijke CI-resultaten met SHA en run-URL.
+
+**Eerstvolgende controle:** status, jobs en logs van PR #211 op de actuele
+head; bij een gewijzigde main de integratie opnieuw controleren zonder het
+werk van PR #235 te overschrijven. Alleen squashen als branchregels, inhoud,
+passende tests en concrete reviews dit toelaten.
+
+**Main-verversing binnen dezelfde opdracht:** de inmiddels gemergde PR #235
+op main `5cf3d3fa17eed4005e5f97ce9ba6da84cbb3280d` is opgenomen bovenop
+`5120d9ef`. De acht product-/testbestanden van PR #211 blijven byte voor byte
+behouden. De milestone-runnerfix, PR235-receipt en onderstaande historische
+overdracht blijven aanwezig. De 34 hosttests en het oorspronkelijke receipt
+blijven aan integratiebron `69265f4b` gebonden; controles op de nieuwe
+gezamenlijke head moeten afzonderlijk slagen.
+
+## Historisch checkpoint — PR #235: buildpaden en CI-basis — 7 november 2026
+
+**Bron:** PR #235, branch `fix/tm-ipc-probe-build-dir`, oorspronkelijke head
+`bff194b51d51a9702ee9fb9ad4cf3de9580327fb`, geïntegreerd met main
+`9bc5f5270ffe2a8f4a214dd4d58c4290a4de6bec`. **41 → 41/100**; geen criterium wijzigt.
+
+**Gerealiseerd:** de vier `BUILD`-padcorrecties blijven behouden; `test_m2`
+en `test_m4` hebben nu een docstring. De bestaande CI-reparatie uit #241
+komt via main mee, inclusief de afgebakende Unraid-runnerlabels. Er zijn
+geen nieuwe workflow- of branchregelwijzigingen.
+
+**Controle:** Python-syntax en AST-vergelijking slagen; buiten de twee nieuwe
+docstrings is de uitvoerbare runner gelijk aan de oorspronkelijke PR-head.
+Rubric, criteria, gewichten en bewijsverwijzingen blijven gelijk.
+Bronhashes en bewijsgrenzen: [PR235-review](verification/pr235-review-20261107.json).
+**Niet uitgevoerd in deze sessie:** Rust-/QEMU-gates; Cargo en QEMU ontbreken.
+De oorspronkelijke PR meldt een geslaagde M2–M4-run; dit is hier niet opnieuw bewezen.
+
+**Open:** nieuwe `host-quality` en `qemu-smoke` op de bijgewerkte PR-head,
+reviewcontrole en squash-auto-merge binnen de bestaande main-regels. De
+oude jobs zonder stappen gebruiken nog de hosted-runnerconfiguratie;
+herstart die niet. Optionele artifact-uploadfouten blijven afzonderlijk zichtbaar.
+**Eerstvolgend commando:** `gh pr checks 235 --repo simonvanieperen/nieuw-os`.
+
+## Historisch checkpoint — CI-herstel: Unraid-runners en artifactquota — 6 november 2026
 
 **Bron:** branch `ci/unraid-runner-labels` op main `d18aac4e`, PR #241. **41 → 41/100**;
 geen criterium wijzigt. Besluit: ADR-CI-RUNNERS-20261106.

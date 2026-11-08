@@ -2,23 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-06",
-    "source_commit": "d18aac4e8921cb95e91c7a4237b182297896248f",
+    "date": "2026-11-08",
+    "source_commit": "5b2189824c32145ad5c110429517dfcea3f2720f",
     "assessment_basis": "source_commit",
-    "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
-    "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
-    "integration_review": {
-      "status": "open",
-      "source_commit": "47ec535f15bb10912dbc6cbf1af3de9df0c6c226",
-      "main_commit": "8e0c15d8c71ec4bd4e946e14dbf58bcfe748baa2",
-      "merge_commit": "7412d0bb4b8ef2d146fc5b942bec8d6f370470e5",
-      "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
-      "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
-    },
-    "branch": "ci/unraid-runner-labels",
-    "task": "CI-herstel: alleen Unraid-runners, artifact-retentie, docs-PR's slaan zware gates over",
+    "branch": "community/discussions-templates-20261108",
+    "task": "Discussies en bijdrageformulieren inrichten na repositoryonderzoek",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Alleen CI-infrastructuur gewijzigd (runnerlabels, artifact-retentie, padfilters); geen OS-functionaliteit, geen criterium verandert van status."
+    "summary": "41/100 blijft 41/100. Communitycategorieën, startdiscussies, issue- en discussieformulieren, PR-template en routing toegevoegd. YAML-, link- en pipelineparsercontrole; geen runtimecode, nieuwe native acceptatie of criteriumwijziging. Activering van templates volgt de bestaande PR- en branchregels. De openbare ontwikkelrichting en MPL-2.0-controlebasis uit PR #250 zijn bij integratie behouden; publicatiecontroles blijven open."
   },
   "tracks": [
     {
