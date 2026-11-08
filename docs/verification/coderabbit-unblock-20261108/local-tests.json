@@ -1,0 +1,28 @@
+{
+  "checked_at_utc": "2026-11-08T21:35:26.684725+00:00",
+  "base_commit": "7b82315a7502ee3f4f10192a7748c509eabaf075",
+  "commands": [
+    {
+      "name": "evidence-tests",
+      "command": "python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py' -v",
+      "exit_code": 0,
+      "elapsed_seconds": 11.879,
+      "log": "docs/verification/coderabbit-unblock-20261108/evidence-tests.txt"
+    },
+    {
+      "name": "workflow-tests",
+      "command": "python3 -B -m unittest discover -s tests -p test_ci_workflows.py -v",
+      "exit_code": 0,
+      "elapsed_seconds": 0.239,
+      "log": "docs/verification/coderabbit-unblock-20261108/workflow-tests.txt"
+    },
+    {
+      "name": "workflow-verifier",
+      "command": "python3 -B docs/verification/ci-artifact-storage-20261108/verify_workflows.py --repo . --output docs/verification/coderabbit-unblock-20261108/workflows.json",
+      "exit_code": 0,
+      "elapsed_seconds": 1.424,
+      "log": "docs/verification/coderabbit-unblock-20261108/workflow-verifier.txt"
+    }
+  ],
+  "schema_validation": "passed"
+}

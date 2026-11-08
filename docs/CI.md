@@ -152,6 +152,39 @@ De historische pakketprovenance staat in
 Terugdraaien: een gerichte revert via PR, met behoud van andere wijzigingen.
 De productvoortgang blijft **41/100**; CI-inrichting sluit geen OS-criterium.
 
+## CodeRabbit en mergeblokkades
+
+De controle van 8 november 2026 bevestigt dat de actieve main-regel
+`Bescherm main branch` alleen `host-quality` en `qemu-smoke` als verplichte
+statuschecks noemt. Daarnaast moeten reviewgesprekken opgelost zijn en moet
+de branch actueel zijn. Het vereiste aantal goedkeuringen is nul. CodeRabbit
+kan toch blokkeren met een ingediende `CHANGES_REQUESTED`-review of een open
+reviewgesprek; een groene `CodeRabbit`-check betekent alleen dat de reviewtaak
+is afgerond.
+
+`.coderabbit.yaml` houdt automatische incrementele reviews actief en kiest
+`quiet`: belangrijke opmerkingen blijven inline, overige suggesties komen in
+de samenvatting. `auto_approvals.enabled: false` voorkomt nieuwe automatische
+afkeuringen en goedkeuringen van de bot. Docstringdekking blijft een
+waarschuwing. De configuratie erft overige ingestelde reviewtools en
+projectinstructies. Geen bronpad wordt uitgesloten en de GitHub-branchregels
+worden niet gewijzigd.
+
+Bestaande afkeuringen verdwijnen niet door deze YAML. Controleer elke
+opmerking tegen de actuele bron, herstel geldige fouten en los pas daarna
+het betreffende gesprek op. Trek een oude botafkeuring alleen gemotiveerd in
+als de bijbehorende bevindingen zijn afgehandeld. Een bestaande open
+inhoudelijke bevinding blijft open; een instellingenwijziging is geen bewijs
+dat de code klopt.
+
+CodeRabbit leest de configuratie uit de PR-branch. Werk oudere branches na
+integratie bij met de actuele main-inhoud en behoud hun eigen wijzigingen.
+Dat is ook nodig voor oude workflows die nog op verwijderde self-hosted
+runners wachten: opnieuw starten van dezelfde oude workflow wijzigt de
+runnerkeuze niet. Mergeconflicten vragen afzonderlijke inhoudsbehoudende
+integratie. De tellingen en bronversies van deze controle staan in
+[het CodeRabbit-verslag](verification/coderabbit-unblock-20261108.json).
+
 ## Primaire bronnen
 
 - GitHub. (z.d.). *GitHub-hosted runners reference*. Geraadpleegd op 8 november
@@ -164,3 +197,11 @@ De productvoortgang blijft **41/100**; CI-inrichting sluit geen OS-criterium.
   Actions*. Geraadpleegd op 8 november 2026, van
   https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/customize-the-agent-environment
 - Canonical. (z.d.). *Ubuntu Snapshot Service*. https://snapshot.ubuntu.com/
+- CodeRabbit. (2026, 1 november). *Configuration reference*.
+  https://docs.coderabbit.ai/reference/configuration
+- CodeRabbit. (z.d.). *Automatic Approvals*. Geraadpleegd op 8 november 2026,
+  van https://docs.coderabbit.ai/pr-reviews/automatic-approvals
+- CodeRabbit. (z.d.). *Configuration inheritance*. Geraadpleegd op
+  8 november 2026, van https://docs.coderabbit.ai/configuration/configuration-inheritance
+- CodeRabbit. (z.d.). *Configuration via YAML file*. Geraadpleegd op
+  8 november 2026, van https://docs.coderabbit.ai/getting-started/yaml-configuration
