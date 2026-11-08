@@ -1,14 +1,14 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Vragen en hulp
-    url: https://github.com/simonvanieperen/nieuw-os/discussions/categories/vragen-en-hulp
-    about: Hulp bij de broncode, bouwen, testen en het begrijpen van Nieuw OS.
-  - name: Product en gebruikservaring
-    url: https://github.com/simonvanieperen/nieuw-os/discussions/categories/product-en-gebruikservaring
-    about: Bespreek gebruikersproblemen, ideeën, dagelijkse taken en toegankelijkheid.
-  - name: Architectuur en ontwerp
-    url: https://github.com/simonvanieperen/nieuw-os/discussions/categories/architectuur-en-ontwerp
-    about: Onderbouw technische voorstellen en bespreek interfaces en bewijsgrenzen vóór implementatie.
-  - name: Beveiligingsprobleem
-    url: https://github.com/simonvanieperen/nieuw-os/blob/main/SECURITY.md
-    about: Lees het actuele meldbeleid; plaats geen secrets of exploiteerbare details in een publiek issue.
+  - name: Questions and support
+    url: https://github.com/simonvanieperen/BaryonOS/discussions/categories/vragen-en-hulp
+    about: Get help reading, building, and testing Baryon OS.
+  - name: Product and user experience
+    url: https://github.com/simonvanieperen/BaryonOS/discussions/categories/product-en-gebruikservaring
+    about: Discuss user needs, ideas, everyday tasks, and accessibility.
+  - name: Architecture and design
+    url: https://github.com/simonvanieperen/BaryonOS/discussions/categories/architectuur-en-ontwerp
+    about: Discuss technical proposals, interfaces, and evidence limitations before implementation.
+  - name: Security concern
+    url: https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md
+    about: Read the current reporting policy. Do not post secrets or exploitable details publicly.

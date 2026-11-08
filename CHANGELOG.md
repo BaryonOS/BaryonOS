@@ -12,40 +12,30 @@
 
 ## 2026-11-03
 
-Gebaseerd op commitbereik
+Based on commit range
 `ad2b981fe1f2bcccb03cb776b2281d32529d2f00..380111b68688c981eec6abb8fab29174a29f5601`:
-14 commits, van 30 oktober t/m 2 november 2026. De eindcommit is inbegrepen.
+14 commits dated 30 October–2 November 2026, inclusive.
 
-### Functies
+### Features
 
-- Materiaal en Rekenmachine zijn verder geïntegreerd in de native
-  venstersessie, met klembord, bijgewerkt tekenen en herstel na een
-  compositorstoring.
-- Sleutelstatus blijft behouden na een koude herstart; het sleutelbeheer is
-  uitgebreid met rotatie en intrekking.
-- Een RTC-klok kan optioneel de UTC-tijd aan een ring-3-dienst leveren.
-- De native route bevat een TPM-proef en een bediende testversie van Materiaal;
-  dit zijn ontwikkelproeven, geen release- of hardwareacceptatie.
+- Materiaal and Calculator were further integrated into the native desktop session, including clipboard support, improved drawing, and recovery from a compositor failure.
+- Key state persists across a cold restart; key management gained rotation and revocation.
+- An optional real-time clock can supply UTC time to a ring-3 service.
+- The native path includes a TPM experiment and an interactive test version of Materiaal. These are development experiments, not release or physical-hardware acceptance.
 
-### Bugfixes
+### Fixes
 
-- Herstelde native bediening voor de opdrachtenkiezer, proportionele
-  aanwijzerposities en het volledig opnieuw tekenen van dockknoppen.
-- Een TCP-verbindingsdeadline geldt niet langer voor een al gevestigde
-  verbinding; gesloten verbindingen worden correct als gesloten gemeld.
-- Herstelde betrouwbare afhandeling van NAS-bewerkingen met onzekere uitkomst
-  en isoleerde de configuratie van de native probe.
-- Het wachtwoordveld valideert invoer vooraf en geeft de ingevoerde waarde niet
-  terug aan de bediening.
+- Restored native operation of the task selector, proportional pointer positioning, and complete redrawing of dock buttons.
+- TCP connection deadlines no longer apply to already-established connections; closed connections are correctly reported as closed.
+- Restored reliable handling of NAS operations with uncertain outcomes and isolated native-probe configuration.
+- The password field validates input before accepting it and does not echo the entered value to the user interface.
 
-### Onderhoud
+### Maintenance
 
-- De preflight meldt nu duidelijk wanneer de hosttest-linker ontbreekt.
-- CI en verificatiearchieven zijn uitgebreid voor componentintegratie en
-  native desktop-, netwerk- en opslagcontroles.
-- Het geluidsstuurprogramma kan begrensde PCM-formaatinformatie verwerken;
-  dit is geen bewijs van volledige geluidsuitvoer.
+- Preflight now clearly reports a missing host-test linker.
+- CI and verification archives were extended for component integration and native desktop, networking, and storage checks.
+- The audio driver can parse bounded PCM format information; this does not establish complete audio-output functionality.
 
-### Incompatibele wijzigingen
+### Breaking changes
 
-- Geen vastgesteld in deze commitreeks.
+- None identified in this commit range.

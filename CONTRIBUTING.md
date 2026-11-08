@@ -8,6 +8,8 @@ Use [Discussions](https://github.com/simonvanieperen/BaryonOS/discussions) for q
 
 The [community guide](docs/COMMUNITY.md) explains which channel fits each type of contribution. Search for existing work before opening a new issue or proposal.
 
+Submitting an issue does not start the autonomous agent pipeline. A maintainer reviews actionable tasks before assigning a pipeline label.
+
 ## Development environment
 
 Before making a change, read:
