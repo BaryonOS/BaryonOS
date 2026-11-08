@@ -1,5 +1,6 @@
 use nieuw_os_usb_core::boot::{
-    Error, KeyboardChanges, KeyboardReport, KeyboardState, KeyboardStatus, MouseReport,
+    Error, KeyboardChanges, KeyboardReport, KeyboardState, KeyboardStatus, MouseChanges,
+    MouseReport, MouseState,
 };
 
 fn report(modifiers: u8, keys: [u8; 6]) -> [u8; 8] {
@@ -171,5 +172,57 @@ fn mouse_is_bounded_ignores_oem_and_decodes_signed_displacements_exactly() {
                 assert_eq!(MouseReport::parse(&bytes), expected);
             }
         }
+    }
+}
+
+#[test]
+fn mouse_button_transitions_and_detach_release_are_per_lifetime() {
+    let mut state = MouseState::new();
+    assert_eq!(
+        state.update(&[0x81, 5, 0xfd]).unwrap(),
+        MouseChanges {
+            buttons_pressed: 1,
+            dx: 5,
+            dy: -3,
+            ..MouseChanges::default()
+        }
+    );
+    assert_eq!(state.update(&[1, 0, 0]).unwrap(), MouseChanges::default());
+    assert_eq!(
+        state.update(&[6, 0, 0]).unwrap(),
+        MouseChanges {
+            buttons_pressed: 6,
+            buttons_released: 1,
+            ..MouseChanges::default()
+        }
+    );
+    assert_eq!(
+        state.clear(),
+        MouseChanges {
+            buttons_released: 6,
+            ..MouseChanges::default()
+        }
+    );
+    assert_eq!(state.clear(), MouseChanges::default());
+    assert_eq!(state, MouseState::new());
+    assert_eq!(state.update(&[6, 0, 0]).unwrap().buttons_pressed, 6);
+}
+
+#[test]
+fn malformed_mouse_reports_preserve_buttons_until_clear_or_valid_report() {
+    for bytes in [
+        vec![],
+        vec![0, 0],
+        vec![0; 9],
+        vec![0, 128, 0],
+        vec![0, 0, 128],
+    ] {
+        let mut state = MouseState::new();
+        state.update(&[7, 0, 0]).unwrap();
+        let before = state;
+        assert!(state.update(&bytes).is_err());
+        assert_eq!(state, before);
+        assert_eq!(state.clear().buttons_released, 7);
+        assert_eq!(state.clear(), MouseChanges::default());
     }
 }
