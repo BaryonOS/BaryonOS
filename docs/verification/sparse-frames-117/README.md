@@ -52,7 +52,7 @@ en eindigde met raw 35. De host-runner herkent dat record niet en meldt
 
 - Dit bewijst op deze omgeving dat de sparse-route native werkt (exacte
   pixelcontrole van de probe, alle zes fasen, raw 33) en dat main hier op
-  traagheid vastloopt. In mijn eerdere QEMU 10-omgeving slaagde main wel
+  traagheid vastloopt. In de eerdere QEMU 10-omgeving slaagde main wel
   (136 s, zie `full-release-interactive-native/`); de main-mislukking is dus
   omgevingsafhankelijk en geen regressie van main.
 - Eén run per bron: geen herhaalbaarheid, geen p50/p95, geen meting van de
@@ -124,6 +124,6 @@ fase 5 van 6 (`list`). De tegeltellingen per fase zijn vrijwel gelijk aan de
 geslaagde run (1608 / 2886 / 2895 / 2912 / 4038 tegenover 1608 / 2887 /
 2896 / 2913 / 4039), dus de code gedraagt zich hetzelfde; de host was
 trager. Daarom staat de workflow voorlopig op `workflow_dispatch`
-(handmatige meting) en niet op pull_request/push. Mijn besluit staat nog open:
+(handmatige meting) en niet op pull_request/push. Een besluit van de projecteigenaar staat nog open:
 de watchdog van de probe verruimen (kernel `desktop.rs` en de 240 s-grens in
 `run_materiaal_probe.py`), of eerst meten op GitHub-runners.

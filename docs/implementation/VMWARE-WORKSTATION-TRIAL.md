@@ -1,13 +1,13 @@
 # VMware Workstation Pro — concrete proefopdracht
 
-2 november 2026. Ik heb VMware Workstation Pro op mijn Windows-pc
-geïnstalleerd. De opdracht is een VMware-route onderzoeken naast de bestaande
-ontwikkelroute.
+2 november 2026. De installatie van VMware Workstation Pro op de betrokken
+Windows-pc is gemeld. De opdracht betreft onderzoek naar een VMware-route
+naast de bestaande ontwikkelroute.
 Er is nog **geen VMware-uitvoering, ISO of werkende VMware-desktop bewezen**.
 
 De aangewezen uitvoerende sessie is **Ontwerp veilige OS-desktop**,
 `01a19c0e-6a17-70e4-8da0-263949812063`, host `durable`. De coördinerende sessie
-heeft deze sessie gelezen. De uitvoering was gepauzeerd na mijn verzoek om
+heeft deze sessie gelezen. De uitvoering was gepauzeerd na het verzoek om
 afstemming. Deze opdracht is **voorbereid en nog niet verzonden**: in de
 coördinerende sessie was alleen `read_thread` beschikbaar, zonder
 `send_message_to_thread` of `handoff_thread`. Opslag van deze opdracht betekent
@@ -15,16 +15,16 @@ daarom niet dat de uitvoerende sessie is gestart.
 
 ## Opdracht voor de uitvoerende sessie
 
-1. Behoud je bestaande WIP en de nieuwe sessieslice in concept-PR129. Neem geen
+1. Behoud de bestaande WIP en de nieuwe sessieslice in concept-PR129. Neem geen
    overlappende desktop-, auth-, transport- of scorebestanden opnieuw over.
    De geteste sessiebron is `703cc0705471062ffb1483a16f42a2e580a6fdf7`;
    latere documentatie verandert dat brongebonden bewijs niet.
-2. Controleer eerst of je werkelijk toegang hebt tot de Windows-pc. Een
+2. Controleer eerst of daadwerkelijk toegang tot de Windows-pc beschikbaar is. Een
    cloudwerkmap `/workspace` is geen toegang tot de geïnstalleerde Workstation.
    Meet lokaal de Workstation-versie, beschikbare `vmrun`, hostvirtualisatie-
    modus en gebruikte backend. Verander geen Windows-, Hyper-V-, VBS-, TPM-
    of firmwarebeveiliging om een snelheidsclaim te halen.
-3. Onderzoek de gastcompatibiliteit voordat je een VM start. De huidige
+3. Onderzoek de gastcompatibiliteit vóór het starten van een VM. De huidige
    `native-session-route` vereist virtio-blk `1af4:1042` op `00:05.0` en
    virtio-rng `1af4:1044` op `00:06.0`. Workstation documenteert IDE/SATA/SCSI/
    NVMe; die zijn geen vervanging voor deze drivers. Een disk naar VMDK
@@ -73,7 +73,7 @@ Primaire bronnen, geraadpleegd op 2 november 2026:
 
 - Broadcom, [Using VMware Workstation Pro 17](https://techdocs2-prod.adobecqms.net/content/dam/broadcom/techdocs/us/en/pdf/vmware/desktop-hypervisors/workstation/vmware-workstation-pro-17-0.pdf):
   controllers, firmware, PS/2, Host VBS Mode en screenshotvoorwaarden
-  (`captureScreen`, p.314). Dit document bewijst niet welke versie op mijn pc
+  (`captureScreen`, p.314). Dit document bewijst niet welke versie op de betrokken pc
   is geïnstalleerd.
 - Broadcom, [Workstation met Hyper-V/VBS en WHP](https://knowledge.broadcom.com/external/article?legacyId=76918):
   ondersteuning hangt van de hostconfiguratie af; lokaal vaststellen.

@@ -43,7 +43,7 @@ Leg meetbare interactiebudgetten vast, test vloeiende animatie en directe feedba
 Privacy krijgt een vanzelfsprekende bediening: zichtbare gegevenslocatie, rechten bij concrete handelingen, begrijpelijke NAS-koppeling en herstel zonder leveranciersaccount. AI ondersteunt lokaal en blijft optioneel. Beoordeel een ontwerp ook zonder AI, zodat het gewone product op eigen kracht overtuigt.
 
 ### Europese norm als ontwerpopdracht
-Met de Europese oriëntatie van Nieuw OS bedoel ik privacy, zeggenschap, toegankelijkheid, transparantie, open samenwerking en overdraagbaarheid. Die waarden moeten merkbaar zijn in het product en toetsbaar in het gedrag. Specifieke wettelijke of technische normen worden later per toepassingsgebied in een eisenregister gekoppeld aan bewijs; de Europese oriëntatie verwijst hier niet naar één vastgestelde certificering.
+Met de Europese oriëntatie van Nieuw OS worden privacy, zeggenschap, toegankelijkheid, transparantie, open samenwerking en overdraagbaarheid bedoeld. Die waarden moeten merkbaar zijn in het product en toetsbaar in het gedrag. Specifieke wettelijke of technische normen worden later per toepassingsgebied in een eisenregister gekoppeld aan bewijs; de Europese oriëntatie verwijst hier niet naar één vastgestelde certificering.
 
 Een onbekende technische mogelijkheid krijgt een onderzoeksvraag en een afgebakend experiment. Verlaag de productambitie niet omdat de eerste implementatie klein is; een daadwerkelijk aangetoonde grens leidt tot een expliciete ontwerpkeuze.
 

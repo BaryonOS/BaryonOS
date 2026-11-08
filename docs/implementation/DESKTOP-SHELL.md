@@ -62,7 +62,7 @@ Regels:
 | Ctrl+Alt+Delete | Vertrouwd systeemscherm (vergrendelen, wisselen, afmelden, taakbeheer) |
 | Ctrl+Shift+Esc | Taakbeheer |
 
-Met "OS-toets" bedoelen we de toets met het logo, ook wel Super-toets
+Met "OS-toets" wordt de toets met het logo bedoeld, ook wel Super-toets
 genoemd. Op Mac-toetsenborden geldt Cmd als OS-toets.
 
 ## 3. Huidige native basis en wat ontbreekt

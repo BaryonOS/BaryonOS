@@ -34,19 +34,19 @@ Voor nieuwe writes: actuele eigenaar, wijzigingen en afhankelijkheden controlere
 geen claim zien of een timeout maakt een gebied niet vrij. Bestaande opdrachten
 gaan zonder nieuw ACK door. Frozen werk niet stil hervatten; parked WIP behouden.
 Technische ABI-/trustconflicten met betrokken eigenaar en teamleider 89; alleen
-onoplosbare eigenaars-/prioriteitsconflicten naar directeur. Routinetaken vragen geen nieuwe toestemming van mij.
+onoplosbare eigenaars-/prioriteitsconflicten naar directeur. Routinetaken vragen geen nieuwe toestemming van de projecteigenaar.
 Manager 89 blijft enige status-/scorewriter. Queueovername is sinds `16151b9`
 voltooid; de afzonderlijke integratoroverdracht is nu ook veilig afgerond.
 
-**Exclusieve integratoroverdracht voltooid:** op mijn nieuwe expliciete
-opdracht en het directiebesluit volgt 7f donor 8 op als enige operationele
+**Exclusieve integratoroverdracht voltooid:** op nieuwe expliciete opdracht
+van de projecteigenaar en het directiebesluit volgt 7f donor 8 op als enige operationele
 integrator. Donor 8 heeft expliciet alle nieuwe merges/conflictwrites/runtimewrites
 gestopt en vrijgegeven: watch 2461 exit 124/af, geen mergecommands meer lopend,
 werkboom `d104` volgens donor/TL schoon. Alleen read-only advies blijft bij 8.
 7f bevestigt expliciet ontvangst van het volledige dossier en operatiecheck:
 geen lopende/verzonden mutatie bij donor of ontvanger; conflictclaims/WIP
 overgenomen. Stilte of een time-out geldt niet als vrijgave. Er is geen extra
-goedkeuring van mij of de teamleider nodig.
+goedkeuring van de projecteigenaar of de teamleider nodig.
 Overdrachtsmoment: main `ca45`, #74/4db90e1e, #75/0f8f8dee,
 #78/7f4f7bfe, #65/7960e98a, #80/bc27ed0f, #84/734c8fc5,
 #86/f2c875a7; main/74/75 zelf via liveREST gecontroleerd, overige heads door 7f.
@@ -84,22 +84,23 @@ Geen algemene statusronde, rolterugname of automatische overname.
 Donor 8's nieuwe rolvraag is conform het vastgelegde mandaat beantwoord:
 laat 7f integreren, overdracht behouden. Onafhankelijk domeinwerk gaat door.
 Herkomst van het antwoord: de rolvraag (`ui-18e362c0d2c042a9-9`) is door
-assistent 5d beantwoord binnen het bestaande expliciete mandaat van mij en de
-directie. Er is geen bewijs dat ik daarvoor persoonlijk een nieuwe handeling
-heb uitgevoerd. De latere melding van E8 over zo'n handeling en #75-head
+assistent 5d beantwoord binnen het bestaande expliciete mandaat van de projecteigenaar en de
+directie. Een nieuwe persoonlijke handeling van de projecteigenaar is hiervoor
+niet aangetoond. De latere melding van E8 over zo'n handeling en #75-head
 `6d34` verandert dit niet: `6d34` is een oude queuecommit, geen actuele
 PR-head. De bestaande donorvrijgave en ontvangstbevestiging blijven geldig;
 7f heeft de actuele, vastgezette queueverwijzingen ontvangen.
 De sessiestatus van 19:59 Europe/Amsterdam toont dat de directie wachtte op
-mijn antwoord: heb ik #85 en #76 zelf gemerged of via automatisering laten
-mergen? De assistent kan dit niet namens mij vaststellen of beantwoorden.
+een antwoord van de projecteigenaar op de vraag of #85 en #76 persoonlijk of
+via door de projecteigenaar geactiveerde automatisering waren gemerged.
+De assistent kan dit niet namens de projecteigenaar vaststellen of beantwoorden.
 Stel dezelfde vraag niet opnieuw en stuur geen herhaalberichten. Alleen de merge-identiteitsdispositie
 wacht hierop, niet bestaande domeintoewijzingen. BUILD12 heeft geen open
 gebruikersvraag; onbekende activiteit/berichtacceptatie bewijst nog geen
 uitgevoerde verse headroomcheck of slotvrijgave.
 
-**Integratie overgenomen op mijn opdracht (30 oktober 2026, ~21:10 CET):**
-Ik heb de Claude Code-sessie in de desktopapp expliciet aangewezen om alle
+**Integratieoverdracht op expliciete projectopdracht (30 oktober 2026, ~21:10 CET):**
+De Claude Code-sessie in de desktopapp is door de projecteigenaar expliciet aangewezen om alle
 open pull requests en issues af te handelen, inclusief mergen en sluiten. Deze
 sessie is vanaf dan de enige operationele integrator; 7f en andere sessies
 voeren geen merges, sluitingen of pushes naar integratietakken meer uit.
@@ -114,8 +115,8 @@ vrijgave; er is geen bewijs dat de desktopintegrator haar mandaat vóór de
 cloudwrites op 31 oktober beëindigde. Die historische overdracht wordt daarom
 niet achteraf als bewezen of geautoriseerd geregistreerd.
 
-Ik heb op 2 november rechtstreeks en expliciet het exclusieve
-integratormandaat aan sessie `f090b913` overgedragen en de #85/#76-mergepauze
+Op 2 november is het exclusieve integratormandaat rechtstreeks en expliciet
+door de projecteigenaar aan sessie `f090b913` overgedragen en is de #85/#76-mergepauze
 opgeheven, met behoud van alle review-, test- en branchregels. De vorige
 integrator (`7f895683`) heeft de overdracht ontvangen en bevestigd dat er geen
 lopende of verzonden mutatie, actief WIP of conflictclaim is; die sessie doet

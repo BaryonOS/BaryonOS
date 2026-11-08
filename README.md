@@ -112,11 +112,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
-**Bron:** [`b53a576a`](https://github.com/simonvanieperen/nieuw-os/commit/b53a576a04f7cd5df3fc92cf32d2ceeb0c4939aa) ·
-**Ontwikkelbranch:** `docs/baryon-name-20261108`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #264: conflicten met main 9ff3a691 oplossen met behoud van naamverklaring en projectredactie.
-41/100 blijft 41/100. De Baryon-naamverklaring en de professionele projectredactie uit main zijn verenigd. Alleen documentatieconflicten en integratieassessment gewijzigd; technische contracten, criteria, gewichten en bewijsstatus blijven behouden. Geen nieuwe OS-functionaliteit of native acceptatie.
+**Herbeoordeeld:** 2026-11-09 · **Rubric:** v1 ·
+**Bron:** [`1d5bc01e`](https://github.com/simonvanieperen/nieuw-os/commit/1d5bc01e632fd5bab429f3befc9e9546c9f7661c) ·
+**Ontwikkelbranch:** `docs/wetenschappelijke-schrijfstijl-20261109`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Projectdocumentatie corrigeren naar onpersoonlijke wetenschappelijke schrijfstijl.
+41/100 blijft 41/100. De ik-/wij-vorm en persoonlijke auteursvertelling zijn in de eigen documentatie vervangen door onpersoonlijke, wetenschappelijke formuleringen. De eerdere schrijfafspraak uit PR #263 is vervallen. Besluiten, bevoegdheden, technische contracten, criteria, gewichten en bewijsstatus blijven behouden; oorspronkelijke citaten, vaste bewijsarchieven en technische identifiers zijn ongewijzigd. De naamverklaring van Baryon OS blijft behouden. Geen nieuwe OS-functionaliteit of productacceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

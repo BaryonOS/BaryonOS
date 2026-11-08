@@ -12,14 +12,14 @@ Een eigen OS hoeft niet elk hulpmiddel opnieuw uit te vinden. Rust/LLVM, Git, QE
 
 Principes als processen, virtueel geheugen, microkernels en capabilities zijn bestaande technische kennis. Originaliteit moet vooral ontstaan uit een coherent product, een eigen implementatie en eigen interactieontwerp. Een nieuw ongetoetst beveiligingsmechanisme is geen voordeel op zichzelf.
 
-Er bestaat spanning tussen ‘alles zelf’ en ‘zo snel mogelijk hoge zekerheid’. Een nieuwe kernel begint zonder de bewezen eigenschappen en jarenlange foutcorrectie van volwassen projecten. seL4 kan een onderzoeksreferentie zijn; zijn bewijzen gelden niet voor onze code [A7]. Als hoge zekerheid uiteindelijk belangrijker wordt dan een eigen kern, verdient die scopekeuze een expliciete heroverweging.
+Er bestaat spanning tussen ‘alles zelf’ en ‘zo snel mogelijk hoge zekerheid’. Een nieuwe kernel begint zonder de bewezen eigenschappen en jarenlange foutcorrectie van volwassen projecten. seL4 kan een onderzoeksreferentie zijn; zijn bewijzen gelden niet voor de code van Nieuw OS [A7]. Als hoge zekerheid uiteindelijk belangrijker wordt dan een eigen kern, verdient die scopekeuze een expliciete heroverweging.
 
 ## 2. Aanbevolen eerste platform
 
 | Onderdeel | Eerste keuze | Reden en grens |
 |---|---|---|
 | Processor | x86_64, één virtuele CPU | Een afgebakende eerste implementatie. Een apart opt-in profiel start AP's begrensd (ADR-070); SMP-scheduling volgt later. |
-| Machine | QEMU, een vastgelegde q35-machineversie | Herhaalbare virtuele hardware; geen afhankelijkheid van mijn specifieke laptop. |
+| Machine | QEMU, een vastgelegde q35-machineversie | Herhaalbare virtuele hardware; geen afhankelijkheid van de specifieke ontwikkellaptop. |
 | Accelerator | TCG als CI-baseline; lokale acceleratie optioneel | TCG vereist geen beschikbare hardwarevirtualisatie. Gebruik geen TCG-resultaten als bewijs voor prestaties op echte hardware. |
 | Firmware | OVMF/UEFI, versies en hashes vastgelegd | Standaard bootinterface. Firmware is een afhankelijkheid en onderdeel van het dreigingsmodel. |
 | Loader | Kleine eigen UEFI-loader in Rust | Laadt de eigen kernel en geeft gecontroleerd geheugenkaart en bootinformatie door. |
@@ -85,7 +85,7 @@ Eén broncodebasis kan meerdere architecturen ondersteunen; één ongewijzigd ke
 | Microcontrollers zonder MMU | Ander beveiligingsprofiel of buiten scope | Geen identieke procesisolatie beloven; eventueel aparte MPU/RTOS-benadering |
 | Quantumhardware | Vanaf ontwerp Q0–Q4 onderzoeken: lokale uitvoering en eigen OS op hybride quantumcomputer | Exact uitvoeringsmodel en lokale hardware vereist; zie QUANTUM-RESEARCH.md |
 
-Android documenteert dat veel toestellen vergrendeld worden geleverd en dat ontgrendeling apparaatbeleid volgt en gegevens wist [A8]. De HAL-documentatie maakt expliciet dat leveranciers apparaatspecifieke functies moeten implementeren [A9]. **Ondersteuning van mijn OnePlus 13 is nog niet vastgesteld.** Hiervoor ontbreekt een modelspecifieke port, driverinventaris en geteste boot-/herstelroute. Flash het toestel nu niet.
+Android documenteert dat veel toestellen vergrendeld worden geleverd en dat ontgrendeling apparaatbeleid volgt en gegevens wist [A8]. De HAL-documentatie maakt expliciet dat leveranciers apparaatspecifieke functies moeten implementeren [A9]. **Ondersteuning van de OnePlus 13 is nog niet vastgesteld.** Hiervoor ontbreekt een modelspecifieke port, driverinventaris en geteste boot-/herstelroute. Flash het toestel nu niet.
 
 Compatibiliteit met bestaande apps is een afzonderlijk productproject. Native apps vragen een SDK, API/ABI en distributiepad. Webapps vragen een port van een grote browserengine. Windows-/Android-/Linux-apps vragen compatibiliteitslagen of gast-VM’s, licentiecontrole en extra isolatie; ondersteuning volgt niet uit de keuze Rust of microkernel. Een optionele Linux-gast is een andere keuze dan een Linux-kernel als basis, en wordt pas na expliciete scopebeslissing toegevoegd.
 

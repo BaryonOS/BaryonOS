@@ -179,5 +179,5 @@ Codex, Git-host en de Node-ontwikkelhost zijn bouw-/testmiddelen. Zij worden gee
 - Rescorla, E. (2018). *The Transport Layer Security (TLS) protocol version 1.3* (RFC 8446). IETF. https://www.rfc-editor.org/rfc/rfc8446.html — transport en 0-RTT/replay; geraadpleegd 27 oktober 2026.
 - Rose, S., Borchert, O., Mitchell, S., & Connelly, S. (2020). *Zero trust architecture* (NIST SP 800-207). NIST. https://doi.org/10.6028/NIST.SP.800-207
 
-Quota, rolverdeling en beheerder-verwijderrecht zijn projectbesluiten op basis van mijn opdracht; de bronnen certificeren dit project niet.
+Quota, rolverdeling en beheerder-verwijderrecht zijn projectbesluiten op basis van de vastgelegde opdracht; de bronnen certificeren dit project niet.
 

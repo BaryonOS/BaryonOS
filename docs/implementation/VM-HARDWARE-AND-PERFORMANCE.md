@@ -2,7 +2,7 @@
 
 Onderzoek en afgebakende launcherwijziging, 2 november 2026. Basis:
 `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. Dit document beschrijft geen
-meting op mijn pc en geen fysieke-hardwareacceptatie.
+meting op de betrokken Windows-pc en geen fysieke-hardwareacceptatie.
 
 ## Contract en feitelijke oorzaak
 
@@ -15,9 +15,9 @@ Windows/WHPX-acceptatie is een afzonderlijke nog open controle.
 De oorspronkelijke launcher forceerde `tcg,thread=single`, `qemu64`, één
 vCPU, 256 MiB en `pc-q35-8.2`. TCG vertaalt CPU-instructies in software. Ook
 `run_materiaal_preview.py` gebruikt dit expliciete profiel; zijn standaard
-`timeout=45` is een afbreekgrens, geen gemeten schermtijd. Reproduceer de door
-mij gemelde vertraging van circa 45 seconden per scherm met afzonderlijke
-fasetijden.
+`timeout=45` is een afbreekgrens, geen gemeten schermtijd. De gemelde
+vertraging van circa 45 seconden per scherm moet met afzonderlijke fasetijden
+worden gereproduceerd.
 
 Daarnaast toont de code een dure renderroute:
 
@@ -145,7 +145,7 @@ lengte en intrekking. Geef apps geen raw framebuffer of DMA-recht voor snelheid.
   Linux-procesbewijs zonder hypervisorinitialisatie, geen Windowsbewijs.
 - Windows PowerShell 5.1, echte WHPX-sessie, KVM/HVF, fysieke pc/periferie en
   snelheidsvergelijking: **niet uitgevoerd**. Deze cloudresultaten beschrijven
-  mijn pc niet.
+  de betrokken Windows-pc niet.
 
 Rollback: draai de launcher/helper/packagewijziging terug als afzonderlijke
 commit; de expliciete `-Acceleration Tcg` behoudt ondertussen het oude
@@ -173,7 +173,7 @@ in de minimaal toegelaten QEMU 10.2.1-build.
 
 ## Lokale Windowsbevindingen van 2 november 2026
 
-De geautoriseerde lokale Codex-sessie rapporteert voor mijn pc een Ryzen 9
+De geautoriseerde lokale Codex-sessie rapporteert voor de betrokken pc een Ryzen 9
 9950X3D met 64 GiB en Windows 11 25H2. WHPX initialiseert zonder hostinstellingen
 te wijzigen. Op de oude bundel leverde één koude proef 10,453 s met WHPX
 tegenover 19,952 s met TCG tot exact hetzelfde volledige frame. Op bron
@@ -201,7 +201,7 @@ alle 8 fasen en 48 appbeelden exact, exitcodes 0. Daarna volgde een echte
 Windows-start met Auto/WHPX/SDL en launcherexit 0. WHPX eerste account:
 gemiddeld 6,625 s (6,481–6,823); gast → desktop: 4,070 s (3,932–4,231).
 TCG: respectievelijk 13,356 s en 10,023 s. Volledige route: 31,481 s tegenover
-71,982 s. Drie starts per backend op mijn pc,
+71,982 s. Drie starts per backend op dezelfde pc,
 niet beheerst voor achtergrondlast. Verdere bron-/pakkethashes en de
 afzonderlijke idle-CPU-observatie staan in het lokale eindrapport hierboven.
 

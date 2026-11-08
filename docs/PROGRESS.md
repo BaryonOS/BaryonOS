@@ -300,7 +300,7 @@ historische uitvoeringen; hun exacte bronstatus en vier cloudmain-mergeheads
 zijn afzonderlijk gehasht bewaard, niet nieuwe native acceptatie.
 
 Main-reconciliatie (3 november 2026), bron `cbe28f39`: **41 -> 41**.
-Mijn handmatige squash-merge van #134 (`cbbc9c99`) is met behoud van inhoud
+De handmatige squash-merge van #134 (`cbbc9c99`) door de projecteigenaar is met behoud van inhoud
 opgenomen; 10 netwerkservice- en 16 opslaghosttests geslaagd, 207
 archiefhashes en 99 manifestvermeldingen geldig.
 Rubric buiten assessment identiek; historische134-nativegrenzen niet als
