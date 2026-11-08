@@ -161,6 +161,15 @@ class VolumeOracleTests(unittest.TestCase):
         self.assertTrue(vd.compatible([("valid", vd.MASK - 1, 1)], vd.MASK, False))
         self.assertFalse(vd.compatible([("zero", 0, 0)], 2, False))
 
+    def test_deleted_object_at_maximum_revision_is_refused(self):
+        # Mirrors table.rs Entry::validate: revision + 1 fails closed, never wraps.
+        def sectors(revision):
+            entry = dict(vd.empty_entry(), revision=revision, request_id=1, created=1, modified=1)
+            return vd.encode_table(revision, 1, entries_with({0: entry}))
+        vd.decode_table(1, sectors(1))
+        with self.assertRaisesRegex(ValueError, "revision overflows"):
+            vd.decode_table(1, sectors(vd.MASK))
+
     def test_nonzero_unmarked_volume_is_not_an_empty_volume(self):
         image = image_with({})
         start = (vd.FIRST + vd.VOLUME_SECTORS - 1) * vd.SECTOR

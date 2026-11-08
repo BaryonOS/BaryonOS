@@ -3,6 +3,7 @@ name: Network broker quality
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
 
@@ -15,7 +16,7 @@ concurrency:
 
 jobs:
   net-broker-quality:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, unraid, build]
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -43,7 +44,7 @@ jobs:
 
   native-network-service:
     needs: net-broker-quality
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, X64, unraid, build]
     timeout-minutes: 20
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
@@ -64,8 +65,7 @@ jobs:
           rustup target add --toolchain 1.91.1 x86_64-unknown-none
       - name: Disposable QEMU and explicit firmware
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+          dpkg -s qemu-system-x86 ovmf >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf; }
           test -f "$OS_OVMF_CODE"
           test -f "$OS_OVMF_VARS"
       - name: Fetch locked inputs before offline native builders
@@ -115,4 +115,4 @@ jobs:
             build/n01-ci-*/run/network-service-*/stderr.txt
             build/n01-ci-*/run/network-service-*/network-peer.json
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 3

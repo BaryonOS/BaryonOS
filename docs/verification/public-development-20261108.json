@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-08",
+  "task": "Bevestig openbare ontwikkeling als projectrichting, met het bestaande MPL-2.0-plan als uitgangspunt voor de licentiecontrole.",
+  "repository": "simonvanieperen/nieuw-os",
+  "source_commit": "363b486b06023d3d578f8eca2b23ff49045a1757",
+  "source_tree": "5604b9e14d22c8ec97e2868be0c0c3f35ff62a9b",
+  "branch": "docs/public-development-direction-20261108",
+  "scope": "Documentatie en bestaande voortgangsweergave; geen toepassing van een projectlicentie of verandering van GitHub-zichtbaarheid.",
+  "source_verification": {
+    "files_read": 56,
+    "git_blob_hash_matches": 56,
+    "mismatches": 0,
+    "scope": "Opgehaalde bron-/bewijsbestanden uit deze commit; geen volledige repositoryaudit."
+  },
+  "observed_before_change": {
+    "repository_visibility": "private",
+    "root_license_plan": "LICENSE-PLAN.md",
+    "root_license_file_present": false,
+    "public_direction": "Door Simon bevestigd in deze opdracht",
+    "license_baseline": "MPL-2.0 voor eigen OS-code; nog niet toegepast",
+    "hosted_runner_migration_pr": 249
+  },
+  "decision": "ADR-PUBLIC-DEVELOPMENT-20261108",
+  "checks": [
+    {
+      "command": "python3 -B tools/progress.py --write",
+      "exit_code": 0,
+      "result": "41/100, rubric v1 bijgewerkt"
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_code": 0,
+      "result": "41/100, rubric v1 consistent"
+    },
+    {
+      "check": "Vergelijking van alle gematerialiseerde bestanden met de bron",
+      "result": "Alleen de zeven hieronder genoemde paden verschillen; dit rapport wordt als achtste pad toegevoegd."
+    },
+    {
+      "check": "progress.json buiten assessment vergelijken",
+      "result": "Identiek: criteria, gewichten, statussen en bewijsverwijzingen blijven behouden; R03 open."
+    },
+    {
+      "check": "Gegenereerde docs/PROGRESS.md vergelijken",
+      "result": "Bytegelijk aan de bron; geen criteria gewijzigd."
+    },
+    {
+      "check": "Besluitlinks, ADR-anker en conflictmarkers",
+      "result": "Nieuwe besluitlinks gebruiken het correcte anker; geen mergeconflictmarkers."
+    }
+  ],
+  "review": {
+    "kind": "Gerichte tweede AI-review",
+    "status": "Geen inhoudelijk blokkerende bevinding; ontbrekend controlerapport toegevoegd en beide tekstpreciseringen uit de review verwerkt.",
+    "independent_human_legal_audit": false
+  },
+  "progress": {
+    "before": 41,
+    "after": 41,
+    "new_accepted_criteria": []
+  },
+  "modified_document_blobs": [
+    {
+      "path": "LICENSE-PLAN.md",
+      "base_blob": "3967f1f2c64c549462ca43100dcab67c7d11cdd8",
+      "new_blob": "f573deb9572246d76057eba77198e2f9462d9de6"
+    },
+    {
+      "path": "README.md",
+      "base_blob": "14097aadcf8e1cfa4d76b94e88797b07e4c71c93",
+      "new_blob": "414c83b97296918c677eda078f915d6d9ac2557a"
+    },
+    {
+      "path": "docs/DECISIONS.md",
+      "base_blob": "0c94b48ce3d14d38b9d1868117e19139c97647c9",
+      "new_blob": "27dd3c31ea9f4d8d79e584a1c8dae08c43c470a6"
+    },
+    {
+      "path": "docs/PROJECT-STATE.md",
+      "base_blob": "61daf63669d4632ff04fc14e6512502fc1b8247e",
+      "new_blob": "321533e5c76aae3fd1a4cecfe56d634ffcecfb4a"
+    },
+    {
+      "path": "docs/assets/progress.svg",
+      "base_blob": "094f5997b18d0afde5e8230155b5a18ea83bebb6",
+      "new_blob": "cbbef0bdb4e4019b7f4d45bda8f8429c34a4e3e0"
+    },
+    {
+      "path": "docs/implementation/EUROPE-AND-RELEASE.md",
+      "base_blob": "af2ff332d0532664f8efb61cce4cffde63954b0c",
+      "new_blob": "08119f04e9ab1ca4212226685c18583c2f4063dc"
+    },
+    {
+      "path": "docs/progress.json",
+      "base_blob": "305760377d1f355b5b4781e89fe10c5b9fa18e90",
+      "new_blob": "6ca2ca7491d33aa0dbdb8108ecb623ed05d0ca31"
+    }
+  ],
+  "not_performed": [
+    "Volledige licentie-/rechthebbendenaudit per bestand of component",
+    "Toepassen van MPL-2.0 via LICENSE en bronnotices",
+    "Gehele Git-geschiedenis of Actions-metadata controleren op publicatiegeschiktheid",
+    "Rust-, QEMU- of fysieke hardwaretests",
+    "Repository openbaar maken of branchregels wijzigen"
+  ],
+  "open_work": [
+    "Vijf bestaande controles in LICENSE-PLAN.md",
+    "Afzonderlijke rechten op OSDev-/Little OS Book-materiaal en te publiceren geschiedenis",
+    "Daadwerkelijke publicatie-uitvoering na de controles",
+    "Productreleasecriterium R03"
+  ],
+  "rollback": "Gerichte revert via een PR; een documentatierevert trekt geen eventueel later verleende rechten of verspreide kopieën in.",
+  "primary_sources": [
+    {
+      "organization": "Mozilla",
+      "title": "Mozilla Public License, version 2.0",
+      "url": "https://www.mozilla.org/en-US/MPL/2.0/",
+      "accessed": "2026-11-08"
+    },
+    {
+      "organization": "Mozilla",
+      "title": "MPL 2.0 FAQ",
+      "updated": "2024-01-30",
+      "url": "https://www.mozilla.org/en-US/MPL/2.0/FAQ/",
+      "accessed": "2026-11-08"
+    }
+  ]
+}
