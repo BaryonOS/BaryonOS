@@ -1,5 +1,10 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+Publieke hosted CI (8 november 2026), integratiebasis `3195e659`: **41 → 41/100**.
+23 workflows met standaardrunners; 248 lokale Python-tests en 179 shellsyntax-
+controles geslaagd. Native gates, productcriteria en gewichten behouden.
+[Configuratie en bewijs](verification/ci-public-runners-20261108.json).
+
 PR #249 hervat (8 november 2026), bron `575a5040` met main `5b218982`:
 **41 → 41/100**. Vier documentconflicten opgelost met behoud van de
 runnerwijziging en openbare ontwikkelrichting. GitHub bevestigt een

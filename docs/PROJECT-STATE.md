@@ -1,5 +1,46 @@
 # Actuele projectstatus
 
+## NEXT AGENT HANDOFF — publieke hosted CI geïntegreerd — 8 november 2026
+
+**Bron:** main `0cf49b584f9264e676d62168caeb2230669ca538`, runner-PR #249
+`0de9d805` en artifact-PR #251 `dc6c6bca`; lokale integratiebasis `3195e659`.
+Dezelfde integratieboom staat op GitHub als `39586927`; push verloopt via
+de GitHub-koppeling omdat lokaal geen Git-pushcredential beschikbaar is.
+Werkbranch blijft `ci/github-hosted-runners-20261108`; dezelfde PR #249.
+GitHub bevestigt dat de bestaande repository `public` is. **41 → 41/100**.
+
+**Gerealiseerd:** alle 23 workflows kiezen `ubuntu-24.04` (26 jobdefinities,
+42 mogelijke matrixjobs). Ook de historische private audit heeft geen eigen
+runnerselector meer; zijn private-only voorwaarde blijft behouden. De vaste
+Python-/QEMU-/firmwarepins en compact-bewijsaction zijn gecombineerd.
+`host-quality` en `qemu-smoke` draaien parallel en blijven verplichte checks.
+Specialistische main-pushes volgen de bestaande documentfilters; geen dubbele
+`ready_for_review`-runs. Twee volledig overlappende matrixentries zijn
+samengevoegd met hun specialistische gates, inclusief scalar build; 14
+matrixjobs, maximaal vier tegelijk. De hostcache krijgt een bron-SHA/herstel-
+prefix. Copilot heeft een hosted setup met dezelfde gereedschappen.
+
+**Werkelijk lokaal gecontroleerd:** 239 bestaande host-/gate-/collectortests
+plus 9 configuratieregressietests = **248 geslaagd**, exit 0. 23 workflow- en
+3 Action-YAMLs met unieke sleutels; **179 bashblokken** syntactisch geldig.
+Alle **170 bestaande run-stappen** sinds de integratiebasis en **16
+bewijsselecties** behouden. De enige extra run-opdracht in bestaande jobs is
+de nieuwe workflowregressietest. Rapport en bronhashes:
+[ci-public-runners-20261108.json](verification/ci-public-runners-20261108.json).
+Geen nieuwe lokale Rust-/QEMU-run: die tools zijn hier niet aanwezig.
+
+**Open bij checkpoint:** nieuwe hosted CI op de te pushen gecombineerde head;
+echte toolinstallatie, native suites en uploadstatus apart beoordelen. De
+historische budgetfout was op de toen private repository en voorspelt de
+nieuwe run niet. Branchregels blijven ongewijzigd; reviewthreads moeten
+inhoudelijk zijn afgehandeld. PR #251 pas sluiten nadat zijn inhoud via #249
+in main is opgenomen. De oude Copilot-WSL-keuze uit #245 mag niet terugkeren.
+
+**Eerstvolgende stap:** push dezelfde branch, werk PR #249 bij en activeer
+squash-auto-merge volgens bestaande regels; verwerk concrete CI-/reviewfouten.
+De oude 8-vCPU SMP-timeout blijft een te meten runnercapaciteitsrisico;
+geen markers, cases of tijdslimieten zijn hiervoor versoepeld.
+
 ## Historisch checkpoint — PR #251 artifactopslag hervat — 8 november 2026
 
 **Bron:** PR #251, head `5c291cff3b9c28e4948aeb36adda3acc6ee6a8ab`;
@@ -43,7 +84,7 @@ geen vrijgemaakte opslag geclaimd. Een ontbrekend raw-archief blijft
 onvoldoende voor acceptatie die die bytes vereist. Lokale hercontrole in
 een volledige clone: `python3 -B docs/verification/ci-artifact-storage-20261108/verify_workflows.py --repo . --output /tmp/ci-evidence-workflow-checks.json`.
 
-## NEXT AGENT HANDOFF — PR #249 hervat; Actions-budget blokkeert — 8 november 2026
+## Historisch checkpoint — PR #249 hervat; Actions-budget blokkeert — 8 november 2026
 
 **Bron en taak:** hervat PR #249 op `575a50409ad7a86786bbfc7da2c409a545bed33f`
 en neem main `5b2189824c32145ad5c110429517dfcea3f2720f` op met behoud van de

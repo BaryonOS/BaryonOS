@@ -2,10 +2,13 @@ name: Artifact store contract quality
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened]
     paths:
       - Cargo.toml
       - Cargo.lock
+      - rust-toolchain.toml
+      - .cargo/**
+      - .github/actions/**
       - crates/artifact-store-core/**
       - .github/workflows/artifact-store-quality.yml
   push:
@@ -13,6 +16,9 @@ on:
     paths:
       - Cargo.toml
       - Cargo.lock
+      - rust-toolchain.toml
+      - .cargo/**
+      - .github/actions/**
       - crates/artifact-store-core/**
       - .github/workflows/artifact-store-quality.yml
   workflow_dispatch:
@@ -53,4 +59,6 @@ jobs:
       - name: Contract formatting
         run: cargo +1.90.0 fmt --manifest-path crates/artifact-store-core/Cargo.toml -- --check
       - name: Freestanding library build
+        env:
+          RUSTFLAGS: -C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2
         run: cargo +1.90.0 build --locked --release --lib --target x86_64-unknown-none -p artifact-store-core

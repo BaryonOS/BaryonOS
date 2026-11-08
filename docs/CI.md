@@ -1,19 +1,48 @@
-# Reguliere CI op standaard GitHub-runners
+# CI voor de publieke repository
 
-**Status:** geïmplementeerde CI-configuratie; volledige uitvoering van de
-gedeelde setup op een GitHub-runner is nog niet bewezen. De run op PR-head
-`575a5040` stopte vóór runner-toewijzing door een Actions-budgetblokkade.
+**Configuratie:** alle 23 workflowbestanden kiezen standaard
+`ubuntu-24.04`: 26 jobdefinities en maximaal 42 jobs na matrixuitbreiding,
+inclusief de afzonderlijke Copilot-setup en de historisch private audit.
+Die audit behoudt zijn private-only voorwaarde en draait niet op de publieke
+repository. Er zijn geen self-hosted runnerselectors meer.
 
-**Lokaal bewijs:** 224 geselecteerde hosttests, pakket-/firmwarecontrole,
-geïsoleerde APT-resolutie en een gepauzeerd QEMU/TCG-proces zijn vastgelegd
-in [het brongebonden controleverslag](verification/ci-standard-runners-20261108.json).
-Daarbij is Python 3.12.14 gebruikt, niet de CI-pin 3.12.12. De volledige
-sudo-installatiestap, Rust-/Node-hostsuite en eigen-OS-QEMU-starts blijven open.
+**Integratie:** de bestaande PR #249 combineert de runner-/toolpins met de
+bewijsoplossing uit PR #251 en de stroomlijning hieronder. De repository is
+op 8 november 2026 via GitHub als `public` gecontroleerd. Configuratie op een
+werkbranch is pas de standaard voor nieuwe main-runs na samenvoeging.
 
-De 21 reguliere workflows gebruiken `ubuntu-24.04`: 24 jobdefinities en 42
-jobs na de bestaande matrixuitbreidingen. De aparte private publicatie-audit
-valt buiten deze configuratie. `ci.yml` behoudt de verplichte keten
-`host-quality` → `qemu-smoke` en de bestaande time-outs.
+**Bewijs:** de lokale host- en configuratiecontroles staan in
+[het integratierapport](verification/ci-public-runners-20261108.json).
+Dit is geen bewijs dat alle native tests op de nieuwe GitHub-runner slagen.
+De eerder gemeten budgetblokkade op de toen nog private repository is
+historisch bewijs; zij wordt niet als actuele uitvoeringsuitslag gebruikt.
+
+## Wanneer wat draait
+
+| Aanleiding | Uitvoering |
+|---|---|
+| PR geopend, gewijzigd of heropend, ook als concept | Verplichte `host-quality` en `qemu-smoke`; daarnaast toepasselijke specialistische workflows |
+| Concept-PR gereedmaken voor review | Geen herhaling van dezelfde bron |
+| Push naar main | Verplichte checks op de geïntegreerde bron; specialistische workflows volgen dezelfde documentfilters als PRs |
+| Alleen `docs/**` of root-Markdown veranderd | Verplichte CI blijft beschikbaar; brede specialistische workflows starten niet opnieuw |
+| Handmatig via Actions | Iedere reguliere workflow kan afzonderlijk worden gestart; bewijsworkflows bieden `full_evidence` |
+| Copilot-setup aangepast | Gerichte setupcontrole; de configuratie is na merge de ontwikkelomgeving voor Copilot |
+
+`ci.yml` heeft bewust geen padfilters. De bestaande main- en release-regels
+vereisen `host-quality` en `qemu-smoke`; een geheel overgeslagen workflow
+kan anders een verplichte check op Pending laten staan. Beide jobs hebben
+hun eigen checkout en build en draaien nu parallel. Beide moeten slagen.
+
+Achterhaalde PR-runs worden via de bestaande concurrencygroepen geannuleerd.
+De SMP-workflow beschermt daarnaast de lopende main-run; dit garandeert niet
+dat iedere wachtende tussencommit afzonderlijk wordt uitgevoerd.
+
+De componentmatrix is teruggebracht van 16 naar **14 jobs**, met maximaal
+vier tegelijk zodat de matrix de andere gates niet volledig bezet houdt.
+`ui/native` wordt al volledig gecontroleerd in `native-display-input.yml`.
+`artifact-store-core` heeft zijn eigen workflow, nu ook met de scalar
+freestanding-buildvlaggen uit de voormalige matrixentry. Geen componenttest
+of native testcase is hiervoor verwijderd.
 
 ## Vaste gereedschappen
 
@@ -21,133 +50,111 @@ valt buiten deze configuratie. `ci.yml` behoudt de verplichte keten
 |---|---|---|
 | Runner | Standaard `ubuntu-24.04`, Linux x64 | `.github/workflows/` |
 | Python | 3.12.12 | `.github/actions/setup-python/action.yml` |
-| PyYAML voor bestaande host-gatetests | 6.0.3, CPython 3.12/Linux x64-wheel met SHA256 | `.github/actions/setup-python/requirements.txt` |
+| PyYAML voor hosttests | 6.0.3, gehasht CPython 3.12/Linux x64-wheel | `setup-python/requirements.txt` |
 | Rust | 1.90.0; bestaande 1.91.1-controles behouden | Toolchainbestanden en workflowstappen |
-| Node | 24.22.1 voor prototype-/NAS-hosttests | `ci.yml#host-quality` |
-| QEMU x86, common en data | `1:8.2.2+ds-0ubuntu1.18` | `.github/actions/setup-qemu/action.yml` |
+| Node | 24.22.1 voor prototype-/NAS-tests en Copilot | CI- en Copilot-setup |
+| QEMU x86/common/data | `1:8.2.2+ds-0ubuntu1.18` | `.github/actions/setup-qemu/action.yml` |
 | OVMF | `2024.02-2ubuntu0.10` | Dezelfde QEMU-setup |
 | SeaBIOS | `1.16.3-2` | Dezelfde QEMU-setup |
 | iPXE-QEMU | `1.21.1+git-20220113.fbbdc3926-0ubuntu2` | Dezelfde QEMU-setup |
-| Optionele swtpm / libtpms0 | `0.7.3-0ubuntu5.24.04.1` / `0.9.3-0ubuntu4.24.04.1` | Alleen `native-system` schakelt deze installatie in |
+| swtpm / libtpms0 | `0.7.3-0ubuntu5.24.04.1` / `0.9.3-0ubuntu4.24.04.1` | Native-system en Copilot |
 
-Alle 17 QEMU-jobdefinities verwijzen naar één gedeelde installatieactie.
-Het geïmplementeerde installatiescript laat APT uitsluitend lezen uit
-het Ubuntu-snapshot **20261108T000000Z**, met eigen tijdelijke bronnen en
-indexen en de officiële Ubuntu-archivekeyring. De exacte versies worden ook
-bij vooraf geïnstalleerde pakketten opnieuw geïnstalleerd en gecontroleerd.
-Een onbeschikbare versie geeft een fout; er is geen fallback. Het script
-verwijdert geen conflicterende pakketten.
-
-De setup bevat controles voor `pc-q35-8.2`, TCG en SHA256 van OVMF CODE/VARS en het
-VGA-ROM. Beide firmwarepaden worden expliciet ingesteld:
+De 17 reguliere QEMU-jobdefinities plus Copilot hergebruiken één installatie
+uit het ondertekende Ubuntu-snapshot **20261108T000000Z**. De setup controleert
+exacte pakketversies, `pc-q35-8.2`, TCG en de SHA256 van OVMF CODE/VARS en het
+VGA-ROM. Er is geen stille fallback naar andere toolversies. Firmwarepaden:
 
 ```text
 OS_OVMF_CODE=/usr/share/OVMF/OVMF_CODE_4M.fd
 OS_OVMF_VARS=/usr/share/OVMF/OVMF_VARS_4M.fd
 ```
 
-De reguliere rooktest gebruikt TCG, één gast-CPU en wegwerpimages. KVM is
-geen vereiste. Gespecialiseerde SMP- en overige profielen behouden hun eigen
-acceptatievoorwaarden en tijdslimieten.
+TCG en wegwerpimages blijven de reguliere testbasis; KVM of een eigen server
+is geen voorwaarde. De SMP-profielen behouden hun eigen CPU-aantallen en
+inhoudelijke controles. De bestaande gast- en jobtijdslimieten blijven
+behouden; eventuele capaciteitsproblemen moeten eerst op de actuele run
+worden gemeten.
 
-`ubuntu-24.04` fixeert de distributiekeuze, niet iedere byte van de
-GitHub-VM. Reeds aanwezige gedeelde hostbibliotheken kunnen nog met het
-runnerimage veranderen. De setup registreert daarom ook `ImageOS`,
-`ImageVersion`, pakketversies en firmwarehashes. Dit is geen garantie op een
-volledig identiek VM-image of bitidentieke OS-builds.
+`ubuntu-24.04` fixeert de distributie, niet iedere byte van GitHubs VM-image.
+De setup registreert daarom `ImageOS`, `ImageVersion`, pakketten en
+firmwarehashes. Bestaande hostbibliotheken kunnen met het runnerimage wijzigen.
+
+## Cache zonder overgeslagen controles
+
+De bestaande downloadcaches blijven behouden. De host-Rust-buildcache heeft
+nu een sleutel met compatibiliteitshash én bron-SHA; `restore-keys` hergebruikt
+de laatste passende cache. Daardoor kan een latere bronversie zijn bijgewerkte
+intermediates bewaren. GitHub-caches kunnen niet onder dezelfde sleutel
+worden overschreven.
+
+Alle test- en buildstappen blijven na herstel draaien. Native schijfimages,
+acceptatieverslagen en secrets vallen buiten deze cache. De wijziging is
+een uitvoeringsoptimalisatie, geen gemeten snelheidsclaim.
 
 ## Host- en QEMU-controles
 
-`host-quality` behoudt alle bestaande Rust-tests, Clippy/fmt, SDK- en
-targetbuilds, Python-tests, JavaScript-tests, quantumproeven en de
-voortgangs-/schone-werkboomcontrole. Deze bestaande hosttestreeks komt erbij:
+`host-quality` behoudt Rust-tests, Clippy/fmt, SDK- en targetbuilds,
+Python-/JavaScript-tests, quantumproeven en de voortgangs-/schone-boomcontrole.
+De extra bestaande runner-, preflight-, harnas-, artifactbindings- en
+M6c-hosttests uit PR #249 blijven opgenomen. Nieuwe configuratieregressietests
+bewaken runnerkeuze, beperkte rechten, vaste Action-SHA's, vereiste gates en
+behoud van de samengevoegde componentcontroles.
 
-```sh
-for pattern in test_common.py test_preflight.py test_build_paths.py test_guest_harness.py test_m1_artifact_binding.py 'test_m6c_*.py'; do
-  python3 -B -m unittest discover -s tests -p "$pattern"
-done
-```
+De hoofd-QEMU-gate behoudt zes starts:
 
-Deze 99 hosttests bewaken machinekeuze, onjuiste toolversies, ongeldige
-buildpaden, time-outs, ontbrekende markers, onverwachte exitcodes en de
-koppeling van bewijs aan gestarte bestanden. Zij starten het eigen OS niet.
-De bestaande native rooktest blijft nodig:
-
-| QEMU-controle | Verwachte starts bij volledig succes |
+| Controle | Starts bij volledig succes |
 |---|---:|
-| M6c normale opslagproef | 1 |
-| DocumentSession normaal schrijven en koude recovery | 2 |
+| M6c normale opslag | 1 |
+| DocumentSession schrijven en koude recovery | 2 |
 | Native quantum-jobinterface | 1 |
-| SDK-app met toegangsrecht | 1 |
-| SDK-app met geweigerd toegangsrecht | 1 |
-| **Totaal** | **6** |
+| SDK-app met bevoegdheid | 1 |
+| SDK-app met geweigerde bevoegdheid | 1 |
 
-De harde 60-secondenlimiet per gast blijft gelden. Geen markers, negatieve
-gevallen of exitcodecontroles zijn versoepeld. Een hosttest, toolinstallatie
-of QEMU-processtart bewijst geen geslaagde native OS-test.
+Hosttests of een QEMU-toolprobe zijn geen vervanging voor deze native gates.
+Een rode test blijft rood; alleen best-effort artifactuploads tolereren
+uploadfouten.
 
-## Diagnostiek en lokaal gebruik
+## Bewijs en testpakketten
 
-De setup schrijft een omgevingsrapport in `RUNNER_TEMP`. `qemu-smoke`
-bewaart alleen de geselecteerde bekende JSON-rapporten en tekst-/buildlogs
-als `qemu-smoke-evidence`, met
-drie dagen retentie. Deze aanvullende upload is best effort: een
-opslagquotafout blijft zichtbaar; de teststappen zelf blijven verplicht en
-bepalend. Diskimages en binaries vallen buiten deze aanvullende upload.
-De preflight schrijft zijn JSON naar de joblog; er wordt geen
-`build/preflight.json` geproduceerd of als opgeslagen bewijs verondersteld.
+Alle zestien bewijsworkflows, inclusief `ci.yml`, gebruiken
+`preserve-evidence`: eerst brongebonden rapporten in runlog/summary, daarna
+een begrensd compact artifact met drie dagen retentie. Volledige selecties
+zijn handmatig op te vragen met één dag retentie. De Windows-test-ZIPs
+blijven apart beschikbaar wanneer de pakketcontrole én upload slagen.
 
-De lokale `tools/agent_gate.py` slaat GitHub-setupacties en alleen voor
-GitHub bedoelde diagnostiek over. De strikte preflight en echte tests blijven
-onvoorwaardelijk. Geëxporteerde lokale firmwarepaden blijven volgens
-`HOST_KEYS` bruikbaar; een lokale gate vereist geen `RUNNER_TEMP`-rapport.
+De aanvullende `qemu-smoke`-selectie bevat uitsluitend de bekende rapporten
+en tekstlogs; ook de handmatige volledige selectie bevat daar geen ruwe
+diskimages of binaries. Preflight schrijft naar de joblog, niet naar een
+verondersteld `build/preflight.json`. Zie [CI-EVIDENCE.md](CI-EVIDENCE.md)
+voor grenzen, echte uploadstatus en onafhankelijke hercontrole.
 
-## Wanneer GitHub geen runner start
+## Publieke bijdragen en onderhoud
 
-Bij [CI-run 42511934820](https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934820)
-op PR-head `575a5040` bevestigt GitHub op 8 november 2026 dat een
-Actions-budget verder gebruik blokkeert. De hostjob voert geen teststappen
-uit; de afhankelijke QEMU-job wordt overgeslagen. Dit is een andere foutfase
-dan een artifactquota na uitvoering van tests. Een codewijziging of herhaling
-onder dezelfde budgetvoorwaarden heft deze blokkade niet op.
+PR-tests gebruiken `pull_request`, `contents: read` en checkout zonder
+bewaarde credentials. Er is geen `pull_request_target` met uitvoerbare
+PR-code. Externe Actions staan op volledige commit-SHA's. De regressietests
+voorkomen dat een oude branch ongemerkt een self-hosted selector terugbrengt.
 
-De openbare ontwikkelrichting is vastgelegd in
-[LICENSE-PLAN.md](../LICENSE-PLAN.md). De afzonderlijke publicatiecontrole
-blijft nodig voordat zichtbaarheid verandert. Standaard GitHub-hosted
-runners zijn gratis voor openbare repositories; artifactopslag en andere
-limieten hebben een afzonderlijk beleid. De concrete budgetlimiet en
-actueel verbruik zijn in deze controle niet ingezien. Controleer na gewijzigde
-uitvoeringsvoorwaarden opnieuw de actuele PR-head en haar verplichte gates.
+Copilot gebruikt dezelfde Python-/QEMU-pins, beide Rust-toolchains en Node.
+De setup installeert geen WSL-runner en stelt geen KVM- of firewallwijziging
+verplicht. De verplichte job-ID is `copilot-setup-steps`. Deze setup is geen
+nieuwe reguliere native acceptatiegate.
 
-Bronnen: GitHub, [Billing and usage](https://docs.github.com/en/actions/concepts/billing-and-usage)
-en [Budgets and alerts](https://docs.github.com/en/billing/concepts/budgets-and-alerts),
-geraadpleegd op 8 november 2026. Het brongebonden incidentbewijs staat in
-[het hervattingsrapport](verification/ci-resume-249-20261108.json).
+Werk pins bewust bij met bron-/hashcontrole en echte host-/native gates.
+De historische pakketprovenance staat in
+[ci-packages-20261108.json](verification/ci-packages-20261108.json).
+Terugdraaien: een gerichte revert via PR, met behoud van andere wijzigingen.
+De productvoortgang blijft **41/100**; CI-inrichting sluit geen OS-criterium.
 
-## Onderhoud en bewijs
+## Primaire bronnen
 
-Werk een pin bewust bij: controleer het nieuwe snapshot, de ondertekende
-indexen, pakketversies, payload- en firmwarehashes. Werk de gedeelde setup en
-dit overzicht samen bij; bij Python hoort een passend gehasht PyYAML-wheel.
-Draai vervolgens de relevante hosttests en bestaande native gates op de
-nieuwe PR-head. Een oudere groene run accepteert geen nieuwe toolversie.
-
-Canonical ondersteunt snapshots van ten minste twee jaar oud; plan dus
-onderhoud zonder automatische fallback. Terugdraaien: gerichte revert via
-een PR. Uitvoering en grenzen staan in
-[het controleverslag](verification/ci-standard-runners-20261108.json);
-pakketbronnen en hashes in
-[de provenance](verification/ci-packages-20261108.json).
-
-### Primaire bronnen
-
-- Canonical. (z.d.). *Ubuntu Snapshot Service*. Geraadpleegd op 8 november
-  2026, van https://snapshot.ubuntu.com/
-- GitHub. (z.d.). *GitHub-hosted runners reference*. Geraadpleegd op
-  8 november 2026, van
-  https://docs.github.com/en/actions/reference/runners/github-hosted-runners
-- GitHub. (z.d.). *actions/setup-python* (v7.1.0, commit
-  `6d4fd22b20465ccc0f7354476588e8df7c9ca0e0`) [Software].
-  https://github.com/actions/setup-python/tree/6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
-- PyYAML. (z.d.). *PyYAML 6.0.3* [Pakketmetadata].
-  https://pypi.org/pypi/PyYAML/6.0.3/json
+- GitHub. (z.d.). *GitHub-hosted runners reference*. Geraadpleegd op 8 november
+  2026, van https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+- GitHub. (z.d.). *Workflow syntax for GitHub Actions*. Geraadpleegd op
+  8 november 2026, van https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+- GitHub. (z.d.). *Dependency caching reference*. Geraadpleegd op 8 november
+  2026, van https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching
+- GitHub. (z.d.). *Configure the development environment for agents on GitHub
+  Actions*. Geraadpleegd op 8 november 2026, van
+  https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/customize-the-agent-environment
+- Canonical. (z.d.). *Ubuntu Snapshot Service*. https://snapshot.ubuntu.com/

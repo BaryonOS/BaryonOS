@@ -1,8 +1,14 @@
 name: CI
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain the complete diagnostic selection for 1 day'
+        type: boolean
+        default: false
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened]
   push:
     branches: [main]
 
@@ -57,7 +63,9 @@ jobs:
             services/net-protocol/target/debug
             experiments/quantum/target/debug
             experiments/quantum/job-protocol/target/debug
-          key: host-rust-v2-ubuntu-24.04-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock', '**/Cargo.toml', '**/.cargo/config.toml', '**/build.rs') }}
+          key: host-rust-v3-ubuntu-24.04-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock', '**/Cargo.toml', '**/.cargo/config.toml', '**/build.rs') }}-${{ github.sha }}
+          restore-keys: |
+            host-rust-v3-ubuntu-24.04-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '**/Cargo.lock', '**/Cargo.toml', '**/.cargo/config.toml', '**/build.rs') }}-
       - name: Fetch locked workspace dependencies before offline Python harnesses
         # The snapshot-wipe harness builds capability-core offline. Cargo still
         # resolves the workspace closure, including update-core's dependencies.
@@ -66,6 +74,7 @@ jobs:
         run: |
           python3 -m compileall -q tools tests userspace/tests experiments/quantum/native experiments/quantum/native/job .agents/skills/os-dev
           python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'
+          python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'
           python3 -m unittest discover -s tests -p 'test_document_session_*.py'
           python3 -m unittest discover -s tests -p 'test_volume_*.py'
           python3 -m unittest discover -s tests -p 'test_system_*.py'
@@ -159,7 +168,7 @@ jobs:
 
   qemu-smoke:
     name: qemu-smoke
-    needs: host-quality
+    # Both required checks are independent and run in parallel.
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -256,13 +265,11 @@ jobs:
           python3 -B tools/run_sdk_app.py --case denied
       - name: Preserve compact QEMU diagnostics
         if: ${{ always() }}
-        # Diagnostics are additional to the existing mandatory test gates.
-        # A storage-quota error is visible without turning a passing VM into a failure.
-        continue-on-error: true
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
           name: qemu-smoke-evidence
-          retention-days: 3
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           if-no-files-found: warn
           path: |
             build/ci-toolchain/emulator.txt

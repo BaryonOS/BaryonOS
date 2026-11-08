@@ -2199,3 +2199,53 @@ wijzigingen van andere branches en bestaand acceptatiebewijs.
 releaselevering verplicht wordt, of het meetbare rapportbudget structureel
 te klein blijkt. Een benodigde artifactoverdracht krijgt dan een eigen
 verplichte leveringsgate. Werkwijze, bronnen en rollback: [CI-EVIDENCE.md](CI-EVIDENCE.md).
+
+## ADR-CI-PUBLIC-20261108 — publieke CI zonder eigen runners
+
+**Status:** besloten en geïmplementeerd in bestaande PR #249; nieuwe GitHub-
+uitvoering en samenvoeging worden apart vastgelegd. **Eigenaar:** Simon van
+Ieperen. **Datum:** 8 november 2026. De GitHub-repository is aantoonbaar public.
+
+**Besluit:** integreer de vaste hosted toolchain uit #249 met de compacte
+bewijsroute uit #251. Alle jobselectors, ook de private historische audit en
+Copilot-setup, zijn `ubuntu-24.04`. Geen nieuwe self-hosted infrastructuur.
+De private audit behoudt zijn voorwaarde en publiceert niet automatisch
+historische auditinhoud op de publieke repository.
+
+Verwijder de dubbele `ready_for_review`-trigger; test concept-PRs al op
+openen/wijzigen/heropenen. Spiegel bestaande documentfilters naar main-pushes
+van specialistische workflows. Behoud de ongefilterde verplichte checks
+`host-quality` en `qemu-smoke`, die onafhankelijk parallel kunnen draaien.
+Behoud bestaande concurrencygroepen en tijdslimieten. De componentmatrix
+verliest twee dubbele entries; hun checks blijven in de gespecialiseerde
+display/input- en artifact-store-workflows staan, inclusief scalar build.
+Maximaal vier matrixjobs tegelijk. De hostbuildcache krijgt een bron-SHA
+plus een compatibele herstelprefix; geen gecachte native acceptatie.
+
+**Alternatieven:** een tweede migratie-PR zou dezelfde configuratie opnieuw
+laten botsen. Iedere native gate door een nieuw centraal padclassificatie-
+script laten overslaan vergroot de kans op ontbrekende required checks.
+Generieke self-hosted labels of betaalde grotere runners passen niet bij
+de expliciete keuze voor de standaard publieke GitHub-runners.
+
+**Security-invariant:** PR-code behoudt een read-only token, externe Actions
+blijven op commit-SHA gepind en checkout bewaart geen credentials. Geen
+`pull_request_target`-uitvoering van PR-code. Alleen artifactuploads mogen
+falen zonder de testuitslag te vervangen. De YAML-regressietests bewaken
+deze grenzen en het behoud van de vereiste checks. Native orakels, negatieve
+gevallen, markers en productcriteria blijven behouden.
+
+**Testbewijs:** lokale hosttests, configuratie-/shellcontrole, bronbehoud en
+nieuwe GitHub-runs worden brongebonden vastgelegd in
+`verification/ci-public-runners-20261108.json`. Historische testuitslagen
+uit #249/#251 blijven bij hun oorspronkelijke bron. Geen productpunt: 41/100.
+
+**Migratie/rollback:** samenvoegen van de bestaande PR #249 activeert de
+gecombineerde wijziging; #251 pas als ingehaald behandelen na bewezen
+inhoudsopname. Gerichte revert via PR, zonder andere code of opgeslagen
+bewijsarchieven te verwijderen. De oude Copilot-WSL-keuze uit #245 is
+vervangen door een hosted setup; die branch mag geen self-hosted selector
+terugbrengen. **Herzien wanneer:** echte runnerduur, foutlogs of benodigde
+checks een aantoonbare uitvoeringsaanpassing vragen.
+
+Bronnen en uitvoeringsroute: [CI.md](CI.md).

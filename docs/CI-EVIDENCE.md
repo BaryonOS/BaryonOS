@@ -7,7 +7,7 @@ test, build, validator of bewijscollector blijft wel een fout.
 
 ## Normale runs
 
-De vijftien workflows die bewijs bewaren gebruiken
+De zestien workflows die bewijs bewaren gebruiken
 `.github/actions/preserve-evidence/action.yml`. De action leest alleen de
 expliciet opgegeven bestaande bewijsselectie en doet het volgende:
 
