@@ -113,10 +113,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-09 · **Rubric:** v1 ·
-**Bron:** [`9922810a`](https://github.com/simonvanieperen/nieuw-os/commit/9922810a18f2272f534e1539e2d980d3d8922bb3) ·
-**Ontwikkelbranch:** `docs/wetenschappelijke-herkomst-20261109`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** CodeRabbit-redactiereview opvolgen: herkomst van de desktoptoewijzing expliciet behouden.
-41/100 blijft 41/100. De oorspronkelijke herkomst van de desktoptoewijzing is in onpersoonlijke formulering expliciet behouden; de projecteigenaar is de bron van de aanwijzing. Een Markdown-tabel krijgt de ontbrekende lege regel. De onpersoonlijke wetenschappelijke schrijfafspraak, technische inhoud, bevoegdheden en broncitaten blijven behouden. De CodeQL-wijziging uit main is ongewijzigd. Geen nieuwe OS-functionaliteit, criteria, gewichten of acceptatie.
+**Bron:** [`a9b6d3c5`](https://github.com/simonvanieperen/nieuw-os/commit/a9b6d3c5ed2938b3740f9874a579f47f6d348ac5) ·
+**Ontwikkelbranch:** `coderabbit/issue-278-private-vulnerability-reporting`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Issue #278: bestaand privémeldkanaal verifiëren en beveiligingsbeleid actualiseren.
+41/100 blijft 41/100. GitHub Private Vulnerability Reporting is al ingeschakeld en publiek vindbaar. SECURITY.md verwijst naar de werkelijke privémeldroute, beschrijft meldinhoud en belooft geen ondersteunde releases of responstermijn. Geen OS-functionaliteit, criteria, gewichten of nieuwe native acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

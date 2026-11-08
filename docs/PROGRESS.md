@@ -1,5 +1,10 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+Privémeldbeleid (issue #278, 2026-11-09), basis main `a9b6d3c5`: **41 → 41/100**.
+De bestaande GitHub-privémeldroute is geverifieerd en in SECURITY.md beschreven.
+Geen nieuwe productacceptatie of gewijzigde gewichten.
+[Controle en bewijsgrens](verification/private-vulnerability-reporting-278.md).
+
 Redactiereviewopvolging (9 november 2026), basis main `9922810a`: **41 → 41/100**.
 De herkomst van de desktoptoewijzing is expliciet behouden in de onpersoonlijke
 formulering. Geen technische inhoud, bevoegdheid, criterium of gewicht gewijzigd.

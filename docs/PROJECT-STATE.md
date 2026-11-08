@@ -1,6 +1,23 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — B03 sleutelbestandgrenzen — 9 november 2026
+## NEXT AGENT HANDOFF — Privékwetsbaarheidsmeldingen — 2026-11-09
+
+**Bron:** main `a9b6d3c5ed2938b3740f9874a579f47f6d348ac5`, branch
+`coderabbit/issue-278-private-vulnerability-reporting`, issue #278.
+GitHub Private Vulnerability Reporting was al ingeschakeld. Het beveiligingsbeleid
+verwijst nu naar de echte meldroute, beschrijft de gewenste meldinhoud en
+belooft geen ondersteunde releases of responstermijn. Geen instellingen gewijzigd.
+
+**Bewijs en grens:** [controleverslag](verification/private-vulnerability-reporting-278.md).
+De API meldt `enabled: true`; de openbare Security-pagina bevat de meldknop.
+Diff- en voortgangscontrole slagen. Er is geen proefmelding ingediend en er
+zijn geen Rust-, QEMU- of hardwaretests uitgevoerd voor deze documentatie.
+**41 → 41/100**; geen nieuwe productacceptatie.
+
+**Hervatten:** beoordeel de concept-PR; controleer bij een gewijzigde
+repositoryconfiguratie opnieuw de API en de publieke meldknop.
+
+## Vorige overdracht — B03 sleutelbestandgrenzen — 9 november 2026
 
 **Bron:** main `8331b69b`, branch `coderabbit/issue-41-key-file-boundaries`.
 Issue #41 krijgt een beperkte hosttoolcorrectie: sleutelbestanden worden
