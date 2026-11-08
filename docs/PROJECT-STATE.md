@@ -1,6 +1,25 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — B03 sleutelbestandgrenzen — 9 november 2026
+## NEXT AGENT HANDOFF — Engelse Wiki — 2026-11-09
+
+**Bron:** main `a9b6d3c5ed2938b3740f9874a579f47f6d348ac5`, branch `coderabbit/issue-277-english-wiki`.
+Issue #277 krijgt veertien Engelse verklarende pagina’s onder `docs/wiki/`.
+[Lees- en publicatieroute](WIKI.md) koppelt alle bronpagina’s. De Wiki bevat
+geen tweede statuslog, acceptatieregister of voortgangsmeting; technische
+uitspraken verwijzen naar canonieke repositorybronnen.
+
+**Controle:** alle 170 Markdown-links zijn gecontroleerd: 112 canonieke
+repositorydoelen bestaan, 31 Wiki-links wijzen naar de voorbereide pagina’s,
+en Home bereikt alle dertien vervolgpagina’s. De afzonderlijke AI-bronreview
+vindt geen concrete problemen; dit is geen menselijke audit.
+Voortgangs- en diffcontrole slagen. Geen Rust-, QEMU- of hardwaretests voor
+deze documentatiewijziging. **41 → 41/100**, geen nieuwe acceptatie.
+
+**Hervatten:** beoordeel de concept-PR; kopieer na review de pagina’s volgens
+WIKI.md naar de afzonderlijke GitHub Wiki. Deze wijziging publiceert daar niet.
+Het voorafgaande sleutelbestandwerk blijft ongewijzigd hieronder vastgelegd.
+
+## Vorige overdracht — B03 sleutelbestandgrenzen — 9 november 2026
 
 **Bron:** main `8331b69b`, branch `coderabbit/issue-41-key-file-boundaries`.
 Issue #41 krijgt een beperkte hosttoolcorrectie: sleutelbestanden worden

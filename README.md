@@ -33,6 +33,8 @@ geen bewijs van een complete release of ondersteuning van fysieke hardware.
 voor vragen en voorstellen · [Melding of taak](https://github.com/simonvanieperen/nieuw-os/issues/new/choose)
 · [Communitywegwijzer](docs/COMMUNITY.md) · [Bijdragen](CONTRIBUTING.md).
 
+**Engelse uitleg:** [Wiki-pagina’s en publicatiehandleiding](docs/WIKI.md).
+
 ## Openbare ontwikkeling en licentie
 
 **Bevestigd op 8 november 2026:** Nieuw OS kiest voor openbare ontwikkeling.
@@ -113,10 +115,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-09 · **Rubric:** v1 ·
-**Bron:** [`9922810a`](https://github.com/simonvanieperen/nieuw-os/commit/9922810a18f2272f534e1539e2d980d3d8922bb3) ·
-**Ontwikkelbranch:** `docs/wetenschappelijke-herkomst-20261109`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** CodeRabbit-redactiereview opvolgen: herkomst van de desktoptoewijzing expliciet behouden.
-41/100 blijft 41/100. De oorspronkelijke herkomst van de desktoptoewijzing is in onpersoonlijke formulering expliciet behouden; de projecteigenaar is de bron van de aanwijzing. Een Markdown-tabel krijgt de ontbrekende lege regel. De onpersoonlijke wetenschappelijke schrijfafspraak, technische inhoud, bevoegdheden en broncitaten blijven behouden. De CodeQL-wijziging uit main is ongewijzigd. Geen nieuwe OS-functionaliteit, criteria, gewichten of acceptatie.
+**Bron:** [`a9b6d3c5`](https://github.com/simonvanieperen/nieuw-os/commit/a9b6d3c5ed2938b3740f9874a579f47f6d348ac5) ·
+**Ontwikkelbranch:** `coderabbit/issue-277-english-wiki`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Issue #277: Engelse verklarende Wiki-pagina’s voorbereiden.
+41/100 blijft 41/100. Veertien Engelse Wiki-pagina’s verklaren de bestaande begrippen en verwijzen naar canonieke status, contracten en bewijs. Geen nieuwe OS-functionaliteit of criteriumacceptatie; publicatie van de afzonderlijke Wiki blijft een beheerderstap na review.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

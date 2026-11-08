@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-09",
-    "source_commit": "9922810a18f2272f534e1539e2d980d3d8922bb3",
+    "source_commit": "a9b6d3c5ed2938b3740f9874a579f47f6d348ac5",
     "assessment_basis": "working_tree",
-    "branch": "docs/wetenschappelijke-herkomst-20261109",
-    "task": "CodeRabbit-redactiereview opvolgen: herkomst van de desktoptoewijzing expliciet behouden",
+    "branch": "coderabbit/issue-277-english-wiki",
+    "task": "Issue #277: Engelse verklarende Wiki-pagina’s voorbereiden",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De oorspronkelijke herkomst van de desktoptoewijzing is in onpersoonlijke formulering expliciet behouden; de projecteigenaar is de bron van de aanwijzing. Een Markdown-tabel krijgt de ontbrekende lege regel. De onpersoonlijke wetenschappelijke schrijfafspraak, technische inhoud, bevoegdheden en broncitaten blijven behouden. De CodeQL-wijziging uit main is ongewijzigd. Geen nieuwe OS-functionaliteit, criteria, gewichten of acceptatie."
+    "summary": "41/100 blijft 41/100. Veertien Engelse Wiki-pagina’s verklaren de bestaande begrippen en verwijzen naar canonieke status, contracten en bewijs. Geen nieuwe OS-functionaliteit of criteriumacceptatie; publicatie van de afzonderlijke Wiki blijft een beheerderstap na review."
   },
   "tracks": [
     {
