@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-09",
-    "source_commit": "1d5bc01e632fd5bab429f3befc9e9546c9f7661c",
+    "source_commit": "3402b30c3d67e769eea28abc07e1aaceeb3e2525",
     "assessment_basis": "working_tree",
-    "branch": "docs/wetenschappelijke-schrijfstijl-20261109",
-    "task": "Projectdocumentatie corrigeren naar onpersoonlijke wetenschappelijke schrijfstijl",
+    "branch": "simonvanieperen-patch-3",
+    "task": "CodeQL-permissies afbakenen in WorkflowContractTests",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De ik-/wij-vorm en persoonlijke auteursvertelling zijn in de eigen documentatie vervangen door onpersoonlijke, wetenschappelijke formuleringen. De eerdere schrijfafspraak uit PR #263 is vervallen. Besluiten, bevoegdheden, technische contracten, criteria, gewichten en bewijsstatus blijven behouden; oorspronkelijke citaten, vaste bewijsarchieven en technische identifiers zijn ongewijzigd. De naamverklaring van Baryon OS blijft behouden. Geen nieuwe OS-functionaliteit of productacceptatie."
+    "summary": "41/100 blijft 41/100. De workflowcontracttest staat uitsluitend voor .github/workflows/codeql.yml, job analyze, de exacte combinatie actions: read, contents: read en security-events: write toe. Negen workflowcontracttests slagen; een toegestane en elf ongeldige permissievarianten zijn gecontroleerd. Geen nieuwe OS-functionaliteit, native acceptatie, gewijzigde criteria of gewichten. GitHub-CI en CodeQL-uitvoering worden afzonderlijk op de gepubliceerde bron beoordeeld."
   },
   "tracks": [
     {

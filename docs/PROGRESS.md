@@ -1,5 +1,13 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+CodeQL-workflowcontract (9 november 2026), working tree op PR #266
+`3402b30c3d67e769eea28abc07e1aaceeb3e2525`: **41 → 41/100**.
+De noodzakelijke uploadpermissie wordt uitsluitend voor de CodeQL-analysejob
+met een exacte rechtenmapping toegestaan. Negen bestaande contracttests op
+24 workflows en drie composite actions slagen; één toegestane en elf ongeldige
+permissievarianten zijn gecontroleerd. Geen nieuwe native productacceptatie.
+[Controle en bronbinding](verification/codeql-workflow-contract-20261109.json).
+
 Naamverklaring Baryon OS (8 november 2026), working tree op main
 `4c7147da`: **41 → 41/100**. De README beschrijft baryonen als
 samengestelde deeltjes en gebruikt modulariteit en onderzoek als naammetafoor.

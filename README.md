@@ -113,10 +113,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-09 · **Rubric:** v1 ·
-**Bron:** [`1d5bc01e`](https://github.com/simonvanieperen/nieuw-os/commit/1d5bc01e632fd5bab429f3befc9e9546c9f7661c) ·
-**Ontwikkelbranch:** `docs/wetenschappelijke-schrijfstijl-20261109`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Projectdocumentatie corrigeren naar onpersoonlijke wetenschappelijke schrijfstijl.
-41/100 blijft 41/100. De ik-/wij-vorm en persoonlijke auteursvertelling zijn in de eigen documentatie vervangen door onpersoonlijke, wetenschappelijke formuleringen. De eerdere schrijfafspraak uit PR #263 is vervallen. Besluiten, bevoegdheden, technische contracten, criteria, gewichten en bewijsstatus blijven behouden; oorspronkelijke citaten, vaste bewijsarchieven en technische identifiers zijn ongewijzigd. De naamverklaring van Baryon OS blijft behouden. Geen nieuwe OS-functionaliteit of productacceptatie.
+**Bron:** [`3402b30c`](https://github.com/simonvanieperen/nieuw-os/commit/3402b30c3d67e769eea28abc07e1aaceeb3e2525) ·
+**Ontwikkelbranch:** `simonvanieperen-patch-3`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** CodeQL-permissies afbakenen in WorkflowContractTests.
+41/100 blijft 41/100. De workflowcontracttest staat uitsluitend voor .github/workflows/codeql.yml, job analyze, de exacte combinatie actions: read, contents: read en security-events: write toe. Negen workflowcontracttests slagen; een toegestane en elf ongeldige permissievarianten zijn gecontroleerd. Geen nieuwe OS-functionaliteit, native acceptatie, gewijzigde criteria of gewichten. GitHub-CI en CodeQL-uitvoering worden afzonderlijk op de gepubliceerde bron beoordeeld.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
