@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-08",
-    "source_commit": "5b2189824c32145ad5c110429517dfcea3f2720f",
-    "assessment_basis": "source_commit",
-    "branch": "community/discussions-templates-20261108",
-    "task": "Discussies en bijdrageformulieren inrichten na repositoryonderzoek",
+    "source_commit": "1f3e7b6acdfd4b5ca84a69422a2d3ed6e424609a",
+    "assessment_basis": "working_tree",
+    "branch": "ci/coderabbit-review-policy-20261108",
+    "task": "CodeRabbit-blokkades onderzoeken en workflowreview herstellen",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Communitycategorieën, startdiscussies, issue- en discussieformulieren, PR-template en routing toegevoegd. YAML-, link- en pipelineparsercontrole; geen runtimecode, nieuwe native acceptatie of criteriumwijziging. Activering van templates volgt de bestaande PR- en branchregels. De openbare ontwikkelrichting en MPL-2.0-controlebasis uit PR #250 zijn bij integratie behouden; publicatiecontroles blijven open."
+    "summary": "41/100 blijft 41/100. Working tree op de genoemde main-broncommit na merge van PR #249; bronhashes en logs staan in docs/verification/coderabbit-unblock-20261108.json. CodeRabbit blijft automatisch reviewen met gebundelde kleine suggesties; nieuwe automatische botafkeuringen worden uitgezet. De bestaande reviewfixes zijn behouden en de verifier faalt nu expliciet bij ontbrekend vergelijkingsbewijs. 32 gerichte Python-tests, 228 verifiercontroles en schemavalidatie slagen lokaal. Verplichte GitHub-checks en inhoudelijke reviewthreads blijven behouden; nieuwe-head CI en effectieve botconfiguratie worden afzonderlijk beoordeeld. Geen productcriterium of gewicht gewijzigd."
   },
   "tracks": [
     {

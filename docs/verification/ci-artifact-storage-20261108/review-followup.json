@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-11-08T19:01:27.783929+00:00",
+  "source_pr": 251,
+  "source_head": "5c291cff3b9c28e4948aeb36adda3acc6ee6a8ab",
+  "source_base": "363b486b06023d3d578f8eca2b23ff49045a1757",
+  "task_contract": {
+    "target": "Finish existing CI artifact-quota repair without changing OS acceptance or runner selection",
+    "write_scope": [
+      "tools/ci_evidence.py",
+      "tests/test_ci_evidence.py",
+      "docs/verification/ci-artifact-storage-20261108/verify_workflows.py",
+      "docs/DECISIONS.md",
+      "docs/PROJECT-STATE.md",
+      "docs/progress.json",
+      "README.md",
+      "docs/PROGRESS.md",
+      "docs/assets/progress.svg",
+      "docs/verification/ci-artifact-storage-20261108/review-workflow-checks.json",
+      "docs/verification/ci-artifact-storage-20261108/review-collector-tests.txt",
+      "docs/verification/ci-artifact-storage-20261108/runtime-quota-evidence.json"
+    ],
+    "invariants": [
+      "Only uploads may be non-blocking",
+      "Missing required evidence remains an error",
+      "A package claim requires a tested ZIP selected in the full archive",
+      "No product criteria or weights change"
+    ],
+    "acceptance": [
+      "Collector tests pass",
+      "Workflow comparison preserves tests/runners/gates",
+      "Positive and negative package-selection checks pass",
+      "Native GitHub quota rejection leaves evidence in runlog and successful tests successful"
+    ]
+  },
+  "snapshot": {
+    "kind": "Partial materialization through GitHub API; local synthetic Git refs used only for diffs and workflow baseline",
+    "pr_files_blob_verified": 85,
+    "base_workflows_blob_verified": 22,
+    "no_full_clone": true
+  },
+  "local_verification": {
+    "collector_tests": {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py' -v",
+      "tests": 15,
+      "exit_code": 0,
+      "log": "review-collector-tests.txt"
+    },
+    "workflow_checks": {
+      "command": "python3 -B docs/verification/ci-artifact-storage-20261108/verify_workflows.py --repo . --baseline review/main-source --output docs/verification/ci-artifact-storage-20261108/review-workflow-checks.json",
+      "checks": 163,
+      "passed": true,
+      "baseline_scope": "22 workflow blobs verified against 363b486b06023d3d578f8eca2b23ff49045a1757",
+      "report": "review-workflow-checks.json"
+    },
+    "docstrings": [
+      {
+        "path": "tools/ci_evidence.py",
+        "definitions": 24,
+        "documented": 24,
+        "ast_equal_without_docstrings": true
+      },
+      {
+        "path": "tests/test_ci_evidence.py",
+        "definitions": 19,
+        "documented": 19,
+        "ast_equal_without_docstrings": true
+      }
+    ],
+    "additional_commands": [
+      {
+        "command": [
+          "python3",
+          "tools/progress.py",
+          "--check"
+        ],
+        "exit_code": 0,
+        "stdout": "Nieuw OS: 41/100 punten (41%); rubric v1; consistent.\nDit controleert berekening, verwijzingen en weergave; geen nieuwe native tests of beoordeling van bewijsinhoud.\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    ]
+  },
+  "review_assessment": {
+    "coderabbit_ADR_fields": "Status, owner, alternatives, security invariant, test evidence and migration/rollback added",
+    "coderabbit_docstrings": "All collector/test definitions documented; executable AST unchanged",
+    "graphify_coupling_advisory": "Reviewed: collect orchestrates explicit policy helpers; no functional defect demonstrated; no cosmetic refactor",
+    "graphify_full_package_concern": "Both existing callers include the package; now checked with omitted-package counterexamples. The action is unchanged; this local configuration check is not a new GitHub gate."
+  },
+  "runtime_verification": {
+    "evidence": "runtime-quota-evidence.json",
+    "pr_merge_checkout": "89722c5fd132beeecd95ae6777af601c83fd0f6f",
+    "passed_jobs": 2,
+    "real_quota_failures": 2,
+    "not_relabelled_to_followup_head": true
+  },
+  "progress": {
+    "before": 41,
+    "after": 41,
+    "tracks_criteria_weights_evidence_unchanged": true
+  },
+  "limits": [
+    "No local Rust or QEMU; tools unavailable",
+    "No successful artifact upload or Windows runtime verified",
+    "No raw artifact archive downloaded; hashes and report excerpts do not replace it",
+    "No old artifacts or workflow runs removed; no freed bytes claimed",
+    "New PR head requires its own CI and review under existing rules"
+  ],
+  "sha256": {
+    ".github/actions/preserve-evidence/action.yml": "6a110d0eda5b059ab9c827976b913ab8291aa2a8c6e23eebd99e62ef09bc744f",
+    "tools/ci_evidence.py": "2aedeae1ff61dc0bf5efb9543c068662dca03787346e6aa3a164985d788f81c0",
+    "tests/test_ci_evidence.py": "8b4abe1b71ced36c4d1a498c4b129667e9e8724280e2f4cbf3033a1615a0c8b7",
+    "docs/verification/ci-artifact-storage-20261108/verify_workflows.py": "9e15806f4e0df9714ca5da419901694cbe9eaca5525a48f24a7d056cdbb10873",
+    "docs/DECISIONS.md": "9ab2cb8bfa7e4fd971013c71f50ae541b98695f1bd5787b21794b7022ebf5e78",
+    "docs/PROJECT-STATE.md": "0e4ac0e3793239975694152ee6dbdfd3476a9ca092a655ce5ce2a70b53e265bc",
+    "docs/progress.json": "4127edce1859795c133be32c45849bcd5699e7395d0f8660d495ba39fa7a2cc8",
+    "README.md": "6d27b7b9d9d9e9e6a675c78433008557dbb95e2ffca4bc7d3de6a14b020d7a3a",
+    "docs/PROGRESS.md": "719996af1dce726c6bb9059ebaeb49a5857358fb397b860198c93c8e5edb71ff",
+    "docs/assets/progress.svg": "70502e7a1b3574292a3126dd27036b8c4e0c7dba5732555687bcb76ebb751e29",
+    "docs/verification/ci-artifact-storage-20261108/review-workflow-checks.json": "9c005330e566a91b4474214b7f77cc5150b6a87e01fe2d28815cdca143b6458d",
+    "docs/verification/ci-artifact-storage-20261108/review-collector-tests.txt": "302084514ae721ccaea1b07a197aacd2e674ec6dba59ce3280a8eedc25a480c3",
+    "docs/verification/ci-artifact-storage-20261108/runtime-quota-evidence.json": "26621533f15ed59809a3883a125085f0c6e6e202601092aa83e4ba4e471dd799"
+  },
+  "integration": {
+    "main_commit": "5b2189824c32145ad5c110429517dfcea3f2720f",
+    "main_tree": "aeba905b32fc1d721943b06196da8d57c2a1ea3e",
+    "common_base": "363b486b06023d3d578f8eca2b23ff49045a1757",
+    "incoming_blob_checks": 12,
+    "preservation": "Both ADRs and checkpoints retained; one active handoff. Current progress assessment regenerates README; fixed rubric unchanged. New main licence plan, release text and public-development report preserved byte for byte. No workflow change from main.",
+    "native_results_apply_to_original_pr_merge_checkout_only": true,
+    "main_exact_file_sha256": {
+      "LICENSE-PLAN.md": "e5cf0177d0ef389803c27e006e057f5abd3c508362e1678ebae5db5ce5aaa1e7",
+      "docs/implementation/EUROPE-AND-RELEASE.md": "2b665c192302af4f0dfcc5b7e5e3e9ef87ec523c7b1cc02376ff406e8a3361a3",
+      "docs/verification/public-development-20261108.json": "691174ed6beda3baa1a0659f31ff8f551b36198decbdde1dfda2989d88ad3716"
+    }
+  },
+  "independent_review": {
+    "scope": "AI source/diff review, including direct re-fetch of both GitHub job logs and comparison of stored excerpts and receipt objects",
+    "blocking_findings": 0,
+    "limits": "Not human audit or new runtime execution; source/base distinction verified"
+  }
+}

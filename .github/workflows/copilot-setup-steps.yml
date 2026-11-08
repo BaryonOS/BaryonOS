@@ -1,29 +1,56 @@
-name: Copilot Setup Steps
+name: Copilot hosted development environment
 
-# Omgeving voor de Copilot coding agent op de eigen WSL-runner
-# (ADR-CI-COPILOT-WSL-20261106). De job moet `copilot-setup-steps` heten.
 on:
   workflow_dispatch:
   pull_request:
-    paths: [.github/workflows/copilot-setup-steps.yml]
+    types: [opened, synchronize, reopened]
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+      - .github/actions/setup-python/**
+      - .github/actions/setup-qemu/**
+      - rust-toolchain.toml
 
 permissions:
   contents: read
 
+concurrency:
+  group: copilot-setup-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  # Copilot requires this exact job ID and reads it from the default branch.
   copilot-setup-steps:
-    runs-on: [self-hosted, Linux, X64, copilot-wsl]
-    timeout-minutes: 30
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Controleer sudo, KVM, QEMU en Rust
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python and host dependencies
+        uses: ./.github/actions/setup-python
+        with:
+          host-dependencies: 'true'
+      - name: Node 24.22.1
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24.22.1
+          package-manager-cache: false
+      - name: Rust toolchains and freestanding targets
+        shell: bash
         run: |
-          sudo -n true
-          test -r /dev/kvm && test -w /dev/kvm
-          qemu-system-x86_64 --version | head -1
-          swtpm --version | head -1
-          ls /usr/share/OVMF/OVMF_CODE_4M.fd
-          export PATH="$HOME/.cargo/bin:$PATH"
-          rustc --version && cargo --version
+          for toolchain in 1.90.0 1.91.1; do
+            rustup toolchain install "$toolchain" --profile minimal \
+              --component rustfmt,clippy \
+              --target x86_64-unknown-none,x86_64-unknown-uefi
+          done
+      - name: Pinned QEMU, OVMF and software TPM
+        uses: ./.github/actions/setup-qemu
+        with:
+          swtpm: 'true'
+      - name: Verify the disposable TCG development environment
+        shell: bash
+        run: |
+          python3 -B tools/preflight.py --strict

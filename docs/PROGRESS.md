@@ -1,5 +1,42 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+CodeRabbit-reviewopvolging (8 november 2026), working tree op main `1f3e7b6a`:
+**41 → 41/100**. De drie reviewfixes uit de inmiddels gemergede PR #249 zijn
+behouden. 32 gerichte Python-tests, 228 verifiercontroles en officiële
+CodeRabbit-schemavalidatie slagen lokaal. Geen productcriterium of gewicht
+gewijzigd; nieuwe-head CI en effectieve botconfiguratie worden apart getoetst.
+[Bronbinding en controle](verification/coderabbit-unblock-20261108.json).
+
+Publieke hosted CI (8 november 2026), gepubliceerde bron `338bec8c` op
+integratiebasis `39586927` (dezelfde boom als lokaal `3195e659`): **41 → 41/100**.
+23 workflows met standaardrunners; 248 Python-tests en 179 shellsyntaxcontroles
+zijn lokaal uitgevoerd op de in het rapport gehashte working tree, later
+gepubliceerd als `338bec8c`. De 224 tests verderop horen bij een eerder checkpoint.
+Op GitHub slagen bij het afzonderlijke checkpoint 39 van 40 Actions-jobs;
+de venstersessietest loopt nog. Native gates, productcriteria en gewichten behouden.
+[Lokaal brongebonden bewijs](verification/ci-public-runners-20261108.json) ·
+[GitHub-checkpoint](verification/ci-public-runners-20261108/hosted-checkpoint.json).
+
+PR #249 hervat (8 november 2026), bron `575a5040` met main `5b218982`:
+**41 → 41/100**. Vier documentconflicten opgelost met behoud van de
+runnerwijziging en openbare ontwikkelrichting. GitHub bevestigt een
+Actions-budgetblokkade vóór runnerstart; review verduidelijkt de bewijsgrens
+en begrenst de diagnose-upload. Geen nieuwe host-/native
+acceptatie. [Integratie- en statusbewijs](verification/ci-resume-249-20261108.json).
+
+Gepinde reguliere CI (8 november 2026), bron PR #249 `d3d8e3e0`:
+**41 → 41/100**. Vaste Python-/QEMU-/firmwareversies en 99 extra bestaande
+hosttests; 224 gerichte hosttests en de configuratiecontrole slagen.
+Geen nieuw native productcriterium; nieuwe-head OS-gates blijven nodig.
+Zie [CI](CI.md) en [het controleverslag](verification/ci-standard-runners-20261108.json).
+
+Runnerwissel op basis main `6e429de9` (8 november 2026): **41 → 41/100**.
+Alle 21 workflows gebruiken standaard GitHub-hosted Ubuntu 24.04-runners;
+24 jobdefinities en 42 uitgewerkte matrixjobs. Alleen CI-infrastructuur en
+de host-buildcache veranderen; geen productcriterium of gewicht wijzigt.
+Configuratie-/hostcontroles zijn geen nieuw native acceptatiebewijs.
+Zie [de migratiecontrole](verification/github-hosted-runners-20261108.json).
+
 PR #235-herstel (7 november 2026), PR-bron `bff194b5` met main `9bc5f52`:
 **41 → 41/100**. Alleen buildpadcorrecties, twee functiedocstrings en een
 actuele CI-basis; geen criterium of gewicht gewijzigd. Syntax-/AST-controle

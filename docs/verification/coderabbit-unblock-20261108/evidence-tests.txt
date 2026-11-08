@@ -1,0 +1,51 @@
+test_binary_hidden_secrets_symlinks_and_escape_are_excluded (test_ci_evidence.EvidenceTests.test_binary_hidden_secrets_symlinks_and_escape_are_excluded)
+Exclude unsafe paths and non-report content without logging their payloads. ... ok
+test_checkout_commit_is_independent_of_event_sha (test_ci_evidence.EvidenceTests.test_checkout_commit_is_independent_of_event_sha)
+Bind provenance to actual HEAD even when the event SHA differs. ... ok
+test_cli_outputs_and_errors (test_ci_evidence.EvidenceTests.test_cli_outputs_and_errors)
+Expose CLI output paths and a nonzero exit when output reuse is refused. ... ok
+test_collection_errors_are_not_ignored_or_stale_files_reused (test_ci_evidence.EvidenceTests.test_collection_errors_are_not_ignored_or_stale_files_reused)
+Reject stale output directories and propagate report read failures. ... ok
+test_console_commands_cr_and_ansi_are_inert (test_ci_evidence.EvidenceTests.test_console_commands_cr_and_ansi_are_inert)
+Neutralize runner commands and terminal controls without altering stored bytes. ... ok
+test_console_preview_budget_and_truncation_are_explicit (test_ci_evidence.EvidenceTests.test_console_preview_budget_and_truncation_are_explicit)
+Bound console output and label truncated JSON while retaining exact files. ... ok
+test_exact_json_bytes_hash_and_prearchive_status (test_ci_evidence.EvidenceTests.test_exact_json_bytes_hash_and_prearchive_status)
+Preserve exact JSON bytes and hashes without turning failure into acceptance. ... ok
+test_explicit_patterns_preserve_paths_without_scooping_other_files (test_ci_evidence.EvidenceTests.test_explicit_patterns_preserve_paths_without_scooping_other_files)
+Preserve requested paths while excluding reports outside the selection. ... ok
+test_file_count_budget_includes_receipt (test_ci_evidence.EvidenceTests.test_file_count_budget_includes_receipt)
+Reserve a file slot for the receipt and count omitted excess reports. ... ok
+test_large_binary_is_never_opened_or_hashed (test_ci_evidence.EvidenceTests.test_large_binary_is_never_opened_or_hashed)
+Skip raw binary inputs before opening or hashing their contents. ... ok
+test_long_log_tail_is_labeled_without_changing_stored_bytes (test_ci_evidence.EvidenceTests.test_long_log_tail_is_labeled_without_changing_stored_bytes)
+Label a long log's tail excerpt while retaining the complete compact copy. ... ok
+test_missing_evidence_still_has_an_honest_receipt (test_ci_evidence.EvidenceTests.test_missing_evidence_still_has_an_honest_receipt)
+Mark missing inputs as metadata only and report no retained evidence. ... ok
+test_oversized_json_is_omitted_never_silently_truncated (test_ci_evidence.EvidenceTests.test_oversized_json_is_omitted_never_silently_truncated)
+Omit an oversized JSON report explicitly and leave its source bytes intact. ... ok
+test_safe_read_refuses_symlink_substituted_after_selection (test_ci_evidence.EvidenceTests.test_safe_read_refuses_symlink_substituted_after_selection)
+Refuse a report replaced by a symlink between selection and reading. ... ok
+test_total_byte_budget_includes_receipt (test_ci_evidence.EvidenceTests.test_total_byte_budget_includes_receipt)
+Keep report bytes and the receipt within the total storage budget. ... ok
+test_collector_error_cannot_become_optional (test_ci_evidence_workflow_verifier.WorkflowVerifierTests.test_collector_error_cannot_become_optional)
+Only upload failures may be tolerated; collection remains required. ... ok
+test_default_missing_evidence_policy_cannot_be_weakened (test_ci_evidence_workflow_verifier.WorkflowVerifierTests.test_default_missing_evidence_policy_cannot_be_weakened)
+Already migrated calls still enforce the action's default error policy. ... ok
+test_deleted_workflow_is_not_silently_ignored (test_ci_evidence_workflow_verifier.WorkflowVerifierTests.test_deleted_workflow_is_not_silently_ignored)
+Comparing only surviving files must not hide deletion of a CI job. ... ok
+test_integrated_workflows_preserve_all_reporting_cases (test_ci_evidence_workflow_verifier.WorkflowVerifierTests.test_integrated_workflows_preserve_all_reporting_cases)
+A valid post-migration baseline retains all 16 evidence selections. ... ok
+test_invalid_baseline_writes_failed_report_and_exits_nonzero (test_ci_evidence_workflow_verifier.WorkflowVerifierTests.test_invalid_baseline_writes_failed_report_and_exits_nonzero)
+A missing ref yields inspectable failure evidence instead of a traceback. ... ok
+test_migrated_evidence_selection_must_remain_unchanged (test_ci_evidence_workflow_verifier.WorkflowVerifierTests.test_migrated_evidence_selection_must_remain_unchanged)
+Removing already migrated action steps must not hide changed selections. ... ok
+test_new_workflow_without_baseline_is_not_reported_as_preserved (test_ci_evidence_workflow_verifier.WorkflowVerifierTests.test_new_workflow_without_baseline_is_not_reported_as_preserved)
+A newly added workflow cannot inherit an absent comparison as a pass. ... ok
+test_runner_change_is_not_hidden_by_evidence_normalization (test_ci_evidence_workflow_verifier.WorkflowVerifierTests.test_runner_change_is_not_hidden_by_evidence_normalization)
+The artifact comparison does not authorize a change back to self-hosting. ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 11.736s
+
+OK

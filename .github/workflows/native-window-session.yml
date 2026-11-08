@@ -1,11 +1,18 @@
 name: Native window session and Windows QEMU bundle
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened]
     paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
+    paths-ignore: ['docs/**', '*.md']
 
 permissions:
   contents: read
@@ -20,7 +27,7 @@ defaults:
 
 jobs:
   native-window-session:
-    runs-on: [self-hosted, Linux, X64, unraid, build]
+    runs-on: ubuntu-24.04
     # Three isolated boots: full regression, library mutation, cold reopen.
     timeout-minutes: 75
     env:
@@ -36,6 +43,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
       - name: Prepare source-bound evidence
         run: |
           mkdir -p "$CI_EVIDENCE_DIR" "$NOS_BUILD_DIR/logs"
@@ -63,9 +72,12 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
-      - name: Disposable QEMU and explicit firmware and notices
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Ubuntu emulator package diagnostics
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
         run: |
-          dpkg -s qemu-system-x86 ovmf seabios >/dev/null 2>&1 || { echo "::warning::ontbreekt in runner-image: qemu-system-x86 ovmf seabios"; sudo apt-get update; sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios; }
           for path in \
             "$OS_OVMF_CODE" "$OS_OVMF_VARS" \
             /usr/share/seabios/bios-256k.bin \
@@ -215,10 +227,13 @@ jobs:
         run: |
           mkdir -p "$CI_EVIDENCE_DIR"
           printf '%s\n' "$CI_JOB_STATUS" > "$CI_EVIDENCE_DIR/job-status.txt"
-      - name: Preserve native evidence and the optional Windows bundle
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
+          package-path: build/window-session-ci/evidence/NieuwOS-Venstersessie-Windows-QEMU.zip
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: native-window-session-evidence-and-windows-bundle
           path: |
             build/window-session-ci/evidence/
@@ -238,5 +253,3 @@ jobs:
             build/window-session-ci/normal/manifest.json
             build/window-session-ci/normal/users/materiaal/build-report.json
             build/window-session-ci/normal/logs/
-          if-no-files-found: error
-          retention-days: 3
