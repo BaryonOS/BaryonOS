@@ -1,6 +1,12 @@
 name: Native RANDOM and image foundation acceptance
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore: ['docs/**', '*.md']
@@ -178,11 +184,11 @@ jobs:
           git diff --exit-code 2>&1 | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/tracked-diff.txt"
           git status --porcelain | tee "$GITHUB_WORKSPACE/build/foundation-ci/logs/git-status.txt"
           test -z "$(git status --porcelain)"
-      - name: Preserve complete bound builds, raw runs and failure reports
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: native-foundation-evidence
           path: build/foundation-ci/
-          if-no-files-found: error
-          retention-days: 3

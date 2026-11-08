@@ -60,11 +60,11 @@ alleen een nette desktop haalt die eindgrens niet.
 | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
 | **Totaal** | **100** | **41** |
 
-**Herbeoordeeld:** 2026-11-07 · **Rubric:** v1 ·
-**Bron:** [`69265f4b`](https://github.com/simonvanieperen/nieuw-os/commit/69265f4b1d1220ea3eee6a9358ca09dc5a8b5e7d) ·
-**Ontwikkelbranch:** `verify/parser-hardening-20261105`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** PR #211: parserreparaties op actuele main integreren en verifiëren.
-41/100 blijft 41/100. Drie bestaande parserreparaties worden geïntegreerd; 34 Python-hosttests slagen. Rust/native CI en integratiereview zijn bij dit checkpoint nog open. NET-1 blijft een bekende open canary; geen nieuw productcriterium geaccepteerd.
+**Herbeoordeeld:** 2026-11-08 · **Rubric:** v1 ·
+**Bron:** [`363b486b`](https://github.com/simonvanieperen/nieuw-os/commit/363b486b06023d3d578f8eca2b23ff49045a1757) ·
+**Ontwikkelbranch:** `ci/artifact-storage-20261108`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** CI-bewijs bewaren zonder blokkerende artifactquota.
+41/100 blijft 41/100. Deze wijziging begrenst CI-bewijsopslag, bewaart een terugval in runlogs en maakt alleen uploads niet-blokkerend. Bestaande native testgates blijven verplicht. Geen nieuw OS-productcriterium geaccepteerd; uitvoeringsbewijs en grenzen staan in docs/verification/ci-artifact-storage-20261108.json.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

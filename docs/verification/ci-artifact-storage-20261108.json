@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-11-08T18:36:16.320141+00:00",
+  "source_commit": "363b486b06023d3d578f8eca2b23ff49045a1757",
+  "branch": "ci/artifact-storage-20261108",
+  "workspace_scope": "78 repository files materialized through GitHub connector and verified against their Git blob SHA-1; local partial baseline 64d57b1 is not the upstream commit or a complete clone. Remote commit is built from the full upstream tree.",
+  "diagnosis": {
+    "observed_error": "Failed to CreateArtifact: Artifact storage quota has been hit. Unable to upload any new artifacts. Usage is recalculated every 6-12 hours.",
+    "observed_jobs": [
+      {
+        "workflow": "native-display-input",
+        "run_id": 42508268417,
+        "job_id": 128815540107,
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42508268417/job/128815540107",
+        "result": "Build/test steps succeeded; final upload failed. Read from GitHub, not rerun locally."
+      },
+      {
+        "workflow": "native-foundation",
+        "run_id": 42508268420,
+        "job_id": 128815540521,
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42508268420/job/128815540521",
+        "result": "Build/test steps succeeded; final upload failed. Read from GitHub, not rerun locally."
+      },
+      {
+        "workflow": "entropy-keys",
+        "run_id": 42508268377,
+        "job_id": 128815540329,
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42508268377/job/128815540329",
+        "result": "Build/test steps succeeded; final upload failed. Read from GitHub, not rerun locally."
+      },
+      {
+        "workflow": "native-system",
+        "run_id": 42508268369,
+        "job_id": 128815540322,
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42508268369/job/128815540322",
+        "result": "Build/test steps succeeded; final upload failed. Read from GitHub, not rerun locally."
+      },
+      {
+        "workflow": "native-rtc",
+        "run_id": 42508268382,
+        "job_id": 128815540196,
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42508268382/job/128815540196",
+        "result": "Build/test steps succeeded; final upload failed. Read from GitHub, not rerun locally."
+      },
+      {
+        "workflow": "signed-updates",
+        "run_id": 42508268372,
+        "job_id": 128815539919,
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42508268372/job/128815539919",
+        "result": "Build/test steps succeeded; final upload failed. Read from GitHub, not rerun locally."
+      }
+    ],
+    "live_account_storage_bytes": null,
+    "deleted_artifacts": 0,
+    "storage_limit": "Repository-wide artifact inventory was unavailable through the connector; sampled recent run inventories returned empty. No present total or reclaimed bytes claimed."
+  },
+  "checks": [
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py' -v",
+      "exit_code": 0,
+      "tests": 15,
+      "scope": "Collector host unit/CLI tests",
+      "output": "docs/verification/ci-artifact-storage-20261108/collector-tests.txt"
+    },
+    {
+      "command": "python3 -B docs/verification/ci-artifact-storage-20261108/verify_workflows.py --repo . --baseline 64d57b1 --output docs/verification/ci-artifact-storage-20261108/workflow-checks.json",
+      "exit_code": 0,
+      "checks": 151,
+      "scope": "23 YAML files, preservation of tests/gates, 28 report-shell simulations, missing-evidence failure and six package path checks; not 151 OS tests",
+      "output": "docs/verification/ci-artifact-storage-20261108/workflow-checks.json"
+    },
+    {
+      "command": "python3 tools/progress.py --write",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "versions": {
+    "python": "3.12.14",
+    "git": "2.51.1",
+    "PyYAML": "6.0.3 (existing verifier environment only; collector has no external dependencies)"
+  },
+  "not_executed": [
+    "Real GitHub upload on the changed workflow",
+    "GitHub expression-engine execution",
+    "Rust host/build gates (Cargo unavailable locally)",
+    "QEMU native gates (QEMU unavailable locally)",
+    "Windows execution",
+    "Account-wide artifact cleanup"
+  ],
+  "progress": {
+    "previous": 41,
+    "current": 41,
+    "criteria_changed": []
+  },
+  "changed_code_sha256": {
+    ".github/workflows/app-management-quality.yml": "b42368d9580593838e8df5d418c7b676d6166256ab4d6049f329d3b606d2b50a",
+    ".github/workflows/artifact-store-quality.yml": "e3d3f94807da0d9fca0c8895e02dfaa308c0175eb3e525822226d847dc3243e8",
+    ".github/workflows/ci.yml": "91c0dcf29335963bcdab033f632db5230d2d5ed21a26331d685abdf0043a9e3c",
+    ".github/workflows/component-leaves.yml": "3cc6320073c8966e3f4b415c3cd769e766b9ac89cb72cfb544fe7f82d3338f3f",
+    ".github/workflows/entropy-keys.yml": "3b73152721809f8bf8bd59bea1a9b2cdbe8f0d7b46667dc39f9915632ee38de9",
+    ".github/workflows/materiaal-probe.yml": "a084d2146c0a55f028ccfe94af69690b8cb71186238b213f1573a392ce2c6464",
+    ".github/workflows/nas-core.yml": "fa753c2277a2d49bc88875bb3b67daf9c3862dfa0842765e69f8112522b3271b",
+    ".github/workflows/native-display-input.yml": "cccfb0abc9627cd914006a7789607b5a1da5345be400737956aa594cb0c48991",
+    ".github/workflows/native-foundation.yml": "dc80b82d403e58710bf1d40c877665f0e644316fb6629ffdb556e0f321ac1ad6",
+    ".github/workflows/native-rtc.yml": "e75346f60b3f64fb84ba13a2638f4d3458608780ce6f92279e284880a9b0600b",
+    ".github/workflows/native-smp.yml": "81b9621e7186bfd49a31016a28add323f30a18b2dcb027085300a74337e0a677",
+    ".github/workflows/native-system.yml": "9b17bc17409a9e1450f679fc353bcfb49c620e84183c874a90e96f5ad646a426",
+    ".github/workflows/native-window-session.yml": "554a16ef8a7eb4183c42f8734087204dd9f6112f98648b318a67b124026ac6a5",
+    ".github/workflows/net-broker-quality.yml": "9e02aa0b3ffa9ad23ec7fd11fe89464479af842f25f61cbc00c9756bc3dad800",
+    ".github/workflows/net-tls-quality.yml": "2c1f55e0eb60d69d922cea76f32bf67950109bccaaf6f1165c7b402bf51c4681",
+    ".github/workflows/private-publication-audit.yml": "9d6281aca8c96c8ec24238e07918c86e37d7d18b3721777406f10679148e5929",
+    ".github/workflows/process-management.yml": "49e866752faab4f8f55ba6f11df43592c07988325bb4dbbc720aa316432b8d14",
+    ".github/workflows/resource-pressure.yml": "d36decf229161d35aa6f509f83588e7e74e535eceebdbf8b01ba02d53329a29c",
+    ".github/workflows/signed-updates.yml": "0536b784b70047dcfdca87187fd51e1bea1debb2b5b72f4ddded96876e77fa04",
+    ".github/workflows/storage-resilience.yml": "5773fcdeef48d0dd70461bcb5112bfca13043daf91e0e8626f92ec7b2c76aa28",
+    ".github/workflows/volume-acceptance.yml": "665353daf41930b9b269d284b9f7ffcd07715dc147407628ab488b55a625b98a",
+    ".github/workflows/windows-qemu-test-version.yml": "a4399a418238b951b4c339b7b08bdfed23a184654d964d87fde02a9e39c120a6",
+    ".github/actions/preserve-evidence/action.yml": "6a110d0eda5b059ab9c827976b913ab8291aa2a8c6e23eebd99e62ef09bc744f",
+    "tools/ci_evidence.py": "ba227eb9f857b3a41e3f499bf2ecda39e1c513ca73a5a935e5c5c1c9c584d951",
+    "tests/test_ci_evidence.py": "63aa13b4dbc6227516d5397a1a065d84271e521fd67bac234425686553852a1c"
+  },
+  "rollback": "Revert this CI-evidence change through a PR; do not remove unrelated changes or workflow run logs."
+}

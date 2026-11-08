@@ -1,6 +1,12 @@
 name: Windows QEMU native Materiaal test bundle
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore: ['docs/**', '*.md']
@@ -68,10 +74,13 @@ jobs:
             --seabios-license /usr/share/doc/seabios/copyright \
             --ovmf-version "$(dpkg-query -W -f='${Version}' ovmf)" \
             --seabios-version "$(dpkg-query -W -f='${Version}' seabios)"
-      - name: Preserve the test bundle and native VM evidence
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
+          package-path: build/windows-qemu/NieuwOS-Testversie-Windows-QEMU.zip
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: nieuw-os-windows-qemu-test-version
           path: |
             build/windows-qemu/NieuwOS-Testversie-Windows-QEMU.zip
@@ -80,5 +89,3 @@ jobs:
             build/windows-qemu/preview-run/materiaal-*/serial.txt
             build/windows-qemu/preview-run/materiaal-*/stderr.txt
             build/windows-qemu/preview-run/materiaal-*/preview.ppm
-          if-no-files-found: error
-          retention-days: 3

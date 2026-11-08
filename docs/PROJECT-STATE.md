@@ -1,6 +1,41 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — PR #211 parserintegratie — 7 november 2026
+## NEXT AGENT HANDOFF — CI-artifactopslag — 8 november 2026
+
+**Bron:** main `363b486b06023d3d578f8eca2b23ff49045a1757`; werkbranch
+`ci/artifact-storage-20261108`. **41 → 41/100**; geen criterium gewijzigd.
+Scope: archivering van testbewijs. De afzonderlijke runner-/toolchainmigratie
+blijft een eigen wijziging. Besluit: ADR-CI-EVIDENCE-20261108.
+
+**Gerealiseerd:** vijftien workflows gebruiken een gedeelde collector/action.
+Bronbinding en compacte rapporten verschijnen vóór de upload in runlog en
+summary. Alleen upload-artifact mag bij quota falen zonder teststatus te
+veranderen. Verplichte outputcontroles en de bestaande testgates blijven
+intact. Volledige raw-archieven zijn een handmatige optie (één dag); compacte
+rapporten blijven drie dagen. Windows-ZIPs hebben een eigen zichtbare
+leveringsstatus. Zie [CI-EVIDENCE.md](CI-EVIDENCE.md).
+
+**Diagnose:** de zes onderzochte nieuwste native main-jobs hebben geslaagde
+teststappen en falen uitsluitend op artifactquota. Een actuele accountbrede
+opslagtelling is niet beschikbaar; recente rungebonden artifactlijsten zijn
+leeg. Geen verwijderde bytes of volledige quota-opruiming geclaimd.
+
+**Validatie bij dit checkpoint:** bronbestanden zijn met GitHub-blobhashes
+geverifieerd; de lokale werkmap bevat een gerichte snapshot, geen volledige
+clone. Alle 15 collector-hosttests en 151 gerichte YAML-/shellcontroles slagen;
+voortgangscontrole en diff-check slagen. Commando's, bronhashes en grenzen
+staan in `docs/verification/ci-artifact-storage-20261108.json`. De volledige
+Rust-/QEMU-gates zijn lokaal niet uitgevoerd; Cargo en QEMU ontbreken.
+Een simulatie van uploadfalen is geen echte GitHub-upload.
+
+**Open en eerstvolgende controle:** beoordeel de exacte PR-head en diens
+CI-/reviewresultaten; kijk afzonderlijk naar test- en archiefstatus. Laat
+quota-only uploadfouten niet opnieuw als coderegressie gelden. Een ontbrekend
+raw-archief blijft onvoldoende voor acceptatie die die bytes vereist.
+Samenvoegen loopt via de bestaande branchregels; geen productpunten voor
+alleen deze infrastructuurreparatie.
+
+## Historisch checkpoint — PR #211 parserintegratie — 7 november 2026
 
 **Bron:** `verify/parser-hardening-20261105`, integratiecommit
 `69265f4b1d1220ea3eee6a9358ca09dc5a8b5e7d`; ouders PR `328ac91d` en main

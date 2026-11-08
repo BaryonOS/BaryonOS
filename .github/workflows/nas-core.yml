@@ -1,6 +1,12 @@
 name: NAS host, target and native normal/cold checks
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore: ['docs/**', '*.md']
@@ -109,11 +115,12 @@ jobs:
         env:
           CARGO_NET_OFFLINE: "true"
         run: python3 -B -u tools/test_nas.py
-      - name: Preserve source-bound native results and failed-run evidence
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
-          retention-days: 3
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: nas-native-normal-cold-evidence
           path: |
             build/nas-native-ci/source-commit.txt
@@ -124,4 +131,3 @@ jobs:
             build/nas-native-ci/users/nas/build-report.json
             build/nas-native-ci/esp/
             build/nas-native-ci/run/nas-*/
-          if-no-files-found: error

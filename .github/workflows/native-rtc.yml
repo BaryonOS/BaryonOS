@@ -1,6 +1,12 @@
 name: Native CMOS RTC acceptance
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths-ignore: ['docs/**', '*.md']
@@ -51,11 +57,11 @@ jobs:
           python3 -B tools/build.py --kernel-feature native-rtc
       - name: Five real controlled-calendar boots
         run: python3 -B tools/run_rtc.py --case all
-      - name: Preserve actual run and build artifacts
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: native-rtc-evidence
           path: build/rtc-native/
-          if-no-files-found: error
-          retention-days: 3
