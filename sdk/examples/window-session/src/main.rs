@@ -370,7 +370,11 @@ fn run() -> ! {
                             .shell
                             .key(key, geometry.width, geometry.height, scene.scale)
                     }
-                    Event::Mouse { .. } if scene.palette_is_open() => {
+                    // Switcher clicks, including their button-up tail after
+                    // dismissal, have priority over trusted shell dock actions.
+                    Event::Mouse { .. }
+                        if scene.palette_is_open() || scene.switcher_owns_pointer() =>
+                    {
                         nieuw_os_window_session::shell::Effect {
                             consumed: false,
                             changed: false,

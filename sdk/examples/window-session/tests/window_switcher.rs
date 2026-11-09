@@ -494,3 +494,36 @@ fn switcher_surround_click_releases_capture_before_next_app_press() {
         );
     }
 }
+
+#[test]
+fn switcher_outside_dock_click_captures_the_entire_mouse_gesture() {
+    for (width, height, scale) in DISPLAYS {
+        let mut scene = Scene::new(width, height, scale, [1, 2]).unwrap();
+        let mut damage = Damage::new(width, height).unwrap();
+        assert!(scene
+            .switcher_key(key(PhysicalKey::Tab, KeyAction::Press, true), &mut damage)
+            .unwrap());
+        assert!(scene.switcher_owns_pointer());
+
+        // A dock task is outside the switcher and would normally activate an
+        // app. Neither the press nor release may leak into the shell.
+        let button = scene.task_button(0);
+        let x = (button.x + 4 * scale as i32) as u32;
+        let y = (button.y + 4 * scale as i32) as u32;
+        assert!(!scene.switcher_bounds().contains(x as i32, y as i32));
+        assert_eq!(
+            scene.mouse_with_damage(x, y, true, true, &mut damage),
+            Ok(None)
+        );
+        assert!(!scene.switcher_is_open());
+        assert!(scene.switcher_owns_pointer());
+        assert_eq!(scene.focused, 0);
+        assert_eq!(
+            scene.mouse_with_damage(x, y, false, false, &mut damage),
+            Ok(None)
+        );
+        assert!(!scene.switcher_owns_pointer());
+        assert_eq!(scene.focused, 0);
+        assert_eq!(scene.switches, 0);
+    }
+}

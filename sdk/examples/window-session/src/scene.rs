@@ -174,6 +174,12 @@ impl Scene {
         self.switcher.is_some()
     }
 
+    /// Keep the entire mouse gesture in the switcher, even after dismissal.
+    /// The native input dispatcher must not route the button-up to the dock.
+    pub fn switcher_owns_pointer(&self) -> bool {
+        self.switcher.is_some() || self.switcher_mouse_capture
+    }
+
     pub fn switcher_selected(&self) -> Option<usize> {
         self.switcher
     }
