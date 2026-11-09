@@ -64,3 +64,7 @@ dit is geen onafhankelijke menselijke audit.
 Alle overige werkstromen uit #283 blijven onbehandeld. Er zijn geen oude PR's,
 issues, branches of branchregels gewijzigd. De voortgang blijft **41 → 41/100**.
 Terugdraaien kan met een gewone revert van deze wijziging.
+
+## Refresh on current main — 9 November 2026
+
+The SDK entry merged through #285 remains separate (monthly, limit 3). The grouped entry now covers the other 58 previously missing roots; SDK is not duplicated. The original hashes and results above describe the historical candidate only. The refreshed configuration passed all 11 contract tests, strict preflight, build and QEMU smoke locally (exit 0 each). Logs: `build/pr-refresh/284/`. No native functionality or physical-hardware acceptance is added.
