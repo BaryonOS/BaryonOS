@@ -329,16 +329,20 @@ static GO: AtomicBool = AtomicBool::new(false);
 /// native-smp image.
 const LOCK_STUCK_MS: u64 = 4 * SHOOTDOWN_DEADLINE_MS as u64;
 
-/// BSP, IF=0, before the first IPI: a first 10 ms TSC_PER_MS on the PIT, so
-/// a lock wait during bring-up is bounded too (DG-1); `bsp_timer_init`
-/// refines it over 100 ms before GO (BT-5).
+/// BSP, IF=0, before the first IPI: establish TSC_PER_MS on PIT channel 2, so
+/// a lock wait during bring-up is bounded too (DG-1). Scheduling delay can
+/// only lengthen a sample, so the minimum of ten independent 10 ms samples is
+/// the closest upper bound; `bsp_timer_init` repeats it before GO (BT-5).
 fn calibrate_tsc() {
-    let start = rdtsc();
-    if !wait_us(10_000) {
-        serial::fail(b"SMP_TSC_CALIBRATION");
+    let mut per_ms = u64::MAX;
+    for _ in 0..10 {
+        let start = rdtsc();
+        if !wait_us(10_000) {
+            serial::fail(b"SMP_TSC_CALIBRATION");
+        }
+        per_ms = per_ms.min(rdtsc().wrapping_sub(start) / 10);
     }
-    let per_ms = (rdtsc().wrapping_sub(start) / 10).max(1);
-    TSC_PER_MS.store(per_ms, Ordering::Release);
+    TSC_PER_MS.store(per_ms.max(1), Ordering::Release);
 }
 
 /// TSC value after which a lock wait that starts now is stuck (DG-1).
@@ -2483,14 +2487,17 @@ fn bsp_timer_init() {
     lapic_write(TIMER_DIVIDE, 0x3);
     lapic_write(LVT_TIMER, MASKED | TIMER_VECTOR as u32);
     lapic_write(TIMER_INITIAL, u32::MAX);
-    let tsc = rdtsc();
-    if !(0..10).all(|_| wait_us(10_000)) {
-        serial::fail(b"SMP_TIMER_CALIBRATION");
+    let mut per_ms = u64::MAX;
+    for _ in 0..10 {
+        let start = rdtsc();
+        if !wait_us(10_000) {
+            serial::fail(b"SMP_TIMER_CALIBRATION");
+        }
+        per_ms = per_ms.min(rdtsc().wrapping_sub(start) / 10);
     }
     let lapic = u64::from(u32::MAX - lapic_read(TIMER_CURRENT));
-    let tsc = rdtsc().wrapping_sub(tsc);
     lapic_write(TIMER_INITIAL, 0);
-    TSC_PER_MS.store((tsc / 100).max(1), Ordering::Release);
+    TSC_PER_MS.store(per_ms.max(1), Ordering::Release);
     // LAPIC ticks per PIT IRQ0 tick: 100 ms hold PIT_HZ / 10 / PIT_DIVISOR.
     serial::write(b"SMP:TIMER:RATIO:");
     decimal(lapic * 10 * u64::from(PIT_DIVISOR) / PIT_HZ);
