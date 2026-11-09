@@ -7,6 +7,12 @@ HEAD `817d08cf94e0ecd885ffbb1144f0d21903139a53`; base main
 `2ed4c087746021da3c8b96511af3209a35d0f441`. The PR is still
 open, with GitHub reporting `mergeable: false`.
 
+**Additional runner contract fix:** `b06509e6` updates the QEMU SMP artifact
+manifest oracle and its host fixture to require `loader_feature:
+"smp-handoff"`, matching the newly opt-in SMP loader selection. The
+previous oracle would have rejected every native SMP build even when valid.
+This change has source readback only, not a QEMU pass.
+
 **Completed source changes:** `9c33da2d` adds version-aware zeroing of
 absent SMP header fields when a legacy ABI 1.2 framebuffer descriptor
 begins at byte 128, with a Rust regression test. `3cb3e29f` makes MADT
