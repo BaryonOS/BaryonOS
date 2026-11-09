@@ -213,10 +213,54 @@ jobs:
             build/k06-*/run/smp-*/serial.txt
             build/k06-*/run/smp-*/stderr.txt
 
+  smp-environment-probe:
+    name: SMP Ubuntu 26.04 and K07 probe
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    env:
+      NOS_QEMU_MACHINE: pc-q35-10.0
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-smp-environment-probe
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/smp-environment-probe
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/smp-environment-probe
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout frozen source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Pinned Rust
+        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Pinned QEMU 10.2.1 and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Prove the runner reaches K07 and exact cleanup
+        run: |
+          python3 -B tools/build.py --kernel-feature native-smp-m4-quotas
+          python3 -B -u tools/run_smp.py --case m4-quotas-four --repeat 1
+          git diff --exit-code
+      - name: Preserve environment probe
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: runner-environment-probe
+          path: |
+            build/k06-smp-environment-probe/manifest.json
+            build/k06-smp-environment-probe/smp-report.json
+            build/k06-smp-environment-probe/run/smp-*/result.json
+            build/k06-smp-environment-probe/run/smp-*/serial.txt
+            build/k06-smp-environment-probe/run/smp-*/stderr.txt
+          if-no-files-found: warn
+          retention-days: 14
+          compression-level: 9
+
   smp-case-50:
     name: SMP 50/50 (${{ matrix.case }})
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix }}
-    runs-on: ubuntu-24.04
+    needs: smp-environment-probe
+    runs-on: ubuntu-26.04
     timeout-minutes: 330
     strategy:
       fail-fast: false
@@ -287,7 +331,7 @@ jobs:
           - m3-unmap-control
           - m3-recovery-four
     env:
-      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_QEMU_MACHINE: pc-q35-10.0
       NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-smp-${{ matrix.case }}
       NOS_TARGET_DIR: ${{ github.workspace }}/target/smp-${{ matrix.case }}
       CARGO_TARGET_DIR: ${{ github.workspace }}/target/smp-${{ matrix.case }}
@@ -310,7 +354,9 @@ jobs:
         run: |
           profile="$(python3 -B - <<'PY'
           import os
-          from tools.run_smp import CASES
+          import sys
+          sys.path.insert(0, 'tools')
+          from run_smp import CASES
           print(CASES[os.environ['SMP_CASE']][0])
           PY
           )"
@@ -335,7 +381,8 @@ jobs:
   smp-soak-50:
     name: SMP soak 5/50 (shard ${{ matrix.shard }})
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix }}
-    runs-on: ubuntu-24.04
+    needs: smp-environment-probe
+    runs-on: ubuntu-26.04
     timeout-minutes: 90
     strategy:
       fail-fast: false
@@ -343,7 +390,7 @@ jobs:
       matrix:
         shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     env:
-      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_QEMU_MACHINE: pc-q35-10.0
       NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-smp-soak-${{ matrix.shard }}
       NOS_TARGET_DIR: ${{ github.workspace }}/target/smp-soak-${{ matrix.shard }}
       CARGO_TARGET_DIR: ${{ github.workspace }}/target/smp-soak-${{ matrix.shard }}
@@ -418,10 +465,10 @@ jobs:
     name: SMP final repository gate
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix }}
     needs: smp-matrix-aggregate
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 360
     env:
-      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_QEMU_MACHINE: pc-q35-10.0
       NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-smp-final-gate
       NOS_TARGET_DIR: ${{ github.workspace }}/target/smp-final-gate
       CARGO_TARGET_DIR: ${{ github.workspace }}/target/smp-final-gate

@@ -14,7 +14,7 @@ runs:
       run: |
         set -euo pipefail
         . /etc/os-release
-        test "$ID" = ubuntu && test "$VERSION_ID" = 24.04
+        test "$ID" = ubuntu
         test "$(dpkg --print-architecture)" = amd64
         case "$INSTALL_SWTPM" in
           true|false) ;;
@@ -26,10 +26,48 @@ runs:
         sources="$RUNNER_TEMP/nieuw-os-ubuntu.sources"
         lists="$RUNNER_TEMP/nieuw-os-apt-lists"
         mkdir -p "$lists/partial"
-        cat > "$sources" <<'EOF'
+        case "$VERSION_ID" in
+          24.04)
+            suite='noble noble-updates noble-security'
+            machine='pc-q35-8.2'
+            code_sum='ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083'
+            vga_sum='4eecd8e752efc02c6c0fe87eb92bf66934cb9ea67b0e1bc41e86f8430c8bf8a0'
+            packages=(
+              qemu-system-x86=1:8.2.2+ds-0ubuntu1.18
+              qemu-system-common=1:8.2.2+ds-0ubuntu1.18
+              qemu-system-data=1:8.2.2+ds-0ubuntu1.18
+              ovmf=2024.02-2ubuntu0.10
+              seabios=1.16.3-2
+              ipxe-qemu=1.21.1+git-20220113.fbbdc3926-0ubuntu2
+            )
+            if [ "$INSTALL_SWTPM" = true ]; then
+              packages+=(swtpm=0.7.3-0ubuntu5.24.04.1 libtpms0=0.9.3-0ubuntu4.24.04.1)
+            fi
+            ;;
+          26.04)
+            suite='resolute resolute-updates resolute-security'
+            machine='pc-q35-10.0'
+            code_sum='874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7'
+            vga_sum='c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde'
+            packages=(
+              qemu-system-x86=1:10.2.1+ds-1ubuntu3.3
+              qemu-system-common=1:10.2.1+ds-1ubuntu3.3
+              qemu-system-data=1:10.2.1+ds-1ubuntu3.3
+              ovmf=2025.11-3ubuntu7.3
+              seabios=1.17.0-1ubuntu1
+              ipxe-qemu=1.21.1+git-20250829.969ce2c55+dfsg-3ubuntu2
+            )
+            if [ "$INSTALL_SWTPM" = true ]; then
+              echo '::error::The pinned Ubuntu 26.04 profile has no audited swtpm package set.'
+              exit 2
+            fi
+            ;;
+          *) echo "::error::unsupported Ubuntu runner $VERSION_ID"; exit 2 ;;
+        esac
+        cat > "$sources" <<EOF
         Types: deb
         URIs: https://snapshot.ubuntu.com/ubuntu/20261108T000000Z
-        Suites: noble noble-updates noble-security
+        Suites: $suite
         Components: main universe
         Architectures: amd64
         Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
@@ -40,17 +78,6 @@ runs:
           -o "Dir::State::lists=$lists"
           -o APT::Update::Error-Mode=any
         )
-        packages=(
-          qemu-system-x86=1:8.2.2+ds-0ubuntu1.18
-          qemu-system-common=1:8.2.2+ds-0ubuntu1.18
-          qemu-system-data=1:8.2.2+ds-0ubuntu1.18
-          ovmf=2024.02-2ubuntu0.10
-          seabios=1.16.3-2
-          ipxe-qemu=1.21.1+git-20220113.fbbdc3926-0ubuntu2
-        )
-        if [ "$INSTALL_SWTPM" = true ]; then
-          packages+=(swtpm=0.7.3-0ubuntu5.24.04.1 libtpms0=0.9.3-0ubuntu4.24.04.1)
-        fi
         sudo apt-get "${apt_options[@]}" update
         sudo apt-get "${apt_options[@]}" install -y --no-install-recommends \
           --allow-downgrades --no-remove --reinstall "${packages[@]}"
@@ -64,13 +91,13 @@ runs:
             exit 1
           fi
         done
-        qemu-system-x86_64 -machine help | awk '{print $1}' | grep -Fx pc-q35-8.2
+        qemu-system-x86_64 -machine help | awk '{print $1}' | grep -Fx "$machine"
         qemu-system-x86_64 -accel help | grep -Fx tcg
+        printf '%s  %s\n' "$code_sum" /usr/share/OVMF/OVMF_CODE_4M.fd | sha256sum --check
         sha256sum --check <<'EOF'
-        ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083  /usr/share/OVMF/OVMF_CODE_4M.fd
         5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e  /usr/share/OVMF/OVMF_VARS_4M.fd
-        4eecd8e752efc02c6c0fe87eb92bf66934cb9ea67b0e1bc41e86f8430c8bf8a0  /usr/share/seabios/vgabios-stdvga.bin
         EOF
+        printf '%s  %s\n' "$vga_sum" /usr/share/seabios/vgabios-stdvga.bin | sha256sum --check
         {
           echo 'OS_OVMF_CODE=/usr/share/OVMF/OVMF_CODE_4M.fd'
           echo 'OS_OVMF_VARS=/usr/share/OVMF/OVMF_VARS_4M.fd'

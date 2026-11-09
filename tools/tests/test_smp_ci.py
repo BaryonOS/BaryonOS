@@ -1,6 +1,7 @@
 import json
 import importlib.util
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -71,10 +72,34 @@ class SmpCiAggregationTests(unittest.TestCase):
         self.assertEqual(set(normal), set(CASES) - {SOAK_CASE})
         self.assertEqual(len(normal), len(set(normal)))
         self.assertEqual(soak, list(range(SOAK_SHARDS)))
+        self.assertEqual(jobs["smp-case-50"]["needs"], "smp-environment-probe")
+        self.assertEqual(jobs["smp-soak-50"]["needs"], "smp-environment-probe")
+        self.assertEqual(jobs["smp-case-50"]["runs-on"], "ubuntu-26.04")
+        self.assertEqual(jobs["smp-soak-50"]["runs-on"], "ubuntu-26.04")
+        self.assertEqual(jobs["smp-environment-probe"]["env"]["NOS_QEMU_MACHINE"], "pc-q35-10.0")
         self.assertEqual(
             jobs["smp-matrix-aggregate"]["needs"], ["smp-case-50", "smp-soak-50"]
         )
         self.assertEqual(jobs["smp-final-gate"]["needs"], "smp-matrix-aggregate")
+
+    @unittest.skipUnless(HAS_YAML, "PyYAML unavailable")
+    def test_qemu_action_keeps_old_profile_and_pins_ci_matrix_profile(self):
+        import yaml
+
+        root = Path(__file__).resolve().parents[2]
+        action = yaml.safe_load(
+            (root / ".github/actions/setup-qemu/action.yml").read_text(encoding="utf-8")
+        )
+        script = action["runs"]["steps"][0]["run"]
+        subprocess.run(["bash", "-n"], input=script, text=True, check=True)
+        for required in (
+            "qemu-system-x86=1:8.2.2+ds-0ubuntu1.18",
+            "qemu-system-x86=1:10.2.1+ds-1ubuntu3.3",
+            "pc-q35-8.2",
+            "pc-q35-10.0",
+            "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+        ):
+            self.assertIn(required, script)
 
     def test_rejects_failed_run_hidden_by_summary(self):
         with tempfile.TemporaryDirectory() as directory:
