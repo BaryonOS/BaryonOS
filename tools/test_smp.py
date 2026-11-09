@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 from build import build
 from common import BUILD, ROOT, save_json, source_hash
 from run import MILESTONE_MARKERS, run_gate_case, run_guest
-from run_smp import run_smp
+from run_smp_legacy import run_smp
 
 
 def main() -> int:
@@ -100,8 +100,8 @@ def main() -> int:
 
     stages = (
         ("single-m2", "milestone-m2", 1, "m2"),
-        ("two-m2", "native-smp", 2, "smp"),
-        ("four-m2", "native-smp", 4, "smp"),
+        ("two-m2", "native-smp-legacy", 2, "smp"),
+        ("four-m2", "native-smp-legacy", 4, "smp"),
         ("m3-two", "native-smp-m3", 2, "m3-smp"),
         ("m3-exit-two", "native-smp-m3-exit", 2, "m3-exit-smp"),
         ("m3-lock-contention-two", "native-smp-m3-lock-contention", 2, "m3-smp"),
@@ -124,6 +124,8 @@ def main() -> int:
                     required_markers=MILESTONE_MARKERS["m2"],
                     memory_mib=256,
                 )
+            elif runner == "smp":
+                report = run_smp(cpus, profile="native-smp")
             elif runner == "m3":
                 report = run_gate_case(
                     "m3",

@@ -92,8 +92,6 @@ fn grow(s: &mut State, slot: usize, a: [u64; 6]) -> Result<u64, i64> {
         return Err(-7);
     }
     let pid = p.pid;
-    #[cfg(feature = "native-memory")]
-    memory_fixture::observe_pressure(s);
     // SAFETY: The sole call path is the single-CPU IF=0 event loop. No yield,
     // callback into user code or nested heap transaction occurs before this
     // exclusive arena borrow ends. The ~20KiB arena is permanent supervisor

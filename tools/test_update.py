@@ -15,7 +15,8 @@ from run_update import ORDER, STAGES
 
 TEST_INPUTS = "test_update_*.py"
 HOST = [
-    ["cargo", "+1.90.0", "test", "--locked", "-p", "update-core", "-p", "update-tool"],
+    ["cargo", "+1.90.0", "test", "--locked", "-p", "update-core", "-p", "update-tool",
+     "--features", "update-core/test-signing-anchors"],
     [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", TEST_INPUTS],
 ]
 KERNELS = {"k1": ("native-update", 1, "kernel-v1.elf"), "k2": ("native-update", 2, "kernel-v2.elf"),
@@ -49,7 +50,7 @@ def prepare_images(frozen: str) -> dict:
     images = {"schema_version": 1, "source_sha256": frozen, "files": {}, "kernels": {}, "manifests": {},
               "loader_sha256": None, "builds": {}}
     for name, (feature, version, filename) in KERNELS.items():
-        manifest = build("signed-boot", feature, f"update-{name}", image_version=version)
+        manifest = build("signed-boot-test", feature, f"update-{name}", image_version=version)
         kernel = ROOT / "target" / "x86_64-unknown-none/release/os-kernel"
         shutil.copy2(kernel, out / filename)
         images["files"][name] = filename

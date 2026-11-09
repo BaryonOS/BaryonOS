@@ -1,21 +1,66 @@
-# Bijdragen aan Nieuw OS
+# Contributing to Baryon OS
 
-Nieuw OS is een zelfstandig OS-onderzoeksproject met een eigen Rust-kernel. Een bijdrage mag de kern niet stilzwijgend vervangen door Linux, BSD, XNU, Windows, Android of een andere bestaande OS-kernel.
+Baryon OS is an independent operating-system research project with its own Rust kernel. Contributions must preserve the existing architecture, security, and evidence boundaries; the kernel may not be silently replaced by an existing operating-system kernel.
 
-## Voor iedere wijziging
+## Choose the right place first
 
-1. Lees `AGENTS.md` en de lokale `AGENTS.md` van de mappen die je wijzigt.
-2. Lees de relevante architectuur-, security- en implementatiecontracten.
-3. Houd kernel, userspace, capabilities, IPC en driverrechten gescheiden.
-4. Voeg geen dependency toe zonder herkomst-, licentie-, onderhouds- en no_std/buildscriptcontrole waar relevant.
-5. Label hostprototype, native uitvoering, emulatorbewijs en fysieke-hardwareclaims afzonderlijk.
+Use [Discussions](https://github.com/simonvanieperen/BaryonOS/discussions) for questions, design trade-offs, and user-experience proposals. Use [Issues](https://github.com/simonvanieperen/BaryonOS/issues/new/choose) for reproducible defects, CI/test problems, documentation corrections, and bounded implementation tasks.
 
-## Verificatie
+The [community guide](docs/COMMUNITY.md) explains which channel fits each type of contribution. Search for existing work before opening a new issue or proposal.
 
-Gebruik de commando's uit `docs/DEVELOPMENT.md` en `docs/TEST-STRATEGY.md`. Minimaal moeten de bij de wijziging horende tests, formatting en linting slagen. Een niet-uitgevoerde test is geen groen resultaat. De CI voert een brede hostcontrole, native cross-build en een geïsoleerde QEMU-smoke uit; mijlpaalacceptatie kan aanvullende brongebonden gates vereisen.
+## Development environment
+
+Before making a change, read:
+
+1. `AGENTS.md` and any local `AGENTS.md` files under the directories being changed;
+2. the relevant architecture, security, and implementation contracts;
+3. [DEVELOPMENT.md](docs/DEVELOPMENT.md) for the current toolchain and execution path;
+4. [TEST-STRATEGY.md](docs/TEST-STRATEGY.md) for the required evidence level.
+
+The main toolchain is pinned. Do not substitute a different Rust, QEMU, or firmware version for a required gate without documenting the difference explicitly.
+
+## Architecture and security rules
+
+- Keep kernel, userspace, drivers, IPC, and capability authority separated.
+- Do not widen a capability, trust boundary, or network permission merely to make a test pass.
+- New `unsafe` code requires a concrete invariant and appropriate negative tests.
+- Do not trust user pointers, IPC lengths, DMA descriptors, or external input without validation.
+- Do not introduce home-grown cryptographic primitives.
+- Host prototypes, native execution, emulator evidence, and physical-hardware evidence must be reported separately.
+- Secrets, production keys, personal data, and real host disks do not belong in tests, logs, or evidence bundles.
+
+## Dependencies
+
+A new dependency requires review of provenance, version, maintenance, license, relevant build scripts, and `no_std` suitability where applicable. Pin the version and update the relevant dependency and third-party documentation.
+
+## Code and documentation
+
+Rust code is formatted with `rustfmt`, and relevant code should pass the agreed Clippy checks without introducing new warnings. Python and shell tooling should follow the existing repository conventions.
+
+Project documentation uses an impersonal, scientific style: precise, testable, and free of unsupported claims. Historical logs and source-bound evidence files are not rewritten editorially.
+
+## Verification
+
+Run at least the targeted tests, formatting, and linting relevant to the change. Use the broader gate when a shared interface, capability, driver boundary, or native integration is affected.
+
+A test that was not run is not a passing test. The current repository ruleset requires the `host-quality` and `qemu-smoke` checks before `main` can be updated.
 
 ## Pull requests
 
-Houd wijzigingen klein en beoordeelbaar. Beschrijf het beveiligingsinvariant, de relevante negatieve tests, exacte uitgevoerde commando's, bewijsgrenzen en rollback. Verruim geen capability- of trustgrens alleen om een test te laten slagen. De 0–100%-meter verandert uitsluitend wanneer een bestaand acceptatiecriterium aantoonbaar volledig is gehaald.
+- Work on a small, reviewable branch.
+- Open a new pull request as a **draft** first.
+- Use squash merge; the repository requires linear history.
+- Resolve review threads before finalizing the pull request.
+- Describe the goal, scope, security invariant, commands actually run, evidence boundary, risks, and rollback.
+- Bind evidence to the exact source revision; an old green run is not evidence for a new head.
+- The 0–100 progress score increases only when an existing criterion is fully and demonstrably accepted. It may decrease when a previously accepted criterion returns to Open because of a regression, missing evidence, or an earlier claim that proved too broad.
 
-Beveiligingsproblemen volgen `SECURITY.md`; zet geen secrets, echte gebruikersdata, productiekeys of hostschijven in tests of bewijsbundels.
+CodeRabbit and other automated review systems are additional review layers. They do not change the acceptance criteria and do not replace required runtime tests or independent human review.
+
+## Licensing contributions
+
+The MPL-2.0 scope is defined in [LICENSING.md](LICENSING.md) and [MPL-2.0-FILES.txt](MPL-2.0-FILES.txt). A contributor offering a change to MPL-covered software must have sufficient rights to make that contribution available under MPL-2.0. Third-party code or assets may only be added when their provenance and terms are documented explicitly.
+
+## Security issues
+
+Follow [SECURITY.md](SECURITY.md). Do not publish exploit details, credentials, or sensitive reproduction data in a regular issue or discussion.

@@ -4,18 +4,21 @@ use crate::{
     design as d, text, Rect, Scale, Viewport, TILE_HEIGHT, TILE_WIDTH,
 };
 use nieuw_os_graphics::{Canvas, Font, Icon, Rect as GraphicRect, Size, Weight};
-use noto_sans_mono_bitmap::{get_raster, get_raster_width, FontWeight, RasterHeight};
 
 pub const MAX_TEXT_ROWS: usize = 48;
 /// Fixed material nodes, pagination controls and one entry per domain object.
-pub const MAX_SEMANTIC_NODES: usize = 8 + volume_core::PER_DOMAIN;
+pub const MAX_SEMANTIC_NODES: usize = 24 + volume_core::PER_DOMAIN;
+// Shell glass on the dark desktop. Kept here: only the shell draws on wallpaper.
+const GLASS: u32 = 0x0b1a24;
+const GLASS_RAISED: u32 = 0x1c3441;
+const GLASS_HOVER: u32 = 0x2a4a58;
+const GLASS_EDGE: u32 = 0x35525e;
+const SHELL_MUTED: u32 = 0xb8cbd6;
+const INK: u32 = 0xf1f7f8;
+const SHELL_DANGER: u32 = 0xffa494;
+/// Mint for "stays on this device": readable on glass (AA at small size).
+const PRIVATE: u32 = 0x8fdcc4;
 
-fn raster_height(scale: Scale) -> RasterHeight {
-    match scale {
-        Scale::Percent100 => RasterHeight::Size16,
-        Scale::Percent200 => RasterHeight::Size32,
-    }
-}
 #[derive(Clone, Copy, Debug)]
 pub struct Layout {
     pub new: Rect,
@@ -24,6 +27,16 @@ pub struct Layout {
     pub save: Rect,
     pub editor: Rect,
     pub status: Rect,
+    pub search: Rect,
+    pub filter: Rect,
+    pub rename: Rect,
+    pub organize: Rect,
+    pub history: Rect,
+    pub workspace_panel: Rect,
+    pub form_input: Rect,
+    pub form_confirm: Rect,
+    pub form_cancel: Rect,
+    pub preview: Rect,
     pub list_bottom: u32,
     pub list_top: u32,
     pub title_y: u32,
@@ -34,17 +47,17 @@ pub struct Layout {
     pub modal_cancel: Rect,
     pub modal_discard: Rect,
     width: u32,
+    height: u32,
     content_left: u32,
     sidebar_width: u32,
-    character_width: usize,
+    scale: Scale,
 }
 impl Layout {
     pub fn new(viewport: Viewport) -> Self {
         let width = viewport.logical_width();
         let height = viewport.logical_height();
         let compact = height < 360;
-        let editor_top = if compact { 120 } else { 144 };
-        let controls_y = if compact { 64 } else { 104 };
+        let controls_y = if compact { 48 } else { 80 };
         let sidebar_width = if width >= 960 {
             208
         } else if width >= 720 {
@@ -65,7 +78,71 @@ impl Layout {
             height: 208,
         };
         let modal_button = (modal.width - 40) / 2;
+        let panel = Rect {
+            x: 16,
+            y: 16,
+            width: width - 32,
+            height: height - 80,
+        };
+        let short = height < 360;
+        let form_y = panel.y + if short { 44 } else { 100 };
+        let footer_y = panel.y + panel.height - 48;
         Self {
+            search: Rect {
+                x: content_left,
+                y: if compact { 96 } else { 140 },
+                width: width - content_left - d::PAD - 136,
+                height: 44,
+            },
+            filter: Rect {
+                x: width - d::PAD - 128,
+                y: if compact { 96 } else { 140 },
+                width: 128,
+                height: 44,
+            },
+            rename: Rect {
+                x: 136,
+                y: d::PAD,
+                width: 120,
+                height: 44,
+            },
+            organize: Rect {
+                x: 264,
+                y: d::PAD,
+                width: 104,
+                height: 44,
+            },
+            history: Rect {
+                x: 376,
+                y: d::PAD,
+                width: 132,
+                height: 44,
+            },
+            workspace_panel: panel,
+            form_input: Rect {
+                x: panel.x + 16,
+                y: form_y,
+                width: panel.width - 32,
+                height: 44,
+            },
+            form_confirm: Rect {
+                x: panel.x + panel.width / 2 + 4,
+                y: footer_y,
+                width: panel.width / 2 - 20,
+                height: 44,
+            },
+            form_cancel: Rect {
+                x: panel.x + 16,
+                y: footer_y,
+                width: panel.width / 2 - 20,
+                height: 44,
+            },
+            preview: Rect {
+                x: panel.x + 16,
+                y: panel.y + 164,
+                width: panel.width - 32,
+                height: panel.height.saturating_sub(232),
+            },
             new: Rect {
                 x: content_left,
                 y: controls_y,
@@ -97,28 +174,28 @@ impl Layout {
             },
             editor: Rect {
                 x: d::PAD,
-                y: editor_top,
+                y: if compact { 112 } else { 160 },
                 width: width - 2 * d::PAD,
-                height: height - editor_top - 64,
+                height: height - if compact { 176 } else { 224 },
             },
             status: Rect {
                 x: content_left,
-                y: height - 48,
+                y: height - if compact { 24 } else { 48 },
                 width: width - content_left - d::PAD,
-                height: 48,
+                height: if compact { 24 } else { 48 },
             },
-            list_bottom: height - 56,
-            list_top: if compact { 120 } else { 168 },
+            list_bottom: height - if compact { 24 } else { 56 },
+            list_top: if compact { 144 } else { 204 },
             title_y: if compact { 16 } else { 20 },
             list_previous: Rect {
                 x: width - d::PAD - 96,
-                y: if compact { 8 } else { 20 },
+                y: if compact { 4 } else { 20 },
                 width: 44,
                 height: 44,
             },
             list_next: Rect {
                 x: width - d::PAD - 44,
-                y: if compact { 8 } else { 20 },
+                y: if compact { 4 } else { 20 },
                 width: 44,
                 height: 44,
             },
@@ -142,20 +219,112 @@ impl Layout {
                 height: d::CONTROL_HEIGHT,
             },
             width,
+            height,
             content_left,
             sidebar_width,
-            character_width: get_raster_width(FontWeight::Regular, raster_height(viewport.scale()))
-                .div_ceil(viewport.scale().factor() as usize),
+            scale: viewport.scale(),
         }
     }
-    pub fn character_width(self) -> usize {
-        self.character_width
+    pub fn for_screen(viewport: Viewport, screen: Screen) -> Self {
+        let mut layout = Self::new(viewport);
+        if viewport.logical_width() >= 700 && viewport.logical_width() < 784 {
+            layout.rename.x = d::PAD;
+            layout.organize.x = d::PAD + 128;
+            layout.history.x = d::PAD + 240;
+            layout.rename.y = 80;
+            layout.organize.y = 80;
+            layout.history.y = 80;
+            layout.editor.y += 56;
+            layout.editor.height = layout.editor.height.saturating_sub(56);
+        }
+        let (width, height) = (viewport.logical_width(), viewport.logical_height());
+        let compact = height < 360;
+        let max = match screen {
+            Screen::Rename => 272,
+            Screen::Organize => 328,
+            _ => 464,
+        };
+        let pw = (width - if compact { 16 } else { 32 }).min(760);
+        let ph = (height - if compact { 48 } else { 80 }).min(max);
+        let panel = Rect {
+            x: (width - pw) / 2,
+            y: (height - 48 - ph) / 2,
+            width: pw,
+            height: ph,
+        };
+        layout.workspace_panel = panel;
+        layout.form_input = Rect {
+            x: panel.x + 16,
+            y: panel.y + if compact { 36 } else { 100 },
+            width: panel.width - 32,
+            height: 44,
+        };
+        layout.form_confirm = Rect {
+            x: panel.x + panel.width / 2 + 4,
+            y: panel.y + panel.height - 48,
+            width: panel.width / 2 - 20,
+            height: 44,
+        };
+        layout.form_cancel = Rect {
+            x: panel.x + 16,
+            y: panel.y + panel.height - 48,
+            width: panel.width / 2 - 20,
+            height: 44,
+        };
+        layout.preview = Rect {
+            x: panel.x + 16,
+            y: panel.y + if compact { 92 } else { 164 },
+            width: panel.width - 32,
+            height: panel.height.saturating_sub(if compact { 164 } else { 232 }),
+        };
+        layout
     }
-    pub fn columns(self) -> usize {
-        ((self.editor.width - 18) as usize / self.character_width).max(4)
+    pub fn collection_slot(self, index: usize) -> Rect {
+        let gap = 8;
+        let width = (self.workspace_panel.width - 32 - 3 * gap) / 4;
+        Rect {
+            x: self.workspace_panel.x + 16 + index as u32 * (width + gap),
+            y: self.form_input.y + if self.height < 360 { 48 } else { 52 },
+            width,
+            height: 44,
+        }
+    }
+    pub fn filter_slot(self, index: usize) -> Rect {
+        let columns = if self.height < 360 { 3 } else { 2 };
+        let width = (self.workspace_panel.width - 32 - (columns - 1) * 8) / columns;
+        Rect {
+            x: self.workspace_panel.x + 16 + (index as u32 % columns) * (width + 8),
+            y: self.workspace_panel.y + 52 + (index as u32 / columns) * 48,
+            width,
+            height: 44,
+        }
+    }
+    pub fn history_slot(self, selector: usize) -> Rect {
+        let width = (self.workspace_panel.width - 40) / 2;
+        Rect {
+            x: self.workspace_panel.x + 16 + (selector.saturating_sub(1) as u32) * (width + 8),
+            y: self.workspace_panel.y + if self.height < 360 { 40 } else { 100 },
+            width,
+            height: 44,
+        }
+    }
+    pub fn text_font(self) -> Font {
+        Font::new(Size::Body, Weight::Regular, self.scale == Scale::Percent200)
+    }
+    pub fn text_metrics(self) -> text::Proportional {
+        text::Proportional::new(
+            self.text_font(),
+            self.editor.width.saturating_sub(40) * self.scale.factor(),
+        )
+    }
+    pub fn text_left(self) -> u32 {
+        self.editor.x + 20
+    }
+    pub fn text_top(self) -> u32 {
+        self.editor.y + 16
     }
     pub fn rows(self) -> usize {
-        ((self.editor.height.saturating_sub(16)) / d::LINE_HEIGHT).max(1) as usize
+        ((self.editor.height.saturating_sub(32)) / d::LINE_HEIGHT).max(1) as usize
     }
     pub fn list_rows(self) -> usize {
         ((self.list_bottom.saturating_sub(self.list_top) + 8) / 72).max(1) as usize
@@ -187,23 +356,27 @@ pub struct Frame<'a> {
     view: View<'a>,
     layout: Layout,
     rows: [Option<(usize, usize)>; MAX_TEXT_ROWS],
-    caret: text::Position,
+    caret: text::VisualPosition,
 }
 impl<'a> Frame<'a> {
     pub fn new(view: View<'a>) -> Self {
-        let layout = Layout::new(view.viewport);
+        let layout = Layout::for_screen(view.viewport, view.screen);
         let mut frame = Self {
             view,
             layout,
             rows: [None; MAX_TEXT_ROWS],
-            caret: text::Position::default(),
+            caret: text::VisualPosition::default(),
         };
         if let Some(contents) = view.contents {
-            frame.caret = text::position(contents, view.caret, layout.columns());
+            frame.caret = layout.text_metrics().position_with_affinity(
+                contents,
+                view.caret,
+                view.caret_trailing,
+            );
             if view.scroll == 0 {
                 frame.rows[0] = Some((0, 0));
             }
-            let mut cells = text::Cells::new(contents, layout.columns());
+            let mut cells = layout.text_metrics().cells(contents);
             for cell in cells.by_ref() {
                 if cell.position.row < view.scroll {
                     continue;
@@ -215,7 +388,7 @@ impl<'a> Frame<'a> {
                 let start = frame.rows[row].map_or(cell.start, |range| range.0);
                 frame.rows[row] = Some((start, cell.end));
             }
-            let end = text::position(contents, contents.len(), layout.columns());
+            let end = layout.text_metrics().position(contents, contents.len());
             if end.row >= view.scroll && end.row - view.scroll < layout.rows().min(MAX_TEXT_ROWS) {
                 frame.rows[end.row - view.scroll].get_or_insert((contents.len(), contents.len()));
             }
@@ -277,11 +450,12 @@ impl<'a> Frame<'a> {
         }
         let layout = self.layout;
         match self.view.screen {
-            Screen::Material => {
+            Screen::Material | Screen::Filter => {
                 paint.material_chrome(layout, viewport);
-                paint.title(layout.content_left, layout.title_y, "Documenten");
-                if viewport.logical_height() >= 360 {
-                    paint.small(layout.content_left, 62, "Op dit apparaat", d::MUTED);
+                if viewport.logical_height() < 360 {
+                    paint.medium(layout.content_left, 12, "Nebula", d::TEXT);
+                } else {
+                    paint.title(layout.content_left, layout.title_y, "Nebula");
                 }
                 if self.view.list_scroll > 0 || self.view.objects.len() > layout.list_rows() {
                     paint.arrow(
@@ -324,11 +498,29 @@ impl<'a> Frame<'a> {
                         ButtonStyle::Secondary,
                     );
                 }
+                paint.field(
+                    layout.search,
+                    self.view.workspace.query(),
+                    "Zoek in Nebula",
+                    self.view.focus == Focus::Search,
+                    false,
+                );
+                paint.button(
+                    layout.filter,
+                    "Collecties",
+                    self.view.focus == Focus::Filter,
+                    true,
+                    ButtonStyle::Secondary,
+                );
                 if !self.view.list_loaded {
                     paint.wrapped(
                         layout.content_left,
                         layout.list_top,
-                        "Je materiaal wordt geladen.",
+                        if matches!(self.view.status, Status::Failed(_)) {
+                            "Je materiaal kon niet worden geladen."
+                        } else {
+                            "Je materiaal wordt geladen."
+                        },
                         viewport.logical_width() - layout.content_left - d::PAD,
                         d::MUTED,
                     );
@@ -459,7 +651,11 @@ impl<'a> Frame<'a> {
                     }
                 }
             }
-            Screen::Editor | Screen::ConfirmClose => {
+            Screen::Editor
+            | Screen::ConfirmClose
+            | Screen::Rename
+            | Screen::Organize
+            | Screen::History => {
                 paint.back_button(layout.back, self.view.focus == Focus::Back);
                 let label = if self.view.saving {
                     "Annuleren"
@@ -482,21 +678,76 @@ impl<'a> Frame<'a> {
                         ButtonStyle::Primary
                     },
                 );
-                let title = core::str::from_utf8(self.view.title).unwrap_or("Naam niet leesbaar");
-                paint.medium(d::PAD, 84, title, d::TEXT);
-                if viewport.logical_height() >= 360 {
-                    paint.small(d::PAD, 116, "Op dit apparaat", d::MUTED);
+                if viewport.logical_width() >= 700 {
+                    paint.button(
+                        layout.rename,
+                        "Hernoemen",
+                        self.view.focus == Focus::Rename,
+                        self.view.can_save && !self.view.saving,
+                        ButtonStyle::Secondary,
+                    );
+                    paint.button(
+                        layout.organize,
+                        "Ordenen",
+                        self.view.focus == Focus::Organize,
+                        self.view.can_save && !self.view.saving,
+                        ButtonStyle::Secondary,
+                    );
+                    paint.button(
+                        layout.history,
+                        "Geschiedenis",
+                        self.view.focus == Focus::History,
+                        self.view.can_inspect && !self.view.saving,
+                        ButtonStyle::Secondary,
+                    );
                 }
-                paint.fill(layout.editor, d::SURFACE);
-                paint.fill(
-                    Rect {
-                        x: layout.editor.x,
-                        y: layout.editor.y,
-                        width: layout.editor.width,
-                        height: 1,
+                let title = core::str::from_utf8(self.view.title).unwrap_or("Naam niet leesbaar");
+                paint.elided(
+                    d::PAD,
+                    if viewport.logical_height() < 360 {
+                        76
+                    } else if viewport.logical_width() >= 700 && viewport.logical_width() < 784 {
+                        140
+                    } else {
+                        84
                     },
-                    d::LINE,
+                    title,
+                    layout.editor.width,
+                    (
+                        if viewport.logical_height() < 360 {
+                            Size::Body
+                        } else {
+                            Size::Title
+                        },
+                        Weight::Semibold,
+                    ),
+                    d::TEXT,
                 );
+                if viewport.logical_height() >= 360 {
+                    let mut metadata = Label::new();
+                    use core::fmt::Write;
+                    let _ = write!(
+                        &mut metadata,
+                        "Op dit apparaat  ·  {}  ·  Revisie {}",
+                        if self.view.editable {
+                            "Lezen en bewerken"
+                        } else {
+                            "Alleen lezen"
+                        },
+                        self.view.revision
+                    );
+                    paint.small(
+                        d::PAD,
+                        if viewport.logical_width() >= 700 && viewport.logical_width() < 784 {
+                            184
+                        } else {
+                            128
+                        },
+                        metadata.as_str(),
+                        d::MUTED,
+                    );
+                }
+                paint.outlined(layout.editor, d::SURFACE, d::BORDER, d::CONTROL_RADIUS);
                 if self.view.focus == Focus::Document && self.view.screen == Screen::Editor {
                     paint.fill(
                         Rect {
@@ -510,6 +761,7 @@ impl<'a> Frame<'a> {
                 }
                 if let Some(contents) = self.view.contents {
                     let selected = text::selection(self.view.anchor, self.view.caret);
+                    let scale = self.view.viewport.scale().factor();
                     for (row, range) in self
                         .rows
                         .iter()
@@ -519,35 +771,28 @@ impl<'a> Frame<'a> {
                         let Some((start, end)) = *range else {
                             continue;
                         };
-                        let mut column = 0usize;
-                        for (offset, ch) in contents[start..end].char_indices() {
-                            let width = if ch == '\t' {
-                                4 - column % 4
-                            } else if ch == '\r' {
-                                0
-                            } else {
-                                1
-                            };
-                            let x =
-                                layout.editor.x + 8 + (column * layout.character_width()) as u32;
-                            let y = layout.editor.y + 8 + row as u32 * d::LINE_HEIGHT;
-                            let bytes = start + offset..start + offset + ch.len_utf8();
+                        let y = (layout.text_top() + row as u32 * d::LINE_HEIGHT) * scale;
+                        if y + d::LINE_HEIGHT * scale <= rect.y || y >= rect.y + rect.height {
+                            continue;
+                        }
+                        for cell in layout.text_metrics().cells(&contents[start..end]) {
+                            let x = layout.text_left() * scale + (cell.position.x_64 / 64) as u32;
+                            let right = layout.text_left() * scale
+                                + ((cell.position.x_64 + cell.advance_64).div_ceil(64)) as u32;
+                            let bytes = start + cell.start..start + cell.end;
                             if selected.start < bytes.end && selected.end > bytes.start {
-                                paint.fill(
+                                paint.fill_physical(
                                     Rect {
                                         x,
                                         y,
-                                        width: (width.max(1) * layout.character_width()) as u32,
-                                        height: 16,
+                                        width: right.saturating_sub(x).max(scale),
+                                        height: d::LINE_HEIGHT * scale,
                                     },
                                     d::ACCENT_SOFT,
                                 );
                             }
-                            if !matches!(ch, '\n' | '\r' | '\t') {
-                                paint.character(x, y, ch, d::TEXT);
-                            }
-                            if ch != '\n' {
-                                column += width;
+                            if !matches!(cell.character, '\n' | '\r' | '\t') {
+                                paint.proportional_character(x, y, cell.character, d::TEXT);
                             }
                         }
                     }
@@ -556,16 +801,14 @@ impl<'a> Frame<'a> {
                         && self.caret.row >= self.view.scroll
                         && self.caret.row - self.view.scroll < layout.rows()
                     {
-                        paint.fill(
+                        paint.fill_physical(
                             Rect {
-                                x: layout.editor.x
-                                    + 8
-                                    + (self.caret.column * layout.character_width()) as u32,
-                                y: layout.editor.y
-                                    + 8
-                                    + (self.caret.row - self.view.scroll) as u32 * d::LINE_HEIGHT,
-                                width: 2,
-                                height: 16,
+                                x: layout.text_left() * scale + (self.caret.x_64 / 64) as u32,
+                                y: (layout.text_top()
+                                    + (self.caret.row - self.view.scroll) as u32 * d::LINE_HEIGHT)
+                                    * scale,
+                                width: 2 * scale,
+                                height: 22 * scale,
                             },
                             d::ACCENT,
                         );
@@ -619,6 +862,12 @@ impl<'a> Frame<'a> {
                 },
                 d::ACCENT,
             );
+        }
+        if matches!(
+            self.view.screen,
+            Screen::Rename | Screen::Organize | Screen::History | Screen::Filter
+        ) {
+            paint.workspace(self.view, layout);
         }
         if self.view.screen == Screen::ConfirmClose {
             // Opaque application-local backdrop: no half-obscured controls or
@@ -771,10 +1020,14 @@ impl<'a> Frame<'a> {
                     enabled,
                     actions: SemanticActions {
                         activate: enabled && matches!(role, Role::Button | Role::ListItem),
-                        set_value: enabled && role == Role::TextEditor && self.view.editable,
+                        set_value: enabled
+                            && role == Role::TextEditor
+                            && (self.view.editable || id == SemanticId::LibrarySearch),
                     },
-                    read_only: role == Role::TextEditor && !self.view.editable,
-                    selection: if role == Role::TextEditor {
+                    read_only: role == Role::TextEditor
+                        && !self.view.editable
+                        && id != SemanticId::LibrarySearch,
+                    selection: if id == SemanticId::Document {
                         Some((self.view.anchor, self.view.caret))
                     } else {
                         None
@@ -795,7 +1048,7 @@ impl<'a> Frame<'a> {
             SemanticId::Window,
             None,
             Role::Window,
-            "Materiaal",
+            "Nebula",
             None,
             self.view.viewport.bounds(),
             None,
@@ -807,7 +1060,7 @@ impl<'a> Frame<'a> {
                     SemanticId::Heading,
                     Some(SemanticId::Window),
                     Role::Heading,
-                    "Materiaal",
+                    "Nebula",
                     None,
                     Rect {
                         x: l.content_left,
@@ -836,6 +1089,26 @@ impl<'a> Frame<'a> {
                     None,
                     l.refresh,
                     Some(Focus::Refresh),
+                    true,
+                );
+                push(
+                    SemanticId::LibrarySearch,
+                    Some(SemanticId::Window),
+                    Role::TextEditor,
+                    "Zoek in Nebula · Ctrl+F",
+                    Some(self.view.workspace.query()),
+                    l.search,
+                    Some(Focus::Search),
+                    true,
+                );
+                push(
+                    SemanticId::CollectionFilter,
+                    Some(SemanticId::Window),
+                    Role::Button,
+                    "Collectie kiezen",
+                    None,
+                    l.filter,
+                    Some(Focus::Filter),
                     true,
                 );
                 push(
@@ -905,6 +1178,43 @@ impl<'a> Frame<'a> {
                 }
             }
             Screen::Editor => {
+                if self.view.viewport.logical_width() >= 700 {
+                    for (id, focus, bounds, label) in [
+                        (
+                            SemanticId::Rename,
+                            Focus::Rename,
+                            l.rename,
+                            "Naam wijzigen · F2",
+                        ),
+                        (
+                            SemanticId::Organize,
+                            Focus::Organize,
+                            l.organize,
+                            "Ordenen in collectie · Ctrl+G",
+                        ),
+                        (
+                            SemanticId::History,
+                            Focus::History,
+                            l.history,
+                            "Versiegeschiedenis · Alt+H",
+                        ),
+                    ] {
+                        push(
+                            id,
+                            Some(SemanticId::Window),
+                            Role::Button,
+                            label,
+                            None,
+                            bounds,
+                            Some(focus),
+                            (if focus == Focus::History {
+                                self.view.can_inspect
+                            } else {
+                                self.view.can_save
+                            }) && !self.view.saving,
+                        );
+                    }
+                }
                 push(
                     SemanticId::Back,
                     Some(SemanticId::Window),
@@ -942,6 +1252,135 @@ impl<'a> Frame<'a> {
                     l.editor,
                     Some(Focus::Document),
                     !self.view.saving,
+                );
+            }
+            Screen::Rename | Screen::Organize | Screen::History | Screen::Filter => {
+                let workspace = self.view.workspace;
+                let parent = Some(SemanticId::Window);
+                if matches!(self.view.screen, Screen::Rename | Screen::Organize) {
+                    push(
+                        SemanticId::FormInput,
+                        parent,
+                        Role::TextEditor,
+                        if self.view.screen == Screen::Rename {
+                            "Documentnaam"
+                        } else {
+                            "Collectienaam"
+                        },
+                        Some(workspace.form()),
+                        l.form_input,
+                        Some(Focus::FormInput),
+                        true,
+                    );
+                    push(
+                        SemanticId::FormConfirm,
+                        parent,
+                        Role::Button,
+                        if self.view.screen == Screen::Rename {
+                            "Naam toepassen"
+                        } else {
+                            "Bewaren in collectie"
+                        },
+                        None,
+                        l.form_confirm,
+                        Some(Focus::FormConfirm),
+                        self.view.can_save && !workspace.form().is_empty(),
+                    );
+                }
+                if self.view.screen == Screen::Organize {
+                    for i in 0..volume_core::COLLECTIONS {
+                        let name = core::str::from_utf8(workspace.collections()[i].name())
+                            .unwrap_or("Naam niet leesbaar");
+                        push(
+                            SemanticId::CollectionSlot(i),
+                            parent,
+                            Role::Button,
+                            if name.is_empty() {
+                                "Nieuwe collectie"
+                            } else {
+                                name
+                            },
+                            None,
+                            l.collection_slot(i),
+                            Some(Focus::CollectionSlot(i)),
+                            true,
+                        );
+                    }
+                }
+                if self.view.screen == Screen::History {
+                    if let Some(stat) = workspace.metadata() {
+                        for i in 1..=stat.history_count {
+                            push(
+                                SemanticId::HistoryVersion(i),
+                                parent,
+                                Role::Button,
+                                if i == 1 {
+                                    "Vorige versie"
+                                } else {
+                                    "Eerdere versie"
+                                },
+                                None,
+                                l.history_slot(i),
+                                Some(Focus::HistoryVersion(i)),
+                                true,
+                            );
+                        }
+                    }
+                    push(
+                        SemanticId::HistoryPreview,
+                        parent,
+                        Role::Status,
+                        "Eerdere inhoud",
+                        workspace.preview(),
+                        l.preview,
+                        None,
+                        true,
+                    );
+                    push(
+                        SemanticId::RestoreHistory,
+                        parent,
+                        Role::Button,
+                        "Herstel als nieuwe versie",
+                        None,
+                        l.form_confirm,
+                        Some(Focus::RestoreHistory),
+                        workspace.preview().is_some() && self.view.can_save,
+                    );
+                }
+                if self.view.screen == Screen::Filter {
+                    for i in 0..volume_core::COLLECTIONS + 2 {
+                        let label = if i == 0 {
+                            "Alle documenten"
+                        } else if i == 1 {
+                            "Zonder collectie"
+                        } else {
+                            if !workspace.collections()[i - 2].present {
+                                continue;
+                            }
+                            core::str::from_utf8(workspace.collections()[i - 2].name())
+                                .unwrap_or("Naam niet leesbaar")
+                        };
+                        push(
+                            SemanticId::FilterSlot(i),
+                            parent,
+                            Role::Button,
+                            label,
+                            None,
+                            l.filter_slot(i),
+                            Some(Focus::FilterSlot(i)),
+                            true,
+                        );
+                    }
+                }
+                push(
+                    SemanticId::FormCancel,
+                    parent,
+                    Role::Button,
+                    "Terug zonder wijzigen",
+                    None,
+                    l.form_cancel,
+                    Some(Focus::FormCancel),
+                    true,
                 );
             }
             Screen::ConfirmClose => {
@@ -1056,6 +1495,19 @@ pub enum SemanticId {
     SaveAndBack,
     KeepEditing,
     Discard,
+    LibrarySearch,
+    CollectionFilter,
+    Rename,
+    Organize,
+    History,
+    FormInput,
+    FormConfirm,
+    FormCancel,
+    CollectionSlot(usize),
+    FilterSlot(usize),
+    HistoryVersion(usize),
+    RestoreHistory,
+    HistoryPreview,
     Status,
 }
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -1112,6 +1564,17 @@ pub fn status_label(status: Status) -> &'static str {
         Status::Dirty => "Wijzigingen nog niet opgeslagen.",
         Status::Saving { .. } => "Opslaan...",
         Status::Saved { .. } => "Op dit apparaat opgeslagen.",
+        Status::Renamed => "Naam gewijzigd. Bewaar om de wijziging vast te leggen.",
+        Status::Organized { .. } => "Document in de collectie bewaard.",
+        Status::Restored { .. } => "Eerdere inhoud als nieuwe revisie bewaard.",
+        Status::RestoreRefreshFailed { .. } => {
+            "Herstel bewaard; opnieuw lezen mislukt. Bewerk deze oude weergave niet."
+        }
+        Status::NeedsSave => "Bewaar eerst je wijzigingen of ga verder met bewerken.",
+        Status::CollectionSavedAssignmentFailed => "Collectie bewaard; document niet verplaatst. Heropen het document voordat je opnieuw ordent.",
+        Status::PreviewUnavailable => {
+            "Geen volledige tekstpreview beschikbaar; er is niets hersteld."
+        }
         Status::Cancelled => "Opslaan geannuleerd. Je tekst blijft open.",
         Status::InputLost => "Invoer onderbroken. Je tekst blijft open.",
         Status::ClipboardCopied => "Tekst gekopieerd.",
@@ -1151,6 +1614,31 @@ enum ButtonStyle {
     Secondary,
     Danger,
 }
+struct Label {
+    bytes: [u8; 112],
+    len: usize,
+}
+impl Label {
+    fn new() -> Self {
+        Self {
+            bytes: [0; 112],
+            len: 0,
+        }
+    }
+    fn as_str(&self) -> &str {
+        core::str::from_utf8(&self.bytes[..self.len]).unwrap_or("")
+    }
+}
+impl core::fmt::Write for Label {
+    fn write_str(&mut self, value: &str) -> core::fmt::Result {
+        if value.len() > self.bytes.len() - self.len {
+            return Err(core::fmt::Error);
+        }
+        self.bytes[self.len..self.len + value.len()].copy_from_slice(value.as_bytes());
+        self.len += value.len();
+        Ok(())
+    }
+}
 struct Paint<'a> {
     rect: Rect,
     pixels: &'a mut [u32],
@@ -1158,6 +1646,309 @@ struct Paint<'a> {
     cursor: Option<(u32, u32)>,
 }
 impl Paint<'_> {
+    fn elided(
+        &mut self,
+        x: u32,
+        y: u32,
+        value: &str,
+        width: u32,
+        style: (Size, Weight),
+        color: u32,
+    ) {
+        let (size, weight) = style;
+        let font = self.font(size, weight);
+        let limit = width * self.scale.factor();
+        if font.measure(value) <= limit {
+            self.ui_text(x, y, value, size, weight, color);
+            return;
+        }
+        let reserve = font.measure("…");
+        let mut end = 0;
+        for (at, ch) in value.char_indices() {
+            let next = at + ch.len_utf8();
+            if font.measure(&value[..next]).saturating_add(reserve) > limit {
+                break;
+            }
+            end = next;
+        }
+        self.ui_text(x, y, &value[..end], size, weight, color);
+        let advance = font.measure(&value[..end]).div_ceil(self.scale.factor());
+        self.ui_text(x + advance, y, "…", size, weight, color);
+    }
+    fn field(&mut self, r: Rect, value: &str, placeholder: &str, focused: bool, selected: bool) {
+        self.outlined(r, d::SURFACE, d::BORDER, d::CONTROL_RADIUS);
+        if focused {
+            self.focus(r);
+        }
+        let shown = if value.is_empty() { placeholder } else { value };
+        if selected && !value.is_empty() {
+            self.fill(
+                Rect {
+                    x: r.x + 12,
+                    y: r.y + 8,
+                    width: self
+                        .measure(value, Size::Body, Weight::Regular)
+                        .min(r.width - 24),
+                    height: 26,
+                },
+                d::ACCENT_SOFT,
+            );
+        }
+        self.elided(
+            r.x + 12,
+            r.y + 10,
+            shown,
+            r.width - 24,
+            (Size::Body, Weight::Regular),
+            if value.is_empty() { d::MUTED } else { d::TEXT },
+        );
+        if focused && !selected {
+            let x = r.x
+                + 12
+                + self
+                    .measure(value, Size::Body, Weight::Regular)
+                    .min(r.width - 28);
+            self.fill(
+                Rect {
+                    x,
+                    y: r.y + 10,
+                    width: 2,
+                    height: 24,
+                },
+                d::TEXT,
+            );
+        }
+    }
+    fn workspace(&mut self, view: View<'_>, l: Layout) {
+        use core::fmt::Write;
+        self.fill(
+            Rect {
+                x: 0,
+                y: 0,
+                width: view.viewport.logical_width(),
+                height: view.viewport.logical_height(),
+            },
+            d::BACKGROUND,
+        );
+        let p = l.workspace_panel;
+        self.rounded(p, d::SURFACE, 12);
+        let (heading, explanation) = match view.screen {
+            Screen::Rename => (
+                "Een naam voor je document",
+                "De naam wordt samen met je tekst bewaard.",
+            ),
+            Screen::Organize => (
+                "Bewaren in een collectie",
+                "Kies een collectie of geef een lege plek een naam.",
+            ),
+            Screen::History => (
+                "Versiegeschiedenis",
+                "Herstellen bewaart eerdere inhoud als een nieuwe revisie.",
+            ),
+            Screen::Filter => (
+                "Je materiaal ordenen",
+                "Bekijk alles, losse documenten of een eigen collectie.",
+            ),
+            _ => return,
+        };
+        let compact = view.viewport.logical_height() < 360;
+        self.elided(
+            p.x + 16,
+            p.y + if compact { 8 } else { 12 },
+            heading,
+            p.width - 32,
+            (
+                if compact { Size::Body } else { Size::Title },
+                Weight::Semibold,
+            ),
+            d::TEXT,
+        );
+        if !compact {
+            self.elided(
+                p.x + 16,
+                p.y + 60,
+                explanation,
+                p.width - 32,
+                (Size::Small, Weight::Regular),
+                d::MUTED,
+            );
+        }
+        let workspace = view.workspace;
+        match view.screen {
+            Screen::Rename | Screen::Organize => {
+                self.field(
+                    l.form_input,
+                    workspace.form(),
+                    if view.screen == Screen::Rename {
+                        "Documentnaam"
+                    } else {
+                        "Naam van collectie"
+                    },
+                    view.focus == Focus::FormInput,
+                    workspace.form_selected(),
+                );
+                if view.screen == Screen::Organize {
+                    for i in 0..volume_core::COLLECTIONS {
+                        let collection = workspace.collections()[i];
+                        let name =
+                            core::str::from_utf8(collection.name()).unwrap_or("Naam niet leesbaar");
+                        self.button(
+                            l.collection_slot(i),
+                            if name.is_empty() { "Nieuw" } else { name },
+                            view.focus == Focus::CollectionSlot(i),
+                            true,
+                            if workspace.selected_collection() == i {
+                                ButtonStyle::Primary
+                            } else {
+                                ButtonStyle::Secondary
+                            },
+                        );
+                    }
+                }
+                self.button(
+                    l.form_confirm,
+                    if view.screen == Screen::Rename {
+                        "Naam toepassen"
+                    } else {
+                        "Bewaren in collectie"
+                    },
+                    view.focus == Focus::FormConfirm,
+                    view.can_save && !workspace.form().is_empty(),
+                    ButtonStyle::Primary,
+                );
+            }
+            Screen::Filter => {
+                for i in 0..volume_core::COLLECTIONS + 2 {
+                    let label = if i == 0 {
+                        "Alle documenten"
+                    } else if i == 1 {
+                        "Zonder collectie"
+                    } else {
+                        if !workspace.collections()[i - 2].present {
+                            continue;
+                        }
+                        core::str::from_utf8(workspace.collections()[i - 2].name())
+                            .unwrap_or("Naam niet leesbaar")
+                    };
+                    self.button(
+                        l.filter_slot(i),
+                        label,
+                        view.focus == Focus::FilterSlot(i),
+                        true,
+                        ButtonStyle::Secondary,
+                    );
+                }
+            }
+            Screen::History => {
+                if let Some(stat) = workspace.metadata() {
+                    for i in 1..=stat.history_count {
+                        let mut label = Label::new();
+                        let _ = write!(&mut label, "Revisie {}", stat.history[i - 1].revision);
+                        self.button(
+                            l.history_slot(i),
+                            label.as_str(),
+                            view.focus == Focus::HistoryVersion(i),
+                            true,
+                            if workspace.selected_history() == i {
+                                ButtonStyle::Primary
+                            } else {
+                                ButtonStyle::Secondary
+                            },
+                        );
+                    }
+                }
+                if l.preview.height >= d::LINE_HEIGHT {
+                    self.outlined(l.preview, d::BACKGROUND, d::BORDER, 8);
+                    if let Some(text) = workspace.preview() {
+                        let metrics = text::Proportional::new(
+                            self.font(Size::Body, Weight::Regular),
+                            (l.preview.width - 24) * self.scale.factor(),
+                        );
+                        let rows = (l.preview.height.saturating_sub(8) / d::LINE_HEIGHT).max(1);
+                        let scroll = workspace.preview_scroll();
+                        for cell in metrics.cells(text) {
+                            if cell.position.row < scroll {
+                                continue;
+                            }
+                            if cell.position.row - scroll >= rows as usize {
+                                break;
+                            }
+                            if !matches!(cell.character, '\r' | '\n' | '\t') {
+                                self.proportional_character(
+                                    (l.preview.x + 12) * self.scale.factor()
+                                        + (cell.position.x_64 / 64) as u32,
+                                    (l.preview.y
+                                        + 4
+                                        + (cell.position.row - scroll) as u32 * d::LINE_HEIGHT)
+                                        * self.scale.factor(),
+                                    cell.character,
+                                    d::TEXT,
+                                );
+                            }
+                        }
+                        let total_rows = metrics.position(text, text.len()).row + 1;
+                        let mut range = Label::new();
+                        let _ = write!(
+                            &mut range,
+                            "Regels {}-{} van {} · PgUp/PgDn",
+                            scroll + 1,
+                            (scroll + rows as usize).min(total_rows),
+                            total_rows
+                        );
+                        if workspace.preview_truncated() {
+                            range = Label::new();
+                            let _ = write!(
+                                &mut range,
+                                "Verkorte preview · {} van {} bytes · PgUp/PgDn",
+                                text.len(),
+                                workspace.preview_total()
+                            );
+                        }
+                        self.elided(
+                            l.preview.x,
+                            l.preview.y + l.preview.height + 2,
+                            range.as_str(),
+                            l.preview.width,
+                            (Size::Small, Weight::Regular),
+                            d::MUTED,
+                        );
+                    } else {
+                        self.wrapped(
+                            l.preview.x + 12,
+                            l.preview.y + 12,
+                            "Geen volledige tekstpreview beschikbaar. Er is niets hersteld.",
+                            l.preview.width - 24,
+                            d::MUTED,
+                        );
+                    }
+                }
+                self.button(
+                    l.form_confirm,
+                    "Herstel als nieuwe versie",
+                    view.focus == Focus::RestoreHistory,
+                    workspace.preview().is_some() && view.can_save,
+                    ButtonStyle::Primary,
+                );
+            }
+            _ => {}
+        }
+        self.button(
+            l.form_cancel,
+            "Terug · Esc",
+            view.focus == Focus::FormCancel,
+            true,
+            ButtonStyle::Secondary,
+        );
+        self.elided(
+            24,
+            view.viewport.logical_height() - 40,
+            status_label(view.status),
+            view.viewport.logical_width() - 48,
+            (Size::Small, Weight::Regular),
+            status_color(view.status),
+        );
+    }
+
     fn material_chrome(&mut self, layout: Layout, viewport: Viewport) {
         let h = viewport.logical_height();
         if layout.sidebar_width > 0 {
@@ -1272,23 +2063,15 @@ impl Paint<'_> {
                     width: width + 48,
                     height: if compact { h } else { 424 },
                 };
-                self.rounded(
-                    Rect {
-                        x: panel.x + 2,
-                        y: panel.y + 9,
-                        ..panel
-                    },
-                    0x122636,
-                    24,
-                );
-                self.rounded(panel, d::SURFACE, 24);
+                self.glass(panel, GLASS, 196, 28);
+                self.stroke(panel, GLASS_EDGE, 28);
                 if desktop.page() == Page::Accounts {
-                    self.title(x, y + if compact { 12 } else { 24 }, "Welkom terug");
+                    self.title_color(x, y + if compact { 12 } else { 24 }, "Welkom terug", INK);
                     self.label(
                         x,
                         y + if compact { 54 } else { 78 },
-                        "Kies je werkruimte om verder te gaan.",
-                        d::MUTED,
+                        "Kies wie je bent om verder te gaan.",
+                        SHELL_MUTED,
                     );
                 } else {
                     self.medium(
@@ -1299,10 +2082,10 @@ impl Paint<'_> {
                         } else {
                             "Eigen gebruiker"
                         },
-                        d::TEXT,
+                        INK,
                     );
                     if !compact {
-                        self.title(
+                        self.title_color(
                             x,
                             y + 72,
                             if desktop.is_guest() {
@@ -1310,17 +2093,18 @@ impl Paint<'_> {
                             } else {
                                 "Inloggen"
                             },
+                            INK,
                         );
                     }
                     self.small(
                         x,
                         y + if compact { 54 } else { 126 },
                         if desktop.is_guest() {
-                            "Een openbare werkruimte voor deze test."
+                            "Een openbare sessie voor deze test."
                         } else {
                             "Voorbeeldaccount · gebruik alleen testinvoer"
                         },
-                        d::MUTED,
+                        SHELL_MUTED,
                     );
                 }
                 for (target, r, label) in controls.into_iter().flatten() {
@@ -1329,23 +2113,15 @@ impl Paint<'_> {
                             let selected = desktop.focus() == target;
                             self.outlined(
                                 r,
-                                if selected {
-                                    d::ACCENT_SOFT
-                                } else {
-                                    d::BACKGROUND
-                                },
-                                if selected { d::ACCENT } else { d::LINE },
+                                if selected { GLASS_HOVER } else { GLASS_RAISED },
+                                if selected { d::ACCENT } else { GLASS_EDGE },
                                 14,
                             );
-                            self.rounded(
-                                Rect {
-                                    x: r.x + 12,
-                                    y: r.y + (r.height - 44) / 2,
-                                    width: 44,
-                                    height: 44,
-                                },
-                                if selected { d::ACCENT } else { 0xe2e8ec },
-                                14,
+                            self.orb(
+                                r.x + 12,
+                                r.y + (r.height - 44) / 2,
+                                44,
+                                if selected { 0x1fa58f } else { GLASS_HOVER },
                             );
                             self.icon(
                                 Rect {
@@ -1355,7 +2131,7 @@ impl Paint<'_> {
                                     height: 24,
                                 },
                                 Icon::User,
-                                if selected { d::SURFACE } else { d::MUTED },
+                                if selected { d::SURFACE } else { SHELL_MUTED },
                                 1,
                             );
                             self.medium(
@@ -1366,17 +2142,17 @@ impl Paint<'_> {
                                 } else {
                                     label
                                 },
-                                d::TEXT,
+                                INK,
                             );
                             self.small(
                                 r.x + 72,
                                 r.y + if compact { 30 } else { 43 },
                                 if target == Target::Guest {
-                                    "Tijdelijke VM-werkruimte"
+                                    "Tijdelijke VM-sessie"
                                 } else {
                                     "Aanmelden nog niet ingesteld"
                                 },
-                                d::MUTED,
+                                SHELL_MUTED,
                             );
                             self.icon(
                                 Rect {
@@ -1386,12 +2162,23 @@ impl Paint<'_> {
                                     height: 16,
                                 },
                                 Icon::ChevronRight,
-                                d::MUTED,
+                                SHELL_MUTED,
                                 1,
                             );
                         }
                         Target::Back => {
-                            self.icon_button(r, Icon::ChevronLeft, desktop.focus() == target, true)
+                            self.shell_button(r, desktop.focus() == target);
+                            self.icon(
+                                Rect {
+                                    x: r.x + 12,
+                                    y: r.y + 12,
+                                    width: 20,
+                                    height: 20,
+                                },
+                                Icon::ChevronLeft,
+                                INK,
+                                1,
+                            );
                         }
                         Target::Password => {
                             if desktop.is_guest() {
@@ -1399,10 +2186,10 @@ impl Paint<'_> {
                                     r.x,
                                     r.y + 8,
                                     "Geen wachtwoord nodig voor de gast.",
-                                    d::MUTED,
+                                    SHELL_MUTED,
                                 );
                             } else {
-                                self.outlined(r, d::BACKGROUND, d::BORDER, 10);
+                                self.outlined(r, GLASS_RAISED, GLASS_EDGE, 10);
                                 self.icon(
                                     Rect {
                                         x: r.x + 12,
@@ -1411,7 +2198,7 @@ impl Paint<'_> {
                                         height: 20,
                                     },
                                     Icon::Lock,
-                                    d::MUTED,
+                                    SHELL_MUTED,
                                     1,
                                 );
                                 if desktop.password_len() == 0 {
@@ -1424,9 +2211,9 @@ impl Paint<'_> {
                                             "Wachtwoord"
                                         },
                                         if desktop.unavailable() {
-                                            d::DANGER
+                                            SHELL_DANGER
                                         } else {
-                                            d::MUTED
+                                            SHELL_MUTED
                                         },
                                     );
                                 } else {
@@ -1441,12 +2228,12 @@ impl Paint<'_> {
                                                 5 * factor,
                                                 5 * factor,
                                             ),
-                                            d::TEXT,
+                                            INK,
                                         );
                                     }
                                 }
                                 if desktop.focus() == target {
-                                    self.focus(r);
+                                    self.focus_color(r, INK);
                                 }
                             }
                         }
@@ -1458,13 +2245,7 @@ impl Paint<'_> {
                             ButtonStyle::Primary,
                         ),
                         Target::Fingerprint | Target::Fido2 => {
-                            self.button(
-                                r,
-                                "",
-                                desktop.focus() == target,
-                                true,
-                                ButtonStyle::Secondary,
-                            );
+                            self.shell_button(r, desktop.focus() == target);
                             self.icon(
                                 Rect {
                                     x: r.x + 12,
@@ -1477,7 +2258,7 @@ impl Paint<'_> {
                                 } else {
                                     Icon::Key
                                 },
-                                d::MUTED,
+                                SHELL_MUTED,
                                 1,
                             );
                             self.small(
@@ -1488,7 +2269,7 @@ impl Paint<'_> {
                                 } else {
                                     "FIDO2-sleutel"
                                 },
-                                d::MUTED,
+                                SHELL_MUTED,
                             );
                         }
                         _ => {}
@@ -1499,62 +2280,54 @@ impl Paint<'_> {
                         x,
                         y + 370,
                         if desktop.page() == Page::Accounts {
-                            "Nieuw OS · lokale werkruimte"
+                            "Nieuw OS · Horizon"
                         } else if desktop.is_guest() {
                             "Gast (VM-test) · uitsluitend testgegevens"
                         } else {
                             "Authenticatie is in deze testversie niet beschikbaar."
                         },
-                        d::MUTED,
+                        SHELL_MUTED,
                     );
                 }
             }
             Page::Home | Page::Search | Page::Material => {
                 if desktop.page() == Page::Home {
-                    if !compact {
-                        self.small(32, 22, "NIEUW OS  /  WERKRUIMTE", 0xb8cbd6);
-                    }
-                    self.title_color(32, if compact { 8 } else { 48 }, "Je werkruimte", 0xf6fbff);
-                    if !compact {
-                        self.label(32, 94, "Je materiaal, direct bij de hand.", 0xb8cbd6);
+                    let card = controls[5].map_or(Rect::default(), |(_, r, _)| r);
+                    if compact {
+                        self.title_color(32, 8, "Horizon", INK);
+                    } else {
+                        let eyebrow = "HORIZON";
+                        let title = "Verder waar je was";
+                        let eyebrow_w = self.measure(eyebrow, Size::Small, Weight::Regular);
+                        let title_w = self.measure(title, Size::Title, Weight::Semibold);
+                        self.small((w - eyebrow_w) / 2, card.y - 92, eyebrow, PRIVATE);
+                        self.title_color((w - title_w) / 2, card.y - 66, title, INK);
                         let badge = Rect {
                             x: w.saturating_sub(174),
                             y: 20,
                             width: 142,
                             height: 36,
                         };
-                        self.rounded(badge, 0x252a32, 18);
-                        self.icon(
-                            Rect {
-                                x: badge.x + 12,
-                                y: badge.y + 9,
-                                width: 18,
-                                height: 18,
-                            },
-                            Icon::User,
-                            0xd7e5ec,
-                            1,
-                        );
-                        self.small(badge.x + 38, badge.y + 11, "Gast · VM-test", 0xd7e5ec);
+                        self.glass(badge, GLASS, 176, 18);
+                        self.orb(badge.x + 14, badge.y + 13, 10, PRIVATE);
+                        self.small(badge.x + 34, badge.y + 11, "Gast · VM-test", SHELL_MUTED);
                     }
                 } else {
                     let panel_width = w.saturating_sub(48).min(620);
                     let top = if compact { 40 } else { 132 };
-                    self.rounded(
-                        Rect {
-                            x: (w - panel_width) / 2,
-                            y: top,
-                            width: panel_width,
-                            height: if compact { 140 } else { 176 },
-                        },
-                        d::SURFACE,
-                        20,
-                    );
+                    let panel = Rect {
+                        x: (w - panel_width) / 2,
+                        y: top,
+                        width: panel_width,
+                        height: if compact { 140 } else { 176 },
+                    };
+                    self.glass(panel, GLASS, 214, 22);
+                    self.stroke(panel, GLASS_EDGE, 22);
                 }
                 for (target, r, _) in controls.into_iter().flatten() {
                     if target == Target::Material {
                         if desktop.page() == Page::Search {
-                            self.rounded(r, d::ACCENT_SOFT, 12);
+                            self.rounded(r, GLASS_HOVER, 12);
                             self.icon(
                                 Rect {
                                     x: r.x + 16,
@@ -1563,16 +2336,16 @@ impl Paint<'_> {
                                     height: 32,
                                 },
                                 Icon::Material,
-                                d::ACCENT,
+                                PRIVATE,
                                 1,
                             );
-                            self.medium(r.x + 60, r.y + 8, "Materiaal", d::TEXT);
+                            self.medium(r.x + 60, r.y + 8, "Nebula", INK);
                             if !compact {
                                 self.small(
                                     r.x + 60,
                                     r.y + 40,
                                     "Documenten op dit apparaat",
-                                    d::MUTED,
+                                    SHELL_MUTED,
                                 );
                             }
                             self.icon(
@@ -1583,11 +2356,13 @@ impl Paint<'_> {
                                     height: 16,
                                 },
                                 Icon::ChevronRight,
-                                d::MUTED,
+                                SHELL_MUTED,
                                 1,
                             );
                         } else {
-                            self.outlined(r, d::SURFACE, d::LINE, 20);
+                            self.glass(r, GLASS, 188, 24);
+                            self.stroke(r, GLASS_EDGE, 24);
+                            self.rim(r, 24);
                             self.fill(
                                 Rect {
                                     x: r.x + 20,
@@ -1595,18 +2370,17 @@ impl Paint<'_> {
                                     width: r.width.saturating_sub(40),
                                     height: 1,
                                 },
-                                d::LINE,
+                                GLASS_EDGE,
                             );
-                            self.rounded(
-                                Rect {
-                                    x: r.x + if compact { 14 } else { 24 },
-                                    y: r.y + if compact { 22 } else { 28 },
-                                    width: if compact { 48 } else { 64 },
-                                    height: if compact { 48 } else { 64 },
-                                },
-                                0xd2eae3,
-                                18,
-                            );
+                            // A luminous orb instead of a flat app tile.
+                            let (ox, oy, size) = if compact {
+                                (r.x + 14, r.y + 22, 48)
+                            } else {
+                                (r.x + 24, r.y + 28, 64)
+                            };
+                            self.orb(ox - 4, oy - 4, size + 8, 0x0f3a3a);
+                            self.orb(ox, oy, size, 0x1fa58f);
+                            self.orb(ox + size / 8, oy + size / 16, size * 3 / 4, 0x3fd2b2);
                             self.icon(
                                 Rect {
                                     x: r.x + if compact { 26 } else { 36 },
@@ -1615,13 +2389,13 @@ impl Paint<'_> {
                                     height: if compact { 30 } else { 44 },
                                 },
                                 Icon::Material,
-                                d::ACCENT,
+                                0x05201c,
                                 2,
                             );
                             let text_x = r.x + if compact { 76 } else { 112 };
                             let text_y = r.y + if compact { 19 } else { 28 };
-                            self.small(text_x, text_y, "MATERIAAL", d::MUTED);
-                            self.medium(text_x, text_y + 22, "Documenten", d::TEXT);
+                            self.small(text_x, text_y, "NEBULA", SHELL_MUTED);
+                            self.medium(text_x, text_y + 22, "Documenten", INK);
                             if compact {
                                 self.icon(
                                     Rect {
@@ -1631,22 +2405,25 @@ impl Paint<'_> {
                                         height: 18,
                                     },
                                     Icon::ChevronRight,
-                                    d::ACCENT,
+                                    PRIVATE,
                                     1,
                                 );
                             } else {
-                                self.label(text_x, text_y + 52, "Je bibliotheek", d::MUTED);
-                                self.button(
-                                    Rect {
-                                        x: r.x + r.width - 176,
-                                        y: r.y + (r.height - 48) / 2,
-                                        width: 152,
-                                        height: 48,
-                                    },
-                                    "Open Materiaal",
-                                    false,
-                                    true,
-                                    ButtonStyle::Primary,
+                                self.label(text_x, text_y + 52, "Je bibliotheek", SHELL_MUTED);
+                                let pill = Rect {
+                                    x: r.x + r.width - 176,
+                                    y: r.y + (r.height - 48) / 2,
+                                    width: 152,
+                                    height: 48,
+                                };
+                                self.rounded(pill, PRIVATE, 24);
+                                let label = "Openen";
+                                let label_w = self.measure(label, Size::Body, Weight::Semibold);
+                                self.medium(
+                                    pill.x + (pill.width - label_w) / 2,
+                                    pill.y + 12,
+                                    label,
+                                    0x05201c,
                                 );
                             }
                             let content_x = r.x + if compact { 76 } else { 24 };
@@ -1667,13 +2444,13 @@ impl Paint<'_> {
                                 Some(if compact {
                                     "Nog leeg"
                                 } else {
-                                    "Nog geen documenten. Maak je eerste in Materiaal."
+                                    "Nog geen documenten. Maak je eerste in Nebula."
                                 })
                             } else if !view.list_loaded {
                                 Some(if compact {
                                     "Open app"
                                 } else {
-                                    "Open Materiaal om je bibliotheek te laden."
+                                    "Open Nebula om je bibliotheek te laden."
                                 })
                             } else {
                                 None
@@ -1685,9 +2462,9 @@ impl Paint<'_> {
                                     message,
                                     content_width,
                                     if matches!(view.status, Status::Failed(_)) {
-                                        status_color(view.status)
+                                        SHELL_DANGER
                                     } else {
-                                        d::MUTED
+                                        SHELL_MUTED
                                     },
                                 );
                             } else {
@@ -1698,23 +2475,22 @@ impl Paint<'_> {
                                     .and_then(|bytes| core::str::from_utf8(bytes).ok())
                                     .unwrap_or("Naam niet leesbaar");
                                 if compact {
-                                    self.label(content_x, content_y, "Document gereed", d::MUTED);
-                                } else {
-                                    self.wrapped(
+                                    self.label(
                                         content_x,
                                         content_y,
-                                        name,
-                                        content_width,
-                                        d::TEXT,
+                                        "Document gereed",
+                                        SHELL_MUTED,
                                     );
+                                } else {
+                                    self.wrapped(content_x, content_y, name, content_width, INK);
                                 }
                             }
                         }
                         if desktop.focus() == target {
-                            self.focus(r);
+                            self.focus_color(r, INK);
                         }
                     } else if target == Target::SearchField {
-                        self.outlined(r, d::BACKGROUND, d::BORDER, 12);
+                        self.outlined(r, GLASS_RAISED, GLASS_EDGE, 12);
                         self.icon(
                             Rect {
                                 x: r.x + 12,
@@ -1723,21 +2499,21 @@ impl Paint<'_> {
                                 height: 20,
                             },
                             Icon::Search,
-                            d::MUTED,
+                            SHELL_MUTED,
                             1,
                         );
                         self.label(
                             r.x + 44,
                             r.y + 10,
                             if desktop.query().is_empty() {
-                                "Zoek een programma…"
+                                "Zoek met Signaal…"
                             } else {
                                 desktop.query()
                             },
-                            d::TEXT,
+                            INK,
                         );
                         if desktop.focus() == target {
-                            self.focus(r);
+                            self.focus_color(r, INK);
                         }
                     }
                 }
@@ -1747,76 +2523,104 @@ impl Paint<'_> {
                         (w - panel_width) / 2 + 24,
                         if compact { 120 } else { 228 },
                         "Geen programma gevonden",
-                        d::MUTED,
+                        SHELL_MUTED,
                     );
                 }
-                let bar_width = w.saturating_sub(24).min(680);
-                let bar = Rect {
-                    x: (w - bar_width) / 2,
-                    y: h.saturating_sub(68),
-                    width: bar_width,
-                    height: 60,
-                };
-                self.rounded(
-                    Rect {
-                        x: bar.x,
-                        y: bar.y + 4,
-                        ..bar
-                    },
-                    0x122c39,
-                    18,
-                );
-                self.rounded(bar, 0xf5fafb, 18);
-                for (target, r, label) in desktop.controls(viewport).into_iter().flatten().take(3) {
-                    if target == Target::Start {
-                        self.button(
-                            r,
-                            "",
-                            desktop.focus() == target,
-                            true,
-                            ButtonStyle::Secondary,
-                        );
-                        self.icon(
-                            Rect {
-                                x: r.x + 12,
-                                y: r.y + 12,
-                                width: 20,
-                                height: 20,
-                            },
-                            Icon::Apps,
-                            d::TEXT,
-                            1,
-                        );
-                        if r.width > 60 {
-                            self.small(r.x + 40, r.y + 15, "Start", d::TEXT);
+                let bar = crate::desktop::dock(w, h);
+                // A floating capsule of dark glass, lit from above by a rim line.
+                self.glass(bar, GLASS, 214, 28);
+                self.stroke(bar, GLASS_EDGE, 28);
+                self.rim(bar, 28);
+                let controls = desktop.controls(viewport);
+                if bar.width > 228 {
+                    // Privacy as light, not as a prompt: a calm mint glow. Not a control.
+                    let pinned = controls[2].map_or(bar, |(_, r, _)| r);
+                    let chip = Rect {
+                        x: pinned.x + 52,
+                        y: bar.y + 14,
+                        width: 104,
+                        height: 28,
+                    };
+                    self.glass(chip, PRIVATE, 30, 14);
+                    self.orb(chip.x + 10, chip.y + 9, 10, PRIVATE);
+                    self.small(chip.x + 30, chip.y + 6, "Lokaal", PRIVATE);
+                }
+                for (target, r, _) in controls.into_iter().flatten().take(4) {
+                    let focused = desktop.focus() == target;
+                    match target {
+                        Target::Start => self.horizon_mark(r, focused),
+                        Target::Search => {
+                            self.glass(r, 0xffffff, if focused { 26 } else { 0 }, 22);
+                            self.icon(
+                                Rect {
+                                    x: r.x + 12,
+                                    y: r.y + 12,
+                                    width: 20,
+                                    height: 20,
+                                },
+                                Icon::Search,
+                                INK,
+                                1,
+                            );
+                            // Hairline between system buttons and apps.
+                            self.glass(
+                                Rect {
+                                    x: r.x + 51,
+                                    y: r.y + 10,
+                                    width: 1,
+                                    height: 24,
+                                },
+                                0xffffff,
+                                40,
+                                0,
+                            );
                         }
-                    } else if target == Target::Search {
-                        self.rounded(r, 0xe7eff2, 10);
-                        self.icon(
-                            Rect {
-                                x: r.x + 12,
-                                y: r.y + 12,
-                                width: 20,
-                                height: 20,
-                            },
-                            Icon::Search,
-                            d::MUTED,
-                            1,
-                        );
-                        if r.width > 96 {
-                            self.label(r.x + 44, r.y + 10, "Zoeken", d::MUTED);
+                        Target::Pinned => {
+                            self.glass(r, 0xffffff, if focused { 26 } else { 0 }, 22);
+                            self.orb(r.x + 8, r.y + 8, 28, 0x1fa58f);
+                            self.orb(r.x + 11, r.y + 9, 22, 0x2fc7a8);
+                            self.icon(
+                                Rect {
+                                    x: r.x + 13,
+                                    y: r.y + 12,
+                                    width: 18,
+                                    height: 20,
+                                },
+                                Icon::Material,
+                                0x05201c,
+                                1,
+                            );
+                            if desktop.page() == Page::Material {
+                                // Running app: a short line of light under it.
+                                self.rounded(
+                                    Rect {
+                                        x: r.x + 17,
+                                        y: r.y + 41,
+                                        width: 10,
+                                        height: 2,
+                                    },
+                                    PRIVATE,
+                                    1,
+                                );
+                            }
                         }
-                        if desktop.focus() == target {
-                            self.focus(r);
+                        _ => {
+                            self.glass(r, 0xffffff, if focused { 26 } else { 0 }, 22);
+                            self.icon(
+                                Rect {
+                                    x: r.x + 12,
+                                    y: r.y + 12,
+                                    width: 20,
+                                    height: 20,
+                                },
+                                Icon::Power,
+                                SHELL_MUTED,
+                                1,
+                            );
                         }
-                    } else {
-                        self.button(
-                            r,
-                            label,
-                            desktop.focus() == target,
-                            true,
-                            ButtonStyle::Secondary,
-                        );
+                    }
+                    if focused {
+                        self.focus_color(r, INK);
                     }
                 }
             }
@@ -1834,7 +2638,9 @@ impl Paint<'_> {
             - self.rect.x as usize] = color & 0xffffff;
     }
     fn fill(&mut self, rect: Rect, color: u32) {
-        let r = rect.physical(self.scale);
+        self.fill_physical(rect.physical(self.scale), color);
+    }
+    fn fill_physical(&mut self, r: Rect, color: u32) {
         let left = r.x.max(self.rect.x);
         let top = r.y.max(self.rect.y);
         let right =
@@ -1857,6 +2663,9 @@ impl Paint<'_> {
         );
     }
     fn focus(&mut self, r: Rect) {
+        self.focus_color(r, d::ACCENT);
+    }
+    fn focus_color(&mut self, r: Rect, color: u32) {
         let gap = d::FOCUS_OFFSET;
         let r = Rect {
             x: r.x.saturating_sub(gap),
@@ -1869,8 +2678,60 @@ impl Paint<'_> {
         self.canvas().stroke_rounded_rect(
             GraphicRect::new(r.x as i32, r.y as i32, r.width, r.height),
             (d::CONTROL_RADIUS + gap) * factor,
-            2 * factor,
-            d::ACCENT,
+            d::FOCUS_WIDTH * factor,
+            color,
+        );
+    }
+    fn orb(&mut self, x: u32, y: u32, diameter: u32, color: u32) {
+        let f = self.scale.factor();
+        self.canvas().ellipse(
+            GraphicRect::new((x * f) as i32, (y * f) as i32, diameter * f, diameter * f),
+            color,
+        );
+    }
+    /// Light from above: a soft highlight along the top edge of a glass surface.
+    fn rim(&mut self, r: Rect, radius: u32) {
+        let inset = radius.min(r.width / 3);
+        let line = |x, width| Rect {
+            x,
+            y: r.y + 1,
+            width,
+            height: 1,
+        };
+        self.glass(line(r.x + inset, r.width - 2 * inset), 0xffffff, 46, 0);
+        self.glass(line(r.x + r.width / 4, r.width / 2), 0xbff5e8, 70, 0);
+    }
+    /// The Nieuw OS mark: an eclipse of light rising over a dark horizon.
+    fn horizon_mark(&mut self, r: Rect, focused: bool) {
+        self.glass(r, 0xffffff, if focused { 26 } else { 0 }, 22);
+        let (cx, cy) = (r.x + r.width / 2, r.y + r.height / 2);
+        self.orb(cx - 15, cy - 15, 30, 0x0f3a3a);
+        self.orb(cx - 13, cy - 13, 26, 0x6fe3c6);
+        self.orb(cx - 9, cy - 5, 18, 0x08141c);
+        self.orb(cx + 6, cy - 12, 4, 0xffffff);
+    }
+    fn shell_button(&mut self, r: Rect, focused: bool) {
+        self.rounded(r, if focused { GLASS_HOVER } else { GLASS_RAISED }, 12);
+        self.stroke(r, GLASS_EDGE, 12);
+    }
+    fn glass(&mut self, rect: Rect, color: u32, alpha: u8, radius: u32) {
+        let r = rect.physical(self.scale);
+        let f = self.scale.factor();
+        self.canvas().translucent_rounded_rect(
+            GraphicRect::new(r.x as i32, r.y as i32, r.width, r.height),
+            radius * f,
+            color,
+            alpha,
+        );
+    }
+    fn stroke(&mut self, rect: Rect, color: u32, radius: u32) {
+        let r = rect.physical(self.scale);
+        let f = self.scale.factor();
+        self.canvas().stroke_rounded_rect(
+            GraphicRect::new(r.x as i32, r.y as i32, r.width, r.height),
+            radius * f,
+            f,
+            color,
         );
     }
     fn outlined(&mut self, r: Rect, fill: u32, border: u32, radius: u32) {
@@ -1921,13 +2782,17 @@ impl Paint<'_> {
         if focused {
             self.focus(r);
         }
-        let width = self.measure(label, Size::Body, Weight::Semibold);
+        let width = self
+            .measure(label, Size::Body, Weight::Semibold)
+            .min(r.width.saturating_sub(16));
         let x = r.x + r.width.saturating_sub(width) / 2;
         let line = self.font(Size::Body, Weight::Semibold).height() / self.scale.factor();
-        self.medium(
+        self.elided(
             x,
             r.y + r.height.saturating_sub(line) / 2,
             label,
+            r.width.saturating_sub(16),
+            (Size::Body, Weight::Semibold),
             foreground,
         );
     }
@@ -1971,36 +2836,16 @@ impl Paint<'_> {
             );
         }
     }
-    fn character(&mut self, x: u32, y: u32, character: char, color: u32) {
-        let height = raster_height(self.scale);
-        let Some(glyph) = get_raster(character, FontWeight::Regular, height)
-            .or_else(|| get_raster('\u{fffd}', FontWeight::Regular, height))
-        else {
-            return;
-        };
-        let x = x * self.scale.factor();
-        let y = y * self.scale.factor();
-        if !(Rect {
-            x,
-            y,
-            width: glyph.width() as u32,
-            height: glyph.height() as u32,
-        })
-        .intersects(self.rect)
-        {
-            return;
-        }
-        for (dy, row) in glyph.raster().iter().enumerate() {
-            for (dx, alpha) in row.iter().copied().enumerate() {
-                let px = x + dx as u32;
-                let py = y + dy as u32;
-                if alpha != 0 && self.rect.contains(px, py) {
-                    let index = ((py - self.rect.y) * self.rect.width + px - self.rect.x) as usize;
-                    let old = self.pixels[index];
-                    self.pixels[index] = blend(color, old, alpha);
-                }
-            }
-        }
+    fn proportional_character(&mut self, x: u32, y: u32, character: char, color: u32) {
+        let font = self.font(Size::Body, Weight::Regular);
+        let mut encoded = [0; 4];
+        self.canvas().text(
+            x as i32,
+            y as i32,
+            character.encode_utf8(&mut encoded),
+            font,
+            color,
+        );
     }
     fn canvas(&mut self) -> Canvas<'_> {
         Canvas::new(

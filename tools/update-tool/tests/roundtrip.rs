@@ -28,6 +28,71 @@ fn scratch(name: &str) -> PathBuf {
     dir
 }
 
+#[cfg(unix)]
+#[test]
+fn keygen_seeds_are_private_even_with_permissive_umask() {
+    use std::os::unix::fs::PermissionsExt;
+    let dir = scratch("private-seeds");
+    // Set umask in the child only; changing it in this multithreaded test
+    // process would race unrelated tests. Arguments are not shell-expanded.
+    let out = Command::new("sh")
+        .args(["-c", "umask 000; exec \"$@\"", "keygen-test"])
+        .arg(env!("CARGO_BIN_EXE_update-tool"))
+        .args([
+            "keygen",
+            "--dir",
+            dir.to_str().unwrap(),
+            "--label",
+            "TEST-private",
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{out:?}");
+    for algorithm in ["ed25519", "mldsa65"] {
+        let metadata = fs::metadata(dir.join(format!("TEST-private-{algorithm}.seed"))).unwrap();
+        assert_eq!(metadata.permissions().mode() & 0o777, 0o600);
+    }
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[cfg(unix)]
+#[test]
+fn keygen_rejects_live_and_dangling_output_symlinks() {
+    use std::os::unix::fs::symlink;
+    for suffix in [
+        "ed25519.seed",
+        "mldsa65.seed",
+        "ed25519.pub",
+        "mldsa65.pub",
+        "anchors.json",
+    ] {
+        for live in [false, true] {
+            let dir = scratch("symlink");
+            let target = dir.join("target");
+            if live {
+                fs::write(&target, b"existing sentinel").unwrap();
+            }
+            let link = dir.join(format!("TEST-link-{suffix}"));
+            symlink(&target, &link).unwrap();
+            let out = tool(&[
+                "keygen",
+                "--dir",
+                dir.to_str().unwrap(),
+                "--label",
+                "TEST-link",
+            ]);
+            assert!(!out.status.success(), "{suffix}, live={live}");
+            assert_eq!(fs::read_link(&link).unwrap(), target);
+            if live {
+                assert_eq!(fs::read(&target).unwrap(), b"existing sentinel");
+            } else {
+                assert!(!target.exists(), "dangling target was created: {suffix}");
+            }
+            fs::remove_dir_all(dir).unwrap();
+        }
+    }
+}
+
 #[test]
 fn keygen_sign_verify_pack_round_trip() {
     let dir = scratch("roundtrip");

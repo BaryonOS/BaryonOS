@@ -19,7 +19,7 @@ import time
 import uuid
 
 from common import (ROOT, BUILD, TARGET, environment, firmware, qemu_machine,
-                    run_logged, sha256, source_hash)
+                    run_logged, sha256, source_hash, without_acpi_diagnostics)
 from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json, load_json
 from run_graphics import Qmp, QmpPipe, ppm
@@ -116,6 +116,7 @@ def numeric(line: str, name: str) -> int:
 def validate_sequence(stdout: str) -> dict:
     require(isinstance(stdout, str) and len(stdout.encode("utf-8")) <= SERIAL_LIMIT
             and not any(token in stdout for token in ("FAIL", "PANIC", "\x00")), "Failed or oversized serial transcript")
+    stdout = without_acpi_diagnostics(stdout)
     lines = stdout.splitlines()
     require(lines.count(BOOT[0]) == 1, "Missing/repeated boot handoff")
     start = lines.index(BOOT[0])

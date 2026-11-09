@@ -74,13 +74,16 @@ impl Host {
         let app_send = engine.bootstrap_delegate(2, request_root, 1, SEND).unwrap();
         let app_receive = engine.create_endpoint(1).unwrap();
         let reply_send = engine.bootstrap_delegate(1, app_receive, 2, SEND).unwrap();
+        let sectors = vec![[0; SECTOR]; VOLUME_SECTORS as usize];
+        let mut disk = MemoryDisk {
+            sectors,
+            fail: false,
+        };
+        table::write_format_marker(&mut disk).unwrap();
         Rc::new(RefCell::new(Self {
             engine,
             service: Service::new(EPOCH, Table::EMPTY, false),
-            disk: MemoryDisk {
-                sectors: vec![[0; SECTOR]; VOLUME_SECTORS as usize],
-                fail: false,
-            },
+            disk,
             request_root,
             request_receive,
             reply_send,

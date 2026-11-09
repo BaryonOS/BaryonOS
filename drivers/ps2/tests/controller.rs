@@ -2,6 +2,13 @@
 use nieuw_os_ps2::*;
 use std::collections::VecDeque;
 
+#[derive(Clone, Copy, Debug)]
+enum ReplyFault {
+    Corrupt,
+    Parity,
+    Missing,
+}
+
 #[derive(Default)]
 struct Io {
     mode: u8,
@@ -19,9 +26,31 @@ struct Io {
     wrong_bat: bool,
     mouse_id: u8,
     opposite: bool,
+    bad_health: Option<(u8, u8)>,
+    missing_health: Option<u8>,
+    parity_health: Option<u8>,
+    reset_mode_on_test: bool,
+    parity_device: bool,
+    replies: usize,
+    reply_fault: Option<(usize, ReplyFault)>,
 }
 impl Io {
     fn byte(&mut self, mouse: bool, byte: u8) {
+        self.replies += 1;
+        if let Some((reply, fault)) = self.reply_fault {
+            if self.replies == reply {
+                match fault {
+                    ReplyFault::Corrupt => self
+                        .queue
+                        .push_back((if mouse { 0x21 } else { 1 }, byte ^ 0x80)),
+                    ReplyFault::Parity => self
+                        .queue
+                        .push_back((if mouse { 0xa1 } else { 0x81 }, byte)),
+                    ReplyFault::Missing => {}
+                }
+                return;
+            }
+        }
         self.queue.push_back((if mouse { 0x21 } else { 1 }, byte));
     }
 }
@@ -46,6 +75,21 @@ impl Ports for Io {
             0xa7 => self.mode |= 0x20,
             0xae => self.mode &= !0x10,
             0xa8 => self.mode &= !0x20,
+            0xa9..=0xab => {
+                if v == 0xaa && self.reset_mode_on_test {
+                    self.mode = 3;
+                }
+                if self.missing_health != Some(v) {
+                    let reply = self
+                        .bad_health
+                        .filter(|(command, _)| *command == v)
+                        .map_or(if v == 0xaa { 0x55 } else { 0 }, |(_, reply)| reply);
+                    self.byte(false, reply);
+                    if self.parity_health == Some(v) {
+                        self.queue.back_mut().unwrap().0 |= 0x80;
+                    }
+                }
+            }
             0x20 => self.byte(
                 false,
                 if self.bad_mode {
@@ -81,6 +125,9 @@ impl Ports for Io {
             self.byte(false, 0x1e);
         }
         self.byte(mouse, if self.wrong_reply { 0xfc } else { 0xfa });
+        if self.parity_device {
+            self.queue.back_mut().unwrap().0 |= 0xc0;
+        }
         if v == 0xff {
             self.byte(mouse, if self.wrong_bat { 0xfc } else { 0xaa });
             if mouse {
@@ -100,6 +147,95 @@ fn finish(c: &mut Controller, io: &mut Io, ticket: u64, start: u64) -> Result<Re
         }
     }
     panic!("unbounded reset")
+}
+
+#[test]
+fn controller_and_both_port_tests_gate_all_device_commands() {
+    for command in [0xaa, 0xab, 0xa9] {
+        let expected = if command == 0xaa { 0x55 } else { 0 };
+        for reply in 0..=u8::MAX {
+            if reply == expected {
+                continue;
+            }
+            let mut c = Controller::new();
+            let mut io = Io {
+                bad_health: Some((command, reply)),
+                ..Io::default()
+            };
+            let ticket = c.begin_reset(0).unwrap();
+            assert_eq!(finish(&mut c, &mut io, ticket, 0), Err(Fault::Controller));
+            assert!(io.writes.contains(&(true, command)));
+            assert!(io.writes.iter().all(|(is_command, _)| *is_command));
+            assert_eq!(c.read_sample(&mut io), Err(Fault::NeedsReset));
+            let operations = io.operations;
+            assert_eq!(c.poll_reset(ticket, 1001, &mut io), Err(Fault::Controller));
+            assert_eq!(io.operations, operations);
+        }
+    }
+}
+
+#[test]
+fn missing_or_parity_faulted_health_replies_fail_then_require_fresh_reset() {
+    for command in [0xaa, 0xab, 0xa9] {
+        for parity in [false, true] {
+            let mut c = Controller::new();
+            let mut io = Io {
+                missing_health: (!parity).then_some(command),
+                parity_health: parity.then_some(command),
+                ..Io::default()
+            };
+            let ticket = c.begin_reset(0).unwrap();
+            assert_eq!(
+                finish(&mut c, &mut io, ticket, 0),
+                Err(if parity {
+                    Fault::Controller
+                } else {
+                    Fault::Timeout
+                })
+            );
+            assert!(io.writes.iter().all(|(is_command, _)| *is_command));
+            io.missing_health = None;
+            io.parity_health = None;
+            let next = c.begin_reset(1001).unwrap();
+            assert_ne!(ticket, next);
+            let before = io.operations;
+            assert_eq!(c.poll_reset(ticket, 1001, &mut io), Err(Fault::WrongTicket));
+            assert_eq!(io.operations, before);
+            let report = finish(&mut c, &mut io, next, 1001).unwrap();
+            assert_eq!(report.epoch, 1);
+        }
+    }
+}
+
+#[test]
+fn self_test_state_reset_preserves_saved_mode_and_reasserts_port_disables() {
+    let mut c = Controller::new();
+    let mut io = Io {
+        mode: 0x0f,
+        reset_mode_on_test: true,
+        ..Io::default()
+    };
+    let ticket = c.begin_reset(0).unwrap();
+    finish(&mut c, &mut io, ticket, 0).unwrap();
+    assert_eq!(io.mode, 0x4c);
+    let test = io
+        .writes
+        .iter()
+        .position(|write| *write == (true, 0xaa))
+        .unwrap();
+    assert_eq!(
+        &io.writes[test..test + 5],
+        &[
+            (true, 0xaa),
+            (true, 0xad),
+            (true, 0xa7),
+            (true, 0xab),
+            (true, 0xa9)
+        ]
+    );
+    io.byte(false, 0x1e);
+    let sample = c.read_sample(&mut io).unwrap().unwrap();
+    assert_eq!((sample.epoch, sample.sequence, sample.byte), (1, 1, 0x1e));
 }
 
 #[test]
@@ -127,6 +263,11 @@ fn real_command_shape_requires_both_bat_id_scanmode_and_irq_disable_before_ready
             (true, 0xad),
             (true, 0xa7),
             (true, 0x20),
+            (true, 0xaa),
+            (true, 0xad),
+            (true, 0xa7),
+            (true, 0xab),
+            (true, 0xa9),
             (true, 0x60),
             (false, 0),
             (true, 0xae),
@@ -268,13 +409,12 @@ fn parity_timeout_status_and_clock_rollback_do_not_publish_ready() {
         Err(Fault::Timeout)
     );
     let mut c = Controller::new();
-    let mut io = Io::default();
+    let mut io = Io {
+        parity_device: true,
+        ..Io::default()
+    };
     let t = c.begin_reset(0).unwrap();
-    // Finish the initial drain and controller-mode read, then inject a bad
-    // status on the first keyboard command response.
-    c.poll_reset(t, 0, &mut io).unwrap();
-    io.queue.push_back((0xc1, 0xfa));
-    assert_eq!(c.poll_reset(t, 1, &mut io), Err(Fault::Controller));
+    assert_eq!(finish(&mut c, &mut io, t, 0), Err(Fault::Controller));
 }
 
 #[test]
@@ -323,4 +463,65 @@ fn detach_and_new_reset_invalidate_old_ticket_epoch_and_all_pre_ready_data() {
     let third = c.begin_reset(40).unwrap();
     c.detach();
     assert_eq!(c.poll_reset(third, 40, &mut io), Err(Fault::WrongTicket));
+}
+
+#[test]
+fn each_partial_reset_reply_failure_requires_a_fresh_reset_before_input() {
+    let mut baseline = Controller::new();
+    let mut baseline_io = Io::default();
+    let ticket = baseline.begin_reset(0).unwrap();
+    finish(&mut baseline, &mut baseline_io, ticket, 0).unwrap();
+    assert_eq!(baseline_io.replies, 16);
+
+    for reply in 1..=baseline_io.replies {
+        for fault in [ReplyFault::Corrupt, ReplyFault::Parity, ReplyFault::Missing] {
+            let mut c = Controller::new();
+            let mut io = Io::default();
+            let first = c.begin_reset(0).unwrap();
+            finish(&mut c, &mut io, first, 0).unwrap();
+
+            io.replies = 0;
+            io.reply_fault = Some((reply, fault));
+            let failed = c.begin_reset(2000).unwrap();
+            let error = finish(&mut c, &mut io, failed, 2000)
+                .expect_err(&format!("reply {reply}, {fault:?} published Ready"));
+            assert!(io.replies >= reply, "injection point was not reached");
+            assert!(matches!(
+                error,
+                Fault::Controller | Fault::Response | Fault::UnsupportedDevice | Fault::Timeout
+            ));
+
+            let before = io.operations;
+            assert_eq!(c.poll_reset(failed, 4000, &mut io), Err(error));
+            assert_eq!(c.read_sample(&mut io), Err(Fault::NeedsReset));
+            assert_eq!(io.operations, before);
+
+            io.reply_fault = None;
+            let recovered = c.begin_reset(4000).unwrap();
+            assert_ne!(recovered, failed);
+            let before = io.operations;
+            assert_eq!(c.poll_reset(failed, 4000, &mut io), Err(Fault::WrongTicket));
+            assert_eq!(c.read_sample(&mut io), Err(Fault::NeedsReset));
+            assert_eq!(io.operations, before);
+            let stale_replies = io.queue.len() as u32;
+            let report = finish(&mut c, &mut io, recovered, 4000).unwrap();
+            assert_eq!((report.ticket, report.epoch), (recovered, 2));
+            assert_eq!(report.discarded, stale_replies);
+            assert_eq!(io.mode & 0x73, 0x40);
+            assert_eq!(c.read_sample(&mut io), Ok(None));
+
+            for (sequence, mouse, byte) in [(1, false, 0x1e), (2, true, 0x08)] {
+                io.byte(mouse, byte);
+                assert_eq!(
+                    c.read_sample(&mut io),
+                    Ok(Some(Sample {
+                        epoch: 2,
+                        sequence,
+                        status: if mouse { 0x21 } else { 1 },
+                        byte,
+                    }))
+                );
+            }
+        }
+    }
 }

@@ -17,6 +17,9 @@ import run_fpu as f
 from test_display_probe import user_elf
 
 
+ACPI_DIAGNOSTICS = ("ACPI:UNAVAILABLE:NO_DMAR", "DEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT")
+
+
 def snapshots(case="normal"):
     values=[]
     for i,name in enumerate(d.PHASES[case],1):
@@ -35,6 +38,7 @@ def snapshots(case="normal"):
 
 def serial(case="normal"):
     text="\n".join((*d.BOOT,"MATERIAAL:MANIFEST:PASS",*d.GATES))+"\n";prefixes=[]
+    text=text.replace("KS-02:PASS\n", "KS-02:PASS\n"+"\n".join(ACPI_DIAGNOSTICS)+"\n", 1)
     for value in snapshots(case):
         text+="MATERIAAL:SNAPSHOT:BEGIN\n"+"".join(f"MATERIAAL:{name}:{value[name]:020d}\n" for name in d.FIELDS)+"MATERIAAL:SNAPSHOT:END\n"
         prefixes.append(text.encode())
@@ -51,10 +55,77 @@ def frames(case="normal"):
         at=((y+5)*d.WIDTH+x+5+i)*3;pixels[at:at+3]=bytes((10+i,20+i,30+i))
     for i,name in enumerate(d.PHASES[case],1):
         at=((y+10)*d.WIDTH+x+10)*3;pixels[at:at+3]=bytes((i*20,30,40))
+        status_x,status_y,_,_=d.SAVE_STATUS
+        at=((y+status_y+10)*d.WIDTH+x+status_x+10)*3;pixels[at:at+3]=bytes((i*20,40,50))
         if name in ("dirty","saved"):
-            at=((y+150)*d.WIDTH+x+30)*3;pixels[at:at+3]=b"abc"
+            editor_x,editor_y,_,_=d.EDITOR
+            at=((y+editor_y+14)*d.WIDTH+x+editor_x+6)*3;pixels[at:at+3]=b"abc"
         result[name]=b"P6\n800 600\n255\n"+pixels
     return result
+
+
+class EditorPixelOracleTests(unittest.TestCase):
+    def test_empty_truncated_or_escaping_regions_cannot_certify_pixels(self):
+        pixels=d.ppm(frames()["dirty"])[2]
+        for rect in ((0,0,0,1),(-1,0,1,1),(0,0,d.ASSIGNED[2]+1,1),
+                     (0,d.ASSIGNED[3],1,1)):
+            with self.subTest(rect=rect),self.assertRaises(ValueError):
+                d.same_app_region(pixels,pixels,rect)
+        for old,new in ((pixels[:-3],pixels),(pixels,pixels[:-3])):
+            with self.assertRaises(ValueError):d.same_app_region(old,new,d.EDITOR)
+
+    def test_revision_caption_can_change_with_real_visible_save_feedback(self):
+        image=frames()
+        updated=bytearray(image["saved"])
+        header=len(b"P6\n800 600\n255\n")
+        at=header+((d.ASSIGNED[1]+184)*d.WIDTH+d.ASSIGNED[0]+300)*3
+        updated[at:at+3]=b"rev"
+        image["saved"]=bytes(updated)
+        d.validate_frames(image,"normal")
+        d.validate_frames(image,"keyboard")
+
+    def test_every_editor_edge_and_each_rgb_byte_remain_protected(self):
+        image=frames();header=len(b"P6\n800 600\n255\n")
+        x,y,w,h=d.EDITOR
+        points=[(x,y),(x+w-1,y),(x,y+h-1),(x+w-1,y+h-1),
+                (x+w//2,y),(x+w//2,y+h-1),(x,y+h//2),(x+w-1,y+h//2),(x+w//2,y+h//2)]
+        for px,py in points:
+            for channel in range(3):
+                with self.subTest(pixel=(px,py),channel=channel):
+                    bad=dict(image);updated=bytearray(bad["saved"])
+                    at=header+((d.ASSIGNED[1]+py)*d.WIDTH+d.ASSIGNED[0]+px)*3+channel
+                    updated[at]^=1;bad["saved"]=bytes(updated)
+                    with self.assertRaisesRegex(ValueError,"Save changed rendered document"):
+                        d.validate_frames(bad,"normal")
+
+    def test_region_comparison_has_no_unchecked_row_or_column(self):
+        old=d.ppm(frames()["dirty"])[2];new=bytearray(old)
+        x,y,w,h=d.EDITOR
+        # Complete byte slices are compared on every row. Exercise all rows
+        # and columns independently, including both borders and every channel.
+        points={(px,py) for py in range(y,y+h) for px in (x,x+w-1)}
+        points.update((px,py) for px in range(x,x+w) for py in (y,y+h-1))
+        for px,py in points:
+            at=((d.ASSIGNED[1]+py)*d.WIDTH+d.ASSIGNED[0]+px)*3
+            for channel in range(3):
+                new[at+channel]^=1
+                self.assertFalse(d.same_app_region(old,new,d.EDITOR),(px,py,channel))
+                new[at+channel]^=1
+        self.assertTrue(d.same_app_region(old,new,d.EDITOR))
+
+    def test_revision_or_control_change_cannot_replace_visible_save_status(self):
+        image=frames();header=len(b"P6\n800 600\n255\n")
+        old=d.ppm(image["dirty"])[2];new=bytearray(image["saved"])
+        x,y,w,h=d.SAVE_STATUS
+        for row in range(d.ASSIGNED[1]+y,d.ASSIGNED[1]+y+h):
+            start=(row*d.WIDTH+d.ASSIGNED[0]+x)*3;end=start+w*3
+            new[header+start:header+end]=old[start:end]
+        # Keep a legitimate metadata change and the existing changed control:
+        # neither is the saved/dirty feedback region.
+        at=header+((d.ASSIGNED[1]+184)*d.WIDTH+d.ASSIGNED[0]+300)*3
+        new[at:at+3]=b"rev";image["saved"]=bytes(new)
+        with self.assertRaisesRegex(ValueError,"visible status feedback"):
+            d.validate_frames(image,"normal")
 
 
 def text_disk(path):
@@ -75,6 +146,50 @@ class GrammarTests(unittest.TestCase):
             parsed=d.transcript(serial(case)[0],case,final=True)
             self.assertTrue(parsed["finished"])
             self.assertEqual(list(d.phases(parsed,case,complete=True)),list(d.PHASES[case]))
+
+    def test_acpi_boot_prefixes_are_incremental_and_never_finish(self):
+        """The observed ACPI prefix and every partial boot record need more evidence."""
+        raw=serial()[0]
+        observed=raw[:raw.index(b"KS-03:PASS")]
+        self.assertFalse(d.transcript(observed)["finished"])
+        opening=raw[:raw.index((d.GATES[0]+"\n").encode())]
+        for end in range(len(opening)+1):
+            with self.subTest(end=end):
+                parsed=d.transcript(opening[:end])
+                self.assertFalse(parsed["finished"])
+                self.assertEqual(parsed["gates"],[])
+                self.assertEqual(parsed["snapshots"],[])
+                with self.assertRaises(ValueError):
+                    d.transcript(opening[:end],final=True)
+
+    def test_acpi_boot_markers_are_exact_unique_and_in_position(self):
+        """Malformed diagnostics cannot disappear or certify a different boot."""
+        raw=serial()[0]
+        acpi,device=((value+"\n").encode() for value in ACPI_DIAGNOSTICS)
+        pair=acpi+device
+        bare=raw.replace(pair,b"",1)
+        alternatives={
+            "missing pair":bare,
+            "missing ACPI":raw.replace(acpi,b"",1),
+            "missing device":raw.replace(device,b"",1),
+            "duplicate ACPI":raw.replace(acpi,acpi+acpi,1),
+            "duplicate device":raw.replace(device,device+device,1),
+            "reversed pair":raw.replace(pair,device+acpi,1),
+            "different ACPI":raw.replace(acpi,b"ACPI:DISCOVERY:MCFG_DMAR\n",1),
+            "different device":raw.replace(device,b"DEVICE-EXECUTION:ALLOWED:ADAPTER_PRESENT\n",1),
+            "before KS-02":bare.replace(b"KS-02:PASS\n",pair+b"KS-02:PASS\n",1),
+            "after KS-03":bare.replace(b"KS-03:PASS\n",b"KS-03:PASS\n"+pair,1),
+            "missing KS-03":raw.replace(b"KS-03:PASS\n",b"",1),
+            "before handoff":pair+raw,
+            "after final markers":raw+pair,
+        }
+        for name,altered in alternatives.items():
+            for final in (False,True):
+                with self.subTest(name=name,final=final),self.assertRaises(ValueError):
+                    d.transcript(altered,final=final)
+        for prefix in (acpi,device,pair):
+            with self.subTest(prefix=prefix),self.assertRaises(ValueError):
+                d.transcript(prefix)
 
     def test_partial_snapshot_is_never_ready(self):
         raw,prefixes=serial();at=prefixes[0].index(b"MATERIAAL:SNAPSHOT:END")
@@ -139,7 +254,7 @@ class GrammarTests(unittest.TestCase):
         with self.assertRaises(ValueError):d.validate_frames(bad,"normal")
         bad=dict(image);data=bytearray(bad["saved"]);data[-1]^=1;bad["saved"]=bytes(data)
         with self.assertRaises(ValueError):d.validate_frames(bad,"normal")
-        bad=dict(image);data=bytearray(bad["saved"]);header=len(b"P6\n800 600\n255\n");data[header+((d.ASSIGNED[1]+150)*800+d.ASSIGNED[0]+30)*3]^=1;bad["saved"]=bytes(data)
+        bad=dict(image);data=bytearray(bad["saved"]);header=len(b"P6\n800 600\n255\n");data[header+((d.ASSIGNED[1]+d.EDITOR[1]+6)*800+d.ASSIGNED[0]+d.EDITOR[0]+6)*3]^=1;bad["saved"]=bytes(data)
         with self.assertRaises(ValueError):d.validate_frames(bad,"normal")
 
     def test_independent_disk_checks_actual_text_and_scope(self):

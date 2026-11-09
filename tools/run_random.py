@@ -7,14 +7,14 @@ integration gate, not entropy-quality, persisted-key, TLS or release acceptance.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import math
 from pathlib import Path
 import re
 import shutil
 import subprocess
 
-from common import ROOT, BUILD, TARGET, environment, firmware, qemu_machine, sha256, source_hash
+from common import (ROOT, BUILD, TARGET, environment, firmware, qemu_machine, regular_files_below,
+                    require_sha256 as hash_value, sha256, sha256_bytes as digest, source_hash)
 from build_users import inspect_user
 from run_fpu import private_path, publish_json, load_json
 from run_system import MAX_TIMEOUT, OPAQUE_OBJECTS, check_disk, check_image, evaluate, run_system
@@ -45,16 +45,6 @@ PROGRAMS = {"system_init": ("system-system", "system-init"),
             "keyring_service": ("system-keyring", "keyring-service"),
             "volume_service": ("system-volume", "volume-service"),
             "random_probe": ("random-probe-app", "random-probe")}
-
-
-def digest(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def hash_value(value) -> str:
-    if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:
-        raise ValueError("missing or malformed SHA256")
-    return value
 
 
 def read(path: Path, *, cargo=False) -> bytes:
@@ -153,11 +143,8 @@ def preflight_esp(manifest: dict) -> None:
         raise ValueError("missing real source ESP directory")
     expected = {"kernel.elf": manifest["kernel"]["sha256"],
                 "EFI/BOOT/BOOTX64.EFI": manifest["loader"]["sha256"]}
-    actual = set()
-    for path in esp.rglob("*"):
-        private_path(path)  # Includes every ancestor; never follow a source link.
-        if path.is_file():
-            actual.add(path.relative_to(esp).as_posix())
+    actual = {path.relative_to(esp).as_posix()
+              for path in regular_files_below(esp, validate_path=private_path)}
     if actual != set(expected):
         raise ValueError("source ESP must contain exactly kernel and loader")
     for name, expected_hash in expected.items():
@@ -210,11 +197,8 @@ def validate_artifacts(report: dict, frozen: str, case: str, *, qemu: str,
     if report.get("firmware_sha256") != firmware_hashes or digest(read(run / "OVMF_CODE.fd")) != firmware_hashes["code"]:
         raise ValueError("firmware differs from the selected pre-boot inputs")
     read(run / "OVMF_VARS.fd")  # Writable UEFI state is not falsely compared to its pre-boot hash.
-    actual_esp = set()
-    for path in (run / "esp").rglob("*"):
-        private_path(path)
-        if path.is_file():
-            actual_esp.add(path.relative_to(run).as_posix())
+    actual_esp = {path.relative_to(run).as_posix()
+                  for path in regular_files_below(run / "esp", validate_path=private_path)}
     expected = {"esp/kernel.elf": manifest["kernel"]["sha256"],
                 "esp/EFI/BOOT/BOOTX64.EFI": manifest["loader"]["sha256"]}
     if actual_esp != set(expected) or report.get("esp_sha256") != expected:
@@ -230,7 +214,8 @@ def validate_artifacts(report: dict, frozen: str, case: str, *, qemu: str,
                 or inspect_user(path) != manifest["system"][name]["elf"] or binary not in kernel):
             raise ValueError("native program hash, ELF inspection or kernel embedding mismatch")
     initial = load_json(private_path(volume / "volume.json", regular=True))
-    empty = b"".join(bytes(volume_disk.SECTOR) if volume_disk.FIRST <= i < volume_disk.FIRST + volume_disk.VOLUME_SECTORS
+    empty = b"".join(bytes(volume_disk.SECTOR)
+                     if volume_disk.FIRST <= i < volume_disk.FIRST + volume_disk.VOLUME_SECTORS
                      else volume_disk.canary(i) for i in range(volume_disk.IMAGE_SECTORS))
     if (initial.get("variant") != "empty" or initial.get("sha256") != digest(empty)
             or report.get("before_sha256") != digest(empty)):

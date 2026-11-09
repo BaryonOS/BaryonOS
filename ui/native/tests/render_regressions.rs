@@ -8,6 +8,8 @@ use nieuw_os_materiaal::{
 };
 
 fn view<'a>(viewport: Viewport, objects: &'a [ListEntry]) -> View<'a> {
+    static WORKSPACE: nieuw_os_materiaal::workspace::Workspace =
+        nieuw_os_materiaal::workspace::Workspace::new();
     View {
         draw_pointer: true,
         desktop: None,
@@ -18,15 +20,19 @@ fn view<'a>(viewport: Viewport, objects: &'a [ListEntry]) -> View<'a> {
         focus: Focus::New,
         status: Status::Ready,
         objects,
+        workspace: &WORKSPACE,
         list_loaded: true,
         list_scroll: 0,
         contents: None,
         title: b"Materiaal",
+        revision: 0,
         caret: 0,
+        caret_trailing: false,
         anchor: 0,
         scroll: 0,
         editable: true,
         can_save: false,
+        can_inspect: false,
         saving: false,
         document_dirty: false,
         cursor: None,
@@ -44,15 +50,15 @@ fn semantics_budget_includes_paging_and_preserves_short_output() {
     let viewport = Viewport::new(800, 720, Scale::Percent100, 1).unwrap();
     let frame = Frame::new(view(viewport, &objects));
 
-    let mut nodes = [SemanticNode::EMPTY; 15];
+    let mut nodes = [SemanticNode::EMPTY; 16];
     let count = frame.semantics(&mut nodes).unwrap();
-    assert_eq!(count, 15);
+    assert_eq!(count, 16);
     assert_eq!(
         nodes[..count]
             .iter()
             .filter(|node| node.role == Role::ListItem)
             .count(),
-        7
+        6
     );
     assert!(nodes[..count]
         .iter()
@@ -62,7 +68,7 @@ fn semantics_budget_includes_paging_and_preserves_short_output() {
         .any(|node| node.id == SemanticId::NextPage));
     assert_eq!(nodes[count - 1].id, SemanticId::Status);
 
-    let mut short = [SemanticNode::EMPTY; 14];
+    let mut short = [SemanticNode::EMPTY; 15];
     assert!(frame.semantics(&mut short).is_err());
     assert!(short.iter().all(|node| node.id == SemanticId::Empty));
 }
@@ -217,14 +223,7 @@ fn desktop_home_card_follows_the_real_library_state_and_stays_above_the_bar() {
             .2;
         assert!(card.x + card.width <= viewport.logical_width());
         assert!(card.y + card.height <= logical_height - 68);
-        assert_eq!(
-            start.width,
-            if viewport.logical_width() >= 464 {
-                88
-            } else {
-                44
-            }
-        );
+        assert_eq!(start.width, 44, "the overview mark is a round 44 px target");
         if viewport.logical_width() < 640 {
             assert_eq!(card.height, 96, "narrow home uses the compact card");
             assert_eq!(card.y, 64, "narrow home leaves room for navigation");
@@ -233,16 +232,26 @@ fn desktop_home_card_follows_the_real_library_state_and_stays_above_the_bar() {
         }
         let mut home_view = view(viewport, &[]);
         home_view.desktop = Some(&desktop);
-        assert_eq!(
-            pixel(
-                &Frame::new(home_view),
-                (card.x + card.width / 2) * scale.factor(),
-                (card.y + 8) * scale.factor()
-            ),
-            design::SURFACE,
+        let frame = Frame::new(home_view);
+        let inside = pixel(
+            &frame,
+            (card.x + card.width / 2) * scale.factor(),
+            (card.y + 8) * scale.factor(),
+        );
+        let above = pixel(
+            &frame,
+            (card.x + card.width / 2) * scale.factor(),
+            (card.y - 8) * scale.factor(),
+        );
+        // The card is dark glass over the wallpaper: dark where hit testing says.
+        assert!(
+            [16, 8, 0]
+                .iter()
+                .all(|shift| (inside >> shift) & 255 <= 0x60)
+                && inside != above,
             "home paint follows the same compact layout as hit testing"
         );
-        assert_eq!(start_label, "Start");
+        assert_eq!(start_label, "Zenit");
     }
 
     let viewport = Viewport::new(768, 536, Scale::Percent100, 1).unwrap();
@@ -322,6 +331,7 @@ fn primary_buttons_preserve_accent_and_focus_when_hovered_at_both_scales() {
                 Screen::Material => layout.new,
                 Screen::Editor => layout.save,
                 Screen::ConfirmClose => layout.modal_save,
+                _ => unreachable!("this test enumerates only primary screens"),
             };
             state.cursor = Some(((button.x + 8) * factor, (button.y + 8) * factor));
             let hovered = Frame::new(state);
@@ -381,5 +391,54 @@ fn disabled_primary_and_secondary_hover_keep_their_distinct_styles() {
                 expected
             );
         }
+    }
+}
+
+#[test]
+fn taskbar_pinned_app_opens_materiaal_even_after_a_search_miss() {
+    use nieuw_os_materiaal::desktop::Action;
+    for (width, height, scale) in [
+        (320, 240, Scale::Percent100),
+        (640, 536, Scale::Percent100),
+        (768, 536, Scale::Percent100),
+        (1280, 720, Scale::Percent100),
+        (800, 600, Scale::Percent200),
+    ] {
+        let viewport = Viewport::new(width, height, scale, 1).unwrap();
+        let mut desktop = Desktop::new();
+        desktop.activate(Target::Guest);
+        desktop.activate(Target::Submit);
+        assert_eq!(desktop.page(), Page::Home);
+        let bar: Vec<_> = desktop
+            .controls(viewport)
+            .into_iter()
+            .flatten()
+            .filter(|(t, _, _)| {
+                matches!(
+                    t,
+                    Target::Start | Target::Search | Target::Pinned | Target::SignOut
+                )
+            })
+            .map(|(_, r, _)| r)
+            .collect();
+        assert_eq!(bar.len(), 4);
+        for pair in bar.windows(2) {
+            assert!(pair[0].x + pair[0].width <= pair[1].x, "{width}x{height}");
+        }
+        desktop.activate(Target::Search);
+        assert!(desktop.set_query("zzz"));
+        assert!(!desktop.matches_material());
+        assert_eq!(desktop.activate(Target::Pinned), Action::OpenMaterial);
+        assert_eq!(desktop.page(), Page::Material);
+    }
+}
+
+#[test]
+fn orbit_dock_is_bounded_on_tiny_viewports() {
+    for width in [0_u32, 1, 44, 100, 227, 228, 419, 420, 768] {
+        let bar = nieuw_os_materiaal::desktop::dock(width, 240);
+        assert!(bar.width <= width, "{width}");
+        assert!(bar.x <= width, "{width}");
+        assert!(bar.x + bar.width <= width, "{width}");
     }
 }

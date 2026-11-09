@@ -21,53 +21,21 @@ impl Stack {
         }
     }
 }
-#[cfg(feature = "native-smp")]
-const MAX_APS: usize = boot_protocol::smp::MAX_CPUS;
 static mut MAIN: Stack = Stack::new();
 static mut DOUBLE: Stack = Stack::new();
 static mut NMI: Stack = Stack::new();
-#[cfg(feature = "native-smp")]
-static mut AP_DOUBLE: [Stack; MAX_APS] = [Stack::new(), Stack::new(), Stack::new(), Stack::new()];
-#[cfg(feature = "native-smp")]
-static mut AP_NMI: [Stack; MAX_APS] = [Stack::new(), Stack::new(), Stack::new(), Stack::new()];
 pub fn stack_top() -> u64 {
     ptr::addr_of!(MAIN) as u64 + 20480
 }
-fn bootstrap_guard_pages() -> [u64; 6] {
+pub fn guard_pages() -> [u64; 6] {
     let main = ptr::addr_of!(MAIN) as u64;
     let double = ptr::addr_of!(DOUBLE) as u64;
     let nmi = ptr::addr_of!(NMI) as u64;
     [main, main + 20480, double, double + 20480, nmi, nmi + 20480]
 }
-#[cfg(not(feature = "native-smp"))]
-pub fn guard_pages() -> [u64; 6] {
-    bootstrap_guard_pages()
-}
-#[cfg(feature = "native-smp")]
-pub fn guard_pages() -> [u64; 6 + MAX_APS * 4] {
-    let mut guards = [0; 6 + MAX_APS * 4];
-    guards[..6].copy_from_slice(&bootstrap_guard_pages());
-    // Address calculations only: no references to mutable static stacks.
-    let double_base = ptr::addr_of!(AP_DOUBLE) as u64;
-    let nmi_base = ptr::addr_of!(AP_NMI) as u64;
-    let stride = core::mem::size_of::<Stack>() as u64;
-    for index in 0..MAX_APS {
-        let double = double_base + index as u64 * stride;
-        let nmi = nmi_base + index as u64 * stride;
-        let start = 6 + index * 4;
-        guards[start..start + 4].copy_from_slice(&[
-            double,
-            double + 20480,
-            nmi,
-            nmi + 20480,
-        ]);
-    }
-    guards
-}
 pub fn is_guard(address: u64) -> bool {
     guard_pages().contains(&address)
 }
-#[cfg(feature = "test-m2-double-fault")]
 pub fn double_fault_probe() -> ! {
     let guard = guard_pages()[0] + 2048;
     // SAFETY: Explicit destructive test-only terminal path. RSP is set inside an
@@ -93,20 +61,6 @@ struct Tss {
     reserved3: u16,
     io: u16,
 }
-impl Tss {
-    #[cfg(feature = "native-smp")]
-    const fn new() -> Self {
-        Self {
-            reserved: 0,
-            rsp: [0; 3],
-            reserved1: 0,
-            ist: [0; 7],
-            reserved2: 0,
-            reserved3: 0,
-            io: 104,
-        }
-    }
-}
 static mut TSS: Tss = Tss {
     reserved: 0,
     rsp: [0; 3],
@@ -117,26 +71,6 @@ static mut TSS: Tss = Tss {
     io: 104,
 };
 static mut GDT: [u64; 7] = [0; 7];
-#[cfg(feature = "native-smp")]
-static mut AP_TSS: [Tss; MAX_APS] = [Tss::new(), Tss::new(), Tss::new(), Tss::new()];
-#[cfg(feature = "native-smp")]
-static mut AP_GDT: [[u64; 7]; MAX_APS] = [[0; 7]; MAX_APS];
-#[cfg(feature = "native-smp-m3")]
-#[repr(C)]
-#[derive(Clone, Copy)]
-struct CpuLocal {
-    service_stack: u64,
-    logical_index: u64,
-    is_bootstrap: u64,
-}
-#[cfg(feature = "native-smp-m3")]
-const EMPTY_CPU_LOCAL: CpuLocal = CpuLocal {
-    service_stack: 0,
-    logical_index: 0,
-    is_bootstrap: 0,
-};
-#[cfg(feature = "native-smp-m3")]
-static mut CPU_LOCAL: [CpuLocal; MAX_APS] = [EMPTY_CPU_LOCAL; MAX_APS];
 #[derive(Clone, Copy)]
 #[repr(C, packed)]
 struct Gate {
@@ -210,7 +144,6 @@ pub fn install() {
             };
             ptr::addr_of_mut!(IDT).cast::<Gate>().add(i).write(gate);
         }
-
         let gdtr = Pointer {
             limit: 55,
             base: ptr::addr_of!(GDT) as u64,
@@ -230,43 +163,68 @@ pub fn install() {
     }
 }
 
+/// One AP's private descriptor tables: a GDT with the kernel's code/data
+/// descriptors and this CPU's own TSS descriptor, plus that TSS. A busy TSS
+/// may be loaded by exactly one CPU, so every AP needs its own. 256-byte
+/// alignment keeps the 160-byte payload (56-byte GDT + 104-byte packed TSS,
+/// padded to 256 bytes) inside one page.
 #[cfg(feature = "native-smp")]
-pub fn install_ap(index: usize, stack_top: u64) {
-    assert!(index < MAX_APS);
-    // SAFETY: Each AP owns one distinct permanent TSS/GDT and IST pair. The BSP
-    // completed the shared immutable IDT before sending any startup IPI; IF stays
-    // clear. Packed TSS fields are written unaligned and tables live permanently.
+#[repr(C, align(256))]
+pub struct CpuTables {
+    gdt: [u64; 7],
+    tss: Tss,
+}
+#[cfg(feature = "native-smp")]
+const _: () = assert!(
+    size_of::<Tss>() == 104
+        && core::mem::offset_of!(CpuTables, tss) == 56
+        && size_of::<CpuTables>() == 256
+        && core::mem::align_of::<CpuTables>() == 256
+);
+#[cfg(feature = "native-smp")]
+impl CpuTables {
+    pub const fn new() -> Self {
+        Self {
+            gdt: [0; 7],
+            tss: Tss {
+                reserved: 0,
+                rsp: [0; 3],
+                reserved1: 0,
+                ist: [0; 7],
+                reserved2: 0,
+                reserved3: 0,
+                io: 104,
+            },
+        }
+    }
+}
+
+/// AP half of `install`: own GDT/TSS (RSP0, IST1=#DF, IST2=NMI exactly as the
+/// BSP's gates expect) and the shared permanent IDT. Called once per AP on
+/// its own stack with IF=0; `tables` is that AP's exclusive static slot.
+#[cfg(feature = "native-smp")]
+pub fn install_ap(tables: *mut CpuTables, rsp0: u64, double_top: u64, nmi_top: u64) {
+    // SAFETY: `tables` is a permanent, 256-byte aligned static slot owned by this
+    // AP alone (selected by the claim CAS); no other CPU reads or writes it. The
+    // BSP's GDT descriptors are read-only after install(). Packed TSS fields use
+    // unaligned raw writes. The IDT is permanent and complete before any AP runs.
     unsafe {
-        let tss = ptr::addr_of_mut!(AP_TSS).cast::<Tss>().add(index);
+        let tss = ptr::addr_of_mut!((*tables).tss);
         ptr::addr_of_mut!((*tss).rsp)
             .cast::<u64>()
-            .write_unaligned(stack_top);
-        let double = ptr::addr_of_mut!(AP_DOUBLE).cast::<Stack>().add(index) as u64;
-        let nmi = ptr::addr_of_mut!(AP_NMI).cast::<Stack>().add(index) as u64;
-        ptr::addr_of_mut!((*tss).ist)
-            .cast::<u64>()
-            .write_unaligned(double + 20480);
-        ptr::addr_of_mut!((*tss).ist)
-            .cast::<u64>()
-            .add(1)
-            .write_unaligned(nmi + 20480);
+            .write_unaligned(rsp0);
+        let ist = ptr::addr_of_mut!((*tss).ist).cast::<u64>();
+        ist.write_unaligned(double_top);
+        ist.add(1).write_unaligned(nmi_top);
         let base = tss as u64;
         let low = 103 | ((base & 0xffffff) << 16) | (0x89 << 40) | (((base >> 24) & 0xff) << 56);
-        let gdt = ptr::addr_of_mut!(AP_GDT).cast::<u64>().add(index * 7);
-        ptr::copy_nonoverlapping(
-            [
-                0,
-                0x00af9a000000ffff,
-                0x00cf92000000ffff,
-                0x00cff2000000ffff,
-                0x00affa000000ffff,
-                low,
-                base >> 32,
-            ]
-            .as_ptr(),
-            gdt,
-            7,
-        );
+        let kernel = ptr::addr_of!(GDT).cast::<u64>();
+        let gdt = ptr::addr_of_mut!((*tables).gdt).cast::<u64>();
+        for i in 0..5 {
+            gdt.add(i).write(kernel.add(i).read());
+        }
+        gdt.add(5).write(low);
+        gdt.add(6).write(base >> 32);
         let gdtr = Pointer {
             limit: 55,
             base: gdt as u64,
@@ -275,68 +233,38 @@ pub fn install_ap(index: usize, stack_top: u64) {
             limit: 4095,
             base: ptr::addr_of!(IDT) as u64,
         };
-        asm!("lgdt [{}]", in(reg) &gdtr, options(readonly, nostack));
-        asm!(
-            "push 8",
-            "lea rax, [rip + 2f]",
-            "push rax",
-            "retfq",
-            "2:",
-            "mov ax, 16",
-            "mov ds, ax",
-            "mov es, ax",
-            "mov ss, ax",
-            "xor eax, eax",
-            "mov fs, ax",
-            "mov gs, ax",
-            out("rax") _
-        );
-        asm!("ltr ax", in("ax") 0x28u16, options(nostack));
-        asm!("lidt [{}]", in(reg) &idtr, options(readonly, nostack));
+        asm!("lgdt [{}]",in(reg) &gdtr,options(readonly,nostack));
+        asm!("push 8","lea rax, [rip + 2f]","push rax","retfq","2:","mov ax, 16","mov ds, ax","mov es, ax","mov ss, ax","xor eax,eax","mov fs, ax","mov gs, ax",out("rax") _);
+        asm!("ltr ax",in("ax") 0x28u16,options(nostack));
+        asm!("lidt [{}]",in(reg) &idtr,options(readonly,nostack));
+        for msr in [0xc0000100u32, 0xc0000101, 0xc0000102] {
+            asm!("wrmsr",in("ecx") msr,in("eax") 0u32,in("edx") 0u32,options(nostack));
+        }
     }
 }
 
-#[cfg(feature = "native-smp-m3")]
-pub fn set_cpu_local(index: usize, service_stack: u64, is_bootstrap: bool) {
-    assert!(index < MAX_APS && service_stack.is_multiple_of(16));
-    // SAFETY: Each logical CPU initializes only its own permanent local record
-    // before ring-3 entry. BSP/AP stacks and the record are mapped in every CR3.
+/// BSP-only, before any AP starts: supervisor interrupt gate for the SMP IPI
+/// (0xf0) or spurious (0xff) vector. Never a user-callable gate.
+#[cfg(feature = "native-smp")]
+pub fn smp_gate(vector: usize, address: u64) {
+    assert!(matches!(vector, 0xd0 | 0xe0 | 0xf0 | 0xff));
+    let gate = Gate {
+        lo: address as u16,
+        cs: 8,
+        ist: 0,
+        flags: 0x8e,
+        mid: (address >> 16) as u16,
+        hi: (address >> 32) as u32,
+        reserved: 0,
+    };
+    // SAFETY: Exclusive IF=0 BSP initialization of the permanent IDT before any
+    // AP has loaded it; the address is our own executable stub.
     unsafe {
-        let local = ptr::addr_of_mut!(CPU_LOCAL).cast::<CpuLocal>().add(index);
-        local.write(CpuLocal {
-            service_stack,
-            logical_index: index as u64,
-            is_bootstrap: u64::from(is_bootstrap),
-        });
-        let base = local as u64;
-        asm!(
-            "wrmsr",
-            in("ecx") 0xc0000101u32,
-            in("eax") base as u32,
-            in("edx") (base >> 32) as u32,
-            options(nostack)
-        );
-        asm!(
-            "wrmsr",
-            in("ecx") 0xc0000102u32,
-            in("eax") 0u32,
-            in("edx") 0u32,
-            options(nostack)
-        );
+        ptr::addr_of_mut!(IDT)
+            .cast::<Gate>()
+            .add(vector)
+            .write(gate);
     }
-}
-
-#[cfg(feature = "native-smp-m3")]
-pub fn current_cpu_index() -> usize {
-    let index: u64;
-    // SAFETY: The kernel GS base is installed before M3 starts; user-origin
-    // entries swap to it before calling this function.
-    unsafe {
-        asm!("mov {}, gs:[8]", out(reg) index, options(nomem, nostack, preserves_flags));
-    }
-    let index = usize::try_from(index).expect("CPU-local index");
-    assert!(index < MAX_APS);
-    index
 }
 
 pub fn protection() {
@@ -386,17 +314,6 @@ pub fn protection() {
         asm!("mov cr0, {}",in(reg) cr0,options(nostack));
     }
 }
-#[cfg(feature = "native-smp-m3")]
-pub fn protection_status() -> u8 {
-    let cr0: u64;
-    // SAFETY: Reading the local CPU's CR0 at CPL0 has no memory or control-flow effects.
-    unsafe {
-        asm!("mov {}, cr0", out(reg) cr0, options(nomem, nostack, preserves_flags));
-    }
-    u8::from(cr0 & (1 << 16) != 0)
-        | (u8::from(cr0 & (1 << 2) != 0) << 1)
-        | (u8::from(cr0 & (1 << 3) != 0) << 2)
-}
 pub fn activate(root: u64) {
     // SAFETY: paging builder validates/retains own aligned tables and maps current
     // code, stacks, GDT, IDT, TSS and all metadata before this serializing switch.
@@ -416,32 +333,7 @@ pub fn service_stack() -> u64 {
 }
 #[cfg(feature = "milestone-m3")]
 pub fn process_stack(top: u64) {
-    #[cfg(feature = "native-smp-m3")]
-    {
-        let index = current_cpu_index();
-        let is_bootstrap: u64;
-        // SAFETY: Current CPU reads its immutable local record after setup.
-        unsafe {
-            asm!("mov {}, gs:[16]", out(reg) is_bootstrap, options(nomem, nostack, preserves_flags));
-        }
-        assert!(is_bootstrap <= 1);
-        if is_bootstrap == 0 {
-            assert!(index < MAX_APS);
-            // SAFETY: Each AP writes only its own TSS.RSP0 while in kernel mode.
-            unsafe {
-                ptr::addr_of_mut!(AP_TSS)
-                    .cast::<Tss>()
-                    .add(index)
-                    .cast::<u8>()
-                    .add(core::mem::offset_of!(Tss, rsp))
-                    .cast::<u64>()
-                    .write_unaligned(top);
-            }
-            return;
-        }
-    }
-    // SAFETY: IF=0; caller supplies the current CPU's mapped supervisor stack
-    // with guards. The bootstrap CPU owns TSS, while SMP APs use their own TSS.
+    // SAFETY: Single-CPU IF=0; caller supplies mapped supervisor stack with guards.
     unsafe {
         ptr::addr_of_mut!(TSS.rsp)
             .cast::<u64>()
@@ -458,7 +350,7 @@ pub fn reset_debug() {
 }
 #[cfg(feature = "milestone-m3")]
 pub fn user_gate(vector: usize, address: u64, user: bool) {
-    assert!(vector == 32 || vector == 128 || cfg!(feature = "native-smp-m3") && vector == 0xf1);
+    assert!(vector == 32 || vector == 128);
     let gate = Gate {
         lo: address as u16,
         cs: 8,
@@ -494,6 +386,12 @@ extern "C" fn m2_exception(frame: *const u64) -> ! {
     // SAFETY: CPL0 read of fault address; no pointed-to data is followed/logged.
     unsafe {
         asm!("mov {}, cr2",out(reg) cr2,options(nomem,nostack));
+    }
+    // Test-only AP IST probes: accepted solely on that AP's own IST stack.
+    #[cfg(feature = "native-smp")]
+    if let Some(marker) = super::smp::ist_fault_marker(vector, error, cs, frame) {
+        serial::write(marker);
+        serial::exit(0x10);
     }
     if cfg!(feature = "test-m2-double-fault") && vector == 8 && error == 0 && cs == 8 {
         let double = ptr::addr_of!(DOUBLE) as u64;
@@ -645,23 +543,15 @@ m3_syscall:
  push 0
  push 128
  jmp m2_exception_common
-.global m3_schedule_ipi
-m3_schedule_ipi:
- push 0
- push 0xf1
- jmp m2_exception_common
 m2_dispatch:
  cmp qword ptr [rsp+120],2
  je m3_terminal
  cmp qword ptr [rsp+120],8
  je m3_terminal
  cmp qword ptr [rsp+120],32
- jne 1f
+ jne m3_user_entry
  cmp qword ptr [rsp+144],8
  jne m3_user_entry
- .if {native_smp_m3}
- jmp m3_kernel_entry
- .endif
  cmp byte ptr [rip+m3_idle_active],1
  jne m3_terminal
  inc qword ptr [rip+m3_idle_wakeups]
@@ -669,30 +559,11 @@ m2_dispatch:
  out 0x20,al
  mov rax,rsp
  jmp m3_restore
-1:
- cmp qword ptr [rsp+120],0xf1
- jne m3_user_entry
- cmp qword ptr [rsp+144],8
- je m3_kernel_entry
- .if {native_smp_m3}
- jmp m3_user_entry
- .else
- jmp m3_terminal
- .endif
-m3_kernel_entry:
- mov rdi,rsp
- and rsp,-16
- call m3_event
- mov rsp,rax
- jmp m3_restore
 m3_user_entry:
  mov rax,[rsp+144]
  and eax,3
  cmp eax,3
  jne m3_terminal
- .if {native_smp_m3}
- swapgs
- .endif
  .if {fpu_context}
  // GPRs already saved. The current owned aligned image is supervisor-only
  // mapped in every user CR3. Save before any Rust or another process runs.
@@ -701,24 +572,9 @@ m3_user_entry:
  inc qword ptr [rip+m3_fpu_saves]
  .endif
  mov rdi,rsp
- .if {native_smp_m3}
- mov rsp,gs:[0]
- .else
  mov rsp,[rip+m3_service_stack]
- .endif
  and rsp,-16
  call m3_event
- test rax,rax
- jnz 2f
- .if {native_smp_m3}
- mov rsp,gs:[0]
- and rsp,-16
- call m3_cpu_idle
- ud2
- .else
- ud2
- .endif
-2:
 .global m3_restore
 m3_restore:
  mov rsp,rax
@@ -731,12 +587,6 @@ m3_restore:
  fxrstor64 [rax]
  inc qword ptr [rip+m3_fpu_restores]
 9:
- .endif
- .if {native_smp_m3}
- cmp qword ptr [rsp+144],0x23
- jne 3f
- swapgs
-3:
  .endif
  pop r15
  pop r14
@@ -762,5 +612,4 @@ m3_terminal:
  ud2
 "#,
     fpu_context = const cfg!(feature = "fpu-context") as u8,
-    native_smp_m3 = const cfg!(feature = "native-smp-m3") as u8,
 );

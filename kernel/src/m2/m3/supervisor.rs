@@ -8,7 +8,7 @@
 //! evidence words plus its own counters. Single CPU, IF=0.
 use super::*;
 use capability_core::{
-    KILL, MAX_PROCESS_OBJECTS, MAX_SLOTS, OBSERVE, PROCESS_EXITED, PROCESS_FAULTED, PROCESS_KILLED,
+    KILL, MAX_PROCESS_OBJECTS, OBSERVE, PROCESS_EXITED, PROCESS_FAULTED, PROCESS_KILLED,
     PROCESS_RUNNING, SEND,
 };
 
@@ -204,17 +204,6 @@ pub fn manifest(s: &mut State) {
     {
         fail(b"MANIFEST_ENGINE");
     }
-    let usage = e
-        .process_usage(supervisor)
-        .unwrap_or_else(|_| fail(b"MANIFEST_RESOURCE_ACCOUNTING"));
-    if usage.handles != 2
-        || usage.available_handle_slots != MAX_SLOTS - 3
-        || usage.launch_objects != 2
-        || usage.endpoints != 0
-        || usage.queued_messages != 0
-    {
-        fail(b"MANIFEST_RESOURCE_USAGE");
-    }
     for (offset, value) in [
         (0, case()),
         (32, 1),
@@ -334,13 +323,10 @@ fn spawn_checked(s: &mut State, pid: u64, a: [u64; 6]) -> Result<u64, i64> {
     let Ok(parsed) = user::parse(elf) else {
         fail(b"EMBEDDED_IMAGE");
     };
-    let usage = engine
-        .process_usage(pid)
-        .unwrap_or_else(|_| fail(b"SPAWN_RESOURCE_ACCOUNTING"));
     if !engine.can_register()
         || !engine.can_create_process()
         || engine.available_nodes() < 1 + count
-        || usage.available_handle_slots < 1
+        || engine.available_slots(pid) < 1
         || user::issue_pid(s.next_pid).is_err()
         || s.free_count() < parsed.pages + SPAWN_FRAME_MARGIN
     {

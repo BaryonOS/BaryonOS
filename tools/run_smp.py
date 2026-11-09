@@ -1,779 +1,222 @@
 #!/usr/bin/env python3
-"""Run one SMP AP-startup/worker case in an isolated, networkless QEMU guest."""
+"""K06: verify native AP bring-up, per-AP IST and bounded IPIs (native-smp profiles)."""
 from __future__ import annotations
-
-from datetime import datetime, timezone
-from pathlib import Path
+import argparse
 import json
-import math
 import re
-import shutil
-import subprocess
-import time
-import uuid
+import struct
+from common import BUILD, save_json, sha256, source_hash, without_acpi_diagnostics
+from run import run_guest, is_success
 
-from common import BUILD, ROOT, environment, firmware, qemu_machine, save_json, sha256, source_hash
-from gate_contract import guest_expectation
-
+MAX_CPUS = 8  # kernel/src/m2/smp.rs MAX_CPUS
+IPI_ROUNDS = 3  # kernel/src/m2/smp.rs IPI_ROUNDS
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS")
-FAILURES = ("PANIC", "FAIL")
-MAX_TIMEOUT = 180
+END = ("M2:PASS", "M1:PASS")
+FORBIDDEN = ("FAIL", "PANIC")
+# q35 has MCFG but no DMAR; a MADT failure must leave exactly this inventory.
+ACPI_EXPECTED = "ACPI:UNAVAILABLE:NO_DMAR"
+
+# case -> (kernel profile, vCPUs, TCG threads, expected outcome)
+CASES = {
+    "one": ("native-smp", 1, "single", "online"),
+    "two-single": ("native-smp", 2, "single", "online"),
+    "four": ("native-smp", 4, "multi", "online"),
+    "eight": ("native-smp", 8, "multi", "online"),
+    "nine-capacity": ("native-smp", 9, "multi", "online"),
+    "duplicate-madt": ("native-smp", 4, "multi", "invalid-madt"),
+    "ap-stall": ("test-smp-ap-stall", 4, "multi", "timeout"),
+    "ap-mismatch": ("test-smp-ap-mismatch", 4, "multi", "mismatch"),
+    "ap-ipi-deaf": ("test-smp-ap-ipi-deaf", 4, "multi", "quarantine"),
+    "ap-nmi-ist": ("test-smp-ap-nmi", 4, "multi", "nmi-ist"),
+    "ap-double-fault-ist": ("test-smp-ap-double-fault", 4, "multi", "df-ist"),
+    "ap-shootdown-deaf": ("test-smp-ap-shootdown-deaf", 4, "multi", "shootdown-quarantine"),
+    "shootdown-skipped-control": ("test-smp-shootdown-skipped", 4, "multi", "stale-control"),
+    "ap-timer-dead": ("test-smp-ap-timer-dead", 4, "multi", "timer-quarantine"),
+    "lockdep-order": ("test-smp-lockdep-order", 2, "multi", "lockdep-order"),
+}
+QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
+                       "timer-quarantine")
+TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_IST:PASS",
+            "lockdep-order": "SMP:LOCKDEP:ORDER:30->10"}
+# Step 5a: the BSP lock self-test after smp::start, on every non-terminal path.
+LOCKDEP_PASS = "SMP:LOCKDEP:PASS"
 
 
-def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
-    if type(cpus) is not int or cpus not in (2, 4):
-        raise ValueError("SMP QEMU profiles are exactly 2 or 4 CPUs")
-    if profile not in (
-        "native-smp",
-        "native-smp-m3",
-        "native-smp-m3-exit",
-        "native-smp-m3-tlb-reuse",
-        "native-smp-m3-lock-contention",
-        "native-smp-m3-x87",
-        "native-smp-m3-unexpected-ud",
-        "native-smp-m4",
-        "native-smp-m4-lifecycle",
-        "native-smp-m4-revoke",
-    ):
-        raise ValueError("unknown SMP kernel profile")
-    if profile in (
-        "native-smp-m3-tlb-reuse",
-        "native-smp-m3-lock-contention",
-        "native-smp-m3-x87",
-        "native-smp-m3-unexpected-ud",
-        "native-smp-m4",
-        "native-smp-m4-lifecycle",
-        "native-smp-m4-revoke",
-    ) and cpus != 2:
-        raise ValueError("native TLB-reuse and M4 SMP profiles require exactly two CPUs")
-    markers = BOOT + ("SMP:AP:ENTRY",) * (cpus - 1) + tuple(
-        f"SMP:CPU:{index}:APIC:" for index in range(cpus)
-    ) + (
-        f"SMP:CPUS:{cpus}",
-        "SMP:RENDEZVOUS:PASS",
-        "SMP:WORKERS:PASS",
-        "SMP:PASS",
-    )
-    return markers + (("M3:SMP:SCHEDULER:PASS",)
-                      if profile in (
-                          "native-smp-m3",
-                          "native-smp-m3-exit",
-                          "native-smp-m3-tlb-reuse",
-                          "native-smp-m3-lock-contention",
-                          "native-smp-m3-x87",
-                          "native-smp-m4",
-                          "native-smp-m4-lifecycle",
-                          "native-smp-m4-revoke",
-                      ) else ())
+def duplicate_madt() -> bytes:
+    """A checksummed second MADT (one enabled xAPIC); firmware appends it to the XSDT."""
+    body = struct.pack("<II", 0xFEE00000, 1) + bytes([0, 8, 0, 0]) + struct.pack("<I", 1)
+    table = bytearray(b"APIC" + struct.pack("<I", 36 + len(body)) + bytes([3, 0])
+                      + b"NOSOS " + b"DUPMADT " + struct.pack("<I", 1) + b"NOS "
+                      + struct.pack("<I", 1) + body)
+    table[9] = (-sum(table)) & 0xFF
+    if sum(table) % 256 != 0:
+        raise AssertionError("fixture checksum")
+    return bytes(table)
 
 
-def _smp_evidence(
-    cpus: int, stdout: str, expected_failure: str | None = None
-) -> tuple[list[str], list[tuple[int, int]]]:
-    """Validate bounded common SMP evidence, allowing one expected failure kind."""
-    if not isinstance(stdout, str) or len(stdout) > 128 * 1024:
-        raise ValueError("invalid or oversized guest transcript")
-    lines = stdout.splitlines()
-    if any(
-        marker in line and line != expected_failure
-        for marker in FAILURES
-        for line in lines
-    ):
-        raise ValueError("failure marker present")
-    cursor = 0
-    for marker in BOOT:
-        try:
-            cursor = lines.index(marker, cursor) + 1
-        except ValueError as error:
-            raise ValueError(f"missing or out-of-order marker: {marker}") from error
-    cpu_lines = [line for line in lines if line.startswith("SMP:CPU:")]
-    cpu_pattern = re.compile(r"SMP:CPU:([0-9]+):APIC:([0-9]+):ONLINE")
-    parsed = []
-    for line in cpu_lines:
-        match = cpu_pattern.fullmatch(line)
-        if match is None:
-            raise ValueError("malformed CPU identity marker")
-        logical_id, apic_id = int(match.group(1)), int(match.group(2))
-        if str(logical_id) != match.group(1) or str(apic_id) != match.group(2):
-            raise ValueError("noncanonical CPU identity marker")
-        parsed.append((logical_id, apic_id))
-    if (len(parsed) != cpus
-            or [index for index, _ in parsed] != list(range(cpus))
-            or len({apic_id for _, apic_id in parsed}) != cpus):
-        raise ValueError("CPU inventory is incomplete or contains duplicate APIC IDs")
-    entries = ("SMP:AP:ENTRY",) * (cpus - 1)
-    expected = BOOT + entries + tuple(cpu_lines) + (
-        f"SMP:CPUS:{cpus}", "SMP:RENDEZVOUS:PASS", "SMP:WORKERS:PASS", "SMP:PASS",
-    )
-    observed = tuple(line for line in lines if line in BOOT or line.startswith("SMP:"))
-    if observed != expected:
-        raise ValueError(f"evidence sequence mismatch: {observed}")
-    return lines, parsed
+def expected_smp(case: str) -> list[str]:
+    """The exact SMP lines between KS-03 and the terminal markers.
+
+    QEMU's default flat topology numbers the BSP 0 and APs 1..n-1 in MADT order.
+    """
+    _, cpus, _, outcome = CASES[case]
+    if outcome == "invalid-madt":
+        return ["SMP:UNAVAILABLE:INVALID_MADT"]
+    madt = [f"SMP:MADT:CPUS={cpus}:DISABLED=0:HOTPLUG=0"]
+
+    def settled(online: int) -> list[str]:
+        """Sync, IPI rounds, completed shootdown + visibility, park."""
+        return [f"SMP:SYNC:PASS:CPUS={online}",
+                f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}",
+                f"SMP:SHOOTDOWN:PASS:CPUS={online}",
+                f"SMP:SHOOTDOWN:VISIBLE:CPUS={online}",
+                f"SMP:PREEMPT:PASS:CPUS={online}",
+                f"SMP:PARKED:APS={online - 1}"]
+
+    if outcome in ("timeout", "mismatch"):
+        status = "TIMEOUT" if outcome == "timeout" else "MISMATCH"
+        return madt + [f"SMP:AP:1:{status}", "SMP:BRINGUP:STOPPED", f"SMP:ONLINE:1/{cpus}"] \
+            + settled(1)
+    started = min(cpus, MAX_CPUS)
+    lines = madt + [f"SMP:AP:{apic}:ONLINE" for apic in range(1, started)]
+    if cpus > MAX_CPUS:
+        lines.append(f"SMP:SKIPPED:CAPACITY={cpus - MAX_CPUS}")
+    lines += [f"SMP:ONLINE:{started}/{cpus}"]
+    if outcome == "online":
+        return lines + settled(started)
+    if outcome == "lockdep-order":
+        # KERNEL(10) taken while FRAMES(30) is held: stop before the PASS line.
+        return lines + settled(started) + [TERMINAL[outcome]]
+    lines += [f"SMP:SYNC:PASS:CPUS={started}"]
+    ipi_pass = f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}"
+    if outcome == "shootdown-quarantine":
+        return lines + [ipi_pass, "SMP:SHOOTDOWN:TIMEOUT:APIC=1",
+                        "SMP:SHOOTDOWN:FRAME_QUARANTINED",
+                        f"SMP:QUARANTINED:APS={started - 1}", f"SMP:ONLINE:1/{cpus}"]
+    if outcome == "timer-quarantine":
+        return lines + [ipi_pass, f"SMP:SHOOTDOWN:PASS:CPUS={started}",
+                        f"SMP:SHOOTDOWN:VISIBLE:CPUS={started}", "SMP:PREEMPT:TIMEOUT:APIC=1",
+                        f"SMP:QUARANTINED:APS={started - 1}", f"SMP:ONLINE:1/{cpus}"]
+    if outcome == "stale-control":
+        # Without the shootdown every AP must still reach the reclaimed frame.
+        return lines + [ipi_pass, "SMP:SHOOTDOWN:SKIPPED",
+                        f"SMP:SHOOTDOWN:STALE:APS={started - 1}",
+                        f"SMP:PREEMPT:PASS:CPUS={started}",
+                        f"SMP:PARKED:APS={started - 1}"]
+    if outcome == "quarantine":
+        return lines + ["SMP:IPI:TIMEOUT:APIC=1", f"SMP:QUARANTINED:APS={started - 1}",
+                        f"SMP:ONLINE:1/{cpus}"]
+    if outcome == "nmi-ist":
+        return lines + [f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}", TERMINAL[outcome]]
+    if outcome == "df-ist":
+        return lines + [TERMINAL[outcome]]
+    raise ValueError("Unknown SMP outcome")
 
 
-def evaluate(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
-    """Validate ordered guest evidence, distinct logical/APIC identities and exit."""
-    expected_markers(cpus)
-    _, parsed = _smp_evidence(cpus, stdout)
-    if returncode != 33 or timed_out:
-        raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
-    return {
-        "cpu_count": cpus,
-        "logical_apic_ids": parsed,
-        "rendezvous_generations": 64,
-        "workers": 64,
-    }
+def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict:
+    """Independent serial oracle: the exact SMP sequence after KS-03."""
+    profile, cpus, _, outcome = CASES[case]
+    terminal = outcome in TERMINAL
+    end = (TERMINAL[outcome],) if terminal else END
+    if not is_success(raw_exit, stdout, timed_out, required_markers=BOOT + end,
+                      forbidden_markers=FORBIDDEN):
+        raise ValueError("Native SMP boot/exit assertions failed")
+    acpi = [line for line in stdout.splitlines() if line.startswith("ACPI:")]
+    if acpi != [ACPI_EXPECTED]:
+        raise ValueError("ACPI inventory changed; MADT handling must be independent")
+    lines = without_acpi_diagnostics(stdout).splitlines()
+    if lines.count(BOOT[0]) != 1:
+        raise ValueError("Missing or repeated EBS handoff")
+    start = lines.index(BOOT[0])
+    if any(re.search(r"(?:BOOT:|BOOTINFO:|KERNEL:|KS-|M[0-9]+:|SMP:)", line)
+           for line in lines[:start]):
+        raise ValueError("Unexpected marker before EBS")
+    observed = lines[start:]
+    if tuple(observed[:len(BOOT)]) != BOOT:
+        raise ValueError("Unexpected boot prefix")
+    expected = expected_smp(case)
+    tail = observed[len(BOOT):]
+    if terminal:
+        if tail != expected:
+            raise ValueError("Unexpected SMP sequence or missing IST marker")
+    elif tail != expected + [LOCKDEP_PASS] + list(END):
+        raise ValueError("Unexpected SMP sequence or duplicate output")
+    online = 1 if outcome in QUARANTINE_OUTCOMES \
+        else min(cpus, MAX_CPUS)
+    return {"outcome": outcome, "profile": profile, "online": online,
+            "ap_ids": sorted({int(m[1]) for m in (re.fullmatch(r"SMP:AP:([0-9]+):.*", line)
+                                                   for line in expected) if m})}
 
 
-def evaluate_m3(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
-    expected_markers(cpus, "native-smp-m3")
-    lines, parsed, expected_protection = _m3_inventory(cpus, stdout)
-
-    cpu_markers = [line for line in lines if line.startswith("M3:SMP:CPU:")]
-    schedule_markers = [line for line in lines if line.startswith("M3:SMP:SCHEDULES:")]
-    number = re.compile(r"M3:SMP:CPU:([0-9]{20})")
-    schedules = re.compile(r"M3:SMP:SCHEDULES:([0-9]{20})")
-    cpu_ids = []
-    schedule_counts = []
-    for line in cpu_markers:
-        match = number.fullmatch(line)
-        if match is None:
-            raise ValueError("malformed M3 CPU marker")
-        cpu_ids.append(int(match.group(1)))
-    for line in schedule_markers:
-        match = schedules.fullmatch(line)
-        if match is None:
-            raise ValueError("malformed M3 scheduler count")
-        schedule_counts.append(int(match.group(1)))
-    if cpu_ids != list(range(cpus)) or len(schedule_counts) != cpus:
-        raise ValueError("M3 scheduling evidence is incomplete or out of order")
-    if any(count == 0 for count in schedule_counts):
-        raise ValueError("an online CPU never selected a user process")
-    expected_m3 = expected_protection + tuple(
-        marker
-        for cpu, count in zip(cpu_ids, schedule_counts, strict=True)
-        for marker in (f"M3:SMP:CPU:{cpu:020d}", f"M3:SMP:SCHEDULES:{count:020d}")
-    ) + ("M3:SMP:SCHEDULER:PASS",)
-    observed_m3 = tuple(
-        line for line in lines
-        if line.startswith((
-            "M3:SMP:AP:PROTECTION_CPU:",
-            "M3:SMP:AP:CR0_WP_EM_TS:",
-            "M3:SMP:CPU:",
-            "M3:SMP:SCHEDULES:",
-        ))
-        or line == "M3:SMP:SCHEDULER:PASS"
-    )
-    if observed_m3 != expected_m3:
-        raise ValueError("M3 scheduler or AP protection evidence is malformed or out of order")
-    scheduler_passes = [index for index, line in enumerate(lines)
-                        if line == "M3:SMP:SCHEDULER:PASS"]
-    if (len(scheduler_passes) != 1
-            or scheduler_passes[0] <= max(
-                index for index, line in enumerate(lines)
-                if line.startswith("M3:SMP:SCHEDULES:")
-            )):
-        raise ValueError("missing or out-of-order SMP scheduler pass marker")
-    if returncode != 33 or timed_out:
-        raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
-    return {
-        "cpu_count": cpus,
-        "logical_apic_ids": parsed,
-        "per_cpu_process_selections": schedule_counts,
-        "ap_cr0_wp_em_ts": 7,
-    }
-
-
-def _m3_inventory(cpus: int, stdout: str, expected_failure: str | None = None):
-    lines, parsed = _smp_evidence(cpus, stdout, expected_failure)
-
-    cpu_number = re.compile(r"M3:SMP:AP:PROTECTION_CPU:([0-9]{20})")
-    flag_number = re.compile(r"M3:SMP:AP:CR0_WP_EM_TS:([0-9]{20})")
-    observed_protection = tuple(
-        line for line in lines
-        if line.startswith((
-            "M3:SMP:AP:PROTECTION_CPU:",
-            "M3:SMP:AP:CR0_WP_EM_TS:",
-        ))
-    )
-    protection_cpus = []
-    if len(observed_protection) != 2 * (cpus - 1):
-        raise ValueError("AP CR0 WP/EM/TS readback is missing, invalid, or out of order")
-    for index in range(0, len(observed_protection), 2):
-        cpu_match = cpu_number.fullmatch(observed_protection[index])
-        flag_match = flag_number.fullmatch(observed_protection[index + 1])
-        if (
-            cpu_match is None
-            or flag_match is None
-            or int(cpu_match.group(1)) >= cpus
-            or int(flag_match.group(1)) != 7
-        ):
-            raise ValueError("AP CR0 WP/EM/TS readback is invalid or out of order")
-        protection_cpus.append(int(cpu_match.group(1)))
-    if set(protection_cpus) != set(range(1, cpus)):
-        raise ValueError("AP CR0 protection readback does not cover each AP exactly once")
-    return lines, parsed, observed_protection
-
-
-def evaluate_m3_x87(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
-    expected_markers(cpus, "native-smp-m3-x87")
-    scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
-    lines = stdout.splitlines()
-    if lines.count("M3:FAULT:X87:PASS") != 1:
-        raise ValueError("AP x87 probe did not produce exactly one expected #NM fault")
-    fault_cpus = [
-        line for line in lines if line.startswith("M3:SMP:FAULT_CPU:")
-    ]
-    pattern = re.compile(r"M3:SMP:FAULT_CPU:([0-9]{20})")
-    matches = [pattern.fullmatch(line) for line in fault_cpus]
-    ap_indices = {
-        int(match.group(1))
-        for line in lines
-        if (match := re.fullmatch(r"M3:SMP:AP:PROTECTION_CPU:([0-9]{20})", line))
-    }
-    if (
-        len(matches) != 1
-        or matches[0] is None
-        or int(matches[0].group(1)) not in ap_indices
-    ):
-        raise ValueError("x87 fault did not occur on the AP")
-    if not (
-        max(
-            index for index, line in enumerate(lines)
-            if line.startswith("M3:SMP:AP:CR0_WP_EM_TS:")
-        )
-        < lines.index(fault_cpus[0])
-        < lines.index("M3:FAULT:X87:PASS")
-        < lines.index("M3:SMP:SCHEDULER:PASS")
-    ):
-        raise ValueError("x87 fault occurred outside the protected AP execution sequence")
-    return {"scheduler": scheduler, "x87_fault_cpu": 1}
-
-
-def evaluate_m3_unexpected_ud(
-    cpus: int, stdout: str, returncode: int | None, timed_out: bool
-) -> dict:
-    expected_markers(cpus, "native-smp-m3-unexpected-ud")
-    if cpus != 2 or not isinstance(stdout, str) or len(stdout) > 128 * 1024:
-        raise ValueError("unexpected-UD injection requires a bounded two-CPU transcript")
-    failure = "M3:FAIL:UNEXPECTED_USER_EVENT"
-    lines, parsed, protection = _m3_inventory(cpus, stdout, expected_failure=failure)
-    if lines.count(failure) != 1:
-        raise ValueError("unexpected user fault did not fail closed exactly once")
-    injection = "M3:SMP:FAULT_INJECTION:UNEXPECTED_UD"
-    if lines.count(injection) != 1 or lines.count("M3:FAULT:UD:PASS") != 0:
-        raise ValueError("unexpected-UD fault injection evidence is missing or success-shaped")
-    if any(line.startswith((
-        "M3:SMP:SCHEDULER:PASS",
-        "M3:PASS",
-        "M1:PASS",
-    )) for line in lines):
-        raise ValueError("scheduler or kernel success marker followed unexpected user fault")
-    if returncode != 35 or timed_out:
-        raise ValueError(f"expected fail-closed raw QEMU exit 35, got {returncode}")
-    if lines.index(injection) >= lines.index(failure):
-        raise ValueError("unexpected-UD failure preceded the injected fault")
-    return {
-        "cpu_count": cpus,
-        "logical_apic_ids": parsed,
-        "ap_cr0_wp_em_ts": 7,
-        "fault_injection": "unexpected-user-ud",
-        "failure_marker": failure,
-        "scheduler_pass": False,
-    }
-
-
-def evaluate_m4_smp(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
-    expected_markers(cpus, "native-smp-m4")
-    scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
-    lines = stdout.splitlines()
-    required, expected_exit, forbidden = guest_expectation("m4", "real-ring3-message-exchange")
-    cursor = 0
-    for marker in required:
-        try:
-            cursor = lines.index(marker, cursor) + 1
-        except ValueError as error:
-            raise ValueError(f"missing or out-of-order M4 marker: {marker}") from error
-    if any(marker in line for marker in forbidden for line in lines):
-        raise ValueError("M4 failure marker present")
-    if lines.count("M4:SMP:QUIESCED:PASS") != 1:
-        raise ValueError("M4 cleanup lacked a single completed CPU-quiescence handshake")
-    if not (
-        lines.index("M4:SMP:QUIESCED:PASS")
-        < lines.index("M4:SMP:ROUND_CLEANUP:PASS")
-        < lines.index("M4:CLEANUP:PASS")
-    ):
-        raise ValueError("M4 cleanup was reported before CPU quiescence")
-    if returncode != expected_exit or timed_out:
-        raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
-
-    pattern = re.compile(r"M4:SMP:(SEND|RECV):([0-9]{20})")
-    events = []
-    event_lines = [(index, line) for index, line in enumerate(lines)
-                   if line.startswith("M4:SMP:")
-                   and line not in {
-                       "M4:SMP:QUIESCED:PASS",
-                       "M4:SMP:ROUND_CLEANUP:PASS",
-                       "M4:SMP:ROUND_RESET:PASS",
-                   }]
-    for line_index, line in event_lines:
-        match = pattern.fullmatch(line)
-        if match is None:
-            raise ValueError("malformed M4 cross-CPU IPC marker")
-        operation, packed = match.groups()
-        identity = int(packed)
-        slot, cpu = identity >> 8, identity & 0xFF
-        if slot not in (0, 1, 2) or cpu >= cpus:
-            raise ValueError("M4 IPC marker has an invalid process or CPU")
-        events.append((operation, slot, cpu, line_index))
-    expected_ops = {("SEND", 0), ("RECV", 1), ("SEND", 1), ("RECV", 2)}
-    if len(events) != len(expected_ops) or {(op, slot) for op, slot, _, _ in events} != expected_ops:
-        raise ValueError("M4 exchange did not complete its two send/receive pairs")
-    expected_cpu = {0: 0, 1: 1, 2: 0}
-    if any(cpu != expected_cpu[slot] for _, slot, cpu, _ in events):
-        raise ValueError("M4 process ran outside its acceptance-profile CPU assignment")
-    exchange_index = lines.index("M4:EXCHANGE:PASS")
-    if any(line_index >= exchange_index for _, _, _, line_index in events):
-        raise ValueError("M4 IPC evidence appeared after the exchange pass marker")
-    positions = {(operation, slot): index for operation, slot, _, index in events}
-    for sender, receiver in ((0, 1), (1, 2)):
-        if positions[("SEND", sender)] >= positions[("RECV", receiver)]:
-            raise ValueError("M4 IPC receive preceded its matching send")
-
-    by_operation = {(operation, slot): cpu for operation, slot, cpu, _ in events}
-    crossed = []
-    for sender, receiver in ((0, 1), (1, 2)):
-        send_cpu = by_operation[("SEND", sender)]
-        receive_cpu = by_operation[("RECV", receiver)]
-        if send_cpu != receive_cpu:
-            crossed.append({
-                "sender_slot": sender,
-                "receiver_slot": receiver,
-                "sender_cpu": send_cpu,
-                "receiver_cpu": receive_cpu,
-            })
-    if not crossed:
-        raise ValueError("no successful IPC exchange crossed a CPU boundary")
-    return {
-        "scheduler": scheduler,
-        "ipc_events": [
-            {"operation": operation.lower(), "slot": slot, "cpu": cpu}
-            for operation, slot, cpu, _ in events
-        ],
-        "cross_cpu_message_pairs": crossed,
-    }
-
-
-def evaluate_m4_revoke_smp(
-    cpus: int, stdout: str, returncode: int | None, timed_out: bool
-) -> dict:
-    expected_markers(cpus, "native-smp-m4-revoke")
-    scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
-    lines = stdout.splitlines()
-    required, expected_exit, forbidden = guest_expectation("m4", "test-m4-revoke")
-    cursor = 0
-    for marker in required:
-        try:
-            cursor = lines.index(marker, cursor) + 1
-        except ValueError as error:
-            raise ValueError(f"missing or out-of-order M4 revoke marker: {marker}") from error
-    if any(marker in line for marker in forbidden for line in lines):
-        raise ValueError("M4 revoke failure marker present")
-    if lines.count("M4:SMP:QUIESCED:PASS") != 1:
-        raise ValueError("M4 revoke cleanup lacked a single completed CPU-quiescence handshake")
-    if not (
-        lines.index("M4:SMP:QUIESCED:PASS")
-        < lines.index("M4:SMP:ROUND_CLEANUP:PASS")
-        < lines.index("M4:CLEANUP:PASS")
-    ):
-        raise ValueError("M4 revoke cleanup was reported before CPU quiescence")
-    if returncode != expected_exit or timed_out:
-        raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
-
-    pattern = re.compile(
-        r"M4:SMP:(SEND|RECV|REVOKE|REVOKED):([0-9]{20})"
-    )
-    events = []
-    for index, line in enumerate(lines):
-        if not line.startswith("M4:SMP:") or line in {
-            "M4:SMP:QUIESCED:PASS",
-            "M4:SMP:ROUND_CLEANUP:PASS",
-            "M4:SMP:ROUND_RESET:PASS",
-        }:
-            continue
-        match = pattern.fullmatch(line)
-        if match is None:
-            raise ValueError("malformed M4 cross-CPU revoke marker")
-        operation, packed = match.groups()
-        identity = int(packed)
-        slot, cpu = identity >> 8, identity & 0xFF
-        if slot not in (0, 1, 2) or cpu >= cpus:
-            raise ValueError("M4 revoke marker has an invalid process or CPU")
-        if cpu != (1 if slot == 1 else 0):
-            raise ValueError("M4 revoke process ran outside its acceptance-profile CPU assignment")
-        events.append((operation, slot, cpu, index))
-
-    revokes = [event for event in events if event[0] == "REVOKE" and event[1] == 0]
-    denied = [event for event in events if event[0] == "REVOKED" and event[1] in (1, 2)]
-    if len(revokes) != 2 or len(denied) < 2:
-        raise ValueError("M4 revoke fixture lacks the expected revoke/denial operations")
-    _, _, _, second_revoke_index = revokes[-1]
-    crossed = next(
-        (event for event in denied
-         if event[3] > second_revoke_index and event[2] != revokes[-1][2]),
-        None,
-    )
-    if crossed is None:
-        raise ValueError("revoked capability use was not rejected on another CPU")
-    return {
-        "scheduler": scheduler,
-        "events": [
-            {"operation": operation.lower(), "slot": slot, "cpu": cpu}
-            for operation, slot, cpu, _ in events
-        ],
-        "cross_cpu_revocation": {
-            "revoker_cpu": revokes[-1][2],
-            "receiver_slot": crossed[1],
-            "receiver_cpu": crossed[2],
-        },
-    }
-
-
-def evaluate_m4_lifecycle_smp(
-    cpus: int, stdout: str, returncode: int | None, timed_out: bool
-) -> dict:
-    expected_markers(cpus, "native-smp-m4-lifecycle")
-    scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
-    lines = stdout.splitlines()
-    required, expected_exit, forbidden = guest_expectation("m4", "test-m4-lifecycle")
-    cursor = 0
-    for marker in required:
-        try:
-            cursor = lines.index(marker, cursor) + 1
-        except ValueError as error:
-            raise ValueError(f"missing or out-of-order M4 lifecycle marker: {marker}") from error
-    if any(marker in line for marker in forbidden for line in lines):
-        raise ValueError("M4 lifecycle failure marker present")
-    if returncode != expected_exit or timed_out:
-        raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
-    if lines.count("M4:SMP:QUIESCED:PASS") != 3:
-        raise ValueError("M4 lifecycle did not quiesce all CPUs before each cleanup")
-    if lines.count("M4:SMP:ROUND_CLEANUP:PASS") != 3:
-        raise ValueError("M4 lifecycle did not complete all three cleanup rounds")
-    if lines.count("M4:SMP:ROUND_RESET:PASS") != 2:
-        raise ValueError("M4 lifecycle did not complete both process-table resets")
-    quiesced = [i for i, line in enumerate(lines) if line == "M4:SMP:QUIESCED:PASS"]
-    cleanups = [i for i, line in enumerate(lines) if line == "M4:SMP:ROUND_CLEANUP:PASS"]
-    resets = [i for i, line in enumerate(lines) if line == "M4:SMP:ROUND_RESET:PASS"]
-    if any(not (q < c) for q, c in zip(quiesced, cleanups)):
-        raise ValueError("M4 lifecycle cleanup preceded its quiescence acknowledgement")
-    if any(not (cleanups[i] < resets[i] < quiesced[i + 1]) for i in range(2)):
-        raise ValueError("M4 lifecycle reset was not bracketed by completed quiescence phases")
-    if not (cleanups[-1] < lines.index("M4:CASE:LIFECYCLE:PASS")
-            < lines.index("M4:CLEANUP:PASS")):
-        raise ValueError("M4 lifecycle result preceded final cleanup")
-    return {
-        "scheduler": scheduler,
-        "quiescence_rounds": 3,
-        "cleanup_rounds": 3,
-        "process_table_resets": 2,
-    }
-
-
-def evaluate_m3_exit_smp(
-    cpus: int, stdout: str, returncode: int | None, timed_out: bool
-) -> dict:
-    scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
-    lines = stdout.splitlines()
-    required = ("M3:EXIT:PASS", "M3:SURVIVOR_PROGRESS:PASS")
-    cursor = 0
-    for marker in required:
-        try:
-            cursor = lines.index(marker, cursor) + 1
-        except ValueError as error:
-            raise ValueError(f"missing or out-of-order M3 exit marker: {marker}") from error
-    if any(marker in line for marker in FAILURES for line in lines):
-        raise ValueError("M3 exit failure marker present")
-    if returncode != 33 or timed_out:
-        raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
-
-    pattern = re.compile(r"M3:SMP:EXIT:([0-9]{20})")
-    exits = []
-    for line in lines:
-        if not line.startswith("M3:SMP:EXIT:"):
-            continue
-        match = pattern.fullmatch(line)
-        if match is None:
-            raise ValueError("malformed M3 process-cleanup marker")
-        identity = int(match.group(1))
-        slot, cpu = identity >> 8, identity & 0xFF
-        if slot != 0 or cpu >= cpus:
-            raise ValueError("M3 process-cleanup marker has an invalid slot or CPU")
-        exits.append((slot, cpu))
-    if len(exits) != 1:
-        raise ValueError("M3 exit fixture did not clean up exactly one process")
-    if exits[0][1] == 0:
-        raise ValueError("M3 test process exited on the BSP, not an AP")
-    return {
-        "scheduler": scheduler,
-        "process_cleanup_event": {"slot": exits[0][0], "cpu": exits[0][1]},
-    }
-
-
-def evaluate_m3_tlb_reuse_smp(
-    cpus: int, stdout: str, returncode: int | None, timed_out: bool
-) -> dict:
-    expected_markers(cpus, "native-smp-m3-tlb-reuse")
-    scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
-    lines = stdout.splitlines()
-    if lines.count("M3:EXIT:PASS") != 2:
-        raise ValueError("TLB reuse fixture did not complete two process exits")
-    pattern = re.compile(r"M3:SMP:EXIT:([0-9]{20})")
-    exits = []
-    for index, line in enumerate(lines):
-        if not line.startswith("M3:SMP:EXIT:"):
-            continue
-        match = pattern.fullmatch(line)
-        if match is None:
-            raise ValueError("malformed TLB-reuse cleanup marker")
-        identity = int(match.group(1))
-        slot, cpu = identity >> 8, identity & 0xFF
-        if (slot, cpu) != (0, 1):
-            raise ValueError("TLB-reuse process did not exit twice on its AP")
-        exits.append(index)
-    if len(exits) != 2:
-        raise ValueError("TLB-reuse fixture lacks exactly two AP cleanup events")
-    try:
-        reuse_index = lines.index("M3:SMP:TLB_REUSE:PASS")
-    except ValueError as error:
-        raise ValueError("missing stale-TLB process-reuse evidence") from error
-    if reuse_index <= exits[-1]:
-        raise ValueError("TLB-reuse evidence appeared before replacement cleanup")
-    if any(marker in line for marker in FAILURES for line in lines):
-        raise ValueError("TLB-reuse failure marker present")
-    return {
-        "scheduler": scheduler,
-        "process_cleanup_events": [
-            {"slot": 0, "cpu": 1},
-            {"slot": 0, "cpu": 1},
-        ],
-        "stale_mapping_target_retained_until_replacement_exit": True,
-    }
-
-
-def evaluate_m3_lock_contention_smp(
-    cpus: int, stdout: str, returncode: int | None, timed_out: bool
-) -> dict:
-    expected_markers(cpus, "native-smp-m3-lock-contention")
-    scheduler = evaluate_m3(cpus, stdout, returncode, timed_out)
-    lines = stdout.splitlines()
-    pattern = re.compile(r"M3:SMP:LOCK:CONTENDED:([0-9]{20})")
-    markers = [
-        (index, pattern.fullmatch(line))
-        for index, line in enumerate(lines)
-        if line.startswith("M3:SMP:LOCK:CONTENDED:")
-    ]
-    if len(markers) != 1 or markers[0][1] is None:
-        raise ValueError("missing or malformed M3 lock-contention evidence")
-    marker_index, match = markers[0]
-    assert match is not None
-    contentions = int(match.group(1))
-    if contentions == 0:
-        raise ValueError("M3 lock-contention fixture observed no failed acquisitions")
-    if marker_index <= max(
-        index for index, line in enumerate(lines)
-        if line.startswith("M3:SMP:SCHEDULES:")
-    ) or marker_index >= lines.index("M3:SMP:SCHEDULER:PASS"):
-        raise ValueError("M3 lock-contention evidence is out of order")
-    if any(marker in line for marker in FAILURES for line in lines):
-        raise ValueError("M3 lock-contention failure marker present")
-    return {"scheduler": scheduler, "lock_contention_attempts": contentions}
-
-
-def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp") -> dict:
-    expected_markers(cpus, profile)
-    if type(timeout) is not int or not 0 < timeout <= MAX_TIMEOUT:
-        raise ValueError("timeout must be in (0, 180]")
-    root = ROOT.resolve(strict=True)
-    build = BUILD.resolve(strict=True)
-    if not build.is_relative_to(root):
-        raise ValueError("NOS_BUILD_DIR must be inside the checkout")
+def run(cases: tuple[str, ...]) -> dict:
+    destination = BUILD / "smp-report.json"
+    destination.unlink(missing_ok=True)
     frozen = source_hash()
-    manifest_path = build / "manifest.json"
+    manifest_path = BUILD / "manifest.json"
+    manifest_hash = sha256(manifest_path)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    expected_kernel_feature = {
-        "native-smp-m4-lifecycle": "native-smp-m4,test-m4-lifecycle",
-        "native-smp-m3-x87": "native-smp-m3,test-m3-x87",
-        "native-smp-m3-unexpected-ud": "native-smp-m3,test-m3-ud",
-    }.get(profile, profile)
-    if (manifest.get("kernel_feature") != expected_kernel_feature
-            or manifest.get("loader_feature") != "smp-handoff"
+    profiles = {CASES[case][0] for case in cases}
+    if (len(profiles) != 1
+            or manifest.get("kernel_feature") not in profiles
+            or manifest.get("loader_feature") is not None
             or manifest.get("source_fingerprint_version") != 3
             or manifest.get("source_sha256") != frozen):
-        raise ValueError(f"build {profile} from the current source first")
-    expected_artifacts = {
-        "kernel.elf": manifest.get("kernel", {}).get("sha256"),
-        "EFI/BOOT/BOOTX64.EFI": manifest.get("loader", {}).get("sha256"),
-    }
-    for relative, expected in expected_artifacts.items():
-        artifact = esp_path = BUILD / "esp" / relative
-        if (not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected)
-                or artifact.is_symlink() or not artifact.is_file() or sha256(artifact) != expected):
-            raise ValueError(f"{profile} build artifact mismatch: {relative}")
-
-    env = environment()
-    qemu = shutil.which("qemu-system-x86_64", path=env["PATH"])
-    if not qemu:
-        raise RuntimeError("qemu-system-x86_64 not found")
-    code, variables = firmware()
-    esp = build / "esp"
-    if esp.is_symlink() or not esp.is_dir() or esp.resolve(strict=True).parent != build:
-        raise ValueError("expected generated ESP directory under build/")
-    run_root = build / "run"
-    if run_root.is_symlink():
-        raise ValueError("refusing linked QEMU run directory")
-    run_root.mkdir(exist_ok=True)
-    run_dir = run_root / f"smp-{cpus}-{uuid.uuid4().hex[:10]}"
-    run_dir.mkdir()
-    shutil.copytree(esp, run_dir / "esp")
-    for relative, expected in expected_artifacts.items():
-        if sha256(run_dir / "esp" / relative) != expected:
-            raise ValueError(f"copied SMP artifact mismatch: {relative}")
-    shutil.copy2(variables, run_dir / "OVMF_VARS.fd")
-    shutil.copy2(code, run_dir / "OVMF_CODE.fd")
-    run_rel = run_dir.relative_to(root).as_posix()
-    machine = qemu_machine()
-    command = [
-        qemu, "-machine", machine, "-accel", "tcg,thread=multi", "-cpu", "qemu64",
-        "-smp", str(cpus), "-m", "256M", "-nodefaults", "-display", "none",
-        "-monitor", "none", "-serial", "stdio", "-nic", "none", "-no-reboot",
-        "-drive", f"if=pflash,unit=0,format=raw,readonly=on,file={run_rel}/OVMF_CODE.fd",
-        "-drive", f"if=pflash,unit=1,format=raw,file={run_rel}/OVMF_VARS.fd",
-        "-drive", f"if=virtio,index=0,format=raw,readonly=on,file=fat:{run_rel}/esp",
-        "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
-    ]
-    share = Path(qemu).parent / "share"
-    if share.is_dir():
-        command.extend(["-L", str(share)])
-    started = datetime.now(timezone.utc).isoformat()
-    start = time.monotonic()
-    timed_out = False
-    try:
-        result = subprocess.run(command, cwd=root, env=env, capture_output=True, timeout=timeout)
-        raw_exit, out, err = result.returncode, result.stdout, result.stderr
-    except subprocess.TimeoutExpired as error:
-        timed_out, raw_exit = True, None
-        out, err = error.stdout or b"", error.stderr or b""
-    duration = time.monotonic() - start
-    stdout, stderr = out.decode("utf-8", "replace"), err.decode("utf-8", "replace")
-    (run_dir / "serial.txt").write_bytes(out)
-    (run_dir / "stderr.txt").write_bytes(err)
-    version_error = None
-    try:
-        version = subprocess.check_output(
-            [qemu, "--version"], env=env, text=True, timeout=10
-        ).strip()
-    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, OSError) as error:
-        version = None
-        version_error = f"QEMU version query failed: {type(error).__name__}"
-    report = {
-        "schema_version": 1,
-        "cpus": cpus,
-        "started_utc": started,
-        "duration_s": duration,
-        "timeout_s": timeout,
-        "timed_out": timed_out,
-        "raw_qemu_exit": raw_exit,
-        "expected_exit": 35 if profile == "native-smp-m3-unexpected-ud" else 33,
-        "required_markers": [*BOOT, *(("SMP:AP:ENTRY",) * (cpus - 1)),
-                             *(f"SMP:CPU:{i}:APIC:<id>:ONLINE" for i in range(cpus)),
-                             f"SMP:CPUS:{cpus}", "SMP:RENDEZVOUS:PASS",
-                             "SMP:WORKERS:PASS", "SMP:PASS",
-                             *(marker for index in range(1, cpus)
-                               for marker in (
-                                   f"M3:SMP:AP:PROTECTION_CPU:{index:020d}",
-                                   "M3:SMP:AP:CR0_WP_EM_TS:00000000000000000007",
-                               ) if profile.startswith(("native-smp-m3", "native-smp-m4"))),
-                             *(("M3:SMP:SCHEDULER:PASS",)
-                               if profile in (
-                                   "native-smp-m3",
-                                   "native-smp-m3-exit",
-                                   "native-smp-m3-tlb-reuse",
-                                   "native-smp-m3-lock-contention",
-                                   "native-smp-m3-x87",
-                                   "native-smp-m4",
-                                   "native-smp-m4-lifecycle",
-                                   "native-smp-m4-revoke",
-                               ) else ()),
-                             *(("M3:FAULT:X87:PASS",)
-                               if profile == "native-smp-m3-x87" else ()),
-                             *(("M3:SMP:FAULT_INJECTION:UNEXPECTED_UD",
-                                "M3:FAIL:UNEXPECTED_USER_EVENT")
-                               if profile == "native-smp-m3-unexpected-ud" else ()),
-                             *(("M4:EXCHANGE:PASS", "M4:SURVIVOR_PROGRESS:PASS",
-                                "M4:CLEANUP:PASS", "M4:PASS", "M1:PASS")
-                               if profile == "native-smp-m4" else ()),
-                             *(("M4:CASE:REVOKE:PASS", "M4:SURVIVOR_PROGRESS:PASS",
-                                "M4:CLEANUP:PASS", "KS-14:PASS", "M4:PASS", "M1:PASS")
-                               if profile == "native-smp-m4-revoke" else ()),
-                              *(("M4:CASE:LIFECYCLE:PASS", "M4:SURVIVOR_PROGRESS:PASS",
-                                "M4:CLEANUP:PASS", "KS-16:PASS", "M4:PASS", "M1:PASS")
-                               if profile == "native-smp-m4-lifecycle" else ()),
-                             *(("M3:EXIT:PASS", "M3:SURVIVOR_PROGRESS:PASS")
-                               if profile == "native-smp-m3-exit" else ()),
-                             *(("M3:EXIT:PASS", "M3:SURVIVOR_PROGRESS:PASS",
-                                "M3:SMP:TLB_REUSE:PASS")
-                               if profile == "native-smp-m3-tlb-reuse" else ())],
-        "command": command,
-        "qemu_version": version,
-        "profile": f"{machine}/qemu64/TCG-multi/{cpus}CPU/256MiB",
-        "source_fingerprint_version": 3,
-        "source_sha256": frozen,
-        "kernel_sha256": manifest["kernel"]["sha256"],
-        "firmware_source": [str(code), str(variables)],
-        "run_directory": str(run_dir),
-        "stdout": stdout,
-        "stderr": stderr,
-        "passed": False,
-        "kernel_feature": expected_kernel_feature,
-    }
-    try:
-        if version_error is not None:
-            raise ValueError(version_error)
-        report["evidence"] = {
-            "native-smp-m4": lambda: evaluate_m4_smp(cpus, stdout, raw_exit, timed_out),
-            "native-smp-m4-revoke": lambda: evaluate_m4_revoke_smp(
-                cpus, stdout, raw_exit, timed_out
-            ),
-            "native-smp-m4-lifecycle": lambda: evaluate_m4_lifecycle_smp(
-                cpus, stdout, raw_exit, timed_out
-            ),
-            "native-smp-m3-exit": lambda: evaluate_m3_exit_smp(
-                cpus, stdout, raw_exit, timed_out
-            ),
-            "native-smp-m3-tlb-reuse": lambda: evaluate_m3_tlb_reuse_smp(
-                cpus, stdout, raw_exit, timed_out
-            ),
-            "native-smp-m3-lock-contention": lambda: evaluate_m3_lock_contention_smp(
-                cpus, stdout, raw_exit, timed_out
-            ),
-            "native-smp-m3-x87": lambda: evaluate_m3_x87(
-                cpus, stdout, raw_exit, timed_out
-            ),
-            "native-smp-m3-unexpected-ud": lambda: evaluate_m3_unexpected_ud(
-                cpus, stdout, raw_exit, timed_out
-            ),
-            "native-smp-m3": lambda: evaluate_m3(cpus, stdout, raw_exit, timed_out),
-        }.get(profile, lambda: evaluate(cpus, stdout, raw_exit, timed_out))()
-        report["passed"] = source_hash() == frozen
-        if not report["passed"]:
-            raise ValueError("source changed during QEMU run")
-    except (ValueError, TypeError) as error:
-        report["error"] = f"{type(error).__name__}: {error}"
-    report["duration_s"] = duration if math.isfinite(duration) else None
-    save_json(run_dir / "result.json", report)
-    print(f"{profile} {cpus} CPU: passed={report['passed']} raw={raw_exit} "
-          f"duration={duration:.1f}s {run_dir}")
-    if "error" in report:
-        print(report["error"])
+        raise ValueError("Build the current kernel profile for exactly these cases first")
+    report = {"schema_version": 1, "passed": False, "source_sha256": frozen,
+              "source_fingerprint_version": 3, "manifest_sha256": manifest_hash,
+              "kernel_feature": manifest["kernel_feature"],
+              "scope": ("IF0 BSP; AP bring-up, per-AP TSS/IST, bounded unicast IPIs and sync "
+                        "self-test, TLB shootdown, AP preemption and BSP ticket-lock/lockdep self-test in "
+                        "QEMU/TCG; no SMP scheduler or hardware evidence"),
+              "cases": []}
+    save_json(destination, report)
+    for case in cases:
+        _, cpus, threads, outcome = CASES[case]
+        if source_hash() != frozen or sha256(manifest_path) != manifest_hash:
+            raise ValueError("SMP source or manifest changed before a run")
+        tables = []
+        if case == "duplicate-madt":
+            fixture = BUILD / "acpi" / "duplicate-madt.aml"
+            fixture.parent.mkdir(parents=True, exist_ok=True)
+            fixture.write_bytes(duplicate_madt())
+            tables = [fixture]
+        end = (TERMINAL[outcome],) if outcome in TERMINAL else END
+        guest = run_guest(
+            "smp-" + case, timeout=60, required_markers=BOOT + end,
+            forbidden_markers=FORBIDDEN, cpus=cpus, tcg_threads=threads,
+            acpi_tables=tables,
+            expected_kernel_sha256=manifest["kernel"]["sha256"],
+            expected_loader_sha256=manifest["loader"]["sha256"],
+        )
+        item = {"case": case, "cpus": cpus, "tcg_threads": threads, "guest": guest, "passed": False}
+        if tables:
+            item["acpi_table_sha256"] = sha256(tables[0])
+        report["cases"].append(item)
+        save_json(destination, report)
+        item["observed"] = evaluate(case, guest["stdout"], guest["raw_qemu_exit"],
+                                    guest["timed_out"])
+        if (guest.get("passed") is not True
+                or guest.get("artifact_binding_passed") is not True
+                or guest.get("source_sha256") != frozen
+                or source_hash() != frozen or sha256(manifest_path) != manifest_hash):
+            raise ValueError("SMP source, artifacts or manifest changed during a run")
+        item["passed"] = True
+        save_json(destination, report)
+    report["passed"] = bool(cases) and all(item["passed"] for item in report["cases"])
+    save_json(destination, report)
     return report
+
+
+def profile_cases(profile: str) -> tuple[str, ...]:
+    return tuple(case for case, spec in CASES.items() if spec[0] == profile)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--case", choices=tuple(CASES))
+    parser.add_argument("--profile", choices=sorted({spec[0] for spec in CASES.values()}))
+    args = parser.parse_args()
+    if (args.case is None) == (args.profile is None):
+        parser.error("choose exactly one of --case or --profile")
+    selected = (args.case,) if args.case else profile_cases(args.profile)
+    raise SystemExit(0 if run(selected)["passed"] else 1)

@@ -4,6 +4,7 @@
 /sdk/heap-allocator/target/
 /sdk/examples/memory/target/
 /sdk/examples/*/target/
+/sdk/app-management/target/
 /ui/*/target/
 /services/input-core/target/
 /drivers/rtc/target/
@@ -31,3 +32,6 @@ Thumbs.db
 
 __pycache__/
 *.pyc
+
+# Lokale Graphify-uitvoer; alleen de gehoste MCP is in gebruik (AGENTS.md)
+/graphify-out/

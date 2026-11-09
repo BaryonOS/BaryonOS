@@ -1,5 +1,351 @@
 # Ontwerpbesluiten
 
+**Projecteigenaar:** Simon van Ieperen.
+Dit document onderscheidt de besluiten en bevoegdheden van de projecteigenaar
+van die van de uitvoerende rollen. Broncitaten behouden hun oorspronkelijke
+tekst en spreker.
+
+## ADR-074 — Ticketlock, irqsave en lockdep per CPU (K06 stap 5a)
+
+6 november 2026; alleen in `native-smp`. Dit is de eerste stap naar een
+SMP-scheduler voor processen (spec K06 §4). De crate `crates/smp-lock`
+(no_std, host-testbaar) levert een FIFO-ticketlock (Mellor-Crummey & Scott)
+en `Lockdep`. In `kernel/src/m2/lock.rs` staat `IrqLock`: die bewaart
+RFLAGS.IF, doet `cli`, legt het lockniveau vast in de lockdepset van deze
+CPU en spint daarna. Bij het vrijgeven komt eerst de release, dan het
+wissen van het niveau, en pas daarna het herstel van IF. De BSP krijgt een
+eigen GS-anker (CPU-index 0), los van de AP-ankers. AP-specifieke lookups
+(preëmptie, IST-markers) blijven de BSP dus missen.
+
+**Lockvolgorde (buiten → binnen):** KERNEL 10, ASPACE 20, FRAMES 30,
+RUNQ 40, SHOOTDOWN 50, ICR 60, SERIAL 70. Een CPU neemt alleen een niveau
+dat strikt hoger ligt dan alles wat hij al vasthoudt. Een schending stopt
+de VM met `SMP:LOCKDEP:ORDER:<held>-><wanted>`. Lockdep is in elke
+`native-smp`-build actief. De begrensde spin met `SMP:LOCK:STUCK` is alleen
+actief in debugbuilds.
+
+**Bewijs (stand van deze commit):** hosttests in `smp-lock`: uitsluiting
+onder 8 threads (vangt een mutant zonder wachtlus), FIFO, wrap,
+ordeschending, held-across-switch en een compile_fail-test voor een
+`Send`-guard. De AP-stresstest gebruikt nu deze ticketlock. De serial-oracle
+eist `SMP:LOCKDEP:PASS` op elk niet-terminaal pad. Het negatieve profiel
+`test-smp-lockdep-order` moet `SMP:LOCKDEP:ORDER:30->10` geven. **Native
+QEMU-uitvoering staat nog open** (workflow `native-smp.yml`).
+
+**Open:** nog niets gebruikt `IrqLock` buiten de zelftest. De KERNEL-lock om
+M3-syscalls en de scratchslot per CPU volgen in stap 5b; de herziening van
+ADR-024 krijgt daarmee ADR-075, niet ADR-074 zoals de spec voorstelde.
+Lockdep heeft één bit per niveau, dus twee RUNQ-locks tegelijk vragen in
+stap 5d een nestteller. Spinnen met IF=1 op KERNEL/ASPACE (§4.3) volgt in 5b.
+
+**Alternatieven overwogen.** De bestaande TTAS-lock: vervangen, omdat die
+niet FIFO is en onder TCG kan uithongeren. Lockdep alleen in debugbuilds:
+verworpen, omdat de native gate releasebuilds draait.
+
+## ADR-073 — Gepreëmpteerde kernelthreads op AP's (K06 stap 4)
+
+5 november 2026; alleen in `native-smp`, de BSP blijft IF=0. Iedere AP
+krijgt een periodieke LAPIC-timer (vector 0xd0). De stub bewaart alle 15
+GPR's op de onderbroken stack, en `smp_preempt` kiest round-robin tussen
+de thuislus en twee kernelthreads, elk op een eigen stack met guards. De
+kernel is soft-float zonder red zone; GPR's plus het CPU-interruptframe
+vormen daarom de volledige threadcontext. Er is geen FPU-, XSAVE- of
+per-thread-CR3-wissel.
+
+**Contract.** Een thread draait alleen tussen RUN en STOP. Bij STOP maskeert
+de eerstvolgende tick de timer en keert de AP terug naar zijn thuislus.
+Pas daarna meldt hij RESUMED. De BSP eist per AP minstens 8 ticks en 4
+contextwissels, en dat beide threads vooruitgang boeken. Een AP die dat
+niet haalt, wordt behandeld als een dove AP: alle AP's krijgen INIT en de
+BSP werkt alleen verder.
+
+**Bewijs:** `docs/verification/k06-smp-preempt/`. **Open:** dit zijn
+kernelthreads zonder eigen adresruimte, er is geen gedeelde runqueue of
+migratie, en er zijn geen interrupts of preëmptie op de BSP. Er is geen
+lockvolgorde voor kernelsubsystemen en geen gebruikersprocessen op AP's;
+ADR-024 is ongewijzigd. Deze stap verandert niets aan andere profielen.
+
+**Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- TSC-deadline-timer: uitgesteld, omdat die CPUID-detectie en kalibratie
+  vraagt; de periodieke LAPIC-timer volstaat voor dit bewijs.
+- Coöperatieve threads (`yield`): verworpen, omdat ze geen preëmptie
+  bewijzen.
+- Een volledige XSAVE/FXSAVE-context: niet nodig, want de kernel is
+  soft-float zonder red zone; voor gebruikersprocessen met FPU blijft dat
+  verplicht.
+
+**Primaire bronnen.** Intel SDM Vol. 3A: APIC-timer (LVT-timer, divide
+configuration, initial/current count, periodieke modus) en
+interruptafhandeling (interruptframe, uitlijning van RSP bij een
+privilege-loze interrupt, IRETQ). De hoofdstuknummers verschillen per
+editie.
+
+## ADR-072 — TLB-shootdown vóór hergebruik van een fysieke pagina (K06 stap 3)
+
+5 november 2026; aanvulling op ADR-070/071, alleen in `native-smp`. Op SMP
+geldt het `Frames::unmap`-contract ("PTE wissen en TLB invalideren vóór het
+vrijgeven van metadata") voor **iedere** CPU die de vertaling kan cachen.
+Met één gedeelde CR3 kan een CPU iedere aanwezige vertaling (ook
+speculatief) cachen. Daarom geldt dit voor **alle** aliassen van het frame,
+en gaat het vrijgeven van een vervangen frame in deze volgorde:
+1. Het frame wissen terwijl de eigen bootstrap-alias nog bestaat.
+2. Beide PTE's lokaal weghalen (venster → nieuw frame, identity-alias weg)
+   en lokaal `invlpg`. De alias-metadata blijft daarbij staan.
+3. Shootdown-IPI (vector 0xe0) naar iedere AP: `invlpg` van beide
+   gepubliceerde adressen, daarna een ack van de generatie van deze ronde.
+4. Pas na álle acks: beide aliassen vrijgeven, `free` en een volledige
+   paging-audit.
+
+Ontbreekt een ack, dan blijft het oude frame in quarantaine (eigendom en
+alias behouden, nooit hergebruikt) en reset de BSP alle AP's met INIT.
+Dat is fail-closed, want een frame dat een andere CPU nog kan lezen, mag
+nooit naar een nieuwe eigenaar.
+
+**Bewijs:** iedere CPU ziet daarna aantoonbaar het nieuwe frame. Een
+controleprofiel zonder shootdown laat deterministisch zien dat alle AP's
+anders het vrijgegeven frame lezen: de test meet dus een echt gevaar. Zie
+`docs/verification/k06-smp-shootdown/`. **Open:** dit is één venster in
+een bootstrapprofiel. Een algemene shootdown voor procesadresruimten (per
+ASID/CR3 en per range), integratie met M3-unmaps, interrupts op de BSP en
+de SMP-scheduler volgen nog; ADR-024 blijft tot dan ongewijzigd geldig.
+
+**Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- Alleen het venster ongeldig maken en de identity-alias lokaal laten
+  vallen: verworpen na review, omdat een AP met een gedeelde CR3 die alias
+  speculatief kan cachen.
+- CR3 herladen of een volledige TLB-flush per AP: is ook correct, maar
+  grover; `invlpg` per adres volstaat hier en blijft per vertaling
+  controleerbaar.
+- PCID/INVPCID: niet gebruikt; PCID staat uit in dit profiel.
+- Het frame vrijgeven en de shootdown "lazy" achteraf doen: verworpen,
+  want dat is precies het gevaar dat het controleprofiel aantoont.
+
+**Primaire bronnen.** Intel SDM Vol. 3A: TLB-onderhoud ("Invalidation of
+TLBs and Paging-Structure Caches", "Propagation of Paging-Structure Changes
+to Multiple Processors", INVLPG als serializing instruction) en APIC (ICR
+en TPR). Ook hier verschillen de hoofdstuknummers per editie.
+
+## ADR-071 — Eigen TSS/IST per AP en begrensde, gerichte IPI's (K06 stap 2)
+
+5 november 2026; aanvulling op ADR-070, nog steeds alleen in `native-smp`.
+Iedere AP krijgt een eigen GDT-kopie met eigen TSS (RSP0, IST1 voor #DF,
+IST2 voor NMI). De stacks daarvan staan in het kernelimage, met
+ongemapte guards. Een busy TSS wordt nooit gedeeld. IA32_GS_BASE wijst
+naar een per-CPU-anker; dat is de basis voor latere per-CPU-staat.
+
+**IPI-contract.** Vector 0xf0 is een supervisor-interruptgate. De stub telt
+de interrupt in het per-CPU-anker, geeft EOI aan de eigen xAPIC en keert
+terug. Vector 0xff is de spurious-gate. Pas nadat alle LVT's gemaskeerd
+zijn, TPR 0 is en SVR aan staat, wacht een AP met `sti; hlt`. De BSP
+verstuurt alleen unicast-IPI's. Broadcast-shorthands zijn verboden, omdat
+die CPU's in firmwarebezit zouden bereiken (bijvoorbeeld na een
+capaciteitsgrens). Per ronde moet iedere AP precies één levering tonen.
+Neemt een AP een gerichte interrupt niet aan, dan reset de BSP alle AP's
+met INIT en werkt alleen verder. Een CPU die niet op een IPI reageert, kan
+later nooit deelnemen aan TLB-shootdown. Een mislukte INIT stopt de boot.
+
+**Bewijs.** NMI en #DF op een AP komen native op de eigen IST-stack van die
+AP terecht; voorheen was dat een triple fault. Zie
+`docs/verification/k06-smp-ipi/`. **Open:** de BSP blijft IF=0, en er is
+nog geen TLB-shootdown, SMP-scheduler of lockvolgorde voor
+kernelsubsystemen. AP's draaien dus nog steeds geen kernelsubsystemen.
+ADR-024 blijft ongewijzigd geldig. Fysieke hardware is niet getest.
+
+**Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- Eén gedeelde TSS: onmogelijk, want een busy TSS mag maar door één CPU geladen zijn.
+- Broadcast-IPI-shorthands: verworpen, omdat die ook CPU's in firmwarebezit
+  bereiken (bijvoorbeeld na een capaciteitsgrens).
+- Een AP die niet reageert alleen loskoppelen in plaats van alle AP's te
+  resetten: verworpen, omdat een AP die geen IPI aanneemt later geen
+  shootdown kan volgen.
+- x2APIC/MSR-IPI: uitgesteld, het profiel gebruikt xAPIC-MMIO.
+
+**Primaire bronnen.** Intel SDM Vol. 3A: taakbeheer (64-bit TSS, IST en
+de busy-vlag), interrupt- en exceptionafhandeling (IST-stackwissel,
+interruptgates) en APIC (ICR, delivery modes, LVT, TPR/PPR,
+spurious-vector, EOI). De SDM-hoofdstuknummers verschillen per editie;
+zoek op sectietitel.
+
+## ADR-070 — Begrensde AP-opstart als eerste K06-stap
+
+5 november 2026. De kernel start applicatieprocessoren (AP's) uitsluitend in
+het opt-in M2-profiel `native-smp`, met IF=0. Dat profiel sluit bij
+compilatie M3, framebuffer, native-rtc en graphics-g0 uit. Alle bestaande
+één-CPU-invarianten (ADR-024 scratchslot, frame-allocator, paging, serieel,
+IPC, scheduler) blijven onveranderd geldig, omdat AP's die code nooit
+uitvoeren. De BSP is de enige eigenaar van frames, paging, PIT, ICR en
+seriële uitvoer.
+
+**Ontwerp.** De MADT is onbetrouwbare firmware-invoer. Alleen ingeschakelde,
+unieke processors tellen mee (maximaal 32). Een kapotte, dubbele of te grote
+MADT maakt alleen SMP ongeldig, niet de MCFG/DMAR-inventaris.
+IA32_APIC_BASE moet xAPIC-modus, ingeschakeld en BSP aangeven en gelijk zijn
+aan de MADT-basis. Alleen die exacte pagina krijgt een UC/NX-mapping, die
+`audit` net als het framebuffervenster afzonderlijk controleert.
+De SIPI-pagina is het eerste vrije ConventionalMemory-frame onder 0xA0000:
+permanent Kernel-eigendom, één keer geschreven vóór de CR3-wissel en nooit in
+de eigen paginatabellen gemapt. Zij bevat alleen 16-bitcode en een CR3-veld. De 32/64-bit-
+stap, de trampoline-GDT en AP-stacks van 16 KiB met guardpagina's staan in het
+identity-gemapte kernelimage. W^X verandert dus niet.
+
+**Gelijktijdigheid.** Een AP kiest zijn context op hardware-APIC-ID en claimt
+die met één `lock cmpxchg` STARTING→CLAIMED. Bij een time-out pakt de BSP
+dezelfde CAS STARTING→ABANDONED en reset de CPU met INIT. Een late AP draait
+dus nooit op een opgegeven stack. Iedere fout stopt verdere opstart, zonder
+paniek: het systeem blijft met de reeds gestarte CPU's werken. Kan een
+gefaalde AP niet met INIT worden gereset, dan stopt de boot als fout: er
+draait nooit een onbeheerste CPU naast de kernel. Een CPU-exception op een
+AP komt in de gedeelde M2-handlers en stopt de VM terminaal. Een MADT-
+leesfout maakt eveneens alleen de MADT ongeldig. Een AP neemt
+CR0/CR3/CR4/EFER/PAT van de BSP exact over en controleert die. Daarna voert
+hij een begrensde atomic-plus-spinlocktest uit en parkeert met `cli; hlt`.
+
+**Bewijsgrens.** QEMU q35/OVMF/TCG met 1–9 vCPU's plus negatieve gevallen;
+zie `docs/verification/k06-smp-bringup/`. Dit is geen SMP-scheduling, geen
+IPI/TLB-shootdown en geen per-CPU TSS/IST: een NMI of #DF op een AP stopt de
+VM. Fysieke hardware is niet getest en K06 is niet geaccepteerd.
+**Herzien** vóórdat een AP kernelsubsystemen, gebruikersprocessen of
+interrupts uitvoert. Dan zijn per-CPU-staat, TSS/IST, lockvolgorde,
+TLB-shootdown en de herziening van ADR-024 verplicht.
+
+**Status:** geaccepteerd als opt-in bringupprofiel (`native-smp`), niet als
+productprofiel; K06 blijft open.
+
+**Alternatieven overwogen.**
+- x2APIC-modus: uitgesteld. xAPIC-MMIO dekt het q35-profiel en firmware in
+  x2APIC-modus valt gesloten terug naar één CPU.
+- Een trampoline volledig in de lage pagina (ook 32/64-bit): verworpen. Die
+  pagina zou een uitvoerbare mapping in de kerneltabellen nodig hebben,
+  terwijl de huidige vorm haar nooit mapt (W^X ongewijzigd).
+- De LAPIC-basis uit de MADT halen: verworpen. De basis komt uitsluitend uit
+  IA32_APIC_BASE; de MADT-waarde wordt alleen vergeleken (onbetrouwbare
+  firmware-invoer).
+- Een broadcast INIT/SIPI ("all excluding self"): verworpen. Die bereikt
+  ook CPU's buiten de MADT of buiten de capaciteit, en geeft geen
+  per-CPU-time-out of quarantaine.
+
+**Primaire bronnen.**
+- Intel SDM Vol. 3A, §9.4 (MP-initialisatieprotocol, INIT-SIPI-SIPI en de
+  bijbehorende wachttijden) en §11.6 (ICR, delivery modes, SIPI-vector als
+  paginanummer onder 1 MiB).
+- Intel SDM Vol. 3A, §11.4 (IA32_APIC_BASE: BSP-, EN- en EXTD-vlaggen).
+- ACPI 6.5, §5.2.12 (MADT, structuurtypen en -lengtes, Enabled en Online
+  Capable, waarbij Online Capable gereserveerd-nul is als Enabled gezet is)
+  en §5.2.12.8 (Local APIC Address Override).
+- Vindplaatsen: *Intel® 64 and IA-32 Architectures Software Developer's
+  Manual*, Volume 3A (Intel Corporation; actuele editie,
+  https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html),
+  voor INIT-SIPI-SIPI, ICR en IA32_APIC_BASE (xAPIC/x2APIC-vlaggen),
+  MTRR/PAT en XCR0. *Advanced Configuration and Power Interface (ACPI)
+  Specification*, versie 6.5 (UEFI Forum, augustus 2022,
+  https://uefi.org/specs/ACPI/6.5/), §5.2.12 voor de MADT. *UEFI
+  Specification* 2.10 (UEFI Forum, https://uefi.org/specifications) voor
+  het geheugenmodel bij overdracht. De identity-map onder 1 MiB is
+  geverifieerd OVMF-gedrag en geen UEFI-garantie; daarom staat ze in de
+  bewijsgrens als open punt.
+- Lokaal OSDev-snapshot W003259 (MADT), uitsluitend als routekaart.
+- De SDM-hoofdstuknummers volgen recente edities. In oudere edities heten
+  dezelfde secties §8.4 (MP-initialisatie) en §10.4/§10.6 (APIC); zoek
+  bij twijfel op de sectietitel.
+
+**Uitgevoerd testbewijs:** `docs/verification/k06-smp-bringup/README.md`.
+## ADR-SESSION-20261102 — herkenbare bediening en expliciete VM-sessiegrens
+
+De huidige projectopdracht vereist herkenbare sessie-, zoek-, status- en
+vensterbediening rond Materiaal. Een eigen productidentiteit verbiedt geen
+bekende conventies. De nieuwe `native-session-route` blijft een openbare,
+geïsoleerde VM-proef: persoonlijke credentials worden niet verzameld zolang
+een echte auth-/sessie-/keyringdienst ontbreekt. Lock bedekt beeld en blokkeert
+appinput, maar mag niet als sleutel- of opslagcapability-intrekking worden
+gepresenteerd. FR-S02 en U02 blijven open; de bestaande meter blijft 41.
+
+Shellbeleid blijft in de userspace-compositor. Een inputoffer wordt bevestigd
+vóór een systeemactie. Appqueues en clipboardoffers worden bij afschermen
+geannuleerd; apps kunnen de vertrouwde voorgrond niet tekenen. Desktop wordt
+pas zichtbaar na beide complete SUR-frames. Diagnostische gereedheid wordt
+als laatste gepubliceerd, na een voorafgaande 0, zodat timerpreëmptie geen
+nieuwe pagina met oude gereedheid kan laten observeren.
+
+SUR1 behoudt een volledig eerste frame en actor/epoch/bounds/COMMIT/deadline-
+controles; latere sparse frames gebruiken strikt oplopende tegels en een
+verplichte eindtegel. Rebind maakt de cache ongeldig. Een opaque renderpad en
+oude/nieuwe paneelunion beperken werk, met exacte rastervergelijking tegen het
+behouden referentiepad. Geen nieuwe kernel-ABI, crypto of apparaatrechten.
+
+De geteste codebron is 703cc07; afzonderlijke route- en regressieprofielen
+slagen. Onderzoek, bronhashes, screenshots, meetgrenzen en open werk staan in
+[het uitvoeringsrapport](verification/session-quality-20261102/README.md).
+VMware blijft een aparte platformproef volgens
+[de concrete overdracht](implementation/VMWARE-WORKSTATION-TRIAL.md).
+Herzien bij echte account-/sessierechten, resize/rebind, GPU-transport of
+een gewijzigde trusted-inputgrens; een hostbeeld vervangt geen native bewijs.
+
+<a id="adr-057--vreemde-opslag-nooit-als-leeg-volume-toelaten"></a>
+## ADR-064 — Vreemde opslag nooit als leeg volume toelaten
+
+3 november 2026; correctie op herstel van het experimentele NOSVOL02-volume.
+De eerdere herstelroute controleerde bij twee lege tabelkopieën alleen de
+tabelsectoren. Daardoor kon een niet-herkend volume met gegevens buiten die
+regio als generatie 0 worden behandeld. Formatteer- of schrijfgedrag mag niet
+uit een ontbrekende herkenning worden afgeleid.
+
+Een onherkend volume is uitsluitend leeg wanneer de volledige huidige
+volumegrens nul bevat. Voor een klein eerste schrijfresultaat legt de dienst
+vóór inhouds- of tabelwrites een versie-/geometriegebonden `NOSFMT02`-marker
+vast en flusht die. Daardoor blijven ongecommitte eerste uploads herstelbaar
+als logische lege toestand, zonder dat vreemde niet-nuldata wordt geaccepteerd.
+Een marker is formaatidentificatie en foutdetectie, geen authenticatie.
+Bestaande geldige NOSVOL02-tabelkopieën blijven de primaire recoverybron.
+
+De eerste markerwrite en -flush zijn een aparte initialisatiegrens. Bij een
+crash vóór een geldige duurzame marker mag een onherkenbare niet-nulrest niet
+als eigen opslag worden behandeld: herstel stopt met `Corrupt`, zonder writes
+of stil wissen. Alleen volledig nul of een volledige geldige marker levert
+hier generatie0. De before/after-invariant voor documenttransacties begint
+na duurzame formaatidentificatie en blijft onverkort gelden; afzonderlijke
+crashproeven controleren ieder byteprefix van de eerste marker en het eerste
+datawritepunt. Expliciete herstel-/formatteerbediening blijft apart open.
+
+De kernel blijft een generieke, begrensde blokbroker; de herkenning en
+admissie blijven in `volume-core`. Er wordt geen bestandssysteemdriver,
+importpad of automatische formatter toegevoegd. Een niet-gemarkeerd volume
+met niet-nuldata geeft `Corrupt` en krijgt geen schrijf-/flushverzoek.
+Een synthetische Btrfs-achtige fixture test de nul-tabel/niet-nul-data-grens;
+zij is geen volledig Btrfs-bestandssysteem.
+
+Herzien bij wijziging van de volumegeometrie of introductie van expliciete
+formatteer-/importbediening. Terugzetten naar alleen tabelcontrole is niet
+toegestaan. De marker kan bij een overgang naar een andere persistente
+geometrie worden vervangen, mits de volledige media-admissie en crashproeven
+behouden blijven. Native QEMU-resultaat en exacte bronbinding staan in
+`docs/verification/foreign-volume-admission-20261103/README.md`.
+
+**Ontwerpregel:** zonder geldige NOSVOL02-tabel of volledige `NOSFMT02`-marker
+is alleen volledig nul over de huidige volumegrens `[0,580)` toelaatbaar.
+
+**Implementatiestatus:** geïmplementeerd in `services/volume/src/table.rs`
+(`choose` en `recover_with_state`) en het onafhankelijke hostorakel
+`tools/volume_disk.py`.
+
+**Testbewijs:** host-regressies en crashgrenzen zijn vastgelegd in
+`docs/verification/pr148-slot1-review.json`,
+`docs/verification/pr148-marker-crash-review.json` en
+`docs/verification/pr148-volume-core-host-suite.json`.
+
+**Onbekend / open:** native metadata-only fixtureacceptatie en native QEMU
+volume-admissie op deze branch.
+
+**Primaire bronmetadata:** Nieuw OS repository (`simonvanieperen/nieuw-os`),
+branch `simonvanieperen-upgraded-disco`, commit
+`c6b25873c915a98f8c0b2bb7400395e01ba44741`,
+https://github.com/simonvanieperen/nieuw-os/tree/c6b25873c915a98f8c0b2bb7400395e01ba44741 .
+
 ## Nummerbehoud bij desktopintegratie — 2 november 2026
 
 De desktopbranches gebruikten al bezette ADR-nummers. Bestaande IPC- en
@@ -14,52 +360,8 @@ Historische bewijsbestanden behouden hun oorspronkelijke nummervermelding.
 | 055, begrensde GUI-rust | ADR-061 |
 | 056, eenmalig klembord | ADR-062 |
 | 056, herkenbare VM-sessieroute | ADR-063 |
-
-## ADR-064 — Opt-in SMP-scheduler met per-CPU entry en geserialiseerde M3-mutaties
-
-**Status:** implementatiebesluit voor een afzonderlijk native-QEMU-profiel; geen
-productacceptatie. De bestaande single-CPU-profielen en hun process-/syscall-ABI
-blijven ongewijzigd.
-
-Het eerste M3-SMP-profiel behoudt één kernelbrede, begrensde lock rond
-M3-eventafhandeling, scheduling, IPC en cleanup. De lock wordt alleen genomen
-bij kernel-entry met interrupts uit; hij blijft nooit vast tijdens ring-3-
-uitvoering. Een proces heeft onder deze lock precies één `Running`-eigenaar.
-Een gedeelde round-robincursor selecteert uitsluitend `Ready`-processen. Elke
-CPU krijgt een eigen kernel-entrystack, TSS-stackpointer en GS-gebaseerde
-CPU-local record; usermode krijgt geen kernel-GS-basis. Entry/return wisselt
-GS alleen op de ring-3-grens.
-
-De BSP-PIT blijft de enige schedulerklok. Het opt-in profiel
-`native-smp-m4` stuurt, na M4-manifestinitialisatie en terwijl de M3-lock
-wordt vastgehouden, eenmaal een schedule-IPI naar iedere AP voordat de BSP
-ring 3 binnengaat. Daarna stuurt de BSP per tick een vaste xAPIC schedule-IPI;
-AP's sturen hun eigen lokale APIC-EOI. Alleen de BSP telt ticks. In dit eerste
-profiel blijven PCID en PGE uit en worden geen adresruimten gedeeld. Een proces
-is nooit tegelijk actief op twee CPU's; iedere trap schakelt naar kernel-CR3
-en iedere processelectie laadt de proces-CR3. Daarom wordt frame-/
-mappingcleanup pas toegestaan nadat de eigenaar de trap heeft afgehandeld en
-de lokale CR3-wissel heeft plaatsgevonden. Dit is geen algemeen remote-TLB-
-protocol: zodra PCID/PGE, gedeelde adresruimten, lazy TLB of parallelle
-mutatie van één adresruimte worden ingevoerd, is een expliciet shootdown-/
-acknowledgementprotocol een voorwaarde vóór hergebruik.
-
-De opt-in profile sluit SIMD/FPU-context uit totdat die toestand per CPU is
-gemodelleerd. De lock is fail-closed bij bounded contention; timeout stopt de
-kernelrun en maakt geen voortgangs- of autorisatieclaim. Capabilitysemantiek en
-externe process-/syscall-ABI wijzigen niet. Acceptatie vereist native 1/2/4-
-CPU-regressies plus afzonderlijk bewijs voor scheduling, IPC, exit/revoke en
-TLB-reuse; dit besluit en een rendezvousproef zijn daarvoor geen vervanging.
-
-**Bronnen en begrenzing:** de bestaande serialisatie- en mappingaannames staan
-in ADR-024 en
-[KERNEL-AND-SECURITY-CONTRACT](implementation/KERNEL-AND-SECURITY-CONTRACT.md).
-Voor GS-basissen, `SWAPGS`, interrupt/APIC en CR3/TLB-semantiek geldt
-Intel Corporation, *[Intel 64 and IA-32 Architectures Software Developer's Manual, volume 3](https://cdrdv2-public.intel.com/812391/325384-sdm-vol-3abcd.pdf)*,
-Order No. 325384-082US, december 2023, als primaire referentie. Dit is een
-Nieuw OS-ontwerpkeuze; geen Intel- of hardwarecertificering. Rollback: schakel
-uitsluitend het nieuwe SMP-M3-profiel uit; bestaande single-CPU-profielen blijven
-beschikbaar.
+| 058, positieve volume-identiteit (historische titel) | ADR-064 |
+| 057, vreemde opslag nooit als leeg volume toelaten | ADR-064 |
 
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 
@@ -84,8 +386,8 @@ Details en begrensd vervolg: [PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md).
 <a id="adr-056--herkenbare-sessieroute-met-expliciete-vm-bewijsgrens"></a>
 ## ADR-063 — herkenbare sessieroute met expliciete VM-bewijsgrens
 
-2 november 2026. De gebruikersopdracht vraagt bekende stappen uit macOS,
-Windows en Linux binnen de eigen architectuur. Accountkeuze, credentialinvoer,
+2 november 2026. De sessieroute moet de bekende stappen uit macOS,
+Windows en Linux volgen, binnen de eigen architectuur. Accountkeuze, credentialinvoer,
 verificatie, sessieactivatie en desktop worden afzonderlijke toestanden.
 Een app-lokale UI of een wachtwoordvergelijking in de renderer verleent geen
 kernelrechten. Alleen een toekomstige geauthenticeerde auth-/sessiebroker mag
@@ -113,8 +415,8 @@ en [hardwareonderzoek](implementation/VM-HARDWARE-AND-PERFORMANCE.md).
 
 30 oktober 2026; vastlegging van de operationele besluiten uit PR #75.
 Dit beschrijft de toen geregistreerde rollen en overdrachten, geen bewezen
-identiteit van huidige sessies. Actuele expliciete opdrachten van Simon gaan
-vóór routineafspraken tussen agents. Zijn huidige opdracht om issues en pull
+identiteit van huidige sessies. Actuele expliciete opdrachten van de projecteigenaar
+gaan vóór routineafspraken tussen agents. De huidige opdracht om issues en pull
 requests op te lossen en geschikt werk te squash-mergen geeft het
 integratiemandaat; actuele broncontrole, repositoryregels en relevante gates
 blijven gelden. Dit besluit kondigt geen nieuwe mergepauze of vrijgave af.
@@ -133,7 +435,7 @@ blijven gelden. Dit besluit kondigt geen nieuwe mergepauze of vrijgave af.
   Gevolg: één operationele integrator binnen de overgedragen scope; actuele
   head/base/gates opnieuw controleren bij iedere integratiemutatie en bestaand
   werk inhoudsbehoudend verenigen. Een accountnaam of verstreken tijd bewijst
-  geen sessie-identiteit of overdracht. Herzien bij een nieuw gebruikersmandaat,
+  geen sessie-identiteit of overdracht. Herzien bij een nieuw mandaat van de projecteigenaar,
   een aantoonbare tweede schrijver of een gewijzigde inhoudelijke scope.
   De afzonderlijke incident-/pauzeregistratie in de bron wordt hier bewaard
   als historische status, niet opnieuw uitgevaardigd. [OP1] [OP2]
@@ -163,7 +465,7 @@ blijven gelden. Dit besluit kondigt geen nieuwe mergepauze of vrijgave af.
 
 ## ADR-058 — Herkenbare consumentenbediening op de eigen kernel
 
-**Datum/status:** 30 oktober 2026; gebruikersbesluit van Simon, vastgelegd
+**Datum/status:** 30 oktober 2026; besluit van de projecteigenaar, vastgelegd
 in PR #114. Leidend boven de eerdere eisen dat het hoofdscherm geen
 bestaande desktop mag nabootsen en dat er geen dock of taakbalk komt
 (PRODUCT-SPEC §1 en §5, het verbod op interactioneel nabouwen in
@@ -204,7 +506,7 @@ het bekende pad, nooit een vervanging ervan.
   en [DESKTOP-SHELL.md](implementation/DESKTOP-SHELL.md).
 
 **Herzien** na gebruikersproeven (U06) die aantonen dat een conventie voor de
-doelgroep slechter werkt, of bij een nieuw expliciet besluit van Simon.
+doelgroep slechter werkt, of bij een nieuw expliciet besluit van de projecteigenaar.
 Rollback: dit ADR intrekken en de eerdere teksten weer leidend maken.
 
 # ADR-054 — Gedeeld immutable artifact-storecontract
@@ -305,7 +607,7 @@ De verificatiekern ontvangt bij elke verificatie een expliciete `SourceId` en
 verwachte bron-generatie; de appbundel kiest nooit zelf haar trust anchor.
 Keyrotatie en intrekking zijn compare-and-swap-operaties op die generatie.
 Intrekking blokkeert nieuwe pakketverificaties/updates maar verwijdert of
-blokkeert reeds geïnstalleerde apps niet; Simon koos dat gedrag expliciet.
+blokkeert reeds geïnstalleerde apps niet; dit gedrag is expliciet door de projecteigenaar vastgesteld.
 Verwijdering van apps/data is een afzonderlijke gebruikershandeling.
 
 `SourceRegistry` is momenteel een vaste in-memory kern van acht slots.
@@ -344,6 +646,27 @@ gerichte revert naar het eerdere enkelvoudige TEST-verificatiepad, zonder
 slot-/manifestformaatmigratie; terugname verwijdert wel lifecycleafdwinging.
 Native resultaat en bronbinding staan afzonderlijk in PROJECT-STATE; B04,
 B05, B06 en de aanvullende gates van #41 blijven open.
+
+## ADR-B03K2 — TEST-ankers uitsluitend via expliciete testfeatures
+
+3 november 2026; basis `d686bd54`. `update-core::test_policy` is niet langer
+onderdeel van de standaardbibliotheekbuild en vereist de feature
+`test-signing-anchors`. De native fixturedienst en de UEFI-fixtureloader
+activeren dit alleen expliciet; het loaderprofiel heet `signed-boot-test`.
+De kale feature `signed-boot` en een native update-servicebuild zonder
+policykeuze falen tijdens compilatie in plaats van stilzwijgend de openbare
+TEST-ankers te gebruiken.
+
+Dit is een fail-closed buildgrens, geen productie-key lifecycle. Er zijn geen
+productieankers, releaseconfiguratie, ondertekeningsceremonie of
+intrekkingsdistributie toegevoegd. #41 blijft daarom open; geen nieuw rubricpunt
+of releaseclaim. Terugdraaien herstelt de ongeconditioneerde
+`test_policy`-module en de oude profielnaam, maar verwijdert deze
+build-time-bescherming.
+
+Herzieningscriteria: herzie deze testfeaturegrens zodra productiebeleid voor
+sleuteldistributie, releaseconfiguratie of distributie van intrekkingen wordt
+ingevoerd. TEST-ankers worden daarbij niet stilzwijgend productiebeleid.
 
 ## ADR-053 — Wachten op IPC behoudt bestaande rechten en krijgt ABI 1.10
 
@@ -532,7 +855,7 @@ parallelle mutaties, nieuwe I/O-foutmodellen of andere hardware.
 ## ADR-032 — Vaste 100-puntenroadmap met verplichte herbeoordeling
 
 **Datum/status/eigenaar:** 28 oktober 2026; aanvaard en uitgevoerd op expliciete
-gebruikersopdracht. De hoofdagent bezit de gedeelde voortgangsbestanden.
+opdracht van de projecteigenaar. De hoofdagent bezit de gedeelde voortgangsbestanden.
 
 **Besluit:** `docs/progress.json` bevat vaste, binaire acceptatiecriteria met
 gewichten die samen 100 vormen. De generator maakt de README, criteriatabel
@@ -615,9 +938,9 @@ bare-metal targetdocumentatie in het M6c-contract. Dit is een projectbesluit.
 
 ## ADR-027 — Internet en versleutelde persoonlijke NAS-ruimte
 
-**Datum/status:** 27 oktober 2026; aanvaard op expliciete gebruikersopdracht, met geteste hostproef N01 en browsermock. Native integratie staat open. **Eigenaar:** hoofdagent voor contract/integratie; afzonderlijke service- en productbuilders.
+**Datum/status:** 27 oktober 2026; aanvaard op expliciete opdracht van de projecteigenaar, met geteste hostproef N01 en browsermock. Native integratie staat open. **Eigenaar:** hoofdagent voor contract/integratie; afzonderlijke service- en productbuilders.
 
-**Context:** de gebruiker wil internet, een NAS-rol binnen hetzelfde OS en opslagruimte aanbieden aan vrienden/familie. De host moet zijn ruimte kunnen terugnemen zonder toestemming van de gast, terwijl de inhoud voor hem versleuteld blijft. Dit herziet ADR-006 en de eerdere beperking tot eigen NAS/eigen LAN.
+**Context:** internettoegang, een NAS-rol binnen hetzelfde OS en het aanbieden van opslagruimte aan vrienden en familie behoren tot de producteisen. De host moet zijn ruimte kunnen terugnemen zonder toestemming van de gast, terwijl de inhoud voor hem versleuteld blijft. Dit herziet ADR-006 en de eerdere beperking tot eigen NAS/eigen LAN.
 
 **Alternatieven:** alleen eigen LAN handhaven voldoet niet aan de nieuwe opdracht; een leverancierscloud of beheerderssleutel voor gastinhoud schendt de privacygrens; gastconsent als vereiste voor verwijderen ontneemt de hardware-eigenaar zijn beheerrecht.
 
@@ -631,21 +954,21 @@ bare-metal targetdocumentatie in het M6c-contract. Dit is een projectbesluit.
 
 **Bronnen:** Node.js v24.22.1 Crypto (https://nodejs.org/docs/latest-v24.x/api/crypto.html), RFC 8446 (https://www.rfc-editor.org/rfc/rfc8446.html) en NIST SP 800-207 (https://doi.org/10.6028/NIST.SP.800-207), geraadpleegd 27 oktober 2026. Functionele keuze en adminverwijderrecht zijn projectbesluiten. Exact contract: implementation/NAS-SHARING-AND-INTERNET.md en LOCAL-PRIVACY-CONTRACT.md revisie 3.
 
-**Migratie/rollback/herziening:** geen bestaande echte NAS, router, kernel-ABI of M6a-image wordt gewijzigd. Bewaar oudere M1–M6a-resultaten. N01 kan als afzonderlijke featurecommit worden teruggedraaid; geen destructieve reset van gebruikerswerk. Herzie bij bewijs van key-/nonceproblemen, multi-writerintegratie, andere transport-/opslaglaag of een nieuwe gebruikersinstructie. Oude LAN-only teksten zijn op de actieve leesroutes bijgewerkt.
+**Migratie/rollback/herziening:** geen bestaande echte NAS, router, kernel-ABI of M6a-image wordt gewijzigd. Bewaar oudere M1–M6a-resultaten. N01 kan als afzonderlijke featurecommit worden teruggedraaid; geen destructieve reset van gebruikerswerk. Herzie bij bewijs van key-/nonceproblemen, multi-writerintegratie, andere transport-/opslaglaag of een nieuwe instructie van de projecteigenaar. Oude LAN-only teksten zijn op de actieve leesroutes bijgewerkt.
 De oorspronkelijke revisie-5-principes hieronder zijn behouden als projectbesluiten. Uitvoeringsbesluiten vanaf ADR-019 beschrijven de gebouwde richting; actuele M1–M5-testuitkomsten en grenzen staan in PROJECT-STATE.md.
 
 | ID | Besluit | Reden | Herzien als |
 |---|---|---|---|
-| ADR-001 | Eigen kernel; geen bestaande kernel als basis | Expliciete gebruikerswens | Simon bewust de projectscope verandert |
+| ADR-001 | Eigen kernel; geen bestaande kernel als basis | Expliciet besluit van de projecteigenaar | De projectscope bewust door de projecteigenaar wordt gewijzigd |
 | ADR-002 | Rust no_std + minimaal assembly | Kleine expliciete onveilige grens | Target/tooling dit aantoonbaar verhindert |
 | ADR-003 | x86_64 QEMU q35, UEFI, software-emulatie baseline | Controleerbare eerste testomgeving | Praktische toolchainbeperking wordt aangetoond |
 | ADR-004 | Kleine capability-gebaseerde microkernel als richting | Autoriteit expliciet en TCB klein houden | Prototypes aantoonbare problemen met complexiteit/latency tonen |
 | ADR-005 | Standaarden en gecontroleerde bibliotheken toestaan | Zelf crypto/alle tools bouwen vergroot risico en scope | Herkomst/licentie/onderhoud onacceptabel is |
-| ADR-006, herzien door ADR-027 | Lokaal account, geen OS-telemetrie, lokale data of E2EE naar gekoppelde eigen/gedeelde persoonlijke NAS; internet per peer expliciet | Expliciete gebruikersuitbreiding 27 oktober 2026 | Alleen na expliciete gewijzigde gebruikersopdracht |
+| ADR-006, herzien door ADR-027 | Lokaal account, geen OS-telemetrie, lokale data of E2EE naar gekoppelde eigen/gedeelde persoonlijke NAS; internet per peer expliciet | Expliciete uitbreiding van de projectopdracht, 27 oktober 2026 | Alleen na een expliciete opdrachtwijziging door de projecteigenaar |
 | ADR-007 | PQC-voorbereiding vanaf ontwerp; integratie pas met echte use case | Protocol- en sleutelmigratie voorkomen | Relevante standaarden/implementaties wijzigen |
 | ADR-008, herzien | Product-/interactieonderzoek parallel vanaf M0; echte systeemintegratie volgt bewezen kernfuncties | Originaliteit en hoogwaardige UX moeten het systeem mede sturen | Bijstelling op experimenten, geen stille reductie tot standaarddesktop |
 | ADR-009 | Geen kernelbrede claims over formeel bewijs | Eigen code erft geen seL4-bewijs | Afgebakend daadwerkelijk geverifieerd resultaat bestaat |
-| ADR-010 | AI-inferentie uitsluitend op apparaat; geen netwerkrecht of cloudfallback | Expliciete gebruikerscorrectie | Alleen na expliciete gewijzigde gebruikersopdracht |
+| ADR-010 | AI-inferentie uitsluitend op apparaat; geen netwerkrecht of cloudfallback | Expliciete correctie van de projectopdracht | Alleen na een expliciete opdrachtwijziging door de projecteigenaar |
 | ADR-011 | Installeerbare derdenapps met gescheiden bestands-, NAS- en netwerkrechten | Toegankelijk ecosysteem zonder impliciet vertrouwen | Acceptatietests tonen ontbrekende grens |
 | ADR-012 | Quantum als derde onderzoeksspoor vanaf M0: PQC, lokale QPU-uitvoering en hybride systeemport | Oorspronkelijke ambitie expliciet behouden | Bijstelling alleen met onderbouwd onderzoek; privacycontract blijft gelden |
 
@@ -671,7 +994,7 @@ ID, datum, status, context, alternatieven, besluit, onderbouwing/bronnen, gevolg
 
 **ADR-021 — Statische GOT in .data.** De compiler produceert vijf statisch opgeloste pointers. Die staan expliciet in de bestaande RW-.data-outputsectie; er komt geen runtime-relocatieverwerker of extra segment. De buildinspectie blijft dynamische metadata, relocaties en onbekende allocatable secties weigeren. De drie ELF-laadsegmenten en hashes staan in docs/verification/boot-manifest.json. M1 controleert segmentintentie; echte W^X-afdwinging blijft M2.
 
-**ADR-022 — Voortgang per stap naar GitHub.** De gebruiker wil het project bij verbruikslimieten volledig kunnen hervatten. Broncode, lockfiles, compacte bewijsrapporten en open punten gaan daarom na elke afgebakende stap en vóór lange controles naar de privéwerkbranch. Een checkpoint mag onvoltooide controles bevatten mits expliciet gemarkeerd. Codespaces is niet vereist voor deze bewaarroutine; een Codespace is niet gestart. Main blijft de startspecificatie totdat de concept-PR is beoordeeld.
+**ADR-022 — Voortgang per stap naar GitHub.** Het project moet bij verbruikslimieten volledig te hervatten zijn. Broncode, lockfiles, compacte bewijsrapporten en open punten gaan daarom na elke afgebakende stap en vóór lange controles naar de privéwerkbranch. Een checkpoint mag onvoltooide controles bevatten mits expliciet gemarkeerd. Codespaces is niet vereist voor deze bewaarroutine; een Codespace is niet gestart. Main blijft de startspecificatie totdat de concept-PR is beoordeeld.
 
 **ADR-023 — Alleen WB-capabele normale ConventionalMemory, cachebits gecombineerd.** De eerste M2-run faalde vóór KS-02 doordat OVMF `0x0f` meldt en de allocator uitsluitend exact WB accepteerde. UEFI-attributen beschrijven mogelijkheden; UC/WC/WT/WB mogen samen voorkomen. De allocator vereist WB, staat uitsluitend deze vier cachebits toe en weigert overige/bijzondere attributen. Bron: TianoCore/EDK II, `edk2-stable202508`, [UefiSpec.h, EFI_MEMORY_DESCRIPTOR en cachebits](https://github.com/tianocore/edk2/blob/edk2-stable202508/MdePkg/Include/Uefi/UefiSpec.h), gecontroleerd 27 oktober 2026. De huidige package is daarmee niet als exact die firmwareversie geïdentificeerd. Regressie test zowel `0x0f` als geweigerde special/unknown-bits; echte M2-poort slaagt. Andere platformprofielen vereisen opnieuw beoordeling van geheugenattributen; geen stil reclaim van Loader/BootServices/runtime/ACPI-geheugen.
 
@@ -839,9 +1162,9 @@ datamigratie in deze documentatiestap.
 **Datum/status/eigenaar:** 28 oktober 2026; aanvaard architectuurdoel, nog geen
 native provideradapter. Opslag-/securityeigenaar beheert formaat en keygrens.
 
-**Context:** de eerdere revisie verbood leverancierscloud volledig. De gebruiker
-wil desgewenst bestaande algemene opslag zoals OneDrive/Google Drive kunnen
-benutten zonder die provider leesrecht op de opgeslagen inhoud te geven.
+**Context:** de eerdere revisie verbood leverancierscloud volledig. Optioneel
+gebruik van bestaande algemene opslag, zoals OneDrive en Google Drive, moet mogelijk
+zijn zonder de provider leesrecht op de opgeslagen inhoud te geven.
 
 **Alternatieven:** absolute provideruitsluiting beperkt keuze; provider-native
 encryptie/key escrow verschuift vertrouwen naar de provider; zelfgemaakte
@@ -903,7 +1226,7 @@ nog niet native afgedwongen.
 
 **Context:** begrijpelijke voorbeelden en kritische vragen kunnen privacykeuzes
 duidelijker maken, maar herhaalde waarschuwingen kunnen de ervaring verstoren.
-De gebruiker wil die privacy-popups volledig kunnen uitschakelen.
+Educatieve privacyuitleg moet volledig uit te schakelen zijn.
 
 **Besluit:** de UI scheidt (a) noodzakelijke beslissingen over nieuwe
 capabilities van (b) educatieve privacyuitleg. Educatieve uitleg kan globaal
@@ -1562,8 +1885,8 @@ ontwerpcheckpoint nog open. Geen U01-punten voor alleen deze bouwstap.
 ## ADR-060 — Exacte, tijdelijke autoriteitsvergelijking op de syscallgrens
 
 **Datum:** 2 november 2026. De volledige verse `Stats`- en digestfuncties
-blijven de bestaande diagnostische orakels. Op de M4-foutgrens vervangen we
-hun herhaalde hashscan door een volledige getypeerde kopie van alle elf
+blijven de bestaande diagnostische orakels. Op de M4-foutgrens wordt
+hun herhaalde hashscan vervangen door een volledige getypeerde kopie van alle elf
 autoriteitsvelden en bestaande exacte `Engine::eq`. IPC-wait vergelijkt dit
 op ieder resultaat. De afzonderlijke useroutput-, capability-, pointer-,
 return-, paginaownership- en W^X-controles blijven intact. De snapshot wordt
@@ -1636,3 +1959,385 @@ de latch voorkomt dat een oude clear-repeat documenttekst wist. Herzien bij
 streaming, meer apps, veilige accountvelden of een echte sessiegrens.
 Contract, bron en nog lopende native gate: implementation/NATIVE-CLIPBOARD.md
 en verification/native-clipboard-20261102/.
+
+
+## ADR-MATERIAL-LIBRARY-20261102 — bestaande volumeobjecten native bedienen
+
+De native werkruimte ontsluit bestaande volume-v7-namen, collecties, metadata
+en twee historieplaatsen; geen nieuw wireformaat, opslagformaat of kernelrecht.
+Hernoemen blijft draft tot expliciet bewaren. Ordenen gebruikt CAS, historie
+herstelt als nieuwe revisie. Onzekere publicatie wordt niet herhaald; een
+bevestigde restore met mislukte herlezing blokkeert bewaren tot expliciet heropenen.
+Een begrensde tekstpreview valideert eerst de volledige historische versie en
+UTF-8 in de bestaande stagingbuffer. Labels maken verkorting en locatie duidelijk.
+Proportionele tekst deelt metrics/caret/selection/wrap/hittest en bewaart bytes.
+
+Het eigen scalar appspecifieke RX-budget wordt na echte131177-byte-linkermeting
+128→144KiB; vaste adressen, vijf segmenten, W^X, R/RW/stack/guard/kernelquota en
+capabilities blijven gelijk. Zie `implementation/NATIVE-MATERIAL-LIBRARY.md`.
+De native gate gebruikt volledige toegewezen appbeelden en een onafhankelijke
+schijfdecoder; koude heropening kopieert uitsluitend een opnieuw gevalideerde
+bron-/profielgebonden wegwerprun. U03 blijft open totdat de volledige route en
+regressie werkelijk slagen. Geen authenticatie-, encryptie- of hardwareclaim.
+
+<a id="adr-058--positieve-volume-identiteit-vóór-toelating-als-lege-opslag"></a>
+
+## ADR-CI-RUNNERS-20261106 — Linux-CI alleen op de Unraid-runners
+
+Status: runnerkeuze vervangen door ADR-CI-HOSTED-20261108; overige afspraken
+over artifacts en verplichte checks blijven gelden. Oorspronkelijk aangenomen
+op 6 november 2026 (opdracht van de projecteigenaar, PR #241).
+
+**Besluit:**
+- Elke workflowjob draait op `[self-hosted, Linux, X64, unraid, build]`.
+- Persoonlijke machines (`MSIMON-wsl`, de Windows-host `MSIMON`) voeren geen PR-code uit.
+- GitHub-hosted runners worden vanwege het budget niet zonder expliciete toestemming gebruikt.
+- Artifacts zijn kortlevend (3 dagen). Bewijs van record blijft compact in `docs/verification/`.
+- De verplichte checks `host-quality` en `qemu-smoke` (ci.yml) krijgen geen padfilter.
+  Een overgeslagen workflow zou anders een eeuwig wachtende verplichte check opleveren.
+- Niet-verplichte gates slaan PR's over die alleen `docs/**` of `*.md` in de root wijzigen.
+- Een push naar main draait alles.
+
+**Reden:**
+- Het label `[self-hosted, Linux]` matchte ook een WSL-runner die als de gewone gebruiker
+  draaide, met toegang tot diens credentials.
+- Zo'n 6 GB aan artifacts liet groene gates rood eindigen op de uploadstap.
+
+**Grenzen:**
+- De Unraid-runners en hun containerisolatie, sudo-rechten en mounts zijn hier niet
+  beoordeeld.
+- De twee Tower-runners delen één fysieke host. Daardoor draaien er maximaal twee zware jobs
+  tegelijk, maar CPU, RAM en I/O van die host zijn niet gemeten.
+
+## ADR-CI-HOSTED-20261108 — Standaard GitHub-hosted Ubuntu-runners
+
+Status: aangenomen, 8 november 2026, op expliciete opdracht van de projecteigenaar om de
+workflows van self-hosted naar GitHub-hosted runners om te zetten.
+
+**Besluit:** alle 24 jobdefinities in de 21 bestaande workflows gebruiken
+`runs-on: ubuntu-24.04`. De component- en toolchainmatrices leveren samen
+42 jobs op. Nieuwe of nog open workflowwijzigingen moeten dezelfde runnerkeuze
+aanhouden; een oude branch mag de self-hosted selectie niet opnieuw invoeren.
+Dit vervangt de runnerkeuze en de eerdere budgetbeperking in
+ADR-CI-RUNNERS-20261106. Het vaste Ubuntu-image behoudt de Linux/x64-omgeving
+voor de bestaande `pc-q35-8.2`-proeven, ook voor het op Linux gebouwde
+Windows-QEMU-testpakket.
+
+De bestaande Rust-pins, testcommando's, time-outs, rechten, verplichte checks,
+padfilters en artifactretentie van drie dagen blijven behouden. De QEMU-/
+firmwarestappen verwijzen inmiddels naar `.github/actions/setup-qemu` volgens
+ADR-CI-PINS-20261108; die gedeelde, gepinde setup vervangt de oorspronkelijke
+losse apt-installatie van ontbrekende pakketten. De host-Rust-buildcache
+krijgt een nieuwe namespace met `ubuntu-24.04`, zodat oude self-hosted
+buildresultaten niet worden hersteld. Cargo-downloadcaches blijven bruikbaar;
+native images en acceptatieresultaten worden niet gecachet.
+
+**Kosten en publicatie:** standaard GitHub-hosted runners zijn gratis en
+onbeperkt te gebruiken voor openbare repositories, binnen de uitvoerings- en
+concurrencylimieten. Voor private repositories geldt het inbegrepen
+computebudget en eventuele extra facturering. Grotere runners vallen niet
+onder deze keuze. De GitHub-API meldde bij deze wijziging `private: true`;
+deze opdracht verandert de zichtbaarheid of betaalinstellingen niet.
+Artifact- en cacheopslag hebben afzonderlijke limieten.
+
+**Bewijsgrens en herstel:** de configuratiecontrole staat in
+`verification/github-hosted-runners-20261108.json`. Een runnerlabel of geldige
+YAML is geen native bootbewijs; daarvoor blijven de bestaande CI-gates op de
+nieuwe PR-head nodig. Terugdraaien kan met een gerichte revert van deze
+migratie, zonder andere bronwijzigingen of branchregels aan te passen.
+
+**Primaire bronnen, geraadpleegd 8 november 2026:**
+- GitHub. (z.d.). *GitHub-hosted runners reference*.
+  https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+- GitHub. (z.d.). *GitHub Actions billing*.
+  https://docs.github.com/en/billing/concepts/product-billing/github-actions
+- GitHub. (z.d.). *Actions limits*.
+  https://docs.github.com/en/actions/reference/limits
+
+
+## ADR-CI-PINS-20261108 — Vaste tools voor reguliere hosted CI
+
+Status: aangenomen, 8 november 2026, op vervolgopdracht van de projecteigenaar. Dit besluit
+vult ADR-CI-HOSTED-20261108 aan en vervangt daar de losse installatie van
+ontbrekende emulatorpakketten. Het betreft 21 reguliere workflows; de
+later toegevoegde private publicatie-audit behoudt zijn afzonderlijke scope.
+
+**Besluit:** gedeelde lokale Actions installeren Python 3.12.12 en QEMU/
+firmware uit Ubuntu-snapshot 20261108T000000Z. Alle pakketversies zijn exact;
+APT verifieert de ondertekende indexen en payloads. Na installatie worden
+versies, TCG, machine pc-q35-8.2 en firmwarehashes gecontroleerd. PyYAML,
+reeds gebruikt door de host-gate, krijgt een exact gehasht 6.0.3-wheel.
+Rust 1.90.0, bestaande 1.91.1-controles en Node 24.22.1 blijven behouden.
+
+**Tests en gevolgen:** 99 bestaande runner-/preflight-/M6c-hosttests komen
+in host-quality. De bestaande zes native rookteststarts, harnasvoorwaarden,
+jobtijdslimieten, rechten en triggers blijven gelijk. Een aanvullende
+compacte QEMU-diagnose-upload is best effort en wijzigt de verplichte
+testuitslag niet. Lokale agent-gates slaan uitsluitend GitHub-setup en
+runnerdiagnostiek over; strikte preflight en native proeven blijven nodig.
+
+**Bewijsgrens:** de runnerdistributie en tools zijn geselecteerd, maar de
+complete VM en vooraf geïnstalleerde gedeelde bibliotheken zijn niet
+immutable. Nieuwe-head Rust/OS-gates blijven afzonderlijk bewijs. Een
+hosttest of QEMU-toolprobe bewijst geen productacceptatie. Score 41/100
+blijft gelijk. Pinupdates vereisen herhaalde controle; herstel gebeurt via
+een gerichte revert zonder branchregels te versoepelen.
+
+Bronnen, versies, uitvoering en herzieningsroute: [CI.md](CI.md),
+[controleverslag](verification/ci-standard-runners-20261108.json) en
+[pakketprovenance](verification/ci-packages-20261108.json).
+
+## ADR-PUBLIC-DEVELOPMENT-20261108 — Openbare ontwikkeling met MPL-2.0 als controlebasis
+
+**Status:** aangenomen als projectrichting op 8 november 2026, op expliciete
+opdracht van de projecteigenaar. Licentiecontrole en daadwerkelijke publicatie blijven open.
+
+**Besluit:** Nieuw OS kiest voor openbare ontwikkeling. Het bestaande
+[LICENSE-PLAN.md](../LICENSE-PLAN.md) blijft de basis voor de licentiecontrole,
+met MPL-2.0 als beoogde licentie voor de eigen OS-code. De opdracht bevestigt
+de richting en het controlekader; zij past geen projectlicentie toe en
+verklaart de repository niet publicatieklaar.
+
+**Reden:** de ontwikkeling moet inspecteerbaar en geschikt voor samenwerking
+zijn. Openbaarheid wordt bewust aanvaard als onderdeel van de projectrichting.
+Het plan wordt verder uitgevoerd vanuit de bestaande MPL-keuze, zonder nu
+een nieuwe algemene licentievergelijking te beginnen.
+
+**Consequenties:**
+- Eigen code, bijdragen, documentatie, assets, modellen en externe onderdelen
+  krijgen een expliciete rechten- en licentieafbakening volgens het plan.
+  Bestaande externe voorwaarden blijven behouden.
+- Het meegebundelde OSDev-/boekmateriaal krijgt een afzonderlijke
+  publicatiecontrole volgens het eigen bronregister; het valt niet
+  automatisch onder de MPL-richting voor eigen OS-code.
+- De vijf bestaande publicatievoorwaarden blijven open tot de daadwerkelijke
+  inventaris, compatibiliteit, notices, licentietekst en bronlevering kloppen.
+  Openbaarheid betekent niet dat derden de broncode niet kunnen kopiëren.
+- De overgang naar GitHub-hosted runners wordt afzonderlijk behandeld in
+  [PR #249](https://github.com/simonvanieperen/nieuw-os/pull/249). Dit besluit
+  wijzigt geen workflows, repositoryzichtbaarheid of branchregels.
+- Bronpublicatie en een volwaardige productrelease hebben verschillende
+  acceptatiegrenzen. Er wordt geen OS-criterium afgetekend; de score blijft
+  41/100 en R03 blijft open.
+
+**Uitvoeringsstand bij broncontrole:** `main` op `363b486b06023d3d578f8eca2b23ff49045a1757`
+was privé; de root bevatte `LICENSE-PLAN.md` en nog geen toegepaste
+projectlicentie in `LICENSE`. Deze observatie is geen permanente
+repositoryinstelling. De afzonderlijke publicatiecontroles blijven nodig.
+
+**Herzieningscriteria:** heropen de MPL-reikwijdte of een componentkeuze als
+rechthebbenden, daadwerkelijke dependencies of distributievoorwaarden dat
+vereisen. Een wijziging van de openbare projectrichting vraagt een nieuw
+expliciet projectbesluit. Het terugzetten van documentatie trekt reeds
+verleende rechten of verspreide kopieën niet automatisch in.
+
+**Bronnen:** de opdracht van de projecteigenaar van 8 november 2026; het bestaande
+licentieplan; Mozilla's officiële MPL-2.0-tekst en FAQ, met volledige
+bronvermeldingen in [LICENSE-PLAN.md](../LICENSE-PLAN.md).
+
+## ADR-CI-EVIDENCE-20261108 — testuitslag los van artifactopslag
+
+**Status:** besloten en geïmplementeerd op `ci/artifact-storage-20261108`
+in PR #251; opname in main volgt de bestaande checks en reviewregels.
+**Eigenaar:** Simon van Ieperen.
+
+**Datum:** 8 november 2026. Artifactopslag mag het bewaren
+van testbewijs en de workflow niet blijven blokkeren. Op main `363b486b`
+slagen de onderzochte native tests, maar upload-artifact weigert nieuwe
+archieven wegens quota. Drie dagen retentie was al ingesteld.
+
+**Alternatieven:** alleen retentie verkorten helpt bestaande quota niet
+direct en stond al op drie dagen. Gerichte opruiming kan ruimte vrijmaken,
+maar is geen structurele bescherming tegen opnieuw volle opslag en vraagt
+eerst een gecontroleerde inventaris van te behouden bewijs. Alleen de oude
+uploads niet-blokkerend maken laat bij uitval geen compact brongebonden
+rapport achter. Externe opslag introduceert een nieuwe opslag- en
+toegangsgrens en is voor deze reparatie niet nodig.
+
+**Besluit:** alle vijftien bewijsuploads gebruiken één lokale composite
+action. Die schrijft eerst begrensde rapporten, bronbinding en ontbrekende
+bestanden naar runlog/summary en een compact receipt. Alleen de uploads
+zijn best effort; tests, builds, validators en de collector blijven
+verplicht. De oorspronkelijke error/warn-keuze voor geheel ontbrekend
+bewijs blijft behouden. Werkelijke upload-outcomes zijn apart zichtbaar.
+
+Normale rapportarchieven zijn begrensd en blijven drie dagen beschikbaar.
+Ruwe images, frames en buildmappen worden uitsluitend op handmatig verzoek
+als volledig archief geüpload, met één dag retentie. Windows-test-ZIPs
+blijven apart beschikbaar na geslaagde controles als hun upload lukt, ook
+één dag. Bij een volledig archief is geen tweede ZIP-upload nodig.
+
+Een rapport met hash vervangt geen ruwe bytes voor onafhankelijke
+hercontrole. Native acceptatievoorwaarden, downloadstatus en vaste
+voortgangscriteria worden niet versoepeld. De runnerkeuze, toolversies,
+checknamen, betaalinstellingen en opslagrechten wijzigen door dit besluit
+niet. Geen artifacts of workflowruns worden ongericht verwijderd.
+
+**Security-invariant:** de compacte collector leest uitsluitend de expliciete
+selectie binnen de checkout, volgt geen symlinks en weigert verborgen paden.
+Inhoud blijft bytegelijk in het compacte pakket; workflowcommando's en
+controlbytes worden alleen voor de runlogweergave inert gemaakt. Bestands-,
+scan- en uitvoerbudgetten zijn begrensd. Het Windows-pakket moet een echt
+bestand binnen de checkout zijn; beide package-workflows selecteren die ZIP
+ook expliciet of via haar bovenliggende directory in het volledige archief.
+De configuratieverifier controleert dit inclusief weggelaten-packagegevallen.
+Dit is geen algemene secretscan; full-evidence behoudt de oorspronkelijke
+workflowselectie en is geen door de compacte collector gefilterd archief.
+
+**Testbewijs:** de oorspronkelijke verificatie omvat 15 collector-hosttests
+en 151 lokale YAML-/shellcontroles, vastgelegd in
+`docs/verification/ci-artifact-storage-20261108.json`. De vervolgcontrole
+staat in `docs/verification/ci-artifact-storage-20261108/review-followup.json`.
+Op mergecheckout `89722c5f` van PR-head `5c291cff` zijn bovendien de echte native-display-input- en
+B03-jobs geslaagd terwijl de rapportupload wegens artifactquota faalde;
+bronbinding en gelabeld rapportbewijs bleven in de runlog staan. Dit bewijst
+de geteste terugval bij uploadfalen; geen geslaagde artifactdownload,
+Windows-uitvoering, volledige raw-hercontrole of nieuwe productacceptatie.
+
+**Migratie/rollback:** opname van PR #251 activeert de gedeelde action voor
+nieuwe runs. Bestaande artifacts, bewaartermijnen en runlogs worden niet
+gewijzigd. Terugdraaien gebeurt met een gerichte revert-PR van deze wijziging;
+dan keren de oorspronkelijke blokkerende uploadstappen terug. Behoud
+wijzigingen van andere branches en bestaand acceptatiebewijs.
+
+**Herzien wanneer:** een volgende job artifacts moet downloaden, een echte
+releaselevering verplicht wordt, of het meetbare rapportbudget structureel
+te klein blijkt. Een benodigde artifactoverdracht krijgt dan een eigen
+verplichte leveringsgate. Werkwijze, bronnen en rollback: [CI-EVIDENCE.md](CI-EVIDENCE.md).
+
+## ADR-CI-PUBLIC-20261108 — publieke CI zonder eigen runners
+
+**Status:** besloten en geïmplementeerd in bestaande PR #249; nieuwe GitHub-
+uitvoering en samenvoeging worden apart vastgelegd. **Eigenaar:** Simon van
+Ieperen. **Datum:** 8 november 2026. De GitHub-repository is aantoonbaar public.
+
+**Besluit:** integreer de vaste hosted toolchain uit #249 met de compacte
+bewijsroute uit #251. Alle jobselectors, ook de private historische audit en
+Copilot-setup, zijn `ubuntu-24.04`. Geen nieuwe self-hosted infrastructuur.
+De private audit behoudt zijn voorwaarde en publiceert niet automatisch
+historische auditinhoud op de publieke repository.
+
+Verwijder de dubbele `ready_for_review`-trigger; test concept-PRs al op
+openen/wijzigen/heropenen. Spiegel bestaande documentfilters naar main-pushes
+van specialistische workflows. Behoud de ongefilterde verplichte checks
+`host-quality` en `qemu-smoke`, die onafhankelijk parallel kunnen draaien.
+Behoud bestaande concurrencygroepen en tijdslimieten. De componentmatrix
+verliest twee dubbele entries; hun checks blijven in de gespecialiseerde
+display/input- en artifact-store-workflows staan, inclusief scalar build.
+Maximaal vier matrixjobs tegelijk. De hostbuildcache krijgt een bron-SHA
+plus een compatibele herstelprefix; geen gecachte native acceptatie.
+
+**Alternatieven:** een tweede migratie-PR zou dezelfde configuratie opnieuw
+laten botsen. Iedere native gate door een nieuw centraal padclassificatie-
+script laten overslaan vergroot de kans op ontbrekende required checks.
+Generieke self-hosted labels of betaalde grotere runners passen niet bij
+de expliciete keuze voor de standaard publieke GitHub-runners.
+
+**Security-invariant:** PR-code behoudt een read-only token, externe Actions
+blijven op commit-SHA gepind en checkout bewaart geen credentials. Geen
+`pull_request_target`-uitvoering van PR-code. Alleen artifactuploads mogen
+falen zonder de testuitslag te vervangen. De YAML-regressietests bewaken
+deze grenzen en het behoud van de vereiste checks. Native orakels, negatieve
+gevallen, markers en productcriteria blijven behouden.
+
+**Testbewijs:** lokale hosttests, configuratie-/shellcontrole, bronbehoud en
+nieuwe GitHub-runs worden brongebonden vastgelegd in
+`verification/ci-public-runners-20261108.json`. Historische testuitslagen
+uit #249/#251 blijven bij hun oorspronkelijke bron. Geen productpunt: 41/100.
+
+**Migratie/rollback:** samenvoegen van de bestaande PR #249 activeert de
+gecombineerde wijziging; #251 pas als ingehaald behandelen na bewezen
+inhoudsopname. Gerichte revert via PR, zonder andere code of opgeslagen
+bewijsarchieven te verwijderen. De oude Copilot-WSL-keuze uit #245 is
+vervangen door een hosted setup; die branch mag geen self-hosted selector
+terugbrengen. **Herzien wanneer:** echte runnerduur, foutlogs of benodigde
+checks een aantoonbare uitvoeringsaanpassing vragen.
+
+Bronnen en uitvoeringsroute: [CI.md](CI.md).
+
+## ADR-CODERABBIT-20261108 — gerichte reviews zonder extra automatische afkeuring
+
+**Status:** geïmplementeerd op vervolgbranch `ci/coderabbit-review-policy-20261108`
+na merge van PR #249; effectieve CodeRabbit-review en integratie worden
+afzonderlijk gecontroleerd.
+**Eigenaar:** Simon van Ieperen. **Datum:** 8 november 2026.
+
+**Aanleiding:** CodeRabbit dient ook bij kleine documentatiepunten een
+`CHANGES_REQUESTED`-review in. Die kan blijven staan nadat een nieuwe review
+als taak succesvol eindigt. De actieve main-regel vereist al geslaagde
+`host-quality`/`qemu-smoke`, actuele branches en opgeloste reviewgesprekken;
+er is geen vereiste botapproval. Oudere PRs hebben daarnaast conflicten en
+CI die nog verwijderde runners selecteert.
+
+**Besluit:** leg de repo-instellingen vast in `.coderabbit.yaml`: `quiet`
+plaatst de belangrijkste feedback inline en bundelt andere suggesties;
+`auto_approvals.enabled: false` stopt nieuwe automatische afkeuringen en
+goedkeuringen. Automatische incrementele reviews blijven aan en
+docstringdekking blijft een waarschuwing. Overige configuratie wordt geërfd
+om bestaande tools, padinstructies en extra reviewbranches te behouden.
+
+**Alternatieven:** de app verwijderen verliest reviewfeedback. Alle oude
+afkeuringen of threads tegelijk sluiten negeert nog onbeoordeelde fouten.
+De GitHub-regel voor opgeloste gesprekken uitzetten raakt ook andere
+reviewers. Alleen de statuscheck aanpassen helpt niet: `CodeRabbit` is
+in de gecontroleerde main-regel geen vereiste check.
+
+**Behoud en verificatie:** geen bronpad uitgesloten, testgate gewijzigd of
+branchregel omzeild. Herstel concrete bevindingen vóór het oplossen van
+bijbehorende threads. Een dismissal krijgt een inhoudelijke reden en is
+geen nieuw codebewijs. Schema-, host- en workflowcontrole staan met hashes
+in `verification/coderabbit-unblock-20261108.json`. Schema-validatie bewijst
+geen effectieve UI-/globale configuratie; controleer de volgende botreview.
+De OS-score blijft 41/100.
+
+**Migratie/rollback:** CodeRabbit gebruikt de YAML uit de beoordeelde
+PR-branch. Nieuwe branches krijgen de configuratie na integratie; oudere
+branches moeten die samen met de hosted workflows opnemen. Bestaande
+afkeuringen blijven afzonderlijk af te handelen. Een gerichte revert herstelt
+de eerdere reviewconfiguratie; opgeloste gesprekken blijven traceerbaar.
+**Herzien wanneer:** belangrijke fouten alleen nog in samenvattingen
+verschijnen, inherited/global settings de bedoeling veranderen, of de
+vereiste menselijke reviewafspraken wijzigen. Primaire bronnen: [CI.md](CI.md).
+
+## ADR-BARYON-NAME-20261108 — naamverklaring in de README
+
+**Datum:** 8 november 2026. **Status:** redactioneel besluit voor de
+projectpresentatie; geen wijziging van architectuur of productacceptatie.
+
+**Besluit:** gebruik Baryon OS in de README en leg de naam uit vanuit
+samengestelde deeltjes met drie valentiequarks. De koppeling met een kleine
+eigen kernel, afzonderlijke systeemdiensten en een eigen gebruikersomgeving
+is een metafoor voor samenhang. Processorringen behouden hun technische
+betekenis. Foutisolatie, herstel, veiligheid en prestaties blijven claims
+die passend implementatie- en testbewijs vereisen.
+
+**Bronnen en gevolgen:** de [naamverklaring](../README.md#waarom-de-naam-baryon-os)
+verwijst naar CERN/CMS en ESA. De oorspronkelijke repositorynaam `nieuw-os`,
+technische identifiers, historische bewijsbestanden en bronverwijzingen
+blijven behouden. Deze opdracht registreert geen domein en stelt geen
+merkbeschikbaarheid vast. De voortgang blijft 41/100.
+
+**Herzien wanneer:** primaire bronnen, de gekozen projectnaam of de
+feitelijke architectuur een inhoudelijke aanpassing vereisen. Een gerichte
+revert van de naamgevingspassages herstelt de vorige presentatie zonder
+code of technische contracten terug te draaien.
+
+
+## ADR-LICENSE-APPLICATION-20261109 — Apply MPL-2.0 to explicitly scoped project software
+
+**Date:** 9 November 2026  
+**Status:** accepted  
+**Authority:** project owner.
+
+**Context:** the repository is public, and the decision of 8 November 2026 established MPL-2.0 as the licensing baseline without yet applying it. This left the legal scope of project-owned software unnecessarily ambiguous.
+
+**Decision:** include the official, unmodified MPL-2.0 text as `LICENSE`. Project-owned software covered by MPL-2.0 is listed explicitly in `MPL-2.0-FILES.txt`. `LICENSING.md` defines the scope; third-party code and assets retain their own terms through `THIRD-PARTY.md` and component-specific notices.
+
+**Consequences:**
+
+- the software license is auditable without implying that every repository file has the same license;
+- documentation, historical evidence files, third-party assets, and project marks are not placed under MPL-2.0 solely by the root license;
+- new project-owned software files must be deliberately added to the MPL scope and receive an appropriate notice;
+- distribution still requires a separate release/SBOM/notice review.
+
+**Review criterion:** changing the primary license, scope, or exclusions requires a separate decision that addresses migration consequences for already covered files and contributions.

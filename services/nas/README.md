@@ -2,7 +2,7 @@
 
 **Uitvoerbaar Node-hostprototype:** N01 levert echte AES-256-GCM-encryptie, lokale ciphertextopslag en bevoegdheidscontroles binnen de service-API. De oorspronkelijke opslagdemo opent geen sockets. N02 voegt een afzonderlijke echte TLS 1.3/X25519MLKEM768-proef toe, uitsluitend op loopback: zie [TRANSPORT.md](TRANSPORT.md). Dit is geen native Nieuw OS-dienst of geconfigureerde thuis-NAS; de transportecho is nog niet aan de store gekoppeld.
 
-Deze implementatie volgt de gewijzigde opdracht van 27 oktober 2026: een NAS kan thuis staan of bij vrienden/familie, met afzonderlijk toegestane directe internettoegang. De NAS-beheerder mag zijn opgeslagen kopieën zelfstandig verwijderen of de opslagruimte intrekken, zonder gebruikerssleutel of handtekening. Die beheerbevoegdheid geeft geen decryptiesleutel. Oudere teksten met uitsluitend eigen LAN zijn voor deze afgebakende opdracht herzien door de nieuwe gebruikersinstructie; de hoofdagent beheert de gedeelde contractdocumenten.
+Deze implementatie volgt de gewijzigde opdracht van 27 oktober 2026: een NAS kan thuis staan of bij vrienden/familie, met afzonderlijk toegestane directe internettoegang. De NAS-beheerder mag zijn opgeslagen kopieën zelfstandig verwijderen of de opslagruimte intrekken, zonder gebruikerssleutel of handtekening. Die beheerbevoegdheid geeft geen decryptiesleutel. Oudere teksten met uitsluitend eigen LAN zijn voor deze afgebakende opdracht herzien op basis van het nieuwe projectbesluit; de hoofdagent beheert de gedeelde contractdocumenten.
 
 ## Rust-bouwstenen voor native integratie
 

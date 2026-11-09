@@ -10,7 +10,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-import run_smp
+import run_smp_legacy as run_smp
 
 
 def transcript(cpus=2):
@@ -513,7 +513,7 @@ class RunnerTimeoutTests(unittest.TestCase):
             code.write_bytes(b"code")
             variables.write_bytes(b"vars")
             (build / "manifest.json").write_text(json.dumps({
-                "kernel_feature": "native-smp", "loader_feature": "smp-handoff",
+                "kernel_feature": "native-smp-legacy", "loader_feature": "smp-handoff",
                 "source_fingerprint_version": 3, "source_sha256": "source",
                 "kernel": {"sha256": run_smp.sha256(kernel)},
                 "loader": {"sha256": run_smp.sha256(loader)},

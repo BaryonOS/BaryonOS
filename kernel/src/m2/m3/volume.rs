@@ -142,7 +142,7 @@ fn case() -> u64 {
         3
     } else if cfg!(feature = "test-volume-recover-cut") {
         4
-    } else if cfg!(feature = "test-volume-corrupt") {
+    } else if cfg!(feature = "test-volume-corrupt") || cfg!(feature = "test-volume-foreign") {
         5
     } else if cfg!(feature = "test-volume-cut-txn") {
         6

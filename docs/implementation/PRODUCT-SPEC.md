@@ -2,7 +2,7 @@
 
 ## Aanvulling ADR-058 — 30 oktober 2026
 
-Gebruikersbesluit, leidend boven de regels hieronder dat het hoofdscherm geen bestaande desktop nabootst (§1) en dat er geen dock of taakbalk komt (§5), en boven de zin in *Aanvulling P3/P4* dat de ervaring Windows of macOS niet interactioneel mag nabouwen, voor zover het de gangbare indeling, bediening en sneltoetsen betreft. Visueel nabouwen (huisstijl, iconen, trade dress) blijft uitgesloten; de overige P3/P4-eisen aan afwerking en snelheid blijven gelden. De eindervaring krijgt een herkenbaar bureaublad, taakbalk, startmenu met zoeken, vensterbediening, inrichting en inlogscherm volgens [DESKTOP-SHELL.md](DESKTOP-SHELL.md) en [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md). Materiaal blijft het gegevens-, geschiedenis- en rechtenmodel en verschijnt in de Bestanden-app, recente items en toestemmingsdialogen. P2 hieronder blijft historisch productbewijs. Eigen visuele identiteit blijft verplicht; herkenbaar is de bediening, niet de huisstijl.
+Dit projectbesluit is leidend boven de regels hieronder dat het hoofdscherm geen bestaande desktop nabootst (§1) en dat er geen dock of taakbalk komt (§5), en boven de zin in *Aanvulling P3/P4* dat de ervaring Windows of macOS niet interactioneel mag nabouwen, voor zover het de gangbare indeling, bediening en sneltoetsen betreft. Visueel nabouwen (huisstijl, iconen, trade dress) blijft uitgesloten; de overige P3/P4-eisen aan afwerking en snelheid blijven gelden. De eindervaring krijgt een herkenbaar bureaublad, taakbalk, startmenu met zoeken, vensterbediening, inrichting en inlogscherm volgens [DESKTOP-SHELL.md](DESKTOP-SHELL.md) en [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md). Materiaal blijft het gegevens-, geschiedenis- en rechtenmodel en verschijnt in de Bestanden-app, recente items en toestemmingsdialogen. P2 hieronder blijft historisch productbewijs. Eigen visuele identiteit blijft verplicht; herkenbaar is de bediening, niet de huisstijl.
 
 ## Onderzoeksaanvulling volledige OS-journey — 2 november 2026
 
@@ -40,11 +40,11 @@ bestaande releasecriteria en opslag-/privacycontracten blijven leidend.
 
 De P2-bevriezing betreft het historische prototype; zij trekt de herkenbare
 desktoprichting uit ADR-058 hierboven niet in. De nieuwe journeyvoorstellen
-zijn geen stilzwijgende wijziging van dat gebruikersbesluit.
+zijn geen stilzwijgende wijziging van dat projectbesluit.
 
 ## Aanvulling N01 — 27 oktober 2026
 
-De gebruikerswijziging is leidend boven onderstaande oorspronkelijke scope van één eigen NAS. Apparaten heeft nu drie flows: **Mijn NAS**, **Ruimte ontvangen** en **Ruimte aanbieden**. Internet is afzonderlijk toegestaan voor een bevestigde NAS-identiteit. Ontvangen ruimte kan bij vrienden/familie staan; de ontvanger bevestigt dat de host zijn NAS-kopie kan verwijderen en krijgt het advies een onafhankelijke kopie te bewaren. De beheerder ziet alleen capaciteit/gebruik/status en mag intrekken+wissen zonder gasttoestemming of inhoudssleutel.
+Dit projectbesluit is leidend boven onderstaande oorspronkelijke scope van één eigen NAS. Apparaten heeft nu drie flows: **Mijn NAS**, **Ruimte ontvangen** en **Ruimte aanbieden**. Internet is afzonderlijk toegestaan voor een bevestigde NAS-identiteit. Ontvangen ruimte kan bij vrienden/familie staan; de ontvanger bevestigt dat de host zijn NAS-kopie kan verwijderen en krijgt het advies een onafhankelijke kopie te bewaren. De beheerder ziet alleen capaciteit/gebruik/status en mag intrekken+wissen zonder gasttoestemming of inhoudssleutel.
 
 Datatoegang geeft geen beheerrol. In de mock is expliciete lokale beheeractivatie vereist; een internetroute verleent geen extern beheer. Intrekking verhoogt de generatie, blokkeert oude uploads en geeft capaciteit vrij; een nieuwe uitnodiging krijgt een nieuw ruimte-ID. Documentnamen en inhoud horen alleen in de echte client versleuteld te worden: de browserflow simuleert dit en verwerkt geen sleutels, verbindingen of echte NAS-bestanden.
 
@@ -64,7 +64,7 @@ DV-01 is een vervolghypothese en acceptatiescenario. Het verruimt P2 niet stilzw
 
 ## Aanvulling P3/P4 — premium native productiviteit en eigen visuele taal
 
-Gebruikersbesluit 28 oktober 2026: privacyvriendelijkheid mag **niet** zichtbaar
+Projectbesluit van 28 oktober 2026: privacyvriendelijkheid mag **niet** zichtbaar
 aanvoelen als een functionele of esthetische concessie. De uiteindelijke
 Nieuw-OS-ervaring moet qua afwerking, snelheid, typografie en samenhang kunnen
 concurreren met hoogwaardige moderne consumentensoftware, zonder Windows,
@@ -174,7 +174,7 @@ wel een compacte noodzakelijke grantvraag openen.
 - **PX-07:** visuele vergelijking controleert originaliteit en samenhang zonder
   te claimen dat subjectieve “mooier dan Office” al bewezen is.
 
-Status: **besluit voor de eerste implementatie**, 26 oktober 2026. De bronnenvergelijking en conceptkeuze zijn nu uitgevoerd. Gebruikersonderzoek, grafische implementatie en native OS-integratie zijn nog niet uitgevoerd. Codex hoeft vóór P2 geen nieuwe brede conceptstudie te starten. Alleen een concreet gevonden conflict of gebruikerscorrectie heropent de keuze.
+Status: **besluit voor de eerste implementatie**, 26 oktober 2026. De bronnenvergelijking en conceptkeuze zijn nu uitgevoerd. Gebruikersonderzoek, grafische implementatie en native OS-integratie zijn nog niet uitgevoerd. Codex hoeft vóór P2 geen nieuwe brede conceptstudie te starten. Alleen een concreet vastgesteld conflict of een expliciete correctie door de projecteigenaar heropent de keuze.
 
 ## 1. Gekozen productlogica
 
@@ -182,7 +182,7 @@ Status: **besluit voor de eerste implementatie**, 26 oktober 2026. De bronnenver
 
 Dit is een werknaam voor het interactiemodel, geen definitieve OS- of merknaam. Het ontwerp is eigen synthese, geen bewezen wereldprimeur. Een oorspronkelijke productervaring vraagt geen onbekend bestandssysteem voor de eerste proef.
 
-De gebruiker kan ook een app rechtstreeks openen via Gereedschap; daarmee blijft de bediening toegankelijk voor mensen die vanuit een programma denken. Het hoofdscherm wordt geen appstartscherm of decoratieve imitatie van een bestaande desktop. De eerste navigatievraag is: **waar wil ik aan werken?**
+De gebruiker kan ook een app rechtstreeks openen via Gereedschap; daarmee blijft de bediening toegankelijk voor mensen die vanuit een programma denken. Het hoofdscherm wordt geen appstartscherm of decoratieve imitatie van een bestaande desktop. De eerste navigatiekeuze betreft **het materiaal waaraan wordt gewerkt**.
 
 ## 2. Drie concepten op dezelfde vijf taken
 
@@ -200,8 +200,8 @@ Onderstaande vergelijking is ontwerpwerk, geen gemeten gebruikersproef.
 
 ### Vergelijking met bekende patronen
 
-- Windows Snap ordent appvensters en kan groepen herstellen; macOS Spaces verdeelt vensters over meerdere bureaubladen. Die patronen tonen ruimtelijke organisatie, maar bepalen niet ons objecteigenaarschap of rechtenmodel (Microsoft, z.d.; Apple, z.d.).
-- Flatpak-portalen demonstreren dat een concrete bestandskeuze toegang kan verlenen zonder brede bestandstoegang. Het principe van een systeemportaal is dus bekend. Ons voorstel maakt gegevenslocatie, objecthistorie en tijdelijke gereedschapstoegang onderdeel van één doorlopende ervaring; dit is een ontworpen combinatie, geen claim dat bestaande systemen zulke onderdelen nooit hebben (Flatpak Project, z.d.).
+- Windows Snap ordent appvensters en kan groepen herstellen; macOS Spaces verdeelt vensters over meerdere bureaubladen. Die patronen tonen ruimtelijke organisatie, maar bepalen niet het objecteigenaarschap of rechtenmodel van Nieuw OS (Microsoft, z.d.; Apple, z.d.).
+- Flatpak-portalen demonstreren dat een concrete bestandskeuze toegang kan verlenen zonder brede bestandstoegang. Het principe van een systeemportaal is dus bekend. Het voorgestelde ontwerp maakt gegevenslocatie, objecthistorie en tijdelijke gereedschapstoegang onderdeel van één doorlopende ervaring; dit is een ontworpen combinatie, geen claim dat bestaande systemen zulke onderdelen nooit hebben (Flatpak Project, z.d.).
 - WCAG 2.2 levert toetsbare criteria voor het webprototype. Gebruik die voor P2; een geslaagd webprototype verklaart het toekomstige native OS niet automatisch toegankelijk of wettelijk conform (W3C, 2024).
 
 ## 3. P2 is bevroren op zeven schermen

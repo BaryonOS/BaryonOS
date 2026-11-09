@@ -1,12 +1,13 @@
 mod common;
 
-use common::{fill, pattern, recover, Local, SimDisk};
+use common::{fill, pattern, recover, Local, Op, SimDisk};
 use volume_core::{
     client::{validate_reply, Client},
     service::Service,
     table::{self, SectorState, Table},
     wire::{self, Header},
     Status, CHUNK, CHUNKS, DATA_START, MAX_LENGTH, PER_DOMAIN, QUOTA, SECTOR, TABLE_SECTORS,
+    VOLUME_SECTORS,
 };
 
 const EPOCH: u64 = 7;
@@ -44,7 +45,241 @@ fn empty_volume_recovers_as_generation_zero() {
     let mut table = Table::EMPTY;
     table::recover(&mut disk, &mut table).unwrap();
     assert_eq!(table, Table::EMPTY);
-    assert_eq!(disk.log.len(), 2 * TABLE_SECTORS as usize);
+    assert_eq!(disk.log.len(), VOLUME_SECTORS as usize);
+}
+
+#[test]
+fn nonzero_unrecognized_data_is_not_admitted_as_an_empty_volume() {
+    let mut disk = SimDisk::new();
+    disk.durable[VOLUME_SECTORS as usize - 1][0] = 0xb5;
+    let mut table = Table::EMPTY;
+    assert_eq!(table::recover(&mut disk, &mut table), Err(Status::Corrupt));
+    assert_eq!(disk.log.last(), Some(&(Op::Read, VOLUME_SECTORS - 1)));
+    assert!(!disk
+        .log
+        .iter()
+        .any(|(operation, _)| matches!(operation, Op::Write | Op::Flush)));
+}
+
+#[test]
+fn unmarked_nonzero_table_sectors_are_not_admitted_as_empty() {
+    for sector in 0..DATA_START {
+        let mut disk = SimDisk::new();
+        disk.durable[sector as usize][17] = 0xb5;
+        let mut table = Table::EMPTY;
+        assert_eq!(
+            table::recover(&mut disk, &mut table),
+            Err(Status::Corrupt),
+            "unmarked sector {sector}"
+        );
+        assert!(!disk
+            .log
+            .iter()
+            .any(|(operation, _)| matches!(operation, Op::Write | Op::Flush)));
+    }
+}
+
+#[test]
+fn format_marker_preserves_recovery_of_a_torn_first_table() {
+    let mut disk = SimDisk::new();
+    table::write_format_marker(&mut disk).unwrap();
+    disk.durable[DATA_START as usize - 1][17] = 0xb5;
+    disk.log.clear();
+    let mut table = Table::EMPTY;
+    assert_eq!(table::recover_with_state(&mut disk, &mut table), Ok(true));
+    assert_eq!(table, Table::EMPTY);
+    assert!(!disk
+        .log
+        .iter()
+        .any(|(operation, _)| matches!(operation, Op::Write | Op::Flush)));
+}
+
+#[test]
+fn direct_service_constructor_cannot_claim_a_foreign_volume() {
+    for sector in [TABLE_SECTORS, DATA_START - 1, VOLUME_SECTORS - 1] {
+        let mut disk = SimDisk::new();
+        disk.durable[sector as usize][0] = 0xb5;
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        let mut c = client(&mut service, &mut disk, 0);
+        assert_eq!(
+            c.write(0, 0, b"Document", 1, fill(0, 1)),
+            Err(Status::Corrupt),
+            "unmarked sector {sector}"
+        );
+        assert!(!disk
+            .log
+            .iter()
+            .any(|(operation, _)| matches!(operation, Op::Write | Op::Flush)));
+    }
+}
+
+#[test]
+fn supplied_generation_does_not_skip_foreign_volume_admission() {
+    let mut disk = SimDisk::new();
+    disk.durable[VOLUME_SECTORS as usize - 1][0] = 0xb5;
+    let mut supplied = Table::EMPTY;
+    supplied.generation = 1;
+    let mut service = Service::new(EPOCH, supplied, false);
+    let mut c = client(&mut service, &mut disk, 0);
+    assert_eq!(
+        c.write(0, 0, b"Document", 1, fill(0, 1)),
+        Err(Status::Corrupt)
+    );
+    assert!(!disk
+        .log
+        .iter()
+        .any(|(operation, _)| matches!(operation, Op::Write | Op::Flush)));
+}
+
+#[test]
+fn first_upload_marks_the_empty_volume_before_staging_content() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, 0);
+    c.write(0, 0, b"Document", 1000, fill(0, 1)).unwrap();
+    let writes: Vec<_> = disk
+        .log
+        .iter()
+        .copied()
+        .filter(|(operation, _)| *operation != Op::Read)
+        .collect();
+    assert_eq!(
+        &writes[..3],
+        &[(Op::Write, 0), (Op::Flush, 0), (Op::Write, DATA_START)]
+    );
+}
+
+#[test]
+fn committed_generation_one_with_zero_companion_is_preserved() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    client(&mut service, &mut disk, 0)
+        .write(0, 0, b"First", 1, fill(0, 1))
+        .unwrap();
+    let mut legacy = disk.settled();
+    legacy[..TABLE_SECTORS as usize].fill([0; SECTOR]);
+    assert_eq!(recover(legacy), Ok(*service.table()));
+}
+
+#[test]
+fn adjacent_generation_checks_do_not_wrap_or_panic() {
+    let valid = table::SlotScan {
+        states: [SectorState::Valid(2, 7); table::TABLE_SECTORS_USIZE],
+        format_marker: false,
+        valid: Some(2),
+    };
+    let mut mixed = table::SlotScan {
+        states: [SectorState::Zero; table::TABLE_SECTORS_USIZE],
+        format_marker: false,
+        valid: None,
+    };
+    mixed.states[0] = SectorState::Valid(u64::MAX, 8);
+    assert_eq!(table::choose([valid, mixed]), Err(Status::Corrupt));
+    let maximum = table::SlotScan {
+        states: [SectorState::Valid(u64::MAX, 8); table::TABLE_SECTORS_USIZE],
+        format_marker: false,
+        valid: Some(u64::MAX),
+    };
+    assert_eq!(table::choose([maximum, maximum]), Err(Status::Corrupt));
+    mixed.states.fill(SectorState::Invalid);
+    mixed.states[0] = SectorState::Valid(0, 7);
+    assert_eq!(table::choose([mixed, maximum]), Err(Status::Corrupt));
+}
+
+/// A sealed table with a deleted object at revision `u64::MAX` (all other
+/// invariants intact) overflowed `revision + 1` in entry validation: a panic
+/// with overflow checks, a silent wrap to 0 in release. It must fail closed.
+#[test]
+fn deleted_object_revision_from_disk_does_not_overflow() {
+    let table = |revision: u64| {
+        let mut t = Table::EMPTY;
+        t.generation = revision;
+        t.request_id = 1;
+        t.clocks[0] = revision;
+        let entry = &mut t.entries[0];
+        entry.revision = revision;
+        entry.request_id = 1;
+        entry.created = 1;
+        entry.modified = 1;
+        entry.present = false;
+        t
+    };
+    // Both slots hold a valid table, so `Corrupt` can only come from the
+    // newest revision itself, not from a missing companion.
+    let image = |newest: u64| {
+        let mut sectors = vec![[0u8; SECTOR]; VOLUME_SECTORS as usize];
+        for t in [table(newest - 1), table(newest)] {
+            let slot = (t.generation % 2) * TABLE_SECTORS;
+            for index in 0..TABLE_SECTORS {
+                sectors[(slot + index) as usize] = t.encode_sector(index);
+            }
+        }
+        sectors
+    };
+    let last = u64::MAX - 1;
+    assert!(
+        recover(image(last)) == Ok(table(last)),
+        "control image one revision below the bound must recover"
+    );
+    assert_eq!(recover(image(u64::MAX)), Err(Status::Corrupt));
+}
+
+/// A delete from revision `u64::MAX - 1` would publish a tombstone at
+/// `u64::MAX`, which recovery rejects (it bounds the history by revision + 1).
+/// The service refuses it as exhausted before writing, via DELETE and TRANSACT,
+/// so the durable table stays the recoverable one.
+#[test]
+fn delete_at_last_tombstone_revision_is_refused_before_publishing() {
+    let g = u64::MAX - 1;
+    // Object 0 present, last written by the commit of `generation`.
+    let table = |generation: u64| {
+        let mut t = Table::EMPTY;
+        t.generation = generation;
+        t.request_id = 1;
+        t.clocks[0] = generation;
+        let entry = &mut t.entries[0];
+        entry.revision = generation;
+        entry.request_id = 1;
+        entry.created = 1;
+        entry.modified = generation;
+        entry.present = true;
+        entry.current = table::Version {
+            revision: generation,
+            name_length: 1,
+            ..table::Version::EMPTY
+        };
+        entry.current.name[0] = b'x';
+        t
+    };
+    let current = table(g);
+    let mut image = vec![[0u8; SECTOR]; VOLUME_SECTORS as usize];
+    for t in [table(g - 1), current] {
+        let slot = (t.generation % 2) * TABLE_SECTORS;
+        for index in 0..TABLE_SECTORS {
+            image[(slot + index) as usize] = t.encode_sector(index);
+        }
+    }
+    assert!(
+        recover(image.clone()) == Ok(current),
+        "control image must recover"
+    );
+    let mut disk = SimDisk::from_image(image);
+    let mut service = Service::recover(EPOCH, false, &mut disk).unwrap();
+    let writes = disk.log.len();
+    let mut c = client(&mut service, &mut disk, 0);
+    assert_eq!(c.delete(0, g), Err((Status::Full, 0)));
+    let sub = wire::SubOp {
+        index: 0,
+        op: wire::SUB_DELETE,
+        collection: 0,
+        tags: 0,
+        expected: g,
+        kind: 0,
+    };
+    assert_eq!(c.transact(0, &[sub]), Err(Status::Full));
+    assert_eq!(c.transport.disk.log.len(), writes);
+    assert!(c.transport.service.table() == &current);
+    assert!(recover(disk.settled()) == Ok(current));
 }
 
 #[test]

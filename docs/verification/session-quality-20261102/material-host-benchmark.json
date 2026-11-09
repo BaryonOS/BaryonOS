@@ -1,0 +1,59 @@
+{
+  "scope": "Host Rust release contract chain; no guest scheduler, physical display or native latency; two parallel QEMU processes on host.",
+  "samples": [
+    {
+      "file": "build/perf-logs/material-host-timing-1.txt",
+      "cached": false,
+      "initial_us": 16666,
+      "update_us": 36032,
+      "update_tiles": 1608
+    },
+    {
+      "file": "build/perf-logs/material-host-timing-1.txt",
+      "cached": true,
+      "initial_us": 20210,
+      "update_us": 35117,
+      "update_tiles": 3
+    },
+    {
+      "file": "build/perf-logs/material-host-timing-2.txt",
+      "cached": false,
+      "initial_us": 15506,
+      "update_us": 35406,
+      "update_tiles": 1608
+    },
+    {
+      "file": "build/perf-logs/material-host-timing-2.txt",
+      "cached": true,
+      "initial_us": 18290,
+      "update_us": 26341,
+      "update_tiles": 3
+    },
+    {
+      "file": "build/perf-logs/material-host-timing-3.txt",
+      "cached": false,
+      "initial_us": 21168,
+      "update_us": 39972,
+      "update_tiles": 1608
+    },
+    {
+      "file": "build/perf-logs/material-host-timing-3.txt",
+      "cached": true,
+      "initial_us": 22772,
+      "update_us": 29730,
+      "update_tiles": 3
+    }
+  ],
+  "median_by_mode": {
+    "False": {
+      "initial_us": 16666,
+      "update_us": 36032,
+      "update_tiles": 1608
+    },
+    "True": {
+      "initial_us": 20210,
+      "update_us": 29730,
+      "update_tiles": 3
+    }
+  }
+}

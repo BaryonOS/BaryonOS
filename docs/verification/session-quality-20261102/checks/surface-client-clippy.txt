@@ -1,0 +1,6 @@
+    Checking zeroize v1.9.1
+    Checking catalog-core v0.1.0 (/workspace/nieuw-os/services/catalog)
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/nieuw-os/sdk/runtime)
+    Checking nieuw-os-catalog-client v0.1.0 (/workspace/nieuw-os/sdk/catalog-client)
+    Checking nieuw-os-surface-protocol v0.1.0 (/workspace/nieuw-os/ui/surface-protocol)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.88s

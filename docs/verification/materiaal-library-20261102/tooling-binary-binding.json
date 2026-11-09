@@ -1,0 +1,84 @@
+{
+  "native_tested_commit": "64044318c622eaacab25272611acf856a5fca5d5",
+  "native_tested_source_sha256": "069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670",
+  "followup_commit": "024cede12dbe16697ef6a5221d95297be0f6c56d",
+  "followup_source_sha256": "68d786c66269f70c84978a5ed8f3bff331e8479a268e56153af03dd7df0149f0",
+  "changed_source_files": [
+    "tools/run_materiaal_probe.py",
+    "tools/tests/test_materiaal_probe.py",
+    "tools/tests/test_materiaal_preview.py"
+  ],
+  "new_native_execution_claimed": false,
+  "identical_runtime_payloads": [
+    {
+      "path": "esp/kernel.elf",
+      "sha256": "15a3fb2703f40a8d37812ad4d318f8a2773deace8c42651360f090e1a252d910",
+      "identical": true
+    },
+    {
+      "path": "users/materiaal/keyring-service.elf",
+      "sha256": "b8e12f74dbdc0016cded50f913d8e0d7a420fa3f4960e2d699e32b4bb5b30fe4",
+      "identical": true
+    },
+    {
+      "path": "users/materiaal/volume-service.elf",
+      "sha256": "aa6ab477ec3eca0021aed1083aa7e3028608dc87ec1233ad3d5f2a89d2af4e83",
+      "identical": true
+    },
+    {
+      "path": "users/materiaal/materiaal-app.elf",
+      "sha256": "5fcfcb36ba409d745f9dabe71cfa2088358b14e25234017d98985238e3e63ebf",
+      "identical": true
+    },
+    {
+      "path": "users/materiaal/input-source.elf",
+      "sha256": "3c8852188ddb7f5b3ded12d9caef17e63d0164c679dffee0a3183433f33111b9",
+      "identical": true
+    },
+    {
+      "path": "users/materiaal/input-policy.elf",
+      "sha256": "fc7782e67787b61f8990851881b46b71f8400b1a3d781bdd18cf71d850b4f085",
+      "identical": true
+    },
+    {
+      "path": "users/materiaal/window-init.elf",
+      "sha256": "ddf6450aac86872380b68ccf693de2d06e390a62f4c283d97d007aff6fb0e90b",
+      "identical": true
+    },
+    {
+      "path": "users/materiaal/window-compositor.elf",
+      "sha256": "aa4c54964cc111facf077d62b3ce34550d72905fb6c0757023850531111e5f83",
+      "identical": true
+    },
+    {
+      "path": "users/materiaal/calculator-app.elf",
+      "sha256": "6b65d1aa481f8e42c1a92ef28358713969605bcbce1aa4fa281bdf8c0be419b9",
+      "identical": true
+    }
+  ],
+  "uefi_loader": {
+    "old_sha256": "43a296579b8594ba1efdd2d4017791d2625f5c4f70726a1a82e07fad6ac6d6ea",
+    "new_sha256": "b464facb23d79574043c2b0db19af69f84eea528882bef0b7c80003c455263fa",
+    "identical": false,
+    "changed_byte_count": 14,
+    "differences_only_in_declared_link_metadata": true,
+    "metadata_ranges": [
+      {
+        "kind": "COFF link timestamp",
+        "start": 128,
+        "end": 132
+      },
+      {
+        "kind": "debug link timestamp",
+        "start": 30448,
+        "end": 30452
+      },
+      {
+        "kind": "CodeView debug identity",
+        "start": 30476,
+        "end": 30492
+      }
+    ],
+    "actual_files_not_modified": true
+  }
+}

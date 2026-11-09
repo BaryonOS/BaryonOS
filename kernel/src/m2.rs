@@ -1,8 +1,9 @@
 //! M2 bootstrap owns all state; single CPU, IF clear, no allocator/scheduler locks.
 //! Copies boot input before any frame reuse. The old loader allocations are retained.
-#[cfg(feature = "native-smp")]
-mod ap;
+mod acpi;
 mod arch;
+#[cfg(feature = "native-smp")]
+mod lock;
 #[cfg(feature = "milestone-m3")]
 mod m3;
 pub(crate) mod paging;
@@ -81,20 +82,6 @@ extern "C" fn run() -> ! {
     #[cfg(not(feature = "framebuffer"))]
     boot_protocol::validate_memory_map(info, map_bytes).expect("copied map");
     let map = MemoryMap::new(map_bytes, info.descriptor_size, info.descriptor_version).unwrap();
-    #[cfg(feature = "native-smp")]
-    let smp_info = {
-        assert_eq!(
-            info.abi_minor,
-            boot_protocol::SMP_MINOR,
-            "native SMP requires versioned boot handoff"
-        );
-        // SAFETY: BootInfo validation binds this fixed-size, aligned handoff
-        // inside the retained two-page BootInfo allocation before it is read.
-        let smp = unsafe { (info.smp_info_addr as *const boot_protocol::smp::Info).read() };
-        smp.validate().expect("SMP handoff validation");
-        assert_eq!(smp.trampoline_page, info.smp_trampoline_page);
-        smp
-    };
     let retained = info.retained_ranges().unwrap().map(|r| Range {
         start: r.start,
         end: r.end,
@@ -121,29 +108,24 @@ extern "C" fn run() -> ! {
     serial::write(b"KS-01:PASS\n");
     check_frames(frames);
     serial::write(b"KS-02:PASS\n");
+    // First-fit before any table allocation: the lowest free frame is the SIPI page.
+    #[cfg(feature = "native-smp")]
+    let trampoline = smp::reserve_trampoline(frames);
     let mut paging = paging::Paging::new(frames);
     let text_end = ptr::addr_of!(__text_end) as u64;
     let rodata_end = ptr::addr_of!(__rodata_end) as u64;
     let kernel_end = ptr::addr_of!(__kernel_end) as u64;
     for page in (text_start()..kernel_end).step_by(PAGE as usize) {
-        if arch::is_guard(page) {
-            continue;
-        }
         #[cfg(feature = "native-smp")]
-        if ap::is_guard(page) {
+        if smp::is_guard(page) {
             continue;
         }
-        paging.map(frames, page, page, page >= rodata_end, page < text_end);
+        if !arch::is_guard(page) {
+            paging.map(frames, page, page, page >= rodata_end, page < text_end);
+        }
     }
-    for (range_index, range) in retained.iter().enumerate().skip(1) {
-        #[cfg(not(feature = "native-smp"))]
-        let _ = range_index;
+    for range in &retained[1..] {
         for page in (range.start..range.end).step_by(PAGE as usize) {
-            #[cfg(feature = "native-smp")]
-            if range_index == 5 && page == smp_info.trampoline_page {
-                paging.map(frames, page, page, false, true);
-                continue;
-            }
             paging.map(
                 frames,
                 page,
@@ -153,15 +135,18 @@ extern "C" fn run() -> ! {
             );
         }
     }
-    #[cfg(feature = "native-smp")]
-    smp::prepare(&smp_info, &mut paging, frames);
     #[cfg(feature = "milestone-m3")]
     paging.map(frames, paging::SCRATCH, nx_probe(), true, false);
     #[cfg(feature = "framebuffer")]
     crate::framebuffer::map(&mut paging, frames, &map);
+    // Needs the firmware identity map: may zero a new PT and writes the SIPI page.
+    #[cfg(feature = "native-smp")]
+    let smp_prepared = smp::prepare(frames, &mut paging, trampoline);
+    paging.prepare_firmware_scratch(frames);
     paging.map_tables(frames);
     arch::protection();
     arch::activate(paging.root);
+    let _discovery = acpi::discover(info, map_bytes, &mut paging);
     paging.audit(frames);
     assert_eq!(paging.leaf(text_start()) & (2 | (1 << 63)), 0);
     assert_eq!(paging.leaf(nx_probe()) & (2 | (1 << 63)), 2 | (1 << 63));
@@ -172,66 +157,61 @@ extern "C" fn run() -> ! {
     for guard in arch::guard_pages() {
         assert_eq!(paging.leaf(guard), 0);
     }
+    #[cfg(feature = "native-smp")]
+    for guard in smp::guard_pages() {
+        assert_eq!(paging.leaf(guard), 0);
+    }
     serial::write(b"KS-03:PASS\n");
     #[cfg(feature = "native-smp")]
-    {
-        smp::start_and_test(&smp_info);
-        serial::write(b"SMP:PASS\n");
-        #[cfg(feature = "native-smp-m3")]
-        m3::start(frames, paging);
-        #[cfg(not(feature = "native-smp-m3"))]
-        serial::exit(0x10);
+    smp::start(smp_prepared, &_discovery.madt, frames, &mut paging);
+    #[cfg(feature = "native-smp")]
+    lock::selftest();
+    #[cfg(feature = "native-rtc")]
+    rtc::run();
+    if cfg!(feature = "test-m2-ro") {
+        // SAFETY: Deliberate fault probe through an integer address; no Rust
+        // reference is created to immutable text. Hardware WP must reject store.
+        unsafe {
+            asm!("mov byte ptr [{0}], 0",in(reg) text_start(),options(nostack));
+        }
+        serial::fail(b"M2_RO_DID_NOT_FAULT");
     }
-    #[cfg(not(feature = "native-smp"))]
+    if cfg!(feature = "test-m2-nx") {
+        // SAFETY: Deliberate execution probe; valid mapped data begins with ret,
+        // but hardware NX must fault BEFORE any data is executed.
+        unsafe {
+            asm!("call {0}",in(reg) nx_probe());
+        }
+        serial::fail(b"M2_NX_DID_NOT_FAULT");
+    }
+    if cfg!(feature = "test-m2-absent") {
+        // SAFETY: Test-only deliberate unmapped access uses assembly, avoiding a
+        // Rust null dereference (which would be UB independently of hardware).
+        unsafe {
+            asm!("mov rax, [0]",out("rax") _,options(nostack));
+        }
+        serial::fail(b"M2_ABSENT_DID_NOT_FAULT");
+    }
+    if cfg!(feature = "test-m2-kernel-fault") {
+        // SAFETY: Test-only architected #UD; own IDT must stop with raw exit35.
+        unsafe {
+            asm!("ud2", options(noreturn));
+        }
+    }
+    if cfg!(feature = "test-m2-double-fault") {
+        arch::double_fault_probe();
+    }
+    #[cfg(feature = "graphics-g0")]
+    crate::graphics::run();
+    #[cfg(feature = "milestone-m3")]
     {
-        #[cfg(feature = "native-rtc")]
-        rtc::run();
-        if cfg!(feature = "test-m2-ro") {
-            // SAFETY: Deliberate fault probe through an integer address; no Rust
-            // reference is created to immutable text. Hardware WP must reject store.
-            unsafe {
-                asm!("mov byte ptr [{0}], 0",in(reg) text_start(),options(nostack));
-            }
-            serial::fail(b"M2_RO_DID_NOT_FAULT");
-        }
-        if cfg!(feature = "test-m2-nx") {
-            // SAFETY: Deliberate execution probe; valid mapped data begins with ret,
-            // but hardware NX must fault BEFORE any data is executed.
-            unsafe {
-                asm!("call {0}",in(reg) nx_probe());
-            }
-            serial::fail(b"M2_NX_DID_NOT_FAULT");
-        }
-        if cfg!(feature = "test-m2-absent") {
-            // SAFETY: Test-only deliberate unmapped access uses assembly, avoiding a
-            // Rust null dereference (which would be UB independently of hardware).
-            unsafe {
-                asm!("mov rax, [0]",out("rax") _,options(nostack));
-            }
-            serial::fail(b"M2_ABSENT_DID_NOT_FAULT");
-        }
-        if cfg!(feature = "test-m2-kernel-fault") {
-            // SAFETY: Test-only architected #UD; own IDT must stop with raw exit35.
-            unsafe {
-                asm!("ud2", options(noreturn));
-            }
-        }
-        #[cfg(feature = "test-m2-double-fault")]
-        {
-            arch::double_fault_probe();
-        }
-        #[cfg(feature = "graphics-g0")]
-        crate::graphics::run();
-        #[cfg(feature = "milestone-m3")]
-        {
-            serial::write(b"M2:PASS\n");
-            m3::start(frames, paging);
-        }
-        #[cfg(all(not(feature = "milestone-m3"), not(feature = "graphics-g0")))]
-        {
-            serial::write(b"M2:PASS\nM1:PASS\n");
-            serial::exit(0x10)
-        }
+        serial::write(b"M2:PASS\n");
+        m3::start(frames, paging);
+    }
+    #[cfg(all(not(feature = "milestone-m3"), not(feature = "graphics-g0")))]
+    {
+        serial::write(b"M2:PASS\nM1:PASS\n");
+        serial::exit(0x10)
     }
 }
 

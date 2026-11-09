@@ -1,0 +1,403 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-09",
+  "timezone": "Europe/Amsterdam",
+  "repository": "simonvanieperen/BaryonOS",
+  "source_commit": "1d5bc01e632fd5bab429f3befc9e9546c9f7661c",
+  "branch": "docs/wetenschappelijke-schrijfstijl-20261109",
+  "task": "Correctie van PR #263 naar onpersoonlijke wetenschappelijke schrijfstijl op expliciete gebruikersinstructie.",
+  "scope": {
+    "existing_files_changed": 57,
+    "markdown_files_changed": 55,
+    "other_existing_files": [
+      "docs/progress.json",
+      "docs/assets/progress.svg"
+    ],
+    "new_file": "Dit redactieverslag.",
+    "new_runtime_or_workflow_changes": false
+  },
+  "inventory": {
+    "tracked_paths": 6599,
+    "utf8_files_searched": 6338,
+    "non_utf8_files": 261,
+    "files_with_literal_matches": 860,
+    "search_pattern": "\\b(?:ik|mij|mijn|wij|we|ons|onze|Simon)\\b"
+  },
+  "style": {
+    "current": "Onpersoonlijk, zakelijk, precies en toetsbaar. Besluiten en begrippen worden vanuit het onderwerp beschreven.",
+    "examples": [
+      "Er is gekozen voor openbare ontwikkeling.",
+      "Met de Europese oriëntatie worden privacy, zeggenschap, toegankelijkheid, transparantie, open samenwerking en overdraagbaarheid bedoeld."
+    ],
+    "authority": "Waar beslissingsbevoegdheid of persoonlijke betrokkenheid relevant is, blijft de formele rol projecteigenaar benoemd.",
+    "superseded": "De ik-vormafspraak uit PR #263; het oorspronkelijke controleverslag blijft als historische bron behouden."
+  },
+  "preserved_categories": [
+    "Technische inhoud, normatieve eisen, besluiten, bevoegdheden en bewijsstatus",
+    "Getallen, eenheden, codeblokken, inlinecode en verwijzingen in de bestaande geredigeerde tekst",
+    "Naamverklaring Baryon OS in README en ADR-BARYON-NAME-20261108",
+    "Letterlijke broncitaten en expliciet behouden UI-, voorbeeld- en gebruikersstemmen; eigen retorische formuleringen zijn waar passend onpersoonlijk geherformuleerd.",
+    "Gebruikersinterfacelabels, testinvoer, technische identifiers, namen in bronmetadata en externe bronbestanden",
+    "Historische snapshots, ruwe uitvoer en direct hashgebonden bewijsbestanden"
+  ],
+  "preserved_archive_paths": [
+    "docs/history/integration-2026-10-30",
+    "docs/verification/retained-document-heads-20261103.json",
+    "docs/verification/pr142-stack-integration.json",
+    "docs/verification/stack130-historical-central.json",
+    "docs/verification/qsim-request-validation/review-bundle.json",
+    "docs/verification/professionele-projectstem-20261108.json",
+    "docs/verification/full-release-net-firmware-diagnosis/README.md",
+    "docs/verification/native-storage-backend-gate/PRIMARY-SOURCES.md"
+  ],
+  "checks": [
+    {
+      "command": "python3 tools/progress.py --write",
+      "exit_status": 0,
+      "scope": "Voortgangsweergaven opnieuw gegenereerd."
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "exit_status": 0,
+      "scope": "41/100, rubric v1 consistent; geen native bewijsvalidatie."
+    },
+    {
+      "command": "git diff --check",
+      "exit_status": 0,
+      "scope": "Geen diff-/witruimtefouten."
+    },
+    {
+      "name": "Vergelijking van bestaande Markdown met broncommit",
+      "exit_status": 0,
+      "files": 55,
+      "patterns": {
+        "numeric_tokens": "\\d+(?:[.,]\\d+)*",
+        "fenced_code": "^```[^\\n]*\\n.*?^```[^\\n]*$",
+        "inline_code": "(?<!`)`[^`\\n]+`(?!`)",
+        "url_targets": "https?://[^\\s<>()]+",
+        "markdown_link_targets": "\\]\\(([^\\s)]+)(?:\\s+[^)]*)?\\)"
+      },
+      "exceptions": [
+        "Gegenereerd README-voortgangsblok: nieuw assessment.",
+        "Nieuw bovenste PROJECT-STATE-checkpoint: taakregistratie."
+      ],
+      "result": "Alle vergeleken tokenreeksen, codeblokken en linkdoelen gelijk."
+    },
+    {
+      "name": "Voortgangsregister buiten assessment",
+      "result": "JSON-inhoud buiten assessment structureel identiek; geen criterium, gewicht of acceptatiestatus gewijzigd."
+    },
+    {
+      "name": "Oorspronkelijke releaseopdracht",
+      "result": "Bytes tussen FULL-RELEASE-REQUEST-markers gelijk aan broncommit."
+    },
+    {
+      "name": "Vaste bronarchieven en naamverklaring",
+      "result": "Beschermde bestanden en Baryon README-/ADR-fragmenten gelijk aan broncommit."
+    }
+  ],
+  "review": {
+    "method": "Afzonderlijke AI-redactiereview van de repositorybrede zoekresultaten en de volledige wijzigingsdiff.",
+    "finding": "Geen inhoudelijke blocker gevonden. Een grammaticaal dubbelzinnige mandaatzin is verduidelijkt. De verslagclaims over behouden voorbeeldstemmen en structurele JSON-gelijkheid zijn aangescherpt.",
+    "limits": "Geen onafhankelijke menselijke audit. De GitHub-reviews en CI behoren bij de later gepubliceerde PR-head; zij worden hier niet als al uitgevoerd geclaimd.",
+    "local_coderabbit_cli": "Niet uitgevoerd; de GitHub-app wordt voor deze PR gebruikt."
+  },
+  "progress": {
+    "previous": 41,
+    "current": 41,
+    "rubric_version": 1,
+    "reason": "Uitsluitend redactionele correctie; geen nieuwe OS-functionaliteit of productacceptatie."
+  },
+  "not_performed": [
+    "Nieuwe lokale Rust-, QEMU- of fysieke-hardwaretests",
+    "Wijzigingen in bronquotes, oorspronkelijke logs of historische testresultaten"
+  ],
+  "edited_files": [
+    {
+      "path": "AGENTS.md",
+      "base_git_blob": "17a34ea3bf0fcb3ef748ff79fb2bad0b9a32cbc1",
+      "sha256": "cb38156d2fdbd57787e2ecdb5db2b1399e303d289a090b11d2e61f0fce89c35e"
+    },
+    {
+      "path": "LICENSE-PLAN.md",
+      "base_git_blob": "977ba803021e5b78d1665ccda2024ab943de5e5f",
+      "sha256": "919495f6a417f4bf657437e976d945abf9f0920bf287ac2134eec1baf3d27a02"
+    },
+    {
+      "path": "PROMPT-START.md",
+      "base_git_blob": "7f7990d01a2c6e9736dd0b6a2643419e0683d260",
+      "sha256": "a40c43b3f0bd5ed53eefd1a31a9d3e130aa602965f460d2d81559458f3ef2595"
+    },
+    {
+      "path": "README.md",
+      "base_git_blob": "43a4692ce6c3e5ba577d80fbc546f7692d9eef39",
+      "sha256": "e3f24cc610b2991ed7fa08648a5dc4f1851d2dceea6402d17f95cbcc57b5acba"
+    },
+    {
+      "path": "START-HIER.md",
+      "base_git_blob": "9108393fba9a0fb0b91975655c2efa63298e1771",
+      "sha256": "b8de346ef1b2d7193a0ac9f74a525393083a97e6e27a5ba90b0d7b3210ec6d9d"
+    },
+    {
+      "path": "docs/AGENTS.md",
+      "base_git_blob": "66748e3e118cc0d9ff2a9bd5d42bec1565ead732",
+      "sha256": "73a95747fbf91c487b578eca27d86cc1e04158e3ff86a8cfa1dc0ef26c194fde"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "base_git_blob": "382f3607d3960863ee4a418056383298501d3c6f",
+      "sha256": "4f6acc54257ce15aabfa5ccb5327bdd9d69547051060facaa8d2b2e28b3a8c21"
+    },
+    {
+      "path": "docs/CODEX-WORKFLOW.md",
+      "base_git_blob": "a42e2c81bad490c0e3c516d7ff929b5b0034c4e0",
+      "sha256": "3f8d5a737c2a969b2b39d388eb1f9333198b5daa9e326ea23b28c49e2ed220a0"
+    },
+    {
+      "path": "docs/DECISIONS.md",
+      "base_git_blob": "b2ed5644b5e8e7b570b57a56a49f8d256979afac",
+      "sha256": "a6304cac205282dcfc1a5f3ed2d58753723d3796de9e7f7528cbdab3cfb1364d"
+    },
+    {
+      "path": "docs/DESIGN-AMBITION.md",
+      "base_git_blob": "60a6df9513fc50bef6e05326572218a2a29e415a",
+      "sha256": "54ebd3821769294fd8c88af0c6b69f8f05f1ea8db9c60b391805f6c9d30667f0"
+    },
+    {
+      "path": "docs/FULL-TEST-RELEASE-CONTEXT.md",
+      "base_git_blob": "15c1e39f0478bda3741c3f12cde0e4ddb5a8a912",
+      "sha256": "661ed9652fb7ba47cacead25615fcfbae0a1d658988b20503457ab056ffd0871"
+    },
+    {
+      "path": "docs/FULL-TEST-RELEASE.md",
+      "base_git_blob": "143bb555518007f9bb0f7919b57ee4d263c92412",
+      "sha256": "4aed11cbc29464fee2e9c7c666a5c0996aabf65edf744956f4b85f651ee5d7d3"
+    },
+    {
+      "path": "docs/LOCAL-PRIVACY-CONTRACT.md",
+      "base_git_blob": "82979f87ecdeeb125146dafbdda60f02e5a72c94",
+      "sha256": "e720e634719d6541f01c384e27749c5dc1c78c3c94a09b750f84f81022d429d6"
+    },
+    {
+      "path": "docs/OSDEV-LEERROUTE.md",
+      "base_git_blob": "7b9eb233ea13a4a2efc2003afd2f8bf1c770bc78",
+      "sha256": "a2c85348834239d496c28394ca87d2e86981d47314868a518d5fdd0ff68812ea"
+    },
+    {
+      "path": "docs/PRIVACY-BROWSER-RESEARCH.md",
+      "base_git_blob": "0f9129094a9898607ba28cd9197ba43c41757c25",
+      "sha256": "2989fe727f4db67b8afffe6efcef13aead806d8ef1dcfac5cc2a309077d06e46"
+    },
+    {
+      "path": "docs/PRODUCT-AND-SOVEREIGNTY.md",
+      "base_git_blob": "4eaf25501ee0207e83f268df1eed8bd72a6e8c85",
+      "sha256": "c61a204fa368a06512efcc927bd492532b881f90e76f9acc1ed3fdf23f340924"
+    },
+    {
+      "path": "docs/PROGRESS.md",
+      "base_git_blob": "5192645c5bbe1b7a72ff6fad6a645d1cb3435f47",
+      "sha256": "e83bb8f32594e0626936da5776174f13b88388389c8f2649c70381d29a7cbb15"
+    },
+    {
+      "path": "docs/PROJECT-STATE.md",
+      "base_git_blob": "3e4a97b0aa6185837e924c0e039aba1440a7c0fa",
+      "sha256": "fe16dd5597d1b00a7228a25eb926fbc65172b5d769258e149c4a2a53f24e3c92"
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "base_git_blob": "cf30bb32edbda593d1a76ae0f1e2e30d76605f25",
+      "sha256": "76f61ee5df9332eb91776963d98570ba403cd135c38d3d32d531d5f08f6067ad"
+    },
+    {
+      "path": "docs/SECURITY-AND-QUANTUM.md",
+      "base_git_blob": "5ed622fbde4f9d7841e9de2e2860b28d2fad341c",
+      "sha256": "45eafd7162a1592fe6a4f939f3195996c298a8c3ddf268583242bec493639c20"
+    },
+    {
+      "path": "docs/WORK-QUEUE.md",
+      "base_git_blob": "5242f656fe05c29f4adc8652051b0f6306a04d25",
+      "sha256": "f8063e6aaa1f7d755d1b6ace5cc4faefa864c9bf608793cb161a71c81bc2f822"
+    },
+    {
+      "path": "docs/assets/progress.svg",
+      "base_git_blob": "cbbef0bdb4e4019b7f4d45bda8f8429c34a4e3e0",
+      "sha256": "6654acac206e213d8e4de8cf2fa10467ada5250669214cd992fd1a254332abaf"
+    },
+    {
+      "path": "docs/audits/subagents/09-hardware-drivers.md",
+      "base_git_blob": "4558b3f388a6d38f822c796d2f2b70859cfd276f",
+      "sha256": "8fb58e8eaac227a546235feacdf642588dabda5fe08ca42598753efda5baa709"
+    },
+    {
+      "path": "docs/implementation/APP-PACKAGES.md",
+      "base_git_blob": "c947b8d4f9b177500e999b4aa001dc06fa3e4e66",
+      "sha256": "8ff4845d9823f4bfcdafc063c56d1391777031bdfb681114c98a77a3a46043a6"
+    },
+    {
+      "path": "docs/implementation/BOOT-AND-TOOLCHAIN.md",
+      "base_git_blob": "09904bf2247e4dbaed8339cda40212a6ed108952",
+      "sha256": "382d265faa1dd93ebab6b82d8236c55b0228ff59325f559cbcbbb8ef742bb0dc"
+    },
+    {
+      "path": "docs/implementation/DESKTOP-SHELL.md",
+      "base_git_blob": "7d50837397128901843a6b8fcb85f0062760cf58",
+      "sha256": "6aec0de6fb1ba482bd00f096066aade59d71a0e1710bc36cd8572995463780b8"
+    },
+    {
+      "path": "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md",
+      "base_git_blob": "3e94cffefa1ab18fc0fd8a7ee06f5ef173be48a5",
+      "sha256": "ddaee504ce90caa14a9ffc6a6e371a4b42ee0887a89a807f68d31e2875a75d9e"
+    },
+    {
+      "path": "docs/implementation/M6A-WRITE-RECOVERY.md",
+      "base_git_blob": "08d49d11377d839bf29b21cc0f2e5d11d6be6a53",
+      "sha256": "156f2a4f497236d682afb2e6bcfe8573ef89146e15b24a9bbe79bbe0cf566820"
+    },
+    {
+      "path": "docs/implementation/NAS-SHARING-AND-INTERNET.md",
+      "base_git_blob": "a1a854e1ba536d3caf32d7f910e6bf20b8eea99e",
+      "sha256": "0496e8b2b1ebf01073d54b7a7b5839035d119662fc935b9cbe795382f934485c"
+    },
+    {
+      "path": "docs/implementation/PRODUCT-SPEC.md",
+      "base_git_blob": "41ead2c79c11bd5c8def51a07af79d8f63273ffa",
+      "sha256": "138f26d24124a83ec8defdd6b6e2df9172d85d6047d1a0fda2565297dde8c0ab"
+    },
+    {
+      "path": "docs/implementation/PROFILES-AND-USERS.md",
+      "base_git_blob": "83fd2bafba2ae1421f7df8dc9bab0aa68c631307",
+      "sha256": "8642f3749ef6fad5ca35b64e3763a515326b2416e7ce197fcecb03871f89dd41"
+    },
+    {
+      "path": "docs/implementation/UX-MATERIAAL-SAVE-RECOVERY.md",
+      "base_git_blob": "ec9faa4e2248d5b21275bea2a9a6774c8dab6d6c",
+      "sha256": "86414a34093396fcec128b66e1083df591c1e79f9074eb641047af39f91e3604"
+    },
+    {
+      "path": "docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md",
+      "base_git_blob": "b8726c6aa73cdca1694dc514cf58adf1579b7f22",
+      "sha256": "f03e19a7632b00fea0206547284509297a789d5412dca2c3482cddbc0dd06f31"
+    },
+    {
+      "path": "docs/implementation/VERIFICATION.md",
+      "base_git_blob": "5a72bc7b45c11321e7225a7cafb3d2d5e8e4ab2e",
+      "sha256": "39799c378207a628212d5b7a9769c2f8574d4a5d2163f56ccb0f9c6973bc41a1"
+    },
+    {
+      "path": "docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md",
+      "base_git_blob": "abc14d5d34e8a0b80db68756757d083560361e6b",
+      "sha256": "96c0b66bb1137c5ffaab2f043ba325af6d08fe2f0a049aca27561b6206a97cfb"
+    },
+    {
+      "path": "docs/implementation/VMWARE-WORKSTATION-TRIAL.md",
+      "base_git_blob": "32ec9c4cb76155d8f90f9abd009971d55c474d41",
+      "sha256": "8e0a7cf54be088e2776379a5f145c545d013f56e263a4c44111f8f184e3c3548"
+    },
+    {
+      "path": "docs/progress.json",
+      "base_git_blob": "69e2f91efc5535bded5f09580ad832395f614042",
+      "sha256": "85a5b4f1f58500c6b4618809aa427f432ff1a9df53d58c435dce8afbfe4a5c3a"
+    },
+    {
+      "path": "docs/research/2026-11-02/README.md",
+      "base_git_blob": "6f32afec592fe7cfda99f3ec89ca5bc86e172c19",
+      "sha256": "6786c40abba5a28f353d5e1c586c78fd503a23c094c18e3e7981c6e5d1b5cd8a"
+    },
+    {
+      "path": "docs/research/2026-11-02/journey/windows-macos-installation.md",
+      "base_git_blob": "6695a90acbc47a6c7fc8f5e49523cd76f1413232",
+      "sha256": "2a6766a44919148c905a7614e9fd0eeb0bc0547fd9523e0d6d00ab719ee8fefb"
+    },
+    {
+      "path": "docs/research/2026-11-03/os-repos-and-hardware-drivers.md",
+      "base_git_blob": "7ae62f545b51ae1f5f5889db8b922cd18de2686f",
+      "sha256": "abd020eb368125cf22da9081d0c06696693e368d49b397f4cab79c3114522de6"
+    },
+    {
+      "path": "docs/research/MARKET-AND-ADOPTION-2026-10-28.md",
+      "base_git_blob": "bdea457c40018d108227c148d6d9bd89a74368bb",
+      "sha256": "b66147003e62cc92ced7fdaba367bac399a709503948ec85c3f5305f7445f027"
+    },
+    {
+      "path": "docs/research/SESSION-ROUTES-2026-11-02.md",
+      "base_git_blob": "f9078ab211f793dc9f5d85b57bf35a84abeead22",
+      "sha256": "43e6daad2389a05011d8af924c2a403188c1500fd4f738f351cf83bd9769ac58"
+    },
+    {
+      "path": "docs/verification/M6D-ACCEPTANCE.md",
+      "base_git_blob": "0101005005a4d41a028fb9dc3a6bf8cee092a27d",
+      "sha256": "c7fa73931bd8a0766c437c89d0f9e51411e97bfea62f6e19adc873b9c3b049c0"
+    },
+    {
+      "path": "docs/verification/app-package-source-policy/README.md",
+      "base_git_blob": "1a2fd541659c69fe56b983f07586df51739ec7ed",
+      "sha256": "aa1c5cdebcd66f1dd4acdcbff87518e0e5ae9f3336c1e9577ec7d59b55ad16ce"
+    },
+    {
+      "path": "docs/verification/desktop-coordination-20261102/README.md",
+      "base_git_blob": "b522fc95d66fa561034522f91c36c636f44e7305",
+      "sha256": "8675f7a73dfe5a07d7fad934cf567ce41e916bc66255ca59b51061d3e072c10e"
+    },
+    {
+      "path": "docs/verification/dhcpv4-codec/README.md",
+      "base_git_blob": "cde25be0532b7691c1b50193f57cfc0e83ddf01e",
+      "sha256": "bb784e56687d5a29b6b3cfcea19d7566418a7a3570461358c19e622bfa780496"
+    },
+    {
+      "path": "docs/verification/gui-idle-20261102/windows-ab/README.md",
+      "base_git_blob": "ba4d896e93108829d84524f11db19bf0b2f7aeee",
+      "sha256": "4c87b3d545efec3c98dce3b51e9e1381d0428d651e42a10f70a3a6fb63fb40ca"
+    },
+    {
+      "path": "docs/verification/k06-smp-preempt/README.md",
+      "base_git_blob": "0b60d97bcadb1318808068e0ba08fdb270d61fbf",
+      "sha256": "ef6b57bf6418d2bcfa904c486d1f52a1e17e31ca85700e814486ef6db461a0d2"
+    },
+    {
+      "path": "docs/verification/m5/service/user-review.md",
+      "base_git_blob": "9d79289ed9cf0af106bbb8b9b077f9fb54a03935",
+      "sha256": "ec051a0588066e96b28dc7d183c82075b1cd816bf1cbcf1ce103bf3af2f3f9c4"
+    },
+    {
+      "path": "docs/verification/parallel-g09/README.md",
+      "base_git_blob": "dec8912cfcad13b61c23c6856806fafb7897af3f",
+      "sha256": "cea41b9162de8786bad759bf9af7f371cf54d05bfed1f40421451f9b9c934802"
+    },
+    {
+      "path": "docs/verification/parallel-review-repairs/README.md",
+      "base_git_blob": "ae3c519cbee1932617fa6af9291eb10b6d7b8b02",
+      "sha256": "cc030815d8a5ffeb5fd247ed0017dd92984418b3657679f5c03579b8bf179530"
+    },
+    {
+      "path": "docs/verification/pr68-74-batch/README.md",
+      "base_git_blob": "478d016b948ba0c6d3d8ef6b74ff5575f0f358b6",
+      "sha256": "3a7433c40132532e12bc0bc63e954a758a56f62d1e66eed8d0644dc119d1f93a"
+    },
+    {
+      "path": "docs/verification/sparse-frames-117/README.md",
+      "base_git_blob": "43b865349d7d551628e241e86514411e8b16d5bd",
+      "sha256": "2806fa07666e01c9831c542db3d381f657aa8c47dd6cd553ff640f8e8f66d3ff"
+    },
+    {
+      "path": "docs/verification/windows-delivery-21/README.md",
+      "base_git_blob": "314bcceca84d4099757371e8bca68e6c5ff8a350",
+      "sha256": "4b67dc7e91e74ab813ef40d47ef473d5d9fb9b078a0bd5ec2ba6145cbf7e74dc"
+    },
+    {
+      "path": "docs/verification/windows-qemu-interactive-1/README.md",
+      "base_git_blob": "1b1a24e8da51ba92605b2dde5362e9f4594afb4b",
+      "sha256": "da41ef7402ec4dd47635ad87724b3fb8e9233fe4bb1dd79f5f23012962e8d6eb"
+    },
+    {
+      "path": "docs/verification/windows-qemu-preview/windows-launcher.md",
+      "base_git_blob": "c24c36d4a1c704be05ca4b94d87451e1c6eaeb17",
+      "sha256": "d94d4f9467baaa19847cdb1083c1438ebe4a2a40a1eb1ab17800a54c38f27b84"
+    },
+    {
+      "path": "services/nas/native-probe/verification/README.md",
+      "base_git_blob": "32c296df37d7624fe41a343c0a0ed4cb63866293",
+      "sha256": "8db5603064956ddcf30072843239c43088659dc33447bdbb27ed9172a4e83e7a"
+    }
+  ],
+  "rollback": "Draai uitsluitend deze redactie met een afzonderlijke revert terug als dat expliciet wordt besloten; behoud latere wijzigingen en de bestaande historie."
+}

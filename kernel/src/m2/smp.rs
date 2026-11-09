@@ -1,498 +1,1522 @@
-use core::{
-    arch::asm,
-    hint::spin_loop,
-    sync::atomic::{
-        compiler_fence, fence, AtomicBool, AtomicU32, AtomicU64, AtomicU8, AtomicUsize, Ordering,
-    },
-};
-
-use boot_protocol::smp::{Info, MAX_CPUS};
-use kernel_core::smp::{CpuSet, Rendezvous, State};
-
-use super::{ap, paging::Paging, FRAME_COUNT};
+//! K06 step 1 (native-smp only): bounded application-processor bring-up.
+//!
+//! Ownership and concurrency model, see ADR-070:
+//! - The BSP alone owns frames, paging, serial, the PIT and the xAPIC ICR. It
+//!   prepares everything with IF=0 before the first IPI.
+//! - The SIPI page below 1 MiB is a Kernel-owned frame written once through the
+//!   firmware identity map before our CR3 switch; it holds 16-bit code and a
+//!   CR3 slot only and is never mapped in the kernel tables. 32/64-bit code,
+//!   the trampoline GDT and every AP stack live in the identity-mapped kernel
+//!   image, so no low page needs an executable mapping (W^X unchanged).
+//! - An AP selects its context by its hardware initial APIC ID and claims it
+//!   with one `lock cmpxchg` STARTING->CLAIMED. The BSP's timeout uses the same
+//!   CAS STARTING->ABANDONED, so a late AP can never run on a stack the BSP has
+//!   given up; a claimed-but-silent AP is reset with INIT and bring-up stops.
+//! - APs touch only their own stacks, their context/CpuLocal atomics, the
+//!   read-only BSP register snapshot and the self-test state. They never enter
+//!   allocator, paging, IPC or the M3 scheduler. Each AP has its own TSS/IST
+//!   (ADR-071); after bring-up it waits with `sti; hlt` for bounded IPIs and
+//!   runs two preempted kernel threads with IF=1 (ADR-073), then parks with
+//!   IF=0. Serial is touched only on terminal paths: a CPU exception in the
+//!   shared M2 handlers or the unreachable no-anchor check in `smp_preempt`;
+//!   both stop the VM, never a resumed or corrupted state.
+//! - If an AP that failed cannot be reset with INIT, the boot stops (fail):
+//!   an uncontrolled CPU is never left running beside the kernel.
+use super::{arch, paging, zero, FRAME_COUNT};
 use crate::serial;
+use boot_protocol::acpi::{Madt, MadtStatus};
+use core::{
+    arch::{asm, global_asm},
+    hint::spin_loop,
+    ptr,
+    sync::atomic::{fence, AtomicBool, AtomicU32, AtomicU64, Ordering},
+};
+use kernel_core::{Frames, Owner, PAGE};
+use smp_lock::TicketLock;
 
-const PRESENT_WRITE_NX: u64 = 1 | 2 | (1 << 63);
+/// Total CPUs (BSP plus APs) this profile starts; further MADT CPUs are skipped.
+pub const MAX_CPUS: usize = 8;
+const MAX_APS: usize = MAX_CPUS - 1;
 
-const APIC_BASE_MSR: u32 = 0x1b;
-const APIC_ENABLE: u64 = 1 << 11;
-const APIC_X2_ENABLE: u64 = 1 << 10;
-const APIC_ID: u64 = 0x20;
-const APIC_SPURIOUS: u64 = 0xf0;
-const APIC_ICR_LOW: u64 = 0x300;
-const APIC_ICR_HIGH: u64 = 0x310;
-const ICR_DELIVERY_PENDING: u32 = 1 << 12;
-const IPI_INIT_ASSERT: u32 = 0x0000_c500;
-const IPI_INIT_DEASSERT: u32 = 0x0000_8500;
-const IPI_STARTUP: u32 = 0x0000_0600;
-#[cfg(feature = "native-smp-m3")]
-const IPI_SCHEDULE: u32 = 0x0000_00f1;
-const MAX_IPI_POLLS: usize = 1_000_000;
-const MAX_AP_POLLS: usize = 100_000_000;
-const INIT_DELAY_SPINS: usize = 20_000_000;
-const WORK_ITEMS: u32 = 64;
+const IDLE: u32 = 0;
+const STARTING: u32 = 1;
+const CLAIMED: u32 = 2;
+const ONLINE: u32 = 3;
+const MISMATCH: u32 = 4;
+const DONE: u32 = 5;
+const ABANDONED: u32 = 6;
+const IPI_READY: u32 = 7;
+const PARKED: u32 = 8;
 
-const AP_DISCOVERED: u8 = 0;
-const AP_ONLINE: u8 = 1;
-const AP_FAILED: u8 = 2;
-const AP_STOPPED: u8 = 3;
-const AP_ENTERED: u8 = 4;
-#[cfg(feature = "native-smp-m3")]
-const AP_M3_READY: u8 = 5;
+const CR0: usize = 0;
+const CR4: usize = 2;
+const EFER: usize = 3;
+const PAT: usize = 4;
+const REGISTERS: usize = 5;
 
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub(super) struct BootstrapData {
-    pub apic_ids: [u32; MAX_CPUS],
-    pub stack_tops: [u64; MAX_CPUS],
-    pub cr3: u64,
+/// Offsets 0/4/8 are part of the assembly ABI below.
+#[repr(C, align(64))]
+pub struct ApContext {
+    state: AtomicU32,
+    apic_id: AtomicU32,
+    stack_top: AtomicU64,
+    observed_apic: AtomicU32,
+    reserved: AtomicU32,
+    observed: [AtomicU64; REGISTERS],
 }
-
-impl BootstrapData {
-    pub const EMPTY: Self = Self {
-        apic_ids: [u32::MAX; MAX_CPUS],
-        stack_tops: [0; MAX_CPUS],
-        cr3: 0,
-    };
-}
-
-static APIC_WINDOW: AtomicU64 = AtomicU64::new(0);
-static APIC_PHYSICAL: AtomicU64 = AtomicU64::new(0);
-static BOOTSTRAP_INDEX: AtomicUsize = AtomicUsize::new(MAX_CPUS);
-static AP_STATES: [AtomicU8; MAX_CPUS] = [const { AtomicU8::new(AP_DISCOVERED) }; MAX_CPUS];
-static REQUESTS: [AtomicU32; MAX_CPUS] = [const { AtomicU32::new(0) }; MAX_CPUS];
-static ACKS: [AtomicU32; MAX_CPUS] = [const { AtomicU32::new(0) }; MAX_CPUS];
-static STOP: AtomicBool = AtomicBool::new(false);
-#[cfg(feature = "native-smp-m3")]
-static M3_READY: AtomicBool = AtomicBool::new(false);
-static WORK_RENDEZVOUS: Rendezvous = Rendezvous::new();
-
-pub fn prepare(info: &Info, paging: &mut Paging, frames: &mut kernel_core::Frames<FRAME_COUNT>) {
-    info.validate().expect("SMP topology");
-    let count = usize::from(info.cpu_count);
-    assert!(count >= 2, "SMP acceptance requires at least two CPUs");
-    WORK_RENDEZVOUS
-        .configure(count)
-        .expect("SMP rendezvous participants");
-    let mut cpus =
-        CpuSet::new(&info.apic_ids[..count], info.bootstrap_apic_id).expect("CPU inventory");
-    assert_eq!(cpus.online_count(), 1);
-    for index in 0..count {
-        if index != cpus.bootstrap_index() {
-            assert_eq!(cpus.state(info.apic_ids[index]), Some(State::Discovered));
-        }
-    }
-
-    let apic_window = paging
-        .map_local_apic(frames, info.local_apic_base)
-        .expect("local APIC UC mapping");
-    APIC_WINDOW.store(apic_window, Ordering::Release);
-    APIC_PHYSICAL.store(info.local_apic_base, Ordering::Release);
-    ap::initialize(&info.apic_ids[..count], paging.root);
-    for index in 0..count {
-        let (start, top) = ap::stack_bounds(index);
-        assert!(
-            start.is_multiple_of(kernel_core::PAGE),
-            "AP stack alignment"
-        );
-        assert!(top.is_multiple_of(kernel_core::PAGE), "AP stack alignment");
-        assert_eq!(top - start, 16 * 1024, "AP stack bounds");
-        let allocation_start = start
-            .checked_sub(kernel_core::PAGE)
-            .expect("AP lower guard bounds");
-        let allocation_end = top
-            .checked_add(kernel_core::PAGE)
-            .expect("AP upper guard bounds");
-        for previous in 0..index {
-            let (previous_start, previous_top) = ap::stack_bounds(previous);
-            assert!(
-                allocation_end <= previous_start - kernel_core::PAGE
-                    || allocation_start >= previous_top + kernel_core::PAGE,
-                "AP stack allocations overlap"
-            );
-        }
-        assert_eq!(paging.leaf(allocation_start), 0, "AP lower guard is mapped");
-        assert_eq!(paging.leaf(top), 0, "AP upper guard is mapped");
-        for address in (start..top).step_by(kernel_core::PAGE as usize) {
-            let entry = paging.leaf(address);
-            assert_eq!(
-                entry & (0x000f_ffff_ffff_f000 | PRESENT_WRITE_NX),
-                address | PRESENT_WRITE_NX,
-                "AP stack page is not identity-mapped RW/NX"
-            );
-        }
-    }
-    ap::copy_trampoline(info.trampoline_page, ap_entry as *const () as u64);
-
-    // Keep the topology check's mutable state local to bootstrap; CPU transitions
-    // are recorded separately with atomics once APs start executing.
-    for index in 0..count {
-        if index != cpus.bootstrap_index() {
-            cpus.begin_start(info.apic_ids[index])
-                .expect("AP start transition");
+const CONTEXT_SIZE: usize = core::mem::size_of::<ApContext>();
+const _: () = {
+    assert!(core::mem::offset_of!(ApContext, state) == 0);
+    assert!(core::mem::offset_of!(ApContext, apic_id) == 4);
+    assert!(core::mem::offset_of!(ApContext, stack_top) == 8);
+    assert!(CONTEXT_SIZE == 64);
+};
+impl ApContext {
+    const fn new() -> Self {
+        Self {
+            state: AtomicU32::new(IDLE),
+            // No xAPIC or x2APIC CPU has this ID, so unused slots never match.
+            apic_id: AtomicU32::new(u32::MAX),
+            stack_top: AtomicU64::new(0),
+            observed_apic: AtomicU32::new(u32::MAX),
+            reserved: AtomicU32::new(0),
+            observed: [const { AtomicU64::new(0) }; REGISTERS],
         }
     }
 }
+#[no_mangle]
+static NOS_SMP_AP_CONTEXTS: [ApContext; MAX_APS] = [const { ApContext::new() }; MAX_APS];
 
-pub fn start_and_test(info: &Info) {
-    if info.cpu_count < 2 {
-        serial::fail(b"SMP:NEEDS_TWO_CPUS");
+#[repr(C, align(4096))]
+struct ApStack {
+    lower: [u8; 4096],
+    data: [u8; 16384],
+    upper: [u8; 4096],
+}
+/// Per AP: main, #DF (IST1) and NMI (IST2) stacks, each with unmapped guards.
+const MAIN: usize = 0;
+const DOUBLE: usize = 1;
+const NMI: usize = 2;
+/// Two preemptible kernel threads per AP (K06 step 4).
+const THREADS: [usize; 2] = [3, 4];
+const STACK_KINDS: usize = 5;
+// Kernel image .bss; every guard is left unmapped by m2::run (see is_guard).
+static mut AP_STACKS: [[ApStack; STACK_KINDS]; MAX_APS] = [const {
+    [const {
+        ApStack {
+            lower: [0; 4096],
+            data: [0; 16384],
+            upper: [0; 4096],
+        }
+    }; STACK_KINDS]
+}; MAX_APS];
+const STACK_SPAN: u64 = core::mem::size_of::<ApStack>() as u64;
+const STACK_TOP: u64 = 20480;
+
+fn stack_base(slot: usize, kind: usize) -> u64 {
+    // Address computation only; no reference to the static is formed.
+    ptr::addr_of!(AP_STACKS) as u64 + (slot * STACK_KINDS + kind) as u64 * STACK_SPAN
+}
+pub fn is_guard(page: u64) -> bool {
+    guard_pages().any(|guard| guard == page)
+}
+pub fn guard_pages() -> impl Iterator<Item = u64> {
+    (0..MAX_APS * STACK_KINDS).flat_map(|index| {
+        let base = stack_base(index / STACK_KINDS, index % STACK_KINDS);
+        [base, base + STACK_TOP]
+    })
+}
+
+/// Per-CPU anchor reachable through IA32_GS_BASE. Offsets 0, 12 and 16 are
+/// used by the IPI/shootdown stubs; `slot` identifies the AP without trusting
+/// any register. `before`/`after` record what this CPU read through
+/// SHOOTDOWN_WINDOW before the remap and at the visibility probe.
+#[repr(C, align(64))]
+struct CpuLocal {
+    self_ptr: AtomicU64,
+    slot: AtomicU32,
+    ipis: AtomicU32,
+    shootdown_ack: AtomicU32,
+    before: AtomicU32,
+    after: AtomicU32,
+    probed: AtomicU32,
+    // Preemption (step 4): touched only by this AP's own handler/threads,
+    // read by the BSP. saved[0] is the interrupted home loop, [1..] threads.
+    ticks: AtomicU32,
+    switches: AtomicU32,
+    current: AtomicU32,
+    preempt: AtomicU32,
+    counts: [AtomicU64; 2],
+    saved: [AtomicU64; 3],
+    /// Set by a thread whose callee-saved registers changed across preemption.
+    corrupt: AtomicU32,
+    /// Held lock levels (step 5a, `smp_lock::Lockdep`); this CPU only, IF=0.
+    lockdep: AtomicU64,
+}
+impl CpuLocal {
+    const fn new() -> Self {
+        Self {
+            self_ptr: AtomicU64::new(0),
+            slot: AtomicU32::new(u32::MAX),
+            ipis: AtomicU32::new(0),
+            shootdown_ack: AtomicU32::new(0),
+            before: AtomicU32::new(u32::MAX),
+            after: AtomicU32::new(u32::MAX),
+            probed: AtomicU32::new(0),
+            ticks: AtomicU32::new(0),
+            switches: AtomicU32::new(0),
+            current: AtomicU32::new(0),
+            preempt: AtomicU32::new(0),
+            counts: [const { AtomicU64::new(0) }; 2],
+            saved: [const { AtomicU64::new(0) }; 3],
+            corrupt: AtomicU32::new(0),
+            lockdep: AtomicU64::new(0),
+        }
     }
-    // SAFETY: CPUID is available on the supported x86_64 target and has no
-    // memory effects.
-    if unsafe { core::arch::x86_64::__cpuid(1) }.edx & (1 << 9) == 0 {
-        serial::fail(b"SMP:APIC_UNAVAILABLE");
+}
+const _: () = {
+    assert!(core::mem::offset_of!(CpuLocal, self_ptr) == 0);
+    assert!(core::mem::offset_of!(CpuLocal, ipis) == 12);
+    assert!(core::mem::offset_of!(CpuLocal, shootdown_ack) == 16);
+};
+static CPU_LOCAL: [CpuLocal; MAX_APS] = [const { CpuLocal::new() }; MAX_APS];
+/// CPU index 0 (spec §3.1.3): same GS-anchor path as the APs. Kept outside
+/// CPU_LOCAL so AP-only lookups (`this_cpu`, IST markers) still miss the BSP.
+static BSP_LOCAL: CpuLocal = CpuLocal::new();
+
+/// Shootdown request, published (Release) before the IPI that makes an AP
+/// read it: up to two VAs (0 = unused slot is never published here) and a
+/// generation that every round increments; the stub acknowledges the
+/// generation only after both `invlpg`s.
+#[no_mangle]
+static NOS_SMP_SHOOTDOWN_VA: [AtomicU64; 2] = [AtomicU64::new(0), AtomicU64::new(0)];
+#[no_mangle]
+static NOS_SMP_SHOOTDOWN_GEN: AtomicU32 = AtomicU32::new(0);
+static PROBE: AtomicU32 = AtomicU32::new(0);
+/// Frames A (initially behind the window) and B (its replacement).
+static SHOOTDOWN_FRAMES: [AtomicU64; 2] = [AtomicU64::new(0), AtomicU64::new(0)];
+const SHOOTDOWN_VECTOR: usize = 0xe0;
+const TIMER_VECTOR: usize = 0xd0;
+/// BSP-driven preemption phase: idle -> run -> stop.
+static PREEMPT: AtomicU32 = AtomicU32::new(0);
+const PREEMPT_RUN: u32 = 1;
+const PREEMPT_STOP: u32 = 2;
+// Per-AP preempt progress in CpuLocal::preempt.
+const ARMED: u32 = 1;
+const RESUMED: u32 = 2;
+const OLD_PATTERN: u8 = 0xa1;
+const NEW_PATTERN: u8 = 0xb2;
+// Each slot is written only by the AP that claimed the matching context.
+static mut CPU_TABLES: [arch::CpuTables; MAX_APS] = [const { arch::CpuTables::new() }; MAX_APS];
+
+static BSP_REGISTERS: [AtomicU64; REGISTERS] = [const { AtomicU64::new(0) }; REGISTERS];
+/// The BSP's IA32_APIC_BASE; an AP must match it except for the BSP flag
+/// (bit 8), or its LAPIC_WINDOW accesses would not reach its own xAPIC.
+static BSP_APIC_BASE: AtomicU64 = AtomicU64::new(0);
+static GO: AtomicBool = AtomicBool::new(false);
+static PARK: AtomicBool = AtomicBool::new(false);
+const IPI_VECTOR: usize = 0xf0;
+const SPURIOUS_VECTOR: usize = 0xff;
+const IPI_ROUNDS: u32 = 3;
+
+// IPI: count on this CPU (GS-anchored), EOI to this CPU's own xAPIC, return.
+// Spurious: architecturally no EOI. Both run with IF cleared by the gate.
+global_asm!(
+    ".pushsection .text.nos_smp_ipi,\"ax\"",
+    ".globl nos_smp_ipi_entry",
+    "nos_smp_ipi_entry:",
+    "    push rax",
+    "    mov rax, gs:[0]",
+    "    lock inc dword ptr [rax + 12]",
+    "    mov dword ptr [{eoi}], 0",
+    "    pop rax",
+    "    iretq",
+    ".globl nos_smp_spurious_entry",
+    "nos_smp_spurious_entry:",
+    "    iretq",
+    // Shootdown: invalidate both published VAs on THIS CPU, then acknowledge
+    // the published generation with a locked xchg (ordered after the
+    // serializing invlpg), then EOI. Clobbers nothing visible to the
+    // interrupted code.
+    ".globl nos_smp_shootdown_entry",
+    "nos_smp_shootdown_entry:",
+    "    push rax",
+    "    push rdx",
+    "    mov rax, qword ptr [rip + {va}]",
+    "    invlpg [rax]",
+    "    mov rax, qword ptr [rip + {va} + 8]",
+    "    invlpg [rax]",
+    "    mov edx, dword ptr [rip + {generation}]",
+    "    mov rax, gs:[0]",
+    "    xchg dword ptr [rax + 16], edx",
+    "    mov dword ptr [{eoi}], 0",
+    "    pop rdx",
+    "    pop rax",
+    "    iretq",
+    ".popsection",
+    eoi = const paging::LAPIC_WINDOW + 0xb0,
+    va = sym NOS_SMP_SHOOTDOWN_VA,
+    generation = sym NOS_SMP_SHOOTDOWN_GEN,
+);
+extern "C" {
+    fn nos_smp_ipi_entry();
+    fn nos_smp_spurious_entry();
+    fn nos_smp_shootdown_entry();
+    fn nos_smp_timer_entry();
+}
+
+// Trampoline layout (offsets inside the copied SIPI page):
+//   0  cli; short jmp to code      8  CR3 (patched)
+//  16  GDTR (limit, base32)       24  far pointer to entry32 (selector 0x08)
+//  32  16-bit code, ESI = page linear base for the 32-bit stage
+global_asm!(
+    ".pushsection .rodata.nos_smp_trampoline,\"a\"",
+    ".code16",
+    ".balign 4096",
+    ".globl nos_smp_trampoline_start",
+    "nos_smp_trampoline_start:",
+    "    cli",
+    "    jmp 1f",
+    "    .org nos_smp_trampoline_start + 8",
+    "    .long 0",
+    "    .org nos_smp_trampoline_start + 16",
+    "    .word nos_smp_gdt_end - nos_smp_gdt - 1",
+    "    .long nos_smp_gdt",
+    "    .org nos_smp_trampoline_start + 24",
+    "    .long nos_smp_entry32",
+    "    .word 0x08",
+    "    .org nos_smp_trampoline_start + 32",
+    "1:",
+    "    cld",
+    "    movw %cs, %ax",
+    "    movw %ax, %ds",
+    "    xorl %esi, %esi",
+    "    movw %ax, %si",
+    "    shll $4, %esi",
+    "    lgdtl 16",
+    "    movl %cr0, %eax",
+    "    orl $1, %eax",
+    "    movl %eax, %cr0",
+    "    ljmpl *24",
+    ".globl nos_smp_trampoline_end",
+    "nos_smp_trampoline_end:",
+    // Accessed bits preset: the CPU never writes this read-only kernel GDT.
+    ".balign 16",
+    "nos_smp_gdt:",
+    "    .quad 0",
+    "    .quad 0x00cf9b000000ffff",
+    "    .quad 0x00cf93000000ffff",
+    "    .quad 0x00af9b000000ffff",
+    ".globl nos_smp_gdt_end",
+    "nos_smp_gdt_end:",
+    ".popsection",
+    ".pushsection .text.nos_smp_ap,\"ax\"",
+    ".code32",
+    "nos_smp_entry32:",
+    "    movw $0x10, %ax",
+    "    movw %ax, %ds",
+    "    movw %ax, %es",
+    "    movw %ax, %ss",
+    "    xorl %eax, %eax",
+    "    movw %ax, %fs",
+    "    movw %ax, %gs",
+    "    movl %cr4, %eax",
+    "    orl $0x20, %eax",
+    "    movl %eax, %cr4",
+    "    movl 8(%esi), %eax",
+    "    movl %eax, %cr3",
+    "    movl $0xc0000080, %ecx",
+    "    rdmsr",
+    "    orl $0x900, %eax",
+    "    wrmsr",
+    "    movl %cr0, %eax",
+    "    andl $0x9fffffff, %eax",
+    "    orl $0x80010001, %eax",
+    "    movl %eax, %cr0",
+    "    ljmpl $0x18, $nos_smp_entry64",
+    ".code64",
+    "nos_smp_entry64:",
+    "    movl $1, %eax",
+    "    cpuid",
+    "    shrl $24, %ebx",
+    "    leaq {contexts}(%rip), %rsi",
+    "    movl ${count}, %ecx",
+    "2:",
+    "    cmpl %ebx, 4(%rsi)",
+    "    jne 3f",
+    "    movl ${starting}, %eax",
+    "    movl ${claimed}, %edx",
+    "    lock cmpxchgl %edx, (%rsi)",
+    "    jne 3f",
+    "    movq 8(%rsi), %rsp",
+    "    movq %rsi, %rdi",
+    "    call {main}",
+    "3:",
+    "    addq ${size}, %rsi",
+    "    decl %ecx",
+    "    jnz 2b",
+    "4:",
+    "    cli",
+    "    hlt",
+    "    jmp 4b",
+    ".popsection",
+    contexts = sym NOS_SMP_AP_CONTEXTS,
+    main = sym smp_ap_main,
+    count = const MAX_APS,
+    starting = const STARTING,
+    claimed = const CLAIMED,
+    size = const CONTEXT_SIZE,
+    options(att_syntax),
+);
+extern "C" {
+    static nos_smp_trampoline_start: u8;
+    static nos_smp_trampoline_end: u8;
+    static nos_smp_gdt_end: u8;
+}
+const TRAMPOLINE_CR3: u64 = 8;
+
+/// Outcome of the pre-CR3-switch preparation, reported after KS-03.
+pub type Prepared = Result<u64, &'static [u8]>;
+
+/// Call before any paging allocation: the first free ConventionalMemory frame
+/// becomes the permanent Kernel-owned SIPI page if it is a valid vector page.
+pub fn reserve_trampoline(frames: &mut Frames<FRAME_COUNT>) -> Option<u64> {
+    let page = frames.allocate(Owner::Kernel, zero).ok()?;
+    // SIPI vectors 0x01..=0x9f; 0xa0.. is legacy VGA/BIOS space.
+    if (0x1000..0xa0000).contains(&page) {
+        Some(page)
+    } else {
+        frames.free(page, Owner::Kernel, zero).ok()?;
+        None
     }
-    let window = APIC_WINDOW.load(Ordering::Acquire);
-    if window == 0 {
-        serial::fail(b"SMP:APIC_UNMAPPED");
+}
+
+fn rdmsr(msr: u32) -> u64 {
+    let (lo, hi): (u32, u32);
+    // SAFETY: CPL0 read of an architectural MSR named by the caller.
+    unsafe {
+        asm!("rdmsr", in("ecx") msr, out("eax") lo, out("edx") hi, options(nostack));
     }
-    enable_xapic(info.local_apic_base);
-    if apic_read(window, APIC_ID) >> 24 != info.bootstrap_apic_id {
-        serial::fail(b"SMP:BSP_ID_MISMATCH");
+    u64::from(hi) << 32 | u64::from(lo)
+}
+fn wrmsr(msr: u32, value: u64) {
+    // SAFETY: CPL0 write of an architectural MSR with a value copied from the
+    // BSP's own validated register state; callers keep IF=0.
+    unsafe {
+        asm!("wrmsr", in("ecx") msr, in("eax") value as u32, in("edx") (value >> 32) as u32, options(nostack));
     }
-    apic_write(
-        window,
-        APIC_SPURIOUS,
-        (apic_read(window, APIC_SPURIOUS) & 0x3ff) | 0x100,
+}
+
+/// Frames A and B for the shootdown proof, filled while the firmware identity
+/// map is active. A is mapped behind SHOOTDOWN_WINDOW and also identity-mapped
+/// RW/NX so the BSP can scrub it after CR3 switch; B is mapped only at remap.
+fn prepare_shootdown(
+    frames: &mut Frames<FRAME_COUNT>,
+    paging: &mut paging::Paging,
+) -> Result<(), kernel_core::Error> {
+    let old = frames.allocate(Owner::Kernel, zero)?;
+    let new = frames.allocate(Owner::Kernel, zero)?;
+    for (pa, pattern) in [(old, OLD_PATTERN), (new, NEW_PATTERN)] {
+        // SAFETY: Fresh exclusive Kernel-owned frames, identity-mapped by the
+        // still-active firmware CR3; exactly one page each is written.
+        unsafe { ptr::write_bytes(pa as *mut u8, pattern, PAGE as usize) };
+    }
+    paging.map(frames, paging::SHOOTDOWN_WINDOW, old, true, false);
+    paging.map(frames, old, old, true, false);
+    SHOOTDOWN_FRAMES[0].store(old, Ordering::Relaxed);
+    SHOOTDOWN_FRAMES[1].store(new, Ordering::Relaxed);
+    Ok(())
+}
+
+fn read_window() -> u32 {
+    // SAFETY: SHOOTDOWN_WINDOW is a permanent supervisor RW/NX kernel mapping
+    // of a Kernel-owned frame (A or B); a byte read has no side effects. Which
+    // frame a CPU reaches depends on its TLB, which is the property under test.
+    u32::from(unsafe { (paging::SHOOTDOWN_WINDOW as *const u8).read_volatile() })
+}
+
+/// Before `map_tables`/`activate`: validate IA32_APIC_BASE, map its exact page
+/// UC/NX and write the SIPI page through the still-active firmware identity map.
+pub fn prepare(
+    frames: &mut Frames<FRAME_COUNT>,
+    paging: &mut paging::Paging,
+    trampoline: Option<u64>,
+) -> Prepared {
+    let page = trampoline.ok_or(b"NO_TRAMPOLINE".as_slice())?;
+    let apic_base = rdmsr(0x1b);
+    if apic_base & (1 << 8) == 0 {
+        return Err(b"NOT_BSP");
+    }
+    if apic_base & (1 << 11) == 0 {
+        return Err(b"LAPIC_DISABLED");
+    }
+    if apic_base & (1 << 10) != 0 {
+        return Err(b"X2APIC_MODE");
+    }
+    let base = apic_base & 0x000f_ffff_ffff_f000;
+    paging
+        .map_lapic(frames, base)
+        .map_err(|_| b"LAPIC_MAPPING".as_slice())?;
+    prepare_shootdown(frames, paging).map_err(|_| b"SHOOTDOWN_FRAMES".as_slice())?;
+    let root = paging.root;
+    // Address computation of the linked trampoline image only.
+    let (start, end) = (
+        ptr::addr_of!(nos_smp_trampoline_start) as u64,
+        ptr::addr_of!(nos_smp_trampoline_end) as u64,
     );
-
-    let bootstrap = info
-        .bootstrap_index()
-        .unwrap_or_else(|_| serial::fail(b"SMP:BSP_MISSING"));
-    BOOTSTRAP_INDEX.store(bootstrap, Ordering::Release);
-    let mut cpus = CpuSet::new(
-        &info.apic_ids[..usize::from(info.cpu_count)],
-        info.bootstrap_apic_id,
-    )
-    .unwrap_or_else(|_| serial::fail(b"SMP:CPUSET"));
-    for index in 0..usize::from(info.cpu_count) {
-        if index == bootstrap {
-            continue;
-        }
-        let id = info.apic_ids[index];
-        let vector = (info.trampoline_page >> 12) as u8;
-        cpus.begin_start(id)
-            .unwrap_or_else(|_| serial::fail(b"SMP:CPUSET_START"));
-        start_ap(window, id, vector, index);
-        wait_for_state(index, AP_ONLINE);
-        cpus.mark_online(id)
-            .unwrap_or_else(|_| serial::fail(b"SMP:CPUSET_ONLINE"));
-    }
-
-    let online = 1 + AP_STATES[..usize::from(info.cpu_count)]
-        .iter()
-        .filter(|state| state.load(Ordering::Acquire) == AP_ONLINE)
-        .count();
-    if online != usize::from(info.cpu_count) {
-        serial::fail(b"SMP:ONLINE_COUNT");
-    }
-    for (index, apic_id) in info.apic_ids[..usize::from(info.cpu_count)]
-        .iter()
-        .copied()
-        .enumerate()
+    let length = end - start;
+    // The 32-bit stages address the GDT and entry32 (both below gdt_end in this
+    // image) with 32-bit absolute operands; the kernel links below 0x03000000.
+    let image_end = ptr::addr_of!(nos_smp_gdt_end) as u64;
+    if length > PAGE
+        || root >= 1 << 32
+        || !root.is_multiple_of(PAGE)
+        || end >= 1 << 32
+        || image_end >= 1 << 32
     {
-        serial::write(b"SMP:CPU:");
-        write_decimal(index as u64);
-        serial::write(b":APIC:");
-        write_decimal(u64::from(apic_id));
-        serial::write(b":ONLINE\n");
+        return Err(b"TRAMPOLINE_LAYOUT");
     }
-    serial::write(b"SMP:CPUS:");
-    write_decimal(online as u64);
-    serial::write(b"\n");
+    // SAFETY: `page` is an exclusive Kernel-owned ConventionalMemory frame below
+    // 1 MiB, never mapped by our tables; the firmware CR3 that is still active
+    // identity-maps it. The source is our own read-only image. Exactly `length`
+    // <= one page is copied, then the aligned CR3 slot inside it is written.
+    unsafe {
+        ptr::copy_nonoverlapping(start as *const u8, page as *mut u8, length as usize);
+        ((page + TRAMPOLINE_CR3) as *mut u32).write_volatile(root as u32);
+    }
+    Ok(page)
+}
 
-    for (index, request) in REQUESTS.iter().enumerate() {
-        request.store(0, Ordering::Relaxed);
-        ACKS[index].store(0, Ordering::Relaxed);
+fn lapic_read(offset: u64) -> u32 {
+    // SAFETY: LAPIC_WINDOW is the exact UC/NX supervisor mapping of the validated
+    // IA32_APIC_BASE page; offset is a fixed aligned register below 4 KiB.
+    unsafe { ((paging::LAPIC_WINDOW + offset) as *const u32).read_volatile() }
+}
+fn lapic_write(offset: u64, value: u32) {
+    // SAFETY: As lapic_read. The window decodes to the *executing* CPU's own
+    // xAPIC: the BSP alone writes its ICR, an AP only its own SVR/TPR/LVT/EOI.
+    unsafe { ((paging::LAPIC_WINDOW + offset) as *mut u32).write_volatile(value) }
+}
+fn icr_idle() -> bool {
+    (0..1_000_000).any(|_| {
+        spin_loop();
+        lapic_read(0x300) & (1 << 12) == 0
+    })
+}
+fn send_ipi(apic_id: u32, low: u32) -> bool {
+    // Every context/register publication precedes the IPI that makes an AP read
+    // it; volatile MMIO is not ordered against atomics by the language alone.
+    fence(Ordering::SeqCst);
+    if !icr_idle() {
+        return false;
     }
-    for round in 1..=WORK_ITEMS {
-        for index in 0..usize::from(info.cpu_count) {
-            if index == bootstrap {
-                continue;
-            }
-            REQUESTS[index].store(round, Ordering::Release);
-        }
-        let generation = WORK_RENDEZVOUS
-            .wait_bounded(MAX_AP_POLLS)
-            .unwrap_or_else(|_| serial::fail(b"SMP:RENDEZVOUS_TIMEOUT"));
-        if generation != u64::from(round - 1) {
-            serial::fail(b"SMP:RENDEZVOUS_GENERATION");
-        }
-        for index in 0..usize::from(info.cpu_count) {
-            if index == bootstrap {
-                continue;
-            }
-            let mut polls = 0;
-            while ACKS[index].load(Ordering::Acquire) != round {
-                if AP_STATES[index].load(Ordering::Acquire) != AP_ONLINE || polls == MAX_AP_POLLS {
-                    serial::fail(b"SMP:WORK_TIMEOUT");
-                }
-                polls += 1;
-                spin_loop();
-            }
-        }
+    lapic_write(0x310, apic_id << 24);
+    lapic_write(0x300, low);
+    icr_idle()
+}
+const IPI_INIT: u32 = 0x0000_4500;
+const IPI_STARTUP: u32 = 0x0000_4600;
+
+fn inb(port: u16) -> u8 {
+    let value: u8;
+    // SAFETY: PIT/port-B access by the sole BSP owner in this profile.
+    unsafe {
+        asm!("in al, dx", in("dx") port, out("al") value, options(nomem, nostack));
     }
-    for index in 0..usize::from(info.cpu_count) {
-        if index != bootstrap && ACKS[index].load(Ordering::Acquire) != WORK_ITEMS {
-            serial::fail(b"SMP:WORK_COUNT");
-        }
+    value
+}
+fn outb(port: u16, value: u8) {
+    // SAFETY: As inb; native-smp excludes every other PIT/port-B user.
+    unsafe {
+        asm!("out dx, al", in("dx") port, in("al") value, options(nomem, nostack));
     }
-    serial::write(b"SMP:RENDEZVOUS:PASS\n");
-    serial::write(b"SMP:WORKERS:PASS\n");
-    if !cfg!(feature = "native-smp-m3") {
-        STOP.store(true, Ordering::Release);
-        for index in 0..usize::from(info.cpu_count) {
-            if index != bootstrap {
-                wait_for_state(index, AP_STOPPED);
-            }
+}
+/// Busy-wait on PIT channel 2 (mode 0, gated through port 0x61). At most
+/// 0xffff ticks (~54.9 ms); callers use <= 10 ms. Bounded and fail-closed: a
+/// missing timer, or a floating bus that already reads OUT2 high after arming,
+/// returns false instead of collapsing the wait or hanging the boot.
+fn wait_us(us: u32) -> bool {
+    let ticks = (u64::from(us) * 1_193_182)
+        .div_ceil(1_000_000)
+        .clamp(2, 0xffff) as u16;
+    let control = inb(0x61) & 0x0c;
+    outb(0x61, control);
+    outb(0x43, 0xb0);
+    outb(0x42, ticks as u8);
+    outb(0x42, (ticks >> 8) as u8);
+    // Mode 0 drives OUT2 low on the control word; high now means no real PIT.
+    if inb(0x61) & 0x20 != 0 {
+        return false;
+    }
+    outb(0x61, control | 0x01);
+    // PAUSE also lets a round-robin hypervisor (single-thread TCG) run the APs.
+    let expired = (0..2_000_000u32).any(|_| {
+        spin_loop();
+        inb(0x61) & 0x20 != 0
+    });
+    outb(0x61, control);
+    expired
+}
+
+const ITERATIONS: u64 = 20_000;
+static ATOMIC_TOTAL: AtomicU64 = AtomicU64::new(0);
+static LOCKED_TOTAL: TicketLock<u64> = TicketLock::new(0);
+static INSIDE: AtomicU32 = AtomicU32::new(0);
+static VIOLATIONS: AtomicU32 = AtomicU32::new(0);
+
+fn stress() {
+    for _ in 0..ITERATIONS {
+        ATOMIC_TOTAL.fetch_add(1, Ordering::Relaxed);
+        let mut total = LOCKED_TOTAL.lock();
+        if INSIDE.fetch_add(1, Ordering::Relaxed) != 0 {
+            VIOLATIONS.fetch_add(1, Ordering::Relaxed);
         }
+        // Split read/write widens the window a broken lock would lose.
+        // SAFETY: Exclusive &mut from the guard; volatile keeps both accesses.
+        let value = unsafe { ptr::read_volatile(&*total) };
+        spin_loop();
+        // SAFETY: Same exclusive location.
+        unsafe { ptr::write_volatile(&mut *total, value + 1) };
+        INSIDE.fetch_sub(1, Ordering::Relaxed);
+        drop(total);
     }
 }
 
-extern "C" fn ap_entry(apic_id: u32, index: u32) -> ! {
-    let index = index as usize;
-    if index >= MAX_CPUS {
-        terminal_halt();
-    }
-    AP_STATES[index].store(AP_ENTERED, Ordering::Release);
-    serial::write(b"SMP:AP:ENTRY\n");
-    let Some(expected_id) = ap::cpu_id(index) else {
-        AP_STATES[index].store(AP_FAILED, Ordering::Release);
-        terminal_halt();
-    };
-    if expected_id != apic_id {
-        AP_STATES[index].store(AP_FAILED, Ordering::Release);
-        terminal_halt();
-    }
-    let window = APIC_WINDOW.load(Ordering::Acquire);
-    enable_xapic(APIC_PHYSICAL.load(Ordering::Acquire));
-    if apic_read(window, APIC_ID) >> 24 != apic_id {
-        AP_STATES[index].store(AP_FAILED, Ordering::Release);
-        terminal_halt();
-    }
-    apic_write(
-        window,
-        APIC_SPURIOUS,
-        (apic_read(window, APIC_SPURIOUS) & 0x3ff) | 0x100,
-    );
-    super::arch::install_ap(index, ap::stack_top(index));
-    AP_STATES[index].store(AP_ONLINE, Ordering::Release);
-
+fn park() -> ! {
     loop {
-        if STOP.load(Ordering::Acquire) {
-            AP_STATES[index].store(AP_STOPPED, Ordering::Release);
-            terminal_halt();
+        // SAFETY: Terminal AP state: IF=0, nothing is resumed afterwards.
+        unsafe { asm!("cli", "hlt", options(nomem, nostack)) };
+    }
+}
+
+fn control_registers() -> [u64; REGISTERS] {
+    let (cr0, cr3, cr4): (u64, u64, u64);
+    // SAFETY: CPL0 read-only register queries.
+    unsafe {
+        asm!("mov {}, cr0", out(reg) cr0, options(nomem, nostack));
+        asm!("mov {}, cr3", out(reg) cr3, options(nomem, nostack));
+        asm!("mov {}, cr4", out(reg) cr4, options(nomem, nostack));
+    }
+    [cr0, cr3, cr4, rdmsr(0xc000_0080), rdmsr(0x277)]
+}
+fn initial_apic_id() -> u32 {
+    // SAFETY: CPUID leaf 1 is available on every x86-64 CPU.
+    unsafe { core::arch::x86_64::__cpuid(1).ebx >> 24 }
+}
+
+#[no_mangle]
+extern "C" fn smp_ap_main(context: &'static ApContext) -> ! {
+    // The assembly scan only passes a pointer into NOS_SMP_AP_CONTEXTS.
+    let slot =
+        (ptr::from_ref(context) as usize - NOS_SMP_AP_CONTEXTS.as_ptr() as usize) / CONTEXT_SIZE;
+    if slot >= MAX_APS {
+        park();
+    }
+    arch::install_ap(
+        // Address only (slot < MAX_APS checked above); this AP is the slot's
+        // sole user because it holds the matching claimed context.
+        ptr::addr_of_mut!(CPU_TABLES)
+            .cast::<arch::CpuTables>()
+            .wrapping_add(slot),
+        stack_base(slot, MAIN) + STACK_TOP,
+        stack_base(slot, DOUBLE) + STACK_TOP,
+        stack_base(slot, NMI) + STACK_TOP,
+    );
+    let local = &CPU_LOCAL[slot];
+    local.slot.store(slot as u32, Ordering::Relaxed);
+    local
+        .self_ptr
+        .store(ptr::from_ref(local) as u64, Ordering::Relaxed);
+    wrmsr(0xc000_0101, ptr::from_ref(local) as u64);
+    let bsp: [u64; REGISTERS] = core::array::from_fn(|i| BSP_REGISTERS[i].load(Ordering::Acquire));
+    wrmsr(0x277, bsp[PAT]);
+    wrmsr(0xc000_0080, bsp[EFER]);
+    // SAFETY: Adopt the BSP's validated CR4/CR0 (PAE/PG/WP and caching) exactly;
+    // the trampoline already runs with the same CR3, PAE, LME and NXE.
+    unsafe {
+        asm!("mov cr4, {}", in(reg) bsp[CR4], options(nostack));
+        asm!("mov cr0, {}", in(reg) bsp[CR0], options(nostack));
+    }
+    let first = ptr::eq(context, &NOS_SMP_AP_CONTEXTS[0]);
+    if cfg!(feature = "test-smp-ap-stall") && first {
+        // Claimed but never online: the BSP must time out, INIT and stop.
+        loop {
+            spin_loop();
         }
-        #[cfg(feature = "native-smp-m3")]
-        if M3_READY.load(Ordering::Acquire) {
-            super::m3::start_ap(index);
+    }
+    if cfg!(feature = "test-smp-ap-mismatch") && first {
+        // A real hardware register difference the BSP must reject.
+        // SAFETY: Clearing CR0.WP only weakens this AP, which then halts.
+        unsafe {
+            asm!("mov {tmp}, cr0", "and {tmp}, {mask}", "mov cr0, {tmp}",
+                tmp = out(reg) _, mask = in(reg) !(1u64 << 16), options(nostack));
         }
-        let request = REQUESTS[index].load(Ordering::Acquire);
-        if request > ACKS[index].load(Ordering::Relaxed) {
-            match WORK_RENDEZVOUS.wait_bounded(MAX_AP_POLLS) {
-                Ok(generation) if generation == u64::from(request - 1) => {
-                    ACKS[index].store(request, Ordering::Release);
-                }
-                _ => {
-                    AP_STATES[index].store(AP_FAILED, Ordering::Release);
-                    terminal_halt();
-                }
-            }
-        }
+    }
+    let observed = control_registers();
+    let apic = initial_apic_id();
+    for (slot, value) in context.observed.iter().zip(observed) {
+        slot.store(value, Ordering::Relaxed);
+    }
+    context.observed_apic.store(apic, Ordering::Relaxed);
+    let apic_base = rdmsr(0x1b);
+    let matches = observed == bsp
+        && apic == context.apic_id.load(Ordering::Relaxed)
+        && apic_base & (1 << 8) == 0
+        && apic_base | (1 << 8) == BSP_APIC_BASE.load(Ordering::Acquire);
+    context
+        .state
+        .store(if matches { ONLINE } else { MISMATCH }, Ordering::Release);
+    if !matches {
+        park();
+    }
+    while !GO.load(Ordering::Acquire) {
         spin_loop();
     }
+    stress();
+    context.state.store(DONE, Ordering::Release);
+    ipi_phase(context, local, first)
 }
 
-fn terminal_halt() -> ! {
-    loop {
-        // SAFETY: Terminal AP state; keep IF clear and prevent accidental work
-        // after any startup identity/state mismatch.
-        unsafe {
-            asm!("cli", "hlt", options(nomem, nostack));
+/// Receive bounded unicast IPIs on vector 0xf0 until PARK: TPR 0, every
+/// implemented local LVT masked, spurious vector 0xff. An external (IOAPIC or
+/// MSI) source aimed at this APIC ID could still raise another vector; it hits
+/// an absent gate (#NP) and the shared handler stops the VM: terminal, not open.
+fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
+    // Version bits 23:16 = highest LVT index: 3 base entries (timer, LINT0/1,
+    // error), then performance (>=4), thermal (>=5) and CMCI (>=6).
+    let max_lvt = (lapic_read(0x30) >> 16) & 0xff;
+    for (lvt, minimum) in [
+        (0x320, 0),
+        (0x350, 0),
+        (0x360, 0),
+        (0x370, 0),
+        (0x340, 4),
+        (0x330, 5),
+        (0x2f0, 6),
+    ] {
+        if max_lvt >= minimum {
+            lapic_write(lvt, 1 << 16);
         }
     }
-}
-
-fn enable_xapic(expected_base: u64) {
-    let (low, high): (u32, u32);
-    // SAFETY: CPL0 read of IA32_APIC_BASE; no memory is accessed by RDMSR.
-    unsafe {
-        asm!("rdmsr", in("ecx") APIC_BASE_MSR, out("eax") low, out("edx") high, options(nostack));
+    // TPR 0 accepts every class. The shootdown-deaf test raises it to class 0xe
+    // so only the 0xe0 shootdown vector is held back, never the 0xf0 IPIs.
+    let tpr = if cfg!(feature = "test-smp-ap-shootdown-deaf") && first {
+        0xe0
+    } else {
+        0
+    };
+    lapic_write(0x80, tpr);
+    lapic_write(0xf0, 0x100 | SPURIOUS_VECTOR as u32);
+    // Cache the window's current translation (frame A) in this CPU's TLB.
+    local.before.store(read_window(), Ordering::Relaxed);
+    context.state.store(IPI_READY, Ordering::Release);
+    if cfg!(feature = "test-smp-ap-ipi-deaf") && first {
+        // Online but never accepts an interrupt: the BSP must quarantine all.
+        park();
     }
-    let mut value = (u64::from(high) << 32) | u64::from(low);
-    let base = value & 0x000f_ffff_ffff_f000;
-    if base != expected_base || value & APIC_X2_ENABLE != 0 {
-        serial::fail(b"SMP:XAPIC_MODE_MISMATCH");
-    }
-    value |= APIC_ENABLE;
-    // SAFETY: This CPU enables only its firmware-selected xAPIC base, already
-    // mapped UC by the BSP before any AP startup IPI.
-    unsafe {
-        asm!(
-            "wrmsr",
-            in("ecx") APIC_BASE_MSR,
-            in("eax") value as u32,
-            in("edx") (value >> 32) as u32,
-            options(nostack)
-        );
-    }
-}
-
-fn start_ap(window: u64, apic_id: u32, vector: u8, index: usize) {
-    if apic_id > u8::MAX as u32 {
-        serial::fail(b"SMP:XAPIC_ID_RANGE");
-    }
-    send_ipi(window, apic_id, IPI_INIT_ASSERT);
-    delay(INIT_DELAY_SPINS);
-    send_ipi(window, apic_id, IPI_INIT_DEASSERT);
-    delay(INIT_DELAY_SPINS);
-    send_ipi(window, apic_id, IPI_STARTUP | u32::from(vector));
-    delay(INIT_DELAY_SPINS / 20);
-    if AP_STATES[index].load(Ordering::Acquire) != AP_ONLINE {
-        send_ipi(window, apic_id, IPI_STARTUP | u32::from(vector));
-    }
-}
-
-fn write_decimal(mut value: u64) {
-    let mut bytes = [0u8; 20];
-    let mut cursor = bytes.len();
     loop {
-        cursor -= 1;
-        bytes[cursor] = b'0' + (value % 10) as u8;
+        // Checked before PARK so the test cannot race into a normal park.
+        if cfg!(feature = "test-smp-ap-double-fault")
+            && first
+            && local.ipis.load(Ordering::Acquire) != 0
+        {
+            // A real overflow into this AP's lower main guard; #PF cannot push
+            // its frame there, so the CPU must switch to this AP's IST1 stack.
+            let guard = stack_base(0, MAIN) + 2048;
+            // SAFETY: Destructive test-only terminal path; no Rust code resumes
+            // on the invalid stack. The #DF handler exits the VM.
+            unsafe {
+                asm!("mov rsp, {guard}", "push 0", "ud2", guard = in(reg) guard, options(noreturn));
+            }
+        }
+        // Visibility probe: read the window through whatever this CPU's TLB
+        // now holds, then publish the result (Release) with the probe number.
+        let probe = PROBE.load(Ordering::Acquire);
+        if probe != local.probed.load(Ordering::Relaxed) {
+            local.after.store(read_window(), Ordering::Relaxed);
+            local.probed.store(probe, Ordering::Release);
+        }
+        // Preemption phase: arm once on RUN; once STOP has brought this CPU
+        // back to its home context (current 0 after a tick), report RESUMED.
+        match (
+            PREEMPT.load(Ordering::Acquire),
+            local.preempt.load(Ordering::Relaxed),
+        ) {
+            (PREEMPT_RUN, 0) => arm_preemption(local, first),
+            (PREEMPT_STOP, ARMED)
+                if local.current.load(Ordering::Acquire) == 0
+                    && local.ticks.load(Ordering::Relaxed) != 0 =>
+            {
+                local.preempt.store(RESUMED, Ordering::Release);
+            }
+            _ => {}
+        }
+        if PARK.load(Ordering::Acquire) {
+            break;
+        }
+        // SAFETY: STI's one-instruction shadow makes `sti; hlt` atomic, so an
+        // IPI that becomes pending after the PARK check still wakes this CPU.
+        // Local sources are masked; see the function comment for others.
+        unsafe { asm!("sti", "hlt", "cli") };
+    }
+    context.state.store(PARKED, Ordering::Release);
+    park()
+}
+
+/// Test-only (`test-smp-ap-nmi`/`test-smp-ap-double-fault`): recognize an NMI
+/// or #DF that the CPU delivered on *this* AP's own IST stack.
+pub fn ist_fault_marker(
+    vector: u64,
+    error: u64,
+    cs: u64,
+    frame: *const u64,
+) -> Option<&'static [u8]> {
+    if !cfg!(any(
+        feature = "test-smp-ap-nmi",
+        feature = "test-smp-ap-double-fault"
+    )) || cs != 8
+    {
+        return None;
+    }
+    let anchor = rdmsr(0xc000_0101);
+    let slot = (0..MAX_APS).find(|&slot| ptr::from_ref(&CPU_LOCAL[slot]) as u64 == anchor)?;
+    let at = frame as u64;
+    let within = |kind| {
+        let base = stack_base(slot, kind);
+        at >= base + 4096 && at + 22 * 8 <= base + STACK_TOP
+    };
+    if cfg!(feature = "test-smp-ap-nmi") && vector == 2 && within(NMI) {
+        return Some(b"SMP:FAULT:AP_NMI_IST:PASS\n");
+    }
+    if cfg!(feature = "test-smp-ap-double-fault") && vector == 8 && error == 0 && within(DOUBLE) {
+        // SAFETY: The normalized exception frame on this live IST stack holds
+        // the interrupted RSP at index 20 (15 GPRs, vector, error, RIP, CS, RFLAGS).
+        let old_rsp = unsafe { frame.add(20).read() };
+        let main = stack_base(slot, MAIN);
+        if (main..main + 4096).contains(&old_rsp) {
+            return Some(b"SMP:FAULT:AP_DF_IST:PASS\n");
+        }
+    }
+    None
+}
+
+fn decimal(mut value: u64) {
+    let mut digits = [0u8; 20];
+    let mut index = digits.len();
+    loop {
+        index -= 1;
+        digits[index] = b'0' + (value % 10) as u8;
         value /= 10;
         if value == 0 {
             break;
         }
     }
-    serial::write(&bytes[cursor..]);
+    serial::write(&digits[index..]);
 }
-
-fn send_ipi(window: u64, destination: u32, command: u32) {
-    let mut polls = 0;
-    while apic_read(window, APIC_ICR_LOW) & ICR_DELIVERY_PENDING != 0 {
-        if polls == MAX_IPI_POLLS {
-            serial::fail(b"SMP:IPI_BUSY_TIMEOUT");
-        }
-        polls += 1;
-        spin_loop();
-    }
-    apic_write(window, APIC_ICR_HIGH, destination << 24);
-    apic_write(window, APIC_ICR_LOW, command);
-    polls = 0;
-    while apic_read(window, APIC_ICR_LOW) & ICR_DELIVERY_PENDING != 0 {
-        if polls == MAX_IPI_POLLS {
-            serial::fail(b"SMP:IPI_SEND_TIMEOUT");
-        }
-        polls += 1;
-        spin_loop();
-    }
-}
-
-#[cfg(feature = "native-smp-m3")]
-pub fn current_cpu_index() -> usize {
-    let window = APIC_WINDOW.load(Ordering::Acquire);
-    if window == 0 {
-        serial::fail(b"SMP:APIC_UNMAPPED");
-    }
-    let apic_id = apic_read(window, APIC_ID) >> 24;
-    for index in 0..ap::cpu_count() {
-        if ap::cpu_id(index) == Some(apic_id) {
-            return index;
-        }
-    }
-    serial::fail(b"SMP:CPU_ID_UNKNOWN")
-}
-
-#[cfg(feature = "native-smp-m3")]
-pub fn bootstrap_index() -> usize {
-    let index = BOOTSTRAP_INDEX.load(Ordering::Acquire);
-    if index >= MAX_CPUS {
-        serial::fail(b"SMP:BSP_INDEX_UNSET");
-    }
-    index
-}
-
-#[cfg(feature = "native-smp-m3")]
-pub fn release_to_m3() {
-    M3_READY.store(true, Ordering::Release);
-}
-
-#[cfg(feature = "native-smp-m3")]
-pub fn mark_m3_ready(index: usize) {
-    assert!(index < ap::cpu_count() && index != bootstrap_index());
-    AP_STATES[index].store(AP_M3_READY, Ordering::Release);
-}
-
-#[cfg(feature = "native-smp-m3")]
-pub fn wait_for_m3_ready() {
-    for index in 0..ap::cpu_count() {
-        if index != bootstrap_index() {
-            wait_for_state(index, AP_M3_READY);
-        }
-    }
-}
-
-#[cfg(feature = "native-smp-m3")]
-pub fn schedule_aps() {
-    assert_eq!(current_cpu_index(), bootstrap_index());
-    let window = APIC_WINDOW.load(Ordering::Acquire);
-    let bootstrap = bootstrap_index();
-    for index in 0..ap::cpu_count() {
-        if index != bootstrap {
-            let apic_id = ap::cpu_id(index).unwrap_or_else(|| serial::fail(b"SMP:CPU_ID_UNKNOWN"));
-            send_ipi(window, apic_id, IPI_SCHEDULE);
-        }
-    }
-}
-
-#[cfg(feature = "native-smp-m3")]
-pub fn acknowledge_schedule_ipi() {
-    let window = APIC_WINDOW.load(Ordering::Acquire);
-    if window == 0 {
-        serial::fail(b"SMP:APIC_UNMAPPED");
-    }
-    apic_write(window, 0x0b0, 0);
-}
-
-fn wait_for_state(index: usize, expected: u8) {
-    for _ in 0..MAX_AP_POLLS {
-        let state = AP_STATES[index].load(Ordering::Acquire);
-        if state == expected {
-            return;
-        }
-        if state == AP_FAILED {
-            serial::fail(b"SMP:AP_FAILED");
-        }
-        spin_loop();
-    }
-    serial::write(b"SMP:AP_STATE:");
-    write_decimal(u64::from(AP_STATES[index].load(Ordering::Acquire)));
+fn unavailable(reason: &[u8]) {
+    serial::write(b"SMP:UNAVAILABLE:");
+    serial::write(reason);
     serial::write(b"\n");
-    serial::fail(b"SMP:AP_START_TIMEOUT");
 }
 
-fn delay(spins: usize) {
-    for _ in 0..spins {
-        spin_loop();
+enum Start {
+    Online,
+    Timeout,
+    Mismatch,
+    Ipi,
+}
+
+/// Returns the outcome and, for every non-online outcome, whether the CPU was
+/// confirmed reset with INIT (false means it may still be running).
+fn bring_up(slot: usize, apic_id: u32, vector: u32) -> (Start, bool) {
+    let context = &NOS_SMP_AP_CONTEXTS[slot];
+    context
+        .stack_top
+        .store(stack_base(slot, MAIN) + STACK_TOP, Ordering::Relaxed);
+    context.apic_id.store(apic_id, Ordering::Relaxed);
+    context.state.store(STARTING, Ordering::Release);
+    let mut result = Start::Timeout;
+    if send_ipi(apic_id, IPI_INIT) && wait_us(10_000) && send_ipi(apic_id, IPI_STARTUP | vector) {
+        wait_us(200);
+        if context.state.load(Ordering::Acquire) == STARTING
+            && !send_ipi(apic_id, IPI_STARTUP | vector)
+        {
+            result = Start::Ipi;
+        }
+        wait_us(200);
+        for _ in 0..100 {
+            match context.state.load(Ordering::Acquire) {
+                ONLINE => return (Start::Online, true),
+                MISMATCH => {
+                    result = Start::Mismatch;
+                    break;
+                }
+                _ => {
+                    wait_us(10_000);
+                }
+            }
+        }
+    } else {
+        result = Start::Ipi;
+    }
+    // Fail closed: an unclaimed context is retired by the same CAS the AP uses;
+    // a claimed one keeps its stack forever. Either way the CPU is reset (INIT).
+    // A failed CAS only means the AP already claimed; INIT handles both cases.
+    context
+        .state
+        .compare_exchange(STARTING, ABANDONED, Ordering::AcqRel, Ordering::Acquire)
+        .ok();
+    let quarantined = send_ipi(apic_id, IPI_INIT);
+    context.state.store(ABANDONED, Ordering::Release);
+    (result, quarantined)
+}
+
+/// After KS-03: report the MADT, start each enabled AP in order and run the
+/// bounded synchronization self-test. Every failure keeps a working 1-CPU boot.
+pub fn start(
+    prepared: Prepared,
+    madt: &Madt,
+    frames: &mut Frames<FRAME_COUNT>,
+    paging: &mut paging::Paging,
+) {
+    BSP_LOCAL
+        .self_ptr
+        .store(ptr::from_ref(&BSP_LOCAL) as u64, Ordering::Relaxed);
+    wrmsr(0xc000_0101, ptr::from_ref(&BSP_LOCAL) as u64);
+    match madt.status {
+        MadtStatus::Missing => return unavailable(b"NO_MADT"),
+        MadtStatus::Invalid => return unavailable(b"INVALID_MADT"),
+        MadtStatus::Valid => {}
+    }
+    let cpus = madt.cpus();
+    serial::write(b"SMP:MADT:CPUS=");
+    decimal(cpus.len() as u64);
+    serial::write(b":DISABLED=");
+    decimal(u64::from(madt.disabled));
+    serial::write(b":HOTPLUG=");
+    decimal(u64::from(madt.online_capable));
+    serial::write(b"\n");
+    let page = match prepared {
+        Ok(page) => page,
+        Err(reason) => return unavailable(reason),
+    };
+    if rdmsr(0x1b) & 0x000f_ffff_ffff_f000 != madt.local_apic_base {
+        return unavailable(b"LAPIC_BASE_MISMATCH");
+    }
+    let bsp_id = lapic_read(0x20) >> 24;
+    if bsp_id != initial_apic_id() {
+        return unavailable(b"BSP_ID");
+    }
+    if !cpus.iter().any(|cpu| cpu.apic_id == bsp_id) {
+        return unavailable(b"BSP_NOT_IN_MADT");
+    }
+    if !wait_us(1_000) {
+        return unavailable(b"TIMER");
+    }
+    let svr = lapic_read(0xf0);
+    if svr & 0x100 == 0 {
+        // Software-enable with spurious vector 0xff; IF=0 delivers nothing.
+        lapic_write(0xf0, svr | 0x1ff);
+    }
+    for (slot, value) in BSP_REGISTERS.iter().zip(control_registers()) {
+        slot.store(value, Ordering::Release);
+    }
+    BSP_APIC_BASE.store(rdmsr(0x1b), Ordering::Release);
+    // IDT is complete before the first AP can load it.
+    arch::smp_gate(IPI_VECTOR, nos_smp_ipi_entry as usize as u64);
+    arch::smp_gate(SPURIOUS_VECTOR, nos_smp_spurious_entry as usize as u64);
+    arch::smp_gate(SHOOTDOWN_VECTOR, nos_smp_shootdown_entry as usize as u64);
+    arch::smp_gate(TIMER_VECTOR, nos_smp_timer_entry as usize as u64);
+    let vector = (page / PAGE) as u32;
+    let (mut online, mut x2apic, mut capacity) = (0usize, 0u64, 0u64);
+    for cpu in cpus.iter().filter(|cpu| cpu.apic_id != bsp_id) {
+        if cpu.apic_id >= 0xff {
+            x2apic += 1;
+            continue;
+        }
+        if online == MAX_APS {
+            capacity += 1;
+            continue;
+        }
+        let (outcome, quarantined) = bring_up(online, cpu.apic_id, vector);
+        serial::write(b"SMP:AP:");
+        decimal(u64::from(cpu.apic_id));
+        serial::write(match outcome {
+            Start::Online => b":ONLINE\n".as_slice(),
+            Start::Timeout => b":TIMEOUT\n",
+            Start::Mismatch => b":MISMATCH\n",
+            Start::Ipi => b":IPI_ERROR\n",
+        });
+        if !matches!(outcome, Start::Online) {
+            if !quarantined {
+                // The AP may still be running; GO must never be published.
+                serial::fail(b"SMP_AP_QUARANTINE");
+            }
+            serial::write(b"SMP:BRINGUP:STOPPED\n");
+            break;
+        }
+        online += 1;
+    }
+    if x2apic != 0 {
+        serial::write(b"SMP:SKIPPED:X2APIC=");
+        decimal(x2apic);
+        serial::write(b"\n");
+    }
+    if capacity != 0 {
+        serial::write(b"SMP:SKIPPED:CAPACITY=");
+        decimal(capacity);
+        serial::write(b"\n");
+    }
+    serial::write(b"SMP:ONLINE:");
+    decimal(online as u64 + 1);
+    serial::write(b"/");
+    decimal(cpus.len() as u64);
+    serial::write(b"\n");
+    GO.store(true, Ordering::Release);
+    stress();
+    let finished = (0..200).any(|_| {
+        NOS_SMP_AP_CONTEXTS[..online].iter().all(finished_stress) || {
+            wait_us(10_000);
+            false
+        }
+    });
+    let expected = ITERATIONS * (online as u64 + 1);
+    if !finished {
+        serial::write(b"SMP:SYNC:TIMEOUT:DONE=");
+        decimal(
+            NOS_SMP_AP_CONTEXTS[..online]
+                .iter()
+                .filter(|context| finished_stress(context))
+                .count() as u64,
+        );
+        serial::write(b":TOTAL=");
+        decimal(ATOMIC_TOTAL.load(Ordering::Acquire));
+        serial::write(b"\n");
+        serial::fail(b"SMP_SYNC_TIMEOUT");
+    }
+    if ATOMIC_TOTAL.load(Ordering::Acquire) != expected || *LOCKED_TOTAL.lock() != expected {
+        serial::fail(b"SMP_SYNC_LOST_UPDATE");
+    }
+    if VIOLATIONS.load(Ordering::Acquire) != 0 {
+        serial::fail(b"SMP_SYNC_EXCLUSION");
+    }
+    serial::write(b"SMP:SYNC:PASS:CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    ipis(online, cpus.len(), frames, paging);
+}
+
+/// DONE is stored (Release) after the AP's last stress write; the AP may then
+/// already have advanced to IPI_READY, which is only reachable through DONE.
+fn finished_stress(context: &ApContext) -> bool {
+    matches!(context.state.load(Ordering::Acquire), DONE | IPI_READY)
+}
+
+const IPI_FIXED: u32 = 0x0000_4000;
+const IPI_NMI: u32 = 0x0000_4400;
+
+/// Poll `ready` every millisecond, at most `limit` ms (PIT-bounded).
+fn within_ms(limit: u32, ready: impl Fn() -> bool) -> bool {
+    (0..limit).any(|_| {
+        ready() || {
+            wait_us(1_000);
+            false
+        }
+    })
+}
+
+/// A CPU that cannot take a directed interrupt cannot join any later
+/// shootdown protocol: reset every AP with INIT and continue on the BSP.
+fn quarantine_all(online: usize, total: usize) {
+    for context in &NOS_SMP_AP_CONTEXTS[..online] {
+        if !send_ipi(context.apic_id.load(Ordering::Relaxed), IPI_INIT) {
+            serial::fail(b"SMP_AP_QUARANTINE");
+        }
+        context.state.store(ABANDONED, Ordering::Release);
+    }
+    // ICR idle is acceptance by the bus, not completion of INIT in the target;
+    // allow it to take effect before the BSP reports one CPU. A stray store by
+    // a resetting AP only touches its own context, which nothing reads anymore.
+    wait_us(1_000);
+    serial::write(b"SMP:QUARANTINED:APS=");
+    decimal(online as u64);
+    serial::write(b"\nSMP:ONLINE:1/");
+    decimal(total as u64);
+    serial::write(b"\n");
+}
+
+/// Unicast only: a broadcast shorthand would also reach CPUs still owned by
+/// firmware (capacity-skipped or never started) with unknown interrupt state.
+fn ipis(
+    online: usize,
+    total: usize,
+    frames: &mut Frames<FRAME_COUNT>,
+    paging: &mut paging::Paging,
+) {
+    let aps = &NOS_SMP_AP_CONTEXTS[..online];
+    if !within_ms(1_000, || {
+        aps.iter()
+            .all(|context| context.state.load(Ordering::Acquire) == IPI_READY)
+    }) {
+        serial::write(b"SMP:IPI:NOT_READY\n");
+        return quarantine_all(online, total);
+    }
+    for round in 1..=IPI_ROUNDS {
+        for (slot, context) in aps.iter().enumerate() {
+            let apic = context.apic_id.load(Ordering::Relaxed);
+            if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
+                || !within_ms(100, || {
+                    CPU_LOCAL[slot].ipis.load(Ordering::Acquire) >= round
+                })
+            {
+                serial::write(b"SMP:IPI:TIMEOUT:APIC=");
+                decimal(u64::from(apic));
+                serial::write(b"\n");
+                return quarantine_all(online, total);
+            }
+            if cfg!(feature = "test-smp-ap-double-fault") && slot == 0 && round == 1 {
+                // That AP now faults on its own IST1 stack and ends the VM.
+                within_ms(1_000, || false);
+                serial::fail(b"SMP_AP_DF_NOT_ON_IST");
+            }
+        }
+    }
+    // During the rounds each IPI was delivered exactly once (none lost or
+    // duplicated). Later arrivals, e.g. the park IPI, are not counted here.
+    if CPU_LOCAL[..online]
+        .iter()
+        .any(|local| local.ipis.load(Ordering::Acquire) != IPI_ROUNDS)
+    {
+        serial::fail(b"SMP_IPI_COUNT");
+    }
+    serial::write(b"SMP:IPI:PASS:ROUNDS=");
+    decimal(u64::from(IPI_ROUNDS));
+    serial::write(b":CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    if cfg!(feature = "test-smp-ap-nmi") && online != 0 {
+        let apic = aps[0].apic_id.load(Ordering::Relaxed);
+        if send_ipi(apic, IPI_NMI) {
+            // The AP's IST2 handler must end the VM with its marker.
+            within_ms(1_000, || false);
+        }
+        serial::fail(b"SMP_AP_NMI_NOT_ON_IST");
+    }
+    if !shootdown(online, total, frames, paging) || !preemption(online, total) {
+        return;
+    }
+    PARK.store(true, Ordering::Release);
+    for (slot, context) in aps.iter().enumerate() {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
+            || !within_ms(100, || context.state.load(Ordering::Acquire) == PARKED)
+        {
+            serial::write(b"SMP:PARK:TIMEOUT:SLOT=");
+            decimal(slot as u64);
+            serial::write(b"\n");
+            return quarantine_all(online, total);
+        }
+    }
+    serial::write(b"SMP:PARKED:APS=");
+    decimal(online as u64);
+    serial::write(b"\n");
+}
+
+/// TLB shootdown proof (ADR-072). Every AP has cached SHOOTDOWN_WINDOW -> A,
+/// which also has a bootstrap identity alias. With one shared CR3 any CPU may
+/// hold either translation (even speculatively), so the order is:
+/// scrub A, clear BOTH PTEs locally (window -> B, identity alias removed),
+/// shoot down BOTH VAs on every AP, and only after every ack release both
+/// aliases, free A and run the full page-table audit. A missing ack leaves A
+/// quarantined forever (owned, aliases held; the audit must then not run, as
+/// its metadata deliberately disagrees with the tables) and resets every AP.
+/// Returns false after that quarantine. `test-smp-shootdown-skipped` is the
+/// control: it omits the IPIs to show that APs then really reach frame A.
+fn shootdown(
+    online: usize,
+    total: usize,
+    frames: &mut Frames<FRAME_COUNT>,
+    paging: &mut paging::Paging,
+) -> bool {
+    let locals = &CPU_LOCAL[..online];
+    let old = SHOOTDOWN_FRAMES[0].load(Ordering::Relaxed);
+    let new = SHOOTDOWN_FRAMES[1].load(Ordering::Relaxed);
+    if read_window() != u32::from(OLD_PATTERN)
+        || locals
+            .iter()
+            .any(|local| local.before.load(Ordering::Acquire) != u32::from(OLD_PATTERN))
+    {
+        serial::fail(b"SMP_SHOOTDOWN_SETUP");
+    }
+    // SAFETY: `old` is the Kernel-owned frame A with its bootstrap identity
+    // RW/NX alias still mapped. Every AP already recorded its pre-remap read
+    // (checked above); nothing else reads A, so scrubbing now leaks nothing.
+    unsafe { ptr::write_bytes(old as *mut u8, 0, PAGE as usize) };
+    if paging.remap_window(frames, new) != Ok(old)
+        || paging.clear_identity(old).is_err()
+        || read_window() != u32::from(NEW_PATTERN)
+    {
+        serial::fail(b"SMP_SHOOTDOWN_REMAP");
+    }
+    let skipped = cfg!(feature = "test-smp-shootdown-skipped");
+    if skipped {
+        serial::write(b"SMP:SHOOTDOWN:SKIPPED\n");
+    } else if let Err(apic) = shootdown_round([paging::SHOOTDOWN_WINDOW, old], online) {
+        serial::write(b"SMP:SHOOTDOWN:TIMEOUT:APIC=");
+        decimal(u64::from(apic));
+        serial::write(b"\nSMP:SHOOTDOWN:FRAME_QUARANTINED\n");
+        quarantine_all(online, total);
+        return false;
+    }
+    // Global invalidation of both translations is complete (except, by design,
+    // in the control), so A's metadata may be released and the frame reused.
+    if paging.release_stale_alias(frames, old).is_err()
+        || paging.release_stale_alias(frames, old).is_err()
+        // Contents were scrubbed above, before any translation was dropped.
+        || frames.free(old, Owner::Kernel, |_| {}).is_err()
+    {
+        serial::fail(b"SMP_SHOOTDOWN_RECLAIM");
+    }
+    paging.audit(frames);
+    if !skipped {
+        serial::write(b"SMP:SHOOTDOWN:PASS:CPUS=");
+        decimal(online as u64 + 1);
+        serial::write(b"\n");
+    }
+    probe_visibility(online, total, skipped)
+}
+
+/// One shootdown generation for `vas` on every online AP; returns the APIC ID
+/// of the first AP that does not acknowledge this exact generation in time.
+fn shootdown_round(vas: [u64; 2], online: usize) -> Result<(), u32> {
+    for (slot, va) in NOS_SMP_SHOOTDOWN_VA.iter().zip(vas) {
+        slot.store(va, Ordering::Release);
+    }
+    let generation = NOS_SMP_SHOOTDOWN_GEN.fetch_add(1, Ordering::AcqRel) + 1;
+    for (context, local) in NOS_SMP_AP_CONTEXTS[..online].iter().zip(&CPU_LOCAL) {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        if !send_ipi(apic, IPI_FIXED | SHOOTDOWN_VECTOR as u32)
+            || !within_ms(100, || {
+                local.shootdown_ack.load(Ordering::Acquire) == generation
+            })
+        {
+            return Err(apic);
+        }
+    }
+    Ok(())
+}
+
+/// Every CPU reads the window again through its current TLB; outside the
+/// control each must reach frame B.
+fn probe_visibility(online: usize, total: usize, skipped: bool) -> bool {
+    let locals = &CPU_LOCAL[..online];
+    PROBE.store(1, Ordering::Release);
+    for (context, local) in NOS_SMP_AP_CONTEXTS[..online].iter().zip(locals) {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
+            || !within_ms(100, || local.probed.load(Ordering::Acquire) == 1)
+        {
+            serial::write(b"SMP:SHOOTDOWN:PROBE_TIMEOUT\n");
+            quarantine_all(online, total);
+            return false;
+        }
+    }
+    let stale = locals
+        .iter()
+        .filter(|local| local.after.load(Ordering::Acquire) != u32::from(NEW_PATTERN))
+        .count();
+    if skipped {
+        serial::write(b"SMP:SHOOTDOWN:STALE:APS=");
+        decimal(stale as u64);
+        serial::write(b"\n");
+    } else if stale != 0 || read_window() != u32::from(NEW_PATTERN) {
+        serial::fail(b"SMP_SHOOTDOWN_STALE");
+    } else {
+        serial::write(b"SMP:SHOOTDOWN:VISIBLE:CPUS=");
+        decimal(online as u64 + 1);
+        serial::write(b"\n");
+    }
+    true
+}
+
+// Preemption (K06 step 4): the AP's LAPIC timer (vector 0xd0) saves every
+// GPR on the interrupted stack, lets `smp_preempt` choose the next stack and
+// resumes it. Kernel code is soft-float with no red zone, so the GPRs plus the
+// CPU's interrupt frame are the complete thread context. 15 pushes + the
+// 5-word frame keep RSP 16-byte aligned for the call (the CPU aligns first).
+global_asm!(
+    ".pushsection .text.nos_smp_timer,\"ax\"",
+    ".globl nos_smp_timer_entry",
+    "nos_smp_timer_entry:",
+    "    push rax", "    push rcx", "    push rdx", "    push rbx", "    push rbp",
+    "    push rsi", "    push rdi", "    push r8", "    push r9", "    push r10",
+    "    push r11", "    push r12", "    push r13", "    push r14", "    push r15",
+    "    cld",
+    "    mov rdi, rsp",
+    "    call {preempt}",
+    "    mov rsp, rax",
+    "    mov dword ptr [{eoi}], 0",
+    "    pop r15", "    pop r14", "    pop r13", "    pop r12", "    pop r11",
+    "    pop r10", "    pop r9", "    pop r8", "    pop rdi", "    pop rsi",
+    "    pop rbp", "    pop rbx", "    pop rdx", "    pop rcx", "    pop rax",
+    "    iretq",
+    ".popsection",
+    preempt = sym smp_preempt,
+    eoi = const paging::LAPIC_WINDOW + 0xb0,
+);
+
+const LVT_TIMER: u64 = 0x320;
+const TIMER_DIVIDE: u64 = 0x3e0;
+const TIMER_INITIAL: u64 = 0x380;
+const TIMER_PERIODIC: u32 = 1 << 17;
+const MASKED: u32 = 1 << 16;
+const MIN_TICKS: u32 = 8;
+const MIN_SWITCHES: u32 = 4;
+
+/// This CPU's anchor, identified by IA32_GS_BASE (set once per AP); `None` on
+/// the BSP or for any value that is not one of the static anchors.
+fn this_cpu() -> Option<&'static CpuLocal> {
+    let anchor = rdmsr(0xc000_0101);
+    CPU_LOCAL
+        .iter()
+        .find(|local| ptr::from_ref(*local) as u64 == anchor)
+}
+
+/// Any CPU's anchor (BSP or AP) by IA32_GS_BASE; `None` before `start` set it.
+fn any_cpu() -> Option<&'static CpuLocal> {
+    let anchor = rdmsr(0xc000_0101);
+    core::iter::once(&BSP_LOCAL)
+        .chain(CPU_LOCAL.iter())
+        .find(|local| ptr::from_ref(*local) as u64 == anchor)
+}
+
+/// This CPU's held lock levels; IF=0, so no handler interleaves the update.
+pub fn lockdep() -> &'static AtomicU64 {
+    match any_cpu() {
+        Some(local) => &local.lockdep,
+        None => serial::fail(b"SMP_LOCKDEP_ANCHOR"),
     }
 }
 
-fn apic_read(window: u64, offset: u64) -> u32 {
-    assert!(offset < 4096 && offset.is_multiple_of(16));
-    compiler_fence(Ordering::SeqCst);
-    // SAFETY: The validated UC APIC page is mapped at this fixed supervisor VA.
-    let value = unsafe { ((window + offset) as *const u32).read_volatile() };
-    fence(Ordering::SeqCst);
-    value
+/// Terminal lock-order report (spec §4.4): `SMP:LOCKDEP:ORDER:<held>-><wanted>`.
+/// Only the deliberate negative profile counts it as a pass.
+pub fn lockdep_order(order: smp_lock::Order) -> ! {
+    serial::write(b"SMP:LOCKDEP:ORDER:");
+    decimal(u64::from(order.held));
+    serial::write(b"->");
+    decimal(u64::from(order.wanted));
+    serial::write(b"\n");
+    if cfg!(feature = "test-smp-lockdep-order") {
+        serial::exit(0x10);
+    }
+    serial::fail(b"SMP_LOCKDEP_ORDER")
 }
 
-fn apic_write(window: u64, offset: u64, value: u32) {
-    assert!(offset < 4096 && offset.is_multiple_of(16));
-    compiler_fence(Ordering::SeqCst);
-    // SAFETY: The validated UC APIC page is mapped at this fixed supervisor VA.
+/// Terminal bounded-spin report: `SMP:LOCK:STUCK:<name>:CPU=<slot>`.
+pub fn lock_stuck(name: &[u8]) -> ! {
+    serial::write(b"SMP:LOCK:STUCK:");
+    serial::write(name);
+    serial::write(b":CPU=");
+    let cpu = any_cpu().map_or(u64::MAX, |local| {
+        if ptr::eq(local, &BSP_LOCAL) {
+            0
+        } else {
+            u64::from(local.slot.load(Ordering::Relaxed)) + 1
+        }
+    });
+    decimal(cpu);
+    serial::write(b"\n");
+    serial::fail(b"SMP_LOCK_STUCK")
+}
+
+/// Round-robin over home (0) and the two threads (1, 2). After STOP the timer
+/// is masked and the home loop resumes; threads are never run again.
+#[no_mangle]
+extern "C" fn smp_preempt(rsp: u64) -> u64 {
+    let Some(local) = this_cpu() else {
+        // A timer interrupt on a CPU without an anchor is impossible by
+        // construction (only APs arm it); stop rather than run unknown state.
+        serial::fail(b"SMP_PREEMPT_ANCHOR");
+    };
+    local.ticks.fetch_add(1, Ordering::Relaxed);
+    let current = local.current.load(Ordering::Relaxed) as usize;
+    local.saved[current].store(rsp, Ordering::Relaxed);
+    let next = if PREEMPT.load(Ordering::Acquire) == PREEMPT_STOP {
+        lapic_write(LVT_TIMER, MASKED | TIMER_VECTOR as u32);
+        0
+    } else if current == 1 {
+        2
+    } else {
+        1
+    };
+    if next != current {
+        local.switches.fetch_add(1, Ordering::Relaxed);
+    }
+    local.current.store(next as u32, Ordering::Release);
+    local.saved[next].load(Ordering::Relaxed)
+}
+
+/// Each slice parks distinct per-CPU/per-thread values in r12-r15 (and the
+/// compiler-chosen input registers), spins long enough to be preempted many
+/// times, then checks them: a wrong save/restore in the timer stub would show
+/// up as `corrupt`, not just as a passing tick count.
+fn thread_body(local: &CpuLocal, index: usize) -> ! {
+    let seed = (u64::from(local.slot.load(Ordering::Relaxed)) << 8 | (index as u64 + 1))
+        * 0x0101_0101_0101_0101;
+    loop {
+        let intact: u32;
+        // SAFETY: Pure register arithmetic and PAUSE on this thread's own
+        // stack; r12-r15 are declared clobbered, no memory is touched.
+        unsafe {
+            asm!(
+                "mov r12, {a}", "mov r13, {b}", "mov r14, {c}", "mov r15, {d}",
+                "2:", "pause", "dec {n}", "jnz 2b",
+                "xor {ok:e}, {ok:e}",
+                "cmp r12, {a}", "jne 3f", "cmp r13, {b}", "jne 3f",
+                "cmp r14, {c}", "jne 3f", "cmp r15, {d}", "jne 3f",
+                "mov {ok:e}, 1",
+                "3:",
+                a = in(reg) seed, b = in(reg) seed ^ 0x5555, c = in(reg) seed.rotate_left(17),
+                d = in(reg) !seed, n = inout(reg) 2_000u64 => _, ok = out(reg) intact,
+                out("r12") _, out("r13") _, out("r14") _, out("r15") _,
+                options(nomem, nostack),
+            );
+        }
+        if intact != 1 {
+            local.corrupt.store(1, Ordering::Release);
+        }
+        local.counts[index].fetch_add(1, Ordering::Release);
+    }
+}
+extern "C" fn nos_smp_thread0() -> ! {
+    match this_cpu() {
+        Some(local) => thread_body(local, 0),
+        None => park(),
+    }
+}
+extern "C" fn nos_smp_thread1() -> ! {
+    match this_cpu() {
+        Some(local) => thread_body(local, 1),
+        None => park(),
+    }
+}
+
+/// Build an initial frame on a fresh thread stack so that the timer stub's
+/// pops and `iretq` enter `entry` with IF=1 and a SysV-aligned stack.
+fn thread_frame(slot: usize, kind: usize, entry: u64) -> u64 {
+    let top = stack_base(slot, kind) + STACK_TOP;
+    let frame = top - 8 - 20 * 8;
+    let iret = [entry, 0x08, 0x202, top - 8, 0x10];
+    // SAFETY: [frame, top) lies in this AP's own guarded thread stack (kind
+    // THREADS[i] of its claimed slot), which no code has used yet; 21 aligned
+    // u64 slots are written: 15 zero GPRs, the 5-word frame, a zero return
+    // address the never-returning entry cannot use.
     unsafe {
-        ((window + offset) as *mut u32).write_volatile(value);
+        for i in 0..15 {
+            (frame as *mut u64).add(i).write(0);
+        }
+        for (i, value) in iret.into_iter().enumerate() {
+            (frame as *mut u64).add(15 + i).write(value);
+        }
+        ((top - 8) as *mut u64).write(0);
     }
-    fence(Ordering::SeqCst);
+    frame
+}
+
+/// AP side, IF=0 in the home loop: prepare both threads, then arm the
+/// periodic timer. The `test-smp-ap-timer-dead` AP never arms it.
+fn arm_preemption(local: &CpuLocal, first: bool) {
+    let slot = local.slot.load(Ordering::Relaxed) as usize;
+    local.saved[1].store(
+        thread_frame(slot, THREADS[0], nos_smp_thread0 as usize as u64),
+        Ordering::Relaxed,
+    );
+    local.saved[2].store(
+        thread_frame(slot, THREADS[1], nos_smp_thread1 as usize as u64),
+        Ordering::Relaxed,
+    );
+    local.current.store(0, Ordering::Relaxed);
+    local.preempt.store(ARMED, Ordering::Release);
+    if cfg!(feature = "test-smp-ap-timer-dead") && first {
+        return;
+    }
+    lapic_write(TIMER_DIVIDE, 0x3);
+    lapic_write(LVT_TIMER, TIMER_PERIODIC | TIMER_VECTOR as u32);
+    lapic_write(TIMER_INITIAL, 20_000);
+}
+
+/// BSP: every AP must show real preemption (ticks, switches, both threads
+/// advancing), then return to its home loop after STOP. Any AP that does not
+/// is treated like a deaf AP: every AP is reset and the BSP continues alone.
+fn preemption(online: usize, total: usize) -> bool {
+    let aps = &NOS_SMP_AP_CONTEXTS[..online];
+    let locals = &CPU_LOCAL[..online];
+    PREEMPT.store(PREEMPT_RUN, Ordering::Release);
+    for (context, local) in aps.iter().zip(locals) {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        let progressed = || {
+            local.ticks.load(Ordering::Acquire) >= MIN_TICKS
+                && local.switches.load(Ordering::Acquire) >= MIN_SWITCHES
+                && local
+                    .counts
+                    .iter()
+                    .all(|count| count.load(Ordering::Acquire) != 0)
+        };
+        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32) || !within_ms(500, progressed) || {
+            // Both threads must keep advancing between two BSP samples.
+            let before = local
+                .counts
+                .each_ref()
+                .map(|count| count.load(Ordering::Acquire));
+            !within_ms(500, || {
+                local
+                    .counts
+                    .iter()
+                    .zip(before)
+                    .all(|(count, old)| count.load(Ordering::Acquire) > old)
+            })
+        } {
+            serial::write(b"SMP:PREEMPT:TIMEOUT:APIC=");
+            decimal(u64::from(apic));
+            serial::write(b"\n");
+            quarantine_all(online, total);
+            return false;
+        }
+    }
+    PREEMPT.store(PREEMPT_STOP, Ordering::Release);
+    for (context, local) in aps.iter().zip(locals) {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
+            || !within_ms(200, || local.preempt.load(Ordering::Acquire) == RESUMED)
+        {
+            serial::write(b"SMP:PREEMPT:STOP_TIMEOUT\n");
+            quarantine_all(online, total);
+            return false;
+        }
+    }
+    // After STOP nothing may run any more: counters and ticks stay frozen,
+    // and no thread saw its registers change across a switch.
+    let frozen = |local: &CpuLocal| {
+        (
+            local.ticks.load(Ordering::Acquire),
+            local
+                .counts
+                .each_ref()
+                .map(|count| count.load(Ordering::Acquire)),
+        )
+    };
+    let snapshot: [_; MAX_APS] = core::array::from_fn(|i| (i < online).then(|| frozen(&locals[i])));
+    wait_us(10_000);
+    for (i, local) in locals.iter().enumerate() {
+        if snapshot[i] != Some(frozen(local)) {
+            serial::fail(b"SMP_PREEMPT_RAN_AFTER_STOP");
+        }
+        if local.corrupt.load(Ordering::Acquire) != 0 {
+            serial::fail(b"SMP_PREEMPT_CONTEXT_CORRUPT");
+        }
+    }
+    serial::write(b"SMP:PREEMPT:PASS:CPUS=");
+    decimal(online as u64 + 1);
+    serial::write(b"\n");
+    true
 }

@@ -91,6 +91,8 @@ pub struct Service {
     sessions: [Option<Session>; DOMAINS],
     cache: Cache,
     read_only: bool,
+    format_initialized: bool,
+    admission_checked: bool,
     uncertain: bool,
     // Separate counters avoid revealing another domain's upload activity.
     next_upload_token: [u32; DOMAINS],
@@ -117,6 +119,7 @@ type Outcome = Result<[u8; SIZE], (Status, u64)>;
 
 impl Service {
     pub fn new(epoch: u64, table: Table, read_only: bool) -> Self {
+        let format_initialized = table.generation != 0;
         Self {
             epoch,
             table,
@@ -129,6 +132,8 @@ impl Service {
                 bytes: [0; CHUNK],
             },
             read_only,
+            format_initialized,
+            admission_checked: false,
             uncertain: false,
             next_upload_token: [1; DOMAINS],
             counters: Counters::default(),
@@ -145,7 +150,8 @@ impl Service {
     /// that flush fails, the instance does not start.
     pub fn recover(epoch: u64, read_only: bool, disk: &mut impl Disk) -> Result<Self, Status> {
         let mut service = Self::new(epoch, Table::EMPTY, read_only);
-        table::recover(disk, &mut service.table)?;
+        service.format_initialized = table::recover_with_state(disk, &mut service.table)?;
+        service.admission_checked = true;
         if !read_only {
             disk.flush()?;
             service.counters.flushes += 1;
@@ -292,7 +298,7 @@ impl Service {
         } else {
             match request.operation {
                 wire::STAT => self.stat(&request),
-                wire::BEGIN => self.begin(domain, &request, body),
+                wire::BEGIN => self.begin(domain, &request, body, disk),
                 wire::APPEND => self.append(domain, &request, body, disk),
                 wire::COMMIT => self.commit(domain, &request, disk),
                 wire::ABORT => self.abort(domain, &request),
@@ -358,7 +364,13 @@ impl Service {
             .any(|session| session.chunks[..session.chunk_count].contains(&chunk))
     }
 
-    fn begin(&mut self, domain: usize, request: &Header, body: &[u8; SIZE]) -> Outcome {
+    fn begin(
+        &mut self,
+        domain: usize,
+        request: &Header,
+        body: &[u8; SIZE],
+        disk: &mut impl Disk,
+    ) -> Outcome {
         // One upload per domain. A new BEGIN from the same kernel-bound domain
         // replaces an abandoned one (e.g. after an app restart); no other
         // domain can influence this session.
@@ -409,6 +421,7 @@ impl Service {
         if session.chunk_count != needed {
             return Err((Status::Full, 0));
         }
+        self.ensure_format_initialized(disk)?;
         self.counters.chunk_allocations += needed as u64;
         self.sessions[domain] = Some(session);
         Ok(reply(
@@ -533,7 +546,7 @@ impl Service {
         entry.current.chunks[session.chunk_count..].fill(NO_CHUNK);
         entry.current.sums[session.chunk_count..].fill(0);
         entry.present = true;
-        self.touch(&mut entry, request.request_id, clock);
+        self.touch(&mut entry, request.request_id, clock)?;
         self.publish(
             domain,
             &Patch::one(session.object, entry),
@@ -565,14 +578,26 @@ impl Service {
         Ok(self.table.clocks[domain] + 1)
     }
 
-    /// Common bookkeeping of any object mutation.
-    fn touch(&self, entry: &mut Entry, request_id: u64, clock: u64) {
+    /// Common bookkeeping of any object mutation. Recovery bounds a deleted
+    /// object's history by `revision + 1`, so a tombstone can never take
+    /// revision `u64::MAX`: refused as exhausted, like the generation, before
+    /// anything is published.
+    fn touch(&self, entry: &mut Entry, request_id: u64, clock: u64) -> Result<(), (Status, u64)> {
+        let limit = if entry.present {
+            u64::MAX
+        } else {
+            u64::MAX - 1
+        };
+        if entry.revision >= limit {
+            return Err((Status::Full, 0));
+        }
         entry.revision += 1;
         entry.request_id = request_id;
         if entry.created == 0 {
             entry.created = clock;
         }
         entry.modified = clock;
+        Ok(())
     }
 
     /// DELETE, RENAME, RESTORE, PURGE and META on one object of `domain`.
@@ -627,7 +652,7 @@ impl Service {
             }
             _ => return Err((Status::NoSys, 0)),
         }
-        self.touch(&mut entry, request.request_id, clock);
+        self.touch(&mut entry, request.request_id, clock)?;
         self.publish(domain, &Patch::one(object, entry), request.request_id, disk)?;
         // Count only durable restores, like transactions.
         if request.operation == wire::RESTORE {
@@ -777,7 +802,7 @@ impl Service {
                 wire::SUB_DELETE => Self::delete(&mut entry),
                 _ => Self::purge(&mut entry),
             }
-            self.touch(&mut entry, request.request_id, clock);
+            self.touch(&mut entry, request.request_id, clock)?;
             patch.push(object, entry);
         }
         self.publish(domain, &patch, request.request_id, disk)?;
@@ -801,6 +826,7 @@ impl Service {
         request_id: u64,
         disk: &mut impl Disk,
     ) -> Result<(), (Status, u64)> {
+        self.ensure_format_initialized(disk)?;
         let generation = self.next_generation()?;
         let collections = patch.collections.unwrap_or(self.table.collections);
         let mut clocks = self.table.clocks;
@@ -838,6 +864,29 @@ impl Service {
             self.table.entries[*object] = *entry;
         }
         self.counters.commits += 1;
+        Ok(())
+    }
+
+    fn ensure_format_initialized(&mut self, disk: &mut impl Disk) -> Result<(), (Status, u64)> {
+        if !self.admission_checked {
+            let mut recovered = Table::EMPTY;
+            self.format_initialized =
+                table::recover_with_state(disk, &mut recovered).map_err(|status| (status, 0))?;
+            if recovered != self.table {
+                self.uncertain = true;
+                return Err((Status::Corrupt, 0));
+            }
+            self.admission_checked = true;
+        }
+        if self.format_initialized {
+            return Ok(());
+        }
+        if table::write_format_marker(disk).is_err() {
+            self.uncertain = true;
+            return Err((Status::Unknown, 0));
+        }
+        self.format_initialized = true;
+        self.counters.flushes += 1;
         Ok(())
     }
 

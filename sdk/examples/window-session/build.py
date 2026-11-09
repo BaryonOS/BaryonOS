@@ -41,8 +41,11 @@ def main() -> int:
     env.setdefault("CARGO_TARGET_DIR", str(ROOT / "build/sdk-window-session-rust190"))
     target = Path(env["CARGO_TARGET_DIR"])
     env["CARGO_TARGET_DIR"] = str((ROOT / target).resolve())
+    features = ["native"]
+    if "--fault-injection" in sys.argv: features.append("fault-injection")
+    if "--session-preview" in sys.argv: features.append("session-preview")
     command = ["cargo", f"+{TOOLCHAIN}", "build", "--offline", "--locked", "--release",
-               "--manifest-path", str(EXAMPLE / "Cargo.toml"), "--features", "native,fault-injection" if "--fault-injection" in sys.argv else "native",
+               "--manifest-path", str(EXAMPLE / "Cargo.toml"), "--features", ",".join(features),
                "--bins", "--target", "x86_64-unknown-none"]
     print(json.dumps({"command": command, "target_dir": env["CARGO_TARGET_DIR"],
                       "app_toolchain": TOOLCHAIN, "linker": str(linker)}), flush=True)

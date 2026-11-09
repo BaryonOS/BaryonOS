@@ -1,7 +1,8 @@
 #![no_std]
 #![forbid(unsafe_code)]
 //! B03 update core (ADR-049): the signed manifest format, hybrid
-//! Ed25519 + ML-DSA-65 verification against pinned anchors, the slot store
+//! Ed25519 + ML-DSA-65 verification, test anchors behind an opt-in feature,
+//! the slot store
 //! layout, the loader's slot selection policy with a version floor, and the
 //! two-phase install plan. Shared by the UEFI loader, the ring-3 update
 //! service and the host signing tool so all three agree byte for byte.
@@ -14,6 +15,7 @@ use ml_dsa::{
 use sha2::{Digest, Sha256};
 
 pub mod policy;
+#[cfg(feature = "test-signing-anchors")]
 pub mod test_policy;
 
 pub const SECTOR: usize = 512;
@@ -395,6 +397,10 @@ pub fn choose(
     slots: [SlotResult; 2],
     floor: u64,
 ) -> (Option<Choice>, [Option<Reject>; 2]) {
+    // Fields are public; only `Header::decode` enforces this. Fail closed.
+    if header.active > 1 {
+        return (None, [Some(Reject::Format); 2]);
+    }
     let mut reasons = [None; 2];
     let mut chosen = None;
     for candidate in [header.active, other(header.active)] {
@@ -430,6 +436,7 @@ pub enum Decision {
 
 pub fn decide(header: &Header, current_version: u64, floor: u64, inbox: SlotResult) -> Decision {
     match inbox {
+        _ if header.active > 1 => Decision::Rejected(Reject::Format),
         Err(reject) => Decision::Rejected(reject),
         Ok(manifest) if manifest.version < floor || manifest.version < manifest.min_version => {
             Decision::Rejected(Reject::Downgrade)
@@ -661,6 +668,28 @@ mod tests {
         let (choice, reasons) = choose(&header_a, [Ok(v1), Ok(v2)], 3);
         assert_eq!(choice, None);
         assert_eq!(reasons, [Some(Reject::Downgrade), Some(Reject::Downgrade)]);
+    }
+
+    /// `Header` fields are public; only `decode` enforces `active <= 1`. A
+    /// hand-built header must fail closed instead of panicking (`1 - slot`) or,
+    /// without overflow checks, yielding install target 255.
+    #[test]
+    fn out_of_range_active_slot_fails_closed() {
+        let (_, v2, _) = signed(2);
+        for active in [2, u8::MAX] {
+            let header = Header {
+                active,
+                generation: 1,
+            };
+            assert_eq!(
+                choose(&header, [Ok(v2), Ok(v2)], 0),
+                (None, [Some(Reject::Format); 2])
+            );
+            assert_eq!(
+                decide(&header, 1, 1, Ok(v2)),
+                Decision::Rejected(Reject::Format)
+            );
+        }
     }
 
     #[test]

@@ -12,6 +12,11 @@ from gate_contract import M3_CASES, M3_NONFAULT_CASES, M4_CASES
 from run import run_gate_case
 
 def test_m2():
+    """Run M2 host and native memory gates, saving results under ``BUILD``.
+
+    Require each host check and guest observation to pass. On failure, save
+    the error, attempt to restore the default image, and re-raise the failure.
+    """
     path = BUILD / "m2-test-results.json"
     suite = {"phase": "M2", "status": "running", "passed": False,
              "started_utc": datetime.now(timezone.utc).isoformat(), "results": []}
@@ -28,7 +33,7 @@ def test_m2():
         build(kernel_feature="milestone-m2", label="m2")
         run_logged(["cargo", "+1.90.0", "test", "--locked", "-p", "kernel-core",
                     "-p", "boot-protocol", "-p", "elf-loader-core"], "m2-host-tests")
-        record("frame-map-protocol-host-tests", True, "build/logs/m2-host-tests.stdout.txt",
+        record("frame-map-protocol-host-tests", True, str(BUILD / "logs/m2-host-tests.stdout.txt"),
                ["KS-01", "KS-02", "KS-03"])
         normal = run_gate_case("m2", "own-cr3-frame-ownership-wx", label="m2")
         record("own-cr3-frame-ownership-wx", normal["passed"], normal["run_directory"],
@@ -138,6 +143,12 @@ def test_m3():
 
 
 def test_m4():
+    """Run M4 host, IPC-artifact, and native capability gates under ``BUILD``.
+
+    Use the configured build directory for the IPC ELF and evidence logs.
+    Persist the suite outcome and re-raise failures after attempting to
+    restore the default image.
+    """
     path = BUILD / "m4-test-results.json"
     suite = {"phase": "M4", "status": "running", "passed": False,
              "started_utc": datetime.now(timezone.utc).isoformat(), "results": []}
@@ -154,12 +165,12 @@ def test_m4():
         run_logged(["cargo", "+1.90.0", "test", "--locked", "-p", "capability-core",
                     "-p", "kernel-core"], "m4-host-tests")
         record("capability-transaction-wire-generation-host-tests", True,
-               "build/logs/m4-host-tests.stdout.txt", [r for _, r in M4_CASES])
+               str(BUILD / "logs/m4-host-tests.stdout.txt"), [r for _, r in M4_CASES])
         build(kernel_feature="milestone-m4", label="m4")
         run_logged([sys.executable, "-B", "-X", "utf8", "userspace/tests/test_ipc_probe.py",
-                    "--elf", "build/users/ipc_probe.elf"], "m4-user-artifact-tests")
+                    "--elf", str(BUILD / "users/ipc_probe.elf")], "m4-user-artifact-tests")
         record("ipc-user-artifact-negative-tests", True,
-               "build/logs/m4-user-artifact-tests.stdout.txt", ["USER_IPC_ELF"])
+               str(BUILD / "logs/m4-user-artifact-tests.stdout.txt"), ["USER_IPC_ELF"])
         guest = run_gate_case("m4", "real-ring3-message-exchange", label="m4-exchange")
         record("real-ring3-message-exchange", guest["passed"], guest["run_directory"], ["IPC_POSITIVE"])
         for case, requirement in M4_CASES:

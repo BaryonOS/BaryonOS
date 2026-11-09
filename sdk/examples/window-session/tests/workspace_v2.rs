@@ -17,6 +17,103 @@ fn damage_covers(damage: &mut Damage, bounds: Rect) {
 }
 
 #[test]
+fn palette_does_not_swallow_trusted_lock_search_or_session_shortcuts() {
+    use nieuw_os_window_session::shell::Page;
+    for (width, height, scale) in [(1280, 720, 1), (1920, 1080, 2)] {
+        for (physical, super_key, expected) in [
+            (PhysicalKey::L, true, Page::Lock),
+            (PhysicalKey::F3, false, Page::Search),
+            (PhysicalKey::Menu, false, Page::Session),
+        ] {
+            let mut scene = Scene::new(width, height, scale, [1, 2]).unwrap();
+            let mut damage = Damage::new(width, height).unwrap();
+            scene.palette_open();
+            let key = KeyboardEvent {
+                key: physical,
+                action: KeyAction::Press,
+                modifiers: KeyboardModifiers {
+                    left_super: super_key,
+                    ..KeyboardModifiers::default()
+                },
+            };
+            assert!(!scene.palette_key(key, &mut damage).unwrap());
+            assert!(!scene.palette_is_open());
+            let effect = scene.shell.key(key, width, height, scale);
+            assert!(effect.consumed);
+            assert_eq!(scene.shell.page(), expected);
+            assert!(scene.shell.blocks_apps());
+            damage_covers(&mut damage, scene.palette_bounds());
+        }
+    }
+}
+
+#[test]
+fn palette_cannot_open_over_trusted_pages_and_can_reveal_a_hidden_app() {
+    use nieuw_os_window_session::shell::Page;
+    for (width, height, scale) in [(1280, 720, 1), (1920, 1080, 2)] {
+        let mut scene = Scene::new(width, height, scale, [1, 2]).unwrap();
+        let mut damage = Damage::new(width, height).unwrap();
+        let mut keyboard = Set1Keyboard::new();
+        keyboard.feed(0x1d).unwrap();
+        let open = keyboard.feed(0x25).unwrap().unwrap();
+        for page in [Page::Lock, Page::Search, Page::Settings, Page::Session] {
+            scene.shell.open(page);
+            assert!(!scene.palette_key(open, &mut damage).unwrap());
+            assert!(!scene.palette_is_open());
+        }
+        scene.shell.open(Page::Desktop);
+        scene.shell.hidden[1] = true;
+        assert!(scene.palette_key(open, &mut damage).unwrap());
+        scene.palette_next(false);
+        let enter = keyboard.feed(0x1c).unwrap().unwrap();
+        assert!(scene.palette_key(enter, &mut damage).unwrap());
+        assert_eq!(scene.focused, 1);
+        assert!(!scene.shell.hidden[1]);
+        assert!(!scene.palette_is_open());
+        assert!(scene
+            .palette_key(keyboard.feed(0xa5).unwrap().unwrap(), &mut damage)
+            .unwrap());
+        scene.cancel_palette_input(&mut damage);
+        assert!(!scene
+            .palette_key(keyboard.feed(0x9c).unwrap().unwrap(), &mut damage)
+            .unwrap());
+    }
+}
+
+#[test]
+fn shell_consumed_pointer_updates_damage_actual_dock_hover_pixels() {
+    for (width, height, scale) in [(1280, 720, 1), (1920, 1080, 2)] {
+        let mut scene = Scene::new(width, height, scale, [1, 2]).unwrap();
+        let backing = vec![0x424242; MAX_PIXELS];
+        let dock = scene.dock();
+        let mut before = vec![0; (dock.width * dock.height) as usize];
+        let mut after = before.clone();
+        scene.render(dock, &mut before, &backing).unwrap();
+        let button = scene.task_button(1);
+        let mut damage = Damage::new(width, height).unwrap();
+        scene.update_pointer((button.x + 12) as u32, (button.y + 12) as u32, &mut damage);
+        scene.render(dock, &mut after, &backing).unwrap();
+        assert_eq!(scene.hovered_task(), Some(1));
+        assert_eq!(scene.focused, 0);
+        let tiles: Vec<_> = core::iter::from_fn(|| damage.next_tile()).collect();
+        let mut changed = 0;
+        for (index, (a, b)) in before.iter().zip(&after).enumerate() {
+            if a != b {
+                changed += 1;
+                let x = dock.x + (index % dock.width as usize) as i32;
+                let y = dock.y + (index / dock.width as usize) as i32;
+                assert!(tiles.iter().any(|tile| tile.contains(x, y)));
+            }
+        }
+        assert!(changed > 100 * scale * scale);
+        scene.update_pointer(0, 0, &mut damage);
+        damage_covers(&mut damage, button);
+        scene.render(dock, &mut before, &backing).unwrap();
+        assert_ne!(before, after);
+    }
+}
+
+#[test]
 fn native_palette_key_route_opens_filters_selects_and_consumes_releases() {
     for (width, height, scale) in [(1280, 720, 1), (1920, 1080, 2)] {
         let mut scene = Scene::new(width, height, scale, [1, 2]).unwrap();

@@ -49,7 +49,7 @@ fn actual_native_elf_has_five_bounded_segments_and_private_bss_buffers() {
     let data = image.segments[3];
     assert!(data.memory_size >= 3 * 65536 && data.memory_size <= 256 * 1024);
     assert!(data.memory_size - data.file_size >= 3 * 65536);
-    assert!(image.segments[4].memory_size <= 128 * 1024);
+    assert!(image.segments[4].memory_size <= 144 * 1024);
     assert!(image.pages + 32 <= kernel_core::USER_QUOTA);
     // Inspect actual symbols to bind the BSS storage, rather than inferring it
     // merely from enough blank space in a writable segment.

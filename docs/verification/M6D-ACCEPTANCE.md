@@ -8,7 +8,7 @@ Datum: 28 oktober 2026. Eigen kernel, branch `codex/m6d-io-recovery-roadmap`,
 Fingerprint v3: `8ca6d5d5291fde62f91fb47dca7df4d058424604449fb32b9e5899b1d4fbef93`.
 De broncheckpoint is vóór de volledige gates op GitHub bewaard; de ouders
 `b739183c48a06cb7798d0be8cc683430152533ac` en
-`5ba238cc113c5a18924adab6f6a0908fdf193de0` bewaren zowel onze M6d-implementatie
+`5ba238cc113c5a18924adab6f6a0908fdf193de0` bewaren zowel de M6d-implementatie
 als de toenmalige M6c-reviewreparaties. Alle 45 eindrunrecords van deze
 oorspronkelijke afsluiting noemen die ene uitvoeringsbron; de direct
 bijbehorende afsluitcommit voegde alleen documentatie en opgeslagen bewijs toe.

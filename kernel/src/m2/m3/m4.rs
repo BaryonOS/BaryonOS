@@ -1,8 +1,6 @@
 //! M4 syscall boundary and synthetic ring-3 evidence. The authority engine never
 //! receives user pointers. All copies use prevalidated fixed-size byte plans.
 use super::*;
-#[cfg(feature = "native-smp-m4")]
-use crate::m2::{ap, smp};
 use capability_core::{
     AuthoritySnapshot, Engine, Error, Message, SnapshotLease, SnapshotLock, RECV, SEND,
 };
@@ -16,8 +14,6 @@ use capability_core::{
     not(feature = "native-fpu")
 ))]
 use capability_core::{Cap, ALL_RIGHTS};
-#[cfg(feature = "native-smp-m4")]
-use core::sync::atomic::{AtomicU8, AtomicUsize, Ordering};
 use kernel_core::user::{CopyPlan, PageAccess};
 #[path = "snapshot_wipe.rs"]
 mod snapshot_wipe;
@@ -122,60 +118,8 @@ static mut EVIDENCE: Evidence = EMPTY_EVIDENCE;
     not(feature = "native-fpu")
 ))]
 static mut LIFECYCLE_ROUNDS: u8 = 0;
-#[cfg(feature = "native-smp-m4")]
-const QUIESCE_NONE: u8 = 0;
-#[cfg(feature = "native-smp-m4")]
-const QUIESCE_ROUND_RESET: u8 = 1;
-#[cfg(feature = "native-smp-m4")]
-const QUIESCE_FINAL_CLEANUP: u8 = 2;
-#[cfg(feature = "native-smp-m4")]
-const QUIESCE_POLLS: usize = 100_000_000;
-#[cfg(feature = "native-smp-m4")]
-static QUIESCE_ACTION: AtomicU8 = AtomicU8::new(QUIESCE_NONE);
-#[cfg(feature = "native-smp-m4")]
-static QUIESCED_CPUS: AtomicUsize = AtomicUsize::new(0);
-
-#[cfg(feature = "native-smp-m4")]
-pub(super) fn quiescence_requested() -> bool {
-    QUIESCE_ACTION.load(Ordering::Acquire) != QUIESCE_NONE
-}
-
-#[cfg(feature = "native-smp-m4")]
-pub(super) fn mark_quiesced(cpu: usize) {
-    assert!(cpu < super::SMP_CPUS);
-    QUIESCED_CPUS.fetch_or(1 << cpu, Ordering::AcqRel);
-}
-
-#[cfg(feature = "native-smp-m4")]
-fn request_quiescence(action: u8) {
-    let bootstrap = smp::bootstrap_index();
-    assert_eq!(super::arch::current_cpu_index(), bootstrap);
-    assert_ne!(action, QUIESCE_NONE);
-    QUIESCED_CPUS.store(1 << bootstrap, Ordering::Relaxed);
-    if QUIESCE_ACTION
-        .compare_exchange(QUIESCE_NONE, action, Ordering::Release, Ordering::Relaxed)
-        .is_err()
-    {
-        serial::fail(b"M4:SMP:QUIESCE_ALREADY_ACTIVE");
-    }
-    smp::schedule_aps();
-}
-
-#[cfg(feature = "native-smp-m4")]
-pub(super) fn wait_for_quiescence() {
-    let cpu_count = ap::cpu_count();
-    let expected = (1 << cpu_count) - 1;
-    for _ in 0..QUIESCE_POLLS {
-        if QUIESCED_CPUS.load(Ordering::Acquire) == expected {
-            return;
-        }
-        core::hint::spin_loop();
-    }
-    serial::fail(b"M4:SMP:QUIESCE_TIMEOUT");
-}
 pub(super) fn engine() -> &'static mut Engine {
-    // SAFETY: Setup uses the BSP before AP release; afterward M3Guard serializes
-    // all engine access across CPUs with IF clear. No nested calls or borrows.
+    // SAFETY: One CPU, IF=0, no nested engine calls or retained engine borrows.
     unsafe { &mut *ptr::addr_of_mut!(ENGINE) }
 }
 static SNAPSHOT_LOCK: SnapshotLock = SnapshotLock::new();
@@ -201,9 +145,8 @@ pub(super) fn observe_authority() -> AuthorityObservation {
         .try_claim()
         .expect("nested authority observation");
     // SAFETY: Claim precedes constructing the unique static-buffer reference.
-    // M3Guard serializes engine snapshots across CPUs; IF is clear. The snapshot
-    // lease prevents nested access to this static buffer until its message wipe.
-    // The live Engine is distinct storage;
+    // One CPU, IF=0; all access uses this nonblocking lease, which is retained
+    // until the complete message wipe. The live Engine is distinct storage;
     // its short borrow ends here, before dispatch or any scheduling.
     let snapshot = unsafe { &mut *ptr::addr_of_mut!(AUTHORITY_SNAPSHOT) };
     engine().snapshot_into(snapshot);
@@ -283,8 +226,7 @@ pub(super) fn write_plan(plan: &CopyPlan, bytes: &[u8; 320]) {
         paging::physical(chunk.physical, |dest| {
             for i in 0..chunk.length {
                 // SAFETY: All output pages were validated writable/owned before
-                // engine commit. Setup is BSP-only before AP release; runtime
-                // M3 events hold M3Guard with IF clear. No shared-memory/DMA API.
+                // engine commit. IF=0, one thread, no unmap/shared memory/DMA API.
                 unsafe {
                     dest.add(chunk.offset + i).write_volatile(bytes[at + i]);
                 }
@@ -572,8 +514,7 @@ mod acceptance {
             ptr::addr_of_mut!(EVIDENCE).write(EMPTY_EVIDENCE);
         }
         if state.round == 0 {
-            // SAFETY: BSP-only setup precedes AP release; later lifecycle rounds
-            // are serialized by M3Guard with IF clear. Reset only before round one.
+            // SAFETY: One test manifest at a time, IF=0; reset only before first round.
             unsafe {
                 ptr::addr_of_mut!(LIFECYCLE_ROUNDS).write(0);
             }
@@ -651,86 +592,19 @@ mod acceptance {
         }
         validate_evidence(state);
         if case() == 8 && state.round < 2 {
-            #[cfg(feature = "native-smp-m4")]
-            {
-                if super::arch::current_cpu_index() != smp::bootstrap_index() {
-                    return None;
-                }
-                request_quiescence(QUIESCE_ROUND_RESET);
-                return None;
-            }
-            #[cfg(not(feature = "native-smp-m4"))]
-            {
-                cleanup_all(state);
-                state.round += 1;
-                state.setup();
-                return None;
-            }
-        }
-        #[cfg(feature = "native-smp-m4")]
-        {
-            if super::arch::current_cpu_index() != smp::bootstrap_index() {
-                return None;
-            }
-            request_quiescence(QUIESCE_FINAL_CLEANUP);
+            cleanup_all(state);
+            state.round += 1;
+            state.setup();
+            // The m3 event/select loop alone schedules; idle observers must not recurse.
             return None;
         }
-        #[cfg(not(feature = "native-smp-m4"))]
-        {
-            serial::write(case_marker());
-            serial::write(b"M4:SURVIVOR_PROGRESS:PASS\n");
-            cleanup_all(state);
-            serial::write(b"M4:CLEANUP:PASS\n");
-            serial::write(ks_marker());
-            serial::write(b"M4:PASS\nM1:PASS\n");
-            serial::exit(0x10)
-        }
-    }
-    #[cfg(feature = "native-smp-m4")]
-    pub(super) fn finish_quiescence(state: &mut State) -> *const u64 {
-        let action = QUIESCE_ACTION.load(Ordering::Acquire);
-        let cpu_count = ap::cpu_count();
-        let expected = (1 << cpu_count) - 1;
-        assert!(action != QUIESCE_NONE);
-        assert_eq!(QUIESCED_CPUS.load(Ordering::Acquire), expected);
-        assert!(state.cpu_current[..cpu_count]
-            .iter()
-            .all(|owner| *owner == MAX));
-        serial::write(b"M4:SMP:QUIESCED:PASS\n");
-
-        match action {
-            QUIESCE_ROUND_RESET => {
-                cleanup_all(state);
-                serial::write(b"M4:SMP:ROUND_CLEANUP:PASS\n");
-                state.round += 1;
-                state.setup();
-                QUIESCED_CPUS.store(0, Ordering::Relaxed);
-                QUIESCE_ACTION.store(QUIESCE_NONE, Ordering::Release);
-                serial::write(b"M4:SMP:ROUND_RESET:PASS\n");
-                smp::schedule_aps();
-                state
-                    .select_smp(smp::bootstrap_index())
-                    .unwrap_or_else(|| serial::fail(b"M4:SMP:NO_BOOT_PROCESS"))
-            }
-            QUIESCE_FINAL_CLEANUP => {
-                // The lifecycle result is emitted only after the last cleanup.
-                if case() != 8 {
-                    serial::write(case_marker());
-                    serial::write(b"M4:SURVIVOR_PROGRESS:PASS\n");
-                }
-                cleanup_all(state);
-                serial::write(b"M4:SMP:ROUND_CLEANUP:PASS\n");
-                if case() == 8 {
-                    serial::write(case_marker());
-                    serial::write(b"M4:SURVIVOR_PROGRESS:PASS\n");
-                }
-                serial::write(b"M4:CLEANUP:PASS\n");
-                serial::write(ks_marker());
-                serial::write(b"M4:PASS\nM1:PASS\n");
-                state.complete_round()
-            }
-            _ => serial::fail(b"M4:SMP:QUIESCE_ACTION"),
-        }
+        serial::write(case_marker());
+        serial::write(b"M4:SURVIVOR_PROGRESS:PASS\n");
+        cleanup_all(state);
+        serial::write(b"M4:CLEANUP:PASS\n");
+        serial::write(ks_marker());
+        serial::write(b"M4:PASS\nM1:PASS\n");
+        serial::exit(0x10)
     }
     fn cleanup_all(state: &mut State) {
         for slot in 0..state.amount {
@@ -1145,10 +1019,6 @@ mod acceptance {
         }
         assert_eq!(engine().stats().queued_messages, 0);
     }
-}
-#[cfg(feature = "native-smp-m4")]
-pub(super) fn finish_quiescence(state: &mut State) -> *const u64 {
-    acceptance::finish_quiescence(state)
 }
 #[cfg(all(
     not(feature = "milestone-m5"),

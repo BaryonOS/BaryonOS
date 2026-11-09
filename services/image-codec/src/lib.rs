@@ -121,44 +121,183 @@ pub enum Format {
     Jpeg,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Orientation {
+    Normal,
+    MirrorHorizontal,
+    Rotate180,
+    MirrorVertical,
+    Transpose,
+    Rotate90,
+    Transverse,
+    Rotate270,
+}
+
+impl Orientation {
+    fn from_exif(value: u16) -> Option<Self> {
+        Some(match value {
+            1 => Self::Normal,
+            2 => Self::MirrorHorizontal,
+            3 => Self::Rotate180,
+            4 => Self::MirrorVertical,
+            5 => Self::Transpose,
+            6 => Self::Rotate90,
+            7 => Self::Transverse,
+            8 => Self::Rotate270,
+            _ => return None,
+        })
+    }
+
+    /// Dimensions after orientation, without modifying the source samples.
+    pub const fn display_dimensions(self, width: usize, height: usize) -> (usize, usize) {
+        match self {
+            Self::Transpose | Self::Rotate90 | Self::Transverse | Self::Rotate270 => {
+                (height, width)
+            }
+            Self::Normal | Self::MirrorHorizontal | Self::Rotate180 | Self::MirrorVertical => {
+                (width, height)
+            }
+        }
+    }
+
+    /// Map one display pixel back to raw samples for allocation-free tile rendering.
+    /// Empty images and coordinates outside the oriented image are rejected.
+    pub fn source_position(
+        self,
+        x: usize,
+        y: usize,
+        width: usize,
+        height: usize,
+    ) -> Option<(usize, usize)> {
+        let (display_width, display_height) = self.display_dimensions(width, height);
+        if x >= display_width || y >= display_height {
+            return None;
+        }
+        Some(match self {
+            Self::Normal => (x, y),
+            Self::MirrorHorizontal => (width - 1 - x, y),
+            Self::Rotate180 => (width - 1 - x, height - 1 - y),
+            Self::MirrorVertical => (x, height - 1 - y),
+            Self::Transpose => (y, x),
+            Self::Rotate90 => (y, height - 1 - x),
+            Self::Transverse => (width - 1 - y, height - 1 - x),
+            Self::Rotate270 => (width - 1 - y, x),
+        })
+    }
+
+    fn display_position(self, x: usize, y: usize, width: usize, height: usize) -> (usize, usize) {
+        match self {
+            Self::Normal => (x, y),
+            Self::MirrorHorizontal => (width - 1 - x, y),
+            Self::Rotate180 => (width - 1 - x, height - 1 - y),
+            Self::MirrorVertical => (x, height - 1 - y),
+            Self::Transpose => (y, x),
+            Self::Rotate90 => (height - 1 - y, x),
+            Self::Transverse => (height - 1 - y, width - 1 - x),
+            Self::Rotate270 => (y, width - 1 - x),
+        }
+    }
+}
+
+impl Format {
+    pub const fn media_type(self) -> &'static str {
+        match self {
+            Self::Png => "image/png",
+            Self::Jpeg => "image/jpeg",
+        }
+    }
+}
+
+/// Detects a supported image format from its signature only.
+///
+/// A match is a routing hint, not proof that the remaining bytes form a valid
+/// image. `decode` still validates the complete input before returning pixels.
+pub fn detect_format(input: &[u8]) -> Option<Format> {
+    if input.starts_with(b"\x89PNG\r\n\x1a\n") {
+        Some(Format::Png)
+    } else if input.starts_with(b"\xff\xd8") {
+        Some(Format::Jpeg)
+    } else {
+        None
+    }
+}
+
 #[derive(Debug)]
 pub struct Image<'a> {
     /// The original immutable object bytes, including all metadata. No re-encode.
     pub source: &'a [u8],
     pub format: Format,
+    /// Dimensions in the decoded pixel order, before applying EXIF orientation.
     pub width: usize,
     pub height: usize,
+    /// Dimensions returned by `rgba8_into` after applying a valid EXIF orientation.
+    pub display_width: usize,
+    pub display_height: usize,
+    /// Valid JPEG EXIF orientation from IFD0; absent or malformed values are ignored.
+    pub orientation: Option<Orientation>,
+    /// Raw decoder samples remain in source order; use `rgba8_into` for display pixels.
     pub pixels: Pixels,
     pub has_exif: bool,
     pub has_icc: bool,
-    /// Metadata is preserved but EXIF orientation/ICC color transforms are open.
+    /// Raw decoder samples have no metadata transforms; `rgba8_into` applies
+    /// JPEG EXIF orientation only. ICC/gamma transforms remain unapplied.
     pub metadata_transforms_applied: bool,
+    /// ICC color management remains unapplied.
+    pub icc_color_transform_applied: bool,
 }
 
 impl Image<'_> {
-    /// Display conversion only; full-precision samples and source stay unchanged.
+    /// Produce display-oriented RGBA8 pixels; full-precision samples and source stay unchanged.
     pub fn rgba8_into(&self, out: &mut [u8]) -> Result<(), Error> {
-        let required = self
+        let orientation = self.orientation.unwrap_or(Orientation::Normal);
+        let (expected_width, expected_height) =
+            orientation.display_dimensions(self.width, self.height);
+        if (self.display_width, self.display_height) != (expected_width, expected_height) {
+            return Err(Error::OutputSize);
+        }
+        let source_pixels = self
             .width
             .checked_mul(self.height)
+            .ok_or(Error::OutputSize)?;
+        let required = self
+            .display_width
+            .checked_mul(self.display_height)
             .and_then(|x| x.checked_mul(4))
             .ok_or(Error::OutputSize)?;
-        if out.len() != required {
+        let source_required = source_pixels.checked_mul(4).ok_or(Error::OutputSize)?;
+        if out.len() != required || required != source_required {
             return Err(Error::OutputSize);
         }
         match &self.pixels {
             Pixels::Rgba8(v) => {
-                if v.len() != required {
+                if v.len() != source_required {
                     return Err(Error::OutputSize);
                 }
-                out.copy_from_slice(v);
+                for y in 0..self.height {
+                    for x in 0..self.width {
+                        let (display_x, display_y) =
+                            orientation.display_position(x, y, self.width, self.height);
+                        let source = (y * self.width + x) * 4;
+                        let destination = (display_y * self.display_width + display_x) * 4;
+                        out[destination..destination + 4].copy_from_slice(&v[source..source + 4]);
+                    }
+                }
             }
             Pixels::Rgba16(v) => {
-                if v.len() != required {
+                if v.len() != source_required {
                     return Err(Error::OutputSize);
                 }
-                for (dst, src) in out.iter_mut().zip(v) {
-                    *dst = ((u32::from(*src) + 128) / 257) as u8;
+                for y in 0..self.height {
+                    for x in 0..self.width {
+                        let (display_x, display_y) =
+                            orientation.display_position(x, y, self.width, self.height);
+                        let source = (y * self.width + x) * 4;
+                        let destination = (display_y * self.display_width + display_x) * 4;
+                        for component in 0..4 {
+                            out[destination + component] =
+                                ((u32::from(v[source + component]) + 128) / 257) as u8;
+                        }
+                    }
                 }
             }
         }
@@ -166,7 +305,7 @@ impl Image<'_> {
     }
 }
 
-/// FNV-1a pixel checksum for parity evidence, NOT a security/integrity primitive.
+/// FNV-1a checksum of raw decoder-order samples, NOT a security/integrity primitive.
 /// PNG16 uses each sample's big-endian bytes, retaining all sixteen bits.
 pub fn pixel_hash(image: &Image<'_>) -> u64 {
     fn byte(hash: u64, value: u8) -> u64 {
@@ -212,6 +351,123 @@ fn options(limits: Limits) -> DecoderOptions {
 
 fn be32(bytes: &[u8]) -> usize {
     u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as usize
+}
+
+fn tiff_u16(bytes: &[u8], offset: usize, little_endian: bool) -> Option<u16> {
+    let value = bytes.get(offset..offset.checked_add(2)?)?;
+    let pair = [value[0], value[1]];
+    Some(if little_endian {
+        u16::from_le_bytes(pair)
+    } else {
+        u16::from_be_bytes(pair)
+    })
+}
+
+fn tiff_u32(bytes: &[u8], offset: usize, little_endian: bool) -> Option<u32> {
+    let value = bytes.get(offset..offset.checked_add(4)?)?;
+    let word = [value[0], value[1], value[2], value[3]];
+    Some(if little_endian {
+        u32::from_le_bytes(word)
+    } else {
+        u32::from_be_bytes(word)
+    })
+}
+
+fn exif_orientation(payload: &[u8]) -> Option<Orientation> {
+    let tiff = payload.strip_prefix(b"Exif\0\0")?;
+    let little_endian = match tiff.get(..2)? {
+        b"II" => true,
+        b"MM" => false,
+        _ => return None,
+    };
+    if tiff_u16(tiff, 2, little_endian)? != 42 {
+        return None;
+    }
+    let ifd_offset = usize::try_from(tiff_u32(tiff, 4, little_endian)?).ok()?;
+    if ifd_offset < 8 {
+        return None;
+    }
+    let entry_count = usize::from(tiff_u16(tiff, ifd_offset, little_endian)?);
+    let entries_start = ifd_offset.checked_add(2)?;
+    let entries_end = entries_start.checked_add(entry_count.checked_mul(12)?)?;
+    let ifd_end = entries_end.checked_add(4)?;
+    if ifd_end > tiff.len() {
+        return None;
+    }
+    for index in 0..entry_count {
+        let entry = entries_start.checked_add(index.checked_mul(12)?)?;
+        if tiff_u16(tiff, entry, little_endian)? != 0x0112 {
+            continue;
+        }
+        if tiff_u16(tiff, entry.checked_add(2)?, little_endian)? != 3
+            || tiff_u32(tiff, entry.checked_add(4)?, little_endian)? != 1
+        {
+            return None;
+        }
+        return Orientation::from_exif(tiff_u16(tiff, entry.checked_add(8)?, little_endian)?);
+    }
+    None
+}
+
+fn jpeg_exif_orientation(
+    input: &[u8],
+    metadata_limit: usize,
+    cancel: &Cancellation,
+) -> Result<Option<Orientation>, Error> {
+    if !input.starts_with(b"\xff\xd8") {
+        return Ok(None);
+    }
+    let mut offset = 2usize;
+    loop {
+        cancel.check()?;
+        if input.get(offset) != Some(&0xff) {
+            return Ok(None);
+        }
+        while input.get(offset) == Some(&0xff) {
+            let Some(next) = offset.checked_add(1) else {
+                return Ok(None);
+            };
+            offset = next;
+        }
+        let Some(&marker) = input.get(offset) else {
+            return Ok(None);
+        };
+        let Some(next) = offset.checked_add(1) else {
+            return Ok(None);
+        };
+        offset = next;
+        if marker == 0xda || marker == 0xd9 {
+            return Ok(None);
+        }
+        if marker == 0x01 || (0xd0..=0xd7).contains(&marker) {
+            continue;
+        }
+        let Some(length_end) = offset.checked_add(2) else {
+            return Ok(None);
+        };
+        let Some(length_bytes) = input.get(offset..length_end) else {
+            return Ok(None);
+        };
+        let length = usize::from(u16::from_be_bytes([length_bytes[0], length_bytes[1]]));
+        if length < 2 {
+            return Ok(None);
+        }
+        let Some(segment_end) = offset.checked_add(length) else {
+            return Ok(None);
+        };
+        let Some(payload) = input.get(length_end..segment_end) else {
+            return Ok(None);
+        };
+        if marker == 0xe1 && payload.starts_with(b"Exif\0\0") {
+            if payload.len() > metadata_limit {
+                return Err(Error::MetadataLimit);
+            }
+            if let Some(orientation) = exif_orientation(payload) {
+                return Ok(Some(orientation));
+            }
+        }
+        offset = segment_end;
+    }
 }
 
 /// Resource-envelope check only: PNG reconstruction, CRC, filters, Adam7 and
@@ -316,12 +572,10 @@ pub fn decode<'a>(
     if input.len() > limits.input_bytes {
         return Err(Error::InputLimit);
     }
-    if input.starts_with(b"\x89PNG\r\n\x1a\n") {
-        png(input, limits, cancel)
-    } else if input.starts_with(b"\xff\xd8") {
-        jpeg(input, limits, cancel)
-    } else {
-        Err(Error::UnknownFormat)
+    match detect_format(input) {
+        Some(Format::Png) => png(input, limits, cancel),
+        Some(Format::Jpeg) => jpeg(input, limits, cancel),
+        None => Err(Error::UnknownFormat),
     }
 }
 
@@ -399,10 +653,14 @@ fn png<'a>(input: &'a [u8], limits: Limits, cancel: &Cancellation) -> Result<Ima
         format: Format::Png,
         width: w,
         height: h,
+        display_width: w,
+        display_height: h,
+        orientation: None,
         pixels: output,
         has_exif,
         has_icc,
         metadata_transforms_applied: false,
+        icc_color_transform_applied: false,
     })
 }
 
@@ -441,6 +699,7 @@ fn owned_jpeg(input: &[u8], limits: Limits) -> Result<Box<[Jpeg<'_>]>, Error> {
 
 #[inline(never)]
 fn jpeg<'a>(input: &'a [u8], limits: Limits, cancel: &Cancellation) -> Result<Image<'a>, Error> {
+    let orientation = jpeg_exif_orientation(input, limits.metadata_bytes, cancel)?;
     let mut owner = owned_jpeg(input, limits)?;
     let decoder = owner.first_mut().ok_or(Error::InvalidData)?;
     let callback = cancel.clone();
@@ -457,6 +716,9 @@ fn jpeg<'a>(input: &'a [u8], limits: Limits, cancel: &Cancellation) -> Result<Im
     })?;
     let info = decoder.info().ok_or(Error::InvalidData)?;
     let (w, h) = (usize::from(info.width), usize::from(info.height));
+    let (display_width, display_height) = orientation
+        .unwrap_or(Orientation::Normal)
+        .display_dimensions(w, h);
     let pixels = limits.admit(w, h, input.len(), 64)?;
     if info.pixel_density != 8 {
         return Err(Error::UnsupportedPrecision);
@@ -490,9 +752,13 @@ fn jpeg<'a>(input: &'a [u8], limits: Limits, cancel: &Cancellation) -> Result<Im
         format: Format::Jpeg,
         width: w,
         height: h,
+        display_width,
+        display_height,
+        orientation,
         pixels: Pixels::Rgba8(rgba),
         has_exif,
         has_icc,
         metadata_transforms_applied: false,
+        icc_color_transform_applied: false,
     })
 }

@@ -10,7 +10,7 @@ pub const TX_STATUS_LEN: u32 = 8;
 pub const MAX_FENCE_BUDGET: u64 = 1_000_000;
 
 const STATUS_OK: u32 = 0x8000;
-const STATUS_IO_ERR: u32 = 0x8002;
+const STATUS_IO_ERR: u32 = 0x8003;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum State {

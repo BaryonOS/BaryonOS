@@ -9,7 +9,7 @@ import re
 import shutil
 import uuid
 
-from common import ROOT, BUILD, environment, save_json, sha256, source_hash
+from common import ROOT, BUILD, environment, save_json, sha256, source_hash, without_acpi_diagnostics
 from run import run_guest
 
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
@@ -45,6 +45,7 @@ def artifact_builder():
 def validate_sequence(stdout: str) -> dict:
     if not isinstance(stdout, str) or len(stdout) > 128 * 1024 or any(word in stdout for word in FORBIDDEN):
         raise ValueError("Malformed or failed native serial output")
+    stdout = without_acpi_diagnostics(stdout)
     lines = stdout.splitlines()
     if lines.count(BOOT[0]) != 1:
         raise ValueError("Missing or repeated EBS handoff")

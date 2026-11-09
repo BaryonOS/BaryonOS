@@ -1,4 +1,4 @@
-use nieuw_os_image_codec::{Cancellation, Format, Image, Limits, Pixels};
+use nieuw_os_image_codec::{Cancellation, Format, Image, Limits, Orientation, Pixels};
 use nieuw_os_image_viewer::{Command, Error, Failure, Selection, State, Viewer, Zoom};
 use nieuw_os_input_core::{CancelReason, Event};
 use nieuw_os_surface_protocol::{Geometry, Rectangle};
@@ -6,6 +6,179 @@ use ui_core::{KeyAction, KeyboardEvent, KeyboardModifiers, MouseButtons, MouseEv
 
 const PNG: &[u8] = include_bytes!("../../../../services/image-codec/fixtures/alpha.png");
 const JPEG: &[u8] = include_bytes!("../../../../services/image-codec/fixtures/progressive.jpg");
+
+const ORIENTATIONS: [(Orientation, u16, u16, [u32; 6]); 8] = [
+    (Orientation::Normal, 3, 2, [1, 2, 3, 4, 5, 6]),
+    (Orientation::MirrorHorizontal, 3, 2, [3, 2, 1, 6, 5, 4]),
+    (Orientation::Rotate180, 3, 2, [6, 5, 4, 3, 2, 1]),
+    (Orientation::MirrorVertical, 3, 2, [4, 5, 6, 1, 2, 3]),
+    (Orientation::Transpose, 2, 3, [1, 4, 2, 5, 3, 6]),
+    (Orientation::Rotate90, 2, 3, [4, 1, 5, 2, 6, 3]),
+    (Orientation::Transverse, 2, 3, [6, 3, 5, 2, 4, 1]),
+    (Orientation::Rotate270, 2, 3, [3, 6, 2, 5, 1, 4]),
+];
+
+#[test]
+fn exif_tiles_follow_all_eight_asymmetric_matrices_without_mutating_raw_samples() {
+    for (orientation, width, height, expected) in ORIENTATIONS {
+        for sixteen_bit in [false, true] {
+            let raw = (1..=6).flat_map(|red| [red, 0, 0, 128]).collect::<Vec<_>>();
+            let pixels = if sixteen_bit {
+                Pixels::Rgba16(raw.iter().map(|value| u16::from(*value) * 257).collect())
+            } else {
+                Pixels::Rgba8(raw.clone())
+            };
+            let mut decoded = image(3, 2, pixels);
+            decoded.orientation = Some(orientation);
+            decoded.display_width = usize::from(width);
+            decoded.display_height = usize::from(height);
+            let mut viewer = Viewer::new(geometry(width, height), 1).unwrap();
+            let ticket = viewer.begin(selection()).unwrap();
+            viewer.decoded(ticket, selection(), decoded).unwrap();
+            assert_eq!(
+                viewer.semantics().image_size,
+                Some((width.into(), height.into()))
+            );
+            let mut tile = [0xdeadbeef; 7];
+            viewer.render_tile(0, 0xff, &mut tile).unwrap();
+            let blended = expected.map(|red| (((red * 128 + 127) / 255) << 16) | 127);
+            assert_eq!(&tile[..6], &blended, "{orientation:?}, 16bit={sixteen_bit}");
+            assert_eq!(tile[6], 0xdeadbeef);
+            match &viewer.image().unwrap().pixels {
+                Pixels::Rgba8(actual) => assert_eq!(actual, &raw),
+                Pixels::Rgba16(actual) => assert_eq!(
+                    actual,
+                    &raw.iter()
+                        .map(|value| u16::from(*value) * 257)
+                        .collect::<Vec<_>>()
+                ),
+            }
+            assert_eq!(viewer.image().unwrap().source, b"original");
+        }
+    }
+}
+
+fn jpeg_with_orientation(value: u8) -> Vec<u8> {
+    // One little-endian IFD0 SHORT entry; the JPEG scan bytes stay untouched.
+    let payload = [
+        b'E', b'x', b'i', b'f', 0, 0, b'I', b'I', 42, 0, 8, 0, 0, 0, 1, 0, 0x12, 1, 3, 0, 1, 0, 0,
+        0, value, 0, 0, 0, 0, 0, 0, 0,
+    ];
+    let mut bytes = JPEG[..2].to_vec();
+    bytes.extend_from_slice(&[0xff, 0xe1, 0, 34]);
+    bytes.extend_from_slice(&payload);
+    bytes.extend_from_slice(&JPEG[2..]);
+    bytes
+}
+
+#[test]
+fn actual_exif_jpeg_decode_to_all_tiles_matches_codec_display_and_preserves_source() {
+    for value in 1..=8 {
+        let bytes = jpeg_with_orientation(value);
+        let surface = if value <= 4 {
+            geometry(193, 113)
+        } else {
+            geometry(113, 193)
+        };
+        let mut viewer = Viewer::new(surface, 1).unwrap();
+        let ticket = viewer.begin(selection()).unwrap();
+        viewer
+            .decode(
+                ticket,
+                selection(),
+                &bytes,
+                limits(),
+                &Cancellation::default(),
+            )
+            .unwrap();
+        viewer.command(Command::Actual).unwrap();
+        let decoded = viewer.image().unwrap();
+        let (width, height) = (decoded.display_width, decoded.display_height);
+        let mut expected = vec![0; width * height * 4];
+        decoded.rgba8_into(&mut expected).unwrap();
+        assert_eq!(decoded.source, bytes);
+        assert_eq!(viewer.semantics().image_size, Some((width, height)));
+        let mut tile = [0xdeadbeef; 257];
+        for index in 0..surface.tiles() {
+            let rendered = viewer.render_tile(index, 0x123456, &mut tile).unwrap();
+            let rect = rendered.rectangle();
+            for y in 0..usize::from(rect.height) {
+                for x in 0..usize::from(rect.width) {
+                    let at = ((rect.y as usize + y) * width + rect.x as usize + x) * 4;
+                    let expected_pixel = (u32::from(expected[at]) << 16)
+                        | (u32::from(expected[at + 1]) << 8)
+                        | u32::from(expected[at + 2]);
+                    assert_eq!(
+                        tile[y * usize::from(rect.width) + x],
+                        expected_pixel,
+                        "EXIF {value}, tile {index}"
+                    );
+                }
+            }
+            assert_eq!(tile[256], 0xdeadbeef);
+        }
+        assert_eq!(viewer.image().unwrap().source, bytes);
+    }
+}
+
+#[test]
+fn decoded_display_dimensions_must_match_orientation_before_any_render() {
+    for orientation in [None, Some(Orientation::Normal), Some(Orientation::Rotate90)] {
+        for (width, height) in [(0, 0), (3, 0), (usize::MAX, 1), (2, 2), (3, 3)] {
+            let mut decoded = image(3, 2, Pixels::Rgba8(vec![255; 24]));
+            decoded.orientation = orientation;
+            decoded.display_width = width;
+            decoded.display_height = height;
+            let mut viewer = viewer();
+            let ticket = viewer.begin(selection()).unwrap();
+            assert_eq!(
+                viewer.decoded(ticket, selection(), decoded),
+                Err(Error::Load(Failure::Corrupt))
+            );
+            assert!(viewer.image().is_none());
+            let mut tile = [0xdeadbeef; 256];
+            assert_eq!(viewer.render_tile(0, 0, &mut tile), Err(Error::NoImage));
+            assert_eq!(tile, [0xdeadbeef; 256]);
+        }
+    }
+}
+
+#[test]
+fn rotated_fit_zoom_scale_and_pan_use_display_axes() {
+    for scale in [1, 2] {
+        let mut decoded = image(6, 2, Pixels::Rgba8(vec![255; 48]));
+        decoded.orientation = Some(Orientation::Rotate90);
+        decoded.display_width = 2;
+        decoded.display_height = 6;
+        let mut viewer = Viewer::new(geometry(4, 4), scale).unwrap();
+        let ticket = viewer.begin(selection()).unwrap();
+        viewer.decoded(ticket, selection(), decoded).unwrap();
+        let mut tile = [0; 16];
+        viewer.render_tile(0, 0x123456, &mut tile).unwrap();
+        assert_eq!(
+            tile,
+            [
+                0x123456, 0xffffff, 0x123456, 0x123456, 0x123456, 0xffffff, 0x123456, 0x123456,
+                0x123456, 0xffffff, 0x123456, 0x123456, 0x123456, 0xffffff, 0x123456, 0x123456,
+            ]
+        );
+        viewer.command(Command::ZoomIn).unwrap();
+        assert_eq!(
+            viewer.semantics().zoom,
+            Zoom::Percent(if scale == 1 { 100 } else { 50 })
+        );
+        viewer.command(Command::Actual).unwrap();
+        viewer
+            .command(Command::Pan {
+                x: i32::MAX,
+                y: i32::MAX,
+            })
+            .unwrap();
+        assert_eq!(viewer.pan(), (0, 6 * scale - 4));
+        viewer.command(Command::Fit).unwrap();
+        assert_eq!(viewer.pan(), (0, 0));
+    }
+}
 
 fn geometry(width: u16, height: u16) -> Geometry {
     Geometry {
@@ -57,10 +230,14 @@ fn image(width: usize, height: usize, pixels: Pixels) -> Image<'static> {
         format: Format::Png,
         width,
         height,
+        display_width: width,
+        display_height: height,
+        orientation: None,
         pixels,
         has_exif: true,
         has_icc: true,
         metadata_transforms_applied: false,
+        icc_color_transform_applied: false,
     }
 }
 fn mouse(x: u32, y: u32, down: bool, changed: bool) -> Event {

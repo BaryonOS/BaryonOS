@@ -1,4 +1,6 @@
-use nieuw_os_image_codec::{decode, pixel_hash, Cancellation, Error, Format, Limits, Pixels};
+use nieuw_os_image_codec::{
+    decode, detect_format, pixel_hash, Cancellation, Error, Format, Limits, Orientation, Pixels,
+};
 
 fn limits() -> Limits {
     Limits {
@@ -17,17 +19,29 @@ struct Fixture {
     name: &'static str,
     input: &'static [u8],
     reference: &'static [u8],
-    width: usize,
-    height: usize,
+    source_width: usize,
+    source_height: usize,
+    display_width: usize,
+    display_height: usize,
+    orientation: Option<Orientation>,
 }
 macro_rules! fixture {
     ($name:literal, $w:literal, $h:literal) => {
+        fixture!($name, $w, $h, $w, $h, None)
+    };
+    ($name:literal, $source_w:literal, $source_h:literal, $display_w:literal, $display_h:literal) => {
+        fixture!($name, $source_w, $source_h, $display_w, $display_h, None)
+    };
+    ($name:literal, $source_w:literal, $source_h:literal, $display_w:literal, $display_h:literal, $orientation:expr) => {
         Fixture {
             name: $name,
             input: include_bytes!(concat!("../fixtures/", $name)),
             reference: include_bytes!(concat!("../fixtures/", $name, ".rgba")),
-            width: $w,
-            height: $h,
+            source_width: $source_w,
+            source_height: $source_h,
+            display_width: $display_w,
+            display_height: $display_h,
+            orientation: $orientation,
         }
     };
 }
@@ -45,40 +59,88 @@ fn pngs() -> [Fixture; 7] {
 }
 fn jpegs() -> [Fixture; 3] {
     [
-        fixture!("baseline.jpg", 257, 129),
+        fixture!(
+            "baseline.jpg",
+            257,
+            129,
+            129,
+            257,
+            Some(Orientation::Rotate90)
+        ),
         fixture!("gray.jpg", 113, 67),
         fixture!("progressive.jpg", 193, 113),
     ]
 }
 
+#[test]
+fn format_routing_uses_supported_content_signatures() {
+    assert_eq!(
+        detect_format(include_bytes!("../fixtures/rgb.png")),
+        Some(Format::Png)
+    );
+    assert_eq!(
+        detect_format(include_bytes!("../fixtures/baseline.jpg")),
+        Some(Format::Jpeg)
+    );
+    assert_eq!(Format::Png.media_type(), "image/png");
+    assert_eq!(Format::Jpeg.media_type(), "image/jpeg");
+
+    assert_eq!(detect_format(b""), None);
+    assert_eq!(detect_format(b"\x89PNG\r\n\x1a"), None);
+    assert_eq!(detect_format(b"\xff\xd8"), Some(Format::Jpeg));
+    assert_eq!(detect_format(b"not an image"), None);
+}
+
 fn verify(f: &Fixture, tolerance: u8, format: Format) {
     let image = decode(f.input, limits(), &Cancellation::default()).expect(f.name);
     assert_eq!(
-        (image.width, image.height, image.format),
-        (f.width, f.height, format),
+        (
+            image.width,
+            image.height,
+            image.display_width,
+            image.display_height,
+            image.format
+        ),
+        (
+            f.source_width,
+            f.source_height,
+            f.display_width,
+            f.display_height,
+            format
+        ),
         "{}",
         f.name
     );
     assert_eq!(image.source.as_ptr(), f.input.as_ptr());
     assert_eq!(image.source, f.input);
-    let mut rgba = vec![0; f.width * f.height * 4];
+    let (reference, reference_width, reference_height) = orient_reference(
+        f.reference,
+        f.source_width,
+        f.source_height,
+        f.orientation.unwrap_or(Orientation::Normal),
+    );
+    assert_eq!(
+        (reference_width, reference_height),
+        (f.display_width, f.display_height)
+    );
+    let mut rgba = vec![0; f.display_width * f.display_height * 4];
     image.rgba8_into(&mut rgba).unwrap();
     let max_difference = rgba
         .iter()
-        .zip(f.reference)
+        .zip(&reference)
         .map(|(x, y)| x.abs_diff(*y))
         .max()
         .unwrap();
     let total_difference: usize = rgba
         .iter()
-        .zip(f.reference)
+        .zip(&reference)
         .map(|(x, y)| usize::from(x.abs_diff(*y)))
         .sum();
     println!(
         "FIXTURE {} {}x{} pixel_hash={:016x} max_difference={} total_difference={}",
         f.name,
-        f.width,
-        f.height,
+        f.display_width,
+        f.display_height,
         pixel_hash(&image),
         max_difference,
         total_difference
@@ -86,12 +148,12 @@ fn verify(f: &Fixture, tolerance: u8, format: Format) {
     if max_difference > tolerance {
         let beyond = rgba
             .iter()
-            .zip(f.reference)
+            .zip(&reference)
             .filter(|(x, y)| x.abs_diff(**y) > tolerance)
             .count();
         let squared: usize = rgba
             .iter()
-            .zip(f.reference)
+            .zip(&reference)
             .map(|(x, y)| usize::from(x.abs_diff(*y)).pow(2))
             .sum();
         println!(
@@ -103,7 +165,7 @@ fn verify(f: &Fixture, tolerance: u8, format: Format) {
         );
         for (i, (x, y)) in rgba
             .iter()
-            .zip(f.reference)
+            .zip(&reference)
             .enumerate()
             .filter(|(_, (x, y))| x.abs_diff(**y) == max_difference)
             .take(8)
@@ -111,8 +173,8 @@ fn verify(f: &Fixture, tolerance: u8, format: Format) {
             println!(
                 "WORST {} x={} y={} channel={} actual={} reference={}",
                 f.name,
-                (i / 4) % f.width,
-                i / (4 * f.width),
+                (i / 4) % f.display_width,
+                i / (4 * f.display_width),
                 i % 4,
                 x,
                 y
@@ -298,7 +360,7 @@ fn compressed_metadata_bomb_is_rejected_before_upstream_default_inflater() {
 }
 
 #[test]
-fn preserved_metadata_is_not_falsely_claimed_as_oriented_or_color_managed() {
+fn jpeg_exif_orientation_and_source_metadata_are_preserved() {
     let image = decode(
         include_bytes!("../fixtures/baseline.jpg"),
         limits(),
@@ -306,7 +368,11 @@ fn preserved_metadata_is_not_falsely_claimed_as_oriented_or_color_managed() {
     )
     .unwrap();
     assert!(image.has_exif);
+    assert_eq!(image.orientation, Some(Orientation::Rotate90));
+    assert_eq!((image.width, image.height), (257, 129));
+    assert_eq!((image.display_width, image.display_height), (129, 257));
     assert!(!image.metadata_transforms_applied);
+    assert!(!image.icc_color_transform_applied);
     assert_eq!(image.source, include_bytes!("../fixtures/baseline.jpg"));
     assert!(matches!(
         decode(
@@ -315,6 +381,232 @@ fn preserved_metadata_is_not_falsely_claimed_as_oriented_or_color_managed() {
             &Cancellation::default()
         ),
         Err(Error::UnsupportedColor)
+    ));
+}
+
+fn jpeg_with_orientation(
+    input: &[u8],
+    orientation: u16,
+    little_endian: bool,
+    padding: usize,
+) -> Vec<u8> {
+    let mut tiff = Vec::new();
+    if little_endian {
+        tiff.extend_from_slice(b"II");
+        tiff.extend_from_slice(&42u16.to_le_bytes());
+        tiff.extend_from_slice(&8u32.to_le_bytes());
+        tiff.extend_from_slice(&1u16.to_le_bytes());
+        tiff.extend_from_slice(&0x0112u16.to_le_bytes());
+        tiff.extend_from_slice(&3u16.to_le_bytes());
+        tiff.extend_from_slice(&1u32.to_le_bytes());
+        tiff.extend_from_slice(&orientation.to_le_bytes());
+    } else {
+        tiff.extend_from_slice(b"MM");
+        tiff.extend_from_slice(&42u16.to_be_bytes());
+        tiff.extend_from_slice(&8u32.to_be_bytes());
+        tiff.extend_from_slice(&1u16.to_be_bytes());
+        tiff.extend_from_slice(&0x0112u16.to_be_bytes());
+        tiff.extend_from_slice(&3u16.to_be_bytes());
+        tiff.extend_from_slice(&1u32.to_be_bytes());
+        tiff.extend_from_slice(&orientation.to_be_bytes());
+    }
+    tiff.extend_from_slice(&[0, 0]);
+    tiff.extend_from_slice(&[0; 4]);
+    tiff.resize(tiff.len() + padding, 0);
+
+    let mut payload = b"Exif\0\0".to_vec();
+    payload.extend_from_slice(&tiff);
+    let segment_length = u16::try_from(payload.len() + 2).unwrap();
+    let mut jpeg = Vec::with_capacity(input.len() + payload.len() + 4);
+    jpeg.extend_from_slice(&input[..2]);
+    jpeg.extend_from_slice(&[0xff, 0xe1]);
+    jpeg.extend_from_slice(&segment_length.to_be_bytes());
+    jpeg.extend_from_slice(&payload);
+    jpeg.extend_from_slice(&input[2..]);
+    jpeg
+}
+
+fn orient_reference(
+    raw: &[u8],
+    width: usize,
+    height: usize,
+    orientation: Orientation,
+) -> (Vec<u8>, usize, usize) {
+    let (display_width, display_height) = match orientation {
+        Orientation::Transpose
+        | Orientation::Rotate90
+        | Orientation::Transverse
+        | Orientation::Rotate270 => (height, width),
+        _ => (width, height),
+    };
+    let mut display = vec![0; raw.len()];
+    for display_y in 0..display_height {
+        for display_x in 0..display_width {
+            let (source_x, source_y) = match orientation {
+                Orientation::Normal => (display_x, display_y),
+                Orientation::MirrorHorizontal => (width - 1 - display_x, display_y),
+                Orientation::Rotate180 => (width - 1 - display_x, height - 1 - display_y),
+                Orientation::MirrorVertical => (display_x, height - 1 - display_y),
+                Orientation::Transpose => (display_y, display_x),
+                Orientation::Rotate90 => (display_y, height - 1 - display_x),
+                Orientation::Transverse => (width - 1 - display_y, height - 1 - display_x),
+                Orientation::Rotate270 => (width - 1 - display_y, display_x),
+            };
+            let source = (source_y * width + source_x) * 4;
+            let destination = (display_y * display_width + display_x) * 4;
+            display[destination..destination + 4].copy_from_slice(&raw[source..source + 4]);
+        }
+    }
+    (display, display_width, display_height)
+}
+
+#[test]
+fn exif_orientation_reference_matches_asymmetric_pixel_matrix() {
+    let raw = (1..=6)
+        .flat_map(|value| [value, 0, 0, 255])
+        .collect::<Vec<_>>();
+    for (orientation, expected_width, expected_height, expected) in [
+        (Orientation::Normal, 3, 2, [1, 2, 3, 4, 5, 6]),
+        (Orientation::MirrorHorizontal, 3, 2, [3, 2, 1, 6, 5, 4]),
+        (Orientation::Rotate180, 3, 2, [6, 5, 4, 3, 2, 1]),
+        (Orientation::MirrorVertical, 3, 2, [4, 5, 6, 1, 2, 3]),
+        (Orientation::Transpose, 2, 3, [1, 4, 2, 5, 3, 6]),
+        (Orientation::Rotate90, 2, 3, [4, 1, 5, 2, 6, 3]),
+        (Orientation::Transverse, 2, 3, [6, 3, 5, 2, 4, 1]),
+        (Orientation::Rotate270, 2, 3, [3, 6, 2, 5, 1, 4]),
+    ] {
+        let (display, width, height) = orient_reference(&raw, 3, 2, orientation);
+        assert_eq!((width, height), (expected_width, expected_height));
+        assert_eq!(width * height, expected.len());
+        assert_eq!(
+            display
+                .chunks_exact(4)
+                .map(|pixel| pixel[0])
+                .collect::<Vec<_>>(),
+            expected
+        );
+    }
+}
+
+#[test]
+fn display_to_source_coordinates_match_matrix_and_reject_out_of_bounds() {
+    for (orientation, width, height, expected) in [
+        (Orientation::Normal, 3, 2, [1, 2, 3, 4, 5, 6]),
+        (Orientation::MirrorHorizontal, 3, 2, [3, 2, 1, 6, 5, 4]),
+        (Orientation::Rotate180, 3, 2, [6, 5, 4, 3, 2, 1]),
+        (Orientation::MirrorVertical, 3, 2, [4, 5, 6, 1, 2, 3]),
+        (Orientation::Transpose, 2, 3, [1, 4, 2, 5, 3, 6]),
+        (Orientation::Rotate90, 2, 3, [4, 1, 5, 2, 6, 3]),
+        (Orientation::Transverse, 2, 3, [6, 3, 5, 2, 4, 1]),
+        (Orientation::Rotate270, 2, 3, [3, 6, 2, 5, 1, 4]),
+    ] {
+        assert_eq!(orientation.display_dimensions(3, 2), (width, height));
+        for (index, expected) in expected.into_iter().enumerate() {
+            let (x, y) = orientation
+                .source_position(index % width, index / width, 3, 2)
+                .unwrap();
+            assert_eq!(y * 3 + x + 1, expected, "{orientation:?}, pixel {index}");
+        }
+        for (x, y) in [(width, 0), (0, height), (usize::MAX, usize::MAX)] {
+            assert_eq!(orientation.source_position(x, y, 3, 2), None);
+        }
+        for (width, height) in [(0, 0), (0, 2), (3, 0)] {
+            assert_eq!(orientation.source_position(0, 0, width, height), None);
+        }
+    }
+}
+
+#[test]
+fn all_jpeg_exif_orientations_apply_for_both_tiff_byte_orders() {
+    let source = include_bytes!("../fixtures/progressive.jpg");
+    let raw = decode(source, limits(), &Cancellation::default()).unwrap();
+    let mut raw_rgba = vec![0; raw.display_width * raw.display_height * 4];
+    raw.rgba8_into(&mut raw_rgba).unwrap();
+
+    for (value, orientation) in [
+        (1, Orientation::Normal),
+        (2, Orientation::MirrorHorizontal),
+        (3, Orientation::Rotate180),
+        (4, Orientation::MirrorVertical),
+        (5, Orientation::Transpose),
+        (6, Orientation::Rotate90),
+        (7, Orientation::Transverse),
+        (8, Orientation::Rotate270),
+    ] {
+        for little_endian in [true, false] {
+            let input = jpeg_with_orientation(source, value, little_endian, 0);
+            let image = decode(&input, limits(), &Cancellation::default()).unwrap();
+            let (expected, width, height) =
+                orient_reference(&raw_rgba, raw.width, raw.height, orientation);
+            assert_eq!(image.orientation, Some(orientation));
+            assert_eq!(
+                (
+                    image.width,
+                    image.height,
+                    image.display_width,
+                    image.display_height
+                ),
+                (raw.width, raw.height, width, height)
+            );
+            let mut display = vec![0; width * height * 4];
+            image.rgba8_into(&mut display).unwrap();
+            assert_eq!(
+                display, expected,
+                "orientation {value}, little={little_endian}"
+            );
+            assert_eq!(pixel_hash(&image), pixel_hash(&raw));
+            let (Pixels::Rgba8(actual_raw), Pixels::Rgba8(expected_raw)) =
+                (&image.pixels, &raw.pixels)
+            else {
+                panic!("JPEG decoder did not return RGBA8")
+            };
+            assert_eq!(actual_raw, expected_raw);
+            assert!(!image.metadata_transforms_applied);
+            assert_eq!(image.source, input);
+        }
+    }
+}
+
+#[test]
+fn malformed_exif_is_ignored_and_oversized_exif_is_rejected() {
+    let source = include_bytes!("../fixtures/progressive.jpg");
+    let raw = decode(source, limits(), &Cancellation::default()).unwrap();
+    let mut raw_rgba = vec![0; raw.display_width * raw.display_height * 4];
+    raw.rgba8_into(&mut raw_rgba).unwrap();
+
+    let invalid_value = jpeg_with_orientation(source, 9, true, 0);
+    let image = decode(&invalid_value, limits(), &Cancellation::default()).unwrap();
+    assert_eq!(image.orientation, None);
+    let mut display = vec![0; image.display_width * image.display_height * 4];
+    image.rgba8_into(&mut display).unwrap();
+    assert_eq!(display, raw_rgba);
+
+    for offset in [4, u32::MAX] {
+        let mut invalid_offset = jpeg_with_orientation(source, 6, true, 0);
+        let tiff = invalid_offset
+            .windows(6)
+            .position(|window| window == b"Exif\0\0")
+            .unwrap()
+            + 6;
+        invalid_offset[tiff + 4..tiff + 8].copy_from_slice(&offset.to_le_bytes());
+        let image = decode(&invalid_offset, limits(), &Cancellation::default()).unwrap();
+        assert_eq!(image.orientation, None);
+        let mut display = vec![0; image.display_width * image.display_height * 4];
+        image.rgba8_into(&mut display).unwrap();
+        assert_eq!(display, raw_rgba);
+    }
+
+    let oversized = jpeg_with_orientation(source, 6, true, 64);
+    assert!(matches!(
+        decode(
+            &oversized,
+            Limits {
+                metadata_bytes: 32,
+                ..limits()
+            },
+            &Cancellation::default()
+        ),
+        Err(Error::MetadataLimit)
     ));
 }
 

@@ -17,6 +17,68 @@ def image(width,height,color):
 
 
 class WindowRunnerTests(unittest.TestCase):
+    def test_calculator_recall_is_not_a_combined_diagnostic_or_storage_gate(self):
+        for flag in ("smoke", "recovery_handshake", "clipboard"):
+            with self.assertRaises(ValueError):
+                window.run(timeout=30, bios_rom=None, vga_rom=None,
+                           calculator_recall=True, **{flag: True})
+
+    def test_calculator_recall_requires_exact_draft_result_counts_and_original_binding(self):
+        baseline = dict(window.snapshots(block("CALCULATOR"), "CALCULATOR")[0])
+        state = dict(baseline, EXPRESSION_BYTES=3, EXPRESSION_SUM=window.volume_disk.fnv(b"9/2"),
+                     CARET=3, CURRENT=0, EVALUATIONS=2, FAILURES=0, ERRORS=0, HAS_ANSWER=1,
+                     ANSWER_LOW=20_000_000_000, ANSWER_HIGH=0, ACTIVE=1)
+        self.assertTrue(window.calculator_recall_matches(state, baseline, b"9/2", False, 2, 20_000_000_000))
+        for field in state:
+            if field not in ("GEN", "FRAMES"):
+                damaged = dict(state)
+                damaged[field] += 1
+                self.assertFalse(window.calculator_recall_matches(damaged, baseline, b"9/2", False, 2, 20_000_000_000), field)
+
+    def test_calculator_undo_is_never_a_combined_diagnostic_or_storage_gate(self):
+        for flag in ("smoke", "recovery_handshake", "clipboard"):
+            with self.assertRaises(ValueError):
+                window.run(timeout=30, bios_rom=None, vga_rom=None,
+                           calculator_undo=True, **{flag: True})
+
+    def test_calculator_undo_requires_exact_formula_stale_result_and_original_binding(self):
+        baseline = dict(window.snapshots(block("CALCULATOR"), "CALCULATOR")[0])
+        state = dict(baseline, EXPRESSION_BYTES=3, EXPRESSION_SUM=window.volume_disk.fnv(b"2+3"),
+                     CARET=3, CURRENT=0, EVALUATIONS=1, FAILURES=0, ERRORS=0, HAS_ANSWER=1,
+                     ANSWER_LOW=5_000_000_000, ANSWER_HIGH=0, ACTIVE=1)
+        self.assertTrue(window.calculator_undo_matches(state, baseline, b"2+3", False, 1))
+        for field in state:
+            if field not in ("GEN", "FRAMES"):
+                damaged = dict(state)
+                damaged[field] += 1
+                self.assertFalse(window.calculator_undo_matches(damaged, baseline, b"2+3", False, 1), field)
+
+    def test_result_transfer_cannot_be_combined_with_other_gate_modes(self):
+        for flag in ("smoke", "recovery_handshake", "clipboard"):
+            with self.assertRaises(ValueError):
+                window.run(timeout=30, bios_rom=None, vga_rom=None,
+                           calculator_result=True, **{flag: True})
+
+    def test_result_transfer_requires_actual_answer_expression_and_original_binding(self):
+        baseline = dict(window.snapshots(block("CALCULATOR"), "CALCULATOR")[0])
+        state = dict(baseline, EXPRESSION_BYTES=3, EXPRESSION_SUM=window.volume_disk.fnv(b"7/2"),
+                     CARET=3, CURRENT=1, EVALUATIONS=1, FAILURES=0, ERRORS=0, HAS_ANSWER=1,
+                     ANSWER_LOW=3_500_000_000, ANSWER_HIGH=0, ACTIVE=1)
+        self.assertTrue(window.calculator_result_matches(state, baseline, b"7/2", 1, 3_500_000_000))
+        for field in state:
+            if field not in ("GEN", "FRAMES"):
+                damaged = dict(state)
+                damaged[field] += 1
+                self.assertFalse(window.calculator_result_matches(damaged, baseline, b"7/2", 1, 3_500_000_000), field)
+
+    def test_calculator_interaction_gates_are_mutually_exclusive_and_separate_from_main_gates(self):
+        modes = ("calculator_recall", "calculator_undo", "calculator_result")
+        for mode in modes:
+            for other in modes + ("session_route", "library"):
+                if other != mode:
+                    with self.assertRaisesRegex(ValueError, "separate"):
+                        window.run(timeout=30, bios_rom=None, vga_rom=None, **{mode: True, other: True})
+
     def test_clipboard_oracle_checks_calculator_body_without_internal_masks(self):
         raw = image(1280, 720, (1, 2, 3))
         expected = image(320, 484, (1, 2, 3))
@@ -31,6 +93,14 @@ class WindowRunnerTests(unittest.TestCase):
         for flags in ({"smoke": True}, {"recovery_handshake": True}):
             with self.assertRaises(ValueError):
                 window.run(timeout=30, bios_rom=None, vga_rom=None, clipboard=True, **flags)
+
+    def test_library_cannot_reuse_an_unvalidated_or_different_mode(self):
+        for flags in ({"smoke": True}, {"recovery_handshake": True},
+                      {"clipboard": True}, {"session_route": True}):
+            with self.assertRaises(ValueError):
+                window.run(timeout=30, bios_rom=None, vga_rom=None, library=True, **flags)
+        with self.assertRaises(ValueError):
+            window.run(timeout=30, bios_rom=None, vga_rom=None, library_parent="unvalidated")
 
     def test_exact_snapshot_rejects_missing_duplicate_or_oversized_fields(self):
         raw=block()
