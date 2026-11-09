@@ -395,6 +395,9 @@ pub(super) fn poll(s: &mut State) {
         s.ticks < 10000 && s.syscall_calls < 2_000_000,
         b"BOUNDED_RUN",
     );
+    // Sample the actual allocator state while guests are still allocating.
+    // Cleanup-only samples miss the elevated and critical OOM transitions.
+    observe_pressure(s);
     let e = evidence();
     if case() == 4 {
         if !e.started
