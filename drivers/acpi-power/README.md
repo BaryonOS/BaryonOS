@@ -107,8 +107,8 @@ standaard genegeerde test accepteert expliciet opgegeven externe
 QEMU-firmwaretabellen en controleert ook mutaties daarvan; ontbrekende
 fixturepaden of adressen laten die test falen, niet stil overslaan.
 Die hosttest voert geen gastcode of shutdown uit.
-Sinds 5 november 2026 gebruikt het kernelprofiel `native-acpi-s5` deze crate
-voor een echte native poweroff in QEMU; bewijs en grenzen staan in
+Since 5 November 2026, the `native-acpi-s5` kernel profile has used this
+crate for native power-off in QEMU. Evidence and limitations are documented in
 [`docs/verification/h05-acpi-s5`](../../docs/verification/h05-acpi-s5/README.md).
-Er is nog geen dienst-/gebruikersbroker, geen H05-aftekening en geen fysieke
-hardwareacceptatie.
+Service- or user-initiated shutdown, H05 acceptance and physical-hardware
+verification remain outstanding.
