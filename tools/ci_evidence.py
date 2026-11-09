@@ -123,6 +123,7 @@ class Selection:
         self.workspace = workspace
         self.output = output
         self.files: dict[str, Path] = {}
+        self.visited_directories: set[Path] = set()
         self.omitted: dict[str, dict] = {}
         self.missing: list[str] = []
         self.warnings: list[str] = []
@@ -197,6 +198,9 @@ class Selection:
             return
         info = path.lstat()
         if stat.S_ISDIR(info.st_mode):
+            if path in self.visited_directories:
+                return
+            self.visited_directories.add(path)
             for child in self.entries(path):
                 self.add(child)
         elif stat.S_ISREG(info.st_mode):

@@ -45,7 +45,7 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
               expected_exit=33, forbidden_markers=FAIL_MARKERS, m5_case=None, m5_seed=None,
               expected_kernel_sha256=None, expected_loader_sha256=None, memory_mib=256,
               rtc_base=None, tpm_socket=None, cpus=1, tcg_threads="single",
-              acpi_tables=()):
+              acpi_tables=(), reboot_on_reset=False):
     # Defaults keep every existing profile byte-identical (-smp 1, single TCG).
     if type(cpus) is not int or not 1 <= cpus <= 16:
         raise ValueError("cpus must be an explicit integer in [1,16]")
@@ -103,6 +103,10 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
             "-drive", f"if=virtio,index=0,format=raw,readonly=on,file=fat:{run_rel}/esp",
             "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"]
     args += rtc_arguments
+    if reboot_on_reset:
+        # Overrides -no-reboot: a reset re-runs firmware (second EBS marker)
+        # instead of exiting 0, so raw exit 0 can only mean guest poweroff.
+        args += ["-action", "reboot=reset"]
     for table in acpi_tables:
         # Generated firmware-table fixtures only, never host ACPI tables.
         table = Path(table).resolve(strict=True)
