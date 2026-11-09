@@ -853,10 +853,7 @@ impl DeviceLease {
     // Test-only bus mastering model: real drivers must require enforced IOMMU isolation.
     // Not compiled into production until a kernel-issued DMA-containment proof exists.
     #[cfg(test)]
-    fn enable_bus_master<C: DeviceControl>(
-        &mut self,
-        control: &mut C,
-    ) -> Result<(), Error> {
+    fn enable_bus_master<C: DeviceControl>(&mut self, control: &mut C) -> Result<(), Error> {
         if self.phase != Phase::Initializing
             || self.bus_master
             || !self.dma.iter().any(|record| record.live)
