@@ -19,10 +19,7 @@ review door AI. **Score:** 41 → 41/100. K06 blijft open.
 Alle 13 SMP-profielen: `native-smp` 6/6 en elk negatief of controleprofiel 1/1, waaronder
 `double-run` (`SMP:SCHED:DOUBLE_RUN`), `held-across-switch` en `lockdep-order`. Herhaald:
 `double-run` 10/10, `four`, `eight` en `two-single` elk 5/5. Per geval staan de SMP-regels,
-exitcode en manifesthash in [native-report.json](native-report.json). Alle 18 gevallen
-hebben `kernel_sha256: null`: kernelbinding is dus niet via dit rapport te controleren.
-Daarvoor zijn de oorspronkelijke manifesten en bijbehorende kernelartifacts nodig,
-voor zover die elders bewaard zijn; hun opslaglocatie is hier niet vastgelegd.
+exitcode, kernel- en manifesthash in [native-report.json](native-report.json).
 
 ## Commando's
 ```

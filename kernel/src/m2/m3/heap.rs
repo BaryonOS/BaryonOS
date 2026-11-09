@@ -92,7 +92,7 @@ fn grow(s: &mut State, slot: usize, a: [u64; 6]) -> Result<u64, i64> {
         return Err(-7);
     }
     let pid = p.pid;
-    // SAFETY: The sole call path is the single-CPU IF=0 event loop. No yield,
+    // SAFETY: The sole call path is the KERNEL-held IF=0 event loop. No yield,
     // callback into user code or nested heap transaction occurs before this
     // exclusive arena borrow ends. The ~20KiB arena is permanent supervisor
     // metadata, not a local on the 16KiB service stack. No user pointers reside

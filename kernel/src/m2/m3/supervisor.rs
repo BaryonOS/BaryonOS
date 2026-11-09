@@ -91,7 +91,7 @@ static mut EVIDENCE: Evidence = Evidence {
     first_waiting_kill_tick: 0,
 };
 fn evidence() -> &'static mut Evidence {
-    // SAFETY: One CPU, IF=0; every borrow ends before scheduling or cleanup.
+    // SAFETY: KERNEL held, IF=0; every borrow ends before scheduling or cleanup.
     unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
 }
 

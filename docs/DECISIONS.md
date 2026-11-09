@@ -1,5 +1,362 @@
 # Ontwerpbesluiten
 
+## ADR-080 — BSP-timer, PIT-klok, idle en reschedule-vlag op de BSP (K06 stap 5c-2, auditbevindingen F6/F9/F11/F13)
+
+6 november 2026; effect alleen in `native-smp`. Taakspec:
+`docs/implementation/k06-steps/06-5c-2-bsp-timer-idle.md`. Aanvulling op ADR-073 (preëmptie op de
+AP's) en ADR-074 (spinvenster S1/S3). **Probleem:** de BSP had geen preëmptie, geen idle met
+interrupts en geen spinvenster. Spint de BSP op `KERNEL` terwijl een AP een shootdown start, dan
+neemt hij 0xe0 niet aan en volgt een valse quarantaine van alle AP's (F6). 0xe8 sprong naar het
+timerpad en telde als tick (F11). De LAPIC-timer was ongekalibreerd (F9).
+
+**Vastgesteld (spec §0 "te verifiëren"):** `native-smp` sluit M3 uit (`compile_error` in
+`main.rs`), dus de PIC-programmering in `m3.rs` en Sys3 bestaan in dit profiel niet. De BSP draaide
+er tot nu toe volledig met IF=0 en programmeerde de 8259 niet. Dit besluit voert daarom in
+`native-smp` zelf de PIT-IRQ0-klok in; het M3-pad (`m3.rs`, Sys3) is ongewijzigd. In QEMU levert de
+8259 alleen aan de LINT0 van de eerste CPU (virtual wire); de AP's maskeren LINT0 al sinds stap 2.
+
+**Besluit (normatief):**
+- **BT-1 Eén klok.** `bsp_timer_init` (BSP, IF=0, na de bring-up en vóór `GO`) remapt de 8259 naar
+  0x20/0x28, maskeert alles behalve IRQ0 en zet PIT-kanaal 0 als rate generator op deler 1193
+  (1000,15 Hz). De IRQ0-stub (vector 0x20, geen GS, geen lock) telt `CLOCK_TICKS` en stuurt een
+  PIC-EOI. Hij controleert met het LAPIC-ID dat hij op de BSP draait; een AP die IRQ0 krijgt, stopt
+  de VM met `SMP:CLOCK:AP_IRQ0`. Spurious IRQ7 (0x27) krijgt de spurious-stub. De LAPIC-timer
+  levert alleen preëmptieticks.
+- **BT-2 BSP gelijk aan een AP.** De BSP krijgt 0xd0 met deler 16 (`start_timer`), dezelfde
+  INV-5c-uitstel en dezelfde switchregels (`bsp_switch`; het home-context is op de BSP de
+  orkestrator en draait daarom mee in de rotatie). `CpuLocal.irq_ready` wordt per CPU gezet zodra
+  elke ongemaskeerde bron een IDT-gate heeft: op een AP na het maskeren van de LVT's in
+  `ipi_phase`, op de BSP aan het eind van `bsp_timer_init` (LINT0 = ExtINT voor de PIC, LINT1 =
+  NMI naar vector 2, alle overige LVT's gemaskeerd; gates 0x20, 0x27, 0xd0, 0xe0, 0xe8, 0xf0,
+  0xff). Het vensterpredicaat in `lock.rs` wordt `level <= ASPACE && irq_depth == 0 && irq_ready`
+  (was `on_ap()`).
+- **BT-3 Idle.** `idle_halt` is de enige `sti; hlt; cli`. Hij controleert een lege lockdep-set en
+  de kernel-CR3 (`KERNEL_CR3`, nu al in `bsp_timer_init` gezet) en stopt anders met
+  `SMP_IDLE_STATE`. Gebruikt door de AP-home-lus en door de BSP (`idle_until`).
+- **BT-4 Reschedule-vlag.** De 0xe8-stub telt `resched_count` vóór hij het timerlichaam in springt.
+  `smp_preempt` vergelijkt dat met `resched_seen`: verschil = 0xe8 (`need_resched = true`, geen
+  tick), anders 0xd0 (`tick_count += 1`). Velden hernoemd: `ticks` → `tick_count`, `resched` →
+  `resched_count`. Een door INV-5c uitgestelde 0xe8 blijft als `need_resched` staan. Een
+  `IrqGuard` die de laatste lock vrijgeeft en IF=1 herstelt buiten een handler, roept
+  `resched_on_release` aan: die zet een staande vlag om in een self-0xe8, die direct na de `sti`
+  binnenkomt en wisselt. Elk ander switchpunt wist de vlag. De ICR-fixture wisselt nooit en wist
+  de vlag zelf.
+- **BT-5 Gekalibreerde band.** `bsp_timer_init` meet over 100 ms van PIT-kanaal 2 zowel de LAPIC-
+  timer (deler 16) als de TSC en logt `SMP:TIMER:RATIO:<LAPIC-ticks per PIT-IRQ0-tick>`. **De band
+  is vooraf vastgelegd op [50 000, 75 000]**, voor QEMU's APIC-timerklok van 1 GHz (verwacht
+  62 500); de oracle (`tools/run_smp.py`, `RATIO_BAND`) weigert alles daarbuiten en de band wordt
+  niet achteraf verruimd. Een andere band (andere hypervisor of echte hardware) vergt een nieuw
+  besluit. `TSC_PER_MS` dient als tijdbasis voor begrensde wachten op AP's, die de PIT niet
+  aanraken (ADR-070).
+- **BT-6 Contract kernelthreads (F13).** Fixture-kernelthreads (stap 4, 5d-1, F16 en de BSP-threads
+  van deze stap) draaien met IF=1 als "pseudo-user": hun terugkeer naar IF=1 geldt als het veilige
+  punt van BT-4. Echte kernelcode blijft IF=0 (spec §4.3); IF=1 alleen in user mode, in de idle-
+  context en in het begrensde `sti; pause; cli`-venster van een KERNEL/ASPACE-wachter.
+
+**Bewijs:** native fixtures in `native-smp` (na `SMP:SPIN:PASS`, vóór `SMP:SCHED:PASS`):
+`SMP:CLOCK:PASS` (alle AP's belast, de BSP idle't door 500 IRQ0-ticks; duur op de PIT-gekalibreerde
+TSC binnen 1% van 499 923 µs; de klok gaat nooit terug), `SMP:BSP_PREEMPT:PASS` (twee BSP-threads
+met registercanaries, ≥8 ticks en ≥4 wissels, beide threads lopen door, bevroren na stop),
+`SMP:BSP_SPIN:PASS` (AP1 houdt KERNEL, wacht tot de BSP erop spint, stuurt een shootdown naar alleen
+de BSP; ack binnen 100 ms, geen quarantaine) en `SMP:IDLE:WAKE_US=<n>` + `SMP:IDLE:PASS` (idle-wek
+door AP1 met 0xe8, latentie gelogd en < 100 ms; daarna een BSP-thread die wacht op een lock van AP1
+terwijl de timer gemaskeerd is: AP1's 0xe8 wordt uitgesteld en pas de release wisselt). Zonder AP:
+`SMP:BSP_SPIN:SKIPPED`/`SMP:IDLE:SKIPPED`. Controle `test-smp-bsp-spin-irq-off`: het BSP-venster
+blijft dicht → `SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0`, exit 0x10. Mutant zonder de release-hook
+(lokaal, niet gecommit): `SMP:IDLE:RESCHED_LOST`. Zie `docs/verification/k06-5c2-bsp-timer/`.
+
+**Grenzen en shortcuts:** QEMU/TCG, geen hardwarebewijs. De TSC wordt als constant en gelijk op
+alle CPU's aangenomen (QEMU/KVM); echte hardware vraagt eerst een invariant-TSC-controle. De
+ratio wordt alleen gelogd; `TIMER_INITIAL` blijft 20 000 (ongewijzigde tickperiode). De BSP heeft
+nog geen run queue: `ADOPTED` (ADR-079) wordt nog niet leeggehaald; dat moet de stap die de BSP
+een queue geeft (5d-2 of 5f). Een IRQ0 die langer dan één periode wacht (BSP met IF=0) gaat
+verloren; de klok telt alleen ticks die de BSP in een IF=1-context krijgt. Dat is voor een
+tickklok inherent en wordt door de klokcheck tijdens idle gemeten, niet tijdens IF=0-werk. Buiten
+scope: TSC-deadline, tickless idle, IOAPIC-routering, energiebeheer (H05).
+
+## ADR-079 — ICR-lock per CPU en quarantaine stopt bij een gehouden lock (K06, auditbevindingen F19/F15)
+
+6 november 2026; effect alleen in `native-smp` (het eigenaarsveld bestaat in elke build, maar
+één-CPU-profielen schrijven er alleen CPU 0 in). Taakspec:
+`docs/implementation/k06-steps/05-F19-F15-icr-quarantine.md`. Aanvulling op ADR-071 (quarantaine
+van een dove AP) en ADR-072 (shootdown-deadline). **Probleem:** F19: `send_ipi` schreef ICR-hoog
+(0x310) en ICR-laag (0x300) zonder lock. Een handler op dezelfde CPU die tussen die twee
+schrijfacties zelf een IPI stuurt, vervangt de bestemming. F15: `quarantine_all` reset een dove
+AP met INIT, ook als die AP `KERNEL` of een `RUNQ` vasthoudt. Die lock blijft dan voor altijd
+dicht, en de BSP blokkeert bij de volgende acquire.
+
+**Besluit (normatief):**
+- **IQ-1 ICR atomair per CPU.** `CpuLocal.icr` is een `IrqLock` op niveau 60 (ICR). `send_ipi`
+  neemt die lock (irqsave) om de idle-wacht, ICR-hoog, ICR-laag en de afsluitende idle-wacht.
+  Het is de enige plek die 0x310/0x300 schrijft. Een lock per CPU volstaat: elke xAPIC heeft zijn
+  eigen ICR, dus alleen een handler op dezelfde CPU kan ertussen komen, en irqsave sluit die uit.
+  Handlers mogen niveau 60 nemen (LD-1 weigert alleen KERNEL/ASPACE).
+- **IQ-2 Elke lock kent zijn eigenaar.** `IrqLock` heeft een `AtomicU8 owner`: de CPU-index van
+  de houder (BSP 0, AP slot + 1) direct na het verkrijgen, `FREE` (0xff) vóór het vrijgeven. De
+  ticketlogica verandert niet. `IrqLock::owner()` en `level()` zijn de leesinterface.
+- **IQ-3 Beleid bij een dode CPU.** `quarantine_all` controleert eerst alle AP's
+  (`stop_if_held`) en roept daarna per AP `quarantine_cpu(slot)` aan. Er wordt eerst gecontroleerd
+  omdat de RUNQ-lock van de ene AP door een andere AP vastgehouden kan worden.
+  `quarantine_cpu`: alleen op de BSP; controle, INIT, 1 ms wachten, opnieuw controleren (een dove
+  AP die nog draaide, kan na de eerste controle een lock genomen hebben). Daarna gaan de
+  READY-threads uit zijn queue naar de BSP (`ADOPTED`), en de thread die hij draaide (of op wiens
+  stack hij nog stond) geldt als gecrasht (`kill_request`, `CRASHED`). Er wordt niets gemigreerd.
+  Gecontroleerd worden de eigenaarsvelden van `lock::KERNEL` en alle `RUNQ`; ASPACE, FRAMES en
+  SHOOTDOWN bestaan nog niet als `IrqLock` en moeten aan `held_by` worden toegevoegd zodra ze er
+  zijn. Houdt de AP iets vast, dan volgt `SMP:QUARANTINE:LOCK_HELD:<laagste niveau>:CPU=<n>` en
+  een systeemstop (`serial::fail`, of exit 0x10 in `test-smp-quarantine-lock-held`). Een lock
+  losbreken mag niet.
+- **IQ-4 Een AP initieert nooit quarantaine.** `quarantine_cpu` op een AP stopt met
+  `SMP_QUARANTINE_ON_AP`. Een AP die in de ICR-fixture geen ack krijgt, meldt dat alleen via
+  `icr_done`; de BSP beslist. Een 0xe8 naar de BSP volgt pas met 5c-2 (de BSP neemt nu geen
+  interrupts aan). Nagegaan: geen AP-pad roept `quarantine_all` aan. Of een AP in 08 zelf een
+  shootdown start, blijft een open vraag voor 08.
+
+**Bewijs:** native fixture `SMP:ICR:PASS:ROUNDS=10000` (AP1↔AP2, elk 10.000 0xe8 met ack vóór
+de volgende, terwijl elke 0xd0/0xe8-entry vanuit de handler een self-IPI 0xf0 stuurt). Controle
+`test-smp-icr-race`: zonder lock en met één 0xd0 tussen hoog en laag op AP1 ziet de oracle
+`SMP:ICR:LOST` (AP1's 0xe8 komt op AP1 terecht en smelt daar samen met de 0xe8 van AP2) of
+`SMP:ICR:MISROUTED`. `test-smp-quarantine-lock-held`: AP2 neemt KERNEL en wordt doof →
+`SMP:QUARANTINE:LOCK_HELD:10:CPU=2`, exit 0x10, geen hang. Zie `docs/verification/k06-f19f15-icr/`.
+
+**Grenzen en shortcuts:** de BSP heeft vóór 5c-2 geen run queue, dus `ADOPTED` wordt bijgehouden
+maar nog niet gedraaid; 5c-2 moet die leeghalen. Kernelthreads hebben geen proces, dus de
+K05-faultroute heeft bij een crash niets te beëindigen; ring-3-threads op AP's (5d-2) moeten die
+route nemen. Een AP die als *wachter* in een ticketlock sterft, houdt zijn ticket vast. Die lock
+loopt daarna ook vast, maar wordt door IQ-3 (alleen eigenaar) niet gezien. De testlock
+`SPIN_LOCK` in `test-smp-spin-irq-off` is precies zo'n geval (bewust onbruikbaar na de controle).
+Voor KERNEL/RUNQ is dit een open punt; de lockdep-spiegel (gehouden *of afgewacht*) zou het
+kunnen dekken. Buiten scope: herstel na een dode eigenaar, x2APIC (ICR in één MSR-schrijfactie),
+broadcast-IPI's.
+
+## ADR-078 — Schedulerprotocol: blokkeren in twee fasen, queued-bit en begrensde kill (K06, auditbevindingen F16/F17)
+
+6 november 2026; effect alleen in `native-smp`. Taakspec:
+`docs/implementation/k06-steps/04-F16-F17-block-wake-kill.md`; spec `K06-SMP.md` §6.1, §6.3
+en §6.4 bijgewerkt. **Probleem:** F16: `smp_lock::sched` kende geen RUNNING→BLOCKED, geen
+DEAD(_PENDING) en geen kill. Een thread die besluit te blokkeren terwijl een waker op een andere
+CPU al wekt, verloor die wake (`wake` gaf `Err(RUNNING)`). F17: een dubbele enqueue werd pas bij
+een latere `dispatch` gezien, dus de double-run-test hing van timing af.
+
+**Besluit (normatief):**
+- **Toestanden** (`AtomicU32`): READY 0, BLOCKED 1, BLOCKING 2, READY_PENDING 3, DEAD_PENDING 4,
+  DEAD 5, RUNNING(cpu) = 8 + cpu. Elke overgang is één atomaire stap (CAS of `fetch_update`
+  met een pure stapfunctie): `dispatch`, `yield_cpu`, `block_prepare`, `block_commit`, `wake`,
+  `kill_request`, `kill_commit`.
+- **BW-1 Geen verloren wake.** De thread doet `block_prepare` (RUNNING(c)→BLOCKING) onder de
+  lock van zijn waker of vóór het controleren van zijn voorwaarde (SeqCst), geeft de lock vrij
+  en vraagt een wissel. `wake` zet BLOCKED→READY (de waker zet hem in de queue en stuurt 0xe8)
+  of BLOCKING→READY_PENDING (geen enqueue). De wissel doet `block_commit`: BLOCKING→BLOCKED of
+  READY_PENDING→READY plus requeue. Een voorwaarde die na `block_prepare` al waar is, regelt de
+  thread met `wake` op zichzelf.
+- **BW-2 Eén keer in een queue.** `queued[tid]`, gedeeld door alle queues: `RunQueue::push`
+  CAS 0→1, `pop` 1→0. Een tweede push geeft `SMP:SCHED:DOUBLE_ENQUEUE` en stop
+  (`test-smp-double-run`: exit 0x10).
+- **BW-3 Begrensde kill.** `kill_request`: elke levende toestand → DEAD_PENDING; was hij BLOCKED,
+  dan zet de killer hem in de queue van *d*. Daarna 0xe8 en wachten op DEAD binnen
+  `SHOOTDOWN_DEADLINE_MS` (100 ms, dezelfde constante als de shootdown-acks). *d* zet een
+  stervende huidige thread bij de wissel terug in zijn eigen queue en verlaat de stack. De
+  eerstvolgende wissel die hem popt, doet `kill_commit`: DEAD alleen als `on_cpu` gewist is
+  (F1), anders opnieuw in de queue. Een DEAD-thread staat nergens in een queue en geen CPU staat
+  op zijn stack. Geen DEAD binnen de deadline → `SMP:KILL:TIMEOUT:APIC=<n>` en quarantaine van
+  alle AP's (INV-5; het beleid met vastgehouden locks volgt in stap 05).
+- **BW-4 Idle per CPU.** De idle-thread is de bestaande thuislus van elke AP (`sti; hlt; cli`,
+  context in `CpuLocal.saved[0]`, `HOME`). Die staat nooit in een queue en draait onder de
+  kernel-CR3. Een aparte idle-threadstack voegt hier niets toe.
+- **BW-5** ongewijzigd: geen lock over de wissel, alleen RUNQ binnen de wissel.
+
+**Afwijking van de taakspec:** de spec vraagt loom-modellen. Loom 0.7.2 is geen dependency
+geworden. Dat zou 33 nieuwe crates betekenen met build scripts (`cc`, `rustversion`, `generator`),
+en `generator 0.8.12` vereist Rust 1.95 terwijl de toolchain op 1.90 is gepind. Volgens AGENTS.md
+moeten herkomst, licentie, onderhoud en build scripts eerst getoetst worden. In plaats daarvan
+draaien uitputtende interleavingmodellen in `sched.rs` (zonder dependency). Ze proberen elke
+volgorde van de atomaire stappen van de echte functies: block/wake met twee threads en een waker,
+en kill tijdens RUNNING met F1-claim en stub. Elk model heeft een mutant die het moet weerleggen:
+het 5d-1-protocol verliest een wake, en een DEAD die op de stack wordt gepubliceerd laat de
+cleanup racen. Grens: alleen sequentieel consistente uitvoeringen, geen zwakkere ordeningen.
+Loom blijft een open punt (F-T1).
+
+**Fixture:** threads A/B op AP1/AP2 geven 10.000 keer een beurt door onder `lock::KERNEL`. Ze
+blokkeren met `block_prepare` onder KERNEL en vragen de wissel met een eigen 0xe8 (IF=0 rond de
+ICR-schrijfactie). Daarna doodt de BSP thread K (alleen in ruimte 1) op AP3. Met minder AP's
+delen de threads CPU's (`tid % AP's`); zonder AP's meldt de kernel `SMP:WAKE/KILL:SKIPPED`.
+`test-smp-resched-deaf`: K zet TPR op klasse 0xe, waardoor AP3 0xd0/0xe8 niet aanneemt.
+
+**Bewijs:** zie `docs/verification/k06-f16f17-sched/`: native QEMU/TCG 25/25 SMP-gevallen over 20
+profielen op één bron (`SMP:WAKE:PASS`/`SMP:KILL:PASS` voor 2/4/8/8 CPU's,
+`SMP:SCHED:DOUBLE_ENQUEUE`, `SMP:KILL:TIMEOUT:APIC=3`); M2/M3, rtc, K05 en K07 ongewijzigd groen.
+Geen CI of hardware.
+
+**Buiten scope:** de echte M3-IPC-wachtrijen (stap 08), migratie (09), het INV-5-beleid met
+vastgehouden locks (05), K05-cleanup en procesbrede shootdown na DEAD (07).
+
+## ADR-077 — Lockdep met handlercontext en lockparen per niveau (K06, auditbevindingen F3/F4)
+
+6 november 2026; aanvulling op ADR-074, effect alleen in `native-smp` (M3 bouwt de lockcode mee
+met diepte 0). Taakspec: `docs/implementation/k06-steps/02-F3-F4-lockdep-context.md`.
+**Probleem:** F3: dat handlers nooit `KERNEL`/`ASPACE` nemen, stond alleen in commentaar. Een
+handler die ze toch nam op een CPU zonder locks slaagde in lockdep en opende het
+`sti; pause; cli`-venster binnen de handler (geneste interrupts op dezelfde stack). F4: lockdep
+had één bit per niveau, dus een IPC-kopie tussen twee adresruimten (twee `ASPACE`) of een
+migratie (twee `RUNQ`) gaf een valse `SMP:LOCKDEP:ORDER`.
+
+**Besluit (normatief):**
+- **LD-1 Context.** `CpuLocal.irq_depth` telt de geneste IDT-entries van deze CPU. Elke GS-stub
+  (0xf0, 0xe0, en 0xd0/0xe8 in het gedeelde timerlichaam) doet `inc gs:[irq_depth]` direct na
+  `gs_entry!` en `dec` direct vóór `gs_exit!`. Na een threadwissel hoort elke exit nog steeds bij
+  één entry op dezelfde CPU. NMI/#DF/#MC (geen GS, GS-6) en de terminale exceptiestub tellen
+  niet mee; zij keren niet terug en nemen geen locks. `lock_irqsave` op niveau ≤ `ASPACE` met
+  diepte > 0 geeft `SMP:LOCKDEP:IN_HANDLER:<niveau>` en stopt, vóór lockdep en vóór het spinnen.
+- **LD-2.** Het venster opent alleen bij diepte 0 (naast de bestaande voorwaarden uit 5b).
+- **LD-3 Paren.** Twee locks van één niveau alleen via `IrqLock::lock_pair(a, b)`. Die neemt ze
+  op oplopende sleutel, ongeacht de argumentvolgorde. De sleutel ligt vast bij de constructie
+  (`IrqLock::keyed`): pid voor `ASPACE`, CPU-index (AP-slot + 1) voor `RUNQ`. `Lockdep` houdt per
+  niveau een teller (0/1/2, als bits in `held` en `pairs`) en de genomen sleutels bij. Een
+  tweede acquire op een vastgehouden niveau via `acquire` (dus buiten `lock_pair`), een derde
+  lock, of een tweede helft met een lagere of gelijke sleutel geeft `SMP:LOCKDEP:ORDER`. Dezelfde
+  lock twee keer, gelijke sleutels of verschillende niveaus stoppen ook met die marker (geen
+  zelf-deadlock).
+- **LD-4 LIFO blijft.** `release(level, key)` eist het hoogste niveau én de laatst genomen
+  sleutel; van een paar gaat de tweede eerst. Het vrijgeven van een niet-vastgehouden lock is
+  een kernelbug (panic).
+- **Interface.** `Lockdep::acquire(level, key)`, `acquire_paired(level, key)` (alleen de tweede
+  helft van `lock_pair`; de spec noemt "buiten `lock_pair`", dus lockdep moet dat onderscheiden),
+  `release(level, key)`, `held_mask()`. `from_bits`/`bits` vervallen. De volledige staat staat per
+  CPU in `lock::LockdepCell` (alleen deze CPU, IF=0); het bestaande `AtomicU64` blijft als spiegel
+  van `held_mask` voor `kernel_held()`, de preempt-uitstelcontrole en de BSP-controles.
+  `lock_pair` geeft `(lage sleutel, hoge sleutel)`; met `let (low, high) = …` valt `high` eerst.
+  Wie het tupel als geheel dropt, geeft `low` eerst vrij en stopt met de LIFO-marker.
+
+**Bewijs:** zie `docs/verification/k06-f3f4-lockdep/`.
+
+**Buiten scope:** meer dan twee locks van één niveau, een runtime-eigenaar per lock (stap 05),
+het SERIAL-niveau 70 (past nog niet in het 64-bitsmasker; stap 03), een loom-model van
+`TicketLock` (F-T1; nieuwe dependency eerst toetsen, zie het bewijs).
+
+**Bewijs (samengevat):** native QEMU/TCG 24/24 SMP-gevallen over 19 profielen op één bron, met
+`SMP:LOCKPAIR:PASS:CPUS=1/2/4/8/8`, `SMP:LOCKDEP:IN_HANDLER:10` en `SMP:LOCKDEP:ORDER:20->20`;
+M2/M3, rtc, K05 en K07 ongewijzigd groen; propertytest tegen een referentiemodel. Geen CI of
+hardware.
+
+## ADR-076 — `swapgs`-discipline voor het per-CPU-GS-anker (K06, auditbevinding F8)
+
+6 november 2026; geldt voor alle profielen, met effect alleen in `native-smp`. ADR-075 blijft
+gereserveerd voor 5b-2. **Probleem:** het per-CPU-anker (`CpuLocal`) staat in
+`IA32_GS_BASE`, maar de IDT-stubs 0xf0, 0xe0 en 0xe8 volgden `gs:[0]` zonder `swapgs`. Ring 3
+kan GS_BASE zonder rechten op 0 zetten (`mov gs, 0x1b`; de DPL3-datadescriptor heeft base 0),
+waarna elke IPI een pointer uit gebruikersgeheugen volgt en daar locked naartoe schrijft (SMEP
+en SMAP staan uit). Dat blokkeert ring 3 op AP's (5d-2).
+
+**Besluit (normatief: GS-1..GS-10 in `docs/implementation/K06-SMP.md` INV-8):**
+- In CPL0 staat het anker van deze CPU in GS_BASE en de gebruikerswaarde in KERNEL_GS_BASE; in
+  CPL3 is het andersom. Bij entry volgt `swapgs` alleen als CS in het hardwareframe van díe entry
+  RPL3 heeft. Bij exit geldt hetzelfde voor het frame dat `iretq` herstelt (na een wissel
+  eventueel van een andere thread). Er wordt geen eerdere beslissing onthouden.
+- Eén definitie: `arch::gs_entry!` (`test; jz; swapgs; lfence` als eerste instructies, vóór
+  elke push of `gs:`-operand) en `arch::gs_exit!` (`test; jz; swapgs` direct vóór een gelabelde
+  `iretq`, met IF=0). 0xe8 springt na zijn eigen proloog naar het timerlichaam: één `swapgs` per
+  entry.
+- Exceptions: dezelfde proloog in `m2_exception_common`. Een `iretq` naar CPL3 die faalt
+  (#GP/#SS/#NP) meldt CS=8 terwijl de user-GS al geladen is. Een frame-RIP gelijk aan een
+  `nos_iret_user_*`-label swapt daarom ook, en het pad blijft terminaal. NMI, #DF en #MC lopen
+  via `m2_exception_paranoid`: nooit `swapgs` of GS, terminaal. Het IST-stackadres
+  identificeert de AP. M3 stuurt #MC nu ook naar `m3_terminal`.
+- Voorwaarde: CR4.FSGSBASE=0 en EFER.SCE=0, anders `SMP:GS:PRECONDITION` en stop. FSGSBASE,
+  `syscall`/`sysret`, user-TLS via GS en NMI's die terugkeren vergen elk een nieuw ADR.
+
+**Bewijs:** rood eerst. Commit `c2f1bed0` (fixture op de oude stubs) geeft
+`SMP:GS:HIJACK` en `M2:FAIL:KERNEL_EXCEPTION`. Daarna, op de fix, N1 `SMP:GS:PASS:CPUS=4`, N2
+`SMP:GS:IRET_FIXUP:PASS` en N3 `SMP:FAULT:AP_NMI_IST:PASS` (QEMU-TCG, 4 vCPU's). Een mutant
+zonder de GS-7-labelvergelijking laat N2 falen. De statische lint `tools/tests/test_gs_discipline.py`
+is het enige bewijs voor de `lfence` (TCG modelleert geen speculatie) en keurt de oude stubs af.
+Zie `docs/verification/k06-f8-swapgs/`.
+
+**Afwijkingen van de taakspec:** VA 0 is in de fixture niet als user-pagina gemapt, omdat die
+in de gedeelde kernel-PD valt. Het rode bewijs is daarom de supervisor-#PF op cr2<4096, niet een
+schrijfactie in een schildwachtpagina. N2 gebruikt SS=0x13 in plaats van een niet-canonieke RIP:
+QEMU-TCG controleert die RIP bij `iretq` niet (de #GP kwam vanuit CPL3). Op echte hardware is dat
+niet getest. De GS-10-check draait op de BSP; AP's nemen exact diens CR4/EFER over of worden als
+MISMATCH geweigerd.
+
+**Open:** SMEP/SMAP (aparte hardening), het selectorlek tussen processen op één CPU (vóór 5d-2),
+#MC op een eigen IST-stack, AMD-null-selectorgedrag (niet testbaar onder TCG) en hardwarebewijs.
+AI-review is geen menselijke audit (B05).
+
+## ADR-075 — Eén KERNEL-lock om de M3-entry en een scratchslot per CPU (K06 stap 5b-2; herziening ADR-024)
+
+6 november 2026. **Probleem:** ring 3 op AP's (5d-2) betekent dat twee CPU's tegelijk een
+syscall of fault kunnen afhandelen. De M3-staat (`STATE`), de frame-allocator, paging, IPC-wachtrijen,
+quota en de supervisor zijn tot nu toe alleen beschermd door "één CPU, IF=0". Het ene globale
+scratchslot uit ADR-024 laat twee CPU's elkaars frame nullen of lezen: een lek of corruptie tussen
+processen (INV-2). Deze stap maakt de kernel SMP-veilig **zonder** het één-CPU-gedrag te
+veranderen. M3 blijft uitgesloten van `native-smp` tot 5d-2.
+
+**Besluit (normatief: K-1..K-5 in `docs/implementation/k06-steps/01-5b-2-kernel-lock-scratch.md`):**
+- **K-1 Eén kernelsectie.** `lock::KERNEL: IrqLock<()>` (niveau 10) beschermt elke mutatie van
+  `STATE`, de frame-allocator, paging, IPC-wachtrijen, quota en de supervisor. `m3_event` neemt
+  de lock direct na de entry-stub en geeft hem pas vrij vlak vóór de terugkeer naar de stub.
+  Vóór de lock leest `m3_event` alleen het CS van zijn eigen onderbroken frame. Zo houdt een
+  kernel-exception binnen een vastgehouden sectie de marker `M3:FAIL:KERNEL_EXCEPTION` en gaat
+  hij niet als lockdep-fout eindigen. `m3::start` neemt de lock vóór de opbouw van `STATE`.
+  `lock::kernel_held()` (het lockdep-bit van deze CPU) wordt in `select`/`cleanup`
+  gecontroleerd met een `debug_assert`, en in de native fixture met een `assert`.
+- **INV-7 en de sprong naar ring 3.** `complete_round` en `m3::start` hervatten user-mode met
+  `jmp m3_restore` vanuit een diepe aanroep, zonder de stack van `m3_event` af te wikkelen. Een
+  lokale guard zou daar nooit vallen: KERNEL bleef dan bezet en het volgende event liep vast. De
+  guard staat daarom in één slot (`KERNEL_GUARD`) dat alleen de houder aanraakt, dus de lock zelf
+  maakt de toegang exclusief. `kernel_leave()` zit vóór elke `return` naar de stub en in
+  `resume()`, de enige weg naar `m3_restore` vanuit Rust. Geen lock gaat over een wissel.
+- **Eén-CPU-profielen.** `lock.rs` compileert nu ook voor M3, met één lockdep-woord en zonder
+  GS-anker. Op één CPU neemt de lock altijd direct, zonder wachter en zonder IF-venster (K-3).
+  Idle met `sti; hlt` blijft binnen de sectie: de IRQ0-idleroute raakt alleen ruwe tellers. Op
+  SMP moet idle de sectie verlaten (5c-2/5d-2).
+- **K-4.** SAFETY-teksten in `m3.rs` en `m3/*.rs` noemen "KERNEL held" als grond, niet langer
+  "single CPU".
+
+**Herziening ADR-024 (K06-SMP §5, punt 1–7):**
+1. Mappingarena ongewijzigd, 2048 mappings per proces, statisch. Toegang onder `KERNEL`;
+   `ASPACE[pid]` volgt wanneer er fijnmazige locks komen.
+2. **Scratchslot per CPU (K-2).** CPU *i* gebruikt alleen VA `SCRATCH + i·4096` (`SCRATCH =
+   0x3fff0000`, 8 slots, supervisor RW/NX of RO/NX). Alle slots delen de PT van `FIRMWARE_SCRATCH`
+   (compile-time assert), dus één CPU houdt hetzelfde aantal tabellen. Het adres bestaat alleen
+   via `paging::scratch_slot()`, met index `smp::cpu_index()` (BSP 0, AP slot+1, via het
+   GS-anker) of altijd 0 zonder `native-smp`. Invalidatie blijft lokaal (`invlpg`). Een bezette
+   slot-PTE stopt: `SMP:SCRATCH:CROSS` op SMP, anders een panic.
+   *Restrisico:* een speculatief gecachete vreemde slot-entry wordt architecturaal nooit gebruikt,
+   maar speculatieve side-channels daarop vallen buiten dit model.
+3. De weigering van een executable alias en de RO/NX-helper blijven ongewijzigd.
+4. Er komt nog steeds geen identity-map van vrij RAM of MMIO.
+5. ASID blijft een interne teller en PCID blijft uit.
+6. Een wijziging in de gedeelde kernelhelft, behalve het eigen scratchslot, vereist een
+   shootdown naar alle online CPU's (ADR-072).
+7. **Herzien bij:** PCID, fijnmazige subsysteemlocks, idle buiten de sectie (5c-2), M3 op AP's
+   (5d-2), DMA/IOMMU of een nieuwe mapping-API. De grote lock begrenst de parallelle
+   syscall-doorvoer (R02-risico, geen K06-eis).
+
+**Gevolg voor `native-smp`:** de BSP roept `begin_scratch` aan in `smp::start`, direct na zijn
+GS-anker en vóór de eerste AP. Daarna leest en schrijft hij paging via zijn eigen slot.
+`Paging::audit` slaat alleen het actieve slot van de lezende CPU over: de walk zelf mapt de
+gelezen tabel daar. Elk ander slot moet leeg zijn. AP's mappen een tijdelijke pagina alleen in
+hun eigen slot; allocator- en paginatabelwijzigingen blijven BSP-only (ADR-070).
+
+**Bewijs:** native fixture na `SMP:SCHED:PASS`, vóór `SMP:GS:*` en `SMP:PARKED`. Elke CPU
+nult, vult (`0xa5 ^ index`) en controleert 1024 keer zijn eigen frame via zijn eigen slot,
+tegelijk met de andere CPU's. Daarna neemt elke CPU 1000 keer `KERNEL` en verhoogt een teller
+met een losse load en store. De eis is: alle patronen intact, teller = 1000 × CPU's, lockdep
+leeg → `SMP:SCRATCH:PASS:CPUS=n`. Het controleprofiel `test-smp-shared-scratch` (alle CPU's in
+slot 0, 4 vCPU's) moet `SMP:SCRATCH:CROSS:CPU=<n>` geven en exit 0x10. Die marker meldt zowel
+een bezette slot-PTE als een vreemd patroon. Native resultaten en commando's staan in
+`docs/PROJECT-STATE.md`.
+
+**Afwijkingen van de taakspec:** de deadline van 500 ms begint pas nadat de BSP zijn eigen deel
+heeft afgerond; de M2-PIT-helpers meten geen totale looptijd. De guard staat in een slot in
+plaats van in `let _k`, om de reden hierboven. De SCRATCH-VA verschuift van `0x3fffe000` naar
+`0x3fff0000`; de tabel is dezelfde. De fixtureframes worden na de proef vrijgegeven: elke CPU
+heeft zijn slot-PTE zelf gewist en geïnvalideerd, en geen CPU raakt een vreemd slot-VA aan.
+
+**Open:** KERNEL op het M3-pad op AP's en idle buiten de sectie (5c-2/5d-2), fijnmazige locks,
+hardwarebewijs. QEMU-TCG modelleert geen speculatie. AI-review is geen menselijke audit (B05).
+
 ## ADR-074 — Ticketlock, irqsave en lockdep per CPU (K06 stap 5a)
 
 6 november 2026; alleen in `native-smp`. Dit is de eerste stap naar een
@@ -1088,7 +1445,7 @@ ID, datum, status, context, alternatieven, besluit, onderbouwing/bronnen, gevolg
 
 **ADR-023 — Alleen WB-capabele normale ConventionalMemory, cachebits gecombineerd.** De eerste M2-run faalde vóór KS-02 doordat OVMF `0x0f` meldt en de allocator uitsluitend exact WB accepteerde. UEFI-attributen beschrijven mogelijkheden; UC/WC/WT/WB mogen samen voorkomen. De allocator vereist WB, staat uitsluitend deze vier cachebits toe en weigert overige/bijzondere attributen. Bron: TianoCore/EDK II, `edk2-stable202508`, [UefiSpec.h, EFI_MEMORY_DESCRIPTOR en cachebits](https://github.com/tianocore/edk2/blob/edk2-stable202508/MdePkg/Include/Uefi/UefiSpec.h), gecontroleerd 27 oktober 2026. De huidige package is daarmee niet als exact die firmwareversie geïdentificeerd. Regressie test zowel `0x0f` als geweigerde special/unknown-bits; echte M2-poort slaagt. Andere platformprofielen vereisen opnieuw beoordeling van geheugenattributen; geen stil reclaim van Loader/BootServices/runtime/ACPI-geheugen.
 
-**ADR-024 — Statische2048-mappingarena en één tijdelijk scratchslot.** Iedere procescontext heeft de contractcapaciteit2048 mappings; grote metadata staat statisch buiten de16KiB-kernelstack. PID is monotoneu64; interne ASID is afzonderlijk begrensd. Allocatorzeroing/tabeltoegang gebruikt een tijdelijk supervisor/NX-slot, met invalidatie vóór gebruik en na clear. Een writable scratchalias naar een executable fysiek frame wordt geweigerd; readonly input heeft een aparte RO/NX-helper. Geen willekeurige identitymap van vrije RAM/gaten/MMIO. Bewijs: kernelbron ed09818, volle M2/M3-gate, echte67-userpage/BSS-zero-regressie en per-processcleanupbalans. Herzie bij SMP/DMA/nieuwe mapping-API; de serialisatie geldt alleen in het huidige één-CPU/één-threadprofiel. Herstel via een consistente eerdere bronversie in een afzonderlijke checkout, zonder huidige wijzigingen te wissen.
+**ADR-024 — Statische2048-mappingarena en één tijdelijk scratchslot.** Iedere procescontext heeft de contractcapaciteit2048 mappings; grote metadata staat statisch buiten de16KiB-kernelstack. PID is monotoneu64; interne ASID is afzonderlijk begrensd. Allocatorzeroing/tabeltoegang gebruikt een tijdelijk supervisor/NX-slot, met invalidatie vóór gebruik en na clear. Een writable scratchalias naar een executable fysiek frame wordt geweigerd; readonly input heeft een aparte RO/NX-helper. Geen willekeurige identitymap van vrije RAM/gaten/MMIO. Bewijs: kernelbron ed09818, volle M2/M3-gate, echte67-userpage/BSS-zero-regressie en per-processcleanupbalans. Herzie bij SMP/DMA/nieuwe mapping-API; de serialisatie geldt alleen in het huidige één-CPU/één-threadprofiel. **Herzien door ADR-075** (KERNEL-lock en scratchslot per CPU). Herstel via een consistente eerdere bronversie in een afzonderlijke checkout, zonder huidige wijzigingen te wissen.
 
 **ADR-025 — Safe vaste capability-engine met afzonderlijke usercopygrens.** `capability-core` is eigen dependencyvrije no_std-code zonder unsafe/heap; de kernel bewaakt userpointers, syscallvolgorde en320-byte-kopieën. Engine-receive commit pas na volledige outputvalidatie, daarna volgt de in dit profiel onfeilbare bytecopy. Rootautoriteit komt uitsluitend uit het statische testmanifest, niet uit een algemene userspace-objectlookup. Revoke trekt afstammelingen in; exit ook eigen/issued autoriteit. Gesloten objecttombstones blijven bestaan tot laatste ref. Hosttests vergelijken de volledige Engine-toestand; kernelchecksums zijn diagnostiek. Bewijs:21coretests,alle acht echte M4-cases en onafhankelijke gerichte review. Herzie vóór threads/sharedmemory/DMA/dynamische applicatie- of objecttypen; geen extrapolatie naar zulke garanties. Geen boot-ABI-wijziging of hostconfigmigratie.
 

@@ -44,7 +44,7 @@ static mut EVIDENCE: Evidence = Evidence {
     app_exit_tick: 0,
 };
 fn evidence() -> &'static mut Evidence {
-    // SAFETY: One CPU, IF=0; callbacks are sequential, with no arena borrow
+    // SAFETY: KERNEL held, IF=0; callbacks are sequential, with no arena borrow
     // retained across a syscall, scheduling boundary or second accessor call.
     unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
 }

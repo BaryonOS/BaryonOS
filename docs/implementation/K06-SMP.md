@@ -74,6 +74,32 @@ Elke invariant heeft een weerlegging; de weerlegging wordt een negatieve test (�
 - **INV-7 Geen lock over een contextwissel.** Bij een wissel houdt een CPU geen lock vast,
   behalve de runqueue-overdracht uit §6.3. Er is geen lock die een thread kan vasthouden
   terwijl hij geparkeerd is.
+- **INV-8 GS-discipline (ADR-076, auditbevinding F8).** Elke kernelentry vanuit CPL3 gebruikt
+  het GS-anker pas na `swapgs` en `lfence`; ring 3 kan GS_BASE nooit in kernelcontext brengen.
+  - GS-1: tussen proloog en epiloog bevat GS_BASE het anker van deze CPU en KERNEL_GS_BASE de
+    gebruikerswaarde; in CPL3 andersom.
+  - GS-2: `swapgs` alleen als `CS & 3 == 3` in het frame van díe entry, of van het frame dat
+    `iretq` herstelt.
+  - GS-3: hoogstens één entry-`swapgs`.
+  - GS-4: geen `gs:`, `call` of Rust vóór de proloog.
+  - GS-5: `lfence` op het join-punt.
+  - GS-6: NMI/#DF/#MC nooit `swapgs` of GS; terminaal, de CPU volgt uit het IST-adres.
+  - GS-7: een frame-RIP op een `nos_iret_user_*`-label (een faulting `iretq`) swapt ook.
+  - GS-8: IF=0 van de exit-`swapgs` tot `iretq`.
+  - GS-9: geen `mov gs` of GS-MSR-schrijfactie na de init.
+  - GS-10: CR4.FSGSBASE=0 en EFER.SCE=0.
+
+  *Weerlegd als* een IPI, tick of exception vanuit CPL3 met een door ring 3 gekozen GS_BASE
+  ergens anders telt of schrijft dan in het eigen `CpuLocal` (§9 test 15–17).
+
+  **Current evidence boundary:** N1–N3 previously exercised user-entry
+  behavior, the GS-7 `iretq` fixup, and NMI via IST. The current patch
+  strengthens N1/N3: the AP's user descriptor has a nonzero GS base and the
+  BSP waits for an observed timer frame after `mov gs`, checking that base
+  before sending IPIs and shootdowns. The strengthened behavior requires new
+  native CI evidence and is not yet accepted. GS-4, GS-5, GS-8 and GS-9 have
+  static lint coverage only. No native negative GS-10 precondition profile
+  or CPL3 #DF/#MC test has been executed.
 
 ---
 
@@ -93,7 +119,11 @@ bringup doen.
 4. **Nieuw:** LAPIC-timer op de BSP met dezelfde vector 0xd0 en dezelfde deler als de AP's.
    De PIT-IRQ0 blijft **alleen op de BSP** de bron van de monotone klok (ADR-045 Sys3,
    ADR-053). De LAPIC-timer levert alleen preëmptieticks en wordt niet als klok gebruikt.
-   [te verifiëren: de huidige IRQ0-route (8259 of IOAPIC) en of die gemaskeerd naar AP's blijft]
+   **Geverifieerd en gebouwd (stap 5c-2, ADR-080):** `native-smp` sluit M3 uit, dus daar bestond
+   geen PIC-programmering of Sys3. `bsp_timer_init` remapt de 8259 naar 0x20/0x28 (alleen IRQ0
+   open), zet PIT-kanaal 0 op ~1 kHz en levert via LINT0 (ExtINT) alleen aan de BSP; AP's maskeren
+   LINT0. De IOAPIC wordt niet gebruikt. Daarbij: kalibratie LAPIC/PIT (`SMP:TIMER:RATIO`, band in
+   ADR-080), `irq_ready` op de BSP en de idle-context (`idle_halt`).
 5. Daarna pas de M3-init (procestabel, manifest, eerste processen) **onder de kernellock** (§4).
 6. BSP zet IF=1 alleen in user mode en in de idle-lus (`sti; hlt; cli`, het bestaande
    ADR-053-patroon). Kernelcode draait verder met IF=0, behalve waar §4.3 dat toestaat.
@@ -109,7 +139,8 @@ bringup doen.
 
 | Vector | Doel | Ontvanger |
 |---|---|---|
-| 0x20 (of de bestaande IRQ0-vector) [te verifiëren] | PIT, monotone klok | alleen BSP |
+| 0x20 | PIT-IRQ0 via de 8259 (ExtINT op LINT0), monotone klok (ADR-080) | alleen BSP |
+| 0x27 | spurious IRQ7 van de 8259 | alleen BSP |
 | 0xd0 | LAPIC-timer, preëmptie | alle CPU's |
 | 0xe0 | TLB-shootdown | doel-CPU's uit `active_cpus` of alle online |
 | 0xe8 | **nieuw:** reschedule/kill-IPI | één doel-CPU |
@@ -199,7 +230,7 @@ omgekeerde volgorde en moet die marker geven (§9).
 
 ---
 
-## 5. Herziening ADR-024 (voorgesteld als ADR-074)
+## 5. Herziening ADR-024 (vastgelegd als ADR-075, stap 5b-2)
 
 ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
 
@@ -229,9 +260,12 @@ ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
 
 - `PerCpu { index, apic_id, runq: RUNQ lock<FixedQueue<Tid, N>>, current: Option<Tid>,
   idle_tid, scratch_va, tss, lockdep, need_resched: AtomicBool, timer_ticks: AtomicU64 }`
-  via het GS-anker.
-- `Thread { tid, pid, state: AtomicU8 {READY, RUNNING(cpu), BLOCKED, DEAD}, home_cpu,
-  kstack, fxsave: [u8; 512] align 16, gpr_frame }`.
+  via het GS-anker. De idle-thread is de thuislus van de CPU (`sti; hlt; cli`, stap 6.3.9;
+  in de fixture `CpuLocal.saved[0]`); hij staat nooit in een queue (BW-4, ADR-078).
+- `Thread { tid, pid, state: AtomicU32 {READY, RUNNING(cpu), BLOCKING, READY_PENDING, BLOCKED,
+  DEAD_PENDING, DEAD}, queued: AtomicBool, home_cpu, kstack, fxsave: [u8; 512] align 16,
+  gpr_frame }`. Overgangen alleen via `smp_lock::sched` (één atomaire stap per functie,
+  ADR-078); `queued` wordt gezet door `RunQueue::push` en gewist door `pop` (BW-2).
   [te verifiëren: hoe de huidige M3-procesentry thread en proces combineert; dit wordt
   één thread per proces zolang M3 geen threads heeft]
 - `Process.active_cpus: AtomicU64` (bit per CPU-index; `MAX_CPUS = 8` past ruim).
@@ -255,9 +289,13 @@ ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
 2. `held_mask` moet leeg zijn (lockdep).
 3. FXSAVE van de huidige thread `T` naar `T.fxsave` (ADR-045: na de laatste Rust-code van de
    oude context, vóór de CR3-selectie).
-4. `lock_irqsave(RUNQ[c])`; `T.state`: RUNNING(c) → READY (in de queue) of BLOCKED/DEAD
-   (niet in de queue). Kies de volgende `U` (round-robin); `U.state` READY → RUNNING(c)
-   met `compare_exchange` (INV-3; mislukt het, dan volgt `SMP:SCHED:DOUBLE_RUN` en stop).
+4. `lock_irqsave(RUNQ[c])`; `T.state`: RUNNING(c) → READY (in de queue), BLOCKING → BLOCKED
+   (niet in de queue), READY_PENDING → READY (in de queue) of DEAD_PENDING (terug in de queue,
+   om bij een latere wissel te worden opgeruimd; §6.4). Kies de volgende `U` (round-robin);
+   `U.state` READY → RUNNING(c) met `compare_exchange` (INV-3; mislukt het, dan volgt
+   `SMP:SCHED:DOUBLE_RUN` en stop). Een gepopte DEAD_PENDING-thread wordt DEAD zodra geen CPU
+   meer op zijn stack staat, anders weer in de queue. Een tweede push van een thread die al in
+   een queue staat geeft `SMP:SCHED:DOUBLE_ENQUEUE` en stop (BW-2).
 5. **Adresruimtewissel:** als `U.pid != T.pid`:
    a. `U.process.active_cpus.fetch_or(1<<c, SeqCst)` **vóór** de CR3-load;
    b. `mov cr3, U.process.cr3`;
@@ -273,20 +311,34 @@ ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
 
 ### 6.4 Wekken en kill over CPU's heen
 
+- **Blokkeren in twee fasen (BW-1, ADR-078).** De thread zelf: `block_prepare`
+  (RUNNING(c) → BLOCKING) vóórdat of terwijl hij zijn wachtvoorwaarde controleert onder de lock
+  van de waker; daarna de lock los (INV-7) en een wissel vragen (tick of eigen 0xe8). De wissel
+  doet `block_commit`: BLOCKING → BLOCKED, of READY_PENDING → READY als er intussen gewekt is.
+  Een voorwaarde die na `block_prepare` al waar blijkt, regelt de thread met `wake` op zichzelf.
 - Een thread op CPU *d* wekken vanaf CPU *c* (bijvoorbeeld IPC-antwoord, ADR-053):
-  onder `KERNEL` → `lock_irqsave(RUNQ[d])` → BLOCKED→READY, enqueue → unlock → als *d* ≠ *c*,
-  een 0xe8-IPI naar *d*. De IPI is een hint: *d* controleert zijn queue altijd zelf.
-- Kill van een thread die op *d* RUNNING is: markeer `DEAD_PENDING`, stuur 0xe8 en wacht
-  begrensd (deadline gelijk aan de shootdown-deadline) tot *d* `state = DEAD` publiceert
-  bij zijn eerstvolgende wissel. Pas daarna volgt de bestaande `cleanup` (K05) en de
-  adresruimte-shootdown (§7.2). Geen ack binnen de deadline → INV-5.
+  onder `KERNEL` → `lock_irqsave(RUNQ[d])` → `wake`: BLOCKED→READY en enqueue, of
+  BLOCKING→READY_PENDING (geen enqueue; de wissel van *d* zet hem terug) → unlock → als hij
+  in een queue is gezet en *d* ≠ *c*, een 0xe8-IPI naar *d*. De IPI is een hint: *d*
+  controleert zijn queue altijd zelf. Een `wake` op een thread die nog RUNNING is, doet niets:
+  die controleert zijn voorwaarde na `block_prepare`.
+- Kill (BW-3): `kill_request` zet elke levende toestand op `DEAD_PENDING`; was hij BLOCKED,
+  dan zet de killer hem in de queue van *d*. Stuur 0xe8 en wacht begrensd
+  (`SHOOTDOWN_DEADLINE_MS`, gelijk aan de shootdown-deadline) op `DEAD`. *d* zet een stervende
+  huidige thread bij de wissel terug in zijn queue; de eerstvolgende wissel die hem popt,
+  publiceert `DEAD` met `kill_commit`, en alleen als de stub `on_cpu` al heeft gewist (F1).
+  Pas daarna volgt de bestaande `cleanup` (K05) en de adresruimte-shootdown (§7.2). Geen
+  `DEAD` binnen de deadline → INV-5 (tot stap 05: `SMP:KILL:TIMEOUT:APIC=<n>` en quarantaine).
 
 ### 6.5 Preëmptie
 
-LAPIC-timer 0xd0 op elke CPU, periodiek, dezelfde deler als ADR-073. De handler doet alleen:
-`timer_ticks += 1`; bij elk *k*-de tick `need_resched = true`; EOI. Kalibratie tegen de PIT is
-**niet** nodig voor K06 (de klok komt uit de PIT), maar het aantal ticks per PIT-tick wordt
-in de gate gelogd. [ongekalibreerd, zie ADR-073 "Open"]
+LAPIC-timer 0xd0 op elke CPU, BSP inbegrepen (stap 5c-2), periodiek, dezelfde deler als
+ADR-073. Gebouwd (ADR-080, BT-4): 0xd0 telt `tick_count` en is een switchpunt; 0xe8 telt apart
+`resched_count` (geen tick meer, F11) en zet `need_resched`. Een door INV-5c uitgestelde 0xe8
+blijft als vlag staan tot het volgende switchpunt: de release van de laatste lock terug naar IF=1
+(self-0xe8), idle of een latere entry met lege lockdep. Kalibratie tegen de PIT is **niet** nodig
+voor K06 (de klok komt uit de PIT); het aantal LAPIC-ticks per PIT-tick wordt bij de boot gemeten,
+gelogd (`SMP:TIMER:RATIO`) en door de gate tegen een vooraf vastgelegde band getoetst.
 
 ---
 
@@ -345,10 +397,11 @@ onbereikbaar, maar het contract geldt vooruit.
 |---|---|---|---|
 | 5a | Ticketlock + irqsave + lockdep + per-CPU-blok voor de BSP | `kernel/src/m2/smp.rs` of een nieuw `kernel/src/m2/lock.rs` [te verifiëren: moduleconventie] | hosttests van de lock (loom/stress op de host), native lockdep-negatief |
 | 5b | Gecontroleerd spinnen met IF=1 op `KERNEL`/`ASPACE` (§4.3, aanvulling ADR-074); alleen AP's | `crates/smp-lock`, `kernel/src/m2/lock.rs`, `smp.rs`-fixture | `SMP:SPIN:PASS`; controle `test-smp-spin-irq-off` → `SMP:SPIN:SHOOTDOWN_TIMEOUT` + quarantaine |
-| 5b-2 | `KERNEL`-lock om alle M3-syscalls; scratchslot per CPU; ADR-075 | M3-entrypoint, paging-scratchcode, `docs/DECISIONS.md` | volle `milestone-m2`- en M3-regressie op 1 CPU, ongewijzigd |
+| 5b-2 | `KERNEL`-lock om alle M3-syscalls; scratchslot per CPU; ADR-075 (gerealiseerd) | `lock.rs`, `m3.rs`, `paging.rs`, `smp.rs`-fixture, `docs/DECISIONS.md` | `SMP:SCRATCH:PASS:CPUS=n`; controle `test-smp-shared-scratch` → `SMP:SCRATCH:CROSS:CPU=n`; volle `milestone-m2`- en M3-regressie op 1 CPU, ongewijzigd |
 | 5c | Preëmptie uitgesteld zolang lockdep niet leeg is (vastgehouden of bewaakte lock); `HELD_ACROSS_SWITCH` bij schending (aanvulling ADR-074) | `smp.rs` | lockfixture in `SMP:PREEMPT:PASS`; `test-smp-held-across-switch` → marker |
 | 5c-2 | BSP LAPIC-timer + idle met `sti; hlt`; PIT blijft de klok | `smp.rs`, idle-lus | `native-rtc` 5/5, monotone-klokcheck, BSP-preëmptiecanary |
-| 5d(-1) | Runqueues per AP, threadstatus-CAS (INV-3), 0xe8-wekken, CR3-wissel §6.3 met `active_cpus` (INV-4), met kernelthreads in twee adresruimten (aanvulling ADR-074) | `crates/smp-lock` (`sched`), `smp.rs` | `SMP:SCHED:PASS:CPUS=n`; `test-smp-double-run` → `SMP:SCHED:DOUBLE_RUN` |
+| 5d(-1) | Runqueues per AP, threadstatus-CAS (INV-3), 0xe8-wekken, CR3-wissel §6.3 met `active_cpus` (INV-4), met kernelthreads in twee adresruimten (aanvulling ADR-074) | `crates/smp-lock` (`sched`), `smp.rs` | `SMP:SCHED:PASS:CPUS=n`; `test-smp-double-run` → `SMP:SCHED:DOUBLE_ENQUEUE` |
+| F8 | `swapgs`-discipline in alle IDT-stubs (INV-8, ADR-076); ring-3-GS-fixture | `arch.rs`, `smp.rs`, `tools/tests/test_gs_discipline.py` | rood op de oude stubs; `SMP:GS:PASS`, `SMP:GS:IRET_FIXUP:PASS`, NMI vanuit CPL3; statische lint |
 | 5d-2 | Ring-3-processen op AP's met dezelfde kern (na 5b-2 en 5c-2; INV-2) | M3-scheduler, `smp.rs` | K05 6/6 op 4 vCPU's; `SMP:SCHED:CPUS=n` met user-werk op elke CPU |
 | 5e | Procesbrede shootdown §7.1/7.2 | paging/unmap, cleanup | dove-AP-negatief, controle zonder shootdown (moet stale-read tonen) |
 | 5f | Migratiefixture + concurrente stress + K06-acceptatie | testfixtures, `tools/run_smp.py`, `docs/verification/k06-smp-sched/` | §9 compleet; progress K06 → accepted |
@@ -386,12 +439,23 @@ Profielen: 1, 2, 4 en 8 vCPU's; zowel single- als multi-thread-TCG (`-accel tcg,
    alle AP's, threads naar de BSP, de boot gaat verder als één CPU.
 10. `test-smp-proc-no-shootdown` (controleprofiel): zonder shootdown leest P in test 3 het
     hergebruikte frame. Dat bewijst dat test 3 een echt gevaar meet (zelfde methode als ADR-072).
-11. `test-smp-double-run`: forceer dezelfde TID op twee runqueues → `SMP:SCHED:DOUBLE_RUN`.
+11. `test-smp-double-run`: forceer dezelfde TID op twee runqueues → `SMP:SCHED:DOUBLE_ENQUEUE`.
 12. `test-smp-resched-deaf`: AP negeert 0xe8 tijdens een kill → INV-5-pad.
 13. Canary-injectie (open punt uit ADR-073): corrumpeer bewust een bewaard register → de
     canary moet afgaan.
 14. `test-smp-spin-irq-off` (controleprofiel, stap 5b): wachten op `KERNEL` zonder IF-venster →
     de wachtende AP bevestigt de shootdown niet → `SMP:SPIN:SHOOTDOWN_TIMEOUT` en INIT voor alle AP's.
+15. `test-smp-gs-user` (F8, INV-8): ring 3 op elke AP laadt zelf GS (0x1b of null). 0xf0, 0xe0,
+    0xe8 en ticks vanuit CPL3 tellen in het eigen anker → `SMP:GS:PASS`. Op de oude stubs gaf
+    dit `SMP:GS:HIJACK` (rood bewijs).
+16. `test-smp-gs-iret-fault`: een `iretq` naar CPL3 faalt (SS 0x13) na de exit-`swapgs` → de
+    GS-7-fixup herstelt het anker → `SMP:GS:IRET_FIXUP:PASS`.
+17. `test-smp-gs-nmi-user`: een NMI naar een AP in CPL3 met gebruikers-GS → AP herkend via het
+    IST-adres, zonder GS → `SMP:FAULT:AP_NMI_IST:PASS`.
+
+18. `test-smp-shared-scratch` (controleprofiel, stap 5b-2): alle CPU's in scratchslot 0 →
+    `SMP:SCRATCH:CROSS:CPU=n` (bezette slot-PTE of vreemd patroon). Dat bewijst dat
+    `SMP:SCRATCH:PASS` een echt gevaar meet.
 
 **Regressie (ongewijzigd groen):** `milestone-m2` (TCG/1CPU), K05 6/6, `native-rtc` 5/5,
 alle stap-1–4-gevallen (14/14), host-tests `boot-protocol`, `tools/tests`, Clippy, fmt.

@@ -61,10 +61,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
-**Bron:** [`600cee93`](https://github.com/simonvanieperen/nieuw-os/commit/600cee9369bc0cfc2c7c0226902ed7fb24a3f090) ·
-**Ontwikkelbranch:** `fix/k06-f1-f2-lifo-oncpu`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06-auditfixes F1 (on_cpu-overdracht van de stack bij yield/dispatch) en F2 (LIFO-afdwinging in lockdep), aanvulling ADR-074.
-41/100 blijft 41/100. Twee Hoog-bevindingen uit de K06-audit zijn gerepareerd: F2 (lockdep eist een release in LIFO-volgorde, zodat IF niet te vroeg wordt hersteld) en F1 (een CPU geeft de stack van een thread pas vrij na mov rsp; de switch wacht nooit). Lokaal native QEMU 18/18 over 13 SMP-profielen, plus herhalingen; zie docs/verification/k06-audit-f1-f2/. K06 blijft open: F8 (per-CPU-anker of swapgs), 5b-2, 5c-2, 5d-2, 5e en 5f ontbreken.
+**Bron:** [`5020b904`](https://github.com/simonvanieperen/nieuw-os/commit/5020b904b99c7e8f4974fc52269bf30cc0806ba5) ·
+**Ontwikkelbranch:** `feat/k06-5c2-bsp-timer`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5c-2: BSP-timer, PIT-klok, idle en reschedule-vlag op de BSP (ADR-080).
+41/100 blijft 41/100. De BSP krijgt dezelfde timer-, idle- en spinvensterregels als een AP (ADR-080): native-smp programmeert zelf de 8259 en PIT-kanaal 0 (IRQ0 alleen naar de BSP, monotone klok), de BSP krijgt 0xd0 met INV-5c-uitstel, irq_ready opent het lockvenster ook op de BSP, idle_halt is de enige sti;hlt;cli, 0xe8 telt apart en zet need_resched (een uitgestelde 0xe8 wisselt bij de release van de laatste lock) en de LAPIC/PIT-ratio wordt gekalibreerd tegen een vooraf vastgelegde band. Lokaal native QEMU: 28/28 SMP-gevallen over 23 profielen met SMP:CLOCK, SMP:BSP_PREEMPT, SMP:BSP_SPIN en SMP:IDLE, de controle test-smp-bsp-spin-irq-off (SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0) en een rode mutant zonder release-hook; M2/M3, rtc 5/5 en K05 ongewijzigd groen. Zie docs/verification/k06-5c2-bsp-timer/. K06 blijft open: loom-model, 5e, 5d-2 en 5f ontbreken; ADOPTED wacht op een BSP-runqueue; geen CI- of hardwarebewijs.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

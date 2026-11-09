@@ -1,19 +1,191 @@
 # Actuele projectstatus
 
-## PR #229 integration checkpoint — 9 November 2026
+## NEXT AGENT HANDOFF — K06 stap 5c-2, BSP-timer, PIT-klok, idle en reschedule-vlag (ADR-080) — 6 november 2026
 
-**Source:** `feat/k06-5d-runqueues` at pre-checkpoint commit `27ceda10af0afa7aa36e87f52e7c8a50b6b934d4`, targeting `main`. The linked K06 dependencies are PR #227 (still open) and PR #228 (merged into the #227 feature branch, not `main`).
+**Bron:** `5020b904` op `feat/k06-5c2-bsp-timer` (worktree `nieuw-os-k06-5c2`), gestapeld op
+`feat/k06-5b2-kernel-lock` (`068fd857`, met F3/F4, F16/F17 en F19/F15). Taakspec:
+`docs/implementation/k06-steps/06-5c-2-bsp-timer-idle.md`; ontwerp ADR-080. **41 → 41/100**;
+K06 blijft open.
 
-**Completed in this checkpoint:** restored the four missing local CI composite-action files from current `main` without altering their pinned versions; added explicit OVMF firmware-path checks to `qemu-smoke`; repaired the broken audit-verification paragraph and removed generated review markers. The scheduler implementation was not changed by this checkpoint.
+**Vastgesteld:** `native-smp` sluit M3 uit, dus daar bestonden geen PIC-programmering en geen Sys3;
+de BSP draaide volledig met IF=0. De PIT-IRQ0-klok is daarom in `native-smp` zelf gebouwd.
 
-**Verification limit:** the exact files and commits were inspected on GitHub. No local `tools/preflight.py --strict`, `tools/build.py`, `tools/run.py --smoke`, SMP native profile, Cargo test, or CI gate was executed by this checkpoint; the available shell lacks the repository checkout, Rust toolchain and QEMU. No new security or OS acceptance is claimed. Progress remains **41/100**, with K06 open.
+**Gerealiseerd:** BT-1: `bsp_timer_init` (vóór `GO`) remapt de 8259 (alleen IRQ0 → 0x20), PIT-kanaal
+0 op ~1 kHz, IRQ0-stub telt `CLOCK_TICKS` en stopt bij een AP. BT-2: 0xd0 op de BSP (deler 16),
+INV-5c-uitstel en `bsp_switch`; `CpuLocal.irq_ready`; vensterpredicaat in `lock.rs`
+`level <= ASPACE && irq_depth == 0 && irq_ready`. BT-3: `idle_halt` (lege lockdep, kernel-CR3).
+BT-4 (F11): 0xe8 telt `resched_count` en zet `need_resched`, geen tick meer; een uitgestelde 0xe8
+wordt bij de release van de laatste lock een self-0xe8 (`resched_on_release`). BT-5 (F9):
+LAPIC/PIT- en TSC-kalibratie, `SMP:TIMER:RATIO`, band [50 000, 75 000] vooraf in ADR-080. BT-6:
+contract kernelthreads in ADR-080. Fixtures `SMP:CLOCK`, `SMP:BSP_PREEMPT`, `SMP:BSP_SPIN`,
+`SMP:IDLE:WAKE_US` + `SMP:IDLE` (na SPIN, vóór SCHED); controle `test-smp-bsp-spin-irq-off`, ook in
+`native-smp.yml`.
 
-**Blocker:** GitHub reports the PR as unmergeable (`mergeable_state=dirty`) against `main`, which contains newer commits. The prerequisite #227 remains unmerged. Do not squash-merge an unverified combination of the 5b/5c/5d steps or bypass required reviews.
+**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `412e6740…`):** zie
+`docs/verification/k06-5c2-bsp-timer/`. SMP 28/28 over 23 profielen (ratio 62 559–62 871,
+wake 39–248 µs); rode mutant zonder release-hook → `SMP:IDLE:RESCHED_LOST`.
+M2 8/8 en M3 22/22, rtc 5/5, K05 6/6; `cargo test -p smp-lock` 24+1, `-p boot-protocol` 28,
+clippy en fmt schoon, oracle 16/16, GS-lint 8/8; `tools/gate.sh` exit 0 (518 geslaagd, 1 ignored;
+QEMU-smoke-script ontbreekt).
+**Niet uitgevoerd:** CI op de gestapelde PR, hardware, M4 (pad-bug, #235), kernel-clippy (faalt al
+op de basis, geen nieuwe meldingen).
 
-**Next action:** reconcile the stacked dependencies with current `main`, run the relevant native SMP and standard verification gates on the resulting head, address current CodeRabbit findings, and only then squash-merge PR #229 into `main`.
+**Open:** `ADOPTED` (ADR-079) wacht nog steeds op een BSP-runqueue (5d-2 of 5f); TSC als constant
+aangenomen (hardware: invariant-TSC-controle); de klokafwijking wordt bij PASS niet gelogd.
+Volgende stap: 07 (5e, procesbrede shootdown op `active_cpus`).
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-bsp-spin-irq-off"; python3 -B tools/build.py --kernel-feature test-smp-bsp-spin-irq-off && python3 -B -u tools/run_smp.py --profile test-smp-bsp-spin-irq-off`.
 
+## Historisch checkpoint — K06 F19/F15, ICR-lock per CPU en quarantaine stopt bij een gehouden lock (ADR-079) — 6 november 2026
 
-## NEXT AGENT HANDOFF — K06 auditfixes F1 (on_cpu) en F2 (LIFO-lockdep) — 6 november 2026
+**Bron:** branch `fix/k06-f19-f15-icr-quarantine` (worktree `nieuw-os-k06-f19`), gestapeld op
+`feat/k06-5b2-kernel-lock` (`81b648ba`, met F16/F17 uit #239). Taakspec:
+`docs/implementation/k06-steps/05-F19-F15-icr-quarantine.md`; ontwerp ADR-079. **41 → 41/100**;
+K06 blijft open.
+
+**Gerealiseerd:** IQ-1: `CpuLocal.icr` (niveau 60, irqsave) om idle-wacht, ICR-hoog, ICR-laag en
+afsluitende wacht in `send_ipi`. IQ-2: `IrqLock.owner` (CPU-index of `FREE`) en `owner()`/`level()`.
+IQ-3: `quarantine_all` controleert eerst alle AP's, daarna per AP `quarantine_cpu`: controle →
+INIT → 1 ms → hercontrole → READY-threads naar `ADOPTED`, de lopende thread `crash`
+(`kill_request`). Een gehouden KERNEL/RUNQ geeft `SMP:QUARANTINE:LOCK_HELD:<niveau>:CPU=<n>` en
+een stop. IQ-4: `quarantine_cpu` op een AP stopt. Native fase `icr` na LOCKPAIR:
+`SMP:ICR:PASS:ROUNDS=10000:CPUS=n` (onder twee AP's `SKIPPED`). Nieuwe profielen
+`test-smp-icr-race` en `test-smp-quarantine-lock-held`, ook in `native-smp.yml`.
+
+**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `dc44d588…`):** zie
+`docs/verification/k06-f19f15-icr/`. SMP 27/27 over 22 profielen, alle bestaande dove-AP-profielen
+ongewijzigd. M2 8/8 en M3 22/22, rtc, K05, K07;
+`cargo test -p smp-lock` 24+1, clippy en fmt schoon, oracle 15/15, GS-lint 8/8; `tools/gate.sh` exit 0
+(518 geslaagd, 1 ignored; QEMU-smoke-script ontbreekt).
+**Niet uitgevoerd:** CI op de gestapelde PR, hardware, M4 (pad-bug, #235).
+
+**Open:** een AP die als *wachter* in een ticketlock sterft, wordt door IQ-3 niet gezien
+(alleen eigenaren); `ADOPTED` wacht op de BSP-runqueue (5c-2); de K05-route bij een crash geldt
+pas voor ring-3-threads (5d-2); ASPACE/FRAMES/SHOOTDOWN moeten in `held_by` zodra ze locks zijn;
+of een AP in 08 zelf een shootdown start (IQ-4). Volgende stap: 06 (5c-2, BSP-timer en idle).
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-quarantine-lock-held"; python3 -B tools/build.py --kernel-feature test-smp-quarantine-lock-held && python3 -B -u tools/run_smp.py --profile test-smp-quarantine-lock-held`.
+
+## Historisch checkpoint — K06 F16/F17, blokkeren, wekken en doden zonder lost-wakeup (ADR-078) — 6 november 2026
+
+**Bron:** `880d6d74` op `fix/k06-f16-f17-sched-protocol` (worktree `nieuw-os-k06-f16`), gestapeld op
+`feat/k06-5b2-kernel-lock` (#234, `59476e17`, met F3/F4 uit #237). Taakspec:
+`docs/implementation/k06-steps/04-F16-F17-block-wake-kill.md` (branch `docs/k06-step-specs`);
+ontwerp ADR-078. **41 → 41/100**; K06 blijft open.
+
+**Gerealiseerd:** `smp_lock::sched` met READY/RUNNING(cpu)/BLOCKING/READY_PENDING/BLOCKED/
+DEAD_PENDING/DEAD en `block_prepare`/`block_commit`/`wake`/`kill_request`/`kill_commit` (elk één
+atomaire stap). `RunQueue::push`/`pop` beheren een gedeelde `queued`-bit; een tweede push geeft
+`SMP:SCHED:DOUBLE_ENQUEUE`. `sched_switch` gebruikt `leave`/`pick`: READY_PENDING → requeue,
+BLOCKING → BLOCKED, DEAD_PENDING → terug in de eigen queue en DEAD bij een latere wissel zodra
+`on_cpu` gewist is. De thuislus is de idle-thread (BW-4). `SHOOTDOWN_DEADLINE_MS` (100 ms) wordt
+gedeeld door shootdown en kill. Native fase `block_wake_kill` na SCHED: `SMP:WAKE:PASS`
+(10.000 ping-pongrondes onder KERNEL) en `SMP:KILL:PASS`, of `…:SKIPPED:CPUS=1` zonder AP's.
+`test-smp-double-run` stopt nu bij de push; nieuw `test-smp-resched-deaf`.
+
+**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `01daa964…`):** zie
+`docs/verification/k06-f16f17-sched/`. SMP 25/25 over 20 profielen; M2 8/8 en M3 22/22, rtc, K05,
+K07; `cargo test -p smp-lock` 24+1 (uitputtende interleavingmodellen met mutanten), clippy en fmt
+schoon, oracle 13/13, GS-lint 8/8; `tools/gate.sh` exit 0 (518 geslaagd, 1 ignored;
+QEMU-smoke-script ontbreekt).
+**Afwijking van de spec:** geen loom (33 crates, `generator 0.8.12` vereist Rust 1.95 > 1.90). De
+modellen dekken alleen SC-uitvoeringen. **Niet uitgevoerd:** loom, M4 (pad-bug, #235), CI op de
+gestapelde PR, hardware.
+
+**Open:** loom (F-T1), echte IPC-wachtrijen (08), migratie (09), INV-5-beleid met vastgehouden
+locks (05). Volgende stap: 05 (F19/F15, ICR-lock en quarantainebeleid) of 06 (5c-2).
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-resched-deaf"; python3 -B tools/build.py --kernel-feature test-smp-resched-deaf && python3 -B -u tools/run_smp.py --profile test-smp-resched-deaf`.
+
+## Historisch checkpoint — K06 F3/F4, lockdep met handlercontext en lockparen (ADR-077) — 6 november 2026
+
+**Bron:** `394bba37` op `fix/k06-f3-f4-lockdep` (worktree `nieuw-os-k06-f3f4`), gestapeld op
+`feat/k06-5b2-kernel-lock` (#234, `de7a07b5`). Taakspec: `docs/implementation/k06-steps/02-F3-F4-lockdep-context.md`
+(branch `docs/k06-step-specs`); ontwerp ADR-077. **41 → 41/100**; K06 blijft open.
+
+**Gerealiseerd:** LD-1: `CpuLocal.irq_depth`, opgehoogd na `gs_entry!` en verlaagd vóór
+`gs_exit!` in de stubs 0xf0/0xe0 en het timerlichaam (0xd0/0xe8). KERNEL/ASPACE in een handler
+geeft `SMP:LOCKDEP:IN_HANDLER:<niveau>`. LD-2: het venster alleen bij diepte 0. LD-3/LD-4:
+`Lockdep` met per niveau een teller (0/1/2) en sleutels, `acquire`/`acquire_paired`/`release`
+met sleutel en `IrqLock::keyed` + `lock_pair` (oplopende sleutel, `(low, high)`). `RUNQ` heeft
+nu sleutel = CPU-index. Volledige staat per CPU in `lock::LockdepCell`; het `AtomicU64` blijft
+als spiegel. Fixture `SMP:LOCKPAIR:PASS:CPUS=n` en controles `test-smp-lock-in-handler` en
+`test-smp-lockpair-order`; GS-lint controleert de teller.
+
+**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `5ea3759b…`):** zie
+`docs/verification/k06-f3f4-lockdep/`. SMP 24/24 over 19 profielen; M2 8/8 en M3 22/22, rtc, K05,
+K07; `cargo test -p smp-lock` 18 (incl. propertytest), clippy en fmt schoon, oracle 13/13, GS-lint
+8/8; `tools/gate.sh` exit 0 (511 geslaagd, 1 ignored; QEMU-smoke-script ontbreekt).
+**Niet uitgevoerd:** loom-model van `TicketLock` (nieuwe dependency nog niet getoetst), M4
+(pad-bug, #235), CI op de gestapelde PR, hardware.
+
+**Open:** loom (F-T1), ASPACE-paren nog zonder echte IPC-gebruiker (komt met 5d-2/IPC op SMP).
+Volgende stap: 03 (F5/F7, begrensde spin in release en SERIAL-lock) of 05 (F19/F15).
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-lock-in-handler"; python3 -B tools/build.py --kernel-feature test-smp-lock-in-handler && python3 -B -u tools/run_smp.py --profile test-smp-lock-in-handler`.
+
+## Historisch checkpoint — K06 stap 5b-2, KERNEL-lock en scratchslot per CPU (ADR-075) — 6 november 2026
+
+**Bron:** `48dcae6a` op `feat/k06-5b2-kernel-lock` (worktree `nieuw-os-k06-5b2`), gestapeld op
+`fix/k06-f8-swapgs` (#231, `7ffdacfa`). Taakspec: `docs/implementation/k06-steps/01-5b-2-kernel-lock-scratch.md`
+(branch `docs/k06-step-specs`); ontwerp ADR-075. **41 → 41/100**; K06 blijft open.
+
+**Gerealiseerd:** `lock::KERNEL` met `kernel_held()`; `lock.rs` bouwt ook voor M3, met een
+lockdep-woord voor één CPU. `m3_event` neemt KERNEL na de CS-check en geeft hem vrij vlak vóór
+de stub. `m3::start`/`complete_round` hervatten via `resume()`, dat KERNEL eerst vrijgeeft: de
+guard staat in een slot dat de lock zelf beschermt, want `complete_round` springt naar ring 3
+zonder af te wikkelen. SAFETY-teksten in `m3.rs` en `m3/*.rs` noemen KERNEL als grond.
+`SCRATCH_ENTRY` is per CPU (`SCRATCH + i·4096`, 8 slots, dezelfde PT). De audit slaat alleen
+het actieve slot van de lezende CPU over. Native fixture `SMP:SCRATCH:PASS` en controle
+`test-smp-shared-scratch` (`SMP:SCRATCH:CROSS:CPU=n`; een #PF op het gedeelde slot telt mee).
+
+**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG):** zie `docs/verification/k06-5b2-kernel-lock/`. Volledige
+SMP-matrix 17 profielen op `48dcae6a`; controle 12/12 rood zoals bedoeld. Eén-CPU-regressie
+(op de werkboom van `f6912a63` vóór fmt; daarna zijn alleen opmaak en een
+controle-only-cfg in `smp.rs` veranderd): `test_milestones.py --through m4` (M2 8/8, M3 22/22,
+M4 12/12), `test_supervisor.py` (K05 6 stappen), `test_resource_pressure.py` (K07),
+`run_rtc.py --case all` 5/5, `run_ipc_wait.py`, `run_fpu.py` en `test-fpu-wait`;
+`test_memory_system.py` op de schone commit. Alle 198 kernelprofielen uit `build.py` bouwen
+(de update-profielen met `--image-version 2`). `tools/gate.sh` exit 0 (507 geslaagd, 1 ignored).
+`cargo fmt --check` (workspace en kernel) en clippy `smp-lock -D warnings` zijn schoon,
+`test_smp_serial.py` 11/11. **Niet uitgevoerd:** `native-smp.yml`/CI op de PR (een gestapelde
+base draait geen native-smp-CI), fysieke hardware. `tools/test_milestones.py:160` heeft een
+hardgecodeerd `build/users`-pad, waardoor M4 faalt met een eigen `NOS_BUILD_DIR` (losse taak).
+
+**Open:** idle (`sti; hlt`) staat nog binnen de KERNEL-sectie (5c-2) en M3 op AP's (5d-2). De
+500-ms-deadline begint na het BSP-deel. Fijnmazige locks vallen buiten K06. Volgende stap:
+5c-2 (BSP-timer en idle), daarna 5d-2.
+**Eerstvolgend commando:**
+`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-shared-scratch"; python3 -B tools/build.py --kernel-feature test-smp-shared-scratch && python3 -B -u tools/run_smp.py --profile test-smp-shared-scratch`.
+
+## Historisch checkpoint — K06 auditbevinding F8 (`swapgs`-discipline, ADR-076) — 6 november 2026
+
+**Bron:** `91e84b75` op `fix/k06-f8-swapgs` (worktree `nieuw-os-k06-f8`), gestapeld op
+`fix/k06-f1-f2-lifo-oncpu` (#230, `5dccf290`). Ontwerp: ADR-076, K06-SMP.md INV-8 (GS-1..GS-10).
+**41 → 41/100**; K06 blijft open.
+
+**Gerealiseerd:** `arch::gs_entry!`/`gs_exit!` (één definitie) in de stubs 0xd0/0xe0/0xe8/0xf0 en
+`m3_restore`. In `m2_exception_common` dezelfde proloog met de GS-7-fixup voor een faulting
+`iretq`. NMI/#DF/#MC lopen via `m2_exception_paranoid` (GS-vrij, terminaal). GS-10-check op de BSP.
+Ring-3-GS-fixture `test-smp-gs-{user,iret-fault,nmi-user}` en statische lint
+`tools/tests/test_gs_discipline.py`.
+
+**Bewijs (lokaal, native QEMU 10.2.1/OVMF/TCG):** eerst rood: `c2f1bed0` geeft `SMP:GS:HIJACK`.
+Groen: 21/21 SMP-gevallen over 16 profielen, M2-gate, K05 6/6, native-fpu en fpu-wait. Een
+mutant zonder GS-7 laat N2 falen. Zie `docs/verification/k06-f8-swapgs/`. `tools/gate.sh` exit 0
+(507 geslaagd, 1 ignored; QEMU-smoke-script ontbreekt). Clippy schoon voor `smp-lock` en
+`boot-protocol`.
+**Niet uitgevoerd/open:** CI (een gestapelde base start `native-smp.yml` niet), hardware,
+speculatie (alleen statisch). Kernel-clippy `-D warnings` faalt al vóór deze wijziging
+(paging/main/serial). Afwijkingen: N2 via SS=0x13 (TCG controleert canonieke RIP bij `iretq`
+niet); VA 0 niet user-gemapt.
+
+**Open uit de audit:** 5b-2/F20, F3, F4, F16, F17, F19, F15, het selectorlek (vóór 5d-2) en
+SMEP/SMAP; daarna 5c-2, 5e, 5d-2 en 5f.
+**Eerstvolgend commando:**
+`export NOS_TARGET_DIR="$PWD/target/smp-native" NOS_BUILD_DIR="$PWD/build/k06-test-smp-gs-user"; python3 -B tools/build.py --kernel-feature test-smp-gs-user && python3 -B -u tools/run_smp.py --profile test-smp-gs-user`.
+
+## Historisch checkpoint — K06 auditfixes F1 (on_cpu) en F2 (LIFO-lockdep) — 6 november 2026
 
 **Bron:** `600cee93` op `fix/k06-f1-f2-lifo-oncpu` (worktree `nieuw-os-k06-5d`), gestapeld op
 `feat/k06-5d-runqueues` (`76c67f22`). Ontwerp: aanvulling "auditfixes F1/F2" in ADR-074.

@@ -60,7 +60,7 @@ static mut INPUT: Runtime = Runtime {
     discarded: 0,
 };
 fn runtime() -> &'static mut Runtime {
-    // SAFETY: One CPU/IF0, serialized syscall lifecycle. No references escape
+    // SAFETY: KERNEL held, IF0, serialized syscall lifecycle. No references escape
     // into scheduling and no caller buffer or pointer is retained here.
     unsafe { &mut *ptr::addr_of_mut!(INPUT) }
 }

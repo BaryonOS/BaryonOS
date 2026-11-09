@@ -1,8 +1,10 @@
 //! Single-CPU ring-3 experiment. Each entry copies all GPR/iret state before
 //! switching to a permanent service stack and kernel CR3. No user reference
-//! survives a scheduling point. There are no locks: IF is clear in all mutations.
+//! survives a scheduling point. Every mutation holds `lock::KERNEL` (ADR-075,
+//! K-1), taken at each entry and released only right before the user resume.
 use super::{
     arch,
+    lock::{self, IrqGuard},
     paging::{self, Paging},
     text_start, FRAME_COUNT,
 };
@@ -455,7 +457,36 @@ struct EventRecord {
     rip: u64,
     cr2: u64,
 }
+/// Only reached while holding `lock::KERNEL` (K-1, K-4).
 static mut STATE: MaybeUninit<State> = MaybeUninit::uninit();
+/// The `KERNEL` guard of the section in progress. A slot instead of a local,
+/// because `complete_round` resumes user mode from deep inside `m3_event`
+/// without unwinding it. Only the holder touches it, so KERNEL makes it exclusive.
+static mut KERNEL_GUARD: Option<IrqGuard<'static, ()>> = None;
+fn kernel_enter() {
+    let guard = lock::KERNEL.lock_irqsave();
+    // SAFETY: this CPU now holds KERNEL, the slot's only protection; the last
+    // holder emptied it in `kernel_leave` before releasing the lock.
+    let stale = unsafe { ptr::addr_of_mut!(KERNEL_GUARD).replace(Some(guard)) };
+    assert!(stale.is_none(), "KERNEL guard slot not empty");
+}
+fn kernel_leave() {
+    // SAFETY: as in `kernel_enter`; the guard is moved out, then dropped
+    // (lock released, lockdep popped, saved IF=0 kept) after the slot is empty.
+    let guard = unsafe { ptr::addr_of_mut!(KERNEL_GUARD).replace(None) };
+    assert!(guard.is_some(), "KERNEL not entered");
+    drop(guard);
+}
+/// Leave the kernel section (INV-7: no lock across the switch) and resume
+/// `next`, a full verified user context, through `m3_restore`.
+fn resume(next: *const u64) -> ! {
+    kernel_leave();
+    // SAFETY: Full verified static user context; permanent kernel CR3 and
+    // service stack remain retained through iretq. IF stays 0 until iretq.
+    unsafe {
+        asm!("mov rax, {context}","jmp {restore}",context=in(reg) next,restore=sym m3_restore,options(noreturn));
+    }
+}
 #[no_mangle]
 static mut m3_service_stack: u64 = 0;
 #[no_mangle]
@@ -573,6 +604,7 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
     arch::reset_debug();
     let image = user::parse(process_elf(0)).expect("embedded user ELF");
     assert_eq!(image.entry, 0x40000000);
+    kernel_enter();
     kernel.begin_scratch(frames);
     #[cfg(feature = "native-tpm-crb")]
     tpm_fixture::prepare(frames, &mut kernel);
@@ -582,7 +614,7 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
     keyring::prepare(frames, &mut kernel);
     #[cfg(feature = "native-system-net")]
     network::prepare(frames, &mut kernel);
-    // SAFETY: One CPU, IF=0; permanent state constructed once. The service stack
+    // SAFETY: KERNEL held, IF=0; permanent state constructed once. The service stack
     // is the retained guarded MAIN stack; no interrupted frame is stored there.
     unsafe {
         ptr::addr_of_mut!(m3_service_stack).write(arch::service_stack());
@@ -640,8 +672,7 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
         #[cfg(not(feature = "native-cap-digest-bench"))]
         {
             timer_init();
-            let next = state.select();
-            asm!("mov rax, {context}","jmp {restore}",context=in(reg) next,restore=sym m3_restore,options(noreturn));
+            resume(state.select());
         }
     }
 }
@@ -1047,6 +1078,7 @@ impl State {
         None
     }
     fn select(&mut self) -> *const u64 {
+        debug_assert!(lock::kernel_held(), "K-1: mutation without KERNEL");
         'selection: loop {
             #[cfg(feature = "ipc-wait")]
             wait::refresh(self);
@@ -1155,7 +1187,7 @@ impl State {
         arch::activate(self.kernel.root);
         arch::process_stack(arch::service_stack());
         self.current = MAX;
-        // SAFETY: Single CPU, IF=0 and the permanent MAIN service stack/root.
+        // SAFETY: KERNEL held, IF=0 and the permanent MAIN service stack/root.
         // The existing CPL0 IRQ0 stub touches only its raw counter and saved
         // interrupt frame, never STATE/Engine or Rust references. No driver IRQ
         // is enabled by this feature. No user-memory reference is retained.
@@ -1226,6 +1258,7 @@ impl State {
         }
     }
     fn cleanup(&mut self, slot: usize) {
+        debug_assert!(lock::kernel_held(), "K-1: mutation without KERNEL");
         #[cfg(feature = "process-memory")]
         assert!(
             heap::clean_boundary(),
@@ -1299,12 +1332,7 @@ impl State {
             self.round += 1;
             if self.round < 6 {
                 self.setup();
-                let next = self.select();
-                // SAFETY: Full verified static user context; permanent kernel CR3
-                // and service stack remain retained through iretq.
-                unsafe {
-                    asm!("mov rax, {context}","jmp {restore}",context=in(reg) next,restore=sym m3_restore,options(noreturn));
-                }
+                resume(self.select());
             }
         }
         print_number(b"M3:TIMER_IRQS:", self.timer_interrupts);
@@ -1560,23 +1588,35 @@ impl State {
     }
 }
 
+/// The only Rust entry for M3 events (K-1): KERNEL from the first shared
+/// access until the stub resumes `next`.
 #[no_mangle]
 extern "C" fn m3_event(source: *const u64) -> *const u64 {
+    // SAFETY: Entry stub has moved to MAIN service stack with IF=0; `source` is
+    // this CPU's mapped interrupted frame (22 initialized words). Checked before
+    // KERNEL so a kernel-origin exception inside a held section keeps its
+    // marker instead of tripping lockdep; nothing shared is read here.
+    if unsafe { source.add(18).read() } != 0x23 {
+        serial::write(b"M3:FAIL:KERNEL_EXCEPTION\n");
+        serial::exit(0x11);
+    }
+    kernel_enter();
+    let next = event(source);
+    kernel_leave();
+    next
+}
+fn event(source: *const u64) -> *const u64 {
     let begin = clock();
-    // SAFETY: Entry stub has moved to MAIN service stack with IF=0. Source is
-    // exclusively owned mapped per-process kernel stack, 22 initialized words.
-    // No scheduler can run concurrently; all source bytes are copied before free.
+    // SAFETY: KERNEL held (K-1), so this is the only live STATE borrow. Source
+    // is the exclusively owned mapped per-process kernel stack, 22 initialized
+    // words; all source bytes are copied before free.
     let state = unsafe { (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut() };
     let current = state.current;
     assert!(current < state.amount);
     let mut context = [0u64; 22];
-    // SAFETY: Live normalized full ring-3 frame; kernel-origin faults stop before
-    // reading optional user RSP/SS fields. RSP frame source is on mapped stack.
+    // SAFETY: Live normalized full ring-3 frame (CS checked in `m3_event`).
+    // RSP frame source is on mapped stack.
     unsafe {
-        if source.add(18).read() != 0x23 {
-            serial::write(b"M3:FAIL:KERNEL_EXCEPTION\n");
-            serial::exit(0x11);
-        }
         ptr::copy_nonoverlapping(source, context.as_mut_ptr(), 22);
     }
     arch::activate(state.kernel.root);
