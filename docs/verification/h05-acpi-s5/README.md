@@ -24,7 +24,8 @@ kernel profile now does so through project code:
    `SLP_TYP` with `SLP_EN` cleared is written to PM1a and then PM1b
    (if present), followed by setting `SLP_EN` in the same order.
    Invalid plans produce `UNAVAILABLE`, `UNREADABLE` or
-   `REJECTED:<error>`, perform no port write, and take the normal debug exit.
+   `REJECTED:<error>`, perform no PM1-control port write, and take the
+   normal debug exit after serial diagnostics.
 
 There is no syscall or IPC route; a process cannot request power-off.
 
@@ -55,7 +56,8 @@ There is no syscall or IPC route; a process cannot request power-off.
 The negative profile flips one byte in the kernel's DSDT copy (the final
 byte). Exit 33 rather than 0 proves that no effective S5 power-off occurred,
 not that no PM1 write was attempted. Source inspection of the rejection
-branch shows no port-I/O call; independent PM1 write tracing is still open.
+branch shows no PM1-control port-I/O call; independent PM1 write tracing
+is still open. Serial diagnostics and debug-exit I/O remain in use.
 Durations, hashes, commands and full serial output are retained in
 [native-report.json](native-report.json); both reports are bound to source
 fingerprint v3
