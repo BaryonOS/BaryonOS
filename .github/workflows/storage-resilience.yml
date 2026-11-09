@@ -65,7 +65,7 @@ jobs:
         uses: ./.github/actions/preserve-evidence
         with:
           job-status: ${{ job.status }}
-          if-no-files-found: warn
+          if-no-files-found: error
           full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: s08-storage-resilience-report
           path: build/ci-s08/s08-storage-resilience.json

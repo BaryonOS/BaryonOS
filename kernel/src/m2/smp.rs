@@ -1624,8 +1624,10 @@ static SPIN: AtomicBool = AtomicBool::new(false);
 /// Spin proof (spec §4.3): while the BSP holds a KERNEL-level lock, every AP
 /// waits for it with IF=0 and must still acknowledge a shootdown round,
 /// through the lock's `sti; pause; cli` window. In `test-smp-spin-irq-off`
-/// (no window) the first waiter is deaf: the round times out and every AP is
-/// reset before the BSP lets go of the lock, which stays unusable afterwards.
+/// (no window) the first waiter is deaf and the shootdown times out. On
+/// every timeout/quarantine path, reset APs can leave outstanding tickets in
+/// SPIN_LOCK. This one-shot boot fixture never acquires it again after a
+/// `false` return; the BSP guard is dropped on function exit.
 fn spin_window(online: usize, total: usize) -> bool {
     let aps = &NOS_SMP_AP_CONTEXTS[..online];
     let locals = &CPU_LOCAL[..online];
