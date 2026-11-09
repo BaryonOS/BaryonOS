@@ -37,6 +37,14 @@ pub extern "sysv64" fn _start(info_pointer: *const BootInfo) -> ! {
     // range checks precede the copy. M1 trusts its own loader/firmware, not user pointers.
     let info = unsafe { info_pointer.read() };
     #[cfg(feature = "framebuffer")]
+    let info = {
+        let mut header = info;
+        // ABI 1.2 ends at byte 128, where its graphics extension starts.
+        // Only the larger ABI 1.3 header carries these SMP fields.
+        header.clear_absent_legacy_graphics_smp_fields();
+        header
+    };
+    #[cfg(feature = "framebuffer")]
     let valid_header = info.validate_graphics_header(address);
     #[cfg(not(feature = "framebuffer"))]
     let valid_header = info.validate_header(address);

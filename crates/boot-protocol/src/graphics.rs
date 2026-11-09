@@ -34,6 +34,20 @@ const _: () = {
     assert!(offset_of!(FramebufferInfo, reserved) == 40);
 };
 impl BootInfo {
+    /// ABI 1.2 has a 128-byte header, followed immediately by a framebuffer
+    /// descriptor. The descriptor bytes must not be interpreted as the SMP
+    /// fields of the longer ABI 1.3 header when copying the common prefix.
+    pub fn clear_absent_legacy_graphics_smp_fields(&mut self) {
+        if self.abi_major == crate::ABI_MAJOR
+            && self.abi_minor == GRAPHICS_MINOR
+            && self.header_size == 128
+        {
+            self.smp_info_addr = 0;
+            self.smp_info_len = 0;
+            self.smp_trampoline_page = 0;
+        }
+    }
+
     pub fn validate_graphics_header(&self, received_addr: u64) -> Result<(), Error> {
         if self.flags != GRAPHICS_FLAGS {
             return Err(Error::Header);
@@ -213,6 +227,36 @@ mod tests {
             .validate_graphics_header(original.bootinfo_start + PAGE_SIZE)
             .is_err());
     }
+    #[test]
+    fn legacy_graphics_descriptor_bytes_cannot_be_misread_as_smp_handoff() {
+        let mut legacy = header();
+        // The first 24 bytes of a valid ABI 1.2 framebuffer descriptor
+        // occupy the positions of the 1.3-only fields in a larger copy.
+        legacy.smp_info_addr = u64::from_le_bytes(*b"NOSGOP\0\0");
+        legacy.smp_info_len = 0x8000_0000;
+        legacy.smp_trampoline_page = 0x1000;
+        assert_eq!(
+            legacy.validate_graphics_header(legacy.bootinfo_start),
+            Err(Error::Header)
+        );
+        legacy.clear_absent_legacy_graphics_smp_fields();
+        assert_eq!(
+            legacy.validate_graphics_header(legacy.bootinfo_start),
+            Ok(())
+        );
+
+        let mut smp = header();
+        smp.abi_minor = GRAPHICS_SMP_MINOR;
+        smp.header_size = crate::SMP_HEADER_SIZE;
+        smp.smp_info_addr = 0x1234_5000;
+        smp.smp_info_len = 17;
+        smp.smp_trampoline_page = 0x8000;
+        smp.clear_absent_legacy_graphics_smp_fields();
+        assert_eq!(smp.smp_info_addr, 0x1234_5000);
+        assert_eq!(smp.smp_info_len, 17);
+        assert_eq!(smp.smp_trampoline_page, 0x8000);
+    }
+
     #[test]
     fn graphics_and_smp_extensions_have_disjoint_versioned_offsets() {
         let mut info = header();
