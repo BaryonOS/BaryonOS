@@ -605,5 +605,27 @@ class RunnerTimeoutTests(unittest.TestCase):
                     self.assertIn("timed out", summary["host"]["error"])
 
 
+class SmpLoaderProfileTests(unittest.TestCase):
+    def test_only_native_smp_profiles_require_madt_handoff(self):
+        from build import native_smp_handoff_required
+
+        for feature in (
+            "native-smp", "native-smp-m3", "native-smp-m3-exit",
+            "native-smp-m3-tlb-reuse", "native-smp-m3-lock-contention",
+            "native-smp-m3,test-m3-x87", "native-smp-m3,test-m3-ud",
+            "native-smp-m4", "native-smp-m4-revoke",
+            "native-smp-m4,test-m4-lifecycle",
+        ):
+            with self.subTest(feature=feature):
+                self.assertTrue(native_smp_handoff_required(feature))
+        for feature in (
+            None, "", "milestone-m2", "milestone-m3", "milestone-m4",
+            "framebuffer", "native-window-session", "native-system",
+            "test-m3-x87", "test-m4-lifecycle",
+        ):
+            with self.subTest(feature=feature):
+                self.assertFalse(native_smp_handoff_required(feature))
+
+
 if __name__ == "__main__":
     unittest.main()

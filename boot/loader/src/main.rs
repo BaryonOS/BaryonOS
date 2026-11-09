@@ -103,6 +103,7 @@ impl Firmware {
         Ok(fw)
     }
 
+    #[cfg(feature = "smp-handoff")]
     fn smp_info(&self, trampoline_page: u64) -> Result<SmpInfo> {
         // SAFETY: The configuration table is part of the validated live UEFI
         // SystemTable. Its entries and ACPI pointers remain firmware-owned until
@@ -623,8 +624,13 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     let (device, loader_start, loader_len) = fw.loaded_image(image)?;
     #[cfg(feature = "framebuffer")]
     let framebuffer = graphics::prepare(&fw)?;
+    // Ordinary single-CPU profiles must not require ACPI/MADT or a SIPI page.
+    #[cfg(feature = "smp-handoff")]
     let trampoline_page = fw.pages_below(1, efi::LOADER_DATA, boot_protocol::smp::SIPI_LIMIT)?;
+    #[cfg(feature = "smp-handoff")]
     let smp_info = fw.smp_info(trampoline_page)?;
+    #[cfg(not(feature = "smp-handoff"))]
+    let trampoline_page = 0u64;
     fw.pages(
         (KERNEL_LEN / PAGE_SIZE) as usize,
         efi::LOADER_CODE,
@@ -674,21 +680,29 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     }
     fw.free_pages(file_address, file_pages)?;
     let stack_start = fw.pages((STACK_LEN / PAGE_SIZE) as usize, efi::LOADER_DATA, None)?;
-    let info_address = fw.pages(2, efi::LOADER_DATA, None)?;
-    // SAFETY: Own dedicated page with no references yet; initialize padding and remainder too.
+    let info_pages = if cfg!(feature = "smp-handoff") { 2 } else { 1 };
+    let info_address = fw.pages(info_pages, efi::LOADER_DATA, None)?;
+    // SAFETY: Exclusive, aligned retained allocation; zero both the header and
+    // the entire allocated extension area before initializing typed fields.
     unsafe {
-        ptr::write_bytes(info_address as *mut u8, 0, BOOTINFO_SMP_LEN as usize);
+        ptr::write_bytes(info_address as *mut u8, 0, info_pages * PAGE_SIZE as usize);
     }
     #[cfg(feature = "framebuffer")]
-    // SAFETY: The zeroed two-page allocation has a disjoint 64-byte graphics
-    // extension at offset 192 and fixed SMP metadata at offset 256.
+    // SAFETY: The zero-initialized retained allocation has at least one
+    // full page. ABI 1.2 graphics begins at byte 128; ABI 1.3 at byte 192.
+    // Both extensions are disjoint from their versioned header.
     unsafe {
-        ((info_address + boot_protocol::graphics::SMP_EXTENSION_OFFSET)
-            as *mut boot_protocol::graphics::FramebufferInfo)
+        let offset = if cfg!(feature = "smp-handoff") {
+            boot_protocol::graphics::SMP_EXTENSION_OFFSET
+        } else {
+            boot_protocol::graphics::EXTENSION_OFFSET
+        };
+        ((info_address + offset) as *mut boot_protocol::graphics::FramebufferInfo)
             .write(framebuffer);
     }
-    // SAFETY: The fixed-size handoff is initialized inside the reserved two-page
-    // BootInfo allocation; it does not overlap the header or graphics extension.
+    #[cfg(feature = "smp-handoff")]
+    // SAFETY: Reserved second BootInfo page; non-overlapping with the header
+    // and the optional graphics descriptor.
     unsafe {
         ((info_address + SMP_INFO_OFFSET) as *mut SmpInfo).write(smp_info);
     }
@@ -723,8 +737,18 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
     let info = BootInfo {
         magic: MAGIC,
         abi_major: ABI_MAJOR,
-        abi_minor: SMP_MINOR,
-        header_size: SMP_HEADER_SIZE,
+        abi_minor: if cfg!(feature = "smp-handoff") {
+            SMP_MINOR
+        } else if cfg!(feature = "framebuffer") {
+            boot_protocol::graphics::GRAPHICS_MINOR
+        } else {
+            boot_protocol::ABI_MINOR
+        },
+        header_size: if cfg!(feature = "smp-handoff") {
+            SMP_HEADER_SIZE
+        } else {
+            128
+        },
         flags: if cfg!(feature = "framebuffer") { 14 } else { 6 },
         memory_map_addr: map_address,
         memory_map_len: 0,
@@ -735,17 +759,34 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
         stack_start,
         stack_len: STACK_LEN,
         bootinfo_start: info_address,
-        bootinfo_len: BOOTINFO_SMP_LEN,
+        bootinfo_len: if cfg!(feature = "smp-handoff") {
+            BOOTINFO_SMP_LEN
+        } else {
+            PAGE_SIZE
+        },
         loader_start,
         loader_len,
         memory_map_capacity: capacity as u64,
         reserved0: if cfg!(feature = "framebuffer") {
-            info_address + boot_protocol::graphics::SMP_EXTENSION_OFFSET
+            info_address
+                + if cfg!(feature = "smp-handoff") {
+                    boot_protocol::graphics::SMP_EXTENSION_OFFSET
+                } else {
+                    boot_protocol::graphics::EXTENSION_OFFSET
+                }
         } else {
             0
         },
-        smp_info_addr: info_address + SMP_INFO_OFFSET,
-        smp_info_len: core::mem::size_of::<SmpInfo>() as u64,
+        smp_info_addr: if cfg!(feature = "smp-handoff") {
+            info_address + SMP_INFO_OFFSET
+        } else {
+            0
+        },
+        smp_info_len: if cfg!(feature = "smp-handoff") {
+            core::mem::size_of::<SmpInfo>() as u64
+        } else {
+            0
+        },
         smp_trampoline_page: trampoline_page,
     };
     // SAFETY: Own aligned page, initialized and disjoint from every other live object.
@@ -785,10 +826,12 @@ fn map_capacity(needed: usize, stride: usize) -> Result<usize> {
     Ok(capacity as usize)
 }
 
+#[cfg(feature = "smp-handoff")]
 fn checksum(bytes: &[u8]) -> u8 {
     bytes.iter().fold(0u8, |sum, byte| sum.wrapping_add(*byte))
 }
 
+#[cfg(feature = "smp-handoff")]
 fn read_u32(bytes: &[u8], offset: usize) -> Result<u32> {
     let end = offset
         .checked_add(4)
@@ -801,6 +844,7 @@ fn read_u32(bytes: &[u8], offset: usize) -> Result<u32> {
     Ok(u32::from_le_bytes(field))
 }
 
+#[cfg(feature = "smp-handoff")]
 fn read_u64(bytes: &[u8], offset: usize) -> Result<u64> {
     let end = offset
         .checked_add(8)
@@ -816,6 +860,7 @@ fn read_u64(bytes: &[u8], offset: usize) -> Result<u64> {
 /// # Safety
 /// Firmware supplies a live, mapped ACPI table pointer. Its header and declared
 /// extent are read only after pointer alignment and bounded-length checks.
+#[cfg(feature = "smp-handoff")]
 unsafe fn sdt_bytes<'a>(address: *const u8) -> Result<&'a [u8]> {
     if address.is_null() || !(address as usize).is_multiple_of(4) {
         return Err(b"ACPI_TABLE_ALIGNMENT");

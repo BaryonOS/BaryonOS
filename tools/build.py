@@ -114,8 +114,21 @@ def inspect_pe(path):
     return {"format": "AMD64 PE32+", "subsystem": "EFI_APPLICATION", "imports": 0}
 
 
+def native_smp_handoff_required(kernel_feature):
+    """Only opt-in native SMP test profiles need the ACPI/MADT SMP handoff."""
+    return bool(kernel_feature and any(
+        part.startswith("native-smp") for part in kernel_feature.split(",")
+    ))
+
+
 def build(loader_feature=None, kernel_feature=None, label="normal", image_version=None):
-    if kernel_feature in WINDOW_FEATURES:
+    if native_smp_handoff_required(kernel_feature):
+        if loader_feature not in (None, "smp-handoff"):
+            raise ValueError("native SMP needs the matching SMP handoff loader")
+        loader_feature = "smp-handoff"
+    elif loader_feature == "smp-handoff":
+        raise ValueError("SMP handoff loader requires a native SMP kernel")
+    elif kernel_feature in WINDOW_FEATURES:
         wanted="desktop-hidpi" if kernel_feature=="native-window-session-hidpi" else "desktop-mode"
         if loader_feature not in (None,wanted):
             raise ValueError("Window session requires its matching desktop loader")
@@ -386,7 +399,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot"])
+    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot", "smp-handoff"])
     parser.add_argument("--image-version", type=int, help="B03: NOS_IMAGE_VERSION of an update kernel")
     parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()
