@@ -144,14 +144,12 @@ pub(super) fn poll(state: &mut State) {
             .unmap_m3_shot(state.frames, HEAP, active)
             .unwrap_or_else(|_| serial::fail(b"SMP_M3_UNMAP_SHOOTDOWN"));
         assert_eq!(pa, original.pa);
-        assert!(
-            state.processes[TARGET]
-                .paging
-                .as_ref()
-                .unwrap()
-                .permissions(HEAP)
-                .is_none()
-        );
+        assert!(state.processes[TARGET]
+            .paging
+            .as_ref()
+            .unwrap()
+            .permissions(HEAP)
+            .is_none());
         assert!(
             user::copy_plan(HEAP, 8, state.processes[TARGET].pid, false, |va| {
                 let (physical, writable, _, user) =

@@ -24,7 +24,7 @@ LOAD_CASES = {
 }
 ACCEPTANCE_CASES = frozenset(LOAD_CASES) | {
     "m3-soak-four", "m4-quotas-four", "qsim-four", "m3-kill-four",
-    "m3-unmap-four", "m3-unmap-control",
+    "m3-unmap-four", "m3-unmap-control", "m3-recovery-four",
 }
 
 
@@ -47,12 +47,24 @@ def cpu_work(cpus, switches=1000):
 
 
 def load(cpus, elapsed=30000):
-    return (prelude(cpus) + [f"SMP:LOAD:WORKERS=16:ELAPSED_MS={elapsed}"]
+    soak = []
+    if elapsed >= 600000:
+        soak = ["M4:CASE:QUOTAS:PASS", "M4:SURVIVOR_PROGRESS:PASS", "M4:CLEANUP:PASS",
+                "SMP:SOAK:K07:M4:PASS:CPUS=4"]
+        for pid in range(5, 9):
+            soak += [f"QSIM:PROCESS_PID:{pid:020d}", "QSIM:PROCESS_CHECKPOINTS:00000000000000000100",
+                     "QSIM:PROCESS_USEFUL_ARENA:00000000000000007216",
+                     "QSIM:PROCESS_MAX_WORK_GAP:00000000000000000448"]
+        soak += ["QSIM:BELL4096:PASS", "QSIM:SIX_QUBIT:PASS", "QSIM:CANCEL:PASS",
+                 "QSIM:DEADLINE:PASS", "QSIM:RESOURCE_LIMITS:PASS", "QSIM:PROCESS_ISOLATION:PASS",
+                 "SMP:SOAK:K07:QSIM:PASS:CPUS=4"]
+    return (prelude(cpus, ["QSIM:MANIFEST:PASS"] if soak else []) + soak
+            + [f"SMP:LOAD:WORKERS=16:ELAPSED_MS={elapsed}"]
             + fairness(cpus)
             + ["SMP:IPC:PASS", f"SMP:IPC:REMOTE_WAKEUPS={17 if cpus > 1 else 0}",
                f"SMP:IPC:RESCHEDULE_IPIS={13 if cpus > 1 else 0}"]
             + cpu_work(cpus)
-            + [f"SMP:SCHED:CPUS={cpus}", "SMP:M3:FPU:PASS:PROCESSES=18",
+            + [f"SMP:SCHED:CPUS={cpus}", f"SMP:M3:FPU:PASS:PROCESSES={10 if soak else 18}",
                "SMP:M3:CLEANUP:PASS", f"SMP:M3:PASS:CPUS={cpus}", "M1:PASS"])
 
 
@@ -201,11 +213,23 @@ class SmpAcceptanceOracle(unittest.TestCase):
                 "no remote wake": [x.replace("REMOTE_WAKEUPS=17", "REMOTE_WAKEUPS=0") for x in good],
                 "no reschedule receipt": [x.replace("RESCHEDULE_IPIS=13", "RESCHEDULE_IPIS=0") for x in good],
                 "no exact cleanup": [x for x in good if x != "SMP:M3:CLEANUP:PASS"],
-                "omitted process canaries": [x.replace("FPU:PASS:PROCESSES=18", "FPU:PASS:PROCESSES=16")
+                "omitted process canaries": [x.replace(f"FPU:PASS:PROCESSES={10 if minimum == 600000 else 18}", "FPU:PASS:PROCESSES=9" if minimum == 600000 else "FPU:PASS:PROCESSES=16")
                                             for x in good],
                 "fairness deadline widened": [x.replace("LIMIT_MS=400:", "LIMIT_MS=401:") for x in good],
             }
             self.reject_mutations(case, good, mutations)
+
+    def test_soak_combines_load_m4_and_qsim_in_one_four_cpu_trace(self):
+        good = load(4, elapsed=600000)
+        required = [line for line in good if line.startswith((
+            "M4:CASE:QUOTAS:", "M4:SURVIVOR_PROGRESS:", "M4:CLEANUP:",
+            "SMP:SOAK:K07:M4:", "QSIM:RESOURCE_LIMITS:", "QSIM:PROCESS_ISOLATION:",
+            "SMP:SOAK:K07:QSIM:",
+        ))]
+        self.reject_mutations("m3-soak-four", good, {
+            f"omitted {marker}": [line for line in good if line != marker]
+            for marker in required
+        })
 
     def test_single_cpu_load_cannot_be_presented_as_smp(self):
         single = load(1)

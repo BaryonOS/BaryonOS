@@ -2352,6 +2352,15 @@ code of technische contracten terug te draaien.
 
 The existing KERNEL lock-stuck bound is retained at 400 ms. The maximum deferred ticks during one acquisition is bounded at 40, derived from that bound and the existing 10 ms process timer period. Per-CPU maxima and both limits are emitted before CPUs are parked. These are acceptance limits, not measured results; they will not be enlarged in response to a failing test without a separate decision. TSC timing is restricted to the existing calibrated QEMU/TCG model. Host overcommit and ticket-lock contention remain R02 risks.
 
+One shootdown generation has one 100-ms calibrated-TSC deadline, independent
+of the number of target CPUs; it is not restarted per acknowledgement. The
+ten-minute four-vCPU soak uses one scheduler manifest with four real M4 quota
+processes, four real qsim pressure processes, a cross-CPU IPC pair and eight
+additional CPU-bound processes. M4 authority is cleaned before the IPC pair
+is admitted so unrelated queued messages cannot satisfy or perturb the quota
+oracle. The qsim result is accepted only after the M4 proof, while all eighteen
+processes remain subject to the final frame/FPU/scheduler cleanup balance.
+
 Each matrix case requires 50 successful repetitions. Any failed repetition leaves that case unaccepted; source or artifact drift terminates the run and preserves the partial report. A one-vCPU run is regression evidence. Host watchdog ratios and guest deadline ratios are separate measurements. Mocked harness tests never count as native runs.
 
 **Open acceptance:** complete L0 §9 workloads, migration with GPR/x87/SSE canaries and `active_cpus` checks, remote kill and exact cleanup, real K07 pressure across four CPUs, the 30-second concurrent workload, the ten-minute soak, negative controls and unchanged regressions. The current host checks and source integration do not accept K06 or extend K07 to SMP. No physical-hardware, speculative-execution, x2APIC or human-audit claim is made.

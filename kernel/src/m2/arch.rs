@@ -51,14 +51,14 @@ pub(super) use {gs_entry, gs_exit};
 #[repr(C, align(4096))]
 pub struct Stack {
     lower: [u8; 4096],
-    data: [u8; 16384],
+    data: [u8; 32768],
     upper: [u8; 4096],
 }
 impl Stack {
     const fn new() -> Self {
         Self {
             lower: [0; 4096],
-            data: [0; 16384],
+            data: [0; 32768],
             upper: [0; 4096],
         }
     }
@@ -67,13 +67,13 @@ static mut MAIN: Stack = Stack::new();
 static mut DOUBLE: Stack = Stack::new();
 static mut NMI: Stack = Stack::new();
 pub fn stack_top() -> u64 {
-    ptr::addr_of!(MAIN) as u64 + 20480
+    ptr::addr_of!(MAIN) as u64 + 36864
 }
 pub fn guard_pages() -> [u64; 6] {
     let main = ptr::addr_of!(MAIN) as u64;
     let double = ptr::addr_of!(DOUBLE) as u64;
     let nmi = ptr::addr_of!(NMI) as u64;
-    [main, main + 20480, double, double + 20480, nmi, nmi + 20480]
+    [main, main + 36864, double, double + 36864, nmi, nmi + 36864]
 }
 pub fn is_guard(address: u64) -> bool {
     guard_pages().contains(&address)
@@ -148,11 +148,11 @@ pub fn install() {
             .write_unaligned(stack_top());
         ptr::addr_of_mut!(TSS.ist)
             .cast::<u64>()
-            .write_unaligned(ptr::addr_of!(DOUBLE) as u64 + 20480);
+            .write_unaligned(ptr::addr_of!(DOUBLE) as u64 + 36864);
         ptr::addr_of_mut!(TSS.ist)
             .cast::<u64>()
             .add(1)
-            .write_unaligned(ptr::addr_of!(NMI) as u64 + 20480);
+            .write_unaligned(ptr::addr_of!(NMI) as u64 + 36864);
         let base = ptr::addr_of!(TSS) as u64;
         let low = 103 | ((base & 0xffffff) << 16) | (0x89 << 40) | (((base >> 24) & 0xff) << 56);
         ptr::addr_of_mut!(GDT).write([
@@ -466,11 +466,11 @@ extern "C" fn m2_exception(frame: *const u64) -> ! {
         };
         let start = frame as u64;
         if rsp >= double + 4096
-            && rsp < double + 20480
+            && rsp < double + 36864
             && start >= double + 4096
             && start
                 .checked_add(22 * 8)
-                .is_some_and(|end| end <= double + 20480)
+                .is_some_and(|end| end <= double + 36864)
             && old_rsp >= main
             && old_rsp < main + 4096
         {

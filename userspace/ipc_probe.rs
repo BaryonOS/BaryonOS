@@ -49,7 +49,11 @@ _start:
     int 0x80
     test rax, rax
     jne .Lfail
+    mov rcx, qword ptr [r12 + 152]
+    test rcx, rcx
+    jnz 1f
     mov rcx, 0x100000000
+1:
     cmp rdx, rcx
     jne .Lfail
     cmp qword ptr [r12], 0

@@ -1466,17 +1466,24 @@ impl Engine {
     }
     pub fn exit(&mut self, pid: u64) -> Result<(), Error> {
         let p = self.process(pid)?;
-        let mut roots = [false; MAX_NODES];
-        for (i, root) in roots.iter_mut().enumerate() {
-            *root = self.nodes[i].live && self.nodes[i].issuer == pid;
+        // K07 cleanup also runs on the fixed per-process kernel stack. Two
+        // byte-per-node tables needlessly consumed 2 KiB there; bitsets keep
+        // the identical bounded walk while leaving headroom for the syscall
+        // and scheduler frames that led to owner exit.
+        let mut roots = [0u64; (MAX_NODES + 63) / 64];
+        for i in 0..MAX_NODES {
+            if self.nodes[i].live && self.nodes[i].issuer == pid {
+                roots[i / 64] |= 1u64 << (i % 64);
+            }
         }
         for slot in &self.processes[p].slots[1..] {
             if self.node_live(slot.node) {
-                roots[slot.node.index as usize] = true;
+                let index = slot.node.index as usize;
+                roots[index / 64] |= 1u64 << (index % 64);
             }
         }
         let mut marks = roots;
-        for (i, mark) in marks.iter_mut().enumerate() {
+        for i in 0..MAX_NODES {
             if !self.nodes[i].live {
                 continue;
             }
@@ -1485,15 +1492,16 @@ impl Engine {
                 if !self.node_live(ancestor) {
                     break;
                 }
-                if roots[ancestor.index as usize] {
-                    *mark = true;
+                let index = ancestor.index as usize;
+                if roots[index / 64] >> (index % 64) & 1 != 0 {
+                    marks[i / 64] |= 1u64 << (i % 64);
                     break;
                 }
                 ancestor = self.nodes[ancestor.index as usize].parent;
             }
         }
-        for (i, mark) in marks.into_iter().enumerate() {
-            if mark {
+        for i in 0..MAX_NODES {
+            if marks[i / 64] >> (i % 64) & 1 != 0 {
                 self.nodes[i].revoked = true;
             }
         }

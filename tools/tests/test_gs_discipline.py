@@ -215,10 +215,20 @@ class GsDiscipline(unittest.TestCase):
         self.assertNotIn("0xc000_0102", smp)
 
     def test_gs_operands_only_in_native_smp_code(self):
-        # Rule 7: `gs:` only in the native-smp module.
+        # Rule 7: `gs:` only in the native-smp module or an assembler branch
+        # that is eliminated unless the same native-smp constant is true.
         for path in M2.glob("*.rs"):
-            uses = [line for block in asm_blocks(path) for line in block if "gs:" in line]
-            self.assertEqual(bool(uses), path.name == "smp.rs", path.name)
+            for block in asm_blocks(path):
+                conditions = []
+                for line in block:
+                    if line.startswith(".if "):
+                        conditions.append(line[4:].strip())
+                    elif line == ".endif":
+                        self.assertTrue(conditions, path.name)
+                        conditions.pop()
+                    elif "gs:" in line:
+                        self.assertTrue(path.name == "smp.rs" or "{smp_m3}" in conditions,
+                                        f"{path.name}: {line}")
         self.assertRegex((M2.parent / "m2.rs").read_text(encoding="utf-8"),
                          r'#\[cfg\(feature = "native-smp"\)\]\n(pub\(crate\) )?mod smp;')
 

@@ -366,13 +366,15 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
             ))]
             {
                 e.success += 1;
-                match number {
-                    0x20 => e.send[slot] += 1,
-                    0x21 => e.recv[slot] += 1,
-                    0x12 => e.revoke[slot] += 1,
-                    0x10 => e.close[slot] += 1,
-                    0x11 => e.derive[slot] += 1,
-                    _ => {}
+                if slot < 3 {
+                    match number {
+                        0x20 => e.send[slot] += 1,
+                        0x21 => e.recv[slot] += 1,
+                        0x12 => e.revoke[slot] += 1,
+                        0x10 => e.close[slot] += 1,
+                        0x11 => e.derive[slot] += 1,
+                        _ => {}
+                    }
                 }
             }
             (0, value)
@@ -397,7 +399,7 @@ pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (
             {
                 let index = (-error.code()) as usize;
                 e.errors[index] += 1;
-                if number == 0x21 && error == Error::Again {
+                if slot < 3 && number == 0x21 && error == Error::Again {
                     e.again[slot] += 1;
                 }
             }
@@ -420,6 +422,8 @@ pub fn process_exit(pid: u64) {
 ))]
 mod acceptance {
     use super::*;
+    #[cfg(feature = "native-smp-m3-soak")]
+    static mut SOAK_DONE: bool = false;
     pub fn observe_exit(state: &mut State, slot: usize, _counter: u64) {
         let expected = case() == 8 && state.round == 1 && slot == 0 && state.last_event.code == 0;
         state.unexpected |= !expected;
@@ -513,7 +517,9 @@ mod acceptance {
     pub fn manifest(state: &mut State) {
         assert_eq!(
             state.amount,
-            if cfg!(feature = "native-smp-m4-quotas") {
+            if cfg!(feature = "native-smp-m3-soak") {
+                18
+            } else if cfg!(feature = "native-smp-m4-quotas") {
                 4
             } else {
                 3
@@ -523,6 +529,8 @@ mod acceptance {
         // SAFETY: No active syscall; test evidence has one service-stack owner.
         unsafe {
             ptr::addr_of_mut!(EVIDENCE).write(EMPTY_EVIDENCE);
+            #[cfg(feature = "native-smp-m3-soak")]
+            ptr::addr_of_mut!(SOAK_DONE).write(false);
         }
         if state.round == 0 {
             // SAFETY: One test manifest at a time, IF=0; reset only before first round.
@@ -539,7 +547,7 @@ mod acceptance {
             put(state, slot, 56, *root);
             put(state, slot, 96, 0);
         }
-        #[cfg(feature = "native-smp-m4-quotas")]
+        #[cfg(any(feature = "native-smp-m4-quotas", feature = "native-smp-m3-soak"))]
         {
             // The fourth CPU runs the same private yield-worker as the two
             // original survivors. Register it so exact Engine cleanup covers
@@ -577,6 +585,10 @@ mod acceptance {
         assert!(engine().check_invariants());
     }
     pub fn poll(state: &mut State) -> Option<*const u64> {
+        #[cfg(feature = "native-smp-m3-soak")]
+        if unsafe { SOAK_DONE } {
+            return None;
+        }
         for p in &state.processes[..state.amount] {
             if p.status != Status::Dead {
                 assert_eq!(read_word(p.physical(DATA + 16)), p.pattern);
@@ -610,7 +622,7 @@ mod acceptance {
         if word(state, survivor, 8) <= e.survivor + 8 {
             return None;
         }
-        #[cfg(feature = "native-smp-m4-quotas")]
+        #[cfg(any(feature = "native-smp-m4-quotas", feature = "native-smp-m3-soak"))]
         {
             if (0..4).any(|cpu| state.cpu_ticks[cpu] == 0 || state.cpu_switches[cpu] < 1)
                 || (1..4).any(|slot| word(state, slot, 8) <= 8)
@@ -632,16 +644,35 @@ mod acceptance {
         }
         serial::write(case_marker());
         serial::write(b"M4:SURVIVOR_PROGRESS:PASS\n");
-        cleanup_all(state);
-        #[cfg(feature = "native-smp-m4-quotas")]
+        #[cfg(feature = "native-smp-m3-soak")]
         {
-            assert_eq!(state.free_count(), state.free_baseline);
-            serial::write(b"SMP:K07:M4:PASS:CPUS=4\n");
+            for slot in 0..4 {
+                process_exit(state.processes[slot].pid);
+            }
+            assert_eq!(engine().stats().processes, 0);
+            serial::write(b"M4:CLEANUP:PASS\nSMP:SOAK:K07:M4:PASS:CPUS=4\n");
+            // SAFETY: KERNEL/IF=0 is the sole observer of this fixture flag.
+            unsafe { SOAK_DONE = true };
+            return None;
         }
-        serial::write(b"M4:CLEANUP:PASS\n");
-        serial::write(ks_marker());
-        serial::write(b"M4:PASS\nM1:PASS\n");
-        serial::exit(0x10)
+        #[cfg(not(feature = "native-smp-m3-soak"))]
+        {
+            cleanup_all(state);
+            #[cfg(feature = "native-smp-m4-quotas")]
+            {
+                assert_eq!(state.free_count(), state.free_baseline);
+                serial::write(b"SMP:K07:M4:PASS:CPUS=4\n");
+            }
+            serial::write(b"M4:CLEANUP:PASS\n");
+            serial::write(ks_marker());
+            serial::write(b"M4:PASS\nM1:PASS\n");
+            serial::exit(0x10)
+        }
+    }
+    #[cfg(feature = "native-smp-m3-soak")]
+    pub fn soak_done() -> bool {
+        // SAFETY: called only from the KERNEL-serialized progress path.
+        unsafe { SOAK_DONE }
     }
     fn cleanup_all(state: &mut State) {
         for slot in 0..state.amount {
@@ -693,6 +724,7 @@ mod acceptance {
             _ => unreachable!(),
         }
     }
+    #[cfg(not(feature = "native-smp-m3-soak"))]
     fn ks_marker() -> &'static [u8] {
         match case() {
             0 => b"",
@@ -1057,6 +1089,8 @@ mod acceptance {
         assert_eq!(engine().stats().queued_messages, 0);
     }
 }
+#[cfg(feature = "native-smp-m3-soak")]
+pub(super) use acceptance::soak_done;
 #[cfg(all(
     not(feature = "milestone-m5"),
     not(feature = "native-qsim-job"),

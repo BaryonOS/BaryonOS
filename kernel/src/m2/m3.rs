@@ -27,18 +27,18 @@ mod display;
 mod display_fixture;
 #[cfg(feature = "fpu-context")]
 mod fpu;
-#[cfg(feature = "native-smp-m3-kill")]
-mod smp_lifecycle;
-#[cfg(feature = "native-smp-m3-unmap")]
-mod smp_unmap;
-#[cfg(feature = "native-smp-m3")]
-mod smp_recovery;
 #[cfg(feature = "process-memory")]
 mod heap;
 #[cfg(feature = "native-memory")]
 mod memory_fixture;
 #[cfg(feature = "display-input")]
 mod ps2;
+#[cfg(feature = "native-smp-m3-kill")]
+mod smp_lifecycle;
+#[cfg(feature = "native-smp-m3")]
+mod smp_recovery;
+#[cfg(feature = "native-smp-m3-unmap")]
+mod smp_unmap;
 #[cfg(feature = "ipc-wait")]
 mod wait;
 #[cfg(all(
@@ -82,7 +82,7 @@ mod keyring;
 mod m4;
 #[cfg(feature = "native-system-net")]
 mod network;
-#[cfg(feature = "native-qsim")]
+#[cfg(any(feature = "native-qsim", feature = "native-smp-m3-soak"))]
 mod qsim;
 #[cfg(feature = "native-qsim-job")]
 mod qsim_job;
@@ -247,6 +247,10 @@ mod m5;
 const ELF: &[u8] = include_bytes!(env!("NOS_USER_ELF"));
 #[cfg(feature = "native-qsim")]
 const ELF: &[u8] = include_bytes!(env!("NOS_QSIM_ELF"));
+#[cfg(feature = "native-smp-m3-soak")]
+const SOAK_QSIM_ELF: &[u8] = include_bytes!(env!("NOS_QSIM_ELF"));
+#[cfg(feature = "native-smp-m3-soak")]
+const SOAK_IPC_ELF: &[u8] = include_bytes!(env!("NOS_IPC_ELF"));
 #[cfg(feature = "native-qsim-job")]
 const ELF: &[u8] = include_bytes!(env!("NOS_QSIM_JOB_ELF"));
 #[cfg(feature = "native-sdk-app")]
@@ -552,6 +556,8 @@ struct EventRecord {
 }
 /// Only reached while holding `lock::KERNEL` (K-1, K-4).
 static mut STATE: MaybeUninit<State> = MaybeUninit::uninit();
+#[cfg(feature = "native-smp-m3-soak")]
+static mut SOAK_IPC_READY: bool = false;
 /// The `KERNEL` guard of the section in progress. A slot instead of a local,
 /// because `complete_round` resumes user mode from deep inside `m3_event`
 /// without unwinding it. Only the holder touches it, so KERNEL makes it exclusive.
@@ -746,6 +752,14 @@ fn process_elf(slot: usize) -> &'static [u8] {
 fn process_elf(_: usize) -> &'static [u8] {
     include_bytes!(env!("NOS_MEMORY_ELF"))
 }
+#[cfg(feature = "native-smp-m3-soak")]
+fn process_elf(slot: usize) -> &'static [u8] {
+    match slot {
+        0..=3 => SOAK_IPC_ELF,
+        4..=7 => SOAK_QSIM_ELF,
+        _ => ELF,
+    }
+}
 #[cfg(not(any(
     feature = "native-display-probe",
     feature = "native-memory",
@@ -754,7 +768,8 @@ fn process_elf(_: usize) -> &'static [u8] {
     feature = "native-volume",
     feature = "native-update",
     feature = "native-supervisor",
-    feature = "native-keyring"
+    feature = "native-keyring",
+    feature = "native-smp-m3-soak"
 )))]
 fn process_elf(_slot: usize) -> &'static [u8] {
     ELF
@@ -961,8 +976,16 @@ impl State {
         self.audit();
         #[cfg(feature = "native-smp-m3-unmap")]
         smp_unmap::manifest(self);
+        #[cfg(feature = "native-smp-m3-soak")]
+        m4::manifest(self);
         #[cfg(feature = "native-smp-m3-ipc")]
-        smp_ipc_manifest(self);
+        if !cfg!(feature = "native-smp-m3-soak") {
+            smp_ipc_manifest(self);
+        }
+        #[cfg(feature = "native-smp-m3-soak")]
+        unsafe {
+            SOAK_IPC_READY = false;
+        }
         if cfg!(feature = "test-m3-large-image") {
             serial::write(b"M3:LARGE_IMAGE:PASS\n");
         }
@@ -996,7 +1019,7 @@ impl State {
         desktop::manifest(self);
         #[cfg(feature = "native-window-session")]
         window_session::manifest(self);
-        #[cfg(feature = "native-qsim")]
+        #[cfg(any(feature = "native-qsim", feature = "native-smp-m3-soak"))]
         qsim::manifest(self);
         #[cfg(feature = "native-qsim-job")]
         qsim_job::manifest(self);
@@ -1119,9 +1142,20 @@ impl State {
         let smp_faulter = cfg!(feature = "test-smp-m3-fault") && slot == 2 && p.home == 2;
         #[cfg(not(feature = "native-smp-m3"))]
         let smp_faulter = false;
-        let own_mode = if cfg!(feature = "native-smp-m3-ipc") {
-            if matches!(slot, 1 | 2) {
-                20
+        let own_mode = if cfg!(feature = "native-smp-m3-soak") && (4..8).contains(&slot) {
+            0
+        } else if cfg!(feature = "native-smp-m3-ipc") {
+            let ipc_left = if cfg!(feature = "native-smp-m3-soak") {
+                8
+            } else {
+                1
+            };
+            if slot == ipc_left || slot == ipc_left + 1 {
+                if cfg!(feature = "native-smp-m3-soak") {
+                    19
+                } else {
+                    20
+                }
             } else {
                 19
             }
@@ -1291,10 +1325,18 @@ impl State {
             not(feature = "native-display-probe"),
             not(feature = "native-fpu")
         ))]
-        if !cfg!(feature = "native-smp-m3-ipc") {
+        if !cfg!(feature = "native-smp-m3-ipc") || cfg!(feature = "native-smp-m3-soak") {
             if let Some(next) = m4::poll(state) {
                 return Some(next);
             }
+        }
+        #[cfg(feature = "native-smp-m3-soak")]
+        if m4::soak_done() && unsafe { !SOAK_IPC_READY } {
+            smp_ipc_manifest(state);
+            write_word(state.processes[8].physical(DATA), 20);
+            write_word(state.processes[9].physical(DATA), 20);
+            // SAFETY: KERNEL/IF=0 serializes setup and every observer.
+            unsafe { SOAK_IPC_READY = true };
         }
         #[cfg(all(feature = "native-supervisor", not(feature = "native-system")))]
         if let Some(next) = supervisor::poll(state) {
@@ -1323,7 +1365,7 @@ impl State {
         if let Some(next) = sdk_app::poll(state) {
             return Some(next);
         }
-        #[cfg(feature = "native-qsim")]
+        #[cfg(any(feature = "native-qsim", feature = "native-smp-m3-soak"))]
         if let Some(next) = qsim::poll(state) {
             return Some(next);
         }
@@ -1616,7 +1658,9 @@ impl State {
                 let entry = self.kernel.clear_leaf(m.pa);
                 // SAFETY: KERNEL+ASPACE held; the mapping was copied above,
                 // so no shared arena borrow survives this exclusive write.
-                unsafe { ptr::addr_of_mut!(USER_MAPS[p.map_slot][index].retired_alias).write(entry) };
+                unsafe {
+                    ptr::addr_of_mut!(USER_MAPS[p.map_slot][index].retired_alias).write(entry)
+                };
             }
             #[cfg(not(feature = "native-smp-m3"))]
             self.kernel.unmap(self.frames, m.pa);
@@ -1635,9 +1679,9 @@ impl State {
             }
             #[cfg(not(feature = "native-smp-m3"))]
             {
-            self.kernel
-                .unmap(self.frames, lower + PAGE * (i as u64 + 1));
-            self.kernel.unmap(self.frames, pa);
+                self.kernel
+                    .unmap(self.frames, lower + PAGE * (i as u64 + 1));
+                self.kernel.unmap(self.frames, pa);
             }
             if !defer {
                 self.frames
@@ -2313,7 +2357,8 @@ fn event(source: *const u64) -> *const u64 {
         #[cfg(all(feature = "native-smp-m3", not(feature = "native-supervisor")))]
         {
             #[cfg(feature = "native-smp-m3-unmap")]
-            let expected_unmap = smp_unmap::expected_fault(state, current, vector, context[16], cr2);
+            let expected_unmap =
+                smp_unmap::expected_fault(state, current, vector, context[16], cr2);
             #[cfg(not(feature = "native-smp-m3-unmap"))]
             let expected_unmap = false;
             if !expected_unmap {
@@ -2610,7 +2655,10 @@ fn retire_authority(_slot: usize, _pid: u64) {
     #[cfg(feature = "native-system-net")]
     network::detach(_pid);
     #[cfg(feature = "milestone-m4")]
-    if !cfg!(feature = "native-smp-m3-ipc") || matches!(_slot, 1 | 2) {
+    if !cfg!(feature = "native-smp-m3-ipc")
+        || cfg!(feature = "native-smp-m3-soak") && matches!(_slot, 8 | 9)
+        || !cfg!(feature = "native-smp-m3-soak") && matches!(_slot, 1 | 2)
+    {
         m4::process_exit(_pid);
     }
 }
@@ -2785,7 +2833,11 @@ impl State {
     /// lowest index on a tie. Called under KERNEL during setup only.
     /// A remote kill blocks its caller until the target acknowledges on entry.
     /// The normal scheduling path releases KERNEL, allowing the target to enter.
-    #[cfg(any(feature = "native-supervisor", feature = "native-smp-m3-kill", feature = "test-smp-m3-recovery"))]
+    #[cfg(any(
+        feature = "native-supervisor",
+        feature = "native-smp-m3-kill",
+        feature = "test-smp-m3-recovery"
+    ))]
     fn retire_process(&mut self, target: usize, requester: Option<usize>) {
         const KILL_ACK_MS: u64 = 100;
         assert!(lock::kernel_held());
@@ -2909,34 +2961,40 @@ fn smp_idle() -> ! {
 #[cfg(feature = "native-smp-m3-ipc")]
 fn smp_ipc_manifest(state: &mut State) {
     use capability_core::{Message, RECV, SEND};
+    let first = if cfg!(feature = "native-smp-m3-soak") {
+        8
+    } else {
+        1
+    };
+    let second = first + 1;
     assert!(
         smp::online_mask().count_ones() >= 2 || cfg!(feature = "native-smp-m3-load"),
         "IPC requires distinct CPUs outside the one-CPU load regression"
     );
     if smp::online_mask().count_ones() >= 2 {
-        assert_ne!(state.processes[1].home, state.processes[2].home);
+        assert_ne!(state.processes[first].home, state.processes[second].home);
     }
     // Only the IPC pair needs capability-engine membership. The other load
     // workers exercise ring-3 CPU demand without changing engine quotas.
-    for p in &state.processes[1..=2] {
+    for p in &state.processes[first..=second] {
         m4::engine().register(p.pid).unwrap();
     }
     let roots = [
         m4::engine()
-            .create_endpoint(state.processes[1].pid)
+            .create_endpoint(state.processes[first].pid)
             .unwrap(),
         m4::engine()
-            .create_endpoint(state.processes[2].pid)
+            .create_endpoint(state.processes[second].pid)
             .unwrap(),
     ];
     // The bootstrap updates both spaces, so acquire them by the established
     // stable key order; release in reverse order before any scheduling.
-    let (_low, _high) = ASPACE[1].lock_pair(&ASPACE[2]);
-    for (role, slot) in [1usize, 2].into_iter().enumerate() {
+    let (_low, _high) = ASPACE[first].lock_pair(&ASPACE[second]);
+    for (role, slot) in [first, second].into_iter().enumerate() {
         let peer = 1 - role;
         let send = m4::engine()
             .bootstrap_delegate(
-                state.processes[peer + 1].pid,
+                state.processes[first + peer].pid,
                 roots[peer],
                 state.processes[slot].pid,
                 SEND,
@@ -2946,7 +3004,14 @@ fn smp_ipc_manifest(state: &mut State) {
             (64, send),
             (72, roots[role]),
             (80, role as u64),
-            (88, if cfg!(feature = "native-smp-m3-load") { u64::MAX - 1 } else { 10_000 }),
+            (
+                88,
+                if cfg!(feature = "native-smp-m3-load") {
+                    u64::MAX - 1
+                } else {
+                    10_000
+                },
+            ),
             (96, 0),
             (104, 0),
             (112, 0),
@@ -2967,8 +3032,17 @@ fn smp_ipc_manifest(state: &mut State) {
 
 #[cfg(feature = "native-smp-m3-ipc")]
 fn smp_ipc_done(state: &State) -> bool {
+    #[cfg(feature = "native-smp-m3-soak")]
+    if unsafe { !SOAK_IPC_READY } {
+        return false;
+    }
     assert!(m4::engine().check_invariants());
-    [1usize, 2].into_iter().all(|slot| {
+    let first = if cfg!(feature = "native-smp-m3-soak") {
+        8
+    } else {
+        1
+    };
+    [first, first + 1].into_iter().all(|slot| {
         let _address = ASPACE[slot].lock_irqsave();
         let p = &state.processes[slot];
         let rounds = read_word(p.physical(DATA + 96));
@@ -3056,7 +3130,14 @@ fn smp_progress(state: &mut State) {
     let ipc_done = smp_ipc_done(state);
     #[cfg(not(feature = "native-smp-m3-ipc"))]
     let ipc_done = true;
-    let done = ipc_done && lifecycle_done && recovery_done
+    #[cfg(feature = "native-smp-m3-soak")]
+    let k07_done = m4::soak_done() && qsim::soak_done();
+    #[cfg(not(feature = "native-smp-m3-soak"))]
+    let k07_done = true;
+    let done = ipc_done
+        && lifecycle_done
+        && recovery_done
+        && k07_done
         && {
             #[cfg(feature = "native-smp-m3-load")]
             {
@@ -3164,8 +3245,10 @@ fn smp_progress(state: &mut State) {
         }
     }
     #[cfg(feature = "test-smp-m3-recovery")]
-    let retained: usize = (0..state.amount).filter(|slot| state.processes[*slot].quarantined)
-        .map(|slot| smp_recovery::audit_quarantined(state, slot)).sum();
+    let retained: usize = (0..state.amount)
+        .filter(|slot| state.processes[*slot].quarantined)
+        .map(|slot| smp_recovery::audit_quarantined(state, slot))
+        .sum();
     #[cfg(not(feature = "test-smp-m3-recovery"))]
     let retained = 0;
     assert_eq!(state.free_count() + retained, state.free_baseline);
@@ -3196,7 +3279,10 @@ fn smp_fpu_evidence(state: &State) {
     const XMM15: usize = 160 + 15 * 16;
     let mut checked = 0;
     for (slot, p) in state.processes[..state.amount].iter().enumerate() {
-        if p.status == Status::Dead || p.quarantined {
+        if p.status == Status::Dead
+            || p.quarantined
+            || cfg!(feature = "native-smp-m3-soak") && slot < 8
+        {
             continue;
         }
         if fpu::image_qword(slot, XMM0) != p.pattern

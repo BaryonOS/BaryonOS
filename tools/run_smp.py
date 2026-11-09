@@ -396,7 +396,9 @@ def m3_end(outcome: str, online: int) -> list[str]:
                 + [f"QSIM:{field}:PASS" for field in ("BELL4096", "SIX_QUBIT", "CANCEL", "DEADLINE", "RESOURCE_LIMITS", "PROCESS_ISOLATION")]
                 + ["QSIM:TIMER_IRQS:*", "QSIM:SYSCALL_CALLS:*", "QSIM:CLEANUP_FRAMES:*", "SMP:K07:QSIM:PASS:CPUS=4",
                    "QSIM:CLEANUP:PASS", "QSIM:PASS", "M1:PASS"])
-    return (["M2:PASS", f"SMP:M3:GO:CPUS={online}"]
+    return (["M2:PASS"]
+            + (["QSIM:MANIFEST:PASS"] if outcome == "m3-soak" else [])
+            + [f"SMP:M3:GO:CPUS={online}"]
             + (["SMP:M3:FAULT:UD:CPU=2"] if fault else [])
             + (["SMP:M3:REMOTE_KILL:REQUEST:FROM=0:TO=3", "SMP:M3:REMOTE_KILL:ACK:CPU=3:VECTOR=*:WAIT_MS=*:LIMIT_MS=100",
                 "SMP:M3:REMOTE_KILL:CLEANUP:BEFORE=*:RELEASED=*:AFTER=*:ACTIVE=0", "SMP:M3:REMOTE_KILL:PASS:CPU=3"]
@@ -405,6 +407,13 @@ def m3_end(outcome: str, online: int) -> list[str]:
                 "SMP:MIGRATE:FROM=2:TO=0", "SMP:MIGRATE:ACTIVE:CPU=0:MASK=1",
                 "SMP:MIGRATE:CANARY:PASS"]
                if outcome == "m3-migrate" else [])
+            + (["M4:CASE:QUOTAS:PASS", "M4:SURVIVOR_PROGRESS:PASS", "M4:CLEANUP:PASS",
+                "SMP:SOAK:K07:M4:PASS:CPUS=4"]
+               + [f"QSIM:{field}:*" for _ in range(4) for field in
+                  ("PROCESS_PID", "PROCESS_CHECKPOINTS", "PROCESS_USEFUL_ARENA", "PROCESS_MAX_WORK_GAP")]
+               + [f"QSIM:{field}:PASS" for field in
+                  ("BELL4096", "SIX_QUBIT", "CANCEL", "DEADLINE", "RESOURCE_LIMITS", "PROCESS_ISOLATION")]
+               + ["SMP:SOAK:K07:QSIM:PASS:CPUS=4"] if outcome == "m3-soak" else [])
             + (["SMP:LOAD:WORKERS=*:ELAPSED_MS=*"] if outcome in ("m3-load", "m3-soak") else [])
             + ([f"SMP:FAIR:CPU={cpu}:WAIT_MS=*:DEFERRED=*:LIMIT_MS=400:LIMIT_TICKS=40"
                 for cpu in range(online)] if outcome in M3_FAIR_OUTCOMES else [])
@@ -412,7 +421,7 @@ def m3_end(outcome: str, online: int) -> list[str]:
                if outcome in ("m3-ipc", "m3-load", "m3-soak") else [])
             + [f"SMP:M3:CPU={cpu}:USER_TICKS=*:SWITCHES=*" for cpu in range(online)]
             + [f"SMP:SCHED:CPUS={online}",
-               f"SMP:M3:FPU:PASS:PROCESSES={15 if fault or outcome == 'm3-kill' else 18 if outcome in ('m3-load', 'm3-soak') else 16}", "SMP:M3:CLEANUP:PASS"]
+               f"SMP:M3:FPU:PASS:PROCESSES={15 if fault or outcome == 'm3-kill' else 10 if outcome == 'm3-soak' else 18 if outcome == 'm3-load' else 16}", "SMP:M3:CLEANUP:PASS"]
             + (["SMP:M3:K03:PASS"] if fault else [])
             + [f"SMP:M3:PASS:CPUS={online}", "M1:PASS"])
 
@@ -511,11 +520,12 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
             minimum = 600_000 if outcome == "m3-soak" else 30_000
             if workers == 16 and workers >= 2 * cpus and minimum <= elapsed <= (1 << 64) - 1:
                 line = "SMP:LOAD:WORKERS=*:ELAPSED_MS=*"
-        if outcome == "qsim":
+        if outcome in ("qsim", "m3-soak"):
             numeric = re.fullmatch(r"QSIM:([A-Z_]+):([0-9]{20})", line)
             if numeric:
                 field, value = numeric[1], int(numeric[2])
-                allowed = {"PROCESS_PID": range(1, 5), "PROCESS_USEFUL_ARENA": (7216,), "PROCESS_MAX_WORK_GAP": (448,)}
+                allowed = {"PROCESS_PID": range(5, 9) if outcome == "m3-soak" else range(1, 5),
+                           "PROCESS_USEFUL_ARENA": (7216,), "PROCESS_MAX_WORK_GAP": (448,)}
                 valid = value in allowed[field] if field in allowed else field in (
                     "PROCESS_CHECKPOINTS", "TIMER_IRQS", "SYSCALL_CALLS", "CLEANUP_FRAMES") and 0 < value <= (1 << 64) - 1
                 if valid:
@@ -555,9 +565,10 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
         raise ValueError("Unexpected SMP sequence or duplicate output")
     online = 1 if outcome in QUARANTINE_OUTCOMES \
         else min(cpus, MAX_CPUS)
-    if outcome == "qsim":
+    if outcome in ("qsim", "m3-soak"):
         pids = re.findall(r"^QSIM:PROCESS_PID:([0-9]{20})$", stdout, re.MULTILINE)
-        if list(map(int, pids)) != [1, 2, 3, 4]:
+        expected_pids = [5, 6, 7, 8] if outcome == "m3-soak" else [1, 2, 3, 4]
+        if list(map(int, pids)) != expected_pids:
             raise ValueError("Qsim SMP process identities missing, reordered or duplicated")
     return {"outcome": outcome, "profile": profile, "online": online,
             "deadline_margins": deadline_margins,

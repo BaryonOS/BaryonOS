@@ -174,7 +174,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     elif kernel_feature in ("native-fpu", "test-fpu-wait"):
         from run_fpu import build_users as build_fpu_users
         extra_env, qsim_report = build_fpu_users()
-    elif kernel_feature in ("native-qsim", "native-smp-qsim"):
+    elif kernel_feature in ("native-qsim", "native-smp-qsim", "native-smp-m3-soak"):
         output = BUILD / "users/qsim"
         run_logged([sys.executable, "-B", str(ROOT / "experiments/quantum/native/build.py"),
                     "--output-dir", str(output), "--target-dir", str(TARGET / "qsim-user")],
@@ -314,8 +314,9 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         extra_env = {f"NOS_KEYRING_{name.upper()}_ELF": str(path.resolve()) for name, path in binaries.items()}
     if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b", "m6c")):
         from build_users import build_users
-        extra_env = {"NOS_USER_ELF": str(build_users("smp-unmap" if kernel_feature in ("native-smp-m3-unmap", "test-smp-m3-no-shootdown") else "large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
-        if any(m in kernel_feature for m in ("m4", "m5", "m6a", "m6b", "m6c")):
+        extra_env = {**(extra_env or {}), "NOS_USER_ELF": str(build_users("smp-unmap" if kernel_feature in ("native-smp-m3-unmap", "test-smp-m3-no-shootdown") else "large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
+        if (any(m in kernel_feature for m in ("m4", "m5", "m6a", "m6b", "m6c"))
+                or kernel_feature == "native-smp-m3-soak"):
             extra_env["NOS_IPC_ELF"] = str(build_users("ipc").resolve())
         if any(m in kernel_feature for m in ("m5", "m6a", "m6b", "m6c")):
             extra_env["NOS_M5_ELF"] = str(build_users("m5").resolve())

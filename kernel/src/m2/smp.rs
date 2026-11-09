@@ -98,7 +98,7 @@ static NOS_SMP_AP_CONTEXTS: [ApContext; MAX_APS] = [const { ApContext::new() }; 
 #[repr(C, align(4096))]
 struct ApStack {
     lower: [u8; 4096],
-    data: [u8; 16384],
+    data: [u8; 32768],
     upper: [u8; 4096],
 }
 /// Per AP: main, #DF (IST1) and NMI (IST2) stacks, each with unmapped guards.
@@ -113,13 +113,13 @@ static mut AP_STACKS: [[ApStack; STACK_KINDS]; MAX_APS] = [const {
     [const {
         ApStack {
             lower: [0; 4096],
-            data: [0; 16384],
+            data: [0; 32768],
             upper: [0; 4096],
         }
     }; STACK_KINDS]
 }; MAX_APS];
 const STACK_SPAN: u64 = core::mem::size_of::<ApStack>() as u64;
-const STACK_TOP: u64 = 20480;
+const STACK_TOP: u64 = 36864;
 
 fn stack_base(slot: usize, kind: usize) -> u64 {
     // Address computation only; no reference to the static is formed.
@@ -141,7 +141,7 @@ const BSP_THREADS: usize = 2;
 static mut BSP_STACKS: [ApStack; BSP_THREADS] = [const {
     ApStack {
         lower: [0; 4096],
-        data: [0; 16384],
+        data: [0; 32768],
         upper: [0; 4096],
     }
 }; BSP_THREADS];
@@ -1695,7 +1695,10 @@ pub fn shootdown_m3(root: u64, start: u64, pages: u64, active: u64) -> Result<()
 #[cfg(feature = "native-smp-m3-unmap")]
 pub fn m3_unmap_timer_mask(masked: bool) {
     assert!(cpu_index() != 0);
-    lapic_write(LVT_TIMER, TIMER_PERIODIC | TIMER_VECTOR as u32 | if masked { MASKED } else { 0 });
+    lapic_write(
+        LVT_TIMER,
+        TIMER_PERIODIC | TIMER_VECTOR as u32 | if masked { MASKED } else { 0 },
+    );
 }
 
 fn apic_of_cpu(cpu: usize) -> u32 {
@@ -1728,13 +1731,22 @@ fn round(root: u64, start: u64, pages: u64, targets: u64) -> Result<(), Quaranti
     {
         return Err(Quarantined(apic_of_cpu(cpu)));
     }
-    match cpus().find(|&cpu| {
-        !within_tsc(u64::from(SHOOTDOWN_DEADLINE_MS), || {
-            local_of_cpu(cpu).shootdown_ack.load(Ordering::Acquire) == generation
-        })
-    }) {
-        Some(cpu) => Err(Quarantined(apic_of_cpu(cpu))),
-        None => Ok(()),
+    // AC-3: one named deadline bounds the complete generation. Waiting a
+    // fresh interval per target would silently multiply the contract by the
+    // number of CPUs.
+    let end = rdtsc()
+        .saturating_add(u64::from(SHOOTDOWN_DEADLINE_MS) * TSC_PER_MS.load(Ordering::Acquire));
+    loop {
+        if let Some(cpu) = cpus()
+            .find(|&cpu| local_of_cpu(cpu).shootdown_ack.load(Ordering::Acquire) != generation)
+        {
+            if rdtsc() > end {
+                return Err(Quarantined(apic_of_cpu(cpu)));
+            }
+            spin_loop();
+        } else {
+            return Ok(());
+        }
     }
 }
 
@@ -1759,9 +1771,15 @@ extern "C" fn smp_shootdown() {
         && root == SPACE_ROOT[0].load(Ordering::Relaxed))
         || {
             #[cfg(feature = "native-smp-m3")]
-            { cfg!(feature = "test-smp-m3-recovery") && M3_GO.load(Ordering::Acquire) && cpu_index() == 2 }
+            {
+                cfg!(feature = "test-smp-m3-recovery")
+                    && M3_GO.load(Ordering::Acquire)
+                    && cpu_index() == 2
+            }
             #[cfg(not(feature = "native-smp-m3"))]
-            { false }
+            {
+                false
+            }
         };
     if !deaf {
         let cr3: u64;
@@ -4446,7 +4464,11 @@ pub fn m3_recovery_reset(original_mask: u64) {
         let held = local.lockdep.load(Ordering::Acquire);
         if local.m3_entering.load(Ordering::SeqCst) || held != 0 {
             serial::write(b"SMP:QUARANTINE:LOCK_HELD:");
-            decimal(if held == 0 { u64::from(level::KERNEL) } else { u64::from(held.trailing_zeros()) });
+            decimal(if held == 0 {
+                u64::from(level::KERNEL)
+            } else {
+                u64::from(held.trailing_zeros())
+            });
             serial::write(b":CPU=");
             decimal(cpu as u64);
             serial::write(b"\n");
