@@ -1,5 +1,18 @@
 # Actuele projectstatus
 
+## PR #229 integration checkpoint — 9 November 2026
+
+**Source:** `feat/k06-5d-runqueues` at pre-checkpoint commit `27ceda10af0afa7aa36e87f52e7c8a50b6b934d4`, targeting `main`. The linked K06 dependencies are PR #227 (still open) and PR #228 (merged into the #227 feature branch, not `main`).
+
+**Completed in this checkpoint:** restored the four missing local CI composite-action files from current `main` without altering their pinned versions; added explicit OVMF firmware-path checks to `qemu-smoke`; repaired the broken audit-verification paragraph and removed generated review markers. The scheduler implementation was not changed by this checkpoint.
+
+**Verification limit:** the exact files and commits were inspected on GitHub. No local `tools/preflight.py --strict`, `tools/build.py`, `tools/run.py --smoke`, SMP native profile, Cargo test, or CI gate was executed by this checkpoint; the available shell lacks the repository checkout, Rust toolchain and QEMU. No new security or OS acceptance is claimed. Progress remains **41/100**, with K06 open.
+
+**Blocker:** GitHub reports the PR as unmergeable (`mergeable_state=dirty`) against `main`, which contains newer commits. The prerequisite #227 remains unmerged. Do not squash-merge an unverified combination of the 5b/5c/5d steps or bypass required reviews.
+
+**Next action:** reconcile the stacked dependencies with current `main`, run the relevant native SMP and standard verification gates on the resulting head, address current CodeRabbit findings, and only then squash-merge PR #229 into `main`.
+
+
 ## NEXT AGENT HANDOFF — K06 auditfixes F1 (on_cpu) en F2 (LIFO-lockdep) — 6 november 2026
 
 **Bron:** `600cee93` op `fix/k06-f1-f2-lifo-oncpu` (worktree `nieuw-os-k06-5d`), gestapeld op
