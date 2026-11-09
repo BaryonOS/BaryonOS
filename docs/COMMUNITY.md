@@ -52,9 +52,9 @@ Issue forms never add `pipeline:serial` or `pipeline:parallel` automatically. Th
 A pipeline issue has exactly one pipeline label, one open rubric criterion, and existing workflow jobs. Its body uses:
 
 ```text
-Criterion: <open ID from docs/progress.json>
+Criterium: <open ID from docs/progress.json>
 Gate: <workflow>.yml#<job>
-Depends on: #<issue-number>
+Afhankelijk van: #<issue-number>
 ```
 
 The dependency line is optional; `Gate:` may contain multiple job references separated by spaces. Pipeline labels and technical change boundaries remain under maintainer control.
