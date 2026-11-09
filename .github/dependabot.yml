@@ -21,6 +21,80 @@ updates:
     open-pull-requests-limit: 3
     labels:
       - dependencies
+  # Independent workspaces have their own manifests and lockfiles. Keep
+  # vendored third-party packages outside this explicit, owned-root list.
+  - package-ecosystem: cargo
+    directories:
+      - /drivers/acpi-power
+      - /drivers/ps2
+      - /drivers/rtc
+      - /drivers/tpm-crb
+      - /drivers/usb
+      - /drivers/virtio-snd
+      - /drivers/xhci
+      - /experiments/ai/model-store-contract
+      - /experiments/quantum/job-protocol
+      - /experiments/quantum/native
+      - /experiments/quantum/native/job
+      - /sdk/app-management
+      - /sdk/display-client
+      - /sdk/examples/audio-clip
+      - /sdk/examples/calculator
+      - /sdk/examples/compositor
+      - /sdk/examples/desktop-init
+      - /sdk/examples/display-input-probe
+      - /sdk/examples/document-export
+      - /sdk/examples/document-import
+      - /sdk/examples/fpu
+      - /sdk/examples/image-crop
+      - /sdk/examples/image-export
+      - /sdk/examples/image-probe
+      - /sdk/examples/image-viewer
+      - /sdk/examples/input-service
+      - /sdk/examples/ipc-wait-probe
+      - /sdk/examples/materiaal
+      - /sdk/examples/memory
+      - /sdk/examples/net-probe
+      - /sdk/examples/network-service
+      - /sdk/examples/presentation
+      - /sdk/examples/random-probe
+      - /sdk/examples/spreadsheet
+      - /sdk/examples/table-editor
+      - /sdk/examples/tcp-probe
+      - /sdk/examples/window-session
+      - /sdk/heap-allocator
+      - /sdk/input-client
+      - /sdk/keyring-client
+      - /sdk/net-client
+      - /services/image-codec
+      - /services/image-codec/diagnostics
+      - /services/input-core
+      - /services/nas/native-client
+      - /services/nas/native-core
+      - /services/nas/native-probe
+      - /services/nas/native-volume
+      - /services/net-broker
+      - /services/net-config
+      - /services/net-protocol
+      - /services/net-stack
+      - /services/net-tls
+      - /services/network-service
+      - /services/network-service/protocol
+      - /ui/graphics
+      - /ui/native
+      - /ui/surface-protocol
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    labels:
+      - dependencies
+    # Coalesce a dependency across directories; incompatible constraints may
+    # still require separate PRs. This is not a repository-wide PR limit.
+    groups:
+      cargo-independent:
+        patterns:
+          - "*"
+        group-by: dependency-name
   - package-ecosystem: cargo
     directory: /sdk
     schedule:
