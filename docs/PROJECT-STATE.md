@@ -1,5 +1,33 @@
 # Current project status
 
+## H05 native ACPI S5 integration — PR #213 (9 November 2026)
+
+The opt-in `native-acpi-s5` kernel profile connects the existing
+`drivers/acpi-power` parser to bounded FADT/DSDT discovery and ACPI S5 port
+writes in the fixed QEMU/OVMF configuration. Invalid firmware performs no PM1 control-port writes; serial diagnostics
+and debug-exit I/O remain active. The change adds a reset-sensitive QEMU oracle,
+five positive and two negative native runs, and the `native-power.yml`
+workflow. Source-bound original evidence is retained in
+[`verification/h05-acpi-s5/`](verification/h05-acpi-s5/).
+
+CI evidence now retains 17 tracked workflow files and 18 preservation
+calls, alongside the English ADR-076 and verification record. The 22 green
+workflow results on the former PR head `9d88326` predate integration with
+main and are not evidence for the new merge commit. No physical-hardware,
+service-initiated power-off, S3 sleep/wake, independently traced negative
+PM1 writes or complete ACPI support is claimed.
+**The current acceptance score remains 39/100; H05 is still open.**
+
+**NEXT AGENT HANDOFF (PR #213):** Main `04c8b224e3062400288a353056b75abdd3bcbba5`
+and the prior PR source `9d88326be637adccfeccc743f31b3c67185e16a8`
+were integrated at `16d8346a2968f0315334e8190eb66e8103b14cf6`;
+`ee047c512c8637f57b72528515c564f9092f164a` fixes the CI evidence counts.
+The SMP legacy profiles and 17-workflow/18-call evidence contract are retained.
+No local Rust, QEMU, strict preflight, build or smoke gate ran in this connector
+session. Confirm all applicable CI and security-review results on the latest
+source, including native-power, host-quality and qemu-smoke, before squash merge.
+Physical-hardware evidence remains missing, so H05 stays open.
+
 ## PR #154 — reviewed K06 and experimental M3/M4 SMP integration — 9 November 2026
 
 **Source:** existing PR #154 `simonvanieperen-studious-spoon` at tested source `fcaa2ef44b7bdfcabbc6368149105f978cade27a` against `main` `540f7286cea57f9fe49c55b896aa9a42fd4b4b35`. K06 MADT (up to eight CPUs) remains the default `native-smp` profile. The distinct SMP Info/M3-M4 (up to four CPUs) remains opt-in under `native-smp-legacy` and its M3/M4 profiles, without changing the default boot ABI. Duplicate UEFI ACPI 2.0 configuration entries are rejected; per-CPU safety and bounded memory-pressure recovery assertions are retained.
