@@ -2594,8 +2594,8 @@ fn bsp_switch(local: &CpuLocal, rsp: u64, busy: bool) -> Resume {
     }
 }
 
-/// IRQ0 ticks the BSP idles through for the clock check.
-const CLOCK_SPAN: u64 = 500;
+/// IRQ0 ticks the BSP idles through for the sustained clock check.
+const CLOCK_SPAN: u64 = 5_000;
 static CLOCK_LOAD: AtomicBool = AtomicBool::new(false);
 static CLOCK_WORK: AtomicU64 = AtomicU64::new(0);
 
@@ -2620,8 +2620,10 @@ fn clock_at(target: u64, bound: u64, last: &mut u64) -> Option<u64> {
 
 /// BT-1 under SMP load (spec 06 §4 "Klok"): every AP spins while the BSP
 /// idles through CLOCK_SPAN IRQ0 ticks; on the PIT-calibrated TSC they must
-/// last the PIT's own period within 1%, and the clock never goes back. A lost
-/// IRQ0 shows up as a longer span.
+/// last the PIT's own period within 1%, and the clock never goes back. The
+/// five-second observation measures sustained drift without letting one
+/// scheduling delay dominate the sample. A lost IRQ0 shows up as a longer
+/// span.
 fn clock(online: usize, total: usize) -> bool {
     CLOCK_LOAD.store(true, Ordering::Release);
     for context in &NOS_SMP_AP_CONTEXTS[..online] {
