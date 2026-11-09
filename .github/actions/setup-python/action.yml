@@ -1,0 +1,25 @@
+name: Pinned CI Python
+description: Python 3.12.12 for the standard Ubuntu runner and optional host harness dependencies.
+inputs:
+  host-dependencies:
+    description: Install the YAML parser used by the agent-gate host tests.
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - name: Python 3.12.12
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+      with:
+        python-version: '3.12.12'
+        architecture: x64
+    - name: Pinned host harness dependency
+      if: ${{ inputs.host-dependencies == 'true' }}
+      shell: bash
+      run: |
+        python3 -m pip install --disable-pip-version-check --no-deps --only-binary=:all: \
+          --require-hashes --requirement "$GITHUB_ACTION_PATH/requirements.txt"
+    - name: Verify Python version
+      shell: bash
+      run: |
+        python3 --version
+        python3 -c 'import sys; assert sys.version_info[:3] == (3, 12, 12), sys.version'

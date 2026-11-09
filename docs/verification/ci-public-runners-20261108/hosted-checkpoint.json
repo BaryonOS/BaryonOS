@@ -1,0 +1,472 @@
+{
+  "schema_version": 1,
+  "observation_utc": "2026-11-08 21:17:57 UTC",
+  "repository": "simonvanieperen/nieuw-os",
+  "source_commit": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+  "integration_base": "39586927bea616c9c1e427689f97413320b28383",
+  "pull_request": "https://github.com/simonvanieperen/nieuw-os/pull/249",
+  "scope": "Observed GitHub Actions checkpoint for the published workflow implementation; not a claim that all jobs or reviews have completed.",
+  "sources": [
+    "https://api.github.com/repos/simonvanieperen/nieuw-os/commits/338bec8ca34ba8eb2451eb660a0f1790c194efd2/check-runs?per_page=100",
+    "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/42523159827/jobs?per_page=100",
+    "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/runs/42523159745/jobs?per_page=100"
+  ],
+  "action_jobs": {
+    "total": 40,
+    "success": 39,
+    "in_progress": 1,
+    "failure": 0
+  },
+  "verified_runner_jobs": [
+    {
+      "id": 128860876818,
+      "name": "qemu-smoke",
+      "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+      "status": "completed",
+      "conclusion": "success",
+      "runner_name": "GitHub Actions 1000021138",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "started_at": "2026-11-08T21:02:43Z",
+      "completed_at": "2026-11-08T21:04:32Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159827/job/128860876818"
+    },
+    {
+      "id": 128860876947,
+      "name": "host-quality",
+      "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+      "status": "completed",
+      "conclusion": "success",
+      "runner_name": "GitHub Actions 1000021139",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "started_at": "2026-11-08T21:02:43Z",
+      "completed_at": "2026-11-08T21:05:42Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159827/job/128860876947"
+    },
+    {
+      "id": 128860876781,
+      "name": "native-smp",
+      "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+      "status": "completed",
+      "conclusion": "success",
+      "runner_name": "GitHub Actions 1000021144",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "started_at": "2026-11-08T21:02:43Z",
+      "completed_at": "2026-11-08T21:08:43Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159745/job/128860876781"
+    }
+  ],
+  "qemu_smoke_artifacts": [
+    {
+      "id": 13634570498,
+      "name": "qemu-smoke-evidence-reports",
+      "size_in_bytes": 97119,
+      "url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/artifacts/13634570498",
+      "archive_download_url": "https://api.github.com/repos/simonvanieperen/nieuw-os/actions/artifacts/13634570498/zip",
+      "expired": false,
+      "created_at": "2026-11-08T21:04:28Z",
+      "expires_at": "2026-11-11T21:04:26Z",
+      "updated_at": "2026-11-08T21:04:28Z",
+      "digest": "sha256:57d0408011ce27e81a7a7acd0fc97d5f81b1d36887b1b296389bf863fd9a9482",
+      "workflow_run": {
+        "id": 42523159827,
+        "repository_id": 1435549142,
+        "head_repository_id": 1435549142,
+        "head_branch": "ci/github-hosted-runners-20261108",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2"
+      }
+    }
+  ],
+  "checks": [
+    {
+      "id": 128862390858,
+      "name": "Graphify Formal Verification",
+      "app": "graphify-labs",
+      "status": "completed",
+      "conclusion": "neutral",
+      "completed_at": "2026-11-08T21:08:18Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/runs/128862390858"
+    },
+    {
+      "id": 128861086588,
+      "name": "native-network-service",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:05:15Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159847/job/128861086588"
+    },
+    {
+      "id": 128860948970,
+      "name": "CodeRabbit",
+      "app": "coderabbitai",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:13:18Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/runs/128860948970"
+    },
+    {
+      "id": 128860877911,
+      "name": "component-quality (image-crop)",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:55Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877911"
+    },
+    {
+      "id": 128860877863,
+      "name": "component-quality (image-viewer)",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:19Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877863"
+    },
+    {
+      "id": 128860877850,
+      "name": "component-quality (usb)",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:38Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877850"
+    },
+    {
+      "id": 128860877813,
+      "name": "component-quality (ai-model-reader)",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:15Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877813"
+    },
+    {
+      "id": 128860877808,
+      "name": "component-quality (presentation)",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:04:20Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877808"
+    },
+    {
+      "id": 128860877806,
+      "name": "component-quality (net-config)",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:04:48Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877806"
+    },
+    {
+      "id": 128860877772,
+      "name": "component-quality (audio-clip)",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:04:06Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877772"
+    },
+    {
+      "id": 128860877770,
+      "name": "component-quality (document-export)",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:47Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877770"
+    },
+    {
+      "id": 128860877768,
+      "name": "component-quality (spreadsheet)",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:04:34Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877768"
+    },
+    {
+      "id": 128860877759,
+      "name": "component-quality (image-export)",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:04:14Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877759"
+    },
+    {
+      "id": 128860877752,
+      "name": "component-quality (table-editor)",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:04:37Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877752"
+    },
+    {
+      "id": 128860877751,
+      "name": "component-quality (document-import)",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:38Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877751"
+    },
+    {
+      "id": 128860877724,
+      "name": "component-quality (virtio-snd)",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:11Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877724"
+    },
+    {
+      "id": 128860877580,
+      "name": "native-foundation",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:05:59Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159928/job/128860877580"
+    },
+    {
+      "id": 128860877542,
+      "name": "s08-native-resilience",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:05:25Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159815/job/128860877542"
+    },
+    {
+      "id": 128860877539,
+      "name": "component-quality (acpi-power)",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:09Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877539"
+    },
+    {
+      "id": 128860877369,
+      "name": "native-window-session",
+      "app": "github-actions",
+      "status": "in_progress",
+      "conclusion": null,
+      "completed_at": null,
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159801/job/128860877369"
+    },
+    {
+      "id": 128860877180,
+      "name": "nas-native-normal-cold",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:04:05Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159825/job/128860877180"
+    },
+    {
+      "id": 128860877110,
+      "name": "k07-native",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:04:02Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159782/job/128860877110"
+    },
+    {
+      "id": 128860877105,
+      "name": "nas-native-probe-host-target",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:21Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159825/job/128860877105"
+    },
+    {
+      "id": 128860877067,
+      "name": "nas-native-core-host-target",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:14Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159825/job/128860877067"
+    },
+    {
+      "id": 128860877061,
+      "name": "nas-native-client-host-target",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:13Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159825/job/128860877061"
+    },
+    {
+      "id": 128860877042,
+      "name": "k05-native-supervisor",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:04:21Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159835/job/128860877042"
+    },
+    {
+      "id": 128860877008,
+      "name": "copilot-setup-steps",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:52Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159868/job/128860877008"
+    },
+    {
+      "id": 128860876947,
+      "name": "host-quality",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:05:42Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159827/job/128860876947"
+    },
+    {
+      "id": 128860876942,
+      "name": "nas-native-volume-host-target",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:13Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159825/job/128860876942"
+    },
+    {
+      "id": 128860876919,
+      "name": "app-package-core and app-management host/target quality",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:29Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159773/job/128860876919"
+    },
+    {
+      "id": 128860876860,
+      "name": "net-broker-quality",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:28Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159847/job/128860876860"
+    },
+    {
+      "id": 128860876818,
+      "name": "qemu-smoke",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:04:32Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159827/job/128860876818"
+    },
+    {
+      "id": 128860876787,
+      "name": "net-tls-quality",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:21Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159733/job/128860876787"
+    },
+    {
+      "id": 128860876781,
+      "name": "native-smp",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:08:43Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159745/job/128860876781"
+    },
+    {
+      "id": 128860876749,
+      "name": "native-rtc",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:04:09Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159798/job/128860876749"
+    },
+    {
+      "id": 128860876671,
+      "name": "b03-native-update",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:06:17Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159806/job/128860876671"
+    },
+    {
+      "id": 128860876667,
+      "name": "m6e-native-volume",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:07:53Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159777/job/128860876667"
+    },
+    {
+      "id": 128860876559,
+      "name": "b01-native-supervisor",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:04:09Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159768/job/128860876559"
+    },
+    {
+      "id": 128860876474,
+      "name": "native-display-input",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:05:19Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159742/job/128860876474"
+    },
+    {
+      "id": 128860876473,
+      "name": "native-system",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:11:35Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159704/job/128860876473"
+    },
+    {
+      "id": 128860876457,
+      "name": "artifact-store-core",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:03:13Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159715/job/128860876457"
+    },
+    {
+      "id": 128860876450,
+      "name": "package-and-verify",
+      "app": "github-actions",
+      "status": "completed",
+      "conclusion": "success",
+      "completed_at": "2026-11-08T21:04:13Z",
+      "html_url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159698/job/128860876450"
+    }
+  ],
+  "limits": [
+    "native-window-session was still in progress at this checkpoint.",
+    "CodeRabbit check success is not approval: its current review requested three minor documentation/verifier fixes.",
+    "Graphify Formal Verification concluded neutral; this is not proof of complete formal verification.",
+    "The 248 local Python tests and 179 bash syntax checks are recorded separately with source hashes in ci-public-runners-20261108.json.",
+    "No native acceptance criterion or progress weight is changed; score remains 41/100."
+  ]
+}

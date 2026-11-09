@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "pr_head": "5c291cff3b9c28e4948aeb36adda3acc6ee6a8ab",
+  "base": "363b486b06023d3d578f8eca2b23ff49045a1757",
+  "scope": "Observed GitHub jobs on the PR merge checkout; proves the bounded log fallback on real artifact-quota rejection, not a successful upload or complete raw evidence delivery. Excerpts below are selected lines, not complete job logs.",
+  "jobs": [
+    {
+      "name": "b03-native-update",
+      "run_id": 42511057222,
+      "job_id": 128824003122,
+      "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511057222/job/128824003122",
+      "conclusion": "success",
+      "started_at": "2026-11-08T18:47:44Z",
+      "completed_at": "2026-11-08T18:49:54Z",
+      "receipt_summary": {
+        "name": "b03-update-reports",
+        "source": {
+          "checkout_sha": "89722c5fd132beeecd95ae6777af601c83fd0f6f",
+          "github_sha": "89722c5fd132beeecd95ae6777af601c83fd0f6f",
+          "run_id": "42511057222",
+          "run_attempt": "1",
+          "job": "b03-native-update"
+        },
+        "job_status_before_archive": "success",
+        "evidence_state": "compact-reports-retained",
+        "retained_files": 38,
+        "retained_bytes": 306476,
+        "omitted_count": 0,
+        "omitted_reason_counts": {},
+        "omitted_list_truncated_count": 0,
+        "missing_patterns": [],
+        "warnings": []
+      },
+      "observed_excerpts": [
+        "2026-11-08T18:47:46.9444636Z HEAD is now at 89722c5 Merge 5c291cff3b9c28e4948aeb36adda3acc6ee6a8ab into 363b486b06023d3d578f8eca2b23ff49045a1757",
+        "2026-11-08T18:47:47.6201612Z HEAD is now at 89722c5 Merge 5c291cff3b9c28e4948aeb36adda3acc6ee6a8ab into 363b486b06023d3d578f8eca2b23ff49045a1757",
+        "2026-11-08T18:49:50.5426228Z ##[error]Failed to CreateArtifact: Artifact storage quota has been hit. Unable to upload any new artifacts. Usage is recalculated every 6-12 hours.",
+        "2026-11-08T18:49:50.5560897Z ##[end-action id=__self.reports;outcome=failure;conclusion=success;duration_ms=501]",
+        "2026-11-08T18:49:50.5865094Z ##[warning]Compact artifact unavailable; use the evidence record and excerpts in this run log.",
+        "2026-11-08T18:49:50.5866101Z Job status before archiving: `success`.",
+        "2026-11-08T18:49:50.5867014Z | Run log and compact collection | success |",
+        "2026-11-08T18:49:50.5867370Z | Compact artifact (3 days) | failure |",
+        "2026-11-08T18:49:50.5867768Z | Full raw artifact (1 day, manual request) | skipped |"
+      ]
+    },
+    {
+      "name": "native-display-input",
+      "run_id": 42511057121,
+      "job_id": 128824002965,
+      "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42511057121/job/128824002965",
+      "conclusion": "success",
+      "started_at": "2026-11-08T18:45:23Z",
+      "completed_at": "2026-11-08T18:47:04Z",
+      "receipt_summary": {
+        "name": "native-display-input-evidence",
+        "source": {
+          "checkout_sha": "89722c5fd132beeecd95ae6777af601c83fd0f6f",
+          "github_sha": "89722c5fd132beeecd95ae6777af601c83fd0f6f",
+          "run_id": "42511057121",
+          "run_attempt": "1",
+          "job": "native-display-input"
+        },
+        "job_status_before_archive": "success",
+        "evidence_state": "compact-reports-retained",
+        "retained_files": 27,
+        "retained_bytes": 98334,
+        "omitted_count": 16,
+        "omitted_reason_counts": {
+          "not-compact-report-type": 16
+        },
+        "omitted_list_truncated_count": 0,
+        "missing_patterns": [],
+        "warnings": []
+      },
+      "observed_excerpts": [
+        "2026-11-08T18:45:26.3141901Z HEAD is now at 89722c5 Merge 5c291cff3b9c28e4948aeb36adda3acc6ee6a8ab into 363b486b06023d3d578f8eca2b23ff49045a1757",
+        "2026-11-08T18:45:26.9751938Z HEAD is now at 89722c5 Merge 5c291cff3b9c28e4948aeb36adda3acc6ee6a8ab into 363b486b06023d3d578f8eca2b23ff49045a1757",
+        "2026-11-08T18:46:59.5784410Z ##[error]Failed to CreateArtifact: Artifact storage quota has been hit. Unable to upload any new artifacts. Usage is recalculated every 6-12 hours.",
+        "2026-11-08T18:46:59.5979845Z ##[end-action id=__self.reports;outcome=failure;conclusion=success;duration_ms=520]",
+        "2026-11-08T18:46:59.6268745Z ##[warning]Compact artifact unavailable; use the evidence record and excerpts in this run log.",
+        "2026-11-08T18:46:59.6269744Z Job status before archiving: `success`.",
+        "2026-11-08T18:46:59.6270709Z | Run log and compact collection | success |",
+        "2026-11-08T18:46:59.6271064Z | Compact artifact (3 days) | failure |",
+        "2026-11-08T18:46:59.6271454Z | Full raw artifact (1 day, manual request) | skipped |"
+      ]
+    }
+  ]
+}

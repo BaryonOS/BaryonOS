@@ -1,0 +1,87 @@
+name: Pinned CI QEMU
+description: Install verified QEMU and matching firmware from a fixed Ubuntu archive snapshot.
+inputs:
+  swtpm:
+    description: Include the TPM emulator required by the native-system gate.
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - name: Install pinned emulator packages
+      shell: bash
+      env:
+        INSTALL_SWTPM: ${{ inputs.swtpm }}
+      run: |
+        set -euo pipefail
+        . /etc/os-release
+        test "$ID" = ubuntu && test "$VERSION_ID" = 24.04
+        test "$(dpkg --print-architecture)" = amd64
+        case "$INSTALL_SWTPM" in
+          true|false) ;;
+          *) echo '::error::swtpm input must be true or false'; exit 2 ;;
+        esac
+
+        # Keep the runner's global APT sources unchanged. Old package lists and
+        # third-party repositories must not participate in this installation.
+        sources="$RUNNER_TEMP/nieuw-os-ubuntu.sources"
+        lists="$RUNNER_TEMP/nieuw-os-apt-lists"
+        mkdir -p "$lists/partial"
+        cat > "$sources" <<'EOF'
+        Types: deb
+        URIs: https://snapshot.ubuntu.com/ubuntu/20261108T000000Z
+        Suites: noble noble-updates noble-security
+        Components: main universe
+        Architectures: amd64
+        Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+        EOF
+        apt_options=(
+          -o "Dir::Etc::sourcelist=$sources"
+          -o "Dir::Etc::sourceparts=-"
+          -o "Dir::State::lists=$lists"
+          -o APT::Update::Error-Mode=any
+        )
+        packages=(
+          qemu-system-x86=1:8.2.2+ds-0ubuntu1.18
+          qemu-system-common=1:8.2.2+ds-0ubuntu1.18
+          qemu-system-data=1:8.2.2+ds-0ubuntu1.18
+          ovmf=2024.02-2ubuntu0.10
+          seabios=1.16.3-2
+          ipxe-qemu=1.21.1+git-20220113.fbbdc3926-0ubuntu2
+        )
+        if [ "$INSTALL_SWTPM" = true ]; then
+          packages+=(swtpm=0.7.3-0ubuntu5.24.04.1 libtpms0=0.9.3-0ubuntu4.24.04.1)
+        fi
+        sudo apt-get "${apt_options[@]}" update
+        sudo apt-get "${apt_options[@]}" install -y --no-install-recommends \
+          --allow-downgrades --no-remove --reinstall "${packages[@]}"
+
+        for package in "${packages[@]}"; do
+          name="${package%%=*}"
+          expected="${package#*=}"
+          actual="$(dpkg-query -W -f='${Version}' "$name")"
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::$name: expected $expected, got $actual"
+            exit 1
+          fi
+        done
+        qemu-system-x86_64 -machine help | awk '{print $1}' | grep -Fx pc-q35-8.2
+        qemu-system-x86_64 -accel help | grep -Fx tcg
+        sha256sum --check <<'EOF'
+        ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083  /usr/share/OVMF/OVMF_CODE_4M.fd
+        5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e  /usr/share/OVMF/OVMF_VARS_4M.fd
+        4eecd8e752efc02c6c0fe87eb92bf66934cb9ea67b0e1bc41e86f8430c8bf8a0  /usr/share/seabios/vgabios-stdvga.bin
+        EOF
+        {
+          echo 'OS_OVMF_CODE=/usr/share/OVMF/OVMF_CODE_4M.fd'
+          echo 'OS_OVMF_VARS=/usr/share/OVMF/OVMF_VARS_4M.fd'
+        } >> "$GITHUB_ENV"
+        {
+          echo 'Ubuntu snapshot: 20261108T000000Z'
+          printf 'Runner image: %s / %s\n' "${ImageOS:-unknown}" "${ImageVersion:-unknown}"
+          qemu-system-x86_64 --version
+          for package in "${packages[@]}"; do
+            dpkg-query -W "${package%%=*}"
+          done
+          sha256sum /usr/share/OVMF/OVMF_CODE_4M.fd /usr/share/OVMF/OVMF_VARS_4M.fd \
+            /usr/share/seabios/vgabios-stdvga.bin
+        } | tee "$RUNNER_TEMP/nieuw-os-qemu-environment.txt"

@@ -31,9 +31,15 @@ CASES = {
     "ap-double-fault-ist": ("test-smp-ap-double-fault", 4, "multi", "df-ist"),
     "ap-shootdown-deaf": ("test-smp-ap-shootdown-deaf", 4, "multi", "shootdown-quarantine"),
     "shootdown-skipped-control": ("test-smp-shootdown-skipped", 4, "multi", "stale-control"),
+    "ap-timer-dead": ("test-smp-ap-timer-dead", 4, "multi", "timer-quarantine"),
+    "lockdep-order": ("test-smp-lockdep-order", 2, "multi", "lockdep-order"),
 }
-QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine")
-TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_IST:PASS"}
+QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
+                       "timer-quarantine")
+TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_IST:PASS",
+            "lockdep-order": "SMP:LOCKDEP:ORDER:30->10"}
+# Step 5a: the BSP lock self-test after smp::start, on every non-terminal path.
+LOCKDEP_PASS = "SMP:LOCKDEP:PASS"
 
 
 def duplicate_madt() -> bytes:
@@ -64,6 +70,7 @@ def expected_smp(case: str) -> list[str]:
                 f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}",
                 f"SMP:SHOOTDOWN:PASS:CPUS={online}",
                 f"SMP:SHOOTDOWN:VISIBLE:CPUS={online}",
+                f"SMP:PREEMPT:PASS:CPUS={online}",
                 f"SMP:PARKED:APS={online - 1}"]
 
     if outcome in ("timeout", "mismatch"):
@@ -77,16 +84,24 @@ def expected_smp(case: str) -> list[str]:
     lines += [f"SMP:ONLINE:{started}/{cpus}"]
     if outcome == "online":
         return lines + settled(started)
+    if outcome == "lockdep-order":
+        # KERNEL(10) taken while FRAMES(30) is held: stop before the PASS line.
+        return lines + settled(started) + [TERMINAL[outcome]]
     lines += [f"SMP:SYNC:PASS:CPUS={started}"]
     ipi_pass = f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}"
     if outcome == "shootdown-quarantine":
         return lines + [ipi_pass, "SMP:SHOOTDOWN:TIMEOUT:APIC=1",
                         "SMP:SHOOTDOWN:FRAME_QUARANTINED",
                         f"SMP:QUARANTINED:APS={started - 1}", f"SMP:ONLINE:1/{cpus}"]
+    if outcome == "timer-quarantine":
+        return lines + [ipi_pass, f"SMP:SHOOTDOWN:PASS:CPUS={started}",
+                        f"SMP:SHOOTDOWN:VISIBLE:CPUS={started}", "SMP:PREEMPT:TIMEOUT:APIC=1",
+                        f"SMP:QUARANTINED:APS={started - 1}", f"SMP:ONLINE:1/{cpus}"]
     if outcome == "stale-control":
         # Without the shootdown every AP must still reach the reclaimed frame.
         return lines + [ipi_pass, "SMP:SHOOTDOWN:SKIPPED",
                         f"SMP:SHOOTDOWN:STALE:APS={started - 1}",
+                        f"SMP:PREEMPT:PASS:CPUS={started}",
                         f"SMP:PARKED:APS={started - 1}"]
     if outcome == "quarantine":
         return lines + ["SMP:IPI:TIMEOUT:APIC=1", f"SMP:QUARANTINED:APS={started - 1}",
@@ -124,7 +139,7 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     if terminal:
         if tail != expected:
             raise ValueError("Unexpected SMP sequence or missing IST marker")
-    elif tail != expected + list(END):
+    elif tail != expected + [LOCKDEP_PASS] + list(END):
         raise ValueError("Unexpected SMP sequence or duplicate output")
     online = 1 if outcome in QUARANTINE_OUTCOMES \
         else min(cpus, MAX_CPUS)
@@ -151,7 +166,8 @@ def run(cases: tuple[str, ...]) -> dict:
               "source_fingerprint_version": 3, "manifest_sha256": manifest_hash,
               "kernel_feature": manifest["kernel_feature"],
               "scope": ("IF0 BSP; AP bring-up, per-AP TSS/IST, bounded unicast IPIs and sync "
-                        "self-test in QEMU/TCG; no SMP scheduler, TLB shootdown or hardware evidence"),
+                        "self-test, TLB shootdown, AP preemption and BSP ticket-lock/lockdep self-test in "
+                        "QEMU/TCG; no SMP scheduler or hardware evidence"),
               "cases": []}
     save_json(destination, report)
     for case in cases:
