@@ -2045,12 +2045,7 @@ impl Paint<'_> {
         nieuw_os_graphics::theme::wallpaper(
             &mut self.canvas(),
             GraphicRect::new(0, 0, viewport.width(), viewport.height()),
-            nieuw_os_graphics::theme::Palette {
-                desktop_start: d::DESKTOP_START,
-                desktop_end: d::DESKTOP_END,
-                glow: d::DESKTOP_GLOW,
-                ..nieuw_os_graphics::theme::MATERIAAL
-            },
+            nieuw_os_graphics::theme::MATERIAAL,
         );
         let width = w.saturating_sub(48).min(440);
         let x = (w - width) / 2;
