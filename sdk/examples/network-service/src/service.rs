@@ -55,6 +55,11 @@ impl Bridge {
             }
         }
         if self.pending.is_none() {
+            // Nothing is outstanding at the broker, so the slot frame is still
+            // unpublished: drop it if it carries a revoked owner's data.
+            service
+                .discard_revoked_unpublished()
+                .unwrap_or_else(|_| fail(32));
             if let Some(frame) = service.transmission() {
                 match native::net_send(self.source, frame.bytes, 100) {
                     Ok(ticket) => {
@@ -193,6 +198,7 @@ fn run() -> ! {
     let mut pending: [Option<wire::Packet>; 2] = [None, None];
     let mut disabled = [false; 2];
     let mut drain = false;
+    let mut revoked_at = 0;
     support::put(400, 1);
     loop {
         let tick = now();
@@ -205,16 +211,35 @@ fn run() -> ! {
                         let _ = native::close_received_caps(&message);
                         fail(17)
                     }
+                    let p = message.payload();
+                    let word = |at: usize| u64::from_le_bytes(p[at..at + 8].try_into().unwrap());
+                    // Only the kernel-authenticated policy PID on this private
+                    // endpoint may stop the service or withdraw an app grant.
                     if message.sender() != pid
                         || message.tag() != CONTROL
-                        || message.payload().len() != 16
-                        || message.payload()[..8] != *b"NETSTOP1"
-                        || u64::from_le_bytes(message.payload()[8..16].try_into().unwrap()) != epoch
+                        || !matches!(p.len(), 16 | 24)
+                        || word(8) != epoch
                     {
                         fail(18)
                     }
-                    drain = true;
-                    service.retire_all(tick).unwrap_or_else(|_| fail(19));
+                    match (&p[..8], p.len()) {
+                        (b"NETSTOP1", 16) => {
+                            drain = true;
+                            service.retire_all(tick).unwrap_or_else(|_| fail(19));
+                        }
+                        (b"NETRVK01", 24) => {
+                            let slot = usize::try_from(word(16))
+                                .ok()
+                                .filter(|slot| *slot < 2)
+                                .unwrap_or_else(|| fail(18));
+                            // Sampled after the receive: the loop-top tick may
+                            // predate the policy's send after a preemption.
+                            let handled = now();
+                            service.revoke(slot, handled).unwrap_or_else(|_| fail(31));
+                            revoked_at = handled.max(1);
+                        }
+                        _ => fail(18),
+                    }
                 }
                 Err(e) if e.is_again() => {}
                 Err(_) => fail(20),
@@ -295,6 +320,8 @@ fn run() -> ! {
             (512, c.malformed_frames),
             (520, c.dropped_datagrams),
             (536, u64::from(disabled[0]) | (u64::from(disabled[1]) << 1)),
+            (544, service.revoked_mask()),
+            (552, revoked_at),
         ] {
             support::put(at, value)
         }
