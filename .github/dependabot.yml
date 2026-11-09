@@ -21,3 +21,10 @@ updates:
     open-pull-requests-limit: 3
     labels:
       - dependencies
+  - package-ecosystem: cargo
+    directory: /sdk
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
