@@ -81,6 +81,10 @@ en §7.4.2 (`\_S5`); ACPICA `hwsleep.c` `AcpiHwLegacySleep` (tag
 `R2025_04_04`) voor de schrijfvolgorde; QEMU `v10.2.1`, `hw/acpi/ich9.c` en
 `hw/acpi/core.c` (`acpi_pm1_cnt_write`) voor het emulatorgedrag.
 
+**Consequenties:** dit profiel valideert uitsluitend ACPI S5 in het vaste QEMU/OVMF-profiel. Er ontstaat geen nieuwe userspace-bevoegdheid of algemene ondersteuning voor fysieke apparaten. Tests voor ongeldige firmware moeten iedere PM1-write blokkeren.
+
+**Herzieningscriteria:** herzie dit besluit vóór uitbreiding naar fysieke hardware, na invoering van gecontroleerde service-flush en poweroff-autorisatie, of wanneer ondersteuning van ACPI-enable, AML-methoden of andere PM1-registervormen nodig wordt.
+
 ## ADR-073 — Gepreëmpteerde kernelthreads op AP's (K06 stap 4)
 
 5 november 2026; alleen in `native-smp`, de BSP blijft IF=0. Iedere AP
@@ -2360,3 +2364,23 @@ merkbeschikbaarheid vast. De voortgang blijft 41/100.
 feitelijke architectuur een inhoudelijke aanpassing vereisen. Een gerichte
 revert van de naamgevingspassages herstelt de vorige presentatie zonder
 code of technische contracten terug te draaien.
+
+
+## ADR-LICENSE-APPLICATION-20261109 — Apply MPL-2.0 to explicitly scoped project software
+
+**Date:** 9 November 2026  
+**Status:** accepted  
+**Authority:** project owner.
+
+**Context:** the repository is public, and the decision of 8 November 2026 established MPL-2.0 as the licensing baseline without yet applying it. This left the legal scope of project-owned software unnecessarily ambiguous.
+
+**Decision:** include the official, unmodified MPL-2.0 text as `LICENSE`. Project-owned software covered by MPL-2.0 is listed explicitly in `MPL-2.0-FILES.txt`. `LICENSING.md` defines the scope; third-party code and assets retain their own terms through `THIRD-PARTY.md` and component-specific notices.
+
+**Consequences:**
+
+- the software license is auditable without implying that every repository file has the same license;
+- documentation, historical evidence files, third-party assets, and project marks are not placed under MPL-2.0 solely by the root license;
+- new project-owned software files must be deliberately added to the MPL scope and receive an appropriate notice;
+- distribution still requires a separate release/SBOM/notice review.
+
+**Review criterion:** changing the primary license, scope, or exclusions requires a separate decision that addresses migration consequences for already covered files and contributions.

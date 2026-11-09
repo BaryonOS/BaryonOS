@@ -20,7 +20,7 @@ eigen OS kon zichzelf niet uitzetten. Met het opt-in kernelprofiel
 3. `parse_s5` valideert signatures, lengtes, checksums, de FADT→DSDT-binding,
    de PM1-registers en de AML-`_S5_`-subset.
 4. Pas na een geldig plan volgt de enige port-I/O: PM1a lezen, rapporteren,
-   `SLP_TYP|SLP_EN` schrijven (PM1b eerst als die bestaat). Wat geen geldig
+   eerst `SLP_TYP` met `SLP_EN` gewist naar PM1a en optioneel PM1b schrijven, daarna `SLP_EN` in dezelfde volgorde zetten. Wat geen geldig
    plan oplevert, rapporteert `UNAVAILABLE`, `UNREADABLE` of
    `REJECTED:<fout>`, doet geen port-write en eindigt met de normale
    debug-exit.
@@ -93,3 +93,5 @@ in dezelfde volgorde. Genoteerd zonder wijziging: de verwachtingen voor
   vóór de write.
 - Slaap/wek (S3), thermische en batterijfuncties en fysieke apparatuur
   ontbreken; H05 en H06 blijven open.
+
+**Integratiebewijs:** de hierboven genoemde resultaten zijn gebonden aan het oorspronkelijke broncheckpoint. De vereiste CI- en native tests op de uiteindelijke squash-merge moeten afzonderlijk slagen.
