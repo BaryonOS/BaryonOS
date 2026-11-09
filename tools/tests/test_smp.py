@@ -553,6 +553,15 @@ class RunnerTimeoutTests(unittest.TestCase):
                 stack.enter_context(patch.object(runner, "ROOT", root))
                 stack.enter_context(patch.object(runner, "source_hash", return_value="source"))
                 stack.enter_context(patch.object(runner.subprocess, "check_output", return_value="value"))
+                # Capture every on-disk receipt state, including intermediate stages.
+                receipt_states = []
+                write_receipt = runner.save_json
+
+                def record_receipt(path, data):
+                    receipt_states.append((data["status"], data["passed"]))
+                    return write_receipt(path, data)
+
+                stack.enter_context(patch.object(runner, "save_json", side_effect=record_receipt))
                 host_result = SimpleNamespace(returncode=host_exit, stdout="", stderr="")
                 host = stack.enter_context(patch.object(runner.subprocess, "run", return_value=host_result))
                 if host_exit is None:
@@ -561,7 +570,7 @@ class RunnerTimeoutTests(unittest.TestCase):
                 report = {"passed": stage_passed, "raw_qemu_exit": 33}
                 stack.enter_context(patch.object(runner, "run_guest", return_value=report))
                 stack.enter_context(patch.object(runner, "run_gate_case", return_value=report))
-                stack.enter_context(patch.object(runner, "run_smp", return_value=report))
+                smp_runner = stack.enter_context(patch.object(runner, "run_smp", return_value=report))
                 stack.enter_context(redirect_stdout(io.StringIO()))
                 self.assertEqual(runner.main(), expected_exit)
                 receipt, = (root / "docs/verification/sm-smp").glob("*.json")
@@ -569,6 +578,26 @@ class RunnerTimeoutTests(unittest.TestCase):
                 self.assertEqual(host.call_args.kwargs["timeout"], 600)
                 self.assertEqual(build.call_count, expected_stages)
                 self.assertEqual(len(summary["stages"]), expected_stages)
+                self.assertTrue(receipt_states)
+                self.assertTrue(all(
+                    not passed for status, passed in receipt_states
+                    if status != "completed"
+                ))
+                if expected_stages == 15:
+                    self.assertEqual(
+                        [(entry.args[0], entry.kwargs["profile"]) for entry in smp_runner.call_args_list],
+                        [
+                            (2, "native-smp"), (4, "native-smp"),
+                            (2, "native-smp-m3"), (2, "native-smp-m3-exit"),
+                            (2, "native-smp-m3-lock-contention"),
+                            (2, "native-smp-m3-tlb-reuse"),
+                            (2, "native-smp-m3-x87"),
+                            (2, "native-smp-m3-unexpected-ud"),
+                            (4, "native-smp-m3"), (2, "native-smp-m4"),
+                            (2, "native-smp-m4"), (2, "native-smp-m4-lifecycle"),
+                            (2, "native-smp-m4-revoke"),
+                        ],
+                    )
                 self.assertEqual(summary["status"], "completed" if host_exit == 0 else "failed")
                 self.assertEqual(summary["passed"], host_exit == 0)
                 self.assertEqual(summary["host"]["exit"], host_exit)
