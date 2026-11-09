@@ -1,5 +1,44 @@
 # Current project status
 
+## PR #154 — native SMP receipt regression fixes — 9 November 2026
+
+**Source:** existing PR #154 on `simonvanieperen-studious-spoon`, code
+commits `c25f4e8237832d8f5802f94428491cd4c684a3f2` and
+`c34384db76cb34357b040aa2d4386e2ed05e0650`, targeting `main`
+at `2ed4c087746021da3c8b96511af3209a35d0f441`.
+
+**Change:** a running, partially completed 15-stage native SMP matrix no
+longer writes a positive overall receipt before the final stage. The host
+test now inspects intermediate receipt writes and asserts the exact SMP
+profile/CPU sequence, including x87/#NM and unexpected-UD negative probes.
+These changes address two source-confirmed CodeRabbit findings; no kernel
+authority, boot ABI or native SMP scheduling behavior is modified.
+
+**Evidence and limits:** GitHub acknowledged both commits; source readback
+is required. Rust/Cargo, QEMU, RTK/Ponytail/ECC and an authenticated Git
+checkout are unavailable in this execution environment. Python host tests,
+`tools/progress.py --check`, strict preflight, build, QEMU smoke, the full
+native SMP matrix and current-head CI are **NOT EXECUTED / NOT VERIFIED**.
+No accepted criterion or progress point is added. The assessed `main`
+status remains **39/100**; branch progress assets have not been regenerated.
+
+**Integration blocker:** the PR is still dirty/unmergeable. The legacy
+four-CPU SMP Info handoff and current K06/MADT eight-CPU support overlap in
+boot protocol, loader, kernel and regression oracles. The recorded 22
+different shared-path changes need a reviewed three-way integration on this
+same PR branch, not a blanket ours/theirs merge. The remaining ABI 1.2
+graphics-header and ordinary-profile MADT boot findings still require
+evaluation.
+
+**NEXT AGENT HANDOFF:** use a pinned real checkout and integrate current
+`main` into the existing PR branch, preserve security/CI contracts, run
+`python3 tools/progress.py --check`, `python3 tools/preflight.py --strict`,
+`python3 tools/build.py`, `python3 tools/run.py --smoke`, host/Rust/CI
+tests and all 15 native SMP stages. Regenerate `docs/progress.json`,
+`docs/PROGRESS.md` and dependent artifacts using project tooling. Review
+CodeRabbit and required CI on the integrated SHA; only then squash with
+the expected PR head. **No merge was performed at this checkpoint.**
+
 ## NEXT AGENT HANDOFF — PR #154 SMP integration — 9 November 2026
 
 **Source:** existing PR #154 branch `simonvanieperen-studious-spoon`; checkpoint `a759d62adc4365d0f8efb41a191d50c4bb1dfa12`; target `main` at `2ed4c087746021da3c8b96511af3209a35d0f441`; merge base `5c66ec57aaf8eb411a83b8d6e42320ddc379383c`. The pull request is still open and is not merged.
