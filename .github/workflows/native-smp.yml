@@ -7,6 +7,10 @@ on:
         description: 'Also retain raw images, frames and builds for 1 day'
         type: boolean
         default: false
+      full_matrix:
+        description: 'Run the complete SMP section 9 matrix 50 times per case'
+        type: boolean
+        default: false
   pull_request:
     types: [opened, synchronize, reopened]
     paths-ignore: ['docs/**', '*.md']
@@ -28,6 +32,7 @@ defaults:
 
 jobs:
   native-smp:
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.full_matrix }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -207,3 +212,250 @@ jobs:
             build/k06-*/run/smp-*/result.json
             build/k06-*/run/smp-*/serial.txt
             build/k06-*/run/smp-*/stderr.txt
+
+  smp-case-50:
+    name: SMP 50/50 (${{ matrix.case }})
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        case:
+          - one
+          - two-single
+          - four
+          - eight
+          - nine-capacity
+          - duplicate-madt
+          - ap-stall
+          - ap-mismatch
+          - ap-ipi-deaf
+          - ap-nmi-ist
+          - ap-double-fault-ist
+          - ap-shootdown-deaf
+          - shootdown-skipped-control
+          - ap-timer-dead
+          - lockdep-order
+          - spin-irq-off-control
+          - held-across-switch
+          - double-run
+          - gs-user
+          - gs-iret-fault
+          - gs-nmi-user
+          - shared-scratch
+          - lock-in-handler
+          - lockpair-order
+          - resched-deaf
+          - icr-race-control
+          - quarantine-lock-held
+          - bsp-spin-irq-off-control
+          - proc-shootdown-deaf
+          - proc-no-shootdown-control
+          - lock-stuck
+          - m3-one
+          - m3-one-multi
+          - m3-two-single
+          - m3-two
+          - m3-four-single
+          - m3-four
+          - m3-eight-single
+          - m3-eight
+          - m3-ipc-four-single
+          - m3-ipc-four
+          - m3-migrate-four-single
+          - m3-migrate-four
+          - m3-migrate-eight-single
+          - m3-migrate-eight
+          - m3-canary-control
+          - m3-fault-ap2
+          - m3-fpu-skip-control
+          - serial-unlocked-control
+          - m3-load-one
+          - m3-load-one-multi
+          - m3-load-two-single
+          - m3-load-two
+          - m3-load-four-single
+          - m3-load-four
+          - m3-load-eight-single
+          - m3-load-eight
+          - m4-quotas-four
+          - qsim-four
+          - m3-kill-four
+          - m3-unmap-four
+          - m3-unmap-control
+          - m3-recovery-four
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-smp-${{ matrix.case }}
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/smp-${{ matrix.case }}
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/smp-${{ matrix.case }}
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout frozen source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Pinned Rust
+        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Build one frozen profile and run the case 50 times
+        env:
+          SMP_CASE: ${{ matrix.case }}
+        run: |
+          profile="$(python3 -B - <<'PY'
+          import os
+          from tools.run_smp import CASES
+          print(CASES[os.environ['SMP_CASE']][0])
+          PY
+          )"
+          python3 -B tools/build.py --kernel-feature "$profile"
+          python3 -B -u tools/run_smp.py --case "$SMP_CASE" --repeat 50
+          git diff --exit-code
+      - name: Preserve case evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: smp-case-${{ matrix.case }}
+          path: |
+            build/k06-smp-${{ matrix.case }}/manifest.json
+            build/k06-smp-${{ matrix.case }}/smp-report.json
+            build/k06-smp-${{ matrix.case }}/run/smp-*/result.json
+            build/k06-smp-${{ matrix.case }}/run/smp-*/serial.txt
+            build/k06-smp-${{ matrix.case }}/run/smp-*/stderr.txt
+          if-no-files-found: warn
+          retention-days: 14
+          compression-level: 9
+
+  smp-soak-50:
+    name: SMP soak 5/50 (shard ${{ matrix.shard }})
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-smp-soak-${{ matrix.shard }}
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/smp-soak-${{ matrix.shard }}
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/smp-soak-${{ matrix.shard }}
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout frozen source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Pinned Rust
+        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Build the frozen soak profile and run five times
+        run: |
+          python3 -B tools/build.py --kernel-feature native-smp-m3-soak
+          python3 -B -u tools/run_smp.py --case m3-soak-four --repeat 5
+          git diff --exit-code
+      - name: Preserve soak evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: smp-soak-${{ matrix.shard }}
+          path: |
+            build/k06-smp-soak-${{ matrix.shard }}/manifest.json
+            build/k06-smp-soak-${{ matrix.shard }}/smp-report.json
+            build/k06-smp-soak-${{ matrix.shard }}/run/smp-*/result.json
+            build/k06-smp-soak-${{ matrix.shard }}/run/smp-*/serial.txt
+            build/k06-smp-soak-${{ matrix.shard }}/run/smp-*/stderr.txt
+          if-no-files-found: warn
+          retention-days: 14
+          compression-level: 9
+
+  smp-matrix-aggregate:
+    name: SMP section 9 aggregate 64x50
+    if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.full_matrix }}
+    needs: [smp-case-50, smp-soak-50]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout frozen source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Download every case and soak report
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: smp-*
+          path: build/k06-smp-artifacts
+      - name: Require exact 50/50 evidence on one source hash
+        run: |
+          python3 -B tools/aggregate_smp_ci.py \
+            --input-dir build/k06-smp-artifacts \
+            --output build/k06-smp-matrix/matrix-report.json
+          git diff --exit-code
+      - name: Preserve aggregate report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: smp-section9-matrix-report
+          path: build/k06-smp-matrix/matrix-report.json
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 9
+
+  smp-final-gate:
+    name: SMP final repository gate
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix }}
+    needs: smp-matrix-aggregate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-smp-final-gate
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/smp-final-gate
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/smp-final-gate
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+      GATE_REQUIRE_QEMU: '1'
+    steps:
+      - name: Checkout accepted source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Pinned Rust
+        run: rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Run tools/gate.sh only after the complete matrix
+        run: |
+          mkdir -p build/k06-smp-final-gate/logs
+          set -o pipefail
+          tools/gate.sh 2>&1 | tee build/k06-smp-final-gate/logs/gate.log
+          git diff --exit-code
+      - name: Preserve final gate evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: smp-section9-final-gate
+          path: |
+            build/k06-smp-final-gate/logs/gate.log
+            build/k06-smp-final-gate/manifest.json
+            build/k06-smp-final-gate/run/**/result.json
+            build/k06-smp-final-gate/run/**/serial.txt
+            build/k06-smp-final-gate/run/**/stderr.txt
+          if-no-files-found: warn
+          retention-days: 30
+          compression-level: 9
