@@ -1,5 +1,31 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — PR #167 switcher review repair — 10 November 2026
+
+**Proposal:** VELD-08 remains a bounded Alt+Tab subgate. It does not accept the
+complete native session, recovery, accessibility, or interaction-budget criteria.
+
+**Implementation:** PR #167 now includes current `main` `5456296` and binds each
+tested key edge to an acknowledged pointer marker with an exact input-counter
+delta. The native work-frame reference additionally requires `SHELL_READY` and
+two consecutive byte-identical full-screen captures. No capability, kernel ABI,
+dependency, storage right, or default gate was changed.
+
+**Test evidence:** `python3 -B tools/test_window_session.py` passed 23 host tests;
+`python3 tools/progress.py --check` and `git diff --check` passed. Strict preflight
+reported missing Rust, QEMU, and OVMF; the build and smoke commands consequently
+failed before execution. Exact source, commands, exit codes, and evidence limits
+are recorded in
+[`verification/pr167-switcher-review-fix-20261110.json`](verification/pr167-switcher-review-fix-20261110.json).
+
+**Unknown:** The final PR head still requires current-head CodeRabbit/CodeQL and
+required checks, including native switcher runs at 100% and 200%. Historical
+native receipts do not verify this repair. **Progress remains 39/100.**
+
+**Next:** evaluate only the final published head checks, resolve the verified
+review thread, and squash-merge with an expected head SHA when all required
+gates are green.
+
 ## H05 native ACPI S5 integration — PR #213 (9 November 2026)
 
 The opt-in `native-acpi-s5` kernel profile connects the existing
