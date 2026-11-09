@@ -46,11 +46,11 @@ class WorkflowVerifierTests(unittest.TestCase):
         return VERIFIER.run(self.repo, self.baseline)
 
     def test_integrated_workflows_preserve_all_reporting_cases(self):
-        """A valid post-migration baseline retains all 16 evidence selections."""
+        """A valid post-migration baseline retains all 17 evidence selections."""
         report = self.report()
         self.assertTrue(report["passed"], report["failed_checks"])
-        self.assertEqual(report["archive_workflow_count"], 16)
-        self.assertEqual(len(report["archive_workflows"]), 16)
+        self.assertEqual(report["archive_workflow_count"], 17)
+        self.assertEqual(len(report["archive_workflows"]), 17)
         self.assertEqual(report["local_snapshot_baseline"], self.baseline)
         self.assertEqual(report["repository_path"], ".")
         self.assertTrue(all(comparison["status"] == "compared"
@@ -58,7 +58,7 @@ class WorkflowVerifierTests(unittest.TestCase):
                             for comparison in report["baseline_comparisons"].values()))
         for prefix in ("preservation-invocation:", "existing-preservation-step-unchanged:"):
             self.assertEqual(sum(check["name"].startswith(prefix)
-                                 for check in report["checks"]), 16)
+                                 for check in report["checks"]), 17)
         self.assertEqual(sum(check["name"].startswith("report-shell:")
                              for check in report["checks"]), 28)
         self.assertEqual(sum(check["name"].startswith("package-check:")
