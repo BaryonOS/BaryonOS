@@ -104,6 +104,8 @@ def main() -> int:
         ("m3-exit-two", "native-smp-m3-exit", 2, "m3-exit-smp"),
         ("m3-lock-contention-two", "native-smp-m3-lock-contention", 2, "m3-smp"),
         ("m3-tlb-reuse-two", "native-smp-m3-tlb-reuse", 2, "m3-tlb-smp"),
+        ("m3-x87-two", "native-smp-m3,test-m3-x87", 2, "native-smp-m3-x87"),
+        ("m3-unexpected-ud-two", "native-smp-m3,test-m3-ud", 2, "native-smp-m3-unexpected-ud"),
         ("m3-single-regression", "milestone-m3", 1, "m3"),
         ("m3-four", "native-smp-m3", 4, "m3-smp"),
         ("m4-two", "native-smp-m4", 2, "m4-smp"),
@@ -128,6 +130,8 @@ def main() -> int:
                 )
             elif runner == "m4-lifecycle-smp":
                 report = run_smp(cpus, profile="native-smp-m4-lifecycle")
+            elif runner in ("native-smp-m3-x87", "native-smp-m3-unexpected-ud"):
+                report = run_smp(cpus, profile=runner)
             else:
                 report = run_smp(cpus, profile=feature)
             summary["stages"].append({
