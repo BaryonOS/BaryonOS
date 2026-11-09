@@ -4,6 +4,12 @@
 
 The VELD-08 window-switcher correction and synchronization with main were committed as `d14253d1c5e8d169116e59174ca1ed193e96f5bd` on `veld/next-shell-20261103`. The patch adds blocked-page and minimized-window regression coverage, requires a fully repainted native screen before fixture capture, makes key-edge input counting exact, and requests F10 cleanup. Historical native two-scale evidence is bound to `537fee48c1c31155a51a997cd7a2236b159e9ac7` and does **not** establish a native pass for the revised source. CI and review for the new head are pending at this checkpoint. Progress remains **41/100**, with no newly accepted native criterion. Resume with current-head CI/review and the two native switcher scale gates before claiming native acceptance.
 
+## PR #181 — PCI device lifecycle policy checkpoint — 9 November 2026
+
+The new `kernel-core` device execution lease registry models PCI function/generation binding, bounded config and BAR access, directional DMA grants, interrupt teardown, quarantine and release. It is a host-testable policy model only; no production kernel driver adapter is connected. Bus-master enablement is test-only until a kernel-issued, enforced DMA/IOMMU-containment proof exists. Live DMA frames are not pinned against the generic allocator's free path. Do not treat this as native PCI, DMA/IOMMU or physical-hardware acceptance.
+
+The CI-blocking rustfmt regression was corrected on PR [#181](https://github.com/simonvanieperen/BaryonOS/pull/181) in `edb5ac77e3dac7e511c664e04e52d009175b6e23`; current `main` was integrated into the PR at `157182c068c62533bf06e4e8a1c994e7e72d2842` without replacing its two source-file changes. The current PR-head CI still must be evaluated; historical tests from earlier source commits are not proof for this checkpoint. Progress: **41/100 → 41/100**; no new criterion is accepted. Follow-up: add enforced DMA pinning/containment, then a fail-closed native adapter and negative runtime tests before exposing drivers to this model.
+
 ## PR #284 refresh — 9 November 2026
 
 Dependabot coverage is extended to the remaining independent Cargo workspaces. The separate SDK entry from #285 is retained; its directory is excluded from the grouped entry to prevent duplicates. Progress remains 41/100. Local preflight, build and QEMU smoke passed (exit 0 each); all 11 workflow/Dependabot contract tests passed in WSL with the Windows worktree Git directory explicitly selected.
