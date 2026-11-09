@@ -1,0 +1,554 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-11-08T21:37:23.324765+00:00",
+  "repository": "simonvanieperen/nieuw-os",
+  "base_head": "1f3e7b6acdfd4b5ca84a69422a2d3ed6e424609a",
+  "source_commit": "1f3e7b6acdfd4b5ca84a69422a2d3ed6e424609a",
+  "assessment_basis": "working tree based on source_commit, with changed-file hashes below",
+  "scope": "CodeRabbit review policy and fail-closed workflow verifier after PR249 merged; no product code or workflow behavior changed by this follow-up.",
+  "ruleset_snapshot": {
+    "id": 25967588,
+    "name": "Bescherm main branch",
+    "target": "branch",
+    "source_type": "Repository",
+    "source": "simonvanieperen/nieuw-os",
+    "enforcement": "active",
+    "conditions": {
+      "ref_name": {
+        "exclude": [],
+        "include": [
+          "~DEFAULT_BRANCH"
+        ]
+      }
+    },
+    "rules": [
+      {
+        "type": "deletion"
+      },
+      {
+        "type": "non_fast_forward"
+      },
+      {
+        "type": "required_linear_history"
+      },
+      {
+        "type": "pull_request",
+        "parameters": {
+          "required_approving_review_count": 0,
+          "dismiss_stale_reviews_on_push": false,
+          "required_reviewers": [],
+          "require_code_owner_review": false,
+          "require_last_push_approval": false,
+          "required_review_thread_resolution": true,
+          "require_extra_approval_for_unattributed_changes": false,
+          "allowed_merge_methods": [
+            "squash"
+          ]
+        }
+      },
+      {
+        "type": "required_status_checks",
+        "parameters": {
+          "strict_required_status_checks_policy": true,
+          "do_not_enforce_on_create": false,
+          "required_status_checks": [
+            {
+              "context": "host-quality"
+            },
+            {
+              "context": "qemu-smoke"
+            }
+          ]
+        }
+      }
+    ],
+    "node_id": "RRS_lACqUmVwb3NpdG9yec5VkL3WzgGMO-Q",
+    "created_at": "2026-10-27T15:56:40.860+01:00",
+    "updated_at": "2026-11-05T14:16:46.601+01:00",
+    "bypass_actors": [],
+    "current_user_can_bypass": "never",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/simonvanieperen/nieuw-os/rulesets/25967588"
+      },
+      "html": {
+        "href": "https://github.com/simonvanieperen/nieuw-os/rules/25967588"
+      }
+    }
+  },
+  "diagnosis": {
+    "scope": "Read-only pre-repair snapshot; statuses may change independently. Counts overlap and are not additive.",
+    "observed_at_utc": "2026-11-08T21:25:41.423Z",
+    "open_prs": 27,
+    "code_rabbit_changes_requested": 22,
+    "merge_conflicts": 17,
+    "open_code_rabbit_threads": 123,
+    "open_other_threads": 35
+  },
+  "diagnosis_files": [
+    "docs/verification/coderabbit-unblock-20261108/open-pr-snapshot.json",
+    "docs/verification/coderabbit-unblock-20261108/old-runner-jobs.json"
+  ],
+  "fixed_review_threads": [
+    {
+      "id": "PRRT_kwDOVZC91s61Eabb",
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/249#discussion_r4507815299",
+      "path": "docs/CI-EVIDENCE.md",
+      "fix": "Document all three upload variants as best effort; collection, tests and validation remain mandatory."
+    },
+    {
+      "id": "PRRT_kwDOVZC91s61Eabe",
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/249#discussion_r4507815302",
+      "path": "docs/verification/ci-artifact-storage-20261108/verify_workflows.py",
+      "fix": "Use integrated baseline338bec8 by default, preserve strict comparison and historical artifact-only mode, emit explicit failure reports for missing baseline/workflows."
+    },
+    {
+      "id": "PRRT_kwDOVZC91s61Eabj",
+      "url": "https://github.com/simonvanieperen/nieuw-os/pull/249#discussion_r4507815312",
+      "path": "README.md",
+      "fix": "Generated assessment names the working tree and bound report; historical248-test results refer to working-tree hashes beyond integration basis39586927;224 tests remain labelled as the earlier checkpoint."
+    }
+  ],
+  "local_validation": {
+    "checked_at_utc": "2026-11-08T21:35:26.684725+00:00",
+    "base_commit": "7b82315a7502ee3f4f10192a7748c509eabaf075",
+    "commands": [
+      {
+        "name": "evidence-tests",
+        "command": "python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py' -v",
+        "exit_code": 0,
+        "elapsed_seconds": 11.879,
+        "log": "docs/verification/coderabbit-unblock-20261108/evidence-tests.txt"
+      },
+      {
+        "name": "workflow-tests",
+        "command": "python3 -B -m unittest discover -s tests -p test_ci_workflows.py -v",
+        "exit_code": 0,
+        "elapsed_seconds": 0.239,
+        "log": "docs/verification/coderabbit-unblock-20261108/workflow-tests.txt"
+      },
+      {
+        "name": "workflow-verifier",
+        "command": "python3 -B docs/verification/ci-artifact-storage-20261108/verify_workflows.py --repo . --output docs/verification/coderabbit-unblock-20261108/workflows.json",
+        "exit_code": 0,
+        "elapsed_seconds": 1.424,
+        "log": "docs/verification/coderabbit-unblock-20261108/workflow-verifier.txt"
+      }
+    ],
+    "schema_validation": "passed",
+    "negative_historical_comparison": {
+      "exit_code": 1,
+      "expected_result": "fail",
+      "checks": 193,
+      "failed_checks": [
+        "workflow-inventory-preserved",
+        "original-tests-runners-gates-preserved:.github/workflows/app-management-quality.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/artifact-store-quality.yml",
+        "preservation-calls-unchanged:.github/workflows/ci.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/ci.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/component-leaves.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/copilot-setup-steps.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/entropy-keys.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/materiaal-probe.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/nas-core.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/native-display-input.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/native-foundation.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/native-rtc.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/native-smp.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/native-system.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/native-window-session.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/net-broker-quality.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/net-tls-quality.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/private-publication-audit.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/process-management.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/resource-pressure.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/signed-updates.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/storage-resilience.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/volume-acceptance.yml",
+        "original-tests-runners-gates-preserved:.github/workflows/windows-qemu-test-version.yml",
+        "archive-workflow-set-preserved"
+      ],
+      "report": "docs/verification/coderabbit-unblock-20261108/historical-baseline-mismatch.json"
+    }
+  },
+  "result_counts": {
+    "evidence_tests": 23,
+    "workflow_tests": 9,
+    "new_regression_tests": 8,
+    "workflow_verifier_checks": 228,
+    "evidence_workflows": 16,
+    "historical_artifact_verifier_checks": 189
+  },
+  "independent_ai_review": {
+    "type": "Static review by separate AI reviewer; not human audit",
+    "base": "7b82315a7502ee3f4f10192a7748c509eabaf075",
+    "verifier_sha256": "4068915dc0638c040d5372c4b23c8c77f6e31bb20c6e10d32df6d40bc33978f9",
+    "test_sha256": "d30766550ddc863cecea63747ff2ae573224db3fd5b1e4a57ce592e4cbbfbc80",
+    "blocking_findings": 0,
+    "boundary": "Effective inherited CodeRabbit configuration still requires observation after publication."
+  },
+  "github_before_patch": {
+    "head": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+    "checks": [
+      {
+        "name": "Graphify Formal Verification",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "neutral",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128862390858"
+      },
+      {
+        "name": "native-network-service",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159847/job/128861086588"
+      },
+      {
+        "name": "CodeRabbit",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/runs/128860948970"
+      },
+      {
+        "name": "component-quality (image-crop)",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877911"
+      },
+      {
+        "name": "component-quality (image-viewer)",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877863"
+      },
+      {
+        "name": "component-quality (usb)",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877850"
+      },
+      {
+        "name": "component-quality (ai-model-reader)",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877813"
+      },
+      {
+        "name": "component-quality (presentation)",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877808"
+      },
+      {
+        "name": "component-quality (net-config)",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877806"
+      },
+      {
+        "name": "component-quality (audio-clip)",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877772"
+      },
+      {
+        "name": "component-quality (document-export)",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877770"
+      },
+      {
+        "name": "component-quality (spreadsheet)",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877768"
+      },
+      {
+        "name": "component-quality (image-export)",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877759"
+      },
+      {
+        "name": "component-quality (table-editor)",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877752"
+      },
+      {
+        "name": "component-quality (document-import)",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877751"
+      },
+      {
+        "name": "component-quality (virtio-snd)",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877724"
+      },
+      {
+        "name": "native-foundation",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159928/job/128860877580"
+      },
+      {
+        "name": "s08-native-resilience",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159815/job/128860877542"
+      },
+      {
+        "name": "component-quality (acpi-power)",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159968/job/128860877539"
+      },
+      {
+        "name": "native-window-session",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "cancelled",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159801/job/128860877369"
+      },
+      {
+        "name": "nas-native-normal-cold",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159825/job/128860877180"
+      },
+      {
+        "name": "k07-native",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159782/job/128860877110"
+      },
+      {
+        "name": "nas-native-probe-host-target",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159825/job/128860877105"
+      },
+      {
+        "name": "nas-native-core-host-target",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159825/job/128860877067"
+      },
+      {
+        "name": "nas-native-client-host-target",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159825/job/128860877061"
+      },
+      {
+        "name": "k05-native-supervisor",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159835/job/128860877042"
+      },
+      {
+        "name": "copilot-setup-steps",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159868/job/128860877008"
+      },
+      {
+        "name": "host-quality",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159827/job/128860876947"
+      },
+      {
+        "name": "nas-native-volume-host-target",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159825/job/128860876942"
+      },
+      {
+        "name": "app-package-core and app-management host/target quality",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159773/job/128860876919"
+      },
+      {
+        "name": "net-broker-quality",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159847/job/128860876860"
+      },
+      {
+        "name": "qemu-smoke",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159827/job/128860876818"
+      },
+      {
+        "name": "net-tls-quality",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159733/job/128860876787"
+      },
+      {
+        "name": "native-smp",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159745/job/128860876781"
+      },
+      {
+        "name": "native-rtc",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159798/job/128860876749"
+      },
+      {
+        "name": "b03-native-update",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159806/job/128860876671"
+      },
+      {
+        "name": "m6e-native-volume",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159777/job/128860876667"
+      },
+      {
+        "name": "b01-native-supervisor",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159768/job/128860876559"
+      },
+      {
+        "name": "native-display-input",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159742/job/128860876474"
+      },
+      {
+        "name": "native-system",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159704/job/128860876473"
+      },
+      {
+        "name": "artifact-store-core",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159715/job/128860876457"
+      },
+      {
+        "name": "package-and-verify",
+        "head_sha": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42523159698/job/128860876450"
+      }
+    ],
+    "boundary": "These results belong only to the previous head; the new head requires its own checks. The cancelled window-session job is not claimed as passing."
+  },
+  "configuration": {
+    "file": ".coderabbit.yaml",
+    "schema_validation_report": "docs/verification/coderabbit-unblock-20261108/config-validation.json",
+    "intent": "Keep incremental reviews; quiet inline feedback; disable new automatic review verdicts; keep docstring coverage advisory; inherit other tool/path/base-branch configuration.",
+    "effective_configuration": "Pending a new CodeRabbit review; global overrides and inherited legacy aliases have not been inspected in the authenticated CodeRabbit UI."
+  },
+  "progress": {
+    "before": 41,
+    "after": 41,
+    "changed_criteria": []
+  },
+  "not_run": [
+    "Local Rust builds/tests",
+    "Local QEMU execution",
+    "CodeRabbit CLI review",
+    "Authenticated CodeRabbit repository UI settings changes"
+  ],
+  "remaining_work_at_checkpoint": [
+    "Publish the focused follow-up branch as a draft PR, then ready for review and retain squash auto-merge under existing rules.",
+    "Verify fresh required CI and the effective CodeRabbit review configuration.",
+    "Update older PR branches with current hosted workflows/configuration while preserving their changes and resolving actual findings/conflicts."
+  ],
+  "file_sha256": {
+    ".coderabbit.yaml": "00e7bd25187cbb5b68aac99a563d08ecb2dabf92c9124441d20249b90ec14170",
+    "docs/CI.md": "575c0884877e6f45ed20a40a555dc048d76a6fe10576a8f7dfe50c88e85cf4d3",
+    "docs/CI-EVIDENCE.md": "97454d27d1140ac672fedb65f85ab0ec7a40493fca12c12cf5b221a1f07e2cd1",
+    "docs/DECISIONS.md": "c2ee9857f530a2b92e7957d1148f3bff27fbae7dafe95b1bdcc7ca4948b6f908",
+    "docs/PROJECT-STATE.md": "5455603797f525409ccde1eef3d49fab416859c0dea09138a9f980c60efb5d71",
+    "docs/PROGRESS.md": "aeedca56c44dd107b2c408654b5efa1cffab75f88b36a1cc4739cad7a0a0f34a",
+    "docs/progress.json": "f211d6ddf81912faa2de57eac19a4a103bbe127b14353f2b624ad8191867b21b",
+    "README.md": "9e9dc19950bfdafce2ac7c381f22d35e89d0a52292ae3efedcf0a8972f933993",
+    "docs/assets/progress.svg": "70502e7a1b3574292a3126dd27036b8c4e0c7dba5732555687bcb76ebb751e29",
+    "docs/verification/ci-artifact-storage-20261108/verify_workflows.py": "4068915dc0638c040d5372c4b23c8c77f6e31bb20c6e10d32df6d40bc33978f9",
+    "tests/test_ci_evidence_workflow_verifier.py": "d30766550ddc863cecea63747ff2ae573224db3fd5b1e4a57ce592e4cbbfbc80",
+    "docs/verification/coderabbit-unblock-20261108/config-validation.json": "cd6fabd9269b7a1bf159e44d5472180f145e118294c4975b5eac2bccc83e25bc",
+    "docs/verification/coderabbit-unblock-20261108/evidence-tests.txt": "297a142a75485608a33f4fa5bef355785fc3e377cb993856cf7050c9d9f73bbf",
+    "docs/verification/coderabbit-unblock-20261108/historical-artifact-check.json": "21d88aad1185dd9cc43465c3645c32764c59e9b542558cafb3cec7a554f04c1c",
+    "docs/verification/coderabbit-unblock-20261108/historical-baseline-mismatch.json": "f21849730ba3bea8b3d611b83814b66522c35e2cf3fcfaccf1df97e524fce630",
+    "docs/verification/coderabbit-unblock-20261108/local-tests.json": "c5c1b0dfab3f236d954dc6286a56e4bd08a17fdb9c1e34a6988010dcc6020741",
+    "docs/verification/coderabbit-unblock-20261108/old-runner-jobs.json": "b33e6461cef3b4b52a343d54764693a06c8a3f66aa3b193866883549a834f98d",
+    "docs/verification/coderabbit-unblock-20261108/open-pr-snapshot.json": "1145274c74065e8d525c28d825c645fbd695a3ce641a34eda7663995d6b9c21c",
+    "docs/verification/coderabbit-unblock-20261108/workflow-tests.txt": "7b5fbde6b42a8ed79d011d927503695d1a101b452de935f84e09e538424ceb52",
+    "docs/verification/coderabbit-unblock-20261108/workflow-verifier.txt": "62d16e559a687951bc1cddabcb7cdd9d78608a3ddc7c0b4f0d58869383770ae1",
+    "docs/verification/coderabbit-unblock-20261108/workflows.json": "d74c2af38e148dd5d4228d39d61c4244d9867438530d191802c85889701cf267",
+    "docs/verification/ci-public-runners-20261108/hosted-checkpoint.json": "39b77c2fc376f7fb87c41516fdd180ddb159dd2ebea57c7d4fbe8a8c042c4a35",
+    "docs/verification/ci-public-runners-20261108/review-workflow-checks.json": "0b3e78fffb3606412577b14a5c4963b06e9e00b74cc6534c48a11153004cc13a"
+  },
+  "related_pull_requests": [
+    249
+  ],
+  "branch": "ci/coderabbit-review-policy-20261108",
+  "source_integration": {
+    "prior_pr_head": "7b82315a7502ee3f4f10192a7748c509eabaf075",
+    "merged_main": "1f3e7b6acdfd4b5ca84a69422a2d3ed6e424609a",
+    "identical_base_tree": "7f8ba83681654a450d9bb0a35a6d037058e1ce1a",
+    "note": "PR249 merged concurrently before publishing this follow-up. Tested verifier, test and workflow bytes are preserved across switching to the identical merged base tree."
+  },
+  "prior_review_resolution": {
+    "pull_request": 249,
+    "observed_all_seven_threads_resolved": true,
+    "merged": true,
+    "merge_commit": "1f3e7b6acdfd4b5ca84a69422a2d3ed6e424609a",
+    "handled_by": "concurrent session; this session did not submit a review dismissal"
+  }
+}

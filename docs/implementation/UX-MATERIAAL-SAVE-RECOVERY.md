@@ -299,7 +299,7 @@ wegwerpimage. Deelnemers werken niet met persoonlijke documenten, accounts,
 NAS of sleutels. Deelnemerstoestemming en een geschikte lokale opslagplaats
 voor notities worden vóór de proef geregeld; geen automatische opname,
 telemetrie of publicatie. Vooraf wordt expliciet uitgelegd dat dit een
-ontwikkelversie is en dat wij het systeem, niet de deelnemer, beoordelen.
+ontwikkelversie is en dat de beoordeling het systeem betreft, niet de deelnemer.
 
 **Startvoorwaarden:** exact broncommit, kernel/app-/diskhashes, profiel,
 runner en inputmethode invullen. De checker bevestigt dat de taak en

@@ -174,6 +174,8 @@ def decode_object(head: bytes, history: bytes, generation: int):
     else:
         if current != empty_version() or collection or tags or kind:
             raise ValueError("deleted object keeps metadata")
+        if revision == MASK:  # table.rs checked_add: u64 revision + 1 fails closed
+            raise ValueError("deleted object revision overflows")
         newer = revision + 1
     for index, version in enumerate(versions):
         if index < depth:

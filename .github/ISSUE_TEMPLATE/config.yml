@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Vragen en hulp
+    url: https://github.com/simonvanieperen/nieuw-os/discussions/categories/vragen-en-hulp
+    about: Hulp bij de broncode, bouwen, testen en het begrijpen van Nieuw OS.
+  - name: Product en gebruikservaring
+    url: https://github.com/simonvanieperen/nieuw-os/discussions/categories/product-en-gebruikservaring
+    about: Bespreek gebruikersproblemen, ideeën, dagelijkse taken en toegankelijkheid.
+  - name: Architectuur en ontwerp
+    url: https://github.com/simonvanieperen/nieuw-os/discussions/categories/architectuur-en-ontwerp
+    about: Onderbouw technische voorstellen en bespreek interfaces en bewijsgrenzen vóór implementatie.
+  - name: Beveiligingsprobleem
+    url: https://github.com/simonvanieperen/nieuw-os/blob/main/SECURITY.md
+    about: Lees het actuele meldbeleid; plaats geen secrets of exploiteerbare details in een publiek issue.

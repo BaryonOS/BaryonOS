@@ -1,0 +1,1097 @@
+{
+  "schema_version": 2,
+  "checked_at_utc": "2026-11-08T21:19:12.753918+00:00",
+  "scope": "Local YAML and evidence contracts, explicit baseline comparisons where available, and executed report/package-check shell simulations; no GitHub uploads, runner-expression engine, Rust or QEMU execution. Workflows absent from the baseline are not evidence of baseline equivalence.",
+  "repository_path": "/workspace/scratch/fded8b9461ef/nieuw-os",
+  "local_snapshot_baseline": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+  "upstream_snapshot_source": "338bec8ca34ba8eb2451eb660a0f1790c194efd2",
+  "baseline_comparisons": {
+    ".github/workflows/app-management-quality.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/artifact-store-quality.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/ci.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/component-leaves.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/copilot-setup-steps.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/entropy-keys.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/materiaal-probe.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/nas-core.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/native-display-input.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/native-foundation.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/native-rtc.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/native-smp.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/native-system.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/native-window-session.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/net-broker-quality.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/net-tls-quality.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/private-publication-audit.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/process-management.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/resource-pressure.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/signed-updates.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/storage-resilience.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/volume-acceptance.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    },
+    ".github/workflows/windows-qemu-test-version.yml": {
+      "status": "compared",
+      "remaining_configuration_preserved": true
+    }
+  },
+  "archive_workflows": [
+    ".github/workflows/ci.yml",
+    ".github/workflows/entropy-keys.yml",
+    ".github/workflows/materiaal-probe.yml",
+    ".github/workflows/nas-core.yml",
+    ".github/workflows/native-display-input.yml",
+    ".github/workflows/native-foundation.yml",
+    ".github/workflows/native-rtc.yml",
+    ".github/workflows/native-smp.yml",
+    ".github/workflows/native-system.yml",
+    ".github/workflows/native-window-session.yml",
+    ".github/workflows/net-broker-quality.yml",
+    ".github/workflows/process-management.yml",
+    ".github/workflows/signed-updates.yml",
+    ".github/workflows/storage-resilience.yml",
+    ".github/workflows/volume-acceptance.yml",
+    ".github/workflows/windows-qemu-test-version.yml"
+  ],
+  "file_sha256": {
+    ".github/workflows/app-management-quality.yml": "26ee53b98dc1822c6f534fd7b9f3aa5c586a02f91401b1f173de1cb3d404bc4a",
+    ".github/workflows/artifact-store-quality.yml": "213858184e0be8d3af2e915dd6f7c9996a7a228a0580f434ea44b1c31ec64587",
+    ".github/workflows/ci.yml": "fe638ab9e63ca8e028da253e9f8940db542257f43bcb87102f2eefc6c013eeb8",
+    ".github/workflows/component-leaves.yml": "533b2d499ef4a9ffeb5625c1758a747e49b153d5307f62a984c445cd8ad1947b",
+    ".github/workflows/copilot-setup-steps.yml": "c4c78f3d77568bed7b857d8a0ee1f3ff2a7ca0f60c6b6ad828ccfb67af265246",
+    ".github/workflows/entropy-keys.yml": "1ec5bec3b15e868bcd41e2c199c57b651c3198d234ed689634d9bf4418f58cd9",
+    ".github/workflows/materiaal-probe.yml": "aa1459d424aa37fa928f604b67f191c470d1249e06fa7dba4d0c463d911bc144",
+    ".github/workflows/nas-core.yml": "ea4d17b05e1c77d012bf0ad14425a6ecf178cc07883d76abe78f44a8b90b6b98",
+    ".github/workflows/native-display-input.yml": "80ae8f25f5f25f18b9dcdb9fe4782141a5617d809cca5a8eb686fc56859fcd66",
+    ".github/workflows/native-foundation.yml": "2ba775d328539e23ef769170c751164385cee6dcbd0dd2b4b491bad298e5df85",
+    ".github/workflows/native-rtc.yml": "304ff9d0cbcd2291f15ee04a8d51439b79fb7b9c77e683d685e53973bbed6aae",
+    ".github/workflows/native-smp.yml": "37cc806d1891b0bdb86c9714d7b29f8138083e24fab64c150727a1814d772e2a",
+    ".github/workflows/native-system.yml": "ac7e4f95a5b6b7d88ba142fdad30fe528ada51f65414ebe2901b7f6cf023789f",
+    ".github/workflows/native-window-session.yml": "7b25570cf0f491892cb1c859df3e0b7e441de14ee41eaca14eaf03fc018cb6e9",
+    ".github/workflows/net-broker-quality.yml": "e0795c376b7d68ba85f4ba36e7d04866f30b518b28b6617f7e6bd525ac474de6",
+    ".github/workflows/net-tls-quality.yml": "55195f25408c017150e6180ee8255257900ad7de5ef1027ca04dd3b7e4056656",
+    ".github/workflows/private-publication-audit.yml": "cffa577457d87c54d8aadae57523ff6114d89dc7f50f8ab827ab991ab13a4964",
+    ".github/workflows/process-management.yml": "943163773dc34dd487e72414e8633508b74e2f88558ccce647417e7dd9740677",
+    ".github/workflows/resource-pressure.yml": "bf9ab1e91a82b37c0a3bb7a616629107650140f3faae83eb12dadc7b0a4d5231",
+    ".github/workflows/signed-updates.yml": "2879b7d0d475fe273b8c814b9e5ad40791ed75e8f6efd653786dbe482f3179e9",
+    ".github/workflows/storage-resilience.yml": "463e6ad97d8ebcbb03b94f4619e6c95b58e20b013fe1a7ad22d59221447243f5",
+    ".github/workflows/volume-acceptance.yml": "cd78c6c62e54b9a6aff9f071926d326ffe3d3cce41ef11c281f3290175d6f3b5",
+    ".github/workflows/windows-qemu-test-version.yml": "673c16fbb839bd8a7e8fa1cece14d6f564e014ed8d11e7af5f21635c32f37216",
+    ".github/actions/preserve-evidence/action.yml": "6a110d0eda5b059ab9c827976b913ab8291aa2a8c6e23eebd99e62ef09bc744f"
+  },
+  "report_shell_sha256": "4bdd9f947cdb2ee6af5b2c8ae4c18cabe66593fc877cf642a12aefeaa80f71d6",
+  "checks": [
+    {
+      "name": "yaml:app-management-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:artifact-store-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:ci.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:component-leaves.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:copilot-setup-steps.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:entropy-keys.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:materiaal-probe.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:nas-core.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:native-display-input.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:native-foundation.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:native-rtc.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:native-smp.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:native-system.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:net-broker-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:net-tls-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:private-publication-audit.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:process-management.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:resource-pressure.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:signed-updates.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "yaml:preserve-evidence-action",
+      "passed": true
+    },
+    {
+      "name": "only-uploads-continue-on-error",
+      "passed": true
+    },
+    {
+      "name": "immutable-action-version",
+      "passed": true
+    },
+    {
+      "name": "retention",
+      "passed": true
+    },
+    {
+      "name": "full-archive-only-explicit-dispatch",
+      "passed": true
+    },
+    {
+      "name": "package-check-gates-delivery",
+      "passed": true
+    },
+    {
+      "name": "input-env-no-shell-interpolation",
+      "passed": true
+    },
+    {
+      "name": "required-evidence-default",
+      "passed": true
+    },
+    {
+      "name": "package-selection-fixture:exact-file",
+      "passed": true
+    },
+    {
+      "name": "package-selection-fixture:parent-directory",
+      "passed": true
+    },
+    {
+      "name": "package-selection-fixture:absent-package",
+      "passed": true
+    },
+    {
+      "name": "package-selection-fixture:similar-prefix",
+      "passed": true
+    },
+    {
+      "name": "package-selection-fixture:excluded-package",
+      "passed": true
+    },
+    {
+      "name": "package-selection-fixture:hidden-package",
+      "passed": true
+    },
+    {
+      "name": "package-selection-fixture:outside-workspace",
+      "passed": true
+    },
+    {
+      "name": "package-selection-fixture:unproven-glob",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/app-management-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/artifact-store-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/ci.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/ci.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/ci.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/ci.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/ci.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/ci.yml",
+      "passed": true
+    },
+    {
+      "name": "collector-test-present-once",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/ci.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/component-leaves.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/copilot-setup-steps.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/entropy-keys.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/entropy-keys.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/entropy-keys.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/entropy-keys.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/entropy-keys.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/entropy-keys.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/entropy-keys.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/materiaal-probe.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/materiaal-probe.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/materiaal-probe.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/materiaal-probe.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/materiaal-probe.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/materiaal-probe.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/materiaal-probe.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/nas-core.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/nas-core.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/nas-core.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/nas-core.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/nas-core.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/nas-core.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/nas-core.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/native-display-input.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/native-display-input.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/native-display-input.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/native-display-input.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/native-display-input.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/native-display-input.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/native-display-input.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/native-foundation.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/native-foundation.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/native-foundation.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/native-foundation.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/native-foundation.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/native-foundation.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/native-foundation.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/native-rtc.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/native-rtc.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/native-rtc.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/native-rtc.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/native-rtc.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/native-rtc.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/native-rtc.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/native-smp.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/native-smp.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/native-smp.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/native-smp.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/native-smp.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/native-smp.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/native-smp.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/native-system.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/native-system.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/native-system.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/native-system.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/native-system.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/native-system.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/native-system.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "package-in-full-selection:.github/workflows/native-window-session.yml",
+      "passed": true,
+      "package_path": "build/window-session-ci/evidence/NieuwOS-Venstersessie-Windows-QEMU.zip"
+    },
+    {
+      "name": "removed-package-selection-rejected:.github/workflows/native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/native-window-session.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/net-broker-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/net-broker-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/net-broker-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/net-broker-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/net-broker-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/net-broker-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/net-broker-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/net-tls-quality.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/private-publication-audit.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/process-management.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/process-management.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/process-management.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/process-management.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/process-management.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/process-management.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/process-management.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/resource-pressure.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/signed-updates.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/signed-updates.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/signed-updates.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/signed-updates.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/signed-updates.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/signed-updates.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/signed-updates.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "shared-action-trigger:.github/workflows/storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/storage-resilience.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "shared-action-trigger:.github/workflows/volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/volume-acceptance.yml",
+      "passed": true
+    },
+    {
+      "name": "preservation-invocation:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "package-in-full-selection:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true,
+      "package_path": "build/windows-qemu/NieuwOS-Testversie-Windows-QEMU.zip"
+    },
+    {
+      "name": "removed-package-selection-rejected:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "manual-default-compact:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "replacement-count:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "evidence-path-and-name:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "no-files-policy:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "existing-preservation-step-unchanged:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "original-tests-runners-gates-preserved:.github/workflows/windows-qemu-test-version.yml",
+      "passed": true
+    },
+    {
+      "name": "archive-workflows-present",
+      "passed": true,
+      "count": 16
+    },
+    {
+      "name": "report-shell:success-ordinary",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:quota-reports",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Compact artifact unavailable; use the evidence record and excerpts in this run log.\n### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | failure |\n| Full raw artifact (1 day, manual request) | skipped |\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:reports-skipped",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Compact artifact unavailable; use the evidence record and excerpts in this run log.\n### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | skipped |\n| Full raw artifact (1 day, manual request) | skipped |\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:reports-cancelled",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Compact artifact unavailable; use the evidence record and excerpts in this run log.\n### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | cancelled |\n| Full raw artifact (1 day, manual request) | skipped |\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:collector-failed",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Compact artifact unavailable; use the evidence record and excerpts in this run log.\n### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | failure |\n| Compact artifact (3 days) | skipped |\n| Full raw artifact (1 day, manual request) | skipped |\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:tests-failed",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "### CI archive availability\n\nJob status before archiving: `failure`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:tests-cancelled",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "### CI archive availability\n\nJob status before archiving: `cancelled`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:tests-skipped",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "### CI archive availability\n\nJob status before archiving: `skipped`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:missing-status",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "### CI archive availability\n\nJob status before archiving: `unavailable`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:invalid-status",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "### CI archive availability\n\nJob status before archiving: `unavailable`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:full-success",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | success |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nFull raw evidence: https://github.com/example/repo/actions/runs/1/artifacts/11\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:full-quota",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Requested full evidence was not uploaded; raw archive is unavailable.\n### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | failure |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:full-skipped",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Requested full evidence was not uploaded; raw archive is unavailable.\n### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:package-success",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nDownloadable test package: available in https://github.com/example/repo/actions/runs/1/artifacts/12.\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:package-quota",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Windows QEMU package is not available as a verified download.\n### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nDownloadable test package: **not available as a verified download**.\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:package-skipped",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Windows QEMU package is not available as a verified download.\n### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nDownloadable test package: **not available as a verified download**.\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:package-missing",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Windows QEMU package is not available as a verified download.\n### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nDownloadable test package: **not available as a verified download**.\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:package-unverified-tests",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Windows QEMU package is not available as a verified download.\n### CI archive availability\n\nJob status before archiving: `failure`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nDownloadable test package: **not available as a verified download**.\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:package-unverified-cancelled",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Windows QEMU package is not available as a verified download.\n### CI archive availability\n\nJob status before archiving: `cancelled`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nDownloadable test package: **not available as a verified download**.\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:package-missing-url",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Windows QEMU package is not available as a verified download.\n### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nDownloadable test package: **not available as a verified download**.\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:package-invalid-url",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Windows QEMU package is not available as a verified download.\n### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nDownloadable test package: **not available as a verified download**.\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:reports-invalid-url",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:reports-missing-url",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | skipped |\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:full-package-success",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | success |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nFull raw evidence: https://github.com/example/repo/actions/runs/1/artifacts/11\n\nDownloadable test package: available in https://github.com/example/repo/actions/runs/1/artifacts/11.\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:full-package-missing",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Windows QEMU package is not available as a verified download.\n### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | success |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nFull raw evidence: https://github.com/example/repo/actions/runs/1/artifacts/11\n\nDownloadable test package: **not available as a verified download**.\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:full-package-quota",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Requested full evidence was not uploaded; raw archive is unavailable.\n::warning::Windows QEMU package is not available as a verified download.\n### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | failure |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nDownloadable test package: **not available as a verified download**.\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:full-package-tests-failed",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Windows QEMU package is not available as a verified download.\n### CI archive availability\n\nJob status before archiving: `failure`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | success |\n| Full raw artifact (1 day, manual request) | success |\n\nCompact reports: https://github.com/example/repo/actions/runs/1/artifacts/10\n\nFull raw evidence: https://github.com/example/repo/actions/runs/1/artifacts/11\n\nDownloadable test package: **not available as a verified download**.\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "report-shell:all-uploads-quota",
+      "passed": true,
+      "exit_code": 0,
+      "errors": [],
+      "stdout": "::warning::Compact artifact unavailable; use the evidence record and excerpts in this run log.\n::warning::Requested full evidence was not uploaded; raw archive is unavailable.\n::warning::Windows QEMU package is not available as a verified download.\n### CI archive availability\n\nJob status before archiving: `success`.\n\n| Evidence | Storage outcome |\n|---|---|\n| Run log and compact collection | success |\n| Compact artifact (3 days) | failure |\n| Full raw artifact (1 day, manual request) | failure |\n\nDownloadable test package: **not available as a verified download**.\n\nThe test result and archive availability are separate. Reports and hashes do not replace raw images for independent revalidation. The run log contains bounded reports and explicitly labelled excerpts; it is not a complete archive.\n\n",
+      "stderr": ""
+    },
+    {
+      "name": "required-evidence-missing-exit",
+      "passed": true,
+      "exit_code": 1,
+      "stdout": "::error::No readable test evidence was produced. See the receipt in this run log.\n",
+      "stderr": ""
+    },
+    {
+      "name": "required-evidence-policy-condition",
+      "passed": true
+    },
+    {
+      "name": "package-check:bundle.zip",
+      "passed": true,
+      "exit_code": 0,
+      "output": "present=true\n",
+      "stderr": ""
+    },
+    {
+      "name": "package-check:missing.zip",
+      "passed": true,
+      "exit_code": 1,
+      "output": "",
+      "stderr": "Required Windows QEMU package is missing or outside the checkout\n"
+    },
+    {
+      "name": "package-check:directory.zip",
+      "passed": true,
+      "exit_code": 1,
+      "output": "",
+      "stderr": "Required Windows QEMU package is missing or outside the checkout\n"
+    },
+    {
+      "name": "package-check:symlink.zip",
+      "passed": true,
+      "exit_code": 1,
+      "output": "",
+      "stderr": "Required Windows QEMU package is missing or outside the checkout\n"
+    },
+    {
+      "name": "package-check:inside-symlink.zip",
+      "passed": true,
+      "exit_code": 1,
+      "output": "",
+      "stderr": "Required Windows QEMU package is missing or outside the checkout\n"
+    },
+    {
+      "name": "package-check:../outside.zip",
+      "passed": true,
+      "exit_code": 1,
+      "output": "",
+      "stderr": "Required Windows QEMU package is missing or outside the checkout\n"
+    }
+  ],
+  "check_count": 202,
+  "passed": true,
+  "failed_checks": [],
+  "verifier_sha256": "10a7ae5c8d73e75a45fa438acf2a66f89c81270c02b0be0595d12899ed1927b9"
+}

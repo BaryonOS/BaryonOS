@@ -1,44 +1,80 @@
-name: Bug report
-description: Reproduceerbaar defect in broncode, tooling, tests of documentatie
+name: Bug melden
+description: Een reproduceerbaar defect in het OS, een app of een prototype
 title: "bug: "
-labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Meld beveiligingsgevoelige details volgens SECURITY.md en zet geen secrets of echte gebruikersdata in een issue.
+        Bekijk eerst de [bestaande issues](https://github.com/simonvanieperen/nieuw-os/issues).
+        Gebruik het CI-formulier voor build-, workflow- en testbewijsproblemen.
+        Deel geen secrets, sleutels of echte gebruikersgegevens. Mogelijke kwetsbaarheden
+        volgen [SECURITY.md](https://github.com/simonvanieperen/nieuw-os/blob/main/SECURITY.md);
+        plaats hier geen exploiteerbare details.
+  - type: dropdown
+    id: subsystem
+    attributes:
+      label: Onderdeel
+      options:
+        - Boot, kernel, processen of IPC
+        - Opslag, encryptie of herstel
+        - Drivers, invoer of energiebeheer
+        - Desktop, Materiaal of toegankelijkheid
+        - Netwerk, NAS of synchronisatie
+        - SDK, apps of pakketbeheer
+        - Lokale AI of quantum-runtime
+        - Hostprototype
+        - Anders of nog onbekend
+    validations:
+      required: true
+  - type: dropdown
+    id: execution
+    attributes:
+      label: Waar treedt het op?
+      options:
+        - Hosttest of hostprototype
+        - Eigen OS in QEMU
+        - Eigen OS in een andere VM
+        - Eigen OS op een fysiek apparaat
+        - Nog niet vastgesteld
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Geteste bron of image
+      description: Commit-SHA, PR of downloadversie; schrijf onbekend als je dit niet kunt vinden.
+    validations:
+      required: true
   - type: textarea
     id: problem
     attributes:
-      label: Probleem
-      description: Wat gebeurt er en wat had er moeten gebeuren?
+      label: Wat gaat er mis?
+      description: Beschrijf het waargenomen gedrag, de gevolgen en wat je verwachtte.
     validations:
       required: true
   - type: textarea
     id: reproduce
     attributes:
       label: Reproduceerstappen
-      description: Exacte commando's, inputs en kleinste reproduceerbare route.
+      description: De kleinste route met concrete handelingen of commando's, inputs en featureprofiel. Vermeld hoe vaak het gebeurt.
     validations:
       required: true
   - type: textarea
     id: environment
     attributes:
       label: Omgeving
-      description: Commit, branch, OS/host, Rust/QEMU/firmware en relevante featureflags.
+      description: Host-OS en architectuur. Bij een VM ook QEMU/firmware, accelerator, vCPU's en RAM; bij builds de toolversies. Onbekende of niet-relevante onderdelen mogen zo worden benoemd.
     validations:
       required: true
   - type: textarea
     id: evidence
     attributes:
-      label: Bewijs
-      description: Foutmelding, exitstatus en relevante logpaden. Geen complete secrets/logdumps.
+      label: Bewijs en laatst werkende versie
+      description: Geschoonde foutmelding, exitstatus, relevante logregels, screenshot of bereikbare bewijslink. Noem de laatste goede commit als het een regressie is; een lokaal logpad alleen is voor anderen niet leesbaar.
   - type: checkboxes
-    id: scope
+    id: data_check
     attributes:
       label: Controle
       options:
-        - label: Ik heb de relevante AGENTS.md en projectinstructies gelezen.
-          required: true
-        - label: Ik heb niet geprobeerd tests of securitycontroles te verzwakken om dit defect te omzeilen.
+        - label: Ik heb de melding en bijlagen gecontroleerd op secrets, sleutels en echte gebruikersgegevens.
           required: true

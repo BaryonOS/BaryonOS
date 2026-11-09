@@ -186,6 +186,102 @@ fn adjacent_generation_checks_do_not_wrap_or_panic() {
     assert_eq!(table::choose([mixed, maximum]), Err(Status::Corrupt));
 }
 
+/// A sealed table with a deleted object at revision `u64::MAX` (all other
+/// invariants intact) overflowed `revision + 1` in entry validation: a panic
+/// with overflow checks, a silent wrap to 0 in release. It must fail closed.
+#[test]
+fn deleted_object_revision_from_disk_does_not_overflow() {
+    let table = |revision: u64| {
+        let mut t = Table::EMPTY;
+        t.generation = revision;
+        t.request_id = 1;
+        t.clocks[0] = revision;
+        let entry = &mut t.entries[0];
+        entry.revision = revision;
+        entry.request_id = 1;
+        entry.created = 1;
+        entry.modified = 1;
+        entry.present = false;
+        t
+    };
+    // Both slots hold a valid table, so `Corrupt` can only come from the
+    // newest revision itself, not from a missing companion.
+    let image = |newest: u64| {
+        let mut sectors = vec![[0u8; SECTOR]; VOLUME_SECTORS as usize];
+        for t in [table(newest - 1), table(newest)] {
+            let slot = (t.generation % 2) * TABLE_SECTORS;
+            for index in 0..TABLE_SECTORS {
+                sectors[(slot + index) as usize] = t.encode_sector(index);
+            }
+        }
+        sectors
+    };
+    let last = u64::MAX - 1;
+    assert!(
+        recover(image(last)) == Ok(table(last)),
+        "control image one revision below the bound must recover"
+    );
+    assert_eq!(recover(image(u64::MAX)), Err(Status::Corrupt));
+}
+
+/// A delete from revision `u64::MAX - 1` would publish a tombstone at
+/// `u64::MAX`, which recovery rejects (it bounds the history by revision + 1).
+/// The service refuses it as exhausted before writing, via DELETE and TRANSACT,
+/// so the durable table stays the recoverable one.
+#[test]
+fn delete_at_last_tombstone_revision_is_refused_before_publishing() {
+    let g = u64::MAX - 1;
+    // Object 0 present, last written by the commit of `generation`.
+    let table = |generation: u64| {
+        let mut t = Table::EMPTY;
+        t.generation = generation;
+        t.request_id = 1;
+        t.clocks[0] = generation;
+        let entry = &mut t.entries[0];
+        entry.revision = generation;
+        entry.request_id = 1;
+        entry.created = 1;
+        entry.modified = generation;
+        entry.present = true;
+        entry.current = table::Version {
+            revision: generation,
+            name_length: 1,
+            ..table::Version::EMPTY
+        };
+        entry.current.name[0] = b'x';
+        t
+    };
+    let current = table(g);
+    let mut image = vec![[0u8; SECTOR]; VOLUME_SECTORS as usize];
+    for t in [table(g - 1), current] {
+        let slot = (t.generation % 2) * TABLE_SECTORS;
+        for index in 0..TABLE_SECTORS {
+            image[(slot + index) as usize] = t.encode_sector(index);
+        }
+    }
+    assert!(
+        recover(image.clone()) == Ok(current),
+        "control image must recover"
+    );
+    let mut disk = SimDisk::from_image(image);
+    let mut service = Service::recover(EPOCH, false, &mut disk).unwrap();
+    let writes = disk.log.len();
+    let mut c = client(&mut service, &mut disk, 0);
+    assert_eq!(c.delete(0, g), Err((Status::Full, 0)));
+    let sub = wire::SubOp {
+        index: 0,
+        op: wire::SUB_DELETE,
+        collection: 0,
+        tags: 0,
+        expected: g,
+        kind: 0,
+    };
+    assert_eq!(c.transact(0, &[sub]), Err(Status::Full));
+    assert_eq!(c.transport.disk.log.len(), writes);
+    assert!(c.transport.service.table() == &current);
+    assert!(recover(disk.settled()) == Ok(current));
+}
+
 #[test]
 fn large_document_roundtrip_beyond_old_128_byte_limit() {
     let mut disk = SimDisk::new();

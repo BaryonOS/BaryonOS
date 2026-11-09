@@ -178,12 +178,15 @@ def run(cases: tuple[str, ...]) -> dict:
             or manifest.get("source_fingerprint_version") != 3
             or manifest.get("source_sha256") != frozen):
         raise ValueError("Build the current kernel profile for exactly these cases first")
+    spin_mode = ("AP spin with IF window disabled (deaf control)"
+                 if manifest["kernel_feature"] == "test-smp-spin-irq-off"
+                 else "AP spin with IF window")
     report = {"schema_version": 1, "passed": False, "source_sha256": frozen,
               "source_fingerprint_version": 3, "manifest_sha256": manifest_hash,
               "kernel_feature": manifest["kernel_feature"],
               "scope": ("IF0 BSP; AP bring-up, per-AP TSS/IST, bounded unicast IPIs and sync "
                         "self-test, TLB shootdown, AP preemption (deferred while a lock is held or "
-                        "awaited), AP spin with IF window and BSP "
+                        f"awaited), {spin_mode} and BSP "
                         "ticket-lock/lockdep self-test in "
                         "QEMU/TCG; no SMP scheduler or hardware evidence"),
               "cases": []}
