@@ -21,6 +21,16 @@ compile_error!("graphics-g0 is an IF0 bootstrap, not a ring-3/compositor profile
 ))]
 compile_error!("native-rtc exclusively owns CMOS in the single-CPU IF0 bootstrap");
 #[cfg(all(
+    feature = "native-acpi-s5",
+    any(
+        feature = "milestone-m3",
+        feature = "framebuffer",
+        feature = "native-smp",
+        feature = "native-rtc"
+    )
+))]
+compile_error!("native-acpi-s5 ends the single-CPU IF0 bootstrap; no other subsystem may run");
+#[cfg(all(
     feature = "native-smp",
     not(feature = "native-smp-legacy"),
     any(

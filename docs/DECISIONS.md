@@ -42,6 +42,53 @@ stap 5d een nestteller. Spinnen met IF=1 op KERNEL/ASPACE (§4.3) volgt in 5b.
 niet FIFO is en onder TCG kan uithongeren. Lockdep alleen in debugbuilds:
 verworpen, omdat de native gate releasebuilds draait.
 
+## ADR-076 — Native ACPI S5 power-off in an IF0 bootstrap profile (H05 step)
+
+5 November 2026; limited to the opt-in `native-acpi-s5` profile (mutually
+exclusive with M3, framebuffer, SMP and RTC). `boot-protocol` records the
+address of the sole FADT root entry. A second FADT sets that address to zero
+without changing the other inventory. During one-time discovery, the kernel
+copies the FADT (≤ 4 KiB) and DSDT (≤ 64 KiB) through `FirmwareReader`, which
+permits only ACPI reclaim/NVS memory. `drivers/acpi-power::parse_s5` validates
+the copy. Only a valid plan permits PM1a and, when present, PM1b port I/O:
+first `SLP_TYP` with `SLP_EN` cleared, then `SLP_EN` set (ACPICA order).
+
+**Contract.** The plan is not exposed to a process or over IPC; no syscall is
+provided. A missing, unreadable or rejected table produces a `POWER:S5:*`
+diagnostic and the normal debug exit, without a port write. The runner uses
+`-action reboot=reset` so that a reset triggers a second firmware boot rather
+than being mistaken for a power-off (exit 0).
+
+**Evidence:** `docs/verification/h05-acpi-s5/`. **Open:** ACPI mode is not
+enabled through `SMI_CMD`; `_PTS` and `_TTS` are not executed. There is no
+non-delegable power-off capability for service- or user-initiated shutdown
+with prior flushing. S3 sleep/wake and physical-hardware evidence are absent.
+
+**Status:** accepted for the opt-in profile; H05 remains open.
+
+**Alternatives considered.**
+- A general AML interpreter such as ACPICA was rejected for this step. It
+  would introduce a large privileged parser, whereas the bounded `_S5_`
+  subset is sufficient for the fixed QEMU profile.
+- Writing directly to the QEMU-specific port `0x604` was rejected because
+  it would not demonstrate table-driven power control. That value is used
+  only as an independent runner oracle.
+- Adding a power-off syscall now was deferred until a capability model and
+  service flushing are available.
+
+**Primary sources.**
+- UEFI Forum (2022), *ACPI Specification*, version 6.5, §§4.8.3.2 and 7.4.2: https://uefi.org/specs/ACPI/6.5/
+- ACPICA (4 April 2025), release `R2025_04_04`, `hwsleep.c` (`AcpiHwLegacySleep`): https://github.com/open-acpica/acpica/releases
+- QEMU Project, version `10.2.1`, `hw/acpi/ich9.c` and `hw/acpi/core.c` (`acpi_pm1_cnt_write`): https://gitlab.com/qemu-project/qemu
+
+**Consequences.** This profile validates only ACPI S5 on the fixed QEMU/OVMF
+configuration. It grants no new userspace authority or general physical-device
+support. Invalid-firmware tests must continue to prevent every PM1 write.
+
+**Review criteria.** Revisit this decision before adding physical-hardware
+support, introducing authorized power-off with service flushing, or requiring
+ACPI enable, additional AML methods or different PM1 register formats.
+
 ## ADR-073 — Gepreëmpteerde kernelthreads op AP's (K06 stap 4)
 
 5 november 2026; alleen in `native-smp`, de BSP blijft IF=0. Iedere AP

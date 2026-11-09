@@ -1,14 +1,42 @@
 # Current project status
 
+## H05 native ACPI S5 integration — PR #213 (9 November 2026)
+
+The opt-in `native-acpi-s5` kernel profile connects the existing
+`drivers/acpi-power` parser to bounded FADT/DSDT discovery and ACPI S5 port
+writes in the fixed QEMU/OVMF configuration. Invalid firmware performs no PM1 control-port writes; serial diagnostics
+and debug-exit I/O remain active. The change adds a reset-sensitive QEMU oracle,
+five positive and two negative native runs, and the `native-power.yml`
+workflow. Source-bound original evidence is retained in
+[`verification/h05-acpi-s5/`](verification/h05-acpi-s5/).
+
+CI evidence now retains 17 tracked workflow files and 18 preservation
+calls, alongside the English ADR-076 and verification record. The 22 green
+workflow results on the former PR head `9d88326` predate integration with
+main and are not evidence for the new merge commit. No physical-hardware,
+service-initiated power-off, S3 sleep/wake, independently traced negative
+PM1 writes or complete ACPI support is claimed.
+**The current acceptance score remains 39/100; H05 is still open.**
+
+**NEXT AGENT HANDOFF (PR #213):** Main `04c8b224e3062400288a353056b75abdd3bcbba5`
+and the prior PR source `9d88326be637adccfeccc743f31b3c67185e16a8`
+were integrated at `16d8346a2968f0315334e8190eb66e8103b14cf6`;
+`ee047c512c8637f57b72528515c564f9092f164a` fixes the CI evidence counts.
+The SMP legacy profiles and 17-workflow/18-call evidence contract are retained.
+No local Rust, QEMU, strict preflight, build or smoke gate ran in this connector
+session. Confirm all applicable CI and security-review results on the latest
+source, including native-power, host-quality and qemu-smoke, before squash merge.
+Physical-hardware evidence remains missing, so H05 stays open.
+
 ## PR #167 — VELD-08 window-switcher integration — 9 November 2026
 
-**Source:** Existing PR #167 at `3527f3d5fc897da3c10a4a024ff9fc5e2be465c5`, integrated with `main` at `f11e20d3d9981f683802f493325e8a5cf2b2b1b0`. The VELD-08 implementation preserves compositor-owned window thumbnails, focus-on-confirmation, bounded input handling and explicit opt-in 1x/2x native probes. Follow-up regressions cover trusted shell shortcuts, release of pointer capture after clicking the switcher surround, and precedence of the entire outside-click gesture over shell dock actions.
+**Source:** Existing PR #167 at pre-integration head `fdaef7acce36d1865a79406314a4c1159de172fd`, merged in the current integration branch with `main` at `316d4f10470efe16bfdf314304a410f8b1150833`. The implementation preserves compositor-owned window thumbnails, focus-on-confirmation, bounded input handling and explicit opt-in 1x/2x native probes. The latest corrections retain trusted-shell routing, remove minimized-window hiding after selection, require complete app frames before the native assertion, preserve key-edge baselines, and release pointer capture after the full outside-click gesture.
 
-**Evidence boundary:** On source `3527f3d5fc897da3c10a4a024ff9fc5e2be465c5`, GitHub reported 45 check conclusions: 44 successful and one neutral (`Graphify Formal Verification`). [CI](https://github.com/simonvanieperen/BaryonOS/actions/runs/42621544700), [native window session](https://github.com/simonvanieperen/BaryonOS/actions/runs/42621544649), and [CodeQL](https://github.com/simonvanieperen/BaryonOS/actions/runs/42621544709) are the relevant previous-source runs; the successful CodeRabbit status is automated review, **not** native test evidence. These results do **not** verify later integration or review-fix commits. The first post-integration Actions runs on `d105ea658fb935d58bb14db506338116c03415dd` failed before any jobs were created in most workflows, while unrelated subsequent branches demonstrated successful job starts. Current-head execution is still pending. Historical two-scale native receipts belong to `537fee48c1c31155a51a997cd7a2236b159e9ac7`; no physical-device or independent security acceptance is claimed.
+**Evidence boundary:** GitHub reported 47 checks on `fdaef7acce36d1865a79406314a4c1159de172fd`: 46 successful and one neutral (`Graphify Formal Verification`). CodeRabbit completed successfully and no unresolved review thread was present. These results do **not** verify the current merge with `316d4f10470efe16bfdf314304a410f8b1150833`. Historical two-scale receipts remain bound to `537fee48c1c31155a51a997cd7a2236b159e9ac7`; no physical-device, human usability or independent security acceptance is claimed.
 
-**Progress:** **39/100 → 39/100** in line with the current main assessment. A successful switcher subgate does not close the native integration, accessibility or recovery acceptance criteria.
+**Progress:** **39/100 → 39/100.** A successful switcher subgate does not close the complete native integration, accessibility or recovery criteria.
 
-**NEXT AGENT HANDOFF:** Verify the exact integration head with `python3 tools/progress.py --check`, `python3 tools/preflight.py --strict`, `python3 tools/build.py`, `python3 tools/run.py --smoke`, and the 1x/2x native-window-session switcher jobs. Review current-head CodeRabbit, CodeQL and GitHub checks before squash merge. RTK/Ponytail/Cargo/QEMU are unavailable in the connected local executor; local execution is **not performed**.
+**NEXT AGENT HANDOFF (PR #167):** Run `python3 tools/progress.py --check`, `python3 tools/preflight.py --strict`, `python3 tools/build.py`, `python3 tools/run.py --smoke`, the targeted window-session host tests and the 1x/2x native switcher gate on the exact integrated head. Confirm current-head CodeRabbit, CodeQL and required GitHub checks before squash merge.
 
 ## PR #154 — reviewed K06 and experimental M3/M4 SMP integration — 9 November 2026
 
