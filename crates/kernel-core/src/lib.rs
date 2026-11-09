@@ -11,6 +11,7 @@ pub fn physical_page_fits(address: u64, width: u8) -> bool {
             .checked_add(PAGE)
             .is_some_and(|end| end <= 1u64 << width)
 }
+pub mod device_execution;
 pub mod user;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

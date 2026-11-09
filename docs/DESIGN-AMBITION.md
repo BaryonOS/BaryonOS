@@ -2,7 +2,7 @@
 
 ## Leidende aanvulling — 27 oktober 2026
 
-De gebruiker wil een privacyvriendelijk, hypermodern Europees alternatief dat de verbonden en verzorgde ervaring biedt die consumenten van Windows/macOS verwachten. Privacy mag niet leiden tot een omslachtig of functioneel verschraald product. Die vergelijking is een ambitie en ontwerpbrief, geen gemeten productclaim.
+Het ontwerpdoel is een privacyvriendelijk, vooruitstrevend Europees alternatief dat de verbonden en verzorgde ervaring biedt die consumenten van Windows en macOS verwachten. Privacy mag niet leiden tot een omslachtig of functioneel verschraald product. Die vergelijking is een ambitie en ontwerpbrief, geen gemeten productclaim.
 
 **Veiligheid, privacy en gebruiksgemak zijn gezamenlijke acceptatievoorwaarden.** Bouw verbinding, continuïteit en samenwerken met expliciete technische grenzen. Los technische problemen gericht op; maak tijdelijke prototypebeperkingen geen permanente verplichtingen voor de gebruiker. Normale bediening vraagt geen kennis van certificaten, nonces, tunnels of services.
 
@@ -34,7 +34,7 @@ Behandel **aandacht, proberen, overstappen en blijven gebruiken** als verschille
 Dit is onderzoeksrichting, geen bewijs dat consumenten al voor Nieuw OS kiezen. De P2-productspecificatie blijft leidend voor de huidige bouwscope; nieuwe hypotheses worden eerst getest voordat zij vaste producteisen worden.
 
 > Update revisie 5: de eerste bouwkeuzes staan vast in [implementation/PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md). Gebruik dat document voor directe implementatie; dit bestand bewaart de ambitie en achtergrond voor vervolgfases.
-Revisie 3, 26 oktober 2026. Dit is een bindende productopdracht op basis van Simons aanvullende instructie. Het versmallen van de eerste technische proef mag de oorspronkelijke ambitie niet vervangen.
+Revisie 3, 26 oktober 2026. In deze bindende productopdracht zijn de aanvullende eisen verwerkt. Het versmallen van de eerste technische proef mag de oorspronkelijke ambitie niet vervangen.
 
 ## Richting
 Ontwerp een zelfstandig OS dat een eigen, samenhangende manier van werken biedt, visueel en in bediening het niveau van volwassen platforms nastreeft en gebruikers daadwerkelijk zeggenschap geeft. Een bekende desktop met een ander thema, launcher of logo is onvoldoende als eindresultaat. *Aanvulling 30 oktober 2026 (ADR-058):* de bediening zelf (inloggen, bureaublad, taakbalk, startmenu/zoeken, vensters, sneltoetsen) volgt bewust herkenbare conventies, zodat consumenten niets opnieuw hoeven te leren; de eigen code, huisstijl en vernieuwingen komen daarbovenop.

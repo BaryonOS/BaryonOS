@@ -86,3 +86,29 @@ fn translucent_surface_keeps_what_is_behind_it() {
     assert_eq!(pixels[8 * 16 + 8], 0x7f7f7f);
     assert_eq!(pixels[0], 0xffffff);
 }
+
+#[test]
+fn wallpaper_handles_screen_heights_smaller_than_fade_divisors() {
+    let mut pixels = [0_u32; 8 * 41];
+    // Exercises the sky, atmospheric glow, and planet on undersized viewports.
+    for &(width, height) in &[
+        (1_u32, 1_u32),
+        (1, 2),
+        (1, 3),
+        (1, 6),
+        (1, 7),
+        (1, 39),
+        (8, 39),
+        (1, 40),
+        (1, 41),
+    ] {
+        let frame = Rect::new(0, 0, width, height);
+        let len = (width * height) as usize;
+        let mut canvas = Canvas::new(frame, &mut pixels[..len]).unwrap();
+        nieuw_os_graphics::theme::wallpaper(
+            &mut canvas,
+            frame,
+            nieuw_os_graphics::theme::MATERIAAL,
+        );
+    }
+}

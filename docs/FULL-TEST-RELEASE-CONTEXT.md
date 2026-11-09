@@ -1,7 +1,7 @@
 # Aanvullende uitvoerings- en productcontext — 30 oktober 2026
 
 Deze normatieve aanvulling verwerkt de twintig secties van de aanvullende
-gebruikersopdracht. Zij vult [FULL-TEST-RELEASE](FULL-TEST-RELEASE.md) aan;
+projectopdracht. Zij vult [FULL-TEST-RELEASE](FULL-TEST-RELEASE.md) aan;
 de oorspronkelijke volledige opdracht, `/goal`, architectuur, 62 stabiele
 acceptatie-ID's, uitgevoerde werkzaamheden en geldige brongebonden bewijzen
 blijven behouden. Zij is geen afzonderlijke roadmap of lagere releaseomvang.
@@ -214,7 +214,7 @@ handleiding, configuraties, matrix/bewijs/beperkingen en fout-/logroute.
 
 Primaire beslisankers blijven seL4 proofs/assumptions/capabilities, Rust Nomicon
 races, Linux VFIO/IOMMU, Qubes FAQ, LionsOS verificatiestatus en NIST FIPS203/204
-zoals in de gebruikersinstructie. Raadpleeg toepasselijke versies gericht; deze
+zoals vastgelegd in de projectopdracht. Raadpleeg toepasselijke versies gericht; deze
 bronnen leveren geen implementatie, kernelvervanging of geërfd bewijs op.
 
 

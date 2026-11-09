@@ -1,2 +1,2 @@
-   Compiling nieuw-os-virtio-snd v0.1.0 (/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/hw-virtio-snd/drivers/virtio-snd)
-    Finished `release` profile [optimized] target(s) in 0.09s
+   Compiling nieuw-os-virtio-snd v0.1.0 (/home/user/nieuw-os/drivers/virtio-snd)
+    Finished `release` profile [optimized] target(s) in 0.14s

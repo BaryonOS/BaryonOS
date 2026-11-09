@@ -1,0 +1,21 @@
+test_acpi_boot_prefixes_are_incremental_and_never_finish (__main__.GrammarTests.test_acpi_boot_prefixes_are_incremental_and_never_finish)
+The observed ACPI prefix and every partial boot record need more evidence. ... ERROR
+
+======================================================================
+ERROR: test_acpi_boot_prefixes_are_incremental_and_never_finish (__main__.GrammarTests.test_acpi_boot_prefixes_are_incremental_and_never_finish)
+The observed ACPI prefix and every partial boot record need more evidence.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/ca1b05e4cb92/nieuw-os-ci-fix/tools/tests/test_materiaal_probe.py", line 154, in test_acpi_boot_prefixes_are_incremental_and_never_finish
+    self.assertFalse(d.transcript(observed)["finished"])
+                     ^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/ca1b05e4cb92/nieuw-os-ci-fix/tools/run_materiaal_probe.py", line 110, in transcript
+    require(tuple(lines[:len(opening)]) == opening[:len(lines)], "Wrong boot/manifest sequence")
+  File "/workspace/scratch/ca1b05e4cb92/nieuw-os-ci-fix/tools/run_display_probe.py", line 44, in require
+    raise ValueError(message)
+ValueError: Wrong boot/manifest sequence
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (errors=1)

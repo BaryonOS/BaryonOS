@@ -1,9 +1,11 @@
 # Bureaublad, taakbalk en zoeken — ontwerp
 
-Datum: 30 oktober 2026. Status: **ontwerp** volgens gebruikersbesluit
-ADR-058 in [DECISIONS.md](../DECISIONS.md). Er is nog geen code voor deze
-shell en niets native getest. Bronbasis: main `c0b7147b`.
-Voortgangsvoorstel: **34% → 34%**; dit document sluit geen criterium.
+Original design: 30 October 2026 (ADR-058). Status as of 9 November 2026:
+**design** (§§1–5); **host-rendered implementation** (§7, `ui/graphics` and
+`ui/native`, PR #214). There is no new native QEMU evidence for the Horizon
+appearance and no measured usability study. The accepted progress remains
+**41/100**; no additional criterion is accepted by this change.
+Design source: [DECISIONS.md](../DECISIONS.md), ADR-058.
 Inloggen en gebruikers: [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md).
 
 ## 1. Doel
@@ -62,7 +64,7 @@ Regels:
 | Ctrl+Alt+Delete | Vertrouwd systeemscherm (vergrendelen, wisselen, afmelden, taakbeheer) |
 | Ctrl+Shift+Esc | Taakbeheer |
 
-Met "OS-toets" bedoelen we de toets met het logo, ook wel Super-toets
+Met "OS-toets" wordt de toets met het logo bedoeld, ook wel Super-toets
 genoemd. Op Mac-toetsenborden geldt Cmd als OS-toets.
 
 ## 3. Huidige native basis en wat ontbreekt
@@ -108,9 +110,11 @@ browsermock of schermontwerp is productbewijs, geen systeembewijs.
 
 ## 6. Bewijsgrens
 
-Dit is een ontwerp. Het bewijst geen werkende shell, geen gebruiksgemak en
-geen gelijkwaardigheid met bestaande platforms. Herkenbaarheid wordt pas
-geclaimd na gemeten taakproeven (U06).
+Sections 1–5 describe the intended interaction design. Section 7 records a
+host-rendered desktop implementation. Its fixtures and unit tests do not
+demonstrate native Horizon execution, consumer usability, or feature parity
+with another operating system. Familiarity requires measured user-task trials
+(U06).
 
 ## 7. Uiterlijk 2030 — "Horizon" (5 november 2026)
 

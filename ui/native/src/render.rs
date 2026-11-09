@@ -2683,7 +2683,7 @@ impl Paint<'_> {
         self.canvas().stroke_rounded_rect(
             GraphicRect::new(r.x as i32, r.y as i32, r.width, r.height),
             (d::CONTROL_RADIUS + gap) * factor,
-            2 * factor,
+            d::FOCUS_WIDTH * factor,
             color,
         );
     }

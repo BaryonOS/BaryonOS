@@ -56,13 +56,13 @@ Opname vereist een benoembare bevinding, directe URL, datum of expliciet onbeken
 
 - **[BRON]**: wat een gelezen bron beschrijft, meet of officieel ondersteunt; de reikwijdte blijft erbij.
 - **[SIGNAAL]**: een concrete oorspronkelijke melding of communitywens; geen representativiteit.
-- **[ANALYSE]**: onze synthese, vergelijking of technische gevolgtrekking.
+- **[ANALYSE]**: de synthese, vergelijking of technische gevolgtrekking binnen dit onderzoek.
 - **[HYPOTHESE]**: een te toetsen behoefte, ontwerpvertaling of toekomstverwachting.
 - **[REPOSITORY]**: aangetroffen broncode of versiegebonden projectbewijs; geen externe marktbevinding.
 
 Voor de synthese betekent **sterk**: rechtstreeks empirisch bewijs of een expliciet controleerbare technische grens voor de afgebakende claim. **Middel**: meerdere bruikbare primaire aanwijzingen, beperkte doelgroep of overdracht naar nieuw-os. **Zwak/open**: losse signalen, alleen productvoorzieningen of ontbrekende meting. Sterk technisch bewijs kan samengaan met onbekende gebruiksfrequentie.
 
-“Herhaling” betekent uitsluitend terugkeer in deze doelgerichte bronset. Meerdere Microsoftpagina's tellen bijvoorbeeld als één leveranciersfamilie; persbericht en tabel van dezelfde enquête als één onderzoek. We publiceren geen rangorde van klachtfrequentie onder alle Europese gebruikers. Impact, haalbaarheid en onderscheid zijn redactionele inschattingen; geen onderzoekspercentages of fase-6-score.
+“Herhaling” betekent uitsluitend terugkeer in deze doelgerichte bronset. Meerdere Microsoftpagina's tellen bijvoorbeeld als één leveranciersfamilie; persbericht en tabel van dezelfde enquête als één onderzoek. Er wordt geen rangorde van klachtfrequentie onder alle Europese gebruikers gepubliceerd. Impact, haalbaarheid en onderscheid zijn redactionele inschattingen; geen onderzoekspercentages of fase-6-score.
 
 ## Doelgroepen en ontbrekende eigen data
 

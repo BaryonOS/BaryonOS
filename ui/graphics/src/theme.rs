@@ -43,6 +43,11 @@ pub fn wallpaper(canvas: &mut Canvas<'_>, screen: Rect, p: Palette) {
     let (w, h) = (i64::from(screen.width), i64::from(screen.height));
     let (cx, cy, radius) = (w / 2, h * 12 / 5, h * 7 / 4);
     let rim = (h / 360).max(1);
+    // Every fade remains defined, including on screens only one pixel high.
+    let upper_haze = (h / 3).max(1);
+    let thin_haze = (h / 40).max(1);
+    let planet_fade = (h / 7).max(1);
+    let glow_radius2 = ((h * h) / 3).max(1);
     let b = canvas.bounds();
     for dy in 0..b.height {
         for dx in 0..b.width {
@@ -68,9 +73,9 @@ pub fn wallpaper(canvas: &mut Canvas<'_>, screen: Rect, p: Palette) {
                     0x01040a,
                     (255 - (d * 255 / h).min(255)) as u8,
                 );
-                c = blend(p.glow, c, glow(px, py, w / 6, h * 3 / 5, (h * h) / 3, 120));
-                c = blend(0x1fa58f, c, ((h / 3 - d).max(0) * 170 / (h / 3)) as u8);
-                c = blend(0x7fe6cf, c, ((h / 40 - d).max(0) * 150 / (h / 40)) as u8);
+                c = blend(p.glow, c, glow(px, py, w / 6, h * 3 / 5, glow_radius2, 120));
+                c = blend(0x1fa58f, c, ((upper_haze - d).max(0) * 170 / upper_haze) as u8);
+                c = blend(0x7fe6cf, c, ((thin_haze - d).max(0) * 150 / thin_haze) as u8);
                 let hash = ((px * 73_856_093) ^ (py * 19_349_663)).rem_euclid(1_543);
                 if hash == 0 && d > h / 4 {
                     c = blend(0xffffff, c, (90 + (px + py).rem_euclid(120)) as u8);
@@ -81,7 +86,7 @@ pub fn wallpaper(canvas: &mut Canvas<'_>, screen: Rect, p: Palette) {
                 blend(
                     0x0d3036,
                     0x02060b,
-                    ((h / 7 + d).max(0) * 200 / (h / 7)) as u8,
+                    ((planet_fade + d).max(0) * 200 / planet_fade) as u8,
                 )
             };
             let line = ((rim * 32 - fine.abs()).max(0) * 255 / (rim * 32)) as u8;

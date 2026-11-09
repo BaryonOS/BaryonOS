@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "method": "jsonschema.Draft202012Validator",
+  "validator_version": "4.25.1",
+  "schema_url": "https://coderabbit.ai/integrations/schema.v2.json",
+  "schema_sha256": "53ca372d5bbfefd61e2bad9ab5ef399e69d1e06b07a73221b006d83682a743fa",
+  "config_sha256": "00e7bd25187cbb5b68aac99a563d08ecb2dabf92c9124441d20249b90ec14170",
+  "config": {
+    "inheritance": true,
+    "language": "nl",
+    "reviews": {
+      "profile": "quiet",
+      "auto_approvals": {
+        "enabled": false
+      },
+      "auto_review": {
+        "enabled": true,
+        "auto_incremental_review": true
+      },
+      "pre_merge_checks": {
+        "docstrings": {
+          "mode": "warning"
+        }
+      }
+    }
+  },
+  "runtime_boundary": "Schema-valid YAML; effective inherited/global settings and bot review decisions require a new CodeRabbit review."
+}
