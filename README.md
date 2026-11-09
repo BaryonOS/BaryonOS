@@ -86,6 +86,7 @@ The long-term route progresses from independent boot and isolation to storage, n
 - [Issues](https://github.com/simonvanieperen/BaryonOS/issues)
 - [Discussions](https://github.com/simonvanieperen/BaryonOS/discussions)
 - [GitHub Wiki](https://github.com/simonvanieperen/BaryonOS/wiki)
+- [English Wiki source and publication guide](docs/WIKI.md)
 
 Historical development checkpoints are stored under [docs/history/](docs/history/) rather than in this README.
 

@@ -304,6 +304,10 @@ const NET_PROBE_ELF: &[u8] = include_bytes!(env!("NOS_NET_PROBE_ELF"));
 const NETWORK_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_NETWORK_SERVICE_ELF"));
 #[cfg(feature = "native-net-service")]
 const NETWORK_CLIENT_ELF: &[u8] = include_bytes!(env!("NOS_NETWORK_CLIENT_ELF"));
+#[cfg(feature = "native-net-service")]
+const NET_SERVICE_PROCESSES: usize = system::PROCESSES;
+#[cfg(not(feature = "native-net-service"))]
+const NET_SERVICE_PROCESSES: usize = 0;
 const DATA: u64 = 0x40010000;
 const HEAP: u64 = 0x60000000;
 // B03: ML-DSA-65 verification in the ring-3 update service needs about
@@ -684,7 +688,7 @@ impl State {
             16
         };
         let initial = if cfg!(feature = "native-net-service") {
-            3
+            NET_SERVICE_PROCESSES
         } else if cfg!(any(
             feature = "native-system-materiaal-probe",
             feature = "native-window-session"

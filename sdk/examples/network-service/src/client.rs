@@ -227,6 +227,141 @@ fn exercise(
         yield_now();
     }
 }
+/// N04 policy authority: a separate process whose only capability is the
+/// service's private control endpoint. It holds no network, entropy or app
+/// endpoint. The kernel test driver writes word 104 once app A is live.
+fn policy() -> ! {
+    let epoch = support::word(40);
+    let control = SendEndpoint::from_handle(h(48));
+    let target = support::word(72);
+    check(epoch != 0 && support::word(64) != 0 && target < 2, 80);
+    let mut raw = [0; 1514];
+    check(
+        native::net_receive(NetworkSource::from_handle(control.handle()), &mut raw).is_err(),
+        81,
+    );
+    support::put(400, 1);
+    let start = tick();
+    while support::word(104) == 0 {
+        check(tick() - start < 3000, 82);
+        yield_now();
+    }
+    check(support::word(104) == 1, 83);
+    let mut body = [0; 24];
+    body[..8].copy_from_slice(b"NETRVK01");
+    body[8..16].copy_from_slice(&epoch.to_le_bytes());
+    body[16..].copy_from_slice(&target.to_le_bytes());
+    let message = Outgoing::new(u64::from_le_bytes(*b"NETCTL01"), &body).unwrap();
+    // Sampled before each attempt: the service cannot handle the message
+    // before the successful send, even if this process is preempted after it.
+    let sent = loop {
+        let at = tick();
+        check(at - start < 3000, 84);
+        match native::send(control, &message) {
+            Ok(()) => break at,
+            Err(e) if e.is_again() => yield_now(),
+            Err(_) => fail(85),
+        }
+    };
+    support::put(544, 1);
+    support::put(552, sent);
+    native::close(control.handle()).unwrap_or_else(|_| fail(86));
+    support::put(528, 1);
+    native::exit(0)
+}
+/// N04 revoke case, app A only: the policy process withdraws this app's grant
+/// while its connection is live. The connection must end promptly and every
+/// later network use must be denied without new traffic on the wire.
+fn revoked(session: &mut Session<NativeTransport>) -> ! {
+    let denied = Err(Error::Service(Status::Access));
+    // Another app's destination is never reachable through this app's grant.
+    check(
+        session.open([192, 0, 2, 1], 8090, 300).map(|_| ()) == denied,
+        61,
+    );
+    bump(424);
+    let start = tick();
+    let connection = loop {
+        check(tick() - start < 1000, 62);
+        match session.open([192, 0, 2, 1], 8080, 3000) {
+            Ok(c) => break c,
+            Err(e) if again(e) => yield_now(),
+            Err(_) => fail(63),
+        }
+    };
+    let mut sent = 0;
+    while sent < REQUEST_A.len() {
+        check(tick() - start < 1000, 64);
+        match session.state(connection) {
+            Ok(ConnectionState::Established) => {
+                match session.send(connection, &REQUEST_A[sent..]) {
+                    Ok(n) => {
+                        sent += n;
+                        bump(448)
+                    }
+                    Err(e) if again(e) => {}
+                    Err(_) => fail(65),
+                }
+            }
+            Ok(ConnectionState::Connecting) => {}
+            _ => fail(66),
+        }
+        yield_now();
+    }
+    // SendTcp only queued the bytes; give the service time to put them on the
+    // wire so the revocation hits a held connection, not a pending send.
+    // shortcut: fixed 50-tick settle (the service needs ~2), upgrade to a
+    // send-queue-empty state if one is added. A short settle fails closed:
+    // the revocation fence drops the unsent frame and the peer rejects the run.
+    let queued = tick();
+    while tick() - queued < 50 {
+        yield_now();
+    }
+    // Live and idle: the peer holds the response. Ask for the revocation.
+    support::put(544, 1);
+    let ready = tick();
+    loop {
+        // Far below the 3000-tick connection timeout: only revocation ends it.
+        check(tick() - ready < 500, 67);
+        match session.state(connection) {
+            Ok(ConnectionState::Closed) => break,
+            Ok(ConnectionState::Established) => yield_now(),
+            _ => fail(68),
+        }
+    }
+    let closed = tick();
+    support::put(504, closed - ready);
+    support::put(552, closed);
+    let mut out = [0; DATA];
+    for (ok, code) in [
+        (session.send(connection, b"x").map(|_| ()) == denied, 69),
+        (
+            session.receive(connection, &mut out).map(|_| ()) == denied,
+            70,
+        ),
+        (
+            session.open([192, 0, 2, 1], 8081, 300).map(|_| ()) == denied,
+            71,
+        ),
+        (
+            session
+                .send_udp([192, 0, 2, 1], 9000, b"after revoke")
+                .map(|_| ())
+                == denied,
+            72,
+        ),
+        (session.receive_udp(&mut out).map(|_| ()) == denied, 73),
+    ] {
+        check(ok, code);
+        bump(432);
+    }
+    session.close(connection).unwrap_or_else(|_| fail(74));
+    support::put(544, 2);
+    session.retire().unwrap_or_else(|_| fail(75));
+    check(session.is_closed(), 76);
+    support::put(528, 1);
+    native::exit(0)
+}
 #[no_mangle]
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
@@ -235,6 +370,9 @@ pub extern "C" fn _start() -> ! {
 #[inline(never)]
 fn run() -> ! {
     native::check_abi().unwrap_or_else(|_| fail(1));
+    if support::word(32) == u64::from_le_bytes(*b"NETPOL01") {
+        policy()
+    }
     check(support::word(32) == u64::from_le_bytes(*b"NETAPP01"), 5);
     let epoch = support::word(40);
     let send = SendEndpoint::from_handle(h(48));
@@ -263,6 +401,10 @@ fn run() -> ! {
         19,
     );
     bump(424);
+    if support::word(104) == 2 {
+        check(slot == 0, 60);
+        revoked(&mut session)
+    }
     if support::word(104) == 1 {
         check(slot == 0, 48);
         let connection = session
