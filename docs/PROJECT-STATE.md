@@ -1,6 +1,520 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Discussies en templates — 8 november 2026
+## NEXT AGENT HANDOFF — Privékwetsbaarheidsmeldingen — 2026-11-09
+
+**Bron:** main `a9b6d3c5ed2938b3740f9874a579f47f6d348ac5`, branch
+`coderabbit/issue-278-private-vulnerability-reporting`, issue #278.
+GitHub Private Vulnerability Reporting was al ingeschakeld. Het beveiligingsbeleid
+verwijst nu naar de echte meldroute, beschrijft de gewenste meldinhoud en
+belooft geen ondersteunde releases of responstermijn. Geen instellingen gewijzigd.
+
+**Bewijs en grens:** [controleverslag](verification/private-vulnerability-reporting-278.md).
+De API meldt `enabled: true`; de openbare Security-pagina bevat de meldknop.
+Diff- en voortgangscontrole slagen. Er is geen proefmelding ingediend en er
+zijn geen Rust-, QEMU- of hardwaretests uitgevoerd voor deze documentatie.
+**41 → 41/100**; geen nieuwe productacceptatie.
+
+**Hervatten:** beoordeel de concept-PR; controleer bij een gewijzigde
+repositoryconfiguratie opnieuw de API en de publieke meldknop.
+
+## Vorige overdracht — B03 sleutelbestandgrenzen — 9 november 2026
+
+**Bron:** main `8331b69b`, branch `coderabbit/issue-41-key-file-boundaries`.
+Issue #41 krijgt een beperkte hosttoolcorrectie: sleutelbestanden worden
+exclusief aangemaakt; private seeds krijgen op Unix direct modus `0600`.
+Bestaande bestanden en symlinks worden niet overschreven. Bovenliggende
+mappen moeten vertrouwd blijven.
+
+**Bewijs:** twee nieuwe regressietests faalden vóór de correctie. Daarna
+slagen 18 Rust-hosttests, 14 Python-harnesstests, Clippy en de
+voortgangscontrole. Zie [controleverslag](verification/b03-key-file-boundaries.md).
+QEMU en productie-sleutelrotatie zijn niet uitgevoerd; productieankers,
+releasebeleid en volledige acceptatie van #41 blijven open. **41 → 41/100**,
+zonder nieuwe criteriumacceptatie. Er zijn geen productiekeys aangemaakt.
+
+**Hervatten:** beoordeel de concept-PR en CI; productiebeleid vereist een
+aparte concrete releaseopdracht. Herhaal lokaal de commando's in het verslag.
+
+## Vorige overdracht — Herkomst na redactiereview — 9 november 2026
+
+**Bron:** main `9922810a18f2272f534e1539e2d980d3d8922bb3`, branch
+`docs/wetenschappelijke-herkomst-20261109`. De wetenschappelijke redactie uit
+PR #265 en de CodeQL-wijziging uit PR #266 zijn behouden.
+
+**Review en correctie:** CodeRabbit heeft dezelfde redactiedelta in PR #267
+beoordeeld nadat de eerste review door de merge was afgebroken. Eén minor
+bevinding betreft de herkomst van de desktoptoewijzing. De oorspronkelijke
+bron `4c7147da` noemt de projecteigenaar als beslisser; die rol staat nu
+expliciet in de onpersoonlijke formulering. Er wordt geen beslissende
+AI-sessie verzonnen. Een ontbrekende lege regel vóór een Markdown-tabel is hersteld.
+
+**Controle en grens:** voortgangscontrole, diffcontrole en gerichte
+inhoudsvergelijking slagen (exitstatus 0). De afzonderlijke AI-bronbeoordeling
+bevestigt de herkomst. Geen lokale Rust-, QEMU- of fysieke-hardwaretests voor
+deze redactie. **41 → 41/100**; criteria, gewichten en bewijsstatus gelijk.
+[Controleverslag](verification/wetenschappelijke-herkomst-20261109.json).
+
+**Hervatten:** beoordeel GitHub-CI en de review op de nieuwe correctiehead;
+CodeRabbit-resultaten op `bb3c1f6` betreffen de voorafgaande redactieversie.
+Eerste lokale controle: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint — CodeQL-workflowcontract — 9 november 2026
+
+**Bron en scope:** PR #266, branch `simonvanieperen-patch-3`, basis
+`3402b30c3d67e769eea28abc07e1aaceeb3e2525`. De bestaande methode
+`test_public_prs_keep_read_only_tokens` is vervangen door
+`test_public_prs_keep_minimal_token_permissions`. Alleen de combinatie
+`.github/workflows/codeql.yml` en job `analyze` krijgt de exacte mapping
+`actions: read`, `contents: read`, `security-events: write`.
+De al aanwezige CodeQL-workflow uit de PR is ongewijzigd.
+
+**Controle en grens:** de oorspronkelijke suite faalde op deze uploadpermissie.
+Na de wijziging slagen alle negen contracttests op 24 workflows en drie
+composite actions. Eén toegestane en elf ongeldige permissievarianten geven
+het verwachte resultaat. De geschreven diff is afzonderlijk door een tweede
+AI gecontroleerd; dit is geen menselijke audit. `tools/progress.py --write`,
+`--check` en `git diff --check` slagen met exitstatus 0.
+[Versiegebonden controleverslag](verification/codeql-workflow-contract-20261109.json).
+Geen lokale Rust-, QEMU-, CodeQL- of fysieke-hardwareproeven uitgevoerd voor
+deze contracttestwijziging. De ontwikkelmeter blijft **41 → 41/100**.
+
+**Hervatten:** beoordeel de nieuwe GitHub-CI en CodeQL-resultaten op de
+gepubliceerde PR-head. Eerste lokale controle:
+`python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py' -v`.
+
+## Historisch checkpoint — Wetenschappelijke schrijfstijl — 9 november 2026
+
+**Bron en wijziging:** main `1d5bc01e632fd5bab429f3befc9e9546c9f7661c`, branch
+`docs/wetenschappelijke-schrijfstijl-20261109`. De eerste-persoonsredactie
+uit PR #263 is gecorrigeerd naar onpersoonlijke, wetenschappelijke formuleringen.
+`AGENTS.md` en `docs/AGENTS.md` leggen de gecorrigeerde schrijfafspraak vast.
+De repositorybrede tekstzoeking omvat 6.338 UTF-8-bestanden binnen 6.599
+versiebeheerde paden. In 55 Markdown-bestanden is de redactie bijgewerkt.
+
+**Behoud:** besluiten, formele bevoegdheden, getallen, codeblokken, verwijzingen,
+productcriteria en bewijsstatus blijven behouden. De naamverklaring van Baryon OS,
+oorspronkelijke broncitaten, historische bronkopieën en hashgebonden bewijsbestanden
+zijn ongewijzigd. Het eerdere redactieverslag blijft bewijs van de toenmalige
+wijziging; de daarin beschreven ik-vorm geldt niet meer als schrijfafspraak.
+
+**Controle en grens:** `python3 tools/progress.py --write`,
+`python3 tools/progress.py --check` en `git diff --check` slagen (exitstatus 0).
+De inhoudsvergelijking en afzonderlijke AI-redactiereview vonden geen inhoudelijke
+blocker. Deze controles leveren geen nieuwe OS-testresultaten op; lokale Rust-,
+QEMU- en fysieke-hardwaretests zijn voor deze redactie niet uitgevoerd.
+**41 → 41/100**; criteria, gewichten en acceptatiestatus zijn ongewijzigd.
+[Redactiecontrole en afbakening](verification/wetenschappelijke-schrijfstijl-20261109.json).
+
+**Hervatten:** beoordeel de GitHub-reviews en vereiste CI op de gepubliceerde
+PR-head afzonderlijk. De oorspronkelijke implementatietaken behouden hun eigen
+bron en acceptatiecriteria. Eerste lokale controle:
+`python3 tools/progress.py --check`.
+
+## Historisch checkpoint — PR #264 conflictintegratie — 8 november 2026
+
+**Bron en scope:** PR-head `b53a576a04f7cd5df3fc92cf32d2ceeb0c4939aa`,
+branch `docs/baryon-name-20261108`, verenigd met main
+`9ff3a691a535ebfd7d161d10408bf1a66b82d614`. Alleen conflictintegratie:
+de naamverklaring, projectredactie en beide eerdere checkpoints blijven
+behouden. Geen runtimecode, technische contracten of acceptatiecriteria gewijzigd.
+
+**Controle en grens:** vóór afronding van de merge zijn
+`python3 tools/progress.py --write`, `python3 tools/progress.py --check`
+en `git diff --check` uitgevoerd en geslaagd (exitstatus 0).
+De voortgang blijft **41 → 41/100**;
+deze documentatie-integratie levert geen nieuw native bewijs.
+Rust- en QEMU-tests zijn niet uitgevoerd voor deze documentatieconflicten.
+
+**Hervatten:** beoordeel vereiste checks op de gepubliceerde integratie-head
+afzonderlijk. Deze ronde doet geen CI- of reviewherstel en merget de PR niet.
+Eerste lokale controle: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint — Naamverklaring Baryon OS — 8 november 2026
+
+**Bron en scope:** working tree op main `4c7147dae955cbf1ba44d91258ef451b96169f72`,
+branch `docs/baryon-name-20261108`. De README gebruikt Baryon OS als projectnaam
+met een gecontroleerde verklaring. De bestaande repositorynaam en technische
+identifiers blijven behouden. Dit is documentatie, geen nieuwe OS-functionaliteit.
+
+**Inhoud:** een baryon is een samengesteld deeltje; gewone baryonen worden
+beschreven met drie valentiequarks. De drie functionele hoofdlagen zijn een
+naammetafoor, geen drie processorringen. Isolatie en beperkte bevoegdheden
+zijn ontwerpkeuzes; prestaties en herstel vragen afgebakend bewijs. De
+README verwijst naar CERN/CMS en ESA. Het besluit staat in
+[ADR-BARYON-NAME-20261108](DECISIONS.md#adr-baryon-name-20261108--naamverklaring-in-de-readme).
+
+**Controle en grens:** `python3 tools/progress.py --write`,
+`python3 tools/progress.py --check` en `git diff --check` slagen.
+De criteria en gewichten zijn behouden: **41 → 41/100**. Geen nieuwe
+Rust-, QEMU- of fysieke-hardwaretests voor deze documentatiewijziging.
+
+**Hervatten:** controleer de actuele PR-head, vereiste CI en reviewbevindingen.
+Het technische vervolg uit het checkpoint hieronder blijft open: beoordeel
+de aparte native Materiaal-proef op haar eigen bron. Naamgeving levert geen
+nieuw bewijs voor die gate. Eerste lokale documentatiecontrole:
+`python3 tools/progress.py --check`.
+
+## Historisch checkpoint — Professionele projectstem — 8 november 2026
+
+**Bron:** main `4c7147dae955cbf1ba44d91258ef451b96169f72`, branch
+`docs/professionele-projectstem-20261108`. De 6.598 versiebeheerde paden zijn
+geïnventariseerd; 6.337 UTF-8-bestanden zijn doorzocht op verwijzingen naar de
+auteur. De redactie van 40 bestaande bestanden formuleert projectdoelen,
+besluiten en instructies rechtstreeks en gebruikte de ik-vorm voor persoonlijke
+keuzes en ervaringen. Die schrijfafspraak is na de gebruikerscorrectie vervangen
+door de onpersoonlijke, wetenschappelijke stijl in `docs/AGENTS.md`. Het
+oorspronkelijke redactieverslag hieronder blijft bewijs van de eerdere wijziging.
+
+**Behoud en controle:** technische contracten, bevoegdheden, meetwaarden,
+codeblokken, bronverwijzingen en productcriteria blijven behouden. Exacte
+historische bronkopieën, ruwe logs, namen in bronmetadata en testinvoer zijn
+ongewijzigd. De voortgangscontrole, diffcontrole en inhoudsvergelijkingen slagen;
+de afzonderlijke AI-redactiereview vond geen inhoudelijke blocker.
+Bewijs en afbakening: [redactiecontrole](verification/professionele-projectstem-20261108.json).
+**41 → 41/100**; geen nieuwe functionaliteit of productacceptatie.
+
+**Reviewcorrectie:** de Graphify-review op `12441cac` bevat één niet-blokkerend
+advies: maak expliciet naar wie de ik-vorm bij mandaten verwijst. De
+projectinstructies en het besluitenregister noemen daarom de projecteigenaar
+in vaste metadata; de schrijfregel behoudt de oorspronkelijke spreker van
+broncitaten. De bestaande bevoegdheden blijven ongewijzigd. CodeRabbit
+meldde één minor issue: de gemelde vertraging moest expliciet ‘per scherm’
+blijven. Die eenheid is hersteld; de instructie om fasetijden te meten blijft
+behouden.
+
+**Review en hervatten:** de lokale CodeRabbit-CLI is niet aangemeld;
+`auth login --agent` meldt `environment_unsupported`. Er is geen lokale
+CodeRabbit-review uitgevoerd. Beoordeel de GitHub-review en verplichte CI op
+de nieuwe PR-head afzonderlijk. Eerste lokale controle:
+`python3 tools/progress.py --check`. De eerdere Materiaal-proef en andere
+open implementatietaken blijven bij hun eigen bron en acceptatiecriteria.
+
+## Historisch checkpoint — Materiaal-bootparser na runnerherstel — 8 november 2026
+
+**Bron:** working tree op main `8c8b528306f9d0e474c6b5d338cead904564c2df`,
+branch `ci/materiaal-boot-diagnostics-20261108`. PR #249 en #261 zijn
+opgenomen. De verplichte [main-CI](https://github.com/simonvanieperen/nieuw-os/actions/runs/42526645196)
+is geslaagd. De ingehaalde #251 is na inhoudscontrole gesloten; vier oude
+main-runs en de wachtende #251-run zijn geannuleerd. Nieuwe storage- en
+volumeproeven op `1f3e7b6a` slagen; ook SMP op die bron slaagt.
+
+**Concrete fout:** [Materiaal-run 42526590198](https://github.com/simonvanieperen/nieuw-os/actions/runs/42526590198)
+startte op een GitHub-hosted `ubuntu-24.04`-runner, maar stopte na 3,21 s met
+`Wrong boot/manifest sequence`. De kernel meldde na `KS-02:PASS` de voor dit
+q35-profiel verwachte `ACPI:UNAVAILABLE:NO_DMAR` en
+`DEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT`. De parser verwachtte meteen
+`KS-03:PASS` en beëindigde QEMU zelf. Geen gast- of hosttimeout, geen
+artifactquotafout en geen bewezen kernelregressie.
+
+**Reparatie:** `tools/run_materiaal_probe.py` gebruikt het bestaande
+`with_acpi_markers(BOOT)` in de incrementele openingsgrammatica. Het paar is
+verplicht en exact geordend; er wordt niets blind uit het bewijs gefilterd.
+Ook zulke meldingen vóór de bootoverdracht worden geweigerd. De bestaande
+hostfixtures volgen het actuele profiel en regressies controleren elke
+bytegrens en ongeldige/misplaatste diagnostiek. Kernel, hardwareprofiel,
+watchdogs, pixels, schijfcontrole en overige acceptatie blijven gelijk.
+
+**Bewijs en grens:** bronhashes, hosttestuitvoer en oorspronkelijke fout staan
+in [materiaal-boot-parser-20261108](verification/materiaal-boot-parser-20261108/README.md).
+Geen lokale Rust-/QEMU-toolchain beschikbaar; native uitvoering gebeurt via
+het bestaande handmatige `materiaal-probe.yml` op de gepubliceerde branch.
+Die gate moet de rest van de Materiaal-keten nog aantonen. **41 → 41/100**;
+geen productcriterium afgetekend of gewicht aangepast.
+
+**Hervatten:** controleer de actuele PR-head, verplichte CI en de afzonderlijke
+Materiaal-run. Eerste lokale controle:
+`python3 -B tools/tests/test_materiaal_probe.py`; vervolgens
+`python3 tools/progress.py --check`. Oude PR-branches met self-hosted workflows
+moeten main inhoudelijk opnemen; een rerun wijzigt hun oude configuratie niet.
+
+## Historisch checkpoint — CodeRabbit-reviewbeleid en verifier — 8 november 2026
+
+**Bron en scope:** working tree op main
+`1f3e7b6acdfd4b5ca84a69422a2d3ed6e424609a`, waarin PR #249 is opgenomen.
+Vervolgbranch `ci/coderabbit-review-policy-20261108`. De nieuwe main-boom is
+exact gelijk aan de eerder geteste PR249-head `7b82315a`; alle gelijktijdige
+reviewfixes en hun bewijsbestanden zijn behouden. **41 → 41/100**.
+
+**Diagnose:** de main-regel vereist `host-quality`, `qemu-smoke`, actuele
+branches en opgeloste reviewgesprekken, maar nul approvals. CodeRabbit is
+geen vereiste statuscheck. In de oorspronkelijke momentopname van 27 open PRs
+hadden 22 een actieve CodeRabbit-afkeuring en 17 bovendien mergeconflicten.
+Bij onder meer #207 wacht CI nog op verwijderde self-hosted runners.
+Herlees actuele heads en reviews vóór verdere afhandeling.
+
+**Gerealiseerd:** `.coderabbit.yaml` kiest `quiet`, behoudt automatische
+incrementele reviews en zet automatische botafkeuringen/goedkeuringen uit.
+Overige instellingen worden geërfd; effectief gebruik en globale overrides
+moeten op de volgende review worden beoordeeld. De GitHub-regels blijven gelden.
+De verifier behoudt de controles uit `7b82315a`, maar ontbrekende workflows
+of onleesbare baselines geven nu expliciete fouten en een bruikbaar rapport.
+Acht regressietests draaien via de bestaande CI-discovery.
+
+**Uitgevoerd:** 23 collector-/verifier-tests en 9 workflowtests geslaagd,
+exit 0. De gecombineerde verifier slaagt voor 228 controles en 16
+bewijsworkflows; de historische artifactbron slaagt voor 189 controles.
+CodeRabbit-YAML voldoet aan het officiële schema. Bronhashes, commando's,
+logs en bewijsgrenzen staan in
+[coderabbit-unblock-20261108.json](verification/coderabbit-unblock-20261108.json).
+Geen lokale Rust-/QEMU-uitvoering of nieuwe productacceptatie.
+
+**Integratie en open werk:** #249 is tijdens deze sessie door parallel werk
+samengevoegd; alle drie eerdere reviewpunten zijn daarin afgehandeld.
+Deze kleine vervolgwijziging wordt als aparte concept-PR gepubliceerd omdat
+#249 al gesloten is. Behoud squash-auto-merge en controleer de nieuwe
+verplichte CI en CodeRabbit-configuratie. De oude hosted momentopname op
+`338bec8c` blijft historisch: de toen lopende venstersessietest eindigde later
+als `cancelled`. Oudere PRs moeten actuele workflows/configuratie opnemen;
+bestaande inhoudelijke bevindingen en conflicten blijven afzonderlijk werk.
+Volgend commando: `python3 tools/progress.py --check`; daarna de actuele
+remote head, review en vereiste checks controleren.
+
+## Historisch checkpoint — hosted CI uitgevoerd, review afgerond in bron — 8 november 2026
+
+**Bron:** PR #249, `338bec8ca34ba8eb2451eb660a0f1790c194efd2`, op
+integratiebasis `39586927`; huidige vervolgwijzigingen betreffen uitsluitend
+documentatie, het historische verificatiescript en nieuw opgeslagen bewijs.
+Werkbranch `ci/github-hosted-runners-20261108`; score **41 → 41/100**.
+
+**Werkelijk uitgevoerd op GitHub:** bij de waarneming van 21:17:57 UTC slagen
+39 van 40 Actions-jobs op bron `338bec8c`. De verplichte `host-quality` en
+`qemu-smoke` starten parallel en slagen op echte `ubuntu-24.04`-runners;
+ook de volledige SMP-suite en hosted Copilot-setup slagen. De compacte
+QEMU-upload is beschikbaar (97.119 bytes, drie dagen retentie). De lange
+venstersessietest loopt nog; geen mislukte job vastgesteld. Zie het
+[brongebonden GitHub-checkpoint](verification/ci-public-runners-20261108/hosted-checkpoint.json).
+De historische 8-vCPU-timeout is in deze run niet opgetreden; geen geval of
+tijdslimiet is versoepeld.
+
+**Reviewvervolg:** de uploadbeschrijving noemt alle drie best-effort uploads;
+het gegenereerde README onderscheidt integratiebasis, geteste working tree
+en gepubliceerde bron. De 224 tests zijn expliciet historisch; de 248 lokale
+tests en 179 shellsyntaxcontroles blijven aan hun oorspronkelijke hashes
+gebonden. Het verificatiescript gebruikt de gepubliceerde configuratie als
+vaste baseline en registreert nieuwe workflows zonder verzonnen vergelijking.
+Alle **202 actuele configuratie-/bewijscontroles** slagen, exit 0; bronhashes
+en afzonderlijke vergelijkingen staan in
+[review-workflow-checks.json](verification/ci-public-runners-20261108/review-workflow-checks.json).
+De workflowbestanden, productcode en testcommando's zijn sinds `338bec8c`
+ongewijzigd.
+
+**Eerstvolgende stap:** publiceer dit beperkte reviewvervolg op dezelfde PR,
+handel de drie concrete reviewthreads af en behoud squash-auto-merge volgens
+de bestaande branchregels. Nieuwe-head CI en review moeten nog volgen;
+geen merge of volledige native einduitslag geclaimd. Sluit PR #251 pas na
+aantoonbare opname via #249 in main. De oude Copilot-WSL-keuze uit #245 mag
+niet opnieuw worden ingevoerd.
+
+## Historisch checkpoint — publieke hosted CI geïntegreerd — 8 november 2026
+
+**Bron:** main `0cf49b584f9264e676d62168caeb2230669ca538`, runner-PR #249
+`0de9d805` en artifact-PR #251 `dc6c6bca`; lokale integratiebasis `3195e659`.
+Dezelfde integratieboom staat op GitHub als `39586927`; push verloopt via
+de GitHub-koppeling omdat lokaal geen Git-pushcredential beschikbaar is.
+Werkbranch blijft `ci/github-hosted-runners-20261108`; dezelfde PR #249.
+GitHub bevestigt dat de bestaande repository `public` is. **41 → 41/100**.
+
+**Gerealiseerd:** alle 23 workflows kiezen `ubuntu-24.04` (26 jobdefinities,
+42 mogelijke matrixjobs). Ook de historische private audit heeft geen eigen
+runnerselector meer; zijn private-only voorwaarde blijft behouden. De vaste
+Python-/QEMU-/firmwarepins en compact-bewijsaction zijn gecombineerd.
+`host-quality` en `qemu-smoke` draaien parallel en blijven verplichte checks.
+Specialistische main-pushes volgen de bestaande documentfilters; geen dubbele
+`ready_for_review`-runs. Twee volledig overlappende matrixentries zijn
+samengevoegd met hun specialistische gates, inclusief scalar build; 14
+matrixjobs, maximaal vier tegelijk. De hostcache krijgt een bron-SHA/herstel-
+prefix. Copilot heeft een hosted setup met dezelfde gereedschappen.
+
+**Werkelijk lokaal gecontroleerd:** de working tree op integratiebasis
+`39586927` (dezelfde basisboom als lokaal `3195e659`), met de aanvullende
+workflowwijzigingen en regressietests. De basiscommit alleen bevat die
+aanvullingen niet. Op deze working tree: 239 bestaande host-/gate-/collectortests
+plus 9 configuratieregressietests = **248 geslaagd**, exit 0. 23 workflow- en
+3 Action-YAMLs met unieke sleutels; **179 bashblokken** syntactisch geldig.
+Alle **170 bestaande run-stappen** sinds de integratiebasis en **16
+bewijsselecties** behouden. De enige extra run-opdracht in bestaande jobs is
+de nieuwe workflowregressietest. Rapport en bronhashes:
+[ci-public-runners-20261108.json](verification/ci-public-runners-20261108.json).
+Geen nieuwe lokale Rust-/QEMU-run: die tools zijn hier niet aanwezig.
+
+**Open bij checkpoint:** nieuwe hosted CI op de te pushen gecombineerde head;
+echte toolinstallatie, native suites en uploadstatus apart beoordelen. De
+historische budgetfout was op de toen private repository en voorspelt de
+nieuwe run niet. Branchregels blijven ongewijzigd; reviewthreads moeten
+inhoudelijk zijn afgehandeld. PR #251 pas sluiten nadat zijn inhoud via #249
+in main is opgenomen. De oude Copilot-WSL-keuze uit #245 mag niet terugkeren.
+
+**Eerstvolgende stap:** push dezelfde branch, werk PR #249 bij en activeer
+squash-auto-merge volgens bestaande regels; verwerk concrete CI-/reviewfouten.
+De oude 8-vCPU SMP-timeout blijft een te meten runnercapaciteitsrisico;
+geen markers, cases of tijdslimieten zijn hiervoor versoepeld.
+
+## Historisch checkpoint — PR #251 artifactopslag hervat — 8 november 2026
+
+**Bron:** PR #251, head `5c291cff3b9c28e4948aeb36adda3acc6ee6a8ab`;
+oorspronkelijke basis `363b486b06023d3d578f8eca2b23ff49045a1757`; geïntegreerde
+main `5b2189824c32145ad5c110429517dfcea3f2720f` (openbare projectrichting); werkbranch
+`ci/artifact-storage-20261108`. **41 → 41/100**; geen criterium gewijzigd.
+Scope: bestaande artifactreparatie afronden. De runner-/toolchainmigratie
+blijft een afzonderlijke wijziging. Besluit: ADR-CI-EVIDENCE-20261108.
+
+**Gerealiseerd:** vijftien workflows gebruiken al de gedeelde collector/action.
+Dit vervolg vult de concrete ADR-reviewvelden en ontbrekende docstrings aan,
+en voegt twaalf configuratiecontroles toe voor opname van het Windows-pakket
+in het volledige archief. De twee huidige package-workflows voldeden al;
+ook het verwijderen van hun betreffende padregel wordt nu gedetecteerd.
+Collector en collectortests hebben na verwijderen van docstrings dezelfde AST
+als de bron. Geen workflow, uploadactie, testgate of runnerkeuze gewijzigd.
+De advisory over veertien callees in `collect()` is beoordeeld: orkestratie
+van expliciete selectie-, lees-, budget- en rapportstappen; geen aangetoond
+defect en geen cosmetische herstructurering van de veiligheidsgrenzen.
+
+**Werkelijk runtimebewijs:** native-display-input (run `42511057121`, job
+`128824002965`) en B03 signed updates (run `42511057222`, job `128824003122`)
+zijn op PR-mergecheckout `89722c5fd132beeecd95ae6777af601c83fd0f6f` geslaagd.
+De compacte uploads falen in beide logs met `Artifact storage quota has been
+hit`; de vooraf geschreven bronbinding, rapporten en waarschuwing blijven
+zichtbaar. Dit bewijst de echte quota-terugval voor deze bron, geen beschikbare
+artifactdownload of volledige raw-hercontrole. De nieuwe documentatiehead
+krijgt eigen CI; de oude run wordt niet naar die head omgelabeld.
+
+**Lokale validatie:** 85 bron-/bewijsbestanden en 22 oorspronkelijke workflows
+zijn tegen Git-blobhashes gecontroleerd. Dit is een deelsnapshot, geen volledige
+clone. Alle 15 collector-hosttests en 163 YAML-/shell/configuratiecontroles
+slagen; voortgangscontrole en diff-check slagen. Bewijs en bronhashes:
+`docs/verification/ci-artifact-storage-20261108/review-followup.json`.
+Geen lokale Rust-/QEMU-uitvoering; Cargo en QEMU ontbreken.
+
+**Open en hervatstap:** controleer nieuwe PR-head, reviewthreads en verplichte
+`host-quality`/`qemu-smoke`; squash-auto-merge volgt de bestaande regels.
+De reparatie is pas actief op main na merge. Geen artifacts verwijderd en
+geen vrijgemaakte opslag geclaimd. Een ontbrekend raw-archief blijft
+onvoldoende voor acceptatie die die bytes vereist. Lokale hercontrole in
+een volledige clone: `python3 -B docs/verification/ci-artifact-storage-20261108/verify_workflows.py --repo . --output /tmp/ci-evidence-workflow-checks.json`.
+
+## Historisch checkpoint — PR #249 hervat; Actions-budget blokkeert — 8 november 2026
+
+**Bron en taak:** hervat PR #249 op `575a50409ad7a86786bbfc7da2c409a545bed33f`
+en neem main `5b2189824c32145ad5c110429517dfcea3f2720f` op met behoud van de
+openbare ontwikkelrichting en het MPL-2.0-controlekader uit PR #250.
+Werkbranch: `ci/github-hosted-runners-20261108`. **41 → 41/100**.
+
+**Gerealiseerd:** vier documentconflicten opgelost. Runnerkeuze, gedeelde
+toolinstallatie, oorspronkelijke testcommando's, private publicatie-audit en
+opgeslagen testlogs blijven behouden. De aanvullende QEMU-upload selecteert
+alleen bekende rapport- en logpaden; brede `build/**`-patronen zijn verwijderd.
+De publicatierichting, licentievoorwaarden en beide checkpointgeschiedenissen
+zijn behouden. Geen productcode gewijzigd.
+
+**Reviewopvolging:** de vier opmerkingen van CodeRabbit op bron `575a5040`
+zijn getoetst: uploadselectie begrensd, geïmplementeerde configuratie duidelijk
+gescheiden van hosted uitvoeringsbewijs, het oude apt-besluit verduidelijkt,
+en de correcte telscopes toegelicht: 21 reguliere workflows + 2 Action-YAMLs
+= 23 YAMLs; 167 workflowstappen + 3 Action-stappen = 170. `requirements.txt`
+is geen YAML. De afzonderlijke private audit valt buiten die telling.
+
+**Bevestigde uitvoeringsblokkade:** de GitHub-runpagina van
+[CI 42511934820](https://github.com/simonvanieperen/nieuw-os/actions/runs/42511934820)
+op bron `575a5040` meldt letterlijk:
+“The job was not started because an Actions budget is preventing further use.”
+`host-quality` faalde vóór uitvoering; `qemu-smoke` is overgeslagen. Dit
+bevestigt de budgetblokkade voor deze run; het is geen testuitslag of
+artifact-uploadfout. De exacte budgetlimiet en het verbruik zijn niet ingezien.
+
+**Controle:** bronbomen en gebruikte commits zijn tegen de Git-object-ID's
+gecontroleerd. Inhoudsbehoud, YAML/JSON, uploadselectie, conflictmarkers en de
+voortgangsgenerator staan in `verification/ci-resume-249-20261108.json`. De 224 eerdere
+hosttests en de gepauzeerde QEMU-toolprobe blijven uitsluitend bij hun
+historische bronbewijs horen. In deze integratie zijn geen Rust-/Node-
+hostsuite, native OS-starts of fysieke tests uitgevoerd.
+
+**Open en hervatten:** rond de afzonderlijke publicatiecontrole af volgens
+`LICENSE-PLAN.md` en de bestaande openbare projectrichting. Zolang de private
+repo onder dezelfde budgetblokkade valt, levert opnieuw starten geen nieuw
+testbewijs. Controleer na gewijzigde uitvoeringsvoorwaarden de actuele PR-head
+en start de vereiste hosted gates; beoordeel ook het historische
+8-vCPU/TCG-timingrisico met een echte meting. Behoud checks en branchregels.
+Deze hervatting wijzigt geen zichtbaarheid, facturering, quota of opslag.
+Eerste lokale controle: `python3 -B tools/progress.py --check`.
+
+## Historisch checkpoint — Gepinde reguliere CI — 8 november 2026
+
+**Bron:** PR #249 `d3d8e3e0a3b0b455b1832bdc53220352c2b20960`, met main
+`363b486b06023d3d578f8eca2b23ff49045a1757` (private audit behouden).
+Werkbranch: `ci/github-hosted-runners-20261108`. **41 → 41/100**;
+criteria, gewichten en productacceptatie blijven gelijk.
+
+**Taakcontract en resultaat:** maak reguliere CI uitvoerbaar op standaard
+GitHub-runners met vaste tools. Alle 24 jobdefinities in 21 reguliere
+workflows gebruiken Ubuntu 24.04 en Python 3.12.12. De 17 QEMU-jobs delen
+één snapshotgebonden installatie met exacte pakket- en firmwarecontrole.
+Rust-/Node-pins blijven behouden. De hoofdgate krijgt 99 bestaande
+runner-/preflight-/M6c-hosttests. De zes native starts, time-outs,
+rechten, triggers en testcommando's blijven behouden. Details: `CI.md`;
+besluit: ADR-CI-PINS-20261108.
+
+**Uitgevoerd:** 224 geselecteerde bestaande hosttests geslaagd op lokale
+Python 3.12.14; YAML-/shellcontrole, behoud van bestaande testcommando's en
+APT-resolutie van de exacte pins geslaagd. Pakketindexen, handtekeningen,
+payloads en firmwarehashes zijn gecontroleerd. De uitgepakte QEMU 8.2.2
+start een gepauzeerd pc-q35-8.2/TCG-proces en sluit via QMP af (exit 0);
+dit is geen eigen-OS-boot. Een AI-review vond een
+GitHub-specifieke diagnosekopie in de lokale gate; die is gescheiden van de
+onvoorwaardelijke preflight en opnieuw gecontroleerd. Bewijs en exacte
+grenzen: `verification/ci-standard-runners-20261108.json` en
+`verification/ci-packages-20261108.json`.
+
+**Open:** volledige Rust-/Node-hostkwaliteit en zes eigen-OS-QEMU-starts op
+de nieuwe PR-head. Het lokale hostbewijs is niet op de beoogde Python-pin
+3.12.12 uitgevoerd. De sudo-installatiestap kan hier door een UID-mapping-
+beperking niet letterlijk worden uitgevoerd; APT is afzonderlijk met
+tijdelijke bronnen/indexen gecontroleerd. De vorige hosted CI-run op
+`d3d8e3e0` stopte vóór runner-toewijzing; precieze reden niet geverifieerd.
+Nieuwe CI-status hoort bij de actuele PR-head, niet bij dat oude resultaat.
+
+**Hervatten:** controleer PR #249 en zijn nieuwe `host-quality` en
+`qemu-smoke`-jobs, inclusief eventuele annotatie wanneer GitHub geen stappen
+start. Behoud branchregels; geen zichtbaarheid, facturering of quota aanpassen
+als bijwerking. Bewijs van een toolprobe is geen native OS-acceptatie.
+
+## Historisch checkpoint — GitHub-hosted runners — 8 november 2026
+
+**Bron:** main `6e429de98b5c692ccceaa12973818eecb1622062`, werkbranch
+`ci/github-hosted-runners-20261108`. **41 → 41/100**; geen productcriterium,
+gewicht of bestaand acceptatiebewijs wijzigt.
+
+**Gerealiseerd:** alle 24 jobdefinities in 21 workflows gebruiken
+`ubuntu-24.04` (42 jobs na matrixuitbreiding). De host-Rust-buildcache heeft
+een nieuwe Ubuntu-namespace. Teststappen, toolchainpins, firmwarepaden,
+time-outs, rechten, triggers, caches voor downloads en artifactretentie blijven
+behouden. Besluit: ADR-CI-HOSTED-20261108 in `DECISIONS.md`.
+
+**Taakcontract:** uitsluitend runnerselectie, de bijbehorende hostcache en
+projectregistratie aanpassen. Acceptatie: geen self-hosted selectie meer in
+de workflows, verder gelijke uitvoeringsconfiguratie en consistente
+voortgangsweergave. Bestaande kernel-/runtimefouten worden hiermee niet als
+hersteld beschouwd.
+
+**Controle:** de lokale snapshot is via de GitHub-API op de vaste broncommit
+gelezen en tegen Git-blob-ID's gecontroleerd. YAML-structuur en shellsyntaxis,
+behoud van de overige workflowvelden, de zeven bestaande agent-gate-hosttests
+en `tools/progress.py --write`/`--check` slagen en zijn vastgelegd in
+`verification/github-hosted-runners-20261108.json`. Geen Rust- of QEMU-run
+lokaal: die gereedschappen ontbreken in deze uitvoeromgeving.
+
+**Open:** GitHub-CI op de nieuwe PR-head en de bestaande branchregels blijven
+van toepassing. De repository was bij controle privé; standaard hosted
+runners zijn pas onbeperkt gratis na een afzonderlijke openbaarmaking.
+Open PR #245 introduceert nog een self-hosted Copilot-workflow en moet vóór
+integratie aan de nieuwe runnerkeuze worden aangepast. De huidige
+SMP-run op main `6e429de` faalde alleen bij artifact-upload, niet in de
+teststappen: run `42389248097`, job `128453130104`.
+
+**Hervatten:** controleer de actuele head, reviewbevindingen en CI van de
+runner-PR; houd oude branchwijzigingen met self-hosted labels buiten de
+integratie. Geen runnerregistraties, publicatie- of betaalinstellingen gewijzigd.
+
+## Historisch checkpoint — Discussies en templates — 8 november 2026
 
 **Onderzoeksbron:** main `363b486b06023d3d578f8eca2b23ff49045a1757`;
 **integratiebasis:** main `5b2189824c32145ad5c110429517dfcea3f2720f`
@@ -43,13 +557,13 @@ QEMU-, fysieke of menselijke acceptatie uitgevoerd of geclaimd.
 **Eerstvolgende stap:** de checks op de geïntegreerde PR-head volgen;
 na opname de issuekeuze en vier discussieformulieren in GitHub openen. Wijzig geen branchregels om dit af te dwingen.
 
-## Checkpoint — openbare projectrichting uit PR #250 — 8 november 2026
+## Historisch checkpoint — openbare projectrichting — 8 november 2026
 
 **Bron:** `main` op `363b486b06023d3d578f8eca2b23ff49045a1757`; documentatiebranch
 `docs/public-development-direction-20261108`. **41 → 41/100**; alle criteria,
 gewichten, statussen en bestaande bewijsverwijzingen blijven gelijk.
 
-**Bevestigd:** Simon kiest voor openbare ontwikkeling. Het bestaande
+**Bevestigd besluit:** Nieuw OS wordt openbaar ontwikkeld. Het bestaande
 MPL-2.0-plan voor eigen OS-code is het uitgangspunt voor de licentiecontrole.
 Dit staat in `LICENSE-PLAN.md`, ADR-PUBLIC-DEVELOPMENT-20261108, de README en
 `implementation/EUROPE-AND-RELEASE.md`. De vijf bestaande licentievoorwaarden
@@ -144,7 +658,7 @@ geen criterium wijzigt. Besluit: ADR-CI-RUNNERS-20261106.
 
 **Gerealiseerd:**
 - Alle 21 workflows draaien op `[self-hosted, Linux, X64, unraid, build]`. Het oude label
-  `[self-hosted, Linux]` matchte ook `MSIMON-wsl`. Dat is WSL op Simons eigen pc, waar
+  `[self-hosted, Linux]` matchte ook `MSIMON-wsl`. Dat is WSL op de persoonlijke ontwikkel-pc, waar
   PR-code als gebruiker `simon` draaide.
 - `upload-artifact` bewaart nu 3 dagen.
 - `apt-get` draait alleen als `dpkg` de pakketten mist.
@@ -157,7 +671,7 @@ geen criterium wijzigt. Besluit: ADR-CI-RUNNERS-20261106.
 - Echte codefout: `test_gs_discipline` in #238.
 - Onbeslist (code of capaciteit): 8-vCPU-timeout in native-smp op de K06-keten.
 
-**Ingrepen met toestemming van Simon:**
+**Ingrepen met toestemming van de projecteigenaar:**
 - Runnerservice `MSIMON-wsl` gestopt (`systemctl` is inactive, GitHub meldt hem offline).
 - 38 wachtende PR-runs geannuleerd.
 - Artifacts ouder dan 24 uur verwijderd.
@@ -224,7 +738,7 @@ Een AP met een dode timer leidt tot quarantaine. **Bewijs:** 14/14 native
 gevallen; regressie K05 6/6, `milestone-m2` en `native-rtc` 5/5. Zie
 [k06-smp-preempt](verification/k06-smp-preempt/README.md).
 
-**Open:** merge van de keten (beslissing van Simon). Daarna volgt de
+**Open:** merge van de keten (beslissingsbevoegdheid: projecteigenaar). Daarna volgt de
 eigenlijke SMP-scheduler voor processen: per-CPU-runqueues, lockvolgorde,
 interrupts op de BSP, een CR3-wissel per thread met shootdown voor de
 hele procesadresruimte, en de herziening van ADR-024.
@@ -250,7 +764,7 @@ deterministisch het vrijgegeven frame. Regressie: K05 6/6, `milestone-m2`
 en `native-rtc` 5/5. Zie
 [k06-smp-shootdown](verification/k06-smp-shootdown/README.md).
 
-**Open:** de beslissing over #191 ligt bij Simon. Volgens de integrator
+**Open:** besluitvorming over #191 door de projecteigenaar. Volgens de integrator
 loopt #191 achter op main, draaide de volledige CI daar niet, en staan er 6
 CodeRabbit-threads open plus de `run_cap_bench`-regel; de integrator kan
 niet op die branch schrijven. Daarna komen CI en integratie van
@@ -363,7 +877,7 @@ documentatiebronnen.
 Lokaal (Rust 1.90.0): test, clippy `-D warnings`, fmt en freestanding build per
 crate exit 0; onafhankelijke AI-reviews MERGE (geen menselijke audit).
 
-**Open:** #155 vraagt Simons besluit (score 41→39, B01-criterium); #181, #191
+**Open:** #155 vraagt een besluit van de projecteigenaar (score 41→39, B01-criterium); #181, #191
 en #177 FIX (reviewcomments op de PR's); calculator #184/#186/#192 onderling
 CONFLICT (26+ hunks, ook in `tools/run_window_session.py`); #133, #135, #146,
 #147, #154, #157 nog niet beoordeeld; concepten #167 #185 #197 niet overgedragen;
@@ -853,8 +1367,9 @@ worden beoordeeld. Geen nieuwe native/QEMU-acceptatie uitgevoerd.
 
 ## Historische context — eerdere main/statusintegratie op cbbc9c99
 
-Main is inmiddels `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`: Simon
-bevestigde zelf dat hij134 handmatig squash-mergede (3nov10:05:36Z).
+Main staat op `cbbc9c9941b08ea5edfbd3637d494635b4fb1df0`. De handmatige
+squash-merge van #134 is als persoonlijke handeling door de projecteigenaar bevestigd
+(3 november, 10:05:36Z).
 Geen concurrerende agent of integratieoverdracht; geen rollback gevraagd.
 Die mainbron is nu behoudend opgenomen. Drie assessment/statusconflicten
 behouden de recentere documentcombinatie; de TCP-productiefix en haar
@@ -1629,9 +2144,9 @@ Gebruik bestaande tools en behoud andere dirty checkouts/branches.
 
 ## Vorig checkpoint — PR #125-inhoudsbehoud — 2 november 2026
 
-**Integratormandaat:** Simon heeft op 2 november expliciet het exclusieve
-integratormandaat van sessie `7f895683` aan deze sessie (`f090b913`)
-overgedragen en de #85/#76-mergepauze opgeheven, met behoud van review-, test-
+**Integratormandaat:** op 2 november is door de projecteigenaar expliciet het
+exclusieve integratormandaat van sessie `7f895683` aan deze sessie (`f090b913`)
+overgedragen en is de #85/#76-mergepauze opgeheven, met behoud van review-, test-
 en branchregels. De oude integrator bevestigde geen lopende/verzonden
 transacties, actief WIP of conflictclaim en stopt met operationele integratie.
 De wijziging staat ook in [WORK-QUEUE.md](WORK-QUEUE.md). Dit is de actuele
@@ -1654,7 +2169,7 @@ PR #120 slechts tot `562be4d` was opgenomen. De latere followups tot
   kernel- en runnercontroles.
 - `docs/WORK-QUEUE.md` maakt expliciet dat historische afwezigheid van
   desktopactiviteit geen overdrachtsbewijs is en noteert alleen de nieuwe,
-  rechtstreeks door Simon bevestigde overdracht van 2 november.
+  rechtstreeks door de projecteigenaar bevestigde overdracht van 2 november.
 
 **Vervolgpunten uit #120, nu mede opgenomen:**
 - #116: `APP_HANDLE_COUNT` dekt nu de volledige app-handletabel op het

@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-08",
-    "source_commit": "5b2189824c32145ad5c110429517dfcea3f2720f",
-    "assessment_basis": "source_commit",
-    "branch": "community/discussions-templates-20261108",
-    "task": "Discussies en bijdrageformulieren inrichten na repositoryonderzoek",
+    "date": "2026-11-09",
+    "source_commit": "a9b6d3c5ed2938b3740f9874a579f47f6d348ac5",
+    "assessment_basis": "working_tree",
+    "branch": "coderabbit/issue-278-private-vulnerability-reporting",
+    "task": "Issue #278: bestaand privémeldkanaal verifiëren en beveiligingsbeleid actualiseren",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. Communitycategorieën, startdiscussies, issue- en discussieformulieren, PR-template en routing toegevoegd. YAML-, link- en pipelineparsercontrole; geen runtimecode, nieuwe native acceptatie of criteriumwijziging. Activering van templates volgt de bestaande PR- en branchregels. De openbare ontwikkelrichting en MPL-2.0-controlebasis uit PR #250 zijn bij integratie behouden; publicatiecontroles blijven open."
+    "summary": "41/100 blijft 41/100. GitHub Private Vulnerability Reporting is al ingeschakeld en publiek vindbaar. SECURITY.md verwijst naar de werkelijke privémeldroute, beschrijft meldinhoud en belooft geen ondersteunde releases of responstermijn. Geen OS-functionaliteit, criteria, gewichten of nieuwe native acceptatie."
   },
   "tracks": [
     {

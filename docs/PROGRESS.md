@@ -1,5 +1,75 @@
 # Voortgangsmeting — van 0% naar een zelfstandig dagelijks OS
 
+Privémeldbeleid (issue #278, 2026-11-09), basis main `a9b6d3c5`: **41 → 41/100**.
+De bestaande GitHub-privémeldroute is geverifieerd en in SECURITY.md beschreven.
+Geen nieuwe productacceptatie of gewijzigde gewichten.
+[Controle en bewijsgrens](verification/private-vulnerability-reporting-278.md).
+
+Redactiereviewopvolging (9 november 2026), basis main `9922810a`: **41 → 41/100**.
+De herkomst van de desktoptoewijzing is expliciet behouden in de onpersoonlijke
+formulering. Geen technische inhoud, bevoegdheid, criterium of gewicht gewijzigd.
+[Bronvergelijking en reviewcontrole](verification/wetenschappelijke-herkomst-20261109.json).
+
+CodeQL-workflowcontract (9 november 2026), working tree op PR #266
+`3402b30c3d67e769eea28abc07e1aaceeb3e2525`: **41 → 41/100**.
+De noodzakelijke uploadpermissie wordt uitsluitend voor de CodeQL-analysejob
+met een exacte rechtenmapping toegestaan. Negen bestaande contracttests op
+24 workflows en drie composite actions slagen; één toegestane en elf ongeldige
+permissievarianten zijn gecontroleerd. Geen nieuwe native productacceptatie.
+[Controle en bronbinding](verification/codeql-workflow-contract-20261109.json).
+
+Naamverklaring Baryon OS (8 november 2026), working tree op main
+`4c7147da`: **41 → 41/100**. De README beschrijft baryonen als
+samengestelde deeltjes en gebruikt modulariteit en onderzoek als naammetafoor.
+Stabiliteit, veiligheid en prestaties blijven toetsbare ontwikkeldoelen.
+Alleen documentatie en assessment gewijzigd; geen nieuwe productacceptatie.
+[Naamverklaring](../README.md#waarom-de-naam-baryon-os) ·
+[Naamgevingsbesluit](DECISIONS.md#adr-baryon-name-20261108--naamverklaring-in-de-readme).
+
+Materiaal-bootparser en runneropruiming (8 november 2026), working tree op
+main `8c8b5283`: **41 → 41/100**. De hoofd-CI op die main-bron is groen.
+De aparte Materiaal-proef wees verwachte ACPI-diagnostiek ten onrechte af;
+de exacte incrementele grammatica en negatieve hosttests herstellen dit.
+Nieuwe native acceptatie blijft afzonderlijk te controleren. Geen criterium
+of gewicht gewijzigd. [Bron en controles](verification/materiaal-boot-parser-20261108/README.md).
+
+CodeRabbit-reviewopvolging (8 november 2026), working tree op main `1f3e7b6a`:
+**41 → 41/100**. De drie reviewfixes uit de inmiddels gemergede PR #249 zijn
+behouden. 32 gerichte Python-tests, 228 verifiercontroles en officiële
+CodeRabbit-schemavalidatie slagen lokaal. Geen productcriterium of gewicht
+gewijzigd; nieuwe-head CI en effectieve botconfiguratie worden apart getoetst.
+[Bronbinding en controle](verification/coderabbit-unblock-20261108.json).
+
+Publieke hosted CI (8 november 2026), gepubliceerde bron `338bec8c` op
+integratiebasis `39586927` (dezelfde boom als lokaal `3195e659`): **41 → 41/100**.
+23 workflows met standaardrunners; 248 Python-tests en 179 shellsyntaxcontroles
+zijn lokaal uitgevoerd op de in het rapport gehashte working tree, later
+gepubliceerd als `338bec8c`. De 224 tests verderop horen bij een eerder checkpoint.
+Op GitHub slagen bij het afzonderlijke checkpoint 39 van 40 Actions-jobs;
+de venstersessietest loopt nog. Native gates, productcriteria en gewichten behouden.
+[Lokaal brongebonden bewijs](verification/ci-public-runners-20261108.json) ·
+[GitHub-checkpoint](verification/ci-public-runners-20261108/hosted-checkpoint.json).
+
+PR #249 hervat (8 november 2026), bron `575a5040` met main `5b218982`:
+**41 → 41/100**. Vier documentconflicten opgelost met behoud van de
+runnerwijziging en openbare ontwikkelrichting. GitHub bevestigt een
+Actions-budgetblokkade vóór runnerstart; review verduidelijkt de bewijsgrens
+en begrenst de diagnose-upload. Geen nieuwe host-/native
+acceptatie. [Integratie- en statusbewijs](verification/ci-resume-249-20261108.json).
+
+Gepinde reguliere CI (8 november 2026), bron PR #249 `d3d8e3e0`:
+**41 → 41/100**. Vaste Python-/QEMU-/firmwareversies en 99 extra bestaande
+hosttests; 224 gerichte hosttests en de configuratiecontrole slagen.
+Geen nieuw native productcriterium; nieuwe-head OS-gates blijven nodig.
+Zie [CI](CI.md) en [het controleverslag](verification/ci-standard-runners-20261108.json).
+
+Runnerwissel op basis main `6e429de9` (8 november 2026): **41 → 41/100**.
+Alle 21 workflows gebruiken standaard GitHub-hosted Ubuntu 24.04-runners;
+24 jobdefinities en 42 uitgewerkte matrixjobs. Alleen CI-infrastructuur en
+de host-buildcache veranderen; geen productcriterium of gewicht wijzigt.
+Configuratie-/hostcontroles zijn geen nieuw native acceptatiebewijs.
+Zie [de migratiecontrole](verification/github-hosted-runners-20261108.json).
+
 PR #235-herstel (7 november 2026), PR-bron `bff194b5` met main `9bc5f52`:
 **41 → 41/100**. Alleen buildpadcorrecties, twee functiedocstrings en een
 actuele CI-basis; geen criterium of gewicht gewijzigd. Syntax-/AST-controle
@@ -248,8 +318,9 @@ historische uitvoeringen; hun exacte bronstatus en vier cloudmain-mergeheads
 zijn afzonderlijk gehasht bewaard, niet nieuwe native acceptatie.
 
 Main-reconciliatie (3 november 2026), bron `cbe28f39`: **41 -> 41**.
-Simons main134-squashcbbc9c99 behoudend opgenomen;10 netwerkservice- en16
-opslaghosttests groen,207 archiefhashes/99manifestentries geldig.
+De handmatige squash-merge van #134 (`cbbc9c99`) door de projecteigenaar is met behoud van inhoud
+opgenomen; 10 netwerkservice- en 16 opslaghosttests geslaagd, 207
+archiefhashes en 99 manifestvermeldingen geldig.
 Rubric buiten assessment identiek; historische134-nativegrenzen niet als
 verse uitvoering gepresenteerd. Volledige nieuwe CI/review blijft vereist.
 

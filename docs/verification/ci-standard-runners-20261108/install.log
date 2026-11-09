@@ -1,0 +1,3 @@
+sudo: PERM_SUDOERS: setresuid(-1, 1, -1): Invalid argument
+sudo: unable to open /etc/sudoers: Invalid argument
+sudo: error initializing audit plugin sudoers_audit

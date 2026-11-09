@@ -153,8 +153,8 @@ privacyfuncties verder kunnen worden aangescherpt.
 
 Een Gecko-keuze lost de port naar de eigen kernel evenmin vanzelf op. Ook hier
 zijn grafische, netwerk-, proces-, filesystem-, sandbox- en updateinterfaces
-nodig. De vergelijking moet daarom niet “welke browser vind ik mooier?” zijn,
-maar welke codebasis de gewenste productgaranties onderhoudbaar kan dragen.
+nodig. Het bepalende vergelijkingscriterium is welke codebasis de gewenste
+productgaranties onderhoudbaar kan dragen; visuele voorkeur is niet leidend.
 
 ## 7. Onderzoekscriteria vóór een enginebesluit
 
@@ -252,5 +252,5 @@ Fingerprinting in Web Specifications* (W3C Group Note).
 https://www.w3.org/TR/fingerprinting-guidance/
 
 De voorgestelde uitzonderingsflow, BR-acceptatievragen en ontwikkelvolgorde zijn
-projectontwerp op basis van de gebruikersopdracht en bovenstaande technische
+projectontwerp op basis van de vastgelegde opdracht en bovenstaande technische
 referenties; de bronnen certificeren Nieuw OS niet.
