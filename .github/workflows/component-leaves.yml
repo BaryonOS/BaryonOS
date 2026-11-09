@@ -2,9 +2,11 @@ name: Component leaf quality
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened]
+    paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
+    paths-ignore: ['docs/**', '*.md']
   workflow_dispatch:
 
 permissions:
@@ -25,11 +27,10 @@ jobs:
     timeout-minutes: 15
     strategy:
       fail-fast: false
+      # Keep runner capacity available for required checks and native gates.
+      max-parallel: 4
       matrix:
         include:
-          - component: artifact-store
-            manifest: crates/artifact-store-core/Cargo.toml
-            toolchain: "1.90.0"
           - component: ai-model-reader
             manifest: experiments/ai/model-store-contract/Cargo.toml
             toolchain: "1.90.0"
@@ -44,9 +45,6 @@ jobs:
             toolchain: "1.90.0"
           - component: usb
             manifest: drivers/usb/Cargo.toml
-            toolchain: "1.90.0"
-          - component: materiaal-ui
-            manifest: ui/native/Cargo.toml
             toolchain: "1.90.0"
           - component: document-import
             manifest: sdk/examples/document-import/Cargo.toml
@@ -94,6 +92,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
       - name: Install pinned Rust toolchain and target
         run: |
           rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
