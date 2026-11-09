@@ -2601,8 +2601,10 @@ fn bsp_switch(local: &CpuLocal, rsp: u64, busy: bool) -> Resume {
     }
 }
 
-/// IRQ0 ticks the BSP idles through for the sustained clock check.
-const CLOCK_SPAN: u64 = 5_000;
+/// Five one-second IRQ0 samples for the sustained clock check.
+const CLOCK_SEGMENT: u64 = 1_000;
+const CLOCK_SEGMENTS: usize = 5;
+const CLOCK_SPAN: u64 = CLOCK_SEGMENT * CLOCK_SEGMENTS as u64;
 static CLOCK_LOAD: AtomicBool = AtomicBool::new(false);
 static CLOCK_WORK: AtomicU64 = AtomicU64::new(0);
 
@@ -2626,11 +2628,11 @@ fn clock_at(target: u64, bound: u64, last: &mut u64) -> Option<u64> {
 }
 
 /// BT-1 under SMP load (spec 06 §4 "Klok"): every AP spins while the BSP
-/// idles through CLOCK_SPAN IRQ0 ticks; on the PIT-calibrated TSC they must
-/// last the PIT's own period within 1%, and the clock never goes back. The
-/// five-second observation measures sustained drift without letting one
-/// scheduling delay dominate the sample. A lost IRQ0 shows up as a longer
-/// span.
+/// idles through CLOCK_SPAN IRQ0 ticks; on the PIT-calibrated TSC the median
+/// one-second segment must last the PIT's own period within 1%, and the clock
+/// never goes back. One scheduling delay cannot dominate the result, while
+/// sustained drift affects at least three segments. Lost IRQ0s lengthen their
+/// segments.
 fn clock(online: usize, total: usize) -> bool {
     CLOCK_LOAD.store(true, Ordering::Release);
     for context in &NOS_SMP_AP_CONTEXTS[..online] {
@@ -2648,15 +2650,24 @@ fn clock(online: usize, total: usize) -> bool {
     let bound = rdtsc().saturating_add(4 * CLOCK_SPAN * per_ms);
     let mut last = CLOCK_TICKS.load(Ordering::Acquire);
     let first = last + 1;
-    let start = clock_at(first, bound, &mut last);
-    let end = start.and_then(|_| clock_at(first + CLOCK_SPAN, bound, &mut last));
+    let mut edge = clock_at(first, bound, &mut last);
+    let mut samples = [0u64; CLOCK_SEGMENTS];
+    for (index, sample) in samples.iter_mut().enumerate() {
+        edge = edge.and_then(|start| {
+            clock_at(first + (index as u64 + 1) * CLOCK_SEGMENT, bound, &mut last).map(|end| {
+                *sample = (end - start) * 1000 / per_ms;
+                end
+            })
+        });
+    }
     CLOCK_LOAD.store(false, Ordering::Release);
-    let (Some(start), Some(end)) = (start, end) else {
+    if edge.is_none() {
         serial::write(b"SMP:CLOCK:STOPPED\n");
         serial::fail(b"SMP_CLOCK_STOPPED")
-    };
-    let us = (end - start) * 1000 / per_ms;
-    let expected = CLOCK_SPAN * u64::from(PIT_DIVISOR) * 1_000_000 / PIT_HZ;
+    }
+    samples.sort_unstable();
+    let us = samples[CLOCK_SEGMENTS / 2];
+    let expected = CLOCK_SEGMENT * u64::from(PIT_DIVISOR) * 1_000_000 / PIT_HZ;
     if us.abs_diff(expected) * 100 > expected {
         serial::write(b"SMP:CLOCK:DRIFT:US=");
         decimal(us);
