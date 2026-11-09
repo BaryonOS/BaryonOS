@@ -149,7 +149,7 @@ def main() -> int:
                 "error": report.get("error"),
             })
             stage_passed = report["passed"] and source_hash() == source
-            summary["passed"] = host_passed and stage_passed
+            # Only the completed, fully verified matrix may publish passed=True.
             save_json(receipt, summary)
             if not stage_passed:
                 summary["status"] = "failed"
