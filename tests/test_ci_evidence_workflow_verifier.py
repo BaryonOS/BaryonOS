@@ -46,7 +46,7 @@ class WorkflowVerifierTests(unittest.TestCase):
         return VERIFIER.run(self.repo, self.baseline)
 
     def test_integrated_workflows_preserve_all_reporting_cases(self):
-        """A valid post-migration baseline retains all 16 evidence selections."""
+        """A valid baseline retains 16 workflow files and 17 preservation calls."""
         report = self.report()
         self.assertTrue(report["passed"], report["failed_checks"])
         self.assertEqual(report["archive_workflow_count"], 16)
