@@ -734,7 +734,8 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
         }
     }
     // TPR 0 accepts every class. The shootdown-deaf test raises it to class 0xe
-    // so only the 0xe0 shootdown vector is held back, never the 0xf0 IPIs.
+    // to block the 0xd0 timer, 0xe0 shootdown and 0xe8 reschedule vectors;
+    // the 0xf0 IPIs remain above the TPR threshold.
     let tpr = if cfg!(feature = "test-smp-ap-shootdown-deaf") && first {
         0xe0
     } else {
@@ -1828,6 +1829,15 @@ fn sched_switch(local: &CpuLocal, rsp: u64, busy: bool) -> Resume {
     let cpu = slot + 1;
     let current = local.sched_cur.load(Ordering::Relaxed);
     let stop = SCHED.load(Ordering::Acquire) == PREEMPT_STOP;
+    if cfg!(feature = "test-smp-double-run")
+        && SCHED_APS.load(Ordering::Relaxed) >= 2
+        && (current == 0 || (slot == 1 && PROGRESS[0].load(Ordering::Acquire) == 0))
+    {
+        // Hold the second AP until thread 0 has run on the first, then keep
+        // thread 0 RUNNING until the duplicate dispatch. Resuming the same
+        // context prevents any timer tick from publishing thread 0 as READY.
+        return Resume { rsp, left: 0 };
+    }
     let mut queue = RUNQ[slot].lock_irqsave();
     if current == HOME {
         local.saved[0].store(rsp, Ordering::Relaxed);
@@ -1892,14 +1902,14 @@ extern "C" fn nos_smp_sched_thread(tid: u64) -> ! {
     loop {
         let cr3: u64;
         // SAFETY: CLI and a CR3 read in this CPL0 thread; IF is restored below.
-        unsafe { asm!("cli", "mov {}, cr3", out(reg) cr3, options(nomem, nostack)) };
+        unsafe { asm!("cli", "mov {}, cr3", out(reg) cr3, options(nostack)) };
         let intact = this_cpu().is_some_and(|local| {
             let bit = 1u64 << (local.slot.load(Ordering::Relaxed) + 1);
             cr3 & ROOT_MASK == SPACE_ROOT[own].load(Ordering::Relaxed)
                 && ACTIVE[own].load(Ordering::SeqCst) & bit != 0
         });
         // SAFETY: re-enables interrupts for this preemptible kernel thread.
-        unsafe { asm!("sti", options(nomem, nostack)) };
+        unsafe { asm!("sti", options(nostack)) };
         if !intact {
             SCHED_FAULT.store(1, Ordering::Release);
         }
@@ -1956,7 +1966,7 @@ fn schedule(online: usize, total: usize) -> bool {
             }
         }
         if cfg!(feature = "test-smp-double-run") && online >= 2 {
-            // Thread 0 queued on a second AP as well: dispatch must refuse.
+            // Thread 0 stays RUNNING on the first AP when the second dispatches it.
             let _ = RUNQ[1].lock_irqsave().push(0);
         }
         SCHED.store(PREEMPT_RUN, Ordering::Release);
