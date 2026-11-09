@@ -55,12 +55,7 @@ pub fn guard_pages() -> [u64; 6 + MAX_APS * 4] {
         let double = double_base + index as u64 * stride;
         let nmi = nmi_base + index as u64 * stride;
         let start = 6 + index * 4;
-        guards[start..start + 4].copy_from_slice(&[
-            double,
-            double + 20480,
-            nmi,
-            nmi + 20480,
-        ]);
+        guards[start..start + 4].copy_from_slice(&[double, double + 20480, nmi, nmi + 20480]);
     }
     guards
 }

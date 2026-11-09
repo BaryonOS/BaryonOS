@@ -48,6 +48,12 @@ pub struct Rendezvous {
     participants: AtomicUsize,
 }
 
+impl Default for Rendezvous {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Rendezvous {
     pub const fn new() -> Self {
         Self {

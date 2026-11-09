@@ -18,8 +18,8 @@ impl Thresholds {
     /// Derive watermarks from admitted physical memory, not the metadata-array
     /// size. The critical reserve is 1/32 and elevated begins at 1/8.
     pub const fn for_managed_frames(managed: usize) -> Self {
-        let elevated_at_or_below = managed / 8 + if managed % 8 == 0 { 0 } else { 1 };
-        let critical_at_or_below = managed / 32 + if managed % 32 == 0 { 0 } else { 1 };
+        let elevated_at_or_below = managed / 8 + if managed.is_multiple_of(8) { 0 } else { 1 };
+        let critical_at_or_below = managed / 32 + if managed.is_multiple_of(32) { 0 } else { 1 };
         Self {
             elevated_at_or_below,
             critical_at_or_below,

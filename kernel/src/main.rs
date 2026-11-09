@@ -50,7 +50,7 @@ pub extern "sysv64" fn _start(info_pointer: *const BootInfo) -> ! {
     // SAFETY: Loader-to-kernel ABI guarantees this page is mapped and initialized;
     // range checks precede the copy. M1 trusts its own loader/firmware, not user pointers.
     let info = unsafe { info_pointer.read() };
-    #[cfg(feature = "framebuffer")]
+    #[cfg(all(feature = "framebuffer", feature = "native-smp-legacy"))]
     let info = {
         let mut header = info;
         // ABI 1.2 ends at byte 128, where its graphics extension starts.

@@ -1,6 +1,4 @@
-
 //! M1 wire contract. Validation never follows physical pointers or reclaims memory.
-
 
 pub const PAGE_SIZE: u64 = 4096;
 pub const ADDRESS_LIMIT: u64 = 1 << 30;

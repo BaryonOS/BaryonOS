@@ -21,7 +21,7 @@ on:
       - 'Cargo.lock'
       - 'rust-toolchain.toml'
       - '.github/workflows/storage-resilience.yml'
-      - '.github/actions/**'
+      - '.github/actions/preserve-evidence/**'
 
 permissions:
   contents: read
