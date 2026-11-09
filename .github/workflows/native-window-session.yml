@@ -1,10 +1,18 @@
 name: Native window session and Windows QEMU bundle
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened]
+    paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
+    paths-ignore: ['docs/**', '*.md']
 
 permissions:
   contents: read
@@ -20,7 +28,8 @@ defaults:
 jobs:
   native-window-session:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    # Three isolated boots: full regression, library mutation, cold reopen.
+    timeout-minutes: 75
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
       NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/probe
@@ -34,6 +43,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
       - name: Prepare source-bound evidence
         run: |
           mkdir -p "$CI_EVIDENCE_DIR" "$NOS_BUILD_DIR/logs"
@@ -61,10 +72,12 @@ jobs:
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
-      - name: Disposable QEMU and explicit firmware and notices
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Ubuntu emulator package diagnostics
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf seabios
           for path in \
             "$OS_OVMF_CODE" "$OS_OVMF_VARS" \
             /usr/share/seabios/bios-256k.bin \
@@ -138,6 +151,44 @@ jobs:
           (Path(os.environ["CI_EVIDENCE_DIR"]) / "native-volume.sha256").write_text(
               digest + "  " + volume.relative_to(Path.cwd()).as_posix() + "\n")
           PY
+      - name: Native material names, collections, search and revision recovery
+        run: |
+          python3 -B -u tools/run_window_session.py \
+            --library --timeout 1800 \
+            --bios-rom /usr/share/seabios/bios-256k.bin \
+            --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
+            2>&1 | tee "$CI_EVIDENCE_DIR/library-write.txt"
+          python3 -B - <<'PY'
+          import json, os
+          from pathlib import Path
+          path = Path(os.environ["NOS_BUILD_DIR"]) / "window-session-report.json"
+          report = json.loads(path.read_text())
+          assert report["passed"] is True and report["library_gate"] is True
+          assert report["library_cold"] is False and report["native_gate"] is False
+          assert report["raw_qemu_exit"] == 33 and len(report["phases"]) == 10
+          output = Path(os.environ["CI_EVIDENCE_DIR"])
+          (output / "library-write-report.json").write_bytes(path.read_bytes())
+          (output / "library-parent.txt").write_text(report["run_directory"] + "\n")
+          PY
+      - name: Cold reopen the source-bound disposable library image
+        run: |
+          read -r library_parent < "$CI_EVIDENCE_DIR/library-parent.txt"
+          python3 -B -u tools/run_window_session.py \
+            --library --library-cold-parent "$library_parent" --timeout 1800 \
+            --bios-rom /usr/share/seabios/bios-256k.bin \
+            --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
+            2>&1 | tee "$CI_EVIDENCE_DIR/library-cold.txt"
+          python3 -B - <<'PY'
+          import json, os
+          from pathlib import Path
+          path = Path(os.environ["NOS_BUILD_DIR"]) / "window-session-report.json"
+          report = json.loads(path.read_text())
+          assert report["passed"] is True and report["library_gate"] is True
+          assert report["library_cold"] is True and report["native_gate"] is False
+          assert report["raw_qemu_exit"] == 33 and len(report["phases"]) == 4
+          assert report["volume_sha256"] == report["library_parent"]["volume_sha256"]
+          (Path(os.environ["CI_EVIDENCE_DIR"]) / "library-cold-report.json").write_bytes(path.read_bytes())
+          PY
       - name: Build the normal window session only after native acceptance
         if: ${{ success() && steps.native-gate.outcome == 'success' }}
         env:
@@ -176,10 +227,13 @@ jobs:
         run: |
           mkdir -p "$CI_EVIDENCE_DIR"
           printf '%s\n' "$CI_JOB_STATUS" > "$CI_EVIDENCE_DIR/job-status.txt"
-      - name: Preserve native evidence and the optional Windows bundle
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
+          package-path: build/window-session-ci/evidence/NieuwOS-Venstersessie-Windows-QEMU.zip
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: native-window-session-evidence-and-windows-bundle
           path: |
             build/window-session-ci/evidence/
@@ -199,5 +253,3 @@ jobs:
             build/window-session-ci/normal/manifest.json
             build/window-session-ci/normal/users/materiaal/build-report.json
             build/window-session-ci/normal/logs/
-          if-no-files-found: error
-          retention-days: 14

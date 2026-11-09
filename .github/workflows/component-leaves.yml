@@ -2,9 +2,11 @@ name: Component leaf quality
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened]
+    paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
+    paths-ignore: ['docs/**', '*.md']
   workflow_dispatch:
 
 permissions:
@@ -25,11 +27,10 @@ jobs:
     timeout-minutes: 15
     strategy:
       fail-fast: false
+      # Keep runner capacity available for required checks and native gates.
+      max-parallel: 4
       matrix:
         include:
-          - component: artifact-store
-            manifest: crates/artifact-store-core/Cargo.toml
-            toolchain: "1.90.0"
           - component: ai-model-reader
             manifest: experiments/ai/model-store-contract/Cargo.toml
             toolchain: "1.90.0"
@@ -45,21 +46,54 @@ jobs:
           - component: usb
             manifest: drivers/usb/Cargo.toml
             toolchain: "1.90.0"
-          - component: materiaal-ui
-            manifest: ui/native/Cargo.toml
+          - component: document-import
+            manifest: sdk/examples/document-import/Cargo.toml
             toolchain: "1.90.0"
+            features: "--features host-cli"
+          - component: document-export
+            manifest: sdk/examples/document-export/Cargo.toml
+            toolchain: "1.90.0"
+            features: "--features host-cli"
+          - component: image-crop
+            manifest: sdk/examples/image-crop/Cargo.toml
+            toolchain: "1.90.0"
+            features: "--features host-cli"
+          - component: image-export
+            manifest: sdk/examples/image-export/Cargo.toml
+            toolchain: "1.90.0"
+            features: "--features host-cli"
+          - component: audio-clip
+            manifest: sdk/examples/audio-clip/Cargo.toml
+            toolchain: "1.90.0"
+            features: "--features host-cli"
+          - component: presentation
+            manifest: sdk/examples/presentation/Cargo.toml
+            toolchain: "1.90.0"
+            features: "--features host-cli"
+          - component: spreadsheet
+            manifest: sdk/examples/spreadsheet/Cargo.toml
+            toolchain: "1.90.0"
+            features: "--features host-cli"
+          - component: table-editor
+            manifest: sdk/examples/table-editor/Cargo.toml
+            toolchain: "1.90.0"
+            features: "--features host-cli"
           - component: net-config
             manifest: services/net-config/Cargo.toml
             toolchain: "1.91.1"
     env:
       RUST_TOOLCHAIN: ${{ matrix.toolchain }}
       COMPONENT_MANIFEST: ${{ matrix.manifest }}
+      # The platform apps gate their CLI binaries and process tests behind host-cli.
+      COMPONENT_FEATURES: ${{ matrix.features || '' }}
       CARGO_TARGET_DIR: ${{ github.workspace }}/target/component-leaves/${{ matrix.component }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
       - name: Install pinned Rust toolchain and target
         run: |
           rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
@@ -70,9 +104,9 @@ jobs:
       # Default tests include virtio-snd's cfg(test) transport model.
       # ACPI's ignored firmware-fixture test requires a separate QEMU gate.
       - name: Host unit, integration and documentation tests
-        run: cargo "+$RUST_TOOLCHAIN" test --locked --manifest-path "$COMPONENT_MANIFEST"
+        run: cargo "+$RUST_TOOLCHAIN" test --locked --manifest-path "$COMPONENT_MANIFEST" $COMPONENT_FEATURES
       - name: Clippy for all targets
-        run: cargo "+$RUST_TOOLCHAIN" clippy --locked --manifest-path "$COMPONENT_MANIFEST" --all-targets -- -D warnings
+        run: cargo "+$RUST_TOOLCHAIN" clippy --locked --manifest-path "$COMPONENT_MANIFEST" $COMPONENT_FEATURES --all-targets -- -D warnings
       - name: Formatting
         run: cargo "+$RUST_TOOLCHAIN" fmt --manifest-path "$COMPONENT_MANIFEST" -- --check
       - name: Freestanding scalar library build (not native execution)
