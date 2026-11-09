@@ -1,8 +1,10 @@
 name: Resource pressure acceptance
 
 on:
+  workflow_dispatch:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened]
+    paths-ignore: ['docs/**', '*.md']
 
 permissions:
   contents: read
@@ -17,20 +19,22 @@ jobs:
     timeout-minutes: 30
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
       - name: Rust 1.90.0 and targets
         shell: bash
         run: |
           rustup toolchain install 1.90.0 --profile minimal
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
-      - name: Disposable QEMU/OVMF
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
       - name: K07 combined native gate
         shell: bash
         run: |
