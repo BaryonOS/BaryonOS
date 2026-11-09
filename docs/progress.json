@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-09",
-    "source_commit": "9554d677c0ab8dd9acfce47f9abe43e22c0215c8",
+    "source_commit": "06f6736d2be67c664ad24f4ed7799860a36f791a",
     "assessment_basis": "working_tree",
-    "branch": "copilot/driver-usb-hid-control",
-    "task": "PR #185 merge reconciliation: USB HID setup encoding with current main",
+    "branch": "coderabbit/issue-283-dependabot-coverage",
+    "task": "Refresh PR #284: complete independent Cargo workspace monitoring without duplicate SDK coverage",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The HID setup encoder adds no new native acceptance. No local tests or QEMU gate executed on this reconciled tree; hosted checks remain pending."
+    "summary": "41/100 remains 41/100. Dependency monitoring adds no OS acceptance criterion. Preflight, build, smoke and 11 configuration tests passed locally."
   },
   "tracks": [
     {
