@@ -40,9 +40,13 @@ IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
 SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
+                   "native-smp-m3-ipc", "native-smp-m3-migrate", "test-smp-m3-canary",
+                   "native-smp-m3-load", "native-smp-m3-soak", "native-smp-m4-quotas", "native-smp-qsim", "native-smp-m3-kill",
+                   "native-smp-m3-unmap", "test-smp-m3-no-shootdown",
+                   "test-smp-m3-recovery",
                    "native-smp", "test-smp-ap-stall", "test-smp-ap-mismatch", "test-smp-ap-nmi",
                    "test-smp-ap-double-fault", "test-smp-ap-ipi-deaf", "test-smp-ap-shootdown-deaf",
-                   "test-smp-shootdown-skipped", "test-smp-ap-timer-dead", "test-smp-lockdep-order", "test-m2-ro", "test-m2-nx",
+                   "test-smp-shootdown-skipped", "test-smp-ap-timer-dead", "test-smp-lockdep-order", "test-smp-spin-irq-off", "test-smp-held-across-switch", "test-smp-double-run", "test-smp-resched-deaf", "test-smp-gs-user", "test-smp-gs-iret-fault", "test-smp-gs-nmi-user", "test-smp-shared-scratch", "test-smp-lock-in-handler", "test-smp-lockpair-order", "test-smp-icr-race", "test-smp-quarantine-lock-held", "test-smp-bsp-spin-irq-off", "test-smp-proc-shootdown-deaf", "test-smp-proc-no-shootdown", "test-smp-lock-stuck", "test-smp-serial-unlocked", "native-smp-m3", "test-smp-m3-fault", "test-smp-m3-fpu-skip", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
                    "milestone-m4", *(f"test-m4-{case}" for case, _ in M4_CASES),
@@ -170,7 +174,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     elif kernel_feature in ("native-fpu", "test-fpu-wait"):
         from run_fpu import build_users as build_fpu_users
         extra_env, qsim_report = build_fpu_users()
-    elif kernel_feature == "native-qsim":
+    elif kernel_feature in ("native-qsim", "native-smp-qsim"):
         output = BUILD / "users/qsim"
         run_logged([sys.executable, "-B", str(ROOT / "experiments/quantum/native/build.py"),
                     "--output-dir", str(output), "--target-dir", str(TARGET / "qsim-user")],
@@ -310,7 +314,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         extra_env = {f"NOS_KEYRING_{name.upper()}_ELF": str(path.resolve()) for name, path in binaries.items()}
     if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b", "m6c")):
         from build_users import build_users
-        extra_env = {"NOS_USER_ELF": str(build_users("large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
+        extra_env = {"NOS_USER_ELF": str(build_users("smp-unmap" if kernel_feature in ("native-smp-m3-unmap", "test-smp-m3-no-shootdown") else "large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
         if any(m in kernel_feature for m in ("m4", "m5", "m6a", "m6b", "m6c")):
             extra_env["NOS_IPC_ELF"] = str(build_users("ipc").resolve())
         if any(m in kernel_feature for m in ("m5", "m6a", "m6b", "m6c")):

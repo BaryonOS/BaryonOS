@@ -55,6 +55,8 @@ jobs:
           cargo +1.90.0 test --locked -p smp-lock
           cargo +1.90.0 clippy --locked -p smp-lock --all-targets -- -D warnings
           python3 -B -m unittest discover -s tools/tests -p test_smp_serial.py -v
+          # Audit F8: static swapgs/lfence discipline (sole evidence for GS-5).
+          python3 -B -m unittest discover -s tools/tests -p test_gs_discipline.py -v
           python3 -B -m unittest discover -s tools/tests -p test_acpi_serial.py -v
           cargo +1.90.0 fmt --all -- --check
       - name: Normal, capacity and duplicate-MADT boots (1/2/4/8/9 vCPUs)
@@ -101,6 +103,94 @@ jobs:
         run: |
           python3 -B tools/build.py --kernel-feature test-smp-lockdep-order
           python3 -B -u tools/run_smp.py --profile test-smp-lockdep-order
+      - name: A CPU waiting for KERNEL without the IF window is deaf (control)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-spin-irq-off
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-spin-irq-off
+          python3 -B -u tools/run_smp.py --profile test-smp-spin-irq-off
+      - name: A switch while a lock is held or awaited stops with the lockdep marker
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-held-across-switch
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-held-across-switch
+          python3 -B -u tools/run_smp.py --profile test-smp-held-across-switch
+      - name: A second push of a queued thread is refused at the push (audit F17)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-double-run
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-double-run
+          python3 -B -u tools/run_smp.py --profile test-smp-double-run
+      - name: A kill aimed at an AP that ignores 0xe8 times out and quarantines (audit F16)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-resched-deaf
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-resched-deaf
+          python3 -B -u tools/run_smp.py --profile test-smp-resched-deaf
+      - name: Ring 3 with its own GS on every AP; faulting iretq and NMI from CPL3 (audit F8)
+        run: |
+          for profile in test-smp-gs-user test-smp-gs-iret-fault test-smp-gs-nmi-user; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
+      - name: Every CPU sharing one scratch slot is caught crossing (control, ADR-075)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-shared-scratch
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-shared-scratch
+          python3 -B -u tools/run_smp.py --profile test-smp-shared-scratch
+      - name: KERNEL in a handler and a loose descending ASPACE pair stop with lockdep (F3/F4)
+        run: |
+          for profile in test-smp-lock-in-handler test-smp-lockpair-order; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
+      - name: Without the ICR lock a handler IPI replaces the destination (control, audit F19)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-icr-race
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-icr-race
+          python3 -B -u tools/run_smp.py --profile test-smp-icr-race
+      - name: A deaf AP holding KERNEL stops the system instead of INIT (audit F15)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-quarantine-lock-held
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-quarantine-lock-held
+          python3 -B -u tools/run_smp.py --profile test-smp-quarantine-lock-held
+      - name: A BSP spinning on KERNEL without its IF window misses a shootdown (control, step 5c-2)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-bsp-spin-irq-off
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-bsp-spin-irq-off
+          python3 -B -u tools/run_smp.py --profile test-smp-bsp-spin-irq-off
+      - name: Process shootdown - deaf AP quarantines the frame; control shows a stale read (step 5e)
+        run: |
+          for profile in test-smp-proc-shootdown-deaf test-smp-proc-no-shootdown; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
+      - name: A lock the BSP never frees is reported as STUCK in a release build (F5)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-lock-stuck
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-lock-stuck
+          python3 -B -u tools/run_smp.py --profile test-smp-lock-stuck
+      - name: Without the SERIAL lock CPUs mix a line (control, F7)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-serial-unlocked
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-serial-unlocked
+          python3 -B -u tools/run_smp.py --profile test-smp-serial-unlocked
+      - name: M3 ring-3 processes on every CPU (2/4/8 vCPUs) and an AP2 app fault (step 5d-2)
+        run: |
+          for profile in native-smp-m3 test-smp-m3-fault; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
       - name: Preserve tracked source integrity
         run: git diff --exit-code
       - name: Preserve compact evidence and report archive availability

@@ -3,9 +3,9 @@
 //! spawn, kill, status) and keeps every existing rule: a child only receives
 //! the reduced capabilities its spawner passes, a `Process` object cannot
 //! leave its holder, death reclaims everything through the existing `cleanup`
-//! path, and children of a dead spawner end in the same event (no recursion).
+//! path, and children of a dead spawner are retired iteratively (no recursion).
 //! The kernel knows no user protocol; the acceptance reads app-reported
-//! evidence words plus its own counters. Single CPU, IF=0.
+//! evidence words plus its own counters. KERNEL serializes mutations, IF=0.
 use super::*;
 use capability_core::{
     KILL, MAX_PROCESS_OBJECTS, OBSERVE, PROCESS_EXITED, PROCESS_FAULTED, PROCESS_KILLED,
@@ -14,6 +14,8 @@ use capability_core::{
 
 /// Whole-run budget in 100 Hz ticks; the host bounds wall time separately.
 const RUN_TICKS: u64 = 6000;
+#[cfg(feature = "native-smp-m3")]
+const ORPHAN_ACK_MS: u64 = 100;
 const IMAGE_WORKER: u32 = 0;
 const IMAGE_CLIENT: u32 = 1;
 /// Frames a spawn may need beyond the image pages: heap 16, stack 16, kernel
@@ -51,6 +53,8 @@ struct Evidence {
     kernel_tables_at_manifest: usize,
     supervisor_exited: bool,
     supervisor_code: u64,
+    #[cfg(feature = "native-smp-m3")]
+    orphan_deadline_ms: Option<u64>,
     sup: [u64; 16],
     image_of: [u32; MAX],
     #[cfg(feature = "test-supervisor-wait")]
@@ -79,6 +83,8 @@ static mut EVIDENCE: Evidence = Evidence {
     kernel_tables_at_manifest: 0,
     supervisor_exited: false,
     supervisor_code: 0,
+    #[cfg(feature = "native-smp-m3")]
+    orphan_deadline_ms: None,
     sup: [0; 16],
     image_of: [u32::MAX; MAX],
     #[cfg(feature = "test-supervisor-wait")]
@@ -91,7 +97,7 @@ static mut EVIDENCE: Evidence = Evidence {
     first_waiting_kill_tick: 0,
 };
 fn evidence() -> &'static mut Evidence {
-    // SAFETY: One CPU, IF=0; every borrow ends before scheduling or cleanup.
+    // SAFETY: KERNEL held, IF=0; every borrow ends before scheduling or cleanup.
     unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
 }
 
@@ -127,9 +133,13 @@ fn fail(reason: &[u8]) -> ! {
     serial::exit(0x11)
 }
 fn put(s: &State, slot: usize, offset: u64, value: u64) {
+    #[cfg(feature = "native-smp-m3")]
+    let _address = ASPACE[slot].lock_irqsave();
     write_word(s.processes[slot].physical(DATA + offset), value);
 }
 fn word(s: &State, slot: usize, offset: u64) -> u64 {
+    #[cfg(feature = "native-smp-m3")]
+    let _address = ASPACE[slot].lock_irqsave();
     read_word(s.processes[slot].physical(DATA + offset))
 }
 fn live_count(s: &State) -> u64 {
@@ -424,13 +434,28 @@ fn kill(s: &mut State, slot: usize, handle: u64) -> Result<u64, i64> {
     if !m4::engine().process_died(view.child, PROCESS_KILLED, 0) {
         fail(b"KILL_STATE");
     }
-    s.processes[target].status = Status::Dying;
-    s.cleanup(target);
+    #[cfg(feature = "native-smp-m3")]
+    s.retire_process(target, Some(slot));
+    #[cfg(not(feature = "native-smp-m3"))]
+    {
+        s.processes[target].status = Status::Dying;
+        s.cleanup(target);
+    }
     #[cfg(feature = "test-supervisor-wait")]
     {
+        #[cfg(not(feature = "native-smp-m3"))]
         require(
             s.processes[target].status == Status::Dead && s.processes[target].wait.is_none(),
             b"WAIT_KILL_CLEANUP",
+        );
+        #[cfg(feature = "native-smp-m3")]
+        require(
+            (s.processes[target].status == Status::Dead && s.processes[target].wait.is_none())
+                || (s.processes[target].status == Status::Dying
+                    && s.processes[slot]
+                        .kill_wait
+                        .is_some_and(|(pid, _)| pid == view.child)),
+            b"WAIT_KILL_ACK_PENDING",
         );
         evidence().waiting_kills += 1;
     }
@@ -438,8 +463,8 @@ fn kill(s: &mut State, slot: usize, handle: u64) -> Result<u64, i64> {
     Ok(0)
 }
 
-/// Children whose spawner is gone end here, iteratively: each round ends at
-/// least one process, so at most `MAX` rounds run on the kernel stack.
+/// Children whose spawner is gone retire here, iteratively. Each round marks
+/// at least one process object dead; SMP frame reclamation waits for CPU ack.
 pub(super) fn reap_orphans(s: &mut State) {
     loop {
         let mut out = [0u64; MAX_PROCESS_OBJECTS];
@@ -454,8 +479,19 @@ pub(super) fn reap_orphans(s: &mut State) {
             if !m4::engine().process_died(child, PROCESS_KILLED, 0) {
                 fail(b"ORPHAN_STATE");
             }
-            s.processes[slot].status = Status::Dying;
-            s.cleanup(slot);
+            #[cfg(feature = "native-smp-m3")]
+            {
+                if evidence().orphan_deadline_ms.is_none() {
+                    evidence().orphan_deadline_ms =
+                        Some(smp::m3_time_ms().saturating_add(ORPHAN_ACK_MS));
+                }
+                s.retire_process(slot, None);
+            }
+            #[cfg(not(feature = "native-smp-m3"))]
+            {
+                s.processes[slot].status = Status::Dying;
+                s.cleanup(slot);
+            }
             evidence().orphans_reaped += 1;
         }
     }
@@ -515,6 +551,18 @@ pub fn poll(s: &mut State) -> Option<*const u64> {
         return None;
     }
     if live != 0 {
+        #[cfg(feature = "native-smp-m3")]
+        if s.processes
+            .iter()
+            .all(|p| matches!(p.status, Status::Dead | Status::Dying))
+        {
+            require(
+                ev.orphan_deadline_ms
+                    .is_some_and(|deadline| smp::m3_time_ms() < deadline),
+                b"ORPHAN_ACK_TIMEOUT",
+            );
+            return None;
+        }
         print_number(b"SUPERVISOR:LIVE_AFTER_EXIT:", live);
         fail(b"CHILDREN_SURVIVED_SUPERVISOR");
     }
@@ -528,6 +576,27 @@ fn require(condition: bool, reason: &[u8]) {
 }
 
 fn finish(s: &mut State) -> ! {
+    #[cfg(feature = "native-smp-m3")]
+    let s = {
+        require(live_count(s) == 0, b"SMP_STOP_WITH_LIVE_PROCESS");
+        smp::m3_fairness_report();
+        smp::m3_stop_begin();
+        // No process owns a user CR3 or kernel stack. The incoming State
+        // borrow ends here; the stop flag prevents another state mutation.
+        kernel_leave();
+        let stopped = smp::m3_stop_wait();
+        kernel_enter();
+        require(stopped, b"SMP_STOP_TIMEOUT");
+        // SAFETY: KERNEL reacquired and all other CPUs acknowledged their
+        // permanent park. No reference from before releasing KERNEL is used.
+        unsafe {
+            ptr::addr_of_mut!(CPU_CURRENT).write([MAX; smp::MAX_CPUS]);
+            let state = (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut();
+            state.current = MAX;
+            require(live_count(state) == 0, b"SMP_STOP_STATE_CHANGED");
+            state
+        }
+    };
     let ev = *evidence();
     // Supervisor evidence words: see SUP_WORDS.
     let [status, step, restarts, replies, closed, instances, sup_kills, spawns_ok, spawn_quota_errors, killed_confirmed, faulted_observed, denied_matched, denied_total, client_exit_seen, denied_self, sparse_cap_checks] =
@@ -721,6 +790,8 @@ fn finish(s: &mut State) -> ! {
         print_number(label, value);
     }
     serial::write(marker());
+    #[cfg(feature = "native-smp-m3")]
+    serial::write(b"SMP:K05:PASS\n");
     serial::write(b"SUPERVISOR:RESOURCES:PASS\nSUPERVISOR:PASS\nM1:PASS\n");
     serial::exit(0x10)
 }

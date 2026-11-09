@@ -2341,3 +2341,19 @@ code of technische contracten terug te draaien.
 - distribution still requires a separate release/SBOM/notice review.
 
 **Review criterion:** changing the primary license, scope, or exclusions requires a separate decision that addresses migration consequences for already covered files and contributions.
+
+## ADR-K06-5F-20261109 — Bound and measure SMP acceptance without widening authority
+
+**Date:** 9 November 2026. **Status:** implementation in progress; native acceptance open.
+
+**Source:** `main` `1db01c4a1fe9e433396c58af4e6b3732034ee2e9`, with the selected kernel, scheduler and test changes from `feat/k06-5e-proc-shootdown` `f141995ce6d5a0032cb90dea1466a24dc71b2f4d`. The latter includes the step-5d-2/FPU checkpoint `4030c4f4`. Unrelated runner migrations are excluded. The normative acceptance requirements remain [L0 step 5f](https://github.com/simonvanieperen/BaryonOS/blob/docs/k06-step-specs/docs/implementation/k06-steps/09-5f-acceptance.md).
+
+**Decision:** complete cross-CPU IPC, address-space-locked usercopy and remote process lifecycle handling before accepting migration or SMP quota evidence. Process state remains protected by KERNEL. Usercopy and mapping changes use the process address-space lock. A remote wake publishes runnable state before sending vector `0xe8`; an interrupt is a hint, and the receiver rechecks state under KERNEL. A process must leave its old CPU and address space before its storage, stack or FPU image can be reassigned or freed.
+
+The existing KERNEL lock-stuck bound is retained at 400 ms. The maximum deferred ticks during one acquisition is bounded at 40, derived from that bound and the existing 10 ms process timer period. Per-CPU maxima and both limits are emitted before CPUs are parked. These are acceptance limits, not measured results; they will not be enlarged in response to a failing test without a separate decision. TSC timing is restricted to the existing calibrated QEMU/TCG model. Host overcommit and ticket-lock contention remain R02 risks.
+
+Each matrix case requires 50 successful repetitions. Any failed repetition leaves that case unaccepted; source or artifact drift terminates the run and preserves the partial report. A one-vCPU run is regression evidence. Host watchdog ratios and guest deadline ratios are separate measurements. Mocked harness tests never count as native runs.
+
+**Open acceptance:** complete L0 §9 workloads, migration with GPR/x87/SSE canaries and `active_cpus` checks, remote kill and exact cleanup, real K07 pressure across four CPUs, the 30-second concurrent workload, the ten-minute soak, negative controls and unchanged regressions. The current host checks and source integration do not accept K06 or extend K07 to SMP. No physical-hardware, speculative-execution, x2APIC or human-audit claim is made.
+
+**Recovery:** retain the original worktrees and source branches. The 5f work is isolated on `codex/k06-5f-acceptance-20261109`; revert its reviewed commits to remove the change. No host disk, firmware, NAS or production key is part of the test configuration.

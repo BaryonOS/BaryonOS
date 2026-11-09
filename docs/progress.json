@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-09",
-    "source_commit": "f704f078213170e72292a5a491f0ee83bd588955",
+    "source_commit": "1db01c4a1fe9e433396c58af4e6b3732034ee2e9",
     "assessment_basis": "working_tree",
-    "branch": "docs/restructure-project-docs-20261109",
-    "task": "Restructure README, status layers, contribution guidance, security policy, and licensing documentation",
+    "branch": "codex/k06-5f-acceptance-20261109",
+    "task": "Complete transferred K06 R3-5/R3-6/R3-7 contracts and step-5f acceptance",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The change separates the project introduction, current status, criteria register, historical checkpoints, contribution policy, security reporting, and licensing scope. The official MPL-2.0 text and an explicit project-owned software file register are added. No new OS functionality, acceptance points, criteria, or weights are introduced."
+    "summary": "41/100 remains 41/100. Selected prerequisite sources and a repeated-run harness are integrated. Cross-CPU IPC, usercopy, migration, remote lifecycle handling and native 50/50 matrix evidence remain under verification. No native criterion or K07 SMP extension is accepted."
   },
   "tracks": [
     {

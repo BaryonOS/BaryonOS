@@ -49,7 +49,7 @@ static mut EVIDENCE: Evidence = Evidence {
     tcp: None,
 };
 fn evidence() -> &'static mut Evidence {
-    // SAFETY: One CPU, IF=0. Each borrow ends before a syscall or scheduling.
+    // SAFETY: KERNEL held, IF=0. Each borrow ends before a syscall or scheduling.
     unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
 }
 fn fail(reason: &[u8]) -> ! {

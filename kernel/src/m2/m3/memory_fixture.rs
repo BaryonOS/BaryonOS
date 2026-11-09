@@ -60,7 +60,7 @@ static mut EVIDENCE: Evidence = Evidence {
     wiped_bytes: 0,
 };
 fn evidence() -> &'static mut Evidence {
-    // SAFETY: Single CPU, IF=0; fixture callbacks are sequential. Callers hold
+    // SAFETY: KERNEL held, IF=0; fixture callbacks are sequential. Callers hold
     // only one arena reference and never reenter this accessor while it is live.
     unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
 }

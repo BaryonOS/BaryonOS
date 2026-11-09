@@ -1,6 +1,18 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — documentation hierarchy and governance — 9 November 2026
+## NEXT AGENT HANDOFF — K06 transferred contracts and step 5f — 9 November 2026
+
+**Source:** branch `codex/k06-5f-acceptance-20261109`, base `main` `1db01c4a1fe9e433396c58af4e6b3732034ee2e9`. Selected prerequisites are taken from `feat/k06-5e-proc-shootdown` `f141995ce6d5a0032cb90dea1466a24dc71b2f4d`, including the step-5d-2 checkpoint `4030c4f4`. N04 and current main documentation are retained; unrelated runner migrations are excluded. Earlier local work remains in its original worktree.
+
+**Transferred scope:** cross-CPU IPC (R3-5), address-space-locked usercopy (R3-6), K05/resource contracts under SMP (R3-7), explicit task migration, the complete L0 step-5f matrix with 50 repetitions per case, and the ten-minute soak. These requirements are open until source-bound native evidence exists.
+
+**Implemented, under verification:** selected K06 prerequisites; `--repeat` with exact per-case counts and retained failure evidence; the 1/2/4/8-vCPU single/multi-TCG M3 matrix; the initial cross-CPU IPC fixture and remote `0xe8` entry; KERNEL-wait fairness measurements with unchanged 400-ms/40-tick bounds. Migration and remote lifecycle work are still in progress. The [decision record](DECISIONS.md#adr-k06-5f-20261109--bound-and-measure-smp-acceptance-without-widening-authority) defines the acceptance limits and evidence boundary.
+
+**Executed:** initial integrated `tools/gate.sh`, exit 0 (525 host tests passed, one ignored); its QEMU wrapper is absent and was explicitly skipped. The repetition/IPC harness has 31 passing host tests. The first IPC build rejected the inherited single-CPU service guard; the explicit IPC profile admission was then added. The integrated IPC build has not yet been rerun. No new native matrix, 50/50 case, migration, K05-SMP, K07-SMP or soak result is accepted.
+
+**Progress:** **41/100 → 41/100**; K06 remains open and K07 retains its existing single-CPU evidence boundary. Native source must remain frozen throughout each repeated run. The next step is to compile the completed explicit IPC/RUNQ/lifecycle increment, execute one native positive and negative case, and repair any failure before starting repeated acceptance runs.
+
+## Previous checkpoint — documentation hierarchy and governance — 9 November 2026
 
 **Source and scope:** base `main` `f704f078213170e72292a5a491f0ee83bd588955`, branch `docs/restructure-project-docs-20261109`. The active README, contribution guidance, security policy, licensing documentation, and status layers have been reorganized so that each information type has one primary source. Historical content was preserved under `docs/history/` before the active files were shortened.
 

@@ -119,7 +119,7 @@ static mut EVIDENCE: Evidence = EMPTY_EVIDENCE;
 ))]
 static mut LIFECYCLE_ROUNDS: u8 = 0;
 pub(super) fn engine() -> &'static mut Engine {
-    // SAFETY: One CPU, IF=0, no nested engine calls or retained engine borrows.
+    // SAFETY: KERNEL held, IF=0, no nested engine calls or retained engine borrows.
     unsafe { &mut *ptr::addr_of_mut!(ENGINE) }
 }
 static SNAPSHOT_LOCK: SnapshotLock = SnapshotLock::new();
@@ -315,6 +315,10 @@ fn dispatch(
     }
 }
 pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (i64, u64) {
+    // R3-6: validation, engine commit and both copies share one address-space
+    // lease. Buffered IPC retains no sender user mapping for the receiver.
+    #[cfg(feature = "native-smp-m3")]
+    let _address = super::ASPACE[slot].lock_irqsave();
     let before = observe_authority();
     // On cross-page failure retain evidence for every readable output-prefix
     // byte, including a read-only second page. Nothing is copied to output yet.
@@ -507,7 +511,14 @@ mod acceptance {
         write_plan(&copy, &bytes);
     }
     pub fn manifest(state: &mut State) {
-        assert_eq!(state.amount, 3);
+        assert_eq!(
+            state.amount,
+            if cfg!(feature = "native-smp-m4-quotas") {
+                4
+            } else {
+                3
+            }
+        );
         assert_eq!(engine().stats().processes, 0);
         // SAFETY: No active syscall; test evidence has one service-stack owner.
         unsafe {
@@ -527,6 +538,15 @@ mod acceptance {
             put(state, slot, 32, slot as u64);
             put(state, slot, 56, *root);
             put(state, slot, 96, 0);
+        }
+        #[cfg(feature = "native-smp-m4-quotas")]
+        {
+            // The fourth CPU runs the same private yield-worker as the two
+            // original survivors. Register it so exact Engine cleanup covers
+            // every live process, even though it needs no endpoint authority.
+            assert_eq!(smp::online_mask(), 0b1111);
+            engine().register(state.processes[3].pid).unwrap();
+            put(state, 3, 0, 0);
         }
         for slot in 0..3 {
             let next = (slot + 1) % 3;
@@ -590,6 +610,18 @@ mod acceptance {
         if word(state, survivor, 8) <= e.survivor + 8 {
             return None;
         }
+        #[cfg(feature = "native-smp-m4-quotas")]
+        {
+            if (0..4).any(|cpu| state.cpu_ticks[cpu] == 0 || state.cpu_switches[cpu] < 1)
+                || (1..4).any(|slot| word(state, slot, 8) <= 8)
+            {
+                return None;
+            }
+        }
+        // No remote user context may survive into synchronous frame and
+        // capability cleanup. Reborrow State only after every CPU is parked.
+        #[cfg(feature = "native-smp-m4-quotas")]
+        let state = super::super::smp_stop_for_cleanup();
         validate_evidence(state);
         if case() == 8 && state.round < 2 {
             cleanup_all(state);
@@ -601,6 +633,11 @@ mod acceptance {
         serial::write(case_marker());
         serial::write(b"M4:SURVIVOR_PROGRESS:PASS\n");
         cleanup_all(state);
+        #[cfg(feature = "native-smp-m4-quotas")]
+        {
+            assert_eq!(state.free_count(), state.free_baseline);
+            serial::write(b"SMP:K07:M4:PASS:CPUS=4\n");
+        }
         serial::write(b"M4:CLEANUP:PASS\n");
         serial::write(ks_marker());
         serial::write(b"M4:PASS\nM1:PASS\n");

@@ -1,10 +1,16 @@
 //! Opt-in I02 observer for the fixed ring-3 qsim acceptance executable.
 //! No simulator algorithm, app/job policy, allocator, or new authority lives
 //! here. All computation remains in two independent userspace processes.
-//! Single CPU, IF=0, kernel CR3/service stack: copy only bounded owned words.
+//! KERNEL/IF=0, kernel CR3/service stack: copy only bounded owned words.
+//! The SMP profile parks all CPUs before accepting completed reports or freeing
+//! frames; its in-flight samples never constitute a completion verdict.
 use super::*;
 
-const PROCESS_COUNT: usize = 2;
+const PROCESS_COUNT: usize = if cfg!(feature = "native-smp-qsim") {
+    4
+} else {
+    2
+};
 const REPORT_WORDS: usize = 14;
 const TIMEOUT_TICKS: u64 = 2000;
 const USEFUL_ARENA_BYTES: u64 = 7216;
@@ -19,7 +25,7 @@ fn fail(reason: &[u8]) -> ! {
 fn snapshot(process: &Process) -> [u64; REPORT_WORDS] {
     // These 112 bytes are within the kernel-validated private RW report page.
     // The event path has switched to the permanent kernel root and stack;
-    // no userspace thread can mutate a report while this snapshot is copied.
+    // completed SMP reports are validated again after all CPUs have parked.
     core::array::from_fn(|word| read_word(process.physical(DATA + word as u64 * 8)))
 }
 
@@ -42,6 +48,8 @@ pub fn manifest(state: &mut State) {
     if state.amount != PROCESS_COUNT || state.fault || state.exited || state.unexpected {
         fail(b"MANIFEST_STATE");
     }
+    #[cfg(feature = "native-smp-qsim")]
+    assert_eq!(smp::online_mask(), 0b1111);
     for process in &state.processes[..state.amount] {
         if process.status != Status::Ready
             || process.pid == 0
@@ -61,16 +69,20 @@ pub fn manifest(state: &mut State) {
             fail(b"MANIFEST_REPORT");
         }
     }
-    let first = &state.processes[0];
-    let second = &state.processes[1];
-    if first.pid == second.pid
-        || first.pattern == second.pattern
-        || first.paging.as_ref().unwrap().root == second.paging.as_ref().unwrap().root
-        || first.physical(DATA) == second.physical(DATA)
-        || first.physical(HEAP) == second.physical(HEAP)
-        || first.physical(HEAP + 65536 - 8) == second.physical(HEAP + 65536 - 8)
-    {
-        fail(b"MANIFEST_SHARED_MEMORY");
+    for left in 0..PROCESS_COUNT {
+        for right in left + 1..PROCESS_COUNT {
+            let first = &state.processes[left];
+            let second = &state.processes[right];
+            if first.pid == second.pid
+                || first.pattern == second.pattern
+                || first.paging.as_ref().unwrap().root == second.paging.as_ref().unwrap().root
+                || first.physical(DATA) == second.physical(DATA)
+                || first.physical(HEAP) == second.physical(HEAP)
+                || first.physical(HEAP + 65536 - 8) == second.physical(HEAP + 65536 - 8)
+            {
+                fail(b"MANIFEST_SHARED_MEMORY");
+            }
+        }
     }
     state.free_baseline = state
         .free_count()
@@ -122,6 +134,7 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
             fail(b"APP_REPORT");
         }
         if report[4] == 1 {
+            #[cfg(not(feature = "native-smp-qsim"))]
             if !valid_completed_report(&report, process.pattern) || process.selected == 0 {
                 fail(b"RESULT_MISMATCH");
             }
@@ -130,11 +143,31 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
         }
         reports[slot] = report;
     }
+    #[cfg(feature = "native-smp-qsim")]
+    {
+        complete &= (0..4).all(|cpu| state.cpu_ticks[cpu] > 0 && state.cpu_switches[cpu] >= 1);
+    }
     if !complete || state.timer_interrupts == 0 {
         // Always bypass the ordinary M3 fixture verdict for this opt-in image.
         // The returned pointer belongs to the selected kernel-owned context;
         // no reference into the copied report survives this scheduling point.
+        #[cfg(not(feature = "native-smp-qsim"))]
         return Some(state.select());
+        #[cfg(feature = "native-smp-qsim")]
+        return None;
+    }
+
+    // The stop releases KERNEL while the other CPUs leave their user contexts;
+    // no State or userspace borrow is retained across it. Completed status is
+    // only a readiness hint until these stable, parked snapshots are checked.
+    #[cfg(feature = "native-smp-qsim")]
+    let state = super::smp_stop_for_cleanup();
+    #[cfg(feature = "native-smp-qsim")]
+    for (slot, process) in state.processes[..state.amount].iter().enumerate() {
+        reports[slot] = snapshot(process);
+        if !valid_completed_report(&reports[slot], process.pattern) || process.selected == 0 {
+            fail(b"RESULT_MISMATCH");
+        }
     }
 
     state.audit();
@@ -172,6 +205,8 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
         fail(b"CLEANUP");
     }
     print_number(b"QSIM:CLEANUP_FRAMES:", released as u64);
+    #[cfg(feature = "native-smp-qsim")]
+    serial::write(b"SMP:K07:QSIM:PASS:CPUS=4\n");
     serial::write(b"QSIM:CLEANUP:PASS\nQSIM:PASS\nM1:PASS\n");
     serial::exit(0x10)
 }

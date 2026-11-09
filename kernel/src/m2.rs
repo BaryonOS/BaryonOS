@@ -2,15 +2,15 @@
 //! Copies boot input before any frame reuse. The old loader allocations are retained.
 mod acpi;
 mod arch;
-#[cfg(feature = "native-smp")]
-mod lock;
+#[cfg(any(feature = "native-smp", feature = "milestone-m3"))]
+pub(crate) mod lock;
 #[cfg(feature = "milestone-m3")]
 mod m3;
 pub(crate) mod paging;
 #[cfg(any(feature = "native-rtc", feature = "native-system-clock"))]
 mod rtc;
 #[cfg(feature = "native-smp")]
-mod smp;
+pub(crate) mod smp;
 use crate::serial;
 use boot_protocol::{BootInfo, MemoryMap, MAP_LIMIT};
 use core::{arch::asm, mem::MaybeUninit, ptr};
@@ -135,7 +135,8 @@ extern "C" fn run() -> ! {
             );
         }
     }
-    #[cfg(feature = "milestone-m3")]
+    // Creates the shared scratch PT; `begin_scratch` unmaps it again.
+    #[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
     paging.map(frames, paging::SCRATCH, nx_probe(), true, false);
     #[cfg(feature = "framebuffer")]
     crate::framebuffer::map(&mut paging, frames, &map);
