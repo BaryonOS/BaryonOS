@@ -189,7 +189,7 @@ blijven aan hun eigen broncommit gebonden.
 | UEFI-loader, kernelhandoff, geheugen/CPU | Eigen Rust-loader en kernel; vaste x86_64/QEMU/OVMF-profielen met native VM-positieve en negatieve runs. | **E5**, voor de gerapporteerde VM-profielen. Geen fysieke firmware. |
 | Virtio-blok | Kernel-owned pool, vaste `00:05.0`, kernelbroker; M5-rapport beschrijft 64 echte VM-runs met normale en foutcases en externe wegwerpimages. H01 staat geaccepteerd. | **E5** in QEMU voor het vaste profiel; geen fysieke drive of IOMMU-containment. Het archief is geen herhaling op deze HEAD. |
 | Virtio-RNG / entropy | Vaste `00:06.0`, één QEMU-virtqueue en permanent gepinde DMA-pagina's; code zegt protocolconforme QEMU te vertrouwen. | **E3** in deze beoordeling; geen fysieke entropybron-/DMA-proef. |
-| Virtio-net en netwerkstack | De afzonderlijke driverpakketproef bleef bij bron/hostmodellen: daarin zijn native PCI-discovery en NIC-RX/TX niet uitgevoerd (`drivers/virtio-net/verification/driver-acceptance.json`). Latere, apart aan hun eigen bron gebonden integratiebewijzen rapporteren echte QEMU virtio-net-pakketten voor ARP/UDP/DNS en native TCP (normaal/herstel met peertranscript): `docs/verification/full-release-fwcfg-causal/result.json`, `docs/verification/full-release-tcp-1b6a308/tcp-system-gate.json` en `docs/verification/full-release-tcp-1b6a308/0-normal/network-peer.json`. | **E5** voor de genoemde historische native VM-integraties; die latere bewijzen vallen buiten mijn rapport-/artefact-hashvalidatie en zijn geen runs op deze audit-HEAD. Fysieke NIC, IOMMU/DMA-isolatie, Wi-Fi/Bluetooth en H04-hardwareacceptatie blijven onbewezen/open. |
+| Virtio-net en netwerkstack | De afzonderlijke driverpakketproef bleef bij bron/hostmodellen: daarin zijn native PCI-discovery en NIC-RX/TX niet uitgevoerd (`drivers/virtio-net/verification/driver-acceptance.json`). Latere, apart aan hun eigen bron gebonden integratiebewijzen rapporteren echte QEMU virtio-net-pakketten voor ARP/UDP/DNS en native TCP (normaal/herstel met peertranscript): `docs/verification/full-release-fwcfg-causal/result.json`, `docs/verification/full-release-tcp-1b6a308/tcp-system-gate.json` en `docs/verification/full-release-tcp-1b6a308/0-normal/network-peer.json`. | **E5** voor de genoemde historische native VM-integraties; die latere bewijzen vallen buiten de rapport-/artefact-hashvalidatie van deze audit en zijn geen runs op deze audit-HEAD. Fysieke NIC, IOMMU/DMA-isolatie, Wi-Fi/Bluetooth en H04-hardwareacceptatie blijven onbewezen/open. |
 | PS/2-invoer | QEMU-gerichte native i8042-code; geen fysieke HID-controller- of USB-bewijs. | **E3** broncode; H02 blijft open. |
 | Framebuffer/shell | Native VM-framebuffer en desktopervaring, zonder fysieke GPU-acceptatie. | **E4** voor de gebonden VM-weergave; geen GPU-acceleratieclaim. |
 | RTC/CMOS | Historische native QEMU-runs omvatten echte port-reads, herstelcontrole en negatieve kalender-/firmwaregevallen. | **E5** voor de gebonden QEMU/OVMF-proef; geen hardwareklok-, suspend- of monotoniciteitsgarantie. |
@@ -203,9 +203,9 @@ blijven aan hun eigen broncommit gebonden.
 De status- en bewijskaders zijn consistent met de onafhankelijke
 completeness-matrix: `K-DRIVERS` is `PROTOTYPE`, `POWER-ENERGY` is `PARTIAL`;
 beide noemen fysieke hardware-/DMA-grenzen als open
-(`docs/audit/os-completeness/matrix.json:218-248,1299-1333`). Ik heb de
+(`docs/audit/os-completeness/matrix.json:218-248,1299-1333`). Binnen deze audit zijn de
 historische runs niet opnieuw uitgevoerd, hun hashes niet opnieuw gevalideerd
-en geen GitHub-CI-status opgevraagd.
+en is geen GitHub-CI-status opgevraagd.
 
 ## Aannames en resterende risico’s
 

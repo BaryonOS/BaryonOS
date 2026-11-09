@@ -224,7 +224,7 @@ pub enum Phase {
 
 /// Recorded on the grant for the future IOMMU/driver contract. Nothing in
 /// this module enforces it: there is no IOMMU hook, so a device with bus
-/// master enabled can read and write every page of the grant.
+/// master enabled can access all physical memory, not only granted pages.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum DmaDirection {
     DeviceReads,
@@ -850,7 +850,8 @@ impl DeviceLease {
         Ok(self.record(grant)?.direction)
     }
 
-    pub fn enable_bus_master<C: DeviceControl>(&mut self, control: &mut C) -> Result<(), Error> {
+    // Not a public driver API until the kernel can enforce IOMMU DMA containment.
+    pub(crate) fn enable_bus_master<C: DeviceControl>(&mut self, control: &mut C) -> Result<(), Error> {
         if self.phase != Phase::Initializing
             || self.bus_master
             || !self.dma.iter().any(|record| record.live)

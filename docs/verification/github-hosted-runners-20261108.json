@@ -1,0 +1,229 @@
+{
+  "schema_version": 1,
+  "task": "CI-HOSTED-20261108",
+  "date": "2026-11-08",
+  "base_commit": "6e429de98b5c692ccceaa12973818eecb1622062",
+  "branch": "ci/github-hosted-runners-20261108",
+  "source_access": "Exact GitHub API snapshot; 81 downloaded source blobs checked against Git object IDs. Local clone unavailable; validation used downloaded files, not a complete checkout.",
+  "scope": "21 workflow runner selectors and the host Rust cache namespace; associated decision, checkpoint and unchanged 41/100 assessment.",
+  "workflow_validation": {
+    "status": "passed",
+    "command": "python3 ../verify-hosted-workflows.py (temporary snapshot comparator, outside the repository)",
+    "loader": "PyYAML 6.0.3 BaseLoader with duplicate key rejection",
+    "workflow_count": 21,
+    "job_definitions": 24,
+    "expanded_jobs": 42,
+    "runs_on": "ubuntu-24.04",
+    "bash_n_run_blocks": 172,
+    "other_workflow_fields": "unchanged, including triggers, job IDs, commands, permissions, timeouts, artifacts and dependency installations",
+    "allowed_other_change": "ci.yml host-rust-v1 -> host-rust-v2-ubuntu-24.04 namespace; download cache keys unchanged"
+  },
+  "workflows": [
+    {
+      "path": ".github/workflows/app-management-quality.yml",
+      "sha256": "aced3de768a565ef9f5db0bd16d142cc5a98b9a338670754b744b804a781c763",
+      "job_ids": [
+        "app-package-quality"
+      ]
+    },
+    {
+      "path": ".github/workflows/artifact-store-quality.yml",
+      "sha256": "38c701795adacf395c1df62e58fcdc574a2bc93fec574ab176ae91d32f24566a",
+      "job_ids": [
+        "artifact-store-core"
+      ]
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "25a3450c0ad21bda7a3fbe5e0f637a82518aa2ecf07200c2edd0bac7fe0fb1e4",
+      "job_ids": [
+        "host-quality",
+        "qemu-smoke"
+      ]
+    },
+    {
+      "path": ".github/workflows/component-leaves.yml",
+      "sha256": "e5a76ae5c014d1209d5c1fc87486e0be0f2a4c93918d26b3600fd5dc510d7cbd",
+      "job_ids": [
+        "component-quality"
+      ]
+    },
+    {
+      "path": ".github/workflows/entropy-keys.yml",
+      "sha256": "c60378a3d6a187d6ff4fac5aab666b0b7eb6a2f102e0f069d8dfd563ae3d2d56",
+      "job_ids": [
+        "b01-native-supervisor"
+      ]
+    },
+    {
+      "path": ".github/workflows/materiaal-probe.yml",
+      "sha256": "4b195e411bc09f5d0c35994b325db0e0f7671ad8e6222df8892189662d429380",
+      "job_ids": [
+        "materiaal-probe"
+      ]
+    },
+    {
+      "path": ".github/workflows/nas-core.yml",
+      "sha256": "7aec4043d17e3b2a23f275453044a7ae9744b334f95e225d42868c88cb8c4953",
+      "job_ids": [
+        "nas-workspace",
+        "nas-native-normal-cold"
+      ]
+    },
+    {
+      "path": ".github/workflows/native-display-input.yml",
+      "sha256": "faa99d4d9b19f380c2b875af9f623ea4f9453b4c7ec5fbcf6f40221d2240d928",
+      "job_ids": [
+        "native-display-input"
+      ]
+    },
+    {
+      "path": ".github/workflows/native-foundation.yml",
+      "sha256": "6b1b31e37f7f54cb460b208da17a0c4461d721aa7f87881db1d9ab0b1ce1b669",
+      "job_ids": [
+        "native-foundation"
+      ]
+    },
+    {
+      "path": ".github/workflows/native-rtc.yml",
+      "sha256": "ab5a24c5a33aae082a11cdf5dc9c4de1e59361d7567d00c6b09e4b5d959dd497",
+      "job_ids": [
+        "native-rtc"
+      ]
+    },
+    {
+      "path": ".github/workflows/native-smp.yml",
+      "sha256": "331a17bcf535f94656764d10ac22355c85aa982e730832ca3faedfc4c0902489",
+      "job_ids": [
+        "native-smp"
+      ]
+    },
+    {
+      "path": ".github/workflows/native-system.yml",
+      "sha256": "2968649ac4366c1060bc884c1c61c25743f315972433d3b4df35e5dded18a7ae",
+      "job_ids": [
+        "native-system"
+      ]
+    },
+    {
+      "path": ".github/workflows/native-window-session.yml",
+      "sha256": "09c10671ab680756987523616a216c9fdf5e79c5008f7a6da145e430173b18f5",
+      "job_ids": [
+        "native-window-session"
+      ]
+    },
+    {
+      "path": ".github/workflows/net-broker-quality.yml",
+      "sha256": "d827abf04fe4fd909ecfe3ebbb54b4d8fb6afb9fb9be9c5f962ccc7efafde70b",
+      "job_ids": [
+        "net-broker-quality",
+        "native-network-service"
+      ]
+    },
+    {
+      "path": ".github/workflows/net-tls-quality.yml",
+      "sha256": "7ca5bec4f966a6ce8d77fb98d507e90f1061bd66129de25120bb2442b42cf7db",
+      "job_ids": [
+        "net-tls-quality"
+      ]
+    },
+    {
+      "path": ".github/workflows/process-management.yml",
+      "sha256": "4029c659183e6e2bc3bac1d0496755872dd2149afd24f13a39de379f66b867dd",
+      "job_ids": [
+        "k05-native-supervisor"
+      ]
+    },
+    {
+      "path": ".github/workflows/resource-pressure.yml",
+      "sha256": "578eb41b7527403b6a96a506e2750f2eee5b0382bc7d013be80d76187a19d1f6",
+      "job_ids": [
+        "k07-native"
+      ]
+    },
+    {
+      "path": ".github/workflows/signed-updates.yml",
+      "sha256": "e0160956faee4a915bb5079d1cb44c1da96626a7de1f829b0b16a37bcfe77da7",
+      "job_ids": [
+        "b03-native-update"
+      ]
+    },
+    {
+      "path": ".github/workflows/storage-resilience.yml",
+      "sha256": "10c8ec5155b18e2f7b56087c49b8224a6946d4848eb068738c899647816eb730",
+      "job_ids": [
+        "s08"
+      ]
+    },
+    {
+      "path": ".github/workflows/volume-acceptance.yml",
+      "sha256": "952c3c3518ccf8699a82c21ffb6697287c3613beabbf4ad80f49c086f1c9d71b",
+      "job_ids": [
+        "m6e"
+      ]
+    },
+    {
+      "path": ".github/workflows/windows-qemu-test-version.yml",
+      "sha256": "c15fb4f6d8e926f1422e85cca0690df7858a5f2d018e74b6212ac89b0dc2e9d0",
+      "job_ids": [
+        "package-and-verify"
+      ]
+    }
+  ],
+  "executed_checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "tools.tests.test_agent_pipeline.Gate"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ".......\n----------------------------------------------------------------------\nRan 7 tests in 0.032s\n\nOK"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--write"
+      ],
+      "exit_code": 0,
+      "stdout": "Nieuw OS: 41/100 punten (41%); rubric v1; bijgewerkt.\nDit controleert berekening, verwijzingen en weergave; geen nieuwe native tests of beoordeling van bewijsinhoud.",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout": "Nieuw OS: 41/100 punten (41%); rubric v1; consistent.\nDit controleert berekening, verwijzingen en weergave; geen nieuwe native tests of beoordeling van bewijsinhoud.",
+      "stderr": ""
+    }
+  ],
+  "review": "A separate AI agent reviewed the final workflow and decision diff; no blocking finding. This is not an independent human audit.",
+  "roadmap": {
+    "old_score": 41,
+    "new_score": 41,
+    "criteria_weights_and_evidence": "unchanged"
+  },
+  "observed_baseline": {
+    "smp_run_id": 42389248097,
+    "smp_job_id": 128453130104,
+    "runner": "Tower-ci-runner-1",
+    "only_failed_step": "Preserve actual run and build artifacts",
+    "observed_error": "Artifact storage quota has been hit",
+    "source": "https://github.com/simonvanieperen/nieuw-os/actions/runs/42389248097"
+  },
+  "not_executed": [
+    "Rust compilation, host Rust suites and QEMU/native runtime tests: rustup/Cargo/QEMU unavailable locally",
+    "Full GitHub Actions execution of the new commit: inspect the pull request runs separately"
+  ],
+  "visibility_observed": "private; this change does not change repository visibility or billing settings",
+  "rollback": "Revert this migration commit through a reviewed pull request without reverting unrelated changes."
+}

@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-09",
+  "source_commit": "9922810a18f2272f534e1539e2d980d3d8922bb3",
+  "branch": "docs/wetenschappelijke-herkomst-20261109",
+  "task": "Gerichte opvolging van de CodeRabbit-redactiereview op de onpersoonlijke wetenschappelijke schrijfstijl.",
+  "review": {
+    "provider": "CodeRabbit GitHub-app",
+    "pr": 267,
+    "head": "bb3c1f6f8765061e14b4a7a83aabdd134c399307",
+    "status": "completed",
+    "findings": [
+      {
+        "severity": "Minor",
+        "path": "docs/verification/desktop-coordination-20261102/README.md",
+        "issue": "Herkomst van de aanwijzing was in de redactie te algemeen geformuleerd.",
+        "resolution": "Op expliciete aanwijzing van de projecteigenaar is de leidende chat aangewezen.",
+        "source_commit": "4c7147dae955cbf1ba44d91258ef451b96169f72",
+        "source_note": "De oorspronkelijke tekst noemt de projecteigenaar als beslisser, geen afzonderlijke beslissende AI-sessie."
+      }
+    ],
+    "additional": "Lege regel vóór de Markdown-tabel in START-HIER.md toegevoegd. PR-beschrijvingen volgen de toepasselijke onderdelen van de repositorytemplate.",
+    "limit": "Deze CodeRabbit-review betreft de voorafgaande redactiedelta; de nieuwe correctie heeft eigen GitHub-controles."
+  },
+  "checks": [
+    {
+      "command": "python3 tools/progress.py --write",
+      "exit_status": 0
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "exit_status": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_status": 0
+    },
+    {
+      "name": "Gerichte bron-/diffvergelijking",
+      "exit_status": 0,
+      "result": "Desktopverslag alleen regel 3 gewijzigd; getallen, identifiers, links en overige regels gelijk. START-HIER alleen één extra lege regel."
+    },
+    {
+      "name": "Voortgang en bestaande integratie",
+      "exit_status": 0,
+      "result": "Rubric buiten assessment structureel identiek. CodeQL-workflow, tests, tools en beide eerdere controleverslagen ongewijzigd."
+    }
+  ],
+  "independent_review": "Afzonderlijke AI-bronbeoordeling bevestigt de projecteigenaar als oorspronkelijke beslisser; geen menselijke audit.",
+  "progress": {
+    "previous": 41,
+    "current": 41,
+    "criteria_changed": false
+  },
+  "not_performed": [
+    "Nieuwe lokale Rust-, QEMU- of fysieke-hardwaretests"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "base_git_blob": "64d527d1ade21c0d9dba76164b8229ecd1202d05",
+      "sha256": "20ce736fc112c49bb43f9ee126d0e32d1970e4218d62f5e58b3d14eeb43d76db"
+    },
+    {
+      "path": "START-HIER.md",
+      "base_git_blob": "3ea711190ac0d5478a99736ead46615739e41b16",
+      "sha256": "0ab7c4898d3db164b32dbce17d8f614e3990aac317dbbd43c71086babbbb3150"
+    },
+    {
+      "path": "docs/PROGRESS.md",
+      "base_git_blob": "a57cbcc0fc6ee92753161d0cb933d5b8a3cec855",
+      "sha256": "6ebb3696d7244aa3f366cf56620ca8f00e95782539c61d956e76fd23225cd4df"
+    },
+    {
+      "path": "docs/PROJECT-STATE.md",
+      "base_git_blob": "aae7a624705ae345a8599c1ad20b970e446313bf",
+      "sha256": "ba1e620e98161eeb43a15293efb7b3e0ae5104d95645ceafb13d02bb5c2cbc3e"
+    },
+    {
+      "path": "docs/progress.json",
+      "base_git_blob": "2d45203900e76e93b27f9cf2d1e512fecbc256d6",
+      "sha256": "c6c337da26ea0f8b3474b7550ec72859809639b31b2ffe04445ca6f7cec51df0"
+    },
+    {
+      "path": "docs/verification/desktop-coordination-20261102/README.md",
+      "base_git_blob": "74bc185d64bd9a82f7f90dac96884769a7bc3aa8",
+      "sha256": "9de4e5fc93dd7b94520f8939a70a2102612888b0f483c76c8a253a975abc0a09"
+    }
+  ],
+  "rollback": "Een afzonderlijke revert van deze beperkte correctie; behoud eerdere redactie en latere wijzigingen."
+}

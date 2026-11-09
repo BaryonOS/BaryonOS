@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Keep inherited review tools and project instructions; override only review behavior.
+inheritance: true
+language: en
+
+reviews:
+  # Important comments stay inline; smaller suggestions move to the summary.
+  profile: quiet
+  # GitHub already requires CI and resolved threads. Avoid a second stale bot veto.
+  auto_approvals:
+    enabled: false
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+  pre_merge_checks:
+    docstrings:
+      mode: warning

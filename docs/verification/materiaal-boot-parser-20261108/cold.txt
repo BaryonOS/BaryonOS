@@ -1,0 +1,22 @@
+test_changed_disk_after_quit_is_rejected (test_materiaal_cold.ColdLifecycleTests.test_changed_disk_after_quit_is_rejected) ... ok
+test_changed_source_after_exit_is_rejected (test_materiaal_cold.ColdLifecycleTests.test_changed_source_after_exit_is_rejected) ... ok
+test_exact_cold_frames_and_disk_only_after_quit_zero (test_materiaal_cold.ColdLifecycleTests.test_exact_cold_frames_and_disk_only_after_quit_zero) ... ok
+test_invalid_parent_does_not_start_vm (test_materiaal_cold.ColdLifecycleTests.test_invalid_parent_does_not_start_vm) ... ok
+test_late_guest_fail_after_final_frame_cannot_pass (test_materiaal_cold.ColdLifecycleTests.test_late_guest_fail_after_final_frame_cannot_pass) ... ok
+test_late_guest_panic_after_final_frame_cannot_pass (test_materiaal_cold.ColdLifecycleTests.test_late_guest_panic_after_final_frame_cannot_pass) ... ok
+test_mutated_frozen_executable_is_rejected (test_materiaal_cold.ColdLifecycleTests.test_mutated_frozen_executable_is_rejected) ... ok
+test_nonzero_exit_never_inspects_disk (test_materiaal_cold.ColdLifecycleTests.test_nonzero_exit_never_inspects_disk) ... ok
+test_unmatched_list_stops_before_reopen_and_terminates_own_vm (test_materiaal_cold.ColdLifecycleTests.test_unmatched_list_stops_before_reopen_and_terminates_own_vm) ... ok
+test_wrong_emulator_identity_cannot_send_input (test_materiaal_cold.ColdLifecycleTests.test_wrong_emulator_identity_cannot_send_input) ... ok
+test_complete_replay_and_refusal_of_source_disk_and_frame_tampering (test_materiaal_cold.ColdParentTests.test_complete_replay_and_refusal_of_source_disk_and_frame_tampering) ... ok
+test_preparation_failure_removes_old_cold_success_without_vm (test_materiaal_cold.ColdParentTests.test_preparation_failure_removes_old_cold_success_without_vm) ... ok
+test_cold_cursor_preserves_all_reviewed_steps_and_rejects_changed_geometry (test_materiaal_cold.ColdTraceTests.test_cold_cursor_preserves_all_reviewed_steps_and_rejects_changed_geometry) ... ok
+test_exact_input_with_repeated_observations_is_accepted (test_materiaal_cold.ColdTraceTests.test_exact_input_with_repeated_observations_is_accepted) ... ok
+test_full_frame_composition_does_not_ignore_any_actual_pixel (test_materiaal_cold.ColdTraceTests.test_full_frame_composition_does_not_ignore_any_actual_pixel) ... ok
+test_rejects_altered_input_failed_response_and_missing_quit (test_materiaal_cold.ColdTraceTests.test_rejects_altered_input_failed_response_and_missing_quit) ... ok
+test_rejects_stale_stage_and_early_quit (test_materiaal_cold.ColdTraceTests.test_rejects_stale_stage_and_early_quit) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 6.822s
+
+OK
