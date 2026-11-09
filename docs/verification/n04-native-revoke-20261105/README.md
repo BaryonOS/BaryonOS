@@ -55,7 +55,7 @@ Elke rol schrijft op offset 552 een absolute boot-monotone tick. Userspace
 beide: `verzoek ≤ beleid verzonden ≤ dienst ingetrokken ≤ app A ziet Closed`.
 Het beleidsproces meet zijn tick vóór de send. Daardoor kan preëmptie na de
 send de volgorde niet vervalsen. Gemeten waarden staan per run in
-[`gates.json`](gates.json). Een voorbeeld is 17 ≤ 17 ≤ 17 ≤ 19; van 'ready'
+[`gates.json`](gates.json). Een voorbeeld uit de vastgelegde runs is 57 ≤ 57 ≤ 58 ≤ 59; van 'ready'
 tot `Closed` duurde het telkens 2 ticks. Het intrektijdstip van de dienst wordt
 ná de ontvangst van het bericht gemeten, niet aan het begin van de lus.
 
@@ -93,7 +93,7 @@ Er zijn twee AI-reviews gedaan. Dat is geen menselijke audit.
     `REVOKE_ORDER` dan onterecht falen. Dat gaf een valse fout, geen valse pass.
     Hersteld in `7bedac0b`.
   - Eén nit is ook verwerkt: app A meldde 'ready' al toen de bytes alleen in de
-    sendbuffer stonden. Nu wacht app A eerst 10 ticks; dit is een tijdelijke
+    sendbuffer stonden. Nu wacht app A eerst 50 ticks; dit is een tijdelijke
     oplossing, gemarkeerd in de code.
   - De autoriteitslens vond niets.
 
@@ -103,6 +103,9 @@ Er zijn twee AI-reviews gedaan. Dat is geen menselijke audit.
   gebruikersgerichte toestemmings- of instellingenroute, en geen
   productie-issuer voor grants. Intrekken werkt alleen in één richting per
   epoch; opnieuw toekennen met een generatie ontbreekt nog.
+- **Crash en herstel:** N04 herstart de netwerkdienst niet. `Owner.revoked`
+  is niet persistent. Herstel binnen dezelfde epoch, inclusief het behoud
+  van de intrekking, is niet geïmplementeerd of getest.
 - **Reikwijdte:** er zijn twee vaste apps met statische bestemmingen en een
   synthetische localhost-Ethernet-peer. Er is geen DNS of naamgebaseerde grant
   (N02), geen TLS (N03), geen fysieke NIC en geen dagelijks internet.
@@ -118,3 +121,5 @@ Er zijn twee AI-reviews gedaan. Dat is geen menselijke audit.
   is een tijdelijke oplossing in de code; de dienst heeft er ongeveer 2 nodig).
   Is de wachttijd te kort, dan faalt de proef gesloten.
 - Geen menselijke beveiligingsaudit (B05) en geen fysieke hardwaregate.
+
+**Integratiebewijslimiet:** de hierboven genoemde resultaten horen bij de genoemde broncommit. Deze integratie vereist nieuwe CI- en QEMU-verificatie op de bijgewerkte head.

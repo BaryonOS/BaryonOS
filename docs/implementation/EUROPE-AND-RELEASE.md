@@ -34,17 +34,15 @@ Dit zijn **eigen projecteisen**, geen opsomming van letterlijk voorgeschreven we
 
 Gebruik synthetische gegevens in CI en Codex. Releasebewijs bevat versie, configuratie, uitgevoerde tests en resterende beperkingen. Deze matrix is niet uitputtend voor latere sectoren zoals zorg, voertuigen of een specifieke AI-toepassing.
 
-## Bevestigde richting en licentiecontrole
+## Bevestigde richting en licentie
 
-**Besluit 8 november 2026:** openbare ontwikkeling is de bevestigde
-projectrichting. Het bestaande [LICENSE-PLAN.md](../../LICENSE-PLAN.md)
-met MPL-2.0 voor eigen OS-code is het bevestigde uitgangspunt voor de
-licentiecontrole. De toepassing van de licentie, rechten op documentatie/
-assets/bijdragen en externe bronmaterialen moeten nog worden gecontroleerd;
-deze bevestiging tekent geen publicatie of productrelease af. Zie
-[ADR-PUBLIC-DEVELOPMENT-20261108](../DECISIONS.md#adr-public-development-20261108--openbare-ontwikkeling-met-mpl-20-als-controlebasis).
+**Besluit 8 november 2026:** openbare ontwikkeling is de bevestigde projectrichting.
 
-**MPL-2.0** is de aanbevolen standaard voor eigen OS-code: copyleft op bestandsniveau houdt verspreide wijzigingen aan gedekte bestanden beschikbaar, terwijl afzonderlijke componenten andere compatibele licenties kunnen hebben. Bij distributie van binaries moet bijbehorende gedekte broncode beschikbaar zijn; bestaande notices blijven behouden. [10] Dit document past de licentie nog niet toe. Vóór publiceren: controleer rechthebbenden en afhankelijkheden, voeg de officiële tekst en passende notices toe en leg asset-/modellicenties afzonderlijk vast. MPL maakt derdenapps niet vanzelf open source en regelt geen privacygarantie.
+**Toepassing 9 november 2026:** MPL-2.0 wordt toegepast op de project-eigen software die expliciet is opgenomen in [MPL-2.0-FILES.txt](../../MPL-2.0-FILES.txt). De officiële tekst staat in [LICENSE](../../LICENSE); [LICENSING.md](../../LICENSING.md) beschrijft de reikwijdte en [THIRD-PARTY.md](../../THIRD-PARTY.md) verwijst naar externe voorwaarden.
+
+Documentatie, historische bewijsbestanden, externe assets en projectmerken worden niet uitsluitend door de rootlicentie onder MPL-2.0 gebracht. Een toegepaste bronlicentie is geen releasegoedkeuring, complete SBOM, privacygarantie of productveiligheidsclaim.
+
+**MPL-2.0** gebruikt copyleft op bestandsniveau: verspreide wijzigingen aan gedekte bestanden blijven onder de relevante MPL-bepalingen vallen, terwijl afzonderlijke niet-gedekte bestanden andere compatibele voorwaarden kunnen hebben. Bij distributie blijven de officiële licentievoorwaarden en notices van daadwerkelijk meegeleverde componenten bepalend.
 
 ## Primaire bronnen
 

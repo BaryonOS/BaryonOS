@@ -49,7 +49,7 @@ Een onafhankelijke AI-review vond geen kritieke of hoge punten. Verwerkt in
   nu de bevriezingscontrole.
 - De moduleheader is geactualiseerd.
 
-Bij het bijwerken van de oracle-tests vond ik zelf nog een fout: een dubbele
+Bij het bijwerken van de oracle-tests is aanvullend een fout vastgesteld: een dubbele
 `"four"`-sleutel had bestaande afwijzingsgevallen stil overschreven. Die is
 hersteld, en een AST-controle bevestigt dat er geen dubbele sleutels meer
 zijn.

@@ -1,0 +1,23 @@
+test_all_jobs_use_standard_hosted_ubuntu (test_ci_workflows.WorkflowContractTests.test_all_jobs_use_standard_hosted_ubuntu)
+No custom label, dynamic selector or persistent runner can return. ... ok
+test_artifact_component_filter_includes_shared_build_inputs (test_ci_workflows.WorkflowContractTests.test_artifact_component_filter_includes_shared_build_inputs)
+The dedicated gate replaces its broad matrix entry for shared changes too. ... ok
+test_checkout_does_not_persist_credentials (test_ci_workflows.WorkflowContractTests.test_checkout_does_not_persist_credentials)
+Builds and public PR scripts do not inherit checkout credentials. ... ok
+test_deduplication_keeps_host_and_scalar_component_coverage (test_ci_workflows.WorkflowContractTests.test_deduplication_keeps_host_and_scalar_component_coverage)
+Both removed matrix entries retain tests, lint and scalar target builds. ... ok
+test_external_actions_are_pinned_to_full_commits (test_ci_workflows.WorkflowContractTests.test_external_actions_are_pinned_to_full_commits)
+Moving tags cannot silently change executable Actions code. ... ok
+test_only_artifact_uploads_can_tolerate_errors (test_ci_workflows.WorkflowContractTests.test_only_artifact_uploads_can_tolerate_errors)
+Storage failure may be optional; failed builds, tests and collectors are not. ... ok
+test_pr_lifecycle_runs_once_without_skipping_drafts (test_ci_workflows.WorkflowContractTests.test_pr_lifecycle_runs_once_without_skipping_drafts)
+Draft changes are tested already, so becoming ready need not repeat them. ... ok
+test_public_prs_keep_read_only_tokens (test_ci_workflows.WorkflowContractTests.test_public_prs_keep_read_only_tokens)
+Untrusted PR code must not run under a privileged target event/token. ... ok
+test_required_gates_are_unfiltered_and_independent (test_ci_workflows.WorkflowContractTests.test_required_gates_are_unfiltered_and_independent)
+Required check names always exist and run without a serial dependency. ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.133s
+
+OK
