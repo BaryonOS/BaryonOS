@@ -57,8 +57,10 @@ class WorkflowVerifierTests(unittest.TestCase):
                             and comparison["remaining_configuration_preserved"]
                             for comparison in report["baseline_comparisons"].values()))
         for prefix in ("preservation-invocation:", "existing-preservation-step-unchanged:"):
+            # The separate experimental SMP job adds one verified evidence call;
+            # the original 16 migrated workflows and their selections remain intact.
             self.assertEqual(sum(check["name"].startswith(prefix)
-                                 for check in report["checks"]), 16)
+                                 for check in report["checks"]), 17)
         self.assertEqual(sum(check["name"].startswith("report-shell:")
                              for check in report["checks"]), 28)
         self.assertEqual(sum(check["name"].startswith("package-check:")
