@@ -1,4 +1,10 @@
 # Projectinstructies
+
+**Projecteigenaar:** Simon van Ieperen.
+Active public project documentation uses English and an impersonal, scientific writing style.
+Waar beslissingsbevoegdheid relevant is, wordt de formele rol projecteigenaar
+vermeld. Broncitaten behouden hun oorspronkelijke spreker.
+
 Dit is een zelfstandig OS-onderzoeksproject. Geen bestaande OS-kernel als basis. Eerst x86_64/QEMU/UEFI; geen installatie op echte apparaten. Dit bestand definieert werkwijze, geen bewijs van systeemveiligheid.
 
 ## Leesroute
@@ -14,18 +20,18 @@ Gebruik bij OS-ontwikkeltaken de repositoryskill `.agents/skills/os-dev/SKILL.md
 ## Productambitie
 
 Aanvulling 27 oktober 2026: privacy mag normale verbonden functionaliteit en hoogwaardige afwerking niet vervangen. Internet, automatisch hervatten/synchroniseren, dezelfde OS-ervaring op client/NAS en begrijpelijke multi-devicekoppeling zijn producteisen. Vraag opnieuw toestemming bij een nieuwe vertrouwensgrens of ingrijpende actie, niet bij iedere normale herhaling binnen bestaande rechten. Tijdelijke proefcaps/read-only recovery zijn geen vaste productkeuzes. Toets veiligheid én gebruiksgemak volgens docs/DESIGN-AMBITION.md; claim geen absolute onhackbaarheid of al gemeten gelijkwaardigheid met bestaande platforms.
-Gebruikerswijziging 30 oktober 2026 (ADR-058), leidend boven de oude eis dat het geen bekende desktop mag zijn: inrichting, inloggen, bureaublad, taakbalk, startmenu/zoeken, vensters en sneltoetsen volgen herkenbare conventies van Windows/macOS/Linux, zodat consumenten niets opnieuw hoeven te leren; vernieuwing komt bovenop dat bekende pad. Eigen kernel, eigen code, eigen huisstijl en de Security Floor blijven verplicht. Materiaal blijft het gegevens- en rechtenmodel, niet het verplichte hoofdscherm.
+Projectbesluit van 30 oktober 2026 (ADR-058), leidend boven de oude eis dat het geen bekende desktop mag zijn: inrichting, inloggen, bureaublad, taakbalk, startmenu/zoeken, vensters en sneltoetsen volgen herkenbare conventies van Windows/macOS/Linux, zodat consumenten niets opnieuw hoeven te leren; vernieuwing komt bovenop dat bekende pad. Eigen kernel, eigen code, eigen huisstijl en de Security Floor blijven verplicht. Materiaal blijft het gegevens- en rechtenmodel, niet het verplichte hoofdscherm.
 Ontwerp een eigen hoogwaardige productervaring op eigen code; een bestaande desktopomgeving (zoals GNOME of KDE) met nieuwe styling is onvoldoende. Het eerste productonderzoek is afgerond: Materiaal is gekozen na vergelijking van drie concepten; P2 in docs/implementation/PRODUCT-SPEC.md blijft historisch productbewijs. Bouw de shell volgens docs/implementation/DESKTOP-SHELL.md en docs/implementation/PROFILES-AND-USERS.md parallel aan de kernel. Behandel onbekende haalbaarheid als onderzoeksvraag met een klein experiment; vervang de ambitie niet stilzwijgend door een conventionele Linux-achtige oplossing. Label simulaties; die bewijzen geen werkend OS.
 
 Quantum is een expliciet derde onderzoeksspoor: postkwantumbescherming, lokale quantumuitvoering en een eigen OS als besturingslaag van hybride quantumhardware. Q0 is afgerond voor de eerste lokale simulator. Bouw Q1 volgens docs/implementation/QUANTUM-SPEC.md; label simulator, hostprototype, eigen-OS-port en fysiek QPU-bewijs afzonderlijk. Geen algemene claims over quantumversnelling of cloudfallback.
 
 ## Werkafspraken
-- Communiceer met Simon in helder Nederlands. Leg nieuwe vaktermen kort uit. Vraag maximaal één noodzakelijke verduidelijking; maak routinekeuzes zelfstandig binnen de opdracht.
+- Use clear, professional English in active public repository documentation and GitHub communication. Keep technical identifiers unchanged. Explain new technical terms briefly. Ask at most one necessary clarification and make routine choices independently within scope.
 - Houd ontwerp, implementatie, uitgevoerde tests en onbewezen aannames gescheiden.
 - Verander niet stilzwijgend naar Linux/BSD/XNU/seL4 als kern. Standaarden, tools en gecontroleerde bibliotheken zijn toegestaan.
 - Voorkeur: Rust no_std in kernel; minimaal assembly en expliciet gemotiveerde unsafe. Ontwerp eerst het beveiligingsinvariant, dan de interface, dan implementatie en negatieve tests.
 - Geen zelfbedachte cryptografie. Gebruik later onderhouden standaardimplementaties met vastgelegde versie, dreigingsmodel en geschikte entropybron.
-- Gebruikerswijziging 28 oktober 2026, leidend boven de oude eigen-LAN- en leverancierscloudverboden: internet is een OS-functie met afzonderlijke proces-/bestemmingsrechten. Persoonlijke opslag is lokaal of end-to-end versleuteld op een expliciet gekoppelde eigen NAS of NAS van vrienden/familie, of optioneel als opaque ciphertext op een expliciet gekozen externe opslagprovider. Externe providers krijgen geen Nieuw-OS-inhoudssleutels, documentplaintext of stil recht op andere data; zij zijn geen automatische fallback. Hetzelfde OS krijgt client- en NAS-rollen met eenvoudige identiteitsgecontroleerde onboarding. De NAS-beheerder beheert ruimte/quota en mag een gast zonder diens toestemming blokkeren en zijn NAS-kopieën verwijderen, maar krijgt geen gebruikerssleutels of leesrecht op inhoud. Geen verplichte leverancierscloud, stille relay/fallback, provider-key-escrow of OS-telemetrie. AI-inferentie blijft uitsluitend op het apparaat zonder netwerkrecht. Zie docs/LOCAL-PRIVACY-CONTRACT.md, docs/implementation/NAS-SHARING-AND-INTERNET.md en docs/implementation/ENCRYPTED-OBJECT-STORAGE.md.
+- Projectbesluit van 28 oktober 2026, leidend boven de oude eigen-LAN- en leverancierscloudverboden: internet is een OS-functie met afzonderlijke proces-/bestemmingsrechten. Persoonlijke opslag is lokaal of end-to-end versleuteld op een expliciet gekoppelde eigen NAS of NAS van vrienden/familie, of optioneel als opaque ciphertext op een expliciet gekozen externe opslagprovider. Externe providers krijgen geen Nieuw-OS-inhoudssleutels, documentplaintext of stil recht op andere data; zij zijn geen automatische fallback. Hetzelfde OS krijgt client- en NAS-rollen met eenvoudige identiteitsgecontroleerde onboarding. De NAS-beheerder beheert ruimte/quota en mag een gast zonder diens toestemming blokkeren en zijn NAS-kopieën verwijderen, maar krijgt geen gebruikerssleutels of leesrecht op inhoud. Geen verplichte leverancierscloud, stille relay/fallback, provider-key-escrow of OS-telemetrie. AI-inferentie blijft uitsluitend op het apparaat zonder netwerkrecht. Zie docs/LOCAL-PRIVACY-CONTRACT.md, docs/implementation/NAS-SHARING-AND-INTERNET.md en docs/implementation/ENCRYPTED-OBJECT-STORAGE.md.
 - **Security Floor:** een privacykeuze mag functionaliteit of gegevensdeling verruimen, maar schakelt kernel-/procesisolatie, capability-afdwinging, sleutelisolatie, geheugenbescherming, pakket-/update-authenticiteit of bescherming van niet-gedeelde data niet uit. Privacyuitleg mag uit; dat verleent geen nieuwe capability.
 - Downloadbare derdenapps blijven mogelijk. Installatie geeft geen algemene bestands-, NAS-, netwerk- of beheertoegang. Dwing rechten per app af; toestemmingen op papier zijn onvoldoende. Scheid systeemupdates/modeldownloads van toegang tot persoonlijke gegevens.
 - Geen claims 'onkraakbaar', 'quantumproof', 'bewezen veilig' of 'werkt op elk apparaat' zonder afgebakend bewijs. Zeg wat wel is getest.
@@ -36,10 +42,10 @@ Gebruik subagents als werk onafhankelijk kan worden opgesplitst. Standaard maxim
 Architect/onderzoeker en securityreviewer beginnen met alleen lezen. Builder implementeert één kleine stap. Verifier controleert het resultaat onafhankelijk. Een review door een tweede AI is geen onafhankelijke menselijke audit.
 Hoofdagent integreert wijzigingen, beslecht conflicten op bewijs en test de samengevoegde versie. AGENTS.md en agentrollen beperken gedrag, niet technisch de toegang; echte grenzen komen uit permissions, sandbox en credentials.
 
-## Graphify: alleen de gehoste MCP (Simon, 5–6 november 2026)
+## Graphify: alleen de gehoste MCP (besluit van 5–6 november 2026)
 Dit geldt voor iedere AI in dit project: Claude, Codex, Copilot en elke
 pipeline-worker. Er is één codegraaf: de gehoste Graphify-MCP voor
-`simonvanieperen/nieuw-os`.
+`simonvanieperen/BaryonOS`.
 - Gebruik de Graphify-MCP voor codestructuur: definities (`graphify_find`),
   callers/callees, impact (`graphify_impact`, `impact_and_risk`), tests
   (`graphify_tests_for`) en bestandsburen. Gebruik tekstzoeken voor letterlijke
@@ -64,7 +70,7 @@ bewerkt. De pipeline draait zelf de commando's. Eerst komt een L0-spec met de
 Graphify-MCP, daarna de executor, daarna `tools/agent_gate.py`: exact de `run:`-stappen
 van de gekozen CI-jobs plus `progress.py --check`. Alleen de exitcode beslist; rtk kort
 alleen de foutlog in. Een `serial`-taak draait alleen en eindigt als concept-PR voor
-Simons review. Maximaal drie `parallel`-taken met losse toegangssets draaien in eigen
+beoordeling door de projecteigenaar. Maximaal drie `parallel`-taken met losse toegangssets draaien in eigen
 worktrees. Alleen met `--auto-merge-parallel` gaan die PR's op squash-auto-merge. Niets
 gaat direct naar `main`. Agents wijzigen geen workflows, pipeline- of voortgangsbestanden.
 Runtime staat in het genegeerde `build/agent-pipeline/`. Een geblokkeerde taak houdt
@@ -94,7 +100,7 @@ Blokkeer wijzigingen die capability-rechten verruimen zonder expliciet ontwerp, 
 
 ## Voortgang op GitHub
 
-Expliciete opdracht van Simon, 28 oktober 2026: handel commits, pushes en
+Expliciete opdracht van de projecteigenaar van 28 oktober 2026: handel commits, pushes en
 geschikte squash-merges voor dit project zelfstandig af. Maak nieuwe PRs
 eerst als concept. Controleer actuele head/base, inhoudsbehoud, passende tests,
 bewijs en concrete reviewbevindingen vóór afronding; omzeil geen branchregels.
@@ -104,7 +110,7 @@ infrastructuur- of privacygrenzen.
 
 Na iedere afgebakende implementatiestap en vóór langdurige controles: werk PROJECT-STATE.md bij, commit broncode/lockfiles/controleerbaar bewijs en open punten, en push de werkbranch. Wacht hiermee niet tot de gehele batch klaar is. Label tussenstanden en niet-uitgevoerde tests expliciet. Controleer dat de remote branch het lokale commit-ID bevat. Laat gegenereerde binaries, caches en secrets buiten Git; bewaar compacte tekst- en hashrapporten onder docs/verification/.
 
-**Niet wachten op CI of open PR's (Simon, 5 november 2026).** CI en
+**Niet wachten op CI of open PR's (besluit van 5 november 2026).** CI en
 mergewachtrijen blokkeren het werk niet. Push, zet de PR op auto-merge, laat
 CI-fouten via Auto-fix of bij de volgende stap terugkomen en begin direct aan de
 eerstvolgende taak, gestapeld of parallel. Vraag niet "eerst CI afwachten?" en
@@ -123,7 +129,7 @@ latere rode run op main of een regressie zet het criterium terug op `open`.
 
 ## Verplichte voortgangsmeter na iedere opdracht
 
-De gebruiker verlangt een zichtbare 0–100%-roadmap in README.md. Het vaste
+Onderhoud een zichtbare 0–100%-roadmap in README.md. Het vaste
 criteriumregister staat in docs/progress.json; betekenis, acceptatie en
 onderhoudsroute in docs/PROGRESS.md. 0% = nog geen criterium gerealiseerd;
 100% = een volwaardig, dagelijks bruikbaar en onderhoudbaar zelfstandig OS op
