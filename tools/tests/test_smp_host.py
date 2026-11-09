@@ -610,7 +610,7 @@ class SmpLoaderProfileTests(unittest.TestCase):
         from build import native_smp_handoff_required
 
         for feature in (
-            "native-smp", "native-smp-m3", "native-smp-m3-exit",
+            "native-smp-legacy", "native-smp-m3", "native-smp-m3-exit",
             "native-smp-m3-tlb-reuse", "native-smp-m3-lock-contention",
             "native-smp-m3,test-m3-x87", "native-smp-m3,test-m3-ud",
             "native-smp-m4", "native-smp-m4-revoke",
@@ -619,7 +619,7 @@ class SmpLoaderProfileTests(unittest.TestCase):
             with self.subTest(feature=feature):
                 self.assertTrue(native_smp_handoff_required(feature))
         for feature in (
-            None, "", "milestone-m2", "milestone-m3", "milestone-m4",
+            None, "", "native-smp", "milestone-m2", "milestone-m3", "milestone-m4",
             "framebuffer", "native-window-session", "native-system",
             "test-m3-x87", "test-m4-lifecycle",
         ):
