@@ -607,7 +607,7 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
         "native-smp-m3-unexpected-ud": "native-smp-m3,test-m3-ud",
     }.get(profile, profile)
     if (manifest.get("kernel_feature") != expected_kernel_feature
-            or manifest.get("loader_feature") is not None
+            or manifest.get("loader_feature") != "smp-handoff"
             or manifest.get("source_fingerprint_version") != 3
             or manifest.get("source_sha256") != frozen):
         raise ValueError(f"build {profile} from the current source first")
