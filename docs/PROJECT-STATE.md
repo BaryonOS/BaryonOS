@@ -1,5 +1,51 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — PR #154 ABI/loader corrections — 9 November 2026
+
+**Source:** PR #154, existing branch `simonvanieperen-studious-spoon`, code
+HEAD `817d08cf94e0ecd885ffbb1144f0d21903139a53`; base main
+`2ed4c087746021da3c8b96511af3209a35d0f441`. The PR is still
+open, with GitHub reporting `mergeable: false`.
+
+**Completed source changes:** `9c33da2d` adds version-aware zeroing of
+absent SMP header fields when a legacy ABI 1.2 framebuffer descriptor
+begins at byte 128, with a Rust regression test. `3cb3e29f` makes MADT
+and low-memory SIPI discovery opt-in using an explicit `smp-handoff`
+loader profile and selects that profile for the native SMP build matrix.
+Ordinary profiles retain a one-page, non-SMP header, including the ABI 1.2
+graphics layout. `533d32b7` writes only 128/152 bytes of the declared
+header, preserving the graphics descriptor across EBS retries.
+`817d08cf` gates ACPI and low-memory helpers to the SMP loader feature.
+The existing SMP host harness now includes a profile-selection regression
+test. Earlier receipt/discovery fixes are recorded below.
+
+**Verification boundary:** GitHub source commits and blob readback are
+available; there is no repository checkout, Cargo, QEMU, RTK/Ponytail/ECC
+or usable native test execution in this session. The new source and tests
+are **NOT BUILT / NOT EXECUTED**; CI and CodeRabbit on this HEAD are not
+verified. Older green smoke runs refer to earlier SHAs only. The
+39/100 active main acceptance score is unchanged. Project progress assets
+were not regenerated and cannot be claimed current on the legacy branch.
+
+**Mandatory remaining integration:** perform a reviewed three-way
+integration with K06/MADT (eight CPUs, IPI/shootdown, preempted kernel
+threads) while preserving the PR's legacy M3/M4 SMP CPU scheduling,
+cross-CPU capability IPC, revocation and fail-closed quiescence. Current
+Git trees have 23 divergent shared paths after the above changes. In
+particular, the mutually different `kernel/src/m2/smp.rs` and
+`tools/run_smp.py` implementations cannot be selected wholesale.
+Retain main's security, CI and English documentation contracts.
+
+**Next executable step:** in a real pinned checkout, integrate main into
+this **same** branch with three-way conflict resolution; run
+`python3 tools/progress.py --write`, `python3 tools/progress.py --check`,
+`python3 tools/preflight.py --strict`, `python3 tools/build.py`,
+`python3 tools/run.py --smoke`, affected Rust and Python host suites,
+and all 15 native SMP M2/M3/M4 positive/negative stages. Address valid
+current-head CodeRabbit findings. Reconcile PROGRESS and source-bound
+verification, then squash-merge only when the integrated SHA is
+fully validated. **No squash or force merge has been performed.**
+
 ## PR #154 — native SMP receipt regression fixes — 9 November 2026
 
 **Source:** existing PR #154 on `simonvanieperen-studious-spoon`, code
