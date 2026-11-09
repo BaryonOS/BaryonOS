@@ -850,8 +850,10 @@ impl DeviceLease {
         Ok(self.record(grant)?.direction)
     }
 
-    // Not a public driver API until the kernel can enforce IOMMU DMA containment.
-    pub(crate) fn enable_bus_master<C: DeviceControl>(
+    // Test-only bus mastering model: real drivers must require enforced IOMMU isolation.
+    // Not compiled into production until a kernel-issued DMA-containment proof exists.
+    #[cfg(test)]
+    fn enable_bus_master<C: DeviceControl>(
         &mut self,
         control: &mut C,
     ) -> Result<(), Error> {
