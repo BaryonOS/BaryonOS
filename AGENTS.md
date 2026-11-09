@@ -1,7 +1,7 @@
 # Projectinstructies
 
 **Projecteigenaar:** Simon van Ieperen.
-Projectdocumentatie gebruikt een onpersoonlijke, wetenschappelijke schrijfstijl.
+Active public project documentation uses English and an impersonal, scientific writing style.
 Waar beslissingsbevoegdheid relevant is, wordt de formele rol projecteigenaar
 vermeld. Broncitaten behouden hun oorspronkelijke spreker.
 
@@ -26,7 +26,7 @@ Ontwerp een eigen hoogwaardige productervaring op eigen code; een bestaande desk
 Quantum is een expliciet derde onderzoeksspoor: postkwantumbescherming, lokale quantumuitvoering en een eigen OS als besturingslaag van hybride quantumhardware. Q0 is afgerond voor de eerste lokale simulator. Bouw Q1 volgens docs/implementation/QUANTUM-SPEC.md; label simulator, hostprototype, eigen-OS-port en fysiek QPU-bewijs afzonderlijk. Geen algemene claims over quantumversnelling of cloudfallback.
 
 ## Werkafspraken
-- Communiceer in helder, professioneel Nederlands. Leg nieuwe vaktermen kort uit. Vraag maximaal één noodzakelijke verduidelijking; maak routinekeuzes zelfstandig binnen de opdracht.
+- Use clear, professional English in active public repository documentation and GitHub communication. Keep technical identifiers unchanged. Explain new technical terms briefly. Ask at most one necessary clarification and make routine choices independently within scope.
 - Houd ontwerp, implementatie, uitgevoerde tests en onbewezen aannames gescheiden.
 - Verander niet stilzwijgend naar Linux/BSD/XNU/seL4 als kern. Standaarden, tools en gecontroleerde bibliotheken zijn toegestaan.
 - Voorkeur: Rust no_std in kernel; minimaal assembly en expliciet gemotiveerde unsafe. Ontwerp eerst het beveiligingsinvariant, dan de interface, dan implementatie en negatieve tests.
@@ -45,7 +45,7 @@ Hoofdagent integreert wijzigingen, beslecht conflicten op bewijs en test de same
 ## Graphify: alleen de gehoste MCP (besluit van 5–6 november 2026)
 Dit geldt voor iedere AI in dit project: Claude, Codex, Copilot en elke
 pipeline-worker. Er is één codegraaf: de gehoste Graphify-MCP voor
-`simonvanieperen/nieuw-os`.
+`simonvanieperen/BaryonOS`.
 - Gebruik de Graphify-MCP voor codestructuur: definities (`graphify_find`),
   callers/callees, impact (`graphify_impact`, `impact_and_risk`), tests
   (`graphify_tests_for`) en bestandsburen. Gebruik tekstzoeken voor letterlijke

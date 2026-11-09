@@ -53,6 +53,8 @@ pub struct Counters {
     pub udp_received: u64,
     pub malformed_frames: u64,
     pub dropped_datagrams: u64,
+    /// Unpublished frames of a revoked owner dropped before reaching the NIC.
+    pub revoked_frames_discarded: u64,
 }
 struct Owner {
     client: Client,
@@ -65,6 +67,7 @@ struct Owner {
     deadline: u64,
     timed_out: bool,
     retired: bool,
+    revoked: bool,
     udp: [u8; DATA],
     udp_len: Option<usize>,
     neighbor: NeighborSlot,
@@ -139,6 +142,7 @@ impl<'a> Service<'a> {
                 deadline: 0,
                 timed_out: false,
                 retired: false,
+                revoked: false,
                 udp: [0; DATA],
                 udp_len: None,
                 neighbor: NeighborSlot::new(local).map_err(|_| Fault::Configuration)?,
@@ -229,7 +233,11 @@ impl<'a> Service<'a> {
                             && packet.payload().len() <= DATA
                         {
                             accepted = true;
-                            if owner.udp_len.is_none() {
+                            if owner.revoked {
+                                // Well-formed but no longer authorized: a policy
+                                // refusal, kept apart from malformed-frame evidence.
+                                self.counters.rejected = self.counters.rejected.saturating_add(1);
+                            } else if owner.udp_len.is_none() {
                                 owner.udp[..packet.payload().len()]
                                     .copy_from_slice(packet.payload());
                                 owner.udp_len = Some(packet.payload().len());
@@ -296,6 +304,54 @@ impl<'a> Service<'a> {
             .map_err(|_| Fault::Transport)?;
         self.needs_poll = true;
         Ok(())
+    }
+    /// Trusted policy-authority notification, never an app RPC: withdraws one
+    /// owner's destination grant for the rest of this epoch. A live connection
+    /// is aborted (the stack queues a TCP RST) and buffered UDP is dropped.
+    /// Afterwards every data/open operation of that owner answers `Access`;
+    /// only State, CloseTcp and Retire stay available for cleanup. As with
+    /// `retire_slot`, a frame already handed to the device stays pinned until
+    /// its real completion; revocation never fakes a discard of DMA-live data.
+    pub fn revoke(&mut self, slot: usize, now: u64) -> Result<(), Fault> {
+        self.time(now)?;
+        let owner = self.owners.get_mut(slot).ok_or(Fault::Configuration)?;
+        owner.revoked = true;
+        owner.closing = true;
+        owner.udp.fill(0);
+        owner.udp_len = None;
+        owner.neighbor.cancel();
+        self.stack
+            .cancel(owner.client)
+            .map_err(|_| Fault::Transport)?;
+        self.needs_poll = true;
+        Ok(())
+    }
+    /// Revocation fence for the shared TX slot. The caller promises the
+    /// current slot frame was never handed to the device (no transmission is
+    /// outstanding). A frame built for a revoked owner before the revocation
+    /// is dropped instead of published; only a payload-free TCP RST of that
+    /// owner (the abort itself) may still leave. Returns whether it dropped.
+    pub fn discard_revoked_unpublished(&mut self) -> Result<bool, Fault> {
+        let Some(frame) = self.stack.transmission() else {
+            return Ok(false);
+        };
+        let id = frame.id;
+        let Some(slot) = frame_owner(frame.bytes) else {
+            return Ok(false);
+        };
+        if !self.owners[slot].revoked {
+            return Ok(false);
+        }
+        self.stack
+            .complete_transmission(id)
+            .map_err(|_| Fault::Transport)?;
+        self.counters.revoked_frames_discarded =
+            self.counters.revoked_frames_discarded.saturating_add(1);
+        self.needs_poll = true;
+        Ok(true)
+    }
+    pub fn revoked_mask(&self) -> u64 {
+        u64::from(self.owners[0].revoked) | u64::from(self.owners[1].revoked) << 1
     }
     pub fn clean(&self) -> bool {
         !self.needs_poll
@@ -366,6 +422,15 @@ impl<'a> Service<'a> {
         if self.owners[slot].retired {
             self.counters.rejected = self.counters.rejected.saturating_add(1);
             return Ok(refusal(h, Status::Closed));
+        }
+        if self.owners[slot].revoked
+            && !matches!(
+                h.operation,
+                Operation::State | Operation::CloseTcp | Operation::Retire
+            )
+        {
+            self.counters.rejected = self.counters.rejected.saturating_add(1);
+            return Ok(refusal(h, Status::Access));
         }
         let d = self.config.destinations[slot];
         if matches!(h.operation, Operation::OpenTcp | Operation::SendUdp)
@@ -577,5 +642,36 @@ impl<'a> Service<'a> {
             0
         };
         Ok(Some(Packet::response(h, status, argument, &data[..length])))
+    }
+}
+
+/// Which owner a locally built IPv4 frame speaks for, from its source port:
+/// TCP ports are 40000 + slot + 2k up to u16::MAX (see `next_port`), UDP
+/// ports 45000 + slot; the protocol byte keeps the two ranges apart.
+/// A payload-free TCP RST belongs to nobody: it only ends a connection.
+fn frame_owner(frame: &[u8]) -> Option<usize> {
+    if frame.len() < 34 || frame[12..14] != [8, 0] {
+        return None;
+    }
+    let ip = &frame[14..];
+    let header = usize::from(ip[0] & 15) * 4;
+    let total = usize::from(u16::from_be_bytes([ip[2], ip[3]]));
+    if ip[0] >> 4 != 4 || header < 20 || total > ip.len() || total < header + 8 {
+        return None;
+    }
+    let l4 = &ip[header..total];
+    let port = u16::from_be_bytes([l4[0], l4[1]]);
+    match ip[9] {
+        6 if l4.len() >= 20 => {
+            let data = usize::from(l4[12] >> 4) * 4;
+            if l4[13] & 4 != 0 && l4.len() <= data {
+                return None;
+            }
+            (port >= 40000).then(|| usize::from(port - 40000) % CLIENTS)
+        }
+        17 => (45000..45000 + CLIENTS as u16)
+            .contains(&port)
+            .then(|| usize::from(port - 45000)),
+        _ => None,
     }
 }

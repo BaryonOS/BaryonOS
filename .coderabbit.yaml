@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 # Keep inherited review tools and project instructions; override only review behavior.
 inheritance: true
-language: nl
+language: en
 
 reviews:
   # Important comments stay inline; smaller suggestions move to the summary.
