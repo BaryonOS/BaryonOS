@@ -4,14 +4,17 @@
 
 **Source:** existing PR #154 on `simonvanieperen-studious-spoon`, code
 commits `c25f4e8237832d8f5802f94428491cd4c684a3f2` and
-`c34384db76cb34357b040aa2d4386e2ed05e0650`, targeting `main`
+`c34384db76cb34357b040aa2d4386e2ed05e0650` and
+`d0b3b8836695f3be5c705a03a78a87e5e6832ce2`, targeting `main`
 at `2ed4c087746021da3c8b96511af3209a35d0f441`.
 
 **Change:** a running, partially completed 15-stage native SMP matrix no
 longer writes a positive overall receipt before the final stage. The host
 test now inspects intermediate receipt writes and asserts the exact SMP
-profile/CPU sequence, including x87/#NM and unexpected-UD negative probes.
-These changes address two source-confirmed CodeRabbit findings; no kernel
+profile/CPU sequence, including x87/#NM and unexpected-UD negative probes. The host test was
+renamed to `tools/tests/test_smp_host.py` and runner discovery updated to
+avoid the conflicting `test_smp` module name identified by CodeRabbit.
+These changes address three source-confirmed CodeRabbit findings; no kernel
 authority, boot ABI or native SMP scheduling behavior is modified.
 
 **Evidence and limits:** GitHub acknowledged both commits; source readback
