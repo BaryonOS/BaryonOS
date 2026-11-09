@@ -3,22 +3,34 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
-    open-pull-requests-limit: 3
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Amsterdam
+    open-pull-requests-limit: 2
     labels:
       - dependencies
+    commit-message:
+      prefix: "chore(actions)"
   - package-ecosystem: cargo
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
+      day: tuesday
+      time: "06:00"
+      timezone: Europe/Amsterdam
     open-pull-requests-limit: 3
     labels:
       - dependencies
+    commit-message:
+      prefix: "chore(cargo)"
   - package-ecosystem: cargo
     directory: /experiments/quantum
     schedule:
       interval: monthly
-    open-pull-requests-limit: 3
+      time: "06:00"
+      timezone: Europe/Amsterdam
+    open-pull-requests-limit: 2
     labels:
       - dependencies
   # Independent workspaces have their own manifests and lockfiles. Keep
@@ -90,9 +102,13 @@ updates:
       - /ui/surface-protocol
     schedule:
       interval: monthly
+      time: "06:00"
+      timezone: Europe/Amsterdam
     open-pull-requests-limit: 2
     labels:
       - dependencies
+    commit-message:
+      prefix: "chore(cargo)"
     # Coalesce a dependency across directories; incompatible constraints may
     # still require separate PRs. This is not a repository-wide PR limit.
     groups:
