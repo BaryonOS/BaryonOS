@@ -6,11 +6,14 @@ Deze dependencyvrije `no_std`-crate valideert begrensde ruwe FADT- en
 DSDT-SDT-snapshots en haalt daaruit uitsluitend de S5-slaaptypen en de
 legacy x86 PM1a/PM1b-controlregisteradressen. De publieke invoer is
 `AcpiTableSnapshot` met twee `TableSnapshot`-waarden (exacte bytes plus het
-door de kernel vastgestelde oorspronkelijke firmwareadres). Die metadata moet
-afkomstig zijn uit de versiegebonden BootInfo-snapshot; de crate-constructor
-is geen autorisatiebewijs. De kernel valideert onafhankelijk de
-snapshotversie, extents, tabelsoorten, reservering, overlap, mappings,
-SDT-signatures/checksums en FADT/DSDT-koppeling.
+door de kernel vastgestelde oorspronkelijke firmwareadres). Die door de
+caller aangeleverde metadata is geen autorisatiebewijs. In het opt-in
+`native-acpi-s5`-profiel komt het FADT-adres uit `Discovery.fadt`;
+`FirmwareReader` leest FADT en DSDT uitsluitend uit de gecontroleerde
+UEFI ACPI reclaim/NVS-geheugenregio's. De parser valideert daarna
+SDT-signatures, lengtes, checksums en de FADT/DSDT-koppeling. Deze
+native route vereist geen vooraf gekopieerde versiegebonden BootInfo-
+tabelsnapshot; de adres- en geheugenautorisatie ligt bij de kernel.
 
 De parser controleert de tabelsignatures, exacte gedeclareerde lengte,
 checksum, maximumomvang en binding van het door FADT aangewezen DSDT-adres.
@@ -28,8 +31,9 @@ Hun getters geven slechts parsed waarden terug; ze verlenen geen capability.
 reeds gelezen waarde. Er is geen port-I/O, `unsafe`, pointerinvoer,
 firmwarecode-uitvoering, shutdownsyscall, kernelautorisatie of hostactie.
 Een plan mag nooit via IPC als shutdownopdracht worden aangenomen. De
-kernelbroker blijft eigenaar van snapshotvalidatie, de niet-delegeerbare
-poweroff-capability en de later exact afgebakende QEMU-only write/flush-actie.
+kernel blijft de bevoorrechte eigenaar van tabeltoegang en de opt-in
+QEMU-only PM1-writeactie. Een dienstgestuurde poweroff-capability en
+voorafgaand flushen van diensten zijn nog niet geïmplementeerd.
 
 ## Begrensde AML-subset
 

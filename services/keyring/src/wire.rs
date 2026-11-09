@@ -328,6 +328,68 @@ pub fn dispatch_record(
     }
 }
 
+/// Ordinary app ingress. Recovery export/import and persistent snapshots are
+/// deliberately excluded; only the separately authorized management ingress
+/// may dispatch those operations.
+pub fn dispatch_domain(
+    service: &mut Service,
+    source: &mut impl EntropySource,
+    domain: usize,
+    header: &Header,
+    body: &[u8],
+) -> [u8; SIZE] {
+    let Some((low, high)) = body_bounds(header.op) else {
+        return reply(header, Status::Invalid, &[]);
+    };
+    if header.status != 0
+        || usize::from(header.length) != body.len()
+        || body.len() < low
+        || body.len() > high
+    {
+        return reply(header, Status::Invalid, &[]);
+    }
+    match header.op {
+        STATUS => {
+            let status = status_body(
+                service.state() as u8,
+                service.reason() as u8,
+                [service.keys_created(0), service.keys_created(1)],
+                service.counters.entropy_bytes,
+            );
+            reply(header, Status::Ok, &status)
+        }
+        GENERATE => match service.generate(domain, source) {
+            Ok(index) => reply(header, Status::Ok, &[index]),
+            Err(status) => reply(header, status, &[]),
+        },
+        SEAL => {
+            let mut out = [0u8; MAX_SEALED];
+            match service.seal(domain, header.index, body, source, &mut out) {
+                Ok(length) => reply(header, Status::Ok, &out[..length]),
+                Err(status) => reply(header, status, &[]),
+            }
+        }
+        UNSEAL => {
+            let mut out = [0u8; MAX_PLAINTEXT];
+            match service.unseal(domain, header.index, body, source, &mut out) {
+                Ok(length) => reply(header, Status::Ok, &out[..length]),
+                Err(status) => reply(header, status, &[]),
+            }
+        }
+        SEAL_RECORD | UNSEAL_RECORD => dispatch_record(service, source, domain, header, body),
+        REVOKE => match service.revoke(domain, header.index) {
+            Ok(()) => reply(header, Status::Ok, &[]),
+            Err(status) => reply(header, status, &[]),
+        },
+        // Recovery and persistence are management-only, even though their
+        // request formats remain part of KEY1 for compatible clients.
+        EXPORT_RECOVERY | RESTORE | EXPORT_PERSISTENT | RESTORE_PERSISTENT => {
+            reply(header, Status::Invalid, &[])
+        }
+        _ => reply(header, Status::Invalid, &[]),
+    }
+}
+
 pub fn encode_snapshot_info(info: SnapshotInfo) -> [u8; SNAPSHOT_INFO] {
     let mut out = [0u8; SNAPSHOT_INFO];
     out[..8].copy_from_slice(&info.generation.to_le_bytes());
@@ -433,6 +495,57 @@ pub fn dispatch_persistent(
         let minimum = u64::from_le_bytes(body[at..at + 8].try_into().expect("eight bytes"));
         match service.restore_persistent(&volume, &secret, &body[at + 8..], minimum, source) {
             Ok(snapshot) => reply(header, Status::Ok, &encode_snapshot_info(snapshot)),
+            Err(status) => reply(header, status, &[]),
+        }
+    }
+}
+
+/// Dispatch key recovery or persistent snapshots for a management ingress.
+/// The service adapter must authenticate the endpoint sender against its
+/// kernel manifest before calling this function.
+pub fn dispatch_management(
+    service: &mut Service,
+    source: &mut impl EntropySource,
+    header: &Header,
+    body: &[u8],
+) -> [u8; SIZE] {
+    if matches!(header.op, EXPORT_PERSISTENT | RESTORE_PERSISTENT) {
+        return dispatch_persistent(service, source, header, body);
+    }
+    let Some((low, high)) = (match header.op {
+        EXPORT_RECOVERY | RESTORE => body_bounds(header.op),
+        _ => None,
+    }) else {
+        return reply(header, Status::Invalid, &[]);
+    };
+    if header.index != 0
+        || header.status != 0
+        || usize::from(header.length) != body.len()
+        || body.len() < low
+        || body.len() > high
+    {
+        return reply(header, Status::Invalid, &[]);
+    }
+    if header.op == EXPORT_RECOVERY {
+        let mut secret = Zeroizing::new([0u8; SECRET_BYTES]);
+        let mut blob = Zeroizing::new([0u8; RECOVERY_BLOB]);
+        match service.export_recovery(source, &mut secret, &mut blob) {
+            Ok(()) => {
+                let mut out = Zeroizing::new([0u8; SECRET_BYTES + RECOVERY_BLOB]);
+                out[..SECRET_BYTES].copy_from_slice(&*secret);
+                out[SECRET_BYTES..].copy_from_slice(&*blob);
+                reply(header, Status::Ok, &*out)
+            }
+            Err(status) => reply(header, status, &[]),
+        }
+    } else {
+        let mut secret = Zeroizing::new([0u8; SECRET_BYTES]);
+        secret.copy_from_slice(&body[..SECRET_BYTES]);
+        let blob: &[u8; RECOVERY_BLOB] = body[SECRET_BYTES..]
+            .try_into()
+            .expect("validated recovery body length");
+        match service.restore(&secret, blob, source) {
+            Ok(domains) => reply(header, Status::Ok, &[domains as u8]),
             Err(status) => reply(header, status, &[]),
         }
     }

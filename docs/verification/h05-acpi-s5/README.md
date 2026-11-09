@@ -42,7 +42,8 @@ There is no syscall or IPC route; a process cannot request power-off.
   QMP firmware capture at
   [`drivers/acpi-power/verification`](../../../drivers/acpi-power/verification/README.md).
 - The serial output tail must match exactly. Additional output after
-  `POWER:S5:WRITE`, or a write in the rejection profile, fails the run.
+  `POWER:S5:WRITE`, or a `POWER:S5:WRITE` marker in the rejection
+  profile, fails the run. The runner does not independently trace PM1 I/O.
 
 ## Native cases (7/7 passed, no timeout)
 
@@ -52,7 +53,9 @@ There is no syscall or IPC route; a process cannot request power-off.
 | `test-acpi-s5-corrupt-dsdt` | 2 | 33 (debug exit) | `POWER:S5:REJECTED:InvalidChecksum` |
 
 The negative profile flips one byte in the kernel's DSDT copy (the final
-byte). Exit 33 rather than 0 demonstrates no PM1 write was performed.
+byte). Exit 33 rather than 0 proves that no effective S5 power-off occurred,
+not that no PM1 write was attempted. Source inspection of the rejection
+branch shows no port-I/O call; independent PM1 write tracing is still open.
 Durations, hashes, commands and full serial output are retained in
 [native-report.json](native-report.json); both reports are bound to source
 fingerprint v3
@@ -67,9 +70,9 @@ fields and the recorded source fingerprint were not changed.
 
 ```bash
 python3 -B tools/build.py --kernel-feature native-acpi-s5
-python3 -B tools/run_power.py --repeat 5
+NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/run_power.py --repeat 5
 NOS_BUILD_DIR=build/corrupt python3 -B tools/build.py --kernel-feature test-acpi-s5-corrupt-dsdt
-NOS_BUILD_DIR=build/corrupt python3 -B tools/run_power.py --repeat 2
+NOS_BUILD_DIR=build/corrupt NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/run_power.py --repeat 2
 ```
 
 CI runs these in `.github/workflows/native-power.yml`. Recorded host

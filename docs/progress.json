@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-09",
-    "source_commit": "06f6736d2be67c664ad24f4ed7799860a36f791a",
-    "assessment_basis": "working_tree",
-    "branch": "coderabbit/issue-283-dependabot-coverage",
-    "task": "Refresh PR #284: complete independent Cargo workspace monitoring without duplicate SDK coverage",
-    "previous_score": 41,
-    "summary": "41/100 remains 41/100. Dependency monitoring adds no OS acceptance criterion. Preflight, build, smoke and 11 configuration tests passed locally."
+    "source_commit": "fcaa2ef44b7bdfcabbc6368149105f978cade27a",
+    "assessment_basis": "source_commit",
+    "branch": "simonvanieperen-studious-spoon",
+    "task": "Reconcile PR #154 K06 MADT with isolated experimental M3/M4 SMP, restoring native pressure recovery and separate CI evidence",
+    "previous_score": 39,
+    "summary": "39/100 to 39/100: GitHub QEMU K06 and 15 experimental M3/M4 profiles passed; native system including OOM recovery passed on fcaa2ef. The 17th evidence-invocation contract correction and final-head CI remain pending. K06 and B01 acceptance remain open."
   },
   "tracks": [
     {
@@ -369,13 +369,9 @@
           "id": "B01",
           "title": "Entropy and key management",
           "points": 2,
-          "status": "accepted",
-          "acceptance": "Native cryptographic entropy, key lifecycle, protection, and recovery use reviewed standards and tested failure paths.",
-          "evidence": [
-            "docs/verification/B01-ACCEPTANCE.md",
-            "docs/verification/native-recovery-hardening/b01/keyring-gate.json",
-            "docs/verification/native-recovery-hardening/integration.json"
-          ]
+          "status": "open",
+          "acceptance": "Native cryptographic entropy and key lifecycle, with recovery restricted to manifest-bound management ingress. Native positive management recovery and negative ordinary-app authorization tests remain required.",
+          "evidence": []
         },
         {
           "id": "B02",

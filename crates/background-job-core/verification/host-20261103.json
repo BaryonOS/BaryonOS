@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "branch": "simonvanieperen-studious-spoon",
+  "source_commit": "84a05f256776c9aa4689f3b7e759e38b72371945",
+  "scope": "Standalone no_std background-job lifecycle state machine; host tests only.",
+  "source_sha256": {
+    "crates/background-job-core/Cargo.toml": "e507e49eec801fb5c3d7a6ecc42dc0238fb26cbf90fcbc44517555e3e59b85d0",
+    "crates/background-job-core/Cargo.lock": "9cd6145141e6005473d9c53ce6d57fb592e788cd3962fbeaa0061918ba0c220a",
+    "crates/background-job-core/README.md": "e90b6c0403a6be62055b83b788f5ea8f472f75247386d32901a408d9565570fa",
+    "crates/background-job-core/src/lib.rs": "0daf2901f6b818a70506888d780afbeb75283301afce5ffdefe20debee2c4fcb"
+  },
+  "environment": "Rust 1.90.0; CARGO_TARGET_DIR=/tmp/nieuw-os-background-job-target; no dependencies.",
+  "checks": [
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-background-job-target $HOME/.cargo/bin/cargo +1.90.0 test --manifest-path crates/background-job-core/Cargo.toml --offline --locked",
+      "exit_code": 0,
+      "results": "6 unit tests passed.",
+      "log": "/tmp/nieuw-os-background-job-test.log",
+      "log_sha256": "8191cb1a3451d62f7ef0e612c748c2e79c060380928c83a4b6a254fbb7251051"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-background-job-target $HOME/.cargo/bin/cargo +1.90.0 clippy --manifest-path crates/background-job-core/Cargo.toml --all-targets --locked -- -D warnings",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-background-job-clippy.log",
+      "log_sha256": "7613fb205253dfabdb57984235e596e5868552071a6eb172d7a9037ef9659022"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-background-job-target $HOME/.cargo/bin/cargo +1.90.0 check --manifest-path crates/background-job-core/Cargo.toml --target x86_64-unknown-none --locked",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-background-job-none.log",
+      "log_sha256": "bc7caebcc222498aaf9e56f2d18172f8fb1481d9d37f060d732e42c5b7ee8136"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-background-job-target $HOME/.cargo/bin/cargo +1.90.0 fmt --manifest-path crates/background-job-core/Cargo.toml -- --check",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-background-job-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "implemented": [
+    "Explicit owner and capability-scope registries with fixed capacity and generation-checked re-registration.",
+    "Bounded jobs carry purpose, capability scope, resource budget, progress, and lifecycle.",
+    "Queued/running/suspended/completed/failed/cancelled transitions are checked; progress cannot regress or exceed its total.",
+    "Scope revoke and owner exit cancel matching nonterminal jobs; stale scope generations cannot be reused.",
+    "No state transition creates a broader scope; no arbitrary callback or work executor is present."
+  ],
+  "limitations": [
+    "Registrations are not authenticated by a kernel/runtime authority; identifiers are model inputs, not capabilities.",
+    "Resource budgets are stored and validated as nonzero but not enforced against real execution.",
+    "No real download, sync, indexing, AI, update, import/export, process, or session consumer is integrated.",
+    "Owner exit cancels associated work; policy for surviving an app-window close is not defined by this primitive.",
+    "This is a PARTIAL host-tested model, not native runtime enforcement or release evidence."
+  ]
+}
