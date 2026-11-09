@@ -174,6 +174,36 @@ class SmpEvidenceTests(unittest.TestCase):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 run_smp.evaluate(2, bad, 33, False)
 
+    def test_common_evidence_rejections_apply_to_both_evaluators(self):
+        for evaluator, fixture in (
+            (run_smp.evaluate, transcript),
+            (run_smp.evaluate_m3, m3_transcript),
+        ):
+            valid = fixture()
+            cases = (
+                None,
+                valid + "x" * (128 * 1024),
+                valid.replace("BOOT:EBS_OK\n", ""),
+                valid.replace("KS-02:PASS\nKS-03:PASS", "KS-03:PASS\nKS-02:PASS"),
+                valid.replace("SMP:CPU:1:APIC:1:ONLINE", "SMP:CPU:1:APIC:0:ONLINE"),
+                valid.replace("SMP:CPU:1:APIC:1:ONLINE", "SMP:CPU:01:APIC:1:ONLINE"),
+                valid.replace("SMP:CPU:1:APIC:1:ONLINE", "SMP:CPU:1:APIC:x:ONLINE"),
+                valid.replace("SMP:CPU:1:APIC:1:ONLINE\n", ""),
+                valid.replace("SMP:AP:ENTRY\n", ""),
+                valid.replace("SMP:WORKERS:PASS\n", ""),
+                valid + "SMP:PASS\n",
+                valid + "PANIC\n",
+                valid + "M3:FAIL:UNEXPECTED_USER_EVENT\n",
+            )
+            for index, bad in enumerate(cases):
+                with self.subTest(evaluator=evaluator.__name__, case=index):
+                    with self.assertRaises(ValueError):
+                        evaluator(2, bad, 33, False)
+            for exit_code, timeout in ((0, False), (35, False), (None, True), (33, True)):
+                with self.subTest(evaluator=evaluator.__name__, exit_code=exit_code,
+                                  timeout=timeout), self.assertRaises(ValueError):
+                    evaluator(2, valid, exit_code, timeout)
+
     def test_unexpected_cpu_counts_exit_codes_and_timeouts_are_rejected(self):
         for cpus in (0, 1, 3, 5, True):
             with self.subTest(cpus=cpus), self.assertRaises(ValueError):

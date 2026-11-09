@@ -12,250 +12,26 @@
 
 **Next necessary step:** in a real, pinned-toolchain checkout, perform the reviewed three-way integration on the existing PR branch and preserve both architecture lines and current English public documentation. Run `python3 tools/progress.py --check`, `python3 tools/preflight.py --strict`, `python3 tools/build.py`, `python3 tools/run.py --smoke`, affected host/Rust/CI contract tests, and the complete 15-stage native SMP M2/M3/M4 negative matrix. Resolve valid CodeRabbit findings and regenerate progress artifacts with the project tool. Only then perform a squash merge with an exact expected PR HEAD SHA. No new PR, force reset, or unverified acceptance.
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:5744b8877657c88dba3304449644b1d6b3f34e5aa8e498e82e8cfebd2bfb741d -->
+
 ## Historical SMP checkpoint — 3 November 2026
 
-**Gepubliceerde codebasis:** branch `simonvanieperen-studious-spoon`, commit
-`a49cc651975cc848be89198b84bfa0ee1d621a45`, gepusht naar
-`origin/simonvanieperen-studious-spoon`. Actieve toewijzing:
-`SYSTEM-MATURITY-SMP`, queuebron `707a768c1df81e674a15c4aa013f44b85b90c700`.
-OOM/K05 zijn afgesloten en blijven ongewijzigd;
-`DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
+**Status:** op broncommit `a49cc651975cc848be89198b84bfa0ee1d621a45`
+faalde de volledige SMP-matrix (exit 1). De eerste negen stages slaagden;
+de gewone M4-stage op twee CPU's stopte met raw QEMU exit 35 en
+`M1:FAIL:SMP:CLEANUP_REMOTE_ACTIVE`.
 
-De fail-closed cleanupguard zelf staat in codecommit `875c31fa`; het
-voortgangsassessment en de matrixreceipt zijn tegen `a49cc651` vastgelegd.
+**Bewijsgrens:** de fail-closed guard voorkomt vrijgave van een processlot
+terwijl een andere CPU het nog als actief heeft. Quiescence vóór bulkcleanup
+en round-reset blijft open; dit is geen volledige K06-acceptatie of bewijs
+voor de huidige PR-head.
 
-**AP-bring-up/rendezvous is eerder bewezen**, op commits `cec73173` en
-`5da76325`: de AP-stackpagina's waren identity-mapped RW/NX in de gedeelde
-`Paging`-root; de root cause was dat de trampoline EFER.NXE niet activeerde.
-De fix en 1/2/4-CPU-rendezvous blijven aan die eerdere bron gebonden en zijn
-geen runtimebewijs voor het nieuwe M3-profiel.
+**Gecommitte receipt:**
+[`smp-rendezvous-20261103T191954Z.json`](verification/sm-smp/smp-rendezvous-20261103T191954Z.json).
 
-**Opt-in M3-SMP-scheduler:** commit `55f78fa` voegt per-CPU processselectie,
-begrensde serialisatie van M3-mutaties, BSP schedule-IPI's en per-CPU
-kernel-entrystacks toe; ADR-064 legt de invariant en profielgrens vast.
-Een eerste 2-CPU-run vóór deze commit slaagde op bronvingerafdruk `cdb79...`
-(raw QEMU exit 33; CPU 0/1 selecteerden respectievelijk 88/87 keer).
-De eerdere poging eindigde met raw exit 35 en `M2:FAIL:KERNEL_EXCEPTION`;
-de dispatch onderscheidt nu user-origin en kernel-origin schedule-IPI's.
-Logs: `build/run/smp-2-5d1e382375/` (mislukt) en
-`build/run/smp-2-b54ae3d31e/` (geslaagd).
-
-**Uitgevoerde controles:** `PYTHONPATH=tools python3 -B -m unittest
-tools/tests/test_smp.py` (5 tests, exit 0);
-`~/.cargo/bin/cargo +1.90.0 fmt --manifest-path kernel/Cargo.toml -- --check`
-en `git diff --check` (exit 0). De finale bron bouwt `native-smp` en
-`native-smp-m3` (exit 0; M3 via de bestaande `build()`-helper, die de
-ring-3-probe als `NOS_USER_ELF` meegeeft).
-
-**M3-profielmatrix PASS op commit `dfb983d1` (exit 0):** exact commando
-`python3 -B tools/test_smp.py`, met de in de receipt vastgelegde toolpaden,
-`LD_LIBRARY_PATH` en OVMF 4M. Alle zes stages slaagden: M2 met 1/2/4 CPU,
-M3 met 2 CPU, de bestaande M3 1-CPU-regressie en M3 met 4 CPU. M2 2/4 bewezen
-unieke CPU/APIC-identiteiten plus 64 rendezvous-generaties en worker-acks.
-M3 2 CPU rapporteerde per-CPU processselecties `[90, 85]`; M3 4 CPU
-`[76, 75, 73, 77]`. Hostharnas: 5 tests, exit 0. QEMU-runs gebruikten raw
-exit 33 als verwachte testexit. QEMU meldde `kvmvapic.bin` ontbrekend; dit is
-niet onderzocht. Receipt:
-[`smp-rendezvous-20261103T174940Z.json`](verification/sm-smp/smp-rendezvous-20261103T174940Z.json);
-ruwe logs: `build/run/smp-single-83a3ef4fa6/`,
-`build/run/smp-2-aee4713a11/`, `build/run/smp-4-f0627f2bd7/`,
-`build/run/smp-2-2dc9c334f7/`, `build/run/m3-single-smp-regression-5fee902eea/`,
-`build/run/smp-4-7e411654a4/`.
-
-**Cross-CPU capability-IPC PASS op commit `cf3e6866` (exit 0):** exacte
-matrixopdracht:
-`PATH="$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH" LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd python3 -B tools/test_smp.py`.
-Alle zeven stages slaagden: M2 met 1/2/4 CPU, M3 met 2 CPU, de M3 1-CPU-
-regressie en M3 met 4 CPU, plus M4 ring-3-IPC met 2 CPU. De M4-evaluator
-bevestigde één succesvol berichtpaar tussen CPU 0 en CPU 1
-(slot 1→2); alle QEMU-runs hadden verwachte raw exit 33. Hostharnas:
-7 tests, exit 0. QEMU meldde `kvmvapic.bin` ontbrekend; dit is niet onderzocht.
-De receipt bevat broncommit, bronfingerprint, toolpaden, relevante runtime-
-omgevingsvariabelen en stage-evidence:
-[`smp-rendezvous-20261103T180507Z.json`](verification/sm-smp/smp-rendezvous-20261103T180507Z.json).
-
-**SMP-matrix PASS op commit `aa5aa64c` (exit 0):** dezelfde exacte PATH-,
-QEMU- en OVMF-opdracht als hierboven. Alle negen stages slaagden: M2 met 1/2/4
-CPU; M3 met 2 CPU, de AP-process-exitproef, de 1-CPU-regressie en M3 met
-4 CPU; M4 ring-3-IPC en KS-14 revoke met 2 CPU. De exitproef ruimde processlot
-0 op CPU 1 op (per-CPU-selecties `[7, 4]`). De IPC-evaluator vond één
-cross-CPU-berichtpaar; de revoke-evaluator zag revoke op CPU 1 en afwijzing
-op CPU 0. Hostharnas: 11 tests, exit 0. Iedere QEMU-stage had verwachte
-raw exit 33; de QEMU-waarschuwing over ontbrekend `kvmvapic.bin` blijft
-ononderzocht. Receipt:
-[`smp-rendezvous-20261103T181747Z.json`](verification/sm-smp/smp-rendezvous-20261103T181747Z.json),
-bronfingerprint `6621d7dcfa4927e0e547e8696395fdf3aaedf79e6b9ef0fb446714924474a137`.
-
-**Herhaalde matrix FAIL — niet deterministisch:** op commit `3cbb7995` met
-dezelfde bronfingerprint `0ccd920458c3f5a495af4057aa1e51109f5a7839303d2730f11938d340b50042`
-slagen de M2/M3-stages, maar de M4-IPC-guest eindigt met raw exit 33 zonder
-cross-CPU-berichtpaar; evaluator en volledige runner eindigen op exit 1.
-De M4-berichten tonen dat slots 0 en 1 deze keer allebei op CPU 1 draaiden.
-Dit maakt de eerdere matrixpass onvoldoende stabiel voor acceptatie. Receipt:
-[`smp-rendezvous-20261103T182805Z.json`](verification/sm-smp/smp-rendezvous-20261103T182805Z.json);
-seriële log `build/run/smp-2-dea4af795b/serial.txt`.
-
-**M4-profielstabilisatie — commit `07d4ab7b`, gerichte native proeven PASS:**
-de opt-in `native-smp-m4`-profielen wijzen nu slot 0 en 2 aan CPU 0 toe en
-slot 1 aan CPU 1. Kernelstart en evaluator eisen exact twee CPU's; de
-evaluator controleert ook iedere eventidentiteit. Dit raakt alleen de
-acceptatieprofielen, niet de algemene scheduler of ABI. Gericht
-`PYTHONPATH=tools python3 -B -m unittest tools/tests/test_smp.py` slaagde
-(11 tests); `$HOME/.cargo/bin/cargo +1.90.0 fmt --manifest-path kernel/Cargo.toml -- --check`
-slaagde. Drie 2-CPU-IPC-runs en drie 2-CPU-revoke-runs slaagden, alle met
-raw QEMU-exit 33 en de verwachte vaste slot/CPU-identiteiten. Het revoke-
-testtranscript is gecorrigeerd toen de eerste hosttest aantoonde dat slot 2
-nog op de oude CPU stond; na die correctie slaagden alle 11 hosttests.
-Compact bewijs en exacte opdrachten:
-[`m4-profile-stability-20261103.json`](verification/sm-smp/m4-profile-stability-20261103.json).
-
-**Volledige SMP-matrix PASS op broncommit `e528da3f` (exit 0):** exact
-`PATH="$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH" LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd python3 -B tools/test_smp.py`.
-Alle negen stages en 11 hosttests slaagden: M2 met 1/2/4 CPU, M3 met 2 CPU,
-procesexit op een AP, de M3 1-CPU-regressie, M3 met 4 CPU, cross-CPU M4-IPC
-en cross-CPU M4-revoke. De M4-profielen tonen telkens beide verwachte
-CPU-grenzen; raw QEMU-exit 33 was voor alle VM-runs verwacht. QEMU meldde
-opnieuw ontbrekend `kvmvapic.bin`; niet onderzocht. Receipt:
-[`smp-rendezvous-20261103T183655Z.json`](verification/sm-smp/smp-rendezvous-20261103T183655Z.json).
-
-**K06 TLB-slothergebruik — drie gerichte native runs PASS:**
-het nieuwe opt-in `native-smp-m3-tlb-reuse`-profiel laat slot 0 op AP1 en
-slot 1 op BSP0 draaien. Bij de eerste slot-0-exit wordt het oude, ontmapte
-datablad tijdelijk vastgehouden; de vervanger krijgt hetzelfde virtuele
-adres met gegarandeerd een ander fysiek blad. De vervanger moet vanaf nul
-tellen en op dezelfde AP afsluiten voordat het blad wordt vrijgegeven. Zo
-test de proef de lokale CR3/TLB-overgang en adreshergebruik zonder een algemeen
-remote-shootdownprotocol te claimen. De profielbuild en 13 hosttests
-slaagden; drie QEMU-runs slaagden met raw exit 33 en dezelfde twee
-AP1-slot-0-exits. Receipt:
-[`tlb-reuse-20261103.json`](verification/sm-smp/tlb-reuse-20261103.json).
-
-**Volledige SMP-matrix PASS met TLB-stage op broncommit `08543df6` (exit 0):**
-exact `PATH="$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH" LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd python3 -B tools/test_smp.py`.
-Alle tien stages en 13 hosttests slaagden: M2 1/2/4 CPU, M3 2 CPU, AP-exit,
-AP-slot/TLB-hergebruik, single-CPU-regressie, M3 4 CPU, M4 cross-CPU IPC en
-revoke. Iedere VM had verwachte raw exit 33. De ontbrekende
-`kvmvapic.bin`-waarschuwing bleef ononderzocht. Receipt:
-[`smp-rendezvous-20261103T185030Z.json`](verification/sm-smp/smp-rendezvous-20261103T185030Z.json).
-
-**M3Guard-contentionproef PASS op bronfingerprint
-`5d9f0256e588e957826c5a5528913117d3097b9fe8c25180be6ec767aede36aa`:**
-opt-in 2-CPU-profiel houdt de guard op de BSP vast, geeft de AP een schedule-
-IPI, eist een waargenomen mislukte AP-acquire vóór bounded release en kiest de
-BSP-taak onder dezelfde guard. Drie QEMU-runs slaagden met raw exit 33 en
-58.034/59.255/60.484 contention-acquires; 15 hosttests, formattering en
-`git diff --check` slaagden. Receipt:
-[`m3-lock-contention-20261103.json`](verification/sm-smp/m3-lock-contention-20261103.json).
-Een eerdere fixturepoging gaf raw exit 35 doordat de BSP-selectie buiten de
-guard viel; de testsequencing is gecorrigeerd. Dit is geen fairness-/
-starvationgrens en geen bewijs van volledige K06.
-
-**Volledige SMP-matrix PASS met contentionstage op broncommit `bf1f3c68`
-(exit 0):** exact dezelfde PATH-, QEMU- en OVMF-opdracht als de tien-
-stagematrix. Alle elf stages en 15 hosttests slaagden: M2 1/2/4 CPU, M3 2
-CPU, AP-exit, lockcontention, TLB-reuse, single-CPU-regressie, M3 4 CPU,
-cross-CPU M4 IPC en revoke. Iedere QEMU-run had verwachte raw exit 33. De
-QEMU-waarschuwing over ontbrekend `kvmvapic.bin` blijft ononderzocht. Receipt:
-[`smp-rendezvous-20261103T190216Z.json`](verification/sm-smp/smp-rendezvous-20261103T190216Z.json);
-bronfingerprint `5d9f0256e588e957826c5a5528913117d3097b9fe8c25180be6ec767aede36aa`.
-
-**M4 cleanupfout gereproduceerd; fail-closed guard gericht getest:**
-de bestaande combinatie `native-smp-m4,test-m4-lifecycle` eindigt op twee CPU's
-met raw exit 35. Tijdelijke, daarna verwijderde serial-instrumentatie liet
-tijdens round-1-setup CPU0 nog eigenaar van processlot 2 zien, terwijl CPU1
-idle was. `m4::poll` ruimt vervolgens alle processen op en roept `State::setup`
-aan; die reset per-CPU owners zonder dat remote user-CPU's eerst quiescent zijn.
-De `M3Guard` serializeert kernelmutaties, maar stopt geen andere CPU in ring 3.
-De diagnose staat in
-[`m4-lifecycle-smp-failure-20261103.json`](verification/sm-smp/m4-lifecycle-smp-failure-20261103.json).
-
-`State::cleanup` weigert nu vóór het vrijgeven van een remote-actief processlot
-met `M1:FAIL:SMP:CLEANUP_REMOTE_ACTIVE`. De gerichte 2-CPU AP-exitproef slaagde
-(raw 33); de lifecyclecombinatie geeft de bedoelde fail-closed marker (raw 35).
-Dit herstelt de multi-round lifecycle niet. De gerichte lifecyclecombinatie
-wordt fail-closed geweigerd; dit is geen acceptatie.
-
-**Niet-geaccepteerde SMP-lifecycleverkenning:** het combineren van de bestaande
-M4 multi-round lifecyclefixture met SMP eindigde op raw QEMU exit 35 bij
-`kernel/src/m2/m3.rs:1849` (`current < state.amount`) na AP-bring-up.
-Log: `build/run/smp-2-593281996e/serial.txt`. Oorzaak is niet bewezen; dit
-lijkt samen te hangen met state-/CPU-lifetime tijdens round-reset, maar er is
-geen root-cause-fix of acceptatieclaim. Dit experimentele profiel is niet in
-de SMP-runner opgenomen.
-
-**Historische gerichte revoke-proef (ook opgenomen in de eerdere matrix op
-`bf1f3c68`):**
-`native-smp-m4-revoke` combineert de bestaande KS-14-fixture met de
-SMP-scheduler en registreert succesvolle revoke-calls en daaropvolgend
-gebruik van revoked handles per CPU/proces-slot. Op worktree-fingerprint
-`09e6be60a3685356fb2e357306502750a430e840afe1320cff5cfd9889840d59` slaagde
-de 2-CPU-QEMU-proef met raw exit 33: slot 0 revokeerde tweemaal op CPU 1;
-slot 2 werd daarna op CPU 0 geweigerd. M3-selecties waren `[41, 39]`.
-Log: `build/run/smp-2-2ae5598874/`. Dit is geen actuele matrixpass op
-`a49cc651`; de nieuwe poging faalde vóór de revoke-stage.
-
-**Laatste volledige matrixpoging op codebasis `a49cc651`:** commando
-`env PATH="$HOME/.cargo/bin:/tmp/nieuw-os-c-toolchain/bin:/tmp/sm-oom-qemu-root/usr/bin:$PATH" LD_LIBRARY_PATH="/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu" OS_OVMF_CODE="/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd" OS_OVMF_VARS="/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd" python3 -B tools/test_smp.py`
-eindigde met exit 1. De eerste negen stages, waaronder 1/2/4 CPU,
-AP-exit, contention, TLB-reuse en 1-CPU-regressie, slaagden met verwachte raw
-exit 33. De tiende stage, gewone `native-smp-m4` op 2 CPU, faalde met raw
-exit 35 na `M4:EXCHANGE:PASS` en `M4:SURVIVOR_PROGRESS:PASS`, gevolgd door
-`M1:FAIL:SMP:CLEANUP_REMOTE_ACTIVE`. Receipt:
-[`smp-rendezvous-20261103T191954Z.json`](verification/sm-smp/smp-rendezvous-20261103T191954Z.json);
-seriallog: `build/run/smp-2-5dcacd2a10/serial.txt`. De eerdere volledige
-matrix op `bf1f3c68` slaagde, maar dat is geen bewijs voor deze guardbron.
-
-**Bewijsgrens en blocker:** de guard voorkomt vrijgave terwijl een andere CPU
-het processlot nog als actief heeft. Ook de gewone M4-afronding roept
-`m4::poll` → `cleanup_all` aan terwijl een andere CPU nog usercode draait.
-Een correcte oplossing vereist een quiescence-/park-handshake vóór bulkcleanup
-en round-reset. De caller staat in `kernel/src/m2/m3/m4.rs`, buiten de huidige
-write-claim; alleen `kernel/src/m2/m3.rs` is vrijgegeven. Geen bypass,
-BSP-only-affiniteit of capability-/process-ABI-wijziging. K06 blijft open; dit
-bewijst geen algemeen remote-shootdownprotocol.
-`DRIVER-DEVICE-EXECUTION-INTERFACE` blijft QUEUED.
-
-**Eerstvolgende actie:** behoud de fail-closed guard en laat de coordinator
-`kernel/src/m2/m3/m4.rs` expliciet aan deze SMP-scope toewijzen. Pas daarna kan
-de quiescence-handshake worden geïntegreerd en de volledige matrix worden
-herhaald.
-
-**Cross-CPU capability-IPC — eerdere lokale proef vóór matrix:**
-`native-smp-m4` combineert het bestaande SMP-M3-profiel met de bestaande M4
-ring-3-uitwisseling; syscall-/capabilitysemantiek blijft ongewijzigd. De BSP
-stuurt de AP's eenmaal onder `M3Guard` aan vóór de eerste user-return, zodat
-de normale M4-uitwisseling niet volledig op BSP-only tijd afrondt. Succesvolle
-send/receive-events registreren CPU en proces-slot; de evaluator vereist de
-bestaande `M4:EXCHANGE:PASS` plus minstens één berichtpaar over twee CPU's.
-Een gerichte 2-CPU-run slaagde op eerdere worktree-vingerafdruk
-`befb5fa409d5c5b50ed6536191045e99274bf3dceb46513ed2887a4cfa039f90`:
-CPU 1 verstuurde slot 1, CPU 0 ontving in slot 2; M4-uitwisseling en M3-
-scheduler slaagden, raw QEMU exit 33. Log:
-`build/run/smp-2-2834565f0e/`. Hostharnas telt nu 7 tests, exit 0; rustfmt en
-`git diff --check` slagen. Die gerichte run ging vooraf aan de laatste
-rapport-/evaluatoraanpassing en is geen eindreceipt voor de huidige bron.
-M4-gebruik onder SMP is alleen via de bestaande globale lock; de safety-
-rationales in de M4-code zijn daarop bijgewerkt.
-
-**Rapportmetadata:** de eerste receipt bevatte de volledige host-PATH, inclusief
-ongerelateerde Windows-paden. De opgeslagen receipt is gesaneerd en de runner
-is aangepast om alleen de benodigde executablepaden en expliciete runtime-
-omgevingsvariabelen te registreren. De volledige matrix is daarna op de nieuwe
-bronvingerafdruk herhaald; de uiteindelijke receipt hierboven bevat alleen de
-benodigde toolpaden en geen host-PATH.
-
-**Eerdere mislukte matrixpoging op bron `9136edc4`:** hostharnas 5 tests en de
-1-CPU M2-run slaagden; de run eindigde op raw QEMU exit 33 in
-`build/run/smp-single-6a06910eb9/`. De 2-CPU M2-build stopte vóór QEMU omdat
-`smp.rs` compile-time naar `m3::start_ap` verwees terwijl `m3` in dit profiel
-uitgeschakeld is. `636aedbb` gate die M3-entry en M3-only helpers; beide
-SMP-profielen bouwen sindsdien. De runner behield bij die buildfout ten
-onrechte `passed: true` van de eerdere 1-CPU-stage; dit is hersteld en de
-mislukte receipt is gecorrigeerd:
-[`smp-rendezvous-20261103T174143Z.json`](verification/sm-smp/smp-rendezvous-20261103T174143Z.json).
-Een eerdere aanroep met `--help` is geen helpmodus, voerde de runner uit en
-stopte door ontbrekende `cargo` op de standaard-PATH; die poging staat apart in
-[`smp-rendezvous-20261103T173931Z.json`](verification/sm-smp/smp-rendezvous-20261103T173931Z.json).
+<!-- /coderabbit-ai-generated:v1 -->
 
 ## Historisch SMP-checkpoint — 3 november 2026
 

@@ -67,13 +67,18 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
                       ) else ())
 
 
-def evaluate(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
-    """Validate ordered guest evidence, distinct logical/APIC identities and exit."""
-    expected_markers(cpus)
+def _smp_evidence(
+    cpus: int, stdout: str, expected_failure: str | None = None
+) -> tuple[list[str], list[tuple[int, int]]]:
+    """Validate bounded common SMP evidence, allowing one expected failure kind."""
     if not isinstance(stdout, str) or len(stdout) > 128 * 1024:
         raise ValueError("invalid or oversized guest transcript")
     lines = stdout.splitlines()
-    if any(marker in line for marker in FAILURES for line in lines):
+    if any(
+        marker in line and line != expected_failure
+        for marker in FAILURES
+        for line in lines
+    ):
         raise ValueError("failure marker present")
     cursor = 0
     for marker in BOOT:
@@ -103,6 +108,13 @@ def evaluate(cpus: int, stdout: str, returncode: int | None, timed_out: bool) ->
     observed = tuple(line for line in lines if line in BOOT or line.startswith("SMP:"))
     if observed != expected:
         raise ValueError(f"evidence sequence mismatch: {observed}")
+    return lines, parsed
+
+
+def evaluate(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
+    """Validate ordered guest evidence, distinct logical/APIC identities and exit."""
+    expected_markers(cpus)
+    _, parsed = _smp_evidence(cpus, stdout)
     if returncode != 33 or timed_out:
         raise ValueError(f"raw QEMU exit {returncode}, timeout {timed_out}")
     return {
@@ -115,12 +127,7 @@ def evaluate(cpus: int, stdout: str, returncode: int | None, timed_out: bool) ->
 
 def evaluate_m3(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
     expected_markers(cpus, "native-smp-m3")
-    if not isinstance(stdout, str) or len(stdout) > 128 * 1024:
-        raise ValueError("invalid or oversized guest transcript")
-    lines = stdout.splitlines()
-    if any(marker in line for marker in FAILURES for line in lines):
-        raise ValueError("failure marker present")
-    lines, parsed, expected_protection = _m3_inventory(cpus, lines)
+    lines, parsed, expected_protection = _m3_inventory(cpus, stdout)
 
     cpu_markers = [line for line in lines if line.startswith("M3:SMP:CPU:")]
     schedule_markers = [line for line in lines if line.startswith("M3:SMP:SCHEDULES:")]
@@ -177,42 +184,8 @@ def evaluate_m3(cpus: int, stdout: str, returncode: int | None, timed_out: bool)
     }
 
 
-def _m3_inventory(cpus: int, lines: list[str], expected_failure: str | None = None):
-    if any(
-        marker in line and line != expected_failure
-        for marker in FAILURES
-        for line in lines
-    ):
-        raise ValueError("unexpected failure marker present")
-    boot_cursor = 0
-    for marker in BOOT:
-        try:
-            boot_cursor = lines.index(marker, boot_cursor) + 1
-        except ValueError as error:
-            raise ValueError(f"missing or out-of-order marker: {marker}") from error
-
-    cpu_lines = [line for line in lines if line.startswith("SMP:CPU:")]
-    cpu_pattern = re.compile(r"SMP:CPU:([0-9]+):APIC:([0-9]+):ONLINE")
-    parsed = []
-    for line in cpu_lines:
-        match = cpu_pattern.fullmatch(line)
-        if match is None:
-            raise ValueError("malformed CPU identity marker")
-        logical_id, apic_id = int(match.group(1)), int(match.group(2))
-        if str(logical_id) != match.group(1) or str(apic_id) != match.group(2):
-            raise ValueError("noncanonical CPU identity marker")
-        parsed.append((logical_id, apic_id))
-    if (len(parsed) != cpus
-            or [index for index, _ in parsed] != list(range(cpus))
-            or len({apic_id for _, apic_id in parsed}) != cpus):
-        raise ValueError("CPU inventory is incomplete or contains duplicate APIC IDs")
-
-    expected_smp = BOOT + ("SMP:AP:ENTRY",) * (cpus - 1) + tuple(cpu_lines) + (
-        f"SMP:CPUS:{cpus}", "SMP:RENDEZVOUS:PASS", "SMP:WORKERS:PASS", "SMP:PASS",
-    )
-    observed_smp = tuple(line for line in lines if line in BOOT or line.startswith("SMP:"))
-    if observed_smp != expected_smp:
-        raise ValueError(f"SMP evidence sequence mismatch: {observed_smp}")
+def _m3_inventory(cpus: int, stdout: str, expected_failure: str | None = None):
+    lines, parsed = _smp_evidence(cpus, stdout, expected_failure)
 
     cpu_number = re.compile(r"M3:SMP:AP:PROTECTION_CPU:([0-9]{20})")
     flag_number = re.compile(r"M3:SMP:AP:CR0_WP_EM_TS:([0-9]{20})")
@@ -283,9 +256,8 @@ def evaluate_m3_unexpected_ud(
     expected_markers(cpus, "native-smp-m3-unexpected-ud")
     if cpus != 2 or not isinstance(stdout, str) or len(stdout) > 128 * 1024:
         raise ValueError("unexpected-UD injection requires a bounded two-CPU transcript")
-    lines = stdout.splitlines()
     failure = "M3:FAIL:UNEXPECTED_USER_EVENT"
-    lines, parsed, protection = _m3_inventory(cpus, lines, expected_failure=failure)
+    lines, parsed, protection = _m3_inventory(cpus, stdout, expected_failure=failure)
     if lines.count(failure) != 1:
         raise ValueError("unexpected user fault did not fail closed exactly once")
     injection = "M3:SMP:FAULT_INJECTION:UNEXPECTED_UD"
