@@ -10,10 +10,12 @@ mod serial;
 mod signed;
 
 use boot_protocol::{
-    smp::{parse_madt, Info as SmpInfo, MAX_MADT_LEN},
+    smp::Info as SmpInfo,
     BootInfo, ABI_MAJOR, ADDRESS_LIMIT, BOOTINFO_SMP_LEN, KERNEL_LEN, KERNEL_START,
     MAGIC, MAP_LIMIT, PAGE_SIZE, SMP_HEADER_SIZE, SMP_INFO_OFFSET, SMP_MINOR, STACK_LEN,
 };
+#[cfg(feature = "smp-handoff")]
+use boot_protocol::smp::{parse_madt, MAX_MADT_LEN};
 use core::{
     arch::{asm, global_asm},
     ffi::c_void,
@@ -68,6 +70,7 @@ fn page_round(n: u64) -> Result<u64> {
 
 /// Present only before finalization. No Drop implementation or global service pointer.
 struct Firmware {
+    #[cfg(feature = "smp-handoff")]
     system_table: *mut efi::SystemTable,
     services: *mut efi::BootServices,
     #[cfg_attr(not(feature = "signed-boot"), allow(dead_code))]
@@ -108,6 +111,7 @@ impl Firmware {
             return Err(b"BOOT_SERVICES_TABLE");
         }
         let fw = Self {
+            #[cfg(feature = "smp-handoff")]
             system_table: table as *const efi::SystemTable as *mut efi::SystemTable,
             services: table.boot_services,
             runtime: table.runtime_services,
@@ -250,6 +254,7 @@ impl Firmware {
         Ok(base)
     }
 
+    #[cfg(feature = "smp-handoff")]
     fn pages_below(&self, pages: usize, kind: efi::MemoryType, limit: u64) -> Result<u64> {
         let length = (pages as u64)
             .checked_mul(PAGE_SIZE)
