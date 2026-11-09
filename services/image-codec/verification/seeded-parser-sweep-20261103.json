@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "branch": "simonvanieperen-studious-spoon",
+  "source_commit": "aaa42848544b56c2f36ea1d07d9fda54d29dfd4f",
+  "scope": "Deterministic bounded property/fuzz preparation for the existing host-testable PNG/JPEG decoder.",
+  "source_sha256": {
+    "services/image-codec/tests/decode.rs": "9937aba1e706a1903748141da97055b70b4cc44ff762fb0a24eb13f58885bc92"
+  },
+  "strategy": {
+    "cases": 7168,
+    "inputs": "2048 deterministic arbitrary byte vectors up to 8192 bytes; 4096 vectors with PNG/JPEG signatures; 1024 deterministic mutations/truncations of existing PNG/JPEG fixtures.",
+    "invariants": [
+      "Inputs are bounded by the decoder's 64 KiB input limit.",
+      "Unknown-format bytes return UnknownFormat.",
+      "Recognized-format inputs return an error or a dimension-bounded image with source and pixel extents consistent.",
+      "Any panic fails the host test."
+    ],
+    "seed": "0x6e6575776f730001"
+  },
+  "checks": [
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-image-fuzz-prep-target $HOME/.cargo/bin/cargo +1.90.0 fmt --manifest-path services/image-codec/Cargo.toml -- --check",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-image-fuzz-prep-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-image-fuzz-prep-target $HOME/.cargo/bin/cargo +1.90.0 test --manifest-path services/image-codec/Cargo.toml --offline --locked",
+      "exit_code": 0,
+      "results": "12 decoder tests, 5 snapshot/OOM tests, and 3 upsample tests passed.",
+      "log": "/tmp/nieuw-os-image-fuzz-prep-test.log",
+      "log_sha256": "7a14e18677644c223b2ea018ad57d3ce0e4c0934eec344ea45d6d9978310a35c"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-image-fuzz-prep-target $HOME/.cargo/bin/cargo +1.90.0 clippy --manifest-path services/image-codec/Cargo.toml --all-targets --offline --locked -- -D warnings",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-image-fuzz-prep-clippy.log",
+      "log_sha256": "957de15644486b89fafebb22fe7e35de53f222f596cb4ff34c938aa426ce3584"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "$HOME/.cargo/bin/cargo fuzz --version",
+      "exit_code": 101,
+      "result": "cargo-fuzz is not installed; no continuous fuzz target or corpus was created."
+    }
+  ],
+  "limitations": [
+    "This deterministic host sweep is fuzz preparation, not continuous coverage-guided fuzzing.",
+    "It does not prove absence of undefined behavior or native process containment.",
+    "The decoder dependency graph is unchanged; no fuzzing dependencies or root-workspace changes were added.",
+    "No parser crash was found in the tested deterministic sequence; this is not evidence that all malformed inputs are safe."
+  ]
+}

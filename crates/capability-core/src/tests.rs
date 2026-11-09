@@ -1482,6 +1482,125 @@ fn source_recreation_preflight_checks_owner_and_terminal_generation() {
 }
 
 #[test]
+fn process_usage_is_read_only_scoped_and_accounts_owned_capability_resources() {
+    run(|e| {
+        setup(e, 2);
+        e.create_endpoint(1).unwrap();
+        e.create_block_device(1, block_scope()).unwrap();
+        e.create_launch(1, 7).unwrap();
+        e.create_process(1, 2).unwrap();
+        e.create_entropy(1).unwrap();
+        e.create_network(1).unwrap();
+        e.create_display(1).unwrap();
+        e.create_input(1).unwrap();
+        let before = e.clone();
+        let usage = e.process_usage(1).unwrap();
+        assert_eq!(
+            usage,
+            ProcessUsage {
+                pid: 1,
+                handles: 8,
+                authority_nodes_issued: 8,
+                endpoints: 1,
+                block_objects: 1,
+                launch_objects: 1,
+                child_process_objects: 1,
+                entropy_objects: 1,
+                network_objects: 1,
+                display_objects: 1,
+                input_objects: 1,
+                available_handle_slots: MAX_SLOTS - 1 - 8,
+                remaining_owned_endpoint_quota: MAX_OWNED_ENDPOINTS - 1,
+                ..ProcessUsage::default()
+            }
+        );
+        assert_eq!(e.process_usage(2).unwrap().handles, 0);
+        assert_eq!(e.process_usage(99), Err(Error::BadHandle));
+        assert_eq!(*e, before);
+    });
+}
+
+#[test]
+fn process_usage_charges_ipc_queue_to_receiver_owner_and_releases_it() {
+    run(|e| {
+        setup(e, 2);
+        let (receiver, sender) = destination(e);
+        e.send(1, sender, &Message::new()).unwrap();
+        let owner_usage = e.process_usage(2).unwrap();
+        let sender_usage = e.process_usage(1).unwrap();
+        assert_eq!(owner_usage.endpoints, 1);
+        assert_eq!(owner_usage.queued_messages, 1);
+        assert_eq!(sender_usage.endpoints, 0);
+        assert_eq!(sender_usage.queued_messages, 0);
+        e.receive(2, receiver).unwrap();
+        assert_eq!(e.process_usage(2).unwrap().queued_messages, 0);
+    });
+}
+
+#[test]
+fn global_stats_report_capacity_and_reclaim_after_queue_exhaustion_and_exit() {
+    run(|e| {
+        setup(e, 2);
+        let unaffected = e.process_usage(2).unwrap();
+        let initial = e.stats();
+        assert_eq!((initial.processes, initial.threads), (2, 2));
+        assert_eq!(initial.available_processes, MAX_PROCESSES - 2);
+        assert_eq!(initial.available_handle_slots, 2 * (MAX_SLOTS - 1));
+        assert_eq!(initial.available_nodes, MAX_NODES);
+        assert_eq!(initial.available_endpoints, MAX_ENDPOINTS);
+        assert_eq!(initial.available_endpoint_queue_slots, 0);
+        assert_eq!(initial.available_block_objects, MAX_BLOCK_DEVICES);
+        assert_eq!(initial.available_launch_objects, MAX_LAUNCH_OBJECTS);
+        assert_eq!(initial.available_process_objects, MAX_PROCESS_OBJECTS);
+        assert_eq!(initial.available_entropy_objects, MAX_ENTROPY_OBJECTS);
+        assert_eq!(initial.available_network_objects, MAX_NETWORK_OBJECTS);
+        assert_eq!(initial.available_display_objects, MAX_DISPLAY_OBJECTS);
+        assert_eq!(initial.available_input_objects, MAX_INPUT_OBJECTS);
+
+        let endpoint = e.create_endpoint(1).unwrap();
+        let opened = e.stats();
+        assert_eq!(opened.endpoints, 1);
+        assert_eq!(opened.available_endpoints, MAX_ENDPOINTS - 1);
+        assert_eq!(opened.available_endpoint_queue_slots, QUEUE_CAPACITY);
+        assert_eq!(
+            opened.available_handle_slots,
+            initial.available_handle_slots - 1
+        );
+
+        for _ in 0..QUEUE_CAPACITY {
+            e.send(1, endpoint, &Message::new()).unwrap();
+        }
+        let full = e.stats();
+        assert_eq!(full.queued_messages, QUEUE_CAPACITY);
+        assert_eq!(full.available_endpoint_queue_slots, 0);
+        assert_eq!(full.available_nodes, MAX_NODES - 1);
+        let before_denied_send = e.clone();
+        assert_eq!(e.send(1, endpoint, &Message::new()), Err(Error::Again));
+        assert_eq!(*e, before_denied_send);
+        assert_eq!(e.process_usage(2).unwrap(), unaffected);
+
+        e.receive(1, endpoint).unwrap();
+        let after_receive = e.stats();
+        assert_eq!(after_receive.queued_messages, QUEUE_CAPACITY - 1);
+        assert_eq!(after_receive.available_endpoint_queue_slots, 1);
+        assert_eq!(e.process_usage(2).unwrap(), unaffected);
+
+        e.exit(1).unwrap();
+        let after_exit = e.stats();
+        assert_eq!((after_exit.processes, after_exit.threads), (1, 1));
+        assert_eq!(after_exit.available_processes, MAX_PROCESSES - 1);
+        assert_eq!(after_exit.handles, 0);
+        assert_eq!(after_exit.nodes, 0);
+        assert_eq!(after_exit.endpoints, 0);
+        assert_eq!(after_exit.queued_messages, 0);
+        assert_eq!(after_exit.available_nodes, MAX_NODES);
+        assert_eq!(after_exit.available_endpoints, MAX_ENDPOINTS);
+        assert_eq!(after_exit.available_endpoint_queue_slots, 0);
+        assert_eq!(e.process_usage(2).unwrap(), unaffected);
+    });
+}
+
+#[test]
 fn endpoint_object_identifies_shared_endpoints_without_granting_anything() {
     run(|e| {
         setup(e, 3);

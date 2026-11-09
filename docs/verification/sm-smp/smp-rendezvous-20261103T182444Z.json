@@ -1,0 +1,374 @@
+{
+  "schema_version": 1,
+  "task": "SYSTEM-MATURITY-SMP AP bring-up, M3 scheduling, process exit, and cross-CPU M4 IPC/revoke",
+  "source_fingerprint_version": 3,
+  "source_sha256": "0ccd920458c3f5a495af4057aa1e51109f5a7839303d2730f11938d340b50042",
+  "source_commit": "a6da117006e8a7370ba141d0971ca3acf6a87a62",
+  "branch": "simonvanieperen-studious-spoon",
+  "invocation": {
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "tools/test_smp.py"
+    ],
+    "environment": {
+      "LD_LIBRARY_PATH": "/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu",
+      "OS_OVMF_CODE": "/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd",
+      "OS_OVMF_VARS": "/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd"
+    },
+    "tool_paths": {
+      "cargo": "/home/simon/.cargo/bin/cargo",
+      "rustc": "/home/simon/.cargo/bin/rustc",
+      "cc": "/tmp/nieuw-os-c-toolchain/bin/cc",
+      "qemu": "/tmp/sm-oom-qemu-root/usr/bin/qemu-system-x86_64"
+    }
+  },
+  "date_europe_amsterdam": "2026-11-03",
+  "status": "completed",
+  "passed": true,
+  "host": {
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/tests",
+      "-p",
+      "test_smp.py"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "...........\n----------------------------------------------------------------------\nRan 11 tests in 0.002s\n\nOK\n"
+  },
+  "stages": [
+    {
+      "profile": "single-m2",
+      "kernel_feature": "milestone-m2",
+      "cpu_count": 1,
+      "runner": "m2",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 1.8126735420009936,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-single-adc6f13241",
+      "evidence": null,
+      "error": null
+    },
+    {
+      "profile": "two-m2",
+      "kernel_feature": "native-smp",
+      "cpu_count": 2,
+      "runner": "smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 4.99896546400123,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-2-f8057b4275",
+      "evidence": {
+        "cpu_count": 2,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "rendezvous_generations": 64,
+        "workers": 64
+      },
+      "error": null
+    },
+    {
+      "profile": "four-m2",
+      "kernel_feature": "native-smp",
+      "cpu_count": 4,
+      "runner": "smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 28.358076363998407,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-4-32e7e39513",
+      "evidence": {
+        "cpu_count": 4,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "rendezvous_generations": 64,
+        "workers": 64
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-two",
+      "kernel_feature": "native-smp-m3",
+      "cpu_count": 2,
+      "runner": "m3-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 5.681206770001154,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-2-88652e11d2",
+      "evidence": {
+        "cpu_count": 2,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "per_cpu_process_selections": [
+          89,
+          86
+        ]
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-exit-two",
+      "kernel_feature": "native-smp-m3-exit",
+      "cpu_count": 2,
+      "runner": "m3-exit-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 5.023376656001346,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-2-f294f1cbee",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            7,
+            4
+          ]
+        },
+        "process_cleanup_event": {
+          "slot": 0,
+          "cpu": 1
+        }
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-single-regression",
+      "kernel_feature": "milestone-m3",
+      "cpu_count": 1,
+      "runner": "m3",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 3.4198593520013674,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/m3-single-smp-regression-103a525719",
+      "evidence": null,
+      "error": null
+    },
+    {
+      "profile": "m3-four",
+      "kernel_feature": "native-smp-m3",
+      "cpu_count": 4,
+      "runner": "m3-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 29.24294642300083,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-4-cb87a3f81d",
+      "evidence": {
+        "cpu_count": 4,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "per_cpu_process_selections": [
+          76,
+          77,
+          73,
+          75
+        ]
+      },
+      "error": null
+    },
+    {
+      "profile": "m4-two",
+      "kernel_feature": "native-smp-m4",
+      "cpu_count": 2,
+      "runner": "m4-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 4.985569018997921,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-2-ff5480edad",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            33,
+            24
+          ]
+        },
+        "ipc_events": [
+          {
+            "operation": "send",
+            "slot": 0,
+            "cpu": 1
+          },
+          {
+            "operation": "recv",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "send",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "recv",
+            "slot": 2,
+            "cpu": 0
+          }
+        ],
+        "cross_cpu_message_pairs": [
+          {
+            "sender_slot": 1,
+            "receiver_slot": 2,
+            "sender_cpu": 1,
+            "receiver_cpu": 0
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "profile": "m4-revoke-two",
+      "kernel_feature": "native-smp-m4-revoke",
+      "cpu_count": 2,
+      "runner": "m4-revoke-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 5.003752213000553,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-2-9cc54e3498",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            38,
+            43
+          ]
+        },
+        "events": [
+          {
+            "operation": "send",
+            "slot": 0,
+            "cpu": 0
+          },
+          {
+            "operation": "revoke",
+            "slot": 0,
+            "cpu": 1
+          },
+          {
+            "operation": "send",
+            "slot": 0,
+            "cpu": 0
+          },
+          {
+            "operation": "recv",
+            "slot": 1,
+            "cpu": 0
+          },
+          {
+            "operation": "send",
+            "slot": 1,
+            "cpu": 0
+          },
+          {
+            "operation": "recv",
+            "slot": 2,
+            "cpu": 1
+          },
+          {
+            "operation": "revoke",
+            "slot": 0,
+            "cpu": 1
+          },
+          {
+            "operation": "revoked",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "revoked",
+            "slot": 2,
+            "cpu": 0
+          }
+        ],
+        "cross_cpu_revocation": {
+          "revoker_cpu": 1,
+          "receiver_slot": 2,
+          "receiver_cpu": 0
+        }
+      },
+      "error": null
+    }
+  ],
+  "acceptance_boundary": "AP startup, bounded rendezvous, per-CPU M3 process scheduling, and successful process-exit cleanup on an AP plus cross-CPU M4 ring-3 IPC and revoked-capability rejection; not full K06 TLB or race acceptance."
+}

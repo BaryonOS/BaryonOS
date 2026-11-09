@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "task": "SYSTEM-MATURITY-SMP AP bring-up and rendezvous checkpoint",
+  "source_fingerprint_version": 3,
+  "source_sha256": "38f53d73a702e71caecd9eaf05310e19aca5426dfe2550931249bb82929647ca",
+  "source_commit": "cec73173b8a07f3f59cae71ca33021ce3f5e6549",
+  "branch": "simonvanieperen-studious-spoon",
+  "date_europe_amsterdam": "2026-11-03",
+  "status": "completed",
+  "passed": true,
+  "host": {
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/tests",
+      "-p",
+      "test_smp.py"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.000s\n\nOK\n"
+  },
+  "stages": [
+    {
+      "profile": "single",
+      "kernel_feature": "milestone-m2",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 3.099480687000323,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-single-a5a2ca6dae",
+      "evidence": null,
+      "error": null
+    },
+    {
+      "profile": "two",
+      "kernel_feature": "native-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 5.328718135999225,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-2-a06df0411e",
+      "evidence": {
+        "cpu_count": 2,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "rendezvous_generations": 64,
+        "workers": 64
+      },
+      "error": null
+    },
+    {
+      "profile": "four",
+      "kernel_feature": "native-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 29.79130331399938,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-4-e8172e943b",
+      "evidence": {
+        "cpu_count": 4,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "rendezvous_generations": 64,
+        "workers": 64
+      },
+      "error": null
+    }
+  ],
+  "acceptance_boundary": "AP startup and bounded all-CPU atomic rendezvous/worker smoke only; not full K06 scheduling, IPC, revoke, exit, cross-CPU TLB, or race acceptance."
+}

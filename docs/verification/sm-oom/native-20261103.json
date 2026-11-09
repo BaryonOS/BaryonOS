@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "task": "SM-OOM-1",
+  "status": "partial-native-gate-failed-harness-predicate-fixed",
+  "source_commit": "f3c371151cf3fabe9ca6068df2b088165873b247",
+  "branch": "simonvanieperen-studious-spoon",
+  "machine_profile": "pc-q35-8.2",
+  "qemu": {
+    "version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)",
+    "sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+    "ovmf_code_sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "ovmf_vars_template_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "provisioning": "Official Ubuntu packages extracted under /tmp; no system package installation."
+  },
+  "command": "PATH=\"$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH\" LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_memory_system.py",
+  "exit": 1,
+  "host": {
+    "command": "python3 -B -m unittest discover -s tools -p 'test_memory.py'",
+    "exit": 0,
+    "result": "9 passed"
+  },
+  "completed_profiles": [
+    {
+      "case": "normal",
+      "passed": true,
+      "report_sha256": "05671323504acc108dcf24d96529cb7df2879d7567cacaf8a19f5540ef2e89d2",
+      "kernel_sha256": "d73c684cc3647c43af322c62d9692b65f3a2396b1e32ab807ef20cce5401be19"
+    },
+    {
+      "case": "nx",
+      "passed": true,
+      "report_sha256": "f1bb0a2a4aa1ebdcd03bcc57319d243452f5b9bbebe90bc1d52202a153d00fa3",
+      "kernel_sha256": "2047cb36798ecaf811d1881c7f58d7fe642aada7e3335d1ce1729b3c8af64e4b"
+    },
+    {
+      "case": "guard",
+      "passed": true,
+      "report_sha256": "4b3ff5371ebc46d89eb20de18c00bb6cbccc81e488c185c5f305180e56557e44",
+      "kernel_sha256": "856df70e85a3f864e5cf4d860a054bd8959d11a03d9ca51e49988c0f1d65bfb9"
+    },
+    {
+      "case": "peer",
+      "passed": true,
+      "report_sha256": "83441e2e9280569f34b17c8d48a9e4cc0208955a47aa7af077f9b5a46ba015c0",
+      "kernel_sha256": "0173c0cc01e177eec134eff10feab5935c73c26335eb4e08ceba6aad0e15d4a8"
+    }
+  ],
+  "oom_guest": {
+    "qemu_raw_exit": 33,
+    "expected_exit": 33,
+    "required_markers_passed": true,
+    "counters": {
+      "pressure_normal": 1,
+      "pressure_elevated": 1,
+      "pressure_critical": 1,
+      "reclaim_opportunities": 1,
+      "oom_failures": 16,
+      "reclaimed_processes": 15,
+      "reclaimed_frames": 15205,
+      "pressure_recovered": 1,
+      "oom_recoveries": 1,
+      "retry_zero_bytes": 4096,
+      "frames_recovered": 1,
+      "live_processes": 0
+    },
+    "raw_serial_path": "build/oom/run/native-memory-oom-7f49efd9fb/serial.txt",
+    "raw_serial_sha256": "da2c9748821618b6f683d19b833c2e4570c1b2bfe55107a660fcd6fc748734c3",
+    "validator_error": "Wrong memory lifecycle/refusal/cleanup counters",
+    "cause": "The parser incorrectly required RECLAIMED_FRAMES to equal one in OOM cases, while the real guest correctly reported 15,205. A later OOM-specific check already requires a positive count."
+  },
+  "gate_report": {
+    "path": "build/memory-gate.json",
+    "sha256": "c99d23ad1c60f8958c99122b44cdd9823d690eba0c23adf564fdabf7c4852e21",
+    "stdout_log": "/tmp/sm-oom-native-gate-f3c3711.log",
+    "stdout_log_sha256": "5c1363b4fc012d9761c97dee2f583d044e215b25f11a234d9a77dc9021e71b51"
+  },
+  "correction": {
+    "commit": "2df24968e450c52d456e89233e961b74ed40b3dd",
+    "files": [
+      "tools/run_memory.py",
+      "tools/test_memory.py"
+    ],
+    "change": "Accept any positive reclaimed-frame count in OOM while retaining zero-only checks for non-OOM profiles; add a 15,205-frame regression fixture.",
+    "host_command": "python3 -B -m unittest discover -s tools -p 'test_memory.py'",
+    "host_exit": 0,
+    "host_result": "9 passed",
+    "host_log": "/tmp/sm-oom-harness-2df24968.log",
+    "host_log_sha256": "b78415a24a6750785ca049e8bb0d9aa0bf78957f41f407b868abe461cec21cf6"
+  },
+  "next": "Rerun the complete five-profile gate and K05 cleanup regression on the corrected pushed source."
+}

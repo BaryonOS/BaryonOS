@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "task": "SYSTEM-MATURITY-SMP AP bring-up checkpoint",
+  "source_fingerprint_version": 3,
+  "source_sha256": "c4d822b529b95c01f8ccc5eaf8446d87f8e95cc25582643f5590c9b8f3f6f744",
+  "source_commit": "63f1da11c6dd510e6ad692fdd20fb454e8fe156c",
+  "branch": "simonvanieperen-studious-spoon",
+  "date_europe_amsterdam": "2026-11-03",
+  "status": "completed",
+  "passed": true,
+  "host": {
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/tests",
+      "-p",
+      "test_smp.py"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.001s\n\nOK\n"
+  },
+  "stages": [
+    {
+      "profile": "single",
+      "kernel_feature": "milestone-m2",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 2.267620516002353,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-single-a7b10e5d44",
+      "evidence": null,
+      "error": null
+    },
+    {
+      "profile": "two",
+      "kernel_feature": "native-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 5.411336922999908,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-2-10db6dd368",
+      "evidence": {
+        "cpu_count": 2,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "workers": 64
+      },
+      "error": null
+    },
+    {
+      "profile": "four",
+      "kernel_feature": "native-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 29.943907319000573,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-4-601385ea8e",
+      "evidence": {
+        "cpu_count": 4,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "workers": 64
+      },
+      "error": null
+    }
+  ],
+  "acceptance_boundary": "AP startup and bounded atomic worker smoke only; not full K06 scheduling, IPC, revoke, exit, cross-CPU TLB, or concurrency acceptance."
+}

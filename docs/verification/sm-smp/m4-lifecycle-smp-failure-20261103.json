@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "task": "SYSTEM-MATURITY-SMP: M4 lifecycle cleanup under SMP",
+  "based_on_commit": "0c143a83a1f6dc558d828ccd41fcff14ddb83d0a",
+  "working_tree_source_sha256": "2e33b7b02d4398ad605be9de2441661218d208f36de4e9e3f04f62af37c41290",
+  "branch": "simonvanieperen-studious-spoon",
+  "date_europe_amsterdam": "2026-11-03",
+  "status": "reproduced-fail-closed",
+  "passed": false,
+  "positive_regression": {
+    "profile": "native-smp-m3-exit",
+    "cpu_count": 2,
+    "raw_qemu_exit": 33,
+    "expected_exit": 33,
+    "run_directory": "build/run/smp-2-de220b1d95",
+    "result": "AP process cleanup completed; no remotely active slot was freed."
+  },
+  "lifecycle_reproduction": {
+    "kernel_features": [
+      "native-smp-m4",
+      "test-m4-lifecycle"
+    ],
+    "cpu_count": 2,
+    "raw_qemu_exit": 35,
+    "expected_observation": "M1:FAIL:SMP:CLEANUP_REMOTE_ACTIVE",
+    "run_directory": "build/run/m4-lifecycle-guarded-7dfceee4db",
+    "serial_log": "build/run/m4-lifecycle-guarded-7dfceee4db/serial.txt",
+    "interpretation": "The existing multi-round fixture requests bulk cleanup while another CPU still owns a running process slot. The new guard refuses cleanup before releasing that remote-active slot. This is safe rejection evidence, not lifecycle acceptance."
+  },
+  "temporary_diagnostic": {
+    "instrumentation_source_sha256": "05b514004f4dd3e7702cc371d7a2a8efce758638f3d346875439ed3b0268333e",
+    "removed_before_checkpoint": true,
+    "run_directory": "build/run/m4-lifecycle-debug-a23c382f3c",
+    "serial_log": "build/run/m4-lifecycle-debug-a23c382f3c/serial.txt",
+    "round_one_setup_cpu_owner_values": [
+      4294967298,
+      4311744528
+    ],
+    "encoding": "round << 32 | cpu_index << 24 | current_process_slot",
+    "decoded": [
+      "round 1: CPU 0 still owns process slot 2",
+      "round 1: CPU 1 has no current process"
+    ]
+  },
+  "host": {
+    "command": "PYTHONPATH=tools python3 -B -m unittest discover -s tools/tests -p test_smp.py",
+    "exit": 0,
+    "tests": 15
+  },
+  "format": {
+    "command": "$HOME/.cargo/bin/cargo +1.90.0 fmt --manifest-path kernel/Cargo.toml -- --check",
+    "exit": 0
+  },
+  "remaining": "The cleanup guard prevents remote-active process teardown, but successful multi-round reset needs a CPU quiescence handshake before M4 bulk cleanup. The M3 lock alone does not stop CPUs executing ring 3. No full SMP matrix has yet been run on this cleanup-guard source."
+}
