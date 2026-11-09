@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-09",
-    "source_commit": "9922810a18f2272f534e1539e2d980d3d8922bb3",
+    "source_commit": "a9b6d3c5ed2938b3740f9874a579f47f6d348ac5",
     "assessment_basis": "working_tree",
-    "branch": "docs/wetenschappelijke-herkomst-20261109",
-    "task": "CodeRabbit-redactiereview opvolgen: herkomst van de desktoptoewijzing expliciet behouden",
+    "branch": "coderabbit/issue-278-private-vulnerability-reporting",
+    "task": "Issue #278: bestaand privémeldkanaal verifiëren en beveiligingsbeleid actualiseren",
     "previous_score": 41,
-    "summary": "41/100 blijft 41/100. De oorspronkelijke herkomst van de desktoptoewijzing is in onpersoonlijke formulering expliciet behouden; de projecteigenaar is de bron van de aanwijzing. Een Markdown-tabel krijgt de ontbrekende lege regel. De onpersoonlijke wetenschappelijke schrijfafspraak, technische inhoud, bevoegdheden en broncitaten blijven behouden. De CodeQL-wijziging uit main is ongewijzigd. Geen nieuwe OS-functionaliteit, criteria, gewichten of acceptatie."
+    "summary": "41/100 blijft 41/100. GitHub Private Vulnerability Reporting is al ingeschakeld en publiek vindbaar. SECURITY.md verwijst naar de werkelijke privémeldroute, beschrijft meldinhoud en belooft geen ondersteunde releases of responstermijn. Geen OS-functionaliteit, criteria, gewichten of nieuwe native acceptatie."
   },
   "tracks": [
     {
