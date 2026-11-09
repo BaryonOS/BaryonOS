@@ -113,10 +113,10 @@ alleen een nette desktop haalt die eindgrens niet.
 | **Totaal** | **100** | **41** |
 
 **Herbeoordeeld:** 2026-11-09 · **Rubric:** v1 ·
-**Bron:** [`1d5bc01e`](https://github.com/simonvanieperen/nieuw-os/commit/1d5bc01e632fd5bab429f3befc9e9546c9f7661c) ·
-**Ontwikkelbranch:** `docs/wetenschappelijke-schrijfstijl-20261109`.
-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Projectdocumentatie corrigeren naar onpersoonlijke wetenschappelijke schrijfstijl.
-41/100 blijft 41/100. De ik-/wij-vorm en persoonlijke auteursvertelling zijn in de eigen documentatie vervangen door onpersoonlijke, wetenschappelijke formuleringen. De eerdere schrijfafspraak uit PR #263 is vervallen. Besluiten, bevoegdheden, technische contracten, criteria, gewichten en bewijsstatus blijven behouden; oorspronkelijke citaten, vaste bewijsarchieven en technische identifiers zijn ongewijzigd. De naamverklaring van Baryon OS blijft behouden. Geen nieuwe OS-functionaliteit of productacceptatie.
+**Bron:** [`a9b6d3c5`](https://github.com/simonvanieperen/nieuw-os/commit/a9b6d3c5ed2938b3740f9874a579f47f6d348ac5) ·
+**Ontwikkelbranch:** `coderabbit/issue-278-private-vulnerability-reporting`.
+Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** Issue #278: bestaand privémeldkanaal verifiëren en beveiligingsbeleid actualiseren.
+41/100 blijft 41/100. GitHub Private Vulnerability Reporting is al ingeschakeld en publiek vindbaar. SECURITY.md verwijst naar de werkelijke privémeldroute, beschrijft meldinhoud en belooft geen ondersteunde releases of responstermijn. Geen OS-functionaliteit, criteria, gewichten of nieuwe native acceptatie.
 
 De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
 productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,

@@ -70,8 +70,8 @@ class WorkflowContractTests(unittest.TestCase):
             with self.subTest(path=path, job=job_id):
                 self.assertEqual(job.get("runs-on"), "ubuntu-24.04")
 
-    def test_public_prs_keep_read_only_tokens(self):
-        """Untrusted PR code must not run under a privileged target event/token."""
+    def test_public_prs_keep_minimal_token_permissions(self):
+        """Allow security-result uploads only in the CodeQL analysis job."""
         for path, workflow in self.workflows.items():
             with self.subTest(path=path):
                 self.assertNotIn("pull_request_target", workflow["on"])
@@ -79,11 +79,25 @@ class WorkflowContractTests(unittest.TestCase):
                 self.assertIsInstance(permissions, dict)
                 self.assertEqual(permissions.get("contents"), "read")
                 self.assertTrue(set(permissions.values()) <= {"read", "none"})
+
         for path, job_id, job in self.jobs():
             with self.subTest(path=path, job=job_id):
                 permissions = job.get("permissions", {})
                 self.assertIsInstance(permissions, dict)
-                self.assertTrue(set(permissions.values()) <= {"read", "none"})
+
+                if (path, job_id) == (".github/workflows/codeql.yml", "analyze"):
+                    self.assertEqual(
+                        permissions,
+                        {
+                            "actions": "read",
+                            "contents": "read",
+                            "security-events": "write",
+                        },
+                    )
+                else:
+                    self.assertTrue(
+                        set(permissions.values()) <= {"read", "none"}
+                    )
 
     def test_external_actions_are_pinned_to_full_commits(self):
         """Moving tags cannot silently change executable Actions code."""

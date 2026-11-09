@@ -1,6 +1,88 @@
 # Actuele projectstatus
 
-## NEXT AGENT HANDOFF — Wetenschappelijke schrijfstijl — 9 november 2026
+## NEXT AGENT HANDOFF — Privékwetsbaarheidsmeldingen — 2026-11-09
+
+**Bron:** main `a9b6d3c5ed2938b3740f9874a579f47f6d348ac5`, branch
+`coderabbit/issue-278-private-vulnerability-reporting`, issue #278.
+GitHub Private Vulnerability Reporting was al ingeschakeld. Het beveiligingsbeleid
+verwijst nu naar de echte meldroute, beschrijft de gewenste meldinhoud en
+belooft geen ondersteunde releases of responstermijn. Geen instellingen gewijzigd.
+
+**Bewijs en grens:** [controleverslag](verification/private-vulnerability-reporting-278.md).
+De API meldt `enabled: true`; de openbare Security-pagina bevat de meldknop.
+Diff- en voortgangscontrole slagen. Er is geen proefmelding ingediend en er
+zijn geen Rust-, QEMU- of hardwaretests uitgevoerd voor deze documentatie.
+**41 → 41/100**; geen nieuwe productacceptatie.
+
+**Hervatten:** beoordeel de concept-PR; controleer bij een gewijzigde
+repositoryconfiguratie opnieuw de API en de publieke meldknop.
+
+## Vorige overdracht — B03 sleutelbestandgrenzen — 9 november 2026
+
+**Bron:** main `8331b69b`, branch `coderabbit/issue-41-key-file-boundaries`.
+Issue #41 krijgt een beperkte hosttoolcorrectie: sleutelbestanden worden
+exclusief aangemaakt; private seeds krijgen op Unix direct modus `0600`.
+Bestaande bestanden en symlinks worden niet overschreven. Bovenliggende
+mappen moeten vertrouwd blijven.
+
+**Bewijs:** twee nieuwe regressietests faalden vóór de correctie. Daarna
+slagen 18 Rust-hosttests, 14 Python-harnesstests, Clippy en de
+voortgangscontrole. Zie [controleverslag](verification/b03-key-file-boundaries.md).
+QEMU en productie-sleutelrotatie zijn niet uitgevoerd; productieankers,
+releasebeleid en volledige acceptatie van #41 blijven open. **41 → 41/100**,
+zonder nieuwe criteriumacceptatie. Er zijn geen productiekeys aangemaakt.
+
+**Hervatten:** beoordeel de concept-PR en CI; productiebeleid vereist een
+aparte concrete releaseopdracht. Herhaal lokaal de commando's in het verslag.
+
+## Vorige overdracht — Herkomst na redactiereview — 9 november 2026
+
+**Bron:** main `9922810a18f2272f534e1539e2d980d3d8922bb3`, branch
+`docs/wetenschappelijke-herkomst-20261109`. De wetenschappelijke redactie uit
+PR #265 en de CodeQL-wijziging uit PR #266 zijn behouden.
+
+**Review en correctie:** CodeRabbit heeft dezelfde redactiedelta in PR #267
+beoordeeld nadat de eerste review door de merge was afgebroken. Eén minor
+bevinding betreft de herkomst van de desktoptoewijzing. De oorspronkelijke
+bron `4c7147da` noemt de projecteigenaar als beslisser; die rol staat nu
+expliciet in de onpersoonlijke formulering. Er wordt geen beslissende
+AI-sessie verzonnen. Een ontbrekende lege regel vóór een Markdown-tabel is hersteld.
+
+**Controle en grens:** voortgangscontrole, diffcontrole en gerichte
+inhoudsvergelijking slagen (exitstatus 0). De afzonderlijke AI-bronbeoordeling
+bevestigt de herkomst. Geen lokale Rust-, QEMU- of fysieke-hardwaretests voor
+deze redactie. **41 → 41/100**; criteria, gewichten en bewijsstatus gelijk.
+[Controleverslag](verification/wetenschappelijke-herkomst-20261109.json).
+
+**Hervatten:** beoordeel GitHub-CI en de review op de nieuwe correctiehead;
+CodeRabbit-resultaten op `bb3c1f6` betreffen de voorafgaande redactieversie.
+Eerste lokale controle: `python3 tools/progress.py --check`.
+
+## Historisch checkpoint — CodeQL-workflowcontract — 9 november 2026
+
+**Bron en scope:** PR #266, branch `simonvanieperen-patch-3`, basis
+`3402b30c3d67e769eea28abc07e1aaceeb3e2525`. De bestaande methode
+`test_public_prs_keep_read_only_tokens` is vervangen door
+`test_public_prs_keep_minimal_token_permissions`. Alleen de combinatie
+`.github/workflows/codeql.yml` en job `analyze` krijgt de exacte mapping
+`actions: read`, `contents: read`, `security-events: write`.
+De al aanwezige CodeQL-workflow uit de PR is ongewijzigd.
+
+**Controle en grens:** de oorspronkelijke suite faalde op deze uploadpermissie.
+Na de wijziging slagen alle negen contracttests op 24 workflows en drie
+composite actions. Eén toegestane en elf ongeldige permissievarianten geven
+het verwachte resultaat. De geschreven diff is afzonderlijk door een tweede
+AI gecontroleerd; dit is geen menselijke audit. `tools/progress.py --write`,
+`--check` en `git diff --check` slagen met exitstatus 0.
+[Versiegebonden controleverslag](verification/codeql-workflow-contract-20261109.json).
+Geen lokale Rust-, QEMU-, CodeQL- of fysieke-hardwareproeven uitgevoerd voor
+deze contracttestwijziging. De ontwikkelmeter blijft **41 → 41/100**.
+
+**Hervatten:** beoordeel de nieuwe GitHub-CI en CodeQL-resultaten op de
+gepubliceerde PR-head. Eerste lokale controle:
+`python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py' -v`.
+
+## Historisch checkpoint — Wetenschappelijke schrijfstijl — 9 november 2026
 
 **Bron en wijziging:** main `1d5bc01e632fd5bab429f3befc9e9546c9f7661c`, branch
 `docs/wetenschappelijke-schrijfstijl-20261109`. De eerste-persoonsredactie
