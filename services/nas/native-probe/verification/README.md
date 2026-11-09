@@ -36,8 +36,9 @@ opaquebytes zijn **geen E2EE-bewijs**.
 
 ## Exacte uitgevoerde commando's
 
-Read-only bestaande binaries van de door Simon verstrekte toolprefix,
-geen install/fetch of gedeelde targetwriter:
+De bestaande binaries uit de voor deze proef verstrekte toolprefix zijn alleen
+gelezen. Er zijn geen tools geïnstalleerd of opgehaald en er is geen
+gedeelde buildmap beschreven:
 
 ```sh
 P=/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-sniffle/.tools/nieuw-os

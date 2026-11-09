@@ -1,5 +1,5 @@
 # Bindend privacycontract: internet, persoonlijke NAS en gedeelde opslag
-Revisie 4, 28 oktober 2026. Deze expliciete gebruikerswijziging vervangt zowel de eerdere beperking tot een eigen NAS binnen het eigen LAN als het absolute verbod op leverancierscloud. De lokale AI-eis blijft gelden. Externe opslagproviders zijn uitsluitend optioneel en mogen als onbetrouwbare opslaglaag voor client-side versleutelde opaque objecten worden gebruikt; zij worden geen sleutelhouder, OS-vertrouwensanker of stille fallback.
+Revisie 4, 28 oktober 2026. Dit expliciete projectbesluit vervangt zowel de eerdere beperking tot een eigen NAS binnen het eigen LAN als het absolute verbod op leverancierscloud. De lokale AI-eis blijft gelden. Externe opslagproviders zijn uitsluitend optioneel en mogen als onbetrouwbare opslaglaag voor client-side versleutelde opaque objecten worden gebruikt; zij worden geen sleutelhouder, OS-vertrouwensanker of stille fallback.
 
 **Bewijsstatus:** dit zijn bindende product- en integratie-eisen. `services/nas/` bevat N01 met echte hostencryptie/opslagbeheer en de afzonderlijke N02-loopbackproef met werkelijk geauthenticeerde hybride TLS. `ui/prototype/` bevat gesimuleerde productflows. Native netwerkstack, NAS-distributie, pairing tussen echte apparaten, externe provideradapters, sleutelservice en kernelafdwinging blijven open. Scope: [NAS-SHARING-AND-INTERNET.md](implementation/NAS-SHARING-AND-INTERNET.md), [ENCRYPTED-OBJECT-STORAGE.md](implementation/ENCRYPTED-OBJECT-STORAGE.md) en de [verificatie-/PQC-aanvulling ADR-028](implementation/VERIFIABLE-SECURITY-AND-PQC.md). De bestaande NAS-beheerdersrechten blijven gelden; de externe provider krijgt geen vergelijkbare beheer- of decryptiebevoegdheid over lokale data.
 
@@ -179,5 +179,5 @@ Codex, Git-host en de Node-ontwikkelhost zijn bouw-/testmiddelen. Zij worden gee
 - Rescorla, E. (2018). *The Transport Layer Security (TLS) protocol version 1.3* (RFC 8446). IETF. https://www.rfc-editor.org/rfc/rfc8446.html — transport en 0-RTT/replay; geraadpleegd 27 oktober 2026.
 - Rose, S., Borchert, O., Mitchell, S., & Connelly, S. (2020). *Zero trust architecture* (NIST SP 800-207). NIST. https://doi.org/10.6028/NIST.SP.800-207
 
-Quota, rolverdeling en beheerder-verwijderrecht zijn projectbesluiten op basis van de gebruikersopdracht; de bronnen certificeren dit project niet.
+Quota, rolverdeling en beheerder-verwijderrecht zijn projectbesluiten op basis van de vastgelegde opdracht; de bronnen certificeren dit project niet.
 

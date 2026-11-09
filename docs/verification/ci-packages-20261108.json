@@ -1,0 +1,265 @@
+{
+  "schema_version": 1,
+  "verified_date_utc": "2026-11-08",
+  "snapshot": "20261108T000000Z",
+  "snapshot_base_url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/",
+  "target": {
+    "os": "Ubuntu",
+    "version": "24.04",
+    "architecture": "amd64"
+  },
+  "verification": {
+    "method": "Fetched each InRelease over HTTPS; gpgv validated signatures with the installed Ubuntu archive keyring. Compressed Packages index SHA256 and byte count matched signed InRelease metadata. All eight selected package payloads were downloaded and their SHA256/byte count checked against those indices. Firmware payloads were read in memory from the verified .deb archives.",
+    "keyring": "/usr/share/keyrings/ubuntu-archive-keyring.gpg",
+    "validsig_fingerprint": "F6ECB3762474EDA9D21B7022871920D1991BC93C",
+    "inrelease_signatures": [
+      {
+        "suite": "noble",
+        "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/dists/noble/InRelease",
+        "gpgv_exit_code": 0,
+        "validsig_fingerprint": "F6ECB3762474EDA9D21B7022871920D1991BC93C"
+      },
+      {
+        "suite": "noble-updates",
+        "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/dists/noble-updates/InRelease",
+        "gpgv_exit_code": 0,
+        "validsig_fingerprint": "F6ECB3762474EDA9D21B7022871920D1991BC93C"
+      },
+      {
+        "suite": "noble-security",
+        "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/dists/noble-security/InRelease",
+        "gpgv_exit_code": 0,
+        "validsig_fingerprint": "F6ECB3762474EDA9D21B7022871920D1991BC93C"
+      }
+    ],
+    "indices": [
+      {
+        "suite": "noble",
+        "component": "main",
+        "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/dists/noble/main/binary-amd64/Packages.gz",
+        "sha256": "e0d7e4cbb09d2aa7f9e104a1488817417bc9d85f3e5d9a21156a52ec641ae531",
+        "bytes": 1808488,
+        "matches_signed_inrelease": true
+      },
+      {
+        "suite": "noble",
+        "component": "universe",
+        "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/dists/noble/universe/binary-amd64/Packages.gz",
+        "sha256": "ce57756edcce0a5f7993ceb89057e1510148e04e3b85a066d780e4bc00485c8a",
+        "bytes": 19315644,
+        "matches_signed_inrelease": true
+      },
+      {
+        "suite": "noble-updates",
+        "component": "main",
+        "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/dists/noble-updates/main/binary-amd64/Packages.gz",
+        "sha256": "5be105a4c1cde9a3fefc639f9c26ac40a53165690c98dcd2730f6409db2525ec",
+        "bytes": 1761749,
+        "matches_signed_inrelease": true
+      },
+      {
+        "suite": "noble-updates",
+        "component": "universe",
+        "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/dists/noble-updates/universe/binary-amd64/Packages.gz",
+        "sha256": "0eef7ad8de7313147b68c3d4ad5b619837d075be3987d1eebbcc4d7996e40e6f",
+        "bytes": 2176790,
+        "matches_signed_inrelease": true
+      },
+      {
+        "suite": "noble-security",
+        "component": "main",
+        "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/dists/noble-security/main/binary-amd64/Packages.gz",
+        "sha256": "983e3a7f1d9fe62889bde4c5bf9453ad779b54011562231c16b7928aa3d66473",
+        "bytes": 1424712,
+        "matches_signed_inrelease": true
+      },
+      {
+        "suite": "noble-security",
+        "component": "universe",
+        "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/dists/noble-security/universe/binary-amd64/Packages.gz",
+        "sha256": "f383d6426eac248d1b723f41a2f9b525b57f8f80f499e614cdb4456c531b1b87",
+        "bytes": 1556783,
+        "matches_signed_inrelease": true
+      }
+    ]
+  },
+  "packages": [
+    {
+      "name": "qemu-system-x86",
+      "version": "1:8.2.2+ds-0ubuntu1.18",
+      "architecture": "amd64",
+      "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/pool/main/q/qemu/qemu-system-x86_8.2.2+ds-0ubuntu1.18_amd64.deb",
+      "sha256": "14602e262627adac030329d2cecfee5f6c0938b34566ff2ea2d4c9a9eb02430d",
+      "bytes": 11222476,
+      "index_suite": "noble-updates",
+      "index_component": "main",
+      "package_payload_sha256_verified": true,
+      "optional_swtpm": false
+    },
+    {
+      "name": "qemu-system-common",
+      "version": "1:8.2.2+ds-0ubuntu1.18",
+      "architecture": "amd64",
+      "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/pool/main/q/qemu/qemu-system-common_8.2.2+ds-0ubuntu1.18_amd64.deb",
+      "sha256": "0a0b744f31e87d72dd0465436b8dfbb1ef9f574ecd0d5a2e9dd8c5cb7d0fef1f",
+      "bytes": 1255316,
+      "index_suite": "noble-updates",
+      "index_component": "main",
+      "package_payload_sha256_verified": true,
+      "optional_swtpm": false
+    },
+    {
+      "name": "qemu-system-data",
+      "version": "1:8.2.2+ds-0ubuntu1.18",
+      "architecture": "all",
+      "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/pool/main/q/qemu/qemu-system-data_8.2.2+ds-0ubuntu1.18_all.deb",
+      "sha256": "a14b88d864859bd61c8a3274971da4ecb7da6cec15be6c265d0d411f783d5f2e",
+      "bytes": 1796342,
+      "index_suite": "noble-updates",
+      "index_component": "main",
+      "package_payload_sha256_verified": true,
+      "optional_swtpm": false
+    },
+    {
+      "name": "ovmf",
+      "version": "2024.02-2ubuntu0.10",
+      "architecture": "all",
+      "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/pool/main/e/edk2/ovmf_2024.02-2ubuntu0.10_all.deb",
+      "sha256": "78a6a3a4ffa666f1cb25e9069e4ec9270b5ceac7987b6eefc2674bd3f58a1473",
+      "bytes": 5188306,
+      "index_suite": "noble-updates",
+      "index_component": "main",
+      "package_payload_sha256_verified": true,
+      "optional_swtpm": false
+    },
+    {
+      "name": "seabios",
+      "version": "1.16.3-2",
+      "architecture": "all",
+      "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/pool/main/s/seabios/seabios_1.16.3-2_all.deb",
+      "sha256": "cac4e59a66c834d19cae751c22ab3a0391c22f78010fd11aa2e3fe630e6bc0e0",
+      "bytes": 174648,
+      "index_suite": "noble",
+      "index_component": "main",
+      "package_payload_sha256_verified": true,
+      "optional_swtpm": false
+    },
+    {
+      "name": "ipxe-qemu",
+      "version": "1.21.1+git-20220113.fbbdc3926-0ubuntu2",
+      "architecture": "all",
+      "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/pool/main/i/ipxe/ipxe-qemu_1.21.1+git-20220113.fbbdc3926-0ubuntu2_all.deb",
+      "sha256": "1f1612934b6ddaf4dd633760dfe5ef2a79ea2507341fd5efe394ff589a044707",
+      "bytes": 1564600,
+      "index_suite": "noble",
+      "index_component": "main",
+      "package_payload_sha256_verified": true,
+      "optional_swtpm": false
+    },
+    {
+      "name": "swtpm",
+      "version": "0.7.3-0ubuntu5.24.04.1",
+      "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/pool/main/s/swtpm/swtpm_0.7.3-0ubuntu5.24.04.1_amd64.deb",
+      "sha256": "cd1164c8ab70080ca4e93095ee1bdcdc94c8297eed29caf098ca2afd0fbbb540",
+      "bytes": 53144,
+      "package_payload_sha256_verified": true,
+      "payload_executables_libraries": [
+        "./usr/bin/swtpm",
+        "./usr/lib/x86_64-linux-gnu/swtpm/libswtpm_libtpms.so.0.0.0"
+      ],
+      "architecture": "amd64",
+      "index_suite": "noble-updates",
+      "index_component": "main",
+      "optional_swtpm": true
+    },
+    {
+      "name": "libtpms0",
+      "version": "0.9.3-0ubuntu4.24.04.1",
+      "url": "https://snapshot.ubuntu.com/ubuntu/20261108T000000Z/pool/main/libt/libtpms/libtpms0_0.9.3-0ubuntu4.24.04.1_amd64.deb",
+      "sha256": "83bd2f4f57189d6d0b8f019252b95c3034fd41dd00b9f2dddb67321537b4ed55",
+      "bytes": 372570,
+      "package_payload_sha256_verified": true,
+      "payload_executables_libraries": [
+        "./usr/lib/x86_64-linux-gnu/libtpms.so.0.9.3"
+      ],
+      "architecture": "amd64",
+      "index_suite": "noble-updates",
+      "index_component": "main",
+      "optional_swtpm": true
+    }
+  ],
+  "firmware": [
+    {
+      "package": "ovmf",
+      "path": "/usr/share/OVMF/OVMF_CODE_4M.fd",
+      "bytes": 3653632,
+      "sha256": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083"
+    },
+    {
+      "package": "ovmf",
+      "path": "/usr/share/OVMF/OVMF_VARS_4M.fd",
+      "bytes": 540672,
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    {
+      "package": "seabios",
+      "path": "/usr/share/seabios/vgabios-stdvga.bin",
+      "bytes": 39424,
+      "sha256": "4eecd8e752efc02c6c0fe87eb92bf66934cb9ea67b0e1bc41e86f8430c8bf8a0"
+    }
+  ],
+  "optional_tpm": {
+    "pins": [
+      "swtpm=0.7.3-0ubuntu5.24.04.1",
+      "libtpms0=0.9.3-0ubuntu4.24.04.1"
+    ],
+    "swtpm_libs": {
+      "present": false,
+      "checked_suites": [
+        "noble",
+        "noble-updates",
+        "noble-security"
+      ],
+      "checked_components": [
+        "main",
+        "universe"
+      ],
+      "architecture": "amd64",
+      "note": "No package named swtpm-libs exists in the six checked indices. swtpm itself contains /usr/lib/x86_64-linux-gnu/swtpm/libswtpm_libtpms.so.0.0.0 and depends on libtpms0."
+    },
+    "swtpm_tools": {
+      "required_for_existing_socket_harness": false,
+      "available_version": "0.7.3-0ubuntu5.24.04.1",
+      "package_payload_downloaded": false
+    }
+  },
+  "python": {
+    "version": "3.12.12",
+    "architecture": "x64",
+    "platform_version": "24.04",
+    "manifest_url": "https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json",
+    "release_url": "https://github.com/actions/python-versions/releases/tag/3.12.12-18393146713",
+    "download_url": "https://github.com/actions/python-versions/releases/download/3.12.12-18393146713/python-3.12.12-linux-24.04-x64.tar.gz",
+    "availability_verified_in_manifest": true,
+    "package_payload_downloaded": false,
+    "setup_action": {
+      "repository": "actions/setup-python",
+      "version": "v7.1.0",
+      "commit": "6d4fd22b20465ccc0f7354476588e8df7c9ca0e0",
+      "verified_tag_ref_url": "https://api.github.com/repos/actions/setup-python/git/ref/tags/v7.1.0",
+      "action_definition_url": "https://github.com/actions/setup-python/blob/6d4fd22b20465ccc0f7354476588e8df7c9ca0e0/action.yml"
+    }
+  },
+  "limitations": [
+    "No package installation, host test execution, cross-build or QEMU execution was performed by this audit.",
+    "These pins fix selected tools and firmware; preinstalled shared libraries and the GitHub runner image remain independently versioned.",
+    "Canonical states snapshot availability for at least two years in the past; a future pin refresh must be deliberate."
+  ],
+  "references": [
+    "https://snapshot.ubuntu.com/",
+    "https://docs.github.com/en/actions/concepts/runners/github-hosted-runners",
+    "https://packages.ubuntu.com/noble-updates/qemu-system-x86",
+    "https://packages.ubuntu.com/noble-updates/ovmf",
+    "https://packages.ubuntu.com/noble/seabios"
+  ]
+}

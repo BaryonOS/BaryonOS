@@ -22,7 +22,7 @@ beleid; een hier niet genoemde methode is niet automatisch afwezig. Er is geen
 nieuwe vergelijkende gebruikersstudie, beveiligingsaudit of hardwaretest gedaan.
 Apple-guidepagina's gaven rechtstreeks HTTP 429; de guidebevindingen blijven
 beperkt tot opgehaalde officiële zoekindexfragmenten. Referentiebeelden zijn
-geen door ons geteste OS-installaties.
+geen binnen dit onderzoek geteste OS-installaties.
 
 “Onderzocht patroon” beschrijft **bronfeiten**. De overige stappen zijn
 **projectkeuzes en acceptatie-eisen**, geen claim van reeds voltooide code.
@@ -38,8 +38,8 @@ Bronnen: Microsoft, z.d., Windows 11/10,
 [Taskbar](https://support.microsoft.com/en-gb/windows/experience/personalization/customize-the-taskbar-in-windows),
 [Snap](https://support.microsoft.com/en-us/windows/experience/snap-your-windows).
 
-→ **GEBRUIKERSPROBLEEM:** namens wie meld ik aan, welke methode werkt en waar
-vind ik mijn gestarte werk?
+→ **GEBRUIKERSPROBLEEM:** onduidelijkheid over de aanmeldidentiteit, de beschikbare
+aanmeldmethode en de vindplaats van eerder gestart werk.
 → **NIEUW OS NEEMT OVER:** naam vóór credentials, benoemde methodes, vaste
 status-/zoekingang en duidelijke actieve vensters.
 → **BEWUST ANDERS:** lokaal beginnen zonder leverancieraccount; geen

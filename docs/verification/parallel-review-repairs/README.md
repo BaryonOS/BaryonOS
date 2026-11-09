@@ -14,7 +14,7 @@ sysroot: eigen rood/groen bewijs met21tests en echte --strict in ../parallel-i09
 De parentmanifest vanqsim-core en de nieuwejobcodec zijn nu ook input van de
 algemene bronfingerprint; een gerichte regressie bewaakt de eerdere omissie.
 
-Het voorgestelde linkerprobleem is in onze gepinde Rusttoolchain niet
+Het voorgestelde linkerprobleem is in de gepinde Rusttoolchain van het project niet
 reproduceerbaar: de oude SDKbuild slaagt ook met rust-lld buiten het initiële
 PATH. Dat echte resultaat blijft bewaard; er is geen rode build verzonnen.
 De nieuwe scriptversie gebruikt alsnog de gedeelde gecontroleerde omgeving.

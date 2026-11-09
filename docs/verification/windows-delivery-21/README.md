@@ -1,7 +1,7 @@
 # Rol 21: Windows/QEMU-overdracht en routebewijs
 
 30 oktober 2026, Europe/Amsterdam. Taak
-`TASK-WINDOWS-DELIVERY-TAKEOVER`; afnemers 4/20/Simon.
+`TASK-WINDOWS-DELIVERY-TAKEOVER`; bestemd voor sessies 4 en 20 en voor de projecteigenaar.
 Basis `ca45a7dabe6a040921de03bdc2fad3e5045a75ba`, branch
 `simonvanieperen-symmetrical-lamp`. Dit is routebewijs met synthetische
 bestanden, geen OS-gaststart, bundelaflevering of releaseacceptatie.

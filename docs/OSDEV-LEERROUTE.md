@@ -1,7 +1,7 @@
 # OSDev als leerroute
-Simon leverde https://wiki.osdev.org/Expanded_Main_Page aan tijdens het onderzoek. De hoofdpagina, Getting Started en Beginner Mistakes zijn geopend op 26 oktober 2026.
+De [Expanded Main Page van OSDev](https://wiki.osdev.org/Expanded_Main_Page) is als bron voor het onderzoek aangeleverd. De hoofdpagina, Getting Started en Beginner Mistakes zijn geopend op 26 oktober 2026.
 
-Gebruik OSDev als onderwerpindex en uitlegbron. De wiki noemt zelf dat zij geen volledige kopieerbare handleiding is. De eerste index verwijst onder meer naar vereiste voorkennis, booting, UEFI/BIOS, compilers, interrupts en debugging. Deze pagina's geven een route naar vragen; ze leveren geen beveiligingsbewijs voor onze code.
+Gebruik OSDev als onderwerpindex en uitlegbron. De wiki noemt zelf dat zij geen volledige kopieerbare handleiding is. De eerste index verwijst onder meer naar vereiste voorkennis, booting, UEFI/BIOS, compilers, interrupts en debugging. Deze pagina's geven een route naar vragen; ze leveren geen beveiligingsbewijs voor de projectcode.
 
 ## Voorgestelde koppeling aan dit project
 | Moment | Zoeken via de OSDev-index | Wat Codex vervolgens moet opleveren |
@@ -18,9 +18,9 @@ Niet alle genoemde subartikelen zijn in dit vooronderzoek inhoudelijk beoordeeld
 1. Lees alleen het OSDev-artikel dat de huidige mijlpaal helpt.
 2. Noteer welke architectuur, bootmethode en programmeertaal het voorbeeld veronderstelt.
 3. Toets details aan primaire documentatie: UEFI, Intel/AMD/Arm/RISC-V, Rust, QEMU en OASIS.
-4. Vertaal principes naar ons eigen ontwerp; verander de target niet stilzwijgend om een tutorial te kunnen kopiëren.
+4. Vertaal principes naar het eigen systeemontwerp; verander de target niet stilzwijgend om een tutorial te kunnen kopiëren.
 5. Controleer herkomst en licentie vóór code wordt overgenomen.
-6. Schrijf de eigen test vóór je een claim uit de tutorial als gerealiseerd behandelt.
+6. Schrijf de eigen test voordat een claim uit de tutorial als gerealiseerd wordt behandeld.
 
 OSDev is aanvullend. De officiële hardware-/protocolspecificatie is leidend bij conflicten. Bestaande tutorials kunnen een andere doelgroep of legacy-bootroute hebben; actualiteit en toepasbaarheid worden per pagina beoordeeld.
 

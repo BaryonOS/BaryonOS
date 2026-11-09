@@ -1,5 +1,10 @@
 # Ontwerpbesluiten
 
+**Projecteigenaar:** Simon van Ieperen.
+Dit document onderscheidt de besluiten en bevoegdheden van de projecteigenaar
+van die van de uitvoerende rollen. Broncitaten behouden hun oorspronkelijke
+tekst en spreker.
+
 ## ADR-074 — Ticketlock, irqsave en lockdep per CPU (K06 stap 5a)
 
 6 november 2026; alleen in `native-smp`. Dit is de eerste stap naar een
@@ -185,7 +190,7 @@ aan de MADT-basis. Alleen die exacte pagina krijgt een UC/NX-mapping, die
 `audit` net als het framebuffervenster afzonderlijk controleert.
 De SIPI-pagina is het eerste vrije ConventionalMemory-frame onder 0xA0000:
 permanent Kernel-eigendom, één keer geschreven vóór de CR3-wissel en nooit in
-onze tabellen gemapt. Zij bevat alleen 16-bitcode en een CR3-veld. De 32/64-bit-
+de eigen paginatabellen gemapt. Zij bevat alleen 16-bitcode en een CR3-veld. De 32/64-bit-
 stap, de trampoline-GDT en AP-stacks van 16 KiB met guardpagina's staan in het
 identity-gemapte kernelimage. W^X verandert dus niet.
 
@@ -252,7 +257,7 @@ productprofiel; K06 blijft open.
 **Uitgevoerd testbewijs:** `docs/verification/k06-smp-bringup/README.md`.
 ## ADR-SESSION-20261102 — herkenbare bediening en expliciete VM-sessiegrens
 
-De huidige gebruikersopdracht kiest herkenbare sessie-, zoek-, status- en
+De huidige projectopdracht vereist herkenbare sessie-, zoek-, status- en
 vensterbediening rond Materiaal. Een eigen productidentiteit verbiedt geen
 bekende conventies. De nieuwe `native-session-route` blijft een openbare,
 geïsoleerde VM-proef: persoonlijke credentials worden niet verzameld zolang
@@ -381,8 +386,8 @@ Details en begrensd vervolg: [PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md).
 <a id="adr-056--herkenbare-sessieroute-met-expliciete-vm-bewijsgrens"></a>
 ## ADR-063 — herkenbare sessieroute met expliciete VM-bewijsgrens
 
-2 november 2026. De gebruikersopdracht vraagt bekende stappen uit macOS,
-Windows en Linux binnen de eigen architectuur. Accountkeuze, credentialinvoer,
+2 november 2026. De sessieroute moet de bekende stappen uit macOS,
+Windows en Linux volgen, binnen de eigen architectuur. Accountkeuze, credentialinvoer,
 verificatie, sessieactivatie en desktop worden afzonderlijke toestanden.
 Een app-lokale UI of een wachtwoordvergelijking in de renderer verleent geen
 kernelrechten. Alleen een toekomstige geauthenticeerde auth-/sessiebroker mag
@@ -410,8 +415,8 @@ en [hardwareonderzoek](implementation/VM-HARDWARE-AND-PERFORMANCE.md).
 
 30 oktober 2026; vastlegging van de operationele besluiten uit PR #75.
 Dit beschrijft de toen geregistreerde rollen en overdrachten, geen bewezen
-identiteit van huidige sessies. Actuele expliciete opdrachten van Simon gaan
-vóór routineafspraken tussen agents. Zijn huidige opdracht om issues en pull
+identiteit van huidige sessies. Actuele expliciete opdrachten van de projecteigenaar
+gaan vóór routineafspraken tussen agents. De huidige opdracht om issues en pull
 requests op te lossen en geschikt werk te squash-mergen geeft het
 integratiemandaat; actuele broncontrole, repositoryregels en relevante gates
 blijven gelden. Dit besluit kondigt geen nieuwe mergepauze of vrijgave af.
@@ -430,7 +435,7 @@ blijven gelden. Dit besluit kondigt geen nieuwe mergepauze of vrijgave af.
   Gevolg: één operationele integrator binnen de overgedragen scope; actuele
   head/base/gates opnieuw controleren bij iedere integratiemutatie en bestaand
   werk inhoudsbehoudend verenigen. Een accountnaam of verstreken tijd bewijst
-  geen sessie-identiteit of overdracht. Herzien bij een nieuw gebruikersmandaat,
+  geen sessie-identiteit of overdracht. Herzien bij een nieuw mandaat van de projecteigenaar,
   een aantoonbare tweede schrijver of een gewijzigde inhoudelijke scope.
   De afzonderlijke incident-/pauzeregistratie in de bron wordt hier bewaard
   als historische status, niet opnieuw uitgevaardigd. [OP1] [OP2]
@@ -460,7 +465,7 @@ blijven gelden. Dit besluit kondigt geen nieuwe mergepauze of vrijgave af.
 
 ## ADR-058 — Herkenbare consumentenbediening op de eigen kernel
 
-**Datum/status:** 30 oktober 2026; gebruikersbesluit van Simon, vastgelegd
+**Datum/status:** 30 oktober 2026; besluit van de projecteigenaar, vastgelegd
 in PR #114. Leidend boven de eerdere eisen dat het hoofdscherm geen
 bestaande desktop mag nabootsen en dat er geen dock of taakbalk komt
 (PRODUCT-SPEC §1 en §5, het verbod op interactioneel nabouwen in
@@ -501,7 +506,7 @@ het bekende pad, nooit een vervanging ervan.
   en [DESKTOP-SHELL.md](implementation/DESKTOP-SHELL.md).
 
 **Herzien** na gebruikersproeven (U06) die aantonen dat een conventie voor de
-doelgroep slechter werkt, of bij een nieuw expliciet besluit van Simon.
+doelgroep slechter werkt, of bij een nieuw expliciet besluit van de projecteigenaar.
 Rollback: dit ADR intrekken en de eerdere teksten weer leidend maken.
 
 # ADR-054 — Gedeeld immutable artifact-storecontract
@@ -602,7 +607,7 @@ De verificatiekern ontvangt bij elke verificatie een expliciete `SourceId` en
 verwachte bron-generatie; de appbundel kiest nooit zelf haar trust anchor.
 Keyrotatie en intrekking zijn compare-and-swap-operaties op die generatie.
 Intrekking blokkeert nieuwe pakketverificaties/updates maar verwijdert of
-blokkeert reeds geïnstalleerde apps niet; Simon koos dat gedrag expliciet.
+blokkeert reeds geïnstalleerde apps niet; dit gedrag is expliciet door de projecteigenaar vastgesteld.
 Verwijdering van apps/data is een afzonderlijke gebruikershandeling.
 
 `SourceRegistry` is momenteel een vaste in-memory kern van acht slots.
@@ -850,7 +855,7 @@ parallelle mutaties, nieuwe I/O-foutmodellen of andere hardware.
 ## ADR-032 — Vaste 100-puntenroadmap met verplichte herbeoordeling
 
 **Datum/status/eigenaar:** 28 oktober 2026; aanvaard en uitgevoerd op expliciete
-gebruikersopdracht. De hoofdagent bezit de gedeelde voortgangsbestanden.
+opdracht van de projecteigenaar. De hoofdagent bezit de gedeelde voortgangsbestanden.
 
 **Besluit:** `docs/progress.json` bevat vaste, binaire acceptatiecriteria met
 gewichten die samen 100 vormen. De generator maakt de README, criteriatabel
@@ -933,9 +938,9 @@ bare-metal targetdocumentatie in het M6c-contract. Dit is een projectbesluit.
 
 ## ADR-027 — Internet en versleutelde persoonlijke NAS-ruimte
 
-**Datum/status:** 27 oktober 2026; aanvaard op expliciete gebruikersopdracht, met geteste hostproef N01 en browsermock. Native integratie staat open. **Eigenaar:** hoofdagent voor contract/integratie; afzonderlijke service- en productbuilders.
+**Datum/status:** 27 oktober 2026; aanvaard op expliciete opdracht van de projecteigenaar, met geteste hostproef N01 en browsermock. Native integratie staat open. **Eigenaar:** hoofdagent voor contract/integratie; afzonderlijke service- en productbuilders.
 
-**Context:** de gebruiker wil internet, een NAS-rol binnen hetzelfde OS en opslagruimte aanbieden aan vrienden/familie. De host moet zijn ruimte kunnen terugnemen zonder toestemming van de gast, terwijl de inhoud voor hem versleuteld blijft. Dit herziet ADR-006 en de eerdere beperking tot eigen NAS/eigen LAN.
+**Context:** internettoegang, een NAS-rol binnen hetzelfde OS en het aanbieden van opslagruimte aan vrienden en familie behoren tot de producteisen. De host moet zijn ruimte kunnen terugnemen zonder toestemming van de gast, terwijl de inhoud voor hem versleuteld blijft. Dit herziet ADR-006 en de eerdere beperking tot eigen NAS/eigen LAN.
 
 **Alternatieven:** alleen eigen LAN handhaven voldoet niet aan de nieuwe opdracht; een leverancierscloud of beheerderssleutel voor gastinhoud schendt de privacygrens; gastconsent als vereiste voor verwijderen ontneemt de hardware-eigenaar zijn beheerrecht.
 
@@ -949,21 +954,21 @@ bare-metal targetdocumentatie in het M6c-contract. Dit is een projectbesluit.
 
 **Bronnen:** Node.js v24.22.1 Crypto (https://nodejs.org/docs/latest-v24.x/api/crypto.html), RFC 8446 (https://www.rfc-editor.org/rfc/rfc8446.html) en NIST SP 800-207 (https://doi.org/10.6028/NIST.SP.800-207), geraadpleegd 27 oktober 2026. Functionele keuze en adminverwijderrecht zijn projectbesluiten. Exact contract: implementation/NAS-SHARING-AND-INTERNET.md en LOCAL-PRIVACY-CONTRACT.md revisie 3.
 
-**Migratie/rollback/herziening:** geen bestaande echte NAS, router, kernel-ABI of M6a-image wordt gewijzigd. Bewaar oudere M1–M6a-resultaten. N01 kan als afzonderlijke featurecommit worden teruggedraaid; geen destructieve reset van gebruikerswerk. Herzie bij bewijs van key-/nonceproblemen, multi-writerintegratie, andere transport-/opslaglaag of een nieuwe gebruikersinstructie. Oude LAN-only teksten zijn op de actieve leesroutes bijgewerkt.
+**Migratie/rollback/herziening:** geen bestaande echte NAS, router, kernel-ABI of M6a-image wordt gewijzigd. Bewaar oudere M1–M6a-resultaten. N01 kan als afzonderlijke featurecommit worden teruggedraaid; geen destructieve reset van gebruikerswerk. Herzie bij bewijs van key-/nonceproblemen, multi-writerintegratie, andere transport-/opslaglaag of een nieuwe instructie van de projecteigenaar. Oude LAN-only teksten zijn op de actieve leesroutes bijgewerkt.
 De oorspronkelijke revisie-5-principes hieronder zijn behouden als projectbesluiten. Uitvoeringsbesluiten vanaf ADR-019 beschrijven de gebouwde richting; actuele M1–M5-testuitkomsten en grenzen staan in PROJECT-STATE.md.
 
 | ID | Besluit | Reden | Herzien als |
 |---|---|---|---|
-| ADR-001 | Eigen kernel; geen bestaande kernel als basis | Expliciete gebruikerswens | Simon bewust de projectscope verandert |
+| ADR-001 | Eigen kernel; geen bestaande kernel als basis | Expliciet besluit van de projecteigenaar | De projectscope bewust door de projecteigenaar wordt gewijzigd |
 | ADR-002 | Rust no_std + minimaal assembly | Kleine expliciete onveilige grens | Target/tooling dit aantoonbaar verhindert |
 | ADR-003 | x86_64 QEMU q35, UEFI, software-emulatie baseline | Controleerbare eerste testomgeving | Praktische toolchainbeperking wordt aangetoond |
 | ADR-004 | Kleine capability-gebaseerde microkernel als richting | Autoriteit expliciet en TCB klein houden | Prototypes aantoonbare problemen met complexiteit/latency tonen |
 | ADR-005 | Standaarden en gecontroleerde bibliotheken toestaan | Zelf crypto/alle tools bouwen vergroot risico en scope | Herkomst/licentie/onderhoud onacceptabel is |
-| ADR-006, herzien door ADR-027 | Lokaal account, geen OS-telemetrie, lokale data of E2EE naar gekoppelde eigen/gedeelde persoonlijke NAS; internet per peer expliciet | Expliciete gebruikersuitbreiding 27 oktober 2026 | Alleen na expliciete gewijzigde gebruikersopdracht |
+| ADR-006, herzien door ADR-027 | Lokaal account, geen OS-telemetrie, lokale data of E2EE naar gekoppelde eigen/gedeelde persoonlijke NAS; internet per peer expliciet | Expliciete uitbreiding van de projectopdracht, 27 oktober 2026 | Alleen na een expliciete opdrachtwijziging door de projecteigenaar |
 | ADR-007 | PQC-voorbereiding vanaf ontwerp; integratie pas met echte use case | Protocol- en sleutelmigratie voorkomen | Relevante standaarden/implementaties wijzigen |
 | ADR-008, herzien | Product-/interactieonderzoek parallel vanaf M0; echte systeemintegratie volgt bewezen kernfuncties | Originaliteit en hoogwaardige UX moeten het systeem mede sturen | Bijstelling op experimenten, geen stille reductie tot standaarddesktop |
 | ADR-009 | Geen kernelbrede claims over formeel bewijs | Eigen code erft geen seL4-bewijs | Afgebakend daadwerkelijk geverifieerd resultaat bestaat |
-| ADR-010 | AI-inferentie uitsluitend op apparaat; geen netwerkrecht of cloudfallback | Expliciete gebruikerscorrectie | Alleen na expliciete gewijzigde gebruikersopdracht |
+| ADR-010 | AI-inferentie uitsluitend op apparaat; geen netwerkrecht of cloudfallback | Expliciete correctie van de projectopdracht | Alleen na een expliciete opdrachtwijziging door de projecteigenaar |
 | ADR-011 | Installeerbare derdenapps met gescheiden bestands-, NAS- en netwerkrechten | Toegankelijk ecosysteem zonder impliciet vertrouwen | Acceptatietests tonen ontbrekende grens |
 | ADR-012 | Quantum als derde onderzoeksspoor vanaf M0: PQC, lokale QPU-uitvoering en hybride systeemport | Oorspronkelijke ambitie expliciet behouden | Bijstelling alleen met onderbouwd onderzoek; privacycontract blijft gelden |
 
@@ -989,7 +994,7 @@ ID, datum, status, context, alternatieven, besluit, onderbouwing/bronnen, gevolg
 
 **ADR-021 — Statische GOT in .data.** De compiler produceert vijf statisch opgeloste pointers. Die staan expliciet in de bestaande RW-.data-outputsectie; er komt geen runtime-relocatieverwerker of extra segment. De buildinspectie blijft dynamische metadata, relocaties en onbekende allocatable secties weigeren. De drie ELF-laadsegmenten en hashes staan in docs/verification/boot-manifest.json. M1 controleert segmentintentie; echte W^X-afdwinging blijft M2.
 
-**ADR-022 — Voortgang per stap naar GitHub.** De gebruiker wil het project bij verbruikslimieten volledig kunnen hervatten. Broncode, lockfiles, compacte bewijsrapporten en open punten gaan daarom na elke afgebakende stap en vóór lange controles naar de privéwerkbranch. Een checkpoint mag onvoltooide controles bevatten mits expliciet gemarkeerd. Codespaces is niet vereist voor deze bewaarroutine; een Codespace is niet gestart. Main blijft de startspecificatie totdat de concept-PR is beoordeeld.
+**ADR-022 — Voortgang per stap naar GitHub.** Het project moet bij verbruikslimieten volledig te hervatten zijn. Broncode, lockfiles, compacte bewijsrapporten en open punten gaan daarom na elke afgebakende stap en vóór lange controles naar de privéwerkbranch. Een checkpoint mag onvoltooide controles bevatten mits expliciet gemarkeerd. Codespaces is niet vereist voor deze bewaarroutine; een Codespace is niet gestart. Main blijft de startspecificatie totdat de concept-PR is beoordeeld.
 
 **ADR-023 — Alleen WB-capabele normale ConventionalMemory, cachebits gecombineerd.** De eerste M2-run faalde vóór KS-02 doordat OVMF `0x0f` meldt en de allocator uitsluitend exact WB accepteerde. UEFI-attributen beschrijven mogelijkheden; UC/WC/WT/WB mogen samen voorkomen. De allocator vereist WB, staat uitsluitend deze vier cachebits toe en weigert overige/bijzondere attributen. Bron: TianoCore/EDK II, `edk2-stable202508`, [UefiSpec.h, EFI_MEMORY_DESCRIPTOR en cachebits](https://github.com/tianocore/edk2/blob/edk2-stable202508/MdePkg/Include/Uefi/UefiSpec.h), gecontroleerd 27 oktober 2026. De huidige package is daarmee niet als exact die firmwareversie geïdentificeerd. Regressie test zowel `0x0f` als geweigerde special/unknown-bits; echte M2-poort slaagt. Andere platformprofielen vereisen opnieuw beoordeling van geheugenattributen; geen stil reclaim van Loader/BootServices/runtime/ACPI-geheugen.
 
@@ -1157,9 +1162,9 @@ datamigratie in deze documentatiestap.
 **Datum/status/eigenaar:** 28 oktober 2026; aanvaard architectuurdoel, nog geen
 native provideradapter. Opslag-/securityeigenaar beheert formaat en keygrens.
 
-**Context:** de eerdere revisie verbood leverancierscloud volledig. De gebruiker
-wil desgewenst bestaande algemene opslag zoals OneDrive/Google Drive kunnen
-benutten zonder die provider leesrecht op de opgeslagen inhoud te geven.
+**Context:** de eerdere revisie verbood leverancierscloud volledig. Optioneel
+gebruik van bestaande algemene opslag, zoals OneDrive en Google Drive, moet mogelijk
+zijn zonder de provider leesrecht op de opgeslagen inhoud te geven.
 
 **Alternatieven:** absolute provideruitsluiting beperkt keuze; provider-native
 encryptie/key escrow verschuift vertrouwen naar de provider; zelfgemaakte
@@ -1221,7 +1226,7 @@ nog niet native afgedwongen.
 
 **Context:** begrijpelijke voorbeelden en kritische vragen kunnen privacykeuzes
 duidelijker maken, maar herhaalde waarschuwingen kunnen de ervaring verstoren.
-De gebruiker wil die privacy-popups volledig kunnen uitschakelen.
+Educatieve privacyuitleg moet volledig uit te schakelen zijn.
 
 **Besluit:** de UI scheidt (a) noodzakelijke beslissingen over nieuwe
 capabilities van (b) educatieve privacyuitleg. Educatieve uitleg kan globaal
@@ -1880,8 +1885,8 @@ ontwerpcheckpoint nog open. Geen U01-punten voor alleen deze bouwstap.
 ## ADR-060 — Exacte, tijdelijke autoriteitsvergelijking op de syscallgrens
 
 **Datum:** 2 november 2026. De volledige verse `Stats`- en digestfuncties
-blijven de bestaande diagnostische orakels. Op de M4-foutgrens vervangen we
-hun herhaalde hashscan door een volledige getypeerde kopie van alle elf
+blijven de bestaande diagnostische orakels. Op de M4-foutgrens wordt
+hun herhaalde hashscan vervangen door een volledige getypeerde kopie van alle elf
 autoriteitsvelden en bestaande exacte `Engine::eq`. IPC-wait vergelijkt dit
 op ieder resultaat. De afzonderlijke useroutput-, capability-, pointer-,
 return-, paginaownership- en W^X-controles blijven intact. De snapshot wordt
@@ -1979,12 +1984,14 @@ regressie werkelijk slagen. Geen authenticatie-, encryptie- of hardwareclaim.
 
 ## ADR-CI-RUNNERS-20261106 — Linux-CI alleen op de Unraid-runners
 
-Status: aangenomen, 6 november 2026 (opdracht Simon, PR #241).
+Status: runnerkeuze vervangen door ADR-CI-HOSTED-20261108; overige afspraken
+over artifacts en verplichte checks blijven gelden. Oorspronkelijk aangenomen
+op 6 november 2026 (opdracht van de projecteigenaar, PR #241).
 
 **Besluit:**
 - Elke workflowjob draait op `[self-hosted, Linux, X64, unraid, build]`.
 - Persoonlijke machines (`MSIMON-wsl`, de Windows-host `MSIMON`) voeren geen PR-code uit.
-- GitHub-hosted runners gebruiken we niet zonder expliciete toestemming, vanwege het budget.
+- GitHub-hosted runners worden vanwege het budget niet zonder expliciete toestemming gebruikt.
 - Artifacts zijn kortlevend (3 dagen). Bewijs van record blijft compact in `docs/verification/`.
 - De verplichte checks `host-quality` en `qemu-smoke` (ci.yml) krijgen geen padfilter.
   Een overgeslagen workflow zou anders een eeuwig wachtende verplichte check opleveren.
@@ -2002,10 +2009,88 @@ Status: aangenomen, 6 november 2026 (opdracht Simon, PR #241).
 - De twee Tower-runners delen één fysieke host. Daardoor draaien er maximaal twee zware jobs
   tegelijk, maar CPU, RAM en I/O van die host zijn niet gemeten.
 
+## ADR-CI-HOSTED-20261108 — Standaard GitHub-hosted Ubuntu-runners
+
+Status: aangenomen, 8 november 2026, op expliciete opdracht van de projecteigenaar om de
+workflows van self-hosted naar GitHub-hosted runners om te zetten.
+
+**Besluit:** alle 24 jobdefinities in de 21 bestaande workflows gebruiken
+`runs-on: ubuntu-24.04`. De component- en toolchainmatrices leveren samen
+42 jobs op. Nieuwe of nog open workflowwijzigingen moeten dezelfde runnerkeuze
+aanhouden; een oude branch mag de self-hosted selectie niet opnieuw invoeren.
+Dit vervangt de runnerkeuze en de eerdere budgetbeperking in
+ADR-CI-RUNNERS-20261106. Het vaste Ubuntu-image behoudt de Linux/x64-omgeving
+voor de bestaande `pc-q35-8.2`-proeven, ook voor het op Linux gebouwde
+Windows-QEMU-testpakket.
+
+De bestaande Rust-pins, testcommando's, time-outs, rechten, verplichte checks,
+padfilters en artifactretentie van drie dagen blijven behouden. De QEMU-/
+firmwarestappen verwijzen inmiddels naar `.github/actions/setup-qemu` volgens
+ADR-CI-PINS-20261108; die gedeelde, gepinde setup vervangt de oorspronkelijke
+losse apt-installatie van ontbrekende pakketten. De host-Rust-buildcache
+krijgt een nieuwe namespace met `ubuntu-24.04`, zodat oude self-hosted
+buildresultaten niet worden hersteld. Cargo-downloadcaches blijven bruikbaar;
+native images en acceptatieresultaten worden niet gecachet.
+
+**Kosten en publicatie:** standaard GitHub-hosted runners zijn gratis en
+onbeperkt te gebruiken voor openbare repositories, binnen de uitvoerings- en
+concurrencylimieten. Voor private repositories geldt het inbegrepen
+computebudget en eventuele extra facturering. Grotere runners vallen niet
+onder deze keuze. De GitHub-API meldde bij deze wijziging `private: true`;
+deze opdracht verandert de zichtbaarheid of betaalinstellingen niet.
+Artifact- en cacheopslag hebben afzonderlijke limieten.
+
+**Bewijsgrens en herstel:** de configuratiecontrole staat in
+`verification/github-hosted-runners-20261108.json`. Een runnerlabel of geldige
+YAML is geen native bootbewijs; daarvoor blijven de bestaande CI-gates op de
+nieuwe PR-head nodig. Terugdraaien kan met een gerichte revert van deze
+migratie, zonder andere bronwijzigingen of branchregels aan te passen.
+
+**Primaire bronnen, geraadpleegd 8 november 2026:**
+- GitHub. (z.d.). *GitHub-hosted runners reference*.
+  https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+- GitHub. (z.d.). *GitHub Actions billing*.
+  https://docs.github.com/en/billing/concepts/product-billing/github-actions
+- GitHub. (z.d.). *Actions limits*.
+  https://docs.github.com/en/actions/reference/limits
+
+
+## ADR-CI-PINS-20261108 — Vaste tools voor reguliere hosted CI
+
+Status: aangenomen, 8 november 2026, op vervolgopdracht van de projecteigenaar. Dit besluit
+vult ADR-CI-HOSTED-20261108 aan en vervangt daar de losse installatie van
+ontbrekende emulatorpakketten. Het betreft 21 reguliere workflows; de
+later toegevoegde private publicatie-audit behoudt zijn afzonderlijke scope.
+
+**Besluit:** gedeelde lokale Actions installeren Python 3.12.12 en QEMU/
+firmware uit Ubuntu-snapshot 20261108T000000Z. Alle pakketversies zijn exact;
+APT verifieert de ondertekende indexen en payloads. Na installatie worden
+versies, TCG, machine pc-q35-8.2 en firmwarehashes gecontroleerd. PyYAML,
+reeds gebruikt door de host-gate, krijgt een exact gehasht 6.0.3-wheel.
+Rust 1.90.0, bestaande 1.91.1-controles en Node 24.22.1 blijven behouden.
+
+**Tests en gevolgen:** 99 bestaande runner-/preflight-/M6c-hosttests komen
+in host-quality. De bestaande zes native rookteststarts, harnasvoorwaarden,
+jobtijdslimieten, rechten en triggers blijven gelijk. Een aanvullende
+compacte QEMU-diagnose-upload is best effort en wijzigt de verplichte
+testuitslag niet. Lokale agent-gates slaan uitsluitend GitHub-setup en
+runnerdiagnostiek over; strikte preflight en native proeven blijven nodig.
+
+**Bewijsgrens:** de runnerdistributie en tools zijn geselecteerd, maar de
+complete VM en vooraf geïnstalleerde gedeelde bibliotheken zijn niet
+immutable. Nieuwe-head Rust/OS-gates blijven afzonderlijk bewijs. Een
+hosttest of QEMU-toolprobe bewijst geen productacceptatie. Score 41/100
+blijft gelijk. Pinupdates vereisen herhaalde controle; herstel gebeurt via
+een gerichte revert zonder branchregels te versoepelen.
+
+Bronnen, versies, uitvoering en herzieningsroute: [CI.md](CI.md),
+[controleverslag](verification/ci-standard-runners-20261108.json) en
+[pakketprovenance](verification/ci-packages-20261108.json).
+
 ## ADR-PUBLIC-DEVELOPMENT-20261108 — Openbare ontwikkeling met MPL-2.0 als controlebasis
 
 **Status:** aangenomen als projectrichting op 8 november 2026, op expliciete
-opdracht van Simon. Licentiecontrole en daadwerkelijke publicatie blijven open.
+opdracht van de projecteigenaar. Licentiecontrole en daadwerkelijke publicatie blijven open.
 
 **Besluit:** Nieuw OS kiest voor openbare ontwikkeling. Het bestaande
 [LICENSE-PLAN.md](../LICENSE-PLAN.md) blijft de basis voor de licentiecontrole,
@@ -2046,6 +2131,193 @@ vereisen. Een wijziging van de openbare projectrichting vraagt een nieuw
 expliciet projectbesluit. Het terugzetten van documentatie trekt reeds
 verleende rechten of verspreide kopieën niet automatisch in.
 
-**Bronnen:** de gebruikersopdracht van 8 november 2026; het bestaande
+**Bronnen:** de opdracht van de projecteigenaar van 8 november 2026; het bestaande
 licentieplan; Mozilla's officiële MPL-2.0-tekst en FAQ, met volledige
 bronvermeldingen in [LICENSE-PLAN.md](../LICENSE-PLAN.md).
+
+## ADR-CI-EVIDENCE-20261108 — testuitslag los van artifactopslag
+
+**Status:** besloten en geïmplementeerd op `ci/artifact-storage-20261108`
+in PR #251; opname in main volgt de bestaande checks en reviewregels.
+**Eigenaar:** Simon van Ieperen.
+
+**Datum:** 8 november 2026. Artifactopslag mag het bewaren
+van testbewijs en de workflow niet blijven blokkeren. Op main `363b486b`
+slagen de onderzochte native tests, maar upload-artifact weigert nieuwe
+archieven wegens quota. Drie dagen retentie was al ingesteld.
+
+**Alternatieven:** alleen retentie verkorten helpt bestaande quota niet
+direct en stond al op drie dagen. Gerichte opruiming kan ruimte vrijmaken,
+maar is geen structurele bescherming tegen opnieuw volle opslag en vraagt
+eerst een gecontroleerde inventaris van te behouden bewijs. Alleen de oude
+uploads niet-blokkerend maken laat bij uitval geen compact brongebonden
+rapport achter. Externe opslag introduceert een nieuwe opslag- en
+toegangsgrens en is voor deze reparatie niet nodig.
+
+**Besluit:** alle vijftien bewijsuploads gebruiken één lokale composite
+action. Die schrijft eerst begrensde rapporten, bronbinding en ontbrekende
+bestanden naar runlog/summary en een compact receipt. Alleen de uploads
+zijn best effort; tests, builds, validators en de collector blijven
+verplicht. De oorspronkelijke error/warn-keuze voor geheel ontbrekend
+bewijs blijft behouden. Werkelijke upload-outcomes zijn apart zichtbaar.
+
+Normale rapportarchieven zijn begrensd en blijven drie dagen beschikbaar.
+Ruwe images, frames en buildmappen worden uitsluitend op handmatig verzoek
+als volledig archief geüpload, met één dag retentie. Windows-test-ZIPs
+blijven apart beschikbaar na geslaagde controles als hun upload lukt, ook
+één dag. Bij een volledig archief is geen tweede ZIP-upload nodig.
+
+Een rapport met hash vervangt geen ruwe bytes voor onafhankelijke
+hercontrole. Native acceptatievoorwaarden, downloadstatus en vaste
+voortgangscriteria worden niet versoepeld. De runnerkeuze, toolversies,
+checknamen, betaalinstellingen en opslagrechten wijzigen door dit besluit
+niet. Geen artifacts of workflowruns worden ongericht verwijderd.
+
+**Security-invariant:** de compacte collector leest uitsluitend de expliciete
+selectie binnen de checkout, volgt geen symlinks en weigert verborgen paden.
+Inhoud blijft bytegelijk in het compacte pakket; workflowcommando's en
+controlbytes worden alleen voor de runlogweergave inert gemaakt. Bestands-,
+scan- en uitvoerbudgetten zijn begrensd. Het Windows-pakket moet een echt
+bestand binnen de checkout zijn; beide package-workflows selecteren die ZIP
+ook expliciet of via haar bovenliggende directory in het volledige archief.
+De configuratieverifier controleert dit inclusief weggelaten-packagegevallen.
+Dit is geen algemene secretscan; full-evidence behoudt de oorspronkelijke
+workflowselectie en is geen door de compacte collector gefilterd archief.
+
+**Testbewijs:** de oorspronkelijke verificatie omvat 15 collector-hosttests
+en 151 lokale YAML-/shellcontroles, vastgelegd in
+`docs/verification/ci-artifact-storage-20261108.json`. De vervolgcontrole
+staat in `docs/verification/ci-artifact-storage-20261108/review-followup.json`.
+Op mergecheckout `89722c5f` van PR-head `5c291cff` zijn bovendien de echte native-display-input- en
+B03-jobs geslaagd terwijl de rapportupload wegens artifactquota faalde;
+bronbinding en gelabeld rapportbewijs bleven in de runlog staan. Dit bewijst
+de geteste terugval bij uploadfalen; geen geslaagde artifactdownload,
+Windows-uitvoering, volledige raw-hercontrole of nieuwe productacceptatie.
+
+**Migratie/rollback:** opname van PR #251 activeert de gedeelde action voor
+nieuwe runs. Bestaande artifacts, bewaartermijnen en runlogs worden niet
+gewijzigd. Terugdraaien gebeurt met een gerichte revert-PR van deze wijziging;
+dan keren de oorspronkelijke blokkerende uploadstappen terug. Behoud
+wijzigingen van andere branches en bestaand acceptatiebewijs.
+
+**Herzien wanneer:** een volgende job artifacts moet downloaden, een echte
+releaselevering verplicht wordt, of het meetbare rapportbudget structureel
+te klein blijkt. Een benodigde artifactoverdracht krijgt dan een eigen
+verplichte leveringsgate. Werkwijze, bronnen en rollback: [CI-EVIDENCE.md](CI-EVIDENCE.md).
+
+## ADR-CI-PUBLIC-20261108 — publieke CI zonder eigen runners
+
+**Status:** besloten en geïmplementeerd in bestaande PR #249; nieuwe GitHub-
+uitvoering en samenvoeging worden apart vastgelegd. **Eigenaar:** Simon van
+Ieperen. **Datum:** 8 november 2026. De GitHub-repository is aantoonbaar public.
+
+**Besluit:** integreer de vaste hosted toolchain uit #249 met de compacte
+bewijsroute uit #251. Alle jobselectors, ook de private historische audit en
+Copilot-setup, zijn `ubuntu-24.04`. Geen nieuwe self-hosted infrastructuur.
+De private audit behoudt zijn voorwaarde en publiceert niet automatisch
+historische auditinhoud op de publieke repository.
+
+Verwijder de dubbele `ready_for_review`-trigger; test concept-PRs al op
+openen/wijzigen/heropenen. Spiegel bestaande documentfilters naar main-pushes
+van specialistische workflows. Behoud de ongefilterde verplichte checks
+`host-quality` en `qemu-smoke`, die onafhankelijk parallel kunnen draaien.
+Behoud bestaande concurrencygroepen en tijdslimieten. De componentmatrix
+verliest twee dubbele entries; hun checks blijven in de gespecialiseerde
+display/input- en artifact-store-workflows staan, inclusief scalar build.
+Maximaal vier matrixjobs tegelijk. De hostbuildcache krijgt een bron-SHA
+plus een compatibele herstelprefix; geen gecachte native acceptatie.
+
+**Alternatieven:** een tweede migratie-PR zou dezelfde configuratie opnieuw
+laten botsen. Iedere native gate door een nieuw centraal padclassificatie-
+script laten overslaan vergroot de kans op ontbrekende required checks.
+Generieke self-hosted labels of betaalde grotere runners passen niet bij
+de expliciete keuze voor de standaard publieke GitHub-runners.
+
+**Security-invariant:** PR-code behoudt een read-only token, externe Actions
+blijven op commit-SHA gepind en checkout bewaart geen credentials. Geen
+`pull_request_target`-uitvoering van PR-code. Alleen artifactuploads mogen
+falen zonder de testuitslag te vervangen. De YAML-regressietests bewaken
+deze grenzen en het behoud van de vereiste checks. Native orakels, negatieve
+gevallen, markers en productcriteria blijven behouden.
+
+**Testbewijs:** lokale hosttests, configuratie-/shellcontrole, bronbehoud en
+nieuwe GitHub-runs worden brongebonden vastgelegd in
+`verification/ci-public-runners-20261108.json`. Historische testuitslagen
+uit #249/#251 blijven bij hun oorspronkelijke bron. Geen productpunt: 41/100.
+
+**Migratie/rollback:** samenvoegen van de bestaande PR #249 activeert de
+gecombineerde wijziging; #251 pas als ingehaald behandelen na bewezen
+inhoudsopname. Gerichte revert via PR, zonder andere code of opgeslagen
+bewijsarchieven te verwijderen. De oude Copilot-WSL-keuze uit #245 is
+vervangen door een hosted setup; die branch mag geen self-hosted selector
+terugbrengen. **Herzien wanneer:** echte runnerduur, foutlogs of benodigde
+checks een aantoonbare uitvoeringsaanpassing vragen.
+
+Bronnen en uitvoeringsroute: [CI.md](CI.md).
+
+## ADR-CODERABBIT-20261108 — gerichte reviews zonder extra automatische afkeuring
+
+**Status:** geïmplementeerd op vervolgbranch `ci/coderabbit-review-policy-20261108`
+na merge van PR #249; effectieve CodeRabbit-review en integratie worden
+afzonderlijk gecontroleerd.
+**Eigenaar:** Simon van Ieperen. **Datum:** 8 november 2026.
+
+**Aanleiding:** CodeRabbit dient ook bij kleine documentatiepunten een
+`CHANGES_REQUESTED`-review in. Die kan blijven staan nadat een nieuwe review
+als taak succesvol eindigt. De actieve main-regel vereist al geslaagde
+`host-quality`/`qemu-smoke`, actuele branches en opgeloste reviewgesprekken;
+er is geen vereiste botapproval. Oudere PRs hebben daarnaast conflicten en
+CI die nog verwijderde runners selecteert.
+
+**Besluit:** leg de repo-instellingen vast in `.coderabbit.yaml`: `quiet`
+plaatst de belangrijkste feedback inline en bundelt andere suggesties;
+`auto_approvals.enabled: false` stopt nieuwe automatische afkeuringen en
+goedkeuringen. Automatische incrementele reviews blijven aan en
+docstringdekking blijft een waarschuwing. Overige configuratie wordt geërfd
+om bestaande tools, padinstructies en extra reviewbranches te behouden.
+
+**Alternatieven:** de app verwijderen verliest reviewfeedback. Alle oude
+afkeuringen of threads tegelijk sluiten negeert nog onbeoordeelde fouten.
+De GitHub-regel voor opgeloste gesprekken uitzetten raakt ook andere
+reviewers. Alleen de statuscheck aanpassen helpt niet: `CodeRabbit` is
+in de gecontroleerde main-regel geen vereiste check.
+
+**Behoud en verificatie:** geen bronpad uitgesloten, testgate gewijzigd of
+branchregel omzeild. Herstel concrete bevindingen vóór het oplossen van
+bijbehorende threads. Een dismissal krijgt een inhoudelijke reden en is
+geen nieuw codebewijs. Schema-, host- en workflowcontrole staan met hashes
+in `verification/coderabbit-unblock-20261108.json`. Schema-validatie bewijst
+geen effectieve UI-/globale configuratie; controleer de volgende botreview.
+De OS-score blijft 41/100.
+
+**Migratie/rollback:** CodeRabbit gebruikt de YAML uit de beoordeelde
+PR-branch. Nieuwe branches krijgen de configuratie na integratie; oudere
+branches moeten die samen met de hosted workflows opnemen. Bestaande
+afkeuringen blijven afzonderlijk af te handelen. Een gerichte revert herstelt
+de eerdere reviewconfiguratie; opgeloste gesprekken blijven traceerbaar.
+**Herzien wanneer:** belangrijke fouten alleen nog in samenvattingen
+verschijnen, inherited/global settings de bedoeling veranderen, of de
+vereiste menselijke reviewafspraken wijzigen. Primaire bronnen: [CI.md](CI.md).
+
+## ADR-BARYON-NAME-20261108 — naamverklaring in de README
+
+**Datum:** 8 november 2026. **Status:** redactioneel besluit voor de
+projectpresentatie; geen wijziging van architectuur of productacceptatie.
+
+**Besluit:** gebruik Baryon OS in de README en leg de naam uit vanuit
+samengestelde deeltjes met drie valentiequarks. De koppeling met een kleine
+eigen kernel, afzonderlijke systeemdiensten en een eigen gebruikersomgeving
+is een metafoor voor samenhang. Processorringen behouden hun technische
+betekenis. Foutisolatie, herstel, veiligheid en prestaties blijven claims
+die passend implementatie- en testbewijs vereisen.
+
+**Bronnen en gevolgen:** de [naamverklaring](../README.md#waarom-de-naam-baryon-os)
+verwijst naar CERN/CMS en ESA. De oorspronkelijke repositorynaam `nieuw-os`,
+technische identifiers, historische bewijsbestanden en bronverwijzingen
+blijven behouden. Deze opdracht registreert geen domein en stelt geen
+merkbeschikbaarheid vast. De voortgang blijft 41/100.
+
+**Herzien wanneer:** primaire bronnen, de gekozen projectnaam of de
+feitelijke architectuur een inhoudelijke aanpassing vereisen. Een gerichte
+revert van de naamgevingspassages herstelt de vorige presentatie zonder
+code of technische contracten terug te draaien.

@@ -1,0 +1,24 @@
+Source: https://github.com/simonvanieperen/nieuw-os/actions/runs/42526590198/job/128871457051
+Source commit: 1f3e7b6acdfd4b5ca84a69422a2d3ed6e424609a
+Runner: GitHub Actions 1000021296; ubuntu-24.04
+Selected diagnostic lines; this is an excerpt, not a complete log.
+
+2026-11-08T21:44:46.8491740Z Materiaal normal: passed=False; raw=-9; /home/runner/work/nieuw-os/nieuw-os/build/materiaal-probe-ci/run/materiaal-normal-c1a3080553
+2026-11-08T21:44:46.8492381Z ValueError: Wrong boot/manifest sequence
+2026-11-08T21:44:47.4055347Z [ci-evidence] |   "timed_out": false,
+2026-11-08T21:44:47.4056581Z [ci-evidence] |   "error": "ValueError: Wrong boot/manifest sequence",
+2026-11-08T21:44:47.4056692Z [ci-evidence] |   "guest_timeout": false,
+2026-11-08T21:44:47.4058380Z [ci-evidence] |   "duration_s": 3.206669316999978,
+2026-11-08T21:44:47.4193920Z [ci-evidence] |   "timed_out": false,
+2026-11-08T21:44:47.4195156Z [ci-evidence] |   "error": "ValueError: Wrong boot/manifest sequence",
+2026-11-08T21:44:47.4195265Z [ci-evidence] |   "guest_timeout": false,
+2026-11-08T21:44:47.4196960Z [ci-evidence] |   "duration_s": 3.206669316999978,
+2026-11-08T21:44:47.4360400Z [ci-evidence] | Materiaal normal: passed=False; raw=-9; /home/runner/work/nieuw-os/nieuw-os/build/materiaal-probe-ci/run/materiaal-normal-c1a3080553
+2026-11-08T21:44:47.4360542Z [ci-evidence] | ValueError: Wrong boot/manifest sequence
+2026-11-08T21:44:47.4375280Z [ci-evidence] | BOOT:EBS_OK
+2026-11-08T21:44:47.4375385Z [ci-evidence] | KERNEL:ENTRY
+2026-11-08T21:44:47.4375480Z [ci-evidence] | BOOTINFO:OK
+2026-11-08T21:44:47.4375580Z [ci-evidence] | KS-01:PASS
+2026-11-08T21:44:47.4375680Z [ci-evidence] | KS-02:PASS
+2026-11-08T21:44:47.4375785Z [ci-evidence] | ACPI:UNAVAILABLE:NO_DMAR
+2026-11-08T21:44:47.4375931Z [ci-evidence] | DEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT
