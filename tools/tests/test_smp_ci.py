@@ -77,6 +77,14 @@ class SmpCiAggregationTests(unittest.TestCase):
         self.assertEqual(jobs["smp-case-50"]["runs-on"], "ubuntu-26.04")
         self.assertEqual(jobs["smp-soak-50"]["runs-on"], "ubuntu-26.04")
         self.assertEqual(jobs["smp-environment-probe"]["env"]["NOS_QEMU_MACHINE"], "pc-q35-10.0")
+        self.assertNotIn("with", jobs["native-smp"]["steps"][1])
+        for job in ("smp-environment-probe", "smp-case-50", "smp-soak-50", "smp-final-gate"):
+            steps = jobs[job]["steps"]
+            names = [step["name"] for step in steps]
+            self.assertLess(names.index(next(name for name in names if name.startswith("Pinned QEMU"))),
+                            names.index("Pinned Python"))
+            python = next(step for step in steps if step["name"] == "Pinned Python")
+            self.assertEqual(python["with"]["system-python"], "true")
         self.assertEqual(
             jobs["smp-matrix-aggregate"]["needs"], ["smp-case-50", "smp-soak-50"]
         )
@@ -95,6 +103,7 @@ class SmpCiAggregationTests(unittest.TestCase):
         for required in (
             "qemu-system-x86=1:8.2.2+ds-0ubuntu1.18",
             "qemu-system-x86=1:10.2.1+ds-1ubuntu3.3",
+            "python3.14=3.14.4-1ubuntu0.2",
             "pc-q35-8.2",
             "pc-q35-10.0",
             "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",

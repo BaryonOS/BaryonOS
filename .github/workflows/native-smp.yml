@@ -230,12 +230,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Pinned Python
-        uses: ./.github/actions/setup-python
-      - name: Pinned Rust
-        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Pinned QEMU 10.2.1 and OVMF
         uses: ./.github/actions/setup-qemu
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+        with:
+          system-python: 'true'
+      - name: Pinned Rust
+        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Prove the runner reaches K07 and exact cleanup
         run: |
           python3 -B tools/build.py --kernel-feature native-smp-m4-quotas
@@ -342,12 +344,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Pinned Python
-        uses: ./.github/actions/setup-python
-      - name: Pinned Rust
-        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Pinned QEMU and OVMF
         uses: ./.github/actions/setup-qemu
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+        with:
+          system-python: 'true'
+      - name: Pinned Rust
+        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Build one frozen profile and run the case 50 times
         env:
           SMP_CASE: ${{ matrix.case }}
@@ -401,12 +405,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Pinned Python
-        uses: ./.github/actions/setup-python
-      - name: Pinned Rust
-        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Pinned QEMU and OVMF
         uses: ./.github/actions/setup-qemu
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+        with:
+          system-python: 'true'
+      - name: Pinned Rust
+        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Build the frozen soak profile and run five times
         run: |
           python3 -B tools/build.py --kernel-feature native-smp-m3-soak
@@ -480,12 +486,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Pinned Python
-        uses: ./.github/actions/setup-python
-      - name: Pinned Rust
-        run: rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Pinned QEMU and OVMF
         uses: ./.github/actions/setup-qemu
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+        with:
+          system-python: 'true'
+      - name: Pinned Rust
+        run: rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Run tools/gate.sh only after the complete matrix
         run: |
           mkdir -p build/k06-smp-final-gate/logs

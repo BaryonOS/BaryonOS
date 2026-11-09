@@ -56,6 +56,12 @@ runs:
               ovmf=2025.11-3ubuntu7.3
               seabios=1.17.0-1ubuntu1
               ipxe-qemu=1.21.1+git-20250829.969ce2c55+dfsg-3ubuntu2
+              python3=3.14.3-0ubuntu2
+              python3-minimal=3.14.3-0ubuntu2
+              python3.14=3.14.4-1ubuntu0.2
+              python3.14-minimal=3.14.4-1ubuntu0.2
+              libpython3.14-minimal=3.14.4-1ubuntu0.2
+              libpython3.14-stdlib=3.14.4-1ubuntu0.2
             )
             if [ "$INSTALL_SWTPM" = true ]; then
               echo '::error::The pinned Ubuntu 26.04 profile has no audited swtpm package set.'

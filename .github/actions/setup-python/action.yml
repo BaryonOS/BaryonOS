@@ -4,10 +4,14 @@ inputs:
   host-dependencies:
     description: Install the YAML parser used by the agent-gate host tests.
     default: 'false'
+  system-python:
+    description: Verify Ubuntu 26.04's pinned system Python instead of setup-python.
+    default: 'false'
 runs:
   using: composite
   steps:
     - name: Python 3.12.12
+      if: ${{ inputs.system-python != 'true' }}
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.12.12'
@@ -18,8 +22,17 @@ runs:
       run: |
         python3 -m pip install --disable-pip-version-check --no-deps --only-binary=:all: \
           --require-hashes --requirement "$GITHUB_ACTION_PATH/requirements.txt"
-    - name: Verify Python version
+    - name: Verify setup-python version
+      if: ${{ inputs.system-python != 'true' }}
       shell: bash
       run: |
         python3 --version
         python3 -c 'import sys; assert sys.version_info[:3] == (3, 12, 12), sys.version'
+    - name: Verify Ubuntu 26.04 system Python
+      if: ${{ inputs.system-python == 'true' }}
+      shell: bash
+      run: |
+        . /etc/os-release
+        test "$ID" = ubuntu && test "$VERSION_ID" = 26.04
+        python3 --version
+        python3 -c 'import sys; assert sys.version_info[:3] == (3, 14, 4), sys.version'
