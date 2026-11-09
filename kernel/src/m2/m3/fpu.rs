@@ -229,10 +229,12 @@ pub(super) mod fixture {
                     .iter()
                     .all(|x| *x == 0);
             require(zero, b"CONTEXT_WIPE");
-            // SAFETY: IF=0, no user is live. Assembly cannot update either
-            // permanent diagnostic counter (KERNEL held) during these reads.
+            // SAFETY: IF=0 and no user is live. The entry and switch stubs
+            // update these counters only on this CPU and cannot run during
+            // these reads. KERNEL does not serialize assembly-side updates;
+            // this relies on the existing single-CPU M3 execution model.
             let saves = unsafe { ptr::addr_of!(m3_fpu_saves).read() };
-            // SAFETY: Same stopped-user/IF=0 counter ownership as above.
+            // SAFETY: Same IF=0, stopped-user, single-CPU condition as above.
             let restores = unsafe { ptr::addr_of!(m3_fpu_restores).read() };
             let user_timer_irqs = e.timer[0] + e.timer[1];
             #[cfg(feature = "test-fpu-wait")]

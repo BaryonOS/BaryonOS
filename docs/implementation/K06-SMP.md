@@ -92,6 +92,12 @@ Elke invariant heeft een weerlegging; de weerlegging wordt een negatieve test (�
   *Weerlegd als* een IPI, tick of exception vanuit CPL3 met een door ring 3 gekozen GS_BASE
   ergens anders telt of schrijft dan in het eigen `CpuLocal` (§9 test 15–17).
 
+  **Current evidence boundary:** N1–N3 test user-entry behavior, the GS-7
+  `iretq` fixup, and NMI via IST, but not a nonzero user GS base. GS-4, GS-5,
+  GS-8, and GS-9 have static lint coverage only. No native negative GS-10
+  precondition profile or CPL3 #DF/#MC test has been executed. These remain
+  unverified, not accepted by the passing N1–N3 outcomes.
+
 ---
 
 ## 3. APIC- en SMP-initialisatie (precieze volgorde)
@@ -391,7 +397,7 @@ onbereikbaar, maar het contract geldt vooruit.
 | 5b-2 | `KERNEL`-lock om alle M3-syscalls; scratchslot per CPU; ADR-075 (gerealiseerd) | `lock.rs`, `m3.rs`, `paging.rs`, `smp.rs`-fixture, `docs/DECISIONS.md` | `SMP:SCRATCH:PASS:CPUS=n`; controle `test-smp-shared-scratch` → `SMP:SCRATCH:CROSS:CPU=n`; volle `milestone-m2`- en M3-regressie op 1 CPU, ongewijzigd |
 | 5c | Preëmptie uitgesteld zolang lockdep niet leeg is (vastgehouden of bewaakte lock); `HELD_ACROSS_SWITCH` bij schending (aanvulling ADR-074) | `smp.rs` | lockfixture in `SMP:PREEMPT:PASS`; `test-smp-held-across-switch` → marker |
 | 5c-2 | BSP LAPIC-timer + idle met `sti; hlt`; PIT blijft de klok | `smp.rs`, idle-lus | `native-rtc` 5/5, monotone-klokcheck, BSP-preëmptiecanary |
-| 5d(-1) | Runqueues per AP, threadstatus-CAS (INV-3), 0xe8-wekken, CR3-wissel §6.3 met `active_cpus` (INV-4), met kernelthreads in twee adresruimten (aanvulling ADR-074) | `crates/smp-lock` (`sched`), `smp.rs` | `SMP:SCHED:PASS:CPUS=n`; `test-smp-double-run` → `SMP:SCHED:DOUBLE_RUN` |
+| 5d(-1) | Runqueues per AP, threadstatus-CAS (INV-3), 0xe8-wekken, CR3-wissel §6.3 met `active_cpus` (INV-4), met kernelthreads in twee adresruimten (aanvulling ADR-074) | `crates/smp-lock` (`sched`), `smp.rs` | `SMP:SCHED:PASS:CPUS=n`; `test-smp-double-run` → `SMP:SCHED:DOUBLE_ENQUEUE` |
 | F8 | `swapgs`-discipline in alle IDT-stubs (INV-8, ADR-076); ring-3-GS-fixture | `arch.rs`, `smp.rs`, `tools/tests/test_gs_discipline.py` | rood op de oude stubs; `SMP:GS:PASS`, `SMP:GS:IRET_FIXUP:PASS`, NMI vanuit CPL3; statische lint |
 | 5d-2 | Ring-3-processen op AP's met dezelfde kern (na 5b-2 en 5c-2; INV-2) | M3-scheduler, `smp.rs` | K05 6/6 op 4 vCPU's; `SMP:SCHED:CPUS=n` met user-werk op elke CPU |
 | 5e | Procesbrede shootdown §7.1/7.2 | paging/unmap, cleanup | dove-AP-negatief, controle zonder shootdown (moet stale-read tonen) |
@@ -430,7 +436,7 @@ Profielen: 1, 2, 4 en 8 vCPU's; zowel single- als multi-thread-TCG (`-accel tcg,
    alle AP's, threads naar de BSP, de boot gaat verder als één CPU.
 10. `test-smp-proc-no-shootdown` (controleprofiel): zonder shootdown leest P in test 3 het
     hergebruikte frame. Dat bewijst dat test 3 een echt gevaar meet (zelfde methode als ADR-072).
-11. `test-smp-double-run`: forceer dezelfde TID op twee runqueues → `SMP:SCHED:DOUBLE_RUN`.
+11. `test-smp-double-run`: forceer dezelfde TID op twee runqueues → `SMP:SCHED:DOUBLE_ENQUEUE`.
 12. `test-smp-resched-deaf`: AP negeert 0xe8 tijdens een kill → INV-5-pad.
 13. Canary-injectie (open punt uit ADR-073): corrumpeer bewust een bewaard register → de
     canary moet afgaan.
