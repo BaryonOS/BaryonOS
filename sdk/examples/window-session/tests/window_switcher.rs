@@ -416,7 +416,6 @@ fn committing_switcher_reveals_a_minimized_window_for_both_input_routes() {
     }
 }
 
-
 #[test]
 fn trusted_shell_shortcuts_pass_through_an_open_switcher_without_focus_commit() {
     for (physical, super_key) in [
@@ -449,7 +448,10 @@ fn trusted_shell_shortcuts_pass_through_an_open_switcher_without_focus_commit() 
             .switcher_key(key(PhysicalKey::Tab, KeyAction::Release, true), &mut damage)
             .unwrap());
         assert!(scene
-            .switcher_key(key(PhysicalKey::LeftAlt, KeyAction::Release, false), &mut damage)
+            .switcher_key(
+                key(PhysicalKey::LeftAlt, KeyAction::Release, false),
+                &mut damage
+            )
             .unwrap());
         assert!(!scene
             .switcher_key(key(physical, KeyAction::Release, false), &mut damage)
@@ -471,12 +473,21 @@ fn switcher_surround_click_releases_capture_before_next_app_press() {
         for index in 0..2 {
             assert!(!scene.switcher_card(index).contains(x as i32, y as i32));
         }
-        assert_eq!(scene.mouse_with_damage(x, y, true, true, &mut damage), Ok(None));
+        assert_eq!(
+            scene.mouse_with_damage(x, y, true, true, &mut damage),
+            Ok(None)
+        );
         assert!(scene.switcher_is_open());
-        assert_eq!(scene.mouse_with_damage(x, y, false, false, &mut damage), Ok(None));
+        assert_eq!(
+            scene.mouse_with_damage(x, y, false, false, &mut damage),
+            Ok(None)
+        );
         assert!(scene.switcher_is_open());
         assert!(scene
-            .switcher_key(key(PhysicalKey::LeftAlt, KeyAction::Release, false), &mut damage)
+            .switcher_key(
+                key(PhysicalKey::LeftAlt, KeyAction::Release, false),
+                &mut damage
+            )
             .unwrap());
         assert!(!scene.switcher_is_open());
         assert_eq!(scene.focused, 1);
