@@ -713,10 +713,17 @@ mod acceptance {
                     .unwrap_or_else(|| serial::fail(b"M4:SMP:NO_BOOT_PROCESS"))
             }
             QUIESCE_FINAL_CLEANUP => {
-                serial::write(case_marker());
-                serial::write(b"M4:SURVIVOR_PROGRESS:PASS\n");
+                // The lifecycle result is emitted only after the last cleanup.
+                if case() != 8 {
+                    serial::write(case_marker());
+                    serial::write(b"M4:SURVIVOR_PROGRESS:PASS\n");
+                }
                 cleanup_all(state);
                 serial::write(b"M4:SMP:ROUND_CLEANUP:PASS\n");
+                if case() == 8 {
+                    serial::write(case_marker());
+                    serial::write(b"M4:SURVIVOR_PROGRESS:PASS\n");
+                }
                 serial::write(b"M4:CLEANUP:PASS\n");
                 serial::write(ks_marker());
                 serial::write(b"M4:PASS\nM1:PASS\n");
