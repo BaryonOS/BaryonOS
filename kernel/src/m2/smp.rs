@@ -3700,8 +3700,27 @@ fn gs_switch(local: &CpuLocal, rsp: u64) -> Resume {
             }
         }
         GS_USER => {
+            // GS_USER is published before iretq. A BSP delay does not prove
+            // that CPL3 has actually executed the MOV GS instruction.
+            if cs & 3 == 3 {
+                // SAFETY: the timer stub saved RIP at slot 15, CS at 16
+                // in this CPU's live, kernel-owned interrupt frame.
+                let rip = unsafe { (rsp as *const u64).add(15).read() };
+                let entry = USER_CODE + 16 * (slot as u64 & 1);
+                // Both variants loop only AFTER MOV GS: at +6 / +4.
+                let loop_start = entry + if slot & 1 == 0 { 6 } else { 4 };
+                if (loop_start..loop_start + 4).contains(&rip) {
+                    // After the entry swapgs, IA32_KERNEL_GS_BASE must hold
+                    // the selector's nonzero user base for the even-slot
+                    // variant. The odd-slot null-selector case is checked
+                    // for completion, not for AMD-dependent base clearing.
+                    if slot & 1 == 0 && rdmsr(0xc000_0102) != arch::GS_FIXTURE_USER_BASE {
+                        serial::fail(b"SMP_GS_USER_BASE");
+                    }
+                    local.gs_state.store(GS_PERIODIC, Ordering::Release);
+                }
+            }
             start_timer();
-            local.gs_state.store(GS_PERIODIC, Ordering::Release);
             same
         }
         GS_PERIODIC if GS.load(Ordering::Acquire) == PREEMPT_STOP => {
@@ -3747,7 +3766,12 @@ fn gs_user(online: usize, total: usize) -> bool {
     for (context, local) in aps.iter().zip(locals) {
         let apic = context.apic_id.load(Ordering::Relaxed);
         if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
-            || !within_ms(500, || local.gs_state.load(Ordering::Acquire) == GS_USER)
+            || !within_ms(500, || {
+                matches!(
+                    local.gs_state.load(Ordering::Acquire),
+                    GS_USER | GS_PERIODIC
+                )
+            })
         {
             return gs_timeout(apic, online, total);
         }
@@ -3757,8 +3781,13 @@ fn gs_user(online: usize, total: usize) -> bool {
             serial::fail(b"SMP_GS_IRET_NO_FIXUP");
         }
     }
-    // Each user thread loads its GS selector as its first instruction.
-    wait_us(1_000);
+    // Wait for an observed CPL3 timer frame past MOV GS, not a timed guess.
+    // GS_PERIODIC also validates the nonzero user GS base for even AP slots.
+    for (context, local) in aps.iter().zip(locals) {
+        if !within_ms(500, || local.gs_state.load(Ordering::Acquire) == GS_PERIODIC) {
+            return gs_timeout(context.apic_id.load(Ordering::Relaxed), online, total);
+        }
+    }
     if cfg!(feature = "test-smp-gs-nmi-user") {
         if send_ipi(aps[0].apic_id.load(Ordering::Relaxed), IPI_NMI) {
             within_ms(1_000, || false);

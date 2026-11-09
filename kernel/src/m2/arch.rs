@@ -241,6 +241,11 @@ impl CpuTables {
     }
 }
 
+/// Nonzero 32-bit GS descriptor base for the CPL3 selector fixture (Intel SDM
+/// Vol. 3A, 3.4.4). Other native profiles retain the flat user descriptor.
+#[cfg(feature = "native-smp")]
+pub(super) const GS_FIXTURE_USER_BASE: u64 = 0x1000;
+
 /// AP half of `install`: own GDT/TSS (RSP0, IST1=#DF, IST2=NMI exactly as the
 /// BSP's gates expect) and the shared permanent IDT. Called once per AP on
 /// its own stack with IF=0; `tables` is that AP's exclusive static slot.
@@ -264,6 +269,17 @@ pub fn install_ap(tables: *mut CpuTables, rsp0: u64, double_top: u64, nmi_top: u
         let gdt = ptr::addr_of_mut!((*tables).gdt).cast::<u64>();
         for i in 0..5 {
             gdt.add(i).write(kernel.add(i).read());
+        }
+        if cfg!(any(
+            feature = "test-smp-gs-user",
+            feature = "test-smp-gs-iret-fault",
+            feature = "test-smp-gs-nmi-user"
+        )) {
+            // SAFETY: This AP exclusively owns its unpublished descriptor
+            // table. In 64-bit mode loading GS selector 0x1b copies the
+            // descriptor's 32-bit base; SS still ignores its base.
+            gdt.add(3)
+                .write(kernel.add(3).read() | (GS_FIXTURE_USER_BASE << 16));
         }
         gdt.add(5).write(low);
         gdt.add(6).write(base >> 32);
