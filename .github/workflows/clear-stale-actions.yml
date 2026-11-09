@@ -9,7 +9,6 @@ on:
       - .github/workflows/clear-stale-actions.yml
 
 permissions:
-  actions: write
   contents: read
 
 concurrency:
@@ -20,6 +19,8 @@ jobs:
   cancel-orphans:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    permissions:
+      actions: write
     steps:
       - name: Cancel only stale queued jobs requiring unavailable self-hosted runners
         env:
