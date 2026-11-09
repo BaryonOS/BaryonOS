@@ -12,7 +12,7 @@ Gebruik één canonieke map. Kopieer het project niet voor iedere chat opnieuw. 
 ## 2. Eerste inrichting zonder terminalervaring
 1. Pak het zipbestand uit op de lokale computer. Open de map die rechtstreeks `AGENTS.md` en `README.md` bevat.
 2. Gebruik GitHub Desktop of Git om van deze map een lokale repository te maken. Commit het startpakket.
-3. Publiceer de repository via GitHub Desktop nadat de inhoud en licentie zijn gecontroleerd. Privé beginnen is mogelijk; een privéproject is nog geen openbaar open-sourceproject. Voor publieke publicatie moet een echte licentietekst aanwezig zijn; zie LICENSE-PLAN.md.
+3. Publiceer de repository via GitHub Desktop nadat de inhoud en licentie zijn gecontroleerd. Privé beginnen is mogelijk; een privéproject is nog geen openbaar open-sourceproject. De repository bevat een echte licentietekst en afgebakende softwarelicentiescope; zie LICENSE, LICENSING.md en THIRD-PARTY.md.
 4. Open dezelfde lokale map in Codex. Kies de lokale computer/werkruimte, niet per ongeluk een andere cloudomgeving.
 5. Begin in de hoofdmap. Laat Codex in zijn eerste antwoord bevestigen welke projectmap en instructiebestanden het gebruikt.
 6. Kies het model hieronder en plak PROMPT-START.md.
@@ -43,7 +43,6 @@ git push -u origin main
 Gebruik de door Git aangeboden browser-/credential-manager-login. Bestaat `origin` al, inspecteer die eerst en voer niet blind opnieuw `remote add` uit. Een push naar een publieke repository maakt bestanden openbaar: controleer inhoud en licentie vooraf.
 
 ## 4. GitHub of een Europees alternatief?
-
 | Route | Afweging |
 |---|---|
 | GitHub + lokaal Codex | Beste eerste route voor een beginner vanwege de gedocumenteerde koppelingen en praktische samenwerking. Het is een Amerikaanse dienst. |
