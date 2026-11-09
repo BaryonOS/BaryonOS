@@ -198,6 +198,12 @@ jobs:
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Pinned QEMU and OVMF
         uses: ./.github/actions/setup-qemu
+      - name: Verify firmware paths
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
+        run: |
+          test -f "$OS_OVMF_CODE"
+          test -f "$OS_OVMF_VARS"
       - name: Record CI toolchain diagnostics
         if: ${{ runner.os == 'Linux' }}
         shell: bash
