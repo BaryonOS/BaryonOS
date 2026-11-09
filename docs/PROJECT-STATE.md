@@ -1,8 +1,16 @@
 # Current project status
 
-## PR #227 — K06 controlled spinning and preemption (9 November 2026)
+## PR #227 — K06 IRQ-aware spinning and deferred preemption — 9 November 2026
 
-The integration preserves the current GitHub-hosted CI workflows and adds the step 5b/5c kernel and negative-control changes on the existing PR branch. Progress remains **41/100**: K06 is not accepted as a completed product criterion. The native SMP run on earlier PR head `d582e474` timed out after `SMP:ONLINE:4/4` on its four-vCPU case; one- and two-vCPU cases passed. This is an unresolved verification gap, not native acceptance. No local `tools/preflight.py --strict`, `tools/build.py`, or `tools/run.py --smoke` run is claimed for this conflict reconciliation. The updated PR head and its current CI results require source-bound verification before merge.
+The existing PR branch integrates K06 steps 5b/5c while retaining GitHub-hosted CI and the current security, networking and keyring changes from main. The `native-smp` workflow also runs the IF-disabled and held-across-switch negative controls. Review-identified automatic-commit guards and required evidence-collection behavior have been corrected. **Progress is 39/100 → 39/100**: no K06 acceptance point has been awarded, and B01 remains open as documented below. An older native-SMP run (`d582e474`) timed out after `SMP:ONLINE:4/4`; new source-bound CI/QEMU acceptance for this integration remains outstanding. No new local preflight/build/smoke execution is claimed.
+
+## PR #155 keyring recovery authorization — 9 November 2026
+
+**Source:** PR #155 security code at `ef391def0a4bcd825f4664ab21de844ccd4f7ee4` was integrated with main `9554d677c0ab8dd9acfce47f9abe43e22c0215c8` on the existing PR branch. The current main CI workflows and concise documentation hierarchy were preserved. Ordinary applications can no longer export or restore keyring recovery material; only a separately authenticated management ingress can dispatch these operations. No new native management capability was granted.
+
+**Acceptance:** **41/100 → 39/100.** B01 is open because the earlier positive native recovery test used ordinary app authority. The historical five-case native QEMU gate and positive management host tests do not establish native positive management recovery. Checks on the combined HEAD have **not yet been executed or verified**. No other accepted criterion changed.
+
+**NEXT AGENT HANDOFF:** run `python3 tools/progress.py --check`, `python3 tools/preflight.py --strict`, `python3 tools/build.py`, `python3 tools/run.py --smoke`, and `python3 -B -u tools/test_keyring.py` on the combined PR HEAD. Review CodeRabbit and required CI results before squash merge. Physical-hardware and human-security audits remain outstanding.
 
 ## PR #181 — PCI device lifecycle policy checkpoint — 9 November 2026
 
@@ -47,6 +55,6 @@ SDK monthly Dependabot coverage is retained on current main. The current documen
 
 ## Current development state
 
-The fixed progress score is **41/100**. Detailed accepted and open criteria are maintained only in [PROGRESS.md](PROGRESS.md) and [progress.json](progress.json). Recent source-bound implementation and CI evidence remains available under [verification/](verification/).
+The fixed progress score is **39/100**. Detailed accepted and open criteria are maintained only in [PROGRESS.md](PROGRESS.md) and [progress.json](progress.json). Recent source-bound implementation and CI evidence remains available under [verification/](verification/).
 
 The former checkpoint sequence is preserved in [PROJECT-STATE-through-2026-11-09.md](history/PROJECT-STATE-through-2026-11-09.md). That snapshot is historical context, not a second current-status source.

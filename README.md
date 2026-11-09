@@ -57,9 +57,9 @@ The codebase already contains an independent boot chain, process and capability 
 <!-- OS-PROGRESS:BEGIN -->
 ## Progress toward a complete independent OS
 
-![Baryon OS: 41% of the fixed product roadmap](docs/assets/progress.svg)
+![Baryon OS: 39% of the fixed product roadmap](docs/assets/progress.svg)
 
-**41/100 weighted acceptance points.** This is a planning metric for demonstrably accepted functionality, not a time estimate, security guarantee, or claim of parity with existing operating systems.
+**39/100 weighted acceptance points.** This is a planning metric for demonstrably accepted functionality, not a time estimate, security guarantee, or claim of parity with existing operating systems.
 
 [Criteria and evidence](docs/PROGRESS.md) · [Roadmap](docs/ROADMAP.md) · [Current project status](docs/PROJECT-STATE.md)
 <!-- OS-PROGRESS:END -->

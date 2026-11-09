@@ -19,7 +19,7 @@ mod support;
 
 use keyring_core::{
     wire::{self, Header},
-    EntropySource, Service, State, Status, MAX_PLAINTEXT, MAX_SEALED, RECOVERY_BLOB, SECRET_BYTES,
+    EntropySource, Service, State, Status,
 };
 use nieuw_os_sdk_runtime::{
     native, supports_ipc_wait, EntropySource as EntropyHandle, Error, Handle, Outgoing,
@@ -63,12 +63,11 @@ const RANDOM_DESCRIPTOR: u64 = u64::from_le_bytes(*b"NOSRNG01");
 const RANDOM_REPLY_POLLS: usize = 4096;
 const RANDOM_REPLY_TICKS: u64 = 100;
 
-/// Persistence-only administrative ingress. Only the single manifest-named
+/// Recovery and persistence ingress. Only the single manifest-named
 /// caller (a supervisor/recovery agent) may use it, and it dispatches
-/// exclusively through `wire::dispatch_persistent`: no key, record, recovery
-/// or RANDOM operation is reachable here, and the domain endpoints never
-/// reach the persistence codec. The caller-held secret arrives in the request
-/// body; the service keeps no copy beyond the dispatch call.
+/// through `wire::dispatch_management`; key and record operations are never
+/// reachable here, and domain endpoints cannot export/import recovery
+/// material. Caller-held secrets are not retained after dispatch.
 struct AdminIngress {
     receive: ReceiveEndpoint,
     reply: SendEndpoint,
@@ -283,7 +282,7 @@ fn admin_evidence(ingress: &AdminIngress) {
 }
 
 /// One administrative request per turn. Sender, capability count, tag and
-/// header are checked before any body byte reaches the persistence codec.
+/// header are checked before request bytes reach the recovery/persistence code.
 fn poll_admin(service: &mut Service, broker: &mut Broker, ingress: &mut AdminIngress) {
     let message = match native::receive(ingress.receive) {
         Ok(message) => message,
@@ -312,15 +311,10 @@ fn poll_admin(service: &mut Service, broker: &mut Broker, ingress: &mut AdminIng
         return;
     };
     let body = &message.payload()[wire::HEADER..wire::HEADER + usize::from(header.length)];
-    let reply = match header.op {
-        wire::EXPORT_PERSISTENT | wire::RESTORE_PERSISTENT => {
-            wire::dispatch_persistent(service, broker, &header, body)
-        }
-        _ => wire::reply(&header, Status::Invalid, &[]),
-    };
+    let mut reply = wire::dispatch_management(service, broker, &header, body);
     let status = Header::decode(&reply).map(|h| h.status);
     if status == Some(Status::Ok.code()) {
-        if header.op == wire::EXPORT_PERSISTENT {
+        if matches!(header.op, wire::EXPORT_PERSISTENT | wire::EXPORT_RECOVERY) {
             ingress.exports = ingress.exports.saturating_add(1);
         } else {
             ingress.restores = ingress.restores.saturating_add(1);
@@ -331,6 +325,7 @@ fn poll_admin(service: &mut Service, broker: &mut Broker, ingress: &mut AdminIng
     evidence(service);
     admin_evidence(ingress);
     send(ingress.reply, &reply);
+    keyring_core::random::clear_bytes(&mut reply);
 }
 
 fn random_evidence(ingress: &RandomIngress) {
@@ -473,85 +468,6 @@ fn poll_random(service: &mut Service, broker: &mut Broker, ingress: &mut RandomI
     send_random(ingress);
 }
 
-fn dispatch(
-    service: &mut Service,
-    broker: &mut Broker,
-    domain: usize,
-    header: &Header,
-    body: &[u8],
-) -> [u8; wire::SIZE] {
-    let Some((low, high)) = wire::body_bounds(header.op) else {
-        return wire::reply(header, Status::Invalid, &[]);
-    };
-    if body.len() < low || body.len() > high || header.status != 0 {
-        return wire::reply(header, Status::Invalid, &[]);
-    }
-    match header.op {
-        wire::STATUS => {
-            let status = wire::status_body(
-                service.state() as u8,
-                service.reason() as u8,
-                [service.keys_created(0), service.keys_created(1)],
-                service.counters.entropy_bytes,
-            );
-            wire::reply(header, Status::Ok, &status)
-        }
-        wire::GENERATE => match service.generate(domain, broker) {
-            Ok(index) => wire::reply(header, Status::Ok, &[index]),
-            Err(status) => wire::reply(header, status, &[]),
-        },
-        wire::SEAL => {
-            let mut out = [0u8; MAX_SEALED];
-            match service.seal(domain, header.index, body, broker, &mut out) {
-                Ok(length) => wire::reply(header, Status::Ok, &out[..length]),
-                Err(status) => wire::reply(header, status, &[]),
-            }
-        }
-        wire::UNSEAL => {
-            let mut out = [0u8; MAX_PLAINTEXT];
-            match service.unseal(domain, header.index, body, broker, &mut out) {
-                Ok(length) => wire::reply(header, Status::Ok, &out[..length]),
-                Err(status) => wire::reply(header, status, &[]),
-            }
-        }
-        wire::SEAL_RECORD | wire::UNSEAL_RECORD => {
-            wire::dispatch_record(service, broker, domain, header, body)
-        }
-        // Persistence is administrative: never reachable from a domain endpoint.
-        wire::EXPORT_PERSISTENT | wire::RESTORE_PERSISTENT => {
-            wire::reply(header, Status::Invalid, &[])
-        }
-        wire::REVOKE => match service.revoke(domain, header.index) {
-            Ok(()) => wire::reply(header, Status::Ok, &[]),
-            Err(status) => wire::reply(header, status, &[]),
-        },
-        wire::EXPORT_RECOVERY => {
-            let mut secret = [0u8; SECRET_BYTES];
-            let mut blob = [0u8; RECOVERY_BLOB];
-            match service.export_recovery(broker, &mut secret, &mut blob) {
-                Ok(()) => {
-                    let mut out = [0u8; SECRET_BYTES + RECOVERY_BLOB];
-                    out[..SECRET_BYTES].copy_from_slice(&secret);
-                    out[SECRET_BYTES..].copy_from_slice(&blob);
-                    wire::reply(header, Status::Ok, &out)
-                }
-                Err(status) => wire::reply(header, status, &[]),
-            }
-        }
-        wire::RESTORE => {
-            let mut secret = [0u8; SECRET_BYTES];
-            let mut blob = [0u8; RECOVERY_BLOB];
-            secret.copy_from_slice(&body[..SECRET_BYTES]);
-            blob.copy_from_slice(&body[SECRET_BYTES..]);
-            match service.restore(&secret, &blob, broker) {
-                Ok(domains) => wire::reply(header, Status::Ok, &[domains as u8]),
-                Err(status) => wire::reply(header, status, &[]),
-            }
-        }
-        _ => wire::reply(header, Status::Invalid, &[]),
-    }
-}
-
 #[no_mangle]
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
@@ -633,7 +549,7 @@ fn main() -> ! {
                 continue;
             };
             let body = &message.payload()[wire::HEADER..wire::HEADER + usize::from(header.length)];
-            let reply = dispatch(&mut service, &mut broker, domain, &header, body);
+            let reply = wire::dispatch_domain(&mut service, &mut broker, domain, &header, body);
             evidence(&service);
             send(reply_to, &reply);
         }
