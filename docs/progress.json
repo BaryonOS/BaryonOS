@@ -8,7 +8,7 @@
     "branch": "coderabbit/issue-283-sdk-dependabot",
     "task": "Refresh PR #285: add monthly Dependabot coverage for the SDK workspace",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. SDK dependency monitoring adds no OS acceptance criterion. Rebased onto current main; local verification pending."
+    "summary": "41/100 remains 41/100. SDK dependency monitoring adds no OS acceptance criterion. Rebased onto current main; preflight, build and QEMU smoke passed locally."
   },
   "tracks": [
     {

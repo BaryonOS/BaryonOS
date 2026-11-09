@@ -2,7 +2,7 @@
 
 ## PR #285 refresh — 9 November 2026
 
-SDK monthly Dependabot coverage is retained on current main. The current documentation hierarchy is preserved. Progress remains 41/100; no new product acceptance. Local preflight, build and smoke verification are pending.
+SDK monthly Dependabot coverage is retained on current main. The current documentation hierarchy is preserved. Progress remains 41/100; no new product acceptance. Local `python tools/preflight.py --strict`, `python tools/build.py`, and `python tools/run.py --smoke` passed (exit 0 each; QEMU raw exit 33, M1:PASS). No physical-hardware acceptance is claimed.
 
 ## NEXT AGENT HANDOFF — documentation hierarchy and governance — 9 November 2026
 
