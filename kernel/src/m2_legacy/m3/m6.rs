@@ -776,8 +776,11 @@ fn cut(s: &State, n: u8) -> bool {
     if (24..=29).contains(&case()) {
         number(b"M6A:CUT:", u64::from(n));
         // Deliberate host-kill rendezvous, no PASS and no fabricated completion.
-        // IF0 prevents scheduling; the harnas must terminate the live QEMU.
+        // IF0 prevents scheduling; the harness must terminate the live QEMU.
         loop {
+            // SAFETY: The kernel owns this CPL0 stack and executes the
+            // intentional fail-stop test path with no scheduled user context.
+            // cli keeps interrupts masked; hlt does not access guest memory.
             unsafe {
                 asm!("cli; hlt", options(nomem, nostack));
             }

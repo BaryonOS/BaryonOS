@@ -143,12 +143,22 @@ impl Firmware {
                 return Err(b"ACPI_CONFIGURATION_TABLE");
             }
             let entries = core::slice::from_raw_parts(system.configuration_table, count);
-            let rsdp = entries
+            // The firmware must expose one unambiguous ACPI 2.0 RSDP.
+            // Reject null pointers and duplicates before accessing the table.
+            let mut rsdp = None;
+            for entry in entries
                 .iter()
-                .find(|entry| entry.vendor_guid == efi::ACPI_20_TABLE_GUID)
-                .map(|entry| entry.vendor_table.cast::<u8>())
-                .filter(|pointer| !pointer.is_null())
-                .ok_or(b"ACPI_RSDP" as Failure)?;
+                .filter(|entry| entry.vendor_guid == efi::ACPI_20_TABLE_GUID)
+            {
+                let pointer = entry.vendor_table.cast::<u8>();
+                if pointer.is_null() {
+                    return Err(b"ACPI_RSDP");
+                }
+                if rsdp.replace(pointer).is_some() {
+                    return Err(b"ACPI_RSDP_DUPLICATE");
+                }
+            }
+            let rsdp = rsdp.ok_or(b"ACPI_RSDP" as Failure)?;
             let rsdp_head = core::slice::from_raw_parts(rsdp, 20);
             if &rsdp_head[..8] != b"RSD PTR " || checksum(rsdp_head) != 0 {
                 return Err(b"ACPI_RSDP_CHECKSUM");
