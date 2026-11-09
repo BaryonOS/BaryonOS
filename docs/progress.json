@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-09",
-    "source_commit": "7ab181606331033f573a1787e4ae593ea4b669d6",
+    "source_commit": "fcaa2ef44b7bdfcabbc6368149105f978cade27a",
     "assessment_basis": "source_commit",
-    "branch": "simonvanieperen-animated-garbanzo",
-    "task": "Integrate PR #155 keyring recovery authorization on current main without replacing existing CI and public documentation",
-    "previous_score": 41,
-    "summary": "41/100 to 39/100: B01 reopened because ordinary applications no longer have recovery authority; management-only recovery is host-tested, not accepted natively. Integrated-head CI/QEMU verification not yet executed."
+    "branch": "simonvanieperen-studious-spoon",
+    "task": "Reconcile PR #154 K06 MADT with isolated experimental M3/M4 SMP, restoring native pressure recovery and separate CI evidence",
+    "previous_score": 39,
+    "summary": "39/100 to 39/100: GitHub QEMU K06 and 15 experimental M3/M4 profiles passed; native system including OOM recovery passed on fcaa2ef. The 17th evidence-invocation contract correction and final-head CI remain pending. K06 and B01 acceptance remain open."
   },
   "tracks": [
     {
