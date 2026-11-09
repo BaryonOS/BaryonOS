@@ -108,7 +108,7 @@ recovery_secret (32 B, uit DRBG) ──XChaCha20-Poly1305(aad = "nieuw-os recove
 ```
 
 | Bereik | Op | Verzoek | Antwoord | Fouten |
-|---|---|---|---|---|---|
+|---|---|---|---|---|
 | App-domein | STATUS | – | state (0 starting, 1 ready, 2 blocked, 3 degraded), reden, aantal sleutels | – |
 | App-domein | GENERATE | – | handle (index 0..15 binnen het domein) | NotReady, Quota (16 per domein) |
 | App-domein | SEAL | handle, plaintext ≤ 128 B | nonce ‖ ciphertext ‖ tag (≤ 168 B) | NotReady, BadHandle, Revoked |
