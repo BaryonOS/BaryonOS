@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "task": "SYSTEM-MATURITY-SMP AP bring-up checkpoint",
+  "source_fingerprint_version": 3,
+  "source_sha256": "9eea5839887a4a891a255de1a704dc38f08872edaae83c7dd890217eefcef454",
+  "source_commit": "63f1da11c6dd510e6ad692fdd20fb454e8fe156c",
+  "branch": "simonvanieperen-studious-spoon",
+  "date_europe_amsterdam": "2026-11-03",
+  "status": "failed",
+  "passed": true,
+  "host": {
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/tests",
+      "-p",
+      "test_smp.py"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.001s\n\nOK\n"
+  },
+  "stages": [
+    {
+      "profile": "single",
+      "kernel_feature": "milestone-m2",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 1.900072813998122,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-single-63f7a55baa",
+      "evidence": null,
+      "error": null
+    }
+  ],
+  "acceptance_boundary": "AP startup and bounded atomic worker smoke only; not full K06 scheduling, IPC, revoke, exit, cross-CPU TLB, or concurrency acceptance.",
+  "error": "CalledProcessError: Command '['/home/simon/.cargo/bin/cargo', '+1.90.0', 'build', '--locked', '--release', '--target-dir', '/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/target', '-p', 'os-kernel', '--target', 'x86_64-unknown-none', '--features', 'native-smp']' returned non-zero exit status 101."
+}

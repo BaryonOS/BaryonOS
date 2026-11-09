@@ -188,6 +188,66 @@ fn verify(f: &Fixture, tolerance: u8, format: Format) {
     );
 }
 
+fn fuzz_limits() -> Limits {
+    Limits {
+        input_bytes: 64 * 1024,
+        width: 193,
+        height: 128,
+        pixels: 193 * 113,
+        work_bytes: 2 * 1024 * 1024,
+        metadata_bytes: 8192,
+        png_chunks: 128,
+        jpeg_scans: 16,
+    }
+}
+
+struct DeterministicRng(u64);
+
+impl DeterministicRng {
+    fn next(&mut self) -> u64 {
+        let mut value = self.0;
+        value ^= value << 13;
+        value ^= value >> 7;
+        value ^= value << 17;
+        self.0 = value;
+        value
+    }
+
+    fn fill(&mut self, bytes: &mut [u8]) {
+        for byte in bytes {
+            *byte = self.next() as u8;
+        }
+    }
+}
+
+fn exercise_bounded_input(input: &[u8], limits: Limits) {
+    assert!(input.len() <= limits.input_bytes);
+    let result = decode(input, limits, &Cancellation::default());
+    if !input.starts_with(b"\x89PNG\r\n\x1a\n") && !input.starts_with(b"\xff\xd8") {
+        assert!(matches!(result, Err(Error::UnknownFormat)));
+        return;
+    }
+
+    if let Ok(image) = result {
+        assert_eq!(image.source, input);
+        assert!(image.width > 0 && image.width <= limits.width);
+        assert!(image.height > 0 && image.height <= limits.height);
+        assert_eq!(
+            image.width * image.height,
+            match &image.pixels {
+                Pixels::Rgba8(samples) => {
+                    assert_eq!(samples.len(), image.width * image.height * 4);
+                    samples.len() / 4
+                }
+                Pixels::Rgba16(samples) => {
+                    assert_eq!(samples.len(), image.width * image.height * 4);
+                    samples.len() / 4
+                }
+            }
+        );
+    }
+}
+
 #[test]
 fn png_real_variants_match_independent_pixels_exactly() {
     for f in pngs() {
@@ -643,6 +703,48 @@ fn deterministic_malformed_mutations_return_or_fail_without_panicking() {
                 data.truncate(index);
             }
             let _ = decode(&data, bounded, &Cancellation::default());
+        }
+    }
+}
+
+#[test]
+fn seeded_bounded_parser_sweep_fails_closed_without_panicking() {
+    const MAX_CASES: usize = 2048;
+    let limits = fuzz_limits();
+    let mut rng = DeterministicRng(0x6e65_7577_6f73_0001);
+
+    let progressive = include_bytes!("../fixtures/progressive.jpg");
+    assert!(decode(progressive, limits, &Cancellation::default()).is_ok());
+    exercise_bounded_input(progressive, limits);
+
+    for _ in 0..MAX_CASES {
+        let length = (rng.next() as usize) % 8193;
+        let mut input = vec![0; length];
+        rng.fill(&mut input);
+        exercise_bounded_input(&input, limits);
+
+        for signature in [b"\x89PNG\r\n\x1a\n".as_slice(), b"\xff\xd8".as_slice()] {
+            let mut parser_input = input.clone();
+            if parser_input.len() < signature.len() {
+                parser_input.resize(signature.len(), 0);
+            }
+            parser_input[..signature.len()].copy_from_slice(signature);
+            exercise_bounded_input(&parser_input, limits);
+        }
+    }
+
+    for original in [
+        include_bytes!("../fixtures/alpha.png").as_slice(),
+        include_bytes!("../fixtures/progressive.jpg").as_slice(),
+    ] {
+        for _ in 0..MAX_CASES / 4 {
+            let mut input = original.to_vec();
+            let index = (rng.next() as usize) % input.len();
+            input[index] ^= 1 << (rng.next() % 8);
+            if rng.next() & 3 == 0 {
+                input.truncate((rng.next() as usize) % input.len());
+            }
+            exercise_bounded_input(&input, limits);
         }
     }
 }

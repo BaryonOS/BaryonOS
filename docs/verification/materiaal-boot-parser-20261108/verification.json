@@ -1,0 +1,65 @@
+{
+  "base_commit": "8c8b528306f9d0e474c6b5d338cead904564c2df",
+  "branch": "ci/materiaal-boot-diagnostics-20261108",
+  "checked_at_utc": "2026-11-08T21:55:27.227110+00:00",
+  "tests": [
+    {
+      "command": "python3 -B tools/tests/test_materiaal_probe.py GrammarTests.test_acpi_boot_prefixes_are_incremental_and_never_finish -v",
+      "source": "new regression fixture with original parser",
+      "exit_code": 1,
+      "expected_result": "reproduces Wrong boot/manifest sequence",
+      "log": "before-fix.txt"
+    },
+    {
+      "command": "python3 -B tools/tests/test_materiaal_probe.py -v",
+      "exit_code": 0,
+      "tests": 30,
+      "log": "after-fix.txt"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_materiaal_cold.py -v",
+      "exit_code": 0,
+      "tests": 17,
+      "log": "cold.txt"
+    },
+    {
+      "command": "python3 tools/progress.py --write",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "review": {
+    "type": "separate AI review with three focused host tests",
+    "result": "no concrete blocking regression found",
+    "source_hashes": {
+      "tools/run_materiaal_probe.py": "1f08b9fc1f1d97c5bb4ea402fb046a8e4285921b6c749804a0238a3c1df479e4",
+      "tools/tests/test_materiaal_probe.py": "d5bd15acff7825549c1c5df4fdc96ec9cd5105fd86a9932dfd974816392f7176"
+    },
+    "limitation": "not a human audit or native VM test"
+  },
+  "native": {
+    "local": "not run; Rust/Cargo/QEMU unavailable",
+    "required_next": "manual materiaal-probe.yml on published branch",
+    "original_failed_run": 42526590198,
+    "original_job": 128871457051
+  },
+  "score": {
+    "previous": 41,
+    "current": 41,
+    "criteria_changed": []
+  },
+  "evidence_sha256": {
+    "original-failure.txt": "4e613ee6242ea317fd3e31d23b0741f17a0540c3b958467be9aa3e6ddff81dd1",
+    "before-fix.txt": "433e3dcec04ba8bbffb743302f2ad3f373673dbb341359268bb9589ce2b88920",
+    "cold.txt": "6e4ceb3cd24bbd9c6e046b5f0ddc24997a143dad6c641e5eb5de01ce3a18aa14",
+    "after-fix.txt": "c349f1255ef0312da4cfd47d30543fc1de8f6775d170befd412a4b8b6d06c3e7",
+    "source-hashes.json": "9709caf40e8c64124813ea508e97e7d2b16c8245c3ed5ae25375e03e8b7b597b"
+  }
+}

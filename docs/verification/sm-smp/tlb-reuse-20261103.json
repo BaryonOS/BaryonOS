@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "task": "SYSTEM-MATURITY-SMP local CR3/TLB process-slot reuse",
+  "implementation_commit": "65b8da607308d7a1766435601d53ac6794ac6881",
+  "runtime_commit": "4f4cbb3b97b6c2a0e1ec2b87dc2e04c163454703",
+  "source_sha256": "1492bba95b43554327f0133bd1f8a702675034e6b96ae64a41396e425a2c5db2",
+  "branch": "simonvanieperen-studious-spoon",
+  "date_europe_amsterdam": "2026-11-03",
+  "acceptance_boundary": "Opt-in 2-CPU process-slot reuse on AP1. Old data VA is unmapped and its frame held until a replacement with the same VA and a different PA exits; this checks local CR3/TLB transition and reuse only, not remote TLB shootdown.",
+  "environment": {
+    "path_prefix": "$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin",
+    "ld_library_path": "/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu",
+    "os_ovmf_code": "/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "os_ovmf_vars": "/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd",
+    "expected_raw_qemu_exit": 33
+  },
+  "build": {
+    "profile": "native-smp-m3-tlb-reuse",
+    "command": "PYTHONPATH=tools python3 -B -c \"from build import build; build(None, 'native-smp-m3-tlb-reuse', 'smp-m3-tlb-reuse')\"",
+    "exit": 0
+  },
+  "host_validation": {
+    "command": "PYTHONPATH=tools python3 -B -m unittest tools/tests/test_smp.py",
+    "exit": 0,
+    "tests": 13
+  },
+  "format_validation": {
+    "command": "$HOME/.cargo/bin/cargo +1.90.0 fmt --manifest-path kernel/Cargo.toml -- --check",
+    "exit": 0
+  },
+  "native_command": "PYTHONPATH=tools python3 -B -c \"from run_smp import run_smp; report=run_smp(2, profile='native-smp-m3-tlb-reuse'); print(report.get('evidence')); raise SystemExit(0 if report['passed'] else 1)\"",
+  "runs": [
+    {
+      "run_directory": "build/run/smp-2-4a44bc83ad",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "per_cpu_process_selections": [7, 9],
+      "process_cleanup_events": [{"slot": 0, "cpu": 1}, {"slot": 0, "cpu": 1}],
+      "stale_mapping_target_retained_until_replacement_exit": true
+    },
+    {
+      "run_directory": "build/run/smp-2-c8021b3972",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "per_cpu_process_selections": [7, 9],
+      "process_cleanup_events": [{"slot": 0, "cpu": 1}, {"slot": 0, "cpu": 1}],
+      "stale_mapping_target_retained_until_replacement_exit": true
+    },
+    {
+      "run_directory": "build/run/smp-2-7937202b0e",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "per_cpu_process_selections": [7, 9],
+      "process_cleanup_events": [{"slot": 0, "cpu": 1}, {"slot": 0, "cpu": 1}],
+      "stale_mapping_target_retained_until_replacement_exit": true
+    }
+  ],
+  "status": "three-targeted-runs-passed; full-matrix-pending"
+}

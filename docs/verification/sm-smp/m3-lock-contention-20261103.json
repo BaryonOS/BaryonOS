@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "task": "SYSTEM-MATURITY-SMP: bounded M3 lock-contention acceptance",
+  "source_commit": "29489a509a487e1b1f87424b3f288d33eec73a5b",
+  "source_sha256": "5d9f0256e588e957826c5a5528913117d3097b9fe8c25180be6ec767aede36aa",
+  "branch": "simonvanieperen-studious-spoon",
+  "date_europe_amsterdam": "2026-11-03",
+  "status": "completed",
+  "passed": true,
+  "acceptance_boundary": "The two-CPU opt-in fixture holds M3Guard on the BSP, schedules the AP, observes failed AP lock acquisitions while the lock is held, then selects the BSP process under the same guard. Both CPUs schedule processes and the guest exits normally. This is bounded contention/progress evidence, not a fairness or starvation bound, general lock proof, or full K06 acceptance.",
+  "host": {
+    "command": "PYTHONPATH=tools python3 -B -m unittest discover -s tools/tests -p test_smp.py",
+    "exit": 0,
+    "tests": 15
+  },
+  "format": {
+    "command": "$HOME/.cargo/bin/cargo +1.90.0 fmt --manifest-path kernel/Cargo.toml -- --check",
+    "exit": 0
+  },
+  "native_command": "PATH=\"$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH\" LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd PYTHONPATH=tools python3 -B -c 'from run_smp import run_smp; reports = [run_smp(2, profile=\"native-smp-m3-lock-contention\") for _ in range(3)]; raise SystemExit(0 if all(r[\"passed\"] for r in reports) else 1)'",
+  "qemu": "/tmp/sm-oom-qemu-root/usr/bin/qemu-system-x86_64",
+  "firmware": {
+    "code": "/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "vars": "/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd"
+  },
+  "runs": [
+    {
+      "raw_qemu_exit": 33,
+      "duration_s": 5.6299,
+      "lock_contention_attempts": 58034,
+      "run_directory": "build/run/smp-2-5e9e2c2dfb"
+    },
+    {
+      "raw_qemu_exit": 33,
+      "duration_s": 5.6714,
+      "lock_contention_attempts": 59255,
+      "run_directory": "build/run/smp-2-4ef6da18ed"
+    },
+    {
+      "raw_qemu_exit": 33,
+      "duration_s": 5.6624,
+      "lock_contention_attempts": 60484,
+      "run_directory": "build/run/smp-2-66d4c2825f"
+    }
+  ],
+  "iteration_note": "An earlier fixture attempt exited raw 35 with M2:FAIL:KERNEL_EXCEPTION because BSP process selection happened after releasing M3Guard. The test sequence was corrected to select BSP under the same guard used to schedule APs; the three recorded native runs are after that correction."
+}

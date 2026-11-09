@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "branch": "simonvanieperen-studious-spoon",
+  "source_commit": "115f0a6af0a0ecb32c146c39916e3e73861cab5f",
+  "scope": "Standalone no_std journal primitive and external host consumer API tests; not kernel/runtime integration or product acceptance.",
+  "source_sha256": {
+    "crates/system-journal/Cargo.toml": "379c90631f4f828015ffb0d06c0dffa0286d8414b735020759ba84959cc5420c",
+    "crates/system-journal/Cargo.lock": "547e135f03490fcd661deba8884f009c11bea9f8265d7f94029423e811c4dd8a",
+    "crates/system-journal/src/lib.rs": "379605a90e592c982b318e664e49ff042c668d92061509d21327d582017d6a64",
+    "crates/system-journal/tests/consumer.rs": "4f32a69421168450e370ac70b4401884a2f90cd0e281dcf30338157b4b72db15",
+    "crates/system-journal/README.md": "cb7a507aec10186b108edbe1e89c060cbe674f1a4e9bcd5ed610503c44e8b684"
+  },
+  "environment": "Rust 1.90.0; PATH was prefixed with /tmp/nieuw-os-c-toolchain/bin and $HOME/.cargo/bin; CARGO_TARGET_DIR=/tmp/nieuw-os-system-journal-target. No dependencies.",
+  "checks": [
+    {
+      "command": "cargo +1.90.0 fmt --manifest-path crates/system-journal/Cargo.toml -- --check",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-system-journal-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "cargo +1.90.0 test --manifest-path crates/system-journal/Cargo.toml --offline --locked",
+      "exit_code": 0,
+      "results": "7 external-consumer tests passed; no failures.",
+      "log": "/tmp/nieuw-os-system-journal-test.log",
+      "log_sha256": "f1a015f7daa85ab27edaaad91fbcd484df2edb9e4e498e02d18440722a4b75d3"
+    },
+    {
+      "command": "cargo +1.90.0 clippy --manifest-path crates/system-journal/Cargo.toml --all-targets --offline --locked -- -D warnings",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-system-journal-clippy.log",
+      "log_sha256": "4feb060ad522abd434ac720c46bf2fbf8fee00b02f0087ff1b982f6d70abe872"
+    },
+    {
+      "command": "cargo +1.90.0 check --manifest-path crates/system-journal/Cargo.toml --target x86_64-unknown-none --offline --locked",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-system-journal-none.log",
+      "log_sha256": "d75fd0f2e4a62cad560dccf2d9118ca73d0bdb91c0b995c447f73b389bd154dd"
+    }
+  ],
+  "implemented": [
+    "Fixed-capacity ring with overwrite-oldest policy and saturating write/overwrite/drop/rejection counters.",
+    "Typed severity, subsystem, producer, event, correlation, and allowlisted metadata; no text or arbitrary byte payload field.",
+    "Per-producer Debug/Info rate limiting; Warning and higher bypass it.",
+    "Reader permits scoped to a journal identity and explicit subsystem allowlist; admin-only accounting snapshot.",
+    "Monotonic timestamp validation and optional wall timestamp."
+  ],
+  "limitations": [
+    "The crate is deliberately standalone and is not in the root workspace; root manifest, kernel, SDK, and owned service code were not changed.",
+    "This is an in-memory host-tested primitive, not durable storage, native OS enforcement, a kernel panic recorder, or a connected system-wide consumer.",
+    "Typed metadata prevents free-form payload logging, but cannot prevent a trusted producer from deliberately encoding sensitive values into numeric fields.",
+    "No maturity rubric criterion was closed; product score remains unchanged."
+  ],
+  "blocked_next": "SERVICE LIFECYCLE requires root/kernel/runtime paths. docs/WORK-QUEUE.md assigns shared root/runtime responsibility to REL4 and excludes new root writers; continue with CRASH DIAGNOSTICS only in a free independent crate, without kernel panic persistence."
+}

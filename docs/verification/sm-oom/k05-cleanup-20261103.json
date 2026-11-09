@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "task": "SM-OOM-1 K05 cleanup regression",
+  "status": "passed",
+  "source_commit": "ce1c5e7f7fae67b4f07b3eed65f04c21b90a21bd",
+  "source_fingerprint_version": 3,
+  "source_sha256": "9a170636a33e2761abcd191f19e0166f4f7282d67bd53e1cb0c3a5283130094c",
+  "command": "PATH=\"$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH\" LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_supervisor.py",
+  "exit": 0,
+  "host": [
+    {
+      "command": "cargo +1.90.0 test --locked -p capability-core",
+      "exit": 0,
+      "result": "72 passed, 1 ignored; native_wait 7 passed; window_retirement 3 passed"
+    },
+    {
+      "command": "cargo +1.90.0 test --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime",
+      "exit": 0,
+      "result": "16 unit + 14 message + 3 process + 4 TLS-time + 3 doc tests passed"
+    },
+    {
+      "command": "cargo +1.90.0 test --locked --manifest-path sdk/Cargo.toml -p nieuw-os-supervisor-example --lib",
+      "exit": 0,
+      "result": "1 passed"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_supervisor_*.py'",
+      "exit": 0,
+      "result": "8 passed"
+    }
+  ],
+  "qemu": {
+    "version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)",
+    "machine": "pc-q35-8.2",
+    "cpu": "qemu64",
+    "acceleration": "TCG single-threaded",
+    "smp": 1,
+    "binary_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+    "ovmf_code_sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "ovmf_vars_template_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "provisioning": "Official Ubuntu packages extracted under /tmp; no system package installation."
+  },
+  "stages": [
+    {
+      "case": "normal",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 2.0937970769991807,
+      "result_sha256": "2043d817ce27f7968cd14ead351b853ccd1d4f3920f28a6c2b03908c35e2b1e1",
+      "serial_sha256": "dd1fa4e4ba94be04cfa05dfc5a4206b81995ee3b6bc4acdbc72b282f9e8f15aa"
+    },
+    {
+      "case": "crash",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 2.0505136439969647,
+      "result_sha256": "343ccd60cd7a73aa7ad002150cb276a2489ae7f16573e8557e0c56d0f835ad4c",
+      "serial_sha256": "84d89b18645a5755018529815ef56e9a34704417d3f969eb4957b29a0d9a0126"
+    },
+    {
+      "case": "denied",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 1.9691642780016991,
+      "result_sha256": "8b3639958d111b28b0f212ada70baef0586624cbbb7de580fc0d1d605283c750",
+      "serial_sha256": "8fc4495161f0ddd3f1328a8f46ee03eee51236ed26211207b5ddf87978f9d85d"
+    },
+    {
+      "case": "parent-exit",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 1.9758376990030229,
+      "result_sha256": "d6e35a0bbaf0ffe53f343e898ebd8a2b464b8cfeabe63e32fb09de938f5d04a1",
+      "serial_sha256": "e1a6b41677ff35f8f1af09edd33bcc839e9ab6f152ad1b076754a7b9c15e2147"
+    },
+    {
+      "case": "quota",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 2.234562490000826,
+      "result_sha256": "8aaeadbdcdaed62db574274d1bb4905165704f683e98e3c6a3d3513f30d08455",
+      "serial_sha256": "538d5b666a502a924331bd691f05c045be04222f369527a2539de56ca056231d"
+    },
+    {
+      "case": "wait",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 2.9196198120007466,
+      "result_sha256": "e5312462eb9c605aac7dd19d76c479336b3828b5ef543f7db87acd1b0be32d93",
+      "serial_sha256": "9fdcce4e3e6b6301fb490466b50e1eeda95d729b3957fec40609722f4d1e4996",
+      "wait_evidence": {
+        "waiting_kills": 2,
+        "waiting_reuses": 1,
+        "wait_calls": 4,
+        "wait_blocked": 4,
+        "wait_timeouts": 2,
+        "wait_idle_irqs": 84
+      }
+    }
+  ],
+  "gate_report": {
+    "path": "build/supervisor-gate.json",
+    "sha256": "1b6cd80d5ebff6f5a50101b041c597a76d96f4dc53df6314f299f38d3bb510dd",
+    "stdout_log": "/tmp/sm-oom-k05-regression-ce1c5e7.log",
+    "stdout_log_sha256": "96ceb30153d1c3f7ccce819e0d40625d06899763bc90061ccc163db20037c2db"
+  },
+  "notes": [
+    "All six pre-existing K05 QEMU cases passed with expected exit 33.",
+    "A pre-existing dead_code warning for Denied(u64, u64) was emitted during supervisor build; unrelated to this task and not changed.",
+    "QEMU stderr included a kvmvapic.bin lookup message; it did not prevent any guest from passing the existing strict harness."
+  ],
+  "scope": "K05 regression evidence only; not a new supervisor integration or full-release claim."
+}

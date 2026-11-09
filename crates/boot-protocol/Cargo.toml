@@ -6,3 +6,7 @@ publish = false
 
 [lib]
 path = "src/lib.rs"
+
+[features]
+default = []
+smp-legacy-wire = []

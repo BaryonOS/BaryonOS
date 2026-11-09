@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-05",
+  "branch": "copilot/driver-usb-hid-control",
+  "merge_commit": "643a5a862173df976f152a9e55a83d9ab7730f53",
+  "pull_request_head": "222e675ba5365be4b257c118a8d7cc704a7c5aad",
+  "base_commit": "c2c29c5f06d9aaf8f41055acdefc14a77cf8ef77",
+  "result": "13/13 QEMU/TCG cases passed across eight profiles",
+  "environment": {
+    "qemu": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)",
+    "machine": "pc-q35-8.2",
+    "firmware": "OVMF 4M",
+    "acceleration": "TCG, single thread"
+  },
+  "scope": "BSP/AP bring-up, per-AP TSS/IST, bounded unicast IPIs and sync self-test; no SMP scheduler, TLB-shootdown or physical-hardware evidence. Guest logs report ACPI:UNAVAILABLE:NO_DMAR.",
+  "commands": [
+    "NOS_BUILD_DIR=build/k06-native-smp python3 -B tools/build.py --kernel-feature native-smp",
+    "python3 -B -u tools/run_smp.py --profile native-smp",
+    "python3 -B -u tools/run_smp.py --profile test-smp-ap-stall",
+    "python3 -B -u tools/run_smp.py --profile test-smp-ap-mismatch",
+    "python3 -B -u tools/run_smp.py --profile test-smp-ap-ipi-deaf",
+    "python3 -B -u tools/run_smp.py --profile test-smp-ap-nmi",
+    "python3 -B -u tools/run_smp.py --profile test-smp-ap-double-fault",
+    "python3 -B -u tools/run_smp.py --profile test-smp-ap-shootdown-deaf",
+    "python3 -B -u tools/run_smp.py --profile test-smp-shootdown-skipped"
+  ],
+  "reports": [
+    {
+      "profile": "native-smp",
+      "cases": ["one", "two-single", "four", "eight", "nine-capacity", "duplicate-madt"],
+      "path": "build/k06-native-smp/smp-report.json",
+      "sha256": "be9131f96b6bdd41394400a7a3e40909050f4155f1b7457e1ffb9d9a5ecc4333"
+    },
+    {
+      "profile": "test-smp-ap-stall",
+      "cases": ["ap-stall"],
+      "path": "build/k06-test-smp-ap-stall/smp-report.json",
+      "sha256": "2d886de7c0f7fbbd94f99f7d3590efb5cdf6472c3ec94b0cca808f574ad3a6a2"
+    },
+    {
+      "profile": "test-smp-ap-mismatch",
+      "cases": ["ap-mismatch"],
+      "path": "build/k06-test-smp-ap-mismatch/smp-report.json",
+      "sha256": "31e32ce17f0ca819719f87293af9613e4ae4da6556c7f2dba8951dd5727dc798"
+    },
+    {
+      "profile": "test-smp-ap-ipi-deaf",
+      "cases": ["ap-ipi-deaf"],
+      "path": "build/k06-test-smp-ap-ipi-deaf/smp-report.json",
+      "sha256": "879a940bd342170b73dbacc3fde43d29e6a67116cb66275db74ea5ec752c73e3"
+    },
+    {
+      "profile": "test-smp-ap-nmi",
+      "cases": ["ap-nmi-ist"],
+      "path": "build/k06-test-smp-ap-nmi/smp-report.json",
+      "sha256": "07b59d6d2c5583c13c22d1e997fe7e6aaf4097e1c02150b5769644d8e0413833"
+    },
+    {
+      "profile": "test-smp-ap-double-fault",
+      "cases": ["ap-double-fault-ist"],
+      "path": "build/k06-test-smp-ap-double-fault/smp-report.json",
+      "sha256": "c3c72d3bb7e2a48e5de9bfd9a0c3e898a9a4dfadad73917a5902be39f603c4b0"
+    },
+    {
+      "profile": "test-smp-ap-shootdown-deaf",
+      "cases": ["ap-shootdown-deaf"],
+      "path": "build/k06-test-smp-ap-shootdown-deaf/smp-report.json",
+      "sha256": "803ba86333efb037997143bfa908ce759780c4d1994e6bc02f83a21289041d9b"
+    },
+    {
+      "profile": "test-smp-shootdown-skipped",
+      "cases": ["shootdown-skipped-control"],
+      "path": "build/k06-test-smp-shootdown-skipped/smp-report.json",
+      "sha256": "fca1d39e947e53dbbac1f865f2e078cd27aa4dd7a4c79c03956156ec97be136b"
+    }
+  ],
+  "evidence_limit": "The raw reports are local build outputs and are not committed; their hashes are recorded here. This receipt does not establish physical-device behavior or additional product acceptance."
+}

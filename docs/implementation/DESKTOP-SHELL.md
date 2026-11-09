@@ -1,9 +1,11 @@
 # Bureaublad, taakbalk en zoeken — ontwerp
 
-Datum: 30 oktober 2026. Status: **ontwerp** volgens gebruikersbesluit
-ADR-058 in [DECISIONS.md](../DECISIONS.md). Er is nog geen code voor deze
-shell en niets native getest. Bronbasis: main `c0b7147b`.
-Voortgangsvoorstel: **34% → 34%**; dit document sluit geen criterium.
+Original design: 30 October 2026 (ADR-058). Status as of 9 November 2026:
+**design** (§§1–5); **host-rendered implementation** (§7, `ui/graphics` and
+`ui/native`, PR #214). There is no new native QEMU evidence for the Horizon
+appearance and no measured usability study. The accepted progress remains
+**39/100**; no additional criterion is accepted by this change.
+Design source: [DECISIONS.md](../DECISIONS.md), ADR-058.
 Inloggen en gebruikers: [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md).
 
 ## 1. Doel
@@ -36,8 +38,8 @@ Regels:
 | Onderdeel | Gedrag | Keuze waar platforms verschillen |
 |---|---|---|
 | Bureaublad | Achtergrond; optioneel snelkoppelingen; rechtermuisklik: nieuw document, achtergrond wijzigen, beeldscherminstellingen | Standaard leeg bureaublad met alleen achtergrond |
-| Taakbalk | Startknop, zoekveld, vastgemaakte en geopende apps met indicator, systeemvak, klok/datum, meldingen | Onderaan, apps gecentreerd; links uitlijnen instelbaar |
-| Startmenu | Zoekveld bovenaan (direct typen zoekt), vastgemaakte apps, alle apps, recente bestanden, gebruiker en aan/uit-menu | Opent met de OS-toets of de startknop |
+| Orbit (dock) | Zenit-knop (eigen horizon-merkteken, geen "Start"), Signaal (zoeken), vastgemaakte en geopende apps met indicator, systeemvak, klok/datum, meldingen | Compacte zwevende capsule onderaan, gecentreerd; plek blijft herkenbaar |
+| Zenit (launcher) | Zoekveld bovenaan (direct typen zoekt), vastgemaakte apps, alle apps, recente bestanden, gebruiker en aan/uit-menu | Opent met de OS-toets of het merkteken in Orbit |
 | Zoeken | Apps, instellingen en eigen bestanden, lokaal geïndexeerd; resultaten direct bij typen | Geen internetzoekopdracht standaard; alleen als de gebruiker dat aanzet en een zoekdienst kiest |
 | Vensters | Titelbalk met minimaliseren, maximaliseren en sluiten; slepen; vergroten via randen; dubbelklik op titelbalk maximaliseert | Knoppen rechts |
 | Venster schikken | Slepen naar rand of hoek, of OS-toets+pijl, zet venster op helft of kwart | — |
@@ -57,12 +59,12 @@ Regels:
 | Ctrl+Z / Ctrl+Y | Ongedaan maken / opnieuw |
 | Ctrl+S, Ctrl+A, Ctrl+F, Ctrl+P | Opslaan, alles selecteren, zoeken, afdrukken |
 | Alt+Tab, Alt+F4 | Wisselen, venster sluiten |
-| OS-toets | Startmenu met zoeken |
+| OS-toets | Zenit met Signaal |
 | OS-toets+E / +I / +L / +D | Bestanden / Instellingen / vergrendelen / bureaublad tonen |
 | Ctrl+Alt+Delete | Vertrouwd systeemscherm (vergrendelen, wisselen, afmelden, taakbeheer) |
 | Ctrl+Shift+Esc | Taakbeheer |
 
-Met "OS-toets" bedoelen we de toets met het logo, ook wel Super-toets
+Met "OS-toets" wordt de toets met het logo bedoeld, ook wel Super-toets
 genoemd. Op Mac-toetsenborden geldt Cmd als OS-toets.
 
 ## 3. Huidige native basis en wat ontbreekt
@@ -108,6 +110,81 @@ browsermock of schermontwerp is productbewijs, geen systeembewijs.
 
 ## 6. Bewijsgrens
 
-Dit is een ontwerp. Het bewijst geen werkende shell, geen gebruiksgemak en
-geen gelijkwaardigheid met bestaande platforms. Herkenbaarheid wordt pas
-geclaimd na gemeten taakproeven (U06).
+Sections 1–5 describe the intended interaction design. Section 7 records a
+host-rendered desktop implementation. Its fixtures and unit tests do not
+demonstrate native Horizon execution, consumer usability, or feature parity
+with another operating system. Familiarity requires measured user-task trials
+(U06).
+
+## 7. Uiterlijk 2030 — "Horizon" (5 november 2026)
+
+Status: **host-gerenderd** via de bestaande desktopfixtures in `ui/native`
+(768×536, 1280×720, 1920×1080); geen nieuw native QEMU-bewijs en geen gemeten
+gebruiksproef.
+
+Gebruikersbesluit (Simon, 5 november 2026): geen "Start"-knop of een icoon
+dat aan een bestaand OS-logo doet denken, en geen vorm die aanvoelt als een
+opgepimpte klassieke taakbalk. De **plek** van de bediening blijft herkenbaar
+(onderaan, zoeken, apps, afmelden); vorm, naam en lichtbeeld zijn eigen.
+
+Ontwerptaal "Horizon":
+
+- **Licht als materiaal.** Achtergrond: een donkere hemel boven de oplichtende
+  rand van een planeet, met atmosfeerlicht, een iris-waas en spaarzame
+  sterren. De rand wordt met 1/16-pixelprecisie berekend, zodat hij ook op
+  FHD-, QHD- en 4K-schermen strak blijft. Alleen gehele getallen, dus elke
+  tegel rendert identiek.
+- **Zwevend glas met lichtrand.** Oppervlakken zijn donker doorschijnend glas
+  met een fijne rand en een highlight van boven (`rim`). Er zijn geen witte
+  formulierkaarten.
+- **One command dock, not a taskbar.** A centered capsule contains the
+  original Zenit horizon mark, compact Signaal search, pinned Nebula and
+  power. The privacy light is visual status only. The running-app light
+  strip is **planned**, not currently visible: opening Nebula switches
+  to the Material page, where Orbit is not rendered.
+- **Privacy als licht, niet als pop-up.** Een rustige mintgroene gloed
+  "Lokaal" in het dock. Hij is geen bedieningselement en vraagt niets. Hij zegt
+  alleen wat waar is in deze VM-sessie: je werkruimte staat op dit apparaat.
+  Mint betekent overal "blijft bij jou". De volledige indicator uit §4 wacht op
+  een capabilitybron.
+- **Gecentreerde compositie** voor grote schermen: "Verder waar je was" als
+  eerste blik, in plaats van een paneel linksboven.
+
+Bewust nog niet gedaan:
+
+- een klok of datum: de UI heeft geen tijdbron;
+- nep-apps in het overzicht;
+- animatie;
+- schaal boven 2×: 8K heeft een 4×-letteratlas nodig, en de renderer kent nu
+  drie lettergroottes bij 1× en 2×;
+- grote displaytypografie: die vraagt een extra atlasgrootte.
+
+### Namen (gebruikersbesluit 5 november 2026, familie "Kosmos")
+
+Alleen de zichtbare namen veranderen; code-identifiers en documentnamen
+(`Materiaal`, `nieuw_os_materiaal`) blijven staan om churn te voorkomen.
+
+| Bekend als | Nieuw OS | Status |
+|---|---|---|
+| Bureaublad / startscherm | **Horizon** | Zichtbaar in de VM-shell |
+| Taakbalk / dock | **Orbit** | Zichtbaar (compacte capsule) |
+| Start / launcher | **Zenit** | Zichtbaar (merkteken, label) |
+| Verkenner / bestanden (was Materiaal) | **Nebula** | Zichtbaar in shell en app |
+| Zoeken | **Signaal** | Zichtbaar (knop en zoekpaneel) |
+| Instellingen | **Kern** | Nog geen app |
+| Store | **Haven** | Nog geen app |
+
+### Richting: wat een OS van 2030 de consument moet geven
+
+| Wat mensen nu missen | Antwoord in Nieuw OS | Bouwsteen |
+|---|---|---|
+| Privacy kost tientallen instellingen en cookie-achtige pop-ups | Privacy staat standaard aan; rechten worden één keer per **object en gevolg** gekozen bij installeren of koppelen, daarna stil; een permanente lichtstatus in het dock in plaats van meldingen | Capabilities, §4 privacy-indicator |
+| Werk is verspreid over apps, cloud en mappen | Eén commandoveld voor apps, materiaal en acties, lokaal geïndexeerd; "Verder waar je was" als startpunt | D4, Materiaal |
+| "Waar is mijn versie van gisteren?" | Geschiedenis per bestand, terugzetten vanuit Bestanden | Materiaal-revisies |
+| Een tweede apparaat betekent een cloudaccount | Verder werken via de eigen NAS, end-to-end versleuteld | NAS-sync |
+| AI-assistenten sturen data naar de cloud | Lokale assistent in het commandoveld, zonder netwerkrecht | FR-L01/L02 |
+| Hoge-resolutieschermen zien er wazig of te klein uit | Vectorachtige, integer-exacte rendering; schaal 1×/2× nu, 3×/4× (8K) als volgende stap | Letteratlas, D6 |
+| Updates en fouten voelen eng | Ongedaan maken van updates en duidelijke herstelroutes | Signed updates, herstel |
+
+"Voelt futuristisch" en gebruiksgemak blijven hypotheses tot de taakproef
+(U06).

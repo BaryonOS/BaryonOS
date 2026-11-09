@@ -1,4 +1,4 @@
-//! Shared warm paper, ink and iris colors. The native desktop is flat graphite.
+//! Shared warm paper, ink and iris colors. The desktop wallpaper is a horizon.
 //! Consumers may pass different palettes; these do not confer trusted UI rights.
 use crate::{blend, Canvas, Rect};
 #[derive(Clone, Copy, Debug)]
@@ -29,10 +29,25 @@ pub const MATERIAAL: Palette = Palette {
 pub const DIVIDER: u32 = 0xdeddd6;
 pub const SHELL_TEXT: u32 = 0xf0eee8;
 pub const SHELL_MUTED: u32 = 0xaaa9b2;
+/// Soft radial light: `max` at the centre, fading to 0 at `radius2` (squared).
+fn glow(x: i64, y: i64, cx: i64, cy: i64, radius2: i64, max: i64) -> u8 {
+    let d = (x - cx).pow(2) + (y - cy).pow(2);
+    ((radius2 - d).max(0) * max / radius2) as u8
+}
+/// Horizon: a dark sky over the lit rim of a planet, with atmosphere light,
+/// an iris haze and sparse stars. Integer-only, so every tile is identical.
 pub fn wallpaper(canvas: &mut Canvas<'_>, screen: Rect, p: Palette) {
     if screen.width == 0 || screen.height == 0 {
         return;
     }
+    let (w, h) = (i64::from(screen.width), i64::from(screen.height));
+    let (cx, cy, radius) = (w / 2, h * 12 / 5, h * 7 / 4);
+    let rim = (h / 360).max(1);
+    // Every fade remains defined, including on screens only one pixel high.
+    let upper_haze = (h / 3).max(1);
+    let thin_haze = (h / 40).max(1);
+    let planet_fade = (h / 7).max(1);
+    let glow_radius2 = ((h * h) / 3).max(1);
     let b = canvas.bounds();
     for dy in 0..b.height {
         for dx in 0..b.width {
@@ -41,19 +56,49 @@ pub fn wallpaper(canvas: &mut Canvas<'_>, screen: Rect, p: Palette) {
             if !screen.contains(x, y) {
                 continue;
             }
-            let nx = ((i64::from(x) - i64::from(screen.x)) * 1024 / i64::from(screen.width)) as u32;
-            let ny =
-                ((i64::from(y) - i64::from(screen.y)) * 1024 / i64::from(screen.height)) as u32;
-            let base = blend(
-                p.desktop_end,
-                p.desktop_start,
-                ((nx * 75 + ny * 110) / 1024) as u8,
+            let (px, py) = (
+                i64::from(x) - i64::from(screen.x),
+                i64::from(y) - i64::from(screen.y),
             );
-            let dist = u64::from(nx.abs_diff(790)).pow(2) + u64::from(ny.abs_diff(160)).pow(2);
-            let haze = (700_000u64.saturating_sub(dist) * 68 / 700_000) as u8;
-            let curve = i64::from(ny) * 2 + i64::from(nx) * i64::from(nx) / 1024 - 1450;
-            let ribbon = (180i64.saturating_sub(curve.abs()).max(0) * 25 / 180) as u8;
-            canvas.pixel(x, y, blend(0xa6afa5, blend(p.glow, base, haze), ribbon));
+            // Distance in 1/16 px keeps the thin rim line antialiased.
+            let fine = ((px - cx).pow(2) * 256 + (py - cy).pow(2) * 256)
+                .unsigned_abs()
+                .isqrt() as i64
+                - radius * 16;
+            let d = fine / 16;
+            let c = if d > 0 {
+                // Sky: near-black above, the deep token blue towards the horizon.
+                let mut c = blend(
+                    p.desktop_start,
+                    0x01040a,
+                    (255 - (d * 255 / h).min(255)) as u8,
+                );
+                c = blend(p.glow, c, glow(px, py, w / 6, h * 3 / 5, glow_radius2, 120));
+                c = blend(
+                    0x1fa58f,
+                    c,
+                    ((upper_haze - d).max(0) * 170 / upper_haze) as u8,
+                );
+                c = blend(
+                    0x7fe6cf,
+                    c,
+                    ((thin_haze - d).max(0) * 150 / thin_haze) as u8,
+                );
+                let hash = ((px * 73_856_093) ^ (py * 19_349_663)).rem_euclid(1_543);
+                if hash == 0 && d > h / 4 {
+                    c = blend(0xffffff, c, (90 + (px + py).rem_euclid(120)) as u8);
+                }
+                c
+            } else {
+                // Planet: almost black, faintly lit just under the rim.
+                blend(
+                    0x0d3036,
+                    0x02060b,
+                    ((planet_fade + d).max(0) * 200 / planet_fade) as u8,
+                )
+            };
+            let line = ((rim * 32 - fine.abs()).max(0) * 255 / (rim * 32)) as u8;
+            canvas.pixel(x, y, blend(0xe6fff8, c, line));
         }
     }
 }

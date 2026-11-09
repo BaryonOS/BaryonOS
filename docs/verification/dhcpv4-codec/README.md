@@ -15,8 +15,8 @@ Bronfingerprint v3: `f5c4968216a35c4fab9f85d3c9c34729c5e667cf5a0066561f067ba5c45
 
 ## Hosttests en omgeving
 
-De projecttoolomgeving had geen `cc`. Zonder omgevingswijziging installeerde
-ik niets globaal: GCC 13.4.0 en de benodigde Ubuntu 26.04 `libc`/GCC-pakketten
+De projecttoolomgeving had geen `cc`. Er is geen globale installatie of
+omgevingswijziging uitgevoerd: GCC 13.4.0 en de benodigde Ubuntu 26.04 `libc`/GCC-pakketten
 zijn alleen naar `/tmp/nieuw-os-dhcp-hostcc/` gedownload en daar uitgepakt.
 De C-linkerprobe slaagde en de DHCP-testgroep is uitgevoerd met Rust 1.90.0.
 Deze tijdelijke toolchain is geen Nieuw-OS-runtimeafhankelijkheid.

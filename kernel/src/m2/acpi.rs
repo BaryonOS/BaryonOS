@@ -96,6 +96,8 @@ fn discover_tables(
     };
     let mut reader = FirmwareReader { paging, map };
     acpi::discover_into(&handoff, &mut reader, scratch, result);
+    #[cfg(feature = "native-acpi-s5")]
+    super::power::snapshot(&mut reader, result.fadt);
 }
 
 /// A rejected handoff validates to an error: RejectedHandoff, no reads.

@@ -17,7 +17,7 @@
     "repository_visibility": "private",
     "root_license_plan": "LICENSE-PLAN.md",
     "root_license_file_present": false,
-    "public_direction": "Door Simon bevestigd in deze opdracht",
+    "public_direction": "Openbare ontwikkeling expliciet bevestigd in de opdracht van 8 november 2026",
     "license_baseline": "MPL-2.0 voor eigen OS-code; nog niet toegepast",
     "hosted_runner_migration_pr": 249
   },

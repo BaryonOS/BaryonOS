@@ -18,7 +18,8 @@ import sys
 import time
 import uuid
 
-from common import ROOT, BUILD, environment, firmware, qemu_machine, sha256, source_hash
+from common import (ROOT, BUILD, environment, firmware, qemu_machine, sha256,
+                    source_hash, with_acpi_markers)
 from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json, load_json
 from run_graphics import Qmp, QmpPipe, ppm, changed_bounds
@@ -99,14 +100,15 @@ def transcript(raw: bytes, case="normal", *, final=False) -> dict:
     result = {"gates": [], "snapshots": [], "exits": [], "barrier": None, "controller_released": False,
               "final": {}, "finished": False, "pending_record": pending_record}
     if BOOT[0] not in lines:
-        require(not final and not any(re.search(r"(?:BOOT:|BOOTINFO:|KERNEL:|KS-|M[0-9]+:|MATERIAAL:)", s) for s in lines),
+        require(not final and not any(re.search(r"(?:BOOT:|BOOTINFO:|KERNEL:|KS-|M[0-9]+:|MATERIAAL:|ACPI:|DEVICE-EXECUTION:)", s) for s in lines),
                 "Native marker before boot handoff or missing boot")
         return result
     start = lines.index(BOOT[0])
-    require(not any(re.search(r"(?:BOOT:|BOOTINFO:|KERNEL:|KS-|M[0-9]+:|MATERIAAL:)", s) for s in lines[:start]),
+    require(not any(re.search(r"(?:BOOT:|BOOTINFO:|KERNEL:|KS-|M[0-9]+:|MATERIAAL:|ACPI:|DEVICE-EXECUTION:)", s) for s in lines[:start]),
             "Native marker before handoff")
     lines = lines[start:]
-    opening = BOOT + ("MATERIAAL:MANIFEST:PASS",)
+    # Keep the exact ACPI pair in the grammar, including partially read records.
+    opening = with_acpi_markers(BOOT) + ("MATERIAAL:MANIFEST:PASS",)
     require(tuple(lines[:len(opening)]) == opening[:len(lines)], "Wrong boot/manifest sequence")
     if len(lines) < len(opening):
         require(not final, "Truncated boot")
