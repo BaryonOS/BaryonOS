@@ -15,6 +15,7 @@ import re
 import shutil
 import stat
 import subprocess
+import sys
 import time
 import uuid
 
@@ -57,20 +58,44 @@ def switcher_matches(raw: bytes, expected: bytes, scale: int) -> bool:
             and crop(raw, bounds) == ppm(expected)[2])
 
 
+def consecutive_image_matcher():
+    """Return a predicate that accepts two consecutive identical images."""
+    previous = [None]
+
+    def matches(image: bytes) -> bool:
+        """Record one full image and compare it with the preceding capture."""
+        stable = previous[0] is not None and image == previous[0]
+        previous[0] = image
+        return stable
+
+    return matches
+
+
 def switcher_key_edge(control, move, current, physical: str, down: bool, scale: int):
-    """Acknowledge prior input before checking a key and two pointer events."""
+    """Bind a key edge to an acknowledged marker and two pointer events."""
     width, _, _, _, _ = switcher_geometry(scale)
-    move(width - 22, 50 * scale)
-    before = current()["INPUT"]
+    y = 50 * scale
+    start = current()
+    if (start.get("POINTER_X"), start.get("POINTER_Y")) != (width - 20, y):
+        move(width - 20, y)
+        start = current()
+    # This one-event pointer marker is ordered after earlier input. Its exact
+    # counter delta prevents a delayed earlier increment from masking a lost key.
+    move(width - 22, y)
+    marker = current()
+    if (marker.get("INPUT") != start.get("INPUT", -2) + 1
+            or (marker.get("POINTER_X"), marker.get("POINTER_Y")) != (width - 22, y)):
+        raise ValueError("Missing ordered switcher input marker")
+    before = marker["INPUT"]
     control.command("input-send-event", {"events": [
         {"type": "key", "data": {"down": down, "key": {"type": "qcode", "data": physical}}}]})
     # Main's probe samples pointer changes, but does not publish every isolated
     # key edge. Two acknowledged header moves form an ordered input barrier.
-    move(width - 21, 50 * scale)
-    move(width - 20, 50 * scale)
+    move(width - 21, y)
+    move(width - 20, y)
     after = current()
     if (after["INPUT"] != before + 3
-            or (after["POINTER_X"], after["POINTER_Y"]) != (width - 20, 50 * scale)):
+            or (after["POINTER_X"], after["POINTER_Y"]) != (width - 20, y)):
         raise ValueError("Missing ordered switcher input barrier")
 
 
@@ -80,15 +105,14 @@ def generate_switcher_fixture(directory: Path, image: bytes, scale: int) -> dict
     if ppm(image)[:2] != (width, height):
         raise ValueError("Wrong native backing capture dimensions")
     backing = array("I", [0]) * SWITCHER_MAX_PIXELS
+    if backing.itemsize != 4:
+        raise ValueError("Host cannot encode 32-bit backing")
     offset = 0
     for rectangle in (body, calc):
         pixels = crop(image, rectangle)
         for at in range(0, len(pixels), 3):
             backing[offset + at // 3] = int.from_bytes(pixels[at:at + 3], "big")
         offset += rectangle[2] * rectangle[3]
-    if backing.itemsize != 4:
-        raise ValueError("Host cannot encode 32-bit backing")
-    import sys
     if sys.byteorder != "little":
         backing.byteswap()
     publish(directory / "backing.bin", backing.tobytes())
@@ -615,7 +639,8 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
 
                 def shell(physical):
                     """Inject the press and release of a shell-owned key."""
-                    edge(physical, True); edge(physical, False)
+                    edge(physical, True)
+                    edge(physical, False)
 
                 def focus_cycle():
                     """Cycle focused apps and observe their input cancellations."""
@@ -665,13 +690,16 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     key(*chord)
                 focus_cycle()
                 baseline = wait("switcher-work", lambda raw, s: complete(raw, s)
+                                and comp(raw).get("SHELL_READY") == 1
                                 and s["MATERIAL"][-1]["DRAFT_SUM"] == TEXT_SUM
                                 and s["MATERIAL"][-1]["DIRTY"] == 1
                                 and s["CALCULATOR"][-1]["EVALUATIONS"] == 1
                                 and s["CALCULATOR"][-1]["EXPRESSION_SUM"] == volume_disk.fnv(b"2+3")
-                                and s["CALCULATOR"][-1]["ANSWER_LOW"] == 5_000_000_000)
+                                and s["CALCULATOR"][-1]["ANSWER_LOW"] == 5_000_000_000,
+                                image_check=consecutive_image_matcher())
                 open_switcher()
-                shell("esc"); edge("alt", False)
+                shell("esc")
+                edge("alt", False)
                 wait("switcher-ready", lambda raw, s: complete(raw, s) and same_models(s, baseline),
                      image_check=lambda image: image == captured["switcher-work"])
                 fixture = generate_switcher_fixture(directory, captured["switcher-ready"], scale)
@@ -692,7 +720,8 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 switcher_wait("switcher-cycle", 0, 0, ledger)
                 shell("left")
                 switcher_wait("switcher-reverse", 1, 0, ledger)
-                shell("esc"); edge("alt", False)
+                shell("esc")
+                edge("alt", False)
                 wait("switcher-cancelled", lambda raw, s: same_models(s, baseline) and progress(raw) == ledger,
                      image_check=lambda image: image == captured["switcher-ready"])
                 ledger = open_switcher()
@@ -704,9 +733,12 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 ledger = open_switcher()
                 switcher_wait("switcher-mouse-preview", 0, 1, ledger)
                 x, y, _, _ = switcher_bounds
-                move(x + 32 * scale, y + 64 * scale); button(True)
-                move(body[0] + 8 * scale, body[1] + 8 * scale); button(False)
-                move(width - 20, 50 * scale); edge("alt", False)
+                move(x + 32 * scale, y + 64 * scale)
+                button(True)
+                move(body[0] + 8 * scale, body[1] + 8 * scale)
+                button(False)
+                move(width - 20, 50 * scale)
+                edge("alt", False)
                 ledger["CALCULATOR"]["INPUT_ACKS"] += 1
                 wait("switcher-mouse-committed", lambda raw, s: complete(raw, s) and same_models(s, baseline)
                      and comp(raw).get("FOCUSED") == 0 and progress(raw) == ledger,
@@ -714,7 +746,10 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 ledger = open_switcher()
                 switcher_wait("switcher-outside-preview", 1, 0, ledger)
                 move(calc_body[0] + calc_body[2] - 4, calc_body[1] + calc_body[3] - 4)
-                button(True); button(False); move(width - 20, 50 * scale); edge("alt", False)
+                button(True)
+                button(False)
+                move(width - 20, 50 * scale)
+                edge("alt", False)
                 wait("switcher-outside-cancelled", lambda raw, s: complete(raw, s)
                      and same_models(s, baseline) and comp(raw).get("FOCUSED") == 0 and progress(raw) == ledger,
                      image_check=lambda image: image == captured["switcher-ready"])

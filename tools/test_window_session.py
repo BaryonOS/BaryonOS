@@ -45,6 +45,26 @@ class WindowRunnerTests(unittest.TestCase):
                                          (width-20, 50*scale)])
                 control.command.assert_called_once()
 
+    def test_switcher_key_edge_rejects_lost_key_despite_late_prior_input(self):
+        state = {"INPUT": 10, "POINTER_X": 1260, "POINTER_Y": 50}
+        control = Mock()
+
+        def move(x, y):
+            if x == 1258:
+                state["INPUT"] += 1  # Delayed increment from the preceding event.
+            state.update(INPUT=state["INPUT"] + 1, POINTER_X=x, POINTER_Y=y)
+
+        with self.assertRaisesRegex(ValueError, "ordered switcher input marker"):
+            window.switcher_key_edge(control, move, lambda: dict(state), "alt", True, 1)
+        control.command.assert_not_called()
+
+    def test_switcher_work_capture_requires_two_identical_full_images(self):
+        matches = window.consecutive_image_matcher()
+        self.assertFalse(matches(b"partial"))
+        self.assertFalse(matches(b"complete"))
+        self.assertTrue(matches(b"complete"))
+        self.assertFalse(matches(b"changed"))
+
     def test_switcher_profiles_compare_all_overlay_pixels_without_masks(self):
         for scale in (1, 2):
             width, height, body, calc, bounds = window.switcher_geometry(scale)
