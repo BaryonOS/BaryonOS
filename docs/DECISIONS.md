@@ -76,10 +76,10 @@ vooraf. Er is geen S3/wek en geen fysieke hardware.
 - Een poweroff-syscall nu toevoegen: uitgesteld tot er een capabilitymodel
   is en diensten vooraf kunnen flushen.
 
-**Primaire bronnen.** ACPI 6.5 §4.8.3.2 (PM1 Control Registers, SLP_TYPx/SLP_EN)
-en §7.4.2 (`\_S5`); ACPICA `hwsleep.c` `AcpiHwLegacySleep` (tag
-`R2025_04_04`) voor de schrijfvolgorde; QEMU `v10.2.1`, `hw/acpi/ich9.c` en
-`hw/acpi/core.c` (`acpi_pm1_cnt_write`) voor het emulatorgedrag.
+**Primaire bronnen.**
+- UEFI Forum (2022), *ACPI Specification*, versie 6.5, §4.8.3.2 en §7.4.2: https://uefi.org/specs/ACPI/6.5/
+- ACPICA (4 april 2025), release `R2025_04_04`, `hwsleep.c` (`AcpiHwLegacySleep`): https://github.com/open-acpica/acpica/releases
+- QEMU Project, versie `10.2.1`, `hw/acpi/ich9.c` en `hw/acpi/core.c` (`acpi_pm1_cnt_write`): https://gitlab.com/qemu-project/qemu
 
 **Consequenties:** dit profiel valideert uitsluitend ACPI S5 in het vaste QEMU/OVMF-profiel. Er ontstaat geen nieuwe userspace-bevoegdheid of algemene ondersteuning voor fysieke apparaten. Tests voor ongeldige firmware moeten iedere PM1-write blokkeren.
 
