@@ -1,5 +1,15 @@
 # Actuele projectstatus
 
+## NEXT AGENT HANDOFF — PR #154 SMP integration — 9 November 2026
+
+**Source:** the existing PR branch `simonvanieperen-studious-spoon` retains the legacy SMP M3/M4 work. The lifecycle-only result-marker ordering fix is source commit `95c8201acc01035879f60354b221b009710cfe6d`; its `finish_quiescence` implementation now emits the lifecycle PASS markers after final quiescent cleanup. The native quiescence/park handshake and fail-closed remote-active cleanup guard remain in place.
+
+**Status:** integration is **BLOCKED**, not complete. The last inspected `main` was `c663f0b6386203e17e28d52c2c79da161205ee26`, with 63 commits on main absent from the PR and 87 unique PR commits before this fix. The two branches have incompatible SMP bring-up and test-runner contracts; neither side may be copied wholesale. Preserve the current English public documentation hierarchy when reconciling this historical branch.
+
+**Verification:** no Rust toolchain, QEMU, Ponytail, RTK, or ECC command runner is available in the current execution environment. No `tools/progress.py --check`, strict preflight, native build, smoke, host Cargo, or 1/2/4-CPU SMP gate was executed on this change. Earlier source-bound receipts do not validate this head. GitHub reported no current-head Actions runs at the checkpoint. No new criterion is accepted; the branch's historical 41/100 assessment must be reconciled with current main's 39/100 state only through the authoritative rubric and fresh evidence.
+
+**Next necessary step:** perform a reviewed three-way integration of the latest `main` **into this existing PR branch** in a real checkout. Preserve both MADT/K06 and the M3/M4 SMP authorization, lifecycle, memory-safety and evidence contracts. Run `python3 tools/progress.py --check`, `python3 tools/preflight.py --strict`, `python3 tools/build.py`, `python3 tools/run.py --smoke`, the affected Rust/host checks, and the complete native SMP/QEMU matrix using compressed logs. Address remaining CodeRabbit threads, update source-bound verification and progress, then squash-merge with an expected PR-head SHA. Do not force-merge, reset the branch or raise the score without accepted evidence.
+
 ## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
 
 **Gepubliceerde codebasis:** branch `simonvanieperen-studious-spoon`, commit
