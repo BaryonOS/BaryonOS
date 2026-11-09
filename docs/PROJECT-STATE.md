@@ -10,7 +10,7 @@ five positive and two negative native runs, and the `native-power.yml`
 workflow. Source-bound original evidence is retained in
 [`verification/h05-acpi-s5/`](verification/h05-acpi-s5/).
 
-CI evidence now retains 16 tracked workflow files and 17 preservation
+CI evidence now retains 17 tracked workflow files and 18 preservation
 calls, alongside the English ADR-076 and verification record. The 22 green
 workflow results on the former PR head `9d88326` predate integration with
 main and are not evidence for the new merge commit. No physical-hardware,
@@ -21,7 +21,7 @@ PM1 writes or complete ACPI support is claimed.
 **NEXT AGENT HANDOFF (PR #213):** Integrate former PR head
 `9d88326be637adccfeccc743f31b3c67185e16a8` with `main`
 `04c8b224e3062400288a353056b75abdd3bcbba5`. Preserve the current
-SMP legacy profiles and the 16-workflow/17-call evidence contract.
+SMP legacy profiles and the 17-workflow/18-call evidence contract.
 No local Rust, QEMU, preflight, build or smoke gate has run on the integrated
 revision in this connector session. Confirm current-head CI (including native
 power, `host-quality`, QEMU smoke, security review), then run the standard
