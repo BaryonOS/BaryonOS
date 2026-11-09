@@ -72,7 +72,18 @@ def main() -> int:
         "-s", "tools/tests", "-p", "test_smp.py",
     ]
     env = dict(os.environ, PYTHONPATH=str(ROOT / "tools"))
-    host = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True)
+    try:
+        host = subprocess.run(
+            command, cwd=ROOT, env=env, capture_output=True, text=True, timeout=600
+        )
+    except subprocess.TimeoutExpired:
+        summary["host"] = {
+            "command": command, "exit": None, "timeout_s": 600,
+            "error": "host unittest process timed out",
+        }
+        summary["status"] = "failed"
+        save_json(receipt, summary)
+        return 1
     summary["host"] = {
         "command": command,
         "exit": host.returncode,

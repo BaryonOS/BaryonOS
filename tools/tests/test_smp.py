@@ -212,6 +212,8 @@ class SmpEvidenceTests(unittest.TestCase):
                           "M3:SMP:AP:CR0_WP_EM_TS:00000000000000000007\n"
                           "M3:SMP:AP:PROTECTION_CPU:00000000000000000001\n"),
             valid.replace("M3:SMP:SCHEDULER:PASS\n", ""),
+            valid.replace("M3:SMP:AP:PROTECTION_CPU:00000000000000000001",
+                          "M3:SMP:AP:PROTECTION_CPU:00000000000000000000"),
             valid.replace("M3:SMP:SCHEDULES:00000000000000000014",
                           "M3:SMP:SCHEDULES:00000000000000000000"),
             valid.replace("M3:SMP:CPU:00000000000000000001\n", ""),
@@ -300,11 +302,19 @@ class SmpEvidenceTests(unittest.TestCase):
         wrong_assignment = m4_smp_transcript(
             send_cpus=(1, 0), receive_cpus=(0, 1)
         )
+        reversed_pair = valid.replace(
+            "M4:SMP:SEND:00000000000000000000\n"
+            "M4:SMP:RECV:00000000000000000257\n",
+            "M4:SMP:RECV:00000000000000000257\n"
+            "M4:SMP:SEND:00000000000000000000\n",
+        )
+        self.assertNotEqual(reversed_pair, valid)
         cases = (
             valid.replace("M4:EXCHANGE:PASS\n", ""),
             valid.replace("M4:SMP:SEND:00000000000000000000\n", ""),
             same_cpu,
             wrong_assignment,
+            reversed_pair,
             valid.replace("M4:SMP:SEND:00000000000000000000",
                           "M4:SMP:SEND:not-a-number"),
             valid.replace("M4:PASS\n", "M4:FAIL\nM4:PASS\n"),
@@ -330,10 +340,22 @@ class SmpEvidenceTests(unittest.TestCase):
         self.assertEqual(result["quiescence_rounds"], 3)
         self.assertEqual(result["cleanup_rounds"], 3)
         self.assertEqual(result["process_table_resets"], 2)
+        premature = valid.splitlines()
+        results = ("M4:CASE:LIFECYCLE:PASS", "M4:SURVIVOR_PROGRESS:PASS",
+                   "M4:CLEANUP:PASS")
+        for marker in results:
+            premature.remove(marker)
+        final_cleanup = max(
+            i for i, line in enumerate(premature)
+            if line == "M4:SMP:ROUND_CLEANUP:PASS"
+        )
+        premature[final_cleanup:final_cleanup] = results
+        premature = "\n".join(premature) + "\n"
         for bad in (
             valid.replace("M4:SMP:QUIESCED:PASS\n", "", 1),
             valid.replace("M4:SMP:ROUND_CLEANUP:PASS\n", "", 1),
             valid.replace("M4:SMP:ROUND_RESET:PASS\n", "", 1),
+            premature,
             valid.replace("M4:PASS\n", "M4:FAIL:SMP:CLEANUP_REMOTE_ACTIVE\nM4:PASS\n"),
         ):
             with self.subTest(bad=bad), self.assertRaises(ValueError):

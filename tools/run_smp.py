@@ -237,7 +237,7 @@ def _m3_inventory(cpus: int, lines: list[str], expected_failure: str | None = No
         ):
             raise ValueError("AP CR0 WP/EM/TS readback is invalid or out of order")
         protection_cpus.append(int(cpu_match.group(1)))
-    if len(set(protection_cpus)) != cpus - 1:
+    if set(protection_cpus) != set(range(1, cpus)):
         raise ValueError("AP CR0 protection readback does not cover each AP exactly once")
     return lines, parsed, observed_protection
 
@@ -363,6 +363,10 @@ def evaluate_m4_smp(cpus: int, stdout: str, returncode: int | None, timed_out: b
     exchange_index = lines.index("M4:EXCHANGE:PASS")
     if any(line_index >= exchange_index for _, _, _, line_index in events):
         raise ValueError("M4 IPC evidence appeared after the exchange pass marker")
+    positions = {(operation, slot): index for operation, slot, _, index in events}
+    for sender, receiver in ((0, 1), (1, 2)):
+        if positions[("SEND", sender)] >= positions[("RECV", receiver)]:
+            raise ValueError("M4 IPC receive preceded its matching send")
 
     by_operation = {(operation, slot): cpu for operation, slot, cpu, _ in events}
     crossed = []
@@ -493,6 +497,9 @@ def evaluate_m4_lifecycle_smp(
         raise ValueError("M4 lifecycle cleanup preceded its quiescence acknowledgement")
     if any(not (cleanups[i] < resets[i] < quiesced[i + 1]) for i in range(2)):
         raise ValueError("M4 lifecycle reset was not bracketed by completed quiescence phases")
+    if not (cleanups[-1] < lines.index("M4:CASE:LIFECYCLE:PASS")
+            < lines.index("M4:CLEANUP:PASS")):
+        raise ValueError("M4 lifecycle result preceded final cleanup")
     return {
         "scheduler": scheduler,
         "quiescence_rounds": 3,
@@ -657,6 +664,9 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
     run_dir = run_root / f"smp-{cpus}-{uuid.uuid4().hex[:10]}"
     run_dir.mkdir()
     shutil.copytree(esp, run_dir / "esp")
+    for relative, expected in expected_artifacts.items():
+        if sha256(run_dir / "esp" / relative) != expected:
+            raise ValueError(f"copied SMP artifact mismatch: {relative}")
     shutil.copy2(variables, run_dir / "OVMF_VARS.fd")
     shutil.copy2(code, run_dir / "OVMF_CODE.fd")
     run_rel = run_dir.relative_to(root).as_posix()
@@ -686,7 +696,14 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
     stdout, stderr = out.decode("utf-8", "replace"), err.decode("utf-8", "replace")
     (run_dir / "serial.txt").write_bytes(out)
     (run_dir / "stderr.txt").write_bytes(err)
-    version = subprocess.check_output([qemu, "--version"], env=env, text=True).strip()
+    version_error = None
+    try:
+        version = subprocess.check_output(
+            [qemu, "--version"], env=env, text=True, timeout=10
+        ).strip()
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, OSError) as error:
+        version = None
+        version_error = f"QEMU version query failed: {type(error).__name__}"
     report = {
         "schema_version": 1,
         "cpus": cpus,
@@ -749,6 +766,8 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
         "kernel_feature": expected_kernel_feature,
     }
     try:
+        if version_error is not None:
+            raise ValueError(version_error)
         report["evidence"] = {
             "native-smp-m4": lambda: evaluate_m4_smp(cpus, stdout, raw_exit, timed_out),
             "native-smp-m4-revoke": lambda: evaluate_m4_revoke_smp(
