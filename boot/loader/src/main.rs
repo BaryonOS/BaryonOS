@@ -33,6 +33,23 @@ extern "efiapi" {
 type Failure = &'static [u8];
 type Result<T> = core::result::Result<T, Failure>;
 
+/// Write only the declared ABI header, never an optional extension after it.
+/// In ABI 1.2, the 64-byte framebuffer descriptor begins at byte 128.
+fn write_bootinfo_header(address: u64, info: &BootInfo) {
+    let bytes = info.to_bytes();
+    let length = if info.abi_minor == SMP_MINOR {
+        SMP_HEADER_SIZE as usize
+    } else {
+        128
+    };
+    // SAFETY: The loader owns a zero-initialized retained allocation of at
+    // least one 4-KiB page at this aligned address. Source is a stack-local
+    // byte array; no alias or overlapping source/destination exists.
+    unsafe {
+        ptr::copy_nonoverlapping(bytes.as_ptr(), address as *mut u8, length);
+    }
+}
+
 fn check(status: efi::Status, code: Failure) -> Result<()> {
     if status == efi::Status::SUCCESS {
         Ok(())
@@ -524,6 +541,8 @@ impl Frozen {
         // SAFETY: info_address is an initialized dedicated BootInfo allocation.
         // Copying avoids holding a mutable reference while inspecting the map.
         let mut info = unsafe { (info_address as *const BootInfo).read() };
+        #[cfg(feature = "framebuffer")]
+        info.clear_absent_legacy_graphics_smp_fields();
         let capacity = info.memory_map_capacity as usize;
         let mut retried = false;
         for attempt in 0..3 {
@@ -575,11 +594,9 @@ impl Frozen {
                     serial::fail(b"GOP_RAM_OVERLAP");
                 }
             }
-            // SAFETY: Own aligned page and valid plain fixed-width value. The map is
-            // a disjoint allocation; CPU-only writes do not invalidate its map key.
-            unsafe {
-                (info_address as *mut BootInfo).write(info);
-            }
+            // Write only the declared header; keep ABI 1.2 framebuffer bytes
+            // at offset 128 intact across every memory-map retry.
+            write_bootinfo_header(info_address, &info);
             // SAFETY: Original entry image handle and immediately captured key.
             // After first attempt the only allowed firmware calls are this and GetMemoryMap.
             let status = unsafe { (self.exit)(image, state.key) };
@@ -591,10 +608,9 @@ impl Frozen {
                     asm!("cli", "cld", "lidt [{}]", in(reg) EMPTY_IDT.as_ptr(), options(nostack));
                 }
                 info.flags = if cfg!(feature = "framebuffer") { 15 } else { 7 };
-                // SAFETY: Reserved page remains mapped and owned after EBS.
-                unsafe {
-                    (info_address as *mut BootInfo).write(info);
-                }
+                // Reserved header remains mapped after EBS. Do not overwrite
+                // an ABI 1.2 graphics descriptor with unused SMP fields.
+                write_bootinfo_header(info_address, &info);
                 serial::init();
                 #[cfg(feature = "test-ebs-retry")]
                 if !retried {
@@ -789,10 +805,8 @@ fn prepare(fw: Firmware, image: efi::Handle) -> Result<()> {
         },
         smp_trampoline_page: trampoline_page,
     };
-    // SAFETY: Own aligned page, initialized and disjoint from every other live object.
-    unsafe {
-        (info_address as *mut BootInfo).write(info);
-    }
+    // The declared 128/152-byte header is disjoint from any descriptor.
+    write_bootinfo_header(info_address, &info);
 
     #[cfg(feature = "test-ebs-retry")]
     let initial = {
