@@ -18,7 +18,8 @@ import sys
 import time
 import uuid
 
-from common import ROOT, BUILD, environment, firmware, qemu_machine, sha256, source_hash
+from common import (ROOT, BUILD, environment, firmware, qemu_machine, sha256,
+                    source_hash, with_acpi_markers)
 from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json, load_json
 from run_graphics import Qmp, QmpPipe, ppm, changed_bounds
@@ -46,6 +47,12 @@ U64_MAX = (1 << 64) - 1
 HEX = re.compile(r"[0-9a-f]{64}")
 WIDTH, HEIGHT = 800, 600
 ASSIGNED = (16, 48, 768, 536)
+# App-local rectangles of Frame::layout() at the fixed 768x536/100% profile.
+# Layout::for_screen adds the second toolbar row at widths 700..783. The
+# actual Frame-render reproduction is stored in the U03 evidence bundle;
+# save updates revision metadata at y=184, outside the editor.
+EDITOR = (24, 216, 720, 256)
+SAVE_STATUS = (192, 488, 552, 48)
 TILES = ((ASSIGNED[2] + 31) // 32) * ((ASSIGNED[3] + 7) // 8)
 
 
@@ -93,14 +100,15 @@ def transcript(raw: bytes, case="normal", *, final=False) -> dict:
     result = {"gates": [], "snapshots": [], "exits": [], "barrier": None, "controller_released": False,
               "final": {}, "finished": False, "pending_record": pending_record}
     if BOOT[0] not in lines:
-        require(not final and not any(re.search(r"(?:BOOT:|BOOTINFO:|KERNEL:|KS-|M[0-9]+:|MATERIAAL:)", s) for s in lines),
+        require(not final and not any(re.search(r"(?:BOOT:|BOOTINFO:|KERNEL:|KS-|M[0-9]+:|MATERIAAL:|ACPI:|DEVICE-EXECUTION:)", s) for s in lines),
                 "Native marker before boot handoff or missing boot")
         return result
     start = lines.index(BOOT[0])
-    require(not any(re.search(r"(?:BOOT:|BOOTINFO:|KERNEL:|KS-|M[0-9]+:|MATERIAAL:)", s) for s in lines[:start]),
+    require(not any(re.search(r"(?:BOOT:|BOOTINFO:|KERNEL:|KS-|M[0-9]+:|MATERIAAL:|ACPI:|DEVICE-EXECUTION:)", s) for s in lines[:start]),
             "Native marker before handoff")
     lines = lines[start:]
-    opening = BOOT + ("MATERIAAL:MANIFEST:PASS",)
+    # Keep the exact ACPI pair in the grammar, including partially read records.
+    opening = with_acpi_markers(BOOT) + ("MATERIAAL:MANIFEST:PASS",)
     require(tuple(lines[:len(opening)]) == opening[:len(lines)], "Wrong boot/manifest sequence")
     if len(lines) < len(opening):
         require(not final, "Truncated boot")
@@ -292,6 +300,19 @@ def disk_oracle(raw: bytes) -> dict:
             "fnv": TEXT_SUM, "generation": 1, "clocks": [1, 0], "canaries_intact": True}
 
 
+def same_app_region(before: bytes, after: bytes, rectangle: tuple[int, int, int, int]) -> bool:
+    """Compare every RGB byte, including border pixels, in an app-local rect."""
+    local_x, local_y, width, height = rectangle
+    require(len(before) == len(after) == WIDTH * HEIGHT * 3
+            and 0 <= local_x < local_x + width <= ASSIGNED[2]
+            and 0 <= local_y < local_y + height <= ASSIGNED[3],
+            "Invalid app-local pixel comparison")
+    x, y = ASSIGNED[0] + local_x, ASSIGNED[1] + local_y
+    return all(before[(row * WIDTH + x) * 3:(row * WIDTH + x + width) * 3]
+               == after[(row * WIDTH + x) * 3:(row * WIDTH + x + width) * 3]
+               for row in range(y, y + height))
+
+
 def validate_frames(frames: dict[str, bytes], case: str) -> dict:
     require(set(frames) == set(PHASES[case]), "Missing or extra captured UI stage")
     decoded = {name: ppm(raw) for name, raw in frames.items()}
@@ -312,12 +333,12 @@ def validate_frames(frames: dict[str, bytes], case: str) -> dict:
     require(all(bounds is not None for bounds in transitions.values()), "A real UI action changed no actual pixels")
     if case in WRITABLE_CASES:
         # Saving must preserve the rendered text/caret area, while the genuine
-        # status/control pixels change. Coordinates are the frozen frontend's
-        # explicit 100% layout, not a host-rendered replacement UI.
+        # status pixels change. The revision caption is allowed to change;
+        # neither that caption nor an arbitrary changed control can substitute
+        # for visible save feedback. Every editor byte remains compared.
         old, new = decoded["dirty"][2], decoded["saved"][2]
-        for row in range(y+144, y+144+ASSIGNED[3]-208):
-            start=(row*WIDTH+x+24)*3; end=start+(ASSIGNED[2]-48)*3
-            require(old[start:end] == new[start:end], "Save changed rendered document bytes/caret")
+        require(same_app_region(old, new, EDITOR), "Save changed rendered document bytes/caret")
+        require(not same_app_region(old, new, SAVE_STATUS), "Save did not change visible status feedback")
     return {"width":WIDTH,"height":HEIGHT,"assigned":list(ASSIGNED),"changed_bounds":transitions,
             "system_chrome_preserved":True,"manual_visual_quality_review_performed":False}
 

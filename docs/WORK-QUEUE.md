@@ -1,182 +1,4 @@
-# Operationele werkqueue — integratiesprint 3 november 2026
-
-## Actieve integratiesprint: geen nieuwe features
-
-**Actuele scopewijziging van Simon:** de featurebeperking geldt alleen voor de
-General-integrator, niet voor de specialistische workstreams. Permanente
-Sprint Control Panel-modus: integratie, dispatch en historische backlogreductie
-lopen tegelijk. Overdracht maakt een milestone integratorwerk; de specialist
-start direct de volgende onafhankelijke milestone en wacht niet op PR, CI of
-merge. Geen archief-/preservation-PR; Gitgeschiedenis is het archief.
-
-**Publicatiebackpressure:** bij bestaande open integratie-PR's blijft de
-specialist ontwikkelen, testen, committen en pushen, maar levert de volgende
-milestone als `QUEUED-FOR-INTEGRATION` zonder nieuwe PR. Een publicatieslot
-wordt pas na afbouw van de actuele queue vrijgegeven. Vier PR-agents bereiden
-hun exclusieve sets parallel voor; daadwerkelijke merges krijgen elk een
-eenmalige exacte head/main-lease. Strict-up-to-date en verplichte
-`host-quality`/`qemu-smoke` blijven gelden; achterlopende heads zijn niet READY.
-
-Actuele technische scope: System Maturity heeft SMP/M4-quiescence aan #154
-overgedragen en het device-execution-contractmodel op `7cfd3404` aan #181.
-Het model is geen echte kerneladapter en verleent Drivers nog geen
-executionrecht; de echte ACPI-handoff/discoveryleaf is nu vrijgegeven.
-Drivers heeft TPM-I/O-, USB-framing- en ACPI-registermasktests overgedragen;
-deze staan inmiddels als #178/#179/#180 open. Geen verdere PR zonder
-`OPEN-PR-LEASE`. Veld werkt aan de native acceptatie van
-de Alt+Tab-switcher #167; alleen concrete #157/main-conflicthunks in
-`scene.rs` zijn tijdelijk aan PR-agent B vrijgegeven, terwijl de #167-Rustbron
-bevroren blijft. B mag ook de bestaande render-/contrasttests aanpassen aan
-de behouden #149-layout, zonder contrastgrenzen te versoepelen. Platform
-heeft EXIF/CSV/BMP/recalc en de presentatiepreview overgedragen; die laatste
-staat inmiddels als #182 open. Native consumers blijven geblokkeerd op de
-echte app-ID-launch-, input-/surfacegrantketen. General-product heeft
-TCP-loss/backpressure aan #177 overgedragen en bouwt nu de toegewezen native
-app-launchconsumer in de bestaande window-compositorroute.
-Geen duplicatie van AuthBroker/B02, Drivers of System Maturity.
-
-Bron: main `a32eadb1e2fff42b7af4b783fcbb9db42b5c6e0e`.
-General coordineert deze sprint op Simons expliciete opdracht. De oudere
-mandaten, scores en sessietabellen hieronder zijn historische context, niet
-een actuele claim van actieve uitvoering of toestemming voor nieuwe merges.
-Dit was de situatie bij de eerdere intake. Simon autoriseerde daarna
-expliciet veilige merges en superseded-sluitingen voor deze sprint.
-
-### Actuele uitvoering na mergemandaat
-
-Main na gecontroleerde squashmerge #138:
-`95d7945110ce853a1b5827ec59f6115475691805`. Alle volgende kandidaten worden
-tegen deze echte main herbeoordeeld; geen historische featurebranches ketenen.
-
-Vervolg: #159 is werkelijk gesquashmerged als
-`1c6872063fab055211eff48fce11496db39728be`; #158 daarna als
-`78ff7c03b015ad16fe665ae7df9fe239d078e08d`. Beide mainheads via fetch en
-GitHub-mergecommit bevestigd, telkens overige PR's opnieuw gelezen.
-Daarna is #152 werkelijk gemerged als
-`d10b5cdaf56774a39e3ef10463f674c6188a463a`, via fetch en GitHub bevestigd.
-Daarna is #151 werkelijk gemerged als
-`ab85d6339ce5bdddb10a2de171d0c1b04e4b62ff`, eveneens zelf via fetch en
-GitHub-mergecommit bevestigd. Dit is de actuele main bij dit checkpoint;
-de laatste delta bevat uitsluitend 17 historische auditdocumenten.
-Op #158 was de nieuwe B03-native18-gate groen; vereiste host/smokechecks
-groen, overige lopende checks niet als geslaagd geclaimd.
-
-#160 is de nieuwe kleine vier-file RANDOM-extractie op actuele main,
-geen merge van de 71-file #146. Zes hosttests, 21 harnastests en verse native
-raw groen op eigen bron; code bytegelijk aan de eerder geteste standalonefix.
-Een verse primaire-bronnen-docreview is bij de eigenaar voor afhandeling;
-geen productiequota-/kernel-/runnerwijziging.
-
-#152 was beperkt tot exact twee files: onderzoeksdocument en README-link.
-Alle andere bestanden exact main1c; oorspronkelijke metadata volledig op
-`archive/driver-research-pre-sprint-20261103` behouden. Rust1.95-eis en
-ongemeten snelheidsclaim gecorrigeerd, geen driveradoptie of nieuw punt.
-Drie concrete bronreviewpunten opgelost; vereiste host/smokechecks groen.
-Archief-PR's #161–#164 zijn als duplicaat gesloten, geen vervanging gemaakt:
-de historische backlog daalde van 16 naar 12, daarna #152 geïntegreerd.
-Nieuwe feature-PR's #165/#166 tellen afzonderlijk als ontvangen milestones,
-niet als archief of cleanupvervanging.
-
-De vier issues #39/#41/#42/#43 kregen afzonderlijk DONE/PARTIAL/MISSING/
-BLOCKED-BY-aftekening; geen epic voldoet integraal. N01 heeft wel degelijk
-al native TCP/UDP-deelbewijs op main; niet verwarren met ontbrekende fysieke
-NIC-ondersteuning of de aanvullende reset/revokematrix in het issue.
-
-| PR | Uitvoering / grens |
-|---|---|
-| #138 | MERGED, commit95d79451; uitsluitend API-commentaar/historische docs, 33 checks geslaagd, drie threads opgelost. |
-| #156 | CLOSED/SUPERSEDED door treegelijke #159; oorspronkelijke restscope bewaard op platformarchiefbranch. |
-| #131 | CLOSED/HISTORISCH; alleen vier statusbestanden resteren, criteria exact main; volledige historie op archive/pr131-history-20261103. |
-| #137 | CLOSED/HISTORISCH; geen unieke runtimecode; oud plan-execution-receipt expliciet behouden op archive/pr137-history-20261103. |
-| #132 | CLOSED/SUPERSEDED; alle resterende scripts bytegelijk aan reeds geïntegreerde historische tekstsnapshots; geen onveilige oude uitvoerbare scripts heringevoerd. |
-| #159 | MERGED, commit1c687206; vijf-file imageslice na concrete review en vereiste checks. |
-| #158 | MERGED, commit78ff7c03; expliciete B03 TEST-policy, nieuwe-head-native18 en vereiste checks geslaagd. |
-| #151 | MERGED, commitab85d633; 17 historische auditdocumenten, reviewthreads opgelost en vereiste checks geslaagd. Geen productwijziging of menselijke auditclaim. |
-| #172/#174/#175 | CLOSED/BASELINE-EVIDENCE-ONLY; uitsluitend historische receipts op reeds geintegreerde d10-productbron. Unieke vaste commits, branches en receipts behouden; geen product-/testcode verwijderd en geen acceptatieclaim. Na deze batch25 open PRs. |
-| #155 | Main95 inhoudsbehoudend opgenomen; vier nieuwe bewijsdocumentatiepunten hersteld. Integratie heropent B01 expliciet: main41 wordt39, geen native positieve beheerrecovery. CI/review vereist vóór merge. |
-| #150/#154 | Extern nieuwe owner-/botheads ontvangen; geen oude-head-goedkeuring toepassen op nieuwe delta. |
-
-Overige PR's en vier gedeeltelijke acceptatie-epics blijven in de eerdere
-intaketabel hieronder brongebonden geclassificeerd; die tabel is geen
-actueel head- of mergeoverzicht. Geen branches verwijderd.
-
-Nieuwe code door de General-integrator uitsluitend voor review-, regressie-, compatibility-
-en integratieblockers. Een workstream wordt op main geintegreerd, niet op
-een andere productbranch. Een PR bevat voortaan een begrensde mijlpaal met
-eigen bewijs. Een groene oude head is geen acceptatie van een nieuwe head.
-
-### Historische ownership tijdens de eerdere featurefreeze
-
-- General: selectieve image-/keyring-integratie en centrale sprintregistratie.
-  Geen writes aan Drivers- of Veld-implementaties.
-- Drivers: `SPRINT-DRIVER-REVIEW`, uitsluitend bestaande #153-bevindingen,
-  eigen tests en receipt. Ook `Cargo.toml`/`Cargo.lock` uitsluitend voor de
-  ontbrekende rootmembers/lokale lockentries van driver-core/pci-core
-  expliciet vrijgegeven; geen externe dependency of andere rootwijziging.
-  Reviewfix afgerond op `c1508aa0`, exact gepoort naar #153 `78623c5b`.
-  Geen nieuwe driverfeature of centrale docs.
-- Veld: `SPRINT-VELD-REVIEW`, uitsluitend bestaande #157-bevindingen,
-  eigen tests en receipt. Geen nieuwe shellfeature of centrale docs.
-- Platform: featurefreeze bevestigd; volledige bron `8c837d5c` behouden op
-  `archive/platform-pre-sprint-20261103`. Geen restscope stil geaccepteerd.
-- System Maturity: OOM-afronding en SMP-eigenaarschap blijven gelden zoals
-  [de exacte assignment op 707a768c](https://github.com/simonvanieperen/nieuw-os/blob/707a768c1df81e674a15c4aa013f44b85b90c700/docs/WORK-QUEUE.md).
-  Freeze verzonden, ontvangst/uitvoering nog niet bevestigd: dit is GEEN
-  vrijgave aan General. Behouden SMP-WIP in `boot/loader/src/main.rs`,
-  `crates/boot-protocol/src/{graphics,lib,smp}.rs` en
-  `crates/kernel-core/src/{lib,smp}.rs` niet overschrijven.
-
-Als een owner alle relevante scopes geblokkeerd meldt: actuele en stale
-claims onderscheiden, veilig splitsen, een werkelijk uitvoerbare scope
-toewijzen als die bestaat, anders `BLOCKED-BY:<owner/interface>` met een
-concrete hervatvoorwaarde vastleggen. Ownership is geen permanente stilstand.
-De toenmalige globale featurefreeze is inmiddels door Simon opgeheven;
-de actuele scope bovenaan vervangt deze historische beperkingen.
-
-### Historische PR-intake op gepinde bronheads voor checkpointpublicatie
-
-Snapshot: 3 november 2026; 17 oorspronkelijke PR's plus aangetroffen #159.
-READY-TO-MERGE hieronder is een technische classificatie, GEEN mergebesluit.
-Lopende CI wordt niet afgewacht of als geslaagd geboekt.
-
-| PR / head | Klasse | Concrete blocker / actie / hervatvoorwaarde |
-|---|---|---|
-| #159 `5cfbfd10` | READY-TO-MERGE | Kleine vijf-file imagecandidate op main, 23 codec- en 15 viewertests groen; downstream-compilefout opgelost. EXIF-limietdocumentatiethread beantwoord/opgelost. Snapshot 18:21 CET: 31 checks geslaagd, een overgeslagen, CLEAN. Concept; exacte tree gelijk aan #156. Kies slechts een van beide; geen merge uitgevoerd. |
-| #158 `568741f3` | READY-TO-MERGE | Ontbrekende volledige native B03-gate opgelost: 18 QEMU-stappen groen. Nieuwe-head snapshot: 31 checks geslaagd, een overgeslagen, CLEAN. Geen merge uitgevoerd. Productie-key lifecycle blijft buiten deze TEST-policyfix. |
-| #157 `3d4045da` | NEEDS-REBASE/UPDATE | Ownerbewijs def61f42 op runnerbron b3117312: beide schalen 61 fasen groen, 100%406,23s en 200%727,20s, runner0/ruwe33; 23 tegenproeven. General herstelde zes overgedragen centrale documentatiethreads, beantwoord/opgelost, criteria41behouden. Historische60fasen niet als volledig paneelbewijs. Mainconflicten en nieuwe-headreview/CI blijven; volledige scenehostrun/normale builds niet herhaald op fixbron. |
-| #156 `4ef1deef` | SUPERSEDED | Van 63 naar vijf bestanden beperkt, exacte tree gelijk aan #159. Volledige restscope op archiefbranch en in historie; niet kwijt, niet geaccepteerd. Geen sluiting; CHANGES_REQUESTED niet weggepoetst. |
-| #155 `1122d2c8` | BLOCKED | Van 46 naar tien keyringbestanden plus zes centrale checkpointbestanden beperkt; vijf native cases groen. Nieuwe-head CI/review nog nodig; positieve beheerrecovery alleen hostgetest. Productbron a1eba0db, daarna uitsluitend centrale documentatie. |
-| #154 `5da76325` | NEEDS-REBASE/UPDATE | Head sinds de eerste triage63f1da11 door owner gewijzigd; inhoud van nieuwe delta niet door General als gereviewd geclaimd. Mainconflicten/review blijven. SMP-WIP/ownership niet overnemen; alleen begrensde owneroverdracht beoordelen. |
-| #153 `45df5a7a` | BLOCKED | Van 75 naar 13 bestanden op main beperkt, productbron c1508aa0. Zeven oorspronkelijke en twee aanvullende documentatiethreads beantwoord/opgelost; geen reviewgoedkeuring geclaimd. Twee echte positieve-fixturefouten en ontbrekende rootworkspacewiring eerst rood, daarna 34 hosttests groen. Vervolg uitsluitend read-only-formulering. Nieuwe-head CI/review nodig; geen controller-executionproof. |
-| #152 `df474de4` | RESEARCH/DOCS | Vijf onderzoeksdocumenten, mainconflicten; geen native driverresultaat. Alleen documentdelta selectief actualiseren, geen hardwareacceptatie. |
-| #151 `46357904` | RESEARCH/DOCS | 17 auditdocumenten, 21 threads opgelost, 30 checks geslaagd; reviewDecision nog CHANGES_REQUESTED. Verse reviewbeslissing nodig, geen punten of onafhankelijke auditclaim. |
-| #150 `51125b46` | RESEARCH/DOCS | Concrete historische reviewmetadata in twee documenten aan a32eadb1 gepind, progress-/diffcontrole groen; thread beantwoord/opgelost. Nieuwe-head CI/review nodig. Agentprofielen zijn geen native OS-productfunctionaliteit; historische status niet importeren als productbewijs. |
-| #147 `8d871592` | NEEDS-REBASE/UPDATE | 692-file gemengde branch/mainconflicten; unieke session-route/runnerdelta, geen volledige supersession bewezen. Alleen concrete niet-gedekte slice bewaren/porteren; niet sluiten. |
-| #146 `cee7a89c` | BLOCKED | Bronverwijzing gerepareerd; daadwerkelijke RANDOMraw-gastblocker nu met begrensde fixturefix hersteld/geintegreerd. Dezelfde64requests in vier queuesizedbatches, echte65eQuota plus harde100tickgrens; productiepolicy/kernel/runner ongewijzigd. General op gezamenlijke7b135c85: zes hosttests,21harnastests en echte native rawgate exit0/QEMU33. Nieuwe-head volledige CI/review nog nodig; geen hele foundationacceptatie. |
-| #138 `0de93c50` | READY-TO-MERGE | 33 checks geslaagd, geen open threads; delta in Rust-files uitsluitend API-/implementatiecommentaar, daarnaast documentatie/bewijs. Geen nieuwe runtimefunctionaliteit; PR-body met concrete scope/validatie ingevuld. Geen merge uitgevoerd. |
-| #137 `47706038` | RESEARCH/DOCS | Historische reviewmetadata nu expliciet gepind aan a32eadb1:docs/progress.json; twee docfiles, progress/check en diff-check groen, thread beantwoord/opgelost. Nieuwe-head CI/review nog nodig; geen productcode of nieuwe punten. |
-| #135 `fb160165` | NEEDS-FIX | Head sinds eerste triageea94eca7 gewijzigd; nieuwe delta niet als gereviewd geclaimd. Historische native-volume-admission-fout blijft onopgelost totdat passende nieuwe bron/gate dit aantoont. Unieke collection/history-/servicecode niet volledig vervangen; geen sluiting. |
-| #133 `9454d9c4` | NEEDS-FIX | 16 reviewthreads, omvangrijke unieke test/toolingdelta en conflicterende admissionvarianten. Geen bewijs voor volledige inhoudsdekking; niet als geheel superseded verklaren/sluiten. |
-| #132 `3fdc9448` | RESEARCH/DOCS | Btrfs/OpenZFS-hostonderzoek/evidence, geen eigen-OS-filesystemport; een check nog lopend. Alleen onderzoeksstatus, geen native filesystempunt. |
-| #131 `768f31cd` | RESEARCH/DOCS | Vier centrale documenten, 30 checks geslaagd; oorspronkelijke onderzoeksrichting grotendeels op main. Historische conflict-/assessmentdelta is geen nieuwe productmijlpaal. |
-
-### Issues blijven acceptatie-epics
-
-| Issue | BLOCKED-BY / RESUME-WHEN |
-|---|---|
-| #39 N01 | Werkelijke NIC-execution en pakketten/IP/transport met revoke/reset/cleanup en native bewijs; read-only discovery sluit dit niet. |
-| #41 B03 | Productieankers, sleutelrotatie/intrekking, ceremony en vertrouwde policy ontbreken. TEST-native-gate is nu groen, geen releasekeys gemaakt. |
-| #42 H02 | Controller-execution, enumeratie, HID/hotplug en VM-/fysieke matrix ontbreken; xHCI BAR-probe is alleen discovery. |
-| #43 Roadmap | Criteria afzonderlijk met passend native/hardware-/menselijk bewijs accepteren; geen automatische 50%, score-import of epicsluiting. |
-
-General-bron voor verdere splits: `archive/general-pre-sprint-20261103`
-op `707a768c`; Materiaal/UTF-8/app-cleanup/ownershiphistorie blijven daar
-behouden, niet stil geclaimd als onderdeel van de beperkte keyring-PR.
-Volledige oorspronkelijke driverbron: `archive/drivers-pre-sprint-20261103`
-op `f2a8f6ee`; kernel-/VirtIO-/andere driverrestscope niet weggegooid of
-automatisch geaccepteerd door de dertien-file xHCI-slice.
-
-## Historisch register — 30 oktober 2026
+# Operationele werkqueue — 30 oktober 2026
 
 ## Mandaat, bron en continuiteit
 
@@ -212,18 +34,19 @@ Voor nieuwe writes: actuele eigenaar, wijzigingen en afhankelijkheden controlere
 geen claim zien of een timeout maakt een gebied niet vrij. Bestaande opdrachten
 gaan zonder nieuw ACK door. Frozen werk niet stil hervatten; parked WIP behouden.
 Technische ABI-/trustconflicten met betrokken eigenaar en teamleider 89; alleen
-onoplosbare eigenaars-/prioriteitsconflicten naar directeur. Geen Simon-routinelus.
+onoplosbare eigenaars-/prioriteitsconflicten naar directeur. Routinetaken vragen geen nieuwe toestemming van de projecteigenaar.
 Manager 89 blijft enige status-/scorewriter. Queueovername is sinds `16151b9`
 voltooid; de afzonderlijke integratoroverdracht is nu ook veilig afgerond.
 
-**Exclusieve integratoroverdracht VOLTOOID:** op de nieuwe letterlijke
-Simonopdracht en het directiebesluit volgt 7f 8 op als ENIGE operationele
+**Exclusieve integratoroverdracht voltooid:** op nieuwe expliciete opdracht
+van de projecteigenaar en het directiebesluit volgt 7f donor 8 op als enige operationele
 integrator. Donor 8 heeft expliciet alle nieuwe merges/conflictwrites/runtimewrites
 gestopt en vrijgegeven: watch 2461 exit 124/af, geen mergecommands meer lopend,
 werkboom `d104` volgens donor/TL schoon. Alleen read-only advies blijft bij 8.
 7f bevestigt expliciet ontvangst van het volledige dossier en operatiecheck:
 geen lopende/verzonden mutatie bij donor of ontvanger; conflictclaims/WIP
-overgenomen. Geen activatie op stilte/timeout, geen extra Simon-/TL-poort.
+overgenomen. Stilte of een time-out geldt niet als vrijgave. Er is geen extra
+goedkeuring van de projecteigenaar of de teamleider nodig.
 Overdrachtsmoment: main `ca45`, #74/4db90e1e, #75/0f8f8dee,
 #78/7f4f7bfe, #65/7960e98a, #80/bc27ed0f, #84/734c8fc5,
 #86/f2c875a7; main/74/75 zelf via liveREST gecontroleerd, overige heads door 7f.
@@ -260,22 +83,24 @@ Dit sluit de gerichte donorvraag, niet de nog open identiteitsdispositie.
 Geen algemene statusronde, rolterugname of automatische overname.
 Donor 8's nieuwe rolvraag is conform het vastgelegde mandaat beantwoord:
 laat 7f integreren, overdracht behouden. Onafhankelijk domeinwerk gaat door.
-Herkomstprecisie: die rolvraag (`ui-18e362c0d2c042a9-9`) is door assistent5d
-namens het bestaande expliciete Simon-/directiemandaat beantwoord, niet door
-een nieuwe aantoonbare persoonlijke Simonclick. E8's latere melding van
-een Simonclick en #75head6d34 corrigeert dit register niet:6d34 is een oude
-queuecommit, geen actuele PR-head. Bestaande donorvrijgave en receiverACK
-blijven geldig;7f heeft de actuele immutable queuepins ontvangen.
-Live sessiestatus om19:59Europe/Amsterdam toont directie geblokkeerd op
-de feitelijke vraag aan Simon of hij85/76 zelf of via automatisering liet
-mergen. De assistent kan dit niet namens Simon weten of beantwoorden;
-geen duplicaatvraag of herhaalberichten. Alleen de merge-identiteitsdispositie
+Herkomst van het antwoord: de rolvraag (`ui-18e362c0d2c042a9-9`) is door
+assistent 5d beantwoord binnen het bestaande expliciete mandaat van de projecteigenaar en de
+directie. Een nieuwe persoonlijke handeling van de projecteigenaar is hiervoor
+niet aangetoond. De latere melding van E8 over zo'n handeling en #75-head
+`6d34` verandert dit niet: `6d34` is een oude queuecommit, geen actuele
+PR-head. De bestaande donorvrijgave en ontvangstbevestiging blijven geldig;
+7f heeft de actuele, vastgezette queueverwijzingen ontvangen.
+De sessiestatus van 19:59 Europe/Amsterdam toont dat de directie wachtte op
+een antwoord van de projecteigenaar op de vraag of #85 en #76 persoonlijk of
+via door de projecteigenaar geactiveerde automatisering waren gemerged.
+De assistent kan dit niet namens de projecteigenaar vaststellen of beantwoorden.
+Stel dezelfde vraag niet opnieuw en stuur geen herhaalberichten. Alleen de merge-identiteitsdispositie
 wacht hierop, niet bestaande domeintoewijzingen. BUILD12 heeft geen open
 gebruikersvraag; onbekende activiteit/berichtacceptatie bewijst nog geen
 uitgevoerde verse headroomcheck of slotvrijgave.
 
-**Integratie overgenomen op Simons opdracht (30 oktober 2026, ~21:10 CET):**
-Simon heeft de Claude Code-sessie in de desktopapp expliciet aangewezen om alle
+**Integratieoverdracht op expliciete projectopdracht (30 oktober 2026, ~21:10 CET):**
+De Claude Code-sessie in de desktopapp is door de projecteigenaar expliciet aangewezen om alle
 open pull requests en issues af te handelen, inclusief mergen en sluiten. Deze
 sessie is vanaf dan de enige operationele integrator; 7f en andere sessies
 voeren geen merges, sluitingen of pushes naar integratietakken meer uit.
@@ -290,8 +115,8 @@ vrijgave; er is geen bewijs dat de desktopintegrator haar mandaat vóór de
 cloudwrites op 31 oktober beëindigde. Die historische overdracht wordt daarom
 niet achteraf als bewezen of geautoriseerd geregistreerd.
 
-Simon heeft op 2 november rechtstreeks en expliciet het exclusieve
-integratormandaat aan sessie `f090b913` overgedragen en de #85/#76-mergepauze
+Op 2 november is het exclusieve integratormandaat rechtstreeks en expliciet
+door de projecteigenaar aan sessie `f090b913` overgedragen en is de #85/#76-mergepauze
 opgeheven, met behoud van alle review-, test- en branchregels. De vorige
 integrator (`7f895683`) heeft de overdracht ontvangen en bevestigd dat er geen
 lopende of verzonden mutatie, actief WIP of conflictclaim is; die sessie doet

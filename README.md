@@ -1,320 +1,111 @@
-# Nieuw OS — eigen kernel, sessieroute en bureaublad
+# Baryon OS
 
-## Project in het kort
+**Baryon OS is an experimental, independent operating system with its own x86_64 kernel in Rust, capability-based isolation, and a product model centered on user-controlled material and data.**
 
-Nieuw OS is een onderzoeksproject voor een zelfstandig besturingssysteem met
-een eigen x86_64-kernel en een eigen productervaring rond documenten en
-collecties: **Materiaal**. Het is geen Linux-distributie en gebruikt geen
-bestaande OS-kernel als basis. Veiligheid en privacy steunen onder meer op
-geïsoleerde processen, expliciete capabilities (kernel-afgedwongen rechten)
-en begrensde IPC (interprocescommunicatie).
+> [!WARNING]
+> Baryon OS is research and development software. There is no supported production release yet, and the system is not suitable for daily use or sensitive production data.
 
-De boot- en runtimeketen is **UEFI/OVMF → eigen Rust-loader → bootprotocol →
-`no_std`-Rust-kernel → geïsoleerde processen en diensten → SDK en apps**.
-De workspace bevat daarnaast aparte crates voor kernel-/capabilitylogica,
-drivers en diensten voor opslag, invoer en netwerk, plus de SDK en native
-apps. Rust/Cargo is de hoofdstack (toolchain 1.90.0); Python verzorgt veel
-build- en testharnassen. QEMU/OVMF wordt gebruikt voor geïsoleerde VM-proeven.
-NAS- en quantumsimulatorprototypes zijn afzonderlijke sporen, geen bewijs van
-volledig geïntegreerde native functies.
+## Project overview
 
-**Codeleesroute:** begin bij `boot/loader/src/main.rs`, volg naar
-`kernel/src/main.rs` en daarna `kernel/src/m2.rs` en `kernel/src/m2/m3.rs`.
-Lees voor procesrechten `crates/capability-core/`, voor apps
-`sdk/runtime/README.md` en `sdk/examples/materiaal/README.md`. De actuele
-status en open gates staan in [PROJECT-STATE.md](docs/PROJECT-STATE.md);
-architectuurkeuzes en contracten staan in
-[KERNEL-AND-SECURITY-CONTRACT.md](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md)
-en de volledige acceptatieopdracht in
-[FULL-TEST-RELEASE.md](docs/FULL-TEST-RELEASE.md). Proeven en builds zijn
-geen bewijs van een complete release of ondersteuning van fysieke hardware.
+Baryon OS does not use the Linux, BSD, XNU, Windows, or Android kernel as its foundation. The native chain runs from UEFI/OVMF through a custom Rust loader into a `no_std` kernel, isolated user processes, system services, drivers, an SDK, and native applications.
+
+The technical architecture and product experience are developed in parallel. **Material** is the data and permission model around documents and collections; applications act as bounded tools around that material. Familiar desktop conventions remain the default for ordinary interaction.
+
+## Core principles
+
+- **Independent kernel and system services.** The kernel, process boundaries, and native services are developed within the project.
+- **Explicit authority.** Processes receive bounded capabilities instead of implicit broad access.
+- **Isolation and recovery.** A failure in one application or service should not automatically take down the entire session or unrelated processes.
+- **User control over data.** Local storage and explicitly connected, client-side encrypted external storage define the intended trust boundary.
+- **Evidence-based claims.** Host tests, QEMU evidence, and physical-hardware tests are reported separately; a prototype is not treated as product acceptance.
+- **European orientation.** Autonomy, privacy, and user control are design goals without sacrificing normal connected functionality or product quality.
+
+## Architecture
+
+```text
+UEFI / OVMF
+    ↓
+custom Rust loader
+    ↓
+no_std Rust kernel
+    ↓
+processes + capabilities + IPC
+    ↓
+userspace services + drivers
+    ↓
+SDK + native applications + desktop
+```
+
+| Area | Location |
+|---|---|
+| Loader | `boot/` |
+| Kernel | `kernel/` and `crates/kernel-core/` |
+| Capability and IPC logic | `crates/capability-core/` |
+| Drivers | `drivers/` |
+| System services | `services/` |
+| SDK and example applications | `sdk/` |
+| User processes | `userspace/` |
+| Native UI and product prototype | `ui/` |
+| Tests and development tooling | `tests/` and `tools/` |
+
+Further reading: [architecture](docs/ARCHITECTURE.md) · [kernel and security contract](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md) · [product ambition](docs/DESIGN-AMBITION.md).
+
+## Current status
+
+The codebase already contains an independent boot chain, process and capability infrastructure, userspace services, storage and recovery tracks, driver work, an SDK, and native UI/session components. Not every component is fully integrated or suitable for physical hardware yet. Formal acceptance status is determined only by the fixed progress criteria.
 
 <!-- OS-PROGRESS:BEGIN -->
-## Voortgang naar een volwaardig zelfstandig OS
+## Progress toward a complete independent OS
 
-![Nieuw OS: 39% van de vaste productroadmap](docs/assets/progress.svg)
+![Baryon OS: 41% of the fixed product roadmap](docs/assets/progress.svg)
 
-**39% — 39 van 100 gewogen acceptatiepunten.** Dit is een
-planningsmeter voor aantoonbaar werkende functies van het eigen OS, geen
-percentage verstreken ontwikkeltijd, veiligheidswaarborg of gemeten gelijkheid
-met Windows, macOS of Linux. De eigen kernel blijft het fundament; geen van
-die besturingssystemen is de basis.
+**41/100 weighted acceptance points.** This is a planning metric for demonstrably accepted functionality, not a time estimate, security guarantee, or claim of parity with existing operating systems.
 
-**0%:** nog geen criterium gerealiseerd. **100%:** een volwaardig, dagelijks
-bruikbaar en onderhoudbaar zelfstandig OS op gedocumenteerde ondersteunde
-hardware, met native Materiaal, nuttige apps, internet, veilige opslag,
-updates, herstel en de afgesproken privacyfuncties. Een bootende demo of
-alleen een nette desktop haalt die eindgrens niet.
-
-| Productspoor | Totaal punten | Behaald |
-|---|---:|---:|
-| Eigen kern en procesisolatie | 15 | 13 |
-| Opslag en gegevensherstel | 15 | 13 |
-| Hardware, drivers en energie | 12 | 1 |
-| Native Materiaal en toegankelijkheid | 15 | 4 |
-| Internet en netwerkdiensten | 10 | 3 |
-| Beveiliging, privacy en updates | 12 | 2 |
-| Apps, SDK en installatie | 8 | 2 |
-| Persoonlijke NAS en meerdere apparaten | 5 | 0 |
-| Lokale AI en quantum-runtime | 3 | 1 |
-| Dagelijks gebruik en onderhoudbare release | 5 | 0 |
-| **Totaal** | **100** | **39** |
-
-**Herbeoordeeld:** 2026-11-03 · **Rubric:** v1 ·
-**Bron:** [`1fcfe314`](https://github.com/simonvanieperen/nieuw-os/commit/1fcfe314c2799402069fb41ad46f3ec1391e499f) ·
-**Ontwikkelbranch:** `simonvanieperen-animated-garbanzo`.
-Deze opdracht: **39% → 39% (+0 procentpunt)**. **Opdracht:** Sprint Control Panel: drie historische bewijs-PRs sluiten, echte productblockers vrijgeven en keyring-PR bijwerken naar mainab85.
-Branch39 blijft39/100; main41 zou bij keyringintegratie39 worden. B01 blijft open: gewone apprecovery is terecht geweigerd, positieve manifest-bevoegde beheerrecovery alleen hostgetest. Geen criteria/gewichten gewijzigd. PR152/151 werkelijk gemerged;172/174/175 veilig gesloten als historische baselinebewijs-PRs met behoud van vaste commits/branches/receipts, niet als geintegreerd of geaccepteerd. Native app-launch en echte ACPI-device-handoff naar owners vrijgegeven. Nieuwe-head-CI/review155 en SMP154 nog open; geen hardware-, menselijke audit- of releaseclaim.
-
-De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
-productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
-NAS/TLS en qsim staan zichtbaar in de projectstatus, maar krijgen geen native
-productpunten. Elk criterium telt volledig of niet; onbewezen werk blijft open.
-
-[Criteria, bewijs en berekening](docs/PROGRESS.md) ·
-[Volledige roadmap](docs/ROADMAP.md) ·
-[Volledige releaseopdracht en acceptatie](docs/FULL-TEST-RELEASE.md) ·
-[Actuele uitvoering](docs/PROJECT-STATE.md).
-Bij **iedere opdracht** worden deze meter, datum, bewijs en wijziging opnieuw
-beoordeeld; de score mag gelijk blijven of dalen. Instructie: [AGENTS.md](AGENTS.md).
+[Criteria and evidence](docs/PROGRESS.md) · [Roadmap](docs/ROADMAP.md) · [Current project status](docs/PROJECT-STATE.md)
 <!-- OS-PROGRESS:END -->
 
-Volledige repository-inventaris: [OS-completeness-audit](docs/audit/os-completeness/README.md).
-Driververgelijking en voorstel: [OS-repositories en hardwaredrivers](docs/research/2026-11-03/os-repos-and-hardware-drivers.md).
+## Build and test
 
-## Native venstersessie — 2 november 2026
-
-[PR #122](https://github.com/simonvanieperen/nieuw-os/pull/122) bevat een eigen
-1280×720-desktop met proportionele letters, twee geïsoleerde vensters, focus,
-slepen, dock en aanwijzer. Materiaal en Rekenmachine behouden document en
-berekening bij een echte compositorcrash. De volledige native route met
-opslaan, heropenen en onafhankelijke schijfcontrole slaagt; **U01 is geaccepteerd**.
-
-[PR #123](https://github.com/simonvanieperen/nieuw-os/pull/123) is hierin
-geïntegreerd: vier GUI-processen wachten bij afwezig werk. In drie metingen
-per variant op één Windows/WHPX-pc daalt de mediane QEMU-procesCPU van 99,37%
-naar 11,67% van één logische processor (88,26% lager). Alle 18 CI-workflows op de
-geteste integratiehead slagen. Dit is geen algemene latency- of energiegarantie.
+The current development route is documented in [DEVELOPMENT.md](docs/DEVELOPMENT.md). The minimal QEMU path is:
 
 ```sh
-python3 -B tools/build.py --kernel-feature native-window-session
+python tools/preflight.py --strict
+python tools/build.py
+python tools/run.py --smoke
 ```
 
-De roadmap steeg van 34 naar 41 door N01 en U01. U02, bredere klemborddekking, echte
-accountauthenticatie en de volledige testrelease blijven open.
-[U01-acceptatie](docs/verification/mature-session-20261102/U01-ACCEPTANCE.md) ·
-[idle-integratie en pakketbewijs](docs/verification/gui-idle-20261102/INTEGRATION.md).
+A successful build is not a full acceptance test. See [TEST-STRATEGY.md](docs/TEST-STRATEGY.md) and [docs/verification/](docs/verification/) for test strategy and evidence levels.
 
-## Native klembord — 2 november 2026
+## Roadmap and work
 
-[PR #124](https://github.com/simonvanieperen/nieuw-os/pull/124) is in de
-desktopbranch opgenomen. Ctrl+C/Ctrl+V deelt geselecteerde tekst tussen Materiaal
-en Rekenmachine; Ctrl+Shift+Delete wist het klembord. Alleen de eigen huidige
-invoergebeurtenis en actieve venster geven één gebruik. Een vervallen actie
-verandert het document niet; compositorherstel begint met een leeg klembord.
+The long-term route progresses from independent boot and isolation to storage, native product integration, network security, physical reference hardware, and an experimental community release.
 
-Twee volledige Linux/TCG-routes slagen met alle22fasen,34hostreferenties,
-17volledige appbeeldvergelijkingen, echt herstel en onafhankelijke schijfcontrole.
-Alle18CI-workflows zijn groen op de geteste bron. De eerste versie ondersteunt
-192UTF-8-bytes met zichtbare weigering zonder afkappen. Ruimere capaciteit,
-de volledige snelheidscriteria en echte authenticatie blijven open; **41/100**.
-[Contract](docs/implementation/NATIVE-CLIPBOARD.md) ·
-[Bron, native bewijs en Windows-testpakket](docs/verification/native-clipboard-20261102/README.md).
+- [Roadmap and technical milestones](docs/ROADMAP.md)
+- [Current criteria and score](docs/PROGRESS.md)
+- [Current execution status](docs/PROJECT-STATE.md)
+- [Issues](https://github.com/simonvanieperen/BaryonOS/issues)
+- [Discussions](https://github.com/simonvanieperen/BaryonOS/discussions)
+- [GitHub Wiki](https://github.com/simonvanieperen/BaryonOS/wiki)
+- [English Wiki source and publication guide](docs/WIKI.md)
 
-## Eerdere native sessiepreview — 2 november 2026
+Historical development checkpoints are stored under [docs/history/](docs/history/) rather than in this README.
 
-[Concept-PR #121](https://github.com/simonvanieperen/nieuw-os/pull/121) voegt
-gebruikerskeuze, een herkenbaar aanmeldformulier, een expliciete openbare
-VM-gast, taakbalk en lokale programmasearch naar de echte Materiaal-app toe.
-De achtstappen-QEMU-proef op `344dc0a` slaagt, inclusief het weigeren en wissen
-van persoonlijke testinvoer. Echte authenticatie, sleutelvrijgave en veilige
-vergrendeling blijven open; de gast is geen beveiligd gebruikersprofiel.
+## Contributing
 
-```sh
-python3 -B tools/build.py --kernel-feature native-system-session-preview
-```
+Contributions are welcome within the existing architecture and security boundaries. Read [CONTRIBUTING.md](CONTRIBUTING.md), the relevant `AGENTS.md` files, and the applicable contract specifications before changing a subsystem.
 
-De Windowsstarter kiest WHPX na een echte QMP-initprobe, met zichtbare
-TCG-terugval. Begrensde compositor-/tegelbatches verminderen protocolwerk;
-volledige schermopbouw blijft een ontwikkelbeperking. De score bleef bij die eerdere preview 34/100; de actuele meter staat bovenaan.
-[Onderzoek/ontwerp](docs/implementation/SESSION-AND-DESKTOP.md) ·
-[hardware en snelheid](docs/implementation/VM-HARDWARE-AND-PERFORMANCE.md) ·
-[proeven en reproductie](docs/verification/session-desktop-20261102/README.md).
+Pull requests are checked by CI and automated review. A successful automated review does not replace a required native test or independent human security audit.
 
-## Schaalbare documentopslag M6e — 26% (28 oktober 2026)
+## Security
 
-[PR #47](https://github.com/simonvanieperen/nieuw-os/pull/47) voegt het opt-in
-profiel `native-volume` toe: een copy-on-write-documentvolume in ring 3 met
-documenten tot 64 KiB (gestreamd in stukken van 160 bytes), ruimtehergebruik
-zonder recordlimiet, quota per domein, `Full` en crashconsistente vrijgave. De
-kernel blijft een generieke blokbroker zonder kennis van het formaat.
+Do **not** disclose exploitable vulnerability details in a public issue. See [SECURITY.md](SECURITY.md) for the current reporting policy and [SECURITY-AND-QUANTUM.md](docs/SECURITY-AND-QUANTUM.md) for the technical security model.
 
-Bewijs: 16 hosttests, waaronder een uitputtende crashsimulatie, 7 tests van het
-onafhankelijke Python-schijforakel, en zeven echte QEMU-runs. Die runs omvatten
-normaal gebruik, koude read-only recovery van exact dezelfde image, twee echte
-VM-kills (midden in de inhoudswrites en midden in de tabelwrite) met koude
-recovery, en een corrupte image die vóór READY wordt geweigerd.
-[M6e-bewijs](docs/verification/M6E-ACCEPTANCE.md).
+## License
 
-Rubric v1: **S04 (+3) en S05 (+3)**, **20% → 26%**. Proefgeometrie van 256 KiB
-inhoud; geen fysieke schijf-, encryptie- of back-upclaim. GitHub Actions op de
-PR-head moet de uitslag nog onafhankelijk herhalen.
+Project-owned software listed in [MPL-2.0-FILES.txt](MPL-2.0-FILES.txt) is made available under the **Mozilla Public License 2.0**. See [LICENSE](LICENSE) and [LICENSING.md](LICENSING.md). Third-party code, fonts, and other components retain their own terms; see [THIRD-PARTY.md](THIRD-PARTY.md).
 
-## Native integratie A01/S08 — 20% (28 oktober 2026)
+The **Baryon OS** name, project identity, and any trademark rights are not granted by the software license.
 
-[A01 SDK-app, PR #31](https://github.com/simonvanieperen/nieuw-os/pull/31)
-is op `main` geïntegreerd: een echt, afzonderlijk gebruikersproces met een
-gedocumenteerde app-ABI, begrensde capabilityrechten, normale en geweigerde
-verzoeken en volledige opruiming. De brongebonden native CI en resource-gates
-zijn geslaagd. [A01-bewijs](docs/verification/A01-ACCEPTANCE.md).
+## Why “Baryon”?
 
-[S08 opslagherstel, PR #34](https://github.com/simonvanieperen/nieuw-os/pull/34)
-is geïntegreerd na herstel van een wezenlijk probleem: koude recovery opent
-de virtuele schijf nu echt read-only, onderhandelt het virtio-readonly-profiel
-en kent alleen blokleesrechten toe. De opslagdienst doet in herstelmodus geen
-muterende startup-FLUSH. Alle 13 afzonderlijke native QEMU-proeven en de
-geïntegreerde [main-CI](https://github.com/simonvanieperen/nieuw-os/actions/runs/40761772907)
-slagen. [S08-bewijs](docs/verification/S08-ACCEPTANCE.md).
-
-De vaste rubric v1 kent nu uitsluitend **A01 (+2) en S08 (+1)** toe:
-**17% → 20%**. Dit is geen bewijs voor een al volwaardige desktop, fysieke
-schijfgaranties, algemene appcompatibiliteit of een productrelease.
-
-## Eerdere integratie en review (historisch)
-
-[PR #13](https://github.com/simonvanieperen/nieuw-os/pull/13) brengt M6c/M6d,
-de actuele main en het [nieuwe Windowsbewijs](docs/verification/M6D-CLOSEOUT.md)
-samen. De geschiedenis is zonder codeverlies verbonden. Ook de ontbrekende
-qsim-parserfix is opgenomen: positionele JSON-arrays worden geweigerd;
-[27 hosttests, rustfmt en Clippy](docs/verification/qsim-request-validation/README.md)
-slagen. De actuele review- en squashmergestatus staat in de PR.
-De native broninputs blijven gelijk en
-de voortgang blijft **14%**.
-
-## Laatste bouwstap: M6d — opslagfouten gecontroleerd afhandelen
-
-De eigen kernel laat onzekere schrijfuitkomsten nu bij de apps aankomen zonder
-observerpanic of onterechte bevestiging. Acht foutproeven controleren onder meer
-WRITE/FLUSH-fouten, time-outs, descriptorweigering en resetquarantaine. Beide
-appdomeinen blijven voortgang maken; na `Unknown` volgen geen nieuwe
-blokaanroepen of automatische herhalingen van de onzekere wijziging.
-
-Op bron `88e6c04b` slagen **35 groepen / 31 echte VM-invocaties**, inclusief
-14 koude recoveries. De afzonderlijke M6b-regressie slaagt met **18 groepen /
-14 VM-invocaties**. Beide bewijsbundels zijn afzonderlijk gecontroleerd; de
-normale eindbuild is bytegelijk aan beide normale M6d-gateruns. Dit sluit
-criterium S07 en brengt de vaste voortgangsmeter van **13% naar 14%**.
-
-[Acceptatie, commando's en bewijs](docs/verification/M6D-ACCEPTANCE.md) ·
-[Vooraf vastgelegd contract](docs/implementation/M6D-IO-UNCERTAINTY.md) ·
-[PR #11](https://github.com/simonvanieperen/nieuw-os/pull/11).
-Werkbranch: `codex/m6d-io-recovery-roadmap`. Herstel gebruikt nog een nieuwe VM;
-automatische dienstherstart in dezelfde sessie is de volgende beperkte stap.
-De foutinjecties bewijzen geen fysieke schijffouten of stroomuitval.
-
-## Eerdere bouwstap: M6c — namen en documentcatalogus
-
-De nieuwe native dienst bewaart documentnamen, inventariseert uitsluitend het
-eigen appdomein en hernoemt met behoud van inhoud en revisiecontrole. Dit is de
-opslaginterface voor de latere Materiaal-integratie. De volledige native gate
-slaagt op broncommit `bc4cd104`: **19 controlegroepen / 15 echte VM-invocaties**,
-waaronder zes koude recoveries, twee externe onderbrekingen tijdens hernoemen
-en één normale M1-boot. De volledige M6b-regressie op dezelfde bron slaagt ook:
-**18 groepen / 14 VM-invocaties**. Daarnaast slagen 30 Rust-coretests,
-33 M6c-harnastests en 15 afzonderlijke hostproeven van de echte serviceadapter.
-[Contract](docs/implementation/M6C-NAMED-CATALOG.md) ·
-[Acceptatie en reproduceerroute](docs/verification/M6C-ACCEPTANCE.md) ·
-[Actuele projectstatus](docs/PROJECT-STATE.md).
-
-```sh
-python3 -B tools/build.py --kernel-feature milestone-m6c
-python3 -B tools/run_m6c.py --case normal --smoke
-```
-
-Werkbranch: `codex/m6c-named-catalog`, [PR #10](https://github.com/simonvanieperen/nieuw-os/pull/10),
-boven op de afgeronde M6b-branch. De proef gebruikt eigen wegwerpimages:
-vier objecten, maximaal 128 inhoudsbytes, 32 UTF-8-naambytes en 32 journalrecords.
-Bezet v1 wordt zonder schrijven geweigerd. Dit levert native opslaggedrag;
-de interactieve desktop, encryptie en native NAS-integratie blijven vervolgstappen.
-
-## Afgeronde basis: M6b
-
-De eigen Rust-kernel heeft nu een native objectdienst in ring 3. Twee geïsoleerde
-testapps kunnen via capability-IPC objecten aanmaken, lezen, bijwerken en
-verwijderen. De dienst schrijft via echte virtio-I/O; revisies en verwijderrecords
-blijven behouden na een koude herstart. Apps krijgen uitsluitend hun eigen
-domeinendpoint, geen rechtstreekse blok- of DMA-toegang.
-
-De uitgebreide M6b-gate op broncheckpoint `592dccf` is geslaagd: **22 controlegroepen
-en 18 echte VM-invocaties**, inclusief acht koude recoveries en twee externe
-QEMU-kills. Twee nieuwe WRITE-/FLUSH-foutproeven controleren dat de dienst
-Unknown teruggeeft zonder kernelpanic, valse succesmelding, replay of oude
-leesinhoud. Ook 22 Rust-tests en 31 M6b-harnastests slagen. De fouten zijn lokale
-statussnapshotinjecties na echte devicecompletion; geen echte defecte backend.
-Ruwe uitvoer en hashes: [verification/m6b-storage-errors](docs/verification/m6b-storage-errors/).
-Het [eerdere M6b-bewijs](docs/verification/m6b/) is behouden.
-Deze afgebakende proef gebruikt vier objecten van maximaal 128 bytes en een
-journal van 32 records. M6c hierboven voegt namen toe; ruimtehergebruik, encryptie
-en native NAS/desktop volgen als aparte integratiestappen.
-
-```sh
-python3 -B tools/build.py --kernel-feature milestone-m6b
-python3 -B tools/run_m6b.py --case normal --smoke
-```
-
-De runner gebruikt een eigen synthetisch wegwerpvolume en sluit na de
-acceptatieproef af. Volledig contract: [M6B-OBJECT-STORAGE.md](docs/implementation/M6B-OBJECT-STORAGE.md).
-Voortgang, regressies en resterende grenzen: [PROJECT-STATE.md](docs/PROJECT-STATE.md).
-
-## Nieuwe richting: internet en persoonlijke NAS-opslag
-
-**Vervolg N02:** [hybride TLS-transportproef](services/nas/TRANSPORT.md) met echte wederzijdse authenticatie en X25519MLKEM768 op loopback. De gecontroleerde [beveiligings-/PQC-blauwdruk](docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md) onderscheidt formele eigenschappen, eigen kernel, CHERI-onderzoek en native integratie. Dit is hostbewijs; geen native internetstack, formeel bewezen compleet OS of volledige postkwantumauthenticatie. Uitvoering en actuele testresultaten: [PROJECT-STATE.md](docs/PROJECT-STATE.md).
-
-De gebruikerswijziging van 27 oktober 2026 voegt veilige internettoegang, eigen NAS en gedeelde ruimte bij vrienden/familie toe. Inhoud en documentnamen worden op de gebruikersclient versleuteld; de NAS-beheerder kan ruimte intrekken en zijn kopie verwijderen zonder gebruikerssleutel of toestemming. De uitvoerbare hostproef staat in [services/nas/](services/nas/README.md); het browserprototype blijft een simulatie. Contract en native integratiecriteria: [NAS-SHARING-AND-INTERNET.md](docs/implementation/NAS-SHARING-AND-INTERNET.md). Dit voegt nog geen netwerkstack aan de kernel toe en verandert de M6a-bewijsstatus niet.
-
-De eigen Rust-kernel start via de eigen UEFI-loader in QEMU, draait geïsoleerde gebruikersprocessen en verwerkt capabilities/IPC. M5 voegt een echte ring-3-blokdienst met alleen-lezen virtio-I/O toe. De definitieve M1–M5-suites slagen: **77 controlegroepen en 64 echte VM-runs**, plus een normale M5-eindstart. Materiaal en qsim blijven afzonderlijke hostprototypes. Dit is een experimentele ontwikkelversie met synthetische testprogramma's.
-
-- **Actuele voortgang en open controles:** [PROJECT-STATE.md](docs/PROJECT-STATE.md).
-- **Starten en reproduceren:** [DEVELOPMENT.md](docs/DEVELOPMENT.md).
-- **Opgeslagen testbewijs:** [docs/verification/](docs/verification/).
-- **Productprototype:** [handleiding](ui/prototype/README.md).
-- **Quantumsimulator:** [handleiding](experiments/quantum/README.md).
-
-M6b is hervat vanaf `main` (`1f24f99`) op [codex/m6b-storage-errors](https://github.com/simonvanieperen/nieuw-os/tree/codex/m6b-storage-errors). De status staat per spoor in PROJECT-STATE.md. [PR #3](https://github.com/simonvanieperen/nieuw-os/pull/3) bewaart de M5-historie; de oude testmatrix staat in [ACCEPTANCE.md](docs/verification/m5/ACCEPTANCE.md).
-
-De oudere M5-leesproef blijft selecteerbaar via `python tools/build.py --kernel-feature milestone-m5` en `python tools/run.py --smoke --milestone m5`. Er is nog geen interactieve native desktop. Kerneltransport en QEMU-device zijn vertrouwd; geen IOMMU- of fysieke-hardwarebewijs. De uitvoerroute staat in DEVELOPMENT.md. Publieke publicatie en definitieve licentie blijven een afzonderlijk besluit volgens LICENSE-PLAN.md.
-
-## Projectrichting en verder lezen
-
-Nieuw OS bouwt een eigen Rust-kernel met expliciete bevoegdheden en afzonderlijke
-systeemdiensten, plus een oorspronkelijke productervaring: **Materiaal**.
-Documenten en collecties staan centraal; apps zijn verwisselbare gereedschappen.
-De eigen kernel is geen fork van een bestaand besturingssysteem. Rust/LLVM,
-QEMU, UEFI, open standaarden en gecontroleerde bibliotheken zijn ontwikkelmiddelen.
-
-Persoonlijke gegevens blijven lokaal, end-to-end versleuteld op een expliciet
-gekoppelde persoonlijke NAS, of — na expliciete keuze — als opaque client-side
-versleutelde objecten bij een externe opslagprovider. Een provider krijgt geen
-Nieuw-OS-inhoudssleutel en is geen stille fallback. Internet vraagt passende
-app-/peer-/providerrechten. Systeem-AI blijft op het eigen apparaat zonder
-cloudfallback; installatie van een app verleent geen algemene bestands- of
-netwerkrechten. Privacykeuzes verruimen alleen expliciete gegevensstromen:
-de Security Floor met isolatie en capability-afdwinging blijft actief.
-De actuele native implementatiegrenzen staan per spoor hierboven.
-
-- [Architectuur en kernelcontract](docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
-- [Materiaal en productambitie](docs/implementation/PRODUCT-SPEC.md).
-- [Gebruikersbehoeften, overstapbarrières en OS-ontwerptrends — onderzoek 2 november 2026](docs/research/2026-11-02/README.md).
-- [Volledige OS-journey: installatie, eerste gebruik, mentale modellen en installer-/onboardingvoorstellen](docs/research/2026-11-02/journey/README.md) — documentonderzoek; geen installer geïmplementeerd.
-- [Privacycontract](docs/LOCAL-PRIVACY-CONTRACT.md).
-- [Quantumspoor](docs/QUANTUM-RESEARCH.md).
-- [Beveiliging en postkwantumroute](docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md).
-- [Security Floor en versleutelde object-/provideropslag](docs/implementation/ENCRYPTED-OBJECT-STORAGE.md).
-- [Werkinstructies voor agents](AGENTS.md).
-- [Ontwerpbesluiten](docs/DECISIONS.md) en [afhankelijkheden](docs/DEPENDENCIES.md).
-
-De startdocumenten van 26 oktober beschrijven de toenmalige voorbereiding.
-Zinnen daarin over ontbrekende loader/kernel of niet-uitgevoerde eerste tests
-zijn historisch; volg voor de huidige uitvoering PROJECT-STATE.md.
-De README en roadmap zijn geen claim van onhackbaarheid, algemene
-hardwarecompatibiliteit of reeds bewezen gelijkwaardigheid met bestaande platforms.
+The name refers to baryons as composite particles and uses that composition as a metaphor for a system in which a small kernel, separate services, and a distinct user environment form one coherent whole. The metaphor is not a technical claim of safety or stability.

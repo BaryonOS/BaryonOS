@@ -32,14 +32,17 @@ UPDATE_FEATURES = ("native-update", "test-update-cut")
 NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")
 TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
 MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
-WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi")
+WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi", "native-session-route")
 MATERIAAL_FEATURES = (*WINDOW_FEATURES, "native-system-materiaal", "native-system-session-preview", "native-system-materiaal-probe", "test-system-materiaal-recover", "test-system-materiaal-scale200")
 NAS_FEATURES = ("native-system-nas-probe", "test-system-nas-recover")
 RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
 IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
-SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
-KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc", "test-m2-ro", "test-m2-nx",
+SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
+KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
+                   "native-smp", "test-smp-ap-stall", "test-smp-ap-mismatch", "test-smp-ap-nmi",
+                   "test-smp-ap-double-fault", "test-smp-ap-ipi-deaf", "test-smp-ap-shootdown-deaf",
+                   "test-smp-shootdown-skipped", "test-smp-ap-timer-dead", "test-smp-lockdep-order", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
                    "milestone-m4", *(f"test-m4-{case}" for case, _ in M4_CASES),
@@ -157,7 +160,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         extra_env, qsim_report = build_nas_users()
     elif kernel_feature in MATERIAAL_FEATURES:
         from build_materiaal import build_users as build_materiaal_users
-        extra_env, qsim_report = build_materiaal_users(probe=kernel_feature not in ("native-system-materiaal", "native-system-session-preview", *WINDOW_FEATURES), window_session=kernel_feature in WINDOW_FEATURES, fault_injection=kernel_feature=="native-window-session-probe")
+        extra_env, qsim_report = build_materiaal_users(probe=kernel_feature not in ("native-system-materiaal", "native-system-session-preview", *WINDOW_FEATURES), window_session=kernel_feature in WINDOW_FEATURES, fault_injection=kernel_feature=="native-window-session-probe", session_preview=kernel_feature=="native-session-route")
     elif kernel_feature == "native-display-probe":
         from run_display_probe import build_users as build_display_users
         extra_env, qsim_report = build_display_users()
@@ -236,7 +239,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             run_logged([sys.executable, "-B", str(ROOT / f"sdk/examples/{probe}/build.py")],
                        "build-system-net-probe", extra_env={"CARGO_TARGET_DIR": str(net_target)})
             binaries["net_probe"] = net_target / f"x86_64-unknown-none/release/{probe}"
-        if kernel_feature in ("native-net-service", "test-net-service-client-exit"):
+        if kernel_feature in ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke"):
             net_target = TARGET / "network-service"
             run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/network-service/build.py")],
                        "build-network-service", extra_env={"CARGO_TARGET_DIR": str(net_target)})
@@ -356,7 +359,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             manifest["supervisor"] = qsim_report
         elif kernel_feature in SYSTEM_FEATURES:
             manifest["system"] = qsim_report
-            if kernel_feature in ("native-net-service", "test-net-service-client-exit"):
+            if kernel_feature in ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke"):
                 manifest["network_service"] = {name: qsim_report[f"network_{name}"]
                                                for name in ("service", "client")}
             if kernel_feature in RANDOM_FEATURES:

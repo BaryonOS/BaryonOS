@@ -1,0 +1,12 @@
+{
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/workspace/nieuw-os/sdk/examples/window-session/build.py",
+    "--fault-injection"
+  ],
+  "cwd": "/workspace/nieuw-os",
+  "started_unix": 1793654688.8113315,
+  "duration_s": 2.2476720809936523,
+  "returncode": 0
+}

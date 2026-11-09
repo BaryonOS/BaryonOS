@@ -174,6 +174,8 @@ def decode_object(head: bytes, history: bytes, generation: int):
     else:
         if current != empty_version() or collection or tags or kind:
             raise ValueError("deleted object keeps metadata")
+        if revision == MASK:  # table.rs checked_add: u64 revision + 1 fails closed
+            raise ValueError("deleted object revision overflows")
         newer = revision + 1
     for index, version in enumerate(versions):
         if index < depth:
@@ -453,6 +455,14 @@ def encode_table(generation: int, request_id: int, entries, collections=None, cl
     return [bytes(s) for s in sectors]
 
 
+def empty_image_bytes() -> bytes:
+    """Canonical disposable image with a zeroed volume and outside canaries."""
+    return b"".join(
+        bytes(SECTOR) if FIRST <= index < FIRST + VOLUME_SECTORS else canary(index)
+        for index in range(IMAGE_SECTORS)
+    )
+
+
 def create_image(path: Path, variant: str = "empty") -> dict:
     """Create a fresh 1 MiB image: canaries outside the scope, zero volume.
 
@@ -463,9 +473,7 @@ def create_image(path: Path, variant: str = "empty") -> dict:
     """
     if path.exists():
         raise FileExistsError(path)
-    image = bytearray()
-    for index in range(IMAGE_SECTORS):
-        image += bytes(SECTOR) if FIRST <= index < FIRST + VOLUME_SECTORS else canary(index)
+    image = bytearray(empty_image_bytes())
     if variant == "corrupt":
         entries = [empty_entry() for _ in range(OBJECTS)]
         current = dict(empty_version(), revision=1, name=b"bad/name", content_sum=FNV_OFFSET)

@@ -1,16 +1,9 @@
-# Licentie vóór publicatie
-Dit pakket bevat bewust nog geen gekozen projectlicentie of automatische publieke repository. Publiek leesbaar is niet hetzelfde als open source.
+# License review — applied proposal
 
-Onderzocht en aanbevolen uitgangspunt: **MPL-2.0** voor de eigen OS-code, omdat bronbeschikbaarheid van gewijzigde MPL-bestanden behouden kan blijven terwijl samenwerking met anders gelicentieerde componenten mogelijk is. Dit is een ontwerpvoorstel; componentgrenzen en distributieverplichtingen moeten bij de werkelijke dependencies worden gecontroleerd.
+The previous license plan is preserved as a [historical snapshot](docs/history/LICENSE-PLAN-before-application-2026-11-09.md).
 
-Voordat het project open source wordt gepubliceerd:
-1. Bevestig de gewenste licentie voor eigen code, documentatie, assets en bijdragen.
-2. Neem de ongewijzigde officiële licentietekst op als LICENSE; behoud externe licenties afzonderlijk.
-3. Leg SPDX-identificatie, auteursrechtvermeldingen, herkomst en bijdragebeleid vast.
-4. Controleer compatibiliteit van daadwerkelijk gebruikte code. Voeg geen eigen 'alleen Europees', 'niet voor AI' of 'niet-commercieel' verbod toe en noem dat daarna open source.
-5. Publiceer pas met een kloppende dependency-/licentie-inventaris.
+This branch applies the previously selected MPL-2.0 direction to project-owned software explicitly listed in [MPL-2.0-FILES.txt](MPL-2.0-FILES.txt). The official text is in [LICENSE](LICENSE); [LICENSING.md](LICENSING.md) defines scope, exclusions, and contribution requirements.
 
-Bronnen en verdere afweging: docs/PRODUCT-AND-SOVEREIGNTY.md. Geen uitspraak dat het project al juridisch of technisch voldoet.
+Third-party code and assets retain their own terms; see [THIRD-PARTY.md](THIRD-PARTY.md). Documentation, historical evidence, research sources, project names, and logos are not placed under MPL-2.0 solely by the root license.
 
-Mozilla. (2024, 30 januari). *MPL 2.0 FAQ*. https://www.mozilla.org/en-US/MPL/2.0/FAQ/
-Mozilla. (z.d.). *Mozilla Public License Version 2.0*. https://www.mozilla.org/en-US/MPL/2.0/
+The application becomes part of `main` after review and merge of this documentation/governance pull request. Applying a license does not prove product security, release readiness, or a complete distribution SBOM.

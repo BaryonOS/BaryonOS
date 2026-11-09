@@ -1,0 +1,5043 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "native_gate": false,
+  "smoke_only": false,
+  "recovery_handshake_only": false,
+  "clipboard_requested": false,
+  "clipboard_gate": false,
+  "source_sha256": "069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670",
+  "source_commit": "64044318c622eaacab25272611acf856a5fca5d5",
+  "source_fingerprint_version": 3,
+  "kernel_feature": "native-window-session-probe",
+  "session_route_requested": false,
+  "session_route_gate": false,
+  "manifest": {
+    "schema_version": 1,
+    "profile": "native-window-session-probe",
+    "kernel_feature": "native-window-session-probe",
+    "loader_feature": "desktop-mode",
+    "source_fingerprint_version": 3,
+    "source_sha256": "069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670",
+    "loader": {
+      "sha256": "43a296579b8594ba1efdd2d4017791d2625f5c4f70726a1a82e07fad6ac6d6ea",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "15a3fb2703f40a8d37812ad4d318f8a2773deace8c42651360f090e1a252d910",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 177239,
+          "memsz": 177239,
+          "page_start": 33554432,
+          "page_end": 33734656
+        },
+        {
+          "flags": 4,
+          "offset": 184320,
+          "address": 33734656,
+          "filesz": 1803408,
+          "memsz": 1803408,
+          "page_start": 33734656,
+          "page_end": 35540992
+        },
+        {
+          "flags": 6,
+          "offset": 1990656,
+          "address": 35540992,
+          "filesz": 1720936,
+          "memsz": 4825272,
+          "page_start": 35540992,
+          "page_end": 40370176
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 177239
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 1803408
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1720936
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3100856
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 9600
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 22248
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "materiaal": {
+      "passed": true,
+      "native_runtime_performed": false,
+      "probe_controller": false,
+      "apps": [
+        {
+          "name": "keyring-service",
+          "sha256": "b8e12f74dbdc0016cded50f913d8e0d7a420fa3f4960e2d699e32b4bb5b30fe4",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1344,
+                "memsz": 1344,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073823744,
+                "offset": 12288,
+                "filesz": 3377,
+                "memsz": 3377,
+                "page_start": 1073823744,
+                "page_end": 1073827840
+              },
+              {
+                "flags": 5,
+                "address": 1073872896,
+                "offset": 16384,
+                "filesz": 78407,
+                "memsz": 78407,
+                "page_start": 1073872896,
+                "page_end": 1073954816
+              }
+            ]
+          }
+        },
+        {
+          "name": "volume-service",
+          "sha256": "aa6ab477ec3eca0021aed1083aa7e3028608dc87ec1233ad3d5f2a89d2af4e83",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 57570,
+                "memsz": 57570,
+                "page_start": 1073741824,
+                "page_end": 1073803264
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 65536,
+                "filesz": 1304,
+                "memsz": 1304,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073823744,
+                "offset": 69632,
+                "filesz": 18018,
+                "memsz": 18018,
+                "page_start": 1073823744,
+                "page_end": 1073844224
+              }
+            ]
+          }
+        },
+        {
+          "name": "materiaal-app",
+          "sha256": "5fcfcb36ba409d745f9dabe71cfa2088358b14e25234017d98985238e3e63ebf",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 19,
+                "memsz": 19,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 291720,
+                "memsz": 291720,
+                "page_start": 1073872896,
+                "page_end": 1074167808
+              },
+              {
+                "flags": 6,
+                "address": 1074462720,
+                "offset": 307200,
+                "filesz": 200,
+                "memsz": 200704,
+                "page_start": 1074462720,
+                "page_end": 1074663424
+              },
+              {
+                "flags": 5,
+                "address": 1074724864,
+                "offset": 311296,
+                "filesz": 133817,
+                "memsz": 133817,
+                "page_start": 1074724864,
+                "page_end": 1074860032
+              }
+            ]
+          }
+        },
+        {
+          "name": "input-source",
+          "sha256": "3c8852188ddb7f5b3ded12d9caef17e63d0164c679dffee0a3183433f33111b9",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1200,
+                "memsz": 1200,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 754,
+                "memsz": 754,
+                "page_start": 1073872896,
+                "page_end": 1073876992
+              },
+              {
+                "flags": 5,
+                "address": 1074003968,
+                "offset": 16384,
+                "filesz": 12263,
+                "memsz": 12263,
+                "page_start": 1074003968,
+                "page_end": 1074016256
+              }
+            ]
+          }
+        },
+        {
+          "name": "input-policy",
+          "sha256": "fc7782e67787b61f8990851881b46b71f8400b1a3d781bdd18cf71d850b4f085",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1200,
+                "memsz": 1200,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 2522,
+                "memsz": 2522,
+                "page_start": 1073872896,
+                "page_end": 1073876992
+              },
+              {
+                "flags": 5,
+                "address": 1074003968,
+                "offset": 16384,
+                "filesz": 21575,
+                "memsz": 21575,
+                "page_start": 1074003968,
+                "page_end": 1074028544
+              }
+            ]
+          }
+        },
+        {
+          "name": "window-init",
+          "sha256": "ddf6450aac86872380b68ccf693de2d06e390a62f4c283d97d007aff6fb0e90b",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 799,
+                "memsz": 799,
+                "page_start": 1073872896,
+                "page_end": 1073876992
+              },
+              {
+                "flags": 6,
+                "address": 1074790400,
+                "offset": 16384,
+                "filesz": 72,
+                "memsz": 72,
+                "page_start": 1074790400,
+                "page_end": 1074794496
+              },
+              {
+                "flags": 5,
+                "address": 1090519040,
+                "offset": 20480,
+                "filesz": 9799,
+                "memsz": 9799,
+                "page_start": 1090519040,
+                "page_end": 1090531328
+              }
+            ]
+          }
+        },
+        {
+          "name": "window-compositor",
+          "sha256": "aa4c54964cc111facf077d62b3ce34550d72905fb6c0757023850531111e5f83",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 6,
+                "memsz": 6,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 286032,
+                "memsz": 286032,
+                "page_start": 1073872896,
+                "page_end": 1074159616
+              },
+              {
+                "flags": 6,
+                "address": 1074790400,
+                "offset": 299008,
+                "filesz": 184,
+                "memsz": 5600184,
+                "page_start": 1074790400,
+                "page_end": 1080393728
+              },
+              {
+                "flags": 5,
+                "address": 1090519040,
+                "offset": 303104,
+                "filesz": 66345,
+                "memsz": 66345,
+                "page_start": 1090519040,
+                "page_end": 1090588672
+              }
+            ]
+          }
+        },
+        {
+          "name": "calculator-app",
+          "sha256": "6b65d1aa481f8e42c1a92ef28358713969605bcbce1aa4fa281bdf8c0be419b9",
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "flags": 5,
+                "address": 1073741824,
+                "offset": 4096,
+                "filesz": 19,
+                "memsz": 19,
+                "page_start": 1073741824,
+                "page_end": 1073745920
+              },
+              {
+                "flags": 6,
+                "address": 1073807360,
+                "offset": 8192,
+                "filesz": 1024,
+                "memsz": 1024,
+                "page_start": 1073807360,
+                "page_end": 1073811456
+              },
+              {
+                "flags": 4,
+                "address": 1073872896,
+                "offset": 12288,
+                "filesz": 465608,
+                "memsz": 465608,
+                "page_start": 1073872896,
+                "page_end": 1074339840
+              },
+              {
+                "flags": 6,
+                "address": 1074790400,
+                "offset": 479232,
+                "filesz": 208,
+                "memsz": 208,
+                "page_start": 1074790400,
+                "page_end": 1074794496
+              },
+              {
+                "flags": 5,
+                "address": 1075052544,
+                "offset": 483328,
+                "filesz": 69686,
+                "memsz": 69686,
+                "page_start": 1075052544,
+                "page_end": 1075126272
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "command": [
+    "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+    "-L",
+    ".",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:serial.txt",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16,romfile=VGA.rom",
+    "-qmp",
+    "stdio",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,file=volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"
+  ],
+  "library_requested": true,
+  "library_gate": true,
+  "library_cold": true,
+  "library_parent": {
+    "volume_sha256": "31a367e7c499a8a1e21e954b3328d2a08ccf02ea2b5c89ce0a114213e19467ea",
+    "report_sha256": "08c3fa7b3c9f51015c6bbf8fef3b65216587afde74b527c5632a2ee173f0e0e3",
+    "directory": "/workspace/nieuw-os/build/library-native-final/run/window-8ec48238bdc34ea1b88ca8d56dd96a32",
+    "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+    "qemu_implementation_sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067",
+    "command": [
+      "/workspace/.nieuw-os-env/bin/qemu-system-x86_64",
+      "-L",
+      ".",
+      "-machine",
+      "pc-q35-10.0",
+      "-accel",
+      "tcg,thread=single",
+      "-cpu",
+      "qemu64",
+      "-smp",
+      "1",
+      "-m",
+      "256M",
+      "-nodefaults",
+      "-display",
+      "none",
+      "-monitor",
+      "none",
+      "-serial",
+      "file:serial.txt",
+      "-nic",
+      "none",
+      "-no-reboot",
+      "-device",
+      "VGA,vgamem_mb=16,romfile=VGA.rom",
+      "-qmp",
+      "stdio",
+      "-device",
+      "isa-debug-exit,iobase=0xf4,iosize=0x04",
+      "-drive",
+      "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+      "-drive",
+      "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+      "-drive",
+      "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+      "-object",
+      "rng-random,id=rng0,filename=/dev/urandom",
+      "-device",
+      "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+      "-drive",
+      "if=none,id=volume,format=raw,cache=writeback,file=volume.img",
+      "-device",
+      "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"
+    ]
+  },
+  "run_directory": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43",
+  "qemu_sha256": "1a0cd0b1d99d7df341bbc618a9a66368b8d9594c7644f0ea0cd3ca62b273930a",
+  "immutable": {
+    "VGA.rom": "88277c3ebff60fe83696d99d44b7eee4426112ee1763c87347c30a5b75781932",
+    "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+    "bios-256k.bin": "fc6d2ea888862e6b26d53fb877ab712324726eb8f44eb6baf076c64a31f1c3fb",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "esp/kernel.elf": "15a3fb2703f40a8d37812ad4d318f8a2773deace8c42651360f090e1a252d910",
+    "esp/EFI/BOOT/BOOTX64.EFI": "43a296579b8594ba1efdd2d4017791d2625f5c4f70726a1a82e07fad6ac6d6ea"
+  },
+  "phases": {
+    "library-cold-list": {
+      "seconds": 91.00184577000073,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 3,
+          "FRAMES": 1,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 1,
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "OBJECT": 18446744073709551615,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "b09ffacb8ff8d02f7acdef5fa7d721c3369cc6ff4632401cef635e8cb648ac1e",
+      "oracle": "library-cold-list"
+    },
+    "library-cold-search": {
+      "seconds": 94.69931723700029,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 3,
+          "FRAMES": 1,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 1,
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "OBJECT": 18446744073709551615,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "d89362cecf6ffc75fa358f7c3460dc38d42e9027180af06ebd95109704642507",
+      "oracle": "library-cold-search",
+      "last_input_to_verified_app_image_s": 2.525542286000018,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "library-cold-opened": {
+      "seconds": 139.92452000899993,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 9,
+          "FRAMES": 2,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 2,
+          "DIRTY": 0,
+          "DRAFT_BYTES": 99,
+          "DRAFT_SUM": 17011967729038350790,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "4f41ee4374861ab33015b6e90f590d87fa72e39a7c4399a213444c7df3fa450f",
+      "oracle": "library-cold-opened",
+      "last_input_to_verified_app_image_s": 45.22307458200066,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    },
+    "library-cold-history": {
+      "seconds": 190.06885955100006,
+      "state": {
+        "MATERIAL": {
+          "PID": 4,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 10,
+          "FRAMES": 3,
+          "SAVE_ACKS": 0,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SCREEN": 6,
+          "DIRTY": 0,
+          "DRAFT_BYTES": 99,
+          "DRAFT_SUM": 17011967729038350790,
+          "OBJECT": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        },
+        "CALCULATOR": {
+          "PID": 8,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081,
+          "INPUT_EPOCH": 5282247373882392577,
+          "READY": 1,
+          "GEN": 1,
+          "FRAMES": 1,
+          "EVALUATIONS": 0,
+          "FAILURES": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "CURRENT": 0,
+          "CARET": 0,
+          "ACTIVE": 1,
+          "ANSWER_LOW": 0,
+          "ANSWER_HIGH": 0,
+          "HAS_ANSWER": 0,
+          "SCALE": 1,
+          "ERRORS": 0,
+          "PROBES": 3
+        }
+      },
+      "frame_sha256": "dce7f821b8f1b4d6c30685f77acd22ce2c39bdfd1326b24ebc2a21974e0fa4c2",
+      "oracle": "library-cold-history",
+      "last_input_to_verified_app_image_s": 50.12641273400004,
+      "latency_scope": "Conservative host/QMP/observation/capture interval from last key chord to exact full app-body oracle; not whole-screen/guest/scanout latency or U02 budget acceptance."
+    }
+  },
+  "boot_milestone_observations": {
+    "firmware_exit": {
+      "first_observed_seconds": 2.155900247000318,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "kernel_entry": {
+      "first_observed_seconds": 2.1559031310007413,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "kernel_memory_ready": {
+      "first_observed_seconds": 2.713070405000508,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "process_manifest_ready": {
+      "first_observed_seconds": 3.3748989590003475,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "required_services_ready": {
+      "first_observed_seconds": 8.703816189999998,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "calculator_complete_frame": {
+      "first_observed_seconds": 41.70675077300075,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    },
+    "material_complete_frame": {
+      "first_observed_seconds": 88.19718242800081,
+      "scope": "host monotonic polling bound; not exact guest duration"
+    }
+  },
+  "qemu_implementation": {
+    "path": "/workspace/.nieuw-os-env/sysroot/usr/bin/qemu-system-x86_64",
+    "sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067"
+  },
+  "raw_qemu_exit": 33,
+  "disk_oracle": {
+    "generation": 5,
+    "clocks": [
+      5,
+      0
+    ],
+    "objects": [
+      {
+        "object": 0,
+        "revision": 4,
+        "present": true,
+        "collection": 1,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 17,
+        "versions": [
+          {
+            "revision": 4,
+            "length": 99,
+            "name": "Reisnotities",
+            "content_revision": null,
+            "chunks": [
+              0
+            ],
+            "content_hex": "65656e207765656b2061616e206465206b7573740a0a7765207265697a656e206d657420646520747265696e20656e206669657473656e20646f6f72206465206475696e656e0a68657420687569736a65206c69677420766c616b2062696a207a6565"
+          },
+          {
+            "revision": 3,
+            "length": 98,
+            "name": "Reisnotities",
+            "content_revision": null,
+            "chunks": [
+              1
+            ],
+            "content_hex": "65656e207765656b2061616e206465206b7573740a0a7765207665727472656b6b656e206f70207a6174657264616720656e206e656d656e206465206669657473206d65650a68657420687569736a65206c69677420766c616b2062696a207a6565"
+          }
+        ]
+      },
+      {
+        "object": 1,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 2,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 3,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 4,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 5,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 6,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 7,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 8,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 9,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 10,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 11,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 12,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 13,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 14,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      },
+      {
+        "object": 15,
+        "revision": 0,
+        "present": false,
+        "collection": 0,
+        "tags": 0,
+        "kind": 0,
+        "request_id": 0,
+        "versions": []
+      }
+    ],
+    "collections": [
+      {
+        "index": 1,
+        "domain": 0,
+        "present": true,
+        "revision": 1,
+        "name": "Reis"
+      },
+      {
+        "index": 2,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 0,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 1,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 2,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 3,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      },
+      {
+        "index": 4,
+        "domain": 1,
+        "present": false,
+        "revision": 0,
+        "name": ""
+      }
+    ],
+    "chunks_used": 2,
+    "slots": [
+      [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      [
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5
+      ]
+    ],
+    "digests": [
+      11419408681674826271,
+      10252960164691450465
+    ]
+  },
+  "volume_sha256": "31a367e7c499a8a1e21e954b3328d2a08ccf02ea2b5c89ce0a114213e19467ea",
+  "oracle": {
+    "kind": "host-rendered real Controller/Frame oracle; not native execution",
+    "source_sha256": "069666e5406a893f64aa5d8e00298863f33f8be9cef57b6e0522b8bdf9648670",
+    "source_fingerprint_version": 3,
+    "generator_command": [
+      "cargo",
+      "+1.90.0",
+      "test",
+      "--offline",
+      "--locked",
+      "--manifest-path",
+      "/workspace/nieuw-os/ui/native/Cargo.toml",
+      "--test",
+      "library_native_fixture",
+      "--",
+      "--nocapture"
+    ],
+    "generator_commands": [
+      [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/workspace/nieuw-os/ui/native/Cargo.toml",
+        "--test",
+        "library_native_fixture",
+        "--",
+        "--nocapture"
+      ]
+    ],
+    "clipboard_oracles": false,
+    "library_oracles": true,
+    "generator_exit": 0,
+    "files_sha256": {
+      "880x510-library-empty.ppm": "14b4d8c6529e96cac54854b566989b43e663a7824ee3900416f87bc9aafef717",
+      "880x510-library-named-draft.ppm": "b75ca4edae4afdab0de68cd34b43aba7580f4f80a9300237492760e02dbdcca0",
+      "880x510-library-saved.ppm": "fadeac822b76f8154a415b129e3fe071c707e516143edd39041177dab69a7007",
+      "880x510-library-organized.ppm": "9b0cab0702d636c4839143e38021b139ca13ed36a4cfc78f8400a931d8bef05c",
+      "880x510-library-edited.ppm": "1167171b31940670f60c6aaaa08c0416b649bc55e7d30ff2ea2c769af74d13d9",
+      "880x510-library-revision-saved.ppm": "76a25f014e41f69c899e607ab697276c151bd6f7503a2ef1782fc2de959841f6",
+      "880x510-library-history.ppm": "1cca9a156d492a70d2ba337fe0a21576ba126cf01cd9323a65b120e24c98e13b",
+      "880x510-library-restored.ppm": "4f6390a452dbe12e7210dac0ee947346968f47a7c83c8a41de08408f118d93ba",
+      "880x510-library-search.ppm": "9245157f08059a3592cc93f793a4ed695c34e56923a1a9eb0dd867665af48fec",
+      "880x510-library-opened.ppm": "5dbfd9639956bb217bc07dab5ec7d46ca2907ad7d4e57d8979bbf41e4b496673",
+      "880x510-library-cold-list.ppm": "edc6467bebcaea472c827e4d5fac9881750b227db2efee574af034adaa003536",
+      "880x510-library-cold-search.ppm": "82b128ffeb4e76ba5dcb8e042b8b07ba042bbaf26bc61732520fe1a72ec6b5c7",
+      "880x510-library-cold-opened.ppm": "5dbfd9639956bb217bc07dab5ec7d46ca2907ad7d4e57d8979bbf41e4b496673",
+      "880x510-library-cold-history.ppm": "85c0d01c8e7b1ea90f184bb77e230b91cfd773391e08a224b1fe797477aaf88e",
+      "1120x660-library-empty.ppm": "1d3c35e520e9e5d9d04b6ee1d1d4b32167b301e06461eef128b9d4b9d717fbbd",
+      "1120x660-library-named-draft.ppm": "906837136193c796cbf087f0832648518b6dd3db9a90f3c80a72d2799b9ace03",
+      "1120x660-library-saved.ppm": "e6583699db5619191b3280ab423cf0cfd45850db8f020e01cbca012a1b509e98",
+      "1120x660-library-organized.ppm": "ad1e468471d61feae3d02c4419e40c67940eed59b777974b34ab7d389719e1f2",
+      "1120x660-library-edited.ppm": "3c29fb84530fad8d4bb177661fedc5d0ba0241332b8a54997e95aaa80ab0424f",
+      "1120x660-library-revision-saved.ppm": "d2591e1c7a6dc4a4a86c4328370171fe83040aefd11936fd5aa3eca73c8aee8e",
+      "1120x660-library-history.ppm": "69ee5e92277b2a40d094979ef7fac0eca1b1428ca2ea7ff3ae70341480118887",
+      "1120x660-library-restored.ppm": "af28ab06fa14756f5187564d969eb8c98a8772b5e61cf467088ff8f846ecf74d",
+      "1120x660-library-search.ppm": "9d50fb4fe50c37bdb2e9b103b98dd383060f73e85b36f18e34c8821c91fb9bbc",
+      "1120x660-library-opened.ppm": "9f625a6d9e467fef63432dff837441b5600c0254554289f6e8e4c605fcc8edbf",
+      "1120x660-library-cold-list.ppm": "b7999b33dbd64ae128c57793e58c162f4b97f7c500fe1a7c0d48e3bd69fac04d",
+      "1120x660-library-cold-search.ppm": "4088bdfa3802c919d0cea438909502984046eeccd017679a82da4c53f5a672a6",
+      "1120x660-library-cold-opened.ppm": "9f625a6d9e467fef63432dff837441b5600c0254554289f6e8e4c605fcc8edbf",
+      "1120x660-library-cold-history.ppm": "f6f5b3aac062ec9b5b9ceb5271538a67392b099cc0711c322c6dbd8acee85a94"
+    }
+  },
+  "duration_s": 191.3013658990003,
+  "serial_sha256": "25daf0accade3e3f95ebd9aff4ca160fe83e35d80ff501de80d7b85fbda3bc83",
+  "qmp_trace": [
+    {
+      "request": {
+        "execute": "qmp_capabilities",
+        "id": 1
+      },
+      "response": {
+        "return": {},
+        "id": 1
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 2,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            },
+            {
+              "type": "rel",
+              "data": {
+                "axis": "y",
+                "value": 50
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 2
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 3,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 3
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 4,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 4
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 5,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 5
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 6,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 6
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 7,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 7
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 8,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 8
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 9,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 9
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 10,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 10
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 11,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 11
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 12,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 12
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 13,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 13
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 14,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 96
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 14
+      }
+    },
+    {
+      "request": {
+        "execute": "input-send-event",
+        "id": 15,
+        "arguments": {
+          "events": [
+            {
+              "type": "rel",
+              "data": {
+                "axis": "x",
+                "value": 12
+              }
+            }
+          ]
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 15
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 16,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 16
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 17,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ctrl"
+            },
+            {
+              "type": "qcode",
+              "data": "f"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 17
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 18,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "r"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 18
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 19,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "e"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 19
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 20,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "i"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 20
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 21,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "s"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 21
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 22,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 22
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 23,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 23
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 24,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 24
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 25,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 25
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 26,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 26
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 27,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 27
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 28,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 28
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 29,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 29
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 30,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 30
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 31,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 31
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 32,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 32
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 33,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 33
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 34,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "ret"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 34
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 35,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 35
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 36,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "alt"
+            },
+            {
+              "type": "qcode",
+              "data": "h"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 36
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 37,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 37
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 38,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 38
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 39,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 39
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 40,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 40
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 41,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 41
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 42,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 42
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 43,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 43
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 44,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 44
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 45,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 45
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 46,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 46
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 47,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 47
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 48,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 48
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 49,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 49
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 50,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 50
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 51,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 51
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 52,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 52
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 53,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 53
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 54,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 54
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 55,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 55
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 56,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 56
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 57,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 57
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 58,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 58
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 59,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 59
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 60,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 60
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 61,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 61
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 62,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 62
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 63,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 63
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 64,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 64
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 65,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 65
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 66,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 66
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 67,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 67
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 68,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 68
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 69,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 69
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 70,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 70
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 71,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 71
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 72,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 72
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 73,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 73
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 74,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 74
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 75,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 75
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 76,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 76
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 77,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 77
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 78,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 78
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 79,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 79
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 80,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 80
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 81,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 81
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 82,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 82
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 83,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 83
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 84,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 84
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 85,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 85
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 86,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 86
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 87,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 87
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 88,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 88
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 89,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 89
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 90,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 90
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 91,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 91
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 92,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 92
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 93,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 93
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 94,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 94
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 95,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 95
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 96,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 96
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 97,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 97
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 98,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 98
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 99,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 99
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 100,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 100
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 101,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 101
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 102,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 102
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 103,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 103
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 104,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 104
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 105,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 105
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 106,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 106
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 107,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 107
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 108,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 108
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 109,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 109
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 110,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 110
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 111,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 111
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 112,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 112
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 113,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 113
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 114,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 114
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 115,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 115
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 116,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 116
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 117,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 117
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 118,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 118
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 119,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 119
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 120,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 120
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 121,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 121
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 122,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 122
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 123,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 123
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 124,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 124
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 125,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 125
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 126,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 126
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 127,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 127
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 128,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 128
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 129,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 129
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 130,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 130
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 131,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 131
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 132,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 132
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 133,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 133
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 134,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 134
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 135,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 135
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 136,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 136
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 137,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 137
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 138,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 138
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 139,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 139
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 140,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 140
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 141,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 141
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 142,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 142
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 143,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 143
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 144,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 144
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 145,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 145
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 146,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 146
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 147,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 147
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 148,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 148
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 149,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 149
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 150,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 150
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 151,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 151
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 152,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 152
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 153,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 153
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 154,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 154
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 155,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 155
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 156,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 156
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 157,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 157
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 158,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 158
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 159,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 159
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 160,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 160
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 161,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 161
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 162,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 162
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 163,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 163
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 164,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 164
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 165,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 165
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 166,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 166
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 167,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 167
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 168,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 168
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 169,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 169
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 170,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 170
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 171,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 171
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 172,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 172
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 173,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 173
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 174,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 174
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 175,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 175
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 176,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 176
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 177,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 177
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 178,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 178
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 179,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 179
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 180,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 180
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 181,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 181
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 182,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 182
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 183,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 183
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 184,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 184
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 185,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 185
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 186,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 186
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 187,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 187
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 188,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 188
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 189,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 189
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 190,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 190
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 191,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 191
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 192,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 192
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 193,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 193
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 194,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 194
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 195,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 195
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 196,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 196
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 197,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 197
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 198,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 198
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 199,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 199
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 200,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 200
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 201,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 201
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 202,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 202
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 203,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 203
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 204,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 204
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 205,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 205
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 206,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 206
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 207,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 207
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 208,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 208
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 209,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 209
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 210,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 210
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 211,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 211
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 212,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 212
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 213,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 213
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 214,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 214
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 215,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 215
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 216,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 216
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 217,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 217
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 218,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 218
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 219,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 219
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 220,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 220
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 221,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 221
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 222,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 222
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 223,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 223
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 224,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 224
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 225,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 225
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 226,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 226
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 227,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 227
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 228,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 228
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 229,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 229
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 230,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 230
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 231,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 231
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 232,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 232
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 233,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 233
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 234,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 234
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 235,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 235
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 236,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 236
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 237,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 237
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 238,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 238
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 239,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 239
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 240,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 240
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 241,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 241
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 242,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 242
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 243,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 243
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 244,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 244
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 245,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 245
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 246,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 246
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 247,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 247
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 248,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 248
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 249,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 249
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 250,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 250
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 251,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 251
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 252,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 252
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 253,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 253
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 254,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 254
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 255,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 255
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 256,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 256
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 257,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 257
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 258,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 258
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 259,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 259
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 260,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 260
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 261,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 261
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 262,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 262
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 263,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 263
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 264,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 264
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 265,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 265
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 266,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 266
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 267,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 267
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 268,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 268
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 269,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 269
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 270,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 270
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 271,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 271
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 272,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 272
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 273,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 273
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 274,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 274
+      }
+    },
+    {
+      "request": {
+        "execute": "screendump",
+        "id": 275,
+        "arguments": {
+          "filename": "/workspace/nieuw-os/build/library-native-final/run/window-e16a9a0b503745e181aac05512949f43/candidate.ppm"
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 275
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 276,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "esc"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 276
+      }
+    },
+    {
+      "request": {
+        "execute": "send-key",
+        "id": 277,
+        "arguments": {
+          "keys": [
+            {
+              "type": "qcode",
+              "data": "f10"
+            }
+          ],
+          "hold-time": 1
+        }
+      },
+      "response": {
+        "return": {},
+        "id": 277
+      }
+    }
+  ],
+  "qemu_host_cpu": {
+    "user_seconds": 190.93,
+    "system_seconds": 1.5499999999999998,
+    "scope": "POSIX reaped child CPU during this QEMU invocation; excludes host fixture generation, not guest CPU cycles or scanout latency"
+  }
+}

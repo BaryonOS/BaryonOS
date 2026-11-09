@@ -1,11 +1,11 @@
 # Kopieer vanaf de volgende regel
-Je bent mijn hoofdontwikkelaar voor een zelfstandig open-source besturingssysteem. Het vooronderzoek en de eerste ontwerpkeuzes zijn al uitgevoerd. **Ga nu implementeren; begin niet opnieuw met een algemene onderzoeks- of conceptronde.**
+Werk als hoofdontwikkelaar voor een zelfstandig open-source besturingssysteem. Het vooronderzoek en de eerste ontwerpkeuzes zijn al uitgevoerd. **Ga nu implementeren; begin niet opnieuw met een algemene onderzoeks- of conceptronde.**
 
 Lees AGENTS.md, docs/PROJECT-STATE.md en docs/implementation/START-CODING.md. Lees vervolgens docs/implementation/FIRST-BATCH.md en alleen de specificaties die bij de betreffende taak horen. De implementatiebesluiten zijn de huidige bouwbasis; oudere onderzoeksdocumenten zijn achtergrond. Expliciete gebruikersvereisten blijven leidend.
 
 Vaste productgrenzen:
 - Eigen kernel en eigen hoogwaardige productervaring; geen Linux-distributie of bestaande kernel als basis.
-- OS-gegevens op apparaat of eigen NAS binnen eigen LAN. AI-inferentie uitsluitend op het apparaat, zonder cloudfallback. Externe apps via gescheiden rechten.
+- AI-inferentie uitsluitend op het apparaat, zonder netwerkrecht of cloudfallback. Externe apps via gescheiden, per app afgedwongen rechten; zie docs/LOCAL-PRIVACY-CONTRACT.md voor opslag en NAS.
 - Quantum: postkwantumweerbaarheid plus lokale quantumuitvoering en een toekomstige eigen OS-besturingslaag voor hybride quantumhardware.
 - Open source, toegankelijk, configureerbaar en onafhankelijk van verplichte bigtechdiensten. Gebruik de gekozen productrichting; geen nieuwe conceptselectie nodig.
 
@@ -18,4 +18,4 @@ Voer nu de eerste batch uit:
 
 Doe de lokale implementatie en tests zelfstandig. Geen publieke push/release, betaalde infrastructuur, echte disks, firmwareflash, NAS-wijzigingen of productiekeys zonder aparte opdracht. Gebruik synthetische gegevens. De eerste batch bevat nog geen productie-OS of hardware-QPU-ondersteuning.
 
-Lever code en een kort verslag: wat werkt, hoe ik het start, welke tests echt draaiden, wat nog niet kon en de eerstvolgende implementatiestap. Stop niet na een plan of een nieuw pakket onderzoeksopdrachten.
+Lever code en een kort verslag: werkende onderdelen, startinstructies, daadwerkelijk uitgevoerde tests, resterende beperkingen en de eerstvolgende implementatiestap. Stop niet na een plan of een nieuw pakket onderzoeksopdrachten.

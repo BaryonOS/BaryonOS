@@ -1108,7 +1108,7 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
         let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
         let frame = Frame::new(ui.view());
         let count = frame.semantics(&mut nodes).unwrap();
-        assert_eq!(count, 6 + volume_core::PER_DOMAIN);
+        assert_eq!(count, 8 + volume_core::PER_DOMAIN);
         assert_semantic_tree(&nodes, count);
         assert_eq!(
             nodes[..count]
@@ -1127,23 +1127,23 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
         assert!(short.iter().all(|node| node.id == SemanticId::Empty));
     }
 
-    // Seven visible entries plus pagination need fifteen nodes, exceeding
-    // the old fourteen-node bound even though all eight objects fit a domain.
+    // Six visible entries, pagination and the real search/filter fields need
+    // sixteen nodes; short output remains untouched on failure.
     ui.resize(Viewport::new(800, 720, Scale::Percent100, 3).unwrap())
         .unwrap();
     {
         let frame = Frame::new(ui.view());
-        assert_eq!(frame.layout().list_rows(), 7);
+        assert_eq!(frame.layout().list_rows(), 6);
         let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
         let count = frame.semantics(&mut nodes).unwrap();
-        assert_eq!(count, 15);
+        assert_eq!(count, 16);
         assert_semantic_tree(&nodes, count);
         assert_eq!(
             nodes[..count]
                 .iter()
                 .filter(|node| node.role == Role::ListItem)
                 .count(),
-            7
+            6
         );
         for id in [
             SemanticId::PreviousPage,
@@ -1162,7 +1162,7 @@ fn semantic_tree_bounds_maximum_material_page_and_dirty_dialog_impl() {
         let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
         let count = frame.semantics(&mut nodes).unwrap();
         assert_semantic_tree(&nodes, count);
-        assert_eq!(count, 9);
+        assert_eq!(count, 11);
         let previous = nodes[..count]
             .iter()
             .find(|node| node.id == SemanticId::PreviousPage)
@@ -1337,7 +1337,12 @@ fn display_epoch_stale_frame_and_failed_present_keep_repaint_pending_impl() {
 }
 
 fn editor_damage_covers_wrapping_selection_and_superseded_rows_impl() {
-    for scale in [Scale::Percent100, Scale::Percent200] {
+    for (width, height, scale) in [
+        (800, 600, Scale::Percent100),
+        (800, 600, Scale::Percent200),
+        (768, 536, Scale::Percent100),
+        (768, 536, Scale::Percent200),
+    ] {
         let host = Host::new();
         let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
         let mut ui = controller(
@@ -1349,17 +1354,21 @@ fn editor_damage_covers_wrapping_selection_and_superseded_rows_impl() {
                 staging: &mut s,
             },
         );
-        ui.resize(Viewport::new(800, 600, scale, 2).unwrap())
+        ui.resize(Viewport::new(width, height, scale, 2).unwrap())
             .unwrap();
         ui.create().unwrap();
-        let columns = Frame::new(ui.view()).layout().columns();
-        ui.insert(&"a".repeat(columns + 1)).unwrap();
+        let metrics = Frame::new(ui.view()).layout().text_metrics();
+        let mut wrapped = String::new();
+        while metrics.position(&wrapped, wrapped.len()).row == 0 {
+            wrapped.push('a');
+        }
+        ui.insert(&wrapped).unwrap();
         ui.presented(ui.view().generation, 2);
         fn snapshot(view: nieuw_os_materiaal::controller::View<'_>) -> Vec<[u32; TILE_PIXELS]> {
             let frame = Frame::new(view);
             let mut pixels = Vec::new();
-            for y in (0..600).step_by(8) {
-                for x in (0..800).step_by(32) {
+            for y in (0..view.viewport.height()).step_by(8) {
+                for x in (0..view.viewport.width()).step_by(32) {
                     let mut tile = [0; TILE_PIXELS];
                     frame.render_tile(x, y, &mut tile).unwrap();
                     pixels.push(tile);
@@ -1376,7 +1385,9 @@ fn editor_damage_covers_wrapping_selection_and_superseded_rows_impl() {
                 ui.deliver(envelope(1, 1, key(PhysicalKey::Backspace)))
                     .unwrap();
                 assert_eq!(
-                    text::position(ui.view().contents.unwrap(), ui.view().caret, columns).row,
+                    metrics
+                        .position(ui.view().contents.unwrap(), ui.view().caret)
+                        .row,
                     0
                 );
             }
@@ -1385,8 +1396,8 @@ fn editor_damage_covers_wrapping_selection_and_superseded_rows_impl() {
             for (index, (a, b)) in before.iter().zip(&after).enumerate() {
                 if a != b {
                     assert!(ui.paint_damage().intersects(
-                        (index % 25) as u32 * 32,
-                        (index / 25) as u32 * 8,
+                        (index % width.div_ceil(32) as usize) as u32 * 32,
+                        (index / width.div_ceil(32) as usize) as u32 * 8,
                         32,
                         8,
                     ));
@@ -1404,8 +1415,8 @@ fn editor_damage_covers_wrapping_selection_and_superseded_rows_impl() {
         for (index, (a, b)) in before.iter().zip(&after).enumerate() {
             if a != b {
                 assert!(ui.paint_damage().intersects(
-                    (index % 25) as u32 * 32,
-                    (index / 25) as u32 * 8,
+                    (index % width.div_ceil(32) as usize) as u32 * 32,
+                    (index / width.div_ceil(32) as usize) as u32 * 8,
                     32,
                     8,
                 ));
@@ -1683,10 +1694,14 @@ fn fresh_input_epoch_preserves_draft_and_cannot_inherit_a_pressed_button_impl() 
     // Document, then a new key from the verified fresh epoch edits normally.
     fresh.event = key(PhysicalKey::Tab);
     ui.deliver(fresh).unwrap();
-    if ui.view().focus != Focus::Document {
+    for _ in 0..8 {
+        if ui.view().focus == Focus::Document {
+            break;
+        }
         fresh.sequence += 1;
         ui.deliver(fresh).unwrap();
     }
+    assert_eq!(ui.view().focus, Focus::Document);
     fresh.sequence += 1;
     fresh.event = key(PhysicalKey::A);
     ui.deliver(fresh).unwrap();

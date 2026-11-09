@@ -26,9 +26,27 @@ def oracle(generation: int, other: list[int], other_marker: bool = False) -> dic
 
 
 class TornTableWriteTests(unittest.TestCase):
+    def test_format_marker_remains_valid_first_commit_cut_evidence(self):
+        image = bytearray(vd.empty_image_bytes())
+        marker_start = vd.FIRST * vd.SECTOR
+        image[marker_start:marker_start + vd.SECTOR] = vd.format_marker()
+        entries = [vd.empty_entry() for _ in range(vd.OBJECTS)]
+        entries[0] = dict(vd.empty_entry(), revision=1, request_id=5, created=1, modified=1, present=True,
+                          current=dict(vd.empty_version(), revision=1, name=b"Doc", content_sum=vd.FNV_OFFSET))
+        start = (vd.FIRST + vd.TABLE_SECTORS) * vd.SECTOR
+        image[start:start + vd.TABLE_SECTORS * vd.SECTOR] = b"".join(vd.encode_table(1, 5, entries))
+        # A durable marker authorizes recovery of the logical empty generation.
+        self.assertEqual(rv.torn_sectors(vd.analyse(image), False), 0)
+        entries[0] = dict(entries[0], revision=2, request_id=6, modified=2,
+                          current=dict(entries[0]["current"], revision=2))
+        start = vd.FIRST * vd.SECTOR
+        image[start:start + 4 * vd.SECTOR] = b"".join(vd.encode_table(2, 6, entries)[:4])
+        self.assertEqual(rv.torn_sectors(vd.analyse(image), True), 4)
+
     def test_torn_prefix_after_the_previous_copy_is_accepted(self):
         self.assertEqual(rv.torn_sectors(oracle(3, [4] * 5 + [2] * (N - 5)), True), 5)
-        # The first commit's copy (g == 1): the rest was never written.
+        # The first commit's companion has format generation 0; a legacy
+        # never-written zero companion has the same numeric sector summary.
         self.assertEqual(rv.torn_sectors(oracle(1, [2] * 4 + [0] * (N - 4)), True), 4)
 
     def test_untouched_or_unexplained_copies_are_refused_for_a_table_cut(self):

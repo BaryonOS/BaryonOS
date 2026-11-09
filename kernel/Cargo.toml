@@ -11,6 +11,18 @@ test-panic = []
 test-hang = []
 milestone-m2 = []
 native-rtc = ["milestone-m2", "dep:nieuw-os-rtc"]
+# K06 step 1: opt-in AP bring-up profile. APs run a bounded sync self-test and
+# park; no scheduler, allocator, paging or IPC state is shared with them.
+native-smp = ["milestone-m2"]
+test-smp-ap-stall = ["native-smp"]
+test-smp-ap-mismatch = ["native-smp"]
+test-smp-ap-nmi = ["native-smp"]
+test-smp-ap-double-fault = ["native-smp"]
+test-smp-ap-ipi-deaf = ["native-smp"]
+test-smp-ap-shootdown-deaf = ["native-smp"]
+test-smp-shootdown-skipped = ["native-smp"]
+test-smp-ap-timer-dead = ["native-smp"]
+test-smp-lockdep-order = ["native-smp"]
 framebuffer = ["milestone-m2"]
 # Sole display/input transport; UI policy remains in isolated user services.
 display-input = ["framebuffer", "milestone-m4", "monotonic-clock", "fpu-context", "dep:nieuw-os-display-client", "dep:nieuw-os-ps2"]
@@ -21,6 +33,8 @@ native-system-session-preview = ["native-system-materiaal"]
 native-window-session = ["native-system-materiaal"]
 native-window-session-probe = ["native-window-session"]
 native-window-session-hidpi = ["native-window-session"]
+# Explicit public VM session route, reusing the existing read-only RTC syscall.
+native-session-route = ["native-window-session", "native-system-clock"]
 native-system-materiaal-probe = ["native-system-materiaal"]
 test-system-materiaal-recover = ["native-system-materiaal-probe", "test-system-recover"]
 test-system-materiaal-scale200 = ["native-system-materiaal-probe"]
@@ -82,6 +96,8 @@ native-system-tcp = ["native-system-net", "monotonic-clock", "fpu-context"]
 # Reusable ring-3 network service and two IPC-only clients; separate manifest.
 native-net-service = ["native-system-tcp"]
 test-net-service-client-exit = ["native-net-service"]
+# N04: a fourth ring-3 policy process revokes one app's live destination grant.
+test-net-service-revoke = ["native-net-service"]
 test-system-tcp-recover = ["native-system-tcp", "test-system-recover"]
 # B01 entropy broker + Key Service profile: virtio-rng broker, two services, one app.
 native-keyring = ["milestone-m4", "dep:virtio-rng-driver"]
@@ -219,6 +235,7 @@ nieuw-os-display-client = { path = "../sdk/display-client", default-features = f
 nieuw-os-ps2 = { path = "../drivers/ps2", optional = true }
 boot-protocol = { path = "../crates/boot-protocol" }
 kernel-core = { path = "../crates/kernel-core" }
+smp-lock = { path = "../crates/smp-lock" }
 capability-core = { path = "../crates/capability-core" }
 virtio-core = { path = "../crates/virtio-core" }
 virtio-blk-driver = { path = "../drivers/virtio-blk" }

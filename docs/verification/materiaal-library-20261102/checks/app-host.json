@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/workspace/nieuw-os/.tools/nieuw-os/cargo/bin/cargo",
+    "+1.90.0",
+    "test",
+    "--offline",
+    "--locked",
+    "--manifest-path",
+    "sdk/examples/materiaal/Cargo.toml"
+  ],
+  "cwd": "/workspace/nieuw-os",
+  "started_unix": 1793654442.0221276,
+  "duration_s": 8.683202743530273,
+  "returncode": 0
+}

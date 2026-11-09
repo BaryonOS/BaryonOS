@@ -3,7 +3,7 @@
 #![no_std]
 #![forbid(unsafe_code)]
 
-use nieuw_os_image_codec::{decode, Cancellation, Image, Limits, Pixels};
+use nieuw_os_image_codec::{decode, Cancellation, Image, Limits, Orientation, Pixels};
 use nieuw_os_input_core::Event;
 use nieuw_os_surface_protocol::{Geometry, Rectangle};
 use ui_core::{KeyAction, PhysicalKey};
@@ -136,10 +136,12 @@ impl Tile {
 pub struct Semantics {
     pub state: State,
     pub status: &'static str,
+    /// Display dimensions after EXIF orientation, not raw decoder dimensions.
     pub image_size: Option<(usize, usize)>,
     pub zoom: Zoom,
     pub focused: bool,
     pub presented: bool,
+    /// Raw decoder metadata-transform flag; ICC is still unapplied.
     pub metadata_transforms_applied: bool,
 }
 
@@ -323,6 +325,11 @@ impl<'a> Viewer<'a> {
             || image.width > 16384
             || image.height > 16384
             || samples != Some(actual)
+            || (image.display_width, image.display_height)
+                != image
+                    .orientation
+                    .unwrap_or(Orientation::Normal)
+                    .display_dimensions(image.width, image.height)
         {
             return self.reject(load, Failure::Corrupt);
         }
@@ -370,7 +377,10 @@ impl<'a> Viewer<'a> {
                 State::Failed(failure) => failure.label(),
                 State::Closed => "Afbeeldingsviewer gesloten.",
             },
-            image_size: self.image.as_ref().map(|image| (image.width, image.height)),
+            image_size: self
+                .image
+                .as_ref()
+                .map(|image| (image.display_width, image.display_height)),
             zoom: self.zoom,
             focused: self.focused,
             presented: self.presented,
@@ -383,7 +393,7 @@ impl<'a> Viewer<'a> {
 
     fn dimensions(&self) -> Result<(u32, u32), Error> {
         let image = self.image.as_ref().ok_or(Error::NoImage)?;
-        let (w, h) = (image.width as u64, image.height as u64);
+        let (w, h) = (image.display_width as u64, image.display_height as u64);
         let (vw, vh) = (
             u64::from(self.geometry.assigned.width),
             u64::from(self.geometry.assigned.height),
@@ -445,7 +455,7 @@ impl<'a> Viewer<'a> {
                     Zoom::Percent(percent) => (u64::from(percent), 1),
                     Zoom::Fit => {
                         let image = self.image.as_ref().ok_or(Error::NoImage)?;
-                        let (w, h) = (image.width as u64, image.height as u64);
+                        let (w, h) = (image.display_width as u64, image.display_height as u64);
                         let (vw, vh) = (
                             u64::from(self.geometry.assigned.width),
                             u64::from(self.geometry.assigned.height),
@@ -552,7 +562,7 @@ impl<'a> Viewer<'a> {
         Ok(())
     }
 
-    /// Render source samples directly into one caller-owned BGRX tile. No
+    /// Render oriented source samples into one caller-owned BGRX tile. No
     /// whole-image conversion allocation; original 16-bit samples are retained.
     pub fn render_tile(&self, index: u64, background: u32, out: &mut [u32]) -> Result<Tile, Error> {
         if self.state != State::Ready {
@@ -581,8 +591,13 @@ impl<'a> Viewer<'a> {
                 let pixel = if x < 0 || y < 0 || x >= i64::from(w) || y >= i64::from(h) {
                     background
                 } else {
-                    let sx = x as usize * image.width / w as usize;
-                    let sy = y as usize * image.height / h as usize;
+                    let display_x = x as usize * image.display_width / w as usize;
+                    let display_y = y as usize * image.display_height / h as usize;
+                    let (sx, sy) = image
+                        .orientation
+                        .unwrap_or(Orientation::Normal)
+                        .source_position(display_x, display_y, image.width, image.height)
+                        .ok_or(Error::Load(Failure::Corrupt))?;
                     let at = (sy * image.width + sx) * 4;
                     let sample = |channel: usize| -> u32 {
                         match &image.pixels {

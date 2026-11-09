@@ -3,7 +3,7 @@
 30 oktober 2026; basis `19f2d33fe74f6735c6f727bca0e13472dc615d5e`
 met de bijbehorende `CheckOnly`- en integriteitscontrolewijziging.
 
-De door Simon gekoppelde `C:\Program Files\qemu` is bereikbaar vanuit WSL.
+De gekoppelde map `C:\Program Files\qemu` is bereikbaar vanuit WSL.
 Echte Windows PowerShell meldt `CurrentUser: RemoteSigned`; alle overige
 policy-scopes zijn `Undefined`. Er is geen uitvoeringspolicy gewijzigd of
 overgeslagen. QEMU meldt:

@@ -62,8 +62,113 @@ def collections_with(updates: dict[int, bytes], request_id: int, revision: int =
 
 class VolumeOracleTests(unittest.TestCase):
     def test_fresh_image_is_empty_generation_zero(self):
-        result = vd.analyse(bytes(image_with({})))
+        image = bytes(image_with({}))
+        result = vd.analyse(image)
         self.assertEqual((result["generation"], result["chunks_used"]), (0, 0))
+        start = vd.FIRST * vd.SECTOR
+        sectors, states = vd.slot_states(image[start:], 0)
+        self.assertTrue(all(kind == "zero" for kind, _, _ in states))
+        with self.assertRaises(ValueError):
+            vd.decode_table(0, sectors)
+        self.assertEqual(vd.slot_states(image[start:], 1)[1], [("zero", 0, 0)] * vd.TABLE_SECTORS)
+
+    def test_full_zero_volume_is_admitted_as_empty(self):
+        zero = [bytes(vd.SECTOR)] * vd.TABLE_SECTORS
+        result = vd.analyse(bytes(image_with({0: zero, 1: zero})))
+        self.assertEqual((result["generation"], result["chunks_used"]), (0, 0))
+
+    def test_zero_table_sectors_do_not_admit_unrelated_tail_data(self):
+        zero = [bytes(vd.SECTOR)] * vd.TABLE_SECTORS
+        image = image_with({0: zero, 1: zero}, {3: b"foreign filesystem or user content"})
+        before = bytes(image)
+        with self.assertRaisesRegex(ValueError, "nonzero data in an unmarked volume"):
+            vd.analyse(image)
+        self.assertEqual(image, before)
+
+    def test_partial_first_commit_without_format_is_refused(self):
+        entry, _ = document(0, 1, 0, [], 5)
+        gen1 = vd.encode_table(1, 5, entries_with({0: entry}))
+        zero = [bytes(vd.SECTOR)] * vd.TABLE_SECTORS
+        for prefix in (1, 4, vd.TABLE_SECTORS - 1):
+            with self.subTest(prefix=prefix), self.assertRaisesRegex(ValueError, "unmarked volume"):
+                vd.analyse(bytes(image_with({0: zero, 1: gen1[:prefix] + zero[prefix:]})))
+
+    def test_generation_zero_table_is_not_used_as_recovery_identity(self):
+        formatted = vd.encode_table(0, 0, entries_with({}))
+        with self.assertRaises(ValueError):
+            vd.decode_table(0, formatted)
+        with self.assertRaises(ValueError):
+            vd.analyse(bytes(image_with({0: formatted})))
+
+    def test_first_commit_cuts_recover_the_format_marker_state(self):
+        entry, payload = document(0, 1, 100, [0], 5)
+        gen1 = vd.encode_table(1, 5, entries_with({0: entry}))
+        zero = [bytes(vd.SECTOR)] * vd.TABLE_SECTORS
+        for prefix in range(vd.TABLE_SECTORS):
+            with self.subTest(prefix=prefix):
+                image = image_with({1: gen1[:prefix] + zero[prefix:]}, payload)
+                marker_start = vd.FIRST * vd.SECTOR
+                image[marker_start:marker_start + vd.SECTOR] = vd.format_marker()
+                result = vd.analyse(bytes(image))
+                self.assertEqual((result["generation"], result["chunks_used"]), (0, 0))
+        torn = bytearray(gen1[3])
+        torn[31] ^= 1
+        image = image_with({1: gen1[:3] + [bytes(torn)] + zero[4:]}, payload)
+        marker_start = vd.FIRST * vd.SECTOR
+        image[marker_start:marker_start + vd.SECTOR] = vd.format_marker()
+        result = vd.analyse(bytes(image))
+        self.assertEqual(result["generation"], 0)
+        image = image_with({1: gen1}, payload)
+        marker_start = vd.FIRST * vd.SECTOR
+        image[marker_start:marker_start + vd.SECTOR] = vd.format_marker()
+        self.assertEqual(vd.analyse(bytes(image))["generation"], 1)
+
+    def test_format_with_any_bad_sector_checksum_is_refused(self):
+        formatted = vd.encode_table(0, 0, entries_with({}))
+        for index in range(vd.TABLE_SECTORS):
+            sectors = list(formatted)
+            bad = bytearray(sectors[index])
+            bad[504] ^= 1
+            sectors[index] = bytes(bad)
+            with self.subTest(sector=index), self.assertRaises(ValueError):
+                vd.analyse(bytes(image_with({0: sectors})))
+
+    def test_generation_zero_table_is_not_a_recovery_source(self):
+        variants = (
+            vd.encode_table(0, 1, entries_with({})),
+            vd.encode_table(0, 0, entries_with({}), clocks=[1, 0]),
+            vd.encode_table(0, 0, entries_with({0: dict(vd.empty_entry(), tags=1)})),
+            vd.encode_table(0, 0, entries_with({}), collections_with({0: b"foreign"}, 1)),
+        )
+        for index, sectors in enumerate(variants):
+            with self.subTest(variant=index), self.assertRaises(ValueError):
+                vd.analyse(bytes(image_with({0: sectors})))
+        canonical = vd.encode_table(0, 0, entries_with({}))
+        with self.assertRaises(ValueError):
+            vd.analyse(bytes(image_with({0: canonical})))
+
+    def test_committed_generation_one_with_legacy_zero_companion_is_accepted(self):
+        entry, payload = document(0, 1, 100, [0], 5)
+        zero = [bytes(vd.SECTOR)] * vd.TABLE_SECTORS
+        result = vd.analyse(bytes(image_with({0: zero, 1: vd.encode_table(1, 5, entries_with({0: entry}))}, payload)))
+        self.assertEqual((result["generation"], result["chunks_used"]), (1, 1))
+
+    def test_companion_generation_boundaries_do_not_wrap(self):
+        # ADR-064: generation 0 is never on disk, so it has no zero companion.
+        self.assertFalse(vd.compatible([("zero", 0, 0), ("valid", 1, 1)], 0, False))
+        self.assertFalse(vd.compatible([("valid", vd.MASK, 1)], 0, False))
+        self.assertFalse(vd.compatible([("valid", 0, 1)], vd.MASK, False))
+        self.assertTrue(vd.compatible([("valid", vd.MASK - 1, 1)], vd.MASK, False))
+        self.assertFalse(vd.compatible([("zero", 0, 0)], 2, False))
+
+    def test_deleted_object_at_maximum_revision_is_refused(self):
+        # Mirrors table.rs Entry::validate: revision + 1 fails closed, never wraps.
+        def sectors(revision):
+            entry = dict(vd.empty_entry(), revision=revision, request_id=1, created=1, modified=1)
+            return vd.encode_table(revision, 1, entries_with({0: entry}))
+        vd.decode_table(1, sectors(1))
+        with self.assertRaisesRegex(ValueError, "revision overflows"):
+            vd.decode_table(1, sectors(vd.MASK))
 
     def test_nonzero_unmarked_volume_is_not_an_empty_volume(self):
         image = image_with({})

@@ -1,0 +1,2974 @@
+{
+  "task": "STACK130-INTEGRATE",
+  "status": "local integration verified; parent owns GitHub and central assessment",
+  "verified_integration_commit": "a5a193a8cdba05c0321bbad3e4f390ac3110732b",
+  "functional_repair_commit": "a58f72c9479947bf700d476fc8b65c974c59ebf4",
+  "source_fingerprint_version": 3,
+  "source_sha256": "7ad8b7df9afc12fe0ba19690d4a103792564e813c69ac8714ff128f8efe71940",
+  "worktree": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr130-stack",
+  "branch": "integrate/stack130-local",
+  "frozen_heads": {
+    "130_initial": "024cede12dbe16697ef6a5221d95297be0f6c56d",
+    "130": "13782f92f74725920a125a2b7a5e0ec8bc8231be",
+    "127": "5343b0a681ebc4cb9b6461bbe8d4447722eec91c",
+    "128": "b42b551cb80aedac2e88147a4ef5047db741e81b",
+    "129": "159ad799d2a94fb6542d60e26ed8bbd22bdbd752"
+  },
+  "first_parent_commit_graph": [
+    "a5a193a8cdba05c0321bbad3e4f390ac3110732b a58f72c9479947bf700d476fc8b65c974c59ebf4 13782f92f74725920a125a2b7a5e0ec8bc8231be Merge explicitly authorized PR130 evidence head 13782f92 without score adoption",
+    "a58f72c9479947bf700d476fc8b65c974c59ebf4 6730a64aa228c165ffa48e64cfaf1b70b0d9a156 Keep trusted lock and native global shortcuts above integrated app palette",
+    "6730a64aa228c165ffa48e64cfaf1b70b0d9a156 2ad5a6ee62fedf69af431a7d2e870956a0b18417 Repair combined proportional reflow damage and record frozen-stack preservation",
+    "2ad5a6ee62fedf69af431a7d2e870956a0b18417 54c4e9e89888e483c32482099588b0819cd90013 b42b551cb80aedac2e88147a4ef5047db741e81b Merge frozen PR128 damage coordinator while retaining precise journals",
+    "54c4e9e89888e483c32482099588b0819cd90013 024cede12dbe16697ef6a5221d95297be0f6c56d 5343b0a681ebc4cb9b6461bbe8d4447722eec91c Merge frozen PR127 fixes into later desktop stack (integration checkpoint)"
+  ],
+  "ancestry_and_no_deletions": {
+    "130_initial": {
+      "head": "024cede12dbe16697ef6a5221d95297be0f6c56d",
+      "ancestor": true,
+      "deleted_paths": []
+    },
+    "130": {
+      "head": "13782f92f74725920a125a2b7a5e0ec8bc8231be",
+      "ancestor": true,
+      "deleted_paths": []
+    },
+    "127": {
+      "head": "5343b0a681ebc4cb9b6461bbe8d4447722eec91c",
+      "ancestor": true,
+      "deleted_paths": []
+    },
+    "128": {
+      "head": "b42b551cb80aedac2e88147a4ef5047db741e81b",
+      "ancestor": true,
+      "deleted_paths": []
+    },
+    "129": {
+      "head": "159ad799d2a94fb6542d60e26ed8bbd22bdbd752",
+      "ancestor": true,
+      "deleted_paths": []
+    }
+  },
+  "central_metadata_sha256_exact_frozen_pr127": {
+    "README.md": "c491c9a6d87d74074d3515a361612a004068421a6c213e9abec15c597231d350",
+    "docs/progress.json": "a0797e9bffd38b897d62ad195e8d6be7825a05826e0bb6f1db067e12d4b597a9",
+    "docs/PROGRESS.md": "bec515aded017218dd1b605a35c6d6de403b3c5015830fb822cd16a8992ce195",
+    "docs/PROJECT-STATE.md": "ee77f6de02fe88b5b2801b3a8fce5a5e0d99cdc279498b9279b7739879f5170b",
+    "docs/assets/progress.svg": "e369da8b0dfb07717bc988700706600b5d50170dfd56c429bd92d6cfacb4b46b"
+  },
+  "progress": "No assessment choice made. All five central bytes retained verbatim from PR127 (41); the integrator owns final central metadata and later ADR renumbering.",
+  "historical_central_archive": {
+    "path": "docs/verification/stack130-historical-central.json",
+    "sha256": "a5d93607f17ed302ccf55425deac8c0b65d3191f295e8d2017a1540ad4dcc6a1",
+    "bytes": 163405
+  },
+  "integration_decisions": [
+    "PR127 volledige protocol/client zijn de superset van PR130 sparse transport; behoud extra PR130 sparse deadline/peer/epoch-regressie.",
+    "PR128 algemene bounded Damage-module en volledige ancestry blijven behouden. Precieze PR127 model/controller journals vervangen de vroegere FULL-op-iedere-mutatie WIP-implementatie, met dezelfde presented/generation-invarianten.",
+    "Behoud PR130 palette, documentgeometrie, library en rustige sessietokens. Integreer PR127 gedeelde proportionele calculatorrenderer en volledige veld-/result-/statusdamage.",
+    "Native compositor-main niet integraal vervangen: behoud vroege input-ACK, openbare sessie, echte klok, ready/cold recovery en voeg palette-routing plus beide expiry-aanroeppaden toe.",
+    "Palet kan niet over vertrouwde shellpagina's openen; geselecteerde verborgen app wordt weer zichtbaar. Shell en palette delen de werkelijke nieuwe dockgeometrie, hoverrendering en oude/nieuwe volledige damage.",
+    "Gecombineerde pixeloracle vond echte stale-caretpixels: Layout::new miste de latere toolbarverplaatsing. Herstel controllerlayout en damage naar dezelfde for_screen/proportionele metrics als rendering; behoud ongewijzigde exacte oracle en >=90%-sendbudget.",
+    "Een afzonderlijke rood/groen-regressie bevestigt dat de nieuwe apppalette Super+L, F3 en Menu niet vóór de vertrouwde shell mag consumeren. Geef die en de bestaande native F10/F12-routes voorrang; sluit en beschadig de oude palette volledig."
+  ],
+  "newly_authorized_delta": {
+    "from": "024cede12dbe16697ef6a5221d95297be0f6c56d",
+    "to": "13782f92f74725920a125a2b7a5e0ec8bc8231be",
+    "changed_files": 18,
+    "product_source_changes": 0,
+    "source_conflicts": false,
+    "preservation_regression_tests": 5,
+    "archived_readback_code_executed": false,
+    "historical_native_claims_adopted": false
+  },
+  "changed_paths_vs_initial_130": [
+    ".gitattributes",
+    ".github/workflows/materiaal-probe.yml",
+    ".github/workflows/native-window-session.yml",
+    ".github/workflows/net-broker-quality.yml",
+    "README.md",
+    "crates/capability-core/src/lib.rs",
+    "crates/capability-core/src/tests.rs",
+    "docs/DECISIONS.md",
+    "docs/PROGRESS.md",
+    "docs/PROJECT-STATE.md",
+    "docs/WORK-QUEUE.md",
+    "docs/assets/progress.svg",
+    "docs/implementation/APP-PACKAGES.md",
+    "docs/implementation/B02-SECURE-RECORDS.md",
+    "docs/implementation/NATIVE-MATERIAL-LIBRARY.md",
+    "docs/progress.json",
+    "docs/verification/desktop-coordination-20261102/README.md",
+    "docs/verification/full-release-b02-review-followup/0-normal/result.json",
+    "docs/verification/full-release-b02-review-followup/0-normal/serial.txt",
+    "docs/verification/full-release-b02-review-followup/0-normal/stderr.txt",
+    "docs/verification/full-release-b02-review-followup/1-recover/result.json",
+    "docs/verification/full-release-b02-review-followup/1-recover/serial.txt",
+    "docs/verification/full-release-b02-review-followup/1-recover/stderr.txt",
+    "docs/verification/full-release-b02-review-followup/SHA256SUMS",
+    "docs/verification/full-release-b02-review-followup/capture-validation.json",
+    "docs/verification/full-release-b02-review-followup/final-manifest.json",
+    "docs/verification/full-release-b02-review-followup/host/0.stderr.txt",
+    "docs/verification/full-release-b02-review-followup/host/0.stdout.txt",
+    "docs/verification/full-release-b02-review-followup/host/1.stderr.txt",
+    "docs/verification/full-release-b02-review-followup/host/1.stdout.txt",
+    "docs/verification/full-release-b02-review-followup/system-gate.json",
+    "docs/verification/gui-idle-20261102/agent-merge-ci-repair.json",
+    "docs/verification/materiaal-library-20261102/README.md",
+    "docs/verification/materiaal-library-20261102/artifact-hashes.json",
+    "docs/verification/materiaal-library-20261102/changed-code-files.txt",
+    "docs/verification/materiaal-library-20261102/checks/ci-readback.stdout.txt",
+    "docs/verification/materiaal-library-20261102/checks/legacy-all-tools-fixed.txt",
+    "docs/verification/materiaal-library-20261102/checks/legacy-all-tools.txt",
+    "docs/verification/materiaal-library-20261102/checks/legacy-host-final.txt",
+    "docs/verification/materiaal-library-20261102/checks/library-native-size.txt",
+    "docs/verification/materiaal-library-20261102/checks/library-phase2-native.txt",
+    "docs/verification/materiaal-library-20261102/checks/library-phase2-size-z.txt",
+    "docs/verification/materiaal-library-20261102/checks/library-phase2-thin.txt",
+    "docs/verification/materiaal-library-20261102/checks/tooling-followup-build.stdout.txt",
+    "docs/verification/materiaal-library-20261102/ci-readback.json",
+    "docs/verification/materiaal-library-20261102/tooling-binary-binding.json",
+    "docs/verification/materiaal-library-20261102/verify-ci-artifact.py",
+    "docs/verification/nas-replay-110/README.md",
+    "docs/verification/nas-replay-110/SHA256SUMS",
+    "docs/verification/nas-replay-110/nas-system-gate.json",
+    "docs/verification/nas-replay-110/normal-result.json",
+    "docs/verification/nas-replay-110/normal-serial.txt",
+    "docs/verification/nas-replay-110/normal-stderr.txt",
+    "docs/verification/nas-replay-110/recover-result.json",
+    "docs/verification/nas-replay-110/recover-serial.txt",
+    "docs/verification/nas-replay-110/recover-stderr.txt",
+    "docs/verification/nas-token-archive-fix.json",
+    "docs/verification/native-semantic-consumer/R113-post-merge-fixes.md",
+    "docs/verification/pr-integration-3-20261031.json",
+    "docs/verification/pr126-main-integration.json",
+    "docs/verification/pr126-protocol-merge.json",
+    "docs/verification/pr126-review-fixes-20261102.json",
+    "docs/verification/pr127-probe-isolation.json",
+    "docs/verification/pr127-review-integration.json",
+    "docs/verification/pr127-ui-review-fixes-20261102.json",
+    "docs/verification/sparse-frames-117/117-result.json",
+    "docs/verification/sparse-frames-117/117-serial.txt",
+    "docs/verification/sparse-frames-117/README.md",
+    "docs/verification/sparse-frames-117/SHA256SUMS",
+    "docs/verification/sparse-frames-117/main-result.json",
+    "docs/verification/sparse-frames-117/main-serial.txt",
+    "docs/verification/stack130-authorized-delta-check.py",
+    "docs/verification/stack130-historical-central.json",
+    "docs/verification/stack130-integration.json",
+    "kernel/src/m2/m3/nas.rs",
+    "kernel/src/m2/m3/system.rs",
+    "sdk/app-management/Cargo.lock",
+    "sdk/app-management/Cargo.toml",
+    "sdk/app-management/src/store.rs",
+    "sdk/examples/calculator/src/app.rs",
+    "sdk/examples/calculator/src/main.rs",
+    "sdk/examples/calculator/src/model.rs",
+    "sdk/examples/calculator/src/render.rs",
+    "sdk/examples/calculator/tests/chain.rs",
+    "sdk/examples/calculator/tests/model_render.rs",
+    "sdk/examples/compositor/src/surface.rs",
+    "sdk/examples/keyring/src/service.rs",
+    "sdk/examples/materiaal/src/lib.rs",
+    "sdk/examples/materiaal/src/main.rs",
+    "sdk/examples/materiaal/tests/chain.rs",
+    "sdk/examples/system/src/init.rs",
+    "sdk/examples/window-session/src/main.rs",
+    "sdk/examples/window-session/src/scene.rs",
+    "sdk/examples/window-session/src/shell.rs",
+    "sdk/examples/window-session/src/surface.rs",
+    "sdk/examples/window-session/tests/idle.rs",
+    "sdk/examples/window-session/tests/workspace_v2.rs",
+    "services/nas/native-probe/CONTRACT.md",
+    "services/nas/native-probe/src/main.rs",
+    "services/net-config/README.md",
+    "services/net-config/src/automatic.rs",
+    "services/net-config/tests/service.rs",
+    "services/network-service/src/lib.rs",
+    "services/network-service/tests/service.rs",
+    "services/network-service/verification/PR127-TCP-FIX.md",
+    "tests/test_nas_runner.py",
+    "tools/run_materiaal_probe.py",
+    "tools/run_volume.py",
+    "tools/test_nas.py",
+    "tools/tests/test_materiaal_probe.py",
+    "tools/tests/test_package_windows_qemu.py",
+    "tools/windows-qemu/Acceleration.ps1",
+    "tools/windows-qemu/README.md",
+    "ui/graphics/src/damage.rs",
+    "ui/graphics/src/lib.rs",
+    "ui/graphics/src/text.rs",
+    "ui/graphics/src/theme.rs",
+    "ui/native/src/controller.rs",
+    "ui/native/src/design.rs",
+    "ui/native/src/desktop.rs",
+    "ui/native/src/render.rs",
+    "ui/native/tests/interaction.rs",
+    "ui/surface-protocol/src/client.rs",
+    "ui/surface-protocol/src/lib.rs",
+    "ui/surface-protocol/tests/client.rs",
+    "ui/surface-protocol/tests/protocol.rs"
+  ],
+  "environment": {
+    "rust": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "network_rust": "rustc 1.91.1 (ed61e7d7e 2025-11-07)",
+    "installs": false,
+    "host_path_prefix": "files/host-linker:/home/simon/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin",
+    "plus_toolchain_commands": "files/rust-shims prepended; RUSTUP_HOME=/home/simon/.rustup; no toolchain installation",
+    "full_native_build": {
+      "NOS_BUILD_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr130-stack/build/stack130/native-probe",
+      "NOS_TARGET_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr130-stack/target/stack130-full-native",
+      "CARGO_TARGET_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr130-stack/target/stack130-build-host",
+      "CARGO_NET_OFFLINE": "true"
+    },
+    "other_own_targets": [
+      "target/stack130-host",
+      "target/stack130-broad",
+      "target/stack130-native-check",
+      "target/stack130-net-host",
+      "target/stack130-python-host",
+      "target/stack130-lock-regression"
+    ],
+    "private_python_scratch": "Own isolated ../pr130-stack-targets/private-host-scratch outside checkout, because the production NAS handoff correctly rejects checkout-local paths. No shared or global temporary directory; empty directory removed after testing.",
+    "actual_elf_environment": {
+      "NOS_MATERIAAL_ELF": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr130-stack/build/stack130/native-probe/users/materiaal/materiaal-app.elf",
+      "CARGO_TARGET_DIR": "/home/simon/.copilot/session-state/e77e5ed8c8e74c0a87af78988a695a9e/files/pr130-stack/target/stack130-host",
+      "native_elf_load_pages": 158,
+      "entry_guard_private_bss_wx_and_original_quota_verified": true
+    }
+  },
+  "checks": [
+    {
+      "phase": "host",
+      "name": "window-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 37.476,
+      "log": "build/stack130/logs/host-window-test.log",
+      "sha256": "18ecec1e9888904304c1933001fad30f7ce152eacf733e0dc79fcfbf7889368f",
+      "test_counts": {
+        "rust_passed": 70,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "host",
+      "name": "calculator-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 4.512,
+      "log": "build/stack130/logs/host-calculator-test.log",
+      "sha256": "167a9b75e14e99b3994c9ba555674f87712e6e865ce7394d30a7d5802046285a",
+      "test_counts": {
+        "rust_passed": 41,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "host",
+      "name": "materiaal-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 1.612,
+      "log": "build/stack130/logs/host-materiaal-test.log",
+      "sha256": "87ae5243a3248168736395935d662c0bb0fbe5689758f49a5c36b139c880c820",
+      "test_counts": {
+        "rust_passed": 44,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "host",
+      "name": "native-ui-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/native/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 28.301,
+      "log": "build/stack130/logs/host-native-ui-test.log",
+      "sha256": "cd867e16bc5d1247dbaa0806907308b93b0dc8a42a73a7aed0db6c50ac4114e2",
+      "test_counts": {
+        "rust_passed": 81,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "host",
+      "name": "graphics-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/graphics/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 0.055,
+      "log": "build/stack130/logs/host-graphics-test.log",
+      "sha256": "77a5a4688541fc4ac070f72d89abc4948442f4879e272436b6a29af0969ee0c1",
+      "test_counts": {
+        "rust_passed": 13,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "host",
+      "name": "surface-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--features",
+        "client"
+      ],
+      "exit": 0,
+      "seconds": 0.178,
+      "log": "build/stack130/logs/host-surface-test.log",
+      "sha256": "a38f9b50c3f2f035c9ab5176b473d731e568d7fe2b32dd0efc5312dfe59afe60",
+      "test_counts": {
+        "rust_passed": 41,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "host",
+      "name": "document-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/document-session/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 0.072,
+      "log": "build/stack130/logs/host-document-test.log",
+      "sha256": "e4eefc15ce9bdc6734671737c7bd3f176b6a319a3ac29e3068ee1e2b4311ddd8",
+      "test_counts": {
+        "rust_passed": 50,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "lint",
+      "name": "window-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.067,
+      "log": "build/stack130/logs/lint-window-fmt.log",
+      "sha256": "96aa0e5740f4cff6b14177cd274453f25bc0dc9cf71e9c66c269bd18294d5e59",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "lint",
+      "name": "window-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.363,
+      "log": "build/stack130/logs/lint-window-clippy.log",
+      "sha256": "c5c3574f21d7236f79e5f04067cb49733b8be4041547edf13c4ac915c08503ed",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "lint",
+      "name": "calculator-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.056,
+      "log": "build/stack130/logs/lint-calculator-fmt.log",
+      "sha256": "35a68cfb4ee1d398a69de27e321a9f31561d33d595c98c05e805fbbf29d8615e",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "lint",
+      "name": "calculator-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.03,
+      "log": "build/stack130/logs/lint-calculator-clippy.log",
+      "sha256": "6fcef0966aebafd25848b0c3e0bf9da32e6a54360205c22d54aa70352b64481d",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "lint",
+      "name": "materiaal-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.051,
+      "log": "build/stack130/logs/lint-materiaal-fmt.log",
+      "sha256": "1b8f230741d1150c24bcca1b6d93b95ecdc491a4ee547915ba545d5e48a3e95d",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "lint",
+      "name": "materiaal-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.031,
+      "log": "build/stack130/logs/lint-materiaal-clippy.log",
+      "sha256": "3377dd35e5a2f58881c9f665ec05589b0ffeed15cb368f80c74bf072e74e06d7",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "lint",
+      "name": "native-ui-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "ui/native/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.087,
+      "log": "build/stack130/logs/lint-native-ui-fmt.log",
+      "sha256": "7a0f63556293949769f43ac6436776b4f6ebcba74f235e39fd382d2d61ede451",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "lint",
+      "name": "native-ui-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/native/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.345,
+      "log": "build/stack130/logs/lint-native-ui-clippy.log",
+      "sha256": "33a35778f3943b19bbf455691acec2d0f310d46ca360b75465c19102449e302a",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "lint",
+      "name": "graphics-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "ui/graphics/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.093,
+      "log": "build/stack130/logs/lint-graphics-fmt.log",
+      "sha256": "b62e3999d76d01bbb5a7425231135d4ae74b9e1e008db9e53c0a2da88404d7d0",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "lint",
+      "name": "graphics-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/graphics/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.026,
+      "log": "build/stack130/logs/lint-graphics-clippy.log",
+      "sha256": "16f9be92928c613b0d269c8053df4e4bbef46937b57581bcfa0645c0d73ac606",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "lint",
+      "name": "surface-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.042,
+      "log": "build/stack130/logs/lint-surface-fmt.log",
+      "sha256": "d523c87dfebdbbd1790099d88f6f0d50fac9c31dbc99ad88517cdb77c613f40d",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "lint",
+      "name": "surface-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "ui/surface-protocol/Cargo.toml",
+        "--all-targets",
+        "--features",
+        "client",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.027,
+      "log": "build/stack130/logs/lint-surface-clippy.log",
+      "sha256": "0e8bc633bd1d000b169b613880de2a018c815956d4803053e18867b25f89b150",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "lint",
+      "name": "document-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/document-session/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.045,
+      "log": "build/stack130/logs/lint-document-fmt.log",
+      "sha256": "87c24b0480091ec3d7fef07b102ebc7e774b1972da5016cff6c3c59045af913c",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "lint",
+      "name": "document-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/document-session/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.034,
+      "log": "build/stack130/logs/lint-document-clippy.log",
+      "sha256": "e528c46049f19c3a3ddc816a3002c19737d3d632e553ad7abb3b56929e987b55",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "native",
+      "name": "window-native",
+      "command": [
+        "cargo",
+        "check",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--features",
+        "native",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "exit": 0,
+      "seconds": 0.171,
+      "log": "build/stack130/logs/native-window-native.log",
+      "sha256": "add5100e4a198d4f38a56f11a48e06fde146256a72e0fda6045e982a27b320f6",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "native",
+      "name": "window-native-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--features",
+        "native",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.331,
+      "log": "build/stack130/logs/native-window-native-clippy.log",
+      "sha256": "a57eb6ce8f29255ceb617326bd0a2cb301c61c44f26e659249e2016964eea685",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "native",
+      "name": "calculator-native",
+      "command": [
+        "cargo",
+        "check",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml",
+        "--features",
+        "native",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "exit": 0,
+      "seconds": 0.055,
+      "log": "build/stack130/logs/native-calculator-native.log",
+      "sha256": "169354e10b110eb4a665fa8e5eb436aae1a1eeb42abd284f3f95d023ddbbb4a6",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "native",
+      "name": "calculator-native-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/calculator/Cargo.toml",
+        "--features",
+        "native",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.069,
+      "log": "build/stack130/logs/native-calculator-native-clippy.log",
+      "sha256": "2fca4ebd9cd0454f9ec209db62c004087adce8ef19ddad0733bb7449a3076b4f",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "native",
+      "name": "materiaal-native",
+      "command": [
+        "cargo",
+        "check",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--features",
+        "native",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "exit": 0,
+      "seconds": 0.058,
+      "log": "build/stack130/logs/native-materiaal-native.log",
+      "sha256": "d20eea6af77e538e94fbb95972cced3b12c08f50f444f224eff9a01f122f4187",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "native",
+      "name": "materiaal-native-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--features",
+        "native",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.076,
+      "log": "build/stack130/logs/native-materiaal-native-clippy.log",
+      "sha256": "e08ce1b1ffb90b6082de20b4b82422ce8d4d32e232c025a51de5633ebd209285",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "native",
+      "name": "window-probe-check",
+      "command": [
+        "cargo",
+        "check",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--features",
+        "native,fault-injection,session-preview",
+        "--bins",
+        "--target",
+        "x86_64-unknown-none"
+      ],
+      "exit": 0,
+      "seconds": 0.223,
+      "log": "build/stack130/logs/native-window-probe-check.log",
+      "sha256": "b72c93a2ade7e21aee7744129f71251d6ce7503ebd7e6437430ec12b9c81adf9",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "build",
+      "name": "native-window-probe",
+      "command": [
+        "python3",
+        "-B",
+        "-u",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-window-session-probe"
+      ],
+      "exit": 0,
+      "seconds": 4.794,
+      "log": "build/stack130/logs/build-native-window-probe.log",
+      "sha256": "2deed47ffe6c59348d94b17798b01c0cd2aa46190a77c524878c6bb12b64542d",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "network",
+      "name": "network-service-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "services/network-service/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 1.858,
+      "log": "build/stack130/logs/network-network-service-test.log",
+      "sha256": "4a482fbc79e0898dea751e40d16821e28f96dbd68b4fc593778d6f1da938bc83",
+      "test_counts": {
+        "rust_passed": 9,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "network",
+      "name": "network-service-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "services/network-service/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 1.074,
+      "log": "build/stack130/logs/network-network-service-clippy.log",
+      "sha256": "5f5245fbefc66d7c822a0440e1bcd7350c456abf3024d315287e5714c435a1f8",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "network",
+      "name": "net-config-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "services/net-config/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 0.624,
+      "log": "build/stack130/logs/network-net-config-test.log",
+      "sha256": "727e45d70d0a659a70416f0eff27408bae6e5271be296c86e0fbb7019926ed31",
+      "test_counts": {
+        "rust_passed": 38,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "network",
+      "name": "net-config-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "services/net-config/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.352,
+      "log": "build/stack130/logs/network-net-config-clippy.log",
+      "sha256": "1b9798f99b15f11e7174b612c7c11dfacf1c5f4e6bee3d7f991effa370e45810",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "root-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "-p",
+        "boot-protocol",
+        "-p",
+        "elf-loader-core",
+        "-p",
+        "kernel-core",
+        "-p",
+        "capability-core",
+        "-p",
+        "virtio-core",
+        "-p",
+        "ui-core",
+        "-p",
+        "virtio-blk-driver",
+        "-p",
+        "block-protocol",
+        "-p",
+        "object-core",
+        "-p",
+        "catalog-core",
+        "-p",
+        "volume-core",
+        "-p",
+        "keyring-core",
+        "-p",
+        "virtio-rng-driver",
+        "-p",
+        "virtio-net-driver"
+      ],
+      "exit": 0,
+      "seconds": 28.938,
+      "log": "build/stack130/logs/broad-root-test.log",
+      "sha256": "0969794469e5f26e6f0ad578788175c28e4c950669cd6408c187b3c758a8536d",
+      "test_counts": {
+        "rust_passed": 382,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "root-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "-p",
+        "boot-protocol",
+        "-p",
+        "elf-loader-core",
+        "-p",
+        "kernel-core",
+        "-p",
+        "capability-core",
+        "-p",
+        "virtio-core",
+        "-p",
+        "ui-core",
+        "-p",
+        "virtio-blk-driver",
+        "-p",
+        "block-protocol",
+        "-p",
+        "object-core",
+        "-p",
+        "catalog-core",
+        "-p",
+        "volume-core",
+        "-p",
+        "keyring-core",
+        "-p",
+        "virtio-rng-driver",
+        "-p",
+        "virtio-net-driver",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.355,
+      "log": "build/stack130/logs/broad-root-clippy.log",
+      "sha256": "a34dc026f0baccd6e6ffa6b04582d5a6e28f706972cc664a392aa40c8105eeee",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "root-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.531,
+      "log": "build/stack130/logs/broad-root-fmt.log",
+      "sha256": "5fcb04dce61431e03194e48dc201c4f32c352e4a96d055e73ed0191c5364579a",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "sdk-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 0.616,
+      "log": "build/stack130/logs/broad-sdk-test.log",
+      "sha256": "f64c20f2f793db96e0b14b20c670fcf3215a964e9aa89d861123db4566504f36",
+      "test_counts": {
+        "rust_passed": 109,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "sdk-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.3,
+      "log": "build/stack130/logs/broad-sdk-clippy.log",
+      "sha256": "87995741e42faa465e312d80526844fb3c20c60a7a202e5196d218578c79c891",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "sdk-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.517,
+      "log": "build/stack130/logs/broad-sdk-fmt.log",
+      "sha256": "69b112d3cb1255c19fba88a22059652a46ff234f91bcafeabc6c866af6626b52",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "sdk-app-management-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/app-management/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 0.415,
+      "log": "build/stack130/logs/broad-sdk-app-management-test.log",
+      "sha256": "d2cf1858ea5854d108336109d5c2a38158169b81ec65478b6c2812e778142865",
+      "test_counts": {
+        "rust_passed": 28,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "sdk-app-management-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/app-management/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.282,
+      "log": "build/stack130/logs/broad-sdk-app-management-clippy.log",
+      "sha256": "4dc81e956c5a25e04bbfa951ba6fb1ba405801fb0fbe669b5d00d639b7c21240",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "sdk-app-management-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/app-management/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.537,
+      "log": "build/stack130/logs/broad-sdk-app-management-fmt.log",
+      "sha256": "c86d6039928316cd83622355c5870c153ef77d212187ba6495c58b3f0ffb3cc2",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "sdk-examples-compositor-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/compositor/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 0.386,
+      "log": "build/stack130/logs/broad-sdk-examples-compositor-test.log",
+      "sha256": "2a0b80fb1de9cb396464d502f08568d614bf68d8c2f1413567517b6a8e5faca8",
+      "test_counts": {
+        "rust_passed": 15,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "sdk-examples-compositor-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/compositor/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.213,
+      "log": "build/stack130/logs/broad-sdk-examples-compositor-clippy.log",
+      "sha256": "71d28b5526ee499e7c51a900cf73d48e60c0114993827d78a9f188167f6df087",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "sdk-examples-compositor-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/compositor/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.663,
+      "log": "build/stack130/logs/broad-sdk-examples-compositor-fmt.log",
+      "sha256": "e73ddd6f8bee5342739eb2a47840ee4395b4f05931e5e37105b6084711e6a241",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "services-network-service-protocol-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "services/network-service/protocol/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 0.345,
+      "log": "build/stack130/logs/broad-services-network-service-protocol-test.log",
+      "sha256": "971b4e02774aa9200e73c8457e9737fe6c58ed4ee2d78b886fdb8e467006df36",
+      "test_counts": {
+        "rust_passed": 4,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "services-network-service-protocol-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "services/network-service/protocol/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.199,
+      "log": "build/stack130/logs/broad-services-network-service-protocol-clippy.log",
+      "sha256": "54187cb6888a1f46f3c159da462fa75446bf8ef2c78a02c3b554e1436f9575cf",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "services-network-service-protocol-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "services/network-service/protocol/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.054,
+      "log": "build/stack130/logs/broad-services-network-service-protocol-fmt.log",
+      "sha256": "ed9bebb80d35fd9ad8c736a5be4eddf7e31cfec026fe5bd50049c536f2b63b6a",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "sdk-net-client-test",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/net-client/Cargo.toml"
+      ],
+      "exit": 0,
+      "seconds": 0.362,
+      "log": "build/stack130/logs/broad-sdk-net-client-test.log",
+      "sha256": "f165ea17909294576eeee846ec50c04f7f22bfaed723212caef664b26cccd40c",
+      "test_counts": {
+        "rust_passed": 6,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "sdk-net-client-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/net-client/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit": 0,
+      "seconds": 0.173,
+      "log": "build/stack130/logs/broad-sdk-net-client-clippy.log",
+      "sha256": "6da98450325ffa87ed5ecf437305ed0f0bcd5d04818f2eeab14f7315ad102383",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "sdk-net-client-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "sdk/net-client/Cargo.toml",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.563,
+      "log": "build/stack130/logs/broad-sdk-net-client-fmt.log",
+      "sha256": "98fbbad9fb2a7245ed0773a9db5d8bea3d20e99c242516b4844ef8d4a881a617",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "python-tools",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_*.py"
+      ],
+      "exit": 0,
+      "seconds": 17.4,
+      "log": "build/stack130/logs/broad-python-tools.log",
+      "sha256": "4498c901da8be1b089ac12a166653b7e6a02fb85099d7f5ae438bf7246bde18f",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": [
+          197
+        ]
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "python-window",
+      "command": [
+        "python3",
+        "-B",
+        "tools/test_window_session.py"
+      ],
+      "exit": 0,
+      "seconds": 0.132,
+      "log": "build/stack130/logs/broad-python-window.log",
+      "sha256": "a9fe369c2d3503151ad69501195f0cd92f75679d176a0b009040a35bfe22bdef",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": [
+          11
+        ]
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "python-nas",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_nas_runner.py"
+      ],
+      "exit": 0,
+      "seconds": 0.633,
+      "log": "build/stack130/logs/broad-python-nas.log",
+      "sha256": "5268aa5abcb89a50fe659b6426232ef6670ebbc1c45b7e107010c6eb26bc0981",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": [
+          35
+        ]
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "python-network-peer",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools",
+        "-p",
+        "test_network_service_peer.py"
+      ],
+      "exit": 0,
+      "seconds": 0.176,
+      "log": "build/stack130/logs/broad-python-network-peer.log",
+      "sha256": "8b740a2a8677073965a12e09da75f24be42074de170b239d10b4e4ca88130073",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": [
+          11
+        ]
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "progress-check",
+      "command": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.042,
+      "log": "build/stack130/logs/broad-progress-check.log",
+      "sha256": "b2715d431d92f1e3678dbffd89fc6a9d4cf9292c4b604f2d37223ee1cfd2e420",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "broad",
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.005,
+      "log": "build/stack130/logs/broad-diff-check.log",
+      "sha256": "3d4d50cd32af92c6d4df37c1df74a96622fca8cfb5643a155c91f034a42f2068",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "python",
+      "name": "tools",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_*.py"
+      ],
+      "exit": 0,
+      "seconds": 18.862,
+      "log": "build/stack130/logs/python-tools.log",
+      "sha256": "34746b38b0b231f676ff4c6e0f61290c0cb7618520ef716ef841c661a7cddcee",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": [
+          197
+        ]
+      }
+    },
+    {
+      "phase": "python",
+      "name": "window",
+      "command": [
+        "python3",
+        "-B",
+        "tools/test_window_session.py"
+      ],
+      "exit": 0,
+      "seconds": 0.137,
+      "log": "build/stack130/logs/python-window.log",
+      "sha256": "d6f682e9349171aab063c7c9a19ca940f7989a3ca7c082fc7ded997c75d99e94",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": [
+          11
+        ]
+      }
+    },
+    {
+      "phase": "python",
+      "name": "nas",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_nas_runner.py"
+      ],
+      "exit": 0,
+      "seconds": 0.634,
+      "log": "build/stack130/logs/python-nas.log",
+      "sha256": "c064810d77f7f71d70d19b9038746643e6ba77a701f1849889f66f8e7988e47b",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": [
+          35
+        ]
+      }
+    },
+    {
+      "phase": "python",
+      "name": "network-peer",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools",
+        "-p",
+        "test_network_service_peer.py"
+      ],
+      "exit": 0,
+      "seconds": 0.171,
+      "log": "build/stack130/logs/python-network-peer.log",
+      "sha256": "6054cb045fbfd960953702a6a84d4a054d73db51fd3421ff42a314dce3c633cc",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": [
+          11
+        ]
+      }
+    },
+    {
+      "phase": "additional",
+      "name": "actual-native-elf",
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/materiaal/Cargo.toml",
+        "--features",
+        "verify-native-elf",
+        "--test",
+        "elf",
+        "--",
+        "--nocapture"
+      ],
+      "exit": 0,
+      "seconds": null,
+      "log": "build/stack130/logs/actual-native-elf.log",
+      "sha256": "e04681324e8bf9b29985fc266ea58c47304c4a16c4eaa7375911d2ef0a67cd2d",
+      "test_counts": {
+        "rust_passed": 1,
+        "rust_failed": 0,
+        "python_tests": []
+      }
+    },
+    {
+      "phase": "additional",
+      "name": "authorized-delta",
+      "command": [
+        "python3",
+        "-B",
+        "docs/verification/stack130-authorized-delta-check.py",
+        "-v"
+      ],
+      "exit": 0,
+      "seconds": null,
+      "log": "build/stack130/logs/authorized-delta-check.log",
+      "sha256": "e20ba4493809656dd1873f925348d71927dda5829170bc8cc33c35897a980a8e",
+      "test_counts": {
+        "rust_passed": 0,
+        "rust_failed": 0,
+        "python_tests": [
+          5
+        ]
+      }
+    }
+  ],
+  "final_counts_by_component": {
+    "window_session": 70,
+    "calculator": 41,
+    "materiaal_adapter": 44,
+    "native_ui": 81,
+    "graphics": 13,
+    "surface_protocol_with_client": 41,
+    "document_session_standalone": 50,
+    "root_foundation": 382,
+    "sdk_workspace": 109,
+    "app_management": 28,
+    "legacy_compositor": 15,
+    "network_protocol": 4,
+    "net_client": 6,
+    "network_service": 9,
+    "net_config": 38,
+    "actual_native_elf": 1,
+    "python_tools": 197,
+    "python_window_runner": 11,
+    "python_nas_runner": 35,
+    "python_network_peer": 11,
+    "authorized_delta": 5,
+    "note": "Cargo suite counts, not unique test identities; SDK/standalone suites overlap. Optional fixture-generators may return without producing images; no visual acceptance is claimed. Repeated Python checks are separately logged, not counted as new tests."
+  },
+  "actual_native_build": {
+    "manifest": {
+      "path": "docs/verification/stack130-native-build-manifest.json",
+      "sha256": "ee85587c5602bb20362bb5d5cbb537affe1de99cc0a813ae2685408cff4d6637",
+      "bytes": 13137
+    },
+    "kernel": {
+      "path": "build/stack130/native-probe/esp/kernel.elf",
+      "sha256": "763a21ee5eeb523a07cb6ed6f9114b077d201505c2b80faff6b1e89924769ce4",
+      "bytes": 3592456
+    },
+    "loader": {
+      "path": "build/stack130/native-probe/esp/EFI/BOOT/BOOTX64.EFI",
+      "sha256": "e0d90a5a905c961bedd947d77d1db209a31126fa187b089df78b52029fc738b3",
+      "bytes": 31744
+    },
+    "apps": [
+      {
+        "name": "keyring-service",
+        "sha256": "9bfaf10a2c4476fcecfea6d17f2577b877a4a800bef0a8ac4597576bc3434d17",
+        "load_segments": 4,
+        "load_pages": 23
+      },
+      {
+        "name": "volume-service",
+        "sha256": "eee3ef93929f8ca4297f5d3a8c93f3b1d1c02976833524521abe55b492b35f7f",
+        "load_segments": 3,
+        "load_pages": 21
+      },
+      {
+        "name": "materiaal-app",
+        "sha256": "9fb4ff6426355436cfd04df049f3b9eb84472854f930fca35b21d3463c48b94d",
+        "load_segments": 5,
+        "load_pages": 158
+      },
+      {
+        "name": "input-source",
+        "sha256": "f3bddd83cd9946dd2aa3eb4c3a07d33042fb7194da86a642c2a15912b37ac601",
+        "load_segments": 4,
+        "load_pages": 6
+      },
+      {
+        "name": "input-policy",
+        "sha256": "62e8e098c4db9ef829fba90d24641ade9f2720537c0eb121a3efdbbbac72e48c",
+        "load_segments": 4,
+        "load_pages": 9
+      },
+      {
+        "name": "window-init",
+        "sha256": "7a7c0f3ecd518d1ac3e44664261a41987911fb4aecf601022999c8fedbf68b39",
+        "load_segments": 5,
+        "load_pages": 7
+      },
+      {
+        "name": "window-compositor",
+        "sha256": "007a0b826ee81a581fc3457c38428a3bb326678bc09b8abcd7d4f92a089515f5",
+        "load_segments": 5,
+        "load_pages": 1459
+      },
+      {
+        "name": "calculator-app",
+        "sha256": "d0addc78b939d3a74dcc06104cb9bb822c91324ee120f6b3d409dc0ecf018e31",
+        "load_segments": 5,
+        "load_pages": 92
+      }
+    ]
+  },
+  "failed_attempts_preserved": {
+    "initial_combined": [
+      {
+        "name": "window-test",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/examples/window-session/Cargo.toml"
+        ],
+        "exit": 0,
+        "seconds": 33.207,
+        "log": "build/stack130/logs/initial-host-window-test.log",
+        "sha256": "69b763aecaee91980b7357ce2bda6ca7f76ff1b8a604576bba5e1d277584adaf"
+      },
+      {
+        "name": "calculator-test",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/examples/calculator/Cargo.toml"
+        ],
+        "exit": 0,
+        "seconds": 6.216,
+        "log": "build/stack130/logs/initial-host-calculator-test.log",
+        "sha256": "278c79a974b895a2f74e5817ab893816ab6f01515f726d6df0afe364c83e09ec"
+      },
+      {
+        "name": "materiaal-test",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/examples/materiaal/Cargo.toml"
+        ],
+        "exit": 101,
+        "seconds": 3.074,
+        "log": "build/stack130/logs/initial-host-materiaal-test.log",
+        "sha256": "d98f61afa24381bb1b6f54438ae9b66e69509b82db76f81af3ed0bd814f9357f"
+      },
+      {
+        "name": "native-ui-test",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "ui/native/Cargo.toml"
+        ],
+        "exit": 101,
+        "seconds": 1.182,
+        "log": "build/stack130/logs/initial-host-native-ui-test.log",
+        "sha256": "f9e9c9655476694e73975320f3f388dbd7925c522698e9791c9b6a201f7ef456"
+      },
+      {
+        "name": "graphics-test",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "ui/graphics/Cargo.toml"
+        ],
+        "exit": 0,
+        "seconds": 0.484,
+        "log": "build/stack130/logs/initial-host-graphics-test.log",
+        "sha256": "1c4e20603f7fcd46f6a9382dd76de9a910df9a56d5aa466bca4912b2b76c8cf1"
+      },
+      {
+        "name": "surface-test",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "ui/surface-protocol/Cargo.toml",
+          "--features",
+          "client"
+        ],
+        "exit": 0,
+        "seconds": 0.769,
+        "log": "build/stack130/logs/initial-host-surface-test.log",
+        "sha256": "e200b2d6a1dd4373cc78d227c70c3643369cb1a7cb1e7ca7c6b2304bd8a9759e"
+      },
+      {
+        "name": "document-test",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/document-session/Cargo.toml"
+        ],
+        "exit": 0,
+        "seconds": 0.984,
+        "log": "build/stack130/logs/initial-host-document-test.log",
+        "sha256": "b7bba5f1bed41fde933ce9aaadd89dd1c58b1ff790e97822100f13e8e351128d"
+      }
+    ],
+    "initial_python_environment": [
+      {
+        "name": "root-test",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "boot-protocol",
+          "-p",
+          "elf-loader-core",
+          "-p",
+          "kernel-core",
+          "-p",
+          "capability-core",
+          "-p",
+          "virtio-core",
+          "-p",
+          "ui-core",
+          "-p",
+          "virtio-blk-driver",
+          "-p",
+          "block-protocol",
+          "-p",
+          "object-core",
+          "-p",
+          "catalog-core",
+          "-p",
+          "volume-core",
+          "-p",
+          "keyring-core",
+          "-p",
+          "virtio-rng-driver",
+          "-p",
+          "virtio-net-driver"
+        ],
+        "exit": 0,
+        "seconds": 32.613,
+        "log": "build/stack130/logs/setup-initial-broad-root-test.log",
+        "sha256": "791b7aea9196bc78eebf849c1fda009d42e821797c2b00ed4ccc398e719948b2"
+      },
+      {
+        "name": "root-clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--offline",
+          "--locked",
+          "-p",
+          "boot-protocol",
+          "-p",
+          "elf-loader-core",
+          "-p",
+          "kernel-core",
+          "-p",
+          "capability-core",
+          "-p",
+          "virtio-core",
+          "-p",
+          "ui-core",
+          "-p",
+          "virtio-blk-driver",
+          "-p",
+          "block-protocol",
+          "-p",
+          "object-core",
+          "-p",
+          "catalog-core",
+          "-p",
+          "volume-core",
+          "-p",
+          "keyring-core",
+          "-p",
+          "virtio-rng-driver",
+          "-p",
+          "virtio-net-driver",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "seconds": 2.663,
+        "log": "build/stack130/logs/setup-initial-broad-root-clippy.log",
+        "sha256": "6ede96420948529d1f733cd0b4f375d597f76ad36026e8a8e31635287ab18948"
+      },
+      {
+        "name": "root-fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit": 0,
+        "seconds": 0.576,
+        "log": "build/stack130/logs/setup-initial-broad-root-fmt.log",
+        "sha256": "5fcb04dce61431e03194e48dc201c4f32c352e4a96d055e73ed0191c5364579a"
+      },
+      {
+        "name": "sdk-test",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/Cargo.toml"
+        ],
+        "exit": 0,
+        "seconds": 2.433,
+        "log": "build/stack130/logs/setup-initial-broad-sdk-test.log",
+        "sha256": "cd3ef24fce271a1b20447e1bf1bd9090293d90613016b9b1dfb5fb1b15313c24"
+      },
+      {
+        "name": "sdk-clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/Cargo.toml",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "seconds": 1.489,
+        "log": "build/stack130/logs/setup-initial-broad-sdk-clippy.log",
+        "sha256": "a95afda77a9bab3649835fbe4a2307f42fd1fba1626f691f748cec1c47ccdf32"
+      },
+      {
+        "name": "sdk-fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--manifest-path",
+          "sdk/Cargo.toml",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit": 0,
+        "seconds": 0.516,
+        "log": "build/stack130/logs/setup-initial-broad-sdk-fmt.log",
+        "sha256": "69b112d3cb1255c19fba88a22059652a46ff234f91bcafeabc6c866af6626b52"
+      },
+      {
+        "name": "sdk-app-management-test",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/app-management/Cargo.toml"
+        ],
+        "exit": 0,
+        "seconds": 3.957,
+        "log": "build/stack130/logs/setup-initial-broad-sdk-app-management-test.log",
+        "sha256": "58958dcf6989c7efbe706d8a22d7628a6eafcbf1ef0781d895165dac077d8a03"
+      },
+      {
+        "name": "sdk-app-management-clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/app-management/Cargo.toml",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "seconds": 1.894,
+        "log": "build/stack130/logs/setup-initial-broad-sdk-app-management-clippy.log",
+        "sha256": "353777144d872f6ac4074c8e0676dd17160c77b8aeeb534febfbab49aded9258"
+      },
+      {
+        "name": "sdk-app-management-fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--manifest-path",
+          "sdk/app-management/Cargo.toml",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit": 0,
+        "seconds": 0.549,
+        "log": "build/stack130/logs/setup-initial-broad-sdk-app-management-fmt.log",
+        "sha256": "c86d6039928316cd83622355c5870c153ef77d212187ba6495c58b3f0ffb3cc2"
+      },
+      {
+        "name": "sdk-examples-compositor-test",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/examples/compositor/Cargo.toml"
+        ],
+        "exit": 0,
+        "seconds": 1.926,
+        "log": "build/stack130/logs/setup-initial-broad-sdk-examples-compositor-test.log",
+        "sha256": "9b94f17e91a537e918a1e3dde0adb1b32f4b2a50655c38c4b76368482e6e0de9"
+      },
+      {
+        "name": "sdk-examples-compositor-clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/examples/compositor/Cargo.toml",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "seconds": 1.552,
+        "log": "build/stack130/logs/setup-initial-broad-sdk-examples-compositor-clippy.log",
+        "sha256": "966d504e65e91489882ecafd0ab05ca2d44a218151739bd08738fedd22f701b4"
+      },
+      {
+        "name": "sdk-examples-compositor-fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--manifest-path",
+          "sdk/examples/compositor/Cargo.toml",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit": 0,
+        "seconds": 0.714,
+        "log": "build/stack130/logs/setup-initial-broad-sdk-examples-compositor-fmt.log",
+        "sha256": "e73ddd6f8bee5342739eb2a47840ee4395b4f05931e5e37105b6084711e6a241"
+      },
+      {
+        "name": "services-network-service-protocol-test",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "services/network-service/protocol/Cargo.toml"
+        ],
+        "exit": 0,
+        "seconds": 0.378,
+        "log": "build/stack130/logs/setup-initial-broad-services-network-service-protocol-test.log",
+        "sha256": "f2190fc326c6ede9db9e0c197b94357cf3a657e3b52ca390b878631bdfb0b196"
+      },
+      {
+        "name": "services-network-service-protocol-clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "services/network-service/protocol/Cargo.toml",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "seconds": 0.152,
+        "log": "build/stack130/logs/setup-initial-broad-services-network-service-protocol-clippy.log",
+        "sha256": "93a409747a8f3026951312acbcca3a3fa2f4736b226d47bdab6d9aed12bd4d6a"
+      },
+      {
+        "name": "services-network-service-protocol-fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--manifest-path",
+          "services/network-service/protocol/Cargo.toml",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit": 0,
+        "seconds": 0.031,
+        "log": "build/stack130/logs/setup-initial-broad-services-network-service-protocol-fmt.log",
+        "sha256": "ed9bebb80d35fd9ad8c736a5be4eddf7e31cfec026fe5bd50049c536f2b63b6a"
+      },
+      {
+        "name": "sdk-net-client-test",
+        "command": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/net-client/Cargo.toml"
+        ],
+        "exit": 0,
+        "seconds": 0.44,
+        "log": "build/stack130/logs/setup-initial-broad-sdk-net-client-test.log",
+        "sha256": "2789423c9d874f7dd815787b3b306162f669fc4211da691a4cfba3563dd5029d"
+      },
+      {
+        "name": "sdk-net-client-clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--offline",
+          "--locked",
+          "--manifest-path",
+          "sdk/net-client/Cargo.toml",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit": 0,
+        "seconds": 0.208,
+        "log": "build/stack130/logs/setup-initial-broad-sdk-net-client-clippy.log",
+        "sha256": "99f2cf751b8df6e66951fc3799a44f063ec509513740e1fa3c93ac5181ac23cd"
+      },
+      {
+        "name": "sdk-net-client-fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--manifest-path",
+          "sdk/net-client/Cargo.toml",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "exit": 0,
+        "seconds": 0.536,
+        "log": "build/stack130/logs/setup-initial-broad-sdk-net-client-fmt.log",
+        "sha256": "98fbbad9fb2a7245ed0773a9db5d8bea3d20e99c242516b4844ef8d4a881a617"
+      },
+      {
+        "name": "python-tools",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tools/tests",
+          "-p",
+          "test_*.py"
+        ],
+        "exit": 1,
+        "seconds": 16.814,
+        "log": "build/stack130/logs/setup-initial-broad-python-tools.log",
+        "sha256": "6bcb9b1618cd11b251926af174ddc2f8461443dbe3919db9312bf5b73a66b100"
+      },
+      {
+        "name": "python-window",
+        "command": [
+          "python3",
+          "-B",
+          "tools/test_window_session.py"
+        ],
+        "exit": 0,
+        "seconds": 0.127,
+        "log": "build/stack130/logs/setup-initial-broad-python-window.log",
+        "sha256": "d6f682e9349171aab063c7c9a19ca940f7989a3ca7c082fc7ded997c75d99e94"
+      },
+      {
+        "name": "python-nas",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_nas_runner.py"
+        ],
+        "exit": 1,
+        "seconds": 0.113,
+        "log": "build/stack130/logs/setup-initial-broad-python-nas.log",
+        "sha256": "8c52de54157a717e0a3c52b5ecc6188b1e3c7368dceb02f97a408e54fb6d6125"
+      },
+      {
+        "name": "python-network-peer",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tools",
+          "-p",
+          "test_network_service_peer.py"
+        ],
+        "exit": 0,
+        "seconds": 0.164,
+        "log": "build/stack130/logs/setup-initial-broad-python-network-peer.log",
+        "sha256": "6054cb045fbfd960953702a6a84d4a054d73db51fd3421ff42a314dce3c633cc"
+      },
+      {
+        "name": "progress-check",
+        "command": [
+          "python3",
+          "-B",
+          "tools/progress.py",
+          "--check"
+        ],
+        "exit": 0,
+        "seconds": 0.037,
+        "log": "build/stack130/logs/setup-initial-broad-progress-check.log",
+        "sha256": "b2715d431d92f1e3678dbffd89fc6a9d4cf9292c4b604f2d37223ee1cfd2e420"
+      },
+      {
+        "name": "diff-check",
+        "command": [
+          "git",
+          "diff",
+          "--check"
+        ],
+        "exit": 0,
+        "seconds": 0.007,
+        "log": "build/stack130/logs/setup-initial-broad-diff-check.log",
+        "sha256": "3d4d50cd32af92c6d4df37c1df74a96622fca8cfb5643a155c91f034a42f2068"
+      }
+    ],
+    "reason_and_resolution": [
+      "Exact retained oracle detected stale caret at moved PR130 editor; fixed shared for_screen layout and proportional damage, never the oracle or >=90% send budget.",
+      "Old host damage test referenced removed monospace columns; adapted its fixture to actual proportional wrap metrics and expanded both scales/geometry while retaining every changed-pixel assertion.",
+      "Python Rust +1.90 invocations need existing rustup shims. NAS private handoff rejects checkout-local TMPDIR by design; use task-owned outside-checkout target, not a policy bypass."
+    ],
+    "trusted_lock_red": {
+      "path": "build/stack130/logs/lock-priority-red.log",
+      "sha256": "36e01fd33048ad1324135cde528c59b0d6b84f397323b1a253c5de9d47eaf536",
+      "bytes": 2525,
+      "exit": 101,
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--test",
+        "workspace_v2",
+        "palette_does_not_swallow_trusted_lock_search_or_session_shortcuts"
+      ]
+    },
+    "trusted_lock_green": {
+      "path": "build/stack130/logs/lock-priority-green.log",
+      "sha256": "46b196908cf5099a579a5549d7cedf2e79895405c3b8cc72f300373363c005d2",
+      "bytes": 533,
+      "exit": 0,
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/window-session/Cargo.toml",
+        "--test",
+        "workspace_v2",
+        "palette_does_not_swallow_trusted_lock_search_or_session_shortcuts"
+      ]
+    },
+    "pre_lock_passing_checks": {
+      "pre-lock-host": [
+        {
+          "name": "window-test",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/examples/window-session/Cargo.toml"
+          ],
+          "exit": 0,
+          "seconds": 37.81,
+          "log": "build/stack130/logs/pre-lock-host-window-test.log",
+          "sha256": "6221b50f3e158ba8e898cfe3d9c9b3dd7cefc14153ac1801576a60a0dacaaca9"
+        },
+        {
+          "name": "calculator-test",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/examples/calculator/Cargo.toml"
+          ],
+          "exit": 0,
+          "seconds": 4.74,
+          "log": "build/stack130/logs/pre-lock-host-calculator-test.log",
+          "sha256": "d052eab340b56bebe5683a243a45d65c04e4fbe99e2bea241c42cad1a2e884eb"
+        },
+        {
+          "name": "materiaal-test",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/examples/materiaal/Cargo.toml"
+          ],
+          "exit": 0,
+          "seconds": 1.989,
+          "log": "build/stack130/logs/pre-lock-host-materiaal-test.log",
+          "sha256": "b169cd400c7d4be21bbef6d93f93c4708c092aeb8df204275e4d66a1aa0054b2"
+        },
+        {
+          "name": "native-ui-test",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "ui/native/Cargo.toml"
+          ],
+          "exit": 0,
+          "seconds": 29.177,
+          "log": "build/stack130/logs/pre-lock-host-native-ui-test.log",
+          "sha256": "169478c8db54ec36770c386c8a5c2a3be0f0ea2d88071a2c4fc20aebbd3abf9c"
+        },
+        {
+          "name": "graphics-test",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "ui/graphics/Cargo.toml"
+          ],
+          "exit": 0,
+          "seconds": 0.056,
+          "log": "build/stack130/logs/pre-lock-host-graphics-test.log",
+          "sha256": "e1ff28572509ecba8cbbf92aa72bb9bbd7283741fc51c806b2ee039748838582"
+        },
+        {
+          "name": "surface-test",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "ui/surface-protocol/Cargo.toml",
+            "--features",
+            "client"
+          ],
+          "exit": 0,
+          "seconds": 0.185,
+          "log": "build/stack130/logs/pre-lock-host-surface-test.log",
+          "sha256": "0d755e0169862d049367a4a545d687b47bbebc97d9e160cbe4be093ee78b0220"
+        },
+        {
+          "name": "document-test",
+          "command": [
+            "cargo",
+            "test",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/document-session/Cargo.toml"
+          ],
+          "exit": 0,
+          "seconds": 0.076,
+          "log": "build/stack130/logs/pre-lock-host-document-test.log",
+          "sha256": "0f97e092227ac9156664e1ef81e13ab754e6f0a9eef27b30cd7b24c085dd8e83"
+        }
+      ],
+      "pre-lock-lint": [
+        {
+          "name": "window-fmt",
+          "command": [
+            "cargo",
+            "fmt",
+            "--manifest-path",
+            "sdk/examples/window-session/Cargo.toml",
+            "--",
+            "--check"
+          ],
+          "exit": 0,
+          "seconds": 0.069,
+          "log": "build/stack130/logs/pre-lock-lint-window-fmt.log",
+          "sha256": "96aa0e5740f4cff6b14177cd274453f25bc0dc9cf71e9c66c269bd18294d5e59"
+        },
+        {
+          "name": "window-clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/examples/window-session/Cargo.toml",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit": 0,
+          "seconds": 0.734,
+          "log": "build/stack130/logs/pre-lock-lint-window-clippy.log",
+          "sha256": "d24136c2897ff7397617f35b3f469ef71b9de360d6f1a4d2437077816a78079d"
+        },
+        {
+          "name": "calculator-fmt",
+          "command": [
+            "cargo",
+            "fmt",
+            "--manifest-path",
+            "sdk/examples/calculator/Cargo.toml",
+            "--",
+            "--check"
+          ],
+          "exit": 0,
+          "seconds": 0.058,
+          "log": "build/stack130/logs/pre-lock-lint-calculator-fmt.log",
+          "sha256": "35a68cfb4ee1d398a69de27e321a9f31561d33d595c98c05e805fbbf29d8615e"
+        },
+        {
+          "name": "calculator-clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/examples/calculator/Cargo.toml",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit": 0,
+          "seconds": 1.526,
+          "log": "build/stack130/logs/pre-lock-lint-calculator-clippy.log",
+          "sha256": "8ef7630f78feeb81b44cf3fa1231cb023a71b8e0f51717a472d84f33e3fbcebd"
+        },
+        {
+          "name": "materiaal-fmt",
+          "command": [
+            "cargo",
+            "fmt",
+            "--manifest-path",
+            "sdk/examples/materiaal/Cargo.toml",
+            "--",
+            "--check"
+          ],
+          "exit": 0,
+          "seconds": 0.053,
+          "log": "build/stack130/logs/pre-lock-lint-materiaal-fmt.log",
+          "sha256": "1b8f230741d1150c24bcca1b6d93b95ecdc491a4ee547915ba545d5e48a3e95d"
+        },
+        {
+          "name": "materiaal-clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/examples/materiaal/Cargo.toml",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit": 0,
+          "seconds": 0.985,
+          "log": "build/stack130/logs/pre-lock-lint-materiaal-clippy.log",
+          "sha256": "6349fe927e0ae9a6fe490642c64092c535fd8d4fce8034420fa37a2ab0e37778"
+        },
+        {
+          "name": "native-ui-fmt",
+          "command": [
+            "cargo",
+            "fmt",
+            "--manifest-path",
+            "ui/native/Cargo.toml",
+            "--",
+            "--check"
+          ],
+          "exit": 0,
+          "seconds": 0.101,
+          "log": "build/stack130/logs/pre-lock-lint-native-ui-fmt.log",
+          "sha256": "7a0f63556293949769f43ac6436776b4f6ebcba74f235e39fd382d2d61ede451"
+        },
+        {
+          "name": "native-ui-clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "ui/native/Cargo.toml",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit": 0,
+          "seconds": 0.855,
+          "log": "build/stack130/logs/pre-lock-lint-native-ui-clippy.log",
+          "sha256": "dd780dfdaec2a366fb56a64c80dfcf354c1b5b5d96ee2ef0a13a499c2c68ce1b"
+        },
+        {
+          "name": "graphics-fmt",
+          "command": [
+            "cargo",
+            "fmt",
+            "--manifest-path",
+            "ui/graphics/Cargo.toml",
+            "--",
+            "--check"
+          ],
+          "exit": 0,
+          "seconds": 0.088,
+          "log": "build/stack130/logs/pre-lock-lint-graphics-fmt.log",
+          "sha256": "b62e3999d76d01bbb5a7425231135d4ae74b9e1e008db9e53c0a2da88404d7d0"
+        },
+        {
+          "name": "graphics-clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "ui/graphics/Cargo.toml",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit": 0,
+          "seconds": 0.336,
+          "log": "build/stack130/logs/pre-lock-lint-graphics-clippy.log",
+          "sha256": "ffd6c7003755c5e1d6ee429a07ea6b7ae3da850075590ea466573845825be983"
+        },
+        {
+          "name": "surface-fmt",
+          "command": [
+            "cargo",
+            "fmt",
+            "--manifest-path",
+            "ui/surface-protocol/Cargo.toml",
+            "--",
+            "--check"
+          ],
+          "exit": 0,
+          "seconds": 0.046,
+          "log": "build/stack130/logs/pre-lock-lint-surface-fmt.log",
+          "sha256": "d523c87dfebdbbd1790099d88f6f0d50fac9c31dbc99ad88517cdb77c613f40d"
+        },
+        {
+          "name": "surface-clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "ui/surface-protocol/Cargo.toml",
+            "--all-targets",
+            "--features",
+            "client",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit": 0,
+          "seconds": 0.341,
+          "log": "build/stack130/logs/pre-lock-lint-surface-clippy.log",
+          "sha256": "3584f1346bcc3466f2bdb36eedc1b875103dfd4e2524536ef224d64aba8140fb"
+        },
+        {
+          "name": "document-fmt",
+          "command": [
+            "cargo",
+            "fmt",
+            "--manifest-path",
+            "sdk/document-session/Cargo.toml",
+            "--",
+            "--check"
+          ],
+          "exit": 0,
+          "seconds": 0.049,
+          "log": "build/stack130/logs/pre-lock-lint-document-fmt.log",
+          "sha256": "87c24b0480091ec3d7fef07b102ebc7e774b1972da5016cff6c3c59045af913c"
+        },
+        {
+          "name": "document-clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/document-session/Cargo.toml",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit": 0,
+          "seconds": 0.575,
+          "log": "build/stack130/logs/pre-lock-lint-document-clippy.log",
+          "sha256": "49fcb6962af2931c242a3b9d8d9befb6c9c7915a83a42c26313d92d00c71e37e"
+        }
+      ],
+      "pre-lock-native": [
+        {
+          "name": "window-native",
+          "command": [
+            "cargo",
+            "check",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/examples/window-session/Cargo.toml",
+            "--features",
+            "native",
+            "--bins",
+            "--target",
+            "x86_64-unknown-none"
+          ],
+          "exit": 0,
+          "seconds": 0.016,
+          "log": "build/stack130/logs/pre-lock-native-window-native.log",
+          "sha256": "486b4e0a7e8c5331c92c374e87e481df180cf98afd9136f746a3461c5cebfd04"
+        },
+        {
+          "name": "window-native-clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/examples/window-session/Cargo.toml",
+            "--features",
+            "native",
+            "--bins",
+            "--target",
+            "x86_64-unknown-none",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit": 0,
+          "seconds": 0.079,
+          "log": "build/stack130/logs/pre-lock-native-window-native-clippy.log",
+          "sha256": "8d9fbc7405edcebfedc5b641662056abb5e6a0c4d466e3cbebacb91c55c96c35"
+        },
+        {
+          "name": "calculator-native",
+          "command": [
+            "cargo",
+            "check",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/examples/calculator/Cargo.toml",
+            "--features",
+            "native",
+            "--bins",
+            "--target",
+            "x86_64-unknown-none"
+          ],
+          "exit": 0,
+          "seconds": 0.056,
+          "log": "build/stack130/logs/pre-lock-native-calculator-native.log",
+          "sha256": "e20321312ecd529f7ac2fa14f793a914d7d7f3373282cc2affa731accb8a75bf"
+        },
+        {
+          "name": "calculator-native-clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/examples/calculator/Cargo.toml",
+            "--features",
+            "native",
+            "--bins",
+            "--target",
+            "x86_64-unknown-none",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit": 0,
+          "seconds": 0.072,
+          "log": "build/stack130/logs/pre-lock-native-calculator-native-clippy.log",
+          "sha256": "1728157cf8e4c9857c7f5406d9b33429490c76a42029b41536a5e92a56d8a07a"
+        },
+        {
+          "name": "materiaal-native",
+          "command": [
+            "cargo",
+            "check",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/examples/materiaal/Cargo.toml",
+            "--features",
+            "native",
+            "--bins",
+            "--target",
+            "x86_64-unknown-none"
+          ],
+          "exit": 0,
+          "seconds": 0.247,
+          "log": "build/stack130/logs/pre-lock-native-materiaal-native.log",
+          "sha256": "983f38d789635a1211fd84d83c44934c4e223be277b0d5e8e8562093671c5cae"
+        },
+        {
+          "name": "materiaal-native-clippy",
+          "command": [
+            "cargo",
+            "clippy",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/examples/materiaal/Cargo.toml",
+            "--features",
+            "native",
+            "--bins",
+            "--target",
+            "x86_64-unknown-none",
+            "--",
+            "-D",
+            "warnings"
+          ],
+          "exit": 0,
+          "seconds": 0.218,
+          "log": "build/stack130/logs/pre-lock-native-materiaal-native-clippy.log",
+          "sha256": "f0b810795df59533bb778c2f93b420850b82dc6881e6daec5a9580c095d07460"
+        },
+        {
+          "name": "window-probe-check",
+          "command": [
+            "cargo",
+            "check",
+            "--offline",
+            "--locked",
+            "--manifest-path",
+            "sdk/examples/window-session/Cargo.toml",
+            "--features",
+            "native,fault-injection,session-preview",
+            "--bins",
+            "--target",
+            "x86_64-unknown-none"
+          ],
+          "exit": 0,
+          "seconds": 0.052,
+          "log": "build/stack130/logs/pre-lock-native-window-probe-check.log",
+          "sha256": "c21ba7086998af73cf01ec9f2862913eaea8425528d116442bde29b09de74116"
+        }
+      ],
+      "pre-lock-build": [
+        {
+          "name": "native-window-probe",
+          "command": [
+            "python3",
+            "-B",
+            "-u",
+            "tools/build.py",
+            "--kernel-feature",
+            "native-window-session-probe"
+          ],
+          "exit": 0,
+          "seconds": 17.709,
+          "log": "build/stack130/logs/pre-lock-build-native-window-probe.log",
+          "sha256": "8ef42180be98b731c480cc53630c32b0f738d8c9c01e7aeeb174c2271f23d0bf"
+        }
+      ]
+    }
+  },
+  "limits": [
+    "QEMU/OVMF lokaal niet beschikbaar: geen boot-, runtime-, koude VM-, native pixel-, clipboardherstel- of Windows/WHPX-claim.",
+    "PR130-uitbreiding 024cede1..13782f92 is daarna expliciet geautoriseerd, concreet gelezen en geïntegreerd. Het zijn uitsluitend 18 document-/bewijsbestanden; geen bronconflict en source-v3 onveranderd. Verdere ongelezen live drift wordt niet opgenomen.",
+    "Historische native claims in de nieuwe bewijsbestanden blijven gebonden aan 64044318/source069666e5, niet aan deze integratie. De gearchiveerde readbackcode is niet uitgevoerd zonder bijbehorende CI-artifactdataset.",
+    "Alleen parent f090b913 is GitHub-integrator; centrale assessment en finale CI op publicatiehead blijven bij parent.",
+    "Full native window probe built and inspected, not booted. QEMU/OVMF runtime, native pixels, clipboard recovery, cold VM, N01 runtime, Windows/WHPX, VMware, hardware and human audit were NOT executed here.",
+    "Some Python fixtures emit synthetic raw=33 serial text. This is mock harness behavior, never a QEMU success claim.",
+    "Historical PR127/main380 and PR130/source640 CI evidence remains bound to its original source. Parent must execute applicable CI/runtime gates on its final published combined head.",
+    "New code does not establish personal authentication, U02 daily latency, screen-reader/IME/shaping support, or broader release acceptance."
+  ],
+  "github_mutations": [],
+  "rollback": "Drop/revert this local integration branch; no remote or main was changed."
+}

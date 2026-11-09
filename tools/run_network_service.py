@@ -19,17 +19,19 @@ import sys
 import time
 import threading
 import uuid
-from common import ROOT, BUILD, environment, firmware, qemu_machine, sha256, source_hash
+from common import (ROOT, BUILD, environment, firmware, qemu_machine, sha256,
+                    source_hash, without_acpi_diagnostics)
 from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json, load_json
 from run_system import check_esp, network_arguments
 from network_service_peer import Peer, validate_transcript, REQUESTS, RESPONSES, MAX_FRAMES
 
 FEATURE = "native-net-service"
-FEATURES = {"normal": FEATURE, "client-exit": "test-net-service-client-exit"}
+FEATURES = {"normal": FEATURE, "client-exit": "test-net-service-client-exit", "revoke": "test-net-service-revoke"}
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
-OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536)
+OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536, 544, 552)
 ROLES = ("SERVICE", "APP_A", "APP_B")
+REVOKE_ROLES = ROLES + ("POLICY",)
 REQUIRED = BOOT + ("NETSVC:MANIFEST:PASS", "NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS")
 FORBIDDEN = ("FAIL", "PANIC")
 
@@ -111,6 +113,7 @@ def sequence(stdout, case="normal"):
         raise ValueError("Unknown native service case")
     if not isinstance(stdout, str) or len(stdout) > 128 * 1024 or any(s in stdout for s in FORBIDDEN):
         raise ValueError("Failed/oversized actual native serial")
+    stdout = without_acpi_diagnostics(stdout)
     lines = stdout.splitlines()
     if any(lines.count(marker) != 1 for marker in REQUIRED):
         raise ValueError("Missing/duplicate required native marker")
@@ -123,8 +126,10 @@ def sequence(stdout, case="normal"):
         raise ValueError("Native manifest order differs")
     if lines[-3:] != ["NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS"]:
         raise ValueError("Native clean ending missing")
-    found, network = {r: {} for r in ROLES}, {}
-    numeric = re.compile(r"NETSVC:(SERVICE|APP_A|APP_B):([0-9]+):([0-9]{20})")
+    revoke = case == "revoke"
+    found, network = {r: {} for r in (REVOKE_ROLES if revoke else ROLES)}, {}
+    numeric = re.compile(r"NETSVC:(SERVICE|APP_A|APP_B|POLICY):([0-9]+):([0-9]{20})")
+    revoke_ticks = None
     net_numeric = re.compile(r"SYSTEM:(NET_[A-Z_]+):([0-9]{20})")
     entropy, exit_ticks = None, {}
     for line in lines[start + len(BOOT) + 1:-3]:
@@ -134,6 +139,12 @@ def sequence(stdout, case="normal"):
             if name in exit_ticks:
                 raise ValueError("Duplicate actual process exit tick")
             exit_ticks[name] = integer(int(value), 1, 6000)
+            continue
+        revoke_match = re.fullmatch(r"NETSVC:REVOKE_TICKS:([0-9]{20})", line) if revoke else None
+        if revoke_match:
+            if revoke_ticks is not None or exit_ticks:
+                raise ValueError("Duplicate or late revocation request")
+            revoke_ticks = integer(int(revoke_match.group(1)), 1, 6000)
             continue
         entropy_match = re.fullmatch(r"NETSVC:ENTROPY_BYTES:([0-9]{20})", line)
         if entropy_match:
@@ -145,7 +156,7 @@ def sequence(stdout, case="normal"):
         if match:
             role, offset, value = match.groups()
             offset, value = int(offset), integer(int(value))
-            if offset not in OFFSETS or offset in found[role]:
+            if role not in found or offset not in OFFSETS or offset in found[role]:
                 raise ValueError("Unknown/duplicate native process observation")
             found[role][offset] = value
             continue
@@ -159,6 +170,8 @@ def sequence(stdout, case="normal"):
         raise ValueError("Unknown/reordered native evidence: " + line)
     if set(exit_ticks) != {"APP_A", "APP_B"} or case == "client-exit" and exit_ticks["APP_B"] <= exit_ticks["APP_A"]:
         raise ValueError("Missing actual exit ticks or peer did not survive first app")
+    if revoke and (revoke_ticks is None or revoke_ticks >= exit_ticks["APP_A"]):
+        raise ValueError("Revocation was not requested while app A was live")
     if entropy != 8:
         raise ValueError("Actual service entropy acquisition missing")
     if any(set(values) != set(OFFSETS) for values in found.values()):
@@ -170,26 +183,44 @@ def sequence(stdout, case="normal"):
     normal = case == "normal"
     owners = 2 if normal else 1
     fixed = {448: owners, 456: owners, 464: 10 if normal else 6,
-             472: 3 * sum(map(len, REQUESTS)) if normal else 3 * len(REQUESTS[1]),
+             472: 3 * sum(map(len, REQUESTS)) if normal else 3 * len(REQUESTS[1]) + revoke * len(REQUESTS[0]),
              480: 2 * sum(map(len, RESPONSES)) if normal else 2 * len(RESPONSES[1]),
-             488: 4 if normal else 2, 496: 3, 504: 0, 536: 0 if normal else 1}
+             488: 4 if normal else 2 + revoke, 496: 3, 504: 0, 536: 1 if case == "client-exit" else 0,
+             544: int(revoke)}
+    if not revoke:
+        fixed[552] = 0
     if (any(service[k] != v for k, v in fixed.items()) or service[408] < 1
-            or service[432] < (40 if normal else 20) or service[440] < (22 if normal else 13)):
+            # Revoke: app B's client-exit bound minus app A's 2, plus app A's 8.
+            or service[432] < (40 if normal else 20) or service[440] < (22 if normal else 19 if revoke else 13)):
         raise ValueError("Native service reuse/cleanup/authority evidence differs")
-    if service[512] < 2 * owners or service[520] < owners:
-        raise ValueError("Native malformed UDP/backpressure proof missing")
+    if service[512] < 4 * owners or service[520] < owners:
+        raise ValueError("Native fragment/malformed UDP/backpressure proof missing")
     for role in ROLES[1:]:
         app = found[role]
-        if not normal and role == "APP_A":
+        if revoke and role == "APP_A":
+            # Helper-route and out-of-grant opens denied, one live request,
+            # prompt end after revocation, then five denied uses (offset 432).
+            exact = {offset: 0 for offset in OFFSETS if offset not in (400, 448, 504, 528, 552)}
+            exact.update({424: 2, 432: 5, 440: 1, 480: 1, 544: 2})
+            if any(app[k] != v for k, v in exact.items()) or app[448] < 1 or not 0 <= app[504] < 500:
+                raise ValueError("Revoked app did not see a prompt reset and denied reuse")
+        elif not normal and role == "APP_A":
             exact = {offset: 0 for offset in OFFSETS if offset not in (400, 528)}
             exact.update({424: 1, 440: 1, 480: 1, 536: 1})
             if any(app[k] != v for k, v in exact.items()):
                 raise ValueError("Disconnected app case did not execute exactly its bounded setup")
         else:
             exact = {408: 2, 416: 1, 424: 1, 432: 9, 440: 1, 456: len(RESPONSES[0]),
-                     464: 2, 472: 4, 480: 1, 488: 1, 496: 1, 504: 1, 512: 1, 520: 0, 536: 0}
+                     464: 2, 472: 4, 480: 1, 488: 1, 496: 1, 504: 1, 512: 1, 520: 2, 536: 0, 544: 0, 552: 0}
             if any(app[k] != v for k, v in exact.items()) or app[448] < 3:
                 raise ValueError("Native app success/refusal/reopen evidence differs: " + role)
+    if revoke:
+        policy = found["POLICY"]
+        if any(policy[k] != (1 if k in (400, 528, 544) else 0) for k in OFFSETS if k != 552):
+            raise ValueError("Policy authority did more than one authenticated revocation")
+        # One boot-monotonic clock: request <= policy send <= service revoke <= app A sees Closed.
+        if not revoke_ticks <= policy[552] <= service[552] <= found["APP_A"][552]:
+            raise ValueError("Revocation evidence is not causally ordered")
     expected_net = {"NET_TX_SUBMITTED", "NET_TX_COMPLETED", "NET_RX_COMPLETED", "NET_RX_DELIVERED",
                     "NET_DENIED", "NET_TX_TIMEOUTS", "NET_RESETS", "NET_RESET_ACKS"}
     if set(network) != expected_net:
@@ -198,12 +229,12 @@ def sequence(stdout, case="normal"):
             or service[416] != network["NET_TX_COMPLETED"]
             or service[424] != network["NET_RX_DELIVERED"]
             or network["NET_RX_COMPLETED"] != network["NET_RX_DELIVERED"]
-            or network["NET_DENIED"] != 2 or network["NET_TX_TIMEOUTS"] != 0
+            or network["NET_DENIED"] != 2 + revoke or network["NET_TX_TIMEOUTS"] != 0
             or network["NET_RESETS"] != 1 or network["NET_RESET_ACKS"] != 1):
         raise ValueError("Native NIC completion/denial/reset evidence differs")
     integer(service[416], 1, MAX_FRAMES)
     integer(service[424], 1, MAX_FRAMES)
-    return {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()}, "network": network, "entropy_bytes": entropy, "exit_ticks": exit_ticks}
+    return {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()}, "network": network, "entropy_bytes": entropy, "exit_ticks": exit_ticks, "revoke_ticks": revoke_ticks}
 
 
 def validate_build(frozen, case="normal"):
@@ -289,7 +320,7 @@ def run_network_service(*, case="normal", timeout=90):
     if (Path(qemu).parent / "share").is_dir():
         command += ["-L", str(Path(qemu).parent / "share")]
     report = dict(schema_version=1, passed=False, case=case, kernel_feature=FEATURES[case],
-                  scope="three actual isolated ring-3 processes; bounded IPC TCP/UDP; synthetic localhost Ethernet; no TLS or physical hardware claim",
+                  scope=("four" if case == "revoke" else "three") + " actual isolated ring-3 processes; bounded IPC TCP/UDP; synthetic localhost Ethernet; no TLS or physical hardware claim",
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, source_sha256=frozen, manifest=manifest,
                   run_directory=str(directory), timeout_s=timeout, started_utc=datetime.now(timezone.utc).isoformat(),

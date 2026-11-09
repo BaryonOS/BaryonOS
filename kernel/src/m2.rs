@@ -1,11 +1,16 @@
 //! M2 bootstrap owns all state; single CPU, IF clear, no allocator/scheduler locks.
 //! Copies boot input before any frame reuse. The old loader allocations are retained.
+mod acpi;
 mod arch;
+#[cfg(feature = "native-smp")]
+mod lock;
 #[cfg(feature = "milestone-m3")]
 mod m3;
 pub(crate) mod paging;
 #[cfg(any(feature = "native-rtc", feature = "native-system-clock"))]
 mod rtc;
+#[cfg(feature = "native-smp")]
+mod smp;
 use crate::serial;
 use boot_protocol::{BootInfo, MemoryMap, MAP_LIMIT};
 use core::{arch::asm, mem::MaybeUninit, ptr};
@@ -103,11 +108,18 @@ extern "C" fn run() -> ! {
     serial::write(b"KS-01:PASS\n");
     check_frames(frames);
     serial::write(b"KS-02:PASS\n");
+    // First-fit before any table allocation: the lowest free frame is the SIPI page.
+    #[cfg(feature = "native-smp")]
+    let trampoline = smp::reserve_trampoline(frames);
     let mut paging = paging::Paging::new(frames);
     let text_end = ptr::addr_of!(__text_end) as u64;
     let rodata_end = ptr::addr_of!(__rodata_end) as u64;
     let kernel_end = ptr::addr_of!(__kernel_end) as u64;
     for page in (text_start()..kernel_end).step_by(PAGE as usize) {
+        #[cfg(feature = "native-smp")]
+        if smp::is_guard(page) {
+            continue;
+        }
         if !arch::is_guard(page) {
             paging.map(frames, page, page, page >= rodata_end, page < text_end);
         }
@@ -127,9 +139,14 @@ extern "C" fn run() -> ! {
     paging.map(frames, paging::SCRATCH, nx_probe(), true, false);
     #[cfg(feature = "framebuffer")]
     crate::framebuffer::map(&mut paging, frames, &map);
+    // Needs the firmware identity map: may zero a new PT and writes the SIPI page.
+    #[cfg(feature = "native-smp")]
+    let smp_prepared = smp::prepare(frames, &mut paging, trampoline);
+    paging.prepare_firmware_scratch(frames);
     paging.map_tables(frames);
     arch::protection();
     arch::activate(paging.root);
+    let _discovery = acpi::discover(info, map_bytes, &mut paging);
     paging.audit(frames);
     assert_eq!(paging.leaf(text_start()) & (2 | (1 << 63)), 0);
     assert_eq!(paging.leaf(nx_probe()) & (2 | (1 << 63)), 2 | (1 << 63));
@@ -140,7 +157,15 @@ extern "C" fn run() -> ! {
     for guard in arch::guard_pages() {
         assert_eq!(paging.leaf(guard), 0);
     }
+    #[cfg(feature = "native-smp")]
+    for guard in smp::guard_pages() {
+        assert_eq!(paging.leaf(guard), 0);
+    }
     serial::write(b"KS-03:PASS\n");
+    #[cfg(feature = "native-smp")]
+    smp::start(smp_prepared, &_discovery.madt, frames, &mut paging);
+    #[cfg(feature = "native-smp")]
+    lock::selftest();
     #[cfg(feature = "native-rtc")]
     rtc::run();
     if cfg!(feature = "test-m2-ro") {
