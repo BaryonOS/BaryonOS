@@ -1,5 +1,8 @@
 # Driver Core en selectie
 
+Het hardware-einddoel en de keuze van drivers per apparaatfamilie staan in
+[HARDWARE-TARGETS](HARDWARE-TARGETS.md).
+
 Status: generieke segment-0-PCI-discovery, registratie en factorygekoppelde
 initialisatie zijn geïmplementeerd voor VirtIO block, netwerk en RNG. Alle drie
 selecteren een functie via `pci-core` en hun eigen registry, met config-space

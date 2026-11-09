@@ -9,7 +9,7 @@ Revision 4, 28 October 2026. This explicit project decision supersedes both the 
 
 ## 1. Internet and data location
 
-Nieuw OS must support internet access. Network location or ownership does not create automatic trust: authentication, authorization and isolation also apply at home (Rose et al., 2020). Internet access does not authorize an app or service to read documents, NAS data or keys.
+Baryon OS must support internet access. Network location or ownership does not create automatic trust: authentication, authorization and isolation also apply at home (Rose et al., 2020). Internet access does not authorize an app or service to read documents, NAS data or keys.
 
 Personal data remains local or may optionally be sent, **encrypted client-side/end-to-end**, to:
 
@@ -17,7 +17,7 @@ Personal data remains local or may optionally be sent, **encrypted client-side/e
 - storage space on an explicitly paired NAS belonging to friends or family;
 - an explicitly selected external storage provider that receives only opaque ciphertext objects.
 
-A NAS may be on the same LAN or in someone else's home. LAN is the default route for personal NAS storage. Internet access requires separate permission for the paired NAS identity and an actually authenticated transport. An external provider is linked separately and may require its own account, but Nieuw OS treats that provider as untrusted storage and gives it no content key. No implicit expansion of rights when the network changes, mandatory vendor cloud, provider or administrator key escrow, silent relay/fallback, or external OS telemetry is permitted.
+A NAS may be on the same LAN or in someone else's home. LAN is the default route for personal NAS storage. Internet access requires separate permission for the paired NAS identity and an actually authenticated transport. An external provider is linked separately and may require its own account, but Baryon OS treats that provider as untrusted storage and gives it no content key. No implicit expansion of rights when the network changes, mandatory vendor cloud, provider or administrator key escrow, silent relay/fallback, or external OS telemetry is permitted.
 
 Core local tasks continue to work without a NAS or internet. An unreachable or revoked storage location is visibly paused; files are not forwarded to another host. Local copies remain the user's property. NAS inference is not permitted as an alternative to local system AI.
 
@@ -37,7 +37,7 @@ The same OS product is to have a client role and a NAS role. The intended intera
 | NAS administrator | Invite, set quotas, revoke access, delete guest copies and staging stored on the administrator's NAS without the guest's permission | Guest content, document names, decryption keys or key escrow |
 | Sync/transport service | Transport permitted encrypted objects to the paired identity | Decrypt arbitrary documents or select a different provider |
 | OS/model file vendor | Supply selected update/model files through a separate path | Personal plaintext storage, mandatory OS account linking, recovery keys or telemetry |
-| Explicitly selected external storage provider | Store/transport opaque encrypted objects within the assigned provider namespace | Document plaintext, sensitive manifest content, Nieuw OS content keys, local search index, AI context or rights to other providers/apps |
+| Explicitly selected external storage provider | Store/transport opaque encrypted objects within the assigned provider namespace | Document plaintext, sensitive manifest content, Baryon OS content keys, local search index, AI context or rights to other providers/apps |
 
 <a id="21-koppeling-en-netwerk"></a>
 
@@ -90,7 +90,7 @@ the provider is not part of the Security Floor and receives no content key.
 - Provider credentials and content keys remain separate. Compromise of the provider account alone must not yield plaintext.
 - The provider adapter receives only the intended ciphertext namespace and network destination, not automatic access to local documents, search indexes or AI context.
 - A provider may delete, block or roll back ciphertext. Encryption is therefore no backup or availability guarantee; independent recovery copies and rollback detection remain necessary.
-- The user may select multiple storage locations. Nieuw OS never silently switches to another provider when the selected storage fails.
+- The user may select multiple storage locations. Baryon OS never silently switches to another provider when the selected storage fails.
 - Claims such as “Microsoft/Google can absolutely never crack this” are not permitted. The testable claim is that the provider does not possess the decryption key and that checked ciphertext without such a key does not yield accepted plaintext under the documented threat model.
 - Account, IP, timing, volume and other necessary provider metadata may remain visible; client-side encryption is not an anonymity layer.
 
@@ -178,7 +178,7 @@ Existing LP identifiers are retained; LP-03 has been explicitly revised for peer
 | LP-23 | Internet enabled for browser, not for AI or NAS | Only explicit app destination allowed; no permission inheritance |
 | LP-24 | Client and NAS roles on the same OS | Authenticated pairing/receiving/offering with understandable error and recovery paths |
 | LP-25 | Crash during revoke/purge or actual disk error | Old authority does not revive; no unjustified durability or deletion claim |
-| LP-26 | Only provider credentials stolen | No document plaintext, sensitive manifest content or Nieuw OS content key available |
+| LP-26 | Only provider credentials stolen | No document plaintext, sensitive manifest content or Baryon OS content key available |
 | LP-27 | Provider object/tag/header/chunk/revision tampered with | Authentication/rollback error according to the selected threat model; no partial plaintext |
 | LP-28 | External provider offline/deletes data | Local operation and explicit recovery status; no silent provider fallback or false backup claim |
 | LP-29 | Privacy explanations disabled globally/per app | No educational popup; capability set remains identical in bytes/semantics and new access remains separate |
