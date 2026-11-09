@@ -77,7 +77,7 @@ slaagden maar Clippy weigerde de niet-uitgevoerde inner-test. Dat is
 gecorrigeerd en bovenstaande laatste run voerde alle vijf werkelijk uit.
 Log van die mislukking blijft `veld-switcher-targeted-host-attempt2.log`.
 
-## Native deelacceptatie: geslaagd op beide schalen
+## Native deelacceptatie: historische broncommit, beide schalen geslaagd
 
 Uitgevoerd op dezelfde bevroren bron
 `537fee48c1c31155a51a997cd7a2236b159e9ac7`:
@@ -97,7 +97,7 @@ De deelgate typt echte draft-/rekeninhoud, bewaart de modellen en controleert
 de gehele wisselaar tegen een host-shelloracle dat echte appcaptures als
 miniatuurbron gebruikt. Annuleren/herstellen vergelijkt het volledige scherm
 met de actuele native basis, geen lege appfixture. De inputledger controleert
-preciese KEYS/INPUT_ACKS-veranderingen, ook na een volgende echte edit.
+precieze KEYS/INPUT_ACKS-veranderingen, ook na een volgende echte edit.
 Dit is uitgevoerd VM-bewijs, niet alleen het acceptatiecriterium.
 
 | Schaal | Build-exit / duur | Runner-exit / duur | Ruwe QEMU-exit | Fasen |
@@ -108,9 +108,13 @@ Dit is uitgevoerd VM-bewijs, niet alleen het acceptatiecriterium.
 Beide rapporten hebben `passed=true`, `switcher_gate=true` en bewust
 `native_gate=false`. Bronfingerprint:
 `cc728992c0058b6391f986cff06056be91cfe23f974d5c753595cd8a59f9fae9`.
-Product-Rust blijft ongewijzigd sinds `ec231857`; vervolgfixes betroffen
-uitsluitend runner/fixture. De laatste fase bewaart de echte vervolg-edit
-vóór normale cleanup. Een niet-nul QEMU-exit anders dan de voorgeschreven
+The native runs above were executed at `537fee48c1c31155a51a997cd7a2236b159e9ac7`.
+Later commit `ac14f50` changed product Rust in `main.rs`; the current PR
+also changes product Rust and the native runner after that evidence commit.
+These reports establish only the historical source-bound partial gate, not
+a native pass on the current PR head. Host and CI checks cannot replace the
+native two-scale switcher test. New native evidence remains outstanding.
+The historical final phase saved the actual follow-up edit before cleanup. Een niet-nul QEMU-exit anders dan de voorgeschreven
 33 zou geen geslaagde deelgate zijn.
 
 Compacte rapporten: `native-scale1.json` en `native-scale2.json`, met

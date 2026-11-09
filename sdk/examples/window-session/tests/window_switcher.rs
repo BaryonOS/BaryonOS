@@ -1,6 +1,9 @@
 //! Shell input and whole-frame damage contracts; these are host tests.
 use nieuw_os_graphics::Rect;
-use nieuw_os_window_session::scene::{Damage, Scene, MAX_PIXELS};
+use nieuw_os_window_session::{
+    scene::{Damage, Scene, MAX_PIXELS},
+    shell::Page,
+};
 use ui_core::{KeyAction, KeyboardEvent, KeyboardModifiers, PhysicalKey, Set1Keyboard};
 
 const DISPLAYS: [(u32, u32, u32); 5] = [
@@ -361,4 +364,54 @@ fn both_alt_keys_shift_navigation_and_dock_hover_cancel_are_not_sticky() {
     scene.cancel_palette_input(&mut damage);
     assert_eq!(scene.hovered_task(), Some(0));
     repaint(&scene, &mut damage, &mut frame, &backing);
+}
+
+#[test]
+fn switcher_never_opens_on_blocking_shell_pages() {
+    for page in [Page::Lock, Page::Auth, Page::Settings] {
+        let mut scene = Scene::new(1280, 720, 1, [1, 2]).unwrap();
+        let mut damage = Damage::new(1280, 720).unwrap();
+        scene.shell.open(page);
+        assert!(scene.shell.blocks_apps());
+        assert!(!scene
+            .switcher_key(key(PhysicalKey::Tab, KeyAction::Press, true), &mut damage)
+            .unwrap());
+        assert!(!scene.switcher_is_open());
+        assert_eq!(scene.focused, 0);
+        assert_eq!(scene.shell.page(), page);
+    }
+}
+
+#[test]
+fn committing_switcher_reveals_a_minimized_window_for_both_input_routes() {
+    for keyboard_commit in [true, false] {
+        let mut scene = Scene::new(1280, 720, 1, [1, 2]).unwrap();
+        let mut damage = Damage::new(1280, 720).unwrap();
+        scene.shell.hidden[1] = true;
+        assert!(scene
+            .switcher_key(key(PhysicalKey::Tab, KeyAction::Press, true), &mut damage)
+            .unwrap());
+        assert_eq!(scene.switcher_selected(), Some(1));
+        assert!(scene.shell.hidden[1]);
+        if keyboard_commit {
+            assert!(scene
+                .switcher_key(key(PhysicalKey::Enter, KeyAction::Press, true), &mut damage)
+                .unwrap());
+        } else {
+            let card = scene.switcher_card(1);
+            assert_eq!(
+                scene.mouse_with_damage(
+                    (card.x + 5) as u32,
+                    (card.y + 5) as u32,
+                    true,
+                    true,
+                    &mut damage
+                ),
+                Ok(None)
+            );
+        }
+        assert_eq!(scene.focused, 1);
+        assert!(!scene.shell.hidden[1]);
+        assert!(!scene.switcher_is_open());
+    }
 }

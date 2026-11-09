@@ -41,7 +41,8 @@ class WindowRunnerTests(unittest.TestCase):
                         window.switcher_key_edge(control, move, lambda: dict(state), "alt", True, scale)
                 else:
                     window.switcher_key_edge(control, move, lambda: dict(state), "alt", True, scale)
-                self.assertEqual(moves, [(width-21, 50*scale), (width-20, 50*scale)])
+                self.assertEqual(moves, [(width-22, 50*scale), (width-21, 50*scale),
+                                         (width-20, 50*scale)])
                 control.command.assert_called_once()
 
     def test_switcher_profiles_compare_all_overlay_pixels_without_masks(self):

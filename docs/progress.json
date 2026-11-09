@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-09",
-    "source_commit": "f704f078213170e72292a5a491f0ee83bd588955",
+    "source_commit": "06f6736d2be67c664ad24f4ed7799860a36f791a",
     "assessment_basis": "working_tree",
-    "branch": "docs/restructure-project-docs-20261109",
-    "task": "Restructure README, status layers, contribution guidance, security policy, and licensing documentation",
+    "branch": "coderabbit/issue-283-dependabot-coverage",
+    "task": "Refresh PR #284: complete independent Cargo workspace monitoring without duplicate SDK coverage",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The change separates the project introduction, current status, criteria register, historical checkpoints, contribution policy, security reporting, and licensing scope. The official MPL-2.0 text and an explicit project-owned software file register are added. No new OS functionality, acceptance points, criteria, or weights are introduced."
+    "summary": "41/100 remains 41/100. Dependency monitoring adds no OS acceptance criterion. Preflight, build, smoke and 11 configuration tests passed locally."
   },
   "tracks": [
     {

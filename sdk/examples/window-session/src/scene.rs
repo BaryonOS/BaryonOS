@@ -241,6 +241,7 @@ impl Scene {
         if let Some(selected) = self.switcher {
             if commit {
                 self.select(selected)?;
+                self.shell.hidden[selected] = false;
             }
             self.switcher = None;
             damage.mark(self.switcher_bounds());
@@ -292,6 +293,7 @@ impl Scene {
             || !key.modifiers.alt()
             || key.modifiers.control()
             || key.modifiers.super_key()
+            || self.shell.blocks_apps()
         {
             return Ok(false);
         }
@@ -730,6 +732,7 @@ impl Scene {
                     .find(|index| self.switcher_card(*index).contains(x as i32, y as i32));
                 if let Some(index) = hit {
                     self.select(index)?;
+                    self.shell.hidden[index] = false;
                     self.switcher = None;
                 } else if !self.switcher_bounds().contains(x as i32, y as i32) {
                     self.switcher = None;

@@ -42,6 +42,7 @@ SWITCHER_MAX_PIXELS = 1_400_000
 
 
 def switcher_geometry(scale: int) -> tuple:
+    """Return supported viewport and app rectangles for a scale."""
     if scale == 1:
         return (1280, 720, BODY, CALCULATOR_BODY, (330, 214, 620, 292))
     if scale == 2:
@@ -50,13 +51,16 @@ def switcher_geometry(scale: int) -> tuple:
 
 
 def switcher_matches(raw: bytes, expected: bytes, scale: int) -> bool:
+    """Compare full native switcher overlay pixels with the host oracle."""
     width, height, _, _, bounds = switcher_geometry(scale)
     return (ppm(raw)[:2] == (width, height) and ppm(expected)[:2] == bounds[2:]
             and crop(raw, bounds) == ppm(expected)[2])
 
 
 def switcher_key_edge(control, move, current, physical: str, down: bool, scale: int):
+    """Acknowledge prior input before checking a key and two pointer events."""
     width, _, _, _, _ = switcher_geometry(scale)
+    move(width - 22, 50 * scale)
     before = current()["INPUT"]
     control.command("input-send-event", {"events": [
         {"type": "key", "data": {"down": down, "key": {"type": "qcode", "data": physical}}}]})
@@ -65,12 +69,13 @@ def switcher_key_edge(control, move, current, physical: str, down: bool, scale: 
     move(width - 21, 50 * scale)
     move(width - 20, 50 * scale)
     after = current()
-    if (after["INPUT"] < before + 3
+    if (after["INPUT"] != before + 3
             or (after["POINTER_X"], after["POINTER_Y"]) != (width - 20, 50 * scale)):
         raise ValueError("Missing ordered switcher input barrier")
 
 
 def generate_switcher_fixture(directory: Path, image: bytes, scale: int) -> dict:
+    """Generate a host oracle from complete native application backing."""
     width, height, body, calc, _ = switcher_geometry(scale)
     if ppm(image)[:2] != (width, height):
         raise ValueError("Wrong native backing capture dimensions")
@@ -592,23 +597,28 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                 control.command("quit")
             elif switcher:
                 def complete(raw, state):
+                    """Require synchronized compositor and app generations."""
                     return (all(state.values()) and all(
                         comp(raw).get(role) == state[role][-1]["GEN"]
                         for role in ("MATERIAL", "CALCULATOR")))
 
                 def progress(raw):
+                    """Read app key and input acknowledgement counters."""
                     return {role: {field: numbers(raw, f"WINDOW:{role}:{field}")[-1]
                                    for field in ("KEYS", "INPUT_ACKS")}
                             for role in ("MATERIAL", "CALCULATOR")}
 
                 def edge(physical, down):
+                    """Inject an ordered physical key edge."""
                     switcher_key_edge(control, move, lambda: comp(serial(directory / "serial.txt")),
                                       physical, down, scale)
 
                 def shell(physical):
+                    """Inject the press and release of a shell-owned key."""
                     edge(physical, True); edge(physical, False)
 
                 def focus_cycle():
+                    """Cycle focused apps and observe their input cancellations."""
                     raw = serial(directory / "serial.txt")
                     role = "CALCULATOR" if comp(raw)["FOCUSED"] else "MATERIAL"
                     before = progress(raw)[role]
@@ -619,6 +629,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                             timeout_s=90)
 
                 def open_switcher():
+                    """Open Alt-Tab and await stable shell input ownership."""
                     raw = serial(directory / "serial.txt")
                     role = "CALCULATOR" if comp(raw)["FOCUSED"] else "MATERIAL"
                     before = progress(raw)[role]
@@ -635,6 +646,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                     return progress(serial(directory / "serial.txt"))
 
                 def same_models(state, baseline):
+                    """Reject modifications to either app model during switching."""
                     fields = {"MATERIAL": ("PID", "DRAFT_BYTES", "DRAFT_SUM", "DIRTY", "SAVE_ACKS"),
                               "CALCULATOR": ("PID", "EXPRESSION_BYTES", "EXPRESSION_SUM",
                                              "EVALUATIONS", "FAILURES", "CARET", "CURRENT",
@@ -660,10 +672,12 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                                 and s["CALCULATOR"][-1]["ANSWER_LOW"] == 5_000_000_000)
                 open_switcher()
                 shell("esc"); edge("alt", False)
-                wait("switcher-ready", lambda raw, s: complete(raw, s) and same_models(s, baseline))
+                wait("switcher-ready", lambda raw, s: complete(raw, s) and same_models(s, baseline),
+                     image_check=lambda image: image == captured["switcher-work"])
                 fixture = generate_switcher_fixture(directory, captured["switcher-ready"], scale)
 
                 def switcher_wait(name, selected, focused, ledger):
+                    """Check model, focus, input counters and full overlay pixels."""
                     return wait(name, lambda raw, s: complete(raw, s)
                                 and same_models(s, baseline) and comp(raw).get("FOCUSED") == focused
                                 and progress(raw) == ledger,
@@ -717,6 +731,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                      and s["MATERIAL"][-1]["DIRTY"] == 0
                      and s["MATERIAL"][-1]["SAVE_ACKS"] == baseline["MATERIAL"][-1]["SAVE_ACKS"] + 1
                      and s["MATERIAL"][-1]["DRAFT_SUM"] == volume_disk.fnv(TEXT + b"z"))
+                key("f10")
             elif calculator_recall:
                 move(1260, 50)
                 key("f6")
