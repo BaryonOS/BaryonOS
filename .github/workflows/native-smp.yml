@@ -117,3 +117,44 @@ jobs:
             build/k06-*/run/smp-*/result.json
             build/k06-*/run/smp-*/serial.txt
             build/k06-*/run/smp-*/stderr.txt
+
+  experimental-m3-m4-smp:
+    name: experimental-m3-m4-smp
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/legacy-smp-ci
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/legacy-smp-ci
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/legacy-smp-ci
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Pinned Rust
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: All 15 legacy M3/M4 SMP native and negative profiles
+        run: python3 -B -u tools/test_smp.py
+      - name: Preserve tracked source integrity
+        run: git diff --exit-code
+      - name: Preserve bounded legacy SMP evidence
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          name: experimental-smp-evidence
+          path: |
+            build/legacy-smp-ci/manifest.json
+            build/legacy-smp-ci/run/smp-*/result.json
+            build/legacy-smp-ci/run/smp-*/serial.txt
+            build/legacy-smp-ci/run/smp-*/stderr.txt
+            docs/verification/sm-smp/smp-rendezvous-*.json

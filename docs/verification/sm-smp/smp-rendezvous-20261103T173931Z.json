@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "task": "SYSTEM-MATURITY-SMP AP bring-up, rendezvous, and M3 scheduler checkpoint",
+  "source_fingerprint_version": 3,
+  "source_sha256": "a380b57bd2b79e42463d3d17790d9efe59840a40ec57adf3d80e76a60a1cd005",
+  "source_commit": "55f78fa04a14dccf72c00dd9d0f8955da03fee41",
+  "branch": "simonvanieperen-studious-spoon",
+  "date_europe_amsterdam": "2026-11-03",
+  "invocation": {
+    "command": ["python3", "-B", "tools/test_smp.py", "--help"],
+    "environment": {
+      "PATH": "default shell PATH; cargo was not resolvable"
+    }
+  },
+  "status": "failed",
+  "passed": false,
+  "host": {
+    "command": [
+      "/usr/bin/python3.14",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/tests",
+      "-p",
+      "test_smp.py"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+  },
+  "failed_stage": "single-m2",
+  "stages": [],
+  "acceptance_boundary": "AP startup, bounded rendezvous, and opt-in native M3 per-CPU process scheduling only; not full K06 IPC, revoke, exit, cross-CPU TLB, or race acceptance.",
+  "error": "FileNotFoundError: [Errno 2] No such file or directory: 'cargo'"
+}

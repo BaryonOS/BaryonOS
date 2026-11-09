@@ -97,13 +97,19 @@ pub struct NativeIdle;
 #[cfg(all(target_arch = "x86_64", target_os = "none"))]
 impl IdleIo for NativeIdle {
     fn ticks(&mut self) -> Result<u64, Error> {
-        nieuw_os_sdk_runtime::native::monotonic_ticks()
+        nieuw_os_sdk_runtime::clock::now_monotonic()
     }
     fn wait(&mut self, endpoint: ReceiveEndpoint, deadline: u64) -> Result<u16, Error> {
-        nieuw_os_sdk_runtime::native::ipc_wait(
+        let cancellation = nieuw_os_sdk_runtime::clock::TimerCancellation::new();
+        let timer = nieuw_os_sdk_runtime::clock::TimerRegistration::at(deadline, &cancellation);
+        match nieuw_os_sdk_runtime::clock::wait_until(
             &[nieuw_os_sdk_runtime::WaitCondition::receive(endpoint)],
-            deadline,
-        )
+            &timer,
+        )? {
+            nieuw_os_sdk_runtime::clock::WaitOutcome::Ready(mask) => Ok(mask),
+            nieuw_os_sdk_runtime::clock::WaitOutcome::TimedOut => Ok(0),
+            nieuw_os_sdk_runtime::clock::WaitOutcome::Cancelled => Err(Error::InvalidReturn),
+        }
     }
     fn yield_now(&mut self) -> Result<(), Error> {
         nieuw_os_sdk_runtime::native::yield_now()

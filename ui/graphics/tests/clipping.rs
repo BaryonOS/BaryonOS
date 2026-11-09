@@ -12,6 +12,7 @@ fn scene(c: &mut Canvas<'_>) {
     c.stroke_rounded_rect(Rect::new(2, 2, 52, 36), 10, 2, 0x91d4c2);
     c.ellipse(Rect::new(-5, 15, 24, 30), 0xe9b889);
     c.line(-15, 40, 61, 4, 2, 0x4b85bc);
+    c.translucent_rounded_rect(Rect::new(10, 20, 40, 30), 8, 0x0b1a24, 180);
     c.icon(Rect::new(32, 12, 24, 24), Icon::Material, 0xffffff, 1);
     c.text(
         2,
@@ -73,4 +74,41 @@ fn glyphs_and_vectors_have_real_intermediate_coverage() {
     c.icon(Rect::new(30, 28, 28, 28), Icon::Search, 0xffffff, 2);
     assert!(pixels.iter().any(|p| *p > 0 && *p < 0xffffff));
     assert!(pixels.iter().filter(|p| **p != 0).count() > 100);
+}
+
+#[test]
+fn translucent_surface_keeps_what_is_behind_it() {
+    let mut pixels = [0; 16 * 16];
+    let mut c = Canvas::new(Rect::new(0, 0, 16, 16), &mut pixels).unwrap();
+    c.clear(0xffffff);
+    c.translucent_rounded_rect(Rect::new(0, 0, 16, 16), 4, 0x000000, 128);
+    // Centre is half covered, the rounded corner stays untouched.
+    assert_eq!(pixels[8 * 16 + 8], 0x7f7f7f);
+    assert_eq!(pixels[0], 0xffffff);
+}
+
+#[test]
+fn wallpaper_handles_screen_heights_smaller_than_fade_divisors() {
+    let mut pixels = [0_u32; 8 * 41];
+    // Exercises the sky, atmospheric glow, and planet on undersized viewports.
+    for &(width, height) in &[
+        (1_u32, 1_u32),
+        (1, 2),
+        (1, 3),
+        (1, 6),
+        (1, 7),
+        (1, 39),
+        (8, 39),
+        (1, 40),
+        (1, 41),
+    ] {
+        let frame = Rect::new(0, 0, width, height);
+        let len = (width * height) as usize;
+        let mut canvas = Canvas::new(frame, &mut pixels[..len]).unwrap();
+        nieuw_os_graphics::theme::wallpaper(
+            &mut canvas,
+            frame,
+            nieuw_os_graphics::theme::MATERIAAL,
+        );
+    }
 }
