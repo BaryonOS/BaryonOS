@@ -1,10 +1,18 @@
 name: K05 process management acceptance
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened]
+    paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
+    paths-ignore: ['docs/**', '*.md']
 
 permissions:
   contents: read
@@ -16,35 +24,38 @@ concurrency:
 jobs:
   k05-native-supervisor:
     name: k05-native-supervisor
-    runs-on: self-hosted
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
       - name: Rust 1.90.0 and targets
         shell: bash
         run: |
           rustup toolchain install 1.90.0 --profile minimal
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
-      - name: Disposable QEMU and OVMF
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
       - name: Strict preflight
         run: python3 -B tools/preflight.py --strict
       - name: K05 native supervisor gate (6 QEMU runs, including Waiting kill/reuse)
         run: python3 -B -u tools/test_supervisor.py
-      - name: Upload K05 reports
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: k05-supervisor-reports
           path: |
             build/supervisor-gate.json
             build/run/supervisor-*/result.json
             build/run/supervisor-*/serial.txt
-          if-no-files-found: error
