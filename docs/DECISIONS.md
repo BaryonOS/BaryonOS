@@ -54,11 +54,12 @@ TLB-reuse; dit besluit en een rendezvousproef zijn daarvoor geen vervanging.
 **Bronnen en begrenzing:** de bestaande serialisatie- en mappingaannames staan
 in ADR-024 en
 [KERNEL-AND-SECURITY-CONTRACT](implementation/KERNEL-AND-SECURITY-CONTRACT.md).
-Voor GS-basissen, `SWAPGS`, interrupt/APIC en CR3/TLB-semantiek geldt de
-[Intel 64 and IA-32 Architectures Software Developer's Manual, volume 3](https://cdrdv2-public.intel.com/812391/325384-sdm-vol-3abcd.pdf)
-als primaire referentie. Dit is een Nieuw OS-ontwerpkeuze; geen Intel- of
-hardwarecertificering. Rollback: schakel uitsluitend het nieuwe SMP-M3-profiel
-uit; bestaande single-CPU-profielen blijven beschikbaar.
+Voor GS-basissen, `SWAPGS`, interrupt/APIC en CR3/TLB-semantiek geldt
+Intel Corporation, *[Intel 64 and IA-32 Architectures Software Developer's Manual, volume 3](https://cdrdv2-public.intel.com/812391/325384-sdm-vol-3abcd.pdf)*,
+Order No. 325384-082US, december 2023, als primaire referentie. Dit is een
+Nieuw OS-ontwerpkeuze; geen Intel- of hardwarecertificering. Rollback: schakel
+uitsluitend het nieuwe SMP-M3-profiel uit; bestaande single-CPU-profielen blijven
+beschikbaar.
 
 ## Onderzoeksbesluit J-20261102 — herkenbare basis, expliciete installatiegrens
 
