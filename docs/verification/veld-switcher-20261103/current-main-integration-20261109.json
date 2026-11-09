@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "scope": "PR #167 integrated with main at 316d4f10470efe16bfdf314304a410f8b1150833",
+  "native_report_source_commit": "09f982c348a9ba98baded4f3401defb2a38cfd0b",
+  "publication_source_commit": "b25a7d10b50240f00b44569ffafba65ae0a064d2",
+  "source_tree": "f1cb8de749cb58b7209b77f7c5271e52f0ca726f",
+  "source_sha256": "3e669760446ce83a47d45cf4e5e2d3584860731d9043c53e8a7bc17a6fe56dae",
+  "host_gates": {
+    "progress_check": "passed; 39/100",
+    "strict_preflight": "passed",
+    "window_session_runner_tests": "passed; 21 tests",
+    "window_session_full_host_tests": "passed",
+    "window_session_format_check": "passed",
+    "window_session_clippy_all_targets_deny_warnings": "passed",
+    "build": "passed",
+    "smoke": "passed"
+  },
+  "native_switcher": [
+    {
+      "scale": 1,
+      "kernel_feature": "native-window-session-probe",
+      "passed": true,
+      "switcher_gate": true,
+      "native_gate": false,
+      "phase_count": 18,
+      "raw_qemu_exit": 33,
+      "duration_s": 548.4762118450003,
+      "serial_sha256": "1eff8957f7357efc72021e25232b6d16c8958ae672256219fa2a35029a765acf",
+      "loader_sha256": "1e75ef04af4bb2b25e93e14ce6545a7c74efa01d14b533e6fa2d3013b3c8b0d9",
+      "kernel_sha256": "3c5da7f3c21dcea33dcada61dfa897ffa1653997e748362a103e2268f5c2dcef"
+    },
+    {
+      "scale": 2,
+      "kernel_feature": "native-window-session-hidpi-probe",
+      "passed": true,
+      "switcher_gate": true,
+      "native_gate": false,
+      "phase_count": 18,
+      "raw_qemu_exit": 33,
+      "duration_s": 922.4227597649997,
+      "serial_sha256": "d28ab87b5ae75e1b4956e6ff4ac8d322aac89f8b37ad862aa63675f01f74fc1a",
+      "loader_sha256": "c1f4bf15d2f4b93f73583fd93781602121141c4522198f4309a36447d30e8a72",
+      "kernel_sha256": "e6125c788546a6652319a923643c8213f7c98f58ad8149407eb97ba1d26906c0"
+    }
+  ],
+  "runtime": {
+    "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+    "bios_sha256": "e26615f9ad430328f49ca105e570b2dc4490a08a34ea73d27cae8b809a30ee06",
+    "vga_rom_sha256": "c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde",
+    "ovmf_code_sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "ovmf_vars_template_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "evidence_boundary": "The native results establish only the switcher subgate on QEMU. They do not establish the complete native session gate, physical-device usability, accessibility acceptance, or independent security acceptance. Current-head hosted CI and review remain required after publication."
+}
