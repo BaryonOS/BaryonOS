@@ -10,7 +10,7 @@
 
 **Next necessary step:** perform a reviewed three-way integration of the latest `main` **into this existing PR branch** in a real checkout. Preserve both MADT/K06 and the M3/M4 SMP authorization, lifecycle, memory-safety and evidence contracts. Run `python3 tools/progress.py --check`, `python3 tools/preflight.py --strict`, `python3 tools/build.py`, `python3 tools/run.py --smoke`, the affected Rust/host checks, and the complete native SMP/QEMU matrix using compressed logs. Address remaining CodeRabbit threads, update source-bound verification and progress, then squash-merge with an expected PR-head SHA. Do not force-merge, reset the branch or raise the score without accepted evidence.
 
-## NEXT AGENT HANDOFF — SYSTEM-MATURITY-SMP — 3 november 2026
+## Historical SMP checkpoint — 3 November 2026
 
 **Gepubliceerde codebasis:** branch `simonvanieperen-studious-spoon`, commit
 `a49cc651975cc848be89198b84bfa0ee1d621a45`, gepusht naar
