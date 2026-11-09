@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-09
+
+### Documentation and governance
+
+- The README is reduced to project introduction, architecture overview, status, quick start, and navigation; historical development updates are archived.
+- PROJECT-STATE and PROGRESS are separated into current status, criteria register, and historical snapshots.
+- CONTRIBUTING and SECURITY now define concrete contribution, merge, and reporting paths.
+- The official MPL-2.0 text, licensing scope, covered-file register, and third-party index are added.
+- Active core links point to `simonvanieperen/BaryonOS`.
+
 ## 2026-11-03
 
 Gebaseerd op commitbereik

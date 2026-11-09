@@ -1,100 +1,62 @@
-# Discussies, meldingen en bijdragen
+# Discussions, reports, and contributions
 
-Gebruik [Discussies](https://github.com/simonvanieperen/nieuw-os/discussions)
-voor vragen, voorstellen en ervaringen, en
-[Issues](https://github.com/simonvanieperen/nieuw-os/issues/new/choose) voor
-reproduceerbare defecten en afgebakend uitvoeringswerk. Zoek eerst of het
-onderwerp al bestaat en sluit daar waar mogelijk bij aan.
+Use [Discussions](https://github.com/simonvanieperen/BaryonOS/discussions) for questions, proposals, and experiences. Use [Issues](https://github.com/simonvanieperen/BaryonOS/issues/new/choose) for reproducible defects and bounded implementation work. Search for an existing topic before opening a new one.
 
-## Kies de passende plek
+## Choose the appropriate channel
 
-| Je wilt… | Plek | Wat helpt |
+| You want to… | Place | Helpful information |
 |---|---|---|
-| Een vraag stellen of hulp krijgen | [Vragen en hulp](https://github.com/simonvanieperen/nieuw-os/discussions/categories/vragen-en-hulp) | Doel, context en wat je al hebt geprobeerd; een bruikbaar antwoord kan als antwoord worden gemarkeerd. |
-| Een technische keuze afwegen | [Architectuur en ontwerp](https://github.com/simonvanieperen/nieuw-os/discussions/categories/architectuur-en-ontwerp) | Huidig contract, voorstel, alternatieven, interfaces en toetsbare gevolgen. |
-| Een gebruikstaak of toegankelijkheid verbeteren | [Product en gebruikservaring](https://github.com/simonvanieperen/nieuw-os/discussions/categories/product-en-gebruikservaring) | Gewenste handeling, ervaren knelpunt en herkenbare voorbeelden. |
-| Een experiment, demo of test delen | [Testresultaten en demos](https://github.com/simonvanieperen/nieuw-os/discussions/categories/testresultaten-en-demos) | Exacte bron, opstelling, waarneming, bewijs en resterende grenzen. |
-| Voorkeuren tussen concrete opties verzamelen | [Peilingen](https://github.com/simonvanieperen/nieuw-os/discussions/categories/peilingen) | Een duidelijke vraag en vergelijkbare opties; stemmen vervangen geen technisch besluit of acceptatiebewijs. |
-| Projectnieuws of een vastgesteld besluit delen | [Aankondigingen](https://github.com/simonvanieperen/nieuw-os/discussions/categories/aankondigingen) | Een maintainer plaatst het bericht met links naar de leidende bron. |
-| Een defect, CI-probleem of concrete taak melden | [Issueformulieren](https://github.com/simonvanieperen/nieuw-os/issues/new/choose) | Reproductie of afgebakend resultaat, bronversie en passende controle. |
+| Ask a question or get help | [Questions and help](https://github.com/simonvanieperen/BaryonOS/discussions/categories/vragen-en-hulp) | Goal, context, and what has already been tried |
+| Evaluate a technical choice | [Architecture and design](https://github.com/simonvanieperen/BaryonOS/discussions/categories/architectuur-en-ontwerp) | Current contract, proposal, alternatives, interfaces, and testable consequences |
+| Improve a user task or accessibility | [Product and user experience](https://github.com/simonvanieperen/BaryonOS/discussions/categories/product-en-gebruikservaring) | Intended task, observed friction, and recognizable examples |
+| Share an experiment, demo, or test | [Test results and demos](https://github.com/simonvanieperen/BaryonOS/discussions/categories/testresultaten-en-demos) | Exact source revision, setup, observation, evidence, and remaining boundaries |
+| Collect preferences between concrete options | [Polls](https://github.com/simonvanieperen/BaryonOS/discussions/categories/peilingen) | A clear question and comparable options; voting does not replace a technical decision or acceptance evidence |
+| Share project news or an accepted decision | [Announcements](https://github.com/simonvanieperen/BaryonOS/discussions/categories/aankondigingen) | Maintainer post with links to the authoritative source |
+| Report a defect, CI problem, or concrete task | [Issue forms](https://github.com/simonvanieperen/BaryonOS/issues/new/choose) | Reproduction or bounded result, source revision, and appropriate verification |
 
-Blijf bij het onderwerp, onderbouw technische uitspraken en maak onderscheid
-tussen voorstel, code, uitgevoerde test en aanname. Nederlands is de
-standaardtaal; technische identifiers blijven herkenbaar.
+Stay on topic, support technical statements, and distinguish proposals, code, executed tests, and assumptions. **English is the project language for active public documentation and community communication.** Technical identifiers remain unchanged.
 
-## Van gesprek naar uitvoering
+## From discussion to implementation
 
-1. Bespreek probleem, opties en grenzen in een bestaande of nieuwe discussie.
-2. Leg een aangenomen architectuur- of contractwijziging vast in
-   [DECISIONS.md](DECISIONS.md) en de betrokken specificatie. Een idee of
-   peiling is op zichzelf geen besluit.
-3. Maak of koppel één uitvoerbaar issue met resultaat, scope, afhankelijkheden,
-   acceptatiecommando's en relevante bestaande FR-/rubric-ID's. Discussies
-   vormen geen tweede backlog of roadmap.
-4. Werk op een kleine branch en open eerst een concept-PR volgens
-   [CONTRIBUTING.md](../CONTRIBUTING.md) en [AGENTS.md](../AGENTS.md).
-5. Koppel werkelijk uitgevoerd bewijs aan de geteste bron. Verwerk de uitkomst
-   in de bestaande status-/acceptatieketen; vermeld ook open en mislukte checks.
+1. Discuss the problem, options, and boundaries in an existing or new discussion.
+2. Record an accepted architecture or contract change in [DECISIONS.md](DECISIONS.md) and the relevant specification. A proposal or poll is not a decision by itself.
+3. Create or link one executable issue with result, scope, dependencies, acceptance commands, and relevant existing FR/rubric IDs. Discussions are not a second backlog or roadmap.
+4. Work on a small branch and open a draft pull request according to [CONTRIBUTING.md](../CONTRIBUTING.md) and [AGENTS.md](../AGENTS.md).
+5. Bind evidence to the exact tested source revision. Record failed and not-run checks as well as successful ones.
 
-Een hosttest, bare-metalbuild, native QEMU-proef, fysieke test en menselijke
-review bewijzen verschillende zaken. Een screenshot toont wat is gerenderd,
-maar bewijst geen opslagduurzaamheid of afgedwongen rechten. Deelproeven en
-demo's leveren alleen rubricpunten op als het volledige bestaande criterium
-met het vereiste bewijs is geaccepteerd.
+Host tests, bare-metal builds, native QEMU tests, physical-hardware tests, and human review prove different things. A screenshot shows rendered output but does not prove storage durability or enforced permissions. Partial tests and demos earn rubric points only when the complete existing criterion is accepted with the required evidence.
 
-## Leidende projectbronnen
+## Authoritative project sources
 
-| Onderwerp | Bron |
+| Topic | Source |
 |---|---|
-| Actuele stand en volgende stap | [PROJECT-STATE.md](PROJECT-STATE.md) |
-| Volledige releaseopdracht en acceptatie | [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md) |
-| Vaste ontwikkelcriteria en voortgang | [PROGRESS.md](PROGRESS.md) en [progress.json](progress.json) |
-| Architectuur en beveiligingsgrenzen | [KERNEL-AND-SECURITY-CONTRACT.md](implementation/KERNEL-AND-SECURITY-CONTRACT.md) en [DECISIONS.md](DECISIONS.md) |
-| Privacy, NAS, internet en lokale AI | [LOCAL-PRIVACY-CONTRACT.md](LOCAL-PRIVACY-CONTRACT.md) |
-| Productervaring en desktop | [DESIGN-AMBITION.md](DESIGN-AMBITION.md) en [DESKTOP-SHELL.md](implementation/DESKTOP-SHELL.md) |
-| Tests, builds en brongebonden bewijs | [TEST-STRATEGY.md](TEST-STRATEGY.md) en [DEVELOPMENT.md](DEVELOPMENT.md) |
-| Herkomst en licentiekeuzes | [LICENSE-PLAN.md](../LICENSE-PLAN.md) en [DEPENDENCIES.md](DEPENDENCIES.md) |
+| Current state and next step | [PROJECT-STATE.md](PROJECT-STATE.md) |
+| Complete release task and acceptance | [FULL-TEST-RELEASE.md](FULL-TEST-RELEASE.md) |
+| Fixed development criteria and progress | [PROGRESS.md](PROGRESS.md) and [progress.json](progress.json) |
+| Architecture and security boundaries | [KERNEL-AND-SECURITY-CONTRACT.md](implementation/KERNEL-AND-SECURITY-CONTRACT.md) and [DECISIONS.md](DECISIONS.md) |
+| Privacy, NAS, internet, and local AI | [LOCAL-PRIVACY-CONTRACT.md](LOCAL-PRIVACY-CONTRACT.md) |
+| Product experience and desktop | [DESIGN-AMBITION.md](DESIGN-AMBITION.md) and [DESKTOP-SHELL.md](implementation/DESKTOP-SHELL.md) |
+| Tests, builds, and source-bound evidence | [TEST-STRATEGY.md](TEST-STRATEGY.md) and [DEVELOPMENT.md](DEVELOPMENT.md) |
+| Provenance and licensing | [LICENSING.md](../LICENSING.md), [THIRD-PARTY.md](../THIRD-PARTY.md), and [DEPENDENCIES.md](DEPENDENCIES.md) |
 
-De repository blijft leidend. Discussies en de wiki verwijzen naar deze
-bronnen; zij vervangen geen versiegebonden contract of bewijsrapport.
+The repository remains authoritative. Discussions and the wiki should point to these sources rather than duplicate version-bound contracts or evidence reports.
 
-## Kwetsbaarheden en gevoelige gegevens
+## Vulnerabilities and sensitive data
 
-Volg [SECURITY.md](../SECURITY.md). Het daar beschreven meldproces en eventuele
-open gaten blijven bepalend; deze wegwijzer introduceert geen meldadres of
-responstermijn. Zet geen secrets, productiekeys, persoonsgegevens of
-exploiteerbare kwetsbaarheidsdetails in publieke issues, discussies of logs.
-Een algemeen architectuurgesprek over beveiliging hoort wel bij Discussies.
+Follow [SECURITY.md](../SECURITY.md). Do not put secrets, production keys, personal data, or exploitable vulnerability details in public issues, discussions, or logs. General architecture discussions about security are appropriate for Discussions.
 
-## Voor maintainers
+## Maintainer workflow
 
-Formulieren voegen nooit automatisch `pipeline:serial` of `pipeline:parallel`
-toe. Deze labels zijn invoer voor de bestaande
-[agentpipeline](../tools/agent_pipeline.py) en worden pas na beoordeling
-expliciet toegekend. Een bericht of formulier is geen automatische
-uitvoeringsopdracht. Een pipeline-issue heeft precies één van deze labels,
-één open rubriccriterium en bestaande workflowjobs. De issuebody bevat
-letterlijk deze regels, met de placeholders vervangen:
+Issue forms never add `pipeline:serial` or `pipeline:parallel` automatically. These labels are inputs to the existing [agent pipeline](../tools/agent_pipeline.py) and are assigned only after maintainer review. A message or form submission is not an automatic execution request.
+
+A pipeline issue has exactly one pipeline label, one open rubric criterion, and existing workflow jobs. Its body uses:
 
 ```text
-Criterium: <open ID uit docs/progress.json>
+Criterium: <open ID from docs/progress.json>
 Gate: <workflow>.yml#<job>
-Afhankelijk van: #<issue-nummer>
+Afhankelijk van: #<issue-number>
 ```
 
-De afhankelijkheidsregel is optioneel; `Gate:` mag meerdere jobverwijzingen
-bevatten, gescheiden door spaties. GitHub-formuliervelden worden Markdown;
-de kop `Criterium` alleen vervangt de letterlijke regel niet. De pipeline-
-labels en technische wijzigingsgrenzen blijven onder maintainerbeheer.
+The dependency line is optional; `Gate:` may contain multiple job references separated by spaces. Pipeline labels and technical change boundaries remain under maintainer control.
 
-De vier discussieformulieren staan onder `.github/DISCUSSION_TEMPLATE/`.
-Hun bestandsnamen volgen exact de categorieslugs. Een hernoemde categorie
-vraagt daarom ook controle van het bijbehorende formulier en de links
-hierboven. Formulieren worden actief vanaf de standaardbranch; peilingen
-gebruiken GitHubs eigen invoer en hebben geen categorieformulier.
-
-Officiële inrichtingsdocumentatie (geraadpleegd 8 november 2026):
-
-- GitHub. (z.d.). [Creating discussion category forms](https://docs.github.com/en/discussions/managing-discussions-for-your-community/creating-discussion-category-forms).
-- GitHub. (z.d.). [Syntax for discussion category forms](https://docs.github.com/en/discussions/managing-discussions-for-your-community/syntax-for-discussion-category-forms).
-- GitHub. (z.d.). [Managing categories for discussions](https://docs.github.com/en/discussions/managing-discussions-for-your-community/managing-categories-for-discussions).
+The four discussion forms are stored under `.github/DISCUSSION_TEMPLATE/`. Their filenames follow the existing category slugs. Renaming a category therefore also requires checking the matching form and links above.
