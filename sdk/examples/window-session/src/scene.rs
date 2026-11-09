@@ -262,6 +262,18 @@ impl Scene {
     ) -> Result<bool, Invalid> {
         let index = key.key as usize;
         if self.switcher_is_open() {
+            // Trusted shell, lock and recovery shortcuts must not be trapped
+            // behind the unprivileged Alt+Tab overlay.
+            if matches!(key.action, KeyAction::Press | KeyAction::Repeat)
+                && ((key.key == PhysicalKey::L && key.modifiers.super_key())
+                    || matches!(
+                        key.key,
+                        PhysicalKey::F3 | PhysicalKey::Menu | PhysicalKey::F10 | PhysicalKey::F12
+                    ))
+            {
+                self.close_switcher(false, damage)?;
+                return Ok(false);
+            }
             self.switcher_keys[index] = key.action != KeyAction::Release;
             match (key.key, key.action) {
                 (PhysicalKey::LeftAlt | PhysicalKey::RightAlt, KeyAction::Release)
@@ -737,6 +749,11 @@ impl Scene {
                 } else if !self.switcher_bounds().contains(x as i32, y as i32) {
                     self.switcher = None;
                 }
+            }
+            // A click on the surround leaves the overlay open; release its
+            // capture on button-up so the following app click is delivered.
+            if !held {
+                self.switcher_mouse_capture = false;
             }
             return Ok(None);
         }

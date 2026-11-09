@@ -639,7 +639,7 @@ fn complete_chain() {
             staging: &mut s,
         },
     );
-    assert_semantic_node(&a, Role::Heading, "Materiaal", None, false, true, false);
+    assert_semantic_node(&a, Role::Heading, "Nebula", None, false, true, false);
     assert_semantic_node(&a, Role::Button, "Nieuw document", None, true, true, false);
     undersized_semantics_buffer_is_atomic(&a);
     finish_paint(&mut a);

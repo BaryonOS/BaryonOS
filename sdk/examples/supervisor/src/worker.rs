@@ -15,6 +15,7 @@ mod support;
 
 use k05_protocol::*;
 use nieuw_os_sdk_runtime::{
+    clock::{self, TimerRegistration, WaitOutcome},
     native, Capability, ChildProcess, Error, Handle, Outgoing, ReceiveEndpoint, Rights,
     SendEndpoint, WaitCondition,
 };
@@ -116,10 +117,14 @@ pub extern "C" fn _start() -> ! {
     }
     if mode == WORKER_WAIT_SHORT || mode == WORKER_WAIT_LONG {
         let horizon = if mode == WORKER_WAIT_SHORT { 40 } else { 500 };
-        let now = native::monotonic_ticks().unwrap_or_else(|_| fail(20));
+        let now = clock::now_monotonic().unwrap_or_else(|_| fail(20));
         let deadline = now.checked_add(horizon).unwrap_or_else(|| fail(21));
-        if native::ipc_wait(&[WaitCondition::receive(ingress)], deadline).is_err() {
-            fail(22);
+        let cancellation = clock::TimerCancellation::new();
+        let timer = TimerRegistration::at(deadline, &cancellation);
+        match clock::wait_until(&[WaitCondition::receive(ingress)], &timer) {
+            Ok(WaitOutcome::TimedOut) => {}
+            Ok(WaitOutcome::Ready(_)) => fail(23),
+            Ok(WaitOutcome::Cancelled) | Err(_) => fail(22),
         }
         // The authorized parent must kill this lifetime before its deadline.
         fail(23);

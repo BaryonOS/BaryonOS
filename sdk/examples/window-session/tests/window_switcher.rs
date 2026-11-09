@@ -415,3 +415,82 @@ fn committing_switcher_reveals_a_minimized_window_for_both_input_routes() {
         assert!(!scene.switcher_is_open());
     }
 }
+
+
+#[test]
+fn trusted_shell_shortcuts_pass_through_an_open_switcher_without_focus_commit() {
+    for (physical, super_key) in [
+        (PhysicalKey::F3, false),
+        (PhysicalKey::Menu, false),
+        (PhysicalKey::F10, false),
+        (PhysicalKey::F12, false),
+        (PhysicalKey::L, true),
+    ] {
+        let mut scene = Scene::new(1280, 720, 1, [1, 2]).unwrap();
+        let mut damage = Damage::new(1280, 720).unwrap();
+        assert!(scene
+            .switcher_key(key(PhysicalKey::Tab, KeyAction::Press, true), &mut damage)
+            .unwrap());
+        assert_eq!(scene.switcher_selected(), Some(1));
+        let shortcut = KeyboardEvent {
+            key: physical,
+            action: KeyAction::Press,
+            modifiers: KeyboardModifiers {
+                left_alt: true,
+                left_super: super_key,
+                ..KeyboardModifiers::default()
+            },
+        };
+        assert!(!scene.switcher_key(shortcut, &mut damage).unwrap());
+        assert!(!scene.switcher_is_open());
+        assert_eq!(scene.focused, 0);
+        assert_eq!(scene.switches, 0);
+        assert!(scene
+            .switcher_key(key(PhysicalKey::Tab, KeyAction::Release, true), &mut damage)
+            .unwrap());
+        assert!(scene
+            .switcher_key(key(PhysicalKey::LeftAlt, KeyAction::Release, false), &mut damage)
+            .unwrap());
+        assert!(!scene
+            .switcher_key(key(physical, KeyAction::Release, false), &mut damage)
+            .unwrap());
+    }
+}
+
+#[test]
+fn switcher_surround_click_releases_capture_before_next_app_press() {
+    for (width, height, scale) in DISPLAYS {
+        let mut scene = Scene::new(width, height, scale, [1, 2]).unwrap();
+        let mut damage = Damage::new(width, height).unwrap();
+        assert!(scene
+            .switcher_key(key(PhysicalKey::Tab, KeyAction::Press, true), &mut damage)
+            .unwrap());
+        let surround = scene.switcher_bounds();
+        let x = surround.x as u32 + 6 * scale;
+        let y = surround.y as u32 + 6 * scale;
+        for index in 0..2 {
+            assert!(!scene.switcher_card(index).contains(x as i32, y as i32));
+        }
+        assert_eq!(scene.mouse_with_damage(x, y, true, true, &mut damage), Ok(None));
+        assert!(scene.switcher_is_open());
+        assert_eq!(scene.mouse_with_damage(x, y, false, false, &mut damage), Ok(None));
+        assert!(scene.switcher_is_open());
+        assert!(scene
+            .switcher_key(key(PhysicalKey::LeftAlt, KeyAction::Release, false), &mut damage)
+            .unwrap());
+        assert!(!scene.switcher_is_open());
+        assert_eq!(scene.focused, 1);
+        let body = scene.windows[1].body;
+        assert_eq!(
+            scene.mouse_with_damage(
+                (body.x + 8) as u32,
+                (body.y + 8) as u32,
+                true,
+                true,
+                &mut damage,
+            ),
+            Ok(Some(1)),
+            "surround release must not swallow the next application click"
+        );
+    }
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "task": "SYSTEM-MATURITY-SMP AP bring-up checkpoint",
+  "source_fingerprint_version": 3,
+  "source_sha256": "5e45c59ca8b515358a6389ec1655c659c108e3622053d060a0f67ef724b6edc6",
+  "source_commit": "63f1da11c6dd510e6ad692fdd20fb454e8fe156c",
+  "branch": "simonvanieperen-studious-spoon",
+  "date_europe_amsterdam": "2026-11-03",
+  "status": "failed",
+  "passed": false,
+  "host": {
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/tests",
+      "-p",
+      "test_smp.py"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.000s\n\nOK\n"
+  },
+  "stages": [
+    {
+      "profile": "single",
+      "kernel_feature": null,
+      "passed": false,
+      "raw_qemu_exit": 35,
+      "duration_s": 1.5874656640007743,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-single-f2815ff398",
+      "evidence": null,
+      "error": null
+    }
+  ],
+  "acceptance_boundary": "AP startup and bounded atomic worker smoke only; not full K06 scheduling, IPC, revoke, exit, cross-CPU TLB, or concurrency acceptance."
+}

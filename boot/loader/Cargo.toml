@@ -8,6 +8,8 @@ publish = false
 default = []
 test-ebs-retry = []
 framebuffer = []
+# Select the versioned SMP Info handoff only for explicit native SMP probes.
+smp-handoff = ["boot-protocol/smp-legacy-wire"]
 desktop-mode = ["framebuffer"]
 desktop-hidpi = ["framebuffer"]
 graphics-g0 = ["framebuffer"]

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "branch": "simonvanieperen-studious-spoon",
+  "source_commit": "af8773f095b468de17e8880e6a8532ccd8b2e5f7",
+  "scope": "Standalone no_std firmware metadata descriptor; host tests only.",
+  "source_sha256": {
+    "crates/firmware-descriptor-core/Cargo.toml": "bc330e9c99c6b534ece7bc580e870637da91b89ef750695007313ad23f5f0663",
+    "crates/firmware-descriptor-core/Cargo.lock": "047c20d815d8f3ea8500dbf086ca211f4a72b6581e2c7c9f9bfa97ccdf5fea42",
+    "crates/firmware-descriptor-core/README.md": "e74f2a5667d5db22dabacd47663df3be60b969d6e4e3310a40ea1e92d1db316f",
+    "crates/firmware-descriptor-core/src/lib.rs": "e262bbb2d285fdc058b2588be00971b30a099dfedb02dc5c59d48c049cfb9c73"
+  },
+  "environment": "Rust 1.90.0; CARGO_TARGET_DIR=/tmp/nieuw-os-firmware-descriptor-target; no dependencies.",
+  "checks": [
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-firmware-descriptor-target $HOME/.cargo/bin/cargo +1.90.0 test --manifest-path crates/firmware-descriptor-core/Cargo.toml --offline",
+      "exit_code": 0,
+      "results": "5 unit tests passed.",
+      "log": "/tmp/nieuw-os-firmware-descriptor-test.log",
+      "log_sha256": "d84967e249ae6a30ff6206f797c44729f1fb711070aed058391b7e9ab5ec113e"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-firmware-descriptor-target $HOME/.cargo/bin/cargo +1.90.0 clippy --manifest-path crates/firmware-descriptor-core/Cargo.toml --all-targets --locked -- -D warnings",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-firmware-descriptor-clippy.log",
+      "log_sha256": "02db5a66fa0c60ca8618bd08aac556eac4f3ec863e8630a0d353dba6a0f6e126"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-firmware-descriptor-target $HOME/.cargo/bin/cargo +1.90.0 check --manifest-path crates/firmware-descriptor-core/Cargo.toml --target x86_64-unknown-none --locked",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-firmware-descriptor-none.log",
+      "log_sha256": "ee1d3fffa2022e962e63e0dbe4d35c9c198450a20c29fc09030f635dbb38bfcd"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-firmware-descriptor-target $HOME/.cargo/bin/cargo +1.90.0 fmt --manifest-path crates/firmware-descriptor-core/Cargo.toml -- --check",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-firmware-descriptor-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "implemented": [
+    "Fixed-size firmware identity, exact vendor/device match, version tuple, claimed 32-byte digest, provenance and license references.",
+    "Compatibility check for device revision range and required platform feature bits.",
+    "Descriptor validation rejects malformed compatibility ranges while leaving all structurally valid provenance and digest claims explicitly unverified."
+  ],
+  "limitations": [
+    "Provenance and digest are caller-supplied claims; no cryptographic verification or bytes-to-digest comparison is performed.",
+    "No firmware loading, downloading, automatic trust, driver authorization, consumer integration, or Secure Boot/loader verification.",
+    "This is a PARTIAL host-tested metadata primitive, not firmware authenticity evidence or native OS functionality."
+  ]
+}

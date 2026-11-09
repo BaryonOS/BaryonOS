@@ -1,6 +1,6 @@
-//! Host tests for the persistence-only KEY1 dispatcher used by the native
-//! administrative ingress. Deterministic entropy is a test fixture, not an
-//! entropy claim; no native execution or trusted rollback anchor is proven.
+//! Host tests for the KEY1 domain and management dispatchers used by the
+//! native service. Deterministic entropy is a test fixture, not an entropy
+//! claim; no native execution or trusted rollback anchor is proven.
 
 use keyring_core::{
     persistent::{SnapshotInfo, PERSISTENT_BLOB},
@@ -41,6 +41,38 @@ fn admin(
     let reply = wire::dispatch_persistent(
         service,
         source,
+        &header,
+        &request[wire::HEADER..wire::HEADER + usize::from(header.length)],
+    );
+    (Header::decode(&reply).unwrap(), reply)
+}
+
+fn management(
+    service: &mut Service,
+    source: &mut TestEntropy,
+    request: &[u8; wire::SIZE],
+) -> (Header, [u8; wire::SIZE]) {
+    let header = Header::decode(request).unwrap();
+    let reply = wire::dispatch_management(
+        service,
+        source,
+        &header,
+        &request[wire::HEADER..wire::HEADER + usize::from(header.length)],
+    );
+    (Header::decode(&reply).unwrap(), reply)
+}
+
+fn domain(
+    service: &mut Service,
+    source: &mut TestEntropy,
+    domain: usize,
+    request: &[u8; wire::SIZE],
+) -> (Header, [u8; wire::SIZE]) {
+    let header = Header::decode(request).unwrap();
+    let reply = wire::dispatch_domain(
+        service,
+        source,
+        domain,
         &header,
         &request[wire::HEADER..wire::HEADER + usize::from(header.length)],
     );
@@ -280,6 +312,66 @@ fn persistence_dispatch_refuses_every_other_opcode_and_malformed_request() {
         );
     }
     assert_eq!(service.snapshot_info(), before);
+}
+
+#[test]
+fn ordinary_domain_cannot_export_or_restore_recovery_material() {
+    let (mut service, mut source) = ready(7);
+    service.generate(0, &mut source).unwrap();
+    let before = service.snapshot_info();
+    let export = wire::request(wire::EXPORT_RECOVERY, 0, 1, &[]).unwrap();
+    let restore = wire::request(
+        wire::RESTORE,
+        0,
+        2,
+        &[0; SECRET_BYTES + keyring_core::RECOVERY_BLOB],
+    )
+    .unwrap();
+    for request in [export, restore] {
+        let reply = domain(&mut service, &mut source, 0, &request);
+        assert_denied(&request, &reply, Status::Invalid);
+    }
+    assert_eq!(service.snapshot_info(), before);
+    assert_eq!(service.counters.restores, 0);
+}
+
+#[test]
+fn management_ingress_can_export_and_restore_legacy_recovery() {
+    let (mut original, mut source) = ready(8);
+    let index = original.generate(0, &mut source).unwrap();
+    let plaintext = [0x73; MAX_PLAINTEXT];
+    let mut sealed = [0; MAX_SEALED];
+    let sealed_length = original
+        .seal(0, index, &plaintext, &mut source, &mut sealed)
+        .unwrap();
+    let export = wire::request(wire::EXPORT_RECOVERY, 0, 1, &[]).unwrap();
+    let (header, reply) = management(&mut original, &mut source, &export);
+    assert_eq!(header.status, Status::Ok.code());
+    assert_eq!(
+        usize::from(header.length),
+        SECRET_BYTES + keyring_core::RECOVERY_BLOB
+    );
+    let mut recovery = [0; SECRET_BYTES + keyring_core::RECOVERY_BLOB];
+    recovery.copy_from_slice(&reply[wire::HEADER..wire::HEADER + usize::from(header.length)]);
+
+    let (mut restored, mut other) = ready(9);
+    let restore = wire::request(wire::RESTORE, 0, 2, &recovery).unwrap();
+    let (header, reply) = management(&mut restored, &mut other, &restore);
+    assert_eq!(header.status, Status::Ok.code());
+    assert_eq!(usize::from(header.length), 1);
+    assert_eq!(reply[wire::HEADER], keyring_core::DOMAINS as u8);
+    let mut opened = [0; MAX_PLAINTEXT];
+    assert_eq!(
+        restored.unseal(0, index, &sealed[..sealed_length], &mut other, &mut opened),
+        Ok(MAX_PLAINTEXT)
+    );
+
+    let status = wire::request(wire::STATUS, 0, 3, &[]).unwrap();
+    let before = restored.snapshot_info();
+    let denied = management(&mut restored, &mut other, &status);
+    assert_denied(&status, &denied, Status::Invalid);
+    assert_eq!(restored.snapshot_info(), before);
+    assert_eq!(opened, plaintext);
 }
 
 #[test]
