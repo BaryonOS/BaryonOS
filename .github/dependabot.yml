@@ -1,134 +1,120 @@
-
-# Nieuw OS - Dependabot configuration
-# Location: .github/dependabot.yml
-
 version: 2
-
 updates:
-  # 1. GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: weekly
+      day: monday
       time: "06:00"
-      timezone: "Europe/Amsterdam"
+      timezone: Europe/Amsterdam
     open-pull-requests-limit: 2
     labels:
-      - "dependencies"
+      - dependencies
     commit-message:
       prefix: "chore(actions)"
-
-  # 2. Main Rust workspace - kernel and core
-  - package-ecosystem: "cargo"
-    directory: "/"
+  - package-ecosystem: cargo
+    directory: /
     schedule:
-      interval: "weekly"
-      day: "tuesday"
+      interval: weekly
+      day: tuesday
       time: "06:00"
-      timezone: "Europe/Amsterdam"
+      timezone: Europe/Amsterdam
     open-pull-requests-limit: 3
     labels:
-      - "dependencies"
+      - dependencies
     commit-message:
       prefix: "chore(cargo)"
-
-  # 3. Quantum research workspace
-  - package-ecosystem: "cargo"
-    directory: "/experiments/quantum"
+  - package-ecosystem: cargo
+    directory: /experiments/quantum
     schedule:
-      interval: "monthly"
+      interval: monthly
       time: "06:00"
-      timezone: "Europe/Amsterdam"
+      timezone: Europe/Amsterdam
     open-pull-requests-limit: 2
     labels:
-      - "dependencies"
-
-  # 4. Independent Rust workspaces and packages
-  - package-ecosystem: "cargo"
+      - dependencies
+  # Independent workspaces have their own manifests and lockfiles. Keep
+  # vendored third-party packages outside this explicit, owned-root list.
+  - package-ecosystem: cargo
     directories:
-      # Drivers
-      - "/drivers/acpi-power"
-      - "/drivers/ps2"
-      - "/drivers/rtc"
-      - "/drivers/tpm-crb"
-      - "/drivers/usb"
-      - "/drivers/virtio-snd"
-      - "/drivers/xhci"
-
-      # Services and networking
-      - "/services/image-codec"
-      - "/services/image-codec/diagnostics"
-      - "/services/input-core"
-      - "/services/nas/native-client"
-      - "/services/nas/native-core"
-      - "/services/nas/native-probe"
-      - "/services/nas/native-volume"
-      - "/services/net-broker"
-      - "/services/net-config"
-      - "/services/net-protocol"
-      - "/services/net-stack"
-      - "/services/net-tls"
-      - "/services/network-service"
-      - "/services/network-service/protocol"
-
-      # SDK and independent applications
-      - "/sdk"
-      - "/sdk/app-management"
-      - "/sdk/display-client"
-      - "/sdk/heap-allocator"
-      - "/sdk/input-client"
-      - "/sdk/keyring-client"
-      - "/sdk/net-client"
-      - "/sdk/examples/audio-clip"
-      - "/sdk/examples/calculator"
-      - "/sdk/examples/compositor"
-      - "/sdk/examples/desktop-init"
-      - "/sdk/examples/display-input-probe"
-      - "/sdk/examples/document-export"
-      - "/sdk/examples/document-import"
-      - "/sdk/examples/fpu"
-      - "/sdk/examples/image-crop"
-      - "/sdk/examples/image-export"
-      - "/sdk/examples/image-probe"
-      - "/sdk/examples/image-viewer"
-      - "/sdk/examples/input-service"
-      - "/sdk/examples/ipc-wait-probe"
-      - "/sdk/examples/materiaal"
-      - "/sdk/examples/memory"
-      - "/sdk/examples/net-probe"
-      - "/sdk/examples/network-service"
-      - "/sdk/examples/presentation"
-      - "/sdk/examples/random-probe"
-      - "/sdk/examples/spreadsheet"
-      - "/sdk/examples/table-editor"
-      - "/sdk/examples/tcp-probe"
-      - "/sdk/examples/window-session"
-
-      # Graphical interfaces
-      - "/ui/graphics"
-      - "/ui/native"
-      - "/ui/surface-protocol"
-
-      # Independent research packages
-      - "/experiments/ai/model-store-contract"
-      - "/experiments/quantum/job-protocol"
-      - "/experiments/quantum/native"
-      - "/experiments/quantum/native/job"
-
+      - /drivers/acpi-power
+      - /drivers/ps2
+      - /drivers/rtc
+      - /drivers/tpm-crb
+      - /drivers/usb
+      - /drivers/virtio-snd
+      - /drivers/xhci
+      - /experiments/ai/model-store-contract
+      - /experiments/quantum/job-protocol
+      - /experiments/quantum/native
+      - /experiments/quantum/native/job
+      - /sdk/app-management
+      - /sdk/display-client
+      - /sdk/examples/audio-clip
+      - /sdk/examples/calculator
+      - /sdk/examples/compositor
+      - /sdk/examples/desktop-init
+      - /sdk/examples/display-input-probe
+      - /sdk/examples/document-export
+      - /sdk/examples/document-import
+      - /sdk/examples/fpu
+      - /sdk/examples/image-crop
+      - /sdk/examples/image-export
+      - /sdk/examples/image-probe
+      - /sdk/examples/image-viewer
+      - /sdk/examples/input-service
+      - /sdk/examples/ipc-wait-probe
+      - /sdk/examples/materiaal
+      - /sdk/examples/memory
+      - /sdk/examples/net-probe
+      - /sdk/examples/network-service
+      - /sdk/examples/presentation
+      - /sdk/examples/random-probe
+      - /sdk/examples/spreadsheet
+      - /sdk/examples/table-editor
+      - /sdk/examples/tcp-probe
+      - /sdk/examples/window-session
+      - /sdk/heap-allocator
+      - /sdk/input-client
+      - /sdk/keyring-client
+      - /sdk/net-client
+      - /services/image-codec
+      - /services/image-codec/diagnostics
+      - /services/input-core
+      - /services/nas/native-client
+      - /services/nas/native-core
+      - /services/nas/native-probe
+      - /services/nas/native-volume
+      - /services/net-broker
+      - /services/net-config
+      - /services/net-protocol
+      - /services/net-stack
+      - /services/net-tls
+      - /services/network-service
+      - /services/network-service/protocol
+      - /ui/graphics
+      - /ui/native
+      - /ui/surface-protocol
     schedule:
-      interval: "monthly"
+      interval: monthly
       time: "06:00"
-      timezone: "Europe/Amsterdam"
+      timezone: Europe/Amsterdam
     open-pull-requests-limit: 2
     labels:
-      - "dependencies"
+      - dependencies
     commit-message:
       prefix: "chore(cargo)"
-    # open-pull-requests-limit applies per directory; group across directories
-    # so one dependency bump yields one PR instead of up to 59.
+    # Coalesce a dependency across directories; incompatible constraints may
+    # still require separate PRs. This is not a repository-wide PR limit.
     groups:
       cargo-independent:
         patterns:
           - "*"
         group-by: dependency-name
+  - package-ecosystem: cargo
+    directory: /sdk
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
