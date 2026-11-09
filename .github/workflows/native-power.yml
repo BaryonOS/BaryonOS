@@ -1,10 +1,18 @@
 name: Native ACPI S5 poweroff (H05 step)
 
 on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images and builds for 1 day'
+        type: boolean
+        default: false
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened]
+    paths-ignore: ['docs/**', '*.md']
   push:
     branches: [main]
+    paths-ignore: ['docs/**', '*.md']
 
 permissions:
   contents: read
@@ -33,12 +41,15 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Pinned Rust and emulator
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Pinned Rust toolchain
         run: |
           rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
-          mkdir -p "$NOS_BUILD_DIR/logs"
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Prepare report directory
+        run: mkdir -p "$NOS_BUILD_DIR/logs"
       - name: Host oracles, S5 parser and formatting
         run: |
           python3 -B tools/preflight.py --strict > "$NOS_BUILD_DIR/logs/preflight.json"
@@ -59,11 +70,12 @@ jobs:
           mkdir -p "$NOS_BUILD_DIR"
           python3 -B tools/build.py --kernel-feature test-acpi-s5-corrupt-dsdt
           python3 -B tools/run_power.py --repeat 2
-      - name: Preserve actual run and build artifacts
+      - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: ./.github/actions/preserve-evidence
         with:
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: native-power-evidence
           path: build/power-native/
           if-no-files-found: error
-          retention-days: 14
