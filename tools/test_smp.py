@@ -77,24 +77,26 @@ def main() -> int:
             command, cwd=ROOT, env=env, capture_output=True, text=True, timeout=600
         )
     except subprocess.TimeoutExpired:
+        host_passed = False
         summary["host"] = {
             "command": command, "exit": None, "timeout_s": 600,
             "error": "host unittest process timed out",
         }
         summary["status"] = "failed"
         save_json(receipt, summary)
-        return 1
-    summary["host"] = {
-        "command": command,
-        "exit": host.returncode,
-        "stdout": host.stdout,
-        "stderr": host.stderr,
-    }
-    save_json(receipt, summary)
-    if host.returncode:
-        summary["status"] = "failed"
+    else:
+        host_passed = host.returncode == 0
+        summary["host"] = {
+            "command": command,
+            "exit": host.returncode,
+            "stdout": host.stdout,
+            "stderr": host.stderr,
+        }
         save_json(receipt, summary)
-        return host.returncode
+        if not host_passed:
+            summary["status"] = "failed"
+            save_json(receipt, summary)
+            return host.returncode
 
     stages = (
         ("single-m2", "milestone-m2", 1, "m2"),
@@ -146,9 +148,10 @@ def main() -> int:
                 "evidence": report.get("evidence"),
                 "error": report.get("error"),
             })
-            summary["passed"] = report["passed"] and source_hash() == source
+            stage_passed = report["passed"] and source_hash() == source
+            summary["passed"] = host_passed and stage_passed
             save_json(receipt, summary)
-            if not summary["passed"]:
+            if not stage_passed:
                 summary["status"] = "failed"
                 save_json(receipt, summary)
                 return 1
@@ -160,8 +163,10 @@ def main() -> int:
             save_json(receipt, summary)
             raise
 
-    summary["status"] = "completed"
-    summary["passed"] = source_hash() == source and len(summary["stages"]) == len(stages)
+    summary["status"] = "completed" if host_passed else "failed"
+    summary["passed"] = (
+        host_passed and source_hash() == source and len(summary["stages"]) == len(stages)
+    )
     save_json(receipt, summary)
     print(f"SMP gates passed={summary['passed']} stages={len(summary['stages'])} {receipt}")
     return 0 if summary["passed"] else 1

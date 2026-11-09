@@ -1,5 +1,14 @@
 """Host-side counterexamples for SMP QEMU evidence validation."""
+from contextlib import ExitStack, redirect_stdout
+import importlib.util
+import io
+import json
+from pathlib import Path
+import subprocess
+import tempfile
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 import run_smp
 
@@ -487,6 +496,84 @@ class SmpEvidenceTests(unittest.TestCase):
     def test_native_m3_lock_contention_profile_requires_two_cpus(self):
         with self.assertRaises(ValueError):
             run_smp.expected_markers(4, "native-smp-m3-lock-contention")
+
+
+class RunnerTimeoutTests(unittest.TestCase):
+    def test_version_timeout_is_written_as_failed_result(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            build = root / "build"
+            esp = build / "esp"
+            kernel = esp / "kernel.elf"
+            loader = esp / "EFI/BOOT/BOOTX64.EFI"
+            loader.parent.mkdir(parents=True)
+            kernel.write_bytes(b"kernel")
+            loader.write_bytes(b"loader")
+            code, variables = root / "code.fd", root / "vars.fd"
+            code.write_bytes(b"code")
+            variables.write_bytes(b"vars")
+            (build / "manifest.json").write_text(json.dumps({
+                "kernel_feature": "native-smp", "loader_feature": None,
+                "source_fingerprint_version": 3, "source_sha256": "source",
+                "kernel": {"sha256": run_smp.sha256(kernel)},
+                "loader": {"sha256": run_smp.sha256(loader)},
+            }))
+            with ExitStack() as stack:
+                stack.enter_context(patch.object(run_smp, "ROOT", root))
+                stack.enter_context(patch.object(run_smp, "BUILD", build))
+                stack.enter_context(patch.object(run_smp, "source_hash", return_value="source"))
+                stack.enter_context(patch.object(run_smp, "environment", return_value={"PATH": ""}))
+                stack.enter_context(patch.object(run_smp.shutil, "which", return_value="/qemu"))
+                stack.enter_context(patch.object(run_smp, "firmware", return_value=(code, variables)))
+                stack.enter_context(patch.object(run_smp, "qemu_machine", return_value="q35"))
+                stack.enter_context(patch.object(run_smp.subprocess, "run", return_value=SimpleNamespace(
+                    returncode=33, stdout=transcript().encode(), stderr=b""
+                )))
+                version = stack.enter_context(patch.object(
+                    run_smp.subprocess, "check_output",
+                    side_effect=subprocess.TimeoutExpired(["/qemu", "--version"], 10),
+                ))
+                stack.enter_context(redirect_stdout(io.StringIO()))
+                report = run_smp.run_smp(2)
+            self.assertEqual(version.call_args.kwargs["timeout"], 10)
+            self.assertFalse(report["passed"])
+            self.assertIn("TimeoutExpired", report["error"])
+            self.assertEqual(json.loads((Path(report["run_directory"]) / "result.json").read_text()), report)
+
+    def test_host_results_control_receipt_and_stage_execution(self):
+        spec = importlib.util.spec_from_file_location(
+            "smp_runner", Path(__file__).resolve().parents[1] / "test_smp.py"
+        )
+        runner = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(runner)
+        cases = ((None, True, 1, 15), (None, False, 1, 1), (0, True, 0, 15), (7, True, 7, 0))
+        for host_exit, stage_passed, expected_exit, expected_stages in cases:
+            with self.subTest(host_exit=host_exit, stage_passed=stage_passed), tempfile.TemporaryDirectory() as temp, ExitStack() as stack:
+                root = Path(temp)
+                stack.enter_context(patch.object(runner, "ROOT", root))
+                stack.enter_context(patch.object(runner, "source_hash", return_value="source"))
+                stack.enter_context(patch.object(runner.subprocess, "check_output", return_value="value"))
+                host_result = SimpleNamespace(returncode=host_exit, stdout="", stderr="")
+                host = stack.enter_context(patch.object(runner.subprocess, "run", return_value=host_result))
+                if host_exit is None:
+                    host.side_effect = subprocess.TimeoutExpired("unittest", 600)
+                build = stack.enter_context(patch.object(runner, "build"))
+                report = {"passed": stage_passed, "raw_qemu_exit": 33}
+                stack.enter_context(patch.object(runner, "run_guest", return_value=report))
+                stack.enter_context(patch.object(runner, "run_gate_case", return_value=report))
+                stack.enter_context(patch.object(runner, "run_smp", return_value=report))
+                stack.enter_context(redirect_stdout(io.StringIO()))
+                self.assertEqual(runner.main(), expected_exit)
+                receipt, = (root / "docs/verification/sm-smp").glob("*.json")
+                summary = json.loads(receipt.read_text())
+                self.assertEqual(host.call_args.kwargs["timeout"], 600)
+                self.assertEqual(build.call_count, expected_stages)
+                self.assertEqual(len(summary["stages"]), expected_stages)
+                self.assertEqual(summary["status"], "completed" if host_exit == 0 else "failed")
+                self.assertEqual(summary["passed"], host_exit == 0)
+                self.assertEqual(summary["host"]["exit"], host_exit)
+                if host_exit is None:
+                    self.assertIn("timed out", summary["host"]["error"])
 
 
 if __name__ == "__main__":
