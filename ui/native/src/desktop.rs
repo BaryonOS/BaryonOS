@@ -29,12 +29,26 @@ pub enum Target {
     Search,
     SearchField,
     Material,
+    /// Orbit's pinned Nebula button opens the same Material app as its card.
+    Pinned,
     SignOut,
 }
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Action {
     None,
     OpenMaterial,
+}
+
+/// Orbit: one centred capsule that hugs its buttons, never a full-width bar.
+pub fn dock(width: u32, height: u32) -> Rect {
+    // Zenit, Signaal, pinned app, power; roomy screens add the privacy light.
+    let dock_width = (if width >= 420 { 340 } else { 228 }).min(width);
+    Rect {
+        x: (width - dock_width) / 2,
+        y: height.saturating_sub(64),
+        width: dock_width,
+        height: 56,
+    }
 }
 
 pub struct Desktop {
@@ -86,7 +100,7 @@ impl Desktop {
     }
     pub fn matches_material(&self) -> bool {
         let needle = self.query();
-        "materiaal bestanden documenten"
+        "nebula materiaal bestanden documenten"
             .as_bytes()
             .windows(needle.len().max(1))
             .any(|candidate| candidate.eq_ignore_ascii_case(needle.as_bytes()))
@@ -230,49 +244,25 @@ impl Desktop {
                 None,
             ],
             Page::Home | Page::Search | Page::Material => {
-                let bar_width = w.saturating_sub(24).min(680);
-                let bar_x = (w - bar_width) / 2;
-                let bar_y = h.saturating_sub(68);
-                let roomy_bar = bar_width >= 440;
-                let start_width = if roomy_bar { 88 } else { 44 };
-                let search_x = if roomy_bar { 104 } else { 60 };
-                let search_width = bar_width
-                    .saturating_sub(if roomy_bar { 248 } else { 192 })
-                    .min(320);
+                let dock = dock(w, h);
+                let power_x = dock.x + dock.width.saturating_sub(50);
+                let pinned_x = dock.x + 118;
                 let panel_width = w.saturating_sub(48).min(620);
                 let panel_x = (w - panel_width) / 2;
                 let top = if compact { 40 } else { 132 };
+                let card_width = w.saturating_sub(64).min(704);
+                let button = |x| Rect {
+                    x,
+                    y: dock.y + 6,
+                    width: 44,
+                    height: 44,
+                };
                 [
-                    Some((
-                        Target::Start,
-                        Rect {
-                            x: bar_x + 8,
-                            y: bar_y + 8,
-                            width: start_width,
-                            height: 44,
-                        },
-                        "Start",
-                    )),
-                    Some((
-                        Target::Search,
-                        Rect {
-                            x: bar_x + search_x,
-                            y: bar_y + 8,
-                            width: search_width,
-                            height: 44,
-                        },
-                        "Zoeken",
-                    )),
-                    Some((
-                        Target::SignOut,
-                        Rect {
-                            x: bar_x + bar_width - 116,
-                            y: bar_y + 8,
-                            width: 108,
-                            height: 44,
-                        },
-                        "Afmelden",
-                    )),
+                    // The horizon mark opens Zenit; deliberately no "Start".
+                    Some((Target::Start, button(dock.x + 6), "Zenit")),
+                    Some((Target::Search, button(dock.x + 58), "Signaal")),
+                    Some((Target::Pinned, button(pinned_x), "Nebula")),
+                    Some((Target::SignOut, button(power_x), "Afmelden")),
                     if self.page == Page::Search {
                         Some((
                             Target::SearchField,
@@ -282,7 +272,7 @@ impl Desktop {
                                 width: panel_width - 32,
                                 height: 44,
                             },
-                            "Zoek programma's",
+                            "Signaal: zoeken",
                         ))
                     } else {
                         None
@@ -299,9 +289,14 @@ impl Desktop {
                                 }
                             } else {
                                 Rect {
-                                    x: 32,
-                                    y: if compact { 64 } else { 170 },
-                                    width: w.saturating_sub(64).min(704),
+                                    x: (w - card_width) / 2,
+                                    // Centred composition on large screens.
+                                    y: if compact {
+                                        64
+                                    } else {
+                                        h.saturating_sub(264).div_ceil(2).max(170)
+                                    },
+                                    width: card_width,
                                     height: if compact {
                                         96
                                     } else {
@@ -309,12 +304,11 @@ impl Desktop {
                                     },
                                 }
                             },
-                            "Materiaal",
+                            "Nebula",
                         ))
                     } else {
                         None
                     },
-                    None,
                     None,
                 ]
             }
@@ -367,6 +361,10 @@ impl Desktop {
             Target::Material
                 if matches!(self.page, Page::Home | Page::Search) && self.matches_material() =>
             {
+                self.page = Page::Material;
+                return Action::OpenMaterial;
+            }
+            Target::Pinned if matches!(self.page, Page::Home | Page::Search) => {
                 self.page = Page::Material;
                 return Action::OpenMaterial;
             }

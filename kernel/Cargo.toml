@@ -11,9 +11,14 @@ test-panic = []
 test-hang = []
 milestone-m2 = []
 native-rtc = ["milestone-m2", "dep:nieuw-os-rtc"]
+# H05 step: IF0 M2 profile that ends in a validated ACPI S5 poweroff.
+native-acpi-s5 = ["milestone-m2", "dep:nieuw-os-acpi-power"]
+test-acpi-s5-corrupt-dsdt = ["native-acpi-s5"]
 # K06 step 1: opt-in AP bring-up profile. APs run a bounded sync self-test and
 # park; no scheduler, allocator, paging or IPC state is shared with them.
 native-smp = ["milestone-m2"]
+# Isolated experimental M3/M4 SMP acceptance, not the K06 default.
+native-smp-legacy = ["native-smp", "boot-protocol/smp-legacy-wire"]
 test-smp-ap-stall = ["native-smp"]
 test-smp-ap-mismatch = ["native-smp"]
 test-smp-ap-nmi = ["native-smp"]
@@ -60,6 +65,14 @@ native-memory-nx = ["native-memory"]
 native-memory-guard = ["native-memory"]
 native-memory-peer = ["native-memory"]
 native-memory-oom = ["native-memory"]
+# M3 SMP scheduler acceptance; FPU/SIMD remains excluded pending per-CPU state.
+native-smp-m3 = ["native-smp-legacy", "milestone-m3"]
+native-smp-m3-exit = ["native-smp-m3", "test-m3-exit"]
+native-smp-m3-tlb-reuse = ["native-smp-m3-exit"]
+native-smp-m3-lock-contention = ["native-smp-m3"]
+# Capability IPC cross-CPU fixture over the serialized M3 scheduler.
+native-smp-m4 = ["native-smp-m3", "milestone-m4"]
+native-smp-m4-revoke = ["native-smp-m4", "test-m4-revoke"]
 native-system-random = ["native-system", "monotonic-clock"]
 test-system-random-sdk = ["native-system-random"]
 test-system-random-unknown = ["native-system-random"]
@@ -231,6 +244,7 @@ test-update-cut = ["native-update"]
 [dependencies]
 nieuw-os-tpm-crb = { path = "../drivers/tpm-crb", optional = true }
 nieuw-os-rtc = { path = "../drivers/rtc", optional = true }
+nieuw-os-acpi-power = { path = "../drivers/acpi-power", optional = true }
 nieuw-os-display-client = { path = "../sdk/display-client", default-features = false, optional = true }
 nieuw-os-ps2 = { path = "../drivers/ps2", optional = true }
 boot-protocol = { path = "../crates/boot-protocol" }

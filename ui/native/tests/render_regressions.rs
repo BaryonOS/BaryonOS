@@ -223,14 +223,7 @@ fn desktop_home_card_follows_the_real_library_state_and_stays_above_the_bar() {
             .2;
         assert!(card.x + card.width <= viewport.logical_width());
         assert!(card.y + card.height <= logical_height - 68);
-        assert_eq!(
-            start.width,
-            if viewport.logical_width() >= 464 {
-                88
-            } else {
-                44
-            }
-        );
+        assert_eq!(start.width, 44, "the overview mark is a round 44 px target");
         if viewport.logical_width() < 640 {
             assert_eq!(card.height, 96, "narrow home uses the compact card");
             assert_eq!(card.y, 64, "narrow home leaves room for navigation");
@@ -239,16 +232,26 @@ fn desktop_home_card_follows_the_real_library_state_and_stays_above_the_bar() {
         }
         let mut home_view = view(viewport, &[]);
         home_view.desktop = Some(&desktop);
-        assert_eq!(
-            pixel(
-                &Frame::new(home_view),
-                (card.x + card.width / 2) * scale.factor(),
-                (card.y + 8) * scale.factor()
-            ),
-            design::SURFACE,
+        let frame = Frame::new(home_view);
+        let inside = pixel(
+            &frame,
+            (card.x + card.width / 2) * scale.factor(),
+            (card.y + 8) * scale.factor(),
+        );
+        let above = pixel(
+            &frame,
+            (card.x + card.width / 2) * scale.factor(),
+            (card.y - 8) * scale.factor(),
+        );
+        // The card is dark glass over the wallpaper: dark where hit testing says.
+        assert!(
+            [16, 8, 0]
+                .iter()
+                .all(|shift| (inside >> shift) & 255 <= 0x60)
+                && inside != above,
             "home paint follows the same compact layout as hit testing"
         );
-        assert_eq!(start_label, "Start");
+        assert_eq!(start_label, "Zenit");
     }
 
     let viewport = Viewport::new(768, 536, Scale::Percent100, 1).unwrap();
@@ -388,5 +391,54 @@ fn disabled_primary_and_secondary_hover_keep_their_distinct_styles() {
                 expected
             );
         }
+    }
+}
+
+#[test]
+fn taskbar_pinned_app_opens_materiaal_even_after_a_search_miss() {
+    use nieuw_os_materiaal::desktop::Action;
+    for (width, height, scale) in [
+        (320, 240, Scale::Percent100),
+        (640, 536, Scale::Percent100),
+        (768, 536, Scale::Percent100),
+        (1280, 720, Scale::Percent100),
+        (800, 600, Scale::Percent200),
+    ] {
+        let viewport = Viewport::new(width, height, scale, 1).unwrap();
+        let mut desktop = Desktop::new();
+        desktop.activate(Target::Guest);
+        desktop.activate(Target::Submit);
+        assert_eq!(desktop.page(), Page::Home);
+        let bar: Vec<_> = desktop
+            .controls(viewport)
+            .into_iter()
+            .flatten()
+            .filter(|(t, _, _)| {
+                matches!(
+                    t,
+                    Target::Start | Target::Search | Target::Pinned | Target::SignOut
+                )
+            })
+            .map(|(_, r, _)| r)
+            .collect();
+        assert_eq!(bar.len(), 4);
+        for pair in bar.windows(2) {
+            assert!(pair[0].x + pair[0].width <= pair[1].x, "{width}x{height}");
+        }
+        desktop.activate(Target::Search);
+        assert!(desktop.set_query("zzz"));
+        assert!(!desktop.matches_material());
+        assert_eq!(desktop.activate(Target::Pinned), Action::OpenMaterial);
+        assert_eq!(desktop.page(), Page::Material);
+    }
+}
+
+#[test]
+fn orbit_dock_is_bounded_on_tiny_viewports() {
+    for width in [0_u32, 1, 44, 100, 227, 228, 419, 420, 768] {
+        let bar = nieuw_os_materiaal::desktop::dock(width, 240);
+        assert!(bar.width <= width, "{width}");
+        assert!(bar.x <= width, "{width}");
+        assert!(bar.x + bar.width <= width, "{width}");
     }
 }

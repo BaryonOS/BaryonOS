@@ -11,6 +11,7 @@ pub fn physical_page_fits(address: u64, width: u8) -> bool {
             .checked_add(PAGE)
             .is_some_and(|end| end <= 1u64 << width)
 }
+pub mod device_execution;
 pub mod user;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -27,6 +28,13 @@ pub enum Kind {
     Data,
     Stack,
 }
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct FrameAvailability {
+    /// Admitted frames, whether currently free or assigned to an owner.
+    pub managed: usize,
+    /// Admitted frames available for a new allocation.
+    pub free: usize,
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Error {
     Range,
@@ -37,6 +45,8 @@ pub enum Error {
     Mapped,
     Permission,
 }
+pub mod pressure;
+pub mod smp;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Range {
     pub start: u64,
@@ -326,6 +336,17 @@ impl<const N: usize> Frames<N> {
     pub fn alias(&self, address: u64) -> Result<Alias, Error> {
         Ok(self.aliases[self.index(address)?])
     }
+    pub fn availability(&self) -> FrameAvailability {
+        self.owners
+            .iter()
+            .fold(FrameAvailability::default(), |mut state, owner| {
+                if *owner != Owner::Reserved {
+                    state.managed += 1;
+                    state.free += usize::from(*owner == Owner::Free);
+                }
+                state
+            })
+    }
 }
 
 #[cfg(test)]
@@ -340,6 +361,39 @@ mod tests {
         assert!(!physical_page_fits(0x1000, 0));
         assert!(!physical_page_fits(0x1000, 53));
         assert!(!physical_page_fits(0x1001, 40));
+    }
+    #[test]
+    fn availability_counts_only_admitted_frames_and_tracks_reclaim() {
+        let mut frames = Frames::<6>::new();
+        frames.admit(
+            Range::pages(0, 6).unwrap(),
+            7,
+            8,
+            &[Range::pages(PAGE, 1).unwrap()],
+        );
+        assert_eq!(
+            frames.availability(),
+            FrameAvailability {
+                managed: 4,
+                free: 4
+            }
+        );
+        let allocated = frames.allocate(Owner::Kernel, |_| {}).unwrap();
+        assert_eq!(
+            frames.availability(),
+            FrameAvailability {
+                managed: 4,
+                free: 3
+            }
+        );
+        frames.free(allocated, Owner::Kernel, |_| {}).unwrap();
+        assert_eq!(
+            frames.availability(),
+            FrameAvailability {
+                managed: 4,
+                free: 4
+            }
+        );
     }
     fn pool<const N: usize>() -> Frames<N> {
         let mut p = Frames::new();

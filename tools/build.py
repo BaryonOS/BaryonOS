@@ -40,12 +40,17 @@ IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
 SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
-                   "native-smp", "test-smp-ap-stall", "test-smp-ap-mismatch", "test-smp-ap-nmi",
+                   "native-acpi-s5", "test-acpi-s5-corrupt-dsdt",
+                   "native-smp", "native-smp-legacy", "native-smp-m3", "native-smp-m3-exit",
+                   "native-smp-m3-tlb-reuse", "native-smp-m3-lock-contention", "native-smp-m4",
+                   "test-smp-ap-stall", "test-smp-ap-mismatch", "test-smp-ap-nmi",
                    "test-smp-ap-double-fault", "test-smp-ap-ipi-deaf", "test-smp-ap-shootdown-deaf",
                    "test-smp-shootdown-skipped", "test-smp-ap-timer-dead", "test-smp-lockdep-order", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
                    "milestone-m4", *(f"test-m4-{case}" for case, _ in M4_CASES),
+                   "native-smp-m4-revoke",
+                   "native-smp-m3-exit",
                    "milestone-m5", *(f"test-m5-{case}" for case in M5_CASES),
                    "milestone-m6a", *(f"test-m6a-{case}" for case in M6A_CASES),
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
@@ -115,8 +120,22 @@ def inspect_pe(path):
     return {"format": "AMD64 PE32+", "subsystem": "EFI_APPLICATION", "imports": 0}
 
 
+def native_smp_handoff_required(kernel_feature):
+    """Only opt-in native SMP test profiles need the ACPI/MADT SMP handoff."""
+    return bool(kernel_feature and any(
+        (part == "native-smp-legacy" or part.startswith("native-smp-m3") or part.startswith("native-smp-m4"))
+        for part in kernel_feature.split(",")
+    ))
+
+
 def build(loader_feature=None, kernel_feature=None, label="normal", image_version=None):
-    if kernel_feature in WINDOW_FEATURES:
+    if native_smp_handoff_required(kernel_feature):
+        if loader_feature not in (None, "smp-handoff"):
+            raise ValueError("native SMP needs the matching SMP handoff loader")
+        loader_feature = "smp-handoff"
+    elif loader_feature == "smp-handoff":
+        raise ValueError("SMP handoff loader requires a native SMP kernel")
+    elif kernel_feature in WINDOW_FEATURES:
         wanted="desktop-hidpi" if kernel_feature=="native-window-session-hidpi" else "desktop-mode"
         if loader_feature not in (None,wanted):
             raise ValueError("Window session requires its matching desktop loader")
@@ -389,7 +408,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test"])
+    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test", "signed-boot", "smp-handoff"])
     parser.add_argument("--image-version", type=int, help="B03: NOS_IMAGE_VERSION of an update kernel")
     parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()
