@@ -197,9 +197,14 @@ impl Firmware {
                 if address == 0 || address >= (1u64 << 52) {
                     return Err(b"ACPI_TABLE_ADDRESS");
                 }
-                let table = sdt_bytes(address as *const u8)?;
-                if &table[..4] == b"APIC" {
-                    madt = Some(table);
+                if !address.is_multiple_of(4) {
+                    return Err(b"ACPI_TABLE_ALIGNMENT");
+                }
+                // SAFETY: Firmware owns this ACPI descriptor address until EBS;
+                // alignment and address range were checked before the prefix read.
+                let signature = unsafe { core::slice::from_raw_parts(address as *const u8, 4) };
+                if signature == b"APIC" {
+                    madt = Some(sdt_bytes(address as *const u8)?);
                     break;
                 }
             }
