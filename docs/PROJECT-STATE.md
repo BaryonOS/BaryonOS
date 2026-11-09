@@ -1,5 +1,22 @@
 # Current project status
 
+## H05 native ACPI S5 integration — PR #213 (9 November 2026)
+
+The opt-in `native-acpi-s5` kernel profile connects the existing
+`drivers/acpi-power` parser to bounded FADT/DSDT discovery and ACPI S5 port
+writes in the fixed QEMU/OVMF configuration. Invalid firmware remains on a
+no-write diagnostic path. The change adds a reset-sensitive QEMU oracle,
+five positive and two negative native runs, and the `native-power.yml`
+workflow. Source-bound original evidence is retained in
+[`verification/h05-acpi-s5/`](verification/h05-acpi-s5/).
+
+PR #213 also reconciles the CI evidence-preservation test with 17 selected
+workflows and translates the new ADR-076 and verification record to English.
+The PR's latest-head checks are the integration evidence; original local
+results are not attributed to a later revision. No physical-hardware,
+service-initiated power-off, S3 sleep/wake or complete ACPI support is claimed.
+**Progress remains 41/100; H05 is still open.**
+
 ## PR #181 — PCI device lifecycle policy checkpoint — 9 November 2026
 
 The new `kernel-core` device execution lease registry models PCI function/generation binding, bounded config and BAR access, directional DMA grants, interrupt teardown, quarantine and release. It is a host-testable policy model only; no production kernel driver adapter is connected. Bus-master enablement is test-only until a kernel-issued, enforced DMA/IOMMU-containment proof exists. Live DMA frames are not pinned against the generic allocator's free path. Do not treat this as native PCI, DMA/IOMMU or physical-hardware acceptance.
