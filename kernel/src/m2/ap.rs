@@ -230,7 +230,7 @@ __ap_trampoline_boot_data_operand:
     shr ebx, 24
     xor ecx, ecx
 1:
-    cmp ecx, 4
+    cmp ecx, {max_cpus}
     jae 4f
     cmp ebx, dword ptr [ebp + {apic_ids_offset} + ecx * 4]
     je 2f
@@ -311,6 +311,7 @@ __ap_trampoline_end:
 .set __ap_trampoline_gdtr_offset, __ap_trampoline_gdtr - __ap_trampoline_start
 "#,
     apic_ids_offset = const core::mem::offset_of!(BootstrapData, apic_ids),
+    max_cpus = const MAX_CPUS,
     stack_tops_offset = const core::mem::offset_of!(BootstrapData, stack_tops),
     cr3_offset = const core::mem::offset_of!(BootstrapData, cr3),
     ap_cr0_clear = const !AP_CR0_CLEAR,

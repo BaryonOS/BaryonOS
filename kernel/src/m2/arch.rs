@@ -33,11 +33,36 @@ static mut AP_NMI: [Stack; MAX_APS] = [Stack::new(), Stack::new(), Stack::new(),
 pub fn stack_top() -> u64 {
     ptr::addr_of!(MAIN) as u64 + 20480
 }
-pub fn guard_pages() -> [u64; 6] {
+fn bootstrap_guard_pages() -> [u64; 6] {
     let main = ptr::addr_of!(MAIN) as u64;
     let double = ptr::addr_of!(DOUBLE) as u64;
     let nmi = ptr::addr_of!(NMI) as u64;
     [main, main + 20480, double, double + 20480, nmi, nmi + 20480]
+}
+#[cfg(not(feature = "native-smp"))]
+pub fn guard_pages() -> [u64; 6] {
+    bootstrap_guard_pages()
+}
+#[cfg(feature = "native-smp")]
+pub fn guard_pages() -> [u64; 6 + MAX_APS * 4] {
+    let mut guards = [0; 6 + MAX_APS * 4];
+    guards[..6].copy_from_slice(&bootstrap_guard_pages());
+    // Address calculations only: no references to mutable static stacks.
+    let double_base = ptr::addr_of!(AP_DOUBLE) as u64;
+    let nmi_base = ptr::addr_of!(AP_NMI) as u64;
+    let stride = core::mem::size_of::<Stack>() as u64;
+    for index in 0..MAX_APS {
+        let double = double_base + index as u64 * stride;
+        let nmi = nmi_base + index as u64 * stride;
+        let start = 6 + index * 4;
+        guards[start..start + 4].copy_from_slice(&[
+            double,
+            double + 20480,
+            nmi,
+            nmi + 20480,
+        ]);
+    }
+    guards
 }
 pub fn is_guard(address: u64) -> bool {
     guard_pages().contains(&address)
