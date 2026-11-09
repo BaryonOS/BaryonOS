@@ -851,7 +851,10 @@ impl DeviceLease {
     }
 
     // Not a public driver API until the kernel can enforce IOMMU DMA containment.
-    pub(crate) fn enable_bus_master<C: DeviceControl>(&mut self, control: &mut C) -> Result<(), Error> {
+    pub(crate) fn enable_bus_master<C: DeviceControl>(
+        &mut self,
+        control: &mut C,
+    ) -> Result<(), Error> {
         if self.phase != Phase::Initializing
             || self.bus_master
             || !self.dma.iter().any(|record| record.live)
