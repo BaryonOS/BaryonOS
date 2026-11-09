@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "branch": "simonvanieperen-studious-spoon",
+  "source_commit": "22b7bbabb336439dcf478fbd8151b6c10b535bf0",
+  "tested_head": "7616d8f4cd982c6a2239ea266ae1aaa73a4f372b",
+  "source_fingerprint_version": 3,
+  "source_sha256": "8fa02e74731c55def30087e4fbf5e0a0b7890b83fb142fb79f11083ecaa60382",
+  "scope": "Window-session NativeIdle routes monotonic time and bounded IPC waits through the SDK clock runtime.",
+  "host_validation": {
+    "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=\"$PWD/target/window-session-host\" cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml",
+    "rust_tests_passed": 49,
+    "python_runner_tests_passed": 10,
+    "windows_package_tests_passed": 21,
+    "clippy": "passed with -D warnings",
+    "rustfmt": "passed",
+    "diff_check": "passed"
+  },
+  "native_build": {
+    "command": "PATH=\"/tmp/nieuw-os-qemu/root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" LD_LIBRARY_PATH=\"/tmp/nieuw-os-qemu/root/usr/lib/x86_64-linux-gnu\" OS_OVMF_CODE=/tmp/nieuw-os-qemu/root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/nieuw-os-qemu/root/usr/share/OVMF/OVMF_VARS_4M.fd NOS_QEMU_MACHINE=pc-q35-8.2 NOS_BUILD_DIR=\"$PWD/build/window-session-ci/probe\" NOS_TARGET_DIR=\"$PWD/target/window-session-ci-native\" CARGO_TARGET_DIR=\"$PWD/target/window-session-ci-host\" CARGO_NET_OFFLINE=true python3 -B -u tools/build.py --kernel-feature native-window-session-probe",
+    "exit_code": 0,
+    "native_runtime_performed": false
+  },
+  "native_run": {
+    "command": "PATH=\"/tmp/nieuw-os-qemu/root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" LD_LIBRARY_PATH=\"/tmp/nieuw-os-qemu/root/usr/lib/x86_64-linux-gnu\" OS_OVMF_CODE=/tmp/nieuw-os-qemu/root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/nieuw-os-qemu/root/usr/share/OVMF/OVMF_VARS_4M.fd NOS_QEMU_MACHINE=pc-q35-8.2 NOS_BUILD_DIR=\"$PWD/build/window-session-ci/probe\" NOS_TARGET_DIR=\"$PWD/target/window-session-ci-native\" CARGO_TARGET_DIR=\"$PWD/target/window-session-ci-host\" python3 -B -u tools/run_window_session.py --clipboard --timeout 1800 --bios-rom /tmp/nieuw-os-qemu/root/usr/share/seabios/bios-256k.bin --vga-rom /tmp/nieuw-os-qemu/root/usr/share/seabios/vgabios-stdvga.bin",
+    "exit_code": 0,
+    "passed": true,
+    "native_gate": true,
+    "clipboard_gate": true,
+    "smoke_only": false,
+    "raw_qemu_exit": 33,
+    "duration_seconds": 242.26,
+    "observed_phases": 22,
+    "qmp_events": 453
+  },
+  "qemu": {
+    "version": "10.2.1 (Ubuntu package 1:10.2.1+ds-1ubuntu3.3)",
+    "machine": "pc-q35-8.2",
+    "binary_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+    "package_sha256": "9bb6f0aa031accc0e1c4ffa25d92b7563ae1d5b0726e4b07e9f2babe876daa75",
+    "ovmf_code_sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "ovmf_vars_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "bios_sha256": "e26615f9ad430328f49ca105e570b2dc4490a08a34ea73d27cae8b809a30ee06",
+    "vga_rom_sha256": "c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde",
+    "installation": "Official Ubuntu packages unpacked under /tmp; no system installation."
+  },
+  "artifacts": {
+    "serial_sha256": "163d01d6b59dbc7521501d6fe24004e4082d69b16b0035f77f168e6afa120cd1",
+    "disposable_volume_sha256": "246c8f9773533796718a729389c26d6103f45f04e7a83b4d06503e17c6d4e07e",
+    "screenshots": 23,
+    "disk_oracle": {
+      "revision": 1,
+      "length": 14,
+      "content_sha256": "9a45a00fa9ff69c17e124f54c14bb14cf2c7650e8cf1c272f6631f618a19a5a5",
+      "canaries_intact": true
+    }
+  },
+  "generated_logs": [
+    "build/window-session-ci/probe/window-session-report.json",
+    "build/window-session-ci/probe/run/window-563829c7ac9a478aadc38e425eca071b/serial.txt",
+    "build/window-session-ci/probe/run/window-563829c7ac9a478aadc38e425eca071b/*.ppm",
+    "build/window-session-ci/probe/run/window-563829c7ac9a478aadc38e425eca071b/volume.img"
+  ],
+  "limitations": [
+    "QEMU 10.2.1 was used with the pc-q35-8.2 machine profile; this is not the QEMU build from the CI image.",
+    "VM evidence only; no physical hardware or human usability test.",
+    "No maturity rubric criterion closed; score remains 41/100."
+  ]
+}

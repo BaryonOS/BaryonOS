@@ -70,6 +70,15 @@ of bewijs tegen hashcollisies. Gebruik de volledige scan niet op ieder normaal
 syscallpad; negatieve kernelproeven kunnen voor/na vergelijken. Hosttests
 vergelijken de volledige `Engine`-toestand, zonder hashcollisieaanname.
 
+`Stats` rapporteert daarnaast globale live aantallen en vrije, niet-gepensioneerde
+capaciteit voor de bestaande proces-, handle-, node-, endpoint-, queue- en
+getypeerde objecttabellen. `threads` telt in het huidige model één scheduler-
+context per geregistreerd proces; er zijn geen los aanmaakbare threads.
+Beschikbaarheid wordt per resource afgeleid en reserveert niets: rechten,
+eigenaarsquota en gecombineerde allocatievoorwaarden blijven afzonderlijke
+controles. De snapshot omvat geen procesgeheugen, gedeelde/pinned buffers,
+CPU-tijd, opslag of driverresources en is geen kernel-/gebruikersrapportage-API.
+
 ## Werkelijk uitgevoerd
 
 Rust 1.90.0, Windows MSVC-host, afzonderlijke targetmap
