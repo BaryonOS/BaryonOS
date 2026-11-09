@@ -6,6 +6,8 @@ expression engine, the test commands, or native QEMU acceptance.
 
 from pathlib import Path
 import re
+import subprocess
+import tomllib
 import unittest
 
 import yaml
@@ -29,6 +31,54 @@ class UniqueKeyLoader(yaml.BaseLoader):
                 )
             result[key] = self.construct_object(value_node, deep=deep)
         return result
+
+
+class DependabotContractTests(unittest.TestCase):
+    """Cover independent Cargo workspaces without multiplying update PRs."""
+
+    def setUp(self):
+        self.config = yaml.load(
+            (ROOT / ".github/dependabot.yml").read_text(encoding="utf-8"),
+            Loader=UniqueKeyLoader,
+        )
+
+    def test_each_owned_cargo_workspace_is_covered_once(self):
+        """Find workspace boundaries, excluding members and vendored packages."""
+        manifests = subprocess.check_output(
+            ["git", "ls-files", "-z", "--", "Cargo.toml", "**/Cargo.toml"],
+            cwd=ROOT,
+        ).decode().split("\0")
+        expected = set()
+        for manifest in filter(None, manifests):
+            data = tomllib.loads((ROOT / manifest).read_text(encoding="utf-8"))
+            if "workspace" in data:
+                directory = Path(manifest).parent.as_posix()
+                expected.add("/" if directory == "." else "/" + directory)
+        self.assertTrue(expected)
+        configured = []
+        for update in self.config["updates"]:
+            if update["package-ecosystem"] == "cargo":
+                self.assertNotEqual("directory" in update, "directories" in update)
+                configured.extend(
+                    update["directories"] if "directories" in update
+                    else [update["directory"]]
+                )
+        self.assertEqual(len(configured), len(set(configured)), "duplicate workspace")
+        self.assertEqual(set(configured), expected)
+
+    def test_multi_directory_updates_are_monthly_and_grouped(self):
+        """Keep same-dependency updates together across independent roots."""
+        for update in self.config["updates"]:
+            if update["package-ecosystem"] != "cargo" or "directories" not in update:
+                continue
+            with self.subTest(directories=update["directories"]):
+                self.assertEqual(update["schedule"]["interval"], "monthly")
+                self.assertEqual(update["open-pull-requests-limit"], "2")
+                self.assertEqual(update["groups"], {
+                    "cargo-independent": {
+                        "patterns": ["*"], "group-by": "dependency-name",
+                    },
+                })
 
 
 class WorkflowContractTests(unittest.TestCase):
