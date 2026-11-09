@@ -69,7 +69,7 @@ def main() -> int:
     save_json(receipt, summary)
     command = [
         sys.executable, "-B", "-m", "unittest", "discover",
-        "-s", "tools/tests", "-p", "test_smp.py",
+        "-s", "tools/tests", "-p", "test_smp_host.py",
     ]
     env = dict(os.environ, PYTHONPATH=str(ROOT / "tools"))
     try:
