@@ -1,3 +1,4 @@
+# Second-pass cleanup for stale rerun attempts; hosted workflows are excluded.
 name: Clear orphaned self-hosted Actions queue (one-shot)
 
 on:
