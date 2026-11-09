@@ -6,6 +6,7 @@ expression engine, the test commands, or native QEMU acceptance.
 
 from pathlib import Path
 import re
+import shlex
 import subprocess
 import tomllib
 import unittest
@@ -235,9 +236,34 @@ class WorkflowContractTests(unittest.TestCase):
                 self.assertTrue(scalar, "missing freestanding component build")
                 for step in scalar:
                     flags = {**job.get("env", {}), **step.get("env", {})}.get("RUSTFLAGS", "")
+                    if filename == "artifact-store-quality.yml":
+                        args = shlex.split(step["run"])
+                        extra = tomllib.loads(args[args.index("--config") + 1])
+                        target = "x86_64-unknown-none"
+                        base = tomllib.loads((ROOT / ".cargo/config.toml").read_text())
+                        flags = " ".join(base["target"][target]["rustflags"] +
+                                         extra["target"][target]["rustflags"])
                     self.assertIn("no-redzone=yes", flags)
                     self.assertIn("-sse2", flags)
                     self.assertIn("-avx2", flags)
+
+    def test_artifact_build_preserves_target_rustflags(self):
+        """Scalar CI additions must merge with the mandatory target contract."""
+        workflow = self.workflows[".github/workflows/artifact-store-quality.yml"]
+        job = workflow["jobs"]["artifact-store-core"]
+        step = next(s for s in job["steps"] if s.get("name") == "Freestanding library build")
+        for scope in (workflow, job, step):
+            env = scope.get("env", {})
+            for key in ("RUSTFLAGS", "CARGO_ENCODED_RUSTFLAGS",
+                        "CARGO_TARGET_X86_64_UNKNOWN_NONE_RUSTFLAGS"):
+                self.assertNotIn(key, env)
+        args = shlex.split(step["run"])
+        self.assertEqual(args[:3], ["cargo", "+1.90.0", "build"])
+        self.assertEqual(args.count("--config"), 1)
+        additions = tomllib.loads(args[args.index("--config") + 1])
+        self.assertEqual(additions, {"target": {"x86_64-unknown-none": {
+            "rustflags": ["-C", "target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2"],
+        }}})
 
     def test_artifact_component_filter_includes_shared_build_inputs(self):
         """The dedicated gate replaces its broad matrix entry for shared changes too."""

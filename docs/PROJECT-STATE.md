@@ -1,6 +1,32 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #167 switcher review repair — 10 November 2026
+## NEXT AGENT HANDOFF — Issue #292 target-flag repair — 10 November 2026
+
+**Source:** PR #295 implementation commit
+`a88a73ffb5baebc03a28ccd2e9f3a56c53bed5a0`, rebased onto the #167 squash
+base `bd1322b80f11796e55a009d1862813558a8c78b5`. The artifact-store workflow
+uses additive Cargo configuration so the freestanding target retains its code
+model, relocation model, linker arguments, and scalar CPU-feature restrictions.
+`.cargo/config.toml`, kernel runtime behavior, capabilities, and dependencies
+are unchanged.
+
+**Prior evidence:** nine artifact-store contract tests, warning-denying Clippy,
+formatting, the freestanding library build, and twelve workflow contract tests
+passed on the original implementation tree. The regression test rejects the
+former environment-level `RUSTFLAGS` override. Commands and observed compiler
+arguments are retained in
+[`verification/artifact-store-target-flags.md`](verification/artifact-store-target-flags.md).
+That evidence does not automatically validate the rebased head.
+
+**Acceptance:** **39/100 → 39/100**. This CI correction closes no OS product
+criterion and is not native runtime evidence.
+
+**Next:** run the workflow contract tests, artifact-store tests/Clippy/format,
+freestanding build, strict preflight, normal build, QEMU smoke, progress check,
+and current-head hosted review/checks. Squash only with the exact validated head
+SHA; issue #292 remains subject to the repository's normal issue lifecycle.
+
+## Historical checkpoint — PR #167 switcher review repair — 10 November 2026
 
 **Proposal:** VELD-08 remains a bounded Alt+Tab subgate. It does not accept the
 complete native session, recovery, accessibility, or interaction-budget criteria.
@@ -44,7 +70,7 @@ service-initiated power-off, S3 sleep/wake, independently traced negative
 PM1 writes or complete ACPI support is claimed.
 **The current acceptance score remains 39/100; H05 is still open.**
 
-**NEXT AGENT HANDOFF (PR #213):** Main `04c8b224e3062400288a353056b75abdd3bcbba5`
+**Historical handoff (PR #213):** Main `04c8b224e3062400288a353056b75abdd3bcbba5`
 and the prior PR source `9d88326be637adccfeccc743f31b3c67185e16a8`
 were integrated at `16d8346a2968f0315334e8190eb66e8103b14cf6`;
 `ee047c512c8637f57b72528515c564f9092f164a` fixes the CI evidence counts.
@@ -64,7 +90,7 @@ Physical-hardware evidence remains missing, so H05 stays open.
 
 **Progress:** **39/100 → 39/100.** A successful switcher subgate does not close the complete native integration, accessibility or recovery criteria.
 
-**NEXT AGENT HANDOFF (PR #167):** Publish the integrated source without rewriting history. Confirm current-head CodeRabbit, CodeQL and required GitHub checks, then squash-merge with the expected head SHA.
+**Historical handoff (PR #167):** Publish the integrated source without rewriting history. Confirm current-head CodeRabbit, CodeQL and required GitHub checks, then squash-merge with the expected head SHA.
 
 ## PR #154 — reviewed K06 and experimental M3/M4 SMP integration — 9 November 2026
 
