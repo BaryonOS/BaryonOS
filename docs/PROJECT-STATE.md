@@ -1,5 +1,35 @@
 # Current project status
 
+## PR #214 — Horizon desktop integration — 9 November 2026
+
+**Source:** PR #214 (`ui/desktop-2030`), integrating main `c663f0b6386203e17e28d52c2c79da161205ee26`
+while retaining PR #155's keyring authorisation fix and 39/100 assessment.
+The Horizon implementation remains host-rendered; no native UI acceptance is
+claimed. Existing CI workflows and capability boundaries are unchanged.
+
+**Fixes:** the SDK protocol-chain semantic heading now expects the visible
+`Nebula` label; the graphics wallpaper matches rustfmt; the Orbit dock avoids
+integer underflow on tiny widths and has a focused regression test. Previous
+positive fade guards and focus-ring behavior are preserved. Desktop-shell
+documentation distinguishes the planned running-app indicator from the
+implemented view, where the dock is not rendered while Nebula is open.
+
+**Evidence:** on prior head `d54b174005338d82fa5222a7eee770a373fe5c80`, GitHub
+`host-quality` failed on the old heading assertion; `native-display-input`
+failed on rustfmt, and `native-window-session` failed in the same
+protocol-chain test. Prior `qemu-smoke` passed, but is not current-head
+evidence. No local Rust, progress, preflight, build or QEMU commands ran in
+this GitHub-connector environment. The integrated PR HEAD requires fresh CI.
+Progress stays **39/100**; no criterion is newly accepted. Native UX and
+user-task observations remain open.
+
+**NEXT AGENT HANDOFF:** verify `python3 tools/progress.py --check`,
+`python3 tools/preflight.py --strict`, `python3 tools/build.py`, and
+`python3 tools/run.py --smoke` on the integrated head; review CodeRabbit
+and the required GitHub `host-quality`/`qemu-smoke` statuses before
+squash-merge. The separate B01 positive native recovery test remains open
+under PR #155's checkpoint.
+
 ## PR #155 keyring recovery authorization — 9 November 2026
 
 **Source:** PR #155 security code at `ef391def0a4bcd825f4664ab21de844ccd4f7ee4` was integrated with main `9554d677c0ab8dd9acfce47f9abe43e22c0215c8` on the existing PR branch. The current main CI workflows and concise documentation hierarchy were preserved. Ordinary applications can no longer export or restore keyring recovery material; only a separately authenticated management ingress can dispatch these operations. No new native management capability was granted.
