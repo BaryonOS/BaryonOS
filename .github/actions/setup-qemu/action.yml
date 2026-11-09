@@ -14,7 +14,8 @@ runs:
       run: |
         set -euo pipefail
         . /etc/os-release
-        test "$ID" = ubuntu && test "$VERSION_ID" = 24.04
+        test "$ID" = ubuntu
+        test "$VERSION_ID" = 24.04
         test "$(dpkg --print-architecture)" = amd64
         case "$INSTALL_SWTPM" in
           true|false) ;;

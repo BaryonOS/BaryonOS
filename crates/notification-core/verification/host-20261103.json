@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "branch": "simonvanieperen-studious-spoon",
+  "source_commit": "afd3c02de9618046fc7c397671b0a4fc0b63e409",
+  "scope": "Standalone no_std notification state core; host tests only.",
+  "source_sha256": {
+    "crates/notification-core/Cargo.toml": "aa1930dc67c14053aedf1e446450b41f82c4c54c3b6bb013f75664d6da487670",
+    "crates/notification-core/Cargo.lock": "8a2931b4b4b9cf3b09c56d12dc783fc317b00a27e6e85e4b85899cfdcd543926",
+    "crates/notification-core/README.md": "cd1d97640974c406e9bafc07ee5c165c445b4a70ff17ad768d02c0943e78c4d5",
+    "crates/notification-core/src/lib.rs": "c168f9286e73e07c79d7d962d0854d9a9c6850b6191347a81254e33fc51a70f3"
+  },
+  "environment": "Rust 1.90.0; CARGO_TARGET_DIR=/tmp/nieuw-os-notification-target; no dependencies.",
+  "checks": [
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-notification-target $HOME/.cargo/bin/cargo +1.90.0 test --manifest-path crates/notification-core/Cargo.toml --offline --locked",
+      "exit_code": 0,
+      "results": "6 unit tests passed.",
+      "log": "/tmp/nieuw-os-notification-test.log",
+      "log_sha256": "005e77b9ed6e759017dfa91c49b8a5bb029bb884e4fd7c1d8e3ecb93a21e61db"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-notification-target $HOME/.cargo/bin/cargo +1.90.0 clippy --manifest-path crates/notification-core/Cargo.toml --all-targets --locked -- -D warnings",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-notification-clippy.log",
+      "log_sha256": "aa0653d586752587137e50f750e345c56e91434158ebfc4ecc765da90c6363c6"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-notification-target $HOME/.cargo/bin/cargo +1.90.0 check --manifest-path crates/notification-core/Cargo.toml --target x86_64-unknown-none --locked",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-notification-none.log",
+      "log_sha256": "edfe7c630d26d9ae4cfbe344ad867b3f4a88d25081cd914dfd9bc3013ddae4c9"
+    },
+    {
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" CARGO_TARGET_DIR=/tmp/nieuw-os-notification-target $HOME/.cargo/bin/cargo +1.90.0 fmt --manifest-path crates/notification-core/Cargo.toml -- --check",
+      "exit_code": 0,
+      "log": "/tmp/nieuw-os-notification-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "implemented": [
+    "Nonzero notification, producer, message-reference, and action-reference identifiers.",
+    "Fixed-capacity storage with duplicate-ID and full-capacity refusal.",
+    "Per-producer bounded rate windows, monotonic-time checks, explicit expiry, and dismissal.",
+    "Producer exit removes its notifications and permanently rejects later posts for that producer identity.",
+    "Locked-session display only exposes Public entries; private/sensitive message and action references are not returned."
+  ],
+  "limitations": [
+    "No authenticated producer authority, per-app permission policy, native reader capability, persistent history, UI, or real producer consumer is integrated.",
+    "Priority is display metadata only and grants no authorization.",
+    "The bounded producer identity table is process-local and does not model persistent identity generations.",
+    "This is a PARTIAL host-tested primitive, not an OS notification service or release evidence."
+  ]
+}

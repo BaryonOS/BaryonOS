@@ -37,6 +37,11 @@ updates:
   # vendored third-party packages outside this explicit, owned-root list.
   - package-ecosystem: cargo
     directories:
+      - /crates/background-job-core
+      - /crates/firmware-descriptor-core
+      - /crates/notification-core
+      - /crates/power-lifecycle-core
+      - /crates/system-journal
       - /drivers/acpi-power
       - /drivers/ps2
       - /drivers/rtc
