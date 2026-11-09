@@ -126,20 +126,10 @@ def main() -> int:
                     "private-address-spaces-preemption-fairness-cleanup",
                     label="m3-single-smp-regression",
                 )
-            elif runner == "m3-smp":
-                report = run_smp(cpus, profile=feature)
-            elif runner == "m3-exit-smp":
-                report = run_smp(cpus, profile=feature)
-            elif runner == "m3-tlb-smp":
-                report = run_smp(cpus, profile=feature)
-            elif runner == "m4-smp":
-                report = run_smp(cpus, profile=feature)
             elif runner == "m4-lifecycle-smp":
                 report = run_smp(cpus, profile="native-smp-m4-lifecycle")
-            elif runner == "m4-revoke-smp":
-                report = run_smp(cpus, profile=feature)
             else:
-                report = run_smp(cpus)
+                report = run_smp(cpus, profile=feature)
             summary["stages"].append({
                 "profile": label,
                 "kernel_feature": feature,

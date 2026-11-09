@@ -22,7 +22,7 @@ on:
       - 'Cargo.lock'
       - 'rust-toolchain.toml'
       - '.github/workflows/volume-acceptance.yml'
-      - '.github/actions/preserve-evidence/**'
+      - '.github/actions/**'
 
 permissions:
   contents: read
