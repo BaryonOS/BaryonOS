@@ -58,6 +58,11 @@ Durations, hashes, commands and full serial output are retained in
 fingerprint v3
 `f60c0d61af7da029ef9e126afc7aec4913586f96a73eaa6c8b4f5c08099652e0`.
 
+The public JSON report replaces 14 developer-specific absolute home-directory
+prefixes in `guest.command` with `<LOCAL_HOME>`. This is a publication
+redaction, not a re-executed command. Exit codes, serial output, timing
+fields and the recorded source fingerprint were not changed.
+
 ## Commands and regression
 
 ```bash
