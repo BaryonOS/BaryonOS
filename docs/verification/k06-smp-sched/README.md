@@ -2,11 +2,13 @@
 
 **Status: acceptance open.** Each of the 64 cases must pass exactly 50/50 on one frozen source, including all 50 complete ten-minute combined soaks. The aggregate and the subsequent repository gate must also pass. A failed or missing repetition rejects acceptance.
 
-**New host-checked candidate:** source-v3 `58f7cc8a20db1c0f3afe30241fb14c125e7c75b62b984c6412056a19923a3eae` adds only the ordinary canary CPU hint described below. It requires a new full restart; no preceding repetition is reused.
+**Current full restart:** [42748931069](https://github.com/simonvanieperen/BaryonOS/actions/runs/42748931069), frozen commit `22dfceaf1fe4b1c4a499440b4199b951d85025f9`, source-v3 `58f7cc8a20db1c0f3afe30241fb14c125e7c75b62b984c6412056a19923a3eae`, is executing from zero. Earlier full run `42746968098` was superseded/cancelled, and no repetition is reused. All requirements above remain mandatory.
 
-**Current full restart:** [42746968098](https://github.com/simonvanieperen/BaryonOS/actions/runs/42746968098) is pending on frozen commit `3b6c9a68bbe6b4f41956e055fa7cf2326bc34cf7`, source-v3 `a6ce4a41bea9d95462d9803abcff5bf690eb31c1431e4e7807cab0d312af02f9`. It follows [diagnostic 42746512322](https://github.com/simonvanieperen/BaryonOS/actions/runs/42746512322) on the same commit; traced repetitions supply **zero** of the 3200 required matrix runs. Diagnostic setup/build is green and its repetitions are running. Earlier pending full run `42741185181` was cancelled before matrix execution; no result is reused.
+**Verification blocked:** the selected Cloud environment is unavailable. The connected API reports initial job successes without known failure, but new ZIP hashes/CRC/raw bindings and the full independent verifier have not been checked. These status observations are not acceptance. Restore the same workspace before completing evidence preservation and local documentation/progress checks; 41/100 remains unchanged. Original GitHub artifacts are retained.
 
-**Latest rejected restart:** [42731994218](https://github.com/simonvanieperen/BaryonOS/actions/runs/42731994218), tested source `59a30f10ceb558d1e31408afece49ca5c331df20`, source-v3 `505c25139b4d23d78aa9da406108aad437ba7a763b1b1c67b0cc6074a4d8f2ae`, remains running but has a red case and cannot be accepted. The next candidate is described below; no repetition is reused.
+**Diagnostic boundary:** run `42746512322` on preceding source `3b6c9a68` completed with 50/50 traced successes, independently read back before the outage. Ordered PIC traces in two repetitions show multiple IRQ0 rises before an acknowledgement. The text traces have no timestamps, do not reproduce a clock failure and do not establish historical host-scheduling causality. They supply none of the required 3200 uninstrumented runs. The complete diagnostic receipt remains in the currently unavailable workspace and has not yet been committed.
+
+**Latest rejected restart:** [42731994218](https://github.com/simonvanieperen/BaryonOS/actions/runs/42731994218), tested source `59a30f10ceb558d1e31408afece49ca5c331df20`, source-v3 `505c25139b4d23d78aa9da406108aad437ba7a763b1b1c67b0cc6074a4d8f2ae`, is complete with failure and cannot be accepted. Final counts are preserved below; no repetition is reused.
 
 ## Completed rejected run
 
