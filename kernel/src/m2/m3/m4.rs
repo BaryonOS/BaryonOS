@@ -314,21 +314,58 @@ fn dispatch(
         _ => unreachable!(),
     }
 }
+
+/// Prove that a capability-free IPC operation has no remaining error path.
+/// KERNEL and, on SMP, this process's ASPACE lease stay held through the real
+/// dispatch, so neither the queue nor the validated user bytes can change.
+/// Calls with capabilities, malformed input or an unavailable queue retain the
+/// complete exact authority snapshot below.
+fn capless_ipc_will_succeed(state: &State, slot: usize, number: u64, args: [u64; 6]) -> bool {
+    if !matches!(number, 0x20 | 0x21)
+        || args[2] != 320
+        || args[3..].iter().any(|arg| *arg != 0)
+        || cfg!(feature = "test-m4-snapshot")
+    {
+        return false;
+    }
+    let pid = state.processes[slot].pid;
+    if number == 0x20 {
+        let Some(message) = plan(state, slot, args[1], 320, false)
+            .ok()
+            .and_then(|copy| Message::decode(&read_plan(&copy)).ok())
+        else {
+            return false;
+        };
+        message.cap_count == 0 && engine().capless_endpoint_ready(pid, args[0], SEND) == Ok(true)
+    } else {
+        plan(state, slot, args[1], 320, true).is_ok()
+            && engine().capless_endpoint_ready(pid, args[0], RECV) == Ok(true)
+    }
+}
+
 pub fn syscall(state: &mut State, slot: usize, number: u64, args: [u64; 6]) -> (i64, u64) {
     // R3-6: validation, engine commit and both copies share one address-space
     // lease. Buffered IPC retains no sender user mapping for the receiver.
     #[cfg(feature = "native-smp-m3")]
     let _address = super::ASPACE[slot].lock_irqsave();
-    let before = observe_authority();
+    let proven_success = capless_ipc_will_succeed(state, slot, number, args);
+    let before = (!proven_success).then(observe_authority);
     // On cross-page failure retain evidence for every readable output-prefix
     // byte, including a read-only second page. Nothing is copied to output yet.
     let mut output_before = None;
     let result = dispatch(state, slot, number, args, &mut output_before);
-    let unchanged = result.is_ok() || before.matches_current();
+    let unchanged = result.is_ok()
+        || before
+            .as_ref()
+            .is_some_and(AuthorityObservation::matches_current);
     // Do not retain snapshot contents/lease through evidence observers or the
     // scheduler. Drop observably wipes every Message before releasing storage.
     drop(before);
     assert!(unchanged, "failed syscall changed authority/queue state");
+    assert!(
+        !proven_success || result.is_ok(),
+        "capability-free IPC readiness promise was false"
+    );
     #[cfg(all(
         not(feature = "milestone-m5"),
         not(feature = "native-qsim-job"),

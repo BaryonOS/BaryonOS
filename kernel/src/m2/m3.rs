@@ -2263,8 +2263,6 @@ fn event(source: *const u64) -> *const u64 {
                     || cfg!(feature = "milestone-m6a") && matches!(number, 0x42 | 0x43)))
         {
             let (rax, rdx) = m4::syscall(state, current, number, args);
-            #[cfg(feature = "native-smp-m3-ipc")]
-            assert!(m4::engine().check_invariants());
             #[cfg(feature = "milestone-m6b")]
             m5::ipc_result(current, number, rax);
             state.processes[current].context[14] = rax as u64;

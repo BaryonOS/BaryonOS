@@ -284,6 +284,11 @@ _start:
 // Mode 20: real cross-process IPC with readiness waits. Private phase and
 // sequence survive every syscall and CPU handoff; the kernel owns verdicts.
 .Lipc:
+    // Mode 20 branches around the ordinary-canary PAUSE above. Give TCG the
+    // same host-vCPU rotation hint before each real IPC step without yielding
+    // or blocking this guest process; SEND/RECV/WAIT and all 10,000 rounds
+    // remain unchanged.
+    pause
     cmp qword ptr [r12 + 104], 0
     jne .Lloop
     cmp qword ptr [r12 + 120], 0

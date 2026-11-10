@@ -1236,6 +1236,33 @@ impl Engine {
             endpoint.len != 0
         })
     }
+
+    /// A stronger read-only readiness query for an IPC operation without
+    /// transferred capabilities. With external serialization, complete
+    /// message/usercopy validation and `true`, the matching [`send`](Self::send)
+    /// or [`receive`](Self::receive) has no remaining fallible step.
+    ///
+    /// This is deliberately separate from [`endpoint_queue_ready`]: IPC_WAIT
+    /// remains advisory for general messages that may still fail a capability
+    /// quota or revocation check.
+    pub fn capless_endpoint_ready(
+        &self,
+        pid: u64,
+        handle: u64,
+        interest: u64,
+    ) -> Result<bool, Error> {
+        if interest != SEND && interest != RECV {
+            return Err(Error::Invalid);
+        }
+        self.check_endpoint(pid, handle, interest)?;
+        let node = self.resolve(pid, handle)?;
+        let endpoint = &self.endpoints[self.nodes[node].object.index as usize];
+        Ok(if interest == SEND {
+            usize::from(endpoint.len) < QUEUE_CAPACITY
+        } else {
+            endpoint.len != 0 && endpoint.queue[endpoint.head as usize].message.cap_count == 0
+        })
+    }
     /// Boot-manifest constructor only; no user syscall grants object creation.
     pub fn create_block_device(&mut self, owner: u64, scope: BlockScope) -> Result<u64, Error> {
         self.create_block_device_with_rights(owner, scope, BLOCK_READ_RIGHTS)
@@ -2771,6 +2798,14 @@ mod wait_readiness_tests {
         assert_eq!(e.stats(), stats);
         result
     }
+    fn capless(e: &Engine, pid: u64, h: u64, interest: u64) -> Result<bool, Error> {
+        let before = e.clone();
+        let stats = e.stats();
+        let result = e.capless_endpoint_ready(pid, h, interest);
+        assert_eq!(*e, before);
+        assert_eq!(e.stats(), stats);
+        result
+    }
     #[test]
     fn queue_empty_full_wrap_queries_are_read_only() {
         run(|e| {
@@ -2790,6 +2825,29 @@ mod wait_readiness_tests {
             }
             e.close(2, sender).unwrap();
             assert_eq!(query(e, 1, root, RECV), Ok(false)); // No SEND-close EOF.
+        });
+    }
+    #[test]
+    fn capless_readiness_only_promises_infallible_queue_operations() {
+        run(|e| {
+            let root = e.create_endpoint(1).unwrap();
+            let sender = e.bootstrap_delegate(1, root, 2, SEND).unwrap();
+            assert_eq!(capless(e, 2, sender, SEND), Ok(true));
+            assert_eq!(capless(e, 1, root, RECV), Ok(false));
+            e.send(2, sender, &Message::new()).unwrap();
+            assert_eq!(capless(e, 1, root, RECV), Ok(true));
+            e.receive(1, root).unwrap();
+
+            let transferable = e.create_endpoint(2).unwrap();
+            let mut message = Message::new();
+            message.cap_count = 1;
+            message.caps[0] = Cap {
+                handle: transferable,
+                rights: SEND,
+            };
+            e.send(2, sender, &message).unwrap();
+            assert_eq!(query(e, 1, root, RECV), Ok(true));
+            assert_eq!(capless(e, 1, root, RECV), Ok(false));
         });
     }
     #[test]

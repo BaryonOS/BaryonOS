@@ -426,9 +426,17 @@ global_asm!(
     "    shr eax, 24",
     "    cmp eax, dword ptr [rip + {bsp}]",
     "    jne 2f",
+    "    push rdx",
+    // Bind each counted IRQ0 to its entry TSC. The following locked tick
+    // publication makes this preceding store visible to the IF=0 observer.
+    "    rdtsc",
+    "    shl rdx, 32",
+    "    or rax, rdx",
+    "    mov qword ptr [rip + {clock_edge_tsc}], rax",
     "    lock inc qword ptr [rip + {clock}]",
     "    mov al, 0x20",
     "    out 0x20, al",
+    "    pop rdx",
     "    pop rax",
     "    jmp nos_smp_spurious_entry",
     "2:",
@@ -441,6 +449,7 @@ global_asm!(
     lapic_id = const paging::LAPIC_WINDOW + 0x20,
     bsp = sym BSP_APIC_ID,
     clock = sym CLOCK_TICKS,
+    clock_edge_tsc = sym CLOCK_EDGE_TSC,
     on_ap = sym smp_clock_on_ap,
 );
 extern "C" {
@@ -2418,6 +2427,10 @@ const PIT_HZ: u64 = 1_193_182;
 const TIMER_CURRENT: u64 = 0x390;
 /// BT-1: PIT IRQ0 ticks since `bsp_timer_init`; written by the IRQ0 stub only.
 static CLOCK_TICKS: AtomicU64 = AtomicU64::new(0);
+/// TSC captured by the IRQ0 stub immediately before publishing CLOCK_TICKS.
+/// This removes only post-interrupt observer latency; every accepted sample
+/// still spans actual counted IRQ0 entries and uses the unchanged 1% bound.
+static CLOCK_EDGE_TSC: AtomicU64 = AtomicU64::new(0);
 static BSP_APIC_ID: AtomicU32 = AtomicU32::new(u32::MAX);
 /// TSC ticks per millisecond, measured once by the BSP against PIT channel 2.
 /// APs time their bounded waits with it: they never touch the BSP-owned PIT
@@ -2620,10 +2633,11 @@ const _: () = assert!(core::mem::align_of::<ClockWork>() == 64);
 static CLOCK_WORK: [ClockWork; MAX_CPUS - 1] =
     [const { ClockWork(AtomicU64::new(0)) }; MAX_CPUS - 1];
 
-/// Idle until the clock reaches `target`; snapshot (ticks, TSC), or None at
-/// `bound`. IF=0 keeps IRQ0 from changing the tick count between the reads.
+/// Idle until the clock reaches `target`; snapshot (ticks, IRQ-entry TSC,
+/// observer TSC), or None at `bound`. IF=0 keeps IRQ0 from changing either
+/// edge value between the reads.
 /// Every read checks that the clock never goes back.
-fn clock_at(target: u64, bound: u64, last: &mut u64) -> Option<(u64, u64)> {
+fn clock_at(target: u64, bound: u64, last: &mut u64) -> Option<(u64, u64, u64)> {
     loop {
         let now = CLOCK_TICKS.load(Ordering::Acquire);
         if now < *last {
@@ -2631,7 +2645,11 @@ fn clock_at(target: u64, bound: u64, last: &mut u64) -> Option<(u64, u64)> {
         }
         *last = now;
         if now >= target {
-            return Some((now, rdtsc()));
+            let edge = CLOCK_EDGE_TSC.load(Ordering::Acquire);
+            if edge == 0 {
+                serial::fail(b"SMP_CLOCK_EDGE_TSC_MISSING");
+            }
+            return Some((now, edge, rdtsc()));
         }
         if rdtsc() > bound {
             return None;
@@ -2671,6 +2689,8 @@ fn clock(online: usize, total: usize) -> bool {
     let mut samples = [0u64; CLOCK_SEGMENTS];
     let mut ticks = [0u64; CLOCK_SEGMENTS];
     let mut cycles = [0u64; CLOCK_SEGMENTS];
+    let mut observer_start_lag = [0u64; CLOCK_SEGMENTS];
+    let mut observer_end_lag = [0u64; CLOCK_SEGMENTS];
     for (index, sample) in samples.iter_mut().enumerate() {
         edge = edge.and_then(|start| {
             clock_at(first + (index as u64 + 1) * CLOCK_SEGMENT, bound, &mut last).map(|end| {
@@ -2681,6 +2701,8 @@ fn clock(online: usize, total: usize) -> bool {
                 }
                 ticks[index] = tick_delta;
                 cycles[index] = tsc_delta;
+                observer_start_lag[index] = start.2.saturating_sub(start.1);
+                observer_end_lag[index] = end.2.saturating_sub(end.1);
                 // HLT may return after the target tick. Normalize using the
                 // actual IRQ0 count, never the requested count. This does not
                 // synthesize lost interrupts: sustained IRQ loss still drifts.
@@ -2713,6 +2735,10 @@ fn clock(online: usize, total: usize) -> bool {
             decimal(cycles[index]);
             serial::write(b":NORMALIZED_US=");
             decimal(samples[index]);
+            serial::write(b":OBSERVER_START_LAG_TSC=");
+            decimal(observer_start_lag[index]);
+            serial::write(b":OBSERVER_END_LAG_TSC=");
+            decimal(observer_end_lag[index]);
             serial::write(b"\n");
         }
         serial::write(b"SMP:CLOCK:DRIFT:US=");
