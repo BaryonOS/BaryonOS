@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-10",
-    "source_commit": "59a30f10ceb558d1e31408afece49ca5c331df20",
-    "assessment_basis": "commit",
+    "source_commit": "66fc08788675c426d2da2e15bb0ae9c7ea2b71bb",
+    "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
     "task": "Repair rejected K06 step-5f acceptance evidence and run the complete frozen matrix",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Original run 42723127310 completed with failure: independent readback verifies 2976/3200 passes and 224 failures across ten ordinary cases; all old K07/soak results are insufficient. All 74 original artifacts are preserved. Complete corrected-source restart 42731994218 is executing on 59a30f10; environment/K07 and three ordinary cases are green at this checkpoint. K06 and the K07 SMP extension remain open."
+    "summary": "41/100 remains 41/100. Original run 42723127310 is rejected by 224/3200 failed repetitions; all 74 original ZIPs are preserved. Restart 42731994218 on 59a30f10 is also rejected: resched-deaf 46/50 has four clock-drift failures with exactly 1000 ticks per segment. A limited per-AP progress-observer candidate preserves CPU busy loops and all limits, and passes crossbuild, 47 host tests and object-code review; native recovery is unproven. A fresh full matrix is required. K06 and the K07 SMP extension remain open."
   },
   "tracks": [
     {

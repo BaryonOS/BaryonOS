@@ -1002,8 +1002,12 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
         }
         // Step 5c-2: load for the clock check, then AP1's part of the BSP
         // spin and idle phases (each phase word is reset by the BSP after it).
+        let mut clock_work = 0u64;
         while CLOCK_LOAD.load(Ordering::Acquire) {
-            CLOCK_WORK.fetch_add(1, Ordering::Relaxed);
+            // This AP is the sole writer of its progress counter. A shared
+            // locked RMW would add observer contention to the CPU-load test.
+            clock_work = clock_work.wrapping_add(1);
+            CLOCK_WORK[slot].0.store(clock_work, Ordering::Relaxed);
             spin_loop();
         }
         if slot == 0 {
@@ -2606,7 +2610,15 @@ const CLOCK_SEGMENT: u64 = 1_000;
 const CLOCK_SEGMENTS: usize = 5;
 const CLOCK_SPAN: u64 = CLOCK_SEGMENT * CLOCK_SEGMENTS as u64;
 static CLOCK_LOAD: AtomicBool = AtomicBool::new(false);
-static CLOCK_WORK: AtomicU64 = AtomicU64::new(0);
+// Keep independent AP progress words on separate 64-byte lines. The load
+// remains a continuously busy loop on every AP; no inter-AP synchronization
+// is needed to count each AP's own work. KERNEL/ticketlock tests are separate.
+#[repr(align(64))]
+struct ClockWork(AtomicU64);
+const _: () = assert!(core::mem::size_of::<ClockWork>() == 64);
+const _: () = assert!(core::mem::align_of::<ClockWork>() == 64);
+static CLOCK_WORK: [ClockWork; MAX_CPUS - 1] =
+    [const { ClockWork(AtomicU64::new(0)) }; MAX_CPUS - 1];
 
 /// Idle until the clock reaches `target`; snapshot (ticks, TSC), or None at
 /// `bound`. IF=0 keeps IRQ0 from changing the tick count between the reads.
@@ -2635,6 +2647,10 @@ fn clock_at(target: u64, bound: u64, last: &mut u64) -> Option<(u64, u64)> {
 /// sustained drift affects at least three segments. Lost IRQ0s lengthen their
 /// segments.
 fn clock(online: usize, total: usize) -> bool {
+    // This phase runs once per boot, before any AP enters the load loop.
+    for work in &CLOCK_WORK {
+        work.0.store(0, Ordering::Relaxed);
+    }
     CLOCK_LOAD.store(true, Ordering::Release);
     for context in &NOS_SMP_AP_CONTEXTS[..online] {
         let apic = context.apic_id.load(Ordering::Relaxed);
@@ -2704,7 +2720,12 @@ fn clock(online: usize, total: usize) -> bool {
         serial::write(b"\n");
         serial::fail(b"SMP_CLOCK_DRIFT");
     }
-    if online != 0 && CLOCK_WORK.load(Ordering::Acquire) == 0 {
+    // Prove work on every online AP, rather than allowing one busy AP to
+    // satisfy a single shared counter for all of its peers.
+    if CLOCK_WORK[..online]
+        .iter()
+        .any(|work| work.0.load(Ordering::Acquire) == 0)
+    {
         serial::fail(b"SMP_CLOCK_NO_LOAD");
     }
     serial::write(b"SMP:CLOCK:PASS:CPUS=");
