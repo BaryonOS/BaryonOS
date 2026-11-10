@@ -764,7 +764,7 @@ class StateAndBudgetTests(AuditTestCase):
     def test_broad_state_permissions_are_rejected(self):
         state = private_temp(self) / "state"
         state.mkdir(mode=0o710)
-        os.chmod(state, 0o710)
+        os.chmod(state, 0o710)  # codeql[py/overly-permissive-file] -- intentional negative test
         with self.assertRaisesRegex(AUDIT.AuditError, "state_directory_permissions"):
             with AUDIT.StateLock(state):
                 pass
