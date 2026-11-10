@@ -1,13 +1,20 @@
 """CI-HOSTED: guard public-runner isolation and mandatory workflow coverage.
 
-These are checks of the checked-in configuration, not execution of GitHub's
-expression engine, the test commands, or native QEMU acceptance.
+These checks inspect the checked-in configuration. The supply-chain fixture
+executes one workflow shell fragment against isolated local fakes; it does not
+execute GitHub's expression engine, download from the network, or provide
+native QEMU acceptance.
 """
 
+import hashlib
+import io
+import os
 from pathlib import Path
 import re
 import shlex
 import subprocess
+import tarfile
+import tempfile
 import tomllib
 import unittest
 
@@ -18,6 +25,37 @@ ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE_ACTION = ".github/actions/preserve-evidence/action.yml"
 CACHE_ACTION_VERSION = "v6.1.0"
 CACHE_ACTION_SHA = "55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
+ACTIONLINT_VERSION = "1.7.12"
+ACTIONLINT_SHA256 = "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
+ACTIONLINT_TAG_COMMIT = "914e7df21a07ef503a81201c76d2b11c789d3fca"
+
+
+def uses_reference_is_pinned(reference):
+    """Accept immutable external references and checkout-contained local actions."""
+    if not isinstance(reference, str) or not reference:
+        return False
+    if reference.startswith("./"):
+        relative = reference[2:]
+        if not relative or "\\" in relative or "@" in relative:
+            return False
+        path = Path(relative)
+        if path.is_absolute() or ".." in path.parts:
+            return False
+        resolved = (ROOT / path).resolve()
+        return resolved.is_relative_to(ROOT.resolve()) and resolved.exists()
+    if reference.startswith("docker://"):
+        return re.fullmatch(
+            r"docker://[^\s@]+@sha256:[0-9a-f]{64}", reference
+        ) is not None
+    source, separator, revision = reference.rpartition("@")
+    if not separator or re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+        return False
+    parts = source.split("/")
+    return len(parts) >= 2 and all(
+        part not in {"", ".", ".."}
+        and re.fullmatch(r"[A-Za-z0-9_.-]+", part) is not None
+        for part in parts
+    )
 
 
 class UniqueKeyLoader(yaml.BaseLoader):
@@ -116,6 +154,36 @@ class WorkflowContractTests(unittest.TestCase):
             for step in action.get("runs", {}).get("steps", []):
                 yield path, "composite", step
 
+    def uses_references(self):
+        """Yield job, workflow-step and composite-action executable references."""
+        for path, job_id, job in self.jobs():
+            self.assertIsInstance(
+                job, dict, f"{path} job {job_id} must be a mapping"
+            )
+            if "uses" in job:
+                yield path, f"job:{job_id}", job["uses"]
+            steps = job.get("steps", [])
+            self.assertIsInstance(
+                steps, list, f"{path} job {job_id} steps must be a list"
+            )
+            for index, step in enumerate(steps):
+                self.assertIsInstance(
+                    step, dict, f"{path} job {job_id} step {index} must be a mapping"
+                )
+                if "uses" in step:
+                    yield path, f"job:{job_id}:step:{index}", step["uses"]
+        for path, action in self.actions.items():
+            runs = action.get("runs", {})
+            self.assertIsInstance(runs, dict, f"{path} runs must be a mapping")
+            steps = runs.get("steps", [])
+            self.assertIsInstance(steps, list, f"{path} composite steps must be a list")
+            for index, step in enumerate(steps):
+                self.assertIsInstance(
+                    step, dict, f"{path} composite step {index} must be a mapping"
+                )
+                if "uses" in step:
+                    yield path, f"composite:step:{index}", step["uses"]
+
     def test_all_jobs_use_standard_hosted_ubuntu(self):
         """No custom label, dynamic selector or persistent runner can return."""
         self.assertTrue(self.workflows)
@@ -157,12 +225,172 @@ class WorkflowContractTests(unittest.TestCase):
                     )
 
     def test_external_actions_are_pinned_to_full_commits(self):
-        """Moving tags cannot silently change executable Actions code."""
-        for path, job_id, step in self.steps():
-            reference = step.get("uses")
-            if reference and not reference.startswith("./"):
-                with self.subTest(path=path, job=job_id, uses=reference):
-                    self.assertRegex(reference, r"^[^\s@]+/[^\s@]+@[0-9a-f]{40}$")
+        """All executable references are immutable or safe checkout-local paths."""
+        references = list(self.uses_references())
+        self.assertTrue(references, "no executable Actions references found")
+        for path, scope, reference in references:
+            with self.subTest(path=path, scope=scope, uses=reference):
+                self.assertTrue(
+                    uses_reference_is_pinned(reference),
+                    f"mutable, invalid or checkout-escaping uses reference: {reference!r}",
+                )
+
+        fixtures = {
+            "actions/checkout@" + "a" * 40: True,
+            "owner/repository/.github/workflows/reuse.yml@" + "b" * 40: True,
+            "./.github/actions/setup-python": True,
+            "docker://ghcr.io/example/tool@sha256:" + "c" * 64: True,
+            "actions/checkout@v7": False,
+            "https://github.com/actions/checkout@" + "d" * 40: False,
+            "owner/repository/../reuse.yml@" + "e" * 40: False,
+            "./../outside": False,
+            "../outside": False,
+            "docker://ghcr.io/example/tool:latest": False,
+            "docker://ghcr.io/example/tool@sha256:short": False,
+        }
+        for reference, expected in fixtures.items():
+            with self.subTest(fixture=reference):
+                self.assertEqual(uses_reference_is_pinned(reference), expected)
+
+    def test_actionlint_is_pinned_in_required_host_gate(self):
+        """Workflow validation is required, checksum-pinned and narrowly scoped."""
+        workflow = self.workflows[".github/workflows/ci.yml"]
+        steps = workflow["jobs"]["host-quality"]["steps"]
+        matches = [
+            (index, step)
+            for index, step in enumerate(steps)
+            if step.get("name") == f"Validate workflows with actionlint {ACTIONLINT_VERSION}"
+        ]
+        self.assertEqual(len(matches), 1)
+        index, step = matches[0]
+        checkout = next(
+            position
+            for position, candidate in enumerate(steps)
+            if candidate.get("name") == "Checkout"
+        )
+        self.assertEqual(index, checkout + 1)
+        self.assertNotIn("if", step)
+        self.assertEqual(step.get("continue-on-error", "false"), "false")
+        self.assertEqual(step.get("shell"), "bash")
+        self.assertEqual(
+            step.get("env"),
+            {
+                "ACTIONLINT_VERSION": ACTIONLINT_VERSION,
+                "ACTIONLINT_SHA256": ACTIONLINT_SHA256,
+            },
+        )
+        command = step["run"]
+        self.assertIn(
+            "https://github.com/rhysd/actionlint/releases/download/"
+            "v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz",
+            command,
+        )
+        self.assertNotIn("|| true", command)
+        checksum = command.index("sha256sum --check --strict")
+        extraction = command.index("tar --extract")
+        self.assertLess(checksum, extraction)
+        self.assertIn('${ACTIONLINT_SHA256}', command[:checksum])
+        self.assertIn('${actionlint_archive}', command[:checksum])
+        self.assertIn('${actionlint_archive}', command[extraction:])
+        self.assertRegex(
+            command,
+            r'tar[^\n]*--extract[^\n]*\\\n[^\n]*--directory "\$\{actionlint_dir\}" actionlint',
+        )
+        self.assertIn(
+            '"${actionlint_dir}/actionlint" -shellcheck= -pyflakes=',
+            [line.strip() for line in command.splitlines()],
+        )
+
+        policy = (ROOT / "docs/CI-EVIDENCE.md").read_text(encoding="utf-8")
+        section_match = re.search(
+            r"^## Workflow syntax validation\n(?P<section>.*?)(?=^## )",
+            policy,
+            re.MULTILINE | re.DOTALL,
+        )
+        self.assertIsNotNone(section_match)
+        section = section_match.group("section")
+        for fact in (
+            f"actionlint v{ACTIONLINT_VERSION}",
+            ACTIONLINT_SHA256,
+            ACTIONLINT_TAG_COMMIT,
+            "unsigned",
+        ):
+            self.assertIn(fact, section)
+
+    def test_actionlint_step_fails_closed(self):
+        """The verified archive and linter result are both mandatory (CI-HOSTED)."""
+        workflow = self.workflows[".github/workflows/ci.yml"]
+        expected_name = f"Validate workflows with actionlint {ACTIONLINT_VERSION}"
+        step = next(
+            candidate
+            for candidate in workflow["jobs"]["host-quality"]["steps"]
+            if candidate.get("name") == expected_name
+        )
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            archive_path = root / "actionlint-fixture.tar.gz"
+            actionlint = b'#!/usr/bin/env bash\nexit "${FAKE_ACTIONLINT_EXIT:-0}"\n'
+            with tarfile.open(archive_path, "w:gz") as archive:
+                entry = tarfile.TarInfo("actionlint")
+                entry.mode = 0o755
+                entry.size = len(actionlint)
+                archive.addfile(entry, io.BytesIO(actionlint))
+
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            fake_curl = fake_bin / "curl"
+            fake_curl.write_text(
+                """#!/usr/bin/env bash
+set -euo pipefail
+output=''
+while (( $# )); do
+  case "$1" in
+    --output) output="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+test -n "$output"
+cp -- "$ACTIONLINT_FIXTURE" "$output"
+""",
+                encoding="utf-8",
+            )
+            fake_curl.chmod(0o755)
+            expected_hash = hashlib.sha256(archive_path.read_bytes()).hexdigest()
+
+            def run(label, checksum, actionlint_exit):
+                runner_temp = root / label
+                runner_temp.mkdir()
+                environment = os.environ.copy()
+                environment.update(
+                    {
+                        "PATH": f"{fake_bin}{os.pathsep}{environment['PATH']}",
+                        "RUNNER_TEMP": str(runner_temp),
+                        "ACTIONLINT_VERSION": ACTIONLINT_VERSION,
+                        "ACTIONLINT_SHA256": checksum,
+                        "ACTIONLINT_FIXTURE": str(archive_path),
+                        "FAKE_ACTIONLINT_EXIT": str(actionlint_exit),
+                    }
+                )
+                return subprocess.run(
+                    ["bash", "-c", step["run"]],
+                    cwd=ROOT,
+                    env=environment,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+
+            self.assertEqual(run("success", expected_hash, 0).returncode, 0)
+
+            checksum_failure = run("bad-checksum", "0" * 64, 0)
+            self.assertNotEqual(checksum_failure.returncode, 0)
+            self.assertFalse(
+                (root / "bad-checksum" / f"actionlint-{ACTIONLINT_VERSION}").exists()
+            )
+
+            actionlint_failure = run("bad-actionlint", expected_hash, 23)
+            self.assertEqual(actionlint_failure.returncode, 23)
 
     def test_cache_action_matches_documented_provenance(self):
         """Every cache use must match its reviewed pin, version and policy source."""
