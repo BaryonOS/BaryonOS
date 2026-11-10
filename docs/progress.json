@@ -8,7 +8,7 @@
     "branch": "codex/k06-5f-complete-20261109",
     "task": "Repair rejected K06 step-5f acceptance evidence and run the complete frozen matrix",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Original run 42723127310 is rejected by five cases despite 50 completed old-source soaks. Corrected source 59a30f10 preserves all workloads and limits, with observed-tick clock sampling, final regression gate, completed FPU readiness and proportional observer work. Complete restart 42731994218 is pending. K06 and the K07 SMP extension remain open."
+    "summary": "41/100 remains 41/100. Original run 42723127310 completed with failure: independent readback verifies 2976/3200 passes and 224 failures across ten ordinary cases; all old K07/soak results are insufficient. All 74 original artifacts are preserved. Complete corrected-source restart 42731994218 is executing on 59a30f10; environment/K07 and three ordinary cases are green at this checkpoint. K06 and the K07 SMP extension remain open."
   },
   "tracks": [
     {

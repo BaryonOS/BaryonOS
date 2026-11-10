@@ -2,9 +2,30 @@
 
 **Status: acceptance open.** Each of the 64 cases must pass exactly 50/50 on one frozen source, including all 50 complete ten-minute combined soaks. The aggregate and the subsequent repository gate must also pass. A failed or missing repetition rejects acceptance.
 
-**Current complete restart:** [42731994218](https://github.com/simonvanieperen/BaryonOS/actions/runs/42731994218), tested source `59a30f10ceb558d1e31408afece49ca5c331df20`, source-v3 `505c25139b4d23d78aa9da406108aad437ba7a763b1b1c67b0cc6074a4d8f2ae`. It is pending at this checkpoint. Earlier pending sources were superseded before matrix execution; acceptance remains open.
+**Current complete restart:** [42731994218](https://github.com/simonvanieperen/BaryonOS/actions/runs/42731994218), tested source `59a30f10ceb558d1e31408afece49ca5c331df20`, source-v3 `505c25139b4d23d78aa9da406108aad437ba7a763b1b1c67b0cc6074a4d8f2ae`. It is executing at this checkpoint: environment/K07 and three ordinary cases pass; no soak shard has finished and no failure is reported. Earlier pending sources were superseded before matrix execution; acceptance remains open.
 
-## Rejected run 42723127310
+## Completed rejected run
+
+Original run `42723127310` is completed with failure. [All case counts](rejected-42723127310-rejected-run-summary.json) and the [complete diagnostic readback](rejected-42723127310-final-verification.json.gz) record **2976/3200 passes and 224 failures**, with all 64 cases attempted exactly 50 times. Ten ordinary cases fail; 53 ordinary cases and the combined soak pass 50/50. The observed failures comprise 63 FPU-image mismatches, 159 watchdog timeouts and two clock-drift failures. These observations do not establish one cause for every failure.
+
+| Rejected case | Passed |
+|---|---:|
+| `nine-capacity` | 49/50 |
+| `shared-scratch` | 49/50 |
+| `m3-four-single` | 49/50 |
+| `m3-eight-single` | 15/50 |
+| `m3-migrate-eight-single` | 17/50 |
+| `m3-ipc-four-single` | 0/50 |
+| `m3-ipc-four` | 0/50 |
+| `m3-load-two-single` | 46/50 |
+| `m3-load-two` | 49/50 |
+| `m3-load-eight-single` | 2/50 |
+
+K07 M4 quotas and qsim pressure each pass 50/50, and ten soak shards each pass five full ten-minute repetitions. The aggregate fails without an aggregate report; the final repository gate is skipped and has no gate log. No result from this source is reused by the current full restart.
+
+[Original ZIP inventory](rejected-42723127310-zip-digest-inventory.json) records all 74 original artifacts and their verified API SHA-256, size and CRC. Every canonical extracted byte matches its ZIP. The [preservation receipt](rejected-42723127310-preservation.json) identifies a complete local payload/metadata archive. All original ZIPs remain locally and on GitHub. Compact results, the complete diagnostic verifier result and [additional representative raw failures](rejected-42723127310-additional-raw-failures.json.gz) are committed alongside the earlier raw incident evidence.
+
+## Initial incidents on rejected run 42723127310
 
 [GitHub Actions run](https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310) tested `f808d59150466aee3de24452ea408250b8f4dca6`, source-v3 `759320893ea058b90d0bc764cd2b9534734827131a212ad5ba27f5501db6e8ac`. The `nine-capacity` case completed 49/50: iteration 16 reported `SMP:CLOCK:DRIFT:US=1010334`, `M1:FAIL:SMP_CLOCK_DRIFT`, raw exit 35, without a watchdog timeout. It is rejected even if every other job passes. The `shared-scratch` case also completed 49/50: iteration 10 reported `SMP:CLOCK:DRIFT:US=1010549`, raw exit 35 without a timeout. The original run and artifacts are retained.
 
@@ -12,7 +33,7 @@ The [incident receipt](incident-42723127310.json) records the artifact ID, origi
 
 ## Corrected source and full restart
 
-Corrected source `ed5413691b30df302c4b304a4d2eab9945f15919` has source-v3 `d5ba44f6f596ecbe099e0143489c9c2fdfb1382dda163d3cc7ad757787cf19fd`. [Full restart 42727641812](https://github.com/simonvanieperen/BaryonOS/actions/runs/42727641812) was dispatched from zero with `full_matrix=true` and is pending behind the original run at this checkpoint. No earlier successful repetition is reused. Documentation commits after this source commit do not change its source fingerprint or retarget the dispatched run.
+Corrected source `ed5413691b30df302c4b304a4d2eab9945f15919` has source-v3 `d5ba44f6f596ecbe099e0143489c9c2fdfb1382dda163d3cc7ad757787cf19fd`. [Full restart 42727641812](https://github.com/simonvanieperen/BaryonOS/actions/runs/42727641812) was dispatched from zero with `full_matrix=true`; it was subsequently superseded while pending. No earlier successful repetition is reused. Documentation commits after this source commit do not change its source fingerprint or retarget the dispatched run.
 
 Clock observations now retain the actual IRQ0 tick count alongside their TSC timestamp. A sample that returns after its requested edge is compared using its actual tick delta, rather than assuming exactly 1000 interrupts. Five one-second target segments, the median, the existing observation deadline and the exact 1% limit remain unchanged. Failure diagnostics report calibration and every raw tick/TSC delta. This corrects a sampling defect; the old transcript cannot establish that this defect caused the failed repetition. Actual lost IRQ0 ticks still fail.
 
@@ -34,7 +55,7 @@ The probe previously published DATA+128 readiness before x87/SSE initialization,
 
 [Host evidence](fpu-host-checks.json): M3 and soak crossbuilds share the candidate fingerprint; 47 SMP host tests and eight real-ELF artifact/mutation tests on each probe pass. The workflow runs and archives that artifact check before each relevant M3 case and soak. The two unmap profiles use their distinct `smp_unmap.elf` fixture and are explicitly excluded from this probe-specific check. No native guest is executed locally.
 
-[Active complete restart 42730151923](https://github.com/simonvanieperen/BaryonOS/actions/runs/42730151923) tests `a0b27619abc79f0afcf588078d62c357d337fe93`, source-v3 `cc19201b30d3a9108de30cbc82af2a0d68816afd3fb43eed1cf7c394ae57887c`, from zero. The earlier pending restart on `ed541369` was superseded and cancelled before matrix execution. The original run remains allowed to finish. No passing repetition from either older source is reused.
+[Previous complete restart 42730151923](https://github.com/simonvanieperen/BaryonOS/actions/runs/42730151923) tests `a0b27619abc79f0afcf588078d62c357d337fe93`, source-v3 `cc19201b30d3a9108de30cbc82af2a0d68816afd3fb43eed1cf7c394ae57887c`, from zero. The earlier pending restart on `ed541369` was superseded and cancelled before matrix execution. The original run was allowed to finish. No passing repetition from either older source is reused.
 
 ## Eight-CPU single-TCG failures and observer work
 

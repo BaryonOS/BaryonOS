@@ -6,7 +6,7 @@
   "source_sha256": "505c25139b4d23d78aa9da406108aad437ba7a763b1b1c67b0cc6074a4d8f2ae",
   "full_matrix": true,
   "full_evidence": false,
-  "status_at_checkpoint": "pending",
+  "status_at_checkpoint": "executing; environment/K07 and three ordinary cases green, zero complete soak shards, zero reported failures",
   "accepted": false,
   "previous_run_retained": 42723127310,
   "superseded_pending_restarts": [
