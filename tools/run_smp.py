@@ -291,7 +291,8 @@ def expected_smp(case: str) -> list[str]:
     if outcome == "proc-shootdown-quarantine":
         # Step 5e: AP1 (the reader in space A) ignores A's round; the frame
         # stays quarantined, every AP is reset and the boot continues on one CPU.
-        return lines + settled(started)[:-2] + ["SMP:SHOOTDOWN:TIMEOUT:APIC=1",
+        return lines + settled(started)[:-2] + [f"SMP:PROC_DEAF:LOCK_FREE:CPUS={started}",
+                                                "SMP:SHOOTDOWN:TIMEOUT:APIC=1",
                                                 "SMP:SHOOTDOWN:FRAME_QUARANTINED",
                                                 f"SMP:QUARANTINED:APS={started - 1}",
                                                 f"SMP:ONLINE:1/{cpus}"]

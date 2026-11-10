@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-10",
-    "source_commit": "3dd6194f02231e8f1db61940242d8d90318daf1d",
+    "source_commit": "099d68423ded86a92e9e585f560a18ce3d69d6fb",
     "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
-    "task": "Resume strict K06 step-5f evidence after organization GitHub access restoration",
+    "task": "Repair rejected K06 fixture preconditions without weakening acceptance",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. K06 and the K07 SMP extension remain open. Fetch, push dry-run and workflow dispatch succeed after organization app installation 180498948. Full uninstrumented run 42809499884 restarts all 64 cases from zero on frozen source 3dd6194f; cancelled run 42803221546 supplies no repetitions. Acceptance requires 3200 verified guests, regular K07, 50 complete combined soaks, a green aggregate and the actually executed repository gate with retained log."
+    "summary": "41/100 remains 41/100. Run 42809499884 is rejected by two RUNQ/quarantine failures and one clock-drift failure. All 50 soaks pass on that rejected source and supply zero new acceptance repetitions. The host-checked candidate enforces the deaf fixture lock-free precondition and batches continuously busy AP clock work, preserving all safety limits. Native recovery requires a new full 64x50 run, K07, 50 complete soaks, aggregate and actually executed tools/gate.sh."
   },
   "tracks": [
     {

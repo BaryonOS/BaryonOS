@@ -1012,7 +1012,20 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
         // Step 5c-2: load for the clock check, then AP1's part of the BSP
         // spin and idle phases (each phase word is reset by the BSP after it).
         let mut clock_work = 0u64;
+        let mut clock_mix = slot as u64 + 1;
         while CLOCK_LOAD.load(Ordering::Acquire) {
+            // Keep each AP continuously busy, but perform useful dependent
+            // integer work between observer/hint steps. TCG exits its CPU
+            // loop on every PAUSE; one after only an increment/store would
+            // make this observer repeatedly contend for QEMU's global BQL.
+            for _ in 0..64 {
+                clock_mix = core::hint::black_box(
+                    clock_mix
+                        .wrapping_mul(6_364_136_223_846_793_005)
+                        .rotate_left(17)
+                        .wrapping_add(1),
+                );
+            }
             // This AP is the sole writer of its progress counter. A shared
             // locked RMW would add observer contention to the CPU-load test.
             clock_work = clock_work.wrapping_add(1);
@@ -1781,6 +1794,19 @@ extern "C" fn smp_shootdown() {
         ROUND_START.load(Ordering::Relaxed),
         ROUND_PAGES.load(Ordering::Relaxed),
     );
+    if cfg!(feature = "test-smp-proc-shootdown-deaf")
+        && RACE_RUN.load(Ordering::Acquire)
+        && root == 0
+    {
+        // Spec 07's deaf control requires a lock-free AP. Arm that fixture
+        // through a real, normally acknowledged kernel round before unmap.
+        // An already pending timer/reschedule entry must also stay in this
+        // context, so publish admission closure before masking the timer.
+        assert_eq!(local.lockdep.load(Ordering::Acquire), 0);
+        assert!(held_by(cpu_index()).is_none());
+        PROC_DEAF_FROZEN.fetch_or(1 << cpu_index(), Ordering::Release);
+        lapic_write(LVT_TIMER, MASKED | TIMER_VECTOR as u32);
+    }
     // Control: AP1 ignores rounds for space A (no flush, no ack).
     let deaf = (cfg!(feature = "test-smp-proc-shootdown-deaf")
         && local.slot.load(Ordering::Relaxed) == 0
@@ -3204,6 +3230,15 @@ fn switch_space(cpu: usize, from: Option<usize>, to: Option<usize>) {
 fn sched_switch(local: &CpuLocal, rsp: u64, busy: bool) -> Resume {
     let slot = local.slot.load(Ordering::Relaxed) as usize;
     let cpu = slot + 1;
+    if cfg!(feature = "test-smp-proc-shootdown-deaf")
+        && PROC_DEAF_FROZEN.load(Ordering::Acquire) & (1 << cpu) != 0
+    {
+        // The setup round closed this test CPU's scheduler admission while
+        // lock-free. A pending 0xd0/0xe8 resumes the same stack/root without
+        // touching RUNQ; the real process shootdown still receives no ack.
+        assert!(!busy);
+        return Resume { rsp, left: 0 };
+    }
     let current = local.sched_cur.load(Ordering::Relaxed);
     let stop = SCHED.load(Ordering::Acquire) == PREEMPT_STOP;
     let mut queue = RUNQ[slot].lock_irqsave();
@@ -3931,6 +3966,9 @@ static RACE_RUN: AtomicBool = AtomicBool::new(false);
 static RACE_READS: AtomicU64 = AtomicU64::new(0);
 static RACE_FAULTED: AtomicBool = AtomicBool::new(false);
 static RACE_STALE: AtomicBool = AtomicBool::new(false);
+/// Test-only scheduler admission closure, published by each AP before its
+/// valid setup-round ack. It is never used by a normal recovery path.
+static PROC_DEAF_FROZEN: AtomicU64 = AtomicU64::new(0);
 
 global_asm!(
     ".pushsection .text.nos_smp_race,\"ax\"",
@@ -4190,6 +4228,26 @@ fn proc_shootdown(
     RACE_RUN.store(true, Ordering::Release);
     if !within_ms(500, || RACE_READS.load(Ordering::Acquire) != 0) {
         return sched_timeout(apic_of(0), online, total);
+    }
+    if cfg!(feature = "test-smp-proc-shootdown-deaf") {
+        // Freeze only scheduler admission, retaining every AP's real current
+        // context/CR3/ACTIVE and the running reader. This is a separate valid
+        // kernel round, not an ack of the deliberately deaf process round.
+        if let Err(failed) = shootdown_kernel(SPACE_VA, 1) {
+            return frame_quarantined(failed, online, total);
+        }
+        let targets = ONLINE_CPUS.load(Ordering::Acquire) & !1;
+        assert_eq!(PROC_DEAF_FROZEN.load(Ordering::Acquire), targets);
+        assert!((1..=online).all(|cpu| held_by(cpu).is_none()));
+        let reads = RACE_READS.load(Ordering::Acquire);
+        if !within_ms(500, || {
+            RACE_READS.load(Ordering::Acquire) > reads && ACTIVE[0].load(Ordering::SeqCst) == 1 << 1
+        }) {
+            return sched_timeout(apic_of(0), online, total);
+        }
+        serial::write(b"SMP:PROC_DEAF:LOCK_FREE:CPUS=");
+        decimal(online as u64 + 1);
+        serial::write(b"\n");
     }
     let before: [u32; MAX_APS] =
         core::array::from_fn(|slot| CPU_LOCAL[slot].shootdowns.load(Ordering::Acquire));

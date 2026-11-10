@@ -163,7 +163,8 @@ LOCK_HELD = started(4) + ["SMP:IPI:TIMEOUT:APIC=2", "SMP:QUARANTINE:LOCK_HELD:10
 BSP_SPIN_DEAF = online(4)[:online(4).index("SMP:BSP_PREEMPT:PASS:CPUS=4") + 1] + [
     "SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0"]
 # Step 5e: AP1 ignores space A's round; the frame stays quarantined, the boot goes on.
-PROC_DEAF = online(4)[:-4] + ["SMP:SHOOTDOWN:TIMEOUT:APIC=1", "SMP:SHOOTDOWN:FRAME_QUARANTINED",
+PROC_DEAF = online(4)[:-4] + ["SMP:PROC_DEAF:LOCK_FREE:CPUS=4",
+                              "SMP:SHOOTDOWN:TIMEOUT:APIC=1", "SMP:SHOOTDOWN:FRAME_QUARANTINED",
                               "SMP:QUARANTINED:APS=3", "SMP:ONLINE:1/4"] + END
 # Step 5e control: without the round the reader sees the reused frame.
 PROC_STALE = online(4)[:-4] + ["SMP:SHOOTDOWN:STALE_READ"]
@@ -711,6 +712,8 @@ class SmpSerialOracle(unittest.TestCase):
             ("four", online(4)[:-3] + ["SMP:SHOOTDOWN:STALE_READ"] + online(4)[-3:]),
             ("proc-shootdown-deaf", online(4)),
             ("proc-shootdown-deaf", [line for line in PROC_DEAF if "FRAME_QUARANTINED" not in line]),
+            ("proc-shootdown-deaf", [line for line in PROC_DEAF if "PROC_DEAF:LOCK_FREE" not in line]),
+            ("proc-shootdown-deaf", [line.replace("PROC_DEAF:LOCK_FREE:CPUS=4", "PROC_DEAF:LOCK_FREE:CPUS=3") for line in PROC_DEAF]),
             ("proc-no-shootdown-control", online(4)),  # the control must not pass silently
             ("proc-no-shootdown-control", PROC_STALE[:-1] + ["SMP:UNMAP_RACE:PASS:CPUS=4"] + END),
         ):
