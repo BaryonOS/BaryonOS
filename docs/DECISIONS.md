@@ -1692,7 +1692,7 @@ physical disks and power loss, behaviour with an attacker who can write OVMF_VAR
 
 1. A kernel image is started only from a slot whose manifest verifies with
    **both** pinned anchors, Ed25519 (`ed25519-dalek` 2.2.0, serial backend)
-   **and** ML-DSA-65 (RustCrypto `ml-dsa` 0.1.1, FIPS 204), over the same
+   **and** ML-DSA-65 (RustCrypto `ml-dsa` 0.1.2, FIPS 204), over the same
    84 canonical bytes, and whose image has exactly the length and SHA-256
    (`sha2` 0.10.9, `force-soft`) from that manifest. One valid signature
    is insufficient; there is no fallback to one algorithm.
@@ -1725,8 +1725,8 @@ physical disks and power loss, behaviour with an attacker who can write OVMF_VAR
    replaces the anchors in a separate signing step kept outside CI;
    key rotation and revocation belong to B04.
 7. Dependency check (`cargo tree -p update-core`): `ed25519-dalek` 2.2.0 and
-   `curve25519-dalek` 4.1.3 (BSD-3-Clause), `ml-dsa` 0.1.1, `module-lattice`
-   0.2.3, `hybrid-array` 0.4.15, `keccak`/`shake`/`sponge-cursor`,
+   `curve25519-dalek` 4.1.3 (BSD-3-Clause), `ml-dsa` 0.1.2, `module-lattice`
+   0.2.4, `hybrid-array` 0.4.15, `keccak`/`shake`/`sponge-cursor`,
    `signature` 2.2/3.0, `sha2` 0.10.9, `digest`, `crypto-common` (MIT OR
    Apache-2.0), `subtle` 2.6.1 (BSD-3-Clause). Build scripts: only
    `curve25519-dalek` (platform detection for word width, no network) and
@@ -1737,6 +1737,21 @@ physical disks and power loss, behaviour with an attacker who can write OVMF_VAR
    ML-DSA verification holds approximately 200 KiB of stack: the loader runs
    selection on its own 1 MiB allocation, and profile `native-update` gives
    the service 512 KiB of user stack instead of 64 KiB.
+
+   The `ml-dsa` 0.1.2 release is RustCrypto/signatures commit
+   [`25e6bf946725ace2af69b15874c29131acc7db60`](https://github.com/RustCrypto/signatures/commit/25e6bf946725ace2af69b15874c29131acc7db60)
+   of 31 October 2026. Its upstream crate source declares `#![no_std]`; the
+   package manifest declares MSRV 1.87 and `Apache-2.0 OR MIT`. The project
+   keeps `default-features = false`, so the default `alloc`, `getrandom` and
+   PKCS#8 features are not selected. The verification backend remains the
+   crate's pure-Rust `module-lattice` 0.2.4
+   and SHAKE path; no optional ML-DSA hardware backend is selected. The runtime
+   route decodes only a public ML-DSA-65 verification key and signature and
+   calls `verify_with_context` with an empty context. It neither creates nor
+   retains a secret signing key or signing SHAKE state, so the optional
+   `zeroize` feature is not selected for this verification-only boundary. Any
+   future signing or private-key use requires this feature decision to be
+   reassessed.
 
 **Security invariant:** no byte of a kernel image is executed before format,
 key IDs, both signatures, length, digest and version floor are checked;
