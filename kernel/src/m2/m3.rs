@@ -3171,7 +3171,13 @@ fn smp_progress(state: &mut State) {
             .filter(|(_, p)| live(p))
             .all(|(slot, p)| {
                 let _address = ASPACE[slot].lock_irqsave();
-                p.selected >= 4 && read_word(p.physical(DATA + 8)) > 0
+                p.selected >= 4
+                    && read_word(p.physical(DATA + 8)) > 0
+                    // Loop progress precedes FPU initialization. Do not stop
+                    // a live canary in its first, timer-interrupted setup.
+                    // The soak's M4/qsim slots are not this canary fixture.
+                    && (cfg!(feature = "native-smp-m3-soak") && slot < 8
+                        || read_word(p.physical(DATA + 128)) == 1)
             })
         && (!cfg!(feature = "test-smp-m3-fault") || state.fault);
     if !done && !state.unexpected {
@@ -3289,6 +3295,15 @@ fn smp_fpu_evidence(state: &State) {
             || fpu::image_qword(slot, XMM15) != !p.pattern
             || fpu::image_qword(slot, ST0) != p.pattern << 1
         {
+            let header = fpu::image_qword(slot, 0);
+            print_decimal(b"SMP:M3:FPU:IMAGE:SLOT=", slot as u64);
+            print_decimal(b"SMP:M3:FPU:IMAGE:PATTERN=", p.pattern);
+            print_decimal(b"SMP:M3:FPU:IMAGE:ST0=", fpu::image_qword(slot, ST0));
+            print_decimal(b"SMP:M3:FPU:IMAGE:XMM0=", fpu::image_qword(slot, XMM0));
+            print_decimal(b"SMP:M3:FPU:IMAGE:XMM15=", fpu::image_qword(slot, XMM15));
+            print_decimal(b"SMP:M3:FPU:IMAGE:TOP=", (header >> 27) & 7);
+            print_decimal(b"SMP:M3:FPU:IMAGE:TAG=", (header >> 32) & 0xff);
+            print_decimal(b"SMP:M3:FPU:IMAGE:SAVED_RIP=", p.context[17]);
             serial::write(b"SMP:M3:FPU:IMAGE_MISMATCH\n");
             serial::fail(b"SMP_M3_FPU_IMAGE");
         }

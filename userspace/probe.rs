@@ -248,7 +248,6 @@ _start:
     mov qword ptr [r12 + 160], 5
     cmp qword ptr [r12 + 128], 0
     jne 1f
-    mov qword ptr [r12 + 128], 1
     fninit
     fild qword ptr [r12 + 16]
     movq xmm0, r13
@@ -266,6 +265,9 @@ _start:
     fistp qword ptr [rsp - 8]
     cmp qword ptr [rsp - 8], r13
     jne .Lfpu_corrupt
+    // Publish readiness only after initialization AND a complete successful
+    // GPR/x87/SSE check. A timer may interrupt any earlier instruction.
+    mov qword ptr [r12 + 128], 1
     cmp qword ptr [r12], 20
     je .Lipc
     // Only the migration fixture requests a yield after all canary checks.

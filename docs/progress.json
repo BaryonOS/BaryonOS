@@ -4,11 +4,11 @@
   "assessment": {
     "date": "2026-11-10",
     "source_commit": "ed5413691b30df302c4b304a4d2eab9945f15919",
-    "assessment_basis": "commit",
+    "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
     "task": "Repair rejected K06 step-5f acceptance evidence and run the complete frozen matrix",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Run 42723127310 is rejected with two 49/50 clock cases. Source ed541369 repairs clock snapshot accounting and the missing final regression gate. Full restart 42727641812 is pending behind the original run; K06 and the K07 SMP evidence extension remain unaccepted."
+    "summary": "41/100 remains 41/100. Original run 42723127310 is rejected with three 49/50 cases: two clock failures and one premature FPU-canary completion. Clock/gate repairs are pushed; FPU readiness and real-ELF mutation checks now require a fresh complete run. The pending ed541369 run predates that repair. K06 and the K07 SMP extension remain open."
   },
   "tracks": [
     {

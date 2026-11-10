@@ -365,6 +365,13 @@ jobs:
           PY
           )"
           python3 -B tools/build.py --kernel-feature "$profile"
+          set -o pipefail
+          case "$profile" in
+            # These two cases use smp_unmap.elf, not the FPU-canary probe.
+            native-smp-m3-unmap|test-smp-m3-no-shootdown) ;;
+            *m3*) python3 -B userspace/tests/test_smp_fpu_probe.py \
+              --elf "$NOS_BUILD_DIR/users/probe.elf" 2>&1 | tee "$NOS_BUILD_DIR/fpu-fixture-host.log" ;;
+          esac
           python3 -B -u tools/run_smp.py --case "$SMP_CASE" --repeat 50
           git diff --exit-code
       - name: Preserve case evidence
@@ -375,6 +382,7 @@ jobs:
           path: |
             build/k06-smp-${{ matrix.case }}/manifest.json
             build/k06-smp-${{ matrix.case }}/smp-report.json
+            build/k06-smp-${{ matrix.case }}/fpu-fixture-host.log
             build/k06-smp-${{ matrix.case }}/run/smp-*/result.json
             build/k06-smp-${{ matrix.case }}/run/smp-*/serial.txt
             build/k06-smp-${{ matrix.case }}/run/smp-*/stderr.txt
@@ -416,6 +424,9 @@ jobs:
       - name: Build the frozen soak profile and run five times
         run: |
           python3 -B tools/build.py --kernel-feature native-smp-m3-soak
+          set -o pipefail
+          python3 -B userspace/tests/test_smp_fpu_probe.py \
+            --elf "$NOS_BUILD_DIR/users/probe.elf" 2>&1 | tee "$NOS_BUILD_DIR/fpu-fixture-host.log"
           python3 -B -u tools/run_smp.py --case m3-soak-four --repeat 5
           git diff --exit-code
       - name: Preserve soak evidence
@@ -426,6 +437,7 @@ jobs:
           path: |
             build/k06-smp-soak-${{ matrix.shard }}/manifest.json
             build/k06-smp-soak-${{ matrix.shard }}/smp-report.json
+            build/k06-smp-soak-${{ matrix.shard }}/fpu-fixture-host.log
             build/k06-smp-soak-${{ matrix.shard }}/run/smp-*/result.json
             build/k06-smp-soak-${{ matrix.shard }}/run/smp-*/serial.txt
             build/k06-smp-soak-${{ matrix.shard }}/run/smp-*/stderr.txt

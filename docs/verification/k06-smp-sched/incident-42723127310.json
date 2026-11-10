@@ -55,5 +55,33 @@
       "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "result.json": "a1bdc78c1631a57ba1f42444b59d07f8f689acb34c8133fd73fece396122c97f"
     }
+  },
+  "fpu_failure": {
+    "case": "m3-four-single",
+    "repetitions": {
+      "requested": 50,
+      "attempted": 50,
+      "passed": 49,
+      "failed": 1,
+      "complete": true,
+      "flaky": true,
+      "evidence_kind": "smp"
+    },
+    "failed_iteration": 33,
+    "observed_failure": "SMP:M3:FPU:IMAGE_MISMATCH; M1:FAIL:SMP_M3_FPU_IMAGE",
+    "clock_passed": true,
+    "raw_qemu_exit": 35,
+    "timed_out": false,
+    "artifact": {
+      "id": 13722993128,
+      "sha256": "b2a7b3fdc4edd0ce81a6c84b2128ff9bcd8d4d856a04a006abd4dcc31faa10d1",
+      "url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310/artifacts/13722993128"
+    },
+    "raw_file_sha256": {
+      "serial.txt": "2d166b612c883761df27b356254746aa94e005289d0ad0d17616e7bb09ed4b65",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result.json": "f87565d9bbf89176d10d58f15b213e600a03bc4d1a1bd833a81f171609faa904"
+    },
+    "limits": "The old log does not identify the mismatched slot or register. Premature canary-readiness publication is a reachable fixture defect; exact historical causality is not established."
   }
 }
