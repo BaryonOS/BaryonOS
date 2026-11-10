@@ -23,7 +23,7 @@ provider-count checks. Dropping the opaque handle delegates cleanup to the
 concrete store adapter; the root contract itself supplies no provider.
 
 Before any bytes are exposed to a parser, the verifier hashes a complete read
-pass with pinned `sha2 0.10.9` (`default-features = false`). A positive
+pass with pinned `sha2 0.11.1` (`default-features = false`). A positive
 short-read is hashed and advances by its returned count; zero before declared
 EOF, stale generation, corruption, overflow, oversized counts, cancellation,
 or digest mismatch aborts and drops the handle. Only a matching full-stream
@@ -31,11 +31,15 @@ digest produces a `VerifiedArtifact`, which reads from that same immutable
 generation. This proves content identity against the requested SHA-256, not
 publisher authority for executable apps or model safety. The catalog that
 maps model metadata to a store-issued `ArtifactRef` is not implemented here.
-The SHA-2 crate is RustCrypto's pinned MIT/Apache-2.0 no-std implementation
-with no crate build script or optional assembly feature. Its
-`generic-array` dependency has a build script that only checks the rustc
-version. The bare-metal dependency tree excludes `libc`; the lockfile also
-resolves a target-specific `cpufeatures` edge for OS targets that use it.
+The SHA-2 crate is RustCrypto's pinned MIT/Apache-2.0 no-std implementation;
+version 0.11.1 requires Rust 1.88 and has no crate build script. The 0.11
+dependency graph replaces `generic-array` with `hybrid-array` 0.4.15 and
+`typenum` 1.20.1. The resolved SHA-2 dependency closure has no build scripts,
+and the bare-metal dependency tree excludes `libc`. The lockfile also resolves
+`cpufeatures` 0.3.1 for x86 runtime dispatch. The scalar bare-metal gate below
+selects the portable implementation explicitly with
+`--cfg sha2_backend="soft"`; disabling target features alone is not treated as
+backend-selection evidence.
 
 Each store read uses the root 4 KiB storage bound and addresses the same opaque
 handle and generation. That is not a new IPC wire chunk: the existing 320-byte
@@ -85,7 +89,7 @@ The bounded gates for this leaf, run against root-contract branch
 cargo +1.90.0 test --offline --locked --manifest-path experiments/ai/model-store-contract/Cargo.toml
 cargo +1.90.0 clippy --offline --locked --manifest-path experiments/ai/model-store-contract/Cargo.toml --all-targets -- -D warnings
 cargo +1.90.0 fmt --manifest-path experiments/ai/model-store-contract/Cargo.toml -- --check
-RUSTFLAGS='-C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2' CARGO_TARGET_DIR=target/ai-model-store-contract-none-sha2-scalar cargo +1.90.0 build --offline --locked --manifest-path experiments/ai/model-store-contract/Cargo.toml --release --lib --target x86_64-unknown-none
+RUSTFLAGS='--cfg sha2_backend="soft" -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2' CARGO_TARGET_DIR=target/ai-model-store-contract-none-sha2-scalar cargo +1.90.0 build --offline --locked --manifest-path experiments/ai/model-store-contract/Cargo.toml --release --lib --target x86_64-unknown-none
 ```
 
 An earlier `x86_64-unknown-none` build with default target features exited 101
@@ -108,3 +112,10 @@ An initial formatting check exited 1; rustfmt corrected it before the successful
 rerun. Bare-metal compilation and native/QEMU execution were not repeated for
 this tests/documentation-only change. The earlier compile results remain bound
 to the adapter source, not a new inference or runtime acceptance claim.
+
+Dependency update verification, 10 November 2026: the pinned `sha2 0.11.1`
+tree passed the 4 unit and 18 negative-contract tests, warning-denying Clippy,
+formatting, and the explicit software-backend bare-metal build above. Strict
+preflight, the standard OS build, and QEMU smoke also passed. No model artifact
+was downloaded, and no native model-store execution or performance claim was
+established.
