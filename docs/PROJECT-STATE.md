@@ -33,6 +33,45 @@ head still requires both complete hosted 1800-second native matrix gates.
 lease, and evaluate only current-head hosted checks and review. Squash-merge
 with the expected head only after both native profiles are green.
 
+## Historical checkpoint — PR #299 ChaCha20 production unification — 10 November 2026
+
+**Source:** this local candidate is based directly on the actual PR #297
+squash `2d17a3870c0f22254af0a749d3f29128fe2e11ae` (tree
+`563b3ec57355ca124672afe94de79808f9e4fc70`), which follows the PR #257
+squash. Its semantic donor is local commit
+`5ba29a843d7087ff637fb2856677cfd17da6f74a` on reviewed #297 candidate
+`3cb1e16d0f5f1a91784d0761ec0b5c5d7f60606f`. This replay has not been
+published or treated as hosted evidence.
+
+**Implementation:** production now resolves one pinned `chacha20=0.10.2` for
+the DRBG, maintained RNG and AEAD closure. The direct pinned `cipher=0.5.2`
+dependency enables its `zeroize` feature so the stream wrapper and buffered
+keystream implement `ZeroizeOnDrop`; compile-time assertions retain this
+boundary. `chacha20=0.9.1` remains only as the independent dev-test alias
+`chacha20-legacy` for the byte-exact old DRBG oracle. Product builders use the
+single portable `chacha20_backend="soft"` selector.
+
+**Compatibility and provenance:** the new implementation reproduces the old
+DRBG bytes and cold-restores a fixed pre-migration persisted blob, including
+decryption of its existing record key. All four locks and crate checksums are
+contract-tested; the three consumer product locks contain 0.10.2 but not
+0.9.1. The reviewed upstream crates are `no_std`, require Rust 1.85, use MIT
+or Apache-2.0 and have no build script.
+
+**Local evidence:** all 71 keyring tests and four crypto-contract tests passed.
+Warning-denying Clippy, formatting, strict preflight, progress consistency and
+`git diff --check` passed. Locked offline fetches, consumer tests and Clippy,
+and the keyring, SDK-client, example, system and random-probe freestanding
+release builds passed. Independent read-only review found no security,
+compatibility, lockgraph or provenance blocker.
+
+**Acceptance:** **39/100 → 39/100**. No native B01, RANDOM, FR-I01 or B03 gate,
+QEMU run, physical entropy result or new product criterion is claimed.
+
+**Next:** finish this replay on the actual #297 squash, publish with an exact
+lease and evaluate only current-head hosted checks and review. Squash-merge
+with the expected head only after they are green.
+
 ## Historical checkpoint — PR #257 fail-closed publication inventory — 10 November 2026
 
 **Source:** exact reviewed head `590d9c3b589435fff6bf794c85908bbb37a98382`
