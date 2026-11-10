@@ -2,7 +2,7 @@
 
 ## NEXT AGENT HANDOFF — K06 step 5f acceptance repair — 10 November 2026
 
-**Source:** exact existing branch `codex/k06-5f-complete-20261109`, incoming commit `f808d59150466aee3de24452ea408250b8f4dca6`; corrected source commit `ed5413691b30df302c4b304a4d2eab9945f15919`, source-v3 `d5ba44f6f596ecbe099e0143489c9c2fdfb1382dda163d3cc7ad757787cf19fd`. No replacement branch or concurrent local QEMU matrix was created.
+**Source:** exact existing branch `codex/k06-5f-complete-20261109`, incoming commit `f808d59150466aee3de24452ea408250b8f4dca6`; current corrected test source `a0b27619abc79f0afcf588078d62c357d337fe93`, source-v3 `cc19201b30d3a9108de30cbc82af2a0d68816afd3fb43eed1cf7c394ae57887c`. Later documentation checkpoints do not retarget the dispatched run or change its source fingerprint.
 
 **Rejected evidence:** [run 42723127310](https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310), source-v3 `759320893ea058b90d0bc764cd2b9534734827131a212ad5ba27f5501db6e8ac`, has a red `nine-capacity` repetition 16: 49/50, `SMP:CLOCK:DRIFT:US=1010334`, raw exit 35, no timeout. `shared-scratch` also fails iteration 10 (49/50, `SMP:CLOCK:DRIFT:US=1010549`, raw exit 35). `m3-four-single` fails iteration 33 (49/50, `SMP:M3:FPU:IMAGE_MISMATCH`, raw exit 35, clock passed). The run is allowed to finish and all original artifacts remain intact. It cannot count toward acceptance. [Failure receipt and raw evidence](verification/k06-smp-sched/README.md).
 
@@ -14,9 +14,9 @@
 
 **Additional FPU repair:** probe readiness now follows full initialization and the first successful GPR/x87/SSE checks. The stop condition waits for every live canary, while retaining the original non-canary soak exclusions and final register comparisons. M3/soak crossbuilds, 47 SMP host tests and 8/8 real-ELF mutation checks on each probe pass. [FPU host receipt](verification/k06-smp-sched/fpu-host-checks.json). The old artifact lacks slot/register values, so exact historical causality remains unproven.
 
-**Pending older restart:** [run 42727641812](https://github.com/simonvanieperen/BaryonOS/actions/runs/42727641812) was dispatched with `full_matrix=true`, `full_evidence=false`, on exactly `ed5413691b30df302c4b304a4d2eab9945f15919`. At this checkpoint it is pending behind the original run in the same workflow concurrency group; no competing guest matrix has started.
+**Active complete restart:** [run 42730151923](https://github.com/simonvanieperen/BaryonOS/actions/runs/42730151923) was dispatched with `full_matrix=true`, `full_evidence=false`, on exactly `a0b27619abc79f0afcf588078d62c357d337fe93`. It is pending behind the original run in the same concurrency group. The earlier pending run `42727641812` on `ed541369` was replaced and is cancelled; it is not evidence.
 
-**Next:** commit/push the FPU repair and dispatch a replacement complete workflow from zero. The pending `ed541369` run predates that repair and cannot accept it. Let the original run finish; then require the corrected full run to complete all cases and native regressions. Independently recheck all raw artifacts and the executed final gate before accepting K06. No local competing QEMU matrix is permitted.
+**Next:** monitor the original run until it finishes and the active complete restart through all 64 cases, 50 full soaks, aggregation and final native regressions. Independently recheck all raw artifacts and the executed final gate before accepting K06. No local competing QEMU matrix is permitted.
 
 ## Previous checkpoint — documentation hierarchy and governance — 9 November 2026
 
