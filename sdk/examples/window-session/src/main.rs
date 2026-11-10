@@ -334,14 +334,19 @@ fn run() -> ! {
                 let event = offer.event();
                 let was_blocked = scene.shell.blocks_apps();
                 let was_hidden = scene.shell.hidden;
-                let palette_was_open = scene.palette_is_open();
+                let palette_was_open = scene.palette_is_open() || scene.switcher_is_open();
                 let palette_key = match event {
-                    Event::Key(key) => scene
-                        .palette_key(key, &mut damage)
-                        .unwrap_or_else(|_| fail(17)),
+                    Event::Key(key) => {
+                        scene
+                            .switcher_key(key, &mut damage)
+                            .unwrap_or_else(|_| fail(17))
+                            || scene
+                                .palette_key(key, &mut damage)
+                                .unwrap_or_else(|_| fail(17))
+                    }
                     _ => false,
                 };
-                if !palette_was_open && scene.palette_is_open() {
+                if !palette_was_open && (scene.palette_is_open() || scene.switcher_is_open()) {
                     app_pointer_capture = None;
                     scene.shell.cancel_pointer();
                     clear_chord = ClearChord::default();
@@ -365,7 +370,11 @@ fn run() -> ! {
                             .shell
                             .key(key, geometry.width, geometry.height, scene.scale)
                     }
-                    Event::Mouse { .. } if scene.palette_is_open() => {
+                    // Switcher clicks, including their button-up tail after
+                    // dismissal, have priority over trusted shell dock actions.
+                    Event::Mouse { .. }
+                        if scene.palette_is_open() || scene.switcher_owns_pointer() =>
+                    {
                         nieuw_os_window_session::shell::Effect {
                             consumed: false,
                             changed: false,
@@ -410,7 +419,9 @@ fn run() -> ! {
                     _ => {}
                 }
                 let clear = match event {
-                    Event::Key(key) => clear_chord.key(key),
+                    Event::Key(key) if !palette_key || key.action == KeyAction::Release => {
+                        clear_chord.key(key)
+                    }
                     _ => ClearAction::Pass,
                 };
                 if !effect.consumed {
@@ -647,6 +658,9 @@ fn run() -> ! {
                                     let damaged = scene
                                         .copy_tile(index, rect, pixels, backing)
                                         .map_err(|_| ())?;
+                                    if scene.switcher_is_open() {
+                                        damage.mark(scene.switcher_preview(index).map_err(|_| ())?);
+                                    }
                                     present(&scene, backing, &mut display, damaged)
                                 })
                                 .unwrap_or_else(|_| fail(30));

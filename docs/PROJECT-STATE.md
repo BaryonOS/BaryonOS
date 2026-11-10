@@ -1,5 +1,31 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — PR #167 switcher review repair — 10 November 2026
+
+**Proposal:** VELD-08 remains a bounded Alt+Tab subgate. It does not accept the
+complete native session, recovery, accessibility, or interaction-budget criteria.
+
+**Implementation:** PR #167 now includes current `main` `5456296` and binds each
+tested key edge to an acknowledged pointer marker with an exact input-counter
+delta. The native work-frame reference additionally requires `SHELL_READY` and
+two consecutive byte-identical full-screen captures. No capability, kernel ABI,
+dependency, storage right, or default gate was changed.
+
+**Test evidence:** `python3 -B tools/test_window_session.py` passed 23 host tests;
+`python3 tools/progress.py --check` and `git diff --check` passed. Strict preflight
+reported missing Rust, QEMU, and OVMF; the build and smoke commands consequently
+failed before execution. Exact source, commands, exit codes, and evidence limits
+are recorded in
+[`verification/pr167-switcher-review-fix-20261110.json`](verification/pr167-switcher-review-fix-20261110.json).
+
+**Unknown:** The final PR head still requires current-head CodeRabbit/CodeQL and
+required checks, including native switcher runs at 100% and 200%. Historical
+native receipts do not verify this repair. **Progress remains 39/100.**
+
+**Next:** evaluate only the final published head checks, resolve the verified
+review thread, and squash-merge with an expected head SHA when all required
+gates are green.
+
 ## H05 native ACPI S5 integration — PR #213 (9 November 2026)
 
 The opt-in `native-acpi-s5` kernel profile connects the existing
@@ -27,6 +53,18 @@ No local Rust, QEMU, strict preflight, build or smoke gate ran in this connector
 session. Confirm all applicable CI and security-review results on the latest
 source, including native-power, host-quality and qemu-smoke, before squash merge.
 Physical-hardware evidence remains missing, so H05 stays open.
+
+## PR #167 — VELD-08 window-switcher integration — 9 November 2026
+
+**Source:** Existing PR #167 at pre-integration head `fdaef7acce36d1865a79406314a4c1159de172fd`, merged in the current integration branch with `main` at `316d4f10470efe16bfdf314304a410f8b1150833`. The implementation preserves compositor-owned window thumbnails, focus-on-confirmation, bounded input handling and explicit opt-in 1x/2x native probes. The latest corrections retain trusted-shell routing, remove minimized-window hiding after selection, require complete app frames before the native assertion, preserve key-edge baselines, and release pointer capture after the full outside-click gesture.
+
+**Evidence:** Local integration commit `09f982c348a9ba98baded4f3401defb2a38cfd0b` passed `tools/progress.py --check`, strict preflight, `tools/test_window_session.py`, the complete window-session host suite, format and warning-denying Clippy, `tools/build.py`, and `tools/run.py --smoke`. Native switcher runs at scales 1 and 2 each passed all 18 phases with raw QEMU exit 33, `switcher_gate=true` and intentionally `native_gate=false`; both reports bind source fingerprint `3e669760446ce83a47d45cf4e5e2d3584860731d9043c53e8a7bc17a6fe56dae` to that commit. GitHub email privacy required a metadata-only rewrite to publication commit `b25a7d10b50240f00b44569ffafba65ae0a064d2`; both commits have identical tree `f1cb8de749cb58b7209b77f7c5271e52f0ca726f`. Compact evidence is stored in [`veld-switcher-20261103/current-main-integration-20261109.json`](verification/veld-switcher-20261103/current-main-integration-20261109.json).
+
+**Evidence boundary:** GitHub reported 47 checks on pre-integration head `fdaef7acce36d1865a79406314a4c1159de172fd`: 46 successful and one neutral (`Graphify Formal Verification`). CodeRabbit completed successfully and no unresolved review thread was present. Those GitHub results do **not** verify publication commit `b25a7d10b50240f00b44569ffafba65ae0a064d2`; current-head CI and review remain required after publication. Historical two-scale receipts remain bound to `537fee48c1c31155a51a997cd7a2236b159e9ac7`. No physical-device, human usability or independent security acceptance is claimed.
+
+**Progress:** **39/100 → 39/100.** A successful switcher subgate does not close the complete native integration, accessibility or recovery criteria.
+
+**NEXT AGENT HANDOFF (PR #167):** Publish the integrated source without rewriting history. Confirm current-head CodeRabbit, CodeQL and required GitHub checks, then squash-merge with the expected head SHA.
 
 ## PR #154 — reviewed K06 and experimental M3/M4 SMP integration — 9 November 2026
 
