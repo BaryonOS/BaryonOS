@@ -1,26 +1,26 @@
-# Apparaatbeheer, buses, DMA en IOMMU
+# Device management, buses, DMA and IOMMU
 
-De wiki behandelt detectie, apparaatinterfaces, port-I/O, memory-mapped I/O, PCI, DMA en IOMMU-varianten. Het boek introduceert drivers via scherm- en seriële uitvoer: overige code gebruikt een driverinterface in plaats van rechtstreeks alle registers te kennen.
+The wiki covers discovery, device interfaces, port I/O, memory-mapped I/O, PCI, DMA and IOMMU variants. The book introduces drivers through display and serial output: other code uses a driver interface instead of directly handling every register.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [Device Management](../corpus/wiki-05.md#w002355) [W002355] · revisie 28406 · 2023-10-18T07:43:32Z
-- [Hardware Abstraction Layer](../corpus/wiki-04.md#w002037) [W002037] · revisie 29462 · 2025-04-07T15:58:17Z
-- [Pci](../corpus/wiki-11.md#w003794) [W003794] · revisie 18064 · 2015-05-12T11:28:18Z
-- [PCI Express](../corpus/wiki-06.md#w002829) [W002829] · revisie 30435 · 2026-03-30T08:31:03Z
-- [I/O ports](../corpus/wiki-07.md#w003135) [W003135] · revisie 12939 · 2012-03-07T18:37:17Z
-- [Memory mapped registers in C/C++](../corpus/wiki-08.md#w003198) [W003198] · revisie 30402 · 2026-03-24T22:05:22Z
-- [ISA DMA](../corpus/wiki-01.md#w001467) [W001467] · revisie 30347 · 2026-03-17T21:08:14Z
-- [IOMMU](../corpus/wiki-14.md#w005001) [W005001] · revisie 30116 · 2026-03-03T15:35:16Z
-- [VirtIO](../corpus/wiki-10.md#w003632) [W003632] · revisie 16692 · 2014-09-09T16:01:50Z
+- [Device Management](../corpus/wiki-05.md#w002355) [W002355] · revision 28406 · 2023-10-18T07:43:32Z
+- [Hardware Abstraction Layer](../corpus/wiki-04.md#w002037) [W002037] · revision 29462 · 2025-04-07T15:58:17Z
+- [Pci](../corpus/wiki-11.md#w003794) [W003794] · revision 18064 · 2015-05-12T11:28:18Z
+- [PCI Express](../corpus/wiki-06.md#w002829) [W002829] · revision 30435 · 2026-03-30T08:31:03Z
+- [I/O ports](../corpus/wiki-07.md#w003135) [W003135] · revision 12939 · 2012-03-07T18:37:17Z
+- [Memory mapped registers in C/C++](../corpus/wiki-08.md#w003198) [W003198] · revision 30402 · 2026-03-24T22:05:22Z
+- [ISA DMA](../corpus/wiki-01.md#w001467) [W001467] · revision 30347 · 2026-03-17T21:08:14Z
+- [IOMMU](../corpus/wiki-14.md#w005001) [W005001] · revision 30116 · 2026-03-03T15:35:16Z
+- [VirtIO](../corpus/wiki-10.md#w003632) [W003632] · revision 16692 · 2014-09-09T16:01:50Z
 
-## Aansluiting op het PDF-boek
+## Related PDF book pages
 
-- Pagina 23–31: [B023](../corpus/boek.md#b023) tot [B031](../corpus/boek.md#b031).
+- Pages 23–31: [B023](../corpus/boek.md#b023) to [B031](../corpus/boek.md#b031).
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [ADMA](../corpus/wiki-04.md#w002244) [W002244]
 - [Advanced Integrated Peripheral](../corpus/wiki-04.md#w002090) [W002090]

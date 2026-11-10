@@ -1,140 +1,148 @@
-# Native display- en invoertransport — uitvoering
+# Native display and input transport — execution
 
-Basis `61ea7278390d5235a8bc024cbf084222a7b0c658`, 30 oktober 2026.
-De hoofdagent heeft DISPLAY=4096, INPUT=8192 en opt-in-ABI 1.8 gereserveerd.
-Deze taak behoudt G0 als afzonderlijke regressie en maakt geen releaseclaim.
+Baseline `61ea7278390d5235a8bc024cbf084222a7b0c658`, 30 October 2026.
+The lead agent has reserved DISPLAY=4096, INPUT=8192 and opt-in ABI 1.8.
+This task retains G0 as a separate regression and makes no release claim.
 
-Eigenaar van de nieuwe transporten en capability-engine: `git_build_audit`.
-Root bezit boot/framebufferextractie, centrale syscall-/SDK-hooks, build,
-workspaces, manifestgrants en integratie. `native_ui_apps` bezit de ring-3
-renderer/controller. De memoryagent blijft eigenaar van m3/paging/Sys4.
+Owner of the new transports and capability engine: `git_build_audit`.
+Root owns boot/framebuffer extraction, central syscall/SDK hooks, build,
+workspaces, manifest grants and integration. `native_ui_apps` owns the ring-3
+renderer/controller. The memory agent retains ownership of m3/paging/Sys4.
 
-De kernel krijgt uitsluitend vast hardwaretransport: geen fonts, GUI-parser,
-documentbeleid, focuspolicy of toetsenlayout. De framebuffer blijft
-supervisor-RW/NX/UC-MMIO, buiten RAM-/heap-/DMA-eigenaarschap. Eén getypeerde,
-niet-delegeerbare manifestcapability geeft de compositor transporttoegang.
-Een tweede bron krijgt geen autoriteit. Sluiten/exit en generatieuitputting
-mogen oude handles niet opnieuw geldig maken.
+The kernel receives only fixed hardware transport: no fonts, GUI parser,
+document policy, focus policy or keyboard layout. The framebuffer remains
+supervisor-RW/NX/UC-MMIO, outside RAM/heap/DMA ownership. One typed,
+non-delegable manifest capability gives the compositor transport access.
+A second source receives no authority. Closing/exit and generation exhaustion
+must not make old handles valid again.
 
-Display: maximaal 32×8 pixels per operatie, packed little-endian u32
-`0x00RRGGBB` (bytes B,G,R,0). Geometry geeft alleen width, height en epoch;
-geen fysiek adres, vensterpointer of device-stride. Alle descriptor- en
-payloadplannen worden volledig gevalideerd en naar private RAM gekopieerd;
-alle rijen/kleuren worden gecontroleerd vóór de eerste VRAM-write.
+Display: at most 32×8 pixels per operation, packed little-endian u32
+`0x00RRGGBB` (bytes B,G,R,0). Geometry returns only width, height and epoch;
+no physical address, window pointer or device stride. All descriptor and
+payload plans are fully validated and copied to private RAM; all rows/colours
+are checked before the first VRAM write.
 
-Input: één beschermde hardwarebron krijgt alleen een vaste begrensde reset,
-status/data-read en readinessreport. Geen raw-port-/commandinterface voor
-apps. De bron configureert beide i8042-kanalen, Set 2 met controllervertaling
-naar Set 1 en muis-ID 0. Ready vereist echte ACK/BAT/ID en gecontroleerde
-controllermode. Outputplannen worden vóór statusread/FIFO-consumptie/commands
-gevalideerd. Reset is een begrensde state machine; pending betekent nooit
-Ready. AUX, parity, timeout, bekende verloren bytes en epochs blijven zichtbaar.
-De ring-3-bron levert daarna echte IPC aan de bestaande input-core; een
-payload of lokaal geconstrueerde `Received` verleent geen bron-PID/focusrecht.
+Input: one protected hardware source receives only a fixed bounded reset,
+status/data read and readiness report. No raw-port/command interface for apps.
+The source configures both i8042 channels, Set 2 with controller translation
+to Set 1 and mouse ID 0. Ready requires actual ACK/BAT/ID and a checked
+controller mode. Output plans are validated before status reads, FIFO
+consumption or commands. Reset is a bounded state machine; pending never
+means Ready. AUX, parity, timeout, known lost bytes and epochs remain visible.
+The ring-3 source then delivers actual IPC to the existing input-core; a
+payload or locally constructed `Received` grants no source PID/focus permission.
 
-Native acceptatie blijft open totdat root de hooks integreert en echte QMP-
-toetsen/muis, gerenderde pixels, weigering, stale handles, ongeldige usercopy,
-resetfouten en cleanup op het actuele geïntegreerde image uitvoert. Pure
-driver-/codectests zijn geen vervanging voor dat bewijs.
+Native acceptance remains open until root integrates the hooks and executes
+real QMP keys/mouse, rendered pixels, rejection, stale handles, invalid
+usercopy, reset errors and cleanup on the current integrated image. Pure
+driver/codec tests do not replace that evidence.
 
-## Vast wire-/syscallcontract 1.8
+## Fixed wire/syscall contract 1.8
 
-Alle overige registerargumenten zijn nul; errors leveren RDX=0 en veranderen
-de caller-output niet. De kernel kiest de echte PID uit de syscallcontext.
-De sourcehandles zijn geen process-ID's of fysieke adressen.
+All other register arguments are zero; errors return RDX=0 and do not change
+the caller's output. The kernel selects the actual PID from the syscall
+context. Source handles are not process IDs or physical addresses.
 
-| Nummer | Argumenten | Succes-RDX |
+| Number | Arguments | Success RDX |
 | --- | --- | --- |
-| 0x80 DisplayInfo | handle, outputpointer, 32, 0, 0, 0 | 32 |
-| 0x81 DisplayBlit | handle, descriptorpointer, pixelpointer, pixelbytes, 0, 0 | width×height pixels |
-| 0x82 InputResetBegin | handle, 0, 0, 0, 0, 0 | nieuw ticket >0; alleen gestart |
-| 0x83 InputResetPoll | handle, ticket, outputpointer, 32, 0, 0 | 32, uitsluitend Ready |
-| 0x84 InputRead | handle, outputpointer, 32, 0, 0, 0 | 32, één echte status/data-sample |
+| 0x80 DisplayInfo | handle, output pointer, 32, 0, 0, 0 | 32 |
+| 0x81 DisplayBlit | handle, descriptor pointer, pixel pointer, pixel bytes, 0, 0 | width×height pixels |
+| 0x82 InputResetBegin | handle, 0, 0, 0, 0, 0 | new ticket >0; started only |
+| 0x83 InputResetPoll | handle, ticket, output pointer, 32, 0, 0 | 32, Ready only |
+| 0x84 InputRead | handle, output pointer, 32, 0, 0, 0 | 32, one actual status/data sample |
 
-`EAGAIN` bij Read betekent geen FIFO-data; bij ResetPoll betekent het een nog
-lopende geautoriseerde reset. ResetPoll mag na geldige outputpreflight stappen
-uitvoeren en bytes drainen, maar schrijft bij Pending geen Ready of output.
-Er is geen succesfallback en geen automatische tweede reset bij een onduidelijk
-antwoord. Een verkeerde ticket/owner kan geen andere reset voortzetten.
+`EAGAIN` on Read means no FIFO data; on ResetPoll it means an authorised reset
+is still in progress. After valid output preflight, ResetPoll may execute
+steps and drain bytes, but on Pending it writes neither Ready nor output.
+There is no success fallback and no automatic second reset after an ambiguous
+reply. A wrong ticket/owner cannot continue another reset.
 
-De vier vaste records zijn precies 32 little-endian bytes:
+The four fixed records are exactly 32 little-endian bytes:
 
 - Info: width u32@0, height u32@4, epoch u64@8, maxwidth u16@16=32,
-  maxheight u16@18=8, format u32@20=1, acht nulbytes vanaf24.
-- Blitdescriptor: epoch u64@0, x/y u32@8/12, width/height u16@16/18,
+  maxheight u16@18=8, format u32@20=1, eight zero bytes from 24.
+- Blit descriptor: epoch u64@0, x/y u32@8/12, width/height u16@16/18,
   flags u32@20=0, bytecount u32@24, reserved u32@28=0.
 - ResetReady: ticket u64@0, epoch u64@8, discarded u32@16, operations u32@20,
   profile u32@24=1, flags u32@28=0.
 - Raw input: epoch u64@0, sequence u64@8, status u8@16, data u8@17,
-  nulbytes vanaf18. Status bevat werkelijk OBF/AUX/parity/timeout; de kernel
-  herschrijft geen keyboardfout naar een printable sentinel en gooit geen
-  muisbytes weg. Na foutstatus wordt opnieuw reset vereist.
+  zero bytes from 18. Status contains actual OBF/AUX/parity/timeout; the kernel
+  does not rewrite a keyboard error as a printable sentinel or discard mouse
+  bytes. An error status requires another reset.
 
-De SDK-crate deelt de vaste pure `wire`-module met de kernel. De kernel gebruikt
-`default-features=false`: geen user-runtime, allocator of GUI in die dependency.
-De optionele/default `client`-laag gebruikt de bestaande SDK-runtime. Alleen
-root voegt de centrale native wrappers toe; de client dupliceert geen int80-asm.
-De getypeerde Source-wrappers controleren representatie, verlenen geen rechten
-en sluiten geen geleende/shared handles. De eigenaar sluit de manifestgrant
-expliciet. Een app kan de globale source-objecten niet zelf aanmaken.
+The SDK crate shares the fixed pure `wire` module with the kernel. The kernel
+uses `default-features=false`: no user runtime, allocator or GUI in that
+dependency. The optional/default `client` layer uses the existing SDK runtime.
+Only root adds the central native wrappers; the client does not duplicate
+int80 assembly. The typed Source wrappers check representation, grant no
+permissions and do not close borrowed/shared handles. The owner explicitly
+closes the manifest grant. An app cannot create global source objects itself.
 
-## Begrensde PS/2-reset
+<a id="begrensde-ps2-reset"></a>
 
-De pure `drivers/ps2`-core werkt boven vier vaste getypeerde portoperaties.
-Iedere ResetPoll doet maximaal acht state-machineacties, dus maximaal zestien
-portoperaties. De globale grenzen zijn 8.192 operaties, 256 drainbytes, maximaal
-twee RESEND-herhalingen, 64 monotone PIT-ticks per stap en 1.000 per reset.
-Er is geen kernel-pollspin en geen TSC-/host-/walltimefallback.
+## Bounded PS/2 reset
 
-De gesloten commandosequentie schakelt interfaces uit en draint begrensd,
-schakelt IRQ1/IRQ12 uit, initialiseert toetsenbord met ACK+BAT, schakelt scanning
-tijdelijk uit, stelt Set2 in, initialiseert de muis met ACK+BAT+ID0 en defaults,
-zet controllervertaling naar Set1 aan, controleert de commandobyte en stelt
-scanning met F4 en echte ACK's vast vóór Ready. RESEND van een muiscommando herhaalt ook D4.
-Onverwachte antwoorden, foutstatus, ontbrekende ACK/BAT/ID, verkeerde mode,
-budget/timeout en counteroverflow leveren geen Ready. Andere-kanaalinput tijdens
-reset wordt expliciet als discarded geteld en gedekt door de nieuwe epoch/SYNC.
-Er is geen claim dat i8042 ieder mogelijk ongemerkt fysiek byteverlies meldt.
+The pure `drivers/ps2` core operates over four fixed typed port operations.
+Each ResetPoll performs at most eight state-machine actions, hence at most
+sixteen port operations. Global bounds are 8,192 operations, 256 drain bytes,
+at most two RESEND retries, 64 monotonic PIT ticks per step and 1,000 per reset.
+There is no kernel polling spin or TSC/host/wall-time fallback.
 
-Tickets en epochs lopen niet rond. Raw sequences beginnen per succesvolle
-reset op1; uitputting faalt vóór FIFO-read. Sluiten/exit of een nieuwe globale
-objectgeneratie mag een oude Ready/reset niet erven. `detach(pid)` is alleen
-voor bewezen procesdood/volledige principal-retirement, niet voor een vertraagd
-oud-grant-event dat een nieuwe sessie van dezelfde levende PID zou wissen.
+The closed command sequence disables interfaces and performs bounded draining,
+disables IRQ1/IRQ12, initialises the keyboard with ACK+BAT, temporarily
+disables scanning, selects Set2, initialises the mouse with ACK+BAT+ID0 and
+defaults, enables controller translation to Set1, checks the command byte and
+establishes scanning with F4 and actual ACKs before Ready. RESEND of a mouse
+command also repeats D4. Unexpected replies, error status, missing ACK/BAT/ID,
+wrong mode, budget/timeout and counter overflow do not produce Ready. Input
+from the other channel during reset is explicitly counted as discarded and
+covered by the new epoch/SYNC. There is no claim that i8042 reports every
+possible undetected physical byte loss.
 
-Native hookpunten, door root te verbinden:
+Tickets and epochs do not wrap. Raw sequences start at 1 after each successful
+reset; exhaustion fails before FIFO read. Closing/exit or a new global object
+generation must not inherit an old Ready/reset. `detach(pid)` is only for
+proven process death/complete principal retirement, not a delayed old-grant
+event that would erase a new session of the same living PID.
 
-- `display::prepare()` na echte framebuffer-map; `ps2::prepare()` doet geen I/O.
-- `display::syscall(state,slot,number,args)` voor0x80/81;
-  `ps2::syscall(...)` voor0x82–84, vóór generieke M4-fallback.
-- `display::detach(pid)` en `ps2::detach(pid)` bij echte principal-cleanup.
-- Manifest-only `Engine::create_display(pid)` / `create_input(pid)` en
-  `check_display` / `check_input` met echte caller-PID. Statische UI-tests
-  kunnen het nieuwe recht niet als raw port-I/O of RAM-framerecht gebruiken.
-- Root bouwt/versiet ABI1.8 en verleent sources alleen aan compositor en
-  hardware-bronproces. Die bron levert SYNC/SAMPLE via echte IPC aan input-core;
-  compositor- en lifecycle-ingresses blijven afzonderlijke geautoriseerde PIDs.
+Native hook points to be connected by root:
 
-Kernelcounters zijn display `[blits,pixels,denied]` en input
-`[started,ready,samples,denied,discarded]`. Herhaald poll van hetzelfde succesvolle
-resetticket bevestigt dezelfde Ready zonder extra hardwarewerk of extra
-readycounter. Een achterblijvend beeld na compositoruitval is nog geen veilige
-sessievergrendeling/herstelervaring; die productpoort blijft uitdrukkelijk open.
+- `display::prepare()` after the actual framebuffer map; `ps2::prepare()`
+  performs no I/O.
+- `display::syscall(state,slot,number,args)` for 0x80/81;
+  `ps2::syscall(...)` for 0x82–84, before the generic M4 fallback.
+- `display::detach(pid)` and `ps2::detach(pid)` on actual principal cleanup.
+- Manifest-only `Engine::create_display(pid)` / `create_input(pid)` and
+  `check_display` / `check_input` with the actual caller PID. Static UI tests
+  cannot use the new permission as raw port I/O or a RAM-frame permission.
+- Root builds/versions ABI1.8 and grants sources only to the compositor and
+  hardware source process. That source delivers SYNC/SAMPLE through actual
+  IPC to input-core; compositor and lifecycle ingresses remain separate
+  authorised PIDs.
 
-## Controle en bronnen
+Kernel counters are display `[blits,pixels,denied]` and input
+`[started,ready,samples,denied,discarded]`. Repeated polling of the same
+successful reset ticket confirms the same Ready without additional hardware
+work or an additional ready count. A retained image after compositor failure
+is not yet a safe session-lock/recovery experience; that product gate remains
+explicitly open.
 
-De capability-slice heeft47 hosttests, inclusief globaal exclusieve quota, PID/type,
-rechteverruiming, derive/transfer/revoke, close/reuse/exit, maximumgeneratie-
-retirement en atomaire slot/nodequota. Een afzonderlijke reviewer herhaalde die
-en vijf aanvullende tegenproeven (52 groen), zonder concrete blocker.
+## Checks and sources
 
-PS/2 heeft acht hosttests en geslaagde Clippy/freestanding librarybuild; de SDK
-heeft vijf hostcodectests en geslaagde Clippy/pure-wire targetbuild. De volledige
-native SDK-laag en de nieuwe kerneladapters wachten op de door root beheerde
-centrale hooks/dependencies. Deze tekst tekent die native grens niet af.
+The capability slice has 47 host tests, including globally exclusive quotas,
+PID/type, rights expansion, derive/transfer/revoke, close/reuse/exit,
+maximum-generation retirement and atomic slot/node quotas. A separate reviewer
+repeated them and five additional counterexamples (52 passed), with no
+concrete blocker.
 
-Commando's vanuit deze worktree, met `LOCALAPPDATA=/workspace/nieuw-os/.tools`
-en eigen targetmappen:
+PS/2 has eight host tests and passing Clippy/freestanding library build; the
+SDK has five host codec tests and passing Clippy/pure-wire target build. The
+complete native SDK layer and new kernel adapters await the central
+hooks/dependencies managed by root. This text does not approve that native
+boundary.
+
+Commands from this worktree, with `LOCALAPPDATA=/workspace/nieuw-os/.tools`
+and dedicated target directories:
 
 ```text
 python3 -B tools/dev.py cargo +1.90.0 test --locked --offline -p capability-core
@@ -146,12 +154,13 @@ python3 -B tools/dev.py cargo +1.90.0 clippy --manifest-path sdk/display-client/
 python3 -B tools/dev.py cargo +1.90.0 build --manifest-path sdk/display-client/Cargo.toml --no-default-features --locked --offline --release --target x86_64-unknown-none --lib
 ```
 
-De gecontroleerde primaire emulatorbron is QEMU10.0.13:
+The checked primary emulator source is QEMU 10.0.13:
 [`hw/input/ps2.c`](https://github.com/qemu/qemu/blob/v10.0.13/hw/input/ps2.c),
 SHA-256 `fe898d87af4c87c138767b272c8ebcb0932927fcc889b4a82ac50e5086cda715`,
-en [`hw/input/pckbd.c`](https://github.com/qemu/qemu/blob/v10.0.13/hw/input/pckbd.c),
+and [`hw/input/pckbd.c`](https://github.com/qemu/qemu/blob/v10.0.13/hw/input/pckbd.c),
 SHA-256 `e48dc36f8ddd165877ac647408dd4f10ab782dc9061e25f78c20a975abb5eaa4`,
-gelezen30oktober2026. Geen QEMU-code overgenomen en geen nieuwe externe
-dependency. Fysieke PS/2-/GPU-hardware en universele deviceondersteuning zijn
-niet getest. Root behoudt G0- en alle bestaande releasegates naast de nieuwe
-native bedieningsproef; de volledige Materiaal- en releaseacceptatie blijft open.
+read 30 October 2026. No QEMU code was incorporated and no new external
+dependency added. Physical PS/2/GPU hardware and universal device support
+have not been tested. Root retains G0 and all existing release gates alongside
+the new native operation trial; complete Materiaal and release acceptance
+remain open.

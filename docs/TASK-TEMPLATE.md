@@ -1,17 +1,17 @@
-# Opdracht aan één agent
-- Taak-ID:
-- Doel / gebruikersprobleem:
-- Basiscommit en werkmap/worktree:
-- Rol:
-- Lees eerst:
-- Alleen deze bestanden wijzigen:
-- Niet wijzigen:
-- Interface-eigenaar / afhankelijkheden:
-- Te behouden invariant:
-- Acceptatiecriteria (inclusief negatieve test):
-- Beschikbare tools / beperkingen:
-- Oplevering: diff, testcommando's, resultaten, risico's, bronverwijzingen.
-- Integratie door: hoofdagent.
+# Assignment for one agent
+- Task ID:
+- Goal / user problem:
+- Base commit and working directory/worktree:
+- Role:
+- Read first:
+- Only modify these files:
+- Do not modify:
+- Interface owner / dependencies:
+- Invariant to preserve:
+- Acceptance criteria (including a negative test):
+- Available tools / limitations:
+- Deliverables: diff, test commands, results, risks and source references.
+- Integration by: lead agent.
 
-## Reviewopdracht
-Lees de diff en relevante implementatie. Zoek naar tegenvoorbeelden voor het genoemde invariant. Rapporteer concrete bevindingen met bestand/locatie, trigger, impact en herstelvoorstel. Geen bevinding gevonden is niet hetzelfde als bewezen veilig. Verander de implementatie niet tijdens deze review.
+## Review assignment
+Read the diff and relevant implementation. Look for counterexamples to the stated invariant. Report concrete findings with file/location, trigger, impact and proposed remedy. Finding no issue is not equivalent to proving safety. Do not change the implementation during this review.

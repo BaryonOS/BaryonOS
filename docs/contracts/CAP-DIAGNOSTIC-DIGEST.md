@@ -1,46 +1,47 @@
-# Capabilitydiagnostiek — bitexacte varianten en native tegenmeting
+# Capability diagnostics — bit-exact variants and native comparison
 
-## Actuele uitkomst: hostwinst voorspelde de TCG-uitkomst niet
+## Current outcome: host gain did not predict the TCG result
 
-De eerste nulreeksvariant staat in db04c385ee8a19c45594b267f5dfa654a9b8919e.
-De hostratio van circa2,48 hieronder is werkelijk gemeten, maar de daarop
-geïntegreerde GUI-proef werd trager en faalde. Dit is geen native
-performanceverbetering of afgetekende GUI-acceptatie. Broncommit
-1fd879dfdde88890a68f0a23901c69acd464b582, bronfingerprintv3
+The first zero-run variant is in db04c385ee8a19c45594b267f5dfa654a9b8919e.
+The host ratio of approximately 2.48 below was actually measured, but the
+GUI test integrated with it became slower and failed. This is not a native
+performance improvement or signed-off GUI acceptance. Source commit
+1fd879dfdde88890a68f0a23901c69acd464b582, source fingerprint v3
 6f9410a38d6cc1323344489c19c57f4e59c5a858e41f8e0710d7792065081fd3:
 
-- De integrator meldde170,0707855s tot de eerste Ready-capture met1608 tegels,
-  tegenover circa106s bij de eerdere variant. De170,07s komt uit het verschil
-  tussen capture- en inputmanifest-mtime en omvat meer dan alleen digestwerk.
-- Het echte resultaat is `passed:false`, rawQEMUexit35, guest_timeouttrue en
-  duration203,591759599s. De gast bereikte bij zijn deadline1932 tegels en één
-  volledig frame; geen Saved-/STOP-/cleanup-acceptatie.
-- Het resultaat is zelf gelezen op
+- The integrator reported 170.0707855s to the first Ready capture with 1608
+  tiles, compared with approximately 106s for the earlier variant. The 170.07s
+  derives from the difference between capture and input-manifest mtimes and
+  includes more than digest work alone.
+- The actual result is `passed:false`, raw QEMU exit35, guest_timeout true and
+  duration 203.591759599s. At its deadline, the guest reached 1932 tiles and
+  one complete frame; no Saved/STOP/cleanup acceptance.
+- The result was directly inspected at
   `/workspace/nieuw-os-worktrees/root-materiaal/build/materiaal-digest/run/materiaal-normal-230683c431/result.json`,
-  SHA25668c5cf5dd67d9b63c8b1c03a29bce9ab9a488d33fe1380eac52c9fa9c4504b28.
-  De timeout200s is een gastgrens; de geregistreerde hostwatchdog is240s.
-  Dat rapport bevat de exacte kernel-, ELF-, firmware-, QEMU- en diskhashes.
+  SHA256 68c5cf5dd67d9b63c8b1c03a29bce9ab9a488d33fe1380eac52c9fa9c4504b28.
+  The 200s timeout is a guest boundary; the recorded host watchdog is 240s.
+  That report contains the exact kernel, ELF, firmware, QEMU and disk hashes.
 
-PERF-NATIVE-BENCH-1 voegt daarom uitsluitend een expliciet meetprofiel toe.
-De gewone productie-`state_digest`, `stats`, rechten en alle voor-/na-checks
-van iedere syscall blijven bytegelijk aan db04. Er wordt in deze stap geen
-nieuwe productievariant gekozen en de GUI-timeout wordt niet verhoogd.
+PERF-NATIVE-BENCH-1 therefore adds only an explicit measurement profile.
+The ordinary production `state_digest`, `stats`, rights and all before/after
+checks for every syscall remain byte-identical to db04. This step selects no
+new production variant and does not increase the GUI timeout.
 
-## Opt-in native meetcontract
+## Opt-in native measurement contract
 
-Cratefeature `capability-core/diagnostic-bench` bouwt twee extra read-only
-methoden: `Engine::diagnostic_reference_digest()` en
-`Engine::diagnostic_direct_digest()`. De eerste gebruikt de letterlijk
-behouden oude body uit3f20; de tweede verschilt daarvan alleen doordat de
-40 Message-wirewoorden direct worden gehasht in plaats van via encode().
-Ieder woord krijgt onvoorwaardelijk dezelfde XOR/multiply; er is geen
-nuldetectie, zerorun of selectie op live/len. Alle bestaande differentiële
-corpora toetsen nu ook deze directe variant. Zonder de feature of cfg(test)
-worden beide extra paden niet gebouwd. Geen defaultfeature of dependency.
+Crate feature `capability-core/diagnostic-bench` builds two additional
+read-only methods: `Engine::diagnostic_reference_digest()` and
+`Engine::diagnostic_direct_digest()`. The first uses the literally preserved
+old body from 3f20; the second differs only by hashing the 40 Message wire
+words directly instead of through encode(). Every word unconditionally
+receives the same XOR/multiply; no zero detection, zero run or live/len
+selection. All existing differential corpora now also test this direct
+variant. Without the feature or cfg(test), neither additional path is
+built. No default feature or dependency.
 
-De nieuwe module `kernel/src/m2/m3/cap_bench.rs` levert
+The new module `kernel/src/m2/m3/cap_bench.rs` provides
 `pub(super) fn run(engine: &capability_core::Engine) -> !`.
-Root bezit de moduledeclaratie, featurealias, hook, builder en runner:
+Root owns the module declaration, feature alias, hook, builder and runner:
 
 ```text
 native-cap-digest-bench = [native-system, capability-core/diagnostic-bench]
@@ -48,196 +49,198 @@ State::setup();
 cap_bench::run(m4::engine()); // vóór timer_init, IF=0, één CPU
 ```
 
-Dit gebruikt de werkelijk opgebouwde vier-processenmanifestgraaf en de
-bestaande kernelhelpers `clock()->u64`, `print_number(&[u8],u64)` en
-`serial::{write,exit}`. Er wordt geen tweede Engine gemaakt en geen proces
-uitgevoerd. De manifestassertie eist4 processen,21 handles,29 nodes,
-9 open endpoints,0 queued messages,1 block-,1 launch- en1 entropyobject,
-0 process-/network-/display-/inputobjecten en geldige structurele invarianten.
-De8 gesloten parentnodes blijven aanwezig wegens de afgeleide nodes.
-De normale manifestdigest is0x31b7de1c7a15245b,
-decimaal3582576242485175387; het programma berekent de werkelijke waarde.
+This uses the actually constructed four-process manifest graph and existing
+kernel helpers `clock()->u64`, `print_number(&[u8],u64)` and
+`serial::{write,exit}`. No second Engine is created and no process executes.
+The manifest assertion requires 4 processes, 21 handles, 29 nodes,
+9 open endpoints, 0 queued messages, 1 block, 1 launch and 1 entropy object,
+0 process/network/display/input objects and valid structural invariants.
+The 8 closed parent nodes remain present because of the derived nodes.
+The normal manifest digest is 0x31b7de1c7a15245b,
+decimal 3582576242485175387; the program calculates the actual value.
 
-De vaste drie varianten zijn REF, DIRECT en ZERO. Voor iedere variant:
-één prehashcontrole,4 warmupcalls,144 gemeten calls enéén posthashcontrole.
-Gemeten wordt9 rondes×16 calls; de volgorde roteert ABC/BCA/CAB enzovoort.
-Elke variant staat daardoor even vaak op iedere meetpositie. De gast bewaart
-de werkelijke variantvolgorde per ronde als `CAPBENCH:ROUND_VARIANT`; de
-runner controleert die volgorde naast de gemeten tijden en afgeleide totalen.
-Iedere aanroep gebruikt `black_box` voor de functiepointer, Engine-ref en
-het resultaat. Iedere uitkomst telt mee in een verschilaccumulator en wordt
-na de batch met de verwachte hash vergeleken. Er staat geen Stats- of serial-
-bewerking in het gemeten interval. Alle Statsvelden vóór en na zijn exact
-gelijk vereist; de volledige structurele invarianten worden opnieuw getoetst.
-Geen actor-/devicebewerking, allocatie, Engine-clone of unsafe in de meetmodule.
+The three fixed variants are REF, DIRECT and ZERO. For each variant:
+one pre-hash check, 4 warm-up calls, 144 measured calls and one post-hash check.
+Measurement consists of 9 rounds × 16 calls; the order rotates ABC/BCA/CAB
+and so on. Each variant therefore occupies each measurement position equally
+often. The guest records the actual variant order per round as
+`CAPBENCH:ROUND_VARIANT`; the runner checks that order alongside measured
+times and derived totals. Each call uses `black_box` for the function pointer,
+Engine reference and result. Each outcome contributes to a difference
+accumulator and is compared with the expected hash after the batch. No Stats
+or serial operation occurs inside the measured interval. All Stats fields
+before and after must be exactly equal; complete structural invariants are
+checked again. No actor/device operation, allocation, Engine clone or unsafe
+in the measurement module.
 
-De bestaande clockhelper gebruikt **ongeserialiseerde RDTSC**. De resultaten
-zijn grove QEMU/TCG-timestampverschillen per batch, inclusief lus-, indirecte
-call-, black_box- en pariteitsrekenwerk. Het zijn geen fysieke CPU-cycli,
-exacte per-calllatenties, hostwallclock- of realtimegaranties. De runner
-registreert QEMU-versie/profiel en de werkelijke totale duur. Doel voor deze
-kleine proef is minder dan5s gastmeetwerk; dat is nog geen gemeten feit.
-Het aantal wordt niet achteraf aangepast om een gewenste winnaar te krijgen.
+The existing clock helper uses **unserialised RDTSC**. Results are coarse
+QEMU/TCG timestamp differences per batch, including loop, indirect-call,
+black_box and parity-calculation work. They are not physical CPU cycles,
+exact per-call latencies, host wall-clock or real-time guarantees. The runner
+records QEMU version/profile and actual total duration. The target for this
+small test is less than 5s of guest measurement work; that is not yet a measured
+fact. The count is not adjusted afterwards to obtain a preferred winner.
 
-De exacte outputvolgorde is:
+The exact output order is:
 
 1. `CAPBENCH:MANIFEST:PASS`.
-2. Numerieke regels `CAPBENCH:{NAAM}:` met20 decimale cijfers:
+2. Numeric lines `CAPBENCH:{NAAM}:` with 20 decimal digits:
    DIGEST,PROCESSES,HANDLES,NODES,ENDPOINTS,WARMUP,ROUNDS,BATCH.
-3. REF_COUNT,REF_TSC_SUM,REF_TSC_MIN,REF_TSC_MAX; dezelfde vier met DIRECT_
-   en daarna ZERO_. COUNT is144 gemeten aanroepen, SUM is de som van9
-   batchintervallen, MIN/MAX zijn de uiterste **16-call-batchintervallen**.
-4. Per ronde drie ROUND_VARIANT-regels met de werkelijk uitgevoerde indices
-   (0=REF, 1=DIRECT, 2=ZERO), gevolgd door ROUND_REF_TSC, ROUND_DIRECT_TSC
-   en ROUND_ZERO_TSC in vaste variantvolgorde, voor rondes0..8. De host
-   controleert de rotatie, som, minimum en maximum en bewaart de volgorde.
+3. REF_COUNT,REF_TSC_SUM,REF_TSC_MIN,REF_TSC_MAX; the same four with DIRECT_
+   and then ZERO_. COUNT is 144 measured calls, SUM is the sum of 9 batch
+   intervals, MIN/MAX are the extreme **16-call batch intervals**.
+4. For each round, three ROUND_VARIANT lines with the actually executed
+   indices (0=REF, 1=DIRECT, 2=ZERO), followed by ROUND_REF_TSC,
+   ROUND_DIRECT_TSC and ROUND_ZERO_TSC in fixed variant order, for rounds
+   0..8. The host checks rotation, sum, minimum and maximum and retains the order.
 5. `CAPBENCH:PARITY:PASS`, `CAPBENCH:STATE:PASS`, `CAPBENCH:PASS`, `M1:PASS`;
-   exit0x10 geeft rawQEMU33. Iedere afwijking geeft CAPBENCH:FAIL en exit0x11
-   (raw35), inclusief hash-, staat-, manifest-, tijdprogressie- of somoverflow.
+   exit0x10 gives raw QEMU33. Any deviation produces CAPBENCH:FAIL and
+   exit0x11 (raw35), including hash, state, manifest, time-progression or
+   sum-overflow errors.
 
-Het profiel krijgt een echte lege wegwerpdisk en virtio-blk/rng zoals de
-systemmanifestbouw vereist. Tijdens de meting draaien geen gebruikersapps,
-disk-/entropy-syscalls of andere actoren. Een groene CAPBENCH is daarom
-uitdrukkelijk **geen** functionele app-, GUI-, Saved-, entropy-, disk-,
-cleanup-, beveiligings- of releasetest. De integrator selecteert pas na echte
-meetresultaten een volgende productievariant en herhaalt dan de volledige
-GUI-proef met ongewijzigde syscallcontroles.
+The profile receives an actual empty disposable disk and virtio-blk/rng as
+required by system-manifest construction. No user apps, disk/entropy syscalls
+or other actors run during measurement. A passing CAPBENCH is therefore
+explicitly **not** a functional app, GUI, Saved, entropy, disk, cleanup,
+security or release test. The integrator selects a subsequent production
+variant only after actual measurements and then repeats the complete GUI
+test with unchanged syscall checks.
 
-### Componentcontroles van het meetpad
+### Component checks of the measurement path
 
-Zonder feature:52 tests geslaagd,1 benchmark ignored. Met diagnostic-bench:
-53 tests geslaagd,1 ignored; de extra test bouwt dezelfde manifestgraaf,
-controleert alle drie hashes en vergelijkt de volledige Engine én Stats vóór
-en na. Beide sets behouden alle47 oorspronkelijke coretests. De body van de
-oude referentie is bytegelijk aan3f20 gebleven, SHA256
+Without the feature: 52 tests passed, 1 benchmark ignored. With diagnostic-bench:
+53 tests passed, 1 ignored; the additional test builds the same manifest
+graph, checks all three hashes and compares the complete Engine and Stats
+before and after. Both sets retain all 47 original core tests. The old
+reference body remained byte-identical to 3f20, SHA256
 29ca84c1172b4c8dffd6f4aa36270ce23fa349075963d287fd0c9b08628cb7ed.
 
-Eigen controles onder `build/cap-native-checks/`: fmt, beide hosttestsets,
-Clippy/all-targets met feature, scalar-none releasebuild/Clippy met én zonder
-feature: alle exit0. Een afzonderlijk no_std compileharnas typecheckt de echte
-cap_bench-module voor scalar-none met externe, nooit uitgevoerde
-clock/serial-symbolen; build en Clippy exit0. Dat compileharnas is geen native
-meetuitvoering. De gewone productie-rlib bevat geen reference/direct-symbolen.
-De eigen componentbronfingerprintv3 is
+Dedicated checks under `build/cap-native-checks/`: fmt, both host test sets,
+Clippy/all-targets with the feature, scalar-none release build/Clippy with
+and without the feature: all exit0. A separate no_std compilation harness
+type-checks the actual cap_bench module for scalar-none with external,
+never-executed clock/serial symbols; build and Clippy exit0. That compilation
+harness is not native measurement execution. The ordinary production rlib
+contains no reference/direct symbols. The dedicated component source
+fingerprint v3 is
 8f59dbbc1169ef8b78af3c57f961c0bab518e7b129e918eeb2dddc78d823d49b.
-Native bron-/imagehashes en meetuitkomst volgen uitsluitend uit roots runner;
-deze componentcheck vult die niet in.
+Native source/image hashes and measurement outcomes derive only from root's
+runner; this component check does not supply them.
 
-## Historische eerste optimalisatie en hostonderzoek
+## Historical initial optimisation and host investigation
 
-Dit wijzigt uitsluitend de berekening van de bestaande diagnostische
-`Engine::state_digest` in `crates/capability-core/src/lib.rs`. Statsvelden,
-autoriteit, foutvolgorde, PID-/slot-/nodegeneraties, queues, ABI en limieten
-blijven gelijk. Er is geen digestcache, dirtyflag of selectie op live/len.
-De kernel houdt zijn volledige voor-/na-digestcontrole bij iedere syscall,
-ook op EAGAIN. Native GUI-doorlooptijd blijft afzonderlijk te meten; hosttijd
-is daarvoor geen bewijs. Geen releasecriterium of score wordt hiermee afgetekend.
+This changes only the calculation of the existing diagnostic
+`Engine::state_digest` in `crates/capability-core/src/lib.rs`. Stats fields,
+authority, error order, PID/slot/node generations, queues, ABI and limits
+remain unchanged. There is no digest cache, dirty flag or live/len selection.
+The kernel retains its complete before/after digest check for every syscall,
+including EAGAIN. Native GUI duration requires separate measurement; host
+time is not evidence for it. No release criterion or score is signed off.
 
-## Dezelfde volledige woordstroom
+## The same complete word stream
 
-Basis is commit3f20f087a7f0ddf4757af8d3ea110dd0c044a72c. De bestaande mixer
-start met0xcbf29ce484222325 en voert voor elk getypeerd woord uit:
+The base is commit 3f20f087a7f0ddf4757af8d3ea110dd0c044a72c. The existing
+mixer starts at 0xcbf29ce484222325 and performs, for every typed word:
 `h = (h XOR woord) * 0x100000001b3 modulo2^64`.
-De volgorde en het aantal woorden blijven exact gelijk, voor iedere geldige
-Rust-veldwaarde, inclusief ongeldige logische toestanden. Compilerpadding was
-geen deel van de oude getypeerde digest en wordt ook nu niet geïnterpreteerd.
-Deze diagnostiek is geen cryptografische hash, authenticatie of bewijs van
-botsingsvrijheid. Engine-equality en daadwerkelijke capabilitycontroles blijven
-hun eigen rol houden.
+Word order and count remain exactly identical for every valid Rust field
+value, including invalid logical states. Compiler padding was not part of
+the old typed digest and is still not interpreted. These diagnostics are
+not a cryptographic hash, authentication or proof of collision freedom.
+Engine equality and actual capability checks retain their own roles.
 
-Iedere Message levert dezelfde40 little-endian wirewoorden als encode():
-senderPID, tag, `u64(len) | (u64(cap_count)<<32)`, reserved, beide volledige
-cap-handle/rights-paren en alle32 payloadwoorden. Er wordt nergens op len of
-cap_count gesliced en geen ongebruikte byte als impliciet0 behandeld.
-Queued-cap-IDs worden daarna zoals voorheen apart gehasht. Hiermee verdwijnen
-de1024 tijdelijke320B-encodes per digest zonder een veld of byte over te slaan.
-QUEUE_CAPACITY is16, dus64×16=1024 messages en327680B tijdelijke encode-output
-per oude digest; een dubbel gecontroleerde EAGAIN had655360B alleen hieraan.
+Every Message yields the same 40 little-endian wire words as encode():
+senderPID, tag, `u64(len) | (u64(cap_count)<<32)`, reserved, both complete
+cap-handle/rights pairs and all 32 payload words. Nothing is sliced by len
+or cap_count, and no unused byte is treated as implicitly 0. Queued cap IDs
+are then hashed separately as before. This removes the 1024 temporary
+320B encodes per digest without skipping any field or byte. QUEUE_CAPACITY
+is 16, hence 64×16=1024 messages and 327680B of temporary encode output per
+old digest; a doubly checked EAGAIN incurred 655360B for this alone.
 
-Een40-woordenbericht mag alleen als nulreeks worden toegevoegd nadat ieder
-header-/capveld én ieder payloadwoord werkelijk0 blijkt. Bij een afwijking
-worden alle40 waarden normaal verwerkt, ook bij een inactive endpoint,
-len0, cap_count0, niet-canonieke reserved/unused caps of niet-nul trailingdata.
+A 40-word message may be added as a zero run only after every header/cap
+field and every payload word has actually been found to be 0. On any
+deviation, all 40 values are processed normally, including an inactive
+endpoint, len0, cap_count0, noncanonical reserved/unused capabilities or
+nonzero trailing data.
 
-## Exacte nulreekscompositie
+## Exact zero-run composition
 
-Voor een nulwoord is `(h XOR0)*P = h*P`. Daarom is een reeks van k werkelijk
-getoetste nulwoorden exact `h*P^k modulo2^64`. De private DiagnosticHasher telt
-zulke woorden. Vóór ieder niet-nulwoord wordt de volledige factor toegepast,
-pas daarna XOR en multiply van dat niet-nulwoord. Finish verwerkt de laatste
-reeks. Er worden dus geen nulwoorden weggelaten uit het resultaat.
+For a zero word, `(h XOR0)*P = h*P`. A run of k actually checked zero words
+is therefore exactly `h*P^k modulo2^64`. The private DiagnosticHasher counts
+such words. Before every nonzero word, the complete factor is applied,
+followed only then by XOR and multiplication for that nonzero word. Finish
+processes the final run. No zero words are therefore omitted from the result.
 
-Een compile-time tabel met65 u64-factoren (520B, P^0..P^64) behandelt korte
-reeksen. Langere reeksen krijgen dezelfde wrapping-factor via binaire
-exponentiatie. Die onverkorte arbitrary-state-fallback staat afzonderlijk
-cold/noinline, zodat zij niet in iedere hot-path-woordbewerking wordt gekopieerd.
-Ongeldige volledig nul gemaakte tabellen blijven door de volledige fallback
-onderzocht. De vaste maximale stroom bevat74569 woorden:1 lastPID,
-16×(2+256×4) processen/slots,1024×12 nodes,64×(8+16×44) endpoints/queues,
-4×9 block-,8×7 launch-,16×9 process- en10×6 console/entropy/networkwoorden.
-De lokale usize-nulteller kan onder deze vaste grenzen niet overlopen.
+A compile-time table of 65 u64 factors (520B, P^0..P^64) handles short runs.
+Longer runs receive the same wrapping factor through binary exponentiation.
+That complete arbitrary-state fallback is separately cold/noinline, so it
+is not copied into every hot-path word operation. Invalid fully zeroed
+tables are still examined by the complete fallback. The fixed maximum
+stream contains 74569 words: 1 lastPID, 16×(2+256×4) processes/slots,
+1024×12 nodes, 64×(8+16×44) endpoints/queues, 4×9 block,
+8×7 launch, 16×9 process and 10×6 console/entropy/network words.
+The local usize zero counter cannot overflow under these fixed bounds.
 
-Geen heap, unsafe, raw cast, wire-/structlayoutwijziging, rechtenverruiming of
-nieuwe afhankelijkheid. Alleen de lokale hashberekening verandert; de engine
-blijft read-only geobserveerd. De bestaande serialisatie van enginebewerkingen
-blijft vereist. Er wordt geen nieuwe SMP-/constant-time-/formele-verificatie-
-garantie geclaimd.
+No heap, unsafe, raw cast, wire/struct-layout change, expansion of rights or
+new dependency. Only the local hash calculation changes; the engine is
+observed read-only. Existing serialisation of engine operations remains
+required. No new SMP, constant-time or formal-verification guarantee is claimed.
 
-## Referentie en differentiële controle
+## Reference and differential checking
 
-De oude state_digest-body is letterlijk uit3f20 overgenomen als
-`state_digest_reference`; alleen de functienaam is anders. De
-body wordt bytegewijs vergeleken met de bronversie, met opgeslagen SHA hieronder.
-Reguliere productiebuilds bevatten deze referentiefunctie niet. Het expliciete
-diagnostic-bench-profiel hierboven schakelt haar wel in, naast cfg(test).
+The old state_digest body was copied literally from 3f20 as
+`state_digest_reference`; only the function name differs. The body is
+compared bytewise with the source version, with the stored SHA below.
+Regular production builds do not contain this reference function. The explicit
+diagnostic-bench profile above enables it, in addition to cfg(test).
 
-Naast alle47 bestaande coretests zijn vijf actieve testgroepen toegevoegd:
+Alongside all 47 existing core tests, five active test groups were added:
 
-- Alle320 wirebytes×8 afzonderlijke bits×5 hashstartwaarden, plus256 volledig
-  gemengde berichten; ook verboden sender/reserved, capvelden buiten count,
-  grote len/count en iedere trailing-payloadbyte blijven meedoen.
-- Exacte nulreeksfactoren rond0/1/40/64/65 en tot de74569 woorden van een
-  volledig nul gemaakte engine, plus10000 gemengde nul-/niet-nulwoorden.
-- Echte registraties, queuevol/wrap, EAGAIN-equality, captransfer/revoke,
-  alle objectklassen, gerapporteerde processterfte, close en exit. Na de
-  relevante stappen worden oude/nieuwe digest en Stats-digest vergeleken.
-- Drie deterministische dichte corruptiecorpora over ieder veld van iedere
-  tabel, inclusief inactive queues, ongeldige indices/counts/scopes/generaties
-  en alle messagebytes. De digest derefereert zulke IDs niet.
-- Een volledig logischerwijs ongeldige nultoestand plus afzonderlijke
-  wijzigingen in eerste/middelste/laatste inactive queues en privatevelden,
-  met vergelijking en waargenomen verandering van de diagnostische waarde.
+- All 320 wire bytes × 8 individual bits × 5 initial hash values, plus 256
+  fully mixed messages; forbidden sender/reserved values, cap fields beyond
+  count, large len/count values and every trailing payload byte still participate.
+- Exact zero-run factors around 0/1/40/64/65 and up to the 74569 words of a
+  fully zeroed engine, plus 10000 mixed zero/nonzero words.
+- Actual registrations, full/wrapped queues, EAGAIN equality, cap transfer/revoke,
+  all object classes, reported process death, close and exit. After the
+  relevant steps, old/new digests and the Stats digest are compared.
+- Three deterministic dense corruption corpora covering every field of every
+  table, including inactive queues, invalid indices/counts/scopes/generations
+  and all message bytes. The digest does not dereference such IDs.
+- A completely logically invalid zero state plus separate changes in the
+  first/middle/last inactive queues and private fields, with comparison and
+  an observed change in the diagnostic value.
 
-De zesde nieuwe test is standaard ignored en draait alleen expliciet als
-hostmicrobenchmark. Hij vergelijkt de ongewijzigde referentie en productie-
-variant op dezelfde7-processen/21-endpoint-engine met std::Instant/black_box.
-Dat is kosten-/ratioonderzoek op de host, geen native OS-performanceproef.
+The sixth new test is ignored by default and runs only explicitly as a
+host microbenchmark. It compares the unchanged reference and production
+variant on the same 7-process/21-endpoint engine using std::Instant/black_box.
+That is host cost/ratio research, not a native OS performance test.
 
-## Metingen en reproduceerbare controles
+## Measurements and reproducible checks
 
-De eerste losse benchmark gebruikte500 calls×5 samples per toestand en
-nam de mediaan. Canonieke hostmetingen gebruiken de normale x86_64-hosttarget,
-Rust1.90.0 release, codegen-units1, LTOuit. Een eerdere verkennende hostrun met
-SSE uit gaf een Rust-host-ABIwaarschuwing; die is geen canonieke vergelijking.
-Alle genoemde benchmarks zijn integercode; de freestanding scalarbuild staat
-hieronder apart. Gedeelde hostbelasting veroorzaakt zichtbare spreiding.
+The first separate benchmark used 500 calls × 5 samples per state and took
+the median. Canonical host measurements use the normal x86_64 host target,
+Rust1.90.0 release, codegen-units1, LTO disabled. An earlier exploratory host
+run with SSE disabled produced a Rust host-ABI warning; it is not a canonical
+comparison. All listed benchmarks are integer code; the freestanding scalar
+build is listed separately below. Shared host load causes visible variation.
 
-| Variant | GUI-achtige digest µs | GUI-achtige Stats µs | Volle1024-queue digest µs |
+| Variant | GUI-like digest µs | GUI-like Stats µs | Full 1024-queue digest µs |
 | --- | ---: | ---: | ---: |
-|Oorspronkelijk|87,323|90,946|89,560|
-|Alleen typed wirehash|89,492|104,281|86,323|
-|Alleen40-nulwoordenbericht samenvoegen|45,282|49,890|85,577|
-|Algemene nulreeksen, cold langepad|40,439|39,416|76,290|
+|Original|87.323|90.946|89.560|
+|Typed wire hash only|89.492|104.281|86.323|
+|Combine only a 40-zero-word message|45.282|49.890|85.577|
+|General zero runs, cold long path|40.439|39.416|76.290|
 
-De geselecteerde variant helpt ook het dichte corpus; niets wordt verborgen om
-alleen het lege geval gunstig te maken. Exacte digestwaarden bleven gelijk:
-empty55dcd2dffcdca9c3,7-processen5ff47a6aeb481b3d,
-volle queues0e68e4b80f5acd13. De tempencode-verwijdering gaf geen aangetoonde
-native winst; de werkelijk rode GUI-proef staat bovenaan. Root moet op de
-exact geïntegreerde commit/image de GUI200s-
-gate, echte invoer/frames en de relevante native regressies opnieuw uitvoeren.
+The selected variant also benefits the dense corpus; nothing is hidden to
+favour only the empty case. Exact digest values remained equal:
+empty55dcd2dffcdca9c3,7-process5ff47a6aeb481b3d,
+full queues0e68e4b80f5acd13. Removing temporary encoding provided no demonstrated
+native gain; the actual failed GUI test is at the top. Root must rerun the
+GUI200s gate, actual input/frames and relevant native regressions on the
+exact integrated commit/image.
 
-Gerichte commando's, eigen CARGO_TARGET_DIR en beheerde LOCALAPPDATA/PATH:
+Focused commands, dedicated CARGO_TARGET_DIR and managed LOCALAPPDATA/PATH:
 
 ```text
 cargo +1.90.0 fmt -p capability-core -- --check
@@ -248,44 +251,45 @@ cargo +1.90.0 build --offline --locked --release -p capability-core --target x86
 cargo +1.90.0 clippy --offline --locked --release -p capability-core --target x86_64-unknown-none -- -D warnings
 ```
 
-De none-build gebruikt dezelfde scalar flags als de kernel: code-model=kernel,
-relocation-model=static,no-redzone en SSE/SSE2/SSE3/SSSE3/SSE4.1/SSE4.2/AVX/AVX2uit,
-met expliciete rootpadremap. De geproduceerde digestfunctie wordt op FP/SIMD,
-Message.encode-aanroepen en aanwezigheid van de testreferentie geïnspecteerd.
-Logs en voorlopige benchmarkharnassen staan uitsluitend onder de eigen
-build/target-paden; onderstaande compacte bron-/testbinding blijft in Git.
+The none build uses the same scalar flags as the kernel: code-model=kernel,
+relocation-model=static,no-redzone and SSE/SSE2/SSE3/SSSE3/SSE4.1/SSE4.2/AVX/AVX2
+disabled, with explicit root-path remapping. The produced digest function is
+inspected for FP/SIMD, Message.encode calls and the presence of the test
+reference. Logs and provisional benchmark harnesses reside only under the
+dedicated build/target paths; the compact source/test binding below remains in Git.
 
-### Vastgelegde componentcontrole
+### Recorded component checks
 
-Op de bevroren code vóór/na de controles bleef bronfingerprintv3 gelijk:
+On the frozen code, source fingerprint v3 remained identical before and after
+the checks:
 `cc6dc31a7365704210828457e97e2169ec0d4c838fc6f29f85ab0d0ff5ae7410`.
-Het gewijzigde lib.rs heeft SHA256
+The modified lib.rs has SHA256
 `4c48675b247e4a9f6076c228fa610ade884f235de373b4a91132286c144f24ea`.
-De bytegelijk behouden referentiebody uit3f20 heeft SHA256
+The reference body retained byte-identically from 3f20 has SHA256
 `29ca84c1172b4c8dffd6f4aa36270ce23fa349075963d287fd0c9b08628cb7ed`.
-De scalar-none-rlib heeft SHA256
+The scalar-none rlib has SHA256
 `8c60a3727f7cc960d3822404d402288d6303df94b6610482eb9d4cde7056555f`.
 
-Alle bovenstaande gerichte commando's: exit0. De normale testloop meldt
-52passed,0failed,1ignored: alle47 bestaande tests plus vijf nieuwe groepen.
-De expliciet gestarte ignored benchmark meldt1passed. Zijn laatste7-samples-
-vergelijking op dezelfde7-processen/21-endpoint-engine:
+All focused commands above: exit0. The normal test loop reports
+52passed,0failed,1ignored: all 47 existing tests plus five new groups.
+The explicitly started ignored benchmark reports 1passed. Its final
+7-sample comparison on the same 7-process/21-endpoint engine:
 
 ```text
 reference=true median_ns=88906 digest=5ff47a6aeb481b3d samples=[87197,87438,88384,88906,89193,89213,94514]
 reference=false median_ns=35894 digest=5ff47a6aeb481b3d samples=[34111,35271,35858,35894,35981,38187,38539]
 ```
 
-Dat is een waargenomen hostratio van circa2,48; geen native GUI-/productbudget.
-De daadwerkelijk gegenereerde none-digestfunctie bevat geen FP/SIMD of
-Message.encode-aanroep. De referentiefunctie komt niet voor in het productie-
-archief. De scalar state_digest-symbolgrootte is11929B; de afzonderlijke
-cold langepadfactor64B. Dit is een gerichte reken-/codeomvangafweging, geen
-claim van een kleinere volledige kernel of formeel bewezen implementatie.
+This is an observed host ratio of approximately 2.48, not a native GUI/product
+budget. The actually generated none digest function contains no FP/SIMD or
+Message.encode call. The reference function is absent from the production
+archive. The scalar state_digest symbol size is 11929B; the separate cold
+long-path factor is 64B. This is a focused calculation/code-size trade-off,
+not a claim of a smaller complete kernel or a formally proven implementation.
 
-Nog uit te voeren door de integrator: onafhankelijke patchreview, nieuwe
-geïntegreerde kernel/image met eigen hashes, de volledige GUI200s-proef en
-relevante native regressies. Bij onvoldoende verbetering wordt de echte
-bottleneck verder onderzocht; controles of verplichte functies worden niet
-uitgezet om een groene uitslag te produceren. De volledige testrelease blijft
-open en deze component krijgt geen zelfstandige voortgangspunten.
+Still to be performed by the integrator: independent patch review, a new
+integrated kernel/image with its own hashes, the complete GUI200s test and
+relevant native regressions. If improvement is insufficient, the actual
+bottleneck will be investigated further; checks or mandatory functions are
+not disabled to obtain a passing result. The complete test release remains
+open, and this component receives no independent progress points.

@@ -1,0 +1,254 @@
+{
+  "verified_at": "2026-11-09T00:46:30.179Z",
+  "pull_requests": [
+    {
+      "number": 154,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 155,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 167,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 181,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 185,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 207,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 210,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 213,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 214,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 215,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 216,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": true,
+      "draft": false
+    },
+    {
+      "number": 218,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 227,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 229,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 231,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 232,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 233,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 238,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 243,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 244,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 245,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 246,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 257,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 259,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 260,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 271,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "closed",
+      "merged": false,
+      "draft": false
+    },
+    {
+      "number": 284,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "open",
+      "merged": false,
+      "draft": true
+    }
+  ],
+  "issues": [
+    {
+      "number": 43,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "open"
+    },
+    {
+      "number": 42,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "open"
+    },
+    {
+      "number": 41,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "open"
+    },
+    {
+      "number": 39,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "open"
+    },
+    {
+      "number": 283,
+      "title_matches": true,
+      "body_matches": true,
+      "state": "open"
+    }
+  ],
+  "scope": "Only titles and bodies were translated; state changes occurred in concurrent repository workflows. No closed PR was reopened."
+}

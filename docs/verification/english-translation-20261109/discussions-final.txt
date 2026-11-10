@@ -1,0 +1,177 @@
+Browser tab: 46, Title: "simonvanieperen/BaryonOS · Discussions · GitHub", URL: "https://github.com/simonvanieperen/BaryonOS/discussions".
+1 AXWebArea simonvanieperen/BaryonOS · Discussions · GitHub, URL: github.com/simonvanieperen/BaryonOS/discussions
+	2 container
+		3 link Description: Skip to content, Value: github.com/simonvanieperen/BaryonOS/discussions#start-of-content
+		4 container Global navigation menu
+			5 pop up button Open menu
+			6 link Description: Homepage ( g then d ), Value: github.com/
+			7 container Breadcrumbs
+				8 content list
+					9 container
+						10 link Description: simonvanieperen, Value: github.com/simonvanieperen
+					11 container
+						12 link Description: BaryonOS, Value: github.com/simonvanieperen/BaryonOS
+						13 pop up button (collapsed) Switch repository ( alt shift r ), Secondary Actions: Expand
+			14 button Open quick search dialog, type / to search
+				15 text Type
+				16 text /
+				17 text  to search
+			18 button Command palette
+			19 link Description: Chat with Copilot, Value: github.com/copilot, ID: copilot-chat-header-button
+			20 pop up button Open Copilot menu, ID: global-copilot-agent-button
+			21 pop up button (collapsed) Create new..., Secondary Actions: Expand
+			22 link Description: All issues, Value: github.com/issues
+			23 link Description: All pull requests, Value: github.com/pulls
+			24 link Description: All repositories, Value: github.com/repos
+			25 link Description: You have no unread notifications ( g then n ), Value: github.com/notifications
+			26 pop up button Open user navigation menu
+				27 image Simon
+			28 heading Repository navigation, Value: 2
+				29 text Repository navigation
+			30 container Repository
+				31 content list
+					32 link Description: Code, Value: github.com/simonvanieperen/BaryonOS
+					33 link Description: Issues  (9), Value: github.com/simonvanieperen/BaryonOS/issues
+					34 link Description: Pull requests  (33), Value: github.com/simonvanieperen/BaryonOS/pulls
+					35 link Description: Agents, Value: github.com/simonvanieperen/BaryonOS/agents?author=simonvanieperen
+					36 link Description: Discussions, Value: github.com/simonvanieperen/BaryonOS/discussions
+					37 link Description: Actions, Value: github.com/simonvanieperen/BaryonOS/actions
+					38 link Description: Projects, Value: github.com/simonvanieperen/BaryonOS/projects
+					39 link Description: Wiki, Value: github.com/simonvanieperen/BaryonOS/wiki
+					40 link Description: Security and quality  (31), Value: github.com/simonvanieperen/BaryonOS/security
+					41 link Description: Insights, Value: github.com/simonvanieperen/BaryonOS/pulse
+					42 link Description: Settings, Value: github.com/simonvanieperen/BaryonOS/settings
+	43 container
+		44 heading simonvanieperen BaryonOS Discussions, Value: 1
+			45 text simonvanieperen BaryonOS Discussions
+		46 heading Pinned Discussions, Value: 2, ID: pinned-discussions
+			47 text Pinned Discussions
+		48 content list Pinned Discussions
+			49 container
+				50 heading Start here: Baryon OS, project direction and collaboration, Value: 3
+					51 link Description: Start here: Baryon OS, project direction and collaboration, Value: github.com/simonvanieperen/BaryonOS/discussions/252
+				52 link Description: Announcements (category), Value: github.com/simonvanieperen/BaryonOS/discussions?discussions_q=category%3A%22Announcements%22
+				53 link Description: simonvanieperen (author), Value: github.com/simonvanieperen
+		54 container
+			55 heading About pinned discussions, Value: 4
+				56 text About pinned discussions
+			57 text When you start a discussion,
+			58 text you can choose to feature it
+			59 text here by pinning it.
+			60 button Got it
+		61 container query-builder-discussions-search-combobox
+			62 text Search all discussions
+			63 combo box (collapsed, settable) Search all discussions, Value: is:open , ID: discussions-search-combobox, Secondary Actions: Expand
+			64 text Clear
+			65 button Clear Search all discussions, ID: discussions-search-combobox-clear-button
+		66 pop up button (collapsed) Sort by: Latest activity, Secondary Actions: Expand
+			67 container
+				68 text Sort by: Latest activity
+		69 pop up button (collapsed) Description: Filter labels, ID: label-select-menu-button, Secondary Actions: Expand
+		70 pop up button (collapsed) Filter: Open, ID: action-menu-1b702c6d-6ab7-44d5-972a-45aca227643b-button, Secondary Actions: Expand
+		71 link Description: New discussion, Value: github.com/simonvanieperen/BaryonOS/discussions/new/choose
+		72 heading Categories, most helpful, and community links, Value: 2
+			73 text Categories, most helpful, and community links
+		74 heading Categories, Value: 3
+			75 text Categories
+		76 link Description: Manage categories, Value: github.com/simonvanieperen/BaryonOS/discussions/categories
+		77 container Categories
+			78 container Categories
+				79 content list
+					80 link Description: View all discussions, Value: github.com/simonvanieperen/BaryonOS/discussions
+					81 link Description: Announcements, Value: github.com/simonvanieperen/BaryonOS/discussions/categories/announcements
+					82 link Description: Architecture and design, Value: github.com/simonvanieperen/BaryonOS/discussions/categories/architecture-and-design
+					83 link Description: Polls, Value: github.com/simonvanieperen/BaryonOS/discussions/categories/polls
+					84 link Description: Product and user experience, Value: github.com/simonvanieperen/BaryonOS/discussions/categories/product-and-user-experience
+					85 link Description: Questions and help, Value: github.com/simonvanieperen/BaryonOS/discussions/categories/questions-and-help
+					86 link Description: Test results and demos, Value: github.com/simonvanieperen/BaryonOS/discussions/categories/test-results-and-demos
+		87 text Loading
+		88 heading Community links, Value: 3
+			89 text Community links
+		90 content list
+			91 link Description: Community guidelines, Value: docs.github.com/articles/github-community-guidelines
+			92 link Description: simonvanieperen.github.io/BaryonOS, Value: simonvanieperen.github.io/BaryonOS/
+			93 link Description: Community insights, Value: github.com/simonvanieperen/BaryonOS/graphs/community
+		94 heading Discussions, Value: 2, ID: discussions-list
+			95 text Discussions
+		96 content list Discussions
+			97 container
+				98 button (disabled) Description: Upvote: 1, ID: discussion-upvote-button-Discussion-11257678
+				99 heading Native TLS/PQC: crypto provider, certificate time and acceptance evidence, Value: 3
+					100 link Description: Native TLS/PQC: crypto provider, certificate time and acceptance evidence, Value: github.com/simonvanieperen/BaryonOS/discussions/256
+				101 link Description: simonvanieperen (author), Value: github.com/simonvanieperen
+				102 text  started
+				103 container Nov 8, 2026, 19:42 GMT+1
+					104 text 6 hours ago
+				105 text in
+				106 link Description: Architecture and design (category), Value: github.com/simonvanieperen/BaryonOS/discussions/categories/architecture-and-design?discussions_q=is%3Aopen+category%3A%22Architecture+and+design%22
+				107 link Description: simonvanieperen (participant), Value: github.com/simonvanieperen
+				108 link Description: 0 comments: simonvanieperen, 07:42PM yesterday, Value: github.com/simonvanieperen/BaryonOS/discussions/256
+			109 container
+				110 button (disabled) Description: Upvote: 1, ID: discussion-upvote-button-Discussion-11257672
+				111 heading NAS and multiple devices: pairing, recovery and sync conflicts, Value: 3
+					112 link Description: NAS and multiple devices: pairing, recovery and sync conflicts, Value: github.com/simonvanieperen/BaryonOS/discussions/255
+				113 link Description: simonvanieperen (author), Value: github.com/simonvanieperen
+				114 text  started
+				115 container Nov 8, 2026, 19:41 GMT+1
+					116 text 6 hours ago
+				117 text in
+				118 link Description: Architecture and design (category), Value: github.com/simonvanieperen/BaryonOS/discussions/categories/architecture-and-design?discussions_q=is%3Aopen+category%3A%22Architecture+and+design%22
+				119 link Description: simonvanieperen (participant), Value: github.com/simonvanieperen
+				120 link Description: 0 comments: simonvanieperen, 07:41PM yesterday, Value: github.com/simonvanieperen/BaryonOS/discussions/255
+			121 container
+				122 button (disabled) Description: Upvote: 1, ID: discussion-upvote-button-Discussion-11257663
+				123 heading Which daily tasks should the familiar desktop support smoothly?, Value: 3
+					124 link Description: Which daily tasks should the familiar desktop support smoothly?, Value: github.com/simonvanieperen/BaryonOS/discussions/254
+				125 link Description: simonvanieperen (author), Value: github.com/simonvanieperen
+				126 text  started
+				127 container Nov 8, 2026, 19:40 GMT+1
+					128 text 6 hours ago
+				129 text in
+				130 link Description: Product and user experience (category), Value: github.com/simonvanieperen/BaryonOS/discussions/categories/product-and-user-experience?discussions_q=is%3Aopen+category%3A%22Product+and+user+experience%22
+				131 link Description: simonvanieperen (participant), Value: github.com/simonvanieperen
+				132 link Description: 0 comments: simonvanieperen, 07:40PM yesterday, Value: github.com/simonvanieperen/BaryonOS/discussions/254
+			133 container
+				134 button (disabled) Description: Upvote: 1, ID: discussion-upvote-button-Discussion-11257656
+				135 heading From separate native tests to one integrated test release, Value: 3
+					136 link Description: From separate native tests to one integrated test release, Value: github.com/simonvanieperen/BaryonOS/discussions/253
+				137 link Description: simonvanieperen (author), Value: github.com/simonvanieperen
+				138 text  started
+				139 container Nov 8, 2026, 19:39 GMT+1
+					140 text 6 hours ago
+				141 text in
+				142 link Description: Architecture and design (category), Value: github.com/simonvanieperen/BaryonOS/discussions/categories/architecture-and-design?discussions_q=is%3Aopen+category%3A%22Architecture+and+design%22
+				143 link Description: simonvanieperen (participant), Value: github.com/simonvanieperen
+				144 link Description: 0 comments: simonvanieperen, 07:39PM yesterday, Value: github.com/simonvanieperen/BaryonOS/discussions/253
+			145 container
+				146 button (disabled) Description: Upvote: 1, ID: discussion-upvote-button-Discussion-11257652
+				147 heading Start here: Baryon OS, project direction and collaboration, Value: 3
+					148 link Description: Start here: Baryon OS, project direction and collaboration, Value: github.com/simonvanieperen/BaryonOS/discussions/252
+				149 link Description: simonvanieperen (author), Value: github.com/simonvanieperen
+				150 text  announced
+				151 container Nov 8, 2026, 19:38 GMT+1
+					152 text 6 hours ago
+				153 text in
+				154 link Description: Announcements (category), Value: github.com/simonvanieperen/BaryonOS/discussions/categories/announcements?discussions_q=is%3Aopen+category%3AAnnouncements
+				155 link Description: simonvanieperen (participant), Value: github.com/simonvanieperen
+				156 link Description: 0 comments: simonvanieperen, 07:38PM yesterday, Value: github.com/simonvanieperen/BaryonOS/discussions/252
+	157 container
+		158 heading Footer, Value: 2
+			159 text Footer
+		160 link Description: GitHub Homepage, Value: github.com/
+		161 text © 2026 GitHub, Inc.
+		162 container Footer
+			163 heading Footer navigation, Value: 3, ID: sr-footer-heading
+				164 text Footer navigation
+			165 content list Footer navigation
+				166 link Description: Terms, Value: docs.github.com/site-policy/github-terms/github-terms-of-service
+				167 link Description: Privacy, Value: docs.github.com/site-policy/privacy-policies/github-privacy-statement
+				168 link Description: Security, Value: github.com/security
+				169 link Description: Status, Value: githubstatus.com/
+				170 link Description: Community, Value: github.community/
+				171 link Description: Docs, Value: docs.github.com/
+				172 link Description: Contact, Value: support.github.com/?tags=dotcom-footer
+				173 button Manage cookies
+				174 button Do not share my personal information
+
+The focused UI element is 1 AXWebArea simonvanieperen/BaryonOS · Discussions · GitHub, URL: github.com/simonvanieperen/BaryonOS/discussions

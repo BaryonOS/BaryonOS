@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-10",
-    "source_commit": "16d2fb3d6c3d2e66b66888fcf5577b316a9f580a",
+    "source_commit": "915cfaded1e6a6fc3ff9e8accdcf535c046a0dc1",
     "assessment_basis": "source_commit",
-    "branch": "coderabbit/issue-292-preserve-target-flags",
-    "task": "Integrate the issue #292 artifact-store target-flag repair onto the PR #167 squash base",
+    "branch": "codex/pr269-final-20261110",
+    "task": "Rebuild the PR #269 English documentation scope and preserve the unique PR #270 Dutch README snapshot",
     "previous_score": 39,
-    "summary": "39/100 to 39/100: the additive Cargo configuration preserves the freestanding target contract without changing kernel behavior or dependencies. All required local integration gates passed on tree 2c04a809d890e7eb8e4f6041281aeda41f9e1c7b; the final pushed head still requires current-head hosted validation before merge."
+    "summary": "39/100 to 39/100: documentation translation, link relocation, and immutable historical provenance do not add OS functionality or native acceptance. Criterion states, weights, and evidence remain unchanged."
   },
   "tracks": [
     {

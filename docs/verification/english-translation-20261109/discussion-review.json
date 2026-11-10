@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-11-09",
+  "review_type": "Independent AI source comparison; not human review or runtime acceptance",
+  "result": "pass",
+  "input_file": "/workspace/scratch/baryonos-discussion-translations.json",
+  "input_sha256": "a573d4a867ea2b2ca14ef09c038b88ccfc2a26a9f57af6c47316cef939c8f947",
+  "repository_head_at_review": "0891f42c3ba2c38f1411bd9e237ecb50d993b53e",
+  "scope": "All five supplied original and English Discussion titles and complete bodies, reviewed sentence by sentence for technical meaning, evidence, authority, numbers and technical literals.",
+  "authorised_changes": [
+    "English prose and category display names; Nieuw OS branding updated to Baryon OS.",
+    "GitHub repository URL prefix changed from simonvanieperen/nieuw-os to simonvanieperen/BaryonOS with every path retained.",
+    "Discussion #252 shared-language policy changed from Dutch to English at the user’s request.",
+    "An explicitly labelled translation note dated 9 November 2026 added while preserving the original baseline and 8 November 2026 date."
+  ],
+  "preservation_checks": {
+    "matching_original_and_english_discussion_ids": 5,
+    "nonempty_title_body_pairs": 5,
+    "canonicalised_url_paths_equal_in_order": {
+      "result": "pass",
+      "occurrences": 32
+    },
+    "inline_code_equal_in_order": {
+      "result": "pass",
+      "occurrences": 10
+    },
+    "original_source_hash_and_date_preserved": {
+      "result": "pass",
+      "discussions": 5,
+      "baseline": "363b486b06023d3d578f8eca2b23ff49045a1757",
+      "date": "2026-11-08"
+    },
+    "numeric_sequences_equal_except_authorised_editorial_date": {
+      "result": "pass",
+      "discussions": 5
+    },
+    "table_row_counts_and_fenced_blocks_preserved": "pass"
+  },
+  "discussions": [
+    {
+      "number": 252,
+      "result": "pass",
+      "original_body_sha256": "e986a44cca72df6c763e905d5d549ef6386e6b2855016a131a5600ca34e44877",
+      "english_body_sha256": "65b9d138cfee2fc1c95d8469547a479c7ef6cef017ffd43a8e253b49ced2b9ee",
+      "semantic_review": "Project direction, repository authority, category roles, pipeline labels, evidence distinctions and privacy guidance retained; the shared-language policy change to English is explicitly authorised."
+    },
+    {
+      "number": 253,
+      "result": "pass",
+      "original_body_sha256": "9bd400169d53c537dc5bcd022c1b78c16933272c13dfe5669545d602f79b026e",
+      "english_body_sha256": "847e52ea93c039932211b0a31805a95381056753951a8467024e590d7343b7cf",
+      "semantic_review": "One-image release scope, open integrated acceptance boundaries, five design questions, existing ownership and the no-acceptance statement retained."
+    },
+    {
+      "number": 254,
+      "result": "pass",
+      "original_body_sha256": "f790cc7e1f0298f6f19cedc973cdcbdaa8e2eb6f22a5db821800dcf6cb6bb82d",
+      "english_body_sha256": "5c4bfe0a8cc6d7ab82e25008e063bb6684196a544ae70dc3df9558c25d92defb",
+      "semantic_review": "Desktop conventions, Materiaal and Security Floor authority, accessibility scenarios, prototype/native distinctions and authentication/key-release limitations retained."
+    },
+    {
+      "number": 255,
+      "result": "pass",
+      "original_body_sha256": "fc5eb84fb04ab02ad539a7d36ce7f04d3fff71f7e1bbed62f0e86a89f0b4ecaf",
+      "english_body_sha256": "ef248c0ae8f1108a10e32244a8023a395c3470a6ed18ec472b5d734e64437e6f",
+      "semantic_review": "Pre-transmission encryption, NAS administrator limits, explicit provider choice, no silent fallback, open P01–P04 criteria, recovery and durable revocation requirements retained."
+    },
+    {
+      "number": 256,
+      "result": "pass",
+      "original_body_sha256": "a042466f9f2516fefe80590db464d0e87763f486aaf46e39df7f86c54166731f",
+      "english_body_sha256": "163bd47cfaa8c51e1173a49aab5eb2f16890d33ffa8e0ce6160c2352dce5ec0d",
+      "semantic_review": "The absence of a running native TLS service, randomness authorisation, certificate-time and CPU constraints, separate evidence questions and no-provider-selection boundary retained."
+    }
+  ],
+  "category_synchronisation": {
+    "result": "pass",
+    "commit": "0891f42c3ba2c38f1411bd9e237ecb50d993b53e",
+    "expected_slugs": [
+      "announcements",
+      "architecture-and-design",
+      "polls",
+      "product-and-user-experience",
+      "questions-and-help",
+      "test-results-and-demos"
+    ],
+    "active_links_checked": 10,
+    "all_links_use_canonical_repository_and_expected_slugs": true,
+    "yaml_files_parsed": 6,
+    "renamed_form_bodies_byte_identical": 4,
+    "form_field_counts": [
+      6,
+      6,
+      5,
+      6
+    ],
+    "comparison_baseline": "a462e0dda14658db7e4c4fa0dbad8f971201022d",
+    "live_category_basis": "The parent agent verified the six live category slugs from the rendered Discussions page. This review independently rechecked local links, filenames, YAML parsing and unchanged form bodies; it made no category API changes."
+  },
+  "findings": [],
+  "limitations": [
+    "This review compares the supplied exact original/English pairs. It does not independently attest the current published browser state or the unchanged contents of comments and third-party history, which are outside the supplied data.",
+    "No runtime, native, physical-device or human-acceptance tests were executed; the review does not change any implementation or acceptance status."
+  ],
+  "writes": "Only this review JSON was written; no source edits, commits or remote writes."
+}

@@ -6,12 +6,12 @@ Use [Discussions](https://github.com/simonvanieperen/BaryonOS/discussions) for q
 
 | You want to… | Place | Helpful information |
 |---|---|---|
-| Ask a question or get help | [Questions and help](https://github.com/simonvanieperen/BaryonOS/discussions/categories/vragen-en-hulp) | Goal, context, and what has already been tried |
-| Evaluate a technical choice | [Architecture and design](https://github.com/simonvanieperen/BaryonOS/discussions/categories/architectuur-en-ontwerp) | Current contract, proposal, alternatives, interfaces, and testable consequences |
-| Improve a user task or accessibility | [Product and user experience](https://github.com/simonvanieperen/BaryonOS/discussions/categories/product-en-gebruikservaring) | Intended task, observed friction, and recognizable examples |
-| Share an experiment, demo, or test | [Test results and demos](https://github.com/simonvanieperen/BaryonOS/discussions/categories/testresultaten-en-demos) | Exact source revision, setup, observation, evidence, and remaining boundaries |
-| Collect preferences between concrete options | [Polls](https://github.com/simonvanieperen/BaryonOS/discussions/categories/peilingen) | A clear question and comparable options; voting does not replace a technical decision or acceptance evidence |
-| Share project news or an accepted decision | [Announcements](https://github.com/simonvanieperen/BaryonOS/discussions/categories/aankondigingen) | Maintainer post with links to the authoritative source |
+| Ask a question or get help | [Questions and help](https://github.com/simonvanieperen/BaryonOS/discussions/categories/questions-and-help) | Goal, context, and what has already been tried; a useful reply can be marked as the answer |
+| Evaluate a technical choice | [Architecture and design](https://github.com/simonvanieperen/BaryonOS/discussions/categories/architecture-and-design) | Current contract, proposal, alternatives, interfaces, and testable consequences |
+| Improve a user task or accessibility | [Product and user experience](https://github.com/simonvanieperen/BaryonOS/discussions/categories/product-and-user-experience) | Intended task, observed friction, and recognisable examples |
+| Share an experiment, demo, or test | [Test results and demos](https://github.com/simonvanieperen/BaryonOS/discussions/categories/test-results-and-demos) | Exact source revision, setup, observation, evidence, and remaining boundaries |
+| Collect preferences between concrete options | [Polls](https://github.com/simonvanieperen/BaryonOS/discussions/categories/polls) | A clear question and comparable options; voting does not replace a technical decision or acceptance evidence |
+| Share project news or an accepted decision | [Announcements](https://github.com/simonvanieperen/BaryonOS/discussions/categories/announcements) | Maintainer post with links to the authoritative source |
 | Report a defect, CI problem, or concrete task | [Issue forms](https://github.com/simonvanieperen/BaryonOS/issues/new/choose) | Reproduction or bounded result, source revision, and appropriate verification |
 
 Stay on topic, support technical statements, and distinguish proposals, code, executed tests, and assumptions. **English is the project language for active public documentation and community communication.** Technical identifiers remain unchanged.
@@ -26,6 +26,7 @@ Stay on topic, support technical statements, and distinguish proposals, code, ex
 
 Host tests, bare-metal builds, native QEMU tests, physical-hardware tests, and human review prove different things. A screenshot shows rendered output but does not prove storage durability or enforced permissions. Partial tests and demos earn rubric points only when the complete existing criterion is accepted with the required evidence.
 
+<a id="leidende-projectbronnen"></a>
 ## Authoritative project sources
 
 | Topic | Source |
@@ -43,7 +44,7 @@ The repository remains authoritative. Discussions and the wiki should point to t
 
 ## Vulnerabilities and sensitive data
 
-Follow [SECURITY.md](../SECURITY.md). Do not put secrets, production keys, personal data, or exploitable vulnerability details in public issues, discussions, or logs. General architecture discussions about security are appropriate for Discussions.
+Follow [SECURITY.md](../SECURITY.md). Its reporting process remains authoritative; this guide introduces no reporting address or response deadline. Do not put secrets, production keys, personal data, or exploitable vulnerability details in public issues, discussions, or logs. General architecture discussions about security are appropriate for Discussions.
 
 ## Maintainer workflow
 
@@ -52,11 +53,17 @@ Issue forms never add `pipeline:serial` or `pipeline:parallel` automatically. Th
 A pipeline issue has exactly one pipeline label, one open rubric criterion, and existing workflow jobs. Its body uses:
 
 ```text
-Criterium: <open ID from docs/progress.json>
+Criterion: <open ID from docs/progress.json>
 Gate: <workflow>.yml#<job>
-Afhankelijk van: #<issue-number>
+Depends on: #<issue-number>
 ```
 
-The dependency line is optional; `Gate:` may contain multiple job references separated by spaces. Pipeline labels and technical change boundaries remain under maintainer control.
+The legacy Dutch parser keys `Criterium:` and `Afhankelijk van:` remain accepted for existing issues. Use exactly one criterion line across both spellings. The dependency line is optional; `Gate:` may contain multiple job references separated by spaces. GitHub form fields become Markdown; the heading `Criterion` alone does not replace the literal line. Pipeline labels and technical change boundaries remain under maintainer control.
 
-The four discussion forms are stored under `.github/DISCUSSION_TEMPLATE/`. Their filenames follow the existing category slugs. Renaming a category therefore also requires checking the matching form and links above.
+The four discussion forms are stored under `.github/DISCUSSION_TEMPLATE/`. Their filenames exactly match the category slugs. Renaming a category therefore also requires checking the matching form and links above. Forms become active from the default branch; polls use GitHub's own input and have no category form.
+
+Official setup documentation (retrieved 8 November 2026):
+
+- GitHub. (n.d.). [Creating discussion category forms](https://docs.github.com/en/discussions/managing-discussions-for-your-community/creating-discussion-category-forms).
+- GitHub. (n.d.). [Syntax for discussion category forms](https://docs.github.com/en/discussions/managing-discussions-for-your-community/syntax-for-discussion-category-forms).
+- GitHub. (n.d.). [Managing categories for discussions](https://docs.github.com/en/discussions/managing-discussions-for-your-community/managing-categories-for-discussions).

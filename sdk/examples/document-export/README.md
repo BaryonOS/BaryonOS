@@ -1,75 +1,75 @@
-# Tekst naar een echt DOCX-bestand
+# Export text to an actual DOCX file
 
-TASK-PLATFORM-M7-DOCX-TEXT-EXPORT, basis `6d523964`.
-Een concrete interoperabiliteitsfunctie: UTF-8-tekst via stdin omzetten naar
-een zelfstandig WordprocessingML/OPC-document via stdout. Geen tweede editor,
-Office-parser, ZIP-importer of lege formaatfoundation.
-De exporter is `no_std+alloc`; de werkelijke CLI is uitsluitend een hostprogramma.
+TASK-PLATFORM-M7-DOCX-TEXT-EXPORT, baseline `6d523964`.
+A concrete interoperability function: convert UTF-8 text from stdin into a
+standalone WordprocessingML/OPC document on stdout. No second editor,
+Office parser, ZIP importer or empty format foundation.
+The exporter is `no_std+alloc`; the actual CLI is host-only.
 
 ```sh
 cargo +1.90.0 run --offline --locked --manifest-path sdk/examples/document-export/Cargo.toml --features host-cli --bin text-docx < tekst.txt > document.docx
 ```
 
-## Concreet exportprofiel
+## Concrete export profile
 
-- Tekst blijft Unicode, inclusief accenten, niet-Latijnse tekens en emoji.
-  Geen fontsubstitutie of glyphfallback in de export; de ontvangende
-  documentapp bepaalt fonts/layout.
-- Iedere LF wordt een alinea, inclusief lege en afsluitende alinea's.
-  Tabs worden `w:tab`; spaties worden met `xml:space="preserve"` vastgelegd.
-  Geen trim of interpretatie van markup, URL's of formuleachtige inhoud.
-- Geen stille conversie: ongeldige UTF-8, XML-ongeldige tekens en CR/CRLF
-  geven een fout met waar mogelijk de bronbytepositie. De caller kiest een
-  eventuele normalisatie vooraf; deze exporter wijzigt de bron niet.
-- Maximaal 64 KiB invoer, 4096 alinea's en 4 MiB uitvoer; een caller kan
-  het uitvoerbudget verlagen. Limieten gelden inclusief exacte ZIP-overhead.
-- Drie vaste OPC-parts: `[Content_Types].xml`, `_rels/.rels`,
-  `word/document.xml`. ZIP stored, geen compressie, ZIP64 of encryption.
-  Een vaste datum 1980-01-01 maakt output deterministisch; dit is geen
-  werkelijke bewerkingsdatum. CRC32 is een corruptiechecksum, geen authenticatie.
-- Geen macros, automatische velden, embedded objecten, externe relationships,
-  hyperlinks, scripts, auteurmetadata of bestandsnamen uit de invoer.
+- Text remains Unicode, including accents, non-Latin characters and emoji.
+  No font substitution or glyph fallback during export; the receiving
+  document app determines fonts/layout.
+- Every LF becomes a paragraph, including empty and trailing paragraphs.
+  Tabs become `w:tab`; spaces are retained with `xml:space="preserve"`.
+  No trimming or interpretation of markup, URLs or formula-like content.
+- No silent conversion: invalid UTF-8, XML-invalid characters and CR/CRLF
+  produce an error, with the source-byte position where possible. The caller
+  selects any normalisation beforehand; this exporter does not alter the source.
+- At most 64 KiB input, 4096 paragraphs and 4 MiB output; callers may lower
+  the output budget. Limits include exact ZIP overhead.
+- Three fixed OPC parts: `[Content_Types].xml`, `_rels/.rels`,
+  `word/document.xml`. ZIP stored, no compression, ZIP64 or encryption.
+  A fixed date of 1980-01-01 makes output deterministic; it is not an actual
+  modification date. CRC32 detects corruption; it is not authentication.
+- No macros, automatic fields, embedded objects, external relationships,
+  hyperlinks, scripts, author metadata or filenames derived from input.
 
-Dit is een **tekstexportprofiel**, geen DOCX-import/roundtrip-, stylesheet-,
-typografie-, paginering-, tabel-, afbeelding-, revisie-, screenreader- of
-volledige Office-compatibiliteitsclaim. De output bevat plaintext; een
-DOCX-export is niet end-to-end-versleuteld en moet via bewust gekozen
-uitvoer/opslag behandeld worden. Geen upload of netwerkfallback.
+This is a **text export profile**, not a claim of DOCX import/roundtrip,
+stylesheets, typography, pagination, tables, images, revisions, screen-reader
+support or full Office compatibility. Output contains plaintext; a DOCX
+export is not end-to-end encrypted and must use deliberately selected output/
+storage. No upload or network fallback.
 
-## Implementatie- en resourcegrens
+## Implementation and resource boundary
 
-Geen unsafe of dependency. Alleen de minimale standaard ZIP-serializer voor
-de drie vaste parts, geen algemene archiefbibliotheek of parser.
-Vaste inputlimiet begrenst alle lengtes voordat ze naar ZIP-u16/u32 gaan:
-de documentinhoud is minder dan 3 MiB; partnamen zijn vaste ASCII-constanten.
-XML en ZIP-output worden ieder vooraf exact/fallible gereserveerd; werkgeheugen
-is circa tweemaal de uitvoer plus invoer, geen native harde heapquota.
+No unsafe or dependencies. Only the minimum standard ZIP serialiser for the
+three fixed parts; no general archive library or parser. The fixed input
+limit bounds all lengths before conversion to ZIP u16/u32: document contents
+are below 3 MiB; part names are fixed ASCII constants. XML and ZIP output are
+each reserved exactly and fallibly in advance; working memory is approximately
+twice the output plus input, not a native hard heap quota.
 
-Alleen `sdk/examples/document-export/**` en eigen receipt zijn nieuw.
-Geen General-editor-/document-session-, Work-, gedeelde workspace-, kernel-,
-driver-, launch-, rechten- of scorewijziging. De no_std-API werkt op callerbytes
-en verleent geen bestands-/netwerkcapability. Een native exportactie moet
-door de bestaande General-/portalowner worden aangesloten op geautoriseerd
-opslaan; die koppeling blokkeert deze bestandsfunctie niet.
+Only `sdk/examples/document-export/**` and its own receipt are new.
+No changes to the General editor/document session, Work, shared workspace,
+kernel, drivers, launch, permissions or score. The no_std API operates on
+caller bytes and grants no file/network capability. A native export action
+must be connected by the existing General/portal owner to authorised saving;
+that integration does not block this file function.
 
-De CLI schrijft pas stdout nadat validatie en export slagen; fouten geven
-exit 1 en stderr zonder documentinhoud. Stdoutwrite is niet atomair:
-I/O-fouten kunnen een gedeeltelijk bestand opleveren. Gebruik bij
-shellredirectie nooit hetzelfde invoer-/uitvoerpad.
+The CLI writes stdout only after validation and export succeed; failures
+produce exit 1 and stderr without document contents. Stdout writes are not
+atomic: I/O errors may leave a partial file. Never use the same input/output
+path in shell redirection.
 
-## Primaire bronnen en acceptatie
+## Primary sources and acceptance
 
-Microsoft, *Structure of a WordprocessingML document*, 12 januari 2024,
+Microsoft, *Structure of a WordprocessingML document*, 12 January 2024,
 <https://learn.microsoft.com/en-us/office/open-xml/word/structure-of-a-wordprocessingml-document>.
-PKWARE, *APPNOTE: ZIP File Format Specification*, 6.3.10, 1 november 2022,
-secties 4.3.7, 4.3.12 en 4.3.16,
+PKWARE, *APPNOTE: ZIP File Format Specification*, 6.3.10, 1 November 2022,
+sections 4.3.7, 4.3.12 and 4.3.16,
 <https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT>.
-Geraadpleegd 3 november 2026; geen brontekst overgenomen.
-De ECMA-376-landingspagina kon niet worden opgehaald (HTTP 403);
-geen volledige norm-/schemavalidatie geclaimd.
+Accessed 3 November 2026; no source text copied.
+The ECMA-376 landing page could not be retrieved (HTTP 403);
+no full standard/schema validation is claimed.
 
 ```sh
-# Uitvoeren vanaf de repositoryroot op een voorbereide Rust-toolchain.
+# Run from the repository root with a prepared Rust toolchain.
 set -e
 export CARGO_TARGET_DIR="$PWD/target/platform-docx-host"
 mkdir -p build/platform-docx-evidence
@@ -82,10 +82,10 @@ python3 -B sdk/examples/document-export/tests/interop.py target/platform-docx-ho
 file build/platform-docx-evidence/example.docx
 ```
 
-Zes Rusttests en 133 echte CLI-exports worden onafhankelijk met Python
-`zipfile`/CRC en `ElementTree` gecontroleerd op vaste packageparts,
-relationships, XML-namespaces en exact teruggelezen Unicode/tab/alinea-inhoud.
-`file` herkent de output als Microsoft Word 2007+. Dat bewijst **niet**
-dat Word/LibreOffice die uitvoer daadwerkelijk geopend/gerenderd hebben.
-Geen native executable, GUI/saveportal, QEMU, hardware-, menselijke,
-schema-/Officeapp-, onafhankelijke securityaudit- of releaseacceptatie.
+Six Rust tests and 133 actual CLI exports are independently checked with
+Python `zipfile`/CRC and `ElementTree` for fixed package parts, relationships,
+XML namespaces and exact reread Unicode/tab/paragraph contents. `file`
+recognises output as Microsoft Word 2007+. This does **not** demonstrate that
+Word/LibreOffice actually opened/rendered it. No native executable, GUI/save
+portal, QEMU, hardware, human, schema/Office-app, independent security audit
+or release acceptance.

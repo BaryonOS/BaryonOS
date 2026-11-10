@@ -1,0 +1,42 @@
+title: "[Question] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ask a question about Baryon OS or request help with building, testing or contributing. Reproducible defects can be reported through [Issues](https://github.com/simonvanieperen/BaryonOS/issues/new/choose).
+        See the [guide](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/COMMUNITY.md). Do not share secrets, personal data or exploitable details; follow [SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md).
+  - type: dropdown
+    id: area
+    attributes:
+      label: Component
+      options:
+        - Getting started or contributing
+        - Boot, kernel, processes and capabilities
+        - Drivers and hardware
+        - Storage and recovery
+        - Desktop, Materiaal and accessibility
+        - Networking, NAS and multiple devices
+        - Apps and SDK
+        - Privacy, key management and updates
+        - Local AI or quantum research
+        - Build, CI and test evidence
+        - Documentation or not yet known
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: What would you like to understand or achieve, and where are you stuck?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Relevant context
+      description: Where applicable, provide a source link or commit, host/VM, profile and commands used. State whether this concerns a host prototype, build or native execution.
+  - type: textarea
+    id: attempted
+    attributes:
+      label: Already read or tried
+      description: Share relevant documentation, earlier discussions and the outcome of your own attempt. A short sanitised error message helps.

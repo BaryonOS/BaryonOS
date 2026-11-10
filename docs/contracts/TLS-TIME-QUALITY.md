@@ -1,31 +1,30 @@
-# TLS-TIME-QUALITY-1: expliciete tijdweigering
+# TLS-TIME-QUALITY-1: explicit rejection of unsuitable time
 
-## Doel, eigenaar en scope
+## Objective, owner and scope
 
-TL-CORE, bronbasis `3f3f99efd18ef70d6ca5737a5fd668a520f537e6`
-(bevat main `0ade801`), branch `simon/tls-time-quality-1`.
-Afgestemd met TL-NET en TL-SEC: uitsluitend
-`sdk/runtime/src/tls_time.rs`, directe `sdk/runtime/tests/tls_time.rs`
-en dit contract. Release heeft bovendien uitsluitend de export
-`pub mod tls_time;` in `sdk/runtime/src/lib.rs` vrijgegeven; NET en apps
-zijn hierover direct geinformeerd. Geen andere clock-, kernel-, syscall-, TLS-stack-,
-certificaat-, sleutel- of ankerwijzigingen.
+TL-CORE, source base `3f3f99efd18ef70d6ca5737a5fd668a520f537e6`
+(includes main `0ade801`), branch `simon/tls-time-quality-1`.
+Agreed with TL-NET and TL-SEC: only
+`sdk/runtime/src/tls_time.rs`, direct `sdk/runtime/tests/tls_time.rs`
+and this contract. Release additionally authorised only the export
+`pub mod tls_time;` in `sdk/runtime/src/lib.rs`; NET and apps were informed
+directly. No other clock, kernel, syscall, TLS-stack, certificate, key or
+anchor changes.
 
-Dit is een directe afhankelijkheid van FR-N03/FR-S03, geen volledige
-TLS-, tijdsync-, product- of rubricacceptatie. De RTC-interface en de
-ABI 1.9-syscall bestaan al en worden niet opnieuw geimplementeerd.
-Het [RTC-contract](../implementation/RTC-WALLTIME.md) blijft leidend.
+This is a direct dependency of FR-N03/FR-S03, not complete TLS, time-sync,
+product or rubric acceptance. The RTC interface and ABI 1.9 syscall already
+exist and are not reimplemented. The
+[RTC contract](../implementation/RTC-WALLTIME.md) remains authoritative.
 
-## Invariant en interface
+## Invariant and interface
 
-Een leesbare UTC-waarde is geen bevoegdheid om certificaatgeldigheid
-goed te keuren. De bestaande SDK kent alleen
-`WallClockQuality::UnauthenticatedRtc`. Een stabiele, plausibele,
-oplopende of als minimum opgeslagen RTC-waarde verandert die kwaliteit niet.
-Boot-monotone ticks zijn geen kalenderdatum. KEY_EXPIRED in het
-update-/sleutelbeleid is een releaseversievenster, geen kalenderklok.
+A readable UTC value does not authorise approval of certificate validity.
+The existing SDK knows only `WallClockQuality::UnauthenticatedRtc`.
+A stable, plausible, increasing or minimum-stored RTC value does not change
+that quality. Boot-monotonic ticks are not a calendar date. KEY_EXPIRED in
+update/key policy is a release-version window, not a calendar clock.
 
-De pure allocatorvrije `no_std`-module bevat:
+The pure allocator-free `no_std` module contains:
 
 ```rust,ignore
 pub fn certificate_time(
@@ -33,79 +32,77 @@ pub fn certificate_time(
 ) -> Result<CertificateTime, TimeUnavailable>;
 ```
 
-`None` geeft `MissingSource`; iedere huidige RTC-lezing geeft
-`UnauthenticatedRtc`. **Geen huidige publieke invoer kan `Ok` opleveren.**
-De uitputtende match op klokkwaliteit dwingt een expliciete codekeuze af
-als later een nieuwe kwaliteit wordt toegevoegd.
+`None` returns `MissingSource`; every current RTC reading returns
+`UnauthenticatedRtc`. **No current public input can produce `Ok`.**
+The exhaustive match on clock quality requires an explicit code decision
+if a new quality is added later.
 
-`CertificateTime` heeft een prive `u64`-secondeveld en een
-`unix_seconds()`-getter voor toekomstige verifierintegratie. Geen publieke
-constructor, `From`, `Default`, deserializer, trustboolean of toegankelijke
-numerieke conversie. Veilige callers kunnen dus geen timestamp of
-`WallClockReading` promoveren tot dit type. De module verbiedt eigen unsafe.
-Een type/module begrenst veilige API-gebruikers, niet een kwaadaardig
-proces met onveilige code of kerneltoegang; echte autoriteit moet later
-bij de geautoriseerde provider-/procesgrens worden afgedwongen.
+`CertificateTime` has a private `u64` seconds field and a
+`unix_seconds()` getter for future verifier integration. No public
+constructor, `From`, `Default`, deserialiser, trust boolean or accessible
+numeric conversion. Safe callers therefore cannot promote a timestamp or
+`WallClockReading` to this type. The module forbids its own unsafe code.
+A type/module constrains safe API users, not a malicious process with
+unsafe code or kernel access; actual authority must later be enforced
+at the authorised provider/process boundary.
 
-De toekomstige TLS-consument moet deze fout zichtbaar teruggeven voordat
-hij datumverificatie probeert. Hij mag geen fallback naar hosttijd,
-buildtijd, een vast testtijdstip, netwerkdatum of monotone ticks uitvoeren.
-Geen certificaatdatum overslaan, accept-all verifier, TOFU of automatisch
-andersoortige transportverbinding als gevolg van deze fout.
-Deze stap implementeert geen TLS-consument en bewijst dus niet dat een
-daadwerkelijke handshake al deze grens gebruikt.
+The future TLS consumer must visibly return this error before attempting
+date verification. It must not fall back to host time, build time, a fixed
+test timestamp, a network date or monotonic ticks. No skipping certificate
+dates, accept-all verifier, TOFU or automatic alternative transport connection
+as a consequence of this error. This step does not implement a TLS consumer
+and therefore does not prove that an actual handshake already uses this boundary.
 
-## Voorwaarden voor een toekomstige succesvolle bron
+## Conditions for a future successful source
 
-De volgende voorwaarden blijven **OPEN**, niet impliciet ingevuld:
+The following conditions remain **OPEN**, not implicitly resolved:
 
-- Wie mag kalendertijd uitgeven en hoe wordt die bevoegdheid per proces
-  afgedwongen? Een publieke `trusted: true` of caller-provided enum voldoet niet.
-- Welke onderhouden standaard en echte cryptografische verificatie bindt
-  bronidentiteit en tijdinhoud? Geen eigen tijdondertekenprotocol.
-- Hoe worden versheid, onzekerheid, maximumleeftijd, voorwaartse sprongen,
-  tijd tussen ontvangst en verificatie en suspend/herstart behandeld?
-- Hoe worden terugloop, replay en stale samples over herstarts herkend,
-  met welke geauthenticeerde persistente ankerbron en fouttransacties?
-  Een versiefloor voor updates of de huidige RTC-floor is daarvoor geen
-  kalenderbewijs.
-- Hoe bindt de TLS-verifier de geldigheidsgrenzen van de volledige
-  certificaatketen aan de toegestane onzekerheidsmarge? De bestaande TLS-port
-  wordt hergebruikt; geen tweede TLS-stack.
+- Who may issue calendar time, and how is that authority enforced per
+  process? A public `trusted: true` or caller-provided enum is insufficient.
+- Which maintained standard and actual cryptographic verification bind
+  source identity and time content? No custom time-signing protocol.
+- How are freshness, uncertainty, maximum age, forward jumps, time between
+  receipt and verification, and suspend/restart handled?
+- How are rollback, replay and stale samples detected across restarts,
+  using which authenticated persistent anchor source and failure transactions?
+  An update-version floor or the current RTC floor is not calendar evidence.
+- How does the TLS verifier bind the validity boundaries of the complete
+  certificate chain to the permitted uncertainty margin? The existing TLS
+  port is reused; no second TLS stack.
 
-Zolang die bron niet bestaat, geven ook onbekende, onbeschikbare, stale,
-gereplayde of teruggelopen tijdpaden geen certificatentijd: er is geen
-publieke succesconstructor. Een toekomstige provider moet zulke toestanden
-eerst expliciet representeren en negatief testen; deze module beweert niet
-dat ze cryptografisch zijn gedetecteerd.
+As long as that source does not exist, unknown, unavailable, stale,
+replayed or rolled-back time paths also produce no certificate time:
+there is no public success constructor. A future provider must first
+represent and negatively test such states explicitly; this module does
+not claim to have detected them cryptographically.
 
-## Acceptatie en bewijsgrens
+## Acceptance and evidence boundary
 
-Gerichte tests toetsen ontbrekende bron, RTC bij negatieve/epoch/plausibele/
-extreme `i64`-waarden, stilstaande/oplopende/teruglopende reeksen en een
-RTC-fallbackpoging. Compile-faildoctests toetsen onmogelijke veilige
-conversie vanuit RTC, publieke structconstructie en monotone getallen.
-Verdere gates: bestaande runtime-hosttests/doctests, `no_std`-targetcheck,
-rustfmt, clippy en diffcontrole volgens de opgeslagen bewijsuitvoering.
+Focused tests cover an absent source, RTC at negative/epoch/plausible/extreme
+`i64` values, stationary/increasing/decreasing sequences and an attempted
+RTC fallback. Compile-fail doctests check impossible safe conversion from
+RTC, public struct construction and monotonic numbers.
+Further gates: existing runtime host tests/doctests, `no_std` target check,
+rustfmt, clippy and diff checking under the recorded verification execution.
 
-Geen nieuwe dependency, I/O, klokinstelling, sleutelpersistentie of
-netwerkrecht. Geen native TLS-, QEMU-, Windows-, fysieke of vertrouwde-
-tijdacceptatie door alleen deze pure coretests. De manager onderhoudt
-gedeelde queue/status/rubric; voorstel **34% -> 34%** tenzij diens actuele
-rubric inmiddels een andere, brongebonden uitgangsscore heeft.
+No new dependency, I/O, clock setting, key persistence or network right.
+These pure core tests alone do not establish native TLS, QEMU, Windows,
+physical or trusted-time acceptance. The manager maintains the shared
+queue/status/rubric; proposal **34% -> 34%**, unless the current rubric has
+since acquired a different source-bound baseline score.
 
-## Uitgevoerd bewijs op 30 oktober 2026
+## Evidence executed on 30 October 2026
 
-Exacte v3-bronvingerafdruk van de gewijzigde code:
+Exact v3 source fingerprint of the modified code:
 
 ```text
 15eac332d8044bcfb0053ebeb7dfc89d70c90d44d96201ab04e6f2d70cb4844c
 ```
 
-De onderstaande commands zijn werkelijk uitgevoerd op deze code, alle
-**exit 0**. De runtime-export is de enige gewijzigde regel in een bestaand
-bronbestand; de andere drie bestanden zijn nieuw. Geen dependencies,
-manifests, lockfiles, buildtools of gedeelde voortgangsbestanden gewijzigd.
+The commands below were actually executed on this code, all **exit 0**.
+The runtime export is the only changed line in an existing source file;
+the other three files are new. No dependencies, manifests, lockfiles,
+build tools or shared progress files were changed.
 
 ```sh
 . .tools/nieuw-os/rtc-env.sh
@@ -120,14 +117,14 @@ python3 -B tools/dev.py cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml -p nieu
 git diff --check
 ```
 
-Rust/Cargo 1.90.0; runtime **27 hosttests + 3 compile-faildoctests** groen,
-waarvan 4 nieuwe semantische tijdtests en 3 nieuwe compile-failtests.
-Volledige SDK **81 hosttests + dezelfde 3 doctests** groen; die telling
-omvat de runtime en wordt niet erbij opgeteld. Clippy waarschuwingsvrij;
-`x86_64-unknown-none` targetcheck groen, geen host-libc/allocator nodig.
-Dit is een target-typecheck, **geen uitgevoerde native TLS-handshake**.
+Rust/Cargo 1.90.0; runtime **27 host tests + 3 compile-fail doctests** passed,
+including 4 new semantic time tests and 3 new compile-fail tests.
+Complete SDK **81 host tests + the same 3 doctests** passed; that count
+includes the runtime and is not added to it. Clippy produced no warnings;
+`x86_64-unknown-none` target check passed, requiring no host libc/allocator.
+This is a target type check, **not an executed native TLS handshake**.
 
-Volledige lokale logs en SHA-256:
+Complete local logs and SHA-256:
 
 | Log | SHA-256 |
 |---|---|
@@ -137,15 +134,15 @@ Volledige lokale logs en SHA-256:
 | `/tmp/nieuw-os-tls-time-target.log` | `bd2750ef00c4822aa45aa0b0aafda459a894973b40abae988b21d8e41c0b00c3` |
 | `/tmp/nieuw-os-tls-time-fmt.log` | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
 
-Twee ontwikkelcommando's waren eerst rood en zijn niet als acceptatie
-gebruikt: Cargo weigerde `--test tls_time --doc` met exit 101 omdat die
-selectors niet gecombineerd mogen worden; de volledige package-test
-hierboven omvat beide en slaagt. Rustfmt wees de aanvankelijke plaats
-van de nieuwe module-export af (exit 1); de ene export staat nu in
-alfabetische volgorde en de hercontrole slaagt. Geen code- of testfallback.
+Two development commands initially failed and were not used as acceptance:
+Cargo rejected `--test tls_time --doc` with exit 101 because those selectors
+cannot be combined; the complete package test above includes both and passes.
+Rustfmt rejected the initial position of the new module export (exit 1);
+the single export is now in alphabetical order, and the recheck passes.
+No code or test fallback.
 
-De nieuwe codebron heeft een andere v3 dan de eerder geteste
-Windows-testbundel. Die bundel blijft uitsluitend aan zijn oorspronkelijke
-`eabc27b`/`a1998a12...`-bron gebonden; dit contract labelt die runtime
-niet om als geteste TLS-code. Native TLS-consument, echte vertrouwde bron,
-freshness, persistent rollbackanker en eindimage-integratie blijven open.
+The new code source has a different v3 from the previously tested Windows
+test bundle. That bundle remains bound only to its original
+`eabc27b`/`a1998a12...` source; this contract does not relabel that runtime
+as tested TLS code. The native TLS consumer, actual trusted source,
+freshness, persistent rollback anchor and final-image integration remain open.

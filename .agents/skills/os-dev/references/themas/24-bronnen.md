@@ -1,21 +1,21 @@
-# Naslag, hulpmiddelen, porting en community
+# Reference material, tools, porting and community
 
-Hier staan naslagwerken, projectvoorbeelden, porting, aanvullende computerwetenschap en community-informatie. Verwijzingen naar externe handleidingen zijn behouden als verwijzingen; de volledige externe documenten zijn niet automatisch onderdeel van een wiki-export.
+This section contains reference works, project examples, porting, additional computer science and community information. Links to external manuals are retained as references; the complete external documents are not automatically part of a wiki export.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [Resources](../corpus/wiki-01.md#w001368) [W001368] · revisie 28287 · 2023-08-20T09:46:01Z
-- [Books](../corpus/wiki-02.md#w001572) [W001572] · revisie 29661 · 2025-09-18T03:57:46Z
-- [Academic Papers](../corpus/wiki-11.md#w003903) [W003903] · revisie 31041 · 2026-10-23T21:22:10Z
-- [Licensing](../corpus/wiki-03.md#w001885) [W001885] · revisie 30983 · 2026-09-28T14:13:16Z
-- [Code Management](../corpus/wiki-09.md#w003405) [W003405] · revisie 25368 · 2020-11-19T19:25:42Z
-- [Portability](../corpus/wiki-09.md#w003402) [W003402] · revisie 29011 · 2024-06-06T17:31:33Z
-- [Cross-Porting Software](../corpus/wiki-10.md#w003628) [W003628] · revisie 28165 · 2023-07-10T14:49:59Z
-- [Projects](../corpus/wiki-01.md#w001367) [W001367] · revisie 31032 · 2026-10-21T13:31:24Z
+- [Resources](../corpus/wiki-01.md#w001368) [W001368] · revision 28287 · 2023-08-20T09:46:01Z
+- [Books](../corpus/wiki-02.md#w001572) [W001572] · revision 29661 · 2025-09-18T03:57:46Z
+- [Academic Papers](../corpus/wiki-11.md#w003903) [W003903] · revision 31041 · 2026-10-23T21:22:10Z
+- [Licensing](../corpus/wiki-03.md#w001885) [W001885] · revision 30983 · 2026-09-28T14:13:16Z
+- [Code Management](../corpus/wiki-09.md#w003405) [W003405] · revision 25368 · 2020-11-19T19:25:42Z
+- [Portability](../corpus/wiki-09.md#w003402) [W003402] · revision 29011 · 2024-06-06T17:31:33Z
+- [Cross-Porting Software](../corpus/wiki-10.md#w003628) [W003628] · revision 28165 · 2023-07-10T14:49:59Z
+- [Projects](../corpus/wiki-01.md#w001367) [W001367] · revision 31032 · 2026-10-21T13:31:24Z
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [Abandoned Projects](../corpus/wiki-12.md#w004233) [W004233]
 - [Academic Papers](../corpus/wiki-11.md#w003903) [W003903]

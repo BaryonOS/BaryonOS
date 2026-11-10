@@ -1,116 +1,124 @@
-# TASK-USER-ALLOC — begrensde allocator voor gebruikersprocessen
+# TASK-USER-ALLOC — bounded allocator for user processes
 
-Taakcontract, 30 oktober 2026, basis `cda42f2`. Eigenaar: `native_ui_apps`;
-hoofdagent bezit SDK-/kernel-/appintegratie. Alleen `sdk/heap-allocator/**` en
-dit document. Geen globale workspacewijziging of vaste heapgrowth-ABI-aanname.
+Task contract, 30 October 2026, baseline `cda42f2`. Owner: `native_ui_apps`;
+the lead agent owns SDK/kernel/app integration. Only `sdk/heap-allocator/**`
+and this document. No global workspace change or fixed heap-growth ABI
+assumption.
 
-## Gekozen engine en broncontrole
+## Selected engine and source review
 
-Hergebruik `linked_list_allocator = 0.10.6`, defaultfeatures uit. De meest recente
-niet-yanked sparse-indexversie is gepubliceerd op 14 april 2026. Werkelijke
-cratetarball en indexchecksum zijn vóór opname vergeleken:
+Reuse `linked_list_allocator = 0.10.6`, with default features disabled. The
+latest non-yanked sparse-index version was published on 14 April 2026. The
+actual crate tarball and index checksum were compared before inclusion:
 `2b23ac50abb8261cb38c6e2a7192d3302e0836dac1628f6a93b82b4fad185897`.
-De gepubliceerde manifesten verklaren Rust ≥1.61, Apache-2.0/MIT en `build=false`.
-Zonder defaults zijn er geen transitieve runtime-dependencies; spin/nightly/
-alloc_ref staan uit. De wrapper gebruikt de bestaande first-fit/coalescing-engine,
-geen zelfgeschreven allocatiealgoritme.
+The published manifests declare Rust ≥1.61, Apache-2.0/MIT and `build=false`.
+Without defaults there are no transitive runtime dependencies; spin/nightly/
+alloc_ref are disabled. The wrapper uses the existing first-fit/coalescing
+engine, not a custom allocation algorithm.
 
-Onderhouds-/veiligheidscontrole: upstream 0.10.6 repareert een mogelijke panic
-bij een zeer grote Layout. De changelog noemt de oudere OOB-advisory
-GHSA-xg8p-34w2-j49j, opgelost sinds 0.10.2, en de paddingreparatie van 0.10.4.
-Dit is gerichte broncontrole, geen volledige audit of garantie dat alle fouten
-zijn gevonden. De MIT-notice wordt met de package meegeleverd.
+Maintenance/security review: upstream 0.10.6 fixes a possible panic with a very
+large Layout. The changelog lists the older OOB advisory GHSA-xg8p-34w2-j49j,
+resolved since 0.10.2, and the padding fix in 0.10.4. This is a targeted source
+review, not a complete audit or guarantee that all errors have been found.
+The MIT notice is included with the package.
 
-Bronnen: [upstream](https://github.com/rust-osdev/linked-list-allocator),
-[crate-index](https://index.crates.io/li/nk/linked_list_allocator),
-[gepinde tarball](https://static.crates.io/crates/linked_list_allocator/linked_list_allocator-0.10.6.crate),
-[`Heap`-API](https://docs.rs/linked_list_allocator/0.10.6/linked_list_allocator/struct.Heap.html).
-Bronnen en feitelijke versie gecontroleerd op 30 oktober 2026.
+Sources: [upstream](https://github.com/rust-osdev/linked-list-allocator),
+[crate index](https://index.crates.io/li/nk/linked_list_allocator),
+[pinned tarball](https://static.crates.io/crates/linked_list_allocator/linked_list_allocator-0.10.6.crate),
+[`Heap` API](https://docs.rs/linked_list_allocator/0.10.6/linked_list_allocator/struct.Heap.html).
+Sources and actual version checked on 30 October 2026.
 
-## Eigenaarschap en uitvoering
+## Ownership and execution
 
-- Alleen exclusief aan dit proces toegewezen, aaneengesloten, permanent geldige
-  RW+NX-geheugenruimte mag arena worden. BSS of bevestigde eigen heapgroei kan
-  die ruimte leveren; een pointer/getal bewijst zelf geen kernelrecht of NX.
-- `Arena::checked` controleert uitsluitend representatie, lengte, alignment en
-  overflow zonder te derefereren. `initialize_raw` is unsafe: caller garandeert
-  exclusief geldige `'static`-opslag. De veilige initializer neemt een exclusieve
-  `'static mut`-bytebuffer over. Een mislukte shapecheck schrijft niets.
-- Initialisatie gebeurt maximaal eenmaal. De engine krijgt vooraf genormaliseerde
-  alignment en minimaal twee machinewoorden; ongeschikte/té kleine arena's en
-  herinitialisatie geven fouten voordat allocatorstate of eerder werk verandert.
-- Geen automatische groei, hostmalloc, virtueel-memorybackend of syscallfallback.
-  De kernelagent werkt aan fallible eigen heapgroei; v1 gebruikt alleen een reeds
-  bevestigde arena. Het ontwikkelquotum onder 8 MiB is geen productlimiet; de
-  library legt geen dergelijke capaciteit vast.
-- Het profiel is één userthread per proces, preëmptie toegestaan. Een atomaire
-  atomaire lock beschermt engine/metrics; er zijn geen syscalls, yields, callbacks
-  of logging onder die lock. Andere adresruimten gebruiken hun eigen instantie.
-  Reëntrante allocatorcalls vanuit userinterrupts/signals zijn niet toegestaan.
-- First-fit allocatie en vrijgeven kosten O(aantal vrije blokken). De vaste
-  arenagrootte begrenst die lijst; dit is geen constante tijd of gemeten
-  real-timegarantie. Eventuele grotere werksets vereisen metingen op het profiel.
-- `GlobalAlloc` is unsafe volgens Rust: dealloc gebruikt exact de eerder
-  geretourneerde pointer/Layout en precies eenmaal. De wrapper belooft geen
-  detectie van willekeurige pointers/double-free en test zulke UB niet.
+- Only contiguous, permanently valid RW+NX memory assigned exclusively to this
+  process may become an arena. BSS or confirmed growth of its own heap can
+  provide that space; a pointer/number does not itself prove a kernel
+  permission or NX.
+- `Arena::checked` checks only representation, length, alignment and overflow
+  without dereferencing. `initialize_raw` is unsafe: the caller guarantees
+  exclusively valid `'static` storage. The safe initializer takes ownership
+  of an exclusive `'static mut` byte buffer. A failed shape check writes nothing.
+- Initialisation occurs at most once. The engine receives pre-normalised
+  alignment and at least two machine words; unsuitable/undersized arenas and
+  reinitialisation return errors before allocator state or previous work changes.
+- No automatic growth, host malloc, virtual-memory backend or syscall fallback.
+  The kernel agent is working on fallible growth of the process's own heap;
+  v1 uses only an already confirmed arena. The development quota below 8 MiB
+  is not a product limit; the library fixes no such capacity.
+- The profile has one user thread per process, with pre-emption permitted.
+  An atomic lock protects the engine/metrics; no syscalls, yields, callbacks
+  or logging occur under that lock. Other address spaces use their own
+  instance. Re-entrant allocator calls from user interrupts/signals are
+  not permitted.
+- First-fit allocation and deallocation cost O(number of free blocks). The
+  fixed arena size bounds that list; this is neither constant time nor a
+  measured real-time guarantee. Larger working sets require measurements
+  on the profile.
+- `GlobalAlloc` is unsafe under Rust's contract: deallocation uses exactly the
+  previously returned pointer/Layout, exactly once. The wrapper does not
+  promise detection of arbitrary pointers/double-free and does not test such UB.
 
-## Fouten en zichtbaarheid
+## Errors and visibility
 
-Fallible allocatie onderscheidt niet-geïnitialiseerd, nul-/ongeldige aanvraag en
-OOM. Alignment, extent en Layout-overflow worden vóór engineaanroep gecontroleerd.
-Een conservatieve checked-arithmeticgrens voorkomt dat de engine bij extreme
-hoge adressen/alignment een tijdelijk zoekadres laat rondlopen. Zulke aanvragen
-geven OOM vóór een enginewijziging, ook wanneer een specifiek blok zou passen.
-De gewone `GlobalAlloc`-API retourneert null bij falen; infallible Vec/Box-calls
-kunnen daardoor het proces beëindigen. Userflows gebruiken `try_allocate` en
-`Vec/String::try_reserve` voor zichtbare OOM zonder een onterechte OS-successtatus.
-Mislukte reallocatie behoudt de oude geldige allocatie volgens het Rustcontract.
+Fallible allocation distinguishes uninitialised state, zero/invalid requests
+and OOM. Alignment, extent and Layout overflow are checked before calling the
+engine. A conservative checked-arithmetic bound prevents a temporary search
+address from wrapping in the engine at extremely high addresses/alignment.
+Such requests return OOM before an engine change, even if a particular block
+would fit. The ordinary `GlobalAlloc` API returns null on failure; infallible
+Vec/Box calls can consequently terminate the process. User flows use
+`try_allocate` and `Vec/String::try_reserve` for visible OOM without an
+incorrect OS success status. Failed reallocation preserves the old valid
+allocation according to Rust's contract.
 
-Usage/highwater betreffen uitsluitend de eigen arena: bruikbare capaciteit,
-engine-gebruik/vrij, payloadgebruik, levende allocaties en totalen/mislukkingen.
-Engine-gebruik telt het naar minimaal twee machinewoorden afgeronde blok; het
-verschil met payload toont die overhead. Vrije-lijstheaders staan in vrije
-blokken en zijn onderdeel van `engine_free`, geen extra externe heapruimte.
-Totale vrije ruimte garandeert geen aaneengesloten groot blok. Historische
-tellers satureren zichtbaar en lopen nooit rond. Geen geheimen worden gelogd;
-deallocator wist niet automatisch alle plaintext of vrijgegeven pagina's.
+Usage/high-water figures concern only the process's own arena: usable
+capacity, engine used/free, payload usage, live allocations and totals/failures.
+Engine usage counts the block rounded up to at least two machine words; the
+difference from payload usage shows that overhead. Free-list headers reside
+in free blocks and are part of `engine_free`, not additional external heap
+space. Total free space does not guarantee a large contiguous block.
+Historical counters visibly saturate and never wrap. No secrets are logged;
+the deallocator does not automatically erase all plaintext or released pages.
 
-De normale integratie installeert één `static HEAP: UserAllocator` als
-`#[global_allocator]` en initialiseert deze vóór de eerste `alloc`-aanvraag.
-Daarna werken gewone `alloc::Vec`, `alloc::boxed::Box` en `alloc::String` via
-die instantie. `try_allocate(Layout)` geeft een rauwe, on-geïnitialiseerde
-allocatie; de bijbehorende unsafe `deallocate(pointer, exact_dezelfde_layout)`
-blijft verantwoordelijkheid van de caller. `usage()` kopieert alleen tellers
-en geeft geen referentie naar de lock of de arena terug. Het gebruik van een
-fallible API garandeert op zichzelf geen geheimenwissing of kernelrecht.
+Normal integration installs one `static HEAP: UserAllocator` as
+`#[global_allocator]` and initialises it before the first `alloc` request.
+Ordinary `alloc::Vec`, `alloc::boxed::Box` and `alloc::String` then operate
+through that instance. `try_allocate(Layout)` returns a raw, uninitialised
+allocation; the corresponding unsafe
+`deallocate(pointer, exact_dezelfde_layout)` (the exact same layout) remains
+the caller's responsibility. `usage()` copies only counters and returns no
+reference to the lock or arena. Using a fallible API does not itself guarantee
+secret erasure or a kernel permission.
 
-Rustcontract: [`GlobalAlloc`, Rust 1.90.0](https://github.com/rust-lang/rust/blob/1.90.0/library/core/src/alloc/global.rs).
-Geen unwinding uit allocatorfuncties; `GlobalAlloc::alloc` ontvangt een geldige,
-niet-lege Layout. Alleen de veilige wrapper biedt expliciet een `ZeroSize`-fout;
-de tests roepen de unsafe globale API nooit met nulomvang aan. De standaard
-`alloc_zeroed` en `realloc` van Rust verzorgen respectievelijk nulbytes en
-behoud van de oude allocatie wanneer groei mislukt.
+Rust contract: [`GlobalAlloc`, Rust 1.90.0](https://github.com/rust-lang/rust/blob/1.90.0/library/core/src/alloc/global.rs).
+No unwinding from allocator functions; `GlobalAlloc::alloc` receives a valid,
+non-empty Layout. Only the safe wrapper explicitly offers a `ZeroSize` error;
+the tests never call the unsafe global API with zero size. Rust's default
+`alloc_zeroed` and `realloc` provide zero bytes and preservation of the old
+allocation when growth fails, respectively.
 
-## Acceptatie en resterende native poort
+## Acceptance and remaining native gate
 
-Hosttests: initfouten zonder writes, alignment/prefix/suffix-canaries, extents,
-klein/groot, hergebruik/coalescing/fragmentatie, OOM met behoud, counters en
-werkelijke alloc::Vec/Box/String boven uitsluitend een eigen statische globale
-testarena. Geen System/hostfallback in die collectionstest. Compileer engine en
-wrapper daadwerkelijk scalar voor `x86_64-unknown-none` en leg bron-/artifact-
-hashes vast. Dit bewijst geen native allocatie of dagelijkse browser-/AI-werking.
+Host tests: initialisation errors without writes, alignment/prefix/suffix
+canaries, extents, small/large allocations, reuse/coalescing/fragmentation,
+OOM with preservation, counters and actual alloc::Vec/Box/String over only
+a dedicated static global test arena. No System/host fallback in that
+collection test. Build the engine and wrapper as actual scalar code for
+`x86_64-unknown-none` and record source/artifact hashes. This does not prove
+native allocation or everyday browser/AI operation.
 
-Native vervolg: root integreert een gewone userapp, verleent aantoonbaar eigen
-RW+NX-arena's, controleert alloc/OOM/isolation en procescleanup in QEMU, en sluit
-een eventuele heapgroeidescriptor pas na de afzonderlijke ABI-acceptatie aan.
-Alle volledige productcriteria en het 8-GiB/32-GiB-testprofiel blijven behouden.
+Native follow-up: root integrates an ordinary user app, grants demonstrably
+owned RW+NX arenas, checks alloc/OOM/isolation and process cleanup in QEMU,
+and connects any heap-growth descriptor only after separate ABI acceptance.
+All full product criteria and the 8-GiB/32-GiB test profile remain in place.
 
-## Uitgevoerd bewijs
+## Executed evidence
 
 [`sdk/heap-allocator/verification/README.md`](../../sdk/heap-allocator/verification/README.md)
-bevat reproduceerbare commando's, bron-/artifactbinding en het uitgevoerde
-host-/crosscompilebewijs. Op deze bron slagen 15 gerichte tests, de afzonderlijke
-Vec/Box/String-executable, Clippy en fmt. Wrapper en gepinde engine zijn scalar
-gebouwd en hun daadwerkelijke objectcode is gecontroleerd. QEMU-, heapgroei-,
-procescleanup- en isolatieacceptatie zijn nog niet uitgevoerd voor deze library;
-de volledige release en de betrokken productcriteria blijven open.
+contains reproducible commands, source/artifact binding and the executed
+host/cross-compilation evidence. On this source, 15 targeted tests, the
+separate Vec/Box/String executable, Clippy and fmt pass. The wrapper and pinned
+engine were built as scalar code and their actual object code was checked.
+QEMU, heap growth, process cleanup and isolation acceptance have not yet been
+executed for this library; the full release and the relevant product criteria
+remain open.

@@ -1,77 +1,77 @@
-# PNG/JPEG uitsnijden naar PNG
+# Crop PNG/JPEG to PNG
 
-Werkelijke bestandsbewerking: bestaande decoder -> displaygeoriënteerde
-RGBA8-pixels -> rechthoek -> onderhouden PNG-encoder.
-Cropcoördinaten gelden **na** bestaande JPEG EXIF-oriëntatie, niet voor
-de ruwe samplevolgorde. Alpha, inclusief RGB onder volledig transparante
-pixels, blijft byte-exact. Geen clamp, resampling, matting of bronmutatie.
-RGBA16 wordt geweigerd in plaats van stil naar acht bits af te ronden.
+Actual file processing: existing decoder → display-oriented RGBA8 pixels →
+rectangle → maintained PNG encoder. Crop coordinates apply **after** existing
+JPEG EXIF orientation, not to raw sample order. Alpha, including RGB beneath
+fully transparent pixels, remains byte-exact. No clamping, resampling,
+matting or source mutation. RGBA16 is rejected rather than silently reduced
+to eight bits.
 
 ```sh
 cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/image-crop/Cargo.toml --features host-cli
 cargo +1.90.0 run --offline --locked --manifest-path sdk/examples/image-crop/Cargo.toml --features host-cli --bin image-crop -- --x 10 --y 20 --width 100 --height 80 --drop-metadata --unmanaged-colour < bron.jpg > uitsnede.png
 ```
 
-De twee verplichte keuzes bevestigen verlies van metadata en ontbreken
-van ICC/gamma-kleurbeheer. De uitvoer bewaart geselecteerde **samples**,
-niet de exacte kleurweergave op een bepaald scherm. Geen sRGB-profiel of
-gamma verzonnen. EXIF, auteurs-/GPS-/tekstmetadata en ICC blijven niet in
-de uitvoer; orientation is in de pixelvolgorde verwerkt en wordt niet
-opnieuw als metadata meegegeven. De bron blijft intact.
-Uitvoer is statische PNG RGBA8 zonder ancillary chunks, geen APNG/JPEG-
-encoding of volledig PNG/JPEG-profielclaim. Ondersteunde invoer volgt
-de bestaande codec; onder meer CMYK/animatie/unsupported precisie faalt.
+The two mandatory choices acknowledge metadata loss and absence of ICC/gamma
+colour management. Output preserves selected **samples**, not exact colour
+appearance on a particular display. No sRGB profile or gamma is invented.
+EXIF, author/GPS/text metadata and ICC are not retained in output; orientation
+is incorporated in pixel order and not added again as metadata. The source
+remains intact. Output is static PNG RGBA8 without ancillary chunks, not
+APNG/JPEG encoding or a full PNG/JPEG-profile claim. Supported input follows
+the existing codec; CMYK, animation and unsupported precision, among others,
+fail.
 
-`image-crop` leest broninhoud via stdin en schrijft stdout/stderr. De eigen
-CLI opent geen bestanden of netwerkverbindingen en verstuurt geen metadata.
-Dat ontneemt het hostproces **niet** automatisch zijn disk-/netwerkrechten;
-standaard hostuitvoering biedt hier geen sandbox of rechtenbeperking.
-Afgeschermde hostrechten vereisen een afzonderlijk afgedwongen procesgrens. Alle import/crop/PNG-
-encoding voltooit vóór stdout; fouten geven exit 1 en uitleg. Stdoutwrite
-kan gedeeltelijk mislukken; geen atomaire save-/durabilityclaim.
-Onbekende/dubbele argumenten, overflow, negatieven, lege/buitenbeeld-
-rechthoeken en ontbrekende expliciete keuzes worden geweigerd.
+`image-crop` reads source content through stdin and writes stdout/stderr.
+Its CLI opens no files or network connections and transmits no metadata.
+This does **not** automatically remove the host process's disk/network rights;
+ordinary host execution provides no sandbox or permission restriction here.
+Restricting host rights requires a separately enforced process boundary.
+All import/crop/PNG encoding completes before stdout; errors return exit 1
+and an explanation. Stdout writes may fail partially; no atomic save or
+durability claim. Unknown/duplicate arguments, overflow, negatives, empty/
+out-of-image rectangles and missing explicit choices are rejected.
 
-## Architectuur en grenzen
+## Architecture and limits
 
-Nieuwe `sdk/examples/image-crop/**` op mainbasis
+New `sdk/examples/image-crop/**` on main baseline
 `681f1137e411d6c6fe536bd2bf499c27b34832be`.
-Geen writes aan overgedragen BMP/EXIF/viewer of General/Veld/K05.
-No_std-kern hergebruikt `Image::rgba8_into`; geen gekopieerde EXIFmapping.
-Caller ontvangt eigen cropbuffer, bezit daarnaast de oorspronkelijke Image.
-Extra geheugenbudget omvat de volledige georiënteerde tijdelijke buffer
-en cropresultaat. Gemalformeerde caller-Image geeft codec-fout.
+No writes to handed-over BMP/EXIF/viewer or General/Veld/K05 work.
+The no_std core reuses `Image::rgba8_into`; no copied EXIF mapping.
+The caller receives an owned crop buffer and also owns the original Image.
+The extra memory budget includes the complete oriented temporary buffer
+and crop result. A malformed caller Image produces a codec error.
 
-Host-CLI: maximaal 8 MiB input, 4096 per dimensie, 1048576 pixels,
-128 MiB decoderadmission-work, 256 KiB metadata, 1024 PNG-chunks,
-128 JPEG-scans, 8 MiB extra cropbudget en 8 MiB encoded-outputbudget.
-Limieten zijn geen native harde heap-/CPUquota. Upstreamallocaties
-blijven infallible; native decodergebruik vereist afzonderlijke
-begrensde arena/proces volgens het bestaande codeccontract.
+Host CLI: at most 8 MiB input, 4096 per dimension, 1048576 pixels,
+128 MiB decoder-admission work, 256 KiB metadata, 1024 PNG chunks,
+128 JPEG scans, 8 MiB extra crop budget and 8 MiB encoded-output budget.
+Limits are not native hard heap/CPU quotas. Upstream allocations remain
+infallible; native decoder use requires a separate bounded arena/process
+under the existing codec contract.
 
-`png = "=0.18.1"` is optioneel achter `host-cli`. De daadwerkelijke
-PNG-encoding is **host/std**, niet naar Nieuw OS geport.
-Default no_std-build bevat geen png/crc32fast/flate2. Herkomst/pins/
-licenties/buildscriptuitzondering staan in THIRD-PARTY.md en Cargo.lock.
-Geen nieuwe XML/PNG-/compressie-engine of algemene graphicsfoundation.
+`png = "=0.18.1"` is optional behind `host-cli`. Actual PNG encoding is
+**host/std**, not ported to Baryon OS. The default no_std build contains no
+png/crc32fast/flate2. Provenance/pins/licences/build-script exception are in
+THIRD-PARTY.md and Cargo.lock. No new XML/PNG/compression engine or general
+graphics foundation.
 
-Primaire formaatbron: W3C PNG Working Group,
+Primary format source: W3C PNG Working Group,
 *Portable Network Graphics (PNG) Specification, Third Edition*,
-Recommendation 24 juni 2025,
+Recommendation 24 June 2025,
 <https://www.w3.org/TR/2025/REC-png-3-20250624/>.
-Onderhouden encoder-API:
+Maintained encoder API:
 <https://docs.rs/png/0.18.1/png/struct.Encoder.html>.
 
-## Acceptatie en bewijsgrens
+## Acceptance and evidence limits
 
-Gerichte Rusttests plus echte CLI-input/output. Onafhankelijk Python-
-zlib/PNG-orakel controleert chunks/CRC/filters/dimensies/alle RGBA-bytes,
-inclusief alpha. Bestaande JPEG-referenties zijn afzonderlijk met
-Pillow/libjpeg gegenereerd: maximaal drie niveaus sampleverschil;
-crop en alle acht oriëntaties zijn vervolgens byte-exact tegen de
-volledige gedecondeerde samplebuffer getoetst. Geen fixturegeneratie
-of oude consumerhertests. No_std-kerncompile, geen native PNG-encoder.
+Targeted Rust tests plus actual CLI input/output. An independent Python
+zlib/PNG oracle checks chunks/CRC/filters/dimensions/all RGBA bytes, including
+alpha. Existing JPEG references were separately generated with Pillow/libjpeg:
+at most three levels of sample difference; crop and all eight orientations
+were then checked byte-exactly against the full decoded sample buffer.
+No fixture generation or retesting of old consumers. No_std core compilation,
+not a native PNG encoder.
 
-Geen native window/open/save/launch, VM, fysiek apparaat, menselijke
-gebruikertest, onafhankelijke audit of releasevalidatie geclaimd.
-Eigen receipt bevat uitgevoerde commands en hashes.
+No native window/open/save/launch, VM, physical device, human user test,
+independent audit or release validation is claimed. The component receipt
+contains executed commands and hashes.

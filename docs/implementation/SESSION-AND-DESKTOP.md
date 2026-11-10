@@ -1,215 +1,214 @@
-# Gebruikerskeuze, aanmelden en bureaublad
+# User selection, sign-in and desktop
 
-**Datum:** 2 november 2026. **Status:** onderzocht interactiecontract en
-begrensde `no_std`-implementatie; echte accountauthenticatie en sessie-/sleutelrechten
-zijn nog niet geïmplementeerd door deze wijziging. Dit sluit FR-S01, FR-S02 of
-FR-U01–U05 niet af en verandert de vaste voortgangsscore niet.
+**Date:** 2 November 2026. **Status:** researched interaction contract and
+bounded `no_std` implementation; this change does not yet implement real account
+authentication or session/key permissions. It does not close FR-S01, FR-S02 or
+FR-U01–U05 and does not change the fixed progress score.
 
-## Onderzoek: herkenbare bediening
+## Research: familiar controls
 
-De officiële Windows-handleiding beschrijft: account kiezen, wachtwoord/PIN of
-een ingestelde Windows Hello-methode gebruiken, bevestigen, desktop openen.
-Vergrendelen behoudt de applicaties; afmelden beëindigt de sessie; wisselen kan
-een andere sessie openen zonder de eerste te beëindigen. Bron: Microsoft,
-*User Account Access in Windows*, geraadpleegd 2 november 2026,
+The official Windows guide describes selecting an account, using a password/PIN
+or a configured Windows Hello method, confirming and opening the desktop.
+Locking preserves applications; signing out ends the session; switching can
+open another session without ending the first. Source: Microsoft,
+*User Account Access in Windows*, accessed 2 November 2026,
 https://support.microsoft.com/en-us/accounts-billing/security/user-account-access-in-windows.
 
-Bij macOS kiest de gebruiker een account en authenticeert. Touch ID kan een
-eerder met wachtwoord geopende sessie ontgrendelen of wisselen; bij opstarten
-blijft het wachtwoord vereist. Apple noemt daarnaast periodieke herauthenticatie
-en een wachtwoord na vijf mislukte vingerafdrukpogingen. Bron: Apple,
-*Use Touch ID on Mac*, geraadpleegd 2 november 2026,
+On macOS, the user selects an account and authenticates. Touch ID can unlock or
+switch a session previously opened with a password; a password remains required
+at startup. Apple also specifies periodic reauthentication and a password after
+five failed fingerprint attempts. Source: Apple,
+*Use Touch ID on Mac*, accessed 2 November 2026,
 https://support.apple.com/en-nz/guide/mac-help/mchl16fbf90a/mac.
 
-GNOME laat na het selecteren van een naam het wachtwoordformulier zien. Een
-ondersteunde, vooraf geregistreerde scanner kan een vingerafdruk gebruiken;
-het wachtwoord blijft beschikbaar. Het vergrendelscherm toont tijd/status en
-geeft toegang tot authenticatie. Bronnen: GNOME, *Log in with a fingerprint*,
-https://help.gnome.org/gnome-help/session-fingerprint.html en *The lock screen*,
+GNOME displays the password form after a name is selected. A supported scanner
+with prior enrolment can use a fingerprint; the password remains available.
+The lock screen shows time/status and provides access to authentication.
+Sources: GNOME, *Log in with a fingerprint*,
+https://help.gnome.org/gnome-help/session-fingerprint.html and *The lock screen*,
 https://help.gnome.org/gnome-help/shell-lockscreen.html,
-geraadpleegd 2 november 2026. Dit betreft GNOME, niet iedere Linux-desktop.
+accessed 2 November 2026. This concerns GNOME, not every Linux desktop.
 
-Na aanmelden zijn dezelfde taken vindbaar, met verschillende vormen:
+After sign-in, the same tasks are available in different forms:
 
-| Systeem | Starten, zoeken, wisselen en systeemstatus |
+| System | Launching, searching, switching and system status |
 |---|---|
-| Windows | Taakbalk met Start, zoeken, geopende/gepinde apps en status |
-| macOS | Bureaublad, menubalk, Dock en Spotlight |
-| GNOME | Bovenbalk, Activities met zoeken, dash met favoriete/geopende apps |
+| Windows | Taskbar with Start, search, open/pinned apps and status |
+| macOS | Desktop, menu bar, Dock and Spotlight |
+| GNOME | Top bar, Activities with search, dash with favourite/open apps |
 
-Bronnen, geraadpleegd 2 november 2026: Microsoft, *Customize the Taskbar in
+Sources, accessed 2 November 2026: Microsoft, *Customize the Taskbar in
 Windows*, https://support.microsoft.com/en-us/windows/experience/personalization/customize-the-taskbar-in-windows;
 Apple, *Get to know your desktop, menu bar, and Dock*,
 https://support.apple.com/en-euro/guide/mac-help/mchlws12345m2/27/mac/27;
 GNOME, *Visual overview of GNOME*,
 https://help.gnome.org/gnome-help/shell-introduction.html.
 
-**Projectkeuze:** gebruik herkenbare namen, accountkaarten, een duidelijk
-wachtwoordveld en aanmeldknop, plus een taakbalk en zoekfunctie. De eigen
-Materiaal-objecten, gereedschappen en beperkte rechten blijven het inhoudelijke
-model. Een nieuwe kleur of launcher vervangt de overige producteisen niet.
-Geen broncode van deze systemen is overgenomen.
+**Project decision:** use familiar names, account cards, a clear password field
+and sign-in button, together with a taskbar and search. The project's Materiaal
+objects, tools and restricted permissions remain the underlying model. A new
+colour or launcher does not replace the other product requirements. No source
+code from these systems has been incorporated.
 
-## Authenticatie is een eigen dienstgrens
+## Authentication has a separate service boundary
 
-Schijf-/sleutelontgrendeling en sessietoegang zijn afzonderlijke beslissingen.
-FileVault kan tijdens boot credentials vereisen; BitLocker kan vóór Windows
-een PIN of startsleutel vragen. De UI mag de bediening samenbrengen zonder
-sleutelvrijgave en accountautorisatie aan elkaar gelijk te stellen. Bronnen:
+Disk/key unlocking and session access are separate decisions. FileVault can
+require credentials during boot; BitLocker can request a PIN or startup key
+before Windows. The UI may combine the controls without equating key release
+with account authorisation. Sources:
 Apple, *Volume encryption with FileVault in macOS*,
 https://support.apple.com/en-au/guide/security/sec4c6dc1b6e/web;
 Microsoft, *BitLocker countermeasures*,
 https://learn.microsoft.com/en-us/windows/security/operating-system-security/data-protection/bitlocker/countermeasures,
-geraadpleegd 2 november 2026.
+accessed 2 November 2026.
 
-De bedoelde standaardaanduiding is **FIDO2**. USB-aanwezigheid of een aanraking
-alleen is geen algemene accountverificatie. CTAP onderscheidt aanwezigheid
-(UP) en gebruikersverificatie (UV, bijvoorbeeld een PIN of vingerafdruk).
-De Microsoft-documentatie voor FIDO2-apparaataanmelding behandelt Entra joined
-en hybrid joined-apparaten met expliciete inrichting; dit is geen bewijs voor
-willekeurige lokale Windows-accounts. Bronnen: FIDO Alliance, *CTAP 2.3 Proposed
-Standard*, 26 februari 2026,
+The intended standard designation is **FIDO2**. USB presence or a touch alone
+is not general account verification. CTAP distinguishes presence (UP) from
+user verification (UV, for example a PIN or fingerprint). Microsoft's
+FIDO2 device sign-in documentation addresses Entra joined and hybrid joined
+devices with explicit configuration; it is not evidence for arbitrary local
+Windows accounts. Sources: FIDO Alliance, *CTAP 2.3 Proposed Standard*,
+26 February 2026,
 https://fidoalliance.org/specs/fido-v2.3-ps-20260226/fido-client-to-authenticator-protocol-v2.3-ps-20260226.html;
 Microsoft, *Enable FIDO2 security key sign-in to Windows*,
 https://learn.microsoft.com/en-us/entra/identity/authentication/howto-authentication-passwordless-security-key-windows,
-geraadpleegd 2 november 2026.
+accessed 2 November 2026.
 
-Een latere FIDO2-dienst moet onder meer verse challenges, credential-accountbinding,
-handtekening, RP-binding en vereiste UP/UV valideren. Bron: W3C, *Web Authentication
-Level 3 Recommendation*, 25 augustus 2026,
+A future FIDO2 service must validate, among other things, fresh challenges,
+credential-to-account binding, the signature, RP binding and required UP/UV.
+Source: W3C, *Web Authentication Level 3 Recommendation*, 25 August 2026,
 https://www.w3.org/TR/2026/REC-webauthn-3-20260825/.
-Deze wijziging implementeert geen CTAP, biometrische driver, wachtwoord-KDF,
-persistente accountdatabase of sleutelherstel. De standaardbroker weigert al
-die methoden; er is geen gedeeld demowachtwoord en geen willekeurig geaccepteerd
-wachtwoord.
+This change implements no CTAP, biometric driver, password KDF, persistent
+account database or key recovery. The default broker rejects all these methods;
+there is no shared demo password and no arbitrary password acceptance.
 
-## Afgebakend implementatiecontract
+## Bounded implementation contract
 
-Doelplatform: de bestaande zelfstandige x86_64/UEFI-QEMU-basis; Rust `no_std`,
-geen allocator, nieuwe afhankelijkheden, hardwaretoegang of netwerk in deze
-module. Schrijfgebied: `ui/native/src/session.rs`, `ui/native/tests/session.rs`
-en dit document. De integrator bezit de native visuele koppeling.
+Target platform: the existing standalone x86_64/UEFI-QEMU baseline; Rust `no_std`,
+with no allocator, new dependencies, hardware access or network in this module.
+Write scope: `ui/native/src/session.rs`, `ui/native/tests/session.rs` and this
+document. The integrator owns the native visual integration.
 
-De hoofdroute is `AccountSelection → CredentialEntry → Authenticating →
-SessionStarting → Desktop`. `Locked` verbergt iedere actieve identiteit;
-`unlock()` toont opnieuw credentials en verleent geen toegang. Generatie- en
-requestcounters lopen nooit rond: uitputting eindigt in `Unavailable`.
+The main route is `AccountSelection → CredentialEntry → Authenticating →
+SessionStarting → Desktop`. `Locked` hides every active identity;
+`unlock()` displays credentials again and does not grant access. Generation
+and request counters never wrap: exhaustion ends in `Unavailable`.
 
-| Interface | Verantwoordelijkheid |
+| Interface | Responsibility |
 |---|---|
-| `SessionFlow` | UI-toestand, account/methode, begrensde invoer en actuele correlatie |
-| `AuthBroker::begin` | Vertrouwde adapter verstuurt verzoek naar authentieke dienst; wachtwoord wordt alleen geleend |
-| `BrokerReply` | Antwoord van die adapter, gebonden aan request-ID, UI-generatie, account-ID en methode |
-| `BrokerTicket` | Opaque servicehandle; geen `Debug`, `Clone` of `Copy` |
-| `AuthBroker::activate` | Sessiedienst valideert ticket opnieuw en start alleen de toegestane sessie |
-| `UnavailableBroker` | Veilige standaard zolang de echte diensten ontbreken |
+| `SessionFlow` | UI state, account/method, bounded input and current correlation |
+| `AuthBroker::begin` | Trusted adapter sends the request to the authentic service; the password is only borrowed |
+| `BrokerReply` | Reply from that adapter, bound to request ID, UI generation, account ID and method |
+| `BrokerTicket` | Opaque service handle; no `Debug`, `Clone` or `Copy` |
+| `AuthBroker::activate` | Session service revalidates the ticket and starts only the permitted session |
+| `UnavailableBroker` | Safe default while the real services are absent |
 
-Een toegekend ticket opent nog geen desktop. Pas succesvolle sessieactivatie
-zet de gebruikersidentiteit op `Authenticated`. Een fout, timeout of weigering
-laat geen actieve identiteit over. Account-/methodewisseling, annuleren,
-vergrendelen en afmelden wissen wachtwoordinvoer en maken lopende antwoorden
-ongeldig. Een oude reply mag de nieuwe aanvraag niet vervullen.
+A granted ticket does not yet open a desktop. Only successful session activation
+sets the user identity to `Authenticated`. An error, timeout or denial leaves
+no active identity. Changing account/method, cancelling, locking and signing
+out clear password input and invalidate pending replies. An old reply must not
+fulfil the new request.
 
-Wachtwoorden gebruiken maximaal 128 bytes; overloop geeft een fout. De UI kan
-alleen de lengte opvragen. Invoer en ticketbytes worden bij verlaten van hun
-levensduur met de bestaande gepinde `zeroize 1.9.1`-implementatie gewist.
-De native UI gebruikt dezelfde no_std-configuratie zonder extra crate of
-buildscript als de SDK. Dit beschermt de expliciete owned buffers tegen
-wegoptimaliseren van het wissen; tijdelijke kopieën, registers, crashgeheugen
-en data buiten de eigen buffers vallen daarbuiten. De latere secretdienst
-vereist nog een gecontroleerde volledige levenscyclus.
+Passwords use at most 128 bytes; overflow returns an error. The UI can query
+only the length. Input and ticket bytes are erased at the end of their lifetime
+using the existing pinned `zeroize 1.9.1` implementation. The native UI uses
+the same no_std configuration as the SDK, without an additional crate or build
+script. This protects erasure of the explicit owned buffers from being
+optimised away; temporary copies, registers, crash memory and data outside
+the owned buffers are excluded. The future secret service still requires a
+controlled complete lifecycle.
 
-De standaard `SessionFlow::new()` gebruikt lokale counters, geen willekeurige
-sessie-identiteit. De echte broker moet daarom daarnaast de authentieke
-IPC-peer, service-instance en sessiegeneratie binden; correlatie kan niet over
-verschillende UI-processen of een herstart heen als authority dienen.
-Publieke Rust-constructors controleren alleen vorm en correlatie, **niet de
-issuer**. `BrokerReply::granted` mag uitsluitend na echte dienstverificatie door
-de trusted adapter worden aangeroepen. Een gecompromitteerde UI kan zijn eigen
-geheugen wijzigen; kernelcapabilities en sleutelvrijgave mogen nooit op het
-UI-stateveld vertrouwen.
+The default `SessionFlow::new()` uses local counters, not a random session
+identity. The real broker must therefore also bind the authentic IPC peer,
+service instance and session generation; correlation cannot serve as authority
+across different UI processes or a restart. Public Rust constructors check
+only shape and correlation, **not the issuer**. `BrokerReply::granted` may be
+called only after real service verification by the trusted adapter. A
+compromised UI can modify its own memory; kernel capabilities and key release
+must never rely on the UI state field.
 
-`VmGuest` is een expliciet gekozen wegwerp-VM-profiel zonder wachtwoord en
-zonder gebruikerssleutels. `begin_guest` en `activate_guest` vormen een aparte
-route en leveren uitsluitend `SessionIdentity::VmGuest`; dit is geen geslaagde
-gebruikersauthenticatie. De native adapter mag deze route alleen aanbieden in
-het zichtbare VM-previewprofiel en uitsluitend de bijbehorende synthetische
-werkruimte gebruiken. Deze module maakt of mount geen opslag.
+`VmGuest` is an explicitly selected disposable VM profile without a password
+or user keys. `begin_guest` and `activate_guest` form a separate route and
+produce only `SessionIdentity::VmGuest`; this is not successful user
+authentication. The native adapter may offer this route only in the visible VM
+preview profile and may use only its associated synthetic workspace. This
+module does not create or mount storage.
 
-Werkelijke lock/revoke en input-/surfaceafscherming blijven opdrachten van de
-sessie-/compositordienst. `SessionFlow::lock()` kan zelf geen kernelgrants
-intrekken. Zoekresultaten blijven bij de toegestane lokale catalogus; zoeken
-verleent geen extra bestands- of netwerkrechten.
+Actual lock/revoke and input/surface isolation remain responsibilities of the
+session/compositor service. `SessionFlow::lock()` cannot itself revoke kernel
+grants. Search results remain within the permitted local catalogue; searching
+does not grant additional file or network permissions.
 
-Aanvullende leerbron: OSDev Wiki, *Security*, W002262, lokale snapshot volgens
-de repositoryskill. De passage over systeemgrenzen en onbetrouwbare lengtes is
-oriëntatie; primaire specificaties en projectcontracten zijn leidend. Er is
-geen tutorialcode overgenomen.
+Additional learning source: OSDev Wiki, *Security*, W002262, local snapshot
+according to the repository skill. The passage on system boundaries and
+untrusted lengths provides orientation; primary specifications and project
+contracts take precedence. No tutorial code has been incorporated.
 
-## Acceptatie en bewijsgrens
+## Acceptance and evidence boundary
 
-Gerichte hosttests controleren: expliciete gastidentiteit, alle wachtwoorden
-geweigerd door de standaardbroker, geen desktop vóór activatie, weigering en
-timeout, mislukte activatie, annuleren/wisselen/lock met verlate replies,
-volledige account-/methodebinding, retry met een nieuwe request-ID, invoergrens
-en secret-lengteopruiming. Een servicefixture in de tests is geen echte
-authenticatiedienst.
+Targeted host tests check: explicit guest identity, rejection of all passwords
+by the default broker, no desktop before activation, denial and timeout, failed
+activation, cancellation/switching/lock with delayed replies, complete
+account/method binding, retry with a new request ID, input bounds and secret
+length cleanup. A service fixture in the tests is not a real authentication
+service.
 
-Commando voor de gerichte suite vanuit de repository:
+Command for the targeted suite from the repository:
 
 ```sh
 source /workspace/.nieuw-os-env/activate.sh
 CARGO_TARGET_DIR=/workspace/nieuw-os/build/session-flow cargo test --manifest-path ui/native/Cargo.toml --test session --offline
 ```
 
-Uitgevoerd op de werkboom boven bron `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`:
-de gerichte suite slaagt met **10 tests, exit 0**; log
+Executed on the worktree above source `e08fb0e48c1bb0781e98357f588c2f73b6ae8500`:
+the targeted suite passes with **10 tests, exit 0**; log
 `/workspace/.nieuw-os-env/session-tests.log`. `rustfmt --edition 2021 --check`
-voor de sessiemodule en de tests en `git diff --check` slagen eveneens, exit 0.
-De eerste strikte `cargo clippy --test session --offline -- -D warnings` werd
-geblokkeerd door gelijktijdig gewijzigde integratiecode: ongebruikt `label` in
-`render.rs` en `unnecessary_unwrap` in `desktop.rs` (exit 101; log
-`/workspace/.nieuw-os-env/session-clippy.log`). Dit is geen groen gezamenlijk
-lintresultaat; de integrator herhaalt de gate na afronden van die bestanden.
-Native UI-acceptatie, echte account-/sleutelpersistentie, FIDO2/biometrie,
-kernelrevoke, fysieke hardware en menselijke beoordeling vallen buiten dit
-hostbewijs en blijven open.
-Rollback: verwijder de nieuwe sessiemodule/tests en de integratorverwijzing;
-dit document bewaart het onderzoekscontract. Geen bestaande gebruikersdata
-wordt gemigreerd of gewijzigd.
+for the session module and tests, and `git diff --check`, also pass, exit 0.
+The first strict `cargo clippy --test session --offline -- -D warnings` was
+blocked by concurrently modified integration code: unused `label` in
+`render.rs` and `unnecessary_unwrap` in `desktop.rs` (exit 101; log
+`/workspace/.nieuw-os-env/session-clippy.log`). This is not a passing combined
+lint result; the integrator repeats the gate after completing those files.
+Native UI acceptance, real account/key persistence, FIDO2/biometrics, kernel
+revoke, physical hardware and human assessment are outside this host evidence
+and remain open.
+Rollback: remove the new session module/tests and the integrator reference;
+this document retains the research contract. No existing user data is migrated
+or changed.
 
-## Native koppeling door de integrator
+## Native integration by the integrator
 
-`native-system-session-preview` is een expliciet opt-in VM-profiel. De kernel
-zet uitsluitend startupwoord648=1; geen nieuwe capability of cryptografie.
-De native app activeert de shell boven zijn bestaande synthetische appdomein.
-De eerste vijfstappenproef op7648a8f slaagde: alle pixels in het appgebied
-(16,48,768,536) gelijk aan de gebonden hostrenderer. De uitgebreidere eindproef
-controleert ook persoonlijke testinvoer, weigering en wissen vóór expliciete
-gastaanmelding. Bewijs en definitieve bron staan onder
+`native-system-session-preview` is an explicit opt-in VM profile. The kernel
+sets only startup word 648=1; no new capability or cryptography. The native app
+activates the shell over its existing synthetic app domain. The first five-step
+trial on 7648a8f passed: all pixels in the app area (16,48,768,536) matched the
+bound host renderer. The expanded final trial also checks personal test input,
+rejection and erasure before explicit guest sign-in. Evidence and definitive
+source are under
 [session-desktop-20261102](../verification/session-desktop-20261102/).
 
-De brongebonden hostoracle is een vergelijking, geen zelfstandig native bewijs.
-Alleen de echte QMP-invoer en QEMU-screendumps leveren uitvoering aan. De
-zichtbare accountkaart 'Eigen gebruiker' is nog geen geregistreerd profiel;
-een echte auth-/sessiedienst moet later enrollment, persistente verifier,
-herstel, ratelimiting, capability-intrekking en compositor-/input-lock toevoegen.
+The source-bound host oracle is a comparison, not independent native evidence.
+Only real QMP input and QEMU screendumps demonstrate execution. The visible
+account card 'Eigen gebruiker' (English: 'Own user') is not yet a registered
+profile; a real authentication/session service must later add enrolment, a
+persistent verifier, recovery, rate limiting, capability revocation and
+compositor/input locking.
 
-## Startoppervlak — 3 november 2026
+## Start surface — 3 November 2026
 
-De VM-preview gebruikt nu een hiërarchisch startoppervlak met een herkenbare
-werkruimte, expliciete navigatie en één primaire ingang naar Materiaal. De
-Materiaalkaart leest de bestaande lijsttoestand van de echte app en toont
-niet-geladen, lege, fout- of documenttoestand; zij maakt geen voorbeeldbestanden,
-recente-activiteitstatus of verzonnen netwerk-/energiestatus. De compacte
-lay-out houdt de kaart boven de navigatiebalk en vervangt een tekstloze
-Start-knop door een benoemde actie.
+The VM preview now uses a hierarchical start surface with a recognisable
+workspace, explicit navigation and one primary entry point to Materiaal. The
+Materiaal card reads the existing list state of the real app and displays the
+not-loaded, empty, error or document state; it creates no example files, recent
+activity status or invented network/power status. The compact layout keeps the
+card above the navigation bar and replaces a textless Start button with a
+named action.
 
-Dit is een visuele en informatiewijziging binnen de bestaande expliciete
-VM-gastpreview. Zij voegt geen accountauthenticatie, opslagrechten,
-zoekresultaten, netwerkstatus of nieuwe sessieovergang toe. De lege en
-gevulde kaarttoestand is als native-rendererhostregressie toegevoegd; lokale
-uitvoering vereist een C-linker. Een hostcompile-/lintcontrole is geen
-pixelproef; de native QEMU-/screenshotgate moet op de exacte commit slagen
-voordat de nieuwe weergave als native uitgevoerd bewijs geldt. De score blijft
-41/100 totdat een volledig rubriccriterium met passend bewijs wordt geaccepteerd.
+This is a visual and information change within the existing explicit VM guest
+preview. It adds no account authentication, storage permissions, search
+results, network status or new session transition. The empty and populated
+card states have been added as native-renderer host regressions; local
+execution requires a C linker. A host compilation/lint check is not a pixel
+trial; the native QEMU/screenshot gate must pass on the exact commit before
+the new display counts as evidence of native execution. The score remains
+41/100 until a complete rubric criterion is accepted with appropriate evidence.

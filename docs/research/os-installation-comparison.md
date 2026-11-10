@@ -1,97 +1,97 @@
-# Volledige OS-installatiejourney — vergelijkingsmatrix
+# Complete OS installation journey — comparison matrix
 
-Onderzoeksdatum: **2 november 2026**. Fase 4.1/4.2. Status: officiële documentatie en versiegebonden broncode gelezen; **geen installaties, gebruikersmetingen of eigen screenshots uitgevoerd**. De matrix vergelijkt beslissingen, niet één veronderstelde schermvolgorde.
+Research date: **2 November 2026**. Phases 4.1/4.2. Status: official documentation and version-specific source code read; **no installations, user measurements or project screenshots performed**. The matrix compares decisions, not one assumed screen sequence.
 
-## Routes, versies en bewijs
+## Routes, versions and evidence
 
-| Platform | Gekozen route | Afbakening |
+| Platform | Selected route | Scope |
 |---|---|---|
-| Windows | Windows 11 **26H2**, Home/Pro persoonlijk, schone x64-USB-installatie | Actuele algemene download; geen exacte mediabuild/hash. Upgrade vanuit Windows en OEM/bedrijfs-OOBE apart beschreven. [WI01] [WI02] |
-| macOS | **27.2 Golden Gate**, Apple silicon, Recovery en Setup Assistant bij lege/nieuwe gebruikersomgeving | Release 26 oktober 2026; Recovery garandeert niet de nieuwste patch. Intel/Tahoe 26.7.2 en behoudinstallatie aparte varianten. [WI14] [WI15] [WI17] |
-| Ubuntu | Desktop **26.04.1 LTS**, GNOME 50, interactief | Bewust actuele LTS, niet interim 26.10. [LI01] |
-| Fedora | Workstation **44**, Live-ISO, GNOME 50 | Actuele stabiele download; Anaconda 44.30/WebUI 68 als pakketbron. Geen F45/46-functies overgenomen. [LI06] [LI07] [LI08] [LI09] |
-| KDE-distributie | **Kubuntu 26.04.1 LTS**, Plasma 6.6, stock Calamares | Image-manifest en configuratie/patches gelezen; geen generieke KDE-installer verondersteld. [LI26] [LI27] |
-| nieuw-os | Mainbron `e08fb0e` en apart gelezen native bron `1f0dd9c` | Eigen UEFI/QEMU-boot is aanwezig; **geen volwaardige installer, fysieke installatie of persoonlijke eerste-login aangetoond**. Kolom **P** is een toekomstvoorstel, geen werkende functie. [Repositorybasis](2026-11-02/repository-baseline.md) |
+| Windows | Windows 11 **26H2**, Home/Pro personal, clean x64 USB installation | Current general download; no exact media build/hash. Upgrade from Windows and OEM/corporate OOBE described separately. [WI01] [WI02] |
+| macOS | **27.2 Golden Gate**, Apple silicon, Recovery and Setup Assistant with an empty/new user environment | Released 26 October 2026; Recovery does not guarantee the latest patch. Intel/Tahoe 26.7.2 and installation preserving data are separate variants. [WI14] [WI15] [WI17] |
+| Ubuntu | Desktop **26.04.1 LTS**, GNOME 50, interactive | Deliberately the current LTS, not interim 26.10. [LI01] |
+| Fedora | Workstation **44**, Live ISO, GNOME 50 | Current stable download; Anaconda 44.30/WebUI 68 as package source. No F45/46 features adopted. [LI06] [LI07] [LI08] [LI09] |
+| KDE distribution | **Kubuntu 26.04.1 LTS**, Plasma 6.6, stock Calamares | Image manifest and configuration/patches read; no generic KDE installer assumed. [LI26] [LI27] |
+| Baryon OS | Main source `e08fb0e` and separately read native source `1f0dd9c` | Independent UEFI/QEMU boot exists; **no complete installer, physical installation or personal first login demonstrated**. Column **P** is a future proposal, not a working function. [Repository baseline](2026-11-02/repository-baseline.md) |
 
-Volledige bronpassages, oorspronkelijke publicatie-/raadpleegdatums, 31-rijregisters en variantdetails: [Windows/macOS](2026-11-02/journey/windows-macos-installation.md) en [Linux-installers](2026-11-02/journey/linux-installation.md). Die dossiers zijn leidend bij verkorte cellen hieronder. `Niet vastgesteld` betekent onvoldoende precies bewijs, niet dat een functie ontbreekt. IDs 01–31 zijn dimensies; er is geen telling van schermen of benodigde klikken.
+Complete source passages, original publication/access dates, 31-row registers and variant details: [Windows/macOS](2026-11-02/journey/windows-macos-installation.md) and [Linux installers](2026-11-02/journey/linux-installation.md). Those dossiers are authoritative where cells below are abbreviated. `Not established` means insufficiently precise evidence, not absence of a function. IDs 01–31 are dimensions; screens or required clicks are not being counted.
 
 ## OS installation flow matrix
 
-**Bronkolommen:** [BRON]. **nieuw-os P:** [VOORSTEL]; huidige afwezigheid is hierboven vastgelegd. Ubuntu/Fedora/Kubuntu zijn geen beschikbare implementatiebasis voor de eigen kernel.
+**Source columns:** [SOURCE]. **Baryon OS P:** [PROPOSAL]; current absence is recorded above. Ubuntu/Fedora/Kubuntu are not available implementation foundations for the independent kernel.
 
-| ID | Aspect | Windows | macOS | Ubuntu | Fedora | Kubuntu / KDE | nieuw-os |
+| ID | Aspect | Windows | macOS | Ubuntu | Fedora | Kubuntu / KDE | Baryon OS |
 |---|---|---|---|---|---|---|---|
-| 01 | Bootmedium/recovery | USB/firmwaremenu [WI02] | Aan/uit → Options; Intel Command-R [WI18] | USB/firmware [LI02] | Live-USB/Media Writer [LI06] | Desktop-live-image [LI26] | Nu UEFI/QEMU; P: gecontroleerd medium, geen hostschijf |
-| 02 | Eerste scherm | Setup-taal [WI03] | Recovery/ontgrendeling/hulpmiddelen [WI19] | Installer opent [LI02] | Liveomgeving → WebUI-taal [LI12] | Eigen prompt → Calamares [LI28] | P: welkom met taal/hulpmiddelen |
-| 03 | Taal | Setup; mogelijk opnieuw OOBE [WI03] [WI04] | Setup Assistant; na wissen heractivatie [WI20] [WI27] | Eerste keuze [LI02] | Installer én eerste start [LI12] [LI19] | Prompt en welcome [LI28] [LI27] | P: eenmaal kiezen, later wijzigbaar |
-| 04 | Regio/tijdzone | Regio OOBE; geen vaste tijdzonepagina bewezen [WI04] | Exact scherm/positie niet vastgesteld [WI20] | Na account, kaart/stad [LI03] | Eerste start, niet installer [LI19] | Locale vóór keyboard; GeoIP [LI27] | P: voorstel bij lokale voorkeuren, geen locatieconsent afleiden |
-| 05 | Toetsenbord | Setup en OOBE [WI03] [WI05] | Exacte pagina onvoldoende vastgelegd [WI20] | Vóór netwerk [LI02] | Live-instellingen; opnieuw eerste start [LI19] | Na locale [LI27] | P: testen vóór wachtwoord/ontgrendeling |
-| 06 | Toegankelijkheid | Keyboard beschreven; pre-wipe-screenreader onbevestigd [WI05] | Setup Assistant; Recoverydekking onbevestigd [WI20] | Vroege eigen stap [LI02] | Geen aparte wizardpagina; werking onbeproefd [LI12] | Geen aparte module; werking onbeproefd [LI27] | P: vanaf welkom en bij fouten, niet pas na installatie |
-| 07 | Netwerk | Internet voor persoonlijke OOBE vereist [WI06] | Nodig voor Recovery-download/activatie [WI17] [WI27] | Optioneel [LI02] | Liveomgeving; eerste-startpagina [LI19] | Prompt; online/offline verschillen [LI28] | P: lokaal compleet kernmedium offline; downloads apart |
-| 08 | Try/Install | Geen live-Try in gekozen route [WI03] | Recovery is geen live-desktop [WI19] | Try of Install na netwerk [LI02] | Live proberen mogelijk [LI06] | Eigen Try/Install-prompt [LI28] | P: proberen zonder schijfmutatie, installeren expliciet |
-| 09 | Hardwarecontrole | Eisen; Assistant-check niet identiek aan USB bewezen [WI02] | Modelcompatibiliteit vooraf [WI17] | Liveproef; geen proprietary drivers [LI02] | Opslag-/ruimtecontrole [LI15] | RAM/opslag/root-check; geen hardwaregarantie [LI27] | P: geteste mogelijkheden vóór schijfkeuze, blokkades eerlijk |
-| 10 | Doelopslag | Schijf/partitie [WI03] | Doelvolume, mogelijk unlock [WI17] | Doelschijf [LI03] | Een/meerdere schijven [LI13] | Partition-module [LI27] | P: gebruiker kiest geïdentificeerd doel; onbekend ≠ leeg |
-| 11 | Partitionering | Clean-route verwijdert partities [WI03] | Disk Utility apart; APFS [WI27] | Automatisch/handmatig [LI03] | Hele schijf/vrij/mountpoints/editor [LI13] | Wissen/vervangen/naast/handmatig conditioneel [LI27] [LI32] [LI33] | P: begrijpelijke gevolgen; technische layout in Advanced |
-| 12 | Behouden/vervangen | Clean wist; in-place behoudopties [WI03] | Reinstall bewaart; wissen apart [WI17] | Wissen of alongside [LI03] | Vrije ruimte behoudt; reinstall conditioneel [LI13] | Partitie vervangen of hele schijf [LI32] [LI33] | P: opties per bewezen capaciteit, bronbehoud expliciet |
-| 13 | Dual boot | Niet begeleid in deze clean-route [WI03] | Extra macOS/APFS of extern volume [WI26] | Alongside; BitLocker kan blokkeren [LI03] | Vrije ruimte; geen universele bootgarantie [LI13] | Geschikte verkleinbare partitie vereist [LI32] [LI33] | P: uitsluitend gevalideerde combinatie, anders blokkeren |
-| 14 | Encryptie | Device Encryption geschikt apparaat/account [WI07] | FileVault; hardwareversleuteling is andere garantie [WI25] | Passphrase/LVM of geschikte TPM-route [LI05] | Nieuwe partities met LUKS/passphrase [LI16] | Automatische LUKS2-layout, boot apart [LI27] | P: echte persoonlijke bescherming en recovery vóór commit; gate open |
-| 15 | Gebruikersaccount | OOBE [WI04] | Setup Assistant lokaal computeraccount [WI20] | Vóór summary [LI03] | Eerste start [LI19] | Vóór summary [LI27] | P: lokaal persoonlijk account; geen huidige guest-loginclaim |
-| 16 | Apparaatnaam | OOBE-gids; positie niet gepind [WI05] | Geen aparte pagina aangetoond [WI20] | Bij account [LI03] | Geen reviewveld in Live-route [LI15] | Users-pagina [LI27] | P: niet-identificerende bewerkbare naam, geen extra verplichte pagina |
-| 17 | Wachtwoord/PIN/biometrie | Account → Hello/PIN; biometrie conditioneel [WI05] | Computerwachtwoord; Touch ID conditioneel [WI20] | Loginwachtwoord ≠ disk-PIN [LI05] | Eerste-startwachtwoord [LI19] | Wachtwoord; autologin standaard uit [LI27] | P: bestaande echte methoden, login en opslagontgrendeling onderscheiden |
-| 18 | Online/lokaal | Persoonlijk Home/Pro MS-account vereist [WI06] | Apple Account later mogelijk [WI21] | Lokaal [LI03] | Lokaal; enterprisevariant [LI19] | Lokaal [LI27] | P: lokale kern; providers later optioneel |
-| 19 | Privacy | OOBE-keuzes variabel [WI04] | Meerdere aparte panelen [WI20] | Aanvullend eerste start [LI03] | Eerste start, conditioneel [LI19] | Geen aparte privacywizard aangetoond [LI27] | P: korte begrijpelijke controle; veiligheidsvloer vast |
-| 20 | Telemetrie | Required/Optional onderscheiden [WI11] | Analytics met toestemming [WI24] | Apparaatinformatie opt-in [LI03] | Rapportagepagina conditioneel; upstream aan [LI20] | Geen pagina bewijst geen afwezigheid [LI27] | P: geen OS-telemetrie volgens bestaand contract |
-| 21 | Locatie | Privacy & security; default onbekend [WI12] | Location Services, default onbekend [WI20] | Eerste start [LI03] | Upstream-switch aan; provider onbekend [LI20] | GeoIP-tijdzone geconfigureerd [LI27] | P: geen stil locatie-/GeoIP-verzoek; tijdzone handmatig mogelijk |
-| 22 | Installatie-updates | Kritieke OOBE-patches; versieaanbod [WI10] | Recovery kan ouder; update naderhand [WI17] | Online updates en updater naderhand [LI03] | Geen keuze in Live-wizard [LI12] | Optioneel, niet offline [LI27] | P: geverifieerde payload; download onderscheiden van persoonlijke data |
-| 23 | Drivers/firmware | Kritieke drivers; fabrikant apart [WI04] | Geen losse driverkeuze beschreven [WI17] | Third-party-keuze [LI03] | Externe repos bij eerste start [LI19] | Zichtbare driver/codeckeuze niet bevestigd [LI27] | P: ondersteund profiel; geen stille firmwareactie |
-| 24 | Optionele software | Diensten/OEM-aanbod conditioneel [WI04] | Migratie, Siri, AI e.a. conditioneel [WI20] | Default/extended [LI03] | Live-payload; repos later [LI19] | Minimal/Normal/Full en online extras [LI27] | P: kernset; uitbreidingen na desktop, geen verkooptrechter |
-| 25 | Summary/schrijfgrens | Ready to install ná eerdere partitieacties [WI03] | Wissen apart bevestigd, geen alles-summary [WI27] | Ready to install → Install [LI03] | Review; Cockpit schrijft direct zonder undo [LI29] | Summary/bevestiging → uitvoering [LI27] | P: compleet veranderplan vóór élke schijfmutatie |
-| 26 | Voortgang | Installatie/herstarts; exacte ETA onbekend [WI03] | Balk/herstarts/zwart scherm [WI17] | Slideshow/details [LI03] | Vier fasen/status/fouten [LI17] | Uitvoeringsmodules; indicator onbekend [LI27] | P: echte fase, eerlijke onzekerheid en annuleergrens |
-| 27 | Herstart | Tijdens Setup/OOBE [WI04] | Mogelijk meerdere [WI17] | Restart now [LI03] | Exit naar live, daarna zelf reboot [LI17] | Keuze bij finished [LI27] | P: expliciete gereedstatus, geen verzonnen succes |
-| 28 | Medium verwijderen | Bootvolgorde controleren; prompt niet bewezen [WI02] | N.v.t. ingebouwde Recovery [WI19] | USB op prompt verwijderen [LI03] | Exacte prompt niet vastgesteld [LI17] | Exacte prompt niet vastgesteld [LI27] | P: medium herkenbaar noemen en terugboot voorkomen |
-| 29 | Eerste boot | OOBE [WI03] | Lege installatie → Setup Assistant [WI17] | Unlock/login indien van toepassing [LI03] | GNOME Initial Setup [LI19] | Loginroute, onbeproefd [LI27] | P: echte installatie-/accounttoestand verifiëren |
-| 30 | Tweede fase | OOBE met account/privacy/diensten [WI04] | Setup Assistant; beheer kan variëren [WI23] | Initial Setup na de desktop (31) [LI03] | Account/privacy/repos e.a. conditioneel [LI19] | Plasma Welcome behalve minimal; details onbekend [LI27] | P: alleen noodzakelijke afronding; begeleiding overslaanbaar |
-| 31 | Werkelijke desktop | Na OOBE [WI04] | Na Welcome [WI20] | GNOME 50 [LI01] | GNOME 50 [LI06] | Plasma 6.6 [LI26] | Nu beperkte native sessie; P: aantoonbare day-one-taken |
+| 01 | Boot medium/recovery | USB/firmware menu [WI02] | Power → Options; Intel Command-R [WI18] | USB/firmware [LI02] | Live USB/Media Writer [LI06] | Desktop live image [LI26] | Currently UEFI/QEMU; P: verified medium, no host disk |
+| 02 | First screen | Setup language [WI03] | Recovery/unlocking/utilities [WI19] | Installer opens [LI02] | Live environment → WebUI language [LI12] | Dedicated prompt → Calamares [LI28] | P: welcome with language/assistive technology |
+| 03 | Language | Setup; possibly again in OOBE [WI03] [WI04] | Setup Assistant; reactivation after erasure [WI20] [WI27] | First choice [LI02] | Installer and first start [LI12] [LI19] | Prompt and welcome [LI28] [LI27] | P: select once, changeable later |
+| 04 | Region/time zone | Region in OOBE; no fixed time-zone page established [WI04] | Exact screen/position not established [WI20] | After account, map/city [LI03] | First start, not installer [LI19] | Locale before keyboard; GeoIP [LI27] | P: suggestion among local preferences, do not infer location consent |
+| 05 | Keyboard | Setup and OOBE [WI03] [WI05] | Exact page insufficiently documented [WI20] | Before network [LI02] | Live settings; again on first start [LI19] | After locale [LI27] | P: test before password/unlocking |
+| 06 | Accessibility | Keyboard described; pre-erasure screen reader unconfirmed [WI05] | Setup Assistant; Recovery coverage unconfirmed [WI20] | Dedicated early step [LI02] | No separate wizard page; operation untested [LI12] | No separate module; operation untested [LI27] | P: from welcome and during errors, not only after installation |
+| 07 | Network | Internet required for personal OOBE [WI06] | Required for Recovery download/activation [WI17] [WI27] | Optional [LI02] | Live environment; first-start page [LI19] | Prompt; online/offline differences [LI28] | P: complete local core medium works offline; downloads separate |
+| 08 | Try/Install | No live Try in selected route [WI03] | Recovery is not a live desktop [WI19] | Try or Install after network [LI02] | Live trial possible [LI06] | Dedicated Try/Install prompt [LI28] | P: try without disk mutation, installation explicit |
+| 09 | Hardware check | Requirements; Assistant check not established as identical to USB [WI02] | Model compatibility beforehand [WI17] | Live trial; no proprietary drivers [LI02] | Storage/space check [LI15] | RAM/storage/root check; no hardware guarantee [LI27] | P: tested capabilities before disk selection, honest blockers |
+| 10 | Target storage | Disk/partition [WI03] | Target volume, possibly unlock [WI17] | Target disk [LI03] | One/multiple disks [LI13] | Partition module [LI27] | P: user selects identified target; unknown ≠ empty |
+| 11 | Partitioning | Clean route removes partitions [WI03] | Disk Utility separate; APFS [WI27] | Automatic/manual [LI03] | Entire disk/free space/mount points/editor [LI13] | Erase/replace/alongside/manual conditionally [LI27] [LI32] [LI33] | P: understandable consequences; technical layout in Advanced |
+| 12 | Retain/replace | Clean erases; in-place retention options [WI03] | Reinstall preserves; erasure separate [WI17] | Erase or alongside [LI03] | Free space preserves; reinstall conditional [LI13] | Replace partition or entire disk [LI32] [LI33] | P: options according to demonstrated capability, source preservation explicit |
+| 13 | Dual boot | Not guided in this clean route [WI03] | Additional macOS/APFS or external volume [WI26] | Alongside; BitLocker may block [LI03] | Free space; no universal boot guarantee [LI13] | Suitable shrinkable partition required [LI32] [LI33] | P: validated combination only, otherwise block |
+| 14 | Encryption | Device Encryption on suitable device/account [WI07] | FileVault; hardware encryption is a different guarantee [WI25] | Passphrase/LVM or suitable TPM route [LI05] | New partitions with LUKS/passphrase [LI16] | Automatic LUKS2 layout, boot separate [LI27] | P: real personal protection and recovery before commit; gate open |
+| 15 | User account | OOBE [WI04] | Setup Assistant local computer account [WI20] | Before summary [LI03] | First start [LI19] | Before summary [LI27] | P: local personal account; no current guest-login claim |
+| 16 | Device name | OOBE guide; position not pinned [WI05] | No separate page established [WI20] | With account [LI03] | No review field in Live route [LI15] | Users page [LI27] | P: non-identifying editable name, no additional mandatory page |
+| 17 | Password/PIN/biometrics | Account → Hello/PIN; biometrics conditional [WI05] | Computer password; Touch ID conditional [WI20] | Login password ≠ disk PIN [LI05] | First-start password [LI19] | Password; autologin off by default [LI27] | P: existing real methods, distinguish login from storage unlocking |
+| 18 | Online/local | Personal Home/Pro requires MS account [WI06] | Apple Account possible later [WI21] | Local [LI03] | Local; enterprise variant [LI19] | Local [LI27] | P: local core; providers optional later |
+| 19 | Privacy | OOBE choices vary [WI04] | Several separate panels [WI20] | Additional first start [LI03] | First start, conditional [LI19] | No separate privacy wizard established [LI27] | P: short understandable review; fixed Security Floor |
+| 20 | Telemetry | Required/Optional distinguished [WI11] | Analytics with consent [WI24] | Device information opt-in [LI03] | Reporting page conditional; upstream enabled [LI20] | No page does not establish absence [LI27] | P: no OS telemetry according to existing contract |
+| 21 | Location | Privacy & security; default unknown [WI12] | Location Services, default unknown [WI20] | First start [LI03] | Upstream switch on; provider unknown [LI20] | GeoIP time zone configured [LI27] | P: no silent location/GeoIP request; manual time zone possible |
+| 22 | Installation updates | Critical OOBE patches; version offer [WI10] | Recovery may be older; update afterwards [WI17] | Online updates and updater afterwards [LI03] | No choice in Live wizard [LI12] | Optional, not offline [LI27] | P: verified payload; distinguish downloads from personal data |
+| 23 | Drivers/firmware | Critical drivers; manufacturer separate [WI04] | No separate driver choice described [WI17] | Third-party choice [LI03] | External repositories on first start [LI19] | Visible driver/codec choice unconfirmed [LI27] | P: supported profile; no silent firmware action |
+| 24 | Optional software | Services/OEM offers conditional [WI04] | Migration, Siri, AI etc. conditional [WI20] | Default/extended [LI03] | Live payload; repositories later [LI19] | Minimal/Normal/Full and online extras [LI27] | P: core set; additions after desktop, no sales funnel |
+| 25 | Summary/write boundary | Ready to install after earlier partition actions [WI03] | Erasure confirmed separately, no complete summary [WI27] | Ready to install → Install [LI03] | Review; Cockpit writes directly without undo [LI29] | Summary/confirmation → execution [LI27] | P: complete change plan before every disk mutation |
+| 26 | Progress | Installation/restarts; exact ETA unknown [WI03] | Bar/restarts/black screen [WI17] | Slideshow/details [LI03] | Four phases/status/errors [LI17] | Execution modules; indicator unknown [LI27] | P: real phase, honest uncertainty and cancellation boundary |
+| 27 | Restart | During Setup/OOBE [WI04] | Possibly several [WI17] | Restart now [LI03] | Exit to live, then manual reboot [LI17] | Choice at finished [LI27] | P: explicit completion state, no invented success |
+| 28 | Remove medium | Check boot order; prompt not established [WI02] | Not applicable to built-in Recovery [WI19] | Remove USB when prompted [LI03] | Exact prompt not established [LI17] | Exact prompt not established [LI27] | P: identify medium clearly and prevent booting back into it |
+| 29 | First boot | OOBE [WI03] | Empty installation → Setup Assistant [WI17] | Unlock/login where applicable [LI03] | GNOME Initial Setup [LI19] | Login route, untested [LI27] | P: verify real installation/account state |
+| 30 | Second phase | OOBE with account/privacy/services [WI04] | Setup Assistant; management may vary [WI23] | Initial Setup after desktop (31) [LI03] | Account/privacy/repositories etc. conditionally [LI19] | Plasma Welcome except minimal; details unknown [LI27] | P: necessary completion only; skippable guidance |
+| 31 | Actual desktop | After OOBE [WI04] | After Welcome [WI20] | GNOME 50 [LI01] | GNOME 50 [LI06] | Plasma 6.6 [LI26] | Currently limited native session; P: demonstrated day-one tasks |
 
-## Werkelijke volgorde naast elkaar
+## Actual sequences side by side
 
-- **Windows:** USB → taal/keyboard → installatie-/verlieskeuze/licentie → doelpartities, waarbij verwijderen al destructief schrijft → ready → OS installeren/herstarts → OOBE met netwerk/account/privacy/diensten → desktop. Een upgrade vanuit Windows heeft andere behoudopties. [WI03] [WI04]
-- **macOS:** Recovery/ontgrendeling → eventueel apart wissen/reactiveren → herinstalleren/doelvolume → voortgang/herstarts → bij lege omgeving Setup Assistant → desktop. Behoudinstallatie is geen verplichte nieuwe accountfase. Exacte totale paneelvolgorde blijft onvoldoende vastgelegd. [WI17] [WI20] [WI27]
-- **Ubuntu:** taal → toegankelijkheid → keyboard → netwerk → Try/Install → interactieve installatie/apps/drivers → opslag → account → tijdzone → summary → schrijven → reboot/medium → unlock/login → desktop → aanvullende Initial Setup. [LI02] [LI03]
-- **Fedora Workstation:** live → taal → installatiemethode/doelen → opslag, waarbij de optionele Cockpit-editor direct schrijft zonder undo → review → installeruitvoering → terug naar live → herstart → GNOME Initial Setup met conditionele pagina's → eigen desktop. [LI12] [LI19] [LI29]
-- **Kubuntu:** taal/netwerk/Try–Install-prompt → welcome → locale → keyboard → softwarekeuze → partition → users → summary → uitvoering → finished/herstart → desktop, eventueel Welcome. [LI27] [LI28]
+- **Windows:** USB → language/keyboard → installation/data-loss choice/licence → target partitions, where deletion already writes destructively → ready → OS installation/restarts → OOBE with network/account/privacy/services → desktop. An upgrade from Windows has different retention options. [WI03] [WI04]
+- **macOS:** Recovery/unlocking → optional separate erasure/reactivation → reinstall/target volume → progress/restarts → Setup Assistant for an empty environment → desktop. An installation preserving data does not require a new account phase. The exact complete panel sequence remains insufficiently documented. [WI17] [WI20] [WI27]
+- **Ubuntu:** language → accessibility → keyboard → network → Try/Install → interactive installation/apps/drivers → storage → account → time zone → summary → writing → reboot/medium → unlock/login → desktop → additional Initial Setup. [LI02] [LI03]
+- **Fedora Workstation:** live → language → installation method/targets → storage, where the optional Cockpit editor writes directly without undo → review → installer execution → return to live → restart → GNOME Initial Setup with conditional pages → personal desktop. [LI12] [LI19] [LI29]
+- **Kubuntu:** language/network/Try–Install prompt → welcome → locale → keyboard → software choice → partition → users → summary → execution → finished/restart → desktop, optionally Welcome. [LI27] [LI28]
 
-## A/B/C: behoud, variant en frictie
+## A/B/C: retention, variation and friction
 
-**A — gedeelde concepten [BRON/ANALYSE]:** taal/invoer, een installatiebron en doel, keuze over bestaande gegevens, voortgang, herstart/overgang en een eigen gebruikerssessie komen in meerdere routes terug. Herkenbaarheid is plausibel, maar gebruikerskennis is niet gemeten. Niet iedere route vraagt een aparte account-, encryptie- of netwerkschermkeuze.
+**A — shared concepts [SOURCE/ANALYSIS]:** language/input, an installation source and target, decisions about existing data, progress, restart/transition and a personal user session recur in several routes. Familiarity is plausible, but user knowledge has not been measured. Not every route asks for a separate account, encryption or network screen choice.
 
-**B — platformspecifiek [BRON]:** Windows producteditie/licentie/Hello en verplichte persoonlijke MS-account; Apple Recovery/activatie/FileVault/Apple Account; Linux live-Try, distributiegebonden pakket-/repositorykeuzes en partitioneringsmogelijkheden. De conventie zelf is geen automatisch voorschrift voor nieuw-os. [WI03] [WI06] [WI17] [WI25] [LI02] [LI19] [LI27]
+**B — platform-specific [SOURCE]:** Windows product edition/licence/Hello and mandatory personal MS account; Apple Recovery/activation/FileVault/Apple Account; Linux live Try, distribution-specific package/repository choices and partitioning options. The convention itself is not an automatic requirement for Baryon OS. [WI03] [WI06] [WI17] [WI25] [LI02] [LI19] [LI27]
 
-**C — mogelijke vermijdbare frictie [ANALYSE, niet gemeten]:** dubbele taal/invoer zonder duidelijke overdracht, account-/privacyvragen over meerdere fasen, aanbiedingen zonder installatiebehoefte, technische layouttermen op een beginnerspad, verborgen vroege schrijfgrenzen en een netwerkverplichting die een ontbrekende driver niet kan oplossen. Een extra herstelcontrole is juist waardevol; minder schermen is geen zelfstandig kwaliteitsdoel. Begeleide keuze, defaults en samenvoegen moeten worden getest.
+**C — potentially avoidable friction [ANALYSIS, not measured]:** duplicate language/input without clear handover, account/privacy questions across several phases, offers unrelated to installation needs, technical layout terminology on a beginner route, hidden early write boundaries and a network requirement that cannot resolve a missing driver. An additional recovery check can be valuable; fewer screens is not an independent quality objective. Guided choices, defaults and consolidation require testing.
 
-## Terminologie en beslissingen
+## Terminology and decisions
 
-| Begrijpelijke hoofdterm (voorstel) | Technische uitleg alleen waar nodig | Wat nooit mag verdwijnen |
+| Understandable main term (proposal) | Technical explanation only where needed | What must never disappear |
 |---|---|---|
-| Deze schijf gebruiken | Merk, capaciteit, herkenbaar stabiel kenmerk; partitielayout in Advanced | Welk fysiek doel en welke gegevens geraakt worden |
-| Alles op deze schijf vervangen | Formateren/partities opnieuw aanmaken | “Alle bestanden en bestaande systemen op … worden verwijderd” vóór schrijven |
-| Bestaand systeem behouden | Vrije ruimte/resize/bootmanager in detail | Welke delen werkelijk ongemoeid blijven; rest- en bootrisico's |
-| Gegevens beschermen | Encryptie, sleutels, ontgrendelen en herstel onderscheiden | Wat verlies van een herstelmiddel betekent; geen gegarandeerde undo |
-| Persoonlijk account op dit apparaat | Authenticatie versus providerkoppeling | Wie toegang heeft; geen openbare gast als privéaccount aanduiden |
+| Use this disk | Brand, capacity, recognisable stable characteristic; partition layout in Advanced | Which physical target and data will be affected |
+| Replace everything on this disk | Format/recreate partitions | “All files and existing systems on … will be removed” before writing |
+| Keep the existing system | Free space/resize/boot manager in details | Which parts actually remain untouched; residual and boot risks |
+| Protect data | Distinguish encryption, keys, unlocking and recovery | What losing recovery materials means; no guaranteed undo |
+| Personal account on this device | Authentication versus provider linking | Who has access; do not label a public guest as a private account |
 
-**Veilig te suggereren [VOORSTEL]:** taal/layout laten kiezen of bewerkbaar voorstellen, een niet-identificerende apparaatnaam genereren, een geteste interne layout berekenen **na** doel-/methodekeuze, privacybeschermende defaults en tijdzone zonder locatieverzoek. Automatisch berekenen is geen autorisatie om te schrijven. Herkenning kan onzeker zijn; de UI toont dat.
+**Safe to suggest [PROPOSAL]:** allow language/layout selection or provide an editable suggestion, generate a non-identifying device name, calculate a tested internal layout **after** target/method selection, privacy-preserving defaults and time zone without a location request. Automatic calculation is not authorisation to write. Detection may be uncertain; the UI shows this.
 
-**Nooit stil automatisch [VOORSTEL]:** doel kiezen om te wissen, onbekende schijf als leeg behandelen, partities verkleinen/verwijderen/converteren, bootconfiguratie veranderen, encryptie afzwakken, een herstelkey exporteren, providers koppelen, firmware aanpassen of ontsleutelsleutels aan een derde geven. Ook Advanced valt onder dezelfde schrijfgrens. Verandert schijfidentiteit, plan of conditie, dan vervalt de bevestiging.
+**Never silently automatic [PROPOSAL]:** selecting an erasure target, treating an unknown disk as empty, shrinking/removing/converting partitions, changing boot configuration, weakening encryption, exporting a recovery key, linking providers, modifying firmware or giving decryption keys to a third party. Advanced is subject to the same write boundary. If disk identity, plan or conditions change, confirmation expires.
 
-## Gevolg voor de nieuw-os-funnel
+## Implication for the Baryon OS flow
 
-[ONTWERPKEUZE] Eerst bruikbare taal/toegankelijkheid/invoer en een veilige proefmogelijkheid; daarna echte geschiktheid en opslagkeuze; account/protectie vóór één complete schrijfbevestiging; na reboot alleen noodzakelijke verificatie en optionele taakhulp. De bronnen schrijven deze precieze volgorde niet voor. De [installerspecificatie](../product/new-os-installer-spec.md) motiveert per stap wat wordt gecombineerd, uitgesteld of weggelaten en welke backendgates nog openstaan.
+[DESIGN DECISION] First usable language/accessibility/input and a safe trial option; then real suitability and storage selection; account/protection before one complete write confirmation; after reboot, only necessary verification and optional task help. The sources do not prescribe this precise sequence. The [installer specification](../product/new-os-installer-spec.md) explains, step by step, what is combined, deferred or omitted and which backend gates remain open.
 
-Juridische/technische omgang: alleen openbare tekst, configuratie en bronverwijzingen gebruikt, geen gereproduceerde OS-screenshots of gedownloade installatie-images. Schermbeschrijvingen zijn brongebonden samenvattingen; onbekende details zijn geen mockbeelden. Bronversies kunnen wijzigen: vóór uitvoering media/builds vastleggen en opnieuw controleren.
+Legal/technical handling: only public text, configuration and source references used, no reproduced OS screenshots or downloaded installation images. Screen descriptions are source-bound summaries; unknown details are not mock images. Source versions may change: record and recheck media/builds before execution.
 
-## Directe bronnen voor de verkorte matrix
+## Direct sources for the abbreviated matrix
 
-Volledige titels, datum en beperkingen staan in de twee brondossiers; iedere ID hieronder verwijst naar dezelfde oorspronkelijke bron.
+Complete titles, dates and limitations appear in the two source dossiers; every ID below refers to the same original source.
 
 [WI01]: https://learn.microsoft.com/en-us/windows/release-health/windows11-release-information
 [WI02]: https://www.microsoft.com/en-us/software-download/windows11

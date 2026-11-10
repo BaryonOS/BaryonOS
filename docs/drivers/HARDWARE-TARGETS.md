@@ -1,74 +1,74 @@
-# Hardwaredoel: van QEMU via VMware naar een echte pc
+# Hardware target: from QEMU through VMware to a physical PC
 
-Status 5 november 2026. Dit document legt het **einddoel** vast waar al het
-virtuele driverwerk naartoe werkt: Nieuw OS draait lokaal op een gewone
-x86-64-desktop of -laptop met UEFI. Virtueel testen is de weg ernaartoe, niet
-het eindpunt. Dit document kent zelf geen roadmappunten toe.
+Status as of 5 November 2026. This document defines the **end goal** towards which
+all virtual driver work is directed: Baryon OS runs locally on a conventional
+x86-64 desktop or laptop with UEFI. Virtual testing is the route to that goal,
+not the endpoint. This document does not itself award roadmap points.
 
-## Drie profielen, in deze volgorde
+## Three profiles, in this order
 
-| Profiel | Wat | Rol | Wie draait het |
+| Profile | Description | Role | Operator |
 |---|---|---|---|
-| `VM-FR` | QEMU `pc-q35-8.2`, OVMF, zie [FULL-TEST-RELEASE](../FULL-TEST-RELEASE.md) | Automatische regressie in CI; negatieve proeven en foutinjectie | CI en agents |
-| `VM-VMW` | VMware Workstation Pro 17 op Simons Windows-pc, UEFI, wegwerp-VM met alleen de gebouwde ISO | Tweede, onafhankelijke emulatie van **echte** apparaatmodellen (xHCI, NVMe, e1000e, HD Audio, SATA). Vangt QEMU-specifiek gedrag | Simon, met script en verwachte COM1-uitvoer |
-| `HW-FR` | Eén concreet benoemde fysieke desktop of laptop (nog te kiezen) | Acceptatie op echte hardware; IOMMU, energie en batterij | Simon, met dezelfde image en herstelroute |
+| `VM-FR` | QEMU `pc-q35-8.2`, OVMF, see [FULL-TEST-RELEASE](../FULL-TEST-RELEASE.md) | Automated regression testing in CI; negative tests and fault injection | CI and agents |
+| `VM-VMW` | VMware Workstation Pro 17 on the project owner's Windows PC, UEFI, a disposable VM containing only the built ISO | A second, independent emulation of **real** device models (xHCI, NVMe, e1000e, HD Audio, SATA). Detects QEMU-specific behaviour | The project owner, with a script and expected COM1 output |
+| `HW-FR` | One specifically identified physical desktop or laptop (not yet selected) | Acceptance on real hardware; IOMMU, power and battery | The project owner, with the same image and recovery route |
 
-Een criterium dat "fysieke" hardware vraagt, blijft open tot `HW-FR` het
-bewijs levert. `VM-VMW` vervangt dat niet, maar bewijst wel dat een driver niet
-alleen op QEMU leunt. De VMware-startproef staat in
+A criterion that requires "physical" hardware remains open until `HW-FR`
+provides the evidence. `VM-VMW` does not replace this, but does demonstrate that
+a driver does not depend solely on QEMU. The VMware startup trial is documented in
 [VMWARE-WORKSTATION-TRIAL](../implementation/VMWARE-WORKSTATION-TRIAL.md).
 
-## Minste drivers, breedste dekking
+## Fewest drivers, broadest coverage
 
-Kies per apparaatfamilie eerst de standaardinterface die in **alle drie**
-profielen voorkomt. Eén driver dekt dan QEMU, VMware en de meeste echte pc's.
+For each device family, first select the standard interface present in **all three**
+profiles. One driver then covers QEMU, VMware and most physical PCs.
 
-| Familie | Driver (standaard) | VM-FR | VM-VMW | HW-FR | Stand |
+| Family | Driver (standard) | VM-FR | VM-VMW | HW-FR | Status |
 |---|---|---|---|---|---|
-| Beeld | UEFI GOP-framebuffer | ja | ja | ja | aanwezig (G0/U01) |
-| Invoer | PS/2 (i8042) | ja | ja | vaak (laptoptoetsenbord) | aanwezig, gepold |
-| Invoer/USB | xHCI + USB-HID bootprotocol | `qemu-xhci` | ja | ja | in uitvoering (H02) |
-| Opslag | NVMe | `nvme` | ja | ja | probe-crate aanwezig; volgende stap |
-| Opslag | AHCI/SATA | `ich9-ahci` | ja | oudere pc's | later |
-| Netwerk | Intel e1000e (82574/I219-familie) | `e1000e` | `e1000e` | Intel-ethernet | volgende stap (H04) |
-| Audio | Intel HD Audio | `intel-hda` | `hdaudio` | ja | volgende stap (H03) |
-| Energie | ACPI (FADT/DSDT, S5, later S3, `_BST`) | ja | ja | ja | S5 in PR #213 (H05) |
-| Entropie | RDRAND/RDSEED | ja | ja | ja | virtio-rng aanwezig |
-| DMA-grens | Intel VT-d (DMAR) | QEMU `intel-iommu` optioneel; guest-isolatie niet aangetoond | vIOMMU afhankelijk van VM-configuratie; niet aangetoond | alleen met geschikte VT-d-hardware | open (H06) |
+| Display | UEFI GOP framebuffer | yes | yes | yes | present (G0/U01) |
+| Input | PS/2 (i8042) | yes | yes | often (laptop keyboard) | present, polled |
+| Input/USB | xHCI + USB-HID boot protocol | `qemu-xhci` | yes | yes | in progress (H02) |
+| Storage | NVMe | `nvme` | yes | yes | probe crate present; next step |
+| Storage | AHCI/SATA | `ich9-ahci` | yes | older PCs | later |
+| Networking | Intel e1000e (82574/I219 family) | `e1000e` | `e1000e` | Intel Ethernet | next step (H04) |
+| Audio | Intel HD Audio | `intel-hda` | `hdaudio` | yes | next step (H03) |
+| Power | ACPI (FADT/DSDT, S5, later S3, `_BST`) | yes | yes | yes | S5 in PR #213 (H05) |
+| Entropy | RDRAND/RDSEED | yes | yes | yes | virtio-rng present |
+| DMA boundary | Intel VT-d (DMAR) | QEMU `intel-iommu` optional; guest isolation not demonstrated | vIOMMU depends on the VM configuration; not demonstrated | only with suitable VT-d hardware | open (H06) |
 
-VirtIO (blk/net/rng/snd) blijft de snelle CI-route, maar telt niet als dekking
-voor echte hardware.
+VirtIO (blk/net/rng/snd) remains the fast CI route, but does not count as coverage
+for real hardware.
 
-Bewust **niet** in de eerste ronde: wifi en Bluetooth (vereisen chipspecifieke
-firmwareblobs en een licentiebesluit), GPU-versnelling (GOP is de basis;
-"benodigde GPU-functionaliteit" in H03 moet nog worden afgebakend), Realtek-
-ethernet, USB-hubs en isochrone USB. Die keuzes zijn een besluit van Simon
-zodra `HW-FR` is gekozen.
+Deliberately **excluded** from the first round: Wi-Fi and Bluetooth (require chip-specific
+firmware blobs and a licensing decision), GPU acceleration (GOP is the baseline;
+"required GPU functionality" in H03 still needs to be defined), Realtek
+Ethernet, USB hubs and isochronous USB. These choices are for the project owner
+to decide once `HW-FR` has been selected.
 
-## Hoe drivers zonder kernelwijziging bijkomen
+## How drivers can be added without kernel changes
 
-De kernel krijgt één generieke, capability-begrensde driverinterface
-(BAR-mapping, DMA-pagina's, vrijgave bij crash; zie branch `hw/driver-grant`).
-Daarna draait elke driver hierboven als userspacedienst. Zonder ingerichte
-guest-IOMMU en expliciete DMA-toewijzing is guest-DMA-isolatie niet bewezen;
-de emulatorgrens beperkt DMA niet automatisch tot de buffers van een driver.
-Op `HW-FR` vraagt die isolatie geschikte VT-d-hardware en implementatie (H06).
+The kernel will receive one generic driver interface bounded by capabilities
+(BAR mapping, DMA pages, release on a crash; see branch `hw/driver-grant`).
+Each driver above will then run as a userspace service. Without a configured
+guest IOMMU and explicit DMA allocation, guest DMA isolation is not proven;
+the emulator boundary does not automatically restrict DMA to a driver's buffers.
+On `HW-FR`, this isolation requires suitable VT-d hardware and implementation (H06).
 
-Hergebruik vóór zelf schrijven: register-/typecrates van rust-osdev (`xhci`,
-`pci_types`, `acpi`) na de controle in [DEPENDENCIES](../DEPENDENCIES.md);
-zie [driveronderzoek](../research/2026-11-03/os-repos-and-hardware-drivers.md).
+Reuse before writing new code: register/type crates from rust-osdev (`xhci`,
+`pci_types`, `acpi`) after the review in [DEPENDENCIES](../DEPENDENCIES.md);
+see the [driver research](../research/2026-11-03/os-repos-and-hardware-drivers.md).
 
-## Wat Simon moet aanleveren voor HW-FR
+## What the project owner must provide for HW-FR
 
-1. Merk/model van de doelmachine en de uitvoer van een PCI-lijst (bijvoorbeeld
-   vanuit een Linux-live-USB: `lspci -nn`), zodat elke apparaat-ID in de
-   tabel hierboven een driver of een bewuste "niet ondersteund" krijgt.
-2. Toestemming voor een USB-stick als bootmedium; geen interne schijf.
-3. Voor COM1-only markers, zoals `UNSUPPORTED:PCI`, is een seriële verbinding
-   nodig. Verbind de seriële poort van de doelmachine met een tweede computer
-   via een geschikte seriële of USB-serieeladapter aan die tweede computer.
-   Een USB-serieeladapter op de doelmachine zelf ontvangt niet automatisch
-   COM1-uitvoer; zonder seriële poort vereist USB-uitvoer een ondersteunde
-   USB-serialdriver. **Schermroute: onbekend/nog niet aangetoond.** Of dezelfde
-   diagnostische markers op het scherm verschijnen moet afzonderlijk worden
-   getest voordat een fysieke proef zonder seriële verbinding kan slagen.
+1. The target machine's make/model and the output of a PCI listing (for example,
+   from a Linux live USB: `lspci -nn`), so that each device ID in the table
+   above is assigned a driver or an explicit "not supported" designation.
+2. Permission to use a USB stick as the boot medium; no internal disk.
+3. COM1-only markers, such as `UNSUPPORTED:PCI`, require a serial connection.
+   Connect the target machine's serial port to a second computer using a
+   suitable serial or USB-to-serial adapter connected to that second computer.
+   A USB-to-serial adapter on the target machine itself does not automatically
+   receive COM1 output; without a serial port, USB output requires a supported
+   USB serial driver. **On-screen route: unknown/not yet demonstrated.** Whether
+   the same diagnostic markers appear on screen must be tested separately
+   before a physical trial without a serial connection can succeed.

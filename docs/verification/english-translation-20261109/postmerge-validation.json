@@ -1,0 +1,832 @@
+{
+  "schema_version": 1,
+  "scope": "Bounded post-merge translation integration validation; no native OS or hardware acceptance.",
+  "started_at": "2026-11-09T01:07:09.899409+00:00",
+  "finished_at": "2026-11-09T01:07:10.733608+00:00",
+  "cwd": "/workspace/scratch/4c2decb13c56/baryonos-english",
+  "source_state": {
+    "expected_head": "eb8c1e927a3322ed0ae1a9c312296767ab9cdf8d",
+    "head_before": "eb8c1e927a3322ed0ae1a9c312296767ab9cdf8d",
+    "head_after": "eb8c1e927a3322ed0ae1a9c312296767ab9cdf8d",
+    "head_changed_during_run": false,
+    "comparison_base": "2ed4c087746021da3c8b96511af3209a35d0f441",
+    "working_tree_status_before": " M docs/COMMUNITY.md\n M docs/implementation/QUANTUM-SPEC.md\n M docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md\n M docs/verification/english-translation-20261109/README.md\n M tools/agent_pipeline.py\n",
+    "working_tree_status_after_before_writing_this_artifact": " M docs/COMMUNITY.md\n M docs/implementation/QUANTUM-SPEC.md\n M docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md\n M docs/verification/english-translation-20261109/README.md\n M tools/agent_pipeline.py\n",
+    "working_tree_included": true,
+    "note": "The root-authorised final human-facing pipeline publication wording edit is included in these recorded input hashes even if not yet committed."
+  },
+  "environment": {
+    "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "environment_additions": {
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "dependency_installation": false,
+    "parallel_commands": 4
+  },
+  "input_sha256_before": {
+    ".agents/skills/os-dev/SKILL.md": "c30a24cf922d8839b55d3e094b52a2d6eb34d3717cec69bf548ff2a2498de258",
+    ".agents/skills/os-dev/agents/openai.yaml": "bf893b1e14bd09b8d5208e670fa948d5fee86fdf776462cdc5ba828ea395f0a4",
+    ".agents/skills/os-dev/assets/book.pdf": "5a68a45b3d81b1a7fc45fe5d950f79b969824388ad2501f9fd3e664b83fce023",
+    ".agents/skills/os-dev/assets/source-manifest.json": "6873432ac6fde084ecd0c50b67c12cf693b27de38b498d69af199d3ec31f4f14",
+    ".agents/skills/os-dev/references/corpus/boek.md": "02acf175a9d5afb953c9bd1ad26e308436719da0bd9881d1411f4cacaca69648",
+    ".agents/skills/os-dev/references/corpus/wiki-01.md": "a279e1d67ecd03def062aba495c2a10ff898357213412374ee9dd46d839d0179",
+    ".agents/skills/os-dev/references/corpus/wiki-02.md": "978aa99e9a5ada485fcee0f168a56c44fb51c4deba7d9ed538c283f91ea25247",
+    ".agents/skills/os-dev/references/corpus/wiki-03.md": "a48148f17028199f51c68766e6c7d9679acd0e3e97deddd7d15d50c339fa8756",
+    ".agents/skills/os-dev/references/corpus/wiki-04.md": "16803bfbf19be94728bf021df57084543304ef0fb8467e5ac117855a8e67de92",
+    ".agents/skills/os-dev/references/corpus/wiki-05.md": "0fdafedbdfc22e479cbbc6fb62bf6978d9753a93fc4466e0eaf4acae473bdb21",
+    ".agents/skills/os-dev/references/corpus/wiki-06.md": "d695829d5256c28b3541bcad3a1c77d64e50eb560eb38f8b7a5a90e370ab32ce",
+    ".agents/skills/os-dev/references/corpus/wiki-07.md": "3cea0d7a9c465e9d0627ed3e8d52def8f2df917e510fda7fc5c4d802c2628650",
+    ".agents/skills/os-dev/references/corpus/wiki-08.md": "9c638791eb40f16186cfd5aa3aa1d869e72e901bb11896e50825cd34776cad99",
+    ".agents/skills/os-dev/references/corpus/wiki-09.md": "4b63781bf35496b7a4d1965d58865428da187491c7602c34531164a444411091",
+    ".agents/skills/os-dev/references/corpus/wiki-10.md": "a59912bf8fffc210bba3e384dd801d9fe36ac77a7c52948d165a62be02b38ec6",
+    ".agents/skills/os-dev/references/corpus/wiki-11.md": "814f97815bf96a7b1f444c13f1bfc91beb4add3399e9613a07ed56c3b4860e93",
+    ".agents/skills/os-dev/references/corpus/wiki-12.md": "1fa06894a183c63ec02f0c912a3a2b29242b0668e53bdeef051a97c735f8881a",
+    ".agents/skills/os-dev/references/corpus/wiki-13.md": "28295a3bd2bd15f49eee54d6895e67265324fb0e5d518abd7c68a864fc8de22b",
+    ".agents/skills/os-dev/references/corpus/wiki-14.md": "c1ca0dd7bcdb2c8d8f0815bab2a5ec38520466e474ba7f8db377572e059f5ad8",
+    ".agents/skills/os-dev/references/corpus/wiki-15.md": "77d70f5c42eaa4d683bb241941c8e273d9742d092b672bbc9e8d7ec41736740c",
+    ".agents/skills/os-dev/references/source-index.json": "9a4284331b4f19077afd7e6ceec369f19be0435ea3991ff089678c25b2d77054",
+    ".agents/skills/os-dev/scripts/build_corpus.py": "731ac7898f34a6f3de6bb20d6230b23de358731b9b0543ad83613da33812382b",
+    ".agents/skills/os-dev/scripts/validate_skill.py": "fa973b9295d4e496509997914c9e1f96b9b46e1b1bf117c077c4bbc5aaa4d596",
+    ".agents/skills/os-dev/scripts/zoeken.py": "8089e26d3d25e54d6167d4305aec7391223c26623b5da172f73497f3e708a967",
+    ".agents/skills/os-dev/tests/test_zoeken.py": "ad0e0df1531dedf34a2b787d1ff3c317f850bb89334f45ad15c303f99a1bc50a",
+    ".coderabbit.yaml": "f9722d52a10b7096d8056c806429d3811bab2185a8a58af33d1da64e8fce9793",
+    ".codex/agents/os_architect.toml": "2dbdc1a33e61d14c3ffef2796a3130bea3f42118ee621aeec661ffd7ae7498e5",
+    ".codex/agents/os_builder.toml": "a414bdb4815355fbe7a5f0ede82bb4bf00b2483929a753f2ae9bee474a02efba",
+    ".codex/agents/os_security_reviewer.toml": "2656496ae9df986d0da724a65604ab2a2777311fe9c5a1279bc0c56c21592b9b",
+    ".codex/agents/os_verifier.toml": "5f19eab88ecbec7f50c22a5b12585ddf538533e487176319cc54c5f5123d2503",
+    ".codex/config.example.toml": "c0d56475b88bea8c2882d1914474da59271e79cd5ead3e8248f640625b020357",
+    ".github/DISCUSSION_TEMPLATE/architecture-and-design.yml": "8b061730ba7ab3a0e562d019fe87e3a7f7e17f1eeada261e93f8160698a04756",
+    ".github/DISCUSSION_TEMPLATE/product-and-user-experience.yml": "b938a67652169757b04cd7a1b91d2a76591c002bcd526ed4087e7510e279d3f2",
+    ".github/DISCUSSION_TEMPLATE/questions-and-help.yml": "f78bebd076d8a9e2e38bf17ea0fc6e878d4d3a84b5bad359b48025081bbc8a3b",
+    ".github/DISCUSSION_TEMPLATE/test-results-and-demos.yml": "3b28c44425e82447a4501bf18b4b15c9332cc4e29c957761e62f76655829425d",
+    ".github/ISSUE_TEMPLATE/bug_report.yml": "68190404b94be9aefb17736a72eb92dc48ff2c56e479fe15fcecd0ce7b1437f1",
+    ".github/ISSUE_TEMPLATE/ci_test_failure.yml": "48824d5683bad37006e982fd1ddb1a2c68ff562d6f7ff5dd4c7ae8618684bde7",
+    ".github/ISSUE_TEMPLATE/config.yml": "57329b295db205d8d67ebe75921d078af402a9355e5db70957176c84e06af9ab",
+    ".github/ISSUE_TEMPLATE/documentation.yml": "b82c3ce7a477ba8a86d433fb0641565de1416b7d6b2d73a22cc2ac91cb025d0e",
+    ".github/workflows/ci.yml": "fe638ab9e63ca8e028da253e9f8940db542257f43bcb87102f2eefc6c013eeb8",
+    "README.md": "eeecb2554d9fcd600671ca6d1165df498d413404673bb9a229969deb3000f6ba",
+    "docs/PROGRESS.md": "72ffb52b5b0e1bdbb70066598d8c44693101b34b25fb10d84137fd7517281ded",
+    "docs/assets/progress.svg": "f8caccbaef70c238bf3c67bb34522aa5800c4c4791c4226f9bfb5185d1a59086",
+    "docs/progress.json": "22669754476b7353e624433dba4835d12c10a76bf1b7d280b2e133d3d96596ac",
+    "docs/verification/english-translation-20261109/additional-metadata-translations.json": "98c48f80f1e1e90f52007212e380c656dc75815fdd116ff8af319ec6256dd4fb",
+    "docs/verification/english-translation-20261109/discussion-review.json": "66991b8025d83b1560718f3e1e03a36538da99daf71695d8cf6b2dec0d052388",
+    "docs/verification/english-translation-20261109/discussion-translations.json": "a573d4a867ea2b2ca14ef09c038b88ccfc2a26a9f57af6c47316cef939c8f947",
+    "docs/verification/english-translation-20261109/english-final-readonly-audit.json": "4257eaedab72d2b108b9836fc244346b669f195099fcb1f190fe0b57c41a448f",
+    "docs/verification/english-translation-20261109/english-pr-review-findings.json": "bc366868d7c97d3fc7255a541f29aed87c250b955d2d123019470840210a5b69",
+    "docs/verification/english-translation-20261109/github-before.json": "b75ddfda015930f57bff158246fca9456050f4c14af8922669fc4ead2fb2cfaa",
+    "docs/verification/english-translation-20261109/github-live-verification.json": "f92a438ede0e26e5a8dfd4134cb2cbda71fc84f94f2ded3116d4121fee65e45d",
+    "docs/verification/english-translation-20261109/milestones-after.json": "a39fbd94cc8c5679a50bf6882eaebbe383f5a9e133591867c3d49fc43b0b78ef",
+    "docs/verification/english-translation-20261109/milestones-before.json": "e4162e349a15c80b6da3f51d3588c8a3af744fc2bca109ae13ea06f8aa406445",
+    "docs/verification/english-translation-20261109/milestones-translations.json": "46d64339584c79e4db36271a4c357fb8ab8c52caa13581f20cae59e8ec596021",
+    "docs/verification/english-translation-20261109/pull-requests-before.json": "71ca9813d442c79a8d45d72cf0088fe04ccf3dfc285f2a93f27a533e86912107",
+    "docs/verification/english-translation-20261109/validation.log": "1baf1362d168927ee4b4af022f89915da7dc74e9c35e6f27a48f1933d301ac11",
+    "tools/agent_gate.py": "b22242245b601b9bfd8f7594af942be3254ce2c032136c5e9e9c756bd0989da7",
+    "tools/agent_pipeline.py": "572fc296e3d7a2b2cfc5f8d3efbb307e3bab7ca92d8d34dca62dd932a5bf9fa9",
+    "tools/common.py": "3afe411e42127148877bf8c68014702b4564a78697dcd21f2a6f20b0a95b8061",
+    "tools/progress.py": "87dc5c0cb40966bfb252d69e32d9bffe1ed9e362e6de67e91adc1ba0dcc0e75e",
+    "tools/tests/test_agent_pipeline.py": "4f870e721adcf5af825c02e5712c3933b6f71d621580f476eb7bf33ccb51fce8"
+  },
+  "input_sha256_after": {
+    ".agents/skills/os-dev/SKILL.md": "c30a24cf922d8839b55d3e094b52a2d6eb34d3717cec69bf548ff2a2498de258",
+    ".agents/skills/os-dev/agents/openai.yaml": "bf893b1e14bd09b8d5208e670fa948d5fee86fdf776462cdc5ba828ea395f0a4",
+    ".agents/skills/os-dev/assets/book.pdf": "5a68a45b3d81b1a7fc45fe5d950f79b969824388ad2501f9fd3e664b83fce023",
+    ".agents/skills/os-dev/assets/source-manifest.json": "6873432ac6fde084ecd0c50b67c12cf693b27de38b498d69af199d3ec31f4f14",
+    ".agents/skills/os-dev/references/corpus/boek.md": "02acf175a9d5afb953c9bd1ad26e308436719da0bd9881d1411f4cacaca69648",
+    ".agents/skills/os-dev/references/corpus/wiki-01.md": "a279e1d67ecd03def062aba495c2a10ff898357213412374ee9dd46d839d0179",
+    ".agents/skills/os-dev/references/corpus/wiki-02.md": "978aa99e9a5ada485fcee0f168a56c44fb51c4deba7d9ed538c283f91ea25247",
+    ".agents/skills/os-dev/references/corpus/wiki-03.md": "a48148f17028199f51c68766e6c7d9679acd0e3e97deddd7d15d50c339fa8756",
+    ".agents/skills/os-dev/references/corpus/wiki-04.md": "16803bfbf19be94728bf021df57084543304ef0fb8467e5ac117855a8e67de92",
+    ".agents/skills/os-dev/references/corpus/wiki-05.md": "0fdafedbdfc22e479cbbc6fb62bf6978d9753a93fc4466e0eaf4acae473bdb21",
+    ".agents/skills/os-dev/references/corpus/wiki-06.md": "d695829d5256c28b3541bcad3a1c77d64e50eb560eb38f8b7a5a90e370ab32ce",
+    ".agents/skills/os-dev/references/corpus/wiki-07.md": "3cea0d7a9c465e9d0627ed3e8d52def8f2df917e510fda7fc5c4d802c2628650",
+    ".agents/skills/os-dev/references/corpus/wiki-08.md": "9c638791eb40f16186cfd5aa3aa1d869e72e901bb11896e50825cd34776cad99",
+    ".agents/skills/os-dev/references/corpus/wiki-09.md": "4b63781bf35496b7a4d1965d58865428da187491c7602c34531164a444411091",
+    ".agents/skills/os-dev/references/corpus/wiki-10.md": "a59912bf8fffc210bba3e384dd801d9fe36ac77a7c52948d165a62be02b38ec6",
+    ".agents/skills/os-dev/references/corpus/wiki-11.md": "814f97815bf96a7b1f444c13f1bfc91beb4add3399e9613a07ed56c3b4860e93",
+    ".agents/skills/os-dev/references/corpus/wiki-12.md": "1fa06894a183c63ec02f0c912a3a2b29242b0668e53bdeef051a97c735f8881a",
+    ".agents/skills/os-dev/references/corpus/wiki-13.md": "28295a3bd2bd15f49eee54d6895e67265324fb0e5d518abd7c68a864fc8de22b",
+    ".agents/skills/os-dev/references/corpus/wiki-14.md": "c1ca0dd7bcdb2c8d8f0815bab2a5ec38520466e474ba7f8db377572e059f5ad8",
+    ".agents/skills/os-dev/references/corpus/wiki-15.md": "77d70f5c42eaa4d683bb241941c8e273d9742d092b672bbc9e8d7ec41736740c",
+    ".agents/skills/os-dev/references/source-index.json": "9a4284331b4f19077afd7e6ceec369f19be0435ea3991ff089678c25b2d77054",
+    ".agents/skills/os-dev/scripts/build_corpus.py": "731ac7898f34a6f3de6bb20d6230b23de358731b9b0543ad83613da33812382b",
+    ".agents/skills/os-dev/scripts/validate_skill.py": "fa973b9295d4e496509997914c9e1f96b9b46e1b1bf117c077c4bbc5aaa4d596",
+    ".agents/skills/os-dev/scripts/zoeken.py": "8089e26d3d25e54d6167d4305aec7391223c26623b5da172f73497f3e708a967",
+    ".agents/skills/os-dev/tests/test_zoeken.py": "ad0e0df1531dedf34a2b787d1ff3c317f850bb89334f45ad15c303f99a1bc50a",
+    ".coderabbit.yaml": "f9722d52a10b7096d8056c806429d3811bab2185a8a58af33d1da64e8fce9793",
+    ".codex/agents/os_architect.toml": "2dbdc1a33e61d14c3ffef2796a3130bea3f42118ee621aeec661ffd7ae7498e5",
+    ".codex/agents/os_builder.toml": "a414bdb4815355fbe7a5f0ede82bb4bf00b2483929a753f2ae9bee474a02efba",
+    ".codex/agents/os_security_reviewer.toml": "2656496ae9df986d0da724a65604ab2a2777311fe9c5a1279bc0c56c21592b9b",
+    ".codex/agents/os_verifier.toml": "5f19eab88ecbec7f50c22a5b12585ddf538533e487176319cc54c5f5123d2503",
+    ".codex/config.example.toml": "c0d56475b88bea8c2882d1914474da59271e79cd5ead3e8248f640625b020357",
+    ".github/DISCUSSION_TEMPLATE/architecture-and-design.yml": "8b061730ba7ab3a0e562d019fe87e3a7f7e17f1eeada261e93f8160698a04756",
+    ".github/DISCUSSION_TEMPLATE/product-and-user-experience.yml": "b938a67652169757b04cd7a1b91d2a76591c002bcd526ed4087e7510e279d3f2",
+    ".github/DISCUSSION_TEMPLATE/questions-and-help.yml": "f78bebd076d8a9e2e38bf17ea0fc6e878d4d3a84b5bad359b48025081bbc8a3b",
+    ".github/DISCUSSION_TEMPLATE/test-results-and-demos.yml": "3b28c44425e82447a4501bf18b4b15c9332cc4e29c957761e62f76655829425d",
+    ".github/ISSUE_TEMPLATE/bug_report.yml": "68190404b94be9aefb17736a72eb92dc48ff2c56e479fe15fcecd0ce7b1437f1",
+    ".github/ISSUE_TEMPLATE/ci_test_failure.yml": "48824d5683bad37006e982fd1ddb1a2c68ff562d6f7ff5dd4c7ae8618684bde7",
+    ".github/ISSUE_TEMPLATE/config.yml": "57329b295db205d8d67ebe75921d078af402a9355e5db70957176c84e06af9ab",
+    ".github/ISSUE_TEMPLATE/documentation.yml": "b82c3ce7a477ba8a86d433fb0641565de1416b7d6b2d73a22cc2ac91cb025d0e",
+    ".github/workflows/ci.yml": "fe638ab9e63ca8e028da253e9f8940db542257f43bcb87102f2eefc6c013eeb8",
+    "README.md": "eeecb2554d9fcd600671ca6d1165df498d413404673bb9a229969deb3000f6ba",
+    "docs/PROGRESS.md": "72ffb52b5b0e1bdbb70066598d8c44693101b34b25fb10d84137fd7517281ded",
+    "docs/assets/progress.svg": "f8caccbaef70c238bf3c67bb34522aa5800c4c4791c4226f9bfb5185d1a59086",
+    "docs/progress.json": "22669754476b7353e624433dba4835d12c10a76bf1b7d280b2e133d3d96596ac",
+    "docs/verification/english-translation-20261109/additional-metadata-translations.json": "98c48f80f1e1e90f52007212e380c656dc75815fdd116ff8af319ec6256dd4fb",
+    "docs/verification/english-translation-20261109/discussion-review.json": "66991b8025d83b1560718f3e1e03a36538da99daf71695d8cf6b2dec0d052388",
+    "docs/verification/english-translation-20261109/discussion-translations.json": "a573d4a867ea2b2ca14ef09c038b88ccfc2a26a9f57af6c47316cef939c8f947",
+    "docs/verification/english-translation-20261109/english-final-readonly-audit.json": "4257eaedab72d2b108b9836fc244346b669f195099fcb1f190fe0b57c41a448f",
+    "docs/verification/english-translation-20261109/english-pr-review-findings.json": "bc366868d7c97d3fc7255a541f29aed87c250b955d2d123019470840210a5b69",
+    "docs/verification/english-translation-20261109/github-before.json": "b75ddfda015930f57bff158246fca9456050f4c14af8922669fc4ead2fb2cfaa",
+    "docs/verification/english-translation-20261109/github-live-verification.json": "f92a438ede0e26e5a8dfd4134cb2cbda71fc84f94f2ded3116d4121fee65e45d",
+    "docs/verification/english-translation-20261109/milestones-after.json": "a39fbd94cc8c5679a50bf6882eaebbe383f5a9e133591867c3d49fc43b0b78ef",
+    "docs/verification/english-translation-20261109/milestones-before.json": "e4162e349a15c80b6da3f51d3588c8a3af744fc2bca109ae13ea06f8aa406445",
+    "docs/verification/english-translation-20261109/milestones-translations.json": "46d64339584c79e4db36271a4c357fb8ab8c52caa13581f20cae59e8ec596021",
+    "docs/verification/english-translation-20261109/pull-requests-before.json": "71ca9813d442c79a8d45d72cf0088fe04ccf3dfc285f2a93f27a533e86912107",
+    "docs/verification/english-translation-20261109/validation.log": "1baf1362d168927ee4b4af022f89915da7dc74e9c35e6f27a48f1933d301ac11",
+    "tools/agent_gate.py": "b22242245b601b9bfd8f7594af942be3254ce2c032136c5e9e9c756bd0989da7",
+    "tools/agent_pipeline.py": "572fc296e3d7a2b2cfc5f8d3efbb307e3bab7ca92d8d34dca62dd932a5bf9fa9",
+    "tools/common.py": "3afe411e42127148877bf8c68014702b4564a78697dcd21f2a6f20b0a95b8061",
+    "tools/progress.py": "87dc5c0cb40966bfb252d69e32d9bffe1ed9e362e6de67e91adc1ba0dcc0e75e",
+    "tools/tests/test_agent_pipeline.py": "4f870e721adcf5af825c02e5712c3933b6f71d621580f476eb7bf33ccb51fce8"
+  },
+  "input_paths_changed_during_run": [],
+  "configuration_inventory": {
+    "selection": "Existing changed JSON/TOML/YAML paths relative to main baseline plus current non-ignored untracked data files, excluding this output artifact. Deleted Dutch form paths are excluded; renamed English form paths are parsed.",
+    "paths_before": [
+      ".agents/skills/os-dev/agents/openai.yaml",
+      ".coderabbit.yaml",
+      ".codex/agents/os_architect.toml",
+      ".codex/agents/os_builder.toml",
+      ".codex/agents/os_security_reviewer.toml",
+      ".codex/agents/os_verifier.toml",
+      ".codex/config.example.toml",
+      ".github/DISCUSSION_TEMPLATE/architecture-and-design.yml",
+      ".github/DISCUSSION_TEMPLATE/product-and-user-experience.yml",
+      ".github/DISCUSSION_TEMPLATE/questions-and-help.yml",
+      ".github/DISCUSSION_TEMPLATE/test-results-and-demos.yml",
+      ".github/ISSUE_TEMPLATE/bug_report.yml",
+      ".github/ISSUE_TEMPLATE/ci_test_failure.yml",
+      ".github/ISSUE_TEMPLATE/config.yml",
+      ".github/ISSUE_TEMPLATE/documentation.yml",
+      "docs/progress.json",
+      "docs/verification/english-translation-20261109/additional-metadata-translations.json",
+      "docs/verification/english-translation-20261109/discussion-review.json",
+      "docs/verification/english-translation-20261109/discussion-translations.json",
+      "docs/verification/english-translation-20261109/english-final-readonly-audit.json",
+      "docs/verification/english-translation-20261109/english-pr-review-findings.json",
+      "docs/verification/english-translation-20261109/github-before.json",
+      "docs/verification/english-translation-20261109/github-live-verification.json",
+      "docs/verification/english-translation-20261109/milestones-after.json",
+      "docs/verification/english-translation-20261109/milestones-before.json",
+      "docs/verification/english-translation-20261109/milestones-translations.json",
+      "docs/verification/english-translation-20261109/pull-requests-before.json"
+    ],
+    "paths_after": [
+      ".agents/skills/os-dev/agents/openai.yaml",
+      ".coderabbit.yaml",
+      ".codex/agents/os_architect.toml",
+      ".codex/agents/os_builder.toml",
+      ".codex/agents/os_security_reviewer.toml",
+      ".codex/agents/os_verifier.toml",
+      ".codex/config.example.toml",
+      ".github/DISCUSSION_TEMPLATE/architecture-and-design.yml",
+      ".github/DISCUSSION_TEMPLATE/product-and-user-experience.yml",
+      ".github/DISCUSSION_TEMPLATE/questions-and-help.yml",
+      ".github/DISCUSSION_TEMPLATE/test-results-and-demos.yml",
+      ".github/ISSUE_TEMPLATE/bug_report.yml",
+      ".github/ISSUE_TEMPLATE/ci_test_failure.yml",
+      ".github/ISSUE_TEMPLATE/config.yml",
+      ".github/ISSUE_TEMPLATE/documentation.yml",
+      "docs/progress.json",
+      "docs/verification/english-translation-20261109/additional-metadata-translations.json",
+      "docs/verification/english-translation-20261109/discussion-review.json",
+      "docs/verification/english-translation-20261109/discussion-translations.json",
+      "docs/verification/english-translation-20261109/english-final-readonly-audit.json",
+      "docs/verification/english-translation-20261109/english-pr-review-findings.json",
+      "docs/verification/english-translation-20261109/github-before.json",
+      "docs/verification/english-translation-20261109/github-live-verification.json",
+      "docs/verification/english-translation-20261109/milestones-after.json",
+      "docs/verification/english-translation-20261109/milestones-before.json",
+      "docs/verification/english-translation-20261109/milestones-translations.json",
+      "docs/verification/english-translation-20261109/pull-requests-before.json"
+    ],
+    "stable": true
+  },
+  "commands": [
+    {
+      "name": "pipeline_tests",
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_agent_pipeline.py",
+        "-v"
+      ],
+      "shell_display": "python3 -B -m unittest discover -s tools/tests -p test_agent_pipeline.py -v",
+      "cwd": "/workspace/scratch/4c2decb13c56/baryonos-english",
+      "started_at": "2026-11-09T01:07:10.417299+00:00",
+      "finished_at": "2026-11-09T01:07:10.558237+00:00",
+      "duration_seconds": 0.140942,
+      "timeout_seconds": 60,
+      "input_paths": [
+        "tools/agent_pipeline.py",
+        "tools/agent_gate.py",
+        "tools/common.py",
+        "tools/tests/test_agent_pipeline.py",
+        ".github/workflows/ci.yml",
+        "docs/progress.json"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "test_build_dirs_come_from_the_checkout_not_the_caller (test_agent_pipeline.Gate.test_build_dirs_come_from_the_checkout_not_the_caller) ... ok\ntest_condensed_without_rtk_returns_the_tail (test_agent_pipeline.Gate.test_condensed_without_rtk_returns_the_tail) ... ok\ntest_failure_is_exit_two_and_stops (test_agent_pipeline.Gate.test_failure_is_exit_two_and_stops) ... ok\ntest_keeps_only_check_steps_and_expands_workspace (test_agent_pipeline.Gate.test_keeps_only_check_steps_and_expands_workspace) ... ok\ntest_pipefail_catches_a_failing_producer (test_agent_pipeline.Gate.test_pipefail_catches_a_failing_producer) ... ok\ntest_real_ci_job_matches_the_workflow (test_agent_pipeline.Gate.test_real_ci_job_matches_the_workflow) ... ok\ntest_refuses_unknown_context_and_bad_references (test_agent_pipeline.Gate.test_refuses_unknown_context_and_bad_references) ... ok\ntest_fails_over_only_on_rate_limits (test_agent_pipeline.GitAndEngines.test_fails_over_only_on_rate_limits) ... ok\ntest_snapshot_detects_a_changed_read_dependency (test_agent_pipeline.GitAndEngines.test_snapshot_detects_a_changed_read_dependency) ... ok\ntest_duplicate_criterion_aliases_are_rejected (test_agent_pipeline.Planning.test_duplicate_criterion_aliases_are_rejected) ... ok\ntest_english_fields_match_existing_dutch_tasks (test_agent_pipeline.Planning.test_english_fields_match_existing_dutch_tasks) ... ok\ntest_open_criteria_come_from_progress_json (test_agent_pipeline.Planning.test_open_criteria_come_from_progress_json) ... ok\ntest_parallel_batches_have_disjoint_access_sets (test_agent_pipeline.Planning.test_parallel_batches_have_disjoint_access_sets) ... ok\ntest_parses_a_valid_issue (test_agent_pipeline.Planning.test_parses_a_valid_issue) ... ok\ntest_rejects_closed_criteria_bad_gates_and_label_mixes (test_agent_pipeline.Planning.test_rejects_closed_criteria_bad_gates_and_label_mixes) ... ok\ntest_scope_allows_targets_and_lockfile_only (test_agent_pipeline.Planning.test_scope_allows_targets_and_lockfile_only) ... ok\ntest_spec_block_is_validated (test_agent_pipeline.Planning.test_spec_block_is_validated) ... ok\ntest_stale_reports_changed_and_removed_paths (test_agent_pipeline.Planning.test_stale_reports_changed_and_removed_paths) ... ok\n\n----------------------------------------------------------------------\nRan 18 tests in 0.058s\n\nOK\n",
+      "timed_out": false
+    },
+    {
+      "name": "progress_consistency",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "shell_display": "python3 -B tools/progress.py --check",
+      "cwd": "/workspace/scratch/4c2decb13c56/baryonos-english",
+      "started_at": "2026-11-09T01:07:10.417803+00:00",
+      "finished_at": "2026-11-09T01:07:10.456801+00:00",
+      "duration_seconds": 0.039002,
+      "timeout_seconds": 60,
+      "input_paths": [
+        "tools/progress.py",
+        "docs/progress.json",
+        "README.md",
+        "docs/PROGRESS.md",
+        "docs/assets/progress.svg"
+      ],
+      "exit_code": 0,
+      "stdout": "Baryon OS: 41/100 points (41%); rubric v1; consistent.\nThis checks calculation, references, and generated views; it does not run native tests or assess evidence content.\n",
+      "stderr": "",
+      "timed_out": false
+    },
+    {
+      "name": "python_compilation",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "from pathlib import Path\nfiles=['.agents/skills/os-dev/scripts/build_corpus.py', '.agents/skills/os-dev/scripts/validate_skill.py', '.agents/skills/os-dev/scripts/zoeken.py', 'tools/agent_pipeline.py', 'tools/progress.py', 'tools/tests/test_agent_pipeline.py']\nfor name in files:\n    compile(Path(name).read_bytes(),name,\"exec\",dont_inherit=True)\n    print(\"COMPILED\",name)\nprint(\"PASS: all six sources compiled in memory; no bytecode files written\")\n"
+      ],
+      "shell_display": "python3 -B -c 'from pathlib import Path\nfiles=['\"'\"'.agents/skills/os-dev/scripts/build_corpus.py'\"'\"', '\"'\"'.agents/skills/os-dev/scripts/validate_skill.py'\"'\"', '\"'\"'.agents/skills/os-dev/scripts/zoeken.py'\"'\"', '\"'\"'tools/agent_pipeline.py'\"'\"', '\"'\"'tools/progress.py'\"'\"', '\"'\"'tools/tests/test_agent_pipeline.py'\"'\"']\nfor name in files:\n    compile(Path(name).read_bytes(),name,\"exec\",dont_inherit=True)\n    print(\"COMPILED\",name)\nprint(\"PASS: all six sources compiled in memory; no bytecode files written\")\n'",
+      "cwd": "/workspace/scratch/4c2decb13c56/baryonos-english",
+      "started_at": "2026-11-09T01:07:10.418280+00:00",
+      "finished_at": "2026-11-09T01:07:10.452318+00:00",
+      "duration_seconds": 0.034041,
+      "timeout_seconds": 60,
+      "input_paths": [
+        ".agents/skills/os-dev/scripts/build_corpus.py",
+        ".agents/skills/os-dev/scripts/validate_skill.py",
+        ".agents/skills/os-dev/scripts/zoeken.py",
+        "tools/agent_pipeline.py",
+        "tools/progress.py",
+        "tools/tests/test_agent_pipeline.py"
+      ],
+      "exit_code": 0,
+      "stdout": "COMPILED .agents/skills/os-dev/scripts/build_corpus.py\nCOMPILED .agents/skills/os-dev/scripts/validate_skill.py\nCOMPILED .agents/skills/os-dev/scripts/zoeken.py\nCOMPILED tools/agent_pipeline.py\nCOMPILED tools/progress.py\nCOMPILED tools/tests/test_agent_pipeline.py\nPASS: all six sources compiled in memory; no bytecode files written\n",
+      "stderr": "",
+      "timed_out": false
+    },
+    {
+      "name": "changed_data_syntax",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "import json,tomllib,yaml\nfrom pathlib import Path\nfiles=['.agents/skills/os-dev/agents/openai.yaml', '.coderabbit.yaml', '.codex/agents/os_architect.toml', '.codex/agents/os_builder.toml', '.codex/agents/os_security_reviewer.toml', '.codex/agents/os_verifier.toml', '.codex/config.example.toml', '.github/DISCUSSION_TEMPLATE/architecture-and-design.yml', '.github/DISCUSSION_TEMPLATE/product-and-user-experience.yml', '.github/DISCUSSION_TEMPLATE/questions-and-help.yml', '.github/DISCUSSION_TEMPLATE/test-results-and-demos.yml', '.github/ISSUE_TEMPLATE/bug_report.yml', '.github/ISSUE_TEMPLATE/ci_test_failure.yml', '.github/ISSUE_TEMPLATE/config.yml', '.github/ISSUE_TEMPLATE/documentation.yml', 'docs/progress.json', 'docs/verification/english-translation-20261109/additional-metadata-translations.json', 'docs/verification/english-translation-20261109/discussion-review.json', 'docs/verification/english-translation-20261109/discussion-translations.json', 'docs/verification/english-translation-20261109/english-final-readonly-audit.json', 'docs/verification/english-translation-20261109/english-pr-review-findings.json', 'docs/verification/english-translation-20261109/github-before.json', 'docs/verification/english-translation-20261109/github-live-verification.json', 'docs/verification/english-translation-20261109/milestones-after.json', 'docs/verification/english-translation-20261109/milestones-before.json', 'docs/verification/english-translation-20261109/milestones-translations.json', 'docs/verification/english-translation-20261109/pull-requests-before.json']\nfor name in files:\n    p=Path(name)\n    text=p.read_text(encoding=\"utf-8\")\n    if p.suffix==\".json\": data=json.loads(text)\n    elif p.suffix==\".toml\": data=tomllib.loads(text)\n    else: data=yaml.safe_load(text)\n    if name==\".coderabbit.yaml\":\n        assert data[\"language\"]==\"en-GB\",data.get(\"language\")\n        print(\"CODERABBIT language\",data[\"language\"])\n    print(\"PARSED\",name)\nassert \".coderabbit.yaml\" in files\nprint(\"PASS:\",len(files),\"current changed JSON/TOML/YAML files parsed; syntax plus explicit CodeRabbit en-GB assertion only\")\n"
+      ],
+      "shell_display": "python3 -B -c 'import json,tomllib,yaml\nfrom pathlib import Path\nfiles=['\"'\"'.agents/skills/os-dev/agents/openai.yaml'\"'\"', '\"'\"'.coderabbit.yaml'\"'\"', '\"'\"'.codex/agents/os_architect.toml'\"'\"', '\"'\"'.codex/agents/os_builder.toml'\"'\"', '\"'\"'.codex/agents/os_security_reviewer.toml'\"'\"', '\"'\"'.codex/agents/os_verifier.toml'\"'\"', '\"'\"'.codex/config.example.toml'\"'\"', '\"'\"'.github/DISCUSSION_TEMPLATE/architecture-and-design.yml'\"'\"', '\"'\"'.github/DISCUSSION_TEMPLATE/product-and-user-experience.yml'\"'\"', '\"'\"'.github/DISCUSSION_TEMPLATE/questions-and-help.yml'\"'\"', '\"'\"'.github/DISCUSSION_TEMPLATE/test-results-and-demos.yml'\"'\"', '\"'\"'.github/ISSUE_TEMPLATE/bug_report.yml'\"'\"', '\"'\"'.github/ISSUE_TEMPLATE/ci_test_failure.yml'\"'\"', '\"'\"'.github/ISSUE_TEMPLATE/config.yml'\"'\"', '\"'\"'.github/ISSUE_TEMPLATE/documentation.yml'\"'\"', '\"'\"'docs/progress.json'\"'\"', '\"'\"'docs/verification/english-translation-20261109/additional-metadata-translations.json'\"'\"', '\"'\"'docs/verification/english-translation-20261109/discussion-review.json'\"'\"', '\"'\"'docs/verification/english-translation-20261109/discussion-translations.json'\"'\"', '\"'\"'docs/verification/english-translation-20261109/english-final-readonly-audit.json'\"'\"', '\"'\"'docs/verification/english-translation-20261109/english-pr-review-findings.json'\"'\"', '\"'\"'docs/verification/english-translation-20261109/github-before.json'\"'\"', '\"'\"'docs/verification/english-translation-20261109/github-live-verification.json'\"'\"', '\"'\"'docs/verification/english-translation-20261109/milestones-after.json'\"'\"', '\"'\"'docs/verification/english-translation-20261109/milestones-before.json'\"'\"', '\"'\"'docs/verification/english-translation-20261109/milestones-translations.json'\"'\"', '\"'\"'docs/verification/english-translation-20261109/pull-requests-before.json'\"'\"']\nfor name in files:\n    p=Path(name)\n    text=p.read_text(encoding=\"utf-8\")\n    if p.suffix==\".json\": data=json.loads(text)\n    elif p.suffix==\".toml\": data=tomllib.loads(text)\n    else: data=yaml.safe_load(text)\n    if name==\".coderabbit.yaml\":\n        assert data[\"language\"]==\"en-GB\",data.get(\"language\")\n        print(\"CODERABBIT language\",data[\"language\"])\n    print(\"PARSED\",name)\nassert \".coderabbit.yaml\" in files\nprint(\"PASS:\",len(files),\"current changed JSON/TOML/YAML files parsed; syntax plus explicit CodeRabbit en-GB assertion only\")\n'",
+      "cwd": "/workspace/scratch/4c2decb13c56/baryonos-english",
+      "started_at": "2026-11-09T01:07:10.418926+00:00",
+      "finished_at": "2026-11-09T01:07:10.480763+00:00",
+      "duration_seconds": 0.061846,
+      "timeout_seconds": 60,
+      "input_paths": [
+        ".agents/skills/os-dev/agents/openai.yaml",
+        ".coderabbit.yaml",
+        ".codex/agents/os_architect.toml",
+        ".codex/agents/os_builder.toml",
+        ".codex/agents/os_security_reviewer.toml",
+        ".codex/agents/os_verifier.toml",
+        ".codex/config.example.toml",
+        ".github/DISCUSSION_TEMPLATE/architecture-and-design.yml",
+        ".github/DISCUSSION_TEMPLATE/product-and-user-experience.yml",
+        ".github/DISCUSSION_TEMPLATE/questions-and-help.yml",
+        ".github/DISCUSSION_TEMPLATE/test-results-and-demos.yml",
+        ".github/ISSUE_TEMPLATE/bug_report.yml",
+        ".github/ISSUE_TEMPLATE/ci_test_failure.yml",
+        ".github/ISSUE_TEMPLATE/config.yml",
+        ".github/ISSUE_TEMPLATE/documentation.yml",
+        "docs/progress.json",
+        "docs/verification/english-translation-20261109/additional-metadata-translations.json",
+        "docs/verification/english-translation-20261109/discussion-review.json",
+        "docs/verification/english-translation-20261109/discussion-translations.json",
+        "docs/verification/english-translation-20261109/english-final-readonly-audit.json",
+        "docs/verification/english-translation-20261109/english-pr-review-findings.json",
+        "docs/verification/english-translation-20261109/github-before.json",
+        "docs/verification/english-translation-20261109/github-live-verification.json",
+        "docs/verification/english-translation-20261109/milestones-after.json",
+        "docs/verification/english-translation-20261109/milestones-before.json",
+        "docs/verification/english-translation-20261109/milestones-translations.json",
+        "docs/verification/english-translation-20261109/pull-requests-before.json"
+      ],
+      "exit_code": 0,
+      "stdout": "PARSED .agents/skills/os-dev/agents/openai.yaml\nCODERABBIT language en-GB\nPARSED .coderabbit.yaml\nPARSED .codex/agents/os_architect.toml\nPARSED .codex/agents/os_builder.toml\nPARSED .codex/agents/os_security_reviewer.toml\nPARSED .codex/agents/os_verifier.toml\nPARSED .codex/config.example.toml\nPARSED .github/DISCUSSION_TEMPLATE/architecture-and-design.yml\nPARSED .github/DISCUSSION_TEMPLATE/product-and-user-experience.yml\nPARSED .github/DISCUSSION_TEMPLATE/questions-and-help.yml\nPARSED .github/DISCUSSION_TEMPLATE/test-results-and-demos.yml\nPARSED .github/ISSUE_TEMPLATE/bug_report.yml\nPARSED .github/ISSUE_TEMPLATE/ci_test_failure.yml\nPARSED .github/ISSUE_TEMPLATE/config.yml\nPARSED .github/ISSUE_TEMPLATE/documentation.yml\nPARSED docs/progress.json\nPARSED docs/verification/english-translation-20261109/additional-metadata-translations.json\nPARSED docs/verification/english-translation-20261109/discussion-review.json\nPARSED docs/verification/english-translation-20261109/discussion-translations.json\nPARSED docs/verification/english-translation-20261109/english-final-readonly-audit.json\nPARSED docs/verification/english-translation-20261109/english-pr-review-findings.json\nPARSED docs/verification/english-translation-20261109/github-before.json\nPARSED docs/verification/english-translation-20261109/github-live-verification.json\nPARSED docs/verification/english-translation-20261109/milestones-after.json\nPARSED docs/verification/english-translation-20261109/milestones-before.json\nPARSED docs/verification/english-translation-20261109/milestones-translations.json\nPARSED docs/verification/english-translation-20261109/pull-requests-before.json\nPASS: 27 current changed JSON/TOML/YAML files parsed; syntax plus explicit CodeRabbit en-GB assertion only\n",
+      "stderr": "",
+      "timed_out": false
+    }
+  ],
+  "progress_structure": {
+    "compact_renderer_docstring_present": true,
+    "legacy_anchor_in_renderer": true,
+    "legacy_anchor_in_readme": true,
+    "method": "Read-only string inspection; progress.py --check above validates exact generated views."
+  },
+  "reused_evidence": {
+    "original_log": "docs/verification/english-translation-20261109/validation.log",
+    "original_log_sha256": "1baf1362d168927ee4b4af022f89915da7dc74e9c35e6f27a48f1933d301ac11",
+    "original_log_unchanged": true,
+    "original_tested_head": "a462e0dda14658db7e4c4fa0dbad8f971201022d",
+    "rerun": false,
+    "previous_results": {
+      "validator": "PASS; 3132 source records, 3054 Wiki pages and 78 book pages; original command exit 0.",
+      "search_tests": "6 tests passed, no skips; original command exit 0."
+    },
+    "source_hash_comparisons": [
+      {
+        "path": ".agents/skills/os-dev/SKILL.md",
+        "previous_logged_sha256": "c30a24cf922d8839b55d3e094b52a2d6eb34d3717cec69bf548ff2a2498de258",
+        "current_sha256": "c30a24cf922d8839b55d3e094b52a2d6eb34d3717cec69bf548ff2a2498de258",
+        "unchanged": true,
+        "comparison_basis": "exact input hash from immutable validation.log"
+      },
+      {
+        "path": ".agents/skills/os-dev/agents/openai.yaml",
+        "previous_logged_sha256": "bf893b1e14bd09b8d5208e670fa948d5fee86fdf776462cdc5ba828ea395f0a4",
+        "current_sha256": "bf893b1e14bd09b8d5208e670fa948d5fee86fdf776462cdc5ba828ea395f0a4",
+        "unchanged": true,
+        "comparison_basis": "exact input hash from immutable validation.log"
+      },
+      {
+        "path": ".agents/skills/os-dev/scripts/validate_skill.py",
+        "previous_logged_sha256": "fa973b9295d4e496509997914c9e1f96b9b46e1b1bf117c077c4bbc5aaa4d596",
+        "current_sha256": "fa973b9295d4e496509997914c9e1f96b9b46e1b1bf117c077c4bbc5aaa4d596",
+        "unchanged": true,
+        "comparison_basis": "exact input hash from immutable validation.log"
+      },
+      {
+        "path": ".agents/skills/os-dev/scripts/zoeken.py",
+        "previous_logged_sha256": "8089e26d3d25e54d6167d4305aec7391223c26623b5da172f73497f3e708a967",
+        "current_sha256": "8089e26d3d25e54d6167d4305aec7391223c26623b5da172f73497f3e708a967",
+        "unchanged": true,
+        "comparison_basis": "exact input hash from immutable validation.log"
+      },
+      {
+        "path": ".agents/skills/os-dev/tests/test_zoeken.py",
+        "previous_logged_sha256": "ad0e0df1531dedf34a2b787d1ff3c317f850bb89334f45ad15c303f99a1bc50a",
+        "current_sha256": "ad0e0df1531dedf34a2b787d1ff3c317f850bb89334f45ad15c303f99a1bc50a",
+        "unchanged": true,
+        "comparison_basis": "exact input hash from immutable validation.log"
+      }
+    ],
+    "protected_corpus_hash_comparisons": [
+      {
+        "path": ".agents/skills/os-dev/assets/book.pdf",
+        "previous_git_sha256": "5a68a45b3d81b1a7fc45fe5d950f79b969824388ad2501f9fd3e664b83fce023",
+        "current_sha256": "5a68a45b3d81b1a7fc45fe5d950f79b969824388ad2501f9fd3e664b83fce023",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/assets/source-manifest.json",
+        "previous_git_sha256": "6873432ac6fde084ecd0c50b67c12cf693b27de38b498d69af199d3ec31f4f14",
+        "current_sha256": "6873432ac6fde084ecd0c50b67c12cf693b27de38b498d69af199d3ec31f4f14",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/boek.md",
+        "previous_git_sha256": "02acf175a9d5afb953c9bd1ad26e308436719da0bd9881d1411f4cacaca69648",
+        "current_sha256": "02acf175a9d5afb953c9bd1ad26e308436719da0bd9881d1411f4cacaca69648",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-01.md",
+        "previous_git_sha256": "a279e1d67ecd03def062aba495c2a10ff898357213412374ee9dd46d839d0179",
+        "current_sha256": "a279e1d67ecd03def062aba495c2a10ff898357213412374ee9dd46d839d0179",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-02.md",
+        "previous_git_sha256": "978aa99e9a5ada485fcee0f168a56c44fb51c4deba7d9ed538c283f91ea25247",
+        "current_sha256": "978aa99e9a5ada485fcee0f168a56c44fb51c4deba7d9ed538c283f91ea25247",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-03.md",
+        "previous_git_sha256": "a48148f17028199f51c68766e6c7d9679acd0e3e97deddd7d15d50c339fa8756",
+        "current_sha256": "a48148f17028199f51c68766e6c7d9679acd0e3e97deddd7d15d50c339fa8756",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-04.md",
+        "previous_git_sha256": "16803bfbf19be94728bf021df57084543304ef0fb8467e5ac117855a8e67de92",
+        "current_sha256": "16803bfbf19be94728bf021df57084543304ef0fb8467e5ac117855a8e67de92",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-05.md",
+        "previous_git_sha256": "0fdafedbdfc22e479cbbc6fb62bf6978d9753a93fc4466e0eaf4acae473bdb21",
+        "current_sha256": "0fdafedbdfc22e479cbbc6fb62bf6978d9753a93fc4466e0eaf4acae473bdb21",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-06.md",
+        "previous_git_sha256": "d695829d5256c28b3541bcad3a1c77d64e50eb560eb38f8b7a5a90e370ab32ce",
+        "current_sha256": "d695829d5256c28b3541bcad3a1c77d64e50eb560eb38f8b7a5a90e370ab32ce",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-07.md",
+        "previous_git_sha256": "3cea0d7a9c465e9d0627ed3e8d52def8f2df917e510fda7fc5c4d802c2628650",
+        "current_sha256": "3cea0d7a9c465e9d0627ed3e8d52def8f2df917e510fda7fc5c4d802c2628650",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-08.md",
+        "previous_git_sha256": "9c638791eb40f16186cfd5aa3aa1d869e72e901bb11896e50825cd34776cad99",
+        "current_sha256": "9c638791eb40f16186cfd5aa3aa1d869e72e901bb11896e50825cd34776cad99",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-09.md",
+        "previous_git_sha256": "4b63781bf35496b7a4d1965d58865428da187491c7602c34531164a444411091",
+        "current_sha256": "4b63781bf35496b7a4d1965d58865428da187491c7602c34531164a444411091",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-10.md",
+        "previous_git_sha256": "a59912bf8fffc210bba3e384dd801d9fe36ac77a7c52948d165a62be02b38ec6",
+        "current_sha256": "a59912bf8fffc210bba3e384dd801d9fe36ac77a7c52948d165a62be02b38ec6",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-11.md",
+        "previous_git_sha256": "814f97815bf96a7b1f444c13f1bfc91beb4add3399e9613a07ed56c3b4860e93",
+        "current_sha256": "814f97815bf96a7b1f444c13f1bfc91beb4add3399e9613a07ed56c3b4860e93",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-12.md",
+        "previous_git_sha256": "1fa06894a183c63ec02f0c912a3a2b29242b0668e53bdeef051a97c735f8881a",
+        "current_sha256": "1fa06894a183c63ec02f0c912a3a2b29242b0668e53bdeef051a97c735f8881a",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-13.md",
+        "previous_git_sha256": "28295a3bd2bd15f49eee54d6895e67265324fb0e5d518abd7c68a864fc8de22b",
+        "current_sha256": "28295a3bd2bd15f49eee54d6895e67265324fb0e5d518abd7c68a864fc8de22b",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-14.md",
+        "previous_git_sha256": "c1ca0dd7bcdb2c8d8f0815bab2a5ec38520466e474ba7f8db377572e059f5ad8",
+        "current_sha256": "c1ca0dd7bcdb2c8d8f0815bab2a5ec38520466e474ba7f8db377572e059f5ad8",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/corpus/wiki-15.md",
+        "previous_git_sha256": "77d70f5c42eaa4d683bb241941c8e273d9742d092b672bbc9e8d7ec41736740c",
+        "current_sha256": "77d70f5c42eaa4d683bb241941c8e273d9742d092b672bbc9e8d7ec41736740c",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      },
+      {
+        "path": ".agents/skills/os-dev/references/source-index.json",
+        "previous_git_sha256": "9a4284331b4f19077afd7e6ceec369f19be0435ea3991ff089678c25b2d77054",
+        "current_sha256": "9a4284331b4f19077afd7e6ceec369f19be0435ea3991ff089678c25b2d77054",
+        "unchanged": true,
+        "comparison_basis": "Git content at original tested HEAD a462e0dda14658db7e4c4fa0dbad8f971201022d; original log did not list individual corpus hashes"
+      }
+    ],
+    "protected_file_count": 19,
+    "all_required_inputs_unchanged": true,
+    "interpretation": "Prior validator/search evidence applies to unchanged implementation, test and protected corpus inputs. These commands were not rerun. Source code/skill inputs compare directly with logged SHA-256 values; corpus bodies/index/manifest/PDF compare with Git content at the recorded original tested HEAD because the earlier log did not enumerate those hashes. This is continuity evidence, not a new validator execution."
+  },
+  "concurrent_work_provenance": {
+    "remote_head": "6dcae7c03e3d2882975d1acaa9e4d5aa78e43a11",
+    "first_parent": "6cdec9c0d1f29e356d9abd65a0f0778749ab0b4f",
+    "main_parent": "2ed4c087746021da3c8b96511af3209a35d0f441",
+    "changed_paths_against_remote_first_parent": [
+      {
+        "path": ".coderabbit.yaml",
+        "remote_blob": "e7adb74c159cdebe7e6adf23dcff3d53b1ffecbb",
+        "main_blob": "e7adb74c159cdebe7e6adf23dcff3d53b1ffecbb",
+        "equals_main": true
+      },
+      {
+        "path": "AGENTS.md",
+        "remote_blob": "1032e52c6480fd6ebeda0f552a1b1f04e8a5d42e",
+        "main_blob": "1032e52c6480fd6ebeda0f552a1b1f04e8a5d42e",
+        "equals_main": true
+      },
+      {
+        "path": "CHANGELOG.md",
+        "remote_blob": "dc99994696096043f078f51e50e064944d502960",
+        "main_blob": "dc99994696096043f078f51e50e064944d502960",
+        "equals_main": true
+      },
+      {
+        "path": "CONTRIBUTING.md",
+        "remote_blob": "ba835c2c8882c34bdf2e10ad98e3630cd4cf8270",
+        "main_blob": "ba835c2c8882c34bdf2e10ad98e3630cd4cf8270",
+        "equals_main": true
+      },
+      {
+        "path": "LICENSE",
+        "remote_blob": "d0a1fa1482eea82e19510e7920cbe3a03e41f691",
+        "main_blob": "d0a1fa1482eea82e19510e7920cbe3a03e41f691",
+        "equals_main": true
+      },
+      {
+        "path": "LICENSE-PLAN.md",
+        "remote_blob": "273ae6eeecbbe081fa857cc208ab747ed04ef549",
+        "main_blob": "273ae6eeecbbe081fa857cc208ab747ed04ef549",
+        "equals_main": true
+      },
+      {
+        "path": "LICENSING.md",
+        "remote_blob": "4ad6dd214fd875497f85a48bed38463d1c1da04b",
+        "main_blob": "4ad6dd214fd875497f85a48bed38463d1c1da04b",
+        "equals_main": true
+      },
+      {
+        "path": "MPL-2.0-FILES.txt",
+        "remote_blob": "27f3678c044ce1158e4bcbe866236fa004e7b642",
+        "main_blob": "27f3678c044ce1158e4bcbe866236fa004e7b642",
+        "equals_main": true
+      },
+      {
+        "path": "README.md",
+        "remote_blob": "2f12cbab87010a3a6dbe9bc94700378d43a79379",
+        "main_blob": "2f12cbab87010a3a6dbe9bc94700378d43a79379",
+        "equals_main": true
+      },
+      {
+        "path": "SECURITY.md",
+        "remote_blob": "95a33f4cef60e2d31721eca0ecf374a955b642b9",
+        "main_blob": "95a33f4cef60e2d31721eca0ecf374a955b642b9",
+        "equals_main": true
+      },
+      {
+        "path": "START-HIER.md",
+        "remote_blob": "0ecf6497e8c7629c337190df2c4c9e56ebcab0a0",
+        "main_blob": "0ecf6497e8c7629c337190df2c4c9e56ebcab0a0",
+        "equals_main": true
+      },
+      {
+        "path": "THIRD-PARTY.md",
+        "remote_blob": "d23851e642df6b5b1beaf3828079f2aa8a029fe4",
+        "main_blob": "d23851e642df6b5b1beaf3828079f2aa8a029fe4",
+        "equals_main": true
+      },
+      {
+        "path": "docs/AGENTS.md",
+        "remote_blob": "89fca08be258e16bfc048b584fdf859a76fb4f76",
+        "main_blob": "89fca08be258e16bfc048b584fdf859a76fb4f76",
+        "equals_main": true
+      },
+      {
+        "path": "docs/COMMUNITY.md",
+        "remote_blob": "3329b89b1f2e875ceafc9820c8cf17866532a52a",
+        "main_blob": "3329b89b1f2e875ceafc9820c8cf17866532a52a",
+        "equals_main": true
+      },
+      {
+        "path": "docs/DECISIONS.md",
+        "remote_blob": "e651999f5b6d3e4a5d6e942fc6a6c2e3eb298e54",
+        "main_blob": "e651999f5b6d3e4a5d6e942fc6a6c2e3eb298e54",
+        "equals_main": true
+      },
+      {
+        "path": "docs/DEPENDENCIES.md",
+        "remote_blob": "1c978aa44fb6bb77e71ed603b8af86309a3abb50",
+        "main_blob": "1c978aa44fb6bb77e71ed603b8af86309a3abb50",
+        "equals_main": true
+      },
+      {
+        "path": "docs/LOCAL-PRIVACY-CONTRACT.md",
+        "remote_blob": "6de83b7a97bf091554de0eb4a1a68e29c2388f87",
+        "main_blob": "6de83b7a97bf091554de0eb4a1a68e29c2388f87",
+        "equals_main": true
+      },
+      {
+        "path": "docs/PROGRESS.md",
+        "remote_blob": "93808bdbd66bf61ba0742aabfa2350bcae71b6c3",
+        "main_blob": "93808bdbd66bf61ba0742aabfa2350bcae71b6c3",
+        "equals_main": true
+      },
+      {
+        "path": "docs/PROJECT-STATE.md",
+        "remote_blob": "6094ed4a7e5487c5415cfc031a9dce4d13f0d1cb",
+        "main_blob": "6094ed4a7e5487c5415cfc031a9dce4d13f0d1cb",
+        "equals_main": true
+      },
+      {
+        "path": "docs/ROADMAP.md",
+        "remote_blob": "61c4e7d85e32a93262a1263d960db861a998cd68",
+        "main_blob": "61c4e7d85e32a93262a1263d960db861a998cd68",
+        "equals_main": true
+      },
+      {
+        "path": "docs/assets/progress.svg",
+        "remote_blob": "f9bd76cc7892781896170f263c5307e6490bba25",
+        "main_blob": "f9bd76cc7892781896170f263c5307e6490bba25",
+        "equals_main": true
+      },
+      {
+        "path": "docs/drivers/DRIVER-ARCHITECTURE.md",
+        "remote_blob": "613d6a6cab160c6536be341965459d95b46dece4",
+        "main_blob": "613d6a6cab160c6536be341965459d95b46dece4",
+        "equals_main": true
+      },
+      {
+        "path": "docs/drivers/HARDWARE-TARGETS.md",
+        "remote_blob": "777fca9a6bbe00ab05b3b4d5817ae6672918642d",
+        "main_blob": "777fca9a6bbe00ab05b3b4d5817ae6672918642d",
+        "equals_main": true
+      },
+      {
+        "path": "docs/history/LICENSE-PLAN-before-application-2026-11-09.md",
+        "remote_blob": "5a22cfedfdbc86c8008d810db142b4867ae9a3cf",
+        "main_blob": "5a22cfedfdbc86c8008d810db142b4867ae9a3cf",
+        "equals_main": true
+      },
+      {
+        "path": "docs/history/PROGRESS-updates-through-2026-11-09.md",
+        "remote_blob": "c6e0bbffb4ba1bf98c8be83f7e0311e4efcae3fb",
+        "main_blob": "c6e0bbffb4ba1bf98c8be83f7e0311e4efcae3fb",
+        "equals_main": true
+      },
+      {
+        "path": "docs/history/PROJECT-STATE-through-2026-11-09.md",
+        "remote_blob": "d6853677e94079b8dbc425263195839d4d6d9c63",
+        "main_blob": "d6853677e94079b8dbc425263195839d4d6d9c63",
+        "equals_main": true
+      },
+      {
+        "path": "docs/history/README-through-2026-11-09.md",
+        "remote_blob": "808ee53bfb3ea865edfcc2efb836578d22cca168",
+        "main_blob": "808ee53bfb3ea865edfcc2efb836578d22cca168",
+        "equals_main": true
+      },
+      {
+        "path": "docs/history/ROADMAP-through-2026-11-09.md",
+        "remote_blob": "a5ac0a3619570f9f5ce95b58af1a1ee3f8adddc9",
+        "main_blob": "a5ac0a3619570f9f5ce95b58af1a1ee3f8adddc9",
+        "equals_main": true
+      },
+      {
+        "path": "docs/implementation/EUROPE-AND-RELEASE.md",
+        "remote_blob": "92a6f13542700400ce16d5eebde506285d2af1da",
+        "main_blob": "92a6f13542700400ce16d5eebde506285d2af1da",
+        "equals_main": true
+      },
+      {
+        "path": "docs/progress.json",
+        "remote_blob": "c58f473a1e920e5e4168f54c8a88223ba7c165cc",
+        "main_blob": "c58f473a1e920e5e4168f54c8a88223ba7c165cc",
+        "equals_main": true
+      },
+      {
+        "path": "docs/verification/b03-key-file-boundaries.md",
+        "remote_blob": "6d243d37abb34d76d97a6734f5d819904061cccf",
+        "main_blob": "6d243d37abb34d76d97a6734f5d819904061cccf",
+        "equals_main": true
+      },
+      {
+        "path": "docs/verification/private-vulnerability-reporting-278.md",
+        "remote_blob": "671fa02bf3c0121d7453b638afc7e53bf7c7735d",
+        "main_blob": "671fa02bf3c0121d7453b638afc7e53bf7c7735d",
+        "equals_main": true
+      },
+      {
+        "path": "tools/agent_pipeline.py",
+        "remote_blob": "fb2649a61109a3526a65df99e9fda12448a712f7",
+        "main_blob": "fb2649a61109a3526a65df99e9fda12448a712f7",
+        "equals_main": true
+      },
+      {
+        "path": "tools/progress.py",
+        "remote_blob": "979788b5daf8fd833f98f1e7c05363355a8c2392",
+        "main_blob": "979788b5daf8fd833f98f1e7c05363355a8c2392",
+        "equals_main": true
+      },
+      {
+        "path": "tools/tests/test_agent_pipeline.py",
+        "remote_blob": "b0d4c6cd1264f00d3647d905931d62374111550b",
+        "main_blob": "b0d4c6cd1264f00d3647d905931d62374111550b",
+        "equals_main": true
+      },
+      {
+        "path": "tools/update-tool/src/main.rs",
+        "remote_blob": "64478666b7ca0d82070b82221e4041062982b59c",
+        "main_blob": "64478666b7ca0d82070b82221e4041062982b59c",
+        "equals_main": true
+      },
+      {
+        "path": "tools/update-tool/tests/roundtrip.rs",
+        "remote_blob": "40f3b800465b8db1235123218da5fcd9320cd5b0",
+        "main_blob": "40f3b800465b8db1235123218da5fcd9320cd5b0",
+        "equals_main": true
+      }
+    ],
+    "path_count": 37,
+    "all_changed_paths_equal_main": true,
+    "interpretation": "These incoming changes are preserved main content, including the separate B03 update-tool change and verification records; they are not new runtime changes authored by the translation integration.",
+    "local_runtime_comparison": {
+      "base": "2ed4c087746021da3c8b96511af3209a35d0f441",
+      "checked_suffixes": [
+        ".S",
+        ".asm",
+        ".c",
+        ".cc",
+        ".cpp",
+        ".cxx",
+        ".h",
+        ".hpp",
+        ".js",
+        ".jsx",
+        ".ld",
+        ".lds",
+        ".ps1",
+        ".rs",
+        ".s",
+        ".sh",
+        ".ts",
+        ".tsx"
+      ],
+      "checked_filenames": [
+        "Cargo.toml",
+        "Cargo.lock"
+      ],
+      "changed_runtime_paths": [],
+      "runtime_unchanged_in_this_bounded_diff": true,
+      "method": "Read-only Git path comparison; no runtime tests executed.",
+      "comparison_argv": [
+        "git",
+        "diff",
+        "--name-only",
+        "2ed4c087746021da3c8b96511af3209a35d0f441",
+        "--",
+        "."
+      ],
+      "diff_status_scope": "All change statuses, including deleted paths."
+    }
+  },
+  "summary": {
+    "result": "pass",
+    "all_commands_passed": true,
+    "pipeline_tests": 18,
+    "progress_check_passed": true,
+    "compiled_python_sources": 6,
+    "parsed_data_files": 27,
+    "inputs_stable": true,
+    "configuration_inventory_stable": true,
+    "original_log_immutable": true,
+    "validator_search_inputs_unchanged": true
+  },
+  "limitations": [
+    "No Rust build, QEMU, native, physical-hardware, product UX or human acceptance test was run.",
+    "No generator --write, corpus regeneration, dependency installation, source edit, commit or remote write was performed.",
+    "Configuration checks validate syntax and the explicit CodeRabbit language value, not complete remote-provider schemas or service execution.",
+    "All conclusions bind to the recorded working-tree input hashes; later changes require their own evaluation."
+  ]
+}

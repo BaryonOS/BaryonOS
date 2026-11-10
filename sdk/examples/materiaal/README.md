@@ -1,68 +1,71 @@
-# Materiaal: afzonderlijke native app
+# Materiaal: separate native app
 
-Echte no_std CPL3-caller voor de bestaande DocumentSession, typed INP1-client
-en SUR1-client. Dit package bevat geen displaycap, raw PS/2-driver, blok-I/O,
-hostopslag, netwerk, modelantwoord of vooraf ingevuld document. De compositor,
-inputbron/policy en volumeprovider blijven aparte processen met eigen rechten.
-Een testbackend in tests/ is alleen een protocoltegenpartij voor hostproeven.
+Actual no_std CPL3 caller for existing DocumentSession, typed INP1 client and
+SUR1 client. This package contains no display capability, raw PS/2 driver,
+block I/O, host storage, networking, modelled reply or prefilled document.
+The compositor, input source/policy and volume provider remain separate
+processes with their own rights. A test backend under tests/ is only a
+protocol peer for host experiments.
 
-De opstartpagina en kanaalverdeling staan in
+The startup page and channel assignment are in
 [NATIVE-MATERIAAL.md](../../../docs/implementation/NATIVE-MATERIAAL.md).
-Root integreert de kernelmanifesten en maakt de echte VM-testbeelden. Deze
-bron of een geslaagd ELF bewijst op zichzelf geen native gebruikersketen.
+The lead agent integrates kernel manifests and creates actual VM test images.
+This source or a successful ELF alone does not establish a native user workflow.
 
-## Bouwen en controleren
+## Building and checking
 
-Met de projecttoolchain en centraal geïntegreerde SDK ABI1.8:
+With the project toolchain and centrally integrated SDK ABI1.8:
 
 ```sh
 LOCALAPPDATA=/workspace/nieuw-os/.tools python3 -B sdk/examples/materiaal/verify.py
 ```
 
-Het eigen gelockte workspace gebruikt exact de bestaande libraries, fontpin
-en ontwerptokens. build.py bouwt alleen, wijzigt geen gedeelde bron of schijven
-en geeft geen rechten. De linker levert vijf monotone LOAD-segmenten. R+NX
-readonly consumeert ook fontpointertabellen vóór de writable wildcard; drie
-64-KiB-buffers staan in exclusieve RW+NX-BSS, buiten de 64-KiB-stack. Geen heap
-of hostmallocfallback. De echte kernel user::parse controleert het gebouwde
-ELF; objdump/nm controleren de gemonomorfiseerde scalar code.
+The separate locked workspace uses exactly the existing libraries, font pin
+and design tokens. build.py only builds, changes no shared source or disks
+and grants no rights. The linker produces five monotonic LOAD segments.
+R+NX read-only placement also consumes font-pointer tables before the writable
+wildcard; three 64-KiB buffers reside in exclusive RW+NX BSS, outside the
+64-KiB stack. No heap or host malloc fallback. The actual kernel user::parse
+checks the built ELF; objdump/nm inspect the monomorphised scalar code.
 
-verify.py stopt als de centrale SDK nog ABI1.7 gebruikt. Voor de eerste lokale
-ELF-proef was alleen de door root aangeleverde tijdelijke SDK1.8-patch actief;
-die gedeelde files worden niet met dit package gecommit. De exacte gebruikte
-SDK-bronhashes en patchhash blijven in verification/pre-native.json.
+verify.py stops if the central SDK still uses ABI1.7. For the first local
+ELF experiment, only the temporary SDK1.8 patch supplied by the lead agent
+was active; those shared files are not committed with this package. Exact
+SDK source hashes and the patch hash remain in verification/pre-native.json.
 
-## Bediening in het geïntegreerde image
+## Interaction in the integrated image
 
-Materiaal leest de werkelijke volumelijst. Enter op Nieuw opent een leeg
-document; typen bewerkt echte UTF-8-draftbytes. Ctrl+S start de streaming
-opslag; Annuleren stuurt een echte ABORT zolang de upload loopt. Escape vraagt
-terug naar Materiaal; bij gewijzigd werk zijn opslaan, doorwerken en expliciet
-verwerpen beschikbaar. Tab/Shift+Tab wisselen tussen de zichtbare acties en
-objecten. Opgeslagen objecten openen dezelfde bytes opnieuw via de provider.
+Materiaal reads the actual volume list. Enter on Nieuw (New) opens an empty
+document; typing edits actual UTF-8 draft bytes. Ctrl+S begins streaming
+storage; Annuleren (Cancel) sends an actual ABORT while the upload runs.
+Escape requests return to Materiaal; changed work offers save, continue editing
+and explicit discard. Tab/Shift+Tab move between visible actions and objects.
+Saved objects reopen the same bytes through the provider.
 
-De invoerclient ontvangt globale GOP-coördinaten. Alleen binnen het toegewezen
-vlak worden de compositoroffsets afgetrokken. Daarbuiten eindigt een klik/drag;
-terugkomen met een ingedrukte knop start geen nieuwe klik. Op100/200% gebruikt
-de renderer dezelfde ontwerptokens, focus en tekstuele toestanden. Er is hier
-nog geen gekoppelde schermlezer, volledige Unicode-invoer of multi-appsessie.
+The input client receives global GOP coordinates. Compositor offsets are
+subtracted only inside the assigned surface. Outside it, a click/drag ends;
+returning with a held button does not start a new click. At 100/200%, the
+renderer uses the same design tokens, focus and textual states. There is
+not yet an integrated screen reader, complete Unicode input or multi-app session.
 
-Per iteratie hoogstens vier PEEK/ACKs, één uploadstap en één tiletransactie.
-Een oude halve paint mag een nieuwere draftgeneratie niet aftekenen. Ready
-vereist een echte INP1-response en alle tile-ACKs van een huidig volledig frame.
-Een verloren reply krijgt geen herhaalde mutatie of verzonnen ACK; opslag blijft
-zo nodig onzeker en de draft blijft in het proces. Inputverlies trekt Ready in
-en toont de werkelijke toestand; surfaceverlies stopt onzichtbare nieuwe acties.
+At most four PEEK/ACKs, one upload step and one tile transaction per iteration.
+An old partial paint must not confirm a newer draft generation. Ready requires
+an actual INP1 response and all tile ACKs for a current complete frame.
+A lost reply triggers neither repeated mutation nor an invented ACK; storage
+remains uncertain where necessary and the draft stays in the process.
+Input loss withdraws Ready and shows actual state; surface loss stops
+invisible new actions.
 
-Supervisor STOP5 wordt alleen op het vooraf verleende controlkanaal met de
-verwachte initPID, exacte tag,1Bpayload en nul caps aanvaard. Dirty/saving geeft
-STOP_REFUSED6, geen autosave/verwerpen/DONE. Alleen clean/idle plus expliciete
-cleanup van de drie kanaaleigenaren geeft DONE3. Volledig sessieherstel, opnieuw
-grants ontvangen en veilige persistente encrypted keys blijven afzonderlijk open.
+Supervisor STOP5 is accepted only on the previously granted control channel
+with the expected initPID, exact tag, 1B payload and zero capabilities.
+Dirty/saving returns STOP_REFUSED6, not autosave/discard/DONE. Only clean/idle
+plus explicit cleanup of the three channel owners returns DONE3. Complete
+session recovery, receiving grants again and safe persistent encrypted keys
+remain separately open.
 
-De twintig hostketenproeven plus één echte ELFpolicytest staan in verification/.
-De reviewfix heeft afzonderlijk rood/groenbewijs: Ready is uit tijdens iedere
-nieuwe paint; PresentedGeneration verandert uitsluitend na alle actuele ACKs.
-De gebouwde entry controleert RSPmod16==8 en springt rechtstreeks naar C.
-QMP-bediening, daadwerkelijk gerenderde native schermen, koude heropening,
-latency/stackmetingen en alle62 volledige releasecriteria blijven open.
+Twenty host-chain experiments plus one actual ELF-policy test are in
+verification/. The review fix has separate red/green evidence: Ready is off
+during every new paint; PresentedGeneration changes only after all current
+ACKs. The built entry checks RSPmod16==8 and jumps directly to C. QMP interaction,
+actual rendered native screens, cold reopening, latency/stack measurements
+and all 62 full-release criteria remain open.

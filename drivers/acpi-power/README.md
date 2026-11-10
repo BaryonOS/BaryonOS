@@ -1,118 +1,111 @@
 # ACPI S5 parser core
 
-## Doel en trustgrens
+## Purpose and trust boundary
 
-Deze dependencyvrije `no_std`-crate valideert begrensde ruwe FADT- en
-DSDT-SDT-snapshots en haalt daaruit uitsluitend de S5-slaaptypen en de
-legacy x86 PM1a/PM1b-controlregisteradressen. De publieke invoer is
-`AcpiTableSnapshot` met twee `TableSnapshot`-waarden (exacte bytes plus het
-door de kernel vastgestelde oorspronkelijke firmwareadres). Die door de
-caller aangeleverde metadata is geen autorisatiebewijs. In het opt-in
-`native-acpi-s5`-profiel komt het FADT-adres uit `Discovery.fadt`;
-`FirmwareReader` leest FADT en DSDT uitsluitend uit de gecontroleerde
-UEFI ACPI reclaim/NVS-geheugenregio's. De parser valideert daarna
-SDT-signatures, lengtes, checksums en de FADT/DSDT-koppeling. Deze
-native route vereist geen vooraf gekopieerde versiegebonden BootInfo-
-tabelsnapshot; de adres- en geheugenautorisatie ligt bij de kernel.
+This dependency-free `no_std` crate validates bounded raw FADT and DSDT SDT
+snapshots and extracts only S5 sleep types and legacy x86 PM1a/PM1b control
+register addresses. Public input is `AcpiTableSnapshot`, containing two
+`TableSnapshot` values: exact bytes plus the original firmware address
+established by the kernel. Caller-supplied metadata is not authorisation
+evidence. In the opt-in `native-acpi-s5` profile, the FADT address comes from
+`Discovery.fadt`; `FirmwareReader` reads the FADT and DSDT only from validated
+UEFI ACPI reclaim/NVS memory regions. The parser then validates SDT signatures,
+lengths, checksums and the FADT/DSDT binding. This native route requires no
+pre-copied, version-bound BootInfo table snapshot; address and memory
+authorisation remain with the kernel.
 
-De parser controleert de tabelsignatures, exacte gedeclareerde lengte,
-checksum, maximumomvang en binding van het door FADT aangewezen DSDT-adres.
-De legacy PM1-lengte moet minimaal twee bytes zijn. De parser gebruikt een
-aanwezige `X_PM1a/b_CNT` GAS alleen als die een 16-bit System-I/O-register met
-bit-offset nul en toegestane access size beschrijft; anders weigert hij.
-Legacy registeradressen worden alleen gebruikt als de overeenkomstige GAS-
-adres nul/afwezig is. Adressen buiten het 16-bit I/O-bereik en overlappende
-PM1a/PM1b-registers worden geweigerd. Hardware-reduced ACPI wordt niet
-ondersteund.
+The parser checks table signatures, exact declared length, checksum, maximum
+size and binding to the DSDT address designated by FADT. Legacy PM1 length
+must be at least two bytes. The parser uses a present `X_PM1a/b_CNT` GAS only
+if it describes a 16-bit System-I/O register with zero bit offset and a
+permitted access size; otherwise it rejects it. Legacy register addresses
+are used only when the corresponding GAS address is zero/absent. Addresses
+outside the 16-bit I/O range and overlapping PM1a/PM1b registers are rejected.
+Hardware-reduced ACPI is unsupported.
 
-`S5Plan` en `Pm1Setting` hebben private velden en geen publieke constructor.
-Hun getters geven slechts parsed waarden terug; ze verlenen geen capability.
-`apply_to` berekent uitsluitend een gemaskeerde 16-bit waarde op basis van een
-reeds gelezen waarde. Er is geen port-I/O, `unsafe`, pointerinvoer,
-firmwarecode-uitvoering, shutdownsyscall, kernelautorisatie of hostactie.
-Een plan mag nooit via IPC als shutdownopdracht worden aangenomen. De
-kernel blijft de bevoorrechte eigenaar van tabeltoegang en de opt-in
-QEMU-only PM1-writeactie. Een dienstgestuurde poweroff-capability en
-voorafgaand flushen van diensten zijn nog niet geïmplementeerd.
+`S5Plan` and `Pm1Setting` have private fields and no public constructor.
+Their getters return parsed values only; they grant no capability. `apply_to`
+only calculates a masked 16-bit value from an already read value. There is no
+port I/O, `unsafe`, pointer input, firmware-code execution, shutdown syscall,
+kernel authorisation or host action. A plan must never be accepted over IPC as
+a shutdown command. The kernel remains the privileged owner of table access
+and the opt-in, QEMU-only PM1 write action. A service-driven power-off
+capability and prior service flushing are not implemented.
 
-## Begrensde AML-subset
+## Bounded AML subset
 
-De parser herkent een root-scope `Name(_S5_, Package(...))` met twee
-integerconstanten of de vier velden die QEMU gebruikt: twee slaaptypen en
-twee verplichte nulconstanten als gereserveerde velden. Ondersteunde constanten
-zijn `Zero`, `One`, `Ones`, `Byte`, `Word`, `DWord` en `QWord`; beide slaaptypen
-moeten in drie bits passen. Andere aantallen en niet-nulle gereserveerde
-velden worden geweigerd. De naamsegmenteisen
-zijn bewust strikter dan alle AML-varianten: ASCII hoofdletters, cijfers en
-underscore. Root-relatieve en expliciet absolute `_S5_`-namen worden herkend.
-Een tweede rootdefinitie is ambigu en wordt geweigerd.
+The parser recognises root-scope `Name(_S5_, Package(...))` with two integer
+constants or the four fields used by QEMU: two sleep types and two mandatory
+zero constants as reserved fields. Supported constants are `Zero`, `One`,
+`Ones`, `Byte`, `Word`, `DWord` and `QWord`; both sleep types must fit in three
+bits. Other counts and non-zero reserved fields are rejected. Name-segment
+requirements are deliberately stricter than all AML variants: ASCII uppercase,
+digits and underscore. Root-relative and explicitly absolute `_S5_` names
+are recognised. A second root definition is ambiguous and rejected.
 
-Een letterlijke `Scope(\)` wordt structureel doorlopen, met maximaal acht
-geneste root-scopes en een vaste stack, zonder recursie. Alle objectgrenzen
-blijven beperkt tot de huidige scope; na het scope-einde gaat controle van de
-omringende termen door. Dubbele `_S5_`-definities in afzonderlijke root-scopes
-worden eveneens geweigerd. Andere scopes, methoden en extended
-namespacepakketobjecten worden alleen overgeslagen met een gecontroleerde
-`PkgLength` en kunnen geen geneste `_S5_`-bytes tot geselecteerde rootdefinitie
-promoveren. Dit resolveert geen algemene namespace, aliases, dynamische
-definities of methode-effecten; de toekomstige kernelactie blijft daarom aan
-het expliciete QEMU-profiel gebonden. Naamobjecten buiten `_S5_` ondersteunen alleen
-letterlijke dataobjecten, begrensde package/buffer/stringdata of een
-NameString. Top-level Alias, External, Noop, Mutex, Event en OperationRegion
-worden beperkt structureel overgeslagen; onbekende AML-termen, expressions,
-malformed lengtes, ongeldige packages en ontbrekende/dubbele `_S5_` geven een
-expliciete fout. Dit is geen generieke AML-interpreter. Een firmware-DSDT die
-buiten de subset valt, wordt niet geaccepteerd; verbreed de subset alleen met
-bewijs dat objectgrenzen en namespacecontext correct blijven.
+A literal `Scope(\)` is traversed structurally, with at most eight nested
+root scopes and a fixed stack, without recursion. All object boundaries
+remain within the current scope; checking surrounding terms continues after
+the scope ends. Duplicate `_S5_` definitions in separate root scopes are also
+rejected. Other scopes, methods and extended namespace package objects are
+skipped only with a checked `PkgLength` and cannot promote nested `_S5_`
+bytes into the selected root definition. This does not resolve a general
+namespace, aliases, dynamic definitions or method effects; the future kernel
+action therefore remains bound to the explicit QEMU profile. Name objects
+outside `_S5_` support only literal data objects, bounded package/buffer/string
+data or a NameString. Top-level Alias, External, Noop, Mutex, Event and
+OperationRegion are skipped with limited structural parsing; unknown AML
+terms, expressions, malformed lengths, invalid packages and missing/duplicate
+`_S5_` return an explicit error. This is not a general AML interpreter.
+Firmware DSDTs outside the subset are not accepted; broaden the subset only
+with evidence that object boundaries and namespace context remain correct.
 
-Voor meerbyte-`PkgLength` moet het ongebruikte bitpaar 4/5 in de leadbyte nul
-zijn; de subset weigert encoderingen die die bits toch zetten in plaats van ze
-stil te maskeren. Alle vier lengtebreedtes, afgeknotte vervolgbytes, te kleine
-lengtevelden en pakketgrenzen buiten de tabel worden gericht getest. Afgeknotte
-naam-, string-, scope-, method- en extended objecten worden ook na een al
-gevonden `_S5_` geweigerd: een gevonden resultaat stopt de validatie niet.
+For multibyte `PkgLength`, unused bits 4/5 in the lead byte must be zero;
+the subset rejects encodings that set them rather than silently masking
+them. All four length widths, truncated continuation bytes, undersized length
+fields and package boundaries outside the table are specifically tested.
+Truncated name, string, scope, method and extended objects are rejected even
+after `_S5_` has been found: finding a result does not stop validation.
 
-De publieke primaire implementatiereferentie voor de lengtecodering is
-ACPICA, tag `R2025_04_04`, `AcpiPsGetNextPackageLength` en
+The public primary implementation reference for length encoding is ACPICA,
+tag `R2025_04_04`, `AcpiPsGetNextPackageLength` and
 `AcpiPsGetNextPackageEnd` in
 [`source/components/parser/psargs.c`](https://github.com/acpica/acpica/blob/R2025_04_04/source/components/parser/psargs.c).
-Die bron bevestigt de leadbyteverdeling, maximaal drie vervolgbytes en de
-lengtebasis bij het begin van het lengteveld. Het weigeren van de ongebruikte
-bits is hier een expliciete strikte parserkeuze; ACPICA maskeert ze.
-De UEFI ACPI 6.5 HTML-specificatie gaf bij controle HTTP 403. Geen broncode is
-overgenomen en er is geen specificatieconformiteit van een volledige
-AML-interpreter geclaimd.
+That source confirms the lead-byte layout, at most three continuation bytes
+and the length origin at the start of the length field. Rejecting unused bits
+is an explicit strict parser choice here; ACPICA masks them. The UEFI ACPI
+6.5 HTML specification returned HTTP 403 when checked. No source code was
+copied and no complete AML interpreter specification conformance is claimed.
 
-QEMU `v10.2.1`, `hw/i386/acpi-build.c`, regels 1157-1184,
-bouwt `_S5_` daadwerkelijk als vier-elementenpakket binnen `Scope(\)`.
-De oudere twee-elementen/root-Name-fixture was dus geen passende QEMU-fixture.
-Deze publieke primaire emulatorbron is gelezen en op SHA-256 vastgelegd:
+QEMU `v10.2.1`, `hw/i386/acpi-build.c`, lines 1157–1184, actually builds `_S5_`
+as a four-element package within `Scope(\)`. The older two-element/root-Name
+fixture was therefore not an appropriate QEMU fixture. This public primary
+emulator source was read and recorded with SHA-256:
 `263bcea198131385448fb5827b6a30a5943313712b7caf99ca18343e07ea1b77`.
-Bron: <https://github.com/qemu/qemu/blob/v10.2.1/hw/i386/acpi-build.c#L1157-L1184>.
-De synthetische testfixture modelleert deze objectvorm. Daarnaast is de
-volledige FADT/DSDT van een afzonderlijke QEMU/OVMF-firmwareguest via QMP
-uitgelezen en op de host geparseerd: PM1a `0x604`, S5-type nul, geen PM1b.
-Dit bewijst compatibiliteit met die concrete firmwarebytes, niet de eigen
-loader/kerneloverdracht of guest-poweroff. Profiel, tabelhashes, commandotrace
-en de expliciet uit te voeren externe-fixturetest staan in `verification/`.
+Source: <https://github.com/qemu/qemu/blob/v10.2.1/hw/i386/acpi-build.c#L1157-L1184>.
+The synthetic test fixture models this object structure. In addition, the
+complete FADT/DSDT from a separate QEMU/OVMF firmware guest was read through
+QMP and parsed on the host: PM1a `0x604`, S5 type zero, no PM1b. This demonstrates
+compatibility with those specific firmware bytes, not the independent loader/
+kernel handover or guest poweroff. Profile, table hashes, command trace and
+the explicitly invoked external-fixture test are in `verification/`.
 
-## Gerichte tests en bewijsgrens
+## Targeted tests and evidence limits
 
-De unitfixtures dekken SDT-signature/lengte/checksum, bronadresbinding,
-PM1-GAS/ranges/overlap, hardware-reduced mode, AML-constanten, ontbrekende,
-dubbele en niet-root `_S5_`, foutieve `PkgLength`, verkeerde packagegrootte en
-onbekende AML. De GAS-matrix muteert voor zowel PM1a als PM1b afzonderlijk de
-address space, bit width, bit offset, access size en adresgrens terwijl het
-legacy-adres geldig blijft: een aanwezige ongeldige extended beschrijving
-wordt geweigerd, niet vervangen. Extended registeroverlap en een onjuiste
-`X_DSDT`-binding worden eveneens geweigerd ondanks geldige legacyvelden.
-De reguliere suite gebruikt synthetische hostfixtures. Een afzonderlijke,
-standaard genegeerde test accepteert expliciet opgegeven externe
-QEMU-firmwaretabellen en controleert ook mutaties daarvan; ontbrekende
-fixturepaden of adressen laten die test falen, niet stil overslaan.
-Die hosttest voert geen gastcode of shutdown uit.
-Since 5 November 2026, the `native-acpi-s5` kernel profile has used this
-crate for native power-off in QEMU. Evidence and limitations are documented in
+Unit fixtures cover SDT signature/length/checksum, source-address binding,
+PM1 GAS/ranges/overlap, hardware-reduced mode, AML constants, missing,
+duplicate and non-root `_S5_`, invalid `PkgLength`, wrong package size and
+unknown AML. For both PM1a and PM1b, the GAS matrix independently mutates
+address space, bit width, bit offset, access size and address boundary while
+the legacy address remains valid: a present invalid extended description
+is rejected, not replaced. Extended register overlap and incorrect `X_DSDT`
+binding are also rejected despite valid legacy fields. The regular suite uses
+synthetic host fixtures. A separate, normally ignored test accepts explicitly
+supplied external QEMU firmware tables and also checks mutations; missing
+fixture paths or addresses cause that test to fail, not silently skip.
+That host test runs no guest code or shutdown. Since 5 November 2026, the
+`native-acpi-s5` kernel profile has used this crate for native power-off in
+QEMU. Evidence and limitations are documented in
 [`docs/verification/h05-acpi-s5`](../../docs/verification/h05-acpi-s5/README.md).
 Service- or user-initiated shutdown, H05 acceptance and physical-hardware
 verification remain outstanding.

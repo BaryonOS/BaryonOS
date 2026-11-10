@@ -1,27 +1,27 @@
-# Bronvermelding en licentiestatus
+# Source attribution and licence status
 
-Deze verzameling verwerkt de door de gebruiker aangeleverde wiki-export en PDF. De opmaak, navigatie, indexering en Nederlandse leeswijzers zijn toegevoegd; de opgenomen wiki-bronteksten zijn niet inhoudelijk herschreven. Er wordt geen nieuwe uniforme licentie over alle broninhoud gelegd.
+This collection processes the wiki export and PDF supplied by the user. Formatting, navigation, indexing and reading guides were added; the included wiki source texts have not been substantively rewritten. The reading guides were originally written in Dutch and are now translated into English. No new uniform licence is applied to all source content.
 
 ## OSDev Wiki
 
-OSDev Wiki-bijdragers. (z.d.). *OSDev Wiki* [MediaWiki-export, bestand osdev-wiki.xml.gz; paginarevisies tot en met 23 oktober 2026]. https://wiki.osdev.org/Expanded_Main_Page
+OSDev Wiki contributors. (n.d.). *OSDev Wiki* [MediaWiki export, file osdev-wiki.xml.gz; page revisions through 23 October 2026]. https://wiki.osdev.org/Expanded_Main_Page
 
-Per pagina zijn de titel, het pagina-ID, het revisie-ID, de revisiedatum, de oorspronkelijke URL en een revisie-URL opgeslagen. `references/source-index.json` bevat de in de export aangetroffen bijdragers per pagina. `assets/wiki-revision-metadata.jsonl.gz` bewaart de beschikbare revisiemetadata.
+The title, page ID, revision ID, revision date, original URL and revision URL are stored for each page. `references/source-index.json` contains the contributors found in the export for each page. `assets/wiki-revision-metadata.jsonl.gz` preserves the available revision metadata.
 
-De eigen pagina OSDev Wiki:License [W002031] noemt expliciet gemengde licenties. OSDev Wiki:Copyrights [W003005] noemt CC0 voor vanaf de daar vermelde datum toegevoegd materiaal. Deze uiteenlopende bronformuleringen zijn niet samengevoegd tot de ongefundeerde uitspraak dat al het wiki-materiaal CC0 is. Beide volledige licentiepagina’s zijn in de kennisbank aanwezig. Afzonderlijke code, citaten of bestanden kunnen eigen vermeldingen hebben.
+The wiki's OSDev Wiki:License page [W002031] explicitly describes mixed licences. OSDev Wiki:Copyrights [W003005] mentions CC0 for material added from the date specified there. These differing source statements have not been combined into an unsupported claim that all wiki material is CC0. Both complete licence pages are present in the knowledge base. Individual code, quotations or files may have their own notices.
 
-## Het boek
+## The book
 
-Helin, E., & Renberg, A. (2015, 19 januari). *The little book about OS development* (commit fe83e27dab3c39930354d2dea83f6d4ee2928212) [PDF, 78 pagina’s]. https://littleosbook.github.io/
+Helin, E., & Renberg, A. (2015, January 19). *The little book about OS development* (commit fe83e27dab3c39930354d2dea83f6d4ee2928212) [PDF, 78 pages]. https://littleosbook.github.io/
 
-Pagina 9 van het aangeleverde boek vermeldt Creative Commons Attribution-NonCommercial-ShareAlike 3.0 en verwijst naar https://creativecommons.org/licenses/by-nc-sa/3.0/us/. Dezelfde pagina zegt dat de codevoorbeelden publiek domein zijn. Die twee bronvermeldingen worden afzonderlijk behouden. De oorspronkelijke PDF en de drie afbeeldingen zijn opgenomen met bronvermelding; de hoofdstukbeschrijvingen zijn Nederlandse samenvattingen van de bron. Voor zover deze samenvattingen bewerkingen van het boek zijn, worden ze onder dezelfde CC BY-NC-SA 3.0 US-voorwaarden aangeboden.
+Page 9 of the supplied book states Creative Commons Attribution-NonCommercial-ShareAlike 3.0 and refers to https://creativecommons.org/licenses/by-nc-sa/3.0/us/. The same page states that the code examples are in the public domain. These two source notices are retained separately. The original PDF and the three images are included with attribution; the chapter descriptions are summaries of the source, originally in Dutch and now translated into English. To the extent that these summaries are adaptations of the book, they remain offered under the same CC BY-NC-SA 3.0 US terms.
 
-## Wijzigingen en grenzen
+## Changes and limitations
 
-Toegevoegd zijn: bestandsstructuur, bron-ID’s, controlehashes, navigatie, Nederlandse hoofdstuk- en themaoverzichten, tekstbeschrijvingen van de drie boekfiguren, zoekindex en skillinstructies. Bij de PDF is tekst geëxtraheerd; dat kan de presentatie van ligaturen, regelafbrekingen en tabeluitlijning veranderen. De originele PDF is de visuele referentie. De wiki-tekst is de gedecodeerde XML-tekst, zonder inhoudelijke normalisatie of stilzwijgende correcties.
+The additions comprise the file structure, source IDs, verification hashes, navigation, chapter and theme overviews, text descriptions of the three book figures, search index and skill instructions. The authored Dutch guidance has been translated into English. Text was extracted from the PDF; this may change the presentation of ligatures, line breaks and table alignment. The original PDF is the visual reference. The wiki text is the decoded XML text, without substantive normalisation or silent corrections.
 
-Dit document rapporteert de licentievermeldingen in de aangeleverde bronnen. Het is geen afzonderlijke juridische beoordeling van ieder bronfragment.
+This document reports the licence notices in the supplied sources. It is not a separate legal assessment of every source fragment.
 
-## Verpakking als skill (versie 2.0.0)
+## Skill packaging (version 2.0.0)
 
-De nieuwe werkinstructies, scripts, tests en verpakking zijn voor deze skill gemaakt. Ze wijzigen geen licentie van de broninhoud. De oorspronkelijke tekst per bron-ID is byte voor byte behouden; alleen de omringende navigatie en bronlocaties zijn veranderd. Geen enkele bronpagina krijgt de status systeeminstructie. Dit pakket is bedoeld als persoonlijke kennis- en ontwikkelhulp, niet als toestemming tot commerciële herpublicatie van het boek.
+The new working instructions, scripts, tests and packaging were created for this skill. They do not change any source-content licence. The original text for each source ID is preserved byte for byte; only the surrounding navigation and source locations have changed. No source page acquires the status of a system instruction. This package is intended as a personal knowledge and development aid, not as permission for commercial republication of the book.

@@ -1,169 +1,174 @@
-# M6c — native documentnamen en afgeschermde catalogus
+# M6c — native document names and a protected catalogue
 
-Datum: 28 oktober 2026. Status: huidig M6c-contract met aanwezige implementatie.
-Oorspronkelijke basis: `bb22fdbe15919edc23baa158a46236195ce314b2` (afgeronde M6b).
-Werkbranch: `codex/m6c-named-catalog`. Bewijsstatus en acceptatiegrenzen:
+Date: 28 October 2026. Status: current M6c contract with existing implementation.
+Original baseline: `bb22fdbe15919edc23baa158a46236195ce314b2` (completed M6b).
+Working branch: `codex/m6c-named-catalog`. Evidence status and acceptance boundaries:
 [M6C-ACCEPTANCE.md](../verification/M6C-ACCEPTANCE.md).
-Historische bewijsgrens op `bc4cd104` en de daaropvolgende M6c-reviewstand:
-de native observer kon bij WRITE-/FLUSH-fouten panikeren. Die oude uitvoering
-had uitsluitend host-ABI-bewijs voor Unknown. M6d repareert dit op een nieuwe
-bron en voegt native foutinjectie toe; zie
-[M6D-ACCEPTANCE.md](../verification/M6D-ACCEPTANCE.md). De oorspronkelijke
-M6c-uitslag hieronder blijft aan haar eigen bron gekoppeld.
+Historical evidence boundary at `bc4cd104` and the subsequent M6c review state:
+the native observer could panic on WRITE/FLUSH errors. That earlier execution
+had only host ABI evidence for Unknown. M6d fixes this on new source and adds
+native fault injection; see [M6D-ACCEPTANCE.md](../verification/M6D-ACCEPTANCE.md).
+The original M6c result below remains bound to its own source.
 
-## Doel en grenzen
+## Objective and boundaries
 
-Een echte ring-3-dienst laat twee geïsoleerde native apps documenten met namen
-aanmaken, opvragen, bijwerken, hernoemen, verwijderen en inventariseren. Dit
-levert de eerste native catalogusinterface voor Materiaal; geen grafische shell.
-Object-ID blijft identiteit en autorisatiebasis. Namen zijn labels, geen paden;
-gelijke namen zijn toegestaan. Er is geen globale zoek- of directorydienst.
+An actual ring-3 service lets two isolated native apps create, retrieve,
+update, rename, delete and list named documents. This provides the first native
+catalogue interface for Materiaal, not a graphical shell. Object ID remains
+the identity and authorisation basis. Names are labels, not paths; duplicate
+names are allowed. There is no global search or directory service.
 
-Behoud de geteste grenzen: vier objecten (0–3), twee per endpointdomein, maximaal
-128 inhoudsbytes, 32 append-only records en uitsluitend sectoren 4–35. De naam
-heeft maximaal 32 UTF-8-bytes. Dit zijn proefbudgetten, geen productlimieten.
-De M6b-crate en het M6b-formaat blijven ongewijzigd en afzonderlijk bouwbaar.
+Retain tested limits: four objects (0–3), two per endpoint domain, at most
+128 content bytes, 32 append-only records and only sectors 4–35. A name has
+at most 32 UTF-8 bytes. These are trial budgets, not product limits. The M6b
+crate and M6b format remain unchanged and separately buildable.
 
-## Invarianten
+## Invariants
 
-- Endpoint én door de kernel ingevulde sender-PID bepalen het domein. Appdata
-  verleent geen autoriteit. LIST ziet uitsluitend aanwezige eigen objecten.
-- Namen zijn niet leeg, geldige UTF-8 en bevatten geen NUL/besturingstekens,
-  slash, backslash of bidi-override/isolate-tekens (U+202A–202E, U+2066–2069).
-  `.` en `..` worden afgewezen. Geen normalisatie of hoofdletterconversie;
-  toegestane labels worden bytegetrouw bewaard en vergeleken.
-- PUT bewaart naam en inhoud samen. RENAME vereist een bestaand object en de
-  actuele revisie en behoudt alle inhoudsbytes. DELETE bewaart de verhoogde
-  revisie, maar wist naam/inhoud uit de levende toestand en catalogus.
-- Voor mutaties: valideer/prepareer → WRITE-completion → FLUSH-completion →
-  commit levende toestand → ACK. Bij onzekerheid sluit ook LIST met Unknown;
-  geen automatische replay of gegevens uit mogelijk verouderde toestand.
-- Vol is Full vóór I/O, zonder wrap/overschrijven. Recovery vereist een gehele
-  geldige prefix met uitsluitend lege records erachter. Corruptie sluit af.
-- LIST is één atomisch overzicht van de maximaal twee aanwezige objecten in
-  één domein, in oplopende object-ID-volgorde. Geen inhoud, tombstonenamen,
-  globale telling of globale journalsequence. De catalogusrevisie is de som
-  van uitsluitend de twee eigen objectrevisies (inclusief tombstones).
-- Catalogusantwoorden, ook op een leeg domein, verruimen geen rechten. Een
-  later GET of mutatie wordt opnieuw geautoriseerd; revisies zijn geen grants.
+- Endpoint and kernel-populated sender PID determine the domain. App data
+  grants no authority. LIST sees only present objects owned by that domain.
+- Names are non-empty, valid UTF-8 and contain no NUL/control characters,
+  slash, backslash or bidi override/isolate characters (U+202A–202E, U+2066–2069).
+  `.` and `..` are rejected. No normalisation or case conversion; allowed
+  labels are retained and compared byte-for-byte.
+- PUT stores name and content together. RENAME requires an existing object
+  and current revision and preserves all content bytes. DELETE retains the
+  incremented revision but removes name/content from live state and catalogue.
+- Mutations: validate/prepare → WRITE completion → FLUSH completion → commit
+  live state → ACK. On uncertainty, LIST also fails closed with Unknown; no
+  automatic replay or data from potentially stale state.
+- Full returns Full before I/O, without wraparound/overwrite. Recovery
+  requires a complete valid prefix followed only by empty records. Corruption
+  closes the service.
+- LIST is one atomic view of at most two present objects in one domain, in
+  ascending object-ID order. No content, tombstone names, global count or
+  global journal sequence. Catalogue revision is the sum of only the two
+  owned object revisions (including tombstones).
+- Catalogue responses, including for an empty domain, expand no rights. A
+  subsequent GET or mutation is reauthorised; revisions are not grants.
 
-## IPC v4 (224 payloadbytes in Message320)
+## IPC v4 (224 payload bytes in Message320)
 
-De bestaande M6b-v3-padding wordt niet onder dezelfde versie hergebruikt.
-TAG = `0x4d36434c4b000004`, versie = 4. GET=1, PUT=2, DELETE=3,
-RENAME=4 en LIST=5. Statuscodes blijven gelijk aan M6b.
+Existing M6b v3 padding is not reused under the same version.
+TAG = `0x4d36434c4b000004`, version = 4. GET=1, PUT=2, DELETE=3,
+RENAME=4 and LIST=5. Status codes remain the same as M6b.
 
-| Offset | Inhoud |
+| Offset | Content |
 |---|---|
-| 0 / 2 | u16 versie / operatie |
-| 4 | vier nulbytes |
-| 8 / 16 / 24 / 32 | u64 request-ID / service-epoch / object-ID / revisie |
-| 40 / 44 | u32 inhoudslengte / i32 status |
-| 48 / 52 | u32 naamlengte / u32 catalogusaantal |
-| 56–63 | nul |
-| 64–191 | inhoud, of bij LIST maximaal twee catalogusentries |
-| 192–223 | naam bij PUT/RENAME-request en succesvolle GET-reply |
+| 0 / 2 | u16 version / operation |
+| 4 | Four zero bytes |
+| 8 / 16 / 24 / 32 | u64 request ID / service epoch / object ID / revision |
+| 40 / 44 | u32 content length / i32 status |
+| 48 / 52 | u32 name length / u32 catalogue count |
+| 56–63 | Zero |
+| 64–191 | Content, or at most two catalogue entries for LIST |
+| 192–223 | Name in PUT/RENAME request and successful GET reply |
 
-Alle ongebruikte bytes zijn nul. Constructoroverschrijding wordt een expliciet
-ongeldig begrensd bericht, geen panic of stille truncatie. GET/DELETE bevatten
-geen naam of inhoud. PUT vereist een naam en accepteert lege inhoud. RENAME
-vereist een naam en geen meegegeven inhoud. Mutatie-ACKs bevatten alleen de
-nieuwe revisie, geen naam/inhoud. NotFound mag uitsluitend de geautoriseerde
-tombstonerevisie teruggeven; overige fouten hebben revisie nul en lege data.
+All unused bytes are zero. Constructor overflow becomes an explicitly invalid
+bounded message, not a panic or silent truncation. GET/DELETE contain no name
+or content. PUT requires a name and accepts empty content. RENAME requires a
+name and no supplied content. Mutation ACKs contain only the new revision,
+no name/content. NotFound may return only the authorised tombstone revision;
+other errors have revision zero and empty data.
 
-LIST-request: object-ID exact het eigen domeinbegin (0 of 2), revisie/lengtes/
-aantal nul. Cross-domain selectors geven Access; een eigen oneven selector
-Invalid. LIST-reply echoot selector/request-ID/epoch, geeft de domeinrevisie,
-aantal 0–2 en lengte `56 * aantal`. Een entry van 56 bytes: object-ID u64 op 0,
-objectrevisie u64 op 8, inhoudslengte u32 op 16, naamlengte u32 op 20, naam op
-24–55 met nulpadding. Rest van de payload is nul. De client valideert domein,
-volgorde, unieke IDs, lengtes, naam, revisies en padding. Een lege catalogus
-geeft Ok, aantal/lengte nul en de huidige eigen domeinrevisie.
+LIST request: object ID exactly the own-domain start (0 or 2), revision/
+lengths/count zero. Cross-domain selectors return Access; an odd selector
+within the own domain returns Invalid. LIST reply echoes selector/request
+ID/epoch, supplies domain revision, count 0–2 and length `56 * aantal`
+(56 × count). A 56-byte entry: object ID u64 at 0, object revision u64 at 8,
+content length u32 at 16, name length u32 at 20, name at 24–55 with zero
+padding. Remaining payload is zero. The client validates domain, order,
+unique IDs, lengths, name, revisions and padding. An empty catalogue returns
+Ok, count/length zero and the current own-domain revision.
 
 ## Journal v2
 
-512 bytes, magic `NOSM6C02`, versie 2, headersize 64. Sequence/request-ID/
-object-ID/objectrevisie blijven op 16/24/32/40; operatie u16 op 48,
-inhoudslengte u16 op 50 en naamlengte u16 op 52. Overige headerbytes nul.
-Inhoud op 64–191, naam op 192–223, rest tot 504 nul; diagnostische FNV64 op
-504 zoals M6b. PUT bevat de volledige nieuwe naam/inhoud. RENAME-record bevat
-nieuwe naam plus exact de bestaande inhoud; recovery controleert predecessor,
-revisie én inhoudsbehoud. DELETE heeft lege naam/inhoud en vereist een bestaand
-object. Alle overgangen verhogen objectrevisie en globale sequence met één.
+512 bytes, magic `NOSM6C02`, version 2, header size 64. Sequence/request
+ID/object ID/object revision remain at 16/24/32/40; operation u16 at 48,
+content length u16 at 50 and name length u16 at 52. Other header bytes zero.
+Content at 64–191, name at 192–223, remainder through 504 zero; diagnostic
+FNV64 at 504 as in M6b. PUT contains the complete new name/content. RENAME
+record contains the new name plus exactly the existing content; recovery
+checks predecessor, revision and content preservation. DELETE has empty
+name/content and requires an existing object. Every transition increments
+object revision and global sequence by one.
 
-Legacybeleid: een bezet M6b-v1-record wordt expliciet als niet-ondersteund/
-Corrupt geweigerd vóór READY; er is geen automatische migratie of formattering.
-De M6b-reader blijft beschikbaar voor de eerdere synthetische volumes. Deze
-stap wijzigt geen echte gebruikersvolumes. Een expliciete migrator is later werk.
+Legacy policy: an occupied M6b v1 record is explicitly rejected as unsupported/
+Corrupt before READY; no automatic migration or formatting. The M6b reader
+remains available for earlier synthetic volumes. This step changes no real
+user volumes. An explicit migrator is later work.
 
-## Implementatiegrenzen
+## Implementation boundaries
 
-`services/catalog` is een nieuwe dependencyvrije `no_std`-crate `catalog-core`
-met `forbid(unsafe_code)`. De native adapter gebruikt de bestaande scalar
-runtime; geen nieuwe syscall, capabilitytype, blokrechten of hardwaredriver.
-De kernel bevat uitsluitend de bestaande blokbroker en een expliciete
-acceptatieobserver voor deze fixture, geen naam-/catalogusbeleid voor apps.
-Native probe: `userspace/m6c_probe.rs`; selector: `milestone-m6c`.
+`services/catalog` is a new dependency-free `no_std` crate `catalog-core`
+with `forbid(unsafe_code)`. The native adapter uses the existing scalar
+runtime; no new syscall, capability type, block rights or hardware driver.
+The kernel contains only the existing block broker and an explicit acceptance
+observer for this fixture, not app name/catalogue policy. Native probe:
+`userspace/m6c_probe.rs`; selector: `milestone-m6c`.
 
-## Bekende native observerbeperking
+## Known native observer limitation
 
-Deze paragraaf beschrijft de **historische M6c-uitvoeringsbron `bc4cd104`**.
-De echte serviceadapter was via een host-ABI-shim gecontroleerd, maar de
-kernelobserver bewaarde bij een voorbereide mutatie de verwachte Ok-reply.
-Bij WRITE-/FLUSH-fouten of time-outs kon de juiste Unknown-reply daardoor een
-panic veroorzaken voordat de client haar ontving, ook met `milestone-m6c`.
+This section describes the **historical M6c execution source `bc4cd104`**.
+The actual service adapter had been checked through a host ABI shim, but the
+kernel observer retained the expected Ok reply for a prepared mutation.
+On WRITE/FLUSH errors or timeouts, the correct Unknown reply could therefore
+cause a panic before the client received it, including with `milestone-m6c`.
 
-De oorspronkelijke native acceptatie bevatte geen devicefoutinjectie en de
-toenmalige capture weigerde `M6C:OUTCOME`. De vijftien host-ABI-scenario's
-bewezen geen werkend native foutpad. De eisen bleven: geen commit zonder
-WRITE+FLUSH, geen replay en geen geldige toegang bij onzekere levende toestand.
+Original native acceptance included no device fault injection, and the
+capture at that time rejected `M6C:OUTCOME`. The fifteen host ABI scenarios
+did not demonstrate a working native error path. Requirements remained:
+no commit without WRITE+FLUSH, no replay and no valid access with uncertain
+live state.
 
-**Actuele uitbreiding:** M6d op bron `88e6c04` bindt Unknown aan de werkelijk
-waargenomen syscallfout en toetst acht native foutcases plus koude recovery.
-De uitgebreide capture accepteert uitsluitend de exact vereiste Unknown-
-bewijsvorm voor die cases. Normale/cut-/recoveryruns mogen die niet claimen.
-Zie [het afzonderlijke contract](M6D-IO-UNCERTAINTY.md) en
-[de nieuwe acceptatie](../verification/M6D-ACCEPTANCE.md). Automatische
-serviceherstart en de historische M6b-foutpadbeperking blijven buiten M6d.
+**Current extension:** M6d on source `88e6c04` binds Unknown to the actually
+observed syscall error and tests eight native error cases plus cold recovery.
+The expanded capture accepts only the exact required Unknown evidence form
+for those cases. Normal/cut/recovery runs may not claim it. See
+[the separate contract](M6D-IO-UNCERTAINTY.md) and
+[the new acceptance](../verification/M6D-ACCEPTANCE.md). Automatic service
+restart and the historical M6b error-path limitation remain outside M6d.
 
-## Acceptatie
+## Acceptance
 
-1. Hosttests voor wire/UTF-8/canonicalisatie, catalogusfiltering, CAS, tombstones,
-   hernoemen, vol, corruptie, legacyweigering en herstel. no_std-build/fmt/Clippy.
-2. Native normale flow per domein: lege catalogus/GET; maak twee documenten;
-   LIST; GET; RENAME eerste; weiger stale rename; GET/LIST; DELETE tweede;
-   LIST/GET tombstone; PUT eerste; GET/LIST. Eindsequence 10: even objecten
-   live/revisie 3, oneven objecten tombstone/revisie 2. Iedere app doet 16 RPCs.
-3. Koude tweede VM: exacte namen/inhoud/revisies/catalogus, geen diskmutatie.
-4. Negatieve native verzoeken: domeingrens voor GET/PUT/DELETE/RENAME/LIST,
-   vreemde versie/epoch, ongeldige UTF-8, naamlimiet, padding, ongeldige LIST,
-   stale revisie en onjuiste/gesloten capabilities. Geen I/O of metadata-lek.
-5. Vol: 32 writes, extra PUT/RENAME geweigerd vóór I/O; laatste naam blijft staan.
-6. Twee echte externe kills tijdens een RENAME: vóór WRITE en na FLUSH vóór ACK.
-   Alleen app A schrijft in deze fixture: eerst create (sequence 1), dan rename.
-   Nieuwe VM ziet respectievelijk oude naam/revisie 1 of volledige nieuwe naam/
-   revisie 2 met exact dezelfde inhoud. Onafhankelijk Python-schijforakel.
-7. Corruptie en geldig legacy-v1-volume weigeren vóór READY zonder diskmutatie.
-8. M6b-regressie en relevante build-/bootcontroles. Bronnen, binaries, exacte
-   commando's, ruwe uitvoer, exitcodes, imagescope en hashes blijven gebonden.
-   Nieuwe hostgroepen leggen de hashes van stdout, commandometadata en stderr
-   direct in het gate-record vast. Capture vergelijkt de bronbestanden én de
-   gekopieerde archiefbytes met deze vaste map; ontbrekende binding wordt
-   afgewezen. De historische suite vóór deze aanscherping heeft die binding
-   niet; afbakening en afzonderlijke hosttests staan in
+1. Host tests for wire/UTF-8/canonicalisation, catalogue filtering, CAS,
+   tombstones, renaming, full, corruption, legacy rejection and recovery.
+   no_std build/fmt/Clippy.
+2. Native normal flow per domain: empty catalogue/GET; create two documents;
+   LIST; GET; RENAME first; reject stale rename; GET/LIST; DELETE second;
+   LIST/GET tombstone; PUT first; GET/LIST. Final sequence 10: even objects
+   live/revision 3, odd objects tombstone/revision 2. Each app performs 16 RPCs.
+3. Cold second VM: exact names/content/revisions/catalogue, no disk mutation.
+4. Negative native requests: domain boundary for GET/PUT/DELETE/RENAME/LIST,
+   foreign version/epoch, invalid UTF-8, name limit, padding, invalid LIST,
+   stale revision and incorrect/closed capabilities. No I/O or metadata leak.
+5. Full: 32 writes, additional PUT/RENAME rejected before I/O; last name retained.
+6. Two actual external kills during RENAME: before WRITE and after FLUSH before
+   ACK. Only app A writes in this fixture: first create (sequence 1), then
+   rename. New VM sees old name/revision 1 or complete new name/revision 2
+   respectively, with exactly the same content. Independent Python disk oracle.
+7. Corruption and a valid legacy v1 volume rejected before READY without disk
+   mutation.
+8. M6b regression and relevant build/boot checks. Source, binaries, exact
+   commands, raw output, exit codes, image scope and hashes remain bound.
+   New host groups record hashes of stdout, command metadata and stderr
+   directly in the gate record. Capture compares source files and copied
+   archive bytes against this fixed map; missing binding is rejected. The
+   historical suite before this tightening lacks that binding; scope and
+   separate host tests appear in
    `../verification/m6c-review/host-log-binding/README.md`.
 
-Een emulatorproceskill is geen fysieke stroomuitval. FNV is geen authenticatie;
-DELETE wist historische diskbytes niet. Geen encryptie, native NAS, grafische
-desktop, formeel veiligheidsbewijs of productiegeschiktheid wordt geclaimd.
+An emulator process kill is not physical power loss. FNV is not authentication;
+DELETE does not erase historical disk bytes. No encryption, native NAS,
+graphical desktop, formal security proof or production suitability is claimed.
 
-## Bronnen en versiebeleid
+## Sources and version policy
 
-- Nieuw OS. (2026, 28 oktober). *M6B-OBJECT-STORAGE.md; PROJECT-STATE.md*
-  (commit bb22fdbe15919edc23baa158a46236195ce314b2). Bestaande native basis.
-- The Rust Project. (z.d.). *x86_64-unknown-none*. The rustc book.
+- Baryon OS. (2026, October 28). *M6B-OBJECT-STORAGE.md; PROJECT-STATE.md*
+  (commit bb22fdbe15919edc23baa158a46236195ce314b2). Existing native baseline.
+- The Rust Project. (n.d.). *x86_64-unknown-none*. The rustc book.
   https://doc.rust-lang.org/rustc/platform-support/x86_64-unknown-none.html
-  (geraadpleegd 28 oktober 2026). Geen std/default allocator; hosttests en
-  echte gastuitvoering zijn afzonderlijke controles. Toolchain blijft 1.90.0.
+  (accessed 28 October 2026). No std/default allocator; host tests and actual
+  guest execution are separate checks. Toolchain remains 1.90.0.
 
-De nieuwe formaten en proefbudgetten hierboven zijn expliciete projectkeuzes.
+The new formats and trial budgets above are explicit project choices.

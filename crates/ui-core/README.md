@@ -1,38 +1,40 @@
-# ui-core — grafische bootstrap
+# ui-core — graphics bootstrap
 
-FR-U01 voegt aparte fysieke invoerbouwstenen toe: `Set1Keyboard`, `Ps2Mouse`,
-`Cursor` en `InputRouter`. Zij vervangen de onderstaande G0-ASCII-API niet.
-De router bewaart focusgeneraties en voorkomt dat vastgehouden toetsen,
-modifiers of knoppen aan een nieuwe focus worden overgedragen. Dit is pure
-`no_std`-logica; echte apparaat-I/O, capabilityafdwinging en native
-compositoracceptatie blijven afzonderlijke stappen. Contract en reproduceerbare
-controles: [NATIVE-INPUT.md](../../docs/implementation/NATIVE-INPUT.md).
+FR-U01 adds separate physical-input building blocks: `Set1Keyboard`, `Ps2Mouse`,
+`Cursor` and `InputRouter`. They do not replace the G0 ASCII API below.
+The router retains focus generations and prevents held keys, modifiers or
+buttons from transferring to newly focused content. This is pure `no_std`
+logic; actual device I/O, capability enforcement and native compositor
+acceptance remain separate steps. Contract and reproducible checks:
+[NATIVE-INPUT.md](../../docs/implementation/NATIVE-INPUT.md).
 
-Eigen dependencyvrije, safe Rust `no_std`-code. Geen pointers, firmware, MMIO,
-allocator, bestandstoegang of appbevoegdheden. Dit is een softwarebouwsteen voor
-een grafische OS-proef; geen compositor, desktop, opslaginterface of native M7.
+Independent, dependency-free safe Rust `no_std` code. No pointers, firmware,
+MMIO, allocator, file access or app permissions. This is a software building
+block for a graphical OS experiment; not a compositor, desktop, storage
+interface or native M7.
 
-`Geometry` controleert 32bpp RGB/BGR, maximaal 1920×1080, stride maximaal4096
-pixels en een volledige buffer. `Canvas` tekent alleen in private RAM en laat
-scanlinepadding en bytes buiten zijn gevalideerde slice staan. Signed rechthoeken
-worden vóór tekenen geclipt. De oorspronkelijke 5×7-debugglyphs tonen kleine
-letters als hoofdletters; niet opgenomen tekens worden `?`. Dit is geen volledige
-Unicode-, font-, schaal- of toegankelijkheidsimplementatie.
+`Geometry` checks 32bpp RGB/BGR, a maximum of 1920×1080, stride of at most
+4096 pixels and a complete buffer. `Canvas` draws only in private RAM and
+leaves scanline padding and bytes outside its validated slice untouched.
+Signed rectangles are clipped before drawing. The original 5×7 debug glyphs
+render lowercase as uppercase; unsupported characters become `?`. This is
+not a complete Unicode, font, scaling or accessibility implementation.
 
-`render_debug_row` gebruikt slechts `width*4` bytes (max7680). De hardwareadapter
-moet een rij eerst in eigen RAM renderen en daarna met gepaste volatile writes
-naar de afzonderlijk gevalideerde framebuffer kopiëren. Een RAM-slice naar MMIO
-maken is geen toegestane vervanging. `draw_material_debug` is dezelfde scène op
-een RAM-canvas. Beide tonen expliciet **GRAFISCHE BASIS - GEEN DESKTOP** en
-**ALLEEN RAM - NIET OPGESLAGEN**. Er zijn geen fictieve bestandsacties of knoppen.
+`render_debug_row` uses only `width*4` bytes (maximum 7680). The hardware
+adapter must first render a row in private RAM and then copy it with suitable
+volatile writes to the separately validated framebuffer. Creating a RAM slice
+pointing to MMIO is not a permitted substitute. `draw_material_debug` renders
+the same scene on a RAM canvas. Both explicitly display **GRAFISCHE BASIS -
+GEEN DESKTOP** (graphics foundation, not a desktop) and **ALLEEN RAM - NIET
+OPGESLAGEN** (RAM only, not saved). There are no fictitious file actions or buttons.
 
-`Keyboard` decodeert de begrensde Set1-QEMU-proef: make/break, beide Shift/Ctrl/Alt,
-CapsLock, E0-navigatie en PrintScreen; E1/Pause consumeert zes bytes zonder tekst.
-De hostadapter controleert controllerstatus/pariteit/timeout/AUX en roept bij
-verlies `reset()` aan. Geen USB-, locale-, invoermethode- of hardwareclaim.
-`TextLine<N>` bewaart alleen ASCII32–126 in een vaste array; releases en Ctrl/Alt
-voegen niets in. Vol geeft `Full`; Enter geeft `Submit` zonder opslag te claimen.
+`Keyboard` decodes the bounded Set1 QEMU experiment: make/break, both Shift/Ctrl/Alt,
+CapsLock, E0 navigation and PrintScreen; E1/Pause consumes six bytes without text.
+The host adapter checks controller status/parity/timeout/AUX and calls `reset()`
+on loss. No USB, locale, input-method or hardware claim. `TextLine<N>` stores
+only ASCII 32–126 in a fixed array; releases and Ctrl/Alt insert nothing.
+A full buffer returns `Full`; Enter returns `Submit` without claiming storage.
 
-Hosttests controleren geometrie, overflowafwijzing, guards/padding, clipping,
-glyphlandmarks, beperkte gewijzigde schermregio, modifier-/prefixreeksen,
-tekstlimieten en willekeurige scanbytes. Zij bewijzen geen hardware-uitvoering.
+Host tests check geometry, overflow rejection, guards/padding, clipping,
+glyph landmarks, bounded changed screen regions, modifier/prefix sequences,
+text limits and random scan bytes. They do not demonstrate hardware execution.

@@ -1,104 +1,108 @@
-# TASK-NATIVE-INPUT-PREP — invoerdienstcore vóór native koppeling
+# TASK-NATIVE-INPUT-PREP — input service core before native integration
 
-Taakcontract, 30 oktober 2026, basis `309ff53`. Eigenaar: `native_ui_apps`;
-hoofdagent bezit kernel-/driver-/compositorintegratie. Alleen nieuwe bestanden
-onder `services/input-core/` en dit document. Geen syscall, kernelrecht,
-workspace-membership of bestaand SDK-/UI-interface wordt gewijzigd.
+Task contract, 30 October 2026, baseline `309ff53`. Owner: `native_ui_apps`;
+the lead agent owns kernel/driver/compositor integration. Only new files under
+`services/input-core/` and this document. No syscall, kernel permission,
+workspace membership or existing SDK/UI interface is changed.
 
-## Werkelijke uitgangspositie
+## Actual starting point
 
-`ui-core` levert geteste Set-1-/PS2-ID-0-decoders en fysieke-down-/focusrouting.
-G0 levert uitsluitend kernelpolling en framebufferdiagnostiek. Een native
-InputSource-broker, beschermde ring-3-ingress, compositor en inputdienst-loop
-ontbreken nog. Deze core hergebruikt `ui-core` en de bestaande SDK-enveloppen;
-hij verricht geen I/O en bewijst geen werkende native invoerdienst of GUI.
+`ui-core` provides tested Set-1/PS2-ID-0 decoders and physical-down/focus
+routing. G0 provides only kernel polling and framebuffer diagnostics. A native
+InputSource broker, protected ring-3 ingress, compositor and input service
+loop are still absent. This core reuses `ui-core` and the existing SDK
+envelopes; it performs no I/O and does not prove a working native input service
+or GUI.
 
-## Autoriteit, levensduur en foutgedrag
+## Authority, lifetime and error behaviour
 
-- Bootstrap bindt service-epoch, bron-PID, compositor-PID, supervisor-PID en
-  maximaal acht client-ID/PID-paren. Vier verschillende RECV-endpoints passen
-  binnen het bestaande kernelquotum: bron, focus, lifecycle en gedeelde apps.
-  Alleen vooraf verleende SEND-caps bereiken de betreffende ingress.
-- `Received.sender()` komt uitsluitend van echte `native::receive`; een
-  `Received::from_bytes` op de host bewijst geen herkomst. De core controleert
-  werkelijk ontvangen endpoint én kernel-PID. Payload, tag en geraden ID's
-  verlenen geen bevoegdheid. Een app kan geen input injecteren, focus wijzigen,
-  een ander client-PID kiezen of procesdood melden.
-- De compositor wijzigt alleen focus; de supervisor meldt client-/bron-/
-  compositordood op grond van echte kernelobservatie. Een gestorven client-ID
-  wordt in deze service-lifetime niet opnieuw gebonden. Bron-/compositordood
-  blokkeert invoer totdat de afgesproken beschermde herinitialisatie is voltooid.
-- Bij focuswisseling, invoerverlies of een volle eventqueue wordt oude input
-  ongeldig. Een afzonderlijke cancel-watermark krijgt voorrang boven events;
-  zij wist alleen generaties tot en met de genoemde grens. Bekende ingedrukte
-  toetsen/knoppen gaan via de bestaande router niet over naar een nieuwe focus.
-- Apps lezen met PEEK en bevestigen met ACK van precies het aangeboden
-  eventnummer. Een mislukte IPC-send consumeert geen event. Oude ACKs kunnen
-  een nieuwe cancel of nieuw event niet wegnemen. De native adapter controleert
-  de antwoordgeldigheid direct vóór send en verwerkt dat zonder tussenliggende
-  focus-/lifecyclemutatie in dezelfde servicethread.
-- De bron configureert daadwerkelijk Set 1 en muis-ID 0 vóór SYNC. Samples
-  dragen monotone bronvolgnummers en werkelijke i8042-status/data. Een gat,
-  controllerfout of defecte packetstroom sluit samples tot expliciete SYNC na
-  drain/reinitialisatie. Geen byteheuristiek claimt herstel na ongemerkt verlies.
-- Tellers lopen niet rond. Globale event-/focus- of beschermde bronteller-
-  uitputting sluit de core; een uitgeput app-requestnummer blokkeert uitsluitend
-  die client. Anders kon een app met één MAX-verzoek alle invoer stoppen.
-  Bij een gestopte core sluit de adapter de verbindingen en meldt annulering. Onverwacht
-  ontvangen gedelegeerde caps worden geweigerd en moeten door de adapter met
-  `native::close_received_caps` worden gesloten; de core bezit geen syscall-I/O.
+- Bootstrap binds the service epoch, source PID, compositor PID, supervisor PID
+  and at most eight client-ID/PID pairs. Four different RECV endpoints fit
+  within the existing kernel quota: source, focus, lifecycle and shared apps.
+  Only pre-granted SEND capabilities reach the respective ingress.
+- `Received.sender()` comes only from real `native::receive`; a host-side
+  `Received::from_bytes` does not prove provenance. The core checks both the
+  actual receiving endpoint and the kernel PID. Payload, tag and guessed IDs
+  grant no authority. An app cannot inject input, change focus, choose another
+  client PID or report process death.
+- The compositor changes only focus; the supervisor reports client/source/
+  compositor death based on actual kernel observation. A dead client ID is
+  not rebound within this service lifetime. Source/compositor death blocks
+  input until the agreed protected reinitialisation is complete.
+- On a focus change, input loss or a full event queue, old input becomes
+  invalid. A separate cancel watermark takes precedence over events; it clears
+  only generations up to and including the specified bound. Known pressed
+  keys/buttons do not transfer to new focus through the existing router.
+- Apps read with PEEK and acknowledge with ACK for exactly the offered event
+  number. A failed IPC send consumes no event. Old ACKs cannot remove a new
+  cancel or event. The native adapter checks reply validity immediately before
+  send and handles it without an intervening focus/lifecycle mutation in the
+  same service thread.
+- The source actually configures Set 1 and mouse ID 0 before SYNC. Samples
+  carry monotonic source sequence numbers and actual i8042 status/data. A gap,
+  controller error or defective packet stream closes samples until explicit
+  SYNC after draining/reinitialisation. No byte heuristic claims recovery
+  after undetected loss.
+- Counters do not wrap. Global event/focus or protected source-counter
+  exhaustion closes the core; an exhausted app request number blocks only
+  that client. Otherwise, an app could stop all input with one MAX request.
+  When the core stops, the adapter closes connections and reports cancellation.
+  Unexpected received delegated capabilities are rejected and must be closed
+  by the adapter with `native::close_received_caps`; the core owns no syscall
+  I/O.
 
 ## Wire v1
 
-Eigen protocolpayload van 96 bytes binnen bestaande Message320, little-endian;
-geen Rust-structcast. Header: `INP1`, versie u16=1, opcode u16, request-ID u64,
-service-epoch u64, arg0 u64 en arg1 u64. Overige requestbytes zijn nul.
-Tag `0x4e49_4e50_5554_0001`; geen overgedragen capabilities.
+Dedicated protocol payload of 96 bytes within the existing Message320,
+little-endian; no Rust struct cast. Header: `INP1`, version u16=1, opcode u16,
+request ID u64, service epoch u64, arg0 u64 and arg1 u64. Other request bytes
+are zero. Tag `0x4e49_4e50_5554_0001`; no transferred capabilities.
 
-Bron: SYNC (profiel 1), SAMPLE (statusbyte/data-byte). Focus: FOCUS (client-ID,
-0 wist focus). Lifecycle: CLIENT_DEAD, SOURCE_DEAD, COMPOSITOR_DEAD. Apps:
-PEEK en ACK(eventnummer). Rollen kunnen elkaars opcodes niet gebruiken.
-Verkeerde epoch, noncanonieke velden, onbekende opcode, ontbrekende/extra bytes
-en oude requestnummers worden geweigerd vóór een bevoegdheidswijziging.
+Source: SYNC (profile 1), SAMPLE (status byte/data byte). Focus: FOCUS
+(client ID, 0 clears focus). Lifecycle: CLIENT_DEAD, SOURCE_DEAD,
+COMPOSITOR_DEAD. Apps: PEEK and ACK(event number). Roles cannot use each
+other's opcodes. A wrong epoch, non-canonical fields, unknown opcode,
+missing/extra bytes and old request numbers are rejected before any authority
+change.
 
-Antwoorden binden opcode+replybit, request-ID en service-epoch. Een PEEK bevat
-Empty of één key/mouse/cancel, met eventnummer en focusgeneratie. Key-ID volgt
-de expliciete `PhysicalKey`-u8-representatie van dit broncontract; compatibele
-uitbreiding vraagt behoud van bestaande nummers of een nieuwe wireversie.
-Pijltjes zijn fysieke toetsen; Unicode-/tekstlayout en hit testing blijven
-afzonderlijke compositor-/tekstlaaginterfaces.
-Status 0 is succesvol en 1 is Empty; negatieve statussen 2–18 zijn de expliciete
-`Error`-nummers. `error_reply` maakt alleen een negatieve reply voor een al
-gebonden afzender en canonieke huidige-epoch-request. Overige protocolfouten
-worden geweigerd en lokaal gemeld; een appfout mag niet de gedeelde app-ingress
-van andere clients sluiten. De adapter sluit onverwachte caps en kan alleen
-de betrokken clientgrant intrekken. Een werkelijk gestopte core beëindigt zijn
-hele epoch en laat alle betrokken clients input annuleren.
-Er wordt geen succes of lege input als vervanging voor een fout uitgegeven.
-Empty en gewone commandobevestigingen beschrijven de toestand bij afhandeling;
-zij verlenen geen actuele focus. Alleen replies met input-/cancel-eventnummer
-worden bij focus-/lifecyclewijziging ongeldig. Een later ontvangen Empty wist
-geen inputstaat of nog wachtende cancel-watermark.
+Replies bind opcode+reply bit, request ID and service epoch. A PEEK contains
+Empty or one key/mouse/cancel event, with event number and focus generation.
+Key ID follows the explicit `PhysicalKey` u8 representation of this source
+contract; compatible extension requires retaining existing numbers or a new
+wire version. Arrow keys are physical keys; Unicode/text layout and hit
+testing remain separate compositor/text-layer interfaces.
+Status 0 is success and 1 is Empty; negative statuses 2–18 are the explicit
+`Error` numbers. `error_reply` creates a negative reply only for an already
+bound sender and a canonical current-epoch request. Other protocol errors
+are rejected and reported locally; an app error must not close the shared
+app ingress for other clients. The adapter closes unexpected capabilities
+and can revoke only the affected client grant. A core that has actually
+stopped ends its entire epoch and causes all affected clients to cancel input.
+No success or empty input is issued in place of an error. Empty and ordinary
+command acknowledgements describe state at handling time; they grant no
+current focus. Only replies with an input/cancel event number become invalid
+on a focus/lifecycle change. An Empty received later does not clear input
+state or a pending cancel watermark.
 
-## Acceptatie van deze voorbereiding
+## Acceptance of this preparation
 
-Hosttests gebruiken de echte capability-engine voor kernel-envelopherkomst en
-weigering van onbeschermde routes, naast vaste malformed-wirecases. Verder:
-focuswissel/death, oude ACKs, queueoverflow/cancel, streamgaten, controllerfouten,
-PS/2-muis/keyboard, no-focus-resetregressie, telleruitputting en begrensd geheugen.
-Compileer de library daadwerkelijk voor `x86_64-unknown-none`; draai Clippy
-en fmt in een eigen targetmap. Hostmodel en targetbuild krijgen geen native
-U01/U02-punten.
+Host tests use the real capability engine for kernel-envelope provenance and
+rejection of unprotected routes, alongside fixed malformed-wire cases. Also:
+focus change/death, old ACKs, queue overflow/cancel, stream gaps, controller
+errors, PS/2 mouse/keyboard, no-focus reset regression, counter exhaustion and
+bounded memory. Actually compile the library for `x86_64-unknown-none`; run
+Clippy and fmt in a dedicated target directory. The host model and target
+build receive no native U01/U02 points.
 
-Native vervolgpoort blijft open: beschermde sourcecap+driverloop, kernel-
-provenance en echte procesdeathobservatie, vier ingresses en replyroutes,
-QMP-toetsen/muis in twee geïsoleerde clients, EAGAIN/herstart en compositorfocus.
-Een eventueel opnieuw opgestarte dienst krijgt een nieuwe epoch en nieuwe
-endpointgeneraties; oude lokale tokens zijn geen herbruikbare autoriteit.
+The native follow-up gate remains open: protected source capability and driver
+loop, kernel provenance and real process-death observation, four ingresses
+and reply routes, QMP keys/mouse in two isolated clients, EAGAIN/restart and
+compositor focus. Any restarted service receives a new epoch and new endpoint
+generations; old local tokens are not reusable authority.
 
-## Uitgevoerd bewijs — 30 oktober 2026
+## Executed evidence — 30 October 2026
 
-Op basis `309ff53` plus deze nieuwe core zijn daadwerkelijk geslaagd (exit 0):
+On baseline `309ff53` plus this new core, the following actually passed (exit 0):
 
 ```sh
 cargo +1.90.0 test --manifest-path services/input-core/Cargo.toml --locked --offline -- --nocapture
@@ -108,32 +112,33 @@ cargo +1.90.0 fmt --manifest-path services/input-core/Cargo.toml --check
 git diff --check
 ```
 
-**20 hosttests** (19 grens-/lifetime-/wirecases plus telleruitputting) slagen.
-De echte capability-engine levert in die hostproeven afzender-PID en scoped
-receive, blokkeert vervalste sender-envelope en echte queuebackpressure. Dit
-blijft een hostmodel van die kernelbouwsteen, geen native invoerdienstbewijs.
-Gemeten `size_of::<Service>()` is 4256 bytes op x86-64, onder het lokale
-8-KiB-corebudget; de library gebruikt geen heap of externe dependencies.
-Productie-afhankelijkheden zijn uitsluitend bestaande lokale ui-core en SDK;
-capability-core is alleen dev-dependency. Shared Cargo-/kernel-/SDK-/UI-bestanden
-zijn niet gewijzigd.
-Een afzonderlijke agent herhaalde de oorspronkelijke 18 tests, Clippy en
-freestandingbuild onafhankelijk op `e228f0d`, zonder concrete blocker. De
-reviewverduidelijkingen over clientlokale telleruitputting en Empty als
-observatie zijn daarna in twee extra regressies vastgelegd; de IPC-queueproef
-eist nu precies kernel-EAGAIN. Productiecode en wiregedrag zijn daarbij niet
-gewijzigd. Dit is een AI-review binnen de genoemde scope, geen menselijke audit.
+**20 host tests** (19 boundary/lifetime/wire cases plus counter exhaustion)
+pass. In these host trials, the real capability engine provides sender PID
+and scoped receive, blocks a forged sender envelope and exercises actual
+queue backpressure. This remains a host model of that kernel component,
+not evidence of a native input service. Measured `size_of::<Service>()` is
+4256 bytes on x86-64, below the local 8-KiB core budget; the library uses no
+heap or external dependencies. Production dependencies are only the existing
+local ui-core and SDK; capability-core is a dev dependency only. Shared
+Cargo/kernel/SDK/UI files were not changed.
+A separate agent independently repeated the original 18 tests, Clippy and
+freestanding build on `e228f0d`, with no concrete blocker. Review
+clarifications on client-local counter exhaustion and Empty as an observation
+were then recorded in two additional regressions; the IPC queue trial now
+requires exactly kernel EAGAIN. Production code and wire behaviour were not
+changed. This is an AI review within the stated scope, not a human audit.
 
-Compiler en bron-/log-/targethashes staan in
+Compiler and source/log/target hashes are in
 [`services/input-core/verification/host-target.json`](../../services/input-core/verification/host-target.json).
-Volledige lokale logs: `build/input-core-checks/`; targetmap:
-`target/input-core/`. Toolselectie gebruikte bestaande
-`LOCALAPPDATA=/workspace/nieuw-os/.tools` via `tools/common.py::environment()`.
-Een initiële testcompile vereiste een expliciete u64-annotatie in de testhelper;
-de bovenstaande controles zijn daarna op de uiteindelijke bron herhaald.
+Complete local logs: `build/input-core-checks/`; target directory:
+`target/input-core/`. Tool selection used the existing
+`LOCALAPPDATA=/workspace/nieuw-os/.tools` through `tools/common.py::environment()`.
+An initial test compilation required an explicit u64 annotation in the test
+helper; the checks above were then repeated on the final source.
 
-Nog **niet uitgevoerd**: native hardware-ingress, echte sourcecap, driver- en
-compositorproces, procesdeathnotificaties, QMP-toets/muis, focus op echte surfaces,
-native dienstherstart en producttoegankelijkheid. De overige voorwaarden uit
-FULL-TEST-RELEASE blijven open. De bronbasis blijft de eigen microkernel en de
-bestaande [inputdecoderafspraken](NATIVE-INPUT.md) en Message320-contracten.
+Still **not executed**: native hardware ingress, real source capability,
+driver and compositor processes, process-death notifications, QMP keys/mouse,
+focus on real surfaces, native service restart and product accessibility.
+The other conditions from FULL-TEST-RELEASE remain open. The source baseline
+remains the project's own microkernel and the existing
+[input decoder agreements](NATIVE-INPUT.md) and Message320 contracts.

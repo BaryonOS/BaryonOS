@@ -1,170 +1,172 @@
-# Native grensproef voor display en PS/2
+# Native boundary trial for display and PS/2
 
-Deze afzonderlijke fixture is een uitvoeringstoets voor ABI 1.8 op het benoemde
-ontwikkelprofiel `display-input-dev-800x600`: QEMU 10.0.13, `pc-q35-8.2`,
-qemu64/TCG/1CPU/256MiB, UEFI-framebuffer strikt 800×600, eigen kernel en drie
-werkelijke CPL3-programma's. Het is geen acceptatie van de Materiaal-desktop,
-inputdaemon, focusbroker of basisprogramma's. De productomvang en alle open
-criteria uit `FULL-TEST-RELEASE.md` blijven gelden.
+This separate fixture is an execution test for ABI 1.8 on the named
+development profile `display-input-dev-800x600`: QEMU 10.0.13, `pc-q35-8.2`,
+qemu64/TCG/1 CPU/256 MiB, UEFI framebuffer strictly 800×600, the project's
+own kernel and three actual CPL3 programs. It is not acceptance of the
+Materiaal desktop, input daemon, focus broker or basic programs. The product
+scope and all open criteria from `FULL-TEST-RELEASE.md` remain applicable.
 
-De primaire geometriebron is de al bestaande
-`boot/loader/src/graphics.rs::prepare`: de begrensde GOP-QueryMode-selectie
-vereist `horizontal_resolution == 800`, `vertical_resolution == 600` en
-`pixel_format <= 1`; ontbreekt die modus, dan volgt `GOP_800_600`.
-De runner legt dit bronpad en de werkelijke bronhash vast. Dit kleine
-ontwikkelprofiel verlaagt de verplichte volledige releaseprofielen (VM-FR,
-1280×720 en 1920×1080/200%, met hun eigen resource-eisen) niet.
+The primary geometry source is the existing
+`boot/loader/src/graphics.rs::prepare`: bounded GOP QueryMode selection
+requires `horizontal_resolution == 800`, `vertical_resolution == 600` and
+`pixel_format <= 1`; if that mode is absent, `GOP_800_600` follows. The runner
+records this source path and the actual source hash. This small development
+profile does not reduce the mandatory full-release profiles (VM-FR, 1280×720
+and 1920×1080/200%, with their own resource requirements).
 
-De eerste echte run op `fc9515d66d6d65662de14860f7dc1e3173d05465`
-bereikte beide werkelijke Ready-markers van generatie 1 en leverde een echte
-800×600-PPM. Het oorspronkelijke harnas verwachtte foutief 1280×720 en brak
-de hostrun af met raw -9/`passed=false` vóór QMP-invoer. Dat was een
-harnasfout. Dat mislukte bewijs wordt bewaard; een nieuwe run moet de volledige
-pixel-, invoer-, rechten-, sequence- en cleanupcontrole alsnog doorstaan.
+The first real run on `fc9515d66d6d65662de14860f7dc1e3173d05465`
+reached both actual generation-1 Ready markers and produced a real 800×600
+PPM. The original harness incorrectly expected 1280×720 and aborted the host
+run with raw -9/`passed=false` before QMP input. That was a harness error.
+That failed evidence is retained; a new run must still pass the complete
+pixel, input, permission, sequence and cleanup checks.
 
-## Eigenaarschap en integratie
+## Ownership and integration
 
-De nieuwe bronbestanden zijn de standalone crate
-`sdk/examples/display-input-probe/**` en `kernel/src/m2/m3/display_fixture.rs`.
-De hoofdagent bezit kernel-Cargo, gedeelde M3/M4-haken, SDK ABI/wrappers,
-imagebouwer en QMP-runner. De fixture verleent geen algemene nieuwe rechten.
-De bestaande `DISPLAY`/`INPUT`-objecten blijven uitsluitend manifestrechten.
+The new source files are the standalone crate
+`sdk/examples/display-input-probe/**` and `kernel/src/m2/m3/display_fixture.rs`.
+The lead agent owns kernel Cargo, shared M3/M4 hooks, SDK ABI/wrappers, image
+builder and QMP runner. The fixture grants no general new permissions. The
+existing `DISPLAY`/`INPUT` objects remain manifest-only permissions.
 
-Het nieuwe profiel heet `native-display-probe = ["display-input"]`. Het mag
-niet tegelijk met een andere native fixture worden gekozen. De M4
-capabilityengine, IPC-dispatch en usercopy blijven werkelijk actief; de oude
-M4-proefmanifesten, waarnemers en hun tellers worden voor dit profiel
-uitgesloten. De systeemproef wordt niet als alternatief programma ingebed.
+The new profile is named `native-display-probe = ["display-input"]`. It must
+not be selected together with another native fixture. The M4 capability
+engine, IPC dispatch and usercopy remain actually active; the old M4 trial
+manifests, observers and their counters are excluded for this profile. The
+system trial is not embedded as an alternative program.
 
-`process_elf(slot)` gebruikt uitsluitend deze werkelijk gebouwde ELF's:
+`process_elf(slot)` uses only these actually built ELFs:
 
-| Slot / eerste PID | Programma | Compile-time pad |
+| Slot / initial PID | Program | Compile-time path |
 | --- | --- | --- |
 | 0 / 1 | `display-probe` | `NOS_DISPLAY_PROBE_ELF` |
 | 1 / 2 | `input-probe` | `NOS_INPUT_PROBE_ELF` |
 | 2 / 3 | `display-intruder-probe` | `NOS_DISPLAY_INTRUDER_ELF` |
 
-De kernel roept de nieuwe observer aan met `manifest(&State)`,
+The kernel calls the new observer with `manifest(&State)`,
 `observe_exit(&State, usize, u64)`,
-`observe_fault(&State, usize, &[u64;22], u64)` en `poll(&mut State)`.
-Na de bestaande framebuffer-voorbereiding blijven `display::prepare()` en
-`ps2::prepare()` staan; de bestaande cleanup roept beide `detach(pid)` en
-`m4::process_exit(pid)` aan. De observer doet zelf geen beeld- of poort-I/O.
+`observe_fault(&State, usize, &[u64;22], u64)` and `poll(&mut State)`.
+After the existing framebuffer preparation, `display::prepare()` and
+`ps2::prepare()` remain in place; existing cleanup calls both `detach(pid)`
+and `m4::process_exit(pid)`. The observer itself performs no display or port I/O.
 
-De private startup-/bewijspagina gebruikt `src/contract.rs`. Deze pagina is
-geen gepubliceerde applicatie-ABI. `SOURCE=48`, `WRONG_TYPE=56`,
-`PEER_DISPLAY=64`, `PEER_INPUT=72`, `GENERATION=80`, `CONTROL=88` en
-`OLD_SOURCE=96`. Resultaten beginnen bij 400; foutstap staat op 240.
-Ieder proces heeft een eigen endpoint als verkeerd objecttype. De inputbron
-heeft daarnaast een tweede endpoint zodat haar bronhandle een andere slotindex
-heeft dan de displayhandle. Een gekopieerd getal mag geen bronrecht worden.
+The private startup/evidence page uses `src/contract.rs`. This page is not a
+published application ABI. `SOURCE=48`, `WRONG_TYPE=56`, `PEER_DISPLAY=64`,
+`PEER_INPUT=72`, `GENERATION=80`, `CONTROL=88` and `OLD_SOURCE=96`. Results
+start at 400; the failing step is at 240. Each process has its own endpoint
+as a wrong object type. The input source also has a second endpoint so that
+its source handle has a different slot index from the display handle. A
+copied number must not become a source permission.
 
-## Werkelijke handelingen en tegenproeven
+## Actual operations and counterexamples
 
-De display-eigenaar vraagt via de getypeerde SDK de echte geometrie op en
-tekent één tegel van 32×8 pixels. Daarna gaan doelbewust ongeldige descriptors,
-epoch, geometrie, alpha, lengtes, overige registers en pointers als ruwe
-`int 0x80`-aanroepen door de echte kernelgrens. Zo kan lokale SDK-validatie
-een ontbrekende kernelcontrole niet maskeren. Ieder foutresultaat vereist
-ook `RDX=0`.
+The display owner obtains the actual geometry through the typed SDK and draws
+one tile of 32×8 pixels. Deliberately invalid descriptors, epoch, geometry,
+alpha, lengths, other registers and pointers then pass through the real
+kernel boundary as raw `int 0x80` calls. Local SDK validation therefore
+cannot mask a missing kernel check. Every error result also requires `RDX=0`.
 
-Voor de laatste alpha-byte zijn de overige pixels een andere kleur. Voor de
-copy-grens wijst de payload naar `0x60010000-320`: de eerste 320 bytes behoren
-tot de echte private heap, de volgende pagina is ongemapt. De fout moet vóór
-iedere framebufferstore optreden. De kernelobserver leest geen verzonnen
-pixels terug; de externe runner vergelijkt de echte QMP-screenshot.
+For the last alpha byte, the other pixels have a different colour. For the
+copy boundary, the payload points to `0x60010000-320`: the first 320 bytes
+belong to the actual private heap; the next page is unmapped. The error must
+occur before any framebuffer store. The kernel observer does not read back
+invented pixels; the external runner compares the real QMP screenshot.
 
-Ronde 1 tekent op (64,64), ronde 2 op (112,80). Voor generatie `g`, lokale
-pixel `(x,y)` is de kleur:
+Round 1 draws at (64,64), round 2 at (112,80). For generation `g` and local
+pixel `(x,y)`, the colour is:
 
 ```text
 ((0x20 + g*0x20 + x*3) << 16) | ((0x30 + y*0x13) << 8) | (0x70 + x + y)
 ```
 
-Dat zijn gepakte `0x00RRGGBB`-pixels. De onafhankelijke runner berekent dezelfde
-gepubliceerde patroondefinitie zonder de appresultaten als beeldbron te nemen.
-Hij controleert de eerste tegel vóór nieuwe invoer, daarna beide tegels. De
-tweede ronde overschrijft de eerste tegel niet.
+These are packed `0x00RRGGBB` pixels. The independent runner calculates the
+same published pattern definition without taking app results as its image
+source. It checks the first tile before new input, then both tiles. The
+second round does not overwrite the first tile.
 
-De inputbron start zelf een reset en wacht op de echte ACK/BAT/ID0/Set2- en
-controllertranslatieketen. Een startticket is geen Ready. Voor de eerste
-reset-poll krijgt een ongeldige outputpointer een fout zonder prefixwijziging.
-Pas de `Ready`-reply met de echte epoch maakt de bron actief. De lege Ready
-wachtrij geeft EAGAIN zonder de outputsentinel te veranderen.
+The input source starts a reset itself and waits for the actual ACK/BAT/ID0/
+Set2 and controller-translation chain. A startup ticket is not Ready. Before
+the first reset poll, an invalid output pointer receives an error without a
+prefix change. Only the `Ready` reply with the actual epoch activates the
+source. The empty Ready queue returns EAGAIN without changing the output
+sentinel.
 
-De observer meldt per generatie `DISPINPUT:DISPLAY_READY:<20 cijfers>` en
-`DISPINPUT:INPUT_READY:<20 cijfers>`. De QMP-runner wacht op beide stappen en
-maakt de screenshot. Daarna stuurt hij een echte `a` make/break, een
-`input-send-event`-batch met relatieve x=7/y=-3 en linkerknop neer, gevolgd
-door linkerknop op. De bron vereist precies deze acht werkelijke bytes:
+For each generation, the observer reports
+`DISPINPUT:DISPLAY_READY:<20 cijfers>` and `DISPINPUT:INPUT_READY:<20 cijfers>`
+(the placeholder denotes 20 digits). The QMP runner waits for both steps and
+takes the screenshot. It then sends a real `a` make/break, an
+`input-send-event` batch with relative x=7/y=-3 and left button down, followed
+by left button up. The source requires exactly these eight actual bytes:
 
 ```text
 1e 9e 09 07 03 08 00 00
 ```
 
-De eerste twee hebben keyboardstatus, de laatste zes AUX-status; OBF moet aan
-en parity/timeout moeten uit zijn. De ruwe samples blijven ruwe bytes; deze
-proef is geen hostdecoder of native inputpolicy. De bron vereist echte
-sequences 1..8 en de actuele resetepoch. Vóór **iedere** geldige read probeert
-zij een outputbuffer over de heapguard: die weigering mag geen FIFO-byte of
-sequence verbruiken. Alle acht status/bytecombinaties worden bij echte exit
-als `DISPINPUT:RAW:<20 cijfers>` uitgegeven, telkens voorafgegaan door
-`DISPINPUT:SEQ:<20 cijfers>` uit de werkelijk ontvangen `Sample.sequence`.
-De private sequencevelden staan op 640..696. De host valideert beide
-transcripten afzonderlijk als sequence 1..8; hij construeert geen sequence uit
-alleen de positie in de uitvoer.
+The first two have keyboard status; the last six have AUX status. OBF must
+be on and parity/timeout must be off. Raw samples remain raw bytes; this trial
+is neither a host decoder nor native input policy. The source requires actual
+sequences 1..8 and the current reset epoch. Before **every** valid read, it
+tries an output buffer crossing the heap guard: that rejection must consume
+neither a FIFO byte nor a sequence. All eight status/byte combinations are
+emitted on actual exit as `DISPINPUT:RAW:<20 cijfers>`, each preceded by
+`DISPINPUT:SEQ:<20 cijfers>` from the actually received `Sample.sequence`
+(the placeholders denote 20 digits). Private sequence fields are at 640..696.
+The host validates both transcripts separately as sequence 1..8; it does not
+construct a sequence solely from the position in the output.
 
-De onbevoegde derde app probeert beide gekopieerde bronintegers, verkeerde
-objecttypen en nulhandles. De twee eigenaars proberen afleiden, nulrechten
-afleiden, intrekken en IPC-overdracht van hun bron; die blijven geweigerd.
-Foutieve outputaanroepen behouden hun sentinels. Beide eigenaars sluiten hun
-bron en controleren daarna de stale handle via een echte syscall.
-Voor DERIVE/TRANSFER/REVOKE is de bestaande foutcode `Invalid` (-1): deze
-operaties behoren niet tot de ondersteunde rechten van het bronobjecttype.
-Twee gerichte hostcontracttests gebruiken de echte capabilityengine om deze
-foutcodes, volledige foutatomiciteit en de gekopieerde/gesloten/oude handle-
-verwachtingen vóór de native proef te controleren.
+The unauthorised third app tries both copied source integers, wrong object
+types and zero handles. The two owners try derivation, zero-rights derivation,
+revocation and IPC transfer of their source; these remain rejected. Invalid
+output calls preserve their sentinels. Both owners close their source and
+then check the stale handle through a real syscall. For DERIVE/TRANSFER/REVOKE,
+the existing error code is `Invalid` (-1): these operations are not supported
+rights of the source object type. Two targeted host contract tests use the
+real capability engine to check these error codes, complete failure atomicity
+and copied/closed/old-handle expectations before the native trial.
 
-Wanneer alle resultaten klaarstaan, geeft de observer CONTROL=1, observeert
-werkelijke exits en laat de normale cleanup lopen. Pas nadat alle processen
-Dead zijn, controleert hij engine-invarianten, lege object-/queue-/handle- en
-procesaantallen en herstelde fysieke frames, rekening houdend met expliciet
-behouden kernelpagetabellen. Hij hergebruikt dan alle drie slots met nieuwe
-PID's 4..6 en nieuwe manifestcapabilities. Oude bronintegers blijven ongeldig;
-displayepoch, inputepoch en ticket moeten stijgen. De nieuwe inputbron mag
-geen oude Ready erven en voert de hardware-initialisatie opnieuw uit.
+When all results are ready, the observer sets CONTROL=1, observes actual exits
+and allows normal cleanup to run. Only after all processes are Dead does it
+check engine invariants, empty object/queue/handle and process counts, and
+recovered physical frames, accounting for explicitly retained kernel page
+tables. It then reuses all three slots with new PIDs 4..6 and new manifest
+capabilities. Old source integers remain invalid; display epoch, input epoch
+and ticket must increase. The new input source must not inherit an old Ready
+and performs hardware initialisation again.
 
-## Tellers en bewijsgrens
+## Counters and evidence boundary
 
-Na twee rondes zijn de vaste getallen: BLITS=2, PIXELS=512,
+After two rounds, the fixed numbers are: BLITS=2, PIXELS=512,
 DISPLAY_DENIED=22, CAP_DENIED=44, RESETS=2, READY=2, SAMPLES=16, CLOSED=4,
-OLD_DENIED=2, EXITS=6, SLOT_REUSES=3, LIVE_PROCESSES=0 en
-FRAMES_RECOVERED=1. POINTER_DENIED is minstens 18; OUTPUT_UNCHANGED is
-POINTER_DENIED+27. RESET_PENDING is minstens 2. Meer lege reads zijn toegestaan,
-maar iedere extra pointerweigering moet ook een ongewijzigde prefix opleveren.
-De onafhankelijke adaptertellers zijn display `[2,512,35]` en input
-`[2,2,16,POINTER_DENIED+17,werkelijk_discarded]`.
+OLD_DENIED=2, EXITS=6, SLOT_REUSES=3, LIVE_PROCESSES=0 and
+FRAMES_RECOVERED=1. POINTER_DENIED is at least 18; OUTPUT_UNCHANGED is
+POINTER_DENIED+27. RESET_PENDING is at least 2. More empty reads are permitted,
+but each additional pointer rejection must also produce an unchanged prefix.
+The independent adapter counters are display `[2,512,35]` and input
+`[2,2,16,POINTER_DENIED+17,werkelijk_discarded]` (the final field is the
+actual discarded count).
 
-Alleen na werkelijke uitvoering, exact gevalideerde marker-/tellertranscriptie,
-QMP-invoer en onafhankelijke pixelcontrole mogen de afsluitende markers
-`DISPINPUT:DISPLAY:PASS`, `INPUT:PASS`, `ISOLATION:PASS`, `CLEANUP:PASS` en
-`M1:PASS` als native bewijs gelden. Ruwe VM-exit moet 33 zijn. Een compile,
-hosttest, ingevulde startupwaarde of vooraf getoonde screenshot vervangt dat
-niet. De observer begrenst de proef op 10000 ticks en 2000000 syscalls.
+Only after actual execution, an exactly validated marker/counter transcript,
+QMP input and independent pixel checks may the final markers
+`DISPINPUT:DISPLAY:PASS`, `INPUT:PASS`, `ISOLATION:PASS`, `CLEANUP:PASS` and
+`M1:PASS` count as native evidence. The raw VM exit must be 33. Compilation,
+a host test, a populated startup value or a previously displayed screenshot
+does not replace that evidence. The observer bounds the trial to 10000 ticks
+and 2000000 syscalls.
 
-## Uitgevoerde voorbereidende controle
+## Executed preparatory checks
 
 `LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-display-probe-target python3 -B sdk/examples/display-input-probe/build.py`
-bouwde de drie ELF's met Rust 1.90.0, eigen linker, offline lockfile en
-uitgeschakelde SSE/AVX-codegeneratie. `objdump -d` vond in die echte binaries
-geen FPU/SIMD-instructies of registers. De entry is een gewone extern-C-functie:
-de compiler zet een `push rax` vóór de call naar main, passend bij de bestaande
-kernel-entry met RSP mod 16 = 8.
+built the three ELFs with Rust 1.90.0, the project's linker, an offline lockfile
+and disabled SSE/AVX code generation. `objdump -d` found no FPU/SIMD
+instructions or registers in those actual binaries. The entry is an ordinary
+extern-C function: the compiler inserts a `push rax` before the call to main,
+matching the existing kernel entry with RSP mod 16 = 8.
 
-De nieuwe crate is met native feature en none-target door Clippy gecontroleerd
-met `-D warnings`; fmt en Python-syntaxcontrole slagen. De actuele bestaande
-PS/2-testset (8 tests) en display-clienttestset (5 tests) slagen in eigen targets.
-Dit voorbereidende bewijs is gebouwd met de door de hoofdagent aangeleverde
-tijdelijke ABI1.8-SDK-patch; die patch wordt niet in de fixturecommit opgenomen.
-De gezamenlijke native kernelbuild en QMP-bediening volgen in de integratietak.
-Deze tekst claimt die uitvoering nog niet.
+The new crate was checked by Clippy with the native feature and none target,
+using `-D warnings`; fmt and Python syntax checks pass. The current existing
+PS/2 test set (8 tests) and display-client test set (5 tests) pass in dedicated
+targets. This preparatory evidence was built using the temporary ABI1.8 SDK
+patch supplied by the lead agent; that patch is not included in the fixture
+commit. The combined native kernel build and QMP operation follow in the
+integration branch. This text does not yet claim that execution.

@@ -1,25 +1,25 @@
-# Bestandssystemen, VFS en consistentie
+# Filesystems, VFS and consistency
 
-Het boek begint met een read-onlybestandssysteem in een RAM-image en introduceert daarna inodes en VFS. De wiki bespreekt concrete formaten, vrije ruimte, naamgeving, metadata, caches, journaling en eigen bestandssystemen. De tekst blijft per formaat herkenbaar: specificaties van verschillende formaten worden niet samengevoegd.
+The book begins with a read-only filesystem in a RAM image, then introduces inodes and VFS. The wiki discusses specific formats, free space, naming, metadata, caches, journaling and custom filesystems. Each format remains identifiable in the text: specifications for different formats are not merged.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [File Systems](../corpus/wiki-01.md#w001505) [W001505] · revisie 29795 · 2025-12-19T21:49:56Z
-- [File Management](../corpus/wiki-03.md#w001859) [W001859] · revisie 29945 · 2026-02-09T19:32:39Z
-- [Hierarchical VFS Theory](../corpus/wiki-07.md#w002957) [W002957] · revisie 27996 · 2023-07-09T17:40:12Z
-- [Initrd](../corpus/wiki-08.md#w003194) [W003194] · revisie 28032 · 2023-07-09T18:43:01Z
-- [FAT](../corpus/wiki-01.md#w001506) [W001506] · revisie 30279 · 2026-03-16T17:58:45Z
-- [Ext2](../corpus/wiki-01.md#w001509) [W001509] · revisie 29719 · 2025-10-19T14:43:19Z
-- [Journaling](../corpus/wiki-07.md#w003000) [W003000] · revisie 27725 · 2023-04-02T22:31:31Z
-- [Roll Your Own Filesystem](../corpus/wiki-10.md#w003638) [W003638] · revisie 30846 · 2026-07-04T13:13:54Z
+- [File Systems](../corpus/wiki-01.md#w001505) [W001505] · revision 29795 · 2025-12-19T21:49:56Z
+- [File Management](../corpus/wiki-03.md#w001859) [W001859] · revision 29945 · 2026-02-09T19:32:39Z
+- [Hierarchical VFS Theory](../corpus/wiki-07.md#w002957) [W002957] · revision 27996 · 2023-07-09T17:40:12Z
+- [Initrd](../corpus/wiki-08.md#w003194) [W003194] · revision 28032 · 2023-07-09T18:43:01Z
+- [FAT](../corpus/wiki-01.md#w001506) [W001506] · revision 30279 · 2026-03-16T17:58:45Z
+- [Ext2](../corpus/wiki-01.md#w001509) [W001509] · revision 29719 · 2025-10-19T14:43:19Z
+- [Journaling](../corpus/wiki-07.md#w003000) [W003000] · revision 27725 · 2023-04-02T22:31:31Z
+- [Roll Your Own Filesystem](../corpus/wiki-10.md#w003638) [W003638] · revision 30846 · 2026-07-04T13:13:54Z
 
-## Aansluiting op het PDF-boek
+## Related PDF book pages
 
-- Pagina 69–70: [B069](../corpus/boek.md#b069) tot [B070](../corpus/boek.md#b070).
+- Pages 69–70: [B069](../corpus/boek.md#b069) to [B070](../corpus/boek.md#b070).
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [AFS](../corpus/wiki-01.md#w001520) [W001520]
 - [BeFS](../corpus/wiki-01.md#w001512) [W001512]

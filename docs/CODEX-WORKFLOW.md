@@ -1,45 +1,45 @@
-# Codex: rollen, context en toetsbare resultaten
-Onderzoeksdatum: 26 oktober 2026. Dit is de voorgestelde projectwerkwijze; de meegeleverde configuratie is syntactisch controleerbaar maar nog niet in de beoogde Codex-installatie beproefd.
+# Codex: roles, context and verifiable results
+Research date: 26 October 2026. This is the proposed project workflow; the supplied configuration can be checked syntactically but has not yet been tested in the intended Codex installation.
 
-## Eén coördinator
-De hoofdchat bezit de planning en integreert wijzigingen. Een agent krijgt één doel en een beperkte schrijfzone. Standaard maximaal drie subagents; sequentieel werken als de taken op elkaar wachten. Extra agents kosten context, tokens en integratiewerk.
+## One coordinator
+The main conversation owns planning and integrates changes. Each agent receives one goal and a limited write scope. Use at most three subagents by default; work sequentially when tasks depend on one another. Additional agents consume context, tokens and integration effort.
 
-| Rol | Concrete opdracht | Oplevering |
+| Role | Concrete assignment | Deliverable |
 |---|---|---|
-| os_architect | Controleer specificatie, interfaces en kleinste uitvoerbare stap | Beknopt besluit met bronnen en alternatieven; aanvankelijk alleen lezen |
-| os_builder | Implementeer precies één overeengekomen slice | Diff, buildcommando's, tests en beperkingen |
-| os_security_reviewer | Zoek tegenvoorbeelden en onterechte bevoegdheden | Bevindingen met trigger, locatie, impact en herstelrichting; alleen lezen |
-| os_verifier | Controleer betekenis van tests en voer toegestane controles uit | Reproduceerbaar bewijs of specifieke blokkade; geen codewijziging zonder taak |
+| os_architect | Check the specification, interfaces and smallest executable step | Concise decision with sources and alternatives; initially read-only |
+| os_builder | Implement exactly one agreed slice | Diff, build commands, tests and limitations |
+| os_security_reviewer | Find counterexamples and unjustified authority | Findings with trigger, location, impact and remedy direction; read-only |
+| os_verifier | Check what tests demonstrate and run permitted checks | Reproducible evidence or a specific blocker; no code changes without an assignment |
 
-Start niet tegelijk vier builders aan dezelfde kernel. Een architect kan bijvoorbeeld het bootcontract onderzoeken terwijl een verifier testgevallen ontwerpt. De builder gebruikt het overeengekomen contract; de securityreview volgt op de concrete diff.
+Do not start four builders on the same kernel simultaneously. An architect can, for example, investigate the boot contract while a verifier designs test cases. The builder uses the agreed contract; security review follows the concrete diff.
 
-## Instructies en configuratie
-De root-AGENTS.md bevat vaste projectregels; submappen bevatten aanvullende regels. Die bestanden starten zelf geen agents en zijn geen OS-sandbox. Controleer welke instructies de client daadwerkelijk heeft ingeladen, vooral bij werk vanuit de root.
+## Instructions and configuration
+The root AGENTS.md contains permanent project rules; subdirectories contain additional rules. These files do not start agents themselves and are not an OS sandbox. Check which instructions the client actually loaded, particularly when working from the root.
 
-De optionele .codex/agents/*.toml-bestanden beschrijven vier rollen. Ze pinnen bewust geen model: de hoofdchat kiest een beschikbaar model. .codex/config.example.toml bevat een optionele concurrency-instelling. Neem die alleen over als de gebruikte client de actuele configuratiesleutels ondersteunt; overschrijf geen bestaande config. Gebruik bij een oudere client de rolbeschrijvingen als taakprompt.
+The optional .codex/agents/*.toml files describe four roles. They deliberately do not pin a model: the main conversation selects an available model. .codex/config.example.toml contains an optional concurrency setting. Adopt it only if the client in use supports the current configuration keys; do not overwrite an existing configuration. With an older client, use the role descriptions as task prompts.
 
-## Opdrachtcontract
-Gebruik TASK-TEMPLATE.md en vermeld altijd:
-- basiscommit/werkmap en toegestane bestanden;
-- invariant en interface-eigenaar;
-- positieve én negatieve acceptatietest;
-- wat nu buiten scope valt;
-- welke evidence moet terugkomen.
+## Task contract
+Use TASK-TEMPLATE.md and always state:
+- the base commit/working directory and permitted files;
+- the invariant and interface owner;
+- positive and negative acceptance tests;
+- what is currently outside scope;
+- the evidence to be returned.
 
-Agents in dezelfde omgeving kunnen bestanden en credentials delen. Alleen 'jij bent reviewer' schrijven blokkeert mutaties niet technisch. Gebruik beschikbare sandbox- en toegangsinstellingen en geef een reviewomgeving geen releasekeys. Onbetrouwbare issue- of brontekst kan promptinjecties bevatten; houd die tekst als gegevens gescheiden van opdracht/beleid.
+Agents in the same environment can share files and credentials. Simply writing 'you are the reviewer' does not technically prevent mutations. Use available sandbox and access settings, and do not give a review environment release keys. Untrusted issue or source text can contain prompt injections; keep that text separate as data from the assignment and policy.
 
-## Git-integratie
-Eén hoofdbranch voor gecontroleerde resultaten. Elke taak een kleine branch; verschillende implementatiechats een eigen worktree als de client dat ondersteunt. Leg de gebruikte basiscommit vast. Integreer achtereenvolgens en draai daarna de relevante tests op de gecombineerde versie.
+## Git integration
+Use one main branch for verified results. Each task has a small branch; different implementation conversations use separate worktrees where the client supports them. Record the base commit. Integrate sequentially, then run the relevant tests on the combined version.
 
-Push/PR/release zijn verschillende acties. Review van een losse branch bewijst niet dat de samengestelde hoofdbranch werkt. De coördinator bepaalt op bewijs de integratievolgorde. Bewaar buildscripts hostonafhankelijk waar haalbaar; zet geen uitsluitend platformspecifieke CI-actie neer zonder lokaal equivalent.
+Push, PR and release are different actions. Review of an individual branch does not prove that the combined main branch works. The coordinator determines integration order from evidence. Keep build scripts host-independent where feasible; do not introduce a platform-specific CI action without a local equivalent.
 
-## Pauzeren en hervatten
-Na ieder resultaat: PROJECT-STATE.md bijwerken, nieuwe besluiten vastleggen en wijzigingen committen wanneer de taak dat toestaat. Start een nieuwe chat voor een volgende duidelijke mijlpaal of wanneer een gesprek onoverzichtelijk wordt. Gebruik PROMPT-VERVOLG.md. De repository is de contextbron; de AI hoeft oude chats niet perfect te herinneren.
+## Pausing and resuming
+After each result: update PROJECT-STATE.md, record new decisions and commit changes when the assignment permits. Start a new conversation for the next clear milestone or when a conversation becomes difficult to follow. Use PROMPT-VERVOLG.md. The repository is the source of context; the AI does not need perfect recall of earlier conversations.
 
-## Review is geen certificering
-Twee agents van hetzelfde model kunnen dezelfde fout maken. Gebruik compilerchecks, echte emulatorruns, fuzzing, properties, gerichte formele modellen en uiteindelijk menselijke expertise. Rust-compilatie bewijst geen veilige autorisatie; een succesvolle boot bewijst geen correcte pagetables.
+## Review is not certification
+Two agents using the same model can make the same mistake. Use compiler checks, actual emulator runs, fuzzing, properties, focused formal models and ultimately human expertise. Rust compilation does not prove safe authorisation; successful boot does not prove correct page tables.
 
-## Bronnen
-OpenAI. (z.d.). *Subagents*. Geraadpleegd op 26 oktober 2026, van https://learn.chatgpt.com/docs/agent-configuration/subagents
-OpenAI. (z.d.). *Custom instructions with AGENTS.md*. Geraadpleegd op 26 oktober 2026, van https://learn.chatgpt.com/docs/agent-configuration/agents-md
-OpenAI. (z.d.). *Worktrees*. Geraadpleegd op 26 oktober 2026, van https://learn.chatgpt.com/docs/environments/git-worktrees
+## Sources
+OpenAI. (n.d.). *Subagents*. Retrieved October 26, 2026, from https://learn.chatgpt.com/docs/agent-configuration/subagents
+OpenAI. (n.d.). *Custom instructions with AGENTS.md*. Retrieved October 26, 2026, from https://learn.chatgpt.com/docs/agent-configuration/agents-md
+OpenAI. (n.d.). *Worktrees*. Retrieved October 26, 2026, from https://learn.chatgpt.com/docs/environments/git-worktrees

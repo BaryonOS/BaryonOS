@@ -1,0 +1,230 @@
+English translation targeted validation
+Recorded UTC: 2026-11-09T00:21:25.043146+00:00
+Working directory: /workspace/scratch/4c2decb13c56/baryonos-english
+HEAD: a462e0dda14658db7e4c4fa0dbad8f971201022d
+Comparison base: 9922810a18f2272f534e1539e2d980d3d8922bb3
+Python: 3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]
+Command environment addition: PYTHONDONTWRITEBYTECODE=1
+No dependency installation; Python compilation performed in memory; no generator --write, commit, remote write, Rust build or QEMU run.
+Input hashes before execution:
+{
+  ".agents/skills/os-dev/SKILL.md": "c30a24cf922d8839b55d3e094b52a2d6eb34d3717cec69bf548ff2a2498de258",
+  ".agents/skills/os-dev/agents/openai.yaml": "bf893b1e14bd09b8d5208e670fa948d5fee86fdf776462cdc5ba828ea395f0a4",
+  ".agents/skills/os-dev/scripts/build_corpus.py": "731ac7898f34a6f3de6bb20d6230b23de358731b9b0543ad83613da33812382b",
+  ".agents/skills/os-dev/scripts/validate_skill.py": "fa973b9295d4e496509997914c9e1f96b9b46e1b1bf117c077c4bbc5aaa4d596",
+  ".agents/skills/os-dev/scripts/zoeken.py": "8089e26d3d25e54d6167d4305aec7391223c26623b5da172f73497f3e708a967",
+  ".agents/skills/os-dev/tests/test_zoeken.py": "ad0e0df1531dedf34a2b787d1ff3c317f850bb89334f45ad15c303f99a1bc50a",
+  ".coderabbit.yaml": "92ced015d920ff5e730d468359cd42a185d2ed3c51019070f9c22cd3478d9d88",
+  ".codex/agents/os_architect.toml": "2dbdc1a33e61d14c3ffef2796a3130bea3f42118ee621aeec661ffd7ae7498e5",
+  ".codex/agents/os_builder.toml": "a414bdb4815355fbe7a5f0ede82bb4bf00b2483929a753f2ae9bee474a02efba",
+  ".codex/agents/os_security_reviewer.toml": "2656496ae9df986d0da724a65604ab2a2777311fe9c5a1279bc0c56c21592b9b",
+  ".codex/agents/os_verifier.toml": "5f19eab88ecbec7f50c22a5b12585ddf538533e487176319cc54c5f5123d2503",
+  ".codex/config.example.toml": "c0d56475b88bea8c2882d1914474da59271e79cd5ead3e8248f640625b020357",
+  ".github/DISCUSSION_TEMPLATE/architectuur-en-ontwerp.yml": "8b061730ba7ab3a0e562d019fe87e3a7f7e17f1eeada261e93f8160698a04756",
+  ".github/DISCUSSION_TEMPLATE/product-en-gebruikservaring.yml": "b938a67652169757b04cd7a1b91d2a76591c002bcd526ed4087e7510e279d3f2",
+  ".github/DISCUSSION_TEMPLATE/testresultaten-en-demos.yml": "3b28c44425e82447a4501bf18b4b15c9332cc4e29c957761e62f76655829425d",
+  ".github/DISCUSSION_TEMPLATE/vragen-en-hulp.yml": "f78bebd076d8a9e2e38bf17ea0fc6e878d4d3a84b5bad359b48025081bbc8a3b",
+  ".github/ISSUE_TEMPLATE/bug_report.yml": "68190404b94be9aefb17736a72eb92dc48ff2c56e479fe15fcecd0ce7b1437f1",
+  ".github/ISSUE_TEMPLATE/ci_test_failure.yml": "48824d5683bad37006e982fd1ddb1a2c68ff562d6f7ff5dd4c7ae8618684bde7",
+  ".github/ISSUE_TEMPLATE/config.yml": "39212d2023ee7812139070ee730b5dd1acfd2249804fe68ada0d4582ea838208",
+  ".github/ISSUE_TEMPLATE/documentation.yml": "6c6224367f62e7d7d8e6f216aca6b108814e8425390cb1c55e44a7f3fe7e7e43",
+  "README.md": "3ff256d21f2e67032a85b52b29c585c9b8bf150b726e3db50e761ebf453b777b",
+  "docs/PROGRESS.md": "3da7bcf18730a16f51453f05b21555b39ac8b40f658e8cb05c9f2aa77b5a859d",
+  "docs/assets/progress.svg": "5241b1efa63945e5467ccf6c067a1daa6f3cb34ff3d65225f326e80a4c4a8d79",
+  "docs/progress.json": "a105e9207d6c54ca09ebb621284780c0bed496adfb4c0e4007ac09b0198b42ae",
+  "docs/verification/english-translation-20261109/github-before.json": "b75ddfda015930f57bff158246fca9456050f4c14af8922669fc4ead2fb2cfaa",
+  "docs/verification/english-translation-20261109/pull-requests-before.json": "71ca9813d442c79a8d45d72cf0088fe04ccf3dfc285f2a93f27a533e86912107",
+  "docs/verification/wetenschappelijke-herkomst-20261109.json": "495503529ea5f595694d5e1734afc46f120816d4f4d7004a0f7a1f8a520e751b",
+  "tools/agent_gate.py": "b22242245b601b9bfd8f7594af942be3254ce2c032136c5e9e9c756bd0989da7",
+  "tools/agent_pipeline.py": "0dffb82b58f03c7f42761ae3337696dd2be7938e13627fedf98ec70454b66fb6",
+  "tools/progress.py": "9dc74e7eb1f0145c697bab9c44594bb543c936496ba02986cdac527823be8c94",
+  "tools/tests/test_agent_pipeline.py": "4f870e721adcf5af825c02e5712c3933b6f71d621580f476eb7bf33ccb51fce8"
+}
+
+=== pipeline tests ===
+Start UTC: 2026-11-09T00:21:24.318448+00:00
+Command: python3 -B -m unittest discover -s tools/tests -p test_agent_pipeline.py -v
+Argument vector JSON: ["python3", "-B", "-m", "unittest", "discover", "-s", "tools/tests", "-p", "test_agent_pipeline.py", "-v"]
+Duration seconds: 0.174627
+Exit code: 0
+--- stdout (0 bytes) ---
+
+--- stderr (2319 bytes) ---
+test_build_dirs_come_from_the_checkout_not_the_caller (test_agent_pipeline.Gate.test_build_dirs_come_from_the_checkout_not_the_caller) ... ok
+test_condensed_without_rtk_returns_the_tail (test_agent_pipeline.Gate.test_condensed_without_rtk_returns_the_tail) ... ok
+test_failure_is_exit_two_and_stops (test_agent_pipeline.Gate.test_failure_is_exit_two_and_stops) ... ok
+test_keeps_only_check_steps_and_expands_workspace (test_agent_pipeline.Gate.test_keeps_only_check_steps_and_expands_workspace) ... ok
+test_pipefail_catches_a_failing_producer (test_agent_pipeline.Gate.test_pipefail_catches_a_failing_producer) ... ok
+test_real_ci_job_matches_the_workflow (test_agent_pipeline.Gate.test_real_ci_job_matches_the_workflow) ... ok
+test_refuses_unknown_context_and_bad_references (test_agent_pipeline.Gate.test_refuses_unknown_context_and_bad_references) ... ok
+test_fails_over_only_on_rate_limits (test_agent_pipeline.GitAndEngines.test_fails_over_only_on_rate_limits) ... ok
+test_snapshot_detects_a_changed_read_dependency (test_agent_pipeline.GitAndEngines.test_snapshot_detects_a_changed_read_dependency) ... ok
+test_duplicate_criterion_aliases_are_rejected (test_agent_pipeline.Planning.test_duplicate_criterion_aliases_are_rejected) ... ok
+test_english_fields_match_existing_dutch_tasks (test_agent_pipeline.Planning.test_english_fields_match_existing_dutch_tasks) ... ok
+test_open_criteria_come_from_progress_json (test_agent_pipeline.Planning.test_open_criteria_come_from_progress_json) ... ok
+test_parallel_batches_have_disjoint_access_sets (test_agent_pipeline.Planning.test_parallel_batches_have_disjoint_access_sets) ... ok
+test_parses_a_valid_issue (test_agent_pipeline.Planning.test_parses_a_valid_issue) ... ok
+test_rejects_closed_criteria_bad_gates_and_label_mixes (test_agent_pipeline.Planning.test_rejects_closed_criteria_bad_gates_and_label_mixes) ... ok
+test_scope_allows_targets_and_lockfile_only (test_agent_pipeline.Planning.test_scope_allows_targets_and_lockfile_only) ... ok
+test_spec_block_is_validated (test_agent_pipeline.Planning.test_spec_block_is_validated) ... ok
+test_stale_reports_changed_and_removed_paths (test_agent_pipeline.Planning.test_stale_reports_changed_and_removed_paths) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.081s
+
+OK
+
+=== bundled OS skill validator ===
+Start UTC: 2026-11-09T00:21:24.319134+00:00
+Command: python3 -B .agents/skills/os-dev/scripts/validate_skill.py
+Argument vector JSON: ["python3", "-B", ".agents/skills/os-dev/scripts/validate_skill.py"]
+Duration seconds: 0.722452
+Exit code: 0
+--- stdout (184 bytes) ---
+{
+  "status": "PASS",
+  "source_records": 3132,
+  "wiki_pages": 3054,
+  "pdf_pages": 78,
+  "newest_wiki_revision": "2026-10-23T21:22:10Z",
+  "source_mode": null,
+  "skill_files": 78
+}
+--- stderr (0 bytes) ---
+
+
+=== six bundled OS skill search tests ===
+Start UTC: 2026-11-09T00:21:24.319442+00:00
+Command: python3 -B -m unittest discover -s .agents/skills/os-dev/tests -p test_zoeken.py -v
+Argument vector JSON: ["python3", "-B", "-m", "unittest", "discover", "-s", ".agents/skills/os-dev/tests", "-p", "test_zoeken.py", "-v"]
+Duration seconds: 0.394326
+Exit code: 0
+--- stdout (0 bytes) ---
+
+--- stderr (392 bytes) ---
+test_book_page (test_zoeken.T.test_book_page) ... ok
+test_count (test_zoeken.T.test_count) ... ok
+test_microkernel (test_zoeken.T.test_microkernel) ... ok
+test_page_frame (test_zoeken.T.test_page_frame) ... ok
+test_pdf (test_zoeken.T.test_pdf) ... ok
+test_uefi (test_zoeken.T.test_uefi) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.334s
+
+OK
+
+=== progress consistency ===
+Start UTC: 2026-11-09T00:21:24.320086+00:00
+Command: python3 -B tools/progress.py --check
+Argument vector JSON: ["python3", "-B", "tools/progress.py", "--check"]
+Duration seconds: 0.034275
+Exit code: 0
+--- stdout (171 bytes) ---
+Baryon OS: 41/100 points (41%); rubric v1; consistent.
+This checks calculations, references and presentation; it does not run new native tests or assess evidence content.
+--- stderr (0 bytes) ---
+
+
+=== changed Python source compilation ===
+Start UTC: 2026-11-09T00:21:24.354390+00:00
+Command: python3 -B -c 'from pathlib import Path
+files=['"'"'.agents/skills/os-dev/scripts/build_corpus.py'"'"', '"'"'.agents/skills/os-dev/scripts/validate_skill.py'"'"', '"'"'.agents/skills/os-dev/scripts/zoeken.py'"'"', '"'"'tools/agent_pipeline.py'"'"', '"'"'tools/progress.py'"'"', '"'"'tools/tests/test_agent_pipeline.py'"'"']
+for name in files:
+    source=Path(name).read_bytes()
+    compile(source,name,"exec",dont_inherit=True)
+    print("COMPILED",name)
+print("PASS: all six changed Python sources compiled in memory; no bytecode files written")
+'
+Argument vector JSON: ["python3", "-B", "-c", "from pathlib import Path\nfiles=['.agents/skills/os-dev/scripts/build_corpus.py', '.agents/skills/os-dev/scripts/validate_skill.py', '.agents/skills/os-dev/scripts/zoeken.py', 'tools/agent_pipeline.py', 'tools/progress.py', 'tools/tests/test_agent_pipeline.py']\nfor name in files:\n    source=Path(name).read_bytes()\n    compile(source,name,\"exec\",dont_inherit=True)\n    print(\"COMPILED\",name)\nprint(\"PASS: all six changed Python sources compiled in memory; no bytecode files written\")\n"]
+Duration seconds: 0.046107
+Exit code: 0
+--- stdout (348 bytes) ---
+COMPILED .agents/skills/os-dev/scripts/build_corpus.py
+COMPILED .agents/skills/os-dev/scripts/validate_skill.py
+COMPILED .agents/skills/os-dev/scripts/zoeken.py
+COMPILED tools/agent_pipeline.py
+COMPILED tools/progress.py
+COMPILED tools/tests/test_agent_pipeline.py
+PASS: all six changed Python sources compiled in memory; no bytecode files written
+--- stderr (0 bytes) ---
+
+
+=== changed contributor/config data syntax ===
+Start UTC: 2026-11-09T00:21:24.400535+00:00
+Command: python3 -B -c 'import json,tomllib,yaml
+from pathlib import Path
+files=['"'"'.agents/skills/os-dev/agents/openai.yaml'"'"', '"'"'.coderabbit.yaml'"'"', '"'"'.codex/agents/os_architect.toml'"'"', '"'"'.codex/agents/os_builder.toml'"'"', '"'"'.codex/agents/os_security_reviewer.toml'"'"', '"'"'.codex/agents/os_verifier.toml'"'"', '"'"'.codex/config.example.toml'"'"', '"'"'.github/DISCUSSION_TEMPLATE/architectuur-en-ontwerp.yml'"'"', '"'"'.github/DISCUSSION_TEMPLATE/product-en-gebruikservaring.yml'"'"', '"'"'.github/DISCUSSION_TEMPLATE/testresultaten-en-demos.yml'"'"', '"'"'.github/DISCUSSION_TEMPLATE/vragen-en-hulp.yml'"'"', '"'"'.github/ISSUE_TEMPLATE/bug_report.yml'"'"', '"'"'.github/ISSUE_TEMPLATE/ci_test_failure.yml'"'"', '"'"'.github/ISSUE_TEMPLATE/config.yml'"'"', '"'"'.github/ISSUE_TEMPLATE/documentation.yml'"'"', '"'"'docs/progress.json'"'"', '"'"'docs/verification/english-translation-20261109/github-before.json'"'"', '"'"'docs/verification/english-translation-20261109/pull-requests-before.json'"'"', '"'"'docs/verification/wetenschappelijke-herkomst-20261109.json'"'"']
+for name in files:
+    p=Path(name)
+    text=p.read_text(encoding="utf-8")
+    if p.suffix==".json": data=json.loads(text)
+    elif p.suffix==".toml": data=tomllib.loads(text)
+    else: data=yaml.safe_load(text)
+    if name==".coderabbit.yaml":
+        assert data["language"]=="en-GB",data.get("language")
+        print("CODERABBIT language",data["language"])
+    print("PARSED",name)
+print("PASS:",len(files),"changed JSON/TOML/YAML files parsed; syntax and the explicit CodeRabbit language assertion only, not full provider schema validation")
+'
+Argument vector JSON: ["python3", "-B", "-c", "import json,tomllib,yaml\nfrom pathlib import Path\nfiles=['.agents/skills/os-dev/agents/openai.yaml', '.coderabbit.yaml', '.codex/agents/os_architect.toml', '.codex/agents/os_builder.toml', '.codex/agents/os_security_reviewer.toml', '.codex/agents/os_verifier.toml', '.codex/config.example.toml', '.github/DISCUSSION_TEMPLATE/architectuur-en-ontwerp.yml', '.github/DISCUSSION_TEMPLATE/product-en-gebruikservaring.yml', '.github/DISCUSSION_TEMPLATE/testresultaten-en-demos.yml', '.github/DISCUSSION_TEMPLATE/vragen-en-hulp.yml', '.github/ISSUE_TEMPLATE/bug_report.yml', '.github/ISSUE_TEMPLATE/ci_test_failure.yml', '.github/ISSUE_TEMPLATE/config.yml', '.github/ISSUE_TEMPLATE/documentation.yml', 'docs/progress.json', 'docs/verification/english-translation-20261109/github-before.json', 'docs/verification/english-translation-20261109/pull-requests-before.json', 'docs/verification/wetenschappelijke-herkomst-20261109.json']\nfor name in files:\n    p=Path(name)\n    text=p.read_text(encoding=\"utf-8\")\n    if p.suffix==\".json\": data=json.loads(text)\n    elif p.suffix==\".toml\": data=tomllib.loads(text)\n    else: data=yaml.safe_load(text)\n    if name==\".coderabbit.yaml\":\n        assert data[\"language\"]==\"en-GB\",data.get(\"language\")\n        print(\"CODERABBIT language\",data[\"language\"])\n    print(\"PARSED\",name)\nprint(\"PASS:\",len(files),\"changed JSON/TOML/YAML files parsed; syntax and the explicit CodeRabbit language assertion only, not full provider schema validation\")\n"]
+Duration seconds: 0.072986
+Exit code: 0
+--- stdout (1111 bytes) ---
+PARSED .agents/skills/os-dev/agents/openai.yaml
+CODERABBIT language en-GB
+PARSED .coderabbit.yaml
+PARSED .codex/agents/os_architect.toml
+PARSED .codex/agents/os_builder.toml
+PARSED .codex/agents/os_security_reviewer.toml
+PARSED .codex/agents/os_verifier.toml
+PARSED .codex/config.example.toml
+PARSED .github/DISCUSSION_TEMPLATE/architectuur-en-ontwerp.yml
+PARSED .github/DISCUSSION_TEMPLATE/product-en-gebruikservaring.yml
+PARSED .github/DISCUSSION_TEMPLATE/testresultaten-en-demos.yml
+PARSED .github/DISCUSSION_TEMPLATE/vragen-en-hulp.yml
+PARSED .github/ISSUE_TEMPLATE/bug_report.yml
+PARSED .github/ISSUE_TEMPLATE/ci_test_failure.yml
+PARSED .github/ISSUE_TEMPLATE/config.yml
+PARSED .github/ISSUE_TEMPLATE/documentation.yml
+PARSED docs/progress.json
+PARSED docs/verification/english-translation-20261109/github-before.json
+PARSED docs/verification/english-translation-20261109/pull-requests-before.json
+PARSED docs/verification/wetenschappelijke-herkomst-20261109.json
+PASS: 19 changed JSON/TOML/YAML files parsed; syntax and the explicit CodeRabbit language assertion only, not full provider schema validation
+--- stderr (0 bytes) ---
+
+
+=== existing CodeRabbit/config test search ===
+Start UTC: 2026-11-09T00:21:24.473554+00:00
+Command: rg -n -i 'coderabbit|\.coderabbit|review.*language|config.*yaml' tools/tests .agents/skills/os-dev/tests
+Argument vector JSON: ["rg", "-n", "-i", "coderabbit|\\.coderabbit|review.*language|config.*yaml", "tools/tests", ".agents/skills/os-dev/tests"]
+Duration seconds: 0.009314
+Exit code: 1
+--- stdout (0 bytes) ---
+
+--- stderr (0 bytes) ---
+
+Interpretation: rg exit 1 means no matching existing test; no dedicated CodeRabbit suite was found. The YAML parsing/language assertion above is the bounded direct configuration check.
+
+Input paths changed during validation: []
+Evidence boundary: these are targeted host tests, corpus-integrity/search checks, Python compilation, progress consistency and data-syntax checks; no native, hardware, UX or provider-service acceptance.
+
+=== narrow recheck after concurrent root edit ===
+Reason: build_corpus.py changed after the preceding checks; this rechecks only Python compilation of that changed source.
+Start UTC: 2026-11-09T00:22:07.751965+00:00
+Command: python3 -B -c 'from pathlib import Path
+p=Path('"'"'.agents/skills/os-dev/scripts/build_corpus.py'"'"')
+compile(p.read_bytes(),str(p),"exec",dont_inherit=True)
+print("PASS: current build_corpus.py compiled in memory; no bytecode written")
+'
+Argument vector JSON: ["python3", "-B", "-c", "from pathlib import Path\np=Path('.agents/skills/os-dev/scripts/build_corpus.py')\ncompile(p.read_bytes(),str(p),\"exec\",dont_inherit=True)\nprint(\"PASS: current build_corpus.py compiled in memory; no bytecode written\")\n"]
+Source SHA256 before: 731ac7898f34a6f3de6bb20d6230b23de358731b9b0543ad83613da33812382b
+Source SHA256 after: 731ac7898f34a6f3de6bb20d6230b23de358731b9b0543ad83613da33812382b
+Duration seconds: 0.025935
+Exit code: 0
+--- stdout (70 bytes) ---
+PASS: current build_corpus.py compiled in memory; no bytecode written
+--- stderr (0 bytes) ---
+
+Repository evidence note: .gitignore line 21 (*.log) ignores this explicit evidence path; root must force-add validation.log when committing. No ignore rule changed.

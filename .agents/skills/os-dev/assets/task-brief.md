@@ -1,22 +1,22 @@
-# Taakcontract — invultemplate
+# Task contract — template
 
-## Gewenst resultaat
-Beschrijf wat na deze taak aantoonbaar moet werken, plus expliciete niet-doelen.
+## Required result
+Describe what must demonstrably work after this task, together with explicit non-goals.
 
-## Huidige context
-Repository, actieve branch, uitgangscommit, werkboomwijzigingen en toepasselijke AGENTS.md.
-Doelarchitectuur, CPU-modus, firmware, bootprotocol, compiler/taal/ABI en subsystemen.
-Leg onbekenden vast; verzin geen actuele projectstatus.
+## Current context
+Repository, active branch, base commit, worktree changes and applicable AGENTS.md.
+Target architecture, CPU mode, firmware, boot protocol, compiler/language/ABI and subsystems.
+Record unknowns; do not invent current project status.
 
-## Bronnen en besluit
-Bron-ID’s, relevante revisies/boekpagina’s, gekozen ontwerp en afwijkingen van de bron.
+## Sources and decision
+Source IDs, relevant revisions/book pages, selected design and deviations from the source.
 
-## Interface en invarianten
-Invoer, uitvoer, eigenaarschap, rechten, resources, uitputting, levensduur en synchronisatie.
+## Interface and invariants
+Input, output, ownership, permissions, resources, exhaustion, lifetime and synchronisation.
 
-## Wijzigingsgrens
-Bestanden/subsystemen die mogen wijzigen. Gedeelde interfaces en integratieverantwoordelijke.
+## Change boundary
+Files/subsystems permitted to change. Shared interfaces and integration owner.
 
-## Acceptatie en herstel
-Exacte controles, positieve en negatieve gevallen, meetbaar resultaat, testomgeving,
-resterende beperkingen en rollback zonder verlies van ander werk.
+## Acceptance and recovery
+Exact checks, positive and negative cases, measurable result, test environment,
+remaining limitations and rollback without loss of other work.

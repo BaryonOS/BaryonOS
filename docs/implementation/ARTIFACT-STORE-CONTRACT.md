@@ -1,78 +1,78 @@
-# Gedeeld artifact-storecontract
+# Shared artefact-store contract
 
-**Status:** contractvoorstel door Apps- en AI-owners afgestemd; rootintegratie
-en native uitvoering open.
-**Eigenaar:** release-integratie. **Datum:** 30 oktober 2026.
-**Bewijsgrens:** dit document beschrijft een contract, geen native store,
-kernel-ABI, geserialiseerde Message320-operatie, dynamische launcher of
-duurzaamheidsgarantie.
+**Status:** contract proposal agreed by Apps and AI owners; root integration
+and native execution remain open.
+**Owner:** release integration. **Date:** 30 October 2026.
+**Evidence boundary:** this document describes a contract, not a native store,
+kernel ABI, serialised Message320 operation, dynamic launcher or durability
+guarantee.
 
-Dit contract scheidt grote immutable artifacts van het documentvolume. Het
-documentvolume blijft voor documenten; zijn huidige object-/domeinlimieten
-zijn geen artifactcapaciteit. Hetzelfde read-only pad kan later appimages en
-AI-modellen bedienen, maar hun trust authorities blijven afzonderlijk.
+This contract separates large immutable artefacts from the document volume.
+The document volume remains for documents; its current object/domain limits
+are not artefact capacity. The same read-only path may later serve app images
+and AI models, but their trust authorities remain separate.
 
-## 1. Invarianten en niet-doelen
+## 1. Invariants and non-goals
 
-- Een read-handle is opaque, immutable en gebonden aan de geauthenticeerde
-  clientcontext. De concrete service controleert die context, store-epoch en
-  actuele toegang bij iedere operatie. Het handle-token zelf verleent geen
-  rechten; revocation maakt vervolgreads stale of unauthorized.
-- Descriptorvelden en SHA-256 zijn metadata en content-integriteitsinput,
-  geen bewijs van herkomst, publishervertrouwen, modelveiligheid of
-  uitvoerbaarheid. Geen `verified`-boolean.
-- Reads zijn read-only. Dit contract verleent geen netwerk-, document-,
-  sleutel-, launch- of beheercapability.
-- Read-API-chunks zijn maximaal 4096 bytes. Dat is geen IPC-wireformaat en
-  geen productlimiet voor artifactgrootte. De bestaande Message320-payload
-  blijft maximaal 256 bytes; een toekomstige adapter moet grote reads
-  opsplitsen zonder de IPC-limiet of capabilitygrens te omzeilen. [AS-IPC1] [AS-IPC2]
-- Storagecapaciteit en quota zijn provider-/namespacegegevens in bytes.
-  Een waarde van een kandidaatmodel, appfixture of documentvolume wordt geen
-  globale OS-capaciteit.
-- Installeren/publiceren is een aparte write-transactie. Een reservering
-  vooraf is geen belofte van duurzame opslag. Alleen de concrete backend kan
-  zijn commit-/flush-/recoverygaranties specificeren en bewijzen.
+- A read handle is opaque, immutable and bound to the authenticated client
+  context. The concrete service checks that context, store epoch and current
+  access on every operation. The handle token itself grants no rights;
+  revocation makes subsequent reads stale or unauthorised.
+- Descriptor fields and SHA-256 are metadata and content-integrity input,
+  not evidence of provenance, publisher trust, model safety or executability.
+  No `verified` boolean.
+- Reads are read-only. This contract grants no network, document, key,
+  launch or administrative capability.
+- Read API chunks are at most 4096 bytes. This is not an IPC wire format or
+  a product limit on artefact size. Existing Message320 payload remains at
+  most 256 bytes; a future adapter must split large reads without bypassing
+  the IPC limit or capability boundary. [AS-IPC1] [AS-IPC2]
+- Storage capacity and quotas are provider/namespace values in bytes.
+  A candidate model, app fixture or document-volume value does not become
+  global OS capacity.
+- Installation/publication is a separate write transaction. Prior reservation
+  is not a promise of durable storage. Only the concrete backend can specify
+  and demonstrate its commit/flush/recovery guarantees.
 
-## 2. Logische artifactidentiteit en descriptor
+## 2. Logical artefact identity and descriptor
 
-De gedeelde store-identiteit is los van package-/modelprovenance:
+Shared store identity is separate from package/model provenance:
 
-| Veld | Type | Betekenis |
+| Field | Type | Meaning |
 |---|---|---|
-| `artifact_id` | `[u8; 32]` | Opaque ID toegewezen binnen de store |
-| `immutable_generation` | `u64` | Exacte immutable bytegeneratie |
-| `length` | `u64` | Exact aantal bytes |
-| `sha256` | `[u8; 32]` | Verwachte volledige-inhoudsdigest |
+| `artifact_id` | `[u8; 32]` | Opaque ID assigned within the store |
+| `immutable_generation` | `u64` | Exact immutable byte generation |
+| `length` | `u64` | Exact byte count |
+| `sha256` | `[u8; 32]` | Expected complete-content digest |
 
-`ArtifactRef` is het paar `(artifact_id, immutable_generation)`;
-`ArtifactDescriptor` voegt `length` en `sha256` toe. Dit is een logische
-in-memory vorm, geen `repr(C)`, canonieke bytecodering of IPC-wire-ABI.
-Descriptorvelden zijn onbetrouwbare metadata totdat `open` ze tegen de
-store-authoritatieve descriptor vergelijkt. Dit contract verbiedt
-zero-length artifacts: `length == 0` is `Invalid`. De EOF-regel geldt alleen
-voor een geldige, niet-lege descriptor en `offset == length`.
+`ArtifactRef` is the pair `(artifact_id, immutable_generation)`;
+`ArtifactDescriptor` adds `length` and `sha256`. This is a logical in-memory
+form, not `repr(C)`, canonical byte encoding or an IPC wire ABI. Descriptor
+fields are untrusted metadata until `open` compares them with the
+store-authoritative descriptor. This contract prohibits zero-length
+artefacts: `length == 0` is `Invalid`. The EOF rule applies only to a valid,
+non-empty descriptor and `offset == length`.
 
-De huidige Apps-leaf gebruikt een ander 116-byte pakketdescriptor met
-`artifact_id`, `source_id`, `source_generation`, `version`, `length` en
-`sha256`; de AI-leaf gebruikt een lokale numerieke ID en `u64` generatie.
-Deze zijn consumer-/leafmodellen, niet twee gedeelde store-ABI's. De
-storemapping houdt de packagebron-/intrekkingsgeneratie en packageversie
-gescheiden van de immutable storegeneratie. Apps en AI hebben deze scheiding
-afgestemd; hun leaf-adapters zijn nog niet in deze rootbasis geïntegreerd.
-Geen caller- of modelmetadata mag de store authority fabriceren.
+The current Apps leaf uses a different 116-byte package descriptor with
+`artifact_id`, `source_id`, `source_generation`, `version`, `length` and
+`sha256`; the AI leaf uses a local numeric ID and `u64` generation. These are
+consumer/leaf models, not two shared store ABIs. Store mapping keeps package
+source/revocation generation and package version separate from immutable store
+generation. Apps and AI have agreed this separation; their leaf adapters have
+not yet been integrated into this root baseline. No caller or model metadata
+may fabricate store authority.
 
-`open` vergelijkt de gevraagde descriptor met de store-authoritatieve
-descriptor en opent uitsluitend die immutable generatie. Een digestveld bewijst
-niet dat alle bytes al gelezen of gehasht zijn. Een consumer die bytes gaat
-parseren of gebruiken, verifieert eerst de volledige stream tegen `length` en
-`sha256`; gedeeltelijke plaintext/data wordt bij een mislukte integriteits-
-controle niet als geldig artifact vrijgegeven. Een latere native adapter moet
-exact aangeven waar die verificatie plaatsvindt.
+`open` compares the requested descriptor with the store-authoritative
+descriptor and opens only that immutable generation. A digest field does not
+prove that all bytes have already been read or hashed. A consumer that will
+parse or use bytes first verifies the entire stream against `length` and
+`sha256`; partial plaintext/data are not released as a valid artefact after
+an integrity-check failure. A later native adapter must specify exactly where
+that verification occurs.
 
-## 3. Read-only API en begrenzing
+## 3. Read-only API and bounds
 
-De logische API is:
+The logical API is:
 
 ```text
 open(descriptor) -> opaque ReadHandle
@@ -80,46 +80,43 @@ read_at(handle, offset: u64, output: &mut [u8]) -> byte_count
 capacity() -> Capacity
 ```
 
-`ReadHandle` bevat intern minimaal de descriptorbinding en store-epoch. Velden
-zijn niet door callers te construeren of te muteren. De concrete service bindt
-het handle aan de kernel-authenticated afzender; een caller-ID in payload,
-numerieke locator of publieke epoch is geen authority. Iedere `read_at`
-controleert opnieuw afzender, rechten, revocation en actuele epoch.
+Internally, `ReadHandle` contains at least descriptor binding and store epoch.
+Callers cannot construct or mutate its fields. The concrete service binds the
+handle to the kernel-authenticated sender; a caller ID in payload, numeric
+locator or public epoch is not authority. Every `read_at` rechecks sender,
+rights, revocation and current epoch.
 
-Voor `read_at` geldt:
+For `read_at`:
 
-1. `output.len()` moet tussen 1 en 4096 liggen; anders `Invalid`.
-2. `offset == length` geeft expliciet `EndOfArtifact`, zonder backend-I/O.
-   `offset > length` geeft `OutOfRange`.
-3. Bereken met checked arithmetic `remaining = length - offset` en
-   `requested = min(output.len(), remaining)`. Overflow of inconsistente
-   descriptor-/store-state faalt gesloten.
-4. De backend mag tussen 1 en `requested` bytes teruggeven. Een positieve
-   short read vóór `length` is geldig; de caller vervolgt op
-   `offset + byte_count`. Nul bytes vóór de gedeclareerde EOF is `Truncated`;
-   meer bytes dan `requested` is `Protocol`.
-5. De caller berekent de nieuwe offset met checked addition. De API geeft
-   nooit lege succesdata als EOF-fallback.
-6. Een stale epoch, ingetrokken handle of gewijzigde generatie geeft
-   `Stale` of `Unauthorized`; er wordt niet opnieuw geopend onder een
-   impliciet nieuwe generatie.
-7. Iedere fout laat het resultaat expliciet ongeldig. Een backendfout wordt
-   niet omgezet in succes, EOF, nulbytes of een andere generatie.
+1. `output.len()` must be between 1 and 4096; otherwise `Invalid`.
+2. `offset == length` explicitly returns `EndOfArtifact`, without backend I/O.
+   `offset > length` returns `OutOfRange`.
+3. Use checked arithmetic for `remaining = length - offset` and
+   `requested = min(output.len(), remaining)`. Overflow or inconsistent
+   descriptor/store state fails closed.
+4. The backend may return between 1 and `requested` bytes. A positive short
+   read before `length` is valid; the caller continues at `offset + byte_count`.
+   Zero bytes before declared EOF is `Truncated`; more bytes than `requested`
+   is `Protocol`.
+5. The caller calculates the new offset with checked addition. The API never
+   returns empty success data as an EOF fallback.
+6. A stale epoch, revoked handle or changed generation returns `Stale` or
+   `Unauthorized`; it does not reopen under an implicitly new generation.
+7. Every error leaves the result explicitly invalid. A backend error is not
+   converted into success, EOF, zero bytes or another generation.
 
-De logische foutset is `Invalid`, `Unauthorized`, `Stale`, `Corrupt`,
+The logical error set is `Invalid`, `Unauthorized`, `Stale`, `Corrupt`,
 `Truncated`, `Overflow`, `EndOfArtifact`, `OutOfRange`, `NotFound`,
-`Protocol` en provider-I/O-fout. De service-/wireadapter mag deze alleen naar
-een bestaande, expliciete status mappen; zij mag oorzaak of onzekerheid niet
-stil laten verdwijnen.
+`Protocol` and provider I/O error. The service/wire adapter may map these only
+to an existing explicit status; it must not silently discard cause or uncertainty.
 
-## 4. Capaciteit en quota
+## 4. Capacity and quotas
 
-Een store rapporteert `capacity_bytes`, `used_bytes`, `reserved_bytes` en
-`quota_bytes`, ieder als `u64`, voor dezelfde account/namespace en hetzelfde
-snapshotmoment. Waarden uit verschillende scopes mogen niet worden
-gecombineerd; als de backend geen coherent snapshot kan leveren, geeft hij
-een expliciete fout. Dit zijn momentopnamen, geen reservering of
-commitgarantie. Beschikbare ruimte is:
+A store reports `capacity_bytes`, `used_bytes`, `reserved_bytes` and
+`quota_bytes`, each as `u64`, for the same account/namespace and snapshot time.
+Values from different scopes must not be combined; if the backend cannot
+provide a coherent snapshot, it returns an explicit error. These are snapshots,
+not reservations or commit guarantees. Available space is:
 
 ```text
 limit = min(capacity_bytes, quota_bytes)
@@ -127,18 +124,17 @@ committed = checked_add(used_bytes, reserved_bytes)
 available = checked_sub(limit, committed)
 ```
 
-Overflow bij optellen geeft `Overflow`; `committed > limit` geeft
-`Corrupt`. Geen saturating arithmetic, negatieve/clamped waarde of
-success-shaped fallback. De operationele `begin` blijft autoritatief en kan
-na een eerdere capaciteitssnapshot nog `Full` of `Quota` geven.
+Addition overflow returns `Overflow`; `committed > limit` returns `Corrupt`.
+No saturating arithmetic, negative/clamped value or success-shaped fallback.
+The operational `begin` remains authoritative and may still return `Full`
+or `Quota` after an earlier capacity snapshot.
 
-## 5. Afzonderlijke schrijftransactie
+## 5. Separate write transaction
 
-Write-operaties zijn uitsluitend voor een expliciet geautoriseerde
-install-/publishprincipal; read-only consumers krijgen deze interface niet.
-De service haalt calleridentiteit uit kernel-authenticated berichtmetadata.
-De transactie bindt minstens `(caller, request_id, service_epoch)` aan één
-descriptor.
+Write operations are exclusive to an explicitly authorised install/publish
+principal; read-only consumers do not receive this interface. The service
+obtains caller identity from kernel-authenticated message metadata. A
+transaction binds at least `(caller, request_id, service_epoch)` to one descriptor.
 
 ```text
 begin(key, descriptor) -> reserve full length
@@ -148,75 +144,72 @@ cancel(key) -> cancelled
 outcome(key) -> Pending | Committed | Cancelled | Unknown
 ```
 
-- `begin` reserveert de volledige gedeclareerde lengte atomair vóór enig
-  chunk wordt geaccepteerd. Een definitieve fout (`Full`, `Quota`, invalid,
-  unauthorized, busy) betekent geen mutatie. `Unknown` betekent dat de
-  mutatie-uitkomst onzeker is en de transactie wordt gepoisoned.
-- Chunks zijn niet leeg, hoogstens 4096 bytes, volgen exact de verwachte
-  offset en overschrijden nooit `length`. Replay, gat, overlap, overflow of
-  bevestiging met een andere volgende offset faalt; een mismatch maakt de
-  uitkomst `Unknown` wanneer een write mogelijk al heeft plaatsgevonden.
-- `commit` is alleen toegestaan na exact `length` bytes. De backend
-  controleert lengte en volledige SHA-256 opnieuw vóór atomische publicatie.
-  Een digest-/lengtefout publiceert niets. Een `Ok` is geen algemene
-  power-loss-, crashrecovery- of duurzame-media-garantie.
-- `Unknown` blokkeert nieuwe chunks, commit, cancel en automatische replay.
-  `outcome` mag alleen binnen dezelfde service-epoch worden geraadpleegd.
-  Na serviceherstart is de oude epoch stale; herstel van de transactie vereist
-  een afzonderlijk ontworpen en getest persistent journal. Er is hier geen
-  success-shaped fallback of aanname dat restart gelijkstaat aan cancel.
-- `cancel` geldt vóór de commitgrens. Bij onzekere uitkomst blijft de status
-  `Unknown`; cancel mag die niet in `Cancelled` veranderen.
+- `begin` atomically reserves the full declared length before accepting any
+  chunk. A definitive error (`Full`, `Quota`, invalid, unauthorised, busy)
+  means no mutation. `Unknown` means the mutation outcome is uncertain and
+  the transaction becomes poisoned.
+- Chunks are non-empty, at most 4096 bytes, follow exactly the expected offset
+  and never exceed `length`. Replay, gap, overlap, overflow or an
+  acknowledgement with a different next offset fails; a mismatch makes the
+  outcome `Unknown` when a write may already have occurred.
+- `commit` is allowed only after exactly `length` bytes. The backend rechecks
+  length and complete SHA-256 before atomic publication. A digest/length
+  error publishes nothing. `Ok` is not a general power-loss, crash-recovery
+  or durable-media guarantee.
+- `Unknown` blocks new chunks, commit, cancel and automatic replay.
+  `outcome` may be queried only within the same service epoch. After service
+  restart, the old epoch is stale; transaction recovery requires a separately
+  designed and tested persistent journal. There is no success-shaped fallback
+  or assumption here that restart equals cancellation.
+- `cancel` applies before the commit boundary. An uncertain outcome remains
+  `Unknown`; cancel must not turn it into `Cancelled`.
 
-Daarmee blijft volledige reservering los van duurzaamheid. Een native store
-moet later storage-I/O-fouten, flushvolgorde, crash-/koude recovery, orphan
-cleanup, rollback en de precieze betekenis van `Committed` als aparte
-acceptatie bewijzen.
+Full reservation thus remains separate from durability. A native store must
+later demonstrate storage I/O errors, flush order, crash/cold recovery, orphan
+cleanup, rollback and the precise meaning of `Committed` as separate acceptance.
 
-## 6. Trust authorities en consumergrenzen
+## 6. Trust authorities and consumer boundaries
 
-- **Apps:** `source_id`, `source_generation` en package-version zijn
-  package-/source-identiteit; zij zijn niet de immutable storegeneratie.
-  SHA-256 bindt bytes; het maakt de huidige
-  in-memory SourceRegistry niet tot een persistente publisher trust authority.
-  Appinstallatie verleent geen dynamic launch authority. Een kernel- of
-  broker-geverifieerde launchcapability is een afzonderlijk toekomstig
-  contract.
-- **AI:** model-pin, formaatvalidatie, volledige streamdigest, publishertrust
-  en geschiktheid voor inferentie zijn afzonderlijke controles. De AI-owner
-  past de numerieke proef-ID aan naar de store-assigned `artifact_id`-vorm;
-  die leaf-wijziging is nog niet in deze rootbasis geïntegreerd. Deze reader
-  kent geen netwerk- of persoonlijke-documentrechten toe. AI-inferentie blijft
-  zonder netwerkcapability.
-- **Shared store:** beheert immutable bytes, versie en lees-/transactiestatus.
-  Het documentvolume, publisher keyring, B02/B03-root of caller-gevulde
-  boolean wordt niet stil als store authority hergebruikt.
+- **Apps:** `source_id`, `source_generation` and package version are
+  package/source identity, not immutable store generation. SHA-256 binds
+  bytes; it does not make the current in-memory SourceRegistry a persistent
+  publisher trust authority. App installation grants no dynamic launch
+  authority. A kernel- or broker-verified launch capability is a separate
+  future contract.
+- **AI:** model pin, format validation, complete stream digest, publisher
+  trust and suitability for inference are separate checks. The AI owner
+  adapts the numeric trial ID to the store-assigned `artifact_id` form;
+  that leaf change is not yet integrated into this root baseline. This reader
+  grants no network or personal-document rights. AI inference remains
+  without a network capability.
+- **Shared store:** manages immutable bytes, version and read/transaction
+  status. The document volume, publisher keyring, B02/B03 root or a
+  caller-populated boolean is not silently reused as store authority.
 
-## 7. Implementatie- en acceptatiegrens
+## 7. Implementation and acceptance boundary
 
-De eerste gedeelde code-stap is een dependencyvrije `no_std` contractcrate met
-zuivere descriptor-, range-, read-handle- en capacity-validators plus
-host-negatieventests. Zij implementeert geen writable transaction engine: de
-write-API hierboven blijft een interfacecontract voor een latere stap. Deze
-slice mag geen kernel ABI, syscall, Message320-layout, backend, package
-launch, modeldownload of succesvolle install-/inferentieclaim toevoegen.
+The first shared code step is a dependency-free `no_std` contract crate with
+pure descriptor, range, read-handle and capacity validators plus negative
+host tests. It implements no writable transaction engine: the write API above
+remains an interface contract for a later step. This slice must add no kernel
+ABI, syscall, Message320 layout, backend, package launch, model download or
+claim of successful installation/inference.
 
-De huidige read-only tests controleren: nul-/verkeerde ID en generatie;
-descriptor-mismatch bij open; stale/revoked en unauthorized reads;
-readbuffer 0/4097; exacte EOF en offset voorbij EOF; positieve short read,
-nul vóór EOF en onmogelijke backend-bytecount; en capacity overflow plus
-`used + reserved > limit`. Bij een latere writable implementatie zijn
-afzonderlijke negatieve tests nodig voor quota/full vóór writes;
-lege/grote chunk, out-of-order/replay/overrun; mismatch-ack;
-incomplete/digest-foute commit; Unknown op begin/chunk/commit/cancel; outcome
-met verkeerde transactie of epoch; en restart-invalidatie zonder automatische
-retry.
+Current read-only tests check: zero/incorrect ID and generation; descriptor
+mismatch on open; stale/revoked and unauthorised reads; read buffer 0/4097;
+exact EOF and offset beyond EOF; positive short read, zero before EOF and
+impossible backend byte count; and capacity overflow plus
+`used + reserved > limit`. A later writable implementation requires separate
+negative tests for quota/full before writes; empty/large chunk,
+out-of-order/replay/overrun; mismatch acknowledgement; incomplete/digest-invalid
+commit; Unknown on begin/chunk/commit/cancel; outcome with incorrect
+transaction or epoch; and restart invalidation without automatic retry.
 
-Hosttests controleren alleen de contractlogica. Targetbuild, native store,
-dynamic launch, publishertrust, modelbytes, inferentie, flushduurzaamheid,
-herstel, performance en volledige FR-/rubricacceptatie blijven open.
+Host tests check only contract logic. Target build, native store, dynamic
+launch, publisher trust, model bytes, inference, flush durability, recovery,
+performance and full FR/rubric acceptance remain open.
 
-## 8. Primaire bronnen voor de IPC-grens
+## 8. Primary sources for the IPC boundary
 
-- **[AS-IPC1]** Nieuw OS-project. (2026, 26 oktober). *Uitvoerbaar kernel- en beveiligingscontract M2–M4*, sectie Berichtformaat en transactie (bronversie `7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb`). [Kernel- en beveiligingscontract](https://github.com/simonvanieperen/nieuw-os/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
-- **[AS-IPC2]** Nieuw OS-project. (z.d.). *SDK Message320-envelope: MESSAGE_SIZE, MAX_PAYLOAD en lengtevalidatie* (bronversie `7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb`). [SDK-implementatie](https://github.com/simonvanieperen/nieuw-os/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/sdk/runtime/src/message.rs).
+- **[AS-IPC1]** Baryon OS project. (2026, October 26). *Executable kernel and security contract M2–M4*, Message format and transaction section (source version `7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb`). [Kernel and security contract](https://github.com/simonvanieperen/nieuw-os/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
+- **[AS-IPC2]** Baryon OS project. (n.d.). *SDK Message320 envelope: MESSAGE_SIZE, MAX_PAYLOAD and length validation* (source version `7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb`). [SDK implementation](https://github.com/simonvanieperen/nieuw-os/blob/7f4f7bfe28fe9b2314bc4e4192e43942838d5dcb/sdk/runtime/src/message.rs).
