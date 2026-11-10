@@ -16,6 +16,8 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE_ACTION = ".github/actions/preserve-evidence/action.yml"
+CACHE_ACTION_VERSION = "v6.1.0"
+CACHE_ACTION_SHA = "55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
 
 
 class UniqueKeyLoader(yaml.BaseLoader):
@@ -161,6 +163,45 @@ class WorkflowContractTests(unittest.TestCase):
             if reference and not reference.startswith("./"):
                 with self.subTest(path=path, job=job_id, uses=reference):
                     self.assertRegex(reference, r"^[^\s@]+/[^\s@]+@[0-9a-f]{40}$")
+
+    def test_cache_action_matches_documented_provenance(self):
+        """Every cache use must match its reviewed pin, version and policy source."""
+        references = [
+            (path, job_id, step["uses"])
+            for path, job_id, step in self.steps()
+            if re.fullmatch(
+                r"actions/cache(?:/(?:restore|save))?@[0-9a-f]{40}",
+                step.get("uses", ""),
+            )
+        ]
+        self.assertTrue(references, "no actions/cache use found")
+        for path, job_id, reference in references:
+            with self.subTest(path=path, job=job_id):
+                self.assertEqual(reference.rsplit("@", 1)[1], CACHE_ACTION_SHA)
+
+        labelled_reference = re.compile(
+            rf"^\s*uses:\s*actions/cache(?:/(?:restore|save))?@"
+            rf"{re.escape(CACHE_ACTION_SHA)}\s+"
+            rf"#\s*{re.escape(CACHE_ACTION_VERSION)}\s*$",
+            re.MULTILINE,
+        )
+        labelled_uses = sum(
+            len(labelled_reference.findall((ROOT / path).read_text(encoding="utf-8")))
+            for path in self.workflows
+        )
+        self.assertEqual(labelled_uses, len(references))
+
+        policy = (ROOT / "CODEX-WORKFLOW.md").read_text(encoding="utf-8")
+        self.assertIn(f"reviewed {CACHE_ACTION_VERSION} commit", policy)
+        self.assertIn(
+            f"*actions/cache*, version {CACHE_ACTION_VERSION.removeprefix('v')}.",
+            policy,
+        )
+        self.assertIn(f"`{CACHE_ACTION_SHA}`", policy)
+        self.assertIn(
+            f"https://github.com/actions/cache/tree/{CACHE_ACTION_SHA}",
+            policy,
+        )
 
     def test_checkout_does_not_persist_credentials(self):
         """Builds and public PR scripts do not inherit checkout credentials."""
