@@ -16,6 +16,7 @@ import subprocess
 import tarfile
 import tempfile
 import tomllib
+import unicodedata
 import unittest
 
 import yaml
@@ -56,6 +57,141 @@ def uses_reference_is_pinned(reference):
         and re.fullmatch(r"[A-Za-z0-9_.-]+", part) is not None
         for part in parts
     )
+
+
+MILESTONE_DOCUMENT = ROOT / "docs/GITHUB-MILESTONES.md"
+ROADMAP_DOCUMENT = ROOT / "docs/ROADMAP.md"
+CANONICAL_MILESTONE_TITLES = (
+    "M6 — Storage and Recovery",
+    "M7 — Native Product Integration",
+    "M8 — Networking and Security Hardening",
+    "M9 — First Reference PC",
+    "M10 — Second Architecture",
+    "M11 — Experimental Community Release",
+)
+MILESTONE_FIELDS = (
+    "Required outcome",
+    "Acceptance evidence",
+    "Decision gate",
+    "Canonical sources",
+)
+CANONICAL_MILESTONE_LINKS = (
+    "https://github.com/simonvanieperen/BaryonOS/blob/main/"
+    "docs/ROADMAP.md#technical-milestones",
+    "https://github.com/simonvanieperen/BaryonOS/blob/main/docs/PROGRESS.md",
+)
+LEGACY_MILESTONE_DESTINATIONS = {
+    "K06 — Multicore and process isolation": "M7",
+    "B02 / S09 — Encrypted storage and backups": "M6",
+    "U02–U06 — A native desktop for everyday use": "M7",
+    "N02–N04 — Internet, TLS and network permissions": "M8",
+    "A02–A04 — Installing apps and using them daily": "M7",
+    "P01–P04 — NAS, synchronisation and multiple devices": "M8",
+    "L01 — Local system AI": "M7",
+    "H02–H06 — Hardware, drivers and power": "M9",
+    "B04–B06 — Chain of trust and security review": "M8",
+    "R01–R03 — Full test release and maintenance": "M11",
+}
+
+
+class GitHubMilestoneDocumentContractTests(unittest.TestCase):
+    """Validate checked-in governance, not the live GitHub metadata state."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Decode the actual tracked bytes and load the canonical roadmap."""
+        cls.raw = MILESTONE_DOCUMENT.read_bytes()
+        cls.text = cls.raw.decode("utf-8", errors="strict")
+        cls.roadmap = ROADMAP_DOCUMENT.read_text(encoding="utf-8")
+
+    def milestone_section(self, title):
+        """Return one exact milestone body without including later sections."""
+        heading = f"## {title}\n"
+        self.assertEqual(self.text.count(heading), 1, title)
+        body = self.text.split(heading, 1)[1]
+        return body.split("\n## ", 1)[0]
+
+    def test_document_is_normalized_utf8_without_mojibake(self):
+        """Copy-ready titles must retain their intended Unicode punctuation."""
+        self.assertFalse(self.raw.startswith(b"\xef\xbb\xbf"), "unexpected UTF-8 BOM")
+        self.assertEqual(self.text, unicodedata.normalize("NFC", self.text))
+        for marker in ("\ufffd", "Ã", "Â", "â€"):
+            with self.subTest(marker=marker):
+                self.assertNotIn(marker, self.text)
+
+    def test_exact_titles_match_the_canonical_roadmap(self):
+        """Keep one ordered M6–M11 title family in both active documents."""
+        titles = re.findall(r"^## (M(?:6|7|8|9|10|11)\b[^\n]*)$", self.text, re.MULTILINE)
+        self.assertEqual(titles, list(CANONICAL_MILESTONE_TITLES))
+        for title in CANONICAL_MILESTONE_TITLES:
+            with self.subTest(title=title):
+                self.assertEqual(self.roadmap.count(f"**{title}**"), 1)
+
+    def test_each_description_has_four_fields_and_both_sources(self):
+        """Every copyable description keeps the complete governance contract."""
+        for title in CANONICAL_MILESTONE_TITLES:
+            section = self.milestone_section(title)
+            fields = re.findall(r"^\*\*([^*:\n]+):\*\*", section, re.MULTILINE)
+            with self.subTest(title=title):
+                self.assertEqual(fields, list(MILESTONE_FIELDS))
+                for link in CANONICAL_MILESTONE_LINKS:
+                    self.assertEqual(section.count(link), 1, link)
+
+                roadmap_row = re.search(
+                    rf"^\| \*\*{re.escape(title)}\*\* \| ([^|]+) \| ([^|]+) \| ([^|]+) \|$",
+                    self.roadmap,
+                    re.MULTILINE,
+                )
+                self.assertIsNotNone(roadmap_row)
+                for field, expected in zip(MILESTONE_FIELDS[:3], roadmap_row.groups()):
+                    value = re.search(
+                        rf"^\*\*{re.escape(field)}:\*\*\s*(.*?)(?=^\*\*|\Z)",
+                        section,
+                        re.MULTILINE | re.DOTALL,
+                    )
+                    self.assertIsNotNone(value)
+                    self.assertEqual(
+                        " ".join(value.group(1).split()),
+                        " ".join(expected.split()),
+                        field,
+                    )
+
+    def test_legacy_objects_have_one_closing_migration_route(self):
+        """Ten rubric objects map once, close after migration, and retain history."""
+        rows = re.findall(
+            r"^\| `([^`]+)` \| (M(?:6|7|8|9|10|11)) \|",
+            self.text,
+            re.MULTILINE,
+        )
+        self.assertEqual(len(rows), len(LEGACY_MILESTONE_DESTINATIONS))
+        self.assertEqual(dict(rows), LEGACY_MILESTONE_DESTINATIONS)
+
+        compact = " ".join(self.text.split())
+        for invariant in (
+            "Re-query every issue assigned to a legacy object",
+            "at most one primary GitHub Milestone",
+            "close rather than delete all ten legacy objects",
+            "descriptions and closed history remain available",
+            "no parallel active taxonomy remains",
+        ):
+            with self.subTest(invariant=invariant):
+                self.assertIn(invariant, compact)
+
+    def test_accepted_criteria_are_not_presented_as_unfinished(self):
+        """Assignments #39 and #41 cover only their current residual scope."""
+        rows = {
+            number: (destination.strip(), scope.strip())
+            for number, destination, scope in re.findall(
+                r"^\| \[#(39|41)\]\([^)]*\)[^|]*\| ([^|]+) \| ([^|]+) \|$",
+                self.text,
+                re.MULTILINE,
+            )
+        }
+        self.assertEqual(set(rows), {"39", "41"})
+        self.assertTrue(rows["39"][0].startswith("M8"))
+        self.assertIn("N01 is accepted", rows["39"][1])
+        self.assertTrue(rows["41"][0].startswith("M8"))
+        self.assertIn("B03 is accepted", rows["41"][1])
 
 
 class UniqueKeyLoader(yaml.BaseLoader):
