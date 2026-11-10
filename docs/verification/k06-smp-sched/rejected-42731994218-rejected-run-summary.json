@@ -1,0 +1,1582 @@
+{
+  "schema": 1,
+  "generated_at": "2026-11-10T03:02:56.036206+00:00",
+  "accepted": false,
+  "run_id": 42731994218,
+  "run_url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42731994218",
+  "tested_commit": "59a30f10ceb558d1e31408afece49ca5c331df20",
+  "source_sha256": "505c25139b4d23d78aa9da406108aad437ba7a763b1b1c67b0cc6074a4d8f2ae",
+  "status": "completed",
+  "conclusion": "failure",
+  "matrix": {
+    "required_cases": 64,
+    "requested_runs": 3200,
+    "attempted_in_reports": 2500,
+    "independently_verified_passed": 2386,
+    "failed_native_records": 114,
+    "missing_repetitions": 700,
+    "fully_green_cases": 43
+  },
+  "case_counts": {
+    "one": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899675,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "two-single": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899853,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "four": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899715,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "eight": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899573,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "nine-capacity": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899923,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "duplicate-madt": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899747,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "ap-stall": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899594,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "ap-mismatch": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899690,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "ap-ipi-deaf": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899608,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "ap-nmi-ist": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899727,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "ap-double-fault-ist": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899506,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "ap-shootdown-deaf": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899753,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "shootdown-skipped-control": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899842,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "ap-timer-dead": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899681,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "lockdep-order": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899628,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "spin-irq-off-control": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899784,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "held-across-switch": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899705,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "double-run": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899665,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "gs-user": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899783,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "gs-iret-fault": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569899600,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "gs-nmi-user": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569901355,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "shared-scratch": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569901466,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "lock-in-handler": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569901652,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "lockpair-order": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569901592,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "resched-deaf": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 46,
+      "failed_native_records": 4,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569901500,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Build one frozen profile and run the case 50 times"
+      ]
+    },
+    "icr-race-control": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569901788,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "quarantine-lock-held": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569901685,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "bsp-spin-irq-off-control": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569901946,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "proc-shootdown-deaf": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569901914,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "proc-no-shootdown-control": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569902146,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "lock-stuck": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569903611,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "m3-one": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569903726,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "m3-one-multi": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 47,
+      "failed_native_records": 3,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569903996,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Build one frozen profile and run the case 50 times"
+      ]
+    },
+    "m3-two-single": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569903854,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "m3-two": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569903921,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "m3-four-single": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569903911,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "m3-four": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569903934,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "m3-eight-single": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 45,
+      "failed_native_records": 5,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569904141,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Build one frozen profile and run the case 50 times"
+      ]
+    },
+    "m3-eight": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569904060,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "m3-ipc-four-single": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 0,
+      "failed_native_records": 50,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569904351,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Build one frozen profile and run the case 50 times"
+      ]
+    },
+    "m3-ipc-four": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 0,
+      "failed_native_records": 50,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569905637,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Build one frozen profile and run the case 50 times"
+      ]
+    },
+    "m3-migrate-four-single": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569905687,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "m3-migrate-four": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569905680,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "m3-migrate-eight-single": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569905717,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "m3-migrate-eight": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 49,
+      "failed_native_records": 1,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569905913,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Build one frozen profile and run the case 50 times"
+      ]
+    },
+    "m3-canary-control": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569906034,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "m3-fault-ap2": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569906037,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "m3-fpu-skip-control": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569906103,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "serial-unlocked-control": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 50,
+      "failed_native_records": 0,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": true,
+      "fully_green": true,
+      "api_job_id": 129569906092,
+      "api_job_conclusion": "success",
+      "failed_steps": []
+    },
+    "m3-load-one": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569906578,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-load-one-multi": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569907464,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-load-two-single": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569907694,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-load-two": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569907600,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-load-four-single": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569907744,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-load-four": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569907859,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-load-eight-single": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569908078,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-load-eight": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569908293,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-soak-four": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 49,
+      "failed_native_records": 1,
+      "missing_repetitions": 0,
+      "shards": 10,
+      "all_reports_passed": false,
+      "fully_green": false
+    },
+    "m4-quotas-four": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569908237,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "qsim-four": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569908102,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-kill-four": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569908414,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-unmap-four": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569909304,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-unmap-control": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569909447,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-recovery-four": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569909461,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    }
+  },
+  "failed_native_cases": {
+    "resched-deaf": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 46,
+      "failed_native_records": 4,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569901500,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Build one frozen profile and run the case 50 times"
+      ],
+      "failed_iterations": [
+        5,
+        38,
+        40,
+        43
+      ]
+    },
+    "m3-one-multi": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 47,
+      "failed_native_records": 3,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569903996,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Build one frozen profile and run the case 50 times"
+      ],
+      "failed_iterations": [
+        17,
+        34,
+        42
+      ]
+    },
+    "m3-eight-single": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 45,
+      "failed_native_records": 5,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569904141,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Build one frozen profile and run the case 50 times"
+      ],
+      "failed_iterations": [
+        5,
+        14,
+        23,
+        30,
+        46
+      ]
+    },
+    "m3-ipc-four-single": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 0,
+      "failed_native_records": 50,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569904351,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Build one frozen profile and run the case 50 times"
+      ],
+      "failed_iterations": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ]
+    },
+    "m3-ipc-four": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 0,
+      "failed_native_records": 50,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569905637,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Build one frozen profile and run the case 50 times"
+      ],
+      "failed_iterations": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ]
+    },
+    "m3-migrate-eight": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 49,
+      "failed_native_records": 1,
+      "missing_repetitions": 0,
+      "shards": 1,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569905913,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Build one frozen profile and run the case 50 times"
+      ],
+      "failed_iterations": [
+        9
+      ]
+    },
+    "m3-soak-four": {
+      "requested": 50,
+      "attempted_in_reports": 50,
+      "independently_verified_passed": 49,
+      "failed_native_records": 1,
+      "missing_repetitions": 0,
+      "shards": 10,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "failed_iterations": [
+        5
+      ]
+    }
+  },
+  "missing_cases": {
+    "m3-load-one": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569906578,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-load-one-multi": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569907464,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-load-two-single": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569907694,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-load-two": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569907600,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-load-four-single": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569907744,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-load-four": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569907859,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-load-eight-single": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569908078,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-load-eight": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569908293,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m4-quotas-four": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569908237,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "qsim-four": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569908102,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-kill-four": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569908414,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-unmap-four": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569909304,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-unmap-control": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569909447,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "m3-recovery-four": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569909461,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    }
+  },
+  "observed_failure_categories": {
+    "host_watchdog_timeout": 106,
+    "clock_drift": 8
+  },
+  "setup_failures": [
+    {
+      "case": "m3-load-one",
+      "job_id": 129569906578,
+      "failed_step": "Pinned QEMU and OVMF"
+    },
+    {
+      "case": "m3-load-one-multi",
+      "job_id": 129569907464,
+      "failed_step": "Pinned QEMU and OVMF"
+    },
+    {
+      "case": "m3-load-two",
+      "job_id": 129569907600,
+      "failed_step": "Pinned QEMU and OVMF"
+    },
+    {
+      "case": "m3-load-two-single",
+      "job_id": 129569907694,
+      "failed_step": "Pinned QEMU and OVMF"
+    },
+    {
+      "case": "m3-load-four-single",
+      "job_id": 129569907744,
+      "failed_step": "Pinned QEMU and OVMF"
+    },
+    {
+      "case": "m3-load-four",
+      "job_id": 129569907859,
+      "failed_step": "Pinned QEMU and OVMF"
+    },
+    {
+      "case": "m3-load-eight-single",
+      "job_id": 129569908078,
+      "failed_step": "Pinned QEMU and OVMF"
+    },
+    {
+      "case": "qsim-four",
+      "job_id": 129569908102,
+      "failed_step": "Pinned QEMU and OVMF"
+    },
+    {
+      "case": "m4-quotas-four",
+      "job_id": 129569908237,
+      "failed_step": "Pinned QEMU and OVMF"
+    },
+    {
+      "case": "m3-load-eight",
+      "job_id": 129569908293,
+      "failed_step": "Pinned QEMU and OVMF"
+    },
+    {
+      "case": "m3-kill-four",
+      "job_id": 129569908414,
+      "failed_step": "Pinned QEMU and OVMF"
+    },
+    {
+      "case": "m3-unmap-four",
+      "job_id": 129569909304,
+      "failed_step": "Pinned QEMU and OVMF"
+    },
+    {
+      "case": "m3-unmap-control",
+      "job_id": 129569909447,
+      "failed_step": "Pinned QEMU and OVMF"
+    },
+    {
+      "case": "m3-recovery-four",
+      "job_id": 129569909461,
+      "failed_step": "Pinned QEMU and OVMF"
+    }
+  ],
+  "example_setup_failure": {
+    "job_id": 129569906578,
+    "log": "setup-failure-job-129569906578.log",
+    "sha256": "6f85141012fa3b0885e2bb053dbdeb8539ea4aaf13270cba9212226026b53bab",
+    "observed_error": "apt-get update exit100; HTTP503 Service Unavailable on the three pinned Ubuntu snapshot InRelease endpoints. Other jobs are classified by their failed setup step; their exact network error is not inferred."
+  },
+  "environment_probe": {
+    "native_runs": 1,
+    "independently_checked": true,
+    "included_in_matrix_count": false,
+    "replaces_50_run_case_evidence": false
+  },
+  "combined_soak": {
+    "shards": 10,
+    "attempted": 50,
+    "fully_verified_passed": 49,
+    "failed": 1,
+    "passed_guest_elapsed_ms": [
+      600002,
+      600005,
+      600005,
+      600000,
+      600005,
+      600000,
+      600003,
+      600003,
+      600007,
+      600004,
+      600000,
+      600003,
+      600006,
+      600005,
+      600001,
+      600006,
+      600001,
+      600004,
+      600003,
+      600002,
+      600002,
+      600004,
+      600005,
+      600003,
+      600000,
+      600001,
+      600002,
+      600000,
+      600001,
+      600004,
+      600007,
+      600000,
+      600000,
+      600001,
+      600002,
+      600005,
+      600001,
+      600000,
+      600001,
+      600005,
+      600000,
+      600002,
+      600002,
+      600001,
+      600004,
+      600001,
+      600000,
+      600003,
+      600001
+    ],
+    "minimum_passed_guest_ms": 600000
+  },
+  "k07_regular_cases": {
+    "m4-quotas-four": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569908237,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    },
+    "qsim-four": {
+      "requested": 50,
+      "attempted_in_reports": 0,
+      "independently_verified_passed": 0,
+      "failed_native_records": 0,
+      "missing_repetitions": 50,
+      "shards": 0,
+      "all_reports_passed": false,
+      "fully_green": false,
+      "api_job_id": 129569908102,
+      "api_job_conclusion": "failure",
+      "failed_steps": [
+        "Pinned QEMU and OVMF"
+      ]
+    }
+  },
+  "gates": {
+    "SMP Ubuntu 26.04 and K07 probe": {
+      "id": 129569440064,
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-10T01:39:00Z",
+      "completed_at": "2026-11-10T01:40:09Z",
+      "html_url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42731994218/job/129569440064"
+    },
+    "SMP section 9 aggregate 64x50": {
+      "id": 129599632878,
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-11-10T02:59:42Z",
+      "completed_at": "2026-11-10T03:00:14Z",
+      "html_url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42731994218/job/129599632878"
+    },
+    "SMP final repository gate": {
+      "id": 129599835249,
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-11-10T03:00:15Z",
+      "completed_at": "2026-11-10T03:00:14Z",
+      "html_url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42731994218/job/129599835249"
+    }
+  },
+  "tools_gate_executed": false,
+  "aggregate_verified": false,
+  "artifact_count": 60,
+  "zip_inventory": "zip-digest-inventory.json",
+  "zip_inventory_sha256": "fb9bf5c721540cd394dbe341d096188b67e8c443bf2d1597f5cdd2512c0fa881",
+  "verification": {
+    "path": "final-verification.json",
+    "sha256": "016a2498ff5fee64ac88786504ddc227f29e8d4836d2fa53ed9d1cfd11dc5cb1",
+    "exit_code": 1,
+    "mode": "partial-diagnostic",
+    "note": "All available original raw artifacts are checked. Missing runs are not counted as executed failures or passes."
+  },
+  "api_files": {
+    "run": {
+      "path": "final-raw-run.json",
+      "sha256": "383c1d5be62ac0744989069d61bdc3e5f134886648ad1a6e284caf0907d6f0f9"
+    },
+    "jobs": {
+      "path": "final-raw-jobs.json",
+      "sha256": "bc61ed3ba52ea8f6b3e200cbcd97c7d1afead7ce9178515eff6b024339a9770b"
+    },
+    "artifacts": {
+      "path": "final-raw-artifacts.json",
+      "sha256": "61fc78934f91c03e1db209f728b49c215af50ca88ec5f2a9e3c14d7fc4ac9572"
+    }
+  },
+  "preservation": {
+    "all_api_original_zips_preserved": true,
+    "all_api_sha256_and_sizes_match": true,
+    "all_zip_crc_valid": true,
+    "all_canonical_bytes_match_zips": true,
+    "removed_files": 0
+  },
+  "limits": [
+    "No guest is executed by this verifier.",
+    "The strict serial oracle is rerun from the selected checkout; this is an independent artifact readback, not an independent oracle implementation.",
+    "Compact artifacts omit kernel/loader ELF/PE and firmware bytes; recorded hashes are cross-bound to manifests, not independently recomputed from absent binaries.",
+    "GitHub artifact ZIP digests and run metadata must be checked separately against the retained API inventory.",
+    "Final tools/gate.sh execution and all required regression reports must be verified separately before accepting K06.",
+    "No physical hardware or human security audit evidence is provided.",
+    "The 59a run remains rejected; passing repetitions or 49 complete soaks cannot compensate for failed or missing repetitions.",
+    "The final repository gate was skipped. No tools/gate.sh log or successful final-gate execution is claimed.",
+    "Setup failures before guest launch are missing native repetitions, not 0/50 executed product failures.",
+    "The environment probe is outside the 3200 count and cannot replace either regular K07 case."
+  ]
+}
