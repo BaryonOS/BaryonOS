@@ -9,6 +9,8 @@ import io
 import json
 import os
 from pathlib import Path
+import shutil
+import stat
 import subprocess
 import tempfile
 import unittest
@@ -21,6 +23,38 @@ TOOL_PATH = ROOT / "tools/publication_audit.py"
 SPEC = importlib.util.spec_from_file_location("publication_audit", TOOL_PATH)
 AUDIT = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(AUDIT)
+
+
+class AuditTestCase(unittest.TestCase):
+    """Isolate inherited Actions state while preserving explicit Actions tests."""
+
+    def setUp(self):
+        """Remove inherited GITHUB_ACTIONS and restore it after each test."""
+        inherited = os.environ.pop("GITHUB_ACTIONS", None)
+
+        def restore():
+            """Restore the runner marker exactly as inherited by the test process."""
+            os.environ.pop("GITHUB_ACTIONS", None)
+            if inherited is not None:
+                os.environ["GITHUB_ACTIONS"] = inherited
+
+        self.addCleanup(restore)
+
+
+class FakeReservation:
+    """Model a completed or cancelled state reservation for local fixtures."""
+
+    def __init__(self):
+        """Start one active no-op fixture reservation."""
+        self.active = True
+
+    def commit(self, unused_size):
+        """Mark the fixture reservation committed."""
+        self.active = False
+
+    def cancel_clean(self):
+        """Mark the fixture reservation cleanly cancelled."""
+        self.active = False
 
 
 def limits(**changes):
@@ -110,25 +144,54 @@ def manifest(inventory=None, blockers_expected=None):
 
 
 class FakeBudget:
+    """Provide deterministic budget behavior without filesystem accounting."""
+
     def __init__(self, state, *, remaining=10_000, state_remaining=1024**3):
+        """Initialize fixed time/state allowances and aggregate counters."""
         self.state = Path(state)
         self.seconds = remaining
         self.bytes = state_remaining
         self.consumed = {"requests": 0, "download_bytes": 0, "expanded_bytes": 0, "entries": 0}
 
     def remaining(self):
+        """Return the fixed command-time allowance."""
         return self.seconds
 
     def state_remaining(self):
+        """Return the fixed retained-state allowance."""
         return self.bytes
 
     def consume(self, field, amount):
+        """Accumulate one synthetic resource charge."""
         self.consumed[field] += amount
 
+    def reserve_file(self, unused_path, unused_maximum):
+        """Return a no-op fixture reservation for one file."""
+        return FakeReservation()
+
+    def reserve_bulk(self, unused_maximum):
+        """Return a no-op fixture reservation for multi-file output."""
+        return FakeReservation()
+
+    def remove(self, path):
+        """Remove a fixture path after validating it is not a symlink."""
+        path = Path(path)
+        if path.is_symlink():
+            raise AUDIT.AuditError("state_symlink_present")
+        if path.is_dir():
+            shutil.rmtree(path)
+        elif path.exists():
+            path.unlink()
+
+    def assert_state_budget(self):
+        """Treat fixture state as inside its configured bound."""
+
     def write_bytes(self, path, value):
+        """Write fixture bytes through the production private writer."""
         AUDIT.safe_write_bytes(path, value)
 
     def write_json(self, path, value):
+        """Write fixture JSON through the production private writer."""
         AUDIT.safe_write_json(path, value)
 
 
@@ -146,6 +209,29 @@ class InventoryApi:
         if suffix == "/actions/artifacts":
             self.inventories.pop(0)
         return result
+
+
+class StableFinalApi:
+    """Return repository metadata and the fixture's empty stable inventory."""
+
+    def __init__(self, unused_token, unused_budget):
+        """Accept the production API constructor arguments."""
+
+    def json(self, unused_suffix):
+        """Return metadata bound by the default test manifest."""
+        return (
+            {
+                "id": AUDIT.REPOSITORY_ID,
+                "full_name": AUDIT.REPOSITORY,
+                "clone_url": "https://github.com/simonvanieperen/BaryonOS.git",
+                "private": False,
+            },
+            FakeHeaders(),
+        )
+
+    def inventory(self, unused_suffix, unused_field):
+        """Return one side of the repeated stable empty inventory."""
+        return []
 
 
 class Response(io.BytesIO):
@@ -245,13 +331,25 @@ def write_clean_receipt(state, value, item, *, findings=None, gaps=None, unavail
                 "submodules_seen": False,
                 "non_utf8_paths": 0,
             }
+        retained_paths = AUDIT.RETAINED_PATHS.get(item["key"])
+        if retained_paths is not None:
+            for relative in retained_paths:
+                if relative != "findings.json":
+                    AUDIT.safe_write_bytes(work / relative, (relative + "\n").encode())
+            receipt["retained_files"] = AUDIT.retained_files_binding(work, retained_paths)
     else:
         receipt["unavailable_reason"] = unavailable
     AUDIT.write_receipt(state, item["key"], receipt)
     return receipt
 
 
-class ManifestContractTests(unittest.TestCase):
+class ManifestContractTests(AuditTestCase):
+    """PA-SNAPSHOT: schema v2 snapshot bindings must be canonical and immutable.
+
+    Configuration: mocked API/Git with the pinned Gitleaks binding and no live
+    network. Expected: exact repository/cutoff/HEAD/ref/inventory/limit binding.
+    Failure: a stable AuditError code within the host-unit-test timeout.
+    """
     def metadata(self, *, private=False, identifier=AUDIT.REPOSITORY_ID):
         return {
             "id": identifier,
@@ -396,7 +494,90 @@ class ManifestContractTests(unittest.TestCase):
         second = [{"name": "refs/heads/main", "oid": "2" * 40}]
         with mock.patch.object(AUDIT, "advertised_refs", side_effect=[first, second]):
             with self.assertRaisesRegex(AUDIT.AuditError, "remote_refs_changed_during_snapshot"):
-                AUDIT.stable_advertised_refs(repository()["canonical_clone_url"], mock.Mock())
+                AUDIT.stable_advertised_refs(
+                    repository()["canonical_clone_url"], mock.Mock(), private=False
+                )
+
+    def test_private_advertised_refs_use_scoped_askpass(self):
+        """Invariant: private ls-remote exposes the token only to transient askpass."""
+        secret = "private-sentinel-token"
+        captured = {}
+
+        def command(arguments, unused_budget, **options):
+            environment = options["environment"]
+            helper = Path(environment["GIT_ASKPASS"])
+            captured.update(
+                arguments=list(arguments),
+                helper=helper,
+                helper_bytes=helper.read_bytes(),
+                helper_mode=stat.S_IMODE(helper.stat().st_mode),
+                home=Path(environment["HOME"]),
+                environment=dict(environment),
+                username=subprocess.check_output(
+                    [str(helper), "Username for https://github.com"], env=environment, text=True
+                ).strip(),
+                password=subprocess.check_output(
+                    [str(helper), "Password for https://github.com"], env=environment, text=True
+                ).strip(),
+            )
+            return b"1" * 40 + b"\trefs/heads/main\n"
+
+        with (
+            mock.patch.dict(
+                os.environ,
+                {"GH_TOKEN": secret, "GITHUB_TOKEN": "must-not-pass", "GIT_ASKPASS": "/unsafe"},
+            ),
+            mock.patch.object(AUDIT, "run_command", side_effect=command),
+        ):
+            refs = AUDIT.advertised_refs(repository("private")["canonical_clone_url"], mock.Mock(), private=True)
+        self.assertEqual(refs[0]["name"], "refs/heads/main")
+        self.assertEqual(captured["username"], "x-access-token")
+        self.assertEqual(captured["password"], secret)
+        self.assertEqual(captured["helper_mode"], 0o700)
+        self.assertNotIn(secret.encode(), captured["helper_bytes"])
+        self.assertNotIn(secret, " ".join(captured["arguments"]))
+        self.assertNotIn("GH_TOKEN", captured["environment"])
+        self.assertNotIn("GITHUB_TOKEN", captured["environment"])
+        self.assertEqual(captured["environment"][AUDIT.ASKPASS_TOKEN_ENV], secret)
+        self.assertFalse(captured["helper"].exists())
+        self.assertFalse(captured["home"].exists())
+
+    def test_private_advertised_refs_require_credential(self):
+        """Invariant: the private route fails before Git when GH_TOKEN is absent."""
+        with (
+            mock.patch.dict(os.environ, {"GH_TOKEN": ""}),
+            mock.patch.object(AUDIT, "run_command") as command,
+            self.assertRaisesRegex(AUDIT.AuditError, "missing_git_credential_environment"),
+        ):
+            AUDIT.advertised_refs(repository("private")["canonical_clone_url"], mock.Mock(), private=True)
+        command.assert_not_called()
+
+    def test_public_advertised_refs_scrub_inherited_credentials(self):
+        """Invariant: public ls-remote receives no inherited token or askpass helper."""
+        captured = {}
+        temporary = {}
+
+        def command(unused_arguments, unused_budget, **options):
+            captured.update(options["environment"])
+            temporary["home"] = Path(captured["HOME"])
+            temporary["existed"] = temporary["home"].is_dir()
+            return b"1" * 40 + b"\trefs/heads/main\n"
+
+        with (
+            mock.patch.dict(
+                os.environ,
+                {"GH_TOKEN": "secret-a", "GITHUB_TOKEN": "secret-b", "GIT_ASKPASS": "/unsafe"},
+            ),
+            mock.patch.object(AUDIT, "run_command", side_effect=command),
+        ):
+            AUDIT.advertised_refs(repository()["canonical_clone_url"], mock.Mock(), private=False)
+        self.assertNotIn("GH_TOKEN", captured)
+        self.assertNotIn("GITHUB_TOKEN", captured)
+        self.assertNotIn(AUDIT.ASKPASS_TOKEN_ENV, captured)
+        self.assertNotEqual(captured["GIT_ASKPASS"], "/unsafe")
+        self.assertEqual(captured["GIT_NO_REPLACE_OBJECTS"], "1")
+        self.assertTrue(temporary["existed"])
+        self.assertFalse(temporary["home"].exists())
 
     def test_git_snapshot_binds_alias_redirect_and_advertised_tips(self):
         commands = {
@@ -449,6 +630,110 @@ class ManifestContractTests(unittest.TestCase):
             with self.assertRaisesRegex(AUDIT.AuditError, "remote_ref_tip_missing_locally"):
                 AUDIT.git_snapshot(ROOT, mock.Mock(), repository(), api)
 
+    def test_git_snapshot_requires_head_to_be_an_advertised_tip(self):
+        """Invariant: a local descendant or detached commit is outside the snapshot."""
+        head = "1" * 40
+        advertised = "2" * 40
+        outputs = iter(
+            [
+                b"false\n",
+                (head + "\n").encode(),
+                b"https://github.com/simonvanieperen/BaryonOS.git\n",
+                (advertised + " commit\n").encode(),
+            ]
+        )
+        api = mock.Mock()
+        api.repository_alias.return_value = {
+            "id": AUDIT.REPOSITORY_ID,
+            "full_name": AUDIT.REPOSITORY,
+            "clone_url": repository()["canonical_clone_url"],
+        }
+        refs = [{"name": "refs/heads/main", "oid": advertised}]
+        with (
+            mock.patch.object(AUDIT, "run_command", side_effect=lambda *args, **kwargs: next(outputs)),
+            mock.patch.object(AUDIT, "stable_advertised_refs", return_value=refs),
+            self.assertRaisesRegex(AUDIT.AuditError, "source_head_not_advertised"),
+        ):
+            AUDIT.git_snapshot(ROOT, mock.Mock(), repository(), api)
+
+    def test_git_replacement_refs_cannot_change_audited_object_views(self):
+        """Invariant: every local Git execution ignores attacker-controlled replacements."""
+        state = private_temp(self)
+        repository_path = state / "repo"
+        repository_path.mkdir(mode=0o700)
+        fixture_environment = {
+            **os.environ,
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_TERMINAL_PROMPT": "0",
+        }
+        fixture_environment.pop("GIT_NO_REPLACE_OBJECTS", None)
+        subprocess.run(["git", "init", "--quiet"], cwd=repository_path, env=fixture_environment, check=True)
+        for key, value in (
+            ("user.name", "Fixture"),
+            ("user.email", "fixture@example.invalid"),
+            ("commit.gpgsign", "false"),
+        ):
+            subprocess.run(
+                ["git", "config", key, value],
+                cwd=repository_path,
+                env=fixture_environment,
+                check=True,
+            )
+        tracked = repository_path / "tracked.txt"
+        tracked.write_text("original\n")
+        subprocess.run(["git", "add", "tracked.txt"], cwd=repository_path, env=fixture_environment, check=True)
+        subprocess.run(
+            ["git", "commit", "--quiet", "-m", "original"],
+            cwd=repository_path,
+            env=fixture_environment,
+            check=True,
+        )
+        original = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=repository_path, env=fixture_environment, text=True
+        ).strip()
+        tracked.write_text("replacement\n")
+        subprocess.run(["git", "add", "tracked.txt"], cwd=repository_path, env=fixture_environment, check=True)
+        subprocess.run(
+            ["git", "commit", "--quiet", "-m", "replacement"],
+            cwd=repository_path,
+            env=fixture_environment,
+            check=True,
+        )
+        replacement = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=repository_path, env=fixture_environment, text=True
+        ).strip()
+        subprocess.run(
+            ["git", "replace", original, replacement],
+            cwd=repository_path,
+            env=fixture_environment,
+            check=True,
+        )
+        visible = subprocess.check_output(
+            ["git", "log", "-1", "--format=%s", original],
+            cwd=repository_path,
+            env=fixture_environment,
+            text=True,
+        ).strip()
+        self.assertEqual(visible, "replacement")
+        budget = FakeBudget(state)
+        audited = AUDIT.run_command(
+            ["git", "log", "-1", "--format=%s", original],
+            budget,
+            cwd=repository_path,
+        ).decode().strip()
+        self.assertEqual(audited, "original")
+        output = state / "git-output.txt"
+        AUDIT.run_command_to_file(
+            ["git", "log", "-1", "--format=%s", original],
+            budget,
+            output,
+            cwd=repository_path,
+            input_bytes=b"",
+            maximum=4096,
+        )
+        self.assertEqual(output.read_text().strip(), "original")
+
     def test_inventory_rejects_duplicate_and_truncated_rows(self):
         api = object.__new__(AUDIT.GitHubApi)
         api.json = mock.Mock(return_value=({"total_count": 2, "artifacts": [{"id": 1}, {"id": 1}]}, None))
@@ -459,7 +744,13 @@ class ManifestContractTests(unittest.TestCase):
             api.inventory("/actions/artifacts", "artifacts")
 
 
-class StateAndBudgetTests(unittest.TestCase):
+class StateAndBudgetTests(AuditTestCase):
+    """PA-STATE: private single-writer state and monotonic bounds fail closed.
+
+    Configuration: temporary host filesystems under schema v2 limits. Expected:
+    modes 0700/0600, bounded linear accounting and persisted consumption.
+    Failure: mutation, overlap, exhaustion or clock ambiguity raises AuditError.
+    """
     def test_state_directory_symlink_is_rejected(self):
         parent = private_temp(self)
         target = parent / "target"
@@ -472,8 +763,8 @@ class StateAndBudgetTests(unittest.TestCase):
 
     def test_broad_state_permissions_are_rejected(self):
         state = private_temp(self) / "state"
-        state.mkdir(mode=0o755)
-        os.chmod(state, 0o755)
+        state.mkdir(mode=0o710)
+        os.chmod(state, 0o710)
         with self.assertRaisesRegex(AUDIT.AuditError, "state_directory_permissions"):
             with AUDIT.StateLock(state):
                 pass
@@ -547,9 +838,88 @@ class StateAndBudgetTests(unittest.TestCase):
     def test_atomic_writer_refuses_bytes_beyond_state_cap_before_write(self):
         state = private_temp(self)
         destination = state / "too-large.bin"
+        accountant = AUDIT.StateAccountant(state, 3)
         with self.assertRaisesRegex(AUDIT.AuditError, "max_total_state_bytes_exhausted"):
-            AUDIT.safe_write_bytes(destination, b"1234", state_root=state, state_limit=3)
+            AUDIT.safe_write_bytes(destination, b"1234", accountant=accountant)
         self.assertFalse(destination.exists())
+
+    def test_replacement_reserves_old_and_new_bytes_then_commits_exact_size(self):
+        """Invariant: replacement transient bytes fit before retained usage changes."""
+        state = private_temp(self)
+        destination = state / "replace.bin"
+        destination.write_bytes(b"old!")
+        accountant = AUDIT.StateAccountant(state, 7)
+        AUDIT.safe_write_bytes(destination, b"new", accountant=accountant)
+        self.assertEqual(destination.read_bytes(), b"new")
+        self.assertEqual((accountant.used, accountant.reserved), (3, 0))
+
+    def test_replacement_over_transient_limit_preserves_original(self):
+        """Invariant: old plus temporary replacement bytes are bounded atomically."""
+        state = private_temp(self)
+        destination = state / "replace.bin"
+        destination.write_bytes(b"old!")
+        accountant = AUDIT.StateAccountant(state, 6)
+        with self.assertRaisesRegex(AUDIT.AuditError, "max_total_state_bytes_exhausted"):
+            AUDIT.safe_write_bytes(destination, b"new", accountant=accountant)
+        self.assertEqual(destination.read_bytes(), b"old!")
+        self.assertEqual((accountant.used, accountant.reserved), (4, 0))
+
+    def test_failed_atomic_replace_cancels_reservation_after_cleanup(self):
+        """Invariant: a failed rename retains old bytes and releases no phantom state."""
+        state = private_temp(self)
+        destination = state / "replace.bin"
+        destination.write_bytes(b"old")
+        accountant = AUDIT.StateAccountant(state, 32)
+        with (
+            mock.patch.object(AUDIT.os, "replace", side_effect=OSError("fixture rename failure")),
+            self.assertRaisesRegex(OSError, "fixture rename failure"),
+        ):
+            AUDIT.safe_write_bytes(destination, b"replacement", accountant=accountant)
+        self.assertEqual(destination.read_bytes(), b"old")
+        self.assertFalse(destination.with_name("replace.bin.tmp").exists())
+        self.assertEqual((accountant.used, accountant.reserved), (3, 0))
+
+    def test_bulk_reservation_commits_exact_bytes_and_can_cancel_cleanly(self):
+        """Invariant: multi-file work retains its exact size or releases all capacity."""
+        state = private_temp(self)
+        accountant = AUDIT.StateAccountant(state, 16)
+        committed = accountant.reserve_bulk(8)
+        (state / "a.bin").write_bytes(b"abc")
+        (state / "b.bin").write_bytes(b"de")
+        committed.commit(5)
+        cancelled = accountant.reserve_bulk(4)
+        cancelled.cancel_clean()
+        self.assertEqual((accountant.used, accountant.reserved), (5, 0))
+        accountant.reconcile()
+        self.assertEqual(accountant.used, 5)
+
+    def test_many_accounted_writes_do_not_rescan_the_state_tree(self):
+        """Invariant: retained-state accounting remains O(1) after one measurement."""
+        state = private_temp(self)
+        with mock.patch.object(AUDIT, "directory_size", wraps=AUDIT.directory_size) as measure:
+            accountant = AUDIT.StateAccountant(state, 1024 * 1024)
+            ledger = AUDIT.UsageLedger(
+                state,
+                limits(max_total_state_bytes=1024 * 1024),
+                accountant=accountant,
+            )
+            for unused in range(32):
+                ledger.consume("requests", 0)
+            for index in range(128):
+                AUDIT.safe_write_bytes(
+                    state / f"entry-{index}.bin",
+                    bytes([index % 251]) * (index % 17 + 1),
+                    accountant=accountant,
+                )
+            for index in range(128):
+                AUDIT.safe_write_bytes(
+                    state / f"entry-{index}.bin",
+                    b"xy",
+                    accountant=accountant,
+                )
+            self.assertEqual(measure.call_count, 1)
+        self.assertEqual(accountant.used, AUDIT.directory_size(state))
+        self.assertEqual(accountant.reserved, 0)
 
     def test_audit_state_must_not_overlap_repository(self):
         with self.assertRaisesRegex(AUDIT.AuditError, "state_repository_overlap"):
@@ -577,8 +947,17 @@ class StateAndBudgetTests(unittest.TestCase):
         self.assertEqual(reloaded.value["exhausted"], "total_time_budget_exhausted")
 
 
-class ContentBoundaryTests(unittest.TestCase):
+class ContentBoundaryTests(AuditTestCase):
+    """PA-CONTENT: only completely bounded and classified bytes can scan clean.
+
+    Configuration: synthetic ZIP/HTTP/Git/scanner inputs with pinned limits.
+    Expected: exact byte classes and counts; failure is a gap or AuditError.
+    Evidence is host-only and bounded by the unittest process timeout.
+    """
+
     def setUp(self):
+        """Create isolated content state and a deterministic fake budget."""
+        super().setUp()
         self.state = private_temp(self)
         self.budget = FakeBudget(self.state)
 
@@ -619,10 +998,12 @@ class ContentBoundaryTests(unittest.TestCase):
         self.assertEqual(self.budget.consumed["entries"], 1)
 
     def test_stale_scanner_report_is_deleted_before_execution(self):
+        """Invariant: scanner execution is clean, bounded and replacement-disabled."""
         scanner = self.state / "fake-gitleaks"
         scanner.write_text(
             "#!/usr/bin/env python3\n"
-            "import pathlib, sys\n"
+            "import os, pathlib, sys\n"
+            "if os.environ.get('GIT_NO_REPLACE_OBJECTS') != '1': sys.exit(7)\n"
             "path = pathlib.Path(sys.argv[sys.argv.index('--report-path') + 1])\n"
             "path.write_text('[]')\n"
         )
@@ -672,10 +1053,19 @@ class ContentBoundaryTests(unittest.TestCase):
         }
 
         class MissingApi:
+            """Return one deterministic unavailable artifact response."""
+
             def download(self, suffix, target):
+                """Model an HTTP 404 without creating retained bytes."""
                 return 404, 0
 
-        result = AUDIT.scan_action_resource(item, self.state / "work", self.state / "unused", MissingApi(), self.budget)
+        result = AUDIT.scan_action_resource(
+            item,
+            self.state / "work",
+            self.state / "unused",
+            MissingApi(),
+            self.budget,
+        )
         self.assertFalse(result["content_scanned"])
         self.assertEqual(result["unavailable_reason"], "http_404")
         self.assertIn("resource_unavailable", result["coverage_gaps"])
@@ -801,8 +1191,17 @@ class ContentBoundaryTests(unittest.TestCase):
                 AUDIT.run_command(["git", "status"], self.budget)
 
 
-class ReceiptAndFinalizationTests(unittest.TestCase):
+class ReceiptAndFinalizationTests(AuditTestCase):
+    """PA-FINALIZE: receipts bind reports/payloads/retained bytes before success.
+
+    Configuration: schema v2 synthetic receipts and stable mocked inventories.
+    Expected: every byte revalidates and publication_clearance remains false.
+    Failure: any missing or mutated binding raises or keeps finalizable false.
+    """
+
     def setUp(self):
+        """Create one isolated manifest state for receipt/finalize contracts."""
+        super().setUp()
         self.state = private_temp(self)
         self.value = manifest()
         AUDIT.safe_write_json(self.state / "manifest.json", self.value)
@@ -886,6 +1285,33 @@ class ReceiptAndFinalizationTests(unittest.TestCase):
         work = AUDIT.resource_work(self.state, item["key"])
         AUDIT.safe_write_bytes(work / "payload.zip", b"changed")
         with self.assertRaisesRegex(AUDIT.AuditError, "receipt_payload_binding_mismatch"):
+            AUDIT.validate_receipt(self.value, item, self.state)
+
+    def test_modified_git_history_work_byte_is_rejected(self):
+        """Invariant: history success binds scanner support files, not only findings."""
+        item = next(item for item in self.value["resources"] if item["key"] == "git-history")
+        write_clean_receipt(self.state, self.value, item)
+        work = AUDIT.resource_work(self.state, item["key"])
+        AUDIT.safe_write_bytes(work / "scanner.log", b"modified history log\n")
+        with self.assertRaisesRegex(AUDIT.AuditError, "receipt_retained_bytes_mismatch"):
+            AUDIT.validate_receipt(self.value, item, self.state)
+
+    def test_modified_git_metadata_byte_is_rejected(self):
+        """Invariant: commit metadata bytes are rehashed before finalization."""
+        item = next(item for item in self.value["resources"] if item["key"] == "git-metadata")
+        write_clean_receipt(self.state, self.value, item)
+        work = AUDIT.resource_work(self.state, item["key"])
+        AUDIT.safe_write_bytes(work / "metadata/commit-metadata.bin", b"modified metadata\n")
+        with self.assertRaisesRegex(AUDIT.AuditError, "receipt_retained_bytes_mismatch"):
+            AUDIT.validate_receipt(self.value, item, self.state)
+
+    def test_extra_git_metadata_file_is_rejected(self):
+        """Invariant: a retained Git manifest binds the complete expected path set."""
+        item = next(item for item in self.value["resources"] if item["key"] == "git-metadata")
+        write_clean_receipt(self.state, self.value, item)
+        work = AUDIT.resource_work(self.state, item["key"])
+        AUDIT.safe_write_bytes(work / "metadata/unbound.bin", b"unbound\n")
+        with self.assertRaisesRegex(AUDIT.AuditError, "receipt_retained_bytes_mismatch"):
             AUDIT.validate_receipt(self.value, item, self.state)
 
     def test_binary_or_nested_count_cannot_be_hidden_by_empty_gap_list(self):
@@ -1010,6 +1436,165 @@ class ReceiptAndFinalizationTests(unittest.TestCase):
         self.assertTrue(result["audit_complete"])
         self.assertFalse(result["publication_clearance"])
         self.assertIn("resources deleted before the snapshot", result["scope_limitations"])
+        self.assertFalse((self.state / "final.json").exists())
+
+    def test_finalize_commits_success_only_after_budget_closes(self):
+        """Invariant: the durable success transition follows all budget checks."""
+        self.fill()
+        events = []
+        real_budget = AUDIT.Budget
+        real_write_json = AUDIT.safe_write_json
+
+        class TrackingBudget(real_budget):
+            def __exit__(self, *unused):
+                result = super().__exit__(*unused)
+                events.append("budget-closed")
+                return result
+
+        def tracking_write(path, value, *, accountant=None):
+            if Path(path).name == "final.json":
+                events.append("final-written")
+            return real_write_json(path, value, accountant=accountant)
+
+        output = io.StringIO()
+        with (
+            mock.patch.object(AUDIT, "GitHubApi", StableFinalApi),
+            mock.patch.object(AUDIT, "git_snapshot", return_value=self.value["source"]),
+            mock.patch.object(AUDIT, "Budget", TrackingBudget),
+            mock.patch.object(AUDIT, "safe_write_json", side_effect=tracking_write),
+            mock.patch("sys.stdout", output),
+        ):
+            exit_code = AUDIT.main(
+                ["--state-dir", str(self.state), "--repo", str(ROOT), "finalize"]
+            )
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(events, ["budget-closed", "final-written"])
+        console = json.loads(output.getvalue())
+        final = AUDIT.load_json(self.state / "final.json")
+        self.assertTrue(console["snapshot_audit_passed"])
+        self.assertTrue(final["snapshot_audit_passed"])
+
+    def test_finalize_budget_exit_failure_leaves_no_success_record(self):
+        """Invariant: a late command cannot persist its computed success candidate."""
+        self.fill()
+        real_budget = AUDIT.Budget
+
+        class LateBudget(real_budget):
+            def __exit__(self, *unused):
+                self.deadline = AUDIT.time.monotonic() - 1
+                return super().__exit__(*unused)
+
+        output = io.StringIO()
+        with (
+            mock.patch.object(AUDIT, "GitHubApi", StableFinalApi),
+            mock.patch.object(AUDIT, "git_snapshot", return_value=self.value["source"]),
+            mock.patch.object(AUDIT, "Budget", LateBudget),
+            mock.patch("sys.stdout", output),
+        ):
+            exit_code = AUDIT.main(
+                ["--state-dir", str(self.state), "--repo", str(ROOT), "finalize"]
+            )
+
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(json.loads(output.getvalue())["error"], "command_time_budget_exhausted")
+        self.assertFalse((self.state / "final.json").exists())
+
+    def test_finalize_quota_failure_leaves_no_success_record(self):
+        """Invariant: final-record capacity is checked before the success commit."""
+        self.fill()
+        real_usage_ledger = AUDIT.UsageLedger
+
+        class FinalQuotaAccountant(AUDIT.StateAccountant):
+            def reserve_file(self, path, maximum):
+                if Path(path).name == "final.json":
+                    raise AUDIT.AuditError("max_total_state_bytes_exhausted")
+                return super().reserve_file(path, maximum)
+
+        def quota_ledger(state, configured_limits):
+            accountant = FinalQuotaAccountant(
+                state,
+                configured_limits["max_total_state_bytes"],
+            )
+            return real_usage_ledger(state, configured_limits, accountant=accountant)
+
+        output = io.StringIO()
+        with (
+            mock.patch.object(AUDIT, "GitHubApi", StableFinalApi),
+            mock.patch.object(AUDIT, "git_snapshot", return_value=self.value["source"]),
+            mock.patch.object(AUDIT, "UsageLedger", side_effect=quota_ledger),
+            mock.patch("sys.stdout", output),
+        ):
+            exit_code = AUDIT.main(
+                ["--state-dir", str(self.state), "--repo", str(ROOT), "finalize"]
+            )
+
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(json.loads(output.getvalue())["error"], "max_total_state_bytes_exhausted")
+        self.assertFalse((self.state / "final.json").exists())
+
+    def test_finalize_usage_finish_failure_leaves_no_success_record(self):
+        """Invariant: a ledger-save failure follows no durable success transition."""
+        self.fill()
+        real_usage_ledger = AUDIT.UsageLedger
+
+        class FinishQuotaAccountant(AUDIT.StateAccountant):
+            def __init__(self, state, maximum):
+                super().__init__(state, maximum)
+                self.usage_writes = 0
+
+            def reserve_file(self, path, maximum):
+                if Path(path).name == "usage.json":
+                    self.usage_writes += 1
+                    if self.usage_writes == 3:
+                        raise AUDIT.AuditError("max_total_state_bytes_exhausted")
+                return super().reserve_file(path, maximum)
+
+        def quota_ledger(state, configured_limits):
+            accountant = FinishQuotaAccountant(
+                state,
+                configured_limits["max_total_state_bytes"],
+            )
+            return real_usage_ledger(state, configured_limits, accountant=accountant)
+
+        output = io.StringIO()
+        with (
+            mock.patch.object(AUDIT, "GitHubApi", StableFinalApi),
+            mock.patch.object(AUDIT, "git_snapshot", return_value=self.value["source"]),
+            mock.patch.object(AUDIT, "UsageLedger", side_effect=quota_ledger),
+            mock.patch("sys.stdout", output),
+        ):
+            exit_code = AUDIT.main(
+                ["--state-dir", str(self.state), "--repo", str(ROOT), "finalize"]
+            )
+
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(json.loads(output.getvalue())["error"], "max_total_state_bytes_exhausted")
+        self.assertFalse((self.state / "final.json").exists())
+
+    def test_failed_refinalization_invalidates_earlier_success(self):
+        """Invariant: a failed retry cannot leave an earlier positive record active."""
+        self.fill()
+        AUDIT.safe_write_json(
+            self.state / "final.json",
+            {"audit_complete": True, "snapshot_audit_passed": True},
+        )
+        changed = dict(self.value["source"])
+        changed["refs_sha256"] = "f" * 64
+        output = io.StringIO()
+
+        with (
+            mock.patch.object(AUDIT, "GitHubApi", StableFinalApi),
+            mock.patch.object(AUDIT, "git_snapshot", return_value=changed),
+            mock.patch("sys.stdout", output),
+        ):
+            exit_code = AUDIT.main(
+                ["--state-dir", str(self.state), "--repo", str(ROOT), "finalize"]
+            )
+
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(json.loads(output.getvalue())["error"], "git_snapshot_changed")
+        self.assertFalse((self.state / "final.json").exists())
 
     def test_finalize_rejects_inventory_deletion_or_mutation(self):
         self.value = manifest({"runs": [run()], "artifacts": []})

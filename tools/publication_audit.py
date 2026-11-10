@@ -11,7 +11,7 @@ from __future__ import annotations
 import argparse
 import codecs
 from collections import Counter
-from contextlib import AbstractContextManager
+from contextlib import AbstractContextManager, contextmanager
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 import fcntl
@@ -25,6 +25,7 @@ import resource
 import shutil
 import stat
 import subprocess
+import tempfile
 import time
 import urllib.error
 import urllib.parse
@@ -45,6 +46,24 @@ CONFIG_BYTES = b"[extend]\nuseDefault = true\n"
 IGNORE_BYTES = b""
 RESOURCE_KEY = re.compile(r"(?:git-history|git-objects|git-metadata|run-\d+-attempt-\d+|artifact-\d+)")
 ARCHIVE_NAME = re.compile(r"\.(?:zip|tar|gz|tgz|bz2|xz|7z|rar)$", re.IGNORECASE)
+RETAINED_PATHS = {
+    "git-history": (
+        "empty.ignore",
+        "findings.json",
+        "gitleaks-defaults.toml",
+        "scanner.log",
+    ),
+    "git-metadata": (
+        "empty.ignore",
+        "findings.json",
+        "gitleaks-defaults.toml",
+        "metadata/advertised-refs.json",
+        "metadata/commit-metadata.bin",
+        "metadata/historical-paths.bin",
+        "metadata/objects.bin",
+        "scanner.log",
+    ),
+}
 ALLOWED_STORAGE_SUFFIXES = (
     ".blob.core.windows.net",
     ".amazonaws.com",
@@ -75,6 +94,7 @@ class AuditError(Exception):
     """A redaction-safe, stable failure code."""
 
     def __init__(self, code: str):
+        """Normalize failures to stable redaction-safe identifiers."""
         if not re.fullmatch(r"[a-z0-9_]+", code):
             code = "invalid_internal_error_code"
         self.code = code
@@ -96,14 +116,17 @@ def canonical_bytes(value: object) -> bytes:
 
 
 def sha256_bytes(value: bytes) -> str:
+    """Return the lowercase SHA-256 digest for exact bytes."""
     return hashlib.sha256(value).hexdigest()
 
 
 def object_hash(value: object) -> str:
+    """Hash a value through the canonical JSON representation."""
     return sha256_bytes(canonical_bytes(value))
 
 
 def file_hash(path: Path, budget: Budget | None = None) -> str:
+    """Hash one regular file while honoring an optional command deadline."""
     if path.is_symlink() or not path.is_file():
         raise AuditError("bound_file_not_regular")
     digest = hashlib.sha256()
@@ -115,33 +138,136 @@ def file_hash(path: Path, budget: Budget | None = None) -> str:
     return digest.hexdigest()
 
 
-def _check_state_write(path: Path, size: int, state_root: Path | None, state_limit: int | None) -> None:
-    if state_root is None and state_limit is None:
-        return
-    if state_root is None or state_limit is None:
-        raise AuditError("state_write_bound_invalid")
-    try:
-        path.absolute().relative_to(state_root.absolute())
-    except ValueError as error:
-        raise AuditError("state_write_outside_root") from error
-    # Atomic replacement temporarily retains both the old and new bytes.
-    if directory_size(state_root) + size > state_limit:
-        raise AuditError("max_total_state_bytes_exhausted")
+class StateReservation:
+    """Track a bounded transient write until its exact final size is known."""
+
+    def __init__(self, accountant: StateAccountant, maximum: int, old_size: int):
+        """Create a reservation owned by one state accountant."""
+        self.accountant = accountant
+        self.maximum = maximum
+        self.old_size = old_size
+        self.active = True
+
+    def commit(self, actual_size: int) -> None:
+        """Replace the reservation with the exact retained byte delta."""
+        if not self.active:
+            raise AuditError("state_reservation_inactive")
+        self.accountant._commit(self.maximum, self.old_size, actual_size)
+        self.active = False
+
+    def cancel_clean(self) -> None:
+        """Release an unused reservation only after complete output cleanup."""
+        if self.active:
+            self.accountant._cancel(self.maximum)
+            self.active = False
+
+
+class StateAccountant:
+    """Measure state once, then account exact replacement and transient deltas."""
+
+    def __init__(self, root: Path, limit: int):
+        """Bind one accountant to an absolute private-state root and limit."""
+        if not isinstance(limit, int) or isinstance(limit, bool) or limit < 0:
+            raise AuditError("state_limit_invalid")
+        self.root = root.absolute()
+        self.limit = limit
+        self.used = 0
+        self.reserved = 0
+        self.reconcile()
+
+    def _inside(self, path: Path) -> None:
+        """Reject writes outside the accountant's bound state root."""
+        try:
+            path.absolute().relative_to(self.root)
+        except ValueError as error:
+            raise AuditError("state_write_outside_root") from error
+
+    def reconcile(self, *, reset_reservations: bool = False) -> None:
+        """Replace cached usage with one exact fail-closed tree measurement."""
+        if self.reserved and not reset_reservations:
+            raise AuditError("state_reservation_active")
+        self.reserved = 0
+        self.used = directory_size(self.root)
+        if self.used > self.limit:
+            raise AuditError("max_total_state_bytes_exhausted")
+
+    def remaining(self) -> int:
+        """Return unreserved retained-state capacity without walking the tree."""
+        value = self.limit - self.used - self.reserved
+        if value <= 0:
+            raise AuditError("max_total_state_bytes_exhausted")
+        return value
+
+    def reserve_file(self, path: Path, maximum: int) -> StateReservation:
+        """Reserve a file replacement including simultaneous old and new bytes."""
+        self._inside(path)
+        if not isinstance(maximum, int) or isinstance(maximum, bool) or maximum < 0:
+            raise AuditError("state_reservation_invalid")
+        if path.is_symlink() or (path.exists() and not path.is_file()):
+            raise AuditError("state_file_not_regular")
+        old_size = path.stat().st_size if path.exists() else 0
+        if self.used + self.reserved + maximum > self.limit:
+            raise AuditError("max_total_state_bytes_exhausted")
+        self.reserved += maximum
+        return StateReservation(self, maximum, old_size)
+
+    def reserve_bulk(self, maximum: int) -> StateReservation:
+        """Reserve bounded bytes for a new multi-file or streamed output."""
+        if not isinstance(maximum, int) or isinstance(maximum, bool) or maximum < 0:
+            raise AuditError("state_reservation_invalid")
+        if self.used + self.reserved + maximum > self.limit:
+            raise AuditError("max_total_state_bytes_exhausted")
+        self.reserved += maximum
+        return StateReservation(self, maximum, 0)
+
+    def _commit(self, maximum: int, old_size: int, actual_size: int) -> None:
+        """Apply a completed reservation to cached retained-byte usage."""
+        if not isinstance(actual_size, int) or not 0 <= actual_size <= maximum:
+            raise AuditError("state_reservation_commit_invalid")
+        self.reserved -= maximum
+        self.used = self.used - old_size + actual_size
+        if self.reserved < 0 or self.used < 0 or self.used + self.reserved > self.limit:
+            raise AuditError("state_accounting_invalid")
+
+    def _cancel(self, maximum: int) -> None:
+        """Release a reservation whose output was completely removed."""
+        self.reserved -= maximum
+        if self.reserved < 0:
+            raise AuditError("state_accounting_invalid")
+
+    def remove(self, path: Path) -> None:
+        """Remove one retained file/tree and subtract its exact local byte size."""
+        self._inside(path)
+        if not path.exists() and not path.is_symlink():
+            return
+        if path.is_symlink():
+            raise AuditError("state_symlink_present")
+        if path.is_dir():
+            removed = directory_size(path)
+            shutil.rmtree(path)
+        elif path.is_file():
+            removed = path.stat().st_size
+            path.unlink()
+        else:
+            raise AuditError("state_file_not_regular")
+        self.used -= removed
+        if self.used < 0:
+            raise AuditError("state_accounting_invalid")
 
 
 def safe_write_bytes(
     path: Path,
     value: bytes,
     *,
-    state_root: Path | None = None,
-    state_limit: int | None = None,
+    accountant: StateAccountant | None = None,
 ) -> None:
     """Atomically write a private regular file without following symlinks."""
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     if path.is_symlink() or (path.exists() and not path.is_file()):
         raise AuditError("state_file_not_regular")
-    _check_state_write(path, len(value), state_root, state_limit)
+    reservation = accountant.reserve_file(path, len(value)) if accountant is not None else None
     temporary = path.with_name(path.name + ".tmp")
+    replaced = False
     try:
         descriptor = os.open(
             temporary,
@@ -153,6 +279,9 @@ def safe_write_bytes(
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(temporary, path)
+        replaced = True
+        if reservation is not None:
+            reservation.commit(len(value))
         os.chmod(path, 0o600, follow_symlinks=False)
     except FileExistsError as error:
         raise AuditError("state_temporary_exists") from error
@@ -161,24 +290,28 @@ def safe_write_bytes(
             temporary.unlink()
         except FileNotFoundError:
             pass
+        if reservation is not None and reservation.active and not replaced:
+            reservation.cancel_clean()
 
 
 def safe_write_json(
     path: Path,
     value: object,
     *,
-    state_root: Path | None = None,
-    state_limit: int | None = None,
+    accountant: StateAccountant | None = None,
 ) -> None:
+    """Encode strict JSON and write it through the private atomic writer."""
     try:
         encoded = json.dumps(value, sort_keys=True, indent=2, allow_nan=False).encode() + b"\n"
     except (TypeError, ValueError) as error:
         raise AuditError("json_value_invalid") from error
-    safe_write_bytes(path, encoded, state_root=state_root, state_limit=state_limit)
+    safe_write_bytes(path, encoded, accountant=accountant)
 
 
 def strict_json(raw: bytes) -> object:
+    """Decode JSON while rejecting duplicate keys and non-finite numbers."""
     def pairs(items: list[tuple[str, object]]) -> dict:
+        """Build one object while rejecting ambiguous duplicate keys."""
         result: dict[str, object] = {}
         for key, value in items:
             if key in result:
@@ -187,6 +320,7 @@ def strict_json(raw: bytes) -> object:
         return result
 
     def constant(unused: str) -> object:
+        """Reject non-finite JSON constants accepted by Python by default."""
         raise AuditError("json_nonfinite_number")
 
     try:
@@ -198,6 +332,7 @@ def strict_json(raw: bytes) -> object:
 
 
 def load_json(path: Path, *, maximum: int = MAX_JSON_BYTES) -> object:
+    """Load bounded strict JSON from a private regular file."""
     if path.is_symlink() or not path.is_file():
         raise AuditError("state_file_not_regular")
     if path.stat().st_size > maximum:
@@ -209,6 +344,7 @@ def load_json(path: Path, *, maximum: int = MAX_JSON_BYTES) -> object:
 
 
 def directory_size(root: Path) -> int:
+    """Measure regular-file bytes under a tree while rejecting symlinks."""
     total = 0
     for parent, directories, files in os.walk(root, followlinks=False):
         for name in directories:
@@ -227,10 +363,12 @@ class StateLock(AbstractContextManager):
     """Validate the private state directory and enforce one writer."""
 
     def __init__(self, root: Path):
+        """Bind a lock instance to one absolute private-state directory."""
         self.root = root.absolute()
         self.descriptor: int | None = None
 
     def __enter__(self) -> "StateLock":
+        """Validate directory/lock modes and acquire a nonblocking writer lock."""
         for parent in reversed(self.root.parents):
             if parent.exists() and parent.is_symlink():
                 raise AuditError("state_parent_symlink")
@@ -264,6 +402,7 @@ class StateLock(AbstractContextManager):
         return self
 
     def __exit__(self, *unused: object) -> None:
+        """Release the writer lock and its descriptor."""
         if self.descriptor is not None:
             fcntl.flock(self.descriptor, fcntl.LOCK_UN)
             os.close(self.descriptor)
@@ -271,6 +410,7 @@ class StateLock(AbstractContextManager):
 
 
 def validate_limits(limits: dict[str, int]) -> None:
+    """Validate aggregate limits and their cross-field relationships."""
     if set(limits) != set(LIMIT_CEILINGS):
         raise AuditError("invalid_limit_keys")
     for name, ceiling in LIMIT_CEILINGS.items():
@@ -310,10 +450,12 @@ class UsageLedger:
         "usage_clock_invalid",
     }
 
-    def __init__(self, state: Path, limits: dict[str, int]):
+    def __init__(self, state: Path, limits: dict[str, int], accountant: StateAccountant | None = None):
+        """Load or initialize monotonic usage under one state accountant."""
         validate_limits(limits)
         self.path = state / "usage.json"
         self.limits = dict(limits)
+        self.accountant = accountant or StateAccountant(state, limits["max_total_state_bytes"])
         if self.path.exists():
             value = load_json(self.path)
             self._validate(value)
@@ -333,6 +475,7 @@ class UsageLedger:
             self._save()
 
     def _validate(self, value: object) -> None:
+        """Validate the exact persisted usage schema and counter ranges."""
         if not isinstance(value, dict) or set(value) != self.KEYS:
             raise AuditError("usage_schema_invalid")
         if value.get("schema_version") != SCHEMA_VERSION:
@@ -368,14 +511,11 @@ class UsageLedger:
             raise AuditError("usage_exhaustion_invalid")
 
     def _save(self) -> None:
-        safe_write_json(
-            self.path,
-            self.value,
-            state_root=self.path.parent,
-            state_limit=self.limits["max_total_state_bytes"],
-        )
+        """Persist usage through O(1) replacement accounting."""
+        safe_write_json(self.path, self.value, accountant=self.accountant)
 
     def start(self) -> None:
+        """Persist a new active interval and charge a crashed predecessor."""
         now = time.time()
         previous = self.value.get("active_started_at")
         if previous is not None:
@@ -391,6 +531,7 @@ class UsageLedger:
         self._save()
 
     def finish(self) -> None:
+        """Close and persist the active interval, failing on total overrun."""
         started = self.value.get("active_started_at")
         now = time.time()
         if isinstance(started, (int, float)):
@@ -407,11 +548,13 @@ class UsageLedger:
             raise AuditError("total_time_budget_exhausted")
 
     def _exhaust(self, code: str) -> None:
+        """Persist a terminal budget-exhaustion code before raising it."""
         self.value["exhausted"] = code
         self._save()
         raise AuditError(code)
 
     def consume(self, field: str, amount: int) -> None:
+        """Persistently charge an aggregate counter before bounded work."""
         if field not in self.FIELDS or not isinstance(amount, int) or amount < 0:
             raise AuditError("invalid_budget_consumption")
         limit = self.limits[self.FIELDS[field]]
@@ -421,6 +564,7 @@ class UsageLedger:
         self._save()
 
     def remaining_seconds(self) -> float:
+        """Return the uncharged aggregate time remaining right now."""
         elapsed = float(self.value["elapsed_seconds"])
         started = self.value.get("active_started_at")
         if isinstance(started, (int, float)):
@@ -432,11 +576,13 @@ class Budget(AbstractContextManager):
     """One command deadline backed by the persistent aggregate ledger."""
 
     def __init__(self, ledger: UsageLedger):
+        """Bind one command deadline to a persistent usage ledger."""
         self.ledger = ledger
         self.started = False
         self.deadline = 0.0
 
     def __enter__(self) -> "Budget":
+        """Start the persisted command interval and derive its deadline."""
         self.ledger.start()
         self.started = True
         allowance = min(
@@ -449,6 +595,7 @@ class Budget(AbstractContextManager):
         return self
 
     def __exit__(self, *unused: object) -> None:
+        """Persist elapsed time and reject command-deadline overruns."""
         if self.started:
             late = time.monotonic() > self.deadline
             try:
@@ -459,36 +606,130 @@ class Budget(AbstractContextManager):
                 raise AuditError("command_time_budget_exhausted")
 
     def remaining(self) -> float:
+        """Return positive command and aggregate time remaining."""
         value = min(self.deadline - time.monotonic(), self.ledger.remaining_seconds())
         if value <= 0:
             raise AuditError("command_time_budget_exhausted")
         return value
 
     def consume(self, field: str, amount: int) -> None:
+        """Charge a persistent resource counter within the deadline."""
         self.remaining()
         self.ledger.consume(field, amount)
 
     def state_remaining(self) -> int:
-        remaining = self.ledger.limits["max_total_state_bytes"] - directory_size(self.ledger.path.parent)
-        if remaining <= 0:
+        """Return cached unreserved state capacity without a directory walk."""
+        return self.ledger.accountant.remaining()
+
+    def reserve_file(self, path: Path, maximum: int) -> StateReservation:
+        """Reserve bounded output bytes for one atomic file replacement."""
+        return self.ledger.accountant.reserve_file(path, maximum)
+
+    def reserve_bulk(self, maximum: int) -> StateReservation:
+        """Reserve bounded output bytes for one multi-file operation."""
+        return self.ledger.accountant.reserve_bulk(maximum)
+
+    def remove(self, path: Path) -> None:
+        """Remove retained state and update cached usage after success."""
+        self.ledger.accountant.remove(path)
+
+    def assert_state_budget(self) -> None:
+        """Reject unsettled or over-limit cached state without walking it."""
+        accountant = self.ledger.accountant
+        if accountant.reserved or accountant.used > accountant.limit:
             raise AuditError("max_total_state_bytes_exhausted")
-        return remaining
 
     def write_bytes(self, path: Path, value: bytes) -> None:
-        safe_write_bytes(
-            path,
-            value,
-            state_root=self.ledger.path.parent,
-            state_limit=self.ledger.limits["max_total_state_bytes"],
-        )
+        """Write private bytes through cached transient accounting."""
+        safe_write_bytes(path, value, accountant=self.ledger.accountant)
 
     def write_json(self, path: Path, value: object) -> None:
-        safe_write_json(
-            path,
-            value,
-            state_root=self.ledger.path.parent,
-            state_limit=self.ledger.limits["max_total_state_bytes"],
-        )
+        """Write private JSON through cached transient accounting."""
+        safe_write_json(path, value, accountant=self.ledger.accountant)
+
+
+GIT_ENV_PASSTHROUGH = (
+    "PATH",
+    "LANG",
+    "LC_ALL",
+    "HTTPS_PROXY",
+    "https_proxy",
+    "NO_PROXY",
+    "no_proxy",
+    "SSL_CERT_FILE",
+    "SSL_CERT_DIR",
+    "TMPDIR",
+)
+ASKPASS_TOKEN_ENV = "BARYON_AUDIT_GIT_TOKEN"
+ASKPASS_BYTES = b"""#!/bin/sh
+case "$1" in
+  *sername*) printf '%s\\n' 'x-access-token' ;;
+  *assword*) test -n "${BARYON_AUDIT_GIT_TOKEN:-}" || exit 1
+              printf '%s\\n' "$BARYON_AUDIT_GIT_TOKEN" ;;
+  *) exit 1 ;;
+esac
+"""
+
+
+def isolated_git_environment(
+    source: dict[str, str] | None = None,
+    *,
+    allow_scoped_credential: bool = False,
+) -> dict[str, str]:
+    """Build a minimal config-isolated Git environment with replacements off."""
+    original = os.environ if source is None else source
+    environment = {name: original[name] for name in GIT_ENV_PASSTHROUGH if original.get(name)}
+    if allow_scoped_credential:
+        for name in (ASKPASS_TOKEN_ENV, "GIT_ASKPASS", "GIT_ASKPASS_REQUIRE", "HOME", "XDG_CONFIG_HOME"):
+            if original.get(name):
+                environment[name] = original[name]
+    environment.update(
+        {
+            "GIT_NO_REPLACE_OBJECTS": "1",
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_CONFIG_SYSTEM": os.devnull,
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_TERMINAL_PROMPT": "0",
+            "GCM_INTERACTIVE": "Never",
+            "GIT_OPTIONAL_LOCKS": "0",
+        }
+    )
+    return environment
+
+
+@contextmanager
+def advertised_ref_environment(private: bool):
+    """Yield isolated ls-remote auth; keep the private token only in process env."""
+    with tempfile.TemporaryDirectory(prefix="baryon-audit-git-") as directory:
+        home = Path(directory)
+        os.chmod(home, 0o700)
+        base = isolated_git_environment()
+        base["HOME"] = str(home)
+        base["XDG_CONFIG_HOME"] = str(home)
+        if private:
+            token = os.environ.get("GH_TOKEN", "")
+            if not token:
+                raise AuditError("missing_git_credential_environment")
+            helper = home / "askpass"
+            descriptor = os.open(
+                helper,
+                os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
+                0o700,
+            )
+            with os.fdopen(descriptor, "wb") as stream:
+                stream.write(ASKPASS_BYTES)
+                stream.flush()
+                os.fsync(stream.fileno())
+            base[ASKPASS_TOKEN_ENV] = token
+            base["GIT_ASKPASS"] = str(helper)
+            base["GIT_ASKPASS_REQUIRE"] = "force"
+        else:
+            base["GIT_ASKPASS"] = shutil.which("false") or "/bin/false"
+            base["GIT_ASKPASS_REQUIRE"] = "force"
+        # ``base`` was constructed from the minimal environment above.  Keep
+        # its throw-away HOME for both routes; the public route contains no
+        # token and uses an askpass helper that always refuses credentials.
+        yield base
 
 
 def run_command(
@@ -499,7 +740,14 @@ def run_command(
     input_bytes: bytes | None = None,
     maximum: int = MAX_JSON_BYTES,
     environment: dict[str, str] | None = None,
+    preserve_scoped_git_environment: bool = False,
 ) -> bytes:
+    """Run a bounded command; every Git process uses the isolated environment."""
+    if arguments and Path(arguments[0]).name == "git":
+        environment = isolated_git_environment(
+            environment,
+            allow_scoped_credential=preserve_scoped_git_environment,
+        )
     try:
         result = subprocess.run(
             arguments,
@@ -529,18 +777,19 @@ def run_command_to_file(
     input_bytes: bytes,
     maximum: int,
 ) -> int:
+    """Run Git into one reserved atomic output file under the shared deadline."""
     if output.is_symlink() or (output.exists() and not output.is_file()):
         raise AuditError("local_command_output_invalid")
-    if output.exists():
-        output.unlink()
-    allowance = min(maximum, budget.state_remaining())
+    allowance = min(maximum, max(0, budget.state_remaining() - MAX_JSON_BYTES))
     if allowance <= 0:
         raise AuditError("max_total_state_bytes_exhausted")
+    reservation = budget.reserve_file(output, allowance)
     part = output.with_name(output.name + ".part")
     if part.exists() or part.is_symlink():
         raise AuditError("local_command_output_invalid")
 
     def limit_output() -> None:
+        """Apply the child process's hard output-file ceiling."""
         resource.setrlimit(resource.RLIMIT_FSIZE, (allowance, allowance))
 
     descriptor = os.open(
@@ -548,6 +797,7 @@ def run_command_to_file(
         os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
         0o600,
     )
+    replaced = False
     try:
         with os.fdopen(descriptor, "wb") as stream:
             result = subprocess.run(
@@ -556,6 +806,7 @@ def run_command_to_file(
                 input=input_bytes,
                 stdout=stream,
                 stderr=subprocess.DEVNULL,
+                env=isolated_git_environment(),
                 timeout=budget.remaining(),
                 check=False,
                 preexec_fn=limit_output,
@@ -564,6 +815,8 @@ def run_command_to_file(
             raise AuditError("local_command_failed")
         size = part.stat().st_size
         os.replace(part, output)
+        replaced = True
+        reservation.commit(size)
         return size
     except subprocess.TimeoutExpired as error:
         raise AuditError("local_command_timeout") from error
@@ -572,9 +825,12 @@ def run_command_to_file(
             part.unlink()
         except FileNotFoundError:
             pass
+        if reservation.active and not replaced and not part.exists():
+            reservation.cancel_clean()
 
 
 def parse_time(value: object) -> datetime:
+    """Parse one timezone-aware inventory timestamp as UTC."""
     if not isinstance(value, str):
         raise AuditError("inventory_timestamp_invalid")
     try:
@@ -587,11 +843,15 @@ def parse_time(value: object) -> datetime:
 
 
 def cutoff_text(value: datetime) -> str:
+    """Serialize a cutoff as canonical whole-second UTC text."""
     return value.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Expose redirects to the caller so each destination can be validated."""
+
     def redirect_request(self, request, fp, code, message, headers, new_url):
+        """Disable urllib's implicit redirect following."""
         return None
 
 
@@ -599,6 +859,7 @@ class GitHubApi:
     """Read-only GitHub client with explicit redirect and rate-limit handling."""
 
     def __init__(self, token: str, budget: Budget):
+        """Create a read-only API client bound to one shared budget."""
         if not token:
             raise AuditError("missing_token_environment")
         self.token = token
@@ -607,6 +868,7 @@ class GitHubApi:
         self.remaining: int | None = None
 
     def _api_get(self, suffix: str, repository_name: str = REPOSITORY):
+        """Issue one bounded authenticated request without following redirects."""
         if (suffix and not suffix.startswith("/")) or ".." in suffix:
             raise AuditError("invalid_api_path")
         if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository_name):
@@ -634,6 +896,7 @@ class GitHubApi:
         return response
 
     def json(self, suffix: str, repository_name: str = REPOSITORY) -> tuple[object, object]:
+        """Return bounded strict JSON and response headers from a 200 response."""
         with self._api_get(suffix, repository_name) as response:
             if response.status != 200:
                 raise AuditError("api_inventory_http_error")
@@ -647,6 +910,7 @@ class GitHubApi:
             raise AuditError("api_json_invalid") from error
 
     def repository_alias(self, repository_name: str) -> object:
+        """Resolve one GitHub rename redirect while binding the canonical ID."""
         response = self._api_get("", repository_name)
         if response.status in (301, 302, 307, 308):
             location = response.headers.get("Location", "")
@@ -692,6 +956,7 @@ class GitHubApi:
             raise AuditError("api_json_invalid") from error
 
     def inventory(self, suffix: str, field: str) -> list[dict]:
+        """Fetch a complete stable-count paginated inventory with unique IDs."""
         rows: list[dict] = []
         identifiers: set[int] = set()
         expected: int | None = None
@@ -729,6 +994,7 @@ class GitHubApi:
         return rows
 
     def download(self, suffix: str, target: Path) -> tuple[int, int]:
+        """Download one API resource through approved storage with upfront space."""
         with self._api_get(suffix) as response:
             if response.status in (404, 410):
                 return response.status, 0
@@ -764,33 +1030,48 @@ class GitHubApi:
                 if part.exists() or target.is_symlink():
                     raise AuditError("download_target_invalid")
                 size = 0
-                state_allowance = self.budget.state_remaining()
+                if length:
+                    allowance = int(length)
+                else:
+                    allowance = min(
+                        MAX_RESOURCE_DOWNLOAD,
+                        max(0, self.budget.state_remaining() - MAX_JSON_BYTES),
+                    )
+                if allowance <= 0:
+                    raise AuditError("max_total_state_bytes_exhausted")
+                reservation = self.budget.reserve_file(target, allowance)
                 descriptor = os.open(
                     part,
                     os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
                     0o600,
                 )
+                replaced = False
                 try:
                     with os.fdopen(descriptor, "wb") as output:
                         while block := response.read(1024 * 1024):
                             size += len(block)
-                            if size > MAX_RESOURCE_DOWNLOAD or size > state_allowance:
+                            if size > MAX_RESOURCE_DOWNLOAD or size > allowance:
                                 raise AuditError("resource_download_limit")
                             self.budget.consume("download_bytes", len(block))
                             output.write(block)
                         output.flush()
                         os.fsync(output.fileno())
                     os.replace(part, target)
+                    replaced = True
+                    reservation.commit(size)
                 finally:
                     try:
                         part.unlink()
                     except FileNotFoundError:
                         pass
+                    if reservation.active and not replaced and not part.exists():
+                        reservation.cancel_clean()
                 return 200, size
         raise AuditError("download_redirect_limit")
 
 
 def server_cutoff(headers: object) -> datetime:
+    """Derive the immutable UTC snapshot cutoff from GitHub's Date header."""
     try:
         value = headers.get("Date")
         parsed = parsedate_to_datetime(value)
@@ -802,6 +1083,7 @@ def server_cutoff(headers: object) -> datetime:
 
 
 def verify_repository(metadata: object, *, allow_public_local: bool) -> dict:
+    """Bind canonical repository identity and the authorized local route."""
     if not isinstance(metadata, dict):
         raise AuditError("repository_metadata_invalid")
     if metadata.get("id") != REPOSITORY_ID or str(metadata.get("full_name", "")).lower() != REPOSITORY.lower():
@@ -828,10 +1110,12 @@ def verify_repository(metadata: object, *, allow_public_local: bool) -> dict:
 
 
 def at_or_before(row: dict, cutoff: datetime) -> bool:
+    """Return whether an inventory row existed at the fixed cutoff."""
     return parse_time(row.get("created_at")) <= cutoff
 
 
 def run_identity(row: dict) -> dict:
+    """Normalize the immutable fields of one workflow run."""
     attempt = row.get("run_attempt", 1)
     if not isinstance(attempt, int) or isinstance(attempt, bool) or not 1 <= attempt <= 10_000:
         raise AuditError("run_attempt_invalid")
@@ -849,6 +1133,7 @@ def run_identity(row: dict) -> dict:
 
 
 def artifact_identity(row: dict) -> dict:
+    """Normalize the immutable fields of one Actions artifact."""
     expired = row.get("expired")
     if not isinstance(expired, bool):
         raise AuditError("artifact_expiry_invalid")
@@ -867,6 +1152,7 @@ def artifact_identity(row: dict) -> dict:
 
 
 def normalized_inventory(runs: list[dict], artifacts: list[dict], cutoff: datetime) -> dict:
+    """Filter, normalize and sort inventory rows at the fixed cutoff."""
     selected_runs = [run_identity(row) for row in runs if at_or_before(row, cutoff)]
     selected_artifacts = [artifact_identity(row) for row in artifacts if at_or_before(row, cutoff)]
     selected_runs.sort(key=lambda item: item["id"])
@@ -875,6 +1161,7 @@ def normalized_inventory(runs: list[dict], artifacts: list[dict], cutoff: dateti
 
 
 def inventory_resources(inventory: dict) -> tuple[list[dict], list[str]]:
+    """Expand inventory rows into deterministic scan resources and blockers."""
     resources: list[dict] = []
     blockers: list[str] = []
     for run in inventory["runs"]:
@@ -907,6 +1194,7 @@ def inventory_resources(inventory: dict) -> tuple[list[dict], list[str]]:
 
 
 def origin_repository_name(url: str) -> str:
+    """Parse an exact GitHub SSH/HTTPS origin into owner/name form."""
     if re.fullmatch(r"git@github\.com:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:\.git)?", url):
         path = url.split(":", 1)[1]
     else:
@@ -929,6 +1217,7 @@ def origin_repository_name(url: str) -> str:
 
 
 def parse_advertised_refs(raw: bytes) -> list[dict]:
+    """Parse and canonicalize a complete ``git ls-remote`` response."""
     refs: list[dict] = []
     for line in raw.splitlines():
         try:
@@ -949,39 +1238,37 @@ def parse_advertised_refs(raw: bytes) -> list[dict]:
     return refs
 
 
-def advertised_refs(canonical_url: str, budget: Budget) -> list[dict]:
-    environment = dict(os.environ)
-    for name in ("GH_TOKEN", "GITHUB_TOKEN", "GIT_ASKPASS", "SSH_ASKPASS"):
-        environment.pop(name, None)
-    environment.update(
-        {
-            "GIT_TERMINAL_PROMPT": "0",
-            "GIT_CONFIG_NOSYSTEM": "1",
-            "GIT_CONFIG_GLOBAL": "/dev/null",
-        }
-    )
+def advertised_refs(canonical_url: str, budget: Budget, *, private: bool) -> list[dict]:
+    """Read advertised refs with isolated public or scoped private auth."""
     budget.consume("requests", 1)
-    raw = run_command(
-        [
-            "git",
-            "ls-remote",
-            "--refs",
-            canonical_url,
-            "refs/heads/*",
-            "refs/tags/*",
-            "refs/pull/*/head",
-            "refs/pull/*/merge",
-        ],
-        budget,
-        maximum=MAX_JSON_BYTES,
-        environment=environment,
-    )
+    with advertised_ref_environment(private) as environment:
+        raw = run_command(
+            [
+                "git",
+                "ls-remote",
+                "--refs",
+                canonical_url,
+                "refs/heads/*",
+                "refs/tags/*",
+                "refs/pull/*/head",
+                "refs/pull/*/merge",
+            ],
+            budget,
+            cwd=Path(environment["HOME"]),
+            maximum=MAX_JSON_BYTES,
+            environment=environment,
+            # The environment is already scrubbed by
+            # ``advertised_ref_environment``.  This preserves only its
+            # throw-away HOME and, for the private route, scoped askpass data.
+            preserve_scoped_git_environment=True,
+        )
     return parse_advertised_refs(raw)
 
 
-def stable_advertised_refs(canonical_url: str, budget: Budget) -> list[dict]:
-    first = advertised_refs(canonical_url, budget)
-    second = advertised_refs(canonical_url, budget)
+def stable_advertised_refs(canonical_url: str, budget: Budget, *, private: bool) -> list[dict]:
+    """Require two identical complete remote-ref advertisements."""
+    first = advertised_refs(canonical_url, budget, private=private)
+    second = advertised_refs(canonical_url, budget, private=private)
     if first != second:
         raise AuditError("remote_refs_changed_during_snapshot")
     return first
@@ -994,6 +1281,7 @@ def git_snapshot(
     api: GitHubApi,
     expected_head: str | None = None,
 ) -> dict:
+    """Bind local HEAD, canonical origin and complete advertised ref tips."""
     shallow = run_command(["git", "rev-parse", "--is-shallow-repository"], budget, cwd=root).strip()
     if shallow != b"false":
         raise AuditError("shallow_git_history")
@@ -1014,7 +1302,11 @@ def git_snapshot(
         or alias.get("clone_url") != repository_binding["canonical_clone_url"]
     ):
         raise AuditError("origin_repository_mismatch")
-    refs = stable_advertised_refs(repository_binding["canonical_clone_url"], budget)
+    refs = stable_advertised_refs(
+        repository_binding["canonical_clone_url"],
+        budget,
+        private=repository_binding.get("visibility") == "private",
+    )
     tips = sorted({item["oid"] for item in refs})
     raw_objects = run_command(
         ["git", "cat-file", "--batch-check=%(objectname) %(objecttype)"],
@@ -1046,6 +1338,7 @@ def git_snapshot(
 
 
 def scanner_binding(binary: Path, budget: Budget) -> dict:
+    """Bind the pinned scanner binary, configuration and auditor source."""
     resolved = binary.resolve(strict=True)
     version = run_command([str(resolved), "version"], budget, maximum=4096).decode().strip().lstrip("v")
     if version != GITLEAKS_VERSION:
@@ -1063,10 +1356,12 @@ def scanner_binding(binary: Path, budget: Budget) -> dict:
 
 
 def manifest_hash(manifest: dict) -> str:
+    """Return the canonical content identifier for an immutable manifest."""
     return object_hash(manifest)
 
 
 def validate_manifest_bindings(value: dict) -> None:
+    """Validate repository, source and scanner trust bindings."""
     expected_repository_keys = {"id", "full_name", "canonical_clone_url", "visibility"}
     repository_value = value.get("repository")
     if (
@@ -1137,6 +1432,7 @@ def validate_manifest_bindings(value: dict) -> None:
 
 
 def validate_manifest(value: object) -> dict:
+    """Validate shape, bindings and deterministic manifest reconstruction."""
     if not isinstance(value, dict) or value.get("schema_version") != SCHEMA_VERSION:
         raise AuditError("manifest_schema_invalid")
     required = {"repository", "source", "cutoff", "scanner", "limits", "inventory", "resources", "blockers"}
@@ -1177,6 +1473,7 @@ def validate_manifest(value: object) -> dict:
 
 
 def resource_sort_key(key: str) -> tuple[int, str]:
+    """Return the canonical scan ordering group for one resource key."""
     if key == "git-history":
         return (0, key)
     if key == "git-objects":
@@ -1197,6 +1494,7 @@ def build_manifest(
     limits: dict[str, int],
     inventory: dict,
 ) -> dict:
+    """Construct the canonical immutable snapshot manifest."""
     action_resources, blockers = inventory_resources(inventory)
     git_identity = {
         "kind": "git-history",
@@ -1244,6 +1542,7 @@ def build_manifest(
 
 
 def private_directory(path: Path) -> None:
+    """Create or validate one mode-0700 state subdirectory."""
     if path.exists():
         if path.is_symlink() or not path.is_dir():
             raise AuditError("state_directory_invalid")
@@ -1254,12 +1553,14 @@ def private_directory(path: Path) -> None:
 
 
 def archive_magic(value: bytes) -> bool:
+    """Recognize supported archive signatures in a bounded prefix."""
     return value.startswith(
         (b"PK\x03\x04", b"PK\x05\x06", b"\x1f\x8b", b"BZh", b"\xfd7zXZ\x00", b"7z\xbc\xaf\x27\x1c", b"Rar!")
     ) or value[257:262] == b"ustar"
 
 
 def utf8_without_nul(value: bytes) -> bool:
+    """Return whether bytes are strict UTF-8 text without NUL."""
     if b"\0" in value:
         return False
     try:
@@ -1274,7 +1575,7 @@ def extract_zip(source: Path, target: Path, budget: Budget) -> dict:
     if target.exists():
         if target.is_symlink() or not target.is_dir():
             raise AuditError("archive_target_invalid")
-        shutil.rmtree(target)
+        budget.remove(target)
     target.mkdir(mode=0o700)
     names: list[dict] = []
     expanded = 0
@@ -1286,12 +1587,25 @@ def extract_zip(source: Path, target: Path, budget: Budget) -> dict:
         archive = zipfile.ZipFile(source)
     except (OSError, zipfile.BadZipFile) as error:
         raise AuditError("archive_invalid") from error
-    state_allowance = budget.state_remaining()
     with archive:
         members = archive.infolist()
         if len(members) > MAX_RESOURCE_ENTRIES:
             raise AuditError("resource_entry_limit")
         budget.consume("entries", len(members))
+        planned_expanded = 0
+        for member in members:
+            if member.is_dir() or member.flag_bits & 1:
+                continue
+            kind = stat.S_IFMT(member.external_attr >> 16)
+            if kind not in (0, stat.S_IFREG, stat.S_IFLNK):
+                continue
+            if member.file_size < 0 or planned_expanded + member.file_size > MAX_RESOURCE_EXPANDED:
+                raise AuditError("resource_expansion_limit")
+            planned_expanded += member.file_size
+        if planned_expanded > max(0, budget.state_remaining() - MAX_JSON_BYTES):
+            raise AuditError("resource_expansion_limit")
+        budget.consume("expanded_bytes", planned_expanded)
+        reservation = budget.reserve_bulk(planned_expanded)
         for index, member in enumerate(members):
             names.append({"index": index, "name": member.filename})
             if member.is_dir():
@@ -1306,11 +1620,9 @@ def extract_zip(source: Path, target: Path, budget: Budget) -> dict:
             if (
                 member.file_size < 0
                 or expanded + member.file_size > MAX_RESOURCE_EXPANDED
-                or expanded + member.file_size > state_allowance
             ):
                 raise AuditError("resource_expansion_limit")
             expanded += member.file_size
-            budget.consume("expanded_bytes", member.file_size)
             destination = target / f"{index}.data"
             descriptor = os.open(
                 destination,
@@ -1346,6 +1658,7 @@ def extract_zip(source: Path, target: Path, budget: Budget) -> dict:
                 prefix = child.read(512)
             if archive_magic(prefix) or ARCHIVE_NAME.search(member.filename):
                 nested_members += 1
+        reservation.commit(expanded)
     budget.write_json(target / "member-names.json", names)
     return {
         "entries": len(names),
@@ -1355,6 +1668,68 @@ def extract_zip(source: Path, target: Path, budget: Budget) -> dict:
         "encrypted_members": encrypted_members,
         "unsupported_members": unsupported_members,
     }
+
+
+def retained_files_binding(root: Path, expected_paths: tuple[str, ...], budget: Budget | None = None) -> dict:
+    """Bind an exact expected regular-file set by relative path, size and hash."""
+    if tuple(sorted(set(expected_paths))) != expected_paths or any(
+        not path or Path(path).is_absolute() or ".." in Path(path).parts for path in expected_paths
+    ):
+        raise AuditError("retained_paths_invalid")
+    actual: list[str] = []
+    for parent, directories, files in os.walk(root, followlinks=False):
+        for name in directories:
+            path = Path(parent, name)
+            if path.is_symlink():
+                raise AuditError("retained_file_invalid")
+        for name in files:
+            path = Path(parent, name)
+            if path.is_symlink() or not path.is_file():
+                raise AuditError("retained_file_invalid")
+            actual.append(path.relative_to(root).as_posix())
+    actual.sort()
+    if tuple(actual) != expected_paths:
+        raise AuditError("retained_file_set_mismatch")
+    files = []
+    for relative in actual:
+        path = root / relative
+        size = path.stat().st_size
+        files.append({"path": relative, "size": size, "sha256": file_hash(path, budget)})
+    return {
+        "files": files,
+        "total_bytes": sum(item["size"] for item in files),
+        "manifest_sha256": object_hash(files),
+    }
+
+
+def validate_retained_files_binding(value: object, expected_paths: tuple[str, ...]) -> None:
+    """Validate the canonical retained-file manifest without touching state."""
+    if not isinstance(value, dict) or set(value) != {"files", "total_bytes", "manifest_sha256"}:
+        raise AuditError("receipt_retained_manifest_invalid")
+    files = value.get("files")
+    if not isinstance(files, list) or len(files) != len(expected_paths):
+        raise AuditError("receipt_retained_manifest_invalid")
+    paths: list[str] = []
+    total = 0
+    for item in files:
+        if (
+            not isinstance(item, dict)
+            or set(item) != {"path", "size", "sha256"}
+            or not isinstance(item.get("path"), str)
+            or not isinstance(item.get("size"), int)
+            or isinstance(item.get("size"), bool)
+            or item["size"] < 0
+            or not re.fullmatch(r"[0-9a-f]{64}", str(item.get("sha256", "")))
+        ):
+            raise AuditError("receipt_retained_manifest_invalid")
+        paths.append(item["path"])
+        total += item["size"]
+    if (
+        tuple(paths) != expected_paths
+        or value.get("total_bytes") != total
+        or value.get("manifest_sha256") != object_hash(files)
+    ):
+        raise AuditError("receipt_retained_manifest_invalid")
 
 
 def compact_findings(findings: object) -> dict:
@@ -1383,7 +1758,7 @@ def run_scanner(
     if report.exists():
         if not report.is_file():
             raise AuditError("scanner_report_target_invalid")
-        report.unlink()
+        budget.remove(report)
     config = report.parent / "gitleaks-defaults.toml"
     ignore = report.parent / "empty.ignore"
     budget.write_bytes(config, CONFIG_BYTES)
@@ -1394,12 +1769,14 @@ def run_scanner(
     if log.exists():
         if not log.is_file():
             raise AuditError("scanner_log_target_invalid")
-        log.unlink()
+        budget.remove(log)
     remaining = max(1, int(budget.remaining()))
-    state_allowance = budget.state_remaining()
+    state_allowance = max(0, budget.state_remaining() - MAX_JSON_BYTES)
     per_file_limit = min(MAX_REPORT_BYTES, state_allowance // 2)
     if per_file_limit < 4096:
         raise AuditError("max_total_state_bytes_exhausted")
+    report_reservation = budget.reserve_file(report, per_file_limit)
+    log_reservation = budget.reserve_file(log, per_file_limit)
     arguments = [
         str(binary.resolve(strict=True)),
         mode,
@@ -1420,11 +1797,10 @@ def run_scanner(
         "--report-path",
         str(report),
     ]
-    environment = dict(os.environ)
-    for name in ("GH_TOKEN", "GITHUB_TOKEN", "GITLEAKS_CONFIG", "GITLEAKS_CONFIG_TOML"):
-        environment.pop(name, None)
+    environment = isolated_git_environment()
 
     def limit_output() -> None:
+        """Apply the scanner child's per-file output ceiling."""
         resource.setrlimit(resource.RLIMIT_FSIZE, (per_file_limit, per_file_limit))
 
     descriptor = os.open(
@@ -1445,7 +1821,13 @@ def run_scanner(
             )
     except subprocess.TimeoutExpired as error:
         raise AuditError("scanner_timeout") from error
-    if result.returncode not in (0, 1) or not report.is_file() or report.stat().st_size > per_file_limit:
+    if not log.is_file() or log.stat().st_size > per_file_limit:
+        raise AuditError("scanner_execution_failed")
+    log_reservation.commit(log.stat().st_size)
+    if not report.is_file() or report.stat().st_size > per_file_limit:
+        raise AuditError("scanner_execution_failed")
+    report_reservation.commit(report.stat().st_size)
+    if result.returncode not in (0, 1):
         raise AuditError("scanner_execution_failed")
     findings = load_json(report, maximum=MAX_REPORT_BYTES)
     compact = compact_findings(findings)
@@ -1460,6 +1842,7 @@ def run_scanner(
 
 
 def exact_tips(identity: dict) -> tuple[list[str], str]:
+    """Validate, deduplicate and bound advertised Git tip arguments."""
     tips = identity.get("tips")
     if not isinstance(tips, list) or not tips or any(not re.fullmatch(r"[0-9a-f]{40}", str(item)) for item in tips):
         raise AuditError("git_tips_invalid")
@@ -1471,6 +1854,7 @@ def exact_tips(identity: dict) -> tuple[list[str], str]:
 
 
 def scan_git_history(resource_item: dict, root: Path, work: Path, binary: Path, budget: Budget) -> dict:
+    """Scan advertised Git history and bind every retained history work byte."""
     unused_tips, joined = exact_tips(resource_item["identity"])
     result = run_scanner(
         binary,
@@ -1480,7 +1864,12 @@ def scan_git_history(resource_item: dict, root: Path, work: Path, binary: Path, 
         budget,
         extra=[f"--log-opts={joined} --full-history -m"],
     )
-    return {**result, "coverage_gaps": [], "report_relpath": "findings.json"}
+    return {
+        **result,
+        "coverage_gaps": [],
+        "report_relpath": "findings.json",
+        "retained_files": retained_files_binding(work, RETAINED_PATHS["git-history"], budget),
+    }
 
 
 def scan_git_objects(resource_item: dict, root: Path, work: Path, binary: Path, budget: Budget) -> dict:
@@ -1534,7 +1923,7 @@ def scan_git_objects(resource_item: dict, root: Path, work: Path, binary: Path, 
     if text.exists():
         if text.is_symlink() or not text.is_dir():
             raise AuditError("git_object_text_directory_invalid")
-        shutil.rmtree(text)
+        budget.remove(text)
     text.mkdir(mode=0o700)
     binary_blobs = 0
     binary_commits = 0
@@ -1590,6 +1979,7 @@ def scan_git_objects(resource_item: dict, root: Path, work: Path, binary: Path, 
 
 
 def parse_small_blobs(root: Path, object_ids: list[bytes], budget: Budget) -> int:
+    """Count exact Git LFS pointer blobs through bounded batch framing."""
     lfs = 0
     for start in range(0, len(object_ids), 4000):
         batch_ids = object_ids[start : start + 4000]
@@ -1624,6 +2014,7 @@ def parse_small_blobs(root: Path, object_ids: list[bytes], budget: Budget) -> in
 
 
 def scan_git_metadata(resource_item: dict, root: Path, work: Path, binary: Path, budget: Budget) -> dict:
+    """Scan retained Git metadata, classify gaps and bind every retained byte."""
     tips, unused_joined = exact_tips(resource_item["identity"])
     metadata = work / "metadata"
     private_directory(metadata)
@@ -1694,6 +2085,7 @@ def scan_git_metadata(resource_item: dict, root: Path, work: Path, binary: Path,
         **result,
         "coverage_gaps": gaps,
         "report_relpath": "findings.json",
+        "retained_files": retained_files_binding(work, RETAINED_PATHS["git-metadata"], budget),
         "metadata_counts": {
             "historical_paths": len(paths),
             "historical_archive_paths": archives,
@@ -1705,6 +2097,7 @@ def scan_git_metadata(resource_item: dict, root: Path, work: Path, binary: Path,
 
 
 def receipt_base(manifest: dict, resource_item: dict) -> dict:
+    """Return immutable manifest, resource and scanner receipt bindings."""
     return {
         "schema_version": SCHEMA_VERSION,
         "manifest_sha256": manifest_hash(manifest),
@@ -1721,6 +2114,7 @@ def scan_action_resource(
     api: GitHubApi,
     budget: Budget,
 ) -> dict:
+    """Download, classify and scan one Actions log or artifact resource."""
     identity = resource_item["identity"]
     if identity.get("kind") == "artifact" and identity.get("expired") is True:
         return {
@@ -1736,7 +2130,7 @@ def scan_action_resource(
     if payload.exists():
         if not payload.is_file():
             raise AuditError("payload_target_invalid")
-        payload.unlink()
+        budget.remove(payload)
     status, downloaded = api.download(resource_item["endpoint"], payload)
     if status in (404, 410):
         return {
@@ -1756,7 +2150,7 @@ def scan_action_resource(
         result = run_scanner(binary, "dir", unpacked, work / "findings.json", budget)
     finally:
         if unpacked.exists() and not unpacked.is_symlink():
-            shutil.rmtree(unpacked)
+            budget.remove(unpacked)
     gaps = []
     if archive["non_utf8_or_nul_members"]:
         gaps.append("non_utf8_or_nul_archive_members")
@@ -1778,12 +2172,14 @@ def scan_action_resource(
 
 
 def receipt_path(state: Path, key: str) -> Path:
+    """Return the private canonical receipt path for one resource key."""
     if not RESOURCE_KEY.fullmatch(key):
         raise AuditError("resource_key_invalid")
     return state / "receipts" / f"{key}.json"
 
 
 def resource_work(state: Path, key: str) -> Path:
+    """Return the private canonical work directory for one resource key."""
     if not RESOURCE_KEY.fullmatch(key):
         raise AuditError("resource_key_invalid")
     base = state / "work"
@@ -1794,6 +2190,7 @@ def resource_work(state: Path, key: str) -> Path:
 
 
 def write_receipt(state: Path, key: str, value: dict, budget: Budget | None = None) -> None:
+    """Persist one strict private receipt through bounded accounting."""
     directory = state / "receipts"
     private_directory(directory)
     if budget is None:
@@ -1803,10 +2200,12 @@ def write_receipt(state: Path, key: str, value: dict, budget: Budget | None = No
 
 
 def _nonnegative_integer(value: object) -> bool:
+    """Recognize non-Boolean nonnegative integer counters."""
     return isinstance(value, int) and not isinstance(value, bool) and value >= 0
 
 
 def expected_receipt_gaps(resource_item: dict, value: dict) -> tuple[list[str], set[str]]:
+    """Derive exact coverage gaps and type-specific receipt keys."""
     key = resource_item["key"]
     if not value["content_scanned"]:
         if value.get("finding_count") != 0 or value.get("rules") != {}:
@@ -1822,7 +2221,7 @@ def expected_receipt_gaps(resource_item: dict, value: dict) -> tuple[list[str], 
     if resource_item["identity"].get("kind") == "artifact" and resource_item["identity"].get("expired") is True:
         raise AuditError("receipt_expired_artifact_scanned")
     if key == "git-history":
-        return [], set()
+        return [], {"retained_files"}
     if key == "git-objects":
         counts = value.get("object_counts")
         expected_keys = {
@@ -1879,7 +2278,7 @@ def expected_receipt_gaps(resource_item: dict, value: dict) -> tuple[list[str], 
             gaps.append("submodule_repositories")
         if counts["non_utf8_paths"]:
             gaps.append("non_utf8_historical_paths")
-        return gaps, {"metadata_counts"}
+        return gaps, {"metadata_counts", "retained_files"}
     archive = value.get("archive")
     archive_keys = {
         "entries",
@@ -1920,6 +2319,7 @@ def validate_receipt(
     state: Path,
     budget: Budget | None = None,
 ) -> dict:
+    """Revalidate one receipt and every retained byte it claims."""
     path = receipt_path(state, resource_item["key"])
     if not path.exists():
         raise AuditError("receipt_missing")
@@ -1970,6 +2370,15 @@ def validate_receipt(
                 or value.get("payload_sha256") != file_hash(payload, budget)
             ):
                 raise AuditError("receipt_payload_binding_mismatch")
+        retained_paths = RETAINED_PATHS.get(resource_item["key"])
+        if retained_paths is not None:
+            validate_retained_files_binding(value.get("retained_files"), retained_paths)
+            try:
+                actual_retained = retained_files_binding(work, retained_paths, budget)
+            except AuditError as error:
+                raise AuditError("receipt_retained_bytes_mismatch") from error
+            if actual_retained != value["retained_files"]:
+                raise AuditError("receipt_retained_bytes_mismatch")
     elif not isinstance(value.get("unavailable_reason"), str):
         raise AuditError("receipt_invalid")
     return value
@@ -1980,6 +2389,7 @@ def existing_receipts(
     state: Path,
     budget: Budget | None = None,
 ) -> dict[str, dict]:
+    """Load and fully validate every receipt currently present."""
     values: dict[str, dict] = {}
     for resource_item in manifest["resources"]:
         path = receipt_path(state, resource_item["key"])
@@ -1991,6 +2401,7 @@ def existing_receipts(
 
 
 def coverage(manifest: dict, state: Path, budget: Budget | None = None) -> dict:
+    """Summarize validated receipt coverage and finalizability."""
     receipts = existing_receipts(manifest, state, budget)
     missing = len(manifest["resources"]) - len(receipts)
     unavailable = sum(not receipt["content_scanned"] for receipt in receipts.values())
@@ -2008,18 +2419,20 @@ def coverage(manifest: dict, state: Path, budget: Budget | None = None) -> dict:
     }
 
 
-def assert_state_budget(state: Path, limits: dict[str, int]) -> None:
-    if directory_size(state) > limits["max_total_state_bytes"]:
-        raise AuditError("max_total_state_bytes_exhausted")
+def assert_state_budget(budget: Budget) -> None:
+    """Validate cached state usage without rescanning the complete tree."""
+    budget.assert_state_budget()
 
 
 def fetch_inventory(api: GitHubApi, cutoff: datetime) -> dict:
+    """Fetch and normalize one complete Actions inventory pass."""
     runs = api.inventory("/actions/runs", "workflow_runs")
     artifacts = api.inventory("/actions/artifacts", "artifacts")
     return normalized_inventory(runs, artifacts, cutoff)
 
 
 def stable_inventory(api: GitHubApi, cutoff: datetime) -> dict:
+    """Require two identical complete Actions inventory passes."""
     first = fetch_inventory(api, cutoff)
     second = fetch_inventory(api, cutoff)
     if first != second:
@@ -2028,6 +2441,7 @@ def stable_inventory(api: GitHubApi, cutoff: datetime) -> dict:
 
 
 def read_manifest(state: Path) -> dict:
+    """Load and fully validate the immutable state manifest."""
     return validate_manifest(load_json(state / "manifest.json"))
 
 
@@ -2041,6 +2455,7 @@ def phase_snapshot(
     allow_public_local: bool,
     expected_head: str | None,
 ) -> dict:
+    """Create and persist one stable immutable publication snapshot."""
     if (state / "manifest.json").exists():
         raise AuditError("state_already_initialized")
     api = GitHubApi(os.environ.get("GH_TOKEN", ""), budget)
@@ -2060,7 +2475,7 @@ def phase_snapshot(
     )
     validate_manifest(manifest)
     budget.write_json(state / "manifest.json", manifest)
-    assert_state_budget(state, limits)
+    assert_state_budget(budget)
     return {
         "phase": "snapshot",
         "phase_complete": True,
@@ -2082,6 +2497,7 @@ def phase_scan_batch(
     *,
     batch_size: int,
 ) -> dict:
+    """Scan and bind at most one deterministic bounded resource batch."""
     if not 1 <= batch_size <= 100:
         raise AuditError("batch_size_invalid")
     manifest = read_manifest(state)
@@ -2100,6 +2516,8 @@ def phase_scan_batch(
     selected = [item for item in manifest["resources"] if item["key"] not in receipts][:batch_size]
     for item in selected:
         work = resource_work(state, item["key"])
+        budget.remove(work)
+        private_directory(work)
         if item["key"] == "git-history":
             result = scan_git_history(item, root, work, binary, budget)
         elif item["key"] == "git-objects":
@@ -2110,7 +2528,7 @@ def phase_scan_batch(
             result = scan_action_resource(item, work, binary, api, budget)
         write_receipt(state, item["key"], {**receipt_base(manifest, item), **result}, budget)
         validate_receipt(manifest, item, state, budget)
-        assert_state_budget(state, manifest["limits"])
+        assert_state_budget(budget)
     current = coverage(manifest, state, budget)
     return {
         "phase": "scan-batch",
@@ -2125,6 +2543,7 @@ def phase_scan_batch(
 
 
 def phase_finalize(state: Path, root: Path, budget: Budget) -> tuple[dict, bool]:
+    """Revalidate the complete snapshot and return the only success candidate."""
     manifest = read_manifest(state)
     if file_hash(Path(__file__).resolve(), budget) != manifest["scanner"].get("auditor_sha256"):
         raise AuditError("auditor_binding_mismatch")
@@ -2156,23 +2575,38 @@ def phase_finalize(state: Path, root: Path, budget: Budget) -> tuple[dict, bool]
         "scope_limitations": manifest["scope"]["excluded"],
         **current,
     }
-    budget.write_json(state / "final.json", final)
-    assert_state_budget(state, manifest["limits"])
+    assert_state_budget(budget)
     return final, passed
 
 
+def invalidate_final_record(state: Path) -> None:
+    """Remove any earlier final record before a new finalize attempt."""
+    path = state / "final.json"
+    if path.is_symlink():
+        path.unlink()
+        raise AuditError("state_symlink_present")
+    if not path.exists():
+        return
+    if not path.is_file():
+        raise AuditError("state_file_not_regular")
+    path.unlink()
+
+
 def add_limit_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add every bounded aggregate-limit option to the snapshot parser."""
     for name, default in DEFAULT_LIMITS.items():
         parser.add_argument("--" + name.replace("_", "-"), type=int, default=default)
 
 
 def limits_from_args(args: argparse.Namespace) -> dict[str, int]:
+    """Extract and validate aggregate limits from parsed snapshot arguments."""
     limits = {name: getattr(args, name) for name in DEFAULT_LIMITS}
     validate_limits(limits)
     return limits
 
 
 def parser() -> argparse.ArgumentParser:
+    """Build the three-phase command-line interface."""
     value = argparse.ArgumentParser(description=__doc__)
     value.add_argument("--state-dir", type=Path, required=True)
     value.add_argument("--repo", type=Path, default=Path("."))
@@ -2193,6 +2627,7 @@ def parser() -> argparse.ArgumentParser:
 
 
 def failure(phase: str, code: str) -> dict:
+    """Return a redaction-safe terminal failure record with no success claim."""
     return {
         "phase": phase,
         "phase_complete": False,
@@ -2204,6 +2639,7 @@ def failure(phase: str, code: str) -> dict:
 
 
 def reject_repository_state_overlap(root: Path, state: Path) -> None:
+    """Reject state inside the repository and repositories inside state."""
     resolved_root = root.resolve(strict=True)
     if not (resolved_root / ".git").exists():
         raise AuditError("repository_root_required")
@@ -2217,6 +2653,7 @@ def reject_repository_state_overlap(root: Path, state: Path) -> None:
 
 
 def main(arguments: list[str] | None = None) -> int:
+    """Run one bounded audit phase and print only a redaction-safe result."""
     os.umask(0o077)
     args = parser().parse_args(arguments)
     root = args.repo.resolve()
@@ -2224,6 +2661,8 @@ def main(arguments: list[str] | None = None) -> int:
     try:
         reject_repository_state_overlap(root, state)
         with StateLock(state):
+            if args.phase == "finalize":
+                invalidate_final_record(state)
             if args.phase == "snapshot":
                 limits = limits_from_args(args)
             else:
@@ -2254,6 +2693,8 @@ def main(arguments: list[str] | None = None) -> int:
                 else:
                     result, passed = phase_finalize(state, root, budget)
                     exit_code = 0 if passed else 1
+            if args.phase == "finalize":
+                safe_write_json(state / "final.json", result, accountant=ledger.accountant)
     except AuditError as error:
         result = failure(args.phase, error.code)
         exit_code = 1

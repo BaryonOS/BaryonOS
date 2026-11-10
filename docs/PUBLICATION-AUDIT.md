@@ -23,11 +23,15 @@ three phases.
    head and pull-request merge ref; a GitHub server-time cutoff; two equal,
    complete Actions inventories at that cutoff; the scanner, configuration and
    auditor hashes; and all aggregate limits. Every advertised tip must already
-   exist locally. The canonical JSON manifest hash is the audit identifier.
+   exist locally, and the exact local HEAD must equal one of those advertised
+   tips. The canonical JSON manifest hash is the audit identifier.
 2. `scan-batch` selects at most the requested number of missing resources in a
    deterministic order. Each receipt binds the manifest, immutable resource
-   identity, scanner, retained payload hash and retained report hash. The phase
-   never reports audit success, including after the last batch.
+   identity and scanner. Git-history and Git-metadata receipts additionally bind
+   the complete sorted retained-file set by relative path, byte size and
+   SHA-256, plus a canonical manifest hash; action and object payloads retain
+   their separate payload hashes. The phase never reports audit success,
+   including after the last batch.
 3. `finalize` repeats the complete Actions inventory twice at the original
    cutoff, compares it with the manifest, rechecks HEAD and all advertised
    remote refs, and
@@ -39,7 +43,18 @@ and storage requests, elapsed time, downloaded bytes, expanded bytes, archive
 entries and retained state have explicit aggregate bounds. Git and scanner
 subprocesses use the same command deadline. A killed process leaves an active
 time reservation; the next invocation charges the intervening interval rather
-than resetting it.
+than resetting it. Every `finalize` attempt first invalidates an earlier
+`final.json`, computes its candidate within the command budget, and commits the
+new record only after the usage ledger and command deadline close successfully.
+An interrupted or failed re-finalization therefore leaves no earlier success
+record active.
+
+Retained state is measured once when an invocation creates its accountant.
+Atomic replacements reserve the simultaneous old and temporary bytes, then
+update the cached retained total by the exact committed delta. Bulk outputs are
+reserved before creation. Successful writes and usage-ledger saves therefore
+do not walk the complete state tree repeatedly; a resumed invocation performs
+one new reconciliation and rejects symlinks or over-limit state.
 
 ## Fail-closed conditions
 
@@ -126,12 +141,19 @@ The host-only suite uses synthetic inventories, archives, receipts and HTTP
 responses. It does not contact GitHub or execute a real Gitleaks audit.
 
 ```sh
-python3 -B -m unittest tests.test_publication_audit -v
+python3 -B -m unittest discover -s tests -p 'test_publication_audit.py' -v
 ```
 
-The tests cover public-route rejection, repository identity, cutoff behavior,
-inventory stability, deterministic resource ordering, aggregate budgets,
-single-writer locking, archive traversal and nesting, authorization stripping,
-stale scanner reports, receipt and retained-byte tampering, unavailable
-resources, findings, coverage gaps, Git/ref changes, and the permanent
-`publication_clearance: false` boundary.
+| Test class | Bound invariant |
+|---|---|
+| `ManifestContractTests` | `PA-SNAPSHOT`: repository identity, exact advertised HEAD/tips, stable cutoff inventory, scoped authentication and immutable manifest semantics. |
+| `StateAndBudgetTests` | `PA-STATE`: one writer, private modes, persistent resource limits, exact replacement/bulk accounting and O(1) retained-state updates after reconciliation. |
+| `ContentBoundaryTests` | `PA-CONTENT`: bounded Git/ZIP/HTTP/scanner inputs, replacement refs disabled and every unscanned byte class reported as a gap. |
+| `ReceiptAndFinalizationTests` | `PA-FINALIZE`: reports, payloads and complete Git history/metadata retained-file manifests revalidate before the only success transition. |
+
+The fixtures are host-only simulations. They cover public-route rejection,
+repository identity, cutoff behavior, inventory stability, deterministic
+resource ordering, aggregate budgets, single-writer locking, archive traversal
+and nesting, authorization stripping, stale scanner reports, receipt and
+retained-byte tampering, unavailable resources, findings, coverage gaps,
+Git/ref changes, and the permanent `publication_clearance: false` boundary.
