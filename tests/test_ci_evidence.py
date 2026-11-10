@@ -17,6 +17,8 @@ from unittest.mock import patch
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "tools" / "ci_evidence.py"
+VOLUME_REPORT = "build/ci-m6e/volume-gate.json"
+VOLUME_AUXILIARY = "build/ci-m6e/run/volume-normal/result.json"
 SPEC = importlib.util.spec_from_file_location("ci_evidence", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
 evidence = importlib.util.module_from_spec(SPEC)
@@ -52,10 +54,13 @@ class EvidenceTests(unittest.TestCase):
         target.write_bytes(data.encode("utf-8") if isinstance(data, str) else data)
         return target
 
-    def collect(self, paths="build/", status="failure", output=None):
+    def collect(
+        self, paths="build/", status="failure", output=None, required_paths="",
+    ):
         """Collect isolated fixtures with a failing pre-archive status by default."""
         return evidence.collect(
-            name="native-evidence", paths=paths, output=output or self.output,
+            name="native-evidence", paths=paths, required_paths=required_paths,
+            output=output or self.output,
             status=status, workspace=self.root, environ=self.env, stdout=self.console,
         )
 
@@ -63,7 +68,7 @@ class EvidenceTests(unittest.TestCase):
         """Preserve exact JSON bytes and hashes without turning failure into acceptance."""
         original = b'{\n  "passed": false, "count": 3, "label": "caf\xc3\xa9"\n}\n'
         source = self.write("build/run/report.json", original)
-        receipt = self.collect()
+        receipt = self.collect(required_paths="build/run/report.json")
         self.assertEqual(source.read_bytes(), original)
         self.assertEqual((self.output / "build/run/report.json").read_bytes(), original)
         self.assertEqual(receipt["retained"], [{
@@ -71,12 +76,93 @@ class EvidenceTests(unittest.TestCase):
             "sha256": hashlib.sha256(original).hexdigest(),
         }])
         self.assertEqual(receipt["job_status_before_archive"], "failure")
+        self.assertEqual(receipt["required_paths"], ["build/run/report.json"])
+        self.assertEqual(receipt["unretained_required_paths"], [])
         self.assertNotIn("passed", receipt)
         self.assertIn('"passed": false', self.console.getvalue())
         self.assertIn("COMPLETE FILE", self.console.getvalue())
         stored = json.loads((self.output / "_meta/receipt.json").read_text())
         self.assertEqual(stored, receipt)
         self.assertIn("has-files=true\n", Path(self.env["GITHUB_OUTPUT"]).read_text())
+        self.assertIn("required-files=true\n", Path(self.env["GITHUB_OUTPUT"]).read_text())
+
+    def test_auxiliary_files_cannot_replace_required_report(self):
+        """Fail when optional diagnostics survive but the required aggregate does not."""
+        self.write(VOLUME_AUXILIARY, '{"passed":true}\n')
+        with self.assertRaisesRegex(evidence.EvidenceError, "Required evidence path"):
+            self.collect(
+                paths=f"{VOLUME_REPORT}\n{VOLUME_AUXILIARY}",
+                required_paths=VOLUME_REPORT,
+                status="success",
+            )
+        receipt = json.loads((self.output / "_meta/receipt.json").read_text())
+        self.assertEqual(
+            [entry["path"] for entry in receipt["retained"]],
+            [VOLUME_AUXILIARY],
+        )
+        self.assertEqual(receipt["unretained_required_paths"], [VOLUME_REPORT])
+        outputs = Path(self.env["GITHUB_OUTPUT"]).read_text()
+        self.assertIn("has-files=true\n", outputs)
+        self.assertIn("required-files=false\n", outputs)
+
+    def test_required_paths_reject_noncanonical_or_pattern_labels(self):
+        """Required evidence names are literal canonical relative paths."""
+        for label in (
+            "../outside.json", "/absolute.json", "build/*.json",
+            "./build/report.json", "build//report.json", "build/report.json ",
+            "build/report\u200b.json",
+        ):
+            with self.subTest(label=label), self.assertRaises(evidence.EvidenceError):
+                evidence._required_paths(label)
+
+    def test_cli_required_path_failure_is_bounded_and_nonzero(self):
+        """Expose required-retention failure through the actual collector CLI."""
+        self.write(VOLUME_AUXILIARY, '{"passed":true}\n')
+        result = subprocess.run(
+            [
+                sys.executable, "-B", str(SCRIPT), "collect",
+                "--name", "native-evidence",
+                "--paths", f"{VOLUME_REPORT}\n{VOLUME_AUXILIARY}",
+                "--required-paths", VOLUME_REPORT,
+                "--output", str(self.output),
+                "--status", "success",
+            ],
+            cwd=self.root,
+            env={**os.environ, **self.env},
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("Required evidence path was not retained", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        receipt = json.loads((self.output / "_meta/receipt.json").read_text())
+        self.assertEqual(receipt["unretained_required_paths"], [VOLUME_REPORT])
+        outputs = Path(self.env["GITHUB_OUTPUT"]).read_text()
+        self.assertIn("has-files=true\n", outputs)
+        self.assertIn("required-files=false\n", outputs)
+
+    def test_oversized_required_report_cannot_hide_behind_auxiliary_files(self):
+        """Fail when the required aggregate exceeds the compact per-file limit."""
+        raw = b'{"data":"' + b"a" * evidence.MAX_FILE_BYTES + b'"}\n'
+        aggregate = self.write(VOLUME_REPORT, raw)
+        self.write(VOLUME_AUXILIARY, '{"passed":true}\n')
+        with self.assertRaisesRegex(evidence.EvidenceError, "Required evidence path"):
+            self.collect(
+                paths=f"{VOLUME_REPORT}\n{VOLUME_AUXILIARY}",
+                required_paths=VOLUME_REPORT,
+                status="success",
+            )
+        receipt = json.loads((self.output / "_meta/receipt.json").read_text())
+        self.assertEqual(aggregate.read_bytes(), raw)
+        self.assertEqual(receipt["unretained_required_paths"], [VOLUME_REPORT])
+        omitted = next(item for item in receipt["omitted"]
+                       if item["path"] == VOLUME_REPORT)
+        self.assertEqual(omitted["reason"], "per-file-byte-limit")
+        self.assertEqual(
+            [entry["path"] for entry in receipt["retained"]],
+            [VOLUME_AUXILIARY],
+        )
 
     @unittest.skipUnless(shutil.which("git"), "git required for real checkout binding")
     def test_checkout_commit_is_independent_of_event_sha(self):
