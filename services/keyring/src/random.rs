@@ -2,7 +2,7 @@
 //! Raw bytes are obtained only through the owning Service's EntropySource and
 //! continuous health tests. No caller can seed, serialize or seek this RNG.
 use crate::{EntropySource, HealthFailure, Service, State, Status, RESEED_ENTROPY};
-use chacha20_rng::ChaCha20Rng;
+use chacha20::ChaCha20Rng;
 use hkdf_protected::Hkdf;
 use rand_core_rng::{Rng, SeedableRng};
 use sha2_kdf::Sha256;

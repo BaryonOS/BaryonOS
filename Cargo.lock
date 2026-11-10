@@ -130,6 +130,7 @@ dependencies = [
  "block-buffer 0.12.1",
  "crypto-common 0.2.2",
  "inout 0.2.6",
+ "zeroize",
 ]
 
 [[package]]
@@ -384,6 +385,7 @@ dependencies = [
  "chacha20 0.10.2",
  "chacha20 0.9.1",
  "chacha20poly1305",
+ "cipher 0.5.2",
  "hex-literal",
  "hkdf 0.12.4",
  "hkdf 0.13.0",
