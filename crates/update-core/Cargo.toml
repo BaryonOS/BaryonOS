@@ -15,7 +15,7 @@ ml-dsa = { version = "0.1.1", default-features = false }
 sha2 = { version = "0.10.9", default-features = false, features = ["force-soft"] }
 
 [dev-dependencies]
-hex-literal = "0.4.1"
+hex-literal = "1.0.0"
 
 [[test]]
 name = "key_policy"
