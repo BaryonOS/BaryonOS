@@ -84,6 +84,24 @@ opslag vrij te maken, want daarmee verdwijnt ook de terugval in de runlog.
 GitHub kan 6–12 uur nodig hebben om opslaggebruik te herberekenen. De
 werkflow hoeft daar voor zijn testuitkomst niet meer op te wachten.
 
+## Workflow syntax validation
+
+The required `host-quality` job runs actionlint v1.7.12 immediately after
+checkout. It checks GitHub Actions YAML, expressions, and workflow semantics.
+The invocation uses `-shellcheck= -pyflakes=` because shell and Python quality
+remain owned by the existing required checks; this step does not claim those
+optional integrations.
+
+The job downloads only `actionlint_1.7.12_linux_amd64.tar.gz`, verifies SHA-256
+`8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8`, and
+extracts only the `actionlint` executable into the runner's temporary directory.
+The upstream `v1.7.12` tag points directly to commit
+`914e7df21a07ef503a81201c76d2b11c789d3fca`; the release was published on
+March 30, 2026, under the MIT license. The tag commit is unsigned. The verified
+release checksum therefore detects asset substitution relative to the upstream
+checksum list, but it is not a signed provenance chain or an audit of the
+actionlint source and build process.
+
 ## Controle en terugdraaien
 
 `python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'`
@@ -113,3 +131,12 @@ https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-comm
 
 GitHub Actions. (z.d.). *upload-artifact* [Broncode en documentatie].
 Geraadpleegd op 8 november 2026, van https://github.com/actions/upload-artifact
+
+rhysd. (2026). *actionlint v1.7.12 release*.
+https://github.com/rhysd/actionlint/releases/tag/v1.7.12
+
+rhysd. (2026). *actionlint v1.7.12 checksums*.
+https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_checksums.txt
+
+rhysd. (2026). *actionlint source at v1.7.12*.
+https://github.com/rhysd/actionlint/tree/914e7df21a07ef503a81201c76d2b11c789d3fca
