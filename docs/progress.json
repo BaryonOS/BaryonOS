@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-09",
-    "source_commit": "1db01c4a1fe9e433396c58af4e6b3732034ee2e9",
+    "date": "2026-11-10",
+    "source_commit": "f808d59150466aee3de24452ea408250b8f4dca6",
     "assessment_basis": "working_tree",
-    "branch": "codex/k06-5f-acceptance-20261109",
-    "task": "Complete transferred K06 R3-5/R3-6/R3-7 contracts and step-5f acceptance",
+    "branch": "codex/k06-5f-complete-20261109",
+    "task": "Repair rejected K06 step-5f acceptance evidence and run the complete frozen matrix",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Selected prerequisite sources and a repeated-run harness are integrated. Cross-CPU IPC, usercopy, migration, remote lifecycle handling and native 50/50 matrix evidence remain under verification. No native criterion or K07 SMP extension is accepted."
+    "summary": "41/100 remains 41/100. Run 42723127310 is rejected: nine-capacity iteration 16 fails clock drift, giving 49/50. Clock snapshot accounting and the missing final native regression wrapper are corrected for a new complete run; no K06 acceptance or K07 SMP extension is claimed."
   },
   "tracks": [
     {

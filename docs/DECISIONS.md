@@ -2366,3 +2366,10 @@ Each matrix case requires 50 successful repetitions. Any failed repetition leave
 **Open acceptance:** complete L0 §9 workloads, migration with GPR/x87/SSE canaries and `active_cpus` checks, remote kill and exact cleanup, real K07 pressure across four CPUs, the 30-second concurrent workload, the ten-minute soak, negative controls and unchanged regressions. The current host checks and source integration do not accept K06 or extend K07 to SMP. No physical-hardware, speculative-execution, x2APIC or human-audit claim is made.
 
 **Recovery:** retain the original worktrees and source branches. The 5f work is isolated on `codex/k06-5f-acceptance-20261109`; revert its reviewed commits to remove the change. No host disk, firmware, NAS or production key is part of the test configuration.
+
+
+### K06 step 5f measurement and gate repair — 10 November 2026
+
+Run 42723127310 on `f808d591` is rejected because `nine-capacity` iteration 16 fails the unchanged clock-drift gate (49/50). The old evidence logs only the median and does not distinguish IRQ loss from observation jitter. An idle return can observe more ticks than its requested target. Clock samples therefore retain a coherent IRQ0 tick/TSC snapshot with IF=0 and normalize elapsed TSC against the actual tick delta. Five target segments, their median, the observation deadline and the exact 1% drift limit remain fixed. Failure logs retain calibration plus each tick/TSC delta. Missing IRQs are not synthesized and sustained drift remains a failure.
+
+The final repository gate previously required a missing `tools/qemu-smoke-test.sh`. The executable wrapper now runs the existing M2, K05, single-CPU K07 and RTC regression gates sequentially, with fresh isolated output directories and source checks. Host oracles, Clippy and formatting checks remain required. The workflow preserves nested reports and raw logs. The entire 64-by-50 matrix must restart from zero on the corrected source; no earlier passing repetition is reused.

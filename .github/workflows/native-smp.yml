@@ -446,6 +446,12 @@ jobs:
           persist-credentials: false
       - name: Pinned Python
         uses: ./.github/actions/setup-python
+        with:
+          host-dependencies: 'true'
+      - name: Pinned Rust for guard-page host tests
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          cargo +1.90.0 fetch --locked --manifest-path Cargo.toml
       - name: Download every case and soak report
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
@@ -457,12 +463,26 @@ jobs:
             --input-dir build/k06-smp-artifacts \
             --output build/k06-smp-matrix/matrix-report.json
           git diff --exit-code
+      - name: Complete source-bound SMP host oracles
+        run: |
+          mkdir -p build/k06-smp-matrix
+          set -o pipefail
+          {
+            python3 -c 'import yaml; assert yaml.__version__ == "6.0.3", yaml.__version__'
+            cargo +1.90.0 --version
+            rustc +1.90.0 --version
+            python3 -B -m unittest discover -s tools/tests -p 'test_*.py' -v
+            python3 -B -m unittest discover -s tests -p test_qemu_smoke_gate.py -v
+          } 2>&1 | tee build/k06-smp-matrix/host-oracles.log
+          git diff --exit-code
       - name: Preserve aggregate report
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: smp-section9-matrix-report
-          path: build/k06-smp-matrix/matrix-report.json
+          path: |
+            build/k06-smp-matrix/matrix-report.json
+            build/k06-smp-matrix/host-oracles.log
           if-no-files-found: error
           retention-days: 30
           compression-level: 9
@@ -507,10 +527,13 @@ jobs:
           name: smp-section9-final-gate
           path: |
             build/k06-smp-final-gate/logs/gate.log
-            build/k06-smp-final-gate/manifest.json
-            build/k06-smp-final-gate/run/**/result.json
-            build/k06-smp-final-gate/run/**/serial.txt
-            build/k06-smp-final-gate/run/**/stderr.txt
+            build/k06-smp-final-gate/**/source.txt
+            build/k06-smp-final-gate/**/*.json
+            build/k06-smp-final-gate/**/serial.txt
+            build/k06-smp-final-gate/**/stderr.txt
+            build/k06-smp-final-gate/**/logs/*.log
+            build/k06-smp-final-gate/**/logs/*.stdout.txt
+            build/k06-smp-final-gate/**/logs/*.stderr.txt
           if-no-files-found: warn
           retention-days: 30
           compression-level: 9

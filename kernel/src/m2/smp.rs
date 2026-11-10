@@ -2608,9 +2608,10 @@ const CLOCK_SPAN: u64 = CLOCK_SEGMENT * CLOCK_SEGMENTS as u64;
 static CLOCK_LOAD: AtomicBool = AtomicBool::new(false);
 static CLOCK_WORK: AtomicU64 = AtomicU64::new(0);
 
-/// Idle until the clock reaches `target`; the TSC then, or None at `bound`.
+/// Idle until the clock reaches `target`; snapshot (ticks, TSC), or None at
+/// `bound`. IF=0 keeps IRQ0 from changing the tick count between the reads.
 /// Every read checks that the clock never goes back.
-fn clock_at(target: u64, bound: u64, last: &mut u64) -> Option<u64> {
+fn clock_at(target: u64, bound: u64, last: &mut u64) -> Option<(u64, u64)> {
     loop {
         let now = CLOCK_TICKS.load(Ordering::Acquire);
         if now < *last {
@@ -2618,7 +2619,7 @@ fn clock_at(target: u64, bound: u64, last: &mut u64) -> Option<u64> {
         }
         *last = now;
         if now >= target {
-            return Some(rdtsc());
+            return Some((now, rdtsc()));
         }
         if rdtsc() > bound {
             return None;
@@ -2652,10 +2653,24 @@ fn clock(online: usize, total: usize) -> bool {
     let first = last + 1;
     let mut edge = clock_at(first, bound, &mut last);
     let mut samples = [0u64; CLOCK_SEGMENTS];
+    let mut ticks = [0u64; CLOCK_SEGMENTS];
+    let mut cycles = [0u64; CLOCK_SEGMENTS];
     for (index, sample) in samples.iter_mut().enumerate() {
         edge = edge.and_then(|start| {
             clock_at(first + (index as u64 + 1) * CLOCK_SEGMENT, bound, &mut last).map(|end| {
-                *sample = (end - start) * 1000 / per_ms;
+                let tick_delta = end.0 - start.0;
+                let tsc_delta = end.1 - start.1;
+                if tick_delta == 0 {
+                    serial::fail(b"SMP_CLOCK_NO_PROGRESS");
+                }
+                ticks[index] = tick_delta;
+                cycles[index] = tsc_delta;
+                // HLT may return after the target tick. Normalize using the
+                // actual IRQ0 count, never the requested count. This does not
+                // synthesize lost interrupts: sustained IRQ loss still drifts.
+                *sample = (u128::from(tsc_delta) * 1000 * u128::from(CLOCK_SEGMENT)
+                    / (u128::from(per_ms) * u128::from(tick_delta)))
+                    as u64;
                 end
             })
         });
@@ -2665,10 +2680,25 @@ fn clock(online: usize, total: usize) -> bool {
         serial::write(b"SMP:CLOCK:STOPPED\n");
         serial::fail(b"SMP_CLOCK_STOPPED")
     }
-    samples.sort_unstable();
-    let us = samples[CLOCK_SEGMENTS / 2];
+    let mut ordered = samples;
+    ordered.sort_unstable();
+    let us = ordered[CLOCK_SEGMENTS / 2];
     let expected = CLOCK_SEGMENT * u64::from(PIT_DIVISOR) * 1_000_000 / PIT_HZ;
     if us.abs_diff(expected) * 100 > expected {
+        serial::write(b"SMP:CLOCK:CALIBRATION:TSC_PER_MS=");
+        decimal(per_ms);
+        serial::write(b"\n");
+        for index in 0..CLOCK_SEGMENTS {
+            serial::write(b"SMP:CLOCK:SAMPLE=");
+            decimal(index as u64);
+            serial::write(b":TICKS=");
+            decimal(ticks[index]);
+            serial::write(b":TSC=");
+            decimal(cycles[index]);
+            serial::write(b":NORMALIZED_US=");
+            decimal(samples[index]);
+            serial::write(b"\n");
+        }
         serial::write(b"SMP:CLOCK:DRIFT:US=");
         decimal(us);
         serial::write(b"\n");

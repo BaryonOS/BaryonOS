@@ -1,0 +1,69 @@
+{
+  "source_sha256": "d5ba44f6f596ecbe099e0143489c9c2fdfb1382dda163d3cc7ad757787cf19fd",
+  "source_fingerprint_version": 3,
+  "base_commit": "f808d59150466aee3de24452ea408250b8f4dca6",
+  "assessment_basis": "working_tree",
+  "accepted": false,
+  "checks": [
+    {
+      "name": "clock-build",
+      "command": "NOS_BUILD_DIR=build/k06-clock-build NOS_TARGET_DIR=target/k06-clock-build python3 -B tools/build.py --kernel-feature native-smp",
+      "exit": 0,
+      "raw_log_sha256": "76b4272c02f2e5c74e8b0359ad635f122c6455e192ba39ce97e4b0fa6e9e3a6f",
+      "log": "clock-build.log.gz"
+    },
+    {
+      "name": "cargo-check",
+      "command": "NOS_TARGET_DIR=target/k06-host-review CARGO_TARGET_DIR=target/k06-host-review python3 -B tools/dev.py cargo +1.90.0 check --lib",
+      "exit": 0,
+      "raw_log_sha256": "e1aad416663abbeb3f1b8d32d2faa6cae3d1829eebc7ab5134e6061101959894",
+      "log": "cargo-check.log.gz"
+    },
+    {
+      "name": "host-oracles",
+      "command": "NOS_TARGET_DIR=target/k06-tools-review CARGO_TARGET_DIR=target/k06-tools-review python3 -B tools/dev.py python3 -B -m unittest discover -s tools/tests -p test_*.py -v",
+      "exit": 0,
+      "raw_log_sha256": "f92e96846f516be206a3d10d6c82fe4281213dd188a11869ad1ba48731762009",
+      "log": "host-oracles.log.gz"
+    },
+    {
+      "name": "gate-orchestration",
+      "command": "python3 -B -m unittest discover -s tests -p test_qemu_smoke_gate.py -v",
+      "exit": 0,
+      "raw_log_sha256": "d4240e2bbad50bf2fbc8e435263d934e3a791e423b9b0fc185640776c7f38fba",
+      "log": "gate-orchestration.log.gz"
+    },
+    {
+      "name": "cargo-test",
+      "command": "NOS_TARGET_DIR=target/k06-host-review CARGO_TARGET_DIR=target/k06-host-review python3 -B tools/dev.py cargo +1.90.0 test --locked",
+      "exit": 0,
+      "raw_log_sha256": "69ba2ee33708c6edc7c95367bfc913860c25eb303af97342c80e7c4d537ae240",
+      "log": "cargo-test.log.gz"
+    },
+    {
+      "name": "smp-clippy",
+      "command": "NOS_TARGET_DIR=target/k06-host-review CARGO_TARGET_DIR=target/k06-host-review python3 -B tools/dev.py cargo +1.90.0 clippy --locked -p boot-protocol -p smp-lock --all-targets -- -D warnings",
+      "exit": 0,
+      "raw_log_sha256": "9d30de4dbc6755490fca7d7fe4184ad8e429a13e7e5a5ee80a7556316b6382d0",
+      "log": "smp-clippy.log.gz"
+    },
+    {
+      "name": "extra-workspace-clippy",
+      "command": "cargo +1.90.0 clippy --locked --workspace --exclude os-kernel --exclude os-loader --all-targets -- -D warnings",
+      "exit": 101,
+      "raw_log_sha256": "6d984496556530e022dd7610f3e7e3e48c859b505d5a6af58b84287e652a1abc",
+      "log": "extra-workspace-clippy.log.gz"
+    }
+  ],
+  "additional_checks": {
+    "cargo_fmt": "exit 0",
+    "bash_syntax": "exit 0",
+    "progress_check": "exit 0; 41/100",
+    "git_diff_check": "exit 0"
+  },
+  "pending": [
+    "new full 64x50 native matrix and final tools/gate.sh"
+  ],
+  "limits": "Host-only verification and crossbuild; no local guest started.",
+  "extra_check_failure": "The additional workspace-wide Clippy check reports an existing manual_div_ceil at crates/capability-core/src/lib.rs:1473. No unrelated capability source is changed. The final wrapper preserves the existing native-smp workflow Clippy scope, boot-protocol and smp-lock, with all targets and -D warnings."
+}

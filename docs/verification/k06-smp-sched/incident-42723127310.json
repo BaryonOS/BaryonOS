@@ -1,0 +1,59 @@
+{
+  "accepted": false,
+  "run_id": 42723127310,
+  "run_url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310",
+  "tested_commit": "f808d59150466aee3de24452ea408250b8f4dca6",
+  "source_fingerprint_version": 3,
+  "source_sha256": "759320893ea058b90d0bc764cd2b9534734827131a212ad5ba27f5501db6e8ac",
+  "case": "nine-capacity",
+  "repetitions": {
+    "requested": 50,
+    "attempted": 50,
+    "passed": 49,
+    "failed": 1,
+    "complete": true,
+    "flaky": true,
+    "evidence_kind": "smp"
+  },
+  "failed_iteration": 16,
+  "raw_qemu_exit": 35,
+  "timed_out": false,
+  "observed_failure": "SMP:CLOCK:DRIFT:US=1010334; M1:FAIL:SMP_CLOCK_DRIFT",
+  "artifact": {
+    "id": 13721803223,
+    "sha256": "59bb36d75a0e1d72db33c96b74501eae78d0f636a1a297f5892c70f00b50190c",
+    "url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310/artifacts/13721803223"
+  },
+  "raw_file_sha256": {
+    "serial.txt": "1554bdf6a9922a0110c3de5a668640b26c04bbb395850e15bb7d6526c64742fe",
+    "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "result.json": "0c2bc888adbef2d823e6b0742fb5654ffd905dde559d8d519fa9104807b59abd"
+  },
+  "boundary": "Failure evidence only. The old transcript does not identify IRQ loss versus observation jitter. No 50/50 acceptance can be inferred. Original GitHub artifacts remain intact.",
+  "additional_failure": {
+    "case": "shared-scratch",
+    "repetitions": {
+      "requested": 50,
+      "attempted": 50,
+      "passed": 49,
+      "failed": 1,
+      "complete": true,
+      "flaky": true,
+      "evidence_kind": "smp"
+    },
+    "failed_iteration": 10,
+    "observed_failure": "SMP:CLOCK:DRIFT:US=1010549; M1:FAIL:SMP_CLOCK_DRIFT",
+    "raw_qemu_exit": 35,
+    "timed_out": false,
+    "artifact": {
+      "id": 13722247178,
+      "sha256": "e50e460da321c6d7e59fa80eaf73e5737412f541f51f1d8c970a3fd2cc4868a7",
+      "url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310/artifacts/13722247178"
+    },
+    "raw_file_sha256": {
+      "serial.txt": "1565f7d5e6f57cfa8a67002d5e1277e6a9810d540f61b991ac24a4b54869f20b",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result.json": "a1bdc78c1631a57ba1f42444b59d07f8f689acb34c8133fd73fece396122c97f"
+    }
+  }
+}
