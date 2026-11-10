@@ -207,11 +207,12 @@ class GsDiscipline(unittest.TestCase):
                           if selector.search(text)}, {"arch.rs": 2, "smp.rs": 1})
         msr = re.compile(r"0xc000_?010[12]")
         self.assertEqual({name: len(msr.findall(text)) for name, text in sources.items()
-                          if msr.search(text)}, {"arch.rs": 4, "smp.rs": 4})
+                          if msr.search(text)}, {"arch.rs": 4, "smp.rs": 5})
         smp = sources["smp.rs"]
         self.assertEqual(len(re.findall(r"wrmsr\(0xc000_0101,", smp)), 2)
         self.assertEqual(len(re.findall(r"rdmsr\(0xc000_0101\)", smp)), 2)
-        self.assertNotIn("0xc000_0102", smp)
+        self.assertEqual(len(re.findall(r"rdmsr\(0xc000_0102\)", smp)), 1)
+        self.assertNotRegex(smp, r"wrmsr\(0xc000_0102,")
 
     def test_gs_operands_only_in_native_smp_code(self):
         # Rule 7: `gs:` only in the native-smp module.

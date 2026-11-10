@@ -92,6 +92,15 @@ Elke invariant heeft een weerlegging; de weerlegging wordt een negatieve test (�
   *Weerlegd als* een IPI, tick of exception vanuit CPL3 met een door ring 3 gekozen GS_BASE
   ergens anders telt of schrijft dan in het eigen `CpuLocal` (§9 test 15–17).
 
+  **Current evidence boundary:** N1–N3 previously exercised user-entry
+  behavior, the GS-7 `iretq` fixup, and NMI via IST. The current patch
+  strengthens N1/N3: the AP's user descriptor has a nonzero GS base and the
+  BSP waits for an observed timer frame after `mov gs`, checking that base
+  before sending IPIs and shootdowns. The strengthened behavior requires new
+  native CI evidence and is not yet accepted. GS-4, GS-5, GS-8 and GS-9 have
+  static lint coverage only. No native negative GS-10 precondition profile
+  or CPL3 #DF/#MC test has been executed.
+
 ---
 
 ## 3. APIC- en SMP-initialisatie (precieze volgorde)

@@ -119,6 +119,7 @@ static mut EVIDENCE: Evidence = EMPTY_EVIDENCE;
 ))]
 static mut LIFECYCLE_ROUNDS: u8 = 0;
 pub(super) fn engine() -> &'static mut Engine {
+    debug_assert!(lock::kernel_held(), "M4 engine requires KERNEL");
     // SAFETY: KERNEL held, IF=0, no nested engine calls or retained engine borrows.
     unsafe { &mut *ptr::addr_of_mut!(ENGINE) }
 }

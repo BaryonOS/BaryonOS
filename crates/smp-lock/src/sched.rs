@@ -335,6 +335,7 @@ mod tests {
             let state = Arc::new(AtomicU32::new(READY));
             let on_cpu = Arc::new(AtomicBool::new(false));
             let a_on_stack = Arc::new(AtomicBool::new(false));
+            let (rejected_tx, rejected_rx) = std::sync::mpsc::channel();
             dispatch(&state, 0).unwrap();
             assert!(claim_stack(&on_cpu));
             a_on_stack.store(true, Ordering::Relaxed);
@@ -344,21 +345,28 @@ mod tests {
                     Arc::clone(&on_cpu),
                     Arc::clone(&a_on_stack),
                 );
-                thread::spawn(move || loop {
-                    if dispatch(&state, 1).is_err() {
-                        continue;
+                thread::spawn(move || {
+                    let mut rejection_reported = false;
+                    loop {
+                        if dispatch(&state, 1).is_err() {
+                            continue;
+                        }
+                        if claim_stack(&on_cpu) {
+                            assert!(!a_on_stack.load(Ordering::Relaxed), "stack shared");
+                            return;
+                        }
+                        if !rejection_reported {
+                            rejected_tx.send(()).expect("CPU A receives rejected claim");
+                            rejection_reported = true;
+                        }
+                        yield_cpu(&state, 1).unwrap();
                     }
-                    if claim_stack(&on_cpu) {
-                        assert!(!a_on_stack.load(Ordering::Relaxed), "stack shared");
-                        return;
-                    }
-                    yield_cpu(&state, 1).unwrap();
                 })
             };
             yield_cpu(&state, 0).unwrap();
-            for _ in 0..1000 {
-                std::hint::spin_loop();
-            }
+            rejected_rx
+                .recv_timeout(std::time::Duration::from_secs(5))
+                .expect("CPU B must reject a stack claim before CPU A releases it");
             a_on_stack.store(false, Ordering::Relaxed);
             on_cpu.store(false, Ordering::Release);
             b.join().unwrap();
