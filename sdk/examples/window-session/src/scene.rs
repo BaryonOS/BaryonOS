@@ -21,6 +21,51 @@ pub struct Window {
     pub offset: usize,
 }
 const APP_NAMES: [&str; WINDOWS] = ["Materiaal", "Rekenmachine"];
+const WORK_NAMES: [&str; WINDOWS] = ["Mijn materiaal", "Berekening"];
+const WORK_TYPES: [&str; WINDOWS] = ["Documenten", "Gereedschap"];
+const WORK_ALIASES: [&[&str]; WINDOWS] = [
+    &[
+        "bestanden",
+        "verkenner",
+        "explorer",
+        "finder",
+        "files",
+        "nautilus",
+        "dolphin",
+    ],
+    &["calculator", "rekenen"],
+];
+const MOVE_HINT: &str =
+    "Verplaatsen · Pijlen 16 px · Shift+pijlen 1 px · Enter bewaren · Esc terug";
+const MOVE_HINT_SHORT: &str = "Verplaatsen · Enter · Esc";
+/// Veld text on the trusted header (0x18242f); contrast is covered by tests.
+pub const HEADER_TEXT: u32 = 0xc5ccc9;
+/// Keys that always reach the trusted shell or the outer native routes.
+/// Shift+F10 remains the application context-menu chord.
+pub fn trusted_shell_key(key: KeyboardEvent) -> bool {
+    (key.key == PhysicalKey::L && key.modifiers.super_key())
+        || matches!(
+            key.key,
+            PhysicalKey::F3 | PhysicalKey::Menu | PhysicalKey::F12
+        )
+        || (key.key == PhysicalKey::F10 && !key.modifiers.shift())
+}
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum WorkspaceMode {
+    #[default]
+    Work,
+    Focus,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WindowState {
+    Normal,
+    Minimized,
+}
+#[derive(Clone, Copy)]
+struct KeyboardMove {
+    index: usize,
+    origin: Rect,
+}
 const QUERY_BYTES: usize = 32;
 struct ProgramPalette {
     open: bool,
@@ -40,10 +85,15 @@ impl ProgramPalette {
     fn matches(&self, index: usize) -> bool {
         let query = &self.query[..self.length];
         query.is_empty()
-            || APP_NAMES[index]
-                .as_bytes()
-                .windows(query.len())
-                .any(|part| part.eq_ignore_ascii_case(query))
+            || [APP_NAMES[index], WORK_NAMES[index], WORK_TYPES[index]]
+                .iter()
+                .chain(WORK_ALIASES[index].iter())
+                .any(|label| {
+                    label
+                        .as_bytes()
+                        .windows(query.len())
+                        .any(|part| part.eq_ignore_ascii_case(query))
+                })
     }
     fn first_match(&self) -> Option<usize> {
         (0..WINDOWS).find(|index| self.matches(*index))
@@ -60,9 +110,19 @@ pub struct Scene {
     drag: Option<(usize, i32, i32)>,
     pub moves: u64,
     pub switches: u64,
+    mode: WorkspaceMode,
     clipboard_notice: ClipboardNotice,
     palette: ProgramPalette,
     palette_keys: [bool; PhysicalKey::Menu as usize + 1],
+    cancelled_keys: [bool; PhysicalKey::Menu as usize + 1],
+    window_menu_open: bool,
+    window_menu_target: usize,
+    window_menu_selected: usize,
+    overlay_pointer: bool,
+    keyboard_move: Option<KeyboardMove>,
+    notifications_open: bool,
+    notice_dismissed: bool,
+    notification_focus_close: bool,
     switcher: Option<usize>,
     switcher_keys: [bool; PhysicalKey::Menu as usize + 1],
     switcher_mouse_capture: bool,
@@ -130,9 +190,19 @@ impl Scene {
             drag: None,
             moves: 0,
             switches: 0,
+            mode: WorkspaceMode::Work,
             clipboard_notice: ClipboardNotice::None,
             palette: ProgramPalette::new(),
             palette_keys: [false; PhysicalKey::Menu as usize + 1],
+            cancelled_keys: [false; PhysicalKey::Menu as usize + 1],
+            window_menu_open: false,
+            window_menu_target: 0,
+            window_menu_selected: 0,
+            overlay_pointer: false,
+            keyboard_move: None,
+            notifications_open: false,
+            notice_dismissed: false,
+            notification_focus_close: false,
             switcher: None,
             switcher_keys: [false; PhysicalKey::Menu as usize + 1],
             switcher_mouse_capture: false,
@@ -149,12 +219,298 @@ impl Scene {
             b.height + 42 * self.scale,
         )
     }
-
+    pub fn workspace_mode(&self) -> WorkspaceMode {
+        self.mode
+    }
+    pub fn visible(&self, index: usize) -> bool {
+        self.window_state(index) == Some(WindowState::Normal)
+            && (self.mode == WorkspaceMode::Work || self.focused == index)
+    }
+    pub fn window_state(&self, index: usize) -> Option<WindowState> {
+        self.shell.hidden.get(index).map(|hidden| {
+            if *hidden {
+                WindowState::Minimized
+            } else {
+                WindowState::Normal
+            }
+        })
+    }
+    pub fn focused_visible(&self) -> bool {
+        self.visible(self.focused)
+    }
+    fn minimize_state(&mut self, index: usize) -> Result<(), Invalid> {
+        if index >= WINDOWS {
+            return Err(Invalid);
+        }
+        if self.focused == index && !self.shell.hidden[1 - index] {
+            self.select(1 - index)?;
+        }
+        self.shell.hidden[index] = true;
+        self.cancel_pointer();
+        Ok(())
+    }
+    pub fn minimize(&mut self, index: usize, damage: &mut Damage) -> Result<(), Invalid> {
+        if self.keyboard_move_is_active() {
+            return Err(Invalid);
+        }
+        self.minimize_state(index)?;
+        self.close_window_menu(damage);
+        for index in 0..WINDOWS {
+            damage.mark(self.paint_bounds(index));
+        }
+        damage.mark(self.dock());
+        Ok(())
+    }
+    pub fn window_menu_is_open(&self) -> bool {
+        self.window_menu_open
+    }
+    pub fn keyboard_move_is_active(&self) -> bool {
+        self.keyboard_move.is_some()
+    }
+    pub fn overlay_is_open(&self) -> bool {
+        self.palette_is_open()
+            || self.window_menu_is_open()
+            || self.keyboard_move_is_active()
+            || self.notifications_are_open()
+    }
+    /// Close every Veld overlay; a keyboard move returns to its origin.
+    fn close_overlays(&mut self, damage: &mut Damage) {
+        if self.palette_close() {
+            damage.mark(self.palette_paint_bounds());
+            damage.mark(self.dock());
+        }
+        self.close_window_menu(damage);
+        self.close_notifications(damage);
+        self.cancel_keyboard_move(damage);
+        self.overlay_pointer = false;
+    }
+    pub fn notifications_are_open(&self) -> bool {
+        self.notifications_open
+    }
+    pub fn notification_is_present(&self) -> bool {
+        self.clipboard_notice != ClipboardNotice::None && !self.notice_dismissed
+    }
+    pub fn notifications_bounds(&self) -> Rect {
+        let s = self.scale;
+        Rect::new(
+            (self.width - 468 * s) as i32,
+            56 * s as i32,
+            440 * s,
+            232 * s,
+        )
+    }
+    pub fn notifications_paint_bounds(&self) -> Rect {
+        let r = self.notifications_bounds();
+        let pad = 12 * self.scale;
+        Rect::new(
+            r.x - pad as i32,
+            r.y - pad as i32,
+            r.width + 2 * pad,
+            r.height + 2 * pad,
+        )
+    }
+    pub fn notification_close_button(&self) -> Rect {
+        let r = self.notifications_bounds();
+        let s = self.scale;
+        Rect::new(r.x + 396 * s as i32, r.y + 12 * s as i32, 32 * s, 32 * s)
+    }
+    pub fn notification_dismiss_button(&self) -> Rect {
+        let r = self.notifications_bounds();
+        let s = self.scale;
+        Rect::new(r.x + 280 * s as i32, r.y + 144 * s as i32, 136 * s, 36 * s)
+    }
+    fn open_notifications(&mut self, damage: &mut Damage) {
+        if !self.overlay_is_open() {
+            self.cancel_pointer();
+            self.notifications_open = true;
+            self.notification_focus_close = !self.notification_is_present();
+            damage.mark(self.notifications_paint_bounds());
+            damage.mark(self.dock());
+        }
+    }
+    fn close_notifications(&mut self, damage: &mut Damage) {
+        if self.notifications_open {
+            self.notifications_open = false;
+            damage.mark(self.notifications_paint_bounds());
+            damage.mark(self.dock());
+        }
+    }
+    fn dismiss_notification(&mut self) {
+        self.notice_dismissed = true;
+        self.notification_focus_close = true;
+    }
+    fn begin_keyboard_move(&mut self, damage: &mut Damage) {
+        if self.focused_visible() {
+            self.cancel_pointer();
+            self.close_window_menu(damage);
+            self.keyboard_move = Some(KeyboardMove {
+                index: self.focused,
+                origin: self.windows[self.focused].body,
+            });
+            damage.mark(self.header());
+            damage.mark(self.dock());
+        }
+    }
+    fn finish_keyboard_move(&mut self, cancel: bool) {
+        if let Some(movement) = self.keyboard_move.take() {
+            if cancel {
+                self.windows[movement.index].body = movement.origin;
+            }
+        }
+    }
+    fn cancel_keyboard_move(&mut self, damage: &mut Damage) {
+        if let Some(movement) = self.keyboard_move {
+            damage.mark(self.paint_bounds(movement.index));
+            self.finish_keyboard_move(true);
+            damage.mark(self.paint_bounds(movement.index));
+            damage.mark(self.header());
+            damage.mark(self.dock());
+        }
+    }
+    fn position_window(&mut self, index: usize, x: i32, y: i32) -> Result<(), Invalid> {
+        let body = self.windows[index].body;
+        let x = x.clamp(0, (self.width - body.width) as i32);
+        let y = y.clamp(
+            94 * self.scale as i32,
+            (self.height - body.height - 72 * self.scale) as i32,
+        );
+        if (body.x, body.y) != (x, y) {
+            let moves = self.moves.checked_add(1).ok_or(Invalid)?;
+            self.windows[index].body.x = x;
+            self.windows[index].body.y = y;
+            self.moves = moves;
+        }
+        Ok(())
+    }
+    pub fn window_menu_button(&self, index: usize) -> Rect {
+        if index >= WINDOWS {
+            return Rect::default();
+        }
+        let frame = self.frame(index);
+        let s = self.scale;
+        Rect::new(
+            frame.x + frame.width as i32 - 72 * s as i32,
+            frame.y + 7 * s as i32,
+            28 * s,
+            28 * s,
+        )
+    }
+    pub fn minimize_button(&self, index: usize) -> Rect {
+        let mut r = self.window_menu_button(index);
+        if index < WINDOWS {
+            r.x += 36 * self.scale as i32;
+        }
+        r
+    }
+    /// Physical pixels; the anchor survives closing for shadow damage repair.
+    pub fn window_menu_bounds(&self) -> Rect {
+        let s = self.scale;
+        let button = self.window_menu_button(self.window_menu_target);
+        Rect::new(
+            button.x.clamp(12 * s as i32, (self.width - 312 * s) as i32),
+            (button.y + 33 * s as i32).clamp(52 * s as i32, (self.height - 260 * s) as i32),
+            300 * s,
+            184 * s,
+        )
+    }
+    fn window_menu_paint_bounds(&self) -> Rect {
+        let r = self.window_menu_bounds();
+        let pad = 12 * self.scale;
+        Rect::new(
+            r.x - pad as i32,
+            r.y - pad as i32,
+            r.width + 2 * pad,
+            r.height + 2 * pad,
+        )
+    }
+    fn window_menu_row(&self, index: usize) -> Rect {
+        let r = self.window_menu_bounds();
+        let s = self.scale;
+        Rect::new(
+            r.x + 8 * s as i32,
+            r.y + (8 + index as i32 * 44) * s as i32,
+            r.width - 16 * s,
+            40 * s,
+        )
+    }
+    fn open_window_menu(&mut self) {
+        if self.focused_visible() {
+            self.palette_close();
+            self.cancel_pointer();
+            self.window_menu_target = self.focused;
+            self.window_menu_selected = 0;
+            self.window_menu_open = true;
+        }
+    }
+    fn close_window_menu(&mut self, damage: &mut Damage) {
+        if self.window_menu_open {
+            damage.mark(self.window_menu_paint_bounds());
+            self.window_menu_open = false;
+            damage.mark(self.dock());
+        }
+    }
+    fn activate_window_menu(&mut self) -> Result<(), Invalid> {
+        self.window_menu_open = false;
+        match self.window_menu_selected {
+            0 => self.minimize_state(self.window_menu_target)?,
+            1 => self.arrange_positions(),
+            _ => {
+                self.cancel_pointer();
+                self.mode = match self.mode {
+                    WorkspaceMode::Work => WorkspaceMode::Focus,
+                    WorkspaceMode::Focus => WorkspaceMode::Work,
+                };
+            }
+        }
+        Ok(())
+    }
+    pub fn toggle_focus(&mut self, damage: &mut Damage) {
+        self.cancel_keyboard_move(damage);
+        for index in 0..WINDOWS {
+            damage.mark(self.paint_bounds(index));
+        }
+        self.mode = match self.mode {
+            WorkspaceMode::Work => WorkspaceMode::Focus,
+            WorkspaceMode::Focus => WorkspaceMode::Work,
+        };
+        self.cancel_pointer();
+    }
+    pub fn arrange(&mut self, damage: &mut Damage) {
+        self.cancel_keyboard_move(damage);
+        let old = [self.paint_bounds(0), self.paint_bounds(1)];
+        self.arrange_positions();
+        for (index, bounds) in old.into_iter().enumerate() {
+            damage.mark(bounds);
+            damage.mark(self.paint_bounds(index));
+        }
+    }
+    fn arrange_positions(&mut self) {
+        self.cancel_pointer();
+        self.mode = WorkspaceMode::Work;
+        for index in 0..WINDOWS {
+            let body = &mut self.windows[index].body;
+            body.x = if index == 0 {
+                28 * self.scale as i32
+            } else {
+                (self.width - body.width - 28 * self.scale) as i32
+            };
+            body.y = (if index == 0 { 114 } else { 140 }) * self.scale as i32;
+        }
+    }
+    /// Desktop pointer targets owned by Veld inside main's header: only the
+    /// notice area, and never while a shell page covers the apps.
+    pub fn desktop_control_at(&self, x: u32, y: u32) -> bool {
+        !self.shell.blocks_apps() && self.clipboard_notice_bounds().contains(x as i32, y as i32)
+    }
+    /// Main's trusted shell header; Veld state is drawn inside it, never over it.
+    fn header(&self) -> Rect {
+        Rect::new(0, 0, self.width, 44 * self.scale)
+    }
     /// Open the app palette and reset its query and selection.
     ///
-    /// Returns `false` when the palette is already open.
+    /// Returns `false` when another workspace overlay is already open.
     pub fn palette_open(&mut self) -> bool {
-        if self.palette.open || self.switcher_is_open() {
+        if self.overlay_is_open() || self.switcher_is_open() {
             return false;
         }
         self.palette.open = true;
@@ -410,6 +766,16 @@ impl Scene {
             256 * self.scale,
         )
     }
+    pub fn palette_paint_bounds(&self) -> Rect {
+        let r = self.palette_bounds();
+        let pad = 12 * self.scale;
+        Rect::new(
+            r.x - pad as i32,
+            r.y - pad as i32,
+            r.width + 2 * pad,
+            r.height + 2 * pad,
+        )
+    }
     fn palette_row(&self, index: usize) -> Option<Rect> {
         if !self.palette.open || index >= WINDOWS || !self.palette.matches(index) {
             return None;
@@ -434,39 +800,190 @@ impl Scene {
                 .is_some_and(|row| row.contains(x as i32, y as i32))
         })
     }
-    /// Returns true only for keys owned by the compositor's app palette.
+    /// Returns true only for keys owned by trusted workspace controls.
     /// Route a keyboard event to the palette when it owns the event.
     ///
-    /// Handled keys mark the palette and dock in `damage`. Returns `Ok(true)`
+    /// Handled keys mark affected workspace controls in `damage`. Returns `Ok(true)`
     /// when consumed and `Ok(false)` for unrelated keys.
     pub fn palette_key(
         &mut self,
         key: KeyboardEvent,
         damage: &mut Damage,
     ) -> Result<bool, Invalid> {
-        // A userspace app launcher must not swallow the trusted lock/menu or
-        // the native shutdown/fault-injection routes owned by the outer loop.
-        if self.palette_is_open()
-            && matches!(key.action, KeyAction::Press | KeyAction::Repeat)
-            && ((key.key == PhysicalKey::L && key.modifiers.super_key())
-                || matches!(
-                    key.key,
-                    PhysicalKey::F3 | PhysicalKey::Menu | PhysicalKey::F10 | PhysicalKey::F12
-                ))
-        {
-            self.palette_close();
-            damage.mark(self.palette_bounds());
-            damage.mark(self.dock());
+        // Workspace overlays must never swallow the trusted lock/search/session
+        // shortcuts or the native shutdown/fault routes owned by the outer loop.
+        if matches!(key.action, KeyAction::Press | KeyAction::Repeat) && trusted_shell_key(key) {
+            self.close_overlays(damage);
             return Ok(false);
         }
         let index = key.key as usize;
-        // Keep ownership through key-up, even if closing the palette happens first.
-        if key.action == KeyAction::Release && self.palette_keys[index] {
+        // Keep ownership through key-up, including cancelled workspace keys.
+        if key.action == KeyAction::Release
+            && (self.palette_keys[index] || self.cancelled_keys[index])
+        {
             self.palette_keys[index] = false;
+            self.cancelled_keys[index] = false;
+            return Ok(true);
+        }
+        if key.action == KeyAction::Press {
+            self.cancelled_keys[index] = false;
+        } else if self.cancelled_keys[index] {
+            return Ok(true);
+        }
+        // No workspace shortcut acts below the lock screen or another cover.
+        if self.shell.blocks_apps() {
+            return Ok(false);
+        }
+        let frames = [self.paint_bounds(0), self.paint_bounds(1)];
+        let states = self.shell.hidden;
+        let focus = self.focused;
+        let mode = self.mode;
+        if self.notifications_are_open() {
+            if matches!(key.action, KeyAction::Press | KeyAction::Repeat) {
+                self.palette_keys[index] = true;
+                if key.action == KeyAction::Press {
+                    match key.key {
+                        PhysicalKey::Escape => self.close_notifications(damage),
+                        PhysicalKey::Tab | PhysicalKey::Up | PhysicalKey::Down
+                            if self.notification_is_present() =>
+                        {
+                            self.notification_focus_close = !self.notification_focus_close
+                        }
+                        PhysicalKey::Delete => self.dismiss_notification(),
+                        PhysicalKey::Enter | PhysicalKey::KeypadEnter | PhysicalKey::Space => {
+                            if self.notification_focus_close {
+                                self.close_notifications(damage);
+                            } else {
+                                self.dismiss_notification();
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            damage.mark(self.notifications_paint_bounds());
+            damage.mark(self.clipboard_notice_bounds());
+            return Ok(true);
+        }
+        if key.key == PhysicalKey::N
+            && key.modifiers.alt()
+            && !key.modifiers.control()
+            && !key.modifiers.shift()
+            && !key.modifiers.super_key()
+            && !self.overlay_is_open()
+        {
+            if key.action == KeyAction::Press && !self.palette_keys[index] {
+                self.palette_keys[index] = true;
+                self.open_notifications(damage);
+            }
+            return Ok(true);
+        }
+        if let Some(movement) = self.keyboard_move {
+            if matches!(key.action, KeyAction::Press | KeyAction::Repeat) {
+                self.palette_keys[index] = true;
+                let step = (if key.modifiers.shift() { 1 } else { 16 }) * self.scale as i32;
+                let body = self.windows[movement.index].body;
+                match key.key {
+                    PhysicalKey::Escape => self.finish_keyboard_move(true),
+                    PhysicalKey::Enter | PhysicalKey::KeypadEnter
+                        if key.action == KeyAction::Press =>
+                    {
+                        self.finish_keyboard_move(false)
+                    }
+                    PhysicalKey::Left => {
+                        self.position_window(movement.index, body.x - step, body.y)?
+                    }
+                    PhysicalKey::Right => {
+                        self.position_window(movement.index, body.x + step, body.y)?
+                    }
+                    PhysicalKey::Up => {
+                        self.position_window(movement.index, body.x, body.y - step)?
+                    }
+                    PhysicalKey::Down => {
+                        self.position_window(movement.index, body.x, body.y + step)?
+                    }
+                    _ => {}
+                }
+            }
+            if !self.keyboard_move_is_active() {
+                damage.mark(Rect::new(0, 0, self.width, 40 * self.scale));
+                damage.mark(self.dock());
+            }
+            self.mark_window_changes(frames, states, focus, mode, damage);
+            return Ok(true);
+        }
+        let move_chord = key.key == PhysicalKey::F7
+            && key.modifiers.alt()
+            && !key.modifiers.control()
+            && !key.modifiers.shift()
+            && !key.modifiers.super_key();
+        if move_chord && !self.palette_is_open() {
+            if key.action == KeyAction::Press && !self.palette_keys[index] {
+                self.palette_keys[index] = true;
+                self.begin_keyboard_move(damage);
+            }
+            return Ok(true);
+        }
+        if self.window_menu_is_open() {
+            damage.mark(self.window_menu_paint_bounds());
+            if matches!(key.action, KeyAction::Press | KeyAction::Repeat) {
+                self.palette_keys[index] = true;
+                match key.key {
+                    PhysicalKey::Escape => self.window_menu_open = false,
+                    PhysicalKey::Up | PhysicalKey::Down | PhysicalKey::Tab => {
+                        let reverse = key.key == PhysicalKey::Up
+                            || (key.key == PhysicalKey::Tab && key.modifiers.shift());
+                        self.window_menu_selected =
+                            (self.window_menu_selected + if reverse { 2 } else { 1 }) % 3;
+                    }
+                    PhysicalKey::Enter | PhysicalKey::KeypadEnter
+                        if key.action == KeyAction::Press =>
+                    {
+                        self.activate_window_menu()?;
+                    }
+                    _ => {}
+                }
+            }
+            if !self.window_menu_is_open() {
+                damage.mark(self.dock());
+            }
+            self.mark_window_changes(frames, states, focus, mode, damage);
             return Ok(true);
         }
         if !self.palette_is_open() {
             if self.palette_keys[index] {
+                return Ok(true);
+            }
+            if key.modifiers.alt()
+                && !key.modifiers.control()
+                && !key.modifiers.super_key()
+                && matches!(key.key, PhysicalKey::F9 | PhysicalKey::Space)
+            {
+                if key.action == KeyAction::Press {
+                    self.palette_keys[index] = true;
+                    if key.key == PhysicalKey::F9 {
+                        self.minimize(self.focused, damage)?;
+                    } else {
+                        self.open_window_menu();
+                        damage.mark(self.window_menu_paint_bounds());
+                        damage.mark(self.dock());
+                    }
+                }
+                return Ok(true);
+            }
+            if matches!(key.key, PhysicalKey::F7 | PhysicalKey::F8)
+                && !key.modifiers.alt()
+                && !key.modifiers.control()
+                && !key.modifiers.super_key()
+            {
+                if key.action == KeyAction::Press {
+                    self.palette_keys[index] = true;
+                    if key.key == PhysicalKey::F7 {
+                        self.toggle_focus(damage);
+                    } else {
+                        self.arrange(damage);
+                    }
+                }
                 return Ok(true);
             }
             if self.shell.blocks_apps()
@@ -489,7 +1006,6 @@ impl Scene {
                 }
                 PhysicalKey::Enter | PhysicalKey::KeypadEnter if key.action == KeyAction::Press => {
                     if let Some(index) = self.palette_selected() {
-                        self.shell.hidden[index] = false;
                         self.select(index)?;
                         self.palette_close();
                     }
@@ -524,8 +1040,9 @@ impl Scene {
                 _ => {}
             }
         }
-        damage.mark(self.palette_bounds());
+        damage.mark(self.palette_paint_bounds());
         damage.mark(self.dock());
+        self.mark_window_changes(frames, states, focus, mode, damage);
         Ok(true)
     }
 
@@ -544,13 +1061,21 @@ impl Scene {
 
     /// Forget palette key ownership and close it, marking affected regions.
     pub fn cancel_palette_input(&mut self, damage: &mut Damage) {
-        self.palette_keys.fill(false);
+        // Keep ownership until release, even when focus loss closes an overlay.
+        for (cancelled, owned) in self.cancelled_keys.iter_mut().zip(&mut self.palette_keys) {
+            *cancelled |= *owned;
+            *owned = false;
+        }
         self.switcher_keys.fill(false);
         self.switcher_mouse_capture = false;
         self.close_switcher(false, damage)
             .expect("cancellation cannot select");
+        self.overlay_pointer = false;
+        self.close_window_menu(damage);
+        self.close_notifications(damage);
+        self.cancel_keyboard_move(damage);
         if self.palette_close() {
-            damage.mark(self.palette_bounds());
+            damage.mark(self.palette_paint_bounds());
             damage.mark(self.dock());
         }
     }
@@ -567,6 +1092,13 @@ impl Scene {
         let hover = self.hovered_task();
         let palette_open = self.palette_is_open();
         let switcher_open = self.switcher_is_open();
+        let menu_open = self.window_menu_is_open();
+        let move_active = self.keyboard_move_is_active();
+        let notifications_open = self.notifications_are_open();
+        let menu_bounds = self.window_menu_paint_bounds();
+        let states = self.shell.hidden;
+        let mode = self.mode;
+        let focus = self.focused;
         let frames = [self.paint_bounds(0), self.paint_bounds(1)];
         damage.mark(self.pointer_bounds());
         let recipient = self.mouse(x, y, down, held)?;
@@ -577,8 +1109,8 @@ impl Scene {
                 damage.mark(self.task_button(index));
             }
         }
-        if palette_open {
-            damage.mark(self.palette_bounds());
+        if palette_open || self.palette_is_open() {
+            damage.mark(self.palette_paint_bounds());
             damage.mark(self.dock());
         }
         if switcher_open {
@@ -590,13 +1122,45 @@ impl Scene {
                 damage.mark(self.dock());
             }
         }
+        if menu_open {
+            damage.mark(menu_bounds);
+        }
+        if self.window_menu_is_open() {
+            damage.mark(self.window_menu_paint_bounds());
+        }
+        if notifications_open || self.notifications_are_open() {
+            damage.mark(self.notifications_paint_bounds());
+            damage.mark(self.clipboard_notice_bounds());
+            damage.mark(self.dock());
+        }
+        if move_active && !self.keyboard_move_is_active() {
+            damage.mark(self.header());
+            damage.mark(self.dock());
+        }
+        self.mark_window_changes(frames, states, focus, mode, damage);
+        Ok(recipient)
+    }
+    fn mark_window_changes(
+        &self,
+        frames: [Rect; WINDOWS],
+        states: [bool; WINDOWS],
+        focus: usize,
+        mode: WorkspaceMode,
+        damage: &mut Damage,
+    ) {
+        if focus != self.focused || states != self.shell.hidden {
+            damage.mark(self.dock());
+        }
         for (index, frame) in frames.into_iter().enumerate() {
-            if frame != self.paint_bounds(index) {
+            if frame != self.paint_bounds(index)
+                || focus != self.focused
+                || mode != self.mode
+                || states[index] != self.shell.hidden[index]
+            {
                 damage.mark(frame);
                 damage.mark(self.paint_bounds(index));
             }
         }
-        Ok(recipient)
     }
     pub fn update_pointer(&mut self, x: u32, y: u32, damage: &mut Damage) {
         let hover = self.hovered_task();
@@ -626,6 +1190,10 @@ impl Scene {
             return false;
         }
         self.clipboard_notice = notice;
+        self.notice_dismissed = false;
+        if !self.notification_is_present() {
+            self.notification_focus_close = true;
+        }
         true
     }
 
@@ -633,12 +1201,13 @@ impl Scene {
     pub fn paint_bounds(&self, index: usize) -> Rect {
         let f = self.frame(index);
         Rect::new(
-            f.x - self.scale as i32,
-            f.y - self.scale as i32,
-            f.width + 2 * self.scale,
-            f.height + 2 * self.scale,
+            f.x - 12 * self.scale as i32,
+            f.y - 8 * self.scale as i32,
+            f.width + 24 * self.scale,
+            f.height + 24 * self.scale,
         )
     }
+
     /// A shell page change can retain the already opaque surround. App/window
     /// visibility changes and entering/leaving the cover need a full repaint.
     /// Header, footer and pointer damage are tracked separately by the caller.
@@ -696,7 +1265,7 @@ impl Scene {
 
     /// Focus a valid window and cancel any drag; reject invalid indices.
     pub fn select(&mut self, index: usize) -> Result<(), Invalid> {
-        if index >= WINDOWS {
+        if index >= WINDOWS || self.keyboard_move_is_active() {
             return Err(Invalid);
         }
         if index != self.focused {
@@ -705,12 +1274,12 @@ impl Scene {
             self.focused = index;
             self.switches = switches;
         }
+        self.shell.hidden[index] = false;
         Ok(())
     }
 
     /// Switch focus to the other window.
     pub fn cycle(&mut self) -> Result<(), Invalid> {
-        self.shell.hidden[1 - self.focused] = false;
         self.select(1 - self.focused)
     }
 
@@ -769,17 +1338,73 @@ impl Scene {
         }
         if self.shell.blocks_apps() {
             self.drag = None;
+            self.overlay_pointer = false;
+            return Ok(None);
+        }
+        if self.notifications_are_open() {
+            if down {
+                self.overlay_pointer = true;
+                if self
+                    .notification_close_button()
+                    .contains(x as i32, y as i32)
+                    || !self.notifications_bounds().contains(x as i32, y as i32)
+                {
+                    self.notifications_open = false;
+                } else if self.notification_is_present()
+                    && self
+                        .notification_dismiss_button()
+                        .contains(x as i32, y as i32)
+                {
+                    self.dismiss_notification();
+                }
+            }
+            if !held && !down {
+                self.overlay_pointer = false;
+            }
+            return Ok(None);
+        }
+        if self.keyboard_move_is_active() {
+            if down {
+                self.finish_keyboard_move(true);
+                self.overlay_pointer = true;
+            }
+            return Ok(None);
+        }
+        if self.window_menu_is_open() {
+            if down {
+                self.overlay_pointer = true;
+                if let Some(index) =
+                    (0..3).find(|index| self.window_menu_row(*index).contains(x as i32, y as i32))
+                {
+                    self.window_menu_selected = index;
+                    self.activate_window_menu()?;
+                } else if !self.window_menu_bounds().contains(x as i32, y as i32) {
+                    self.window_menu_open = false;
+                }
+            }
+            if !held && !down {
+                self.overlay_pointer = false;
+            }
             return Ok(None);
         }
         if self.palette_is_open() {
             if down {
+                self.overlay_pointer = true;
                 if let Some(index) = self.palette_hit(x, y) {
-                    self.shell.hidden[index] = false;
                     self.select(index)?;
                     self.palette_close();
                 } else if !self.palette_bounds().contains(x as i32, y as i32) {
                     self.palette_close();
                 }
+            }
+            if !held && !down {
+                self.overlay_pointer = false;
+            }
+            return Ok(None);
+        }
+        if self.overlay_pointer {
+            if !held {
+                self.overlay_pointer = false;
             }
             return Ok(None);
         }
@@ -788,40 +1413,40 @@ impl Scene {
                 self.drag = None;
                 return Ok(None);
             }
-            let window = &mut self.windows[index];
-            let maxx = self.width - window.body.width;
-            let maxy = self.height - window.body.height - 72 * self.scale;
-            let nx = (x as i32 - dx).clamp(0, maxx as i32);
-            let ny = (y as i32 - dy).clamp(70 * self.scale as i32, maxy as i32);
-            if window.body.x != nx || window.body.y != ny {
-                window.body.x = nx;
-                window.body.y = ny;
-                self.moves = self.moves.checked_add(1).ok_or(Invalid)?;
-            }
+            self.position_window(index, x as i32 - dx, y as i32 - dy)?;
             return Ok(None);
         }
         if down {
-            let s = self.scale;
+            if self.clipboard_notice_bounds().contains(x as i32, y as i32) {
+                self.cancel_pointer();
+                self.notifications_open = true;
+                self.notification_focus_close = !self.notification_is_present();
+                self.overlay_pointer = true;
+                return Ok(None);
+            }
             for index in 0..WINDOWS {
                 let button = self.task_button(index);
                 if button.contains(x as i32, y as i32) {
-                    self.shell.hidden[index] = false;
                     self.select(index)?;
                     return Ok(None);
                 }
             }
             for index in [self.focused, 1 - self.focused] {
-                if self.shell.hidden[index] {
+                if !self.visible(index) {
                     continue;
                 }
                 let frame = self.frame(index);
                 if frame.contains(x as i32, y as i32) {
                     self.select(index)?;
                     if y < self.windows[index].body.y as u32 {
-                        if x >= (frame.x + frame.width as i32 - 84 * s as i32) as u32 {
-                            self.shell.hidden[index] = true;
-                            self.drag = None;
-                            self.select(1 - index)?;
+                        if self.window_menu_button(index).contains(x as i32, y as i32) {
+                            self.open_window_menu();
+                            self.overlay_pointer = true;
+                            return Ok(None);
+                        }
+                        if self.minimize_button(index).contains(x as i32, y as i32) {
+                            self.minimize_state(index)?;
+                            self.overlay_pointer = true;
                             return Ok(None);
                         }
                         let b = self.windows[index].body;
@@ -834,10 +1459,7 @@ impl Scene {
             return Ok(None);
         }
         let b = self.windows[self.focused].body;
-        Ok(
-            (!self.shell.hidden[self.focused] && b.contains(x as i32, y as i32))
-                .then_some(self.focused),
-        )
+        Ok((self.focused_visible() && b.contains(x as i32, y as i32)).then_some(self.focused))
     }
 
     /// Return the physical-pixel rectangle occupied by the dock.
@@ -927,7 +1549,8 @@ impl Scene {
         // from an app: this is the compositor's private, validated backing.
         Canvas::new(rect, pixels).map_err(|_| Invalid)?;
         for (index, window) in self.windows.iter().enumerate() {
-            if self.paint_bounds(index).intersects(rect)
+            if self.visible(index)
+                && self.paint_bounds(index).intersects(rect)
                 && window
                     .body
                     .width
@@ -963,12 +1586,14 @@ impl Scene {
                 <= i64::from(body.x) + i64::from(body.width)
             && i64::from(rect.y) + i64::from(rect.height)
                 <= i64::from(body.y) + i64::from(body.height);
-        if !inside
+        if !self.focused_visible()
+            || !inside
             || self.shell.blocks_apps()
-            || self.shell.hidden[self.focused]
             || rect.intersects(self.dock())
             || rect.intersects(self.pointer_bounds())
-            || (self.palette_is_open() && rect.intersects(self.palette_bounds()))
+            || (self.palette_is_open() && rect.intersects(self.palette_paint_bounds()))
+            || (self.window_menu_is_open() && rect.intersects(self.window_menu_paint_bounds()))
+            || (self.notifications_are_open() && rect.intersects(self.notifications_paint_bounds()))
             || (self.switcher_is_open() && rect.intersects(self.switcher_bounds()))
         {
             return self.render_reference(rect, pixels, backing);
@@ -1017,33 +1642,42 @@ impl Scene {
         let s = self.scale;
         let font = Font::new(Size::Body, Weight::Semibold, s == 2);
         for index in [1 - self.focused, self.focused] {
-            if self.shell.hidden[index] {
-                continue;
-            }
             let body = self.windows[index].body;
             let frame = self.frame(index);
-            if !self.paint_bounds(index).intersects(rect) {
+            if !self.visible(index) || !self.paint_bounds(index).intersects(rect) {
                 continue;
             }
-            // A one-pixel structural contour outside the assigned app body.
-            // There is no offset shadow or fake elevation behind the window.
-            c.fill_rect(
-                self.paint_bounds(index),
+            c.soft_shadow(
+                Rect::new(frame.x, frame.y + 4 * s as i32, frame.width, frame.height),
+                12 * s,
+                theme::SHADOW,
+                if index == self.focused { 40 } else { 22 },
+            )
+            .map_err(|_| Invalid)?;
+            c.rounded_rect(
+                Rect::new(
+                    frame.x - s as i32,
+                    frame.y - s as i32,
+                    frame.width + 2 * s,
+                    frame.height + 2 * s,
+                ),
+                10 * s,
                 if index == self.focused {
                     palette.border
                 } else {
-                    0x565861
+                    theme::SHELL_LINE
                 },
             );
-            c.fill_rect(
+            c.rounded_rect(
                 frame,
+                9 * s,
                 if index == self.focused {
                     palette.surface
                 } else {
                     palette.background
                 },
             );
-            let title = APP_NAMES[index];
+            let title = WORK_NAMES[index];
             c.icon(
                 Rect::new(
                     frame.x + 15 * s as i32,
@@ -1074,18 +1708,32 @@ impl Scene {
                     palette.muted
                 },
             );
-            for (offset, icon) in [(76, Icon::Minimize), (38, Icon::Close)] {
-                c.icon(
-                    Rect::new(
-                        frame.x + frame.width as i32 - offset * s as i32,
-                        frame.y + 12 * s as i32,
-                        20 * s,
-                        20 * s,
-                    ),
-                    icon,
-                    0x5c6570,
-                    s,
+            let title_width = font.measure(title);
+            let small = Font::new(Size::Small, Weight::Regular, s == 2);
+            let tool = APP_NAMES[index];
+            if title_width + small.measure(tool) + 156 * s <= frame.width {
+                c.text(
+                    frame.x + 60 * s as i32 + title_width as i32,
+                    frame.y + 12 * s as i32,
+                    tool,
+                    small,
+                    palette.muted,
                 );
+            }
+            for (bounds, menu) in [
+                (self.window_menu_button(index), true),
+                (self.minimize_button(index), false),
+            ] {
+                c.rounded_rect(bounds, 5 * s, palette.background);
+                let x = bounds.x + 8 * s as i32;
+                let y = bounds.y + 13 * s as i32;
+                for dy in if menu {
+                    [-5, 0, 5].as_slice()
+                } else {
+                    [5].as_slice()
+                } {
+                    c.fill_rect(Rect::new(x, y + dy * s as i32, 12 * s, 2 * s), palette.text);
+                }
             }
             // Trusted app identity and focus marker live outside app bounds.
             if index == self.focused {
@@ -1118,6 +1766,7 @@ impl Scene {
                 }
             }
         }
+        // Main's trusted header and dock are painted after every app pixel.
         self.shell.render_with_hover(
             &mut c,
             self.width,
@@ -1131,18 +1780,31 @@ impl Scene {
         self.pointer_foreground(&mut c);
         Ok(())
     }
+    /// Veld state inside the trusted header, then workspace overlays and the
+    /// pointer. Nothing but the pointer is drawn while the shell covers apps.
     fn system_foreground(&self, c: &mut Canvas<'_>) {
         let s = self.scale;
         if !self.shell.blocks_apps() {
             let font = Font::new(Size::Small, Weight::Regular, s == 2);
-            let label = self.clipboard_notice.label();
+            let bounds = self.clipboard_notice_bounds();
+            let label = if self.keyboard_move_is_active() {
+                if font.measure(MOVE_HINT).saturating_add(8 * s) <= bounds.width {
+                    MOVE_HINT
+                } else {
+                    MOVE_HINT_SHORT
+                }
+            } else if self.notification_is_present() {
+                self.clipboard_notice.label()
+            } else {
+                "Meldingen · Alt+N"
+            };
             // A status label cannot overwrite Offline, time or system identity.
-            if font.measure(label).saturating_add(8 * s) <= self.clipboard_notice_bounds().width {
-                c.text(300 * s as i32, 12 * s as i32, label, font, 0xc5ccc9);
+            if font.measure(label).saturating_add(8 * s) <= bounds.width {
+                c.text(300 * s as i32, 12 * s as i32, label, font, HEADER_TEXT);
             }
-        }
-        if !self.shell.blocks_apps() {
             self.render_palette(c);
+            self.render_window_menu(c);
+            self.render_notifications(c);
         }
     }
     fn pointer_foreground(&self, c: &mut Canvas<'_>) {
@@ -1242,8 +1904,151 @@ impl Scene {
         );
         Ok(())
     }
+    fn render_notifications(&self, c: &mut Canvas<'_>) {
+        if !self.notifications_are_open()
+            || !self.notifications_paint_bounds().intersects(c.bounds())
+        {
+            return;
+        }
+        let p = theme::MATERIAAL;
+        let r = self.notifications_bounds();
+        let s = self.scale;
+        let small = Font::new(Size::Small, Weight::Regular, s == 2);
+        let body = Font::new(Size::Body, Weight::Regular, s == 2);
+        c.soft_shadow(r, 12 * s, theme::SHADOW, 40)
+            .expect("validated workspace scale and nonempty notifications");
+        c.rounded_rect(r, 8 * s, p.border);
+        c.rounded_rect(
+            Rect::new(
+                r.x + s as i32,
+                r.y + s as i32,
+                r.width - 2 * s,
+                r.height - 2 * s,
+            ),
+            7 * s,
+            p.surface,
+        );
+        c.text(
+            r.x + 24 * s as i32,
+            r.y + 18 * s as i32,
+            "Systeemmeldingen",
+            Font::new(Size::Body, Weight::Semibold, s == 2),
+            p.text,
+        );
+        let close = self.notification_close_button();
+        c.icon(
+            Rect::new(
+                close.x + 8 * s as i32,
+                close.y + 8 * s as i32,
+                16 * s,
+                16 * s,
+            ),
+            Icon::Close,
+            p.text,
+            s,
+        );
+        if self.notification_focus_close {
+            c.stroke_rounded_rect(close, 4 * s, 2 * s, p.accent);
+        }
+        if self.notification_is_present() {
+            c.text(
+                r.x + 24 * s as i32,
+                r.y + 70 * s as i32,
+                "Klembord · Op dit apparaat",
+                small,
+                p.muted,
+            );
+            c.text(
+                r.x + 24 * s as i32,
+                r.y + 100 * s as i32,
+                self.clipboard_notice.label(),
+                body,
+                p.text,
+            );
+            let dismiss = self.notification_dismiss_button();
+            c.rounded_rect(dismiss, 4 * s, p.accent_soft);
+            if !self.notification_focus_close {
+                c.stroke_rounded_rect(dismiss, 4 * s, 2 * s, p.accent);
+            }
+            c.text(
+                dismiss.x + 14 * s as i32,
+                dismiss.y + 8 * s as i32,
+                "Verwijderen",
+                small,
+                p.text,
+            );
+        } else {
+            c.text(
+                r.x + 24 * s as i32,
+                r.y + 88 * s as i32,
+                "Geen meldingen",
+                body,
+                p.text,
+            );
+        }
+        c.text(
+            r.x + 24 * s as i32,
+            r.y + 202 * s as i32,
+            "Tab kiezen · Delete verwijderen · Esc terug",
+            small,
+            p.muted,
+        );
+    }
+    fn render_window_menu(&self, c: &mut Canvas<'_>) {
+        if !self.window_menu_is_open() || !self.window_menu_paint_bounds().intersects(c.bounds()) {
+            return;
+        }
+        let p = theme::MATERIAAL;
+        let r = self.window_menu_bounds();
+        let s = self.scale;
+        c.soft_shadow(r, 12 * s, theme::SHADOW, 40)
+            .expect("validated workspace scale and nonempty window menu");
+        c.rounded_rect(r, 8 * s, p.border);
+        c.rounded_rect(
+            Rect::new(
+                r.x + s as i32,
+                r.y + s as i32,
+                r.width - 2 * s,
+                r.height - 2 * s,
+            ),
+            7 * s,
+            p.surface,
+        );
+        for (index, label) in [
+            "Minimaliseren",
+            "Ordenen",
+            if self.mode == WorkspaceMode::Focus {
+                "Alles tonen"
+            } else {
+                "Dit werk"
+            },
+        ]
+        .iter()
+        .enumerate()
+        {
+            let row = self.window_menu_row(index);
+            if index == self.window_menu_selected {
+                c.fill_rect(row, p.accent_soft);
+                c.fill_rect(Rect::new(row.x, row.y, 3 * s, row.height), p.accent);
+            }
+            c.text(
+                row.x + 12 * s as i32,
+                row.y + 10 * s as i32,
+                label,
+                Font::new(Size::Body, Weight::Regular, s == 2),
+                p.text,
+            );
+        }
+        c.text(
+            r.x + 20 * s as i32,
+            r.y + 152 * s as i32,
+            "Alt+F7 · Verplaatsen",
+            Font::new(Size::Small, Weight::Regular, s == 2),
+            p.muted,
+        );
+    }
     fn render_palette(&self, c: &mut Canvas<'_>) {
-        if !self.palette_is_open() || !self.palette_bounds().intersects(c.bounds()) {
+        if !self.palette_is_open() || !self.palette_paint_bounds().intersects(c.bounds()) {
             return;
         }
         let p = theme::MATERIAAL;
@@ -1252,20 +2057,23 @@ impl Scene {
         let small = Font::new(Size::Small, Weight::Regular, s == 2);
         let body = Font::new(Size::Body, Weight::Regular, s == 2);
         let strong = Font::new(Size::Body, Weight::Semibold, s == 2);
-        c.fill_rect(r, p.border);
-        c.fill_rect(
+        c.soft_shadow(r, 12 * s, theme::SHADOW, 40)
+            .expect("validated workspace scale and nonempty palette");
+        c.rounded_rect(r, 12 * s, p.border);
+        c.rounded_rect(
             Rect::new(
                 r.x + s as i32,
                 r.y + s as i32,
                 r.width - 2 * s,
                 r.height - 2 * s,
             ),
+            11 * s,
             p.surface,
         );
         c.text(
             r.x + 24 * s as i32,
             r.y + 16 * s as i32,
-            "OPEN APPS",
+            "VERDER MET JE WERK",
             small,
             p.muted,
         );
@@ -1286,7 +2094,7 @@ impl Scene {
             r.x + 56 * s as i32,
             r.y + 48 * s as i32,
             if self.palette_query().is_empty() {
-                "Zoek een app"
+                "Zoek materiaal of gereedschap"
             } else {
                 self.palette_query()
             },
@@ -1310,12 +2118,12 @@ impl Scene {
             c.text(
                 r.x + 24 * s as i32,
                 r.y + 112 * s as i32,
-                "Geen app met deze naam",
+                "Geen open werk met deze naam",
                 body,
                 p.text,
             );
         }
-        for (index, name) in APP_NAMES.iter().enumerate() {
+        for (index, name) in WORK_NAMES.iter().enumerate() {
             let Some(row) = self.palette_row(index) else {
                 continue;
             };

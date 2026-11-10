@@ -176,11 +176,25 @@ class WindowRunnerTests(unittest.TestCase):
 
     def test_library_cannot_reuse_an_unvalidated_or_different_mode(self):
         for flags in ({"smoke": True}, {"recovery_handshake": True},
-                      {"clipboard": True}, {"session_route": True}):
+                      {"clipboard": True}, {"session_route": True},
+                      {"workspace": True}, {"scale": 2}):
             with self.assertRaises(ValueError):
                 window.run(timeout=30, bios_rom=None, vga_rom=None, library=True, **flags)
         with self.assertRaises(ValueError):
             window.run(timeout=30, bios_rom=None, vga_rom=None, library_parent="unvalidated")
+        # The public session route is a separate 100% keyboard gate as well.
+        for flags in ({"workspace": True}, {"scale": 2}):
+            with self.assertRaises(ValueError):
+                window.run(timeout=30, bios_rom=None, vga_rom=None, session_route=True, **flags)
+
+    def test_hidpi_and_route_builds_require_their_own_loader(self):
+        self.assertEqual(window.HIDPI_FEATURE, "native-window-session-hidpi-probe")
+        self.assertEqual(window.ROUTE_FEATURE, "native-session-route")
+        import build  # tools/ is already on sys.path for run_window_session
+        self.assertLessEqual({window.FEATURE, window.HIDPI_FEATURE, window.ROUTE_FEATURE}, set(build.WINDOW_FEATURES))
+
+    def test_compositor_snapshot_requires_main_shell_counters(self):
+        self.assertLessEqual({"SHELL", "SHELL_READY", "INPUT"}, window.SNAPSHOT_FIELDS["COMPOSITOR"])
 
     def test_exact_snapshot_rejects_missing_duplicate_or_oversized_fields(self):
         raw=block()

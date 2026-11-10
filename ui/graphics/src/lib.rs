@@ -120,6 +120,47 @@ impl<'a> Canvas<'a> {
             }
         }
     }
+    /// Bounded distance falloff outside a surface; no backdrop read or blur.
+    pub fn soft_shadow(
+        &mut self,
+        r: Rect,
+        spread: u32,
+        color: u32,
+        opacity: u8,
+    ) -> Result<(), Error> {
+        if spread == 0 || spread > 64 || r.width == 0 || r.height == 0 {
+            return Err(Error::Geometry);
+        }
+        let left = i64::from(r.x) - i64::from(spread);
+        let top = i64::from(r.y) - i64::from(spread);
+        let right = i64::from(r.x) + i64::from(r.width);
+        let bottom = i64::from(r.y) + i64::from(r.height);
+        let x0 = left.max(i64::from(self.rect.x));
+        let y0 = top.max(i64::from(self.rect.y));
+        let x1 =
+            (right + i64::from(spread)).min(i64::from(self.rect.x) + i64::from(self.rect.width));
+        let y1 =
+            (bottom + i64::from(spread)).min(i64::from(self.rect.y) + i64::from(self.rect.height));
+        let extent = i64::from(spread).pow(2);
+        for y in y0..y1 {
+            for x in x0..x1 {
+                if r.contains(x as i32, y as i32) {
+                    continue;
+                }
+                let dx = (i64::from(r.x) - x).max(x - right + 1).max(0);
+                let dy = (i64::from(r.y) - y).max(y - bottom + 1).max(0);
+                if dx >= i64::from(spread) || dy >= i64::from(spread) {
+                    continue;
+                }
+                let distance = dx * dx + dy * dy;
+                if distance < extent {
+                    let alpha = (i64::from(opacity) * (extent - distance) / extent) as u8;
+                    self.blend_pixel(x as i32, y as i32, color, alpha);
+                }
+            }
+        }
+        Ok(())
+    }
     pub fn rounded_rect(&mut self, r: Rect, radius: u32, color: u32) {
         self.rounded(r, radius, 0, color, 255);
     }

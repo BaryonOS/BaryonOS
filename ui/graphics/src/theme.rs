@@ -26,9 +26,28 @@ pub const MATERIAAL: Palette = Palette {
     accent_soft: 0xe3ede8,
     border: 0xd9ddda,
 };
+/// App-local high contrast: explicit roles, never a filter over default pixels.
+pub const HIGH_CONTRAST: Palette = Palette {
+    desktop_start: 0,
+    desktop_end: 0,
+    glow: 0,
+    surface: 0,
+    background: 0,
+    text: 0xffffff,
+    muted: 0xb8b8b8,
+    accent: 0xffff00,
+    accent_soft: 0x00ffff,
+    border: 0xffffff,
+};
+pub const HIGH_CONTRAST_DANGER: u32 = 0xffb4b4;
 pub const DIVIDER: u32 = 0xdeddd6;
+/// Shell text roles over the actual wallpaper, including its haze and ribbon.
+/// SHELL_MUTED preserves main's current status-grey role; clipping tests cover
+/// the integrated palette.
 pub const SHELL_TEXT: u32 = 0xf0eee8;
 pub const SHELL_MUTED: u32 = 0xaaa9b2;
+pub const SHELL_LINE: u32 = 0x565861;
+pub const SHADOW: u32 = 0x000000;
 /// Soft radial light: `max` at the centre, fading to 0 at `radius2` (squared).
 fn glow(x: i64, y: i64, cx: i64, cy: i64, radius2: i64, max: i64) -> u8 {
     let d = (x - cx).pow(2) + (y - cy).pow(2);

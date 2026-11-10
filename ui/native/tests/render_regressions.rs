@@ -11,12 +11,14 @@ fn view<'a>(viewport: Viewport, objects: &'a [ListEntry]) -> View<'a> {
     static WORKSPACE: nieuw_os_materiaal::workspace::Workspace =
         nieuw_os_materiaal::workspace::Workspace::new();
     View {
+        high_contrast: false,
         draw_pointer: true,
         desktop: None,
         viewport,
         generation: 1,
         dirty: true,
         screen: Screen::Material,
+        tool: Default::default(),
         focus: Focus::New,
         status: Status::Ready,
         objects,
@@ -36,6 +38,7 @@ fn view<'a>(viewport: Viewport, objects: &'a [ListEntry]) -> View<'a> {
         saving: false,
         document_dirty: false,
         cursor: None,
+        document_menu: None,
     }
 }
 

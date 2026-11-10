@@ -409,9 +409,22 @@ impl<'a, V: Transport, I: Transport, S: Transport> App<'a, V, I, S> {
                         increment(&mut self.evidence.f12_presses)?;
                     }
                     increment(&mut self.evidence.keys)?;
-                    self.controller.deliver(envelope)
+                    let accepted = self.controller.deliver(envelope);
+                    if accepted.is_ok()
+                        && key.key == ui_core::PhysicalKey::H
+                        && key.action == ui_core::KeyAction::Press
+                        && key.modifiers.control()
+                        && key.modifiers.alt()
+                        && !key.modifiers.shift()
+                        && !key.modifiers.super_key()
+                    {
+                        self.controller
+                            .set_high_contrast(!self.controller.view().high_contrast)
+                    } else {
+                        accepted
+                    }
                 }
-                Event::Cancel(_) => self.controller.deliver(envelope),
+                Event::Cancel(_) | Event::PointerLeave => self.controller.deliver(envelope),
             };
             let accepted = result.is_ok();
             self.operation(result)?;

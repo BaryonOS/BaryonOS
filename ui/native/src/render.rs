@@ -1,8 +1,9 @@
 //! Scalar private-RAM tiles. No framebuffer mapping, device I/O or syscall.
 use crate::{
-    controller::{Error as UiError, Focus, Screen, Status, View},
+    controller::{DocumentTool, Error as UiError, Focus, Screen, Status, View},
     design as d, text, Rect, Scale, Viewport, TILE_HEIGHT, TILE_WIDTH,
 };
+use nieuw_os_graphics::theme::{self, Palette};
 use nieuw_os_graphics::{Canvas, Font, Icon, Rect as GraphicRect, Size, Weight};
 
 pub const MAX_TEXT_ROWS: usize = 48;
@@ -25,6 +26,8 @@ pub struct Layout {
     pub refresh: Rect,
     pub back: Rect,
     pub save: Rect,
+    pub tool: Rect,
+    pub context_menu: Rect,
     pub editor: Rect,
     pub status: Rect,
     pub search: Rect,
@@ -163,14 +166,26 @@ impl Layout {
             back: Rect {
                 x: d::PAD,
                 y: d::PAD,
-                width: 100,
+                width: if width < 480 { 44 } else { 100 },
                 height: d::CONTROL_HEIGHT,
             },
             save: Rect {
-                x: width - d::PAD - 112,
+                x: width - d::PAD - if width < 480 { 100 } else { 112 },
                 y: d::PAD,
-                width: 112,
+                width: if width < 480 { 100 } else { 112 },
                 height: d::CONTROL_HEIGHT,
+            },
+            tool: Rect {
+                x: d::PAD + if width < 480 { 52 } else { 112 },
+                y: d::PAD,
+                width: if width < 480 { 108 } else { 156 },
+                height: d::CONTROL_HEIGHT,
+            },
+            context_menu: Rect {
+                x: width - d::PAD - 44,
+                y: 68,
+                width: 44,
+                height: 44,
             },
             editor: Rect {
                 x: d::PAD,
@@ -420,6 +435,11 @@ impl<'a> Frame<'a> {
     /// rect.width*rect.height in `out` remains unchanged, including on errors.
     pub fn render_tile(&self, x: u32, y: u32, out: &mut [u32]) -> Result<Rect, Error> {
         let viewport = self.view.viewport;
+        let p = if self.view.high_contrast {
+            theme::HIGH_CONTRAST
+        } else {
+            theme::MATERIAAL
+        };
         if x >= viewport.width() || y >= viewport.height() {
             return Err(Error::Tile);
         }
@@ -434,6 +454,8 @@ impl<'a> Frame<'a> {
             return Err(Error::Buffer);
         }
         let mut paint = Paint {
+            palette: p,
+            high_contrast: self.view.high_contrast,
             rect,
             pixels: &mut out[..count],
             scale: viewport.scale(),
@@ -442,7 +464,7 @@ impl<'a> Frame<'a> {
                 .cursor
                 .map(|(x, y)| (x / viewport.scale().factor(), y / viewport.scale().factor())),
         };
-        paint.pixels.fill(d::BACKGROUND);
+        paint.pixels.fill(p.background);
         if let Some(desktop) = self.view.desktop.filter(|desktop| desktop.overlay()) {
             paint.desktop(desktop, self.view);
             paint.pointer(self.view.cursor.filter(|_| self.view.draw_pointer));
@@ -453,7 +475,7 @@ impl<'a> Frame<'a> {
             Screen::Material | Screen::Filter => {
                 paint.material_chrome(layout, viewport);
                 if viewport.logical_height() < 360 {
-                    paint.medium(layout.content_left, 12, "Nebula", d::TEXT);
+                    paint.medium(layout.content_left, 12, "Nebula", p.text);
                 } else {
                     paint.title(layout.content_left, layout.title_y, "Nebula");
                 }
@@ -522,7 +544,7 @@ impl<'a> Frame<'a> {
                             "Je materiaal wordt geladen."
                         },
                         viewport.logical_width() - layout.content_left - d::PAD,
-                        d::MUTED,
+                        p.muted,
                     );
                 } else if self.view.objects.is_empty() {
                     let available = viewport.logical_width() - layout.content_left - d::PAD;
@@ -541,11 +563,11 @@ impl<'a> Frame<'a> {
                             height: 32,
                         },
                         Icon::Folder,
-                        d::ACCENT,
+                        p.accent,
                         1,
                     );
                     let title = "Nog geen documenten";
-                    paint.medium(layout.content_left + 52, top, title, d::TEXT);
+                    paint.medium(layout.content_left + 52, top, title, p.text);
                     let body = if available >= 360 {
                         "Maak een document om aan de slag te gaan."
                     } else {
@@ -556,7 +578,7 @@ impl<'a> Frame<'a> {
                         top + 32,
                         body,
                         available.saturating_sub(52),
-                        d::MUTED,
+                        p.muted,
                     );
                 } else {
                     for (index, object) in self
@@ -573,14 +595,8 @@ impl<'a> Frame<'a> {
                         }
                         let focused = self.view.focus == Focus::Object(index);
                         let hovered = paint.cursor.is_some_and(|(x, y)| row.contains(x, y));
-                        paint.fill(
-                            row,
-                            if focused || hovered {
-                                d::ACCENT_SOFT
-                            } else {
-                                d::SURFACE
-                            },
-                        );
+                        let selected = focused || hovered;
+                        paint.fill(row, if selected { p.accent_soft } else { p.surface });
                         paint.fill(
                             Rect {
                                 x: row.x,
@@ -588,7 +604,11 @@ impl<'a> Frame<'a> {
                                 width: row.width,
                                 height: 1,
                             },
-                            d::LINE,
+                            if self.view.high_contrast && selected {
+                                p.background
+                            } else {
+                                paint.divider()
+                            },
                         );
                         if focused {
                             paint.fill(
@@ -598,7 +618,7 @@ impl<'a> Frame<'a> {
                                     width: 3,
                                     height: row.height - 24,
                                 },
-                                d::ACCENT,
+                                paint.selected(selected, p.accent),
                             );
                         }
                         paint.icon(
@@ -609,7 +629,7 @@ impl<'a> Frame<'a> {
                                 height: 24,
                             },
                             Icon::Material,
-                            d::ACCENT,
+                            paint.selected(selected, p.accent),
                             1,
                         );
                         let name = object
@@ -622,7 +642,7 @@ impl<'a> Frame<'a> {
                             row.y + 6,
                             name,
                             row.width.saturating_sub(96),
-                            d::TEXT,
+                            paint.selected(selected, p.text),
                         );
                         if paint.measure(name, Size::Body, Weight::Regular)
                             <= row.width.saturating_sub(96)
@@ -631,7 +651,7 @@ impl<'a> Frame<'a> {
                                 row.x + 56,
                                 row.y + 36,
                                 "Document · Op dit apparaat",
-                                d::MUTED,
+                                paint.selected(selected, p.muted),
                             );
                         }
                         paint.icon(
@@ -642,7 +662,7 @@ impl<'a> Frame<'a> {
                                 height: 16,
                             },
                             Icon::ChevronRight,
-                            d::MUTED,
+                            paint.selected(selected, p.muted),
                             1,
                         );
                         if focused {
@@ -657,6 +677,20 @@ impl<'a> Frame<'a> {
             | Screen::Organize
             | Screen::History => {
                 paint.back_button(layout.back, self.view.focus == Focus::Back);
+                paint.button(
+                    layout.tool,
+                    if layout.tool.width < 156 {
+                        match self.view.tool {
+                            DocumentTool::Write => "Lezen",
+                            DocumentTool::Read => "Schrijven",
+                        }
+                    } else {
+                        tool_action(self.view.tool)
+                    },
+                    self.view.focus == Focus::Tool,
+                    !self.view.saving && self.view.screen == Screen::Editor,
+                    ButtonStyle::Secondary,
+                );
                 let label = if self.view.saving {
                     "Annuleren"
                 } else {
@@ -712,7 +746,10 @@ impl<'a> Frame<'a> {
                         84
                     },
                     title,
-                    layout.editor.width,
+                    layout
+                        .editor
+                        .width
+                        .min(layout.context_menu.x.saturating_sub(d::PAD + 12)),
                     (
                         if viewport.logical_height() < 360 {
                             Size::Body
@@ -721,7 +758,14 @@ impl<'a> Frame<'a> {
                         },
                         Weight::Semibold,
                     ),
-                    d::TEXT,
+                    p.text,
+                );
+                paint.button(
+                    layout.context_menu,
+                    "···",
+                    self.view.focus == Focus::ContextMenu && self.view.document_menu.is_none(),
+                    !self.view.saving && self.view.screen == Screen::Editor,
+                    ButtonStyle::Secondary,
                 );
                 if viewport.logical_height() >= 360 {
                     let mut metadata = Label::new();
@@ -729,7 +773,9 @@ impl<'a> Frame<'a> {
                     let _ = write!(
                         &mut metadata,
                         "Op dit apparaat  ·  {}  ·  Revisie {}",
-                        if self.view.editable {
+                        if self.view.tool == DocumentTool::Read {
+                            "Lezen, zonder bewerken"
+                        } else if self.view.editable {
                             "Lezen en bewerken"
                         } else {
                             "Alleen lezen"
@@ -744,10 +790,10 @@ impl<'a> Frame<'a> {
                             128
                         },
                         metadata.as_str(),
-                        d::MUTED,
+                        p.muted,
                     );
                 }
-                paint.outlined(layout.editor, d::SURFACE, d::BORDER, d::CONTROL_RADIUS);
+                paint.outlined(layout.editor, p.surface, p.border, d::CONTROL_RADIUS);
                 if self.view.focus == Focus::Document && self.view.screen == Screen::Editor {
                     paint.fill(
                         Rect {
@@ -756,7 +802,7 @@ impl<'a> Frame<'a> {
                             width: 3,
                             height: 24,
                         },
-                        d::ACCENT,
+                        p.accent,
                     );
                 }
                 if let Some(contents) = self.view.contents {
@@ -780,7 +826,9 @@ impl<'a> Frame<'a> {
                             let right = layout.text_left() * scale
                                 + ((cell.position.x_64 + cell.advance_64).div_ceil(64)) as u32;
                             let bytes = start + cell.start..start + cell.end;
-                            if selected.start < bytes.end && selected.end > bytes.start {
+                            let is_selected =
+                                selected.start < bytes.end && selected.end > bytes.start;
+                            if is_selected {
                                 paint.fill_physical(
                                     Rect {
                                         x,
@@ -788,11 +836,16 @@ impl<'a> Frame<'a> {
                                         width: right.saturating_sub(x).max(scale),
                                         height: d::LINE_HEIGHT * scale,
                                     },
-                                    d::ACCENT_SOFT,
+                                    p.accent_soft,
                                 );
                             }
                             if !matches!(cell.character, '\n' | '\r' | '\t') {
-                                paint.proportional_character(x, y, cell.character, d::TEXT);
+                                paint.proportional_character(
+                                    x,
+                                    y,
+                                    cell.character,
+                                    paint.selected(is_selected, p.text),
+                                );
                             }
                         }
                     }
@@ -810,7 +863,7 @@ impl<'a> Frame<'a> {
                                 width: 2 * scale,
                                 height: 22 * scale,
                             },
-                            d::ACCENT,
+                            paint.selected(selected.contains(&self.view.caret), p.accent),
                         );
                     }
                 }
@@ -829,14 +882,18 @@ impl<'a> Frame<'a> {
                 width: status_width,
                 height: 1,
             },
-            d::LINE,
+            paint.divider(),
         );
         paint.wrapped(
             status_x,
             layout.status.y,
             status_label(self.view.status),
             status_width,
-            status_color(self.view.status),
+            if matches!(self.view.status, Status::Failed(_)) {
+                paint.danger()
+            } else {
+                p.muted
+            },
         );
         if let Status::Saving { completed, total } = self.view.status {
             let width = if total == 0 {
@@ -851,7 +908,7 @@ impl<'a> Frame<'a> {
                     width: layout.status.width,
                     height: 4,
                 },
-                d::LINE,
+                paint.divider(),
             );
             paint.fill(
                 Rect {
@@ -860,7 +917,7 @@ impl<'a> Frame<'a> {
                     width,
                     height: 4,
                 },
-                d::ACCENT,
+                p.accent,
             );
         }
         if matches!(
@@ -873,20 +930,24 @@ impl<'a> Frame<'a> {
             // Opaque application-local backdrop: no half-obscured controls or
             // text remain visible behind this modal. This grants no system-
             // dialog privilege and does not read a framebuffer/backbuffer.
-            paint.pixels.fill(blend(d::TEXT, d::BACKGROUND, 24));
-            paint.outlined(layout.modal, d::SURFACE, d::BORDER, d::SURFACE_RADIUS);
+            paint.pixels.fill(if self.view.high_contrast {
+                p.background
+            } else {
+                blend(p.text, p.background, 24)
+            });
+            paint.outlined(layout.modal, p.surface, p.border, d::SURFACE_RADIUS);
             paint.label(
                 layout.modal.x + 16,
                 layout.modal.y + 16,
                 "Nog niet opgeslagen",
-                d::TEXT,
+                p.text,
             );
             paint.wrapped(
                 layout.modal.x + 16,
                 layout.modal.y + 48,
                 "Bewaar je wijzigingen of ga terug.",
                 layout.modal.width - 32,
-                d::TEXT,
+                p.text,
             );
             paint.button(
                 layout.modal_save,
@@ -910,6 +971,35 @@ impl<'a> Frame<'a> {
                 ButtonStyle::Danger,
             );
         }
+        if let Some(menu) = self
+            .view
+            .document_menu
+            .filter(|_| self.view.screen == Screen::Editor && !self.view.saving)
+        {
+            let r = menu.bounds.physical(viewport.scale());
+            // Distance falloff over this private tile only, not backdrop blur.
+            if !self.view.high_contrast {
+                paint
+                    .canvas()
+                    .soft_shadow(
+                        GraphicRect::new(r.x as i32, r.y as i32, r.width, r.height),
+                        8 * viewport.scale().factor(),
+                        p.text,
+                        52,
+                    )
+                    .map_err(|_| Error::Tile)?;
+            }
+            paint.outlined(menu.bounds, p.surface, p.border, d::SURFACE_RADIUS);
+            for index in 0..4 {
+                paint.button(
+                    menu.item(index),
+                    menu_label(index, self.view.tool),
+                    menu.selected == index,
+                    index != 2 || self.view.can_save,
+                    ButtonStyle::Secondary,
+                );
+            }
+        }
         if let Some((x, y)) = self.view.cursor.filter(|(x, y)| {
             self.view.draw_pointer && *x < viewport.width() && *y < viewport.height()
         }) {
@@ -921,9 +1011,9 @@ impl<'a> Frame<'a> {
                         i64::from(x + dx),
                         i64::from(y + dy),
                         if dx == 0 || dx == dy / 2 || dy == 13 {
-                            d::SURFACE
+                            p.surface
                         } else {
-                            d::TEXT
+                            p.text
                         },
                     );
                 }
@@ -999,6 +1089,64 @@ impl<'a> Frame<'a> {
                     ..SemanticNode::EMPTY
                 });
             }
+            return;
+        }
+        if let Some(menu) = self
+            .view
+            .document_menu
+            .filter(|_| self.view.screen == Screen::Editor && !self.view.saving)
+        {
+            visit(SemanticNode {
+                id: SemanticId::Window,
+                role: Role::Window,
+                label: "Materiaal",
+                bounds: self.view.viewport.bounds(),
+                enabled: true,
+                ..SemanticNode::EMPTY
+            });
+            visit(SemanticNode {
+                id: SemanticId::DocumentMenuDialog,
+                parent: Some(SemanticId::Window),
+                role: Role::Dialog,
+                label: "Documentacties",
+                bounds: menu.bounds.physical(self.view.viewport.scale()),
+                enabled: true,
+                ..SemanticNode::EMPTY
+            });
+            for (index, id) in [
+                SemanticId::SelectAll,
+                SemanticId::DocumentTool,
+                SemanticId::Save,
+                SemanticId::CancelDocumentMenu,
+            ]
+            .into_iter()
+            .enumerate()
+            {
+                let enabled = index != 2 || self.view.can_save;
+                visit(SemanticNode {
+                    id,
+                    parent: Some(SemanticId::DocumentMenuDialog),
+                    role: Role::Button,
+                    label: menu_label(index, self.view.tool),
+                    bounds: menu.item(index).physical(self.view.viewport.scale()),
+                    enabled,
+                    focused: menu.selected == index,
+                    actions: SemanticActions {
+                        activate: enabled,
+                        set_value: false,
+                    },
+                    ..SemanticNode::EMPTY
+                });
+            }
+            visit(SemanticNode {
+                id: SemanticId::Status,
+                parent: Some(SemanticId::Window),
+                role: Role::Status,
+                label: status_label(self.view.status),
+                bounds: self.layout.status.physical(self.view.viewport.scale()),
+                enabled: true,
+                ..SemanticNode::EMPTY
+            });
             return;
         }
         let mut push =
@@ -1242,6 +1390,26 @@ impl<'a> Frame<'a> {
                         Focus::Save
                     }),
                     self.view.can_save || self.view.saving,
+                );
+                push(
+                    SemanticId::DocumentTool,
+                    Some(SemanticId::Window),
+                    Role::Button,
+                    tool_action(self.view.tool),
+                    None,
+                    l.tool,
+                    Some(Focus::Tool),
+                    !self.view.saving,
+                );
+                push(
+                    SemanticId::DocumentMenu,
+                    Some(SemanticId::Window),
+                    Role::Button,
+                    "Documentacties openen",
+                    None,
+                    l.context_menu,
+                    Some(Focus::ContextMenu),
+                    !self.view.saving,
                 );
                 push(
                     SemanticId::Document,
@@ -1491,6 +1659,11 @@ pub enum SemanticId {
     Back,
     Save,
     Document,
+    DocumentTool,
+    DocumentMenu,
+    DocumentMenuDialog,
+    SelectAll,
+    CancelDocumentMenu,
     CloseDialog,
     SaveAndBack,
     KeepEditing,
@@ -1555,6 +1728,25 @@ impl SemanticNode<'_> {
     };
 }
 
+fn tool_action(tool: DocumentTool) -> &'static str {
+    match tool {
+        DocumentTool::Write => "Lezen · F4",
+        DocumentTool::Read => "Schrijven · F4",
+    }
+}
+
+fn menu_label(index: usize, tool: DocumentTool) -> &'static str {
+    match index {
+        0 => "Alles selecteren",
+        1 => match tool {
+            DocumentTool::Write => "Lezen",
+            DocumentTool::Read => "Schrijven",
+        },
+        2 => "Opslaan",
+        _ => "Annuleren",
+    }
+}
+
 pub fn status_label(status: Status) -> &'static str {
     use nieuw_os_document_session::volume::Error as S;
     match status {
@@ -1601,14 +1793,6 @@ pub fn status_label(status: Status) -> &'static str {
         Status::Failed(_) => "Handeling mislukt. Je tekst blijft open.",
     }
 }
-fn status_color(status: Status) -> u32 {
-    if matches!(status, Status::Failed(_)) {
-        d::DANGER
-    } else {
-        d::MUTED
-    }
-}
-
 enum ButtonStyle {
     Primary,
     Secondary,
@@ -1640,6 +1824,8 @@ impl core::fmt::Write for Label {
     }
 }
 struct Paint<'a> {
+    palette: Palette,
+    high_contrast: bool,
     rect: Rect,
     pixels: &'a mut [u32],
     scale: Scale,
@@ -1676,7 +1862,8 @@ impl Paint<'_> {
         self.ui_text(x + advance, y, "…", size, weight, color);
     }
     fn field(&mut self, r: Rect, value: &str, placeholder: &str, focused: bool, selected: bool) {
-        self.outlined(r, d::SURFACE, d::BORDER, d::CONTROL_RADIUS);
+        let palette = self.palette;
+        self.outlined(r, palette.surface, palette.border, d::CONTROL_RADIUS);
         if focused {
             self.focus(r);
         }
@@ -1691,7 +1878,7 @@ impl Paint<'_> {
                         .min(r.width - 24),
                     height: 26,
                 },
-                d::ACCENT_SOFT,
+                palette.accent_soft,
             );
         }
         self.elided(
@@ -1700,7 +1887,11 @@ impl Paint<'_> {
             shown,
             r.width - 24,
             (Size::Body, Weight::Regular),
-            if value.is_empty() { d::MUTED } else { d::TEXT },
+            if value.is_empty() {
+                palette.muted
+            } else {
+                self.selected(selected, palette.text)
+            },
         );
         if focused && !selected {
             let x = r.x
@@ -1715,12 +1906,13 @@ impl Paint<'_> {
                     width: 2,
                     height: 24,
                 },
-                d::TEXT,
+                palette.text,
             );
         }
     }
     fn workspace(&mut self, view: View<'_>, l: Layout) {
         use core::fmt::Write;
+        let palette = self.palette;
         self.fill(
             Rect {
                 x: 0,
@@ -1728,10 +1920,10 @@ impl Paint<'_> {
                 width: view.viewport.logical_width(),
                 height: view.viewport.logical_height(),
             },
-            d::BACKGROUND,
+            palette.background,
         );
-        let p = l.workspace_panel;
-        self.rounded(p, d::SURFACE, 12);
+        let panel = l.workspace_panel;
+        self.surface(panel, palette.surface, 12);
         let (heading, explanation) = match view.screen {
             Screen::Rename => (
                 "Een naam voor je document",
@@ -1753,24 +1945,24 @@ impl Paint<'_> {
         };
         let compact = view.viewport.logical_height() < 360;
         self.elided(
-            p.x + 16,
-            p.y + if compact { 8 } else { 12 },
+            panel.x + 16,
+            panel.y + if compact { 8 } else { 12 },
             heading,
-            p.width - 32,
+            panel.width - 32,
             (
                 if compact { Size::Body } else { Size::Title },
                 Weight::Semibold,
             ),
-            d::TEXT,
+            palette.text,
         );
         if !compact {
             self.elided(
-                p.x + 16,
-                p.y + 60,
+                panel.x + 16,
+                panel.y + 60,
                 explanation,
-                p.width - 32,
+                panel.width - 32,
                 (Size::Small, Weight::Regular),
-                d::MUTED,
+                palette.muted,
             );
         }
         let workspace = view.workspace;
@@ -1858,7 +2050,7 @@ impl Paint<'_> {
                     }
                 }
                 if l.preview.height >= d::LINE_HEIGHT {
-                    self.outlined(l.preview, d::BACKGROUND, d::BORDER, 8);
+                    self.outlined(l.preview, palette.background, palette.border, 8);
                     if let Some(text) = workspace.preview() {
                         let metrics = text::Proportional::new(
                             self.font(Size::Body, Weight::Regular),
@@ -1882,7 +2074,7 @@ impl Paint<'_> {
                                         + (cell.position.row - scroll) as u32 * d::LINE_HEIGHT)
                                         * self.scale.factor(),
                                     cell.character,
-                                    d::TEXT,
+                                    palette.text,
                                 );
                             }
                         }
@@ -1910,7 +2102,7 @@ impl Paint<'_> {
                             range.as_str(),
                             l.preview.width,
                             (Size::Small, Weight::Regular),
-                            d::MUTED,
+                            palette.muted,
                         );
                     } else {
                         self.wrapped(
@@ -1918,7 +2110,7 @@ impl Paint<'_> {
                             l.preview.y + 12,
                             "Geen volledige tekstpreview beschikbaar. Er is niets hersteld.",
                             l.preview.width - 24,
-                            d::MUTED,
+                            palette.muted,
                         );
                     }
                 }
@@ -1945,11 +2137,54 @@ impl Paint<'_> {
             status_label(view.status),
             view.viewport.logical_width() - 48,
             (Size::Small, Weight::Regular),
-            status_color(view.status),
+            if matches!(view.status, Status::Failed(_)) {
+                self.danger()
+            } else {
+                palette.muted
+            },
         );
     }
 
+    fn divider(&self) -> u32 {
+        if self.high_contrast {
+            self.palette.border
+        } else {
+            d::LINE
+        }
+    }
+    fn danger(&self) -> u32 {
+        if self.high_contrast {
+            theme::HIGH_CONTRAST_DANGER
+        } else {
+            d::DANGER
+        }
+    }
+    fn selected(&self, selected: bool, normal: u32) -> u32 {
+        if self.high_contrast && selected {
+            self.palette.background
+        } else {
+            normal
+        }
+    }
+    fn control_text(&self, r: Rect, enabled: bool) -> u32 {
+        if enabled {
+            self.selected(
+                self.cursor.is_some_and(|(x, y)| r.contains(x, y)),
+                self.palette.text,
+            )
+        } else {
+            self.palette.muted
+        }
+    }
+    fn surface(&mut self, r: Rect, normal: u32, radius: u32) {
+        if self.high_contrast {
+            self.outlined(r, self.palette.surface, self.palette.border, radius);
+        } else {
+            self.rounded(r, normal, radius);
+        }
+    }
     fn material_chrome(&mut self, layout: Layout, viewport: Viewport) {
+        let p = self.palette;
         let h = viewport.logical_height();
         if layout.sidebar_width > 0 {
             self.fill(
@@ -1959,7 +2194,11 @@ impl Paint<'_> {
                     width: layout.sidebar_width,
                     height: h,
                 },
-                0xf0efe9,
+                if self.high_contrast {
+                    p.background
+                } else {
+                    0xf0efe9
+                },
             );
             self.fill(
                 Rect {
@@ -1968,9 +2207,9 @@ impl Paint<'_> {
                     width: 1,
                     height: h,
                 },
-                d::LINE,
+                self.divider(),
             );
-            self.small(24, 28, "MIJN WERK", d::MUTED);
+            self.small(24, 28, "MIJN WERK", p.muted);
             self.fill(
                 Rect {
                     x: 0,
@@ -1978,7 +2217,7 @@ impl Paint<'_> {
                     width: layout.sidebar_width,
                     height: 44,
                 },
-                d::ACCENT_SOFT,
+                p.accent_soft,
             );
             self.fill(
                 Rect {
@@ -1987,7 +2226,7 @@ impl Paint<'_> {
                     width: 3,
                     height: 44,
                 },
-                d::ACCENT,
+                self.selected(true, p.accent),
             );
             self.icon(
                 Rect {
@@ -1997,11 +2236,11 @@ impl Paint<'_> {
                     height: 20,
                 },
                 Icon::Folder,
-                d::ACCENT,
+                self.selected(true, p.accent),
                 1,
             );
-            self.medium(56, 90, "Documenten", d::TEXT);
-            self.small(24, h.saturating_sub(34), "Dit apparaat", d::MUTED);
+            self.medium(56, 90, "Documenten", self.selected(true, p.text));
+            self.small(24, h.saturating_sub(34), "Dit apparaat", p.muted);
         }
     }
     fn icon_button(&mut self, r: Rect, icon: Icon, focused: bool, enabled: bool) {
@@ -2014,11 +2253,12 @@ impl Paint<'_> {
                 height: 20,
             },
             icon,
-            if enabled { d::TEXT } else { d::MUTED },
+            self.control_text(r, enabled),
             1,
         );
     }
     fn pointer(&mut self, cursor: Option<(u32, u32)>) {
+        let p = self.palette;
         if let Some((x, y)) = cursor {
             for dy in 0..14 {
                 for dx in 0..=dy / 2 {
@@ -2026,9 +2266,9 @@ impl Paint<'_> {
                         i64::from(x + dx),
                         i64::from(y + dy),
                         if dx == 0 || dx == dy / 2 || dy == 13 {
-                            d::SURFACE
+                            p.surface
                         } else {
-                            d::TEXT
+                            p.text
                         },
                     );
                 }
@@ -2036,17 +2276,33 @@ impl Paint<'_> {
         }
     }
     fn desktop(&mut self, desktop: &crate::desktop::Desktop, view: View<'_>) {
+        let p = self.palette;
+        let high = self.high_contrast;
+        let glass = if high { p.background } else { GLASS };
+        let glass_raised = if high { p.background } else { GLASS_RAISED };
+        let glass_hover = if high { p.accent_soft } else { GLASS_HOVER };
+        let glass_edge = if high { p.border } else { GLASS_EDGE };
+        let shell_muted = if high { p.muted } else { SHELL_MUTED };
+        let ink = if high { p.text } else { INK };
+        let private = if high { p.accent } else { PRIVATE };
+        let danger = if high {
+            theme::HIGH_CONTRAST_DANGER
+        } else {
+            SHELL_DANGER
+        };
         use crate::desktop::{Page, Target};
         let viewport = view.viewport;
         let w = viewport.logical_width();
         let h = viewport.logical_height();
         let compact = h < 420 || w < 640;
         let factor = self.scale.factor();
-        nieuw_os_graphics::theme::wallpaper(
-            &mut self.canvas(),
-            GraphicRect::new(0, 0, viewport.width(), viewport.height()),
-            nieuw_os_graphics::theme::MATERIAAL,
-        );
+        if !high {
+            theme::wallpaper(
+                &mut self.canvas(),
+                GraphicRect::new(0, 0, viewport.width(), viewport.height()),
+                p,
+            );
+        }
         let width = w.saturating_sub(48).min(440);
         let x = (w - width) / 2;
         let y = if compact {
@@ -2063,15 +2319,17 @@ impl Paint<'_> {
                     width: width + 48,
                     height: if compact { h } else { 424 },
                 };
-                self.glass(panel, GLASS, 196, 28);
-                self.stroke(panel, GLASS_EDGE, 28);
+                self.glass(panel, glass, 196, 28);
+                if !high || panel.x != 0 || panel.y != 0 {
+                    self.stroke(panel, glass_edge, 28);
+                }
                 if desktop.page() == Page::Accounts {
-                    self.title_color(x, y + if compact { 12 } else { 24 }, "Welkom terug", INK);
+                    self.title_color(x, y + if compact { 12 } else { 24 }, "Welkom terug", ink);
                     self.label(
                         x,
                         y + if compact { 54 } else { 78 },
                         "Kies wie je bent om verder te gaan.",
-                        SHELL_MUTED,
+                        shell_muted,
                     );
                 } else {
                     self.medium(
@@ -2082,7 +2340,7 @@ impl Paint<'_> {
                         } else {
                             "Eigen gebruiker"
                         },
-                        INK,
+                        ink,
                     );
                     if !compact {
                         self.title_color(
@@ -2093,7 +2351,7 @@ impl Paint<'_> {
                             } else {
                                 "Inloggen"
                             },
-                            INK,
+                            ink,
                         );
                     }
                     self.small(
@@ -2104,7 +2362,7 @@ impl Paint<'_> {
                         } else {
                             "Voorbeeldaccount · gebruik alleen testinvoer"
                         },
-                        SHELL_MUTED,
+                        shell_muted,
                     );
                 }
                 for (target, r, label) in controls.into_iter().flatten() {
@@ -2113,16 +2371,37 @@ impl Paint<'_> {
                             let selected = desktop.focus() == target;
                             self.outlined(
                                 r,
-                                if selected { GLASS_HOVER } else { GLASS_RAISED },
-                                if selected { d::ACCENT } else { GLASS_EDGE },
+                                if selected { glass_hover } else { glass_raised },
+                                if selected { p.accent } else { glass_edge },
                                 14,
                             );
                             self.orb(
                                 r.x + 12,
                                 r.y + (r.height - 44) / 2,
                                 44,
-                                if selected { 0x1fa58f } else { GLASS_HOVER },
+                                if high && selected {
+                                    p.background
+                                } else if selected {
+                                    0x1fa58f
+                                } else {
+                                    glass_hover
+                                },
                             );
+                            let avatar = Rect {
+                                x: r.x + 12,
+                                y: r.y + (r.height - 44) / 2,
+                                width: 44,
+                                height: 44,
+                            };
+                            if self.high_contrast && selected {
+                                self.rounded(avatar, p.background, 14);
+                            } else {
+                                self.surface(
+                                    avatar,
+                                    if selected { p.accent } else { 0xe2e8ec },
+                                    14,
+                                );
+                            }
                             self.icon(
                                 Rect {
                                     x: r.x + 22,
@@ -2131,7 +2410,13 @@ impl Paint<'_> {
                                     height: 24,
                                 },
                                 Icon::User,
-                                if selected { d::SURFACE } else { SHELL_MUTED },
+                                if high && selected {
+                                    p.background
+                                } else if selected {
+                                    d::SURFACE
+                                } else {
+                                    shell_muted
+                                },
                                 1,
                             );
                             self.medium(
@@ -2142,7 +2427,7 @@ impl Paint<'_> {
                                 } else {
                                     label
                                 },
-                                INK,
+                                if high && selected { p.background } else { ink },
                             );
                             self.small(
                                 r.x + 72,
@@ -2152,7 +2437,11 @@ impl Paint<'_> {
                                 } else {
                                     "Aanmelden nog niet ingesteld"
                                 },
-                                SHELL_MUTED,
+                                if high && selected {
+                                    p.background
+                                } else {
+                                    shell_muted
+                                },
                             );
                             self.icon(
                                 Rect {
@@ -2162,9 +2451,16 @@ impl Paint<'_> {
                                     height: 16,
                                 },
                                 Icon::ChevronRight,
-                                SHELL_MUTED,
+                                if high && selected {
+                                    p.background
+                                } else {
+                                    shell_muted
+                                },
                                 1,
                             );
+                            if self.high_contrast && selected {
+                                self.focus(r);
+                            }
                         }
                         Target::Back => {
                             self.shell_button(r, desktop.focus() == target);
@@ -2176,7 +2472,7 @@ impl Paint<'_> {
                                     height: 20,
                                 },
                                 Icon::ChevronLeft,
-                                INK,
+                                ink,
                                 1,
                             );
                         }
@@ -2186,10 +2482,10 @@ impl Paint<'_> {
                                     r.x,
                                     r.y + 8,
                                     "Geen wachtwoord nodig voor de gast.",
-                                    SHELL_MUTED,
+                                    shell_muted,
                                 );
                             } else {
-                                self.outlined(r, GLASS_RAISED, GLASS_EDGE, 10);
+                                self.outlined(r, glass_raised, glass_edge, 10);
                                 self.icon(
                                     Rect {
                                         x: r.x + 12,
@@ -2198,7 +2494,7 @@ impl Paint<'_> {
                                         height: 20,
                                     },
                                     Icon::Lock,
-                                    SHELL_MUTED,
+                                    shell_muted,
                                     1,
                                 );
                                 if desktop.password_len() == 0 {
@@ -2211,9 +2507,9 @@ impl Paint<'_> {
                                             "Wachtwoord"
                                         },
                                         if desktop.unavailable() {
-                                            SHELL_DANGER
+                                            danger
                                         } else {
-                                            SHELL_MUTED
+                                            shell_muted
                                         },
                                     );
                                 } else {
@@ -2228,12 +2524,12 @@ impl Paint<'_> {
                                                 5 * factor,
                                                 5 * factor,
                                             ),
-                                            INK,
+                                            ink,
                                         );
                                     }
                                 }
                                 if desktop.focus() == target {
-                                    self.focus_color(r, INK);
+                                    self.focus_color(r, p.accent);
                                 }
                             }
                         }
@@ -2258,7 +2554,7 @@ impl Paint<'_> {
                                 } else {
                                     Icon::Key
                                 },
-                                SHELL_MUTED,
+                                shell_muted,
                                 1,
                             );
                             self.small(
@@ -2269,7 +2565,7 @@ impl Paint<'_> {
                                 } else {
                                     "FIDO2-sleutel"
                                 },
-                                SHELL_MUTED,
+                                shell_muted,
                             );
                         }
                         _ => {}
@@ -2286,7 +2582,7 @@ impl Paint<'_> {
                         } else {
                             "Authenticatie is in deze testversie niet beschikbaar."
                         },
-                        SHELL_MUTED,
+                        shell_muted,
                     );
                 }
             }
@@ -2294,23 +2590,23 @@ impl Paint<'_> {
                 if desktop.page() == Page::Home {
                     let card = controls[5].map_or(Rect::default(), |(_, r, _)| r);
                     if compact {
-                        self.title_color(32, 8, "Horizon", INK);
+                        self.title_color(32, 8, "Horizon", ink);
                     } else {
                         let eyebrow = "HORIZON";
                         let title = "Verder waar je was";
                         let eyebrow_w = self.measure(eyebrow, Size::Small, Weight::Regular);
                         let title_w = self.measure(title, Size::Title, Weight::Semibold);
-                        self.small((w - eyebrow_w) / 2, card.y - 92, eyebrow, PRIVATE);
-                        self.title_color((w - title_w) / 2, card.y - 66, title, INK);
+                        self.small((w - eyebrow_w) / 2, card.y - 92, eyebrow, private);
+                        self.title_color((w - title_w) / 2, card.y - 66, title, ink);
                         let badge = Rect {
                             x: w.saturating_sub(174),
                             y: 20,
                             width: 142,
                             height: 36,
                         };
-                        self.glass(badge, GLASS, 176, 18);
-                        self.orb(badge.x + 14, badge.y + 13, 10, PRIVATE);
-                        self.small(badge.x + 34, badge.y + 11, "Gast · VM-test", SHELL_MUTED);
+                        self.glass(badge, glass, 176, 18);
+                        self.orb(badge.x + 14, badge.y + 13, 10, private);
+                        self.small(badge.x + 34, badge.y + 11, "Gast · VM-test", shell_muted);
                     }
                 } else {
                     let panel_width = w.saturating_sub(48).min(620);
@@ -2321,13 +2617,13 @@ impl Paint<'_> {
                         width: panel_width,
                         height: if compact { 140 } else { 176 },
                     };
-                    self.glass(panel, GLASS, 214, 22);
-                    self.stroke(panel, GLASS_EDGE, 22);
+                    self.glass(panel, glass, 214, 22);
+                    self.stroke(panel, glass_edge, 22);
                 }
                 for (target, r, _) in controls.into_iter().flatten() {
                     if target == Target::Material {
                         if desktop.page() == Page::Search {
-                            self.rounded(r, GLASS_HOVER, 12);
+                            self.rounded(r, glass_hover, 12);
                             self.icon(
                                 Rect {
                                     x: r.x + 16,
@@ -2336,16 +2632,21 @@ impl Paint<'_> {
                                     height: 32,
                                 },
                                 Icon::Material,
-                                PRIVATE,
+                                private,
                                 1,
                             );
-                            self.medium(r.x + 60, r.y + 8, "Nebula", INK);
+                            self.medium(
+                                r.x + 60,
+                                r.y + 8,
+                                "Nebula",
+                                if high { p.background } else { ink },
+                            );
                             if !compact {
                                 self.small(
                                     r.x + 60,
                                     r.y + 40,
                                     "Documenten op dit apparaat",
-                                    SHELL_MUTED,
+                                    if high { p.background } else { shell_muted },
                                 );
                             }
                             self.icon(
@@ -2356,12 +2657,12 @@ impl Paint<'_> {
                                     height: 16,
                                 },
                                 Icon::ChevronRight,
-                                SHELL_MUTED,
+                                if high { p.background } else { shell_muted },
                                 1,
                             );
                         } else {
-                            self.glass(r, GLASS, 188, 24);
-                            self.stroke(r, GLASS_EDGE, 24);
+                            self.glass(r, glass, 188, 24);
+                            self.stroke(r, glass_edge, 24);
                             self.rim(r, 24);
                             self.fill(
                                 Rect {
@@ -2370,7 +2671,7 @@ impl Paint<'_> {
                                     width: r.width.saturating_sub(40),
                                     height: 1,
                                 },
-                                GLASS_EDGE,
+                                glass_edge,
                             );
                             // A luminous orb instead of a flat app tile.
                             let (ox, oy, size) = if compact {
@@ -2394,8 +2695,8 @@ impl Paint<'_> {
                             );
                             let text_x = r.x + if compact { 76 } else { 112 };
                             let text_y = r.y + if compact { 19 } else { 28 };
-                            self.small(text_x, text_y, "NEBULA", SHELL_MUTED);
-                            self.medium(text_x, text_y + 22, "Documenten", INK);
+                            self.small(text_x, text_y, "NEBULA", shell_muted);
+                            self.medium(text_x, text_y + 22, "Documenten", ink);
                             if compact {
                                 self.icon(
                                     Rect {
@@ -2405,18 +2706,18 @@ impl Paint<'_> {
                                         height: 18,
                                     },
                                     Icon::ChevronRight,
-                                    PRIVATE,
+                                    private,
                                     1,
                                 );
                             } else {
-                                self.label(text_x, text_y + 52, "Je bibliotheek", SHELL_MUTED);
+                                self.label(text_x, text_y + 52, "Je bibliotheek", shell_muted);
                                 let pill = Rect {
                                     x: r.x + r.width - 176,
                                     y: r.y + (r.height - 48) / 2,
                                     width: 152,
                                     height: 48,
                                 };
-                                self.rounded(pill, PRIVATE, 24);
+                                self.rounded(pill, private, 24);
                                 let label = "Openen";
                                 let label_w = self.measure(label, Size::Body, Weight::Semibold);
                                 self.medium(
@@ -2462,9 +2763,9 @@ impl Paint<'_> {
                                     message,
                                     content_width,
                                     if matches!(view.status, Status::Failed(_)) {
-                                        SHELL_DANGER
+                                        danger
                                     } else {
-                                        SHELL_MUTED
+                                        shell_muted
                                     },
                                 );
                             } else {
@@ -2479,18 +2780,18 @@ impl Paint<'_> {
                                         content_x,
                                         content_y,
                                         "Document gereed",
-                                        SHELL_MUTED,
+                                        shell_muted,
                                     );
                                 } else {
-                                    self.wrapped(content_x, content_y, name, content_width, INK);
+                                    self.wrapped(content_x, content_y, name, content_width, ink);
                                 }
                             }
                         }
                         if desktop.focus() == target {
-                            self.focus_color(r, INK);
+                            self.focus_color(r, p.accent);
                         }
                     } else if target == Target::SearchField {
-                        self.outlined(r, GLASS_RAISED, GLASS_EDGE, 12);
+                        self.outlined(r, glass_raised, glass_edge, 12);
                         self.icon(
                             Rect {
                                 x: r.x + 12,
@@ -2499,7 +2800,7 @@ impl Paint<'_> {
                                 height: 20,
                             },
                             Icon::Search,
-                            SHELL_MUTED,
+                            shell_muted,
                             1,
                         );
                         self.label(
@@ -2510,10 +2811,10 @@ impl Paint<'_> {
                             } else {
                                 desktop.query()
                             },
-                            INK,
+                            ink,
                         );
                         if desktop.focus() == target {
-                            self.focus_color(r, INK);
+                            self.focus_color(r, p.accent);
                         }
                     }
                 }
@@ -2523,13 +2824,13 @@ impl Paint<'_> {
                         (w - panel_width) / 2 + 24,
                         if compact { 120 } else { 228 },
                         "Geen programma gevonden",
-                        SHELL_MUTED,
+                        shell_muted,
                     );
                 }
                 let bar = crate::desktop::dock(w, h);
                 // A floating capsule of dark glass, lit from above by a rim line.
-                self.glass(bar, GLASS, 214, 28);
-                self.stroke(bar, GLASS_EDGE, 28);
+                self.glass(bar, glass, 214, 28);
+                self.stroke(bar, glass_edge, 28);
                 self.rim(bar, 28);
                 let controls = desktop.controls(viewport);
                 if bar.width > 228 {
@@ -2541,9 +2842,9 @@ impl Paint<'_> {
                         width: 104,
                         height: 28,
                     };
-                    self.glass(chip, PRIVATE, 30, 14);
-                    self.orb(chip.x + 10, chip.y + 9, 10, PRIVATE);
-                    self.small(chip.x + 30, chip.y + 6, "Lokaal", PRIVATE);
+                    self.glass(chip, private, 30, 14);
+                    self.orb(chip.x + 10, chip.y + 9, 10, private);
+                    self.small(chip.x + 30, chip.y + 6, "Lokaal", private);
                 }
                 for (target, r, _) in controls.into_iter().flatten().take(4) {
                     let focused = desktop.focus() == target;
@@ -2559,7 +2860,7 @@ impl Paint<'_> {
                                     height: 20,
                                 },
                                 Icon::Search,
-                                INK,
+                                ink,
                                 1,
                             );
                             // Hairline between system buttons and apps.
@@ -2599,7 +2900,7 @@ impl Paint<'_> {
                                         width: 10,
                                         height: 2,
                                     },
-                                    PRIVATE,
+                                    private,
                                     1,
                                 );
                             }
@@ -2614,13 +2915,13 @@ impl Paint<'_> {
                                     height: 20,
                                 },
                                 Icon::Power,
-                                SHELL_MUTED,
+                                shell_muted,
                                 1,
                             );
                         }
                     }
                     if focused {
-                        self.focus_color(r, INK);
+                        self.focus_color(r, p.accent);
                     }
                 }
             }
@@ -2663,7 +2964,7 @@ impl Paint<'_> {
         );
     }
     fn focus(&mut self, r: Rect) {
-        self.focus_color(r, d::ACCENT);
+        self.focus_color(r, self.palette.accent);
     }
     fn focus_color(&mut self, r: Rect, color: u32) {
         let gap = d::FOCUS_OFFSET;
@@ -2703,6 +3004,18 @@ impl Paint<'_> {
     }
     /// The Nieuw OS mark: an eclipse of light rising over a dark horizon.
     fn horizon_mark(&mut self, r: Rect, focused: bool) {
+        if self.high_contrast {
+            let p = self.palette;
+            self.rounded(r, p.background, 22);
+            self.stroke(r, p.border, 22);
+            let (cx, cy) = (r.x + r.width / 2, r.y + r.height / 2);
+            self.orb(cx - 13, cy - 13, 26, p.accent);
+            self.orb(cx - 9, cy - 5, 18, p.background);
+            if focused {
+                self.focus(r);
+            }
+            return;
+        }
         self.glass(r, 0xffffff, if focused { 26 } else { 0 }, 22);
         let (cx, cy) = (r.x + r.width / 2, r.y + r.height / 2);
         self.orb(cx - 15, cy - 15, 30, 0x0f3a3a);
@@ -2711,8 +3024,27 @@ impl Paint<'_> {
         self.orb(cx + 6, cy - 12, 4, 0xffffff);
     }
     fn shell_button(&mut self, r: Rect, focused: bool) {
-        self.rounded(r, if focused { GLASS_HOVER } else { GLASS_RAISED }, 12);
-        self.stroke(r, GLASS_EDGE, 12);
+        let fill = if self.high_contrast {
+            if focused {
+                self.palette.accent_soft
+            } else {
+                self.palette.background
+            }
+        } else if focused {
+            GLASS_HOVER
+        } else {
+            GLASS_RAISED
+        };
+        self.rounded(r, fill, 12);
+        self.stroke(
+            r,
+            if self.high_contrast {
+                self.palette.border
+            } else {
+                GLASS_EDGE
+            },
+            12,
+        );
     }
     fn glass(&mut self, rect: Rect, color: u32, alpha: u8, radius: u32) {
         let r = rect.physical(self.scale);
@@ -2750,6 +3082,7 @@ impl Paint<'_> {
         }
     }
     fn button(&mut self, r: Rect, label: &str, focused: bool, enabled: bool, style: ButtonStyle) {
+        let p = self.palette;
         let margin = if focused { d::FOCUS_OFFSET + 2 } else { 0 };
         let paint_bounds = Rect {
             x: r.x.saturating_sub(margin),
@@ -2762,23 +3095,64 @@ impl Paint<'_> {
         }
         let hovered = enabled && self.cursor.is_some_and(|(x, y)| r.contains(x, y));
         let (background, border, foreground) = if !enabled {
-            (d::LINE, d::LINE, d::MUTED)
+            if self.high_contrast {
+                (p.surface, p.muted, p.muted)
+            } else {
+                (self.divider(), self.divider(), p.muted)
+            }
         } else {
             match style {
                 ButtonStyle::Primary => (
-                    d::ACCENT,
-                    if hovered { d::TEXT } else { d::ACCENT },
-                    d::SURFACE,
+                    p.accent,
+                    if hovered && !self.high_contrast {
+                        p.text
+                    } else {
+                        p.accent
+                    },
+                    p.surface,
                 ),
-                ButtonStyle::Danger => (d::SURFACE, d::DANGER, d::DANGER),
+                ButtonStyle::Danger => (p.surface, self.danger(), self.danger()),
                 _ => (
-                    if hovered { d::ACCENT_SOFT } else { d::SURFACE },
-                    d::BORDER,
-                    d::TEXT,
+                    if hovered { p.accent_soft } else { p.surface },
+                    if self.high_contrast && hovered {
+                        p.accent_soft
+                    } else {
+                        p.border
+                    },
+                    self.selected(hovered, p.text),
                 ),
             }
         };
         self.outlined(r, background, border, d::CONTROL_RADIUS);
+        if self.high_contrast && !enabled {
+            // A dashed boundary distinguishes unavailable controls without color.
+            for x in (r.x + d::CONTROL_RADIUS..r.x + r.width - d::CONTROL_RADIUS).step_by(8) {
+                for y in [r.y, r.y + r.height - 1] {
+                    self.fill(
+                        Rect {
+                            x,
+                            y,
+                            width: 4,
+                            height: 1,
+                        },
+                        background,
+                    );
+                }
+            }
+            for y in (r.y + d::CONTROL_RADIUS..r.y + r.height - d::CONTROL_RADIUS).step_by(8) {
+                for x in [r.x, r.x + r.width - 1] {
+                    self.fill(
+                        Rect {
+                            x,
+                            y,
+                            width: 1,
+                            height: 4,
+                        },
+                        background,
+                    );
+                }
+            }
+        }
         if focused {
             self.focus(r);
         }
@@ -2797,8 +3171,9 @@ impl Paint<'_> {
         );
     }
     fn back_button(&mut self, r: Rect, focused: bool) {
+        let p = self.palette;
         if self.cursor.is_some_and(|(x, y)| r.contains(x, y)) {
-            self.rounded(r, d::ACCENT_SOFT, 6);
+            self.rounded(r, p.accent_soft, 6);
         }
         self.icon(
             Rect {
@@ -2808,10 +3183,12 @@ impl Paint<'_> {
                 height: 20,
             },
             Icon::ChevronLeft,
-            d::TEXT,
+            self.control_text(r, true),
             1,
         );
-        self.medium(r.x + 30, r.y + 10, "Terug", d::TEXT);
+        if r.width >= 100 {
+            self.medium(r.x + 30, r.y + 10, "Terug", self.control_text(r, true));
+        }
         if focused {
             self.focus(r);
         }
@@ -2832,7 +3209,7 @@ impl Paint<'_> {
                     width: 2,
                     height: 2,
                 },
-                if enabled { d::TEXT } else { d::MUTED },
+                self.control_text(r, enabled),
             );
         }
     }
@@ -2923,7 +3300,7 @@ impl Paint<'_> {
         }
     }
     fn title(&mut self, x: u32, y: u32, title: &str) {
-        self.title_color(x, y, title, d::TEXT);
+        self.title_color(x, y, title, self.palette.text);
     }
     fn title_color(&mut self, x: u32, y: u32, title: &str, color: u32) {
         self.ui_text(x, y, title, Size::Title, Weight::Semibold, color);
