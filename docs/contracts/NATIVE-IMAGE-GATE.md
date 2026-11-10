@@ -1,149 +1,154 @@
-# Native PNG/JPEG-integratiegate
+# Native PNG/JPEG integration gate
 
-IMAGE-HARNESS-1, basis `4b638568e4dee62ac35f2a8f6407d7b05c7b770d`.
-Deze gate bindt de echte ring3-imageprobe aan de oorspronkelijke geïntegreerde
-systeem-/schijfketen. Hij voert geen hostdecoder uit en verandert geen
-PNG/JPEG-grens om een groen resultaat te verkrijgen. De
-[image-fixture](NATIVE-IMAGE-FIXTURE.md),
-[codeccomponent](../implementation/NATIVE-IMAGES.md) en
-[FULL-TEST-RELEASE](../FULL-TEST-RELEASE.md) blijven de inhoudelijke contracten.
+IMAGE-HARNESS-1, base `4b638568e4dee62ac35f2a8f6407d7b05c7b770d`.
+This gate binds the actual ring3 image probe to the original integrated
+system/disk chain. It runs no host decoder and changes no PNG/JPEG boundary
+to obtain a passing result. The
+[image fixture](NATIVE-IMAGE-FIXTURE.md),
+[codec component](../implementation/NATIVE-IMAGES.md) and
+[FULL-TEST-RELEASE](../FULL-TEST-RELEASE.md) remain the substantive contracts.
 
-## Profiel en uitvoering
+## Profile and execution
 
-Het enige profiel is `native-system-images`, de CLI-case heet `normal`.
-De root levert de bestaande vier programma's plus een vijfde initiële,
-capabilityloze imageprobe, de opt-in geheugen/FPU/klokfuncties, de werkelijke
-bootstrap en de gedeelde build-/runhooks. De app vraagt zelf1024 verse eigen
-heappagina's aan en draait met de bestaande64KiB-stack. Het harnas levert
-geen pixels, heap of succesvolle decode-uitkomst.
+The only profile is `native-system-images`; the CLI case is named `normal`.
+Root supplies the existing four programs plus a fifth initial image probe
+without capabilities, the opt-in memory/FPU/clock functions, the actual
+bootstrap and shared build/run hooks. The app itself requests 1024 fresh
+heap pages of its own and runs with the existing 64KiB stack. The harness
+provides no pixels, heap or successful decoding outcome.
 
 ```sh
 LOCALAPPDATA=/workspace/nieuw-os/.tools python3 -B tools/dev.py python3 -B tools/build.py --kernel-feature native-system-images
 LOCALAPPDATA=/workspace/nieuw-os/.tools python3 -B tools/dev.py python3 -B tools/run_images.py --case normal
 ```
 
-Gebruik afzonderlijke `NOS_BUILD_DIR`/`NOS_TARGET_DIR` binnen de checkout en
-het vastgelegde QEMU-/OVMF-profiel. De gate gebruikt de bestaande guarded
-`run_system`/`run_volume.execute`: TCG, één qemu64-CPU,256MiB,geen netwerk of
-hostshare, geen snapshot, één nieuwe lege1MiB-wegwerpschijf en de bestaande
-virtio-rng voor de Key Service. De imageprobe krijgt geen opslag-, display-,
-netwerk-, sleutel- of entropycapability. Er is geen optie om een eigen schijf
-of bestaand volume te kiezen. Timeout is expliciet begrensd tot180seconden.
+Use separate `NOS_BUILD_DIR`/`NOS_TARGET_DIR` paths within the checkout and
+the specified QEMU/OVMF profile. The gate uses the existing guarded
+`run_system`/`run_volume.execute`: TCG, one qemu64 CPU, 256MiB, no network or
+host share, no snapshot, one new empty 1MiB disposable disk and the existing
+virtio-rng for the Key Service. The image probe receives no storage, display,
+network, key or entropy capability. There is no option to select a custom
+disk or existing volume. Timeout is explicitly bounded to 180 seconds.
 
-Deze gate is een functionele proef. Gelijktijdige TCG-runs op gedeelde host-CPU
-leveren geen vergelijkbare prestatieresultaten. De bestaande FR-I01-normal→
-koude readonly-recovery blijft een apart verplicht regressiebewijs; er wordt
-geen image-recoveryprofiel of duurzame pixelsnapshot verondersteld.
+This gate is a functional test. Concurrent TCG runs on shared host CPUs
+do not provide comparable performance results. The existing FR-I01 normal→
+cold readonly recovery remains separately required regression evidence;
+no image-recovery profile or durable pixel snapshot is assumed.
 
-## Verplicht native bewijs
+## Mandatory native evidence
 
-De oorspronkelijke boot-, proceslifecycle-, privilege-, record-, cleanup- en
-schijfasserties blijven actief, inclusief2seals/2unseals/9authweigeringen en de
-4096exacte documentbytes. De werkelijke QEMU-exit moet33 zijn en timeoutfalse.
-Een ontbrekende probe, fault, panic, onverwachte exit of alleen een PASS-vlag
-maakt de gate niet groen.
+The original boot, process-lifecycle, privilege, record, cleanup and disk
+assertions remain active, including 2 seals/2 unseals/9 authentication
+rejections and the exact 4096 document bytes. The actual QEMU exit must be
+33 and timeout false. A missing probe, fault, panic, unexpected exit or a
+PASS flag alone does not make the gate pass.
 
-Vóór het uitvoeren van de probe print de rootbootstrap één twintigcijferig
-`SYSTEM:IMAGE_MANIFEST_PID:<actualpid>`, direct na `image_fixture::bind` en vóór
-`SYSTEM:MANIFEST:PASS`. De finalewaarneming moet precies hetzelfde echte PID
-melden. Het harnas neemt PID5 of de latere gebruiker van slot4 niet als identiteit.
-De kernelobserver bewaart PID/bootslot, echte launch-/exitticks en een snapshot
-vóór cleanup; hij controleert ook eigenaarschap, RW/NX en mappings/guards.
+Before executing the probe, root bootstrap prints one twenty-digit
+`SYSTEM:IMAGE_MANIFEST_PID:<actualpid>`, directly after `image_fixture::bind`
+and before `SYSTEM:MANIFEST:PASS`. The final observation must report exactly
+the same actual PID. The harness does not treat PID5 or a later user of
+slot4 as identity. The kernel observer retains PID/boot slot, actual
+launch/exit ticks and a snapshot before cleanup; it also checks ownership,
+RW/NX and mappings/guards.
 
-Daarna zijn precies de20 vastgelegde `SYSTEM:IMAGE_*`-velden in observervolgorde
-en één `SYSTEM:IMAGES:PASS` vóór `SYSTEM:BROKERS:PASS` vereist. Alle tellers
-zijn exact20decimale cijfers binnen u64. Onbekende, dubbele, ontbrekende,
-verkeerd geordende of overlopende velden zijn fouten. De vereiste inhoud is:
+Then exactly the 20 specified `SYSTEM:IMAGE_*` fields in observer order
+and one `SYSTEM:IMAGES:PASS` before `SYSTEM:BROKERS:PASS` are required.
+All counters are exactly 20 decimal digits within u64. Unknown, duplicate,
+missing, incorrectly ordered or overflowing fields are errors.
+The required content is:
 
-| Gegeven | Eis |
+| Data | Requirement |
 |---|---|
-| PNG/JPEG |8/3, inclusief succesvolle herdecode na fouten |
-| Pixels / samplebytes |149647 /623808 |
-| Negatieve uitkomsten / vooraf annuleren |10 /1 |
-| Pixelpariteit |548683896226622996 |
-| Appgroei / totale kernelheap |1024 /1040pagina's |
-| Arenapeak / liveallocaties |werkelijk>0 en≤4194304bytes /0 |
-| Stack / guards |16pagina's /1; bestaande64KiB-stack |
-| Klok |start≤einde≤exit; exit−start<20000echte ticks |
-| Specifieke JPEG-vraag |QUALITY_OPEN=0 voor de onderzochte, herstelde fixture |
-| Linked ELF |werkelijke lengte en FNV tegenover het opnieuw gelezen gebouwde ELF |
+| PNG/JPEG |8/3, including successful redecoding after errors |
+| Pixels / sample bytes |149647 /623808 |
+| Negative outcomes / cancellation in advance |10 /1 |
+| Pixel parity |548683896226622996 |
+| App growth / total kernel heap |1024 /1040 pages |
+| Arena peak / live allocations |actual >0 and ≤4194304 bytes /0 |
+| Stack / guards |16 pages /1; existing 64KiB stack |
+| Clock |start≤end≤exit; exit−start<20000 actual ticks |
+| Specific JPEG question |QUALITY_OPEN=0 for the investigated, corrected fixture |
+| Linked ELF |actual length and FNV compared with the reread built ELF |
 
-De echte entropybroker moet de oorspronkelijke1024bytes rapporteren; deze
-imageprobe mag geen extra sleutel-/RNG-operaties veroorzaken. Algemeen JPEG-
-kwaliteitsbewijs is niet gelijk aan dezelfde-enginepixelpariteit. De concrete
-kleuren-/PNG-sampleproeven en de oorspronkelijke rode JPEG-uitkomst blijven
-in het codeccontract behouden.
+The actual entropy broker must report the original 1024 bytes; this image
+probe must cause no additional key/RNG operations. General JPEG quality
+evidence is not equivalent to pixel parity using the same engine. The concrete
+colour/PNG sample tests and original failing JPEG outcome are retained in
+the codec contract.
 
-## Artifactbinding en resultaat
+## Artifact binding and result
 
-`manifest.system` bevat precies `system_init`, `system_app`, `system_worker`,
-`keyring_service`, `volume_service` en `image_probe`; de aanvullende
-`manifest.image_probe` moet hetzelfde artifact aanwijzen. De builder gebruikt
-`TARGET/system-image-probe/x86_64-unknown-none/release/image-probe` en levert
-`NOS_IMAGE_PROBE_ELF` aan de kernel. De overige vijf paden zijn de bestaande
-systeembuildtargets.
+`manifest.system` contains exactly `system_init`, `system_app`, `system_worker`,
+`keyring_service`, `volume_service` and `image_probe`; the additional
+`manifest.image_probe` must identify the same artifact. The builder uses
+`TARGET/system-image-probe/x86_64-unknown-none/release/image-probe` and passes
+`NOS_IMAGE_PROBE_ELF` to the kernel. The other five paths are the existing
+system build targets.
 
-De gate controleert bronvingerafdrukversie3, actuele feature en manifest,
-SHA256 en nieuwe inspectie van alle zes echte ELFbestanden, en aanwezigheid
-van hun volledige bytes in de geladen kernel. Hij vergelijkt build-ESP én
-werkelijke QEMU-ESP met de kernel-/loaderhashes, zonder extra bestanden of
-links. De gelinkte ELF-FNV is uitsluitend een parity-/driftfingerprint;
-SHA256 bindt de exacte buildbytes. **FNV verleent geen authenticiteit.**
+The gate checks source-fingerprint version 3, the current feature and
+manifest, SHA256 and fresh inspection of all six actual ELF files, and the
+presence of their complete bytes in the loaded kernel. It compares both the
+build ESP and actual QEMU ESP against the kernel/loader hashes, without extra
+files or links. The linked ELF FNV is only a parity/drift fingerprint;
+SHA256 binds the exact build bytes. **FNV grants no authenticity.**
 
-De opgeslagen serial wordt opnieuw gelezen en streng geparseerd. De generieke
-systeemparser herkent het cijferdeel in `IMAGE_ELF_FNV64` niet; dit harnas
-parseert dat veld zelf en registreert de volledige imagewaarden afzonderlijk
-als `image_evidence`. Bestaande `evidence` blijft gelijk aan de opnieuw
-geëvalueerde oorspronkelijke systeemgegevens. Oude of gewijzigde gecachte
-image-/systeemtellers mogen de werkelijke bytes niet vervangen.
+The saved serial output is reread and strictly parsed. The generic system
+parser does not recognise the numeric portion of `IMAGE_ELF_FNV64`; this
+harness parses that field itself and records the complete image values
+separately as `image_evidence`. Existing `evidence` remains equal to the
+reevaluated original system data. Old or modified cached image/system
+counters must not replace actual bytes.
 
-Het commandoprofiel, de QEMU-executablehash, de geselecteerde OVMF-code en
-preboot-VARStemplatehash moeten overeenkomen en aan het einde onveranderd
-zijn. Werkelijk writableUEFI-state wordt beheerd gelezen, niet onjuist met
-zijn oude bytes gelijkgesteld. Een snapshot-/netwerk-/anderecommandoregel
-wordt niet geaccepteerd als dezelfde proef.
+The command profile, QEMU executable hash, selected OVMF code and preboot
+VARS template hash must match and remain unchanged at the end. Actual writable
+UEFI state is read under controlled access, not incorrectly equated with its
+old bytes. A snapshot/network/different command line is not accepted as the
+same test.
 
-De onafhankelijke diskparser controleert de livewegwerpimage én identieke
-postrun-snapshot: het nieuwe volume begon leeg; het oorspronkelijke document
-heet `systeemproef`, bevat4096exacte fixturebytes op revisie1 en SAVErequestID3.
-Geschreven extra objecten, collecties, onjuiste canaries of gewijzigde content
-kunnen niet door een opgeslagen oracle-succes worden afgedekt.
+The independent disk parser checks the live disposable image and identical
+post-run snapshot: the new volume started empty; the original document is
+named `systeemproef`, contains 4096 exact fixture bytes at revision1 and
+SAVE requestID3. Additional objects or collections written, incorrect canaries
+or changed content cannot be concealed by a saved oracle success.
 
-Symlinks, specialfiles en hardlinked bewijs-/outputbestanden worden geweigerd.
-Alleen read-only consumptie van echte Cargo-uitvoer laat diens interne hardlinks
-toe. Publicatie gebruikt nieuwe inodes en atomicreplace binnen eigen paden.
-De aanvankelijk onware `image_gate` wordt pas na alle controles waar. Iedere
-extra fout maakt ook `passed=False`. Resultaten staan onder de eigen buildmap
-als `image-report.json` en bij de werkelijke run als `result.json`; het
-`last-system-stage.json` met deze andere feature autoriseert geen gewone
-FR-I01-coldrecovery. Deze registratie is geen ondertekende attestatie tegen een
-kwaadwillende host die alle bron, binaries en bewijsbestanden vervalst.
+Symlinks, special files and hard-linked evidence/output files are rejected.
+Only read-only consumption of actual Cargo output permits its internal
+hard links. Publication uses new inodes and atomic replacement within owned
+paths. The initially false `image_gate` becomes true only after all checks.
+Every additional error also sets `passed=False`. Results are stored under
+the dedicated build directory as `image-report.json` and with the actual run
+as `result.json`; `last-system-stage.json` with this different feature does
+not authorise ordinary FR-I01 cold recovery. This record is not signed
+attestation against a malicious host that falsifies all source, binaries
+and evidence files.
 
-De actuele `image-report.json` wordt vóór verdere preflight en VM-delegatie
-atomair vervangen door `status=starting`, `passed=False`, `image_gate=False`.
-Een preflight-/launch-exceptie schrijft `status=failed` met onware flags en wordt
-doorgegeven; een ouder groen indexrapport kan daardoor geen nieuwe mislukking
-verbergen. Historische per-runresultaten blijven behouden. Onveilig gelinkte
-rapportdoelen worden vóór publicatie geweigerd zonder externe bytes te wijzigen.
-Vóór sharedcopy/delegatie wordt de bron-ESP zelf op exact de twee gehashte files,
-alle voorouders en afwezigheid van links/specialfiles gecontroleerd. De latere
-controle van de echte guest-ESP blijft verplicht en vervangt deze vroege grens niet.
+The current `image-report.json` is atomically replaced with `status=starting`,
+`passed=False`, `image_gate=False` before further preflight and VM delegation.
+A preflight/launch exception writes `status=failed` with false flags and is
+propagated; an older passing index report therefore cannot conceal a new
+failure. Historical per-run results are retained. Unsafely linked report
+targets are rejected before publication without modifying external bytes.
+Before shared copy/delegation, the source ESP itself is checked for exactly
+the two hashed files, all ancestors and absence of links/special files.
+The subsequent check of the actual guest ESP remains mandatory and does
+not replace this early boundary.
 
-## Hosttegenproeven en open acceptatie
+## Host negative tests and open acceptance
 
 ```sh
 LOCALAPPDATA=/workspace/nieuw-os/.tools python3 -B tools/dev.py python3 -B -m unittest discover -s tools/tests -p test_images.py
 ```
 
-De expliciet synthetische hostfixtures toetsen alleen het harnas: PIDmix,
-verkeerde bootstrapvolgorde, fout/timeout met PASS-vlag, andere pixel-/heap-/
-stack-/klokcijfers, onjuiste ELF-FNV/lengte/SHA/inspectie, profiel-/bronfouten,
-snapshot-/netwerkcommando's, links, gewijzigde serial/schijf en verouderde
-oracle-resultaten. Zij draaien geen beelddecoder en vormen geen native log.
+The explicitly synthetic host fixtures test only the harness: mixed PIDs,
+incorrect bootstrap order, error/timeout with a PASS flag, different pixel/
+heap/stack/clock figures, incorrect ELF FNV/length/SHA/inspection, profile/
+source errors, snapshot/network commands, links, changed serial output/disk
+and stale oracle results. They run no image decoder and constitute no native log.
 
-Echte root-VM-uitvoering op de bevroren integratiebron en bestaande gezamenlijke
-koude regressies blijven verplicht. Algemene viewer-/formaatacceptatie, object-
-RPC, Materiaal-/compositorintegratie, zoom/pan, mid-decodecancel, echte native
-allocator-OOM/herstart en volledige memory-safety-/kwaliteitsaudit blijven open.
-Een geslaagde sampleproef op64KiB-stack is geen maximum-stackgarantie voor alle
-invoer. Deze gate tekent FR-A03 of de volledige testrelease niet zelfstandig af.
+Actual root VM execution on the frozen integration source and the existing
+joint cold regressions remain mandatory. General viewer/format acceptance,
+object RPC, Materiaal/compositor integration, zoom/pan, mid-decode cancellation,
+actual native allocator OOM/restart and complete memory-safety/quality audit
+remain open. A passing sample test on a 64KiB stack is not a maximum-stack
+guarantee for all input. This gate does not independently sign off FR-A03
+or the complete test release.

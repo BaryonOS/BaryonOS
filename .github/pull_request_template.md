@@ -1,56 +1,56 @@
-# Wijzigingsvoorstel
+# Change proposal
 
 <!--
-Open de PR eerst als concept. Vul de relevante onderdelen in en verwijder
-instructies/placeholders vóór afronding. Behoud concrete open punten.
-Gebruik 'Closes #...' alleen als dit issue hiermee geheel wordt opgelost.
-Geen secrets, productiekeys, echte gebruikersgegevens of ongeschoonde logdumps.
+Open the PR as a draft first. Complete the relevant sections and remove
+instructions/placeholders before finalisation. Retain concrete open points.
+Use 'Closes #...' only if this change resolves that issue completely.
+No secrets, production keys, real user data or unsanitised log dumps.
 -->
 
-## Doel en verandering
+## Purpose and change
 
-Welk concreet probleem is opgelost, wat verandert en welk gedrag levert dat op?
-Link issue/discussie en relevante ADR of FR-/rubric-ID. Benoem resterend werk
-wanneer deze PR slechts een deel van een issue uitvoert.
+What concrete problem is resolved, what changes, and what behaviour results?
+Link the issue/discussion and relevant ADR or FR/rubric ID. Identify remaining
+work when this PR implements only part of an issue.
 
-## Scope en grenzen
+## Scope and boundaries
 
-Vermeld relevante bronbestanden, interfaces en featureprofielen. Beschrijf
-wijzigingen aan capabilities, IPC, proces-/drivergrenzen of opslagformaten,
-met de te behouden invariant en negatieve controles. De eigen kernel en
-Security Floor blijven leidend.
+Identify relevant source files, interfaces and feature profiles. Describe
+changes to capabilities, IPC, process/driver boundaries or storage formats,
+including the invariant to preserve and negative checks. The independent kernel
+and Security Floor remain authoritative.
 
-- [ ] Relevante `AGENTS.md`-bestanden en contractspecificaties gelezen.
-- [ ] Nieuwe `unsafe`, dependencies of overgenomen code/assets: motivatie, herkomst, versie en licentie gecontroleerd; of expliciet niet van toepassing.
+- [ ] Relevant `AGENTS.md` files and contract specifications have been read.
+- [ ] New `unsafe`, dependencies or reused code/assets: rationale, provenance, version and licence checked; or explicitly not applicable.
 
-## Verificatie
+## Verification
 
-Vul alleen werkelijk uitgevoerde controles als geslaagd in. Houd hosttests,
-targetbuilds, native VM-proeven, fysieke tests en menselijke review apart.
-Neem passende formatting/linting en positieve én negatieve tests op.
+Mark only checks that were actually run as passed. Distinguish host tests,
+target builds, native VM experiments, physical tests and human review.
+Include appropriate formatting/linting and positive and negative tests.
 
-| Commando of gate | Geteste bron / profiel | Resultaat en exitstatus | Bewijs / run-URL |
+| Command or gate | Tested source / profile | Result and exit status | Evidence / run URL |
 |---|---|---|---|
 | | | | |
 
-**Niet uitgevoerd, geblokkeerd of niet van toepassing (met reden):**
+**Not run, blocked or not applicable (with reason):**
 
-Vermeld voor native bewijs de gebruikte image-/toolversies en het rapport met
-hashes. Eerder bewijs blijft aan zijn oorspronkelijke bron gebonden. Een
-groene cache, build of AI-review vervangt geen vereiste runtimeacceptatie.
+For native evidence, record the image/tool versions used and the report containing
+hashes. Earlier evidence remains tied to its original source. A successful cache,
+build or AI review does not replace required runtime acceptance.
 
-## Bewijsgrens en rollback
+## Evidence limits and rollback
 
-Wat bewijst deze wijziging nog niet? Welke concrete risico's of open
-reviewbevindingen blijven er, en hoe kan deze wijziging veilig worden teruggedraaid?
+What does this change not yet demonstrate? Which concrete risks or unresolved
+review findings remain, and how can this change be safely reverted?
 
-## Voortgang
+## Progress
 
-Betrokken criterium/FR-ID (of geen), oude → nieuwe score en onderbouwing:
+Affected criterion/FR ID (or none), previous → new score and justification:
 
-De integrator werkt de assessment in `docs/progress.json` en de bijbehorende
-voortgangsweergaven **bij iedere opdracht bij, ook als de score gelijk blijft**.
-Vermeld `python3 tools/progress.py --write` en `python3 tools/progress.py --check`
-met hun resultaat in de verificatietabel. Alleen volledig behaald, passend
-opgeslagen criteriumbewijs rechtvaardigt nieuwe punten; noteer de feitelijke
-overdracht en open grenzen in `docs/PROJECT-STATE.md`.
+The integrator updates the assessment in `docs/progress.json` and the associated
+progress displays **for every task, even when the score is unchanged**.
+Record `python3 tools/progress.py --write` and `python3 tools/progress.py --check`
+and their results in the verification table. Only fully satisfied criteria with
+appropriately stored evidence justify new points; record the actual handover
+and remaining limits in `docs/PROJECT-STATE.md`.

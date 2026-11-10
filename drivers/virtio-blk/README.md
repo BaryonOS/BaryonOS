@@ -1,58 +1,59 @@
-# Eerste virtio-blk-transport
+# Initial virtio-blk transport
 
-Deze driver hoort bij de M5-ontwikkelproef: QEMU q35/TCG, één CPU, exact PCI `00:05.0`, vendor/device `1af4:1042`, modern virtio 1.2 en een afzonderlijk readonly64KiB-testimage. De virtio-boot-ESP wordt niet geselecteerd. Er zijn uitsluitend reads, één splitqueue met acht descriptors en maximaal één uitstaande sectorread.
+This driver belongs to the M5 development experiment: QEMU q35/TCG, one CPU, exactly PCI `00:05.0`, vendor/device `1af4:1042`, modern virtio 1.2 and a separate read-only 64 KiB test image. The virtio boot ESP is not selected. Only reads are supported, with one split queue of eight descriptors and at most one outstanding sector read.
 
-De driver en het protocolconforme QEMU-device/backend behoren tot de trusted computing base. Een echte ring-3-dienst gebruikt alleen een getypeerde READ-capability en begrensde submit/poll-syscalls. Userspace krijgt geen PCI-config, BAR/MMIO, busmaster-, descriptor- of DMA-adresmacht. Er is geen IOMMU-initialisatie of bescherming tegen een kwaadaardig device; CPU-isolatie en gecontroleerde aanvragen zijn daarvan afzonderlijke eigenschappen.
+The driver and protocol-conforming QEMU device/backend belong to the trusted computing base. An actual ring-3 service uses only a typed READ capability and bounded submit/poll syscalls. Userspace receives no authority over PCI configuration, BAR/MMIO, bus mastering, descriptors or DMA addresses. There is no IOMMU initialisation or protection against a malicious device; CPU isolation and checked requests are separate properties.
 
-De kernel behoudt vijf afzonderlijke, gepinde supervisor-RW/NX-pagina's tot VM-stop: descriptors, available ring, used ring, request/status en bounce. Header16B is device-readable; bounce512B en status1B zijn device-writable. De gevalideerde keten is `0→1→2`. Alleen gecontroleerde BAR-subregio's krijgen supervisor-NX/UC-mappings, na controle van BAR-grenzen, PAT-UC en CPU-MAXPHYADDR. De paginapool is geen usergeheugen en gaat nooit terug naar de frameallocator.
+The kernel retains five separate pinned supervisor-RW/NX pages until VM stop: descriptors, available ring, used ring, request/status and bounce. Header16B is device-readable; bounce512B and status1B are device-writable. The validated chain is `0→1→2`. Only checked BAR subregions receive supervisor-NX/UC mappings, after BAR-bound, PAT-UC and CPU-MAXPHYADDR checks. The page pool is not user memory and never returns to the frame allocator.
 
-Publicatie volgt na volledige descriptorvalidatie en memorybarrières. Completion gebruikt volatile snapshots en barrières; head/index/length/status worden gevalideerd vóór data wordt gekopieerd. Ongeldige metadata geeft lokaal een protocolfout zonder payload. Faultinjectie wijzigt uitsluitend een afgewezen draft of een lokale completion-snapshot; er wordt geen onveilig DMA-adres gepubliceerd.
+Publication follows full descriptor validation and memory barriers. Completion uses volatile snapshots and barriers; head/index/length/status are validated before data is copied. Invalid metadata produces a local protocol error without payload. Fault injection changes only a rejected draft or a local completion snapshot; no unsafe DMA address is published.
 
-Reset vraagt eerst virtio-status0 en wist PCI-busmasterenable. Busmaster-clear alleen bewijst geen beëindigde oude DMA. Queue/bounce worden pas na werkelijk waargenomen resetstatus0 opnieuw geïnitialiseerd. Ontbreekt bevestiging, dan blijft de pool in quarantaine en het device offline tot VM-stop. Een software-epoch/ticket staat niet in de gebruikte virtqueue en bewijst geen bescherming tegen kwaadwillige hardware-replay.
+Reset first requests virtio status0 and clears PCI bus-master enable. Clearing bus mastering alone does not prove that old DMA has ended. Queue/bounce are reinitialised only after reset status0 has actually been observed. Without confirmation, the pool remains quarantined and the device offline until VM stop. A software epoch/ticket is absent from the used virtqueue and does not demonstrate protection against malicious hardware replay.
 
-Vanaf de repositoryroot:
+From the repository root:
 
 ```powershell
 python tools/build.py --kernel-feature milestone-m5
 python tools/run.py --smoke --milestone m5
 ```
 
-De volledige M5-reeks, inclusief variantgebonden markers en externe image-oracle:
+The complete M5 suite, including variant-specific markers and the external image oracle:
 
 ```powershell
 python -u tools/test_m5.py
 ```
 
-De normale smoke-CLI verwacht de READ-case. Negatieve features moeten via de variantbewuste gate worden gestart; alleen een raw33 is geen volledige testuitslag. Alle runs gebruiken eigen gegenereerde images onder `build/run/`, zonder netwerk of hostdevices. FNV-sectorchecksums zijn diagnostische testmetadata; SHA256 legt de ongewijzigde hostimage vast. Zie `docs/implementation/M5-BLOCK-SERVICE.md` voor ABI1.1, de 17 foutcases, scope en bewijsgrenzen.
-## M6a WRITE/FLUSH-profiel
+The normal smoke CLI expects the READ case. Negative features must use the variant-aware gate; raw33 alone is not a complete test result. All runs use separately generated images under `build/run/`, without networking or host devices. FNV sector checksums are diagnostic test metadata; SHA256 records the unchanged host image. See `docs/implementation/M5-BLOCK-SERVICE.md` for ABI1.1, the 17 error cases, scope and evidence limits.
 
-Het afzonderlijke M6a-profiel selecteert hetzelfde vaste device, dezelfde queue
-van acht plaatsen en dezelfde vijf gepinde pagina's. Het vereist VERSION_1 en
-FLUSH en weigert een readonly device. CONFIG_WCE wordt niet onderhandeld of
-gewijzigd; de flush-respecterende QEMU-backend wordt als writeback behandeld.
-De bestaande M5-initialisatie en readonly fixture blijven afzonderlijk.
+## M6a WRITE/FLUSH profile
 
-WRITE gebruikt header16 device-readable, bounce512 device-readable en status1
-device-writable; FLUSH gebruikt uitsluitend header16 en status1, met sector0.
-De ongebruikte derde FLUSH-descriptor is exactnul. Een succesvolle WRITE/FLUSH
-heeft used-lengte1. De kernel kopieert eerst alle512 userbytes naar eigen RAM,
-valideert daarna de vaste descriptorchain en markeert Published direct voordat
-avail.idx wordt geschreven. notify is geen publicatiegrens. Er blijft maximaal
-��n operatie uitstaand; geen wachten op device-I/O met interrupts uit.
+The separate M6a profile selects the same fixed device, eight-entry queue and
+five pinned pages. It requires VERSION_1 and FLUSH and rejects a read-only
+device. CONFIG_WCE is neither negotiated nor changed; the flush-respecting
+QEMU backend is treated as writeback. Existing M5 initialisation and the
+read-only fixture remain separate.
 
-Alleen WRITE-completion gevolgd door echte FLUSH-completion staat een app-ACK toe.
-Onzekere gepubliceerde WRITE/FLUSH-uitkomsten worden niet automatisch herhaald.
-Reset is quiescence, geen rollback of bewijs van duurzaamheid. Zonder resetack
-blijft de pool in quarantaine; gebruikersframes zijn nooit een DMA-target.
-Het M5-vertrouwensmodel zonder IOMMU blijft gelden. Een QEMU-procesabort bewijst
-geen hoststroomuitval of atomische fysieke sectorwrites.
+WRITE uses a device-readable header16 and bounce512 plus device-writable
+status1; FLUSH uses only header16 and status1, with sector0. The unused third
+FLUSH descriptor is exactly zero. Successful WRITE/FLUSH has used length1.
+The kernel first copies all 512 user bytes into private RAM, then validates
+the fixed descriptor chain and marks Published immediately before writing
+avail.idx. Notify is not the publication boundary. At most one operation
+remains outstanding; do not wait for device I/O with interrupts disabled.
+
+Only WRITE completion followed by actual FLUSH completion permits an app ACK.
+Uncertain published WRITE/FLUSH outcomes are not automatically replayed.
+Reset establishes quiescence, not rollback or durability. Without reset
+acknowledgement, the pool remains quarantined; user frames are never DMA targets.
+The M5 trust model without IOMMU remains in force. Aborting a QEMU process
+does not demonstrate host power loss or atomic physical-sector writes.
 
 ```powershell
 python tools/build.py --kernel-feature milestone-m6a
 python tools/run_m6.py --smoke
 ```
 
-Varianten moeten met hun overeenkomstige feature en `--case` worden gestart.
-Koude recovery gebruikt uitsluitend de bestaande guarded Volume via run_m6;
-geen nieuw aangemaakt volume als herstelbewijs. Het exacte protocol, de zes
-servicecuts en zes externe VMcuts staan in docs/implementation/M6A-WRITE-RECOVERY.md.
+Variants must be started with their corresponding feature and `--case`.
+Cold recovery uses only the existing guarded Volume through run_m6;
+a newly created volume is not recovery evidence. The exact protocol, six
+service cuts and six external VM cuts are in docs/implementation/M6A-WRITE-RECOVERY.md.

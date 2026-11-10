@@ -1,0 +1,40 @@
+title: "[Design] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Discuss technical choices and proposals here before they become executable tasks. A proposal does not yet change a contract or acceptance criterion.
+        Start with the relevant [project contracts](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/COMMUNITY.md#leidende-projectbronnen). Share vulnerability details according to [SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md).
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and current situation
+      description: Which concrete question requires a design decision? Refer to the current interface, code or agreement and identify the source version where needed.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal and alternatives
+      description: Describe the recommended approach, a viable alternative and the main trade-offs. Also identify what falls outside this step.
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Interfaces and trust boundaries
+      description: Which components, permissions, data flows or dependencies change? Preserve the independent kernel, Security Floor and privacy contract; explain if no boundary changes.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Research and acceptance
+      description: Which small experiment or check makes the choice testable? Distinguish host experiments, compilation, native QEMU, physical hardware and human review; identify open assumptions and relevant criterion IDs.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Related sources and work
+      description: Links to existing issues, discussions, decisions, specifications and primary technical sources. Include the version or date for external specifications.

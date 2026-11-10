@@ -1,24 +1,24 @@
-# Synchronisatie, SMP en geheugenordening
+# Synchronisation, SMP and memory ordering
 
-De wiki groepeert wederzijdse uitsluiting, rendezvous, readers/writerstoegang, semaforen, spinlocks, atomaire bewerkingen en geheugenbarrières. Zij bespreekt naast correctheid ook fairness en starvation. Het boek behandelt geen multicore-OS; zijn uitleg van preëmptie is daarom geen volledige SMP-handleiding.
+The wiki groups mutual exclusion, rendezvous, reader/writer access, semaphores, spinlocks, atomic operations and memory barriers. It discusses fairness and starvation as well as correctness. The book does not cover a multicore OS; its explanation of preemption is therefore not a complete SMP guide.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [Synchronization Primitives](../corpus/wiki-03.md#w001889) [W001889] · revisie 27650 · 2023-03-02T04:54:54Z
-- [Atomic operation](../corpus/wiki-03.md#w001766) [W001766] · revisie 24056 · 2019-10-13T12:47:58Z
-- [Spinlock](../corpus/wiki-05.md#w002494) [W002494] · revisie 27583 · 2023-01-13T03:08:34Z
-- [Semaphore](../corpus/wiki-03.md#w001752) [W001752] · revisie 11881 · 2011-08-06T15:34:51Z
-- [Deadlock](../corpus/wiki-02.md#w001729) [W001729] · revisie 2749 · 2007-01-10T09:02:37Z
-- [Memory barriers](../corpus/wiki-05.md#w002499) [W002499] · revisie 22592 · 2018-08-22T04:05:59Z
-- [Multiprocessing](../corpus/wiki-06.md#w002671) [W002671] · revisie 20657 · 2017-04-06T14:13:17Z
+- [Synchronization Primitives](../corpus/wiki-03.md#w001889) [W001889] · revision 27650 · 2023-03-02T04:54:54Z
+- [Atomic operation](../corpus/wiki-03.md#w001766) [W001766] · revision 24056 · 2019-10-13T12:47:58Z
+- [Spinlock](../corpus/wiki-05.md#w002494) [W002494] · revision 27583 · 2023-01-13T03:08:34Z
+- [Semaphore](../corpus/wiki-03.md#w001752) [W001752] · revision 11881 · 2011-08-06T15:34:51Z
+- [Deadlock](../corpus/wiki-02.md#w001729) [W001729] · revision 2749 · 2007-01-10T09:02:37Z
+- [Memory barriers](../corpus/wiki-05.md#w002499) [W002499] · revision 22592 · 2018-08-22T04:05:59Z
+- [Multiprocessing](../corpus/wiki-06.md#w002671) [W002671] · revision 20657 · 2017-04-06T14:13:17Z
 
-## Aansluiting op het PDF-boek
+## Related PDF book pages
 
-- Pagina 73–75: [B073](../corpus/boek.md#b073) tot [B075](../corpus/boek.md#b075).
+- Pages 73–75: [B073](../corpus/boek.md#b073) to [B075](../corpus/boek.md#b075).
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [APIC](../corpus/wiki-03.md#w001882) [W001882]
 - [Atomic operation](../corpus/wiki-03.md#w001766) [W001766]

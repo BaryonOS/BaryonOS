@@ -1,99 +1,100 @@
-# Versleutelde objectopslag en Security Floor
+# Encrypted object storage and Security Floor
 
-**Besluitdatum:** 28 oktober 2026.  
-**Status:** bindende architectuur- en producteis; nog **niet native geïmplementeerd of geaccepteerd**.  
-**Scope:** lokale opslag, persoonlijke NAS, optioneel gekozen externe opslagproviders, sleutelbeheer, synchronisatie en privacy-/securitygrenzen.
+**Decision date:** 28 October 2026.
 
-Dit document vult [LOCAL-PRIVACY-CONTRACT.md](../LOCAL-PRIVACY-CONTRACT.md),
-[VERIFIABLE-SECURITY-AND-PQC.md](VERIFIABLE-SECURITY-AND-PQC.md) en
-[PRODUCT-SPEC.md](PRODUCT-SPEC.md) aan. Het verandert de eigen Rust-microkernel
-niet in een bestaande OS-kernel en introduceert geen zelfbedachte cryptografische
-primitieven.
+**Status:** binding architecture and product requirement; **not yet natively implemented or accepted**.
 
-## 1. Productprincipe: privacy is configureerbaar, de Security Floor niet
+**Scope:** local storage, personal NAS, optionally selected external storage providers, key management, synchronisation and privacy/security boundaries.
 
-Een gebruiker mag bewust minder privacy kiezen voor functionaliteit, bijvoorbeeld
-door een game internettoegang te geven, een externe clouddienst te koppelen of
-telemetrie van een derdenapp toe te staan. Zo'n keuze vergroot uitsluitend de
-expliciet verleende gegevens- of servicebevoegdheid.
+This document supplements [LOCAL-PRIVACY-CONTRACT.md](../LOCAL-PRIVACY-CONTRACT.md),
+[VERIFIABLE-SECURITY-AND-PQC.md](VERIFIABLE-SECURITY-AND-PQC.md) and
+[PRODUCT-SPEC.md](PRODUCT-SPEC.md). It does not turn the custom Rust microkernel
+into an existing OS kernel and introduces no custom cryptographic primitives.
 
-Zij schakelt **niet** automatisch uit:
+## 1. Product principle: privacy is configurable, the Security Floor is not
 
-- kernel-/procesisolatie;
-- capability-controle en rechtenvermindering;
-- scheiding tussen apps en diensten;
-- geheugenbescherming en W^X/NX;
-- bescherming van niet-gedeelde bestanden en secrets;
-- sleutelisolatie;
-- authenticiteit van pakketten en updates;
-- DMA/IOMMU-beleid zodra dat op het ondersteunde hardwareprofiel is gerealiseerd;
-- herstel- en rollbackgrenzen.
+A user may deliberately choose less privacy for functionality, for example
+by giving a game internet access, connecting an external cloud service or
+allowing telemetry from a third-party app. Such a choice expands only the
+explicitly granted data or service authority.
 
-**Invariant:** toestemming vergroot functionaliteit, niet vertrouwen. Een app met
-internetrecht krijgt daardoor geen document-, sleutel-, camera-, microfoon-,
-NAS-, proces- of kernelrecht dat niet afzonderlijk is verleend.
+It does **not** automatically disable:
 
-Privacyuitleg en daadwerkelijke bevoegdheid zijn verschillende instellingen.
-Educatieve privacyuitleg mag de gebruiker uitschakelen. Het uitschakelen daarvan
-mag nooit impliciet rechten verruimen. Een nog niet verleende capability blijft
-een afzonderlijke beslissing of vooraf gekozen regel.
+- kernel/process isolation;
+- capability checking and rights attenuation;
+- separation between apps and services;
+- memory protection and W^X/NX;
+- protection of unshared files and secrets;
+- key isolation;
+- authenticity of packages and updates;
+- DMA/IOMMU policy once implemented on the supported hardware profile;
+- recovery and rollback boundaries.
 
-## 2. Opslagmodellen
+**Invariant:** consent expands functionality, not trust. Internet permission
+does not give an app any document, key, camera, microphone, NAS, process or
+kernel right that has not been granted separately.
 
-Nieuw OS ondersteunt op productniveau drie opslagklassen:
+Privacy explanations and actual authority are different settings. Users may
+disable educational privacy explanations. Doing so must never implicitly
+expand rights. A capability not yet granted remains a separate decision or
+preselected rule.
 
-1. **Lokaal:** plaintext is alleen binnen de daarvoor bevoegde lokale OS-grens
-   beschikbaar; opslagversleuteling en sleutelbeheer volgen de native
-   beveiligingsarchitectuur.
-2. **Persoonlijke/vertrouwde NAS:** inhoud en gevoelige metadata worden vóór
-   verzending end-to-end versleuteld; de NAS-beheerder bezit geen inhoudssleutel.
-3. **Onvertrouwde externe objectopslag:** een expliciet gekozen dienst zoals een
-   algemene cloudopslagprovider mag uitsluitend opaque ciphertextobjecten bewaren.
-   De provider is opslagtransport, niet de vertrouwensanker voor inhoud.
+## 2. Storage models
 
-Een externe provider is **nooit** een stille fallback. De gebruiker kiest hem
-expliciet en ziet dat account-, netwerk-, volume-, timing- en andere noodzakelijke
-provider-metadata buiten de inhoudsencryptie kunnen vallen.
+At product level, Baryon OS supports three storage classes:
 
-De provider mag voor het eigen account authenticatie vereisen. Nieuw OS mag dat
-niet presenteren alsof de provider daarmee decryptierechten of OS-brede toegang
-krijgt.
+1. **Local:** plaintext is available only within the authorised local OS
+   boundary; storage encryption and key management follow the native security
+   architecture.
+2. **Personal/trusted NAS:** content and sensitive metadata are end-to-end
+   encrypted before transmission; the NAS administrator holds no content key.
+3. **Untrusted external object storage:** an explicitly selected service such
+   as a general cloud-storage provider may store only opaque ciphertext
+   objects. The provider is storage transport, not the trust anchor for content.
 
-## 3. Dreigingsmodel voor externe opslag
+An external provider is **never** a silent fallback. The user selects it
+explicitly and sees that account, network, volume, timing and other necessary
+provider metadata may fall outside content encryption.
 
-Het ontwerp moet ervan uitgaan dat een externe provider of een aanvaller met
-toegang tot de provideropslag:
+The provider may require authentication for its own account. Baryon OS must
+not present this as granting the provider decryption rights or OS-wide access.
 
-- alle opgeslagen bytes kan lezen en kopiëren;
-- bestanden/objecten kan verwijderen, herschikken, dupliceren of terugrollen;
-- grootte, timing, account- en verbindingsmetadata kan observeren voor zover die
-  niet afzonderlijk wordt verhuld;
-- oude ciphertext onbeperkt kan bewaren;
-- geen vertrouwde code of sleutel aan de Nieuw-OS-client mag leveren.
+## 3. Threat model for external storage
 
-Onder dit model mag de provider zonder gebruikerssleutels geen geaccepteerde
-plaintext, documentnaam, gevoelige manifestinhoud of inhoudssleutel verkrijgen.
+The design must assume that an external provider or an attacker with access
+to provider storage can:
 
-Dit is geen claim dat de cryptografie absoluut "onkraakbaar" is. De garantie
-geldt onder de aannames van de geselecteerde standaardalgoritmen, correcte
-implementatie, voldoende entropy, correcte sleutelbescherming en een niet-
-gecompromitteerd gebruikersendpoint.
+- read and copy all stored bytes;
+- delete, rearrange, duplicate or roll back files/objects;
+- observe size, timing, account and connection metadata insofar as these are
+  not separately concealed;
+- retain old ciphertext indefinitely;
+- supply no trusted code or key to the Baryon OS client.
 
-Encryptie beschermt **vertrouwelijkheid en authenticiteit**, niet beschikbaarheid.
-Een provider kan ciphertext verwijderen of toegang blokkeren. Daarom zijn
-onafhankelijke lokale/back-upkopieën, herstel en versie-/rollbackdetectie
-afzonderlijke eisen.
+Under this model, the provider must obtain no accepted plaintext, document
+name, sensitive manifest content or content key without user keys.
 
-## 4. Eigen object-/containerformaat, geen eigen cryptografie
+This is not a claim that cryptography is absolutely “unbreakable”. The
+guarantee applies under the assumptions of the selected standard algorithms,
+correct implementation, sufficient entropy, correct key protection and an
+uncompromised user endpoint.
 
-Nieuw OS mag een eigen, versieerbaar **Encrypted Object Format** definiëren,
-maar gebruikt daarvoor alleen onderhouden, openbaar gespecificeerde en
-beoordeelde cryptografische bouwstenen.
+Encryption protects **confidentiality and authenticity**, not availability.
+A provider can delete ciphertext or block access. Independent local/backup
+copies, recovery and version/rollback detection are therefore separate
+requirements.
 
-Geen eigen cipher, hash, KDF, KEM, handtekeningsalgoritme of ad-hoc hybride
-protocol invoeren.
+## 4. Custom object/container format, no custom cryptography
 
-Conceptueel formaat:
+Baryon OS may define a custom, versionable **Encrypted Object Format**, but
+uses only maintained, publicly specified and reviewed cryptographic components.
+
+Introduce no custom cipher, hash, KDF, KEM, signature algorithm or ad hoc
+hybrid protocol.
+
+Conceptual format (original notation retained). English translation of the
+Dutch labels: minimal public header; document name; collection/relationships;
+sensitive timestamps/metadata; revision.
 
 ```text
 SecureObject vN
@@ -114,151 +115,155 @@ SecureObject vN
 └── ...
 ```
 
-De publieke header bevat alleen wat noodzakelijk is voor veilig parsen,
-synchroniseren en migreren. Alles wat niet publiek hoeft te zijn hoort in het
-versleutelde manifest.
+The public header contains only what is necessary for safe parsing,
+synchronisation and migration. Everything that need not be public belongs
+in the encrypted manifest.
 
-### 4.1 Binding en integriteit
+### 4.1 Binding and integrity
 
-Authenticated encryption moet minimaal de volgende context cryptografisch
-binden:
+Authenticated encryption must cryptographically bind at least the following
+context:
 
-- formaat- en suiteversie;
-- namespace/accountcontext;
-- opaque object-ID;
-- revisie/generatie;
-- chunkindex en totale lengte;
-- relevante schema-/typeversie.
+- format and suite version;
+- namespace/account context;
+- opaque object ID;
+- revision/generation;
+- chunk index and total length;
+- relevant schema/type version.
 
-Een chunk uit object A mag niet stil als geldige chunk van object B kunnen worden
-geaccepteerd. Verkeerde sleutel, tag, versie, namespace, volgorde of lengte geeft
-geen gedeeltelijk geaccepteerde plaintext.
+A chunk from object A must not be silently accepted as a valid chunk of
+object B. An incorrect key, tag, version, namespace, order or length yields
+no partially accepted plaintext.
 
-De concrete AEAD-suite wordt pas voor native P04/B02 vastgezet na dependency-,
-platform- en implementatiecontrole. AES-256-GCM-SIV (RFC 8452) is een kandidaat
-vanwege nonce-misuse-resistance; de architectuur schrijft het algoritme nog niet
-onherroepelijk voor.
+The concrete AEAD suite is fixed for native P04/B02 only after dependency,
+platform and implementation review. AES-256-GCM-SIV (RFC 8452) is a candidate
+because of nonce-misuse resistance; the architecture does not yet mandate
+that algorithm irrevocably.
 
-## 5. Sleutelhiërarchie
+## 5. Key hierarchy
 
-Doelmodel:
+Target model:
 
-- ieder object krijgt een willekeurige data-encryption key (DEK);
-- gewone apps ontvangen geen exporteerbare master key;
-- een afzonderlijke Key Service voert wrap/unwrap/decrypt-operaties uit binnen
-  capabilities;
-- root-/devicekeys gebruiken hardwarebescherming zoals TPM/secure hardware waar
-  een ondersteund profiel dat betrouwbaar aanbiedt;
-- per-objectkeys kunnen afzonderlijk worden geroteerd, gedeeld of ingetrokken
-  zonder de hele opslagnamespace plaintext te maken.
+- each object receives a random data-encryption key (DEK);
+- ordinary apps receive no exportable master key;
+- a separate Key Service performs wrap/unwrap/decrypt operations within
+  capability boundaries;
+- root/device keys use hardware protection such as TPM/secure hardware where
+  a supported profile reliably provides it;
+- per-object keys can be rotated, shared or revoked separately without
+  exposing the entire storage namespace as plaintext.
 
-Een externe provider bezit geen master key, objectkey of herstelkey.
+An external provider holds no master key, object key or recovery key.
 
-Wachtwoordgebaseerd herstel gebruikt een onderhouden password KDF. Argon2id
-(RFC 9106) is de voorkeurskandidaat; exacte parameters worden per ondersteund
-hardwareprofiel gemeten en versieerbaar opgeslagen. Een wachtwoord is niet de
-voorkeursopslag voor een rechtstreeks gebruikte master key.
+Password-based recovery uses a maintained password KDF. Argon2id (RFC 9106)
+is the preferred candidate; exact parameters are measured per supported
+hardware profile and stored in a versionable form. A password is not the
+preferred means of storing a directly used master key.
 
-Herstel kan bestaan uit een offline recovery secret en/of een al vertrouwd
-apparaat. Verlies van alle geldige sleutels kan bewust onherstelbaar zijn;
-er komt geen verborgen leveranciers- of provider-escrow.
+Recovery may use an offline recovery secret and/or an already trusted device.
+Loss of all valid keys may deliberately be unrecoverable; there will be no
+hidden vendor or provider escrow.
 
-## 6. Crypto-agility en postkwantumroute
+## 6. Crypto agility and post-quantum route
 
-Het objectformaat hardcodeert geen enkel algoritme zonder suite-ID en
-migratiepad. Iedere suite heeft:
+The object format hard-codes no algorithm without a suite ID and migration
+path. Each suite has:
 
-- expliciete versie;
-- algoritmen en parameters;
-- canonieke serialisatie;
-- sleutel-/noncevereisten;
-- migratie- en deprecatiebeleid.
+- an explicit version;
+- algorithms and parameters;
+- canonical serialisation;
+- key/nonce requirements;
+- migration and deprecation policy.
 
-Postkwantumalgoritmen zoals ML-KEM (FIPS 203) horen bij sleuteluitwisseling en
-sharing waar het dreigingsmodel dat vereist; zij vervangen niet automatisch
-symmetric authenticated encryption van bulkdata. Hybride transport blijft
-afzonderlijk gespecificeerd in VERIFIABLE-SECURITY-AND-PQC.md.
+Post-quantum algorithms such as ML-KEM (FIPS 203) belong in key exchange and
+sharing where the threat model requires them; they do not automatically
+replace symmetric authenticated encryption of bulk data. Hybrid transport
+remains separately specified in VERIFIABLE-SECURITY-AND-PQC.md.
 
-Nieuwe suites worden niet stil geactiveerd. Migratie maakt nieuwe ciphertext
-onder de nieuwe suite en behoudt een controleerbare herstelroute totdat de
-oude versie veilig kan worden uitgefaseerd.
+New suites are not activated silently. Migration creates new ciphertext
+under the new suite and preserves an auditable recovery route until the old
+version can be safely phased out.
 
-## 7. Metadata en privacyprofielen
+## 7. Metadata and privacy profiles
 
-Encryptie van inhoud verbergt niet automatisch:
+Content encryption does not automatically hide:
 
-- accountidentiteit;
-- bron-IP en providerlogs;
-- aantal objecten;
-- objectgrootte;
-- upload-/downloadtiming;
-- verkeersvolume.
+- account identity;
+- source IP and provider logs;
+- object count;
+- object size;
+- upload/download timing;
+- traffic volume.
 
-Nieuw OS moet dit eerlijk tonen en mag geen anonimiteitsclaim afleiden uit
-client-side encryptie.
+Baryon OS must show this honestly and must not derive an anonymity claim from
+client-side encryption.
 
-Voor gevoeliger gebruik kan een optioneel privacyprofiel extra mitigaties
-onderzoeken, zoals:
+For more sensitive use, an optional privacy profile may investigate additional
+mitigations, such as:
 
-- willekeurige opaque objectnamen;
+- random opaque object names;
 - size-class padding;
-- encrypted directory/manifeststructuren;
-- batch-/vertraagde synchronisatie waar bruikbaar;
-- scheiding tussen providercredentials en inhoudssleutels.
+- encrypted directory/manifest structures;
+- batched/delayed synchronisation where useful;
+- separation between provider credentials and content keys.
 
-Padding en batching kosten opslag, bandbreedte en/of latency en zijn daarom
-geen gratis universele standaard zonder meting.
+Padding and batching cost storage, bandwidth and/or latency and are therefore
+not a cost-free universal default without measurement.
 
-## 8. Multi-provider en provider-onafhankelijkheid
+## 8. Multiple providers and provider independence
 
-De objectlaag staat boven de concrete provideradapter. Eenzelfde encrypted
-object moet, waar de providerlimieten dat toelaten, kunnen worden opgeslagen op:
+The object layer sits above the concrete provider adapter. Where provider
+limits permit, the same encrypted object must be capable of storage on:
 
-- eigen NAS;
-- NAS van vertrouwde derden;
-- generieke WebDAV/S3-achtige opslag;
-- expliciet gekoppelde algemene cloudopslagproviders.
+- a personal NAS;
+- a trusted third party's NAS;
+- generic WebDAV/S3-like storage;
+- explicitly connected general cloud-storage providers.
 
-Provideradapters krijgen alleen de capabilities voor de toegewezen
-ciphertextnamespace en netwerkbestemming. Zij hoeven geen documentinhoud,
-lokale zoekindex of AI-context te zien.
+Provider adapters receive only capabilities for their assigned ciphertext
+namespace and network destination. They need not see document content, the
+local search index or AI context.
 
-Het ontwerp moet kunnen ondersteunen dat dezelfde versleutelde gegevens
-redundant bij meerdere providers staan zonder aan ieder daarvan plaintext te
-geven. Dit is een toekomstige beschikbaarheidsfunctie, geen reeds werkend
-multi-cloudbewijs.
+The design must be capable of supporting redundant storage of the same
+encrypted data at multiple providers without giving any of them plaintext.
+This is a future availability feature, not evidence of an already working
+multi-cloud system.
 
-## 9. Rollback, verwijderen en herstel
+## 9. Rollback, deletion and recovery
 
-Een aanvaller kan oude geldige ciphertext terugplaatsen. Daarom zijn AEAD-tags
-alleen onvoldoende voor actuele-versiegaranties.
+An attacker can restore old valid ciphertext. AEAD tags alone are therefore
+insufficient to guarantee the current version.
 
-Het ontwerp moet een vertrouwde, monotone of anderszins rollback-bestendige
-versieankering hebben voor de relevante threat model-scope. Test minimaal:
+The design must have trusted, monotonic or otherwise rollback-resistant
+version anchoring for the relevant threat-model scope. Test at least:
 
-- replay van een oude objectversie;
-- swap van chunks tussen objecten;
-- truncatie;
-- duplicatie;
-- gedeeltelijke upload;
-- providerdelete;
-- providerrollback;
-- lokale crash tijdens keyrotatie;
-- verloren apparaat;
-- verloren providercredentials.
+- replay of an old object version;
+- swapping chunks between objects;
+- truncation;
+- duplication;
+- partial upload;
+- provider deletion;
+- provider rollback;
+- local crash during key rotation;
+- lost device;
+- lost provider credentials.
 
-"Verwijderen uit de cloud" betekent alleen dat de actuele provider geen
-toegankelijke kopie meer aanbiedt. Het OS mag niet beloven dat een provider
-nooit historische ciphertext heeft behouden. Cryptografisch wissen betekent
-het vernietigen/intrekken van de relevante keys binnen de gegarandeerde scope;
-dit vervangt geen providerretentieclaim.
+“Delete from the cloud” means only that the current provider no longer offers
+an accessible copy. The OS must not promise that a provider has never retained
+historical ciphertext. Cryptographic erasure means destroying/revoking the
+relevant keys within the guaranteed scope; this does not replace a claim about
+provider retention.
 
-## 10. App- en netwerkgrens
+## 10. App and network boundary
 
-De syncdienst bezit geen algemene documentcapability voor alle apps. De
-object-/Key Service en provideradapter blijven afzonderlijke principals.
+The sync service holds no general document capability for all apps. The
+object/Key Service and provider adapter remain separate principals.
 
-Voorbeeld:
+Example (original notation retained). English translation: Editor → Object
+Service with capability to read/write object A; Object Service → Key Service
+with a bounded crypto operation; Sync Service → Provider Adapter with
+capability to ciphertext A; Provider Adapter → network with capability to
+provider X and namespace Y.
 
 ```text
 Bewerker ──cap: object A lezen/schrijven──> Object Service
@@ -267,80 +272,79 @@ Sync Service ──cap: ciphertext A──> Provider Adapter
 Provider Adapter ──cap: provider X + namespace Y──> netwerk
 ```
 
-Een derdenapp die zowel plaintext mag lezen als vrij internet mag gebruiken kan
-toegestane inhoud zelf versturen. Nieuw OS moet die gecombineerde bevoegdheid
-begrijpelijk tonen, maar kan geen absolute non-exfiltration beloven nadat de
-gebruiker beide rechten bewust heeft verleend.
+A third-party app allowed both to read plaintext and to use unrestricted
+internet can transmit permitted content itself. Baryon OS must make that
+combined authority understandable, but cannot promise absolute non-exfiltration
+after the user deliberately grants both rights.
 
-## 11. Privacyuitleg is uitzetbaar, rechten niet impliciet
+## 11. Privacy explanations can be disabled; rights remain explicit
 
-De systeem-UI onderscheidt:
+The system UI distinguishes:
 
-1. **security/capability prompt:** noodzakelijke beslissing over nog niet
-   verleende toegang;
-2. **privacyuitleg:** extra begrijpelijke toelichting, voorbeelden en kritische
-   vraag over gevolgen.
+1. **Security/capability prompt:** a necessary decision about access not yet
+   granted;
+2. **Privacy explanation:** additional accessible explanation, examples and
+   a critical question about consequences.
 
-De gebruiker kan privacyuitleg globaal of per app uitschakelen. Dat verandert
-geen bestaande grants en verleent geen nieuwe grants. Een reeds geldige grant
-wordt niet bij iedere normale handeling opnieuw gevraagd.
+Users can disable privacy explanations globally or per app. This changes no
+existing grants and issues no new grants. An already valid grant is not
+requested again for every ordinary action.
 
-Tijdens een game of andere focusmodus worden niet-urgente educatieve meldingen
-niet midden in de activiteit opgedrongen. Een door de gebruiker geactiveerde
-nieuwe gevoelige functie kan wel een compacte noodzakelijke grantvraag geven.
+During a game or other focus mode, non-urgent educational notifications are
+not imposed mid-activity. A new sensitive feature activated by the user may
+still present a compact, necessary grant request.
 
-## 12. Acceptatie vóór een productclaim
+## 12. Acceptance before a product claim
 
-Minimale toekomstige gates voor deze architectuur:
+Minimum future gates for this architecture:
 
-- **EO-01:** provideropslag bevat geen plaintext documentnaam, inhoud of
-  inhoudssleutel in een gecontroleerde fixture.
-- **EO-02:** gewijzigde ciphertext/tag/header/chunkvolgorde wordt geweigerd.
-- **EO-03:** object-/namespace-/revisieswap wordt geweigerd.
-- **EO-04:** providerdelete of outage geeft geen stille alternatieve provider of
-  dataverliesclaim.
-- **EO-05:** providercredentials alleen geven geen decryptierecht.
-- **EO-06:** verlies van provideraccount tast een onafhankelijke lokale/back-up
-  herstelroute niet stil aan.
-- **EO-07:** app met alleen netwerkrecht kan geen beschermd document via de
-  gecontroleerde OS-grens lezen.
-- **EO-08:** app met alleen documentrecht kan geen provideradapter/netwerk
-  gebruiken.
-- **EO-09:** privacyuitleg uitzetten wijzigt geen capabilities.
-- **EO-10:** keyrotatie en crashpad geven geen oude, nieuwe of gemengde plaintext
-  als stil succes.
-- **EO-11:** rollback/replay binnen de gekozen threat-modelscope wordt gedetecteerd.
-- **EO-12:** multi-device toevoeging/intrekking verandert alleen de bedoelde
-  sleutel-/objectscope.
-- **EO-13:** een provideradapter kan geen tweede niet-geautoriseerde namespace
-  of provider gebruiken.
-- **EO-14:** metadata die nog zichtbaar blijft is gedocumenteerd en in
-  gebruikerstaal terug te vinden.
-- **EO-15:** onafhankelijke crypto-/integratiereview voor de daadwerkelijk
-  gekozen suite en implementatie vóór brede veiligheidsclaim.
+- **EO-01:** provider storage contains no plaintext document name, content or
+  content key in a controlled fixture.
+- **EO-02:** modified ciphertext/tag/header/chunk order is rejected.
+- **EO-03:** object/namespace/revision swap is rejected.
+- **EO-04:** provider deletion or outage produces no silent alternative
+  provider or data-loss claim.
+- **EO-05:** provider credentials alone grant no decryption right.
+- **EO-06:** loss of a provider account does not silently affect an independent
+  local/backup recovery route.
+- **EO-07:** an app with only network permission cannot read a protected
+  document through the controlled OS boundary.
+- **EO-08:** an app with only document permission cannot use a provider
+  adapter/network.
+- **EO-09:** disabling privacy explanations changes no capabilities.
+- **EO-10:** key rotation and crash paths do not return old, new or mixed
+  plaintext as silent success.
+- **EO-11:** rollback/replay within the selected threat-model scope is detected.
+- **EO-12:** adding/revoking devices changes only the intended key/object scope.
+- **EO-13:** a provider adapter cannot use a second unauthorised namespace or
+  provider.
+- **EO-14:** metadata that remains visible is documented and discoverable in
+  language users understand.
+- **EO-15:** independent crypto/integration review of the actual selected suite
+  and implementation before a broad security claim.
 
-Hostprototypes, browsermocks en formaten op papier tellen niet als deze native
-acceptatie.
+Host prototypes, browser mocks and formats on paper do not count as this
+native acceptance.
 
-## 13. Productervaring: beveiliging zonder ouderwetse UX
+## 13. Product experience: security without old-fashioned UX
 
-Security- en privacygrenzen mogen niet leiden tot een beheerconsole als
-dagelijkse interface. Providerkeuze, sleutelbeheer, herstel en grants krijgen
-een hoogwaardige, consistente Materiaal-ervaring met:
+Security and privacy boundaries must not result in an administration console
+as the everyday interface. Provider selection, key management, recovery and
+grants receive a high-quality, consistent Materiaal experience with:
 
-- normale menselijke termen als primaire laag;
-- technische details op verzoek;
-- één consistente interaction language;
-- snelle hervatting binnen reeds verleende rechten;
-- zichtbare locatie en herstelstatus zonder permanent dashboardlawaai;
-- toegankelijke bediening en toetsenbordroute;
-- geen imitatie van Windows/macOS/Office als productidentiteit.
+- ordinary human terms as the primary layer;
+- technical details on request;
+- one consistent interaction language;
+- fast resumption within already granted rights;
+- visible location and recovery status without persistent dashboard noise;
+- accessible controls and a keyboard route;
+- no imitation of Windows/macOS/Office as the product identity.
 
-De exacte native renderer en compositor zijn afzonderlijke implementatiebesluiten.
-De producteis is een moderne, responsieve en eigen interface; geen claim dat dit
-al gerealiseerd is.
+The exact native renderer and compositor are separate implementation decisions.
+The product requirement is a modern, responsive, original interface; there is
+no claim that this has already been realised.
 
-## Primaire technische bronnen
+## Primary technical sources
 
 - National Institute of Standards and Technology. (2024). *Module-Lattice-Based
   Key-Encapsulation Mechanism Standard (FIPS 203).* https://csrc.nist.gov/pubs/fips/203/final
@@ -351,8 +355,8 @@ al gerealiseerd is.
   Memory-Hard Function for Password Hashing and Proof-of-Work Applications*
   (RFC 9106). https://www.rfc-editor.org/rfc/rfc9106
 - National Institute of Standards and Technology. (2026). *Considerations for
-  Achieving Crypto Agility: Strategies and Practices.* 
+  Achieving Crypto Agility: Strategies and Practices.*
   https://csrc.nist.gov/pubs/cswp/39/upd1/final
 
-Deze bronnen specificeren bouwstenen en migratieprincipes; zij certificeren
-Nieuw OS of deze integratie niet.
+These sources specify components and migration principles; they do not
+certify Baryon OS or this integration.

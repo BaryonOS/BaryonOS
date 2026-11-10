@@ -1,125 +1,124 @@
-# Productvisie, privacy en Europese zelfstandigheid
+# Product vision, privacy and European independence
 
-Status: ontwerpvoorstel, 26 oktober 2026. Dit document beschrijft gewenste eigenschappen; geen daarvan is al geïmplementeerd of gecertificeerd. Architectuur en technische ontwikkelfasen staan in `ARCHITECTURE.md` en `ROADMAP.md`.
+Status: design proposal, 26 October 2026. This document describes desired properties; none has yet been implemented or certified. Architecture and technical development phases are in `ARCHITECTURE.md` and `ROADMAP.md`.
 
-## 1. Eén duidelijke productbelofte
+## 1. One clear product promise
 
-Een zelfstandig, open besturingssysteem waarmee mensen hun apparaten en gegevens kunnen gebruiken met lokale accounts, een eigen NAS of vrijwillig aangeboden NAS-ruimte bij vrienden/familie voor end-to-end versleutelde synchronisatie, via LAN of expliciet toegestane internettoegang, zonder leverancierscloud voor OS-gegevens, met begrijpelijke toegangsrechten en herstelbare wijzigingen.
+An independent, open operating system through which people can use their devices and data with local accounts, a personal NAS or voluntarily offered NAS space with friends/family for end-to-end encrypted synchronisation, through LAN or explicitly permitted internet access, without a vendor cloud for OS data, with understandable permissions and recoverable changes.
 
-De technische eerste proef draait op de vastgelegde virtuele machine; productontwerp en interactieonderzoek beginnen tegelijk. Ontwerp interfaces zodat later verschillende apparaten mogelijk zijn. Een telefoon, pc en klein ingebouwd apparaat hebben verschillende bediening, energiebehoeften en beveiligingsgrenzen. Eén productfamilie hoeft daarom geen identieke interface of identiek installatiebestand te hebben.
+The initial technical experiment runs on the specified virtual machine; product design and interaction research begin at the same time. Design interfaces to support different devices later. A phone, PC and small embedded device have different interactions, energy requirements and security boundaries. One product family therefore need not have an identical interface or installation file.
 
-“Veilig als macOS”, “gebruiksvriendelijk als Windows” en “instelbaar als Linux” zijn inspiratie, geen meetbare specificaties. Vergelijk uiteindelijk concrete taken op concrete versies en apparaten. Een claim dat dit OS een bestaand OS overtreft is zonder vergelijkende metingen niet onderbouwd.
+'As secure as macOS', 'as usable as Windows' and 'as configurable as Linux' are inspirations, not measurable specifications. Eventually compare concrete tasks on specific versions and devices. A claim that this OS surpasses an existing OS is unsupported without comparative measurements.
 
-## 2. Originaliteit die de gebruiker merkt
+## 2. Originality that users notice
 
-Nieuwheid hoeft geen nieuwe programmeertaal, cryptografie of incompatibel bestandsformaat te betekenen. Het onderstaande is een voorstel voor een eigen samenhangend product; niet de claim dat deze ideeën nog nooit zijn toegepast.
+Novelty need not mean a new programming language, cryptography or incompatible file format. The following proposes a coherent product of its own; it does not claim that these ideas have never been applied.
 
-| Productidee | Gewenst gedrag | Eerste bewijs |
+| Product idea | Desired behaviour | Initial evidence |
 | --- | --- | --- |
-| Werkruimte rondom een taak | Een gebruiker groepeert documenten, apps en relevante instellingen rond een activiteit. | Een prototype waarin deelnemers een taak hervatten zonder instructie van de maker. |
-| Begrijpelijke toestemming | Een app krijgt bijvoorbeeld alleen het gekozen document, voor deze handeling; de gebruiker kan die toegang terugzien en intrekken. | Gebruiker kan aangeven wat gedeeld is; negatieve toegangstest slaagt. |
-| Veilige aanpasbaarheid | Thema, shell en apps zijn vervangbaar binnen vastgelegde rechten. Kritieke wijziging heeft een herstelroute. | Onjuiste configuratie wordt teruggedraaid zonder gebruikersbestanden te verliezen. |
-| Lokaal als normale werkwijze | Zoeken, instellingen en lokale documenten werken zonder account of netwerk. | Taaktest na installatie met netwerk uit. |
-| Begrijpelijke foutmeldingen | De melding noemt probleem, gevolgen en één uitvoerbare herstelactie. | Gebruiker herstelt de fout zonder terminalkennis. |
+| Task-centred workspace | A user groups documents, apps and relevant settings around an activity. | A prototype in which participants resume a task without instructions from its creator. |
+| Understandable consent | For example, an app receives only the chosen document for this action; the user can inspect and revoke that access. | The user can identify what was shared; the negative access test passes. |
+| Safe customisation | Theme, shell and apps are replaceable within defined permissions. Critical changes have a recovery route. | Incorrect configuration is rolled back without losing user files. |
+| Local operation as the norm | Search, settings and local documents work without an account or network. | Task test after installation with networking disabled. |
+| Understandable errors | The message states the problem, consequences and one executable recovery action. | The user recovers from the error without terminal knowledge. |
 
-Het OS krijgt een eigen visuele identiteit én een eigen interactiemodel. Originaliteit is een acceptatiecriterium vanaf M0. Een klassieke desktop met andere kleuren is onvoldoende als eindconcept. *Aanvulling 30 oktober 2026 (ADR-058):* herkenbare bediening (bureaublad, taakbalk, startmenu, inloggen) is nu een eis; originaliteit zit in eigen code, huisstijl, rechtenmodel en aanvullende functies, niet in een afwijkende basisbediening. Een prototype mag nieuwe ideeën onderzoeken voordat de kernel ze uitvoert; registreer productbewijs en systeembewijs afzonderlijk.
+The OS receives its own visual identity and interaction model. Originality is an acceptance criterion from M0. A conventional desktop with different colours is insufficient as the final concept. *Addition of 30 October 2026 (ADR-058):* familiar interaction—desktop, taskbar, start menu and login—is now required; originality resides in independent code, visual identity, the permission model and additional functions, not unfamiliar basic operation. A prototype may investigate new ideas before the kernel executes them; record product evidence and system evidence separately.
 
-### Drie te onderzoeken conceptrichtingen
-Deze richtingen zijn hypotheses, geen reeds gekozen product of bewezen wereldprimeur. Werk ze uit als werkelijk verschillende manieren van werken, niet als drie thema's op dezelfde schermindeling.
+### Three concept directions to investigate
+These directions are hypotheses, not an already selected product or a proven world first. Develop genuinely different ways of working, not three themes on the same screen layout.
 
-| Concept | Primair organisatiemodel | Onderscheidende onderzoeksvraag |
+| Concept | Primary organising model | Distinctive research question |
 |---|---|---|
-| **Materiaal** | Mensen beginnen bij een document, foto, verzameling of apparaat; geïnstalleerde apps bieden passende bewerkingen aan. | Kan één object verschillende gereedschappen gebruiken met tijdelijke rechten per bewerking, zonder bestanden steeds tussen apps te verplaatsen? |
-| **Werk** | Mensen openen een activiteit met doel, huidige stap, resultaten en hersteltijdlijn; apps verschijnen waar nodig. | Kan werk na onderbreking begrijpelijk worden hervat, ook op een tweede eigen apparaat via een expliciet gekoppelde persoonlijke NAS? |
-| **Atelier** | Mensen richten directe bedieningsoppervlakken in: meerdere gereedschappen, materiaal en feedback tegelijk zichtbaar, passend bij taak en scherm. | Kunnen beginners meteen werken terwijl gevorderden bediening ingrijpend aanpassen zonder versnipperde instellingen of breuk in toegankelijkheid? |
+| **Materiaal** | People start with a document, photo, collection or device; installed apps offer appropriate operations. | Can one object use different tools with temporary permissions for each operation, without repeatedly moving files between apps? |
+| **Werk** | People open an activity with a goal, current step, results and recovery timeline; apps appear where needed. | Can work resume understandably after interruption, including on a second personal device through an explicitly paired personal NAS? |
+| **Atelier** | People arrange direct control surfaces: multiple tools, material and feedback visible together, suited to the task and screen. | Can beginners start immediately while advanced users substantially customise operation without fragmented settings or broken accessibility? |
 
-Maak voor elk concept dezelfde vijf taakproeven: installeren, iets maken/bewerken, terugvinden, onderbreken/hervatten en een fout herstellen. Vergelijk met een klassieke vensterdesktop, appstartscherm en bestandsbeheer: benoem precies wat verandert, wat bewust herkenbaar blijft en welk voordeel gebruikers ervaren. Kies daarna één samenhangende richting; combineer niet automatisch alle ideeën.
+Use the same five task trials for each concept: installing, creating/editing something, retrieving it, interrupting/resuming and recovering from an error. Compare with a conventional windowed desktop, app launcher and file manager: state exactly what changes, what deliberately remains familiar and what benefit users experience. Then select one coherent direction; do not automatically combine every idea.
 
-### Hoogwaardige afwerking als producteis
-Ontwikkel tegelijk een eigen designsysteem: typografie, spacing, kleur, iconen, materialen, focus, bewegingsregels, fouttoestanden en consistente taal. Beoordeel ook installatie, eerste gebruik, instellingen, updates, zoeken, bestandselectie en herstel; kwaliteit geldt voor de hele ervaring.
+### High-quality finish as a product requirement
+Develop a dedicated design system in parallel: typography, spacing, colour, icons, materials, focus, motion rules, error states and consistent language. Also assess installation, first use, settings, updates, search, file selection and recovery; quality applies throughout the experience.
 
-Leg meetbare interactiebudgetten vast, test vloeiende animatie en directe feedback, en bied verminderde beweging. Ontwerp toetsenbord, aanraking en hulpmiddelen als volwaardige bedieningsvormen. Het SDK en de UI-toolkit moeten externe ontwikkelaars helpen die kwaliteit te bereiken, met documentatie, voorbeelden en testgereedschappen.
+Define measurable interaction budgets, test smooth animation and immediate feedback, and provide reduced motion. Treat keyboard, touch and assistive technologies as full interaction methods. The SDK and UI toolkit must help external developers achieve that quality through documentation, examples and test tools.
 
-Privacy krijgt een vanzelfsprekende bediening: zichtbare gegevenslocatie, rechten bij concrete handelingen, begrijpelijke NAS-koppeling en herstel zonder leveranciersaccount. AI ondersteunt lokaal en blijft optioneel. Beoordeel een ontwerp ook zonder AI, zodat het gewone product op eigen kracht overtuigt.
+Privacy should be natural to operate: visible data location, permissions attached to concrete actions, understandable NAS pairing and recovery without a vendor account. AI assists locally and remains optional. Assess a design without AI as well, so the ordinary product stands on its own merits.
 
-### Europese norm als ontwerpopdracht
-Met de Europese oriëntatie van Nieuw OS worden privacy, zeggenschap, toegankelijkheid, transparantie, open samenwerking en overdraagbaarheid bedoeld. Die waarden moeten merkbaar zijn in het product en toetsbaar in het gedrag. Specifieke wettelijke of technische normen worden later per toepassingsgebied in een eisenregister gekoppeld aan bewijs; de Europese oriëntatie verwijst hier niet naar één vastgestelde certificering.
+### European standards as a design brief
+Baryon OS's European orientation means privacy, control, accessibility, transparency, open collaboration and portability. These values must be perceptible in the product and testable in its behaviour. Specific legal or technical standards will later be linked to evidence in a requirements register for each applicable area; European orientation here does not refer to a single established certification.
 
-Een onbekende technische mogelijkheid krijgt een onderzoeksvraag en een afgebakend experiment. Verlaag de productambitie niet omdat de eerste implementatie klein is; een daadwerkelijk aangetoonde grens leidt tot een expliciete ontwerpkeuze.
+An unknown technical possibility receives a research question and a bounded experiment. Do not lower the product ambition because the initial implementation is small; a demonstrated limit leads to an explicit design decision.
 
-## 3. Privacy als observeerbaar gedrag
+## 3. Privacy as observable behaviour
 
-Dit zijn producteisen voor toekomstige implementatie:
+These are product requirements for future implementation:
 
-- De basisinstallatie werkt met een lokaal account. Persoonlijke opslag bestaat uit lokale data, optionele E2EE-opslag op een eigen NAS/aangeboden NAS-ruimte en optioneel opaque client-side versleutelde objecten bij een expliciet gekozen externe opslagprovider. LAN blijft standaard voor persoonlijke NAS; internet is expliciet per peer/provider. Geen verplichte leverancierscloud, stille relay/fallback, provider-key-escrow of uitwijkserver. Een provideraccount kan nodig zijn voor de vrijwillig gekozen provider, maar geeft geen Nieuw-OS-inhoudssleutel. Zonder NAS/provider blijven lokale taken werken. De NAS-host beheert quota en mag zijn kopie zonder gasttoestemming wissen; dat geeft geen decryptiesleutel of documenttoegang.
-- Geen externe OS-telemetrie of automatische externe crashuploads. Diagnostiek blijft lokaal, is begrensd en inzichtelijk. Een gebruiker mag een expliciete client-side versleutelde back-up daarvan naar een toegestane NAS of opaque provideropslag maken; de opslagbackend krijgt geen plaintext diagnose-inhoud via deze route.
-- Crashexports tonen vóór verzending welke gegevens meegaan. Geen automatische geheugendumps met mogelijk documentinhoud of sleutels.
-- Geen advertentie-ID, systeemreclame, verplicht platformaccount of vooraf aangevinkte gegevensdeling.
-- Netwerkverkeer is verklaarbaar per dienst. Updates en tijdsynchronisatie hebben een zichtbare instelling en mogen niet stilzwijgend als “telemetrie” worden gebundeld.
-- AI is optioneel en verwijderbaar, maar inferentie vindt uitsluitend op het apparaat plaats. Prompts, geschiedenis, embeddings en resultaten blijven lokaal; eventuele opslagbackup alleen end-to-end versleuteld naar een expliciet gekoppelde persoonlijke NAS. Geen cloudfallback of uitbestede inferentie. Een aparte modeldownloader heeft geen toegang tot persoonlijke context; de inferentiedienst heeft geen netwerkrecht.
-- Offline gebruik mag geen gedwongen cloudregistratie activeren. Gebruikers worden wel duidelijk geïnformeerd over gemiste beveiligingsupdates.
-- Export en migratie moeten mogelijk zijn met gedocumenteerde formaten. Intrekken van toegang kan eerder gemaakte kopieën bij een andere partij niet ongedaan maken.
+- The base installation works with a local account. Personal storage consists of local data, optional E2EE storage on a personal NAS/offered NAS space, and optional opaque client-side encrypted objects at an explicitly selected external storage provider. LAN remains the default for personal NAS; internet is explicit for each peer/provider. No mandatory vendor cloud, silent relay/fallback, provider key escrow or fallback server. A provider account may be required for the voluntarily selected provider but grants no Baryon OS content key. Local tasks continue to work without a NAS/provider. The NAS host manages quotas and may erase its copy without guest consent; that grants no decryption key or document access.
+- No external OS telemetry or automatic external crash uploads. Diagnostics remain local, bounded and inspectable. A user may explicitly back them up with client-side encryption to a permitted NAS or opaque provider storage; the storage backend receives no plaintext diagnostic content through this route.
+- Crash exports show which data will be included before transmission. No automatic memory dumps potentially containing documents or keys.
+- No advertising ID, system advertising, mandatory platform account or preselected data sharing.
+- Network traffic can be explained per service. Updates and time synchronisation have visible settings and must not be silently bundled as telemetry.
+- AI is optional and removable, but inference occurs exclusively on the device. Prompts, history, embeddings and results remain local; any storage backup is end-to-end encrypted to an explicitly paired personal NAS. No cloud fallback or outsourced inference. A separate model downloader has no access to personal context; the inference service has no network permission.
+- Offline use must not trigger forced cloud registration. Users are clearly informed about missed security updates.
+- Export and migration must be possible with documented formats. Revoking access cannot undo copies previously made by another party.
 
-Downloadbare derdenapps blijven mogelijk met expliciete bestands-, NAS-, apparaat- en netwerkrechten. Een app met zowel lees- als internetrecht kan toegestane gegevens naar buiten sturen; maak die combinatie zichtbaar en bied geen absolute niet-lekkenbelofte. Details en toetsen: [LOCAL-PRIVACY-CONTRACT.md](LOCAL-PRIVACY-CONTRACT.md).
+Downloadable third-party apps remain possible with explicit file, NAS, device and network permissions. An app with both read and internet permissions may transmit authorised data externally; make that combination visible and provide no absolute promise against leakage. Details and checks: [LOCAL-PRIVACY-CONTRACT.md](LOCAL-PRIVACY-CONTRACT.md).
 
-Bewijs: test netwerkverkeer op een schone installatie, herhaal na updates en na het in- en uitschakelen van optionele diensten. Zolang het prototype geen netwerk heeft, bewijst “geen verkeer” nog niet dat de toekomstige netwerkversie privacyvriendelijk is.
+Evidence: test network traffic on a clean installation, repeat after updates and after enabling/disabling optional services. While the prototype lacks networking, absence of traffic does not prove that the future networked version respects privacy.
 
-## 4. Licht en snel: meetplan vóór marketing
+## 4. Lightweight and fast: measurement before marketing
 
-Leg voor elke meting vast: commit, buildprofiel, hostprocessor, toegewezen CPU's/RAM, QEMU-versie, acceleratievorm, scherminstelling, dataset en meetprocedure. Vergelijk TCG-emulatie niet rechtstreeks met hardwareversnelling.
+For every measurement, record the commit, build profile, host processor, allocated CPUs/RAM, QEMU version, acceleration type, display setting, dataset and measurement procedure. Do not directly compare TCG emulation with hardware acceleration.
 
-| Eigenschap | Voorlopig toetsdoel | Voorwaarde |
+| Property | Provisional test target | Condition |
 | --- | --- | --- |
-| Starten | Eerst een reproduceerbare nulmeting, daarna een per fase afgesproken budget. | Meet afzonderlijk firmware, loader, kernel en bruikbare sessie. |
-| Geheugen | Meet kernel, diensten, shell en cache apart; behandel een onverklaarde stijging van meer dan 20% als reviewpunt. | Dit percentage is een projectvoorstel, geen bewezen norm of absolute afkeurgrens. |
-| Reactie op bediening | Eenvoudige lokale acties geven binnen 100 ms zichtbare terugkoppeling in de afgesproken referentieopstelling. | Ontwerpdoel voor de latere shell; geen claim over bestaande code of alle hardware. |
-| Rusttoestand | Geen onbedoelde drukke wachtlussen; leg periodieke achtergrondtaken vast. | CPU-percentages zijn pas zinvol met een reproduceerbare meetopstelling. |
-| Energie | Meet slaap, ontwaken en werkelijk energiegebruik op ondersteunde fysieke hardware. | Een kleine kernel of goede QEMU-score bewijst geen lange accuduur. |
+| Startup | First a reproducible baseline, then an agreed budget for each phase. | Measure firmware, loader, kernel and usable session separately. |
+| Memory | Measure kernel, services, shell and cache separately; treat an unexplained increase above 20% as a review point. | This percentage is a project proposal, not a proven standard or absolute rejection threshold. |
+| Responsiveness | Simple local actions provide visible feedback within 100 ms in the agreed reference setup. | Design goal for the later shell; no claim about existing code or all hardware. |
+| Idle state | No unintended busy-wait loops; record periodic background tasks. | CPU percentages are meaningful only with a reproducible measurement setup. |
+| Energy | Measure sleep, wake and actual energy use on supported physical hardware. | A small kernel or good QEMU score does not prove long battery life. |
 
-Stel per fase een budget vast dat bij de dan bestaande functies past. Een grootheidsclaim als “sneller dan Windows” vereist dezelfde taken, vergelijkbare functionaliteit en een gepubliceerd meetprotocol.
+Set a budget for each phase that fits the functions then available. A superiority claim such as faster than Windows requires the same tasks, comparable functionality and a published measurement protocol.
 
-## 5. Toegankelijkheid en Europese bruikbaarheid
+## 5. Accessibility and European usability
 
-Producteisen: volledige toetsenbordbediening, duidelijke focus, schaalbare tekst, voldoende contrast, minder beweging, schermlezerondersteuning en signalen die niet alleen hoorbaar zijn. Vermijd dat veiligheidsvragen uitsluitend op kleur, geluid of snelle reacties steunen.
+Product requirements: full keyboard operation, clear focus, scalable text, sufficient contrast, reduced motion, screen-reader support and signals that are not exclusively audible. Avoid security questions relying solely on colour, sound or rapid responses.
 
-WCAG 2.2 biedt toetsbare toegankelijkheidscriteria voor webinhoud. Gebruik die rechtstreeks voor eventuele webinterfaces en als inspiratie bij de native shell. De native omgeving heeft daarnaast een eigen toegankelijkheids-API, semantische UI-structuur en praktijktests met hulpmiddelen nodig. Dit is geen verklaring van wettelijke conformiteit (W3C, 2024).
+WCAG 2.2 provides testable accessibility criteria for web content. Apply them directly to any web interfaces and use them as inspiration for the native shell. The native environment also needs its own accessibility API, semantic UI structure and practical tests with assistive tools. This is not a declaration of legal conformity (W3C, 2024).
 
-Plan vertaling vanaf de eerste UI: externe tekstbestanden, Unicode, verschillende toetsenbordindelingen, datum- en getalformaten en tekst die langer wordt na vertaling. Onderzoek behoeften met Nederlandse en andere Europese gebruikers; er bestaat niet één uniforme “Europese gebruiker”. Kies voor de eerste proef één heldere doelgroep, bijvoorbeeld privacybewuste desktopgebruikers, en test vijf kerntaken met meerdere deelnemers. Resultaten van een kleine proef zijn richtinggevend, niet representatief voor heel Europa.
+Plan translation from the first UI: external text files, Unicode, different keyboard layouts, date and number formats, and text expansion after translation. Investigate needs with Dutch and other European users; there is no single uniform European user. Select one clear audience for the first trial, such as privacy-conscious desktop users, and test five core tasks with multiple participants. Results from a small trial are directional, not representative of all Europe.
 
-## 6. Zelfstandigheid heeft meerdere lagen
+## 6. Independence has multiple layers
 
-| Laag | Betekenis voor dit project |
+| Layer | Meaning for this project |
 | --- | --- |
-| Tijdens gebruik | OS-gegevens lokaal, E2EE op gekoppelde persoonlijke NAS of na expliciete keuze als opaque client-side versleutelde objecten bij een externe provider; internet per peer/provider expliciet. Host/provider krijgt geen inhoudssleutel. AI-inferentie alleen op apparaat. Geen verplichte leverancierscloud, stille relay/fallback, provider-key-escrow of OS-telemetrie. Updates/modeldownloads mogen via een afgescheiden downloader; derdenapps alleen met toegekende rechten. |
-| Tijdens ontwikkeling | Codex kan helpen schrijven en onderzoeken; broncode, besluiten, tests en buildinstructies blijven buiten de chat beschikbaar. |
-| Tijdens bouwen | Een derde partij moet uit de broncode kunnen bouwen zonder Codex-account. Controleer alle download- en buildafhankelijkheden. |
-| Publicatie | De code blijft via Git exporteerbaar; releasebestanden, issues en documentatie krijgen een overdraagbare kopie. |
-| Bestuur | Publiceer beslisregels, onderhoudsrollen, financieringsafhankelijkheden en het proces voor beveiligingsmeldingen. |
-| Hardware | Firmware en apparaten kunnen externe afhankelijkheden behouden. Een eigen kernel maakt hardware niet automatisch controleerbaar. |
+| During use | OS data local, E2EE on a paired personal NAS or, after explicit selection, opaque client-side encrypted objects at an external provider; internet explicit for each peer/provider. Host/provider receives no content key. AI inference only on-device. No mandatory vendor cloud, silent relay/fallback, provider key escrow or OS telemetry. Updates/model downloads may use a separate downloader; third-party apps only with assigned permissions. |
+| During development | Codex can assist writing and research; source code, decisions, tests and build instructions remain available outside the conversation. |
+| During builds | A third party must be able to build from source without a Codex account. Check all download and build dependencies. |
+| Publication | Code remains exportable through Git; release files, issues and documentation receive a portable copy. |
+| Governance | Publish decision rules, maintenance roles, funding dependencies and the security reporting process. |
+| Hardware | Firmware and devices may retain external dependencies. An independent kernel does not automatically make hardware auditable. |
 
-Codeberg is een platform van een non-profitvereniging in Berlijn. Forgejo is de zelf te hosten software waarop Codeberg draait. Dat maakt ze relevante opties voor Europese zeggenschap; het is geen garantie dat elke verwerking of afhankelijkheid Europees is (Codeberg, z.d.; Forgejo, z.d.). Zelf hosten brengt eigen beheer, updates, backups en hersteltests mee. Voor een beginner verdient een beheerd platform aanvankelijk meestal de voorkeur boven een extra serverproject.
+Codeberg is a platform operated by a non-profit association in Berlin. Forgejo is the self-hostable software on which Codeberg runs. This makes them relevant options for European control; it does not guarantee that every processing activity or dependency is European (Codeberg, n.d.; Forgejo, n.d.). Self-hosting requires administration, updates, backups and recovery tests. For a beginner, a managed platform is generally initially preferable to an additional server project.
 
-Een GitHub-mirror kan deelname vergemakkelijken. Bepaal één primaire repository en voorkom twee concurrerende issue- en beslissystemen. Controleer de actuele platformvoorwaarden en ondersteuning van de gekozen Codex-werkwijze vóór gebruik; dit document garandeert geen specifieke integratie.
+A GitHub mirror can facilitate participation. Define one primary repository and avoid competing issue and decision systems. Check current platform conditions and support for the chosen Codex workflow before use; this document guarantees no particular integration.
 
-## 7. Open source en bestuur
+## 7. Open source and governance
 
-Een zichtbare repository zonder passende licentie is niet voldoende. Gebruik een bestaande, passende OSI-goedgekeurde licentie en leg de keuze vast vóór publieke publicatie van code. Controleer compatibiliteit van hergebruikte code en leg herkomst, versie, licentie en eventuele wijzigingen vast. Neem ook bijdragen van AI niet zonder herkomstcontrole over.
+A visible repository without an appropriate licence is insufficient. Use an established, suitable OSI-approved licence and record the choice before publishing code publicly. Check compatibility of reused code and record provenance, version, licence and any modifications. Do not accept AI contributions without checking provenance either.
 
-Het Europese doel betreft zeggenschap en bruikbaarheid, niet een verbod op niet-Europese gebruikers. Een licentie die bepaalde nationaliteiten, bedrijven of gebruiksvelden uitsluit past niet bij de Open Source Definition (Open Source Initiative, z.d.). Leg privacy- en productwaarden vast in governance, standaardgedrag en technische interfaces.
+The European objective concerns control and usability, not a ban on non-European users. A licence excluding particular nationalities, businesses or fields of use is incompatible with the Open Source Definition (Open Source Initiative, n.d.). Establish privacy and product values through governance, default behaviour and technical interfaces.
 
-Ontwikkeling mag doorgaan terwijl een licentiebesluit wordt voorbereid; presenteer het project vóór dat besluit niet als reeds juridisch open-source gepubliceerd. Dit startpakket geeft geen verklaring dat het toekomstige product aan AVG, productwetgeving of aanbestedingseisen voldoet. Laat toepasselijkheid beoordelen wanneer doelgroep, distributievorm en dienstverlening concreet zijn.
+Development may continue while a licensing decision is prepared; before that decision, do not present the project as already legally published as open source. This starter package does not declare the future product compliant with the GDPR, product legislation or procurement requirements. Have applicability assessed when the audience, distribution model and service provision are concrete.
 
-Minimale governance vóór een openbare proef: benoemde maintainer, bijdragenprocedure, licentie- en herkomstregister, beveiligingscontact, releaseproces, ondersteunde versies en een procedure om fouten te melden zonder openbare publicatie van gevoelige details.
+Minimum governance before a public trial: a named maintainer, contribution procedure, licensing/provenance register, security contact, release process, supported versions and a process for reporting defects without publicly exposing sensitive details.
 
-## Bronnen
+## Sources
 
-Codeberg. (z.d.). *What is Codeberg?* Geraadpleegd op 26 oktober 2026, van https://docs.codeberg.org/getting-started/what-is-codeberg/
+Codeberg. (n.d.). *What is Codeberg?* Retrieved October 26, 2026, from https://docs.codeberg.org/getting-started/what-is-codeberg/
 
-Forgejo. (z.d.). *Forgejo: Beyond coding. We forge.* Geraadpleegd op 26 oktober 2026, van https://forgejo.org/
+Forgejo. (n.d.). *Forgejo: Beyond coding. We forge.* Retrieved October 26, 2026, from https://forgejo.org/
 
-Open Source Initiative. (z.d.). *The Open Source Definition*. Geraadpleegd op 26 oktober 2026, van https://opensource.org/osd
+Open Source Initiative. (n.d.). *The Open Source Definition*. Retrieved October 26, 2026, from https://opensource.org/osd
 
-Open Source Initiative. (z.d.). *OSI approved licenses*. Geraadpleegd op 26 oktober 2026, van https://opensource.org/licenses
+Open Source Initiative. (n.d.). *OSI approved licenses*. Retrieved October 26, 2026, from https://opensource.org/licenses
 
-World Wide Web Consortium. (2024, 12 december). *Web Content Accessibility Guidelines (WCAG) 2.2*. https://www.w3.org/TR/WCAG22/
-
+World Wide Web Consortium. (2024, December 12). *Web Content Accessibility Guidelines (WCAG) 2.2*. https://www.w3.org/TR/WCAG22/

@@ -1,47 +1,47 @@
-# Native voorbeeldapp: catalogus lezen
+# Native example app: reading the catalogue
 
-Dit voorbeeld is een echt `no_std`-gebruikersprogramma voor de bestaande Nieuw
-OS-int80-ABI. Het vraagt één LIST op en leest daarna ieder beschreven document
-met GET via de gedelegeerde catalogusendpoint. Het geeft geen schrijf-, blok-,
-apparaat- of netwerkrechten door en gebruikt geen fictieve documentinhoud.
+This example is an actual `no_std` user program for the existing Baryon OS
+int80 ABI. It requests one LIST, then reads each listed document with GET
+through the delegated catalogue endpoint. It passes on no write, block,
+device or network permissions and uses no fictitious document contents.
 
-De app gebruikt de herbruikbare [typed catalogusclient](../../catalog-client/README.md):
-de bestaande B01-client plus de native SDK-transportadapter. Zij implementeert
-geen tweede wireclient. GET levert een gecontroleerd `Document` of expliciet
-`NotFound`; een onverwachte verwijdering sluit de voorbeeldtaak af.
+The app uses the reusable [typed catalogue client](../../catalog-client/README.md):
+the existing B01 client plus the native SDK transport adapter. It does not
+implement a second wire client. GET returns a checked `Document` or explicit
+`NotFound`; an unexpected deletion terminates the example task.
 
-De app valideert de kernelafzender, tag, canonical envelope, request-ID, epoch,
-replyformaat en de revisie/naam/lengte uit de catalogussnapshot. Een onverwachte
-ontvangen capability wordt gesloten. Een concurrent gewijzigde catalogus,
-afgewezen aanvraag of ontbrekend antwoord beëindigt de proef met een foutcode.
-Alleen een pre-publication `EAGAIN` wordt binnen een vast budget opnieuw geprobeerd;
-een eenmaal gequeued RPC wordt nooit automatisch herhaald.
+The app validates kernel sender, tag, canonical envelope, request ID, epoch,
+reply format and revision/name/length from the catalogue snapshot. Unexpected
+received capabilities are closed. A concurrently changed catalogue, rejected
+request or missing reply ends the experiment with an error code. Only
+pre-publication `EAGAIN` is retried within a fixed budget; a queued RPC is
+never automatically replayed.
 
 ```sh
 python3 -B sdk/examples/catalog-read/build.py
 ```
 
-Standaarduitvoer is `build/sdk-catalog-read/x86_64-unknown-none/release/catalog-read`.
-Een eigen `CARGO_TARGET_DIR` verandert de bestemming. De builder gebruikt het
-eigen app-linkerscript, bewaart W^X-segmenten en maakt geen QEMU-proces.
+Default output is `build/sdk-catalog-read/x86_64-unknown-none/release/catalog-read`.
+A custom `CARGO_TARGET_DIR` changes the destination. The builder uses the
+app's own linker script, preserves W^X segments and starts no QEMU process.
 
-## Startvoorwaarde en bewijsgrens
+## Startup precondition and evidence limits
 
-Het voorbeeld gebruikt alleen de al bestaande M6c-startupvelden van de private
-pagina op `0x40010000`: rol 1/2 op offset 0, dienst-epoch op 32,
-ontvangendpoint op 56, sendendpoint op 64 en dienst-PID op 176. Die gegevens
-moeten door een geautoriseerde bootstrap worden ingevuld. De app kan daarmee
-geen capabilities aanmaken. Het aparte supportbestand houdt deze tijdelijke
-fixture-adapter zichtbaar buiten de herbruikbare SDK.
+The example uses only existing M6c startup fields of the private page at
+`0x40010000`: role 1/2 at offset 0, service epoch at 32, receive endpoint at 56,
+send endpoint at 64 and service PID at 176. An authorised bootstrap must
+populate those fields. They do not let the app create capabilities. The
+separate support file keeps this temporary fixture adapter visibly outside
+the reusable SDK.
 
-De bestaande M6c-acceptatiemanifest verwacht zijn eigen probe. Het vervangen
-van die ELF door dit programma is daarom **geen ondersteund startcommando**.
-Een gewone appstarter of expliciete aanvullende testmanifest blijft nodig
-om dit zelfstandige voorbeeld als nieuw proces te starten. De SDK kan apart
-in de bestaande M6c-probe worden gekoppeld om de echte IPC-route te testen.
+The existing M6c acceptance manifest expects its own probe. Replacing that
+ELF with this program is therefore **not a supported startup command**.
+An ordinary app launcher or explicit additional test manifest is still
+required to start this standalone example as a new process. The SDK can be
+linked separately into the existing M6c probe to test the actual IPC path.
 
-Exit 0 betekent dat deze app zijn aanvragen heeft gevalideerd; offsets 240/248
-bewaren lokale diagnostiek (aantal documenten/totaal inhoudsbytes). Deze
-velden zijn geen kerneluitgegeven PASS-marker en geen duurzaamheidsbewijs.
-Een geslaagde build is alleen compilatiebewijs; geen nieuwe native Materiaal-
-gebruikershandeling of fysieke-hardwareclaim.
+Exit 0 means this app validated its requests; offsets 240/248 retain local
+diagnostics (document count/total content bytes). These fields are neither
+kernel-issued PASS markers nor durability evidence. A successful build is
+compilation evidence only; no new native Materiaal user action or physical
+hardware support is claimed.

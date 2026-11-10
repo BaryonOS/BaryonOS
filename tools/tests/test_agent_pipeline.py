@@ -109,6 +109,24 @@ class Planning(unittest.TestCase):
             with self.subTest(case=case["body"]), self.assertRaises(ValueError):
                 ap.parse_issue(case, {"K06"})
 
+    def test_english_fields_match_existing_dutch_tasks(self):
+        """Accept the English fields without changing legacy task semantics."""
+        english = self.BODY.replace("Criterium:", "Criterion:").replace("Afhankelijk van:", "Depends on:")
+        old = ap.parse_issue(issue(self.BODY), {"K06"})
+        new = ap.parse_issue(issue(english), {"K06"})
+        self.assertEqual((new.mode, new.criterion, new.gates, new.deps),
+                         (old.mode, old.criterion, old.gates, old.deps))
+
+    def test_duplicate_criterion_aliases_are_rejected(self):
+        """Reject repeated criterion fields in either supported language."""
+        for extra in (
+            "Criterion: K06\n",
+            "Criterion: K07\n",
+            "Criterium: K06\n",
+        ):
+            with self.subTest(extra=extra), self.assertRaises(ValueError):
+                ap.parse_issue(issue(self.BODY + extra), {"K06", "K07"})
+
     def test_open_criteria_come_from_progress_json(self):
         progress = {"tracks": [{"gates": [{"id": "K01", "status": "accepted"}, {"id": "K06", "status": "open"}]}]}
         self.assertEqual(ap.open_criteria(progress), {"K06"})

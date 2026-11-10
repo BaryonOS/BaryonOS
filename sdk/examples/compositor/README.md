@@ -1,9 +1,9 @@
-# Native compositorcomponent
+# Native compositor component
 
-Echte ring3-server voor één toegewezen Materiaal-surface. De productiecode gebruikt de eigen SDK voor kernel-IPC, monotone tijd en DisplaySource-blits. De dienst heeft geen volume-, sleutel-, netwerk- of rawinputrecht.
+Actual ring3 server for one assigned Materiaal surface. Production code uses the project's SDK for kernel IPC, monotonic time and DisplaySource blits. The service has no volume, key, network or raw-input rights.
 
-Het bootstrap-/SUR1-/CMP1-contract en de open grenzen staan in [NATIVE-COMPOSITOR.md](../../../docs/implementation/NATIVE-COMPOSITOR.md). De eigen Cargo-workspace gebruikt dezelfde gepinde Noto-bitmapasset en gedeelde Materiaal-kleurentokens. Licenties en herkomst staan in [THIRD-PARTY.md](THIRD-PARTY.md).
+The bootstrap/SUR1/CMP1 contract and remaining limits are in [NATIVE-COMPOSITOR.md](../../../docs/implementation/NATIVE-COMPOSITOR.md). Its separate Cargo workspace uses the same pinned Noto bitmap asset and shared Materiaal colour tokens. Licences and provenance are in [THIRD-PARTY.md](THIRD-PARTY.md).
 
-Bouwen: `python3 sdk/examples/compositor/build.py` vanuit de repository met de beheerde toolomgeving en de ABI1.8 SDK-wrappers. Root ontvangt `NOS_COMPOSITOR_ELF`; er wordt geen kernel of hostdisplay in deze component nagebootst.
+Build with `python3 sdk/examples/compositor/build.py` from the repository, using the managed tool environment and ABI1.8 SDK wrappers. The lead agent receives `NOS_COMPOSITOR_ELF`; this component does not simulate a kernel or host display.
 
-De hostscenario's toetsen foutafhandeling en IPC-correlatie met echte capability-engine-envelopes. Hun beeldschermtransport weigert **iedere** write; zij leveren geen native beeldbewijs. De componentcontrole bevat daarnaast een echte scalar `x86_64-unknown-none` ELF-build en controle van de vijf disjuncte LOAD-segmenten. Werkelijke compositor-/init-/input-/Materiaaluitvoering, zichtbare bediening, maximale opstart-/wistijd, herstel en langdurig gebruik wachten op de afzonderlijke integratiegate. Dit is geen volledige desktop- of releaseacceptatie.
+Host scenarios test error handling and IPC correlation using actual capability-engine envelopes. Their display transport rejects **every** write; they provide no native visual evidence. Component validation also includes an actual scalar `x86_64-unknown-none` ELF build and inspection of the five disjoint LOAD segments. Actual compositor/init/input/Materiaal execution, visible interaction, maximum startup/clear time, recovery and sustained use await the separate integration gate. This is not complete desktop or release acceptance.

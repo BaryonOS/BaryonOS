@@ -1,57 +1,57 @@
-name: CI, build of testbewijs
-description: Een mislukte workflow, lokale build, testgate of ontbrekend bewijs onderzoeken
+name: CI, build or test evidence
+description: Investigate a failed workflow, local build, test gate or missing evidence
 title: "ci: "
 body:
   - type: markdown
     attributes:
       value: |
-        Houd testfalen, infrastructuurproblemen en ontbrekende artifacts apart.
-        Een uploadfout zegt niet dat de test zelf faalde; ontbrekend bewijs is geen geslaagde acceptatie.
-        Gebruik geschoonde logregels en synthetische gegevens. Kwetsbaarheden volgen
-        [SECURITY.md](https://github.com/simonvanieperen/nieuw-os/blob/main/SECURITY.md).
+        Distinguish test failures, infrastructure problems and missing artifacts.
+        An upload failure does not mean the test itself failed; missing evidence is not successful acceptance.
+        Use sanitised log lines and synthetic data. Follow
+        [SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md) for vulnerabilities.
   - type: input
     id: source
     attributes:
-      label: Broncommit en PR
-      description: De daadwerkelijk geteste SHA en eventuele PR; niet alleen de branchnaam.
+      label: Source commit and PR
+      description: The SHA actually tested and any associated PR; not just the branch name.
     validations:
       required: true
   - type: textarea
     id: run
     attributes:
-      label: Workflow, job en run
-      description: Link naar de run/job en naam van de falende stap. Bij lokaal werk het exacte commando en featureprofiel.
+      label: Workflow, job and run
+      description: Link to the run/job and name the failing step. For local work, give the exact command and feature profile.
     validations:
       required: true
   - type: dropdown
     id: failure_stage
     attributes:
-      label: Waar stopt de uitvoering?
+      label: Where does execution stop?
       options:
-        - Wachtrij of runnerstart
-        - Toolchain, dependencies of build
-        - Test of assertion
-        - Timeout of vastloper
-        - Artifact-upload, opslag of ophalen van bewijs
-        - Nog onbekend
+        - Queue or runner startup
+        - Toolchain, dependencies or build
+        - Test or assertion
+        - Timeout or hang
+        - Artifact upload, storage or evidence retrieval
+        - Not yet known
     validations:
       required: true
   - type: textarea
     id: observed
     attributes:
-      label: Werkelijk resultaat
-      description: Exacte foutmelding en exitstatus. Welke tests zijn gestart, afgerond of niet uitgevoerd? Vermeld het onderscheid tussen hosttest, native VM-test en fysieke proef.
+      label: Actual result
+      description: Exact error message and exit status. Which tests started, completed or were not run? Distinguish host tests, native VM tests and physical experiments.
     validations:
       required: true
   - type: textarea
     id: environment
     attributes:
-      label: Omgeving en reproductie
-      description: Runner/host, relevante toolversies en bij QEMU firmware, accelerator, vCPU's en RAM. Noem een herhaling of lokale reproductie, of schrijf niet uitgevoerd. Behoud dezelfde testgrenzen.
+      label: Environment and reproduction
+      description: Runner/host, relevant tool versions and, for QEMU, firmware, accelerator, vCPUs and RAM. Describe a repeat or local reproduction, or state not run. Preserve the same test boundaries.
     validations:
       required: true
   - type: textarea
     id: evidence
     attributes:
-      label: Beschikbaar of ontbrekend bewijs
-      description: Bereikbare geschoonde logs/rapporten, artifactnaam en hashes indien beschikbaar. Geef aan wat ontbreekt en welke eerdere run op dezelfde bron wel werkte; verwijder mislukte resultaten niet om de melding groen te maken.
+      label: Available or missing evidence
+      description: Accessible sanitised logs/reports, artifact name and hashes where available. Identify missing evidence and any earlier successful run on the same source; do not remove failed results to make the report pass.

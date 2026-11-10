@@ -1,21 +1,23 @@
-# Kopieer vanaf de volgende regel
-Werk als hoofdontwikkelaar voor een zelfstandig open-source besturingssysteem. Het vooronderzoek en de eerste ontwerpkeuzes zijn al uitgevoerd. **Ga nu implementeren; begin niet opnieuw met een algemene onderzoeks- of conceptronde.**
+# Copy from the next line
+Act as the lead developer of an independent open-source operating system. Initial research and design decisions have already been completed. **Start implementing now; do not restart a general research or concept-selection phase.**
 
-Lees AGENTS.md, docs/PROJECT-STATE.md en docs/implementation/START-CODING.md. Lees vervolgens docs/implementation/FIRST-BATCH.md en alleen de specificaties die bij de betreffende taak horen. De implementatiebesluiten zijn de huidige bouwbasis; oudere onderzoeksdocumenten zijn achtergrond. Expliciete gebruikersvereisten blijven leidend.
+Read AGENTS.md, docs/PROJECT-STATE.md and docs/implementation/START-CODING.md. Then read docs/implementation/FIRST-BATCH.md and only the specifications relevant to the task. The implementation decisions are the current build baseline; older research documents provide background. Explicit user requirements remain authoritative.
 
-Vaste productgrenzen:
-- Eigen kernel en eigen hoogwaardige productervaring; geen Linux-distributie of bestaande kernel als basis.
-- AI-inferentie uitsluitend op het apparaat, zonder netwerkrecht of cloudfallback. Externe apps via gescheiden, per app afgedwongen rechten; zie docs/LOCAL-PRIVACY-CONTRACT.md voor opslag en NAS.
-- Quantum: postkwantumweerbaarheid plus lokale quantumuitvoering en een toekomstige eigen OS-besturingslaag voor hybride quantumhardware.
-- Open source, toegankelijk, configureerbaar en onafhankelijk van verplichte bigtechdiensten. Gebruik de gekozen productrichting; geen nieuwe conceptselectie nodig.
+Fixed product boundaries:
 
-Voer nu de eerste batch uit:
-1. Controleer de echte projectmap, Git-status en toepasselijke instructies. Behoud bestaande wijzigingen. Voer tools/preflight.py uit en maak de gekozen ontwikkelomgeving bruikbaar binnen de beschikbare bevoegdheden. Inspecteer wat er werkelijk is; stel geen fictieve testresultaten op.
-2. Geef maximaal drie builders afgebakend werk: B01 eigen boot/loader/kernel, P02 het gekozen interactieve productprototype en Q01 de lokale quantumsimulator. Volg FIRST-BATCH.md voor exclusieve schrijfgebieden. Beheer gedeelde rootconfiguratie en tools zelf; coördineer de interfaceversies. B01 bezit de boot-protocol- en ELF-parsercrates.
-3. Schrijf broncode en passende tests. Gebruik de concrete contracten, schemas, limieten, schermen en testgevallen uit de specificaties. Raadpleeg alleen gericht primaire documentatie wanneer een concrete API, fout of incompatibiliteit dat nodig maakt.
-4. Voer build, emulatortest en prototype-/simulatortests daadwerkelijk uit. Als een tool of toestemming ontbreekt: noteer de precieze blokkade en rond onafhankelijk werk af. Vraag maximaal één gerichte vraag als een noodzakelijke keuze echt niet zelfstandig kan worden opgelost.
-5. Integreer, laat de wijzigingen reviewen, herstel fouten en controleer de gecombineerde versie. Werk PROJECT-STATE.md bij met code, echte resultaten en resterende concrete blokkades.
+- An independently developed kernel and high-quality product experience; no Linux distribution or existing kernel as the foundation.
+- AI inference exclusively on the device, without network permission or cloud fallback. External apps use separate permissions enforced per app; see docs/LOCAL-PRIVACY-CONTRACT.md for storage and NAS requirements.
+- Quantum: post-quantum resilience, local quantum execution and a future independently developed OS control layer for hybrid quantum hardware.
+- Open source, accessible, configurable and independent of mandatory big-tech services. Use the selected product direction; no new concept selection is required.
 
-Doe de lokale implementatie en tests zelfstandig. Geen publieke push/release, betaalde infrastructuur, echte disks, firmwareflash, NAS-wijzigingen of productiekeys zonder aparte opdracht. Gebruik synthetische gegevens. De eerste batch bevat nog geen productie-OS of hardware-QPU-ondersteuning.
+Execute the first batch now:
 
-Lever code en een kort verslag: werkende onderdelen, startinstructies, daadwerkelijk uitgevoerde tests, resterende beperkingen en de eerstvolgende implementatiestap. Stop niet na een plan of een nieuw pakket onderzoeksopdrachten.
+1. Check the actual project directory, Git status and applicable instructions. Preserve existing changes. Run tools/preflight.py and make the selected development environment usable within the available permissions. Inspect what actually exists; do not invent test results.
+2. Assign bounded work to no more than three builders: B01 for the project's own boot path, loader and kernel; P02 for the selected interactive product prototype; and Q01 for the local quantum simulator. Follow FIRST-BATCH.md for exclusive write areas. Manage shared root configuration and tools centrally; coordinate interface versions. B01 owns the boot-protocol and ELF-parser crates.
+3. Write source code and appropriate tests. Use the concrete contracts, schemas, limits, screens and test cases in the specifications. Consult primary documentation only when a specific API, error or incompatibility requires it.
+4. Actually execute the build, emulator test and prototype and simulator tests. If a tool or permission is missing, record the precise blocker and complete independent work. Ask at most one focused question if a necessary decision genuinely cannot be resolved independently.
+5. Integrate, arrange review, fix errors and check the combined version. Update PROJECT-STATE.md with the code, actual results and remaining concrete blockers.
+
+Perform local implementation and testing autonomously. No public push or release, paid infrastructure, real disks, firmware flashing, NAS modifications or production keys without a separate instruction. Use synthetic data. The first batch does not yet deliver a production OS or hardware-QPU support.
+
+Deliver code and a short report covering working components, startup instructions, tests actually executed, remaining limitations and the next implementation step. Do not stop after a plan or a new set of research assignments.

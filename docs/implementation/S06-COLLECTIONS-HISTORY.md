@@ -1,179 +1,174 @@
-# S06 — collecties, metadata, revisiegeschiedenis en transacties (volume v2)
+# S06 — collections, metadata, revision history and transactions (volume v2)
 
-Datum: 29 oktober 2026. Basis: M6e (`NOSVOL01`, IPC v5, ADR-040). Besluit:
-ADR-041. Bewijsstatus: [S06-ACCEPTANCE](../verification/S06-ACCEPTANCE.md).
+Date: 29 October 2026. Baseline: M6e (`NOSVOL01`, IPC v5, ADR-040). Decision:
+ADR-041. Evidence status: [S06-ACCEPTANCE](../verification/S06-ACCEPTANCE.md).
 
-## Doel en grenzen
+## Objective and boundaries
 
-M6e bewaart grote documenten crashconsistent, maar kent alleen een naam en de
-actuele inhoud. Materiaal (PRODUCT-SPEC §2, §6) vraagt meer van de opslaglaag:
-documenten in collecties terugvinden, type en labels bewaren, een oudere versie
-bekijken en als nieuwe revisie terugzetten, een verwijderd document terughalen
-en meerdere documenten in één consistente stap verplaatsen. Volume v2 levert
-die opslagfuncties native, in dezelfde ring-3-dienst en met hetzelfde
-copy-on-write-commitprotocol.
+M6e stores large documents consistently across crashes but knows only a name
+and current content. Materiaal (PRODUCT-SPEC §2, §6) requires more from the
+storage layer: find documents in collections, retain type and labels, view
+an older version and restore it as a new revision, recover a deleted document
+and move multiple documents in one consistent step. Volume v2 provides these
+storage functions natively, in the same ring-3 service and using the same
+copy-on-write commit protocol.
 
-| Materiaal-taak (PRODUCT-SPEC) | Opslagfunctie v2 |
+| Materiaal task (PRODUCT-SPEC) | Storage function v2 |
 |---|---|
-| Terugvinden op titel/type/collectie | LIST met collectiefilter; STAT geeft naam, `kind` en `tags` |
-| Collecties 'Vandaag', 'Huis', 'Archief' | COLLECTION: maken, hernoemen, verwijderen (alleen leeg); COLLECTION_STAT: naam, aanwezigheid en revisie lezen |
-| Objectgeschiedenis openen | STAT met historie; READ met versieselector |
-| Herstel versie als nieuwe revisie (P2-05) | RESTORE: oude inhoud wordt een nieuwe revisie, de rest van de historie blijft |
-| Verwijderen ongedaan maken | DELETE bewaart de laatste versie als historie; RESTORE haalt die terug |
-| Meerdere documenten tegelijk verplaatsen/opruimen | TRANSACT: alles-of-niets over maximaal 4 objecten |
-| Ruimte vrijmaken | PURGE: historie definitief verwijderen |
+| Find by title/type/collection | LIST with collection filter; STAT returns name, `kind` and `tags` |
+| Collections “Vandaag”, “Huis”, “Archief” (Today, Home, Archive) | COLLECTION: create, rename, remove (only when empty); COLLECTION_STAT: read name, presence and revision |
+| Open object history | STAT with history; READ with version selector |
+| Restore version as a new revision (P2-05) | RESTORE: old content becomes a new revision; remaining history is preserved |
+| Undo deletion | DELETE retains the last version as history; RESTORE retrieves it |
+| Move/organise multiple documents together | TRANSACT: all-or-nothing over at most 4 objects |
+| Free space | PURGE: permanently remove history |
 
-Grens: dit is de opslaglaag. De Materiaal-interface draait nog niet native
-(G-/U-criteria); zoeken op titel gebeurt in de app over LIST-resultaten.
+Boundary: this is the storage layer. The Materiaal interface is not yet
+native (G/U criteria); title search occurs in the app over LIST results.
 
-Proefbudget (projectkeuze, geen productlimiet): 2 historische versies per
-object, 4 collecties per domein, maximaal 4 objecten per transactie. Verder
-gelden de M6e-grenzen: 16 objecten, 64 KiB per versie, 64 chunks, quota 40.
+Trial budget (project choice, not a product limit): 2 historical versions
+per object, 4 collections per domain, at most 4 objects per transaction.
+Other M6e limits apply: 16 objects, 64 KiB per version, 64 chunks, quota 40.
 
-Niet in deze stap: zoekindex, vrije metadata (sleutel/waarde), geneste
-collecties, gedeelde collecties tussen domeinen, onbeperkte historie, B02
-(authenticatie/encryptie), S09 (back-up/export) en migratie van v1-volumes.
+Outside this step: search index, arbitrary key/value metadata, nested
+collections, collections shared between domains, unlimited history, B02
+(authentication/encryption), S09 (backup/export) and migration of v1 volumes.
 
-## Schijfformaat v2 (`NOSVOL02`)
+## Disk format v2 (`NOSVOL02`)
 
-Gescopete sectoren `[4, 584)`. Iedere tabelkopie telt 34 sectoren
-(kopie A 0–33, kopie B 34–67); inhoudschunks beginnen bij sector 68.
+Scoped sectors `[4, 584)`. Each table copy has 34 sectors
+(copy A 0–33, copy B 34–67); content chunks begin at sector 68.
 
-- Sector 0: header (magic, versie 2, geometrie, generatie, request-ID,
-  `MAX_CHUNKS`, quota, historiediepte, collecties per domein) en op offset 40
-  een klok per domein (u64): het aantal commits van dat domein.
-- Sector 1: 8 collectierecords van 56 bytes (revisie, request-ID, naamlengte,
-  aanwezig, naam ≤ 32 bytes). Index = domein × 4 + collectie − 1.
-- Per object twee sectoren: kop (revisie, request-ID, aangemaakt/gewijzigd als
-  stand van de eigen domeinklok, `tags` u32, `kind` u16, aanwezig, collectie, historiediepte en de
-  actuele versie) en historie (2 versies van 216 bytes).
-- Een versie: versierevisie, lengte, chunklijst met per-chunk FNV,
-  inhoudschecksum en naam. Ongebruikte velden zijn canoniek nul / `0xFFFF`.
-- Alle sectoren dragen dezelfde trailer als v1: generatie, pogingdigest over
-  de payload van alle 34 sectoren en een sectorchecksum.
+- Sector 0: header (magic, version 2, geometry, generation, request ID,
+  `MAX_CHUNKS`, quota, history depth, collections per domain) and at offset 40
+  a clock per domain (u64): that domain's commit count.
+- Sector 1: 8 collection records of 56 bytes (revision, request ID, name
+  length, presence, name ≤ 32 bytes). Index = domain × 4 + collection − 1.
+- Two sectors per object: header (revision, request ID, created/modified as
+  own-domain clock values, `tags` u32, `kind` u16, presence, collection,
+  history depth and current version) and history (2 versions of 216 bytes).
+- A version: version revision, length, chunk list with per-chunk FNV,
+  content checksum and name. Unused fields are canonically zero / `0xFFFF`.
+- All sectors carry the same trailer as v1: generation, attempt digest over
+  the payload of all 34 sectors and a sector checksum.
 
-## Toelating van lege en vreemde volumes
+## Admission of empty and foreign volumes
 
-Een lege tabel is niet genoeg om een volume als nieuw te behandelen: een
-vreemd bestandssysteem kan de NOSVOL02-tabelregio niet gebruiken en elders
-wel gegevens bevatten. Als beide tabelkopieën leeg zijn en er geen geldige
-formaatmarker staat, leest herstel daarom ook alle sectoren van de
-experimentele volumegrens `[0, 580)`. Alleen een volledig nulgevuld volume
-wordt dan als generatie 0 geaccepteerd. Niet-nuldata zonder herkenbare
-NOSVOL02-toestand geeft `Corrupt`; de dienst formatteert of schrijft niets.
+An empty table is insufficient to treat a volume as new: a foreign file
+system may leave the NOSVOL02 table region unused while containing data
+elsewhere. If both table copies are empty and no valid format marker exists,
+recovery therefore also reads every sector of the experimental volume boundary
+`[0, 580)`. Only a completely zero-filled volume is then accepted as generation
+0. Non-zero data without recognisable NOSVOL02 state returns `Corrupt`; the
+service neither formats nor writes anything.
 
-Dit omvat ook beide tabelkopieën: willekeurige niet-nulbytes in alleen slot 1
-zijn geen bewijs van een onderbroken eigen tabelwrite. Zonder geldige marker
-of herstelde tabel moet de volledige tabelregio eveneens nul zijn. Met een
-geldige, geflushte marker blijft een onderbroken eerste tabel herstelbaar.
+This also includes both table copies: arbitrary non-zero bytes in slot 1
+alone are not evidence of an interrupted write to the project's table. Without
+a valid marker or recovered table, the complete table region must also be
+zero. With a valid flushed marker, an interrupted first table remains recoverable.
 
-Vóór de eerste upload accepteert `BEGIN` eerst een geldig lege of reeds
-gemarkeerde volume-invoer en schrijft sector 0 als `NOSFMT02`-formaatmarker,
-gevolgd door `FLUSH`, vóór de eerste inhoudssector. Andere eerste mutaties
-zetten dezelfde marker vóór hun tabelcommit. Bij een onderbroken eerste
-upload kan herstel zo de marker herkennen en de logische lege generatie
-teruggeven; ongecommitte inhoud blijft weesdata en wordt niet als bestand
-gepresenteerd. Zodra generatie 2 naar tabelslot 0 wordt geschreven, vervangt
-die tabel de marker. Een ongeldige of beschadigde marker is geen bewijs van
-leegte.
+Before the first upload, `BEGIN` first accepts valid empty or already marked
+volume input and writes sector 0 as a `NOSFMT02` format marker, followed by
+`FLUSH`, before the first content sector. Other initial mutations place the
+same marker before their table commit. After an interrupted first upload,
+recovery can therefore recognise the marker and return the logically empty
+generation; uncommitted content remains orphaned data and is not presented
+as a file. Once generation 2 is written to table slot 0, that table replaces
+the marker. An invalid or damaged marker is not evidence of emptiness.
 
-Een direct geconstrueerde service vertrouwt ook een meegegeven generatie niet:
-vóór de eerste mutatie vergelijkt zij de herstelde schijftoestand met de
-meegegeven tabel. Alleen `Service::recover` mag de toelatingscontrole vooraf
-als voltooid markeren.
+A directly constructed service does not trust a supplied generation either:
+before its first mutation, it compares recovered disk state with the supplied
+table. Only `Service::recover` may mark the admission check as already complete.
 
-De marker bevat de formaatversie en geometrie en heeft een checksum tegen
-toevallige beschadiging. Dit is geen authenticatie of bescherming tegen een
-opzettelijk nagemaakte marker. De native buitenlandse-mediafixture bevat
-alleen een Btrfs-achtige magicwaarde op de bekende 64-KiB-offset; zij is geen
-geldig Btrfs-volume en bewijst geen volledige detectie van andere
-bestandssystemen.
+The marker contains format version and geometry and has a checksum against
+accidental damage. This is neither authentication nor protection against a
+deliberately forged marker. The native foreign-media fixture contains only
+a Btrfs-like magic value at the known 64 KiB offset; it is not a valid Btrfs
+volume and does not demonstrate complete detection of other file systems.
 
-## Invarianten (aanvulling op M6e)
+## Invariants (additional to M6e)
 
-1. **Historie is strikt ouder.** Versierevisies dalen: actueel > historie[0] >
-   historie[1]. Een verwijderd object heeft geen actuele versie, collectie,
-   `tags` of `kind`, maar mag historie houden.
-2. **Gedeelde chunks alleen ongewijzigd.** Versies van één object mogen een
-   chunk alleen delen op dezelfde positie met dezelfde checksum (RESTORE
-   verwijst opnieuw, herschrijft niet). Objecten delen nooit chunks.
-3. **Quota telt historie mee.** Een chunk telt eenmaal per object; behouden
-   historie houdt ruimte vast tot PURGE. `Quota`/`Full` vóór iedere I/O.
-4. **Collecties zijn domeingebonden.** Een object kan alleen in een bestaande
-   collectie van het eigen domein staan; een niet-lege collectie verwijderen
-   geeft `Busy`. Domein komt uitsluitend van het kernelgebonden endpoint.
-5. **Transacties zijn alles-of-niets.** TRANSACT controleert iedere
-   voorwaarde (bestaan, verwachte revisie, collectie, onderscheiden objecten)
-   vóór één tabelwrite. Eén transactie = één generatie. Een crash tijdens de
-   tabelwrite laat de vorige generatie volledig staan.
-6. **Iedere commit is herleidbaar.** De request-ID van de header staat bij ten
-   minste één gewijzigd object of collectie; COLLECTION_STAT en STAT geven die
-   request-ID terug, zodat een `Unknown` uitkomst door lezen op te lossen is.
-   Definitief is dat antwoord pas van een schrijfbare instantie, na haar flush
-   uit invariant 9. Een read-only instantie flusht niets: zij kan een poging
-   zien die nog alleen in de schijfcache staat en na stroomverlies verdwijnt.
-   Haar antwoord is dus voorlopig.
-7. **Domeinen lezen elkaars activiteit niet af.** Iedere commit verhoogt
-   precies één domeinklok; de klokken tellen op tot de generatie. Revisies en
-   tijdstempels van een domein overschrijden nooit de eigen klok. De
-   leesantwoorden (STAT, LIST, COLLECTION_STAT, READ) en de revisies,
-   stempels en tellers in mutatieantwoorden bevatten alleen toestand van het
-   eigen domein. Twee kanalen tussen domeinen blijven bewust bestaan
-   (restrisico):
-   - `Full` hangt af van de gedeelde volumeruimte. De quota's samen
-     (2 × 40 chunks) zijn groter dan het volume (64), dus of BEGIN `Full`
-     geeft, hangt ook af van wat het andere domein vasthoudt.
-   - Mislukt de tabelwrite van één domein, dan sluit de instantie en krijgt
-     ook het andere domein `Unknown` tot een nieuwe instantie start.
+1. **History is strictly older.** Version revisions decrease: current >
+   history[0] > history[1]. A deleted object has no current version,
+   collection, `tags` or `kind`, but may retain history.
+2. **Shared chunks only when unchanged.** Versions of one object may share a
+   chunk only at the same position with the same checksum (RESTORE references
+   again, does not rewrite). Objects never share chunks.
+3. **Quota includes history.** A chunk counts once per object; retained history
+   holds space until PURGE. `Quota`/`Full` before any I/O.
+4. **Collections are domain-bound.** An object can belong only to an existing
+   collection in its own domain; deleting a non-empty collection returns
+   `Busy`. Domain derives exclusively from the kernel-bound endpoint.
+5. **Transactions are all-or-nothing.** TRANSACT checks every precondition
+   (existence, expected revision, collection, distinct objects) before one
+   table write. One transaction = one generation. A crash during the table
+   write leaves the previous generation entirely intact.
+6. **Every commit is traceable.** The header's request ID appears on at least
+   one changed object or collection; COLLECTION_STAT and STAT return that
+   request ID so an `Unknown` outcome can be resolved by reading. The response
+   is definitive only from a writable instance, after its flush under
+   invariant 9. A read-only instance flushes nothing: it may see an attempt
+   that exists only in disk cache and disappears after power loss. Its
+   response is therefore provisional.
+7. **Domains do not reveal each other's activity.** Every commit increments
+   exactly one domain clock; the clocks sum to the generation. A domain's
+   revisions and timestamps never exceed its own clock. Read responses
+   (STAT, LIST, COLLECTION_STAT, READ) and revisions, timestamps and counters
+   in mutation responses contain only own-domain state. Two cross-domain
+   channels deliberately remain (residual risk):
+   - `Full` depends on shared volume space. Combined quotas (2 × 40 chunks)
+     exceed the volume (64), so whether BEGIN returns `Full` also depends
+     on what the other domain retains.
+   - If one domain's table write fails, the instance closes and the other
+     domain also receives `Unknown` until a new instance starts.
 
-   Wie volledige scheiding wil, heeft per domein niet-overboekte ruimte en
-   foutisolatie per domein nodig; dat valt buiten S06.
-8. **RESTORE verliest geen historie.** De teruggezette versie verlaat de
-   historie en de vervangen actuele versie neemt haar plaats in.
-9. **Herstel is duurzaam vóór nieuwe writes.** Een schrijfbare instantie
-   flusht na recovery vóór het eerste verzoek. Anders kan een hergebruikte
-   chunk de terugvalkopie beschadigen als de gekozen kopie nog alleen in de
-   schijfcache stond. Read-only herstel schrijft en flusht niets.
+   Complete separation requires non-overcommitted per-domain space and
+   per-domain fault isolation; that is outside S06.
+8. **RESTORE loses no history.** The restored version leaves history and the
+   replaced current version takes its place.
+9. **Recovery is durable before new writes.** After recovery, a writable
+   instance flushes before the first request. Otherwise, a reused chunk may
+   damage the fallback copy if the selected copy existed only in disk cache.
+   Read-only recovery writes and flushes nothing.
 
-Restrisico's uit M6e blijven gelden (één onleesbare sector in de nieuwste kopie
-geeft terugval; FNV is geen authenticatie).
+M6e residual risks remain (one unreadable sector in the newest copy causes
+fallback; FNV is not authentication).
 
 ## IPC v6 (TAG `0x4d36454c4b000006`)
 
-Nieuwe operaties: RESTORE (selector 1–2), PURGE, META (`tags`/`kind`/collectie
-met revisie-CAS), COLLECTION (maken/hernoemen/verwijderen met CAS), TRANSACT
-(1–4 sub-operaties META/DELETE/PURGE van 24 bytes op objectindex binnen het
-eigen domein) en COLLECTION_STAT (op 15, alleen lezen: revisie, aanwezigheid,
-naam en request-ID van één collectie van het eigen domein). READ krijgt een versieselector; LIST een filter (0 = alles,
-1 = zonder collectie, c + 1 = collectie c); STAT geeft metadata en per
-historische versie revisie, lengte en inhoudschecksum. Alle ongebruikte bytes
-moeten nul zijn; de client valideert ieder antwoord strikt.
+New operations: RESTORE (selector 1–2), PURGE, META (`tags`/`kind`/collection
+with revision CAS), COLLECTION (create/rename/remove with CAS), TRANSACT
+(1–4 META/DELETE/PURGE sub-operations of 24 bytes on an object index within the
+own domain) and COLLECTION_STAT (at 15, read-only: revision, presence, name
+and request ID of one own-domain collection). READ gains a version selector;
+LIST gains a filter (0 = all, 1 = without collection, c + 1 = collection c);
+STAT supplies metadata and, per historical version, revision, length and
+content checksum. All unused bytes must be zero; the client strictly validates
+every response.
 
-## Acceptatie
+## Acceptance
 
-1. Hosttests `volume-core`: v2-formaat, historie, collecties, transacties,
-   negatieve gevallen en de uitputtende crashsimulatie (nu ook over
-   transacties, collecties, RESTORE en PURGE), plus de test tegen gemengde
-   schrijfpogingen.
-2. Orakeltests (`tests/test_volume_disk.py`): v2-decodering, historie- en
-   chunkregels, collectielidmaatschap, digest en de recoveryregels.
-3. Native gate `tools/test_volume.py`, negen echte QEMU-invocaties op één
-   bevroren bron: normal → koude read-only recovery; cut-data, cut-table en
-   cut-txn (kill midden in de tabelwrite van een transactie over twee
-   objecten), elk gevolgd door koude recovery; corrupte image geweigerd. Voor
-   cut-table en cut-txn eist de runner een echt gescheurde poging in de andere
-   kopie (een niet-lege, onvolledige prefix van g+1-sectoren boven de vorige
-   kopie); voor cut-data moet die kopie onaangeroerd zijn.
-4. Normal bewijst native: collecties maken en dubbel maken (`Stale`), META
-   met ongeldige collectie (`Range`), een transactie met één verouderde
-   voorwaarde verandert niets (`Stale`), een geldige transactie verplaatst twee
-   documenten in één commit, LIST-filters, `Busy` bij een niet-lege collectie,
-   historie lezen en terugzetten als nieuwe revisie, verwijderen ongedaan
-   maken, `Quota` door behouden historie en PURGE om ruimte vrij te maken,
-   en collecties lezen met COLLECTION_STAT. De koude recovery verifieert de
-   volledige eindtoestand inclusief historie, collectienamen en de
-   domeinklokken (57/27), en weigert iedere mutatie, ook RESTORE en TRANSACT
-   (`Access`).
+1. Host tests `volume-core`: v2 format, history, collections, transactions,
+   negative cases and exhaustive crash simulation (now also over transactions,
+   collections, RESTORE and PURGE), plus the mixed-write-attempt test.
+2. Oracle tests (`tests/test_volume_disk.py`): v2 decoding, history and chunk
+   rules, collection membership, digest and recovery rules.
+3. Native gate `tools/test_volume.py`, nine actual QEMU invocations on one
+   frozen source: normal → cold read-only recovery; cut-data, cut-table and
+   cut-txn (kill during the table write of a two-object transaction), each
+   followed by cold recovery; corrupt image rejected. For cut-table and
+   cut-txn, the runner requires an actually torn attempt in the other copy
+   (a non-empty, incomplete prefix of g+1 sectors over the previous copy);
+   for cut-data, that copy must remain untouched.
+4. Normal demonstrates natively: create collections and duplicate creation
+   (`Stale`), META with invalid collection (`Range`), a transaction with one
+   stale precondition changes nothing (`Stale`), a valid transaction moves
+   two documents in one commit, LIST filters, `Busy` for a non-empty collection,
+   read history and restore as a new revision, undo deletion, `Quota` caused
+   by retained history and PURGE to release space, and read collections with
+   COLLECTION_STAT. Cold recovery verifies the complete final state including
+   history, collection names and domain clocks (57/27), and rejects every
+   mutation, including RESTORE and TRANSACT (`Access`).
 
-Een emulator-kill is geen fysieke stroomuitval. Er is geen productie-,
-encryptie- of fysieke-schijfclaim.
+An emulator kill is not physical power loss. No production, encryption or
+physical-disk claim is made.

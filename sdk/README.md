@@ -1,21 +1,21 @@
-# Nieuw OS appbouwstenen
+# Baryon OS app building blocks
 
-Deze eigen workspace bevat begrensde libraries voor gebruikersprocessen.
-Zij veranderen geen kernel-ABI, capabilityrechten of opslagformaat.
+This independent workspace contains bounded libraries for user processes.
+They do not change the kernel ABI, capability rights or storage format.
 
-| Onderdeel | Functie |
+| Component | Function |
 |---|---|
-| [runtime](runtime/README.md) | Allocatorvrije `no_std`-wrappers voor de bestaande int80-ABI, Message320 en getypeerde handles. |
-| [catalog-client](catalog-client/README.md) | B01-catalogusclient over de runtime, met begrensd wachten, canonieke antwoorden en geen replay na publicatie. |
-| [document-session](document-session/README.md) | Bestaand document openen, lokaal bewerken, CAS-bewaren en expliciet heropenen; conceptbehoud bij conflict of onzekerheid. |
-| [catalog-read](examples/catalog-read/README.md) | Compileerbaar native voorbeeld voor LIST → GET via de getypeerde catalogusclient. |
-| [supervisor](examples/supervisor/README.md) | K05: ring-3 supervisor, herstartbare worker en client over de spawn/kill/status-ABI 1.3; de acceptatieprogramma's van het profiel `native-supervisor`. |
+| [runtime](runtime/README.md) | Allocation-free `no_std` wrappers for the existing int80 ABI, Message320 and typed handles. |
+| [catalog-client](catalog-client/README.md) | B01 catalogue client over the runtime, with bounded waiting, canonical replies and no replay after publication. |
+| [document-session](document-session/README.md) | Open an existing document, edit locally, save with CAS and explicitly reopen; retain drafts on conflict or uncertainty. |
+| [catalog-read](examples/catalog-read/README.md) | Compilable native LIST → GET example using the typed catalogue client. |
+| [supervisor](examples/supervisor/README.md) | K05: ring-3 supervisor, restartable worker and client over the spawn/kill/status ABI 1.3; acceptance programs for the `native-supervisor` profile. |
 
-G01/G03 bewijzen veilige hostvalidatie en native compilatie. De afzonderlijke
-G05-suite bewijst de runtimebridge in de bestaande native M6c-keten. G07 is
-een nieuwe appbouwsteen met hostmodeltests en native librarycompilatie; er
-is daarmee geen extra GUI- of appstartbewijs geclaimd. Het bestaande
-G1/Materiaal-werk blijft van zijn eigen eigenaar.
+G01/G03 demonstrate safe host validation and native compilation. The separate
+G05 suite demonstrates the runtime bridge in the existing native M6c chain.
+G07 is a new app building block with host-model tests and native library
+compilation; it does not claim additional GUI or app-startup evidence.
+Existing G1/Materiaal work remains with its assigned owner.
 
-Gebruik een eigen `CARGO_TARGET_DIR` bij parallel werk. De `document-session`
-README beschrijft de publieke API en de expliciete herstelkeuzes voor de app.
+Use a separate `CARGO_TARGET_DIR` for parallel work. The `document-session`
+README describes the public API and the app's explicit recovery choices.

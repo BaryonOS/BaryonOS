@@ -1,27 +1,27 @@
-# Testen, debuggen en foutdiagnose
+# Testing, debugging and fault diagnosis
 
-Het boek werkt in kleine stappen en controleert de kernel in een emulator; later wordt seriële uitvoer een logkanaal. De wiki bevat emulatorgebruik, GDB, unit tests en bekende fouten in tutorials. Neem loguitvoer, symbolen, gekozen machineconfiguratie en exacte bronrevisie mee bij een reproduceerbare foutbeschrijving.
+The book develops in small steps and checks the kernel in an emulator; serial output later becomes a logging channel. The wiki covers emulator use, GDB, unit tests and known tutorial errors. Include log output, symbols, the selected machine configuration and the exact source revision in a reproducible fault description.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [Testing](../corpus/wiki-03.md#w001946) [W001946] · revisie 29356 · 2025-01-30T03:35:06Z
-- [Unit Testing](../corpus/wiki-03.md#w001918) [W001918] · revisie 27984 · 2023-07-09T17:27:43Z
-- [Kernel Debugging](../corpus/wiki-03.md#w001947) [W001947] · revisie 28799 · 2024-05-05T23:19:00Z
-- [GDB](../corpus/wiki-02.md#w001544) [W001544] · revisie 28511 · 2023-12-13T07:13:30Z
-- [Qemu](../corpus/wiki-07.md#w002941) [W002941] · revisie 10948 · 2010-11-17T04:06:42Z
-- [Bochs](../corpus/wiki-02.md#w001556) [W001556] · revisie 30658 · 2026-05-28T15:31:09Z
-- [Troubleshooting](../corpus/wiki-02.md#w001540) [W001540] · revisie 28507 · 2023-12-13T06:59:56Z
-- [James Molloy's Tutorial Known Bugs](../corpus/wiki-09.md#w003459) [W003459] · revisie 25869 · 2021-05-18T22:17:05Z
+- [Testing](../corpus/wiki-03.md#w001946) [W001946] · revision 29356 · 2025-01-30T03:35:06Z
+- [Unit Testing](../corpus/wiki-03.md#w001918) [W001918] · revision 27984 · 2023-07-09T17:27:43Z
+- [Kernel Debugging](../corpus/wiki-03.md#w001947) [W001947] · revision 28799 · 2024-05-05T23:19:00Z
+- [GDB](../corpus/wiki-02.md#w001544) [W001544] · revision 28511 · 2023-12-13T07:13:30Z
+- [Qemu](../corpus/wiki-07.md#w002941) [W002941] · revision 10948 · 2010-11-17T04:06:42Z
+- [Bochs](../corpus/wiki-02.md#w001556) [W001556] · revision 30658 · 2026-05-28T15:31:09Z
+- [Troubleshooting](../corpus/wiki-02.md#w001540) [W001540] · revision 28507 · 2023-12-13T06:59:56Z
+- [James Molloy's Tutorial Known Bugs](../corpus/wiki-09.md#w003459) [W003459] · revision 25869 · 2021-05-18T22:17:05Z
 
-## Aansluiting op het PDF-boek
+## Related PDF book pages
 
-- Pagina 8–8: [B008](../corpus/boek.md#b008) tot [B008](../corpus/boek.md#b008).
-- Pagina 16–17: [B016](../corpus/boek.md#b016) tot [B017](../corpus/boek.md#b017).
-- Pagina 26–31: [B026](../corpus/boek.md#b026) tot [B031](../corpus/boek.md#b031).
+- Pages 8–8: [B008](../corpus/boek.md#b008) to [B008](../corpus/boek.md#b008).
+- Pages 16–17: [B016](../corpus/boek.md#b016) to [B017](../corpus/boek.md#b017).
+- Pages 26–31: [B026](../corpus/boek.md#b026) to [B031](../corpus/boek.md#b031).
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [Bochs](../corpus/wiki-02.md#w001556) [W001556]
 - [Bochs VBE Extensions](../corpus/wiki-04.md#w002231) [W002231]

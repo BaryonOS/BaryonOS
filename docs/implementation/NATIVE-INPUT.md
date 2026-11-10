@@ -1,70 +1,72 @@
-# FR-U01 — begrensde native invoerbouwstenen
+# FR-U01 — bounded native input components
 
-Taakcontract, 29 oktober 2026. Eigenaar: `native_ui_apps`; integratie: hoofdagent.
-Schrijfgebied: uitsluitend `crates/ui-core/**` en dit document. Geen nieuwe
-dependency, syscall, kernelrecht of grafische productsuccessclaim.
+Task contract, 29 October 2026. Owner: `native_ui_apps`; integration: lead agent.
+Write scope: only `crates/ui-core/**` and this document. No new dependency,
+syscall, kernel permission or claim of graphical product success.
 
-## Resultaat en grens
+## Result and boundary
 
-De `no_std`-core decodeert een vertaalde PS/2 Set-1-toetsenstroom en standaard
-driebyte-PS/2-muispackets naar fysieke events. Een aparte router bewaart de
-focusgeneratie en de eigenaar van ingedrukte toetsen/knoppen. De bestaande
-`Keyboard`, `KeyEvent`, `Modifiers` en ASCII-`TextLine` blijven beschikbaar voor
-G0. Er komen geen apparaat-I/O, gebruikerspointers, tekstlayout of opslag in de
-core. Dit is geen compositor, invoerdienst of voltooide U01/U02-acceptatie.
+The `no_std` core decodes a translated PS/2 Set-1 keyboard stream and standard
+three-byte PS/2 mouse packets into physical events. A separate router retains
+the focus generation and the owner of pressed keys/buttons. The existing
+`Keyboard`, `KeyEvent`, `Modifiers` and ASCII `TextLine` remain available for
+G0. The core adds no device I/O, user pointers, text layout or storage. This
+is not a compositor, input service or completed U01/U02 acceptance.
 
-Profiel: QEMU q35, i8042, naar Set 1 vertaalde toetsen en PS/2-device-ID 0;
-geen wiel-/vijfknopsmodus, USB, IME of fysieke hardwareclaim. De adapter moet
-het profiel werkelijk configureren, controllerstatus controleren, AUX en
-keyboard correct scheiden en commandoantwoorden buiten de eventstroom houden.
+Profile: QEMU q35, i8042, keys translated to Set 1 and PS/2 device ID 0;
+no wheel/five-button mode, USB, IME or physical hardware claim. The adapter
+must actually configure the profile, check controller status, correctly
+separate AUX and keyboard, and keep command replies outside the event stream.
 
-## Interfaces en invarianten
+## Interfaces and invariants
 
-- `Set1Keyboard::feed`: fysieke `KeyboardEvent`s met Press/Repeat/Release en
-  links/rechts onderscheid voor modifiers; tekstvertaling blijft afzonderlijk.
-  Echte breakbytes blijven als Release zichtbaar na decoderreset, ook zonder
-  lokale downstaat. De router bezorgt nooit een release zonder geldige eigenaar.
-  Onbekende codes en gebroken prefixes geven een expliciete fout. De adapter
-  reset decoder én router bij verloren/controllerfoute invoer en meldt inputreset
-  aan de betrokken client; geen stil vastzittende modifier.
-- `Ps2Mouse::feed`: precies drie bytes per packet; bit 3 markeert de eerste
-  byte. Payloadbytes mogen elk bitpatroon hebben. Bewegingswaarden zijn signed
-  negen bits; een overflowas beweegt niet, knopovergangen blijven beschikbaar.
-  Na bekend byteverlies/timeout reset de adapter de packetgrens. De bitmarker
-  alleen bewijst geen herstel na willekeurig ongemerkt byteverlies.
-- `Cursor`: getypeerde schermgrenzen, clamping en omzetting van PS/2-Y naar
-  scherm-Y; geen pointerversnelling of schaalpolicy.
-- `InputRouter`: alleen de vertrouwde compositor verandert focus. Events dragen
-  eigenaar en monotone generatie; aflevering controleert die opnieuw. Oude
-  repeats/releases en al ingedrukte modifiers/knoppen worden niet aan een nieuwe
-  focus overgedragen. Generatie-overflow sluit de route en hergebruikt geen token.
-  Fysieke downstaat staat los van optionele aflever-eigenaars: ook een toets
-  ingedrukt zonder focus blijft bekend. Inputreset bewaart die staat en oude
-  eigenaars tot een echte release; een reset verzint geen klik of sneltoets.
-  De echte release ruimt de marker direct op, ook als de decoder zelf geen
-  voorafgaande make meer kent. De adapter meldt de reset begrijpelijk.
-  Routertokens zijn geen kernelcapabilities: bron-, proces- en surfaceautoriteit
-  moeten bij de uiteindelijke kernel-/dienstgrens worden gecontroleerd.
+- `Set1Keyboard::feed`: physical `KeyboardEvent`s with Press/Repeat/Release and
+  left/right modifier distinction; text translation remains separate. Actual
+  break bytes remain visible as Release after a decoder reset, even without
+  local down state. The router never delivers a release without a valid owner.
+  Unknown codes and broken prefixes produce an explicit error. The adapter
+  resets both decoder and router for lost/controller-faulted input and reports
+  input reset to the affected client; no silently stuck modifier.
+- `Ps2Mouse::feed`: exactly three bytes per packet; bit 3 marks the first byte.
+  Payload bytes may have any bit pattern. Movement values are signed nine-bit
+  values; an overflowing axis does not move, while button transitions remain
+  available. After known byte loss/timeout, the adapter resets the packet
+  boundary. The bit marker alone does not prove recovery after arbitrary
+  undetected byte loss.
+- `Cursor`: typed screen bounds, clamping and conversion of PS/2 Y to screen Y;
+  no pointer acceleration or scaling policy.
+- `InputRouter`: only the trusted compositor changes focus. Events carry an
+  owner and monotonic generation; delivery rechecks both. Old repeats/releases
+  and already pressed modifiers/buttons are not transferred to new focus.
+  Generation overflow closes the route and does not reuse a token. Physical
+  down state is separate from optional delivery owners: a key pressed without
+  focus also remains known. Input reset preserves that state and old owners
+  until a real release; a reset invents no click or shortcut. The real release
+  immediately clears the marker, even if the decoder itself no longer knows
+  of the preceding make. The adapter reports the reset clearly. Router tokens
+  are not kernel capabilities: source, process and surface authority must be
+  checked at the eventual kernel/service boundary.
 
-## Acceptatie van deze bouwsteen
+## Acceptance of this component
 
-Hosttests: vaste packet-/scancodevectoren, signed extremen, overflow, gesplitste
-packets, foute headers/prefixes, pauze/PrintScreen, modifierrelease en repeat,
-cursorclamping, focuswisseling met vastgehouden toetsen/knoppen, oude queue-events
-en generatie-uitputting. Bestaande G0-tests blijven slagen. Compileer de library
-met de vastgelegde Rust 1.90.0 naar `x86_64-unknown-none`; voer gerichte Clippy en
-formatcontrole uit in een eigen targetmap.
+Host tests: fixed packet/scancode vectors, signed extremes, overflow, split
+packets, invalid headers/prefixes, Pause/PrintScreen, modifier release and
+repeat, cursor clamping, focus changes with held keys/buttons, old queued
+events and generation exhaustion. Existing G0 tests must continue to pass.
+Compile the library with the specified Rust 1.90.0 for
+`x86_64-unknown-none`; run targeted Clippy and format checks in a dedicated
+target directory.
 
-Native vervolgacceptatie blijft open: ring-3-display-/inputdienst, kernel-
-capabilitygrens, echte QMP-muis/toetsen, twee surface-eigenaren, focus en
-compositorherstel op het uiteindelijke image. Hosttests of librarycompilatie
-bewijzen deze scenario's niet.
+Native follow-up acceptance remains open: ring-3 display/input service, kernel
+capability boundary, real QMP mouse/keys, two surface owners, focus and
+compositor recovery on the final image. Host tests or library compilation
+do not prove these scenarios.
 
-## Uitgevoerde controle — 29 oktober 2026
+## Executed checks — 29 October 2026
 
-Op basiscommit `2409708`, met de herstelde bronhashes uit
+On base commit `2409708`, with the corrected source hashes from
 [`input-acceptance.json`](../../crates/ui-core/verification/input-acceptance.json),
-zijn daadwerkelijk uitgevoerd (allemaal exit 0):
+the following were actually executed (all exit 0):
 
 ```text
 cargo +1.90.0 test -p ui-core --locked --offline
@@ -74,33 +76,34 @@ cargo +1.90.0 fmt -p ui-core --check
 git diff --check
 ```
 
-Resultaat na reviewherstel: **30 hosttests geslaagd** (25 coretests en vijf
-publieke-API-resetregressies), native librarycompilatie, Clippy en formattering
-geslaagd. De eerste implementatie op `2409708` faalde aantoonbaar op twee
-nieuwe tegenvoorbeelden (exit 101, 0/2 geslaagd): een zonder focus vastgehouden
-toets werd na decoderreset opnieuw afgeleverd; een echte release direct na
-decoderreset ruimde de oude marker niet op. Dezelfde eerste twee regressies
-slagen na herstel, naast tests voor modifierisolatie, no-focus-release en
-orphan-release/Pause. Het compacte rapport bewaart de exacte rode testbron,
-broncommit en loghashes. Fysieke downstaat en aflevereigenaars zijn nu afzonderlijk;
-echte breakbytes bereiken de router ook na decoderreset.
-Toolselectie via bestaande `tools/common.py::environment()`, met
-`LOCALAPPDATA=/workspace/nieuw-os/.tools` en eigen
+Result after review corrections: **30 host tests passed** (25 core tests and
+five public-API reset regressions); native library compilation, Clippy and
+formatting passed. The first implementation on `2409708` demonstrably failed
+two new counterexamples (exit 101, 0/2 passed): a key held without focus was
+delivered again after decoder reset; a real release immediately after decoder
+reset did not clear the old marker. The same first two regressions pass after
+the fix, alongside tests for modifier isolation, no-focus release and
+orphan-release/Pause. The compact report retains the exact failing test source,
+source commit and log hashes. Physical down state and delivery owners are now
+separate; real break bytes reach the router even after decoder reset.
+Tool selection uses the existing `tools/common.py::environment()`, with
+`LOCALAPPDATA=/workspace/nieuw-os/.tools` and dedicated
 `CARGO_TARGET_DIR=/workspace/nieuw-os-worktrees/ui/build/input-target`.
-Volledige lokale stdout/stderr: `build/input-acceptance/`; het compacte rapport
-bevat commando's, exitstatussen, compiler, bron-/loghashes en de targetartifacthash.
-Geen QEMU-/native invoerproef of menselijke bediening uitgevoerd voor deze slice.
+Complete local stdout/stderr: `build/input-acceptance/`; the compact report
+contains commands, exit statuses, compiler, source/log hashes and the target
+artifact hash. No QEMU/native input trial or human operation was performed
+for this slice.
 
-## Bronnen
+## Sources
 
-- OSDev Wiki, *PS/2 Mouse*, W003157, revisie 30841 van 2 juli 2026:
-  standaardpacket, sign-/overflowbits en device-ID. Lokale tekst gecontroleerd.
-- OSDev Wiki, *PS/2 Keyboard*, W001900, revisie 30840 van 2 juli 2026:
-  Set-1 make/break, prefixes, commando-/antwoordgrens. Lokale tekst gecontroleerd.
-- QEMU Project, `hw/input/ps2.c`, tag `v10.0.2`, functies
-  `ps2_mouse_send_packet`, `ps2_mouse_event` en `ps2_keyboard_event`:
+- OSDev Wiki, *PS/2 Mouse*, W003157, revision 30841 of 2 July 2026:
+  standard packet, sign/overflow bits and device ID. Local text checked.
+- OSDev Wiki, *PS/2 Keyboard*, W001900, revision 30840 of 2 July 2026:
+  Set-1 make/break, prefixes, command/reply boundary. Local text checked.
+- QEMU Project, `hw/input/ps2.c`, tag `v10.0.2`, functions
+  `ps2_mouse_send_packet`, `ps2_mouse_event` and `ps2_keyboard_event`:
   https://github.com/qemu/qemu/blob/v10.0.2/hw/input/ps2.c.
-  Primaire bron voor het emulatorprofiel, gelezen 29 oktober 2026; geen code
-  overgenomen. QEMU begrenst standaardmuisdeltas daar op ±127; de core decodeert
-  het bredere standaard-negenbitsformaat eveneens. Geen claim dat een complete
-  IBM-hardwarehandleiding lokaal is gecontroleerd.
+  Primary source for the emulator profile, read 29 October 2026; no code
+  incorporated. QEMU limits standard mouse deltas there to ±127; the core
+  also decodes the broader standard nine-bit format. No claim that a complete
+  IBM hardware manual was checked locally.

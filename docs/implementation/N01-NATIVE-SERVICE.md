@@ -1,154 +1,166 @@
-# N01 — geïsoleerde native netwerkdienst
+# N01 — isolated native network service
 
-## Taak en bewijsgrens
+## Task and evidence boundary
 
-Basis `0fe648b87d1f4959087d3f80a251a7d6fb64dd66`, branch
-`codex/n01-native-service-20261102`. Doel: herbruikbare, afzonderlijke ring-3
-netwerkdienst met twee onafhankelijke IPC-apps. Alleen de dienst krijgt NIC en
-entropy. TCP gebruikt de bestaande `net-stack` met smoltcp0.14.0; UDP de
-bestaande net-protocol encoder/parser en gesolliciteerde ARP-cache. Geen nieuwe
-registrycrate of bestaande kernel als basis. Kernel blijft Rust1.90; deze
-appworkspace gebruikt de al toegestane Rust1.91.1, zonder rlib-uitwisseling.
+Baseline `0fe648b87d1f4959087d3f80a251a7d6fb64dd66`, branch
+`codex/n01-native-service-20261102`. Goal: a reusable separate ring-3 network
+service with two independent IPC apps. Only the service receives NIC and
+entropy access. TCP uses the existing `net-stack` with smoltcp 0.14.0; UDP
+uses the existing net-protocol encoder/parser and solicited ARP cache. No new
+registry crate or existing kernel as a foundation. The kernel remains on
+Rust 1.90; this app workspace uses the already permitted Rust 1.91.1,
+without exchanging rlibs.
 
-Niet inbegrepen: TLS/PQC-handshake(N03), DHCP/dagelijkse internetconfiguratie(N02),
-algemene dynamische policy-issuer of netwerkintrekking(N04), fysieke wifi of
-nieuwe syscalls. Een IP/MAC-adres is geen cryptografische peeridentiteit. De
-normale proof gebruikt uitsluitend synthetische packets via de QEMU-testpeer.
+Excluded: TLS/PQC handshake (N03), DHCP/everyday internet configuration (N02),
+a general dynamic policy issuer or network revocation (N04), physical Wi-Fi
+or new syscalls. An IP/MAC address is not a cryptographic peer identity.
+The normal proof uses only synthetic packets through the QEMU test peer.
 
-De service/SDK/wire hebben respectievelijk 7/6/4 gerichte hosttests, inclusief
-twee echte smoltcp-TCP-verbindingen met volle 4096B-buffers, herstel en sluiten.
-Strict clippy slaagt voor die drie packages. De volledige kernel 1.90-build met
-native Rust 1.91.1-service/client-ELFs slaagt. De brongebonden native gate is
-geslaagd op `f152aec0615285065689f0a7e2855e5858fdb350`: drie echte processen,
-tien TCP-scenario's en beide UDP-foutbursts, exit 33 na 8,413 seconden. De tweede
-native gate sluit A's replykanaal tijdens een request; B voltooit daarna zijn
-hele route (A exit tick 32, B tick 470), exit 33 na 7,538 seconden.
-Bronhash `56ed10aade50703e08c8422251e323b4400bf37196320d24befe0b46883bbce8`.
-Het opgeslagen bewijs staat in
-`docs/verification/n01-native-service-20261102/`. Dit document kent geen punten
-toe; de hoofdagent moet de samengevoegde bron opnieuw door de gate halen.
+The service/SDK/wire have 7/6/4 targeted host tests respectively, including
+two actual smoltcp TCP connections with full 4096-B buffers, recovery and
+closing. Strict Clippy passes for those three packages. The complete kernel
+1.90 build with native Rust 1.91.1 service/client ELFs passes. The source-bound
+native gate passed on `f152aec0615285065689f0a7e2855e5858fdb350`: three real
+processes, ten TCP scenarios and both UDP error bursts, exit 33 after
+8.413 seconds. The second native gate closes A's reply channel during a
+request; B then completes its entire route (A exit tick 32, B tick 470),
+exit 33 after 7.538 seconds. Source hash
+`56ed10aade50703e08c8422251e323b4400bf37196320d24befe0b46883bbce8`.
+Stored evidence is in `docs/verification/n01-native-service-20261102/`.
+This document awards no points; the lead agent must rerun the gate on the
+merged source.
 
-## Vertrouwensgrens en interfaces
+## Trust boundary and interfaces
 
-- Kernelbootstrap bindt twee werkelijke app-PIDs en per app een apart RECV en
-  vast SEND-replyendpoint. Onbetrouwbare requests leveren geen PID/replycap.
-- Iedere app mag uitsluitend zijn door bootstrap gekozen IPv4 en vijf TCP-poorten,
-  plus één UDP-poort gebruiken. Apps krijgen geen NetworkSource/Entropy.
-- Eén TCP-socket per app, 4096B RX/TX, maximaal 208B data per IPC. UDP heeft één
-  208B ontvangstslot per app; bij backpressure wordt de oude datagram niet overschreven.
-- Alle datagrammen zijn onbeschermde transportbytes. Standaard geen listen/server,
-  IPv6, IP-fragmentatie, hostsocket of stille fallback.
-- TCP-verbindingtokens zijn generatie+slot en worden altijd tegen de werkelijke
-  afzender én service-epoch gecontroleerd. Ze zijn geen zelfstandige capabilities.
-- SDK en service herhalen geen eenmaal gequeue-de IPC-mutatie na een verloren
-  antwoord. Een netwerk-TX-slot wordt pas vrijgegeven na de echte NIC-completion.
-- Elke app heeft 12.768 disjuncte, niet hergebruikte lokale TCP-poorten per boot;
-  uitputting geeft alleen die app Status::Exhausted. Geen globale dienstfault.
-- Een permanent verloren appkanaal retireert alleen dat slot. Een reeds
-  gepubliceerde NIC-transmissie blijft leven tot de echte completion; de
-  andere app gaat door. Onherstelbare fouten van het gedeelde device blijven
-  een fout van de netwerkdienst.
-- Serviceverwerking is begrensd: één packetstap en maximaal één request/antwoord
-  per app per beurt; een volle antwoordqueue van A blokkeert B niet.
+- Kernel bootstrap binds two actual app PIDs and, per app, a separate RECV
+  and fixed SEND reply endpoint. Untrusted requests supply no PID/reply capability.
+- Each app may use only its bootstrap-selected IPv4 address and five TCP
+  ports, plus one UDP port. Apps receive no NetworkSource/Entropy.
+- One TCP socket per app, 4096-B RX/TX, at most 208 B of data per IPC. UDP has
+  one 208-B receive slot per app; backpressure does not overwrite the old
+  datagram.
+- All datagrams are unprotected transport bytes. No listen/server, IPv6,
+  IP fragmentation, host socket or silent fallback by default.
+- TCP connection tokens are generation+slot and are always checked against
+  both the actual sender and service epoch. They are not independent
+  capabilities.
+- SDK and service do not repeat an IPC mutation already queued after a lost
+  reply. A network TX slot is released only after actual NIC completion.
+- Each app has 12,768 disjoint, non-reused local TCP ports per boot; exhaustion
+  returns Status::Exhausted only for that app. No global service fault.
+- A permanently lost app channel retires only that slot. An already published
+  NIC transmission remains live until actual completion; the other app
+  continues. Unrecoverable shared-device errors remain network-service errors.
+- Service processing is bounded: one packet step and at most one request/
+  reply per app per turn; A's full reply queue does not block B.
 
-NET1-tag is `u64::from_le_bytes(*b"NETRPC01")`, payload exact256B:
-`NET1`@0, versionu16=1@4, operationu16@6 (`|0x8000` bij reply), requestu64@8,
-epochu64@16, connectionu64@24, statusu32@32, argumentu32@36, IPv4@40,
-portu16@44, reserved0@46, data208B@48. Alle ongebruikte bytes moeten0 zijn.
-Ops1OpenTcp,2SendTcp,3ReceiveTcp,4CloseTcp,5State,6SendUdp,7ReceiveUdp,8Retire.
-Open.argument is timeout1..6000ticks(100Hz); Send.argument datalengte≤208.
-State geeft Closed0,Connecting1,Established2,PeerClosed3,Closing4,TimedOut5.
-Retire sluit alleen de eigen appautoriteit; geen app kan de dienst globaal stoppen.
+NET1 tag is `u64::from_le_bytes(*b"NETRPC01")`, payload exactly 256 B:
+`NET1`@0, version u16=1@4, operation u16@6 (`|0x8000` for a reply),
+request u64@8, epoch u64@16, connection u64@24, status u32@32,
+argument u32@36, IPv4@40, port u16@44, reserved0@46, data208B@48.
+All unused bytes must be 0. Ops 1 OpenTcp, 2 SendTcp, 3 ReceiveTcp,
+4 CloseTcp, 5 State, 6 SendUdp, 7 ReceiveUdp, 8 Retire.
+Open.argument is timeout 1..6000 ticks (100 Hz); Send.argument is data
+length ≤208. State returns Closed0, Connecting1, Established2, PeerClosed3,
+Closing4, TimedOut5. Retire closes only the app's own authority; no app can
+stop the service globally.
 
 SDK: `Session::new(Transport,epoch,service_pid,SendEndpoint,ReceiveEndpoint,budget)`;
-`open/state/send/receive/close/send_udp/receive_udp/retire`. Bufferfouten worden
-vóór publicatie afgewezen. Antwoordpeer/tag/geen-caps/request/epoch/op/token worden
-gecontroleerd. Net zoals de bestaande catalogclient is Transport een vertrouwde
-adapter; zelf geconstrueerde Rustwaarden bewijzen geen kernelafzender.
+`open/state/send/receive/close/send_udp/receive_udp/retire`. Buffer errors
+are rejected before publication. Reply peer/tag/no-capabilities/request/
+epoch/op/token are checked. As with the existing catalogue client, Transport
+is a trusted adapter; self-constructed Rust values do not prove a kernel
+sender.
 
-## Native startupcontract
+## Native startup contract
 
-Alle startupvelden zijn u64 op offsets in de bestaande private1024B-startpagina.
-De service valideert afzonderlijke handles en verschillende service/app-PIDs.
+All startup fields are u64 at offsets in the existing private 1024-B startup
+page. The service validates separate handles and different service/app PIDs.
 
-| Serviceoffset | Betekenis |
+| Service offset | Meaning |
 |---:|---|
 |32|`u64::from_le_bytes(*b"NETSVC01")`|
-|40|service-epoch>0|
+|40|service epoch >0|
 |48|NetworkSource|
-|56/64/72|appA RECV / replySEND / werkelijke PID|
-|80/88/96|appB RECV / replySEND / werkelijke PID|
+|56/64/72|app A RECV / replySEND / actual PID|
+|80/88/96|app B RECV / replySEND / actual PID|
 |104/112|EntropySource / servicePID|
-|120/128|eerste TCP-poort A/B; steeds vijf toegestane poorten|
-|136/144|exacte UDP-poort A/B|
-|152/160|optionele controllerRECV / werkelijke controllerPID; beide0=afwezig|
+|120/128|first TCP port A/B; five permitted ports each|
+|136/144|exact UDP port A/B|
+|152/160|optional controllerRECV / actual controllerPID; both 0=absent|
 
-Linkprofiel is het bestaande NIC-profiel MAC02:00:00:00:00:07,
-192.0.2.2/24,peer192.0.2.1. De library ondersteunt gevalideerde andere
-on-linkconfiguraties; de native proof legt deze expliciete fixtureconfig vast.
-De service verkrijgt8bytes via de echte EntropySource voor de smoltcp-seed;
-geen vaste proefseed als productie-ISN-claim. MAC/ARP geven geen authenticatie.
+The link profile is the existing NIC profile MAC02:00:00:00:00:07,
+192.0.2.2/24, peer192.0.2.1. The library supports other validated on-link
+configurations; the native proof records this explicit fixture configuration.
+The service obtains 8 bytes through the actual EntropySource for the smoltcp
+seed; no fixed trial seed as a production ISN claim. MAC/ARP provide no
+authentication.
 
-Appoffset32=NETAPP01,40epoch,48SEND,56RECV,64servicePID,72slot0/1,
-80werkelijke eigenPID,88eigen TCP-startpoort,96eigen UDP-poort.
-Offset104=1 selecteert uitsluitend de aparte client-uitvalproef voor app A;
-het normale manifest schrijft0. Beide apps
-gebruiken hetzelfde ELF; het echte bootstrap-slot kiest hun eigen testdata.
+App offset 32=NETAPP01, 40 epoch, 48 SEND, 56 RECV, 64 servicePID,
+72 slot0/1, 80 actual ownPID, 88 own TCP starting port, 96 own UDP port.
+Offset104=1 selects only the separate client-failure trial for app A; the
+normal manifest writes 0. Both apps use the same ELF; the actual bootstrap
+slot selects their own test data.
 
-Optionele controller-tagNETCTL01, payload16B: `NETSTOP1`@0,epochu64@8.
-Alleen de gebonden controller mag dit versturen, zonder caps. De service stopt
-nieuwe requests, sluit sockets en wacht op echte TCP/NIC-drain vóór exit0.
-Normale apps beëindigen zichzelf met Retire; als beide apps retired zijn,
-alle pending replies zijn verstuurd en alle sockets/TX klaar zijn, sluit de
-dienst zijn eigen handles en eindigt hij met exit0.
+Optional controller tag NETCTL01, payload 16 B: `NETSTOP1`@0, epoch u64@8.
+Only the bound controller may send it, without capabilities. The service
+stops new requests, closes sockets and waits for actual TCP/NIC drain before
+exit 0. Normal apps terminate themselves with Retire; when both apps are
+retired, all pending replies have been sent and all sockets/TX are complete,
+the service closes its own handles and ends with exit 0.
 
-## Native peer en acceptatievolgorde
+## Native peer and acceptance sequence
 
-AppA TCPbasis8080,appB8090; per app betekenen offsets:
-0normaleHTTP,1SYNweigering(RST),2RST na request,3eersteSYN weggooien en daarna
-HTTP,4alleSYNs negeren tot echte300tickstimeout. Native apps oefenen die vijf
-gevallen zelfstandig en achtereenvolgens; hun processen lopen gelijktijdig.
-HTTP-requests zijn exact `GET /app-a HTTP/1.1\r\nHost: fixture.invalid\r\nConnection: close\r\n\r\n`
-of `/app-b`. Antwoord exact `HTTP/1.1 200 OK\r\nContent-Length: 19\r\nConnection: close\r\n\r\nNieuw OS service A\n`
-of B. UDP9000/9001 echoot exact `Nieuw OS UDP app A` of B naar45000/45001.
-ARP moet werkelijk de peer-MAC oplossen; geen vaste MAC in de service.
-Na ieder werkelijk ontvangen guest-UDP-pakket stuurt de peer vier begrensde
-frames: foutieve checksum, verkeerde bronpoort, geldige echo en een tweede
-geldige datagram met andere inhoud. Iedere app wacht25 echte monotone ticks
-vóór ontvangen. Beide eerste echoes moeten behouden blijven; de dienst telt
-minimaal vier malformed/scopeweigeringen en twee drops door volle UDP-slots.
+App A TCP base 8080, app B 8090; for each app, offsets mean:
+0 normal HTTP, 1 SYN refusal (RST), 2 RST after request, 3 discard the first
+SYN then HTTP, 4 ignore all SYNs until an actual 300-tick timeout. Native
+apps exercise those five cases independently and sequentially; their
+processes run concurrently. HTTP requests are exactly
+`GET /app-a HTTP/1.1\r\nHost: fixture.invalid\r\nConnection: close\r\n\r\n`
+or `/app-b`. Reply exactly
+`HTTP/1.1 200 OK\r\nContent-Length: 19\r\nConnection: close\r\n\r\nNieuw OS service A\n`
+or B. UDP9000/9001 echoes exactly `Nieuw OS UDP app A` or B to 45000/45001.
+ARP must actually resolve the peer MAC; no fixed MAC in the service.
+After each actually received guest UDP packet, the peer sends four bounded
+frames: invalid checksum, wrong source port, valid echo and a second valid
+datagram with different content. Each app waits 25 actual monotonic ticks
+before receiving. Both first echoes must be preserved; the service counts
+at least four malformed/scope rejections and two drops from full UDP slots.
 
-Apps controleren ook verkeerde TCP-poort, verbindingstoken van andere slot,
-oude tokens na reopen, malformed reservedbytes vóór de SDK-start, en geweigerde
-rawNIC-aanroep met een IPC-handle. Deze laatste weigering verleent geen hardwarecap.
+Apps also check a wrong TCP port, another slot's connection token, old tokens
+after reopen, malformed reserved bytes before SDK startup and a rejected
+raw NIC call with an IPC handle. That final rejection grants no hardware
+capability.
 
-## Observatie en bouwen
+## Observation and building
 
-Servicewoorden400ready,408loop,416werkelijkeTXcompletions,424RXframes,
-432requests,440rejected,448UDPgequeued,456UDPontvangen,464TCPopens,
-472TCPsendbytes,480TCPrecvbytes,488closecalls,496retiredmask,504fatal,
-512malformedframes,520UDPdrops,528cleanexit,536verloren-appkanaalmasker. De native adapter publiceert alle
-waarden uit werkelijke service-/devicehandelingen. Geen plaintextpayloadlogs.
+Service words: 400 ready, 408 loop, 416 actual TX completions, 424 RX frames,
+432 requests, 440 rejected, 448 UDP queued, 456 UDP received, 464 TCP opens,
+472 TCP send bytes, 480 TCP receive bytes, 488 close calls, 496 retired mask,
+504 fatal, 512 malformed frames, 520 UDP drops, 528 clean exit,
+536 lost-app-channel mask. The native adapter publishes all values from
+actual service/device operations. No plaintext payload logs.
 
-Appwoorden400ready,408HTTPcomplete(2),416UDPcomplete(1),424scopeDenied(1),
-432staleDenied(≥5),440malformedDenied(1),448sendchunks,456laatsteHTTPresponsebytes,
-464gracefulclose(2),472reopens(4),480rawNICDenied(1),488reset(1),496timeout(1),
-504retransmit(1),512refused(1),528done,536gesloten-replyproef. De kernel schrijft
-ook de daadwerkelijke A/B-exitticks uit. Fatalcode staat op240. Root moet deze
-woorden vóór procescleanup vastleggen, zoals bestaande probes; een dode
-adresruimte mag niet later voor bewijs worden teruggelezen.
+App words: 400 ready, 408 HTTPcomplete(2), 416 UDPcomplete(1),
+424 scopeDenied(1), 432 staleDenied(≥5), 440 malformedDenied(1),
+448 sendchunks, 456 last HTTP response bytes, 464 gracefulclose(2),
+472 reopens(4), 480 rawNICDenied(1), 488 reset(1), 496 timeout(1),
+504 retransmit(1), 512 refused(1), 528 done, 536 closed-reply trial.
+The kernel also emits the actual A/B exit ticks. Fatal code is at 240. Root
+must record these words before process cleanup, as with existing probes;
+a dead address space must not later be read back for evidence.
 
-`python3 sdk/examples/network-service/build.py` bouwt beide echte ELFs met
-Rust1.91.1/matching rust-lld/locked-offline/W^X-linkerscript. Uitvoer:
-NOS_NETWORK_SERVICE_ELF en NOS_NETWORK_CLIENT_ELF. Targets zijn uitsluitend
-x86_64-unknown-none; compilation/ELFinspectie is geen native uitvoering.
+`python3 sdk/examples/network-service/build.py` builds both actual ELFs with
+Rust 1.91.1/matching rust-lld/locked-offline/W^X linker script. Output:
+NOS_NETWORK_SERVICE_ELF and NOS_NETWORK_CLIENT_ELF. Targets are only
+x86_64-unknown-none; compilation/ELF inspection is not native execution.
 
-## Herhaalbare gates
+## Reproducible gates
 
-Activeer de bestaande ontwikkelomgeving. De drie packages hebben afzonderlijke
-workspaces/lockfiles; de kernel blijft opRust1.90, smoltcp opRust1.91.1. De
-test-only smoltcp-dependency gebruikt exact dezelfde vastgepinde0.14.0-versie
-en features als de bestaande net-stack, zonder nieuwe registryafhankelijkheid.
+Activate the existing development environment. The three packages have separate
+workspaces/lockfiles; the kernel remains on Rust 1.90, smoltcp on Rust 1.91.1.
+The test-only smoltcp dependency uses exactly the same pinned 0.14.0 version
+and features as the existing net-stack, without a new registry dependency.
 
 ```
 cargo +1.90.0 test --offline --locked --manifest-path services/network-service/protocol/Cargo.toml
@@ -159,20 +171,22 @@ python3 tools/run_network_service.py --case normal
 python3 tools/run_network_service.py --case client-exit
 ```
 
-`native-net-service` erft alleen bestaande kernelmechanismen; een afzonderlijk
-manifest boot precies drie echte processen. Er wordt geen opslagdienst gestart
-en geen blokapparaat ontdekt of gemapt. Het buildpad maakt voor de bestaande
-compile-time fixtureverwijzingen ook de onveranderde systeem-ELFs, maar die
-worden niet in deze manifest gestart. De enige apparaten zijn de read-only
-wegwerp-ESP, virtio-rng en virtio-net met uitsluitend de lokale synthetische
-socketpeer. Geen TAP, brug, hostshare, gewone Internetverbinding of echte disk.
-De kernel bewaart observatiewoorden vóór het generieke procesopruimen en
-controleert capability-/frameopruiming en echte NIC-resetacknowledgement.
-De Python-gate bewaart de oorspronkelijke begrensde stdout/stderr-bytes,
-herleest ze bytegetrouw en decodeert uitsluitend geldige UTF-8. Hij vergelijkt serial, drie procesobservaties, NIC-completions en
-causaal opnieuw afgespeelde echte pakketten. Hij controleert bron-, build-,
-ELF-, firmware-, QEMU- en opgeslagen uitvoerbinding vóór/na uitvoering.
+`native-net-service` inherits only existing kernel mechanisms; a separate
+manifest boots exactly three actual processes. No storage service starts
+and no block device is discovered or mapped. For existing compile-time
+fixture references, the build path also creates the unchanged system ELFs,
+but those are not started in this manifest. The only devices are the read-only
+disposable ESP, virtio-rng and virtio-net with only the local synthetic socket
+peer. No TAP, bridge, host share, ordinary internet connection or real disk.
+The kernel retains observation words before generic process cleanup and
+checks capability/frame cleanup and actual NIC reset acknowledgement. The
+Python gate retains the original bounded stdout/stderr bytes, rereads them
+byte-for-byte and decodes only valid UTF-8. It compares serial output, three
+process observations, NIC completions and causally replayed actual packets.
+It checks source, build, ELF, firmware, QEMU and stored-output binding before
+and after execution.
 
-Bronoriëntatie: OSDev Network Stack,W002538,revisie23577(16april2019).
-De bestaande projectdrivers/ABI en de gecontroleerde smoltcp/net-protocol-code
-blijven leidend; geen corpusvoorbeelden overgenomen of uitgevoerd.
+Source orientation: OSDev Network Stack, W002538, revision23577
+(16 April 2019). Existing project drivers/ABI and the checked smoltcp/
+net-protocol code remain authoritative; no corpus examples were incorporated
+or executed.

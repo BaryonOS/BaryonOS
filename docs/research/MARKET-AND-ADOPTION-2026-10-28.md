@@ -1,267 +1,269 @@
-# Nieuw OS — markt, consumentenadoptie en blijvende overstap
+# Baryon OS — market, consumer adoption and sustained switching
 
-**Datum:** 28 oktober 2026  
-**Status:** onderzoeksbasis / strategische hypothesen  
-**Scope:** desktop en laptop in Europa, met nadruk op EU en Nederland
+**Date:** 28 October 2026
 
-## Kernconclusie
+**Status:** research foundation / strategic hypotheses
 
-De meest kansrijke positie voor Nieuw OS is niet één losse eigenschap zoals privacy, Europese herkomst of lokale AI, maar de **combinatie van dagelijks gebruiksgemak, begrijpelijke zeggenschap over gegevens, herstelbaarheid, hoogwaardige afwerking en een betrouwbare overstaproute**.
+**Scope:** desktops and laptops in Europe, with emphasis on the EU and the Netherlands
 
-De onderzoeken geven geen bewijs dat brede Europese adoptie al is aangetoond. Ze laten vooral zien welke voorwaarden eerst overtuigend moeten werken en welke hypotheses met echte gebruikers moeten worden getoetst.
+## Main conclusion
 
-Een bruikbare positioneringshypothese is:
+The most promising position for Baryon OS lies in the **combination of everyday usability, understandable control over data, recoverability, high-quality execution and a reliable switching route**, rather than one isolated property such as privacy, European origin or local AI.
 
-> **Jouw werk, overzichtelijk en onder jouw regie.**
+The studies provide no evidence that broad European adoption has already been demonstrated. They primarily identify which conditions must first work convincingly and which hypotheses require testing with real users.
 
-Materiaal kan die belofte concreet maken door dezelfde inhoud terug te vinden, met passende gereedschappen te bewerken, wijzigingen te begrijpen, toegang te begrenzen en fouten te herstellen.
+A useful positioning hypothesis is:
 
-## 1. Marktcontext
+> **Your work, clearly organised and under your control.**
 
-### Desktopmarkt in Europa
+Materiaal can make that promise concrete by enabling the same content to be retrieved, edited with suitable tools, its changes understood, access bounded and errors recovered from.
 
-Statcounter rapporteerde voor september 2026 het volgende aandeel in gemeten desktopwebverkeer in Europa:
+## 1. Market context
 
-| Platform | Aandeel |
+### European desktop market
+
+For September 2026, Statcounter reported the following shares of measured desktop web traffic in Europe:
+
+| Platform | Share |
 |---|---:|
-| Windows | 77,28% |
-| macOS / OS X samen | 16,50% |
-| Linux | 4,61% |
-| Chrome OS | 1,60% |
-| FreeBSD | 0,01% |
+| Windows | 77.28% |
+| macOS / OS X combined | 16.50% |
+| Linux | 4.61% |
+| Chrome OS | 1.60% |
+| FreeBSD | 0.01% |
 
-Dit zijn webverkeersmetingen, geen telling van geïnstalleerde computers. Ze laten wel zien hoe sterk de bestaande platformen en hun ecosystemen de uitgangspositie bepalen.
+These are web-traffic measurements, not counts of installed computers. They nevertheless show how strongly existing platforms and their ecosystems determine the starting position.
 
-### Europese digitale autonomie heeft aantrekkingskracht
+### European digital autonomy has appeal
 
-De Europese Commissie rapporteerde in de Digital Decade Eurobarometer 2026 onder meer:
+In the Digital Decade Eurobarometer 2026, the European Commission reported, among other findings:
 
-- 82% wil minder afhankelijkheid van digitale technologie uit derde landen;
-- 85% wil prioriteit voor in Europa ontwikkelde en gecontroleerde digitale diensten;
-- 58% zegt een EU-aanbieder te willen kiezen, ook wanneer die iets duurder is.
+- 82% want less dependency on digital technology from third countries;
+- 85% want priority for digital services developed and controlled in Europe;
+- 58% say they would choose an EU provider, even at a slightly higher price.
 
-Dit ondersteunt Europese zeggenschap als positioneringscomponent. Het bewijst niet dat dezelfde percentages naar een nieuw desktop-OS zouden overstappen.
+This supports European control as a positioning component. It does not establish that the same percentages would switch to a new desktop OS.
 
-### Onvrede is niet hetzelfde als migratie
+### Dissatisfaction is not migration
 
-Een Duits consumentenonderzoek onder 800 huidige of recente Windows 10-gebruikers rapporteerde rond het einde van ondersteuning:
+A German consumer survey of 800 current or recent Windows 10 users reported around the end of support:
 
-- 46%: naar Windows 11 overstappen of al overgestapt;
-- 34%: Windows 10 blijven gebruiken, ook zonder updates;
-- 4%: naar een ander OS overstappen of al overgestapt;
-- 12%: nog onzeker.
+- 46%: switching to Windows 11 or already switched;
+- 34%: continuing to use Windows 10, even without updates;
+- 4%: switching to another OS or already switched;
+- 12%: still uncertain.
 
-De commerciële les is belangrijk: zelfs een duidelijke aanleiding om te veranderen levert niet vanzelf een overstap naar een alternatief OS op.
+The commercial implication is significant: even a clear reason to change does not automatically produce a switch to an alternative OS.
 
-## 2. Waar het marktgat waarschijnlijk zit
+## 2. Where the market gap probably lies
 
-De onderzoeken ondersteunen zes samenhangende kansen:
+The studies support six connected opportunities:
 
-| Kans | Waarde voor gebruiker | Productvertaling |
+| Opportunity | User value | Product implication |
 |---|---|---|
-| Controle zonder systeembeheer | Begrijpen waar gegevens staan en wie erbij kan | Veilige defaults, begrijpelijke rechten en duidelijke locatie |
-| Samenhang rond inhoud | Minder zoeken, duplicaten en verkeerde versies | Materiaal als centrale laag boven verwisselbare gereedschappen |
-| Betrouwbare overstap | Vooraf weten of eigen taken werken | Geschiktheidscheck, proefmigratie en nazorg |
-| Rust en voorspelbaarheid | Minder onverwachte onderbreking en verwarring | Consistente bediening, regelbare meldingen, herstelbare veranderingen |
-| Langdurig bruikbare hardware | Weten hoe lang het systeem veilig blijft werken | Afgebakende referentiehardware en onderhoudsbelofte |
-| Lokale AI onder eigen regie | Hulp zonder onnodige gegevensoverdracht | Geselecteerde context, corrigeerbare acties en geen cloudfallback |
+| Control without system administration | Understand where data are stored and who can access them | Safe defaults, understandable permissions and clear location |
+| Coherence around content | Less searching, duplication and use of incorrect versions | Materiaal as a central layer above interchangeable tools |
+| Reliable switching | Know beforehand whether personal tasks work | Suitability check, trial migration and follow-up support |
+| Calm and predictability | Fewer unexpected interruptions and less confusion | Consistent controls, adjustable notifications, recoverable changes |
+| Hardware that remains usable | Know how long the system will continue operating securely | Bounded reference hardware and a maintenance commitment |
+| Local AI under personal control | Assistance without unnecessary data transfer | Selected context, correctable actions and no cloud fallback |
 
-Losse onderdelen hiervan bestaan al bij andere platformen. Het onderscheid moet dus aantoonbaar uit **de samenhang** komen.
+Individual elements already exist on other platforms. Differentiation must therefore demonstrably arise from **their coherence**.
 
-## 3. Waarom Europese alternatieven meestal beperkt blijven
+## 3. Why European alternatives generally remain limited
 
-Bestaande Europese alternatieven tonen dat er belangstelling is, maar ook dat belangstelling niet gelijkstaat aan brede primaire adoptie.
+Existing European alternatives show interest, but also that interest does not equal broad primary adoption.
 
-- Zorin meldde in april 2026 meer dan 3,3 miljoen downloads sinds Zorin OS 18. Downloads bewijzen geen actief of blijvend gebruik.
-- TUXEDO combineert Linux-software, vooraf afgestemde hardware en ondersteuning. Dat laat zien dat een beheersbare hardwarematrix de gebruikerservaring kan verbeteren.
-- Linux Mint en KDE laten zien dat continuïteit, community en onderhoud belangrijk zijn, maar nemen het app-/hardware-ecosysteemprobleem niet weg.
-- EU OS is een community-initiatief rond overheids-/zakelijke inzet en geen bewijs van een brede consumentenmarkt.
-- Europese mobiele initiatieven zoals /e/OS/Murena en Jolla laten zien dat soevereiniteit en privacy gebruikers kunnen aantrekken, maar ook dat schaal, hardware, apps en distributie beperkende factoren blijven.
+- In April 2026, Zorin reported more than 3.3 million downloads since Zorin OS 18. Downloads establish neither active nor sustained use.
+- TUXEDO combines Linux software, preconfigured hardware and support. This shows how a manageable hardware matrix can improve the user experience.
+- Linux Mint and KDE show the importance of continuity, community and maintenance, but do not remove the app/hardware ecosystem problem.
+- EU OS is a community initiative for government/business use, not evidence of a broad consumer market.
+- European mobile initiatives such as /e/OS/Murena and Jolla show that sovereignty and privacy can attract users, while scale, hardware, apps and distribution remain constraints.
 
-De terugkerende drempels zijn:
+The recurring barriers are:
 
-1. noodzakelijke apps en websites;
-2. drivers en randapparatuur;
-3. migratie van bestanden, accounts en gewoonten;
-4. ondersteuning wanneer iets misgaat;
-5. onderhoud en financiering over meerdere jaren;
-6. het kip-eiprobleem tussen gebruikers en ontwikkelaars.
+1. essential apps and websites;
+2. drivers and peripherals;
+3. migration of files, accounts and habits;
+4. support when something goes wrong;
+5. maintenance and funding over several years;
+6. the interdependence between users and developers.
 
-Voor Nieuw OS is dit extra relevant omdat een eigen kernel bestaande Linux-drivers en Linux-compatibiliteit niet automatisch erft.
+This is particularly relevant to Baryon OS because an independent kernel does not automatically inherit existing Linux drivers and Linux compatibility.
 
-## 4. Wat consumentenonderzoek toevoegt
+## 4. What consumer research adds
 
-### Nut, moeite, plezier en gewoonte werken samen
+### Usefulness, effort, enjoyment and habit interact
 
-UTAUT2 werd onderzocht bij 1.512 mobiele-internetgebruikers en modelleert adoptie aan de hand van onder meer verwacht nut, benodigde inspanning, plezier, prijswaarde, ondersteuning en gewoonte. Voor Nieuw OS betekent dit dat één sterke privacyclaim onvoldoende is: de complete ervaring moet voordeel bieden tegen acceptabele moeite.
+UTAUT2 was studied among 1,512 mobile internet users and models adoption through factors including expected usefulness, required effort, enjoyment, price value, support and habit. For Baryon OS, this means that one strong privacy claim is insufficient: the complete experience must provide benefits at an acceptable level of effort.
 
-### Gewoonte en overstapfrictie zijn reëel
+### Habit and switching friction are real
 
-Farhang et al. onderzochten 239 Windows-gebruikers. Van 78 deelnemers die niet naar Windows 10 waren overgestapt noemden 38 tevredenheid met hun bestaande versie; privacy en compatibiliteit speelden eveneens een rol.
+Farhang et al. studied 239 Windows users. Of 78 participants who had not upgraded to Windows 10, 38 cited satisfaction with their existing version; privacy and compatibility also played a role.
 
-Grzybowski en Nicolle analyseerden 9.799 daadwerkelijke smartphonewisselingen en vonden effecten van zowel voorkeur als switching costs. De mobiele context is niet rechtstreeks naar desktop te kopiëren, maar ondersteunt dat bestaande investeringen en gewoonten de overstap beïnvloeden.
+Grzybowski and Nicolle analysed 9,799 actual smartphone switches and found effects of both preference and switching costs. The mobile context cannot be transferred directly to desktop, but supports the influence of existing investments and habits on switching.
 
-### Een mooie eerste indruk is nodig maar niet voldoende
+### A good visual first impression is necessary but insufficient
 
-Onderzoek van Tuch en collega's laat zien dat visuele complexiteit en herkenbare ordening snelle esthetische beoordelingen beïnvloeden. Ander onderzoek laat zien dat slechte bediening de latere esthetische waardering kan verlagen. De interface moet dus zowel verzorgd ogen als direct bruikbaar zijn.
+Research by Tuch and colleagues shows that visual complexity and familiar organisation influence rapid aesthetic judgements. Other research shows that poor interaction can reduce later aesthetic evaluations. The interface must therefore both look polished and be immediately usable.
 
-### Persoonlijk informatiebeheer past sterk bij Materiaal
+### Personal information management fits Materiaal closely
 
-- *Stuff I've Seen* onderzocht lokale terugvinding bij 234 medewerkers gedurende zes weken en vond tijd en personen bruikbare cues.
-- Bergman et al. vonden bij 75 Gmail- en 23 Windows-gebruikers een duidelijke voorkeur voor mappen boven tags in hun onderzoeksopzet.
-- Boardman en Sasse vonden grote individuele verschillen in organisatie over bestanden, e-mail en bookmarks.
+- *Stuff I've Seen* studied local retrieval among 234 employees over six weeks and found time and people useful as cues.
+- Bergman et al. found a clear preference for folders over tags within their research design among 75 Gmail and 23 Windows users.
+- Boardman and Sasse found substantial individual differences in organisation across files, email and bookmarks.
 
-Daarom moet Materiaal nieuwe context en geschiedenis toevoegen zonder vertrouwde namen, mappen, zoeken en rechtstreeks openen onnodig te verwijderen.
+Materiaal must therefore add new context and history without unnecessarily removing familiar names, folders, search and direct opening.
 
-### Privacygedrag is contextafhankelijk
+### Privacy behaviour depends on context
 
-Tsai et al. vonden dat prominente, begrijpelijke privacy-informatie echte winkelkeuzes kon beïnvloeden. Beresford et al. vonden in een andere koopproef juist dat 39 van 42 kopers voor de één euro goedkopere winkel kozen ondanks gevoeligere datavragen.
+Tsai et al. found that prominent, understandable privacy information could influence real shopping choices. In another purchasing experiment, Beresford et al. found that 39 of 42 buyers chose the shop costing one euro less despite its more sensitive data requests.
 
-De conclusie is niet dat privacy onbelangrijk is, maar dat **privacy moet samengaan met prijs, gemak en concrete waarde**.
+The conclusion is that **privacy must be combined with price, convenience and concrete value**; this does not mean privacy is unimportant.
 
-### Meldingsrust moet regelbaar worden getest
+### Notification calm requires adjustable testing
 
-Fitz et al. vonden in een gerandomiseerd veldexperiment met 237 smartphonegebruikers gunstiger ervaren aandacht en controle bij gebundelde meldingen. Een latere vooraf geregistreerde studie met 205 deelnemers vond geen duidelijke productiviteitswinst van een week meldingen uitschakelen.
+In a randomised field experiment with 237 smartphone users, Fitz et al. found more favourable perceived attention and control with batched notifications. A later preregistered study with 205 participants found no clear productivity gain from disabling notifications for a week.
 
-Voor Nieuw OS is daarom een regelbare, voorspelbare meldingsarchitectuur verdedigbaar; algemene gezondheids- of productiviteitsclaims zijn dat niet.
+An adjustable, predictable notification architecture is therefore defensible for Baryon OS; general health or productivity claims are not.
 
-### Lokale AI moet begrijpelijk en corrigeerbaar zijn
+### Local AI must be understandable and correctable
 
-- Kwalitatief CHI-onderzoek naar lokale ML liet zien dat verwerking op het apparaat op zichzelf niet automatisch vertrouwen oplevert.
-- Dietvorst et al. vonden dat mensen vaker bereid waren een imperfect algoritme te gebruiken als zij de uitkomst konden aanpassen.
-- Een meta-analyse van 106 experimenten over mens-AI-samenwerking vond sterk taakafhankelijke effecten.
+- Qualitative CHI research into local ML showed that on-device processing alone does not automatically produce trust.
+- Dietvorst et al. found that people were more willing to use an imperfect algorithm if they could adjust its output.
+- A meta-analysis of 106 experiments on human–AI collaboration found strongly task-dependent effects.
 
-Daarom moet lokale AI beginnen met concrete, geselecteerde context en corrigeerbare voorstellen, terwijl de kernworkflow zonder AI volledig bruikbaar blijft.
+Local AI must therefore begin with concrete, selected context and correctable suggestions, while the core workflow remains fully usable without AI.
 
-## 5. Ontwerptrends: richting, geen Europese kleurwet
+## 5. Design trends: direction, not a European rule for colour
 
-Actuele ontwerpstelsels laten verschillende bewegingen zien:
+Current design systems show different developments:
 
-- Apple Liquid Glass: materiaaleffect, gelaagdheid en platformconsistentie;
-- Google Material 3 Expressive: uitgesprokener kleur, vorm, typografie en beweging;
-- Microsoft Mica/Fluent: subtiele materialen en hiërarchie met performancebewuste degradatie;
-- GNOME Adwaita: consistente licht/donker/hoog-contrastvarianten.
+- Apple Liquid Glass: material effects, layering and platform consistency;
+- Google Material 3 Expressive: more expressive colour, shape, typography and motion;
+- Microsoft Mica/Fluent: subtle materials and hierarchy with performance-aware degradation;
+- GNOME Adwaita: consistent light/dark/high-contrast variants.
 
-Er is **geen overtuigend bewijs voor één kleur of vormstijl die Europeanen collectief verkiezen**.
+There is **no convincing evidence for one colour or visual style collectively preferred by Europeans**.
 
-Voor Materiaal blijft daarom de beste onderzoekshypothese:
+The strongest research hypothesis for Materiaal therefore remains:
 
-- rustige, overwegend ondoorzichtige inhoudsvlakken;
-- duidelijke hiërarchie;
-- herkenbare acties;
-- zorgvuldig gedoseerde diepte en beweging;
-- personaliseerbare accenten;
-- volwaardig hoog contrast en reduced motion;
-- tekstlabels bij belangrijke acties.
+- quiet, predominantly opaque content surfaces;
+- clear hierarchy;
+- familiar actions;
+- carefully restrained depth and motion;
+- customisable accents;
+- complete high contrast and reduced motion;
+- text labels for important actions.
 
-De bestaande visuele specificatie blijft leidend totdat een gebruikstest of expliciet projectbesluit haar wijzigt.
+The existing visual specification remains authoritative until changed by a usability test or explicit project decision.
 
-## 6. Snelheid als gebruikerservaring
+## 6. Speed as user experience
 
-De marktstudie stelt voorlopige, nog niet gemeten productdoelen voor:
+The market study proposes preliminary product targets that have not yet been measured:
 
-| Ervaring | Onderzoekshypothese |
+| Experience | Research hypothesis |
 |---|---|
-| Eerste zichtbare reactie op klik | p95 < 100 ms |
-| Gewoon lokaal zoeken | p95 < 200 ms |
-| Uit slaapstand weer bruikbaar | p95 < 2 s |
-| Klein lokaal document openen | p95 < 1 s |
-| 60 Hz animatie/scroll | rond 16,7 ms per frame |
+| First visible response to a click | p95 < 100 ms |
+| Ordinary local search | p95 < 200 ms |
+| Usable after sleep | p95 < 2 s |
+| Opening a small local document | p95 < 1 s |
+| 60 Hz animation/scrolling | around 16.7 ms per frame |
 
-Deze waarden zijn **geen huidige prestaties van Nieuw OS** en geen geaccepteerde repositorycriteria. Ze kunnen later als meetbudget worden aangenomen wanneer echte native workflows en fysieke referentiehardware bestaan.
+These values are **not current Baryon OS performance** or accepted repository criteria. They may later be adopted as measurement budgets when real native workflows and physical reference hardware exist.
 
-## 7. Eerste doelgroep als te toetsen hypothese
+## 7. Initial audience as a hypothesis to test
 
-Een logische eerste onderzoeksgroep is:
+A logical first research group is:
 
-> zelfstandig beslissende thuisgebruikers die privacy en controle waarderen en hun computer vooral gebruiken voor webdiensten, administratie, documenten, foto's en videobellen, zonder een onmisbare toepassing buiten het ondersteunde pakket.
+> independently deciding home users who value privacy and control and use their computers mainly for web services, administration, documents, photos and video calls, without an indispensable application outside the supported package.
 
-Dat is nog geen vastgesteld marktsegment.
+This is not yet an established market segment.
 
-Selectie moet gebeuren op werkelijke taken, inclusief incidentele maar kritieke taken zoals belastingaangifte, specifieke randapparatuur of een opleidingstoets.
+Selection must be based on actual tasks, including occasional but critical tasks such as tax returns, specific peripherals or an educational assessment.
 
-Zware gaming, specialistische professionele software en brede enterprise-uitrol horen pas bij de eerste commerciële scope wanneer hun concrete afhankelijkheden aantoonbaar werken.
+Heavy gaming, specialist professional software and broad enterprise deployment belong in the initial commercial scope only once their concrete dependencies demonstrably work.
 
-## 8. Overstappen moet een productfunctie worden
+## 8. Switching must become a product function
 
-De aanbevolen introductieroute bestaat uit:
+The recommended introduction route consists of:
 
-1. **Geschiktheidscheck** — apps, websites, bestanden en apparaten inventariseren.
-2. **Persoonlijk compatibiliteitsoverzicht** — werkt / werkt met beperking / alternatief / niet ondersteund / niet getest.
-3. **Proef** — eigen taken uitvoeren zonder het bestaande systeem direct te verwijderen.
-4. **Migratie** — gecontroleerde overdracht van data en instellingen binnen ondersteunde scope.
-5. **Nazorg** — hulp bij de eerste echte blokkades en herstelvragen.
+1. **Suitability check** — inventory apps, websites, files and devices.
+2. **Personal compatibility overview** — works / works with limitations / alternative / unsupported / untested.
+3. **Trial** — perform personal tasks without immediately removing the existing system.
+4. **Migration** — controlled transfer of data and settings within the supported scope.
+5. **Follow-up support** — assistance with the first real blockers and recovery questions.
 
-De gebruiker moet vooraf weten of de onmisbare taken werken. Een algemene claim als “95% compatibel” is daarvoor minder bruikbaar dan een persoonlijke takenlijst.
+Users must know beforehand whether their indispensable tasks work. A personal task list is more useful for this than a general claim such as “95% compatible”.
 
-## 9. Blijvende overstap meten
+## 9. Measuring sustained switching
 
-Aandacht, downloads of een succesvolle demo zijn onvoldoende.
+Attention, downloads or a successful demonstration are insufficient.
 
-Een bruikbare onderzoeksdefinitie voor duurzame keuze is:
+A useful research definition of sustained choice is:
 
-> Na 90 dagen gebruikt iemand Nieuw OS vrijwillig als primaire omgeving voor het afgesproken persoonlijke takenpakket, kan diegene alle onmisbare taken uitvoeren en was in de laatste 30 dagen geen terugkeer naar het oude OS nodig vanwege een blokkade.
+> After 90 days, a person voluntarily uses Baryon OS as the primary environment for the agreed personal task set, can perform all indispensable tasks and has not needed to return to the old OS because of a blocker during the last 30 days.
 
-Herhaal de beoordeling op 180 dagen.
+Repeat the assessment at 180 days.
 
-Te meten:
+Measure:
 
-- aandeel kandidaten dat voor het ondersteunde profiel geschikt is;
-- geslaagde migraties;
-- primair gebruik na 90 en 180 dagen;
-- redenen voor terugkeer;
-- taaksucces zonder hulp;
-- ondersteuningstijd en kosten;
-- geslaagde herstelproeven.
+- proportion of candidates suitable for the supported profile;
+- successful migrations;
+- primary use after 90 and 180 days;
+- reasons for returning;
+- unaided task success;
+- support time and costs;
+- successful recovery trials.
 
-Een voorgestelde drempel zoals 75% behoud in een pilot is een **projecthypothese**, geen industrienorm.
+A proposed threshold such as 75% retention in a pilot is a **project hypothesis**, not an industry standard.
 
-## 10. Aanbevolen onderzoeksprogramma
+## 10. Recommended research programme
 
-### Fase A — echte taken begrijpen
+### Phase A — understand real tasks
 
-Start met taakinterviews en observaties in Nederland, Duitsland en Frankrijk. Onderzoek recente voorbeelden van zoeken, herstellen, delen, overstappen en gebruik van onmisbare apps/apparaten.
+Start with task interviews and observations in the Netherlands, Germany and France. Investigate recent examples of searching, recovering, sharing, switching and using essential apps/devices.
 
-### Fase B — Materiaal vergelijken
+### Phase B — compare Materiaal
 
-Test een samenhangende flow:
+Test a coherent flow:
 
-**terugvinden → bewerken → herstellen → beperkte toegang geven**
+**retrieve → edit → recover → grant limited access**
 
-Meet taakduur, fouten, hulp, begrip, aantrekkelijkheid en herhaling na oefening.
+Measure task duration, errors, assistance, understanding, appeal and repetition after practice.
 
-### Fase C — boodschap en overstapintentie
+### Phase C — messaging and switching intention
 
-Vergelijk eerlijke positioneringen, bijvoorbeeld:
+Compare honest positioning statements, for example:
 
-- “Vind je materiaal terug en ga verder waar je was.”
-- “Zie wat verandert en houd controle over toegang.”
-- “Werk met overzicht en bepaal zelf wanneer je hulp krijgt.”
+- “Find your material and continue where you left off.”
+- “See what changes and keep control of access.”
+- “Keep your work organised and choose when to receive help.”
 
-Meet niet alleen klikintentie, maar ook zelfstandig proberen en vrijwillig terugkomen.
+Measure independent trials and voluntary returns as well as click intention.
 
-### Fase D — native pilot
+### Phase D — native pilot
 
-Wanneer browser, hardware, updates, herstel en de afgesproken dagelijkse taken werkelijk werken, voer een begeleide pilot uit op afgebakende referentiehardware en meet 90/180 dagen.
+Once the browser, hardware, updates, recovery and agreed daily tasks actually work, conduct a supported pilot on bounded reference hardware and measure 90/180 days.
 
-## 11. Consequenties voor de ontwikkelroadmap
+## 11. Implications for the development roadmap
 
-Het onderzoek verandert geen bestaande native score, maar geeft prioriteit aan de volgende productgates:
+The research changes no existing native score, but gives priority to the following product gates:
 
-1. onderhoudbare browser en dagelijkse webtaken;
-2. één overtuigende native Materiaal-flow;
-3. grote/reële documenten en betrouwbaar herstel;
-4. installatie, migratie, back-up en sleutelherstel;
-5. compositor/input/toegankelijkheid met gemeten responsiviteit;
-6. referentiehardware en randapparatuur;
-7. app-/SDK-pad voor nuttige dagelijkse software;
-8. meerjarig update- en supportmodel.
+1. maintainable browser and daily web tasks;
+2. one convincing native Materiaal flow;
+3. large/realistic documents and reliable recovery;
+4. installation, migration, backup and key recovery;
+5. compositor/input/accessibility with measured responsiveness;
+6. reference hardware and peripherals;
+7. app/SDK route for useful daily software;
+8. a multiyear update and support model.
 
-De eigen kernel blijft de architectuurkeuze. Marktvalidatie komt pas wanneer mensen het systeem voor hun echte taken vrijwillig blijven gebruiken.
+The project's own kernel remains the architectural choice. Market validation comes only when people voluntarily continue using the system for their real tasks.
 
-## 12. Bronnen
+## 12. References
 
-### Markt, beleid en Europese alternatieven
+### Market, policy and European alternatives
 
 - Statcounter. *Desktop Operating System Market Share Europe*. https://gs.statcounter.com/os-market-share/desktop/europe
 - Statcounter. *FAQ / methodology*. https://gs.statcounter.com/faq
@@ -272,11 +274,11 @@ De eigen kernel blijft de architectuurkeuze. Marktvalidatie komt pas wanneer men
 - Linux Mint. *About Linux Mint*. https://www.linuxmint.com/about.php
 - KDE e.V. *What is KDE e.V.?* https://ev.kde.org/whatiskdeev/
 - EU OS. *FAQ*. https://eu-os.eu/faq/
-- Interoperable Europe / OSOR. *Schleswig-Holstein's open source strategy* en LiMux-retrospectief. https://interoperable-europe.ec.europa.eu/
+- Interoperable Europe / OSOR. *Schleswig-Holstein's open source strategy* and LiMux retrospective. https://interoperable-europe.ec.europa.eu/
 - Valve. *Steamworks — Proton*. https://partner.steamgames.com/doc/steamhardware/proton
 - Chromium Project. *Supported Platforms*. https://chromium.googlesource.com/chromium/src/+/HEAD/docs/supported_platforms.md
 
-### Ontwerp en toegankelijkheid
+### Design and accessibility
 
 - Apple. *Human Interface Guidelines — Materials*. https://developer.apple.com/design/human-interface-guidelines/materials
 - Microsoft. *Mica material*. https://learn.microsoft.com/en-us/windows/apps/design/style/mica
@@ -285,21 +287,21 @@ De eigen kernel blijft de architectuurkeuze. Marktvalidatie komt pas wanneer men
 - W3C. (2024). *Web Content Accessibility Guidelines (WCAG) 2.2*. https://www.w3.org/TR/WCAG22/
 - Google web.dev. *RAIL performance model*. https://web.dev/articles/rail
 
-### Consumentenadoptie en gebruikservaring
+### Consumer adoption and user experience
 
 - Venkatesh, V., Thong, J. Y. L., & Xu, X. (2012). *Consumer acceptance and use of information technology: Extending the unified theory of acceptance and use of technology*. MIS Quarterly, 36(1). https://aisel.aisnet.org/misq/vol36/iss1/13/
 - Bhattacherjee, A. (2001). *Understanding information systems continuance*. MIS Quarterly, 25(3). https://aisel.aisnet.org/misq/vol25/iss3/2/
-- Farhang, S., et al. (2018). Windows-upgrade/adoptieonderzoek. https://www.cs.cit.tum.de/fileadmin/w00cfj/ct/papers/2018-ACSAC-Farhang.pdf
-- Grzybowski, L., & Nicolle, A. (2021). Onderzoek naar smartphone-OS switching. https://onlinelibrary.wiley.com/doi/10.1111/joie.12239
+- Farhang, S., et al. (2018). Windows upgrade/adoption research. https://www.cs.cit.tum.de/fileadmin/w00cfj/ct/papers/2018-ACSAC-Farhang.pdf
+- Grzybowski, L., & Nicolle, A. (2021). Research into smartphone OS switching. https://onlinelibrary.wiley.com/doi/10.1111/joie.12239
 - Dumais, S., et al. (2003). *Stuff I've Seen*. https://www.microsoft.com/en-us/research/wp-content/uploads/2003/01/siscore-sigir2003-final.pdf
-- Bergman, O., et al. (2013). Folder- versus tag-gebaseerde retrieval. https://asistdl.onlinelibrary.wiley.com/doi/10.1002/asi.22906
-- Boardman, R., & Sasse, M. A. (2004). Persoonlijk informatiebeheer. https://discovery.ucl.ac.uk/id/eprint/13438/1/chi2004.pdf
-- Tsai, J. Y., et al. Privacyinformatie en koopgedrag. https://pubsonline.informs.org/doi/10.1287/isre.1090.0260
-- Beresford, A. R., et al. Privacy en prijs in werkelijk koopgedrag. https://www.sciencedirect.com/science/article/pii/S0165176512002182
+- Bergman, O., et al. (2013). Folder- versus tag-based retrieval. https://asistdl.onlinelibrary.wiley.com/doi/10.1002/asi.22906
+- Boardman, R., & Sasse, M. A. (2004). Personal information management. https://discovery.ucl.ac.uk/id/eprint/13438/1/chi2004.pdf
+- Tsai, J. Y., et al. Privacy information and purchasing behaviour. https://pubsonline.informs.org/doi/10.1287/isre.1090.0260
+- Beresford, A. R., et al. Privacy and price in actual purchasing behaviour. https://www.sciencedirect.com/science/article/pii/S0165176512002182
 - Fitz, N., et al. (2019). Notification batching. https://www.sciencedirect.com/science/article/pii/S0747563219302596
-- Dietvorst, B. J., Simmons, J. P., & Massey, C. Corrigeerbaarheid en algorithm aversion. https://faculty.wharton.upenn.edu/wp-content/uploads/2016/08/Dietvorst-Simmons-Massey-2018.pdf
-- Vaccaro, M., et al. (2024). Meta-analyse human-AI collaboration. https://pmc.ncbi.nlm.nih.gov/articles/PMC11659167/
+- Dietvorst, B. J., Simmons, J. P., & Massey, C. Correctability and algorithm aversion. https://faculty.wharton.upenn.edu/wp-content/uploads/2016/08/Dietvorst-Simmons-Massey-2018.pdf
+- Vaccaro, M., et al. (2024). Meta-analysis of human–AI collaboration. https://pmc.ncbi.nlm.nih.gov/articles/PMC11659167/
 
-## Bewijsgrens
+## Evidence boundary
 
-De bronnen onderbouwen marktobservaties en onderzoekshypothesen. Zij bewijzen geen huidige compatibiliteit, performance, toegankelijkheid, veiligheid, marktaandeel of product-market fit van Nieuw OS. Voor zulke claims is brongebonden native uitvoering en eigen gebruikersonderzoek nodig.
+The sources substantiate market observations and research hypotheses. They establish no current Baryon OS compatibility, performance, accessibility, security, market share or product–market fit. Such claims require source-bound native execution and project user research.

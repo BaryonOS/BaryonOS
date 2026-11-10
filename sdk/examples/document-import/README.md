@@ -1,87 +1,85 @@
-# DOCX naar gewone tekst
+# DOCX to plain text
 
-Nieuwe afzonderlijke importconsumer voor bestaande tekst-DOCX-bestanden.
-Geen editor, viewer, Word-vervanger of renderer. Verliest expliciet opmaak;
-tabellen, afbeeldingen, velden, wijzigingen, hyperlinkinhoud, directe hidden
-properties, sectieheaders/-footers en onbekende inhoud worden geweigerd,
-niet als onvolledige geslaagde tekst teruggegeven.
-Gekoppelde stijlen worden niet visueel uitgewerkt; geen zichtbaarheidclaim.
-De bron wordt alleen gelezen en niet gewijzigd.
+New separate import consumer for existing text DOCX files. No editor, viewer,
+Word replacement or renderer. Formatting is explicitly lost; tables, images,
+fields, tracked changes, hyperlink content, direct hidden properties, section
+headers/footers and unknown content are rejected rather than returned as
+incomplete successful text. Referenced styles are not visually resolved;
+no visibility claim. The source is read only and remains unchanged.
 
 ```sh
 cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/document-import/Cargo.toml --features host-cli
 cargo +1.90.0 run --offline --locked --manifest-path sdk/examples/document-import/Cargo.toml --features host-cli --bin docx-text -- --plain-text < bron.docx > tekst.txt
 ```
 
-`--plain-text` is verplicht als expliciete keuze voor verlies van opmaak.
-Stdin/stdout zijn de enige gegevensinterfaces. Geen netwerk-/bestandsopeningen,
-extractie naar paden, macro's, veldcode-uitvoering, entityresolver of
-automatisch volgen van relaties. CLI-fouten geven stderr/exit 1, geen
-successtdout. Een schrijffout kan stdout gedeeltelijk hebben geschreven;
-geen atomaire opslagclaim.
+`--plain-text` is required as an explicit choice to lose formatting.
+Stdin/stdout are the only data interfaces. No network/file opening, extraction
+to paths, macros, field-code execution, entity resolver or automatic following
+of relationships. CLI errors produce stderr/exit 1, not successful stdout.
+A write failure may leave partial stdout; no atomic storage claim.
 
-## Afgebakend formaat
+## Bounded format
 
-OPC-pakket met ZIP32, een schijf, UTF-8/ASCII-partnamen, stored of raw-DEFLATE.
-Lokale records en central directory moeten dezelfde volgorde en inhoud hebben,
-zonder zelfuitpakkende prefix, gaps of overlappende records. Data descriptors
-met/zonder signature en ZIP-comments zijn toegestaan; ZIP64/encryptie en
-andere methodes niet. CRC-32 en gedeclareerde outputlengte worden per part
-gecontroleerd; CRC is geen authenticatie. Geen algemene ZIP-API.
-Case-collisions en dubbele namen worden geweigerd. Geen pad op disk aangemaakt.
+OPC package with ZIP32, one disk, UTF-8/ASCII part names, stored or raw DEFLATE.
+Local records and the central directory must have the same order and contents,
+without a self-extracting prefix, gaps or overlapping records. Data descriptors
+with/without signature and ZIP comments are allowed; ZIP64/encryption and
+other methods are not. CRC-32 and declared output length are checked per part;
+CRC is not authentication. No general ZIP API. Case collisions and duplicate
+names are rejected. No path is created on disk.
 
-Verplichte namespace- en typebinding via `[Content_Types].xml` en `_rels/.rels`
-naar gewone Transitional `word/document.xml`. Geen macro-enabled main type.
-Externe rootrelaties afgewezen. Andere parts worden CRC-/lengtegecontroleerd
-maar niet geïnterpreteerd; geen externe relatie uit zo'n part wordt gevolgd.
-Alleen de main body wordt geïmporteerd. De ondersteunde body bestaat uit
-alinea's/runs/tekst/tabs/gewone linebreaks en beperkte opmaakproperties.
-Lijsten/nummering en onbekende structuren worden geweigerd. Lege en
-afsluitende alinea's blijven als LF behouden; geen extra LF aan het einde.
-Tekstentities en XML-regelovergangen worden volgens XML geïnterpreteerd.
-Namespace-URI, niet de gekozen prefix, bepaalt of een element Wordtekst is.
+Mandatory namespace and type binding through `[Content_Types].xml` and
+`_rels/.rels` to ordinary Transitional `word/document.xml`. No macro-enabled
+main type. External root relationships are rejected. Other parts undergo
+CRC/length checks but are not interpreted; no external relationship from
+such a part is followed. Only the main body is imported. The supported body
+consists of paragraphs/runs/text/tabs/ordinary line breaks and limited
+formatting properties. Lists/numbering and unknown structures are rejected.
+Empty and trailing paragraphs are preserved as LF; no additional final LF.
+Text entities and XML line endings are interpreted according to XML.
+The namespace URI, not the chosen prefix, determines whether an element
+contains Word text.
 
-## Grenzen
+## Limits
 
-Maximaal 16 MiB pakket, 512 parts, 1 MiB per gedecomprimeerd part,
-16 MiB totaal, 32768 XML-nodes per XML-part, 4096 alinea's en 64 KiB tekst.
-Eigen outputbuffers reserveren fallible. XML/DEFLATE-upstreamallocaties
-blijven infallible. zune-inflate's limiet is best effort en kan beperkte
-decode-/buffermarge overschrijden; de finale lengte/CRC wordt opnieuw getoetst.
-Zijn API meldt geen exact verbruikte raw-DEFLATE-bits: deze slice claimt
-geen detectie van padding/junk binnen een gedeclareerd compressed record.
-Geen harde native heap-/tijdquota of OOM-herstelclaim zonder parserproces.
-Een native parserproces/capability-grens toevoegen is General/K05-werk,
-niet door deze hostconsumer omzeild.
+At most 16 MiB package, 512 parts, 1 MiB per decompressed part, 16 MiB total,
+32768 XML nodes per XML part, 4096 paragraphs and 64 KiB text. Owned output
+buffers reserve fallibly. Upstream XML/DEFLATE allocations remain infallible.
+zune-inflate's limit is best effort and may exceed it by a bounded decode/
+buffer margin; final length/CRC are checked again. Its API does not report
+exact raw-DEFLATE bits consumed: this slice does not claim to detect padding/
+junk inside a declared compressed record. No hard native heap/time quota or
+OOM-recovery claim without a parser process. Adding a native parser process/
+capability boundary is General/K05 work and is not bypassed by this host consumer.
 
-Upstreamkeuze/licenties/pins in `THIRD-PARTY.md` en Cargo.lock.
-Basisnormen: Microsoft, *Structure of a WordprocessingML document*,
-12 januari 2024,
+Upstream choices/licences/pins are in `THIRD-PARTY.md` and Cargo.lock.
+Base standards: Microsoft, *Structure of a WordprocessingML document*,
+12 January 2024,
 <https://learn.microsoft.com/en-us/office/open-xml/word/structure-of-a-wordprocessingml-document>;
-PKWARE, APPNOTE 6.3.10, 1 november 2022, secties 4.3/4.4,
+PKWARE, APPNOTE 6.3.10, 1 November 2022, sections 4.3/4.4,
 <https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT>.
-Aanvullende primaire formaatbronnen, passend bij de afzonderlijke claims:
+Additional primary format sources, matched to the individual claims:
 
 - Ecma International, *ECMA-376: Office Open XML file formats*,
-  Part 2 *Open Packaging Conventions*, 5e editie, december 2021
-  (OPC-packageparts, relaties); Part 4 *Transitional Migration Features*,
-  5e editie, december 2016 (Transitional-verwijzingen):
+  Part 2 *Open Packaging Conventions*, 5th edition, December 2021
+  (OPC package parts, relationships); Part 4 *Transitional Migration Features*,
+  5th edition, December 2016 (Transitional references):
   <https://ecma-international.org/publications-and-standards/standards/ecma-376/>.
 - Deutsch, L. P., *DEFLATE Compressed Data Format Specification version 1.3*,
-  RFC 1951, RFC Editor, mei 1996 (raw DEFLATE):
+  RFC 1951, RFC Editor, May 1996 (raw DEFLATE):
   <https://www.rfc-editor.org/rfc/rfc1951.html>.
 - World Wide Web Consortium, *Extensible Markup Language (XML) 1.0
-  (Fifth Edition)*, W3C Recommendation, 26 november 2008
-  (XML-entiteiten en regelovergangen): <https://www.w3.org/TR/xml/>.
+  (Fifth Edition)*, W3C Recommendation, 26 November 2008
+  (XML entities and line endings): <https://www.w3.org/TR/xml/>.
 
-Deze bronverwijzingen definiëren het afgebakende formaat; ze bewijzen geen
-volledige OPC/OOXML/XML-conformance van de implementatie.
-Geen Office-, LibreOffice-, schemavalidatie- of volledig OOXML-profielclaim.
+These references define the bounded format; they do not establish complete
+OPC/OOXML/XML implementation conformance. No Office, LibreOffice, schema
+validation or full OOXML-profile claim.
 
-## Acceptatie
+## Acceptance
 
-Gerichte Rusttests, echte Python-zipfile/ElementTree DOCX-inputs door de CLI,
-Clippy/fmt en no_std-librarybuild. Bewijsreceipt wordt pas na uitgevoerde
-acceptatie toegevoegd. Hostbestandsfunctionaliteit en compilatie zijn geen
-native open/save-/launch-/vensteracceptatie. Geen fysieke hardware-,
-menselijke gebruiks-, onafhankelijke securityaudit- of releaseclaim.
+Targeted Rust tests, actual Python-zipfile/ElementTree DOCX inputs through
+the CLI, Clippy/fmt and a no_std library build. The evidence receipt is added
+only after acceptance has actually run. Host file functionality and compilation
+are not native open/save/launch/window acceptance. No physical hardware,
+human usability, independent security audit or release claim.

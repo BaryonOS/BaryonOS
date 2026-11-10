@@ -1,27 +1,27 @@
-# Compilers, assemblers, linkers en builds
+# Compilers, assemblers, linkers and builds
 
-De bronpagina’s verbinden cross-compilatie met het gewenste doelplatform, objectbestanden, ABI’s, linkerscripts en builds. Het boek laat zien hoe een entrysymbol, secties en geheugenadressen samen het kernelbestand vormen. Bewaar het onderscheid tussen hostgereedschap en het besturingssysteem dat het geproduceerde bestand gaat uitvoeren.
+The source pages connect cross-compilation with the intended target platform, object files, ABIs, linker scripts and builds. The book shows how an entry symbol, sections and memory addresses together define the kernel file. Preserve the distinction between host tools and the operating system that will execute the resulting file.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [GCC Cross-Compiler](../corpus/wiki-01.md#w001448) [W001448] · revisie 30955 · 2026-09-17T11:09:07Z
-- [LLVM Cross-Compiler](../corpus/wiki-07.md#w002968) [W002968] · revisie 27941 · 2023-07-09T15:53:37Z
-- [Linker Scripts](../corpus/wiki-06.md#w002604) [W002604] · revisie 30365 · 2026-03-22T17:18:01Z
-- [Calling Conventions](../corpus/wiki-03.md#w001759) [W001759] · revisie 29385 · 2025-02-08T13:33:55Z
-- [System V ABI](../corpus/wiki-09.md#w003507) [W003507] · revisie 29723 · 2025-10-20T19:38:00Z
-- [Object Files](../corpus/wiki-06.md#w002864) [W002864] · revisie 19508 · 2016-07-22T13:15:53Z
-- [Makefile](../corpus/wiki-03.md#w001785) [W001785] · revisie 30883 · 2026-07-11T22:19:14Z
+- [GCC Cross-Compiler](../corpus/wiki-01.md#w001448) [W001448] · revision 30955 · 2026-09-17T11:09:07Z
+- [LLVM Cross-Compiler](../corpus/wiki-07.md#w002968) [W002968] · revision 27941 · 2023-07-09T15:53:37Z
+- [Linker Scripts](../corpus/wiki-06.md#w002604) [W002604] · revision 30365 · 2026-03-22T17:18:01Z
+- [Calling Conventions](../corpus/wiki-03.md#w001759) [W001759] · revision 29385 · 2025-02-08T13:33:55Z
+- [System V ABI](../corpus/wiki-09.md#w003507) [W003507] · revision 29723 · 2025-10-20T19:38:00Z
+- [Object Files](../corpus/wiki-06.md#w002864) [W002864] · revision 19508 · 2016-07-22T13:15:53Z
+- [Makefile](../corpus/wiki-03.md#w001785) [W001785] · revision 30883 · 2026-07-11T22:19:14Z
 
-## Aansluiting op het PDF-boek
+## Related PDF book pages
 
-- Pagina 13–16: [B013](../corpus/boek.md#b013) tot [B016](../corpus/boek.md#b016).
-- Pagina 19–22: [B019](../corpus/boek.md#b019) tot [B022](../corpus/boek.md#b022).
-- Pagina 57–58: [B057](../corpus/boek.md#b057) tot [B058](../corpus/boek.md#b058).
-- Pagina 61–62: [B061](../corpus/boek.md#b061) tot [B062](../corpus/boek.md#b062).
+- Pages 13–16: [B013](../corpus/boek.md#b013) to [B016](../corpus/boek.md#b016).
+- Pages 19–22: [B019](../corpus/boek.md#b019) to [B022](../corpus/boek.md#b022).
+- Pages 57–58: [B057](../corpus/boek.md#b057) to [B058](../corpus/boek.md#b058).
+- Pages 61–62: [B061](../corpus/boek.md#b061) to [B062](../corpus/boek.md#b062).
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - ["zig cc" Cross-Compiler](../corpus/wiki-13.md#w004479) [W004479]
 - [ALink](../corpus/wiki-01.md#w001500) [W001500]

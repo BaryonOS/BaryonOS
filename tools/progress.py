@@ -99,6 +99,7 @@ def readme_block(data: dict) -> str:
     """Render the compact README progress section from the canonical rubric."""
     current = total_score(data)
     return f"""{README_MARKERS[0]}
+<a id="voortgang-naar-een-volwaardig-zelfstandig-os"></a>
 ## Progress toward a complete independent OS
 
 ![Baryon OS: {current}% of the fixed product roadmap](docs/assets/progress.svg)

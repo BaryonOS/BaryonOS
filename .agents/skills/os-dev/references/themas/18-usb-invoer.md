@@ -1,25 +1,25 @@
-# USB, toetsenbord, muis en seriële I/O
+# USB, keyboard, mouse and serial I/O
 
-Het boek gebruikt toetsenbordscancodes, PIC-interrupts en seriële uitvoer. De wiki vult dit aan met PS/2-controllerdetails, muizen, USB en hostcontrollervarianten. Scancodes, tekens en invoerinterfaces blijven afzonderlijke begrippen in de bronstructuur.
+The book uses keyboard scancodes, PIC interrupts and serial output. The wiki adds PS/2-controller details, mice, USB and host-controller variants. Scancodes, characters and input interfaces remain distinct concepts in the source structure.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [PS/2 Keyboard](../corpus/wiki-03.md#w001900) [W001900] · revisie 30840 · 2026-07-02T19:01:15Z
-- [PS/2 Mouse](../corpus/wiki-08.md#w003157) [W003157] · revisie 30841 · 2026-07-02T19:10:32Z
-- [I8042 PS/2 Controller](../corpus/wiki-08.md#w003160) [W003160] · revisie 30586 · 2026-05-20T07:46:42Z
-- [Serial ports](../corpus/wiki-06.md#w002840) [W002840] · revisie 10119 · 2010-04-26T19:04:13Z
-- [Universal Serial Bus](../corpus/wiki-02.md#w001725) [W001725] · revisie 29542 · 2025-06-08T17:41:27Z
-- [EXtensible Host Controller Interface](../corpus/wiki-08.md#w003309) [W003309] · revisie 30300 · 2026-03-16T20:31:16Z
-- [Enhanced Host Controller Interface](../corpus/wiki-08.md#w003303) [W003303] · revisie 25813 · 2021-04-21T00:43:14Z
+- [PS/2 Keyboard](../corpus/wiki-03.md#w001900) [W001900] · revision 30840 · 2026-07-02T19:01:15Z
+- [PS/2 Mouse](../corpus/wiki-08.md#w003157) [W003157] · revision 30841 · 2026-07-02T19:10:32Z
+- [I8042 PS/2 Controller](../corpus/wiki-08.md#w003160) [W003160] · revision 30586 · 2026-05-20T07:46:42Z
+- [Serial ports](../corpus/wiki-06.md#w002840) [W002840] · revision 10119 · 2010-04-26T19:04:13Z
+- [Universal Serial Bus](../corpus/wiki-02.md#w001725) [W001725] · revision 29542 · 2025-06-08T17:41:27Z
+- [EXtensible Host Controller Interface](../corpus/wiki-08.md#w003309) [W003309] · revision 30300 · 2026-03-16T20:31:16Z
+- [Enhanced Host Controller Interface](../corpus/wiki-08.md#w003303) [W003303] · revision 25813 · 2021-04-21T00:43:14Z
 
-## Aansluiting op het PDF-boek
+## Related PDF book pages
 
-- Pagina 23–31: [B023](../corpus/boek.md#b023) tot [B031](../corpus/boek.md#b031).
-- Pagina 43–45: [B043](../corpus/boek.md#b043) tot [B045](../corpus/boek.md#b045).
+- Pages 23–31: [B023](../corpus/boek.md#b023) to [B031](../corpus/boek.md#b031).
+- Pages 43–45: [B043](../corpus/boek.md#b043) to [B045](../corpus/boek.md#b045).
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [Enhanced Host Controller Interface](../corpus/wiki-08.md#w003303) [W003303]
 - [EXtensible Host Controller Interface](../corpus/wiki-08.md#w003309) [W003309]

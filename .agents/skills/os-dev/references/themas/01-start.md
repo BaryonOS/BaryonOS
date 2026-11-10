@@ -1,24 +1,24 @@
-# Start, voorkennis en ontwikkelvolgorde
+# Getting started, prerequisites and development order
 
-Begin bij de vereiste programmeer- en hardwarekennis, de keuze van doelplatform en de eerste controleerbare boot. De wiki heeft zowel minimale bare-bonesvoorbeelden als uitgebreidere projectskeletten. De volgorde van het boek loopt van boot en uitvoer via interrupts en geheugen naar gebruikersprogramma’s, bestandssystemen, systeemaanroepen en multitasking.
+Begin with the required programming and hardware knowledge, selection of the target platform and the first verifiable boot. The wiki includes both minimal bare-bones examples and more extensive project skeletons. The book proceeds from boot and output through interrupts and memory to user programs, filesystems, system calls and multitasking.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [Getting Started](../corpus/wiki-03.md#w001748) [W001748] · revisie 29110 · 2024-06-07T13:41:28Z
-- [Required Knowledge](../corpus/wiki-07.md#w003073) [W003073] · revisie 31039 · 2026-10-23T14:00:30Z
-- [Beginner Mistakes](../corpus/wiki-03.md#w001879) [W001879] · revisie 31014 · 2026-10-11T21:52:42Z
-- [What Order Should I Make Things In?](../corpus/wiki-02.md#w001577) [W001577] · revisie 29273 · 2024-10-09T17:06:17Z
-- [Bare bones](../corpus/wiki-05.md#w002497) [W002497] · revisie 7134 · 2009-01-27T23:50:32Z
-- [Meaty Skeleton](../corpus/wiki-09.md#w003448) [W003448] · revisie 30797 · 2026-06-19T11:17:13Z
+- [Getting Started](../corpus/wiki-03.md#w001748) [W001748] · revision 29110 · 2024-06-07T13:41:28Z
+- [Required Knowledge](../corpus/wiki-07.md#w003073) [W003073] · revision 31039 · 2026-10-23T14:00:30Z
+- [Beginner Mistakes](../corpus/wiki-03.md#w001879) [W001879] · revision 31014 · 2026-10-11T21:52:42Z
+- [What Order Should I Make Things In?](../corpus/wiki-02.md#w001577) [W001577] · revision 29273 · 2024-10-09T17:06:17Z
+- [Bare bones](../corpus/wiki-05.md#w002497) [W002497] · revision 7134 · 2009-01-27T23:50:32Z
+- [Meaty Skeleton](../corpus/wiki-09.md#w003448) [W003448] · revision 30797 · 2026-06-19T11:17:13Z
 
-## Aansluiting op het PDF-boek
+## Related PDF book pages
 
-- Pagina 7–17: [B007](../corpus/boek.md#b007) tot [B017](../corpus/boek.md#b017).
-- Pagina 19–22: [B019](../corpus/boek.md#b019) tot [B022](../corpus/boek.md#b022).
+- Pages 7–17: [B007](../corpus/boek.md#b007) to [B017](../corpus/boek.md#b017).
+- Pages 19–22: [B019](../corpus/boek.md#b019) to [B022](../corpus/boek.md#b022).
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [Ada Bare Bones](../corpus/wiki-08.md#w003231) [W003231]
 - [ARM Integrator-CP Bare Bones](../corpus/wiki-06.md#w002866) [W002866]

@@ -1,123 +1,127 @@
-# Nieuw OS — native desktoponderzoek voor Windows/QEMU
+# Baryon OS — native desktop research for Windows/QEMU
 
-Dit is een experimentele VM-testversie van de eigen x86_64-kernel met het
-native desktopprofiel (zie `manifest.json`). `native-window-session` opent
-een openbare onderzoekswerkruimte op 1280×720 met Materiaal en Rekenmachine,
-eigen vensters en proportionele tekst. Het profiel start acht geïsoleerde
-processen voor de twee apps en hun systeemdiensten. Er is geen
-account-/wachtwoord-/biometrische/FIDO2-authenticatie gekoppeld: de werkruimte
-opent direct en vormt geen beveiligde persoonlijke gebruikerssessie.
+This is an experimental VM test build of the custom x86_64 kernel with the
+native desktop profile (see `manifest.json`). `native-window-session` opens
+a public research workspace at 1280×720 with Materiaal and Rekenmachine,
+custom windows and proportional text. The profile starts eight isolated
+processes for the two applications and their system services. No account,
+password, biometric or FIDO2 authentication is connected: the workspace opens
+directly and is not a secured personal user session.
 
-Oudere ondersteunde profielen zijn `native-system-materiaal` en
-`native-system-session-preview`. De sessiepreview voegt gebruikerskeuze en
-een bureaublad toe; alleen de expliciete VM-gasttest opent die preview.
-Ook daar is echte authenticatie nog niet gekoppeld. De automatische
-fault-/probeprofielen en het afzonderlijke HiDPI-testprofiel zijn geen
-interactieve Windowsbundels en worden door deze launcher geweigerd.
-Het is geen installer, dagelijkse
-release of bewijs dat Nieuw OS op een fysieke Windows-pc werkt. De meegeleverde
-manifest.json bindt kernel, loader en firmware aan de bronversie.
+Older supported profiles are `native-system-materiaal` and
+`native-system-session-preview`. The session preview adds user selection and a
+desktop; only the explicit VM guest test opens that preview. Real authentication
+is not connected there either. Automatic fault/probe profiles and the separate
+HiDPI test profile are not interactive Windows bundles and are refused by this
+launcher. This is not an installer, daily-use release or proof that Baryon OS
+works on a physical Windows PC. The included `manifest.json` binds the kernel,
+loader and firmware to the source version.
 
-## Starten
+`Start-NieuwOS.ps1` is retained as a legacy script identifier; its filename is
+not a statement about the current project name.
 
-1. Installeer een 64-bit QEMU-build voor Windows vanaf de
-   [officiële QEMU-downloadpagina](https://www.qemu.org/download/). De launcher
-   vereist QEMU 10.2.1 of nieuwer, een SDL-schermbackend en `rng-builtin`.
-2. Pak deze ZIP uit naar een eigen map. Open PowerShell in die map en start:
+## Starting the VM
+
+1. Install a 64-bit QEMU build for Windows from the
+   [official QEMU download page](https://www.qemu.org/download/). The launcher
+   requires QEMU 10.2.1 or newer, an SDL display backend and `rng-builtin`.
+2. Extract this ZIP into a dedicated directory. Open PowerShell in that
+   directory and run:
 
    ```powershell
    .\Start-NieuwOS.ps1 -QemuPath "C:\Program Files\qemu\qemu-system-x86_64.exe"
    ```
 
-   Laat `-QemuPath` weg als `qemu-system-x86_64.exe` op PATH staat of in de
-   standaardinstallatiemap is geïnstalleerd. Het script wijzigt de
-   PowerShell-uitvoeringspolicy niet.
-   Alleen de bundelhashes en QEMU-vereisten controleren, zonder een VM of
-   `state\` aan te maken:
+   Omit `-QemuPath` when `qemu-system-x86_64.exe` is on `PATH` or installed
+   in the default installation directory. The script does not change the
+   PowerShell execution policy.
+
+   To check only the bundle hashes and QEMU requirements without starting a VM
+   or creating `state\`:
 
    ```powershell
    .\Start-NieuwOS.ps1 -CheckOnly
    ```
 
-   De standaard `-Acceleration Auto` controleert of QEMU WHPX aanbiedt en
-   initialiseert vóór de echte start een gepauzeerde testmachine zonder
-   schijven, netwerk of gastuitvoering (maximaal 10 seconden). Deze probe
-   laadt geen QEMU-gebruikersconfiguratie (`-no-user-config`). Bij succes
-   gebruikt de echte VM WHPX; bij ontbreken/mislukken verschijnt een melding
-   en volgt TCG-software-emulatie. `-CheckOnly` vraagt alleen de aangeboden
-   backends op en test de initialisatie niet; er wordt dan geen VM gestart.
-   Om hardwareversnelling verplicht te maken, zonder automatische fallback:
+   The default `-Acceleration Auto` setting checks whether QEMU offers WHPX.
+   Before the real launch, it initialises a paused test machine without disks,
+   networking or guest execution, with a maximum duration of 10 seconds. This
+   probe does not load QEMU user configuration (`-no-user-config`). A
+   successful probe selects WHPX for the real VM. If WHPX is absent or the
+   probe fails, a message is shown and TCG software emulation is used.
+   `-CheckOnly` only queries the advertised backends and does not test
+   initialisation or start a VM.
+
+   To require hardware acceleration without an automatic fallback:
 
    ```powershell
    .\Start-NieuwOS.ps1 -Acceleration Whpx
    ```
 
-   WHPX gebruikt CPU-virtualisatie via Windows Hypervisor Platform. Die
-   Windows-functie en Intel VT-x/AMD-V in de firmware moeten beschikbaar
-   zijn; wijzigingen daaraan gebeuren niet door dit script. Kies
-   `-Acceleration Tcg` voor het oorspronkelijke softwareprofiel.
-   De launcher bewaart de gekozen backend, reden en starttijd in
-   `state\launch.json`. Een geslaagde initialisatieproef bewijst nog geen
-   correcte Nieuw-OS-sessie. Na een fout in de echte VM wordt niet opnieuw
-   gestart: dat voorkomt het ongemerkt herhalen van schijfbewerkingen.
+   WHPX uses CPU virtualisation through Windows Hypervisor Platform. That
+   Windows feature and Intel VT-x/AMD-V in firmware must be available; this
+   script does not change them. Select `-Acceleration Tcg` for the original
+   software profile. The launcher records the selected backend, reason and
+   startup time in `state\launch.json`. A successful initialisation probe does
+   not yet prove a correct Baryon OS session. The real VM is not restarted after
+   an error, preventing unnoticed repetition of disk operations.
 
-   De SHA-256-controle detecteert beschadigde of gewijzigde bundelbestanden,
-   maar is geen handtekening of bewijs van de afzender. Download alleen uit
-   de afgesproken projectbron; vervang manifest of scripts niet door
-   bestanden van onbekende herkomst.
-3. Sluit de VM via het QEMU-venster. Opnieuw starten hergebruikt de
-   VM-schijf en OVMF-variabelen uit `state\`. Om alleen de VM terug te zetten
-   naar de lege beginstand: sluit QEMU volledig en verwijder
-   `state\volume.img` en `state\OVMF_VARS.fd`; de launcher maakt ze opnieuw aan.
+   The SHA-256 check detects damaged or modified bundle files, but it is not a
+   signature or proof of origin. Download only from the agreed project source;
+   do not replace the manifest or scripts with files of unknown provenance.
+3. Close the VM through the QEMU window. A subsequent start reuses the VM disk
+   and OVMF variables under `state\`. To reset only the VM to its empty initial
+   state, close QEMU completely and remove `state\volume.img` and
+   `state\OVMF_VARS.fd`; the launcher recreates them.
 
-De VM gebruikt één vCPU (WHPX waar de initialisatie slaagt, anders TCG),
-256 MiB RAM, een synthetische schrijfbare
-documentimage en een read-only EFI-map. Er is geen netwerkkaart, direct
-gekoppelde hostschijf, USB-doorvoer of clipboardkoppeling geconfigureerd. Via `fat:esp` krijgt de
-gast wel read-only toegang tot de bundelbestanden in `esp\`. De map `state\`
-bevat de schrijfbare VM-schijf, OVMF-variabelen en seriële uitvoer, maar wordt
-niet als hostmap gekoppeld. Dit beschrijft alleen de geconfigureerde
-QEMU-kanalen; het is geen garantie tegen kwetsbaarheden in QEMU.
+The VM uses one vCPU (WHPX when initialisation succeeds, otherwise TCG),
+256 MiB of RAM, a synthetic writable document image and a read-only EFI
+directory. No network device, directly attached host disk, USB pass-through or
+clipboard integration is configured. The `fat:esp` mapping gives the guest
+read-only access to the bundle files under `esp\`. The `state\` directory
+contains the writable VM disk, OVMF variables and serial output, but it is not
+mounted as a host directory. This describes only the configured QEMU channels;
+it is not a guarantee against vulnerabilities in QEMU.
 
-## Grenzen en bewijsstatus
+## Limits and evidence status
 
-Dit image is bedoeld om de huidige native onderzoekswerkruimte te verkennen.
-De profieldimensie is beperkt en de volledige product-/releaseacceptatie is
-niet afgerond. Netwerk, audio, fysieke hardware, volledige desktopbediening,
-toegankelijkheid en de complete opslag-/herstelmatrix zijn niet door deze
-bundle bewezen. Eerdere `Start-NieuwOS.ps1 -CheckOnly`- en synthetische
-launchertests zijn op echte Windows PowerShell uitgevoerd; daarbij startte
-geen VM. De nieuwe profiel-/licentiecontroles en de achtprocessensessie moeten
-voor deze exacte bron en ZIP opnieuw lokaal worden gecontroleerd.
-VM-bedieningsbewijs op Windows of Linux is afzonderlijk en
-geldt alleen voor de daarin vastgelegde bron, bundel en configuratie, niet
-automatisch voor iedere nieuw verpakte ZIP.
+This image is intended for exploring the current native research workspace.
+The profile has a limited scope and complete product/release acceptance has not
+been reached. This bundle does not prove networking, audio, physical hardware,
+complete desktop control, accessibility or the complete storage/recovery
+matrix. Earlier `Start-NieuwOS.ps1 -CheckOnly` and synthetic launcher tests
+were executed in real Windows PowerShell without starting a VM. The new
+profile/licence checks and eight-process session must be checked again locally
+for this exact source and ZIP. VM-operation evidence on Windows or Linux is
+separate and applies only to its recorded source, bundle and configuration,
+not automatically to every newly packaged ZIP.
 
-De nieuwe versnellingsselectie is afzonderlijk met synthetische tests te
-controleren: `./Test-Acceleration.ps1` vanuit de repositorymap
-`tools/windows-qemu/`. Die test initialiseert geen hypervisor en meet geen
-snelheid. Windows/WHPX-runtimebewijs voor deze wijziging staat nog open;
-historische TCG-proeven gelden daarvoor niet en eerdere helpercontroles geven
-deze nieuwe venstersessie geen Windows-runtimeacceptatie. QEMU beschrijft beperkingen
-voor legacy-VGA en SIMD-toegang tot MMIO; de launcher schakelt daarvoor geen
-beveiligingsmaatregelen uit. Een modernere GPU-driver en minder
-rendertransacties zijn afzonderlijke verbeteringen.
+The new acceleration selection can be checked separately with synthetic tests:
+run `./Test-Acceleration.ps1` from the repository directory
+`tools/windows-qemu/`. That test neither initialises a hypervisor nor measures
+performance. Windows/WHPX runtime evidence for this change remains open;
+historical TCG experiments do not satisfy it, and earlier helper checks do not
+provide Windows runtime acceptance for this new window session. QEMU documents
+limitations for legacy VGA and SIMD access to MMIO; the launcher does not
+disable security measures to work around them. A more modern GPU driver and
+fewer rendering transactions remain separate improvements.
 
-De firmwarebestanden worden met hun bijbehorende `licenses\`-copyrightnotices
-meegeleverd. De Open Sans Regular/Semibold 1.10-atlas zit in de native code;
-`licenses\OpenSans-NOTICE.md`, `OpenSans-Apache-2.0.txt`,
-`Native-graphics-README.md` en `OpenSans-font-provenance.json` bevatten de
-copyright-/licentietekst, atlasgrenzen en de hashes van de oorspronkelijke
-lettertypen en afgeleide atlas. De packager controleert de atlas tegen die
-herkomstgegevens. De launcher controleert alle meegeleverde notices met
-dezelfde bundelhashes. Er worden geen TTF-bestanden, hostfonts of dynamische
-fontparser ingeladen. QEMU zelf wordt niet in deze ZIP opgenomen.
+The firmware files are supplied with their corresponding copyright notices
+under `licenses\`. The Open Sans Regular/Semibold 1.10 atlas is embedded in
+the native code. `licenses\OpenSans-NOTICE.md`,
+`OpenSans-Apache-2.0.txt`, `Native-graphics-README.md` and
+`OpenSans-font-provenance.json` contain the copyright/licence text, atlas
+limits, and hashes of the original fonts and derived atlas. The packager checks
+the atlas against this provenance data. The launcher checks all supplied
+notices with the same bundle hashes. No TTF files, host fonts or dynamic font
+parser are loaded. QEMU itself is not included in this ZIP.
 
-Bron voor Windows-binaries: QEMU Project, “Download QEMU”, geraadpleegd
-30 oktober 2026, https://www.qemu.org/download/. De Windows-sectie verwijst
-naar 64-bit binaries/installers van Stefan Weil en noemt MSYS2 als alternatief.
+Source for Windows binaries: QEMU Project, “Download QEMU”, accessed
+30 October 2026, https://www.qemu.org/download/. The Windows section links to
+64-bit binaries/installers provided by Stefan Weil and lists MSYS2 as an
+alternative.
 
-QEMU Project, “Windows Hypervisor Platform” en “Security”, ontwikkelhandleiding
-11.1.50, geraadpleegd 2 november 2026:
-https://www.qemu.org/docs/master/system/whpx.html en
+QEMU Project, “Windows Hypervisor Platform” and “Security”, development manual
+11.1.50, accessed 2 November 2026:
+https://www.qemu.org/docs/master/system/whpx.html and
 https://www.qemu.org/docs/master/system/security.html.

@@ -1,43 +1,42 @@
-# RTC als niet-geauthenticeerde UTC-bron
+# RTC as an unauthenticated UTC source
 
-`drivers/rtc` is een zelfstandige allocatorvrije `no_std`-crate met
-`forbid(unsafe_code)` en zonder dependencies. Basiscommit:
-`cda42f2d4017e65bd8ba89399cb1633f85a1c2da`. De crate levert alleen de
-CMOS-leesprocedure, datumcodec en expliciete bronkwaliteit. Het opt-in
-`native-rtc`-profiel voegt een native portbackend en bootstrap-acceptatie toe.
-Het aparte profiel `native-system-clock` voegt ABI 1.9-syscall `0x73` toe:
-een ring-3-app vraagt een actuele UTC/Unix-secondewaarde op, die de kernel
-rechtstreeks en alleen-lezen uit CMOS leest. De SDK markeert elk resultaat
-`UnauthenticatedRtc`. Dit is geen vertrouwde TimeProvider of
-certificaatintegratie. Sys3 blijft daarnaast de afzonderlijke boot-monotone
-deadlineklok; ticks worden niet in een kalenderdatum omgerekend.
+`drivers/rtc` is a standalone allocator-free `no_std` crate with
+`forbid(unsafe_code)` and no dependencies. Base commit:
+`cda42f2d4017e65bd8ba89399cb1633f85a1c2da`. The crate provides only the CMOS
+read procedure, date codec and explicit source quality. The opt-in
+`native-rtc` profile adds a native port backend and bootstrap acceptance.
+The separate `native-system-clock` profile adds ABI 1.9 syscall `0x73`:
+a ring-3 app requests a current UTC/Unix-second value, which the kernel reads
+directly and read-only from CMOS. The SDK labels every result
+`UnauthenticatedRtc`. This is not a trusted TimeProvider or certificate
+integration. Sys3 remains the separate boot-monotonic deadline clock; ticks
+are not converted into a calendar date.
 
-## Eigenschappen en vertrouwensbasis
+## Properties and trust basis
 
-| Eigenschap | Wat deze crate afdwingt | Vereiste aanname/open grens |
+| Property | What this crate enforces | Required assumption/open boundary |
 | --- | --- | --- |
-| Afgebakende I/O | Alleen getypeerde indexselectie, settle en dataread; geen CMOS-datawrite. | De opt-in native backend gebruikt uitsluitend poorten 0x70/0x71; geen algemene app-I/O. |
-| NMI/index | Iedere selectie gebruikt dezelfde expliciete NMI-policy; de oorspronkelijke index wordt op succes en fout hersteld. | De platformeigenaar levert een betrouwbare index/NMI-shadow en sluit alle andere CPU-/IRQ-/NMI-gebruikers uit. |
-| Samenhangende datum | Twee volledige gelijke snapshots, UIP vóór/na, constante mode en geldige velden. | Correct devicegedrag en begrensde adapteroperaties; dit authenticeert de klok niet. |
-| Begrensde uitvoering | Eén globaal register-readbudget en een begrensd aantal snapshotpogingen. | Native I/O en settle zelf moeten begrensd terugkeren; dit is geen gemeten tijdsdeadline. |
-| UTC en eeuw | Alleen expliciete UTC-platformbasis plus expliciet eeuwregister. | De RTC bevat werkelijk UTC; geen detectie van lokale tijd of authenticatie van configuratie. |
-| Unixconversie | Geldige Gregoriaanse datum, jaar 1–9999, gecontroleerde i64-bewerkingen. | Geen leap-secondrepresentatie; seconde 60 wordt geweigerd. |
-| Terugloop | Vergelijking met eerdere geaccepteerde lezing of callerfloor; een lagere tijd geeft fout. | In-memory toestand gaat verloren bij herstart. De crate authenticeert of bewaart een externe floor niet. |
-| Vertrouwde certificaattijd | **Niet geleverd**: de SDK geeft altijd `UnauthenticatedRtc` terug. | Een geautoriseerde TimeProvider, versheid, onzekerheidsmarge en rollbackanker ontbreken. |
+| Bounded I/O | Only typed index selection, settle and data read; no CMOS data write. | The opt-in native backend uses only ports 0x70/0x71; no general app I/O. |
+| NMI/index | Every selection uses the same explicit NMI policy; the original index is restored on success and error. | The platform owner supplies a reliable index/NMI shadow and excludes all other CPU/IRQ/NMI users. |
+| Consistent date | Two complete identical snapshots, UIP before/after, constant mode and valid fields. | Correct device behaviour and bounded adapter operations; this does not authenticate the clock. |
+| Bounded execution | One global register-read budget and a bounded number of snapshot attempts. | Native I/O and settle themselves must return within bounds; this is not a measured time deadline. |
+| UTC and century | Only an explicit UTC platform basis plus an explicit century register. | The RTC actually contains UTC; no local-time detection or configuration authentication. |
+| Unix conversion | Valid Gregorian date, year 1–9999, checked i64 operations. | No leap-second representation; second 60 is rejected. |
+| Rollback | Comparison with an earlier accepted reading or caller floor; a lower time returns an error. | In-memory state is lost on restart. The crate neither authenticates nor stores an external floor. |
+| Trusted certificate time | **Not provided**: the SDK always returns `UnauthenticatedRtc`. | An authorised TimeProvider, freshness, uncertainty margin and rollback anchor are absent. |
 
-Een stabiele klok kan verkeerd zijn, stilstaan of door een aanvaller worden
-teruggezet. Een gelijke waarde wordt geaccepteerd; grote sprongen vooruit
-worden niet als aanval herkend. De aanwezigheid van een timestamp geeft dus
-geen toestemming om certificaatdatums over te slaan, een fout certificaat te
-accepteren, TOFU te gebruiken of deze bron als betrouwbare tijd te presenteren.
-Bij ontbrekende of onvoldoende tijdkwaliteit moet de toekomstige TLS-grens
-een concrete tijd-/validiteitsfout teruggeven. Dat beleid wordt hier niet
-gesimuleerd als reeds geïmplementeerde TLS-beveiliging.
+A stable clock may be wrong, stopped or set back by an attacker. An equal
+value is accepted; large forward jumps are not recognised as attacks. The
+presence of a timestamp therefore gives no permission to skip certificate
+dates, accept an invalid certificate, use TOFU or present this source as
+reliable time. With missing or insufficient time quality, the future TLS
+boundary must return a concrete time/validity error. That policy is not
+simulated here as already implemented TLS security.
 
-## Interface en levensduur
+## Interface and lifetime
 
-`Rtc::new(io, initial_selection, configuration)` neemt exclusieve toegang tot
-het index-/datapaar over, zonder I/O. `CmosIo` exposeert:
+`Rtc::new(io, initial_selection, configuration)` takes exclusive access to
+the index/data pair without I/O. `CmosIo` exposes:
 
 ```rust,ignore
 fn select(&mut self, selection: IndexSelection) -> Result<(), Self::Error>;
@@ -45,155 +44,155 @@ fn settle(&mut self) -> Result<(), Self::Error>;
 fn read_data(&mut self) -> Result<u8, Self::Error>;
 ```
 
-`select` schrijft uitsluitend de indexpoort 0x70 met `selection.encoded()`;
-`read_data` leest uitsluitend 0x71. Er is geen datawrite-interface. `settle`
-verzorgt alleen de begrensde vertraging, zonder extra registerread of wijziging
-van index/NMI; ook herstel naar register C mag geen interrupt bevestigen.
-Het hele lezen, inclusief herstel, wordt
-geserialiseerd tegenover alle andere gebruikers van het paar. Een Rust
-`&mut` of trait is geen kernelrecht en sluit een andere CPU/NMI-handler niet
-zelf uit.
+`select` writes only index port 0x70 with `selection.encoded()`;
+`read_data` reads only 0x71. There is no data-write interface. `settle`
+provides only the bounded delay, without an additional register read or
+index/NMI change; restoring register C must not acknowledge an interrupt
+either. The entire read, including restoration, is serialised against all
+other users of the pair. A Rust `&mut` or trait is not a kernel permission
+and does not itself exclude another CPU/NMI handler.
 
-Port 0x70 wordt niet teruggelezen om de NMI-toestand te raden. Bootstrap moet
-de oorspronkelijke index en de expliciete NMI-policy kennen/bezitten en een
-`IndexSelection` leveren. De lezer verandert de NMI-maskerbit niet tijdens
-de procedure. Als indexherstel mislukt, bevat `ReadError` zowel de primaire
-fout als de herstelfout en wordt de instance poisoned. Volgende reads doen
-geen I/O. `into_io()` draagt het paar over voor gecontroleerd adapterherstel;
-er is geen verborgen I/O in Drop.
+Port 0x70 is not read back to guess NMI state. Bootstrap must know/own the
+original index and explicit NMI policy and provide an `IndexSelection`.
+The reader does not change the NMI mask bit during the procedure. If index
+restoration fails, `ReadError` contains both the primary error and restoration
+error, and the instance becomes poisoned. Subsequent reads perform no I/O.
+`into_io()` transfers the pair for controlled adapter recovery; no hidden
+I/O occurs in Drop.
 
-Configuratie kiest een eeuwregister vanaf 0x0e tot en met 0x7f. De positie
-moet uit gecontroleerde platformconfiguratie/FADT komen. De eerste native
-QEMU-proef zal expliciet 0x32 gebruiken. Ontbrekende eeuw of onbekende
-tijdbasis geeft een fout vóór I/O; er bestaat geen pivot op bouwjaar,
-hosttijd, huidige datum, lokale timezone of een vooraf ingevulde timestamp.
+Configuration selects a century register from 0x0e through 0x7f inclusive.
+The position must come from checked platform configuration/FADT. The first
+native QEMU trial will explicitly use 0x32. A missing century or unknown
+time basis returns an error before I/O; there is no pivot based on build
+year, host time, current date, local timezone or a prepopulated timestamp.
 
-`read_utc()` geeft `Reading { utc, date, source, quality, rollback }` terug of
-een fout. `UnixUtc` bevat getekende i64 Unixseconden voor jaar 1–9999;
-`date` bewaart de daadwerkelijk gedecodeerde velden. `source=CmosRtc` en
-`quality=UnauthenticatedRtc` zijn vaste, zichtbare waarden. Een externe
-minimumtijd verschijnt als `FloorSource::CallerSupplied`; de crate claimt
-daarmee geen geauthenticeerde opslag. Een succesvolle read werkt de eigen
-in-memory floor bij; mislukte reads en mislukt indexherstel doen dat niet.
+`read_utc()` returns `Reading { utc, date, source, quality, rollback }` or an
+error. `UnixUtc` contains signed i64 Unix seconds for year 1–9999; `date`
+retains the actually decoded fields. `source=CmosRtc` and
+`quality=UnauthenticatedRtc` are fixed, visible values. An external minimum
+time appears as `FloorSource::CallerSupplied`; the crate thereby claims no
+authenticated storage. A successful read updates its own in-memory floor;
+failed reads and failed index restoration do not.
 
-De crate heeft een eigen `[workspace]` en lockfile. De latere integrator
-moet de aansluiting op de gedeelde workspace expliciet regelen; er zijn nu
-geen gedeelde Cargo-, kernel-, SDK- of buildbestanden gewijzigd.
+The crate has its own `[workspace]` and lockfile. The later integrator must
+explicitly arrange connection to the shared workspace; no shared Cargo,
+kernel, SDK or build files have been changed at this stage.
 
-## Hardwarecodec en foutpaden
+## Hardware codec and error paths
 
-Het oorspronkelijke core-registercontract is het QEMU 10.0.13
-MC146818-model; de native proef hieronder meet expliciet QEMU 10.2.1 bij
-het q35-profiel. Dit is geen steun voor ieder fysiek RTC-model.
-Register A moet de lopende 32,768-kHz-divider aangeven; UIP mag tijdens het
-lezen niet veranderen. SET in B of een gestopte/ononderzochte divider geeft
-een fout. Automatische DST in B wordt geweigerd bij dit UTC-profiel. D moet
-precies de geldige-batterij/tijdwaarde 0x80 hebben. Een zwevende 0xff-bus of
-expliciete offline-I/O geeft geen tijd; een nulwaarde is conservatief
-`BatteryInvalid` en bewijst niet afzonderlijk of een device ontbreekt.
-Register C wordt niet gelezen, zodat lezen geen RTC-interrupt bevestigt.
+The original core register contract is the QEMU 10.0.13 MC146818 model;
+the native trial below explicitly measures QEMU 10.2.1 with the q35 profile.
+This does not support every physical RTC model. Register A must indicate
+the running 32.768-kHz divider; UIP must not change during the read. SET in
+B or a stopped/unexamined divider returns an error. Automatic DST in B is
+rejected for this UTC profile. D must have exactly the valid battery/time
+value 0x80. A floating 0xff bus or explicit offline I/O returns no time;
+a zero value is conservatively `BatteryInvalid` and does not independently
+prove whether a device is absent. Register C is not read, so reading does
+not acknowledge an RTC interrupt.
 
-De lezer verwerkt BCD/binaire waarden en 12-/24-uursmode zonder modewijziging.
-AM 12 wordt 00, PM 12 wordt 12. Niet-decimale BCD-nibbles, ongeldige velden,
-kalenderdagen, eeuw, schrikkeldagen of een PM-bit in 24-uursmode worden
-geweigerd. Een maand-/jaarovergang of gewijzigde mode geeft een nieuwe poging.
-Maximaal 65.536 registerreads en 32 snapshotpogingen zijn configureerbaar;
-een kleinere configuratie kan terecht al vóór een volledige snapshot falen.
-Elk foutpad probeert het oorspronkelijke index/NMI-woord te herstellen.
+The reader handles BCD/binary values and 12/24-hour mode without changing
+mode. AM 12 becomes 00; PM 12 becomes 12. Non-decimal BCD nibbles, invalid
+fields, calendar days, century, leap days or a PM bit in 24-hour mode are
+rejected. A month/year transition or changed mode causes another attempt.
+At most 65,536 register reads and 32 snapshot attempts are configurable;
+a smaller configuration may legitimately fail before a complete snapshot.
+Every error path attempts to restore the original index/NMI word.
 
-Er worden geen alarmen, IRQ-modes, RTC-datum, CMOS-inhoud, firmware of fysieke
-klokken gewijzigd. De pure RTC-core verricht zelf geen echte port-I/O;
-alleen de opt-in bootstrapadapter hieronder voert die uit.
+No alarms, IRQ modes, RTC date, CMOS contents, firmware or physical clocks
+are changed. The pure RTC core itself performs no actual port I/O; only the
+opt-in bootstrap adapter below performs it.
 
-## Bronnen, hergebruik en licenties
+## Sources, reuse and licences
 
-- QEMU, *MC146818 RTC emulation*, versie **10.0.13**:
-  <https://github.com/qemu/qemu/blob/v10.0.13/hw/rtc/mc146818rtc.c> en
+- QEMU, *MC146818 RTC emulation*, version **10.0.13**:
+  <https://github.com/qemu/qemu/blob/v10.0.13/hw/rtc/mc146818rtc.c> and
   <https://github.com/qemu/qemu/blob/v10.0.13/include/hw/rtc/mc146818rtc_regs.h>.
-  Dit is de primaire bron voor het voorlopige emulatorprofiel, niet een
-  hardwarecertificering. Bronbestanden zijn gelezen; er is geen emulatorcode
-  overgenomen.
-- Howard Hinnant, *chrono-Compatible Low-Level Date Algorithms*, 1 september
-  2021, `days_from_civil`:
+  This is the primary source for the preliminary emulator profile, not
+  hardware certification. Source files were read; no emulator code was
+  incorporated.
+- Howard Hinnant, *chrono-Compatible Low-Level Date Algorithms*,
+  1 September 2021, `days_from_civil`:
   <https://howardhinnant.github.io/date_algorithms.html#days_from_civil>.
-  De March-/400-jaar-formule is hergebruikt met gevalideerde invoer en checked
-  i64-bewerkingen. De auteur doneert de formules expliciet aan het public
-  domain. De gelezen bron is via de upstream GitHub-mirror verkregen;
+  The March/400-year formula is reused with validated input and checked i64
+  operations. The author explicitly dedicates the formulas to the public
+  domain. The source read was obtained through the upstream GitHub mirror;
   <https://github.com/HowardHinnant/HowardHinnant.github.io/blob/master/date_algorithms.html>.
-- ACPICA, `ACPI_TABLE_FADT.Century`, gelezen 30 oktober 2026:
+- ACPICA, `ACPI_TABLE_FADT.Century`, read 30 October 2026:
   <https://github.com/acpica/acpica/blob/master/source/include/actbl.h>.
-  Het veld levert een registerindex; deze crate implementeert geen FADT-parser.
-- Aanvullende leesindex: OSDev, *CMOS*, **W001717**, revisie 30263 van
-  16 maart 2026:
+  The field supplies a register index; this crate implements no FADT parser.
+- Supplementary reading index: OSDev, *CMOS*, **W001717**, revision 30263
+  of 16 March 2026:
   <https://wiki.osdev.org/index.php?title=CMOS&oldid=30263>.
-  De PC-NMI/indexconventie is aan de expliciete adaptergrens vastgelegd.
+  The PC NMI/index convention is fixed at the explicit adapter boundary.
 
-De fabrikantdatasheet kon vanuit deze omgeving niet worden opgehaald (HTTP
-403). Daarom is geen fysieke RTC-ondersteuning afgetekend. De daadwerkelijk
-gelezen bronnen zijn met SHA-256 vastgelegd in het verificatierapport. Er
-zijn geen nieuwe libraries, build scripts of externe dependencyversies.
+The manufacturer's datasheet could not be retrieved from this environment
+(HTTP 403). No physical RTC support is therefore approved. Sources actually
+read are recorded with SHA-256 in the verification report. There are no new
+libraries, build scripts or external dependency versions.
 
-## Native bootstrap-contract RTC-NATIVE-1
+## Native bootstrap contract RTC-NATIVE-1
 
-Basis `5c334f9`, branch `simonvanieperen-expert-disco`. Dit is een directe
-technische afhankelijkheid van FR-S03/FR-N03, geen volledige aftekening.
-De uitsluitend diagnostische `native-rtc`-feature draait na eigen GDT/IDT,
-pagetables en M2-geheugencontrole, op de ene CPU met IF=0. Combineren met
-ring 3 of framebuffer wordt bij compilatie geweigerd. Geen productieprofiel
-schakelt de feature impliciet in; geen proces krijgt nieuwe I/O-rechten.
-De kleine codec draait in deze terminale proef in de kernel om de echte
-hardwareadapter te toetsen.
+Baseline `5c334f9`, branch `simonvanieperen-expert-disco`. This is a direct
+technical dependency of FR-S03/FR-N03, not complete acceptance. The purely
+diagnostic `native-rtc` feature runs after the project's own GDT/IDT, page
+tables and M2 memory check, on the single CPU with IF=0. Combining it with
+ring 3 or framebuffer is rejected at compilation. No production profile
+enables the feature implicitly; no process receives new I/O permissions.
+In this terminal trial, the small codec runs in the kernel to test the
+actual hardware adapter.
 
-Platformbezit wordt expliciet gevestigd door register D met NMI Enabled te
-selecteren. Dit is een eigen bekende startselectie, **geen reconstructie van
-de firmwareselectie/NMI-policy**. De proef maskeert NMI niet; de eigen
-NMI-handler is terminaal en gebruikt geen CMOS. Er zijn geen firmwarecalls,
-andere CPU's, IRQ-/userspace-CMOS-gebruikers of gedeelde portreferenties.
-De backend heeft alleen `out8(0x70)` en `in8(0x71)`, geen datawrites, algemene
-portargumenten of port-0x80-vertraging. QEMU verwerkt de indexwrite synchroon;
-de begrensde scalar settle-loop is geen timingcontract voor fysieke hardware.
-Register C wordt niet gelezen. De q35-platformconfiguratie kiest eeuw 0x32
-en UTC expliciet; geen FADT-parser of automatische platformdetectie geclaimd.
+Platform ownership is explicitly established by selecting register D with
+NMI Enabled. This is a known starting selection established by the OS,
+**not reconstruction of the firmware selection/NMI policy**. The trial does
+not mask NMI; its own NMI handler is terminal and does not use CMOS. There
+are no firmware calls, other CPUs, IRQ/userspace CMOS users or shared port
+references. The backend has only `out8(0x70)` and `in8(0x71)`, no data writes,
+general port arguments or port-0x80 delay. QEMU processes the index write
+synchronously; the bounded scalar settle loop is not a physical-hardware
+timing contract. Register C is not read. The q35 platform configuration
+explicitly selects century 0x32 and UTC; no FADT parser or automatic platform
+detection is claimed.
 
-Acceptatie: twee echte UTC-readings met zichtbare `UnauthenticatedRtc`,
-datum/Unix-gelijkheid en in-memory floor; een werkelijk uitgeput readbudget,
-weigering van een onhaalbare callerfloor, onbekende tijdbasis/ontbrekende eeuw
-zonder I/O, daarna opnieuw succesvol lezen. Na succes en beide I/O-foutpaden
-wordt de startselectie hersteld: software-indexcontrole plus een echte
-dataread **zonder reselectie** moet register D=0x80 opleveren. Dat controleert
-de registerselectie op het device; NMI-policy is een expliciete
-code-/platforminvariant, geen onafhankelijk gemeten hardwaregarantie.
-De pure hosttests behouden de corrupte/offline/UIP-/mode-/poison-tegenproeven;
-de native negatieve gevallen injecteren geen fictieve device-antwoorden.
+Acceptance: two actual UTC readings with visible `UnauthenticatedRtc`,
+date/Unix equality and an in-memory floor; an actually exhausted read budget,
+rejection of an unattainable caller floor, unknown time basis/missing century
+without I/O, then another successful read. After success and both I/O error
+paths, the starting selection is restored: a software index check plus an
+actual data read **without reselection** must yield register D=0x80. This
+checks register selection on the device; NMI policy is an explicit code/
+platform invariant, not an independently measured hardware guarantee. Pure
+host tests retain corrupt/offline/UIP/mode/poison counterexamples; native
+negative cases inject no fictional device replies.
 
-## ABI 1.9-proef NATIVE-CLOCK-1
+## ABI 1.9 trial NATIVE-CLOCK-1
 
-`native-system-clock` is een afzonderlijk opt-in single-CPU systeemprofiel,
-geen algemene hardwareondersteuning. De app roept syscall `0x73` aan zonder
-argumenten of pointers. Bij succes retourneert `RAX=0` en `RDX` de signed
-Unixseconden als two's-complementwaarde; ongeldige extra argumenten geven
-`-22`, een onbruikbare RTC geeft `-5`, en profielen zonder de syscall blijven
-de normale onbekende-syscallfout geven (`-2`). De SDK biedt
-`native::wall_clock_utc()` als `WallClockReading { unix_seconds, quality }`;
-de enige kwaliteit is `UnauthenticatedRtc`.
+`native-system-clock` is a separate opt-in single-CPU system profile, not
+general hardware support. The app calls syscall `0x73` without arguments or
+pointers. On success, it returns `RAX=0` and `RDX` holds signed Unix seconds
+as a two's-complement value; invalid extra arguments return `-22`, an
+unusable RTC returns `-5`, and profiles without the syscall continue to
+return the normal unknown-syscall error (`-2`). The SDK provides
+`native::wall_clock_utc()` as `WallClockReading { unix_seconds, quality }`;
+the only quality is `UnauthenticatedRtc`.
 
-Iedere aanroep doet een begrensde, read-only snapshot, controleert de RTC-kern
-en het register-D-herstel en geeft de oorspronkelijke indexselectie terug.
-De aanroep heeft geen gebruikerspointer, capability of bestandstoegang.
-Dit is een publiek lokaal tijdgegeven, geen nieuw recht op andere resources.
-De adapter veronderstelt nog steeds exclusief CMOS-bezit op één CPU met IF=0,
-een expliciete UTC-basis, eeuwregister 0x32, geen IRQ-/NMI-/andere
-CMOS-gebruiker en een NMI-handler die zelf geen CMOS leest. Er is geen
-persistente antirollback, authenticatie, versheids-/onzekerheidsbewijs,
-time-sync, suspendcorrectie of TLS-certificaatbeleid. De monotone PIT-ticks
-worden niet gebruikt om wall-clock te schatten of te corrigeren.
+Each call performs a bounded read-only snapshot, checks the RTC core and
+register-D restoration, and restores the original index selection. The call
+has no user pointer, capability or file access. This is public local time
+data, not a new permission to other resources. The adapter still assumes
+exclusive CMOS ownership on one CPU with IF=0, an explicit UTC basis,
+century register 0x32, no IRQ/NMI/other CMOS user and an NMI handler that
+does not itself read CMOS. There is no persistent anti-rollback,
+authentication, freshness/uncertainty evidence, time synchronisation,
+suspend correction or TLS certificate policy. Monotonic PIT ticks are not
+used to estimate or correct wall-clock time.
 
-De native proef laat de bestaande ring-3-systeemapp twee tijden lezen,
-controleert hun volgorde en de monotone-ticks, en test een syscall met een
-niet-nulargument. De onafhankelijke runner vergelijkt de gerapporteerde
-seconden met een expliciete QEMU RTC-basistijd. De uitgevoerde proef staat in
-`docs/verification/system-clock/README.md`. Dit sluit geen FR-S03/FR-N03-
-productcriterium af.
+The native trial has the existing ring-3 system app read two times, checks
+their order and monotonic ticks, and tests a syscall with a non-zero argument.
+The independent runner compares the reported seconds with an explicit QEMU
+RTC base time. The executed trial is in
+`docs/verification/system-clock/README.md`. This closes no FR-S03/FR-N03
+product criterion.
 
 ```sh
 NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B tools/build.py --kernel-feature native-rtc
@@ -202,35 +201,35 @@ python3 -B -m unittest tools.tests.test_system_clock
 python3 -B -u tools/run_system_clock.py
 ```
 
-De runner gebruikt bestaande `run_guest` met een eigen ESP/VARS/CODE-kopie
-per echte VM en `-rtc base=<expliciete UTC>,clock=vm,driftfix=none`. Vijf
-kalenders: millennium 2000, schrikkeldag 2000, 2026, grens na signed-i32-2038
-en schrikkeldag 2096. Python datetime controleert onafhankelijk zowel
-de zes velden als de Unixconversie en het venster base..base+60 seconden;
-dit venster dekt firmware/boot en bewijst geen realtime-nauwkeurigheid.
-Geen hosttijd als OS-fallback, geen netwerk, geen echte disk en geen writes
-naar RTC-data. Raw exit 33, volledige geordende uitvoer, bronfingerprint,
-manifest- en artifacthashes zijn vereist. Timeout/foute datum/duplicaten/
-gewijzigde bron falen; een oude laatste rapportage wordt eerst ingetrokken.
-CI heeft een eigen verplichte uitvoerende workflow `native-rtc.yml`.
-`--case epoch` en `--case century` blijven expliciete firmwarediagnostiek,
-niet onderdeel van de normale vijfkalenderacceptatie: op het gemeten OVMF-paar
-werd 1970 werkelijk 2070 en 2100 werkelijk 2000. Het onverzwakte orakel
-weigert beide met exit 1, ondanks raw33 en geslaagde read-/restoremarkers.
+The runner uses the existing `run_guest` with a dedicated ESP/VARS/CODE copy
+per actual VM and `-rtc base=<expliciete UTC>,clock=vm,driftfix=none`
+(the placeholder denotes explicit UTC). Five calendars: millennium 2000,
+leap day 2000, 2026, the boundary after signed-i32 2038 and leap day 2096.
+Python datetime independently checks both the six fields and Unix conversion,
+and the window base..base+60 seconds; this window covers firmware/boot and
+does not prove real-time accuracy. No host time as an OS fallback, no network,
+no real disk and no writes to RTC data. Raw exit 33, complete ordered output,
+source fingerprint, manifest and artifact hashes are required. Timeout,
+wrong date, duplicates or changed source fail; a stale latest report is
+withdrawn first. CI has its own mandatory executing workflow `native-rtc.yml`.
+`--case epoch` and `--case century` remain explicit firmware diagnostics,
+outside normal five-calendar acceptance: on the measured OVMF pair, 1970
+actually became 2070 and 2100 actually became 2000. The unchanged oracle
+rejects both with exit 1, despite raw 33 and passing read/restore markers.
 EDK2 `edk2-stable202511`, `PcAtChipsetPkg/PcatRealTimeClockRuntimeDxe/PcRtc.c`,
-`ConvertRtcTimeToEfiTime` reconstrueert de eeuw uit de PCD-minimumjaarperiode;
-`PcRtcAcpiTableChangeCallback` schrijft die naar het FADT-eeuwregister.
-Dit verklaart het gemeten gedrag; de native backend corrigeert of raadt
-geen andere eeuw. Core-Gregoriaanse hosttests blijven het brede datumbewijs;
-native 1970/2100-acceptatie en een volledige firmware-onafhankelijke datumrange
-blijven open. Nieuwe firmwarepakketten worden opnieuw werkelijk getoetst,
-niet automatisch als gelijkwaardig aan deze ontwikkelvariant beschouwd.
-Geen authentieke tijd, persistente antirollback, NTP, TLS, userspacegebruik,
-fysiek apparaat of volledige productacceptatie door deze proef.
+`ConvertRtcTimeToEfiTime` reconstructs the century from the PCD minimum-year
+period; `PcRtcAcpiTableChangeCallback` writes it to the FADT century register.
+This explains the measured behaviour; the native backend neither corrects
+nor guesses another century. Core Gregorian host tests remain the broad
+date evidence; native 1970/2100 acceptance and a complete firmware-independent
+date range remain open. New firmware packages are actually retested, not
+automatically treated as equivalent to this development variant. This trial
+provides no authentic time, persistent anti-rollback, NTP, TLS, userspace use,
+physical-device or complete product acceptance.
 
-## Historisch corebewijs en volgende productiepoort
+## Historical core evidence and next production gate
 
-Met Rust 1.90.0 en aparte targetmappen uitgevoerd:
+Executed with Rust 1.90.0 and separate target directories:
 
 ```sh
 LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-rtc-target \
@@ -245,16 +244,16 @@ LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-rtc-none-
   --release --target x86_64-unknown-none --lib
 ```
 
-Elf tests slagen zonder skips: overflow, vaste epochankers en alle 146.097
-dagen van een Gregoriaanse 400-jaarcyclus, BCD/binaire uurmodi, foutieve
-datums, update-/mode-/middernachtovergangen, vastgelopen UIP, verdwenen device,
-readbudget, herstel/poison en zichtbare rollbackfloor. Clippy en de
-freestanding librarybuild slagen. `drivers/rtc/verification/` bevat het
-afgebakende bron-/artifacthashbewijs. Dit is hostbewijs en een targetbuild,
-geen native uitvoering van de RTC-driver.
+Eleven tests pass without skips: overflow, fixed epoch anchors and all
+146,097 days of a Gregorian 400-year cycle, BCD/binary hour modes, invalid
+dates, update/mode/midnight transitions, stuck UIP, missing device, read
+budget, restore/poison and visible rollback floor. Clippy and the freestanding
+library build pass. `drivers/rtc/verification/` contains bounded source/
+artifact-hash evidence. This is host evidence and a target build, not native
+execution of the RTC driver.
 
-De volgende productiepoort blijft open: een minimaal geautoriseerde
-broker/TimeProvider, gedeeld CMOS/NMI-bezit bij IRQ/SMP, echte overgangen/
-devicefouten en vervolgens tijdkwaliteit bij certificaatvalidatie. Fysieke
-klok, beveiligde tijd en persistent rollbackanker zijn nog niet bewezen.
-Deze stap verandert de releaseomvang en voortgangspunten niet zelfstandig.
+The next production gate remains open: a minimally authorised broker/
+TimeProvider, shared CMOS/NMI ownership with IRQ/SMP, actual transitions/
+device errors and then time quality during certificate validation. A physical
+clock, secure time and a persistent rollback anchor are not yet proven.
+This step does not independently change release scope or progress points.

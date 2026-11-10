@@ -1,20 +1,20 @@
-# Kernelontwerp en systeemarchitectuur
+# Kernel design and system architecture
 
-De wiki onderscheidt onder meer monolithische, modulaire, microkernel-, hybride en exokernelontwerpen. De microkernelpagina bespreekt diensten in gebruikersruimte, IPC, contextwissels, bootstrapafhankelijkheden en expliciet het punt dat herstelbaarheid extra ontwerpwerk vereist. Een model is een ontwerpkeuze, geen automatisch bewijs van veiligheid.
+The wiki distinguishes monolithic, modular, microkernel, hybrid and exokernel designs, among others. The microkernel page discusses userspace services, IPC, context switches, bootstrap dependencies and explicitly notes that recoverability requires additional design work. A model is a design choice, not automatic evidence of security.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [Kernel](../corpus/wiki-06.md#w002697) [W002697] · revisie 11619 · 2011-06-13T09:17:47Z
-- [Microkernel](../corpus/wiki-01.md#w001411) [W001411] · revisie 29930 · 2026-01-25T01:36:59Z
-- [Monolithic kernel](../corpus/wiki-05.md#w002298) [W002298] · revisie 5593 · 2008-06-04T19:36:06Z
-- [Modular Kernel](../corpus/wiki-03.md#w001906) [W001906] · revisie 23607 · 2019-05-07T17:18:28Z
-- [Hybrid Kernel](../corpus/wiki-06.md#w002695) [W002695] · revisie 30585 · 2026-05-19T18:12:29Z
-- [Exokernel](../corpus/wiki-01.md#w001465) [W001465] · revisie 29667 · 2025-09-19T21:30:09Z
-- [Object oriented OS](../corpus/wiki-10.md#w003680) [W003680] · revisie 30403 · 2026-03-24T22:07:04Z
+- [Kernel](../corpus/wiki-06.md#w002697) [W002697] · revision 11619 · 2011-06-13T09:17:47Z
+- [Microkernel](../corpus/wiki-01.md#w001411) [W001411] · revision 29930 · 2026-01-25T01:36:59Z
+- [Monolithic kernel](../corpus/wiki-05.md#w002298) [W002298] · revision 5593 · 2008-06-04T19:36:06Z
+- [Modular Kernel](../corpus/wiki-03.md#w001906) [W001906] · revision 23607 · 2019-05-07T17:18:28Z
+- [Hybrid Kernel](../corpus/wiki-06.md#w002695) [W002695] · revision 30585 · 2026-05-19T18:12:29Z
+- [Exokernel](../corpus/wiki-01.md#w001465) [W001465] · revision 29667 · 2025-09-19T21:30:09Z
+- [Object oriented OS](../corpus/wiki-10.md#w003680) [W003680] · revision 30403 · 2026-03-24T22:07:04Z
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [Bran's Kernel Development Tutorial Known Bugs](../corpus/wiki-04.md#w001950) [W001950]
 - [Building libgcc for mcmodel=kernel](../corpus/wiki-12.md#w004070) [W004070]

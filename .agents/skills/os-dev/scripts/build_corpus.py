@@ -141,8 +141,8 @@ def build(root,wiki_iter,book,source_mode,input_sha=None):
             body=temp.read_text(errors='replace').replace('\x0c','').rstrip('\n')
         finally: temp.unlink(missing_ok=True)
         sid=f'B{pg:03d}'; anchor=sid.lower(); rel='references/corpus/boek.md'
-        start,length,sl,el,h=write_block(root/rel,f'## {sid} — The little book about OS development — pagina {pg}',body,anchor)
-        rows.append({'source_id':sid,'kind':'pdf','title':f'The little book about OS development — pagina {pg}',
+        start,length,sl,el,h=write_block(root/rel,f'## {sid} — The little book about OS development — page {pg}',body,anchor)
+        rows.append({'source_id':sid,'kind':'pdf','title':f'The little book about OS development — page {pg}',
           'page':pg,'timestamp':DATE,'source_url':BOOK,'local_path':rel,'anchor':anchor,
           'start_byte':start,'length_bytes':length,'text_sha256':h,'start_line':sl,'end_line':el})
 

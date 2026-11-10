@@ -1,5 +1,5 @@
-# Bootregels
-Lees root-AGENTS.md en docs/ARCHITECTURE.md. Alleen een UEFI-loader is nog geen eigen werkende OS-kernel.
-Definieer het boot-ABI: geheugenkaart/eigenaarschap, toegankelijke mappings, entrypoint, stack, CPU-status en foutpad. Controleer UEFI-specificatie en correcte ExitBootServices-sequentie; geen firmwarebootservices na overdracht. Het UEFI-calling convention en de kernel-ABI zijn niet stilzwijgend uitwisselbaar.
-Valideer ELF-/imagegrenzen en rekenkundige overflows. Stel geen beveiligde bootketen vast op basis van een gewone unsigned emulatorboot. Geen echte firmware of apparaten wijzigen.
-Test een geslaagde overdracht én corrupte/ontbrekende kernel. Marker moet door kernelcode na overdracht worden geproduceerd. Documenteer firmware- en emulatorversies.
+# Boot rules
+Read the root AGENTS.md and docs/ARCHITECTURE.md. A UEFI loader alone is not a functioning independent OS kernel.
+Define the boot ABI: memory map and ownership, accessible mappings, entry point, stack, CPU state and failure path. Check the UEFI specification and the correct ExitBootServices sequence; do not use firmware boot services after handover. The UEFI calling convention and the kernel ABI are not implicitly interchangeable.
+Validate ELF/image bounds and arithmetic overflows. Do not infer a secure boot chain from an ordinary unsigned emulator boot. Do not modify real firmware or devices.
+Test both successful handover and a corrupt or missing kernel. The marker must be produced by kernel code after handover. Document firmware and emulator versions.

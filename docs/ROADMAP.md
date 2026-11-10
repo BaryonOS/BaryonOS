@@ -67,6 +67,8 @@ Key sources:
 
 The [M6–M11 GitHub Milestone plan](GITHUB-MILESTONES.md) contains copy-ready descriptions, the single migration route from legacy rubric objects, and proposed issue assignments. Merging that document does not change GitHub metadata.
 
+The [existing GitHub Milestones](https://github.com/simonvanieperen/BaryonOS/milestones) currently group work by criterion families. Their ten titles and descriptions were translated on 9 November 2026 without changing scope, state or due dates. Reorganizing these objects into the M6–M11 phases below remains the separate governance task in [#276](https://github.com/simonvanieperen/BaryonOS/issues/276).
+
 GitHub Milestones should mirror the result-oriented phases **M6 through M11** while active work is underway. Individual rubric IDs such as `S09`, `U04`, or `N03` remain issues/criteria rather than separate milestones.
 
 Historical M0–M5 work may be represented as closed milestones if that improves repository navigation, but it should not be recreated as a second status history.

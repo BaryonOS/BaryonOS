@@ -1,26 +1,26 @@
-# Geheugenkaarten, paging en allocatie
+# Memory maps, paging and allocation
 
-Maak onderscheid tussen fysieke frames, virtuele adresruimten en kleinere heapallocaties. Het boek behandelt adresvertaling, paginatabellen, toegangsvlaggen, identity mapping, higher-halfmapping, gereserveerde gebieden, frameadministratie en tijdelijke mappings. De wikipagina’s voegen alternatieve allocatoren en architectuurspecifieke uitwerkingen toe.
+Distinguish physical frames, virtual address spaces and smaller heap allocations. The book covers address translation, page tables, access flags, identity mapping, higher-half mapping, reserved areas, frame accounting and temporary mappings. The wiki pages add alternative allocators and architecture-specific details.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [Memory Management](../corpus/wiki-02.md#w001536) [W001536] · revisie 1938 · 2006-12-07T20:56:29Z
-- [Memory Map (x86)](../corpus/wiki-05.md#w002278) [W002278] · revisie 30132 · 2026-03-04T23:07:33Z
-- [Detecting Memory (x86)](../corpus/wiki-05.md#w002279) [W002279] · revisie 30850 · 2026-07-05T02:38:23Z
-- [X86 Paging](../corpus/wiki-04.md#w002122) [W002122] · revisie 30739 · 2026-06-12T16:52:38Z
-- [Page Frame Allocation](../corpus/wiki-01.md#w001461) [W001461] · revisie 30500 · 2026-04-20T16:42:28Z
-- [Memory Allocation](../corpus/wiki-01.md#w001460) [W001460] · revisie 30361 · 2026-03-19T23:08:33Z
-- [Heap](../corpus/wiki-09.md#w003452) [W003452] · revisie 15620 · 2014-02-21T23:16:16Z
-- [Higher Half Kernel](../corpus/wiki-03.md#w001868) [W001868] · revisie 30637 · 2026-05-27T07:15:31Z
+- [Memory Management](../corpus/wiki-02.md#w001536) [W001536] · revision 1938 · 2006-12-07T20:56:29Z
+- [Memory Map (x86)](../corpus/wiki-05.md#w002278) [W002278] · revision 30132 · 2026-03-04T23:07:33Z
+- [Detecting Memory (x86)](../corpus/wiki-05.md#w002279) [W002279] · revision 30850 · 2026-07-05T02:38:23Z
+- [X86 Paging](../corpus/wiki-04.md#w002122) [W002122] · revision 30739 · 2026-06-12T16:52:38Z
+- [Page Frame Allocation](../corpus/wiki-01.md#w001461) [W001461] · revision 30500 · 2026-04-20T16:42:28Z
+- [Memory Allocation](../corpus/wiki-01.md#w001460) [W001460] · revision 30361 · 2026-03-19T23:08:33Z
+- [Heap](../corpus/wiki-09.md#w003452) [W003452] · revision 15620 · 2014-02-21T23:16:16Z
+- [Higher Half Kernel](../corpus/wiki-03.md#w001868) [W001868] · revision 30637 · 2026-05-27T07:15:31Z
 
-## Aansluiting op het PDF-boek
+## Related PDF book pages
 
-- Pagina 51–59: [B051](../corpus/boek.md#b051) tot [B059](../corpus/boek.md#b059).
-- Pagina 61–63: [B061](../corpus/boek.md#b061) tot [B063](../corpus/boek.md#b063).
+- Pages 51–59: [B051](../corpus/boek.md#b051) to [B059](../corpus/boek.md#b059).
+- Pages 61–63: [B061](../corpus/boek.md#b061) to [B063](../corpus/boek.md#b063).
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [A20 Line](../corpus/wiki-01.md#w001433) [W001433]
 - [ARM Paging](../corpus/wiki-12.md#w004221) [W004221]
