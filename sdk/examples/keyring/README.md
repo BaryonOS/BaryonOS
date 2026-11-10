@@ -12,7 +12,8 @@ verplaatst alleen bytes tussen de kernelbroker, de IPC-enveloppen en die core.
 
 De cryptografie komt uit vastgepinde RustCrypto-crates; de build (`build.py`)
 schakelt alle x86-SIMD-backends uit omdat het ring-3-profiel geen SSE/AVX
-heeft (`chacha20_force_soft`, `poly1305_force_soft`, `sha2_backend="soft"`).
+heeft (`chacha20_force_soft`, `chacha20_backend="soft"`,
+`poly1305_backend="soft"`, `sha2_backend="soft"`).
 Het eigen linkerscript geeft de code 128 KiB vanaf `0x40020000`; de
 startpagina blijft op `0x40010000`.
 

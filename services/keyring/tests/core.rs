@@ -2,8 +2,8 @@
 //! primitives, the SP 800-90B health tests, and the service lifecycle with a
 //! deterministic fake entropy source. A host test proves the model, not the
 //! native run.
-use chacha20poly1305::aead::{AeadInPlace, KeyInit};
-use chacha20poly1305::{Key, XChaCha20Poly1305, XNonce};
+use chacha20poly1305::aead::{inout::InOutBuf, AeadInOut, KeyInit};
+use chacha20poly1305::XChaCha20Poly1305;
 use hex_literal::hex;
 use hkdf::Hkdf;
 use keyring_core::health::{Health, HealthFailure, APT_CUTOFF, APT_WINDOW, RCT_CUTOFF};
@@ -111,11 +111,11 @@ fn xchacha20poly1305_draft_irtf_cfrg_xchacha_03_a_3_1() {
     let nonce = hex!("404142434445464748494a4b4c4d4e4f5051525354555657");
     let aad = hex!("50515253c0c1c2c3c4c5c6c7");
     let plaintext = b"Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it.";
-    let cipher = XChaCha20Poly1305::new(Key::from_slice(&key));
+    let cipher = XChaCha20Poly1305::new((&key).into());
     let mut out = [0u8; 114];
     out.copy_from_slice(plaintext);
     let tag = cipher
-        .encrypt_in_place_detached(XNonce::from_slice(&nonce), &aad, &mut out)
+        .encrypt_inout_detached((&nonce).into(), &aad, InOutBuf::from(&mut out[..]))
         .unwrap();
     assert_eq!(
         out[..],

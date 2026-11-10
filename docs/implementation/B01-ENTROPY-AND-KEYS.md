@@ -38,14 +38,17 @@ sleutels nooit aan gewone apps afgeeft.
    Een handle van domein A is in domein B ongeldig. Alleen de afzonderlijke
    manifest-gebonden beheer-ingress mag herstelmateriaal afgeven.
 4. **Geen eigen cryptografie.** Alleen onderhouden RustCrypto-crates met
-   vastgepinde versies: `chacha20poly1305` 0.10.1 (XChaCha20-Poly1305 AEAD,
+   vastgepinde versies: `chacha20poly1305` 0.11.0 (XChaCha20-Poly1305 AEAD,
    RFC 8439/draft-irtf-cfrg-xchacha), `chacha20` 0.9.1 (keystream voor de
    DRBG), `hkdf` 0.12.4 + `sha2` 0.10.9 (HKDF-SHA-256, RFC 5869), `zeroize`
    1.8. Alle x86-SIMD-backends zijn uitgeschakeld
-   (`chacha20_force_soft`, `poly1305_force_soft`, `sha2_backend="soft"`): het
+   (`chacha20_force_soft`, `chacha20_backend="soft"`,
+   `poly1305_backend="soft"`, `sha2_backend="soft"`): het
    profiel heeft `CR0.EM=1` en geen SSE. De DRBG is de
    fast-key-erasure-constructie op ChaCha20 (Bernstein, 2017): sleutel K,
    keystream → nieuwe K en uitvoer, oude K gewist.
+   Current dependency provenance and the portable-backend evidence boundary
+   are recorded in [KEYRING-CRYPTO-DEPENDENCIES.md](KEYRING-CRYPTO-DEPENDENCIES.md).
 5. **Binding.** Iedere AEAD-bewerking bindt formaatversie, domein,
    sleutelindex en doel (seal/herstel) in de AAD. Een ciphertext van sleutel
    A onder sleutel B, een gewijzigde byte, tag of nonce geeft `Auth` zonder

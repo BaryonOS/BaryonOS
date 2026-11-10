@@ -6,8 +6,8 @@
 //! blob and generation on the same replayable disk are not such an anchor.
 
 use chacha20poly1305::{
-    aead::{AeadInPlace, KeyInit},
-    Key, Tag, XChaCha20Poly1305, XNonce,
+    aead::{inout::InOutBuf, AeadInOut, KeyInit},
+    Tag, XChaCha20Poly1305, XNonce,
 };
 use hkdf_protected::Hkdf;
 use sha2_kdf::Sha256;
@@ -91,12 +91,12 @@ impl Service {
             plain[offset + 2..offset + 4].copy_from_slice(&domain.revoked.to_le_bytes());
         }
         let wrap = wrapping_key(secret);
-        let cipher = XChaCha20Poly1305::new(Key::from_slice(&*wrap));
+        let cipher = XChaCha20Poly1305::new((&*wrap).into());
         let aad = header(volume);
         let mut nonce = [0u8; NONCE_BYTES];
         self.drbg.as_mut().ok_or(Status::NotReady)?.fill(&mut nonce);
         let tag = cipher
-            .encrypt_in_place_detached(XNonce::from_slice(&nonce), &aad, &mut *plain)
+            .encrypt_inout_detached((&nonce).into(), &aad, InOutBuf::from(&mut plain[..]))
             .map_err(|_| Status::Invalid)?;
         let body = PERSISTENT_HEADER + NONCE_BYTES;
         let end = body + PERSISTENT_PLAIN;
@@ -132,18 +132,17 @@ impl Service {
             return Err(Status::Invalid);
         }
         let wrap = wrapping_key(secret);
-        let cipher = XChaCha20Poly1305::new(Key::from_slice(&*wrap));
+        let cipher = XChaCha20Poly1305::new((&*wrap).into());
         let body = PERSISTENT_HEADER + NONCE_BYTES;
         let end = body + PERSISTENT_PLAIN;
         let mut plain = Zeroizing::new([0u8; PERSISTENT_PLAIN]);
         plain.copy_from_slice(&blob[body..end]);
+        let nonce: &XNonce = blob[PERSISTENT_HEADER..body]
+            .try_into()
+            .map_err(|_| Status::Invalid)?;
+        let tag: &Tag = blob[end..].try_into().map_err(|_| Status::Invalid)?;
         if cipher
-            .decrypt_in_place_detached(
-                XNonce::from_slice(&blob[PERSISTENT_HEADER..body]),
-                &aad,
-                &mut *plain,
-                Tag::from_slice(&blob[end..]),
-            )
+            .decrypt_inout_detached(nonce, &aad, InOutBuf::from(&mut plain[..]), tag)
             .is_err()
         {
             self.counters.auth_failures += 1;

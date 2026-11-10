@@ -132,7 +132,7 @@ niet toegevoegd; dat zou hier een overbodige PPV/SIMD-boom meenemen.
 
 De eigen kernel en Rust1.90 blijven behouden. Native compilatie vereist
 `--cfg chacha20_backend="soft"` naast de bestaande chacha20_force_soft,
-poly1305_force_soft en sha2_backend="soft". Een none-build zonder de nieuwe
+poly1305_backend="soft" en sha2_backend="soft". Een none-build zonder de nieuwe
 portablecfg faalt expliciet. De integrator past de gedeelde builders/lockfiles
 aan; de taak schrijft die niet. Geen std/libc/getrandom of hostfallback op het
 x86_64-none-doel. De concrete lockgraaf en objectcode worden opnieuw getest.
