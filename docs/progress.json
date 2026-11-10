@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-10",
-    "source_commit": "ef54c3084de6a980c9863187f38ac3b47cd784e4",
+    "source_commit": "672b9c0b4ccd972665237dcf045eca41d37852cb",
     "assessment_basis": "source_commit",
     "branch": "codex/pr257-rebuild-20261110",
     "task": "Rebuild PR #257 as a fail-closed snapshot-bound local publication inventory",
     "previous_score": 39,
-    "summary": "39/100 to 39/100: the publication inventory and its finalization transition are bounded and fail closed, but audit tooling does not add OS functionality or native acceptance. No live publication audit was executed; criterion states, weights, and evidence remain unchanged."
+    "summary": "39/100 to 39/100: the publication inventory, finalization transition, and transferred canonical repository identity are bounded and fail closed, but audit tooling does not add OS functionality or native acceptance. No live publication audit was executed; criterion states, weights, and evidence remain unchanged."
   },
   "tracks": [
     {

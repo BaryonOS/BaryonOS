@@ -5,9 +5,11 @@
 **Source:** branch `codex/pr257-rebuild-20261110`, rebuilt on current `main`
 `460b00b808d7570fe1fe523d5d1b8fa9fe1923a2`. The implementation commits are
 `5d25705e36b107e470b33a454525b19af3afa9b8` and
-`ef54c3084de6a980c9863187f38ac3b47cd784e4`; they replace the stale PR head
-without importing its base history. The audit remains a local evidence tool and never grants
-publication clearance by itself.
+`ef54c3084de6a980c9863187f38ac3b47cd784e4`, followed by the test suppression
+`fc3e5393c4b622e95e24de35eb1a39b452c5f7dd` and repository-transfer binding
+`672b9c0b4ccd972665237dcf045eca41d37852cb`. They replace the stale PR head
+without importing its base history. The audit remains a local evidence tool
+and never grants publication clearance by itself.
 
 **Implementation:** the three-phase scanner binds the exact advertised Git
 tips, Git history and metadata, Actions inventory, scanner identity, retained
@@ -17,15 +19,20 @@ private route exposes its token only to a transient askpass process. Retained
 state uses reconciled O(1) accounting with bounded atomic replacements. A
 final audit-success record is now invalidated before every retry and is written
 only after the command deadline and persistent usage ledger have closed
-successfully; a failing retry cannot leave an earlier success active.
+successfully; a failing retry cannot leave an earlier success active. The
+canonical repository binding is now `BaryonOS/BaryonOS` at immutable repository
+ID `1435549142`; both historical owner/name routes are accepted only through a
+GitHub redirect to that exact ID and current metadata.
 
-**Validation:** all 85 publication-audit unit tests pass, including real Git
+**Validation:** all 86 publication-audit unit tests pass, including real Git
 replacement-ref isolation, exact advertised-HEAD binding, retained-file
-tampering, deadline and state-quota failures, failed re-finalization and the
-ordered success commit. Python bytecode compilation, the strict preflight and
-the staged-diff check pass. No live GitHub/Gitleaks inventory was executed for
-this integration, so there is no claim that the repository is clear for
-publication and no historical receipt is promoted to current evidence.
+tampering, repository-transfer binding, deadline and state-quota failures,
+failed re-finalization and the ordered success commit. The live public API
+confirms the canonical name, clone URL and unchanged repository ID; both old
+routes return the expected ID redirect. Python bytecode compilation, the strict
+preflight and the staged-diff check pass. No live GitHub/Gitleaks inventory was
+executed for this integration, so there is no claim that the repository is
+clear for publication and no historical receipt is promoted to current evidence.
 
 **Acceptance:** **39/100 → 39/100**. This strengthens audit tooling and its
 fail-closed evidence boundary but completes no OS product criterion and adds
