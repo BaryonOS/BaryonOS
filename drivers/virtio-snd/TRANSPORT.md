@@ -13,7 +13,7 @@ security review; this document grants no write access to those areas.
 | --- | --- | --- |
 | OASIS, *Virtual I/O Device (VIRTIO) Version 1.3*, <https://docs.oasis-open.org/virtio/virtio/v1.3/virtio-v1.3.html> | sha256 `3423e9507f2c363fc8e7bbdd013afc0436ed2954b79aa34db55cbf9afa07d45d`, retrieved 30 October 2026 | §2.4 reset (status 0, then no queue interaction), §2.7.8 used ring (no epoch), §5.14.5 initialisation, §5.14.6.6.5 RELEASE, §5.14.6.8 PCM I/O |
 | QEMU `v10.2.1` `hw/audio/virtio-snd.c`, <https://github.com/qemu/qemu/blob/v10.2.1/hw/audio/virtio-snd.c> | sha256 `ccb7e3b6ed7937602f86bf2a3badc70e77bd4e63d2dafb06664c717c74f81114` | stream direction, duplicate RELEASE, invalid TX, reset |
-| QEMU `v10.2.1` `audio/wavaudio.c` | sha256 `94ad3a5456465bac6aec549bcb0c5d24790a548c84a47c9caa8954094c3eae54` | observation oracle for the runtime gate (S16 supported) |
+| QEMU `v10.2.1` `audio/wavaudio.c`, <https://github.com/qemu/qemu/blob/v10.2.1/audio/wavaudio.c> | sha256 `94ad3a5456465bac6aec549bcb0c5d24790a548c84a47c9caa8954094c3eae54` | observation oracle for the runtime gate (S16 supported) |
 | `crates/virtio-core/src/lib.rs` @ `ca45a7d` | sha256 `24dc240458ff4558eac959c0512b11e73ca9b09da28ddd5179bf2b4361cbd293` | `Policy`: epoch, `reset_completed`, quarantine, ticket |
 | `drivers/virtio-net/src/lib.rs` @ `ca45a7d` | sha256 `9d6689a2cc9c02e4ebd2f211b3d4760e95da052b168ec3c30691f99fadf8f7b5` | pinned-ring/bounce-buffer pattern, idle used-index rejection |
 | `crates/capability-core/src/lib.rs` @ `ca45a7d` | sha256 `9c41ac47e783405901663423b0e0463d5fa665f445abfb8d62de1349debd9fb4` | manifest-only, non-delegable rights (`NETWORK`, `DISPLAY`, `INPUT`) |
@@ -162,9 +162,10 @@ fence acknowledgement.
   interleaved L,R. Frame `n` (0 ≤ n < 48,000): `L = n as u16`,
   `R = (n as u16) ^ 0x8000`, both stored as i16. Frame 0 is therefore
   not silent (`R = 0x8000`).
-- The WAV is parsed as a container (RIFF/WAVE; `fmt `: PCM, 2 channels,
+- The WAV is parsed as a container (RIFF/WAVE; `fmt␠`, where `␠` denotes the
+  trailing ASCII space: PCM, 2 channels,
   48,000 Hz, 16 bits; `data` chunk). Header bytes are not compared in
-  their entirety; a different `fmt ` is a failure.
+  their entirety; a different `fmt␠` is a failure.
 - The `data` payload must consist of 0 through 4,800 completely silent
   leading frames (≤ 100 ms), followed by all 48,000 pattern frames
   **contiguously and byte-identically**, followed by 0 through 4,800 silent

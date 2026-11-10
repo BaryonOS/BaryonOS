@@ -39,6 +39,7 @@ def source_blob_id(relocated_text):
     restored = restored.replace(PROGRESS_IMAGE_URL, "docs/assets/progress.svg")
 
     def remove_relocation_prefix(match):
+        """Undo one repository-link prefix while retaining the full link token."""
         target = match.group("target")
         if target.startswith("../../"):
             target = target.removeprefix("../../")

@@ -92,8 +92,8 @@ All sources were accessed on 2026-11-02. Platform manuals and versions are recor
 | J02 | Megan Chan, *Mental Models*, 2024-01-26; revised 2026-09-01, reworking Nielsen 2010 | Individual expectations and incorrect models; examples/guidance, not a migration RCT |
 | J03 | W3C COGA, *Use a Familiar Hierarchy and Design*, source note 2021-04-29; web presentation 2022-01 | Cognitive accessibility and recognition; supplemental guidance, not a WCAG conformance criterion |
 | J04 | W3C COGA, *Help Users Understand What Things are and How to Use Them*, same note/web period | Clear controls, relationships, and consistency; the web context requires testing for native use |
-| J05 | Microsoft Support, *Change or reset your PIN in Windows*, no date stated | A PIN is not the same as a Microsoft account password; not an implementation example for Baryon OS |
-| J06 | Baryon OS privacy contract revision 4, 2026-10-28, and source baseline main `e08fb0e`/development source `1f0dd9c` | Local operation, no mandatory vendor account, genuine permissions, and open native boundaries; project conditions, not external user data |
+| [J05] | Microsoft Support, *Change or reset your PIN in Windows*, no date stated | A PIN is not the same as a Microsoft account password; not an implementation example for Baryon OS |
+| [J06] | Baryon OS privacy contract revision 4, 2026-10-28, and source baseline main `e08fb0e`/development source `1f0dd9c` | Local operation, no mandatory vendor account, genuine permissions, and open native boundaries; project conditions, not external user data |
 
 [J01]: https://www.nngroup.com/articles/ten-usability-heuristics/
 [J02]: https://www.nngroup.com/articles/mental-models/
