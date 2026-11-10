@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-10",
-    "source_commit": "099d68423ded86a92e9e585f560a18ce3d69d6fb",
+    "source_commit": "54a9d5c17291b862e30240e49ed4cde0d479315b",
     "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
     "task": "Repair rejected K06 fixture preconditions without weakening acceptance",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Run 42809499884 is rejected by two RUNQ/quarantine failures and one clock-drift failure. All 50 soaks pass on that rejected source and supply zero new acceptance repetitions. The host-checked candidate enforces the deaf fixture lock-free precondition and batches continuously busy AP clock work, preserving all safety limits. Native recovery requires a new full 64x50 run, K07, 50 complete soaks, aggregate and actually executed tools/gate.sh."
+    "summary": "41/100 remains 41/100. K06 is open. Run 42809499884 is rejected by two RUNQ/quarantine failures and one sustained clock-drift failure; its 50 green soaks supply no new acceptance repetitions. Host-checked source 54a9d5c enforces the deaf fixture precondition and batches continuously busy AP clock work without changing safety criteria. Full run 42818153989 is queued behind the rejected run and must independently pass all 64 cases at 50/50, K07, 50 complete soaks, aggregate and actually executed tools/gate.sh."
   },
   "tracks": [
     {
