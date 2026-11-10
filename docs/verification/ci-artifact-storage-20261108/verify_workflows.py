@@ -17,6 +17,7 @@ import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
+import re
 import subprocess
 import tempfile
 
@@ -66,13 +67,27 @@ def shell(script, env, cwd):
     )
 
 
+def package_literal(package):
+    """Return a literal package path from the one supported matrix guard."""
+    guarded = re.fullmatch(
+        r"\$\{\{\s*matrix\.scale == 1 && '([^']+)' \|\| ''\s*\}\}",
+        package,
+    )
+    return guarded.group(1) if guarded else package
+
+
 def package_is_selected(package, selection):
     """Prove inclusion by an explicit file or directory, without glob guesses.
 
-    The current package workflows use literal paths. Reject exclusions, hidden
-    paths and traversal because a successful raw upload alone does not establish
-    that the separately verified ZIP was included in that upload.
+    Package inputs use either literal paths or the exact scale-one matrix guard.
+    Reject every other expression, exclusions, hidden paths and traversal because
+    a successful raw upload alone does not establish that the separately verified
+    ZIP was included in that upload.
     """
+    original = package
+    package = package_literal(package)
+    if "${{" in original and package == original:
+        return False
     target = PurePosixPath(package)
     if (not package or target.is_absolute() or ".." in target.parts
             or any(part.startswith(".") for part in target.parts)
@@ -169,6 +184,12 @@ def run(repo, baseline=DEFAULT_BASELINE):
         ("hidden-package", "build/.private/bundle.zip", "build/", False),
         ("outside-workspace", "../bundle.zip", "../bundle.zip", False),
         ("unproven-glob", "build/evidence/bundle.zip", "build/**/*.zip", False),
+        ("scale-one-conditional",
+         "${{ matrix.scale == 1 && 'build/evidence/bundle.zip' || '' }}",
+         "build/evidence/", True),
+        ("unsupported-condition",
+         "${{ matrix.scale != 2 && 'build/evidence/bundle.zip' || '' }}",
+         "build/evidence/", False),
     ]:
         record("package-selection-fixture:" + name,
                package_is_selected(package, selection) == expected)
