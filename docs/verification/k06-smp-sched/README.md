@@ -2,6 +2,8 @@
 
 **Status: acceptance open.** Each of the 64 cases must pass exactly 50/50 on one frozen source, including all 50 complete ten-minute combined soaks. The aggregate and the subsequent repository gate must also pass. A failed or missing repetition rejects acceptance.
 
+[Copilot continuation prompt](COPILOT-HANDOFF.md) contains the exact frozen runs, existing branch, evidence commands and failure policy. Both read-only verifiers are tracked here, including [final-gate readback](verify_final_gate.py).
+
 **Current frozen restart:** [42818153989](https://github.com/BaryonOS/BaryonOS/actions/runs/42818153989), commit `54a9d5c17291b862e30240e49ed4cde0d479315b`, source-v3 `727676734c47e4efabedb49831763d71c1cd08c5698704de4e1c12a26e57232b`, is pending behind the rejected run in the unchanged branch concurrency lock. No new guest has started at dispatch checkpoint and no prior repetition is reused. [Receipt](restart-42818153989.json).
 
 **Rejected active restart:** [42809499884](https://github.com/BaryonOS/BaryonOS/actions/runs/42809499884), frozen commit `3dd6194f02231e8f1db61940242d8d90318daf1d`, source-v3 `05f680b768def10a2495e5958fa3af2fb95b50be19c755cce728f8c850ac887a`, remains running but cannot be accepted. [Exact failure checkpoint](rejected-42809499884-checkpoint.json): `proc-shootdown-deaf` is 48/50 and `bsp-spin-irq-off-control` is 49/50. [Independent partial readback](rejected-42809499884-checkpoint-verification.json.gz) verifies 1547/1550 attempts, including all 50 complete soaks; remaining cases and the gate are not accepted. [Three exact raw failures](rejected-42809499884-known-raw-failures.json.gz). No repetition is reused.

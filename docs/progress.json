@@ -6,9 +6,9 @@
     "source_commit": "54a9d5c17291b862e30240e49ed4cde0d479315b",
     "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
-    "task": "Repair rejected K06 fixture preconditions without weakening acceptance",
+    "task": "Hand off strict K06 step-5f evidence continuation to GitHub Copilot",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. K06 is open. Run 42809499884 is rejected by two RUNQ/quarantine failures and one sustained clock-drift failure; its 50 green soaks supply no new acceptance repetitions. Host-checked source 54a9d5c enforces the deaf fixture precondition and batches continuously busy AP clock work without changing safety criteria. Full run 42818153989 is queued behind the rejected run and must independently pass all 64 cases at 50/50, K07, 50 complete soaks, aggregate and actually executed tools/gate.sh."
+    "summary": "41/100 remains 41/100. K06 and the K07 SMP extension remain open. Rejected run 42809499884 continues with known quarantine and clock failures. Candidate full run 42818153989 is pending on frozen source 54a9d5c with source-v3 727676734c47e4efabedb49831763d71c1cd08c5698704de4e1c12a26e57232b. A self-contained Copilot handoff and both read-only verifiers are committed; no previous repetition is reused. Acceptance still requires all 64 cases exactly 50/50, K07, 50 complete soaks, aggregate and the actually executed repository gate."
   },
   "tracks": [
     {
