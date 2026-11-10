@@ -531,6 +531,9 @@ struct State {
     cpu_ticks: [u64; smp::MAX_CPUS],
     #[cfg(feature = "native-smp-m3")]
     cpu_switches: [u64; smp::MAX_CPUS],
+    /// Periodic timer/0xe8 generations acknowledged by each real selection.
+    #[cfg(feature = "native-smp-m3")]
+    cpu_quantum: [sched::Quantum; smp::MAX_CPUS],
     #[cfg(feature = "native-smp-m3-migrate")]
     migration_stage: u8,
     #[cfg(feature = "native-smp-m3-migrate")]
@@ -842,6 +845,7 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
         {
             ptr::addr_of_mut!((*state).cpu_ticks).write([0; smp::MAX_CPUS]);
             ptr::addr_of_mut!((*state).cpu_switches).write([0; smp::MAX_CPUS]);
+            ptr::addr_of_mut!((*state).cpu_quantum).write([sched::Quantum::new(); smp::MAX_CPUS]);
         }
         #[cfg(feature = "native-smp-m3-migrate")]
         {
@@ -1382,6 +1386,15 @@ impl State {
         None
     }
     fn select(&mut self) -> *const u64 {
+        self.select_with_continuation(None)
+    }
+
+    /// A candidate is only the just-descheduled caller of an ordinary syscall.
+    /// All observers, kill/wait refresh and the existing return validator still
+    /// run; the final event-generation test is made here, with IF=0.
+    fn select_with_continuation(&mut self, mut continuation: Option<usize>) -> *const u64 {
+        #[cfg(not(feature = "native-smp-m3"))]
+        let _ = &mut continuation;
         debug_assert!(lock::kernel_held(), "K-1: mutation without KERNEL");
         'selection: loop {
             #[cfg(feature = "native-smp-m3")]
@@ -1403,9 +1416,38 @@ impl State {
             for _offset in 0..self.amount {
                 #[cfg(not(feature = "native-smp-m3"))]
                 let slot = (start + _offset) % self.amount;
+                #[cfg(not(feature = "native-smp-m3"))]
+                let continuing = false;
                 #[cfg(feature = "native-smp-m3")]
-                let slot = {
-                    let Some(slot) = RUNQ[cpu()].lock_irqsave().pop(&QUEUED) else {
+                let (slot, continuing) = {
+                    let candidate = continuation.take().filter(|&slot| {
+                        slot < self.amount
+                            && slot == self.current
+                            && self.processes[slot].status == Status::Ready
+                            && self.processes[slot].home == cpu()
+                            && !self.processes[slot].quarantined
+                            && self.processes[slot].kill_wait.is_none()
+                            && !smp::m3_stopping()
+                            && !smp::m3_recovery_requested()
+                            && SCHED_STATE[slot].load(Ordering::Acquire) == sched::READY
+                    });
+                    let mut queue = RUNQ[cpu()].lock_irqsave();
+                    // RUNQ does not open an IF window. Re-read generations
+                    // after all earlier KERNEL/ASPACE wait windows and refreshes.
+                    let candidate = candidate.filter(|_| {
+                        self.cpu_quantum[cpu()].can_continue(smp::m3_schedule_events())
+                    });
+                    let selected = if let Some(slot) = candidate {
+                        assert!(
+                            queue.remove(slot as u32, &QUEUED),
+                            "continuation missing from its home queue"
+                        );
+                        Some((slot as u32, true))
+                    } else {
+                        queue.pop(&QUEUED).map(|slot| (slot, false))
+                    };
+                    drop(queue);
+                    let Some((slot, continuing)) = selected else {
                         break;
                     };
                     let slot = slot as usize;
@@ -1419,7 +1461,7 @@ impl State {
                         }
                         continue 'selection;
                     }
-                    slot
+                    (slot, continuing)
                 };
                 if self.processes[slot].status == Status::Ready {
                     let p = &self.processes[slot];
@@ -1482,10 +1524,16 @@ impl State {
                         }
                     }
                     self.current = slot;
-                    self.selections += 1;
+                    if !continuing {
+                        self.selections += 1;
+                        #[cfg(feature = "native-smp-m3")]
+                        self.cpu_quantum[cpu()].record_dispatch(smp::m3_schedule_events());
+                    }
                     let p = &mut self.processes[slot];
                     p.status = Status::Running;
-                    p.selected += 1;
+                    if !continuing {
+                        p.selected += 1;
+                    }
                     if !cfg!(feature = "native-qsim")
                         && !cfg!(feature = "native-qsim-job")
                         && !cfg!(feature = "native-sdk-app")
@@ -2215,6 +2263,8 @@ fn event(source: *const u64) -> *const u64 {
                     || cfg!(feature = "milestone-m6a") && matches!(number, 0x42 | 0x43)))
         {
             let (rax, rdx) = m4::syscall(state, current, number, args);
+            #[cfg(feature = "native-smp-m3-ipc")]
+            assert!(m4::engine().check_invariants());
             #[cfg(feature = "milestone-m6b")]
             m5::ipc_result(current, number, rax);
             state.processes[current].context[14] = rax as u64;
@@ -2476,6 +2526,22 @@ fn event(source: *const u64) -> *const u64 {
             state.complete_round();
         }
     }
+    #[cfg(feature = "native-smp-m3")]
+    let next = {
+        // Use the original syscall number in the saved entry context, not its
+        // result in process.context[14]. Yield/exit/block never continue. A
+        // candidate is consumed and revalidated after kill/wait refresh above.
+        let candidate = (vector == 128
+            && !matches!(context[14], 1 | 2)
+            && !terminate
+            && state.current == current
+            && state.processes[current].status == Status::Ready
+            && state.processes[current].home == cpu()
+            && state.processes[current].kill_wait.is_none())
+        .then_some(current);
+        state.select_with_continuation(candidate)
+    };
+    #[cfg(not(feature = "native-smp-m3"))]
     let next = state.select();
     if vector == 128 {
         state.max_syscall_cycles =
@@ -3055,7 +3121,8 @@ fn smp_ipc_done(state: &State) -> bool {
     if unsafe { !SOAK_IPC_READY } {
         return false;
     }
-    assert!(m4::engine().check_invariants());
+    // Engine mutations are audited at the completed syscall/cleanup/bootstrap
+    // boundaries. This observer still reads actual per-process IPC progress.
     let first = if cfg!(feature = "native-smp-m3-soak") {
         8
     } else {
@@ -3238,6 +3305,7 @@ fn smp_progress(state: &mut State) {
     }
     #[cfg(feature = "native-smp-m3-ipc")]
     {
+        assert!(m4::engine().check_invariants());
         assert!(smp_ipc_done(state));
         serial::write(b"SMP:IPC:PASS\n");
         print_decimal(b"SMP:IPC:REMOTE_WAKEUPS=", state.wait_metrics.remote_wakes);

@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-10",
-    "source_commit": "332275d97ed5f24f6d43174969a5667eb42f2afa",
-    "assessment_basis": "commit",
+    "source_commit": "55ec046fb287cf6bf06b96a4421cf2aac0f4723a",
+    "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
     "task": "Repair rejected K06 step-5f acceptance evidence and run the complete frozen matrix",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Original42723127310 is rejected (224/3200 failures), and restart42731994218 is rejected by resched-deaf46/50 clock drift. Complete restart42741185181 tests per-AP-observer source332275d from zero and is pending. All workloads/limits remain; CPU occupancy is preserved while shared progress-observer contention is removed. Crossbuild,47 SMP host tests and objectcode checks pass; native recovery is unproven. K06 and the K07 SMP extension remain open."
+    "summary": "41/100 remains 41/100. The original complete run and the 59a restart are rejected; the latter has clock drift, five eight-CPU watchdogs, only 49 complete passing soaks and missing cases from HTTP 503 setup failures. The host-checked scheduler candidate preserves full return/ownership checks and FIFO wake semantics while retaining unexpired quanta on ordinary syscalls. Clock causality remains open; separate strict diagnostics are prepared. No K06 or K07 SMP acceptance is assigned."
   },
   "tracks": [
     {

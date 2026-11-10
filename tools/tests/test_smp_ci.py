@@ -1,3 +1,4 @@
+import ast
 import json
 import importlib.util
 from pathlib import Path
@@ -89,6 +90,74 @@ class SmpCiAggregationTests(unittest.TestCase):
             jobs["smp-matrix-aggregate"]["needs"], ["smp-case-50", "smp-soak-50"]
         )
         self.assertEqual(jobs["smp-final-gate"]["needs"], "smp-matrix-aggregate")
+
+    @unittest.skipUnless(HAS_YAML, "PyYAML unavailable")
+    def test_clock_diagnostics_cannot_launch_acceptance_jobs(self):
+        import yaml
+
+        workflow = yaml.load(
+            (Path(__file__).resolve().parents[2] / ".github/workflows/native-smp.yml")
+            .read_text(encoding="utf-8"), Loader=yaml.BaseLoader,
+        )
+        self.assertEqual(workflow["on"]["workflow_dispatch"]["inputs"]
+                         ["clock_diagnostic"]["default"], "false")
+        jobs = workflow["jobs"]
+
+        def eligible(expression, event, full, diagnostic):
+            expression = expression[3:-2].strip().replace("&&", " and ").replace("||", " or ")
+            expression = expression.replace("!=", " NE ").replace("!", " not ").replace(" NE ", "!=")
+            values = {("github", "event_name"): event, ("inputs", "full_matrix"): full,
+                      ("inputs", "clock_diagnostic"): diagnostic}
+
+            def visit(node):
+                if isinstance(node, ast.Constant):
+                    return node.value
+                if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
+                    return values[(node.value.id, node.attr)]
+                if isinstance(node, ast.BoolOp):
+                    if isinstance(node.op, ast.And):
+                        return all(visit(value) for value in node.values)
+                    if isinstance(node.op, ast.Or):
+                        return any(visit(value) for value in node.values)
+                if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
+                    return not visit(node.operand)
+                if isinstance(node, ast.Compare) and len(node.ops) == 1:
+                    left, right = visit(node.left), visit(node.comparators[0])
+                    if isinstance(node.ops[0], ast.Eq):
+                        return left == right
+                    if isinstance(node.ops[0], ast.NotEq):
+                        return left != right
+                if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                        and node.func.id == "always" and not node.args and not node.keywords):
+                    return True
+                self.fail(f"Unsupported workflow condition: {ast.dump(node)}")
+
+            return visit(ast.parse(expression.strip(), mode="eval").body)
+
+        full_jobs = {"smp-environment-probe", "smp-case-50", "smp-soak-50",
+                     "smp-matrix-aggregate", "smp-final-gate"}
+        for event, full, diagnostic, expected in (
+            ("pull_request", False, False, {"native-smp"}),
+            ("workflow_dispatch", False, False, {"native-smp"}),
+            ("workflow_dispatch", True, False, full_jobs),
+            ("workflow_dispatch", False, True, {"diagnostic-clock"}),
+            ("workflow_dispatch", True, True, {"diagnostic-clock"}),
+        ):
+            with self.subTest(event=event, full=full, diagnostic=diagnostic):
+                actual = {name for name, job in jobs.items()
+                          if eligible(job["if"], event, full, diagnostic)}
+                self.assertEqual(actual, expected)
+        steps = jobs["diagnostic-clock"]["steps"]
+        guard = next(i for i, step in enumerate(steps)
+                     if "FULL_MATRIX_REQUESTED" in step.get("env", {}))
+        setup = next(i for i, step in enumerate(steps)
+                     if step.get("uses") == "./.github/actions/setup-qemu")
+        self.assertLess(guard, setup)
+        for requested, exit_code in (("false", 0), ("true", 2), ("", 2)):
+            result = subprocess.run(["bash", "-c", steps[guard]["run"]],
+                                    env={"FULL_MATRIX_REQUESTED": requested},
+                                    text=True, capture_output=True)
+            self.assertEqual(result.returncode, exit_code)
 
     @unittest.skipUnless(HAS_YAML, "PyYAML unavailable")
     def test_qemu_action_keeps_old_profile_and_pins_ci_matrix_profile(self):

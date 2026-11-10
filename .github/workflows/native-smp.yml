@@ -11,6 +11,10 @@ on:
         description: 'Run the complete SMP section 9 matrix 50 times per case'
         type: boolean
         default: false
+      clock_diagnostic:
+        description: 'DIAGNOSTIC ONLY: trace m3-one-multi 50 times; requires full_matrix=false'
+        type: boolean
+        default: false
   pull_request:
     types: [opened, synchronize, reopened]
     paths-ignore: ['docs/**', '*.md']
@@ -32,7 +36,7 @@ defaults:
 
 jobs:
   native-smp:
-    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.full_matrix }}
+    if: ${{ !inputs.clock_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -215,7 +219,7 @@ jobs:
 
   smp-environment-probe:
     name: SMP Ubuntu 26.04 and K07 probe
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
     runs-on: ubuntu-26.04
     timeout-minutes: 30
     env:
@@ -260,7 +264,7 @@ jobs:
 
   smp-case-50:
     name: SMP 50/50 (${{ matrix.case }})
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
     needs: smp-environment-probe
     runs-on: ubuntu-26.04
     timeout-minutes: 330
@@ -392,7 +396,7 @@ jobs:
 
   smp-soak-50:
     name: SMP soak 5/50 (shard ${{ matrix.shard }})
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
     needs: smp-environment-probe
     runs-on: ubuntu-26.04
     timeout-minutes: 90
@@ -447,7 +451,7 @@ jobs:
 
   smp-matrix-aggregate:
     name: SMP section 9 aggregate 64x50
-    if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.full_matrix }}
+    if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
     needs: [smp-case-50, smp-soak-50]
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -501,7 +505,7 @@ jobs:
 
   smp-final-gate:
     name: SMP final repository gate
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
     needs: smp-matrix-aggregate
     runs-on: ubuntu-26.04
     timeout-minutes: 360
@@ -548,4 +552,256 @@ jobs:
             build/k06-smp-final-gate/**/logs/*.stderr.txt
           if-no-files-found: warn
           retention-days: 30
+          compression-level: 9
+
+  diagnostic-clock:
+    name: DIAGNOSTIC ONLY — m3-one-multi 50 traced repetitions
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.clock_diagnostic }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 90
+    env:
+      NOS_QEMU_MACHINE: pc-q35-10.0
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-clock-diagnostic
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/k06-clock-diagnostic
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/k06-clock-diagnostic
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout the exact workflow source commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Record diagnostic scope and frozen commit
+        run: |
+          set -euo pipefail
+          mkdir -p "$NOS_BUILD_DIR/diagnostic"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          printf '%s\n' 'DIAGNOSTIC ONLY. Tracing perturbs timing. This is not K06 acceptance, an aggregate, or an executed repository gate.' \
+            | tee "$NOS_BUILD_DIR/diagnostic/NOT-ACCEPTANCE.txt"
+          git rev-parse HEAD > "$NOS_BUILD_DIR/diagnostic/checked-out-commit.txt"
+      - name: Reject simultaneous full matrix and clock diagnostics
+        env:
+          FULL_MATRIX_REQUESTED: ${{ inputs.full_matrix }}
+        run: |
+          set -euo pipefail
+          if [ "$FULL_MATRIX_REQUESTED" != false ]; then
+            echo '::error::clock_diagnostic requires full_matrix=false; no guest has started.'
+            exit 2
+          fi
+      - name: Pinned QEMU 10.2.1 and firmware from the existing fixed snapshot
+        uses: ./.github/actions/setup-qemu
+      - name: Pinned Ubuntu Python 3.14.4
+        uses: ./.github/actions/setup-python
+        with:
+          system-python: 'true'
+      - name: Pinned Rust 1.90.0
+        run: |
+          set -euo pipefail
+          rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+          rustc +1.90.0 --version | tee "$NOS_BUILD_DIR/diagnostic/rust-version.txt"
+          cp "$RUNNER_TEMP/nieuw-os-qemu-environment.txt" "$NOS_BUILD_DIR/diagnostic/qemu-environment.txt"
+      - name: Build the unchanged native-smp-m3 profile
+        run: |
+          set -euo pipefail
+          python3 -B tools/build.py --kernel-feature native-smp-m3 2>&1 | tee "$NOS_BUILD_DIR/diagnostic/build.log"
+          python3 -B userspace/tests/test_smp_fpu_probe.py \
+            --elf "$NOS_BUILD_DIR/users/probe.elf" 2>&1 | tee "$NOS_BUILD_DIR/fpu-fixture-host.log"
+      - name: DIAGNOSTIC — existing m3-one-multi oracle, 50 times, 60 seconds each
+        run: |
+          set -euo pipefail
+          python3 -B -u - <<'PY'
+          import ctypes
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import platform
+          import re
+          import shutil
+          import subprocess
+          import sys
+          import time
+
+          sys.path.insert(0, 'tools')
+          import common
+          import run_smp
+
+          build = common.BUILD.resolve()
+          diagnostics = build / 'diagnostic'
+          diagnostics.mkdir(parents=True, exist_ok=True)
+          frozen = common.source_hash()
+          original_run = subprocess.run
+          expected_case = ('native-smp-m3', 1, 'multi', 'm3')
+          # Assert the source contract instead of changing a case or watchdog.
+          assert run_smp.CASES['m3-one-multi'] == expected_case, run_smp.CASES['m3-one-multi']
+          assert run_smp.GUEST_TIMEOUT_S == 60
+          qemu = shutil.which('qemu-system-x86_64', path=common.environment()['PATH'])
+          assert qemu is not None
+          required_events = (
+              'pic_set_irq', 'pic_interrupt', 'pic_update_irq',
+              'pic_ioport_write', 'pit_ioport_read', 'pit_ioport_write',
+          )
+
+          def write_json(path, data):
+              path.write_text(json.dumps(data, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+
+          def host_context():
+              # Deliberately omit environment variables, hostname and /proc/*/environ.
+              context = {
+                  'observed_monotonic_ns': time.monotonic_ns(),
+                  'scope': 'Host context only; no scheduler trace or causal inference.',
+                  'kernel_release': platform.release(),
+                  'machine': platform.machine(),
+                  'cpu_count': os.cpu_count(),
+                  'affinity': sorted(os.sched_getaffinity(0)),
+                  'runner_image_os': os.environ.get('ImageOS'),
+                  'runner_image_version': os.environ.get('ImageVersion'),
+                  'files': {},
+              }
+              for name in ('/proc/pressure/cpu', '/sys/fs/cgroup/cpu.stat',
+                           '/sys/fs/cgroup/cpu.max', '/sys/fs/cgroup/cpuset.cpus.effective'):
+                  try:
+                      context['files'][name] = Path(name).read_text(encoding='utf-8')
+                  except OSError as exc:
+                      context['files'][name] = {'unavailable_errno': exc.errno}
+              try:
+                  context['loadavg'] = Path('/proc/loadavg').read_text().split()[:4]
+              except OSError as exc:
+                  context['loadavg'] = {'unavailable_errno': exc.errno}
+              libc = ctypes.CDLL(None, use_errno=True)
+              libc.prctl.restype = ctypes.c_int
+              slack = libc.prctl(ctypes.c_int(30), ctypes.c_ulong(0), ctypes.c_ulong(0),
+                                 ctypes.c_ulong(0), ctypes.c_ulong(0))
+              context['python_parent_timer_slack_ns'] = slack
+              context['python_parent_prctl_errno'] = ctypes.get_errno() if slack == -1 else 0
+              context['qemu_runtime_timer_slack_ns'] = 'not measured; parent value is not QEMU evidence'
+              return context
+
+          write_json(diagnostics / 'scope.json', {
+              'classification': 'DIAGNOSTIC_NOT_ACCEPTANCE',
+              'accepted_for_k06': False,
+              'case': 'm3-one-multi', 'requested_repetitions': 50,
+              'guest_watchdog_s': 60, 'source_sha256': frozen,
+              'workflow_source_commit': os.environ['GITHUB_SHA'],
+              'trace_events': required_events,
+              'limitations': [
+                  'Tracing perturbs execution and cannot replace the complete uninstrumented matrix.',
+                  'PIC events are not a Linux vCPU scheduling trace.',
+                  'No causal conclusion follows merely from host load or an instrumented pass.',
+              ],
+          })
+          write_json(diagnostics / 'host-before.json', host_context())
+          # Query event availability without starting a guest or modifying any args.
+          help_result = original_run([qemu, '-trace', 'help'], env=common.environment(),
+                                     capture_output=True, timeout=15, check=False)
+          (diagnostics / 'trace-help.stdout.txt').write_bytes(help_result.stdout)
+          (diagnostics / 'trace-help.stderr.txt').write_bytes(help_result.stderr)
+          assert help_result.returncode == 0, f'QEMU trace help exited {help_result.returncode}; raw help output retained'
+          available = {
+              match.group(1)
+              for line in (help_result.stdout + b'\n' + help_result.stderr).decode('utf-8', 'strict').splitlines()
+              if (match := re.match(r'^([A-Za-z_][A-Za-z0-9_]*)(?:\s|$)', line))
+          }
+          missing = set(required_events) - available
+          assert not missing, f'Pinned QEMU lacks required trace events: {sorted(missing)}'
+          event_file = diagnostics / 'trace-events.txt'
+          event_file.write_text('\n'.join(required_events) + '\n', encoding='ascii')
+          invocations = []
+
+          def traced_run(args, *positional, **kwargs):
+              # subprocess.check_output uses Popen directly. All other run calls,
+              # including git and QEMU --version/help, retain their original args.
+              if not (isinstance(args, list) and args and Path(args[0]).name == 'qemu-system-x86_64'
+                      and '-machine' in args):
+                  return original_run(args, *positional, **kwargs)
+              assert args[0] == qemu
+              assert '-trace' not in args
+              assert kwargs.get('timeout') == 60
+              assert args[args.index('-machine') + 1] == 'pc-q35-10.0'
+              assert args[args.index('-smp') + 1] == '1'
+              assert args[args.index('-accel') + 1] == 'tcg,thread=multi'
+              assert args[args.index('-cpu') + 1] == 'qemu64'
+              assert args[args.index('-m') + 1] == '256M'
+              prefix = 'if=pflash,unit=0,format=raw,readonly=on,file='
+              drive = args[args.index('-drive') + 1]
+              assert drive.startswith(prefix) and drive.endswith('/OVMF_CODE.fd')
+              run_dir = (common.ROOT / drive[len(prefix):]).resolve().parent
+              assert run_dir.parent == build / 'run'
+              assert run_dir.name.startswith('smp-m3-one-multi-r')
+              assert run_dir not in invocations
+              trace = run_dir / 'qemu-trace.log'
+              assert not trace.exists()
+              assert ',' not in str(trace) and ',' not in str(event_file)
+              base_command = args.copy()
+              # Mutate the actual list held by run_guest, so result.json.command
+              # truthfully retains the trace arguments passed to QEMU.
+              args.extend(['-trace', f'events={event_file},file={trace}'])
+              invocations.append(run_dir)
+              write_json(run_dir / 'diagnostic-command.json', {
+                  'classification': 'DIAGNOSTIC_NOT_ACCEPTANCE',
+                  'base_command': base_command, 'executed_command': args.copy(),
+                  'trace_file': str(trace), 'trace_event_file': str(event_file),
+                  'source_sha256': frozen,
+              })
+              write_json(run_dir / 'host-before.json', host_context())
+              try:
+                  return original_run(args, *positional, **kwargs)
+              finally:
+                  write_json(run_dir / 'host-after.json', host_context())
+
+          subprocess.run = traced_run
+          report = None
+          try:
+              report = run_smp.run(('m3-one-multi',), repeat=50)
+          finally:
+              subprocess.run = original_run
+              write_json(diagnostics / 'host-after.json', host_context())
+              write_json(diagnostics / 'trace-inventory.json', {
+                  'classification': 'DIAGNOSTIC_NOT_ACCEPTANCE',
+                  'invocations': [{
+                      'run_directory': str(directory),
+                      'trace_exists': (directory / 'qemu-trace.log').is_file(),
+                      'trace_size': ((directory / 'qemu-trace.log').stat().st_size
+                                     if (directory / 'qemu-trace.log').is_file() else None),
+                      'trace_sha256': (hashlib.sha256((directory / 'qemu-trace.log').read_bytes()).hexdigest()
+                                       if (directory / 'qemu-trace.log').is_file() else None),
+                  } for directory in invocations],
+                  'source_unchanged': common.source_hash() == frozen,
+              })
+          assert common.source_hash() == frozen, 'Frozen source changed during diagnostics'
+          assert len(invocations) == 50, f'Only {len(invocations)} traced guest invocations'
+          assert all((directory / 'qemu-trace.log').is_file()
+                     and (directory / 'qemu-trace.log').stat().st_size > 0
+                     for directory in invocations), 'Missing or empty trace evidence'
+          summary = report['repetitions']['m3-one-multi']
+          print('DIAGNOSTIC ONLY: ' + json.dumps(summary, sort_keys=True))
+          # A red repetition remains red; there is no continue-on-error wrapper.
+          raise SystemExit(0 if report['passed'] is True else 1)
+          PY
+      - name: Verify frozen checkout after diagnostics
+        if: ${{ always() }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code
+      - name: Preserve ALL diagnostic evidence, including failures
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: DIAGNOSTIC-NOT-ACCEPTANCE-smp-clock-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            build/k06-clock-diagnostic/manifest.json
+            build/k06-clock-diagnostic/smp-report.json
+            build/k06-clock-diagnostic/fpu-fixture-host.log
+            build/k06-clock-diagnostic/diagnostic/**
+            build/k06-clock-diagnostic/run/smp-*/result.json
+            build/k06-clock-diagnostic/run/smp-*/serial.txt
+            build/k06-clock-diagnostic/run/smp-*/stderr.txt
+            build/k06-clock-diagnostic/run/smp-*/qemu-trace.log
+            build/k06-clock-diagnostic/run/smp-*/diagnostic-command.json
+            build/k06-clock-diagnostic/run/smp-*/host-before.json
+            build/k06-clock-diagnostic/run/smp-*/host-after.json
+          if-no-files-found: error
+          retention-days: 14
           compression-level: 9

@@ -4566,6 +4566,25 @@ pub const M3_RESCHED_OFFSET: usize = core::mem::offset_of!(CpuLocal, resched_cou
 #[cfg(feature = "native-smp-m3")]
 const M3_FAIR_TICKS: u32 = (LOCK_STUCK_MS / 10) as u32;
 
+/// KERNEL held, local IF=0: a coherent snapshot of this CPU's already
+/// counted CPL0 timer and 0xe8 events. The periodic PIT/LAPIC setup is unchanged.
+#[cfg(feature = "native-smp-m3")]
+pub fn m3_schedule_events() -> sched::ScheduleEvents {
+    let flags: u64;
+    // SAFETY: read-only CPL0 flags observation on this CPU's owned kernel
+    // stack; PUSHFQ/POP restore its stack pointer and do not change flags.
+    unsafe {
+        asm!("pushfq", "pop {}", out(reg) flags, options(preserves_flags));
+    }
+    assert_eq!(flags & (1 << 9), 0, "M3 event snapshot requires IF=0");
+    assert!(lock::kernel_held());
+    let local = anchored();
+    sched::ScheduleEvents {
+        deferred_timer: local.m3_deferred.load(Ordering::Relaxed),
+        reschedule: local.resched_count.load(Ordering::Relaxed),
+    }
+}
+
 #[cfg(feature = "native-smp-m3")]
 pub fn m3_wait_start() -> Option<(u64, u32)> {
     M3_GO

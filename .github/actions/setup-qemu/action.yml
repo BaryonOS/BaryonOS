@@ -83,6 +83,9 @@ runs:
           -o "Dir::Etc::sourceparts=-"
           -o "Dir::State::lists=$lists"
           -o APT::Update::Error-Mode=any
+          # Retry transient snapshot HTTP failures within the existing job
+          # deadline; every URL, signature, package pin and hash stays fixed.
+          -o Acquire::Retries=3
         )
         sudo apt-get "${apt_options[@]}" update
         sudo apt-get "${apt_options[@]}" install -y --no-install-recommends \

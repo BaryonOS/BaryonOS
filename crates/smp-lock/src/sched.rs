@@ -153,6 +153,49 @@ pub fn switch_space(
     }
 }
 
+/// Per-CPU timer/reschedule generations observed with local interrupts masked.
+/// They are diagnostic event counters, not a replacement clock source.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ScheduleEvents {
+    pub deferred_timer: u32,
+    pub reschedule: u32,
+}
+
+/// The event generations last handled by a genuine scheduler selection.
+/// Ordinary syscall returns may continue this quantum but never renew it.
+/// Each kernel admission still has to reject yield, block, kill and migration.
+#[derive(Clone, Copy, Debug)]
+pub struct Quantum {
+    acknowledged: ScheduleEvents,
+    initialized: bool,
+}
+impl Quantum {
+    pub const fn new() -> Self {
+        Self {
+            acknowledged: ScheduleEvents {
+                deferred_timer: 0,
+                reschedule: 0,
+            },
+            initialized: false,
+        }
+    }
+
+    pub fn can_continue(&self, observed: ScheduleEvents) -> bool {
+        self.initialized && self.acknowledged == observed
+    }
+
+    /// Call only after selecting/validating a new quantum, never on continuation.
+    pub fn record_dispatch(&mut self, observed: ScheduleEvents) {
+        self.acknowledged = observed;
+        self.initialized = true;
+    }
+}
+impl Default for Quantum {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// FIFO ring of thread IDs; no allocator. BW-2: `queued[tid]`, shared by all
 /// queues, is set by [`push`](Self::push) and cleared by [`pop`](Self::pop), so a
 /// thread is in at most one queue and a capacity >= the thread count suffices.
@@ -196,6 +239,27 @@ impl<const N: usize> RunQueue<N> {
         Ok(())
     }
 
+    /// Remove one ID without changing the FIFO order of any peer.
+    /// The caller holds this queue's lock. Scheduling may use this only for
+    /// the just-descheduled owner continuing its unexpired quantum; waking a
+    /// blocked thread still appends through `push` and receives no preference.
+    pub fn remove(&mut self, tid: u32, queued: &[AtomicBool]) -> bool {
+        let Some(position) =
+            (0..self.len).find(|&position| self.items[(self.head + position) % N] == tid)
+        else {
+            return false;
+        };
+        for position in position..self.len - 1 {
+            self.items[(self.head + position) % N] = self.items[(self.head + position + 1) % N];
+        }
+        self.len -= 1;
+        assert!(
+            queued[tid as usize].swap(false, Ordering::Release),
+            "removed thread without its queued bit"
+        );
+        true
+    }
+
     /// Take the oldest thread and clear its `queued` bit (1 -> 0).
     pub fn pop(&mut self, queued: &[AtomicBool]) -> Option<u32> {
         if self.len == 0 {
@@ -225,6 +289,128 @@ mod tests {
 
     fn bits<const N: usize>() -> [AtomicBool; N] {
         [const { AtomicBool::new(false) }; N]
+    }
+
+    #[test]
+    fn remove_preserves_wrapped_fifo_and_every_peer_bit() {
+        for rotations in 0..8 {
+            for removed in 0..4 {
+                let queued = bits::<4>();
+                let mut queue = RunQueue::<4>::new();
+                for tid in 0..4 {
+                    queue.push(tid, &queued).unwrap();
+                }
+                let mut order = vec![0, 1, 2, 3];
+                for _ in 0..rotations {
+                    let tid = queue.pop(&queued).unwrap();
+                    queue.push(tid, &queued).unwrap();
+                    order.rotate_left(1);
+                }
+                let tid = order[removed];
+                assert!(queue.remove(tid, &queued));
+                assert!(!queued[tid as usize].load(SC));
+                order.remove(removed);
+                assert_eq!(queue.len(), order.len());
+                for &peer in &order {
+                    assert!(queued[peer as usize].load(SC));
+                }
+                for peer in order {
+                    assert_eq!(queue.pop(&queued), Some(peer));
+                }
+                assert_eq!(queue.pop(&queued), None);
+                assert!(queued.iter().all(|bit| !bit.load(SC)));
+                assert!(!queue.remove(tid, &queued));
+            }
+        }
+    }
+
+    #[test]
+    fn absent_remove_does_not_change_another_queues_owner() {
+        let queued = bits::<4>();
+        let mut left = RunQueue::<4>::new();
+        let mut right = RunQueue::<4>::new();
+        left.push(0, &queued).unwrap();
+        left.push(1, &queued).unwrap();
+        right.push(2, &queued).unwrap();
+        assert!(!left.remove(2, &queued));
+        assert!(queued[2].load(SC));
+        assert_eq!(left.pop(&queued), Some(0));
+        assert_eq!(left.pop(&queued), Some(1));
+        assert_eq!(right.pop(&queued), Some(2));
+    }
+
+    #[test]
+    fn ordinary_returns_never_renew_a_quantum() {
+        let events = ScheduleEvents {
+            deferred_timer: 7,
+            reschedule: 11,
+        };
+        let mut quantum = Quantum::new();
+        assert!(!quantum.can_continue(events));
+        quantum.record_dispatch(events);
+        for _ in 0..10_000 {
+            assert!(quantum.can_continue(events));
+        }
+        assert!(!quantum.can_continue(ScheduleEvents {
+            deferred_timer: 8,
+            ..events
+        }));
+        assert!(!quantum.can_continue(ScheduleEvents {
+            reschedule: 12,
+            ..events
+        }));
+        // Only a genuine selection acknowledges the new timer/IPI generations.
+        let later = ScheduleEvents {
+            deferred_timer: 8,
+            reschedule: 12,
+        };
+        quantum.record_dispatch(later);
+        assert!(quantum.can_continue(later));
+    }
+
+    #[test]
+    fn event_between_candidate_and_final_selection_is_not_lost() {
+        let events = ScheduleEvents {
+            deferred_timer: u32::MAX,
+            reschedule: 3,
+        };
+        let mut quantum = Quantum::new();
+        quantum.record_dispatch(events);
+        assert!(quantum.can_continue(events)); // optimistic entry-time candidate
+        let timer = ScheduleEvents {
+            deferred_timer: 0,
+            ..events
+        };
+        assert!(!quantum.can_continue(timer)); // final selector must re-read
+        let ipi = ScheduleEvents {
+            reschedule: 4,
+            ..events
+        };
+        assert!(!quantum.can_continue(ipi));
+        for _ in 0..100 {
+            assert!(!quantum.can_continue(timer));
+            assert!(!quantum.can_continue(ipi));
+        }
+    }
+
+    #[test]
+    fn continuation_retains_dispatch_cas_and_stack_exclusion() {
+        let queued = bits::<3>();
+        let on_cpu = AtomicBool::new(false);
+        let state = AtomicU32::new(READY);
+        let mut queue = RunQueue::<3>::new();
+        dispatch(&state, 1).unwrap();
+        assert!(claim_stack(&on_cpu));
+        on_cpu.store(false, Ordering::Release); // actual entry left user stack
+        yield_cpu(&state, 1).unwrap();
+        queue.push(0, &queued).unwrap();
+        queue.push(1, &queued).unwrap();
+        assert!(queue.remove(0, &queued));
+        dispatch(&state, 1).unwrap();
+        assert!(claim_stack(&on_cpu));
+        assert_eq!(dispatch(&state, 2), Err(running(1)));
+        assert!(!claim_stack(&on_cpu));
+        assert_eq!(queue.pop(&queued), Some(1));
     }
 
     #[test]

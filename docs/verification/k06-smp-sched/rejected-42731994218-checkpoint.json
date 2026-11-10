@@ -1,0 +1,67 @@
+{
+  "accepted": false,
+  "run_id": 42731994218,
+  "tested_commit": "59a30f10ceb558d1e31408afece49ca5c331df20",
+  "source_sha256": "505c25139b4d23d78aa9da406108aad437ba7a763b1b1c67b0cc6074a4d8f2ae",
+  "status": "running but rejected",
+  "known_native_failed_repetitions": 14,
+  "cases": [
+    {
+      "artifact": "smp-case-resched-deaf",
+      "failed_iterations": [
+        5,
+        38,
+        40,
+        43
+      ]
+    },
+    {
+      "artifact": "smp-case-m3-one-multi",
+      "failed_iterations": [
+        17,
+        34,
+        42
+      ]
+    },
+    {
+      "artifact": "smp-case-m3-eight-single",
+      "failed_iterations": [
+        5,
+        14,
+        23,
+        30,
+        46
+      ]
+    },
+    {
+      "artifact": "smp-case-m3-migrate-eight",
+      "failed_iterations": [
+        9
+      ]
+    },
+    {
+      "artifact": "smp-soak-7",
+      "failed_iterations": [
+        5
+      ]
+    }
+  ],
+  "combined_soak": {
+    "completed_and_passed": 49,
+    "requested": 50,
+    "failed_shard": 7,
+    "failed_local_iteration": 5,
+    "watchdog_seconds": 660,
+    "host_duration_seconds": 660.111,
+    "note": "This is not50 complete passing soaks."
+  },
+  "setup_failure": {
+    "job_id": 129569906578,
+    "step": "Pinned QEMU and OVMF",
+    "failure": "apt-get update exit100: all three pinned resolute InRelease URLs returnedHTTP503 before package installation/build/guest execution.",
+    "raw_log_sha256": "6f85141012fa3b0885e2bb053dbdeb8539ea4aaf13270cba9212226026b53bab",
+    "retry_change": "Acquire::Retries=3; same signed snapshot, versions, hashes and existing job/guest bounds.",
+    "native_attempts_from_setup_failures": 0
+  },
+  "limits": "Checkpoint of known failures, not a complete final-run count. Setup failures are missing native repetitions, not executed0/50 product outcomes. All original artifacts are preserved."
+}
