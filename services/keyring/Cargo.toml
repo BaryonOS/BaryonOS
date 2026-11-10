@@ -17,7 +17,7 @@ rand-core-rng = { package = "rand_core", version = "=0.10.1", default-features =
 [dev-dependencies]
 hex-literal = "1.0.0"
 # Byte-for-byte compatibility oracles only, never a production KDF path.
-hkdf = { version = "=0.12.4", default-features = false }
+hkdf = { version = "=0.13.0", default-features = false }
 sha2 = { version = "=0.10.9", default-features = false }
 
 [lints.rust.unexpected_cfgs]
