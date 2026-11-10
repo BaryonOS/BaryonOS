@@ -70,7 +70,7 @@ def source():
         "origin": {
             "configured_url": "https://github.com/simonvanieperen/nieuw-os.git",
             "configured_repository": "simonvanieperen/nieuw-os",
-            "canonical_url": "https://github.com/simonvanieperen/BaryonOS.git",
+            "canonical_url": "https://github.com/BaryonOS/BaryonOS.git",
             "repository_id": AUDIT.REPOSITORY_ID,
         },
         "refs": refs,
@@ -95,7 +95,7 @@ def repository(visibility="public-local-explicit"):
     return {
         "id": AUDIT.REPOSITORY_ID,
         "full_name": AUDIT.REPOSITORY,
-        "canonical_clone_url": "https://github.com/simonvanieperen/BaryonOS.git",
+        "canonical_clone_url": "https://github.com/BaryonOS/BaryonOS.git",
         "visibility": visibility,
     }
 
@@ -223,7 +223,7 @@ class StableFinalApi:
             {
                 "id": AUDIT.REPOSITORY_ID,
                 "full_name": AUDIT.REPOSITORY,
-                "clone_url": "https://github.com/simonvanieperen/BaryonOS.git",
+                "clone_url": "https://github.com/BaryonOS/BaryonOS.git",
                 "private": False,
             },
             FakeHeaders(),
@@ -354,7 +354,7 @@ class ManifestContractTests(AuditTestCase):
         return {
             "id": identifier,
             "full_name": AUDIT.REPOSITORY,
-            "clone_url": "https://github.com/simonvanieperen/BaryonOS.git",
+            "clone_url": "https://github.com/BaryonOS/BaryonOS.git",
             "private": private,
         }
 
@@ -390,6 +390,13 @@ class ManifestContractTests(AuditTestCase):
 
     def test_repository_id_and_name_are_both_bound(self):
         metadata = self.metadata(private=True, identifier=AUDIT.REPOSITORY_ID + 1)
+        with self.assertRaisesRegex(AUDIT.AuditError, "repository_identity_mismatch"):
+            AUDIT.verify_repository(metadata, allow_public_local=False)
+
+    def test_repository_transfer_requires_current_canonical_name(self):
+        metadata = self.metadata(private=True)
+        metadata["full_name"] = "simonvanieperen/BaryonOS"
+        metadata["clone_url"] = "https://github.com/simonvanieperen/BaryonOS.git"
         with self.assertRaisesRegex(AUDIT.AuditError, "repository_identity_mismatch"):
             AUDIT.verify_repository(metadata, allow_public_local=False)
 
@@ -478,11 +485,15 @@ class ManifestContractTests(AuditTestCase):
             "simonvanieperen/nieuw-os",
         )
         self.assertEqual(
-            AUDIT.origin_repository_name("git@github.com:simonvanieperen/BaryonOS.git"),
+            AUDIT.origin_repository_name("https://github.com/simonvanieperen/BaryonOS.git"),
+            "simonvanieperen/BaryonOS",
+        )
+        self.assertEqual(
+            AUDIT.origin_repository_name("git@github.com:BaryonOS/BaryonOS.git"),
             AUDIT.REPOSITORY,
         )
         with self.assertRaisesRegex(AUDIT.AuditError, "origin_url_invalid"):
-            AUDIT.origin_repository_name("https://example.invalid/simonvanieperen/BaryonOS.git")
+            AUDIT.origin_repository_name("https://example.invalid/BaryonOS/BaryonOS.git")
 
     def test_advertised_ref_inventory_rejects_duplicates(self):
         raw = (b"1" * 40 + b"\trefs/heads/main\n") * 2
@@ -612,7 +623,7 @@ class ManifestContractTests(AuditTestCase):
             [
                 b"false\n",
                 ("1" * 40 + "\n").encode(),
-                b"https://github.com/simonvanieperen/BaryonOS.git\n",
+                b"https://github.com/BaryonOS/BaryonOS.git\n",
                 ("1" * 40 + " missing\n").encode(),
             ]
         )
@@ -638,7 +649,7 @@ class ManifestContractTests(AuditTestCase):
             [
                 b"false\n",
                 (head + "\n").encode(),
-                b"https://github.com/simonvanieperen/BaryonOS.git\n",
+                b"https://github.com/BaryonOS/BaryonOS.git\n",
                 (advertised + " commit\n").encode(),
             ]
         )
@@ -1334,7 +1345,7 @@ class ReceiptAndFinalizationTests(AuditTestCase):
             def json(self, suffix):
                 return (
                     {"id": AUDIT.REPOSITORY_ID, "full_name": AUDIT.REPOSITORY,
-                     "clone_url": "https://github.com/simonvanieperen/BaryonOS.git", "private": False},
+                     "clone_url": "https://github.com/BaryonOS/BaryonOS.git", "private": False},
                     FakeHeaders(),
                 )
 
@@ -1366,7 +1377,7 @@ class ReceiptAndFinalizationTests(AuditTestCase):
             def json(self, suffix):
                 return (
                     {"id": AUDIT.REPOSITORY_ID, "full_name": AUDIT.REPOSITORY,
-                     "clone_url": "https://github.com/simonvanieperen/BaryonOS.git", "private": False},
+                     "clone_url": "https://github.com/BaryonOS/BaryonOS.git", "private": False},
                     FakeHeaders(),
                 )
 
@@ -1419,7 +1430,7 @@ class ReceiptAndFinalizationTests(AuditTestCase):
             def json(self, suffix):
                 return (
                     {"id": AUDIT.REPOSITORY_ID, "full_name": AUDIT.REPOSITORY,
-                     "clone_url": "https://github.com/simonvanieperen/BaryonOS.git", "private": False},
+                     "clone_url": "https://github.com/BaryonOS/BaryonOS.git", "private": False},
                     FakeHeaders(),
                 )
 
@@ -1608,7 +1619,7 @@ class ReceiptAndFinalizationTests(AuditTestCase):
             def json(self, suffix):
                 return (
                     {"id": AUDIT.REPOSITORY_ID, "full_name": AUDIT.REPOSITORY,
-                     "clone_url": "https://github.com/simonvanieperen/BaryonOS.git", "private": False},
+                     "clone_url": "https://github.com/BaryonOS/BaryonOS.git", "private": False},
                     FakeHeaders(),
                 )
 
@@ -1634,7 +1645,7 @@ class ReceiptAndFinalizationTests(AuditTestCase):
             def json(self, suffix):
                 return (
                     {"id": AUDIT.REPOSITORY_ID, "full_name": AUDIT.REPOSITORY,
-                     "clone_url": "https://github.com/simonvanieperen/BaryonOS.git", "private": False},
+                     "clone_url": "https://github.com/BaryonOS/BaryonOS.git", "private": False},
                     FakeHeaders(),
                 )
 

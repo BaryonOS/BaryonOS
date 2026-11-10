@@ -84,7 +84,10 @@ pull-request head and pull-request merge ref advertised by GitHub. A main-only
 fetch is insufficient. Fetching refs is a separate, explicit operator action;
 the audit itself performs no Git or GitHub mutation. The configured origin must
 resolve through the GitHub API to repository ID `1435549142`; the current
-canonical clone URL is `https://github.com/simonvanieperen/BaryonOS.git`.
+canonical clone URL is `https://github.com/BaryonOS/BaryonOS.git`.
+The historical `simonvanieperen/nieuw-os` and
+`simonvanieperen/BaryonOS` origins are accepted only when GitHub redirects
+them to that exact repository ID and current canonical metadata.
 
 Use Gitleaks 8.30.1 and verify its release
 archive before use. The existing private history workflow records the expected
