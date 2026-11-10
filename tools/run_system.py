@@ -17,7 +17,7 @@ import subprocess
 import time
 import uuid
 
-from common import ROOT, BUILD, environment, firmware, qemu_machine, save_json, sha256, source_hash
+from common import ROOT, BUILD, environment, firmware, qemu_accel, qemu_machine, save_json, sha256, source_hash
 from run_volume import execute
 import volume_disk
 
@@ -299,7 +299,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     rel = run_dir.relative_to(ROOT).as_posix()
     disk_rel = image.relative_to(ROOT).as_posix()
     readonly = "on" if case == "recover" else "off"
-    command = [qemu, "-machine", qemu_machine(), "-accel", "tcg,thread=single", "-cpu", "qemu64",
+    command = [qemu, "-machine", qemu_machine(), "-accel", qemu_accel(), "-cpu", "qemu64",
                "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none", "-monitor", "none",
                "-serial", "stdio", "-nic", "none", "-no-reboot",
                "-drive", f"if=pflash,unit=0,format=raw,readonly=on,file={rel}/OVMF_CODE.fd",

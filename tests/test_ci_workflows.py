@@ -327,6 +327,48 @@ class WorkflowContractTests(unittest.TestCase):
             with self.subTest(path=path, job=job_id):
                 self.assertEqual(job.get("runs-on"), "ubuntu-24.04")
 
+    def test_kvm_pilot_is_manual_hosted_and_cannot_replace_tcg_acceptance(self):
+        """Keep KVM opt-in, fail-closed, narrow, and outside required checks."""
+        path = ".github/workflows/kvm-pilot.yml"
+        workflow = self.workflows[path]
+        self.assertEqual(set(workflow["on"]), {"workflow_dispatch"})
+        self.assertEqual(workflow["permissions"], {"contents": "read"})
+        self.assertEqual(set(workflow["jobs"]), {"kvm-pilot"})
+        job = workflow["jobs"]["kvm-pilot"]
+        self.assertEqual(job["runs-on"], "ubuntu-24.04")
+        self.assertEqual(job["env"]["NOS_QEMU_ACCEL"], "kvm")
+        self.assertEqual(job["strategy"]["matrix"]["gate"], ["system", "volume", "window"])
+
+        report_steps = [
+            step for step in job["steps"]
+            if step.get("name") == "Require passing reports bound to KVM"
+        ]
+        self.assertEqual(len(report_steps), 1)
+        self.assertEqual(report_steps[0].get("if"), "${{ always() }}")
+
+        commands = "\n".join(step.get("run", "") for step in job["steps"])
+        for required in (
+            "test -c /dev/kvm", "test -r /dev/kvm", "test -w /dev/kvm",
+            "qemu-system-x86_64 -accel help", "tools/test_system.py",
+            "tools/test_volume.py", "native-window-session-probe",
+            "tools/run_window_session.py", 'acceleration != "kvm"',
+        ):
+            self.assertIn(required, commands)
+        for excluded in (
+            "tools/test_net_system.py", "tools/test_tcp_system.py",
+            "tools/run_smp.py", "tools/test_memory_system.py",
+        ):
+            self.assertNotIn(excluded, commands)
+
+        for other_path in self.workflows:
+            if other_path == path:
+                continue
+            with self.subTest(path=other_path):
+                self.assertNotIn(
+                    "NOS_QEMU_ACCEL",
+                    (ROOT / other_path).read_text(encoding="utf-8"),
+                )
+
     def test_public_prs_keep_minimal_token_permissions(self):
         """Allow narrowly scoped writes only for CodeQL and orphan-run cleanup."""
         for path, workflow in self.workflows.items():

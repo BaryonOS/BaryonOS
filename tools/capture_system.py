@@ -127,13 +127,14 @@ def _esp(snapshot: Snapshot, esp: Path, manifest: dict) -> dict[str, str]:
 def _command(command, case: str, run: Path, image: Path, root: Path, *, network=False):
     if not isinstance(command, list) or not all(isinstance(arg, str) for arg in command):
         raise ValueError("missing actual QEMU command")
-    if (len(command) < 3 or Path(command[0]).name not in ("qemu-system-x86_64", "qemu-system-x86_64.exe")
-            or command[1] != "-machine" or command[2] not in QEMU_MACHINES):
+    if (len(command) < 5 or Path(command[0]).name not in ("qemu-system-x86_64", "qemu-system-x86_64.exe")
+            or command[1] != "-machine" or command[2] not in QEMU_MACHINES
+            or command[3] != "-accel" or command[4] not in ("tcg,thread=single", "kvm")):
         raise ValueError("unsupported QEMU profile")
     rel = run.relative_to(root).as_posix()
     disk = image.relative_to(root).as_posix()
     readonly = "on" if case == "recover" else "off"
-    expected = ["-machine", command[2], "-accel", "tcg,thread=single", "-cpu", "qemu64",
+    expected = ["-machine", command[2], "-accel", command[4], "-cpu", "qemu64",
                 "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none", "-monitor", "none",
                 "-serial", "stdio", "-nic", "none", "-no-reboot",
                 "-drive", f"if=pflash,unit=0,format=raw,readonly=on,file={rel}/OVMF_CODE.fd",
