@@ -1,230 +1,236 @@
-# QEMU, pc-hardware en schermvertraging
+# QEMU, PC hardware and display latency
 
-Onderzoek en afgebakende launcherwijziging, 2 november 2026. Basis:
-`e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. Dit document beschrijft geen
-meting op Simons pc en geen fysieke-hardwareacceptatie.
+Research and bounded launcher change, 2 November 2026. Baseline:
+`e08fb0e48c1bb0781e98357f588c2f73b6ae8500`. This document does not describe
+a measurement on the Windows PC concerned or physical-hardware acceptance.
 
-## Contract en feitelijke oorzaak
+## Contract and actual cause
 
-Doel: de interactieve Windows-VM CPU-virtualisatie laten gebruiken wanneer
-die beschikbaar is en kan initialiseren, met zichtbare diagnose. Geen
-hostinstellingen wijzigen, disks/devices doorgeven of beveiligingsmaatregelen
-uitschakelen. De oorspronkelijke native acceptatieprofielen blijven TCG;
-Windows/WHPX-acceptatie is een afzonderlijke nog open controle.
+Goal: let the interactive Windows VM use CPU virtualisation when available
+and able to initialise, with visible diagnostics. No host-setting changes,
+disk/device passthrough or disabling of security measures. Original native
+acceptance profiles remain TCG; Windows/WHPX acceptance is a separate check
+that is still open.
 
-De oorspronkelijke launcher forceerde `tcg,thread=single`, `qemu64`, één
-vCPU, 256 MiB en `pc-q35-8.2`. TCG vertaalt CPU-instructies in software. Ook
-`run_materiaal_preview.py` gebruikt dit expliciete profiel; zijn standaard
-`timeout=45` is een afbreekgrens, geen gemeten schermtijd. De door Simon
-ervaren circa 45 seconden per scherm moet met fasetijden worden gereproduceerd.
+The original launcher forced `tcg,thread=single`, `qemu64`, one vCPU,
+256 MiB and `pc-q35-8.2`. TCG translates CPU instructions in software.
+`run_materiaal_preview.py` also uses this explicit profile; its default
+`timeout=45` is an abort bound, not a measured display time. The reported
+delay of approximately 45 seconds per screen must be reproduced with
+separate phase timings.
 
-Daarnaast toont de code een dure renderroute:
+The code also shows an expensive rendering path:
 
-- `ui/surface-protocol/src/lib.rs`: tegels van 32×8 pixels, maximaal 1024
-  bytes; `CHUNK=208`.
-- `ui/surface-protocol/src/client.rs::Session::blit`: iedere volledige tegel
-  stuurt BEGIN + vijf CHUNK + COMMIT en wacht op één bevestiging.
-- `sdk/examples/compositor/src/surface.rs::Surface::step`: verwerkt maximaal
-  één verzoek per aanroep. De compositor staat na iedere hoofdloop zijn
-  CPU-beurt af (`yield_now`).
-- `sdk/examples/materiaal/src/lib.rs::paint_step`: één tegel per app-iteratie;
-  een gewijzigde view-generation begint opnieuw bij tegel nul. Er is nog
-  geen protocol voor alleen gewijzigde rechthoeken.
-- `kernel/src/framebuffer.rs::write_pixels`: gevalideerde scalare volatile
-  stores naar een supervisor-only ongecachete framebuffer. Dit is geen
-  GPU-acceleratie.
+- `ui/surface-protocol/src/lib.rs`: tiles of 32×8 pixels, at most 1024 bytes;
+  `CHUNK=208`.
+- `ui/surface-protocol/src/client.rs::Session::blit`: each complete tile
+  sends BEGIN + five CHUNK + COMMIT and waits for one acknowledgement.
+- `sdk/examples/compositor/src/surface.rs::Surface::step`: processes at most
+  one request per call. The compositor yields its CPU turn after each main
+  loop (`yield_now`).
+- `sdk/examples/materiaal/src/lib.rs::paint_step`: one tile per app iteration;
+  a changed view generation restarts at tile zero. There is no protocol yet
+  for changed rectangles only.
+- `kernel/src/framebuffer.rs::write_pixels`: validated scalar volatile stores
+  to a supervisor-only uncached framebuffer. This is not GPU acceleration.
 
-Een volledige **1280×720 oppervlakte** telt `40×90 = 3600` tegels: **25.200
-verzoeken en 3600 antwoorden**, exclusief display-syscalls, input, polls en
-compositorranden. Met de bestaande 16/48/16-pixelranden is de toegewezen
-app-oppervlakte bij een 1280×720 scherm 1248×656: 3198 volle tegels, dus
-22.386 verzoeken en 3198 antwoorden. Dit zijn exacte protocoltellingen uit
-de code, geen tijdmeting. Extra virtuele cores lost deze seriële route niet op;
-de kernel is bovendien nog single-core.
+A complete **1280×720 surface** contains `40×90 = 3600` tiles: **25,200
+requests and 3600 replies**, excluding display syscalls, input, polling and
+compositor borders. With the existing 16/48/16-pixel borders, the assigned
+app surface on a 1280×720 screen is 1248×656: 3198 complete tiles, hence
+22,386 requests and 3198 replies. These are exact protocol counts from the
+code, not a time measurement. Additional virtual cores do not solve this
+serial path; the kernel is also still single-core.
 
-## Geïmplementeerd in de Windows-launcher
+## Implemented in the Windows launcher
 
-`Start-NieuwOS.ps1 -Acceleration Auto` (standaard):
+`Start-NieuwOS.ps1 -Acceleration Auto` (default):
 
-1. Controleer bundelhashes, inclusief de nieuwe `Acceleration.ps1`-helper.
-2. Vraag `-accel help` op. Een vermelde WHPX-backend bewijst alleen dat QEMU
-   ermee is gebouwd.
-3. Test WHPX met hetzelfde q35/CPU/geheugenprofiel, gepauzeerd via `-S`.
-   Deze proef heeft geen disks, netwerk, USB, hostmappen of scherm. Een
-   QMP-antwoord op `query-status` met de verwachte request-ID en status
-   `paused`/`prelaunch`, capability-/quitbevestigingen en exit 0 moeten
-   bevestigen dat initialisatie slaagde. De opdrachten gaan als exacte
-   UTF-8-bytes met alleen LF naar QMP, zonder Windows-tekstnewlinevertaling.
-   De launcher wacht eerst op de echte QMP-greeting en vervolgens op iedere
-   commandobevestiging vóór hij de volgende opdracht verstuurt; handshake en
-   procesexit delen één deadline van tien seconden;
-   na maximaal tien seconden wordt de proef gestopt. Er draait geen gastcode.
-4. Start daarna de eigen OS-VM met WHPX. Bij ontbrekende/mislukte initialisatie
-   meldt Auto de oorzaak en kiest TCG. `-Acceleration Whpx` weigert fallback;
-   `-Acceleration Tcg` kiest het oorspronkelijke softwareprofiel.
-5. Schrijf de geselecteerde backend, reden, profiel en starttijd naar
-   `state/launch.json`. Een fout tijdens de echte VM-start veroorzaakt geen
-   automatische herstart of herhaling van schijfbewerkingen.
+1. Check bundle hashes, including the new `Acceleration.ps1` helper.
+2. Query `-accel help`. A listed WHPX backend proves only that QEMU was built
+   with it.
+3. Test WHPX with the same q35/CPU/memory profile, paused through `-S`. This
+   trial has no disks, network, USB, host directories or display. A QMP reply
+   to `query-status` with the expected request ID and status
+   `paused`/`prelaunch`, capability/quit acknowledgements and exit 0 must
+   confirm successful initialisation. Commands travel to QMP as exact UTF-8
+   bytes with LF only, without Windows text-newline translation. The launcher
+   first waits for the actual QMP greeting and then for each command
+   acknowledgement before sending the next command; handshake and process
+   exit share one ten-second deadline. After at most ten seconds, the trial
+   is stopped. No guest code runs.
+4. Then start the OS VM with WHPX. If initialisation is absent/fails, Auto
+   reports the cause and selects TCG. `-Acceleration Whpx` refuses fallback;
+   `-Acceleration Tcg` selects the original software profile.
+5. Write the selected backend, reason, profile and start time to
+   `state/launch.json`. An error during actual VM startup does not cause
+   automatic restart or repetition of disk operations.
 
-`-CheckOnly` controleert hashes en lijsten, maakt geen mutable state en start
-ook geen gepauzeerde proefmachine. Het meldt daarom uitdrukkelijk dat WHPX
-nog niet is geïnitialiseerd. Een geslaagde WHPX-proef bewijst geen werkende
-Nieuw-OS-sessie. De launcher schakelt **geen** WHPX security-domainmitigatie
-uit (`ssd=off` wordt niet gebruikt).
+`-CheckOnly` checks hashes and lists, creates no mutable state and starts
+no paused trial machine either. It therefore explicitly reports that WHPX
+has not yet been initialised. A successful WHPX trial does not prove a
+working Baryon OS session. The launcher disables **no** WHPX security-domain
+mitigation (`ssd=off` is not used).
 
-Het package accepteert exact de twee zevenprocesprofielen
-`native-system-materiaal` en `native-system-session-preview`. Het bewaart het
-werkelijke profiel in zijn manifest; de sessiepreview wordt niet als het
-historische Materiaal-bewijs gepresenteerd. Beide houden dezelfde ELF-,
-bron-, hash- en ESP-controles.
+The package accepts exactly the two seven-process profiles
+`native-system-materiaal` and `native-system-session-preview`. It retains
+the actual profile in its manifest; the session preview is not presented
+as historical Materiaal evidence. Both retain the same ELF, source, hash
+and ESP checks.
 
-## Hardware gebruiken met behoud van grenzen
+## Using hardware while preserving boundaries
 
-| Onderdeel | Eerstvolgende verantwoorde route | Bewijsgrens |
+| Component | Next appropriate route | Evidence boundary |
 |---|---|---|
-| CPU op Windows x86-64 | WHPX via Windows Hypervisor Platform en firmwarevirtualisatie | 6/6 echte helperproeven en 6/6 native Windowsruns plus Auto/WHPX/SDL-start; zie brongebonden eindrapport |
-| CPU op Linux x86-64 | KVM als QEMU-backend met bestaande toegang tot `/dev/kvm` | Onderzocht; huidige native runners blijven expliciet TCG |
-| CPU op Intel-Mac | HVF, mits QEMU/host dit aanbieden | Onderzocht, niet geïmplementeerd of getest |
-| Apple Silicon of Windows ARM | x86-64 gast vraagt architectuuremulatie; ARM-virtualisatie versnelt deze x86-64 kernel niet rechtstreeks | Andere gastarchitectuur is afzonderlijk portwerk |
-| Geheugen | Begrensd virtueel RAM; één vCPU tot SMP-invarianten zijn bewezen | Meer RAM vermindert de IPC-transacties niet |
-| Beeld | Eerst renderbatches/dirty regions, daarna geïsoleerde virtio-gpu-driver | WHPX versnelt CPU-uitvoering, geen nieuwe GPU-driver |
-| Toetsenbord/muis | Huidige geëmuleerde inputkanalen | Geen volledige host-USB-controller overdragen |
-| YubiKey/FIDO2 | Eerst gesimuleerde protocolfouten en begrensde USB/CTAP2-service; later één expliciet gekozen testtoken | Huidige gast heeft geen werkende FIDO2-login; geen persoonlijke security key doorgeven |
-| Vingerafdruklezer | Later ondersteunde driver + geïsoleerde authenticatieservice en enrollment | Host-Windows-Hello geeft geen generieke vingerafdruk-API aan deze gast |
-| TPM | Software-TPM met eigen VM-state voor vroege proeven | Geen host-TPM doorgeven; de host gebruikt eigen sleutels/PCR's |
-| Schijf/netwerk | Synthetische imagebestanden, read-only bundel-ESP, netwerk standaard uit | Geen fysieke hostdisk, bridge, clipboard, host-home of GPU/PCI-passthrough |
+| CPU on Windows x86-64 | WHPX through Windows Hypervisor Platform and firmware virtualisation | 6/6 actual helper trials and 6/6 native Windows runs plus Auto/WHPX/SDL startup; see source-bound final report |
+| CPU on Linux x86-64 | KVM as QEMU backend with existing access to `/dev/kvm` | Researched; current native runners remain explicitly TCG |
+| CPU on Intel Mac | HVF, if QEMU/host provide it | Researched, not implemented or tested |
+| Apple Silicon or Windows ARM | An x86-64 guest requires architecture emulation; ARM virtualisation does not directly accelerate this x86-64 kernel | Another guest architecture is separate porting work |
+| Memory | Bounded virtual RAM; one vCPU until SMP invariants are proven | More RAM does not reduce IPC transactions |
+| Display | First rendering batches/dirty regions, then an isolated virtio-gpu driver | WHPX accelerates CPU execution, not a new GPU driver |
+| Keyboard/mouse | Current emulated input channels | No passthrough of a complete host USB controller |
+| YubiKey/FIDO2 | First simulated protocol errors and a bounded USB/CTAP2 service; later one explicitly selected test token | Current guest has no working FIDO2 login; no passthrough of a personal security key |
+| Fingerprint reader | Later a supported driver + isolated authentication service and enrolment | Host Windows Hello does not provide a generic fingerprint API to this guest |
+| TPM | Software TPM with dedicated VM state for early trials | No host TPM passthrough; the host uses its own keys/PCRs |
+| Disk/network | Synthetic image files, read-only bundle ESP, network off by default | No physical host disk, bridge, clipboard, host home or GPU/PCI passthrough |
 
-De VM draait als gewone gebruiker met actuele QEMU/firmware. CPU-virtualisatie
-betekent dat gastinstructies onder controle van de hypervisor op de fysieke
-CPU draaien; het geeft de gast geen vrije toegang tot hostschijven of USB.
-Device-passthrough is een afzonderlijke vertrouwensgrens. Voor een latere
-PCI/GPU-proef zijn IOMMU-ondersteuning, geschikte devicegroepen, driver- en
-resetgedrag en een concreet geautoriseerd testapparaat nodig. Die stappen
-zijn hier niet uitgevoerd. Ook TCG is geen harde sandbox: de huidige
-QEMU-securitypolicy geeft de emulatie-usecase geen isolatiegaranties.
+The VM runs as an ordinary user with current QEMU/firmware. CPU virtualisation
+means guest instructions run on the physical CPU under hypervisor control;
+it does not give the guest unrestricted access to host disks or USB. Device
+passthrough is a separate trust boundary. A later PCI/GPU trial requires
+IOMMU support, suitable device groups, driver/reset behaviour and a specific
+authorised test device. Those steps were not performed here. TCG is not a
+hard sandbox either: the current QEMU security policy gives the emulation
+use case no isolation guarantees.
 
-## Meting en volgende renderstap
+## Measurement and next rendering step
 
-Meet drie herhalingen per backend met dezelfde bronhash, resolutie, firmware,
-schone VM-state en hostbelasting. Registreer koude boot → compositor gereed,
-eerste volledig bevestigd frame, invoer → volledig nieuw frame en idle-CPU.
-Gebruik monotone tijd voor intervallen; `launch.json` bevat alleen de
-startconfiguratie, geen fictieve rendermetingen. Een timeout geldt als fout.
-Maak TCG/WHPX-resultaten niet uitwisselbaar met bestaande native gates.
+Measure three repetitions per backend with the same source hash, resolution,
+firmware, clean VM state and host load. Record cold boot → compositor ready,
+first completely acknowledged frame, input → complete new frame and idle CPU.
+Use monotonic time for intervals; `launch.json` contains only the startup
+configuration, not fictional rendering measurements. A timeout counts as an
+error. Do not treat TCG/WHPX results as interchangeable with existing native
+gates.
 
-De eerstvolgende renderoptimalisatie kan zonder ruimere apprechten:
-verwerk een klein begrensd aantal reeds beschikbare SUR1-berichten per
-compositorbeurt en controleer klok, terminale toestand en input/control tussen
-batches. Behoud sender-/capability-/epoch-/lengtecontroles en de
-COMMIT-bevestiging; voorkom onbegrensd draineren/starvation. Test vastgelopen
-clients, intrekking midden in een batch en controle van ieder bevestigd
-frame. Dit verandert timing en vraagt native acceptatie; het is hier alleen
-een voorstel. Daarna versieerbaar dirty-regiontransport; op langere termijn
-een capabilitygebonden overdrachtsbuffer met expliciet ownership, begrensde
-lengte en intrekking. Geef apps geen raw framebuffer of DMA-recht voor snelheid.
+The next rendering optimisation can proceed without broader app permissions:
+process a small bounded number of already available SUR1 messages per
+compositor turn and check clock, terminal state and input/control between
+batches. Retain sender/capability/epoch/length checks and COMMIT acknowledgement;
+prevent unbounded draining/starvation. Test stalled clients, revocation
+mid-batch and checking of every acknowledged frame. This changes timing and
+requires native acceptance; here it is only a proposal. Then versionable
+dirty-region transport; longer term, a capability-bound transfer buffer with
+explicit ownership, bounded length and revocation. Do not give apps raw
+framebuffer or DMA permission for speed.
 
-## Uitgevoerde controles
+## Executed checks
 
-- PowerShell 7.5.4 op de Linux-cloudexecutor: 33 synthetische
-  versnellingsbeleid-/QMP-antwoordtests (succes, ontbrekende backend,
-  initfout, timeout, expliciete keuze, geen fallback, geen probe bij
-  CheckOnly, ongeldige/ontbrekende/dubbele QMP-bevestiging en sequentiële
-  handshake met begrensde eventverwerking) geslaagd.
-- De zes launchercontroles met synthetische bundel en een fake QEMU-binary
-  zijn op diezelfde Linux-PowerShell uitgevoerd; gewijzigde helperhash wordt
-  vóór uitvoering geweigerd. Geen echte VM gestart door die tests.
-- De echte Linux-QEMU-binary weigert de WHPX-initproef met `invalid accelerator
-  whpx`; de helper rapporteert `Ready=false` en exit 1. Dat test de
-  proces-/foutafhandeling, geen Windows-hypervisor.
-- Package-hosttests omvatten hashbinding van de helper en behoud van het
-  sessiepreviewprofiel. De integrator bewaart het finale commando/resultaat.
-- Drie synthetische subprocessproeven controleren de exacte LF-only
-  QMP-requestbytes en accepteren alleen bevestigde gepauzeerde initialisatie;
-  `running` en een ontbrekende quitbevestiging worden geweigerd. Dit is
-  Linux-procesbewijs zonder hypervisorinitialisatie, geen Windowsbewijs.
-- Windows PowerShell 5.1, echte WHPX-sessie, KVM/HVF, fysieke pc/periferie en
-  snelheidsvergelijking: **niet uitgevoerd**. De cloudexecutor beschrijft
-  Simons pc niet.
+- PowerShell 7.5.4 on the Linux cloud executor: 33 synthetic acceleration-policy/
+  QMP-reply tests passed (success, absent backend, initialisation error,
+  timeout, explicit choice, no fallback, no probe for CheckOnly,
+  invalid/missing/duplicate QMP acknowledgement and sequential handshake with
+  bounded event processing).
+- The six launcher checks with a synthetic bundle and fake QEMU binary ran
+  on that same Linux PowerShell; a changed helper hash is rejected before
+  execution. Those tests started no actual VM.
+- The actual Linux QEMU binary rejects the WHPX initialisation trial with
+  `invalid accelerator
+  whpx`; the helper reports `Ready=false` and exit 1. This tests process/error
+  handling, not a Windows hypervisor.
+- Package host tests cover hash binding of the helper and retention of the
+  session-preview profile. The integrator retains the final command/result.
+- Three synthetic subprocess trials check exact LF-only QMP request bytes
+  and accept only confirmed paused initialisation; `running` and a missing
+  quit acknowledgement are rejected. This is Linux process evidence without
+  hypervisor initialisation, not Windows evidence.
+- Windows PowerShell 5.1, an actual WHPX session, KVM/HVF, physical PC/
+  peripherals and a speed comparison: **not executed**. These cloud results
+  do not describe the Windows PC concerned.
 
-Rollback: draai de launcher/helper/packagewijziging terug als afzonderlijke
-commit; de expliciete `-Acceleration Tcg` behoudt ondertussen het oude
-softwareprofiel. Geen hostfeature of firmware is aangepast.
+Rollback: revert the launcher/helper/package change as a separate commit;
+the explicit `-Acceleration Tcg` meanwhile retains the old software profile.
+No host feature or firmware was modified.
 
-## Primaire bronnen
+## Primary sources
 
-Geraadpleegd 2 november 2026; QEMU-webdocumentatie vermeldt versie 11.1.50.
-Dit is een ontwikkelhandleiding, geen bewijs dat alle opties identiek werken
-in de minimaal toegelaten QEMU 10.2.1-build.
+Accessed 2 November 2026; QEMU web documentation lists version 11.1.50.
+This is a development manual, not evidence that all options work identically
+in the minimum permitted QEMU 10.2.1 build.
 
-- QEMU Project. *Windows Hypervisor Platform*. Vereisten, WHPX-acceleratie,
-  legacy-VGA/MMIO/SIMD-beperkingen en security-domainmitigatie.
+- QEMU Project. *Windows Hypervisor Platform*. Requirements, WHPX acceleration,
+  legacy VGA/MMIO/SIMD limitations and security-domain mitigation.
   https://www.qemu.org/docs/master/system/whpx.html
-- QEMU Project. *Introduction*. Hardwareversnellingsbackends en hosts.
+- QEMU Project. *Introduction*. Hardware-acceleration backends and hosts.
   https://www.qemu.org/docs/master/system/introduction.html
-- QEMU Project. *Invocation*. Backendselectie en initialisatie/fallback.
+- QEMU Project. *Invocation*. Backend selection and initialisation/fallback.
   https://www.qemu.org/docs/master/system/invocation.html
-- QEMU Project. *Security*. Virtualisatie, TCG-grenzen, apparaatdoorvoer en
-  gewone gebruikersrechten.
+- QEMU Project. *Security*. Virtualisation, TCG boundaries, device passthrough
+  and ordinary user privileges.
   https://www.qemu.org/docs/master/system/security.html
-- QEMU Project. *QEMU TPM Device*. TPM-passthrough deelt de fysieke TPM niet
-  vrij met host/gasten; software-TPM is een afzonderlijke route.
+- QEMU Project. *QEMU TPM Device*. TPM passthrough does not freely share the
+  physical TPM with host/guests; software TPM is a separate route.
   https://www.qemu.org/docs/master/specs/tpm.html
 
-## Lokale Windowsbevindingen van 2 november 2026
+## Local Windows findings of 2 November 2026
 
-De geautoriseerde lokale Codex-chat rapporteert een Ryzen 9 9950X3D met64 GiB
-en Windows 11 25H2. WHPX initialiseert zonder hostinstellingen te wijzigen.
-Op de oude bundel leverde één koude proef10,453s met WHPX tegenover19,952s
-met TCG tot exact hetzelfde volledige frame. Op bron `7648a8f` slaagde de
-vijfstappenroute met WHPX in43,824s; schermovergangen waren6,856–9,107s.
-Dat is uitvoeringsbewijs voor die specifieke bron, geen productlatentieclaim.
-Ruwe lokale artifacts blijven bij die chat; de gerapporteerde bron-/firmware-/
-meetgrens is vastgelegd in [local-pc-reported.json](../verification/session-desktop-20261102/local-pc-reported.json).
+The authorised local Codex session reports a Ryzen 9 9950X3D with 64 GiB
+and Windows 11 25H2 for the PC concerned. WHPX initialises without changing
+host settings. On the old bundle, one cold trial took 10.453 s with WHPX
+versus 19.952 s with TCG to exactly the same complete frame. On source
+`7648a8f`, the five-step route passed with WHPX in 43.824 s; screen transitions
+took 6.856–9.107 s. That is execution evidence for that specific source,
+not a product-latency claim. Raw local artifacts remain with that session;
+the reported source/firmware/measurement boundary is recorded in
+[local-pc-reported.json](../verification/session-desktop-20261102/local-pc-reported.json).
 
-De eerste HMP-helper gaf op Windows ten onrechte een time-out: invoer kon
-vóór monitorreadiness aankomen; LF alleen verhielp dit niet. De huidige helper
-wacht op de QMP-greeting en ieder gecorreleerd antwoord. De versie51d883e
-heeft ook de platformsorteerfout in source-v3 hersteld; bytegelijke Windows-
-en Linuxcheckouts leveren sindsdien rechtstreeks dezelfde sourcehash.
-Geen inputbron of integriteitscontrole is verwijderd.
+The first HMP helper incorrectly timed out on Windows: input could arrive
+before monitor readiness; LF alone did not resolve it. The current helper
+waits for the QMP greeting and each correlated reply. Version `51d883e` also
+fixed the platform-sorting error in source-v3; byte-identical Windows and
+Linux checkouts have since directly produced the same source hash. No input
+source or integrity check was removed.
 
-Testmappen horen buiten synchronisatie: OneDrive maakte bij de lokale proef
-extra hardlinks, die het harnas terecht weigerde. De vervolgproef gebruikt
-LocalAppData; hardlinkcontroles blijven actief. De uiteindelijke Windowsruntime op344dc0a staat afzonderlijk in het eindbewijs;
-de oudere resultaten worden niet als uitvoering op de nieuwe bron gepresenteerd.
+Test directories belong outside synchronisation: OneDrive created additional
+hardlinks during the local trial, which the harness correctly rejected.
+The follow-up trial uses LocalAppData; hardlink checks remain active. The
+final Windows runtime on `344dc0a` is recorded separately in the final
+evidence; earlier results are not presented as execution on the new source.
 
-De definitieve lokale344dc0a-reeks is afgerond:3WHPX+3TCG, alle8fasen en
-48appbeelden exact, exits0, daarna echte WindowsAuto/WHPX/SDL-start met
-launcherexit0. WHPX eerste account6,625s gemiddeld (6,481–6,823),
-gast→desktop4,070s (3,932–4,231); TCG respectievelijk13,356s en10,023s.
-Volledige route31,481s tegenover71,982s. Drie starts per backend op één pc,
-niet beheerst voor achtergrondlast. Verdere bron-/pakkethashes en de
-afzonderlijke idle-CPU-observatie staan in het lokale eindrapport hierboven.
+The definitive local series on `344dc0a` is complete: 3 WHPX and 3 TCG runs,
+all 8 phases and 48 app images exact, exit codes 0. An actual Windows start
+with Auto/WHPX/SDL and launcher exit 0 followed. WHPX first account:
+mean 6.625 s (6.481–6.823); guest → desktop: 4.070 s (3.932–4.231).
+TCG: 13.356 s and 10.023 s respectively. Complete route: 31.481 s versus
+71.982 s. Three starts per backend on the same PC, not controlled for
+background load. Further source/package hashes and the separate idle-CPU
+observation are in the local final report above.
 
-## Bekende ABI 1.11 en bestaande idle-wachtroutes
+## Known ABI 1.11 and existing idle-wait routes
 
-2 november 2026, fixbasis `2bb84c2`. De vensterkernel biedt IPC-wait aan onder
-ABI1.11, maar de bestaande keyring- en volumedienst activeerden hun idle-wait
-uitsluitend bij1.10. Daardoor bleven deze twee diensten in dit profiel lege
-queues pollen. De gedeelde, syscallvrije SDK-helper `supports_ipc_wait` herkent
-nu uitsluitend de bekende1.10- en1.11-profielen; beide bestaande selectors
-gebruiken hem. Algemene ABI-compatibiliteit, bijvoorbeeld RTC1.9, impliceert
-geen wachtvoorziening. Onbekende majors/minors blijven uitgesloten.
+2 November 2026, fix baseline `2bb84c2`. The window kernel provides IPC wait
+under ABI 1.11, but the existing keyring and volume services enabled idle wait
+only on 1.10. Those two services therefore kept polling empty queues in this
+profile. The shared syscall-free SDK helper `supports_ipc_wait` now recognises
+only known 1.10 and 1.11 profiles; both existing selectors use it. General
+ABI compatibility, for example RTC 1.9, does not imply a wait facility.
+Unknown major/minor versions remain excluded.
 
-Keyrings RANDOM-/beheeruitsluitingen, bestaande queuevoorwaarden, absolute
-deadlines, capabilityrollen, foutafhandeling en verwerking van lopend brokerwerk
-zijn ongewijzigd. RANDOM- of beheer-ingress behoudt zijn bestaande pollingpad.
-Er is geen wijziging aan de GUI-, SUR-/INP-protocollen of bron-hardwarepolling.
+Keyring's RANDOM/administration exclusions, existing queue conditions,
+absolute deadlines, capability roles, error handling and processing of
+ongoing broker work are unchanged. RANDOM or administration ingress retains
+its existing polling path. There is no change to GUI, SUR/INP protocols or
+source hardware polling.
 
-De gerichte SDK-hosttests, inclusief negatieve ABI-selectie zonder hostsyscall,
-en strikte SDK-Clippy slagen. Beide echte scalar x86_64-unknown-none-diensten
-bouwen en doorlopen de ELF-inspectie. Logs en servicehashes staan onder
-`build/abi-wait/logs/`. De onafhankelijke diffreview vond geen blocker; geen
-VM is voor deze kandidaat gestart. De uiteindelijke geïntegreerde native gates
-moeten het1.11-wachtpad nog uitvoeren.
+Targeted SDK host tests, including negative ABI selection without a host
+syscall, and strict SDK Clippy pass. Both actual scalar x86_64-unknown-none
+services build and pass ELF inspection. Logs and service hashes are under
+`build/abi-wait/logs/`. Independent diff review found no blocker; no VM was
+started for this candidate. Final integrated native gates must still execute
+the 1.11 wait path.
 
-Dit herstelt twee concrete compatibiliteitsfouten en bewijst geen volledige
-VM-idle of latencywinst. De compositor, beide GUI-apps en window-init bevatten
-nog eigen pollinglussen; hun verdere idle-inrichting en daadwerkelijke
-idle-CPU-meting blijven open. CPU100% tijdens actief tekenen is geen
-idle-meting en er worden geen U02-punten toegekend.
+This fixes two concrete compatibility errors and proves neither complete VM
+idling nor latency improvement. The compositor, both GUI apps and window-init
+still contain their own polling loops; their further idle configuration and
+actual idle-CPU measurement remain open. CPU usage of 100% during active
+drawing is not an idle measurement, and no U02 points are awarded.

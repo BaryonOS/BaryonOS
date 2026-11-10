@@ -73,10 +73,10 @@ pub(super) fn run(engine: &Engine) -> ! {
     require(engine.check_invariants(), b"MANIFEST_INVARIANTS");
     require(
         before.processes == 4
-            && before.handles == 21
-            && before.nodes == 29
-            && before.endpoints == 9
-            && before.open_endpoints == 9
+            && before.handles == 25
+            && before.nodes == 35
+            && before.endpoints == 11
+            && before.open_endpoints == 11
             && before.queued_messages == 0
             && before.block_objects == 1
             && before.launch_objects == 1
@@ -84,7 +84,8 @@ pub(super) fn run(engine: &Engine) -> ! {
             && before.entropy_objects == 1
             && before.network_objects == 0
             && before.display_objects == 0
-            && before.input_objects == 0,
+            && before.input_objects == 0
+            && before.power_objects == 0,
         b"FOUR_PROCESS_MANIFEST",
     );
     serial::write(b"CAPBENCH:MANIFEST:PASS\n");

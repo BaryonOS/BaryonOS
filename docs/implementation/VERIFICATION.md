@@ -29,7 +29,7 @@ De genoemde Pythonberekeningen beëindigden met exit 0. De hoofdcontrole heeft d
 
 ## Omgeving van dit onderzoek
 
-Linux x86_64, Python 3.12.14, Git 2.51.1, host-C-compiler GCC 13.3.0. `rustc`, `cargo`, `rustup`, `qemu-system-x86_64`, `clang` en `ld.lld` ontbreken in PATH; de onderzochte standaardlocaties bevatten geen OVMF. Er zijn geen binaries, toolchaincomponenten of firmware geïnstalleerd tijdens deze onderzoeksopdracht. De volgende ontwikkelchat inventariseert haar eigen omgeving opnieuw; dit is geen inspectie van Simons computer.
+Linux x86_64, Python 3.12.14, Git 2.51.1, host-C-compiler GCC 13.3.0. `rustc`, `cargo`, `rustup`, `qemu-system-x86_64`, `clang` en `ld.lld` ontbreken in PATH; de onderzochte standaardlocaties bevatten geen OVMF. Er zijn geen binaries, toolchaincomponenten of firmware geïnstalleerd tijdens deze onderzoeksopdracht. Inventariseer de uitvoeromgeving bij een volgende ontwikkelsessie opnieuw. Dit onderzoek beschrijft de Linux-onderzoeksomgeving; de lokale ontwikkelcomputer is niet geïnspecteerd.
 
 Het preflightscript zoekt alleen naar aanwezigheid en versies. Het installeert niets, draait geen VM, zoekt niet naar NAS-apparaten en verandert geen firmware. `RUSTUP_AUTO_INSTALL=0` voorkomt impliciete toolchaindownload via rustup-proxies. Bron: https://rust-lang.github.io/rustup/environment-variables.html .
 

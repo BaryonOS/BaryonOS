@@ -1,26 +1,26 @@
-# Processen, threads en scheduling
+# Processes, threads and scheduling
 
-De procespagina’s onderscheiden een programma-in-uitvoering met zijn resources van de afzonderlijke uitvoeringsstromen. Het boek gaat van een geladen module naar gebruikersruimte, daarna naar coöperatieve en preëmptieve scheduling. Registers, adresruimte en stacks horen bij de toestand die de implementatie moet beheren.
+The process pages distinguish a running program and its resources from its individual execution flows. The book progresses from a loaded module to userspace, then to cooperative and preemptive scheduling. Registers, address space and stacks form part of the state that the implementation must manage.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [Processes and Threads](../corpus/wiki-01.md#w001415) [W001415] · revisie 26612 · 2021-10-27T21:12:29Z
-- [Thread](../corpus/wiki-12.md#w004247) [W004247] · revisie 30651 · 2026-05-28T11:09:18Z
-- [Getting to Ring 3](../corpus/wiki-06.md#w002603) [W002603] · revisie 27736 · 2023-04-07T18:45:20Z
-- [Context Switching](../corpus/wiki-01.md#w001418) [W001418] · revisie 28474 · 2023-11-21T04:00:11Z
-- [Scheduling Algorithms](../corpus/wiki-01.md#w001477) [W001477] · revisie 28155 · 2023-07-10T14:36:22Z
-- [Blocking Process](../corpus/wiki-03.md#w001797) [W001797] · revisie 24004 · 2019-09-25T13:09:58Z
-- [Multiprocessor Scheduling](../corpus/wiki-03.md#w001888) [W001888] · revisie 28122 · 2023-07-10T02:32:25Z
+- [Processes and Threads](../corpus/wiki-01.md#w001415) [W001415] · revision 26612 · 2021-10-27T21:12:29Z
+- [Thread](../corpus/wiki-12.md#w004247) [W004247] · revision 30651 · 2026-05-28T11:09:18Z
+- [Getting to Ring 3](../corpus/wiki-06.md#w002603) [W002603] · revision 27736 · 2023-04-07T18:45:20Z
+- [Context Switching](../corpus/wiki-01.md#w001418) [W001418] · revision 28474 · 2023-11-21T04:00:11Z
+- [Scheduling Algorithms](../corpus/wiki-01.md#w001477) [W001477] · revision 28155 · 2023-07-10T14:36:22Z
+- [Blocking Process](../corpus/wiki-03.md#w001797) [W001797] · revision 24004 · 2019-09-25T13:09:58Z
+- [Multiprocessor Scheduling](../corpus/wiki-03.md#w001888) [W001888] · revision 28122 · 2023-07-10T02:32:25Z
 
-## Aansluiting op het PDF-boek
+## Related PDF book pages
 
-- Pagina 47–49: [B047](../corpus/boek.md#b047) tot [B049](../corpus/boek.md#b049).
-- Pagina 65–68: [B065](../corpus/boek.md#b065) tot [B068](../corpus/boek.md#b068).
-- Pagina 73–75: [B073](../corpus/boek.md#b073) tot [B075](../corpus/boek.md#b075).
+- Pages 47–49: [B047](../corpus/boek.md#b047) to [B049](../corpus/boek.md#b049).
+- Pages 65–68: [B065](../corpus/boek.md#b065) to [B068](../corpus/boek.md#b068).
+- Pages 73–75: [B073](../corpus/boek.md#b073) to [B075](../corpus/boek.md#b075).
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [APIC](../corpus/wiki-03.md#w001882) [W001882]
 - [Blocking Process](../corpus/wiki-03.md#w001797) [W001797]

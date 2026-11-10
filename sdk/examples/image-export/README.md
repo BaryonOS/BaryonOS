@@ -1,58 +1,57 @@
-# PNG/JPEG naar BMP-export
+# Export PNG/JPEG to BMP
 
-TASK-PLATFORM-M7-IMAGE-EXPORT, basis `d10b5cda`. Een concrete host-only
-bestandsconsumer voor de bestaande beeldcodec. Geen native exportdialoog,
-nieuwe decoder, extra renderengine, appinstaller of resourcebroker.
+TASK-PLATFORM-M7-IMAGE-EXPORT, baseline `d10b5cda`. A concrete host-only file
+consumer for the existing image codec. No native export dialogue, new decoder,
+extra rendering engine, app installer or resource broker.
 
 ```sh
 cargo +1.90.0 run --offline --locked --manifest-path sdk/examples/image-export/Cargo.toml --features host-cli --bin image-bmp -- --background ffffff < foto.png > foto.bmp
 ```
 
-De achtergrond is **verplicht** en bestaat uit zes hexadecimale RGB-cijfers.
-Zo wordt transparantie niet stil tegen een verborgen standaardkleur afgevlakt.
-Geen stdout tot alle decode-/exportcontroles slagen; fouten: exit 1 en stderr
-zonder beeldinhoud. Een fout tijdens de eigenlijke stdoutwrite kan gedeeltelijke
-output achterlaten. Geen atomair opslaan; gebruik bij shellredirectie nooit
-dezelfde invoer-/uitvoerbestandsnaam.
+The background is **required** and consists of six hexadecimal RGB digits.
+This avoids silently flattening transparency against a hidden default colour.
+No stdout until all decoding/export checks succeed; errors return exit 1 and
+stderr without image contents. A failure during the actual stdout write may
+leave partial output. No atomic saving; never use the same input/output
+filename in shell redirection.
 
-## Profiel en verliesgrens
+## Profile and loss boundary
 
-Ondersteunde PNG/JPEG-invoer volgt uitsluitend de bestaande
-`services/image-codec`-profielen en dependencyledger. De bestaande
-`Image::rgba8_into` past JPEG-EXIF-orientatie toe en rondt RGBA16 naar RGBA8 af.
-Daarna wordt alpha in de bestaande samplewaarden tegen de gekozen kleur
-gemengd. Geen ICC-/gamma-/lineairlichttransformatie of fotogetrouwheidsclaim.
-Het resultaat is een afzonderlijke **ongecomprimeerde RGB24 BMP**:
-BGR-bytes, positieve hoogte/bottom-up, 40-byte DIB, 54-byte pixeloffset,
-vierbyte-rijuitlijning met nulpadding, geen palet of kleurprofiel.
-EXIF-orientatie zit in de pixels; oorspronkelijke EXIF/ICC/metadata worden
-niet in de afgeleide BMP gekopieerd. Originele invoer en ruwe pixels blijven
-ongewijzigd. Dit is geen verliesvrije metadata-/precisieroundtrip.
+Supported PNG/JPEG input follows only the existing `services/image-codec`
+profiles and dependency ledger. Existing `Image::rgba8_into` applies JPEG
+EXIF orientation and reduces RGBA16 to RGBA8. Alpha is then blended using
+existing sample values against the selected colour. No ICC/gamma/linear-light
+transformation or photographic-fidelity claim. The result is a separate
+**uncompressed RGB24 BMP**: BGR bytes, positive height/bottom-up, 40-byte DIB,
+54-byte pixel offset, four-byte row alignment with zero padding, no palette
+or colour profile. EXIF orientation is incorporated in pixels; original
+EXIF/ICC/metadata are not copied into the derived BMP. Original input and
+raw pixels remain unchanged. This is not a lossless metadata/precision roundtrip.
 
-Primaire formaatbronnen: Microsoft,
+Primary format sources: Microsoft,
 *[BITMAPFILEHEADER](https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-bitmapfileheader)*
-(documentversie 5 december 2018) en
+(document version 5 December 2018) and
 *[BITMAPINFOHEADER](https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-bitmapinfoheader)*
-(26 april 2023), geraadpleegd 3 november 2026.
-Alleen het standaardbestandsformaat wordt gebruikt; geen Windows-API/-kernel.
+(26 April 2023), accessed 3 November 2026.
+Only the standard file format is used; no Windows API/kernel.
 
-## Resource- en authoritygrens
+## Resource and authority boundary
 
-Invoer maximaal 4 MiB, 4 megapixels (4 * 1024 * 1024), aslengte 16384,
-uitvoer maximaal 16 MiB. Een caller kan het uitvoerbudget verlagen.
-Een tijdelijke georienteerde RGBA8-buffer en de BMP-buffer zijn elk begrensd
-en fallible gereserveerd; maximaal circa 32 MiB samen, naast decoder/raw pixels.
-De codecwerkgrens is toelating, geen harde heapquota. Upstream kan infallible
-alloceren; native gebruik vereist een afzonderlijk begrensd decoderproces.
-Deze hostconsumer bewijst geen native OOM-/crashherstel.
+Input at most 4 MiB, 4 megapixels (`4 * 1024 * 1024`), axis length 16384,
+output at most 16 MiB. A caller may lower the output budget. A temporary
+oriented RGBA8 buffer and the BMP buffer are each bounded and fallibly
+reserved; approximately 32 MiB combined maximum, in addition to decoder/raw
+pixels. The codec work limit controls admission, not a hard heap quota.
+Upstream may allocate infallibly; native use requires a separately bounded
+decoder process. This host consumer does not demonstrate native OOM/crash recovery.
 
-Geen nieuwe registrydependency of unsafe. Het nieuwe lockfile gebruikt de
-bestaande exact gepinde codecclosure en JPEG-vendorpatch. Geen wijzigingen aan
-codec, viewer, gedeelde workspace, native IPC, autorisatie, opslag of netwerk.
-De host-CLI erft stdio; een native export moet via het bestaande saveportaal en
-een daadwerkelijk geautoriseerde volumeclient lopen.
+No new registry dependency or unsafe. The new lockfile uses the existing
+exactly pinned codec closure and JPEG vendor patch. No changes to codec,
+viewer, shared workspace, native IPC, authorisation, storage or networking.
+The host CLI inherits stdio; a native export must use the existing save portal
+and an actually authorised volume client.
 
-## Acceptatie
+## Acceptance
 
 ```sh
 cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/image-export/Cargo.toml --features host-cli
@@ -61,9 +60,9 @@ cargo +1.90.0 fmt --manifest-path sdk/examples/image-export/Cargo.toml -- --chec
 cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examples/image-export/Cargo.toml --target x86_64-unknown-none
 ```
 
-Tests controleren de daadwerkelijke uitvoerheaders, onderste-bovenrijvolgorde,
-BGR, alle paddinglengtes, exacte alpha- en RGBA16-waarden, EXIF-rotatie,
-echte PNG/JPEG-fixtures en CLI-processen. Malformed samples, afmetingen,
-background, ontbrekende keuze en te klein uitvoerbudget geven expliciete fouten.
-Geen native executable, GUI, opgeslagen Nieuw-OS-object, hardware- of
-releaseacceptatie; een no_std-build is uitsluitend targetcompilatie.
+Tests check actual output headers, bottom-up row order, BGR, all padding
+lengths, exact alpha/RGBA16 values, EXIF rotation, actual PNG/JPEG fixtures
+and CLI processes. Malformed samples, dimensions, background, missing choices
+and insufficient output budgets produce explicit errors. No native executable,
+GUI, saved Baryon OS object, hardware or release acceptance; a no_std build
+is target compilation only.

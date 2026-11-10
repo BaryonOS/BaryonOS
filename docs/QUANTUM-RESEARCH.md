@@ -1,53 +1,53 @@
-# Quantum als expliciet onderzoeks- en architectuurspoor
+# Quantum as an explicit research and architecture track
 
-> Update revisie 5: de eerste bouwkeuzes staan vast in [implementation/QUANTUM-SPEC.md](implementation/QUANTUM-SPEC.md). Gebruik dat document voor directe implementatie; dit bestand bewaart de ambitie en achtergrond voor vervolgfases.
-Revisie 4, 26 oktober 2026. De oorspronkelijke ambitie omvat zowel quantumweerbaarheid als het kunnen inzetten van quantumcomputers. Dit spoor begint bij het ontwerp en verdwijnt niet achter een vrijblijvende 'ooit later'-vermelding. Het is nog niet geïmplementeerd.
+> Revision 5 update: initial implementation choices are fixed in [implementation/QUANTUM-SPEC.md](implementation/QUANTUM-SPEC.md). Use that document for direct implementation; this file preserves the ambition and background for subsequent phases.
+Revision 4, 26 October 2026. The original ambition encompasses both quantum resilience and the ability to use quantum computers. This track starts during design and is not relegated to an optional future mention. It has not yet been implemented.
 
-## Drie afzonderlijke doelen
-1. **Bescherming tegen quantumaanvallen.** Ontwerp de crypto-inventaris, algoritmevervanging, sleutelrotatie, updateverificatie en communicatie voor postkwantumcryptografie. Dit draait op gewone hardware. De bestaande beveiligingsnotitie blijft leidend voor protocollen, entropy en implementatiecontrole.
-2. **Quantumprogramma's uitvoeren.** Ontwerp een lokale, geïsoleerde uitvoerdienst waarmee apps een quantumtaak kunnen aanbieden, eerst aan een lokale simulator en later aan geschikte eigen quantumhardware.
-3. **Eigen OS op een hybride quantumcomputer.** Onderzoek hoe de eigen kernel en diensten de klassieke besturingslaag vormen van een systeem met klassieke processors en QPU's, inclusief scheduling, apparaatbeheer, gebruikersrechten en ontwikkelgereedschappen.
+## Three separate goals
+1. **Protection against quantum attacks.** Design the crypto inventory, algorithm replacement, key rotation, update verification and communication for post-quantum cryptography. This runs on ordinary hardware. The existing security note remains authoritative for protocols, entropy and implementation checks.
+2. **Executing quantum programs.** Design a local, isolated execution service through which apps can submit a quantum task, initially to a local simulator and later to suitable personally controlled quantum hardware.
+3. **An independent OS on a hybrid quantum computer.** Investigate how the project's own kernel and services form the classical control layer of a system with classical processors and QPUs, including scheduling, device management, user permissions and development tools.
 
-IBM beschrijft huidige systemen met klassieke runtime-servers en quantumprocessors. QIR onderzoekt interoperabele representaties van hybride programma's; OpenQASM beschrijft klassieke en quantumconstructies. Dat zijn referentiepunten, geen opgelegde grenzen voor het uiteindelijke product (IBM, z.d.; QIR Alliance, z.d.; OpenQASM Contributors, z.d.).
+IBM describes current systems with classical runtime servers and quantum processors. QIR investigates interoperable representations of hybrid programs; OpenQASM describes classical and quantum constructs. These are reference points, not imposed limits on the eventual product (IBM, n.d.; QIR Alliance, n.d.; OpenQASM Contributors, n.d.).
 
-## Onderzoeksfasen
-| Stap | Onderzoek/resultaat | Acceptatiebewijs |
+## Research phases
+| Stage | Research/result | Acceptance evidence |
 |---|---|---|
-| Q0 — vanaf M0 | Quantumdreigingen, cryptografische keten, uitvoeringsmodellen en interfacekeuzes in één korte ADR | Onderscheid tussen feiten, hypothesen en experimenten; geen impliciete cloudafhankelijkheid |
-| Q1 — lokale prototypefase | Kleine klassieke simulator met begrensde quantumjobinterface | Referentiecircuits, outputverdelingen binnen vooraf gekozen tolerantie, annulering, quota en ongeldige invoer getest |
-| Q2 — lokaal QPU-contract | Backendinterface voor capaciteiten, jobs, resultaten, foutmeldingen en resourcebeheer | Simulator/testbackend doorstaat dezelfde contracttests; nog geen hardwarecompatibiliteitsclaim |
-| Q3 — hybride systeemport | Eigen OS op de klassieke host/controller met één concreet lokaal QPU-platform | Gedocumenteerde fysieke opstelling, drivers, timing-/controllergrenzen en echte uitgevoerde quantumtaak |
-| Q4 — verder onderzoek | Alternatieve uitvoeringsmodellen, hybride scheduling en eventueel quantumfuncties binnen systeemdiensten | Afgebakend experiment met vergelijking; geen algemene versnellings- of haalbaarheidsbelofte |
+| Q0 — from M0 | Quantum threats, cryptographic chain, execution models and interface choices in one concise ADR | Distinguish facts, hypotheses and experiments; no implicit cloud dependency |
+| Q1 — local prototype phase | Small classical simulator with a bounded quantum-job interface | Reference circuits, output distributions within predefined tolerances, cancellation, quotas and invalid input tested |
+| Q2 — local QPU contract | Backend interface for capabilities, jobs, results, errors and resource management | Simulator/test backend passes the same contract tests; no hardware compatibility claim yet |
+| Q3 — hybrid system port | Independent OS on the classical host/controller with one specific local QPU platform | Documented physical setup, drivers, timing/controller boundaries and an actually executed quantum task |
+| Q4 — further research | Alternative execution models, hybrid scheduling and potentially quantum functions within system services | Bounded experiment with comparison; no general promise of acceleration or feasibility |
 
-Q0 is onderdeel van de eerste startopdracht, naast technische boot en productconcepten. Q1 mag aanvankelijk op de ontwikkelhost draaien om een interface te onderzoeken; label dat als hostprototype. Een port van dezelfde runtime naar het eigen OS is een afzonderlijk resultaat. Q2 kan zonder QPU worden ontworpen en getest; Q3 vereist daadwerkelijk toegang tot geschikte eigen hardware.
+Q0 is part of the initial assignment alongside technical boot and product concepts. Q1 may initially run on the development host to investigate an interface; label it as a host prototype. Porting the same runtime to the independent OS is a separate result. Q2 can be designed and tested without a QPU; Q3 requires actual access to suitable personally controlled hardware.
 
-## Concrete ontwerpvragen
-- Welke taakrepresentatie past: een afgebakende OpenQASM-subset, een QIR-profiel of een ander controleerbaar formaat? Onderzoek en pin een versie; geen onnodige nieuwe taal voor het eerste experiment.
-- Hoe worden capaciteiten, qubitbehoefte, circuits, meetherhalingen, cancellation en resultaten beschreven?
-- Welke taken zijn klassiek, welke quantum en hoe lopen gegevens en bevoegdheden tussen die delen?
-- Welke timingkritische functies horen bij gespecialiseerde controllerelektronica? Een gewone OS-scheduler krijgt geen onbewezen realtimegarantie.
-- Welke reset-/initialisatiegarantie bestaat tussen gebruikers en jobs? Onderzoek isolatie en eventueel beperkte exclusieve toewijzing; neem geen veilige deling aan.
-- Wat zijn meetbare voordelen voor een concrete workload? Simulatieresultaten en theoretische quantumvoordelen bewijzen geen sneller desktop-OS.
+## Concrete design questions
+- Which task representation is appropriate: a bounded OpenQASM subset, a QIR profile or another verifiable format? Investigate and pin a version; do not introduce an unnecessary new language for the first experiment.
+- How are capabilities, qubit requirements, circuits, measurement repetitions, cancellation and results described?
+- Which tasks are classical, which are quantum, and how do data and authority move between them?
+- Which timing-critical functions belong in specialised controller electronics? An ordinary OS scheduler receives no unproven real-time guarantee.
+- What reset/initialisation guarantee exists between users and jobs? Investigate isolation and potentially limited exclusive allocation; do not assume safe sharing.
+- What measurable benefits exist for a concrete workload? Simulation results and theoretical quantum advantages do not prove a faster desktop OS.
 
-## Beveiliging en privacy blijven hetzelfde contract
-Alleen eigen lokaal beheerde hardware, rechtstreeks of binnen het expliciet toegestane eigen LAN; geen externe quantumcloud of relay. Het NAS-contract betreft opslag, niet een algemene machtiging om berekeningen uit te besteden. AI-inferentie blijft op het apparaat zelf. Een eventuele quantum-AI-workload moet aan datzelfde lokale apparaatcontract voldoen en krijgt geen stilzwijgende uitzondering.
+## Security and privacy retain the same contract
+Only personally controlled, locally managed hardware, connected directly or within the explicitly permitted personal LAN; no external quantum cloud or relay. The NAS contract concerns storage, not general authority to outsource computation. AI inference remains on the device itself. Any quantum-AI workload must meet that same local-device contract and receives no implicit exception.
 
-De quantumdienst krijgt alleen de benodigde jobdata, apparaattoegang en begrensde middelen. Geen recht op alle documenten, NAS-opslag of internet. Vang parserfouten en hardware-uitval op. Onbetrouwbare drivers/firmware blijven onderdeel van de onderzochte vertrouwensgrens.
+The quantum service receives only the necessary job data, device access and bounded resources. No access to all documents, NAS storage or the internet. Handle parser errors and hardware outages. Untrusted drivers/firmware remain part of the trust boundary under investigation.
 
-## Bewijsstatus en onderzoeksruimte
-Een cryptografisch postkwantumalgoritme maakt de OS-kernel niet automatisch veilig. Een simulator die een circuit uitvoert bewijst geen fysieke QPU-ondersteuning of quantumversnelling. Een OS op de klassieke host van een quantumcomputer is een echte architectuurdoelstelling; noem het niet 'alle kernelcode draait op qubits'.
+## Evidence status and research scope
+A cryptographic post-quantum algorithm does not automatically secure the OS kernel. A simulator executing a circuit does not prove physical QPU support or quantum acceleration. An OS on the classical host of a quantum computer is a genuine architectural objective; do not describe it as all kernel code running on qubits.
 
-Onderzoek verdergaande vormen expliciet wanneer daarvoor een concreet uitvoeringsmodel bestaat. Wijs ideeën niet uitsluitend af omdat bestaande OS'en ze niet hebben; claim ze ook niet op basis van een naam of diagram. Het apparaat kan volledig bruikbaar blijven zonder QPU; de quantumlaag is een optionele systeemmodule.
+Investigate more advanced forms explicitly when a concrete execution model exists. Do not reject ideas solely because existing operating systems lack them; do not claim them on the basis of a name or diagram either. The device can remain fully usable without a QPU; the quantum layer is an optional system module.
 
-## Bronnen (APA 7)
-IBM. (z.d.). *IBM Quantum hardware and roadmap*. Geraadpleegd op 26 oktober 2026, van https://www.ibm.com/quantum/hardware
+## Sources (APA 7)
+IBM. (n.d.). *IBM Quantum hardware and roadmap*. Retrieved October 26, 2026, from https://www.ibm.com/quantum/hardware
 
 National Institute of Standards and Technology. (2024a). *Module-lattice-based key-encapsulation mechanism standard* (FIPS 203). https://doi.org/10.6028/NIST.FIPS.203
 
 National Institute of Standards and Technology. (2024b). *Module-lattice-based digital signature standard* (FIPS 204). https://doi.org/10.6028/NIST.FIPS.204
 
-OpenQASM Contributors. (z.d.). *OpenQASM live specification*. Geraadpleegd op 26 oktober 2026, van https://openqasm.com/
+OpenQASM Contributors. (n.d.). *OpenQASM live specification*. Retrieved October 26, 2026, from https://openqasm.com/
 
-QIR Alliance. (z.d.). *QIR Alliance*. Geraadpleegd op 26 oktober 2026, van https://www.qir-alliance.org/
+QIR Alliance. (n.d.). *QIR Alliance*. Retrieved October 26, 2026, from https://www.qir-alliance.org/
 
-Deze roadmap is een eigen ontwerpvoorstel; de bronnen bewijzen niet dat dit toekomstige OS al hardware ondersteunt.
+This roadmap is an independent design proposal; the sources do not prove that this future OS already supports hardware.

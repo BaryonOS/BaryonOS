@@ -916,11 +916,26 @@ fn k05_rights_constants_and_known_mask() {
     assert_eq!(NETWORK, 2048);
     assert_eq!(DISPLAY, 4096);
     assert_eq!(INPUT, 8192);
-    assert_eq!(KNOWN_RIGHTS, 16383);
+    assert_eq!(POWER, 16384);
+    assert_eq!(KNOWN_RIGHTS, 32767);
+    assert_eq!(POWER_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(NETWORK_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(ENTROPY_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(LAUNCH_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(PROCESS_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
+}
+
+#[test]
+fn console_source_rejects_unknown_selector_without_mutation() {
+    run(|e| {
+        setup(e, 1);
+        for selector in [POWER | TRANSFER, 1 << 63, u64::MAX] {
+            assert_atomic(e, Error::Invalid, |e| e.create_console_source(1, selector));
+        }
+        let power = e.create_power(1).unwrap();
+        assert!(e.check_power(1, power).is_ok());
+        assert_eq!(e.stats().power_objects, 1);
+    });
 }
 
 #[test]
@@ -1482,6 +1497,127 @@ fn source_recreation_preflight_checks_owner_and_terminal_generation() {
 }
 
 #[test]
+fn process_usage_is_read_only_scoped_and_accounts_owned_capability_resources() {
+    run(|e| {
+        setup(e, 2);
+        e.create_endpoint(1).unwrap();
+        e.create_block_device(1, block_scope()).unwrap();
+        e.create_launch(1, 7).unwrap();
+        e.create_process(1, 2).unwrap();
+        e.create_entropy(1).unwrap();
+        e.create_network(1).unwrap();
+        e.create_display(1).unwrap();
+        e.create_input(1).unwrap();
+        e.create_power(1).unwrap();
+        let before = e.clone();
+        let usage = e.process_usage(1).unwrap();
+        assert_eq!(
+            usage,
+            ProcessUsage {
+                pid: 1,
+                handles: 9,
+                authority_nodes_issued: 9,
+                endpoints: 1,
+                block_objects: 1,
+                launch_objects: 1,
+                child_process_objects: 1,
+                entropy_objects: 1,
+                network_objects: 1,
+                display_objects: 1,
+                input_objects: 1,
+                power_objects: 1,
+                available_handle_slots: MAX_SLOTS - 1 - 9,
+                remaining_owned_endpoint_quota: MAX_OWNED_ENDPOINTS - 1,
+                ..ProcessUsage::default()
+            }
+        );
+        assert_eq!(e.process_usage(2).unwrap().handles, 0);
+        assert_eq!(e.process_usage(99), Err(Error::BadHandle));
+        assert_eq!(*e, before);
+    });
+}
+
+#[test]
+fn process_usage_charges_ipc_queue_to_receiver_owner_and_releases_it() {
+    run(|e| {
+        setup(e, 2);
+        let (receiver, sender) = destination(e);
+        e.send(1, sender, &Message::new()).unwrap();
+        let owner_usage = e.process_usage(2).unwrap();
+        let sender_usage = e.process_usage(1).unwrap();
+        assert_eq!(owner_usage.endpoints, 1);
+        assert_eq!(owner_usage.queued_messages, 1);
+        assert_eq!(sender_usage.endpoints, 0);
+        assert_eq!(sender_usage.queued_messages, 0);
+        e.receive(2, receiver).unwrap();
+        assert_eq!(e.process_usage(2).unwrap().queued_messages, 0);
+    });
+}
+
+#[test]
+fn global_stats_report_capacity_and_reclaim_after_queue_exhaustion_and_exit() {
+    run(|e| {
+        setup(e, 2);
+        let unaffected = e.process_usage(2).unwrap();
+        let initial = e.stats();
+        assert_eq!((initial.processes, initial.threads), (2, 2));
+        assert_eq!(initial.available_processes, MAX_PROCESSES - 2);
+        assert_eq!(initial.available_handle_slots, 2 * (MAX_SLOTS - 1));
+        assert_eq!(initial.available_nodes, MAX_NODES);
+        assert_eq!(initial.available_endpoints, MAX_ENDPOINTS);
+        assert_eq!(initial.available_endpoint_queue_slots, 0);
+        assert_eq!(initial.available_block_objects, MAX_BLOCK_DEVICES);
+        assert_eq!(initial.available_launch_objects, MAX_LAUNCH_OBJECTS);
+        assert_eq!(initial.available_process_objects, MAX_PROCESS_OBJECTS);
+        assert_eq!(initial.available_entropy_objects, MAX_ENTROPY_OBJECTS);
+        assert_eq!(initial.available_network_objects, MAX_NETWORK_OBJECTS);
+        assert_eq!(initial.available_display_objects, MAX_DISPLAY_OBJECTS);
+        assert_eq!(initial.available_input_objects, MAX_INPUT_OBJECTS);
+
+        let endpoint = e.create_endpoint(1).unwrap();
+        let opened = e.stats();
+        assert_eq!(opened.endpoints, 1);
+        assert_eq!(opened.available_endpoints, MAX_ENDPOINTS - 1);
+        assert_eq!(opened.available_endpoint_queue_slots, QUEUE_CAPACITY);
+        assert_eq!(
+            opened.available_handle_slots,
+            initial.available_handle_slots - 1
+        );
+
+        for _ in 0..QUEUE_CAPACITY {
+            e.send(1, endpoint, &Message::new()).unwrap();
+        }
+        let full = e.stats();
+        assert_eq!(full.queued_messages, QUEUE_CAPACITY);
+        assert_eq!(full.available_endpoint_queue_slots, 0);
+        assert_eq!(full.available_nodes, MAX_NODES - 1);
+        let before_denied_send = e.clone();
+        assert_eq!(e.send(1, endpoint, &Message::new()), Err(Error::Again));
+        assert_eq!(*e, before_denied_send);
+        assert_eq!(e.process_usage(2).unwrap(), unaffected);
+
+        e.receive(1, endpoint).unwrap();
+        let after_receive = e.stats();
+        assert_eq!(after_receive.queued_messages, QUEUE_CAPACITY - 1);
+        assert_eq!(after_receive.available_endpoint_queue_slots, 1);
+        assert_eq!(e.process_usage(2).unwrap(), unaffected);
+
+        e.exit(1).unwrap();
+        let after_exit = e.stats();
+        assert_eq!((after_exit.processes, after_exit.threads), (1, 1));
+        assert_eq!(after_exit.available_processes, MAX_PROCESSES - 1);
+        assert_eq!(after_exit.handles, 0);
+        assert_eq!(after_exit.nodes, 0);
+        assert_eq!(after_exit.endpoints, 0);
+        assert_eq!(after_exit.queued_messages, 0);
+        assert_eq!(after_exit.available_nodes, MAX_NODES);
+        assert_eq!(after_exit.available_endpoints, MAX_ENDPOINTS);
+        assert_eq!(after_exit.available_endpoint_queue_slots, 0);
+        assert_eq!(e.process_usage(2).unwrap(), unaffected);
+    });
+}
+
+#[test]
 fn endpoint_object_identifies_shared_endpoints_without_granting_anything() {
     run(|e| {
         setup(e, 3);
@@ -1509,5 +1645,91 @@ fn endpoint_object_identifies_shared_endpoints_without_granting_anything() {
         let before = e.clone();
         assert_eq!(e.endpoint_object(2, send).unwrap(), object);
         assert!(*e == before);
+    });
+}
+
+#[test]
+fn power_is_sole_typed_manifest_authority() {
+    run(|e| {
+        setup(e, 2);
+        let power = e.create_power(1).unwrap();
+        let key = e.check_power(1, power).unwrap();
+        assert_eq!(e.stats().power_objects, 1);
+        assert_atomic(e, Error::Quota, |e| e.create_power(2));
+        assert_atomic(e, Error::BadHandle, |e| e.check_power(2, power));
+        assert_atomic(e, Error::BadHandle, |e| e.check_power(1, power ^ 1 << 32));
+        assert_atomic(e, Error::Type, |e| e.check_input(1, power));
+        assert_atomic(e, Error::Type, |e| e.check_display(1, power));
+        assert_atomic(e, Error::Type, |e| e.check_entropy(1, power));
+        assert_atomic(e, Error::Type, |e| e.check_network(1, power));
+        assert_atomic(e, Error::Type, |e| e.check_endpoint(1, power, SEND));
+        assert_atomic(e, Error::Type, |e| e.check_block(1, power, BLOCK_READ));
+        assert_atomic(e, Error::Type, |e| e.check_launch(1, power));
+        assert_atomic(e, Error::Type, |e| e.check_process(1, power, OBSERVE));
+        let display = e.create_display(1).unwrap();
+        let input = e.create_input(1).unwrap();
+        let entropy = e.create_entropy(1).unwrap();
+        let network = e.create_network(1).unwrap();
+        let endpoint = e.create_endpoint(1).unwrap();
+        for other in [display, input, entropy, network, endpoint] {
+            assert_atomic(e, Error::Type, |e| e.check_power(1, other));
+        }
+        assert_eq!(e.check_power(1, power), Ok(key));
+    });
+}
+
+#[test]
+fn power_cannot_derive_delegate_transfer_or_revoke() {
+    run(|e| {
+        setup(e, 2);
+        let power = e.create_power(1).unwrap();
+        let (_, send) = destination(e);
+        for rights in [POWER, POWER | DERIVE, POWER | TRANSFER, ALL_RIGHTS] {
+            assert_atomic(e, Error::Invalid, |e| e.derive(1, power, rights));
+            assert_atomic(e, Error::Invalid, |e| {
+                e.bootstrap_delegate(1, power, 2, rights)
+            });
+            assert_atomic(e, Error::Invalid, |e| e.check_delegation(1, power, rights));
+            assert_atomic(e, Error::Invalid, |e| {
+                e.send(1, send, &cap_message(power, rights))
+            });
+        }
+        assert_atomic(e, Error::Invalid, |e| e.revoke(1, power));
+    });
+}
+
+#[test]
+fn power_close_and_exit_reclaim_without_restoring_stale_handle() {
+    run(|e| {
+        setup(e, 2);
+        let power = e.create_power(1).unwrap();
+        let key = e.check_power(1, power).unwrap();
+        e.close(1, power).unwrap();
+        assert_atomic(e, Error::BadHandle, |e| e.check_power(1, power));
+        assert_eq!(e.stats().power_objects, 0);
+        let again = e.create_power(2).unwrap();
+        let second = e.check_power(2, again).unwrap();
+        assert_ne!(key, second);
+        e.exit(2).unwrap();
+        assert_atomic(e, Error::BadHandle, |e| e.check_power(2, again));
+        assert_eq!(e.stats().power_objects, 0);
+        assert_eq!(e.stats().nodes, 0);
+        let third = e.create_power(1).unwrap();
+        assert_ne!(second, e.check_power(1, third).unwrap());
+        assert!(e.check_invariants());
+    });
+}
+
+#[test]
+fn power_generation_exhaustion_retires_sole_object_without_wrap() {
+    run(|e| {
+        setup(e, 2);
+        e.power[0].generation = u32::MAX;
+        let power = e.create_power(1).unwrap();
+        e.exit(1).unwrap();
+        assert!(e.power[0].retired);
+        assert_eq!(e.stats().retired_power_objects, 1);
+        assert_atomic(e, Error::Quota, |e| e.create_power(2));
+        assert_atomic(e, Error::BadHandle, |e| e.check_power(1, power));
     });
 }

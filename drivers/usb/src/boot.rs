@@ -170,3 +170,48 @@ impl MouseReport {
         })
     }
 }
+
+/// Changes in one interface's boot-mouse state, without input authority.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct MouseChanges {
+    pub buttons_pressed: u8,
+    pub buttons_released: u8,
+    pub dx: i8,
+    pub dy: i8,
+}
+
+/// Button state for one device/interface lifetime. Movement is not retained.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct MouseState {
+    buttons: u8,
+}
+
+impl MouseState {
+    pub const fn new() -> Self {
+        Self { buttons: 0 }
+    }
+
+    /// Malformed reports leave the prior button state unchanged.
+    pub fn update(&mut self, bytes: &[u8]) -> Result<MouseChanges, Error> {
+        let report = MouseReport::parse(bytes)?;
+        let changes = MouseChanges {
+            buttons_pressed: report.buttons & !self.buttons,
+            buttons_released: self.buttons & !report.buttons,
+            dx: report.dx,
+            dy: report.dy,
+        };
+        self.buttons = report.buttons;
+        Ok(changes)
+    }
+
+    /// Releases held buttons on detach or reset. The owner must reject stale
+    /// completions and enforce device lifetime/epoch boundaries separately.
+    pub fn clear(&mut self) -> MouseChanges {
+        let changes = MouseChanges {
+            buttons_released: self.buttons,
+            ..MouseChanges::default()
+        };
+        self.buttons = 0;
+        changes
+    }
+}

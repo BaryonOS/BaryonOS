@@ -1,35 +1,35 @@
-# OSDev als leerroute
-Simon leverde https://wiki.osdev.org/Expanded_Main_Page aan tijdens het onderzoek. De hoofdpagina, Getting Started en Beginner Mistakes zijn geopend op 26 oktober 2026.
+# OSDev as a learning route
+The [OSDev Expanded Main Page](https://wiki.osdev.org/Expanded_Main_Page) was supplied as a research source. The main page, Getting Started and Beginner Mistakes were opened on 26 October 2026.
 
-Gebruik OSDev als onderwerpindex en uitlegbron. De wiki noemt zelf dat zij geen volledige kopieerbare handleiding is. De eerste index verwijst onder meer naar vereiste voorkennis, booting, UEFI/BIOS, compilers, interrupts en debugging. Deze pagina's geven een route naar vragen; ze leveren geen beveiligingsbewijs voor onze code.
+Use OSDev as a topic index and explanatory source. The wiki itself states that it is not a complete guide to copy. Its initial index links to prerequisite knowledge, booting, UEFI/BIOS, compilers, interrupts and debugging, among other topics. These pages provide a route to questions; they do not provide security evidence for the project code.
 
-## Voorgestelde koppeling aan dit project
-| Moment | Zoeken via de OSDev-index | Wat Codex vervolgens moet opleveren |
+## Proposed mapping to this project
+| Stage | Search through the OSDev index | What Codex must then deliver |
 |---|---|---|
-| M0 | Required Knowledge, Getting Started, Beginner Mistakes | Persoonlijke kennislacunes + gekozen target/toolchain |
-| M1 | UEFI, Object Files, Boot Sequence, Kernel Debugging | Bootcontract onderbouwd met UEFI- en Rust-documentatie |
-| M2 | Interrupts, geheugenbeheer en paging | Invarianten en grensgevallen, gecontroleerd tegen processorhandleiding |
-| M3/M4 | Processen, scheduling, syscall- en IPC-onderwerpen | Afgebakend interfacecontract en negatieve isolatietests |
-| M5+ | Driver- en bestandssysteemonderwerpen | Exacte device-/protocolspecificatie en foutafhandeling |
+| M0 | Required Knowledge, Getting Started, Beginner Mistakes | Individual knowledge gaps plus the chosen target/toolchain |
+| M1 | UEFI, Object Files, Boot Sequence, Kernel Debugging | Boot contract supported by UEFI and Rust documentation |
+| M2 | Interrupts, memory management and paging | Invariants and edge cases checked against the processor manual |
+| M3/M4 | Processes, scheduling, syscall and IPC topics | Bounded interface contract and negative isolation tests |
+| M5+ | Driver and filesystem topics | Exact device/protocol specification and error handling |
 
-Niet alle genoemde subartikelen zijn in dit vooronderzoek inhoudelijk beoordeeld. Laat Codex het gekozen artikel openen wanneer die taak start en de exacte pagina/versie raadpleegbaar vastleggen.
+Not all referenced subarticles were substantively reviewed during this preliminary research. Have Codex open the selected article when that task begins and record the exact page/version in a retrievable form.
 
-## Instructie aan Codex
-1. Lees alleen het OSDev-artikel dat de huidige mijlpaal helpt.
-2. Noteer welke architectuur, bootmethode en programmeertaal het voorbeeld veronderstelt.
-3. Toets details aan primaire documentatie: UEFI, Intel/AMD/Arm/RISC-V, Rust, QEMU en OASIS.
-4. Vertaal principes naar ons eigen ontwerp; verander de target niet stilzwijgend om een tutorial te kunnen kopiëren.
-5. Controleer herkomst en licentie vóór code wordt overgenomen.
-6. Schrijf de eigen test vóór je een claim uit de tutorial als gerealiseerd behandelt.
+## Instructions for Codex
+1. Read only the OSDev article relevant to the current milestone.
+2. Record the architecture, boot method and programming language assumed by the example.
+3. Check details against primary documentation: UEFI, Intel/AMD/Arm/RISC-V, Rust, QEMU and OASIS.
+4. Adapt principles to the project's own system design; do not silently change the target to copy a tutorial.
+5. Check provenance and licensing before adopting code.
+6. Write the project's own test before treating a tutorial claim as implemented.
 
-OSDev is aanvullend. De officiële hardware-/protocolspecificatie is leidend bij conflicten. Bestaande tutorials kunnen een andere doelgroep of legacy-bootroute hebben; actualiteit en toepasbaarheid worden per pagina beoordeeld.
+OSDev is supplementary. Official hardware/protocol specifications prevail in conflicts. Existing tutorials may target a different audience or legacy boot route; currency and applicability are assessed for each page.
 
-## Repositoryskill en lokale kennisbank
-De repository bevat de Agent Skill `.agents/skills/os-dev/SKILL.md`. Die bundelt de nieuwste revisie per pagina uit de aangeleverde OSDev Wiki-snapshot (**3.054 wikipagina's**) en alle **78 fysieke pagina's** van *The little book about OS development*, samen met een lokale bronindex en zoekhelper. Gebruik bijvoorbeeld `python .agents/skills/os-dev/scripts/zoeken.py "paging"` of een bron-ID zoals `W001461`/ `B053`.
+## Repository skill and local knowledge base
+The repository contains the Agent Skill `.agents/skills/os-dev/SKILL.md`. It bundles the latest revision of each page from the supplied OSDev Wiki snapshot (**3,054 wiki pages**) and all **78 physical pages** of *The little book about OS development*, together with a local source index and search helper. For example, use `python .agents/skills/os-dev/scripts/zoeken.py "paging"` or a source ID such as `W001461`/`B053`.
 
-De skill vervangt geen primaire CPU-, firmware- of protocolspecificatie en het toevoegen van de kennisbank telt niet als gerealiseerde OS-functionaliteit.
+The skill does not replace primary CPU, firmware or protocol specifications, and adding the knowledge base does not count as implemented OS functionality.
 
-## Bronnen
-OSDev Wiki contributors. (z.d.). *Expanded Main Page*. Geraadpleegd op 26 oktober 2026, van https://wiki.osdev.org/Expanded_Main_Page
-OSDev Wiki contributors. (z.d.). *Getting Started*. Geraadpleegd op 26 oktober 2026, van https://wiki.osdev.org/Getting_Started
-OSDev Wiki contributors. (z.d.). *Beginner Mistakes*. Geraadpleegd op 26 oktober 2026, van https://wiki.osdev.org/Beginner_Mistakes
+## Sources
+OSDev Wiki contributors. (n.d.). *Expanded Main Page*. Retrieved October 26, 2026, from https://wiki.osdev.org/Expanded_Main_Page
+OSDev Wiki contributors. (n.d.). *Getting Started*. Retrieved October 26, 2026, from https://wiki.osdev.org/Getting_Started
+OSDev Wiki contributors. (n.d.). *Beginner Mistakes*. Retrieved October 26, 2026, from https://wiki.osdev.org/Beginner_Mistakes

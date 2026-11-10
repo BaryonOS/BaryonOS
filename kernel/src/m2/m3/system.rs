@@ -18,6 +18,76 @@ const WORDS: [u64; 13] = [
 /// refused on the domain endpoint, committed object revision.
 const PERSIST_WORDS: [u64; 6] = [528, 536, 544, 552, 560, 568];
 const RECOVER: bool = cfg!(feature = "test-system-recover");
+/// H05 power (ADR-076): every POWER_OFF refusal per slot, in order, as the
+/// kernel returned it; ring-3 evidence words are not trusted for these codes.
+#[cfg(feature = "native-system-power")]
+struct Power {
+    log: [[i64; 8]; 4],
+    count: [usize; 4],
+    dropped: [usize; 4],
+    granted: bool,
+}
+#[cfg(feature = "native-system-power")]
+static mut POWER: Power = Power {
+    log: [[0; 8]; 4],
+    count: [0; 4],
+    dropped: [0; 4],
+    granted: false,
+};
+#[cfg(feature = "native-system-power")]
+fn power_state() -> &'static mut Power {
+    // SAFETY: One CPU, IF=0. Each borrow ends before a syscall or scheduling.
+    unsafe { &mut *ptr::addr_of_mut!(POWER) }
+}
+/// Fault fixtures start after init's first POWER_OFF call (made before SHUTDOWN).
+#[cfg(feature = "native-system-power")]
+pub(super) fn power_requested() -> bool {
+    power_state().count[INIT] > 0
+}
+/// Syscall 0x90 POWER_OFF(power handle, 0, 0, 0, 0, 0). 0 = granted: the caller
+/// terminates like exit(0) and S5 follows in `finish` after a second gate check.
+/// Order: arguments, authority, plan, then the storage gate (-8 retry, -16 never).
+#[cfg(feature = "native-system-power")]
+pub(super) fn power(s: &State, slot: usize, a: [u64; 6]) -> i64 {
+    let code = if a[1..].iter().any(|value| *value != 0) {
+        -1
+    } else if let Err(error) = m4::engine().check_power(s.processes[slot].pid, a[0]) {
+        error.code()
+    } else if !crate::m2::power::ready() {
+        -14
+    } else if let Err(code) = storage_closed() {
+        code
+    } else {
+        0
+    };
+    let p = power_state();
+    if code == 0 {
+        p.granted = true;
+    } else if slot < p.count.len() {
+        // A caller can exhaust the bounded audit prefix, not kernel availability.
+        // Preserve the existing evidence checks for the recorded refusals.
+        let recorded = p.count[slot];
+        if recorded < p.log[slot].len() {
+            p.log[slot][recorded] = code;
+            p.count[slot] = recorded + 1;
+        } else {
+            // Preserve availability, but never let an acceptance fixture pass
+            // after losing a refusal that its bounded evidence cannot inspect.
+            p.dropped[slot] = p.dropped[slot].saturating_add(1);
+        }
+    }
+    code
+}
+/// No block request in flight, all durable, no block authority left (nobody
+/// can write any more) and the entropy broker idle (no virtio-rng DMA).
+#[cfg(feature = "native-system-power")]
+fn storage_closed() -> Result<(), i64> {
+    m5::power_gate()?;
+    if m4::engine().stats().block_objects != 0 || !keyring::broker_summary().2 {
+        return Err(-8);
+    }
+    Ok(())
+}
 struct Evidence {
     app: Option<[u64; 13]>,
     persist: Option<[u64; 6]>,
@@ -202,6 +272,24 @@ pub(super) fn manifest(s: &mut State) {
         image_fixture::bind(s, probe, IMAGE_PROBE_ELF);
         print_number(b"SYSTEM:IMAGE_MANIFEST_PID:", probe);
     }
+    #[cfg(feature = "native-system-power")]
+    {
+        let power = e.create_power(init).unwrap();
+        // Non-delegable by type: no derive, delegation, spawn grant or transfer.
+        let invalid = capability_core::Error::Invalid;
+        require(
+            e.derive(init, power, capability_core::POWER) == Err(invalid)
+                && e.bootstrap_delegate(init, power, app, capability_core::POWER) == Err(invalid)
+                && e.check_delegation(init, power, capability_core::POWER) == Err(invalid)
+                && e.create_power(init).is_err(),
+            b"POWER_DELEGATION",
+        );
+        // The app learns init's raw handle value only: a number, not authority.
+        put(s, INIT, 48, power);
+        put(s, APP, 104, power);
+        // SHUTDOWN is accepted only on domain 1, init's volume ingress.
+        put(s, VOLUME, 104, 2);
+    }
     let launch = e.create_launch(init, 0).unwrap();
     // Init owns the registry so it can delegate only SEND to each worker.
     let registry = e.create_endpoint(init).unwrap();
@@ -320,7 +408,8 @@ pub(super) fn manifest(s: &mut State) {
             e.check_entropy(app, handle).is_err()
                 && e.check_block(app, handle, BLOCK_READ).is_err()
                 && e.check_launch(app, handle).is_err()
-                && e.check_network(app, handle).is_err(),
+                && e.check_network(app, handle).is_err()
+                && e.check_power(app, handle).is_err(),
             b"APP_AUTHORITY",
         );
     }
@@ -336,7 +425,8 @@ pub(super) fn manifest(s: &mut State) {
             e.check_entropy(init, handle).is_err()
                 && e.check_block(init, handle, BLOCK_READ).is_err()
                 && e.check_launch(init, handle).is_err()
-                && e.check_network(init, handle).is_err(),
+                && e.check_network(init, handle).is_err()
+                && e.check_power(init, handle).is_err(),
             b"INIT_AUTHORITY",
         );
     }
@@ -592,13 +682,18 @@ fn finish(s: &mut State) -> ! {
     }
     let (entropy, denied, entropy_idle) = keyring::broker_summary();
     let (published, completed, block_idle) = m5::broker_summary();
+    // Power fault fixtures: exactly the injected SHUTDOWN flush never completed.
+    let refused = cfg!(any(
+        feature = "test-system-power-flush-error",
+        feature = "test-system-power-flush-timeout"
+    ));
+    let block_state = if refused {
+        published[..2] == completed[..2] && published[2] == completed[2] + 1
+    } else {
+        block_idle && published == completed
+    };
     require(
-        entropy >= 1024
-            && denied >= 1
-            && entropy_idle
-            && block_idle
-            && published == completed
-            && published[0] > 0,
+        entropy >= 1024 && denied >= 1 && entropy_idle && block_state && published[0] > 0,
         b"BROKER_STATE",
     );
     if cfg!(feature = "test-system-recover") {
@@ -606,10 +701,62 @@ fn finish(s: &mut State) -> ! {
     } else {
         require(published[1] > 0 && published[2] >= 2, b"DISK_NOT_MUTATED");
     }
+    // 192: 1 serving, 2 closed after an Ok SHUTDOWN; 376: volume uncertain.
+    let (volume_state, uncertain) = if refused {
+        (1, 1)
+    } else if cfg!(feature = "native-system-power") {
+        (2, 0)
+    } else {
+        (1, 0)
+    };
     require(
-        word(s, KEY, 192) == 1 && word(s, VOLUME, 192) == 1 && word(s, VOLUME, 376) == 0,
+        word(s, KEY, 192) == 1
+            && word(s, VOLUME, 192) == volume_state
+            && word(s, VOLUME, 376) == uncertain,
         b"SERVICE_STATE",
     );
+    #[cfg(feature = "native-system-power")]
+    {
+        // Init: early call while the volume still holds BLOCK authority, then
+        // its launch handle and a forged generation; refused runs end -16.
+        // App: init's raw handle value (BadHandle or Type, depending on what that
+        // slot of the app's own table holds by then) and its registry endpoint.
+        let p = power_state();
+        let init = &p.log[INIT][..p.count[INIT]];
+        let tail = &init[init.len().min(3)..];
+        let ok = init.len() >= 3
+            && init[..3] == [-8, -6, -4]
+            && if refused {
+                tail.last() == Some(&-16) && tail[..tail.len() - 1].iter().all(|c| *c == -8)
+            } else {
+                tail.is_empty() && p.granted
+            }
+            && p.granted != refused
+            && p.count[APP] == 2
+            && matches!(p.log[APP][0], -4 | -6)
+            && p.log[APP][1] == -6
+            && p.count[KEY] == 0
+            && p.count[VOLUME] == 0
+            && p.dropped.iter().all(|count| *count == 0);
+        if !ok {
+            for slot in [INIT, APP] {
+                for code in &p.log[slot][..p.count[slot]] {
+                    print_number(b"SYSTEM:POWER:LOG_SLOT:", slot as u64);
+                    print_number(b"SYSTEM:POWER:LOG_REFUSAL:", code.unsigned_abs());
+                }
+            }
+            for slot in 0..p.dropped.len() {
+                if p.dropped[slot] != 0 {
+                    print_number(b"SYSTEM:POWER:DROPPED_SLOT:", slot as u64);
+                    print_number(b"SYSTEM:POWER:DROPPED_REFUSALS:", p.dropped[slot] as u64);
+                }
+            }
+            fail(b"POWER_EVIDENCE");
+        }
+        print_number(b"SYSTEM:POWER_INIT_REFUSALS:", init.len() as u64);
+        print_number(b"SYSTEM:POWER_APP_REFUSALS:", p.count[APP] as u64);
+        print_number(b"SYSTEM:POWER_NOT_DURABLE:", u64::from(refused));
+    }
     // Seals: legacy 1 + record 1 (+ persisted record in the normal run).
     // Unseals: legacy 1 + record 1 (+ restored record after the cold start).
     // Authentication failures: 9 record/legacy tampers + wrong recovery
@@ -752,6 +899,7 @@ fn finish(s: &mut State) -> ! {
             && stats.launch_objects == 0
             && stats.process_objects == 0
             && stats.network_objects == 0
+            && stats.power_objects == 0
             && m4::engine().check_invariants(),
         b"ENGINE_CLEANUP",
     );
@@ -767,11 +915,33 @@ fn finish(s: &mut State) -> ! {
     print_number(b"SYSTEM:LIVE_PROCESSES_AFTER:", stats.processes as u64);
     print_number(b"SYSTEM:FRAMES_RECOVERED:", 1);
     serial::write(b"SYSTEM:CLEANUP:PASS\n");
-    serial::write(if cfg!(feature = "test-system-recover") {
-        b"SYSTEM:CASE:RECOVER:PASS\n"
+    #[cfg(feature = "native-system-power")]
+    if power_state().granted {
+        // Every process is gone; re-check the gate on the final broker state.
+        if let Err(code) = storage_closed() {
+            print_number(b"SYSTEM:POWER:GATE_LOST:", code as u64);
+            fail(b"POWER_GATE");
+        }
+        serial::write(b"SYSTEM:POWER:GATE:PASS\nSYSTEM:CASE:POWER:PASS\nM1:PASS\n");
+        crate::m2::power::off();
+        fail(b"POWER_RETURNED");
     } else {
-        b"SYSTEM:CASE:NORMAL:PASS\n"
-    });
-    serial::write(b"M1:PASS\n");
-    serial::exit(0x10)
+        serial::write(if cfg!(feature = "test-system-power-flush-error") {
+            &b"SYSTEM:POWER:REFUSED:NOT_DURABLE\nSYSTEM:CASE:POWER_FLUSH_ERROR:PASS\n"[..]
+        } else {
+            b"SYSTEM:POWER:REFUSED:NOT_DURABLE\nSYSTEM:CASE:POWER_FLUSH_TIMEOUT:PASS\n"
+        });
+        serial::write(b"M1:PASS\n");
+        serial::exit(0x10)
+    }
+    #[cfg(not(feature = "native-system-power"))]
+    {
+        serial::write(if cfg!(feature = "test-system-recover") {
+            b"SYSTEM:CASE:RECOVER:PASS\n"
+        } else {
+            b"SYSTEM:CASE:NORMAL:PASS\n"
+        });
+        serial::write(b"M1:PASS\n");
+        serial::exit(0x10)
+    }
 }

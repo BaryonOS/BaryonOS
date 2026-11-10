@@ -1,66 +1,68 @@
-# G01 — begrensde native app-runtime
+# G01 — bounded native app runtime
 
-Deze eigen `no_std`-crate bouwt op de bestaande Nieuw OS-ABI. Zij gebruikt geen
-heap, libc, host-I/O of netwerk. De externe dependency `zeroize` is vastgezet
-op versie 1.9.1 zonder standaardfeatures en wist de eigen IPC-envelopes bij
-opruimen. De pure berichtlaag bevat geen `unsafe`; `native.rs` bevat de kleine
-`int 0x80`-grens. De hostbuild biedt die native module niet aan, zodat een
-hosttest niet per ongeluk een Linux-syscall met Nieuw OS-argumenten uitvoert.
+This independent `no_std` crate builds on the existing Baryon OS ABI. It uses
+no heap, libc, host I/O or networking. The external dependency `zeroize` is
+pinned to version 1.9.1 without default features and clears its IPC envelopes
+on cleanup. The pure message layer contains no `unsafe`; `native.rs` contains
+the small `int 0x80` boundary. The host build does not expose that native
+module, preventing host tests from accidentally making a Linux syscall with
+Baryon OS arguments.
 
-De runtime is een bouwbare SDK-basis. Zij voegt geen appinstallatie,
-compositor of opslagrecht toe. Sinds K05 (ADR-042) kan een proces mét een
-`LaunchImage`-capability kinderen starten, observeren en beëindigen en kan elk
-proces binnen het quotum eigen endpoints maken; zonder die capability blijft
-een app afhankelijk van een geautoriseerde bootstrap. `ChildProcess`-handles
-kunnen niet worden afgeleid, overgedragen of ingetrokken.
+The runtime is a buildable SDK foundation. It adds no app installation,
+compositor or storage rights. Since K05 (ADR-042), a process with a
+`LaunchImage` capability can start, observe and terminate children, and any
+process can create its own endpoints within quota; without that capability,
+an app still depends on an authorised bootstrap. `ChildProcess` handles
+cannot be derived, transferred or revoked.
 
-## API en autoriteit
+## API and authority
 
-`Handle::from_raw` controleert uitsluitend de bestaande generatie/slotvorm.
-`SendEndpoint` en `ReceiveEndpoint` helpen vergissingen in aanroepen voorkomen.
-Een nummer of Rust-type geeft nooit rechten: de kernel controleert bij iedere
-aanroep proces, objecttype, generatie en bevoegdheid. `Rights` beperkt zich tot
-de bestaande bits; `derive` en capoverdracht laten de kernel iedere poging tot
-rechtenverruiming weigeren. Dit is dezelfde authoritygrens als vóór de SDK.
+`Handle::from_raw` checks only the existing generation/slot structure.
+`SendEndpoint` and `ReceiveEndpoint` help prevent mistakes in calls.
+A number or Rust type never grants rights: the kernel checks the process,
+object type, generation and authority on every call. `Rights` is restricted
+to existing bits; `derive` and capability transfer let the kernel reject
+every attempted rights expansion. This authority boundary is unchanged by
+the SDK.
 
-| Functie | Gedrag |
+| Function | Behaviour |
 |---|---|
-| `native::abi_info/check_abi` | Lees ABI en accepteer uitsluitend bestaande compatibele profielen 1.0 t/m 1.3 |
-| `native::yield_now/exit` | Bestaand proces afstaan/beëindigen |
-| `native::close/derive/revoke` | Bestaande capabilityoperaties; geen nieuwe objectaanmaak |
-| `native::send` | Eén nonblocking send; `Ok` betekent alleen dat het bericht is gequeued |
-| `native::receive` | Eén nonblocking receive naar een eigen stagingbuffer, daarna gewiste envelope-overdracht |
-| `native::close_received_caps` | Expliciete cleanup van ontvangen caps; probeert alle handles en bewaart de oorspronkelijke berichtbytes |
-| `native::endpoint_create` | K05 (ABI 1.3, profiel `native-supervisor`): eigen endpoint binnen het kernelquotum van 4 per proces |
-| `native::spawn` | K05: start de image van een `LaunchImage` met één argumentwoord en maximaal twee verminderde capabilities (nooit RECV); levert de enige `ChildProcess`-handle |
-| `native::kill/status` | K05: beëindig of observeer een eigen kind; `ProcessStatus` decodeert alleen canonieke statuswoorden |
+| `native::abi_info/check_abi` | Read the ABI and accept only existing compatible profiles 1.0 through 1.3 |
+| `native::yield_now/exit` | Yield/terminate the existing process |
+| `native::close/derive/revoke` | Existing capability operations; no new object creation |
+| `native::send` | One non-blocking send; `Ok` means only that the message was queued |
+| `native::receive` | One non-blocking receive into a private staging buffer, followed by envelope transfer with clearing |
+| `native::close_received_caps` | Explicit cleanup of received capabilities; attempts every handle and preserves the original message bytes |
+| `native::endpoint_create` | K05 (ABI 1.3, `native-supervisor` profile): create an owned endpoint within the kernel quota of 4 per process |
+| `native::spawn` | K05: start a `LaunchImage` image with one argument word and at most two attenuated capabilities (never RECV); return the sole `ChildProcess` handle |
+| `native::kill/status` | K05: terminate or observe an owned child; `ProcessStatus` decodes only canonical status words |
 
-`Outgoing::new` bouwt een volledig nulgevulde Message320 met maximaal 256
-payloadbytes. `Outgoing::from_bytes` accepteert een bestaand protocolbericht
-alleen met geldige lengtes, handles en canonieke padding. Hoogstens twee
-capabilities kunnen worden toegevoegd; RECV-overdracht blijft geweigerd.
+`Outgoing::new` builds a fully zero-filled Message320 with at most 256
+payload bytes. `Outgoing::from_bytes` accepts an existing protocol message
+only with valid lengths, handles and canonical padding. At most two
+capabilities can be attached; RECV transfer remains prohibited.
 
-`Received` bewaart sender, tag, payload en alle oorspronkelijke envelopebytes.
-De constructor controleert ook dat de lengte gelijk is aan het syscallresultaat.
-Native IPC gebruikt één gewiste overdracht naar de envelope; de stagingbuffer
-wordt bij succesvolle overdracht direct gewist en zowel `Received` als
-`Outgoing` wissen hun bytes bij opruimen. Hun `Debug`-weergave bevat geen
-payload. Dit is geheugenhygiëne, geen garantie dat compiler-/registerkopieën,
-crashgeheugen of elders gekopieerde bytes worden gewist.
-De afnemende dienst/app moet nog zijn verwachte peer, tag, request-ID, epoch,
-domein, inhoud en toegestane capabilities controleren. Een geslaagde
-`Received::from_bytes` bewijst op zichzelf geen kernelherkomst. `native::receive`
-haalt de bytes wel rechtstreeks uit de gecontroleerde kernelkopie.
+`Received` retains the sender, tag, payload and all original envelope bytes.
+The constructor also checks that the length equals the syscall result.
+Native IPC uses one transfer with clearing into the envelope; the staging
+buffer is cleared immediately on successful transfer, and both `Received`
+and `Outgoing` clear their bytes on cleanup. Their `Debug` representation
+contains no payload. This is memory hygiene, not a guarantee that compiler
+or register copies, crash memory or bytes copied elsewhere are cleared.
+The consuming service/app must still validate its expected peer, tag,
+request ID, epoch, domain, contents and permitted capabilities. Successful
+`Received::from_bytes` alone does not establish kernel provenance.
+`native::receive` obtains the bytes directly from the checked kernel copy.
 
-Er is geen RPC-retry. Een send met `EAGAIN` heeft volgens het bestaande
-kernelcontract niets gepubliceerd; een gequeued bericht kan daarna wel door
-de dienst verwerkt zijn. Na een verloren antwoord of `Unknown` mag de app een
-mutatie dus niet stil opnieuw verzenden. De afzonderlijke catalogusclient kan
-deze sessie- en onzekerheidsregels toepassen op de ongewijzigde envelope.
+There is no RPC retry. Under the existing kernel contract, a send returning
+`EAGAIN` has published nothing; a queued message may subsequently have been
+processed by the service. After a lost reply or `Unknown`, the app must
+therefore not silently resend a mutation. The separate catalogue client can
+apply these session and uncertainty rules to the unchanged envelope.
 
-## Bouwen en controleren
+## Building and checking
 
-Vanuit de repositoryroot, met de vastgelegde Rust 1.90.0-toolchain beschikbaar:
+From the repository root, with the pinned Rust 1.90.0 toolchain available:
 
 ```sh
 cargo test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime
@@ -69,31 +71,30 @@ cargo build --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-ru
 python3 -B sdk/examples/catalog-read/build.py
 ```
 
-Gebruik bij parallel werk een eigen `CARGO_TARGET_DIR`. De SDK is een afzonderlijke
-workspace met eigen lockfile. De voorbeeldbuilder overschrijft alleen voor zijn
-eigen subprocess de linkerflags, zodat het kernel-linkerscript niet wordt gebruikt.
+Use a separate `CARGO_TARGET_DIR` for parallel work. The SDK is a separate
+workspace with its own lockfile. The example builder overrides linker flags
+only for its own subprocess, so that the kernel linker script is not used.
 
-De hosttests vergelijken alle payloadlengtes 0–256 met de echte
-`capability-core`-parser, controleren corrupte envelopes en syscallresultaten,
-en voeren send/receive/intrekking uit met het bestaande pure capabilitymodel.
-Dat is hostbewijs. Crosscompilatie levert een native ELF maar bewijst geen
-boot, isolatie, device-I/O of gebruikershandeling. De native integratie van
-de SDK in een echte gastproef heeft een afzonderlijke bewijsbundel.
+Host tests compare all payload lengths 0–256 with the actual
+`capability-core` parser, check corrupt envelopes and syscall results, and
+exercise send/receive/revocation using the existing pure capability model.
+This is host evidence. Cross-compilation produces a native ELF but does not
+demonstrate boot, isolation, device I/O or user interaction. Native SDK
+integration in an actual guest experiment has a separate evidence bundle.
 
-## Contractbronnen
+## Contract sources
 
-- Eigen [kernel- en syscallcontract](../../docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md),
-  26 oktober 2026, ABI 1.0 en Message320; actuele implementatie
-  [`m4.rs`](../../kernel/src/m2/m3/m4.rs) en
+- Project [kernel and syscall contract](../../docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md),
+  26 October 2026, ABI 1.0 and Message320; current implementation in
+  [`m4.rs`](../../kernel/src/m2/m3/m4.rs) and
   [`capability-core`](../../crates/capability-core/src/lib.rs).
-- Eigen [M5-contract](../../docs/implementation/M5-BLOCK-SERVICE.md) en
-  [M6a-contract](../../docs/implementation/M6A-WRITE-RECOVERY.md): ABI minor 1/2
-  behouden de registerconventie en voegen blokoperaties toe. Deze SDK biedt
-  gewone apps geen blokinterface aan.
-- [Privacycontract revisie 3](../../docs/LOCAL-PRIVACY-CONTRACT.md): appinstallatie
-  verleent geen algemene document-, apparaat- of netwerkrechten.
+- Project [M5 contract](../../docs/implementation/M5-BLOCK-SERVICE.md) and
+  [M6a contract](../../docs/implementation/M6A-WRITE-RECOVERY.md): ABI minor 1/2
+  retain the register convention and add block operations. This SDK does not
+  expose a block interface to ordinary apps.
+- [Privacy contract revision 4](../../docs/LOCAL-PRIVACY-CONTRACT.md): installing
+  an app grants no general document, device or network permissions.
 
-De tests bewijzen geen menselijke audit of algemene veiligheid. Native uitvoering,
-bronhashes en beperkingen staan afzonderlijk onder
+The tests do not establish a human audit or general security. Native execution,
+source hashes and limitations are recorded separately under
 [`docs/verification/parallel-g01`](../../docs/verification/parallel-g01/).
-

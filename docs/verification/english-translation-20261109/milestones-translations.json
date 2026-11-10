@@ -1,0 +1,434 @@
+[
+  {
+    "url": "https://github.com/simonvanieperen/BaryonOS/milestone/10",
+    "source": {
+      "title": "R01–R03 — Volledige testrelease en onderhoud",
+      "description": "Doel: één herleidbaar releaseimage met volledige productacceptatie en een uitvoerbare onderhoudsroute.\n\nGereed wanneer:\n- De complete bindende functionele, visuele, beveiligings-, privacy-, herstel- en duurmatrix op het geleverde image aantoonbaar slaagt.\n- Installatie, upgraden en zelfstandig herstel op ondersteunde hardware werken met gecontroleerde behoud-/wisopties.\n- Vooraf vastgelegde stabiliteits-, prestatie-, geheugen-, energie- en dataintegriteitsbudgetten op het vereiste profiel worden gehaald.\n- Onafhankelijke reproductie, Nederlandse gebruikersdocumentatie, SBOM/licenties, patchbeleid, meldpunt en ondersteuning zijn geregeld.\n- Alle vereiste nieuwe en reeds geaccepteerde criteria op de gecombineerde release binnen hun bewijsgrenzen zijn gecontroleerd.\n\nIntegreert alle productsporen. De oude 20→50%-issue #43 is een historische werkroute, geen aparte releasescore. Fysieke uitvoering, ondertekening en publieke release vereisen hun concrete afzonderlijke autorisatie.\nBron: [Volledige testrelease](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/FULL-TEST-RELEASE.md).\n\nAcceptatie: docs/progress.json blijft de bron voor de gewogen voortgang. Sluiten vereist brongebonden bewijs op het voorgeschreven niveau; een hosttest, merge of statische Graphify-analyse vervangt geen native/productacceptatie. Geen kalenderdeadline vastgesteld."
+    },
+    "target": {
+      "title": "R01–R03 — Full test release and maintenance",
+      "description": "Goal: one traceable release image with full product acceptance and a viable maintenance path.\n\nComplete when:\n- The complete binding functional, visual, security, privacy, recovery and endurance test matrix demonstrably passes on the delivered image.\n- Installation, upgrades and independent recovery work on supported hardware with controlled preservation/erasure options.\n- The predefined stability, performance, memory, energy and data-integrity budgets are met on the required profile.\n- Independent reproduction, Dutch user documentation, SBOM/licences, a patch policy, a reporting channel and support are in place.\n- All required new and previously accepted criteria have been checked on the combined release within their evidence boundaries.\n\nIntegrates all product workstreams. The former 20→50% issue #43 is a historical work route, not a separate release score. Physical execution, signing and public release each require their own specific, separate authorisation.\nSource: [Full test release](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/FULL-TEST-RELEASE.md).\n\nAcceptance: docs/progress.json remains the source for weighted progress. Closure requires source-linked evidence at the prescribed level; a host test, merge or static Graphify analysis does not replace native/product acceptance. No calendar deadline has been set."
+    },
+    "validation": {
+      "criterion_ids": {
+        "preserved": true,
+        "occurrences": 2
+      },
+      "issue_references": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "urls": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "numeric_tokens": {
+        "preserved": true,
+        "occurrences": 12
+      },
+      "bare_progress_path": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "inline_code": {
+        "preserved": true,
+        "occurrences": 0
+      },
+      "markdown_line_structure_preserved": true,
+      "bullet_count": 5,
+      "paragraph_count": 4,
+      "acceptance_and_no_deadline_clause_preserved": true,
+      "manual_semantic_review": "Complete: all goals, completion conditions, dependencies, existing-work references, authority restrictions and evidence boundaries translated without added acceptance claims or deadlines.",
+      "dutch_user_documentation_criterion_preserved": true,
+      "original_fields_sha256": "7e07a46f09a3665a31713347837936a4fc8a4c0249e4a7847f01e5a68f6f676d"
+    }
+  },
+  {
+    "url": "https://github.com/simonvanieperen/BaryonOS/milestone/9",
+    "source": {
+      "title": "B04–B06 — Vertrouwensketen en beveiligingscontrole",
+      "description": "Doel: boot, distributie, privacy en beveiligingsgrenzen controleerbaar afronden.\n\nGereed wanneer:\n- Image-/bootverificatie, sleutelrotatie, dependencies en buildherkomst voor het releaseprofiel zijn afgebakend en onafhankelijk gecontroleerd.\n- Alle toepasselijke native privacytests slagen, inclusief rechtencombinaties, gescheiden app-/downloadrechten, netwerkloze AI en afwezigheid van telemetrie/stille fallback.\n- Externe deskundigen de afgesproken kernel-, dienst-, DMA-, parser- en capabilitygrenzen hebben onderzocht; blokkerende bevindingen zijn opgelost.\n- Gekozen machinegecontroleerde invarianten en resterende risico's met hun bewijsgrens zijn vastgelegd.\n\nBeveiliging wordt gedurende alle milestones gebouwd; dit is de gezamenlijke eindcontrole. B03 is reeds geaccepteerd; #41 bewaart aanvullend productie-/sleutelrotatiewerk. #248 betreft publicatievoorbereiding en autoriseert geen wijziging van repositoryzichtbaarheid.\nBronnen: [Rubric](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/progress.json) en [Privacycontract](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/LOCAL-PRIVACY-CONTRACT.md).\n\nAcceptatie: docs/progress.json blijft de bron voor de gewogen voortgang. Sluiten vereist brongebonden bewijs op het voorgeschreven niveau; een hosttest, merge of statische Graphify-analyse vervangt geen native/productacceptatie. Geen kalenderdeadline vastgesteld."
+    },
+    "target": {
+      "title": "B04–B06 — Chain of trust and security review",
+      "description": "Goal: complete boot, distribution, privacy and security-boundary work in a verifiable way.\n\nComplete when:\n- Image/boot verification, key rotation, dependencies and build provenance for the release profile have been defined and independently checked.\n- All applicable native privacy tests pass, including permission combinations, separate app/download permissions, network-free AI and the absence of telemetry or silent fallback.\n- External experts have examined the agreed kernel, service, DMA, parser and capability boundaries; blocking findings have been resolved.\n- The selected machine-checked invariants and remaining risks have been documented with their evidence boundaries.\n\nSecurity is developed throughout all milestones; this is the combined final review. B03 has already been accepted; #41 retains additional production/key-rotation work. #248 concerns publication preparation and does not authorise a change to repository visibility.\nSources: [Rubric](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/progress.json) and [Privacy contract](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/LOCAL-PRIVACY-CONTRACT.md).\n\nAcceptance: docs/progress.json remains the source for weighted progress. Closure requires source-linked evidence at the prescribed level; a host test, merge or static Graphify analysis does not replace native/product acceptance. No calendar deadline has been set."
+    },
+    "validation": {
+      "criterion_ids": {
+        "preserved": true,
+        "occurrences": 3
+      },
+      "issue_references": {
+        "preserved": true,
+        "occurrences": 2
+      },
+      "urls": {
+        "preserved": true,
+        "occurrences": 2
+      },
+      "numeric_tokens": {
+        "preserved": true,
+        "occurrences": 19
+      },
+      "bare_progress_path": {
+        "preserved": true,
+        "occurrences": 2
+      },
+      "inline_code": {
+        "preserved": true,
+        "occurrences": 0
+      },
+      "markdown_line_structure_preserved": true,
+      "bullet_count": 4,
+      "paragraph_count": 4,
+      "acceptance_and_no_deadline_clause_preserved": true,
+      "manual_semantic_review": "Complete: all goals, completion conditions, dependencies, existing-work references, authority restrictions and evidence boundaries translated without added acceptance claims or deadlines.",
+      "original_fields_sha256": "a8b2f4c93cd442d842490f4776f3dca04da4aea950a773093e2cfc4f12a0cd7d"
+    }
+  },
+  {
+    "url": "https://github.com/simonvanieperen/BaryonOS/milestone/8",
+    "source": {
+      "title": "H02–H06 — Hardware, drivers en energie",
+      "description": "Doel: afgesproken fysieke referentieconfiguraties aantoonbaar ondersteunen.\n\nGereed wanneer:\n- Invoer/USB, grafische uitvoer/audio en de afgesproken netwerk-/Bluetooth-functies op de benoemde configuraties werken.\n- Hotplug, ongeldige device-antwoorden, driverfouten en herstel begrensd zijn.\n- Energiebeheer, shutdown, slaap/wek en thermische/batterijfuncties aan gemeten budgetten voldoen.\n- De ondersteuningsmatrix, DMA/IOMMU-grenzen en resterende beperkingen concreet zijn en het vereiste fysieke bewijs beschikbaar is.\n\nVirtuele tests sluiten fysieke criteria niet. Een nieuw VMware-profiel uit #216 is pas normatief na een afzonderlijk projectbesluit. Fysieke schijfwrites/firmwarewijzigingen vallen niet onder het aanmaken van deze milestone.\nBestaand werk: #42, #181, #185, #213, #216 en #218.\nBron: [Vaste hardwarecriteria](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/progress.json).\n\nAcceptatie: docs/progress.json blijft de bron voor de gewogen voortgang. Sluiten vereist brongebonden bewijs op het voorgeschreven niveau; een hosttest, merge of statische Graphify-analyse vervangt geen native/productacceptatie. Geen kalenderdeadline vastgesteld."
+    },
+    "target": {
+      "title": "H02–H06 — Hardware, drivers and power",
+      "description": "Goal: demonstrably support the agreed physical reference configurations.\n\nComplete when:\n- Input/USB, graphics output/audio and the agreed network/Bluetooth functions work on the named configurations.\n- Hotplug, invalid device responses, driver failures and recovery remain bounded.\n- Power management, shutdown, sleep/wake and thermal/battery functions meet measured budgets.\n- The support matrix, DMA/IOMMU boundaries and remaining limitations are specific, and the required physical evidence is available.\n\nVirtual tests do not close physical criteria. A new VMware profile from #216 becomes normative only after a separate project decision. Physical disk writes/firmware changes are not covered by the creation of this milestone.\nExisting work: #42, #181, #185, #213, #216 and #218.\nSource: [Fixed hardware criteria](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/progress.json).\n\nAcceptance: docs/progress.json remains the source for weighted progress. Closure requires source-linked evidence at the prescribed level; a host test, merge or static Graphify analysis does not replace native/product acceptance. No calendar deadline has been set."
+    },
+    "validation": {
+      "criterion_ids": {
+        "preserved": true,
+        "occurrences": 2
+      },
+      "issue_references": {
+        "preserved": true,
+        "occurrences": 7
+      },
+      "urls": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "numeric_tokens": {
+        "preserved": true,
+        "occurrences": 16
+      },
+      "bare_progress_path": {
+        "preserved": true,
+        "occurrences": 2
+      },
+      "inline_code": {
+        "preserved": true,
+        "occurrences": 0
+      },
+      "markdown_line_structure_preserved": true,
+      "bullet_count": 4,
+      "paragraph_count": 4,
+      "acceptance_and_no_deadline_clause_preserved": true,
+      "manual_semantic_review": "Complete: all goals, completion conditions, dependencies, existing-work references, authority restrictions and evidence boundaries translated without added acceptance claims or deadlines.",
+      "original_fields_sha256": "edc99d0073e4f3d32c05a782f80038b7835a2f3f729b2f7c95d5fb0d5902bcb3"
+    }
+  },
+  {
+    "url": "https://github.com/simonvanieperen/BaryonOS/milestone/7",
+    "source": {
+      "title": "L01 — Lokale systeem-AI",
+      "description": "Doel: aantoonbaar nuttige systeem-AI volledig op het eigen apparaat uitvoeren.\n\nGereed wanneer:\n- Een werkelijk lokaal model de afgesproken kerntaken op nieuwe invoer uitvoert binnen vastgelegde kwaliteits-, geheugen- en reactiebudgetten.\n- Alleen geselecteerde context via de toegestane brokerroute beschikbaar is; annulering en resourcegrenzen werken.\n- Modelbeheer/download gescheiden is van persoonlijke context en inferentie; inferentie en helpers geen netwerkroute krijgen.\n- Ontbrekend model, offline gebruik en onvoldoende resources begrijpelijk worden afgehandeld zonder cloud- of NAS-inferentie.\n\nAfhankelijk van native service-/app-/contextgrenzen en een concreet model-/resourceprofiel. De reeds geaccepteerde lokale quantum-runtime L02 blijft een aparte functie en regressievoorwaarde.\nBron: [Privacycontract](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/LOCAL-PRIVACY-CONTRACT.md).\n\nAcceptatie: docs/progress.json blijft de bron voor de gewogen voortgang. Sluiten vereist brongebonden bewijs op het voorgeschreven niveau; een hosttest, merge of statische Graphify-analyse vervangt geen native/productacceptatie. Geen kalenderdeadline vastgesteld."
+    },
+    "target": {
+      "title": "L01 — Local system AI",
+      "description": "Goal: run demonstrably useful system AI entirely on the user's own device.\n\nComplete when:\n- An actual local model performs the agreed core tasks on new input within the defined quality, memory and response budgets.\n- Only selected context is available through the permitted broker route; cancellation and resource limits work.\n- Model management/download is separate from personal context and inference; inference and helpers are given no network route.\n- A missing model, offline use and insufficient resources are handled understandably without cloud or NAS inference.\n\nDepends on native service/app/context boundaries and a specific model/resource profile. The previously accepted local quantum runtime L02 remains a separate function and regression requirement.\nSource: [Privacy contract](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/LOCAL-PRIVACY-CONTRACT.md).\n\nAcceptance: docs/progress.json remains the source for weighted progress. Closure requires source-linked evidence at the prescribed level; a host test, merge or static Graphify analysis does not replace native/product acceptance. No calendar deadline has been set."
+    },
+    "validation": {
+      "criterion_ids": {
+        "preserved": true,
+        "occurrences": 2
+      },
+      "issue_references": {
+        "preserved": true,
+        "occurrences": 0
+      },
+      "urls": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "numeric_tokens": {
+        "preserved": true,
+        "occurrences": 9
+      },
+      "bare_progress_path": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "inline_code": {
+        "preserved": true,
+        "occurrences": 0
+      },
+      "markdown_line_structure_preserved": true,
+      "bullet_count": 4,
+      "paragraph_count": 4,
+      "acceptance_and_no_deadline_clause_preserved": true,
+      "manual_semantic_review": "Complete: all goals, completion conditions, dependencies, existing-work references, authority restrictions and evidence boundaries translated without added acceptance claims or deadlines.",
+      "original_fields_sha256": "87d4314e0576b819ed214ce166cbf982603fd70d15150e1580613a402737d4f4"
+    }
+  },
+  {
+    "url": "https://github.com/simonvanieperen/BaryonOS/milestone/6",
+    "source": {
+      "title": "P01–P04 — NAS, synchronisatie en meerdere apparaten",
+      "description": "Doel: eigen of gedeelde NAS-opslag en meerdere apparaten met begrijpelijke end-to-endbescherming.\n\nGereed wanneer:\n- Client en NAS op het eigen OS koppelen met geverifieerde identiteit; inhoud, namen en gevoelige metadata blijven voor de NAS-beheerder onleesbaar.\n- Offline werken, automatisch hervatten, conflicten, gelijktijdige schrijvers en netwerkovergangen geen stil gegevensverlies veroorzaken.\n- Apparaten toevoegen/intrekken, sleutelrotatie, herstel, quota en NAS-beheerdersintrekking native werken; oude sessies herleven niet.\n- De bestaande externe-providerfunctie uitsluitend client-side versleutelde opaque objecten opslaat, zonder inhoudssleutels, escrow of stille fallback (FR-P06).\n\nHarde afhankelijkheden: B02 plus native netwerk, TLS en netwerkrechten. Host-NAS/TLS-proeven zijn voorbereidend bewijs.\nBronnen: [NAS-contract](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/implementation/NAS-SHARING-AND-INTERNET.md) en [objectencryptie](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/implementation/ENCRYPTED-OBJECT-STORAGE.md).\n\nAcceptatie: docs/progress.json blijft de bron voor de gewogen voortgang. Sluiten vereist brongebonden bewijs op het voorgeschreven niveau; een hosttest, merge of statische Graphify-analyse vervangt geen native/productacceptatie. Geen kalenderdeadline vastgesteld."
+    },
+    "target": {
+      "title": "P01–P04 — NAS, synchronisation and multiple devices",
+      "description": "Goal: personal or shared NAS storage and multiple devices with understandable end-to-end protection.\n\nComplete when:\n- The client and NAS connect on the project's own OS using verified identities; content, names and sensitive metadata remain unreadable to the NAS administrator.\n- Offline work, automatic resumption, conflicts, concurrent writers and network transitions do not cause silent data loss.\n- Adding/revoking devices, key rotation, recovery, quotas and revocation by the NAS administrator work natively; old sessions do not revive.\n- The existing external-provider function stores only client-side encrypted opaque objects, without content keys, escrow or silent fallback (FR-P06).\n\nHard dependencies: B02 plus native networking, TLS and network permissions. Host NAS/TLS trials are preparatory evidence.\nSources: [NAS contract](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/implementation/NAS-SHARING-AND-INTERNET.md) and [Object encryption](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/implementation/ENCRYPTED-OBJECT-STORAGE.md).\n\nAcceptance: docs/progress.json remains the source for weighted progress. Closure requires source-linked evidence at the prescribed level; a host test, merge or static Graphify analysis does not replace native/product acceptance. No calendar deadline has been set."
+    },
+    "validation": {
+      "criterion_ids": {
+        "preserved": true,
+        "occurrences": 4
+      },
+      "issue_references": {
+        "preserved": true,
+        "occurrences": 0
+      },
+      "urls": {
+        "preserved": true,
+        "occurrences": 2
+      },
+      "numeric_tokens": {
+        "preserved": true,
+        "occurrences": 18
+      },
+      "bare_progress_path": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "inline_code": {
+        "preserved": true,
+        "occurrences": 0
+      },
+      "markdown_line_structure_preserved": true,
+      "bullet_count": 4,
+      "paragraph_count": 4,
+      "acceptance_and_no_deadline_clause_preserved": true,
+      "manual_semantic_review": "Complete: all goals, completion conditions, dependencies, existing-work references, authority restrictions and evidence boundaries translated without added acceptance claims or deadlines.",
+      "original_fields_sha256": "142398d0cf7e9f6770725ede61a6c8792978f3a4753b96aefaf10ae0f930e0ed",
+      "source_meaning_check": "NAS-beheerdersintrekking means revocation by the NAS administrator, consistent with the NAS contract and the P04 acceptance text; it does not mean revoking administrators."
+    }
+  },
+  {
+    "url": "https://github.com/simonvanieperen/BaryonOS/milestone/5",
+    "source": {
+      "title": "A02–A04 — Apps installeren en dagelijks gebruiken",
+      "description": "Doel: nuttige apps veilig installeren, bijwerken en gebruiken op het eigen OS.\n\nGereed wanneer:\n- Pakketten uit meerdere toegestane bronnen met herkomstcontrole kunnen worden geïnstalleerd, bijgewerkt en verwijderd.\n- Installatie geen algemene gegevens-, NAS-, netwerk- of beheerrechten verleent; taakrechten zijn zichtbaar en intrekbaar, ook voor extensies en helpers.\n- De verplichte document-, tabel-, presentatie-, PDF-, beeld-, browser-, audio/video-, capture- en hulproutes uit de releaseopdracht op echte invoer werken binnen de afgesproken formaatdekking.\n- Databehoud, foutafhandeling en relevante realistische gebruikstaken zijn getest.\n\nA01/SDK is reeds geaccepteerd. Afhankelijkheden verschillen per app: desktop en opslag; netwerk/TLS voor browser; render-/audiodrivers voor media.\nBron: [Bindende releasefuncties](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/FULL-TEST-RELEASE.md).\n\nAcceptatie: docs/progress.json blijft de bron voor de gewogen voortgang. Sluiten vereist brongebonden bewijs op het voorgeschreven niveau; een hosttest, merge of statische Graphify-analyse vervangt geen native/productacceptatie. Geen kalenderdeadline vastgesteld."
+    },
+    "target": {
+      "title": "A02–A04 — Installing apps and using them daily",
+      "description": "Goal: install, update and use useful apps safely on the project's own OS.\n\nComplete when:\n- Packages can be installed, updated and removed from multiple permitted sources with provenance verification.\n- Installation does not grant general data, NAS, network or administration permissions; task permissions are visible and revocable, including for extensions and helpers.\n- The mandatory document, spreadsheet, presentation, PDF, image, browser, audio/video, capture and utility workflows from the release mandate work on real input within the agreed format coverage.\n- Data preservation, error handling and relevant realistic user tasks have been tested.\n\nA01/SDK has already been accepted. Dependencies vary by app: desktop and storage; networking/TLS for the browser; rendering/audio drivers for media.\nSource: [Binding release functions](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/FULL-TEST-RELEASE.md).\n\nAcceptance: docs/progress.json remains the source for weighted progress. Closure requires source-linked evidence at the prescribed level; a host test, merge or static Graphify analysis does not replace native/product acceptance. No calendar deadline has been set."
+    },
+    "validation": {
+      "criterion_ids": {
+        "preserved": true,
+        "occurrences": 3
+      },
+      "issue_references": {
+        "preserved": true,
+        "occurrences": 0
+      },
+      "urls": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "numeric_tokens": {
+        "preserved": true,
+        "occurrences": 10
+      },
+      "bare_progress_path": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "inline_code": {
+        "preserved": true,
+        "occurrences": 0
+      },
+      "markdown_line_structure_preserved": true,
+      "bullet_count": 4,
+      "paragraph_count": 4,
+      "acceptance_and_no_deadline_clause_preserved": true,
+      "manual_semantic_review": "Complete: all goals, completion conditions, dependencies, existing-work references, authority restrictions and evidence boundaries translated without added acceptance claims or deadlines.",
+      "original_fields_sha256": "40b3db2daa5070b29768d626bce48316e824243ef8fb8f78a9d86cbece3efd4f"
+    }
+  },
+  {
+    "url": "https://github.com/simonvanieperen/BaryonOS/milestone/4",
+    "source": {
+      "title": "N02–N04 — Internet, TLS en netwerkrechten",
+      "description": "Doel: bruikbaar native internet met geauthenticeerde verbindingen en afdwingbare rechten per app en bestemming.\n\nGereed wanneer:\n- Adresconfiguratie, DNS, routes, verbreken/hervatten en toegestane internetverbindingen werken.\n- Onderhouden TLS/cryptografie met de gekozen hybride PQC-route native werkt; verkeerde peers en negatieve handshakes worden geweigerd zonder stille onveilige fallback.\n- Rechten, intrekking van live verbindingen en helperroutes native worden afgedwongen en in verkeer zijn waargenomen; geen onbedoelde luisterpoorten.\n- Het bekende NET-1-defect uit #211 is opgelost en met passende regressie gecontroleerd; de bestaande canary geldt niet als reparatie.\n\nBouwt op de geaccepteerde N01-basis en B01. Native netwerk, native TLS en hostprototypes houden afzonderlijke bewijsgrenzen.\nBestaand werk: #215; #39 alleen voor werkelijk resterend netwerkwerk.\nBron: [Beveiligings- en PQC-contract](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md).\n\nAcceptatie: docs/progress.json blijft de bron voor de gewogen voortgang. Sluiten vereist brongebonden bewijs op het voorgeschreven niveau; een hosttest, merge of statische Graphify-analyse vervangt geen native/productacceptatie. Geen kalenderdeadline vastgesteld."
+    },
+    "target": {
+      "title": "N02–N04 — Internet, TLS and network permissions",
+      "description": "Goal: usable native internet with authenticated connections and enforceable permissions per app and destination.\n\nComplete when:\n- Address configuration, DNS, routes, disconnection/resumption and permitted internet connections work.\n- Maintained TLS/cryptography with the selected hybrid PQC route works natively; incorrect peers and negative handshakes are rejected without silent insecure fallback.\n- Permissions, revocation of live connections and helper routes are enforced natively and have been observed in traffic; there are no unintended listening ports.\n- The known NET-1 defect from #211 has been fixed and checked with appropriate regression testing; the existing canary does not count as a repair.\n\nBuilds on the accepted N01 foundation and B01. Native networking, native TLS and host prototypes retain separate evidence boundaries.\nExisting work: #215; #39 only for network work that actually remains.\nSource: [Security and PQC contract](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md).\n\nAcceptance: docs/progress.json remains the source for weighted progress. Closure requires source-linked evidence at the prescribed level; a host test, merge or static Graphify analysis does not replace native/product acceptance. No calendar deadline has been set."
+    },
+    "validation": {
+      "criterion_ids": {
+        "preserved": true,
+        "occurrences": 5
+      },
+      "issue_references": {
+        "preserved": true,
+        "occurrences": 3
+      },
+      "urls": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "numeric_tokens": {
+        "preserved": true,
+        "occurrences": 15
+      },
+      "bare_progress_path": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "inline_code": {
+        "preserved": true,
+        "occurrences": 0
+      },
+      "markdown_line_structure_preserved": true,
+      "bullet_count": 4,
+      "paragraph_count": 4,
+      "acceptance_and_no_deadline_clause_preserved": true,
+      "manual_semantic_review": "Complete: all goals, completion conditions, dependencies, existing-work references, authority restrictions and evidence boundaries translated without added acceptance claims or deadlines.",
+      "original_fields_sha256": "88b1e50379dbae9fcc9a56c0b31ed8cf1180efd7d14ddd29511c4643bbf6a350"
+    }
+  },
+  {
+    "url": "https://github.com/simonvanieperen/BaryonOS/milestone/3",
+    "source": {
+      "title": "U02–U06 — Dagelijks bruikbare native desktop",
+      "description": "Doel: een consistente native desktop waarin dagelijkse taken begrijpelijk en toegankelijk werken.\n\nGereed wanneer:\n- Invoer, focus, klembord en appwisseling voldoen aan gemeten interactiebudgetten.\n- Gebruikers echte documenten openen, bewerken, bewaren, hernoemen en organiseren met begrijpelijke rechten en historie.\n- Zoeken, instellingen, account/sessiebeheer en herstelroutes werken volgens het gekozen actuele shellcontract.\n- Toetsenbordbediening, schermlezer, schaling/zoom, contrast en verminderde beweging native zijn getest.\n- Representatieve gebruikers de afgesproken taken voltooien; gemeten frictie en blokkerende fouten zijn opgelost.\n\nU01 is reeds geaccepteerd. Gebruik de echte volumeketen; slot-/profielgaranties hangen mede af van B02. Open ontwerp-PR's leggen niet zelfstandig de definitieve shellrichting vast.\nBestaand werk: #167, #210 en #214.\nBron: [Volledige productacceptatie](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/FULL-TEST-RELEASE.md).\n\nAcceptatie: docs/progress.json blijft de bron voor de gewogen voortgang. Sluiten vereist brongebonden bewijs op het voorgeschreven niveau; een hosttest, merge of statische Graphify-analyse vervangt geen native/productacceptatie. Geen kalenderdeadline vastgesteld."
+    },
+    "target": {
+      "title": "U02–U06 — A native desktop for everyday use",
+      "description": "Goal: a consistent native desktop in which everyday tasks work understandably and accessibly.\n\nComplete when:\n- Input, focus, the clipboard and app switching meet measured interaction budgets.\n- Users open, edit, save, rename and organise real documents with understandable permissions and history.\n- Search, settings, account/session management and recovery routes work according to the selected current shell contract.\n- Keyboard operation, a screen reader, scaling/zoom, contrast and reduced motion have been tested natively.\n- Representative users complete the agreed tasks; measured friction and blocking errors have been resolved.\n\nU01 has already been accepted. Use the actual volume chain; lock/profile guarantees also depend in part on B02. Open design PRs do not independently establish the final shell direction.\nExisting work: #167, #210 and #214.\nSource: [Full product acceptance](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/FULL-TEST-RELEASE.md).\n\nAcceptance: docs/progress.json remains the source for weighted progress. Closure requires source-linked evidence at the prescribed level; a host test, merge or static Graphify analysis does not replace native/product acceptance. No calendar deadline has been set."
+    },
+    "validation": {
+      "criterion_ids": {
+        "preserved": true,
+        "occurrences": 4
+      },
+      "issue_references": {
+        "preserved": true,
+        "occurrences": 3
+      },
+      "urls": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "numeric_tokens": {
+        "preserved": true,
+        "occurrences": 14
+      },
+      "bare_progress_path": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "inline_code": {
+        "preserved": true,
+        "occurrences": 0
+      },
+      "markdown_line_structure_preserved": true,
+      "bullet_count": 5,
+      "paragraph_count": 4,
+      "acceptance_and_no_deadline_clause_preserved": true,
+      "manual_semantic_review": "Complete: all goals, completion conditions, dependencies, existing-work references, authority restrictions and evidence boundaries translated without added acceptance claims or deadlines.",
+      "original_fields_sha256": "0836ff8901a14c8c9a6f2be9c8579d00b7971c5db406095b90660da391a6bae3"
+    }
+  },
+  {
+    "url": "https://github.com/simonvanieperen/BaryonOS/milestone/2",
+    "source": {
+      "title": "B02 / S09 — Versleutelde opslag en herstelkopieën",
+      "description": "Doel: persoonlijke inhoud en gevoelige metadata native beschermen en onafhankelijk kunnen herstellen.\n\nGereed wanneer:\n- Geauthenticeerde opslag werkt na koude herstart; manipulatie, replay/rollback binnen het dreigingsmodel en sleutelverlies geven gecontroleerd gedrag.\n- Sleutelbeheer en herstelautorisatie domein- en gebruikersgrenzen behouden.\n- Een gebruiker een onafhankelijke back-up kan maken, controleren, terugzetten en gegevens in gedocumenteerde formaten exporteren.\n- Onderbreking, volle opslag, verlies en conflicten zijn getest zonder stille overschrijving.\n\nAfhankelijk van B01 en S01–S08. B02 is nodig voor betrouwbare profiel-/sessiegrenzen, E2E-NAS en externe ciphertextopslag.\nBestaand werk: #155.\nBron: [Versleutelde-objectcontract](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/implementation/ENCRYPTED-OBJECT-STORAGE.md).\n\nAcceptatie: docs/progress.json blijft de bron voor de gewogen voortgang. Sluiten vereist brongebonden bewijs op het voorgeschreven niveau; een hosttest, merge of statische Graphify-analyse vervangt geen native/productacceptatie. Geen kalenderdeadline vastgesteld."
+    },
+    "target": {
+      "title": "B02 / S09 — Encrypted storage and backups",
+      "description": "Goal: protect personal content and sensitive metadata natively and enable independent recovery.\n\nComplete when:\n- Authenticated storage works after a cold restart; tampering, replay/rollback within the threat model and key loss produce controlled behaviour.\n- Key management and recovery authorisation preserve domain and user boundaries.\n- A user can create, verify and restore an independent backup and export data in documented formats.\n- Interruption, full storage, loss and conflicts have been tested without silent overwriting.\n\nDepends on B01 and S01–S08. B02 is required for reliable profile/session boundaries, E2E-NAS and external ciphertext storage.\nExisting work: #155.\nSource: [Encrypted-object contract](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/implementation/ENCRYPTED-OBJECT-STORAGE.md).\n\nAcceptance: docs/progress.json remains the source for weighted progress. Closure requires source-linked evidence at the prescribed level; a host test, merge or static Graphify analysis does not replace native/product acceptance. No calendar deadline has been set."
+    },
+    "validation": {
+      "criterion_ids": {
+        "preserved": true,
+        "occurrences": 6
+      },
+      "issue_references": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "urls": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "numeric_tokens": {
+        "preserved": true,
+        "occurrences": 15
+      },
+      "bare_progress_path": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "inline_code": {
+        "preserved": true,
+        "occurrences": 0
+      },
+      "markdown_line_structure_preserved": true,
+      "bullet_count": 4,
+      "paragraph_count": 4,
+      "acceptance_and_no_deadline_clause_preserved": true,
+      "manual_semantic_review": "Complete: all goals, completion conditions, dependencies, existing-work references, authority restrictions and evidence boundaries translated without added acceptance claims or deadlines.",
+      "original_fields_sha256": "6279d3275ac464b2b5551688bacc8f321278c68920f692e363b5053b46f32b20"
+    }
+  },
+  {
+    "url": "https://github.com/simonvanieperen/BaryonOS/milestone/1",
+    "source": {
+      "title": "K06 — Multicore en procesisolatie",
+      "description": "Doel: geïsoleerde gebruikersprocessen betrouwbaar op meerdere processorkernen uitvoeren.\n\nGereed wanneer:\n- Ring-3-processen, scheduling, locks, interrupts, FPU-context en adresruimtewissels werken onder gelijktijdige belasting.\n- Procesbrede TLB-shootdown vóór framehergebruik, migratie, uitputting, time-outs en quarantaine native zijn gecontroleerd.\n- De K06-acceptatiematrix en relevante K07-regressie slagen op de gedocumenteerde CPU-profielen.\n\nAfhankelijk van de bestaande K02–K05/K07-basis. De gestapelde K06-PR-keten en specificaties bepalen de integratievolgorde; losse deel-PR's sluiten K06 niet.\nBestaand werk: #232, #234, #238, #244, #246 en #247.\nBron: [K06-specificatie](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/implementation/K06-SMP.md).\n\nAcceptatie: docs/progress.json blijft de bron voor de gewogen voortgang. Sluiten vereist brongebonden bewijs op het voorgeschreven niveau; een hosttest, merge of statische Graphify-analyse vervangt geen native/productacceptatie. Geen kalenderdeadline vastgesteld."
+    },
+    "target": {
+      "title": "K06 — Multicore and process isolation",
+      "description": "Goal: run isolated user processes reliably across multiple processor cores.\n\nComplete when:\n- Ring-3 processes, scheduling, locks, interrupts, FPU context and address-space switches work under concurrent load.\n- Process-wide TLB shootdown before frame reuse has been checked natively, as have migration, exhaustion, timeouts and quarantine.\n- The K06 acceptance matrix and relevant K07 regression tests pass on the documented CPU profiles.\n\nDepends on the existing K02–K05/K07 foundation. The stacked K06 PR chain and specifications determine the integration order; individual component PRs do not close K06.\nExisting work: #232, #234, #238, #244, #246 and #247.\nSource: [K06 specification](https://github.com/simonvanieperen/nieuw-os/blob/6e429de98b5c692ccceaa12973818eecb1622062/docs/implementation/K06-SMP.md).\n\nAcceptance: docs/progress.json remains the source for weighted progress. Closure requires source-linked evidence at the prescribed level; a host test, merge or static Graphify analysis does not replace native/product acceptance. No calendar deadline has been set."
+    },
+    "validation": {
+      "criterion_ids": {
+        "preserved": true,
+        "occurrences": 10
+      },
+      "issue_references": {
+        "preserved": true,
+        "occurrences": 6
+      },
+      "urls": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "numeric_tokens": {
+        "preserved": true,
+        "occurrences": 24
+      },
+      "bare_progress_path": {
+        "preserved": true,
+        "occurrences": 1
+      },
+      "inline_code": {
+        "preserved": true,
+        "occurrences": 0
+      },
+      "markdown_line_structure_preserved": true,
+      "bullet_count": 3,
+      "paragraph_count": 4,
+      "acceptance_and_no_deadline_clause_preserved": true,
+      "manual_semantic_review": "Complete: all goals, completion conditions, dependencies, existing-work references, authority restrictions and evidence boundaries translated without added acceptance claims or deadlines.",
+      "original_fields_sha256": "922e90e1e7618bc10a0afa31d47432680b213220cf41380b3eaaac6105847708"
+    }
+  }
+]

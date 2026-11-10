@@ -1,0 +1,12 @@
+Get:1 https://snapshot.ubuntu.com/ubuntu/20261108T000000Z noble InRelease [256 kB]
+Get:2 https://snapshot.ubuntu.com/ubuntu/20261108T000000Z noble-updates InRelease [126 kB]
+Get:3 https://snapshot.ubuntu.com/ubuntu/20261108T000000Z noble-security InRelease [126 kB]
+Get:4 https://snapshot.ubuntu.com/ubuntu/20261108T000000Z noble/universe amd64 Packages [19.3 MB]
+Get:5 https://snapshot.ubuntu.com/ubuntu/20261108T000000Z noble/main amd64 Packages [1808 kB]
+Get:6 https://snapshot.ubuntu.com/ubuntu/20261108T000000Z noble-updates/main amd64 Packages [1762 kB]
+Get:7 https://snapshot.ubuntu.com/ubuntu/20261108T000000Z noble-updates/universe amd64 Packages [2177 kB]
+Get:8 https://snapshot.ubuntu.com/ubuntu/20261108T000000Z noble-security/universe amd64 Packages [1557 kB]
+Get:9 https://snapshot.ubuntu.com/ubuntu/20261108T000000Z noble-security/main amd64 Packages [1425 kB]
+rm: cannot remove '/var/cache/apt/archives/partial/*.deb': Permission denied
+Fetched 28.6 MB in 13s (2116 kB/s)
+Reading package lists...

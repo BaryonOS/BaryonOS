@@ -1,74 +1,76 @@
-# GUI-processen laten wachten bij afwezig werk
+# Letting GUI processes wait when no work is available
 
-Implementatiecheckpoint, 2 november 2026. Basis: `b1b292aadf244dacf029b7307aebdc6103756e0d`; branch `codex/window-idle-wait-20261102`.
+Implementation checkpoint, 2 November 2026. Baseline: `b1b292aadf244dacf029b7307aebdc6103756e0d`; branch `codex/window-idle-wait-20261102`.
 
-## Doel en grens
+## Goal and boundary
 
-Materiaal, Rekenmachine, venstercompositor en window-init gebruiken de bestaande IPC_WAIT alleen wanneer zij aantoonbaar geen eigen werk hebben. De kernel, ABI, rechten, protocolberichten, opslag en transactietime-outs blijven gelijk. Geen nieuwe dependency, hardwaretoegang of gebruikerspointer. Een hosttest of ELF-build bewijst geen lage CPU-belasting of complete native herstelacceptatie.
+Materiaal, Calculator, the window compositor and window-init use the existing IPC_WAIT only when they demonstrably have no work of their own. Kernel, ABI, permissions, protocol messages, storage and transaction timeouts remain the same. No new dependency, hardware access or user pointer. A host test or ELF build does not prove low CPU usage or complete native recovery acceptance.
 
-De basis heeft een bekende hersteluitval: de normale volledige vensterprobe op b1b292a faalt na de compositorcrash. De lokale Windows/WHPX-run eindigde werkelijk met raw exit 35 en APP_EXIT, zonder adapter- of cleanupfout. Dat bewijs wordt niet groen gemaakt door deze optimalisatie. Voor native A/B moet eerst de afzonderlijke centrale herstelreparatie worden opgenomen en opnieuw langs de gewijzigde toestanden worden gecontroleerd.
+The baseline has a known recovery failure: the normal complete window probe on b1b292a fails after the compositor crash. The local Windows/WHPX run actually ended with raw exit 35 and APP_EXIT, without an adapter or cleanup error. This optimisation does not turn that evidence into a pass. Native A/B testing first requires incorporation of the separate central recovery fix and rechecking of the changed states.
 
 ## Contract
 
-- Bekende ABI 1.8/1.9 behoudt het bestaande yield-pad; ABI 1.10/1.11 kan IPC_WAIT gebruiken. Voor deze display/input-apps worden ABI 1.0-1.7 expliciet geweigerd; hun werking was niet aangetoond. Onbekende ABI en ongeldige klok/wachtmasker/rechten geven geen pollingfallback.
-- Een wachtplan gebruikt uitsluitend een bestaand ontvangstrecht en `now.checked_add(1)`. Dit is een afbreekgrens voor rust; het maakt of vernieuwt geen transactiedeadline. De kernel blijft rechten en queuevoorwaarden afdwingen.
-- Een wake is slechts aanleiding om opnieuw te controleren. Zij consumeert geen bericht, verleent geen recht en vervangt geen echte receive/PEEK of antwoordvalidatie.
-- De inputroute gebruikt pull-PEEK. Een Empty-antwoord belooft geen toekomstige pushmelding. Bij de appadapters volgt uiterlijk de volgende PIT-tick opnieuw een echte invoercontrole; de control-queue kan eerder wakker maken. De compositor behoudt de bestaande INPUT_POLL_TICKS=2: hij wordt uiterlijk de volgende tick wakker, maar doet PEEK op de bestaande tweepitscadans. Dit is geen nieuwe garantie van een input-PEEK iedere tick.
-- Een onopgeslagen maar volledig getekend document mag rusten. Document-dirty is niet render-dirty. Opslaan, onzekerheid, conflict, gesloten transports, rebind, pending aanbod, onvolledig frame en uitgeputte invoerbatch verhinderen rust.
-- De compositor rust uitsluitend na een werkelijk lege ingress-pass, zonder reply/inputbacklog, pending SUR1-tegel of gedeeltelijk frame en zonder resterende damage. De wrapper roept de oorspronkelijke SUR1-ontvanger aan; afzender-, epoch-, request-, lengte-, COMMIT- en blitcontroles blijven leidend.
-- Window-init rust uitsluitend in Running, gereedmasker31 en bij een werkelijk lege registry, zonder herstel of shutdown. Pause/rebind/resume heeft voorrang.
+- Known ABI 1.8/1.9 retains the existing yield path; ABI 1.10/1.11 can use IPC_WAIT. For these display/input apps, ABI 1.0–1.7 is explicitly rejected; operation on those versions was not demonstrated. Unknown ABI and invalid clock/wait mask/permissions provide no polling fallback.
+- A wait plan uses only an existing receive permission and `now.checked_add(1)`. This is an interruption bound for idling; it neither creates nor renews a transaction deadline. The kernel continues to enforce permissions and queue conditions.
+- A wake is only a reason to recheck. It consumes no message, grants no permission and replaces neither actual receive/PEEK nor reply validation.
+- The input route uses pull PEEK. An Empty reply promises no future push notification. App adapters perform another actual input check no later than the next PIT tick; the control queue can wake them earlier. The compositor retains the existing INPUT_POLL_TICKS=2: it wakes no later than the next tick but performs PEEK at the existing two-tick cadence. This is not a new guarantee of an input PEEK every tick.
+- An unsaved but fully drawn document may idle. Document-dirty is not render-dirty. Saving, uncertainty, conflict, closed transports, rebind, a pending offer, an incomplete frame and an exhausted input batch prevent idling.
+- The compositor idles only after an actually empty ingress pass, without reply/input backlog, pending SUR1 tile or partial frame, and without remaining damage. The wrapper calls the original SUR1 receiver; sender, epoch, request, length, COMMIT and blit checks remain authoritative.
+- Window-init idles only in Running, with ready mask 31 and an actually empty registry, without recovery or shutdown. Pause/rebind/resume takes priority.
 
-## Wijzigingsgebied
+## Change scope
 
-`sdk/examples/materiaal/`, `sdk/examples/calculator/` en `sdk/examples/window-session/`. De typed RPC- en native IPC_WAIT-interfaces zijn ongewijzigd. Nieuwe helpers bevatten alleen rustvoorwaarden, checked deadlines en wake-maskvalidatie. Het oorspronkelijke dataverkeer en de herstelvolgorde worden niet vervangen.
+`sdk/examples/materiaal/`, `sdk/examples/calculator/` and `sdk/examples/window-session/`. The typed RPC and native IPC_WAIT interfaces are unchanged. New helpers contain only idle conditions, checked deadlines and wake-mask validation. Original data traffic and recovery order are not replaced.
 
-## Uitgevoerde componentcontroles
+## Executed component checks
 
-De compacte brongebonden checkpointmetadata staat onder `docs/verification/gui-idle-20261102/`. Op de implementatie vóór opname van de volgende centrale herstelbron zijn daadwerkelijk geslaagd:
+Compact source-bound checkpoint metadata is under `docs/verification/gui-idle-20261102/`. On the implementation before incorporation of the subsequent central recovery source, the following actually passed:
 
-- Materiaal:35 hosttests, Rekenmachine:24 hosttests, window-session:24 hosttests.
-- Native componentbuilds en ELF-inspectie; afzonderlijke Materiaal ELF-grenscontrole.
-- Host- en native-Clippy met `-D warnings`, scoped rustfmt en diffcontrole.
-- Negatieven omvatten onbekende ABI, checked overflow, stale rendergeneratie, save/uncertainty/rebind, input na Empty, volle batch, gedeeltelijke SUR1-transacties, volledig oud frame gevolgd door gedeeltelijk nieuw frame, backpressure en ongeldige wachtmaskers. Begin op tick10 houdt Commit209 toegestaan en Commit210 timeout; fragmenten vernieuwen de bestaande deadline niet.
+- Materiaal: 35 host tests; Calculator: 24 host tests; window-session: 24 host tests.
+- Native component builds and ELF inspection; separate Materiaal ELF-boundary check.
+- Host and native Clippy with `-D warnings`, scoped rustfmt and diff check.
+- Negative cases include unknown ABI, checked overflow, stale render generation, save/uncertainty/rebind, input after Empty, a full batch, partial SUR1 transactions, a complete old frame followed by a partial new frame, backpressure and invalid wait masks. Starting at tick 10 keeps Commit209 permitted and Commit210 timed out; fragments do not renew the existing deadline.
 
-Dit zijn componentuitkomsten. Volledige native beeld-/herstel-/opslagacceptatie en CPU-winst zijn op dit checkpoint nog niet aangetoond.
+These are component results. Complete native image/recovery/storage acceptance and CPU improvement have not yet been demonstrated at this checkpoint.
 
-## Native A/B na herstelintegratie
+## Native A/B after recovery integration
 
-1. Leg de nieuwe, herstelde basis vast; bouw baseline en idlevariant in verschillende checkouts/targets met dezelfde compiler, firmware, QEMU, backend, een vCPU en disposable media.
-2. Behoud de volledige bestaande run_window_session-probe: exacte appbeelden en beschermde randen, echte invoer-ACKs, compositorfault, model/epochbehoud, save/reopen, diskoracle, cleanup en rawexit33.
-3. Meet CPU pas bij exact overeenkomstige stabiele beelden en rapporteer beschikbare app-/rendercounters vóór/na. Gebruik minimaal vijftien seconden monotone hosttijd, proces- en vCPU-threadaccounting. Een gecontroleerde QMP-pauze is uitsluitend diagnostiek en geen idleoptimalisatie.
-4. Controleer invoer en control/STOP na rust en herhaal met dezelfde backend. Rapporteer spreiding en hostbelasting. Doel is minstens80% lagere mediane CPU-belasting bij het geverifieerde stille beeld; zonder meting blijft dit een doel.
-5. Geen nieuwe roadmap-punten voor deze performancewijziging. U01/U02 en andere productgates hebben hun eigen acceptatie.
+1. Record the new corrected baseline; build baseline and idle variant in different checkouts/targets with the same compiler, firmware, QEMU, backend, one vCPU and disposable media.
+2. Retain the complete existing run_window_session probe: exact app images and protected borders, actual input ACKs, compositor fault, model/epoch preservation, save/reopen, disk oracle, cleanup and raw exit 33.
+3. Measure CPU only at exactly matching stable images and report available app/render counters before/after. Use at least fifteen seconds of monotonic host time, process and vCPU-thread accounting. A controlled QMP pause is diagnostic only, not an idle optimisation.
+4. Check input and control/STOP after idling and repeat with the same backend. Report spread and host load. The target is at least 80% lower median CPU usage at the verified static image; without measurement this remains a target.
+5. No new roadmap points for this performance change. U01/U02 and other product gates have their own acceptance.
 
-## Herstel
+## Rollback
 
-De verandering staat in een afzonderlijke branch en kan als afgebakende commit worden teruggenomen. De bestaande kernel en protocolimplementaties worden niet aangepast. Geen BIOS-, driver-, Windows-feature-, beveiligings- of fysieke-apparaatwijziging is onderdeel van deze taak.
+The change is in a separate branch and can be reverted as a bounded commit. Existing kernel and protocol implementations are not modified. No BIOS, driver, Windows-feature, security or physical-device change is part of this task.
 
-## Geïntegreerde herstelbron337f2f2
+## Integrated recovery source 337f2f2
 
-De centrale opvolger `337f2f29f1833ef4a8d2cd640b09419f85dbb83b` is afzonderlijk opgenomen. Zijn Recovery-fases en ready_bit-validatie zijn intact; recovery.rs en tests/recovery.rs zijn byte-identiek. Init weigert bovendien rust bij recovery.is_some(), ook als een recovering-vlag inconsistent zou zijn. De nieuwe echte-fasentest doorloopt pause, ready, rebind-ACK en complete. Na integratie slagen31 window-session-hosttests plus host/native/fault-Clippy, beide native componentbuilds/ELF, fmt en diff. Exacte commando's/loghashes staan in `../verification/gui-idle-20261102/recovery-integration/commands.json`. Volledige native acceptatie en CPU-winst moeten apart worden gemeten.
+The central successor `337f2f29f1833ef4a8d2cd640b09419f85dbb83b` was incorporated separately. Its Recovery phases and ready_bit validation are intact; recovery.rs and tests/recovery.rs are byte-identical. Init additionally rejects idling when recovery.is_some(), even if a recovering flag were inconsistent. The new actual-phase test passes through pause, ready, rebind ACK and complete. After integration, 31 window-session host tests plus host/native/fault Clippy, both native component builds/ELF, fmt and diff pass. Exact commands/log hashes are in `../verification/gui-idle-20261102/recovery-integration/commands.json`. Complete native acceptance and CPU improvement must be measured separately.
 
-## Volledig native Windows-vervolg
+## Complete native Windows follow-up
 
-Alle zes formele Windows/WHPX-runs slagen: drie basisruns A op337/source3919 en drie idleruns B op1f2/source8faf. Iedere run doorloopt de oorspronkelijke dertien fasen, echte crash/herstel, save/reopen, schijforacle en cleanup/raw exit33. QEMU-procesCPU daalt mediaan88,26% bij exact dezelfde volledige schermbeelden. Dit vervangt geen lokaleTCG-, fysieke-, energie- of authenticatieacceptatie. Ruwe tellers, gecomprimeerde native/seriële originelen, hashes, meethelper en beperkingen: [Windows A/B](../verification/gui-idle-20261102/windows-ab/README.md).
+All six formal Windows/WHPX runs pass: three baseline runs A on 337/source3919 and three idle runs B on 1f2/source8faf. Each run completes the original thirteen phases, actual crash/recovery, save/reopen, disk oracle and cleanup/raw exit 33. Median QEMU process CPU usage falls by 88.26% at exactly the same complete screen images. This does not replace local TCG, physical, energy or authentication acceptance. Raw counters, compressed native/serial originals, hashes, measurement helper and limitations: [Windows A/B](../verification/gui-idle-20261102/windows-ab/README.md).
 
-## Centrale review en meetgrens
+## Central review and measurement boundary
 
-Op dezelfde fysieke pc, headlessWHPX/1vCPU/256MiB, slaagden zes volledige
-native routes met ongewijzigde bronrunner/pixels/ACKs/deadline/disk/cleanup.
-ProcesCPU-mediaan99,3724%→11,6663% van éénlogischeCPU in drie15s-intervallen
-per arm; gemeten medianedaling88,2600%. Dit is geen energie-, geen-redraw-
-of algemene prestatiegarantie. De compositor behoudt zijn2tick-polldrempel;
-een reeds verschuldigde poll kan door een1tick-wacht éénrustticklater volgen.
-Een harde20ms/p95-interactiegarantie en U02-acceptatie volgen hier niet uit.
-Zie windows-ab/README.md en central-review.json onder het verificatiearchief.
+On the same physical PC, headless WHPX/1 vCPU/256 MiB, six complete native
+routes passed with unchanged source runner/pixels/ACKs/deadline/disk/cleanup.
+Median process CPU usage was 99.3724%→11.6663% of one logical CPU in three
+15-s intervals per arm; measured median reduction 88.2600%. This is not an
+energy, no-redraw or general performance guarantee. The compositor retains
+its two-tick polling threshold; an already due poll can occur one idle tick
+later because of a one-tick wait. No hard 20-ms/p95 interaction guarantee or
+U02 acceptance follows. See windows-ab/README.md and central-review.json
+under the verification archive.
 
-## Centrale integratie afgerond
+## Central integration completed
 
-PR123 is na achttien groene CI-workflows opgenomen in de desktopbranch van
-PR122 als 8289d60; geen merge naar main. De finale TCG-venstergate op
-head 2a7b744/source0844 slaagt met alle dertien fasen en raw33. De test-only
-Python-F12-fix verandert de volledige bronhash; gecompileerde OS-bronnen en
-alle tien normale binaries blijven gelijk. Formele CPU-metingen behouden
-1f2/source8faf als bron. [Integratie, artifactcontrole en pakketbewijs](../verification/gui-idle-20261102/INTEGRATION.md).
+PR123 was incorporated into PR122's desktop branch as 8289d60 after eighteen
+passing CI workflows; no merge to main. The final TCG window gate on head
+2a7b744/source0844 passes with all thirteen phases and raw33. The test-only
+Python F12 fix changes the complete source hash; compiled OS sources and
+all ten normal binaries remain the same. Formal CPU measurements retain
+1f2/source8faf as their source.
+[Integration, artifact checks and package evidence](../verification/gui-idle-20261102/INTEGRATION.md).

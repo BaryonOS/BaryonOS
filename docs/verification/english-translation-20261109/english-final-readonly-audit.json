@@ -1,0 +1,37 @@
+{
+  "base": "9922810a18f2272f534e1539e2d980d3d8922bb3",
+  "head": "a462e0dda14658db7e4c4fa0dbad8f971201022d",
+  "inspected_working_tree": true,
+  "scope": "Read-only audit of active project-owned prose and local Markdown links; no external HTTP requests.",
+  "repository_edits": false,
+  "language": {
+    "active_markdown_files_in_scan": 280,
+    "concrete_missed_active_prose": [],
+    "method": "Targeted and broad Dutch-word residual scans, followed by manual review of Markdown candidates; immutable evidence/source archives and actual UI, fixture and code literals excluded.",
+    "preserved_exceptions": [
+      "Original full-release request and source quotations, with English explanations or translations.",
+      "Historical CodeRabbit note inside docs/PROGRESS.md, with an English translation outside its preserved evidence block.",
+      "Actual Dutch session names in WORK-QUEUE and the VMware trial; actual UI labels and multilingual search aliases.",
+      "Legacy HTML anchor identifiers, which are compatibility metadata rather than narrative.",
+      "Existing native/prototype UI strings, fixture text and code literals outside this narrative audit."
+    ]
+  },
+  "links": {
+    "markdown_files_parsed": 648,
+    "working_fragment_links": 4543,
+    "newly_broken_heading_links": 0,
+    "new_unresolved_fragment_links": 0,
+    "newly_missing_local_file_targets": 0,
+    "preexisting_broken_fragment_links": 5,
+    "preexisting_missing_local_file_link_occurrences": 1062,
+    "all_15_initial_translation_breakages_resolved": true,
+    "required_compatibility_aliases": 11,
+    "generated_readme_alias": "The progress renderer now emits the legacy progress anchor, so regeneration preserves it.",
+    "baseline_heading_entries_verified": 646
+  },
+  "limitations": [
+    "No external HTTP validation was performed.",
+    "Pre-existing missing targets in historical archives were classified, not repaired.",
+    "The broad legacy-anchor proposals are optional compatibility work; they are not required to resolve current in-repository links."
+  ]
+}

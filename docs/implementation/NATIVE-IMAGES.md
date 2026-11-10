@@ -1,247 +1,262 @@
-# Native PNG/JPEG-decodecomponent
+# Native PNG/JPEG decoding component
 
-TASK-IMAGE-CODEC-NATIVE, basis `985ed4da0ead6865c8d1fd0d4deb34ef7f97f3eb`.
-Dit is een gedeeltelijke bouwsteen voor **FR-A03/UC04**, geen afbeeldingsviewer
-en geen aftekening van PNG/JPEG in hun geheel. Eigen kernel/capabilities blijven
-leidend; parsercode ontvangt bytes en geeft pixels terug, zonder display-,
-opslag-, netwerk-, sleutel- of entropycapability.
+TASK-IMAGE-CODEC-NATIVE, baseline `985ed4da0ead6865c8d1fd0d4deb34ef7f97f3eb`.
+This is a partial component for **FR-A03/UC04**, not an image viewer or
+approval of PNG/JPEG in their entirety. The project's kernel/capabilities
+remain authoritative; parser code receives bytes and returns pixels, without
+a display, storage, network, key or entropy capability.
 
-## Dependencybesluit vóór opname
+## Dependency decision before inclusion
 
-De officiële cratearchieven zijn eerst buiten de repository opgehaald en op
-crates.io-SHA256, bron, licenties, features, MSRV, allocaties, unsafe en
-buildscripts gecontroleerd. Daarna zijn de vijf exacte ontwikkelpins toegevoegd.
-[dependency-ledger.json](../../services/image-codec/dependency-ledger.json)
-legt alle hashes, broncommits uit `.cargo_vcs_info.json`, data en versies vast;
-[THIRD-PARTY.md](../../services/image-codec/THIRD-PARTY.md) bewaart de MIT-notices.
+The official crate archives were first downloaded outside the repository and
+checked for crates.io SHA256, source, licences, features, MSRV, allocations,
+unsafe code and build scripts. The five exact development pins were then
+added. [dependency-ledger.json](../../services/image-codec/dependency-ledger.json)
+records all hashes, source commits from `.cargo_vcs_info.json`, dates and
+versions; [THIRD-PARTY.md](../../services/image-codec/THIRD-PARTY.md) retains
+the MIT notices.
 
-| Crate | Pin / MSRV | Actieve keuze |
+| Crate | Pin / MSRV | Active choice |
 |---|---|---|
-| zune-png | 0.5.2 / 1.87 | no_std+alloc; defaults, SSE en portable-SIMD uit |
-| zune-jpeg | **0.5.16-rc3** / 1.77.1 | no_std+alloc; std/x86/neon/arith/portable-SIMD uit; expliciete ontwikkel-RC |
-| zune-core | 0.5.3 / 1.75 | Bytecursor/options; geen std/log/serde |
-| zune-inflate | 0.2.54 / geen opgegeven MSRV | Alleen zlib, geen gzip/std; werkelijk gebouwd met Rust1.90 |
-| simd-adler32 | 0.3.10 / geen opgegeven MSRV | Defaults/std/nightly uit; unknown-none heeft geen SSE2-targetfeature en kiest scalar |
+| zune-png | 0.5.2 / 1.87 | no_std+alloc; defaults, SSE and portable-SIMD disabled |
+| zune-jpeg | **0.5.16-rc3** / 1.77.1 | no_std+alloc; std/x86/neon/arith/portable-SIMD disabled; explicit development RC |
+| zune-core | 0.5.3 / 1.75 | Byte cursor/options; no std/log/serde |
+| zune-inflate | 0.2.54 / no declared MSRV | zlib only, no gzip/std; actually built with Rust 1.90 |
+| simd-adler32 | 0.3.10 / no declared MSRV | Defaults/std/nightly disabled; unknown-none has no SSE2 target feature and selects scalar |
 
-De actieve closure bevat exact deze vijf enginecrates: vier registrycrates en
-één lokaal geverifieerde JPEG-vendorcopy. De interne
-`zune-core feature default`-boog is leeg en activeert geen std. Geen crate heeft
-een buildscript, C-/hostdecoder of downloader. Zune-crates zijn MIT OF Apache2
-OF Zlib; Adler is MIT. Het inflate-cratearchief laat de volledige licentietekst
-weg; de gepinde repository biedt MIT expliciet aan. Die auteursnotice en de
-volledige MIT-tekst van hetzelfde project zijn daarom bewaard. Alleen de hieronder
-beschreven lokale JPEG-correctie wijkt van upstream af.
+The active dependency closure contains exactly these five engine crates:
+four registry crates and one locally verified JPEG vendor copy. The internal
+`zune-core feature default` edge is empty and activates no std. No crate has
+a build script, C/host decoder or downloader. Zune crates are MIT OR Apache2
+OR Zlib; Adler is MIT. The inflate crate archive omits the full licence text;
+the pinned repository explicitly offers MIT. That copyright notice and the
+complete MIT text from the same project have therefore been retained. Only
+the local JPEG correction described below differs from upstream.
 
-Primaire bronnen: [zune-image](https://github.com/etemesi254/zune-image),
+Primary sources: [zune-image](https://github.com/etemesi254/zune-image),
 [zune-png0.5.2](https://crates.io/crates/zune-png/0.5.2),
 [zune-jpeg0.5.16-rc3](https://crates.io/crates/zune-jpeg/0.5.16-rc3),
 [simd-adler32](https://github.com/mcountryman/simd-adler32).
-Het upstreamproject had op 24 oktober2026 recente JPEG-commits. Gerichte
-RustSec-bronzoekopdrachten voor zune-png/jpeg/inflate leverden geen vermeldingen
-op; dit is geen verklaring dat er geen kwetsbaarheden bestaan of volledige audit.
+The upstream project had recent JPEG commits on 24 October 2026. Targeted
+RustSec source searches for zune-png/jpeg/inflate returned no entries; this
+is neither a statement that no vulnerabilities exist nor a complete audit.
 
-Stable JPEG0.5.15 is bewust **niet** gekozen: upstream
-[#409](https://github.com/etemesi254/zune-image/issues/409) en
-[#382](https://github.com/etemesi254/zune-image/issues/382) tonen scalar/progressive
-panics en [#496](https://github.com/etemesi254/zune-image/issues/496) verkeerde
-kleuren, met fixes in nieuwere bron. De gekozen RC is geen productiegoedkeuring.
-Open upstreamvarianten blijven zichtbaar: APP14/grijs
-[#444](https://github.com/etemesi254/zune-image/issues/444), DRI-interval
+Stable JPEG 0.5.15 was deliberately **not** selected: upstream
+[#409](https://github.com/etemesi254/zune-image/issues/409) and
+[#382](https://github.com/etemesi254/zune-image/issues/382) show
+scalar/progressive panics, and
+[#496](https://github.com/etemesi254/zune-image/issues/496) incorrect colours,
+with fixes in newer source. The selected RC is not production approval.
+Open upstream variants remain visible: APP14/greyscale
+[#444](https://github.com/etemesi254/zune-image/issues/444), DRI interval
 [#509](https://github.com/etemesi254/zune-image/issues/509), YCCK
-[#442](https://github.com/etemesi254/zune-image/issues/442). Hun impact moet per
-ondersteund profiel met echte fixtures worden opgelost vóór formaatacceptatie.
+[#442](https://github.com/etemesi254/zune-image/issues/442). Their impact must
+be resolved for each supported profile with real fixtures before format
+acceptance.
 
-## API, formaten en resourcegrens
+## API, formats and resource boundary
 
-`services/image-codec` is een zelfstandige no_std-workspace. `decode` krijgt
-onveranderlijke geselecteerde objectbytes, expliciete `Limits` en annulering.
-Een geslaagde uitkomst bevat owned `Rgba8` of **owned `Rgba16`** en behoudt een
-borrow naar alle originele bytes inclusief metadata; er vindt geen re-encode
-of wijziging van het object plaats. `rgba8_into` maakt een gecontroleerde
-weergaveconversie met afronding naar acht bits; volle samples blijven behouden.
+`services/image-codec` is a standalone no_std workspace. `decode` receives
+immutable selected object bytes, explicit `Limits` and cancellation. A
+successful result contains owned `Rgba8` or **owned `Rgba16`** and retains a
+borrow of all original bytes including metadata; no re-encoding or object
+modification occurs. `rgba8_into` performs a checked display conversion with
+rounding to eight bits; full samples are preserved.
 
-PNG gebruikt de onderhouden `decode_into(&mut[u8])`-API met big-endian samples.
-De wrapper bouwt u16-waarden veilig iteratief op. Daardoor wordt de bekende
-`convert_u16_to_u8_slice`-aliascast uit upstreams andere `decode()`-pad niet
-uitgevoerd; de engine wordt niet onterecht als volledig unsafe-vrij beschreven.
-Filters, palette/tRNS, DEFLATE, CRC en Adam7 blijven in de onderhouden engine.
+PNG uses the maintained `decode_into(&mut[u8])` API with big-endian samples.
+The wrapper constructs u16 values safely and iteratively. Consequently, the
+known `convert_u16_to_u8_slice` alias cast from upstream's other `decode()`
+path is not executed; the engine is not incorrectly described as entirely
+free of unsafe code. Filters, palette/tRNS, DEFLATE, CRC and Adam7 remain in
+the maintained engine.
 
-De PNG-resource-envelop controleert alleen chunkgrenzen/aantal, afmetingen,
-metadatahoeveelheid en verboden animatiepad. iCCP en zTXt worden vooraf door
-de onderhouden inflater met beperkte output gecontroleerd: upstreams eigen
-metadata-inflater gebruikt anders een 1GiB-default. CRC+Adler en strict mode
-staan aan. De inflaterlimiet is best effort en kan tijdelijk overshoot/padding
-vragen; zij vervangt **niet** de harde procesarena. JPEG begrenst afmetingen,
-pixels, scans en werktoelating vóór de pixeldecode. Inputlengte begrenst metadata.
+The PNG resource envelope checks only chunk bounds/count, dimensions, metadata
+quantity and the prohibited animation path. iCCP and zTXt are prechecked by
+the maintained inflater with limited output: upstream's own metadata inflater
+otherwise uses a 1-GiB default. CRC+Adler and strict mode are enabled. The
+inflater limit is best effort and can temporarily require overshoot/padding;
+it does **not** replace the hard process arena. JPEG bounds dimensions,
+pixels, scans and work admission before pixel decoding. Input length bounds
+metadata.
 
-De wrapper reserveert eigen output fallible, maar upstream heeft infallible
-allocaties. Daarom moet de caller een apart parserproces met begrensde private
-arena gebruiken. OOM/panic daarin is terminaal; geen hostallocator of gedeeltelijk
-beeld wordt als succes gepubliceerd. Een echte native OOM-/herstart-/peerisolatie-
-proef blijft open. De huidige 8MiB-procesquota en 256MiB-allocatorpool worden
-niet tot productbeleid verheven; grote foto's blijven een expliciete producteis.
+The wrapper reserves its own output fallibly, but upstream has infallible
+allocations. The caller must therefore use a separate parser process with a
+bounded private arena. OOM/panic there is terminal; no host allocator or
+partial image is published as success. A real native OOM/restart/peer-isolation
+trial remains open. Current 8-MiB process quotas and the 256-MiB allocator
+pool are not elevated into product policy; large photographs remain an
+explicit product requirement.
 
-| Profiel | Werkelijk getoetst / huidige grens |
+| Profile | Actually tested / current boundary |
 |---|---|
-| PNG | RGB8, RGBA8/transparantie, palette4+tRNS, grayscale1, gray-alpha8, Adam7RGB8 en RGBA16 met exact behoud van samples. Geen claim dat alle bitdiepte-/kleuren-/metadata-combinaties afgetekend zijn. |
-| JPEG | Huffman baselineRGB4:4:4, progressiveYCbCr4:2:0 en grayscale8; pixels worden werkelijk gedecodeerd. Geldige EXIF-orientatie 1–8 stuurt de displaypixels van `rgba8_into`; zie de metadataregel. De oorspronkelijke progressive-kwaliteitsfout is hieronder rood→groen bewezen, zonder drempelwijziging. |
-| Nog open | PNG2/andere combinaties, APNG-compositie/animatie, CMYK/YCCK, arithmetic/lossless/high-precisionJPEG, DRI/APP14 en verdere corpusdekking. `UnsupportedAnimation/Color/Precision` is een expliciete implementatiegrens, geen verborgen hardwaretoestand. |
-| Metadata | Originele bytes inclusief EXIF/ICC en ruwe decoderpixels blijven onveranderd; bronafmetingen en `pixel_hash` blijven in decoderorde. Voor JPEG past `rgba8_into` geldige EXIF-orientatie 1–8 toe op de displaypixels en -afmetingen. Een EXIF-APP1-payload groter dan `Limits::metadata_bytes` weigert het beeld met `Error::MetadataLimit`, zonder terugval naar ontbrekende orientatie. Ongeldige EXIF-structuur of -waarden worden genegeerd (geen orientatie). `metadata_transforms_applied=false` beschrijft de ruwe samples; ICC/gamma-kleurbeheer en PNG eXIf blijven buiten scope. De EXIF-tag volgt CIPA DC-008-2012, *Exchangeable image file format for digital still cameras: Exif Version 2.3* ([primaire specificatie](https://www.cipa.jp/std/documents/e/DC-008-2012_E.pdf)). De app-local viewer verwerkt orientatie nu ook in tegels/zoom/pan; native viewerflow, export en editorintegratie blijven open. |
-| Annulering | Vooraf/PNG-chunkgrenzen/na decode; JPEG heeft daarnaast de echte upstream MCU-checkhook. Native proef toetst vooraf annuleren, geen gemeten mid-decode-annuleringslatentie. PNG-mid-decode vereist nog procesannulering of onderhouden incremental pad. |
+| PNG | RGB8, RGBA8/transparency, palette4+tRNS, grayscale1, gray-alpha8, Adam7RGB8 and RGBA16 with exact sample preservation. No claim that all bit-depth/colour/metadata combinations are approved. |
+| JPEG | Huffman baselineRGB4:4:4, progressiveYCbCr4:2:0 and grayscale8; pixels are actually decoded. Valid EXIF orientation 1–8 controls the display pixels from `rgba8_into`; see the metadata rule. The original progressive quality error is demonstrated below as failing→passing, without changing the threshold. |
+| Still open | PNG2/other combinations, APNG composition/animation, CMYK/YCCK, arithmetic/lossless/high-precision JPEG, DRI/APP14 and further corpus coverage. `UnsupportedAnimation/Color/Precision` is an explicit implementation boundary, not a hidden hardware state. |
+| Metadata | Original bytes including EXIF/ICC and raw decoded pixels remain unchanged; source dimensions and `pixel_hash` remain in decoder order. For JPEG, `rgba8_into` applies valid EXIF orientation 1–8 to display pixels and dimensions. An EXIF APP1 payload larger than `Limits::metadata_bytes` rejects the image with `Error::MetadataLimit`, without falling back to absent orientation. Invalid EXIF structure or values are ignored (no orientation). `metadata_transforms_applied=false` describes the raw samples; ICC/gamma colour management and PNG eXIf remain outside scope. The EXIF tag follows CIPA DC-008-2012, *Exchangeable image file format for digital still cameras: Exif Version 2.3* ([primary specification](https://www.cipa.jp/std/documents/e/DC-008-2012_E.pdf)). The app-local viewer now also processes orientation in tiles/zoom/pan; the native viewer flow, export and editor integration remain open. |
+| Cancellation | Before decoding/at PNG chunk boundaries/after decoding; JPEG also has the actual upstream MCU check hook. The native trial tests cancellation beforehand, not measured mid-decode cancellation latency. PNG mid-decode cancellation still requires process cancellation or a maintained incremental path. |
 
-## Stackgrens en eigen arena
+## Stack boundary and owned arena
 
-**Historische implementatie:** Nieuw OS, *image-viewer: render_tile*, versie
-`d269f9b4` (3 november 2026), tekent nog de ruwe decoderpixels
-([primaire rendererbron](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/sdk/examples/image-viewer/src/lib.rs)).
-EXIF-correctie in `rgba8_into` bewijst daarom geen georienteerde viewer of
-native gebruikersflow.
+**Historical implementation:** Baryon OS, *image-viewer: render_tile*, version
+`d269f9b4` (3 November 2026), still draws raw decoded pixels
+([primary renderer source](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/sdk/examples/image-viewer/src/lib.rs)).
+EXIF correction in `rgba8_into` therefore does not prove an oriented viewer
+or native user flow.
 
-**Huidige viewerconsumer:** `Orientation::display_dimensions` en de gecontroleerde
-`source_position` verbinden EXIF aan de bestaande tegelrenderer, zonder
-volledige beeldconversie. Displayafmetingen sturen Fit, zoom, pan en semantiek.
-Bronpixels, metadata en geselecteerde objectbytes blijven ongewijzigd.
-De [consumerproef](../verification/platform-m7-exif-viewer-20261103.md) beschrijft
-het nieuwe hostbewijs en de afzonderlijke native decoderregressie; een native
-viewerstart, objectportal en gebruikersflow blijven open.
+**Current viewer consumer:** `Orientation::display_dimensions` and the checked
+`source_position` connect EXIF to the existing tile renderer without full
+image conversion. Display dimensions control Fit, zoom, pan and semantics.
+Source pixels, metadata and selected object bytes remain unchanged. The
+[consumer trial](../verification/platform-m7-exif-viewer-20261103.md) describes
+the new host evidence and separate native decoder regression; native viewer
+startup, the object portal and user flow remain open.
 
-**Testbewijs:** Nieuw OS, *viewer-fixture en kleine image-integratieslice*,
-versie `d269f9b4` (3 november 2026): de fixture is voor de nieuwe
-`Image`-velden bijgewerkt en afzonderlijk meegetest
-([primaire testbron](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/sdk/examples/image-viewer/tests/viewer.rs),
-[commando's en resultaten](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/docs/verification/integration-sprint-20261103-image.md)).
+**Test evidence:** Baryon OS, *viewer fixture and small image integration slice*,
+version `d269f9b4` (3 November 2026): the fixture was updated for the new
+`Image` fields and tested separately
+([primary test source](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/sdk/examples/image-viewer/tests/viewer.rs),
+[commands and results](https://github.com/simonvanieperen/nieuw-os/blob/d269f9b45a54576b39629b36de94f9cdbb9f6f71/docs/verification/integration-sprint-20261103-image.md)).
 
-Een eerste instructiescreen zag alleen losse stackaanpassingen tot4KiB. Dat
-was onvoldoende: het werkelijke decoderframe reserveerde cumulatief30760bytes.
-Samen met een statisch bereikbare scan-/DHT-keten was77232bytes zichtbaar,
-meer dan de huidige64KiB-stack. Dit was een codegeneratiebevinding, geen
-uitgevoerde stackfault en geen volledige branchtrace.
+An initial instruction screen found only individual stack adjustments up to
+4 KiB. That was insufficient: the actual decoder frame reserved a cumulative
+30760 bytes. Together with a statically reachable scan/DHT chain, 77232 bytes
+were visible, exceeding the current 64-KiB stack. This was a code-generation
+finding, not an executed stack fault or complete branch trace.
 
-De eigen wrapper construeert de grote JPEG-decoder nu in een afzonderlijke
-`#[inline(never)]`-helper en verplaatst hem naar een owned Box-slice in de
-private arena. De allocatie gebruikt eerst het stabiele
-`Vec::try_reserve_exact(1)`; capaciteit1 wordt gecontroleerd zodat de daaropvolgende
-Box-conversie geen shrinkallocatie nodig heeft. Een constructieallocatiefout
-is fallible; latere infallible upstreamallocaties blijven terminaal bij OOM.
-PNG/JPEG-stackframes blijven apart. Kernelstack en procesquota zijn niet verhoogd.
+The wrapper now constructs the large JPEG decoder in a separate
+`#[inline(never)]` helper and moves it into an owned Box slice in the private
+arena. Allocation first uses stable `Vec::try_reserve_exact(1)`; capacity 1
+is checked so the subsequent Box conversion needs no shrinking allocation.
+A construction allocation error is fallible; later infallible upstream
+allocations remain terminal on OOM. PNG/JPEG stack frames remain separate.
+Kernel stack and process quotas were not increased.
 
 [stack-codegen.json](../../services/image-codec/verification/stack-codegen.json)
-legt werkelijk none-ELF en LLVM-IR vast: dispatchframe8bytes, JPEGcaller616,
-constructiehelper30216. Het30056-byte-objectslot staat uitsluitend in die helper,
-die terugkeert vóór het parserwerk. Dezelfde onderzochte DHT-callchain reserveert
-nu47104bytes, circa18KiB onder64KiB. De gastentry reserveert daarnaast248bytes.
-Een afzonderlijke statische progressive→marker→Huffman-keten staat ook in het
-rapport:17664bytes vóór guestentry/overige niet gemodelleerde frames; de echte
-progressivefixture bevat DHT-markers na de eerste SOS. Dit blijft statische
-bereikbaarheid, geen uitgevoerde branchtrace of volledige maximale callchain.
-Dit is geen maximale-stackbewijs voor alle branches of native OOM-/guardproef;
-de echte VM-uitvoering blijft verplicht. Alle beeldhashes blijven ongewijzigd.
+records actual none ELF and LLVM IR: dispatch frame 8 bytes, JPEG caller 616,
+construction helper 30216. The 30056-byte object slot exists only in that
+helper, which returns before parser work. The same inspected DHT call chain
+now reserves 47104 bytes, approximately 18 KiB below 64 KiB. The guest entry
+additionally reserves 248 bytes. A separate static progressive→marker→Huffman
+chain is also in the report: 17664 bytes before guest entry/other unmodelled
+frames; the actual progressive fixture contains DHT markers after the first
+SOS. This remains static reachability, not an executed branch trace or a
+complete maximum call chain. This is not a maximum-stack proof for all
+branches or a native OOM/guard trial; actual VM execution remains mandatory.
+All image hashes remain unchanged.
 
-De volgende echte VM op `9aa74870de55387094414c3ec1a909fbeec53c81` vond een
-andere, eerder niet meegenomen keten: PID5 kreeg een pagefault in
-`capture_scan_header_state`, RIP `0x40118aaa`, adres `0x7ffee9e8` onder de
-stackguard `0x7ffef000`. De grote inline snapshot plus clone reserveerde daar
-ongeveer60KiB vóór de callerframes. De oorspronkelijke fault blijft rood bewijs;
-de eerdere geselecteerde DHT-ketens waren geen volledige maximale-stackanalyse.
+The next real VM on `9aa74870de55387094414c3ec1a909fbeec53c81` found another
+previously unexamined chain: PID5 received a page fault in
+`capture_scan_header_state`, RIP `0x40118aaa`, address `0x7ffee9e8` below
+the stack guard `0x7ffef000`. The large inline snapshot plus clone reserved
+approximately 60 KiB there before caller frames. The original fault remains
+failing evidence; the previously selected DHT chains were not a complete
+maximum-stack analysis.
 
-De tweede lokale vendorpatch bewaart nu exact vier DC- en vier AC-tabelslots,
-inclusief `None`, in fallible gereserveerde Vec-buffers. Vastgelegde quantisatie,
-arith-conditioning/statistiekvelden, restartinterval, kleurenruimte, Adobe en
-mjpegstatus blijven behouden. Capture en beide replaykopieën geven bij een
-mislukte reservering `AllocationFailed`; de wrapper geeft `OutOfMemory`.
-Alle nieuwe reserveringen slagen vóór hun lokale parser-/checkpointmutatie.
-`headers_decoded` wordt pas na succesvolle snapshot gepubliceerd. Herstel
-kopieert afzonderlijke tabellen; EOF-/annuleringsrollback en SOS-checkpoints
-behouden hun bestaande gedrag. Er is geen nieuwe unsafe of codec-algoritme.
-De bestaande kleine `Box::new`-owners en overige upstreamallocaties zijn hiermee
-niet alle fallible gemaakt; native OOM-isolatie blijft apart verplicht.
+The second local vendor patch now preserves exactly four DC and four AC
+table slots, including `None`, in fallibly reserved Vec buffers. Recorded
+quantisation, arithmetic-conditioning/statistics fields, restart interval,
+colour space, Adobe and mjpeg status remain preserved. Capture and both
+replay copies return `AllocationFailed` on failed reservation; the wrapper
+returns `OutOfMemory`. All new reservations succeed before their local
+parser/checkpoint mutation. `headers_decoded` is published only after a
+successful snapshot. Recovery copies individual tables; EOF/cancellation
+rollback and SOS checkpoints retain their existing behaviour. There is no
+new unsafe code or codec algorithm. This does not make all existing small
+`Box::new` owners or other upstream allocations fallible; native OOM
+isolation remains separately required.
 
 [scan-snapshot-codegen.json](../../services/image-codec/verification/scan-snapshot-codegen.json)
-bindt de nieuwe ELF en geselecteerde cumulatieve prologen/callpaden. Dit blijft
-statisch codegenbewijs, geen uitgevoerde stack- of maximale-callchainproef.
-De arena blijft4MiB, de gebruikersstack64KiB en het native fixture-/hashcontract
-ongewijzigd. De volgende geïntegreerde VM moet het echte decoderen nog aftekenen.
+binds the new ELF and selected cumulative prologues/call paths. This remains
+static code-generation evidence, not an executed stack or maximum-call-chain
+trial. The arena remains 4 MiB, the user stack 64 KiB and the native fixture/
+hash contract unchanged. The next integrated VM must still approve actual
+decoding.
 
-## Uitgevoerd bewijs en echte rode kwaliteitsvraag
+## Executed evidence and the actual failing quality question
 
-Fixtures zijn eigen patronen met uiteenlopende maten, geen vooraf ingevuld
-succesbeeld. [generate.py](../../services/image-codec/fixtures/generate.py) is
-uitsluitend een hostencoder/orakel; Pillow12.3/libjpeg en bekende16bitsamples
-leveren onafhankelijke pixels. De OS-code bevat geen Pillow/std/hostdecodepad.
-Het manifest legt input-/referentiehashes vast. De PNG16-preview rondt full16
-samples; Pillow's achtbits PNG-view kapt af. De full16-referentie komt daarom
-uit de bekende bronwaarden van de fixtureencoder en wordt sample voor sample
-gecontroleerd; Pillow leest daarnaast de echte PNG-file.
+Fixtures are original patterns of varying dimensions, not prepopulated success
+images. [generate.py](../../services/image-codec/fixtures/generate.py) is
+only a host encoder/oracle; Pillow 12.3/libjpeg and known 16-bit samples
+provide independent pixels. OS code contains no Pillow/std/host decoding
+path. The manifest records input/reference hashes. The PNG16 preview rounds
+full 16-bit samples; Pillow's eight-bit PNG view truncates. The full16
+reference therefore comes from the fixture encoder's known source values
+and is checked sample by sample; Pillow also reads the actual PNG file.
 
-Het oorspronkelijke [rode rapport](../../services/image-codec/verification/host-tests-before-h2v2.json)
-blijft bewaard op checkpoint5910204: 10 groepen,8 groen/2 rood,exit101. Beide
-rode groepen bevatten dezelfde progressive4:2:0-vergelijking: maximaal4 in plaats
-van de vooraf vastgelegde3, twee van87236 kanalen, beide blauw op(176,17)/(175,18).
-Totale absolute afwijking27763; kwadratische afwijking43153. De grens blijft3.
+The original [failing report](../../services/image-codec/verification/host-tests-before-h2v2.json)
+is retained at checkpoint 5910204: 10 groups, 8 passed/2 failed, exit 101.
+Both failing groups contain the same progressive 4:2:0 comparison: maximum
+4 instead of the preregistered 3, two of 87236 channels, both blue at
+(176,17)/(175,18). Total absolute deviation 27763; squared deviation 43153.
+The threshold remains 3.
 
-De causale hostdiagnose leest echte componentplanes uit de ongewijzigde decoder.
-Pillow/libjpeg-turbo**3.1.4.1** levert via JPEGdraft(YCbCr, oorspronkelijke grootte)
-een onafhankelijke referentie, zonder RGB-roundtrip. Het oude twee-stapsmodel
-reproduceert alle65427 oorspronkelijke YCbCr-bytes exact. De afwijkende pixels
-hebben hetzelfde Y en een Cb dat2 hoger is; dat verklaart de blauwe afwijking4.
-De standaard9:3:3:1-interpolatie met één afronding reduceert deze chromafout.
-[Componentbewijs](../../services/image-codec/verification/jpeg-components.json)
-behoudt de meetwaarden; de hostdiagnostic is uitsluitend hostgereedschap.
+The causal host diagnosis reads real component planes from the unchanged
+decoder. Pillow/libjpeg-turbo **3.1.4.1** supplies an independent reference
+through JPEG draft(YCbCr, original size), without an RGB round trip. The old
+two-step model exactly reproduces all 65427 original YCbCr bytes. The affected
+pixels have the same Y and a Cb higher by 2; this explains the blue deviation
+of 4. Standard 9:3:3:1 interpolation with a single rounding reduces this
+chroma error. [Component evidence](../../services/image-codec/verification/jpeg-components.json)
+retains the measurements; the host diagnostic is host tooling only.
 
-De lokale correctie verandert **alleen scalar `upsample_hv`**. Zij drukt de
-wiskundige trianglegewichten en afwisselende8/7-tiebias uit in eigen veilige
-Rust-code; er is geen C-bron overgenomen. Primaire referentie:
-[libjpeg-turbo jdsample.c, commit9217719d…](https://github.com/libjpeg-turbo/libjpeg-turbo/blob/9217719d3a58633923b096af4c1d50d304768a64/src/jdsample.c#L362).
-Er wordt geen upstreamacceptatie geclaimd. Het originele cratearchief, SHA,
-[exacte kleine diff](../../services/image-codec/vendor/upstream/upsample-hv.patch)
-en [alle bronhashes](../../services/image-codec/vendor/upstream/source-verification.json)
-blijven bewaard. Deze eerste patch wijzigt alleen `upsample_hv`. De afzonderlijke
-[snapshotpatch](../../services/image-codec/vendor/upstream/scan-header-heap.patch)
-wijzigt `decoder.rs`, `mcu.rs` en de expliciete allocatiefout in `errors.rs`;
-de overige37 upstreambestanden en alle licentieteksten zijn byte-identiek.
-Alleen deze letterlijke upstreambron en de unified-diff-contextregels hebben
-een lokale whitespace-stijluitzondering; zij worden niet herschreven om
-opmaakwaarschuwingen weg te poetsen. Wrapper/probe/tests blijven normaal getoetst.
-`verify_vendor.py` controleert die volledige bestandsset, archivehash, patchhash
-en ongewijzigde upsamplerprefix/-suffix vóór iedere native build; de tweede
-patch moet de exacte unified diff van uitsluitend haar drie bronbestanden zijn.
-Vier hostproeven weigeren gewijzigde bron/archive, een extra buildscript en
-een gewijzigde of niet met de bron overeenkomende snapshotpatch.
+The local correction changes **only scalar `upsample_hv`**. It expresses the
+mathematical triangle weights and alternating 8/7 tie bias in original safe
+Rust code; no C source was incorporated. Primary reference:
+[libjpeg-turbo jdsample.c, commit 9217719d…](https://github.com/libjpeg-turbo/libjpeg-turbo/blob/9217719d3a58633923b096af4c1d50d304768a64/src/jdsample.c#L362).
+No upstream acceptance is claimed. The original crate archive, SHA,
+[exact small diff](../../services/image-codec/vendor/upstream/upsample-hv.patch)
+and [all source hashes](../../services/image-codec/vendor/upstream/source-verification.json)
+remain preserved. This first patch changes only `upsample_hv`. The separate
+[snapshot patch](../../services/image-codec/vendor/upstream/scan-header-heap.patch)
+changes `decoder.rs`, `mcu.rs` and the explicit allocation error in `errors.rs`;
+the other 37 upstream files and all licence texts are byte-identical. Only
+this literal upstream source and unified-diff context lines have a local
+whitespace-style exception; they are not rewritten to remove formatting
+warnings. Wrapper/probe/tests remain subject to normal checks.
+`verify_vendor.py` checks that complete file set, archive hash, patch hash
+and unchanged upsampler prefix/suffix before every native build; the second
+patch must be the exact unified diff of only its three source files. Four
+host trials reject changed source/archive, an additional build script and
+a changed snapshot patch or one that does not match the source.
 
-Vijf nieuwe hostproeven injecteren echte allocatiefouten in de productie-engine,
-controleren beide publieke OOM-foutpaden en hergebruiken dezelfde decoder na
-snapshot-/checkpointfouten. De synthetische
-[drie-SOS-fixture](../../services/image-codec/fixtures/scan-rollback/oracle.json)
-met DQT/DHT/DRI/COM/APP-wijzigingen is uitsluitend testdata; Pillow/libjpeg dient
-als onafhankelijke hostreferentie. EOF en annulering tussen scans moeten herstel
-met exact dezelfde pixels toelaten. Deze extra hostfixture verandert de tien
-native invoerbeelden, de kwaliteitstolerantie of de verplichte formaatomvang niet.
+Five new host trials inject real allocation failures into the production
+engine, check both public OOM error paths and reuse the same decoder after
+snapshot/checkpoint errors. The synthetic
+[three-SOS fixture](../../services/image-codec/fixtures/scan-rollback/oracle.json)
+with DQT/DHT/DRI/COM/APP changes is test data only; Pillow/libjpeg serves as
+the independent host reference. EOF and cancellation between scans must allow
+recovery with exactly the same pixels. This additional host fixture changes
+neither the ten native input images, the quality tolerance nor the mandatory
+format scope.
 
-Het [oorspronkelijke rapport](../../services/image-codec/verification/host-tests.json)
-bevat **14 geslaagde testgroepen,exit0**:11 decodegroepen plus3 groepen op de
-werkelijk gepatchte upsampler. PNG-pixels en volle16bitsamples matchen exact.
-BaselineJPEG maximaal3,grayscale1,progressive nu3; progressive totaalabs1375 en
-kwadratisch1903. Dezelfde eerder rode tests blijven actief. Twaalf aanvullende
-echte baseline/progressiveJPEGs toetsen1×1,1×17,17×1,3×5,5×3,17×19; directe
-upsamplerproeven toetsen minimum-/maximumsamples, oneven breedtes, tiebias,
-capaciteitstaarten en ongeldige geometrie vóór enige outputwrite.
+The [original report](../../services/image-codec/verification/host-tests.json)
+contains **14 passing test groups, exit 0**: 11 decoding groups plus 3 groups
+on the actually patched upsampler. PNG pixels and full 16-bit samples match
+exactly. Baseline JPEG maximum 3, greyscale 1, progressive now 3; progressive
+total absolute deviation 1375 and squared deviation 1903. The same previously
+failing tests remain active. Twelve additional real baseline/progressive JPEGs
+check 1×1, 1×17, 17×1, 3×5, 5×3, 17×19; direct upsampler trials check
+minimum/maximum samples, odd widths, tie bias, capacity tails and invalid
+geometry before any output write.
 
-Andere proeven toetsen echte decompressiebom, truncatie, CRC, afmetings-/input-/
-werkgrenzen, cancel, onveranderde bron/output bij verkeerde capaciteit en
-hergebruik na fouten; 512 deterministische malformed mutaties veroorzaken
-geen panic. Dit is geen onbeperkte fuzz-/securityaudit. Clippy met `-D warnings`
-is uitgevoerd en slaagt. None-check en een echt statisch native ELF zijn gebouwd.
-Miri is niet uitgevoerd; deze proeven vervangen geen volledige memory-safety-audit.
-**Bij componentcheckpoint `9ae1c73` was QEMU-uitvoering nog niet uitgevoerd.**
-De eerste geïntegreerde imageproef op bron `2b5d69c69eaf4196eb00a8488c88273defe14770`
-stopte met raw exit35 en errorstep1 vóór decode: startupword0 is de bootmodus,
-niet de ABI-versie.
-De probe vraagt de ABI nu via `native::check_abi()` aan de lopende kernel;
-de oude mislukte proef blijft bewaard. Een nieuwe native decodeproef is nog open.
+Other trials check a real decompression bomb, truncation, CRC, dimension/input/
+work bounds, cancellation, unchanged source/output with wrong capacity and
+reuse after errors; 512 deterministic malformed mutations cause no panic.
+This is not an unlimited fuzz/security audit. Clippy with `-D warnings` was
+executed and passes. A none check and an actual static native ELF were built.
+Miri was not executed; these trials do not replace a complete memory-safety
+audit. **At component checkpoint `9ae1c73`, QEMU execution had not yet occurred.**
+The first integrated image trial on source
+`2b5d69c69eaf4196eb00a8488c88273defe14770` stopped with raw exit 35 and
+error step 1 before decoding: startup word 0 is the boot mode, not the ABI
+version. The probe now requests the ABI from the running kernel through
+`native::check_abi()`; the old failed trial remains preserved. A new native
+decoding trial remains open.
 
-## Native procescontract voor integratie
+## Native process contract for integration
 
-`sdk/examples/image-probe` bouwt met dezelfde Rust1.90 en eigen targetmap:
+`sdk/examples/image-probe` builds with the same Rust 1.90 and a dedicated
+target directory:
 
 ```sh
 LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-image-core-target \
@@ -251,31 +266,33 @@ LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-image-pro
   python3 -B sdk/examples/image-probe/build.py
 ```
 
-De eerste opdracht slaagt na de lokale afrondingscorrectie; het oorspronkelijke
-exit101-rapport en de ongewijzigde kwaliteitsdrempel blijven bewaard.
-De tweede geeft `extra_env.NOS_IMAGE_PROBE_ELF`, ELF-inspectie en SHA256; dit
-betekent bouwen, niet native succes. De root koppelt later opt-in
+The first command passes after the local rounding correction; the original
+exit-101 report and unchanged quality threshold remain preserved. The second
+returns `extra_env.NOS_IMAGE_PROBE_ELF`, ELF inspection and SHA256; this
+means a build, not native success. Root later connects opt-in
 `native-system-images=[native-system,process-memory,fpu-context]`, ABI1.7,
-Sys3/Sys4 en uitsluitend een bootmanifest-slot4 zonder extra caps. `_start`
-doet CLD+JMP en behoudt de loader-SysV-stackalignment. De guest vraagt zelf
-1024 verse heap-pagina's en draagt die uitsluitend over aan UserAllocator.
-Kernel/harnas leveren geen heap, gedecodeerde pixels of antwoordsucces.
+Sys3/Sys4 and only a boot-manifest slot 4 without additional capabilities.
+`_start` performs CLD+JMP and preserves the loader's SysV stack alignment.
+The guest itself requests 1024 fresh heap pages and transfers them exclusively
+to UserAllocator. Kernel/harness provide no heap, decoded pixels or successful
+reply.
 
-| Startupoffset | Native feit / verwachte pariteit |
+| Startup offset | Native fact / expected parity |
 |---|---|
-| 40/240 | done1 / errorstep0 alleen na alle assertions |
-| 400/408 | PNG8 (zevenvarianten+herdecode na fouten), JPEG3 |
-| 416/424 |149647 werkelijk verwerkte pixels /10 gecontroleerde negatieve uitkomsten |
-| 432/440 | Werkelijke FNV-1a64 pixelaggregatie `079d5118b890ae14` /623808 decoded samplebytes |
-| 448/456/464 |1024 heapgrowthpagina's /werkelijke arena-highwater>0≤4MiB /nul resterende allocaties |
-| 472/480/488 |1 cancel /werkelijke monotone start-/eindticks |
-| 496 |**QUALITY_OPEN=0** voor de opgeloste specifieke JPEG-orakelvraag; algemene formaat-/vieweracceptatie blijft open |
+| 40/240 | done1 / errorstep0 only after all assertions |
+| 400/408 | PNG8 (seven variants+redecode after errors), JPEG3 |
+| 416/424 | 149647 actually processed pixels /10 checked negative outcomes |
+| 432/440 | Actual FNV-1a64 pixel aggregation `079d5118b890ae14` /623808 decoded sample bytes |
+| 448/456/464 | 1024 heap-growth pages /actual arena high-water >0≤4MiB /zero remaining allocations |
+| 472/480/488 | 1 cancellation /actual monotonic start/end ticks |
+| 496 | **QUALITY_OPEN=0** for the resolved specific JPEG-oracle question; general format/viewer acceptance remains open |
 
-FNV is uitsluitend een paritychecksum, geen cryptografische authenticiteitsclaim.
-PNG-checksums corresponderen met onafhankelijke exacte samples. JPEG-checksums
-vergelijken dezelfde engineconfiguratie tussen host en guest; hun onafhankelijke
-beeldkwaliteit blijft apart getoetst. De rootobserver moet de werkelijke boot-PID
-bewaren, zodat latere workerslotreuse geen verkeerde identiteit accepteert.
-Daarna volgen exacte bron/imagebinding en cold jointregressie, echte OOM en
-procesannulering, objectRPC en compositor-/Materiaal-integratie. Een fullscreen
-preview, ELF of losse decode-proef tekent FR-A03 niet af.
+FNV is only a parity checksum, not a cryptographic authenticity claim. PNG
+checksums correspond to independent exact samples. JPEG checksums compare
+the same engine configuration between host and guest; their independent
+image quality remains separately tested. The root observer must retain the
+actual boot PID so that later worker-slot reuse does not accept the wrong
+identity. Exact source/image binding and a cold joint regression then follow,
+real OOM and process cancellation, object RPC and compositor/Materiaal
+integration. A full-screen preview, ELF or isolated decoding trial does not
+approve FR-A03.

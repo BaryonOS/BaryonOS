@@ -1,25 +1,25 @@
-# Video, grafische uitvoer, fonts en GUI
+# Video, graphical output, fonts and GUI
 
-De wiki behandelt tekstuitvoer, lineaire framebuffers, videomodi, fonts, buffering, compositing en GUI’s, plus specifieke GPU’s. Het boek noemt zijn VGA-tekstuitvoer een framebuffer; die terminologie blijft in de bron behouden. Een tekstconsole en een volledige desktopomgeving zijn verschillende ontwikkelniveaus.
+The wiki covers text output, linear framebuffers, video modes, fonts, buffering, compositing and GUIs, as well as specific GPUs. The book refers to its VGA text output as a framebuffer; that terminology is retained in the source. A text console and a complete desktop environment represent different stages of development.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [VGA Hardware](../corpus/wiki-02.md#w001697) [W001697] · revisie 30577 · 2026-05-17T09:47:51Z
-- [Drawing In a Linear Framebuffer](../corpus/wiki-13.md#w004597) [W004597] · revisie 30599 · 2026-05-21T22:46:51Z
-- [GOP](../corpus/wiki-13.md#w004512) [W004512] · revisie 30351 · 2026-03-18T19:37:13Z
-- [Double Buffering](../corpus/wiki-05.md#w002489) [W002489] · revisie 28579 · 2024-01-26T16:31:33Z
-- [Compositing](../corpus/wiki-08.md#w003354) [W003354] · revisie 28115 · 2023-07-09T23:12:52Z
-- [Graphics stack](../corpus/wiki-11.md#w004024) [W004024] · revisie 28083 · 2023-07-09T21:10:40Z
-- [GUI](../corpus/wiki-05.md#w002346) [W002346] · revisie 26818 · 2021-12-30T10:55:02Z
-- [PC Screen Font](../corpus/wiki-11.md#w003999) [W003999] · revisie 30385 · 2026-03-23T13:53:25Z
+- [VGA Hardware](../corpus/wiki-02.md#w001697) [W001697] · revision 30577 · 2026-05-17T09:47:51Z
+- [Drawing In a Linear Framebuffer](../corpus/wiki-13.md#w004597) [W004597] · revision 30599 · 2026-05-21T22:46:51Z
+- [GOP](../corpus/wiki-13.md#w004512) [W004512] · revision 30351 · 2026-03-18T19:37:13Z
+- [Double Buffering](../corpus/wiki-05.md#w002489) [W002489] · revision 28579 · 2024-01-26T16:31:33Z
+- [Compositing](../corpus/wiki-08.md#w003354) [W003354] · revision 28115 · 2023-07-09T23:12:52Z
+- [Graphics stack](../corpus/wiki-11.md#w004024) [W004024] · revision 28083 · 2023-07-09T21:10:40Z
+- [GUI](../corpus/wiki-05.md#w002346) [W002346] · revision 26818 · 2021-12-30T10:55:02Z
+- [PC Screen Font](../corpus/wiki-11.md#w003999) [W003999] · revision 30385 · 2026-03-23T13:53:25Z
 
-## Aansluiting op het PDF-boek
+## Related PDF book pages
 
-- Pagina 23–26: [B023](../corpus/boek.md#b023) tot [B026](../corpus/boek.md#b026).
+- Pages 23–26: [B023](../corpus/boek.md#b023) to [B026](../corpus/boek.md#b026).
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [3D Renderer Basics](../corpus/wiki-11.md#w004019) [W004019]
 - [Accelerated Graphic Cards](../corpus/wiki-03.md#w001854) [W001854]

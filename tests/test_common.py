@@ -71,6 +71,30 @@ class MachineSelection(unittest.TestCase):
             self.assertEqual(common.qemu_machine("pc-q35-7.2"), "pc-q35-7.2")
 
 
+class AccelerationSelection(unittest.TestCase):
+    def test_tcg_is_the_only_implicit_default(self):
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(common.qemu_accel(), "tcg,thread=single")
+        for value in ("", "tcg", "tcg,thread=single", "auto", "kvm:tcg"):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                common.qemu_accel(value)
+
+    def test_kvm_opt_in_requires_a_readable_writable_character_device(self):
+        device = Path("/dev/kvm")
+        with patch.object(common.Path, "is_char_device", return_value=False), \
+                patch.object(common.os, "access", return_value=True):
+            with self.assertRaisesRegex(RuntimeError, "KVM was requested"):
+                common.qemu_accel("kvm", device=device)
+        with patch.object(common.Path, "is_char_device", return_value=True), \
+                patch.object(common.os, "access", return_value=False):
+            with self.assertRaisesRegex(RuntimeError, "KVM was requested"):
+                common.qemu_accel("kvm", device=device)
+        with patch.object(common.Path, "is_char_device", return_value=True), \
+                patch.object(common.os, "access", return_value=True) as access:
+            self.assertEqual(common.qemu_accel("kvm", device=device), "kvm")
+            access.assert_called_once_with(device, os.R_OK | os.W_OK)
+
+
 class RunLoggedTimeout(unittest.TestCase):
     def test_timeout_saves_partial_output_and_metadata_before_reraising(self):
         with tempfile.TemporaryDirectory() as directory:

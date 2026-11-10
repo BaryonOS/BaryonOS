@@ -32,20 +32,27 @@ UPDATE_FEATURES = ("native-update", "test-update-cut")
 NETWORK_SYSTEM_FEATURES = ("native-system-net", "test-system-net-recover")
 TCP_SYSTEM_FEATURES = ("native-system-tcp", "test-system-tcp-recover")
 MEMORY_FEATURES = ("native-memory", "native-memory-nx", "native-memory-guard", "native-memory-peer", "native-memory-oom")
-WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi", "native-session-route")
+WINDOW_FEATURES = ("native-window-session", "native-window-session-probe", "native-window-session-hidpi", "native-window-session-hidpi-probe", "native-session-route")
 MATERIAAL_FEATURES = (*WINDOW_FEATURES, "native-system-materiaal", "native-system-session-preview", "native-system-materiaal-probe", "test-system-materiaal-recover", "test-system-materiaal-scale200")
 NAS_FEATURES = ("native-system-nas-probe", "test-system-nas-recover")
 RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
 IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
-SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
+POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error", "test-system-power-flush-timeout")
+SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
+SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
-                   "native-smp", "test-smp-ap-stall", "test-smp-ap-mismatch", "test-smp-ap-nmi",
+                   "native-acpi-s5", "test-acpi-s5-corrupt-dsdt",
+                   "native-smp", "native-smp-legacy", "native-smp-m3", "native-smp-m3-exit",
+                   "native-smp-m3-tlb-reuse", "native-smp-m3-lock-contention", "native-smp-m4",
+                   "test-smp-ap-stall", "test-smp-ap-mismatch", "test-smp-ap-nmi",
                    "test-smp-ap-double-fault", "test-smp-ap-ipi-deaf", "test-smp-ap-shootdown-deaf",
                    "test-smp-shootdown-skipped", "test-smp-ap-timer-dead", "test-smp-lockdep-order", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
                    "milestone-m4", *(f"test-m4-{case}" for case, _ in M4_CASES),
+                   "native-smp-m4-revoke",
+                   "native-smp-m3-exit",
                    "milestone-m5", *(f"test-m5-{case}" for case in M5_CASES),
                    "milestone-m6a", *(f"test-m6a-{case}" for case in M6A_CASES),
                    "milestone-m6b", *(f"test-m6b-{case}" for case in M6B_CASES),
@@ -115,9 +122,23 @@ def inspect_pe(path):
     return {"format": "AMD64 PE32+", "subsystem": "EFI_APPLICATION", "imports": 0}
 
 
+def native_smp_handoff_required(kernel_feature):
+    """Only opt-in native SMP test profiles need the ACPI/MADT SMP handoff."""
+    return bool(kernel_feature and any(
+        (part == "native-smp-legacy" or part.startswith("native-smp-m3") or part.startswith("native-smp-m4"))
+        for part in kernel_feature.split(",")
+    ))
+
+
 def build(loader_feature=None, kernel_feature=None, label="normal", image_version=None):
-    if kernel_feature in WINDOW_FEATURES:
-        wanted="desktop-hidpi" if kernel_feature=="native-window-session-hidpi" else "desktop-mode"
+    if native_smp_handoff_required(kernel_feature):
+        if loader_feature not in (None, "smp-handoff"):
+            raise ValueError("native SMP needs the matching SMP handoff loader")
+        loader_feature = "smp-handoff"
+    elif loader_feature == "smp-handoff":
+        raise ValueError("SMP handoff loader requires a native SMP kernel")
+    elif kernel_feature in WINDOW_FEATURES:
+        wanted="desktop-hidpi" if kernel_feature in ("native-window-session-hidpi", "native-window-session-hidpi-probe") else "desktop-mode"
         if loader_feature not in (None,wanted):
             raise ValueError("Window session requires its matching desktop loader")
         loader_feature=wanted
@@ -160,7 +181,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         extra_env, qsim_report = build_nas_users()
     elif kernel_feature in MATERIAAL_FEATURES:
         from build_materiaal import build_users as build_materiaal_users
-        extra_env, qsim_report = build_materiaal_users(probe=kernel_feature not in ("native-system-materiaal", "native-system-session-preview", *WINDOW_FEATURES), window_session=kernel_feature in WINDOW_FEATURES, fault_injection=kernel_feature=="native-window-session-probe", session_preview=kernel_feature=="native-session-route")
+        extra_env, qsim_report = build_materiaal_users(probe=kernel_feature not in ("native-system-materiaal", "native-system-session-preview", *WINDOW_FEATURES), window_session=kernel_feature in WINDOW_FEATURES, fault_injection=kernel_feature in ("native-window-session-probe", "native-window-session-hidpi-probe"), session_preview=kernel_feature=="native-session-route")
     elif kernel_feature == "native-display-probe":
         from run_display_probe import build_users as build_display_users
         extra_env, qsim_report = build_display_users()
@@ -239,7 +260,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             run_logged([sys.executable, "-B", str(ROOT / f"sdk/examples/{probe}/build.py")],
                        "build-system-net-probe", extra_env={"CARGO_TARGET_DIR": str(net_target)})
             binaries["net_probe"] = net_target / f"x86_64-unknown-none/release/{probe}"
-        if kernel_feature in ("native-net-service", "test-net-service-client-exit"):
+        if kernel_feature in ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke"):
             net_target = TARGET / "network-service"
             run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/network-service/build.py")],
                        "build-network-service", extra_env={"CARGO_TARGET_DIR": str(net_target)})
@@ -359,7 +380,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             manifest["supervisor"] = qsim_report
         elif kernel_feature in SYSTEM_FEATURES:
             manifest["system"] = qsim_report
-            if kernel_feature in ("native-net-service", "test-net-service-client-exit"):
+            if kernel_feature in ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke"):
                 manifest["network_service"] = {name: qsim_report[f"network_{name}"]
                                                for name in ("service", "client")}
             if kernel_feature in RANDOM_FEATURES:
@@ -389,7 +410,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test"])
+    parser.add_argument("--loader-feature", choices=["test-ebs-retry", "graphics-g0", "framebuffer", "signed-boot-test", "signed-boot", "smp-handoff"])
     parser.add_argument("--image-version", type=int, help="B03: NOS_IMAGE_VERSION of an update kernel")
     parser.add_argument("--kernel-feature", choices=KERNEL_FEATURES)
     args = parser.parse_args()

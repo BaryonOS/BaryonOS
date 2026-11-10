@@ -1,374 +1,394 @@
-# TASK-NATIVE-MATERIAAL — eerste native frontendketen
+# TASK-NATIVE-MATERIAAL — first native frontend chain
 
-## REV-APP-1 — huidige paint en juiste C-entry
+## REV-APP-1 — current paint and correct C entry
 
-De onafhankelijke appreview reproduceerde echt rood dat Ready400 na een
-voltooide paint nog groen bleef bij slechts tile0 van een nieuwere generatie.
-Controller.presented was zelf begrensd, maar de oude meetvlag was onjuist.
-Iedere nieuwe paint trekt Ready nu in; evidence controleert ook de huidige
-dirty/generatie. LastPresentedGeneration verandert uitsluitend nadat dezelfde
-actuele generatie/epoch via alle echte tileACKs Controller.presented bereikt.
-Ready400 wordt als laatste gepubliceerd, na eerst0 en de overige meetwoorden,
-zodat een kernelpreëmptie geen halfgepubliceerde groep groen kan lezen.
+The independent app review reproduced a real failure: after a completed
+paint, Ready400 remained positive when only tile 0 of a newer generation
+had completed. Controller.presented was itself bounded, but the old
+measurement flag was incorrect. Every new paint now withdraws Ready;
+evidence also checks the current dirty state/generation.
+LastPresentedGeneration changes only after that same current generation/epoch
+reaches Controller.presented through all actual tile ACKs. Ready400 is
+published last, after first writing 0 and the other measurement words, so
+kernel pre-emption cannot read a half-published group as successful.
 
-De andere gerichte reviewfix vervangt de extra entry-CALL door CLD, een echte
-RSPmod16==8-guard en JMP naar de nonreturning C-functie; de kernel levert al
-SysV C-entryalignment. Het werkelijke ELF wordt op guardbytes en directe JMP
-zonder extra CALL gecontroleerd. Negentien hostscenario's zijn groen, inclusief
-de eerst rode tegenproef. Compilatie/ELFinspectie blijven geen native uitvoering.
+The other targeted review fix replaces the extra entry CALL with CLD, an
+actual RSPmod16==8 guard and JMP to the non-returning C function; the kernel
+already supplies SysV C-entry alignment. The actual ELF is checked for guard
+bytes and a direct JMP without an extra CALL. Nineteen host scenarios pass,
+including the previously failing counterexample. Compilation/ELF inspection
+remain distinct from native execution.
 
-Extra observerwoorden504screen(1Materiaal/2Editor/3Confirm),512draftDirty,
-520draftLength,528draftFNV,536objectID(MAXbijgeen),624LastPresentedGeneration,
-632scale(1of2) zijn door root afgestemd en uit werkelijke Controller/DocumentSession
-afgeleid. Dit verandert geen grants, inputpolicy, draftinhoud of opslag.
-Native build gebruikt een private bronkopie met gehashte centrale SDK1.8-inputs;
-geen gedeelde SDKfiles zijn voor deze fix gewijzigd. Het afzonderlijke
-`sdk/examples/materiaal/verification/review-fixed.json` bindt rood/groen/ELF.
-De oudere pre-native.json blijft herkenbaar het vóór-reviewcheckpoint.
+Additional observer words 504 screen (1 Materiaal/2 Editor/3 Confirm),
+512 draftDirty, 520 draftLength, 528 draftFNV, 536 objectID (MAX if absent),
+624 LastPresentedGeneration, 632 scale (1 or 2) were agreed with root and
+derived from the actual Controller/DocumentSession. This changes no grants,
+input policy, draft content or storage. The native build uses a private source
+copy with hashed central SDK1.8 inputs; no shared SDK files were changed for
+this fix. The separate
+`sdk/examples/materiaal/verification/review-fixed.json` binds the failing/
+passing evidence and ELF. The older pre-native.json remains identifiable as
+the pre-review checkpoint.
 
-De afgebakende GUI-proef publiceert tevens640F12PressCount: uitsluitend een echt
-geauthenticeerd INP1-event PhysicalKey::F12/Press verhoogt deze checked teller.
-Repeat/Release of andere keys tellen niet; uitputting geeft een fout en wrapt
-niet. Dit is geen shutdownfunctie of nieuwe grant. De probe mag na werkelijk
-Saved→List→Reopened en een echte QMP-screenshot pas een nieuwe F12Press gebruiken
-om de afzonderlijke CPL3-controller zijn bestaande StopRPC te laten uitvoeren.
-Een late Enterrelease kan de afsluitbarrier daardoor niet voortijdig zetten.
+The bounded GUI trial also publishes 640 F12PressCount: only an actual
+authenticated INP1 event PhysicalKey::F12/Press increments this checked
+counter. Repeat/Release or other keys do not count; exhaustion returns an
+error and does not wrap. This is not a shutdown function or new grant. Only
+after actual Saved→List→Reopened and a real QMP screenshot may the probe use
+a new F12Press to let the separate CPL3 controller execute its existing
+StopRPC. A late Enter release therefore cannot set the shutdown barrier early.
 
-## TASK-MATERIAAL-NATIVE-APP — gescheiden native app, SUR1-freeze
+## TASK-MATERIAAL-NATIVE-APP — separate native app, SUR1 freeze
 
-31ab300 bouwbasis: main985ed4d plus frontend be0/d5 en display/input b2ad.
-Eigenaar native_ui_apps: ui/surface-protocol, sdk/input-client, nieuw voorbeeld
-sdk/examples/materiaal en dit document. Root bezit afzonderlijke compositor,
-bootstrap/centraleABI/build/workspace-locks. Gericht extra toegewezen:
-ui-core mouse.rs voor een publieke checked buttonconstructor en de eigen
-Controller voor een pointer-only cancelhook. Geen andere bestaande files.
+31ab300 build baseline: main 985ed4d plus frontend be0/d5 and display/input
+b2ad. Owner native_ui_apps: ui/surface-protocol, sdk/input-client, new example
+sdk/examples/materiaal and this document. Root owns the separate compositor,
+bootstrap/central ABI/build/workspace locks. Additional targeted allocation:
+ui-core mouse.rs for a public checked button constructor and the app's
+Controller for a pointer-only cancellation hook. No other existing files.
 
-Appslot3 krijgt geen DISPLAY/INPUT/Block/Entropy/Key/Network-cap. Compositor4
-heeft DISPLAY, source5 INPUT en policy6 alleen eigen IPC; echte PIDs blijven
-onderscheiden en komen uit kernelmetadata/startup. Init0 blijft supervisor.
-App heeft drie taak-kanaalparen (volume, INP1, surface) plus bestaande supervisor-
-controlRECV/registrySEND, binnen het bestaande quotum van vier receive-endpoints.
+App slot 3 receives no DISPLAY/INPUT/Block/Entropy/Key/Network capability.
+Compositor 4 has DISPLAY, source 5 INPUT and policy 6 only its own IPC;
+actual PIDs remain distinct and come from kernel metadata/startup. Init 0
+remains supervisor. The app has three task-channel pairs (volume, INP1,
+surface) plus the existing supervisor controlRECV/registrySEND, within the
+existing quota of four receive endpoints.
 
-Het afgestemde [SUR1-contract](../../ui/surface-protocol/README.md) is 48B-header,
-208B-chunkdata, maximaal vijf chunks per tile en één transaction-ID voor
-BEGIN/CHUNK/COMMIT. Alleen complete gevalideerde COMMIT plus echte DisplayClient-
-blit mag positief bevestigen. Root bouwt de ring3compositor tegen de pure
-Receiver/CommitReady/commit_with(token,now_tick,callback)-interface; geen kernel-render-/GUIpolicy.
-INFO meldt publieke schermgeometry en toegewezen Rect, geen fysieke base/stride.
-De app tekent lokaal; compositor valideert/telt de toegewezen offset op en
-beschermt zijn verplichte systeemrand. Canonieke row-major gridindices,
-request/epoch/frame/offset/length/pixelchecks en timeout begrenzen staging.
+The agreed [SUR1 contract](../../ui/surface-protocol/README.md) has a 48-B
+header, 208-B chunk data, at most five chunks per tile and one transaction ID
+for BEGIN/CHUNK/COMMIT. Only a complete validated COMMIT plus an actual
+DisplayClient blit may receive a positive acknowledgement. Root builds the
+ring-3 compositor against the pure
+Receiver/CommitReady/commit_with(token,now_tick,callback) interface; no kernel
+rendering/GUI policy. INFO reports public screen geometry and the assigned
+Rect, not a physical base/stride. The app draws locally; the compositor
+validates/adds the assigned offset and protects its mandatory system border.
+Canonical row-major grid indices, request/epoch/frame/offset/length/pixel
+checks and timeout bound staging.
 
-Input blijft **globaal** op werkelijke GOPwidth/height. Native adapter valideert
-het afzonderlijke 96B INP1-contract, geen 32Bhardware-record. Binnen assignedRect
-trekt hij alleen x/y-offset af; erbuiten wist cancel_pointer alleen pressed,
-drag en hover/cursor, zonder draft/keyboardfocus/generatie te wijzigen. Geen
-clamping van een release buiten Save naar een klik; reentry met buttondown
-maakt geen nieuwe press. MouseButtons::checked weigert onbekende bits, terwijl
-de private bestaande routingconstructor behouden blijft.
+Input remains **global** over actual GOP width/height. The native adapter
+validates the separate 96-B INP1 contract, not a 32-B hardware record. Within
+assignedRect it only subtracts the x/y offset; outside it, cancel_pointer
+clears only pressed, drag and hover/cursor, without changing draft, keyboard
+focus or generation. A release outside Save is not clamped into a click;
+re-entry with a button down creates no new press. MouseButtons::checked
+rejects unknown bits while retaining the existing private routing constructor.
 
-Startup blijft compatibel: docEpoch32, docRecv72, docSend80, registrySend88,
-controlRecv96, readonly112, volumePID168, appPID176, initPID184. Nieuwe velden:
+Startup remains compatible: docEpoch32, docRecv72, docSend80, registrySend88,
+controlRecv96, readonly112, volumePID168, appPID176, initPID184. New fields:
 surfaceSend544, reply552, compositorPID560, surfaceEpoch568, inputSend576,
 inputReply584, policyPID592, inputEpoch600, inputClientID608, scale616.
-Counters400..512/failure240 worden uitsluitend na werkelijk waargenomen
-handelingen bijgewerkt, geen vooraf ingevulde Saved/Presented/Ready-proef.
+Counters400..512/failure240 are updated only after actually observed
+operations, not as a prepopulated Saved/Presented/Ready trial.
 
-Drie64KiB-callerbuffers komen in eigen BSS/RW en niet op64KiB-stack. De nieuwe
-vijfsegmentlinker houdt startup40010000 en plaatst rodata+.data.rel.ro vóór de
-RWwildcard in afzonderlijk R+NXgebied40020000(max256KiB), RW/BSS40070000 en
-code400b0000. Dit blijft binnen bestaande userimage-/quota-/W^X-grenzen. Werkelijk
-gebouwde ELF en user::parse zijn verplicht; native QMP/image/diskoracle komt
-pas bij rootintegratie. Er is geen claim van persistente encrypted keys/B02,
-volledig Materiaal, schermlezer of volwaardige testrelease.
+Three 64-KiB caller buffers reside in owned BSS/RW, not on the 64-KiB stack.
+The new five-segment linker retains startup40010000 and places
+rodata+.data.rel.ro before the RW wildcard in a separate R+NX area 40020000
+(max 256 KiB), RW/BSS40070000 and code400b0000. This remains within existing
+user-image/quota/W^X boundaries. An actually built ELF and user::parse are
+mandatory; the native QMP/image/disk oracle follows only at root integration.
+There is no claim of persistent encrypted keys/B02, complete Materiaal, a
+screen reader or a full test release.
 
-SUR1-review vond en reproduceerde een bekend verlopen Ready-token na malformed
-traffic. De regressie was rood op oude bron; expiry staat nu vóór decode en
-een verse native monotone tick is verplicht bij commit-admission. Zonder
-geldige deadline mag de callback niet lopen, geen positieve reply of frame-
-completion volgen. De deadline betreft admission vóór blit, geen vsyncbelofte
-over preëmptie of vermeende rollback van geschreven pixels. Bron-/red-/green-
-en onafhankelijke herreview staan bij `ui/surface-protocol/verification/`.
+SUR1 review found and reproduced a known expired Ready token after malformed
+traffic. The regression failed on old source; expiry now precedes decoding,
+and a fresh native monotonic tick is mandatory at commit admission. Without
+a valid deadline the callback must not run, and no positive reply or frame
+completion may follow. The deadline concerns admission before blit, not a
+vsync promise across pre-emption or supposed rollback of written pixels.
+Source, failing/passing evidence and independent re-review are at
+`ui/surface-protocol/verification/`.
 
-### Afzonderlijke app-adapter en gebouwd ELF
+### Separate app adapter and built ELF
 
-`sdk/examples/materiaal` bevat nu de echte no_std native caller. Alle drie
-taakparen worden eenmaal aan hun typed eigenaar overgedragen; app-startup
-controleert geldige, verschillende handles en onderscheiden verwachte PIDs.
-De app bezit geen hardwarecap en fabriceert geen Received-envelopes. Iedere
-begrensde iteratie doet hoogstens vier PEEK/ACK-paren, één echte uploadstap en
-één tiletransactie. Een snapshot wordt alleen gepresenteerd na alle ACKs van
-dezelfde actuele generatie/epoch. Bij input-/surfaceverlies gaat Ready uit;
-draftbytes blijven bewaard en een verloren COMMIT-reply geeft geen Saved.
+`sdk/examples/materiaal` now contains the actual no_std native caller. All
+three task pairs are transferred once to their typed owner; app startup checks
+valid, distinct handles and distinct expected PIDs. The app owns no hardware
+capability and fabricates no Received envelopes. Each bounded iteration
+performs at most four PEEK/ACK pairs, one actual upload step and one tile
+transaction. A snapshot is presented only after all ACKs for the same current
+generation/epoch. On input/surface loss, Ready is cleared; draft bytes are
+preserved and a lost COMMIT reply does not produce Saved.
 
-Supervisorprotocol blijft het bestaande SYSTEM-tag: READY1 is uitsluitend
-metadata/ELFready, GO2 start servicegebruik, STOP5 is expliciet supervisorverzoek,
-STOP_REFUSED6 antwoordt bij dirty/saving, DONE3 volgt alleen clean/idle plus
-cleanup. Exacte kernelafzender, nul caps en1Bpayload zijn verplicht. Geen stil
-verwerpen, autosave of wijziging van PID-/epochautoriteit via payloads.
+The supervisor protocol remains the existing SYSTEM tag: READY1 is only
+metadata/ELF ready, GO2 starts service use, STOP5 is an explicit supervisor
+request, STOP_REFUSED6 replies when dirty/saving, and DONE3 follows only
+clean/idle plus cleanup. The exact kernel sender, zero capabilities and a
+1-B payload are mandatory. No silent discard, autosave or change of PID/epoch
+authority through payloads.
 
-Bewijsvelden:400 huidige UIReady (volledig huidig paint + werkelijke INP1-response),
-408 volledige frames,416 echte tileACKs,424 geleverde keys,432 muisevents,
-440 laatst werkelijk bevestigde saveRevision,448 bytes,456 FNVchecksum,
-464 echte inputACKs,472 fouten,480 echte saveCOMMIT-ACKs,488 supersededOffers,
-496 stopweigering. Hartslag8/failure240 blijven; een unchanged-save is geen
-nieuwe COMMIT-ACK. Dit zijn meetvelden, geen autoriteits- of crypto-eigenschappen.
+Evidence fields: 400 current UIReady (complete current paint + actual INP1
+response), 408 complete frames, 416 actual tile ACKs, 424 delivered keys,
+432 mouse events, 440 last actually acknowledged saveRevision, 448 bytes,
+456 FNV checksum, 464 actual input ACKs, 472 errors, 480 actual save COMMIT
+ACKs, 488 supersededOffers, 496 stop refusals. Heartbeat8/failure240 remain;
+an unchanged save is not a new COMMIT ACK. These are measurement fields,
+not authority or cryptographic properties.
 
-Twintig gecombineerde hostscenario's gebruiken één echte capability-engine,
-de bestaande volume-v7-service, input-core en SUR1. Getest zijn maken/bewerken/
-opslaan/heropenen, annuleren vóór en na APPEND, globaal pointeroffset/outside/
-heldreentry,100/200%, readonly, focusregrant met heldControl, grote invoer, I/O,
-verloren input-/tile-/COMMIT-replies, stale halve frames en expliciete cleanup.
-Ordered RAMsectoren en de displayrecorder zijn hosttegenpartijen; geen native
-input-/scherm-/diskbewijs. Eén extra test past de echte kernel user::parse toe
-op het werkelijk gebouwde x86_64-unknown-none executable, niet een fixtureELF.
+Twenty combined host scenarios use one actual capability engine, the existing
+volume-v7 service, input-core and SUR1. Tested cases are create/edit/save/
+reopen, cancellation before and after APPEND, global pointer offset/outside/
+held re-entry, 100/200%, read-only, focus regrant with held Control, large
+input, I/O, lost input/tile/COMMIT replies, stale half-frames and explicit
+cleanup. Ordered RAM sectors and the display recorder are host counterparts;
+no native input/display/disk evidence. One additional test applies the actual
+kernel user::parse to the actually built x86_64-unknown-none executable,
+not a fixture ELF.
 
-Dit ELF heeft vijf monotone W^X LOADs en119 imagepagina's. Drie64KiB-buffers
-staan op0x40071000 in BSS/RW+NX, niet op de stack; readonly inclfontrelro is
-191684B, code84089B op dit checkpoint. De gemonomorfiseerde19781 instructies
-bevatten geen SIMD/FPU of hostmallocbackend. Exacte hashes, commandologs en
-werkelijk gebruikte tijdelijke centrale SDK1.8-input staan in
-`sdk/examples/materiaal/verification/pre-native.json`. De tijdelijke patch wordt
-vóór commit uit gedeelde SDKfiles verwijderd; root moet dezelfde centrale
-SDK1.8-bron echt integreren en opnieuw bouwen. user::parse/Clippy/build bewijzen
-geen native uitvoering, maximale stackdiepte of GUI-latency. QMP, daadwerkelijk
-gerenderde UI, koude heropening en encrypted keypersistentie blijven open.
+This ELF has five monotonic W^X LOADs and 119 image pages. Three 64-KiB buffers
+are at 0x40071000 in BSS/RW+NX, not on the stack; read-only data including
+font relro is 191684 B, code 84089 B at this checkpoint. The monomorphised
+19781 instructions contain no SIMD/FPU or host malloc backend. Exact hashes,
+command logs and the actual temporary central SDK1.8 input are in
+`sdk/examples/materiaal/verification/pre-native.json`. The temporary patch
+is removed from shared SDK files before commit; root must actually integrate
+the same central SDK1.8 source and rebuild. user::parse/Clippy/build do not
+prove native execution, maximum stack depth or GUI latency. QMP, the actually
+rendered UI, cold reopening and encrypted key persistence remain open.
 
-30 oktober 2026; basis `61ea727`. Eigenaar `native_ui_apps`: uitsluitend
-`ui/native/**` en dit contract. Root bezit kernel/ABI/startupcaps/build/integratie;
-`git_build_audit` onderzoekt display-/PS2-transport; geheugenagent bezit m3.rs.
-Allocatorcommit `42d4bc9` blijft afzonderlijk behouden. Alle 62 volledige
-releasecriteria blijven open; deze slice is geen complete Materiaalomgeving.
+30 October 2026; baseline `61ea727`. Owner `native_ui_apps`: only
+`ui/native/**` and this contract. Root owns kernel/ABI/startup capabilities/
+build/integration; `git_build_audit` investigates display/PS2 transport;
+the memory agent owns m3.rs. Allocator commit `42d4bc9` remains separately
+preserved. All 62 full-release criteria remain open; this slice is not a
+complete Materiaal environment.
 
-## Gecontroleerde basis en grens
+## Checked baseline and boundary
 
-G0 heeft echte GOP/framebufferkernelmapping en keyboardpolling, maar is een
-kernelproef met uppercase debugfont, niet een gebruikersomgeving. Graphics-
-bootstrap is op deze basis incompatibel met m3. `graphics::write_pixels` is al
-begrensd op 80 canonieke pixels en herbruikbaar in de hardwareadapter.
-`ui-core` levert echte Set1/PS2-ID0-events en focusrouting; `input-core` levert
-authenticeerbare INP1-policy maar nog geen native dienstloop. Volume
-DocumentSession v7 is native getest; deze frontend gebruikt die bestaande
-implementatie, geen browserbroker of eigen opslagsimulatie.
+G0 has actual GOP/framebuffer kernel mapping and keyboard polling, but is a
+kernel trial with an uppercase debug font, not a user environment. Graphics
+bootstrap is incompatible with m3 on this baseline. `graphics::write_pixels`
+is already bounded to 80 canonical pixels and reusable in the hardware
+adapter. `ui-core` provides actual Set1/PS2-ID0 events and focus routing;
+`input-core` provides authenticatable INP1 policy but no native service loop
+yet. Volume DocumentSession v7 has been tested natively; this frontend uses
+that existing implementation, not a browser broker or separate storage
+simulation.
 
-De frontend bezit precies één DocumentSession en zijn endpointpaar. Geen
-block-/entropy-/key-/netwerkcapabilities, geen firmware/device-I/O en geen
-framebufferpointer. Een bevoegde compositoradapter bezit de displaycap en
-vertaalt alleen private RAM-tegels. De UI verleent geen bevoegdheden. Een
-renderer-/controller-hosttest bewijst geen native input-/displaygrens.
+The frontend owns exactly one DocumentSession and its endpoint pair. No
+block/entropy/key/network capabilities, firmware/device I/O or framebuffer
+pointer. An authorised compositor adapter owns the display capability and
+translates only private RAM tiles. The UI grants no authority. A renderer/
+controller host test does not prove a native input/display boundary.
 
-## Afgestemde adaptervorm (nog geen vastgesteld kernel-ABI)
+## Agreed adapter form (not yet an established kernel ABI)
 
-- Publieke viewport: pixelbreedte, pixelhoogte en niet-nul display-epoch;
-  hoogstens de bestaande 1920×1080-basis. Geen fysieke base of hardwarestride.
-- Tegels maximaal 32×8, 256 little-endian u32's / 1024 bytes. Ieder pixel is
-  `0x00RRGGBB`; payloadbytes B,G,R,0. Laatste rij/kolom zijn korter. De
-  kerneladapter controleert het volledige rect, omvang en bovenbytes vóór de
-  eerste hardwarewrite. Geen MMIO-slice naar Rust Canvas.
-- Reële inputadapter valideert INP1-afzender uit kernelmetadata, tag, epoch,
-  client, request-ID, canonieke velden en focusgeneratie. Pas daarna worden
-  typed input-core-events aan deze frontend doorgegeven. Apps kunnen geen
-  bron-/focus-/lifecyclebericht namaken. PEEK wordt pas na verwerking met exact
-  het ontvangen eventnummer geACKt; een onsuccesvolle send consumeert niets.
-- Focus-/bron-/queuecancel beëindigt drag/modifierinteractie, maar bewaart draft
-  en selectie. Een nieuwe focusgeneratie erft geen vastgehouden actie. Een
-  service- of display-epochwisseling vereist nieuwe grants/volledige repaint;
-  een oud gepresenteerd frame mag nieuwe damage niet wissen.
-- `Controller::rebind_input(new_epoch)` is een expliciete adapterstap na nieuwe,
-  onafhankelijk geauthenticeerde inputdienstgrants. Zij behoudt DocumentSession,
-  draft, selectie en display-epoch, wist alleen oude inputnummering/klikdrag en
-  wacht op een werkelijk ontvangen geldig event uit de nieuwe epoch. Geen
-  endpoint/capability wordt hierdoor gemaakt; oude PEEK/ACKs blijven afgesloten.
-  Behoud van fysieke held-keykennis bij een echte dienstherstart blijft de
-  afzonderlijke source-/supervisoracceptatie, niet een claim van deze methode.
-- Een frame leest alleen eigen, onveranderlijk geleende viewdata en maakt
-  private tegels. Alleen bevestiging van dezelfde framegeneratie én viewport-
-  epoch kan damage aftekenen. Een gefaalde/onderbroken blit houdt damage open.
+- Public viewport: pixel width, pixel height and a non-zero display epoch;
+  at most the existing 1920×1080 baseline. No physical base or hardware stride.
+- Tiles at most 32×8, 256 little-endian u32s / 1024 bytes. Each pixel is
+  `0x00RRGGBB`; payload bytes B,G,R,0. The last row/column is shorter. The
+  kernel adapter checks the complete rectangle, size and upper bytes before
+  the first hardware write. No MMIO slice to Rust Canvas.
+- The real input adapter validates the INP1 sender from kernel metadata, tag,
+  epoch, client, request ID, canonical fields and focus generation. Only then
+  are typed input-core events passed to this frontend. Apps cannot forge a
+  source/focus/lifecycle message. PEEK is ACKed only after processing, with
+  exactly the received event number; an unsuccessful send consumes nothing.
+- Focus/source/queue cancellation ends drag/modifier interaction but preserves
+  the draft and selection. A new focus generation inherits no held action.
+  A service or display epoch change requires new grants/a complete repaint;
+  an old presented frame must not clear new damage.
+- `Controller::rebind_input(new_epoch)` is an explicit adapter step after new,
+  independently authenticated input-service grants. It retains DocumentSession,
+  draft, selection and display epoch, clears only old input numbering/click
+  drag, and waits for an actually received valid event from the new epoch.
+  This creates no endpoint/capability; old PEEK/ACKs remain closed. Retention
+  of physical held-key knowledge during a real service restart remains
+  separate source/supervisor acceptance, not a claim of this method.
+- A frame reads only its own immutably borrowed view data and produces private
+  tiles. Only acknowledgement of the same frame generation **and** viewport
+  epoch can approve damage as handled. A failed/interrupted blit leaves damage
+  pending.
 
-## Eerste gebruikersketen en echte documenttoestanden
+## First user chain and actual document states
 
-Materiaal toont resultaten van de werkelijke volumelijst, opent hetzelfde
-object in de tekstbewerker en bewaart via DocumentSession begin_save/save_next.
-Drie callerbuffers blijven exclusief eigendom van die sessie. De eerste native
-fixture gebruikt 4096 bytes; de core voegt geen permanente kleinere grens toe
-aan de bestaande 64-KiB-volumegrens. Grotere callerbuffers vereisen een
-bevestigde eigen arena en kunnen niet stil op de 64-KiB-userstack worden gezet.
+Materiaal displays results from the actual volume list, opens the same object
+in the text editor and saves through DocumentSession begin_save/save_next.
+Three caller buffers remain exclusively owned by that session. The first
+native fixture uses 4096 bytes; the core adds no permanently smaller limit
+to the existing 64-KiB volume boundary. Larger caller buffers require a
+confirmed owned arena and cannot silently be placed on the 64-KiB user stack.
 
-Caret/selectie bewegen op UTF-8-codepointgrenzen; documentbytes worden niet
-genormaliseerd of vervangen door fontfallbacks. De eerste fysieke layout is
-US-Set1; invoermethoden/grapheme shaping/andere layouts blijven open. Alleen
-werkende acties worden getekend: openen, nieuw, terug, opslaan en echte cancel.
-Geen voorgeladen objectlijst of succes op basis van alleen een klik.
-Dirty sluiten vraagt bewaren/verwerpen/annuleren. Tijdens streaming-save zijn
-edits geblokkeerd, voortgang komt uit echte APPEND-bevestigingen, annuleren
-gebruikt ABORT. Alleen Saved{revision} mag de opslagstatus bevestigen. Conflict,
-volle opslag, denial en onzekere commit behouden de draft. Onzeker werk wordt
-niet automatisch opnieuw verzonden. Koude versleutelde opslag blijft open tot
-de afzonderlijke persistente sleutel-/B02-keten gereed is.
+Caret/selection move at UTF-8 code-point boundaries; document bytes are neither
+normalised nor replaced by font fallbacks. The first physical layout is
+US-Set1; input methods/grapheme shaping/other layouts remain open. Only
+working actions are drawn: open, new, back, save and actual cancel. No
+preloaded object list or success based solely on a click. Closing a dirty
+document asks to save/discard/cancel. During streaming save, edits are
+blocked, progress comes from actual APPEND acknowledgements and cancellation
+uses ABORT. Only Saved{revision} may confirm storage status. Conflict, full
+storage, denial and uncertain commit preserve the draft. Uncertain work is
+not automatically resent. Cold encrypted storage remains open until the
+separate persistent-key/B02 chain is ready.
 
-## Onderhoudbaar ontwerp, tekst en toegankelijkheid
+## Maintainable design, text and accessibility
 
-Native kleurtokens/radii/spacing lezen compile-time de ene bestaande bron
-`ui/prototype/tokens.css`; geen tegenstrijdige tweede kleurentabel of font-
-netwerkverzoek. Typografiematen en control-/focusregels volgen PRODUCT-SPEC.
-100/200% schalen veranderen geometrie en tekst samen; focus/status krijgen
-semantische rollen en zichtbare labels, dus kleur is niet de enige betekenis.
-Deze slice animeert niet. Dat respecteert reduced-motion, maar bewijst nog
-geen systeembrede instelling of screenreaderwerking.
+Native colour tokens/radii/spacing read the single existing source
+`ui/prototype/tokens.css` at compile time; no conflicting second colour table
+or font network request. Typography sizes and control/focus rules follow
+PRODUCT-SPEC. Scaling to 100/200% changes geometry and text together;
+focus/status receive semantic roles and visible labels, so colour is not
+the only meaning. This slice does not animate. That respects reduced motion
+but does not yet prove a system-wide setting or screen-reader operation.
 
-De CPL3-Materiaal-app stelt een begrensde semantiekboom van haar eigen actuele
-controllerstaat beschikbaar via `App::semantics`. Node-ID's blijven stabiel
-voor schermcontroles en gebruiken het volumeobject-ID voor lijstitems;
-ouderrelaties leggen venster, lijst en dirty-close-dialoog vast. Rollen, labels,
-fysieke bounds, focus, bewerkbaarheid, tekstselectie en echte opslagstatus
-komen uit dezelfde framebron. De controller biedt ook `activate_semantic` en
-`set_semantic_value`: vóór iedere bediening bouwen zij de actuele boom opnieuw
-op en weigeren ontbrekende, uitgeschakelde of niet-acteerbare nodes. De caller
-moet ook de controllergeneratie uit de zichtbare momentopname meegeven; een
-verouderde generatie wordt geweigerd vóór dispatch. Bestaande Enter/Space-,
-PageUp/PageDown- en Escape-acties gebruiken dezelfde gecontroleerde route.
-Een semantische tekstvervanging wijzigt alleen het huidige draft; opslaan blijft
-een afzonderlijke expliciete actie. Deze methoden blijven binnen de eigen app
-en verlenen geen capability. Een te kleine uitvoerbuffer faalt zonder
-gedeeltelijke snapshot. Dit is nog steeds een app-lokale API, geen IPC naar een
-schermlezer, spraakuitvoer of OS-brede toegankelijkheidsinterface. Hosttests
-controleren keyboarddispatch, stale/uitgeschakelde acties, save/reopen, de
-boomstructuur, maximale lijstpagina, buffergrens, editor en dirty-close-dialoog;
-zij bewijzen geen native schermlezer of gebruikersacceptatie.
+The CPL3 Materiaal app exposes a bounded semantic tree of its own current
+controller state through `App::semantics`. Node IDs remain stable for screen
+controls and use the volume object ID for list items; parent relationships
+identify the window, list and dirty-close dialogue. Roles, labels, physical
+bounds, focus, editability, text selection and actual storage status come
+from the same frame source. The controller also offers `activate_semantic`
+and `set_semantic_value`: before every action they rebuild the current tree
+and reject missing, disabled or non-actionable nodes. The caller must also
+provide the controller generation from the visible snapshot; a stale
+generation is rejected before dispatch. Existing Enter/Space, PageUp/PageDown
+and Escape actions use the same checked route. A semantic text replacement
+changes only the current draft; saving remains a separate explicit action.
+These methods remain inside the app and grant no capability. An undersized
+output buffer fails without a partial snapshot. This is still an app-local
+API, not IPC to a screen reader, speech output or an OS-wide accessibility
+interface. Host tests check keyboard dispatch, stale/disabled actions,
+save/reopen, tree structure, maximum list page, buffer boundary, editor and
+dirty-close dialogue; they do not prove a native screen reader or user
+acceptance.
 
-De aparte `--case keyboard`-QMP-route is als baseline uitgevoerd op de
-bevroren bron `74d15ac09ac61c8d47a882c3c982711af1a9d891`, fingerprint v3
+The separate `--case keyboard` QMP route was executed as a baseline on frozen
+source `74d15ac09ac61c8d47a882c3c982711af1a9d891`, fingerprint v3
 `24d5f4c112924cfe45681de3fcf3a92f62087e29524f15c74e14d83620891abd`.
-In QEMU 10.2.1 (`pc-q35-10.0`, TCG, `qemu64`, 1 CPU, 256 MiB) voltooide de
-run in 136,8 s zes gerenderde fasen: ready, editor, dirty, saved, list en
-reopened. De QMP-trace bevat 21 `send-key`-verzoeken en zes screendumps; de
-gast bevestigde 42 toetsen en nul pointerevents. Save/reopen bleef in dezelfde
-VM-sessie. Het disk-orakel vond object 0, revisie 1, generation 1, 14 bytes
-met de verwachte hash en intacte canaries. QEMU raw-exit 33 werd als normale
-probe-afsluiting geaccepteerd (`passed=true`, geen timeout, M1 en cleanup
-geslaagd).
+In QEMU 10.2.1 (`pc-q35-10.0`, TCG, `qemu64`, 1 CPU, 256 MiB), the run
+completed six rendered phases in 136.8 s: ready, editor, dirty, saved, list
+and reopened. The QMP trace contains 21 `send-key` requests and six screendumps;
+the guest acknowledged 42 keys and zero pointer events. Save/reopen remained
+within the same VM session. The disk oracle found object 0, revision 1,
+generation 1, 14 bytes with the expected hash and intact canaries. QEMU raw
+exit 33 was accepted as normal probe termination (`passed=true`, no timeout,
+M1 and cleanup passed).
 
-Dit is alleen baseline-bediening, geen uitvoering van de nieuwe semantiekboom
-uit `f6ec180103779dfdb1f50088c7a9cfd7338fb955`. De bevroren
-`ui/native/src/render.rs`-hash was
-`89c7c99010aa1ca284fdf914543d38ffd6ea0c1891f4c07102c78925d13ce2d9` en bevat
-de nieuw toegevoegde stabiele `SemanticId`-, ouder- en actievelden niet; de
-huidige leaf heeft hash
+This is baseline operation only, not execution of the new semantic tree from
+`f6ec180103779dfdb1f50088c7a9cfd7338fb955`. The frozen
+`ui/native/src/render.rs` hash was
+`89c7c99010aa1ca284fdf914543d38ffd6ea0c1891f4c07102c78925d13ce2d9` and does
+not contain the newly added stable `SemanticId`, parent and action fields;
+the current leaf has hash
 `fc2682ebedafe92e4c99501f7d2a12a49f145c7bec92208db2e2fc789fea9434`.
-Daarom zijn die nieuwe wijzigingen niet in dit guest-image gelinkt of native
-uitgevoerd. De oude bron bevatte wel een flat app-lokale `semantics()`-methode,
-maar geen consumer- of screenreaderroute is met deze run aangetoond.
-Volledige bron-, disk-, QMP- en framehashes staan in
+Those new changes were therefore not linked into this guest image or executed
+natively. The old source did contain a flat app-local `semantics()` method,
+but this run demonstrates no consumer or screen-reader route. Complete
+source, disk, QMP and frame hashes are in
 [`qmp-keyboard-v3.json`](../verification/native-materiaal-accessibility-snapshot/qmp-keyboard-v3.json);
-gegenereerde binaries/images staan alleen in de genegeerde lokale
+generated binaries/images exist only in the ignored local
 `build/native-materiaal-accessibility-v3/`.
 
-Er is geen koude herstart/herstel, screenreader, spraakuitvoer of menselijke
-toegankelijkheids-/UX-acceptatie uitgevoerd. Deze baseline sluit geen U-criterium
-en valideert de nieuwe semantiekboom niet. Eerst moet release de leaf-UI-code
-in één actuele Materiaal-runtime integreren en de exacte bron-/artifactbinding
-aanleveren; daarna moet deze native gate op die bron opnieuw worden uitgevoerd.
+No cold restart/recovery, screen reader, speech output or human accessibility/
+UX acceptance was performed. This baseline closes no U criterion and does
+not validate the new semantic tree. Release must first integrate the leaf
+UI code into one current Materiaal runtime and provide exact source/artifact
+binding; this native gate must then be rerun on that source.
 
-De expliciet goedgekeurde backend is `noto-sans-mono-bitmap = 0.3.2`, defaults
-uit; regular, size16/32, Basic Latin, Latin1 Supplement en Specials. Geen
-runtime-dependencies, buildscript, allocator of floats. Rust-MSRV 1.56.1;
-gepubliceerd 7 januari 2026. De daadwerkelijke tarballchecksum is
+The explicitly approved backend is `noto-sans-mono-bitmap = 0.3.2`, with
+defaults disabled; regular, size16/32, Basic Latin, Latin1 Supplement and
+Specials. No runtime dependencies, build script, allocator or floats.
+Rust MSRV 1.56.1; published 7 January 2026. The actual tarball checksum is
 `f102c477fd4ec864c149803bf606ecc23bc9329602ec0f99073a728abf454abc`.
-Library MIT; de oorspronkelijke Noto Sans Mono Regular 2.014 is OFL1.1,
-copyright 2022 Noto Project Authors. Font-SHA:
+Library MIT; the original Noto Sans Mono Regular 2.014 is OFL1.1,
+copyright 2022 Noto Project Authors. Font SHA:
 `56134342e3d5137fbfcb25361039d4a98def7df75db7dd821ef47c3ae03127b6`,
-herleidbaar tot upstreamgit `636fb222507237549c20e9b23dae54fc9d639ae3`.
-Beide notices blijven onder ui/native/licenses behouden. Dit is een begrensde
-eerste fontbackend, geen definitieve huisstijl of volledige Unicode-engine.
-Ontbrekende glyphs zijn herkenbare vervangingstekens; opgeslagen UTF-8 blijft
-intact. Het oude uppercase G0-font wordt niet voor gebruikersdocumenten benut.
+traceable to upstream Git `636fb222507237549c20e9b23dae54fc9d639ae3`.
+Both notices remain under ui/native/licenses. This is a bounded first font
+backend, not a definitive visual identity or complete Unicode engine.
+Missing glyphs are recognisable replacement characters; stored UTF-8 remains
+intact. The old uppercase G0 font is not used for user documents.
 
-Primaire bronnen: [crate](https://crates.io/crates/noto-sans-mono-bitmap/0.3.2),
+Primary sources: [crate](https://crates.io/crates/noto-sans-mono-bitmap/0.3.2),
 [upstream](https://github.com/phip1611/noto-sans-mono-bitmap-rs),
-[Noto-OFL](https://github.com/notofonts/latin-greek-cyrillic/blob/main/OFL.txt),
-[bestaande productafspraken](PRODUCT-SPEC.md), [invoercontract](NATIVE-INPUT-SERVICE.md)
-en [GOP-basis](GRAPHICS-G0.md). Broncontrole op 30 oktober 2026 is geen audit.
+[Noto OFL](https://github.com/notofonts/latin-greek-cyrillic/blob/main/OFL.txt),
+[existing product agreements](PRODUCT-SPEC.md),
+[input contract](NATIVE-INPUT-SERVICE.md) and [GOP baseline](GRAPHICS-G0.md).
+Source checking on 30 October 2026 is not an audit.
 
-## Bewijsplan en open vervolg
+## Evidence plan and open follow-up
 
-Gerichte hosttests: UTF-8/range/selection, echte service + capability-engine
-achter DocumentSession, save/ABORT/conflict/onzekere commit/I/O-fout, geen valse
-Saved, guards/clipping/kleurvolgorde van werkelijke rendertegels, focus en
-100/200%-layout. Daarna Clippy/fmt en daadwerkelijke scalar none-build.
-Root integreert echte ring3processen/caps, QMP-toets/muis, gerenderde voor/na-
-beelden én bedieningsassertions, diskoracle/coldreopen en exact imagebewijs.
-Schermlezer, alle zeven routes, compositorherstel, volledige editorfuncties,
-cross-appklembord, persistente keys en de rest van de release blijven open.
+Targeted host tests: UTF-8/range/selection, actual service + capability engine
+behind DocumentSession, save/ABORT/conflict/uncertain commit/I/O error, no
+false Saved, guards/clipping/colour order of actual rendered tiles, focus
+and 100/200% layout. Then Clippy/fmt and an actual scalar none build. Root
+integrates actual ring-3 processes/capabilities, QMP keys/mouse, rendered
+before/after images **and** operation assertions, disk oracle/cold reopen
+and exact image evidence. Screen reader, all seven routes, compositor
+recovery, complete editor features, cross-app clipboard, persistent keys
+and the rest of the release remain open.
 
-## Eerste uitgevoerd checkpoint
+## First executed checkpoint
 
-`python3 -B ui/native/verify.py` is uitgevoerd met Rust1.90.0: 14 hostscenario's,
-Clippy, fmt, featuregraph en daadwerkelijke scalar `x86_64-unknown-none`-build
-slagen. De negen gebouwde rlibs zijn via echte Cargo-artifactrecords gebonden
-en met objdump/nm gecontroleerd; geen SIMD/FPU-instructies of hostmallocbackend
-in die objecten. Generieke controllermethoden worden pas in de definitieve
-native caller volledig gemonomorfiseerd; dit is geen ring3-uitvoering.
-Exacte bron-/input-/artifactbinding en commando's:
+`python3 -B ui/native/verify.py` was executed with Rust 1.90.0: 14 host
+scenarios, Clippy, fmt, feature graph and an actual scalar
+`x86_64-unknown-none` build pass. The nine built rlibs are bound through actual
+Cargo artifact records and checked with objdump/nm; no SIMD/FPU instructions
+or host malloc backend in those objects. Generic controller methods are
+fully monomorphised only in the final native caller; this is not ring-3
+execution. Exact source/input/artifact binding and commands:
 [`ui/native/verification/checks.json`](../../ui/native/verification/checks.json).
 
-De grote bestaande capability/volume-hostharness overschreed eerst de kleine
-standaard testthreadstack. Dezelfde expliciete 16-MiB-hostteststack als het SDK-
-harnas verhelpt dat; de native 64-KiB-stack wordt niet verruimd of afgetekend.
-Een eerste compile vereiste type-/APIcorrecties in de nieuwe tests. Op het
-bovenstaande checkpoint zijn de gerichte controles werkelijk opnieuw geslaagd.
+The large existing capability/volume host harness initially exceeded the small
+default test-thread stack. The same explicit 16-MiB host-test stack as the
+SDK harness resolves that; the native 64-KiB stack is neither enlarged nor
+approved. An initial compilation required type/API corrections in the new
+tests. At the checkpoint above, the targeted checks actually passed again.
 
-Native integratie vraagt een eigen app-linker: de fontpointertabellen staan in
-`.data.rel.ro` en moeten R+NX blijven. De oude systemapp-linker zet `.data.*`
-in één RW-pagina en laat maar48KiB rodata toe; dat past niet. Gemeten vóór
-definitieve link: circa146KiB relro +35KiB rodata +27KiB frontendcode. Een
-begrensd eigen readonlysegment van bijvoorbeeld256KiB past binnen het reeds
-toegestane userimagewindow en vraagt geen kernel-/capabilityverruiming. Definitieve
-residentie/stack/latency blijven te meten op de echte gekoppelde UIapp.
+Native integration requires a dedicated app linker: font pointer tables reside
+in `.data.rel.ro` and must remain R+NX. The old system-app linker places
+`.data.*` in one RW page and allows only 48 KiB of rodata; that does not fit.
+Measured before final linking: approximately 146 KiB relro +35 KiB rodata
++27 KiB frontend code. A bounded dedicated read-only segment of, for example,
+256 KiB fits within the already permitted user-image window and requires no
+kernel/capability expansion. Final residency/stack/latency remain to be
+measured on the actual linked UI app.
 
-De algemene `tools/common.py::source_hash` volgt ui/ nog niet. Eigen bewijs
-bindt ui/native en ui/prototype/tokens.css daarom aanvullend. Root moet de
-native image-/capture-inputbinding uitbreiden vóór UI-acceptatie; anders kan
-oude UIcode onder een ongewijzigde algemene bronhash onterecht actueel lijken.
+The general `tools/common.py::source_hash` does not yet track ui/. The
+component's own evidence therefore additionally binds ui/native and
+ui/prototype/tokens.css. Root must extend native image/capture input binding
+before UI acceptance; otherwise old UI code could incorrectly appear current
+under an unchanged general source hash.
 
-## Vervolg: werkelijk bekeken rasters en inputherbinding
+## Follow-up: actually inspected rasters and input rebinding
 
-Na checkpoint `be0dc462` zijn de daadwerkelijke hostpixels van Materiaal,
-bewerken en dirty-close op 100/200% en 320 logische pixels bekeken met view_image.
-Dezelfde renderer voedt daarbij private tegels; de fixture gebruikt echte
-volume-/capability-engine-aanvragen met synthetische testdocumenten. Dit zijn
-geen native screenshots, geen gebruikersproef en geen productacceptatie.
+After checkpoint `be0dc462`, the actual host pixels for Materiaal, editing
+and dirty close at 100/200% and 320 logical pixels were inspected with
+view_image. The same renderer feeds private tiles; the fixture uses actual
+volume/capability-engine requests with synthetic test documents. These are
+not native screenshots, a user trial or product acceptance.
 
-De inspectie vond een verdwenen eerste lijstregel op minimale hoogte en een
-modal met halfbedekte achtergrondtekst. De compacte header laat nu echte
-lijstinhoud zien, lange titels houden ruimte zonder overlappende metadata en
-een opaque lokale backdrop isoleert de bevestiging visueel. Primaire,
-secundaire, gevaar- en hoverstaten gebruiken dezelfde tokenbron. Pointer en
-PageUp/PageDown kunnen echt door de volumelijst pagineren; kleine viewports
-maken latere objecten niet uitsluitend via Tab bereikbaar.
+Inspection found a missing first list row at minimum height and a modal with
+partly obscured background text. The compact header now shows actual list
+content, long titles retain space without overlapping metadata, and an opaque
+local backdrop visually isolates confirmation. Primary, secondary, danger
+and hover states use the same token source. Pointer and PageUp/PageDown can
+actually paginate through the volume list; small viewports do not make later
+objects reachable only through Tab.
 
-De eerste controller-/text-/snapshotbron is read-only door kernel_storage
-beoordeeld: 14 scenario's in een eigen target herhaald, vijf bronhashes bleven
-gelijk, geen concrete blocker binnen die scope. Zijn rebind-APIbevinding is
-in het hierboven beschreven vervolg verwerkt. Die AI-review op `be0dc462`
-is niet automatisch een review van alle vervolgcode. Nu slagen 18 gerichte
-hostscenario's, Clippy/fmt en de nieuwe scalarbuild; `verification/checks.json`
-bindt de actuele bron. `verification/host-raster-review.json` bevat alleen
-hashes/waarnemingen van de werkelijk bekeken hostbeelden en de bewijsgrens.
-# Integratieaanvulling 30 oktober 2026: native IPC-wacht
+The first controller/text/snapshot source was reviewed read-only by
+kernel_storage: 14 scenarios repeated in a dedicated target, five source
+hashes unchanged, no concrete blocker within that scope. Its rebind API
+finding was addressed in the follow-up described above. That AI review on
+`be0dc462` is not automatically a review of all subsequent code. Eighteen
+targeted host scenarios, Clippy/fmt and the new scalar build now pass;
+`verification/checks.json` binds the current source.
+`verification/host-raster-review.json` contains only hashes/observations of
+the host images actually inspected and the evidence boundary.
 
-De experimentele `native-system-materiaal`-profielen activeren nu
-`ipc-wait` (ABI 1.10). De bestaande inputsource en inputpolicy parkeren
-alleen bij aantoonbaar ontbrekend werk, met behoud van hun oorspronkelijke
-absolute deadlines. Desktop-init, controller en compositor herkennen exact
-ABI 1.8 en 1.10; ABI 1.9 blijft de aparte RTC-klok en wordt niet als wacht
-herkend. De app-, SUR1-, token-, ACK-, focus- en savecontracten veranderen niet.
+# Integration addition, 30 October 2026: native IPC wait
 
-De onafhankelijke tweeprocessenproef heeft queue-, deadline-, revoke- en
-PIT-idle-uitvoering aangetoond. Dat bewijst nog geen werkende Materiaal-keten:
-de nulmeting zonder wacht en de input-only-wachtproef overschreden beide
-de vaste 20.000 PIT-ticks na drie echte frames. De volgende gebouwde
-versie parkeert ook keyring/volume zonder pendingwerk en desktop-init
-uitsluitend in rustige Running-fase. De lokale controllertrigger wordt
-niet in een lange ontvangstwait verborgen. De volledige QMP-handeling
-en koude heropening moeten nog slagen. Geen verruimde budgetten,
-host-renderfallback of nieuwe voortgangspunten.
+The experimental `native-system-materiaal` profiles now enable `ipc-wait`
+(ABI 1.10). The existing input source and input policy park only when work
+is demonstrably absent, preserving their original absolute deadlines.
+Desktop-init, controller and compositor recognise exactly ABI 1.8 and 1.10;
+ABI 1.9 remains the separate RTC clock and is not recognised as wait support.
+The app, SUR1, token, ACK, focus and save contracts do not change.
+
+The independent two-process trial demonstrated queue, deadline, revoke and
+PIT-idle execution. That does not yet prove a working Materiaal chain: the
+baseline without wait and the input-only wait trial both exceeded the fixed
+20,000 PIT ticks after three actual frames. The next built version also parks
+keyring/volume when no work is pending and desktop-init only in a quiet Running
+phase. The local controller trigger is not hidden in a long receive wait.
+The complete QMP operation and cold reopening must still pass. No enlarged
+budgets, host-render fallback or new progress points.

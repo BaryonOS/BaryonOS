@@ -12,6 +12,10 @@ rustflags = [
 
 # B03 signed boot: the loader verifies Ed25519 + ML-DSA-65 manifests. The
 # curve25519-dalek SIMD backend both crashes rustc for this target and would
-# need runtime CPU dispatch in firmware; pin the portable serial backend.
+# need runtime CPU dispatch in firmware. sha2 0.11 otherwise dispatches its
+# Ed25519 SHA-512 path at runtime. Pin both dependencies to portable backends.
 [target.x86_64-unknown-uefi]
-rustflags = ["--cfg", "curve25519_dalek_backend=\"serial\""]
+rustflags = [
+  "--cfg", "curve25519_dalek_backend=\"serial\"",
+  "--cfg", "sha2_backend=\"soft\"",
+]

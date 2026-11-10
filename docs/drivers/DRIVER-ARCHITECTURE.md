@@ -1,151 +1,152 @@
-# Driver Core en selectie
+# Driver Core and selection
 
-Status: generieke segment-0-PCI-discovery, registratie en factorygekoppelde
-initialisatie zijn geïmplementeerd voor VirtIO block, netwerk en RNG. Alle drie
-selecteren een functie via `pci-core` en hun eigen registry, met config-space
-gebonden aan de match. Block, netwerk en RNG krijgen kernel-owned BAR-grants
-vóór mapping; de bestaande transports behouden hun eigen I/O- en DMA-logica.
-Daarnaast bestaan losse, niet-geïntegreerde NVMe- en xHCI-probecrates die PCI
-matchen en alleen controllerregisters read-only inspecteren. Een gedeelde
-heterogene registry, interruptbroker en generieke DMA/IOMMU-resourcebroker
-ontbreken nog.
+The hardware goal and the choice of drivers for each device family are set out in
+[HARDWARE-TARGETS](HARDWARE-TARGETS.md).
 
-## Huidige implementatie
+Status: generic segment-0 PCI discovery, registration and factory-linked
+initialisation are implemented for VirtIO block, network and RNG. All three
+select a function through `pci-core` and their own registry, with configuration
+space bound to the match. Block, network and RNG receive kernel-owned BAR grants
+before mapping; the existing transports retain their own I/O and DMA logic.
+Separate, unintegrated NVMe and xHCI probe crates also exist. They match PCI
+functions and inspect controller registers read-only. A shared heterogeneous
+registry, interrupt broker and generic DMA/IOMMU resource broker are still
+absent.
 
-`crates/driver-core` is een dependencyvrije `no_std`-crate zonder `unsafe`.
-Hij definieert:
+## Current implementation
 
-- gemeenschappelijke `DeviceId`, `DeviceClass`, `DriverId`, `DriverVersion`,
-  `DriverState` en `DeviceMetadata`;
-- categorie-identifiers en subsystemtraits voor block-, netwerk-, display- en
-  inputdevices, plus identifiers voor USB-hostcontrollers, audio, storage- en
-  seriële devices;
-- PCI-identiteit inclusief BDF, vendor/device, class/subclass/programming
-  interface/revision en optionele subsystem-ID's;
-- een bounds-safe decoder voor vaste 256-byte type-0 PCI-configuratiesnapshots;
-- een vaste-capaciteit `DriverRegistry` die een uniek meest specifiek
-  registratie-resultaat kiest en gelijke topmatches weigert.
+`crates/driver-core` is a dependency-free `no_std` crate without `unsafe`.
+It defines:
 
-`crates/pci-core` enumereert conventionele PCI-bussen op segment 0 met
-configuratiemechanisme 1. Hij bezoekt functies 1-7 alleen wanneer functie 0
-het multifunction-bit aangeeft, negeert niet-aanwezige functies en rapporteert
-alleen type-0-endpoints aan de caller. De scanner leest configuratieruimte
-voordat de descriptor aan de registry wordt aangeboden. De huidige scan
-ondersteunt geen ECAM, segmenten buiten 0, bridge-topologie of hotplug.
+- common `DeviceId`, `DeviceClass`, `DriverId`, `DriverVersion`, `DriverState`
+  and `DeviceMetadata` types;
+- category identifiers and subsystem traits for block, network, display and
+  input devices, plus identifiers for USB host controllers, audio, storage and
+  serial devices;
+- PCI identity, including BDF, vendor/device, class/subclass/programming
+  interface/revision and optional subsystem IDs;
+- a bounds-safe decoder for fixed 256-byte type-0 PCI configuration snapshots;
+- a fixed-capacity `DriverRegistry` that selects a unique most-specific
+  registration result and rejects equally ranked top matches.
 
-M5-kernelprofielen doen vóór device-initialisatie een extra read-only scan.
-Functies zonder match in de voor dat profiel geregistreerde drivers worden op
-COM1 gemeld als `UNSUPPORTED:PCI`, met segment, bus/BDF, vendor/device,
-class/subclass/programming interface/revision en subsystem-ID's wanneer
-beschikbaar. Niet-type-0-functies worden alleen als aantal gemeld; een
-onvolledige configuratiescan wordt expliciet gemeld en levert geen
-unsupported-records op. Dit is een diagnostische matchinventaris, geen bewijs
-dat een gematchte driver succesvol is geïnitialiseerd of dat alle PCI-driver-
-families in iedere profielregistry zijn opgenomen. De RNG-driver wordt nu ook
-via segment-0-enumeratie en een geregistreerde factory gestart; de huidige
-QEMU-fixture gebruikt BDF `00:06.0`, maar de driver vereist die locatie niet.
+`crates/pci-core` enumerates conventional PCI buses on segment 0 using
+configuration mechanism 1. It visits functions 1–7 only when function 0
+indicates the multifunction bit, ignores absent functions and reports only
+type-0 endpoints to the caller. The scanner reads configuration space before
+offering the descriptor to the registry. The current scan does not support
+ECAM, segments other than 0, bridge topology or hotplug.
 
-De VirtIO block-, netwerk- en RNG-drivers registreren hun PCI-ID's en
-selecteren hun apparaat met `DriverRegistry::best_match_with_factory`, in
-plaats van een vooraf vastgelegde BDF. BAR-probing en verdere toegang blijven
-beperkt tot de geselecteerde functie. Als meer dan één passend device voorkomt
-terwijl het kernelpad nog maar één instantie ondersteunt, wordt dat als fout
-geweigerd.
-De activatiepaden registreren daarnaast per match een statische
-initializer-functie. `best_match_with_factory` retourneert metadata plus die
-initializer; de door discovery gemaakte waarde bewaart hem privé. Na kernel-
-toekenning van bestaande BAR-mappings en DMA-pagina's roept
-`Device::initialize` de geselecteerde factory aan. Familiespecifieke opties
-en de bestaande reset-/quarantainelogica blijven bij de concrete initializer.
-Er wordt geen drivercode dynamisch geladen, heapobject gemaakt of extra
-resource-authority gecreëerd; resources blijven kernel-toekenningen.
+M5 kernel profiles perform an additional read-only scan before device
+initialisation. Functions without a match among the drivers registered for that
+profile are reported on COM1 as `UNSUPPORTED:PCI`, with segment, bus/BDF,
+vendor/device, class/subclass/programming interface/revision and subsystem IDs
+where available. Non-type-0 functions are reported only as a count; an
+incomplete configuration scan is explicitly reported and produces no
+unsupported records. This is a diagnostic inventory of matches, not evidence
+that a matched driver has initialised successfully or that every profile
+registry includes all PCI driver families. The RNG driver is now also started
+through segment-0 enumeration and a registered factory; the current QEMU fixture
+uses BDF `00:06.0`, but the driver does not require that location.
 
-`drivers/nvme` en `drivers/xhci` gebruiken ieder een lokale een-entry PCI-
-registry en een devicegebonden BAR-grant voor een beperkte probe met read-only
-controller-MMIO. PCI BAR-sizing schrijft tijdelijk de configuratie-BARs en
-probeert hun oorspronkelijke waarden te herstellen. Een mislukte herstelwrite
-laat PCI-core falen met `PciBarError::Restore` (de xHCI-adapter geeft hiervoor
-`Error::InvalidBar`). PCI-decode en bus mastering blijven na een geslaagde
-disable-write uitgeschakeld; bij een eerdere command-read/-writefout kan
-de oorspronkelijke commandstatus nog gelden.
-De NVMe-crate leest `CAP`/`VS` volgens NVM Express Base Specification 2.4,
-§§3.1.1–3.1.2. De xHCI-crate matcht de USB-hostcontrollerclass volgens PCI-SIG
-PCI Code and ID Assignment Specification 1.10, §1.2, en controleert revision
-en registeroffsets volgens de Intel xHCI Requirements Specification 1.2c,
-§§5.2–5.3. Geen van beide maakt deel uit van de kernel-activatieketen: ze
-schakelen bus mastering niet in en allociëren geen DMA. Alleen de USB
-descriptor-core matcht interface class/subclass/protocol volgens USB 2.0
-Specification §9.6.5; ook die selectie start nog geen classdriver.
+The VirtIO block, network and RNG drivers register their PCI IDs and select
+their device using `DriverRegistry::best_match_with_factory`, rather than a
+predefined BDF. BAR probing and subsequent access remain restricted to the
+selected function. If more than one matching device is present while the kernel
+path still supports only one instance, this is rejected as an error.
+The activation paths also register a static initialiser function for each
+match. `best_match_with_factory` returns metadata and that initialiser; the
+value created by discovery stores it privately. After the kernel assigns the
+existing BAR mappings and DMA pages, `Device::initialize` calls the selected
+factory. Family-specific options and the existing reset/quarantine logic remain
+with the concrete initialiser. No driver code is dynamically loaded, no heap
+object is created and no additional resource authority is created; resources
+remain kernel allocations.
 
-Primaire bronnen: NVM Express, *NVM Express Base Specification*, revision 2.4,
-31 juli 2026, <https://nvmexpress.org/specification/nvm-express-base-specification/>;
+`drivers/nvme` and `drivers/xhci` each use a local single-entry PCI registry and
+a device-bound BAR grant for a limited probe with read-only controller MMIO.
+PCI BAR sizing temporarily writes the configuration BARs and attempts to restore
+their original values. A failed restoration write causes PCI-core to fail with
+`PciBarError::Restore` (the xHCI adapter returns `Error::InvalidBar` for this).
+PCI decoding and bus mastering remain disabled after a successful disable
+write; if an earlier command read/write fails, the original command state may
+still apply.
+The NVMe crate reads `CAP`/`VS` according to NVM Express Base Specification 2.4,
+§§3.1.1–3.1.2. The xHCI crate matches the USB host-controller class according to
+PCI-SIG PCI Code and ID Assignment Specification 1.10, §1.2, and checks the
+revision and register offsets according to the Intel xHCI Requirements
+Specification 1.2c, §§5.2–5.3. Neither is part of the kernel activation chain:
+they do not enable bus mastering or allocate DMA. Only the USB descriptor core
+matches interface class/subclass/protocol according to USB 2.0 Specification
+§9.6.5; this selection does not yet start a class driver either.
+
+Primary sources: NVM Express, *NVM Express Base Specification*, revision 2.4,
+31 July 2026, <https://nvmexpress.org/specification/nvm-express-base-specification/>;
 PCI-SIG, *PCI Code and ID Assignment Specification*, revision 1.10,
-28 november 2017, <https://pcisig.com/PCIExpress/Specs/Base/CodeandIDAssignment_1.10>;
+28 November 2017, <https://pcisig.com/PCIExpress/Specs/Base/CodeandIDAssignment_1.10>;
 Intel, *eXtensible Host Controller Interface for Universal Serial Bus (xHCI)
-Requirements Specification*, revision 1.2c, oktober 2025,
+Requirements Specification*, revision 1.2c, October 2025,
 <https://cdrdv2-public.intel.com/868295/xHCI__Rev1.2c.pdf>; USB Implementers
-Forum, *USB 2.0 Specification*, descriptorbeschrijving §9.6.5,
+Forum, *USB 2.0 Specification*, descriptor description §9.6.5,
 <https://www.usb.org/document-library/usb-20-specification>.
 
-`MatchedPciFunction` bindt config-space-toegang aan een opnieuw gevalideerde
-descriptor en `DriverMatch`. Reads en writes naar een ander BDF worden
-geweigerd; stale descriptors en registraties die niet bij het device passen,
-worden niet gebonden. Dit is een concrete devicegrens voor PCI-configuratie.
-`MatchedPciFunction` kan na matching de memory-BARs peilen. Daarbij blijven
-I/O-decode, memory-decode en bus mastering na de geslaagde disable-write
-uitgeschakeld; de probe probeert BAR-registers ook bij fouten te herstellen
-en rapporteert een mislukte herstelwrite. Een `PciBarGrant` bindt het geselecteerde BDF,
-de driver-ID, BAR-index en gevalideerde base/lengte. Block, netwerk en RNG
-krijgen zo'n grant vóór mapping. `Paging::map_pci_bar` weigert een ander device, een
-andere driver of BAR-index en laat uitsluitend volledige 4-KiB-pagina's
-binnen die BAR mappen. De bestaande PAT-UC-, CPU-MAXPHYADDR- en
-supervisor-NX-controles blijven actief. Dit is een begrensde kernelinterne
-grant, geen userspace capability of driverisolatie. IRQ-toewijzing,
-busmaster-toestemming als afzonderlijke grant en DMA-bufferbeheer blijven
-buiten deze broker. Block- en RNG-kernelprofielen alloceren hun DMA-pool pas
-na een succesvolle discovery- en registrymatch; de netwerkroute volgde deze
-volgorde al.
+`MatchedPciFunction` binds configuration-space access to a revalidated descriptor
+and `DriverMatch`. Reads and writes to another BDF are rejected; stale
+descriptors and registrations that do not match the device are not bound. This
+is a concrete device boundary for PCI configuration.
+`MatchedPciFunction` can probe memory BARs after matching. I/O decoding, memory
+decoding and bus mastering remain disabled after the successful disable write;
+the probe attempts to restore BAR registers even on errors and reports a failed
+restoration write. A `PciBarGrant` binds the selected BDF, driver ID, BAR index
+and validated base/length. Block, network and RNG receive such a grant before
+mapping. `Paging::map_pci_bar` rejects a different device, driver or BAR index
+and permits only complete 4-KiB pages within that BAR to be mapped. Existing
+PAT-UC, CPU-MAXPHYADDR and supervisor-NX checks remain active. This is a bounded
+internal kernel grant, not a userspace capability or driver isolation. IRQ
+allocation, bus-master permission as a separate grant and DMA buffer management
+remain outside this broker. Block and RNG kernel profiles allocate their DMA
+pool only after successful discovery and a registry match; the network path
+already followed this order.
 
 ```text
 PCI segment-0 scan
     -> type-0 DeviceDescriptor
     -> DriverRegistry::best_match_with_factory
-    -> apparaatgebonden configadapter en BAR-grants
-    -> kernel valideert grant en maakt beperkte UC/NX-mapping
-    -> geselecteerde VirtIO-factory
-    -> kernel valideert devicegebonden BAR-grants en DMA-eigendom
-    -> bestaande block-, netwerk- of RNG-I/O
+    -> device-bound configuration adapter and BAR grants
+    -> kernel validates grant and creates restricted UC/NX mapping
+    -> selected VirtIO factory
+    -> kernel validates device-bound BAR grants and DMA ownership
+    -> existing block, network or RNG I/O
 ```
 
-ArceOS' categoriegerichte traits en `DriverProbe`/`init_drivers`-structuur
-dienden als architectuurreferentie; er is geen ArceOS-code overgenomen. De
-Nieuw OS-kern houdt matching, resourceautorisatie en starten gescheiden: een
-PCI-match verleent op zichzelf geen toegang tot BAR's, interrupts of DMA.
+ArceOS's category-oriented traits and `DriverProbe`/`init_drivers` structure
+served as architectural references; no ArceOS code was incorporated. The Baryon
+OS kernel separates matching, resource authorisation and activation: a PCI
+match alone grants no access to BARs, interrupts or DMA.
 
-## Nog benodigde architectuur
+## Architecture still required
 
-1. Breid de kernel-owned resourcegrens uit naar expliciete BAR-subregio's voor
-   de overige PCI-drivers. De block-/netwerkpaden hebben nu een matched BAR-
-   grant, maar de mappingcode en deviceinitialisatie zijn nog niet één
-   algemene resourcebroker. Integreer interrupt lifecycle en DMA met de
-   maturitybranch-semantiek; maak geen concurrerende capability- of
-   IOMMU-modellen.
-2. Breng de per-familie factories samen in een gedeelde registry met een
-   getypeerde resourcecontext, en koppel activatiestatus/cleanup aan de
-   lifecycle. De huidige statische factoryfuncties activeren alleen de
-   bestaande block-, netwerk- en RNG-initializers; zij vormen nog geen algemene,
-   heterogene plug-and-playregistry.
-3. Behoud de bestaande VirtIO-policy-, DMA-, timeout-, reset- en
-   quarantainelogica bij het verplaatsen naar die resourcegrens.
-4. Voeg alleen de subsysteminterfaces toe die concrete drivers nodig hebben.
-   USB vraagt een afzonderlijke enumeratie-, class-matching- en
-   resourcegrens; de huidige PCI-registry beweert USB niet te ondersteunen.
-5. Breid discovery gecontroleerd uit naar bridge-topologie, ACPI/ECAM,
-   aanvullende segmenten en later hotplug, met tests voor iedere nieuwe
-   toegangspad.
+1. Extend the kernel-owned resource boundary to explicit BAR subregions for
+   the remaining PCI drivers. The block/network paths now have a matched BAR
+   grant, but the mapping code and device initialisation do not yet form one
+   general resource broker. Integrate interrupt lifecycle and DMA with the
+   maturity-branch semantics; do not create competing capability or IOMMU
+   models.
+2. Consolidate the per-family factories into a shared registry with a typed
+   resource context, and connect activation state/cleanup to the lifecycle.
+   The current static factory functions activate only the existing block,
+   network and RNG initialisers; they do not yet form a general heterogeneous
+   plug-and-play registry.
+3. Preserve the existing VirtIO policy, DMA, timeout, reset and quarantine
+   logic when moving to that resource boundary.
+4. Add only the subsystem interfaces required by concrete drivers. USB requires
+   a separate enumeration, class-matching and resource boundary; the current
+   PCI registry does not claim USB support.
+5. Extend discovery in a controlled manner to bridge topology, ACPI/ECAM,
+   additional segments and subsequently hotplug, with tests for every new
+   access path.
 
-PCI BAR-grants en statisch gekoppelde initializers voor block-, netwerk- en
-RNG-paden zijn geïntegreerd; er is nog geen algemene BAR/MMIO-, interrupt-
-of DMA-resourcebroker. De huidige PCI-code is nog geen volledige
-plug-and-play-keten. Deze status claimt geen fysieke hardware, DMA-isolatie,
-hotplug, USB, GPU-acceleratie of herstel van een gecrashte driver.
+PCI BAR grants and statically linked initialisers for block, network and RNG
+paths are integrated; no general BAR/MMIO, interrupt or DMA resource broker yet
+exists. The current PCI code is not yet a complete plug-and-play chain. This
+status makes no claim of physical hardware support, DMA isolation, hotplug,
+USB, GPU acceleration or recovery from a crashed driver.

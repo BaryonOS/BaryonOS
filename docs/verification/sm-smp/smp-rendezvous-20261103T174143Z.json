@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "task": "SYSTEM-MATURITY-SMP AP bring-up, rendezvous, and M3 scheduler checkpoint",
+  "source_fingerprint_version": 3,
+  "source_sha256": "a380b57bd2b79e42463d3d17790d9efe59840a40ec57adf3d80e76a60a1cd005",
+  "source_commit": "9136edc428757ea967e3e50ad98f82bef93fba4e",
+  "branch": "simonvanieperen-studious-spoon",
+  "date_europe_amsterdam": "2026-11-03",
+  "invocation": {
+    "command": ["python3", "-B", "tools/test_smp.py"],
+    "environment": {
+      "PATH": "$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH",
+      "LD_LIBRARY_PATH": "/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu:/tmp/sm-oom-qemu-root/lib/x86_64-linux-gnu",
+      "OS_OVMF_CODE": "/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd",
+      "OS_OVMF_VARS": "/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd"
+    }
+  },
+  "status": "failed",
+  "passed": false,
+  "host": {
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/tests",
+      "-p",
+      "test_smp.py"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+  },
+  "stages": [
+    {
+      "profile": "single-m2",
+      "kernel_feature": "milestone-m2",
+      "cpu_count": 1,
+      "runner": "m2",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 1.8114390529990487,
+      "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/build/run/smp-single-6a06910eb9",
+      "evidence": null,
+      "error": null
+    }
+  ],
+  "failed_stage": "two-m2",
+  "acceptance_boundary": "AP startup, bounded rendezvous, and opt-in native M3 per-CPU process scheduling only; not full K06 IPC, revoke, exit, cross-CPU TLB, or race acceptance.",
+  "error": "CalledProcessError: Command '['/home/simon/.cargo/bin/cargo', '+1.90.0', 'build', '--locked', '--release', '--target-dir', '/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-studious-spoon/target', '-p', 'os-kernel', '--target', 'x86_64-unknown-none', '--features', 'native-smp']' returned non-zero exit status 101."
+}

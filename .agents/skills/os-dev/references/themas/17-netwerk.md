@@ -1,21 +1,21 @@
-# Netwerkstack, protocollen en netwerkkaarten
+# Network stack, protocols and network cards
 
-De wiki bevat zowel netwerkhardware als de opbouw van een netwerkstack en afzonderlijke protocollen. Ze zijn hier gezamenlijk vindbaar maar blijven aparte bronartikelen. Het boek bevat geen eigen hoofdstuk over een netwerkstack; de inhoud van dit onderdeel komt daarom uit de wiki.
+The wiki includes both network hardware and the structure of a network stack and individual protocols. They are grouped here for navigation but remain separate source articles. The book has no chapter dedicated to a network stack; this section therefore draws on the wiki.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [Network Stack](../corpus/wiki-05.md#w002538) [W002538] · revisie 23577 · 2019-04-16T19:16:04Z
-- [Address Resolution Protocol](../corpus/wiki-05.md#w002539) [W002539] · revisie 11170 · 2011-02-05T23:24:22Z
-- [Internet Control Message Protocol](../corpus/wiki-07.md#w002979) [W002979] · revisie 11490 · 2011-05-11T04:42:47Z
-- [Ethernet devices](../corpus/wiki-05.md#w002362) [W002362] · revisie 26434 · 2021-09-30T20:20:39Z
-- [Socket](../corpus/wiki-10.md#w003751) [W003751] · revisie 17765 · 2015-03-08T09:27:30Z
-- [802.11](../corpus/wiki-06.md#w002626) [W002626] · revisie 21595 · 2017-10-01T21:45:18Z
-- [Intel 8254x](../corpus/wiki-06.md#w002789) [W002789] · revisie 30346 · 2026-03-17T21:07:33Z
-- [RTL8139](../corpus/wiki-04.md#w002176) [W002176] · revisie 30434 · 2026-03-29T22:49:11Z
+- [Network Stack](../corpus/wiki-05.md#w002538) [W002538] · revision 23577 · 2019-04-16T19:16:04Z
+- [Address Resolution Protocol](../corpus/wiki-05.md#w002539) [W002539] · revision 11170 · 2011-02-05T23:24:22Z
+- [Internet Control Message Protocol](../corpus/wiki-07.md#w002979) [W002979] · revision 11490 · 2011-05-11T04:42:47Z
+- [Ethernet devices](../corpus/wiki-05.md#w002362) [W002362] · revision 26434 · 2021-09-30T20:20:39Z
+- [Socket](../corpus/wiki-10.md#w003751) [W003751] · revision 17765 · 2015-03-08T09:27:30Z
+- [802.11](../corpus/wiki-06.md#w002626) [W002626] · revision 21595 · 2017-10-01T21:45:18Z
+- [Intel 8254x](../corpus/wiki-06.md#w002789) [W002789] · revision 30346 · 2026-03-17T21:07:33Z
+- [RTL8139](../corpus/wiki-04.md#w002176) [W002176] · revision 30434 · 2026-03-29T22:49:11Z
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [3c90x](../corpus/wiki-01.md#w001429) [W001429]
 - [802.11](../corpus/wiki-06.md#w002626) [W002626]

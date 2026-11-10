@@ -157,7 +157,7 @@ testdata, geen echte schijf, NAS, gebruikersgeheimen of productiekeys.
 LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-fr-storage-target python3 -B tools/dev.py cargo +1.90.0 test --locked -p keyring-core
 LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-fr-storage-target python3 -B tools/dev.py cargo +1.90.0 clippy --locked -p keyring-core --all-targets -- -D warnings
 LOCALAPPDATA=/workspace/nieuw-os/.tools python3 -B tools/dev.py cargo +1.90.0 fmt -p keyring-core -- --check
-LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-fr-storage-target RUSTFLAGS='--cfg chacha20_force_soft --cfg poly1305_force_soft --cfg sha2_backend="soft"' python3 -B tools/dev.py cargo +1.90.0 build --locked -p keyring-core --release --target x86_64-unknown-none
+LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-fr-storage-target RUSTFLAGS='--cfg chacha20_force_soft --cfg chacha20_backend="soft" --cfg poly1305_backend="soft" --cfg sha2_backend="soft"' python3 -B tools/dev.py cargo +1.90.0 build --locked -p keyring-core --release --target x86_64-unknown-none
 ```
 
 De hosttests voeren de echte onderhouden AEAD/HKDF-code uit, inclusief

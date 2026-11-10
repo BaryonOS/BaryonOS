@@ -12,6 +12,8 @@ use core::{
     mem::{replace, MaybeUninit},
     ptr,
 };
+#[cfg(feature = "native-memory")]
+use kernel_core::pressure::{Level as MemoryPressure, ReclaimBudget};
 use kernel_core::{user, Frames, Kind, Owner, PAGE};
 #[cfg(feature = "display-input")]
 mod display;
@@ -304,6 +306,10 @@ const NET_PROBE_ELF: &[u8] = include_bytes!(env!("NOS_NET_PROBE_ELF"));
 const NETWORK_SERVICE_ELF: &[u8] = include_bytes!(env!("NOS_NETWORK_SERVICE_ELF"));
 #[cfg(feature = "native-net-service")]
 const NETWORK_CLIENT_ELF: &[u8] = include_bytes!(env!("NOS_NETWORK_CLIENT_ELF"));
+#[cfg(feature = "native-net-service")]
+const NET_SERVICE_PROCESSES: usize = system::PROCESSES;
+#[cfg(not(feature = "native-net-service"))]
+const NET_SERVICE_PROCESSES: usize = 0;
 const DATA: u64 = 0x40010000;
 const HEAP: u64 = 0x60000000;
 // B03: ML-DSA-65 verification in the ring-3 update service needs about
@@ -684,7 +690,7 @@ impl State {
             16
         };
         let initial = if cfg!(feature = "native-net-service") {
-            3
+            NET_SERVICE_PROCESSES
         } else if cfg!(any(
             feature = "native-system-materiaal-probe",
             feature = "native-window-session"
@@ -1269,6 +1275,8 @@ impl State {
         }
         address.destroy(self.frames);
         assert_eq!(self.free_count(), free_before + released);
+        #[cfg(feature = "native-memory")]
+        memory_fixture::observe_cleanup(self, slot, released, free_before, self.free_count());
         for index in 0..FRAME_COUNT {
             let owner = self.frames.owner(index as u64 * PAGE).unwrap();
             assert!(!matches!(owner,Owner::User(pid,_) if pid==p.pid));
@@ -1619,6 +1627,8 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             || cfg!(feature = "native-window-session") && number == 0x53;
         #[cfg(feature = "native-system-clock")]
         let supervisor_call = supervisor_call || number == 0x73;
+        #[cfg(feature = "native-system-power")]
+        let supervisor_call = supervisor_call || number == 0x90;
         #[cfg(not(any(feature = "native-supervisor", feature = "native-keyring")))]
         #[allow(unused_variables)]
         let supervisor_call = false;
@@ -1651,6 +1661,30 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             };
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
+        }
+        #[cfg(feature = "native-system-power")]
+        if number == 0x90 {
+            match system::power(state, current, args) {
+                // Granted: the caller ends exactly like exit(0); S5 follows in
+                // system::finish once all evidence is in and the gate still holds.
+                0 => {
+                    state.last_event = EventRecord {
+                        pid: state.processes[current].pid,
+                        code: 0,
+                        vector: 128,
+                        rip: context[17],
+                        cr2: 0,
+                    };
+                    terminate = true;
+                    state.exited = true;
+                    let counter = read_word(state.processes[current].physical(DATA + 8));
+                    state.observer_exit(current, counter);
+                }
+                code => {
+                    state.processes[current].context[14] = code as u64;
+                    state.processes[current].context[12] = 0;
+                }
+            }
         }
         #[cfg(feature = "native-keyring")]
         if matches!(number, 0x60 | 0x61) {

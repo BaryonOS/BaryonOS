@@ -1,6 +1,6 @@
-# Testregels
-Lees rootinstructies en docs/TEST-STRATEGY.md. Koppel iedere test aan een requirement/invariant.
-Bootlogs komen uit een echte emulatortest; scripts mogen geen verwachte succeslog fabriceren. Harness faalt op timeout, ontbrekende marker en onverwachte exitstatus.
-Mocks bewijzen uitsluitend de gemockte laag. Geef niet-uitgevoerde checks expliciet aan.
-Isoleer images, seeds en tijdelijke bestanden. Geen internetdoelen, persoonlijke data of echte disks. Vergelijk prestaties alleen bij vastgelegde omstandigheden.
-Rapporteer fouten zonder tests te verzwakken om groen te krijgen.
+# Test rules
+Read the root instructions and docs/TEST-STRATEGY.md. Link every test to a requirement/invariant.
+Boot logs must come from an actual emulator test; scripts must not fabricate expected success logs. The harness fails on timeout, a missing marker or an unexpected exit status.
+Mocks demonstrate only the mocked layer. Explicitly identify checks that were not run.
+Isolate images, seeds and temporary files. Do not use internet destinations, personal data or real disks. Compare performance only under recorded conditions.
+Report failures without weakening tests to obtain a passing result.

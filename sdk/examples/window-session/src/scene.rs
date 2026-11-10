@@ -63,6 +63,9 @@ pub struct Scene {
     clipboard_notice: ClipboardNotice,
     palette: ProgramPalette,
     palette_keys: [bool; PhysicalKey::Menu as usize + 1],
+    switcher: Option<usize>,
+    switcher_keys: [bool; PhysicalKey::Menu as usize + 1],
+    switcher_mouse_capture: bool,
 }
 impl Scene {
     /// Construct the two-window scene for a supported physical-pixel viewport.
@@ -130,6 +133,9 @@ impl Scene {
             clipboard_notice: ClipboardNotice::None,
             palette: ProgramPalette::new(),
             palette_keys: [false; PhysicalKey::Menu as usize + 1],
+            switcher: None,
+            switcher_keys: [false; PhysicalKey::Menu as usize + 1],
+            switcher_mouse_capture: false,
         })
     }
 
@@ -148,7 +154,7 @@ impl Scene {
     ///
     /// Returns `false` when the palette is already open.
     pub fn palette_open(&mut self) -> bool {
-        if self.palette.open {
+        if self.palette.open || self.switcher_is_open() {
             return false;
         }
         self.palette.open = true;
@@ -162,6 +168,165 @@ impl Scene {
     /// Report whether the app palette is open.
     pub fn palette_is_open(&self) -> bool {
         self.palette.open
+    }
+
+    pub fn switcher_is_open(&self) -> bool {
+        self.switcher.is_some()
+    }
+
+    /// Keep the entire mouse gesture in the switcher, even after dismissal.
+    /// The native input dispatcher must not route the button-up to the dock.
+    pub fn switcher_owns_pointer(&self) -> bool {
+        self.switcher.is_some() || self.switcher_mouse_capture
+    }
+
+    pub fn switcher_selected(&self) -> Option<usize> {
+        self.switcher
+    }
+
+    pub fn switcher_bounds(&self) -> Rect {
+        let s = self.scale;
+        Rect::new(
+            (self.width - 620 * s) as i32 / 2,
+            (self.height - 292 * s) as i32 / 2,
+            620 * s,
+            292 * s,
+        )
+    }
+
+    pub fn switcher_card(&self, index: usize) -> Rect {
+        if index >= WINDOWS {
+            return Rect::default();
+        }
+        let r = self.switcher_bounds();
+        let s = self.scale;
+        Rect::new(
+            r.x + (26 + index as i32 * 286) * s as i32,
+            r.y + 58 * s as i32,
+            282 * s,
+            174 * s,
+        )
+    }
+
+    /// Fit a live app image inside its card without stretching its aspect ratio.
+    pub fn switcher_preview(&self, index: usize) -> Result<Rect, Invalid> {
+        if index >= WINDOWS {
+            return Err(Invalid);
+        }
+        let body = self.windows[index].body;
+        if body.width == 0 || body.height == 0 {
+            return Err(Invalid);
+        }
+        let card = self.switcher_card(index);
+        let s = self.scale;
+        let (maxw, maxh) = (250 * s, 112 * s);
+        let (w, h) =
+            if u64::from(body.width) * u64::from(maxh) > u64::from(body.height) * u64::from(maxw) {
+                (
+                    maxw,
+                    (u64::from(body.height) * u64::from(maxw) / u64::from(body.width)) as u32,
+                )
+            } else {
+                (
+                    (u64::from(body.width) * u64::from(maxh) / u64::from(body.height)) as u32,
+                    maxh,
+                )
+            };
+        if w == 0 || h == 0 {
+            return Err(Invalid);
+        }
+        Ok(Rect::new(
+            card.x + (card.width - w) as i32 / 2,
+            card.y + 10 * s as i32 + (maxh - h) as i32 / 2,
+            w,
+            h,
+        ))
+    }
+
+    fn close_switcher(&mut self, commit: bool, damage: &mut Damage) -> Result<(), Invalid> {
+        if let Some(selected) = self.switcher {
+            if commit {
+                self.select(selected)?;
+                self.shell.hidden[selected] = false;
+            }
+            self.switcher = None;
+            damage.mark(self.switcher_bounds());
+            for index in 0..WINDOWS {
+                damage.mark(self.paint_bounds(index));
+            }
+            damage.mark(self.dock());
+        }
+        Ok(())
+    }
+
+    /// Alt+Tab previews without changing focus; the last Alt release commits.
+    /// Owned repeats and releases stay in the shell after dismissal.
+    pub fn switcher_key(
+        &mut self,
+        key: KeyboardEvent,
+        damage: &mut Damage,
+    ) -> Result<bool, Invalid> {
+        let index = key.key as usize;
+        if self.switcher_is_open() {
+            // Trusted shell, lock and recovery shortcuts must not be trapped
+            // behind the unprivileged Alt+Tab overlay.
+            if matches!(key.action, KeyAction::Press | KeyAction::Repeat)
+                && ((key.key == PhysicalKey::L && key.modifiers.super_key())
+                    || matches!(
+                        key.key,
+                        PhysicalKey::F3 | PhysicalKey::Menu | PhysicalKey::F10 | PhysicalKey::F12
+                    ))
+            {
+                self.close_switcher(false, damage)?;
+                return Ok(false);
+            }
+            self.switcher_keys[index] = key.action != KeyAction::Release;
+            match (key.key, key.action) {
+                (PhysicalKey::LeftAlt | PhysicalKey::RightAlt, KeyAction::Release)
+                    if !key.modifiers.alt() =>
+                {
+                    self.close_switcher(true, damage)?;
+                }
+                (PhysicalKey::Escape, KeyAction::Press) => self.close_switcher(false, damage)?,
+                (PhysicalKey::Enter | PhysicalKey::KeypadEnter, KeyAction::Press) => {
+                    self.close_switcher(true, damage)?;
+                }
+                (PhysicalKey::Tab, KeyAction::Press)
+                | (PhysicalKey::Left | PhysicalKey::Right, KeyAction::Press | KeyAction::Repeat) => {
+                    self.switcher = self.switcher.map(|selected| 1 - selected);
+                    damage.mark(self.switcher_bounds());
+                }
+                _ => {}
+            }
+            return Ok(true);
+        }
+        if self.switcher_keys[index] {
+            if key.action == KeyAction::Release {
+                self.switcher_keys[index] = false;
+            }
+            return Ok(true);
+        }
+        if key.key != PhysicalKey::Tab
+            || key.action != KeyAction::Press
+            || !key.modifiers.alt()
+            || key.modifiers.control()
+            || key.modifiers.super_key()
+            || self.shell.blocks_apps()
+        {
+            return Ok(false);
+        }
+        if self.palette_close() {
+            damage.mark(self.palette_bounds());
+            damage.mark(self.dock());
+        }
+        self.cancel_pointer();
+        self.switcher = Some(1 - self.focused);
+        self.switcher_keys[index] = true;
+        self.switcher_keys[PhysicalKey::LeftAlt as usize] = key.modifiers.left_alt;
+        self.switcher_keys[PhysicalKey::RightAlt as usize] = key.modifiers.right_alt;
+        damage.mark(self.switcher_bounds());
+        damage.mark(self.dock());
+        Ok(true)
     }
 
     /// Return the current ASCII app-name query.
@@ -367,7 +532,7 @@ impl Scene {
     /// Return the dock task button currently under the pointer, unless the
     /// palette is open.
     pub fn hovered_task(&self) -> Option<usize> {
-        (!self.palette_is_open() && !self.shell.blocks_apps())
+        (!self.palette_is_open() && !self.switcher_is_open() && !self.shell.blocks_apps())
             .then(|| {
                 (0..WINDOWS).find(|index| {
                     self.task_button(*index)
@@ -380,6 +545,10 @@ impl Scene {
     /// Forget palette key ownership and close it, marking affected regions.
     pub fn cancel_palette_input(&mut self, damage: &mut Damage) {
         self.palette_keys.fill(false);
+        self.switcher_keys.fill(false);
+        self.switcher_mouse_capture = false;
+        self.close_switcher(false, damage)
+            .expect("cancellation cannot select");
         if self.palette_close() {
             damage.mark(self.palette_bounds());
             damage.mark(self.dock());
@@ -397,6 +566,7 @@ impl Scene {
     ) -> Result<Option<usize>, Invalid> {
         let hover = self.hovered_task();
         let palette_open = self.palette_is_open();
+        let switcher_open = self.switcher_is_open();
         let frames = [self.paint_bounds(0), self.paint_bounds(1)];
         damage.mark(self.pointer_bounds());
         let recipient = self.mouse(x, y, down, held)?;
@@ -410,6 +580,15 @@ impl Scene {
         if palette_open {
             damage.mark(self.palette_bounds());
             damage.mark(self.dock());
+        }
+        if switcher_open {
+            damage.mark(self.switcher_bounds());
+            if !self.switcher_is_open() {
+                for index in 0..WINDOWS {
+                    damage.mark(self.paint_bounds(index));
+                }
+                damage.mark(self.dock());
+            }
         }
         for (index, frame) in frames.into_iter().enumerate() {
             if frame != self.paint_bounds(index) {
@@ -521,9 +700,10 @@ impl Scene {
             return Err(Invalid);
         }
         if index != self.focused {
+            let switches = self.switches.checked_add(1).ok_or(Invalid)?;
             self.drag = None;
             self.focused = index;
-            self.switches = self.switches.checked_add(1).ok_or(Invalid)?;
+            self.switches = switches;
         }
         Ok(())
     }
@@ -563,6 +743,30 @@ impl Scene {
             return Err(Invalid);
         }
         self.pointer = (x, y);
+        if self.switcher_is_open() {
+            if down {
+                self.switcher_mouse_capture = true;
+                let hit = (0..WINDOWS)
+                    .find(|index| self.switcher_card(*index).contains(x as i32, y as i32));
+                if let Some(index) = hit {
+                    self.select(index)?;
+                    self.shell.hidden[index] = false;
+                    self.switcher = None;
+                } else if !self.switcher_bounds().contains(x as i32, y as i32) {
+                    self.switcher = None;
+                }
+            }
+            // A click on the surround leaves the overlay open; release its
+            // capture on button-up so the following app click is delivered.
+            if !held {
+                self.switcher_mouse_capture = false;
+            }
+            return Ok(None);
+        }
+        if self.switcher_mouse_capture {
+            self.switcher_mouse_capture = held;
+            return Ok(None);
+        }
         if self.shell.blocks_apps() {
             self.drag = None;
             return Ok(None);
@@ -748,6 +952,7 @@ impl Scene {
             self.shell
                 .render(&mut c, self.width, self.height, self.scale, self.focused);
             self.system_foreground(&mut c);
+            self.pointer_foreground(&mut c);
             return Ok(());
         }
         let window = self.windows[self.focused];
@@ -764,6 +969,7 @@ impl Scene {
             || rect.intersects(self.dock())
             || rect.intersects(self.pointer_bounds())
             || (self.palette_is_open() && rect.intersects(self.palette_bounds()))
+            || (self.switcher_is_open() && rect.intersects(self.switcher_bounds()))
         {
             return self.render_reference(rect, pixels, backing);
         }
@@ -791,6 +997,21 @@ impl Scene {
         backing: &[u32],
     ) -> Result<(), Invalid> {
         let mut c = Canvas::new(rect, pixels).map_err(|_| Invalid)?;
+        if self.switcher_is_open() && rect.intersects(self.switcher_bounds()) {
+            for window in self.windows {
+                if window.body.width == 0
+                    || window.body.height == 0
+                    || window
+                        .body
+                        .width
+                        .checked_mul(window.body.height)
+                        .and_then(|n| window.offset.checked_add(n as usize))
+                        .is_none_or(|end| end > backing.len())
+                {
+                    return Err(Invalid);
+                }
+            }
+        }
         let palette = theme::MATERIAAL;
         theme::wallpaper(&mut c, Rect::new(0, 0, self.width, self.height), palette);
         let s = self.scale;
@@ -906,6 +1127,8 @@ impl Scene {
             self.hovered_task(),
         );
         self.system_foreground(&mut c);
+        self.render_switcher(&mut c, backing)?;
+        self.pointer_foreground(&mut c);
         Ok(())
     }
     fn system_foreground(&self, c: &mut Canvas<'_>) {
@@ -921,10 +1144,103 @@ impl Scene {
         if !self.shell.blocks_apps() {
             self.render_palette(c);
         }
+    }
+    fn pointer_foreground(&self, c: &mut Canvas<'_>) {
+        let s = self.scale;
         let (x, y) = (self.pointer.0 as i32, self.pointer.1 as i32);
         c.line(x, y, x, y + 18 * s as i32, 3 * s, 0xffffff);
         c.line(x, y, x + 12 * s as i32, y + 12 * s as i32, 3 * s, 0xffffff);
         c.line(x, y, x + 3 * s as i32, y + 15 * s as i32, s, 0x172a3a);
+    }
+    fn render_switcher(&self, c: &mut Canvas<'_>, backing: &[u32]) -> Result<(), Invalid> {
+        if !self.switcher_is_open() || !self.switcher_bounds().intersects(c.bounds()) {
+            return Ok(());
+        }
+        let r = self.switcher_bounds();
+        let p = theme::MATERIAAL;
+        let s = self.scale;
+        let small = Font::new(Size::Small, Weight::Regular, s == 2);
+        c.fill_rect(r, p.border);
+        c.fill_rect(
+            Rect::new(
+                r.x + s as i32,
+                r.y + s as i32,
+                r.width - 2 * s,
+                r.height - 2 * s,
+            ),
+            p.surface,
+        );
+        c.text(
+            r.x + 26 * s as i32,
+            r.y + 20 * s as i32,
+            "WISSEL VAN VENSTER",
+            small,
+            p.text,
+        );
+        for (index, name) in APP_NAMES.iter().enumerate() {
+            let card = self.switcher_card(index);
+            let selected = self.switcher == Some(index);
+            c.fill_rect(card, if selected { p.accent } else { p.border });
+            c.fill_rect(
+                Rect::new(
+                    card.x + 2 * s as i32,
+                    card.y + 2 * s as i32,
+                    card.width - 4 * s,
+                    card.height - 4 * s,
+                ),
+                if selected {
+                    p.accent_soft
+                } else {
+                    p.background
+                },
+            );
+            let preview = self.switcher_preview(index)?;
+            let body = self.windows[index].body;
+            let bounds = c.bounds();
+            for y in preview.y.max(bounds.y)
+                ..(preview.y + preview.height as i32).min(bounds.y + bounds.height as i32)
+            {
+                for x in preview.x.max(bounds.x)
+                    ..(preview.x + preview.width as i32).min(bounds.x + bounds.width as i32)
+                {
+                    let sx = (u64::from((x - preview.x) as u32) * u64::from(body.width)
+                        / u64::from(preview.width)) as usize;
+                    let sy = (u64::from((y - preview.y) as u32) * u64::from(body.height)
+                        / u64::from(preview.height)) as usize;
+                    c.pixel(
+                        x,
+                        y,
+                        backing[self.windows[index].offset + sy * body.width as usize + sx],
+                    );
+                }
+            }
+            c.text(
+                card.x + 16 * s as i32,
+                card.y + 130 * s as i32,
+                name,
+                Font::new(Size::Body, Weight::Semibold, s == 2),
+                p.text,
+            );
+            c.text(
+                card.x + 16 * s as i32,
+                card.y + 152 * s as i32,
+                if selected {
+                    "Geselecteerd"
+                } else {
+                    "Open venster"
+                },
+                small,
+                p.muted,
+            );
+        }
+        c.text(
+            r.x + 26 * s as i32,
+            r.y + 250 * s as i32,
+            "Tab kiezen · Alt los / Enter openen · Esc terug",
+            small,
+            p.text,
+        );
+        Ok(())
     }
     fn render_palette(&self, c: &mut Canvas<'_>) {
         if !self.palette_is_open() || !self.palette_bounds().intersects(c.bounds()) {

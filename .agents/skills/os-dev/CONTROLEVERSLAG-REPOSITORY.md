@@ -1,4 +1,4 @@
-# Controleverslag repository-import
+# Repository import validation report
 
 ## Validator
 ```json
@@ -13,7 +13,7 @@
 }
 ```
 
-## Unittests
+## Unit tests
 ```text
 ......
 ----------------------------------------------------------------------

@@ -1,77 +1,133 @@
-# Afhankelijkheden en herkomst
+# Dependencies and provenance
 
-M6b voegt uitsluitend de eigen lokale crate `object-core 0.1.0` toe: `no_std`,
-geen allocator of externe dependencies, `forbid(unsafe_code)` in de core.
-De native adapter gebruikt de bestaande vaste syscallbuffers en gemotiveerde
-unsafe-grens. Root-Cargo.lock behoudt `r-efi 7.1.0` met dezelfde checksum.
+M6b adds only the project's own local crate `object-core 0.1.0`: `no_std`,
+no allocator or external dependencies, and `forbid(unsafe_code)` in the core.
+The native adapter uses existing fixed syscall buffers and a justified
+unsafe boundary. Root Cargo.lock retains `r-efi 7.1.0` with the same checksum.
 
-De SDK-runtime gebruikt nu rechtstreeks `zeroize 1.9.1` (exact gepind,
-`default-features = false`) voor het wissen van IPC-envelopes. Dit is dezelfde
-reeds gebruikte RustCrypto-dependency uit `services/keyring`; de vastgepinde
-crate is `no_std`, heeft voor deze configuratie geen transitieve dependency of
-buildscript en is Apache-2.0 OR MIT. Herkomst: crates.io-locksum en
-<https://github.com/RustCrypto/utils/tree/master/zeroize>. Dit wist alleen
-expliciet beheerde buffers. De native sessie-UI gebruikt sinds2november2026
-dezelfde exacte pin rechtstreeks voor owned wachtwoord-/ticketbuffers; geen
-nieuwe externe crate, feature of buildscript. Het bewijst geen opruiming van registers, compiler-
-kopieën, crashgeheugen of kopieën buiten de SDK-eigen envelopes.
+The SDK runtime now directly uses `zeroize 1.9.1` (exactly pinned,
+`default-features = false`) to erase IPC envelopes. This is the same
+RustCrypto dependency already used in `services/keyring`; the pinned crate
+is `no_std`, has no transitive dependency or build script in this
+configuration, and is Apache-2.0 OR MIT. Provenance: crates.io lock checksum
+and <https://github.com/RustCrypto/utils/tree/master/zeroize>.
+This erases only explicitly managed buffers. Since 2 November 2026, the
+native session UI directly uses the same exact pin for owned password/ticket
+buffers; no new external crate, feature or build script. This does not prove
+cleanup of registers, compiler copies, crash memory or copies outside the
+SDK-owned envelopes.
 
-### Netwerkdiensten: smoltcp, rustls en spin (30 oktober 2026)
+### Network services: smoltcp, rustls and spin (30 October 2026)
 
-Deze externe crates zitten uitsluitend in de zelfstandige workspaces van
-ring-3-netwerkdiensten, elk met een eigen `Cargo.lock`; niet in kernel, loader
-of root-workspace. Herkomst- en buildscriptcontrole staan bij de component.
+These external crates are confined to the independent workspaces of ring-3
+network services, each with its own `Cargo.lock`; they are not in the kernel,
+loader or root workspace. Provenance and build-script checks are recorded
+with the component.
 
-| Crate (exacte pin) | Gebruikt door | Herkomst / licentie | no_std / transitief | Detailbron |
+| Crate (exact pin) | Used by | Provenance/licence | no_std/transitive | Detailed source |
 |---|---|---|---|---|
-| `smoltcp =0.14.0` | `services/net-stack`, `services/net-broker` | smoltcp-rs/smoltcp; 0BSD | `default-features = false`, alleen Ethernet/IPv4/TCP; transitief `managed`, `heapless`, `hash32`, `byteorder`, `bitflags`, `cfg-if`, `stable_deref_trait` volgens lockfile | ADR-046 in `DECISIONS.md`, `services/net-stack/THIRD-PARTY.md` |
-| `rustls =0.23.46` | `services/net-tls` | rustls/rustls; Apache-2.0 OR ISC OR MIT | Alleen `custom-provider`, geen `std`/ring/AWS-LC; transitief `rustls-webpki`, `rustls-pki-types`, `once_cell`, `subtle`, `untrusted`, `zeroize` | `services/net-tls/README.md` (dependencycontrole) |
-| `spin =0.12.3` | `services/net-tls` | zesterer/spin; MIT | Alleen `mutex,spin_mutex`; geen dependencies of buildscript | `services/net-tls/README.md` |
+| `smoltcp =0.14.0` | `services/net-stack`, `services/net-broker` | smoltcp-rs/smoltcp; 0BSD | `default-features = false`, Ethernet/IPv4/TCP only; transitive `managed`, `heapless`, `hash32`, `byteorder`, `bitflags`, `cfg-if`, `stable_deref_trait` under the lockfile | ADR-046 in `DECISIONS.md`, `services/net-stack/THIRD-PARTY.md` |
+| `rustls =0.23.46` | `services/net-tls` | rustls/rustls; Apache-2.0 OR ISC OR MIT | `custom-provider` only, no `std`/ring/AWS-LC; transitive `rustls-webpki`, `rustls-pki-types`, `once_cell`, `subtle`, `untrusted`, `zeroize` | `services/net-tls/README.md` (dependency review) |
+| `spin =0.12.3` | `services/net-tls` | zesterer/spin; MIT | `mutex,spin_mutex` only; no dependencies or build script | `services/net-tls/README.md` |
 
-Ongekozen optionele of platformpackages (zoals `ring`, `windows-*`) kunnen in
-`services/net-tls/Cargo.lock` staan; alleen de featureboom en compileruitvoer
-bewijzen wat wordt gebouwd. **Updatebeleid:** versies blijven exact gepind en
-`--locked`; een update vraagt een eigen PR met lockfilediff, herhaalde
-licentie-/buildscriptcontrole en de componentgates. **Verwijderplan:** elke
-crate is beperkt tot één dienstworkspace; verwijderen betekent die dienst of
-adapter vervangen, zonder kernel-, ABI- of root-lockwijziging.
+Unselected optional or platform packages (such as `ring`, `windows-*`) may
+appear in `services/net-tls/Cargo.lock`; only the feature tree and compiler
+output establish what is built. **Update policy:** versions remain exactly
+pinned and `--locked`; an update requires its own PR with a lockfile diff,
+repeated licence/build-script checks and the component gates.
+**Removal plan:** each crate is confined to one service workspace; removal
+means replacing that service or adapter without kernel, ABI or root-lock changes.
 
-De nieuwe Linux-ontwikkelvariant gebruikt Rust 1.90.0, QEMU 10.0.2
-(`1:10.0.2+ds-2+deb13u1~bpo12+1`) en matching OVMF 2025.02-8+deb13u1.
-Rust kwam van static.rust-lang.org; Debian-pakketten zijn via ondertekende
-InRelease, Packages-SHA256 en pakket-SHA256 gecontroleerd en uitsluitend
-lokaal uitgepakt. De metadata, URLs, binary-/firmwarehashes en hostlibraries
-staan in `verification/native-linux-toolchain/`. Dit zijn hostgereedschappen,
-geen nieuwe runtimebibliotheken van de eigen kernel of objectdienst.
+The new Linux development variant uses Rust 1.90.0, QEMU 10.0.2
+(`1:10.0.2+ds-2+deb13u1~bpo12+1`) and matching OVMF 2025.02-8+deb13u1.
+Rust came from static.rust-lang.org; Debian packages were verified through
+signed InRelease, Packages SHA256 and package SHA256 and extracted locally
+only. Metadata, URLs, binary/firmware hashes and host libraries are in
+`verification/native-linux-toolchain/`. These are host tools, not new runtime
+libraries of the independent kernel or object service.
 
+N02 (27 October 2026) additionally uses only built-in `node:tls`, `node:net`
+and the existing `node:crypto` API on Node 24.22.1/OpenSSL 3.5.9. No npm or
+Cargo dependency was added. The separate system OpenSSL CLI **3.0.13**
+generates temporary Ed25519 test certificates; that CLI does not perform
+the hybrid TLS handshake. The handshake occurs in Node's OpenSSL **3.5.9**.
+Runtime values, source hashes and test output are under
+`verification/pqc-transport/`. No certificate/private key or production CA
+in Git. TLS group X25519MLKEM768 is standardised in RFC 10024 (August 2026);
+native protocol/library porting remains a separate dependency selection.
 
-N02 (27 oktober 2026) gebruikt aanvullend uitsluitend ingebouwde `node:tls`, `node:net` en de bestaande `node:crypto`-API op Node 24.22.1/OpenSSL 3.5.9. Geen npm- of Cargo-dependency toegevoegd. De aparte system-OpenSSL-CLI **3.0.13** genereert tijdelijke Ed25519-testcertificaten; die CLI voert niet de hybride TLS-handshake uit. Deze gebeurt in Node's OpenSSL **3.5.9**. Runtimewaarden, bronhashes en testuitvoer staan onder `verification/pqc-transport/`. Geen certificaat/private key of productie-CA in Git. TLS-groep X25519MLKEM768 is gestandaardiseerd in RFC 10024 (augustus 2026); native protocol/libraryport blijft een afzonderlijke dependencyselectie.
+Investigated, **not installed/added**: `libcrux-ml-kem` and `libcrux-ml-dsa`
+0.0.11, official repository `celabshq/libcrux`, Apache-2.0 and manifest Rust
+minimum 1.89.0. Exact no_std features, Rust build scripts/SIMD selection,
+transitive licences and the actual target build still need to be recorded
+before inclusion. Project Rust version 1.90.0 alone is not compatibility
+evidence. Partial formal-verification coverage is described in the library's
+own documentation; no blanket constant-time or machine-code claim.
+Sources and native budgets: `implementation/VERIFIABLE-SECURITY-AND-PQC.md`.
 
-Onderzocht, **niet geïnstalleerd/toegevoegd**: `libcrux-ml-kem` en `libcrux-ml-dsa` 0.0.11, officiële repository `celabshq/libcrux`, Apache-2.0 en manifest-Rustminimum 1.89.0. De exacte no_std-features, Rust-buildscripts/SIMD-selectie, transitieve licenties en werkelijke targetbuild moeten nog worden vastgelegd vóór opname. De projectversie Rust 1.90.0 alleen is geen compatibiliteitsbewijs. De gedeeltelijke formele verificatiedekking staat in de eigen librarydocumentatie; geen blanket constant-time-/machinecodeclaim. Bronnen en native budgetten: `implementation/VERIFIABLE-SECURITY-AND-PQC.md`.
+N01 (27 October 2026) uses the available Node.js 24.22.1 host runtime with
+OpenSSL 3.5.9 and only built-in modules (`node:crypto`, filesystem and
+test/process APIs). No npm package, Cargo dependency, external crypto
+implementation or build script was added. Node/OpenSSL are development/
+experimental tools, not a selected native Baryon OS runtime. AES-GCM,
+randomness and authenticated-decryption APIs were checked against primary
+Node v24 documentation; concrete versions/test evidence are in
+verification/nas/report.json. Native crypto/TLS library selection, no_std
+suitability, licence/supply-chain checks and key lifecycle remain separate
+gates before that integration.
 
-N01 (27 oktober 2026) gebruikt de aanwezige Node.js 24.22.1-hostruntime met OpenSSL 3.5.9 en uitsluitend ingebouwde modules (`node:crypto`, filesystem en test-/process-API's). Geen npm-package, Cargo-dependency, externe crypto-implementatie of buildscript toegevoegd. Node/OpenSSL zijn ontwikkel-/proefmiddelen, geen gekozen native Nieuw OS-runtime. AES-GCM, randomness en authenticated-decryption-API's zijn gecontroleerd tegen de primaire Node v24-documentatie; concrete versies/testbewijs staan in verification/nas/report.json. Native crypto-/TLS-bibliotheekselectie, no_std-geschiktheid, licentie-/supplychaincheck en key lifecycle blijven afzonderlijke gates vóór die integratie.
+Execution status on 27 October 2026: Rust 1.90.0, r-efi 7.1.0, serde 1.0.229
+and serde_json 1.0.154 were actually fetched and built. Root and quantum
+lockfiles were generated. The emulator used was the permitted Windows
+development variant QEMU 11.1.0 with its matching packaged CODE/VARS pair;
+exact provenance/hashes and evidence limits are in DEVELOPMENT.md,
+third-party/README.md and ../experiments/quantum/THIRD-PARTY.md. The original
+selection table below is historical context; PROJECT-STATE.md describes
+current verification.
 
-Actuele uitvoeringsstatus 27 oktober 2026: Rust 1.90.0, r-efi 7.1.0, serde 1.0.229 en serde_json 1.0.154 zijn daadwerkelijk opgehaald en gebouwd. De root- en quantumlockfiles zijn gegenereerd. De gebruikte emulator is de toegestane Windows-ontwikkelvariant QEMU 11.1.0 met bijpassend packaged CODE/VARS-paar; exacte herkomst/hashes en bewijsgrenzen staan in DEVELOPMENT.md, third-party/README.md en ../experiments/quantum/THIRD-PARTY.md. De onderstaande oorspronkelijke selectietabel is historische context; PROJECT-STATE.md beschrijft de actuele verificatie.
+M2–M4 add only local project crates: kernel-core 0.1.0 (frames/ELF/copy policy)
+and capability-core 0.1.0 (fixed permission/IPC transactions). Both are
+dependency-free/no_std and forbid unsafe in the library. The kernel
+architecture/copy boundary contains justified unsafe/assembly; the project's
+own crates have no external build script. Root Cargo.lock retains r-efi
+exactly 7.1.0 with the same checksum. No new external runtime library was
+added for M2–M4. Core-source/host/target checks and current test-case limits
+are in verification/m2-m4/.
+M5 adds only local project crates `virtio-core 0.1.0`, `virtio-blk-driver 0.1.0`
+and `block-protocol 0.1.0`. Both cores are dependency-free/no_std and forbid
+unsafe; the driver depends only on virtio-core. The driver contains justified
+PCI/MMIO/DMA unsafe, with no external build script. No external package was
+added or changed in Cargo.lock. Protocol basis: OASIS VIRTIO 1.2; the code
+is project-specific and contains no copied existing OS kernel. MPL-2.0 applies to
+project-owned software within the scope defined in `../LICENSING.md` and
+`../MPL-2.0-FILES.txt`; external components retain their own terms. M5 target/review evidence is in verification/m5/; the full gate passed.
 
-M2–M4 voegen uitsluitend eigen lokale crates toe: kernel-core 0.1.0 (frames/ELF/copybeleid) en capability-core 0.1.0 (vaste rechten-/IPC-transacties). Beide zijn dependencyvrij/no_std en verbieden unsafe in de library. De kernelarch-/kopieergrens bevat de gemotiveerde unsafe/assembly; de eigen crates hebben geen extern buildscript. Root-Cargo.lock behoudt r-efi exact 7.1.0 met dezelfde checksum. Er is voor M2–M4 geen nieuwe externe runtimebibliotheek toegevoegd. Corebron/host-/targetchecks en actuele testcasegrenzen staan in verification/m2-m4/.
-M5 voegt uitsluitend eigen lokale crates `virtio-core 0.1.0`, `virtio-blk-driver 0.1.0` en `block-protocol 0.1.0` toe. De twee cores zijn dependencyvrij/no_std en verbieden unsafe; de driver hangt alleen van virtio-core af. De driver bevat de gemotiveerde PCI/MMIO/DMA-unsafe, geen extern buildscript. Er is geen externe package toegevoegd of gewijzigd in Cargo.lock. Protocolbasis: OASIS VIRTIO 1.2; de code is projectspecifiek en bevat geen gekopieerde bestaande OS-kernel. Licentiekeuze voor het eigen project blijft volgens LICENSE-PLAN.md open vóór publieke publicatie. M5-target-/reviewbewijs staat in verification/m5/; de volledige gate is geslaagd.
+Historical selection, revision 5 of 26 October 2026: the following table
+describes the original preparation. Current builds and pins are above and
+in PROJECT-STATE.md. Do not add fictitious lockfiles or firmware hashes.
 
-Historische selectie, revisie 5 van 26 oktober 2026: de onderstaande tabel beschrijft de oorspronkelijke voorbereiding. Actuele builds en pins staan hierboven en in PROJECT-STATE.md. Geen fictieve lockfiles of firmwarehashes toevoegen.
-
-| Selectie | Rol | Status |
+| Selection | Role | Status |
 |---|---|---|
-| Rust 1.90.0 met gebundelde LLVM-linker | Hostcompiler; UEFI- en no_std-kerneltarget | Vastgelegde baseline, geen claim van nieuwste versie; pin rust-toolchain.toml tijdens B01 |
-| r-efi =7.1.0, default-features=false | Kleine no_std UEFI-bindings, geen loader/kernel | Officieel manifest gecontroleerd; fetch, compatibiliteit en transitieve boom nog toetsen |
-| QEMU 10.0.14, pc-q35-10.0, qemu64, TCG | Referentie-emulator op host | Versie onderzocht; praktische compatibele pakketroute volgens bootspecificatie toegestaan en gelogd |
-| OVMF uit edk2-stable202508, X64 RELEASE/GCC5 | Referentie-UEFI-firmware | CODE/VARS moeten één overeenkomende build vormen; hashes van werkelijke bestanden vastleggen |
-| Python 3 | Inventaris/build-/testharnas | tools/preflight.py aanwezig en uitgevoerd; geen externe Python-packages nodig |
-| HTML/CSS/JS | Lokaal P2-productprototype | Geen framework, CDN, externe assets of runtime-netwerk |
-| qsim-core | Eigen veilige simulatorcore | Ontwerp: no_std+alloc, nul externe dependencies |
-| serde =1.0.229; serde_json =1.0.154 | Alleen JSON-adapter van hostquantumproef | Documentatiepins; registry-resolutie nog uit te voeren. Concreet herstelbeleid in QUANTUM-SPEC.md |
-| Crypto-library | Latere ML-KEM-768/ML-DSA-65-integratie | Parameters gekozen; library en concrete protocolbinding pas selecteren bij de integratietaak |
+| Rust 1.90.0 with bundled LLVM linker | Host compiler; UEFI and no_std kernel target | Recorded baseline, no claim to be the latest version; pin rust-toolchain.toml during B01 |
+| r-efi =7.1.0, default-features=false | Small no_std UEFI bindings, not a loader/kernel | Official manifest checked; fetch, compatibility and transitive tree still to be tested |
+| QEMU 10.0.14, pc-q35-10.0, qemu64, TCG | Reference emulator on host | Version investigated; practical compatible package route permitted and logged under boot specification |
+| OVMF from edk2-stable202508, X64 RELEASE/GCC5 | Reference UEFI firmware | CODE/VARS must come from one matching build; record hashes of actual files |
+| Python 3 | Inventory/build/test harness | tools/preflight.py present and executed; no external Python packages needed |
+| HTML/CSS/JS | Local P2 product prototype | No framework, CDN, external assets or runtime network |
+| qsim-core | Independent safe simulator core | Design: no_std+alloc, zero external dependencies |
+| serde =1.0.229; serde_json =1.0.154 | JSON adapter for host quantum experiment only | Documentation pins; registry resolution still to be performed. Concrete recovery policy in QUANTUM-SPEC.md |
+| Crypto library | Later ML-KEM-768/ML-DSA-65 integration | Parameters selected; choose library and concrete protocol binding only during the integration task |
 
-Per daadwerkelijk opgenomen dependency vastleggen: naam, versie/commit/hash, primaire bron, licentie, directe/transitieve dependencies, build scripts, onderhoud/securitymeldingen, host/guest/firmware-rol, no_std-ondersteuning, reden, updatebeleid en verwijderplan. Verifieer de werkelijke resolveruitvoer en leg Cargo.lock vast; een documentatiepin is geen succesvolle build.
+For every dependency actually incorporated, record name, version/commit/hash,
+primary source, licence, direct/transitive dependencies, build scripts,
+maintenance/security reporting, host/guest/firmware role, no_std support,
+rationale, update policy and removal plan. Verify actual resolver output
+and record Cargo.lock; a documentation pin is not a successful build.
 
-Geen bestaande kernelcode overnemen zonder expliciete scopewijziging. Kleine overgenomen algoritmen/voorbeelden blijven externe broncode: behoud herkomst/licentie. Een AI-herschrijving wist die verplichtingen niet.
+Do not adopt existing kernel code without an explicit scope change. Small
+adopted algorithms/examples remain external source code: preserve provenance
+and licensing. An AI rewrite does not remove those obligations.
 
-Toolchain, firmware en buildomgeving horen bij de vertrouwensketen. Reproduceerbare builds tonen overeenstemming tussen builds; ze bewijzen niet dat broncode, compiler of hardware vrij van achterdeuren is.
+Toolchain, firmware and build environment belong to the trust chain.
+Reproducible builds demonstrate agreement between builds; they do not prove
+that source code, compiler or hardware is free of backdoors.

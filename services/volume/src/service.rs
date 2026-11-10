@@ -307,6 +307,7 @@ impl Service {
                 wire::COLLECTION_STAT => Ok(self.collection_stat(domain, &request)),
                 wire::TRANSACT => self.transact(domain, &request, body, disk),
                 wire::COLLECTION => self.collection(domain, &request, body, disk),
+                wire::SHUTDOWN => self.shutdown(&request, disk),
                 _ => self.object_operation(domain, &request, body, disk),
             }
         };
@@ -505,6 +506,23 @@ impl Service {
         Ok(reply(request, self.epoch, request.revision, 0, 0, &[]))
     }
 
+    /// Staged uploads were never ACKed, so dropping them loses nothing durable.
+    fn shutdown(&mut self, request: &Header, disk: &mut impl Disk) -> Outcome {
+        for staged in &mut self.sessions {
+            if staged.take().is_some() {
+                self.counters.aborted_sessions += 1;
+            }
+        }
+        if disk.flush().is_err() {
+            // The barrier's outcome is unknowable; never claim durability.
+            self.uncertain = true;
+            return Err((Status::Unknown, 0));
+        }
+        self.counters.flushes += 1;
+        self.read_only = true;
+        Ok(reply(request, self.epoch, 0, 0, 0, &[]))
+    }
+
     fn commit(&mut self, domain: usize, request: &Header, disk: &mut impl Disk) -> Outcome {
         let session = self.matching(domain, request)?;
         if request.aux as usize != session.length || session.received != session.length {
@@ -546,7 +564,7 @@ impl Service {
         entry.current.chunks[session.chunk_count..].fill(NO_CHUNK);
         entry.current.sums[session.chunk_count..].fill(0);
         entry.present = true;
-        self.touch(&mut entry, request.request_id, clock);
+        self.touch(&mut entry, request.request_id, clock)?;
         self.publish(
             domain,
             &Patch::one(session.object, entry),
@@ -578,14 +596,26 @@ impl Service {
         Ok(self.table.clocks[domain] + 1)
     }
 
-    /// Common bookkeeping of any object mutation.
-    fn touch(&self, entry: &mut Entry, request_id: u64, clock: u64) {
+    /// Common bookkeeping of any object mutation. Recovery bounds a deleted
+    /// object's history by `revision + 1`, so a tombstone can never take
+    /// revision `u64::MAX`: refused as exhausted, like the generation, before
+    /// anything is published.
+    fn touch(&self, entry: &mut Entry, request_id: u64, clock: u64) -> Result<(), (Status, u64)> {
+        let limit = if entry.present {
+            u64::MAX
+        } else {
+            u64::MAX - 1
+        };
+        if entry.revision >= limit {
+            return Err((Status::Full, 0));
+        }
         entry.revision += 1;
         entry.request_id = request_id;
         if entry.created == 0 {
             entry.created = clock;
         }
         entry.modified = clock;
+        Ok(())
     }
 
     /// DELETE, RENAME, RESTORE, PURGE and META on one object of `domain`.
@@ -640,7 +670,7 @@ impl Service {
             }
             _ => return Err((Status::NoSys, 0)),
         }
-        self.touch(&mut entry, request.request_id, clock);
+        self.touch(&mut entry, request.request_id, clock)?;
         self.publish(domain, &Patch::one(object, entry), request.request_id, disk)?;
         // Count only durable restores, like transactions.
         if request.operation == wire::RESTORE {
@@ -790,7 +820,7 @@ impl Service {
                 wire::SUB_DELETE => Self::delete(&mut entry),
                 _ => Self::purge(&mut entry),
             }
-            self.touch(&mut entry, request.request_id, clock);
+            self.touch(&mut entry, request.request_id, clock)?;
             patch.push(object, entry);
         }
         self.publish(domain, &patch, request.request_id, disk)?;

@@ -1,7 +1,7 @@
-# Nieuw OS — project overlay
+# Baryon OS — project overlay
 
 These are user/project constraints, not statements made by OSDev Wiki or the book.
-Apply them only to Nieuw OS; do not impose them on unrelated OS projects.
+Apply them only to Baryon OS; do not impose them on unrelated OS projects.
 
 ## Product direction
 

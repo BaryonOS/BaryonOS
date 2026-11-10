@@ -61,14 +61,24 @@ jobs:
         run: python3 -B tools/preflight.py --strict
       - name: M6e/S06 native volume gate (9 QEMU runs)
         run: python3 -B -u tools/test_volume.py
+      - name: Require mandatory gate report
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          report='build/ci-m6e/volume-gate.json'
+          if [[ ! -f "$report" || ! -s "$report" || -L "$report" ]]; then
+            echo "::error::Required gate report is missing, empty, or not a regular file: $report"
+            exit 1
+          fi
       - name: Preserve compact evidence and report archive availability
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence
         with:
           job-status: ${{ job.status }}
-          if-no-files-found: warn
+          if-no-files-found: error
           full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: m6e-volume-reports
+          required-paths: build/ci-m6e/volume-gate.json
           path: |
             build/ci-m6e/volume-gate.json
             build/ci-m6e/run/volume-*/result.json

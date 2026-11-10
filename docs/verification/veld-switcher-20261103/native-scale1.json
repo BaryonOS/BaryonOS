@@ -1,0 +1,1512 @@
+{
+  "clipboard_gate": false,
+  "clipboard_requested": false,
+  "command": [
+    "/home/simon/.copilot/session-state/7f2fb1d137004b68b9bef4b8ca72f938/files/veld-env/root/usr/bin/qemu-system-x86_64",
+    "-L",
+    ".",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "file:serial.txt",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-device",
+    "VGA,vgamem_mb=16,romfile=VGA.rom",
+    "-qmp",
+    "stdio",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:esp",
+    "-object",
+    "rng-random,id=rng0,filename=/dev/urandom",
+    "-device",
+    "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+    "-drive",
+    "if=none,id=volume,format=raw,cache=writeback,file=volume.img",
+    "-device",
+    "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"
+  ],
+  "duration_s": 303.5521762960052,
+  "immutable": {
+    "OVMF_CODE.fd": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "VGA.rom": "c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde",
+    "bios-256k.bin": "e26615f9ad430328f49ca105e570b2dc4490a08a34ea73d27cae8b809a30ee06",
+    "esp/EFI/BOOT/BOOTX64.EFI": "64c4d7c969c5e4635bb9a5ad83d9c86761ce4cff918a0bc2a809bb77e2f3e7a2",
+    "esp/kernel.elf": "072984708a14704fa187ba37c578336eac8fc217326e7b714bca3dc0064b7295",
+    "volume.json": "5ad64bd21863488d3d0b2c4e15caa09b48edc204f6762eb392a5272741d201c5"
+  },
+  "kernel_feature": "native-window-session-probe",
+  "manifest": {
+    "document_session": false,
+    "kernel": {
+      "entry": 33554432,
+      "sections": [
+        {
+          "flags": 0,
+          "name": "",
+          "size": 0,
+          "type": 0
+        },
+        {
+          "flags": 6,
+          "name": ".text",
+          "size": 176695,
+          "type": 1
+        },
+        {
+          "flags": 50,
+          "name": ".rodata",
+          "size": 1784200,
+          "type": 1
+        },
+        {
+          "flags": 3,
+          "name": ".data",
+          "size": 1720936,
+          "type": 1
+        },
+        {
+          "flags": 3,
+          "name": ".bss",
+          "size": 3100856,
+          "type": 8
+        },
+        {
+          "flags": 0,
+          "name": ".symtab",
+          "size": 9600,
+          "type": 2
+        },
+        {
+          "flags": 0,
+          "name": ".shstrtab",
+          "size": 52,
+          "type": 3
+        },
+        {
+          "flags": 0,
+          "name": ".strtab",
+          "size": 22248,
+          "type": 3
+        }
+      ],
+      "segments": [
+        {
+          "address": 33554432,
+          "filesz": 176695,
+          "flags": 5,
+          "memsz": 176695,
+          "offset": 4096,
+          "page_end": 33734656,
+          "page_start": 33554432
+        },
+        {
+          "address": 33734656,
+          "filesz": 1784200,
+          "flags": 4,
+          "memsz": 1784200,
+          "offset": 184320,
+          "page_end": 35520512,
+          "page_start": 33734656
+        },
+        {
+          "address": 35520512,
+          "filesz": 1720936,
+          "flags": 6,
+          "memsz": 4825272,
+          "offset": 1970176,
+          "page_end": 40349696,
+          "page_start": 35520512
+        }
+      ],
+      "sha256": "072984708a14704fa187ba37c578336eac8fc217326e7b714bca3dc0064b7295"
+    },
+    "kernel_feature": "native-window-session-probe",
+    "loader": {
+      "format": "AMD64 PE32+",
+      "imports": 0,
+      "sha256": "64c4d7c969c5e4635bb9a5ad83d9c86761ce4cff918a0bc2a809bb77e2f3e7a2",
+      "subsystem": "EFI_APPLICATION"
+    },
+    "loader_feature": "desktop-mode",
+    "materiaal": {
+      "apps": [
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1344,
+                "flags": 6,
+                "memsz": 1344,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073823744,
+                "filesz": 3977,
+                "flags": 4,
+                "memsz": 3977,
+                "offset": 12288,
+                "page_end": 1073827840,
+                "page_start": 1073823744
+              },
+              {
+                "address": 1073872896,
+                "filesz": 78359,
+                "flags": 5,
+                "memsz": 78359,
+                "offset": 16384,
+                "page_end": 1073954816,
+                "page_start": 1073872896
+              }
+            ]
+          },
+          "name": "keyring-service",
+          "sha256": "c9f773d378af25f895514951825829fcbb3de1fae387b71043f78619165eba53"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 63442,
+                "flags": 5,
+                "memsz": 63442,
+                "offset": 4096,
+                "page_end": 1073807360,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1304,
+                "flags": 6,
+                "memsz": 1304,
+                "offset": 69632,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073823744,
+                "filesz": 18298,
+                "flags": 4,
+                "memsz": 18298,
+                "offset": 73728,
+                "page_end": 1073844224,
+                "page_start": 1073823744
+              }
+            ]
+          },
+          "name": "volume-service",
+          "sha256": "41cf6cd9884a025e0ec3744067aa13e5c9b81882735662a15e1b85bdd8c68e38"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 19,
+                "flags": 5,
+                "memsz": 19,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1024,
+                "flags": 6,
+                "memsz": 1024,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 471672,
+                "flags": 4,
+                "memsz": 471672,
+                "offset": 12288,
+                "page_end": 1074348032,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074462720,
+                "filesz": 208,
+                "flags": 6,
+                "memsz": 200704,
+                "offset": 487424,
+                "page_end": 1074663424,
+                "page_start": 1074462720
+              },
+              {
+                "address": 1074724864,
+                "filesz": 116297,
+                "flags": 5,
+                "memsz": 116297,
+                "offset": 491520,
+                "page_end": 1074843648,
+                "page_start": 1074724864
+              }
+            ]
+          },
+          "name": "materiaal-app",
+          "sha256": "6bcebe76cf205b66667594203058f4602f398eda4f325b065a934b45430f9924"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1200,
+                "flags": 6,
+                "memsz": 1200,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 754,
+                "flags": 4,
+                "memsz": 754,
+                "offset": 12288,
+                "page_end": 1073876992,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074003968,
+                "filesz": 12263,
+                "flags": 5,
+                "memsz": 12263,
+                "offset": 16384,
+                "page_end": 1074016256,
+                "page_start": 1074003968
+              }
+            ]
+          },
+          "name": "input-source",
+          "sha256": "2073e90695aaae9946408c25c67b57c3f913bb4b395f7ba2996d3b5e32016d0d"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1200,
+                "flags": 6,
+                "memsz": 1200,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 2522,
+                "flags": 4,
+                "memsz": 2522,
+                "offset": 12288,
+                "page_end": 1073876992,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074003968,
+                "filesz": 21575,
+                "flags": 5,
+                "memsz": 21575,
+                "offset": 16384,
+                "page_end": 1074028544,
+                "page_start": 1074003968
+              }
+            ]
+          },
+          "name": "input-policy",
+          "sha256": "4760a5968c70be583a8ff5b968ce5c299ef62cca0120603dbc096f911c52a713"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1024,
+                "flags": 6,
+                "memsz": 1024,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 799,
+                "flags": 4,
+                "memsz": 799,
+                "offset": 12288,
+                "page_end": 1073876992,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074790400,
+                "filesz": 72,
+                "flags": 6,
+                "memsz": 72,
+                "offset": 16384,
+                "page_end": 1074794496,
+                "page_start": 1074790400
+              },
+              {
+                "address": 1090519040,
+                "filesz": 9799,
+                "flags": 5,
+                "memsz": 9799,
+                "offset": 20480,
+                "page_end": 1090531328,
+                "page_start": 1090519040
+              }
+            ]
+          },
+          "name": "window-init",
+          "sha256": "c1477b3eddf3c6846dc2c8d911b92946d5fd1dff6d4357d9ad060c51242ff1a1"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 6,
+                "flags": 5,
+                "memsz": 6,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1024,
+                "flags": 6,
+                "memsz": 1024,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 281058,
+                "flags": 4,
+                "memsz": 281058,
+                "offset": 12288,
+                "page_end": 1074155520,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074790400,
+                "filesz": 120,
+                "flags": 6,
+                "memsz": 5600120,
+                "offset": 294912,
+                "page_end": 1080393728,
+                "page_start": 1074790400
+              },
+              {
+                "address": 1090519040,
+                "filesz": 60519,
+                "flags": 5,
+                "memsz": 60519,
+                "offset": 299008,
+                "page_end": 1090580480,
+                "page_start": 1090519040
+              }
+            ]
+          },
+          "name": "window-compositor",
+          "sha256": "e1576b64e8fa55efd02846866101c5fae06e1cdf22cb011fb301802a1bee1ac5"
+        },
+        {
+          "elf": {
+            "entry": 1073741824,
+            "segments": [
+              {
+                "address": 1073741824,
+                "filesz": 19,
+                "flags": 5,
+                "memsz": 19,
+                "offset": 4096,
+                "page_end": 1073745920,
+                "page_start": 1073741824
+              },
+              {
+                "address": 1073807360,
+                "filesz": 1024,
+                "flags": 6,
+                "memsz": 1024,
+                "offset": 8192,
+                "page_end": 1073811456,
+                "page_start": 1073807360
+              },
+              {
+                "address": 1073872896,
+                "filesz": 285112,
+                "flags": 4,
+                "memsz": 285112,
+                "offset": 12288,
+                "page_end": 1074159616,
+                "page_start": 1073872896
+              },
+              {
+                "address": 1074462720,
+                "filesz": 208,
+                "flags": 6,
+                "memsz": 208,
+                "offset": 299008,
+                "page_end": 1074466816,
+                "page_start": 1074462720
+              },
+              {
+                "address": 1074724864,
+                "filesz": 76598,
+                "flags": 5,
+                "memsz": 76598,
+                "offset": 303104,
+                "page_end": 1074802688,
+                "page_start": 1074724864
+              }
+            ]
+          },
+          "name": "calculator-app",
+          "sha256": "cde2f5600e7a266f37bc0153d4548c4ab4aae66fa137c8f9712aec7e41033e6b"
+        }
+      ],
+      "native_runtime_performed": false,
+      "passed": true,
+      "probe_controller": false
+    },
+    "profile": "native-window-session-probe",
+    "schema_version": 1,
+    "sdk_runtime": false,
+    "source_fingerprint_version": 3,
+    "source_sha256": "cc728992c0058b6391f986cff06056be91cfe23f974d5c753595cd8a59f9fae9"
+  },
+  "native_gate": false,
+  "oracle": {
+    "files_sha256": {
+      "backing.bin": "a80fb28549b559693fdb8a1a88752173066fabca5870ff3453a4c2ff67a5fafd",
+      "switcher-0.ppm": "f85f902801c64bf4d53fdbcbd019a191419e76c86d5b75f33cbfcf6e40f904c4",
+      "switcher-1.ppm": "497ff0cb8b9c46fa06b29b63c313020927991b07df75f2f6b43d3ad1e6d0ee24",
+      "switcher-generator.log": "1eafa3f6b45682d3cb05c24e4f3f627cc2331bc5ddd64202c412c1c1d64c351e"
+    },
+    "generator_commands": [
+      [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-fictional-disco/sdk/examples/window-session/Cargo.toml",
+        "--test",
+        "switcher_native_fixture"
+      ]
+    ],
+    "generator_exit": 0,
+    "kind": "host shell reference using captured native app backing; not native execution",
+    "native_backing_capture_sha256": "f185721567d1ed7551b7edff0ad09947066d39e35aaa739cb444d2ea5eef09ff",
+    "source_sha256": "cc728992c0058b6391f986cff06056be91cfe23f974d5c753595cd8a59f9fae9"
+  },
+  "passed": true,
+  "phases": {
+    "boot": {
+      "frame_sha256": "ef1a4e72f662caa7e4d074dd91c6665268ccefd3946ab2f13e544fb66e623b18",
+      "oracle": null,
+      "seconds": 24.852204569004243,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 0,
+          "CARET": 0,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "FAILURES": 0,
+          "FRAMES": 1,
+          "GEN": 1,
+          "HAS_ANSWER": 0,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 1,
+          "GEN": 3,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-cancelled": {
+      "frame_sha256": "f185721567d1ed7551b7edff0ad09947066d39e35aaa739cb444d2ea5eef09ff",
+      "oracle": null,
+      "seconds": 127.49775305000367,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 2,
+          "GEN": 6,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "ERRORS": 0,
+          "FRAMES": 5,
+          "GEN": 21,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-commit-preview": {
+      "frame_sha256": "17ee509b93982b73132171762628428c7df80b92ade7610a0ea8aeb956acb0ce",
+      "oracle": null,
+      "seconds": 168.26109265800187,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 2,
+          "GEN": 6,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "ERRORS": 0,
+          "FRAMES": 6,
+          "GEN": 22,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-committed": {
+      "frame_sha256": "fecaaf8b1d0ede616cfeabfb260d271d8504f9c16a75263667aef6d832cf3bd6",
+      "oracle": null,
+      "seconds": 186.5381767190047,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 2,
+          "GEN": 6,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "ERRORS": 0,
+          "FRAMES": 7,
+          "GEN": 23,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-cycle": {
+      "frame_sha256": "d644159b2e30f2f24dd7fb2d37bde9007be658965edaead166ef71c031d49f38",
+      "oracle": null,
+      "seconds": 124.51547508800286,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 2,
+          "GEN": 6,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "ERRORS": 0,
+          "FRAMES": 5,
+          "GEN": 21,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-editor": {
+      "frame_sha256": "4bb892eff33560eaa4a97a6259a787b13f0b5e2a33ab4a9adcb842e5f7313d9e",
+      "oracle": null,
+      "seconds": 41.97849046099873,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 0,
+          "CARET": 0,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "FAILURES": 0,
+          "FRAMES": 1,
+          "GEN": 1,
+          "HAS_ANSWER": 0,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 14695981039346656037,
+          "ERRORS": 0,
+          "FRAMES": 2,
+          "GEN": 4,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-initial": {
+      "frame_sha256": "51edc0880b5066ff7a2ab28c7977a205985118fff9b6102893b7fd7ee6ad91de",
+      "oracle": null,
+      "seconds": 25.967249940003967,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 1,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 0,
+          "CARET": 0,
+          "CURRENT": 0,
+          "ERRORS": 0,
+          "EVALUATIONS": 0,
+          "EXPRESSION_BYTES": 0,
+          "EXPRESSION_SUM": 14695981039346656037,
+          "FAILURES": 0,
+          "FRAMES": 1,
+          "GEN": 1,
+          "HAS_ANSWER": 0,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 0,
+          "DRAFT_SUM": 0,
+          "ERRORS": 0,
+          "FRAMES": 1,
+          "GEN": 3,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 18446744073709551615,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-key-isolated": {
+      "frame_sha256": "17ee509b93982b73132171762628428c7df80b92ade7610a0ea8aeb956acb0ce",
+      "oracle": null,
+      "seconds": 123.60383121600171,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 2,
+          "GEN": 6,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "ERRORS": 0,
+          "FRAMES": 5,
+          "GEN": 21,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-mouse-committed": {
+      "frame_sha256": "f185721567d1ed7551b7edff0ad09947066d39e35aaa739cb444d2ea5eef09ff",
+      "oracle": null,
+      "seconds": 229.54234936500143,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 3,
+          "GEN": 8,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "ERRORS": 0,
+          "FRAMES": 8,
+          "GEN": 24,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-mouse-preview": {
+      "frame_sha256": "ca944d80e80b0815678f0deeda4edd79f0f875d46d2b78c48b2b2290c28c771d",
+      "oracle": null,
+      "seconds": 225.68368249999912,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 3,
+          "GEN": 8,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "ERRORS": 0,
+          "FRAMES": 8,
+          "GEN": 24,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-outside-cancelled": {
+      "frame_sha256": "f185721567d1ed7551b7edff0ad09947066d39e35aaa739cb444d2ea5eef09ff",
+      "oracle": null,
+      "seconds": 270.65733365800406,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 3,
+          "GEN": 8,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "ERRORS": 0,
+          "FRAMES": 9,
+          "GEN": 25,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-outside-preview": {
+      "frame_sha256": "17ee509b93982b73132171762628428c7df80b92ade7610a0ea8aeb956acb0ce",
+      "oracle": null,
+      "seconds": 268.3271480620024,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 3,
+          "GEN": 8,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "ERRORS": 0,
+          "FRAMES": 9,
+          "GEN": 25,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-preview": {
+      "frame_sha256": "17ee509b93982b73132171762628428c7df80b92ade7610a0ea8aeb956acb0ce",
+      "oracle": null,
+      "seconds": 122.10996657000214,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 2,
+          "GEN": 6,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "ERRORS": 0,
+          "FRAMES": 5,
+          "GEN": 21,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-ready": {
+      "frame_sha256": "f185721567d1ed7551b7edff0ad09947066d39e35aaa739cb444d2ea5eef09ff",
+      "oracle": null,
+      "seconds": 81.75730378300068,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 2,
+          "GEN": 6,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "ERRORS": 0,
+          "FRAMES": 4,
+          "GEN": 20,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-real-input-restored": {
+      "frame_sha256": "162a99d094cc32f27bc93611b246fa7ca49bebb943c65425cf4d444b4641c562",
+      "oracle": null,
+      "seconds": 287.18583435800247,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 3,
+          "GEN": 8,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 15,
+          "DRAFT_SUM": 18299829357230916968,
+          "ERRORS": 0,
+          "FRAMES": 10,
+          "GEN": 26,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-reverse": {
+      "frame_sha256": "17ee509b93982b73132171762628428c7df80b92ade7610a0ea8aeb956acb0ce",
+      "oracle": null,
+      "seconds": 125.7003873720023,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 2,
+          "GEN": 6,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "ERRORS": 0,
+          "FRAMES": 5,
+          "GEN": 21,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-saved-for-cleanup": {
+      "frame_sha256": "1e1e95685041983d5b4930bba8bdec4d8c3388e40a69a625fb68a02147b67439",
+      "oracle": null,
+      "seconds": 303.15548271399894,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 3,
+          "GEN": 8,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 0,
+          "DRAFT_BYTES": 15,
+          "DRAFT_SUM": 18299829357230916968,
+          "ERRORS": 0,
+          "FRAMES": 11,
+          "GEN": 29,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 1,
+          "SAVED_BYTES": 15,
+          "SAVED_SUM": 18299829357230916968,
+          "SAVE_ACKS": 1,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    },
+    "switcher-work": {
+      "frame_sha256": "f185721567d1ed7551b7edff0ad09947066d39e35aaa739cb444d2ea5eef09ff",
+      "oracle": null,
+      "seconds": 63.42779091800185,
+      "state": {
+        "CALCULATOR": {
+          "ACTIVE": 0,
+          "ANSWER_HIGH": 0,
+          "ANSWER_LOW": 5000000000,
+          "CARET": 3,
+          "CURRENT": 1,
+          "ERRORS": 0,
+          "EVALUATIONS": 1,
+          "EXPRESSION_BYTES": 3,
+          "EXPRESSION_SUM": 6959113760662732139,
+          "FAILURES": 0,
+          "FRAMES": 2,
+          "GEN": 6,
+          "HAS_ANSWER": 1,
+          "INPUT_EPOCH": 5282247373882392577,
+          "PID": 8,
+          "PROBES": 3,
+          "READY": 1,
+          "SCALE": 1,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        },
+        "MATERIAL": {
+          "DIRTY": 1,
+          "DRAFT_BYTES": 14,
+          "DRAFT_SUM": 2786778974461010050,
+          "ERRORS": 0,
+          "FRAMES": 3,
+          "GEN": 19,
+          "INPUT_EPOCH": 5282247373882392577,
+          "OBJECT": 0,
+          "PID": 4,
+          "PROBES": 3,
+          "READY": 1,
+          "REVISION": 0,
+          "SAVED_BYTES": 0,
+          "SAVED_SUM": 0,
+          "SAVE_ACKS": 0,
+          "SCALE": 1,
+          "SCREEN": 2,
+          "SERVICE_GENERATION": 1,
+          "SURFACE_EPOCH": 6004795838121902081
+        }
+      }
+    }
+  },
+  "qemu_implementation": {
+    "path": "/home/simon/.copilot/session-state/7f2fb1d137004b68b9bef4b8ca72f938/files/veld-env/root/usr/bin/qemu-system-x86_64",
+    "sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb"
+  },
+  "qemu_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+  "qmp_trace_summary": {
+    "canonical_sha256": "8996eadc00aa462aa570bfb770ce586e32c4cc330c3e2009fcba18ab62b267db",
+    "entries": 217
+  },
+  "raw_qemu_exit": 33,
+  "raw_report": {
+    "path": "build/veld-switcher-20261103/scale1/run/window-66fff1415d4e41a4a17bce73dcfa6abd/result.json",
+    "sha256": "f410684371e17667d9ab01db981c10c9f1affccc0491f35f549800946744c79e"
+  },
+  "recovery_handshake_only": false,
+  "run_directory": "/home/simon/.copilotd/worktrees/wsl-Ubuntu/nieuw-os/simonvanieperen-fictional-disco/build/veld-switcher-20261103/scale1/run/window-66fff1415d4e41a4a17bce73dcfa6abd",
+  "scale": 1,
+  "schema_version": 1,
+  "serial_sha256": "f4c3414e2738b6fc92ce7ba06369328da8cd1341b22d6e4dbdb9926f301f7c9a",
+  "smoke_only": false,
+  "source_commit": "537fee48c1c31155a51a997cd7a2236b159e9ac7",
+  "source_fingerprint_version": 3,
+  "source_sha256": "cc728992c0058b6391f986cff06056be91cfe23f974d5c753595cd8a59f9fae9",
+  "switcher_gate": true,
+  "switcher_requested": true,
+  "switcher_scope": "Live app previews, deferred focus, key/mouse isolation, cancel/commit and resumed real input; not the complete window-session/recovery/storage gate.",
+  "viewport": [
+    1280,
+    720
+  ]
+}

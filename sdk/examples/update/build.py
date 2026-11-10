@@ -14,13 +14,14 @@ from common import environment as toolchain_environment
 def main() -> int:
     environment = toolchain_environment()
     # Explicit target flags prevent inheriting the parent kernel linker script.
-    # The portable curve25519 backend avoids SIMD dispatch: the ring-3 profile
-    # has CR0.EM=1 and no SSE/AVX state. sha2 is pinned to force-soft by update-core.
+    # Portable curve25519 and SHA-512 backends avoid SIMD dispatch: the ring-3
+    # profile has CR0.EM=1 and no SSE/AVX state.
     flags = ["-C", "code-model=small", "-C", "relocation-model=static",
              "-C", "no-redzone=yes", "-C", "linker=rust-lld",
              "-C", f"link-arg=-T{EXAMPLE / 'linker.ld'}", "-C", "link-arg=--no-pie",
              "-C", "link-arg=--build-id=none", "-C", "link-arg=-zmax-page-size=0x1000",
-             "--cfg", 'curve25519_dalek_backend="serial"']
+             "--cfg", 'curve25519_dalek_backend="serial"',
+             "--cfg", 'sha2_backend="soft"']
     environment["CARGO_ENCODED_RUSTFLAGS"] = "\x1f".join(flags)
     environment.setdefault("CARGO_TARGET_DIR", str(ROOT / "build/sdk-update"))
     command = ["cargo", "build", "--offline", "--locked", "--release",

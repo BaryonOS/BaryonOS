@@ -4,8 +4,9 @@
 //! Native B01 acceptance app. It holds SEND capabilities to both domains of
 //! two Key Service instances and one reply endpoint, nothing else. It never
 //! sees a key byte: it drives generate/seal/unseal/revoke, probes the
-//! negative paths, exports recovery from instance A and restores it into
-//! instance B. Every observation is an evidence word the kernel checks.
+//! negative paths, and verifies that ordinary app authority cannot export or
+//! restore recovery material. Every observation is an evidence word the
+//! kernel checks.
 
 #[cfg(not(all(target_arch = "x86_64", target_os = "none")))]
 compile_error!("keyring-app is only for the Nieuw OS x86_64-unknown-none target");
@@ -32,10 +33,8 @@ const EV_TAMPER_DENIED: u64 = 424;
 const EV_CROSS_DENIED: u64 = 432;
 const EV_REVOKED_DENIED: u64 = 440;
 const EV_QUOTA_DENIED: u64 = 448;
-const EV_PRE_RESTORE_DENIED: u64 = 456;
-const EV_RESTORE_WRONG_DENIED: u64 = 464;
-const EV_RESTORED_UNSEAL_OK: u64 = 472;
-const EV_REVOKED_AFTER_RESTORE: u64 = 480;
+const EV_RECOVERY_EXPORT_DENIED: u64 = 456;
+const EV_RECOVERY_RESTORE_DENIED: u64 = 464;
 const EV_NOT_READY: u64 = 488;
 const EV_ENTROPY_DENIED: u64 = 496;
 const EV_STATUS_CALLS: u64 = 504;
@@ -294,74 +293,19 @@ fn run_normal(client: &mut Client, a0: &Target, a1: &Target, b0: &Target) {
         Err(Status::Quota) => bump(EV_QUOTA_DENIED),
         _ => fail(47),
     }
-    // 7. Recovery: export from A, restore into B.
+    // 7. Recovery export/import belongs to the manifest-authorized management
+    // ingress, never to an ordinary app's domain SEND capabilities.
     let (status, body, n) = client.call(a0, wire::EXPORT_RECOVERY, 0, &[]);
-    if status != Status::Ok || n != SECRET_BYTES + RECOVERY_BLOB {
+    if status != Status::Invalid || n != 0 || body.iter().any(|byte| *byte != 0) {
         fail(48);
     }
-    let mut recovery = [0u8; SECRET_BYTES + RECOVERY_BLOB];
-    recovery.copy_from_slice(&body[..n]);
-    client.expect_unseal_denied(
-        b0,
-        k0,
-        &sealed[..length],
-        Status::BadHandle,
-        EV_PRE_RESTORE_DENIED,
-        49,
-    );
-    let mut wrong = recovery;
-    wrong[5] ^= 0x40;
-    let (status, _, _) = client.call(b0, wire::RESTORE, 0, &wrong);
-    if status != Status::Auth {
-        fail(50);
-    }
-    bump(EV_RESTORE_WRONG_DENIED);
-    client.expect_unseal_denied(
-        b0,
-        k0,
-        &sealed[..length],
-        Status::BadHandle,
-        EV_PRE_RESTORE_DENIED,
-        51,
-    );
+    bump(EV_RECOVERY_EXPORT_DENIED);
+    let recovery = [0u8; SECRET_BYTES + RECOVERY_BLOB];
     let (status, body, n) = client.call(b0, wire::RESTORE, 0, &recovery);
-    if status != Status::Ok || n != 1 || body[0] != 2 {
-        fail(52);
+    if status != Status::Invalid || n != 0 || body.iter().any(|byte| *byte != 0) {
+        fail(49);
     }
-    let (plain, n) = client
-        .unseal(b0, k0, &sealed[..length])
-        .unwrap_or_else(|_| fail(53));
-    if n != plaintext.len() || plain[..n] != plaintext[..] {
-        fail(54);
-    }
-    bump(EV_RESTORED_UNSEAL_OK);
-    match client.seal(b0, k1, b"x") {
-        Err(Status::Revoked) => bump(EV_REVOKED_AFTER_RESTORE),
-        _ => fail(55),
-    }
-    let (_, _, keys_b) = client.status(b0);
-    if keys_b != [16, 16] {
-        fail(56);
-    }
-    // 8. An older authentic blob must not undo a revocation the same live
-    // instance already knows. B's restored copy is a separate instance;
-    // this specifically exercises A's in-memory revocation history.
-    let (status, _, _) = client.call(a0, wire::REVOKE, k0, &[]);
-    if status != Status::Ok {
-        fail(57);
-    }
-    let (status, _, _) = client.call(a0, wire::RESTORE, 0, &recovery);
-    if status != Status::Ok {
-        fail(58);
-    }
-    client.expect_unseal_denied(
-        a0,
-        k0,
-        &sealed[..length],
-        Status::Revoked,
-        EV_REVOKED_AFTER_RESTORE,
-        59,
-    );
+    bump(EV_RECOVERY_RESTORE_DENIED);
 }
 
 fn run_blocked(client: &mut Client, a0: &Target, b0: &Target, expected_reason: u8) {

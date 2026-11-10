@@ -12,7 +12,7 @@ gedecodeerd: object 0/revisie 1, `Nieuw document`, `nieuw os werkt` (14 bytes),
 generatie 1, domeinklokken `[1, 0]`, geldige checksums, andere objecten/
 collecties leeg en alle grensmarkeringen intact.
 
-## Direct uitproberen op Simons Windows-desktop
+## Uitvoering op de betrokken Windows-desktop
 
 De schone ZIP en een reeds uitgepakte kopie staan lokaal:
 
@@ -230,7 +230,7 @@ Twee hostvoorbereidingsfouten zijn niet als geslaagd bewijs gebruikt:
   strings; daarna is met nieuwe state de bovengenoemde echte run uitgevoerd.
   Log `/tmp/nieuw-os-windows-interactive-1-run.log`; geen gastfalen.
 
-Niet uitgevoerd: handmatige bediening door Simon, koudherstel/herstart,
+Niet uitgevoerd: handmatige bediening door de projecteigenaar, koudherstel/herstart,
 procesopruimingsbewijs, controller-/snapshotproeven, fysieke hardware,
 installatie, internet/NAS, uitgebreide beveiligingsaudit of volledige
 productreleaseacceptatie. De automatische bewijsrun is al afgesloten.

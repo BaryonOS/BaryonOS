@@ -1,216 +1,216 @@
-# APP-SOURCE-SNAPSHOT-1 - bronstaat exporteren en reconstrueren
+# APP-SOURCE-SNAPSHOT-1 - exporting and reconstructing source state
 
-30 oktober 2026; TASK-APP-SOURCE-SNAPSHOT-CONTRACT-1.
-**ONTWERP voor afstemming, geen bestaande API of implementatievrijgave.**
-Alleen dit document is nieuw. Geen verifier, issuer, backend, opslagencoding,
-anker, capability of native herstel geleverd. Apps blijft 2/8, totaal 34%.
+30 October 2026; TASK-APP-SOURCE-SNAPSHOT-CONTRACT-1.
+**DESIGN for coordination, not an existing API or implementation authorisation.**
+Only this document is new. No verifier, issuer, backend, storage encoding,
+anchor, capability or native recovery is delivered. Apps remains 2/8, total 34%.
 
-## 1. Bronnen, taakgrens en invariant
+## 1. Sources, task boundary and invariant
 
-Dit ontwerp vult uitsluitend de private-registrygrens uit
-[APP-SOURCE-RECOVERY, sectie 1][recovery] in. Bronnen zijn afzonderlijk gepind:
+This design addresses only the private-registry boundary in
+[APP-SOURCE-RECOVERY, section 1][recovery]. Sources are pinned separately:
 
-| Bron | Versie en betekenis |
+| Source | Version and meaning |
 |---|---|
-| Apps-core | [`dce3b05aa358f4dbde6f2349b426217779b40052`][core]: werkelijke `SourceRegistry`, `SourceSlot`, `TrustAnchors`, `add/rotate/revoke/verify_executable` |
-| SEC-herstelcontract | [`05784243d3d1ea273b588de82069596648fbde4d`][recovery]: actor, duurzame publicatie, Unknown, koude actualiteit en installerherautorisatie |
-| Exclusieve toewijzing | [`82664b56a03dad5f2cdd64314234c406dd74a299`][queue]: alleen deze nieuwe docleaf; geen core-, backend- of frozen-PR-writes |
+| Apps core | [`dce3b05aa358f4dbde6f2349b426217779b40052`][core]: actual `SourceRegistry`, `SourceSlot`, `TrustAnchors`, `add/rotate/revoke/verify_executable` |
+| SEC recovery contract | [`05784243d3d1ea273b588de82069596648fbde4d`][recovery]: actor, durable publication, Unknown, cold freshness and installer reauthorisation |
+| Exclusive assignment | [`82664b56a03dad5f2cdd64314234c406dd74a299`][queue]: only this new documentation work item; no core, backend or frozen-PR writes |
 
-De toekomstige interface moet iedere door de bestaande core bereikbare staat
-verliesloos kunnen exporteren en reconstrueren: dezelfde SourceIds, exacte
-publieke sleutelparen, exacte generaties, active/revoked-status en tombstones.
-Zij mag geen bestaande geldige staat door strengere cryptopolicy afwijzen.
-Reconstructie geeft **geen bewijs** dat die staat authentiek, geautoriseerd
-of actueel is. Alleen de toekomstige vertrouwde adapter mag een kandidaat
-na de afzonderlijke herstelcontroles actief publiceren.
+The future interface must export and reconstruct every state reachable through
+the existing core without loss: the same SourceIds, exact public key pairs,
+exact generations, active/revoked status and tombstones.
+It must not reject an existing valid state through stricter cryptographic policy.
+Reconstruction provides **no evidence** that the state is authentic, authorised
+or current. Only the future trusted adapter may actively publish a candidate
+after the separate recovery checks.
 
-Dit is een gerichte API-afspraak, geen byte-ABI, definitieve architectuur-ADR
-of toestemming de genoemde functies nu toe te voegen. Namen hieronder zijn
-voorgestelde Rust-signatures voor latere ownerafstemming.
+This is a focused API agreement, not a byte ABI, definitive architecture ADR
+or permission to add the specified functions now. The names below are
+proposed Rust signatures for later coordination with the owners.
 
-## 2. Bestaande semantiek die behouden moet blijven
+## 2. Existing semantics that must be retained
 
-De huidige core bevat maximaal `MAX_SOURCES = 8` slots. `add` gebruikt een
-leeg slot, begint op generatie 1 en weigert een reeds aanwezige SourceId of
-identiek volledig `TrustAnchors`-paar, ook in ingetrokken slots.
-`rotate` vervangt het huidige paar en verhoogt de generatie checked.
-`revoke` verhoogt de generatie checked en bewaart de bron met haar laatste
-sleutelpaar als tombstone. Een ingetrokken bron kan niet opnieuw worden
-geroteerd, ingetrokken of toegevoegd. Er is geen delete/compact/regrant.
+The current core contains at most `MAX_SOURCES = 8` slots. `add` uses an
+empty slot, starts at generation 1 and rejects an existing SourceId or
+identical complete `TrustAnchors` pair, including in revoked slots.
+`rotate` replaces the current pair and increments the generation with overflow checking.
+`revoke` increments the generation with overflow checking and retains the source
+with its final key pair as a tombstone. A revoked source cannot be rotated,
+revoked or added again. There is no delete/compact/regrant.
 
-`valid_anchors` gebruikt exact de bestaande parsechecks:
-`EdKey::from_bytes(...).is_ok()` en
+`valid_anchors` uses exactly the existing parse checks:
+`EdKey::from_bytes(...).is_ok()` and
 `EncodedVerifyingKey::<MlDsa65>::try_from(...).is_ok()`.
-Dat is geen aanvullende key-strength-, nonzero- of onafhankelijke
-cryptografische geldigheidsclaim. De snapshotinterface hergebruikt later
-dezelfde interne helper; zij verzint geen tweede sleutelvalidator.
+This is not an additional claim about key strength, nonzero values or
+independent cryptographic validity. The snapshot interface will reuse
+the same internal helper; it does not invent a second key validator.
 
-Dubbele keys betekent nu gelijkheid van het **hele paar**, niet dat ieder
-afzonderlijk Ed25519- of ML-DSA-component uniek moet zijn. Een rotatie wist
-het vorige paar uit die slotstaat; de registry is geen volledige keyhistorie.
-Een vroeger gebruikt paar dat inmiddels nergens aanwezig is, wordt niet
-achteraf verboden. Behoud dit beleid; strengere historische sleuteluitsluiting
-vereist een afzonderlijk expliciet besluit en andere opgeslagen toestand.
+Duplicate keys currently means equality of the **entire pair**, not that
+each individual Ed25519 or ML-DSA component must be unique. A rotation removes
+the previous pair from that slot state; the registry is not a complete key history.
+A previously used pair that is no longer present anywhere is not retrospectively
+prohibited. Retain this policy; stricter historical key exclusion requires
+a separate explicit decision and different stored state.
 
-`u32::MAX` is een geldige opgeslagen eindgeneratie. Een volgende mutatie
-weigert met `GenerationExhausted`; export of reconstructie mag de bestaande
-eindstaat niet afwijzen, ophogen, afkappen of terugzetten naar 1.
+`u32::MAX` is a valid stored final generation. A subsequent mutation is
+rejected with `GenerationExhausted`; export or reconstruction must not reject,
+increment, truncate or reset the existing final state to 1.
 
-## 3. Voorgesteld logisch record en API-gedrag
+## 3. Proposed logical record and API behaviour
 
-Een logisch `SourceRecord` bevat uitsluitend:
+A logical `SourceRecord` contains only:
 
-| Veld | Betekenis |
+| Field | Meaning |
 |---|---|
-| `id: SourceId` | Exact de 32 bronidentiteitsbytes, niet een afgeleide hash of displaynaam |
-| `anchors: TrustAnchors` | Exact Ed25519 32 bytes en ML-DSA-65 1952 bytes; alleen publieke keys |
-| `generation: u32` | Exacte bestaande brongeneratie, niet service-epoch of artifactgeneratie |
-| `state: Active / Revoked` | Expliciete semantische toestand; Revoked blijft een bezet slot |
+| `id: SourceId` | Exactly the 32 source-identity bytes, not a derived hash or display name |
+| `anchors: TrustAnchors` | Exactly Ed25519 32 bytes and ML-DSA-65 1952 bytes; public keys only |
+| `generation: u32` | Exact existing source generation, not service epoch or artifact generation |
+| `state: Active / Revoked` | Explicit semantic state; Revoked remains an occupied slot |
 
-Geen `Empty`-record, private Rust-layout, discriminantbytes, padding,
-pointer, secret, verified-flag of capability in deze uitwisseling.
-Label/URL/license, gebruikersdomein, store-identiteit en duurzame
-commit-/ankerbinding zijn geen bestaande `SourceSlot`-velden. Zij blijven
-afzonderlijke geauthenticeerde adaptermetadata, gekoppeld aan deze records
-volgens het SEC-contract; de core mag ze niet zelf verzinnen.
+No `Empty` record, private Rust layout, discriminant bytes, padding,
+pointer, secret, verified flag or capability is included in this exchange.
+Label/URL/licence, user domain, store identity and durable
+commit/anchor binding are not existing `SourceSlot` fields. They remain
+separate authenticated adapter metadata, associated with these records
+under the SEC contract; the core must not invent them.
 
 ### Export
 
-Voorgesteld: `SourceRegistry::export_snapshot(&self, out: &mut [SourceRecord])
+Proposed: `SourceRegistry::export_snapshot(&self, out: &mut [SourceRecord])
 -> Result<usize, SnapshotError>`.
 
-- Exporteer alle bezette slots, inclusief tombstones, in bestaande slotvolgorde.
-  Een immutable borrow houdt deze kopie consistent met een enkele corestaat;
-  de dienst serialiseert hem met mutaties.
-- Retourneer het precieze aantal records. Ongebruikte uitvoerelementen zijn
-  niet onderdeel van de snapshot; geen lezen van ongeschreven staartbytes.
-- Te kleine buffer geeft `BufferTooSmall` zonder uitvoer of registry gedeeltelijk
-  te wijzigen. Eerst tellen/valideren, dan kopieren. Geen truncate-succes.
-- Geen gegenereerde nieuwe IDs, sleutelparen, generaties of tombstoneverlies.
-  Geen registratie-, signering-, I/O- of actorcontrole als bijwerking.
-- Core-export is geen duurzame ACK. Dienstexport bij Unknown mag hoogstens
-  expliciet diagnostische kandidaatdata opleveren, nooit een authoritative
-  herstelbron of succesvolle productie-export.
+- Export all occupied slots, including tombstones, in existing slot order.
+  An immutable borrow keeps this copy consistent with a single core state;
+  the service serialises it with mutations.
+- Return the exact number of records. Unused output elements are not part
+  of the snapshot; do not read unwritten trailing bytes.
+- An undersized buffer returns `BufferTooSmall` without partially changing
+  the output or registry. Count/validate first, then copy. No truncated success.
+- No newly generated IDs, key pairs or generations, and no lost tombstones.
+  No registration, signing, I/O or actor-check side effects.
+- Core export is not a durable ACK. Service export in Unknown may at most
+  return explicitly diagnostic candidate data, never an authoritative
+  recovery source or successful production export.
 
-### Reconstructie
+### Reconstruction
 
-Voorgesteld: `SourceRegistry::from_snapshot(records: &[SourceRecord])
+Proposed: `SourceRegistry::from_snapshot(records: &[SourceRecord])
 -> Result<SourceRegistry, SnapshotError>`.
 
-Deze functie bouwt een **private kandidaat**; zij vervangt geen bestaande
-registry en verleent geen vertrouwen. De vertrouwde dienst houdt het resultaat
-buiten haar actieve `verify_executable`-/installerpad tot publicatie is toegestaan.
-De huidige core heeft zelf geen Unknown- of geauthenticeerde-providerstate:
-een `Ok(SourceRegistry)` kan daarom nooit als trust-token worden behandeld.
+This function builds a **private candidate**; it neither replaces an existing
+registry nor grants trust. The trusted service keeps the result outside its
+active `verify_executable`/installer path until publication is permitted.
+The current core has no Unknown or authenticated-provider state of its own:
+`Ok(SourceRegistry)` therefore can never be treated as a trust token.
 
-Volledige prevalidatie is verplicht:
+Complete prevalidation is mandatory:
 
-1. Aantal hoogstens `MAX_SOURCES`; nul records is structureel geldig voor
-   een nooit ingerichte registry, maar geen toegestane rollbackfallback.
-2. Elke SourceId heeft minstens een niet-nulbyte; elke keyset voldoet exact
-   aan de bestaande `valid_anchors`-semantiek.
-3. Geen dubbele SourceId en geen dubbel volledig sleutelpaar in de hele
-   recordset, ongeacht active/revoked. Geen deduplicatie of last-record-wins.
-4. Active heeft generatie ten minste 1; Revoked ten minste 2, omdat de
-   bestaande `revoke` een bestaande generatie verhoogt. `u32::MAX` blijft
-   voor beide geldig; onbekende states of niet-passende veldbreedtes worden
-   al door de toekomstige decoder expliciet geweigerd.
-5. Neem alle gevalideerde records in opgegeven volgorde over naar bezette
-   slots; initialiseer alleen de overige slots als Empty.
+1. At most `MAX_SOURCES` records; zero records is structurally valid for
+   a registry that has never been configured, but is not an authorised rollback fallback.
+2. Every SourceId has at least one nonzero byte; every keyset meets exactly
+   the existing `valid_anchors` semantics.
+3. No duplicate SourceId or duplicate complete key pair anywhere in the
+   record set, irrespective of active/revoked state. No deduplication or last-record-wins.
+4. Active has generation at least 1; Revoked at least 2, because the existing
+   `revoke` increments an existing generation. `u32::MAX` remains valid
+   for both; the future decoder already explicitly rejects unknown states
+   or incompatible field widths.
+5. Transfer all validated records into occupied slots in the specified
+   order; initialise only the remaining slots as Empty.
 
-Geen reconstructie via publiek `add` en herhaald `rotate/revoke` naspelen:
-dat zou generaties/keys kunnen vervormen, tijdelijke verificatierechten
-creeren en onnodig werk doen. Bouw binnen de latere core-implementatie uit
-gevalideerde semantische velden; geen transmute, raw memory of layoutkopie.
-Geen gedeeltelijk resultaat bij fout. De actieve registry en eventuele
-uitvoerbuffer van export blijven ongewijzigd.
+Do not reconstruct by replaying public `add` and repeated `rotate/revoke`:
+that could distort generations/keys, create temporary verification rights
+and perform unnecessary work. In the later core implementation, construct
+from validated semantic fields; no transmute, raw memory or layout copying.
+No partial result on error. The active registry and any export output buffer
+remain unchanged.
 
-Voorgestelde concrete structurele fouten zijn `BufferTooSmall`, `Full`,
+Proposed concrete structural errors are `BufferTooSmall`, `Full`,
 `InvalidSourceId`, `InvalidKeys`, `DuplicateSource`, `DuplicateKeys`,
-`InvalidGeneration` en `InvalidState`. De precieze Rust-errorvorm blijft
-ownerafstemming; geen silent defaults of succesvormige foutvervanging.
-`Stale`, `Unknown`, `Unauthenticated`, `WrongDomain` en `Rollback` zijn
-afzonderlijke adapter-/hersteluitkomsten, geen door deze core bewezen feiten.
+`InvalidGeneration` and `InvalidState`. The precise Rust error representation
+remains subject to owner coordination; no silent defaults or success-shaped
+error substitution. `Stale`, `Unknown`, `Unauthenticated`, `WrongDomain` and
+`Rollback` are separate adapter/recovery outcomes, not facts proven by this core.
 
-## 4. Actualiteit, publicatie en bestaande actieve staat
+## 4. Freshness, publication and existing active state
 
-Een structureel geldige snapshot blijft onbetrouwbare invoer. De adapter
-controleert actor/bronbeheerdomein, storebinding, geauthenticeerde complete
-commitinhoud en onafhankelijke actualiteit volgens [SEC secties 3-7][recovery].
-Caller-generaties, service-epochs, hashes of een geslaagde parse vervangen
-geen van die controles. Een gesigneerde oude lijst kan nog steeds rollback zijn.
+A structurally valid snapshot remains untrusted input. The adapter checks
+actor/source-management domain, store binding, authenticated complete commit
+content and independent freshness under [SEC sections 3-7][recovery].
+Caller generations, service epochs, hashes or successful parsing do not replace
+any of those checks. A signed old list can still constitute rollback.
 
-Bij levende vervanging met een bekende vorige actieve staat gelden bovendien:
+Live replacement with a known previous active state additionally requires:
 
-- Geen bestaande SourceId of tombstone mag verdwijnen; er is geen deletebeleid.
-- Lagere generatie wordt geweigerd. Gelijke generatie vereist hetzelfde
-  sleutelpaar en dezelfde status, ook als het totale snapshotlabel nieuwer is.
-- Een actieve bron mag op hogere generatie een andere active-state hebben
-  na rotatie of Revoked zijn na intrekking. Een identiek huidig paar op
-  hogere generatie is niet automatisch ongeldig: tussenliggende rotaties
-  kunnen naar dat paar zijn teruggekeerd.
-- Een bestaande Revoked-record moet exact gelijk blijven. Een hogere
-  generatie of heractivering van die tombstone bestaat niet in de huidige
-  mutatiesemantiek. Nieuwe bronnen mogen alleen als door de buitenste
-  autoriteit bevestigde toevoegingen verschijnen.
-- Deze vergelijkingen bewijzen geen ontbrekende tussenliggende geschiedenis.
-  Ook een hogere generatie vereist de volledige buitenste autoriteitscontrole.
+- No existing SourceId or tombstone may disappear; there is no deletion policy.
+- A lower generation is rejected. An equal generation requires the same
+  key pair and status, even if the overall snapshot label is newer.
+- An active source at a higher generation may have a different active state
+  after rotation or be Revoked after revocation. An identical current pair
+  at a higher generation is not automatically invalid: intermediate rotations
+  may have returned to that pair.
+- An existing Revoked record must remain exactly equal. A higher generation
+  or reactivation of that tombstone does not exist in the current mutation
+  semantics. New sources may appear only as additions confirmed by the
+  outer authority.
+- These comparisons do not prove any missing intermediate history.
+  A higher generation also requires the complete outer authority check.
 
-Bij cold boot is de oude RAM-staat afwezig. Dat maakt een lege of oudere
-snapshot niet acceptabel: de onafhankelijke actualiteits-/lineagebinding moet
-ontbrekende bronnen, tombstones of rotaties detecteren. Ontbreekt dat bewijs,
-dan blijft herstel Unknown/geblokkeerd; geen `SourceRegistry::new()` als
-succesfallback en geen productie-install/update op een kandidaat.
+At cold boot, the old RAM state is absent. That does not make an empty or older
+snapshot acceptable: the independent freshness/lineage binding must detect
+missing sources, tombstones or rotations. If that evidence is absent,
+recovery remains Unknown/blocked; no `SourceRegistry::new()` as a success
+fallback and no production installation/update using a candidate.
 
-Volledige kandidaat, adaptermetadata en geauthenticeerde commit moeten onder
-een enkele dienstpublicatiegrens wisselen. Op fout blijft de vorige bekende
-staat behouden; bij mogelijke duurzame publicatie blijft de betrokken scope
-gesloten tot authoritative reconcile. Het exacte crash-/ankerprotocol is
-nog open en wordt niet door deze in-memory API geleverd.
+The complete candidate, adapter metadata and authenticated commit must switch
+under a single service-publication boundary. On error, the previous known
+state is retained; if durable publication may have occurred, the affected
+scope remains closed until authoritative reconciliation. The exact crash/anchor
+protocol remains open and is not delivered by this in-memory API.
 
-Een export is een kopie, geen lease op actuele autoriteit. Rotate/revoke na
-export of na pakketverificatie vereist opnieuw autoriseren en serialiseren met
-installcommit. Een oude `SourceVerifiedExecutable` mag geen generatiecheck
-omzeilen. Bronrevoke blokkeert nieuwe verificatie/update, maar verwijdert
-geen bestaande app/data en verandert haar afzonderlijke launchpolicy niet.
+An export is a copy, not a lease on current authority. Rotate/revoke after
+export or package verification requires reauthorisation and serialisation
+with installation commit. An old `SourceVerifiedExecutable` must not bypass
+a generation check. Source revoke blocks new verification/update, but does
+not remove existing apps/data or change their separate launch policy.
 
-## 5. Verplichte latere gerichte tegenproeven
+## 5. Mandatory subsequent focused negative tests
 
-Dit zijn acceptatiegevallen voor een toekomstige implementatie, **niet
-uitgevoerde tests** in deze docleaf.
+These are acceptance cases for a future implementation, **not tests
+executed** in this documentation work item.
 
-| Geval | Vereist resultaat |
+| Case | Required result |
 |---|---|
-| Leeg, een bron, volle registry, gemengd active/revoked | Export/reconstruct/export behoudt alle records en volgorde exact; dezelfde latere `add/rotate/revoke`-uitkomsten |
-| Generatie 1 active, 2 revoked, beide op `u32::MAX` | Geldige eindstaten blijven behouden; mutatie op max weigert zonder wijziging |
-| Na meerdere rotaties terug naar eerder paar | Huidige valide staat blijft accepteerbaar; geen verzonnen historische keyban |
-| Verschillende paren met een gedeeld keycomponent | Zelfde acceptatie als bestaande core; geen strengere componentuniciteit |
-| Buffer nul/een te klein; output groter dan nodig | Fout zonder partial write; succes telt alleen geschreven records |
-| Nul-ID, malformed keys, dubbel ID/paar incl tombstone | Expliciete fout; geen repareren, overslaan of dedupliceren |
-| Active generatie 0; Revoked 0/1; onbekende state | Expliciete fout; geen automatische generatie-/statusconversie |
-| Ongeldige laatste entry na valide prefix; te veel records | Geen gedeeltelijke kandidaat of actieve vervanging |
-| Zelfde generatie met gewijzigde keys/status; ontbrekende tombstone | Adapter weigert; actieve snapshot onveranderd |
-| Lagere generatie; Revoked naar Active of hogere Revoked-generatie | Adapter weigert volgens behouden mutatiepolicy |
-| Valid parse maar verkeerde actor/domein/commit/anker | Geen publicatie of nieuwe pakketacceptatie |
-| Authentieke oude lijst; koude start zonder actualiteitsbewijs | Rollback/Unknown, geen lege lijst of service-epoch als vervanger |
-| Crash tijdens restore/publicatie; alleen prefix gelezen | Geen gedeeltelijke actieve registry, geen succes-ACK |
-| Rotate/revoke tussen export/verificatie en installcommit | Herautorisatie; oude snapshot/token omzeilt actuele bronstaat niet |
-| Bronrevoke met reeds geinstalleerde app | Nieuwe install/update weigert; bestaande afzonderlijke launchpolicy behouden |
+| Empty, one source, full registry, mixed active/revoked | Export/reconstruct/export preserves all records and their order exactly; identical subsequent `add/rotate/revoke` outcomes |
+| Generation 1 active, 2 revoked, both at `u32::MAX` | Valid final states are retained; mutation at max is rejected without changes |
+| Return to an earlier pair after several rotations | Current valid state remains acceptable; no invented historical key ban |
+| Different pairs sharing one key component | Same acceptance as the existing core; no stricter component uniqueness |
+| Zero/one-too-small buffer; output larger than necessary | Error without a partial write; success counts only written records |
+| Zero ID, malformed keys, duplicate ID/pair including a tombstone | Explicit error; no repair, skipping or deduplication |
+| Active generation 0; Revoked 0/1; unknown state | Explicit error; no automatic generation/status conversion |
+| Invalid final entry after a valid prefix; too many records | No partial candidate or active replacement |
+| Same generation with changed keys/status; missing tombstone | Adapter rejects; active snapshot unchanged |
+| Lower generation; Revoked to Active or a higher Revoked generation | Adapter rejects under the retained mutation policy |
+| Valid parse but wrong actor/domain/commit/anchor | No publication or new package acceptance |
+| Authentic old list; cold start without freshness evidence | Rollback/Unknown, no empty list or service epoch as a substitute |
+| Crash during restore/publication; only a prefix read | No partial active registry, no success ACK |
+| Rotate/revoke between export/verification and installation commit | Reauthorisation; old snapshot/token does not bypass current source state |
+| Source revoke with an already installed app | New install/update rejected; existing separate launch policy retained |
 
-## 6. Oplevering en nog open grenzen
+## 6. Delivery and remaining open boundaries
 
-Documentlezing en consistentiecontrole zijn geen compilatie, hosttest,
-native uitvoering, duurzaam herstel of menselijke audit. Geen criterium
-sluit door dit ontwerp; de centrale voortgangseigenaar houdt 34 -> 34.
-De core-export/reconstructie, actorissuer, backend, rollbackanker, decoder,
-authoritative adapter en install-/launchwiring blijven niet geimplementeerd
-door deze leaf. Geen automatische vervolgclaim op die schrijfgebieden.
+Document review and consistency checking are not compilation, host testing,
+native execution, durable recovery or a human audit. This design closes no
+criterion; the central progress owner retains 34 -> 34.
+Core export/reconstruction, actor issuer, backend, rollback anchor, decoder,
+authoritative adapter and installation/launch wiring remain unimplemented
+by this work item. No automatic subsequent claim on those write scopes.
 
-Voor implementatie zijn afzonderlijke ownerafstemming, codevrijgave,
-negatieve tests hierboven en de voorgeschreven native/durable gates nodig.
-Een scoped SEC-interfacelezing moet deze concrete docfreeze toetsen aan
-het bestaande herstelcontract; zij vervangt geen onafhankelijke menselijke audit.
-Rollback van alleen dit document verandert geen opslag of runtimegedrag.
+Implementation requires separate owner coordination, code authorisation,
+the negative tests above and the prescribed native/durable gates.
+A scoped SEC interface review must check this concrete frozen document
+against the existing recovery contract; it does not replace an independent human audit.
+Reverting this document alone changes no storage or runtime behaviour.
 
 [core]: https://github.com/simonvanieperen/nieuw-os/blob/dce3b05aa358f4dbde6f2349b426217779b40052/crates/app-package-core/src/lib.rs
 [recovery]: https://github.com/simonvanieperen/nieuw-os/blob/05784243d3d1ea273b588de82069596648fbde4d/docs/contracts/APP-SOURCE-RECOVERY.md

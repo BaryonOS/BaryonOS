@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-11-10",
+  "purpose": "Source-bound local verification after rebasing PR #295 onto the PR #287 squash base.",
+  "base_commit": "e1eefaf8e0ab061c90e9fefe89ef16f80917a343",
+  "reviewed_code_commit": "16d2fb3d6c3d2e66b66888fcf5577b316a9f580a",
+  "reviewed_tree": "2c04a809d890e7eb8e4f6041281aeda41f9e1c7b",
+  "source_files": {
+    ".github/workflows/artifact-store-quality.yml": "045b8fc2d96301e42e0477e47e294812fe2bef0df0e571fe915895399e033c34",
+    "tests/test_ci_workflows.py": "e8fd095a253790edc486900841c9bccf5a0da1e2ef65377447aea5ab54a4270f",
+    "docs/verification/artifact-store-target-flags.md": "cdf67e27f57ef407f9c4498dff9355a5efc4be23769e27debe093aca08ce95b0"
+  },
+  "checks": [
+    {
+      "command": "python3 -B -m unittest discover -s tests -p test_ci_workflows.py -v",
+      "exit_code": 0,
+      "result": "12 tests passed",
+      "log_path": "/tmp/baryonos-pr295-final-workflow-tests.log",
+      "log_sha256": "9b6ae003907c92979714dd050bd346f48d14c5a2c1c2fe1cba1047363f4d7c57"
+    },
+    {
+      "command": "cargo +1.90.0 test --offline --locked -p artifact-store-core",
+      "exit_code": 0,
+      "result": "9 contract tests passed",
+      "log_path": "/tmp/baryonos-pr295-final-artifact-tests.log",
+      "log_sha256": "fb601231c44cb72a2074cb16f49e57bce614e59068262aea0b854d20661855e6"
+    },
+    {
+      "command": "cargo +1.90.0 clippy --offline --locked -p artifact-store-core --all-targets -- -D warnings",
+      "exit_code": 0,
+      "log_path": "/tmp/baryonos-pr295-final-artifact-clippy.log",
+      "log_sha256": "1bcb284f1c8182e89754a530cb46d45f18a61ef60e05f4dd760e6ddfd64359d6"
+    },
+    {
+      "command": "cargo +1.90.0 fmt --manifest-path crates/artifact-store-core/Cargo.toml -- --check",
+      "exit_code": 0,
+      "log_path": "/tmp/baryonos-pr295-final-artifact-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "cargo +1.90.0 build -vv --offline --locked --release --lib --target x86_64-unknown-none -p artifact-store-core --config target.x86_64-unknown-none.rustflags=[...]",
+      "exit_code": 0,
+      "result": "The observed rustc invocation retained code-model=small, relocation-model=static, no-redzone, all four linker arguments, and the scalar target-feature restrictions.",
+      "log_path": "/tmp/baryonos-pr295-final-freestanding-vv.log",
+      "log_sha256": "92118e7502cc8d5d83041ae85c751f21c9e5db9db93b09b8d8d61459fc00f908"
+    },
+    {
+      "command": "python3 -B tools/preflight.py --strict",
+      "exit_code": 0,
+      "log_path": "/tmp/baryonos-pr295-final-preflight.log",
+      "log_sha256": "31db9990f0362b0bce6274e2fc8916adcdae3796220f63492f91cd9745d44cde"
+    },
+    {
+      "command": "python3 -B tools/build.py",
+      "exit_code": 0,
+      "log_path": "/tmp/baryonos-pr295-final-build.log",
+      "log_sha256": "8115d73a8e7c97da7132c48eb1980555dcb3bf3f91a536a808a60b6454571f39"
+    },
+    {
+      "command": "python3 -B tools/run.py --smoke",
+      "exit_code": 0,
+      "log_path": "/tmp/baryonos-pr295-final-smoke.log",
+      "log_sha256": "d365b4e6580d9f86bd837e64e43f3f810acf8457e15ed11720809d8fe767afa6"
+    },
+    {
+      "command": "python3 -B tools/progress.py --write && python3 -B tools/progress.py --check",
+      "exit_code": 0,
+      "result": "39/100; no criterion or weight changed",
+      "write_log_sha256": "3bccf9c06275121b9d9a9ffff22f3c7cf45bbcddbd8a33ccda3038d5d85efe75",
+      "check_log_sha256": "86a0f52beacf7f9afb6958144b6fbe1f8ac8d836b0217f3cad4b1f045aa2a447"
+    }
+  ],
+  "evidence_boundary": "These checks establish workflow-contract behavior, a freestanding cross-build, the standard local build, and one QEMU smoke run on the reviewed tree. They do not establish the final pushed head, hosted CI, complete native subsystem acceptance, physical hardware behavior, or a human security audit."
+}

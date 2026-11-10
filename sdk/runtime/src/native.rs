@@ -475,3 +475,12 @@ pub fn input_read(source: Handle, out: &mut [u8; 32]) -> Result<u64, Error> {
         Err(Error::InvalidReturn)
     }
 }
+
+/// H05 native-system-power: ask the kernel for S5. Returns only on refusal;
+/// profiles without this call answer ENOSYS (-2).
+pub fn power_off(power: Handle) -> Error {
+    match call(0x90, [power.raw(), 0, 0, 0, 0, 0]) {
+        Ok(_) => Error::InvalidReturn,
+        Err(error) => error,
+    }
+}

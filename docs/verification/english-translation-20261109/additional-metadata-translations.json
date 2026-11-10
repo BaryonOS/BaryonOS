@@ -1,0 +1,126 @@
+[
+  {
+    "type": "issue",
+    "number": 283,
+    "url": "https://github.com/simonvanieperen/BaryonOS/issues/283",
+    "source": {
+      "title": "Integratiebacklog: bewaren en selectief herintegreren na opruimen PR-wachtrij",
+      "body": "# Snapshot bij het reduceren van de open PR-wachtrij naar nul (9 november 2026)\n\n**Belangrijk:** het sluiten van een pull request is **geen merge**. Alle onderstaande voorstellen houden hun bespreking, commits en headbranch zolang die branches niet apart worden verwijderd. Geen van de hier als *niet geïntegreerd* gemarkeerde wijzigingen mag als op `main` geleverd of getest worden gerapporteerd.\n\n## Waarom sluiten\nDe eigenaar vroeg expliciet om **0 open PR's**, na eerdere vraag om snelle squash-merges. De repositoryregels voor `main` staan alleen squash toe, met verplicht geslaagde checks `host-quality` en `qemu-smoke` (strict), opgeloste reviewthreads en geen actieve verzoeken om wijzigingen. Veel open PR's hebben conflicten, gestapelde branches of in de wachtrij staande CI, waardoor onmiddellijke squash-merges niet mogelijk zijn zonder controles te omzeilen. Om de wachtrij echt tot nul terug te brengen worden de niet-mergeklare PR's gesloten, niet geforceerd gemerged.\n\n## Behouden wijzigingen, niet automatisch geïntegreerd\n\n| Werkstroom | Pull requests | Vervolgroute |\n|---|---|---|\n| Kernel, SMP & veiligheid | #154, #155, #227, #229, #231, #232, #238, #244, #246 | Herintegreren in dependency-volgorde; kernel-, CPU-, lock-, shootdown- en beveiligingsinvarianten plus native QEMU-tests controleren. |\n| Hardware, USB, netwerk | #181, #185, #213, #215, #216, #218, #271 | Dubbele poweroff-implementaties vergelijken (#213/#218), USB-lifecycle en DMA-grenzen toetsen en gerichte acceptatieproeven doen. |\n| Desktop & interactie | #167, #210, #214 | Bepalen welke Veld/Horizon-implementatie leidend wordt, concurrerende shellwijzigingen niet blind samenvoegen. |\n| CI / tooling | #207, #233, #243, #245, #282 | Eén werkend hosted CI-contract en vereiste tests behouden; #245 introduceert weer een self-hosted WSL-runner en moet expliciet op wenselijkheid/veiligheid worden herbeoordeeld. |\n| Publicatie / licenties | #257, #259, #260 | De actuele publieke repositorystatus opnieuw beoordelen; #260 heeft een uitzonderlijk grote deletiediff, niet blind mergen. |\n| Documentatie & community | #269, #270, #273, #275, #280, #281 | Overlappende Engelse documentatie samenbrengen met één canonieke README, expliciete governance, wiki en actuele milestones. |\n\n## Wat is tijdens de afhandeling gedaan\n- #216: onjuiste guest-DMA- en seriële-diagnostiekclaims hersteld in commit `a106dc3e2ee06d80f424d75ac2a58315a7bacb7d`; drie reviewthreads opgelost; oudere review na fixes gemotiveerd dismissed. Auto-merge wacht nog op verplichte checks.\n- #282: tokenrechten beperkt tot de cleanup-job en CI-contracttest gericht bijgewerkt in commits `e5c59f72bc17f6419e7cdbf5ad4209b30614eb97` en `64e34c2ecda9d240923fd81e02b003f54102bf31`. Reviewthread opgelost, checks stonden nog in de wachtrij.\n- Geen branch verwijderen en geen branch protection tijdelijk uitschakelen.\n\n## Vervolg zonder PR-lawine\n1. Kies per werkstroom de nog relevante wijzigingen vanuit de **gesloten PR-diffs** (geen aanname dat iets gemerged is).\n2. Maak kleine, onafhankelijke, op actuele `main` gebaseerde wijzigingen en valideer de benodigde `host-quality` en `qemu-smoke` plus specifieke tests.\n3. Open pas een nieuwe PR wanneer die mergeklaar is. Verwijs naar de oude PR en dit tracking issue; sluit de issue wanneer de relevante functies aantoonbaar zijn geland of expliciet zijn afgewezen.\n\n**Niet afvinken als 'alles gesquasht' op basis van alleen 0 open PR's.**",
+      "updated_at": "2026-11-09T00:37:27Z",
+      "state": "open"
+    },
+    "target": {
+      "title": "Integration backlog: preserve and selectively reintegrate after clearing the PR queue",
+      "body": "# Snapshot when reducing the open PR queue to zero (9 November 2026)\n\n**Important:** closing a pull request is **not a merge**. All proposals below retain their discussions, commits and head branches as long as those branches are not separately deleted. None of the changes marked here as *not integrated* may be reported as delivered or tested on `main`.\n\n## Why close the PRs\nThe owner explicitly requested **0 open PRs**, following an earlier request for rapid squash merges. The repository rules for `main` allow only squash merges, with mandatory passing `host-quality` and `qemu-smoke` checks (strict), resolved review threads and no active requests for changes. Many open PRs have conflicts, stacked branches or queued CI, making immediate squash merges impossible without bypassing checks. To reduce the queue to zero, PRs that are not ready to merge are being closed, not forcibly merged.\n\n## Preserved changes, not automatically integrated\n\n| Workstream | Pull requests | Follow-up route |\n|---|---|---|\n| Kernel, SMP & security | #154, #155, #227, #229, #231, #232, #238, #244, #246 | Reintegrate in dependency order; verify kernel, CPU, lock, shootdown and security invariants, together with native QEMU tests. |\n| Hardware, USB, networking | #181, #185, #213, #215, #216, #218, #271 | Compare duplicate poweroff implementations (#213/#218), assess the USB lifecycle and DMA boundaries, and conduct targeted acceptance tests. |\n| Desktop & interaction | #167, #210, #214 | Determine which Veld/Horizon implementation will be authoritative; do not blindly combine competing shell changes. |\n| CI / tooling | #207, #233, #243, #245, #282 | Retain one working hosted CI contract and the required tests; #245 reintroduces a self-hosted WSL runner and must be explicitly reassessed for suitability and security. |\n| Publication / licences | #257, #259, #260 | Reassess the current public repository status; #260 has an exceptionally large deletion diff and must not be merged without careful review. |\n| Documentation & community | #269, #270, #273, #275, #280, #281 | Consolidate overlapping English documentation into one canonical README, explicit governance, a wiki and current milestones. |\n\n## Actions taken during this process\n- #216: incorrect guest DMA and serial diagnostics claims corrected in commit `a106dc3e2ee06d80f424d75ac2a58315a7bacb7d`; three review threads resolved; an earlier review dismissed with a rationale after the fixes. Auto-merge is still awaiting the required checks.\n- #282: token permissions restricted to the cleanup job and a targeted update made to the CI contract test in commits `e5c59f72bc17f6419e7cdbf5ad4209b30614eb97` and `64e34c2ecda9d240923fd81e02b003f54102bf31`. The review thread was resolved; checks were still queued.\n- Do not delete branches or temporarily disable branch protection.\n\n## Follow-up without a flood of PRs\n1. For each workstream, select the changes that remain relevant from the **closed PR diffs** (without assuming that anything has been merged).\n2. Prepare small, independent changes based on the current `main` and validate the required `host-quality` and `qemu-smoke` checks, together with specific tests.\n3. Open a new PR only when it is ready to merge. Refer to the old PR and this tracking issue; close the issue when the relevant features have demonstrably landed or have been explicitly rejected.\n\n**Do not mark this as 'everything squash-merged' solely because there are 0 open PRs.**"
+    },
+    "review": {
+      "source_title_sha256": "59365699d23d787381703b710b5365c43be6654aa390238f4acf04e0827353ea",
+      "source_body_sha256": "719e854c2f1ce66baeff9edbd9efcd14cbb51b6f21330774d94a86ec8e2c76c5",
+      "target_title_sha256": "3c15febea692d312b36f85c4aee61df94d98b4a6a7bd318627b12383f11f6e0b",
+      "target_body_sha256": "71286551f0d02e7d74464e316450d4ba353ab1b47cefa65afeaedb0f23a80e1a",
+      "structural_checks": {
+        "inline_code_sequence": {
+          "passed": true,
+          "count": 10
+        },
+        "link_target_sequence": {
+          "passed": true,
+          "count": 0
+        },
+        "digit_token_sequence": {
+          "passed": true,
+          "count": 77
+        },
+        "sha_sequence": {
+          "passed": true,
+          "count": 3
+        },
+        "issue_reference_sequence": {
+          "passed": true,
+          "count": 39
+        },
+        "checkbox_sequence": {
+          "passed": true,
+          "count": 0
+        },
+        "heading_level_sequence": {
+          "passed": true,
+          "count": 5
+        },
+        "table_column_sequence": {
+          "passed": true,
+          "count": 8
+        },
+        "numbered_list_sequence": {
+          "passed": true,
+          "count": 3
+        }
+      },
+      "semantic_review": "Complete title and body compared sentence by sentence; meaning, authority, scope, evidence boundaries, temporal claims and spelled-out counts retained."
+    }
+  },
+  {
+    "type": "pull_request",
+    "number": 284,
+    "url": "https://github.com/simonvanieperen/BaryonOS/pull/284",
+    "source": {
+      "title": "fix: herstel Dependabot-dekking voor zelfstandige Cargo-workspaces",
+      "body": "## Doel en verandering\n\nDependabot controleerde slechts 2 van de 61 zelfstandige Cargo-workspaces. Deze PR herintegreert alleen de ontbrekende dekking uit de gesloten, niet-gemergede [PR #207](https://github.com/simonvanieperen/BaryonOS/pull/207): 59 expliciete directories, maandelijkse versie-updates en groepering per dependency. Bestaande updateblokken blijven behouden; vendored code blijft uitgesloten.\n\n**Oorspronkelijk issue:** [#283 — Integratiebacklog](https://github.com/simonvanieperen/BaryonOS/issues/283). Dit is één deelresultaat; de overige werkstromen blijven open.\n\n## Scope en grenzen\n\n- [x] Relevante AGENTS.md-bestanden en testafspraken gelezen.\n- [x] Geen nieuwe dependencies, unsafe-code of gewijzigde bevoegdheden.\n\nAlleen Dependabot-configuratie, twee contracttests en de vereiste status-/voortgangsdocumentatie wijzigen. De gestapelde workflowwijzigingen uit #207 zijn niet overgenomen. Groepering bundelt dezelfde dependency over directories; onverenigbare versievoorwaarden en security-updates kunnen aparte PR's opleveren. Er wordt geen repositorybrede PR-limiet geclaimd.\n\n## Verificatie\n\nGeteste configuratie en tests zijn met SHA-256 vastgelegd in het [controleverslag](docs/verification/dependabot-coverage-283.md), op basis main `f704f078213170e72292a5a491f0ee83bd588955`.\n\n| Commando | Resultaat / exitstatus |\n|---|---|\n| `python3 -B -m unittest discover -s tests -p test_ci_workflows.py` vóór fix | Verwachte regressie: 59 ontbrekende roots / 1 |\n| Hetzelfde commando na fix | 11 tests geslaagd / 0 |\n| `python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'` | 23 tests geslaagd / 0 |\n| `python3 tools/progress.py --write` | Bijgewerkt / 0 |\n| `python3 tools/progress.py --check` | Consistent / 0 |\n| `git diff --check` | Geslaagd / 0 |\n\nDe nieuwe tests worden door de bestaande `host-quality`-stap ontdekt. Een aanvullende read-only AI-review en onafhankelijke herhaling van de 11 configuratietests vonden geen blokkerende punten; dit is geen menselijke audit.\n\n**Lokaal niet uitgevoerd:** volledige `host-quality`, `qemu-smoke`, hardwaretests en Dependabot-service-uitvoering. Geen OS-code of workflowgate gewijzigd; verplichte hosted checks op deze PR-head blijven afzonderlijk te beoordelen.\n\n## Bewijsgrens en rollback\n\nDe tests bewijzen configuratiedekking en groeperingsbeleid, geen native OS-werking of daadwerkelijke Dependabot-uitvoering. Terugdraaien kan met een gewone revert. Deze PR wordt als concept geopend en niet gemerged; het oorspronkelijke issue blijft ongewijzigd.\n\n## Voortgang\n\n**41 → 41/100.** Geen criterium, gewicht of productacceptatie gewijzigd. Assessment, gegenereerde voortgangstekst en PROJECT-STATE zijn bijgewerkt; de SVG bleef inhoudelijk gelijk.\n",
+      "updated_at": "2026-11-09T00:27:58Z",
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "head_sha": "b704184ef1870e543bd40e39cfcc2999d43ca367",
+      "base_sha": "f704f078213170e72292a5a491f0ee83bd588955"
+    },
+    "target": {
+      "title": "fix: restore Dependabot coverage for standalone Cargo workspaces",
+      "body": "## Purpose and change\n\nDependabot checked only 2 of the 61 standalone Cargo workspaces. This PR reintegrates only the missing coverage from the closed, unmerged [PR #207](https://github.com/simonvanieperen/BaryonOS/pull/207): 59 explicit directories, monthly version updates and grouping by dependency. Existing update blocks are retained; vendored code remains excluded.\n\n**Original issue:** [#283 — Integration backlog](https://github.com/simonvanieperen/BaryonOS/issues/283). This is one partial result; the other workstreams remain open.\n\n## Scope and boundaries\n\n- [x] Relevant AGENTS.md files and testing requirements read.\n- [x] No new dependencies, unsafe code or changes to permissions.\n\nOnly the Dependabot configuration, two contract tests and the required status/progress documentation change. The stacked workflow changes from #207 have not been included. Grouping combines the same dependency across directories; incompatible version requirements and security updates may result in separate PRs. No repository-wide PR limit is claimed.\n\n## Verification\n\nThe tested configuration and tests are recorded with SHA-256 hashes in the [verification report](docs/verification/dependabot-coverage-283.md), based on main `f704f078213170e72292a5a491f0ee83bd588955`.\n\n| Command | Result / exit status |\n|---|---|\n| `python3 -B -m unittest discover -s tests -p test_ci_workflows.py` before the fix | Expected regression: 59 missing roots / 1 |\n| The same command after the fix | 11 tests passed / 0 |\n| `python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'` | 23 tests passed / 0 |\n| `python3 tools/progress.py --write` | Updated / 0 |\n| `python3 tools/progress.py --check` | Consistent / 0 |\n| `git diff --check` | Passed / 0 |\n\nThe new tests are discovered by the existing `host-quality` step. An additional read-only AI review and an independent rerun of the 11 configuration tests found no blocking issues; this is not a human audit.\n\n**Not run locally:** full `host-quality`, `qemu-smoke`, hardware tests and execution of the Dependabot service. No OS code or workflow gate has changed; mandatory hosted checks on this PR head still require separate assessment.\n\n## Evidence boundary and rollback\n\nThe tests demonstrate configuration coverage and grouping policy, not native OS operation or actual Dependabot execution. The changes can be rolled back with a normal revert. This PR is being opened as a draft and is not to be merged; the original issue remains unchanged.\n\n## Progress\n\n**41 → 41/100.** No criterion, weight or product acceptance has changed. The assessment, generated progress text and PROJECT-STATE have been updated; the SVG content remained unchanged.\n"
+    },
+    "review": {
+      "source_title_sha256": "81406b4037da31755207a742481be3c019b28c139c30aad358938cbcdf699480",
+      "source_body_sha256": "7c5672fb0d86f515ce6ba268ea334a046f4e80e0e565fcaf26fd3da6d7c994c9",
+      "target_title_sha256": "0e8d19a77e5ebf3bd252be514e45a7906f932d1f9407e7e0f1f391a9294f39bb",
+      "target_body_sha256": "312e4fb30dac3383275893807382beb1016f69cc5225fe8f9df3789e4ecd9b48",
+      "structural_checks": {
+        "inline_code_sequence": {
+          "passed": true,
+          "count": 9
+        },
+        "link_target_sequence": {
+          "passed": true,
+          "count": 3
+        },
+        "digit_token_sequence": {
+          "passed": true,
+          "count": 35
+        },
+        "sha_sequence": {
+          "passed": true,
+          "count": 1
+        },
+        "issue_reference_sequence": {
+          "passed": true,
+          "count": 3
+        },
+        "checkbox_sequence": {
+          "passed": true,
+          "count": 2
+        },
+        "heading_level_sequence": {
+          "passed": true,
+          "count": 5
+        },
+        "table_column_sequence": {
+          "passed": true,
+          "count": 8
+        },
+        "numbered_list_sequence": {
+          "passed": true,
+          "count": 0
+        }
+      },
+      "semantic_review": "Complete title and body compared sentence by sentence; meaning, authority, scope, evidence boundaries, temporal claims and spelled-out counts retained."
+    }
+  }
+]

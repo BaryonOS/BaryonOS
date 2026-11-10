@@ -1,8 +1,11 @@
-# Copilot-instructies
+# Copilot instructions
 
-`AGENTS.md` in de root is leidend voor iedere AI in dit project. Lees die eerst.
+The root `AGENTS.md` governs every AI working on this project. Read it first.
 
-Graphify: gebruik alleen de gehoste Graphify-MCP voor `simonvanieperen/nieuw-os`
-(definities, callers, impact, tests). Draai geen lokale `graphify` en commit geen
-`graphify-out/`. De index volgt `main`, dus controleer resultaten tegen de
-actuele bestanden. Zie de sectie "Graphify: alleen de gehoste MCP" in `AGENTS.md`.
+Graphify: use only the hosted Graphify MCP for `simonvanieperen/BaryonOS`
+(definitions, callers, impact and tests). Do not run local `graphify` or commit
+`graphify-out/`. The index follows `main`, so check results against the current
+files. See the hosted Graphify MCP section in `AGENTS.md`.
+
+Write repository documentation and contribution text in professional English.
+Use the user's preferred language for direct conversation.

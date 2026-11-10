@@ -1,28 +1,28 @@
-# Onderwerpenroute
+# Topic routes
 
-De selecties zijn navigatiehulpen. Alle overige pagina’s blijven beschikbaar via pagina-index.md en de volledige corpusbestanden.
+The selections are navigation aids. All other pages remain available through pagina-index.md and the complete corpus files.
 
-- [Start, voorkennis en ontwikkelvolgorde](themas/01-start.md) — 96 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Kernelontwerp en systeemarchitectuur](themas/02-architectuur.md) — 38 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Programmeertalen en runtime](themas/03-talen.md) — 50 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Compilers, assemblers, linkers en builds](themas/04-toolchain.md) — 66 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Bootproces, firmware en bootloaders](themas/05-boot.md) — 83 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [x86, processormodi en descriptoren](themas/06-x86.md) — 132 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Exceptions, interrupts en timers](themas/07-interrupts.md) — 45 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Geheugenkaarten, paging en allocatie](themas/08-geheugen.md) — 52 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Processen, threads en scheduling](themas/09-processen.md) — 27 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Synchronisatie, SMP en geheugenordening](themas/10-synchronisatie.md) — 18 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Systeemaanroepen en communicatie tussen processen](themas/11-ipc.md) — 21 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Programmaformaten, loaders en bibliotheken](themas/12-executables.md) — 19 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Apparaatbeheer, buses, DMA en IOMMU](themas/13-drivers.md) — 54 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Platformdetectie, ACPI en energiebeheer](themas/14-platform.md) — 25 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Blockapparaten en schijfstructuren](themas/15-opslag.md) — 45 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Bestandssystemen, VFS en consistentie](themas/16-bestanden.md) — 41 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Netwerkstack, protocollen en netwerkkaarten](themas/17-netwerk.md) — 29 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [USB, toetsenbord, muis en seriële I/O](themas/18-usb-invoer.md) — 21 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Video, grafische uitvoer, fonts en GUI](themas/19-grafisch.md) — 44 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Audio en geluidshardware](themas/20-audio.md) — 7 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Beveiliging, isolatie en betrouwbaarheid](themas/21-beveiliging.md) — 14 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Testen, debuggen en foutdiagnose](themas/22-testen.md) — 43 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [ARM, AArch64, RISC-V en overige platforms](themas/23-andere-architecturen.md) — 82 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
-- [Naslag, hulpmiddelen, porting en community](themas/24-bronnen.md) — 61 automatisch gevonden hoofdpagina’s, naast de geselecteerde ingangen.
+- [Getting started, prerequisites and development order](themas/01-start.md) — 96 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Kernel design and system architecture](themas/02-architectuur.md) — 38 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Programming languages and runtime](themas/03-talen.md) — 50 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Compilers, assemblers, linkers and builds](themas/04-toolchain.md) — 66 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Boot process, firmware and bootloaders](themas/05-boot.md) — 83 automatically identified main-namespace pages, in addition to the selected entry points.
+- [x86, processor modes and descriptors](themas/06-x86.md) — 132 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Exceptions, interrupts and timers](themas/07-interrupts.md) — 45 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Memory maps, paging and allocation](themas/08-geheugen.md) — 52 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Processes, threads and scheduling](themas/09-processen.md) — 27 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Synchronisation, SMP and memory ordering](themas/10-synchronisatie.md) — 18 automatically identified main-namespace pages, in addition to the selected entry points.
+- [System calls and interprocess communication](themas/11-ipc.md) — 21 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Program formats, loaders and libraries](themas/12-executables.md) — 19 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Device management, buses, DMA and IOMMU](themas/13-drivers.md) — 54 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Platform discovery, ACPI and power management](themas/14-platform.md) — 25 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Block devices and disk structures](themas/15-opslag.md) — 45 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Filesystems, VFS and consistency](themas/16-bestanden.md) — 41 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Network stack, protocols and network cards](themas/17-netwerk.md) — 29 automatically identified main-namespace pages, in addition to the selected entry points.
+- [USB, keyboard, mouse and serial I/O](themas/18-usb-invoer.md) — 21 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Video, graphical output, fonts and GUI](themas/19-grafisch.md) — 44 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Audio and sound hardware](themas/20-audio.md) — 7 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Security, isolation and reliability](themas/21-beveiliging.md) — 14 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Testing, debugging and fault diagnosis](themas/22-testen.md) — 43 automatically identified main-namespace pages, in addition to the selected entry points.
+- [ARM, AArch64, RISC-V and other platforms](themas/23-andere-architecturen.md) — 82 automatically identified main-namespace pages, in addition to the selected entry points.
+- [Reference material, tools, porting and community](themas/24-bronnen.md) — 61 automatically identified main-namespace pages, in addition to the selected entry points.

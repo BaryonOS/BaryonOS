@@ -1,44 +1,80 @@
-name: Bug report
-description: Reproduceerbaar defect in broncode, tooling, tests of documentatie
+name: Report a bug
+description: A reproducible defect in the OS, an app or a prototype
 title: "bug: "
-labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Meld beveiligingsgevoelige details volgens SECURITY.md en zet geen secrets of echte gebruikersdata in een issue.
+        Check the [existing issues](https://github.com/simonvanieperen/BaryonOS/issues) first.
+        Use the CI form for build, workflow and test-evidence problems.
+        Do not share secrets, keys or real user data. Follow
+        [SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md)
+        for possible vulnerabilities; do not post exploitable details here.
+  - type: dropdown
+    id: subsystem
+    attributes:
+      label: Component
+      options:
+        - Boot, kernel, processes or IPC
+        - Storage, encryption or recovery
+        - Drivers, input or power management
+        - Desktop, Materiaal or accessibility
+        - Networking, NAS or synchronisation
+        - SDK, apps or package management
+        - Local AI or quantum runtime
+        - Host prototype
+        - Other or not yet known
+    validations:
+      required: true
+  - type: dropdown
+    id: execution
+    attributes:
+      label: Where does it occur?
+      options:
+        - Host test or host prototype
+        - Independent OS in QEMU
+        - Independent OS in another VM
+        - Independent OS on a physical device
+        - Not yet established
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Tested source or image
+      description: Commit SHA, PR or download version; write unknown if this cannot be found.
+    validations:
+      required: true
   - type: textarea
     id: problem
     attributes:
-      label: Probleem
-      description: Wat gebeurt er en wat had er moeten gebeuren?
+      label: What goes wrong?
+      description: Describe the observed behaviour, its consequences and the expected result.
     validations:
       required: true
   - type: textarea
     id: reproduce
     attributes:
-      label: Reproduceerstappen
-      description: Exacte commando's, inputs en kleinste reproduceerbare route.
+      label: Steps to reproduce
+      description: The shortest route with specific actions or commands, inputs and feature profile. State how often it occurs.
     validations:
       required: true
   - type: textarea
     id: environment
     attributes:
-      label: Omgeving
-      description: Commit, branch, OS/host, Rust/QEMU/firmware en relevante featureflags.
+      label: Environment
+      description: Host OS and architecture. For a VM, include QEMU/firmware, accelerator, vCPUs and RAM; for builds, include tool versions. Identify unknown or irrelevant details as such.
     validations:
       required: true
   - type: textarea
     id: evidence
     attributes:
-      label: Bewijs
-      description: Foutmelding, exitstatus en relevante logpaden. Geen complete secrets/logdumps.
+      label: Evidence and last working version
+      description: Sanitised error message, exit status, relevant log lines, screenshot or accessible evidence link. Identify the last good commit for a regression; others cannot read a local log path alone.
   - type: checkboxes
-    id: scope
+    id: data_check
     attributes:
-      label: Controle
+      label: Check
       options:
-        - label: Ik heb de relevante AGENTS.md en projectinstructies gelezen.
-          required: true
-        - label: Ik heb niet geprobeerd tests of securitycontroles te verzwakken om dit defect te omzeilen.
+        - label: I have checked the report and attachments for secrets, keys and real user data.
           required: true

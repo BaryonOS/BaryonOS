@@ -275,6 +275,23 @@ impl UserAllocator {
         Ok(pointer)
     }
 
+    /// Makes one caller-controlled cleanup attempt after arena exhaustion, then
+    /// retries once. The callback runs outside the allocator lock and should
+    /// release only resources owned by this process; there is no OS fallback.
+    pub fn try_allocate_with_reclaim_once(
+        &self,
+        layout: Layout,
+        reclaim: impl FnOnce(),
+    ) -> Result<NonNull<u8>, AllocError> {
+        match self.try_allocate(layout) {
+            Err(AllocError::OutOfMemory) => {
+                reclaim();
+                self.try_allocate(layout)
+            }
+            result => result,
+        }
+    }
+
     /// Checks malformed size/alignment and Layout overflow before allocation.
     pub fn try_allocate_bytes(
         &self,

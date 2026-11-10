@@ -1,0 +1,57 @@
+name: CI, build or test evidence
+description: Investigate a failed workflow, local build, test gate or missing evidence
+title: "ci: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Distinguish test failures, infrastructure problems and missing artifacts.
+        An upload failure does not mean the test itself failed; missing evidence is not successful acceptance.
+        Use sanitised log lines and synthetic data. Follow
+        [SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md) for vulnerabilities.
+  - type: input
+    id: source
+    attributes:
+      label: Source commit and PR
+      description: The SHA actually tested and any associated PR; not just the branch name.
+    validations:
+      required: true
+  - type: textarea
+    id: run
+    attributes:
+      label: Workflow, job and run
+      description: Link to the run/job and name the failing step. For local work, give the exact command and feature profile.
+    validations:
+      required: true
+  - type: dropdown
+    id: failure_stage
+    attributes:
+      label: Where does execution stop?
+      options:
+        - Queue or runner startup
+        - Toolchain, dependencies or build
+        - Test or assertion
+        - Timeout or hang
+        - Artifact upload, storage or evidence retrieval
+        - Not yet known
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Actual result
+      description: Exact error message and exit status. Which tests started, completed or were not run? Distinguish host tests, native VM tests and physical experiments.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment and reproduction
+      description: Runner/host, relevant tool versions and, for QEMU, firmware, accelerator, vCPUs and RAM. Describe a repeat or local reproduction, or state not run. Preserve the same test boundaries.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Available or missing evidence
+      description: Accessible sanitised logs/reports, artifact name and hashes where available. Identify missing evidence and any earlier successful run on the same source; do not remove failed results to make the report pass.

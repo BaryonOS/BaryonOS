@@ -1,0 +1,164 @@
+name: Preserve CI evidence
+description: Keep bounded reports in the run log before attempting optional artifact uploads.
+inputs:
+  name:
+    description: Existing full artifact name; compact reports use a -reports suffix.
+    required: true
+  path:
+    description: Newline-separated evidence paths, relative to the checkout.
+    required: true
+  required-paths:
+    description: Exact newline-separated paths which compact collection must retain.
+    default: ''
+  job-status:
+    description: Job status immediately before evidence preservation.
+    required: true
+  if-no-files-found:
+    description: Preserve the caller's required-evidence policy (error or warn).
+    default: 'error'
+  full-evidence:
+    description: Also upload the original raw evidence selection (manual runs only).
+    default: 'false'
+  package-path:
+    description: Optional deliverable ZIP to upload separately on successful ordinary runs.
+    default: ''
+outputs:
+  reports-url:
+    description: Empty unless compact reports were uploaded.
+    value: ${{ steps.reports.outputs.artifact-url }}
+  full-url:
+    description: Empty unless the requested full archive was uploaded.
+    value: ${{ steps.full.outputs.artifact-url }}
+  package-url:
+    description: Empty unless the separate downloadable package was uploaded.
+    value: ${{ steps.package.outputs.artifact-url }}
+runs:
+  using: composite
+  steps:
+    - name: Record bounded evidence before using artifact storage
+      id: collect
+      if: ${{ always() }}
+      shell: bash
+      env:
+        EVIDENCE_NAME: ${{ inputs.name }}
+        EVIDENCE_PATHS: ${{ inputs.path }}
+        EVIDENCE_REQUIRED_PATHS: ${{ inputs.required-paths }}
+        CI_TEST_STATUS: ${{ inputs.job-status }}
+      run: |
+        evidence_dir="$(mktemp -d "$RUNNER_TEMP/ci-evidence.XXXXXXXX")"
+        python3 -B "$GITHUB_WORKSPACE/tools/ci_evidence.py" collect \
+          --name "$EVIDENCE_NAME" --paths "$EVIDENCE_PATHS" \
+          --required-paths "$EVIDENCE_REQUIRED_PATHS" \
+          --output "$evidence_dir" --status "$CI_TEST_STATUS"
+    - name: Require evidence when the original workflow required it
+      if: ${{ always() && steps.collect.outcome == 'success' && steps.collect.outputs.has-files != 'true' && inputs.if-no-files-found == 'error' }}
+      shell: bash
+      run: |
+        echo '::error::No readable test evidence was produced. See the receipt in this run log.'
+        exit 1
+    - name: Verify the downloadable package exists after successful tests
+      id: package-check
+      if: ${{ always() && inputs.package-path != '' && inputs.job-status == 'success' }}
+      shell: bash
+      env:
+        EVIDENCE_PACKAGE: ${{ inputs.package-path }}
+      run: |
+        python3 -B - <<'PY'
+        import os
+        from pathlib import Path
+        root = Path(os.environ['GITHUB_WORKSPACE']).resolve()
+        package = root / os.environ['EVIDENCE_PACKAGE']
+        if not package.is_file() or package.is_symlink() or not package.resolve().is_relative_to(root):
+            raise SystemExit('Required Windows QEMU package is missing or outside the checkout')
+        with Path(os.environ['GITHUB_OUTPUT']).open('a', encoding='utf-8') as target:
+            target.write('present=true\n')
+        PY
+    - name: Upload compact reports (best effort)
+      id: reports
+      if: ${{ always() && steps.collect.outcome == 'success' }}
+      continue-on-error: true
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: ${{ inputs.name }}-reports
+        path: ${{ steps.collect.outputs.path }}
+        if-no-files-found: error
+        retention-days: 3
+        compression-level: 9
+    - name: Upload requested full evidence (best effort)
+      id: full
+      if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.full-evidence == 'true' }}
+      continue-on-error: true
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        if-no-files-found: error
+        retention-days: 1
+        compression-level: 6
+    - name: Upload downloadable package (best effort)
+      id: package
+      if: ${{ always() && steps.package-check.outputs.present == 'true' && !(github.event_name == 'workflow_dispatch' && inputs.full-evidence == 'true') }}
+      continue-on-error: true
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: ${{ inputs.name }}-bundle
+        path: ${{ inputs.package-path }}
+        if-no-files-found: error
+        retention-days: 1
+        compression-level: 0
+    - name: Report actual archive and package availability
+      if: ${{ always() }}
+      shell: bash
+      env:
+        CI_TEST_STATUS: ${{ inputs.job-status }}
+        COLLECT_OUTCOME: ${{ steps.collect.outcome }}
+        REPORTS_OUTCOME: ${{ steps.reports.outcome }}
+        FULL_OUTCOME: ${{ steps.full.outcome }}
+        PACKAGE_OUTCOME: ${{ steps.package.outcome }}
+        PACKAGE_PRESENT: ${{ steps.package-check.outputs.present }}
+        HAS_PACKAGE: ${{ inputs.package-path != '' }}
+        FULL_REQUESTED: ${{ github.event_name == 'workflow_dispatch' && inputs.full-evidence == 'true' }}
+        REPORTS_URL: ${{ steps.reports.outputs.artifact-url }}
+        FULL_URL: ${{ steps.full.outputs.artifact-url }}
+        PACKAGE_URL: ${{ steps.package.outputs.artifact-url }}
+      run: |
+        python3 -B - <<'PY'
+        import os
+        from pathlib import Path
+
+        def outcome(key):
+            value = os.environ.get(key, '')
+            return value if value in ('success', 'failure', 'cancelled', 'skipped') else 'unavailable'
+
+        lines = ['### CI archive availability', '',
+                 'Job status before archiving: `' + outcome('CI_TEST_STATUS') + '`.', '',
+                 '| Evidence | Storage outcome |', '|---|---|',
+                 '| Run log and compact collection | ' + outcome('COLLECT_OUTCOME') + ' |',
+                 '| Compact artifact (3 days) | ' + outcome('REPORTS_OUTCOME') + ' |',
+                 '| Full raw artifact (1 day, manual request) | ' + outcome('FULL_OUTCOME') + ' |']
+        for key, label in [('REPORTS', 'Compact reports'), ('FULL', 'Full raw evidence')]:
+            url = os.environ.get(key + '_URL', '')
+            if outcome(key + '_OUTCOME') == 'success' and url.startswith('https://github.com/'):
+                lines.extend(['', label + ': ' + url])
+        if os.environ.get('HAS_PACKAGE') == 'true':
+            full = os.environ.get('FULL_REQUESTED') == 'true'
+            key = 'FULL' if full else 'PACKAGE'
+            url = os.environ.get(key + '_URL', '')
+            available = (outcome(key + '_OUTCOME') == 'success' and url.startswith('https://github.com/')
+                         and outcome('CI_TEST_STATUS') == 'success' and os.environ.get('PACKAGE_PRESENT') == 'true')
+            lines.extend(['', 'Downloadable test package: ' + ('available in ' + url if available else '**not available as a verified download**') + '.'])
+        lines.extend(['', 'The test result and archive availability are separate. '
+                      'Reports and hashes do not replace raw images for independent revalidation. '
+                      'The run log contains bounded reports and explicitly labelled excerpts; '
+                      'it is not a complete archive.'])
+        if outcome('REPORTS_OUTCOME') != 'success':
+            print('::warning::Compact artifact unavailable; use the evidence record and excerpts in this run log.')
+        if os.environ.get('FULL_REQUESTED') == 'true' and outcome('FULL_OUTCOME') != 'success':
+            print('::warning::Requested full evidence was not uploaded; raw archive is unavailable.')
+        if os.environ.get('HAS_PACKAGE') == 'true' and not available:
+            print('::warning::Windows QEMU package is not available as a verified download.')
+        summary = '\n'.join(lines) + '\n'
+        print(summary)
+        with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a', encoding='utf-8') as target:
+            target.write(summary)
+        PY

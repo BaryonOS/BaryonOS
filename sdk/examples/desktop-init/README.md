@@ -1,13 +1,13 @@
-# Native desktop-init en proefcontroller
+# Native desktop init and test controller
 
-Afzonderlijke ring3-init voor het vaste GUI-manifest, plus een apart beperkt
-CPL3-proefproces voor een echte gecontroleerde STOP-uitwisseling.
+Separate ring3 init for the fixed GUI manifest, plus a separate restricted
+CPL3 test process for an actual controlled STOP exchange.
 
-Contract en opstartmetadata: [NATIVE-DESKTOP-INIT.md](../../../docs/contracts/NATIVE-DESKTOP-INIT.md).
-Bouw beide echte scalar-ELFs met de beheerde omgeving via
-`python3 sdk/examples/desktop-init/build.py`; JSON geeft
-`NOS_DESKTOP_INIT_ELF` en `NOS_DESKTOP_CONTROLLER_ELF`.
+Contract and startup metadata: [NATIVE-DESKTOP-INIT.md](../../../docs/contracts/NATIVE-DESKTOP-INIT.md).
+Build both actual scalar ELFs in the managed environment using
+`python3 sdk/examples/desktop-init/build.py`; JSON provides
+`NOS_DESKTOP_INIT_ELF` and `NOS_DESKTOP_CONTROLLER_ELF`.
 
-Hosttests gebruiken echte capability-engine-envelopes en protocoltestdata;
-ze bewijzen geen native hardwarefocus, rendering, opslag of gebruikersbediening.
-Native integratie en bijbehorende image-/QMP-bewijzen volgen afzonderlijk.
+Host tests use actual capability-engine envelopes and protocol test data;
+they do not demonstrate native hardware focus, rendering, storage or user
+interaction. Native integration and associated image/QMP evidence follow separately.

@@ -1,5 +1,8 @@
 """Adversarial host checks for the native runner, never OS execution."""
 import unittest
+import subprocess
+import sys
+from unittest.mock import Mock
 import run_window_session as window
 
 
@@ -17,6 +20,83 @@ def image(width,height,color):
 
 
 class WindowRunnerTests(unittest.TestCase):
+    def test_switcher_key_edge_observes_real_ordered_pointer_barrier_not_unsampled_key_counter(self):
+        for scale in (1, 2):
+            width = window.switcher_geometry(scale)[0]
+            for lost_key in (False, True):
+                state = {"INPUT": 10, "POINTER_X": width - 20, "POINTER_Y": 50 * scale}
+                control = Mock()
+                def command(name, arguments):
+                    self.assertEqual(name, "input-send-event")
+                    self.assertEqual(arguments["events"][0]["data"]["key"]["data"], "alt")
+                    if not lost_key:
+                        state["INPUT"] += 1
+                control.command.side_effect = command
+                moves = []
+                def move(x, y):
+                    moves.append((x, y))
+                    state.update(INPUT=state["INPUT"] + 1, POINTER_X=x, POINTER_Y=y)
+                if lost_key:
+                    with self.assertRaisesRegex(ValueError, "ordered switcher input barrier"):
+                        window.switcher_key_edge(control, move, lambda: dict(state), "alt", True, scale)
+                else:
+                    window.switcher_key_edge(control, move, lambda: dict(state), "alt", True, scale)
+                self.assertEqual(moves, [(width-22, 50*scale), (width-21, 50*scale),
+                                         (width-20, 50*scale)])
+                control.command.assert_called_once()
+
+    def test_switcher_key_edge_rejects_lost_key_despite_late_prior_input(self):
+        state = {"INPUT": 10, "POINTER_X": 1260, "POINTER_Y": 50}
+        control = Mock()
+
+        def move(x, y):
+            if x == 1258:
+                state["INPUT"] += 1  # Delayed increment from the preceding event.
+            state.update(INPUT=state["INPUT"] + 1, POINTER_X=x, POINTER_Y=y)
+
+        with self.assertRaisesRegex(ValueError, "ordered switcher input marker"):
+            window.switcher_key_edge(control, move, lambda: dict(state), "alt", True, 1)
+        control.command.assert_not_called()
+
+    def test_switcher_work_capture_requires_two_identical_full_images(self):
+        matches = window.consecutive_image_matcher()
+        self.assertFalse(matches(b"partial"))
+        self.assertFalse(matches(b"complete"))
+        self.assertTrue(matches(b"complete"))
+        self.assertFalse(matches(b"changed"))
+
+    def test_switcher_profiles_compare_all_overlay_pixels_without_masks(self):
+        for scale in (1, 2):
+            width, height, body, calc, bounds = window.switcher_geometry(scale)
+            raw = image(width, height, (4, 5, 6))
+            expected = image(*bounds[2:], (4, 5, 6))
+            self.assertTrue(window.switcher_matches(raw, expected, scale))
+            header = len(raw) - width * height * 3
+            x, y, w, h = bounds
+            for px, py in ((x, y), (x+w-1, y+h-1), (x+w//2, y+h//2),
+                           (x+32*scale, y+64*scale)):
+                changed = bytearray(raw)
+                changed[header+(py*width+px)*3] ^= 1
+                self.assertFalse(window.switcher_matches(bytes(changed), expected, scale))
+            for rect in (body, calc, bounds):
+                window.crop(raw, rect)
+            self.assertFalse(window.switcher_matches(raw, image(1, 1, (4, 5, 6)), scale))
+        for scale in (-1, 0, 3):
+            with self.assertRaises(ValueError):
+                window.switcher_geometry(scale)
+
+    def test_switcher_part_gate_cannot_claim_old_session_or_diagnostic_acceptance(self):
+        for flags in ({"smoke": True}, {"recovery_handshake": True}, {"clipboard": True}):
+            with self.assertRaises(ValueError):
+                window.run(timeout=30, bios_rom=None, vga_rom=None, switcher=True, **flags)
+        with self.assertRaises(ValueError):
+            window.run(timeout=30, bios_rom=None, vga_rom=None, scale=2)
+        result = subprocess.run([sys.executable, window.__file__, "--help"],
+                                capture_output=True, text=True, timeout=10, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--switcher", result.stdout)
+        self.assertIn("200%", result.stdout)
+
     def test_calculator_recall_is_not_a_combined_diagnostic_or_storage_gate(self):
         for flag in ("smoke", "recovery_handshake", "clipboard"):
             with self.assertRaises(ValueError):

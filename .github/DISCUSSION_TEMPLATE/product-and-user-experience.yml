@@ -1,0 +1,43 @@
+title: "[User experience] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Discuss everyday tasks, desktop interaction, onboarding, accessibility and understandable permissions here. Programming knowledge is not required.
+        The [desktop direction](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/implementation/DESKTOP-SHELL.md) and [privacy contract](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/LOCAL-PRIVACY-CONTRACT.md) provide the starting point. Use examples without personal data.
+  - type: textarea
+    id: task
+    attributes:
+      label: User and task
+      description: Who wants to achieve what, and in which situation? Describe an ordinary action, such as finding a document, pairing a device or using the keyboard.
+    validations:
+      required: true
+  - type: dropdown
+    id: context
+    attributes:
+      label: What is your contribution based on?
+      options:
+        - Design or idea, not yet implemented
+        - Browser prototype
+        - Native Baryon OS in QEMU
+        - Existing experiment on physical hardware
+        - Not yet known
+    validations:
+      required: true
+  - type: textarea
+    id: experience
+    attributes:
+      label: Desired experience and current obstacles
+      description: What is expected, what happens now and why does it obstruct the task? Include relevant keyboard, focus, scaling, language or recovery problems.
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Proposal
+      description: What change would help? Also describe how successful task completion would be recognised. A proposal is optional.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Examples and context
+      description: Optionally share a screenshot, sketch, short steps, version/commit or related discussion. Label simulations; an image alone does not demonstrate a working native feature.

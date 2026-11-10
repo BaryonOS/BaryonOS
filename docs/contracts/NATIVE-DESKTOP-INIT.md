@@ -1,144 +1,146 @@
-# GUI-BOOT-INIT-1: afzonderlijke native init/supervisor
+# GUI-BOOT-INIT-1: separate native init/supervisor
 
-Dit contract beschrijft de nieuwe CPL3-component `sdk/examples/desktop-init`.
-De eerste componentcontrole is een host-protocolproef plus echte scalar
-ELF-build, geen native desktopacceptatie. Kernelbootstrap, grants, imagebouw,
-werkelijke QMP-bediening en volledige releaseacceptatie zijn eigendom van de
-hoofdintegratie en blijven afzonderlijk te bewijzen.
+This contract describes the new CPL3 component `sdk/examples/desktop-init`.
+The first component check is a host protocol test plus an actual scalar
+ELF build, not native desktop acceptance. Kernel bootstrap, grants, image
+construction, actual QMP interaction and complete release acceptance belong
+to the main integration and require separate evidence.
 
-## Autoriteit en bootmetadata
+## Authority and boot metadata
 
-Het zevenprocessenprofiel gebruikt init1, keyring2, volume3, Materiaal4,
-compositor5, inputsource6 en inputpolicy7. Init heeft uitsluitend RegistryRECV,
-AppControlSEND en CompositorControlSEND. Geen persoonlijk volume, keyring,
-netwerk, display, rawinput, fysiek geheugen, LaunchImage of ChildProcess.
-Native IPC komt rechtstreeks uit de SDK. De gedeelde inputdaemonlibrary levert
-alleen de bestaande Ipc/NativeIpc-adapter en capcleanup; er wordt geen driver,
-policy- of display-I/O door init uitgevoerd.
+The seven-process profile uses init1, keyring2, volume3, Materiaal4,
+compositor5, inputsource6 and inputpolicy7. Init has only RegistryRECV,
+AppControlSEND and CompositorControlSEND. No personal volume, keyring,
+network, display, raw input, physical memory, LaunchImage or ChildProcess.
+Native IPC comes directly from the SDK. The shared input-daemon library
+provides only the existing Ipc/NativeIpc adapter and capability cleanup;
+init performs no driver, policy or display I/O.
 
-Private DATA-startpagina:1024 bytes op0x40010000, alle velden u64:
+Private DATA startup page: 1024 bytes at 0x40010000, all fields u64:
 
-| Byte | Waarde |
+| Byte | Value |
 | --- | --- |
 |32|`u64::from_le_bytes(*b"NOSDINI1")`|
 |40|BootGeneration>0|
 |48|RegistryRECV|
 |56|AppControlSEND|
 |64|CompositorControlSEND|
-|72|optionele ControllerControlRECV, anders0|
-|80/88/96/104|werkelijke App/Comp/Source/Policy PID, voor dit profiel exact4/5/6/7|
+|72|optional ControllerControlRECV, otherwise 0|
+|80/88/96/104|actual App/Comp/Source/Policy PID, exactly 4/5/6/7 for this profile|
 |112|SurfaceEpoch>0|
 |120|PolicyEpoch>0|
-|128|verwachte NativeDisplayEpoch uit kernel-GOP, >0|
-|136|verwachte ClientID>0, voor de manifestbinding; geen bevoegdheid uit payload|
-|144|optionele ControllerReplySEND, anders0|
-|152|optionele verwachte ControllerPID, apart proces boven7; anders0|
+|128|expected NativeDisplayEpoch from kernel GOP, >0|
+|136|expected ClientID>0, for the manifest binding; no authority from the payload|
+|144|optional ControllerReplySEND, otherwise 0|
+|152|optional expected ControllerPID, a separate process above 7; otherwise 0|
 
-De drie controllerwaarden zijn gezamenlijk aanwezig of gezamenlijk0. Alle
-handles zijn representatief geldig en onderling verschillend; de kernel
-controleert type/rechten/houder. Velden160..1023 zijn aanvankelijk0. PIDs of
-replyroutes worden nooit uit een request gekozen. De normale zevenprocessen-
-variant heeft geen testcontroller en init stopt daar niet automatisch.
+The three controller values are either all present or all 0. All handles
+have valid representations and are mutually distinct; the kernel checks
+type/rights/holder. Fields 160..1023 are initially 0. PIDs or reply routes
+are never chosen from a request. The normal seven-process variant has no
+test controller, and init does not stop automatically in that variant.
 
-## Gereedheid en echte focus
+## Readiness and actual focus
 
-Init ontvangt op één RegistryRECV maximaal vier berichten per ronde. Een
-IPDREAD1-bericht moet de echte kernelafzender, nul ontvangen caps, exacte tag,
-32B-lengte, `IPD1`, versie1, rol, epoch en BootGeneration dragen:
+Init receives at most four messages per round on one RegistryRECV. An
+IPDREAD1 message must carry the actual kernel sender, zero received
+capabilities, exact tag, 32B length, `IPD1`, version 1, role, epoch and BootGeneration:
 
-- SourcePID6→rol1, PolicyEpoch, werkelijk RawEpoch>0.
-- PolicyPID7→rol2, PolicyEpoch, RawEpoch0.
-- CompositorPID5→rol3, SurfaceEpoch en exact verwachte NativeDisplayEpoch.
+- SourcePID6→role1, PolicyEpoch, actual RawEpoch>0.
+- PolicyPID7→role2, PolicyEpoch, RawEpoch0.
+- CompositorPID5→role3, SurfaceEpoch and exactly the expected NativeDisplayEpoch.
 
-De source mag dit volgens zijn eigen contract pas na echte hardware-Ready en
-canonieke SYNC-ACK melden; de compositor pas na de volledige eigen chrome en
-lege toegewezen apprect via echte displayblits. Init leest hun geheugen niet
-en vervangt die afzonderlijke native eigenschappen niet door eigen claims.
-Een gefabriceerd payloadveld of tag verleent geen afzenderautoriteit.
+Under its own contract, the source may report this only after actual hardware
+Ready and a canonical SYNC ACK; the compositor only after rendering its full
+chrome and empty assigned app rectangle through actual display blits. Init
+does not read their memory and does not replace those separate native
+properties with claims of its own. A fabricated payload field or tag grants
+no sender authority.
 
-AppPID4 stuurt SYSTEM-tag0x53595354454d0001 met payload[1] als **StartupReady**.
-Dat is geen volledig getekend frame, succesvolle document-I/O of bewijs van
-focus. Pas met alle drie IPD-rollen én AppStartupReady publiceert init precies
-één CMP1 FocusStart, requestID1, gebonden aan SurfaceEpoch/BootGeneration.
-Send-EAGAIN bewaart dezelfde bytes. Na sendOk wacht init op de echte
-compositorreply; het request wordt niet opnieuw gepubliceerd.
+AppPID4 sends SYSTEM tag 0x53595354454d0001 with payload[1] as **StartupReady**.
+This is not a fully drawn frame, successful document I/O or evidence of
+focus. Only after all three IPD roles and AppStartupReady are present does
+init publish exactly one CMP1 FocusStart, requestID1, bound to
+SurfaceEpoch/BootGeneration. Send-EAGAIN retains the same bytes. After sendOk,
+init waits for the actual compositor reply; the request is not republished.
 
-Alleen de canonieke, caploze reply van CompPID5 met juiste opcode|0x8000,
-ID1, epoch, generatie, status0 en stateFocused1 laat SYSTEM GO[2] naar de app
-gaan. GO telt pas na echte SDK-sendOk. InitReady betekent uitsluitend deze
-GO-publicatie na gecontroleerde afhankelijkheden en focus. AppReady400,
-PresentedGeneration, daadwerkelijke UI- en opslagscenario's blijven aparte
-observer-/bedieningscriteria. Een onverwachte AppDONE buiten een actieve
-STOP is geen toestemming om het systeem als afgesloten te beschouwen.
+Only the canonical capability-free reply from CompPID5 with the correct
+opcode|0x8000, ID1, epoch, generation, status0 and stateFocused1 allows SYSTEM
+GO[2] to reach the app. GO counts only after actual SDK-sendOk. InitReady means
+only this GO publication after checking dependencies and focus. AppReady400,
+PresentedGeneration and actual UI/storage scenarios remain separate
+observation/interaction criteria. Unexpected AppDONE outside an active STOP
+does not authorise treating the system as shut down.
 
-## Optionele STOP-route en weigering
+## Optional STOP route and refusal
 
-De optionele native controller bezit alleen zijn vaste initControlSEND en
-persoonlijke ReplyRECV. DINITCTL is tag `*b"DINITCTL"`, payload48B:
+The optional native controller has only its fixed initControlSEND and
+personal ReplyRECV. DINITCTL is tag `*b"DINITCTL"`, payload48B:
 `DIN1`@0,versionu16=1@4,opcodeu16=Stop1@6,requestIDu64@8,
-SurfaceEpoch@16,BootGeneration@24,statusu64@32,reservedu64@40. Requeststatus en
-reserved zijn0. RequestID is niet0 en strikt monotoon. Exacte kernel-PID en de
-vaste controllerroute zijn vereist. Replyopcode is0x8001; status is
-Stopped0, Refused1 of Failed2, reserved0. Een reply krijgt dezelfde bindings
-en uitsluitend de vaste ControllerReplySEND.
+SurfaceEpoch@16,BootGeneration@24,statusu64@32,reservedu64@40. Request status
+and reserved are 0. RequestID is nonzero and strictly monotonic. The exact
+kernel PID and fixed controller route are required. Reply opcode is 0x8001;
+status is Stopped0, Refused1 or Failed2, reserved0. A reply receives the same
+bindings and uses only the fixed ControllerReplySEND.
 
-Init publiceert SYSTEM STOP[5] eenmaal en wacht op AppPID4. App[6]
-STOP_REFUSED betekent onopgeslagen/bezig werk: init antwoordt Refused en blijft
-Running; AppDONE/Retire/DONE worden daarmee niet aangetekend. App[3] DONE is
-alleen geldig binnen deze actieve STOP na de publicatie. Dan volgt CMP1
-Retire ID2. Pas de echte compositor-Retired-ACK (Focus0 plus werkelijk zichtbare
-apprect-wisblits volgens het compositorcontract) laat Stopped volgen.
-Een ontbrekende of ongeldige Retire-ACK geeft Failed en nooit Stopped.
-Pending controllerreplies blijven bij EAGAIN ongewijzigd; geen tweede STOP,
-Retire of impliciet opnieuw opslaan. Reeds gequeue'de berichten kunnen niet
-uit een andere queue worden teruggehaald. Het bestaande eenbyte-Appprotocol
-correleert op fase en één uitstaande STOP; het is geen algemene transactiedienst.
+Init publishes SYSTEM STOP[5] once and waits for AppPID4. App[6]
+STOP_REFUSED means unsaved/busy work: init replies Refused and remains
+Running; AppDONE/Retire/DONE are not recorded as achieved. App[3] DONE is
+valid only within this active STOP after publication. CMP1 Retire ID2 then
+follows. Only the actual compositor Retired ACK (Focus0 plus actually visible
+app-rectangle clearing blits under the compositor contract) permits Stopped.
+A missing or invalid Retire ACK produces Failed and never Stopped.
+Pending controller replies remain unchanged on EAGAIN; no second STOP,
+Retire or implicit save retry. Messages already queued cannot be retrieved
+from another queue. The existing one-byte app protocol correlates by phase
+and one outstanding STOP; it is not a general transaction service.
 
-## Afzonderlijk testcontrollerproces
+## Separate test-controller process
 
-Alleen `native-system-materiaal-probe` kan een achtste CPL3-procesPID8 krijgen.
-Dit is expliciete proeforchestratie, geen gebruikersfunctie of extra recht van
-een gewone app. De normale desktopvariant blijft zeven processen.
-Controllermetadata:32`NOSDCTL1`,40BootGeneration,48InitControlSEND,
-56eigenReplyRECV,64InitPIDexact1,72SurfaceEpoch,80ownPIDexact8.
-88..399 en464..1023 zijn gereserveerd0.
+Only `native-system-materiaal-probe` may receive an eighth CPL3 process, PID8.
+This is explicit test orchestration, not a user feature or an extra right
+of an ordinary app. The normal desktop variant remains seven processes.
+Controller metadata: 32`NOSDCTL1`,40BootGeneration,48InitControlSEND,
+56ownReplyRECV,64InitPIDexact1,72SurfaceEpoch,80ownPIDexact8.
+88..399 and 464..1023 are reserved 0.
 
-De controller leest uitsluitend zijn eigen barrierwoord400. Initieel0; de
-kernel-testobserver mag dit op1 zetten **na** de onafhankelijk gecontroleerde
-echte QMP-handelingen, Saved en Presented. De barrier injecteert geen UI-
-of documentinhoud en bewijst zelf geen opgeslagen/gepresenteerd werk.
-De controller gebruikt echte Sys3/PIT-tijd, publiceert Stop ID1, wacht op de
-exacte canonieke Stopped-reply van InitPID1, sluit zijn twee handles en zet pas
-dan eigen Done456=1 vóór exit0. Refused, Failed, extra caps, verkeerde binding
-of timeout leveren geen Done. De eigen BootGeneration op40 blijft behouden.
+The controller reads only its own barrier word 400. Initially 0; the kernel
+test observer may set it to 1 **after** independently checked actual QMP
+actions, Saved and Presented. The barrier injects no UI or document content
+and does not itself prove saved/presented work.
+The controller uses actual Sys3/PIT time, publishes Stop ID1, waits for the
+exact canonical Stopped reply from InitPID1, closes its two handles and only
+then sets its own Done456=1 before exit0. Refused, Failed, extra capabilities,
+incorrect binding or timeout produce no Done. Its own BootGeneration at 40
+is retained.
 
-Controllerwoorden:400barrier,408request-sendOk,416canoniekeStopped-reply,
-424fase,432fatale code,440starttick,448eindtick,456Done. Geen toegang tot RAM
-van andere processen, keys, display, input, documenten of hostfunctionaliteit.
+Controller words: 400barrier,408request-sendOk,416canonicalStopped-reply,
+424phase,432fatal code,440starttick,448endtick,456Done. No access to other
+processes' RAM, keys, display, input, documents or host functionality.
 
-## Grenzen en observatie
+## Bounds and observation
 
-Alle deadlines zijn vooraf vastgelegd in echte100Hz-PIT-ticks: bootstrap5000,
-CMP-uitwisseling500, AppSTOP1000, ControllerReply200, testbarrier20000 en
-testcontroller-RPC2000. Iedere fase bewaart de oorspronkelijke deadline;
-EAGAIN vernieuwt hem niet. Achteruitgaande of overlopende tijd is fataal.
-Dit is monotone tijd, geen klok voor certificaten of wandtijd. Een ronde doet
-maximaal één controllerreceive, vier registryreceives en één pending send;
-alle wachtlussen staan CPU-tijd af. Onverwachte ontvangen caps worden vóór
-verdere verwerking eenmaal gesloten. Pixel-/key-/documentpayloads worden niet
-gelogd. Native duur en deadlines moeten nog op de daadwerkelijke images slagen.
+All deadlines are specified in advance in actual 100Hz PIT ticks: bootstrap5000,
+CMP exchange500, AppSTOP1000, ControllerReply200, testbarrier20000 and
+testcontroller-RPC2000. Each phase retains its original deadline;
+EAGAIN does not renew it. Backward-moving or overflowing time is fatal.
+This is monotonic time, not a clock for certificates or wall time. One round
+performs at most one controller receive, four registry receives and one
+pending send; all wait loops yield CPU time. Unexpected received capabilities
+are closed once before further processing. Pixel/key/document payloads are
+not logged. Native duration and deadlines must still pass on the actual images.
 
-Initwoorden:400SourceReady,408PolicyReady,416CompReady,424AppStartupReady,
-432echteFocusACK,440GOsendOk,448STOPsendOk,456STOP_REFUSED,
-464echteRetireACK,472ControllerReplySendOk,480fase,488fatale code,
-496afwijzingen,504gesloten ontvangen caps,512AppDONE,
-520registryreceives,528InitReadyTick,536StartTick. Fases zijn
+Init words: 400SourceReady,408PolicyReady,416CompReady,424AppStartupReady,
+432actualFocusACK,440GOsendOk,448STOPsendOk,456STOP_REFUSED,
+464actualRetireACK,472ControllerReplySendOk,480phase,488fatal code,
+496rejections,504closed received capabilities,512AppDONE,
+520registryreceives,528InitReadyTick,536StartTick. Phases are
 Boot0/Focus1/Go2/Running3/Stop4/Retire5/Reply6/Stopped7/Failed8.
-Dit zijn ondersteunende observaties, geen autoriteit en geen zelfstandig
-bewijs van rendering, opslag of correcte afsluiting.
+These are supporting observations, not authority or independent evidence
+of rendering, storage or correct shutdown.
 
-Er bestaat nog geen daadwerkelijke crashnotificatie-/herstartovereenkomst voor
-de kritieke GUI-diensten. Init krijgt daarom geen verzonnen status of kill-
-rechten en claimt geen automatische crashrecovery. Deadline-afwijzing is geen
-herstel. Volledige sessie-/shutdownpolicy, meerdere vensters, herstartende
-inputepochs, toegankelijkheid en volwaardige productacceptatie blijven open.
+There is not yet an actual crash-notification/restart agreement for the
+critical GUI services. Init therefore receives no invented status or kill
+rights and makes no automatic crash-recovery claim. Deadline rejection is
+not recovery. Complete session/shutdown policy, multiple windows, restarting
+input epochs, accessibility and full product acceptance remain open.

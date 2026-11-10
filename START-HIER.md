@@ -1,26 +1,30 @@
-# Start hier
-**Aanbevolen: één lokale Git-projectmap in Codex, eerst testen in QEMU en GitHub gebruiken als praktische remote.** Ontkoppel het OS-ontwerp van die hosting, zodat later een Europese forge de hoofdlocatie kan worden.
+# Start here
 
-## 1. Wat je aanmaakt
-- Een **projectmap/repository** is de broncode plus versiegeschiedenis. Dit is het echte project.
-- Een **Codex-project** opent die map en geeft de agent toegang tot bestanden en ontwikkelgereedschappen.
-- Een **ChatGPT-project** kan ideeën bundelen, maar is optioneel en vervangt de repository en buildomgeving niet.
-- Een **GitHub Project** is een optioneel takenbord; niet nodig voor de eerste boot.
+**Recommended: one local Git project directory in Codex, testing in QEMU first and using GitHub as a practical remote.** Keep the OS design independent of that hosting so a European forge can become the primary location later.
 
-Gebruik één canonieke map. Kopieer het project niet voor iedere chat opnieuw. Begin met een schone, nieuwe map zodat bestaande bestanden niet worden overschreven.
+## 1. Project components
 
-## 2. Eerste inrichting zonder terminalervaring
-1. Pak het zipbestand uit op je computer. Open de map die rechtstreeks `AGENTS.md` en `README.md` bevat.
-2. Gebruik GitHub Desktop of Git om van deze map een lokale repository te maken. Commit het startpakket.
-3. Publiceer de repository via GitHub Desktop wanneer je de inhoud en licentie hebt gecontroleerd. Privé beginnen is mogelijk; een privéproject is nog geen openbaar open-sourceproject. Voor publieke publicatie moet een echte licentietekst aanwezig zijn; zie LICENSE-PLAN.md.
-4. Open dezelfde lokale map in Codex. Kies de lokale computer/werkruimte, niet per ongeluk een andere cloudomgeving.
-5. Begin in de hoofdmap. Laat Codex in zijn eerste antwoord bevestigen welke projectmap en instructiebestanden het gebruikt.
-6. Kies het model hieronder en plak PROMPT-START.md.
+- A **project directory/repository** is the source code plus version history. This is the actual project.
+- A **Codex project** opens that directory and gives the agent access to files and development tools.
+- A **ChatGPT project** can collect ideas, but is optional and does not replace the repository and build environment.
+- A **GitHub Project** is an optional task board; it is not needed for the first boot.
 
-GitHub is hosting; Git is versiebeheer. Lokaal werken met Codex vereist geen GitHub-hosting. De lokale agent gebruikt je checkout; je hoeft daarvoor geen GitHub-connector te installeren. Voor push/pull moet Git/GitHub Desktop wel via de normale aanmeldprocedure geauthenticeerd zijn. Zet geen toegangstoken in een prompt, bronbestand of remote-URL.
+Use one canonical directory. Do not copy the project again for every chat. Start with a clean new directory so existing files are not overwritten.
 
-## 3. Optioneel: de Git-opdrachten
-Voer dit alleen uit **in de nieuwe uitgepakte projectmap**, als deze nog geen Git-repository is:
+## 2. Initial setup without terminal experience
+
+1. Extract the ZIP file on the local computer. Open the directory that directly contains `AGENTS.md` and `README.md`.
+2. Use GitHub Desktop or Git to make this directory a local repository. Commit the starter package.
+3. Publish the repository through GitHub Desktop after checking its contents and licence. Starting privately is possible; a private project is not yet a public open-source project. The repository contains an actual licence text and a defined software licensing scope; see LICENSE, LICENSING.md and THIRD-PARTY.md.
+4. Open the same local directory in Codex. Select the local computer/workspace, taking care not to select a different cloud environment accidentally.
+5. Start in the root directory. Ask Codex to confirm in its first response which project directory and instruction files it uses.
+6. Choose the model below and paste PROMPT-START.md.
+
+GitHub is hosting; Git is version control. Working locally with Codex does not require GitHub hosting. The local agent uses the checkout; no GitHub connector is needed for that. For push/pull, Git/GitHub Desktop must be authenticated through the normal sign-in process. Do not put an access token in a prompt, source file or remote URL.
+
+## 3. Optional Git commands
+
+Run this only **in the newly extracted project directory**, if it is not already a Git repository:
 
 ```bash
 git init -b main
@@ -30,9 +34,9 @@ git diff --cached --stat
 git commit -m "Add independent OS research and Codex starter"
 ```
 
-Als Git om identiteit vraagt: stel je eigen naam en een passend e-mailadres in. Gebruik desgewenst het door GitHub opgegeven noreply-adres; verzin dat adres niet.
+If Git asks for identity, set your own name and a suitable email address. You may use the noreply address supplied by GitHub; do not invent that address.
 
-Maak daarna op GitHub een **lege** repository; voeg daar niet ook een README toe. Vervang de twee placeholders in de URL voordat je onderstaande opdrachten gebruikt:
+Then create an **empty** repository on GitHub; do not add a README there as well. Replace both placeholders in the URL below before running the commands: `JOUW-GEBRUIKERSNAAM` is your username and `JOUW-REPOSITORY` is your repository name.
 
 ```bash
 git remote add origin https://github.com/JOUW-GEBRUIKERSNAAM/JOUW-REPOSITORY.git
@@ -40,50 +44,62 @@ git remote -v
 git push -u origin main
 ```
 
-Gebruik de door Git aangeboden browser-/credential-manager-login. Bestaat `origin` al, inspecteer die eerst en voer niet blind opnieuw `remote add` uit. Een push naar een publieke repository maakt bestanden openbaar: controleer inhoud en licentie vooraf.
+Use the browser/credential-manager sign-in offered by Git. If `origin` already exists, inspect it first rather than blindly running `remote add` again. Pushing to a public repository makes files public: check contents and licence beforehand.
 
-## 4. GitHub of een Europees alternatief?
-| Route | Mijn oordeel |
+## 4. GitHub or a European alternative?
+
+| Route | Consideration |
 |---|---|
-| GitHub + lokaal Codex | Beste eerste route voor een beginner vanwege de gedocumenteerde koppelingen en praktische samenwerking. Het is een Amerikaanse dienst. |
-| Codeberg + lokaal Codex | Passender als Europese hosting vanaf het begin een harde eis is; controleer gebruiksvoorwaarden en beschikbare CI voor het project. |
-| Zelf gehoste Forgejo + lokaal Codex | Meer controle over hosting en beheer, maar je onderhoudt dan ook de forge, back-ups, updates en beveiliging. Bewaar dit voor later. |
+| GitHub + local Codex | Best initial route for a beginner because of documented integrations and practical collaboration. It is a US service. |
+| Codeberg + local Codex | More suitable if European hosting is a firm requirement from the start; check terms of use and available CI for the project. |
+| Self-hosted Forgejo + local Codex | More control over hosting and administration, with responsibility for forge maintenance, backups, updates and security. Leave this for later. |
 
-Dezelfde Git-workflow kan een andere remote gebruiken. Een mirror kopieert Git-geschiedenis, maar niet automatisch alle issues, CI-geheimen, instellingen en releaseprocessen. Bewaar daarom bouwscripts, besluiten en releasespecificaties in de repository.
+The same Git workflow can use another remote. A mirror copies Git history, but not automatically all issues, CI secrets, settings and release processes. Therefore keep build scripts, decisions and release specifications in the repository.
 
-Codex is een clouddienst/modelworkflow, ook als de bestanden lokaal staan. Lokaal werken betekent niet dat alle verwerking lokaal blijft. Het toekomstige OS heeft een striktere, afzonderlijke producteis: AI uitsluitend op het apparaat. Codex/GitHub dienen hier uitsluitend de ontwikkeling en mogen geen runtimevereiste of kanaal voor persoonlijke OS-data worden. Controleer de actuele privacy-/gegevensinstellingen van je gebruikte account; dit pakket stelt geen specifieke bewaartermijn of vertrouwelijkheid vast.
+Codex is a cloud service/model workflow, even when files are local. Working locally does not mean all processing stays local. The future OS has a stricter, separate product requirement: AI exclusively on the device. Codex/GitHub serve development only here and must not become a runtime requirement or channel for personal OS data. Check the current privacy/data settings of the account being used; this package establishes no specific retention period or confidentiality.
 
-## 5. Modelkeuze
-Stand 26 oktober 2026, op basis van OpenAI's modeldocumentatie:
-- **GPT-6 Astra, High of Extra High indien beschikbaar:** mijn keuze voor architectuur, geheugenisolatie, concurrerende kernelcode en moeilijke securityreviews.
-- **GPT-6.1 Sol:** praktisch werkmodel voor afgebakende implementatie en herhaalde ontwikkeling; verhoog de redeneerinspanning bij complexe taken.
-- Kleinere modellen alleen voor eenvoudige documentatie of triage, niet als enige beoordelaar van beveiligingskritieke code.
+## 5. Model selection
 
-Dit is een taakgerichte aanbeveling, geen onafhankelijke benchmark die een model tot beste OS-bouwer uitroept. Welke opties jouw account vandaag toont: **Dit kan ik niet verifiëren.** Neem het sterkste beschikbare model voor risicovolle besluiten; forceer geen model-ID dat jouw client niet accepteert. Meer redeneertijd of meer agents levert geen bewijs van juistheid.
+Status as of 26 October 2026, based on OpenAI's model documentation:
 
-## 6. Bouwomgeving
-De onderzoekskeuzes staan vast in docs/implementation/START-CODING.md en BOOT-AND-TOOLCHAIN.md. Laat Codex beginnen met `python3 tools/preflight.py` en de gekozen toolchain beschikbaar maken. Gebruik de gekozen versies; een aantoonbaar noodzakelijke afwijking wordt onderbouwd vastgelegd. Herstart geen algemeen toolchainonderzoek. Het script installeert niets en controleert aanwezigheid, niet de volledige bruikbaarheid.
+- **GPT-6 Astra, High or Extra High if available:** recommended for architecture, memory isolation, concurrent kernel code and difficult security reviews.
+- **GPT-6.1 Sol:** practical working model for bounded implementation and iterative development; increase reasoning effort for complex tasks.
+- Smaller models only for simple documentation or triage, not as the sole reviewer of security-critical code.
 
-Op Windows is een Linux-ontwikkelomgeving via WSL2 een redelijke optie, maar geen verplichte voorwaarde. Houd checkout, compiler en buildcommando's binnen één gekozen omgeving. Dat de compiler op Windows of Linux draait, betekent niet dat het nieuwe OS daarvan is afgeleid.
+This is a task-oriented recommendation, not an independent benchmark declaring a model the best OS builder. **The options available in the account being used have not been verified.** Use the strongest available model for high-risk decisions; do not force a model ID that the client does not accept. More reasoning time or more agents does not prove correctness.
 
-QEMU kan via software-emulatie werken wanneer hardwareversnelling ontbreekt. De eerste build moet dat ondersteunen. Geen echte schijven, USB-installers, BIOS-wijzigingen of telefoon-flashes voor de eerste mijlpalen.
+## 6. Build environment
 
-## 7. Codex Cloud uitsluitend als ontwikkelalternatief
-Deze sectie gaat over het schrijven van openbare/geschikte projectcode, niet over cloudfuncties of AI in het toekomstige OS. Het OS-contract staat in docs/LOCAL-PRIVACY-CONTRACT.md.
+Research choices are fixed in docs/implementation/START-CODING.md and BOOT-AND-TOOLCHAIN.md. Have Codex start with `python3 tools/preflight.py` and make the selected toolchain available. Use the chosen versions; record and justify any demonstrably necessary deviation. Do not restart general toolchain research. The script installs nothing and checks presence, not complete usability.
 
-De actuele cloudroute gebruikt een omgeving met geselecteerde repositories. In web/desktop: kies de cloudomgeving, verbind GitHub wanneer gevraagd, selecteer alleen deze repository en laat de buildomgeving voorbereiden. Controleer de setupresultaten voordat je de omgeving publiceert. 'Omgeving publiceren' is niet hetzelfde als de broncode openbaar maken.
+On Windows, a Linux development environment through WSL2 is a reasonable option, but not mandatory. Keep checkout, compiler and build commands within one chosen environment. Running the compiler on Windows or Linux does not mean the new OS derives from either.
 
-Laat expliciet testen of QEMU met software-emulatie, benodigde packages en time-outs er werken. Hardwareversnelling of toegang tot echte apparaten is niet aangenomen. Lukt booten in de cloud niet, laat daar review/hosttests doen en voer de bootcheck lokaal uit. Rapporteer beide apart.
+QEMU can use software emulation when hardware acceleration is absent. The first build must support that. No real disks, USB installers, BIOS changes or phone flashing for the first milestones.
 
-## 8. Hoe je de gesprekken voert
-Begin met één hoofdchat en maximaal drie gelijktijdige subagents. Geef per vervolgchat één technische of productmijlpaal, duidelijke toegestane bestanden en een acceptatietest. De productkeuze is al onderzocht: Materiaal. De eerste uitvoerbatch bouwt de bootproef, het interactieprototype en de lokale quantumsimulator parallel, volgens docs/implementation/FIRST-BATCH.md. Gebruik aparte worktrees voor onafhankelijke implementatiechats. Laat code pas samenvoegen nadat tests en review op de gecombineerde versie slagen.
+## 7. Codex Cloud only as a development alternative
 
-AGENTS.md-bestanden zijn instructies, geen automatisch opgestart team of beveiligingsgrens. De optionele TOML-rollen moeten door de gebruikte client worden ondersteund. Laat de agent controleren wat geladen is en gebruik anders dezelfde rollen via expliciete taakprompts. De hoofdchat blijft verantwoordelijk.
+This section concerns writing public/suitable project code, not cloud functions or AI in the future OS. The OS contract is in docs/LOCAL-PRIVACY-CONTRACT.md.
 
-## Bronnen
-OpenAI. (z.d.). *Models*. Geraadpleegd op 26 oktober 2026, van https://learn.chatgpt.com/docs/models
-OpenAI. (z.d.). *Run coding tasks in the cloud*. Geraadpleegd op 26 oktober 2026, van https://learn.chatgpt.com/docs/cloud
-OpenAI. (z.d.). *Worktrees*. Geraadpleegd op 26 oktober 2026, van https://learn.chatgpt.com/docs/environments/git-worktrees
-GitHub. (z.d.). *Creating a new repository*. https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository
-GitHub. (z.d.). *Cloning a repository*. https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository
-Voor de primaire bronnen over Codeberg/Forgejo en open source: zie docs/PRODUCT-AND-SOVEREIGNTY.md.
+The current cloud route uses an environment with selected repositories. In web/desktop: choose the cloud environment, connect GitHub when prompted, select only this repository and have the build environment prepared. Check setup results before publishing the environment. “Publish environment” is not the same as making the source code public.
+
+Explicitly test whether QEMU with software emulation, required packages and timeouts works there. Hardware acceleration or access to real devices is not assumed. If cloud booting fails, use it for review/host tests and run the boot check locally. Report the two separately.
+
+## 8. Conversation and task structure
+
+Start with one main chat and at most three concurrent subagents. Give each follow-up chat one technical or product milestone, clear permitted files and an acceptance test. The product choice has already been researched: Materiaal. The first execution batch builds the boot test, interaction prototype and local quantum simulator in parallel, following docs/implementation/FIRST-BATCH.md. Use separate worktrees for independent implementation chats. Merge code only after tests and review pass on the combined version.
+
+AGENTS.md files are instructions, not an automatically launched team or a security boundary. Optional TOML roles must be supported by the client in use. Have the agent check what is loaded; otherwise use the same roles through explicit task prompts. The main chat remains responsible.
+
+## Sources
+
+OpenAI. (n.d.). *Models*. Retrieved 26 October 2026, from https://learn.chatgpt.com/docs/models
+
+OpenAI. (n.d.). *Run coding tasks in the cloud*. Retrieved 26 October 2026, from https://learn.chatgpt.com/docs/cloud
+
+OpenAI. (n.d.). *Worktrees*. Retrieved 26 October 2026, from https://learn.chatgpt.com/docs/environments/git-worktrees
+
+GitHub. (n.d.). *Creating a new repository*. https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository
+
+GitHub. (n.d.). *Cloning a repository*. https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository
+
+For primary sources on Codeberg/Forgejo and open source: see docs/PRODUCT-AND-SOVEREIGNTY.md.

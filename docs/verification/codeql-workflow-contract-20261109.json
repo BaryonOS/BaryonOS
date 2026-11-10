@@ -1,0 +1,112 @@
+{
+  "base_commit": "3402b30c3d67e769eea28abc07e1aaceeb3e2525",
+  "command": "python3 -B -m unittest discover -s tests -p test_ci_workflows.py -v",
+  "exit_code": 0,
+  "test_count": 9,
+  "workflow_count": 24,
+  "composite_action_count": 3,
+  "stdout": "",
+  "stderr": "test_all_jobs_use_standard_hosted_ubuntu (test_ci_workflows.WorkflowContractTests.test_all_jobs_use_standard_hosted_ubuntu)\nNo custom label, dynamic selector or persistent runner can return. ... ok\ntest_artifact_component_filter_includes_shared_build_inputs (test_ci_workflows.WorkflowContractTests.test_artifact_component_filter_includes_shared_build_inputs)\nThe dedicated gate replaces its broad matrix entry for shared changes too. ... ok\ntest_checkout_does_not_persist_credentials (test_ci_workflows.WorkflowContractTests.test_checkout_does_not_persist_credentials)\nBuilds and public PR scripts do not inherit checkout credentials. ... ok\ntest_deduplication_keeps_host_and_scalar_component_coverage (test_ci_workflows.WorkflowContractTests.test_deduplication_keeps_host_and_scalar_component_coverage)\nBoth removed matrix entries retain tests, lint and scalar target builds. ... ok\ntest_external_actions_are_pinned_to_full_commits (test_ci_workflows.WorkflowContractTests.test_external_actions_are_pinned_to_full_commits)\nMoving tags cannot silently change executable Actions code. ... ok\ntest_only_artifact_uploads_can_tolerate_errors (test_ci_workflows.WorkflowContractTests.test_only_artifact_uploads_can_tolerate_errors)\nStorage failure may be optional; failed builds, tests and collectors are not. ... ok\ntest_pr_lifecycle_runs_once_without_skipping_drafts (test_ci_workflows.WorkflowContractTests.test_pr_lifecycle_runs_once_without_skipping_drafts)\nDraft changes are tested already, so becoming ready need not repeat them. ... ok\ntest_public_prs_keep_minimal_token_permissions (test_ci_workflows.WorkflowContractTests.test_public_prs_keep_minimal_token_permissions)\nAllow security-result uploads only in the CodeQL analysis job. ... ok\ntest_required_gates_are_unfiltered_and_independent (test_ci_workflows.WorkflowContractTests.test_required_gates_are_unfiltered_and_independent)\nRequired check names always exist and run without a serial dependency. ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.116s\n\nOK\n",
+  "permission_cases": [
+    {
+      "case": "exact CodeQL permission mapping",
+      "expected": "accepted",
+      "actual": "accepted"
+    },
+    {
+      "case": "CodeQL contents: write",
+      "expected": "rejected",
+      "actual": "rejected"
+    },
+    {
+      "case": "CodeQL actions: write",
+      "expected": "rejected",
+      "actual": "rejected"
+    },
+    {
+      "case": "CodeQL id-token: write",
+      "expected": "rejected",
+      "actual": "rejected"
+    },
+    {
+      "case": "CodeQL packages: write",
+      "expected": "rejected",
+      "actual": "rejected"
+    },
+    {
+      "case": "exception moved to another job",
+      "expected": "rejected",
+      "actual": "rejected"
+    },
+    {
+      "case": "exception moved to another workflow",
+      "expected": "rejected",
+      "actual": "rejected"
+    },
+    {
+      "case": "workflow-level security-events write",
+      "expected": "rejected",
+      "actual": "rejected"
+    },
+    {
+      "case": "workflow-level write-all",
+      "expected": "rejected",
+      "actual": "rejected"
+    },
+    {
+      "case": "job-level write-all",
+      "expected": "rejected",
+      "actual": "rejected"
+    },
+    {
+      "case": "privileged pull_request_target event",
+      "expected": "rejected",
+      "actual": "rejected"
+    },
+    {
+      "case": "required upload scope removed",
+      "expected": "rejected",
+      "actual": "rejected"
+    }
+  ],
+  "sha256": {
+    "tests/test_ci_workflows.py": "0aaae29d9c902771771f2c3b4611c056a08ba7387090bfa5dd70ac79ced51e40",
+    ".github/workflows/codeql.yml": "b866c86f5afd477a477b846043aa446c7f660211d3bfbe8b554f367bc649b6af"
+  },
+  "date": "2026-11-09",
+  "timezone": "Europe/Amsterdam",
+  "branch": "simonvanieperen-patch-3",
+  "pull_request": "https://github.com/simonvanieperen/BaryonOS/pull/266",
+  "test_basis": "working_tree based on base_commit; sha256 binds tested files",
+  "before_change": {
+    "command": "python3 -B -m unittest discover -s tests -p test_ci_workflows.py -v",
+    "exit_code": 1,
+    "test_count": 9,
+    "failure_count": 1,
+    "failing_method": "test_public_prs_keep_read_only_tokens",
+    "failing_workflow": ".github/workflows/codeql.yml",
+    "failing_job": "analyze"
+  },
+  "review": "Read-only review of the actual test diff by a second AI; no blocking findings; no independent test rerun or human audit.",
+  "not_executed": [
+    "Rust tests",
+    "QEMU tests",
+    "CodeQL analysis",
+    "physical hardware tests"
+  ],
+  "scope": "Workflow permission contract; no OS product criterion or weight changed.",
+  "maintenance_checks": [
+    {
+      "command": "python3 tools/progress.py --write",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

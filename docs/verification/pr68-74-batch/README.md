@@ -20,7 +20,7 @@ het beschrijft de implementatie- en bewijsbestanden, niet zijn eigen hash.
 
 PR69 is een reeds gesloten negatieve rulesettest en wordt niet geïntegreerd.
 PR70 was al gemerged. PR71 is tijdens deze review gemerged als `484ac33d`, met
-exact dezelfde tree als de door ons bijgewerkte bron `479415e`. De bestaande
+exact dezelfde tree als de binnen deze review bijgewerkte bron `479415e`. De bestaande
 NAS-code blijft daarmee behouden. De afzonderlijk onderzochte replayprofiel-
 wijziging is niet opgenomen: de actuele main heeft geen native NAS-runner die
 die aanvullende wijziging voor deze afhandeling noodzakelijk maakt.
