@@ -292,10 +292,10 @@ jobs:
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence
         with:
-          package-path: build/window-session-ci/evidence/NieuwOS-Venstersessie-Windows-QEMU.zip
+          package-path: ${{ matrix.scale == 1 && 'build/window-session-ci/evidence/NieuwOS-Venstersessie-Windows-QEMU.zip' || '' }}
           job-status: ${{ job.status }}
           full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
-          name: native-window-session-evidence-and-windows-bundle
+          name: native-window-session-scale-${{ matrix.scale }}-evidence-and-windows-bundle
           path: |
             build/window-session-ci/evidence/
             build/window-session-ci/probe/manifest.json

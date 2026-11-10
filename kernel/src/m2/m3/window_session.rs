@@ -771,6 +771,7 @@ fn snapshots(s: &State) {
         let commits = word(s, COMP, 416);
         let activity = [
             word(s, COMP, 424),
+            word(s, COMP, 432),
             word(s, COMP, 440),
             word(s, COMP, 448),
             word(s, COMP, 456),
@@ -779,7 +780,6 @@ fn snapshots(s: &State) {
             word(s, COMP, 512),
             word(s, COMP, 520),
             word(s, COMP, 528),
-            word(s, COMP, 424),
         ];
         let previous = *runtime();
         if previous.compositor_sample_tick == u64::MAX

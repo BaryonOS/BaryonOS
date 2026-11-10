@@ -1,15 +1,45 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #257 fail-closed publication inventory — 10 November 2026
+## NEXT AGENT HANDOFF — PR #210 Veld review repairs — 10 November 2026
 
-**Source:** branch `codex/pr257-rebuild-20261110`, rebuilt on current `main`
-`460b00b808d7570fe1fe523d5d1b8fa9fe1923a2`. The implementation commits are
-`5d25705e36b107e470b33a454525b19af3afa9b8` and
-`ef54c3084de6a980c9863187f38ac3b47cd784e4`, followed by the test suppression
-`fc3e5393c4b622e95e24de35eb1a39b452c5f7dd` and repository-transfer binding
-`672b9c0b4ccd972665237dcf045eca41d37852cb`. They replace the stale PR head
-without importing its base history. The audit remains a local evidence tool
-and never grants publication clearance by itself.
+**Source:** the local candidate is based directly on current `main`,
+`342194f215297c52a5578c7d1b7f18492150e61d`, after the #257, #297, #300
+and #259 squash merges. Its replayed implementation commit is
+`7c97ce9e2237f1ddbf83827627ec97968d6913cb` (tree
+`809ff681e2203c34edd1d02fe4fb8793091be42e`). Nothing from this repair round
+has been published or treated as hosted evidence.
+
+**Review repairs:** the two native matrix profiles now keep distinct evidence
+artifacts and only the 100% profile requires the Windows bundle that it builds.
+The 200% result field can be accepted only by the complete workspace route,
+never by the switcher part gate. The compositor activity sample covers each of
+its ten counters exactly once. INP1 documents payload-free `PointerLeave`; the
+measured Materiaal RX code and budget are recorded as 157,161 bytes in 39 pages
+under the fixed 160-KiB cap, with five LOAD segments and no W+X.
+
+**Local evidence:** 27 runner tests, 22 workflow-contract tests and all 110
+window-session Rust tests passed. Python compilation, warning-free formatting,
+strict preflight, the progress consistency check and `git diff --check` passed.
+The default build and TCG smoke passed (`M1:PASS`, raw exit 33), and both
+`native-window-session-probe` and `native-window-session-hidpi-probe` built and
+were inspected successfully. Independent read-only review found no remaining
+code, evidence or documentation blocker in the repair set.
+
+**Acceptance:** **39/100 → 39/100**. The prior bounded local 100% and 200%
+runtime attempts timed out and are not positive evidence. The final published
+head still requires both complete hosted 1800-second native matrix gates.
+
+**Next:** finish this replay on the actual new `main`, publish with an exact
+lease, and evaluate only current-head hosted checks and review. Squash-merge
+with the expected head only after both native profiles are green.
+
+## Historical checkpoint — PR #257 fail-closed publication inventory — 10 November 2026
+
+**Source:** exact reviewed head `590d9c3b589435fff6bf794c85908bbb37a98382`
+was squash-merged as `1e3062fc1258ba6d098e70bcb13d64de1fbd90a2`;
+the trees are byte-identical at `17696fb42e386366db39257517908acf80ae03fc`.
+The audit remains a local evidence tool and never grants publication clearance
+by itself.
 
 **Implementation:** the three-phase scanner binds the exact advertised Git
 tips, Git history and metadata, Actions inventory, scanner identity, retained
@@ -38,9 +68,10 @@ clear for publication and no historical receipt is promoted to current evidence.
 fail-closed evidence boundary but completes no OS product criterion and adds
 no native runtime, physical-hardware or human acceptance.
 
-**Next:** publish with an exact old-head lease, require current-head hosted
-checks and review, then run any real publication audit only against its exact
-advertised source tip. Keep `publication_clearance` false.
+At merge time 45 hosted checks were green and the native-window job was still
+in progress; that unfinished job is not positive evidence. Any real publication
+audit must run against its exact advertised source tip and must keep
+`publication_clearance` false.
 
 ## NEXT AGENT HANDOFF — PR #218 H05 step-2 replay after #269 — 10 November 2026
 

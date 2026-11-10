@@ -2054,8 +2054,9 @@ UTF-8 in the existing staging buffer. Labels make abbreviation and location
 clear. Proportional text shares metrics/caret/selection/wrap/hit-test and
 preserves bytes.
 
-The own scalar app-specific RX budget changes from 128→144 KiB after an
-actual 131177-byte linker measurement; fixed addresses, five segments, W^X,
+The own scalar app-specific RX budget changes from 144→160 KiB after an
+actual 157161-byte linker measurement, following the earlier 128→144 KiB
+change based on 131177 bytes; fixed addresses, five segments, W^X,
 R/RW/stack/guard/kernel quotas and capabilities remain the same. See
 `implementation/NATIVE-MATERIAL-LIBRARY.md`.
 The native gate uses complete allocated app images and an independent disk

@@ -105,6 +105,11 @@ def workspace_regions(scale: int) -> dict:
     return WORKSPACE_REGIONS if scale == 1 else HIDPI_WORKSPACE_REGIONS
 
 
+def full_scale200_gate(scale: int, workspace: bool, diagnostic: bool, switcher: bool) -> bool:
+    """Accept 200% only for the complete workspace gate, never a part gate."""
+    return scale == 2 and workspace and not diagnostic and not switcher
+
+
 def switcher_geometry(scale: int) -> tuple:
     """Return supported viewport and app rectangles for a scale."""
     if scale == 1:
@@ -1555,7 +1560,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
                           keyboard_window_move_gate=workspace and not diagnostic,
                           notification_panel_gate=workspace and clipboard and not diagnostic,
                           window_states_gate=workspace and not diagnostic,
-                          native_scale200_gate=scale == 2 and not diagnostic,
+                          native_scale200_gate=full_scale200_gate(scale, workspace, diagnostic, switcher),
                           trusted_lock_gate=workspace and not diagnostic,
                           duration_s=time.monotonic() - start, serial_sha256=sha256(directory / "serial.txt"),
                           qmp_trace=control.trace)
