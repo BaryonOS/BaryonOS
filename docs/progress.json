@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-10",
-    "source_commit": "014fe5771e5dfd0885343f0ef79d96d7cf959a66",
+    "source_commit": "3dd6194f02231e8f1db61940242d8d90318daf1d",
     "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
-    "task": "Repair rejected K06 step-5f acceptance evidence and run the complete frozen matrix",
+    "task": "Resume strict K06 step-5f evidence after organization GitHub access restoration",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. No new native acceptance. The frozen-source diagnostic completes successfully, but trace results supply zero matrix repetitions. A separately host-checked ordinary canary PAUSE hint preserves guest workload semantics and 1000 actual switches while changing emulator-vCPU interleaving. Earlier native failures remain rejected. The full matrix must restart from zero on the new source and pass all 3200 guests, K07, 50 full soaks, aggregate and actual gate."
+    "summary": "41/100 remains 41/100. K06 and the K07 SMP extension remain open. Fetch, push dry-run and workflow dispatch succeed after organization app installation 180498948. Full uninstrumented run 42809499884 restarts all 64 cases from zero on frozen source 3dd6194f; cancelled run 42803221546 supplies no repetitions. Acceptance requires 3200 verified guests, regular K07, 50 complete combined soaks, a green aggregate and the actually executed repository gate with retained log."
   },
   "tracks": [
     {
