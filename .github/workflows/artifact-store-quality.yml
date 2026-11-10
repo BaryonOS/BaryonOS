@@ -59,6 +59,7 @@ jobs:
       - name: Contract formatting
         run: cargo +1.90.0 fmt --manifest-path crates/artifact-store-core/Cargo.toml -- --check
       - name: Freestanding library build
-        env:
-          RUSTFLAGS: -C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2
-        run: cargo +1.90.0 build --locked --release --lib --target x86_64-unknown-none -p artifact-store-core
+        # Cargo merges this array with .cargo/config.toml; RUSTFLAGS replaces it.
+        run: >-
+          cargo +1.90.0 build --locked --release --lib --target x86_64-unknown-none -p artifact-store-core
+          --config 'target.x86_64-unknown-none.rustflags=["-C", "target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2"]'

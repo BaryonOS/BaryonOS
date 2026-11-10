@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-10",
-    "source_commit": "307949ef46c9b6a9d80bca77ce5eaf3f2e901820",
+    "source_commit": "16d2fb3d6c3d2e66b66888fcf5577b316a9f580a",
     "assessment_basis": "source_commit",
-    "branch": "veld/next-shell-20261103",
-    "task": "Resolve PR #167 switcher repaint-readiness and ordered input-barrier review findings on current main",
+    "branch": "coderabbit/issue-292-preserve-target-flags",
+    "task": "Integrate the issue #292 artifact-store target-flag repair onto the PR #167 squash base",
     "previous_score": 39,
-    "summary": "39/100 to 39/100: 23 host runner tests verify the repaint-stability predicate and negative late-input case on source 307949e. Rust, QEMU, OVMF, final-head CI, and native 100%/200% switcher reruns remain pending; no acceptance criterion is newly closed."
+    "summary": "39/100 to 39/100: the additive Cargo configuration preserves the freestanding target contract without changing kernel behavior or dependencies. All required local integration gates passed on tree 2c04a809d890e7eb8e4f6041281aeda41f9e1c7b; the final pushed head still requires current-head hosted validation before merge."
   },
   "tracks": [
     {
