@@ -2,7 +2,7 @@
 
 ## NEXT AGENT HANDOFF — K06 step 5f acceptance repair — 10 November 2026
 
-**Source:** exact existing branch `codex/k06-5f-complete-20261109`, incoming commit `f808d59150466aee3de24452ea408250b8f4dca6`. No replacement branch or concurrent local QEMU matrix was created.
+**Source:** exact existing branch `codex/k06-5f-complete-20261109`, incoming commit `f808d59150466aee3de24452ea408250b8f4dca6`; corrected source commit `ed5413691b30df302c4b304a4d2eab9945f15919`, source-v3 `d5ba44f6f596ecbe099e0143489c9c2fdfb1382dda163d3cc7ad757787cf19fd`. No replacement branch or concurrent local QEMU matrix was created.
 
 **Rejected evidence:** [run 42723127310](https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310), source-v3 `759320893ea058b90d0bc764cd2b9534734827131a212ad5ba27f5501db6e8ac`, has a red `nine-capacity` repetition 16: 49/50, `SMP:CLOCK:DRIFT:US=1010334`, raw exit 35, no timeout. `shared-scratch` also fails iteration 10 (49/50, `SMP:CLOCK:DRIFT:US=1010549`, raw exit 35). The run is allowed to finish and all original artifacts remain intact. It cannot count toward acceptance. [Failure receipt and raw evidence](verification/k06-smp-sched/README.md).
 
@@ -12,7 +12,9 @@
 
 **Executed before restart:** `native-smp` crossbuild, `cargo check --lib`, all 274 Python tool tests without skips, four orchestration tests, formatting, shell syntax, progress consistency and diff whitespace checks pass. Full Cargo tests also pass (525 tests), as does the existing SMP Clippy scope. An extra workspace-wide Clippy check reports an existing lint in unrelated `capability-core`; its failed log is retained without changing that code. [Host-check receipt](verification/k06-smp-sched/host-checks.json). No local guest was started.
 
-**Next:** commit/push this branch, dispatch `native-smp.yml` with `full_matrix=true`, and monitor it through independent evidence verification and final gate. No local competing QEMU matrix is permitted.
+**Active restart:** [run 42727641812](https://github.com/simonvanieperen/BaryonOS/actions/runs/42727641812) was dispatched with `full_matrix=true`, `full_evidence=false`, on exactly `ed5413691b30df302c4b304a4d2eab9945f15919`. At this checkpoint it is pending behind the original run in the same workflow concurrency group; no competing guest matrix has started.
+
+**Next:** monitor both runs; let the original finish, then require the new run to complete all cases and native regressions. Independently recheck all raw artifacts and the executed final gate before accepting K06. No local competing QEMU matrix is permitted.
 
 ## Previous checkpoint — documentation hierarchy and governance — 9 November 2026
 

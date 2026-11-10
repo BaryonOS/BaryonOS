@@ -8,7 +8,9 @@
 
 The [incident receipt](incident-42723127310.json) records the artifact ID, original ZIP digest and raw-file digests. The compressed raw serial, stderr and guest result preserve the failing repetition. The full original ZIP is retained locally under `build/k06-handoff/run-42723127310/nine-capacity.zip` and on GitHub.
 
-## Corrections awaiting a new complete run
+## Corrected source and full restart
+
+Corrected source `ed5413691b30df302c4b304a4d2eab9945f15919` has source-v3 `d5ba44f6f596ecbe099e0143489c9c2fdfb1382dda163d3cc7ad757787cf19fd`. [Full restart 42727641812](https://github.com/simonvanieperen/BaryonOS/actions/runs/42727641812) was dispatched from zero with `full_matrix=true` and is pending behind the original run at this checkpoint. No earlier successful repetition is reused. Documentation commits after this source commit do not change its source fingerprint or retarget the dispatched run.
 
 Clock observations now retain the actual IRQ0 tick count alongside their TSC timestamp. A sample that returns after its requested edge is compared using its actual tick delta, rather than assuming exactly 1000 interrupts. Five one-second target segments, the median, the existing observation deadline and the exact 1% limit remain unchanged. Failure diagnostics report calibration and every raw tick/TSC delta. This corrects a sampling defect; the old transcript cannot establish that this defect caused the failed repetition. Actual lost IRQ0 ticks still fail.
 

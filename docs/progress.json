@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-10",
-    "source_commit": "f808d59150466aee3de24452ea408250b8f4dca6",
-    "assessment_basis": "working_tree",
+    "source_commit": "ed5413691b30df302c4b304a4d2eab9945f15919",
+    "assessment_basis": "commit",
     "branch": "codex/k06-5f-complete-20261109",
     "task": "Repair rejected K06 step-5f acceptance evidence and run the complete frozen matrix",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Run 42723127310 is rejected: nine-capacity iteration 16 fails clock drift, giving 49/50. Clock snapshot accounting and the missing final native regression wrapper are corrected for a new complete run; no K06 acceptance or K07 SMP extension is claimed."
+    "summary": "41/100 remains 41/100. Run 42723127310 is rejected with two 49/50 clock cases. Source ed541369 repairs clock snapshot accounting and the missing final regression gate. Full restart 42727641812 is pending behind the original run; K06 and the K07 SMP evidence extension remain unaccepted."
   },
   "tracks": [
     {
@@ -77,7 +77,9 @@
           "points": 2,
           "status": "open",
           "acceptance": "SMP scheduling, synchronization, interrupts, and address-space switching work under concurrent load on the supported profile.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/k06-smp-sched/README.md"
+          ]
         },
         {
           "id": "K07",

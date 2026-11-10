@@ -1,0 +1,13 @@
+{
+  "run_id": 42727641812,
+  "run_url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42727641812",
+  "tested_commit": "ed5413691b30df302c4b304a4d2eab9945f15919",
+  "source_fingerprint_version": 3,
+  "source_sha256": "d5ba44f6f596ecbe099e0143489c9c2fdfb1382dda163d3cc7ad757787cf19fd",
+  "full_matrix": true,
+  "full_evidence": false,
+  "status_at_checkpoint": "pending",
+  "accepted": false,
+  "previous_run_retained": 42723127310,
+  "native_guests_started_locally": 0
+}
