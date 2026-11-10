@@ -1,15 +1,51 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #257 fail-closed publication inventory — 10 November 2026
+## NEXT AGENT HANDOFF — PR #299 ChaCha20 production unification — 10 November 2026
 
-**Source:** branch `codex/pr257-rebuild-20261110`, rebuilt on current `main`
-`460b00b808d7570fe1fe523d5d1b8fa9fe1923a2`. The implementation commits are
-`5d25705e36b107e470b33a454525b19af3afa9b8` and
-`ef54c3084de6a980c9863187f38ac3b47cd784e4`, followed by the test suppression
-`fc3e5393c4b622e95e24de35eb1a39b452c5f7dd` and repository-transfer binding
-`672b9c0b4ccd972665237dcf045eca41d37852cb`. They replace the stale PR head
-without importing its base history. The audit remains a local evidence tool
-and never grants publication clearance by itself.
+**Source:** this local candidate is based directly on the actual PR #297
+squash `2d17a3870c0f22254af0a749d3f29128fe2e11ae` (tree
+`563b3ec57355ca124672afe94de79808f9e4fc70`), which follows the PR #257
+squash. Its semantic donor is local commit
+`5ba29a843d7087ff637fb2856677cfd17da6f74a` on reviewed #297 candidate
+`3cb1e16d0f5f1a91784d0761ec0b5c5d7f60606f`. This replay has not been
+published or treated as hosted evidence.
+
+**Implementation:** production now resolves one pinned `chacha20=0.10.2` for
+the DRBG, maintained RNG and AEAD closure. The direct pinned `cipher=0.5.2`
+dependency enables its `zeroize` feature so the stream wrapper and buffered
+keystream implement `ZeroizeOnDrop`; compile-time assertions retain this
+boundary. `chacha20=0.9.1` remains only as the independent dev-test alias
+`chacha20-legacy` for the byte-exact old DRBG oracle. Product builders use the
+single portable `chacha20_backend="soft"` selector.
+
+**Compatibility and provenance:** the new implementation reproduces the old
+DRBG bytes and cold-restores a fixed pre-migration persisted blob, including
+decryption of its existing record key. All four locks and crate checksums are
+contract-tested; the three consumer product locks contain 0.10.2 but not
+0.9.1. The reviewed upstream crates are `no_std`, require Rust 1.85, use MIT
+or Apache-2.0 and have no build script.
+
+**Local evidence:** all 71 keyring tests and four crypto-contract tests passed.
+Warning-denying Clippy, formatting, strict preflight, progress consistency and
+`git diff --check` passed. Locked offline fetches, consumer tests and Clippy,
+and the keyring, SDK-client, example, system and random-probe freestanding
+release builds passed. Independent read-only review found no security,
+compatibility, lockgraph or provenance blocker.
+
+**Acceptance:** **39/100 → 39/100**. No native B01, RANDOM, FR-I01 or B03 gate,
+QEMU run, physical entropy result or new product criterion is claimed.
+
+**Next:** finish this replay on the actual #297 squash, publish with an exact
+lease and evaluate only current-head hosted checks and review. Squash-merge
+with the expected head only after they are green.
+
+## Historical checkpoint — PR #257 fail-closed publication inventory — 10 November 2026
+
+**Source:** exact reviewed head `590d9c3b589435fff6bf794c85908bbb37a98382`
+was squash-merged as `1e3062fc1258ba6d098e70bcb13d64de1fbd90a2`;
+the trees are byte-identical at `17696fb42e386366db39257517908acf80ae03fc`.
+The audit remains a local evidence tool and never grants publication clearance
+by itself.
 
 **Implementation:** the three-phase scanner binds the exact advertised Git
 tips, Git history and metadata, Actions inventory, scanner identity, retained
@@ -38,9 +74,10 @@ clear for publication and no historical receipt is promoted to current evidence.
 fail-closed evidence boundary but completes no OS product criterion and adds
 no native runtime, physical-hardware or human acceptance.
 
-**Next:** publish with an exact old-head lease, require current-head hosted
-checks and review, then run any real publication audit only against its exact
-advertised source tip. Keep `publication_clearance` false.
+At merge time 45 hosted checks were green and the native-window job was still
+in progress; that unfinished job is not positive evidence. Any real publication
+audit must run against its exact advertised source tip and must keep
+`publication_clearance` false.
 
 ## NEXT AGENT HANDOFF — PR #218 H05 step-2 replay after #269 — 10 November 2026
 

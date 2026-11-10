@@ -24,7 +24,7 @@ def main() -> int:
              "-C", "no-redzone=yes", "-C", "linker=rust-lld",
              "-C", f"link-arg=-T{EXAMPLE / 'linker.ld'}", "-C", "link-arg=--no-pie",
              "-C", "link-arg=--build-id=none", "-C", "link-arg=-zmax-page-size=0x1000",
-             "--cfg", "chacha20_force_soft", "--cfg", 'chacha20_backend="soft"', "--cfg", 'poly1305_backend="soft"',
+             "--cfg", 'chacha20_backend="soft"', "--cfg", 'poly1305_backend="soft"',
              "--cfg", 'sha2_backend="soft"']
     environment["CARGO_ENCODED_RUSTFLAGS"] = "\x1f".join(flags)
     environment.setdefault("CARGO_TARGET_DIR", str(ROOT / "build/sdk-system"))

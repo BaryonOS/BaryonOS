@@ -1625,12 +1625,18 @@ RNG quality, TPM/hardware protection, password recovery, side channels.
    no fallback, no test seed in the product path. Later reseeds undergo
    the same tests; failure → `DEGRADED` and rejection.
 3. Only maintained, pinned RustCrypto crates with portable backends:
-   `chacha20poly1305` 0.11.0 (XChaCha20-Poly1305), `chacha20` 0.9.1,
-   `hkdf` 0.12.4, `sha2` 0.10.9, `zeroize` 1.8/1.9. The DRBG is the
+   `chacha20poly1305` 0.11.0 (XChaCha20-Poly1305), one production
+   `chacha20` 0.10.2 for the DRBG and RNG, and `cipher` 0.5.2 with explicit
+   wrapper zeroization, plus the protected HKDF/SHA-256 stack and `zeroize`
+   1.8/1.9. `chacha20` 0.9.1 is retained only as a dev compatibility oracle.
+   The DRBG is the
    fast-key-erasure construction on the ChaCha20 keystream (Bernstein, 2017),
    not a custom primitive. Dependency check: MIT/Apache-2.0 licences,
-   build scripts only `generic-array` (`version_check`) and a `zerocopy`-free
-   tree; no SIMD instructions in generated code (objdump check).
+   Rust 1.85 minimum for the 0.10.2/0.5.2 crates, `no_std`, and no build
+   scripts for either. The production builders use the single
+   `chacha20_backend="soft"` selector; old 0.9-only backend configuration is
+   excluded from production. Exact provenance and evidence boundaries are in
+   [KEYRING-CRYPTO-DEPENDENCIES](implementation/KEYRING-CRYPTO-DEPENDENCIES.md).
 4. Keys never leave the Key Service; apps receive (domain, index) handles;
    the domain follows from the kernel-bound endpoint. AEAD binds format,
    domain and index in the AAD. 16 keys per domain; revocation is permanent
@@ -1639,6 +1645,14 @@ RNG quality, TPM/hardware protection, password recovery, side channels.
    requesting app and a blob (master key + revocation bitmaps, 76 bytes)
    under that secret. RESTORE in another instance derives all domain keys;
    the service does not retain the secret.
+
+**Dependency amendment (10 November 2026):** the direct DRBG and maintained
+RNG were consolidated on `chacha20 0.10.2`. This changes dependency/API
+plumbing, not the DRBG construction, derived-key labels, AEAD, or persisted
+wire format. Root tests retain 0.9.1 only as an independently imported
+byte-for-byte oracle; the three consumer lockgraphs contain 0.10.2 only.
+Cold recovery and persistent restore remain part of the locked regression
+suite. This amendment does not itself constitute native B01/RANDOM evidence.
 
 **Security invariant:** no key generation before `READY`; no bytes from a
 rejected, short-delivering or timed-out request; `entropy_poll` writes only
