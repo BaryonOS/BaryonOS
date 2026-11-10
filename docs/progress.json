@@ -4,11 +4,11 @@
   "assessment": {
     "date": "2026-11-10",
     "source_commit": "a0b27619abc79f0afcf588078d62c357d337fe93",
-    "assessment_basis": "commit",
+    "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
     "task": "Repair rejected K06 step-5f acceptance evidence and run the complete frozen matrix",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Run 42723127310 is rejected with three 49/50 cases. Corrected source a0b27619 includes observed-tick clock sampling, the final regression gate and completed FPU-canary readiness. Complete restart 42730151923 is pending; older pending restart 42727641812 was superseded. K06 and the K07 SMP evidence extension remain open."
+    "summary": "41/100 remains 41/100. Original run has five rejected cases, including eight-CPU single-TCG 15/50 and migration 17/50 with ten total watchdog timeouts. All 50 old soaks complete but cannot accept the failing matrix. Observer work is reduced while preserving workload and bounds; a new complete restart is required. K06 and K07 SMP remain open."
   },
   "tracks": [
     {

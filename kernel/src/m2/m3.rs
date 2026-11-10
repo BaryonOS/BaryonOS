@@ -2054,6 +2054,25 @@ fn event(source: *const u64) -> *const u64 {
         // SAFETY: KERNEL held; no CPU may restore this context until dispatch.
         unsafe { ptr::addr_of_mut!(CPU_CURRENT[cpu()]).write(MAX) };
     }
+    // The fixture's user loop checks its private pattern on every iteration.
+    // Sample the process that actually entered, before cleanup can free DATA.
+    // Scanning every peer here would serialize O(processes) scratch remaps on
+    // every entry; all live processes are also checked after the final stop.
+    #[cfg(all(
+        feature = "native-smp-m3",
+        not(any(
+            feature = "native-supervisor",
+            feature = "native-smp-m4-quotas",
+            feature = "native-smp-qsim"
+        ))
+    ))]
+    {
+        let p = &state.processes[current];
+        if p.status != Status::Dead && !p.quarantined {
+            let _address = ASPACE[current].lock_irqsave();
+            assert_eq!(read_word(p.physical(DATA + 16)), p.pattern);
+        }
+    }
     let vector = context[15];
     #[cfg(feature = "native-smp-m3")]
     if state.processes[current].status == Status::Dying {
@@ -3116,14 +3135,6 @@ fn smp_progress(state: &mut State) {
     // Spec 08 §4: the FPU canary must survive 1000 switches on every CPU.
     const MIN_SWITCHES: u64 = 1000;
     let live = |p: &&Process| p.status != Status::Dead && !p.quarantined;
-    for (slot, p) in state.processes[..state.amount]
-        .iter()
-        .enumerate()
-        .filter(|(_, p)| live(p))
-    {
-        let _address = ASPACE[slot].lock_irqsave();
-        assert_eq!(read_word(p.physical(DATA + 16)), p.pattern);
-    }
     let online = smp::online_mask();
     let cpus = || (0..smp::MAX_CPUS).filter(move |cpu| online & (1 << cpu) != 0);
     #[cfg(feature = "native-smp-m3-ipc")]
@@ -3217,6 +3228,14 @@ fn smp_progress(state: &mut State) {
         serial::exit(0x11);
     }
     arch::activate(state.kernel.root);
+    // Every peer is quiescent. Retain a complete final isolation scan before
+    // any cleanup, in addition to each process's own user and entry checks.
+    for (slot, p) in state.processes[..state.amount].iter().enumerate() {
+        if p.status != Status::Dead && !p.quarantined {
+            let _address = ASPACE[slot].lock_irqsave();
+            assert_eq!(read_word(p.physical(DATA + 16)), p.pattern);
+        }
+    }
     #[cfg(feature = "native-smp-m3-ipc")]
     {
         assert!(smp_ipc_done(state));

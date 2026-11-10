@@ -83,5 +83,127 @@
       "result.json": "f87565d9bbf89176d10d58f15b213e600a03bc4d1a1bd833a81f171609faa904"
     },
     "limits": "The old log does not identify the mismatched slot or register. Premature canary-readiness publication is a reachable fixture defect; exact historical causality is not established."
-  }
+  },
+  "additional_failed_cases": [
+    {
+      "case": "m3-eight-single",
+      "repetitions": {
+        "requested": 50,
+        "attempted": 50,
+        "passed": 15,
+        "failed": 35,
+        "complete": true,
+        "flaky": true,
+        "evidence_kind": "smp"
+      },
+      "failure_kinds": {
+        "fpu_image_mismatch": 26,
+        "watchdog_timeout": 9
+      },
+      "failed_iterations": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        25,
+        26,
+        28,
+        29,
+        30,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        43,
+        47,
+        48,
+        50
+      ],
+      "artifact": {
+        "id": 13723918175,
+        "sha256": "e0f1f9edde073dd31cb62d0cd2ec192ec0d76ac2883bb02adb7717c9b4129735",
+        "url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310/artifacts/13723918175"
+      },
+      "full_original_report": "m3-eight-single-original-full-report.json.gz",
+      "raw_report_sha256": "63aad154d28dfea4b9937ade8c6fbe01d7771b493c2db4d61c6a4ce0a2ef3587",
+      "limits": "Old raw outputs do not identify the individual process/register that blocked progress; watchdog remains 60 seconds."
+    },
+    {
+      "case": "m3-migrate-eight-single",
+      "repetitions": {
+        "requested": 50,
+        "attempted": 50,
+        "passed": 17,
+        "failed": 33,
+        "complete": true,
+        "flaky": true,
+        "evidence_kind": "smp"
+      },
+      "failure_kinds": {
+        "fpu_image_mismatch": 32,
+        "watchdog_timeout": 1
+      },
+      "failed_iterations": [
+        1,
+        2,
+        4,
+        6,
+        8,
+        9,
+        10,
+        13,
+        14,
+        16,
+        18,
+        20,
+        21,
+        24,
+        25,
+        26,
+        27,
+        30,
+        31,
+        32,
+        34,
+        37,
+        38,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        50
+      ],
+      "artifact": {
+        "id": 13724801923,
+        "sha256": "490ae61d4f4f37cdc558fbb4d8f3730521c9525a7d820abedaba5b8430edefa0",
+        "url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310/artifacts/13724801923"
+      },
+      "full_original_report": "m3-migrate-eight-single-original-full-report.json.gz",
+      "raw_report_sha256": "29d4fe444e9c0c3ac237858d37146d2822c203c1e76e888f4b99c13a7b1e9eca",
+      "limits": "Old raw outputs do not identify the individual process/register that blocked progress; watchdog remains 60 seconds."
+    }
+  ]
 }
