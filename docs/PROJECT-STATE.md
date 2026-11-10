@@ -2,7 +2,7 @@
 
 ## NEXT AGENT HANDOFF — K06 step 5f acceptance repair — 10 November 2026
 
-**Source:** exact existing branch `codex/k06-5f-complete-20261109`, incoming commit `f808d59150466aee3de24452ea408250b8f4dca6`; current corrected test source `a0b27619abc79f0afcf588078d62c357d337fe93`, source-v3 `cc19201b30d3a9108de30cbc82af2a0d68816afd3fb43eed1cf7c394ae57887c`. Later documentation checkpoints do not retarget the dispatched run or change its source fingerprint.
+**Source:** exact existing branch `codex/k06-5f-complete-20261109`, incoming commit `f808d59150466aee3de24452ea408250b8f4dca6`; final corrected test source `59a30f10ceb558d1e31408afece49ca5c331df20`, source-v3 `505c25139b4d23d78aa9da406108aad437ba7a763b1b1c67b0cc6074a4d8f2ae`. Later documentation checkpoints do not retarget the dispatched run or change its source fingerprint.
 
 **Rejected evidence:** [run 42723127310](https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310), source-v3 `759320893ea058b90d0bc764cd2b9534734827131a212ad5ba27f5501db6e8ac`, has a red `nine-capacity` repetition 16: 49/50, `SMP:CLOCK:DRIFT:US=1010334`, raw exit 35, no timeout. `shared-scratch` also fails iteration 10 (49/50, `SMP:CLOCK:DRIFT:US=1010549`, raw exit 35). `m3-four-single` fails iteration 33 (49/50, `SMP:M3:FPU:IMAGE_MISMATCH`, raw exit 35, clock passed). `m3-eight-single` is 15/50 (26 FPU-image failures, nine 60-second watchdogs); `m3-migrate-eight-single` is 17/50 (32 FPU-image failures, one watchdog). All 50 original soaks complete, but the run is rejected. It is allowed to finish and all original artifacts remain intact. It cannot count toward acceptance. [Failure receipt and raw evidence](verification/k06-smp-sched/README.md).
 
@@ -16,9 +16,9 @@
 
 **Observer correction under verification:** redundant all-process scratch scans on every entry are replaced by a check of the entering process before cleanup and a complete live-process scan after STOP. The user-loop pattern check, true return-permission walks, usercopy/shootdown/resource checks, locks, workload, 1000-switch minimum and deadlines remain intact. Observer sampling per process now follows its own entries. Crossbuilds, 47 SMP host tests and 8/8 artifact checks on each probe pass; no runtime speedup or timeout-recovery claim is made. [Observer receipt](verification/k06-smp-sched/observer-host-checks.json).
 
-**Pending older complete restart:** [run 42730151923](https://github.com/simonvanieperen/BaryonOS/actions/runs/42730151923) was dispatched with `full_matrix=true`, `full_evidence=false`, on exactly `a0b27619abc79f0afcf588078d62c357d337fe93`. It is pending behind the original run in the same concurrency group. The earlier pending run `42727641812` on `ed541369` was replaced and is cancelled; it is not evidence.
+**Active complete restart:** [run 42731994218](https://github.com/simonvanieperen/BaryonOS/actions/runs/42731994218) was dispatched with `full_matrix=true`, `full_evidence=false`, on exactly `59a30f10ceb558d1e31408afece49ca5c331df20`. It is pending behind the original run in the same concurrency group. Earlier pending restarts `42727641812` and `42730151923` were superseded and cancelled; they are not evidence.
 
-**Next:** commit/push the observer correction and replace the pending `a0b27619` workflow with a new full restart from zero. Let the original finish, then monitor the final source through all 64 cases, 50 full soaks, aggregation and final native regressions. Independently recheck all raw artifacts and the executed final gate before accepting K06. No local competing QEMU matrix is permitted.
+**Next:** let the original run finish and monitor the final source through all 64 cases at exact 50/50, including 50 full soaks, aggregation and final native regressions. Independently recheck all raw artifacts and the executed final gate before accepting K06. No local competing QEMU matrix is permitted.
 
 ## Previous checkpoint — documentation hierarchy and governance — 9 November 2026
 

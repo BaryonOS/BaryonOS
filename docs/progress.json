@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-10",
-    "source_commit": "a0b27619abc79f0afcf588078d62c357d337fe93",
-    "assessment_basis": "working_tree",
+    "source_commit": "59a30f10ceb558d1e31408afece49ca5c331df20",
+    "assessment_basis": "commit",
     "branch": "codex/k06-5f-complete-20261109",
     "task": "Repair rejected K06 step-5f acceptance evidence and run the complete frozen matrix",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Original run has five rejected cases, including eight-CPU single-TCG 15/50 and migration 17/50 with ten total watchdog timeouts. All 50 old soaks complete but cannot accept the failing matrix. Observer work is reduced while preserving workload and bounds; a new complete restart is required. K06 and K07 SMP remain open."
+    "summary": "41/100 remains 41/100. Original run 42723127310 is rejected by five cases despite 50 completed old-source soaks. Corrected source 59a30f10 preserves all workloads and limits, with observed-tick clock sampling, final regression gate, completed FPU readiness and proportional observer work. Complete restart 42731994218 is pending. K06 and the K07 SMP extension remain open."
   },
   "tracks": [
     {
