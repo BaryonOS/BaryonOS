@@ -2,29 +2,32 @@
 
 ## NEXT AGENT HANDOFF — Issue #292 target-flag repair — 10 November 2026
 
-**Source:** PR #295 implementation commit
-`a88a73ffb5baebc03a28ccd2e9f3a56c53bed5a0`, rebased onto the #167 squash
-base `bd1322b80f11796e55a009d1862813558a8c78b5`. The artifact-store workflow
+**Source:** PR #295 local integration commit
+`16d2fb3d6c3d2e66b66888fcf5577b316a9f580a`, rebased onto the #287 squash
+base `e1eefaf8e0ab061c90e9fefe89ef16f80917a343`. The artifact-store workflow
 uses additive Cargo configuration so the freestanding target retains its code
 model, relocation model, linker arguments, and scalar CPU-feature restrictions.
 `.cargo/config.toml`, kernel runtime behavior, capabilities, and dependencies
 are unchanged.
 
-**Prior evidence:** nine artifact-store contract tests, warning-denying Clippy,
-formatting, the freestanding library build, and twelve workflow contract tests
-passed on the original implementation tree. The regression test rejects the
-former environment-level `RUSTFLAGS` override. Commands and observed compiler
-arguments are retained in
+**Local integration evidence:** twelve workflow contract tests, nine
+artifact-store contract tests, warning-denying Clippy, formatting, the
+freestanding library build, strict preflight, the standard build, QEMU smoke,
+and the progress check passed on tree
+`2c04a809d890e7eb8e4f6041281aeda41f9e1c7b`. The verbose compiler invocation
+retained the required code model, relocation model, no-red-zone setting, four
+linker arguments, and scalar target-feature restrictions. Source hashes,
+commands, log hashes, and evidence limits are recorded in
+[`verification/pr295-main-integration-20261110.json`](verification/pr295-main-integration-20261110.json).
+The original focused record remains in
 [`verification/artifact-store-target-flags.md`](verification/artifact-store-target-flags.md).
-That evidence does not automatically validate the rebased head.
 
 **Acceptance:** **39/100 → 39/100**. This CI correction closes no OS product
 criterion and is not native runtime evidence.
 
-**Next:** run the workflow contract tests, artifact-store tests/Clippy/format,
-freestanding build, strict preflight, normal build, QEMU smoke, progress check,
-and current-head hosted review/checks. Squash only with the exact validated head
-SHA; issue #292 remains subject to the repository's normal issue lifecycle.
+**Next:** publish with an expected old-head lease. Require current-head hosted
+review and checks before a guarded squash. Issue #292 remains subject to the
+repository's normal issue lifecycle.
 
 ## Historical checkpoint — PR #167 switcher review repair — 10 November 2026
 
