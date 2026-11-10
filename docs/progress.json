@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-10",
-    "source_commit": "3b6c9a68bbe6b4f41956e055fa7cf2326bc34cf7",
-    "assessment_basis": "commit",
+    "source_commit": "014fe5771e5dfd0885343f0ef79d96d7cf959a66",
+    "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
     "task": "Repair rejected K06 step-5f acceptance evidence and run the complete frozen matrix",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Original full evidence and restart 42731994218 are rejected. The latter records 2386/2500 executed passes, 114 failures and 700 missing repetitions, with 49 full passing soaks. Complete restart 42746968098 is pending on frozen scheduler source 3b6c9a68; separate diagnostic 42746512322 on the same source is running and supplies no acceptance repetitions. Clock causality and native IPC performance remain open. All 3200 uninstrumented runs plus K07/soak/aggregate/gate remain mandatory."
+    "summary": "41/100 remains 41/100. No new native acceptance. The frozen-source diagnostic completes successfully, but trace results supply zero matrix repetitions. A separately host-checked ordinary canary PAUSE hint preserves guest workload semantics and 1000 actual switches while changing emulator-vCPU interleaving. Earlier native failures remain rejected. The full matrix must restart from zero on the new source and pass all 3200 guests, K07, 50 full soaks, aggregate and actual gate."
   },
   "tracks": [
     {

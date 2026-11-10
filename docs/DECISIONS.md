@@ -2399,3 +2399,9 @@ L0 section 6.3 makes timer, explicit yield, blocking and reschedule the switch c
 Engine audits move from repeated observations of unchanged state to every completed capability syscall, the existing bootstrap/exit boundaries and final quiescent STOP. Exact authority snapshots, rollback/output checks, usercopy leases and observable erasure remain unchanged. An independent source review and host models support this candidate; full native acceptance remains mandatory.
 
 A separate manual diagnostic mode shares the full matrix concurrency lock, rejects simultaneous matrix input and retains raw executed trace commands. It neither relaxes native limits nor supplies acceptance repetitions. HTTP 503 snapshot failures receive three APT retries with the same signed snapshot, pins and hashes; persistent setup failure remains failure and supplies no native evidence. ADR-053's counted-IRQ0 rule is unchanged; elapsed-counter compensation requires an explicit normative decision and is not implemented.
+
+## K06 step 5f — ordinary canary CPU hint — 10 November 2026
+
+The complete mode19 canary-check path gains one PAUSE before its normal loop back-edge. Mode20 IPC, forced migration-Yield and legacy mode0 paths bypass it. PAUSE is a guest CPU hint; it neither blocks/yields the process nor increments the actual context-switch evidence. All 1000-switch, FPU, workload, clock and deadline checks remain.
+
+The specified TCG profiles may benefit from finer host-vCPU interleaving: QEMU 10.2.1 exits its CPU loop on PAUSE, while its ordinary round-robin kick timer is 100 ms. Infinite starvation is not established, and the five historical eight-vCPU watchdogs are not causally explained by source inspection alone. Host/crossbuild and real-ELF checks pass; native performance and MTTCG BQL overhead remain to be measured. The full 64×50 acceptance restarts on the new frozen source.

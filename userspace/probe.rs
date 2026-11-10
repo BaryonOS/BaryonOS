@@ -273,6 +273,9 @@ _start:
     // Only the migration fixture requests a yield after all canary checks.
     cmp qword ptr [r12 + 136], 0
     jne .Lyield
+    // A runnable CPU hint lets TCG rotate host vCPUs. It neither yields the
+    // guest process nor supplies any of the required real context switches.
+    pause
     jmp .Lloop
 .Lfpu_corrupt:
     int3
