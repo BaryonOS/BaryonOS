@@ -17,7 +17,7 @@ nieuw-os-catalog-client = { path = "../../sdk/catalog-client" }
 nieuw-os-sdk-runtime = { path = "../../sdk/runtime" }
 volume-core = { path = "../../services/volume" }
 zeroize = { version = "=1.9.1", default-features = false }
-noto-sans-mono-bitmap = { version = "=0.3.2", default-features = false, features = ["regular", "size_16", "size_32", "unicode-basic-latin", "unicode-latin-1-supplement", "unicode-specials"] }
+noto-sans-mono-bitmap = { version = "=0.4.0", default-features = false, features = ["regular", "size_16", "size_32", "unicode-basic-latin", "unicode-latin-1-supplement", "unicode-specials"] }
 
 [dev-dependencies]
 nieuw-os-window-session = { path = "../../sdk/examples/window-session" }
