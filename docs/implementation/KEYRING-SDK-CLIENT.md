@@ -153,7 +153,7 @@ LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-keyring-c
   python3 -B tools/dev.py cargo +1.90.0 clippy \
   --manifest-path sdk/keyring-client/Cargo.toml --locked --offline --all-targets -- -D warnings
 LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-keyring-client-target \
-  RUSTFLAGS='--cfg chacha20_force_soft --cfg poly1305_force_soft --cfg sha2_backend="soft"' \
+  RUSTFLAGS='--cfg chacha20_force_soft --cfg chacha20_backend="soft" --cfg poly1305_backend="soft" --cfg sha2_backend="soft"' \
   python3 -B tools/dev.py cargo +1.90.0 build \
   --manifest-path sdk/keyring-client/Cargo.toml --locked --offline \
   --release --target x86_64-unknown-none --lib

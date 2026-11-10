@@ -1613,7 +1613,7 @@ kwaliteit, TPM/hardwarebescherming, wachtwoordherstel, zijkanalen.
    terugval, geen testseed in het productpad. Latere reseeds doorlopen
    dezelfde tests; falen → `DEGRADED` en weigering.
 3. Alleen onderhouden, vastgepinde RustCrypto-crates met portable backends:
-   `chacha20poly1305` 0.10.1 (XChaCha20-Poly1305), `chacha20` 0.9.1,
+   `chacha20poly1305` 0.11.0 (XChaCha20-Poly1305), `chacha20` 0.9.1,
    `hkdf` 0.12.4, `sha2` 0.10.9, `zeroize` 1.8/1.9. De DRBG is de
    fast-key-erasure-constructie op de ChaCha20-keystream (Bernstein, 2017),
    geen eigen primitief. Dependencycontrole: licenties MIT/Apache-2.0,

@@ -3,8 +3,8 @@
 //! supply a trusted cold-boot rollback anchor.
 
 use chacha20poly1305::{
-    aead::{AeadInPlace, KeyInit},
-    Key, XChaCha20Poly1305, XNonce,
+    aead::{inout::InOutBuf, AeadInOut, KeyInit},
+    Tag, XChaCha20Poly1305, XNonce,
 };
 use hkdf::Hkdf;
 use keyring_core::{
@@ -689,38 +689,45 @@ fn persistent_empty_snapshot_still_binds_volume_and_master_lineage() {
 fn authenticated_fixture(
     blob: &[u8; PERSISTENT_BLOB],
     change: impl FnOnce(&mut [u8]),
-) -> [u8; PERSISTENT_BLOB] {
+) -> Result<[u8; PERSISTENT_BLOB], &'static str> {
     let hk = Hkdf::<Sha256>::new(Some(b"nieuw-os persistent key-state v1"), &SECRET);
     let mut wrap = [0u8; KEY_BYTES];
     hk.expand(b"wrap", &mut wrap).unwrap();
-    let cipher = XChaCha20Poly1305::new(Key::from_slice(&wrap));
+    let cipher = XChaCha20Poly1305::new((&wrap).into());
     let body = PERSISTENT_HEADER + NONCE_BYTES;
     let end = body + PERSISTENT_PLAIN;
     let mut plain = blob[body..end].to_vec();
+    let nonce: &XNonce = blob[PERSISTENT_HEADER..body]
+        .try_into()
+        .map_err(|_| "fixture nonce length changed")?;
+    let tag: &Tag = blob[end..]
+        .try_into()
+        .map_err(|_| "fixture tag length changed")?;
     cipher
-        .decrypt_in_place_detached(
-            XNonce::from_slice(&blob[PERSISTENT_HEADER..body]),
+        .decrypt_inout_detached(
+            nonce,
             &blob[..PERSISTENT_HEADER],
-            &mut plain,
-            chacha20poly1305::Tag::from_slice(&blob[end..]),
+            InOutBuf::from(plain.as_mut_slice()),
+            tag,
         )
-        .unwrap();
+        .map_err(|_| "fixture authentication failed")?;
     change(&mut plain);
     let tag = cipher
-        .encrypt_in_place_detached(
-            XNonce::from_slice(&blob[PERSISTENT_HEADER..body]),
+        .encrypt_inout_detached(
+            nonce,
             &blob[..PERSISTENT_HEADER],
-            &mut plain,
+            InOutBuf::from(plain.as_mut_slice()),
         )
-        .unwrap();
+        .map_err(|_| "fixture encryption failed")?;
     let mut changed = *blob;
     changed[body..end].copy_from_slice(&plain);
     changed[end..].copy_from_slice(&tag);
-    changed
+    Ok(changed)
 }
 
 #[test]
-fn authenticated_invalid_allocations_and_unallocated_revocations_fail_atomically() {
+fn authenticated_invalid_allocations_and_unallocated_revocations_fail_atomically(
+) -> Result<(), &'static str> {
     let (mut original, mut source) = ready(26);
     let (blob, _) = export(&mut original, &mut source);
     let (mut recipient, mut other) = ready(27);
@@ -730,7 +737,7 @@ fn authenticated_invalid_allocations_and_unallocated_revocations_fail_atomically
             let changed = authenticated_fixture(&blob, |plain| {
                 let offset = KEY_BYTES + 8 + domain * 4;
                 plain[offset..offset + 2].copy_from_slice(&created.to_le_bytes());
-            });
+            })?;
             assert_eq!(
                 recipient.restore_persistent(&VOLUME, &SECRET, &changed, 0, &mut other),
                 Err(Status::Invalid)
@@ -740,23 +747,24 @@ fn authenticated_invalid_allocations_and_unallocated_revocations_fail_atomically
         let changed = authenticated_fixture(&blob, |plain| {
             let offset = KEY_BYTES + 8 + domain * 4 + 2;
             plain[offset..offset + 2].copy_from_slice(&1u16.to_le_bytes());
-        });
+        })?;
         assert_eq!(
             recipient.restore_persistent(&VOLUME, &SECRET, &changed, 0, &mut other),
             Err(Status::Invalid)
         );
         assert_eq!(recipient.snapshot_info(), before);
     }
+    Ok(())
 }
 
 #[test]
-fn generation_overflow_never_partially_allocates_or_revokes() {
+fn generation_overflow_never_partially_allocates_or_revokes() -> Result<(), &'static str> {
     let (mut original, mut source) = ready(28);
     original.generate(0, &mut source).unwrap();
     let (blob, _) = export(&mut original, &mut source);
     let max = authenticated_fixture(&blob, |plain| {
         plain[KEY_BYTES..KEY_BYTES + 8].copy_from_slice(&u64::MAX.to_le_bytes())
-    });
+    })?;
     let (mut recipient, mut other) = ready(29);
     recipient
         .restore_persistent(&VOLUME, &SECRET, &max, 0, &mut other)
@@ -765,10 +773,11 @@ fn generation_overflow_never_partially_allocates_or_revokes() {
     assert_eq!(recipient.generate(0, &mut other), Err(Status::Quota));
     assert_eq!(recipient.revoke(0, 0), Err(Status::Quota));
     assert_eq!(recipient.snapshot_info(), before);
+    Ok(())
 }
 
 #[test]
-fn union_generation_overflow_does_not_commit_half_of_an_import() {
+fn union_generation_overflow_does_not_commit_half_of_an_import() -> Result<(), &'static str> {
     let (mut original, mut source) = ready(35);
     original.generate(0, &mut source).unwrap();
     original.generate(0, &mut source).unwrap();
@@ -781,14 +790,15 @@ fn union_generation_overflow_does_not_commit_half_of_an_import() {
     };
     let (mut recipient, mut other) = ready(36);
     recipient
-        .restore_persistent(&VOLUME, &SECRET, &fixture(1), 0, &mut other)
+        .restore_persistent(&VOLUME, &SECRET, &fixture(1)?, 0, &mut other)
         .unwrap();
     let before = recipient.snapshot_info();
     assert_eq!(
-        recipient.restore_persistent(&VOLUME, &SECRET, &fixture(2), 0, &mut other),
+        recipient.restore_persistent(&VOLUME, &SECRET, &fixture(2)?, 0, &mut other),
         Err(Status::Quota)
     );
     assert_eq!(recipient.snapshot_info(), before);
+    Ok(())
 }
 
 #[test]

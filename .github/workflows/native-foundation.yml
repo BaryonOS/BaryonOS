@@ -106,7 +106,7 @@ jobs:
             -C no-redzone=yes
             -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2
             --cfg chacha20_force_soft --cfg chacha20_backend="soft"
-            --cfg poly1305_force_soft --cfg sha2_backend="soft"
+            --cfg poly1305_backend="soft" --cfg sha2_backend="soft"
         run: |
           cargo +1.90.0 fmt --all -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/root-format.txt"
           cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/sdk-format.txt"
