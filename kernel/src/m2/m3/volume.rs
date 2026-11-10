@@ -133,6 +133,73 @@ fn runtime() -> &'static mut Runtime {
     unsafe { &mut *ptr::addr_of_mut!(RUNTIME) }
 }
 
+/// H05 power gate (ADR-076): storage durability exactly as this broker
+/// observes it. `dirty` = a WRITE was published after the last successful
+/// FLUSH; any failed or timed-out request keeps publications != completions.
+#[cfg(feature = "native-system-power")]
+struct PowerTrack {
+    dirty: bool,
+    injected: bool,
+    hold: bool,
+    io_error: bool,
+}
+#[cfg(feature = "native-system-power")]
+static mut POWER_TRACK: PowerTrack = PowerTrack {
+    dirty: false,
+    injected: false,
+    hold: false,
+    io_error: false,
+};
+#[cfg(feature = "native-system-power")]
+fn power_track() -> &'static mut PowerTrack {
+    // SAFETY: Same single-CPU IF0 discipline as `runtime`; borrows end per call.
+    unsafe { &mut *ptr::addr_of_mut!(POWER_TRACK) }
+}
+/// 1 = completion I/O error, 2 = timeout, on the first FLUSH published after
+/// init's first power request (i.e. init's SHUTDOWN flush); never earlier.
+#[cfg(feature = "native-system-power")]
+const POWER_FAULT: u8 = if cfg!(feature = "test-system-power-flush-error") {
+    1
+} else if cfg!(feature = "test-system-power-flush-timeout") {
+    2
+} else {
+    0
+};
+#[cfg(feature = "native-system-power")]
+fn power_published(op: Operation) -> bool {
+    let t = power_track();
+    if matches!(op, Operation::Write { .. }) {
+        t.dirty = true;
+    }
+    if POWER_FAULT == 0 || op != Operation::Flush || t.injected || !super::system::power_requested()
+    {
+        return false;
+    }
+    t.injected = true;
+    t.io_error = POWER_FAULT == 1;
+    t.hold = POWER_FAULT == 2;
+    serial::write(if t.io_error {
+        b"SYSTEM:FAULT_INJECTED:FLUSH_ERROR\n"
+    } else {
+        b"SYSTEM:FAULT_INJECTED:FLUSH_TIMEOUT\n"
+    });
+    t.hold
+}
+/// Ok only when nothing is in flight and every published block request
+/// completed successfully, ending with a FLUSH: -8 retry later, -16 never this boot.
+#[cfg(feature = "native-system-power")]
+pub(super) fn power_gate() -> Result<(), i64> {
+    let r = runtime();
+    if r.resetting || r.policy.phase() == Phase::Published {
+        return Err(-8);
+    }
+    if r.offline != 0 || r.error.is_some() || power_track().dirty || r.publications != r.completions
+    {
+        return Err(-16);
+    }
+    Ok(())
+}
+
 fn case() -> u64 {
     if cfg!(feature = "test-volume-recover") {
         1
@@ -564,7 +631,15 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         return Err(err(error));
     }
     r.policy.publish(request.epoch, request.ticket).unwrap();
-    r.device.as_mut().unwrap().publish_prepared(false).unwrap();
+    #[cfg(feature = "native-system-power")]
+    let suppress = power_published(op);
+    #[cfg(not(feature = "native-system-power"))]
+    let suppress = false;
+    r.device
+        .as_mut()
+        .unwrap()
+        .publish_prepared(suppress)
+        .unwrap();
     r.publications[operation_index(op)] += 1;
     r.published_at = s.ticks;
     Ok(request.ticket)
@@ -646,10 +721,28 @@ fn advance(s: &State) {
             -13
         };
         r.error = Some((request, code));
+        #[cfg(feature = "native-system-power")]
+        {
+            power_track().hold = false;
+        }
         reset(r, now);
         return;
     }
-    let completion = r.device.as_mut().unwrap().poll(0);
+    // The timeout fixture also withholds observation until the real deadline.
+    #[cfg(feature = "native-system-power")]
+    if power_track().hold {
+        return;
+    }
+    #[cfg(feature = "native-system-power")]
+    let injection = if power_track().io_error { 10 } else { 0 };
+    #[cfg(not(feature = "native-system-power"))]
+    let injection = 0;
+    let completion = r.device.as_mut().unwrap().poll(injection);
+    // The injection applies only to an observed used-ring advance.
+    #[cfg(feature = "native-system-power")]
+    if !matches!(&completion, Ok(None)) {
+        power_track().io_error = false;
+    }
     // Err also follows an observed used-ring advance (malformed completion).
     // Only Ok(None) means that no completion arrived.
     if !matches!(&completion, Ok(None)) {
@@ -661,6 +754,10 @@ fn advance(s: &State) {
         Ok(Some((data, Completion::Success))) => {
             r.data = data;
             r.completions[operation_index(request.operation)] += 1;
+            #[cfg(feature = "native-system-power")]
+            if request.operation == Operation::Flush {
+                power_track().dirty = false;
+            }
             r.policy
                 .complete(request.epoch, request.ticket, Completion::Success)
                 .unwrap();

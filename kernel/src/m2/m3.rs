@@ -1627,6 +1627,8 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             || cfg!(feature = "native-window-session") && number == 0x53;
         #[cfg(feature = "native-system-clock")]
         let supervisor_call = supervisor_call || number == 0x73;
+        #[cfg(feature = "native-system-power")]
+        let supervisor_call = supervisor_call || number == 0x90;
         #[cfg(not(any(feature = "native-supervisor", feature = "native-keyring")))]
         #[allow(unused_variables)]
         let supervisor_call = false;
@@ -1659,6 +1661,30 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
             };
             state.processes[current].context[14] = rax as u64;
             state.processes[current].context[12] = rdx;
+        }
+        #[cfg(feature = "native-system-power")]
+        if number == 0x90 {
+            match system::power(state, current, args) {
+                // Granted: the caller ends exactly like exit(0); S5 follows in
+                // system::finish once all evidence is in and the gate still holds.
+                0 => {
+                    state.last_event = EventRecord {
+                        pid: state.processes[current].pid,
+                        code: 0,
+                        vector: 128,
+                        rip: context[17],
+                        cr2: 0,
+                    };
+                    terminate = true;
+                    state.exited = true;
+                    let counter = read_word(state.processes[current].physical(DATA + 8));
+                    state.observer_exit(current, counter);
+                }
+                code => {
+                    state.processes[current].context[14] = code as u64;
+                    state.processes[current].context[12] = 0;
+                }
+            }
         }
         #[cfg(feature = "native-keyring")]
         if matches!(number, 0x60 | 0x61) {

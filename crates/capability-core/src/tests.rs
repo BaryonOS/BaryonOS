@@ -916,11 +916,26 @@ fn k05_rights_constants_and_known_mask() {
     assert_eq!(NETWORK, 2048);
     assert_eq!(DISPLAY, 4096);
     assert_eq!(INPUT, 8192);
-    assert_eq!(KNOWN_RIGHTS, 16383);
+    assert_eq!(POWER, 16384);
+    assert_eq!(KNOWN_RIGHTS, 32767);
+    assert_eq!(POWER_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(NETWORK_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(ENTROPY_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(LAUNCH_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
     assert_eq!(PROCESS_RIGHTS & (DERIVE | TRANSFER | REVOKE), 0);
+}
+
+#[test]
+fn console_source_rejects_unknown_selector_without_mutation() {
+    run(|e| {
+        setup(e, 1);
+        for selector in [POWER | TRANSFER, 1 << 63, u64::MAX] {
+            assert_atomic(e, Error::Invalid, |e| e.create_console_source(1, selector));
+        }
+        let power = e.create_power(1).unwrap();
+        assert!(e.check_power(1, power).is_ok());
+        assert_eq!(e.stats().power_objects, 1);
+    });
 }
 
 #[test]
@@ -1493,14 +1508,15 @@ fn process_usage_is_read_only_scoped_and_accounts_owned_capability_resources() {
         e.create_network(1).unwrap();
         e.create_display(1).unwrap();
         e.create_input(1).unwrap();
+        e.create_power(1).unwrap();
         let before = e.clone();
         let usage = e.process_usage(1).unwrap();
         assert_eq!(
             usage,
             ProcessUsage {
                 pid: 1,
-                handles: 8,
-                authority_nodes_issued: 8,
+                handles: 9,
+                authority_nodes_issued: 9,
                 endpoints: 1,
                 block_objects: 1,
                 launch_objects: 1,
@@ -1509,7 +1525,8 @@ fn process_usage_is_read_only_scoped_and_accounts_owned_capability_resources() {
                 network_objects: 1,
                 display_objects: 1,
                 input_objects: 1,
-                available_handle_slots: MAX_SLOTS - 1 - 8,
+                power_objects: 1,
+                available_handle_slots: MAX_SLOTS - 1 - 9,
                 remaining_owned_endpoint_quota: MAX_OWNED_ENDPOINTS - 1,
                 ..ProcessUsage::default()
             }
@@ -1628,5 +1645,91 @@ fn endpoint_object_identifies_shared_endpoints_without_granting_anything() {
         let before = e.clone();
         assert_eq!(e.endpoint_object(2, send).unwrap(), object);
         assert!(*e == before);
+    });
+}
+
+#[test]
+fn power_is_sole_typed_manifest_authority() {
+    run(|e| {
+        setup(e, 2);
+        let power = e.create_power(1).unwrap();
+        let key = e.check_power(1, power).unwrap();
+        assert_eq!(e.stats().power_objects, 1);
+        assert_atomic(e, Error::Quota, |e| e.create_power(2));
+        assert_atomic(e, Error::BadHandle, |e| e.check_power(2, power));
+        assert_atomic(e, Error::BadHandle, |e| e.check_power(1, power ^ 1 << 32));
+        assert_atomic(e, Error::Type, |e| e.check_input(1, power));
+        assert_atomic(e, Error::Type, |e| e.check_display(1, power));
+        assert_atomic(e, Error::Type, |e| e.check_entropy(1, power));
+        assert_atomic(e, Error::Type, |e| e.check_network(1, power));
+        assert_atomic(e, Error::Type, |e| e.check_endpoint(1, power, SEND));
+        assert_atomic(e, Error::Type, |e| e.check_block(1, power, BLOCK_READ));
+        assert_atomic(e, Error::Type, |e| e.check_launch(1, power));
+        assert_atomic(e, Error::Type, |e| e.check_process(1, power, OBSERVE));
+        let display = e.create_display(1).unwrap();
+        let input = e.create_input(1).unwrap();
+        let entropy = e.create_entropy(1).unwrap();
+        let network = e.create_network(1).unwrap();
+        let endpoint = e.create_endpoint(1).unwrap();
+        for other in [display, input, entropy, network, endpoint] {
+            assert_atomic(e, Error::Type, |e| e.check_power(1, other));
+        }
+        assert_eq!(e.check_power(1, power), Ok(key));
+    });
+}
+
+#[test]
+fn power_cannot_derive_delegate_transfer_or_revoke() {
+    run(|e| {
+        setup(e, 2);
+        let power = e.create_power(1).unwrap();
+        let (_, send) = destination(e);
+        for rights in [POWER, POWER | DERIVE, POWER | TRANSFER, ALL_RIGHTS] {
+            assert_atomic(e, Error::Invalid, |e| e.derive(1, power, rights));
+            assert_atomic(e, Error::Invalid, |e| {
+                e.bootstrap_delegate(1, power, 2, rights)
+            });
+            assert_atomic(e, Error::Invalid, |e| e.check_delegation(1, power, rights));
+            assert_atomic(e, Error::Invalid, |e| {
+                e.send(1, send, &cap_message(power, rights))
+            });
+        }
+        assert_atomic(e, Error::Invalid, |e| e.revoke(1, power));
+    });
+}
+
+#[test]
+fn power_close_and_exit_reclaim_without_restoring_stale_handle() {
+    run(|e| {
+        setup(e, 2);
+        let power = e.create_power(1).unwrap();
+        let key = e.check_power(1, power).unwrap();
+        e.close(1, power).unwrap();
+        assert_atomic(e, Error::BadHandle, |e| e.check_power(1, power));
+        assert_eq!(e.stats().power_objects, 0);
+        let again = e.create_power(2).unwrap();
+        let second = e.check_power(2, again).unwrap();
+        assert_ne!(key, second);
+        e.exit(2).unwrap();
+        assert_atomic(e, Error::BadHandle, |e| e.check_power(2, again));
+        assert_eq!(e.stats().power_objects, 0);
+        assert_eq!(e.stats().nodes, 0);
+        let third = e.create_power(1).unwrap();
+        assert_ne!(second, e.check_power(1, third).unwrap());
+        assert!(e.check_invariants());
+    });
+}
+
+#[test]
+fn power_generation_exhaustion_retires_sole_object_without_wrap() {
+    run(|e| {
+        setup(e, 2);
+        e.power[0].generation = u32::MAX;
+        let power = e.create_power(1).unwrap();
+        e.exit(1).unwrap();
+        assert!(e.power[0].retired);
+        assert_eq!(e.stats().retired_power_objects, 1);
+        assert_atomic(e, Error::Quota, |e| e.create_power(2));
+        assert_atomic(e, Error::BadHandle, |e| e.check_power(1, power));
     });
 }

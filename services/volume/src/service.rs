@@ -307,6 +307,7 @@ impl Service {
                 wire::COLLECTION_STAT => Ok(self.collection_stat(domain, &request)),
                 wire::TRANSACT => self.transact(domain, &request, body, disk),
                 wire::COLLECTION => self.collection(domain, &request, body, disk),
+                wire::SHUTDOWN => self.shutdown(&request, disk),
                 _ => self.object_operation(domain, &request, body, disk),
             }
         };
@@ -503,6 +504,23 @@ impl Service {
         self.sessions[domain] = None;
         self.counters.aborted_sessions += 1;
         Ok(reply(request, self.epoch, request.revision, 0, 0, &[]))
+    }
+
+    /// Staged uploads were never ACKed, so dropping them loses nothing durable.
+    fn shutdown(&mut self, request: &Header, disk: &mut impl Disk) -> Outcome {
+        for staged in &mut self.sessions {
+            if staged.take().is_some() {
+                self.counters.aborted_sessions += 1;
+            }
+        }
+        if disk.flush().is_err() {
+            // The barrier's outcome is unknowable; never claim durability.
+            self.uncertain = true;
+            return Err((Status::Unknown, 0));
+        }
+        self.counters.flushes += 1;
+        self.read_only = true;
+        Ok(reply(request, self.epoch, 0, 0, 0, &[]))
     }
 
     fn commit(&mut self, domain: usize, request: &Header, disk: &mut impl Disk) -> Outcome {

@@ -8,19 +8,19 @@ measurement protocol are in [CAP-DIAGNOSTIC-DIGEST.md](CAP-DIAGNOSTIC-DIGEST.md)
 the choice below supersedes the earlier temporary selection of the zero-run variant.
 
 The production hash once again processes every typed word with the same
-`h = (h XOR woord) * 0x100000001b3 modulo 2^64`, starting from
+`h = (h XOR word) * 0x100000001b3 modulo 2^64`, starting from
 `0xcbf29ce484222325`. Each message is serialised to all 320 bytes with the
 existing `Message::encode()` and processed as 40 little-endian words.
 All fields, generations, invalid logical states, unused queues, unused
 capabilities and payload bytes beyond `len` continue to participate.
 Compiler padding was not part of this typed stream and is still not read.
-The fixed stream contains **74,569 words**. The historical contract incorrectly
+The fixed stream contains **74,575 words**. The historical contract incorrectly
 summed this formula to 74,669; this corrects that documentation error without
 removing any field or operation from the stream:
 
 ```text
 1 + 16*(2 + 256*4) + 1024*12 + 64*(8 + 16*44)
-  + 4*9 + 8*7 + 16*9 + 10*6 = 74569
+  + 4*9 + 8*7 + 16*9 + 11*6 = 74575
 ```
 
 No cache, dirty flag, partial hash, live-field selection, expansion of rights,
@@ -59,6 +59,17 @@ SHA256 8b3619dd4c33c652eb59ef338b68bd64b4f80984acf05d36c82dcbf7d0ad6b3f
 kernel SHA256 27c787f021e1e81050b80821907efc2b9fbe7bbf3545caa91961b59fba71eca2
 serial SHA256 d6a61a5c557d1e78614d373fba4773a0fcf84d828edd4348cbdc9dfcd56e7145
 ```
+
+The current H05 replay based on
+`1864c283a8fe0e732044e361981b9c01d342e00b` exercised the newer four-process
+manifest with 25 handles, 35 nodes and 11 endpoints. All three implementations
+produced `0x77cd1386b23a996b`; raw QEMU exit was 33, guest duration was
+4.490098334 seconds and the disposable disk hash remained
+`49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266`.
+The result is bound to source fingerprint v3
+`2859165807d303b8dbe2f977899b96700c7eccbc8bc2348f055fe5aed8d37394`
+and stored locally in `build/pr218-final-cap-bench/cap-bench-report.json`.
+It does not replace physical-hardware evidence.
 
 These **unserialised RDTSC** differences are coarse TCG batch diagnostics,
 including loop, function-pointer, black_box and parity-calculation work.

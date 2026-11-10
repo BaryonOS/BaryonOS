@@ -42,6 +42,9 @@ pub const DISPLAY_RIGHTS: u64 = DISPLAY;
 /// Sole manifest-only PS/2 hardware source; no arbitrary port-I/O interface.
 pub const INPUT: u64 = 8192;
 pub const INPUT_RIGHTS: u64 = INPUT;
+/// Sole manifest-only system power request authority (init); no delegation.
+pub const POWER: u64 = 16384;
+pub const POWER_RIGHTS: u64 = POWER;
 pub const KNOWN_RIGHTS: u64 = ALL_RIGHTS
     | BLOCK_RIGHTS
     | LAUNCH_RIGHTS
@@ -49,7 +52,8 @@ pub const KNOWN_RIGHTS: u64 = ALL_RIGHTS
     | ENTROPY_RIGHTS
     | NETWORK_RIGHTS
     | DISPLAY_RIGHTS
-    | INPUT_RIGHTS;
+    | INPUT_RIGHTS
+    | POWER_RIGHTS;
 pub const MAX_LAUNCH_OBJECTS: usize = 8;
 pub const MAX_PROCESS_OBJECTS: usize = MAX_PROCESSES;
 pub const MAX_ENTROPY_OBJECTS: usize = 4;
@@ -60,9 +64,11 @@ const ENTROPY_BASE: usize = PROCESS_BASE + MAX_PROCESS_OBJECTS;
 const NETWORK_BASE: usize = ENTROPY_BASE + MAX_ENTROPY_OBJECTS;
 pub const MAX_DISPLAY_OBJECTS: usize = 1;
 pub const MAX_INPUT_OBJECTS: usize = 1;
+pub const MAX_POWER_OBJECTS: usize = 1;
 const DISPLAY_BASE: usize = NETWORK_BASE + MAX_NETWORK_OBJECTS;
 const INPUT_BASE: usize = DISPLAY_BASE + MAX_DISPLAY_OBJECTS;
-const OBJECT_COUNT: usize = INPUT_BASE + MAX_INPUT_OBJECTS;
+const POWER_BASE: usize = INPUT_BASE + MAX_INPUT_OBJECTS;
+const OBJECT_COUNT: usize = POWER_BASE + MAX_POWER_OBJECTS;
 /// Lifecycle state of a spawned child as reported through `OBSERVE`.
 pub const PROCESS_RUNNING: u8 = 1;
 pub const PROCESS_EXITED: u8 = 2;
@@ -607,6 +613,8 @@ pub struct Stats {
     pub input_objects: usize,
     pub available_input_objects: usize,
     pub retired_input_objects: usize,
+    pub power_objects: usize,
+    pub retired_power_objects: usize,
     pub state_digest: u64,
 }
 
@@ -629,6 +637,7 @@ pub struct ProcessUsage {
     pub network_objects: usize,
     pub display_objects: usize,
     pub input_objects: usize,
+    pub power_objects: usize,
     pub available_handle_slots: usize,
     pub remaining_owned_endpoint_quota: usize,
 }
@@ -645,6 +654,7 @@ pub struct Engine {
     network: [EntropyObject; MAX_NETWORK_OBJECTS],
     display: [EntropyObject; MAX_DISPLAY_OBJECTS],
     input: [EntropyObject; MAX_INPUT_OBJECTS],
+    power: [EntropyObject; MAX_POWER_OBJECTS],
     last_pid: u64,
 }
 /// Caller-owned comparison storage. Never used as an authority engine or
@@ -740,6 +750,7 @@ impl Engine {
             network,
             display,
             input,
+            power,
             last_pid,
         } = self;
         let out = &mut destination.state;
@@ -753,6 +764,7 @@ impl Engine {
         out.network.copy_from_slice(network);
         out.display.copy_from_slice(display);
         out.input.copy_from_slice(input);
+        out.power.copy_from_slice(power);
         out.last_pid = *last_pid;
     }
     /// Use directly in a static initializer in the kernel, not as a stack local.
@@ -768,6 +780,7 @@ impl Engine {
             network: [EntropyObject::EMPTY; MAX_NETWORK_OBJECTS],
             display: [EntropyObject::EMPTY; MAX_DISPLAY_OBJECTS],
             input: [EntropyObject::EMPTY; MAX_INPUT_OBJECTS],
+            power: [EntropyObject::EMPTY; MAX_POWER_OBJECTS],
             last_pid: 0,
         }
     }
@@ -853,22 +866,29 @@ impl Engine {
         let object = self.nodes[node].object;
         Ok(u64::from(object.index) | u64::from(object.generation) << 32)
     }
-    /// Manifest-only display/input creation; neither type knows DERIVE,
-    /// TRANSFER or REVOKE. One live object per physical source globally.
+    /// Manifest-only display/input/power creation; none of these types knows
+    /// DERIVE, TRANSFER or REVOKE. One live object per source globally.
     pub fn create_display(&mut self, owner: u64) -> Result<u64, Error> {
-        self.create_console_source(owner, true)
+        self.create_console_source(owner, DISPLAY)
     }
     pub fn create_input(&mut self, owner: u64) -> Result<u64, Error> {
-        self.create_console_source(owner, false)
+        self.create_console_source(owner, INPUT)
     }
-    fn create_console_source(&mut self, owner: u64, display: bool) -> Result<u64, Error> {
+    pub fn create_power(&mut self, owner: u64) -> Result<u64, Error> {
+        self.create_console_source(owner, POWER)
+    }
+    fn create_console_source(&mut self, owner: u64, rights: u64) -> Result<u64, Error> {
+        if rights != DISPLAY && rights != INPUT && rights != POWER {
+            return Err(Error::Invalid);
+        }
         let p = self.process(owner)?;
         let slot = self.slots(p, 1)?[0];
         let node = self.free_nodes(1)?[0];
-        let (objects, base, rights) = if display {
-            (self.display.as_mut_slice(), DISPLAY_BASE, DISPLAY_RIGHTS)
-        } else {
-            (self.input.as_mut_slice(), INPUT_BASE, INPUT_RIGHTS)
+        let (objects, base) = match rights {
+            DISPLAY => (self.display.as_mut_slice(), DISPLAY_BASE),
+            INPUT => (self.input.as_mut_slice(), INPUT_BASE),
+            POWER => (self.power.as_mut_slice(), POWER_BASE),
+            _ => unreachable!("console-source selector was validated"),
         };
         let object = objects
             .iter()
@@ -899,7 +919,11 @@ impl Engine {
         self.check_console_source(pid, handle, DISPLAY_BASE..INPUT_BASE, DISPLAY)
     }
     pub fn check_input(&self, pid: u64, handle: u64) -> Result<u64, Error> {
-        self.check_console_source(pid, handle, INPUT_BASE..OBJECT_COUNT, INPUT)
+        self.check_console_source(pid, handle, INPUT_BASE..POWER_BASE, INPUT)
+    }
+    /// Returns the object key; the caller still decides whether S5 may happen.
+    pub fn check_power(&self, pid: u64, handle: u64) -> Result<u64, Error> {
+        self.check_console_source(pid, handle, POWER_BASE..OBJECT_COUNT, POWER)
     }
     fn check_console_source(
         &self,
@@ -1579,6 +1603,7 @@ impl Engine {
             .chain(self.network.iter_mut())
             .chain(self.display.iter_mut())
             .chain(self.input.iter_mut())
+            .chain(self.power.iter_mut())
         {
             if e.live && e.owner == pid {
                 e.open = false;
@@ -1704,8 +1729,11 @@ impl Engine {
         } else if i < INPUT_BASE {
             let n = self.display[i - DISPLAY_BASE];
             n.live && n.generation == id.generation
-        } else if i < OBJECT_COUNT {
+        } else if i < POWER_BASE {
             let n = self.input[i - INPUT_BASE];
+            n.live && n.generation == id.generation
+        } else if i < OBJECT_COUNT {
+            let n = self.power[i - POWER_BASE];
             n.live && n.generation == id.generation
         } else {
             false
@@ -1727,8 +1755,10 @@ impl Engine {
             self.network[i - NETWORK_BASE].open
         } else if i < INPUT_BASE {
             self.display[i - DISPLAY_BASE].open
-        } else {
+        } else if i < POWER_BASE {
             self.input[i - INPUT_BASE].open
+        } else {
+            self.power[i - POWER_BASE].open
         }
     }
     fn allowed_rights(&self, id: Id) -> u64 {
@@ -1747,8 +1777,10 @@ impl Engine {
             NETWORK_RIGHTS
         } else if i < INPUT_BASE {
             DISPLAY_RIGHTS
-        } else {
+        } else if i < POWER_BASE {
             INPUT_RIGHTS
+        } else {
+            POWER_RIGHTS
         }
     }
     fn object_refs(&mut self, id: Id) -> &mut u32 {
@@ -1767,8 +1799,10 @@ impl Engine {
             &mut self.network[i - NETWORK_BASE].nodes
         } else if i < INPUT_BASE {
             &mut self.display[i - DISPLAY_BASE].nodes
-        } else {
+        } else if i < POWER_BASE {
             &mut self.input[i - INPUT_BASE].nodes
+        } else {
+            &mut self.power[i - POWER_BASE].nodes
         }
     }
     fn attach(&mut self, p: usize, s: usize, node: Id) -> u64 {
@@ -1950,6 +1984,7 @@ impl Engine {
             .chain(self.network.iter_mut())
             .chain(self.display.iter_mut())
             .chain(self.input.iter_mut())
+            .chain(self.power.iter_mut())
         {
             if e.live && e.nodes == 0 {
                 let (generation, retired) = advance(e.generation);
@@ -2000,6 +2035,8 @@ impl Engine {
             input_objects: 0,
             available_input_objects: 0,
             retired_input_objects: 0,
+            power_objects: 0,
+            retired_power_objects: 0,
             state_digest: self.state_digest(),
         };
         for p in &self.processes {
@@ -2062,6 +2099,10 @@ impl Engine {
             s.input_objects += usize::from(e.live);
             s.retired_input_objects += usize::from(e.retired);
             s.available_input_objects += usize::from(!e.live && !e.retired);
+        }
+        for e in &self.power {
+            s.power_objects += usize::from(e.live);
+            s.retired_power_objects += usize::from(e.retired);
         }
         s
     }
@@ -2134,6 +2175,11 @@ impl Engine {
             .count();
         usage.input_objects = self
             .input
+            .iter()
+            .filter(|object| object.live && object.owner == pid)
+            .count();
+        usage.power_objects = self
+            .power
             .iter()
             .filter(|object| object.live && object.owner == pid)
             .count();
@@ -2251,6 +2297,7 @@ impl Engine {
             .chain(self.network.iter())
             .chain(self.display.iter())
             .chain(self.input.iter())
+            .chain(self.power.iter())
         {
             for x in [
                 u64::from(e.generation),
@@ -2375,6 +2422,7 @@ impl Engine {
             .chain(self.network.iter())
             .chain(self.display.iter())
             .chain(self.input.iter())
+            .chain(self.power.iter())
         {
             for x in [
                 u64::from(e.generation),
@@ -2505,6 +2553,7 @@ impl Engine {
             .chain(self.network.iter())
             .chain(self.display.iter())
             .chain(self.input.iter())
+            .chain(self.power.iter())
         {
             for x in [
                 u64::from(e.generation),
@@ -2629,6 +2678,7 @@ impl Engine {
             .chain(self.network.iter())
             .chain(self.display.iter())
             .chain(self.input.iter())
+            .chain(self.power.iter())
         {
             for x in [
                 u64::from(e.generation),
@@ -2853,6 +2903,7 @@ impl Engine {
             (NETWORK_BASE, self.network.as_slice()),
             (DISPLAY_BASE, self.display.as_slice()),
             (INPUT_BASE, self.input.as_slice()),
+            (POWER_BASE, self.power.as_slice()),
         ] {
             for (i, e) in device.iter().enumerate() {
                 if e.generation == 0
@@ -3194,7 +3245,7 @@ mod digest_differential {
             assert_eq!(stats.handles, 21);
             assert_eq!(stats.nodes, 29);
             assert_eq!(stats.endpoints, 9);
-            assert_eq!(stats.state_digest, 0x31b7de1c7a15245b);
+            assert_eq!(stats.state_digest, 0x7c9f3ce6138cb40a);
             same(&e);
             assert_eq!(e.stats(), stats);
             assert_eq!(e, before);
@@ -3362,6 +3413,7 @@ mod digest_differential {
             let network = e.create_network(5).unwrap();
             let display = e.create_display(6).unwrap();
             let input = e.create_input(7).unwrap();
+            let power = e.create_power(1).unwrap();
             let launch = e.create_launch(1, 3).unwrap();
             let process = e.create_process(1, 7).unwrap();
             same(&e);
@@ -3377,6 +3429,7 @@ mod digest_differential {
                 (5, network),
                 (6, display),
                 (7, input),
+                (1, power),
                 (1, launch),
                 (1, process),
             ] {
@@ -3484,6 +3537,7 @@ mod digest_differential {
                     .chain(e.network.iter_mut())
                     .chain(e.display.iter_mut())
                     .chain(e.input.iter_mut())
+                    .chain(e.power.iter_mut())
                 {
                     x.generation = random(&mut seed) as u32;
                     x.live = bit(&mut seed);
@@ -3559,6 +3613,7 @@ mod digest_differential {
                 .chain(e.network.iter_mut())
                 .chain(e.display.iter_mut())
                 .chain(e.input.iter_mut())
+                .chain(e.power.iter_mut())
             {
                 x.generation = 0;
             }
@@ -3575,7 +3630,7 @@ mod digest_differential {
                 }
             }
             let snapshot = e.clone();
-            for set in 0..18 {
+            for set in 0..19 {
                 e = snapshot.clone();
                 match set {
                     0 => e.processes[15].slots[255].generation = u32::MAX,
@@ -3595,7 +3650,8 @@ mod digest_differential {
                     14 => e.children[15].state = u8::MAX,
                     15 => e.entropy[3].owner = u64::MAX,
                     16 => e.display[0].retired = true,
-                    _ => e.input[0].nodes = u32::MAX,
+                    17 => e.input[0].nodes = u32::MAX,
+                    _ => e.power[0].owner = u64::MAX,
                 };
                 same(&e);
                 assert_ne!(e.state_digest(), baseline);

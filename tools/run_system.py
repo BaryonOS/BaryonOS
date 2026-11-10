@@ -22,6 +22,12 @@ from run_volume import execute
 import volume_disk
 
 FEATURE = {"normal": "native-system", "recover": "test-system-recover"}
+# H05 (ADR-076): power cases run the normal flow, then init's POWER_OFF. They
+# stay out of FEATURE, which capture/gate drivers iterate as the FR-I01 cases.
+POWER_FEATURE = {"power": "native-system-power", "power-flush-error": "test-system-power-flush-error",
+                 "power-flush-timeout": "test-system-power-flush-timeout"}
+POWER_CASES = tuple(POWER_FEATURE)
+S5_TAIL = ("POWER:S5:PM1A=0x0604:SLP_TYP=0:SCI_EN=1", "POWER:S5:WRITE")
 # B02 persistence objects: the app's sealed record (domain 0) and init's
 # encrypted key-state snapshot (domain 1). Both are ciphertext, never fixtures.
 SEALED_OBJECT, SEALED_LENGTH, SEALED_NAME = 1, 168, "verzegeld"
@@ -111,7 +117,13 @@ def check_parent(previous: dict, frozen: str, image_sha256: str, *, network: boo
     if tcp and not network:
         raise ValueError("TCP recovery requires the native network profile")
     parent_feature = TCP_FEATURE["normal"] if tcp else ("native-system-net" if network else FEATURE["normal"])
-    if not (previous.get("case") == "normal" and previous.get("passed") is True
+    # A powered-off (or power-refused) image must recover exactly like a normal one.
+    parent_case = previous.get("case")
+    if not network and parent_case in POWER_CASES:
+        parent_feature = POWER_FEATURE[parent_case]
+    else:
+        parent_case = "normal" if parent_case == "normal" else None
+    if not (parent_case is not None and previous.get("passed") is True
             and previous.get("kernel_feature") == parent_feature
             and previous.get("source_sha256") == frozen
             and previous.get("after_sha256") == image_sha256):
@@ -125,10 +137,31 @@ def check_parent(previous: dict, frozen: str, image_sha256: str, *, network: boo
 
 
 def expected_markers(case: str) -> tuple[str, ...]:
-    if case not in FEATURE:
+    if case not in FEATURE and case not in POWER_FEATURE:
         raise ValueError("unknown system case")
     return BOOT + ("SYSTEM:MANIFEST:PASS", "SYSTEM:BROKERS:PASS",
-                   "SYSTEM:CLEANUP:PASS", f"SYSTEM:CASE:{case.upper()}:PASS", "M1:PASS")
+                   "SYSTEM:CLEANUP:PASS", f"SYSTEM:CASE:{case.upper().replace('-', '_')}:PASS", "M1:PASS")
+
+
+def check_power(case: str, stdout: str, found: dict) -> None:
+    """Exact S5 tail after M1:PASS, or a refusal without any PM1 write."""
+    lines = stdout.splitlines()
+    if case == "power":
+        if tuple(lines[-3:]) != ("M1:PASS", *S5_TAIL) or "SYSTEM:POWER:GATE:PASS" not in lines:
+            raise ValueError("power case did not end with the gated S5 write")
+        expected = {"POWER_INIT_REFUSALS": 3, "POWER_APP_REFUSALS": 2, "POWER_NOT_DURABLE": 0}
+    else:
+        fault = "FLUSH_ERROR" if case == "power-flush-error" else "FLUSH_TIMEOUT"
+        if (any(line.startswith("POWER:") for line in lines)
+                or lines.count(f"SYSTEM:FAULT_INJECTED:{fault}") != 1
+                or "SYSTEM:POWER:REFUSED:NOT_DURABLE" not in lines):
+            raise ValueError("refused power case wrote PM1 or lacks its fault/refusal marker")
+        expected = {"POWER_APP_REFUSALS": 2, "POWER_NOT_DURABLE": 1}
+        if found.get("POWER_INIT_REFUSALS", 0) < 4:
+            raise ValueError("refused power case lacks the final -16 refusal")
+    for key, value in expected.items():
+        if found.get(key) != value:
+            raise ValueError(f"{key}: expected {value}, found {found.get(key)}")
 
 
 def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict[str, int]:
@@ -139,7 +172,8 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
                                    "SYSTEM:CLEANUP:", "SYSTEM:CASE:"))]
     if controlled != list(expected):
         raise ValueError(f"system marker sequence mismatch: {controlled}")
-    if timed_out or raw_exit != 33:
+    # Only a guest poweroff exits 0: the power runs override -no-reboot.
+    if timed_out or raw_exit != (0 if case == "power" else 33):
         raise ValueError(f"raw exit {raw_exit}, timed_out {timed_out}")
     if any("PANIC" in line or "FAIL" in line for line in stdout.splitlines()):
         raise ValueError("guest failure marker")
@@ -159,7 +193,7 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
              "LIVE_PROCESSES_AFTER": 0, "FRAMES_RECOVERED": 1,
              "RECORD_SEAL": 1, "RECORD_UNSEAL": 1,
              "RECORD_CONTEXT_DENIED": 10, "RECORD_REVOKED_DENIED": 2,
-             **PERSIST_EXACT[case]}
+             **PERSIST_EXACT["recover" if case == "recover" else "normal"]}
     minimum = {"APP_DENIED": 3, "DISK_READS": 1, "ENTROPY_BYTES": 256,
                "CRYPTO_SEAL": 1, "CRYPTO_UNSEAL": 1, "CRYPTO_TAMPER_DENIED": 1}
     for key, value in exact.items():
@@ -168,13 +202,16 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     for key, value in minimum.items():
         if found.get(key, -1) < value:
             raise ValueError(f"{key}: expected at least {value}, found {found.get(key)}")
-    if case == "normal" and found.get("DISK_WRITES", 0) < 1:
-        raise ValueError("normal guest did not write")
+    if case != "recover" and found.get("DISK_WRITES", 0) < 1:
+        raise ValueError("non-recovery guest did not write")
     if case == "recover" and found.get("DISK_WRITES") != 0:
         raise ValueError("recovery guest attempted a write")
-    if (case == "normal" and found.get("DISK_FLUSHES", 0) < 2 or
-            case == "recover" and found.get("DISK_FLUSHES") != 0):
+    # Power cases add init's SHUTDOWN flush (refused cases: published, never completed).
+    if ((case != "recover" and found.get("DISK_FLUSHES", 0) < (4 if case in POWER_CASES else 2)) or
+            (case == "recover" and found.get("DISK_FLUSHES") != 0)):
         raise ValueError("wrong durability/readonly flush evidence")
+    if case in POWER_CASES:
+        check_power(case, stdout, found)
     expected_sum = volume_disk.fnv(volume_disk.fixture(0, 1, 4096))
     if found.get("APP_CONTENT_SUM") != expected_sum:
         raise ValueError("guest read content differs from the independent fixture")
@@ -233,15 +270,16 @@ def check_disk(oracle: dict) -> None:
 def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_TIMEOUT,
                kernel_feature: str | None = None, network_port: int | None = None,
                rtc_base: str | None = None):
-    if case not in FEATURE or not 0 < timeout <= MAX_TIMEOUT:
+    cases = {**FEATURE, **POWER_FEATURE}
+    if case not in cases or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("unknown case or unbounded timeout")
-    selected = FEATURE[case] if kernel_feature is None else kernel_feature
-    network_feature = {"normal": "native-system-net", "recover": "test-system-net-recover"}[case]
+    selected = cases[case] if kernel_feature is None else kernel_feature
+    network_feature = {"normal": "native-system-net", "recover": "test-system-net-recover"}.get(case)
     diagnostic = case == "normal" and selected in (
         *RANDOM_FEATURE.values(), "native-system-images", "native-system-clock")
-    if selected not in (FEATURE[case], network_feature, TCP_FEATURE[case]) and not diagnostic:
+    if selected not in (cases[case], network_feature, TCP_FEATURE.get(case)) and not diagnostic:
         raise ValueError("wrong native system feature for this case")
-    use_tcp = selected == TCP_FEATURE[case]
+    use_tcp = selected == TCP_FEATURE.get(case)
     use_network = selected == network_feature or use_tcp
     if use_network != (type(network_port) is int and 1024 <= network_port <= 65535):
         raise ValueError("network profile requires a dedicated local test peer port")
@@ -279,7 +317,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
     check_esp(run_dir / "esp", manifest)
     shutil.copy2(code, run_dir / "OVMF_CODE.fd")
     shutil.copy2(variables, run_dir / "OVMF_VARS.fd")
-    if case == "normal":
+    if case != "recover":
         if volume_dir is not None:
             raise ValueError("normal always creates a new disposable disk")
         volume_dir = BUILD / "run" / f"system-image-{uuid.uuid4().hex}"
@@ -311,6 +349,9 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
                "-object", "rng-random,id=rng0,filename=/dev/urandom",
                "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000"]
     command += rtc_arguments
+    if case in POWER_CASES:
+        # A reset re-runs firmware (second EBS) instead of exiting 0.
+        command += ["-action", "reboot=reset"]
     if use_network:
         # An ephemeral port is supplied by the owned synthetic protocol peer.
         # No TAP, bridge, default user network, host share or public listener.
@@ -359,7 +400,7 @@ def run_system(case: str, volume_dir: Path | None = None, *, timeout: int = MAX_
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--case", choices=tuple(FEATURE), required=True)
+    parser.add_argument("--case", choices=(*FEATURE, *POWER_FEATURE), required=True)
     parser.add_argument("--volume", type=Path)
     parser.add_argument("--timeout", type=int, default=MAX_TIMEOUT)
     options = parser.parse_args()

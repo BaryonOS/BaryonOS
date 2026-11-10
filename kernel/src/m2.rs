@@ -7,8 +7,8 @@ mod lock;
 #[cfg(feature = "milestone-m3")]
 mod m3;
 pub(crate) mod paging;
-#[cfg(feature = "native-acpi-s5")]
-mod power;
+#[cfg(any(feature = "native-acpi-s5", feature = "native-system-power"))]
+pub(crate) mod power;
 #[cfg(any(feature = "native-rtc", feature = "native-system-clock"))]
 mod rtc;
 #[cfg(feature = "native-smp")]

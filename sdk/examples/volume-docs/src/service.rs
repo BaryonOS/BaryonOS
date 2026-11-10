@@ -177,28 +177,36 @@ pub extern "C" fn _start() -> ! {
             let mut body = [0; wire::SIZE];
             let payload = message.payload();
             let token_bound = message.tag() == upload::TAG;
-            let reply = if had_caps
+            let length = payload.len().min(wire::SIZE);
+            body[..length].copy_from_slice(&payload[..length]);
+            let refused = if had_caps
                 || !matches!(message.tag(), wire::TAG | upload::TAG)
                 || payload.len() != wire::SIZE
             {
-                body[..payload.len().min(wire::SIZE)]
-                    .copy_from_slice(&payload[..payload.len().min(wire::SIZE)]);
+                Some(Status::Invalid)
+            } else if wire::header(&body).operation == wire::SHUTDOWN
+                && support::word(104) != domain as u64 + 1
+            {
+                // Only the kernel-named domain may close storage: this ELF also
+                // serves profiles where the other ingress is an ordinary app.
+                Some(Status::Access)
+            } else {
+                None
+            };
+            let reply = if let Some(refusal) = refused {
                 service.counters.rejected += 1;
-                let error = wire::error_reply(&wire::header(&body), epoch, Status::Invalid, 0);
+                let error = wire::error_reply(&wire::header(&body), epoch, refusal, 0);
                 if token_bound {
                     upload::wrap(error, upload::token(&body))
                 } else {
                     error
                 }
+            } else if token_bound {
+                // Sender is kernel-delivered envelope metadata, already
+                // matched to this ingress's authorized client above.
+                service.handle_for(domain, message.sender(), &body, &mut disk)
             } else {
-                body.copy_from_slice(payload);
-                if token_bound {
-                    // Sender is kernel-delivered envelope metadata, already
-                    // matched to this ingress's authorized client above.
-                    service.handle_for(domain, message.sender(), &body, &mut disk)
-                } else {
-                    service.handle(domain, &body, &mut disk)
-                }
+                service.handle(domain, &body, &mut disk)
             };
             evidence(&service);
             send(
@@ -206,6 +214,15 @@ pub extern "C" fn _start() -> ! {
                 if token_bound { upload::TAG } else { wire::TAG },
                 &reply,
             );
+            let done = wire::header(&reply);
+            if done.operation == wire::SHUTDOWN
+                && done.status == Status::Ok as i32
+                && native::close(handle(support::word(48))).is_ok()
+            {
+                // Flushed and read-only; closing the only block capability lets
+                // the kernel itself see that nothing can write any more.
+                support::put(192, 2);
+            }
         }
         if idle_wait && !received_any {
             // All disk operations and replies above completed synchronously.
