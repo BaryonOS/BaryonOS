@@ -46,11 +46,11 @@ class WorkflowVerifierTests(unittest.TestCase):
         return VERIFIER.run(self.repo, self.baseline)
 
     def test_integrated_workflows_preserve_all_reporting_cases(self):
-        """A valid baseline retains 17 workflow files and 18 preservation calls."""
+        """A valid baseline retains 18 workflow files and 19 preservation calls."""
         report = self.report()
         self.assertTrue(report["passed"], report["failed_checks"])
-        self.assertEqual(report["archive_workflow_count"], 17)
-        self.assertEqual(len(report["archive_workflows"]), 17)
+        self.assertEqual(report["archive_workflow_count"], 18)
+        self.assertEqual(len(report["archive_workflows"]), 18)
         self.assertEqual(report["local_snapshot_baseline"], self.baseline)
         self.assertEqual(report["repository_path"], ".")
         self.assertTrue(all(comparison["status"] == "compared"
@@ -58,9 +58,10 @@ class WorkflowVerifierTests(unittest.TestCase):
                             for comparison in report["baseline_comparisons"].values()))
         for prefix in ("preservation-invocation:", "existing-preservation-step-unchanged:"):
             # The experimental SMP job adds one extra evidence call, and the
-            # native-power workflow adds one archive workflow and one more call.
+            # native-power and KVM-pilot workflows each add one archive workflow
+            # and one more call.
             self.assertEqual(sum(check["name"].startswith(prefix)
-                                 for check in report["checks"]), 18)
+                                 for check in report["checks"]), 19)
         self.assertEqual(sum(check["name"].startswith("report-shell:")
                              for check in report["checks"]), 28)
         self.assertEqual(sum(check["name"].startswith("package-check:")

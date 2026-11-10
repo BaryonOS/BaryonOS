@@ -159,6 +159,14 @@ class SystemCaptureTests(unittest.TestCase):
             value, name = line.split("  ", 1)
             self.assertEqual(hashlib.sha256((archive / name).read_bytes()).hexdigest(), value)
 
+    def test_exact_kvm_acceleration_is_accepted_and_other_values_are_rejected(self):
+        command = self.command("normal", self.runs[0])
+        command[command.index("-accel") + 1] = "kvm"
+        capture._command(command, "normal", self.runs[0], self.volume / "volume.img", self.root)
+        command[command.index("-accel") + 1] = "kvm,dirty-ring-size=4096"
+        with self.assertRaisesRegex(ValueError, "unsupported QEMU profile"):
+            capture._command(command, "normal", self.runs[0], self.volume / "volume.img", self.root)
+
     def test_incomplete_false_or_stale_gate_is_rejected_before_writes(self):
         good = copy.deepcopy(self.gate)
         for key, value in (("status", "running"), ("passed", False), ("source_sha256", "f" * 64),

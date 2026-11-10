@@ -57,6 +57,18 @@ def qemu_machine(value: str | None = None) -> str:
     return selected
 
 
+def qemu_accel(value: str | None = None, *, device: Path = Path("/dev/kvm")) -> str:
+    """Keep TCG as the default and require an explicit, usable KVM device."""
+    selected = os.environ.get("NOS_QEMU_ACCEL") if value is None else value
+    if selected is None:
+        return "tcg,thread=single"
+    if selected != "kvm":
+        raise ValueError("NOS_QEMU_ACCEL may select only the explicit KVM pilot")
+    if not device.is_char_device() or not os.access(device, os.R_OK | os.W_OK):
+        raise RuntimeError("KVM was requested but /dev/kvm is not a usable character device")
+    return "kvm"
+
+
 def environment() -> dict[str, str]:
     env = dict(os.environ, RUSTUP_AUTO_INSTALL="0", PYTHONIOENCODING="utf-8")
     paths = []

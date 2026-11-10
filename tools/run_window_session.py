@@ -19,7 +19,7 @@ import sys
 import time
 import uuid
 
-from common import BUILD, ROOT, TARGET, environment, firmware, qemu_machine, sha256, source_hash
+from common import BUILD, ROOT, TARGET, environment, firmware, qemu_accel, qemu_machine, sha256, source_hash
 from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json, load_json
 from run_graphics import QmpPipe, ppm
@@ -395,7 +395,7 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
     immutable = {p.relative_to(directory).as_posix(): sha256(p) for p in directory.rglob("*")
                  if p.is_file() and p.name not in {"OVMF_VARS.fd", "volume.img"}}
     originals = {str(p): sha256(p) for p in (code, variables, bios_rom, vga_rom)}
-    command = [str(qemu), "-L", ".", "-machine", qemu_machine(), "-accel", "tcg,thread=single", "-cpu", "qemu64", "-smp", "1", "-m", "256M",
+    command = [str(qemu), "-L", ".", "-machine", qemu_machine(), "-accel", qemu_accel(), "-cpu", "qemu64", "-smp", "1", "-m", "256M",
                "-nodefaults", "-display", "none", "-monitor", "none", "-serial", "file:serial.txt", "-nic", "none", "-no-reboot",
                "-device", "VGA,vgamem_mb=16,romfile=VGA.rom", "-qmp", "stdio",
                "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
