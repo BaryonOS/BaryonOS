@@ -10,7 +10,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from run_system import (KEYSTATE_HEADER, KEYSTATE_NAME, KEYSTATE_OBJECT, OPAQUE_OBJECTS, PERSIST_EXACT,
                         SEALED_NAME, SEALED_OBJECT, check_disk, check_esp, check_image, check_parent,
-                        evaluate, expected_markers, record_plaintext)
+                        S5_TAIL, evaluate, expected_markers, record_plaintext)
 import volume_disk
 
 
@@ -277,6 +277,75 @@ class SystemHarnessTests(unittest.TestCase):
         self.assertIsNone(sealed["content_revision"])
         self.assertEqual(bytes.fromhex(sealed["content_hex"]), SEALED_FIXTURE)
         self.assertNotIn("content_hex", oracle["objects"][0]["versions"][0])
+
+
+def power_transcript(case="power", tail=None, **changes):
+    """H05 power run: the normal flow plus refusal counters, then the S5 tail."""
+    values = dict(POWER_INIT_REFUSALS=3 if case == "power" else 4, POWER_APP_REFUSALS=2,
+                  POWER_NOT_DURABLE=0 if case == "power" else 1, DISK_FLUSHES=4)
+    values.update(changes)
+    body = transcript("normal", **values).replace("SYSTEM:CASE:NORMAL:PASS\nM1:PASS\n", "")
+    marker = expected_markers(case)[-2]
+    if case == "power":
+        end = ["SYSTEM:POWER:GATE:PASS", marker, "M1:PASS", *S5_TAIL] if tail is None else tail
+    else:
+        fault = "FLUSH_ERROR" if case == "power-flush-error" else "FLUSH_TIMEOUT"
+        end = [f"SYSTEM:FAULT_INJECTED:{fault}", "SYSTEM:POWER:REFUSED:NOT_DURABLE", marker,
+               "M1:PASS"] if tail is None else tail
+    return body + "\n".join(end) + "\n"
+
+
+class PowerHarnessTests(unittest.TestCase):
+    def test_power_cases_pass_only_with_their_exact_exit(self):
+        self.assertEqual(evaluate("power", power_transcript(), 0, False)["POWER_NOT_DURABLE"], 0)
+        for case in ("power-flush-error", "power-flush-timeout"):
+            self.assertEqual(evaluate(case, power_transcript(case), 33, False)["POWER_NOT_DURABLE"], 1)
+        for case, raw in (("power", 33), ("power", None), ("power-flush-error", 0)):
+            with self.subTest(case=case, raw=raw), self.assertRaises(ValueError):
+                evaluate(case, power_transcript(case), raw, raw is None)
+
+    def test_power_needs_gate_and_exact_s5_tail(self):
+        marker = expected_markers("power")[-2]
+        for tail in (["SYSTEM:POWER:GATE:PASS", marker, "M1:PASS", S5_TAIL[0]],
+                     [marker, "M1:PASS", *S5_TAIL],
+                     ["SYSTEM:POWER:GATE:PASS", marker, "M1:PASS", *S5_TAIL, "M1:PASS"]):
+            with self.subTest(tail=tail), self.assertRaises(ValueError):
+                evaluate("power", power_transcript(tail=tail), 0, False)
+
+    def test_refused_power_must_not_write_pm1_or_skip_refusal(self):
+        marker = expected_markers("power-flush-error")[-2]
+        for tail in (["SYSTEM:FAULT_INJECTED:FLUSH_ERROR", "SYSTEM:POWER:REFUSED:NOT_DURABLE", marker,
+                      "M1:PASS", S5_TAIL[1]],
+                     ["SYSTEM:POWER:REFUSED:NOT_DURABLE", marker, "M1:PASS"],
+                     ["SYSTEM:FAULT_INJECTED:FLUSH_ERROR", marker, "M1:PASS"]):
+            with self.subTest(tail=tail), self.assertRaises(ValueError):
+                evaluate("power-flush-error", power_transcript("power-flush-error", tail=tail), 33, False)
+        for change in (dict(POWER_INIT_REFUSALS=3), dict(POWER_NOT_DURABLE=0), dict(POWER_APP_REFUSALS=1)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power-flush-error", power_transcript("power-flush-error", **change), 33, False)
+
+    def test_power_counters_and_extra_flush_are_exact(self):
+        for change in (dict(POWER_INIT_REFUSALS=4), dict(POWER_APP_REFUSALS=1), dict(DISK_FLUSHES=2)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                evaluate("power", power_transcript(**change), 0, False)
+
+    def test_all_power_cases_require_four_published_flushes(self):
+        for case, raw_exit in (("power", 0), ("power-flush-error", 33),
+                               ("power-flush-timeout", 33)):
+            with self.subTest(case=case), self.assertRaisesRegex(ValueError, "flush"):
+                evaluate(case, power_transcript(case, DISK_FLUSHES=3), raw_exit, False)
+
+    def test_only_a_passing_power_image_of_the_same_source_may_recover(self):
+        previous = dict(case="power", passed=True, kernel_feature="native-system-power",
+                        source_sha256="source", after_sha256="disk")
+        check_parent(previous, "source", "disk", network=False)
+        check_parent({**previous, "case": "power-flush-timeout",
+                      "kernel_feature": "test-system-power-flush-timeout"}, "source", "disk", network=False)
+        for change in (dict(kernel_feature="native-system"), dict(passed=False), dict(case="unknown")):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                check_parent({**previous, **change}, "source", "disk", network=False)
+        with self.assertRaises(ValueError):
+            check_parent({**previous, "network_gate": True}, "source", "disk", network=True)
 
 
 if __name__ == "__main__":

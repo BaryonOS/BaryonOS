@@ -52,12 +52,13 @@ cap_bench::run(m4::engine()); // vóór timer_init, IF=0, één CPU
 This uses the actually constructed four-process manifest graph and existing
 kernel helpers `clock()->u64`, `print_number(&[u8],u64)` and
 `serial::{write,exit}`. No second Engine is created and no process executes.
-The manifest assertion requires 4 processes, 21 handles, 29 nodes,
-9 open endpoints, 0 queued messages, 1 block, 1 launch and 1 entropy object,
-0 process/network/display/input objects and valid structural invariants.
-The 8 closed parent nodes remain present because of the derived nodes.
-The normal manifest digest is 0x31b7de1c7a15245b,
-decimal 3582576242485175387; the program calculates the actual value.
+The manifest assertion requires 4 processes, 25 handles, 35 nodes,
+11 open endpoints, 0 queued messages, 1 block, 1 launch and 1 entropy object,
+0 process/network/display/input/POWER objects and valid structural invariants.
+The 10 closed parent nodes remain present because of the derived nodes. The
+POWER object table participates in the digest but has no live object in this
+benchmark profile. The current manifest digest is `0x77cd1386b23a996b`,
+decimal 8632577529975839083; the program calculates the observed value.
 
 The three fixed variants are REF, DIRECT and ZERO. For each variant:
 one pre-hash check, 4 warm-up calls, 144 measured calls and one post-hash check.
@@ -176,9 +177,9 @@ Longer runs receive the same wrapping factor through binary exponentiation.
 That complete arbitrary-state fallback is separately cold/noinline, so it
 is not copied into every hot-path word operation. Invalid fully zeroed
 tables are still examined by the complete fallback. The fixed maximum
-stream contains 74569 words: 1 lastPID, 16×(2+256×4) processes/slots,
+stream contains 74575 words: 1 lastPID, 16×(2+256×4) processes/slots,
 1024×12 nodes, 64×(8+16×44) endpoints/queues, 4×9 block,
-8×7 launch, 16×9 process and 10×6 console/entropy/network words.
+8×7 launch, 16×9 process and 11×6 console/entropy/network/POWER words.
 The local usize zero counter cannot overflow under these fixed bounds.
 
 No heap, unsafe, raw cast, wire/struct-layout change, expansion of rights or
@@ -199,7 +200,7 @@ Alongside all 47 existing core tests, five active test groups were added:
 - All 320 wire bytes × 8 individual bits × 5 initial hash values, plus 256
   fully mixed messages; forbidden sender/reserved values, cap fields beyond
   count, large len/count values and every trailing payload byte still participate.
-- Exact zero-run factors around 0/1/40/64/65 and up to the 74569 words of a
+- Exact zero-run factors around 0/1/40/64/65 and up to the 74575 words of a
   fully zeroed engine, plus 10000 mixed zero/nonzero words.
 - Actual registrations, full/wrapped queues, EAGAIN equality, cap transfer/revoke,
   all object classes, reported process death, close and exit. After the

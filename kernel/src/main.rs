@@ -31,6 +31,22 @@ compile_error!("native-rtc exclusively owns CMOS in the single-CPU IF0 bootstrap
 ))]
 compile_error!("native-acpi-s5 ends the single-CPU IF0 bootstrap; no other subsystem may run");
 #[cfg(all(
+    feature = "native-system-power",
+    any(
+        feature = "native-acpi-s5",
+        feature = "native-smp",
+        feature = "framebuffer",
+        feature = "native-system-net",
+        feature = "native-system-random",
+        feature = "native-system-images",
+        feature = "native-system-clock",
+        feature = "native-system-nas-probe",
+        feature = "native-cap-digest-bench",
+        feature = "test-system-recover"
+    )
+))]
+compile_error!("native-system-power gates S5 on exactly the base native-system brokers");
+#[cfg(all(
     feature = "native-smp",
     not(feature = "native-smp-legacy"),
     any(

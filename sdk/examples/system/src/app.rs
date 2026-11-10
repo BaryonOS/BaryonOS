@@ -25,7 +25,7 @@ use nieuw_os_keyring_client::{
     Reply as KeyReply, Session as KeySession, State as KeyState,
 };
 use nieuw_os_sdk_runtime::{
-    native, BlockDevice, EntropySource, LaunchImage, ReceiveEndpoint, SendEndpoint,
+    native, BlockDevice, EntropySource, Error, Handle, LaunchImage, ReceiveEndpoint, SendEndpoint,
 };
 use protocol::*;
 use volume_core::{checksum_update, client::Client, wire as vw, Status, FNV_OFFSET, PER_DOMAIN};
@@ -752,6 +752,17 @@ fn main() -> ! {
         (40, 1),
     ] {
         support::put(at, value);
+    }
+    // H05: init's raw POWER handle value is a number, not authority here; the
+    // kernel checks the exact refusal codes it logged for this slot.
+    let forged = support::word(104);
+    if forged != 0 {
+        let forged = Handle::from_raw(forged).unwrap_or_else(|_| fail(60));
+        check(matches!(native::power_off(forged), Error::Kernel(_)), 60);
+        check(
+            native::power_off(registry.handle()) == Error::Kernel(-6),
+            61,
+        );
     }
     send(registry, DONE);
     native::exit(0)

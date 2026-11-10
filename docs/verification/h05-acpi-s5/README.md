@@ -3,8 +3,10 @@
 **Branch:** `hw/h05-native-acpi-s5`, based on main `cb3d169c` (after #204).
 **Date:** 5 November 2026. **Evidence level:** native QEMU/TCG
 (`pc-q35-8.2`, QEMU 10.2.1, OVMF), not physical hardware.
-**Score:** 41 → 41/100. H05 remains open because acceptance requires measurements
-on supported hardware, sleep/wake, and thermal/battery functions.
+**Historical score at this record:** 41 → 41/100. The current project score is
+39/100. H05 remains open because acceptance also requires measurements on
+supported hardware, sleep/wake, thermal/battery functions and broader
+production shutdown integration.
 
 ## Implementation
 
@@ -27,7 +29,47 @@ kernel profile now does so through project code:
    `REJECTED:<error>`, perform no PM1-control port write, and take the
    normal debug exit after serial diagnostics.
 
-There is no syscall or IPC route; a process cannot request power-off.
+The standalone `native-acpi-s5` profile has no syscall or IPC route; a
+process cannot request its power-off.
+
+## Step 2 — capability-gated system shutdown
+
+The separate `native-system-power` profile reuses the validated S5 plan while
+preserving the standalone profile:
+
+1. Capability-core defines one manifest-only `POWER` object. Only init receives
+   it. The object cannot be derived, delegated, transferred or revoked, and an
+   unknown creation selector is rejected before capability state changes.
+2. Volume IPC v6 defines a domain-only `SHUTDOWN` request. The service aborts
+   unacknowledged sessions, issues one final flush and becomes read-only only
+   after a successful completion. Flush failure makes durability unknown and
+   closes the instance without reporting success.
+3. Syscall `0x90` validates reserved arguments, the process-bound POWER
+   handle, the S5 plan, the volume broker's durability state, absence of live
+   block authority and an idle keyring broker. A retryable gate returns `-8`;
+   non-durable state returns `-16`.
+4. A granted caller terminates as `exit(0)`. The kernel waits until all
+   fixture evidence and process cleanup are complete, rechecks the storage gate,
+   emits `SYSTEM:POWER:GATE:PASS`, and only then invokes S5.
+5. The flush-error and flush-timeout profiles must emit no `POWER:S5:WRITE`
+   marker and exit through the rejection oracle. Each case is followed by a
+   read-only cold recovery of exactly the same disposable disk image.
+
+The refusal log is bounded per process. Overflow increments a saturating dropped
+counter and makes the acceptance fixture fail; it cannot panic the kernel or
+silently discard required evidence.
+
+### Current-main integration result
+
+The six-stage local QEMU gate passed on the integration tree based on
+`1864c283a8fe0e732044e361981b9c01d342e00b`, source fingerprint v3
+`2859165807d303b8dbe2f977899b96700c7eccbc8bc2348f055fe5aed8d37394`.
+The normal POWER case reached S5 with raw QEMU exit 0. Flush-error and
+flush-timeout were refused without an S5 marker and exited raw 33. The three
+subsequent cold recoveries exited raw 33 and left each recovered image
+byte-identical to its pre-recovery hash. The generated local report is
+`build/pr218-final-power-gate/power-system-gate.json`; it is not a committed
+release artifact and does not constitute physical-hardware acceptance.
 
 ## Independent oracle
 
@@ -101,8 +143,9 @@ then PM1b, then setting `SLP_EN` in that order. The assumptions for
   `SCI_EN=0` is untested on hardware.
 - AML parsing covers only the existing `_S5_` subset, not `_PTS` or
   `_TTS` execution. This is sufficient for QEMU, not general ACPI.
-- Service- or user-initiated shutdown requires a non-delegable power-off
-  capability and prior service flushing (S08/volume); neither is implemented.
+- `native-system-power` implements one capability-gated volume shutdown path.
+  Coordinated flushing across future services and production user-session
+  shutdown/restart UX remain unimplemented.
 - S3 sleep/wake, thermal and battery functions, and physical-hardware
   evidence are absent. H05 and H06 remain open.
 

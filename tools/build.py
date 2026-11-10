@@ -38,7 +38,9 @@ NAS_FEATURES = ("native-system-nas-probe", "test-system-nas-recover")
 RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-system-random-unknown", "test-system-random-wrong-caller")
 IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
+POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error", "test-system-power-flush-timeout")
 SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
+SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
                    "native-acpi-s5", "test-acpi-s5-corrupt-dsdt",
                    "native-smp", "native-smp-legacy", "native-smp-m3", "native-smp-m3-exit",

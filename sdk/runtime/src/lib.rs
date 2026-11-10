@@ -212,7 +212,9 @@ impl Rights {
     pub const DISPLAY: Self = Self(4096);
     /// Manifest-only raw input transport for the isolated source service.
     pub const INPUT: Self = Self(8192);
-    pub const KNOWN_MASK: u64 = 16383;
+    /// Manifest-only system power request for init; never delegable.
+    pub const POWER: Self = Self(16384);
+    pub const KNOWN_MASK: u64 = 32767;
 
     pub const fn from_bits(bits: u64) -> Result<Self, Error> {
         if bits & !Self::KNOWN_MASK != 0 {

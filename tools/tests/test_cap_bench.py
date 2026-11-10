@@ -17,7 +17,7 @@ from build_users import inspect_user
 
 
 def fixture():
-    values = dict(zip(gate.HEADER, (1, 4, 21, 29, 9, 4, 9, 16)))
+    values = dict(zip(gate.HEADER, (1, 4, 25, 35, 11, 4, 9, 16)))
     rounds = {name: list(range(10 + index, 19 + index)) for index, name in enumerate(gate.VARIANTS)}
     for name, numbers in rounds.items():
         values.update({name + "_COUNT": 144, name + "_TSC_SUM": sum(numbers),

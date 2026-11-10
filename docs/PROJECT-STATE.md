@@ -1,5 +1,70 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — PR #218 H05 step-2 replay after #269 — 10 November 2026
+
+**Source:** local branch `codex/pr218-final-20261110`, based directly on
+`main` `1864c283a8fe0e732044e361981b9c01d342e00b` (tree
+`f5ed6ad39f32505b8215d9c65e8dc91582d56dc1`). The semantic donor is PR
+#218 head `f1901125b34a2543571a47b937c992d18aeda7cc`; the bounded local port was
+replayed from `ae5bf09b12db83ce198772e8f788ce83d46cec22`. The already merged PR
+#213 ACPI/FADT/DSDT/S5 implementation was not duplicated. No remote branch,
+review thread or pull request was mutated.
+
+**Implementation:** the port adds the sole non-delegable POWER capability,
+volume IPC v6 `SHUTDOWN`, syscall `0x90`, the final storage/keyring gate,
+bounded fail-closed refusal evidence, SDK/example support and three native
+POWER profiles. The former default-to-POWER selector branch now rejects every
+unknown or composite selector before state changes; a full-engine atomicity
+test covers `POWER|TRANSFER`, an unknown high bit and `u64::MAX`. Current
+main's newer keyring manifest is retained. Its capability benchmark expectations
+were corrected from 21/29/9 to the observed 25 handles, 35 nodes and 11
+endpoints instead of reverting the new administrative channels.
+
+**Integration:** #243's fail-closed `qemu_accel()` selector remains the only
+way to opt into KVM; the POWER runner no longer hard-codes TCG. The evidence
+verifier retains the KVM pilot and both H05 jobs, for 18 archive workflows and
+20 preservation calls. The English documentation from #269 remains English.
+Its progress register and generated README/SVG remain byte-unchanged at 39/100.
+
+**Current replay validation:** capability-core passed 87 tests with one ignored
+benchmark; volume-core passed all 72 tests; the SDK workspace passed 116 tests.
+Warning-denying Clippy and formatting passed for the affected Rust workspaces.
+The 19 system-harness, eight CI-evidence, 21 CI-workflow, ten KVM-selector,
+34 system-capture and 18 cap-benchmark harness tests passed. Pinned actionlint
+1.7.12, the staged-diff check and the progress consistency check also passed.
+The current candidate source fingerprint is
+`2859165807d303b8dbe2f977899b96700c7eccbc8bc2348f055fe5aed8d37394`.
+
+**Native evidence:** strict preflight, the default build and the TCG smoke
+passed (`M1:PASS`, raw exit 33). All three POWER profiles built with three
+ELF load segments. The source-bound six-stage POWER matrix passed: normal S5
+exited raw 0; flush-error and flush-timeout exited raw 33 without S5; all three
+cold recoveries exited raw 33 with unchanged recovery-image hashes. Its report
+is `build/pr218-final-power-gate/power-system-gate.json`. The native capability
+benchmark passed raw 33 with digest `0x77cd1386b23a996b` for all variants and
+an unchanged disk; its report is
+`build/pr218-final-cap-bench/cap-bench-report.json`. The standalone #213 path
+passed five real S5 exits and two corrupt-DSDT rejections.
+
+The separately requested `smp-lock` suite is not green evidence. With no QEMU
+or competing heavy task, `mutual_exclusion_under_contention` still consumed
+approximately four CPUs for more than three minutes. The candidate suite was
+interrupted with exit 130. The exact test was then repeated in a clean detached
+worktree at parent `1864c283a8fe0e732044e361981b9c01d342e00b`; it reproduced
+the same ten-thread, approximately 397% CPU hang and hit the bounded 180-second
+timeout with exit 124. The replay changes neither `crates/smp-lock` nor
+`kernel/src/m2/lock.rs`, so this is a pre-existing parent-baseline failure,
+not passing evidence and not a POWER-port regression.
+
+**Acceptance:** **39/100 → 39/100**. This is QEMU/TCG and host evidence for a
+bounded H05 substep. It does not establish complete coordinated production
+shutdown, S3 sleep/wake, thermal/battery behavior, independent human security
+review or physical-hardware support; H05 remains open.
+
+**Next:** review the final diff and identities, create the single local noreply
+commit and publish only through the parent integration flow. Current-head
+hosted checks and review remain required before any guarded squash merge.
+
 ## NEXT AGENT HANDOFF — Issue #292 target-flag repair — 10 November 2026
 
 **Source:** PR #295 local integration commit

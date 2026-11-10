@@ -2,8 +2,10 @@
 //!
 //! The BSP snapshots both tables once during ACPI discovery (IF=0, one CPU),
 //! `nieuw-os-acpi-power` validates them, and only then does the kernel write
-//! the PM1 control register(s). No process can request this; there is no
-//! syscall. SCI_EN/ACPI-mode switching via SMI_CMD is not performed.
+//! the PM1 control register(s). In `native-acpi-s5` nothing can request it;
+//! in `native-system-power` only init's non-delegable POWER capability can,
+//! and only behind the storage gate in m3/system.rs (ADR-076). The plan never
+//! leaves the kernel. SCI_EN/ACPI-mode switching via SMI_CMD is not performed.
 use crate::serial;
 use boot_protocol::acpi::PhysicalRead;
 use core::{arch::asm, fmt::Write, ptr};
@@ -115,9 +117,18 @@ fn out16(port: u16, value: u16) {
     }
 }
 
+/// True when `off` would write PM1 (a validated plan exists).
+#[cfg(feature = "native-system-power")]
+pub(crate) fn ready() -> bool {
+    // SAFETY: Written once during discovery on this CPU; read-only from here.
+    matches!(unsafe { *ptr::addr_of!(STATE) }, State::Ready(_))
+}
+
 /// Powers off through S5 when the snapshot validated; otherwise reports why
 /// and returns without any port I/O, so the caller's normal exit stays visible.
-pub(super) fn off() {
+/// Callers run with IF=0 on the only CPU, so nothing runs between their
+/// checks and the PM1 write.
+pub(crate) fn off() {
     // SAFETY: Written once during discovery on this CPU; read-only from here.
     let state = unsafe { *ptr::addr_of!(STATE) };
     let plan = match state {

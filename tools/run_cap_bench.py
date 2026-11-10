@@ -47,7 +47,7 @@ def evaluate(serial: str, raw_exit: int, timed_out: bool) -> dict:
         match = re.fullmatch(re.escape("CAPBENCH:" + name + ":") + r"([0-9]{20})", lines[at] if at < len(lines) else "")
         require(match is not None and int(match[1]) < 1 << 64, "Missing/altered numeric field " + name)
         values[name] = int(match[1]); at += 1
-    require([values[n] for n in HEADER[1:]] == [4, 21, 29, 9, 4, 9, 16], "Wrong native manifest or measurement workload")
+    require([values[n] for n in HEADER[1:]] == [4, 25, 35, 11, 4, 9, 16], "Wrong native manifest or measurement workload")
     rounds = {v: [] for v in VARIANTS}
     execution_order = []
     for round_index in range(values["ROUNDS"]):

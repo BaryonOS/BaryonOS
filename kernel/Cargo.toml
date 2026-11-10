@@ -100,6 +100,10 @@ test-supervisor-wait = ["native-supervisor", "ipc-wait"]
 native-cap-digest-bench = ["native-system", "capability-core/diagnostic-bench"]
 native-system = ["native-volume", "native-keyring", "native-supervisor"]
 test-system-recover = ["native-system"]
+# H05 step 2: init's non-delegable POWER capability; S5 only behind the kernel storage gate.
+native-system-power = ["native-system", "dep:nieuw-os-acpi-power"]
+test-system-power-flush-error = ["native-system-power"]
+test-system-power-flush-timeout = ["native-system-power"]
 native-system-nas-probe = ["native-system", "monotonic-clock", "ipc-wait"]
 test-system-nas-recover = ["native-system-nas-probe", "test-system-recover"]
 # Real NIC integration; the base joint profile never probes or maps a NIC.
