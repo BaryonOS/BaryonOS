@@ -6,17 +6,19 @@ publish = false
 
 [dependencies]
 chacha20poly1305 = { version = "=0.11.0", default-features = false, features = ["zeroize"] }
-chacha20 = { version = "=0.9.1", default-features = false, features = ["zeroize"] }
+chacha20 = { version = "=0.10.2", default-features = false, features = ["cipher", "rng", "zeroize"] }
+# Required separately: chacha20's zeroize feature wipes its core, while this
+# direct dependency's zeroize feature wipes the stream wrapper and buffered keystream.
+cipher = { version = "=0.5.2", default-features = false, features = ["zeroize"] }
 hkdf-protected = { package = "hkdf", path = "vendor/hkdf-0.13.0", default-features = false, features = ["zeroize"] }
 sha2-kdf = { package = "sha2", version = "=0.11.1", default-features = false, features = ["zeroize"] }
 zeroize = { version = "1.8.1", default-features = false }
-# Separate maintained RNG API; the existing AEAD/legacy DRBG keeps 0.9.1.
-chacha20-rng = { package = "chacha20", version = "=0.10.2", default-features = false, features = ["rng", "zeroize"] }
 rand-core-rng = { package = "rand_core", version = "=0.10.1", default-features = false }
 
 [dev-dependencies]
 hex-literal = "1.0.0"
-# Byte-for-byte compatibility oracles only, never a production KDF path.
+# Byte-for-byte compatibility oracles only, never production crypto paths.
+chacha20-legacy = { package = "chacha20", version = "=0.9.1", default-features = false, features = ["zeroize"] }
 hkdf = { version = "=0.12.4", default-features = false }
 sha2 = { version = "=0.10.9", default-features = false }
 

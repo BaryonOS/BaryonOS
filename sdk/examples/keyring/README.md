@@ -12,7 +12,7 @@ bytes between the kernel broker, IPC envelopes and that core.
 
 Cryptography comes from pinned RustCrypto crates; the build (`build.py`)
 disables all x86 SIMD backends because the ring-3 profile has no SSE/AVX
-(`chacha20_force_soft`, `chacha20_backend="soft"`,
+(`chacha20_backend="soft"`,
 `poly1305_backend="soft"`, `sha2_backend="soft"`).
 The separate linker script gives code 128 KiB from `0x40020000`;
 the startup page remains at `0x40010000`.

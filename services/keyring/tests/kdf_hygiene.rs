@@ -1,10 +1,10 @@
 //! Published vectors and byte compatibility of the zeroize-only vendor patch.
 //! Tests use deterministic synthetic data; no native/physical entropy claim.
-use chacha20::{
+use chacha20::ChaCha20Rng;
+use chacha20_legacy::{
     cipher::{KeyIvInit, StreamCipher},
     ChaCha20,
 };
-use chacha20_rng::ChaCha20Rng;
 use hex_literal::hex;
 use hkdf_protected::{
     hmac::{self, KeyInit, Mac},

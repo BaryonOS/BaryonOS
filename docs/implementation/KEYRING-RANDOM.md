@@ -107,14 +107,19 @@ handles remain a kernel/bootstrap responsibility.
 
 ## Dependencies and TCB per examined property
 
-The RNG is the maintained RustCrypto implementation `chacha20=0.10.2`, alias
-`chacha20-rng`, with only features `rng,zeroize`, without default `cipher`.
-`rand_core=0.10.1` supplies RNG traits. Existing AEAD/legacy DRBG remain on
-chacha20 0.9.1. New distribution checksums:
+The DRBG and RNG use the single production RustCrypto dependency
+`chacha20=0.10.2`, with default features disabled and exactly
+`cipher,rng,zeroize` enabled. `rand_core=0.10.1` supplies RNG traits. The
+service also pins `cipher=0.5.2` with `zeroize`, because the stream wrapper's
+buffer wiping is not enabled by chacha20's own zeroize feature. Version 0.9.1
+exists only as the independent `chacha20-legacy` dev oracle for byte-exact
+DRBG compatibility and is absent from consumer product locks. Distribution
+checksums:
 
 | Crate | SHA256 | Licence/MSRV/build script |
 |---|---|---|
 | chacha20.10.2 | 65c35e4b699c7e15ccbe7ee35c005e4fc0a278d22238a2857e6ce2dadeda1b06 | MIT/Apache2; 1.85; none |
+| cipher0.5.2 | e8cf2a2c93cd704877c0858356ed03480ff301ee950b43f1cbe4573b088bfa6c | MIT/Apache2; 1.85; none |
 | rand_core.10.1 | 63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69 | MIT/Apache2; 1.85; none |
 | cpufeatures.3.1 | 5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566 | MIT/Apache2; 1.85; none |
 | zeroize1.9.1 | e13084392c5e4bc371903e2935a5eaeed24905a7511356b883835e18a78f6879 | Apache2/MIT; 1.85; none |
@@ -129,11 +134,13 @@ No general audit coverage is claimed for the new RNG version. Rand_chacha .10
 is not added; it would introduce an unnecessary PPV/SIMD tree here.
 
 The custom kernel and Rust 1.90 are retained. Native compilation requires
-`--cfg chacha20_backend="soft"` alongside existing `chacha20_force_soft`,
-`poly1305_backend="soft"`, and `sha2_backend="soft"`. A none build without the new
-portable cfg explicitly fails. The integrator updates shared builders/lockfiles;
-this task does not write them. No std/libc/getrandom or host fallback on the
-x86_64-none target. The concrete lock graph and object code are retested.
+`--cfg chacha20_backend="soft"`, `poly1305_backend="soft"`, and
+`sha2_backend="soft"`. The one ChaCha selector covers the DRBG, RNG, and AEAD
+0.10.2 closure; the obsolete 0.9-only selector is removed. A none build without
+the portable cfg explicitly fails. Shared builders and all four independently
+owned lockfiles carry this contract. No std/libc/getrandom or host fallback on
+the x86_64-none target. Lockgraph, freestanding build, and object inspection
+are version-specific evidence and must be revalidated after dependency changes.
 
 The TCB for unpredictability includes source/virtio-rng/QEMU host in this VM
 profile, kernel brokering/usercopy, health tests, HKDF and RNG crates, service
@@ -169,18 +176,23 @@ x86_64-unknown-none. Objdump of the service contains no FP/SIMD register use.
 The checked native dependency tree contains no std/libc/getrandom. A none build
 without the new portable cfg was actually rejected (exit 101).
 
-Builds use a separate exact source copy with its own Cargo.lock under
+The original RANDOM evidence builds used a separate exact source copy with
+their own Cargo.lock under
 `/tmp/nieuw-os-keyrandom-integration` and target under
-`/tmp/nieuw-os-keyrandom-target`; shared root/SDK locks are untouched.
+`/tmp/nieuw-os-keyrandom-target`; they did not modify shared root/SDK locks.
+The later dependency consolidation updates those shared locks and has its own
+locked host/freestanding validation; it does not retroactively change the
+original runtime evidence or claim fresh object-code inspection.
 This is host/cross-compilation evidence and **not an executed native RANDOM
-call**. The integrator must add client workspace/locks/build flags, trusted
-descriptor, RANDOM-only app grant, clock profile and independent runtime trials.
-Actual issuance and rejection on revocation, incorrect ingress, missing
-clock/entropy, reseed failure and quota remain required, together with legacy
-regressions on the same integrated image. This step signs off no release criterion.
+call**. Trusted descriptor, RANDOM-only app grant, clock profile and independent
+runtime trials remain separate. Actual issuance and rejection on revocation,
+incorrect ingress, missing clock/entropy, reseed failure and quota remain
+required, together with legacy regressions on the same integrated image. This
+step signs off no release criterion.
 
 Primary sources consulted in the targeted review (no general audit claim):
 [RustCrypto chacha20.10.2](https://crates.io/crates/chacha20/0.10.2),
+[RustCrypto cipher0.5.2](https://crates.io/crates/cipher/0.5.2),
 [rand_core.10.1](https://crates.io/crates/rand_core/0.10.1),
 [RUSTSEC-2019-0029](https://rustsec.org/advisories/RUSTSEC-2019-0029.html),
 [RUSTSEC-2019-0035](https://rustsec.org/advisories/RUSTSEC-2019-0035.html),

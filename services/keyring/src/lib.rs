@@ -6,14 +6,12 @@
 //! master key under a caller-held secret. No cryptographic primitive is
 //! implemented here; everything comes from the pinned RustCrypto crates.
 //! The kernel never sees this code, and apps never see key bytes.
-use chacha20::{
-    cipher::{KeyIvInit, StreamCipher},
-    ChaCha20,
-};
+use chacha20::ChaCha20;
 use chacha20poly1305::{
     aead::{inout::InOutBuf, AeadInOut, KeyInit},
     Tag, XChaCha20Poly1305, XNonce,
 };
+use cipher::{KeyIvInit, StreamCipher};
 use hkdf_protected::Hkdf;
 use sha2_kdf::Sha256;
 use zeroize::{Zeroize, Zeroizing};

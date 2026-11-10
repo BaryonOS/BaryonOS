@@ -39,10 +39,11 @@ sleutels nooit aan gewone apps afgeeft.
    manifest-gebonden beheer-ingress mag herstelmateriaal afgeven.
 4. **Geen eigen cryptografie.** Alleen onderhouden RustCrypto-crates met
    vastgepinde versies: `chacha20poly1305` 0.11.0 (XChaCha20-Poly1305 AEAD,
-   RFC 8439/draft-irtf-cfrg-xchacha), `chacha20` 0.9.1 (keystream voor de
-   DRBG), `hkdf` 0.12.4 + `sha2` 0.10.9 (HKDF-SHA-256, RFC 5869), `zeroize`
-   1.8. Alle x86-SIMD-backends zijn uitgeschakeld
-   (`chacha20_force_soft`, `chacha20_backend="soft"`,
+   RFC 8439/draft-irtf-cfrg-xchacha), één productionele `chacha20` 0.10.2
+   (DRBG en RNG) en `cipher` 0.5.2 met wrapper-zeroization, plus de beschermde
+   HKDF/SHA-256-stack. `chacha20` 0.9.1 blijft uitsluitend een dev-oracle voor
+   byte-exacte compatibiliteit. Alle x86-SIMD-backends zijn uitgeschakeld
+   (`chacha20_backend="soft"`,
    `poly1305_backend="soft"`, `sha2_backend="soft"`): het
    profiel heeft `CR0.EM=1` en geen SSE. De DRBG is de
    fast-key-erasure-constructie op ChaCha20 (Bernstein, 2017): sleutel K,
