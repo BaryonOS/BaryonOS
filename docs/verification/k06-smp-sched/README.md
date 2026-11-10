@@ -2,6 +2,8 @@
 
 **Status: acceptance open.** Each of the 64 cases must pass exactly 50/50 on one frozen source, including all 50 complete ten-minute combined soaks. The aggregate and the subsequent repository gate must also pass. A failed or missing repetition rejects acceptance.
 
+**Current complete restart:** [42741185181](https://github.com/simonvanieperen/BaryonOS/actions/runs/42741185181), frozen commit `332275d97ed5f24f6d43174969a5667eb42f2afa`, source-v3 `0f5144e3a17b1b5d0a0e91b24fb8dcf4db8cf5e82965dc96d4f0d2db4d591a18`, is pending behind the rejected run. No previous repetition is reused.
+
 **Latest rejected restart:** [42731994218](https://github.com/simonvanieperen/BaryonOS/actions/runs/42731994218), tested source `59a30f10ceb558d1e31408afece49ca5c331df20`, source-v3 `505c25139b4d23d78aa9da406108aad437ba7a763b1b1c67b0cc6074a4d8f2ae`, remains running but has a red case and cannot be accepted. The next candidate is described below; no repetition is reused.
 
 ## Completed rejected run
@@ -71,4 +73,4 @@ The fixture scanned all sixteen live processes on every M3 kernel entry. Each pr
 
 Candidate source-v3 `0f5144e3a17b1b5d0a0e91b24fb8dcf4db8cf5e82965dc96d4f0d2db4d591a18` removes shared progress-observer contention: continuously busy APs now store their own counters, separated by 64 bytes. The BSP checks every online AP rather than any progress on one global word. The old built loop contains a shared LOCK RMW; the new [actual object-code excerpt](clock-per-ap-objectcode.txt) contains a per-AP store, PAUSE and phase poll. This changes the fixture's workload mix; it does not reduce CPU occupancy, remove synchronization tests or alter the PIT clock, sample count, exact 1% bound or deadlines. L0 step 06 section 4 requires SMP load without prescribing a shared progress RMW. No causal link from cache-line contention to the historical IRQ0 deficit is claimed; genuine IRQ loss may still fail.
 
-[Host receipt](clock-per-ap-host-checks.json): crossbuild and 47 SMP host tests pass, as do fmt and diff checks. No local guest is started. The next complete workflow must run from zero on the committed candidate before any native pass claim.
+[Host receipt](clock-per-ap-host-checks.json): crossbuild and 47 SMP host tests pass, as do fmt and diff checks. No local guest is started. The current complete restart is bound above to the committed candidate and must pass from zero before any native pass claim.
