@@ -30,6 +30,12 @@ A dependency entry in `Cargo.toml` or `Cargo.lock` does not mean that the depend
 
 The dependency inventory requires particular attention to **Apache-2.0 AND ISC** for `ring` and **(MIT OR Apache-2.0) AND Unicode-3.0** for `unicode-ident`. The additional font terms for Noto Sans Mono are not fully represented by the MIT label of the Rust crate.
 
+## Bundled knowledge collection
+
+The `.agents/skills/os-dev/` collection includes external OSDev Wiki and Little OS Book material alongside project-authored tools. Source attribution, revision links, and recorded terms are preserved in [BRONNEN-EN-LICENTIES.md](.agents/skills/os-dev/BRONNEN-EN-LICENTIES.md), the [OSDev license notices](docs/third-party/osdev-license-notices.md), and [source-index.json](.agents/skills/os-dev/references/source-index.json).
+
+The book and adaptations retain CC BY-NC-SA 3.0 US; the authors separately offer the code examples as public domain. The OSDev Wiki describes its older collection as mixed-license and identifies CC0 for content added after its stated cutoff. Individual examples may have other terms, including the HenipaOS example W004744 labelled BSD-3-Clause-No-Nuclear-License. This register does not classify the complete collection as CC0 or MPL-2.0, and does not resolve missing historical author declarations.
+
 ## Firmware and distribution packages
 
 This source repository is not a general license grant for third-party QEMU, OVMF, SeaBIOS, or host packages. Any assembled runner or release package must track the required firmware licenses and component notices according to [tools/windows-qemu/README.md](tools/windows-qemu/README.md).
