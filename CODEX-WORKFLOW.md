@@ -82,11 +82,19 @@ zijn niet gewijzigd.
 - Geen credentials, volledige home-directory, native release-targets,
   QEMU-images, sleutels, rapporten of acceptatiebewijs in deze caches.
 
-`actions/cache` is vastgezet op de gecontroleerde v5.0.1-commit
-`9255dc7a253b0ccc959486e2bca901246202afeb`. Dit is een CI-afhankelijkheid,
-geen OS-runtimebibliotheek. Herkomst: actions/cache; MIT-licentie;
-Node 24-runtime, runner minimaal 2.327.1. Houd deze pin via de bestaande
-review/dependencyprocedure bij; dit document claimt geen audit van alle code.
+`actions/cache` is pinned to the reviewed v6.1.0 commit
+`55cc8345863c7cc4c66a329aec7e433d2d1c52a9`. The upstream `v6.1.0` tag
+points directly to this complete commit, whose signature GitHub reports as
+valid. `action.yml` uses Node 24; `package.json` declares version 6.1.0,
+Node `>=24`, and the MIT license. The minimum runner version therefore remains
+2.327.1. This is a CI dependency, not an OS runtime library. Maintain this pin
+through the existing review and dependency process; this metadata and tag
+verification is not an audit of all bundled action code.
+
+According to the upstream changelog, version 6.1.0 handles read-only cache
+access and demotes a redundant cache-save warning to debug level. This does
+not expand token permissions: the cache remains best-effort, and an
+unavailable save does not constitute a successful build or test step.
 
 De cache is best-effort. Een miss voert de normale build uit. Cachekeys zijn
 onveranderlijk: een hit betekent niet dat de nieuwste projectcode al is
@@ -141,11 +149,17 @@ de workflowwijziging, zonder bestaande branches te resetten.
 GitHub. (z.d.). *Dependency caching reference*.
 https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching
 
-GitHub. (z.d.). *actions/cache*, versie 5.0.1.
-https://github.com/actions/cache/tree/9255dc7a253b0ccc959486e2bca901246202afeb
+GitHub. (2026). *actions/cache*, version 6.1.0.
+https://github.com/actions/cache/tree/55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+
+GitHub. (June 26, 2026). *actions/cache v6.1.0 release notes*.
+https://github.com/actions/cache/releases/tag/v6.1.0
 
 OpenAI. (z.d.). *Using Codex Cloud*.
 https://help.openai.com/en/articles/20001545-using-codex-cloud
 
-Geraadpleegd op 29 oktober 2026. Repo-commando's zijn afgestemd op basiscommit
-`f63a0c1b56fdcd28e43579aa6e9c5a56e1e2cbdb`; volg daarna de actuele bronbestanden.
+The cache source, tag, and release metadata were verified on November 10,
+2026; the remaining sources were accessed on October 29, 2026. Repository
+commands are aligned with base commit
+`f63a0c1b56fdcd28e43579aa6e9c5a56e1e2cbdb`; consult the current source files
+afterward.

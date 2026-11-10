@@ -46,7 +46,7 @@ jobs:
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
       - name: Cache Cargo downloads
         id: cargo-downloads
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cargo/registry/index
@@ -54,7 +54,7 @@ jobs:
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Cache host Rust build intermediates
         id: host-build-cache
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           # Host-only outputs: never native images, acceptance reports or secrets.
           path: |
@@ -190,7 +190,7 @@ jobs:
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
       - name: Cache Cargo downloads
         id: cargo-downloads
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cargo/registry/index
