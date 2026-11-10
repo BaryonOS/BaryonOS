@@ -1,0 +1,464 @@
+{
+ "source_commit": "efe75124",
+ "tool": "tools/run_smp.py",
+ "qemu": "10.2.1/OVMF/TCG (WSL-host)",
+ "profiles": {
+  "native-smp": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "one",
+     "cpus": 1,
+     "tcg_threads": "single",
+     "passed": true
+    },
+    {
+     "case": "two-single",
+     "cpus": 2,
+     "tcg_threads": "single",
+     "passed": true
+    },
+    {
+     "case": "four",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    },
+    {
+     "case": "eight",
+     "cpus": 8,
+     "tcg_threads": "multi",
+     "passed": true
+    },
+    {
+     "case": "nine-capacity",
+     "cpus": 9,
+     "tcg_threads": "multi",
+     "passed": true
+    },
+    {
+     "case": "duplicate-madt",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "native-smp-m3": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "m3-two",
+     "cpus": 2,
+     "tcg_threads": "multi",
+     "passed": true
+    },
+    {
+     "case": "m3-four-single",
+     "cpus": 4,
+     "tcg_threads": "single",
+     "passed": true
+    },
+    {
+     "case": "m3-four",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    },
+    {
+     "case": "m3-eight",
+     "cpus": 8,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-ap-double-fault": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "ap-double-fault-ist",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-ap-ipi-deaf": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "ap-ipi-deaf",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-ap-mismatch": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "ap-mismatch",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-ap-nmi": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "ap-nmi-ist",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-ap-shootdown-deaf": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "ap-shootdown-deaf",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-ap-stall": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "ap-stall",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-ap-timer-dead": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "ap-timer-dead",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-bsp-spin-irq-off": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "bsp-spin-irq-off-control",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-double-run": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "double-run",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-gs-iret-fault": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "gs-iret-fault",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-gs-nmi-user": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "gs-nmi-user",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-gs-user": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "gs-user",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-held-across-switch": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "held-across-switch",
+     "cpus": 2,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-icr-race": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "icr-race-control",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-lock-in-handler": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "lock-in-handler",
+     "cpus": 2,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-lock-stuck": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "lock-stuck",
+     "cpus": 2,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-lockdep-order": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "lockdep-order",
+     "cpus": 2,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-lockpair-order": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "lockpair-order",
+     "cpus": 2,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-m3-fault": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "m3-fault-ap2",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-proc-no-shootdown": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "proc-no-shootdown-control",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-proc-shootdown-deaf": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "proc-shootdown-deaf",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-quarantine-lock-held": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "quarantine-lock-held",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-resched-deaf": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "resched-deaf",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-serial-unlocked": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "serial-unlocked-control",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-shared-scratch": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "shared-scratch",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-shootdown-skipped": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "shootdown-skipped-control",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  },
+  "test-smp-spin-irq-off": {
+   "passed": true,
+   "cases": [
+    {
+     "case": "spin-irq-off-control",
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "passed": true
+    }
+   ],
+   "source_sha256": "76264ef729ed990918f5a31336cf80990e70f3367c14cb874158af55e3399a04"
+  }
+ },
+ "m3_markers": {
+  "m3-two": [
+   "SMP:M3:WAITING:APS=1",
+   "SMP:M3:GO:CPUS=2",
+   "SMP:M3:CPU=0:USER_TICKS=64:SWITCHES=88",
+   "SMP:M3:CPU=1:USER_TICKS=63:SWITCHES=88",
+   "SMP:SCHED:CPUS=2",
+   "SMP:M3:CLEANUP:PASS",
+   "SMP:M3:PASS:CPUS=2"
+  ],
+  "m3-four-single": [
+   "SMP:M3:WAITING:APS=3",
+   "SMP:M3:GO:CPUS=4",
+   "SMP:M3:CPU=0:USER_TICKS=64:SWITCHES=76",
+   "SMP:M3:CPU=1:USER_TICKS=63:SWITCHES=76",
+   "SMP:M3:CPU=2:USER_TICKS=63:SWITCHES=76",
+   "SMP:M3:CPU=3:USER_TICKS=63:SWITCHES=76",
+   "SMP:SCHED:CPUS=4",
+   "SMP:M3:CLEANUP:PASS",
+   "SMP:M3:PASS:CPUS=4"
+  ],
+  "m3-four": [
+   "SMP:M3:WAITING:APS=3",
+   "SMP:M3:GO:CPUS=4",
+   "SMP:M3:CPU=0:USER_TICKS=64:SWITCHES=76",
+   "SMP:M3:CPU=1:USER_TICKS=63:SWITCHES=76",
+   "SMP:M3:CPU=2:USER_TICKS=63:SWITCHES=76",
+   "SMP:M3:CPU=3:USER_TICKS=63:SWITCHES=76",
+   "SMP:SCHED:CPUS=4",
+   "SMP:M3:CLEANUP:PASS",
+   "SMP:M3:PASS:CPUS=4"
+  ],
+  "m3-eight": [
+   "SMP:M3:WAITING:APS=7",
+   "SMP:M3:GO:CPUS=8",
+   "SMP:M3:CPU=0:USER_TICKS=64:SWITCHES=70",
+   "SMP:M3:CPU=1:USER_TICKS=63:SWITCHES=70",
+   "SMP:M3:CPU=2:USER_TICKS=63:SWITCHES=70",
+   "SMP:M3:CPU=3:USER_TICKS=63:SWITCHES=70",
+   "SMP:M3:CPU=4:USER_TICKS=63:SWITCHES=70",
+   "SMP:M3:CPU=5:USER_TICKS=63:SWITCHES=70",
+   "SMP:M3:CPU=6:USER_TICKS=63:SWITCHES=70",
+   "SMP:M3:CPU=7:USER_TICKS=62:SWITCHES=69",
+   "SMP:SCHED:CPUS=8",
+   "SMP:M3:CLEANUP:PASS",
+   "SMP:M3:PASS:CPUS=8"
+  ],
+  "m3-fault-ap2": [
+   "SMP:M3:WAITING:APS=3",
+   "SMP:M3:GO:CPUS=4",
+   "SMP:M3:FAULT:UD:CPU=2",
+   "SMP:M3:CPU=0:USER_TICKS=64:SWITCHES=76",
+   "SMP:M3:CPU=1:USER_TICKS=63:SWITCHES=76",
+   "SMP:M3:CPU=2:USER_TICKS=63:SWITCHES=77",
+   "SMP:M3:CPU=3:USER_TICKS=63:SWITCHES=76",
+   "SMP:SCHED:CPUS=4",
+   "SMP:M3:CLEANUP:PASS",
+   "SMP:M3:K03:PASS",
+   "SMP:M3:PASS:CPUS=4"
+  ]
+ }
+}

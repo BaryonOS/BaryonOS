@@ -467,7 +467,7 @@ extern "C" fn m2_exception(frame: *const u64) -> ! {
     // Test-only AP IST probes: accepted solely on that AP's own IST stack.
     #[cfg(feature = "native-smp")]
     if let Some(marker) = super::smp::ist_fault_marker(vector, error, rip, cs, cr2, frame) {
-        serial::write(marker);
+        serial::write_terminal(marker);
         serial::exit(0x10);
     }
     if cfg!(feature = "test-m2-double-fault") && vector == 8 && error == 0 && cs == 8 {
@@ -490,17 +490,17 @@ extern "C" fn m2_exception(frame: *const u64) -> ! {
             && old_rsp >= main
             && old_rsp < main + 4096
         {
-            serial::write(b"M2:FAULT:DF_IST:PASS\n");
+            serial::write_terminal(b"M2:FAULT:DF_IST:PASS\n");
             serial::exit(0x11);
         }
     }
     let supervisor = cs == 8 && error & 4 == 0;
     if cfg!(feature = "test-m2-kernel-fault") && vector == 6 && error == 0 && cs == 8 {
-        serial::write(b"M2:FAULT:KERNEL_UD:PASS\n");
+        serial::write_terminal(b"M2:FAULT:KERNEL_UD:PASS\n");
     }
     if vector == 14 && supervisor {
         if cfg!(feature = "test-m2-ro") && cr2 == super::text_start() && error & 0x1f == 3 {
-            serial::write(b"M2:FAULT:RO:PASS\n");
+            serial::write_terminal(b"M2:FAULT:RO:PASS\n");
             serial::exit(0x10);
         }
         if cfg!(feature = "test-m2-nx")
@@ -508,15 +508,15 @@ extern "C" fn m2_exception(frame: *const u64) -> ! {
             && rip == cr2
             && error & 0x1f == 17
         {
-            serial::write(b"M2:FAULT:NX:PASS\n");
+            serial::write_terminal(b"M2:FAULT:NX:PASS\n");
             serial::exit(0x10);
         }
         if cfg!(feature = "test-m2-absent") && cr2 == 0 && error & 0x1f == 0 {
-            serial::write(b"M2:FAULT:ABSENT:PASS\n");
+            serial::write_terminal(b"M2:FAULT:ABSENT:PASS\n");
             serial::exit(0x10);
         }
     }
-    serial::write(b"M2:FAIL:KERNEL_EXCEPTION\n");
+    serial::write_terminal(b"M2:FAIL:KERNEL_EXCEPTION\n");
     serial::exit(0x11)
 }
 
@@ -648,6 +648,24 @@ m3_syscall:
  push 0
  push 128
  jmp m2_exception_common
+ .if {smp_m3}
+// Step 5d-2: an AP's M3 tick (LAPIC 0xd0). From CPL3 the full M3 entry; from
+// CPL0 (idle hlt or a KERNEL wait window) only EOI, no GS, stack or Rust,
+// then the reviewed `iretq` of the spurious stub (like the 5c-2 clock stub).
+.global m3_ap_timer
+m3_ap_timer:
+ test byte ptr [rsp+8],3
+ jz 1f
+ push 0
+ push 0xd0
+ jmp m2_exception_common
+1:
+ push rax
+ movabs rax,{lapic_eoi}
+ mov dword ptr [rax],0
+ pop rax
+ jmp nos_smp_spurious_entry
+ .endif
 m2_dispatch:
  cmp qword ptr [rsp+120],2
  je m3_terminal
@@ -659,8 +677,13 @@ m2_dispatch:
  jne m3_user_entry
  cmp qword ptr [rsp+144],8
  jne m3_user_entry
+ .if {smp_m3}
+ // Step 5d-2: a BSP waiting for KERNEL opens its IF window (5b), so IRQ0 may
+ // arrive in any CPL0 wait; it is counted and folded into ticks under KERNEL.
+ .else
  cmp byte ptr [rip+m3_idle_active],1
  jne m3_terminal
+ .endif
  inc qword ptr [rip+m3_idle_wakeups]
  mov al,0x20
  out 0x20,al
@@ -674,12 +697,25 @@ m3_user_entry:
  .if {fpu_context}
  // GPRs already saved. The current owned aligned image is supervisor-only
  // mapped in every user CR3. Save before any Rust or another process runs.
+ .if {smp_m3}
+ // R3-3: this CPU's current image (GS anchor, after the entry swapgs).
+ call nos_smp_m3_fpu
+ fxsave64 [rax]
+ lock inc qword ptr [rip+m3_fpu_saves]
+ .else
  mov rax,[rip+m3_fpu_current]
  fxsave64 [rax]
  inc qword ptr [rip+m3_fpu_saves]
  .endif
+ .endif
  mov rdi,rsp
+ .if {smp_m3}
+ // R3-4: this CPU's service stack (GS anchor, after the entry swapgs).
+ call nos_smp_m3_stack
+ mov rsp,rax
+ .else
  mov rsp,[rip+m3_service_stack]
+ .endif
  and rsp,-16
  call m3_event
 .global m3_restore
@@ -690,9 +726,18 @@ m3_restore:
  jne 9f
  // Final restore occurs after ALL Rust, under the selected user root. These
  // pages are supervisor-only and permanent; only GPR pops/iret follow it.
+ .if {smp_m3}
+ // RSP is the saved context in STATE, not a stack: no call. The helper reads
+ // this CPU's image through GS (still the kernel anchor) and jumps back.
+ jmp nos_smp_m3_fxrstor
+.global m3_fxrstor_done
+m3_fxrstor_done:
+ lock inc qword ptr [rip+m3_fpu_restores]
+ .else
  mov rax,[rip+m3_fpu_current]
  fxrstor64 [rax]
  inc qword ptr [rip+m3_fpu_restores]
+ .endif
 9:
  .endif
  pop r15
@@ -722,4 +767,10 @@ m3_terminal:
 "#
     ),
     fpu_context = const cfg!(feature = "fpu-context") as u8,
+    smp_m3 = const cfg!(feature = "native-smp-m3") as u8,
+    lapic_eoi = const LAPIC_EOI,
 );
+#[cfg(feature = "native-smp-m3")]
+const LAPIC_EOI: u64 = super::paging::LAPIC_WINDOW + 0xb0;
+#[cfg(all(feature = "milestone-m3", not(feature = "native-smp-m3")))]
+const LAPIC_EOI: u64 = 0;

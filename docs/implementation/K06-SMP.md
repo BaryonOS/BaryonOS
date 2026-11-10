@@ -375,6 +375,19 @@ zelf, die eerst naar de kernel-CR3 wisselt → shootdown met `targets` = de snap
 `check_invariants` krijgt: *geen vrij frame wordt nog door een PTE in een levende adresruimte genoemd*
 en *`active_cpus` van een dood proces is 0*.
 
+### 7.2a Gerealiseerd in stap 5e (aanvulling ADR-072, 6 november 2026)
+
+`smp.rs`: `shootdown_process(space, start, pages)` en `shootdown_kernel(start, pages)`, met één
+interne `round` onder `SHOOTDOWN`. `paging.rs`: `unmap_shot` = PTE wissen + lokaal `invlpg` →
+ronde → metadata vrijgeven (PS-3). De twee testruimten zijn nu echte ruimten (`build_spaces`, eigen
+PML4/PDPT/PD/PT, kernel-PD gedeeld via PDPT-entry 0, ander frame op `0x4000_0000`). De
+PML4-kopieën van 5d-1 bestaan niet meer. Native fixture (na ICR): `SMP:ISOLATION:PASS` en
+`SMP:UNMAP_RACE:PASS` (bij één CPU `SKIPPED`), met de controles `test-smp-proc-shootdown-deaf` en
+`test-smp-proc-no-shootdown`. De #PF van de lezer is gecontroleerd: `nos_smp_race_read` krijgt via
+een exception-fixup `RACE_FAULT` terug en hervat via de beoordeelde `iretq` van de spurious-stub
+(alleen CPL0). **Niet gebouwd:** het M3-pad (geen M3 onder `native-smp`), de
+`check_invariants`-regels in de engine en een rechtenverlagings-API. Zie ADR-072 (aanvulling).
+
 ### 7.3 FPU-context bij migratie (ADR-045)
 
 `T.fxsave` is geldig zodra stap 6.3.3 op de oude CPU klaar is. De `RUNQ`-release (stap 6.3.7)
@@ -400,10 +413,13 @@ onbereikbaar, maar het contract geldt vooruit.
 | 5b-2 | `KERNEL`-lock om alle M3-syscalls; scratchslot per CPU; ADR-075 (gerealiseerd) | `lock.rs`, `m3.rs`, `paging.rs`, `smp.rs`-fixture, `docs/DECISIONS.md` | `SMP:SCRATCH:PASS:CPUS=n`; controle `test-smp-shared-scratch` → `SMP:SCRATCH:CROSS:CPU=n`; volle `milestone-m2`- en M3-regressie op 1 CPU, ongewijzigd |
 | 5c | Preëmptie uitgesteld zolang lockdep niet leeg is (vastgehouden of bewaakte lock); `HELD_ACROSS_SWITCH` bij schending (aanvulling ADR-074) | `smp.rs` | lockfixture in `SMP:PREEMPT:PASS`; `test-smp-held-across-switch` → marker |
 | 5c-2 | BSP LAPIC-timer + idle met `sti; hlt`; PIT blijft de klok | `smp.rs`, idle-lus | `native-rtc` 5/5, monotone-klokcheck, BSP-preëmptiecanary |
-| 5d(-1) | Runqueues per AP, threadstatus-CAS (INV-3), 0xe8-wekken, CR3-wissel §6.3 met `active_cpus` (INV-4), met kernelthreads in twee adresruimten (aanvulling ADR-074) | `crates/smp-lock` (`sched`), `smp.rs` | `SMP:SCHED:PASS:CPUS=n`; `test-smp-double-run` → `SMP:SCHED:DOUBLE_ENQUEUE` |
+| 5d(-1) | Runqueues per AP, threadstatus-CAS (INV-3), 0xe8-wekken, CR3-wissel §6.3 met `active_cpus` (INV-4), met kernelthreads in twee adresruimten (aanvulling ADR-074) | `crates/smp-lock` (`sched`), `smp.rs` | `SMP:SCHED:PASS:CPUS=n`; `test-smp-double-run` → `SMP:SCHED:DOUBLE_RUN` |
 | F8 | `swapgs`-discipline in alle IDT-stubs (INV-8, ADR-076); ring-3-GS-fixture | `arch.rs`, `smp.rs`, `tools/tests/test_gs_discipline.py` | rood op de oude stubs; `SMP:GS:PASS`, `SMP:GS:IRET_FIXUP:PASS`, NMI vanuit CPL3; statische lint |
 | 5d-2 | Ring-3-processen op AP's met dezelfde kern (na 5b-2 en 5c-2; INV-2) | M3-scheduler, `smp.rs` | K05 6/6 op 4 vCPU's; `SMP:SCHED:CPUS=n` met user-werk op elke CPU |
-| 5e | Procesbrede shootdown §7.1/7.2 | paging/unmap, cleanup | dove-AP-negatief, controle zonder shootdown (moet stale-read tonen) |
+| 5d-2a | **Gebouwd (ADR-081):** profiel `native-smp-m3`, basis-M3-manifest op elke online CPU (home bij spawn, `current` per CPU, entry onder `KERNEL`, kernelronde vóór vrijgeven, stop-the-world) | `m3.rs`, `smp.rs`, `arch.rs` | `SMP:M3:CPU=<i>:USER_TICKS>0:SWITCHES>=4`, `SMP:SCHED:CPUS=n` op 2/4/8 vCPU's; `test-smp-m3-fault` → `SMP:M3:K03:PASS` |
+| 5d-2b | **Gebouwd (ADR-081, aanvulling):** FPU-context per CPU (R3-3), alle SMP-processen FPU-canary, 1000 wissels per CPU | `smp.rs`, `arch.rs`, `m3.rs`, `fpu.rs`, `userspace/probe.rs` | `SMP:M3:FPU:PASS:PROCESSES=16`; `test-smp-m3-fpu-skip` → `SMP:M3:FPU:CORRUPT:CONTROL` |
+| 5d-2c | Open: IPC over CPU's (M4 + `ipc-wait` op SMP, 0xe8, `lock_pair`), usercopy onder `ASPACE`, K05 op SMP, GS N1-N3 met M3 | `m3.rs`, `wait.rs`, `m4.rs`, `smp.rs` | spec 08 §4 |
+| 5e | Procesbrede shootdown §7.1/7.2 (gerealiseerd voor de fixture-ruimten, §7.2a) | paging/unmap, cleanup | dove-AP-negatief, controle zonder shootdown (moet stale-read tonen) |
 | 5f | Migratiefixture + concurrente stress + K06-acceptatie | testfixtures, `tools/run_smp.py`, `docs/verification/k06-smp-sched/` | §9 compleet; progress K06 → accepted |
 
 Na elke stap: PROJECT-STATE bijwerken, committen, pushen, een concept-PR met auto-merge
@@ -439,7 +455,7 @@ Profielen: 1, 2, 4 en 8 vCPU's; zowel single- als multi-thread-TCG (`-accel tcg,
    alle AP's, threads naar de BSP, de boot gaat verder als één CPU.
 10. `test-smp-proc-no-shootdown` (controleprofiel): zonder shootdown leest P in test 3 het
     hergebruikte frame. Dat bewijst dat test 3 een echt gevaar meet (zelfde methode als ADR-072).
-11. `test-smp-double-run`: forceer dezelfde TID op twee runqueues → `SMP:SCHED:DOUBLE_ENQUEUE`.
+11. `test-smp-double-run`: forceer dezelfde TID op twee runqueues → `SMP:SCHED:DOUBLE_RUN`.
 12. `test-smp-resched-deaf`: AP negeert 0xe8 tijdens een kill → INV-5-pad.
 13. Canary-injectie (open punt uit ADR-073): corrumpeer bewust een bewaard register → de
     canary moet afgaan.

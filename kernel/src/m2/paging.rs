@@ -493,7 +493,7 @@ impl Paging {
         }
         Ok(())
     }
-    #[cfg(feature = "milestone-m3")]
+    #[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
     pub fn map_user(
         &mut self,
         frames: &mut Frames<FRAME_COUNT>,
@@ -515,6 +515,10 @@ impl Paging {
         user: bool,
     ) {
         assert!(va != 0 && va < 0x80000000 && va % PAGE == 0 && pa % PAGE == 0);
+        // PS-4 (step 5e): the kernel half is exactly PDPT entry 0, which every
+        // fixture space shares by pointer; it never gains an entry a space misses.
+        #[cfg(feature = "native-smp")]
+        assert!(user || va < 1 << 30, "kernel mapping outside the shared PD");
         let mut table = self.root;
         for shift in [39, 30, 21] {
             let index = ((va >> shift) & 511) as usize;
@@ -554,7 +558,7 @@ impl Paging {
                 | if executable { 0 } else { NX },
         );
     }
-    #[cfg(feature = "milestone-m3")]
+    #[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
     pub fn new_user(frames: &mut Frames<FRAME_COUNT>, kernel: &Self, asid: u16) -> Self {
         let root = frames
             .allocate(Owner::PageTable(asid), zero_dynamic)
@@ -563,6 +567,11 @@ impl Paging {
             .allocate(Owner::PageTable(asid), zero_dynamic)
             .unwrap();
         let kernel_pdpt = read(kernel.root, 0) & ADDRESS;
+        #[cfg(feature = "native-smp")]
+        assert!(
+            (1..512).all(|i| read(kernel.root, i) == 0 && read(kernel_pdpt, i) == 0),
+            "PS-4: kernel half must be PDPT entry 0 alone"
+        );
         write(root, 0, pdpt | PRESENT | WRITE | USER);
         write(pdpt, 0, read(kernel_pdpt, 0));
         let mut result = Self {
@@ -581,25 +590,35 @@ impl Paging {
     }
     #[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
     pub fn unmap(&mut self, frames: &mut Frames<FRAME_COUNT>, va: u64) {
+        let entry = self.clear_leaf(va);
+        release_leaf(frames, entry);
+    }
+    /// Step 5e (PS-3): unmap one page of fixture space `space`, with its
+    /// ASPACE held by the caller. The PTE is cleared, the space's active CPUs
+    /// get a round, and only after every ack is the alias metadata released.
+    /// A missing ack keeps the metadata (the frame stays in quarantine).
+    #[cfg(feature = "native-smp")]
+    pub fn unmap_shot(
+        &mut self,
+        frames: &mut Frames<FRAME_COUNT>,
+        va: u64,
+        space: usize,
+    ) -> Result<u64, super::smp::Quarantined> {
+        let entry = self.clear_leaf(va);
+        super::smp::shootdown_process(space, va, 1)?;
+        release_leaf(frames, entry);
+        Ok(entry & ADDRESS)
+    }
+    /// Clear the leaf at `va` and invalidate it on THIS CPU only; returns the
+    /// old entry. Its alias metadata stays until `release_leaf`.
+    #[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
+    fn clear_leaf(&mut self, va: u64) -> u64 {
         let (table, index) = self.location(va);
         let entry = read(table, index);
         assert_ne!(entry & PRESENT, 0);
         write(table, index, 0);
         invalidate(va);
-        let pa = entry & ADDRESS;
-        frames
-            .unmap(pa, entry & WRITE != 0, entry & NX == 0)
-            .unwrap();
-        if frames.alias(pa).unwrap().executable == 0 {
-            // SAFETY: All executable leaves were removed and TLB invalidated
-            // before the writable scratch prohibition may be released.
-            unsafe {
-                ptr::addr_of_mut!(EXECUTABLE)
-                    .cast::<bool>()
-                    .add((pa / PAGE) as usize)
-                    .write(false);
-            }
-        }
+        entry
     }
     #[cfg(feature = "milestone-m3")]
     pub fn identity_readonly(&mut self, frames: &mut Frames<FRAME_COUNT>, pa: u64) {
@@ -632,8 +651,8 @@ impl Paging {
             entry.store(table + (index + cpu) as u64 * 8, Ordering::Release);
         }
     }
-    #[cfg(feature = "milestone-m3")]
-    pub fn destroy(self, frames: &mut Frames<FRAME_COUNT>) {
+    #[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
+    pub fn destroy(&mut self, frames: &mut Frames<FRAME_COUNT>) {
         let active: u64;
         // SAFETY: CPL0 register read validates that no active root is released.
         unsafe {
@@ -645,6 +664,8 @@ impl Paging {
                 .free(table, Owner::PageTable(self.asid), zero_dynamic)
                 .unwrap();
         }
+        // A destroyed space owns no tables any more.
+        self.count = 0;
     }
     #[cfg(feature = "milestone-m3")]
     pub fn owned_table_count(&self) -> usize {
@@ -820,6 +841,25 @@ fn write(table: u64, index: usize, value: u64) {
             physical(table, |p| p.cast::<u64>().add(index).write_volatile(value));
         } else {
             (table as *mut u64).add(index).write_volatile(value);
+        }
+    }
+}
+/// Release the alias metadata of a cleared leaf `entry`, once every CPU that
+/// may cache it has invalidated it (locally on one CPU; a round under SMP).
+#[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
+fn release_leaf(frames: &mut Frames<FRAME_COUNT>, entry: u64) {
+    let pa = entry & ADDRESS;
+    frames
+        .unmap(pa, entry & WRITE != 0, entry & NX == 0)
+        .unwrap();
+    if frames.alias(pa).unwrap().executable == 0 {
+        // SAFETY: All executable leaves were removed and TLB invalidated
+        // before the writable scratch prohibition may be released.
+        unsafe {
+            ptr::addr_of_mut!(EXECUTABLE)
+                .cast::<bool>()
+                .add((pa / PAGE) as usize)
+                .write(false);
         }
     }
 }

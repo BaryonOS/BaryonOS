@@ -141,6 +141,8 @@ _start:
     je .Lexit_seven
     cmp rax, 16
     je .Linvalid_return_stack
+    cmp rax, 19
+    je .Lfpu_canary
     mov edi, 0xe2
     jmp .Lexit
 
@@ -217,6 +219,36 @@ _start:
     xor r9d, r9d
     xor esp, esp
     int 0x80
+    ud2
+
+// K06 5d-2 (R3-3) FPU canary, native-smp-m3 only (eager FXSAVE/FXRSTOR):
+// st0 = the private pattern (exact in the 64-bit significand), xmm0 = the
+// pattern, xmm15 = its complement, loaded once (r10 = loaded) and checked on
+// every loop pass. Another process's or a lost state ends with int3 (#BP).
+.Lfpu_canary:
+    test r10, r10
+    jnz 1f
+    mov r10d, 1
+    fninit
+    fild qword ptr [r12 + 16]
+    movq xmm0, r13
+    pcmpeqd xmm15, xmm15
+    pxor xmm15, xmm0
+1:
+    movq rax, xmm0
+    cmp rax, r13
+    jne .Lfpu_corrupt
+    movq rax, xmm15
+    not rax
+    cmp rax, r13
+    jne .Lfpu_corrupt
+    fld st(0)
+    fistp qword ptr [rsp - 8]
+    cmp qword ptr [rsp - 8], r13
+    jne .Lfpu_corrupt
+    jmp .Lloop
+.Lfpu_corrupt:
+    int3
     ud2
 
 .Labi_error:

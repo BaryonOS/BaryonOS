@@ -20,13 +20,24 @@ compile_error!("native-rtc exclusively owns CMOS in the single-CPU IF0 bootstrap
 #[cfg(all(
     feature = "native-smp",
     any(
-        feature = "milestone-m3",
+        all(feature = "milestone-m3", not(feature = "native-smp-m3")),
         feature = "framebuffer",
         feature = "native-rtc",
         feature = "graphics-g0"
     )
 ))]
 compile_error!("native-smp is an IF0 M2 bring-up profile; single-CPU subsystems stay excluded");
+// R3-1: native-smp-m3 runs only the base M3 manifest; every M3 service profile stays one CPU.
+#[cfg(all(
+    feature = "native-smp-m3",
+    any(
+        feature = "native-fpu",
+        feature = "ipc-wait",
+        feature = "milestone-m4",
+        feature = "native-supervisor"
+    )
+))]
+compile_error!("native-smp-m3 carries only the base M3 manifest in step 5d-2");
 
 use boot_protocol::{BootInfo, ADDRESS_LIMIT, PAGE_SIZE};
 use core::{arch::asm, ptr};
@@ -134,9 +145,14 @@ fn panic(info: &core::panic::PanicInfo<'_>) -> ! {
             *digit = b'0' + (n % 10) as u8;
             n /= 10;
         }
-        serial::write(b"M2:PANIC_LINE:");
-        serial::write(&digits);
-        serial::write(b"\n");
+        // DG-2: a terminal line, whole and without waiting for SERIAL.
+        let mut line = serial::Line::new();
+        serial::write_terminal(
+            line.push(b"M2:PANIC_LINE:")
+                .push(&digits)
+                .push(b"\n")
+                .as_bytes(),
+        );
     }
     #[cfg(not(feature = "milestone-m2"))]
     let _ = info;

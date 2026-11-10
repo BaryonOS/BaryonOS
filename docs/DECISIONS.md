@@ -1,5 +1,80 @@
 # Ontwerpbesluiten
 
+## ADR-081 — M3-ring-3-processen op elke online CPU (K06 stap 5d-2a)
+
+6 november 2026; effect alleen in het nieuwe profiel `native-smp-m3` (en zijn negatieve variant
+`test-smp-m3-fault`). Taakspec: `docs/implementation/k06-steps/08-5d-2-ring3-on-aps.md`. Bouwt op
+ADR-074 t/m -080. **Probleem:** na de zelftests parkeerden alle AP's; `native-smp` sloot M3 uit
+(`compile_error`). Geen AP deed productiewerk.
+
+**Besluit (R3-1 t/m R3-4, deelstap a):**
+1. **Profiel.** `native-smp-m3 = native-smp + milestone-m3`; de `compile_error` vervalt alleen
+   daarvoor. Het profiel draagt in deze deelstap alleen het basis-M3-manifest (16 processen);
+   `fpu-context`, `ipc-wait`, M4 en de supervisor zijn er nog met een `compile_error` uitgesloten.
+   Alle andere profielen blijven één CPU.
+2. **Overdracht.** `smp::start` draait alle zelftests ongewijzigd en laat de AP's daarna in hun
+   thuislus (`SMP:M3:WAITING:APS=n`) in plaats van te parkeren. `m3::start` bouwt de procestabel
+   onder `KERNEL`, waarna `smp::m3_go` de BSP-LAPIC-timer maskeert, elke online CPU een
+   M3-servicestack geeft (BSP: MAIN; AP: zijn MAIN-stack), gate 0xd0 op `m3_ap_timer` zet en
+   `M3_GO` vrijgeeft. Een AP start dan zijn LAPIC-tick (~10 ms) en gaat `m3::ap_main` in.
+3. **Plaatsing (R3-2, spec §6.2).** Bij spawn `home` = de online CPU met de minste levende
+   processen, de laagste index bij gelijkspel. `select` kiest alleen processen met `home` = deze
+   CPU. Geen migratie, geen load balancing. Daarmee draait een proces op hoogstens één CPU
+   (INV-3).
+4. **Entry (R3-4).** Elke M3-entry neemt `KERNEL` (ADR-075). Binnen `KERNEL` is `State.current`
+   altijd van de houder: `load_current` zet de waarde van deze CPU erin, `kernel_leave` zet hem
+   terug in `CPU_CURRENT`. De stub haalt de servicestack na zijn `swapgs` via het GS-anker
+   (`nos_smp_m3_stack`); TSS.RSP0 wordt per CPU gezet (`smp::rsp0`). De AP-tick 0xd0 doet vanuit
+   CPL3 de volledige M3-entry. Vanuit CPL0 (idle, of een spinvenster van `KERNEL`) geeft hij
+   alleen EOI en keert terug via de beoordeelde `iretq` van de spurious-stub. Op de BSP blijft
+   PIT-IRQ0 de M3-tick en de klok. Een IRQ0 tijdens een CPL0-wacht wordt geteld en onder `KERNEL`
+   in `ticks` opgenomen.
+5. **Adresruimte (INV-4).** `Process.active` krijgt de bit van deze CPU vóór de CR3-load en
+   verliest hem na de load van de kernel-CR3 bij de entry. `cleanup` weigert een proces dat nog
+   op een andere CPU actief is (`SMP:M3:REMOTE_ACTIVE`).
+6. **Vrijgeven (INV-1, spec §5 punt 6).** `cleanup` wist op SMP eerst alle PTE's (gebruikershelft
+   en kernelaliassen), doet dan één kernelronde naar alle online CPU's (`shootdown_kernel`,
+   CR3-reload) en geeft pas daarna de frames vrij.
+7. **Idle en einde (INV-7).** Een CPU zonder klaar proces laat `KERNEL` los vóór `sti; hlt`.
+   Het einde van de fixture is een stop-the-world: de stoppende CPU laat `KERNEL` los, elke andere
+   CPU parkeert bij zijn volgende entry met de kernel-CR3 en IF=0 (zonder STATE aan te raken) en
+   verlaat `ONLINE_CPUS`. Daarna volgen de cleanup en de balanscontrole.
+
+**Shortcuts (vastgelegd):** (a) een spawn na `M3_GO` wordt geweigerd (een assert), omdat die
+kernelhelft-rondes vereist; dat komt met K05 op SMP. (b) Een kernelronde zonder ack stopt de VM
+(`SMP:M3:SHOOTDOWN_TIMEOUT`) in plaats van quarantaine plus migratie naar de BSP (spec §6.2(a));
+dat volgt in 09. (c) De M3-tick van een AP is een vaste LAPIC-telling (625 000, ~10 ms bij de
+ADR-080-ratio), niet per CPU geijkt.
+
+**Bijvangst:** `build_spaces` (5e) gaf de twee testruimten als waarde terug. Dat kostte ~13 KiB
+van de 16-KiB MAIN-stack. In het grotere M3-build gaf dat een #DF (stack-overflow in de
+zelftest). Beide ruimten staan nu statisch.
+
+**Weerlegd als:** een CPU zonder user-ticks of met minder dan 4 wissels eindigt, een proces op
+twee CPU's tegelijk draait, een frame wordt vrijgegeven voordat elke CPU de kernelronde heeft
+bevestigd, of een appfault op AP2 meer stopt dan dat ene proces.
+
+**Aanvulling 5d-2b (R3-3, FPU in de wissel):** `native-smp-m3` neemt `fpu-context` mee
+(CR0/CR4/EFER zet `arch::protection` vóór de AP-bringup; de AP's nemen ze exact over, ADR-070).
+Het beeld van het lopende proces staat per CPU in `CpuLocal.m3_fpu` (`fpu::select` schrijft
+het). De entry haalt het na de `swapgs` op via `nos_smp_m3_fpu` en doet de FXSAVE vóór enige
+Rust-code. De exit doet de FXRSTOR direct vóór de GPR-pops via `nos_smp_m3_fxrstor`: RSP is dan
+de opgeslagen context in STATE en geen stack, dus de helper wordt met `jmp` bereikt en verlaten
+(ADR-045). De diagnosetellers lopen met `lock inc`. Bewijs: elk SMP-proces is een FPU-canary
+(probe-modus 19: `st0`, `xmm0` en `xmm15` met eigen waarden, elke lusronde gecontroleerd, `int3`
+bij afwijking). De eindvoorwaarde eist 1000 wissels per CPU. Daarna controleert de kernel
+ST0/XMM0/XMM15 in elk opgeslagen beeld (`SMP:M3:FPU:PASS`). De controle
+`test-smp-m3-fpu-skip` laat de FXRSTOR weg en moet `SMP:M3:FPU:CORRUPT:CONTROL` geven. Een
+`int3` vanuit CPL3 komt via de DPL0-gate binnen als #GP met foutcode 0x1a; beide vormen gelden
+als canary-alarm.
+
+**Open (5d-2c en verder):** IPC over CPU's (R3-5) vraagt M4 (capability-engine) plus
+`ipc-wait` op SMP. Concreet: `wait::refresh` moet bij Waiting→Ready voor een proces met een
+andere `home` 0xe8 sturen, `smp_idle` moet eerst `refresh` draaien, de kopie tussen
+adresruimten moet `lock_pair(ASPACE[a], ASPACE[b])` nemen, en er is een ping-pongprogramma met
+10 000 rondes nodig (geen nieuwe syscall, INV-6). Verder: usercopy onder `ASPACE` (R3-6), quota
+per proces en K05 op SMP met spawn na GO (R3-7), en Ring-3-GS N1-N3 met M3-processen.
+
 ## ADR-080 — BSP-timer, PIT-klok, idle en reschedule-vlag op de BSP (K06 stap 5c-2, auditbevindingen F6/F9/F11/F13)
 
 6 november 2026; effect alleen in `native-smp`. Taakspec:
@@ -329,6 +404,11 @@ veranderen. M3 blijft uitgesloten van `native-smp` tot 5d-2.
 5. ASID blijft een interne teller en PCID blijft uit.
 6. Een wijziging in de gedeelde kernelhelft, behalve het eigen scratchslot, vereist een
    shootdown naar alle online CPU's (ADR-072).
+   *Aanvulling stap 5e:* gebouwd als `shootdown_kernel` (doelset `ONLINE_CPUS & !self`). De
+   kernelhelft is precies PDPT-entry 0 (één PD). Elke ruimte deelt die PD via de pointer
+   (`Paging::new_user`). Er wordt dus niets gekopieerd dat uit de pas kan lopen, en er is nooit een
+   nieuwe PML4-entry nodig. In `native-smp` controleren asserts dat er geen kernelmapping boven 1 GiB
+   komt en dat de kernelroot buiten entry 0 leeg is.
 7. **Herzien bij:** PCID, fijnmazige subsysteemlocks, idle buiten de sectie (5c-2), M3 op AP's
    (5d-2), DMA/IOMMU of een nieuwe mapping-API. De grote lock begrenst de parallelle
    syscall-doorvoer (R02-risico, geen K06-eis).
@@ -489,6 +569,47 @@ geven, met exit 0x10. Native lokaal: zie `docs/verification/k06-smp-sched/`.
 niet FIFO is en onder TCG kan uithongeren. Lockdep alleen in debugbuilds:
 verworpen, omdat de native gate releasebuilds draait.
 
+**Aanvulling auditfixes F5/F7 (6 november 2026, K06-audit, L0-spec
+`docs/implementation/k06-steps/03-F5-F7-stuck-serial.md`).**
+- **F5, begrensd wachten ook in release (DG-1).** De begrensde spin hing aan
+  `cfg!(debug_assertions)`, maar elke native gate bouwt `--release`: een deadlock werd
+  dan een host-timeout zonder diagnose. Nu kiest `cfg(feature = "native-smp")` de
+  begrensde variant. Alle `test-smp-*`-profielen erven die feature. De grens is een
+  tijd: `LOCK_STUCK_MS = 4 × SHOOTDOWN_DEADLINE_MS` = 400 ms, gerekend vanaf de eerste
+  gecontesteerde poll. Overschrijding geeft `SMP:LOCK:STUCK:<niveau>:CPU=<n>` en stopt
+  de VM. Eén-CPU-profielen (M3) blijven onbegrensd: daar is geen wachter.
+- **Tijdsbasis, afwijking van de letter van de spec.** De spec zegt "gemeten met de
+  PIT-klok". Maar de PIT is van de BSP (ADR-070) en een AP mag hem niet aanraken. De BSP
+  ijkt daarom vóór de eerste IPI 10 ms PIT-kanaal 2 tegen de TSC (`TSC_PER_MS`). Een
+  wachter op welke CPU dan ook leest alleen de TSC. De PIT blijft dus de tijdsbasis,
+  maar de meting tijdens het spinnen loopt via de TSC. Aanname: de TSC loopt met een
+  vaste snelheid (QEMU/TCG, KVM). *shortcut: vervang dit door de gekalibreerde TSC van
+  stap 06.* Mislukt de ijking, dan stopt de boot met `M1:FAIL:SMP_TSC_CALIBRATION`.
+- **F7, één regel is ondeelbaar (DG-2).** `serial.rs` heeft onder `native-smp` een
+  `static SERIAL: IrqLock<()>` op niveau 70 (irqsave, begrensd volgens DG-1).
+  `serial::write` verzamelt fragmenten in een regelbuffer per CPU (IF=0). Bij de
+  newline gaat de hele regel in één keer onder `SERIAL` naar buiten. Zo bleven de ruim
+  tweehonderd bestaande schrijfplekken ongewijzigd. Terminale paden (de gedeelde
+  exceptionhandler met NMI/#DF, `panic`, `fail`, `lock_stuck`) schrijven met
+  `write_terminal`: een begrensde `try_lock` zonder lockdep. Lukt die niet, dan gaat de
+  regel toch naar buiten, met `!` ervoor. De host-oracle accepteert `!` alleen op de
+  laatste regel van een terminaal profiel.
+- **Bevinding: lockdep kent geen niveau 70.** `smp_lock::Lockdep` houdt niveaus 0..=63
+  bij in één `u64` (`assert!(level < 64)`). `SERIAL = 70` was tot nu toe nooit gebruikt.
+  *shortcut: `SERIAL` wordt niet in het lockdepwoord vastgelegd.* Het is het hoogste
+  niveau en een leaf (`write_raw` neemt geen lock), en het wordt alleen met IF=0
+  vastgehouden. Een herintreding op dezelfde CPU ziet DG-1 als `SMP:LOCK:STUCK:70`.
+  Verbreed `Lockdep` (crate `smp-lock`, buiten deze stap) zodra een niveau boven 63
+  ordening nodig heeft.
+- **DG-3.** Zonder `native-smp`, en vóór `smp::start` het GS-anker zet, gaan de bytes
+  ongewijzigd en direct naar de UART. `fail` en `panic` stellen hun regel nu eerst
+  samen, met byte-gelijke uitvoer.
+- **Bewijs.** In elk `native-smp`-image schrijft elke CPU na de synctest 200 regels
+  `SMP:SER:<cpu>:<seq>` in fragmenten, door elkaar. Daarna volgt `SMP:SERIAL:PASS`. De
+  host eist elke regel heel, per CPU de volgorde 0..199, en geen regel buiten die fase.
+  `test-smp-lock-stuck` (2 vCPU's): de BSP houdt een KERNEL-niveaulock vast. Verwacht:
+  `SMP:LOCK:STUCK:10:CPU=1`, exit 0x10. Native lokaal: `docs/verification/k06-f5f7-diagnostics/`.
+
 ## ADR-073 — Gepreëmpteerde kernelthreads op AP's (K06 stap 4)
 
 5 november 2026; alleen in `native-smp`, de BSP blijft IF=0. Iedere AP
@@ -559,6 +680,37 @@ ASID/CR3 en per range), integratie met M3-unmaps, interrupts op de BSP en
 de SMP-scheduler volgen nog; ADR-024 blijft tot dan ongewijzigd geldig.
 
 **Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+
+**Aanvulling 6 november 2026 — procesbrede shootdown op `active_cpus` (K06 stap 5e, auditbevinding
+F18).** Taakspec `docs/implementation/k06-steps/07-5e-process-shootdown.md`. De ronde is algemeen
+geworden (`smp.rs`):
+- **PS-1:** `shootdown_process(space, start, pages)` neemt na de PTE-wijziging een `fence(SeqCst)` en
+  de snapshot `targets = ACTIVE[space] & !self`. Alleen die CPU's krijgen 0xe0. De wisselvolgorde
+  (bit aan vóór de CR3-load, uit erna; §6.3 stap 5) maakt `ACTIVE` een superset van wie de oude
+  vertaling kan cachen.
+- **PS-2:** één gepubliceerde ronde `{root, start, pages, gen}` onder het lock `SHOOTDOWN`
+  (niveau 50). Een ronde met `root = 0` geldt voor de gedeelde kernelhelft. Tot 32 pagina's gebruikt
+  de handler `invlpg` per pagina, daarboven een CR3-reload. De handler (`smp_shootdown`, Rust achter
+  een stub die de caller-saved registers bewaart) flusht alleen als zijn CR3 de gepubliceerde root
+  is, of bij de kernelhelft. Hij ackt **altijd** met de generatie en telt per CPU zijn rondes.
+  "pid" is in de fixture de ruimte-index; de handler vergelijkt de root, niet een pid.
+- **PS-3:** `Paging::unmap_shot` wist de PTE en invalideert lokaal. Daarna volgt de ronde en pas na
+  alle acks het vrijgeven van de alias-metadata, dus pas daarna kan `free` slagen. Ontbreekt een ack,
+  dan blijven de metadata staan (quarantaine) en volgt het IQ-3-beleid (ADR-079).
+- **PS-4:** `shootdown_kernel` gaat naar alle online CPU's (`ONLINE_CPUS`, ook de BSP als een AP de
+  ronde start). De wachttijd loopt op de gekalibreerde TSC, zodat elke CPU een ronde kan starten; de
+  ronde van AP1 naar de BSP uit stap 5c-2 gebruikt nu dezelfde functie.
+- **PS-5:** de fixture verwijdert een ruimte pas als `ACTIVE` 0 is. Hij unmapt met een ronde, doet een
+  ronde over de hele user-GiB (CR3-reload op elk doel, dus ook paging-structure caches weg) en geeft
+  daarna de tabellen vrij. Er wordt gecontroleerd dat geen levende ruimte een vrij frame noemt en dat
+  `ACTIVE` van een dode ruimte 0 is.
+
+**Bewijs (lokaal, QEMU/TCG):** zie `docs/verification/k06-5e-proc-shootdown/`: isolatie 10 000×
+per ruimte, unmap-race met een gecontroleerde #PF, doelset per CPU geteld, en beide negatieve
+profielen. **Open:** M3-processen draaien niet onder `native-smp` (`compile_error`), dus de M3-unmap-
+en cleanuproute en de engine-`check_invariants` zijn niet gewijzigd. Dat volgt met 5d-2. Er is nog
+geen rechtenverlagings-API zonder aanroeper (YAGNI); die volgt hetzelfde `unmap_shot`-patroon.
+FRAMES is nog geen lock: alleen de BSP heeft `&mut Frames`.
 
 **Alternatieven overwogen.**
 - Alleen het venster ongeldig maken en de identity-alias lokaal laten

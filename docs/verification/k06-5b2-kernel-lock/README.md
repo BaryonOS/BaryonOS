@@ -6,7 +6,6 @@
 review door AI. **Score:** 41 → 41/100. K06 blijft open.
 
 ## Native SMP-matrix (`native-report.json`)
-
 22/22 gevallen over 17 profielen, schone werkboom op `48dcae6a`, per profiel:
 `python3 -B tools/build.py --kernel-feature <p> && python3 -B -u tools/run_smp.py --profile <p>`.
 - `native-smp` 6/6: `SMP:SCRATCH:PASS:CPUS=1/2/4/8/8`. Daarbij nult, vult en controleert elke
@@ -20,7 +19,6 @@ review door AI. **Score:** 41 → 41/100. K06 blijft open.
 - Extra: `four` en `eight` elk 5 keer opnieuw, 10/10 geslaagd.
 
 ## Eén-CPU-regressie (K-3)
-
 Op de werkboom van `f6912a63` vóór `cargo fmt`. Daarna zijn alleen de opmaak en een
 controle-only-cfg in `smp.rs` veranderd.
 - `tools/test_milestones.py --through m4`: M2 8/8, M3 22/22 (incl. de rondes via
@@ -34,13 +32,11 @@ controle-only-cfg in `smp.rs` veranderd.
   met `--image-version 2`).
 
 ## Statisch en host
-
 `tools/gate.sh` exit 0 (cargo check; cargo test 507 geslaagd, 1 ignored; QEMU-smoke ontbreekt in
 de gate). `cargo +1.90.0 fmt --all -- --check` en in `kernel/` schoon. `cargo +1.90.0 clippy
 --locked -p smp-lock --all-targets -- -D warnings` schoon. `tools/tests/test_smp_serial.py` 11/11.
 
 ## Grenzen
-
 - De 500-ms-deadline begint na het BSP-deel van de fixture.
 - Idle met `sti; hlt` staat nog binnen de KERNEL-sectie, M3 draait niet op AP's (5c-2/5d-2).
 - TCG modelleert geen speculatie. Een speculatief gecachete vreemde slot-entry is buiten dit bewijs.
