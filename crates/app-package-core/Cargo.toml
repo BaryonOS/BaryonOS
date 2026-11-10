@@ -6,6 +6,6 @@ publish = false
 
 [dependencies]
 ed25519-dalek = { version = "=3.0.0", default-features = false }
-ml-dsa = { version = "=0.1.1", default-features = false }
+ml-dsa = { version = "=0.1.2", default-features = false }
 sha2 = { version = "=0.10.9", default-features = false, features = ["force-soft"] }
 kernel-core = { path = "../kernel-core" }
