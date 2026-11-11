@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-10",
-    "source_commit": "672b9c0b4ccd972665237dcf045eca41d37852cb",
+    "date": "2026-11-11",
+    "source_commit": "145740fa22a5bac16c942655adc376dac6796397",
     "assessment_basis": "source_commit",
-    "branch": "codex/pr257-rebuild-20261110",
-    "task": "Rebuild PR #257 as a fail-closed snapshot-bound local publication inventory",
+    "branch": "ci/qemu-apt-bundle",
+    "task": "Install pinned CI QEMU/OVMF from a signed package bundle (ADR-CI-QEMU-BUNDLE-20261111)",
     "previous_score": 39,
-    "summary": "39/100 to 39/100: the publication inventory, finalization transition, and transferred canonical repository identity are bounded and fail closed, but audit tooling does not add OS functionality or native acceptance. No live publication audit was executed; criterion states, weights, and evidence remain unchanged."
+    "summary": "39/100 to 39/100: CI infrastructure only. The QEMU/OVMF setup gains a signed, hash-pinned package bundle with snapshot and archive fallbacks; package versions and checks are unchanged. No OS functionality, native gate or product criterion changes."
   },
   "tracks": [
     {

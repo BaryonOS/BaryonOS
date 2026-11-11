@@ -1,5 +1,39 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — CI QEMU/OVMF package bundle — 11 November 2026
+
+**Source:** branch `ci/qemu-apt-bundle` from main `c07506c8`; builder and
+action commit `145740fa22a5bac16c942655adc376dac6796397`.
+
+**Problem:** every QEMU workflow (#296, #304 and the backlog) failed in
+"Pinned QEMU and OVMF". snapshot.ubuntu.com timed out over HTTPS, and DNS for
+the Ubuntu mirrors failed on hosted runners.
+
+**Change:** `.github/actions/setup-qemu` installs first from a hash-pinned
+release bundle (`ci-qemu-apt-20261111`). APT still verifies the Ubuntu
+signature, index hashes and package hashes. Pins and firmware checks are
+unchanged, and the signed snapshot and archive remain warning-level fallbacks.
+The Ubuntu 26.04 profile from #296 is included. See
+ADR-CI-QEMU-BUNDLE-20261111 and
+[the bundle report](verification/ci-qemu-bundle-20261111.json).
+
+**Local evidence:** both bundles were built from the signed archive, checked
+with gpgv and installed in a `file:` self-check:
+- noble: 89 debs, sha256 `7b4a0a6b…`
+- resolute: 112 debs, sha256 `515c4a94…`
+
+21 CI-workflow tests pass.
+
+**Open:**
+- Publishing the release needs the project owner's approval.
+- The hosted canary (ubuntu-24.04 with swtpm, ubuntu-26.04) has not run.
+- The affected workflows and the K06 64×50 matrix on #296 have not been rerun.
+
+**Acceptance:** 39/100 → 39/100; CI infrastructure only.
+
+**Next:** publish the release with the four assets, run the canary from a
+throwaway push-triggered branch, then open the draft PR with auto-merge.
+
 ## NEXT AGENT HANDOFF — PR #299 ChaCha20 production unification — 10 November 2026
 
 **Source:** this local candidate is based directly on the actual PR #297

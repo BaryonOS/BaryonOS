@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "decision": "ADR-CI-QEMU-BUNDLE-20261111",
+  "built_date_utc": "2026-11-11",
+  "builder": {
+    "script": "tools/ci/build_qemu_apt_bundle.sh",
+    "commit": "145740fa22a5bac16c942655adc376dac6796397",
+    "upstream": "https://archive.ubuntu.com/ubuntu",
+    "upstream_reason": "snapshot.ubuntu.com unreachable on 2026-11-11 (HTTPS timeout); the archive serves the same Ubuntu-signed metadata",
+    "checks": [
+      "gpgv InRelease against /usr/share/keyrings/ubuntu-archive-keyring.gpg",
+      "no Valid-Until field (bundle stays installable)",
+      "Packages.xz SHA256 matches signed InRelease",
+      "APT install from the extracted file: mirror with exact pins",
+      "deterministic tar (--sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner)"
+    ]
+  },
+  "distribution": {
+    "release_tag": "ci-qemu-apt-20261111",
+    "release_url": "https://github.com/BaryonOS/BaryonOS/releases/tag/ci-qemu-apt-20261111",
+    "status": "not published: creating the public release needs the project owner's approval"
+  },
+  "bundles": [
+    {
+      "asset": "qemu-apt-noble.tar",
+      "sha256": "7b4a0a6b0728b121325491745369bcff3d42a0a4cf2687eb5f850a3431c963b5",
+      "bytes": 64972800,
+      "ubuntu": "24.04",
+      "debs": 89,
+      "sources_asset": {
+        "name": "qemu-apt-noble-SOURCES.txt",
+        "sha256": "b3101b7bb002a4bac0c829673da55e4e4788a0cc8a51124c511926a4943d4af6"
+      },
+      "inrelease": [
+        {
+          "suite": "noble",
+          "inrelease_sha256": "cdb2f31d809f589719a53c6ad15f255b27569c4059542ada282aaa21b8e164b0",
+          "date": "Thu, 25 Apr 2024 15:10:33 UTC",
+          "gpgv_validsig": "F6ECB3762474EDA9D21B7022871920D1991BC93C"
+        },
+        {
+          "suite": "noble-updates",
+          "inrelease_sha256": "6d5462566e9b374cc5a97ee2264fb690a7ce4b3a5f4c23154e06e495d0ee9b53",
+          "date": "Wed, 11 Nov 2026 9:35:45 UTC",
+          "gpgv_validsig": "F6ECB3762474EDA9D21B7022871920D1991BC93C"
+        },
+        {
+          "suite": "noble-security",
+          "inrelease_sha256": "9a12307d1c800f934e68704f9c311bc3d30a166971300aec189684348acf8df4",
+          "date": "Wed, 11 Nov 2026 7:35:28 UTC",
+          "gpgv_validsig": "F6ECB3762474EDA9D21B7022871920D1991BC93C"
+        }
+      ]
+    },
+    {
+      "asset": "qemu-apt-resolute.tar",
+      "sha256": "515c4a94ee7f9ed9c53aa85e8a0558ec9d2ac5d8ef2fd5d256e27e6c90530be9",
+      "bytes": 72140800,
+      "ubuntu": "26.04",
+      "debs": 112,
+      "sources_asset": {
+        "name": "qemu-apt-resolute-SOURCES.txt",
+        "sha256": "eed481dad825e5744559eee325d044f9b381ce2d2de5a3625f09fe6b41aa7800"
+      },
+      "inrelease": [
+        {
+          "suite": "resolute",
+          "inrelease_sha256": "45f95ce276cdba3e41870516a130e03c58b8b7a79e9546b0efe9e526d255740c",
+          "date": "Thu, 23 Apr 2026 17:07:15 UTC",
+          "gpgv_validsig": "F6ECB3762474EDA9D21B7022871920D1991BC93C"
+        },
+        {
+          "suite": "resolute-updates",
+          "inrelease_sha256": "251ebe630eef33ff60a6f8cd05aa2a6f9ae5e28adc1854c9cee6c9cc2a4132e6",
+          "date": "Wed, 11 Nov 2026 9:35:03 UTC",
+          "gpgv_validsig": "F6ECB3762474EDA9D21B7022871920D1991BC93C"
+        },
+        {
+          "suite": "resolute-security",
+          "inrelease_sha256": "d9638a7ecc267b394469f761ef3534068fca56108b4ec948ef8c37731d552a3c",
+          "date": "Wed, 11 Nov 2026 7:34:54 UTC",
+          "gpgv_validsig": "F6ECB3762474EDA9D21B7022871920D1991BC93C"
+        }
+      ]
+    }
+  ],
+  "alternatives_rejected": {
+    "archive_only_over_http_or_https": "Signed and safe for integrity, but each pocket index lists only the newest version, so exact pins stop resolving after the next update; it also needs Ubuntu DNS and mirrors on every run.",
+    "actions_cache": "Evictable after 7 days unused and per-branch scoped; cannot be the only source.",
+    "workflow_artifacts": "Expire and need a producing run.",
+    "git_or_lfs": "Adds about 134 MB of binaries to history or an LFS quota."
+  },
+  "hosted_canary": {
+    "status": "not_run",
+    "reason": "waits for the release"
+  }
+}

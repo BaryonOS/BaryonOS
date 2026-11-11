@@ -66,9 +66,13 @@ of native testcase is hiervoor verwijderd.
 | swtpm / libtpms0 | `0.7.3-0ubuntu5.24.04.1` / `0.9.3-0ubuntu4.24.04.1` | Native-system en Copilot |
 
 De 17 reguliere QEMU-jobdefinities plus Copilot hergebruiken één installatie
-uit het ondertekende Ubuntu-snapshot **20261108T000000Z**. De setup controleert
+uit een gepinde pakketbundel (release `ci-qemu-apt-20261111`, ADR-CI-QEMU-BUNDLE-20261111).
+De bundel bevat de door Ubuntu ondertekende indexen en pakketten; APT controleert
+handtekening en hashes zoals bij een gewone bron. Valt de bundel weg, dan volgt
+met een waarschuwing het ondertekende Ubuntu-snapshot **20261108T000000Z** en
+daarna het ondertekende archief, met dezelfde pins. De setup controleert
 exacte pakketversies, `pc-q35-8.2`, TCG en de SHA256 van OVMF CODE/VARS en het
-VGA-ROM. Er is geen stille fallback naar andere toolversies. Firmwarepaden:
+VGA-ROM. Er is geen fallback naar andere toolversies. Firmwarepaden:
 
 ```text
 OS_OVMF_CODE=/usr/share/OVMF/OVMF_CODE_4M.fd
