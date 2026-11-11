@@ -1,149 +1,149 @@
-# Native rekenmachine: componentcontract
+# Native calculator: component contract
 
-NATIVE-CALCULATOR-1, basis `5e126b74bba2452bfc68b42caa400c61d471378c`.
-Deze component levert een echte no_std-CPL3-app, algemene decimale rekenkern,
-getypeerde INP1/SUR1-clients en een eigen native bediening in de bestaande
-Materiaal-vormgeving. Zij is onderdeel van FR-A08 uit
-[FULL-TEST-RELEASE](../FULL-TEST-RELEASE.md); componenttests en een ELF-bouw
-tekenen de volledige native app-/releaseacceptatie niet af.
+NATIVE-CALCULATOR-1, base `5e126b74bba2452bfc68b42caa400c61d471378c`.
+This component delivers a real no_std CPL3 app, a general decimal arithmetic core,
+typed INP1/SUR1 clients and its own native controls in the existing
+Materiaal design. It is part of FR-A08 from
+[FULL-TEST-RELEASE](../FULL-TEST-RELEASE.md); component tests and an ELF build
+do not sign off full native app/release acceptance.
 
-## Rekencontract, vooraf vastgelegd
+## Arithmetic contract, fixed in advance
 
-Er was op de gecontroleerde appsbranch/ecfeab4 geen bestaande rekenengine.
-De nieuwe begrensde parser is gewone Rust-rekenlogica, geen cryptografie,
-float-/C-/hostbackend of tabel met antwoorden. Dezelfde library wordt door
-`calculator-app` en de afzonderlijke hostreferentiedriver gebruikt.
+There was no existing arithmetic engine on the checked apps branch/ecfeab4.
+The new bounded parser is ordinary Rust arithmetic logic, not cryptography,
+a float/C/host backend or a table of answers. The same library is used by
+`calculator-app` and the separate host reference driver.
 
-- Maximaal256ASCII-tekens. Spaties/tabs mogen tussen tokens. Maximaal32
-  gecombineerde niveaus van haakjes en unaire `+`/`-`; binaire operatorlussen
-  groeien de stack niet per teken.
-- `+`, `-`, `*`, `/`, haakjes en unaire tekens. Vermenigvuldigen/delen gaan vóór
-  optellen/aftrekken; gelijke prioriteit is linksassociatief.
-- Komma en punt zijn beide decimale tekens, geen duizendtalseparator. Geen
-  exponent-, procent- of wetenschappelijke-precisieclaim.
-- Elke literal en ieder tussenresultaat moet liggen tussen
-  −9.999.999.999,999999999 en +9.999.999.999,999999999. Een buitenbereik-literal of
-  tussenresultaat wordt geweigerd, ook als een latere operatie zou kunnen
-  compenseren. Er wordt niet stil gesatureerd, gewrapt of met Infinity gewerkt.
-- De vaste schaal is10^9. Optellen/aftrekken zijn exact op dit raster.
-  Literalcijfers na de negende decimaal en producten/quotiënten worden afgerond
-  naar het dichtstbijzijnde rasterpunt; precies half gaat naar het **even**
-  laatste cijfer, voor beide tekens. Werkelijk weggegooide niet-nulwaarde maakt
-  de afrondingsindicator waar; eerdere afronding blijft door de berekening heen zichtbaar.
-- Delen door nul geeft een concrete Nederlandse fout. Nul na onderloop heeft
-  geen minteken. De weergave gebruikt een komma en laat overbodige nullen weg.
+- At most 256 ASCII characters. Spaces/tabs are allowed between tokens. At most 32
+  combined levels of parentheses and unary `+`/`-`; binary operator loops
+  do not grow the stack per character.
+- `+`, `-`, `*`, `/`, parentheses and unary signs. Multiplication/division take precedence over
+  addition/subtraction; equal precedence is left-associative.
+- Comma and point are both decimal separators, not thousands separators. No
+  exponent, percent or scientific-precision claim.
+- Every literal and every intermediate result must lie between
+  −9.999.999.999,999999999 and +9.999.999.999,999999999. An out-of-range literal or
+  intermediate result is rejected, even if a later operation could
+  compensate. There is no silent saturation, wrapping or use of Infinity.
+- The fixed scale is 10^9. Addition/subtraction are exact on this grid.
+  Literal digits after the ninth decimal and products/quotients are rounded
+  to the nearest grid point; exactly half goes to the **even**
+  last digit, for both signs. Actually discarded non-zero value sets
+  the rounding indicator; earlier rounding stays visible throughout the calculation.
+- Division by zero gives a concrete Dutch error. Zero after underflow has
+  no minus sign. The display uses a comma and omits superfluous zeros.
 
-`|raw| ≤ 10^19−1` garandeert `|a×b| < 10^38 < i128::MAX`; bij delen is de
-vermenigvuldigde teller kleiner dan10^28. Alle operatoren gebruiken bovendien
-checkedbewerkingen en controleren hun uitkomst. Positieve/negatieve maxima,
-beide half-evenrichtingen, roundup-overflow en kleine geldige uitkomsten na
-grote ruwe producten worden daadwerkelijk getest. Dit is een begrensde
-rekenmachine, geen universele exacte-rationaal- of arbitraire-precisie-engine.
+`|raw| ≤ 10^19−1` guarantees `|a×b| < 10^38 < i128::MAX`; for division the
+multiplied numerator is smaller than 10^28. All operators additionally use
+checked operations and check their result. Positive/negative maxima,
+both half-even directions, roundup overflow and small valid results after
+large raw products are actually tested. This is a bounded
+calculator, not a universal exact-rational or arbitrary-precision engine.
 
-## Invoer, fouten en widgets
+## Input, errors and widgets
 
-De expressie is lokaal opgeslagen met caret en selectie; zij blijft volledig
-behouden bij syntax-, bereik-, lengte- en deelfouten. Ook de vorige geldige
-uitkomst blijft behouden, met zichtbaar label `Vorig`. Die uitkomst wordt niet
-als antwoord op foutieve of gewijzigde invoer gepresenteerd.
+The expression is stored locally with caret and selection; it is fully
+preserved on syntax, range, length and division errors. The previous valid
+result is also preserved, with the visible label `Vorig` ("Previous"). That result is not
+presented as the answer to erroneous or modified input.
 
-Toetsenbord: cijfers, normale US-fysieke operatorcombinaties, haakjes, punt/
-komma, numpad met NumLock, Enter of `=` evalueren, Backspace/Delete,
-Left/Right/Home/End, Shiftselectie, Ctrl+A, Tab/ShiftTab en Enter/Space op een
-gefocuste knop. Escape annuleert de huidige invoer en behoudt de eerdere
-uitkomst; `C` en de C-knop resetten invoer/uitkomst. Enter-/Tab-/Escape-/C-repeat
-wordt niet als een reeks nieuwe bewuste acties behandeld. Releases rekenen niet.
+Keyboard: digits, normal US physical operator combinations, parentheses, point/
+comma, numpad with NumLock, Enter or `=` evaluate, Backspace/Delete,
+Left/Right/Home/End, Shift selection, Ctrl+A, Tab/ShiftTab and Enter/Space on a
+focused button. Escape cancels the current input and keeps the earlier
+result; `C` and the C button reset input/result. Enter/Tab/Escape/C repeat
+is not treated as a series of new deliberate actions. Releases do not calculate.
 
-Dezelfde commando's worden gebruikt door de5×4-knoppen. `Wis` verwijdert de
-selectie of het vorige teken, C reset, `=` rekent en de overige knoppen voegen
-het werkelijk getoonde teken in. Een knop werkt pas na echte linkermuis-down
-én up op dezelfde knop. Buiten assignedRect, verloren focus, inputcancel of
-overflow maakt de capture ongeldig; geen clamping naar een toevallige knop.
-Klik/drag in de expressie plaatst/selecteert echte invoer. Lange invoer scrollt
-horizontaal met de caret. De berekening zelf is een begrensde synchrone parser;
-er is geen voorgestelde achtergrondtaak met een fictieve cancelstatus.
+The same commands are used by the 5×4 buttons. `Wis` ("Clear") deletes the
+selection or the previous character, C resets, `=` calculates and the other buttons insert
+the character actually shown. A button only acts after a real left-mouse down
+and up on the same button. Outside assignedRect, lost focus, input cancel or
+overflow invalidates the capture; no clamping to an incidental button.
+Click/drag in the expression places/selects real input. Long input scrolls
+horizontally with the caret. The calculation itself is a bounded synchronous parser;
+there is no pretended background task with a fictitious cancel status.
 
-Layout/hittest/tegelrender delen dezelfde geometrie. 100/200% vanaf320×240
-logisch, binnen het bestaande maximale1920×1080-fysieke profiel. Compacte
-vensters gebruiken dezelfde fontfamilie en tokens met passende controls;
-geen bediening verdwijnt om acceptatie te vereenvoudigen. De ene bestaande
-`ui/native/src/design.rs`/`ui/prototype/tokens.css` blijft de tokenbron.
-De bestaande goedgekeurde Noto Sans Mono bitmap0.3.2 wordt rechtstreeks met
-hetzelfde featureprofiel gebruikt. Licenties/notices blijven onder
-`ui/native/licenses`; herkomst en SHA staan in
+Layout/hit test/tile render share the same geometry. 100/200% from 320×240
+logical, within the existing maximum 1920×1080 physical profile. Compact
+windows use the same font family and tokens with suitable controls;
+no control disappears to simplify acceptance. The single existing
+`ui/native/src/design.rs`/`ui/prototype/tokens.css` remains the token source.
+The existing approved Noto Sans Mono bitmap 0.3.2 is used directly with
+the same feature profile. Licences/notices remain under
+`ui/native/licenses`; provenance and SHA are in
 [NATIVE-MATERIAAL](../implementation/NATIVE-MATERIAAL.md).
 
-De app schildert alleen begrensde32×8-pixeltiles in eigen RAM. Typografie,
-radii, kleuren, hover, selectie en focus volgen Materiaal. Bitmapfontdekking
-is de bestaande Basic Latin/Latin1/Specials-dekking, geen algemene shaping-/
-schermlezerclaim. Er zijn geen productanimaties, lorem ipsum of nepknoppen.
-Hostvoorbeelden uit de previewdriver zijn expliciet RAM-renderproeven;
-echte QMP-/native visuele en bedieningscontrole blijft verplicht.
+The app paints only bounded 32×8-pixel tiles in its own RAM. Typography,
+radii, colours, hover, selection and focus follow Materiaal. Bitmap font coverage
+is the existing Basic Latin/Latin1/Specials coverage, no general shaping/
+screen-reader claim. There are no product animations, lorem ipsum or fake buttons.
+Host examples from the preview driver are explicitly RAM render trials;
+real QMP/native visual and control verification remains mandatory.
 
-## Diensten, grants en levensduur
+## Services, grants and lifetime
 
-De rekenmachine heeft geen volume-, document-, Key-, entropy-, netwerk-,
-rawdisplay-, rawinput-, launch- of bestandsgrants nodig. De enige zes handles:
+The calculator needs no volume, document, Key, entropy, network,
+raw display, raw input, launch or file grants. The only six handles:
 registry-SEND, control-RECV, surface-SEND/reply-RECV, INP1-SEND/reply-RECV.
-Getal/PID/epoch in de startup verleent geen autoriteit; de echte grant en
-dienstingress bepalen de rechten. Handle-aliases en bekende oude document-
-metadata worden geweigerd. De root moet werkelijk uitsluitend deze zes
-endpointleaves installeren en eigen reply-endpoints zonder RECV-alias gebruiken.
+Number/PID/epoch in the startup grants no authority; the real grant and
+service ingress determine the rights. Handle aliases and known old document
+metadata are rejected. The root must actually install exclusively these six
+endpoint leaves and use its own reply endpoints without a RECV alias.
 
-| Startupwoord | Betekenis |
+| Startup word | Meaning |
 |---|---|
-|0|bootmodus; de werkelijke SDK/kernel-ABI wordt afzonderlijk via `native::check_abi()` opgevraagd |
-|88/96|Initregistry-SEND / eigen control-RECV |
-|176/184|eigen PID / InitPID |
-|544/552/560/568|SUR1-SEND / eigen reply-RECV / compositorPID / epoch |
-|576/584/592/600/608|INP1-SEND / eigen reply-RECV / policyPID / epoch / clientID |
-|616|schaalfactor1of2 |
+|0|boot mode; the actual SDK/kernel ABI is queried separately via `native::check_abi()` |
+|88/96|Init registry-SEND / own control-RECV |
+|176/184|own PID / Init PID |
+|544/552/560/568|SUR1-SEND / own reply-RECV / compositor PID / epoch |
+|576/584/592/600/608|INP1-SEND / own reply-RECV / policy PID / epoch / client ID |
+|616|scale factor 1 or 2 |
 
-Bekende documentvelden48/56/64/72/80/168 zijn0. De constructor leest echte,
-geauthenticeerde SUR1-INFO-geometrie; startup geeft geen framebufferadres of
-vooraf ingevulde pixels. INP1 PEEK/ACK gebruikt de bestaande exclusieve typed
-Session. Eén step verwerkt maximaal4offers en8SUR1-tegeltransacties. Een half
-of verouderd frame maakt `ready` niet waar. ACK-supersession cancelt captures;
-transportverlies maakt input/oppervlaktefalen zichtbaar en geeft geen nieuwe
-fictieve ACK of hergrant.
+Known document fields 48/56/64/72/80/168 are 0. The constructor reads real,
+authenticated SUR1-INFO geometry; startup provides no framebuffer address or
+pre-filled pixels. INP1 PEEK/ACK uses the existing exclusive typed
+Session. One step processes at most 4 offers and 8 SUR1 tile transactions. A half
+or stale frame does not make `ready` true. ACK supersession cancels captures;
+transport loss makes input/surface failure visible and gives no new
+fictitious ACK or re-grant.
 
-Native entry gebruikt CLD, controleert de bestaande SysV-RSP%16=8 en springt
-naar Rust. Geen heapallocator, geen stackvergroting: bestaande64KiB en de
-gewone W^X-loader. Gereedmelding is SYSTEM-tag `0x53595354454d0001`, op1;
-start is geauthenticeerde Init-op2. Stopop5 sluit beide typed eigenaren,
-stuurt pas dan DONE3 en sluit registry/control. Ook bij een closefout worden
-alle betrokken eigenaren geprobeerd. STOP schrijft of bewaart geen bestanden.
-Ook STOP vóór GO sluit de vier nog niet overgedragen dienstleaves voordat
-DONE/registry-/controlcleanup volgt; er wordt dan geen frame als klaar verklaard.
-De usermodelcounter loopt niet rond; uitputting wordt een terminale fout.
+Native entry uses CLD, checks the existing SysV RSP%16=8 and jumps
+to Rust. No heap allocator, no stack enlargement: the existing 64KiB and the
+ordinary W^X loader. Readiness is signalled with SYSTEM tag `0x53595354454d0001`, op 1;
+start is authenticated Init op 2. Stop op 5 closes both typed owners,
+only then sends DONE 3 and closes registry/control. Even on a close error,
+all involved owners are attempted. STOP writes or saves no files.
+STOP before GO also closes the four not-yet-handed-over service leaves before
+DONE/registry/control cleanup follows; no frame is then declared ready.
+The usermodel counter does not wrap; exhaustion becomes a terminal error.
 
-## Diagnostiek zonder vooringevuld succes
+## Diagnostics without pre-filled success
 
-Alle onderstaande woorden komen uit werkelijk model-/clientgedrag, zijn
-private userdata en geen app→kernelprivilege. Ready wordt bij publicatie eerst
-gewist en als laatste gezet. Root moet een volledige huidige generatie
-snapshotten vóór eventuele procescleanup en de echte PID bewaren bij slotreuse.
+All words below come from actual model/client behaviour, are
+private userdata and not an app→kernel privilege. Ready is cleared first on
+publication and set last. Root must snapshot a complete current generation
+before any process cleanup and keep the real PID on slot reuse.
 
-| Woord | Werkelijk feit |
+| Word | Actual fact |
 |---|---|
-|40/240|cleanSTOPdone1 / eventuele failstep |
-|400|geheel huidige frame klaar plus echte INP1-response; geen rekenantwoordclaim |
-|408/416|volledige frames / succesvol gecommitte tiles |
-|424/432/440|gevalideerde key-/mouseoffers / echte ACKs |
-|448/456|dienstfouten / gepresenteerde generatie |
-|464/472|geslaagde berekeningen / concrete rekenfouten |
-|480/488/496|expressielengte / huidige uitkomst / afrondingsvlag |
-|504/512|caret / lokale visuele focusstate; geen broker-FocusACK |
-|520/528/536|ruwe i128-uitkomst low64/high64 two'scomplement / uitkomstaanwezig |
-|632|schaalfactor |
+|40/240|clean STOP done 1 / any fail step |
+|400|entire current frame ready plus real INP1 response; no arithmetic-answer claim |
+|408/416|complete frames / successfully committed tiles |
+|424/432/440|validated key/mouse offers / real ACKs |
+|448/456|service errors / presented generation |
+|464/472|successful calculations / concrete arithmetic errors |
+|480/488/496|expression length / current result / rounding flag |
+|504/512|caret / local visual focus state; no broker FocusACK |
+|520/528/536|raw i128 result low64/high64 two's complement / result present |
+|632|scale factor |
 
-De uitkomst is `raw/10^9`; er is geen statische verwachte antwoordwaarde in de
-native entry. Persoonlijke berekeningen worden niet naar OS-telemetrie of een
-hostdienst verzonden. Native testobservers mogen alleen de bekende testdata
-voor hun afgebakende proeven registreren; private userdata is geen toestemming
-voor algemene logging.
+The result is `raw/10^9`; there is no static expected answer value in the
+native entry. Personal calculations are not sent to OS telemetry or a
+host service. Native test observers may only record the known test data
+for their bounded trials; private userdata is not permission
+for general logging.
 
-## Reproduceerbare componentcontrole
+## Reproducible component check
 
 ```sh
 LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-calculator-host-target python3 -B tools/dev.py cargo +1.90.0 test --locked --offline --manifest-path sdk/examples/calculator/Cargo.toml
@@ -154,23 +154,23 @@ LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-calculato
 LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-calculator-none-target python3 -B tools/dev.py python3 -B sdk/examples/calculator/build.py clippy
 ```
 
-De Python-Decimalreferentie gebruikt100cijferige hostprecisie en half-even per
-literal/operator, plus de vastgelegde raster-/bereikgrens. Zij leest de echte
-Rust-hostdriveruitkomsten voor deterministische gevarieerde expressies; zij is
-nooit een native backend. De hostketen gebruikt de echte capability-engine,
-INP1-dienst, SUR1Receiver en typed clients. Alleen de opnemende RAM-display-
-tegenpartij is expliciet hostmodel. Verloren/negatieve replies, buitenklik,
-focusgeneratie, cleanup en bootstraptampering zijn afzonderlijke tegenproeven.
+The Python Decimal reference uses 100-digit host precision and half-even per
+literal/operator, plus the fixed grid/range boundary. It reads the real
+Rust host driver results for deterministic varied expressions; it is
+never a native backend. The host chain uses the real capability engine,
+INP1 service, SUR1Receiver and typed clients. Only the recording RAM display
+counterpart is explicitly a host model. Lost/negative replies, outside click,
+focus generation, cleanup and bootstrap tampering are separate negative trials.
 
-De eigen lock bevat alleen bestaande lokale libraries en de reeds goedgekeurde
-Noto-pin, zonder nieuwe runtimebibliotheek/download/buildscript. Root-/SDKlocks,
-gedeelde UI-, kernel- en buildscripts worden hier niet veranderd. De builder
-levert `NOS_CALCULATOR_ELF` en inspectie/SHA, met `native_runtime_performed=false`.
+The own lock contains only existing local libraries and the already approved
+Noto pin, without a new runtime library/download/build script. Root/SDK locks,
+shared UI, kernel and build scripts are not changed here. The builder
+delivers `NOS_CALCULATOR_ELF` and inspection/SHA, with `native_runtime_performed=false`.
 
-Rootintegreert vervolgens de echte kernelgrants, launcher/Init, meerdere
-programma's, compositor-/focusbeleid en native QMP-scenario's. Nodig blijven
-werkelijke cijfers/haakjes/decimalen typen, correctie, overflow/÷0/herstel,
-keyboard/muis,100/200%, focuswissel en schoon stoppen op het geïntegreerde
-image met exacte bron-/ELF-/imagehashes. Gedeeld klembord en de andere volledige
-releasepoorten blijven hun eigen verplichte open acceptatiecriteria. Een
-hostcheck, preview of geslaagd native doelbuild vervangt die uitvoering niet.
+Root then integrates the real kernel grants, launcher/Init, multiple
+programs, compositor/focus policy and native QMP scenarios. Still required are
+actually typing digits/parentheses/decimals, correction, overflow/÷0/recovery,
+keyboard/mouse, 100/200%, focus switch and clean stop on the integrated
+image with exact source/ELF/image hashes. Shared clipboard and the other full
+release gates remain their own mandatory open acceptance criteria. A
+host check, preview or successful native target build does not replace that execution.

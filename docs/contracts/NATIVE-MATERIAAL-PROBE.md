@@ -1,48 +1,48 @@
-# GUI-QMP-1 — echte native bedieningsketen
+# GUI-QMP-1 — real native control chain
 
-Eigenaar native_ui_apps: uitsluitend tools/run_materiaal_probe.py,
-tools/tests/test_materiaal_probe.py en dit contract. Basisd528821, eigen
-worktree materiaal-qmp. Root bezit feature/ABI/manifest/build/kernelobserver;
-kernel_storage bouwt de afzonderlijke desktop-init/controller. Deze runner is
-een afgebakende integratieproef, geen volledige Materiaal- of releaseacceptatie.
+Owner native_ui_apps: exclusively tools/run_materiaal_probe.py,
+tools/tests/test_materiaal_probe.py and this contract. Base d528821, own
+worktree materiaal-qmp. Root owns feature/ABI/manifest/build/kernel observer;
+kernel_storage builds the separate desktop-init/controller. This runner is
+a bounded integration trial, not full Materiaal or release acceptance.
 
-## Uitvoering en bewijsgrens
+## Execution and evidence boundary
 
-De runner start alleen een gehashte eigen-kernel-QEMU met acht echte CPL3-images:
+The runner starts only a hashed own-kernel QEMU with eight real CPL3 images:
 desktop-init, keyring-service, volume-service, materiaal-app, native-compositor,
-input-source, input-policy, desktop-controller. De normale productcompositie
-heeft zeven processen; het achtste proces is uitsluitend de beperkte test-
-tegenpartij met twee IPC-grants voor een echte InitStopRPC. Het heeft geen
-display-, invoer-, blok- of geheugenschrijfgrants naar een ander proces.
+input-source, input-policy, desktop-controller. The normal product composition
+has seven processes; the eighth process is exclusively the limited test
+counterpart with two IPC grants for a real Init StopRPC. It has no
+display, input, block or memory-write grants to another process.
 
-QMP levert echte PS/2-toetsen/muisbewegingen en leest echte framebufferbeelden.
-De runner schrijft geen guest-RAM, draft, resultaatwoord of opslaginhoud tijdens
-de proef. Hij voert geen ontbrekende OS-functie op de host uit. Protocolfixtures
-in de Python-unittests zijn expliciet hosttegenproeven voor de validator.
+QMP delivers real PS/2 keys/mouse movements and reads real framebuffer images.
+The runner writes no guest RAM, draft, result word or storage content during
+the trial. It performs no missing OS function on the host. Protocol fixtures
+in the Python unit tests are explicitly host negative trials for the validator.
 
-De fixture is het werkelijk getypte ASCII/UTF-8 `nieuw os werkt` (14 bytes),
-object0, naam `Nieuw document`, revision1. Het is plaintext-testdata op een
-nieuwe1MiB-wegwerpimage. De bestaande Key Service is aanwezig, maar deze keten
-bewijst geen persistente encrypted opslag, sleutelherstel of productbeveiliging.
-FNV is hier alleen een controle op de exacte bytes; geen authenticatieclaim.
+The fixture is the actually typed ASCII/UTF-8 `nieuw os werkt` (14 bytes),
+object 0, name `Nieuw document` ("New document"), revision 1. It is plaintext test data on a
+new 1MiB throwaway image. The existing Key Service is present, but this chain
+proves no persistent encrypted storage, key recovery or product security.
+FNV is only a check on the exact bytes here; no authentication claim.
 
-Deze eerste ontwikkelproef is expliciet800×600, qemu64/TCG/1CPU/256MiB, VGA/PS2.
-Zij vervangt de grotere releaseprofielen, toetsenbord-/muisacceptatie,
-200%-toegankelijkheid, schermlezer en fysieke hardwarevalidatie niet.
+This first development trial is explicitly 800×600, qemu64/TCG/1 CPU/256MiB, VGA/PS2.
+It does not replace the larger release profiles, keyboard/mouse acceptance,
+200% accessibility, screen reader and physical hardware validation.
 
-## Gekoppelde build
+## Linked build
 
-Features: native-system-materiaal-probe voor normal en
-test-system-materiaal-recover voor de afzonderlijke koude readonly-VM, steeds
-de werkelijk gekoppelde framebufferloader. De feature/build-helper moet door
-root geïntegreerd zijn; afwezigheid of een oude bronhash geeft een expliciete
-mislukte preflight, geen vooraf ingevuld PASS of terugval naar een browserproef.
-native-system-materiaal en test-system-materiaal-scale200 zijn aparte rootprofielen;
-deze CLI tekent die nog niet af.
+Features: native-system-materiaal-probe for normal and
+test-system-materiaal-recover for the separate cold readonly VM, always
+the actually linked framebuffer loader. The feature/build helper must have been
+integrated by root; absence or an old source hash gives an explicit
+failed preflight, no pre-filled PASS or fallback to a browser trial.
+native-system-materiaal and test-system-materiaal-scale200 are separate root profiles;
+this CLI does not yet sign those off.
 
-`BUILD/manifest.json` bevat source_fingerprint_version3, actuele source_sha256,
-kernel_feature, loader_feature=framebuffer, SDK-/document_session-proefflagsFalse
-en `materiaal` exact gelijk aan `users/materiaal/build-report.json`:
+`BUILD/manifest.json` contains source_fingerprint_version 3, current source_sha256,
+kernel_feature, loader_feature=framebuffer, SDK/document_session trial flags False
+and `materiaal` exactly equal to `users/materiaal/build-report.json`:
 
 ```json
 {
@@ -62,30 +62,30 @@ en `materiaal` exact gelijk aan `users/materiaal/build-report.json`:
 }
 ```
 
-`elf` staat hierboven alleen ter schemaillustratie als leeg object; werkelijk
-bewijs vereist exact het opnieuw berekende inspect_user-resultaat. Iedere
-image moet ook letterlijk in de kernelbytes zijn ingebed. De build-PASS is
-uitsluitend inspectie, geen runtimeclaim. Kernel en loader moeten exact de
-ESP-kopie zijn; extra ESP-files, gewijzigde bytes, symlinks en hardlinks worden
-geweigerd. Root bepaalt de NOS_DESKTOP_INIT_ELF/NOS_MATERIAAL_ELF/
-NOS_COMPOSITOR_ELF/NOS_INPUT_SOURCE_ELF/NOS_INPUT_POLICY_ELF en controllergrants.
+`elf` appears above as an empty object only for schema illustration; actual
+evidence requires exactly the recomputed inspect_user result. Every
+image must also be literally embedded in the kernel bytes. The build PASS is
+exclusively inspection, no runtime claim. Kernel and loader must be exactly the
+ESP copy; extra ESP files, modified bytes, symlinks and hardlinks are
+rejected. Root determines the NOS_DESKTOP_INIT_ELF/NOS_MATERIAAL_ELF/
+NOS_COMPOSITOR_ELF/NOS_INPUT_SOURCE_ELF/NOS_INPUT_POLICY_ELF and controller grants.
 
-## Native seriële grammar
+## Native serial grammar
 
-De bestaande zeven BOOT/EBS/kernel/KS/M2-markers moeten exact in volgorde staan,
-gevolgd door MATERIAAL:MANIFEST:PASS. Dan ieder exact eenmaal:
+The existing seven BOOT/EBS/kernel/KS/M2 markers must appear exactly in order,
+followed by MATERIAAL:MANIFEST:PASS. Then each exactly once:
 
-- MATERIAAL:SOURCE:READY — werkelijk hardware-reset plus source-SYNC bevestigd.
-- MATERIAAL:POLICY:READY — echte dienstloop/IPC-ingress gereed.
-- MATERIAAL:COMPOSITOR:READY — echte bootstrapblits en geldige constructors.
-- MATERIAAL:FOCUS:READY — echte actuele policy-FocusACK, na de drie servicegates.
+- MATERIAAL:SOURCE:READY — actual hardware reset plus source SYNC confirmed.
+- MATERIAAL:POLICY:READY — real service loop/IPC ingress ready.
+- MATERIAAL:COMPOSITOR:READY — real bootstrap blit and valid constructors.
+- MATERIAAL:FOCUS:READY — real current policy FocusACK, after the three service gates.
 
-Init's SYSTEM:READY1 is uitsluitend StartupReady en wordt niet als paint- of
-hardwarebewijs aanvaard. App400 vereist een volledig actueel frame plus echte
-INP1-response; Empty is op zichzelf geen source-/focusbewijs. Daarom zijn alle
-vier afzonderlijke gates vereist voordat de runner enige gebruikersinput geeft.
+Init's SYSTEM:READY 1 is exclusively StartupReady and is not accepted as paint or
+hardware evidence. App 400 requires a complete current frame plus a real
+INP1 response; Empty is not by itself source/focus evidence. Therefore all
+four separate gates are required before the runner gives any user input.
 
-De observer emit voor ieder nieuw volledig actueel frame:
+The observer emits for each new complete current frame:
 
 ```text
 MATERIAAL:SNAPSHOT:BEGIN
@@ -110,152 +110,152 @@ MATERIAAL:ERRORS:<u64>
 MATERIAAL:SNAPSHOT:END
 ```
 
-Ook alle overige u64's zijn exact20 cijfers en hoogstens u64::MAX. SCREEN1/2/3
-is Materiaal/Editor/Confirm; geen draft geeft OBJECT=u64::MAX en length/sum0.
-Een lege bestaande draft heeft FNV_OFFSET, zodat geen draft en leeg document
-onderscheiden blijven. De observer publiceert geen voorgeschreven hostfase.
-De host selecteert de fasen uit werkelijk waargenomen toestanden/generaties.
-Volledige frames en generation moeten strikt oplopen; tiles omvatten minimaal
-alle32×8-tegels van ieder frame. Verlopen/halve/duplicaatframes gelden niet.
+All other u64s are also exactly 20 digits and at most u64::MAX. SCREEN 1/2/3
+is Materiaal/Editor/Confirm; no draft gives OBJECT=u64::MAX and length/sum 0.
+An empty existing draft has FNV_OFFSET, so that no draft and an empty document
+remain distinguishable. The observer publishes no prescribed host phase.
+The host selects the phases from actually observed states/generations.
+Complete frames and generation must strictly increase; tiles cover at least
+all 32×8 tiles of every frame. Expired/half/duplicate frames do not count.
 
-Na de laatste echte screenshot geeft QMP één F12. App640 telt uitsluitend
-werkelijk geauthenticeerde INP1 F12/Press, geen Enterrelease, F12Repeat of Release.
-De kernel-probe mag alleen zijn eigen controllerbarrier zetten na werkelijk
-Saved→latere List→latere Reopened met gelijk object/length/FNV en een daarna
-nieuwere F12Press. Koude recovery vraagt lijst→werkelijk geopend document,
-zonder synthetische save. Het is proeforchestratie, geen productshutdownknop.
+After the last real screenshot QMP sends one F12. App 640 counts exclusively
+actually authenticated INP1 F12/Press, no Enter release, F12 Repeat or Release.
+The kernel probe may only set its own controller barrier after actual
+Saved→later List→later Reopened with equal object/length/FNV and a subsequently
+newer F12 Press. Cold recovery requests list→actually opened document,
+without a synthetic save. This is trial orchestration, not a product shutdown button.
 
-Dan volgen MATERIAAL:F12_BARRIER:<1 als20digits> en
-MATERIAAL:CONTROLLER:RELEASED. De controller doet de echte InitStopRPC;
-Init stuurt appSTOP5, weigert dirty/saving via STOP_REFUSED6 en verwacht pas
-na echte clientcleanup DONE3. Compositor-retire volgt na echte Focus0ACK en
-echte wisblits. EXIT_SLOT/EXIT_CODE/EXIT_STEP-triplets voor app3/init0/controller7
-moeten elk eenmaal code0/step0 melden. Hun onderlinge afloopvolgorde mag variëren.
+Then follow MATERIAAL:F12_BARRIER:<1 as 20 digits> and
+MATERIAAL:CONTROLLER:RELEASED. The controller performs the real Init StopRPC;
+Init sends app STOP 5, refuses dirty/saving via STOP_REFUSED 6 and only expects
+DONE 3 after real client cleanup. Compositor retire follows after a real Focus 0 ACK and
+a real clearing blit. EXIT_SLOT/EXIT_CODE/EXIT_STEP triplets for app 3/init 0/controller 7
+must each report code 0/step 0 once. Their mutual completion order may vary.
 
-Vervolgens precies deze20digitvelden: DISK_READS,DISK_WRITES,DISK_FLUSHES,
-LIVE_PROCESSES,LIVE_HANDLES,FRAMES_RECOVERED. Normal vereist writes>0/flushes≥2;
-recover schrijft/flusht0. Liveprocessen/handles0 en frameherstel1 zijn verplicht,
-gevolgd door CLEANUP:PASS,CASE:PASS,M1:PASS. Raw QEMU-exit33 en geen timeout zijn
-verplicht. Een host-QMPquit of kill kan deze afloop niet vervangen.
+Then exactly these 20-digit fields: DISK_READS, DISK_WRITES, DISK_FLUSHES,
+LIVE_PROCESSES, LIVE_HANDLES, FRAMES_RECOVERED. Normal requires writes>0/flushes≥2;
+recover writes/flushes 0. Live processes/handles 0 and frame recovery 1 are mandatory,
+followed by CLEANUP:PASS, CASE:PASS, M1:PASS. Raw QEMU exit 33 and no timeout are
+mandatory. A host QMP quit or kill cannot replace this completion.
 
-## Echte handelingen en schermcontrole
+## Real actions and screen verification
 
-Normal: volledige ready-capture → mouseNieuw → volledige lege editor-capture →
-14 echte toetsen → volledige dirty-capture → Ctrl+S → Saved-capture → Escape →
-List-capture → Tab,Tab,Enter → Reopened-capture → F12 → echte clean afsluiting.
-De brongecontroleerde ui-core-cursor begint op(0,0); bounded relatieve bewegingen
-gaan zonder ingedrukte knop naar Nieuw, gevolgd door echte Down/Up. De app
-ontvangt globale GOP-coördinaten, geen geïnjecteerde lokale UI-events.
+Normal: complete ready capture → mouse Nieuw ("New") → complete empty editor capture →
+14 real keys → complete dirty capture → Ctrl+S → Saved capture → Escape →
+List capture → Tab,Tab,Enter → Reopened capture → F12 → real clean shutdown.
+The source-checked ui-core cursor starts at (0,0); bounded relative movements
+go to Nieuw without a pressed button, followed by real Down/Up. The app
+receives global GOP coordinates, not injected local UI events.
 
-Recover: nieuwe QEMU uit dezelfde bronversie, private kopie van een volledig
-herberekende geslaagde normal-volume.after.img, QEMU-disk readonly=on plus echte
-readonly-grants. Ready-capture → Tab,Enter → echte Open-capture → Ctrl+S →
-begrijpelijke readonly-fout/capture met0saveACK → F12 en clean afsluiten.
-Alle diskbytes vóór/na moeten exact gelijk blijven.
+Recover: new QEMU from the same source version, private copy of a fully
+recomputed successful normal-volume.after.img, QEMU disk readonly=on plus real
+readonly grants. Ready capture → Tab,Enter → real Open capture → Ctrl+S →
+understandable readonly error/capture with 0 save ACK → F12 and clean shutdown.
+All disk bytes before/after must remain exactly equal.
 
-Ieder capturemoment bewaart de SHA256/lengte van het daadwerkelijk waargenomen
-seriële prefix en het precieze screendump-commandonummer. Replay koppelt die
-gegevens opnieuw aan de ruwe bytes, de volledige geordende QMP-transcriptie en
-PPM. Beelden moeten echt800×600 zijn en tussen iedere handeling veranderen.
-Pixels buiten assignedRect(16,48,768,536) blijven gelijk; opslaan behoudt het
-daadwerkelijk gerenderde tekst-/caretgebied terwijl status/controlpixels wijzigen.
-De font-/layout-/gebruiksinspectie blijft daarnaast een echte visuele beoordeling;
-`visual_quality_acceptance=false` meldt dat die volledige releasepoort nog open is.
+Every capture moment keeps the SHA256/length of the actually observed
+serial prefix and the precise screendump command number. Replay binds those
+data again to the raw bytes, the complete ordered QMP transcript and
+PPM. Images must really be 800×600 and change between every action.
+Pixels outside assignedRect(16,48,768,536) remain equal; saving keeps the
+actually rendered text/caret area while status/control pixels change.
+The font/layout/usability inspection additionally remains a real visual assessment;
+`visual_quality_acceptance=false` reports that this full release gate is still open.
 
-De onafhankelijke schijforakel hergebruikt volume_disk.choose/content (beide
-tablekopieën, generaties, checksums, padding en chunks) en vergelijkt echte
-opgeslagen naam/revision/bytes met de14 getypte bytes. Canaries buiten het grant,
-andere objecten/domeinen, geschiedenis en collecties moeten onaangeraakt zijn.
-De oude volume_disk.analyse accepteert uitsluitend haar binaire gegenereerde
-fixture; deze proef verandert die functie niet en vermomt de getypte tekst niet.
+The independent disk oracle reuses volume_disk.choose/content (both
+table copies, generations, checksums, padding and chunks) and compares the real
+saved name/revision/bytes with the 14 typed bytes. Canaries outside the grant,
+other objects/domains, history and collections must be untouched.
+The old volume_disk.analyse accepts exclusively its binary generated
+fixture; this trial does not change that function and does not disguise the typed text.
 
-## Rapport en padgrenzen
+## Report and path boundaries
 
-Alle writes blijven in een expliciet gekozen ROOT/build[/submap]/run/materiaal-*
-child. Normal maakt altijd een nieuwe wegwerpimage en neemt geen diskargument.
-Recover accepteert alleen een gegenereerde parent-rundir, herberekent diens
-volledige bewijs en neemt uitsluitend een nieuwe kopie van diens afterimage.
-Geen persoonlijke disks, NAS, accounts, shares, hostnetwerk of fysieke writes.
-Private QMP-pipe is standaard; Unixsocket mag alleen binnen de eigen korte runmap.
+All writes stay in an explicitly chosen ROOT/build[/subdir]/run/materiaal-*
+child. Normal always creates a new throwaway image and takes no disk argument.
+Recover accepts only a generated parent run dir, recomputes its
+complete evidence and takes exclusively a new copy of its after image.
+No personal disks, NAS, accounts, shares, host network or physical writes.
+A private QMP pipe is the default; a Unix socket is only allowed within its own short run directory.
 
-result.json bevat schema_version1, passed, scope,case, source_commit/source_sha256,
-exact command/cwd/profile, echte QEMU-entry/implementatiehashes, frozen_artifacts,
-before/after SHA256, stages en artifact_sha256. `stages` is een geordende lijst
-van `{phase,snapshot,serial_size,serial_sha256,qmp_index}`. `observed` komt uit
-herberekening van rawserial/QMP/pixels/disk. Iedere fout houdt passedFalse;
-een nieuwe mislukte preflight trekt een oud samenvattings-PASS vooraf in.
-De runmap bewaart exacte ESP/ELF/build-/firmwareinputs, rawserial/stderr/QMP,
-echte PPM's en before/afterdisk. Geen gegenereerde binaries in Git.
+result.json contains schema_version 1, passed, scope, case, source_commit/source_sha256,
+exact command/cwd/profile, real QEMU entry/implementation hashes, frozen_artifacts,
+before/after SHA256, stages and artifact_sha256. `stages` is an ordered list
+of `{phase,snapshot,serial_size,serial_sha256,qmp_index}`. `observed` comes from
+recomputation of raw serial/QMP/pixels/disk. Every error keeps passed False;
+a new failed preflight first revokes an old summary PASS.
+The run directory keeps exact ESP/ELF/build/firmware inputs, raw serial/stderr/QMP,
+real PPMs and before/after disk. No generated binaries in Git.
 
-## Controlecommando's en resterend plan
+## Check commands and remaining plan
 
-Hostvalidering (geen nativeclaim):
+Host validation (no native claim):
 
 ```sh
 python3 -B -m unittest discover -s tools/tests -p test_materiaal_probe.py -v
 ```
 
-Na rootintegratie eerst het actuele dedicated probeimage bouwen met bestaande
-tools/dev.py/tools/build.py en een eigen NOS_BUILD_DIR/NOS_TARGET_DIR. Daarna:
+After root integration, first build the current dedicated probe image with existing
+tools/dev.py/tools/build.py and its own NOS_BUILD_DIR/NOS_TARGET_DIR. Then:
 
 ```sh
 python3 -B tools/run_materiaal_probe.py --case normal --build-dir build/materiaal-probe --vga-rom /explicit/existing/VGA.rom --vga-rom-sha256 EXACT_SHA256
 python3 -B tools/run_materiaal_probe.py --case recover --build-dir build/materiaal-probe --parent build/materiaal-probe/run/materiaal-normal-UNIQUE --vga-rom /explicit/existing/VGA.rom --vga-rom-sha256 EXACT_SHA256
 ```
 
-De tweede opdracht vereist eerst een nieuwe recoverbuild met dezelfde bevroren
-bron en het gekoppelde recoverfeature; hergebruik geen normal-kernel als
-readonlybewijs. Bovenstaande ROM/SHA/UNIQUE zijn expliciete invulplaatsen voor
-bestaande gecontroleerde artifacts, geen geleverde of geteste native uitkomst.
+The second command first requires a new recover build with the same frozen
+source and the linked recover feature; do not reuse a normal kernel as
+readonly evidence. The ROM/SHA/UNIQUE above are explicit placeholders for
+existing checked artifacts, not a delivered or tested native outcome.
 
-Nog uit te voeren na de eerste native keten, zichtbaar open:
+Still to be performed after the first native chain, visibly open:
 
-| Scenario | Echte handeling en verwacht onafhankelijk bewijs |
+| Scenario | Real action and expected independent evidence |
 |---|---|
-| Koude read-view | Nieuwe VM na volledig beëindigde normal-VM; dezelfde getypte bytes werkelijk via provider geopend, hashes en readonly-I/O0. |
-| Dirty-close/cancel | Typ nieuw werk, Escape toont echte bevestiging; doorwerken behoudt draft, expliciet annuleren van upload stuurt ABORT, geen extra revision. |
-| Readonly | Open echte bytes, Ctrl+S wordt begrijpelijk geweigerd; geen COMMIT-ACK, geen diskmutatie; native capabilitygrens apart blijven controleren. |
-| 200% | Dedicated scale200-image, echte font-/focus-/pointercontrole op minimaal ondersteund viewport; geen fallback naar100% om groen te halen. |
-| Savepointer buiten | Down op Save, beweging/release buiten assignedRect en heldreentry; geen BEGIN/COMMIT. Alleen nieuwe echte Down/Up binnen mag opslaan. |
-| Fout/herstel | Source-/policy-/surfaceverlies, verloren ACK, vol volume en mislukte I/O behouden draft en melden echte toestand; geen onzichtbare actie of valse Saved/Presented. |
+| Cold read-view | New VM after a fully terminated normal VM; the same typed bytes actually opened via the provider, hashes and readonly I/O 0. |
+| Dirty-close/cancel | Type new work, Escape shows a real confirmation; continuing keeps the draft, explicitly cancelling the upload sends ABORT, no extra revision. |
+| Readonly | Open real bytes, Ctrl+S is understandably refused; no COMMIT-ACK, no disk mutation; keep checking the native capability boundary separately. |
+| 200% | Dedicated scale200 image, real font/focus/pointer check on the minimum supported viewport; no fallback to 100% to get green. |
+| Save pointer outside | Down on Save, movement/release outside assignedRect and held re-entry; no BEGIN/COMMIT. Only a new real Down/Up inside may save. |
+| Error/recovery | Source/policy/surface loss, lost ACK, full volume and failed I/O keep the draft and report the real state; no invisible action or false Saved/Presented. |
 
-Op dit broncheckpoint zijn de rootbootstrap/observer/controller nog externe
-integratieafhankelijkheden. De runner heeft geen native VM-PASS geclaimd. Alle62
-releasecriteria en de bestaande voortgangsrubric blijven onverminderd gelden.
+At this source checkpoint the root bootstrap/observer/controller are still external
+integration dependencies. The runner has not claimed a native VM PASS. All 62
+release criteria and the existing progress rubric continue to apply undiminished.
 
-## Gerichte hertoets na kandidaat6a9292d
+## Targeted retest after candidate 6a9292d
 
-Eigen en onafhankelijke hosttegenproeven vonden drie gaten in het herberekenen
-van bewaard bewijs. Een geldige afterimage werd niet opnieuw aan de actieve
-QEMU-volume.img gekoppeld; te late geldige seriële prefixes konden een oude
-fase certificeren; offline recover-replay vereiste geen herberekende normalparent.
-Dit waren bewijsvalidatorfouten, geen bewijs dat de echte runner hostfuncties
-als OS-functies uitvoerde. De eerste twee regressies zijn werkelijk rood op de
-oude runner vastgelegd en na de gerichte fix groen.
+Own and independent host negative trials found three gaps in recomputing
+stored evidence. A valid after image was not re-bound to the active
+QEMU volume.img; too-late valid serial prefixes could certify an old
+phase; offline recover replay did not require a recomputed normal parent.
+These were evidence validator errors, not evidence that the real runner executed host functions
+as OS functions. The first two regressions were actually recorded red on the
+old runner and green after the targeted fix.
 
-Replay vereist nu bytegelijkheid van actieve QEMU-disk en afterimage. Iedere
-camera-prefix is strikt langer dan de vorige, ligt vóór F12/controllerrelease/
-exits/eindrecords en bindt de laatste complete actuele snapshot in de juiste
-fase. Een halfvolgende record of historisch passende fase geeft geen capture.
-Dit weigert zowel alle prefixes op volledig eindserial, alle op Reopened vóór
-F12 als een Ready-prefix waarvan de laatste snapshot al Editor is.
+Replay now requires byte equality of the active QEMU disk and after image. Every
+camera prefix is strictly longer than the previous one, lies before F12/controller release/
+exits/final records and binds the last complete current snapshot in the correct
+phase. A half following record or a historically matching phase gives no capture.
+This rejects all prefixes on the complete final serial, all on Reopened before
+F12, as well as a Ready prefix whose last snapshot is already Editor.
 
-Cold-replay accepteert uitsluitend één owned normalparent uit dezelfde BUILD/run,
-herberekent diens raw33/serial/QMP/pixels/disk/inputhashes volledig en bindt diens
-afterbytes aan de recover-beforebytes. Een recoverparent of een normalparent
-met eigen parent wordt geweigerd: de controle kan niet onbeperkt recursief worden.
-Bronhash, machine/QEMU-entry/implementatie, loader, firmware/ROM en alle acht
-userspaceimages moeten overeenkomen; de kernel mag uitsluitend het vastgelegde
-recoverfeature hebben. De schijf blijft in QEMU én de bytecontrole readonly.
+Cold replay accepts exclusively one owned normal parent from the same BUILD/run,
+fully recomputes its raw 33/serial/QMP/pixels/disk/input hashes and binds its
+after bytes to the recover before bytes. A recover parent or a normal parent
+with its own parent is rejected: the check cannot recurse without bound.
+Source hash, machine/QEMU entry/implementation, loader, firmware/ROM and all eight
+userspace images must match; the kernel may exclusively have the recorded
+recover feature. The disk remains readonly in QEMU and in the byte check.
 
-Bij herkenbare native TIMEOUT/FAIL/PANIC-diagnostiek krijgt de reeds mislukte VM
-hoogstens1s om zijn echte dump en rawexit te schrijven vóór QMP-sluiting/kill.
-Dit verlengt geen acceptatietijd en verandert geen fout in een PASS. De gemeten
-eerste native kandidaat mislukte rond203s: Ready-frame na ongeveer106s, één
-volledig frame en3161 tileACKs vóór de vaste PIT-grens. Er is geen tolerantie
-verlaagd om deze run groen te maken. Root onderzoekt de gemeten diagnostische
-observer-overhead; APP/UI-bron blijft voor die gerichte herhaling gelijk.
+On recognisable native TIMEOUT/FAIL/PANIC diagnostics the already failed VM gets
+at most 1 s to write its real dump and raw exit before QMP close/kill.
+This does not extend acceptance time and does not turn a failure into a PASS. The measured
+first native candidate failed around 203 s: Ready frame after about 106 s, one
+complete frame and 3161 tile ACKs before the fixed PIT boundary. No tolerance
+was lowered to make this run green. Root is investigating the measured diagnostic
+observer overhead; the APP/UI source stays the same for that targeted repetition.
 
-Negentien hosttegenproeven slagen na deze fixes. Exacte commando's/logs staan
-onder de eigen build/logs/materiaal-qmp; native herhaling en onafhankelijke
-review van de herstelde runner blijven aparte bewijsstappen.
+Nineteen host negative trials pass after these fixes. Exact commands/logs are
+under its own build/logs/materiaal-qmp; native repetition and independent
+review of the repaired runner remain separate evidence steps.
