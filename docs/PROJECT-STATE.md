@@ -1,6 +1,22 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 step 5f acceptance repair — 10 November 2026
+## NEXT AGENT HANDOFF — K06 step 5f IPC repair and full restart — 11 November 2026
+
+**Source:** branch `codex/k06-5f-complete-20261109` (PR #296), fix commit `e875a30e`. [Full run 43017432682](https://github.com/BaryonOS/BaryonOS/actions/runs/43017432682) was dispatched from zero with `full_matrix=true`; no earlier repetition is reused. Previous runs `42818153989` (APT snapshot 502/503 before any guest) and `42809499884` (22 APT setup failures, both IPC cases 0/50, `proc-shootdown-deaf` 48/50, `bsp-spin-irq-off-control` 49/50) supply no acceptance.
+
+**Root cause of the IPC failures (R3-5):** a local trace of `m3-ipc-four` showed zero wait timeouts and one reschedule IPI per remote wake, but exactly one round per four PIT ticks. The woken endpoint was appended behind CPU-bound canaries, so each wake cost about two quanta; 10 000 rounds needed about 400 s. A remote readiness wake now takes the head of its home RUNQ (`RunQueue::push_front`, once per BLOCKED→READY, no new quantum). `m3-ipc` receives the named watchdog `IPC_TIMEOUT_S = 180`; the round count, oracle and `GUEST_TIMEOUT_S = 60` are unchanged. See the ADR-081 R3-5 addendum in [DECISIONS.md](DECISIONS.md).
+
+**Executed:** `cargo test -p smp-lock` (33 pass), Clippy `-D warnings`, `cargo fmt --check`, all 276 tool tests. Native single boots on local QEMU 10.2.1: `m3-ipc-four` pass in 71.8 s, `m3-ipc-four-single` pass in 66.5 s, `m3-migrate-four` pass in 21.7 s (CI took about 20 s per repetition for the same case). Not executed locally: other risk profiles and repetitions; the matrix covers them 50 times.
+
+**Blocker — merge with main:** PR #154 added `kernel/src/m2_legacy/` with its own `native-smp-m3` feature (meaning `native-smp-legacy` + M3), which collides with the K06 `native-smp-m3`. Its `native_smp_handoff_required()` in `tools/build.py` would also force the legacy `smp-handoff` loader on every K06 `native-smp-m3*`/`m4*` profile. A merge of main was attempted and aborted. Proposed resolution: rename only the legacy feature to `native-smp-legacy-m3` (files: `kernel/Cargo.toml`, `kernel/src/m2_legacy/*`, `tools/build.py`, `tools/run_smp_legacy.py`, `tools/test_smp.py`, `tools/tests/test_smp_host.py`) and restrict the handoff check to legacy names. This requires a decision and then a new full matrix run on the merged head.
+
+**Still open in K06:** `proc-shootdown-deaf` and `bsp-spin-irq-off-control` fixes from `54a9d5c1` are unverified natively. Acceptance requires all 64 cases at exactly 50/50, 50 complete soaks, K07, a green aggregate and an executed `tools/gate.sh` log.
+
+**Next:** read run 43017432682 when it completes; then resolve the feature-name collision, merge main and restart the matrix on the merged head.
+
+**Progress:** 41/100 → 41/100.
+
+## Previous checkpoint — K06 step 5f acceptance repair — 10 November 2026
 
 **Copilot execution handoff:** [self-contained continuation prompt](verification/k06-smp-sched/COPILOT-HANDOFF.md). Continue the existing two GitHub runs and exact branch; do not dispatch a duplicate of pending run `42818153989`. The final-gate verifier is now tracked beside the matrix verifier, so continuation does not require the previous Cloud workspace. At the handoff check the old run has 29 ordinary successes, two known failed cases and ten successful soak shards; both IPC jobs are running. The candidate run is pending with zero jobs. These live counts must be refreshed before acting. GitHub workflows remain untouched by this handoff.
 

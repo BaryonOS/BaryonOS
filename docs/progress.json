@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-10",
-    "source_commit": "54a9d5c17291b862e30240e49ed4cde0d479315b",
+    "date": "2026-11-11",
+    "source_commit": "e875a30e97e53323875182bffc40423a5518ad6f",
     "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
-    "task": "Hand off strict K06 step-5f evidence continuation to GitHub Copilot",
+    "task": "K06 step 5f: repair cross-CPU IPC throughput (R3-5) and restart the full matrix",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. K06 and the K07 SMP extension remain open. Rejected run 42809499884 continues with known quarantine and clock failures. Candidate full run 42818153989 is pending on frozen source 54a9d5c with source-v3 727676734c47e4efabedb49831763d71c1cd08c5698704de4e1c12a26e57232b. A self-contained Copilot handoff and both read-only verifiers are committed; no previous repetition is reused. Acceptance still requires all 64 cases exactly 50/50, K07, 50 complete soaks, aggregate and the actually executed repository gate."
+    "summary": "41/100 remains 41/100. Both 10 000-round IPC cases failed 50/50 because a remote readiness wake queued behind CPU-bound peers; a head-of-queue remote wake (ADR-081 R3-5 addendum) and the named IPC_TIMEOUT_S = 180 fix this in two local native boots. Full run 43017432682 on e875a30e is in progress; K06 stays open until all 64 cases are exactly 50/50 with aggregate, K07, soaks and the executed repository gate. Merging main is blocked by a native-smp-m3 feature-name collision with the legacy SMP path from PR 154."
   },
   "tracks": [
     {
