@@ -1,161 +1,161 @@
-# K05 — algemeen proces- en dienstbeheer (profiel `native-supervisor`)
+# K05 — general process and service management (profile `native-supervisor`)
 
-Datum: 29 oktober 2026. Status: **ontwerpcontract, daarna geïmplementeerd
-in dezelfde opdracht**; de uitgevoerde controles en hun uitkomst staan
-uitsluitend in [K05-ACCEPTANCE](../verification/K05-ACCEPTANCE.md). Dit
-document beschrijft het contract; afwijkingen die tijdens het bouwen nodig
-bleken, staan in §8. Criterium (docs/progress.json): *niet-fixture-apps kunnen
-via begrensde API's starten, afsluiten en diensten herstarten; afhankelijkheden
-en resources worden correct vrijgegeven.* Besluit: ADR-042.
+Date: 29 October 2026. Status: **design contract, subsequently implemented
+in the same assignment**; the executed checks and their outcome are recorded
+exclusively in [K05-ACCEPTANCE](../verification/K05-ACCEPTANCE.md). This
+document describes the contract; deviations that proved necessary during the
+build are recorded in §8. Criterium (docs/progress.json): *non-fixture apps can
+start, shut down and restart services via bounded APIs; dependencies
+and resources are released correctly.* Decision: ADR-042.
 
-## 1. Probleem
+## 1. Problem
 
-Tot en met M6e/S06 maakt uitsluitend het ingebouwde kernelmanifest processen
-en endpoints aan, vóór de eerste gebruikersinstructie. Een dienst die uitvalt,
-komt niet terug; een app kan geen hulpdienst starten; er is geen
-gebruikersruimte-autoriteit over levenscyclus. K05 voegt die autoriteit toe
-als capabilities, niet als ambient recht.
+Up to and including M6e/S06, only the built-in kernel manifest creates processes
+and endpoints, before the first user instruction. A service that fails
+does not come back; an app cannot start a helper service; there is no
+user-space authority over lifecycle. K05 adds that authority
+as capabilities, not as an ambient right.
 
-## 2. Beveiligingsinvarianten (eerst)
+## 2. Security invariants (first)
 
-1. **Starten is een capability.** Een proces kan alleen een image starten
-   waarvoor het een `Launch`-capability bezit. Zonder die capability geeft
-   `proc_spawn` `EACCESS`, `ETYPE` of `EBADHANDLE` en ontstaat geen proces,
-   frame, endpoint of node.
-2. **Geen erfenis.** Een kind krijgt uitsluitend de maximaal twee
-   capabilities die de starter expliciet meegeeft, met verminderde rechten
-   (dezelfde regels als IPC-overdracht: `TRANSFER` vereist, nooit `RECV`,
-   nooit meer rechten dan de bron). De rest van de startpagina is nul.
-3. **Kind-autoriteit is niet overdraagbaar.** Een `Process`-capability
-   (observeren en beëindigen) kan niet via IPC worden overgedragen of
-   afgeleid: `allowed_rights` kent voor dit objecttype geen `TRANSFER`,
-   `DERIVE` of `REVOKE`. Alleen de starter beheert zijn kinderen.
-4. **Dood ruimt alles op.** Exit, fault of `proc_kill` van een proces geeft
-   al zijn frames en tabellen vrij, trekt alle door hem uitgegeven nodes in,
-   sluit zijn endpoints (`ECLOSED` voor peers) en laat geen gequeued bericht
-   met zijn capabilities achter. Dit is het bestaande `cleanup`-pad; K05
-   voegt alleen de uitlokkers toe.
-5. **Afhankelijkheid is expliciet.** Een kind hoort bij zijn starter. Sterft
-   de starter, dan beëindigt de kernel in dezelfde gebeurtenis alle kinderen
-   (en hun kinderen) iteratief, zonder recursie op de kernelstack. Er blijft
-   geen proces over waarover niemand autoriteit heeft.
-6. **Geen gedeeltelijke staat.** Alle fallibele controles van `proc_spawn`
-   (handle, recht, vrij processlot, PID, engine-registratie, slots voor de
-   meegegeven capabilities) gaan vooraf aan frame-allocatie; een fout na die
-   controles doorloopt hetzelfde `cleanup`-pad als een procesdood, zodat de
-   vrije framestand gelijk blijft.
-7. **Quota blijven kernelquota.** Maximaal 16 processen, 4 eigen endpoints
-   per proces, 64 endpoints, 1024 nodes, 256 slots. `EQUOTA` verandert niets.
-8. **Een handle is geen geheim.** Een `Process`- of `Launch`-handle van
-   proces B is in A hoogstens een eigen slot van A (bestaande KS-12-regel).
+1. **Starting is a capability.** A process can only start an image
+   for which it holds a `Launch` capability. Without that capability
+   `proc_spawn` gives `EACCESS`, `ETYPE` or `EBADHANDLE` and no process,
+   frame, endpoint or node is created.
+2. **No inheritance.** A child receives exclusively the at most two
+   capabilities that the starter explicitly passes along, with reduced rights
+   (the same rules as IPC transfer: `TRANSFER` required, never `RECV`,
+   never more rights than the source). The rest of the start page is zero.
+3. **Child authority is not transferable.** A `Process` capability
+   (observe and terminate) cannot be transferred via IPC or
+   derived: `allowed_rights` has no `TRANSFER`, `DERIVE` or `REVOKE` for this
+   object type. Only the starter manages its children.
+4. **Death cleans up everything.** Exit, fault or `proc_kill` of a process releases
+   all its frames and tables, revokes all nodes it issued,
+   closes its endpoints (`ECLOSED` for peers) and leaves no queued message
+   with its capabilities behind. This is the existing `cleanup` path; K05
+   only adds the triggers.
+5. **Dependency is explicit.** A child belongs to its starter. If the
+   starter dies, the kernel terminates all children (and their children)
+   iteratively in the same event, without recursion on the kernel stack. No
+   process remains over which nobody has authority.
+6. **No partial state.** All fallible checks of `proc_spawn`
+   (handle, right, free process slot, PID, engine registration, slots for the
+   passed capabilities) precede frame allocation; an error after those
+   checks goes through the same `cleanup` path as a process death, so that the
+   free frame count stays the same.
+7. **Quotas remain kernel quotas.** At most 16 processes, 4 own endpoints
+   per process, 64 endpoints, 1024 nodes, 256 slots. `EQUOTA` changes nothing.
+8. **A handle is not a secret.** A `Process` or `Launch` handle of
+   process B is in A at most an own slot of A (existing KS-12 rule).
 
-## 3. Interface (syscall-ABI 1.3, alleen in dit profiel)
+## 3. Interface (syscall ABI 1.3, only in this profile)
 
-| Nr. | Naam / argumenten | Succes (RDX) | Fouten |
+| No. | Name / arguments | Success (RDX) | Errors |
 |---|---|---|---|
-| `0x30` | `endpoint_create()` | roothandle met `ALL_RIGHTS` | `EQUOTA` (4 eigen / 64 globaal / slots / nodes) |
-| `0x50` | `proc_spawn(launch, arg, cap0, rights0, cap1, rights1)` | `Process`-handle met `OBSERVE\|KILL` | `EBADHANDLE`, `ETYPE`, `EACCESS` (geen `LAUNCH`, geen `TRANSFER` op cap, `RECV` gevraagd), `EINVAL` (onbekende rechten, `cap0 == 0` maar `rights0 != 0`), `EQUOTA` |
-| `0x51` | `proc_kill(process)` | 0 | `EBADHANDLE`, `ETYPE`, `EACCESS` (geen `KILL`), `ECLOSED` (kind al dood) |
-| `0x52` | `proc_status(process)` | `(state << 56) \| (code & (2^56 − 1))` | `EBADHANDLE`, `ETYPE`, `EACCESS` (geen `OBSERVE`) |
+| `0x30` | `endpoint_create()` | root handle with `ALL_RIGHTS` | `EQUOTA` (4 own / 64 global / slots / nodes) |
+| `0x50` | `proc_spawn(launch, arg, cap0, rights0, cap1, rights1)` | `Process` handle with `OBSERVE\|KILL` | `EBADHANDLE`, `ETYPE`, `EACCESS` (no `LAUNCH`, no `TRANSFER` on cap, `RECV` requested), `EINVAL` (unknown rights, `cap0 == 0` but `rights0 != 0`), `EQUOTA` |
+| `0x51` | `proc_kill(process)` | 0 | `EBADHANDLE`, `ETYPE`, `EACCESS` (no `KILL`), `ECLOSED` (child already dead) |
+| `0x52` | `proc_status(process)` | `(state << 56) \| (code & (2^56 − 1))` | `EBADHANDLE`, `ETYPE`, `EACCESS` (no `OBSERVE`) |
 
-`state`: 1 = running, 2 = exited (code = exitcode mod 2^56), 3 = faulted
-(code = exceptievector), 4 = killed. Een `cap0`/`cap1` van 0 betekent "geen
-capability"; dan moet het bijbehorende rechtenveld 0 zijn. Ongebruikte
-argumenten blijven volgens ABI v1 nul.
+`state`: 1 = running, 2 = exited (code = exit code mod 2^56), 3 = faulted
+(code = exception vector), 4 = killed. A `cap0`/`cap1` of 0 means "no
+capability"; the corresponding rights field must then be 0. Unused
+arguments remain zero per ABI v1.
 
-Nieuwe rechtenbits: `LAUNCH = 128` (alleen op `Launch`-objecten),
-`OBSERVE = 256`, `KILL = 512` (alleen op `Process`-objecten). `KNOWN_RIGHTS`
-wordt 1023. `derive`, `revoke` en IPC-overdracht van deze objecten falen met
-`EINVAL` omdat het objecttype die operatierechten niet kent.
+New rights bits: `LAUNCH = 128` (only on `Launch` objects),
+`OBSERVE = 256`, `KILL = 512` (only on `Process` objects). `KNOWN_RIGHTS`
+becomes 1023. `derive`, `revoke` and IPC transfer of these objects fail with
+`EINVAL` because the object type does not know those operation rights.
 
-### Startpagina van een kind (`0x40010000`, 1024 bytes, rest nul)
+### Start page of a child (`0x40010000`, 1024 bytes, rest zero)
 
-| Offset | Inhoud |
+| Offset | Content |
 |---|---|
-| 0 | `arg` van de starter (vrij woord, geen autoriteit) |
-| 8 | 0; het kind gebruikt dit als voortgangsteller (bestaande conventie) |
-| 16 | kernelpatroon (bestaande audit) |
-| 32 | 1 (startepoch) |
-| 56 | handle van `cap0` in de tabel van het kind, of 0 |
-| 64 | handle van `cap1`, of 0 |
-| 176 | eigen PID |
+| 0 | `arg` of the starter (free word, no authority) |
+| 8 | 0; the child uses this as a progress counter (existing convention) |
+| 16 | kernel pattern (existing audit) |
+| 32 | 1 (start epoch) |
+| 56 | handle of `cap0` in the child's table, or 0 |
+| 64 | handle of `cap1`, or 0 |
+| 176 | own PID |
 
-Lege posities worden niet samengepakt: bij `cap0=0` en een geldige `cap1`
-blijft offset 56 nul en staat de gedelegeerde `cap1` op offset 64. Het aantal
-niet-lege capabilities bepaalt uitsluitend de resourcepreflight. Dit bestaande
-contract is na de P2-review van #51 met een native regressie afgedwongen.
+Empty positions are not compacted: with `cap0=0` and a valid `cap1`
+offset 56 stays zero and the delegated `cap1` is at offset 64. The number of
+non-empty capabilities determines only the resource preflight. This existing
+contract was enforced with a native regression after the P2 review of #51.
 
-## 4. Kernelobjecten
+## 4. Kernel objects
 
-- `Launch { owner, image }`: per manifest aangemaakt, `image` wijst naar een
-  ingebouwde ELF (0 = worker, 1 = client). Niet door apps aan te maken.
-- `Process { owner, child_pid, state, code }`: aangemaakt door `proc_spawn`,
-  eigenaar is de starter. Bij dood van het kind zet de kernel `state`/`code`;
-  het object blijft bestaan tot de eigenaar zijn laatste handle sluit. Bij
-  exit van de eigenaar sluit de kernel het object en wordt het kind, als het
-  nog leeft, beëindigd (invariant 5).
+- `Launch { owner, image }`: created per manifest, `image` points to a
+  built-in ELF (0 = worker, 1 = client). Cannot be created by apps.
+- `Process { owner, child_pid, state, code }`: created by `proc_spawn`,
+  the owner is the starter. When the child dies the kernel sets `state`/`code`;
+  the object persists until the owner closes its last handle. On
+  exit of the owner the kernel closes the object and the child, if it
+  is still alive, is terminated (invariant 5).
 
-Het `Engine`-type in `capability-core` krijgt beide objectsoorten achter de
-bestaande endpoint- en blokobjecten (`index ≥ 68`). Alle bestaande regels
-(generaties, tombstones, `maintain`, `check_invariants`, `state_digest`)
-gelden ongewijzigd; hosttests dekken de nieuwe overgangen.
+The `Engine` type in `capability-core` gets both object kinds after the
+existing endpoint and block objects (`index ≥ 68`). All existing rules
+(generations, tombstones, `maintain`, `check_invariants`, `state_digest`)
+apply unchanged; host tests cover the new transitions.
 
-## 5. Gebruikersprogramma's (SDK-voorbeeld `sdk/examples/supervisor`)
+## 5. User programs (SDK example `sdk/examples/supervisor`)
 
-- **supervisor**: ontvangt bij het manifest twee `Launch`-capabilities en
-  maakt zelf een registratie-endpoint. Start de worker en de client met
-  een `SEND`-capability op dat endpoint. Worker en client registreren zich
-  door een `SEND`-capability op hun eigen endpoint terug te sturen. De
-  supervisor geeft de client de worker-capability, bewaakt de worker met
-  `proc_status`, herstart hem (na `proc_kill` in het normale geval, na een
-  waargenomen fault in het crashgeval) en publiceert de nieuwe capability
-  opnieuw. Aan het einde beëindigt hij de kinderen en controleert `killed`.
-- **worker**: dienst met teller; beantwoordt verzoeken met volgnummer en
-  instantienummer. In het crashgeval voert hij na acht antwoorden `ud2` uit.
-- **client**: stuurt 24 verzoeken; bij `ECLOSED` op de oude capability wacht
-  hij op de nieuwe en gaat verder met hetzelfde volgnummer. Telt antwoorden,
-  `ECLOSED`-waarnemingen en instanties.
+- **supervisor**: receives two `Launch` capabilities from the manifest and
+  creates a registration endpoint itself. Starts the worker and the client with
+  a `SEND` capability on that endpoint. Worker and client register
+  by sending back a `SEND` capability on their own endpoint. The
+  supervisor gives the client the worker capability, monitors the worker with
+  `proc_status`, restarts it (after `proc_kill` in the normal case, after an
+  observed fault in the crash case) and publishes the new capability
+  again. At the end it terminates the children and checks `killed`.
+- **worker**: service with counter; answers requests with sequence number and
+  instance number. In the crash case it executes `ud2` after eight answers.
+- **client**: sends 24 requests; on `ECLOSED` on the old capability it waits
+  for the new one and continues with the same sequence number. Counts answers,
+  `ECLOSED` observations and instances.
 
-Alle drie zijn gewone SDK-programma's zonder blok-, apparaat- of
-netwerkrecht. De kernel kent hun protocol niet.
+All three are ordinary SDK programs without block, device or
+network rights. The kernel does not know their protocol.
 
-## 6. Acceptatiegevallen (echte QEMU-runs, elk een eigen kernelfeature)
+## 6. Acceptance cases (real QEMU runs, each its own kernel feature)
 
-| Geval | Feature | Vereiste observatie |
+| Case | Feature | Required observation |
 |---|---|---|
-| normal | `native-supervisor` | start worker+client; gecontroleerde herstart na 8 antwoorden; client 24 antwoorden, ≥1 `ECLOSED`, 2 worker-instanties; alle kinderen `killed`/`exited`; frames en engine op baseline |
-| crash | `test-supervisor-crash` | worker fault (`#UD`) na 8 antwoorden, `proc_status` = faulted(6); herstart; client 24 antwoorden; baseline |
-| denied | `test-supervisor-denied` | client/worker proberen `proc_spawn`, `proc_kill` en `proc_status` met endpoint-, nul- en vervalste handles en `endpoint_create` voorbij het quotum; exact de vastgelegde foutcodes; de kernel telt geweigerde spawns en ziet precies 2 gestarte processen |
-| parent-exit | `test-supervisor-parent-exit` | supervisor eindigt terwijl worker en client leven; beide worden in dezelfde gebeurtenis beëindigd; baseline |
-| quota | `test-supervisor-quota` | supervisor start workers tot `EQUOTA` (15 geslaagd), vrije framestand ongewijzigd door de mislukte poging; alle 15 beëindigd en `killed`; baseline |
+| normal | `native-supervisor` | start worker+client; controlled restart after 8 answers; client 24 answers, ≥1 `ECLOSED`, 2 worker instances; all children `killed`/`exited`; frames and engine at baseline |
+| crash | `test-supervisor-crash` | worker fault (`#UD`) after 8 answers, `proc_status` = faulted(6); restart; client 24 answers; baseline |
+| denied | `test-supervisor-denied` | client/worker attempt `proc_spawn`, `proc_kill` and `proc_status` with endpoint, zero and forged handles and `endpoint_create` beyond the quota; exactly the recorded error codes; the kernel counts refused spawns and sees exactly 2 started processes |
+| parent-exit | `test-supervisor-parent-exit` | supervisor exits while worker and client are alive; both are terminated in the same event; baseline |
+| quota | `test-supervisor-quota` | supervisor starts workers until `EQUOTA` (15 succeeded), free frame count unchanged by the failed attempt; all 15 terminated and `killed`; baseline |
 
-Kernelmarkers: `SUPERVISOR:MANIFEST:PASS`, `SUPERVISOR:CASE:<GEVAL>:PASS`,
-`SUPERVISOR:RESOURCES:PASS`, `SUPERVISOR:PASS`, `M1:PASS`, exitcode 0x10
-(raw 33). Elke `SUPERVISOR:FAIL:*` of `PANIC` faalt. Getalsbewijs als
-`SUPERVISOR:<NAAM>:<20 cijfers>`. De gate `tools/test_supervisor.py` voert
-eerst de hosttests uit (`capability-core`, SDK-runtime, Python-harness) en
-daarna de vijf runs op één bevroren bronvingerafdruk.
+Kernel markers: `SUPERVISOR:MANIFEST:PASS`, `SUPERVISOR:CASE:<GEVAL>:PASS`,
+`SUPERVISOR:RESOURCES:PASS`, `SUPERVISOR:PASS`, `M1:PASS`, exit code 0x10
+(raw 33). Any `SUPERVISOR:FAIL:*` or `PANIC` fails. Numeric evidence as
+`SUPERVISOR:<NAAM>:<20 cijfers>`. The gate `tools/test_supervisor.py` first runs
+the host tests (`capability-core`, SDK runtime, Python harness) and
+then the five runs on one frozen source fingerprint.
 
-## 7. Wat K05 niet bewijst
+## 7. What K05 does not prove
 
-Geen SMP, geen echte hardware, geen laden van gebruikersgeleverde images
-(A02), geen persistente dienstconfiguratie, geen prioriteiten of deadlines,
-geen bescherming tegen een kwaadwillende supervisor die zijn eigen kinderen
-misbruikt binnen de hem verleende rechten. De supervisor is één gewoon
-proces; een systeembrede dienstbeheerder met beleid volgt later.
+No SMP, no real hardware, no loading of user-supplied images
+(A02), no persistent service configuration, no priorities or deadlines,
+no protection against a malicious supervisor that misuses its own children
+within the rights granted to it. The supervisor is one ordinary
+process; a system-wide service manager with policy follows later.
 
-## 8. Afwijkingen tijdens implementatie
+## 8. Deviations during implementation
 
-- **Frame-baseline en kernelpaginatabellen.** De identiteitsmap van nieuw
-  aangeraakt RAM vraagt permanente `PageTable(0)`-frames (M2-contract). Bij
-  16 gelijktijdige processen (quotaproef) groeide de kerneltabel met één
-  frame. De eindcontrole eist daarom `vrij + gegroeide kerneltabellen ==
-  baseline` en drukt de groei af als `SUPERVISOR:KERNEL_TABLES_GROWN`; een
-  echt gebruikersframelek faalt nog steeds.
-- **Denied-geval.** De client in controlemodus eindigt zelf na zijn rapport;
-  de supervisor observeert `Exited(0)`, sluit de handle en controleert dat het
-  nummer daarna `EBADHANDLE` geeft. De kernel verwacht dus één kill (worker)
-  en één kindexit (client) in plaats van twee kills.
-- **Startwoord 0** draagt naast de modus ook de PID van de starter (vanaf
-  bit 8), zodat worker en client besturingsberichten alleen van hun
-  supervisor accepteren. Dit is appprotocol, geen kernelautoriteit.
+- **Frame baseline and kernel page tables.** The identity map of newly
+  touched RAM requires permanent `PageTable(0)` frames (M2 contract). With
+  16 concurrent processes (quota trial) the kernel table grew by one
+  frame. The final check therefore requires `vrij + gegroeide kerneltabellen ==
+  baseline` and prints the growth as `SUPERVISOR:KERNEL_TABLES_GROWN`; a
+  real user frame leak still fails.
+- **Denied case.** The client in check mode exits on its own after its report;
+  the supervisor observes `Exited(0)`, closes the handle and checks that the
+  number then gives `EBADHANDLE`. The kernel therefore expects one kill (worker)
+  and one child exit (client) instead of two kills.
+- **Start word 0** carries, besides the mode, also the PID of the starter (from
+  bit 8), so that worker and client accept control messages only from their
+  supervisor. This is app protocol, not kernel authority.

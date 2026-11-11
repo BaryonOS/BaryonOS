@@ -1,225 +1,225 @@
-# TPM-CRB-TRANSPORT-1 — begrensde driverkern
+# TPM-CRB-TRANSPORT-1 — bounded driver core
 
-Status: afzonderlijke safe/no_std-transport- en codeclogica in
-`drivers/tpm-crb`; opt-in MMIO-bootstrapfixture nu in implementatie volgens
-ADR-052, beide native gevallen nu groen op `4b09869`. Geen productkernelgrant of koude
-rollbackankering. Hostmodellen zijn uitsluitend protocol-/registertests.
-De nog verplichte B02-/boot-/update-eisen blijven open.
+Status: separate safe/no_std transport and codec logic in
+`drivers/tpm-crb`; opt-in MMIO bootstrap fixture now in implementation per
+ADR-052, both native cases now green on `4b09869`. No product kernel grant or cold
+rollback anchoring. Host models are exclusively protocol/register tests.
+The still mandatory B02/boot/update requirements remain open.
 
-`native-tpm-crb` houdt uitsluitend een vaste supervisor-RW/NX/UC-mapping
-op VA `0x3f180000`, met typed registeroffsets, checked buffergrenzen,
-maximaal128B-kopieën, volatile accessen en MFENCE/compilerbarrières.
-De ene claim en quarantaine blijven voor de VM-levensduur behouden.
-Geen app krijgt TPM-recht; de bestaande twee echte CPL3-wachtapps blijven
-hun oorspronkelijke rechten en volledige orakels gebruiken. De scheduler
-pollt de bestaande transportkern met echte PIT-ticks; één read-only
-family-propertyquery en volledig bevestigde vrijgave worden geëist.
-`test-tpm-crb-absent` vereist Unsupported/NotStarted/quarantaine en nul
-writes. Zeven adaptergrensweigeringen mogen geen MMIO-write veroorzaken.
-Runner: `tools/run_tpm.py --case normal|absent`; swtpm gebruikt uitsluitend
-een beheerde eigen Unixsocket/state, geen echte TPM of netwerkverbinding.
-De code hieronder blijft het transportcontract; oude open-statuszinnen
-zijn geen nieuwe native acceptatie. Actuele uitvoering: PROJECT-STATE.
-Bron-/artifact-/logbinding en de bewaarde eerste mislukking staan in
-`verification/native-test-version/tpm-evidence.json`. Beide VM's raw33;
-absent maakt nul writes, positief geeft family `0x322e3000` en bevestigde
-Idle/relinquish. De bestaande volledige CPL3-wachtproeven blijven groen.
+`native-tpm-crb` holds exclusively one fixed supervisor RW/NX/UC mapping
+at VA `0x3f180000`, with typed register offsets, checked buffer bounds,
+at most 128 B copies, volatile accesses and MFENCE/compiler barriers.
+The single claim and quarantine are preserved for the VM lifetime.
+No app gets a TPM right; the existing two real CPL3 waiting apps keep
+using their original rights and full oracles. The scheduler
+polls the existing transport core with real PIT ticks; one read-only
+family property query and fully confirmed release are required.
+`test-tpm-crb-absent` requires Unsupported/NotStarted/quarantine and zero
+writes. Seven adapter boundary rejections must not cause any MMIO write.
+Runner: `tools/run_tpm.py --case normal|absent`; swtpm uses exclusively
+a managed own Unix socket/state, no real TPM or network connection.
+The code below remains the transport contract; old open-status sentences
+are not new native acceptance. Current execution: PROJECT-STATE.
+Source/artifact/log binding and the preserved first failure are in
+`verification/native-test-version/tpm-evidence.json`. Both VMs raw33;
+absent makes zero writes, positive gives family `0x322e3000` and confirmed
+Idle/relinquish. The existing full CPL3 waiting trials remain green.
 
-## Ondersteund interfacecontract
+## Supported interface contract
 
-Het enige onderzochte apparaatmodel is QEMU10.0.13 `tpm-crb`, locality0,
-MMIO-aperture0xFED40000..0xFED40FFF. De gebruikte machinecompatibiliteit blijft
-`pc-q35-8.2`; dat is niet QEMU-versie8.2. De lokale beheerde binary meldt
-10.0.13 Debian1:10.0.13+ds-0+deb13u1 en adverteert `tpm-crb`. Er is nog geen
-TPM-instance met backend gestart. De configuratie hieronder is een verwacht
-modelcontract op basis van upstreambron, geen native discoverybewijs.
+The only device model examined is QEMU 10.0.13 `tpm-crb`, locality 0,
+MMIO aperture 0xFED40000..0xFED40FFF. The machine compatibility used remains
+`pc-q35-8.2`; that is not QEMU version 8.2. The local managed binary reports
+10.0.13 Debian 1:10.0.13+ds-0+deb13u1 and advertises `tpm-crb`. No
+TPM instance with a backend has been started yet. The configuration below is an expected
+model contract based on upstream source, not native discovery evidence.
 
-CRB-registers zijn little-endian32bit. ControlRequest/Status/Cancel/Start staan
-op0x40/44/48/4C; commandSize/address op0x58/5C/60, responseSize/address op
-0x64/68/6C. Beide hardwarebuffers moeten exact hetzelfde3968B-gebied vanaf
-0xFED40080 aanwijzen. Andere adressen, externe RAM/DMA-buffers, andere maten,
-FIFO-interface, andere locality, idle-bypass of een niet-geselecteerde CRB
-worden geweigerd. Er is geen automatische FIFO- of apparaatfallback.
-InterfaceType1/version1, locality0-only, CRB-support en selector1 zijn vereist;
-vendor/revision en transferbreedteflags worden niet als autoriteit behandeld.
+CRB registers are little-endian 32-bit. ControlRequest/Status/Cancel/Start are
+at 0x40/44/48/4C; commandSize/address at 0x58/5C/60, responseSize/address at
+0x64/68/6C. Both hardware buffers must point to exactly the same 3968 B region starting at
+0xFED40080. Other addresses, external RAM/DMA buffers, other sizes,
+FIFO interface, other locality, idle bypass or a non-selected CRB
+are rejected. There is no automatic FIFO or device fallback.
+InterfaceType 1/version 1, locality 0 only, CRB support and selector 1 are required;
+vendor/revision and transfer width flags are not treated as authority.
 
-`Io` bezit de ene adapter. Hij levert typed read32/write32(Register),
-read_buffer/write_buffer met relatieve offsets binnen de vaste hardwarebuffer,
-en quarantine(). Elke bufferactie is maximaal128B. Een toekomstige adapter
-moet zelf de begrenzing, exact voltooide kopieën, UC/device-mapping,
-compiler-/CPU-geheugenvolgorde en volatile register-/bufferaccessen afdwingen.
-Bufferwrites moeten vóór START zichtbaar zijn; response-reads volgen pas na
-de bevestigde completion. Deze voorwaarden zijn nog geen onderzochte unsafe
-MMIO-implementatie. Er worden geen willekeurige fysieke pointers of frames
-uit apparaatdata gemapt.
+`Io` owns the single adapter. It provides typed read32/write32(Register),
+read_buffer/write_buffer with relative offsets within the fixed hardware buffer,
+and quarantine(). Every buffer action is at most 128 B. A future adapter
+must itself enforce the bounds, exactly completed copies, UC/device mapping,
+compiler/CPU memory ordering and volatile register/buffer accesses.
+Buffer writes must be visible before START; response reads follow only after
+the confirmed completion. These conditions are not yet an examined unsafe
+MMIO implementation. No arbitrary physical pointers or frames
+from device data are mapped.
 
-De buffer is in dit QEMU-model apparaat-MMIO, geen allocator-/user-RAM of
-virtio-DMA-pool. Quarantaine voorkomt hergebruik of overdracht van de apparaat-
-autoriteit en nieuwe writes. Het bewijst geen IOMMU-isolatie op fysieke
-hardware. Een toekomstige broker blijft verantwoordelijk voor mappings,
-capabilityhouder, intrekking, deadlines en processterfte.
+In this QEMU model the buffer is device MMIO, not allocator/user RAM or a
+virtio DMA pool. Quarantine prevents reuse or transfer of the device
+authority and new writes. It does not prove IOMMU isolation on physical
+hardware. A future broker remains responsible for mappings,
+capability holder, revocation, deadlines and process death.
 
-## Transport en levensduur
+## Transport and lifetime
 
-`Transport` is niet Clone/Copy en geeft zijn Io niet vrij tijdens een
-hardwaretransactie. API: acquire(now,deadline)→Ticket, poll_ready,
+`Transport` is not Clone/Copy and does not release its Io during a
+hardware transaction. API: acquire(now,deadline)→Ticket, poll_ready,
 execute(&codec::Command,now,deadline,cancel_ticks)→Ticket, poll,
 cancel, release(now,deadline)→Ticket, poll_released, detach.
-Tickets zijn niet0, checked monotoon en mogen niet tussen bewerkingen worden
-verwisseld. Verkeerde tickets veranderen de actieve transactie niet en voeren
-geen I/O uit. Een voltooide response wordt eenmaal als een eigen getypeerde
-waarde teruggegeven; een broker moet die zelf behouden wanneer usercopy nog
-niet is bevestigd. Geen request wordt automatisch opnieuw gepubliceerd.
+Tickets are non-0, checked monotonic and must not be swapped between
+operations. Wrong tickets do not change the active transaction and perform
+no I/O. A completed response is returned once as its own typed
+value; a broker must retain it itself when usercopy has not yet
+been confirmed. No request is automatically republished.
 
-De caller levert echte monotone Sys3/PIT-ticks, nooit usergekozen tijd of een
-poll-count-klok. De kern heeft geen eigen klok of verborgen wachtlus: iedere
-poll is begrensd, en de toekomstige broker moet uiterlijk op de deadline
-blijven pollen en eigenaarsverlies afhandelen. Deadline is absoluut, groter
-dan now en maximaal60000ticks later; cancel_ticks ligt in1..60000. Voor het
-huidige100Hz-profiel is dit maximaal600s, geen standaard producttimeout.
-EAGAIN-achtige polling vernieuwt de oorspronkelijke deadline niet.
-Achteruitgaande of overlopende tijd blokkeert actieve polls, nieuwe commands en release. Reeds geverifieerde Ready/Released/Cancelling-ACKs kunnen idempotent worden teruggegeven zonder nieuwe klokcontrole of I/O; zij bevestigen uitsluitend die eerdere toestand en verlenen geen nieuwe mutatie.
+The caller supplies real monotonic Sys3/PIT ticks, never user-chosen time or a
+poll-count clock. The core has no clock of its own or hidden wait loop: every
+poll is bounded, and the future broker must keep polling until the deadline at
+the latest and handle loss of ownership. Deadline is absolute, greater
+than now and at most 60000 ticks later; cancel_ticks lies in 1..60000. For the
+current 100 Hz profile this is at most 600 s, not a standard product timeout.
+EAGAIN-like polling does not renew the original deadline.
+Time going backwards or overflowing blocks active polls, new commands and release. Already verified Ready/Released/Cancelling ACKs can be returned idempotently without a new clock check or I/O; they confirm exclusively that earlier state and grant no new mutation.
 
-Acquire vraagt uitsluitend locality0, nooit seize/resetEstablishment. Na
-bevestigde locality volgt COMMAND_READY; pas nadat request is gewist en het
-apparaat Ready/START0 is, kan de commandbuffer worden beschreven. Buffers,
-locality en status worden vóór gebruik opnieuw gecontroleerd. Reeds actief
-werk of een vreemde/seized locality wordt niet overgenomen.
+Acquire requests exclusively locality 0, never seize/resetEstablishment. After
+confirmed locality, COMMAND_READY follows; only after request has been cleared and the
+device is Ready/START0 can the command buffer be written. Buffers,
+locality and status are re-checked before use. Already active
+work or a foreign/seized locality is not taken over.
 
-Vóór START wordt de volledige gedeelde buffer daadwerkelijk via Io gewist,
-daartussen geen I/O buiten de vaste aperture. Daarna wordt het exact
-gecodeerde commando geschreven. Dit voorkomt dat een oude succesheader als
-nieuw resultaat wordt gebruikt. Het nieuwe commando kan onmiddellijk klaar
-zijn; een vooraf waargenomen Busy1 is daarom niet verplicht. Een verdwenen
-START-bit alleen is onvoldoende: ook locality, niet-idle status, vaste
-bufferdescriptors, bounded responseheader, stabiele header en het specifieke
-responseformaat moeten kloppen. Publicatie volgt pas na volledige validatie
-en werkelijk wissen van de nu weer CPU-beschikbare hardwarebuffer.
+Before START the entire shared buffer is actually cleared via Io,
+with no I/O outside the fixed aperture in between. Then the exactly
+encoded command is written. This prevents an old success header from being used as a
+new result. The new command may be ready immediately;
+a previously observed Busy1 is therefore not required. A vanished
+START bit alone is insufficient: locality, non-idle status, fixed
+buffer descriptors, bounded response header, stable header and the specific
+response format must also be correct. Publication follows only after full validation
+and actual clearing of the hardware buffer that is now available to the CPU again.
 
-`Failure {fault,effect}` onderscheidt NotStarted, Unknown en Completed.
-NotStarted betekent uitsluitend dat voor deze commandbewerking geen START is
-gepubliceerd; het belooft geen afwezigheid van locality-/Ready-statewijzigingen.
-Een teruggegeven Ready na annulering lost de eerdere Unknown-transactie niet
-op. Ook is_nv_mutation=false belooft geen afwezigheid van andere TPM- of
-autorisatiestate-effecten. Effect wordt **vóór** de START-write Unknown: ook een mislukte write kan het
-apparaat hebben bereikt. Iedere onzekere fout daarna blijft Unknown.
-Completed bij een TPM-foutcode betekent alleen dat een canonieke TPM-respons
-werd ontvangen; het betekent geen succes, geen opslagflush of algemene
-no-side-effectsclaim. TPM_RC_INITIALIZE wordt bijvoorbeeld expliciet
-teruggegeven en niet stil als geslaagde Startup aangemerkt.
+`Failure {fault,effect}` distinguishes NotStarted, Unknown and Completed.
+NotStarted means exclusively that no START has been published for this command
+operation; it promises no absence of locality/Ready state changes.
+A returned Ready after cancellation does not resolve the earlier Unknown
+transaction. Nor does is_nv_mutation=false promise absence of other TPM or
+authorization state effects. Effect becomes Unknown **before** the START write: even a failed write may have
+reached the device. Every uncertain error after that remains Unknown.
+Completed on a TPM error code means only that a canonical TPM response
+was received; it does not mean success, a storage flush or a general
+no-side-effects claim. TPM_RC_INITIALIZE, for example, is explicitly
+returned and not silently marked as a successful Startup.
 
-Bij timeout/annulering wordt eenmaal CANCEL1 geschreven. Pas echte START0,
-CANCEL0-write én waargenomen CANCEL0 laten bufferwissen/Ready toe. De caller
-ontvangt dan alsnog Timeout/Cancelled met Unknown-effect, nooit een positieve
-NV-mutatiebevestiging. Ontbreekt de begrensde completion/clear-ACK, dan volgt
-permanente quarantaine. Geen bufferwrites, detach, regrant, replay of verzonnen
-resetbevestiging. Er is bewust geen reset()-API. Hetzelfde geldt bij
-onverwacht apparaatreset, gewijzigde descriptors, corrupte response of
-partiële START-I/O. Drop roept de quarantainehook eenmaal aan tenzij nooit
-gebruikt of volledig vrijgegeven; het doet geen verborgen apparaatreset.
-De adapter moet die blokkade ook na eigen Drop in de broker behouden.
+On timeout/cancellation, CANCEL1 is written once. Only real START0,
+a CANCEL0 write and observed CANCEL0 permit buffer clearing/Ready. The caller
+then still receives Timeout/Cancelled with Unknown effect, never a positive
+NV mutation confirmation. If the bounded completion/clear ACK is missing,
+permanent quarantine follows. No buffer writes, detach, regrant, replay or fabricated
+reset confirmation. There is deliberately no reset() API. The same applies on
+unexpected device reset, changed descriptors, corrupt response or
+partial START I/O. Drop calls the quarantine hook once unless never
+used or fully released; it performs no hidden device reset.
+The adapter must preserve that block in the broker even after its own Drop.
 
-Release vereist Ready/START0, wist de buffer, vraagt GO_IDLE en wacht op het
-gewiste request plus Idle1. Daarna pas localityRelinquish en de bevestiging
-dat Assigned en Granted uit staan. Alleen daarna kan detach de adapter
-teruggeven. Zonder ACK komt er geen impliciete vrijgave.
+Release requires Ready/START0, clears the buffer, requests GO_IDLE and waits for the
+cleared request plus Idle1. Only then localityRelinquish and the confirmation
+that Assigned and Granted are off. Only after that can detach return the
+adapter. Without ACK there is no implicit release.
 
-## TPM2-codecs, autorisatie en gegevens
+## TPM2 codecs, authorization and data
 
-De aparte codec encodeert alleen Startup(Clear/State), SelfTest(full),
-GetCapability(TPM_PROPERTIES, maximaal16), NV_ReadPublic, NV_DefineSpace voor
-één8B-counter, NV_Read van exact die8B en NV_Increment. Geen Clear,
-UndefineSpace, hiërarchiewijziging, algemene raw-commandinterface, RNG-
-alternatief, nieuwe cryptoprimitief of stil provisioningswachtwoord.
+The separate codec encodes only Startup(Clear/State), SelfTest(full),
+GetCapability(TPM_PROPERTIES, at most 16), NV_ReadPublic, NV_DefineSpace for
+one 8 B counter, NV_Read of exactly those 8 B and NV_Increment. No Clear,
+UndefineSpace, hierarchy change, general raw command interface, RNG
+alternative, new crypto primitive or silent provisioning password.
 
-Commands zijn maximaal128B, responses maximaal512B. Tag, big-endian lengte,
-commandcode, count, volgorde, vaste nvIndex, naamalgoritme, countertype,
-authPolicy-lengte en datasize worden gecontroleerd. Iedere commandencoder
-controleert invoer/uitvoerruimte vóór outputmutatie. De commandwaarde leent
-alleen de geschreven callerbuffer. De caller beschermt/wist die eigen RAM;
-de transportkern bewaart geen tweede RAM-kopie van het wachtwoordcommando.
+Commands are at most 128 B, responses at most 512 B. Tag, big-endian length,
+command code, count, order, fixed nvIndex, name algorithm, counter type,
+authPolicy length and datasize are checked. Every command encoder
+checks input/output space before output mutation. The command value borrows
+only the written caller buffer. The caller protects/clears its own RAM;
+the transport core keeps no second RAM copy of the password command.
 
-NV-autorisatie is een expliciet door de caller aangeleverde TPM_RS_PW-borrow
-(max32B, geen Default/Debug). Een lege waarde is alleen mogelijk door een
-expliciet lege callerwaarde, nooit een verborgen fallback. De hosttests
-gebruiken zichtbare synthetische waarden en voeren geen NV-write uit op een
-TPM. Het huidige codecprofiel is geen uitgewerkt productie-authbeleid.
-PW-sessies bieden geen versleuteling van het commandbuffer of cryptografische
-response-HMAC. De TPM/MMIO-keten blijft vertrouwd; de gewone app mag er geen
-recht op krijgen. Voor counters gelden AUTHWRITE/AUTHREAD, countertype en
-SHA256-naamalgoritme; dictionary-attackbescherming wordt niet uitgeschakeld.
-Alleen de dynamische WRITTEN-bit wordt aanvullend geaccepteerd.
+NV authorization is an explicitly caller-supplied TPM_RS_PW borrow
+(max 32 B, no Default/Debug). An empty value is only possible through an
+explicitly empty caller value, never a hidden fallback. The host tests
+use visible synthetic values and perform no NV write on a
+TPM. The current codec profile is not a worked-out production auth policy.
+PW sessions offer no encryption of the command buffer or cryptographic
+response HMAC. The TPM/MMIO chain remains trusted; the ordinary app must not get any
+right to it. For counters, AUTHWRITE/AUTHREAD, counter type and
+SHA256 name algorithm apply; dictionary attack protection is not disabled.
+Only the dynamic WRITTEN bit is additionally accepted.
 
-Een wachtwoordrespons vereist lege nonce/HMAC en continueSession1, niet0.
-Properties zijn bounded en strikt oplopend; vreemde capabilities of
-niet-canonieke more/count-velden falen. NV_ReadPublic geeft een **opaque**
-structureel passende naam terug: de codec berekent of authenticeert de
-SHA256-digest niet en bewijst daarmee geen lineage. Dat hoort later bij de
-beoordeelde key-/provisioningsdienst buiten de kernel. Foutresponses hebben
-exact de passende10B-header; geen gedeeltelijke data wordt geaccepteerd.
+A password response requires empty nonce/HMAC and continueSession 1, not 0.
+Properties are bounded and strictly ascending; foreign capabilities or
+non-canonical more/count fields fail. NV_ReadPublic returns an **opaque**
+structurally fitting name: the codec does not compute or authenticate the
+SHA256 digest and thereby proves no lineage. That belongs later to the
+reviewed key/provisioning service outside the kernel. Error responses have
+exactly the fitting 10 B header; no partial data is accepted.
 
-## Rollback, boot, updates en privacy
+## Rollback, boot, updates and privacy
 
-`services/keyring/src/persistent.rs` vereist een onafhankelijk vertrouwde
-minimum_generation. Hetzelfde getal naast een herstelblob of op dezelfde
-terugrolbare disk is geen anker. Deze driver roept restore_persistent niet aan
-en maakt die garantie nog niet waar. Een TPM-counter alleen verbindt ook nog
-geen sleutel-lineage, geauthenticeerde snapshot, twee-copy-journal, flushvolgorde,
-crashuitkomst of gebruikersbevestiging. Onzekere NV_Increment/Define-uitkomsten
-mogen niet opnieuw worden uitgevoerd; eerst is een echt onderzocht
-reconciliatie-/herstelcontract nodig.
+`services/keyring/src/persistent.rs` requires an independently trusted
+minimum_generation. The same number next to a recovery blob or on the same
+rollbackable disk is not an anchor. This driver does not call restore_persistent
+and does not yet make that guarantee true. A TPM counter alone also does not yet bind
+a key lineage, authenticated snapshot, two-copy journal, flush ordering,
+crash outcome or user confirmation. Uncertain NV_Increment/Define outcomes
+must not be re-executed; first a genuinely examined
+reconciliation/recovery contract is needed.
 
-Voor de nog open koude proef zijn afzonderlijke wegwerp-swtpm-state en
-OS-disk nodig, met een nieuw QEMU/swtpm-proces per coldstart. Alleen de disk
-terugrollen terwijl het onafhankelijke TPM-anker actueel blijft moet worden
-geweigerd. Als een hostbeheerder óók TPM-state/snapshots terugrolt, is die
-onafhankelijkheidsaanname verdwenen; daartegen wordt geen valse bescherming
-geclaimd. Geen persoonlijke schijf, echte NAS, fysieke TPM of firmware wordt
-hier gebruikt. Ontbrekend swtpm is geen reden om een testwachtwoord, RAMwaarde
-of opgeslagen snapshot als hardwareanker voor te stellen.
+The still open cold trial requires separate disposable swtpm state and
+OS disk, with a new QEMU/swtpm process per cold start. Rolling back only the disk
+while the independent TPM anchor stays current must be
+rejected. If a host administrator also rolls back TPM state/snapshots, that
+independence assumption is gone; no false protection is claimed against
+that. No personal disk, real NAS, physical TPM or firmware is
+used here. Missing swtpm is no reason to present a test password, RAM value
+or stored snapshot as a hardware anchor.
 
-TPM-aanwezigheid maakt geen geauthenticeerde boot-/updateketen of PQC-garantie.
-De bestaande boot-/signatuur-/PQC-contracten en privacy-Security-Floor blijven
-onverkort gelden. Geen leveranciersaccount, cloudsleutel, telemetrie, externe
-opslag of extra netwerkrecht wordt geïntroduceerd. Per eigenschap blijft de
-TCB benoemd: de transportgrens steunt op Io, device, klok en exclusieve broker;
-koude antirollback bovendien op provisioning/auth, keycodec, crash-/diskcommit,
-boot/updatevertrouwen en de werkelijk onafhankelijke persistente TPM-state.
+TPM presence does not create an authenticated boot/update chain or PQC guarantee.
+The existing boot/signature/PQC contracts and the privacy Security Floor continue
+to apply in full. No vendor account, cloud key, telemetry, external
+storage or extra network right is introduced. Per property the
+TCB remains named: the transport boundary relies on Io, device, clock and exclusive broker;
+cold anti-rollback additionally on provisioning/auth, key codec, crash/disk commit,
+boot/update trust and the genuinely independent persistent TPM state.
 
-## Broncontrole en nog open normatieve controle
+## Source check and still open normative check
 
-De normatieve TCG-PC-Client-PTP-resource op
+The normative TCG PC Client PTP resource at
 https://trustedcomputinggroup.org/resource/pc-client-platform-tpm-profile-ptp-specification/
-was niet bereikbaar: hostproxy403. Er is **geen** gelezen normatieve PTP-PDF
-of claim van TCG-compliance. FIFO/CRB worden niet vereenzelvigd. De nog
-noodzakelijke primaire documentcontrole omvat PTP Chapter5 CRB en de relevante
-TPM2 Library Parts2/3 commands/session/NV-counterregels.
+was not reachable: host proxy 403. There is **no** read normative PTP PDF
+or claim of TCG compliance. FIFO/CRB are not equated. The still
+necessary primary document check comprises PTP Chapter 5 CRB and the relevant
+TPM2 Library Parts 2/3 commands/session/NV counter rules.
 
-De nu daadwerkelijk gelezen implementatiebronnen zijn:
+The implementation sources actually read so far are:
 
-- QEMU10.0.13, commit98f88efe8f07067667b8d9b1a5ce9551d34036c1:
+- QEMU 10.0.13, commit 98f88efe8f07067667b8d9b1a5ce9551d34036c1:
   hw/tpm/tpm_crb.c, include/hw/acpi/tpm.h, tests/qtest/tpm-crb-test.c.
-  Registerdefinities/layout, Ready/Start/completion/Idle/locality en de
-  onmiddellijke-versus-uitgestelde completion zijn gecontroleerd.
-- Tianocore edk2-stable202502, commitfbe0805b2091393406952e84724188f8c1941837:
-  MdePkg/Include/IndustryStandard/TpmPtp.h en Tpm20.h, plus
-  SecurityPkg/Library/Tpm2CommandLib/Tpm2NVStorage.c. Het Tpm20-header verwijst
-  historisch naar Libraryrev0.96; dat is geen actuele normatieve speccontrole.
-- Microsoft/TCG TPM2 reference, commitee21db0a941decd3cac67925ea3310873af60ab3:
-  TPMCmd/tpm/src/main/SessionProcess.c, BuildResponseSessions: PW-respons zet
-  continueSession en lege nonce/HMAC. Ook deze implementatie vervangt de
-  ontbrekende normatieve PTP/Library-documenten niet.
+  Register definitions/layout, Ready/Start/completion/Idle/locality and the
+  immediate-versus-deferred completion have been checked.
+- Tianocore edk2-stable202502, commit fbe0805b2091393406952e84724188f8c1941837:
+  MdePkg/Include/IndustryStandard/TpmPtp.h and Tpm20.h, plus
+  SecurityPkg/Library/Tpm2CommandLib/Tpm2NVStorage.c. The Tpm20 header refers
+  historically to Library rev 0.96; that is not a current normative spec check.
+- Microsoft/TCG TPM2 reference, commit ee21db0a941decd3cac67925ea3310873af60ab3:
+  TPMCmd/tpm/src/main/SessionProcess.c, BuildResponseSessions: PW response sets
+  continueSession and empty nonce/HMAC. This implementation likewise does not replace the
+  missing normative PTP/Library documents.
 
-Precieze URLs, lokale inhoudshashes, queryresultaten en beheerde QEMU-binaryhash
-staan onder drivers/tpm-crb/verification. Upstreambron is gelezen, niet als
-C-code overgenomen of meegebouwd: QEMU GPL2+, edk2 BSD-2-Clause-Patent,
-Microsoft/TCG-reference BSD-licentie met expliciete patentdisclaimer. De
-reference vermeldt zelf “This code is informative”. De notices en voorwaarden
-blijven bij hun bronnen.
-Er zijn geen nieuwe Cargo-dependencies. Er wordt hier geen algemene
-projectlicentie gekozen of juridische audit geclaimd.
+Precise URLs, local content hashes, query results and the managed QEMU binary hash
+are under drivers/tpm-crb/verification. Upstream source has been read, not adopted as
+C code or built along: QEMU GPL2+, edk2 BSD-2-Clause-Patent,
+Microsoft/TCG reference BSD licence with explicit patent disclaimer. The
+reference itself states “This code is informative”. The notices and terms
+remain with their sources.
+There are no new Cargo dependencies. No general
+project licence is chosen here and no legal audit is claimed.
 
-Nog open: normatieve TCG-controle, onafhankelijke bronreview, echte swtpm-
-backend, unsafe/MMIO-adapter, capability-/brokergrants, native transport en
-koude fout-/rollbackproeven, volledige boot/update/PQC-/B02-integratie en
-productacceptatie. Hosttests en targetbuild leveren hiervoor geen punten.
+Still open: normative TCG check, independent source review, real swtpm
+backend, unsafe/MMIO adapter, capability/broker grants, native transport and
+cold failure/rollback trials, full boot/update/PQC/B02 integration and
+product acceptance. Host tests and target build earn no points for this.
