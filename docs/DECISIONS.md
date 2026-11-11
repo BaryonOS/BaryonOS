@@ -5,6 +5,54 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-CI-SECURITY-ALERTS-20261111 — Public-safe summary of open security alerts
+
+Status: accepted, 11 November 2026, on the project owner's instruction to make
+Dependabot and code-scanning alerts usable for backlog work.
+
+**Context:** agent sessions cannot read these alerts. On 11 November 2026 the
+session's GitHub integration returned "Resource not accessible by integration"
+for Dependabot and code-scanning alerts. The session proxy blocks
+secret-scanning alerts and GraphQL. GitHub documents that a workflow token
+reads code-scanning alerts with `security-events: read` and Dependabot alerts
+with `vulnerability-alerts: read`. Actions logs and step summaries of this
+public repository are public, while GitHub restricts the alert lists to
+maintainers, and SECURITY.md forbids publishing non-public vulnerability
+details.
+
+**Decision:** `.github/workflows/security-alerts.yml` runs
+`tools/security_alerts_summary.py` daily, on manual dispatch and on same-repository
+pull requests that change its own files. The job token has only `contents`,
+`security-events` and `vulnerability-alerts` read access, and no repository
+secret is used.
+
+- Dependabot: one row per open alert, limited to publicly derivable fields
+  (ecosystem, package, manifest path, GHSA and CVE identifiers, severity,
+  vulnerable range and first patched version). Anyone can derive these from the
+  public lockfiles and the public GitHub Advisory Database.
+- Code scanning: aggregate counts per tool and severity only. Rule identifiers,
+  paths, lines and messages stay in the Security tab.
+- Secret scanning: not automated. Push protection remains enabled, and alerts
+  are reviewed by maintainers in the Security tab.
+- Every printed value must match an allowlist pattern; API free text is never
+  printed. Pagination and redirects cannot leave `https://api.github.com/`. An
+  unreadable source fails the run and is reported as "not read", never as zero.
+- actionlint 1.7.12, pinned in `ci.yml`, does not yet know the
+  `vulnerability-alerts` scope. `.github/actionlint.yaml` ignores only that one
+  diagnostic in that one workflow, and a contract test keeps the exception
+  that narrow. The file is removed once a pinned actionlint knows the scope.
+
+**Alternatives:** a personal access token would add a long-lived secret for
+data the workflow token already reads. An uploaded artifact is as public as the
+log. Leaving the alerts unread keeps dependency fixes outside the backlog.
+
+**Evidence boundary:** 18 local unit and contract tests, the CI-workflow
+contract tests and actionlint 1.7.12 pass. That GitHub accepts the
+`vulnerability-alerts` scope and returns both alert lists is shown only by a
+hosted run. **Review criteria:** revisit when GitHub changes alert visibility
+on public repositories, when a code-scanning detail is needed for a fix (it is
+then shared through a private channel), or when the pinned actionlint changes.
+
 ## ADR-CI-QEMU-BUNDLE-20261111 — Pinned QEMU/OVMF from a signed package bundle
 
 Status: accepted, 11 November 2026, on the project owner's instruction to stop

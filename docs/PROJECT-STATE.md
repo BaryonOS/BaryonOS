@@ -1,5 +1,47 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — Security alert summary and Project #5 access — 11 November 2026
+
+**Source:** branch `ccr-db0981b4-k5rug1` from main
+`c520703b17169912691132b15d2306c9a5199de9`.
+
+**Problem:** agent sessions cannot read the backlog's security inputs or
+Project #5. GraphQL and organisation `projectsV2` routes are blocked by the
+session proxy. Dependabot and code-scanning alerts return "Resource not
+accessible by integration". Secret-scanning alerts are blocked by the proxy.
+These limits belong to the session platform; repository settings cannot lift
+them.
+
+**Route:** GitHub Actions does the work, and a session dispatches the runs and
+reads their logs through the GitHub connector.
+
+- Project #5: the project owner configured `BARYON_PROJECTS_TOKEN`. Dry-run
+  43117446009 on `c520703` passed: 43 items scanned, 38 fill-only field
+  suggestions, 0 changes. This proves GraphQL access with the token.
+- Alerts (this change): `.github/workflows/security-alerts.yml` and
+  `tools/security_alerts_summary.py` (ADR-CI-SECURITY-ALERTS-20261111). Logs are
+  public, so the summary publishes only publicly derivable Dependabot fields and
+  aggregate code-scanning counts. Secret scanning stays manual.
+
+**Evidence:**
+- 18 local tests pass (`tests/test_security_alerts_summary.py`) on Python
+  3.12 and 3.13.
+- 21 CI-workflow contract tests pass.
+- actionlint 1.7.12 passes over all workflows.
+- `progress.py --check` passes.
+
+**Not yet shown:**
+- A hosted run that proves GitHub accepts the `vulnerability-alerts` scope and
+  returns both alert lists. The same-repository PR run provides it.
+- Draft PR #314 rewrites the same Project tool with Status writes and backfill.
+  The workflow always checks out `main`, so the dry-run above does not cover
+  #314. A dry-run is needed right after #314 merges, before the next schedule.
+
+**Acceptance:** 39/100 → 39/100; CI and backlog tooling only.
+
+**Next:** read the PR run of `Security alert summary`, then
+`python3 tools/progress.py --check`.
+
 ## NEXT AGENT HANDOFF — CI QEMU/OVMF package bundle — 11 November 2026
 
 **Source:** branch `ci/qemu-apt-bundle` (PR #307) from main `c07506c8`;
