@@ -3,10 +3,10 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-11",
-    "source_commit": "8e45e991f3f1546f815e5a43807b4d97cd9dd15b",
+    "source_commit": "46938b0c8a91242640938ae8277e71d71140fd9c",
     "assessment_basis": "source_commit",
     "branch": "ccr-cf45024e-q0nrg9",
-    "task": "Derive GitHub Project #5 Status from GitHub facts, backfill missing open items and skip scheduled runs without the Projects token (ADR-PROJECT-SYNC-20261111)",
+    "task": "Derive GitHub Project #5 Status from GitHub facts, backfill missing open items, skip scheduled runs without the Projects token and keep native matrices off metadata-only changes (ADR-PROJECT-SYNC-20261111)",
     "previous_score": 39,
     "summary": "39/100 to 39/100: project-management automation only. Project Status stays organisational and never replaces a GitHub Actions result; no OS functionality, native gate or product criterion changes."
   },
