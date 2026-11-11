@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-11",
-    "source_commit": "824a50194a12bbab225c9d25ead1a33bf821d5ae",
+    "source_commit": "a2f517a60887d225f473dea326396a7a6737b741",
     "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
-    "task": "K06 step 5f: merge main (rename legacy native-smp-m3 to native-smp-legacy-m3) after the R3-5 IPC repair",
+    "task": "K06 step 5f: QEMU 8.2 STI/PAUSE spin window fix and hosted-runner isolation before the GitHub Actions 64x50 matrix",
     "previous_score": 39,
-    "summary": "39/100 remains 39/100 on merged main. The R3-5 head-of-queue remote wake and IPC_TIMEOUT_S = 180 pass two local native boots; the legacy SMP feature is renamed to native-smp-legacy-m3 and only legacy profiles use the smp-handoff loader. K06 stays open until the full 64x50 matrix, K07, soaks, aggregate and the executed repository gate pass on the merged head."
+    "summary": "39/100 remains 39/100. IF=1 spin windows become sti; nop; pause; cli so QEMU 8.2 TCG takes deferred ticks; the hosted K06 jobs stop background services against IRQ0 loss. K06 stays open until the full 64x50 matrix, K07, soaks, aggregate and final gate pass on GitHub-hosted runners; the 1% clock limit is unchanged."
   },
   "tracks": [
     {

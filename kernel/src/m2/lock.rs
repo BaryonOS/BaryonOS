@@ -220,10 +220,12 @@ impl<T> IrqLock<T> {
         let relax = || {
             if window {
                 // SAFETY: CPL0 on a CPU whose IDT covers every unmasked
-                // source; STI's shadow covers PAUSE, so a pending interrupt is
-                // taken only before CLI. No lock this CPU holds is taken by a
-                // handler, and the saved IF in `flags` is unchanged.
-                unsafe { asm!("sti", "pause", "cli") };
+                // source; STI's shadow covers the NOP, so a pending interrupt
+                // is taken only before PAUSE or CLI. The NOP keeps the window
+                // open on QEMU 8.2 TCG, whose PAUSE exits before clearing the
+                // shadow. No lock this CPU holds is taken by a handler, and the
+                // saved IF in `flags` is unchanged.
+                unsafe { asm!("sti", "nop", "pause", "cli") };
             }
         };
         // DG-1 (audit F5): every native-smp image, release included, bounds the

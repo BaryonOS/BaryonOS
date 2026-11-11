@@ -242,6 +242,17 @@ jobs:
           system-python: 'true'
       - name: Pinned Rust
         run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Quiet hosted runner background services
+        # Best effort: on the 4-vCPU hosted runner, background jobs compete with the
+        # guest vCPU threads and QEMU's PIT timer; lost IRQ0 edges show up as clock drift.
+        run: |
+          sudo systemctl stop unattended-upgrades.service apt-daily.timer apt-daily-upgrade.timer \
+            apt-daily.service apt-daily-upgrade.service man-db.timer snapd.service snapd.socket \
+            fwupd.service 2>/dev/null || true
+          nproc
+          lscpu | grep -E '^(Model name|CPU\(s\)|Thread|Core|Socket)' || true
+          cat /proc/loadavg
+          ps -eo pcpu,comm --sort=-pcpu | head -6
       - name: Prove the runner reaches K07 and exact cleanup
         run: |
           python3 -B tools/build.py --kernel-feature native-smp-m4-quotas
@@ -359,6 +370,17 @@ jobs:
           system-python: 'true'
       - name: Pinned Rust
         run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Quiet hosted runner background services
+        # Best effort: on the 4-vCPU hosted runner, background jobs compete with the
+        # guest vCPU threads and QEMU's PIT timer; lost IRQ0 edges show up as clock drift.
+        run: |
+          sudo systemctl stop unattended-upgrades.service apt-daily.timer apt-daily-upgrade.timer \
+            apt-daily.service apt-daily-upgrade.service man-db.timer snapd.service snapd.socket \
+            fwupd.service 2>/dev/null || true
+          nproc
+          lscpu | grep -E '^(Model name|CPU\(s\)|Thread|Core|Socket)' || true
+          cat /proc/loadavg
+          ps -eo pcpu,comm --sort=-pcpu | head -6
       - name: Build one frozen profile and run the case 50 times
         env:
           SMP_CASE: ${{ matrix.case }}
@@ -431,6 +453,17 @@ jobs:
           system-python: 'true'
       - name: Pinned Rust
         run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Quiet hosted runner background services
+        # Best effort: on the 4-vCPU hosted runner, background jobs compete with the
+        # guest vCPU threads and QEMU's PIT timer; lost IRQ0 edges show up as clock drift.
+        run: |
+          sudo systemctl stop unattended-upgrades.service apt-daily.timer apt-daily-upgrade.timer \
+            apt-daily.service apt-daily-upgrade.service man-db.timer snapd.service snapd.socket \
+            fwupd.service 2>/dev/null || true
+          nproc
+          lscpu | grep -E '^(Model name|CPU\(s\)|Thread|Core|Socket)' || true
+          cat /proc/loadavg
+          ps -eo pcpu,comm --sort=-pcpu | head -6
       - name: Build the frozen soak profile and run five times
         run: |
           python3 -B tools/build.py --kernel-feature native-smp-m3-soak

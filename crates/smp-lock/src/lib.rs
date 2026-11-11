@@ -62,7 +62,7 @@ impl<T> TicketLock<T> {
     }
 
     /// Unbounded spin, calling `relax` between polls (step 5b: the kernel's
-    /// `sti; pause; cli` window for KERNEL/ASPACE, spec §4.3).
+    /// `sti; nop; pause; cli` window for KERNEL/ASPACE, spec §4.3).
     pub fn lock_with(&self, mut relax: impl FnMut()) -> Guard<'_, T> {
         let ticket = self.next.fetch_add(1, Ordering::Relaxed);
         while self.owner.load(Ordering::Acquire) != ticket {
@@ -73,7 +73,7 @@ impl<T> TicketLock<T> {
     }
 
     /// Spin at most `limit` polls, calling `relax` between polls (e.g. the
-    /// kernel's `sti; pause; cli` window, spec §4.3).
+    /// kernel's `sti; nop; pause; cli` window, spec §4.3).
     pub fn lock_bounded(&self, limit: u32, mut relax: impl FnMut()) -> Result<Guard<'_, T>, Stuck> {
         let ticket = self.next.fetch_add(1, Ordering::Relaxed);
         for _ in 0..limit {

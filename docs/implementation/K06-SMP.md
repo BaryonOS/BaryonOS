@@ -184,7 +184,7 @@ deze stap uit user mode op meerdere CPU's, niet uit parallelle syscalls.
 **Deadlockvrijheid bij shootdown:** een CPU die op acks wacht, houdt `SHOOTDOWN` en
 eventueel `ASPACE`/`FRAMES` vast, maar heeft IF=0. Doel-CPU's moeten de 0xe0-IPI dus kunnen
 nemen terwijl zij zelf in de kernel spinnen op `KERNEL`. Daarom:
-**spinnen op `KERNEL` en `ASPACE` gebeurt met IF=1** (de spinlus doet `sti; pause; cli`),
+**spinnen op `KERNEL` en `ASPACE` gebeurt met IF=1** (de spinlus doet `sti; nop; pause; cli`),
 en de 0xe0-handler neemt geen lock. Op die manier kan een CPU die op een lock wacht altijd
 een shootdown afhandelen. De CPU die de lock vasthoudt, wacht nooit op een CPU die zelf
 een handler-lock wil.

@@ -3844,7 +3844,7 @@ fn icr_race_window() {
         for _ in 0..1 << 24 {
             // SAFETY: CPL0 AP thread context of the ICR phase, which holds no
             // lock; every unmasked source has an IDT entry. Test-only window.
-            unsafe { asm!("sti", "pause", "cli") };
+            unsafe { asm!("sti", "nop", "pause", "cli") };
             if local.tick_count.load(Ordering::Relaxed) != before {
                 break;
             }
@@ -3868,7 +3868,7 @@ fn icr_work(local: &CpuLocal, slot: usize) {
         local.icr_sent.store(round, Ordering::Release);
         let acked = (0..1 << 16).any(|_| {
             // SAFETY: as in `icr_race_window`; IF is 0 again after `cli`.
-            unsafe { asm!("sti", "pause", "cli") };
+            unsafe { asm!("sti", "nop", "pause", "cli") };
             partner.resched_count.load(Ordering::Acquire) >= round
         });
         if !acked {

@@ -1,22 +1,18 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 step 5f IPC repair and full restart — 11 November 2026
+## NEXT AGENT HANDOFF — K06 step 5f QEMU 8.2 spin window and hosted clock drift — 11 November 2026
 
-**Source:** branch `codex/k06-5f-complete-20261109` (PR #296), fix commit `e875a30e`. [Full run 43017432682](https://github.com/BaryonOS/BaryonOS/actions/runs/43017432682) was dispatched from zero with `full_matrix=true`; no earlier repetition is reused. Previous runs `42818153989` (APT snapshot 502/503 before any guest) and `42809499884` (22 APT setup failures, both IPC cases 0/50, `proc-shootdown-deaf` 48/50, `bsp-spin-irq-off-control` 49/50) supply no acceptance.
+**Source:** branch `codex/k06-5f-complete-20261109` (PR #296). Earlier commits: `e875a30e` (R3-5 remote readiness wake, `IPC_TIMEOUT_S = 180`), `02e7c4d9` (merge; legacy `native-smp-legacy-m3`), `5a391465` (preserve-evidence and snapshot fallback), `a2f517a6` (local matrix runner script; no local full matrix is used as acceptance — verification runs on GitHub-hosted runners).
 
-**Root cause of the IPC failures (R3-5):** a local trace of `m3-ipc-four` showed zero wait timeouts and one reschedule IPI per remote wake, but exactly one round per four PIT ticks. The woken endpoint was appended behind CPU-bound canaries, so each wake cost about two quanta; 10 000 rounds needed about 400 s. A remote readiness wake now takes the head of its home RUNQ (`RunQueue::push_front`, once per BLOCKED→READY, no new quantum). `m3-ipc` receives the named watchdog `IPC_TIMEOUT_S = 180`; the round count, oracle and `GUEST_TIMEOUT_S = 60` are unchanged. See the ADR-081 R3-5 addendum in [DECISIONS.md](DECISIONS.md).
+**Spin window fix:** the PR job `native-smp` on QEMU 8.2.2 failed with `SMP:LOCK:STUCK:10:CPU=1` because QEMU 8.2 `PAUSE` leaves the STI interrupt shadow set. All IF=1 spin windows are now `sti; nop; pause; cli` (see the ADR-081 addendum in [DECISIONS.md](DECISIONS.md)). Locally on QEMU 10.2.1: `two-single` 2/2, `cargo test -p smp-lock`, SMP host tests, `cargo fmt --check`. Proof on 8.2.2 comes from the PR job.
 
-**Executed:** `cargo test -p smp-lock` (33 pass), Clippy `-D warnings`, `cargo fmt --check`, all 276 tool tests. Native single boots on local QEMU 10.2.1: `m3-ipc-four` pass in 71.8 s, `m3-ipc-four-single` pass in 66.5 s, `m3-migrate-four` pass in 21.7 s (CI took about 20 s per repetition for the same case). Not executed locally: other risk profiles and repetitions; the matrix covers them 50 times.
+**Artifact contract (#294):** all K06 uploads use `./.github/actions/preserve-evidence` with `required-paths`; `smp-report.json` stores `stdout_sha256` instead of the duplicated transcript, so eight-CPU reports stay below 1 MiB. `setup-qemu` keeps the pinned snapshot first and falls back to `archive.ubuntu.com` with the same keyring, exact pins, `dpkg` check and firmware hashes; run 43022743756 passed that step.
 
-**Merge with main (11 November 2026):** main is merged. PR #154's legacy feature `native-smp-m3` is renamed to `native-smp-legacy-m3` (`kernel/Cargo.toml`, `kernel/src/m2_legacy/*`, `tools/run_smp_legacy.py`, `tools/test_smp.py`, `tools/tests/test_smp_host.py`). `tools/build.py` selects the `smp-handoff` loader only for the explicit `LEGACY_SMP_FEATURES` tuple; K06 `native-smp*` profiles keep the default loader. The K06 serial line lock in `kernel/src/serial.rs` excludes `native-smp-legacy`, whose `crate::m2` has no `lock` module. The legacy job `experimental-m3-m4-smp` runs under the same trigger as `native-smp` and never in the section 9 matrix. The runner contract accepts the standard hosted images `ubuntu-24.04` and `ubuntu-26.04`; the K06 matrix requires the latter for QEMU 10.2.1.
+**Hosted clock drift:** run 43022743756 (SHA `5a391465`) stopped in the probe with `M1:FAIL:SMP_CLOCK_DRIFT` (median 1 015 575 µs per 1000 IRQ0, 1.56% against 1%); every matrix job was skipped. Cause: lost IRQ0 edges when guest vCPU threads and QEMU's timer starve on the 4-vCPU hosted runner. The 1% limit and AP spinning stay. The probe, case and soak jobs now stop runner background services and log `nproc`, `lscpu`, load and top processes before the run.
 
-**Open CI-policy conflict:** main's artifact-storage contract (#294, `tests/test_ci_evidence_workflow_verifier.py`) admits only `preserve-evidence` steps. The K06 matrix passes 74 raw `actions/upload-artifact` steps (14-day retention) to its aggregator, which independently verifies every serial transcript. Converting them would rename the artifacts to `-reports`, compact or bound their contents, and make uploads best effort. This requires a decision; the verifier test fails until then.
+**Next:** dispatch `native-smp.yml` with `full_matrix=true` on the new head. If drift persists on standard hosted runners, the blocker needs Simon's decision: a larger (paid) runner or a separately designed clock measurement. Acceptance requires all 64 cases at 50/50, 50 soaks, K07, a green aggregate and final gate.
 
-**Still open in K06:** `proc-shootdown-deaf` and `bsp-spin-irq-off-control` fixes from `54a9d5c1` are unverified natively. Acceptance requires all 64 cases at exactly 50/50, 50 complete soaks, K07, a green aggregate and an executed `tools/gate.sh` log.
-
-**Next:** decide the artifact-policy conflict, then restart the full matrix on the merged head once `snapshot.ubuntu.com` serves the pinned snapshot again (run 43017432682 failed there with HTTP 503 before any guest).
-
-**Progress:** 39/100 → 39/100 on merged main (main's B01 reassessment lowered 41 to 39; this change adds no points).
+**Progress:** 39/100 → 39/100 until the hosted matrix and final gate are green.
 
 ## Previous checkpoint — K06 step 5f acceptance repair — 10 November 2026
 
