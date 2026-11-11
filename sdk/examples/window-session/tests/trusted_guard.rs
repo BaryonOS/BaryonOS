@@ -107,7 +107,7 @@ fn trusted_shell_keys_close_every_veld_overlay_and_reach_the_shell() {
                 let mut repeat = key;
                 repeat.action = KeyAction::Repeat;
                 assert!(!scene.palette_key(repeat, &mut damage).unwrap());
-                assert!(!scene.overlay_is_open(), "overlay {overlay} key {key:?}");
+                assert!(!scene.overlay_is_open());
                 assert_eq!(scene.windows.map(|window| window.body), origin);
                 let effect = scene.shell.key(key, w, h, s);
                 match page {
@@ -292,5 +292,95 @@ fn trusted_guard_keys_are_exactly_the_shell_and_native_routes() {
         ctrl(PhysicalKey::K),
     ] {
         assert!(!trusted_shell_key(key));
+    }
+}
+
+/// Compositor order for a key: Alt+Tab switcher, then the palette route.
+fn dispatch_key(scene: &mut Scene, damage: &mut Damage, key: KeyboardEvent) -> bool {
+    scene.switcher_key(key, damage).unwrap() || scene.palette_key(key, damage).unwrap()
+}
+
+#[test]
+fn alt_tab_during_keyboard_move_rolls_back_and_never_reaches_a_failure_path() {
+    for (w, h, s) in DISPLAYS {
+        let mut scene = Scene::new(w, h, s, [1, 2]).unwrap();
+        let mut damage = Damage::new(w, h).unwrap();
+        let origin = scene.windows.map(|window| window.body);
+        assert!(dispatch_key(&mut scene, &mut damage, alt(PhysicalKey::F7)));
+        assert!(dispatch_key(
+            &mut scene,
+            &mut damage,
+            plain(PhysicalKey::Right)
+        ));
+        assert_ne!(scene.windows[0].body, origin[0]);
+        let mut tab = alt(PhysicalKey::Tab);
+        assert!(scene.switcher_key(tab, &mut damage).unwrap());
+        assert!(scene.switcher_is_open());
+        assert!(!scene.keyboard_move_is_active());
+        assert_eq!(scene.windows.map(|window| window.body), origin);
+        // Releasing Alt commits the selection; `select` must not be rejected
+        // (the compositor treats Err as a fatal failure).
+        tab.key = PhysicalKey::LeftAlt;
+        tab.action = KeyAction::Release;
+        tab.modifiers = KeyboardModifiers::default();
+        assert!(scene.switcher_key(tab, &mut damage).is_ok());
+        assert!(!scene.switcher_is_open());
+        assert!(!scene.overlay_is_open());
+    }
+}
+
+/// Combined routing as in the compositor: Veld owns the packet or the shell.
+fn dispatch_mouse(
+    scene: &mut Scene,
+    damage: &mut Damage,
+    p: (u32, u32),
+    down: bool,
+    held: bool,
+) -> Option<usize> {
+    let (w, h, s) = (scene.width, scene.height, scene.scale);
+    if scene.veld_owns_pointer(p.0, p.1) {
+        return scene
+            .mouse_with_damage(p.0, p.1, down, held, damage)
+            .unwrap();
+    }
+    let effect = scene.shell.mouse(p, down, held, w, h, s);
+    if effect.consumed {
+        scene.update_pointer(p.0, p.1, damage);
+        return None;
+    }
+    scene
+        .mouse_with_damage(p.0, p.1, down, held, damage)
+        .unwrap()
+}
+
+#[test]
+fn dismissed_overlay_over_the_dock_owns_its_button_up_and_not_the_next_press() {
+    for (w, h, s) in DISPLAYS {
+        let mut scene = Scene::new(w, h, s, [1, 2]).unwrap();
+        let mut damage = Damage::new(w, h).unwrap();
+        assert!(tap(&mut scene, &mut damage, ctrl(PhysicalKey::K)));
+        // Dismiss the palette with a click on the dock, outside the overlay.
+        let dock = center(scene.dock());
+        assert_eq!(
+            dispatch_mouse(&mut scene, &mut damage, dock, true, true),
+            None
+        );
+        assert!(!scene.overlay_is_open());
+        assert_eq!(
+            dispatch_mouse(&mut scene, &mut damage, dock, false, false),
+            None
+        );
+        // The next packet combines movement with a new press and reaches the app.
+        let body = center(scene.windows[1].body);
+        assert_eq!(
+            dispatch_mouse(&mut scene, &mut damage, body, true, true),
+            Some(1)
+        );
+        // A trusted cover keeps priority over a pending Veld pointer.
+        assert!(tap(&mut scene, &mut damage, ctrl(PhysicalKey::K)));
+        dispatch_mouse(&mut scene, &mut damage, dock, true, true);
+        scene.shell.lock();
+        scene.cancel_palette_input(&mut damage);
+        assert!(!scene.veld_owns_pointer(dock.0, dock.1));
     }
 }

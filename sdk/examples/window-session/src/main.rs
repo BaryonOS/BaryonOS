@@ -385,11 +385,7 @@ fn run() -> ! {
                     // Veld overlays and their explicit trusted-header control
                     // own their pointer route while apps are uncovered. The
                     // switcher also owns its button-up tail after dismissal.
-                    Event::Mouse { x, y, .. }
-                        if scene.overlay_is_open()
-                            || scene.desktop_control_at(x, y)
-                            || scene.switcher_owns_pointer() =>
-                    {
+                    Event::Mouse { x, y, .. } if scene.veld_owns_pointer(x, y) => {
                         nieuw_os_window_session::shell::Effect {
                             consumed: false,
                             changed: false,

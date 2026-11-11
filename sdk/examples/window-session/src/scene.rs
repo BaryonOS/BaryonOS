@@ -536,6 +536,16 @@ impl Scene {
         self.switcher.is_some() || self.switcher_mouse_capture
     }
 
+    /// Report whether Veld owns this pointer packet. A dismissed overlay still
+    /// owns the rest of its gesture until button-up, but never under a trusted
+    /// cover: the shell keeps priority there and releases the stale gesture.
+    pub fn veld_owns_pointer(&self, x: u32, y: u32) -> bool {
+        self.overlay_is_open()
+            || self.desktop_control_at(x, y)
+            || self.switcher_owns_pointer()
+            || (self.overlay_pointer && !self.shell.blocks_apps())
+    }
+
     pub fn switcher_selected(&self) -> Option<usize> {
         self.switcher
     }
@@ -675,6 +685,9 @@ impl Scene {
             damage.mark(self.palette_bounds());
             damage.mark(self.dock());
         }
+        // The switcher's Alt release commits a selection, which a keyboard
+        // move rejects; roll the move back to its origin first.
+        self.cancel_keyboard_move(damage);
         self.cancel_pointer();
         self.switcher = Some(1 - self.focused);
         self.switcher_keys[index] = true;
