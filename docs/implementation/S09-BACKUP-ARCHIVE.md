@@ -1,89 +1,89 @@
-# S09 — Herstelkopie- en exportarchief (formaat v1)
+# S09 — Recovery copy and export archive (format v1)
 
-**Status:** hostgeïmplementeerd in `services/volume/src/archive.rs`, getest in
-`services/volume/tests/archive.rs`. Nog geen native portaal, geen gebruikerstaak,
-geen fysieke schijf. S09 blijft open.
+**Status:** host-implemented in `services/volume/src/archive.rs`, tested in
+`services/volume/tests/archive.rs`. No native portal yet, no user task,
+no physical disk. S09 remains open.
 
-## Doel en invariant
+## Goal and invariant
 
-Een gebruiker kan van één documentdomein een **onafhankelijke kopie** maken die
-zonder bronvolume, bronservice of brondisk controleerbaar en terug te zetten is.
+A user can make an **independent copy** of one document domain that
+is verifiable and restorable without the source volume, source service or source disk.
 
-- **Export** is een consistente momentopname: er wordt geen archief afgesloten als het domein
-  tijdens de export wijzigt (`Stale`), als het doel vol raakt of een I/O-fout
-  geeft (fout van de sink), of als gelezen inhoud afwijkt van de eigen
-  inhoudssom van de dienst (`Corrupt`). Na een fout is de uitvoer ongeldig, en
-  `verify` weigert die.
-- **Verify** heeft geen bijwerkingen en accepteert alleen een volledig, canoniek archief.
-- **Restore** overschrijft nooit iets. Een bezette doelslot of een al gebruikte naam
-  wordt als conflict gemeld en blijft onaangeroerd. Een doelcollectie met
-  een andere naam wordt nooit hernoemd; het object komt dan buiten collectie te staan
-  (`uncollected`). Elk object wordt pas gecommit nadat zijn record en inhoud
-  zijn gecontroleerd. Omdat de trailer pas na het laatste object komt, moet een
-  portaal **eerst `verify` op dezelfde bytes** uitvoeren. Zonder verify
-  kunnen bij afkapping alleen de eerdere, volledig gecontroleerde objecten zijn
-  teruggezet; de `Report` noemt die exact.
-- Een write met uitkomst `Unknown` telt alleen als teruggezet als `stat` precies
-  de verwachte revisie, naam, lengte en inhoudssom toont; anders stopt restore met
-  `Unknown`. Faalt het zetten van tags, soort of collectie na een geslaagde write,
-  dan staat het object in `restored` én in `bare`, en stopt restore met die fout.
-- Restore veronderstelt dat er tijdens de restore één schrijver op het doeldomein is. Een gelijktijdige
-  slotwijziging breekt af met `Stale`; een gelijktijdig aangemaakte gelijke naam
-  wordt niet gedetecteerd (de volume dwingt geen unieke namen af).
-- Een verwijderd doelslot (tombstone) wordt gevuld. De bewaarde historie van dat
-  slot blijft staan en kan later via lokale historie worden teruggehaald; er gaat
-  geen data verloren, maar lokaal undo van dat slot toont dan oudere, andere inhoud.
+- **Export** is a consistent snapshot: no archive is finalized if the domain
+  changes during the export (`Stale`), if the target becomes full or gives an I/O error
+  (error from the sink), or if read content deviates from the service's own
+  content checksum (`Corrupt`). After an error the output is invalid, and
+  `verify` refuses it.
+- **Verify** has no side effects and accepts only a complete, canonical archive.
+- **Restore** never overwrites anything. An occupied target slot or an already used name
+  is reported as a conflict and stays untouched. A target collection with
+  a different name is never renamed; the object then ends up outside a collection
+  (`uncollected`). Each object is committed only after its record and content
+  have been checked. Because the trailer only comes after the last object, a
+  portal must **first run `verify` on the same bytes**. Without verify,
+  on truncation only the earlier, fully checked objects may have been
+  restored; the `Report` names those exactly.
+- A write with outcome `Unknown` counts as restored only if `stat` shows exactly
+  the expected revision, name, length and content checksum; otherwise restore stops with
+  `Unknown`. If setting tags, kind or collection fails after a successful write,
+  the object is in `restored` and in `bare`, and restore stops with that error.
+- Restore assumes there is one writer on the target domain during the restore. A concurrent
+  slot change aborts with `Stale`; a concurrently created identical name
+  is not detected (the volume does not enforce unique names).
+- A deleted target slot (tombstone) is filled. The kept history of that
+  slot remains and can later be retrieved via local history; no
+  data is lost, but local undo of that slot then shows older, different content.
 
 ## Bytes (little-endian)
 
-| Deel | Grootte | Inhoud |
+| Part | Size | Content |
 |---|---|---|
-| Header | 64 | `NOSBAK\0\x01`, versie u16=1, 2×0, aantal objecten u8 (≤8), aantal collecties u8 (≤4), 2×0, brongeneratie u64, totale inhoud u64, 24×0, FNV-64 over bytes 0..56 |
-| Collectierecord | 48 | index u8 (1..4, strikt oplopend), naamlengte u8, 6×0, naam[32] (opvulling 0), FNV-64 over 0..40 |
-| Objectrecord | 96 | slot u8 (0..7, strikt oplopend), naamlengte u8, collectie u8 (0 of aanwezig), 0, kind u16, 2×0, tags u32, lengte u32 (≤64 KiB), bronrevisie u64 (≠0), created u64, modified u64, inhouds-FNV-64, naam[32] (opvulling 0), 8×0, FNV-64 over 0..88 |
-| Inhoud | lengte | ruwe documentbytes direct na het eigen record |
-| Trailer | 16 | `NOSBAKZ\0`, FNV-64 over alle voorgaande bytes |
+| Header | 64 | `NOSBAK\0\x01`, version u16=1, 2×0, number of objects u8 (≤8), number of collections u8 (≤4), 2×0, source generation u64, total content u64, 24×0, FNV-64 over bytes 0..56 |
+| Collection record | 48 | index u8 (1..4, strictly ascending), name length u8, 6×0, name[32] (padding 0), FNV-64 over 0..40 |
+| Object record | 96 | slot u8 (0..7, strictly ascending), name length u8, collection u8 (0 or present), 0, kind u16, 2×0, tags u32, length u32 (≤64 KiB), source revision u64 (≠0), created u64, modified u64, content FNV-64, name[32] (padding 0), 8×0, FNV-64 over 0..88 |
+| Content | length | raw document bytes directly after its own record |
+| Trailer | 16 | `NOSBAKZ\0`, FNV-64 over all preceding bytes |
 
-Na de trailer moet de stroom eindigen. Namen volgen `valid_name` (UTF-8,
-1–32 bytes, geen `.`/`..`). Dubbele namen zijn toegestaan, net als in de volume
-zelf. Een bron die meer
-bytes meldt dan er gevraagd zijn, levert `Protocol` op; elke andere afwijking levert `Corrupt` op.
+After the trailer the stream must end. Names follow `valid_name` (UTF-8,
+1–32 bytes, no `.`/`..`). Duplicate names are allowed, just as in the volume
+itself. A source that reports more
+bytes than were requested yields `Protocol`; any other deviation yields `Corrupt`.
 
-## Wat bewust niet in v1 zit
+## What is deliberately not in v1
 
-- **Geen authenticiteit of versleuteling.** FNV-64 vangt alleen toevallige
-  corruptie, afkapping en torn transfers op, geen opzettelijke manipulatie. Het archief
-  is plaintext persoonsgegevens. Het mag alleen naar een door de gebruiker gekozen
-  eigen doel (LOCAL-PRIVACY-CONTRACT: eigen offline herstelkopie). Voor NAS of een
-  provider is client-side versleuteling nodig (B02, P01, ENCRYPTED-OBJECT-STORAGE);
-  dat staat hier nog open.
-- **Alleen huidige versies.** Lokale historie is geen back-up en wordt niet
-  meegenomen. `created`/`modified` worden bewaard en zijn exporteerbaar,
-  maar bij restore kent de dienst nieuwe tijden toe.
-- **Eén domein per archief**, binnen de huidige volumelimieten (8 objecten,
-  64 KiB per object, 4 collecties).
+- **No authenticity or encryption.** FNV-64 only catches accidental
+  corruption, truncation and torn transfers, not deliberate tampering. The archive
+  is plaintext personal data. It may only go to a target chosen by the user
+  that is their own (LOCAL-PRIVACY-CONTRACT: own offline recovery copy). For a NAS or a
+  provider client-side encryption is needed (B02, P01, ENCRYPTED-OBJECT-STORAGE);
+  that is still open here.
+- **Current versions only.** Local history is not a backup and is not
+  included. `created`/`modified` are kept and are exportable,
+  but on restore the service assigns new times.
+- **One domain per archive**, within the current volume limits (8 objects,
+  64 KiB per object, 4 collections).
 
-## Bewijs en open punten
+## Evidence and open points
 
-Hostbewijs (gnu-hosttarget, Rust 1.90.0, toegang via de echte volume-client en -service):
-round-trip na verlies van de bron en koude herstart van het doel; elke prefix, elke
-bitflip (bits 0x01 en 0x80 op iedere byte) en een extra byte worden geweigerd;
-een te hoge bron-telling geeft `Protocol`, ook bij de EOF-controle na de trailer;
-een vol doel op 132 falende grenzen (elke 37e byte en de laatste byte) en succes
-bij precies de archiefgrootte; gelijktijdige wijziging van een gelist object en
-van een nieuw object; inhoud die de dienstsom tegenspreekt; conflicten zonder
-overschrijven; quota tijdens restore; ongeldig domein. Van 13 mutatieproeven laten
-er 11 een test falen (naamconflict, EOF, beide `Protocol`-controles, generatie,
-inhoudssom bij export en bij `Unknown`, collectie-mapping, `bare`, revisie 0,
-naamopvulling); zie het bewijsbestand. Opnieuw verzegelde, niet-canonieke records
-(20 gevallen) worden geweigerd; `Unknown` (wel/niet geland, en geland met een
-andere inhoudssom), mislukte META, een tombstone-slot en dubbele bronnamen zijn
-getest. Niet door een test gedekt: het weglaten van de revisievergelijking bij
-`Unknown` (een revisie die één te ver ligt wordt wel gevangen) en de lengtecontrole
-list/stat bij export (alleen relevant als een andere schrijver of de dienst zelf
-afwijkt).
+Host evidence (gnu host target, Rust 1.90.0, access via the real volume client and service):
+round trip after loss of the source and cold restart of the target; every prefix, every
+bit flip (bits 0x01 and 0x80 on every byte) and an extra byte are refused;
+a too-high source count gives `Protocol`, also at the EOF check after the trailer;
+a full target at 132 failing boundaries (every 37th byte and the last byte) and success
+at exactly the archive size; concurrent change of a listed object and
+of a new object; content that contradicts the service checksum; conflicts without
+overwriting; quota during restore; invalid domain. Of 13 mutation trials,
+11 make a test fail (name conflict, EOF, both `Protocol` checks, generation,
+content checksum on export and on `Unknown`, collection mapping, `bare`, revision 0,
+name padding); see the evidence file. Resealed, non-canonical records
+(20 cases) are refused; `Unknown` (landed/not landed, and landed with a
+different content checksum), failed META, a tombstone slot and duplicate source names are
+tested. Not covered by a test: omitting the revision comparison on
+`Unknown` (a revision that is one too far is caught) and the length check
+list/stat on export (only relevant if another writer or the service itself
+deviates).
 
-Open voor S09/FR-O06: native back-upportaal met een door de gebruiker gekozen
-doelvolume en capability, native QEMU-proef met een tweede virtuele schijf,
-gebruikersexport naar gangbare formaten (bijv. platte tekst/afbeelding per
-document), versleutelde variant voor NAS/provider, en een gebruikerstaak.
+Open for S09/FR-O06: native backup portal with a target volume and capability
+chosen by the user, native QEMU trial with a second virtual disk,
+user export to common formats (e.g. plain text/image per
+document), encrypted variant for NAS/provider, and a user task.

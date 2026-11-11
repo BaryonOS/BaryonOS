@@ -1,80 +1,80 @@
-# Numerieke spreadsheetconsumer
+# Numeric spreadsheet consumer
 
-TASK-PLATFORM-M10-RECALC-CONSUMER, basis `d10b5cda`. Een kleine concrete
-hostconsumer van de **bestaande** `calculator::decimal`-rekenkern:
-cel instellen, formule met celverwijzingen opvragen, invoer wijzigen,
-dezelfde formule opnieuw berekenen. Geen derde rekenkern, float of macrotaal.
-Het model is `no_std + alloc`; de CLI is uitsluitend een hostprogramma.
+TASK-PLATFORM-M10-RECALC-CONSUMER, base `d10b5cda`. A small concrete
+host consumer of the **existing** `calculator::decimal` arithmetic core:
+set a cell, query a formula with cell references, change input,
+recalculate the same formula. No third arithmetic core, float or macro language.
+The model is `no_std + alloc`; the CLI is exclusively a host program.
 
 ```sh
 cargo +1.90.0 run --offline --locked --manifest-path sdk/examples/spreadsheet/Cargo.toml --features host-cli --bin sheet-calc -- --set A1 2 --set B1 '=A1*3' --get B1 --set A1 4 --get B1
-# stdout: 6, daarna 12 (ieder op een eigen regel)
+# stdout: 6, then 12 (each on its own line)
 ```
 
-`--set ADRES INVOER` en `--get ADRES` worden in volgorde uitgevoerd.
-Een lege invoer `--set A1 ''` wist die cel. Een `--get` is vereist.
-Fouten geven exit 1/stderr; stdout wordt pas geschreven nadat **alle**
-acties slagen. Geen gedeeltelijke succeswaarden bij een latere formulefout.
-Een stdout-I/O-fout kan wel een gedeeltelijke write opleveren.
-Gebruik quotes rond formules zodat de hostshell ze niet zelf interpreteert.
-Geen opslag, CSV-import of koppeling aan een nog niet geintegreerde branch.
+`--set ADRES INVOER` and `--get ADRES` are executed in order.
+An empty input `--set A1 ''` clears that cell. A `--get` is required.
+Errors give exit 1/stderr; stdout is only written after **all**
+actions succeed. No partial success values on a later formula error.
+A stdout I/O error can still produce a partial write.
+Use quotes around formulas so that the host shell does not interpret them itself.
+No storage, CSV import or coupling to a not-yet-integrated branch.
 
-## Expliciet ondersteund profiel
+## Explicitly supported profile
 
-- Canonieke adressen `A1` t/m `Z64`; maximaal 64 gelijktijdig bezette cellen.
-- Numerieke literal met optioneel teken, punt of komma; geen tekstcel.
-- Formule begint met `=`: bestaande `+ - * / ( )`, numerieke literals en
-  canonieke celverwijzingen. Geen functies, bereiken, absolute refs, namen,
-  externe bestanden, macro's, datum-/geldtypes of netwerk.
-- Bestaande decimale semantiek: negen fractieplaatsen, dichtstbijzijnde
-  waarde met ties-to-even (bij gelijkspel naar even). Absoluut maximaal
-  `9999999999,999999999`. Geen IEEE-/Excel-/XLSX-pariteitsclaim.
-- Afronding blijft expliciet in `Evaluation::rounded`, ook als zij in een
-  eerdere afhankelijkheid plaatsvond. De CLI toont `[afgerond]`.
-- Een ontbrekende/gewiste cel is een fout, **niet** impliciet nul.
-  Een cyclus, deling door nul, bereikoverschrijding, ongeldige literal of
-  verwijzing levert geen opgeslagen/verzonnen resultaat op.
+- Canonical addresses `A1` to `Z64`; at most 64 simultaneously occupied cells.
+- Numeric literal with optional sign, point or comma; no text cell.
+- A formula starts with `=`: existing `+ - * / ( )`, numeric literals and
+  canonical cell references. No functions, ranges, absolute refs, names,
+  external files, macros, date/money types or network.
+- Existing decimal semantics: nine fractional places, nearest
+  value with ties-to-even (on a tie, to even). Absolute maximum
+  `9999999999,999999999`. No IEEE/Excel/XLSX parity claim.
+- Rounding remains explicit in `Evaluation::rounded`, even if it took place in an
+  earlier dependency. The CLI shows `[afgerond]` (rounded).
+- A missing/cleared cell is an error, **not** implicitly zero.
+  A cycle, division by zero, range overflow, invalid literal or
+  reference yields no stored/fabricated result.
 
-Invoer maximaal 256 ASCII-bytes zonder controletekens; spaties behouden.
-Begrensde ongeldige formuletekst blijft bewaard om te kunnen corrigeren;
-evaluatie geeft een expliciete fout met adres van de falende cel.
-Niet-numerieke tekstcellen zijn nog niet gerealiseerd.
-Een ongeldige admission/allocation wijzigt de vorige cel niet.
+Input at most 256 ASCII bytes without control characters; spaces preserved.
+Bounded invalid formula text is retained so it can be corrected;
+evaluation gives an explicit error with the address of the failing cell.
+Non-numeric text cells have not yet been implemented.
+An invalid admission/allocation does not change the previous cell.
 
-Iedere opvraag begint een nieuwe herberekening met een tijdelijke cache per
-cel en cyclusdetectie. Verwijzingen worden als geparentheseerde **waarden**
-aan de bestaande evaluator doorgegeven, nooit opnieuw als broncode/formules.
-Daardoor veranderen negatieve waarden de operatorvolgorde niet.
-Geen blijvende cache die na edit/wissen/foutreparatie verouderd kan raken.
-Maximaal 32 gelijktijdige afhankelijkheidsframes; de bestaande evaluator
-houdt daarnaast zijn eigen 32-nestingsgrens. Een geexpandeerde formule is
-maximaal 256 bytes en kan dus eerder worden geweigerd dan de bronformule.
-Foutposities van de decimale evaluator slaan op die geexpandeerde formule,
-niet op een geclaimde cursorpositie in de oorspronkelijke cel.
+Every query starts a new recalculation with a temporary cache per
+cell and cycle detection. References are passed to the existing evaluator
+as parenthesised **values**, never again as source code/formulas.
+As a result, negative values do not change operator precedence.
+No persistent cache that could become stale after edit/clear/error repair.
+At most 32 simultaneous dependency frames; the existing evaluator
+additionally keeps its own 32-level nesting limit. An expanded formula is
+at most 256 bytes and can therefore be refused earlier than the source formula.
+Error positions of the decimal evaluator refer to that expanded formula,
+not to a claimed cursor position in the original cell.
 
-## Resource- en integratiegrens
+## Resource and integration boundary
 
-Celbronnen gebruiken fallible reserves: maximaal 16 KiB bronbytes plus
-String-/celoverhead; tijdelijke formulebuffers maximaal circa 8 KiB langs
-een afhankelijkheidspad, naast stack en cache. De host-CLI begrenst acties
-tot 256. Dit is geen native hardheapquota-/OOM-/performancebewijs.
+Cell sources use fallible reserves: at most 16 KiB of source bytes plus
+String/cell overhead; temporary formula buffers at most approx. 8 KiB along
+a dependency path, besides stack and cache. The host CLI limits actions
+to 256. This is no native hard heap quota/OOM/performance evidence.
 
-Geen unsafe of nieuwe registrydependency. De pathdependency hergebruikt de
-bestaande calculatorpackage; het lockfile neemt diens bestaande runtime-,
-UI- en exact gepinde font/zeroize-closure mee. Geen calculator-, renderer-,
-workspace-, kernel-, IPC-, B02-, launch- of packagewrites.
-De numerieke kern geeft geen bestands-, netwerk- of procesrechten.
-De host-CLI erft uitsluitend de gewone hostprocess-/stdio-omgeving.
+No unsafe or new registry dependency. The path dependency reuses the
+existing calculator package; the lockfile brings in its existing runtime,
+UI and exactly pinned font/zeroize closure. No calculator, renderer,
+workspace, kernel, IPC, B02, launch or package writes.
+The numeric core grants no file, network or process rights.
+The host CLI inherits exclusively the ordinary host process/stdio environment.
 
-Een native tabelvenster, gedeeld Work-documentmodel, tekst-/typed cells,
-CSV/XLSX/ODS-import/export, geautoriseerd opslaan, undo, selectie en
-dependency-invalidationoptimalisatie blijven open. Geen volledige
-spreadsheetapp of oorspronkelijke M10-acceptatie geclaimd.
+A native table window, shared Work document model, text/typed cells,
+CSV/XLSX/ODS import/export, authorised saving, undo, selection and
+dependency invalidation optimisation remain open. No complete
+spreadsheet app or original M10 acceptance claimed.
 
-## Gerichte acceptatie
+## Targeted acceptance
 
 ```sh
-# Uitvoeren vanaf de repositoryroot op een voorbereide Rust-toolchain.
+# Run from the repository root on a prepared Rust toolchain.
 set -e
 export CARGO_TARGET_DIR="$PWD/target/platform-sheet-host"
 cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/spreadsheet/Cargo.toml --features host-cli
@@ -85,9 +85,9 @@ cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examp
 python3 -B sdk/examples/spreadsheet/tests/interop.py target/platform-sheet-host/debug/sheet-calc
 ```
 
-Tien tests omvatten echte processen, herberekening na edits/wissen, cycli,
-ontbrekende verwijzingen, errorrepair, hergebruikte dependency-DAG,
-operatorvolgorde, afrondingspropagatie en exacte limieten.
-Python `Decimal` controleert onafhankelijk 32 werkelijke CLI-herberekeningen
-en vijf afgeronde dependencyresultaten. Geen native uitvoering,
-GUI-/hardware-/menselijke of releaseacceptatie.
+Ten tests cover real processes, recalculation after edits/clearing, cycles,
+missing references, error repair, reused dependency DAG,
+operator precedence, rounding propagation and exact limits.
+Python `Decimal` independently checks 32 actual CLI recalculations
+and five rounded dependency results. No native execution,
+GUI/hardware/human or release acceptance.

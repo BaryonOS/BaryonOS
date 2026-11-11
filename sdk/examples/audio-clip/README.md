@@ -1,76 +1,76 @@
-# PCM-WAV-fragment uitsnijden
+# Clipping a PCM WAV fragment
 
-TASK-PLATFORM-M7-WAV-CLIP, basis `6d523964`. Concrete bestandsbewerking:
-een echte ondersteunde WAV importeren, een framebereik uitsnijden, als
-zelfstandig WAV-bestand exporteren. Geen afspeelmock, audiobroker,
-generieke codecengine of duplicatie van een bestaande driver.
-Het model is `no_std+alloc`; de CLI is uitsluitend een hostprogramma.
+TASK-PLATFORM-M7-WAV-CLIP, base `6d523964`. Concrete file operation:
+import a real supported WAV, cut out a frame range, export it as a
+standalone WAV file. No playback mock, audio broker,
+generic codec engine or duplication of an existing driver.
+The model is `no_std+alloc`; the CLI is solely a host program.
 
 ```sh
 cargo +1.90.0 run --offline --locked --manifest-path sdk/examples/audio-clip/Cargo.toml --features host-cli --bin wav-clip -- --start-frame 48000 --frames 96000 < opname.wav > fragment.wav
 ```
 
-Een frame bevat **alle kanalen op een tijdstip**. Bij 48 kHz kiest dit
-voorbeeld vanaf seconde 1 de volgende 2 seconden. De selectie is exact,
-niet afgerond naar tijdstempels of stil ingekort tot het bestandseinde.
-Originele PCM16-samplebytes, kanaalvolgorde en samplefrequentie blijven
-gelijk. Geen conversie, resampling, gain, fade of dithering; een harde knip
-kan hoorbaar klikken. Originele invoer blijft ongewijzigd.
+A frame contains **all channels at one point in time**. At 48 kHz this
+example selects the next 2 seconds starting at second 1. The selection is exact,
+not rounded to timestamps or silently shortened to the end of the file.
+Original PCM16 sample bytes, channel order and sample rate remain
+the same. No conversion, resampling, gain, fade or dithering; a hard cut
+may produce an audible click. Original input remains unchanged.
 
-## Expliciet ondersteund profiel
+## Explicitly supported profile
 
-- RIFF little-endian `WAVE`, PCM-tag 1, signed 16-bit samples,
-  mono of stereo, samplefrequentie 8000 t/m 192000 Hz.
-- Exact een `fmt `-chunk van 16 bytes, of 18 bytes met cbSize 0,
-  en exact een `data`-chunk. Beide chunkvolgordes worden geaccepteerd.
-  Byte rate, block alignment en complete frames worden gecontroleerd.
-- Maximaal 16 MiB volledig bestand en 1024 chunks. RIFF-lengte moet exact
-  het bestand dekken; geen verborgen/trailing bytes of gedeeltelijke header.
-  Alle chunks inclusief padding en metadata na de audio worden gevalideerd.
-- Geen RIFX/RF64/WAVE64, PCM8/24/32, float, extensible, multichannel,
-  ADPCM, MP3/FLAC of andere compressie. Geen volledige WAV-dekking geclaimd.
+- RIFF little-endian `WAVE`, PCM tag 1, signed 16-bit samples,
+  mono or stereo, sample rate 8000 to 192000 Hz inclusive.
+- Exactly one `fmt ` chunk of 16 bytes, or 18 bytes with cbSize 0,
+  and exactly one `data` chunk. Both chunk orders are accepted.
+  Byte rate, block alignment and complete frames are checked.
+- At most 16 MiB complete file and 1024 chunks. The RIFF length must exactly
+  cover the file; no hidden/trailing bytes or partial header.
+  All chunks including padding and metadata after the audio are validated.
+- No RIFX/RF64/WAVE64, PCM8/24/32, float, extensible, multichannel,
+  ADPCM, MP3/FLAC or other compression. No complete WAV coverage claimed.
 
-Extra chunks (ook JUNK/LIST/cue/loopmetadata) worden geteld, niet uitgevoerd.
-Als er extra chunks zijn, vereist uitsnijden de expliciete keuze
-`--drop-metadata`. Zonder die keuze volgt `MetadataChoiceRequired`, geen
-succesoutput. Marker-/loopposities kunnen na uitsnijden ongeldig zijn;
-de exporter beweert die daarom niet te behouden of opnieuw te berekenen.
-`--drop-metadata` schrijft alleen de canonieke fmt/data-chunks en verwijdert
-alle extra metadata bewust. Een clip zonder extra metadata heeft geen
-herhaalde toestemming nodig.
+Extra chunks (including JUNK/LIST/cue/loop metadata) are counted, not executed.
+If there are extra chunks, clipping requires the explicit choice
+`--drop-metadata`. Without that choice the result is `MetadataChoiceRequired`, not
+successful output. Marker/loop positions may be invalid after clipping;
+the exporter therefore does not claim to preserve or recompute them.
+`--drop-metadata` writes only the canonical fmt/data chunks and deliberately removes
+all extra metadata. A clip without extra metadata needs no
+repeated consent.
 
-## Grenzen en fouten
+## Limits and errors
 
-`Wave::parse` leent de oorspronkelijke samples zonder allocatie.
-`clip(start..end, drop_metadata, output_limit)` gebruikt een halfopen,
-niet-leeg framebereik en reserveert de exacte output fallible.
-De uitvoerlimiet is maximaal 16 MiB, door caller te verlagen.
-CLI-invoer maximaal 16 MiB+1 detectiebyte, uitvoer maximaal 16 MiB;
-geen native harde heapquota/OOM-herstelclaim.
+`Wave::parse` borrows the original samples without allocation.
+`clip(start..end, drop_metadata, output_limit)` uses a half-open,
+non-empty frame range and reserves the exact output fallibly.
+The output limit is at most 16 MiB, and can be lowered by the caller.
+CLI input at most 16 MiB+1 detection byte, output at most 16 MiB;
+no native hard heap quota/OOM recovery claim.
 
-Geen unsafe of dependency. Nieuwe subtree `sdk/examples/audio-clip/**` plus
-eigen receipt, geen bestaande SDK-workspace-, UI-, driver-, kernel-, audio-,
-General-, launch-, storage-, rechten- of scorewijzigingen.
-Een native edit/saveflow vereist de bestaande portal-/appowners;
-sample-exacte bestandsbewerking zelf vereist geen native audiodevice.
-De host-CLI erft stdio en verleent geen Nieuw-OS-resourcecapability.
+No unsafe or dependency. New subtree `sdk/examples/audio-clip/**` plus
+its own receipt, no changes to the existing SDK workspace, UI, driver, kernel, audio,
+General, launch, storage, rights or score.
+A native edit/save flow requires the existing portal/app owners;
+sample-exact file editing itself does not require a native audio device.
+The host CLI inherits stdio and grants no Nieuw OS resource capability.
 
-Alle parse/selectie/exportfouten geven exit 1 en stderr zonder sampleinhoud.
-Geen stdout tot de volledige operatie slaagt. Stdoutwrite is niet atomair;
-een writefout kan gedeeltelijke output achterlaten. Gebruik nooit hetzelfde
-invoer-/uitvoerpad bij shellredirectie.
+All parse/selection/export errors give exit 1 and stderr without sample content.
+No stdout until the complete operation succeeds. The stdout write is not atomic;
+a write error can leave partial output behind. Never use the same
+input/output path with shell redirection.
 
-## Primaire bronnen en acceptatie
+## Primary sources and acceptance
 
-Microsoft, *Resource Interchange File Format (RIFF)*, 31 mei 2018,
+Microsoft, *Resource Interchange File Format (RIFF)*, 31 May 2018,
 <https://learn.microsoft.com/en-us/windows/win32/xaudio2/resource-interchange-file-format--riff->;
-*WAVEFORMATEX*, 5 december 2018,
+*WAVEFORMATEX*, 5 December 2018,
 <https://learn.microsoft.com/en-us/windows/win32/api/mmreg/ns-mmreg-waveformatex>.
-Geraadpleegd 3 november 2026: RIFF-lengtes, WORD-padding, fmt/data,
-samplerate, block alignment en byte rate. Geen Windows-runtime of -kernel.
+Accessed 3 November 2026: RIFF lengths, WORD padding, fmt/data,
+sample rate, block alignment and byte rate. No Windows runtime or kernel.
 
 ```sh
-# Uitvoeren vanaf de repositoryroot op een voorbereide Rust-toolchain.
+# Run from the repository root on a prepared Rust toolchain.
 set -e
 export CARGO_TARGET_DIR=target/platform-wav-host
 mkdir -p build/platform-wav-evidence
@@ -83,11 +83,11 @@ python3 -B sdk/examples/audio-clip/tests/interop.py target/platform-wav-host/deb
 file build/platform-wav-evidence/fragment.wav
 ```
 
-Zes Rusttests en 48 echte CLI-clipoutputs worden getoetst, met onafhankelijk
-Python `wave` als inputwriter/outputreader en exacte samplevergelijking.
-Vier samplefrequenties, mono/stereo, begin/einde/volledige clip en expliciete
-metadataweigering/-discard. Negatieven dekken truncaties, overflow/chunk-
-lengtes, ontbrekende padding, dubbele/missende chunks, incomplete frames,
-unsupported formaten, inconsistent fmt, selectie/CLI en budgetten.
-Geen native executable, GUI, daadwerkelijk hoorbare uitvoer, audiodevice,
-QEMU, hardware-, menselijke, onafhankelijke audit- of releaseacceptatie.
+Six Rust tests and 48 real CLI clip outputs are tested, with independent
+Python `wave` as input writer/output reader and exact sample comparison.
+Four sample rates, mono/stereo, start/end/full clip and explicit
+metadata refusal/discard. Negative tests cover truncations, overflow/chunk
+lengths, missing padding, duplicate/missing chunks, incomplete frames,
+unsupported formats, inconsistent fmt, selection/CLI and budgets.
+No native executable, GUI, actually audible output, audio device,
+QEMU, hardware, human, independent audit or release acceptance.

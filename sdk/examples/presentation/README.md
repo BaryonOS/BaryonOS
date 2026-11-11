@@ -1,31 +1,31 @@
-# Presentatiedia's met de bestaande native rasterbibliotheek
+# Presentation slides with the existing native raster library
 
-TASK-PLATFORM-M11-SLIDE-RENDER-CONSUMER, basis `ab85d633`.
-Een echte hostconsumer: lokaal tekstdeck importeren, dia selecteren,
-volgende/vorige, pixels renderen met `ui/graphics`, PPM-frame uitvoeren.
-Geen HTML/browser, nieuwe font-/graphicsengine of los model zonder afnemer.
-Het model/renderpad is `no_std+alloc`; de CLI is een hostprogramma.
+TASK-PLATFORM-M11-SLIDE-RENDER-CONSUMER, base `ab85d633`.
+A real host consumer: import a local text deck, select a slide,
+next/previous, render pixels with `ui/graphics`, output a PPM frame.
+No HTML/browser, new font/graphics engine or standalone model without a consumer.
+The model/render path is `no_std+alloc`; the CLI is a host program.
 
 ```sh
 cargo +1.90.0 run --offline --locked --manifest-path sdk/examples/presentation/Cargo.toml --features host-cli --bin slide-preview -- --slide 2 --scale 2 < sdk/examples/presentation/fixtures/deck.txt > dia.ppm
 ```
 
-`--slide` is een 1-gebaseerd dianummer; optionele `--scale` is 1 of 2.
-Frame 640x360 of 1280x720, 24-bit RGB Netpbm P6, geen alpha.
-Dit is de P6-variant met ongewijzigde UI-RGB-samplewaarden, **zonder**
-omzetting naar de BT.709-transferfunctie van strikt kleurgetrouw PPM.
-Primaire formaatbron: Netpbm, *PPM Format Specification*, 7 november 2025,
-<https://netpbm.sourceforge.net/doc/ppm.html>, geraadpleegd 3 november 2026.
-De gedeelde MATERIAAL-kleuren en bestaande Font-presets worden hergebruikt.
-Schaal 2 gebruikt de bestaande grotere fontpresets, geen claim van exacte
-tweemaal alle glyphafmetingen of gevalideerde high-DPI-/accessibility-UX.
+`--slide` is a 1-based slide number; the optional `--scale` is 1 or 2.
+Frame 640x360 or 1280x720, 24-bit RGB Netpbm P6, no alpha.
+This is the P6 variant with unchanged UI RGB sample values, **without**
+conversion to the BT.709 transfer function of strictly colour-accurate PPM.
+Primary format source: Netpbm, *PPM Format Specification*, 7 November 2025,
+<https://netpbm.sourceforge.net/doc/ppm.html>, accessed 3 November 2026.
+The shared MATERIAAL colours and existing Font presets are reused.
+Scale 2 uses the existing larger font presets, no claim of exactly
+doubled glyph dimensions throughout or validated high-DPI/accessibility UX.
 
-## Klein expliciet tekstprofiel
+## Small explicit text profile
 
-UTF-8 met **LF**-regels; eerste regel van iedere dia is de titel,
-volgende regels zijn body. De exacte regel `---`, met een LF ervoor en erna,
-scheidt dia's. Geen Markdown, PPTX, ODP of Microsoft-compatibiliteitsclaim.
-Voorbeeld:
+UTF-8 with **LF** lines; the first line of each slide is the title,
+following lines are body. The exact line `---`, with an LF before and after it,
+separates slides. No Markdown, PPTX, ODP or Microsoft compatibility claim.
+Example:
 
 ```text
 Eerste titel
@@ -35,39 +35,39 @@ Tweede titel
 Meer inhoud.
 ```
 
-Maximaal 32 KiB invoer, 32 dia's, 256 bytes/titel, twaalf bodyregels,
-512 bytes/bodyregel. Geen lege titels/dia's of controletekens behalve LF.
-CRLF, tabs en NUL worden expliciet geweigerd, niet stil herschreven.
-Het model leent de oorspronkelijke UTF-8-bron zonder kopie/verlies;
-beperkte atlasglyphdekking gebruikt een **zichtbaar vervangingsteken**.
-Dat behoudt bronbytes, maar is geen volledige Unicode-shaping/fontondersteuning.
-Geen tekstedit/exportroundtrip of inhoudelijke interpretatie.
+At most 32 KiB input, 32 slides, 256 bytes/title, twelve body lines,
+512 bytes/body line. No empty titles/slides or control characters except LF.
+CRLF, tabs and NUL are explicitly refused, not silently rewritten.
+The model borrows the original UTF-8 source without copy/loss;
+limited atlas glyph coverage uses a **visible replacement character**.
+That preserves source bytes, but is not full Unicode shaping/font support.
+No text edit/export round trip or interpretation of content.
 
-## Render- en resource-invariant
+## Render and resource invariant
 
-Voor de geselecteerde dia worden uitvoerschaal, buffer, volledige titel-
-en bodybreedte en totale teksthoogte **voor iedere pixelwrite** gecontroleerd.
-Te brede/lange inhoud geeft `TextOverflow`; geen ellipsis, stille clipping,
-verborgen diaregels of succesoutput. Het is geen automatische layout-/
-wordwrap-engine; de gebruiker kan regels verdelen of een extra dia maken.
-Een niet-passende dia blijft selecteerbaar en de bron blijft intact.
-Navigeren voorbij begin/einde verandert de selectie niet.
+For the selected slide, output scale, buffer, full title
+and body width and total text height are checked **before every pixel write**.
+Content that is too wide/long gives `TextOverflow`; no ellipsis, silent clipping,
+hidden slide lines or successful output. It is not an automatic layout/
+word-wrap engine; the user can split lines or create an extra slide.
+A slide that does not fit remains selectable and the source remains intact.
+Navigating past the beginning/end does not change the selection.
 
-De deckvector reserveert fallible maximaal 32 entries; bronbytes blijven
-bij de caller. Canvasbuffergrootte maximaal 921600 u32-pixels (circa 3,52 MiB),
-PPM-uitvoer circa 2,64 MiB plus header. De hostconsumer reserveert fallible;
-geen native harde heapquota/OOM-herstel-/performanceclaim.
-De CLI schrijft pas stdout nadat import/selectie/render/outputallocatie slagen.
-Stdoutwrite zelf is niet atomair en kan bij een I/O-fout gedeeltelijk zijn.
+The deck vector fallibly reserves at most 32 entries; source bytes remain
+with the caller. Canvas buffer size at most 921600 u32 pixels (approx. 3.52 MiB),
+PPM output approx. 2.64 MiB plus header. The host consumer reserves fallibly;
+no native hard heap quota/OOM recovery/performance claim.
+The CLI only writes stdout after import/selection/render/output allocation succeed.
+The stdout write itself is not atomic and may be partial on an I/O error.
 
-Alleen een pathdependency op de bestaande `ui/graphics`, geen nieuwe
-registrydependency of unsafe. Geen bestaande grafische/shared workspace-,
-General-editor-, kernel-, driver-, input-, window-, B02- of launchwrites.
-Geen bestands-, netwerk-, launch- of trusted-UI-bevoegdheid verkregen.
-Een native slideshow vereist de bestaande app-/surface-/input-/portalowners;
-dit bouwt geen parallelle broker of proceslifecycle.
+Only a path dependency on the existing `ui/graphics`, no new
+registry dependency or unsafe. No writes to the existing graphics/shared workspace,
+General editor, kernel, driver, input, window, B02 or launch.
+No file, network, launch or trusted UI authority obtained.
+A native slideshow requires the existing app/surface/input/portal owners;
+this does not build a parallel broker or process lifecycle.
 
-## Uitgevoerde acceptatie
+## Executed acceptance
 
 ```sh
 export CARGO_TARGET_DIR="$PWD/target/platform-presentation-host"
@@ -78,12 +78,12 @@ cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examp
 python3 -B sdk/examples/presentation/tests/interop.py target/platform-presentation-host/debug/slide-preview build/platform-presentation-evidence
 ```
 
-Acht Rusttests (vijf in `tests/deck.rs`, drie werkelijke `slide-preview`-processen in `tests/cli.rs`), controleren import,
-navigatie, bronbehoud, twee echte diaframes op beide schalen, limieten,
-glyphfallback en pixelbuffers die bij fouten onveranderd blijven.
-Het zelfstandige Python-PPM-orakel controleert vier echte uitvoerframes,
-RGB/header/pixelregio's en genereert uitsluitend buiten Git PNG-bewijsbeelden.
-Dat PNG-hulppad is geen productencoder en valideert niet zelfstandig de
-volledige typografie. Agentinspectie van die beelden is geen menselijke test.
-Geen native executable, GUI-bediening, saveportaal, presentatie-editor,
-QEMU, fysieke, menselijke of releaseacceptatie.
+Eight Rust tests (five in `tests/deck.rs`, three real `slide-preview` processes in `tests/cli.rs`) check import,
+navigation, source preservation, two real slide frames at both scales, limits,
+glyph fallback and pixel buffers that remain unchanged on errors.
+The standalone Python PPM oracle checks four real output frames,
+RGB/header/pixel regions and generates PNG evidence images only outside Git.
+That PNG helper path is not a product encoder and does not independently validate
+the complete typography. Agent inspection of those images is not a human test.
+No native executable, GUI operation, save portal, presentation editor,
+QEMU, physical, human or release acceptance.

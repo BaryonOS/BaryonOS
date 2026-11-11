@@ -1,68 +1,68 @@
-# Exact begrensde x86-64-geheugenintrinsics
+# Exact bounded x86-64 memory intrinsics
 
-2 november 2026; basis `ecb9964de727561a900ed93bc86ad3d5847dfe6b`.
-Alleen `kernel/src/memory.rs`, gerichte hostharnas en deze notitie. Geen
-snapshot-, capability-, syscall-, cache- of gebruikersinterfacewijziging.
+2 November 2026; base `ecb9964de727561a900ed93bc86ad3d5847dfe6b`.
+Only `kernel/src/memory.rs`, a targeted host harness and this note. No
+snapshot, capability, syscall, cache or user interface change.
 
-De echte venstersessie gaf een ernstig vertragingssignaal met de nieuwe
-exacte snapshots. Overlappende VM-belasting verhindert een precieze ratio.
-Een mogelijke oorzaak is herhaalde bytegewijze emulatie in TCG; dit is nog geen
-aangetoonde attributie van alle vertraging.
+The real window session gave a serious slowdown signal with the new
+exact snapshots. Overlapping VM load prevents a precise ratio.
+One possible cause is repeated byte-wise emulation in TCG; this is not yet a
+demonstrated attribution of all the slowdown.
 
 ## Contract
 
-`memcpy` vereist de bestaande C-intrinsicvoorwaarden: `n` leesbare en schrijfbare
-bytes in geldige, niet-overlappende normale RAM-regio's. De routine kopieert
-precies `n/8` volledige woorden met `rep movsq`, gevolgd door precies `n%8`
-bytes met `rep movsb`. x86-64 staat deze onuitgelijnde woordtoegang toe. RSI,
-RDI en RCX zijn expliciete inout-registers; het tailregister kan niet met deze
-early-clobbers overlappen. Er is geen overread, overwrite of vooruitgelezen
-padding. De oorspronkelijke bestemmingspointer wordt teruggegeven. `cld`
-loopt ook bij lengte nul.
+`memcpy` requires the existing C intrinsic preconditions: `n` readable and writable
+bytes in valid, non-overlapping normal RAM regions. The routine copies
+exactly `n/8` full words with `rep movsq`, followed by exactly `n%8`
+bytes with `rep movsb`. x86-64 permits this unaligned word access. RSI,
+RDI and RCX are explicit inout registers; the tail register cannot overlap with these
+early-clobbers. There is no overread, overwrite or read-ahead
+padding. The original destination pointer is returned. `cld`
+also runs at length zero.
 
-`memcmp` leest alleen een volledig woord als er minstens acht geldige bytes
-resteren. Inline MOV-instructies voorkomen een optimizergegenereerde recursieve
-memcmp-call. Bij verschil bepaalt XOR plus `trailing_zeros` op little-endian
-x86-64 de **eerste** afwijkende byte in adresvolgorde. Het resultaat is het
-verschil tussen unsigned bytes, geen numerieke vergelijking van gehele woorden.
-De resterende nul tot zeven bytes worden afzonderlijk gelezen. Ook deze routine
-laat DF=0 achter. Er worden geen SIMD-instructies of CPU-extensies toegevoegd.
+`memcmp` only reads a full word if at least eight valid bytes
+remain. Inline MOV instructions prevent an optimizer-generated recursive
+memcmp call. On a difference, XOR plus `trailing_zeros` on little-endian
+x86-64 determines the **first** differing byte in address order. The result is the
+difference between unsigned bytes, not a numeric comparison of whole words.
+The remaining zero to seven bytes are read individually. This routine too
+leaves DF=0. No SIMD instructions or CPU extensions are added.
 
-`memset` en de overlapveilige `memmove` zijn ongewijzigd. Dit verruimt hun
-contract niet; met name de bestaande nul-lengteroute van `memmove` wist DF niet.
-Er is geen MMIO-, gedeeld-geheugen- of atomiciteitsgarantie toegevoegd.
+`memset` and the overlap-safe `memmove` are unchanged. This does not widen their
+contract; in particular the existing zero-length path of `memmove` does not clear DF.
+No MMIO, shared-memory or atomicity guarantee has been added.
 
-## Verificatie en bewijsgrens
+## Verification and evidence boundary
 
-`tools/tests/test_kernel_memory.py` compileert de **werkelijke** kernelbron met
-Rust1.90/O3 en voert vijf Linux/x86-64-tests uit. Geslaagd: alle64 combinaties
-van bron-/bestemmingsalignment0..7 bij lengtes0..1025, oorspronkelijke pointer,
-canaries, read-only bron, daadwerkelijk ontoegankelijke guard pages en exact
-liggende bereikseinden. Lexicale tests variëren iedere eerste afwijkende
-bytepositie, unsigned80/7f en00/ff, met een tegengesteld volgend verschil.
-Een enkele asm-trampoline houdt STD→CALL→flagsmeting→CLD bij elkaar; Rust
-hervat uitsluitend met DF=0. Overlappende memmove-bereiken worden apart getoetst.
+`tools/tests/test_kernel_memory.py` compiles the **actual** kernel source with
+Rust1.90/O3 and runs five Linux/x86-64 tests. Passed: all64 combinations
+of source/destination alignment0..7 at lengths0..1025, original pointer,
+canaries, read-only source, actually inaccessible guard pages and exactly
+placed range ends. Lexical tests vary every first differing
+byte position, unsigned80/7f and00/ff, with an opposite following difference.
+A single asm trampoline keeps STD→CALL→flags measurement→CLD together; Rust
+resumes exclusively with DF=0. Overlapping memmove ranges are tested separately.
 
-Een tweede agent las de daadwerkelijke diff en controleerde Rust1.90/O3-
-assembly/IR: juiste clobbers, correcte stackalignment bij de testtrampoline,
-geen live redzonestorage en geen terugverwijzing van de lexicale testoracle
-naar de geteste memcmp. Geen concrete blocker gevonden; dit is geen menselijke
-audit of formeel bewijs.
+A second agent read the actual diff and checked Rust1.90/O3
+assembly/IR: correct clobbers, correct stack alignment in the test trampoline,
+no live redzone storage and no back-reference from the lexical test oracle
+to the tested memcmp. No concrete blocker found; this is not a human
+audit or formal proof.
 
-Native releasebuild/ELF-inspectie en de gerichte scalar-instructiecontrole worden
-bij de commit opgeslagen in `build/word-memory/logs/`. Echte M4-, netwerk- en
-venstergates volgen op de geïntegreerde bron. Er wordt hier geen native
-snelheidswinst geclaimd.
+Native release build/ELF inspection and the targeted scalar instruction check are
+stored with the commit in `build/word-memory/logs/`. Real M4, network and
+window gates follow on the integrated source. No native
+speed gain is claimed here.
 
-Een afzonderlijke, identiek geïnstrumenteerde scalar-QEMU-proef van snapshot,
-exactEq en verplicht wissen leverde **geen** geldige meting: de baseline stopte
-vóór M2:PASS. De rode rapporten en gegenereerde bronnen blijven onder
-`build/word-memory/benchmark/e8b28780e470459e89b5f976eec03fd3/` bewaard. Een
-begrensde diagnostic-herhaling verwierp al vóór CR3-wissel de ontbrekende
-code-leaf; geen van beide uitkomsten is een geslaagde benchmark. De experimentele
-driver staat buiten de productiebron, onder `build/word-memory/`. De relevante
-vervolgmeting is de volledige echte venstersessie, met dezelfde pixelorakels en
-zonder verruimde beveiligingscontroles.
+A separate, identically instrumented scalar QEMU trial of snapshot,
+exactEq and mandatory clearing produced **no** valid measurement: the baseline stopped
+before M2:PASS. The red reports and generated sources remain stored under
+`build/word-memory/benchmark/e8b28780e470459e89b5f976eec03fd3/`. A
+bounded diagnostic repetition already rejected the missing
+code leaf before the CR3 switch; neither outcome is a successful benchmark. The experimental
+driver lives outside the production source, under `build/word-memory/`. The relevant
+follow-up measurement is the full real window session, with the same pixel oracles and
+without widened security checks.
 
-Terugname is een gerichte revert van deze twee intrinsics. De snapshot- en
-foutatomiciteitscontroles zijn bij deze stap niet aangepast.
+Rollback is a targeted revert of these two intrinsics. The snapshot and
+error atomicity checks were not changed in this step.

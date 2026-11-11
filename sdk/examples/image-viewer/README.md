@@ -1,92 +1,92 @@
 # R22-IMAGE-VIEWER-LEAF-1
 
-Appspecifieke `no_std`-controller voor **FR-A03**, rubric **A04/U03**.
-FR-A04 is PDF en blijft een ander werkpakket. Basis:
+App-specific `no_std` controller for **FR-A03**, rubric **A04/U03**.
+FR-A04 is PDF and remains a different work package. Base:
 `ca45a7dabe6a040921de03bdc2fad3e5045a75ba`.
-TL89f heeft uitsluitend deze nieuwe subtree vrijgegeven; Apps/SDK11 is afnemer.
-Geen native executable, nieuwe SDK, wire, bootstrap, installer of gedeelde UI.
+TL89f released only this new subtree; Apps/SDK11 is the consumer.
+No native executable, new SDK, wire, bootstrap, installer or shared UI.
 
-## Wat de leaf werkelijk doet
+## What the leaf actually does
 
-Een geselecteerd object/revisie en expliciet byte-/pixelbudget starten een
-loadticket. `decode` verwerkt echte PNG/JPEG-bytes met de bestaande
-`services/image-codec`; `decoded` accepteert ook het resultaat van een aparte
-decoder. Beide controleren de selectie en uitvoervorm voordat pixels beschikbaar
-worden. Oude tickets, een andere revisie en te grote/beschadigde resultaten
-worden geweigerd. Beginnen aan een nieuw object verwijdert het vorige beeld uit
-de controller; fouten leveren nooit vervangende succespixels.
+A selected object/revision and an explicit byte/pixel budget start a
+load ticket. `decode` processes real PNG/JPEG bytes with the existing
+`services/image-codec`; `decoded` also accepts the result of a separate
+decoder. Both check the selection and output shape before pixels become
+available. Old tickets, a different revision and oversized/corrupted results
+are refused. Starting on a new object removes the previous image from
+the controller; errors never deliver substitute success pixels.
 
-`Fit`, 100% en begrensde zoom van 25–800%, pijltjestoetsen en slepen werken op
-de toegewezen SUR1-geometrie. 100% gebruikt de opgegeven 100/200%-UI-schaal.
-Fit past beide dimensies in de surface; extreme beeldverhoudingen houden
-minimaal een zichtbare pixel. De eenvoudige nearest-neighbour-weergave
-selecteert echte bronsamples, maar is geen kwaliteitsclaim voor fotoschaling.
-De viewer volgt JPEG-EXIF-orientatie 1–8 bij de pixelkeuze, zonder een tweede
-volledig beeld te alloceren. Fit, zoom, pan en `semantics().image_size` gebruiken
-de georienteerde displayafmetingen. `decoded` weigert afmetingen die niet
-overeenkomen met de orientatie voordat renderen mogelijk wordt.
-RGBA16 wordt alleen voor de weergave afgerond; origineel en metadata blijven
-ongewijzigd. Alpha wordt tegen de door de caller gekozen 24-bit achtergrond
-gemengd. Geen eigen font-, kleur-, focus- of componentensysteem.
+`Fit`, 100% and bounded zoom of 25–800%, arrow keys and dragging operate on
+the assigned SUR1 geometry. 100% uses the specified 100/200% UI scale.
+Fit fits both dimensions into the surface; extreme aspect ratios keep
+at least one visible pixel. The simple nearest-neighbour rendering
+selects real source samples, but is not a quality claim for photo scaling.
+The viewer follows JPEG EXIF orientation 1–8 when selecting pixels, without allocating a second
+full image. Fit, zoom, pan and `semantics().image_size` use
+the oriented display dimensions. `decoded` refuses dimensions that do not
+match the orientation before rendering becomes possible.
+RGBA16 is rounded only for display; original and metadata remain
+unchanged. Alpha is blended against the 24-bit background chosen by the caller.
+No custom font, colour, focus or component system.
 
-`render_tile` schrijft uitsluitend een tight-packed, maximaal 32x8 BGRX-tegel
-in callergeheugen. Extra bufferruimte blijft onaangeraakt. De adapter verstuurt
-die bytes met de bestaande SUR1-client en roept `acknowledge` **pas na de echte
-positieve blit/COMMIT-reply** aan. Alleen alle opeenvolgende tiles van dezelfde
-generatie zetten `presented`; veranderingen trekken deze vlag meteen in.
-Deze vlag betekent niet pageflip, atomiciteit, duurzaamheid of native bewijs.
+`render_tile` writes only a tight-packed BGRX tile of at most 32x8
+into caller memory. Extra buffer space remains untouched. The adapter sends
+those bytes with the existing SUR1 client and calls `acknowledge` **only after the real
+positive blit/COMMIT reply**. Only all consecutive tiles of the same
+generation set `presented`; changes withdraw this flag immediately.
+This flag does not mean page flip, atomicity, durability or native evidence.
 
-`input` verwerkt de bestaande INP1-`Event`-types. De adapter blijft eigenaar
-van authenticatie, epochs, volgorde en PEEK/ACK. Bij een superseded offer moet
-hij de lokale pointer/focusstaat annuleren via het bestaande Cancel-event;
-deze leaf is geen inputbroker. Buiten de toegewezen rechthoek, na overflow of
-focusverlies vervalt een drag; terugkomen met ingedrukte knop start geen drag.
-Toetsen: `+`/`-`, `0`/Home (passen), `1` (100%), pijlen en Escape (sluiten).
-Een keyrelease voert geen handeling uit; Ctrl/Alt/Super-combinaties worden
-niet overgenomen van de shell.
+`input` processes the existing INP1 `Event` types. The adapter remains the owner
+of authentication, epochs, ordering and PEEK/ACK. On a superseded offer it must
+cancel the local pointer/focus state via the existing Cancel event;
+this leaf is not an input broker. Outside the assigned rectangle, after overflow or
+loss of focus a drag is dropped; coming back with the button held does not start a drag.
+Keys: `+`/`-`, `0`/Home (fit), `1` (100%), arrows and Escape (close).
+A key release performs no action; Ctrl/Alt/Super combinations are
+not taken over from the shell.
 
-`semantics` biedt de echte toestand, Nederlandse status, beeldgrootte, zoom,
-focus en framebevestiging voor de toekomstige gedeelde chrome/a11y-adapter.
-Dit is **geen** geregistreerde accessibility-tree of werkende schermlezer.
-Fouten/lege/loadingstatus worden hier niet als pixels getekend; de bestaande
-UI-adapter moet deze tekst werkelijk weergeven. De leaf bevat geen venster.
+`semantics` provides the real state, Dutch status text, image size, zoom,
+focus and frame confirmation for the future shared chrome/a11y adapter.
+This is **not** a registered accessibility tree or a working screen reader.
+Error/empty/loading status is not drawn as pixels here; the existing
+UI adapter must actually display this text. The leaf contains no window.
 
-## Invarianten en harde bewijsgrenzen
+## Invariants and hard evidence boundaries
 
-- `Selection`, `Load` en `observed` zijn correlatiegegevens, **geen autoriteit**.
-  Een native openportaal/provider moet de kernel-afzender aan uitsluitend het
-  geselecteerde object, de revisie en READ binden, inclusief directe kwaadaardige
-  IPC/LIST/mutaties. `domain0 SEND` of `EditMode::ReadOnly` is geen alternatief.
-- De native launchslot-, object-only READ-, focus-, surface- en lifecycle-seam
-  is op de basisbron **niet vrijgegeven**. Root/Materiaal bezit die integratie.
-  Geen bestaande Materiaal-endpoints of bootstrapvelden worden overgenomen.
-- Selectie bindt byte- en decodedpixelbudget; de bestaande codec-`Limits` bindt
-  daarnaast dimensies, metadata, scans/chunks en werktoelating. Er zijn geen
-  extra controller-/renderallocaties of volledige RGBA-conversiebuffers.
-  De bestaande parser kan infallible alloceren: een eigen begrensde arena en
-  geïsoleerd proces met OOM/faultcleanup zijn **verplichte native voorwaarden**.
-  `work_bytes` is geen harde heaplimiet. Een `OutOfMemory`-fout van een worker
-  kunnen tonen bewijst niet dat iedere allocatorfout herstelbaar is.
-- `decode` is synchroon. Een vooraf geannuleerd `Cancellation` werkt echt;
-  het ticket annuleren voorkomt late publicatie. Een UI-cancel kan niet tijdens
-  een geblokkeerde singlethread-decode vanzelf draaien. Responsieve native
-  job-/procesannulering blijft open; er is hier geen misleidende cancelknop.
-- `close`, cancel, vervangen en revoke droppen de owned pixelbuffers en
-  invalideren toekomstig renderen/ACKs. Bronbytes zijn borrowed en worden niet
-  gewist. Allocator-deallocatie is geen secure erase. De adapter moet echte
-  jobs stoppen, endpoints sluiten en de oude surface laten wissen/retiren;
-  reeds getoonde pixels of eerder verkregen kopieën worden niet teruggehaald.
-- De codec en de gelijknamige semantiekvlag melden
-  `metadata_transforms_applied=false` voor de **ruwe samples**. De tegelrenderer
-  past EXIF-orientatie toe op de weergave; ICC/gamma-kleurbeheer en PNG eXIf
-  blijven open. Geen volledige formaat-/fotogetrouwheidsclaim.
-  Dependencykeuze/notices blijven in `services/image-codec`; geen nieuwe
-  registrydependency, decoder of hostuitvoering toegevoegd.
+- `Selection`, `Load` and `observed` are correlation data, **not authority**.
+  A native open portal/provider must bind the kernel sender to only the
+  selected object, the revision and READ, including direct malicious
+  IPC/LIST/mutations. `domain0 SEND` or `EditMode::ReadOnly` is not an alternative.
+- The native launch slot, object-only READ, focus, surface and lifecycle seam
+  has **not been released** on the base source. Root/Materiaal owns that integration.
+  No existing Materiaal endpoints or bootstrap fields are taken over.
+- The selection binds the byte and decoded pixel budget; the existing codec `Limits` additionally binds
+  dimensions, metadata, scans/chunks and work admission. There are no
+  extra controller/render allocations or full RGBA conversion buffers.
+  The existing parser can allocate infallibly: a dedicated bounded arena and
+  an isolated process with OOM/fault cleanup are **mandatory native preconditions**.
+  `work_bytes` is not a hard heap limit. Being able to show an `OutOfMemory` error from a worker
+  does not prove that every allocator failure is recoverable.
+- `decode` is synchronous. A `Cancellation` cancelled beforehand really works;
+  cancelling the ticket prevents late publication. A UI cancel cannot run by itself
+  during a blocked single-threaded decode. Responsive native
+  job/process cancellation remains open; there is no misleading cancel button here.
+- `close`, cancel, replace and revoke drop the owned pixel buffers and
+  invalidate future rendering/ACKs. Source bytes are borrowed and are not
+  erased. Allocator deallocation is not a secure erase. The adapter must stop real
+  jobs, close endpoints and have the old surface erased/retired;
+  pixels already shown or copies obtained earlier are not recalled.
+- The codec and the semantics flag of the same name report
+  `metadata_transforms_applied=false` for the **raw samples**. The tile renderer
+  applies EXIF orientation to the display; ICC/gamma colour management and PNG eXIf
+  remain open. No full format/photo fidelity claim.
+  Dependency choice/notices remain in `services/image-codec`; no new
+  registry dependency, decoder or host execution added.
 
-## Gerichte acceptatie
+## Targeted acceptance
 
-Gebruik de bestaande gepinde toolchainomgeving met een eigen absolute
-`CARGO_TARGET_DIR`; geen gedeelde Cargo-targetwriter. Vanuit de repositoryroot:
+Use the existing pinned toolchain environment with a dedicated absolute
+`CARGO_TARGET_DIR`; no shared Cargo target writer. From the repository root:
 
 ```sh
 cargo +1.90.0 test --locked --offline --manifest-path sdk/examples/image-viewer/Cargo.toml
@@ -95,23 +95,23 @@ cargo +1.90.0 fmt --manifest-path sdk/examples/image-viewer/Cargo.toml -- --chec
 cargo +1.90.0 build --locked --offline --release --lib --manifest-path sdk/examples/image-viewer/Cargo.toml --target x86_64-unknown-none
 ```
 
-Tests gebruiken echte decoderfixtures plus onafhankelijke bekende
-RGBA8/RGBA16/alpha-/letterboxwaarden en echte bestaande input/surfacetypes.
-Vier EXIF-regressies toetsen alle acht asymmetrische pixelmatrices, echte
-JPEG-decode naar alle BGRX-tegels, ongeldige displayafmetingen en geroteerde
-Fit-/zoom-/panassen bij beide UI-schalen.
-Foutinjecties voor dienstweigering/I/O/OOM zijn uitsluitend controllerinputs,
-geen nagebootste kernel-/serviceacceptatie. Tests dekken stale replies,
-budgetten, malformed decoded buffers, decodefouten, annulering, intrekking,
-sluiten, schaal/zoom/pangrenzen, pointercancel en oude/onvolledige frames.
-De verificatiemap bindt uitgevoerde resultaten aan bron-/artifacthashes.
+Tests use real decoder fixtures plus independent known
+RGBA8/RGBA16/alpha/letterbox values and real existing input/surface types.
+Four EXIF regressions test all eight asymmetric pixel matrices, real
+JPEG decode to all BGRX tiles, invalid display dimensions and rotated
+fit/zoom/pan axes at both UI scales.
+Fault injections for service refusal/I/O/OOM are solely controller inputs,
+not simulated kernel/service acceptance. Tests cover stale replies,
+budgets, malformed decoded buffers, decode errors, cancellation, revocation,
+closing, scale/zoom/pan limits, pointer cancel and old/incomplete frames.
+The verification directory binds executed results to source/artifact hashes.
 
-**Niet uitgevoerd:** native appstart, objectportal, QEMU-bediening,
-onafhankelijk framebufferorakel, process-OOM/cancel/revoke, cold storage,
-volledige native/hardware/accessibility- en release-integratiegates.
-De [EXIF-consumerproef](../../../docs/verification/platform-m7-exif-viewer-20261103.md)
-scheidt het hostbewijs van de apart herhaalde native decoderregressie.
-FR-A03 blijft open; deze stap levert geen rubricpunten op
-(**41 -> 41/100**, beoordeling bij de integrator).
-Terugdraaien van de EXIF-consumerstap: de kleine codec-/viewerdiff terugdraaien;
-geen recht, opslagformaat of runtimeprofiel is gewijzigd.
+**Not executed:** native app start, object portal, QEMU operation,
+independent framebuffer oracle, process OOM/cancel/revoke, cold storage,
+complete native/hardware/accessibility and release integration gates.
+The [EXIF consumer test](../../../docs/verification/platform-m7-exif-viewer-20261103.md)
+separates the host evidence from the separately repeated native decoder regression.
+FR-A03 remains open; this step yields no rubric points
+(**41 -> 41/100**, assessment by the integrator).
+Reverting the EXIF consumer step: revert the small codec/viewer diff;
+no right, storage format or runtime profile has changed.
