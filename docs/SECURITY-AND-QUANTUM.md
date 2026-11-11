@@ -1,172 +1,171 @@
-# Beveiliging, privacy en postkwantumontwerp
+# Security, privacy and post-quantum design
 
-Status: beveiligingsontwerp, bijgewerkt 27 oktober 2026. M1–M5 hebben eigen QEMU-testbewijs, M6a heeft nog een open eindpoort en N01 heeft host-/mockbewijs. Er is geen formeel geverifieerde eigen kernel. De eisen hieronder zijn niet automatisch geïmplementeerd of bewezen; de actuele uitvoering staat in PROJECT-STATE.md.
+Status: security design, updated 27 October 2026. M1–M5 have their own QEMU test evidence, M6a still has an open final gate and N01 has host/mock evidence. There is no formally verified own kernel. The requirements below are not automatically implemented or proven; the current execution is in PROJECT-STATE.md.
 
-De nieuwe microkernel-/CHERI-/PQC-blauwdruk is gecontroleerd en vertaald in [VERIFIABLE-SECURITY-AND-PQC.md](implementation/VERIFIABLE-SECURITY-AND-PQC.md), met broncorrecties, de werkelijke native buildgrenzen, een N02-proefprofiel voor TLS 1.3/X25519MLKEM768 (RFC 10024) en afzonderlijke bewijs-/integratietaken. Geen eigen hybride KDF/tunnel, stille seL4-kernelwissel of onbewezen CHERI-garantie. Privacy en een soepele verbonden productervaring blijven gezamenlijke eisen.
+The new microkernel/CHERI/PQC blueprint has been reviewed and translated into [VERIFIABLE-SECURITY-AND-PQC.md](implementation/VERIFIABLE-SECURITY-AND-PQC.md), with source corrections, the actual native build boundaries, an N02 trial profile for TLS 1.3/X25519MLKEM768 (RFC 10024) and separate evidence/integration tasks. No own hybrid KDF/tunnel, silent seL4 kernel switch or unproven CHERI guarantee. Privacy and a smooth connected product experience remain joint requirements.
 
-## 1. Uitgangspunt
+## 1. Starting point
 
-Het doel is aantoonbare beperking van schade: een kwaadaardige app mag uitsluitend haar expliciet toegekende middelen gebruiken. Een zelfstandig ontworpen kernel kan dat nastreven, maar wordt niet automatisch veiliger dan bestaande systemen doordat hij nieuw, klein, open source of in Rust geschreven is. Een onbekende kernel begint juist met veel minder praktijkervaring, auditwerk en hardwareondersteuning.
+The goal is demonstrable limitation of damage: a malicious app may use only the resources explicitly granted to it. An independently designed kernel can pursue that, but does not automatically become more secure than existing systems because it is new, small, open source or written in Rust. An unknown kernel in fact starts with much less field experience, audit work and hardware support.
 
-Gebruik geen claims zoals “onkraakbaar”, “AI-proof”, “100% quantumveilig” of “even veilig als macOS” zonder nauwkeurig omschreven meetmethode. Publiceer per beveiligingseigenschap: implementatiestatus, versie, tests, aannames en resterende risico's.
+Do not use claims such as “uncrackable”, “AI-proof”, “100% quantum-safe” or “as secure as macOS” without a precisely described measurement method. Publish per security property: implementation status, version, tests, assumptions and remaining risks.
 
-## 2. Wat klopt aan het macOS-voorbeeld?
+## 2. What is correct about the macOS example?
 
-Apple gebruikt onder meer app-sandboxing: de app krijgt beperkte toegang tot bestanden, netwerk en hardware. Dat verkleint de schade bij compromittering. App Sandbox is verplicht voor distributie via de Mac App Store; de documentatie beschrijft daarnaast hoe bestaande apps het kunnen toevoegen. Dit betekent niet dat alle software op een Mac in volledig gescheiden, ondoordringbare compartimenten draait. System Integrity Protection is een andere laag en beperkt onder meer wijziging van kritieke systeembestanden, ook door processen met beheerdersrechten (Apple, z.d.; Apple, 2021).
+Apple uses, among other things, app sandboxing: the app gets restricted access to files, network and hardware. That reduces the damage on compromise. App Sandbox is mandatory for distribution via the Mac App Store; the documentation also describes how existing apps can adopt it. This does not mean that all software on a Mac runs in fully separated, impenetrable compartments. System Integrity Protection is a different layer and restricts, among other things, modification of critical system files, including by processes with administrator privileges (Apple, n.d.; Apple, 2021).
 
-Ontwerples: combineer kleine bevoegdheden, procesisolatie, integriteitscontrole, veilig bijwerken en herstel. Een sandbox is geen bewijs dat ontsnappen onmogelijk is. Een microkernel is evenmin synoniem met een veilige sandbox.
+Design lesson: combine small privileges, process isolation, integrity checking, secure updating and recovery. A sandbox is not proof that escape is impossible. Nor is a microkernel synonymous with a secure sandbox.
 
-## 3. Trust boundaries en trusted computing base
+## 3. Trust boundaries and trusted computing base
 
-Een trust boundary is een grens waar invoer, code of rechten opnieuw moeten worden gecontroleerd. De trusted computing base (TCB) is alle code en apparatuur waarop een bepaalde beveiligingsgarantie vertrouwt. “Kleine kernel” en “kleine TCB van het hele product” zijn verschillende zaken.
+A trust boundary is a boundary where input, code or permissions must be checked again. The trusted computing base (TCB) is all code and hardware on which a particular security guarantee relies. “Small kernel” and “small TCB of the whole product” are different things.
 
-Voorgesteld ontwerp:
+Proposed design:
 
-| Onderdeel | Vertrouwen en bevoegdheid | Ontwerpeis |
+| Component | Trust and authority | Design requirement |
 |---|---|---|
-| Firmware, bootpad en CPU | Onderliggende vertrouwensbasis | Exacte platformaannames vastleggen; geen bescherming tegen kwaadaardige firmware beloven |
-| Kernel | Geheugen, scheduling, interrupts, IPC en capabilitycontrole | Zo klein mogelijk; geen browser, netwerkprotocolparser of complexe bestandsparser in de kernel |
-| Initiële beheerder | Verdeelt bij opstart middelen en bevoegdheden | Tijdelijke brede rechten; splitsing en beperking na initialisatie; beleid versioneren |
-| Drivers | Alleen toegewezen apparaat en buffers | Afzonderlijke processen waar haalbaar; DMA-beperking vóór echte DMA-apparaten worden vertrouwd |
-| Systeemdiensten | Eigen geïsoleerde adresruimte | Alleen specifieke IPC-endpoints en expliciete overdracht van middelen |
-| Apps | Standaard geen algemene toegang | Eigen opslag; toestemming via systeemportalen voor extra bestanden/apparaten/netwerk |
-| Updater en sleutelbeheer | Zeer gevoelige rollen | Aparte verantwoordelijkheden en sleutels; geen algemene apprechten |
-| Eventuele AI-agent | Onbetrouwbare app met delegatie | Hetzelfde rechtenmodel als elke app, plus korte taakgebonden machtigingen |
+| Firmware, boot path and CPU | Underlying trust basis | Record exact platform assumptions; do not promise protection against malicious firmware |
+| Kernel | Memory, scheduling, interrupts, IPC and capability checks | As small as possible; no browser, network protocol parser or complex file parser in the kernel |
+| Initial manager | Distributes resources and authority at startup | Temporary broad permissions; split and restrict after initialisation; version the policy |
+| Drivers | Only the assigned device and buffers | Separate processes where feasible; DMA restriction before real DMA devices are trusted |
+| System services | Own isolated address space | Only specific IPC endpoints and explicit transfer of resources |
+| Apps | No general access by default | Own storage; consent via system portals for additional files/devices/network |
+| Updater and key management | Highly sensitive roles | Separate responsibilities and keys; no general app permissions |
+| Any AI agent | Untrusted app with delegation | The same permission model as every app, plus short task-bound authorisations |
 
-Een capability is in dit voorstel een door de kernel beheerde verwijzing naar een object met rechten. Een proces mag niet door het raden van een nummer nieuwe rechten krijgen. seL4 is een bruikbare primaire leerbron voor dit concept, maar hier wordt geen seL4-code of verificatiegarantie overgenomen (seL4 Project, z.d.-a).
+In this proposal, a capability is a kernel-managed reference to an object with rights. A process must not obtain new rights by guessing a number. seL4 is a useful primary learning source for this concept, but no seL4 code or verification guarantee is adopted here (seL4 Project, n.d.-a).
 
-Voor de eigen capability-API moeten vóór implementatie zijn gespecificeerd: aanmaak, overdracht, beperking van rechten, intrekking, objectlevensduur, generatiecontrole bij hergebruik van handles, opruiming bij procesuitval en bescherming tegen de confused-deputy-fout. Die laatste fout ontstaat wanneer een bevoegde dienst onbedoeld haar eigen rechten inzet namens een onbevoegde aanvrager. Maak duidelijk welke identiteit/rechten bij iedere IPC-operatie bepalend zijn. Beperk ook aantallen objecten, wachtrijen en CPU-tijd: toegangscontrole alleen voorkomt geen uitputting.
+For the own capability API, the following must be specified before implementation: creation, transfer, restriction of rights, revocation, object lifetime, generation checking on reuse of handles, cleanup on process failure, and protection against the confused-deputy error. The latter error arises when a privileged service unintentionally uses its own rights on behalf of an unauthorised requester. Make clear which identity/rights are decisive for each IPC operation. Also limit numbers of objects, queues and CPU time: access control alone does not prevent exhaustion.
 
-## 4. Threat model en toetsbaar bewijs
+## 4. Threat model and testable evidence
 
-Beschermde middelen: gebruikersdocumenten, privésleutels, accountgegevens, camera/microfoon, apparaatbesturing, update-integriteit, beschikbaarheid en herstelbaarheid. Tegenstanders: kwaadaardige app, netwerkpartij, besmette dependency, gestolen account of sleutel, kwaadwillende bijdrager, fysiek aanvaller en geautomatiseerde of AI-ondersteunde aanvaller.
+Protected assets: user documents, private keys, account data, camera/microphone, device control, update integrity, availability and recoverability. Adversaries: malicious app, network party, compromised dependency, stolen account or key, malicious contributor, physical attacker and automated or AI-assisted attacker.
 
-| Risico | Voorstel voor beheersing | Minimale bewijsproef |
+| Risk | Proposed control | Minimum evidence trial |
 |---|---|---|
-| App leest geheugen van andere app/kernel | Hardwarematige adresruimte-isolatie en gecontroleerde mappings | Proces A probeert lezen/schrijven/uitvoeren in B en kernel; A wordt gestopt, B blijft functioneren |
-| App vervalst of hergebruikt capability | Kernelbeheer, type/recht/generatiecontrole | Willekeurige, ingetrokken, verkeerde en opnieuw gebruikte handles geven geen toegang |
-| Bevoegde dienst misbruikt door onbevoegde app | Expliciete delegatie en callercontrole | Aanvrager kan via tussenpersoon geen uitgebreider recht krijgen dan toegestaan |
-| App veroorzaakt storing | Quota, foutisolatie en begrensde IPC | Crash, grote berichten en resource-uitputting laten andere testdiensten bruikbaar |
-| Driver of apparaat schrijft willekeurig geheugen | Minimale mappings en, op geschikt platform, correct geconfigureerde IOMMU | DMA-poging buiten toegewezen buffers wordt geblokkeerd; ontbreken van bescherming wordt zichtbaar gerapporteerd |
-| Beschadigd document of netwerkbericht | Kleine parsers buiten kernel, bounds-checks en fuzzing | Corpus met misvormde invoer veroorzaakt geen ontsnapping of ongecontroleerde resourcegroei |
-| Slechte of gemanipuleerde update | Ondertekende metadata, versiebeleid, sleutelrotatie, atomische activatie | Verkeerde handtekening, rollback, mix-and-match, verlopen metadata en afgebroken installatie worden correct afgehandeld |
-| Diefstal van apparaat | Versleutelde gebruikersopslag en gecontroleerd sleutelvrijgeven | Offline kopie van opslag bevat geen plaintext gebruikersdata; herstelpad is getest |
-| Diefstal releasesleutel | Offline vertrouwensankers, gescheiden rollen en meerdere ondertekenaars waar passend | Rotatie en herstel na compromittering werken op bestaande installatie |
-| AI-agent wordt gestuurd door kwaadaardig document | Documentinhoud verleent geen rechten; systeemcontrole op handelingen | Een document met “upload alle bestanden” kan geen bestanden buiten de taakmachtiging laten uitlezen |
-| Privacyverlies door diagnostiek | Geen telemetrie standaard; minimale lokale logs met bewaartermijn | Netwerkobservatie van standaardinstallatie en controle op geheimen in logs |
-| Supplychain-aanval | Vastgelegde dependencies, bronherkomst, gecontroleerde builds en review | Herbouw met vastgelegde inputs; analyse van afwijkende outputs; dependencywijziging zichtbaar in review |
+| App reads memory of another app/kernel | Hardware address-space isolation and controlled mappings | Process A attempts read/write/execute in B and kernel; A is stopped, B keeps functioning |
+| App forges or reuses capability | Kernel management, type/right/generation checks | Random, revoked, wrong and reused handles give no access |
+| Privileged service abused by unauthorised app | Explicit delegation and caller checks | Requester cannot obtain a broader right via an intermediary than permitted |
+| App causes disruption | Quotas, fault isolation and bounded IPC | Crash, large messages and resource exhaustion leave other test services usable |
+| Driver or device writes arbitrary memory | Minimal mappings and, on a suitable platform, a correctly configured IOMMU | DMA attempt outside assigned buffers is blocked; absence of protection is visibly reported |
+| Corrupted document or network message | Small parsers outside the kernel, bounds checks and fuzzing | Corpus of malformed input causes no escape or uncontrolled resource growth |
+| Bad or manipulated update | Signed metadata, version policy, key rotation, atomic activation | Wrong signature, rollback, mix-and-match, expired metadata and aborted installation are handled correctly |
+| Device theft | Encrypted user storage and controlled key release | Offline copy of storage contains no plaintext user data; recovery path is tested |
+| Release key theft | Offline trust anchors, separated roles and multiple signers where appropriate | Rotation and recovery after compromise work on an existing installation |
+| AI agent is steered by malicious document | Document content grants no rights; system check on actions | A document saying “upload all files” cannot cause files outside the task authorisation to be read |
+| Privacy loss through diagnostics | No telemetry by default; minimal local logs with retention period | Network observation of default installation and check for secrets in logs |
+| Supply-chain attack | Pinned dependencies, source provenance, controlled builds and review | Rebuild with pinned inputs; analysis of deviating outputs; dependency change visible in review |
 
-Deze proeven zijn noodzakelijk maar niet voldoende voor een algemene veiligheidsclaim. Een test bewijst het geteste scenario, niet de afwezigheid van alle fouten.
+These trials are necessary but not sufficient for a general security claim. A test proves the tested scenario, not the absence of all errors.
 
-## 5. Ontwikkelregels voor kernel en diensten
+## 5. Development rules for kernel and services
 
-1. Gebruik overwegend safe Rust. Houd assembly, `unsafe`, FFI en hardwaretoegang klein en afzonderlijk te beoordelen. Elke `unsafe`-constructie krijgt een uitleg van de invarianten, de eigenaar daarvan en de relevante test of handmatige controle. Rust laat onder meer deadlocks, logische racecondities, geheugenlekken en foutieve autorisatie toe; `unsafe` en onjuiste abstracties kunnen bovendien geheugenveiligheid doorbreken (Rust Project, z.d.).
-2. Definieer W^X-beleid: geheugenpagina's zijn in beginsel niet tegelijk schrijfbaar en uitvoerbaar. Leg uitzonderingen, mappings, executable loaders en toekomstige JIT-behoeften afzonderlijk vast.
-3. Valideer alle gebruikerspointers, lengtes, integerberekeningen en objecttypes aan de grens. Bepaal wat er gebeurt wanneer een mapping tijdens een operatie verandert; een eenmalige controle voorkomt niet vanzelf TOCTOU-fouten.
-4. Pas ASLR, stackbescherming en aanvullende hardwaremaatregelen toe waar het gekozen platform die correct ondersteunt. Noem ontbrekende maatregelen bij naam; instellingen zijn geen vervanging voor tests.
-5. Introduceer netwerk, USB, GPU, SMP, DMA en persistente opslag stapsgewijs. Iedere toevoeging vergroot de te onderzoeken grens. Begin met QEMU en synthetische data.
-6. Gebruik modelchecking of formele specificaties voor afgebakende invarianten, bijvoorbeeld capability-overdracht en objectlevensduur. Het slagen van een abstract model bewijst niet automatisch dat de implementatie hetzelfde doet.
-7. Maak fouten in beveiligingsgevoelige subsystemen zichtbaar en fail closed. Ontwerp tegelijk een herstelpad zodat één onbruikbare update niet permanent alle data ontoegankelijk maakt.
+1. Use predominantly safe Rust. Keep assembly, `unsafe`, FFI and hardware access small and separately reviewable. Every `unsafe` construct gets an explanation of the invariants, their owner and the relevant test or manual check. Rust permits, among other things, deadlocks, logical race conditions, memory leaks and incorrect authorisation; `unsafe` and incorrect abstractions can moreover break memory safety (Rust Project, n.d.).
+2. Define a W^X policy: memory pages are in principle not writable and executable at the same time. Record exceptions, mappings, executable loaders and future JIT needs separately.
+3. Validate all user pointers, lengths, integer computations and object types at the boundary. Determine what happens when a mapping changes during an operation; a one-time check does not by itself prevent TOCTOU errors.
+4. Apply ASLR, stack protection and additional hardware measures where the chosen platform supports them correctly. Name missing measures explicitly; settings are not a substitute for tests.
+5. Introduce network, USB, GPU, SMP, DMA and persistent storage step by step. Every addition enlarges the boundary to be examined. Start with QEMU and synthetic data.
+6. Use model checking or formal specifications for bounded invariants, for example capability transfer and object lifetime. Passing an abstract model does not automatically prove that the implementation does the same.
+7. Make errors in security-sensitive subsystems visible and fail closed. At the same time design a recovery path so that one unusable update does not permanently make all data inaccessible.
 
-seL4 toont hoe sterk formele verificatie kan zijn, maar documenteert ook aannames rond bootcode, assembly, hardware en DMA. Timingkanalen vallen niet onder de genoemde vertrouwelijkheidsdekking. De eigen kernel heeft eigen specificaties en bewijzen nodig; seL4 noemen of hetzelfde architectuurtype gebruiken draagt geen bewijs over (seL4 Project, z.d.-b).
+seL4 shows how strong formal verification can be, but also documents assumptions around boot code, assembly, hardware and DMA. Timing channels are not covered by the stated confidentiality coverage. The own kernel needs its own specifications and proofs; naming seL4 or using the same architecture type transfers no proof (seL4 Project, n.d.-b).
 
-## 6. Bescherming tegen AI-ondersteunde aanvallen
+## 6. Protection against AI-assisted attacks
 
-Behandel AI als mogelijke versneller van bestaande aanvalsklassen: meer pogingen, sneller zoeken naar fouten, geloofwaardige misleiding en aanvallen op ontwikkeltools. Het OS hoeft geen “AI-aanval” te herkennen om een ongeautoriseerde systeemaanroep te weigeren.
+Treat AI as a possible accelerator of existing attack classes: more attempts, faster searching for errors, credible deception and attacks on development tools. The OS does not need to recognise an “AI attack” to refuse an unauthorised system call.
 
-Voor een optionele assistent geldt uitsluitend lokale inferentie op het apparaat, met netwerktoegang geweigerd en zonder cloudfallback. Modeldownloads lopen via een afzonderlijke dienst zonder document- of contexttoegang. Zie LOCAL-PRIVACY-CONTRACT.md. Verder:
+For an optional assistant, only local inference on the device applies, with network access denied and without cloud fallback. Model downloads go through a separate service without document or context access. See LOCAL-PRIVACY-CONTRACT.md. Furthermore:
 
-- Geen permanente adminrechten, algemene shellmachtiging of onbeperkte toegang tot de thuismap.
-- Machtiging heeft een concrete scope: objecten, actie, bestemming, duur en eventueel maximumbedrag/hoeveelheid. De kernel/dienst dwingt dit af; de belofte in de modelprompt is onvoldoende.
-- Scheid lezen van uitvoeren en lezen van verzenden. Toegang tot een document is geen toestemming om het te uploaden.
-- Geef betrouwbare systeemdialogen voor een nieuwe gevoelige bevoegdheid. Een app mag toestemmingstekst niet als systeemmelding kunnen vervalsen.
-- Log uitvoeringsbesluiten lokaal zonder documentinhoud of geheimen onnodig te bewaren. Maak toestemming intrekbaar.
+- No permanent admin rights, general shell authorisation or unrestricted access to the home directory.
+- Authorisation has a concrete scope: objects, action, destination, duration and possibly maximum amount/quantity. The kernel/service enforces this; the promise in the model prompt is insufficient.
+- Separate reading from executing and reading from sending. Access to a document is not consent to upload it.
+- Provide trusted system dialogs for a new sensitive permission. An app must not be able to forge consent text as a system notification.
+- Log execution decisions locally without needlessly retaining document content or secrets. Make consent revocable.
 
-Voor Codex tijdens ontwikkeling: geen productiesleutels, echte gebruikersdata of releasebevoegdheden in de werkruimte. Tooluitvoer, issues, comments en dependencydocumenten kunnen onbetrouwbare instructies bevatten. Laat een onafhankelijke reviewer de gewijzigde code en bewijsvoering beoordelen; dezelfde agent nogmaals laten zeggen dat het veilig is, is geen onafhankelijke audit.
+For Codex during development: no production keys, real user data or release privileges in the workspace. Tool output, issues, comments and dependency documents may contain untrusted instructions. Have an independent reviewer assess the changed code and the evidence; having the same agent say again that it is secure is not an independent audit.
 
-## 7. Postkwantumcryptografie: wat wel en niet wordt beschermd
+## 7. Post-quantum cryptography: what is and is not protected
 
-Postkwantumcryptografie (PQC) draait op gewone computers en probeert cryptografische bescherming te bieden tegen aanvallers met een grote quantumcomputer. Het maakt een fout in de kernel, verkeerd ingestelde rechten, een gestolen sleutel of een gelekt wachtwoord niet onschadelijk.
+Post-quantum cryptography (PQC) runs on ordinary computers and aims to provide cryptographic protection against attackers with a large quantum computer. It does not render harmless a bug in the kernel, misconfigured permissions, a stolen key or a leaked password.
 
-| Standaard | Algoritme | Rol in een mogelijk OS |
+| Standard | Algorithm | Role in a possible OS |
 |---|---|---|
-| FIPS 203 | ML-KEM | Een gedeeld geheim vaststellen; geen losse bestandsversleutelaar en geen handtekening |
-| FIPS 204 | ML-DSA | Digitale handtekeningen, bijvoorbeeld in een passend ontworpen updateprotocol |
-| FIPS 205 | SLH-DSA | Hashgebaseerde digitale handtekeningen; andere afwegingen voor omvang en snelheid |
+| FIPS 203 | ML-KEM | Establishing a shared secret; not a standalone file encryptor and not a signature |
+| FIPS 204 | ML-DSA | Digital signatures, for example in a suitably designed update protocol |
+| FIPS 205 | SLH-DSA | Hash-based digital signatures; different trade-offs for size and speed |
 
-Deze standaarden zijn op 13 augustus 2024 gepubliceerd. NIST formuleert de weerstand als gebaseerd op de huidige kennis, geen onvoorwaardelijke garantie. Controleer bij daadwerkelijke implementatie de geldende specificatie, errata, parameterkeuze, libraryversie en protocolondersteuning; de geopende FIPS 203- en 204-pagina's verwijzen naar errata (NIST, 2024a, 2024b, 2024c).
+These standards were published on 13 August 2024. NIST phrases the resistance as based on current knowledge, not an unconditional guarantee. For actual implementation, check the applicable specification, errata, parameter choice, library version and protocol support; the consulted FIPS 203 and 204 pages refer to errata (NIST, 2024a, 2024b, 2024c).
 
-Aanbevolen ontwerpbeleid:
+Recommended design policy:
 
-1. **Geen eigen cryptografische algoritmen of zelfbedachte hybride combinaties.** Hergebruik onderhouden, onafhankelijk beoordeelde implementaties die de gekozen standaardversie ondersteunen. Een eigen OS hoeft geen eigen wiskunde te gebruiken.
-2. **Maak een crypto-inventaris.** Registreer algoritmen, sleutels, certificaten, protocollen, trust anchors, bewaartermijnen en afhankelijkheden van firmware/TPM/cloud. Begin vóór het eerste versleutelde netwerkprotocol.
-3. **Ontwerp crypto-agility.** Geef sleutels en metadata expliciete algoritme- en formaatversies, met een beperkte lijst toegestane opties. Onderhandel nooit onbeveiligd terug naar een zwakker algoritme. Test intrekking en migratie.
-4. **Gebruik PQC in een passend, gespecificeerd protocol.** “ML-KEM toegevoegd” is geen bewijs dat authenticatie, kanaalbinding, downgradebescherming en sleutelafleiding kloppen. Hybride inzet kan nuttig zijn, maar vraagt een vastgesteld protocol en onafhankelijke beoordeling; geen algoritmen zelf aan elkaar plakken.
-5. **Bescherm langdurig vertrouwelijke data vroeg.** Opgeslagen netwerkverkeer kan later worden aangevallen. Versleuteling van de schijf vervangt daarom geen toekomstbestendig transportprotocol, en omgekeerd.
-6. **Blijf symmetrische encryptie gebruiken waar passend.** AES-256 is een kandidaat voor veiligheidsmarge in een geschikt opslag- of berichtformaat. Modus, nonces, authenticatie, sleutelafleiding en sleutelbeheer moeten afzonderlijk kloppen. ML-KEM vervangt die onderdelen niet. NIST behandelt de quantumdreiging voor symmetrische crypto anders dan voor klassieke public-key-systemen (NIST, 2026).
-7. **Test de hele keten.** Bekende testvectoren, interoperabiliteit, misvormde sleutels/handtekeningen, entropyfouten, sleutellevensduur en sidechannels. Een algoritmenaam op een checklist is onvoldoende.
+1. **No own cryptographic algorithms or self-devised hybrid combinations.** Reuse maintained, independently reviewed implementations that support the chosen standard version. An own OS does not need to use its own mathematics.
+2. **Create a crypto inventory.** Register algorithms, keys, certificates, protocols, trust anchors, retention periods and dependencies on firmware/TPM/cloud. Start before the first encrypted network protocol.
+3. **Design for crypto agility.** Give keys and metadata explicit algorithm and format versions, with a restricted list of permitted options. Never negotiate down insecurely to a weaker algorithm. Test revocation and migration.
+4. **Use PQC in a suitable, specified protocol.** “ML-KEM added” is not proof that authentication, channel binding, downgrade protection and key derivation are correct. Hybrid deployment can be useful, but requires an established protocol and independent review; do not glue algorithms together yourself.
+5. **Protect long-term confidential data early.** Recorded network traffic can be attacked later. Disk encryption therefore does not replace a future-proof transport protocol, and vice versa.
+6. **Keep using symmetric encryption where appropriate.** AES-256 is a candidate for security margin in a suitable storage or message format. Mode, nonces, authentication, key derivation and key management must each be correct separately. ML-KEM does not replace those components. NIST treats the quantum threat to symmetric crypto differently from that to classical public-key systems (NIST, 2026).
+7. **Test the whole chain.** Known test vectors, interoperability, malformed keys/signatures, entropy failures, key lifetime and side channels. An algorithm name on a checklist is insufficient.
 
-Een PQ-ondertekend systeemimage garandeert geen PQ-veilige secure-bootketen als firmware alleen een klassieke kwetsbare handtekening afdwingt. Benoem expliciet welk deel van boot, herstel, firmware en updates beschermd is. Geen end-to-end-claim zolang één vertrouwensanker niet onder de claim valt.
+A PQ-signed system image does not guarantee a PQ-secure secure-boot chain if firmware only enforces a classical vulnerable signature. State explicitly which part of boot, recovery, firmware and updates is protected. No end-to-end claim as long as one trust anchor is not covered by the claim.
 
-Veilige entropy is een apart ontwerpprobleem. Geen sleutels afleiden uit tijd, vaste seeds of alleen een voorspelbare emulatorbron. Bij gebrek aan geschikte entropy geen cryptografische sleutelgeneratie uitvoeren. Een testseed hoort uitsluitend in duidelijk gemarkeerde tests.
+Secure entropy is a separate design problem. Do not derive keys from time, fixed seeds or only a predictable emulator source. In the absence of suitable entropy, do not perform cryptographic key generation. A test seed belongs exclusively in clearly marked tests.
 
-## 8. Updates, rollback en herstel
+## 8. Updates, rollback and recovery
 
-The Update Framework is een referentie voor gescheiden ondertekenrollen en bescherming tegen onder meer oude updates, bevroren update-informatie en inconsistente metadata. Gebruik de specificatie en een geschikte implementatie; claim geen TUF-compatibiliteit op basis van alleen een vergelijkbaar ontwerp (The Update Framework, z.d.-a, z.d.-b).
+The Update Framework is a reference for separated signing roles and protection against, among other things, old updates, frozen update information and inconsistent metadata. Use the specification and a suitable implementation; do not claim TUF compatibility based only on a similar design (The Update Framework, n.d.-a, n.d.-b).
 
-Het OS-voorstel combineert atomische activatie met een geteste vorige installatie. Maak onderscheid tussen een geautoriseerde herstelactie en een aanvaller die een kwetsbare oude versie aanbiedt. Definieer de laagst toegestane beveiligingsversie, autorisatie voor uitzonderingen, sleutelrotatie en wat er gebeurt wanneer de klok onbetrouwbaar is. Test stroomuitval vóór, tijdens en na activatie en controleer behoud van gebruikersdata. Kopieer nooit simpelweg een halve systeemupdate over de actieve installatie.
+The OS proposal combines atomic activation with a tested previous installation. Distinguish between an authorised recovery action and an attacker offering a vulnerable old version. Define the lowest permitted security version, authorisation for exceptions, key rotation and what happens when the clock is unreliable. Test power loss before, during and after activation and verify that user data is preserved. Never simply copy half a system update over the active installation.
 
-Reproduceerbare builds helpen om bron en output te vergelijken, maar bewijzen niet dat de broncode vrij van kwetsbaarheden is. Ondertekening bewijst herkomst onder de gebruikte sleutel, niet dat de software goed is.
+Reproducible builds help to compare source and output, but do not prove that the source code is free of vulnerabilities. Signing proves provenance under the key used, not that the software is good.
 
-## 9. Privacy en Europese autonomie
+## 9. Privacy and European autonomy
 
-Herziene gebruikersvereiste (28 oktober 2026): OS-gegevens blijven lokaal, gaan end-to-end versleuteld naar een expliciet gekoppelde eigen NAS/NAS van vrienden of familie, of worden na expliciete keuze als opaque client-side versleutelde objecten bij een externe opslagprovider bewaard. Remote bereik via internet vereist afzonderlijke rechten. Geen verplichte leverancierscloud, stille relay/fallback, provider-key-escrow of OS-telemetrie. NAS-beheerder mag capaciteit intrekken en zijn ciphertextkopieën wissen zonder toestemming van de gast; externe providers bezitten evenmin Nieuw-OS-inhoudssleutels. Providers kunnen beschikbaarheid niet garanderen en zien noodzakelijke account-/verkeersmetadata. Lokale taken blijven zonder NAS/provider werken. Eigen herstelkopieën, rollbackdetectie en sleutelherstel zijn afzonderlijke vereisten. Zie LOCAL-PRIVACY-CONTRACT.md revisie 4, implementation/NAS-SHARING-AND-INTERNET.md en implementation/ENCRYPTED-OBJECT-STORAGE.md.
+Revised user requirement (28 October 2026): OS data stays local, goes end-to-end encrypted to an explicitly paired own NAS/NAS of friends or family, or, after an explicit choice, is stored as opaque client-side encrypted objects with an external storage provider. Remote reach via the internet requires separate permissions. No mandatory vendor cloud, silent relay/fallback, provider key escrow or OS telemetry. The NAS administrator may withdraw capacity and wipe their ciphertext copies without the guest's consent; external providers likewise hold no Nieuw OS content keys. Providers cannot guarantee availability and see necessary account/traffic metadata. Local tasks keep working without NAS/provider. Own recovery copies, rollback detection and key recovery are separate requirements. See LOCAL-PRIVACY-CONTRACT.md revision 4, implementation/NAS-SHARING-AND-INTERNET.md and implementation/ENCRYPTED-OBJECT-STORAGE.md.
 
-Europese hosting alleen is geen bewijs van privacy; open source alleen evenmin. Houd ook afhankelijkheden van stores, signingdiensten, buildinfrastructuur, firmware, documentatie en externe authenticatie zichtbaar. Geografie is geen kwaliteitskeurmerk voor cryptografie: beoordeel openbare standaarden op inhoud, implementatie en onafhankelijke analyse.
+European hosting alone is not evidence of privacy; nor is open source alone. Also keep dependencies on stores, signing services, build infrastructure, firmware, documentation and external authentication visible. Geography is not a quality mark for cryptography: assess public standards on content, implementation and independent analysis.
 
-Bij toekomstig gebruik door instellingen is een aparte beoordeling van concrete gegevensverwerkingen, wetgeving en verantwoordelijkheden nodig. Dit document doet geen claim van AVG- of andere juridische conformiteit.
+For future use by institutions, a separate assessment of concrete data processing, legislation and responsibilities is needed. This document makes no claim of GDPR or other legal conformity.
 
-## 10. Een quantumcomputer waarop het OS draait
+## 10. A quantum computer on which the OS runs
 
-De praktische uitbreidingsroute is een klassieke computer die onder dit OS draait en een QPU als gespecialiseerde rekenvoorziening aanstuurt. IBM beschrijft systemen met klassieke runtime-servers, qubitbesturing en gecombineerde klassieke/quantumworkflows (IBM, z.d.).
+The practical extension route is a classical computer running this OS that drives a QPU as a specialised compute resource. IBM describes systems with classical runtime servers, qubit control and combined classical/quantum workflows (IBM, n.d.).
 
-“De kernel direct op qubits draaien zoals op een x86-CPU” is daarom geen bruikbaar eerste portabiliteitsdoel. Een eventuele latere quantumjobdienst mag onder dit privacycontract uitsluitend een eigen lokaal beheerde QPU aansturen; externe quantumcloudverwerking valt buiten de OS-integratie. Dit is een expliciet onderzoeksspoor vanaf de ontwerpstart, met Q0–Q4 in QUANTUM-RESEARCH.md. De eigen kernel als klassieke besturingslaag van een hybride quantumcomputer is een afzonderlijk doel; hardware-integratie volgt na specifieke interface- en controllerproeven. Toegangsrechten en bescherming van invoer/resultaten blijven vereist. Compatibiliteit met een concrete QPU moet per platform worden aangetoond. Voor dit nog te bouwen OS kan die compatibiliteit niet worden geverifieerd.
+“Running the kernel directly on qubits as on an x86 CPU” is therefore not a useful first portability goal. Any later quantum job service may, under this privacy contract, drive only an own locally managed QPU; external quantum cloud processing falls outside the OS integration. This is an explicit research track from the start of design, with Q0–Q4 in QUANTUM-RESEARCH.md. The own kernel as the classical control layer of a hybrid quantum computer is a separate goal; hardware integration follows after specific interface and controller trials. Access permissions and protection of inputs/results remain required. Compatibility with a concrete QPU must be demonstrated per platform. For this OS, which is yet to be built, that compatibility cannot be verified.
 
-## 11. Claims per ontwikkelfase
+## 11. Claims per development phase
 
-| Fase | Wat mag worden gezegd na bewijs | Wat nog niet |
+| Phase | What may be said after evidence | What not yet |
 |---|---|---|
-| Bootdemo | Start in de benoemde emulatorconfiguratie | Veilig voor gevoelige gegevens |
-| Procesisolatie | Genoemde negatieve isolatietests slagen op deze commit | Alle sandboxes zijn onontsnapbaar |
-| Capabilityprototype | Gespecificeerde overdracht/intrekking werkt in tests | Formeel bewezen autorisatie |
-| Crypto-integratie | Benoemde implementatie, vectoren en interoperabiliteit werken | Het gehele OS is quantumveilig of FIPS-gevalideerd |
-| Externe review | Genoemde onderdelen zijn op datum X beoordeeld; bevindingen zijn inzichtelijk | Alle toekomstige wijzigingen zijn automatisch veilig |
+| Boot demo | Starts in the named emulator configuration | Safe for sensitive data |
+| Process isolation | Named negative isolation tests pass on this commit | All sandboxes are inescapable |
+| Capability prototype | Specified transfer/revocation works in tests | Formally proven authorisation |
+| Crypto integration | Named implementation, vectors and interoperability work | The entire OS is quantum-safe or FIPS-validated |
+| External review | Named components were reviewed on date X; findings are transparent | All future changes are automatically secure |
 
-Gebruik het prototype uitsluitend met wegwerpdata totdat de relevante bescherming aantoonbaar is geïmplementeerd, herhaalbaar getest en beoordeeld. Plan onderhoud, beveiligingsmeldingen en updates als permanente projectonderdelen.
+Use the prototype only with disposable data until the relevant protection has been demonstrably implemented, repeatably tested and reviewed. Plan maintenance, security advisories and updates as permanent project components.
 
-## Bronnen (APA 7)
+## Sources (APA 7)
 
-Apple. (z.d.). *Protecting user data with App Sandbox*. Apple Developer Documentation. Geraadpleegd op 26 oktober 2026, van https://developer.apple.com/documentation/security/protecting-user-data-with-app-sandbox
+Apple. (n.d.). *Protecting user data with App Sandbox*. Apple Developer Documentation. Accessed 26 October 2026, from https://developer.apple.com/documentation/security/protecting-user-data-with-app-sandbox
 
-Apple. (2021, 18 februari). *System Integrity Protection*. Apple Platform Security. https://support.apple.com/en-gw/guide/security/secb7ea06b49/web
+Apple. (2021, 18 February). *System Integrity Protection*. Apple Platform Security. https://support.apple.com/en-gw/guide/security/secb7ea06b49/web
 
-IBM. (z.d.). *IBM Quantum hardware and roadmap*. Geraadpleegd op 26 oktober 2026, van https://www.ibm.com/quantum/hardware
+IBM. (n.d.). *IBM Quantum hardware and roadmap*. Accessed 26 October 2026, from https://www.ibm.com/quantum/hardware
 
-National Institute of Standards and Technology. (2024a). *Module-lattice-based key-encapsulation mechanism standard* (FIPS 203). https://doi.org/10.6028/NIST.FIPS.203 — Publicatiepagina en errata: https://csrc.nist.gov/pubs/fips/203/final
+National Institute of Standards and Technology. (2024a). *Module-lattice-based key-encapsulation mechanism standard* (FIPS 203). https://doi.org/10.6028/NIST.FIPS.203 — Publication page and errata: https://csrc.nist.gov/pubs/fips/203/final
 
-National Institute of Standards and Technology. (2024b). *Module-lattice-based digital signature standard* (FIPS 204). https://doi.org/10.6028/NIST.FIPS.204 — Publicatiepagina en errata: https://csrc.nist.gov/pubs/fips/204/final
+National Institute of Standards and Technology. (2024b). *Module-lattice-based digital signature standard* (FIPS 204). https://doi.org/10.6028/NIST.FIPS.204 — Publication page and errata: https://csrc.nist.gov/pubs/fips/204/final
 
 National Institute of Standards and Technology. (2024c). *Stateless hash-based digital signature standard* (FIPS 205). https://doi.org/10.6028/NIST.FIPS.205
 
-National Institute of Standards and Technology. (2026, 5 augustus). *Post-quantum cryptography: FAQs*. https://csrc.nist.gov/projects/post-quantum-cryptography/faqs
+National Institute of Standards and Technology. (2026, 5 August). *Post-quantum cryptography: FAQs*. https://csrc.nist.gov/projects/post-quantum-cryptography/faqs
 
-Rust Project. (z.d.). *What unsafe Rust can do*. The Rustonomicon. Geraadpleegd op 26 oktober 2026, van https://doc.rust-lang.org/nomicon/what-unsafe-does.html
+Rust Project. (n.d.). *What unsafe Rust can do*. The Rustonomicon. Accessed 26 October 2026, from https://doc.rust-lang.org/nomicon/what-unsafe-does.html
 
-seL4 Project. (z.d.-a). *Capabilities*. seL4 Documentation. Geraadpleegd op 26 oktober 2026, van https://docs.sel4.systems/Tutorials/capabilities.html
+seL4 Project. (n.d.-a). *Capabilities*. seL4 Documentation. Accessed 26 October 2026, from https://docs.sel4.systems/Tutorials/capabilities.html
 
-seL4 Project. (z.d.-b). *What the proofs assume*. Geraadpleegd op 26 oktober 2026, van https://sel4.systems/Verification/assumptions.html
+seL4 Project. (n.d.-b). *What the proofs assume*. Accessed 26 October 2026, from https://sel4.systems/Verification/assumptions.html
 
-The Update Framework. (z.d.-a). *Roles and metadata*. Geraadpleegd op 26 oktober 2026, van https://theupdateframework.io/docs/metadata/
+The Update Framework. (n.d.-a). *Roles and metadata*. Accessed 26 October 2026, from https://theupdateframework.io/docs/metadata/
 
-The Update Framework. (z.d.-b). *Security*. Geraadpleegd op 26 oktober 2026, van https://theupdateframework.io/docs/security/
-
+The Update Framework. (n.d.-b). *Security*. Accessed 26 October 2026, from https://theupdateframework.io/docs/security/

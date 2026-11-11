@@ -1,271 +1,271 @@
-# B03 — ondertekende updates en rollback (testprofiel `native-update`, loader `signed-boot-test`)
+# B03 — signed updates and rollback (test profile `native-update`, loader `signed-boot-test`)
 
-Datum: 29 oktober 2026. Status: **ontwerpcontract, daarna geïmplementeerd in
-dezelfde opdracht**; uitgevoerde controles en hun uitkomst staan uitsluitend
-in [B03-ACCEPTANCE](../verification/B03-ACCEPTANCE.md). Criterium B03
-(docs/progress.json): *authentieke updates, onderbreking, downgrade-aanvallen
-en herstel naar een geldige vorige versie zijn end-to-end getest.* Vervult
-P03 (systeemimage) uit [VERIFIABLE-SECURITY-AND-PQC](VERIFIABLE-SECURITY-AND-PQC.md)
-§5 en EU-07 uit [EUROPE-AND-RELEASE](EUROPE-AND-RELEASE.md). Besluit: ADR-049.
+Date: 29 October 2026. Status: **design contract, then implemented in
+the same assignment**; checks performed and their outcome are recorded exclusively
+in [B03-ACCEPTANCE](../verification/B03-ACCEPTANCE.md). Criterion B03
+(docs/progress.json): *authentic updates, interruption, downgrade attacks
+and recovery to a valid previous version are tested end to end.* Fulfils
+P03 (system image) from [VERIFIABLE-SECURITY-AND-PQC](VERIFIABLE-SECURITY-AND-PQC.md)
+§5 and EU-07 from [EUROPE-AND-RELEASE](EUROPE-AND-RELEASE.md). Decision: ADR-049.
 
-## 1. Probleem
+## 1. Problem
 
-De loader laadt tot nu toe `kernel.elf` van de alleen-lezen ESP zonder enige
-herkomstcontrole; er is geen tweede slot, geen versiebeleid en geen manier om
-een nieuwe kernel te installeren. B03 voegt een **slotopslag** toe op een
-blokapparaat, een **hybride ondertekend manifest** per slot, verificatie in de
-loader met vastgepinde ankers, een firmwaregebonden **versievloer** tegen
-downgrades, en een ring-3 **update-dienst** die een bundel in twee fasen
-installeert zodat een onderbreking nooit het laatst geldige slot aantast.
+Until now the loader loads `kernel.elf` from the read-only ESP without any
+provenance check; there is no second slot, no version policy and no way to
+install a new kernel. B03 adds a **slot store** on a
+block device, a **hybrid signed manifest** per slot, verification in the
+loader with pinned anchors, a firmware-bound **version floor** against
+downgrades, and a ring-3 **update service** that installs a bundle in two phases
+so that an interruption never affects the last valid slot.
 
-## 2. Beveiligingsinvarianten (eerst)
+## 2. Security invariants (first)
 
-1. **Beide handtekeningen of niets.** Een manifest is geldig als én de
-   Ed25519-handtekening én de ML-DSA-65-handtekening over exact dezelfde
-   canonieke bytes verifiëren tegen de vastgepinde ankers. Eén geldige
-   handtekening is onvoldoende; een ontbrekende, verwisselde of over andere
-   bytes gezette handtekening wordt geweigerd. Geen downgrade naar één
-   algoritme.
-2. **Digest bindt image aan manifest.** De loader hasht het volledige image
-   dat het uit het slot leest en vergelijkt met `image_sha256` in het
-   manifest vóór één byte wordt uitgevoerd. Lengte, doel-ID, formaatversie en
-   slotpositie staan in de canonieke bytes.
-3. **Versievloer.** De loader bewaart de hoogste gestarte versie in de
-   UEFI-NV-variabele `NieuwOsMinVersion` (eigen vendor-GUID). Een slot met
-   `version < vloer` wordt geweigerd als `DOWNGRADE`, ook als de pointer in de
-   header ernaar wijst. De vloer stijgt alleen; zij daalt nooit automatisch.
-4. **Terugval naar de vorige geldige versie.** De header-pointer is een hint,
-   geen autoriteit. Faalt het aangewezen slot (handtekening, digest, vloer,
-   lengte, lezen), dan probeert de loader het andere slot. Pas als beide
-   falen eindigt de boot gecontroleerd met `BOOT:FAIL:NO_VALID_SLOT`.
-5. **Onderbreking laat het actieve slot intact.** De update-dienst schrijft
-   uitsluitend naar het niet-actieve slot: eerst image, FLUSH, dan manifest,
-   FLUSH, dan de header met de nieuwe pointer, FLUSH. Een onderbreking vóór
-   de laatste FLUSH laat de oude pointer en het oude slot ongewijzigd; de
-   installatie is idempotent en wordt bij de volgende boot herhaald.
-6. **De dienst verifieert zelf.** De update-dienst accepteert een bundel
-   alleen na dezelfde hybride verificatie, digestcontrole en versiecontrole
-   (`version > huidige` en `version ≥ vloer`); de kernel kent geen formaten
-   en de loader vertrouwt de dienst niet: beide controleren onafhankelijk.
-7. **Geen productiesleutels in de repository.** TEST-ankers uit
-   `tools/update-keys/TEST-*` zijn alleen beschikbaar via de expliciete
-   feature `test-signing-anchors`; de fixtureloader gebruikt
-   `signed-boot-test`. De generieke feature `signed-boot` en de native
-   update-dienst zonder expliciete policy falen tijdens compilatie. Er is
-   geen productiepolicy of releaseprofiel ingericht; toekomstige
-   productieankers vereisen een afzonderlijk ontworpen en geautoriseerd
-   releasepad buiten CI (ADR-049).
-8. **Firmwaregrens benoemd.** OVMF start de loader zonder Secure Boot; de
-   loader zelf wordt niet door de firmware geverifieerd (B04 open). B03
-   beschermt de keten vanaf de loader: slotkeuze, manifest, image, vloer.
+1. **Both signatures or nothing.** A manifest is valid if both the
+   Ed25519 signature and the ML-DSA-65 signature over exactly the same
+   canonical bytes verify against the pinned anchors. One valid
+   signature is insufficient; a missing, swapped or
+   signature over different bytes is rejected. No downgrade to a single
+   algorithm.
+2. **Digest binds image to manifest.** The loader hashes the complete image
+   it reads from the slot and compares it with `image_sha256` in the
+   manifest before a single byte is executed. Length, target ID, format version and
+   slot position are in the canonical bytes.
+3. **Version floor.** The loader stores the highest booted version in the
+   UEFI NV variable `NieuwOsMinVersion` (own vendor GUID). A slot with
+   `version < vloer` is rejected as `DOWNGRADE`, even if the pointer in the
+   header points to it. The floor only rises; it never decreases automatically.
+4. **Fallback to the previous valid version.** The header pointer is a hint,
+   not an authority. If the designated slot fails (signature, digest, floor,
+   length, read), the loader tries the other slot. Only if both
+   fail does the boot end in a controlled way with `BOOT:FAIL:NO_VALID_SLOT`.
+5. **Interruption leaves the active slot intact.** The update service writes
+   exclusively to the inactive slot: first image, FLUSH, then manifest,
+   FLUSH, then the header with the new pointer, FLUSH. An interruption before
+   the last FLUSH leaves the old pointer and the old slot unchanged; the
+   installation is idempotent and is repeated on the next boot.
+6. **The service verifies by itself.** The update service accepts a bundle
+   only after the same hybrid verification, digest check and version check
+   (`version > huidige` and `version ≥ vloer`); the kernel knows no formats
+   and the loader does not trust the service: both check independently.
+7. **No production keys in the repository.** TEST anchors from
+   `tools/update-keys/TEST-*` are only available via the explicit
+   feature `test-signing-anchors`; the fixture loader uses
+   `signed-boot-test`. The generic feature `signed-boot` and the native
+   update service without an explicit policy fail at compile time. No
+   production policy or release profile has been set up; future
+   production anchors require a separately designed and authorized
+   release path outside CI (ADR-049).
+8. **Firmware boundary named.** OVMF starts the loader without Secure Boot; the
+   loader itself is not verified by the firmware (B04 open). B03
+   protects the chain from the loader onward: slot choice, manifest, image, floor.
 
-## 3. Formaten (`crates/update-core`, `no_std`, hosttests)
+## 3. Formats (`crates/update-core`, `no_std`, host tests)
 
-### Manifest (`NOSMAN01`, 3 500 bytes, canoniek little-endian)
+### Manifest (`NOSMAN01`, 3 500 bytes, canonical little-endian)
 
-| Offset | Veld |
+| Offset | Field |
 |---|---|
 | 0 | magic `NOSMAN01` |
 | 8 | `format_version` u32 = 1 |
 | 12 | `target` u32 (1 = kernel) |
 | 16 | `image_length` u32 (≤ 2 MiB) |
 | 20 | `version` u64 |
-| 28 | `min_version` u64 (door de ondertekenaar beweerde ondergrens) |
+| 28 | `min_version` u64 (lower bound asserted by the signer) |
 | 36 | `image_sha256` [32] |
-| 68 | `ed25519_key_id` [8] (eerste 8 bytes van SHA-256 over de publieke sleutel) |
+| 68 | `ed25519_key_id` [8] (first 8 bytes of SHA-256 over the public key) |
 | 76 | `mldsa_key_id` [8] |
 | 84 | `ed25519_signature` [64] |
 | 148 | `mldsa65_signature` [3309] |
-| 3457 | nul tot 3500 |
+| 3457 | zero up to 3500 |
 
-De canonieke boodschap is `bytes[0..84]`; beide handtekeningen staan over
-exact die 84 bytes. `key_id`'s moeten overeenkomen met de ankers; een
-onbekende sleutel-ID wordt als `UNKNOWN_KEY` geweigerd zonder handtekening te
-verifiëren.
+The canonical message is `bytes[0..84]`; both signatures are over
+exactly those 84 bytes. `key_id`'s must match the anchors; an
+unknown key ID is rejected as `UNKNOWN_KEY` without verifying a
+signature.
 
-### Slotopslag (`NOSSLOT1`, sectoren van 512 B)
+### Slot store (`NOSSLOT1`, 512 B sectors)
 
-| Sector | Inhoud |
+| Sector | Content |
 |---|---|
-| 0 | header: magic, `format_version` u32, `active` u32 (0/1), `generation` u64, voor slot A en B elk `manifest_sector` u32, `image_sector` u32, `image_capacity_sectors` u32; `inbox_manifest_sector` u32, `inbox_image_sector` u32, `inbox_capacity_sectors` u32; rest nul |
-| 1–7 | slot A manifest (3 500 B in 7 sectoren) |
-| 8–4103 | slot A image (2 MiB; een kernelimage met ingesloten ring-3-programma's is ca. 1,5 MiB) |
+| 0 | header: magic, `format_version` u32, `active` u32 (0/1), `generation` u64, for slot A and B each `manifest_sector` u32, `image_sector` u32, `image_capacity_sectors` u32; `inbox_manifest_sector` u32, `inbox_image_sector` u32, `inbox_capacity_sectors` u32; rest zero |
+| 1–7 | slot A manifest (3 500 B in 7 sectors) |
+| 8–4103 | slot A image (2 MiB; a kernel image with embedded ring-3 programs is approx. 1.5 MiB) |
 | 4104–4110 | slot B manifest |
 | 4111–8206 | slot B image |
 | 8207–8213 | inbox manifest |
 | 8214–12309 | inbox image |
 
-Totaal 12 310 sectoren (ca. 6 MiB).
+Total 12 310 sectors (approx. 6 MiB).
 
-De header draagt geen handtekening; zij is een hint. Vaste posities worden
-door loader en dienst gecontroleerd tegen deze tabel (geen vertrouwen in
-header-offsets buiten het bereik van het apparaat).
+The header carries no signature; it is a hint. Fixed positions are
+checked by loader and service against this table (no trust in
+header offsets outside the range of the device).
 
-## 4. Loader (`boot/loader`, testfeature `signed-boot-test`)
+## 4. Loader (`boot/loader`, test feature `signed-boot-test`)
 
-1. Zoek via `LocateHandleBuffer(BLOCK_IO)` het eerste blokapparaat waarvan
-   sector 0 de slotmagic draagt (≤ 32 handles). Geen apparaat → `BOOT:FAIL:NO_STORE`:
-   een `signed-boot-test`-loader valt nooit terug op een onondertekende
-   ESP-kernel. Alleen loaders zonder de feature (alle andere profielen)
-   gebruiken het bestaande M1-pad; de build legt voor `signed-boot-test` geen
-   `kernel.elf` op de ESP.
-2. Lees header, lees de vloer uit `NieuwOsMinVersion` (ontbreekt → 0).
-3. Voor het aangewezen slot en daarna het andere: lees manifest, controleer
-   magic/versie/doel/lengte, `key_id`'s, beide handtekeningen, lees het image
-   (`image_length` bytes), SHA-256, vergelijk, en controleer dat het image een
-   laadbare ELF is (dezelfde parser als het M1-pad; een correct ondertekend
-   maar onlaadbaar image is `REJECTED:FORMAT`); weiger `version < vloer`.
-   Serieel: `BOOT:SLOT:<A|B>:VERSION:<n>` of
+1. Via `LocateHandleBuffer(BLOCK_IO)`, find the first block device whose
+   sector 0 carries the slot magic (≤ 32 handles). No device → `BOOT:FAIL:NO_STORE`:
+   a `signed-boot-test` loader never falls back to an unsigned
+   ESP kernel. Only loaders without the feature (all other profiles)
+   use the existing M1 path; for `signed-boot-test` the build places no
+   `kernel.elf` on the ESP.
+2. Read the header, read the floor from `NieuwOsMinVersion` (missing → 0).
+3. For the designated slot and then the other: read the manifest, check
+   magic/version/target/length, `key_id`'s, both signatures, read the image
+   (`image_length` bytes), SHA-256, compare, and check that the image is a
+   loadable ELF (the same parser as the M1 path; a correctly signed
+   but unloadable image is `REJECTED:FORMAT`); reject `version < vloer`.
+   Serial: `BOOT:SLOT:<A|B>:VERSION:<n>` or
    `BOOT:SLOT:<A|B>:REJECTED:<SIGNATURE|DIGEST|DOWNGRADE|FORMAT|READ>`.
-4. Verhoog pas daarna de vloer naar `version` van het gekozen slot
-   (`SetVariable`, NV+BS), druk `BOOT:SIGNED:OK` af en ga door met de
-   bestaande overdracht van het al gevalideerde image.
+4. Only then raise the floor to the `version` of the chosen slot
+   (`SetVariable`, NV+BS), print `BOOT:SIGNED:OK` and continue with the
+   existing handover of the already validated image.
 
-Cryptografie in de loader: `ed25519-dalek` 2.2.0 (serial backend) en
-`ml-dsa` 0.1.1 (RustCrypto, pure Rust), `sha2` 0.10.9. Geen allocaties
-buiten de bestaande pagina-allocaties; het image wordt in het bestaande
-`MAX_FILE_SIZE`-buffer gelezen.
+Cryptography in the loader: `ed25519-dalek` 2.2.0 (serial backend) and
+`ml-dsa` 0.1.1 (RustCrypto, pure Rust), `sha2` 0.10.9. No allocations
+beyond the existing page allocations; the image is read into the existing
+`MAX_FILE_SIZE` buffer.
 
-## 5. Kernelprofiel `native-update` en update-dienst
+## 5. Kernel profile `native-update` and update service
 
-- Kernel: generieke blokbroker (zoals `native-volume`, zelfde syscalls
-  0x40–0x43) met een scope over de hele slotopslag en een ring-3
-  update-dienst (slot 0) plus een observer-app (slot 1) die de uitkomst
-  rapporteert. De kernel drukt zijn eigen imageversie af
-  (`KERNEL:IMAGE_VERSION:<n>`, build-env `NOS_IMAGE_VERSION`) en kent geen
-  manifest- of slotformaat.
-- Dienst: leest header, bepaalt het actieve slot en de inbox; verifieert de
-  inboxbundel (invariant 6); als `inbox.version > actieve versie`:
-  installeert in het niet-actieve slot in de volgorde van invariant 5 en
-  meldt `UPDATE:INSTALLED:<n>`; anders `UPDATE:UP_TO_DATE`. Geweigerde bundel:
-  `UPDATE:REJECTED:<reden>` zonder één schrijfactie.
-- Fixture `test-update-cut`: de kernel beëindigt de VM (echte hostkill) na
-  een vast aantal image-writes in het niet-actieve slot, vóór de header-
-  write. De volgende boot moet het oude slot starten en de installatie
-  afmaken.
+- Kernel: generic block broker (like `native-volume`, same syscalls
+  0x40–0x43) with a scope over the entire slot store and a ring-3
+  update service (slot 0) plus an observer app (slot 1) that reports the
+  outcome. The kernel prints its own image version
+  (`KERNEL:IMAGE_VERSION:<n>`, build env `NOS_IMAGE_VERSION`) and knows no
+  manifest or slot format.
+- Service: reads the header, determines the active slot and the inbox; verifies the
+  inbox bundle (invariant 6); if `inbox.version > actieve versie`:
+  installs into the inactive slot in the order of invariant 5 and
+  reports `UPDATE:INSTALLED:<n>`; otherwise `UPDATE:UP_TO_DATE`. Rejected bundle:
+  `UPDATE:REJECTED:<reden>` without a single write.
+- Fixture `test-update-cut`: the kernel terminates the VM (real host kill) after
+  a fixed number of image writes into the inactive slot, before the header
+  write. The next boot must start the old slot and finish the
+  installation.
 
-## 6. Acceptatiegevallen (echte QEMU-runs, één slotopslagimage, één OVMF_VARS)
+## 6. Acceptance cases (real QEMU runs, one slot store image, one OVMF_VARS)
 
-| # | Run | Vereiste observatie |
+| # | Run | Required observation |
 |---|---|---|
-| 1 | install | slot A = v1, inbox = v2; loader `SLOT:A:VERSION:1`, `SIGNED:OK`; dienst `UPDATE:INSTALLED:2`; hostorakel: slot B = v2-bytes + manifest, header `active=B`, slot A byte-identiek |
-| 2 | boot-v2 | zelfde image/vars: loader `SLOT:B:VERSION:2`; `KERNEL:IMAGE_VERSION:2`; dienst `UP_TO_DATE`; vloer = 2 |
-| 3 | downgrade | host zet header `active=A`; loader `SLOT:A:REJECTED:DOWNGRADE`, `SLOT:B:VERSION:2`; kernel v2 |
-| 4 | bad-signature | verse vars; host flipt één byte in de ML-DSA-handtekening van slot B en zet `active=B`; loader `SLOT:B:REJECTED:SIGNATURE`, `SLOT:A:VERSION:1`; dienst installeert opnieuw (`INSTALLED:2`); orakel: slot B hersteld |
-| 5 | bad-digest | verse image; host flipt één imagebyte in slot B (manifest intact); `SLOT:B:REJECTED:DIGEST`, terugval naar A |
-| 6 | cut | verse image, feature `test-update-cut`: echte kill tijdens image-writes; herboot: `SLOT:A:VERSION:1`, header ongewijzigd, dienst voltooit `INSTALLED:2`; derde boot: `SLOT:B:VERSION:2` |
-| 7 | no-valid-slot | beide manifesten beschadigd: `BOOT:FAIL:NO_VALID_SLOT`, exit 0x11; geen kernelmarker |
-| 8 | tampered-inbox | inbox met één handtekening of met `version` verlaagd onder de vloer: dienst `UPDATE:REJECTED:*`, geen schrijfactie (orakel: slot B leeg, header ongewijzigd) |
+| 1 | install | slot A = v1, inbox = v2; loader `SLOT:A:VERSION:1`, `SIGNED:OK`; service `UPDATE:INSTALLED:2`; host oracle: slot B = v2 bytes + manifest, header `active=B`, slot A byte-identical |
+| 2 | boot-v2 | same image/vars: loader `SLOT:B:VERSION:2`; `KERNEL:IMAGE_VERSION:2`; service `UP_TO_DATE`; floor = 2 |
+| 3 | downgrade | host sets header `active=A`; loader `SLOT:A:REJECTED:DOWNGRADE`, `SLOT:B:VERSION:2`; kernel v2 |
+| 4 | bad-signature | fresh vars; host flips one byte in the ML-DSA signature of slot B and sets `active=B`; loader `SLOT:B:REJECTED:SIGNATURE`, `SLOT:A:VERSION:1`; service reinstalls (`INSTALLED:2`); oracle: slot B restored |
+| 5 | bad-digest | fresh image; host flips one image byte in slot B (manifest intact); `SLOT:B:REJECTED:DIGEST`, fallback to A |
+| 6 | cut | fresh image, feature `test-update-cut`: real kill during image writes; reboot: `SLOT:A:VERSION:1`, header unchanged, service completes `INSTALLED:2`; third boot: `SLOT:B:VERSION:2` |
+| 7 | no-valid-slot | both manifests corrupted: `BOOT:FAIL:NO_VALID_SLOT`, exit 0x11; no kernel marker |
+| 8 | tampered-inbox | inbox with a single signature or with `version` lowered below the floor: service `UPDATE:REJECTED:*`, no write (oracle: slot B empty, header unchanged) |
 
-Hostorakel `tools/update_disk.py` leest de slotopslag onafhankelijk (Python,
-zonder cryptografie: byte-vergelijking met de bekende v1/v2-images en
-manifesten). Gate `tools/test_update.py`: hosttests (`update-core` met
-vastgelegde testvectoren voor Ed25519 (RFC 8032) en ML-DSA-65 (vast seed-
-vector uit de crate), manifestcanoniek, selectiebeleid, planner; `update-tool`
-keygen/sign/pack roundtrip) en daarna de runs hierboven op één bevroren bron.
+Host oracle `tools/update_disk.py` reads the slot store independently (Python,
+without cryptography: byte comparison with the known v1/v2 images and
+manifests). Gate `tools/test_update.py`: host tests (`update-core` with
+recorded test vectors for Ed25519 (RFC 8032) and ML-DSA-65 (fixed seed
+vector from the crate), manifest canonical form, selection policy, planner; `update-tool`
+keygen/sign/pack round trip) and then the runs above on one frozen source.
 
-## 7. Wat B03 niet bewijst
+## 7. What B03 does not prove
 
-Geen firmware-/Secure-Boot-verificatie van de loader zelf (B04), geen
-sleutelrotatie-/intrekkingsbeleid in productie (ankers zijn TEST-ankers),
-geen bescherming tegen een aanvaller met schrijftoegang tot OVMF_VARS, geen
-updates van gebruikersprogramma's of pakketten (A02), geen netwerkdistributie
-(N-spoor), geen fysieke schijf of stroomuitval (een emulator-kill is iets
-anders).
+No firmware/Secure Boot verification of the loader itself (B04), no
+key rotation/revocation policy in production (anchors are TEST anchors),
+no protection against an attacker with write access to OVMF_VARS, no
+updates of user programs or packages (A02), no network distribution
+(N track), no physical disk or power loss (an emulator kill is something
+else).
 
-## Vervolg B03-KEY-POLICY-1 — versiegebonden ondertekeningsautoriteit
+## Follow-up B03-KEY-POLICY-1 — version-bound signing authority
 
-30 oktober 2026, basis `0ade8014`. Doel: bekende maar ingetrokken,
-te vroeg gebruikte of buiten hun releasevenster gebruikte sleutelparen
-weigeren in loader én update-dienst, en een vooraf vastgepinde opvolger
-installeren/herstarten. Schrijfgebied: `crates/update-core`, signed loader,
-update-service, uitsluitend updatefoutnamen in kernelobserver, signingtool,
-updateharnas/-fixtures, CI-stagenaam en bijbehorende documentatie. Geen
-keyring-/TPM-/NAS-interface of nieuwe dependency.
+30 October 2026, base `0ade8014`. Goal: reject known but revoked,
+prematurely used or outside-their-release-window key pairs
+in both loader and update service, and install/restart a pre-pinned successor.
+Write scope: `crates/update-core`, signed loader,
+update service, only update error names in the kernel observer, signing tool,
+update harness/fixtures, CI stage name and associated documentation. No
+keyring/TPM/NAS interface or new dependency.
 
-Invariant: één exact Ed25519/ML-DSA-65-paar moet in de door de vertrouwde
-code geleverde `TrustPolicy` staan, niet ingetrokken zijn, beide handtekeningen
-moeten verifiëren en de geauthenticeerde releaseversie moet binnen het
-inclusieve venster liggen. De tabel bevat 1–8 paren; lege tabellen, ongeldige
-vensters en dubbele ID-paren falen volledig met `KEY_POLICY`. Geen first-match-
-omweg om een ingetrokken paar opnieuw toe te laten. Gewijzigde versiebytes
-falen op handtekening vóór vensteracceptatie. Intrekking is onvoorwaardelijk.
+Invariant: exactly one Ed25519/ML-DSA-65 pair must be in the `TrustPolicy`
+supplied by the trusted code, must not be revoked, both signatures
+must verify, and the authenticated release version must lie within the
+inclusive window. The table contains 1–8 pairs; empty tables, invalid
+windows and duplicate ID pairs fail completely with `KEY_POLICY`. No first-match
+bypass to readmit a revoked pair. Modified version bytes
+fail on signature before window acceptance. Revocation is unconditional.
 
-`policy::Signer` bevat `anchors`, `first_version`, `last_version`, `revoked`;
-`TrustPolicy::new(&[Signer])` valideert de tabel; `verify_manifest` retourneert
-alleen volledig geautoriseerde manifests. De oude top-level verifier blijft
-een expliciete cryptografische primitief voor de signingtool/tests, niet
-het native autorisatiepad. Loader en dienst roepen exact dezelfde
-`test_policy::verify_manifest` aan, met de zichtbaar openbare fixtures uit
-`tools/update-keys`. Nieuwe foutnamen/codes: `KEY_REVOKED`/7,
-`KEY_EXPIRED`/8, `KEY_NOT_YET_VALID`/9 en `KEY_POLICY`/10.
+`policy::Signer` contains `anchors`, `first_version`, `last_version`, `revoked`;
+`TrustPolicy::new(&[Signer])` validates the table; `verify_manifest` returns
+only fully authorized manifests. The old top-level verifier remains
+an explicit cryptographic primitive for the signing tool/tests, not
+the native authorization path. Loader and service call exactly the same
+`test_policy::verify_manifest`, with the visibly public fixtures from
+`tools/update-keys`. New error names/codes: `KEY_REVOKED`/7,
+`KEY_EXPIRED`/8, `KEY_NOT_YET_VALID`/9 and `KEY_POLICY`/10.
 
-Acceptatie: 6 nieuwe echte cryptografische hosttests, bestaande toolrondgang,
-harnasnegatieven en de volledige `tools/test_update.py`-poort (18 stages).
-De vijf extra stages zijn rotatie-installatie, koude boot met het opvolgerpaar
-op dezelfde disk/OVMF-state, en drie gevallen waarin loader én dienst
-respectievelijk revoked/expired/not-yet-valid afwijzen. De drie weigeringen
-vereisen 0 writes/flushes en een byte-identieke slotdisk; de rotatie vereist
-exact het opvolgermanifest op schijf en behoud van het oorspronkelijke slot.
+Acceptance: 6 new real cryptographic host tests, the existing tool round trip,
+harness negatives and the full `tools/test_update.py` gate (18 stages).
+The five extra stages are rotation install, cold boot with the successor pair
+on the same disk/OVMF state, and three cases in which loader and service
+reject revoked/expired/not-yet-valid respectively. The three rejections
+require 0 writes/flushes and a byte-identical slot disk; the rotation requires
+exactly the successor manifest on disk and preservation of the original slot.
 
-Bewijsgrens: versievensters zijn geen kalenderverval. Er is geen vertrouwde
-kalenderklok, online intrekkingslijst, geauthenticeerde beleidsupdate, automatische
-verwijdering van het bestaande TEST-paar of productieherstel-/rotatieceremonie.
-Een aanvaller met een nog toegestane sleutel kan nog steeds een toegestane
-release ondertekenen. Rollback van de loader/beleidstabel zelf blijft B04;
-de UEFI-vloeraannames van B03 blijven gelden. Geen sluiting van #41 of nieuwe
-rubricpunten op alleen deze implementatie. Uitvoering volgt in het eigen
-brongebonden bewijsrapport; deze sectie is het contract, niet het verdict.
+Evidence boundary: version windows are not calendar expiry. There is no trusted
+calendar clock, online revocation list, authenticated policy update, automatic
+removal of the existing TEST pair or production recovery/rotation ceremony.
+An attacker with a still-permitted key can still sign a permitted
+release. Rollback of the loader/policy table itself remains B04;
+the UEFI floor assumptions of B03 continue to apply. No closing of #41 or new
+rubric points on this implementation alone. Execution follows in its own
+source-bound evidence report; this section is the contract, not the verdict.
 
-## 8. Afwijkingen tijdens implementatie
+## 8. Deviations during implementation
 
-- **Slotgrootte 2 MiB.** Een kernelimage met ingesloten ring-3-programma's is
-  ca. 1,5 MiB (grotendeels geïnitialiseerde kerneldata); de slots zijn
-  daarom 4096 sectoren en `image_length` ≤ 2 MiB. De tabel in §3 is
-  bijgewerkt.
-- **Geen aparte observer-app.** Het profiel `native-update` start alleen de
-  update-dienst (één ring-3-proces). De drie onafhankelijke partijen van de
-  acceptatie zijn de loader (verificatie bij de volgende boot), de dienst
-  (verificatie vóór installatie) en het hostorakel `tools/update_disk.py`
-  (bytes op schijf). Een app zonder blokrechten is al in M6e bewezen.
-- **Draaiend slot door versie, niet door header.** De dienst bepaalt het
-  slot waarnaar zij niet mag schrijven als het slot waarvan de geverifieerde
-  manifestversie gelijk is aan de door de kernel gemelde eigen imageversie
-  (startwoord 120); de header is alleen de volgorde-hint. Zonder zo'n slot
-  weigert de dienst te installeren (foutcode -19). Daarmee kan een
-  gemanipuleerde header de dienst nooit het actieve slot laten overschrijven
-  (acceptatiegeval bad-signature).
-- **Hervatting zichtbaar.** Vóór de digestcontrole kijkt de dienst of het
-  doelslot al de eerste imagesector van deze bundel maar nog geen manifest
-  draagt en meldt dat als `RESUMED` (startwoord 368). De gelabelde
-  crashfixture `test-update-cut` snijdt alleen een eerste poging af (64
-  voltooide niet-headerwrites), zodat de herboot de installatie kan afmaken.
-- **Loaderstack.** ML-DSA-65-verificatie houdt ca. 200 KiB stackframes vast;
-  de loader voert de slotselectie uit op een eigen 1 MiB-paginaallocatie
-  (asm-stackwissel, efiapi) en de kernel geeft de dienst in dit profiel 512 KiB
-  gebruikersstack.
-- **Loadermarkers.** Naast `BOOT:SLOT:<X>:VERSION:<n>` en
-  `BOOT:SLOT:<X>:REJECTED:<reden>` print de loader `BOOT:FLOOR:<n>` (gelezen
-  vloer) en meldt een leeg slot als `REJECTED:FORMAT`. Zonder slotopslag
-  stopt de `signed-boot-test`-loader met `BOOT:FAIL:NO_STORE` (reviewbevinding:
-  een terugval naar de ESP zou handtekeningen en vloer omzeilen; §4 is
-  daarop aangepast).
-- **ELF-validiteit hoort bij slotacceptatie.** Een correct ondertekend
-  image dat de ELF-parser weigert, is `REJECTED:FORMAT`, zodat het andere
-  slot wordt geprobeerd en de vloer nooit stijgt voor een image dat niet
-  kan draaien (reviewbevinding; stage `bad-elf`).
-- **Dertien stages in negen reeksen** in plaats van acht runs: de reeks
-  install → boot-v2 → downgrade deelt slotopslag en OVMF_VARS; bad-signature,
-  bad-digest, bad-elf en no-valid-slot zijn verse reeksen; cut → cut-resume →
-  cut-final deelt de slotopslag; de inboxgevallen (handtekening, downgrade,
-  vreemde sleutel) zijn elk een verse reeks. Het gate-script bouwt drie
-  kernels (v1, v2, v1 met cutfixture), ondertekent met de TEST-ankers, maakt
-  één ondertekend niet-ELF-image en één ad-hoc vreemd sleutelpaar, en
-  controleert na iedere stage de schijf met het Python-orakel.
-- **Gebruikersstackgrens als parameter.** `kernel-core::user::valid_return_layout`
-  pinde de stack hard op 0x7ffef000–0x7ffff000; de kernel geeft nu zijn eigen
-  `STACK..STACK_END` door, zodat het 512 KiB-profiel geldige frames niet
-  afkeurt (dat deed de eerste run vastlopen in `idle()`).
-- **Directe apparaatpoll.** De broker pollt het apparaat één keer
-  niet-blokkerend bij `block_wait` (0x41) voordat hij EAGAIN geeft; de
-  installatie van 3 048 sectoren duurt daarmee ca. 10 s in TCG.
+- **Slot size 2 MiB.** A kernel image with embedded ring-3 programs is
+  approx. 1.5 MiB (mostly initialized kernel data); the slots are
+  therefore 4096 sectors and `image_length` ≤ 2 MiB. The table in §3 has been
+  updated.
+- **No separate observer app.** The profile `native-update` starts only the
+  update service (one ring-3 process). The three independent parties of the
+  acceptance are the loader (verification on the next boot), the service
+  (verification before installation) and the host oracle `tools/update_disk.py`
+  (bytes on disk). An app without block rights was already proven in M6e.
+- **Running slot by version, not by header.** The service determines the
+  slot it must not write to as the slot whose verified
+  manifest version equals the kernel's reported own image version
+  (start word 120); the header is only the ordering hint. Without such a slot
+  the service refuses to install (error code -19). Thus a
+  manipulated header can never make the service overwrite the active slot
+  (acceptance case bad-signature).
+- **Resumption visible.** Before the digest check the service checks whether the
+  target slot already carries the first image sector of this bundle but no manifest yet,
+  and reports that as `RESUMED` (start word 368). The labelled
+  crash fixture `test-update-cut` cuts off only a first attempt (64
+  completed non-header writes), so that the reboot can finish the installation.
+- **Loader stack.** ML-DSA-65 verification holds approx. 200 KiB of stack frames;
+  the loader performs slot selection on its own 1 MiB page allocation
+  (asm stack switch, efiapi) and in this profile the kernel gives the service 512 KiB
+  of user stack.
+- **Loader markers.** Besides `BOOT:SLOT:<X>:VERSION:<n>` and
+  `BOOT:SLOT:<X>:REJECTED:<reden>` the loader prints `BOOT:FLOOR:<n>` (floor
+  read) and reports an empty slot as `REJECTED:FORMAT`. Without a slot store
+  the `signed-boot-test` loader stops with `BOOT:FAIL:NO_STORE` (review finding:
+  a fallback to the ESP would bypass signatures and floor; §4 has been
+  adjusted accordingly).
+- **ELF validity is part of slot acceptance.** A correctly signed
+  image that the ELF parser rejects is `REJECTED:FORMAT`, so that the other
+  slot is tried and the floor never rises for an image that cannot
+  run (review finding; stage `bad-elf`).
+- **Thirteen stages in nine sequences** instead of eight runs: the sequence
+  install → boot-v2 → downgrade shares slot store and OVMF_VARS; bad-signature,
+  bad-digest, bad-elf and no-valid-slot are fresh sequences; cut → cut-resume →
+  cut-final shares the slot store; the inbox cases (signature, downgrade,
+  foreign key) are each a fresh sequence. The gate script builds three
+  kernels (v1, v2, v1 with cut fixture), signs with the TEST anchors, creates
+  one signed non-ELF image and one ad-hoc foreign key pair, and
+  checks the disk with the Python oracle after every stage.
+- **User stack limit as a parameter.** `kernel-core::user::valid_return_layout`
+  hard-pinned the stack to 0x7ffef000–0x7ffff000; the kernel now passes its own
+  `STACK..STACK_END`, so that the 512 KiB profile does not reject valid frames
+  (that made the first run hang in `idle()`).
+- **Direct device poll.** The broker polls the device once
+  non-blocking on `block_wait` (0x41) before returning EAGAIN; the
+  installation of 3 048 sectors thus takes approx. 10 s in TCG.
