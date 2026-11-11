@@ -33,6 +33,10 @@ fail on `main` every day.
   and only after a complete project scan.
 - Work Type, Subsystem and Priority keep the fill-only rule of #303.
 - Scheduled runs without the secret skip with a warning; manual runs fail.
+- The 18 non-required workflows with `paths-ignore` share one list that skips
+  documentation, all Markdown, issue/discussion templates and this project
+  tooling. A contract test fixes that list and proves that code, lockfile,
+  build-tool and workflow paths still trigger them; `ci.yml` stays unfiltered.
 
 **Consequences:** Project Status is organisational. It never overrides a
 GitHub Actions result; Done follows a merge, never a check. Live behaviour is
