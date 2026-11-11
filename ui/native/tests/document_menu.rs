@@ -720,3 +720,92 @@ fn scrolled_selection_survives_menu_dismissal_and_resync_never_replays_a_press()
         assert_eq!(after.4, Status::InputLost);
     });
 }
+
+fn key_action(key: PhysicalKey, action: KeyAction) -> Event {
+    Event::Key(KeyboardEvent {
+        key,
+        action,
+        modifiers: KeyboardModifiers::default(),
+    })
+}
+
+#[test]
+fn held_enter_on_select_all_does_not_replace_the_draft_through_repeat_and_release() {
+    scenario(EditMode::ReadWrite, |_, ui| {
+        let mut sequence = 0;
+        let before = state(ui);
+        send(ui, &mut sequence, key(PhysicalKey::Menu, false, false));
+        assert_eq!(ui.view().document_menu.unwrap().selected, 0);
+        send(
+            ui,
+            &mut sequence,
+            key_action(PhysicalKey::Enter, KeyAction::Press),
+        );
+        assert!(ui.view().document_menu.is_none());
+        for _ in 0..3 {
+            send(
+                ui,
+                &mut sequence,
+                key_action(PhysicalKey::Enter, KeyAction::Repeat),
+            );
+        }
+        send(
+            ui,
+            &mut sequence,
+            key_action(PhysicalKey::Enter, KeyAction::Release),
+        );
+        let after = state(ui);
+        assert_eq!(after.0, before.0, "the draft text is preserved");
+        assert!(!after.5, "the draft stays clean");
+        // After release a genuine new Enter press edits again.
+        send(
+            ui,
+            &mut sequence,
+            key_action(PhysicalKey::Enter, KeyAction::Press),
+        );
+        assert_eq!(state(ui).0, "\n");
+    });
+}
+
+#[test]
+fn backspace_held_through_menu_dismissal_does_not_delete_until_a_new_press() {
+    scenario(EditMode::ReadWrite, |_, ui| {
+        let mut sequence = 0;
+        send(ui, &mut sequence, key(PhysicalKey::End, false, true));
+        let before = state(ui);
+        send(ui, &mut sequence, key(PhysicalKey::Menu, false, false));
+        send(
+            ui,
+            &mut sequence,
+            key_action(PhysicalKey::Backspace, KeyAction::Press),
+        );
+        send(ui, &mut sequence, key(PhysicalKey::Escape, false, false));
+        assert!(ui.view().document_menu.is_none());
+        send(
+            ui,
+            &mut sequence,
+            key_action(PhysicalKey::Backspace, KeyAction::Repeat),
+        );
+        send(
+            ui,
+            &mut sequence,
+            key_action(PhysicalKey::Backspace, KeyAction::Repeat),
+        );
+        send(
+            ui,
+            &mut sequence,
+            key_action(PhysicalKey::Backspace, KeyAction::Release),
+        );
+        let after = state(ui);
+        assert_eq!(
+            (&after.0, after.1, after.5),
+            (&before.0, before.1, before.5)
+        );
+        send(
+            ui,
+            &mut sequence,
+            key_action(PhysicalKey::Backspace, KeyAction::Press),
+        );
+        assert_eq!(state(ui).0.len(), before.0.len() - 1);
+    });
+}

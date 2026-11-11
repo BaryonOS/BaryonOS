@@ -228,6 +228,9 @@ pub struct Controller<'a, T> {
     back_after_save: bool,
     document_menu: Option<DocumentMenu>,
     menu_pressed: Option<usize>,
+    /// Keys consumed while the document menu was open; their repeats and
+    /// release stay out of the editor even after the menu is dismissed.
+    menu_owned_keys: [bool; 256],
 }
 
 impl<'a, T: Transport> Controller<'a, T> {
@@ -289,6 +292,7 @@ impl<'a, T: Transport> Controller<'a, T> {
             back_after_save: false,
             document_menu: None,
             menu_pressed: None,
+            menu_owned_keys: [false; 256],
         })
     }
 
@@ -1728,12 +1732,21 @@ impl<'a, T: Transport> Controller<'a, T> {
         }
     }
     fn key(&mut self, event: KeyboardEvent) -> Result<(), Error> {
+        let slot = event.key as usize;
         if !matches!(event.action, KeyAction::Press | KeyAction::Repeat) {
+            self.menu_owned_keys[slot] = false;
             return Ok(());
         }
         let press = event.action == KeyAction::Press;
         if self.document_menu.is_some() {
+            self.menu_owned_keys[slot] = true;
             return self.menu_key(event);
+        }
+        if press {
+            self.menu_owned_keys[slot] = false;
+        } else if self.menu_owned_keys[slot] {
+            // A repeat of a key the dismissed menu consumed must not edit.
+            return Ok(());
         }
         if event.key == PhysicalKey::Menu
             || (event.key == PhysicalKey::F10 && event.modifiers.shift())
