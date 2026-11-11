@@ -19,7 +19,7 @@ nieuw-os-input-client = { path = "../../input-client" }
 nieuw-os-input-core = { path = "../../../services/input-core" }
 nieuw-os-surface-protocol = { path = "../../../ui/surface-protocol", features = ["client"] }
 ui-core = { path = "../../../crates/ui-core" }
-noto-sans-mono-bitmap = { version = "=0.3.2", default-features = false, features = ["regular", "size_16", "size_32", "unicode-basic-latin", "unicode-latin-1-supplement", "unicode-specials"] }
+noto-sans-mono-bitmap = { version = "=0.4.0", default-features = false, features = ["regular", "size_16", "size_32", "unicode-basic-latin", "unicode-latin-1-supplement", "unicode-specials"] }
 
 [dev-dependencies]
 capability-core = { path = "../../../crates/capability-core" }
