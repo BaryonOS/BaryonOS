@@ -1,38 +1,38 @@
-# I01 — begrensde native qsim-port
+# I01 — bounded native qsim port
 
-Deze adapter bouwt de bestaande `qsim-core` als afzonderlijk Rust-programma
-voor `x86_64-unknown-none`. De simulatoralgoritmen blijven ongewijzigd. Het
-programma heeft geen blok-, document-, netwerk- of beheerrechten. Het voert
-de berekeningen in ring 3 uit zodra het opt-in kerneltestmanifest deze ELF
-laadt. Een geslaagde `build.py` is uitsluitend compilatie-/artifactbewijs;
-native uitvoering krijgt afzonderlijk QEMU-bewijs van de integrator.
+This adapter builds the existing `qsim-core` as a separate Rust program
+for `x86_64-unknown-none`. The simulator algorithms remain unchanged. The
+program has no block, document, network or administration rights. It performs
+the computations in ring 3 as soon as the opt-in kernel test manifest loads this
+ELF. A successful `build.py` is solely compilation/artifact evidence;
+native execution gets separate QEMU evidence from the integrator.
 
-## Afbakening
+## Scope
 
-- Maximaal zes qubits, 64 gates, 4.096 shots per job.
-- De bestaande simulatorseed blijft deterministisch en is geen entropy of
-  cryptografische toevalsbron.
-- De bestaande `Control`-interface geeft annulering en een begrensd
-  werkbudget door. De proef test deterministische deadline-injectie; er is
-  geen nieuwe native klok- of IPC-cancelcapability.
-- De allocator gebruikt uitsluitend de bestaande private 64-KiB-procesheap.
-  Hij geeft geheugen in deze eindige proef pas bij procesexit terug. Dit is
-  nog geen allocator voor een permanent herbruikbare quantumdienst.
-- Alle heapaanvragen gebruiken gecontroleerde optellingen en uitlijning.
-  De proef controleert zowel een geweigerde allocatoraanvraag als de echte
-  `ResourceExhausted`-uitkomst van de bestaande simulatorcore.
-- `f64` wordt door Rusts bestaande target/compiler-builtins met scalar
-  instructies uitgevoerd. De kernel hoeft geen x87/SIMD-context toe te voegen.
-  `build.py` controleert de gedecodeerde volledige `.text` en weigert x87,
-  MMX, SSE, AVX, opmaskregisters en onbekende instructieregels. Dit is een
-  artifactcontrole, geen formeel bewijs of fysieke-hardwarekwalificatie.
+- At most six qubits, 64 gates, 4,096 shots per job.
+- The existing simulator seed remains deterministic and is not entropy or
+  a cryptographic randomness source.
+- The existing `Control` interface passes on cancellation and a bounded
+  work budget. The test exercises deterministic deadline injection; there is
+  no new native clock or IPC cancel capability.
+- The allocator uses only the existing private 64 KiB process heap.
+  In this finite test it returns memory only at process exit. This is
+  not yet an allocator for a permanently reusable quantum service.
+- All heap requests use checked additions and alignment.
+  The test checks both a refused allocator request and the real
+  `ResourceExhausted` outcome of the existing simulator core.
+- `f64` is executed with scalar instructions by Rust's existing target/compiler builtins.
+  The kernel does not need to add any x87/SIMD context.
+  `build.py` checks the decoded full `.text` and rejects x87,
+  MMX, SSE, AVX, opmask registers and unknown instruction lines. This is an
+  artifact check, not a formal proof or physical hardware qualification.
 
-## Reproduceren
+## Reproduction
 
-Benodigd: Rust 1.90.0 met `x86_64-unknown-none`, `rust-lld`, Python 3,
-GNU `objdump` en `nm`. Er zijn geen nieuwe externe Rust-dependencies. De
-eigen `Cargo.lock` bevat alleen deze adapter en de bestaande lokale core.
-Gebruik per gelijktijdige bouwer een eigen target- en uitvoermap.
+Required: Rust 1.90.0 with `x86_64-unknown-none`, `rust-lld`, Python 3,
+GNU `objdump` and `nm`. There are no new external Rust dependencies. The
+package's own `Cargo.lock` contains only this adapter and the existing local core.
+Use a separate target and output directory per concurrent builder.
 
 ```bash
 CARGO_TARGET_DIR=/tmp/nieuw-os-i01-target cargo test --manifest-path experiments/quantum/native/Cargo.toml --locked --offline
@@ -41,50 +41,50 @@ python3 experiments/quantum/native/tests/test_build_gate.py
 python3 experiments/quantum/native/build.py --output-dir /tmp/nieuw-os-i01-build --target-dir /tmp/nieuw-os-i01-target
 ```
 
-`build-report.json` bindt bronhashes, opdrachten, Rust-versie, ELF-segmenten,
-binaryhash en disassemblyhash. `native_runtime_performed` blijft daarin
-expliciet `false`: deze opdracht start geen emulator. De ELF heet
-`qsim-native-probe.elf`. Bestaande kernel-/boot-/capability-interfaces worden
-niet door deze map gewijzigd.
+`build-report.json` binds source hashes, commands, Rust version, ELF segments,
+binary hash and disassembly hash. `native_runtime_performed` remains
+explicitly `false` in it: this task does not start an emulator. The ELF is called
+`qsim-native-probe.elf`. Existing kernel/boot/capability interfaces are
+not changed by this directory.
 
-## Native proefinterface voor de integrator
+## Native test interface for the integrator
 
-Entry `0x40000000`, private RW-rapportpagina `0x40010000`, aparte NX-rodata
-vanaf `0x40011000`. De bestaande 64-KiB-heap begint op `0x60000000`.
-Het kernelmanifest initialiseert case op nul en een eigen patroon. Alleen
-`abi_info` en `yield` van de bestaande `int 0x80`-ABI worden aangeroepen.
-Het programma blijft na afronding yielden, zodat de kernel de uitkomst en
-voortgang van andere processen kan beoordelen.
+Entry `0x40000000`, private RW report page `0x40010000`, separate NX rodata
+from `0x40011000`. The existing 64 KiB heap starts at `0x60000000`.
+The kernel manifest initialises case to zero and a pattern of its own. Only
+`abi_info` and `yield` of the existing `int 0x80` ABI are called.
+After completion the program keeps yielding, so that the kernel can assess the outcome and
+the progress of other processes.
 
-| Offset | Betekenis |
+| Offset | Meaning |
 |---:|---|
-| +0 | Kernelcase; uitsluitend 0 ondersteund |
-| +8 | Appcheckpointteller |
-| +16 | Kernelpatroon; door app ongewijzigd gelaten |
-| +24 | Gereserveerd; door app ongewijzigd gelaten |
-| +32 | 0 bezig, 1 afgerond, `0x100 + code` bij fout |
-| +40 | Geslaagde scenario's als bitmasker; vereist 127 |
+| +0 | Kernel case; only 0 supported |
+| +8 | App checkpoint counter |
+| +16 | Kernel pattern; left unchanged by the app |
+| +24 | Reserved; left unchanged by the app |
+| +32 | 0 busy, 1 completed, `0x100 + code` on error |
+| +40 | Successful scenarios as a bitmask; requires 127 |
 | +48 / +56 | Bell4096, seed 0: count0=2082, count3=2014 |
-| +64 | Bell-shots: 4096 |
-| +72 | Gebruikte arenabytes vóór de uitputtingsproef; 1..65536 |
-| +80 | Grootste werkafstand tussen checkpoints; maximaal 448 |
-| +88 | Zes-qubit X-circuit: count63=4096 |
-| +96 | Arenareservering na gecontroleerd uitputten: 65536 |
-| +104 | Echte core geeft `ResourceExhausted`: 1 |
+| +64 | Bell shots: 4096 |
+| +72 | Arena bytes used before the exhaustion test; 1..65536 |
+| +80 | Largest work distance between checkpoints; at most 448 |
+| +88 | Six-qubit X circuit: count63=4096 |
+| +96 | Arena reservation after checked exhaustion: 65536 |
+| +104 | Real core returns `ResourceExhausted`: 1 |
 
-De zeven scenario's zijn Bell, zes qubits, vooraf annuleren, tijdens uitvoering
-annuleren, geïnjecteerde deadline, ongeldige invoerlimieten en heapuitputting.
-De kernel moet hun waarden onafhankelijk vergelijken en gebruikersfouten,
-time-out en onverwachte termination als fout behandelen. Alleen een
-gekopieerd appveld is geen zelfstandige kernelacceptatieclaim.
+The seven scenarios are Bell, six qubits, cancel beforehand, cancel during
+execution, injected deadline, invalid input limits and heap exhaustion.
+The kernel must compare their values independently and treat user errors,
+timeout and unexpected termination as failure. A copied app field alone
+is not an independent kernel acceptance claim.
 
-## Vervolg
+## Next steps
 
-Een echte quantumdienst vraagt een herbruikbare allocator of een expliciete
-joblevensduur, begrensde IPC-aanvoer, een intrekbaar cancelobject en
-procesgebonden quota. Geen fysieke QPU, quantumversnelling, lokale AI,
-NAS-uitvoering of cloudfallback is in deze stap toegevoegd. De vaste
-roadmap krijgt geen punt uitsluitend voor compilatie of hosttests.
+A real quantum service requires a reusable allocator or an explicit
+job lifetime, bounded IPC input, a revocable cancel object and
+process-bound quota. No physical QPU, quantum speedup, local AI,
+NAS execution or cloud fallback has been added in this step. The fixed
+roadmap awards no point solely for compilation or host tests.
 
-Terugname: laat de opt-in quantumfeature uit het kerneltestmanifest weg;
-de bestaande QEMU-profielen en hostsimulator blijven beschikbaar.
+Rollback: omit the opt-in quantum feature from the kernel test manifest;
+the existing QEMU profiles and host simulator remain available.

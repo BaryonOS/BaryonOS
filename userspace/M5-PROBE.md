@@ -1,103 +1,103 @@
-# M5 userprogramma en startupmanifest
+# M5 user program and startup manifest
 
-`m5_probe.rs` is één echte Rust `no_std` ELF met aparte private mappings per
-proces. De startuprol kiest dienst, cliënt, testsupervisor of de afzonderlijke
-CPU-negatieve attacker. De dienstbron is `services/block/src/user_service.rs`;
-het gedeelde wirecontract staat in `services/block/README.md`. Bestaande
-M3/M4-probes en hun linker/scripts worden niet vervangen.
+`m5_probe.rs` is one real Rust `no_std` ELF with separate private mappings per
+process. The startup role selects service, client, test supervisor or the separate
+CPU-negative attacker. The service source is `services/block/src/user_service.rs`;
+the shared wire contract is in `services/block/README.md`. Existing
+M3/M4 probes and their linker/scripts are not replaced.
 
-## Build en artifactcontrole
+## Build and artifact check
 
-Vanuit de root: `python tools/build_users.py --kind m5` bouwt
-`build/users/m5_probe.elf` en `manifest-m5.json`. De kernelbuild ontvangt
-`NOS_M5_ELF`; het buildtool bepaalt de exacte rustc 1.90-flags. Deze directe
-build gebruikt `x86_64-unknown-none`, statische relocaties, no red zone,
-panic=abort, opt-level=2 en `m5_linker.ld`, zonder dependencies of hostcalls.
-Het manifest bevat binary/main/linkerhashes en hashes van de vier opgenomen
-modules. Er zijn geen normale I/O-, debugport- of successmarkerrechten.
+From the root: `python tools/build_users.py --kind m5` builds
+`build/users/m5_probe.elf` and `manifest-m5.json`. The kernel build receives
+`NOS_M5_ELF`; the build tool determines the exact rustc 1.90 flags. This direct
+build uses `x86_64-unknown-none`, static relocations, no red zone,
+panic=abort, opt-level=2 and `m5_linker.ld`, without dependencies or host calls.
+The manifest contains binary/main/linker hashes and hashes of the four included
+modules. There are no normal I/O, debug port or success marker rights.
 
-Artifactcontrole:
+Artifact check:
 `python -B -X utf8 userspace/tests/test_m5_probe.py --elf build/users/m5_probe.elf`.
-De elf tests controleren segmenten, buffers, symbolen, modulehashes en
-negatieve ELF-mutaties. Opcodeaanwezigheid is geen uitgevoerde syscall.
+The eleven tests check segments, buffers, symbols, module hashes and
+negative ELF mutations. Opcode presence is not an executed syscall.
 
-## Vast geheugen en velden
+## Fixed memory and fields
 
-RX begint op `0x40000000`; private RW op `0x40010000` met drie pagina's.
-Message-input ligt op `0x40011000`, output op `0x40012000`, afzonderlijke
-RO/NX-data op `0x40013000`. `m5_runtime.rs` gebruikt scalar int80 en kopieert
-output direct naar eigen waarden voordat een volgende syscall output vervangt.
-Onderstaande offsets zijn u64-velden vanaf RW; geen frame wordt tussen
-processen gedeeld.
+RX starts at `0x40000000`; private RW at `0x40010000` with three pages.
+Message input is at `0x40011000`, output at `0x40012000`, separate
+RO/NX data at `0x40013000`. `m5_runtime.rs` uses scalar int80 and copies
+output directly into its own values before a next syscall replaces output.
+The offsets below are u64 fields from RW; no frame is shared between
+processes.
 
-| Offset | Betekenis |
+| Offset | Meaning |
 |---:|---|
-| 0 | rol: dienst 0, cliënt 1, testsupervisor 2, attacker 3 |
-| 8 | private syscallcounter |
-| 16 / 24 | nietnul privaat patroon / reserved nul |
-| 32 | service-epoch bij start |
-| 40 | status: 0 actief, 1 klaar, >=100 fixturefout |
-| 48 | READ-only Blockcap, uitsluitend dienst |
-| 56 | dienst requestroot0; cliënt replyroot; supervisor announcementroot |
-| 64 | supervisor SEND naar cliëntcontrol; overige rollen hebben dit niet nodig |
-| 72 | dienst SEND naar supervisor-announcements |
-| 80 | dienst requestroot1; cliënt control-RECVroot |
-| 88 | dienst SEND naar vast cliëntreplyendpoint |
-| 96 / 104 | dienstscopes: absolute sector 4 / 6 |
-| 112 | testcase 0..17 |
-| 120 / 128 | cliënt FNV-1a64 van de twee werkelijk ontvangen sectoren |
-| 136 | laatst geaccepteerde/doorgestuurde service-epoch |
-| 144 / 152 | cliënt RPC-/negatiefcounter, alleen aanvullende observatie |
-| 160 / 168 | gebonden cliënt-PID / supervisor-PID |
-| 176 | initiële service-PID; geen stille herschrijving in peers |
-| 184 | test-only servicefaultgate: 2 submit→ud2 vóór poll, 1 idle-ud2, 0 normaal |
-| 192 | cliëntfase: 0 wachten, 1 eerste reads, 2 negatieven, 4 latere reads, 5 klaar |
-| 200 | eerste sector van Blockscope (4; count is 4) |
-| 208 / 216 | uitsluitend attacker: supervisor-MMIO-/DMA-testadres |
-| 224 | numerieke serviceBlock-handle voor proceslokale authority-negatief |
-| 232 | echte cliënt Blockcap met nul READ-rechten, alleen case2 |
-| 240 | lokale failurediagnose |
+| 0 | role: service 0, client 1, test supervisor 2, attacker 3 |
+| 8 | private syscall counter |
+| 16 / 24 | non-zero private pattern / reserved zero |
+| 32 | service epoch at start |
+| 40 | status: 0 active, 1 done, >=100 fixture error |
+| 48 | READ-only Block cap, service only |
+| 56 | service request root0; client reply root; supervisor announcement root |
+| 64 | supervisor SEND to client control; other roles do not need this |
+| 72 | service SEND to supervisor announcements |
+| 80 | service request root1; client control RECV root |
+| 88 | service SEND to fixed client reply endpoint |
+| 96 / 104 | service scopes: absolute sector 4 / 6 |
+| 112 | test case 0..17 |
+| 120 / 128 | client FNV-1a64 of the two actually received sectors |
+| 136 | last accepted/forwarded service epoch |
+| 144 / 152 | client RPC/negative counter, supplementary observation only |
+| 160 / 168 | bound client PID / supervisor PID |
+| 176 | initial service PID; no silent rewrite in peers |
+| 184 | test-only service fault gate: 2 submit→ud2 before poll, 1 idle ud2, 0 normal |
+| 192 | client phase: 0 waiting, 1 first reads, 2 negatives, 4 later reads, 5 done |
+| 200 | first sector of Block scope (4; count is 4) |
+| 208 / 216 | attacker only: supervisor MMIO/DMA test address |
+| 224 | numeric service Block handle for process-local authority negative |
+| 232 | real client Block cap with zero READ rights, case2 only |
+| 240 | local failure diagnosis |
 
-Announcement TAG `0x4d35414e4e000001`: payload vier u64
-`(1, epoch, 0, 2)` plus twee echte caps met rechten 9. De supervisor gebruikt
-de kernel-sender-PID en forwardt TAG `0x4d3542494e000001`, payload
-`(1, epoch, service_pid, 2)` met twee SEND-only caps. De cliënt valideert de
-supervisor-PID, volgende epoch en oplopende service-PID. Op herbinding worden
-oude handles via echte send op EREVOKED getest en door de cliënt gesloten.
+Announcement TAG `0x4d35414e4e000001`: payload four u64
+`(1, epoch, 0, 2)` plus two real caps with rights 9. The supervisor uses
+the kernel sender PID and forwards TAG `0x4d3542494e000001`, payload
+`(1, epoch, service_pid, 2)` with two SEND-only caps. The client validates the
+supervisor PID, next epoch and increasing service PID. On rebinding,
+old handles are tested via a real send for EREVOKED and closed by the client.
 
-## Cases en acceptatie
+## Cases and acceptance
 
-| Case | Proef |
+| Case | Trial |
 |---:|---|
-| 0 | twee sectoren via acht echte 128-byte-reads |
-| 1 | dertien protocolnegatieven, daarna normale reads |
-| 2 | getypeerde devicecap/rechten en niet-consumerende foutieve polloutput |
-| 3 | asynchrone EAGAIN met peerprogress |
+| 0 | two sectors via eight real 128-byte reads |
+| 1 | thirteen protocol negatives, then normal reads |
+| 2 | typed device cap/rights and non-consuming erroneous poll output |
+| 3 | asynchronous EAGAIN with peer progress |
 | 4..9 | bad descriptor; used-id/index/short/long/status |
-| 10..11 | I/O-fout / timeout, herstel en normale reads |
-| 12 | reset-timeout, lokale foutreply en peerprogress, geen sectordigests |
-| 13 | epochs1..3 pending submit→ud2; epoch4 normale reads |
-| 14..16 | vierde attacker: MMIO-read / DMA-read / PCI-out fault |
-| 17 | geen device, lokale foutreply en peerprogress, geen sectordigests |
+| 10..11 | I/O error / timeout, recovery and normal reads |
+| 12 | reset timeout, local error reply and peer progress, no sector digests |
+| 13 | epochs1..3 pending submit→ud2; epoch4 normal reads |
+| 14..16 | fourth attacker: MMIO read / DMA read / PCI out fault |
+| 17 | no device, local error reply and peer progress, no sector digests |
 
-Case1 request-IDs1..13: versie2→Invalid, WRITE2→NoSys, flags1→Invalid,
-reserved1→Invalid, lengte0→Range, lengte129→Range, offsetMAX→Range,
-offset511/lengte2→Range, oude epoch→Stale, requestdata1→Invalid,
-outerlen191→Invalid, outerlen193→Invalid, caps2→Invalid. Het laatste geval
-draagt dezelfde lokale sourcecap tweemaal over als SEND; de dienst moet beide
-daadwerkelijke receiverhandles sluiten. De broncap wordt pas na foutreply
-door de cliënt gesloten. De kernelobserver moet per echt verzoek de foutvorm,
-zerodata-foutreply en nul devicecalls/publications/completions vastleggen;
-het userwoord152 alleen is geen bewijs.
+Case1 request IDs1..13: version2→Invalid, WRITE2→NoSys, flags1→Invalid,
+reserved1→Invalid, length0→Range, length129→Range, offsetMAX→Range,
+offset511/length2→Range, old epoch→Stale, requestdata1→Invalid,
+outerlen191→Invalid, outerlen193→Invalid, caps2→Invalid. The last case
+transfers the same local source cap twice as SEND; the service must close both
+actual receiver handles. The source cap is only closed by the client after the
+error reply. The kernel observer must record, per real request, the error form,
+zero-data error reply and zero device calls/publications/completions;
+user word152 alone is not evidence.
 
-De cliënt assembleert beide volledige 512-byte-sectoren en berekent FNV
-offset `14695981039346656037`, prime `1099511628211`. Er is geen verwachte
-diskinhoud of seed in ELF/startup. Root vergelijkt deze metadata met twee
-verschillende wegwerpimages en controleert dat hun hashes niet veranderen.
-Bij rebind wordt de volledige assemblage herstart om epochs niet te mengen.
+The client assembles both complete 512-byte sectors and computes FNV
+offset `14695981039346656037`, prime `1099511628211`. There is no expected
+disk content or seed in ELF/startup. Root compares this metadata with two
+different disposable images and checks that their hashes do not change.
+On rebind the complete assembly is restarted so that epochs are not mixed.
 
-De geïntegreerde QEMU-gate, driverobserver en ongewijzigde M1–M4-regressies
-zijn afzonderlijk vereist. Hosttests of een userstatus leveren geen gast- of
-devicebewijs. Cliënt en supervisor blijven na klaar via counter/yield actief
-zodat survivorprogress observeerbaar blijft. Writes, filesystem en hardware-
-of IOMMU-containment zijn buiten deze eerste M5-slice.
+The integrated QEMU gate, driver observer and unchanged M1–M4 regressions
+are required separately. Host tests or a user status provide no guest or
+device evidence. Client and supervisor remain active after done via counter/yield
+so that survivor progress stays observable. Writes, filesystem and hardware
+or IOMMU containment are outside this first M5 slice.

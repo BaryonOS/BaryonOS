@@ -1,13 +1,13 @@
-# Codex: korte ontwikkellus met behoud van bewijs
+# Codex: short development loop that preserves evidence
 
-AGENTS.md is leidend. Dit is een uitvoeringshandleiding, geen tweede roadmap,
-veiligheidsbewijs of garantie over snelheid. Actuele projectstatus en criteria
-blijven in docs/PROJECT-STATE.md en docs/progress.json.
+AGENTS.md takes precedence. This is an execution guide, not a second roadmap,
+security proof or guarantee about speed. Current project status and criteria
+remain in docs/PROJECT-STATE.md and docs/progress.json.
 
-## 1. Hervatten zonder opnieuw te beginnen
+## 1. Resuming without starting over
 
-Controleer eerst de daadwerkelijke checkout; de laatst besproken branch of
-chatgeschiedenis hoeft niet de actuele code te bevatten:
+First check the actual checkout; the last branch or chat history discussed
+need not contain the current code:
 
 ```sh
 git status --short
@@ -16,71 +16,71 @@ git rev-parse HEAD
 git log -5 --oneline
 ```
 
-Lees het nieuwste statusblok, de relevante contractspecificatie en geneste
-AGENTS.md. Bekijk alleen de diff vanaf het geverifieerde vorige checkpoint.
-Een ontbrekend checkpoint of onverwachte wijziging vraagt gericht onderzoek,
-geen blind vertrouwen in een oude testclaim. Niet-gecommit lokaal werk van
-Claude verschijnt niet automatisch in een andere cloudtaak.
+Read the newest status block, the relevant contract specification and nested
+AGENTS.md files. Review only the diff since the previous verified checkpoint.
+A missing checkpoint or unexpected change calls for targeted investigation,
+not blind trust in an old test claim. Uncommitted local work by Claude does
+not automatically appear in another cloud task.
 
-Kies de eerstvolgende haalbare taak uit de bestaande projectstatus/roadmap.
-Leg kort vast: **doel; afhankelijkheid; schrijfbestanden; acceptatiecommando;
-bewijsgrens**. Controleer eerst of de implementatie of PR al bestaat.
+Choose the next feasible task from the existing project status/roadmap.
+Briefly record: **goal; dependency; write files; acceptance command;
+evidence boundary**. First check whether the implementation or PR already exists.
 
-## 2. Eerst gerichte feedback, daarna integratie
+## 2. Targeted feedback first, integration afterwards
 
-Voorbeelden uit de bestaande CI, niet een nieuwe definitie van alle vereiste
-tests. Kies de suite die werkelijk door de wijziging wordt geraakt. Bij een
-wijziging in een gedeelde crate moeten ook de relevante afnemers worden getest.
+These are examples from the existing CI, not a new definition of all required
+tests. Choose the suite that the change actually affects. For a change in a
+shared crate, the relevant consumers must also be tested.
 
 ```sh
-# Voorbeeld: een wijziging in volume-core.
+# Example: a change in volume-core.
 cargo +1.90.0 test --locked -p volume-core
 cargo +1.90.0 clippy --locked -p volume-core --all-targets -- -D warnings
 
-# SDK: eigen workspace.
+# SDK: separate workspace.
 cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked
 
-# Host-harnas voor DocumentSession.
+# Host harness for DocumentSession.
 python3 -m unittest discover -s tests -p 'test_document_session_*.py'
 
-# Productprototype; NAS heeft een aparte suite.
+# Product prototype; NAS has a separate suite.
 node --test --test-isolation=none ui/prototype/tests/*.test.mjs
 node --test --test-isolation=none services/nas/tests/*.test.mjs
 ```
 
-Controleer formattering vroeg, vóór een kostbare integratierun. Gebruik bij
-integratie de actuele commando's uit `.github/workflows/` en de relevante
-native gate; kopieer geen verouderde testlijst uit een chat. Laat negatieve
-capability-, herstel- en foutinjectietests intact. Een hosttest bewijst geen
-native werking. Sla nooit een controle over omdat een cache werd hersteld.
+Check formatting early, before a costly integration run. For integration, use
+the current commands from `.github/workflows/` and the relevant native gate;
+do not copy an outdated test list from a chat. Keep negative capability,
+recovery and fault-injection tests intact. A host test does not prove native
+behaviour. Never skip a check because a cache was restored.
 
-## 3. Parallel werken zonder lock- of integratieverlies
+## 3. Working in parallel without losing locks or integration
 
-Gebruik de agentlimieten uit AGENTS.md; meer agents is geen zelfstandig doel.
-Deel alleen echt onafhankelijke taken op, met één eigenaar per interface en
-één integrator. Deel het contract en de relevante code, niet telkens alle
-historische documentatie. Een reviewer kan read-only meekijken.
+Use the agent limits from AGENTS.md; more agents is not a goal in itself.
+Split off only genuinely independent tasks, with one owner per interface and
+one integrator. Share the contract and the relevant code, not all historical
+documentation every time. A reviewer can follow along read-only.
 
-Iedere schrijver krijgt een eigen worktree/branch. Native fixtures gebruiken
-hun bestaande geïsoleerde `NOS_BUILD_DIR`, `NOS_TARGET_DIR` en
-`CARGO_TARGET_DIR`; vermeng geen profielen of images. Laat twee Cargo-processen
-niet dezelfde targetmap blokkeren. Voorkom dat agentparallelisatie én
-onbegrensde buildparallelisatie tegelijk CPU en geheugen uitputten. Schaal
-alleen op wanneer gemeten doorlooptijd daalt en integratiewerk beheersbaar blijft.
+Every writer gets its own worktree/branch. Native fixtures use their existing
+isolated `NOS_BUILD_DIR`, `NOS_TARGET_DIR` and `CARGO_TARGET_DIR`; do not mix
+profiles or images. Do not let two Cargo processes block the same target
+directory. Prevent agent parallelism and unbounded build parallelism from
+exhausting CPU and memory at the same time. Scale up only when measured lead
+time drops and integration work stays manageable.
 
-## 4. Wat de CI-cache wel en niet hergebruikt
+## 4. What the CI cache does and does not reuse
 
-De hoofdworkflow behoudt `host-quality`, `qemu-smoke`, hun volgorde, alle
-bestaande commando's, time-outs en leesrechten. Andere acceptatieworkflows
-zijn niet gewijzigd.
+The main workflow keeps `host-quality`, `qemu-smoke`, their order, all
+existing commands, timeouts and read permissions. Other acceptance workflows
+are unchanged.
 
-- Beide jobs mogen Cargo-registry-indexen en crate-archieven hergebruiken,
-  gescheiden naar runner-OS, architectuur en de inhoud van alle Cargo.lock-files.
-- Alleen `host-quality` hergebruikt de expliciet opgesomde **host-debug**
-  targetmappen. De sleutel bevat daarnaast toolchain, manifests, Cargo-config
-  en buildscripts. Er zijn geen brede restore-prefixes naar andere sleutels.
-- Geen credentials, volledige home-directory, native release-targets,
-  QEMU-images, sleutels, rapporten of acceptatiebewijs in deze caches.
+- Both jobs may reuse Cargo registry indexes and crate archives, separated by
+  runner OS, architecture and the contents of all Cargo.lock files.
+- Only `host-quality` reuses the explicitly listed **host-debug** target
+  directories. Its key additionally covers the toolchain, manifests, Cargo
+  config and build scripts. There are no broad restore prefixes to other keys.
+- No credentials, full home directory, native release targets, QEMU images,
+  keys, reports or acceptance evidence in these caches.
 
 `actions/cache` is pinned to the reviewed v6.1.0 commit
 `55cc8345863c7cc4c66a329aec7e433d2d1c52a9`. The upstream `v6.1.0` tag
@@ -96,57 +96,58 @@ access and demotes a redundant cache-save warning to debug level. This does
 not expand token permissions: the cache remains best-effort, and an
 unavailable save does not constitute a successful build or test step.
 
-De cache is best-effort. Een miss voert de normale build uit. Cachekeys zijn
-onveranderlijk: een hit betekent niet dat de nieuwste projectcode al is
-gecompileerd. Cargo en alle testcommando's worden opnieuw aangeroepen.
-De workflow-summary toont cache-hitdiagnostiek, geen geslaagd testresultaat.
-De verplichte schone native testmappen worden niet om de cache heen aangepast.
+The cache is best-effort. A miss runs the normal build. Cache keys are
+immutable: a hit does not mean the newest project code has already been
+compiled. Cargo and all test commands are invoked again. The workflow
+summary shows cache-hit diagnostics, not a passed test result. The mandatory
+clean native test directories are not adjusted to work around the cache.
 
-## 5. Meten vóór een snelheidsclaim
+## 5. Measure before claiming speed
 
-Gebruik bestaande job- en steptijden in GitHub Actions. Vergelijk bij voorkeur
-meerdere runs met dezelfde bron, suite, runnerklasse en toolversies: eerst
-zonder passende cache, daarna met cache. Noteer cache-hit/miss, wachttijd,
-build-/testduur, exitstatus en opnieuw te doen werk. Vergelijk niet een kleinere
-testsuite met een volledige native gate alsof alleen de uitvoering sneller werd.
+Use existing job and step timings in GitHub Actions. Preferably compare
+several runs with the same source, suite, runner class and tool versions:
+first without a matching cache, then with cache. Record cache hit/miss, wait
+time, build/test duration, exit status and work that had to be redone. Do not
+compare a smaller test suite with a full native gate as if only execution got
+faster.
 
-Een lokale Linux-meting kan bijvoorbeeld zo, zonder een pipeline die een fout
-verbergt:
+A local Linux measurement can, for example, be taken like this, without a
+pipeline that hides a failure:
 
 ```sh
 /usr/bin/time -p cargo +1.90.0 test --locked -p volume-core
 ```
 
-Gebruik dezelfde sessie en geldige omgeving voor samenhangend vervolgwerk.
-Een GitHub-wijziging stelt **niet** automatisch de gepubliceerde
-Codex-cloudomgeving, modelkeuze, budget of persoonlijke config.toml in.
-Vermijd herinstallatie, routine-`cargo clean` en onnodige volledige audits.
-Een cache die duurder blijkt dan opnieuw bouwen kan weer worden verwijderd.
+Use the same session and valid environment for related follow-up work.
+A GitHub change does **not** automatically configure the published Codex
+cloud environment, model choice, budget or personal config.toml.
+Avoid reinstallation, routine `cargo clean` and unnecessary full audits.
+A cache that turns out to cost more than rebuilding can be removed again.
 
-## 6. Overdracht en herstel
+## 6. Handoff and recovery
 
-Werk de bestaande PROJECT-STATE.md en voortgangsassessment bij volgens
-AGENTS.md. Gebruik daar één compacte `NEXT AGENT HANDOFF`, bijvoorbeeld:
+Update the existing PROJECT-STATE.md and progress assessment according to
+AGENTS.md. Use one compact `NEXT AGENT HANDOFF` there, for example:
 
 ```text
-Bron: <branch + volledige HEAD, base en relevante PR>
-Doel/resultaat: <één controleerbare implementatiestap>
-Open werk: <bestanden, eigenaar, nog niet geïntegreerde wijzigingen>
-Bewijs: <exact commando, exitstatus, logpad; of NIET UITGEVOERD>
-Blokkade: <oorzaak en noodzakelijke bevoegdheid/afhankelijkheid>
-Volgende stap: <één direct uitvoerbaar commando of implementatietaak>
+Source: <branch + full HEAD, base and relevant PR>
+Goal/result: <one verifiable implementation step>
+Open work: <files, owner, changes not yet integrated>
+Evidence: <exact command, exit status, log path; or NOT EXECUTED>
+Blocker: <cause and required authority/dependency>
+Next step: <one directly executable command or implementation task>
 ```
 
-Geen extra roadmap, gefingeerd agentwerk of kunstmatige scoreverhoging.
-Deze workflowoptimalisatie accepteert zelf geen nieuw OS-criterium.
-Bij een cachingprobleem: herhaal eerst de volledige betrokken controle zonder
-cache; verhoog zo nodig alleen de cacheversieprefix in een beoordeelde wijziging.
-Behoud testgrenzen en beveiliging. Terugdraaien kan met een normale revert van
-de workflowwijziging, zonder bestaande branches te resetten.
+No extra roadmap, fictitious agent work or artificial score increase. This
+workflow optimisation does not itself accept a new OS criterion. For a
+caching problem: first repeat the full affected check without cache; if
+necessary, raise only the cache version prefix in a reviewed change. Preserve
+test boundaries and security. Rolling back is possible with a normal revert
+of the workflow change, without resetting existing branches.
 
-## Bronnen
+## Sources
 
-GitHub. (z.d.). *Dependency caching reference*.
+GitHub. (n.d.). *Dependency caching reference*.
 https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching
 
 GitHub. (2026). *actions/cache*, version 6.1.0.
@@ -155,7 +156,7 @@ https://github.com/actions/cache/tree/55cc8345863c7cc4c66a329aec7e433d2d1c52a9
 GitHub. (June 26, 2026). *actions/cache v6.1.0 release notes*.
 https://github.com/actions/cache/releases/tag/v6.1.0
 
-OpenAI. (z.d.). *Using Codex Cloud*.
+OpenAI. (n.d.). *Using Codex Cloud*.
 https://help.openai.com/en/articles/20001545-using-codex-cloud
 
 The cache source, tag, and release metadata were verified on November 10,

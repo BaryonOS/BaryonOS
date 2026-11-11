@@ -1067,14 +1067,14 @@ fn real_raster_tiles_have_guards_clipping_lowercase_and_semantic_focus_impl() {
             noto_sans_mono_bitmap::RasterHeight::Size16
         )
         .unwrap()
-        .raster(),
+        .pixels(),
         noto_sans_mono_bitmap::get_raster(
             'A',
             noto_sans_mono_bitmap::FontWeight::Regular,
             noto_sans_mono_bitmap::RasterHeight::Size16
         )
         .unwrap()
-        .raster()
+        .pixels()
     );
 }
 

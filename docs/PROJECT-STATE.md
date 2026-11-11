@@ -1,5 +1,50 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — CI QEMU/OVMF package bundle — 11 November 2026
+
+**Source:** branch `ci/qemu-apt-bundle` (PR #307) from main `c07506c8`;
+builder and action commit `f26cd05623368c1a834be538e38a2aa30f5e1df1`.
+
+**Problem:** every QEMU workflow (#296, #304 and the backlog) failed in
+"Pinned QEMU and OVMF". snapshot.ubuntu.com timed out over HTTPS, and DNS for
+the Ubuntu mirrors failed on hosted runners.
+
+**Change:** `.github/actions/setup-qemu` installs first from a hash-pinned
+release bundle (`ci-qemu-apt-20261111-r2`). APT still verifies the Ubuntu
+signature, index hashes and package hashes. Pins and firmware checks are
+unchanged, and the signed snapshot and archive remain warning-level fallbacks.
+The Ubuntu 26.04 profile from #296 is included. See
+ADR-CI-QEMU-BUNDLE-20261111 and
+[the bundle report](verification/ci-qemu-bundle-20261111.json).
+
+**Evidence:**
+- Both bundles were built twice from the signed archive with identical
+  results, checked with gpgv and installed download-only from the bundle alone:
+  - noble: 89 debs, sha256 `f54c031b…`
+  - resolute: 113 debs, sha256 `45026b96…`
+- The release is published; anonymous downloads match the pins.
+- Hosted canary run 43057156214 passed on ubuntu-24.04 (with swtpm) and
+  ubuntu-26.04. The Ubuntu mirrors were blocked, the bundle was the APT source
+  and no fallback warning appeared.
+- 21 CI-workflow tests pass.
+
+**Corrected on the way** (three failed canary runs, recorded in the report):
+- The action now limits APT to `Targets: Packages`.
+- The first release `ci-qemu-apt-20261111` had percent-encoded `.deb` names
+  and is superseded; its assets are unchanged.
+- The 26.04 bundle now carries `ibverbs-providers`.
+
+**Open:**
+- The affected workflows have not been rerun on this change beyond the canary.
+- The K06 64×50 matrix on #296 has not been rerun.
+- A later runner image can need a package the bundle lacks. The action then
+  warns and falls back to the signed network path.
+
+**Acceptance:** 39/100 → 39/100; CI infrastructure only.
+
+**Next:** merge #307 when its required checks are green, merge main into #296
+and rerun the K06 matrix there.
+
 ## NEXT AGENT HANDOFF — PR #210 Veld review repairs — 10 November 2026
 
 **Source:** the local candidate is based directly on current `main`,
@@ -33,7 +78,7 @@ head still requires both complete hosted 1800-second native matrix gates.
 lease, and evaluate only current-head hosted checks and review. Squash-merge
 with the expected head only after both native profiles are green.
 
-## Historical checkpoint — PR #299 ChaCha20 production unification — 10 November 2026
+## NEXT AGENT HANDOFF — PR #299 ChaCha20 production unification — 10 November 2026
 
 **Source:** this local candidate is based directly on the actual PR #297
 squash `2d17a3870c0f22254af0a749d3f29128fe2e11ae` (tree

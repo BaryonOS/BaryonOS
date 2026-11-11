@@ -1,49 +1,49 @@
-# M1: besloten bootcontract en bouwprofiel
+# M1: decided boot contract and build profile
 
-Status: implementatiespecificatie, 26 oktober 2026. Dit document sluit de bootkeuzes voor M1; de volgende ontwikkelchat implementeert ze. Het bevat geen gecompileerde loader, kernel of geslaagde VM-test. De huidige onderzoeksomgeving heeft geen `rustc`, `cargo`, `rustup`, QEMU, Clang of `ld.lld` in PATH. Er is dus geen bootbewijs. De broncontrole hieronder is wel uitgevoerd. Lees voor M2–M4 ook [KERNEL-AND-SECURITY-CONTRACT.md](KERNEL-AND-SECURITY-CONTRACT.md).
+Status: implementation specification, 26 October 2026. This document closes the boot choices for M1; the next development chat implements them. It contains no compiled loader, kernel or successful VM test. The current research environment has no `rustc`, `cargo`, `rustup`, QEMU, Clang or `ld.lld` in PATH. There is therefore no boot evidence. The source check below was, however, carried out. For M2–M4 also read [KERNEL-AND-SECURITY-CONTRACT.md](KERNEL-AND-SECURITY-CONTRACT.md).
 
-## Uitvoeringscorrecties — 27 oktober 2026
+## Execution corrections — 27 October 2026
 
-De daadwerkelijke Windows-run gebruikt QEMU11.1.0 uit het vastgelegde ontwikkelpakket met bijpassende firmware. De oorspronkelijke 2–18MiB-reservering overlapt daarin ACPI NVS en BootServicesData; de loader wees deze terecht af. Het vaste profiel is daarom gewijzigd naar32–48MiB en BootInfo ABI1.1. De headerlayout is ongewijzigd; ABI1.0 wordt afgewezen. De alleen-lezen ESP is aangesloten via virtio, omdat IDE de alleen-lezen blocknode weigert. Een compilergegenereerde statische GOT is expliciet in .data opgenomen; runtime-relocaties blijven verboden. Zie ADR-019 t/m ADR-021 en PROJECT-STATE.md voor echt testbewijs. Oorspronkelijke onderzoeksclaims hieronder zijn historische context, geen nieuwe testuitslag.
+The actual Windows run uses QEMU 11.1.0 from the recorded development package with matching firmware. The original 2–18MiB reservation overlaps ACPI NVS and BootServicesData there; the loader rightly rejected it. The fixed profile was therefore changed to 32–48MiB and BootInfo ABI 1.1. The header layout is unchanged; ABI 1.0 is rejected. The read-only ESP is attached via virtio, because IDE refuses the read-only block node. A compiler-generated static GOT is explicitly included in .data; runtime relocations remain forbidden. See ADR-019 to ADR-021 and PROJECT-STATE.md for real test evidence. Original research claims below are historical context, not a new test result.
 
-## 1. Vast profiel
+## 1. Fixed profile
 
-| Onderdeel | Besluit voor M1 | Bewijsstatus |
+| Component | Decision for M1 | Evidence status |
 |---|---|---|
-| Architectuur | x86_64, little endian, 4 KiB-pagina's, één CPU | Ontwerpkeuze |
-| VM | `pc-q35-10.0`, `qemu64`, TCG, 256 MiB RAM | Ontwerpkeuze; nog geen boot |
-| Rust | exact **1.90.0**, edition 2021, `panic=abort` | Officiële release van 18 september 2025 bevestigd [B1]; bewust een vaste bekende baseline, niet een claim dat dit de nieuwste compiler is |
-| Loader-target | `x86_64-unknown-uefi`; eigen PE32+ UEFI-app | Target en calling convention bevestigd [B2] |
-| Kernel-target | `x86_64-unknown-none`; eigen statische ELF64 `ET_EXEC` | Target bevestigd [B3] |
-| Enige externe loadercrate | `r-efi = { version = "=7.1.0", default-features = false }` | Gepubliceerde versie 10 augustus 2026 en MSRV 1.68 bevestigd [B4–B5]; combinatie met de projectcode nog niet gecompileerd |
-| Kerneldependencies | alleen eigen `boot-protocol`; `core` van gepinde target | Geen externe kernelimplementatie |
-| QEMU-referentie | **10.0.14** | Op officiële downloadpagina bevestigd [B6] |
-| Firmware-referentie | EDK II **edk2-stable202508**, `OvmfPkg/OvmfPkgX64.dsc`, X64/RELEASE/GCC5 | Release en officiële bouwroute bevestigd [B7–B8]; eigen binaries en hashes nog niet geproduceerd |
-| Opslag | gegenereerde ESP-directory via QEMU's read-only FAT-disk | Alleen synthetische projectbestanden |
-| Netwerk | `-nic none`; geen netwerkdevice, hostshare, agent, clipboard of gast-netwerkstack | Testprofiel; geen bewijs van latere appisolatie |
+| Architecture | x86_64, little endian, 4 KiB pages, one CPU | Design choice |
+| VM | `pc-q35-10.0`, `qemu64`, TCG, 256 MiB RAM | Design choice; no boot yet |
+| Rust | exactly **1.90.0**, edition 2021, `panic=abort` | Official release of 18 September 2025 confirmed [B1]; deliberately a fixed known baseline, not a claim that this is the newest compiler |
+| Loader target | `x86_64-unknown-uefi`; own PE32+ UEFI app | Target and calling convention confirmed [B2] |
+| Kernel target | `x86_64-unknown-none`; own static ELF64 `ET_EXEC` | Target confirmed [B3] |
+| Only external loader crate | `r-efi = { version = "=7.1.0", default-features = false }` | Published version 10 August 2026 and MSRV 1.68 confirmed [B4–B5]; combination with the project code not yet compiled |
+| Kernel dependencies | only own `boot-protocol`; `core` of the pinned target | No external kernel implementation |
+| QEMU reference | **10.0.14** | Confirmed on the official download page [B6] |
+| Firmware reference | EDK II **edk2-stable202508**, `OvmfPkg/OvmfPkgX64.dsc`, X64/RELEASE/GCC5 | Release and official build route confirmed [B7–B8]; own binaries and hashes not yet produced |
+| Storage | generated ESP directory via QEMU's read-only FAT disk | Only synthetic project files |
+| Network | `-nic none`; no network device, host share, agent, clipboard or guest network stack | Test profile; no evidence of later app isolation |
 
-**Bouw meteen de eigen code.** Een bestaande of distributie-QEMU mag voor ontwikkeling worden gebruikt als `pc-q35-10.0` beschikbaar is. Gebruik dan OVMF_CODE en OVMF_VARS uit precies dezelfde package/build; leg versie, herkomst en SHA-256 van beide vast. Deze variant moet dezelfde tests halen, maar is niet byte-identiek aan de referentie. Bouw QEMU en EDK II niet eerst vanaf bron als deze ontwikkelvariant beschikbaar is. Van de VARS-template wordt voor iedere test een eigen wegwerpkopie gemaakt; CODE blijft read-only. Secure Boot staat in M1 uit; M1 bewijst geen geauthenticeerde bootketen.
+**Build the own code straight away.** An existing or distribution QEMU may be used for development if `pc-q35-10.0` is available. In that case use OVMF_CODE and OVMF_VARS from exactly the same package/build; record version, provenance and SHA-256 of both. This variant must pass the same tests, but is not byte-identical to the reference. Do not first build QEMU and EDK II from source if this development variant is available. A separate throwaway copy of the VARS template is made for every test; CODE stays read-only. Secure Boot is off in M1; M1 proves no authenticated boot chain.
 
-`r-efi` levert alleen specificatietypen en constanten, geen bootloader, allocator, driver of OS-kernel. Het project schrijft de laadlogica zelf. De geraadpleegde Cargo-manifestbron toont geen standaard ingeschakelde dependency; `rustc-std-workspace-core` is optioneel. Licentiekeuze voor deze dependency: MIT (de upstream biedt MIT OR Apache-2.0 OR LGPL-2.1-or-later). Bewaar notice en registrychecksum in de dependencyadministratie. Geen `uefi-services`, `bootloader`-crate of overgenomen kernel erbij voegen. De high-level `uefi`-crate is hier bewust niet geselecteerd: een kleine lokale wrapper rond ruwe bindings maakt de laatste allocaties en de overdracht expliciet controleerbaar.
+`r-efi` provides only specification types and constants, no bootloader, allocator, driver or OS kernel. The project writes the loading logic itself. The consulted Cargo manifest source shows no dependency enabled by default; `rustc-std-workspace-core` is optional. Licence choice for this dependency: MIT (upstream offers MIT OR Apache-2.0 OR LGPL-2.1-or-later). Keep the notice and registry checksum in the dependency administration. Do not add `uefi-services`, the `bootloader` crate or an adopted kernel. The high-level `uefi` crate is deliberately not selected here: a small local wrapper around raw bindings makes the final allocations and the handoff explicitly checkable.
 
-## 2. Te maken bestanden en vaste commando's
+## 2. Files to create and fixed commands
 
-| Pad | Verantwoordelijkheid |
+| Path | Responsibility |
 |---|---|
-| `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`, `.cargo/config.toml` | Integratie door hoofdagent; workspace bevat uitsluitend hieronder genoemde Rust-packages |
-| `crates/boot-protocol/src/lib.rs` | `#![no_std]`; BootInfo, offsets, veilige header-/mapvalidatie |
-| `boot/loader/Cargo.toml`, `boot/loader/src/main.rs` | Package `os-loader`; UEFI-entry, beperkte firmware-wrapper, bestandslezing, overdracht |
-| `boot/loader/src/handoff.S` | EFIAPI naar SysV, eigen stack, interrupts uit, lege IDT |
-| `crates/elf-loader-core/src/lib.rs` | Eigen `no_std` byteparser; hosttestbare ELF-validatie en laadplan zonder fysieke writes |
-| `kernel/Cargo.toml`, `kernel/src/main.rs` | Package `os-kernel`; entry, eigen COM1-uitvoer, BootInfo-controle en testexit |
-| `kernel/linker.ld` | Expliciete ELF-segmenten en vaste adressen |
-| `tools/build.py` | Beide targets bouwen, ELF controleren en ESP-directory maken |
-| `tools/run.py` | QEMU-argumenten, private VARS-kopie, logs, timeout en rooktest |
-| `tools/test.py` | Hosttests, corrupte ELF-images, EBS-retryproef en VM-rooktest |
-| `build/esp/EFI/BOOT/BOOTX64.EFI`, `build/esp/kernel.elf` | Gegenereerde wegwerpartifacts, niet handmatig aanpassen |
-| `build/logs/`, `build/manifest.json` | Exacte commando's, hashes, versies, stdout/stderr en ruwe exitcodes |
+| `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`, `.cargo/config.toml` | Integration by the main agent; the workspace contains exclusively the Rust packages named below |
+| `crates/boot-protocol/src/lib.rs` | `#![no_std]`; BootInfo, offsets, safe header/map validation |
+| `boot/loader/Cargo.toml`, `boot/loader/src/main.rs` | Package `os-loader`; UEFI entry, limited firmware wrapper, file reading, handoff |
+| `boot/loader/src/handoff.S` | EFIAPI to SysV, own stack, interrupts off, empty IDT |
+| `crates/elf-loader-core/src/lib.rs` | Own `no_std` byte parser; host-testable ELF validation and load plan without physical writes |
+| `kernel/Cargo.toml`, `kernel/src/main.rs` | Package `os-kernel`; entry, own COM1 output, BootInfo check and test exit |
+| `kernel/linker.ld` | Explicit ELF segments and fixed addresses |
+| `tools/build.py` | Build both targets, check the ELF and create the ESP directory |
+| `tools/run.py` | QEMU arguments, private VARS copy, logs, timeout and smoke test |
+| `tools/test.py` | Host tests, corrupt ELF images, EBS retry trial and VM smoke test |
+| `build/esp/EFI/BOOT/BOOTX64.EFI`, `build/esp/kernel.elf` | Generated throwaway artifacts, do not edit by hand |
+| `build/logs/`, `build/manifest.json` | Exact commands, hashes, versions, stdout/stderr and raw exit codes |
 
-Geen algemene target instellen voor de hele workspace: hosttests moeten op de hosttarget draaien. Product- en quantumprototypes zijn geen root-workspacemembers. Voeg eventuele geneste Rust-workspaces expliciet aan `exclude` toe.
+Do not set a general target for the whole workspace: host tests must run on the host target. Product and quantum prototypes are not root workspace members. Explicitly add any nested Rust workspaces to `exclude`.
 
 ```toml
 # rust-toolchain.toml
@@ -55,7 +55,7 @@ targets = ["x86_64-unknown-uefi", "x86_64-unknown-none"]
 ```
 
 ```toml
-# .cargo/config.toml — uitsluitend de kernel-target krijgt ELF-linkopties.
+# .cargo/config.toml — only the kernel target gets ELF link options.
 [target.x86_64-unknown-none]
 linker = "rust-lld"
 rustflags = [
@@ -69,11 +69,11 @@ rustflags = [
 ]
 ```
 
-De linker zit in de Rust-toolchain. `tools/build.py` vindt hem via `rustc +1.90.0 --print sysroot` plus de hosttriple uit `rustc +1.90.0 -vV`, en voegt `<sysroot>/lib/rustlib/<host>/bin` aan PATH van het subprocess toe. Zo vereist de naam `rust-lld` geen afzonderlijk geïnstalleerde host-LLD. De ingebouwde target selecteert de ELF-linkerflavour. Voor UEFI blijven de ingebouwde PE/COFF-linkerinstellingen behouden; stuur de ELF-scriptopties nooit naar de loader. De kern-target heeft standaard code-model `kernel`; de gekozen lage plaatsing vereist de bovenstaande bewuste override naar `small` [B3]. Beide crates gebruiken `#![no_std]`, `#![no_main]`; geen nightly, custom-target JSON of `-Zbuild-std` nodig voor M1.
+The linker is part of the Rust toolchain. `tools/build.py` finds it via `rustc +1.90.0 --print sysroot` plus the host triple from `rustc +1.90.0 -vV`, and adds `<sysroot>/lib/rustlib/<host>/bin` to the subprocess PATH. That way the name `rust-lld` does not require a separately installed host LLD. The built-in target selects the ELF linker flavour. For UEFI the built-in PE/COFF linker settings are kept; never send the ELF script options to the loader. The kernel target has code model `kernel` by default; the chosen low placement requires the deliberate override to `small` above [B3]. Both crates use `#![no_std]`, `#![no_main]`; no nightly, custom-target JSON or `-Zbuild-std` is needed for M1.
 
-Rootprofielen: `panic = "abort"` in dev/release; release `codegen-units = 1`, `lto = false`. Gebruik geen unwindpad, globale allocator, TLS, floats/SIMD, C-runtime of host-syscalls. Als de linker geheugenintrinsics nodig blijkt te hebben, lever minimale eigen `memcpy`/`memmove`/`memset`/`memcmp` in een afzonderlijk gereviewd `unsafe`-module; voorkom optimalisatie tot recursieve aanroepen en controleer het resultaat. Voeg niet stilzwijgend host-libc toe.
+Root profiles: `panic = "abort"` in dev/release; release `codegen-units = 1`, `lto = false`. Use no unwind path, global allocator, TLS, floats/SIMD, C runtime or host syscalls. If the linker turns out to need memory intrinsics, provide minimal own `memcpy`/`memmove`/`memset`/`memcmp` in a separately reviewed `unsafe` module; prevent optimisation into recursive calls and check the result. Do not silently add host libc.
 
-Na installatie van rustup via de officiële procedure zijn dit de operationele ingangen:
+After installing rustup via the official procedure, these are the operational entry points:
 
 ```sh
 rustup toolchain install 1.90.0 --profile minimal --component rustfmt --component clippy
@@ -84,20 +84,20 @@ python3 tools/run.py --smoke
 python3 tools/test.py
 ```
 
-Deze laatste drie tools worden door de implementatieopdracht gemaakt; dit document beweert niet dat ze al bestaan of zijn uitgevoerd. Eenmalig maakt `build.py` bij een ontbrekende lockfile met expliciet gepinde dependencies de `Cargo.lock`; daarna gebruiken alle builds `--locked`. Downloaden van publieke ontwikkeldependencies hoort bij de ontwikkelomgeving, niet bij het geïnstalleerde OS. Vervolgens kan een gevulde/vendored dependencycache offline worden gebruikt.
+These last three tools are created by the implementation task; this document does not claim that they already exist or have been run. Once, if the lockfile is missing, `build.py` creates the `Cargo.lock` with explicitly pinned dependencies; after that all builds use `--locked`. Downloading public development dependencies belongs to the development environment, not to the installed OS. After that a populated/vendored dependency cache can be used offline.
 
-Onderliggend bouwt de tool vanuit de repositoryroot:
+Underneath, the tool builds from the repository root:
 
 ```sh
 cargo +1.90.0 build --locked --release -p os-loader --target x86_64-unknown-uefi
 cargo +1.90.0 build --locked --release -p os-kernel --target x86_64-unknown-none
 ```
 
-## 3. ELF en linkerlayout
+## 3. ELF and linker layout
 
-De kernel gebruikt fysieke adressen gelijk aan virtuele adressen. Reserveer **`[0x02000000, 0x03000000)`**, exact 16 MiB, via UEFI `AllocatePages(AllocateAddress, EfiLoaderCode, 4096, &base)` voordat andere grote buffers worden gealloceerd. M1 is specifiek voor het vastgelegde VM-profiel. Wanneer deze reservering niet lukt: expliciete fout; geen willekeurig ander laadadres. De linker begrenst de gebruikte kernel tot dit interval.
+The kernel uses physical addresses equal to virtual addresses. Reserve **`[0x02000000, 0x03000000)`**, exactly 16 MiB, via UEFI `AllocatePages(AllocateAddress, EfiLoaderCode, 4096, &base)` before other large buffers are allocated. M1 is specific to the recorded VM profile. If this reservation fails: explicit error; no arbitrary other load address. The linker bounds the used kernel to this interval.
 
-Startpunt voor `kernel/linker.ld`:
+Starting point for `kernel/linker.ld`:
 
 ```ld
 OUTPUT_FORMAT(elf64-x86-64)
@@ -123,19 +123,19 @@ SECTIONS {
 }
 ```
 
-`build.py` inspecteert de echte ELF-output; het script alleen is geen bewijs voor de segmenten. Verwerp onverwachte allocatable orphan-secties, dynamische metadata of relocaties die runtimeverwerking vereisen. Bewaar een machineleesbaar segmentoverzicht. `p_paddr == p_vaddr` is verplicht. RX, R en RW krijgen aparte, op 4 KiB uitgelijnde pagina-intervallen; geen paginaoverlap door afronding toestaan.
+`build.py` inspects the real ELF output; the script alone is not evidence for the segments. Reject unexpected allocatable orphan sections, dynamic metadata or relocations that require runtime processing. Keep a machine-readable segment overview. `p_paddr == p_vaddr` is mandatory. RX, R and RW get separate page intervals aligned to 4 KiB; do not allow page overlap through rounding.
 
-De loader behandelt het gehele ELF-bestand als onbetrouwbare bytes. Een pure parser produceert eerst een begrensd laadplan; pas na volledige validatie volgen fysieke writes. Accepteer uitsluitend ELF64, little-endian, huidige ELF-versie, `EM_X86_64=62`, `ET_EXEC=2`, headergrootte 64 en programheadergrootte 56. Bestand maximaal 32 MiB, `1 <= e_phnum <= 64`. Alle optellingen/vermenigvuldigingen en omzettingen naar `usize` checked. Volledige programheadertabel binnen bestand; geen extended programheader numbering.
+The loader treats the entire ELF file as untrusted bytes. A pure parser first produces a bounded load plan; physical writes only follow after complete validation. Accept exclusively ELF64, little-endian, current ELF version, `EM_X86_64=62`, `ET_EXEC=2`, header size 64 and program header size 56. File at most 32 MiB, `1 <= e_phnum <= 64`. All additions/multiplications and conversions to `usize` checked. Complete program header table within the file; no extended program header numbering.
 
-Per `PT_LOAD`: `filesz <= memsz`; `offset + filesz` binnen bestand; niet-lege geheugenrange volledig binnen de gereserveerde 16 MiB; `p_align` macht van twee en minstens 4096 voor dit profiel; `offset % p_align == vaddr % p_align`; `paddr == vaddr`; alleen R/RX/RW-vlagcombinaties, nooit W+X. Niet-lege loadranges overlappen niet, ook niet na afronding naar pagina's. Entry ligt binnen de daadwerkelijk uit bestand geladen bytes van precies één RX-segment. Nul-lange segments tellen niet als entry of geldige laadinhoud.
+Per `PT_LOAD`: `filesz <= memsz`; `offset + filesz` within the file; non-empty memory range fully within the reserved 16 MiB; `p_align` a power of two and at least 4096 for this profile; `offset % p_align == vaddr % p_align`; `paddr == vaddr`; only R/RX/RW flag combinations, never W+X. Non-empty load ranges do not overlap, not even after rounding to pages. Entry lies within the bytes actually loaded from the file of exactly one RX segment. Zero-length segments do not count as entry or valid load content.
 
-Voor dit kleine profiel: weiger `PT_INTERP`, `PT_DYNAMIC`, `PT_TLS`, en onbekende programheadertypen. `PT_NULL`, `PT_NOTE`, `PT_PHDR` en een niet-uitvoerbare `PT_GNU_STACK` mogen als metadata worden geaccepteerd, maar worden niet uitgevoerd. Minstens één RX-segment en één niet-leeg `PT_LOAD` vereist. Sectionheaders zijn geen laadbron; optionele sectioninformatie is alleen build-time controle. Eerst het gereserveerde gebied nulmaken, daarna uitsluitend goedgekeurde `filesz` kopiëren; daarmee is `.bss` nul. Deze projectrestricties zijn bewust strenger dan algemene ELF-mogelijkheden [B11].
+For this small profile: reject `PT_INTERP`, `PT_DYNAMIC`, `PT_TLS`, and unknown program header types. `PT_NULL`, `PT_NOTE`, `PT_PHDR` and a non-executable `PT_GNU_STACK` may be accepted as metadata, but are not executed. At least one RX segment and one non-empty `PT_LOAD` required. Section headers are not a load source; optional section information is only a build-time check. First zero the reserved region, then copy exclusively approved `filesz`; that makes `.bss` zero. These project restrictions are deliberately stricter than general ELF capabilities [B11].
 
-**W^X-status:** ELF-vlaggen vormen in M1 een gecontroleerde intentie, nog geen afgedwongen geheugenbescherming. M1 erft tijdelijk UEFI-pagetables. M2 maakt eigen tables, supervisor-only mappings, read-only code en NX-data en test de echte faults. Dit M1-profiel heeft nog geen userspace, ASLR, guardpages, DMA-isolatie of Secure Boot. Claim daarvoor geen beveiliging op basis van een succesvol bootbericht.
+**W^X status:** in M1 ELF flags are a checked intention, not yet enforced memory protection. M1 temporarily inherits UEFI page tables. M2 creates its own tables, supervisor-only mappings, read-only code and NX data and tests the real faults. This M1 profile does not yet have userspace, ASLR, guard pages, DMA isolation or Secure Boot. Do not claim security for those on the basis of a successful boot message.
 
-## 4. BootInfo v1.1: exact overdrachtsformaat
+## 4. BootInfo v1.1: exact handoff format
 
-Alle meerbytevelden zijn little-endian. Fysieke adressen worden als `u64` opgeslagen; geen Rust-references, `usize`, `bool`, enums, packed structs of slice-fat-pointers in de ABI. `#[repr(C)]`, alignment 8, totale grootte **128 bytes**. De structuur staat aan het begin van een eigen nulgevulde 4096-byte `EfiLoaderData`-allocatie. Alle pointers worden pas gebruikt na bounds-/overlapcontrole.
+All multi-byte fields are little-endian. Physical addresses are stored as `u64`; no Rust references, `usize`, `bool`, enums, packed structs or slice fat pointers in the ABI. `#[repr(C)]`, alignment 8, total size **128 bytes**. The structure is at the start of its own zero-filled 4096-byte `EfiLoaderData` allocation. All pointers are only used after bounds/overlap checks.
 
 ```rust
 #[repr(C)]
@@ -163,77 +163,77 @@ pub struct BootInfo {
 }
 ```
 
-| Byteoffset | Veld | Waarde/semantiek |
+| Byte offset | Field | Value/semantics |
 |---:|---|---|
 | 0 | `magic`, 8 bytes | `b"NOSBOOT\0"` |
 | 8 | `abi_major`, u16 | 1 |
 | 10 | `abi_minor`, u16 | 1 |
 | 12 | `header_size`, u32 | 128 |
-| 16 | `flags`, u64 | bit0: EBS geslaagd; bit1: firmware-paging nog actief; bit2: M1-QEMU-testprofiel; overige bits 0 |
-| 24 | `memory_map_addr`, u64 | Fysiek begin van aparte, behouden pageallocatie |
-| 32 | `memory_map_len`, u64 | Werkelijke bytes van de laatste succesvolle `GetMemoryMap` |
-| 40 | `descriptor_size`, u32 | Firmwarestride, minstens 40, veelvoud van 8, maximaal 4096 in dit profiel |
-| 44 | `descriptor_version`, u32 | 1; onbekende versie wordt voor M1 geweigerd |
+| 16 | `flags`, u64 | bit0: EBS succeeded; bit1: firmware paging still active; bit2: M1 QEMU test profile; other bits 0 |
+| 24 | `memory_map_addr`, u64 | Physical start of a separate, preserved page allocation |
+| 32 | `memory_map_len`, u64 | Actual bytes of the last successful `GetMemoryMap` |
+| 40 | `descriptor_size`, u32 | Firmware stride, at least 40, multiple of 8, at most 4096 in this profile |
+| 44 | `descriptor_version`, u32 | 1; an unknown version is rejected for M1 |
 | 48 | `kernel_reserved_start`, u64 | 0x02000000 |
 | 56 | `kernel_reserved_len`, u64 | 0x01000000 |
-| 64 | `stack_start`, u64 | Eigen pagealigned stackbasis, geen firmwarestack |
+| 64 | `stack_start`, u64 | Own page-aligned stack base, not a firmware stack |
 | 72 | `stack_len`, u64 | 65536 bytes |
-| 80 | `bootinfo_start`, u64 | Fysiek adres van deze structuur en pageallocatie |
+| 80 | `bootinfo_start`, u64 | Physical address of this structure and page allocation |
 | 88 | `bootinfo_len`, u64 | 4096 bytes |
-| 96 | `loader_start`, u64 | `LoadedImage.ImageBase`, omlaag afgerond naar 4 KiB |
-| 104 | `loader_len`, u64 | Hele geladen PE-image tot omhoog afgerond `ImageBase + ImageSize` |
-| 112 | `memory_map_capacity`, u64 | Volledige gereserveerde mapbuffer in bytes; kan groter zijn dan len |
+| 96 | `loader_start`, u64 | `LoadedImage.ImageBase`, rounded down to 4 KiB |
+| 104 | `loader_len`, u64 | Whole loaded PE image up to rounded-up `ImageBase + ImageSize` |
+| 112 | `memory_map_capacity`, u64 | Full reserved map buffer in bytes; may be larger than len |
 | 120 | `reserved0`, u64 | 0 |
 
-M1 accepteert exact major1/minor1/header128 en flags7. Wijzig semantiek of vereiste velden alleen met een afgesproken ABI-versie; laat loader en kernel dezelfde crate gebruiken. Compile-time assert voor `size_of`, `align_of` en **ieder** `offset_of!`; een hosttest controleert een expliciete bytefixture. Daarmee kan de implementatie geen verborgen paddingverschuiving introduceren.
+M1 accepts exactly major 1/minor 1/header 128 and flags 7. Change semantics or required fields only with an agreed ABI version; let loader and kernel use the same crate. Compile-time assert for `size_of`, `align_of` and **every** `offset_of!`; a host test checks an explicit byte fixture. This way the implementation cannot introduce a hidden padding shift.
 
-Uitgevoerde beperkte controle op 26 oktober 2026: een Python `ctypes.Structure` met exact bovenstaande vaste-width-velden geeft op de onderzoeks-host grootte128, alignment8 en offsets `[0,8,10,12,16,24,32,40,44,48,56,64,72,80,88,96,104,112,120]`; asserts geslaagd, procesexit0. Dit controleert de voorgeschreven C-layout, niet de nog ongebouwde Rust-binaries of de boot.
+Limited check performed on 26 October 2026: a Python `ctypes.Structure` with exactly the fixed-width fields above gives, on the research host, size 128, alignment 8 and offsets `[0,8,10,12,16,24,32,40,44,48,56,64,72,80,88,96,104,112,120]`; asserts passed, process exit 0. This checks the prescribed C layout, not the not-yet-built Rust binaries or the boot.
 
-Kernelreservering, stack, BootInfo, geladen loader en mapbuffer zijn aparte niet-overlappende behouden intervallen. Alle beginnen zijn niet nul en pagealigned. Alle einden met checked arithmetic, beneden 1 GiB in dit profiel; stack/map/BootInfo worden met `AllocateMaxAddress` onder die grens gealloceerd. De 256 MiB guest bepaalt feitelijk een lagere beschikbare RAMgrens. Bevestig dat ranges in de firmwarekaart door LoaderCode/LoaderData worden gedekt; houd rekening met meerdere aansluitende descriptors. BootInfo wijst niet naar data op een verlaten stack. `bootinfo_start` moet gelijk zijn aan het ontvangen pointeradres.
+Kernel reservation, stack, BootInfo, loaded loader and map buffer are separate non-overlapping preserved intervals. All starts are non-zero and page-aligned. All ends with checked arithmetic, below 1 GiB in this profile; stack/map/BootInfo are allocated with `AllocateMaxAddress` below that limit. The 256 MiB guest effectively sets a lower available RAM limit. Confirm that ranges in the firmware map are covered by LoaderCode/LoaderData; take multiple adjacent descriptors into account. BootInfo does not point to data on an abandoned stack. `bootinfo_start` must equal the received pointer address.
 
-### Geheugenkaartcontract
+### Memory map contract
 
-Het formaat is de ruwe, behouden UEFI-map van de succesvolle EBS-overgang. Itereer met `descriptor_size`, **nooit** met `size_of::<MemoryDescriptor>()`. Vereis `0 < len <= capacity <= 1 MiB`, `len % stride == 0`. De gebruikte lengte heeft geen padding aan het einde; bytes daarbuiten zijn geen descriptors. Elk record heeft de UEFI-v1-prefix: `type:u32@0`, gereserveerde padding@4, `physical_start:u64@8`, `virtual_start:u64@16`, `number_of_pages:u64@24`, `attribute:u64@32`. Lees prefixvelden als bytes/unaligned integerwaarden; vorm geen typed slice met de verkeerde stride.
+The format is the raw, preserved UEFI map from the successful EBS transition. Iterate with `descriptor_size`, **never** with `size_of::<MemoryDescriptor>()`. Require `0 < len <= capacity <= 1 MiB`, `len % stride == 0`. The used length has no padding at the end; bytes beyond it are not descriptors. Each record has the UEFI v1 prefix: `type:u32@0`, reserved padding@4, `physical_start:u64@8`, `virtual_start:u64@16`, `number_of_pages:u64@24`, `attribute:u64@32`. Read prefix fields as bytes/unaligned integer values; do not form a typed slice with the wrong stride.
 
-`physical_start` is pagealigned; lengte is `number_of_pages * 4096` met overflowcontrole. Nul-paginarecords worden geweigerd. Descriptorvolgorde is niet vertrouwd; detecteer overlap zonder een firmware-allocator te gebruiken. Onbekende typen/attributen worden gereserveerd behandeld. `virtual_start` is geen vrijbrief om die pointer te volgen. MMIO-ranges mogen buiten de 256 MiB RAM liggen; map of gebruik ze niet automatisch.
+`physical_start` is page-aligned; length is `number_of_pages * 4096` with overflow checking. Zero-page records are rejected. Descriptor order is not trusted; detect overlap without using a firmware allocator. Unknown types/attributes are treated as reserved. `virtual_start` is no licence to follow that pointer. MMIO ranges may lie outside the 256 MiB of RAM; do not map or use them automatically.
 
-**M1 hergebruikt geen enkel firmwaregeheugen.** De loaderimage, stack, map, BootInfo, runtime-/ACPI-reservaties en bestaande pagetables blijven dus bestaan. M2 begint alleen met geschikt `EfiConventionalMemory` (type7), met expliciete aftrek van behouden ranges en uitsluiting van runtime/nonvolatile/speciale eigenschappen. EfiBootServicesCode/Data worden niet automatisch vrijgegeven terwijl firmware-CR3 nog actief is. Eerst eigen tables/GDT/IDT/stack en een gecontroleerd reclamationbesluit. Er staan geen UEFI-servicepointers in BootInfo. De raw map volgt de UEFI-definitie; de gekozen allocatiegrenzen en reclamationregels zijn projectbeleid [B9].
+**M1 reuses no firmware memory whatsoever.** The loader image, stack, map, BootInfo, runtime/ACPI reservations and existing page tables therefore remain. M2 starts only with suitable `EfiConventionalMemory` (type 7), with explicit subtraction of preserved ranges and exclusion of runtime/nonvolatile/special attributes. EfiBootServicesCode/Data are not released automatically while the firmware CR3 is still active. First own tables/GDT/IDT/stack and a checked reclamation decision. There are no UEFI service pointers in BootInfo. The raw map follows the UEFI definition; the chosen allocation limits and reclamation rules are project policy [B9].
 
-## 5. UEFI-loader en ExitBootServices
+## 5. UEFI loader and ExitBootServices
 
-Gebruik `use r_efi::efi;` en de upstream protocoltypen; definieer niet zelf een gedeeltelijke `BootServices`-struct met mogelijk verkeerde offsets. Entry heeft `extern "efiapi"`, `efi::Handle` en `*mut efi::SystemTable`, en retourneert vóór de overdracht `efi::Status`. Iedere firmwarecall zit achter één kleine wrapper met geldigheids-/levensduurcontract. `extern "C"` wordt niet als universeel UEFI-ABI gebruikt [B2].
+Use `use r_efi::efi;` and the upstream protocol types; do not define your own partial `BootServices` struct with possibly wrong offsets. Entry has `extern "efiapi"`, `efi::Handle` and `*mut efi::SystemTable`, and returns `efi::Status` before the handoff. Every firmware call sits behind one small wrapper with a validity/lifetime contract. `extern "C"` is not used as a universal UEFI ABI [B2].
 
-De volgorde ligt vast:
+The order is fixed:
 
-1. Controleer image/system/boot-services-pointers en tabelrevisie; blijf op `TPL_APPLICATION`. Schakel watchdog met `SetWatchdogTimer(0, 0, 0, null)` uit. Maak geen eigen UEFI-events aan. Bewaar imagehandle; `ExitBootServices` moet dat oorspronkelijke handle krijgen.
-2. Lees via Loaded Image Protocol de imagebasis/omvang en het bootvolume. Open de Simple File System op **datzelfde** device en lees `\kernel.elf` met File Protocol. Geen netwerkboot of doorzoeken van alle volumes.
-3. Reserveer de vaste kernelspan vóór grote filebuffers. Lees het bestand in een eigen, begrensde maximaal-32-MiB loaderdatabuffer; accepteer short reads, EOF en expliciete foutstatus, nooit een ongecontroleerde file size. Valideer volledig en laad volgens §3. Sluit file/root handles en eventueel geopende protocolrelaties. Geef tijdelijke file-/infobuffers terug zolang bootservices nog volledig beschikbaar zijn.
-4. Alloceer eigen stack (16 pages) en BootInfo (1 page) als LoaderData. De definitieve mapbuffer volgt in stap5. Gebruik geen `Vec`, logger met allocaties of impliciete `Drop` die later firmware kan aanroepen. Bewaar loaded-imagegegevens als gewone integers; geen afhankelijke protocolobjecten na deze fase.
-5. Vraag de benodigde mapgrootte op met `GetMemoryMap` en nulcapaciteit. Alloceer `round_up(max(256 KiB, needed + 8 * descriptor_size), 4096)`, met checked arithmetic en hard maximum 1 MiB. Dit is capaciteit, niet de uiteindelijke map. Als de eerste echte map nog niet past, mag **vóór de allereerste EBS-poging** gecontroleerd worden vergroot. Maximaal drie voorbereidingspogingen; anders fout.
-6. Initialiseer BootInfo met alle reserveringen, bit0 nog nul. Rond alle firmwarediagnostiek en resource-drops af. Vanaf nu is geen allocation/free, protocolcall, consolecall, callbackregistratie of firmwarelog toegestaan. De laatste memory-mapbufferallocatie zelf moet dus al in de daarna opgevraagde kaart staan.
-7. Zet bij **iedere** `GetMemoryMap` de in/out `MemoryMapSize` opnieuw op buffer-capacity; haal map, stride, versie en mapkey op. Controleer in eigen code metadata zonder allocaties. Geef **deze mapkey** direct aan `ExitBootServices(image_handle, map_key)`. CPU-writes naar reeds gereserveerde BootInfo veranderen de firmwarekaart niet.
-8. `SUCCESS`: onmiddellijk eigen `cli`/`cld` en lege-IDT-bootstrap; markeer de bootservices-wrapper als verbruikt. Geen destructor/terugkeerpad met firmwarecalls. Bewaar precies deze laatste maplen/stride/versie. Zet succesbit, log `BOOT:EBS_OK` met eigen COM1 en ga naar de handoff. Ook het codepad tussen successtatus en shim mag geen firmware-interrupthandler meer gebruiken.
-9. `INVALID_PARAMETER`: mapkey is niet meer bruikbaar. Herhaal alleen `GetMemoryMap` in **dezelfde bestaande buffer** en daarna EBS. Maximaal drie EBS-pogingen totaal. Dit ontwerp gebruikt ook tijdens retry geen nieuwe allocatie. Als buffer dan te klein is, metadata fout is of een andere status volgt: definitieve testfout; geen terugkeer naar firmwaremenu of oude key hergebruiken.
+1. Check image/system/boot-services pointers and table revision; stay at `TPL_APPLICATION`. Disable the watchdog with `SetWatchdogTimer(0, 0, 0, null)`. Create no own UEFI events. Keep the image handle; `ExitBootServices` must get that original handle.
+2. Read the image base/size and the boot volume via the Loaded Image Protocol. Open the Simple File System on **that same** device and read `\kernel.elf` with the File Protocol. No network boot or searching all volumes.
+3. Reserve the fixed kernel span before large file buffers. Read the file into its own bounded loader data buffer of at most 32 MiB; accept short reads, EOF and explicit error status, never an unchecked file size. Validate fully and load according to §3. Close file/root handles and any opened protocol relationships. Return temporary file/info buffers while boot services are still fully available.
+4. Allocate own stack (16 pages) and BootInfo (1 page) as LoaderData. The final map buffer follows in step 5. Use no `Vec`, logger with allocations or implicit `Drop` that may later call firmware. Keep loaded-image data as plain integers; no dependent protocol objects after this phase.
+5. Query the required map size with `GetMemoryMap` and zero capacity. Allocate `round_up(max(256 KiB, needed + 8 * descriptor_size), 4096)`, with checked arithmetic and a hard maximum of 1 MiB. This is capacity, not the final map. If the first real map does not yet fit, it may be enlarged in a controlled way **before the very first EBS attempt**. At most three preparation attempts; otherwise error.
+6. Initialise BootInfo with all reservations, bit0 still zero. Finish all firmware diagnostics and resource drops. From now on no allocation/free, protocol call, console call, callback registration or firmware log is allowed. The last memory map buffer allocation itself must therefore already be in the map queried afterwards.
+7. On **every** `GetMemoryMap`, reset the in/out `MemoryMapSize` to the buffer capacity; fetch map, stride, version and map key. Check metadata in own code without allocations. Pass **this map key** directly to `ExitBootServices(image_handle, map_key)`. CPU writes to already reserved BootInfo do not change the firmware map.
+8. `SUCCESS`: immediately own `cli`/`cld` and empty-IDT bootstrap; mark the boot services wrapper as consumed. No destructor/return path with firmware calls. Keep exactly this last map len/stride/version. Set the success bit, log `BOOT:EBS_OK` with own COM1 and go to the handoff. The code path between success status and shim may also no longer use any firmware interrupt handler.
+9. `INVALID_PARAMETER`: the map key is no longer usable. Only repeat `GetMemoryMap` in **the same existing buffer** and then EBS. At most three EBS attempts in total. This design uses no new allocation during retry either. If the buffer is then too small, metadata is wrong or another status follows: final test failure; no return to the firmware menu or reuse of an old key.
 
-Na een eerste mislukte EBS-call kan firmware gedeeltelijk zijn afgebouwd. Daarom is het retrygebied bovenstaande kleine lus; geen bestands-I/O of logging via firmware. Na succes worden ook Runtime Services niet gebruikt. Failures loggen via de eigen vaste QEMU-COM1-driver en testexit; dit directe preboot-I/O is uitsluitend de terminale foutdiagnostiek in het vastgelegde QEMU-profiel. Algemene portable UEFI-I/O loopt vóór de finalisatie via firmware. De EBS-statusmachine volgt de actuele-mapregel uit UEFI §7.4.6; de retrylimiet en vooraf gereserveerde buffer zijn eigen beleid [B9].
+After a first failed EBS call, firmware may have been partially torn down. Therefore the retry area is the small loop above; no file I/O or logging via firmware. After success Runtime Services are not used either. Failures are logged via the own fixed QEMU COM1 driver and test exit; this direct preboot I/O is exclusively the terminal error diagnostics in the recorded QEMU profile. General portable UEFI I/O goes via firmware before finalisation. The EBS state machine follows the current-map rule from UEFI §7.4.6; the retry limit and pre-reserved buffer are own policy [B9].
 
-Voor een reproduceerbare retrytest: een **alleen test-build** haalt vóór eerste EBS een mapkey op, alloceert vervolgens één extra testpagina en bevriest daarna alle allocaties. De eerste poging met de oude key moet `INVALID_PARAMETER` krijgen; de retry haalt de verse kaart op. Die testpagina blijft gereserveerd in de laatste kaart. De productiecode krijgt geen fault-injectionflag of verouderde-keypad.
+For a reproducible retry test: a **test-only build** fetches a map key before the first EBS, then allocates one extra test page and after that freezes all allocations. The first attempt with the old key must get `INVALID_PARAMETER`; the retry fetches the fresh map. That test page stays reserved in the last map. The production code gets no fault-injection flag or stale-key path.
 
-## 6. CPU-handoff: twee verschillende calling conventions
+## 6. CPU handoff: two different calling conventions
 
-De loader is een UEFI-app met de x64 EFIAPI-conventie. De ELF-kernel gebruikt expliciet `extern "sysv64" fn _start(info: *const BootInfo) -> !`. Verander niet met een Rust-`transmute` alleen het functietype en veronderstel dat de registers dan correct zijn.
+The loader is a UEFI app with the x64 EFIAPI convention. The ELF kernel explicitly uses `extern "sysv64" fn _start(info: *const BootInfo) -> !`. Do not merely change the function type with a Rust `transmute` and assume the registers are then correct.
 
-De losse assemblyshim is vanuit Rust gedeclareerd als `extern "efiapi" fn handoff(entry: u64, info: u64, stack_top: u64) -> !`. Hij ontvangt dus RCX=entry, RDX=info, R8=stack_top. Hij bevestigt de direct na EBS ingestelde toestand met `cli` en `cld`, laadt een IDT-descriptor met limit0/base0, neemt de eigen stack (`RSP=R8`, naar 16 bytes uitlijnen), wist RBP, zet RDI=RDX en doet `call RCX`. Daardoor is RSP bij de SysV-entry congruent aan 8 modulo16. Er is geen Windows-shadowspace nodig voor die laatste SysV-call. De shim keert niet terug; onverwachte kernelreturn geeft failurecode0x11 en daarna `cli; hlt` in een lus.
+The separate assembly shim is declared from Rust as `extern "efiapi" fn handoff(entry: u64, info: u64, stack_top: u64) -> !`. It therefore receives RCX=entry, RDX=info, R8=stack_top. It confirms the state set directly after EBS with `cli` and `cld`, loads an IDT descriptor with limit 0/base 0, takes the own stack (`RSP=R8`, aligned to 16 bytes), clears RBP, sets RDI=RDX and does `call RCX`. As a result RSP at the SysV entry is congruent to 8 modulo 16. No Windows shadow space is needed for that final SysV call. The shim does not return; an unexpected kernel return gives failure code 0x11 and then `cli; hlt` in a loop.
 
-De lege IDT is uitsluitend een M1-fail-closed bootstrap: een exception/NMI leidt tot shutdown/triplefault en dus een mislukte rooktest, niet tot een oude firmwarehandler. M2 vervangt dit door eigen exceptionhandlers, GDT/TSS en IDT voordat interrupts of userspace worden toegestaan. M1 herlaadt geen firmwaresegmenten; bestaande segmentcaches en CR3 blijven tijdelijk behouden als bootstraptoestand. Er wordt geen firmwarefunctie meer aangeroepen en geen onderliggend geheugen gerecycled. Dit is een bewuste korte bootfase, geen eindarchitectuur.
+The empty IDT is exclusively an M1 fail-closed bootstrap: an exception/NMI leads to shutdown/triple fault and therefore a failed smoke test, not to an old firmware handler. M2 replaces this with own exception handlers, GDT/TSS and IDT before interrupts or userspace are allowed. M1 does not reload firmware segments; existing segment caches and CR3 are temporarily kept as bootstrap state. No firmware function is called anymore and no underlying memory is recycled. This is a deliberate short boot phase, not the final architecture.
 
-Maak deze stackwissel niet in een gewone Rustfunctie waarvan de compiler nog een epiloog uitvoert. Gebruik een apart assemblysymbool via `global_asm!`/`include_str!`, met COFF-compatibele directives in de loader. Kernelentry krijgt `#[no_mangle]` en `.text.entry`. Geen SIMD/FPU-activering nodig voor M1: beide targets genereren standaard geen gebruik van die registers; introduceer geen target-feature of floating-point-dependency [B2–B3].
+Do not make this stack switch in an ordinary Rust function where the compiler still executes an epilogue. Use a separate assembly symbol via `global_asm!`/`include_str!`, with COFF-compatible directives in the loader. Kernel entry gets `#[no_mangle]` and `.text.entry`. No SIMD/FPU activation is needed for M1: both targets by default generate no use of those registers; introduce no target feature or floating-point dependency [B2–B3].
 
-## 7. Seriële output en machine-testcontract
+## 7. Serial output and machine test contract
 
-COM1 base0x3f8, polling, 115200 baud, 8N1. Eigen minimale port-I/O-module: interrupts uit op UART, DLAB aan, divisor1/0, LCR0x03, FIFO0xc7, MCR0x0b; poll LSR-bit5 vóór ieder byte. Per byte maximaal 1.000.000 polls; daarna failure-exit, geen eindeloze wachtlus. Gebruik `out dx, al`/`in al, dx` voor UART en `out dx, eax` naar 0xf4 voor debugexit. Een uitgeschakelde/ontbrekende UART mag een negatieve test niet oneindig laten hangen.
+COM1 base 0x3f8, polling, 115200 baud, 8N1. Own minimal port I/O module: interrupts off on the UART, DLAB on, divisor 1/0, LCR 0x03, FIFO 0xc7, MCR 0x0b; poll LSR bit 5 before every byte. At most 1.000.000 polls per byte; then failure exit, no endless wait loop. Use `out dx, al`/`in al, dx` for the UART and `out dx, eax` to 0xf4 for debug exit. A disabled/missing UART must not let a negative test hang indefinitely.
 
-Na succesvolle EBS logt eigen code, in deze volgorde:
+After a successful EBS, own code logs, in this order:
 
 ```text
 BOOT:EBS_OK
@@ -242,11 +242,11 @@ BOOTINFO:OK
 M1:PASS
 ```
 
-De eerste regel ontstaat in de loader na EBS; de volgende drie in de echte ELF-kernel. Alleen de kernel mag `M1:PASS` en de succesexit uitsturen. Een panic of validatiefout schrijft waar mogelijk `M1:FAIL:<vaste_code>` en exit0x11; formatteer geen secrets of onbeperkte ontvangen tekst. De kernel controleert ook `.bss`-nulinitialisatie en een bekende `.data`-waarde vóór succes.
+The first line is produced in the loader after EBS; the next three in the real ELF kernel. Only the kernel may send `M1:PASS` and the success exit. A panic or validation error writes `M1:FAIL:<vaste_code>` where possible and exits 0x11; format no secrets or unbounded received text. The kernel also checks `.bss` zero initialisation and a known `.data` value before success.
 
-`isa-debug-exit` gebruikt de projectwaarden **0x10 = pass**, **0x11 = fail**. De hoststatus is `(value << 1) | 1`: dus **33** respectievelijk **35**; een gewone hostexit0 is geen testpass [B10]. Alleen `run.py` vertaalt (33 én alle verwachte markers in volgorde én geen failmarker) naar harness-exit0. Een fout met status35, signal, firmwareprompt, triplefault, QEMU-launchfout of ontbrekende marker blijft fail. Ruwe QEMU-status blijft altijd in het log.
+`isa-debug-exit` uses the project values **0x10 = pass**, **0x11 = fail**. The host status is `(value << 1) | 1`: so **33** and **35** respectively; an ordinary host exit 0 is not a test pass [B10]. Only `run.py` translates (33 and all expected markers in order and no fail marker) to harness exit 0. A failure with status 35, signal, firmware prompt, triple fault, QEMU launch error or missing marker stays a fail. The raw QEMU status always stays in the log.
 
-`run.py --smoke` voert semantisch dit commando uit (concrete absolute paden via subprocess-argumentlijst, geen shellinterpolatie):
+`run.py --smoke` semantically runs this command (concrete absolute paths via a subprocess argument list, no shell interpolation):
 
 ```sh
 qemu-system-x86_64 \
@@ -261,38 +261,38 @@ qemu-system-x86_64 \
   -device isa-debug-exit,iobase=0xf4,iosize=0x04
 ```
 
-De tool zet de werkdirectory naar de repositoryroot; `fat:build/esp` is QEMU's read-only virtuele FAT-schijf, niet een echte hostdisk. De ESP-directory is een stabiele kopie voor de duur van de VM-run; tijdens uitvoering geen builds die haar muteren. FAT bevat de standaardbootnaam `EFI/BOOT/BOOTX64.EFI` en `kernel.elf`; nog geen diskpartitioneringstool nodig. Later krijgt een echt installatiemedium een eigen geteste GPT/ESP-builder. Geen `-no-shutdown`: dit kan de verwachte testexit verstoren bij QEMU-implementaties die shutdownrequests gebruiken.
+The tool sets the working directory to the repository root; `fat:build/esp` is QEMU's read-only virtual FAT disk, not a real host disk. The ESP directory is a stable copy for the duration of the VM run; no builds that mutate it during execution. FAT contains the standard boot name `EFI/BOOT/BOOTX64.EFI` and `kernel.elf`; no disk partitioning tool is needed yet. Later, a real installation medium gets its own tested GPT/ESP builder. No `-no-shutdown`: this can disturb the expected test exit with QEMU implementations that use shutdown requests.
 
-Harde timeout **60 seconden** vanaf QEMU-start. `subprocess.run(..., timeout=60)` of equivalent beëindigt een vastgelopen proces en bewaart beschikbare stdout/stderr; een time-out is expliciet mislukt, nooit overgeslagen. Bewaar starttijd, duur, versie, argumenten, returncode, alle artifacthashes en het gebruikte ontwikkel-/referentieprofiel. De tijdslimiet is een CI-budget, geen prestatiebelofte voor het OS.
+Hard timeout of **60 seconds** from QEMU start. `subprocess.run(..., timeout=60)` or equivalent terminates a hung process and keeps available stdout/stderr; a timeout is explicitly failed, never skipped. Keep start time, duration, version, arguments, return code, all artifact hashes and the development/reference profile used. The time limit is a CI budget, not a performance promise for the OS.
 
-## 8. Acceptatiepoort: wanneer M1 klaar is
+## 8. Acceptance gate: when M1 is done
 
-| Test | Vereist bewijs |
+| Test | Required evidence |
 |---|---|
-| Toolchain/target | Beide binaries bouwen met Rust1.90.0 en `--locked`; loader is PE32+, kernel ELF64 ET_EXEC; geen host-OS imports |
-| ABI | Compilerasserts voor alle offsets/grootte/alignment; hostbytefixture; foutieve magic/major/flags/range/stride afgewezen |
-| ELF-parser | Truncaties, overflow, verkeerde machine/type, filesz>memsz, ongeldige entry, overlapping pagina's, RWX en DYNAMIC/INTERP/TLS afgewezen vóór writes |
-| Rooktest | Eigen ELF-entry na EBS, BootInfo/BSS/data goed, markers in volgorde, QEMU33 en harness0 binnen60s |
-| Afwijzen image | Gemuteerde `kernel.elf` weigert vóór kernelentry, failmarker en QEMU35; geen `M1:PASS` |
-| Retry | Test met expres oude mapkey faalt eerste EBS, slaagt met nieuwe kaart zonder nieuwe allocatie; normale build bevat injectie niet |
-| Foutpad | Expliciete kernelpanic bereikt failurecode; een hang en afwijkende exit worden door harness als fail behandeld |
-| Onafhankelijkheid | Na eerste EBS geen protocol-/console-/filecalls; na succes geen enkele UEFI-call, geen `Drop` met firmware-effecten |
-| Herhaalbaarheid | Drie opeenvolgende cold boots, iedere keer verse VARS-kopie; hashes en ruwe logs bewaard |
+| Toolchain/target | Both binaries build with Rust 1.90.0 and `--locked`; loader is PE32+, kernel ELF64 ET_EXEC; no host OS imports |
+| ABI | Compiler asserts for all offsets/size/alignment; host byte fixture; wrong magic/major/flags/range/stride rejected |
+| ELF parser | Truncations, overflow, wrong machine/type, filesz>memsz, invalid entry, overlapping pages, RWX and DYNAMIC/INTERP/TLS rejected before writes |
+| Smoke test | Own ELF entry after EBS, BootInfo/BSS/data correct, markers in order, QEMU 33 and harness 0 within 60 s |
+| Image rejection | Mutated `kernel.elf` refuses before kernel entry, fail marker and QEMU 35; no `M1:PASS` |
+| Retry | Test with deliberately old map key fails the first EBS, succeeds with a new map without new allocation; the normal build does not contain the injection |
+| Error path | Explicit kernel panic reaches the failure code; a hang and deviating exit are treated as fail by the harness |
+| Independence | After the first EBS no protocol/console/file calls; after success not a single UEFI call, no `Drop` with firmware effects |
+| Repeatability | Three consecutive cold boots, each time a fresh VARS copy; hashes and raw logs kept |
 
-Pure parser-/protocoltests draaien op de host en bewijzen uitsluitend die logica. QEMU-tests moeten daadwerkelijk de gebouwde loader en kernel uitvoeren; een Pythonmodel of nagebootst seriëel log telt niet. Er is na dit document **geen open architectuurkeuze nodig om M1 te schrijven**. Resterend werk is concrete hostpreflight, implementatie, compilerdiagnostiek, het werkelijk verkrijgen/hashen van firmware en het meten van de bovenstaande tests. Een mislukte test wordt een klein geregistreerd implementatieprobleem, geen aanleiding om zonder bewijs opnieuw de hele OS-richting te onderzoeken.
+Pure parser/protocol tests run on the host and prove exclusively that logic. QEMU tests must actually run the built loader and kernel; a Python model or simulated serial log does not count. After this document **no open architecture choice is needed to write M1**. Remaining work is concrete host preflight, implementation, compiler diagnostics, actually obtaining/hashing firmware and measuring the tests above. A failed test becomes a small registered implementation issue, not a reason to re-investigate the whole OS direction without evidence.
 
-## 9. Bronnen en controlegrenzen (APA 7)
+## 9. Sources and verification boundaries (APA 7)
 
-Geraadpleegd op 26 oktober 2026. Ontwerpgetallen, laadadres, schema, limieten en testmarkers zijn eigen projectbesluiten. Bronnen bevestigen de gebruikte mechanismen; ze bewijzen niet dat de nog ongeschreven projectcode correct is.
+Accessed on 26 October 2026. Design numbers, load address, schema, limits and test markers are own project decisions. Sources confirm the mechanisms used; they do not prove that the not-yet-written project code is correct.
 
-- **B1.** The Rust Project. (2025, 18 september). *Announcing Rust 1.90.0*. https://blog.rust-lang.org/2025/09/18/Rust-1.90.0/
-- **B2.** The Rust Project. (z.d.). *\*-unknown-uefi*. The rustc book. https://doc.rust-lang.org/rustc/platform-support/unknown-uefi.html
-- **B3.** The Rust Project. (z.d.). *x86_64-unknown-none*. The rustc book. https://doc.rust-lang.org/rustc/platform-support/x86_64-unknown-none.html
-- **B4.** r-efi Contributors. (2026, 10 augustus). *r-efi 7.1.0*. Docs.rs. https://docs.rs/crate/r-efi/latest (geraadpleegde versiepagina vermeldt expliciet 7.1.0 en releasehistorie; exact-version-URL kon via de onderzoekstool niet worden opgehaald).
-- **B5.** r-efi Contributors. (2026). *Cargo.toml* [Broncode; versieveld 7.1.0, rust-version 1.68]. https://github.com/r-efi/r-efi/blob/main/Cargo.toml — de release staat ook op https://github.com/r-efi/r-efi . `main` is veranderlijk; de implementatie downloadt exact7.1.0, controleert het verpakte manifest en bewaart de Cargo-registrychecksum. Die download/controle is hier niet uitgevoerd.
-- **B6.** QEMU Project. (2026). *Download QEMU*. https://www.qemu.org/download/ — vermeldt versie10.0.14; distributieoverzicht https://download.qemu.org/ . Invocation: https://www.qemu.org/docs/master/system/invocation.html . De CLI is onderzocht; exacte lokale machine-/firmwarecombinatie nog niet uitgevoerd.
-- **B7.** TianoCore. (2025, 22 augustus). *edk2-stable202508* [Release]. https://github.com/tianocore/edk2/releases/tag/edk2-stable202508
-- **B8.** TianoCore. (z.d.). *How to build OVMF*; *How to run OVMF*. https://www.tianocore.org/tianocore-wiki.github.io/development/tutorials-howto/how_to_build_ovmf.html ; https://www.tianocore.org/tianocore-wiki.github.io/development/tutorials-howto/how_to_run_ovmf.html
-- **B9.** UEFI Forum. (2022). *UEFI specification 2.10: 7. Services—Boot Services*, §§7.2.1, 7.2.3, 7.4.4 en 7.4.6. https://uefi.org/specs/UEFI/2.10/07_Services_Boot_Services.html — hoofdstuk inhoudelijk geraadpleegd, inclusief EBS-retry en descriptorstride. De 2.11-URL gaf een toegangsblokkade; daarom wordt hier expliciet de bereikbare 2.10-tekst gebruikt, niet verzonnen 2.11-inhoud.
-- **B10.** QEMU Contributors. (z.d.). *hw/misc/debugexit.c* [Broncode]. https://github.com/qemu/qemu/blob/master/hw/misc/debugexit.c — geraadpleegde source bevat `(val << 1) | 1`. Controle van de gekozen lokale binary gebeurt aanvullend door de rooktest; dit is geen claim dat master hetzelfde bronbestand is als tag10.0.14.
-- **B11.** Xinuos. (z.d.). *ELF object file format: 7. Program loading* (System V gABI4.2). https://gabi.xinuos.com/v42/elf/07-pheader.html — primaire ELF64-PHDR-layout, segmenttypen, filesz/memsz, alignment en permissies inhoudelijk geraadpleegd. Het gebruik van een publiek bestandsformaat maakt de eigen kernel geen afgeleide van een bestaand OS.
+- **B1.** The Rust Project. (2025, 18 September). *Announcing Rust 1.90.0*. https://blog.rust-lang.org/2025/09/18/Rust-1.90.0/
+- **B2.** The Rust Project. (n.d.). *\*-unknown-uefi*. The rustc book. https://doc.rust-lang.org/rustc/platform-support/unknown-uefi.html
+- **B3.** The Rust Project. (n.d.). *x86_64-unknown-none*. The rustc book. https://doc.rust-lang.org/rustc/platform-support/x86_64-unknown-none.html
+- **B4.** r-efi Contributors. (2026, 10 August). *r-efi 7.1.0*. Docs.rs. https://docs.rs/crate/r-efi/latest (the accessed version page explicitly mentions 7.1.0 and release history; the exact-version URL could not be fetched via the research tool).
+- **B5.** r-efi Contributors. (2026). *Cargo.toml* [Source code; version field 7.1.0, rust-version 1.68]. https://github.com/r-efi/r-efi/blob/main/Cargo.toml — the release is also at https://github.com/r-efi/r-efi . `main` is mutable; the implementation downloads exactly 7.1.0, checks the packaged manifest and keeps the Cargo registry checksum. That download/check was not performed here.
+- **B6.** QEMU Project. (2026). *Download QEMU*. https://www.qemu.org/download/ — mentions version 10.0.14; distribution overview https://download.qemu.org/ . Invocation: https://www.qemu.org/docs/master/system/invocation.html . The CLI was examined; the exact local machine/firmware combination has not yet been run.
+- **B7.** TianoCore. (2025, 22 August). *edk2-stable202508* [Release]. https://github.com/tianocore/edk2/releases/tag/edk2-stable202508
+- **B8.** TianoCore. (n.d.). *How to build OVMF*; *How to run OVMF*. https://www.tianocore.org/tianocore-wiki.github.io/development/tutorials-howto/how_to_build_ovmf.html ; https://www.tianocore.org/tianocore-wiki.github.io/development/tutorials-howto/how_to_run_ovmf.html
+- **B9.** UEFI Forum. (2022). *UEFI specification 2.10: 7. Services—Boot Services*, §§7.2.1, 7.2.3, 7.4.4 and 7.4.6. https://uefi.org/specs/UEFI/2.10/07_Services_Boot_Services.html — chapter content consulted, including EBS retry and descriptor stride. The 2.11 URL returned an access block; therefore the reachable 2.10 text is explicitly used here, not invented 2.11 content.
+- **B10.** QEMU Contributors. (n.d.). *hw/misc/debugexit.c* [Source code]. https://github.com/qemu/qemu/blob/master/hw/misc/debugexit.c — the accessed source contains `(val << 1) | 1`. Verification of the chosen local binary is additionally done by the smoke test; this is not a claim that master is the same source file as tag 10.0.14.
+- **B11.** Xinuos. (n.d.). *ELF object file format: 7. Program loading* (System V gABI 4.2). https://gabi.xinuos.com/v42/elf/07-pheader.html — primary ELF64 PHDR layout, segment types, filesz/memsz, alignment and permissions consulted in substance. Using a public file format does not make the own kernel a derivative of an existing OS.
