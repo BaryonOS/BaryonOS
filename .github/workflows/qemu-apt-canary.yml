@@ -10,22 +10,30 @@ permissions:
   contents: read
 
 jobs:
-  noble:
-    runs-on: ubuntu-24.04
+  canary:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            swtpm: 'true'
+          - os: ubuntu-26.04
+            swtpm: 'false'
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Record preinstalled rdma-core and block the Ubuntu mirrors
+        run: |
+          dpkg-query -W libibverbs1 ibverbs-providers || true
+          # The bundle must install without any Ubuntu host.
+          printf '0.0.0.0 %s\n' archive.ubuntu.com security.ubuntu.com \
+            snapshot.ubuntu.com azure.archive.ubuntu.com esm.ubuntu.com |
+            sudo tee -a /etc/hosts
       - uses: ./.github/actions/setup-qemu
         with:
-          swtpm: 'true'
-      - run: swtpm --version
-  resolute:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/setup-qemu
+          swtpm: ${{ matrix.swtpm }}
+      - name: The bundle was the APT source
+        run: grep '^APT source used: file:' "$RUNNER_TEMP/nieuw-os-qemu-environment.txt"
