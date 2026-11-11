@@ -4,26 +4,45 @@
   "built_date_utc": "2026-11-11",
   "builder": {
     "script": "tools/ci/build_qemu_apt_bundle.sh",
-    "commit": "145740fa22a5bac16c942655adc376dac6796397",
+    "commit": "f26cd05623368c1a834be538e38a2aa30f5e1df1",
     "upstream": "https://archive.ubuntu.com/ubuntu",
     "upstream_reason": "snapshot.ubuntu.com unreachable on 2026-11-11 (HTTPS timeout); the archive serves the same Ubuntu-signed metadata",
     "checks": [
       "gpgv InRelease against /usr/share/keyrings/ubuntu-archive-keyring.gpg",
       "no Valid-Until field (bundle stays installable)",
       "Packages.xz SHA256 matches signed InRelease",
-      "APT install from the extracted file: mirror with exact pins",
-      "deterministic tar (--sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner)"
-    ]
+      "deterministic tar (--sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner)",
+      "download-only APT install from the bundle alone (file: source, exact pins, isolated status/lists/cache, non-root)",
+      "two consecutive builds produced byte-identical tar files",
+      "host /var/lib/dpkg/status unchanged by the builds"
+    ],
+    "extra_packages": {
+      "26.04": [
+        "ibverbs-providers=61.0-2ubuntu3"
+      ]
+    }
   },
   "distribution": {
-    "release_tag": "ci-qemu-apt-20261111",
-    "release_url": "https://github.com/BaryonOS/BaryonOS/releases/tag/ci-qemu-apt-20261111",
-    "status": "not published: creating the public release needs the project owner's approval"
+    "release_tag": "ci-qemu-apt-20261111-r2",
+    "release_url": "https://github.com/BaryonOS/BaryonOS/releases/tag/ci-qemu-apt-20261111-r2",
+    "status": "published as prerelease on 2026-11-11 on the owner's instruction; target commit f26cd05623368c1a834be538e38a2aa30f5e1df1",
+    "anonymous_download_check": "both tar assets downloaded without a token match the pinned sha256 in the action",
+    "superseded": [
+      {
+        "release_tag": "ci-qemu-apt-20261111",
+        "reason": ".deb files stored under percent-encoded names (%2b for +), so APT could not install from a file: source; the 26.04 bundle also lacked ibverbs-providers",
+        "sha256": {
+          "qemu-apt-noble.tar": "7b4a0a6b0728b121325491745369bcff3d42a0a4cf2687eb5f850a3431c963b5",
+          "qemu-apt-resolute.tar": "515c4a94ee7f9ed9c53aa85e8a0558ec9d2ac5d8ef2fd5d256e27e6c90530be9"
+        },
+        "state": "assets left unchanged; release notes marked superseded"
+      }
+    ]
   },
   "bundles": [
     {
       "asset": "qemu-apt-noble.tar",
-      "sha256": "7b4a0a6b0728b121325491745369bcff3d42a0a4cf2687eb5f850a3431c963b5",
+      "sha256": "f54c031bb8006aca7e8dab3dbd6e457e075e7b29d466a1df478bb0e55c4617d8",
       "bytes": 64972800,
       "ubuntu": "24.04",
       "debs": 89,
@@ -54,10 +73,10 @@
     },
     {
       "asset": "qemu-apt-resolute.tar",
-      "sha256": "515c4a94ee7f9ed9c53aa85e8a0558ec9d2ac5d8ef2fd5d256e27e6c90530be9",
-      "bytes": 72140800,
+      "sha256": "45026b9633ac5b09848ddf7987828d7ee4b01feb97df2c6f350f7a7332001b39",
+      "bytes": 72560640,
       "ubuntu": "26.04",
-      "debs": 112,
+      "debs": 113,
       "sources_asset": {
         "name": "qemu-apt-resolute-SOURCES.txt",
         "sha256": "eed481dad825e5744559eee325d044f9b381ce2d2de5a3625f09fe6b41aa7800"
@@ -91,7 +110,56 @@
     "git_or_lfs": "Adds about 134 MB of binaries to history or an LFS quota."
   },
   "hosted_canary": {
-    "status": "not_run",
-    "reason": "waits for the release"
+    "status": "passed",
+    "run_id": 43057156214,
+    "run_url": "https://github.com/BaryonOS/BaryonOS/actions/runs/43057156214",
+    "commit": "1cd2e91993e7aa779bf2522c868c2dc10d1a70c8",
+    "action_commit": "f26cd05623368c1a834be538e38a2aa30f5e1df1",
+    "branch": "ci/qemu-apt-canary (throwaway, deleted after the run)",
+    "ubuntu_hosts_blocked": [
+      "archive.ubuntu.com",
+      "security.ubuntu.com",
+      "snapshot.ubuntu.com",
+      "azure.archive.ubuntu.com",
+      "esm.ubuntu.com"
+    ],
+    "jobs": [
+      {
+        "runner": "ubuntu-24.04",
+        "image": "ubuntu24 / 20261101.360.1",
+        "swtpm": true,
+        "job_id": 130649576277,
+        "result": "success",
+        "apt_source": "file: bundle",
+        "apt_plan": "0 upgraded, 18 newly installed",
+        "qemu": "8.2.2 (1:8.2.2+ds-0ubuntu1.18)",
+        "warnings": 0
+      },
+      {
+        "runner": "ubuntu-26.04",
+        "image": "ubuntu26 / 20261101.186.1",
+        "swtpm": false,
+        "job_id": 130649575619,
+        "result": "success",
+        "apt_source": "file: bundle",
+        "apt_plan": "0 upgraded, 20 newly installed, 2 downgraded (same-version reinstall of libibverbs1 and ibverbs-providers 61.0-2ubuntu3)",
+        "qemu": "10.2.1 (1:10.2.1+ds-1ubuntu3.3)",
+        "warnings": 0
+      }
+    ],
+    "failed_attempts": [
+      {
+        "run_id": 43052092447,
+        "cause": "runner-wide command-not-found index target missing from the bundle; fixed with Targets: Packages (3a48ee90)"
+      },
+      {
+        "run_id": 43053890525,
+        "cause": "percent-encoded .deb names in the r1 bundle; ibverbs-providers missing on 26.04; fixed in r2 (f26cd056)"
+      },
+      {
+        "run_id": 43056958632,
+        "cause": "YAML error in the throwaway canary workflow itself; no job ran"
+      }
+    ]
   }
 }

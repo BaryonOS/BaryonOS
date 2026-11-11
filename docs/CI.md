@@ -66,7 +66,7 @@ of native testcase is hiervoor verwijderd.
 | swtpm / libtpms0 | `0.7.3-0ubuntu5.24.04.1` / `0.9.3-0ubuntu4.24.04.1` | Native-system en Copilot |
 
 De 17 reguliere QEMU-jobdefinities plus Copilot hergebruiken één installatie
-uit een gepinde pakketbundel (release `ci-qemu-apt-20261111`, ADR-CI-QEMU-BUNDLE-20261111).
+uit een gepinde pakketbundel (release `ci-qemu-apt-20261111-r2`, ADR-CI-QEMU-BUNDLE-20261111).
 De bundel bevat de door Ubuntu ondertekende indexen en pakketten; APT controleert
 handtekening en hashes zoals bij een gewone bron. Valt de bundel weg, dan volgt
 met een waarschuwing het ondertekende Ubuntu-snapshot **20261108T000000Z** en

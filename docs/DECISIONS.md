@@ -16,7 +16,7 @@ hosted runners. snapshot.ubuntu.com timed out over HTTPS and runner DNS for
 the Ubuntu mirrors failed. One external host blocked every QEMU workflow.
 
 **Decision:** `.github/actions/setup-qemu` first downloads a bundle from the
-GitHub release `ci-qemu-apt-20261111` and checks its pinned sha256. Each bundle
+GitHub release `ci-qemu-apt-20261111-r2` and checks its pinned sha256. Each bundle
 is a partial Ubuntu mirror: the Ubuntu-signed `InRelease` files, the original
 `Packages.xz` indexes and the dependency-closure `.deb` files. APT installs
 from it as a `file:` source. It still verifies the Ubuntu signature
@@ -42,12 +42,18 @@ integrity rests on the Ubuntu signature, not on the host.
 release assets list the matching source packages with their sha256. Hosting
 the source tarballs next to the binaries is an open follow-up.
 
-**Evidence boundary:** both bundles were built locally from the archive and
-passed a `file:` install self-check; see the
-[bundle report](verification/ci-qemu-bundle-20261111.json). Publishing the
-release and the hosted canary on ubuntu-24.04 and ubuntu-26.04 are separate
-steps and are recorded there. A pin update requires a new bundle, a new tag and
-new sha256 values in the action. Score 41/100 is unchanged.
+**Evidence boundary:** both bundles were built twice from the archive with
+identical results and passed a download-only APT install from the bundle alone.
+Hosted canary run 43057156214 installed every pin from the bundle on
+ubuntu-24.04 (with swtpm) and ubuntu-26.04, with the Ubuntu mirrors blocked and
+no fallback warning; see the
+[bundle report](verification/ci-qemu-bundle-20261111.json). The first release
+(`ci-qemu-apt-20261111`) stored `.deb` files under percent-encoded names and is
+superseded; its assets are unchanged. The canary covers the two runner images
+of that date. A later image that preinstalls other versions can still miss a
+package; the action then warns and uses the signed network path. A pin update
+requires a new bundle, a new tag and new sha256 values in the action. Score
+39/100 is unchanged.
 
 ## ADR-074 — Ticket lock, irqsave and lockdep per CPU (K06 step 5a)
 

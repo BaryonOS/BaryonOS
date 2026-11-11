@@ -3,7 +3,7 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-11",
-    "source_commit": "145740fa22a5bac16c942655adc376dac6796397",
+    "source_commit": "f26cd05623368c1a834be538e38a2aa30f5e1df1",
     "assessment_basis": "source_commit",
     "branch": "ci/qemu-apt-bundle",
     "task": "Install pinned CI QEMU/OVMF from a signed package bundle (ADR-CI-QEMU-BUNDLE-20261111)",
