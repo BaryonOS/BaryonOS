@@ -1,4 +1,4 @@
-# Bureaublad, taakbalk en zoeken — ontwerp
+# Desktop, taskbar and search — design
 
 Original design: 30 October 2026 (ADR-058). Status as of 9 November 2026:
 **design** (§§1–5); **host-rendered implementation** (§7, `ui/graphics` and
@@ -6,109 +6,109 @@ Original design: 30 October 2026 (ADR-058). Status as of 9 November 2026:
 appearance and no measured usability study. The accepted progress remains
 **39/100**; no additional criterion is accepted by this change.
 Design source: [DECISIONS.md](../DECISIONS.md), ADR-058.
-Inloggen en gebruikers: [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md).
+Sign-in and users: [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md).
 
-## 1. Doel
+## 1. Goal
 
-Wie Windows, macOS of een gangbare Linux-desktop kent, kan Nieuw OS meteen
-gebruiken: apps starten, zoeken, vensters schikken, bestanden terugvinden,
-instellingen wijzigen en afsluiten, zonder uitleg. Daarbovenop biedt Nieuw OS
-dingen die bekende platforms niet standaard zo bieden (§4). Die aanvullingen
-mogen het bekende pad nooit vervangen of in de weg zitten.
+Anyone who knows Windows, macOS or a common Linux desktop can use Nieuw OS
+right away: start apps, search, arrange windows, find files again,
+change settings and shut down, without explanation. On top of that Nieuw OS offers
+things that familiar platforms do not offer this way by default (§4). Those additions
+must never replace or get in the way of the familiar path.
 
-Regels:
+Rules:
 
-- **Herkenbaar eerst.** Een standaardhandeling gebruikt de plek, het gebaar en
-  de sneltoets die consumenten verwachten.
-- **Eigen huisstijl.** Geen gekopieerde iconen, afbeeldingen, lettertypen,
-  merknamen of trade dress. De bestaande Materiaal-tokens (minerale
-  achtergrond, diepe groentinten, duidelijke typografie) zijn het startpunt.
-- **Rechten blijven rechten.** Een vertrouwd ogend venster of een bekende
-  plek verleent geen capability. Toestemmingsvensters tekent de vertrouwde
-  shell in een laag die apps niet kunnen overtekenen. Wachtwoord, pincode
-  en beheerderswachtwoord worden alleen ingevoerd op een oppervlak van de
-  sessiedienst, bereikt via het vergrendelscherm of Ctrl+Alt+Delete; de
-  shell en apps krijgen die toetsaanslagen nooit
-  ([PROFILES-AND-USERS.md](PROFILES-AND-USERS.md) §4, invariant 8). Een app
-  kan pixels nabootsen; daarom vraagt het systeem buiten die route nooit om
-  een geheim.
+- **Familiar first.** A standard action uses the place, the gesture and
+  the shortcut that consumers expect.
+- **Own house style.** No copied icons, images, fonts,
+  brand names or trade dress. The existing Materiaal tokens (mineral
+  background, deep green tones, clear typography) are the starting point.
+- **Rights remain rights.** A trusted-looking window or a familiar
+  place grants no capability. Permission dialogs are drawn by the trusted
+  shell in a layer that apps cannot draw over. Password, PIN
+  and administrator password are entered only on a surface of the
+  session service, reached via the lock screen or Ctrl+Alt+Delete; the
+  shell and apps never receive those keystrokes
+  ([PROFILES-AND-USERS.md](PROFILES-AND-USERS.md) §4, invariant 8). An app
+  can imitate pixels; that is why the system never asks for a
+  secret outside that route.
 
-## 2. Onderdelen en gekozen conventies
+## 2. Components and chosen conventions
 
-| Onderdeel | Gedrag | Keuze waar platforms verschillen |
+| Component | Behaviour | Choice where platforms differ |
 |---|---|---|
-| Bureaublad | Achtergrond; optioneel snelkoppelingen; rechtermuisklik: nieuw document, achtergrond wijzigen, beeldscherminstellingen | Standaard leeg bureaublad met alleen achtergrond |
-| Orbit (dock) | Zenit-knop (eigen horizon-merkteken, geen "Start"), Signaal (zoeken), vastgemaakte en geopende apps met indicator, systeemvak, klok/datum, meldingen | Compacte zwevende capsule onderaan, gecentreerd; plek blijft herkenbaar |
-| Zenit (launcher) | Zoekveld bovenaan (direct typen zoekt), vastgemaakte apps, alle apps, recente bestanden, gebruiker en aan/uit-menu | Opent met de OS-toets of het merkteken in Orbit |
-| Zoeken | Apps, instellingen en eigen bestanden, lokaal geïndexeerd; resultaten direct bij typen | Geen internetzoekopdracht standaard; alleen als de gebruiker dat aanzet en een zoekdienst kiest |
-| Vensters | Titelbalk met minimaliseren, maximaliseren en sluiten; slepen; vergroten via randen; dubbelklik op titelbalk maximaliseert | Knoppen rechts |
-| Venster schikken | Slepen naar rand of hoek, of OS-toets+pijl, zet venster op helft of kwart | — |
-| Wisselen | Alt+Tab met miniaturen; klik op taakbalkknop | — |
-| Systeemvak | Netwerk, geluid, batterij, privacy-indicator (§4); klik opent snelle instellingen (wifi, volume, helderheid, niet storen) | — |
-| Meldingen | Meldingencentrum vanaf klok/datum; niet storen | — |
-| Bestanden | Bestanden-app met zijbalk (Recent, Bureaublad, Documenten, Afbeeldingen, Downloads, NAS/apparaten) en adresbalk; Materiaal levert geschiedenis, rechten en opslagstatus | Bekende mappen als vaste ingangen |
-| Instellingen | Categorieën: Systeem, Apparaten, Netwerk en internet, Persoonlijke instellingen, Apps, Accounts, Tijd en taal, Toegankelijkheid, Privacy en beveiliging, Update | Zoekveld in Instellingen |
-| Prullenbak | Verwijderen gaat eerst naar de prullenbak; leegmaken is definitief | — |
-| Schermafbeelding | Print Screen en OS-toets+Shift+S | — |
+| Desktop | Background; optional shortcuts; right-click: new document, change background, display settings | Empty desktop with only a background by default |
+| Orbit (dock) | Zenit button (own horizon brand mark, no "Start"), Signaal (search), pinned and open apps with indicator, system tray, clock/date, notifications | Compact floating capsule at the bottom, centered; the location stays familiar |
+| Zenit (launcher) | Search field at the top (typing directly searches), pinned apps, all apps, recent files, user and power menu | Opens with the OS key or the brand mark in Orbit |
+| Search | Apps, settings and own files, indexed locally; results appear directly while typing | No internet search by default; only if the user turns it on and chooses a search service |
+| Windows | Title bar with minimize, maximize and close; dragging; resizing via the edges; double-click on the title bar maximizes | Buttons on the right |
+| Window arranging | Dragging to an edge or corner, or OS key+arrow, puts the window in a half or quarter | — |
+| Switching | Alt+Tab with thumbnails; click on a taskbar button | — |
+| System tray | Network, sound, battery, privacy indicator (§4); click opens quick settings (Wi-Fi, volume, brightness, do not disturb) | — |
+| Notifications | Notification center from clock/date; do not disturb | — |
+| Files | Files app with sidebar (Recent, Desktop, Documents, Pictures, Downloads, NAS/devices) and address bar; Materiaal provides history, rights and storage status | Known folders as fixed entry points |
+| Settings | Categories: System, Devices, Network and internet, Personalization, Apps, Accounts, Time and language, Accessibility, Privacy and security, Update | Search field in Settings |
+| Recycle bin | Deleting goes to the recycle bin first; emptying it is permanent | — |
+| Screenshot | Print Screen and OS key+Shift+S | — |
 
-### Standaard sneltoetsen
+### Default keyboard shortcuts
 
-| Toets | Werking |
+| Key | Action |
 |---|---|
-| Ctrl+C / Ctrl+X / Ctrl+V | Kopiëren / knippen / plakken |
-| Ctrl+Z / Ctrl+Y | Ongedaan maken / opnieuw |
-| Ctrl+S, Ctrl+A, Ctrl+F, Ctrl+P | Opslaan, alles selecteren, zoeken, afdrukken |
-| Alt+Tab, Alt+F4 | Wisselen, venster sluiten |
-| OS-toets | Zenit met Signaal |
-| OS-toets+E / +I / +L / +D | Bestanden / Instellingen / vergrendelen / bureaublad tonen |
-| Ctrl+Alt+Delete | Vertrouwd systeemscherm (vergrendelen, wisselen, afmelden, taakbeheer) |
-| Ctrl+Shift+Esc | Taakbeheer |
+| Ctrl+C / Ctrl+X / Ctrl+V | Copy / cut / paste |
+| Ctrl+Z / Ctrl+Y | Undo / redo |
+| Ctrl+S, Ctrl+A, Ctrl+F, Ctrl+P | Save, select all, find, print |
+| Alt+Tab, Alt+F4 | Switch, close window |
+| OS key | Zenit with Signaal |
+| OS key+E / +I / +L / +D | Files / Settings / lock / show desktop |
+| Ctrl+Alt+Delete | Trusted system screen (lock, switch, sign out, task manager) |
+| Ctrl+Shift+Esc | Task manager |
 
-Met "OS-toets" wordt de toets met het logo bedoeld, ook wel Super-toets
-genoemd. Op Mac-toetsenborden geldt Cmd als OS-toets.
+"OS key" means the key with the logo, also called the Super
+key. On Mac keyboards Cmd serves as the OS key.
 
-## 3. Huidige native basis en wat ontbreekt
+## 3. Current native base and what is missing
 
-| Er is (native, in QEMU getest) | Ontbreekt voor deze shell |
+| Exists (native, tested in QEMU) | Missing for this shell |
 |---|---|
-| Ring-3-compositor met één toegewezen surface voor één app, focus en tegelblits ([NATIVE-COMPOSITOR.md](NATIVE-COMPOSITOR.md)) | Meerdere clients en surfaces, vensterbeheer (verplaatsen, vergroten, stapelen, schikken), een beschermde systeemlaag, taakbalk en startmenu als vertrouwde shell |
-| Native invoerdienst met PS/2-bron en focusroute via de compositor ([NATIVE-INPUT-DAEMON.md](NATIVE-INPUT-DAEMON.md)) | Zichtbare muisaanwijzer, interruptgestuurde invoer, sneltoetsafhandeling door de shell, beveiligde aandachtsreeks naar de sessiedienst |
-| Materiaal en documentsessie ([NATIVE-MATERIAAL.md](NATIVE-MATERIAAL.md)) | Bestanden-app met mappenweergave, zoekindex |
-| Meerdere ring-3-processen ([K05](K05-PROCESS-MANAGEMENT.md)) | Generiek apps starten/stoppen vanuit het startmenu (FR-K02, FR-A-rijen) |
-| UEFI-framebuffer, vast 800×600 ([DISPLAY-INPUT-NATIVE-PROBE.md](DISPLAY-INPUT-NATIVE-PROBE.md)) | Hogere resoluties, schaalfactor, een grafische driver |
+| Ring-3 compositor with one assigned surface for one app, focus and tile blit ([NATIVE-COMPOSITOR.md](NATIVE-COMPOSITOR.md)) | Multiple clients and surfaces, window management (move, resize, stack, arrange), a protected system layer, taskbar and start menu as trusted shell |
+| Native input service with PS/2 source and focus route via the compositor ([NATIVE-INPUT-DAEMON.md](NATIVE-INPUT-DAEMON.md)) | Visible mouse pointer, interrupt-driven input, shortcut handling by the shell, secure attention sequence to the session service |
+| Materiaal and document session ([NATIVE-MATERIAAL.md](NATIVE-MATERIAAL.md)) | Files app with folder view, search index |
+| Multiple ring-3 processes ([K05](K05-PROCESS-MANAGEMENT.md)) | Generic starting/stopping of apps from the start menu (FR-K02, FR-A rows) |
+| UEFI framebuffer, fixed 800×600 ([DISPLAY-INPUT-NATIVE-PROBE.md](DISPLAY-INPUT-NATIVE-PROBE.md)) | Higher resolutions, scale factor, a graphics driver |
 
-## 4. Beter dan bekend (aanvullingen)
+## 4. Better than familiar (additions)
 
-Deze aanvullingen komen bovenop §2, nooit in plaats ervan:
+These additions come on top of §2, never in place of it:
 
-- **Lokale assistent in zoeken:** vragen over zelf gekozen bestanden,
-  volledig op het apparaat zonder netwerkrecht (FR-L01/L02).
-- **Privacy-indicator:** het systeemvak toont welke app nu netwerk,
-  microfoon, camera of locatie gebruikt; één klik toont of trekt het recht in.
-- **Duidelijke toestemmingsvensters:** wie, wat, hoelang, in gewone taal,
-  getekend door de vertrouwde shell.
-- **Geschiedenis voor ieder bestand:** eerdere versies terugzetten vanuit de
-  Bestanden-app (Materiaal-revisies).
-- **Verder werken op een tweede eigen apparaat** via de eigen NAS.
-- **Afwerking:** vloeiende, korte animaties die uit kunnen; geen wachten op
-  zichtbaar opbouwende schermen.
+- **Local assistant in search:** questions about self-chosen files,
+  entirely on the device without network right (FR-L01/L02).
+- **Privacy indicator:** the system tray shows which app is currently using network,
+  microphone, camera or location; one click shows or revokes the right.
+- **Clear permission dialogs:** who, what, for how long, in plain language,
+  drawn by the trusted shell.
+- **History for every file:** restore earlier versions from the
+  Files app (Materiaal revisions).
+- **Continue working on a second own device** via the own NAS.
+- **Finish:** smooth, short animations that can be turned off; no waiting for
+  screens that visibly build up.
 
-## 5. Stappen
+## 5. Steps
 
-Elke stap is pas klaar met native QEMU-bewijs, inclusief foutgevallen. Een
-browsermock of schermontwerp is productbewijs, geen systeembewijs.
+Each step is only done with native QEMU evidence, including failure cases. A
+browser mock or screen design is product evidence, not system evidence.
 
-| Stap | Resultaat | Afhankelijk van | Acceptatie |
+| Step | Result | Depends on | Acceptance |
 |---|---|---|---|
-| D0 | Bediening bruikbaar (= stap 0 van PROFILES-AND-USERS): aanwijzer, toetsenbord, complete frames, IRQ-invoer | Compositor, input | Zie daar |
-| D1 | Schermontwerp in eigen huisstijl voor bureaublad, taakbalk, startmenu, vensters, vergrendel- en inlogscherm; klikbaar prototype, gelabeld als simulatie | ADR-058 | Taakproef met mensen die geen beheerder zijn: app starten, bestand terugvinden, venster schikken, afsluiten zonder uitleg |
-| D2 | Meerdere clients en surfaces in de compositor; vensterbeheer: titelbalk, verplaatsen, vergroten, stapelen, schikken, Alt+Tab | D0 | Twee apps tegelijk; focus, overlap en sluiten; een app kan geen ander venster verplaatsen of overtekenen |
-| D3 | Taakbalk, startmenu en aan/uit-menu als vertrouwde shell; apps starten vanuit het menu | D2, generiek procesbeheer | Starten, sluiten, crash van een app laat de shell staan; crash van de shell herstelt zonder sessieverlies |
-| D4 | Zoeken over apps, instellingen en eigen bestanden, lokaal | D3, catalogus, PROFILES-AND-USERS stap 3 | Alleen bestanden van de ingelogde gebruiker; geen netwerkverkeer zonder expliciete keuze |
-| D5 | Bestanden-app en Instellingen-app | D3, PROFILES-AND-USERS stap 2 en 6 | FR-U- en FR-S03-acceptatie |
-| D6 | Hogere resolutie en schaal, daarna grafische driver | Driverwerk | Afzonderlijke contracten |
+| D0 | Controls usable (= step 0 of PROFILES-AND-USERS): pointer, keyboard, complete frames, IRQ input | Compositor, input | See there |
+| D1 | Screen design in own house style for desktop, taskbar, start menu, windows, lock and sign-in screen; clickable prototype, labelled as simulation | ADR-058 | Task trial with people who are not administrators: start an app, find a file again, arrange a window, shut down without explanation |
+| D2 | Multiple clients and surfaces in the compositor; window management: title bar, move, resize, stack, arrange, Alt+Tab | D0 | Two apps at once; focus, overlap and closing; an app cannot move or draw over another window |
+| D3 | Taskbar, start menu and power menu as trusted shell; starting apps from the menu | D2, generic process management | Starting, closing, crash of an app leaves the shell standing; crash of the shell recovers without session loss |
+| D4 | Search across apps, settings and own files, locally | D3, catalog, PROFILES-AND-USERS step 3 | Only files of the signed-in user; no network traffic without explicit choice |
+| D5 | Files app and Settings app | D3, PROFILES-AND-USERS steps 2 and 6 | FR-U and FR-S03 acceptance |
+| D6 | Higher resolution and scale, then graphics driver | Driver work | Separate contracts |
 
-## 6. Bewijsgrens
+## 6. Evidence boundary
 
 Sections 1–5 describe the intended interaction design. Section 7 records a
 host-rendered desktop implementation. Its fixtures and unit tests do not
@@ -116,75 +116,75 @@ demonstrate native Horizon execution, consumer usability, or feature parity
 with another operating system. Familiarity requires measured user-task trials
 (U06).
 
-## 7. Uiterlijk 2030 — "Horizon" (5 november 2026)
+## 7. Appearance 2030 — "Horizon" (5 November 2026)
 
-Status: **host-gerenderd** via de bestaande desktopfixtures in `ui/native`
-(768×536, 1280×720, 1920×1080); geen nieuw native QEMU-bewijs en geen gemeten
-gebruiksproef.
+Status: **host-rendered** via the existing desktop fixtures in `ui/native`
+(768×536, 1280×720, 1920×1080); no new native QEMU evidence and no measured
+usability trial.
 
-Gebruikersbesluit (Simon, 5 november 2026): geen "Start"-knop of een icoon
-dat aan een bestaand OS-logo doet denken, en geen vorm die aanvoelt als een
-opgepimpte klassieke taakbalk. De **plek** van de bediening blijft herkenbaar
-(onderaan, zoeken, apps, afmelden); vorm, naam en lichtbeeld zijn eigen.
+User decision (Simon, 5 November 2026): no "Start" button or an icon
+reminiscent of an existing OS logo, and no shape that feels like a
+pimped-up classic taskbar. The **location** of the controls stays familiar
+(bottom, search, apps, sign out); shape, name and lighting are our own.
 
-Ontwerptaal "Horizon":
+Design language "Horizon":
 
-- **Licht als materiaal.** Achtergrond: een donkere hemel boven de oplichtende
-  rand van een planeet, met atmosfeerlicht, een iris-waas en spaarzame
-  sterren. De rand wordt met 1/16-pixelprecisie berekend, zodat hij ook op
-  FHD-, QHD- en 4K-schermen strak blijft. Alleen gehele getallen, dus elke
-  tegel rendert identiek.
-- **Zwevend glas met lichtrand.** Oppervlakken zijn donker doorschijnend glas
-  met een fijne rand en een highlight van boven (`rim`). Er zijn geen witte
-  formulierkaarten.
+- **Light as material.** Background: a dark sky above the glowing
+  rim of a planet, with atmospheric light, an iris haze and sparse
+  stars. The rim is computed with 1/16-pixel precision, so that it also stays sharp on
+  FHD, QHD and 4K screens. Integers only, so every
+  tile renders identically.
+- **Floating glass with a light rim.** Surfaces are dark translucent glass
+  with a fine edge and a highlight from above (`rim`). There are no white
+  form cards.
 - **One command dock, not a taskbar.** A centered capsule contains the
   original Zenit horizon mark, compact Signaal search, pinned Nebula and
   power. The privacy light is visual status only. The running-app light
   strip is **planned**, not currently visible: opening Nebula switches
   to the Material page, where Orbit is not rendered.
-- **Privacy als licht, niet als pop-up.** Een rustige mintgroene gloed
-  "Lokaal" in het dock. Hij is geen bedieningselement en vraagt niets. Hij zegt
-  alleen wat waar is in deze VM-sessie: je werkruimte staat op dit apparaat.
-  Mint betekent overal "blijft bij jou". De volledige indicator uit §4 wacht op
-  een capabilitybron.
-- **Gecentreerde compositie** voor grote schermen: "Verder waar je was" als
-  eerste blik, in plaats van een paneel linksboven.
+- **Privacy as light, not as a pop-up.** A calm mint-green glow
+  "Lokaal" (local) in the dock. It is not a control and asks nothing. It says
+  only what is true in this VM session: your workspace is on this device.
+  Mint means "stays with you" everywhere. The full indicator from §4 waits for
+  a capability source.
+- **Centered composition** for large screens: "Verder waar je was" (pick up where you left off) as
+  the first view, instead of a panel at the top left.
 
-Bewust nog niet gedaan:
+Deliberately not yet done:
 
-- een klok of datum: de UI heeft geen tijdbron;
-- nep-apps in het overzicht;
-- animatie;
-- schaal boven 2×: 8K heeft een 4×-letteratlas nodig, en de renderer kent nu
-  drie lettergroottes bij 1× en 2×;
-- grote displaytypografie: die vraagt een extra atlasgrootte.
+- a clock or date: the UI has no time source;
+- fake apps in the overview;
+- animation;
+- scale above 2×: 8K needs a 4× glyph atlas, and the renderer currently knows
+  three font sizes at 1× and 2×;
+- large display typography: that requires an extra atlas size.
 
-### Namen (gebruikersbesluit 5 november 2026, familie "Kosmos")
+### Names (user decision 5 November 2026, family "Kosmos")
 
-Alleen de zichtbare namen veranderen; code-identifiers en documentnamen
-(`Materiaal`, `nieuw_os_materiaal`) blijven staan om churn te voorkomen.
+Only the visible names change; code identifiers and document names
+(`Materiaal`, `nieuw_os_materiaal`) stay in place to avoid churn.
 
-| Bekend als | Nieuw OS | Status |
+| Known as | Nieuw OS | Status |
 |---|---|---|
-| Bureaublad / startscherm | **Horizon** | Zichtbaar in de VM-shell |
-| Taakbalk / dock | **Orbit** | Zichtbaar (compacte capsule) |
-| Start / launcher | **Zenit** | Zichtbaar (merkteken, label) |
-| Verkenner / bestanden (was Materiaal) | **Nebula** | Zichtbaar in shell en app |
-| Zoeken | **Signaal** | Zichtbaar (knop en zoekpaneel) |
-| Instellingen | **Kern** | Nog geen app |
-| Store | **Haven** | Nog geen app |
+| Desktop / start screen | **Horizon** | Visible in the VM shell |
+| Taskbar / dock | **Orbit** | Visible (compact capsule) |
+| Start / launcher | **Zenit** | Visible (brand mark, label) |
+| Explorer / files (was Materiaal) | **Nebula** | Visible in shell and app |
+| Search | **Signaal** | Visible (button and search panel) |
+| Settings | **Kern** | No app yet |
+| Store | **Haven** | No app yet |
 
-### Richting: wat een OS van 2030 de consument moet geven
+### Direction: what an OS of 2030 must give the consumer
 
-| Wat mensen nu missen | Antwoord in Nieuw OS | Bouwsteen |
+| What people miss now | Answer in Nieuw OS | Building block |
 |---|---|---|
-| Privacy kost tientallen instellingen en cookie-achtige pop-ups | Privacy staat standaard aan; rechten worden één keer per **object en gevolg** gekozen bij installeren of koppelen, daarna stil; een permanente lichtstatus in het dock in plaats van meldingen | Capabilities, §4 privacy-indicator |
-| Werk is verspreid over apps, cloud en mappen | Eén commandoveld voor apps, materiaal en acties, lokaal geïndexeerd; "Verder waar je was" als startpunt | D4, Materiaal |
-| "Waar is mijn versie van gisteren?" | Geschiedenis per bestand, terugzetten vanuit Bestanden | Materiaal-revisies |
-| Een tweede apparaat betekent een cloudaccount | Verder werken via de eigen NAS, end-to-end versleuteld | NAS-sync |
-| AI-assistenten sturen data naar de cloud | Lokale assistent in het commandoveld, zonder netwerkrecht | FR-L01/L02 |
-| Hoge-resolutieschermen zien er wazig of te klein uit | Vectorachtige, integer-exacte rendering; schaal 1×/2× nu, 3×/4× (8K) als volgende stap | Letteratlas, D6 |
-| Updates en fouten voelen eng | Ongedaan maken van updates en duidelijke herstelroutes | Signed updates, herstel |
+| Privacy costs dozens of settings and cookie-like pop-ups | Privacy is on by default; rights are chosen once per **object and consequence** when installing or pairing, silent afterwards; a permanent light status in the dock instead of notifications | Capabilities, §4 privacy indicator |
+| Work is scattered across apps, cloud and folders | One command field for apps, material and actions, indexed locally; "Verder waar je was" as the starting point | D4, Materiaal |
+| "Where is my version from yesterday?" | History per file, restore from Files | Materiaal revisions |
+| A second device means a cloud account | Continue working via the own NAS, end-to-end encrypted | NAS sync |
+| AI assistants send data to the cloud | Local assistant in the command field, without network right | FR-L01/L02 |
+| High-resolution screens look blurry or too small | Vector-like, integer-exact rendering; scale 1×/2× now, 3×/4× (8K) as the next step | Glyph atlas, D6 |
+| Updates and errors feel scary | Undoing updates and clear recovery routes | Signed updates, recovery |
 
-"Voelt futuristisch" en gebruiksgemak blijven hypotheses tot de taakproef
+"Feels futuristic" and ease of use remain hypotheses until the task trial
 (U06).

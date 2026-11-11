@@ -1,333 +1,333 @@
-# Productbesluit en bouwspecificatie P2 — Materiaal
+# Product decision and build specification P2 — Materiaal
 
-## Aanvulling ADR-058 — 30 oktober 2026
+## Addendum ADR-058 — 30 October 2026
 
-Dit projectbesluit is leidend boven de regels hieronder dat het hoofdscherm geen bestaande desktop nabootst (§1) en dat er geen dock of taakbalk komt (§5), en boven de zin in *Aanvulling P3/P4* dat de ervaring Windows of macOS niet interactioneel mag nabouwen, voor zover het de gangbare indeling, bediening en sneltoetsen betreft. Visueel nabouwen (huisstijl, iconen, trade dress) blijft uitgesloten; de overige P3/P4-eisen aan afwerking en snelheid blijven gelden. De eindervaring krijgt een herkenbaar bureaublad, taakbalk, startmenu met zoeken, vensterbediening, inrichting en inlogscherm volgens [DESKTOP-SHELL.md](DESKTOP-SHELL.md) en [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md). Materiaal blijft het gegevens-, geschiedenis- en rechtenmodel en verschijnt in de Bestanden-app, recente items en toestemmingsdialogen. P2 hieronder blijft historisch productbewijs. Eigen visuele identiteit blijft verplicht; herkenbaar is de bediening, niet de huisstijl.
+This project decision takes precedence over the rules below that the main screen does not imitate an existing desktop (§1) and that there will be no dock or taskbar (§5), and over the sentence in *Addendum P3/P4* that the experience must not interactionally replicate Windows or macOS, insofar as it concerns the common layout, controls and keyboard shortcuts. Visual replication (house style, icons, trade dress) remains excluded; the other P3/P4 requirements for finish and speed continue to apply. The final experience gets a recognisable desktop, taskbar, start menu with search, window controls, setup and sign-in screen according to [DESKTOP-SHELL.md](DESKTOP-SHELL.md) and [PROFILES-AND-USERS.md](PROFILES-AND-USERS.md). Materiaal remains the data, history and permissions model and appears in the Files app, recent items and permission dialogs. P2 below remains historical product evidence. An own visual identity remains mandatory; what is recognisable is the controls, not the house style.
 
-## Onderzoeksaanvulling volledige OS-journey — 2 november 2026
+## Research addendum full OS journey — 2 November 2026
 
-De [31-aspectinstallatievergelijking](../research/os-installation-comparison.md),
-[28 dagelijkse taken](../research/os-interaction-patterns.md) en
-[mentale modellen](../research/transferable-mental-models.md) zijn eerst
-vastgelegd. Daaruit volgen de [installerspecificatie](../product/new-os-installer-spec.md),
-[onboarding](../product/new-os-onboarding-spec.md) en
-[meetbare interactieprincipes](../product/interaction-principles.md).
-**Dit zijn voorstellen voor vervolgwerk, geen implementatieopdracht of
-gebruikersvalidatie. P2 blijft bevroren op de bestaande zeven routes.**
-Materiaal en de eigen kernel blijven de productbasis; bekende basisacties
-moeten zonder verplichte nieuwe metafoor voorspelbaar blijven.
+The [31-aspect installation comparison](../research/os-installation-comparison.md),
+[28 everyday tasks](../research/os-interaction-patterns.md) and
+[mental models](../research/transferable-mental-models.md) were recorded
+first. From them follow the [installer specification](../product/new-os-installer-spec.md),
+[onboarding](../product/new-os-onboarding-spec.md) and
+[measurable interaction principles](../product/interaction-principles.md).
+**These are proposals for follow-up work, not an implementation assignment or
+user validation. P2 remains frozen on the existing seven routes.**
+Materiaal and the own kernel remain the product base; familiar basic actions
+must remain predictable without a mandatory new metaphor.
 
-### Begrensd vervolgplan na actuele broncontrole
+### Bounded follow-up plan after current source check
 
-| Onderdeel / probleem | Oplossing en betrokken bestanden | State en navigatie | Verificatie en regressierisico |
+| Component / problem | Solution and files involved | State and navigation | Verification and regression risk |
 |---|---|---|---|
-| J-P1: bekende term vindt onbekende eigen naam niet | Lokale synoniemenregistratie en eerlijke beschikbaarheidsstatus volgens ON-03. Bestaande referenties: `ui/prototype/state.js`, `app.js`, `broker.js` en ontwikkelbron `sdk/examples/window-session/src/scene.rs`; geen van deze productbestanden is nu gewijzigd. Een eigen registercomponent/-test wordt pas bij uitvoering afgebakend | Gedeelde intentie-ID's/labels; query inert; geen rechtenwijziging; herkomst bepaalt geen aparte shell | Aliassen per taal, ambiguïteit/ontbrekende service, focus en performancebaseline. Risico: vals beschikbare functie of actie tijdens typen |
-| J-P2: verkeerde verwachting en leerlast bij overstappen | Optionele lokale, overslaanbare hulp volgens ON-01/02/04–06. Nieuwe begeleidings-/voorkeurcomponent; eventuele prototypetaak blijft apart van P2 en duidelijk simulatie | Uitgesteld/overgeslagen/afgerond, hervatten via Help; geen tweede account-/privacywizard of extra primaire navigatie | Herkomstvarianten houden dezelfde rechten/routes; keyboard/screenreader/schaal/reduced motion; taakproef met/zonder hints. Risico: profilering of extra blokkades |
-| J-P3: gegevensverlies door onduidelijke installergrens | Eerst read-only inventaris-/planmodel; later installerbroker, account-/sleutel-/recoverydiensten volgens IN-01–07. Exacte native schrijfbestanden en IPC eerst opnieuw inspecteren; bestaande boot-/opslagcode niet breed herschrijven | Doel/plan wijzigen invalideert autorisatie; één complete grens vóór iedere mutatie; eerste boot controleert werkelijke toestand | Disposable diskbeelden, stale/hotplug/unknown/encrypted, onderbreking/boot/herstel en begrijpelijkheid. Risico: onomkeerbaar verlies; echte writes pas na aparte native gates |
+| J-P1: familiar term does not find unfamiliar own name | Local synonym registry and honest availability status according to ON-03. Existing references: `ui/prototype/state.js`, `app.js`, `broker.js` and development source `sdk/examples/window-session/src/scene.rs`; none of these product files has been changed now. A dedicated registry component/test is only scoped at execution | Shared intent IDs/labels; query inert; no permission change; origin does not determine a separate shell | Aliases per language, ambiguity/missing service, focus and performance baseline. Risk: falsely available function or action while typing |
+| J-P2: wrong expectation and learning burden when switching | Optional local, skippable help according to ON-01/02/04–06. New guidance/preference component; any prototype task stays separate from P2 and clearly simulation | Postponed/skipped/completed, resume via Help; no second account/privacy wizard or extra primary navigation | Origin variants keep the same permissions/routes; keyboard/screen reader/scaling/reduced motion; task trial with/without hints. Risk: profiling or extra blockers |
+| J-P3: data loss through an unclear installer boundary | First a read-only inventory/plan model; later installer broker, account/key/recovery services according to IN-01–07. Inspect exact native write files and IPC again first; do not broadly rewrite existing boot/storage code | Changing target/plan invalidates authorisation; one complete boundary before every mutation; first boot checks actual state | Disposable disk images, stale/hotplug/unknown/encrypted, interruption/boot/recovery and comprehensibility. Risk: irreversible loss; real writes only after separate native gates |
 
-J-P1/P2 zijn kandidaten voor een eerstvolgende begrensde onderzoeksproef,
-geen reeds ingeplande releasefuncties. J-P3 begint uitsluitend als
-niet-schrijvende planproef; persoonlijke authenticatie, crypto, sleutelherstel,
-hardware-/bootcompatibiliteit en toegankelijkheid vanaf boot zijn nog
-afzonderlijke voorwaarden. Een renderer verleent geen rechten. De normale
-route bevat geen verplichte provideraccount, OS-telemetrie of AI.
+J-P1/P2 are candidates for a next bounded research trial,
+not release features that have already been scheduled. J-P3 starts exclusively as a
+non-writing plan trial; personal authentication, crypto, key recovery,
+hardware/boot compatibility and accessibility from boot are still
+separate preconditions. A renderer grants no permissions. The normal
+route contains no mandatory provider account, OS telemetry or AI.
 
-Per uitvoering eerst concrete schrijfbestanden, actuele broncommit,
-capabilitygrens, performancebaseline en toepasselijke build-/lint-/testcommando's
-vastleggen. Brononderzoek bewijst geen huidige native implementatie. De
-nieuwe criteria zijn toetsdoelen en leveren geen voortgangspunten op; de
-bestaande releasecriteria en opslag-/privacycontracten blijven leidend.
+For each execution, first record concrete write files, current source commit,
+capability boundary, performance baseline and applicable build/lint/test commands.
+Source research does not prove a current native implementation. The
+new criteria are test targets and yield no progress points; the
+existing release criteria and storage/privacy contracts remain leading.
 
-De P2-bevriezing betreft het historische prototype; zij trekt de herkenbare
-desktoprichting uit ADR-058 hierboven niet in. De nieuwe journeyvoorstellen
-zijn geen stilzwijgende wijziging van dat projectbesluit.
+The P2 freeze concerns the historical prototype; it does not withdraw the recognisable
+desktop direction from ADR-058 above. The new journey proposals
+are not a silent change of that project decision.
 
-## Aanvulling N01 — 27 oktober 2026
+## Addendum N01 — 27 October 2026
 
-Dit projectbesluit is leidend boven onderstaande oorspronkelijke scope van één eigen NAS. Apparaten heeft nu drie flows: **Mijn NAS**, **Ruimte ontvangen** en **Ruimte aanbieden**. Internet is afzonderlijk toegestaan voor een bevestigde NAS-identiteit. Ontvangen ruimte kan bij vrienden/familie staan; de ontvanger bevestigt dat de host zijn NAS-kopie kan verwijderen en krijgt het advies een onafhankelijke kopie te bewaren. De beheerder ziet alleen capaciteit/gebruik/status en mag intrekken+wissen zonder gasttoestemming of inhoudssleutel.
+This project decision takes precedence over the original scope below of one own NAS. Devices now has three flows: **Mijn NAS** (My NAS), **Ruimte ontvangen** (Receive space) and **Ruimte aanbieden** (Offer space). Internet is separately permitted for a confirmed NAS identity. Received space can be hosted by friends/family; the recipient confirms that the host can delete their NAS copy and is advised to keep an independent copy. The administrator sees only capacity/usage/status and may revoke+wipe without guest consent or content key.
 
-Datatoegang geeft geen beheerrol. In de mock is expliciete lokale beheeractivatie vereist; een internetroute verleent geen extern beheer. Intrekking verhoogt de generatie, blokkeert oude uploads en geeft capaciteit vrij; een nieuwe uitnodiging krijgt een nieuw ruimte-ID. Documentnamen en inhoud horen alleen in de echte client versleuteld te worden: de browserflow simuleert dit en verwerkt geen sleutels, verbindingen of echte NAS-bestanden.
+Data access confers no administrator role. In the mock, explicit local administrator activation is required; an internet route grants no remote administration. Revocation increments the generation, blocks old uploads and frees capacity; a new invitation gets a new space ID. Document names and content are to be encrypted only in the real client: the browser flow simulates this and processes no keys, connections or real NAS files.
 
-De 39 state-tests en syntaxiscontroles zijn uitgevoerd; grafische browsercontrole van deze nieuwe schermen is nog open. Exacte crypto-/dienstproef en native integratiegrenzen: [NAS-SHARING-AND-INTERNET.md](NAS-SHARING-AND-INTERNET.md), [privacycontract revisie 3](../LOCAL-PRIVACY-CONTRACT.md), [UI-handleiding](../../ui/prototype/README.md).
+The 39 state tests and syntax checks have been run; graphical browser checking of these new screens is still open. Exact crypto/service trial and native integration boundaries: [NAS-SHARING-AND-INTERNET.md](NAS-SHARING-AND-INTERNET.md), [privacy contract revision 3](../LOCAL-PRIVACY-CONTRACT.md), [UI guide](../../ui/prototype/README.md).
 
-## Aanvulling consumentenonderzoek — 28 oktober 2026
+## Addendum consumer research — 28 October 2026
 
-De productkeuze **Materiaal** blijft ongewijzigd en P2 blijft bevroren op de zeven bestaande schermen. De aanvullende literatuurverkenning in [CONSUMER-VALUE-2026-10-28.md](../research/CONSUMER-VALUE-2026-10-28.md) voegt geen nieuw bewezen marktvoordeel toe, maar geeft een gerichte toetsvolgorde voor de onderscheidende ervaring.
+The product choice **Materiaal** remains unchanged and P2 remains frozen on the seven existing screens. The supplementary literature exploration in [CONSUMER-VALUE-2026-10-28.md](../research/CONSUMER-VALUE-2026-10-28.md) adds no new proven market advantage, but gives a targeted test order for the distinctive experience.
 
-Onderzoek na de bestaande P2-acceptatie één samenhangende demonstratie (**DV-01**) waarin dezelfde ondersteunde materiaalidentiteit leidend blijft: terugvinden, beperkte toegang voor gereedschap A, bevestigd opslaan, A beëindigen, hetzelfde materiaal met gereedschap B openen, geschiedenis/herstel als nieuwe revisie, toegang van A intrekken en een nieuwe beschermde actie van A weigeren.
+After the existing P2 acceptance, investigate one coherent demonstration (**DV-01**) in which the same supported material identity remains leading: finding it again, limited access for tool A, confirmed save, ending A, opening the same material with tool B, history/recovery as a new revision, revoking A's access and refusing a new protected action by A.
 
-**Productbewijs:** taaksucces, tijd/hulp, onbedoelde kopieën, begrip van opslagstatus en rechten, herstelsucces en vrijwillige keuze om dezelfde taak opnieuw via Materiaal uit te voeren.
+**Product evidence:** task success, time/help, unintended copies, understanding of storage status and permissions, recovery success and voluntary choice to perform the same task again via Materiaal.
 
-**Native systeembewijs:** echte capability-/dienstafdwinging, bevestigd werk dat binnen het opslagcontract het beëindigen van een gereedschap overleeft, revocation voor toekomstige acties en geen valse successtatus na onzekere opslag. Een browsermock bewijst deze eigenschappen niet.
+**Native system evidence:** real capability/service enforcement, confirmed work that, within the storage contract, survives the termination of a tool, revocation for future actions and no false success status after uncertain storage. A browser mock does not prove these properties.
 
-DV-01 is een vervolghypothese en acceptatiescenario. Het verruimt P2 niet stilzwijgend en verandert geen bestaande native bewijsclaim of voortgangspunt.
+DV-01 is a follow-up hypothesis and acceptance scenario. It does not silently broaden P2 and changes no existing native evidence claim or progress point.
 
-## Aanvulling P3/P4 — premium native productiviteit en eigen visuele taal
+## Addendum P3/P4 — premium native productivity and own visual language
 
-Projectbesluit van 28 oktober 2026: privacyvriendelijkheid mag **niet** zichtbaar
-aanvoelen als een functionele of esthetische concessie. De uiteindelijke
-Nieuw-OS-ervaring moet qua afwerking, snelheid, typografie en samenhang kunnen
-concurreren met hoogwaardige moderne consumentensoftware, zonder Windows,
-macOS, Microsoft Office of andere suites visueel of interactioneel na te
-bouwen.
+Project decision of 28 October 2026: privacy-friendliness must **not** visibly
+feel like a functional or aesthetic concession. The eventual
+Nieuw OS experience must be able to compete in finish, speed, typography and coherence
+with high-quality modern consumer software, without visually or interactionally
+replicating Windows, macOS, Microsoft Office or other
+suites.
 
-Dit verandert de bevroren P2-taakflows niet. P2 blijft een prototype om
-Materiaal te toetsen. Onderstaande eisen sturen P3 (designsysteem/appcontract)
-en P4/M7 (native vertaling).
+This does not change the frozen P2 task flows. P2 remains a prototype for testing
+Materiaal. The requirements below steer P3 (design system/app contract)
+and P4/M7 (native translation).
 
-### Productiviteitsmodel
+### Productivity model
 
-- **Materiaal blijft centraal.** Een document, tabel, presentatie, afbeelding of
-  collectie is het blijvende object; gereedschappen zijn verwisselbare
-  bewerkingsmogelijkheden.
-- **Geen Office-ribbonkopie als basis.** Contextuele gereedschappen verschijnen
-  wanneer het geselecteerde object of onderdeel ze nodig heeft. De inhoud
-  domineert het scherm.
-- **Herkenning zonder imitatie.** Bekende basisacties zoals openen, opslaan,
-  zoeken, undo, kopiëren en exporteren blijven voorspelbaar; onderscheid komt
-  uit objectcontinuïteit, geschiedenis, contextuele tools, motion en
-  capabilitybewust delen.
-- **Eén productfamilie.** Tekst, tabellen, presentaties, PDF/media en latere
-  eigen gereedschappen gebruiken dezelfde spacing, typografie, focus,
-  selectie, versiegeschiedenis, delen, herstel en foutpatronen.
-- **Interoperabiliteit is een migratie-eis.** DOCX/XLSX/PPTX/PDF-import/export
-  wordt als praktisch compatibiliteitsdoel onderzocht en per formaat/feature
-  getest. Een bestand kunnen openen is geen claim van volledige
-  round-trippariteit.
+- **Materiaal remains central.** A document, table, presentation, image or
+  collection is the lasting object; tools are interchangeable
+  editing capabilities.
+- **No Office ribbon copy as the base.** Contextual tools appear
+  when the selected object or part needs them. The content
+  dominates the screen.
+- **Recognition without imitation.** Familiar basic actions such as open, save,
+  search, undo, copy and export remain predictable; distinction comes
+  from object continuity, history, contextual tools, motion and
+  capability-aware sharing.
+- **One product family.** Text, tables, presentations, PDF/media and later
+  own tools use the same spacing, typography, focus,
+  selection, version history, sharing, recovery and error patterns.
+- **Interoperability is a migration requirement.** DOCX/XLSX/PPTX/PDF import/export
+  is investigated as a practical compatibility target and tested per format/feature.
+  Being able to open a file is no claim of full
+  round-trip parity.
 
-### Visuele/interactionele ambitie: quiet futurism
+### Visual/interaction ambition: quiet futurism
 
-De gewenste uitstraling is modern en vooruitstrevend zonder decoratieve
-sciencefiction: scherpe typografie, precieze grids, subtiele diepte,
-responsieve motion en contextuele bediening. Privacy- en beveiligingsstatus
-moeten rustig in dezelfde visuele taal passen en geen beheerconsole worden.
+The desired look is modern and forward-looking without decorative
+science fiction: sharp typography, precise grids, subtle depth,
+responsive motion and contextual controls. Privacy and security status
+must fit calmly into the same visual language and not become an administration console.
 
-Belangrijke principes:
+Key principles:
 
-- materiaal/content krijgt visuele prioriteit boven permanente chrome;
-- transitions volgen objectcontinuïteit: hetzelfde materiaal voelt als
-  hetzelfde object wanneer een ander gereedschap het opent;
-- motion ondersteunt plaats, status en causaliteit en respecteert
-  reduced-motion;
-- iconen en acties zijn direct herkenbaar op functie, met een eigen uitvoering;
-- technische details zijn beschikbaar maar niet de standaardtaal voor gewone
-  gebruikers;
-- fouten tonen gevolg en eerstvolgende herstelactie in plaats van cryptische
-  codes als primaire laag.
+- material/content gets visual priority over permanent chrome;
+- transitions follow object continuity: the same material feels like
+  the same object when another tool opens it;
+- motion supports place, status and causality and respects
+  reduced motion;
+- icons and actions are immediately recognisable by function, with their own execution;
+- technical details are available but not the default language for ordinary
+  users;
+- errors show the consequence and the next recovery action instead of cryptic
+  codes as the primary layer.
 
-De bestaande P2-kleuren/tokens zijn prototypekeuzes, geen definitieve merk- of
-OS-huisstijl.
+The existing P2 colours/tokens are prototype choices, not a definitive brand or
+OS house style.
 
-### Native renderdoel
+### Native render target
 
-De uiteindelijke kernapps krijgen een gedeelde native UI-/renderlaag als
-productdoel. Die laag moet GPU-versnelling, high-DPI, tekst, vectoren,
-animaties, toegankelijkheid en consistente input/focus ondersteunen zodra de
-native graphicsbasis dat toelaat.
+The eventual core apps get a shared native UI/render layer as a
+product goal. That layer must support GPU acceleration, high-DPI, text, vectors,
+animations, accessibility and consistent input/focus as soon as the
+native graphics base allows it.
 
-Een verzameling los vormgegeven webviews is niet de gewenste eindarchitectuur
-voor de eigen kernapps. Het exacte compositor-, GPU-, text shaping- en
-renderontwerp blijft een afzonderlijk technisch besluit en wordt pas
-vastgezet na de relevante G/H-mijlpalen. Het browserprototype is dus
-ontwerpgereedschap, geen stil gekozen runtime.
+A collection of separately styled webviews is not the desired final architecture
+for the own core apps. The exact compositor, GPU, text shaping and
+render design remains a separate technical decision and is only
+fixed after the relevant G/H milestones. The browser prototype is therefore a
+design tool, not a silently chosen runtime.
 
-### Lokale AI als gereedschap, niet als verplichte chatbot
+### Local AI as a tool, not as a mandatory chatbot
 
-Systeem-AI blijft lokaal volgens het privacycontract en wordt waar nuttig
-contextueel aangeboden, bijvoorbeeld op een expliciete tekstselectie:
-verkorten, verduidelijken, samenvatten, vergelijken of vertalen. AI krijgt
-alleen de geselecteerde context/capabilities en de gewone workflow blijft
-bruikbaar wanneer AI ontbreekt.
+System AI remains local according to the privacy contract and is offered contextually
+where useful, for example on an explicit text selection:
+shorten, clarify, summarise, compare or translate. AI receives
+only the selected context/capabilities and the ordinary workflow remains
+usable when AI is absent.
 
-De UI mag lokale verwerking zichtbaar maken, maar gebruikt geen opdringerige
-“AI overal”-interface als vervanging voor goede basisbediening.
+The UI may make local processing visible, but does not use an intrusive
+“AI everywhere” interface as a substitute for good basic controls.
 
-### Privacyuitleg zonder popupmoeheid
+### Privacy explanation without pop-up fatigue
 
-Er zijn twee verschillende UI-elementen:
+There are two different UI elements:
 
-1. een noodzakelijke capabilitybeslissing voor nieuwe toegang;
-2. optionele educatieve privacyuitleg met concreet voorbeeld of kritische vraag.
+1. a necessary capability decision for new access;
+2. optional educational privacy explanation with a concrete example or critical question.
 
-De gebruiker kan de educatieve uitleg globaal of per app uitschakelen. Dat
-verleent geen nieuwe rechten en wijzigt bestaande grants niet. Een normale
-handeling binnen een reeds geldige grant geeft niet telkens opnieuw dezelfde
-uitleg.
+The user can turn off the educational explanation globally or per app. That
+grants no new permissions and does not change existing grants. A normal
+action within an already valid grant does not show the same explanation
+again each time.
 
-Tijdens gaming/focus worden niet-urgente educatieve meldingen niet midden in
-de activiteit getoond. Een bewust geactiveerde nieuwe gevoelige functie mag
-wel een compacte noodzakelijke grantvraag openen.
+During gaming/focus, non-urgent educational notifications are not shown in the middle of
+the activity. A deliberately activated new sensitive function may
+still open a compact necessary grant request.
 
-### P3/P4-acceptatievragen
+### P3/P4 acceptance questions
 
-- **PX-01:** tekst-, tabel- en presentatieprototypes voelen als één productfamilie
-  zonder permanente Office-ribbonimitatie.
-- **PX-02:** gebruikers kunnen bekende basistaken uitvoeren zonder uitleg van
-  het onderliggende capabilitymodel.
-- **PX-03:** dezelfde objectversie, locatie en historie blijven herkenbaar
-  wanneer een ander gereedschap wordt gebruikt.
-- **PX-04:** privacyuitleg uitzetten verandert geen grantstate.
-- **PX-05:** toetsenbord, 200% zoom, screenreaderroute en reduced-motion zijn
-  onderdeel van hetzelfde designsysteem.
-- **PX-06:** realistische documenten worden getest op renderkwaliteit, latency,
-  herstel en import/export; screenshots alleen tellen niet als acceptatie.
-- **PX-07:** visuele vergelijking controleert originaliteit en samenhang zonder
-  te claimen dat subjectieve “mooier dan Office” al bewezen is.
+- **PX-01:** text, table and presentation prototypes feel like one product family
+  without permanent Office ribbon imitation.
+- **PX-02:** users can perform familiar basic tasks without explanation of
+  the underlying capability model.
+- **PX-03:** the same object version, location and history remain recognisable
+  when another tool is used.
+- **PX-04:** turning off privacy explanation does not change grant state.
+- **PX-05:** keyboard, 200% zoom, screen reader route and reduced motion are
+  part of the same design system.
+- **PX-06:** realistic documents are tested for render quality, latency,
+  recovery and import/export; screenshots alone do not count as acceptance.
+- **PX-07:** visual comparison checks originality and coherence without
+  claiming that a subjective “more beautiful than Office” has already been proven.
 
-Status: **besluit voor de eerste implementatie**, 26 oktober 2026. De bronnenvergelijking en conceptkeuze zijn nu uitgevoerd. Gebruikersonderzoek, grafische implementatie en native OS-integratie zijn nog niet uitgevoerd. Codex hoeft vóór P2 geen nieuwe brede conceptstudie te starten. Alleen een concreet vastgesteld conflict of een expliciete correctie door de projecteigenaar heropent de keuze.
+Status: **decision for the first implementation**, 26 October 2026. The source comparison and concept choice have now been carried out. User research, graphical implementation and native OS integration have not yet been carried out. Codex does not need to start a new broad concept study before P2. Only a concretely established conflict or an explicit correction by the project owner reopens the choice.
 
-## 1. Gekozen productlogica
+## 1. Chosen product logic
 
-**Materiaal is de gekozen richting.** De gebruiker begint bij een document, foto of verzameling die van de gebruiker blijft. Apps zijn verwisselbare gereedschappen die een specifieke bewerking uitvoeren, met een expliciete reikwijdte en duur. De objectgeschiedenis, gegevenslocatie en toegangsrechten blijven zichtbaar buiten de afzonderlijke app.
+**Materiaal is the chosen direction.** The user starts from a document, photo or collection that remains the user's. Apps are interchangeable tools that perform a specific edit, with an explicit scope and duration. The object history, data location and access permissions remain visible outside the individual app.
 
-Dit is een werknaam voor het interactiemodel, geen definitieve OS- of merknaam. Het ontwerp is eigen synthese, geen bewezen wereldprimeur. Een oorspronkelijke productervaring vraagt geen onbekend bestandssysteem voor de eerste proef.
+This is a working name for the interaction model, not a definitive OS or brand name. The design is an own synthesis, not a proven world first. An original product experience does not require an unknown filesystem for the first trial.
 
-De gebruiker kan ook een app rechtstreeks openen via Gereedschap; daarmee blijft de bediening toegankelijk voor mensen die vanuit een programma denken. Het hoofdscherm wordt geen appstartscherm of decoratieve imitatie van een bestaande desktop. De eerste navigatiekeuze betreft **het materiaal waaraan wordt gewerkt**.
+The user can also open an app directly via Gereedschap (Tools); this keeps the controls accessible for people who think in terms of a program. The main screen does not become an app launcher or a decorative imitation of an existing desktop. The first navigation choice concerns **the material being worked on**.
 
-## 2. Drie concepten op dezelfde vijf taken
+## 2. Three concepts on the same five tasks
 
-Onderstaande vergelijking is ontwerpwerk, geen gemeten gebruikersproef.
+The comparison below is design work, not a measured user trial.
 
-| Taak | Materiaal: objecten centraal | Werk: activiteiten centraal | Atelier: werkoppervlak centraal |
+| Task | Materiaal: objects central | Werk (Work): activities central | Atelier: work surface central |
 |---|---|---|---|
-| Installeer een bewerker | Voeg een gereedschap toe; het verschijnt als passende actie bij objecttypes | Voeg een gereedschap toe aan een activiteitprofiel | Plaats een gereedschap als aanpasbaar paneel op het werkoppervlak |
-| Maak/bewerk een document | Open Tuinplan; kies bewerking; maak nieuwe versie van hetzelfde object | Open activiteit Tuin vernieuwen; start de volgende stap en sla resultaat op | Sleep Tuinplan naar bewerkingspaneel; stel omgeving vrij in |
-| Vind iets terug | Zoek op titel/type/collectie; locatie en laatste versie direct zichtbaar | Zoek op activiteit, doel of periode; zoek daarna het bijbehorende resultaat | Zoek op paneel/werkblad of open de materiaallade |
-| Onderbreek en hervat | Hervat object, selectie en bewerking; rechten opnieuw controleren | Hervat activiteit met laatste stap, vensters en conceptresultaten | Herstel volledige ruimtelijke paneelindeling |
-| Herstel een fout | Open objectgeschiedenis; herstel versie als nieuwe revisie | Herstel de vorige activiteitstap, met gevolgen voor gekoppelde resultaten | Herstel paneelconfiguratie of bewerkingsgeschiedenis van geselecteerd materiaal |
+| Install an editor | Add a tool; it appears as a matching action for object types | Add a tool to an activity profile | Place a tool as an adjustable panel on the work surface |
+| Create/edit a document | Open Tuinplan; choose an edit; create a new version of the same object | Open activity Tuin vernieuwen (Renew garden); start the next step and save the result | Drag Tuinplan to the editing panel; set up the environment freely |
+| Find something again | Search by title/type/collection; location and latest version immediately visible | Search by activity, goal or period; then look for the associated result | Search by panel/worksheet or open the material drawer |
+| Interrupt and resume | Resume object, selection and edit; check permissions again | Resume activity with last step, windows and draft results | Restore full spatial panel layout |
+| Recover from an error | Open object history; restore version as a new revision | Restore the previous activity step, with consequences for linked results | Restore panel configuration or editing history of selected material |
 
-**Afweging en keuze.** Materiaal sluit het directst aan bij eigenaarschap, appuitwisselbaarheid en begrijpelijke bevoegdheden. Werk helpt bij langlopende activiteiten, maar introduceert al vroeg een extra organisatielaag. Atelier biedt sterke aanpasbaarheid, maar vraagt meer inrichting en kan onrustig of inconsistent worden. P2 implementeert Materiaal, met eenvoudige collecties; geen automatische combinatie van alle drie concepten. Activiteiten en vrijere werkoppervlakken blijven latere hypotheses, niet extra P2-scope.
+**Trade-off and choice.** Materiaal aligns most directly with ownership, app interchangeability and understandable permissions. Werk helps with long-running activities, but introduces an extra organisational layer early on. Atelier offers strong customisability, but requires more setup and can become restless or inconsistent. P2 implements Materiaal, with simple collections; no automatic combination of all three concepts. Activities and freer work surfaces remain later hypotheses, not extra P2 scope.
 
-### Vergelijking met bekende patronen
+### Comparison with familiar patterns
 
-- Windows Snap ordent appvensters en kan groepen herstellen; macOS Spaces verdeelt vensters over meerdere bureaubladen. Die patronen tonen ruimtelijke organisatie, maar bepalen niet het objecteigenaarschap of rechtenmodel van Nieuw OS (Microsoft, z.d.; Apple, z.d.).
-- Flatpak-portalen demonstreren dat een concrete bestandskeuze toegang kan verlenen zonder brede bestandstoegang. Het principe van een systeemportaal is dus bekend. Het voorgestelde ontwerp maakt gegevenslocatie, objecthistorie en tijdelijke gereedschapstoegang onderdeel van één doorlopende ervaring; dit is een ontworpen combinatie, geen claim dat bestaande systemen zulke onderdelen nooit hebben (Flatpak Project, z.d.).
-- WCAG 2.2 levert toetsbare criteria voor het webprototype. Gebruik die voor P2; een geslaagd webprototype verklaart het toekomstige native OS niet automatisch toegankelijk of wettelijk conform (W3C, 2024).
+- Windows Snap arranges app windows and can restore groups; macOS Spaces distributes windows across multiple desktops. Those patterns show spatial organisation, but do not determine the object ownership or permissions model of Nieuw OS (Microsoft, n.d.; Apple, n.d.).
+- Flatpak portals demonstrate that a concrete file choice can grant access without broad file access. The principle of a system portal is therefore known. The proposed design makes data location, object history and temporary tool access part of one continuous experience; this is a designed combination, not a claim that existing systems never have such components (Flatpak Project, n.d.).
+- WCAG 2.2 provides testable criteria for the web prototype. Use them for P2; a successful web prototype does not automatically declare the future native OS accessible or legally compliant (W3C, 2024).
 
-## 3. P2 is bevroren op zeven schermen
+## 3. P2 is frozen on seven screens
 
-Alle schermen moeten daadwerkelijk navigeerbaar zijn. Geen knop zonder werking of expliciete niet-beschikbaarstatus. Gebruik uitsluitend fictieve fixturedata.
+All screens must actually be navigable. No button without function or explicit unavailable status. Use exclusively fictitious fixture data.
 
-| ID / route | Inhoud en primaire handeling | Verplichte toestanden |
+| ID / route | Content and primary action | Mandatory states |
 |---|---|---|
-| S01 `#/start` | Drie korte stappen: taal/bediening; lokaal profiel; opslagkeuze. Hoofdactie 'Begin lokaal'. NAS kan later. | nieuw, stap terug, voltooid; geen internetaccount of echte wachtwoordinvoer |
-| S02 `#/materiaal` | Mijn materiaal: voortzetten, collecties, zoekveld, objectlijst. Hoofdactie 'Nieuw document'. | gevuld, zoekresultaat, nul resultaten, lege collectie |
-| S03 `#/object/obj-001` | Tuinplan in lees-/bewerkstand, gereedschapkeuze, versiegeschiedenis, gegevenslocatie. Hoofdactie 'Bewerken'. | lezen, verzoek in behandeling, bewerken, opslaan, opgeslagen, herstelpreview |
-| S04 `#/toegang` | Vertrouwd systeemoppervlak met precies wie/wat/handeling/duur. Vanuit object of gereedschapdetails; desktop als dialog, smal als volledig scherm. | aanvraag, toegestaan, geweigerd, ingetrokken; gecombineerde lees-/internetwaarschuwing |
-| S05 `#/gereedschap` | Fictieve lokale catalogus, pakketdetails en geïnstalleerde gereedschappen. Hoofdactie 'Installeer voorbeeld'. | niet geïnstalleerd, controle, geïnstalleerd, foutieve handtekening, verwijderd |
-| S06 `#/apparaten` | Dit apparaat en één eigen NAS. Koppeling via zichtbare identiteitscontrole; datasets en syncstatus. | niet gekoppeld, code vergelijken, gekoppeld, NAS offline, netwerk veranderd, identiteit afwijkend |
-| S07 `#/assistent` | Lokale assistent met expliciet geselecteerde context. Hoofdactie 'Vat selectie samen'. | model aanwezig, model ontbreekt, onvoldoende geheugen, bezig, antwoord, geannuleerd |
+| S01 `#/start` | Three short steps: language/controls; local profile; storage choice. Main action 'Begin lokaal' (Start locally). NAS can come later. | new, step back, completed; no internet account or real password entry |
+| S02 `#/materiaal` | My material: continue, collections, search field, object list. Main action 'Nieuw document' (New document). | filled, search result, zero results, empty collection |
+| S03 `#/object/obj-001` | Tuinplan in read/edit mode, tool choice, version history, data location. Main action 'Bewerken' (Edit). | reading, request pending, editing, saving, saved, recovery preview |
+| S04 `#/toegang` | Trusted system surface with exactly who/what/action/duration. From object or tool details; on desktop as a dialog, on narrow screens as full screen. | request, granted, denied, revoked; combined read/internet warning |
+| S05 `#/gereedschap` | Fictitious local catalogue, package details and installed tools. Main action 'Installeer voorbeeld' (Install example). | not installed, checking, installed, invalid signature, removed |
+| S06 `#/apparaten` | This device and one own NAS. Pairing via visible identity check; datasets and sync status. | not paired, compare code, paired, NAS offline, network changed, identity mismatch |
+| S07 `#/assistent` | Local assistant with explicitly selected context. Main action 'Vat selectie samen' (Summarise selection). | model present, model missing, insufficient memory, busy, answer, cancelled |
 
-De assistent gebruikt in P2 een deterministische voorbeeldrespons, nadrukkelijk gelabeld als simulatie. Er wordt geen model gedownload of inference geclaimd. Quantum krijgt hier geen decoratieve knop: de echte Q1-proef heeft een afzonderlijk uitvoercontract en wordt pas na werkende functionaliteit in de shell opgenomen.
+In P2 the assistant uses a deterministic example response, explicitly labelled as simulation. No model is downloaded and no inference is claimed. Quantum gets no decorative button here: the real Q1 trial has a separate execution contract and is only included in the shell after working functionality.
 
-### Vaste fixturedata
+### Fixed fixture data
 
-- Apparaat: 'Dit apparaat'; type desktop.
-- Eigen NAS: 'Thuis-NAS'; gesimuleerde identiteit `NAS-DEMO-01`; geen bestaand IP-adres of echt apparaat.
-- Objecten: `obj-001` Tuinplan (tekst, drie versies), `obj-002` Plattegrond (SVG uit lokale fixture), `obj-003` Boodschappen (tekst); collecties 'Vandaag', 'Huis' en 'Archief'.
-- Gereedschappen: 'Notities' vooraf beschikbaar; 'Beeldbewerker' als installeerbaar fixturepakket; 'Webvenster' als fictief gereedschap met afzonderlijk internetrecht. Geen echte applicatiecompatibiliteit claimen.
-- Foutbediening: een apart, duidelijk gemarkeerd prototypepaneel activeert NAS offline, verkeerde identiteit, weinig geheugen en ongeldige pakketsignatuur. Dit paneel behoort niet tot de uiteindelijke OS-ervaring.
+- Device: 'Dit apparaat' (This device); type desktop.
+- Own NAS: 'Thuis-NAS' (Home NAS); simulated identity `NAS-DEMO-01`; no existing IP address or real device.
+- Objects: `obj-001` Tuinplan (text, three versions), `obj-002` Plattegrond (SVG from local fixture), `obj-003` Boodschappen (text); collections 'Vandaag', 'Huis' and 'Archief'.
+- Tools: 'Notities' available beforehand; 'Beeldbewerker' as an installable fixture package; 'Webvenster' as a fictitious tool with a separate internet permission. Do not claim real application compatibility.
+- Error controls: a separate, clearly marked prototype panel activates NAS offline, wrong identity, low memory and invalid package signature. This panel is not part of the eventual OS experience.
 
-## 4. Overgangen en gegevensregels
+## 4. Transitions and data rules
 
-De prototypecontroller beslist over overgangen; schermcomponenten muteren geen willekeurige globale state.
+The prototype controller decides on transitions; screen components do not mutate arbitrary global state.
 
-| Event / beginstaat | Nieuwe staat en zichtbaar resultaat | Verboden effect |
+| Event / initial state | New state and visible result | Forbidden effect |
 |---|---|---|
-| `finishOnboarding` | S02; lokaal profiel in fixturestate | Accountregistratie of netwerkverzoek |
-| `requestEdit(obj-001, Notities)` | S04: 'Notities mag Tuinplan lezen en wijzigen tot je dit document sluit' | Automatische toegang tot collectie, NAS of netwerk |
-| `grantSession` | S03 bewerken; status 'Notities · alleen dit document' | Eenmalige toestemming omzetten in permanente toegang |
-| `denyGrant` | S03 lezen; inhoud ongewijzigd | Verlies van document of gedwongen appinstallatie |
-| `saveDraft` | Nieuwe revisie, daarna 'Op dit apparaat opgeslagen'; syncstatus apart | 'Veilig op NAS' tonen voordat sync bevestigd is |
-| `closeObject` | S02; editgrant beëindigd; cursorpositie als lokale hervatmetadata | Een actieve capability kopiëren naar een ander apparaat |
-| `restoreRevision(v1)` | Eerst vergelijkingspreview; bevestigen maakt v4 met inhoud v1 | V2/v3 wissen of herstel direct naar NAS pushen zonder gespecificeerd syncgedrag |
-| `pairNas` | Codevergelijking; bevestiging koppelt fixture-identiteit | Koppelen uitsluitend op hostnaam of hetzelfde wifi |
-| `nasOffline` | Lokale opslag blijft bruikbaar; 'Wacht op eigen NAS' | Externe cloudfallback of blokkeren van lokaal bewerken |
-| `nasIdentityMismatch` | Sync gestopt; uitleg en 'Verbinding opnieuw controleren' | Knop om onbevestigde identiteit stilzwijgend te vertrouwen |
-| `networkChanged` | Sync pauzeert; lokaal werken blijft mogelijk | NAS via extern internet bereikbaar proberen te maken |
-| `requestSummary` | S07 met lijst geselecteerde objecten en lokale simulatie | Algemene documentindex lezen of externe AI starten |
-| `modelMissing / lowMemory` | Expliciete lokale beperking; 'Gebruik zonder assistent' blijft beschikbaar | Cloudknop of impliciete externe fallback |
-| `installFixture` | Gesimuleerde handtekeningcontrole; app toegevoegd; nul grants | Installeren gelijkstellen aan toegang verlenen |
-| `revokeGrant` | Toekomstige beschermde acties worden geweigerd in mockbroker | Beloven reeds gemaakte kopieën te wissen |
+| `finishOnboarding` | S02; local profile in fixture state | Account registration or network request |
+| `requestEdit(obj-001, Notities)` | S04: 'Notities mag Tuinplan lezen en wijzigen tot je dit document sluit' (Notities may read and change Tuinplan until you close this document) | Automatic access to collection, NAS or network |
+| `grantSession` | S03 editing; status 'Notities · alleen dit document' (Notities · this document only) | Converting one-time permission into permanent access |
+| `denyGrant` | S03 reading; content unchanged | Loss of document or forced app installation |
+| `saveDraft` | New revision, then 'Op dit apparaat opgeslagen' (Saved on this device); sync status separate | Showing 'Veilig op NAS' (Safe on NAS) before sync is confirmed |
+| `closeObject` | S02; edit grant ended; cursor position as local resume metadata | Copying an active capability to another device |
+| `restoreRevision(v1)` | First a comparison preview; confirming creates v4 with content of v1 | Erasing V2/v3 or pushing the restore directly to the NAS without specified sync behaviour |
+| `pairNas` | Code comparison; confirmation pairs fixture identity | Pairing solely on host name or the same Wi-Fi |
+| `nasOffline` | Local storage remains usable; 'Wacht op eigen NAS' (Waiting for own NAS) | External cloud fallback or blocking local editing |
+| `nasIdentityMismatch` | Sync stopped; explanation and 'Verbinding opnieuw controleren' (Check connection again) | Button to silently trust an unconfirmed identity |
+| `networkChanged` | Sync pauses; local work remains possible | Trying to make the NAS reachable via the external internet |
+| `requestSummary` | S07 with list of selected objects and local simulation | Reading a general document index or starting external AI |
+| `modelMissing / lowMemory` | Explicit local limitation; 'Gebruik zonder assistent' (Use without assistant) remains available | Cloud button or implicit external fallback |
+| `installFixture` | Simulated signature check; app added; zero grants | Equating installation with granting access |
+| `revokeGrant` | Future protected actions are refused in the mock broker | Promising to erase copies already made |
 
-De S04-waarschuwing bij lees- én internetrecht luidt: 'Dit programma kan de toegestane inhoud naar een internetdienst sturen.' Toon objecten, bestemming/reikwijdte en duur. Kies standaard 'Annuleer'; een expliciete tweede actie kan de gevraagde beperkte combinatie toestaan. Dit is bewust geautoriseerd delen, geen absolute niet-lekkengarantie.
+The S04 warning for read and internet permission reads: 'Dit programma kan de toegestane inhoud naar een internetdienst sturen.' (This program can send the permitted content to an internet service.) Show objects, destination/scope and duration. Default to 'Annuleer' (Cancel); an explicit second action can permit the requested limited combination. This is deliberately authorised sharing, not an absolute no-leak guarantee.
 
-## 5. Visuele specificatie v1
+## 5. Visual specification v1
 
-Richting: rustig, precies en verzorgd; lichte minerale achtergrond, diepe groentinten, grote leesbare titels, scherpe uitlijning en ruim gebruik van witruimte. Geen gekopieerde dock, Windows-taakbalk, glaslagen of decoratieve statistieken. De objectlijst en echte gebruikersinhoud dragen het scherm.
+Direction: calm, precise and polished; light mineral background, deep green tones, large readable titles, sharp alignment and generous use of white space. No copied dock, Windows taskbar, glass layers or decorative statistics. The object list and real user content carry the screen.
 
-| Token | Waarde |
+| Token | Value |
 |---|---|
 | `color.background` | `#F4F5F1` |
 | `color.surface` | `#FFFFFF` |
 | `color.text` | `#162B2B` |
 | `color.textMuted` | `#5D6A67` |
-| `color.accent` / primary button | `#0A5E55`, tekst wit |
-| `color.danger` | `#A33625`, altijd ook tekst/icoon |
-| `color.warningText/background` | `#8A5200` op `#FFF3DB` |
-| `color.controlBorder` | `#768783`; decoratieve scheidingslijnen mogen lichter zijn |
-| `font.family` | `system-ui, "Segoe UI", sans-serif`; geen externe fontrequest |
-| `font.size/lineHeight` | body 16/24; metadata 14/20; label 14/20; sectie 20/28; paginatitel 32/40 |
-| `font.weight` | 400 body, 500 labels, 600 titels; geen bodytekst dunner dan 400 |
+| `color.accent` / primary button | `#0A5E55`, text white |
+| `color.danger` | `#A33625`, always also text/icon |
+| `color.warningText/background` | `#8A5200` on `#FFF3DB` |
+| `color.controlBorder` | `#768783`; decorative dividers may be lighter |
+| `font.family` | `system-ui, "Segoe UI", sans-serif`; no external font request |
+| `font.size/lineHeight` | body 16/24; metadata 14/20; label 14/20; section 20/28; page title 32/40 |
+| `font.weight` | 400 body, 500 labels, 600 titles; no body text thinner than 400 |
 | `space` | 4, 8, 12, 16, 24, 32, 48 px |
-| `radius` | 8 controls, 14 surfaces, 18 dialogs; pill uitsluitend voor statuslabels |
-| `control.minHeight` | 44 px; icon-only doelgebied 44×44 px |
-| `focus` | 3 px accent-outline, 3 px offset; volledig zichtbaar |
-| `shadow.dialog` | 0 16px 48px rgba(22,43,43,.16); niet als enige begrenzing |
+| `radius` | 8 controls, 14 surfaces, 18 dialogs; pill exclusively for status labels |
+| `control.minHeight` | 44 px; icon-only target area 44×44 px |
+| `focus` | 3 px accent outline, 3 px offset; fully visible |
+| `shadow.dialog` | 0 16px 48px rgba(22,43,43,.16); not as the only boundary |
 | `motion` | 120 ms state/hover; 180 ms panel; 220 ms route; easing cubic-bezier(.2,0,0,1) |
-| `reducedMotion` | overgang zonder verplaatsing; maximaal 50 ms fade; geen essentiële informatie afhankelijk van animatie |
+| `reducedMotion` | transition without movement; maximum 50 ms fade; no essential information dependent on animation |
 
-Berekend met de sRGB/WCAG-relatieve-luminantieformule: hoofdtekst/achtergrond **13,56:1**, secundaire tekst/achtergrond **5,15:1**, witte tekst/accent **7,65:1**, gevaartekst/wit **6,75:1**, waarschuwingtekst/-achtergrond **5,81:1**, controlborder/wit **3,77:1**. Dit zijn berekeningen van vaste kleurparen, nog geen controle van alle gerenderde toestanden.
+Calculated with the sRGB/WCAG relative luminance formula: body text/background **13.56:1**, secondary text/background **5.15:1**, white text/accent **7.65:1**, danger text/white **6.75:1**, warning text/background **5.81:1**, control border/white **3.77:1**. These are calculations of fixed colour pairs, not yet a check of all rendered states.
 
-**Layout:** desktop vanaf 1200 px: navigatierail 224 px, hoofdinhoud flexibel met max-breedte 1120 px, optionele inspector 288 px binnen de hoofdindeling. Op 768–1199 px: rail 72 px met labels via tooltip én toegankelijke naam; inspector als opvraagbaar paneel. Onder 768 px: één kolom met compacte bovennavigatie en expliciet menu; dialogs volledig scherm. Op 320 CSS px geen horizontale paginascroll; lange titels wrappen. De documentinhoud kan eigen overflow hebben wanneer de inhoud dat vereist.
+**Layout:** desktop from 1200 px: navigation rail 224 px, main content flexible with max width 1120 px, optional inspector 288 px within the main layout. At 768–1199 px: rail 72 px with labels via tooltip and an accessible name; inspector as an on-demand panel. Below 768 px: one column with compact top navigation and explicit menu; dialogs full screen. At 320 CSS px no horizontal page scroll; long titles wrap. The document content may have its own overflow when the content requires it.
 
-**Componentregels:** lijstregels zijn 72 px minimaal, titel 16 px, metadata 14 px; één primaire actie per paneel. Status heeft tekst plus icoon. Skeleton alleen bij werkelijk geplande asynchrone state; geen nepwachttijden boven 300 ms om technologie te suggereren. Foutmeldingen benoemen oorzaak voor zover bekend, gevolgen en één eerstvolgende handeling.
+**Component rules:** list rows are at least 72 px, title 16 px, metadata 14 px; one primary action per panel. Status has text plus icon. Skeleton only for genuinely planned asynchronous state; no fake waiting times above 300 ms to suggest technology. Error messages name the cause as far as known, the consequences and one next action.
 
-## 6. Bedienings- en toegankelijkheidscontract
+## 6. Controls and accessibility contract
 
-- Gebruik semantische HTML, echte buttons/inputs, kophiërarchie, landmarks en een skiplink. Native `dialog` voor S04 op desktop; focus keert terug naar de opener. Achtergrond tijdens modaliteit niet bedienbaar.
-- Tab/Shift+Tab door alle controls; Enter voert primaire geselecteerde handeling uit; Escape sluit alleen niet-destructieve overlay en bewaart een lokale draft; geen verlies bij toevallig Escape.
-- `Ctrl+K` opent zoeken/acties binnen het prototype als het browser-event beschikbaar is; zichtbare zoekknop blijft de betrouwbare route. Een browser kan systeemshortcuts reserveren.
-- `Ctrl+S` slaat in S03 de fixtureversie op en meldt de nieuwe status; zichtbare Opslaan-knop blijft bestaan.
-- Pijltoetsen verplaatsen focus in een geopende resultatenlijst; geen documentbewerktoetsen onderscheppen wanneer tekstfocus actief is.
-- `Alt+Links` is geen vereiste, vanwege browserhistorie; eigen Terug-knop werkt altijd.
-- Geen sleepactie zonder knoppenalternatief; geen hover-only functies.
-- Gebruik een polite live region voor opslagstatus, gekoppelde NAS en ingetrokken toegang. Foutmeldingen krijgen context zonder continu onderbrekende aankondigingen.
-- WCAG 2.2 AA is doel voor P2: gewone tekst minstens 4,5:1, grote tekst minstens 3:1; betekenisvolle UI-grenzen/staten minstens 3:1. Projectdoel is 44 px bediening en zichtbare 3 px focus. Dit zijn gekozen strengere componentregels, geen claim dat alle WCAG-criteria al gehaald zijn.
-- Test browserzoom 200%, toetsenbord en ten minste één schermlezer in de beschikbare omgeving; rapporteer ontbrekende apparatuur of niet uitgevoerde checks.
+- Use semantic HTML, real buttons/inputs, heading hierarchy, landmarks and a skip link. Native `dialog` for S04 on desktop; focus returns to the opener. Background not operable during modality.
+- Tab/Shift+Tab through all controls; Enter performs the primary selected action; Escape closes only a non-destructive overlay and keeps a local draft; no loss on accidental Escape.
+- `Ctrl+K` opens search/actions within the prototype if the browser event is available; the visible search button remains the reliable route. A browser may reserve system shortcuts.
+- `Ctrl+S` in S03 saves the fixture version and reports the new status; the visible Save button remains.
+- Arrow keys move focus in an open results list; do not intercept document editing keys when text focus is active.
+- `Alt+Links` is not a requirement, because of browser history; the own Back button always works.
+- No drag action without a button alternative; no hover-only functions.
+- Use a polite live region for storage status, paired NAS and revoked access. Error messages get context without continuously interrupting announcements.
+- WCAG 2.2 AA is the target for P2: normal text at least 4.5:1, large text at least 3:1; meaningful UI boundaries/states at least 3:1. The project target is 44 px controls and visible 3 px focus. These are chosen stricter component rules, not a claim that all WCAG criteria have already been met.
+- Test browser zoom 200%, keyboard and at least one screen reader in the available environment; report missing equipment or checks not carried out.
 
-## 7. Exact P2-implementatiepad en eigenaarschap
+## 7. Exact P2 implementation path and ownership
 
-**Kies dependencyvrije HTML/CSS/JavaScript-ES-modules.** Geen React, package-installatie, CDN, extern font, remote afbeelding of analytics. Deze keuze bouwt een interactieprototype op de ontwikkelhost; zij legt geen native compositor-technologie vast en vervangt de eigen kernel niet.
+**Choose dependency-free HTML/CSS/JavaScript ES modules.** No React, package installation, CDN, external font, remote image or analytics. This choice builds an interaction prototype on the development host; it does not fix any native compositor technology and does not replace the own kernel.
 
-Bestanden die P2 mag maken:
+Files that P2 may create:
 
-- `ui/prototype/index.html`: semantisch document, routeshell en CSP.
-- `ui/prototype/tokens.css`: uitsluitend tokens.
-- `ui/prototype/components.css`: layout/componenten/responsive/reduced motion.
-- `ui/prototype/app.js`: router, rendercoördinatie en events.
-- `ui/prototype/state.js`: pure reducer en selectoren.
-- `ui/prototype/fixtures.js`: deterministische synthetische data.
-- `ui/prototype/broker.js`: expliciete mock van object-, grant-, NAS-, install- en AI-interfaces.
-- `ui/prototype/README.md`: runpad, simulatiegrens en checks.
-- `ui/prototype/tests/state.test.mjs`: eventuele betekenisvolle state-/negatieve mocktests met ingebouwde Node-testmodule wanneer Node beschikbaar is.
+- `ui/prototype/index.html`: semantic document, route shell and CSP.
+- `ui/prototype/tokens.css`: tokens only.
+- `ui/prototype/components.css`: layout/components/responsive/reduced motion.
+- `ui/prototype/app.js`: router, render coordination and events.
+- `ui/prototype/state.js`: pure reducer and selectors.
+- `ui/prototype/fixtures.js`: deterministic synthetic data.
+- `ui/prototype/broker.js`: explicit mock of object, grant, NAS, install and AI interfaces.
+- `ui/prototype/README.md`: run path, simulation boundary and checks.
+- `ui/prototype/tests/state.test.mjs`: any meaningful state/negative mock tests with the built-in Node test module when Node is available.
 
-Eén builder bezit `app.js/state.js/broker.js`. Een visuele builder mag alleen `tokens.css/components.css` wijzigen na afspraken over componentnamen. Verifier werkt alleen-lezen. P2 wijzigt geen kernel-, boot- of cryptocode.
+One builder owns `app.js/state.js/broker.js`. A visual builder may only change `tokens.css/components.css` after agreements on component names. The verifier works read-only. P2 changes no kernel, boot or crypto code.
 
-Runpad vanuit de repositoryroot:
+Run path from the repository root:
 
 ```bash
 python3 -m http.server 8765 --bind 127.0.0.1 --directory ui/prototype
 ```
-Open `http://127.0.0.1:8765/` in de lokale testbrowser. Als poort 8765 bezet is, kies een andere vrije loopbackpoort en documenteer die. Geen publieke deployment of LAN-binding.
+Open `http://127.0.0.1:8765/` in the local test browser. If port 8765 is in use, choose another free loopback port and document it. No public deployment or LAN binding.
 
-P2 bewaart uitsluitend fictieve toestand in `sessionStorage` onder `nieuw-os-prototype-v1`; refresh kan hervatten. Een zichtbare 'Demo opnieuw beginnen' wist alleen die sleutel. Geen echte gebruikersbestanden, wachtwoorden, NAS-login of formulieruploads. Het demoheaderlabel 'Interactiemodel · simulatie' blijft zichtbaar op ieder scherm.
+P2 stores exclusively fictitious state in `sessionStorage` under `nieuw-os-prototype-v1`; a refresh can resume. A visible 'Demo opnieuw beginnen' (Restart demo) erases only that key. No real user files, passwords, NAS login or form uploads. The demo header label 'Interactiemodel · simulatie' (Interaction model · simulation) remains visible on every screen.
 
-CSP in het HTML-document: `default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'`. Geen inline scripts, eval, workers of service worker. Alle imagery is lokale SVG/fixture. De eerste loopbackrequests voor HTML/CSS/JS zijn nodig; daarna doet de app geen netwerkverzoeken. Browser-/extensieverkeer buiten de app valt buiten deze prototypeclaim.
+CSP in the HTML document: `default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'`. No inline scripts, eval, workers or service worker. All imagery is local SVG/fixture. The first loopback requests for HTML/CSS/JS are necessary; after that the app makes no network requests. Browser/extension traffic outside the app falls outside this prototype claim.
 
-## 8. Logische interface voor prototype en latere port
+## 8. Logical interface for prototype and later port
 
-Dit is een UI-contract, geen vervanging voor het kernel-ABI. Object-ID's zijn UI-referenties en verlenen zelf geen rechten.
+This is a UI contract, not a replacement for the kernel ABI. Object IDs are UI references and do not themselves grant permissions.
 
 ```text
 Object { id, title, mediaType, collectionId, revision, localState, nasState }
@@ -337,33 +337,33 @@ NasState = unpaired | verifying | online | offline | networkChanged | identityMi
 AiState = ready | missingModel | lowMemory | running | cancelled | result
 ```
 
-Mockbrokeroperaties: `listObjects`, `openObject`, `requestGrant`, `grant`, `deny`, `revoke`, `saveRevision`, `restoreAsNewRevision`, `pairNas`, `setNasCondition`, `installFixture`, `summarizeFixture`. Gebruik returncodes `DENIED`, `NOT_FOUND`, `STALE_REVISION`, `NAS_UNAVAILABLE`, `IDENTITY_MISMATCH`, `MODEL_MISSING`, `RESOURCE_LIMIT`, `INVALID_PACKAGE`. Geen scherm mag mislukking vertalen naar een geslaagde status.
+Mock broker operations: `listObjects`, `openObject`, `requestGrant`, `grant`, `deny`, `revoke`, `saveRevision`, `restoreAsNewRevision`, `pairNas`, `setNasCondition`, `installFixture`, `summarizeFixture`. Use return codes `DENIED`, `NOT_FOUND`, `STALE_REVISION`, `NAS_UNAVAILABLE`, `IDENTITY_MISMATCH`, `MODEL_MISSING`, `RESOURCE_LIMIT`, `INVALID_PACKAGE`. No screen may translate a failure into a success status.
 
-Een latere native adapter vervangt de mock; interfaces voor capabilities, revocation, versies en foutafhandeling moeten dan met echte services worden verbonden. De UI zelf is nooit de security-enforcementlaag.
+A later native adapter replaces the mock; interfaces for capabilities, revocation, versions and error handling must then be connected to real services. The UI itself is never the security enforcement layer.
 
-## 9. Acceptatie voor de eerstvolgende builder
+## 9. Acceptance for the next builder
 
-1. **P2-01:** alle zeven routes en verplichte toestanden bestaan; vijf taken uit §2 volledig doorlopen met fixtures.
-2. **P2-02:** geweigerde en ingetrokken rechten blokkeren de betreffende mockoperaties; installatie maakt nul grants.
-3. **P2-03:** NAS offline/verkeerde identiteit/netwerkovergang toont correct herstelgedrag; lokaal opslaan blijft werken en geen externe fallback wordt aangeboden.
-4. **P2-04:** AI zonder model/geheugen toont uitsluitend lokale alternatieven; voorbeeldantwoord is herkenbaar simulatie.
-5. **P2-05:** oudere revisie herstellen maakt een nieuwe revisie; de eerdere geschiedenis blijft intact.
-6. **P2-06:** alle bediening met toetsenbord, focusherstel en 200% zoom; contrastevaluatie van werkelijk gebruikte toestanden.
-7. **P2-07:** screenshots op 1440×900, 1024×768 en 390×844; aanvullend reflow op 320 CSS px. Geen clipping, verborgen primaire acties of onverwachte overlap.
-8. **P2-08:** inspecteer app-netwerkverkeer tijdens alle flows: uitsluitend initiële eigen loopbackassets; geen fetch, websocket, beacon, analytics, extern font of remote afbeelding.
-9. **P2-09:** ieder fout-/leeg-/loading-scherm gebruikt dezelfde componentregels en concrete tekst. Geen decoratieve werkende-OS- of hardwareclaims.
-10. **P2-10:** lever echte testresultaten en screenshots plus lijst niet uitgevoerde controles. Een screenshot bewijst geen toegankelijkheid, systeemveiligheid of NAS-koppeling.
+1. **P2-01:** all seven routes and mandatory states exist; five tasks from §2 fully walked through with fixtures.
+2. **P2-02:** denied and revoked permissions block the corresponding mock operations; installation creates zero grants.
+3. **P2-03:** NAS offline/wrong identity/network transition shows correct recovery behaviour; local saving keeps working and no external fallback is offered.
+4. **P2-04:** AI without model/memory shows exclusively local alternatives; the example answer is recognisably simulation.
+5. **P2-05:** restoring an older revision creates a new revision; the earlier history remains intact.
+6. **P2-06:** all controls by keyboard, focus restoration and 200% zoom; contrast evaluation of actually used states.
+7. **P2-07:** screenshots at 1440×900, 1024×768 and 390×844; additionally reflow at 320 CSS px. No clipping, hidden primary actions or unexpected overlap.
+8. **P2-08:** inspect app network traffic during all flows: exclusively initial own loopback assets; no fetch, websocket, beacon, analytics, external font or remote image.
+9. **P2-09:** every error/empty/loading screen uses the same component rules and concrete text. No decorative working-OS or hardware claims.
+10. **P2-10:** deliver real test results and screenshots plus a list of checks not carried out. A screenshot does not prove accessibility, system security or NAS pairing.
 
-P2 is **bouwklaar op documentniveau**. Geen gebruikers hebben deze concepten getest en er is nog geen interface gebouwd. Een eerste echte gebruikersproef volgt na P2; pas de gekozen richting dan aan op concrete observaties, niet vooraf opnieuw een algemene brainstorm starten.
+P2 is **ready to build at document level**. No users have tested these concepts and no interface has been built yet. A first real user trial follows after P2; adjust the chosen direction then based on concrete observations, rather than starting a general brainstorm again beforehand.
 
-## Bronnen (APA 7)
+## Sources (APA 7)
 
-Apple. (z.d.). *Work in multiple spaces on Mac*. Geraadpleegd op 26 oktober 2026, van https://support.apple.com/en-sg/guide/mac-help/mh14112/mac
+Apple. (n.d.). *Work in multiple spaces on Mac*. Retrieved 26 October 2026, from https://support.apple.com/en-sg/guide/mac-help/mh14112/mac
 
-Flatpak Project. (z.d.). *Sandbox permissions*. Geraadpleegd op 26 oktober 2026, van https://docs.flatpak.org/en/latest/sandbox-permissions.html
+Flatpak Project. (n.d.). *Sandbox permissions*. Retrieved 26 October 2026, from https://docs.flatpak.org/en/latest/sandbox-permissions.html
 
-Microsoft. (z.d.). *Snap your windows*. Geraadpleegd op 26 oktober 2026, van https://support.microsoft.com/en-us/windows/experience/snap-your-windows
+Microsoft. (n.d.). *Snap your windows*. Retrieved 26 October 2026, from https://support.microsoft.com/en-us/windows/experience/snap-your-windows
 
-World Wide Web Consortium. (2024, 12 december). *Web Content Accessibility Guidelines (WCAG) 2.2*. https://www.w3.org/TR/WCAG22/
+World Wide Web Consortium. (2024, December 12). *Web Content Accessibility Guidelines (WCAG) 2.2*. https://www.w3.org/TR/WCAG22/
 
-Tokenwaarden, conceptkeuze, taakscenario's, interfaces, schermen en acceptatietests zijn eigen projectbesluiten. De bronnen worden alleen gebruikt voor de genoemde bestaande patronen en toegankelijkheidscriteria.
+Token values, concept choice, task scenarios, interfaces, screens and acceptance tests are own project decisions. The sources are only used for the named existing patterns and accessibility criteria.
