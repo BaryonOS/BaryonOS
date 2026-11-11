@@ -1,92 +1,92 @@
-# M6d — native opslagfouten zonder kernelpanic
+# M6d — native storage errors without kernel panic
 
-Datum: 28 oktober 2026. Vooraf vastgelegd contract, oorspronkelijke basis
-`b58ae2a` (M6c), werkbranch `codex/m6d-io-recovery-roadmap`.
-De M6c/M6d-implementatie en versiegebonden native uitvoering zijn inmiddels
-vastgelegd in [M6D-ACCEPTANCE.md](../verification/M6D-ACCEPTANCE.md) en de
-latere [Windowsafsluiting](../verification/M6D-CLOSEOUT.md). Dit ontwerpdocument
-zelf is geen testresultaat. De historische zelfstandige M6b-observer blijft
-ongewijzigd en krijgt hiermee geen nieuwe foutafhandelingsclaim.
+Date: 28 October 2026. Contract recorded in advance, original base
+`b58ae2a` (M6c), working branch `codex/m6d-io-recovery-roadmap`.
+The M6c/M6d implementation and version-bound native execution have since been
+recorded in [M6D-ACCEPTANCE.md](../verification/M6D-ACCEPTANCE.md) and the
+later [Windows closeout](../verification/M6D-CLOSEOUT.md). This design document
+itself is not a test result. The historical standalone M6b observer remains
+unchanged and gets no new error-handling claim from this.
 
-## Probleem en gekozen grens
+## Problem and chosen boundary
 
-De echte ring-3-catalogusdienst beantwoordt mislukte WRITE/FLUSH-operaties al
-conservatief met `Unknown`. De kernelobserver van de M6c-proef verwachtte echter
-steeds de vooraf voorspelde succesvolle mutatie. Daardoor kon juist die correcte
-foutreply een kernelpanic veroorzaken. Deze stap laat de fout de app bereiken en
-controleert de grens met echte QEMU-uitvoering van de eigen kernel.
+The real ring-3 catalogue service already answers failed WRITE/FLUSH operations
+conservatively with `Unknown`. The kernel observer of the M6c trial, however, always
+expected the predicted successful mutation. As a result, precisely that correct
+error reply could cause a kernel panic. This step lets the error reach the app and
+checks the boundary with real QEMU execution of the own kernel.
 
-De bestaande IPC-v4-, journal-v2- en capabilitycontracten blijven gelden.
-M6d bouwt voort op `milestone-m6c`, zonder nieuwe syscall, afhankelijkheid,
-onbeperkte driverrechten of gewijzigde schijfindeling. De oudere afzonderlijke
-M6b-proef blijft selecteerbaar; de M6b-observer wordt in deze stap niet veranderd.
+The existing IPC v4, journal v2 and capability contracts remain in force.
+M6d builds on `milestone-m6c`, without a new syscall, dependency,
+unbounded driver rights or changed disk layout. The older separate
+M6b trial remains selectable; the M6b observer is not changed in this step.
 
-## Invarianten
+## Invariants
 
-1. Een eerste `Unknown` volgt uitsluitend op een werkelijk waargenomen mislukte
-   muterende submit/poll in de broker. Pending is geen fout. Een willekeurige
-   Unknown-reply zonder die oorzaak mag de succescontroles niet omzeilen.
-2. Na onzekerheid blijft de dienst afgesloten totdat een nieuwe instantie de
-   schijf herstelt. GET, LIST, PUT, DELETE en RENAME van beide appdomeinen geven
-   `Unknown`, lege gegevens en nulrevisie. Ongeldige of ongeautoriseerde aanvragen
-   blijven hun eigen validatiefout krijgen.
-3. De onzekere mutatie verhoogt geen levende revisie, succes-ACK of catalogusteller.
-   Er komt geen nieuwe blokaanroep, descriptorpublicatie of automatische replay.
-   Een al gepubliceerde device-operatie kan op de schijf aanwezig zijn zonder ACK.
-4. Normaal succes blijft een echte WRITE-completion én FLUSH-completion vereisen.
-   Capabilities en endpointgebonden domeinen worden niet verruimd.
-5. De dienst en beide apps blijven gepland; beide apps maken aantoonbaar voortgang. Onbevestigde
-   reset laat DMA-buffers gepind en het device in quarantaine tot VM-stop.
-6. Koude recovery start een nieuwe VM op exact dezelfde imagebytes, valideert de
-   werkelijke journalprefix en verricht geen writes. Geen verwijdering of
-   formattering om een test te laten slagen.
+1. A first `Unknown` follows exclusively on an actually observed failed
+   mutating submit/poll in the broker. Pending is not an error. An arbitrary
+   Unknown reply without that cause must not bypass the success checks.
+2. After uncertainty the service stays closed until a new instance recovers the
+   disk. GET, LIST, PUT, DELETE and RENAME from both app domains return
+   `Unknown`, empty data and revision zero. Invalid or unauthorised requests
+   keep getting their own validation error.
+3. The uncertain mutation does not increase any live revision, success ACK or catalogue counter.
+   There is no new block call, descriptor publication or automatic replay.
+   An already published device operation may be present on the disk without an ACK.
+4. Normal success still requires a real WRITE completion and FLUSH completion.
+   Capabilities and endpoint-bound domains are not widened.
+5. The service and both apps stay scheduled; both apps demonstrably make progress. Unconfirmed
+   reset leaves DMA buffers pinned and the device in quarantine until VM stop.
+6. Cold recovery starts a new VM on exactly the same image bytes, validates the
+   actual journal prefix and performs no writes. No deletion or
+   formatting to make a test pass.
 
-## Acht afgebakende native foutproeven
+## Eight bounded native error trials
 
-Iedere proef bevestigt eerst één PUT van object 0 (`Café A`, revisie 1), en
-onderbreekt daarna de RENAME naar `Café hernoemd A`. Eén eerdere ACK is dus
-toegestaan; voor de RENAME is geen succes-ACK toegestaan.
+Each trial first confirms one PUT of object 0 (`Café A`, revision 1), and
+then interrupts the RENAME to `Café hernoemd A` ("Café renamed A"). One earlier ACK is therefore
+allowed; no success ACK is allowed for the RENAME.
 
-| Case | Injectiegrens | Mogelijke werkelijke eindprefix |
+| Case | Injection boundary | Possible actual final prefix |
 |---|---|---|
-| `write-error` | lokale statusfout na echte WRITE used-ring-completion | PUT + RENAME |
-| `flush-error` | lokale statusfout na echte FLUSH used-ring-completion | PUT + RENAME |
-| `write-timeout` | doel-WRITE blijft voor broker zonder completion tot deadline | PUT, of PUT + RENAME |
-| `flush-timeout` | doel-FLUSH blijft voor broker zonder completion tot deadline | PUT + RENAME |
-| `reset-timeout` | timeout plus lokaal niet waargenomen resetbevestiging | PUT, of PUT + RENAME |
-| `bad-descriptor` | descriptorcontrole weigert vóór publicatie | uitsluitend PUT |
-| `used-write` | ongeldige lokale used-length na echte WRITE-completion | PUT + RENAME |
-| `used-flush` | ongeldige lokale used-length na echte FLUSH-completion | PUT + RENAME |
+| `write-error` | local status error after real WRITE used-ring completion | PUT + RENAME |
+| `flush-error` | local status error after real FLUSH used-ring completion | PUT + RENAME |
+| `write-timeout` | target WRITE stays without completion for the broker until deadline | PUT, or PUT + RENAME |
+| `flush-timeout` | target FLUSH stays without completion for the broker until deadline | PUT + RENAME |
+| `reset-timeout` | timeout plus locally unobserved reset confirmation | PUT, or PUT + RENAME |
+| `bad-descriptor` | descriptor check refuses before publication | exclusively PUT |
+| `used-write` | invalid local used-length after real WRITE completion | PUT + RENAME |
+| `used-flush` | invalid local used-length after real FLUSH completion | PUT + RENAME |
 
-De tests veranderen geen DMA-adres in het echte device. Status/used-length-
-injecties veranderen uitsluitend de lokale completionsnapshot. Timeoutproeven
-verbergen completion aan de broker; onderdrukte notify alleen bewijst niet dat
-een device nooit heeft gelezen. Dit is native foutpadbewijs in een expliciet
-testprofiel, geen bewijs van een fysieke schijffout of stroomuitval.
+The tests change no DMA address in the real device. Status/used-length
+injections change exclusively the local completion snapshot. Timeout trials
+hide completion from the broker; suppressed notify alone does not prove that
+a device never read. This is native error-path evidence in an explicit
+test profile, not evidence of a physical disk error or power loss.
 
-## Acceptatie en bewijs
+## Acceptance and evidence
 
-- Een onafhankelijke Python-decoder controleert alle echte imagebytes, namen,
-  inhoud, revisies en de onaangeroerde sectoren buiten het journal.
-- De nog geldige levende toestand (sequence 1) en de mogelijke schijftoestand
-  (sequence 1 of 2) worden afzonderlijk gecontroleerd. Het harnas mag de schijf
-  niet naar de gewenste uitkomst ombuigen.
-- Elke foutcase krijgt een eigen native run én eigen koude recovery; geen
-  synthetische succeslogs of vervanging van native tests door hostmocks.
-- Negatieve harnastests wijzen dubbele/ontbrekende foutmarkers, valse ACKs,
-  extra journalrecords, verkeerde naam/inhoud en verwisselde images af.
-- De volledige M6c-gate en de relevante M6b-regressie blijven vereist. Bestaand
-  historisch bewijs wordt bewaard onder zijn oorspronkelijke versie.
-- Gecontroleerde broncheckpoint vóór lange tests; ruwe exitcodes, commando's,
-  fingerprints en artifacthashes in het bewijsarchief. Afzonderlijke AI-review
-  is geen menselijke audit of formeel bewijs.
+- An independent Python decoder checks all real image bytes, names,
+  content, revisions and the untouched sectors outside the journal.
+- The still-valid live state (sequence 1) and the possible disk state
+  (sequence 1 or 2) are checked separately. The harness must not bend the disk
+  toward the desired outcome.
+- Each error case gets its own native run and its own cold recovery; no
+  synthetic success logs or replacement of native tests by host mocks.
+- Negative harness tests reject duplicate/missing error markers, false ACKs,
+  extra journal records, wrong name/content and swapped images.
+- The full M6c gate and the relevant M6b regression remain required. Existing
+  historical evidence is kept under its original version.
+- Checked source checkpoint before long tests; raw exit codes, commands,
+  fingerprints and artifact hashes in the evidence archive. Separate AI review
+  is not a human audit or formal proof.
 
-## Primaire technische bron
+## Primary technical source
 
-OASIS Open. (2022, 1 juli). *Virtual I/O Device (VIRTIO) Version 1.2*
-(Committee Specification 01), §§2.4, 2.7.8 en 5.2.6.
+OASIS Open. (2022, 1 July). *Virtual I/O Device (VIRTIO) Version 1.2*
+(Committee Specification 01), §§2.4, 2.7.8 and 5.2.6.
 https://docs.oasis-open.org/virtio/virtio/v1.2/cs01/virtio-v1.2-cs01.html
-(geraadpleegd 28 oktober 2026).
+(accessed 28 October 2026).
 
-De projectkeuzes voor `Unknown`, journalprefix, testbudgetten en puntentoekenning
-zijn eigen contracten, geen door VIRTIO bewezen eigenschappen.
+The project choices for `Unknown`, journal prefix, test budgets and point allocation
+are own contracts, not properties proven by VIRTIO.

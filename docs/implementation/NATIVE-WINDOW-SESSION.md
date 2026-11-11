@@ -1,70 +1,70 @@
-# Native venstersessie — U01 bouwcontract
+# Native window session — U01 build contract
 
-Bronbasis: `0fe648b`, werkbranch `codex/mature-native-session-20261102`.
-Dit contract beschrijft lopend werk; het sluit U01 niet en wijzigt geen punten.
+Source base: `0fe648b`, working branch `codex/mature-native-session-20261102`.
+This contract describes ongoing work; it does not close U01 and changes no points.
 
-## Resultaat en grenzen
+## Result and boundaries
 
-Een native compositor toont Materiaal en Rekenmachine als twee afzonderlijke
-CPL3-processen. Alleen de compositor bezit DisplaySource; alleen de inputbron
-bezit InputSource. Applicaties krijgen uitsluitend hun eigen SUR1-/INP1-kanalen.
-De bestaande document-, sleutel- en volumerechten blijven ongewijzigd. De nieuwe
-grafische bibliotheek gebruikt begrensde vooraf gegenereerde letterbeelden en
-eigen vectorpictogrammen, zonder runtime-fontparser of nieuwe privileged code.
+A native compositor shows Materiaal and Calculator as two separate
+CPL3 processes. Only the compositor owns DisplaySource; only the input source
+owns InputSource. Applications get exclusively their own SUR1/INP1 channels.
+The existing document, key and volume rights remain unchanged. The new
+graphics library uses bounded pre-generated glyph images and
+own vector icons, without a runtime font parser or new privileged code.
 
-De compositor beheert vensterposities, stapelvolgorde en invoerfocus. Een app kan
-geen systeemrand overschrijven of invoer uit een ander venster opeisen. De
-kernel levert de echte afzender van ieder bericht; een client-ID of coördinaat
-verleent nooit rechten. Per venster bestaan een begrensde backing store, één
-SUR1-ontvanger en een begrensde INP1-aanbod/ACK-wachtrij. Totaal maximaal
-1.400.000 pixels backing store, twee vensters, geen heap of gedeeld appgeheugen.
+The compositor manages window positions, stacking order and input focus. An app cannot
+overwrite a system border or claim input from another window. The
+kernel supplies the real sender of every message; a client ID or coordinate
+never grants rights. Per window there is a bounded backing store, one
+SUR1 receiver and a bounded INP1 offer/ACK queue. In total at most
+1,400,000 pixels of backing store, two windows, no heap or shared app memory.
 
-## Herstel
+## Recovery
 
-De gebruikersruimtesupervisor beslist over herstel. Een compositorfout mag een
-documentdraft of berekening niet vernietigen. De supervisor retireert eerst
-uitsluitend de vier vastgelegde oude presentatiehandles per app (`0x53`, fase
-`a2=1` van dit onuitgebrachte ABI1.11-profiel). Een app-eigen reply-ontvanger
-blijft na peer-exit anders open en een lopende RPC kan zijn pauzeverzoek niet
-lezen. Retireren sluit die oude handles zonder allocaties, nieuwe processen,
-epochs of wijzigingen aan opslag, control of de oude procescapability. De apps
-keren daardoor uit hun oude RPC terug, pauzeren presentatie en bevestigen dat
-via hun bestaande controlroute. Alleen na beide echte pauzebevestigingen vraagt
-init de constructiefase (`a2=0`) aan; die vereist voorafgaande retirement. De
-supervisor kan dan de vastgelegde compositor/inputdienstgroep herstarten met verse procesidentiteiten,
-capabilities en epochs. Apps binden die nieuwe kanalen expliciet en tekenen
-opnieuw. Opslag- en documentkanalen worden daarbij niet vervangen. De oude
-kanalen leveren geen succes meer. Herstel verruimt geen apparaatrechten.
+The user-space supervisor decides on recovery. A compositor error must not destroy a
+document draft or calculation. The supervisor first retires
+exclusively the four recorded old presentation handles per app (`0x53`, phase
+`a2=1` of this unreleased ABI1.11 profile). An app-owned reply receiver
+otherwise stays open after peer exit and an ongoing RPC cannot read its pause request.
+Retiring closes those old handles without allocations, new processes,
+epochs or changes to storage, control or the old process capability. The apps
+thereby return from their old RPC, pause presentation and confirm that
+via their existing control route. Only after both real pause confirmations does
+init request the construction phase (`a2=0`); that requires prior retirement. The
+supervisor can then restart the recorded compositor/input service group with fresh process identities,
+capabilities and epochs. Apps bind those new channels explicitly and draw
+again. Storage and document channels are not replaced in the process. The old
+channels no longer deliver success. Recovery does not widen device rights.
 
-De expliciete app-cleanup na retirement behandelt alleen `BadHandle` per
-afzonderlijke oude handle als al gesloten. Andere sluitfouten blijven fouten,
-beide eigenaars worden geprobeerd en er ontstaat geen invoer- of frame-ACK.
-Normale `close()`-semantiek en de bestaande RPC-budgetten blijven ongewijzigd.
+The explicit app cleanup after retirement treats only `BadHandle` per
+individual old handle as already closed. Other close errors remain errors,
+both owners are tried and no input or frame ACK arises.
+Normal `close()` semantics and the existing RPC budgets remain unchanged.
 
-De init-policy bewaakt daarna afzonderlijk Wacht-op-Pause, Wacht-op-verse-READY
-en Wacht-op-Rebind-ACK. Het oude gereedheidsmasker wordt bij herstelbegin gewist
-tot de twee blijvende appbits. Alleen een geslaagde constructiesyscall plus
-gevalideerde verse bootidentiteiten/generatie/epochs opent de READY-fase; die
-begint opnieuw met uitsluitend appbits. Rebind vereist alle drie actuele
-dienstmeldingen in die fase. ACK7 en ACK8 gelden uitsluitend in hun eigen fase;
-oude READY-meldingen kunnen de herbindpoort niet openen.
+The init policy then separately guards Wait-for-Pause, Wait-for-fresh-READY
+and Wait-for-Rebind-ACK. The old readiness mask is cleared at the start of recovery
+down to the two persistent app bits. Only a successful construction syscall plus
+validated fresh boot identities/generation/epochs opens the READY phase; that
+starts again with exclusively app bits. Rebind requires all three current
+service notifications in that phase. ACK7 and ACK8 apply exclusively in their own phase;
+old READY notifications cannot open the rebind gate.
 
-De kernel bevat alleen de begrensde proces-/manifestmechaniek, geen rendering,
-invoerfocuspolicy of fontparser. Partial initialization, onjuiste aanroeper,
-levende oude dienst, stale procescapability, endpoint-/frametekort en foute
-generaties moeten gesloten falen. Bestaande diagnostische profielen blijven
-apart bruikbaar.
+The kernel contains only the bounded process/manifest mechanics, no rendering,
+input focus policy or font parser. Partial initialization, wrong caller,
+living old service, stale process capability, endpoint/frame shortage and wrong
+generations must fail closed. Existing diagnostic profiles remain
+separately usable.
 
-## Acceptatie
+## Acceptance
 
-Eerst hosttests voor geometrie, bounds, focus, aanbod/ACK, malformed berichten
-en herstelbindingscontrole; daarna no_std-build/ELF-inspectie. Native acceptatie
-vereist werkelijk twee apps, toetsenbord/muisfocus, vensterbeweging, negatieve
-surface-/callerproeven en een echte compositorfout met behoud van draft en
-berekening. Vervolgens echt bewaren/lijsten/heropenen, onafhankelijke diskcontrole
-en resourcecleanup. De fysieke GPU, echte accountauthenticatie, schermlezer,
-volledige tekstshaping en menselijke gebruikerstests vallen buiten deze gate.
+First host tests for geometry, bounds, focus, offer/ACK, malformed messages
+and recovery binding checks; then no_std build/ELF inspection. Native acceptance
+requires actually two apps, keyboard/mouse focus, window movement, negative
+surface/caller trials and a real compositor error while preserving draft and
+calculation. Then real save/list/reopen, independent disk check
+and resource cleanup. The physical GPU, real account authentication, screen reader,
+full text shaping and human user tests fall outside this gate.
 
-N01 wordt daarnaast in een afzonderlijk native profiel geïntegreerd; een
-netwerkdienstcompile is geen native netwerkacceptatie. U01/N01 krijgen alleen
-hun vaste punten als de volledige bestaande criteriumgrens aantoonbaar slaagt.
+N01 is additionally integrated in a separate native profile; a
+network service compile is not native network acceptance. U01/N01 only get
+their fixed points if the full existing criterion boundary demonstrably passes.

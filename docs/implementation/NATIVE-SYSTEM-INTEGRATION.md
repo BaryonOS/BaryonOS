@@ -1,72 +1,72 @@
-# FR-I01 — gezamenlijke native systeemdiensten
+# FR-I01 — combined native system services
 
-29 oktober 2026. Basis `73ebc1e169b893eb5aba4b4f8ac06d7798136de3`.
-Dit is het taakcontract voor de eerste integratiestap van de volledige
-testrelease. De volledige productacceptatie blijft afzonderlijk open in
+29 October 2026. Base `73ebc1e169b893eb5aba4b4f8ac06d7798136de3`.
+This is the task contract for the first integration step of the full
+test release. The full product acceptance remains separately open in
 [FULL-TEST-RELEASE.md](../FULL-TEST-RELEASE.md).
 
-## Invariant en resultaat
+## Invariant and result
 
-Eén eigen kernel draait gelijktijdig een ring-3-init, Key Service,
-documentvolumedienst en gewone app. Een door init gestarte worker kan stoppen
-en opnieuw starten. De app gebruikt echte capability-IPC, virtio-blok-I/O en
-cryptografische verwerking door de Key Service. De kernel bewaart geen
-inhoudssleutels en interpreteert geen documentformaat.
+One own kernel concurrently runs a ring-3 init, Key Service,
+document volume service and ordinary app. A worker started by init can stop
+and start again. The app uses real capability IPC, virtio block I/O and
+cryptographic processing by the Key Service. The kernel stores no
+content keys and interprets no document format.
 
-De bestaande profielen blijven regressieproeven. `native-system` is een
-gezamenlijk integratieprofiel, nog geen volledige release, interactieve
-desktop of algemene installatie van dynamische diensten. Het vastgelegde
-256 MiB-regressieprofiel bewijst geen ondersteuning van het geplande
-8 GiB-productprofiel.
+The existing profiles remain regression trials. `native-system` is a
+combined integration profile, not yet a full release, interactive
+desktop or general installation of dynamic services. The fixed
+256 MiB regression profile does not prove support for the planned
+8 GiB product profile.
 
-## Eigenaarschap en interfaces
+## Ownership and interfaces
 
-- Kernelworker: `kernel/**`, nieuwe `sdk/examples/system/**` en uitsluitend
-  noodzakelijke generieke aanpassingen van bestaande serviceadapters.
-- Integrator: build-/run-/testtools, workspaceleden en lockfiles, CI,
-  acceptatiebewijs, projectstatus en voortgang. Eén schrijver per bestand.
-- De bestaande Message320-/SDK-interface, volume-v6- en keyring-KEY1-wire
-  blijven leidend. Blok- en entropy-capabilities behoren alleen toe aan de
-  bijbehorende dienst; een handtekening of service-status verleent geen recht.
-- Boot-ELF-invoer: `NOS_SYSTEM_INIT_ELF`, `NOS_SYSTEM_APP_ELF`,
+- Kernel worker: `kernel/**`, new `sdk/examples/system/**` and exclusively
+  necessary generic adjustments of existing service adapters.
+- Integrator: build/run/test tools, workspace members and lockfiles, CI,
+  acceptance evidence, project status and progress. One writer per file.
+- The existing Message320/SDK interface, volume-v6 and keyring-KEY1 wire
+  remain leading. Block and entropy capabilities belong only to the
+  corresponding service; a signature or service status grants no right.
+- Boot ELF input: `NOS_SYSTEM_INIT_ELF`, `NOS_SYSTEM_APP_ELF`,
   `NOS_SYSTEM_WORKER_ELF`, `NOS_VOLUME_SERVICE_ELF`,
-  `NOS_KEYRING_SERVICE_ELF`. De build controleert ieder ELF afzonderlijk.
+  `NOS_KEYRING_SERVICE_ELF`. The build checks each ELF separately.
 
-## Acceptatie vóór aftekenen van FR-I01
+## Acceptance before signing off FR-I01
 
-1. Start vanuit een nieuwe eigen bewaakte synthetische disk; beide echte
-   diensten worden READY, de app slaat via de volumedienst op en leest terug.
-2. De Key Service genereert met echte virtio-entropy, versleutelt en ontsleutelt
-   een onbekende plaintext van de app. Verkeerd domein/manipulatie faalt.
-3. De app krijgt geen directe blok-, entropy- of procesbeheerrechten;
-   daadwerkelijke verboden syscalls worden geweigerd.
-4. Init start en herstart een afzonderlijke worker; fout/exit wordt via het
-   normale opruimpad afgehandeld. Alle proces-, capability- en frametellers
-   keren na de eindige proef terug naar de vastgelegde baseline.
-5. Het onafhankelijke Python-schijforakel controleert werkelijk opgeslagen
-   bytes, revisies, geometrie en canaries. Serialmarkers alleen zijn onvoldoende.
-6. De harnascontrole weigert time-out, foutmarker, ontbrekende/duplicaat- of
-   ongeldige observatie, verkeerde raw exit, veranderde bron en foute diskstaat.
-7. Herhaal de relevante supervisor-, keyring-, volume- en herstelregressies op
-   de geïntegreerde bron. Nieuwe hosttests of compilatie vervangen deze niet.
+1. Start from a new own supervised synthetic disk; both real
+   services become READY, the app saves via the volume service and reads back.
+2. The Key Service generates with real virtio entropy, encrypts and decrypts
+   an unknown plaintext from the app. Wrong domain/tampering fails.
+3. The app gets no direct block, entropy or process management rights;
+   actually forbidden syscalls are refused.
+4. Init starts and restarts a separate worker; error/exit is handled via the
+   normal cleanup path. All process, capability and frame counters
+   return to the recorded baseline after the finite trial.
+5. The independent Python disk oracle checks actually stored
+   bytes, revisions, geometry and canaries. Serial markers alone are insufficient.
+6. The harness check refuses timeout, error marker, missing/duplicate or
+   invalid observation, wrong raw exit, changed source and wrong disk state.
+7. Repeat the relevant supervisor, keyring, volume and recovery regressions on
+   the integrated source. New host tests or compilation do not replace these.
 
-## Open productgrenzen
+## Open product boundaries
 
-Deze stap gebruikt nog de bestaande kleine proefgeometrie en RAM-sleutels.
-Persistente beveiligde opslag, koude rollbackankering, algemene pakket-/
-dienstenstart, volledige geheugen-/threadondersteuning, grafische sessie,
-netwerk, apps en AI blijven verplicht open. Het profiel mag die functies niet
-als hardware-afwezigheid of succesvolle simulatie voorstellen. De vaste score
-stijgt niet door deze integratie alleen.
+This step still uses the existing small trial geometry and RAM keys.
+Persistent secure storage, cold rollback anchoring, general package/
+service start, full memory/thread support, graphical session,
+network, apps and AI remain mandatorily open. The profile must not present those functions
+as hardware absence or successful simulation. The fixed score
+does not rise from this integration alone.
 
-De nieuwe B02-contextrecords en persistente sleutelrecords krijgen eerst hun
-eigen cryptografische en fouttests. Native wire-/opslagintegratie en een echte
-vertrouwde rollbackankerbron blijven daarna noodzakelijk.
+The new B02 context records and persistent key records first get their
+own cryptographic and error tests. Native wire/storage integration and a real
+trusted rollback anchor source remain necessary after that.
 
-## Veiligheid en bewijs
+## Security and evidence
 
-Alleen nieuw gegenereerde files onder de aangewezen buildmap, private OVMF-VARS,
-geen hostdisk, persoonlijke data, netwerkaansluiting of productiekeys. Bewijs
-bevat broncommit en -vingerafdruk, tool-/firmwareversies en hashes, exacte
-QEMU-opdracht, raw exit, serial, diskhash vóór/na en onafhankelijk orakel.
-Deze tests leveren geen fysieke-hardware-, menselijke-audit- of productieclaim.
+Only newly generated files under the designated build directory, private OVMF-VARS,
+no host disk, personal data, network connection or production keys. Evidence
+contains source commit and fingerprint, tool/firmware versions and hashes, exact
+QEMU command, raw exit, serial, disk hash before/after and independent oracle.
+These tests yield no physical-hardware, human-audit or production claim.

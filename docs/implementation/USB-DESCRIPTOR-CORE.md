@@ -1,63 +1,63 @@
 # USB descriptor framing core
 
-## Taakcontract
+## Task contract
 
-Doel van deze eerste USB-stap: een kleine dependencyvrije `no_std`-parser die
-de grenzen van achtereenvolgende USB-descriptors controleert. De bytes komen
-later van een begrensde control-transfer; deze core voert zelf geen apparaat-
-I/O uit.
+Goal of this first USB step: a small dependency-free `no_std` parser that
+checks the boundaries of consecutive USB descriptors. The bytes will come
+later from a bounded control transfer; this core performs no device
+I/O itself.
 
-De USB 2.0-descriptorstructuur begint met `bLength` en `bDescriptorType`.
-`bLength` omvat de descriptorheader zelf. De parser accepteert alleen lengtes
-vanaf twee bytes die volledig binnen de aangeleverde slice vallen. Een
-onvolledige header, te kleine lengte of afgekapt descriptor levert één expliciete
-fout op; daarna stopt de iterator en probeert hij niet in onbetrouwbare bytes te
-resynchroniseren. Onbekende descriptor-types blijven ongewijzigd beschikbaar
-voor een latere policylaag.
+The USB 2.0 descriptor structure begins with `bLength` and `bDescriptorType`.
+`bLength` includes the descriptor header itself. The parser accepts only lengths
+from two bytes upward that fall entirely within the supplied slice. An
+incomplete header, too small a length or a truncated descriptor yields one explicit
+error; after that the iterator stops and does not try to
+resynchronise in untrusted bytes. Unknown descriptor types remain available unchanged
+for a later policy layer.
 
-## Grenzen en invarianten
+## Boundaries and invariants
 
-- De caller valideert control-transferstatus en begrenst de ontvangen bytes
-  voordat deze core de slice krijgt. De core kent geen devicepointer, DMA-buffer,
-  controllerstatus of capability.
-- De core alloceert niet, houdt geen globale toestand bij en gebruikt geen
-  `unsafe`. Descriptors lenen hun ruwe bytes uit de input-slice.
-- Alleen generieke framing wordt gecontroleerd. Dit is geen USB-enumeratie,
-  configuratie-/interfacevalidatie, HID-driver, USB-hostcontroller of xHCI-
-  driver. Descriptorvolgorde, typevelden en apparaatbeleid blijven voor latere
-  afzonderlijke lagen.
-- Een framingfout beëindigt de iteratie; gedeeltelijk gevalideerde opvolgende
-  descriptors worden niet gepubliceerd.
-- Het verwijderen van dit standalone component verandert geen kernel-, IPC-,
-  capability- of bestaande driverinterface.
+- The caller validates the control transfer status and bounds the received bytes
+  before this core gets the slice. The core knows no device pointer, DMA buffer,
+  controller status or capability.
+- The core does not allocate, keeps no global state and uses no
+  `unsafe`. Descriptors borrow their raw bytes from the input slice.
+- Only generic framing is checked. This is not USB enumeration,
+  configuration/interface validation, a HID driver, a USB host controller or an xHCI
+  driver. Descriptor order, type fields and device policy remain for later
+  separate layers.
+- A framing error ends the iteration; partially validated subsequent
+  descriptors are not published.
+- Removing this standalone component changes no kernel, IPC,
+  capability or existing driver interface.
 
-## Acceptatie en bewijsgrens
+## Acceptance and evidence boundary
 
-Hosttests bestrijken lege input, geldige en onbekende types, descriptorgrenzen,
-lengtes 0/1/2/255, ontbrekende headerbytes, afgekorte descriptors en terminale
-foutafhandeling. Controleer daarnaast formattering, Clippy en een
-`x86_64-unknown-none`-librarybuild met de vastgezette Rust 1.90.0-toolchain.
+Host tests cover empty input, valid and unknown types, descriptor boundaries,
+lengths 0/1/2/255, missing header bytes, truncated descriptors and terminal
+error handling. In addition, check formatting, Clippy and an
+`x86_64-unknown-none` library build with the pinned Rust 1.90.0 toolchain.
 
-Deze bouwsteen levert geen H02-punt op: er is nog geen USB-hostcontroller die
-een apparaat enumereert of gebeurtenissen aan een proces levert. xHCI-ringen,
-MMIO-/DMA-beleid, time-outs/reset, hotplug, rechten, QEMU-apparaten en fysieke
-referentiehardware blijven afzonderlijke vervolgstappen.
+This building block yields no H02 point: there is not yet a USB host controller that
+enumerates a device or delivers events to a process. xHCI rings,
+MMIO/DMA policy, timeouts/reset, hotplug, rights, QEMU devices and physical
+reference hardware remain separate follow-up steps.
 
-## Primaire bron
+## Primary source
 
-- USB Implementers Forum, *USB 2.0 Specification*, descriptorbeschrijving
-  §9.5. De officiële documentpagina is bijgewerkt op 3 juni 2025 en koppelt de
-  specificatie met bijbehorende errata/ECN's:
+- USB Implementers Forum, *USB 2.0 Specification*, descriptor description
+  §9.5. The official document page was updated on 3 June 2025 and links the
+  specification with associated errata/ECNs:
   <https://www.usb.org/document-library/usb-20-specification>.
-  De pagina linkt het officiële archief
+  The page links the official archive
   <https://www.usb.org/sites/default/files/usb_20_20250603.zip>.
-  Geen specificatietekst of implementatiecode is overgenomen.
+  No specification text or implementation code has been copied.
 
-## Uitgevoerde controle — 30 oktober 2026
+## Executed check — 30 October 2026
 
-Op broncommit `f8e7490b1dd8fdeb3cd8e8eb8578535bc49c5cc6` zijn de hosttests
-(7/7), Clippy, formattering en de release-librarybuild voor
-`x86_64-unknown-none` geslaagd. Exacte commando's, logs en de hash van de
-gebouwde library staan in
+On source commit `f8e7490b1dd8fdeb3cd8e8eb8578535bc49c5cc6` the host tests
+(7/7), Clippy, formatting and the release library build for
+`x86_64-unknown-none` passed. Exact commands, logs and the hash of the
+built library are in
 [`verification/usb-descriptor-core-f8e7490/`](../verification/usb-descriptor-core-f8e7490/).
-Er is geen native QEMU-USB-run of fysieke hardwaretest uitgevoerd.
+No native QEMU USB run or physical hardware test has been performed.

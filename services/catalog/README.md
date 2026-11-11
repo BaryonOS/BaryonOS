@@ -1,42 +1,42 @@
-# Native documentnamen en catalogus (M6c)
+# Native document names and catalog (M6c)
 
-`catalog-core` bevat allocatorvrije, dependencyvrije Rust `no_std`-logica voor
-de eigen ring-3-documentdienst. De core verbiedt `unsafe`; de apart gebouwde
-`user_service.rs` vormt de native IPC-/blok-I/O-grens.
+`catalog-core` contains allocator-free, dependency-free Rust `no_std` logic for
+the dedicated ring-3 document service. The core forbids `unsafe`; the separately built
+`user_service.rs` forms the native IPC/block-I/O boundary.
 
-Vier objecten, twee per endpointdomein, bewaren een UTF-8-label (maximaal 32
-bytes) en maximaal 128 inhoudsbytes. Namen zijn labels; object-ID blijft
-identiteit en autorisatiebasis. Gelijke namen mogen bestaan. GET/PUT/DELETE,
-CAS-gecontroleerd RENAME en een atomische LIST van het eigen domein vormen
-IPC v4 (224 bytes). LIST geeft alleen metadata, nooit inhoud of globale
-activiteit; de catalogusrevisie telt alleen de eigen objectrevisies.
+Four objects, two per endpoint domain, store a UTF-8 label (at most 32
+bytes) and at most 128 content bytes. Names are labels; the object ID remains
+identity and the basis of authorization. Duplicate names may exist. GET/PUT/DELETE,
+CAS-checked RENAME and an atomic LIST of the caller's own domain form
+IPC v4 (224 bytes). LIST returns only metadata, never content or global
+activity; the catalog revision counts only the domain's own object revisions.
 
-Journal v2 (`NOSM6C02`) bevat 32 append-only records van 512 bytes. Een RENAME
-bewaart de bestaande inhoud exact, verhoogt de revisie en schrijft één record.
-Recovery controleert predecessor, revisie en inhoudsbehoud. PUT/DELETE/RENAME
-mogen pas na WRITE- én FLUSH-completion bevestigd worden. Het servicecontract
-sluit na een onzekere mutatie alle geldige operaties, ook LIST, tot nieuwe
-volledige recovery af.
+Journal v2 (`NOSM6C02`) contains 32 append-only records of 512 bytes. A RENAME
+preserves the existing content exactly, increments the revision and writes one record.
+Recovery checks predecessor, revision and content preservation. PUT/DELETE/RENAME
+may only be confirmed after both WRITE and FLUSH completion. The service contract
+blocks all valid operations, including LIST, after an uncertain mutation until a new
+full recovery.
 
-De historische M6c-uitvoeringsbron had een observerdefect: bij WRITE-/FLUSH-
-fouten kon de kernel panikeren voordat de client `Unknown` ontving. De M6d-
-uitbreiding koppelt de reply aan de werkelijk teruggegeven syscallfout en
-bewaakt dat daarna geen nieuwe blockcall, publicatie of completion volgt.
-Acht native foutfeatures toetsen statusfouten, time-outs, resetquarantaine,
-descriptorweigering en ongeldige used-length. De volledige native
-acceptatiestatus staat in [PROJECT-STATE.md](../../docs/PROJECT-STATE.md);
-het [M6d-contract](../../docs/implementation/M6D-IO-UNCERTAINTY.md) bepaalt de
-exacte fout-/herstelgrens. Een proces herstart nog niet automatisch en fysieke
-schijffouten of stroomuitval worden hiermee niet nagebootst.
+The historical M6c execution source had an observer defect: on WRITE/FLUSH
+errors the kernel could panic before the client received `Unknown`. The M6d
+extension binds the reply to the syscall error actually returned and
+guards that no new block call, publication or completion follows afterwards.
+Eight native fault features exercise status errors, timeouts, reset quarantine,
+descriptor rejection and invalid used-length. The full native
+acceptance status is in [PROJECT-STATE.md](../../docs/PROJECT-STATE.md);
+the [M6d contract](../../docs/implementation/M6D-IO-UNCERTAINTY.md) defines the
+exact fault/recovery boundary. A process does not yet restart automatically, and physical
+disk faults or power loss are not simulated by this.
 
-Deze core kan geen fysieke duurzaamheid waarnemen; het native adapterbewijs
-is dus afzonderlijk nodig. FNV is diagnostiek, geen cryptografische authenticatie.
-DELETE wist levende naam/inhoud, maar niet historische schijfbytes. Er is geen
-ruimtehergebruik, encryptie, migrator, NAS of grafische desktop. Bestaande
-M6b-v1-records worden expliciet geweigerd zonder formattering; de oude M6b-route
-blijft afzonderlijk beschikbaar.
+This core cannot observe physical durability; native adapter evidence
+is therefore needed separately. FNV is diagnostics, not cryptographic authentication.
+DELETE erases the live name/content, but not historical disk bytes. There is no
+space reuse, encryption, migrator, NAS or graphical desktop. Existing
+M6b-v1 records are explicitly rejected without formatting; the old M6b route
+remains available separately.
 
-Exact contract en acceptatie:
+Exact contract and acceptance:
 [`M6C-NAMED-CATALOG.md`](../../docs/implementation/M6C-NAMED-CATALOG.md).
-Uitgevoerde controles en nog open bewijs staan in `docs/PROJECT-STATE.md`;
-deze README verklaart geen nog niet uitgevoerde test geslaagd.
+Executed checks and still-open evidence are in `docs/PROJECT-STATE.md`;
+this README does not declare any not-yet-executed test passed.
