@@ -1,0 +1,43 @@
+name: GitHub Project field classification
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Apply supported classifications (unchecked means dry-run)"
+        type: boolean
+        required: false
+        default: false
+  schedule:
+    - cron: "17 4 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: baryon-project-classification
+  cancel-in-progress: false
+
+jobs:
+  classify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout trusted default-branch code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Test classification rules
+        run: python3 -m unittest discover -s tests -p 'test_project_classification.py'
+      - name: Classify existing project items
+        env:
+          BARYON_PROJECTS_TOKEN: ${{ secrets.BARYON_PROJECTS_TOKEN }}
+          APPLY: ${{ github.event_name == 'schedule' || inputs.apply }}
+        run: |
+          set -eu
+          if [ "$APPLY" = "true" ]; then
+            python3 tools/project_classification.py --apply
+          else
+            python3 tools/project_classification.py
+          fi
