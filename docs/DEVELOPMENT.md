@@ -1,11 +1,11 @@
-# Lokale ontwikkelomgeving en uitvoering
+# Local development environment and execution
 
-Vastgelegd op 27 oktober 2026. Deze handleiding beschrijft de daadwerkelijk ingerichte Windows-ontwikkelroute. De afzonderlijke build-, QEMU-, product- en quantumresultaten staan in [PROJECT-STATE.md](PROJECT-STATE.md) en hun ruwe rapporten. Beschikbare tools en deze commando's zijn op zichzelf geen geslaagde OS-test.
+Recorded on 27 October 2026. This guide describes the Windows development route that was actually set up. The individual build, QEMU, product and quantum results are in [PROJECT-STATE.md](PROJECT-STATE.md) and their raw reports. Available tools and these commands are not, on their own, a passed OS test.
 
-## Native M6c/M6d op de Linux-ontwikkelvariant
+## Native M6c/M6d on the Linux development variant
 
-De actuele M6c/M6d-gate gebruikt de hieronder beschreven toolchain en de
-kernel-feature `milestone-m6c`. Vanuit de repositoryroot:
+The current M6c/M6d gate uses the toolchain described below and the
+kernel feature `milestone-m6c`. From the repository root:
 
 ```bash
 python3 -B tools/preflight.py --strict
@@ -16,42 +16,42 @@ python3 -B tools/capture_m6c.py --destination "docs/verification/m6d-local-$(pyt
 python3 -B tools/build.py --kernel-feature milestone-m6c
 ```
 
-De captureopdracht kiest met een nieuwe UUID een eigen directe submap van
-`docs/verification/`. Gebruik voor iedere nieuwe uitvoering een nieuwe
-bestemming; de standaardbestemming `docs/verification/m6d` bevat geaccepteerd
-historisch bewijs en mag niet door een lokale herhaling worden vervangen.
+The capture command uses a new UUID to choose its own direct subdirectory of
+`docs/verification/`. Use a new destination for every new run; the default
+destination `docs/verification/m6d` contains accepted historical evidence and
+must not be replaced by a local repeat run.
 
-De rooktest start twee geïsoleerde apps voor benoemde objecten, catalogus en
-hernoemen. De volledige gate omvat ook echte externe QEMU-kills en koude
-recoveries; succes vereist gastuitvoer, raw exit en het onafhankelijke
-schijforakel. Iedere nieuwe proef maakt eigen synthetische volumes. Bezet
-M6b-v1 wordt geweigerd en niet gemigreerd. Suites delen buildoutputs: voer ze
-achtereenvolgens uit. De laatste opdracht herstelt de M6c-build nadat de gate
-de gewone M1-boot heeft gecontroleerd; dit is geen extra VM-run.
+The smoke test starts two isolated apps for named objects, catalogue and
+rename. The full gate also includes real external QEMU kills and cold
+recoveries; success requires guest output, the raw exit and the independent
+disk oracle. Every new trial creates its own synthetic volumes. An occupied
+M6b-v1 volume is rejected and not migrated. Suites share build outputs: run
+them one after another. The last command restores the M6c build after the gate
+has checked the ordinary M1 boot; this is not an additional VM run.
 
-De actuele M6c/M6d-gate omvat **35 groepen / 31 VM-invocaties**; de afzonderlijke
-M6b-regressie omvat **18 groepen / 14 VM-invocaties**. Vastgelegde resultaten,
-bronbinding en archieven: [M6D-ACCEPTANCE.md](verification/M6D-ACCEPTANCE.md)
-voor de oorspronkelijke Linuxuitvoering en
-[M6D-CLOSEOUT.md](verification/M6D-CLOSEOUT.md) voor de aanvullende
-Windowsuitvoering op `326d2f6`. De opdrachten hierboven zijn een uitvoerroute,
-geen nieuwe testresultaten. De historische M6c-gate van 19 groepen / 15 VM staat
+The current M6c/M6d gate comprises **35 groups / 31 VM invocations**; the separate
+M6b regression comprises **18 groups / 14 VM invocations**. Recorded results,
+source binding and archives: [M6D-ACCEPTANCE.md](verification/M6D-ACCEPTANCE.md)
+for the original Linux run and
+[M6D-CLOSEOUT.md](verification/M6D-CLOSEOUT.md) for the additional
+Windows run on `326d2f6`. The commands above are an execution route,
+not new test results. The historical M6c gate of 19 groups / 15 VMs is
 in [M6C-ACCEPTANCE.md](verification/M6C-ACCEPTANCE.md).
 
-## Toolchain en bestaande native M6b-route
+## Toolchain and existing native M6b route
 
-Op de M6b-werkbranch is ook een lokale Linux-toolchain ingericht: Rust 1.90.0,
-beide bestaande targets, QEMU 10.0.2 uit Debian bookworm-backports en OVMF
-2025.02 uit één matching CODE/VARS-pakket. De machine blijft `pc-q35-10.0`,
-TCG, `qemu64`, één CPU en 256 MiB. Hashes en officiële herkomst:
-`verification/native-linux-toolchain/`. Dit is een afzonderlijk getest
-hostprofiel; bestaande Windowsresultaten blijven historisch behouden.
+A local Linux toolchain has also been set up on the M6b working branch: Rust 1.90.0,
+both existing targets, QEMU 10.0.2 from Debian bookworm-backports and OVMF
+2025.02 from a single matching CODE/VARS package. The machine remains `pc-q35-10.0`,
+TCG, `qemu64`, one CPU and 256 MiB. Hashes and official provenance:
+`verification/native-linux-toolchain/`. This is a separately tested
+host profile; existing Windows results are retained as historical records.
 
-`tools/common.py` ontdekt de toolmap `.tools/nieuw-os/` onder de checkout.
-Op andere machines kan de bestaande toolchainroute worden gebruikt. Beide
-firmwarevariabelen `OS_OVMF_CODE` en `OS_OVMF_VARS` moeten naar één matching
-build wijzen wanneer automatische discovery geen paar vindt. Er zijn geen
-globale PATH-/pakket-/shellwijzigingen nodig voor de vastgelegde lokale route.
+`tools/common.py` discovers the tool directory `.tools/nieuw-os/` under the checkout.
+On other machines the existing toolchain route can be used. Both
+firmware variables `OS_OVMF_CODE` and `OS_OVMF_VARS` must point to a single matching
+build when automatic discovery does not find a pair. No global
+PATH, package or shell changes are needed for the recorded local route.
 
 ```bash
 python3 -B tools/dev.py cargo +1.90.0 fetch --locked
@@ -62,90 +62,90 @@ python3 -B -u tools/test_m6b.py
 python3 -B tools/capture_m6b.py --destination "docs/verification/m6b-local-$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
 ```
 
-Op Linux is daarnaast de hostlinker `cc` nodig voor Rust-hosttests; de
-kernelcrossbuild gebruikt de linker uit Rust zelf. Controleer die
-afhankelijkheid apart met `python3 -B tools/preflight.py --strict-host-tests`.
-De bestaande `--strict`-controle blijft uitsluitend de bootgereedschappen en
-firmware afdwingen. Op Debian/Ubuntu levert het pakket `build-essential` de
-standaard `cc`-driver.
+On Linux, the host linker `cc` is additionally required for Rust host tests; the
+kernel cross-build uses the linker shipped with Rust itself. Check that
+dependency separately with `python3 -B tools/preflight.py --strict-host-tests`.
+The existing `--strict` check continues to enforce only the boot tools and
+firmware. On Debian/Ubuntu the `build-essential` package provides the
+standard `cc` driver.
 
-Ook deze capture gebruikt per uitvoering een eigen nieuwe map; het bestaande
-`docs/verification/m6b` blijft behouden. In PowerShell zijn de equivalente
-captureopdrachten hieronder bruikbaar, telkens direct na de bijbehorende
-geslaagde gate en vóór een volgende suite de gedeelde buildoutputs vervangt:
+This capture also uses its own new directory for every run; the existing
+`docs/verification/m6b` is retained. In PowerShell the equivalent
+capture commands below can be used, each directly after the corresponding
+passed gate and before a following suite replaces the shared build outputs:
 
 ```powershell
 python -X utf8 -B tools/capture_m6c.py --destination "docs/verification/m6d-local-$(python -c 'import uuid; print(uuid.uuid4().hex)')"
 python -X utf8 -B tools/capture_m6b.py --destination "docs/verification/m6b-local-$(python -c 'import uuid; print(uuid.uuid4().hex)')"
 ```
 
-De rooktest maakt zelf een nieuw wegwerpvolume en laat twee native apps
-objecten aanmaken, wijzigen en verwijderen. Hij sluit de VM na de assertions
-af. De complete gate start ook afzonderlijke recovery-VM's op exact de
-voorgaande images; de CLI accepteert geen willekeurige bestaande disk.
-`M6B:PASS` is alleen geldig samen met de verwachte raw exit en schijforacle.
-Na de gate staat de normale M1-build klaar; bouw M6b opnieuw voor een demo.
+The smoke test creates a new disposable volume itself and has two native apps
+create, modify and delete objects. It shuts the VM down after the assertions.
+The complete gate also starts separate recovery VMs on exactly the
+preceding images; the CLI does not accept an arbitrary existing disk.
+`M6B:PASS` is only valid together with the expected raw exit and disk oracle.
+After the gate the normal M1 build is in place; rebuild M6b for a demo.
 
-Voer suites per checkout achtereenvolgens uit: ESP, manifests en outputlocaties
-worden gedeeld. Afzonderlijke, bevroren Git-worktrees hebben eigen buildoutputs.
-Behoud `build/run/` totdat capture de raw logs, hashes en images heeft nagekeken.
+Run suites one after another per checkout: the ESP, manifests and output locations
+are shared. Separate, frozen Git worktrees have their own build outputs.
+Keep `build/run/` until capture has checked the raw logs, hashes and images.
 
-## Werkmap en gereedschappen
+## Working directory and tools
 
-Projectroot: `C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System`.
+Project root: `C:\Users\simon\OneDrive\Documenten\ChatGPT\Operating System`.
 
-De aanvullende gereedschappen staan apart onder `C:\Users\simon\AppData\Local\nieuw-os`:
+The additional tools are kept separately under `C:\Users\simon\AppData\Local\nieuw-os`:
 
-| Onderdeel | Werkelijke inrichting |
+| Component | Actual setup |
 |---|---|
-| Rust | Exact 1.90.0, host `x86_64-pc-windows-msvc`; rustfmt en clippy |
-| Cross-targets | `x86_64-unknown-uefi` en `x86_64-unknown-none` |
-| Cargo/rustup | Eigen mappen `cargo/` en `rustup/` onder de toolmap |
-| Hostlinker | Bestaande Visual Studio 2026 C++-gereedschappen en Windows SDK; geen extra C++-installatie voor deze route |
-| Kernel-/UEFI-linker | Gebundelde Rust LLVM-linker; kernel krijgt uitsluitend zijn eigen ELF-linkopties |
-| QEMU | Lokale Windows-package in `qemu/`; binary meldt `11.1.0 (v11.1.0-12130-ge470268ff4)` |
-| Firmware | CODE/VARS uit diezelfde QEMU-package, gekoppeld door `share/firmware/60-edk2-x86_64.json` |
-| Python, Git en Node | Reeds beschikbare hostgereedschappen |
+| Rust | Exactly 1.90.0, host `x86_64-pc-windows-msvc`; rustfmt and clippy |
+| Cross targets | `x86_64-unknown-uefi` and `x86_64-unknown-none` |
+| Cargo/rustup | Own directories `cargo/` and `rustup/` under the tool directory |
+| Host linker | Existing Visual Studio 2026 C++ tools and Windows SDK; no additional C++ installation for this route |
+| Kernel/UEFI linker | Bundled Rust LLVM linker; the kernel receives only its own ELF link options |
+| QEMU | Local Windows package in `qemu/`; the binary reports `11.1.0 (v11.1.0-12130-ge470268ff4)` |
+| Firmware | CODE/VARS from that same QEMU package, linked by `share/firmware/60-edk2-x86_64.json` |
+| Python, Git and Node | Host tools that were already available |
 
-[tools/common.py](../tools/common.py) maakt uitsluitend een subprocessomgeving: `CARGO_HOME`, `RUSTUP_HOME`, toolpaden en zo nodig de gevonden MSVC-/SDK-librarypaden. Het schrijft geen globale PATH-/shellinstellingen. `RUSTUP_AUTO_INSTALL=0` voorkomt automatische toolchaininstallatie door deze hulpmiddelen. [tools/dev.py](../tools/dev.py) gebruikt dezelfde omgeving voor een losse opdracht.
+[tools/common.py](../tools/common.py) creates only a subprocess environment: `CARGO_HOME`, `RUSTUP_HOME`, tool paths and, where needed, the discovered MSVC/SDK library paths. It does not write any global PATH or shell settings. `RUSTUP_AUTO_INSTALL=0` prevents automatic toolchain installation by these helpers. [tools/dev.py](../tools/dev.py) uses the same environment for a single command.
 
-De eerste uitvoering mag publieke ontwikkeldependencies ophalen. Daarna gebruiken herhaalde builds de exacte lockfiles; `--offline` is beschikbaar zodra de cache gevuld is. Dit downloadpad is ontwikkelgereedschap en vormt geen netwerkfunctionaliteit van het nieuwe OS.
+The first run may fetch public development dependencies. After that, repeated builds use the exact lockfiles; `--offline` is available once the cache has been populated. This download path is development tooling and is not networking functionality of the new OS.
 
-## Aanbevolen uitvoerroute
+## Recommended execution route
 
-Open PowerShell in de projectroot. Controleer eerst de inventaris:
+Open PowerShell in the project root. First check the inventory:
 
 ```powershell
 python tools/preflight.py --strict
 ```
 
-Dit inventariseert tools, targets en firmware. Het bouwt of boot niets. Exit 2 betekent ontbrekende vereisten; een gevonden tool is nog geen bewezen compatibele buildcombinatie.
+This takes an inventory of tools, targets and firmware. It does not build or boot anything. Exit 2 means missing prerequisites; a tool that was found is not yet a proven compatible build combination.
 
-Bouw daarna de eigen loader en kernel, inspecteer de geproduceerde PE-/ELF-artifacts en start de rooktest:
+Then build the project's own loader and kernel, inspect the produced PE/ELF artifacts and start the smoke test:
 
 ```powershell
 python tools/build.py
 python tools/run.py --smoke
 ```
 
-De volledige bootacceptatieproef start met:
+The full boot acceptance trial starts with:
 
 ```powershell
 python tools/test.py
 ```
 
-Die opdracht omvat hosttests, drie koude VM-starts, ontbrekende/corrupte kernel, de test met een verouderde firmwaremapkey, kernelpanic en een echte guest-timeout. De hangproef mag bewust 60 seconden duren. Na de featureproeven wordt de normale build teruggezet. Alleen een actuele suite met `status: completed` en `passed: true` telt als geslaagde volledige run; `running` en `failed` zijn geen groen resultaat.
+That command covers host tests, three cold VM starts, a missing/corrupt kernel, the test with a stale firmware map key, a kernel panic and a real guest timeout. The hang trial may deliberately take 60 seconds. After the feature trials the normal build is restored. Only a current suite with `status: completed` and `passed: true` counts as a passed full run; `running` and `failed` are not a green result.
 
-De afzonderlijke M2-poort bouwt echte foutvarianten en herstelt daarna de gewone M1-image:
+The separate M2 gate builds real fault variants and then restores the ordinary M1 image:
 
 ```powershell
 python -u tools/test_milestones.py --through m2
 python tools/capture_gate.py m2
 ```
 
-`capture_gate.py` controleert ruwe exit/markers, seriële output en artifacthashes voordat het compacte bewijs naar `docs/verification/m2-m4/m2/` kopieert. Het wijzigt geen testuitkomsten. Bestaande oudere runs verwijzen voor de onveranderde VARS-template nog naar de gehashte bron; nieuwe runs bewaren die template ook in hun eigen map.
+`capture_gate.py` checks the raw exit/markers, serial output and artifact hashes before it copies the compact evidence to `docs/verification/m2-m4/m2/`. It does not change test outcomes. Existing older runs still refer to the hashed source for the unchanged VARS template; new runs also store that template in their own directory.
 
-De volledige M2–M3-poort is uitgevoerd op `6802b17` en start met:
+The full M2–M3 gate was run on `6802b17` and starts with:
 
 ```powershell
 python -u tools/test_milestones.py --through m3
@@ -153,18 +153,18 @@ python tools/capture_gate.py m2
 python tools/capture_gate.py m3
 ```
 
-Deze reeks voert acht M2- en twintig M3-groepen uit. Na de afzonderlijke foutvarianten herstelt zij de gewone M1-image. Voor de normale M3-ontwikkelproef met eigen gebruikersprocessen bouw je expliciet het M3-profiel en eis je de bijbehorende markers:
+This sequence runs eight M2 groups and twenty M3 groups. After the separate fault variants it restores the ordinary M1 image. For the normal M3 development trial with the project's own user processes, explicitly build the M3 profile and require the corresponding markers:
 
 ```powershell
 python tools/build.py --kernel-feature milestone-m3
 python tools/run.py --smoke --milestone m3
 ```
 
-De M3-CLI-poort verlangt daadwerkelijke KS-04/07/08- en M3-markers; een gewone M1-image kan daarmee niet als M3 slagen. De normale M3-proef voert de vaste synthetische programma's uit en sluit QEMU daarna af. Er is nog geen interactieve OS-shell of native Materiaal-desktop.
+The M3 CLI gate requires actual KS-04/07/08 and M3 markers; an ordinary M1 image therefore cannot pass as M3. The normal M3 trial runs the fixed synthetic programs and then shuts QEMU down. There is no interactive OS shell or native Materiaal desktop yet.
 
-`userspace/` bevat de eigen statische userprobe en dertien host-artifacttests. `tools/build_users.py` gebruikt directe rustc-argumenten met het userlinkerscript; de Cargo-kernellinkopties worden daarvoor niet hergebruikt. M4 voegt een afzonderlijke IPC-probe toe via `--kind ipc`; dat spoor is pas een behaald resultaat na de eigen M4-poort.
+`userspace/` contains the project's own static user probe and thirteen host artifact tests. `tools/build_users.py` uses direct rustc arguments with the user linker script; the Cargo kernel link options are not reused for this. M4 adds a separate IPC probe via `--kind ipc`; that track only counts as an achieved result after its own M4 gate.
 
-De complete M1–M4-controle is uitgevoerd met deze opdrachten:
+The complete M1–M4 check was run with these commands:
 
 ```powershell
 python -u tools/test_milestones.py --through m4
@@ -175,122 +175,122 @@ python tools/capture_gate.py m3
 python tools/capture_gate.py m4
 ```
 
-Dat zijn 52 acceptatiegroepen en 44 afzonderlijke VM-runs. De bewuste hang in de M1-regressie duurt 60 s; de negatieve ruwe guestuitkomsten worden bij het kopiëren van bewijs niet in succes veranderd. De actuele suites en expliciete host-/QEMU-grenzen staan in verification/m2-m4/.
+That is 52 acceptance groups and 44 separate VM runs. The deliberate hang in the M1 regression takes 60 s; the negative raw guest outcomes are not turned into success when evidence is copied. The current suites and explicit host/QEMU boundaries are in verification/m2-m4/.
 
-Start de normale M4-ontwikkelproef met:
+Start the normal M4 development trial with:
 
 ```powershell
 python tools/build.py --kernel-feature milestone-m4
 python tools/run.py --smoke --milestone m4
 ```
 
-De kernel voert drie synthetische processen en een normale IPC-exchange uit en beëindigt QEMU na controle. Voor afzonderlijke negatieve cases gebruik je `test_milestones.py`; de normale M4-CLI-poort verlangt de exchange-/survivor-/cleanupmarkers en accepteert een gewone M1-image niet als M4.
+The kernel runs three synthetic processes and a normal IPC exchange and terminates QEMU after checking. For separate negative cases use `test_milestones.py`; the normal M4 CLI gate requires the exchange/survivor/cleanup markers and does not accept an ordinary M1 image as M4.
 
-De latere bronvingerafdrukversie 2 sluit gegenereerde `verification/`, `build/`, `target/` en caches uit en neemt gebruikersbron mee. Buildmanifesten en guestresultaten vermelden de versie expliciet. Oudere rapporten zonder dit veld behouden hun oorspronkelijke vingerafdruk; artifacthashes blijven rechtstreeks controleerbaar.
+The later source fingerprint version 2 excludes generated `verification/`, `build/`, `target/` and caches, and includes user source. Build manifests and guest results state the version explicitly. Older reports without this field keep their original fingerprint; artifact hashes remain directly verifiable.
 
-Een losse ontwikkelopdracht in dezelfde omgeving:
+A single development command in the same environment:
 
 ```powershell
 python tools/dev.py cargo +1.90.0 test --locked -p boot-protocol -p elf-loader-core
 python tools/dev.py rustc +1.90.0 -vV
 ```
 
-Loader en kernel gebruiken afzonderlijke targets. Instellen van één globale workspace-target zou de hosttests verstoren en hoort niet bij deze inrichting.
+The loader and kernel use separate targets. Setting a single global workspace target would disrupt the host tests and is not part of this setup.
 
-## M5-blokdienst starten en controleren
+## Starting and checking the M5 block service
 
-Bouw expliciet het M5-profiel en start de eindige ontwikkelproef:
+Explicitly build the M5 profile and start the finite development trial:
 
 ```powershell
 python tools/build.py --kernel-feature milestone-m5
 python tools/run.py --smoke --milestone m5
 ```
 
-De runner maakt per start een nieuwe synthetische 64KiB-image onder `build/run/`, koppelt die alleen-lezen aan modern virtio-blk op `00:05.0` en bewaart de hele commandoregel, serial, stderr, firmware-/binary-/imagehashes en het externe datacontrole-resultaat. De aparte boot-ESP blijft een ander device. Er is geen parameter voor een echte hostdisk. De dienst leest sector 4 en 6 via IPC, waarna QEMU na de assertions afsluit. Dit is nog geen interactieve OS-shell.
+For each start, the runner creates a new synthetic 64 KiB image under `build/run/`, attaches it read-only to modern virtio-blk at `00:05.0` and stores the full command line, serial output, stderr, firmware/binary/image hashes and the external data-check result. The separate boot ESP remains a different device. There is no parameter for a real host disk. The service reads sectors 4 and 6 via IPC, after which QEMU shuts down following the assertions. This is not yet an interactive OS shell.
 
-De M5-poort voert hosttests, ELF-controles, dezelfde kernel op twee verschillende images, 17 foutvarianten en een M1-regressiestart uit:
+The M5 gate runs host tests, ELF checks, the same kernel on two different images, 17 fault variants and an M1 regression start:
 
 ```powershell
 python -u tools/test_m5.py
 python tools/capture_gate.py m5
 ```
 
-Voor de gecombineerde M2–M5-regressie en de volledige bootfoutreeks:
+For the combined M2–M5 regression and the full boot fault sequence:
 
 ```powershell
 python -u tools/test_milestones.py --through m5
 python -u tools/test.py
 ```
 
-Deze suites herstellen aan het einde de gewone M1-build. Bouw daarna opnieuw `milestone-m5` voor een losse M5-start. Gebruik voor foutfeatures de gate met bijbehorende casemarkers; `run.py --milestone m5` verlangt bewust de normale READ-case. Alleen `status: completed` en `passed: true`, plus opnieuw gecontroleerde ruwe evidence, tellen als geslaagde gate. Actueel uitgevoerd bewijs staat in PROJECT-STATE.md.
+These suites restore the ordinary M1 build at the end. Then rebuild `milestone-m5` for a standalone M5 start. For fault features use the gate with the corresponding case markers; `run.py --milestone m5` deliberately requires the normal READ case. Only `status: completed` and `passed: true`, together with re-checked raw evidence, count as a passed gate. The current executed evidence is in PROJECT-STATE.md.
 
-Het dienstprotocol en alle injectiegrenzen staan in [M5-BLOCK-SERVICE.md](implementation/M5-BLOCK-SERVICE.md). Het kerneltransport en het protocolconforme device zijn vertrouwd; M5 levert geen IOMMU-containment of fysieke-hardwarebewijs. Bij ontbrekende resetack blijft de vaste DMA-pool in quarantaine tot VM-stop.
+The service protocol and all injection boundaries are in [M5-BLOCK-SERVICE.md](implementation/M5-BLOCK-SERVICE.md). The kernel transport and the protocol-conforming device are trusted; M5 provides no IOMMU containment or physical-hardware evidence. If the reset acknowledgement is missing, the fixed DMA pool stays in quarantine until the VM stops.
 
-## Windows: exclusieve testimages buiten synchronisatiemappen
+## Windows: exclusive test images outside synchronised folders
 
-Voer schrijvende M6-gates uit in een aparte Git-worktree buiten gesynchroniseerde
-mappen. Op 28 oktober 2026 wees de single-linkguard een echte normale M6c-run
-terecht af: tijdens uitvoering ontstond een tweede hardlink naar dezelfde image
-onder `.tmp.driveupload`. `fsutil hardlink list` bevestigde beide namen; welk
-proces die link maakte is niet vastgesteld. Het guestresultaat raw 33 en alle
-succesmarkers maakten deze hostgrensfout niet groen.
+Run writing M6 gates in a separate Git worktree outside synchronised
+folders. On 28 October 2026 the single-link guard correctly rejected a real normal M6c run:
+during execution a second hard link to the same image appeared
+under `.tmp.driveupload`. `fsutil hardlink list` confirmed both names; which
+process created that link has not been established. The guest result raw 33 and all
+success markers did not make this host-boundary failure green.
 
-Een afzonderlijke worktree behoudt dezelfde commit en bronfingerprint. Bewaar
-ruwe images uitsluitend in haar eigen `build/run`; neem alleen controleerbare
-tekst-/hashrapporten in Git op. De `st_nlink == 1`-voorwaarde blijft verplicht;
-geen uitzondering voor syncsoftware of retry die de waargenomen tweede link
-verbergt. Pas geen sync-, netwerk- of andere hostinstellingen aan voor de proef.
-De mislukte run en de exacte hardlinkobservatie staan onder
+A separate worktree keeps the same commit and source fingerprint. Store
+raw images only in its own `build/run`; include only verifiable
+text/hash reports in Git. The `st_nlink == 1` condition remains mandatory;
+there is no exception for sync software or a retry that hides the observed second link.
+Do not change sync, network or other host settings for the trial.
+The failed run and the exact hard-link observation are under
 `docs/verification/m6d-closeout/`.
 
-## Vast QEMU-profiel
+## Fixed QEMU profile
 
-De lokale ontwikkelvariant gebruikt `pc-q35-10.0`, `qemu64`, TCG, één CPU, 256 MiB RAM, geen gastnetwerk en geen hostschijf. De test maakt een eigen ESP-kopie en een verse VARS-kopie in `build/run/`; CODE wordt read-only gebruikt. De concrete argumenten, ruwe exitstatus, hashes en seriële output staan per run in `result.json`, `serial.txt` en `stderr.txt`.
+The local development variant uses `pc-q35-10.0`, `qemu64`, TCG, one CPU, 256 MiB RAM, no guest network and no host disk. The test creates its own ESP copy and a fresh VARS copy in `build/run/`; CODE is used read-only. The concrete arguments, raw exit status, hashes and serial output are stored per run in `result.json`, `serial.txt` and `stderr.txt`.
 
-De normale succesobservatie vereist complete regels in volgorde: `BOOT:EBS_OK`, `KERNEL:ENTRY`, `BOOTINFO:OK`, `M1:PASS`, plus ruwe QEMU-exit 33 en geen foutmarker. Een normale hostexit 0 of alleen een firmwarebanner geldt niet als kernelboot. Een fout gebruikt in dit testprofiel ruwe QEMU-exit 35; timeout en ontbrekende markers blijven fouten.
+The normal success observation requires complete lines in order: `BOOT:EBS_OK`, `KERNEL:ENTRY`, `BOOTINFO:OK`, `M1:PASS`, plus raw QEMU exit 33 and no failure marker. A normal host exit 0 or only a firmware banner does not count as a kernel boot. A failure uses raw QEMU exit 35 in this test profile; a timeout and missing markers remain failures.
 
-De startdocumenten noemden QEMU 10.0.14 en zelf gebouwde EDK II `edk2-stable202508` als referentie. De huidige Windows-package en meegeleverde firmware zijn **niet byte-identiek aan die referentie**. De exacte firmwarebuildcommit is niet onafhankelijk vastgesteld; de descriptor, lokale hashes en packageherkomst zijn wel vastgelegd. Dit betreft een ontwikkelprofiel zonder Secure Boot-bewijs.
+The starting documents named QEMU 10.0.14 and a self-built EDK II `edk2-stable202508` as the reference. The current Windows package and bundled firmware are **not byte-identical to that reference**. The exact firmware build commit has not been independently established; the descriptor, local hashes and package provenance have been recorded. This concerns a development profile without Secure Boot evidence.
 
-**Afgesproken profielcorrectie tijdens integratie:** de hoofdagent heeft vanwege geobserveerde firmwareoverlap de kernelreservering **32–48 MiB** (`[0x02000000, 0x03000000)`) en **BootInfo ABI 1.1** aangewezen als vervanging van de oorspronkelijke 2–18 MiB/ABI 1.0. Dit is een expliciete wijziging van de bouwbasis. Deze correctie is geïmplementeerd en de volledige bootacceptatiereeks is geslaagd. Het besluit en uitvoeringsbewijs staan in [DECISIONS.md](DECISIONS.md) en [PROJECT-STATE.md](PROJECT-STATE.md).
+**Agreed profile correction during integration:** because of observed firmware overlap, the lead agent designated the kernel reservation **32–48 MiB** (`[0x02000000, 0x03000000)`) and **BootInfo ABI 1.1** as the replacement for the original 2–18 MiB/ABI 1.0. This is an explicit change to the build baseline. This correction has been implemented and the full boot acceptance sequence has passed. The decision and execution evidence are in [DECISIONS.md](DECISIONS.md) and [PROJECT-STATE.md](PROJECT-STATE.md).
 
-## Productprototype en quantumproef
+## Product prototype and quantum trial
 
-Start Materiaal uitsluitend op de lokale loopbackinterface:
+Start Materiaal exclusively on the local loopback interface:
 
 ```powershell
 python -m http.server 8765 --bind 127.0.0.1 --directory ui/prototype
 ```
 
-Open [Materiaal op localhost](http://127.0.0.1:8765/). De eindcontrole na hervatten gebruikte poort 8776, omdat 8765 lege responses gaf. Gebruik zo nodig dezelfde opdracht met 8776 en open http://127.0.0.1:8776/. Stop de server met `Ctrl+C`. Dit is het browserprototype met fictieve gegevens; het draait nog niet op de eigen kernel. De uitgebreide bediening en bekende bewijsgrenzen staan in [ui/prototype/README.md](../ui/prototype/README.md).
+Open [Materiaal on localhost](http://127.0.0.1:8765/). The final check after resuming used port 8776, because 8765 returned empty responses. If needed, use the same command with 8776 and open http://127.0.0.1:8776/. Stop the server with `Ctrl+C`. This is the browser prototype with fictitious data; it does not yet run on the project's own kernel. The extended controls and known evidence boundaries are in [ui/prototype/README.md](../ui/prototype/README.md).
 
-Controleer de quantumproef en voer de Bellfixture uit:
+Check the quantum trial and run the Bell fixture:
 
 ```powershell
 python experiments/quantum/verify.py
 Get-Content -Raw experiments/quantum/fixtures/bell8.json | python tools/dev.py cargo +1.90.0 run --manifest-path experiments/quantum/Cargo.toml --locked --offline -p qsim-cli
 ```
 
-De quantumworkspace staat buiten de kernelworkspace. `verify.py` schrijft uitvoer, bron-/binaryhashes en exacte commandoregels naar `experiments/quantum/verification/`. Het is lokale hostsimulatie; geen fysieke QPU, eigen-OS-port of cryptografische toevalsgenerator. Zie [de quantumhandleiding](../experiments/quantum/README.md).
+The quantum workspace is outside the kernel workspace. `verify.py` writes output, source/binary hashes and exact command lines to `experiments/quantum/verification/`. This is local host simulation; not a physical QPU, an own-OS port or a cryptographic random number generator. See [the quantum guide](../experiments/quantum/README.md).
 
-## Herkomst en hashes
+## Provenance and hashes
 
-De waarden hieronder komen uit het daadwerkelijk aangemaakte [build/toolchain-provenance.json](../build/toolchain-provenance.json). Hashes identificeren de gebruikte bestanden; zij bewijzen geen foutloze of veilige software.
+The values below come from the [build/toolchain-provenance.json](../build/toolchain-provenance.json) that was actually created. Hashes identify the files used; they do not prove error-free or secure software.
 
-| Bestand | Algoritme | Vastgelegde hash |
+| File | Algorithm | Recorded hash |
 |---|---|---|
 | rustup-init.exe | SHA-256 | `00f139da614dced87d3c3d4121c43eebdac3c1bf8a5ee86b9d80dfd71c8d70fd` |
 | qemu-w64-setup-20260811.exe | SHA-512 | `5bcf9eed634e8575a37b74f445af41a2fe4106da512d0c30c368301d4c105037fdfab40a5287367a28a957624cddebbc8c07e16c88ab6634f554cdf3d16bf543` |
 | edk2-x86_64-code.fd | SHA-256 | `33090cc07675baa5190d9f1e84bf5176b33bcbfa9bacac522961150cdb6dbb2a` |
 | edk2-i386-vars.fd, template | SHA-256 | `5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e` |
 
-Rust verwijst op zijn [officiële installatiepagina](https://rust-lang.org/tools/install/) naar [de gebruikte x64-rustupdownload](https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe). De [officiële QEMU-downloadpagina](https://www.qemu.org/download/#windows) verwijst voor Windows naar Stefan Weil; de gebruikte package is [qemu-w64-setup-20260811.exe](https://qemu.weilnetz.de/w64/qemu-w64-setup-20260811.exe). Deze verwijzingen zijn op 27 oktober 2026 gecontroleerd. Dit zijn herkomstverwijzingen, geen opdracht om opnieuw te installeren.
+On its [official installation page](https://rust-lang.org/tools/install/), Rust links to [the x64 rustup download that was used](https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe). The [official QEMU download page](https://www.qemu.org/download/#windows) refers to Stefan Weil for Windows; the package used is [qemu-w64-setup-20260811.exe](https://qemu.weilnetz.de/w64/qemu-w64-setup-20260811.exe). These references were checked on 27 October 2026. They are provenance references, not an instruction to reinstall.
 
-De loaderdependency `r-efi 7.1.0` levert uitsluitend UEFI-typen/constanten. Herkomst, Cargo-checksum en de gekozen MIT-route staan in [third-party/README.md](third-party/README.md).
+The loader dependency `r-efi 7.1.0` provides only UEFI types/constants. Provenance, the Cargo checksum and the chosen MIT route are in [third-party/README.md](third-party/README.md).
 
-## Herstel en opruimen
+## Recovery and cleanup
 
-Behoud de bronbestanden, Git-commits, lockfiles en gewenste bewijsrapporten. `build/`, de root-`target/` en `experiments/quantum/target/` bevatten gegenereerde bestanden die met bovenstaande commando's opnieuw kunnen worden gemaakt. Bewaar `build/toolchain-provenance.json` en relevante `build/run/`-rapporten als het bewijs later controleerbaar moet blijven; opnieuw bouwen reconstrueert niet de oude uitvoering.
+Keep the source files, Git commits, lockfiles and any evidence reports you want to retain. `build/`, the root `target/` and `experiments/quantum/target/` contain generated files that can be recreated with the commands above. Keep `build/toolchain-provenance.json` and relevant `build/run/` reports if the evidence must remain verifiable later; rebuilding does not reconstruct the old run.
 
-Stop eerst QEMU, de lokale webserver en lopende Cargo-processen. De afzonderlijke toolmap `C:\Users\simon\AppData\Local\nieuw-os` kan daarna desgewenst worden verwijderd nadat het exacte pad en eventuele nog gewenste downloads/logs zijn gecontroleerd. Dat verwijdert de projectlokale compiler/cache/emulator, niet de bronrepository of bestaande Visual Studio-installatie. De ontwikkelcommando's werken vervolgens pas weer nadat de vereiste tools opnieuw beschikbaar zijn. Deze handleiding voert geen verwijdering uit.
+First stop QEMU, the local web server and any running Cargo processes. The separate tool directory `C:\Users\simon\AppData\Local\nieuw-os` can then be removed if desired, after checking the exact path and any downloads/logs still wanted. That removes the project-local compiler/cache/emulator, not the source repository or the existing Visual Studio installation. The development commands will only work again once the required tools are available again. This guide does not perform any removal.
 
-Er is geen fysieke schijf als VM-disk gebruikt, geen firmware geflasht en geen NAS-configuratie gewijzigd. Een bronrollback gebeurt met behoud van werk en geschiedenis, bijvoorbeeld via een gerichte revert van een later gemaakte implementatiecommit; geen destructieve reset van gebruikerswerk.
+No physical disk was used as a VM disk, no firmware was flashed and no NAS configuration was changed. A source rollback is done while preserving work and history, for example via a targeted revert of a later implementation commit; no destructive reset of user work.
