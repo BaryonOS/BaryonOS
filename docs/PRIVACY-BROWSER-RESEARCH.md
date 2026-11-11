@@ -1,256 +1,255 @@
-# Privacybrowser — onderzoeksrichting en open keuzes
+# Privacy browser — research direction and open choices
 
-**Status:** onderzoeksnotitie, 28 oktober 2026. Dit document legt de productwens,
-relevante opensourcevoorbeelden en acceptatievragen vast. Er is **nog geen
-browserengine gekozen, geforkt of naar Nieuw OS geport**. Chromium/Blink,
-Firefox/Gecko en hun afgeleiden zijn referenties; een keuze wordt pas een
-architectuurbesluit na een gerichte vergelijking en proef.
+**Status:** research note, 28 October 2026. This document records the product
+requirement, relevant open-source examples and acceptance questions. **No
+browser engine has yet been chosen, forked or ported to Nieuw OS**. Chromium/Blink,
+Firefox/Gecko and their derivatives are references; a choice only becomes an
+architecture decision after a targeted comparison and trial.
 
-## 1. Productdoel
+## 1. Product goal
 
-Nieuw OS heeft voor dagelijks gebruik een browser nodig die gewone websites,
-webapps, videobellen, betalingen en andere gangbare webtaken kan uitvoeren,
-zonder van gedragsprofilering of advertentietelemetrie een verdien- of
-systeemmodel te maken.
+For everyday use, Nieuw OS needs a browser that can handle ordinary websites,
+web apps, video calls, payments and other common web tasks, without turning
+behavioural profiling or advertising telemetry into a revenue or
+system model.
 
-Het gewenste standaardgedrag is:
+The desired default behaviour is:
 
-- de browsermaker ontvangt geen surfgeschiedenis, advertentieprofiel of
-  gebruikstelemetrie die niet strikt nodig is voor een expliciet gekozen
-  diagnostische handeling;
-- bekende cross-site trackers en trackingopslag worden standaard beperkt;
-- fingerprinting wordt waar praktisch mogelijk verminderd zonder de gebruiker
-  door exotische afwijkingen juist uniek te maken;
-- gevoelige browserrechten zoals camera, microfoon, locatie, klembord en
-  bestanden blijven gekoppeld aan een concrete gebruikershandeling;
-- een website die door privacybescherming niet goed werkt krijgt een
-  begrijpelijke herstelroute, zonder dat de browser automatisch alle
-  bescherming uitschakelt;
-- beveiligingsupdates en noodzakelijke achtergrondverbindingen zijn
-  inventariseerbaar en uitlegbaar.
+- the browser vendor receives no browsing history, advertising profile or
+  usage telemetry that is not strictly necessary for an explicitly chosen
+  diagnostic action;
+- known cross-site trackers and tracking storage are restricted by default;
+- fingerprinting is reduced where practically possible, without making the user
+  unique precisely through exotic deviations;
+- sensitive browser permissions such as camera, microphone, location, clipboard and
+  files remain tied to a concrete user action;
+- a website that does not work properly because of privacy protection gets an
+  understandable recovery route, without the browser automatically disabling all
+  protection;
+- security updates and necessary background connections can be
+  inventoried and explained.
 
-Dit sluit aan op het bestaande privacycontract: internetrecht geeft een browser
-geen algemene document- of NAS-bevoegdheid. De browser blijft een gewone,
-begrensde app boven de capability- en netwerkgrenzen van Nieuw OS.
+This aligns with the existing privacy contract: an internet permission does not give a browser
+any general document or NAS authority. The browser remains an ordinary,
+bounded app on top of the capability and network boundaries of Nieuw OS.
 
-## 2. Twee afzonderlijke privacyproblemen
+## 2. Two separate privacy problems
 
-### 2.1 Wat de browser zelf verstuurt
+### 2.1 What the browser itself sends
 
-Een privacybrowser moet eerst zijn eigen netwerkgedrag kunnen verantwoorden.
-Onderzoek minimaal:
+A privacy browser must first be able to account for its own network behaviour.
+Investigate at least:
 
-- telemetrie, experimenten, crashrapportage en unieke installatie-identifiers;
-- zoeksuggesties en tekst die vóór Enter naar een zoekprovider kan gaan;
-- update-, certificaat-, filterlijst-, tijd- en connectiviteitsverkeer;
-- account-, synchronisatie- en aanbevelingsdiensten;
-- eventuele Safe Browsing-/malwarechecks en welke metadata daarbij wordt
-  gedeeld;
-- extensie- en componentupdates.
+- telemetry, experiments, crash reporting and unique installation identifiers;
+- search suggestions and text that may be sent to a search provider before Enter is pressed;
+- update, certificate, filter-list, time and connectivity traffic;
+- account, synchronisation and recommendation services;
+- any Safe Browsing/malware checks and which metadata is shared
+  with them;
+- extension and component updates.
 
-Doel: een schone installatie heeft een gedocumenteerde lijst van noodzakelijke
-achtergrondverbindingen. Optionele diagnostiek is uitgeschakeld tenzij de
-gebruiker die bewust activeert.
+Goal: a clean installation has a documented list of necessary
+background connections. Optional diagnostics are disabled unless the
+user deliberately activates them.
 
-### 2.2 Wat websites en derden kunnen verzamelen
+### 2.2 What websites and third parties can collect
 
-De browser moet daarnaast bescherming bieden tegen tracking door bezochte
-websites en ingesloten derden. Kandidaten voor het standaardprofiel:
+In addition, the browser must provide protection against tracking by visited
+websites and embedded third parties. Candidates for the default profile:
 
-- blokkeren van bekende cross-site trackers en advertentietrackers;
-- partitioneren of blokkeren van third-party opslag;
-- beperken van trackingparameters in URL's waar dat geen navigatie breekt;
-- bescherming tegen bekende fingerprintingvectoren;
-- beperken van speculatieve/preconnect-verzoeken wanneer die privacykosten
-  hebben;
-- duidelijke sitegegevens-/cookiecontrole;
-- geen stilzwijgende toegang tot camera, microfoon, locatie of lokale
-  documenten.
+- blocking known cross-site trackers and advertising trackers;
+- partitioning or blocking third-party storage;
+- stripping tracking parameters in URLs where this does not break navigation;
+- protection against known fingerprinting vectors;
+- limiting speculative/preconnect requests when they carry a privacy
+  cost;
+- clear site-data/cookie controls;
+- no silent access to camera, microphone, location or local
+  documents.
 
-Geen van deze maatregelen kan anonimiteit garanderen. Een bezochte website ziet
-bij een rechtstreekse verbinding onder meer het bron-IP en kan ingelogde
-activiteit aan een account koppelen. Fingerprinting kan worden verminderd maar
-niet universeel onmogelijk worden gemaakt.
+None of these measures can guarantee anonymity. Over a direct connection, a visited website sees,
+among other things, the source IP and can link logged-in
+activity to an account. Fingerprinting can be reduced but
+not made universally impossible.
 
-## 3. Tijdelijke uitzonderingen als productfunctie
+## 3. Temporary exceptions as a product feature
 
-De voorgestelde gebruikersroute is niet “zet privacy uit”, maar **“deze website
-werkt niet”**. De browser probeert vervolgens de kleinst mogelijke uitzondering.
+The proposed user route is not “turn privacy off”, but **“this website
+does not work”**. The browser then attempts the smallest possible exception.
 
-### Voorgesteld gedrag
+### Proposed behaviour
 
-1. Bescherming staat standaard aan.
-2. Bij sitebreuk toont de browser welke categorie waarschijnlijk betrokken is,
-   bijvoorbeeld geblokkeerde third-party opslag of een tracker/script.
-3. De eerste herstelactie versoepelt slechts die categorie voor de huidige site.
-4. De standaardkeuze is **eenmalig** of **tot deze site/tab wordt gesloten**.
-5. Een blijvende uitzondering is een aparte, expliciete keuze.
-6. Actieve uitzonderingen zijn zichtbaar vanuit de adresbalk en in één handeling
-   terug te draaien.
-7. Een uitzondering voor site A geldt niet automatisch voor dezelfde derde partij
-   op site B.
-8. De browser kan een kapotte site rapporteren met technische diagnostiek nadat
-   de gebruiker de inhoud daarvan heeft kunnen beoordelen.
+1. Protection is on by default.
+2. When a site breaks, the browser shows which category is probably involved,
+   for example blocked third-party storage or a tracker/script.
+3. The first recovery action relaxes only that category for the current site.
+4. The default choice is **one-time** or **until this site/tab is closed**.
+5. A permanent exception is a separate, explicit choice.
+6. Active exceptions are visible from the address bar and can be reverted in a single
+   action.
+7. An exception for site A does not automatically apply to the same third party
+   on site B.
+8. The browser can report a broken site with technical diagnostics after
+   the user has been able to review their content.
 
-### Niet versoepelen via deze route
+### Not relaxed via this route
 
-Een privacy-uitzondering mag niet automatisch de volgende beveiligingsgrenzen
-uitschakelen:
+A privacy exception must not automatically disable the following security
+boundaries:
 
-- TLS-/certificaatvalidatie;
-- processandboxing en site-/rendererisolatie;
-- geheugen- en capabilitygrenzen van Nieuw OS;
-- bescherming tegen downloads of uitvoerbare code;
-- de scheiding tussen browserinternet en persoonlijke documenten/NAS;
-- de regel dat een website nooit zelfstandig extra browser- of OS-rechten mag
-  verlenen.
+- TLS/certificate validation;
+- process sandboxing and site/renderer isolation;
+- memory and capability boundaries of Nieuw OS;
+- protection against downloads or executable code;
+- the separation between browser internet access and personal documents/NAS;
+- the rule that a website may never on its own grant additional browser or OS
+  permissions.
 
-Een toestemming kan gegevens vanaf dat moment naar de betreffende website of
-derde laten gaan. Het opnieuw inschakelen van bescherming kan reeds verzonden
-gegevens niet terughalen.
+A permission can, from that moment on, allow data to flow to the website or
+third party concerned. Re-enabling protection cannot retrieve data that has
+already been sent.
 
-## 4. Relevante opensourcevoorbeelden
+## 4. Relevant open-source examples
 
-| Project | Basis | Bruikbaar als referentie | Aandachtspunt |
+| Project | Base | Useful as a reference | Point of attention |
 |---|---|---|---|
-| Chromium | Blink/Chromium | Zeer brede webcompatibiliteit, multiprocessarchitectuur en sandboxontwerp | De sandbox leunt op beveiligingsmechanismen van het onderliggende OS; een Nieuw-OS-port vereist dus een eigen sandboxintegratie |
-| ungoogled-chromium | Chromium | Verwijdert Google-webserviceafhankelijkheden en veel achtergrondverzoeken | Aanvullende privacytweaks staan grotendeels niet automatisch aan; geen complete productstrategie op zichzelf |
-| Brave | Chromium | Ingebouwde trackerblokkering, cookie/storagebescherming, fingerprintingmaatregelen en site-specifieke Shields | Eigen productkeuzes/telemetrie moeten afzonderlijk worden beoordeeld; niet blind als basis overnemen |
-| Vanadium | Chromium | Voorbeeld van browserhardening die nauw samenwerkt met OS-beveiliging | Sterk gekoppeld aan GrapheneOS/Android; niet rechtstreeks een Nieuw-OS-port |
-| Firefox | Gecko | Enhanced Tracking Protection, Total Cookie Protection en site-specifieke uitzonderingen | Standaard Firefox heeft eigen product-/telemetriekeuzes die voor Nieuw OS opnieuw moeten worden beoordeeld |
-| LibreWolf | Firefox | Telemetrie uit, uBlock Origin, strengere tracking- en fingerprintinginstellingen | Strenge defaults kunnen sitecompatibiliteit en bepaalde diensten beïnvloeden |
-| Mullvad Browser | Firefox/Tor Browser | Compile-time uitschakelen van telemetrie en sterke anti-fingerprinting; publiceert achtergrondverbindingen | Uniforme fingerprintingstrategie kan UX-/compatibiliteitskosten hebben |
-| Tor Browser | Firefox ESR | Sterke anti-fingerprinting en netwerkidentiteitsisolatie | Tor-routing/anonimiteit is een ander productdoel dan een algemene dagelijkse Nieuw-OS-browser |
+| Chromium | Blink/Chromium | Very broad web compatibility, multi-process architecture and sandbox design | The sandbox relies on security mechanisms of the underlying OS; a Nieuw OS port therefore requires its own sandbox integration |
+| ungoogled-chromium | Chromium | Removes Google web-service dependencies and many background requests | Additional privacy tweaks are largely not enabled automatically; not a complete product strategy in itself |
+| Brave | Chromium | Built-in tracker blocking, cookie/storage protection, fingerprinting measures and site-specific Shields | Its own product choices/telemetry must be assessed separately; do not adopt blindly as a base |
+| Vanadium | Chromium | Example of browser hardening that works closely with OS security | Tightly coupled to GrapheneOS/Android; not directly a Nieuw OS port |
+| Firefox | Gecko | Enhanced Tracking Protection, Total Cookie Protection and site-specific exceptions | Standard Firefox has its own product/telemetry choices that must be reassessed for Nieuw OS |
+| LibreWolf | Firefox | Telemetry off, uBlock Origin, stricter tracking and fingerprinting settings | Strict defaults can affect site compatibility and certain services |
+| Mullvad Browser | Firefox/Tor Browser | Compile-time disabling of telemetry and strong anti-fingerprinting; publishes background connections | A uniform fingerprinting strategy can carry UX/compatibility costs |
+| Tor Browser | Firefox ESR | Strong anti-fingerprinting and network identity isolation | Tor routing/anonymity is a different product goal from a general everyday Nieuw OS browser |
 
-Deze tabel kiest geen winnaar. Projecten kunnen ideeën leveren zonder dat Nieuw
-OS hun branding, complete patchset of productmodel overneemt.
+This table does not pick a winner. Projects can contribute ideas without Nieuw
+OS adopting their branding, complete patch set or product model.
 
-## 5. Waarom Chromium technisch aantrekkelijk kan zijn
+## 5. Why Chromium may be technically attractive
 
-Chromium is een serieuze kandidaat wanneer maximale websitecompatibiliteit en
-ondersteuning van hedendaagse webapps zwaar wegen. De browser kan als
-opensourcebasis worden aangepast; ungoogled-chromium laat zien dat
-Google-webserviceafhankelijkheden en achtergrondverzoeken uit Chromium kunnen
-worden verwijderd.
+Chromium is a serious candidate when maximum website compatibility and
+support for contemporary web apps weigh heavily. The browser can be adapted as an
+open-source base; ungoogled-chromium shows that
+Google web-service dependencies and background requests can be removed
+from Chromium.
 
-Een Chromiumkeuze betekent echter niet alleen “de UI porten”. Chromium beschrijft
-zelf dat zijn sandbox gebruikmaakt van beveiligingsmechanismen van het
-onderliggende besturingssysteem. Voor Nieuw OS moeten daarom minimaal processen,
-IPC, shared memory, netwerk, bestandstoegang, GPU/rendering, fonts, invoer,
-tijd/entropy en de sandbox op de eigen kernel- en capabilitygrenzen worden
-aangesloten.
+A Chromium choice, however, does not just mean “porting the UI”. Chromium itself
+describes that its sandbox uses security mechanisms of the
+underlying operating system. For Nieuw OS, therefore, at least processes,
+IPC, shared memory, network, file access, GPU/rendering, fonts, input,
+time/entropy and the sandbox must be connected to the native kernel and capability
+boundaries.
 
-De port moet bovendien upstream beveiligingsupdates snel kunnen blijven volgen.
-Een zeer grote permanente patchset vergroot het risico dat patches vertraagd of
-moeilijk te integreren worden.
+The port must moreover be able to keep following upstream security updates quickly.
+A very large permanent patch set increases the risk that patches are delayed or
+become difficult to integrate.
 
-## 6. Waarom Firefox/Gecko eveneens onderzocht moet worden
+## 6. Why Firefox/Gecko must also be investigated
 
-Firefox is technisch relevant omdat Mozilla al trackingpartitionering,
-site-specifieke bescherming en webcompatibiliteitsmechanismen heeft. LibreWolf
-en Mullvad Browser demonstreren daarnaast dat telemetrie en aanvullende
-privacyfuncties verder kunnen worden aangescherpt.
+Firefox is technically relevant because Mozilla already has tracking partitioning,
+site-specific protection and web compatibility mechanisms. LibreWolf
+and Mullvad Browser additionally demonstrate that telemetry and additional
+privacy features can be tightened further.
 
-Een Gecko-keuze lost de port naar de eigen kernel evenmin vanzelf op. Ook hier
-zijn grafische, netwerk-, proces-, filesystem-, sandbox- en updateinterfaces
-nodig. Het bepalende vergelijkingscriterium is welke codebasis de gewenste
-productgaranties onderhoudbaar kan dragen; visuele voorkeur is niet leidend.
+A Gecko choice does not solve the port to the native kernel by itself either. Here too,
+graphics, network, process, filesystem, sandbox and update interfaces
+are needed. The decisive comparison criterion is which codebase can carry the desired
+product guarantees maintainably; visual preference is not leading.
 
-## 7. Onderzoekscriteria vóór een enginebesluit
+## 7. Research criteria before an engine decision
 
-Maak vóór een ADR met een enginekeuze ten minste een reproduceerbare vergelijking
-van Chromium- en Gecko-gebaseerde kandidaten.
+Before an ADR with an engine choice, produce at least a reproducible comparison
+of Chromium- and Gecko-based candidates.
 
-| ID | Vraag | Minimale toets |
+| ID | Question | Minimum test |
 |---|---|---|
-| BR-01 | Kan alle niet-noodzakelijke producttelemetrie worden verwijderd? | Netwerkcapture van schone start, idle, zoeken, browsen en afsluiten; iedere achtergrondverbinding verklaard |
-| BR-02 | Hoe snel zijn upstream securityfixes over te nemen? | Meet patchdelta en bouwproces over meerdere upstream securityupdates |
-| BR-03 | Hoe vaak breekt het privacyprofiel websites? | Vast testpakket met login, betalingen, streaming, videovergaderen, webapps en embeds |
-| BR-04 | Werken gerichte uitzonderingen? | Site-specifieke tijdelijke uitzondering herstelt functie zonder globale privacyverlaging |
-| BR-05 | Welke fingerprintinginformatie blijft zichtbaar? | Herhaalbare testset met gedocumenteerde APIs en configuraties; geen absolute anonimiteitsclaim |
-| BR-06 | Kan de sandbox op Nieuw OS worden afgedwongen? | Threat model en capabilitymapping voor renderer, netwerk, GPU, downloads en bestandportalen |
-| BR-07 | Is de dependency- en licentieketen beheersbaar? | Inventaris van bron, licenties, third-party code, buildtools en update-eigenaarschap |
-| BR-08 | Blijft de ervaring consumentenwaardig? | Taakproef met standaardprofiel en herstel na sitebreuk zonder technische instellingenkennis |
+| BR-01 | Can all non-essential product telemetry be removed? | Network capture of clean start, idle, search, browsing and shutdown; every background connection explained |
+| BR-02 | How quickly can upstream security fixes be adopted? | Measure patch delta and build process across multiple upstream security updates |
+| BR-03 | How often does the privacy profile break websites? | Fixed test suite with login, payments, streaming, video conferencing, web apps and embeds |
+| BR-04 | Do targeted exceptions work? | Site-specific temporary exception restores function without a global privacy reduction |
+| BR-05 | Which fingerprinting information remains visible? | Repeatable test set with documented APIs and configurations; no absolute anonymity claim |
+| BR-06 | Can the sandbox be enforced on Nieuw OS? | Threat model and capability mapping for renderer, network, GPU, downloads and file portals |
+| BR-07 | Is the dependency and licence chain manageable? | Inventory of source, licences, third-party code, build tools and update ownership |
+| BR-08 | Does the experience remain consumer-grade? | Task trial with default profile and recovery after site breakage without technical settings knowledge |
 
-## 8. Open productkeuzes
+## 8. Open product choices
 
-Nog niet beslissen zonder proef:
+Do not decide yet without a trial:
 
-- Chromium/Blink versus Firefox/Gecko als eerste engine.
-- Blokkeren versus partitioneren van verschillende third-party opslagvormen.
-- Anti-fingerprinting via uniformering, randomisering of een combinatie.
-- Welke phishing-/malwarebescherming lokaal of privacybehoudend kan blijven
-  functioneren.
-- DRM/Encrypted Media Extensions: privacy, vrijheid en consumentencompatibiliteit
-  moeten expliciet tegen elkaar worden afgewogen.
-- Extensie-ecosysteem en welke extensie-API veilig ondersteund wordt.
-- Zoekprovider, DoH/DNS-gedrag en optionele synchronisatie.
-- Of browserwachtwoorden in de browser zelf horen of via een afzonderlijke
-  lokale credentialsdienst van Nieuw OS.
-- Welke diagnostiek een gebruiker bij “website werkt niet” lokaal kan bekijken
-  en vrijwillig kan delen.
+- Chromium/Blink versus Firefox/Gecko as the first engine.
+- Blocking versus partitioning of the various forms of third-party storage.
+- Anti-fingerprinting via uniformity, randomisation or a combination.
+- Which phishing/malware protection can keep functioning locally or in a
+  privacy-preserving way.
+- DRM/Encrypted Media Extensions: privacy, freedom and consumer compatibility
+  must be explicitly weighed against each other.
+- Extension ecosystem and which extension API can be supported safely.
+- Search provider, DoH/DNS behaviour and optional synchronisation.
+- Whether browser passwords belong in the browser itself or in a separate
+  local credentials service of Nieuw OS.
+- Which diagnostics a user can view locally and voluntarily share for “website does not work”.
 
-## 9. Voorgestelde ontwikkelvolgorde
+## 9. Proposed development order
 
-**BR0 — vergelijking en privacycontract.** Voer BR-01 t/m BR-08 eerst uit op
-hostbuilds. Dit levert een enginebesluit en patchbudget op, geen native
-browserclaim.
+**BR0 — comparison and privacy contract.** Run BR-01 to BR-08 first on
+host builds. This yields an engine decision and patch budget, not a native
+browser claim.
 
-**BR1 — onderhoudbare browservariant op de ontwikkelhost.** Bouw het gekozen
-privacyprofiel, tijdelijke site-uitzonderingen en geautomatiseerde
-netwerk-/compatibiliteitstests. Houd de patchset klein en herbaseerbaar.
+**BR1 — maintainable browser variant on the development host.** Build the chosen
+privacy profile, temporary site exceptions and automated
+network/compatibility tests. Keep the patch set small and rebaseable.
 
-**BR2 — Nieuw-OS platformlaag.** Port de minimaal benodigde platforminterfaces
-naar de eigen netwerk-, graphics-, input-, storage- en procesdiensten. Dit is
-afhankelijk van voldoende volwassen native netwerk- en grafische infrastructuur.
+**BR2 — Nieuw OS platform layer.** Port the minimally required platform interfaces
+to the native network, graphics, input, storage and process services. This
+depends on sufficiently mature native network and graphics infrastructure.
 
-**BR3 — sandbox en capability-integratie.** Renderers, netwerkdienst, GPU-/media-
-processen, downloads en bestandsportalen krijgen uitsluitend de noodzakelijke
-Nieuw-OS-capabilities. Test negatieve toegang en intrekking end-to-end.
+**BR3 — sandbox and capability integration.** Renderers, network service, GPU/media
+processes, downloads and file portals receive only the necessary
+Nieuw OS capabilities. Test negative access and revocation end-to-end.
 
-**BR4 — dagelijkse gebruiksacceptatie.** Test echte websites en taken,
-beveiligingsupdates, toegankelijkheid, prestatie, sitebreuk en herstel op de
-ondersteunde hardware. Pas dan kan browserfunctionaliteit bijdragen aan A04 en
-relevante privacy-/netwerkcriteria van de vaste roadmap.
+**BR4 — everyday-use acceptance.** Test real websites and tasks,
+security updates, accessibility, performance, site breakage and recovery on the
+supported hardware. Only then can browser functionality contribute to A04 and
+relevant privacy/network criteria of the fixed roadmap.
 
-## 10. Bewijsgrens en voortgang
+## 10. Evidence boundary and progress
 
-Deze notitie is onderzoeks- en productdocumentatie. Zij implementeert geen
-browser, netwerkstack of sandbox en sluit daarom geen bestaand
-acceptatiecriterium. De vaste projectscore blijft door deze wijziging
+This note is research and product documentation. It implements no
+browser, network stack or sandbox and therefore closes no existing
+acceptance criterion. With this change the fixed project score remains
 **14% → 14%**.
 
-## Bronnen
+## Sources
 
-Brave Software, Inc. (z.d.). *Brave Shields — Blocking ads, trackers & more*.
-https://brave.com/shields/ (geraadpleegd 28 oktober 2026).
+Brave Software, Inc. (n.d.). *Brave Shields — Blocking ads, trackers & more*.
+https://brave.com/shields/ (accessed 28 October 2026).
 
-Chromium Authors. (z.d.). *Sandbox*. Chromium source documentation.
+Chromium Authors. (n.d.). *Sandbox*. Chromium source documentation.
 https://chromium.googlesource.com/chromium/src/+/main/docs/design/sandbox.md
-(geraadpleegd 28 oktober 2026).
+(accessed 28 October 2026).
 
-GrapheneOS. (z.d.). *Features overview: Vanadium*. https://grapheneos.org/features
-(geraadpleegd 28 oktober 2026).
+GrapheneOS. (n.d.). *Features overview: Vanadium*. https://grapheneos.org/features
+(accessed 28 October 2026).
 
-LibreWolf. (z.d.). *Features*. https://librewolf.net/docs/features/
-(geraadpleegd 28 oktober 2026).
+LibreWolf. (n.d.). *Features*. https://librewolf.net/docs/features/
+(accessed 28 October 2026).
 
-Mozilla. (2026, 24 september). *Enhanced Tracking Protection in Firefox for
+Mozilla. (2026, September 24). *Enhanced Tracking Protection in Firefox for
 desktop*. https://support.mozilla.org/en-US/kb/enhanced-tracking-protection-firefox-desktop
 
-Mozilla. (2026, 24 juni). *Total Cookie Protection and website breakage FAQ*.
+Mozilla. (2026, June 24). *Total Cookie Protection and website breakage FAQ*.
 https://support.mozilla.org/en-US/kb/total-cookie-protection-and-website-breakage-faq
 
-Mullvad VPN AB. (2026, 13 januari). *The Mullvad Browser hard facts: list of
+Mullvad VPN AB. (2026, January 13). *The Mullvad Browser hard facts: list of
 settings and modifications*. https://mullvad.net/en/browser/hard-facts
 
-ungoogled-software. (z.d.). *ungoogled-chromium*. GitHub.
+ungoogled-software. (n.d.). *ungoogled-chromium*. GitHub.
 https://github.com/ungoogled-software/ungoogled-chromium
 
-World Wide Web Consortium. (2025, 25 september). *Mitigating Browser
+World Wide Web Consortium. (2025, September 25). *Mitigating Browser
 Fingerprinting in Web Specifications* (W3C Group Note).
 https://www.w3.org/TR/fingerprinting-guidance/
 
-De voorgestelde uitzonderingsflow, BR-acceptatievragen en ontwikkelvolgorde zijn
-projectontwerp op basis van de vastgelegde opdracht en bovenstaande technische
-referenties; de bronnen certificeren Nieuw OS niet.
+The proposed exception flow, BR acceptance questions and development order are
+project design based on the recorded assignment and the technical
+references above; the sources do not certify Nieuw OS.
