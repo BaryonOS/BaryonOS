@@ -130,9 +130,11 @@ GUEST_TIMEOUT_S = 60
 # allowance separate from every existing sixty-second watchdog (ADR-5F).
 SOAK_TIMEOUT_S = 660
 # L0 08: 10 000 cross-CPU IPC rounds (>= 40 000 capability syscalls) under
-# TCG. Measured 66.5-71.8 s per boot after the remote-wake fix (ADR-081 R3-5
-# addendum); 180 s keeps a >= 2.5x margin. The round count is unchanged.
-IPC_TIMEOUT_S = 180
+# TCG. Multi-thread TCG time scales with host CPUs (116/130/327 s on 4/3/2
+# local CPUs); 180 s failed 0/50 on hosted 4-vCPU runners (ADR-081 R3-5
+# addendum 2). 660 s is run.py's maximum; acceptance requires >= 2.5x margin
+# against the measured hosted time. The round count is unchanged.
+IPC_TIMEOUT_S = 660
 
 # Audit F7 (DG-2): every CPU that ran the sync test writes these lines at once,
 # in fragments; each must arrive whole, in order per CPU, before SERIAL_PASS.

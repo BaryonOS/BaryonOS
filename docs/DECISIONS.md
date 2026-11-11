@@ -2602,3 +2602,11 @@ The marker `SMP:CLOCK:PASS:CPUS=` and the fail markers are unchanged. Ticks are 
 **Not claimed.** This change does not show that the guest clock stays within 1% while all CPUs are loaded. Under TCG on a shared host that property cannot be separated from host capacity, so it remains unproven. It must be measured again on hardware or KVM before a load-precision claim is made.
 
 **Open item.** The normative step text lives on branch `docs/k06-step-specs` (`docs/implementation/k06-steps/06-5c-2-bsp-timer-idle.md`, §4 "Klok"). It must receive the same revision when that branch is integrated.
+
+## K06 step 5f — IPC watchdog recalibrated for hosted runners (ADR-081 R3-5 addendum 2) — 11 November 2026
+
+**Decision (Simon, 11 November 2026).** Full run 43057843393 on `e398039e` failed `m3-ipc-four` 0/50: every repetition hit the 180-second host watchdog after `SMP:M3:GO`, without a FAIL marker, on GitHub-hosted 4-vCPU runners (2 cores with SMT). `m3-ipc-four-single` passed 50/50 at 71–84 s. Locally, with QEMU 8.2.2 confined by `taskset`, multi-thread TCG completes the unchanged 10 000 rounds in 116 s on 4 host CPUs, 130 s on 3 and 327 s on 2, with zero wait timeouts; single-thread TCG takes 103–109 s. The IPC phase runs at about one round per scheduler tick, so its wall time scales with host CPU capacity. No kernel defect is demonstrated. The R3-5 value of 180 s came from 71.8 s on a faster host and therefore violated its own rule of at least 2.5 times the measured time on the acceptance runner.
+
+`IPC_TIMEOUT_S` becomes 660 s, the existing maximum of `tools/run.py` and equal to `SOAK_TIMEOUT_S`. The round count, the oracle, the FAIR limits, every guest deadline and `GUEST_TIMEOUT_S = 60` are unchanged. The 2.5× rule stays: if the hosted per-boot time of `m3-ipc-four` in the next full run exceeds 264 s, the margin is insufficient and K06 stays open; the runner question then returns to the owner. A canary PAUSE hint on one pass in 64 instead of every pass was measured (432 s against 327 s on 2 CPUs) and rejected.
+
+The single idle-phase `SMP_CLOCK_DRIFT` in the same run (soak shard 9, median 1.05%, limit 1%) receives no code change by the same decision; the next full run starts from zero and a recurrence rejects it.

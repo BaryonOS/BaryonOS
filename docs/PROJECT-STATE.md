@@ -1,6 +1,6 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 step 5f matrix run 43057843393 and main merge — 11 November 2026
+## NEXT AGENT HANDOFF — K06 step 5f run 43057843393, main merge and IPC watchdog — 11 November 2026
 
 **Source:** branch `codex/k06-5f-complete-20261109` (PR #296). Merge commit `24d0d09a` brings in main `c520703b`, including the #307 squash `aeaf3cb7`; `.github/actions/setup-qemu` is byte-identical to main, so the signed QEMU/OVMF package bundle stays the install path. The merge conflicted only in this file and `docs/progress.json`. Kernel, tools and workflows are unchanged on this branch since `e398039e`.
 
@@ -11,9 +11,11 @@
 
 **IPC diagnosis (local, QEMU 8.2.2, not acceptance):** multi-thread TCG takes 116 s on 4 host CPUs, 130 s on 3 and 327 s on 2 (`taskset`); single-thread TCG takes 103–109 s on 2 or 4. Uncommitted counters show the unchanged oracle passing with zero wait timeouts. The IPC phase runs at about one round per scheduler tick on 4 CPUs and 0.37 on 2; most time goes to endpoints that a tick preempts and requeues behind three CPU-bound canaries. Giving the canary PAUSE hint on one pass in 64 instead of every pass made the 2-CPU run slower (432 s) and was discarded. No kernel defect is demonstrated. The 180 s watchdog (ADR-081 R3-5: at least 2.5 times the measured time) was derived from 71.8 s on a faster host and is below the completion time on the hosted 4-vCPU runner.
 
-**Blocker (owner decision):** acceptance cannot pass on the current runner without a decision. Options: (a) recalibrate `IPC_TIMEOUT_S` against a measurement on the hosted runner under the same 2.5× rule, recorded as an ADR-081 addendum; (b) run the IPC cases, or the matrix, on a larger runner (paid); (c) leave K06 open. The clock flake needs either acceptance of the rerun risk or one of the runner options already listed in DECISIONS.md. No tolerance, deadline, oracle or repetition count was changed.
+**Decision (Simon, 11 November 2026):** `IPC_TIMEOUT_S` 180 → 660 s (`tools/run_smp.py`, ADR-081 R3-5 addendum 2 in [DECISIONS.md](DECISIONS.md)). The 2.5× rule stays: a hosted per-boot time above 264 s for `m3-ipc-four` keeps K06 open. The idle clock flake gets no code change; the next full run starts from zero and a recurrence rejects it. Rounds, oracle, FAIR limits, guest deadlines, `GUEST_TIMEOUT_S` and the 1% clock limit are unchanged.
 
-**Executed:** merge and conflict resolution; `python3 tools/progress.py --write` and `--check`; the local runs above. Not executed: a new 64×50 matrix (it would fail `m3-ipc-four` again without a decision), K07, the aggregate and `tools/gate.sh`.
+**Executed:** merge and conflict resolution; the local runs above; after the decision `tools/tests` (309) and `tests/test_ci_workflows.py` pass, and one native `m3-ipc-four` boot passes in 108.6 s with `timeout_s` 660 (local QEMU 8.2.2, 4 CPUs, not acceptance); `python3 tools/progress.py --write` and `--check`. Pending at this checkpoint: the full 64×50 matrix dispatch on this commit, K07, the aggregate and `tools/gate.sh`.
+
+**Next:** dispatch `native-smp.yml` with `full_matrix=true` on this head; read every failed job; record the hosted `m3-ipc-four` per-boot times against the 264 s bound; merge PR #296 only after the matrix, aggregate and final gate pass.
 
 **Progress:** 39/100 → 39/100.
 
