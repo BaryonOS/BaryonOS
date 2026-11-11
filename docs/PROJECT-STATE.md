@@ -20,6 +20,10 @@ Also: `cargo fmt --all -- --check`, `test_smp_serial.py` (33 tests) and `test_gs
 
 **CI on `9698c379`:** `host-quality` passes. About twenty QEMU jobs (including `qemu-smoke`, `native-smp` and `native-window-session`) failed in the step "Pinned QEMU and OVMF": runner DNS could not resolve the snapshot or `archive.ubuntu.com` (14:04–14:12 UTC, run 43034888367). That is a runner network fault, not a code result; the new push re-runs these jobs.
 
+**CI on `ff2aad23`:** the same fault recurred at 14:26–14:35 UTC. All QEMU push jobs and all three attempts of matrix dispatch run 43038515659 failed in the apt step on `Temporary failure resolving` for `snapshot.ubuntu.com` and `archive.ubuntu.com`, on both `ubuntu-24.04` and `ubuntu-26.04`. crates.io and GitHub traffic in the same runs succeeded. The 64×50 body never executed, so that run is no SMP result. No pin or check was changed on this branch in response.
+
+**Shared CI fix:** #307 makes the setup install from a pinned, signed package bundle, so CI no longer needs the Ubuntu hosts (hosted canary run 43057156214; see the #307 checkpoint below). That branch is merged into this one. The 64×50 matrix is dispatched again on the merge commit; its run ID and result are not recorded here yet.
+
 **Open:** full 64×50 matrix, soaks, K07, aggregate and final gate on GitHub for this head. Host-quality on `2b6e81d6`/`9698c379`, `native-window-session` run 43031085350 and Copilot dynamic failure 43031108744 are not yet reviewed. Mirror the §4 "Klok" revision onto branch `docs/k06-step-specs` (`06-5c-2-bsp-timer-idle.md`). Load-phase clock precision remains unproven until it is measured on KVM or hardware.
 
 **Progress:** 39/100 → 39/100 until the hosted matrix and final gate are green.
@@ -89,6 +93,51 @@ Renicing the AP vCPU threads does not help: nice 10 on 3 CPUs gives 2.2–4.7%, 
 **Clock correction under verification:** the failed canary-control repetition counted exactly 1000 IRQ0 entries in every segment, while the old observer read TSC only after returning from the final interrupt. The IRQ0 stub now records TSC immediately before publishing each real counted tick. Segment count, actual tick normalization, median, exact 1% limit and deadline remain unchanged; no elapsed tick is synthesized. Failure diagnostics retain observer lag. This removes only post-interrupt observation latency and still makes missing/coalesced IRQ0 entries lengthen a 1000-entry interval. Native recovery remains unproved.
 
 **Next:** monitor queued run `42818153989` and preserve the completing rejected run `42809499884`. Do not cancel either or run a local QEMU matrix. For the corrected source require all 64 cases exactly 50/50, 3200 raw verified guests, regular K07, all 50 complete soaks, aggregate success and the subsequent actually executed tools/gate.sh with retained log. Compare aggregate and gate artifacts independently. Any red or missing repetition keeps K06 open.
+
+## Checkpoint (PR #307) — CI QEMU/OVMF package bundle — 11 November 2026
+
+**Source:** branch `ci/qemu-apt-bundle` (PR #307) from main `c07506c8`;
+builder and action commit `f26cd05623368c1a834be538e38a2aa30f5e1df1`.
+
+**Problem:** every QEMU workflow (#296, #304 and the backlog) failed in
+"Pinned QEMU and OVMF". snapshot.ubuntu.com timed out over HTTPS, and DNS for
+the Ubuntu mirrors failed on hosted runners.
+
+**Change:** `.github/actions/setup-qemu` installs first from a hash-pinned
+release bundle (`ci-qemu-apt-20261111-r2`). APT still verifies the Ubuntu
+signature, index hashes and package hashes. Pins and firmware checks are
+unchanged, and the signed snapshot and archive remain warning-level fallbacks.
+The Ubuntu 26.04 profile from #296 is included. See
+ADR-CI-QEMU-BUNDLE-20261111 and
+[the bundle report](verification/ci-qemu-bundle-20261111.json).
+
+**Evidence:**
+- Both bundles were built twice from the signed archive with identical
+  results, checked with gpgv and installed download-only from the bundle alone:
+  - noble: 89 debs, sha256 `f54c031b…`
+  - resolute: 113 debs, sha256 `45026b96…`
+- The release is published; anonymous downloads match the pins.
+- Hosted canary run 43057156214 passed on ubuntu-24.04 (with swtpm) and
+  ubuntu-26.04. The Ubuntu mirrors were blocked, the bundle was the APT source
+  and no fallback warning appeared.
+- 21 CI-workflow tests pass.
+
+**Corrected on the way** (three failed canary runs, recorded in the report):
+- The action now limits APT to `Targets: Packages`.
+- The first release `ci-qemu-apt-20261111` had percent-encoded `.deb` names
+  and is superseded; its assets are unchanged.
+- The 26.04 bundle now carries `ibverbs-providers`.
+
+**Open:**
+- The affected workflows have not been rerun on this change beyond the canary.
+- The K06 64×50 matrix on #296 has not been rerun.
+- A later runner image can need a package the bundle lacks. The action then
+  warns and falls back to the signed network path.
+
+**Acceptance:** 39/100 → 39/100; CI infrastructure only.
+
+**Next:** merge #307 when its required checks are green, merge main into #296
+and rerun the K06 matrix there.
 
 ## Checkpoint (main) — PR #299 ChaCha20 production unification — 10 November 2026
 
