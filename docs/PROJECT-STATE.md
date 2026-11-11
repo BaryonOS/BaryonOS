@@ -8,9 +8,19 @@
 
 **Artifact contract (#294):** all K06 uploads use `./.github/actions/preserve-evidence` with `required-paths`; `smp-report.json` stores `stdout_sha256` instead of the duplicated transcript, so eight-CPU reports stay below 1 MiB. `setup-qemu` keeps the pinned snapshot first and falls back to `archive.ubuntu.com` with the same keyring, exact pins, `dpkg` check and firmware hashes; run 43022743756 passed that step.
 
-**Hosted clock drift:** run 43022743756 (SHA `5a391465`) stopped in the probe with `M1:FAIL:SMP_CLOCK_DRIFT` (median 1 015 575 µs per 1000 IRQ0, 1.56% against 1%); every matrix job was skipped. Cause: lost IRQ0 edges when guest vCPU threads and QEMU's timer starve on the 4-vCPU hosted runner. The 1% limit and AP spinning stay. The probe, case and soak jobs now stop runner background services and log `nproc`, `lscpu`, load and top processes before the run.
+**Hosted clock drift (blocker, open):** on head `2e77e2e3` both `native-smp` runs (43031091677, 43031085708; QEMU 8.2.2 and 10.2.1) still fail only with `M1:FAIL:SMP_CLOCK_DRIFT` (`smp-four`, about 1.8% against 1%). `SMP:LOCK:STUCK` no longer occurs, so the STI-shadow fix holds on 8.2.2. Stopping background services had no effect (load average 0.53 during the failure). Local reproduction, `m4-quotas-four`, 5 repetitions per row, QEMU confined with `taskset`:
 
-**Next:** dispatch `native-smp.yml` with `full_matrix=true` on the new head. If drift persists on standard hosted runners, the blocker needs Simon's decision: a larger (paid) runner or a separately designed clock measurement. Acceptance requires all 64 cases at 50/50, 50 soaks, K07, a green aggregate and final gate.
+| Host CPUs | Result | Drift |
+|---|---|---|
+| 4 | 5/5 pass | — |
+| 3 | 0/5 | 2.0–4.0% |
+| 2 | 0/5 | 20–27% |
+
+Renicing the AP vCPU threads does not help: nice 10 on 3 CPUs gives 2.2–4.7%, nice 19 gives 1.9–2.9%. The cause is host CPU capacity for TCG emulation. A 4-vCPU guest on the 4-vCPU hosted runner (2 cores × SMT) loses IRQ0 edges. The 1% limit, the test content and the repetitions stay unchanged, and ADR-053 forbids synthesized ticks.
+
+**Host quality:** `2b6e81d6` fixes clippy `manual_div_ceil` in `capability-core` (`MAX_NODES.div_ceil(64)`). Locally the CI clippy scope, `cargo test -p capability-core` and `cargo fmt --check` pass.
+
+**Next (Simon's decision):** either (a) approve a larger hosted runner with at least 8 vCPUs (paid), or (b) design a separate clock measurement within ADR-053 (for example, the BSP measures while the APs idle, and CLOCK_LOAD gets its own progress criterion). This is a decision record, not a silent change. Do not re-dispatch the full matrix without a new code change. Acceptance requires all 64 cases at 50/50, 50 soaks, K07, a green aggregate and the final gate.
 
 **Progress:** 39/100 → 39/100 until the hosted matrix and final gate are green.
 

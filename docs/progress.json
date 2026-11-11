@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-11",
-    "source_commit": "a2f517a60887d225f473dea326396a7a6737b741",
+    "source_commit": "2b6e81d63bdbb87c6783438bfc35406a34b4a77c",
     "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
-    "task": "K06 step 5f: QEMU 8.2 STI/PAUSE spin window fix and hosted-runner isolation before the GitHub Actions 64x50 matrix",
+    "task": "K06 step 5f: host-quality clippy fix; hosted SMP_CLOCK_DRIFT diagnosed as runner CPU capacity (awaiting runner/measurement decision)",
     "previous_score": 39,
-    "summary": "39/100 remains 39/100. IF=1 spin windows become sti; nop; pause; cli so QEMU 8.2 TCG takes deferred ticks; the hosted K06 jobs stop background services against IRQ0 loss. K06 stays open until the full 64x50 matrix, K07, soaks, aggregate and final gate pass on GitHub-hosted runners; the 1% clock limit is unchanged."
+    "summary": "39/100 remains 39/100. The STI shadow fix removes LOCK_STUCK on QEMU 8.2.2. The capability-core clippy fix restores host-quality locally. SMP_CLOCK_DRIFT on 4-vCPU hosted runners was reproduced locally as host CPU capacity (4 host CPUs pass, 3 fail). K06 stays open until the full 64x50 matrix, K07, soaks, aggregate and final gate pass on GitHub-hosted runners."
   },
   "tracks": [
     {
