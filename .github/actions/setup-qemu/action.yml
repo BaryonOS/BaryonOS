@@ -92,8 +92,11 @@ runs:
         install_from() {
           sudo rm -rf "$lists"
           mkdir -p "$lists/partial"
+          # Targets: only binary Packages indexes; runner-wide extras such as
+          # command-not-found indexes are not in the bundle and are not needed.
           cat > "$sources" <<EOF
         Types: deb
+        Targets: Packages
         URIs: $1
         Suites: $suite
         Components: main universe
