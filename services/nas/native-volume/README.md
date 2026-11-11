@@ -1,47 +1,47 @@
-# NAS-VOLUME-1 — adapter op de bestaande volumedienst
+# NAS-VOLUME-1 — adapter on the existing volume service
 
-`VolumeStorage` implementeert de NAS-`Storage`-interface via de bestaande
-`volume_core::client::Client`: geen tweede filesystem, cryptolaag, raw-diskpad
-of gewijzigde kernel-/SDK-/netwerkinterface. Dependencies zijn uitsluitend
-de exacte lokale `0.1.0`-crates NAS-core en volume-core (inclusief catalog-core).
-Deze zijn repositorycode, `no_std`, zonder externe packages of build scripts.
+`VolumeStorage` implements the NAS `Storage` interface via the existing
+`volume_core::client::Client`: no second filesystem, crypto layer, raw disk path
+or modified kernel/SDK/network interface. Dependencies are exclusively
+the exact local `0.1.0` crates NAS-core and volume-core (including catalog-core).
+These are repository code, `no_std`, without external packages or build scripts.
 
-Het vertrouwde startproces levert een **exclusief** NAS-volumeobject en een
-kernelgebonden volume-endpoint. Een objectnummer is geen capability en dit
-Rust-type maakt geen endpointbeveiliging. De bestaande volumedienst blijft
-de domeintoegang, streaming, quota, contentchecks en flush/commitvolgorde
-afdwingen. Initialisatie mag alleen bij `NotFound` met revisie nul; een
-verwijderd, vreemd, onleesbaar of beschadigd object wordt niet opnieuw leeg
-aangemaakt.
+The trusted startup process supplies an **exclusive** NAS volume object and a
+kernel-bound volume endpoint. An object number is not a capability and this
+Rust type provides no endpoint security. The existing volume service continues to
+enforce domain access, streaming, quotas, content checks and flush/commit ordering.
+Initialization is only permitted on `NotFound` with revision zero; a
+deleted, foreign, unreadable or damaged object is not recreated
+empty.
 
-Elke vervanging streamt de volledige canonieke snapshot onder verwachte
-revisie, commit vóór ACK en ruimt daarna de volumeversiegeschiedenis op.
-Dat laatste is essentieel: gewoon WRITE zou oudere actieve autoriteit en
-verwijderde ciphertext als herstelbare geschiedenis bewaren. De cleanup
-behoudt de huidige snapshot en verwijdert uitsluitend zijn eerdere versies.
-Een fout, ontbrekend antwoord of onzekere uitkomst geeft geen succes en
-maakt de adapter onbruikbaar voor de volgende mutatie.
+Every replacement streams the full canonical snapshot under the expected
+revision, commits before ACK and then cleans up the volume version history.
+The latter is essential: a plain WRITE would retain older active authority and
+deleted ciphertext as recoverable history. The cleanup
+keeps the current snapshot and deletes only its earlier versions.
+An error, missing reply or uncertain outcome yields no success and
+makes the adapter unusable for the next mutation.
 
-Een crash tussen WRITE en PURGE kan een nieuwe huidige snapshot met
-achtergebleven geschiedenis nalaten. Normaal `load` schrijft niets en
-weigert die toestand met `ReopenRequired`. De vertrouwde herstelcontroller
-kan **expliciet** `finish_cleanup` uitvoeren: huidige versie, checksum en
-NAS-schema valideren, dan uitsluitend geschiedenis purgen. Vervolgens moet
-de NAS-core opnieuw openen. Geen terugval op oude autoriteit, geen stil
-opnieuw uitvoeren van de oorspronkelijke gast-/beheeroperatie.
+A crash between WRITE and PURGE can leave a new current snapshot with
+leftover history. A normal `load` writes nothing and
+rejects that state with `ReopenRequired`. The trusted recovery controller
+can **explicitly** run `finish_cleanup`: validate the current version, checksum and
+NAS schema, then purge only history. Afterwards
+the NAS core must reopen. No fallback to old authority, no silent
+re-execution of the original guest/administration operation.
 
-Dit is logische cleanup van de actieve volumetabel, **geen fysieke secure
-erase of bescherming tegen schijfreplay**. De oude COW-sectoren, alternatieve
-tabellen en externe kopieën zijn niet fysiek gewist. De bestaande
-volumechecksum is geen MAC. Kwaadwillige diskrollback blijft een afzonderlijke
-client-/sleutel-/ankeropgave; geen NAS-inhoudssleutel wordt hier ingevoerd.
+This is logical cleanup of the active volume table, **not physical secure
+erase or protection against disk replay**. The old COW sectors, alternative
+tables and external copies are not physically erased. The existing
+volume checksum is not a MAC. Malicious disk rollback remains a separate
+client/key/anchor problem; no NAS content key is introduced here.
 
-De code kan `no_std` worden gebouwd, maar is nog geen draaiende native
-NAS-service. De integratietests gebruiken de werkelijke volumeclient en
-volumedienst met diens bestaande gesimuleerde blockdevice. Hostuitvoering
-en foutinjectie vervangen geen QEMU-, onafhankelijke disk- of P04-acceptatie.
+The code can be built `no_std`, but is not yet a running native
+NAS service. The integration tests use the actual volume client and
+volume service with its existing simulated block device. Host execution
+and fault injection do not replace QEMU, independent disk or P04 acceptance.
 
-Gerichte controles, met Rust 1.90.0, hostlinker en een eigen targetmap:
+Targeted checks, with Rust 1.90.0, host linker and a dedicated target directory:
 
 ```sh
 cargo test --offline --locked --manifest-path services/nas/native-volume/Cargo.toml
@@ -51,9 +51,9 @@ cargo fmt --manifest-path services/nas/native-volume/Cargo.toml --all -- --check
 cargo build --offline --locked --manifest-path services/nas/native-volume/Cargo.toml --release --target x86_64-unknown-none
 ```
 
-De release-tests omvatten een NAS-core plus volumeclient op een echte
-64-KiB-hostthreadstack. De host-volumedienst draait in een aparte thread,
-zodat haar stack niet ten onrechte bij die van de client wordt opgeteld.
-Dit test geheugenbudget en besturingslogica, **geen kernel-IPC-authenticatie**.
-De bestaande volume-testhelper wordt read-only hergebruikt; er is geen
-tweede gesimuleerd blockdevice toegevoegd.
+The release tests cover a NAS core plus volume client on a real
+64 KiB host thread stack. The host volume service runs in a separate thread,
+so that its stack is not wrongly added to that of the client.
+This tests the memory budget and control logic, **not kernel IPC authentication**.
+The existing volume test helper is reused read-only; no
+second simulated block device has been added.

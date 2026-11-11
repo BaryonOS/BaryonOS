@@ -1,74 +1,74 @@
-# TASK-DOC-NATIVE — echte documentsessie in het gezamenlijke systeem
+# TASK-DOC-NATIVE — real document session in the combined system
 
-Taakcontract, 29 oktober 2026. Eigenaar appintegratie: `native_ui_apps`;
-hoofdagent bezit gedeelde lockfiles, kernelobserver en eindintegratie.
-Schrijfgebied: `sdk/examples/system/src/app.rs`, het pakketmanifest en dit
-document. Geen kernel-/dienst-/SDK-protocolwijziging of grafische productclaim.
+Task contract, 29 October 2026. Owner of app integration: `native_ui_apps`;
+main agent owns shared lockfiles, kernel observer and final integration.
+Write area: `sdk/examples/system/src/app.rs`, the package manifest and this
+document. No kernel/service/SDK protocol change or graphical product claim.
 
-## Native scenario en eigenaarschap
+## Native scenario and ownership
 
-De gezamenlijke systeemapp gebruikt voor werkelijk documentwerk
-`sdk/document-session::volume::{DocumentSession, VolumeSession, Buffers}` en
-de bestaande `NativeTransport`. De v7-uploadtag en een dienstuitgegeven token
-verbinden BEGIN/APPEND/ABORT/COMMIT aan de via de kernel bekende afzender en
-het toegekende domein. Het document blijft object 0, `systeemproef`, 4096
-fixturebytes, revisie 1. De bestaande recordcryptoproeven blijven ongewijzigd;
-deze gegevens op de testdisk blijven plaintext en bewijzen geen B02-encryptie.
+The combined system app uses, for actual document work,
+`sdk/document-session::volume::{DocumentSession, VolumeSession, Buffers}` and
+the existing `NativeTransport`. The v7 upload tag and a service-issued token
+bind BEGIN/APPEND/ABORT/COMMIT to the sender known via the kernel and
+the granted domain. The document remains object 0, `systeemproef`, 4096
+fixture bytes, revision 1. The existing record crypto trials remain unchanged;
+this data on the test disk remains plaintext and proves no B02 encryption.
 
-De oude v6-client doet uitsluitend vóór READY de bestaande STAT- en echte
-cross-domain-weigeringsproeven. Zijn lexicale levensduur eindigt vóór de nieuwe
-documentsessie begint. Daarna bezit alleen de documentsessie het endpointpaar;
-afsluiten sluit beide endpoints expliciet. Geen twee actieve sessies delen
-dezelfde handles. De drie callerbuffers van ieder 4096 bytes staan in een
-aparte `inline(never)`-functie op de bestaande 64-KiB-appstack, niet in BSS.
-Een tijdelijke fixturechunk is maximaal 160 bytes. Er zijn geen sleutels,
-blokrechten of hostbestandsroutes toegevoegd.
+The old v6 client performs, exclusively before READY, the existing STAT and real
+cross-domain refusal trials. Its lexical lifetime ends before the new
+document session begins. After that only the document session owns the endpoint pair;
+closing explicitly closes both endpoints. No two active sessions share
+the same handles. The three caller buffers of 4096 bytes each sit in a
+separate `inline(never)` function on the existing 64-KiB app stack, not in BSS.
+A temporary fixture chunk is at most 160 bytes. No keys,
+block rights or host file routes have been added.
 
-### Normale start
+### Normal start
 
-1. CREATE controleert afwezigheid en maakt uitsluitend een lokaal concept.
-2. De publieke replace-range-API bouwt de 4096 fixturebytes in het concept.
-3. BEGIN + één APPEND van 160 bytes oefenen echte tokengebonden voortgang uit.
-   ABORT annuleert vóór de 512-byte-sectorbuffer een contentschrijfopdracht
-   kan uitsturen. Het concept blijft vuil, revisie 0 en niet onzeker.
-4. SAVE gebruikt een nieuw uploadtoken en request-ID 3; COMMIT moet revisie 1
-   bevestigen. Een onzekere of verkeerde reply levert geen APP_DOCS-succes.
-5. OPEN leest het werkelijk bevestigde document opnieuw; naam, revisie,
-   volledige inhoud en checksum worden gecontroleerd. Daarna volgt close.
+1. CREATE checks absence and creates exclusively a local draft.
+2. The public replace-range API builds the 4096 fixture bytes in the draft.
+3. BEGIN + one APPEND of 160 bytes exercise real token-bound progress.
+   ABORT cancels before the 512-byte sector buffer can send out a content write
+   command. The draft stays dirty, revision 0 and not uncertain.
+4. SAVE uses a new upload token and request ID 3; COMMIT must confirm revision 1.
+   An uncertain or wrong reply yields no APP_DOCS success.
+5. OPEN rereads the actually confirmed document; name, revision,
+   full content and checksum are checked. Then close follows.
 
-### Koude recovery
+### Cold recovery
 
-Een volledig nieuwe VM gebruikt exact de normale disk, met readonly-QEMU-drive
-en het bestaande lees-only blokrecht. De SDK opent het document in ReadOnly,
-controleert opnieuw alle 4096 bytes en weigert lokale edit/save zonder
-mutatie. De onafhankelijke schijforakel en identieke before/afterhashes blijven
-de runnervoorwaarden; geen snapshotherstel of herstelde RAM-toestand.
+A completely new VM uses exactly the normal disk, with a read-only QEMU drive
+and the existing read-only block right. The SDK opens the document in ReadOnly,
+checks all 4096 bytes again and refuses local edit/save without
+mutation. The independent disk oracle and identical before/after hashes remain
+the runner conditions; no snapshot restore or restored RAM state.
 
-## Acceptatie en bewijsgrens
+## Acceptance and evidence boundary
 
-Bouw het gewone gebruikersprogramma voor `x86_64-unknown-none` met het bestaande
-bouwscript. Draai daarna `tools/test_system.py` op één bevroren bron: twee echte
-QEMU-runs (normal/recover), echte IPC, alle bestaande raw-capabilityweigeringen,
-recordcontext-/intrekkingsproeven, lifecycle/cleanup en onafhankelijk diskorakel.
-De normale eindbuild moet bytegelijk zijn aan de werkelijk geteste normale
-kernel. Gedeelde `sdk/Cargo.lock`-aanpassing bevat alleen de bestaande lokale
-dependencyverbindingen en wordt door de hoofdagent geïntegreerd.
+Build the ordinary user program for `x86_64-unknown-none` with the existing
+build script. Then run `tools/test_system.py` on one frozen source: two real
+QEMU runs (normal/recover), real IPC, all existing raw capability refusals,
+record context/revocation trials, lifecycle/cleanup and an independent disk oracle.
+The normal final build must be byte-identical to the actually tested normal
+kernel. The shared `sdk/Cargo.lock` change contains only the existing local
+dependency links and is integrated by the main agent.
 
-Deze taak bewijst na geslaagde uitvoering de native SDK-v7-positieve keten en
-de genoemde foutweigeringen. Negatieve uploads met token-/afzenderverwisseling
-blijven afzonderlijke host-/native gates volgens hun werkelijke bewijsstatus.
-Geen Materiaal-GUI, login-/sessielifecycle, persistente sleutels, versleuteld
-documentvolume of complete testreleaseacceptatie wordt hiermee geclaimd.
+After successful execution this task proves the native SDK v7 positive chain and
+the named error refusals. Negative uploads with token/sender swaps
+remain separate host/native gates according to their actual evidence status.
+No Materiaal GUI, login/session lifecycle, persistent keys, encrypted
+document volume or complete test release acceptance is claimed by this.
 
-## Werkelijk uitgevoerd — 29 oktober 2026
+## Actually executed — 29 October 2026
 
-Basis `d73d515` plus deze appwijziging en de lokaal door hoofdagent toegestane
-lockfilegeneratie. Bevroren bronvingerafdruk v3:
+Base `d73d515` plus this app change and the lockfile generation locally permitted by
+the main agent. Frozen source fingerprint v3:
 `3f5869e80636e2127b37a268fafbcb2b2936626522912fef7aca507bf90457ae`.
-De lockfilediff bevat alleen de twee bestaande lokale dependencies van de
-systeemapp; de hoofdagent integreert die gedeelde lockfile afzonderlijk.
+The lockfile diff contains only the two existing local dependencies of the
+system app; the main agent integrates that shared lockfile separately.
 
-Met Rust 1.90.0, QEMU 10.0.13, `pc-q35-8.2`, TCG, qemu64, één CPU en 256 MiB:
+With Rust 1.90.0, QEMU 10.0.13, `pc-q35-8.2`, TCG, qemu64, one CPU and 256 MiB:
 
 ```sh
 PATH=/workspace/.nieuw-os-env/bin:$PATH \
@@ -78,33 +78,33 @@ OS_OVMF_VARS=/workspace/.nieuw-os-env/sysroot/usr/share/OVMF/OVMF_VARS_4M.fd \
 NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_system.py
 ```
 
-**Exit 0:** negen systeemharnastests, 17 SDK-runtimetests en twee echte VM-runs.
-Normal en koude recover geven raw exit 33; beide hebben APP_DOCS=1, revisie 1,
-4096 bytes, drie echte capabilityweigeringen, record-seal/unseal 1/1,
-contextweigeringen 10, intrekkingsweigeringen 2 en lege uiteindelijke
-proces-/capabilitytoestand. Normal: 42 diskwrites/3 flushes. Recover:
-0 writes/0 flushes. Het onafhankelijke diskorakel slaagt voor beide images.
+**Exit 0:** nine system harness tests, 17 SDK runtime tests and two real VM runs.
+Normal and cold recover give raw exit 33; both have APP_DOCS=1, revision 1,
+4096 bytes, three real capability refusals, record seal/unseal 1/1,
+context refusals 10, revocation refusals 2 and an empty final
+process/capability state. Normal: 42 disk writes/3 flushes. Recover:
+0 writes/0 flushes. The independent disk oracle passes for both images.
 
-Normal-after, recover-before en recover-after zijn alle:
+Normal-after, recover-before and recover-after are all:
 `ad40c83d6b9d0a409391113f7ed4deb5aafd7c27f6629c22d7a6ddc060c639ea`.
-De finale normale kernel is bytegelijk aan de geteste normale kernel:
+The final normal kernel is byte-identical to the tested normal kernel:
 `a6a559bf5a7f02b02cdba55ff4a6676805838981cb94df640acee5c77ed0b8f7`.
-De gewone system-app-ELF heeft SHA-256
+The ordinary system app ELF has SHA-256
 `a414dfba36e620e8d225c351d023cd5becdff0b130a76e29135c15f745119b4f`;
-het geïnspecteerde RW-segment is 1304 bytes en blijft binnen één datapagina.
+the inspected RW segment is 1304 bytes and stays within one data page.
 
-Targetbuild via `sdk/examples/system/build.py`, gerichte target-Clippy met
-`-D warnings`, pakketformatteringscontrole en diffcontrole slagen. Clippy
-gebruikte dezelfde portable crypto-cfg's; er zijn geen nieuwe crates opgehaald.
-Een afzonderlijke AI-bronreview vond geen concrete blocker binnen ownership,
-annulering en foutafhandeling; dit is geen menselijke audit of formele
-worstcase-stackgarantie.
+Target build via `sdk/examples/system/build.py`, targeted target Clippy with
+`-D warnings`, package formatting check and diff check pass. Clippy
+used the same portable crypto cfgs; no new crates were fetched.
+A separate AI source review found no concrete blocker within ownership,
+cancellation and error handling; this is not a human audit or formal
+worst-case stack guarantee.
 
-Volledig lokaal bewijs: `build/system-gate.json`,
-`build/run/system-normal-e9e9d709347b46fbb9585bb111b64015/` en
-`build/run/system-recover-a1589c5ca67f440f83b81c185a86d194/`, met rawserial,
-manifesten, echte images en orakels. Commandologs staan onder `build/logs/`.
-De eerste poging stopte vóór VM-start wegens ontbrekend QEMU-PATH; die
-setupfout is bewaard als `build/logs/native-document-no-qemu-gate.json` en
-telt niet als native run. Na selectie van de bestaande runtime slaagde de
-volledige gate. De hoofdagent herhaalt de samengevoegde bron vóór eindacceptatie.
+Full local evidence: `build/system-gate.json`,
+`build/run/system-normal-e9e9d709347b46fbb9585bb111b64015/` and
+`build/run/system-recover-a1589c5ca67f440f83b81c185a86d194/`, with raw serial,
+manifests, real images and oracles. Command logs are under `build/logs/`.
+The first attempt stopped before VM start because of a missing QEMU PATH; that
+setup error is kept as `build/logs/native-document-no-qemu-gate.json` and
+does not count as a native run. After selecting the existing runtime the
+full gate passed. The main agent repeats the merged source before final acceptance.

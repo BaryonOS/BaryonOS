@@ -1,10 +1,10 @@
-# N02 — echte hybride TLS-proef op loopback
+# N02 — real hybrid TLS probe on loopback
 
-`transport.mjs` voegt een uitvoerbare, begrensde netwerkproef toe naast de N01-opslagmodules. De eigen OS-kernel heeft hiermee nog geen netwerkstack. Het doel is de overgang van synthetische transportfeiten naar een werkelijk onderhandelde, geauthenticeerde TLS-verbinding te testen met het bestaande rechtenmodel.
+`transport.mjs` adds an executable, bounded network probe alongside the N01 storage modules. The OS's own kernel does not yet have a network stack as a result. The goal is to test the transition from synthetic transport facts to an actually negotiated, authenticated TLS connection with the existing rights model.
 
-## Uitvoeren
+## Running
 
-Vanaf de projectroot, met de geteste Node 24.22.1/OpenSSL 3.5.9-runtime en de `openssl`-CLI voor tijdelijke klassieke testcertificaten:
+From the project root, with the tested Node 24.22.1/OpenSSL 3.5.9 runtime and the `openssl` CLI for temporary classical test certificates:
 
 ```sh
 node services/nas/transport-demo.mjs
@@ -12,48 +12,48 @@ node --test --test-isolation=none services/nas/tests/transport.test.mjs
 node --test --test-isolation=none services/nas/tests/*.test.mjs ui/prototype/tests/*.test.mjs
 ```
 
-De demo en transporttests openen alleen `127.0.0.1` op automatisch toegewezen tijdelijke poorten. Een sandbox kan daarvoor een expliciete loopback-uitvoermachtiging vereisen. Een EPERM-run is geen uitgevoerde transporttest. De oorspronkelijke N01-demo blijft zonder sockets werken.
+The demo and transport tests open only `127.0.0.1` on automatically assigned temporary ports. A sandbox may require explicit loopback execution permission for this. An EPERM run is not an executed transport test. The original N01 demo continues to work without sockets.
 
-Testidentiteiten worden per run in een eigen tempmap met directorymodus 0700 gegenereerd. De fixture verwijdert deze eigen map na inlezen; de CA-private key wordt niet naar de adapter doorgegeven. `close()` overschrijft de beheerde Buffer-kopieën. Dit is geen secure-erasegarantie of bewijs dat alle kopieën in OpenSSL/geheugen verdwijnen. Geen certificaten, private keys, sessietickets of documentinhoud in Git/logs.
+Test identities are generated per run in a dedicated temp directory with directory mode 0700. The fixture removes this directory after reading; the CA private key is not passed to the adapter. `close()` overwrites the managed Buffer copies. This is no secure-erase guarantee or evidence that all copies in OpenSSL/memory disappear. No certificates, private keys, session tickets or document content in Git/logs.
 
-## Vast cryptografisch proefprofiel
+## Fixed cryptographic probe profile
 
-| Eigenschap | Afgedwongen waarde |
+| Property | Enforced value |
 |---|---|
-| Luister-/verbindingsadres | uitsluitend `127.0.0.1`; geen extern hostargument |
-| Protocol | TLS 1.3 als minimum én maximum |
-| Sleuteluitwisseling | uitsluitend `X25519MLKEM768`, RFC 10024 |
-| TLS-recordcipher | `TLS_AES_256_GCM_SHA384` |
-| Applicatieprotocol | ALPN `nieuw-os-nas-host/2` |
-| Authenticatie | wederzijdse CA-validatie, exacte SHA-256-certificaatpin; serverhostnamecontrole |
-| Certificaatsleutels | klassieke Ed25519; geen PQ-authenticatieclaim |
-| Hervatting | geen sessiecache/resumption; volledige handshake, geen 0-RTT |
-| Applicatie-inhoud | begrensde N01-ciphertext-envelope; alleen client ontsleutelt |
+| Listen/connect address | only `127.0.0.1`; no external host argument |
+| Protocol | TLS 1.3 as both minimum and maximum |
+| Key exchange | only `X25519MLKEM768`, RFC 10024 |
+| TLS record cipher | `TLS_AES_256_GCM_SHA384` |
+| Application protocol | ALPN `nieuw-os-nas-host/2` |
+| Authentication | mutual CA validation, exact SHA-256 certificate pin; server hostname check |
+| Certificate keys | classical Ed25519; no PQ authentication claim |
+| Resumption | no session cache/resumption; full handshake, no 0-RTT |
+| Application content | bounded N01 ciphertext envelope; only the client decrypts |
 
-De client controleert na de handshake de werkelijk gerapporteerde groep, TLS-versie, cipher, ALPN, peer en `isSessionReused`. Als de runtime geen overeenkomende groep kan rapporteren, faalt de verbinding. De server-API rapporteert deze groep niet via `getEphemeralKeyInfo`; serverbewijs maakt daarom onderscheid tussen geconfigureerde groep en de door de client waargenomen onderhandeling.
+After the handshake the client checks the actually reported group, TLS version, cipher, ALPN, peer and `isSessionReused`. If the runtime cannot report a matching group, the connection fails. The server API does not report this group via `getEphemeralKeyInfo`; server evidence therefore distinguishes between the configured group and the negotiation observed by the client.
 
-Geen zelfgemaakte hybride KDF, extra PSK-combiner of eigen TLS-recordencryptie. Node/OpenSSL voert het gestandaardiseerde protocol uit. Een omhulsel rond TLS regelt uitsluitend projectbeleid, framing, grenzen en foutafhandeling. De actuele standaard en de motivatie staan in [de beveiligingsblauwdruk](../../docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md).
+No home-made hybrid KDF, extra PSK combiner or custom TLS record encryption. Node/OpenSSL executes the standardized protocol. A wrapper around TLS handles only project policy, framing, limits and error handling. The current standard and the rationale are in [the security blueprint](../../docs/implementation/VERIFIABLE-SECURITY-AND-PQC.md).
 
-## API en bevoegdheden
+## API and authorities
 
-`createLoopbackNasServer({credentials, allowedClientPin, namespace})` retourneert een poortnummer, minimale `evidence()` en `close()`. Het endpoint controleert mTLS, de clientpin en de envelope-namespace. Het echoot ciphertext vanuit RAM. Dit is geen NAS-opslagservice, geen duurzaam ACK en geen nieuwe beheerinterface.
+`createLoopbackNasServer({credentials, allowedClientPin, namespace})` returns a port number, minimal `evidence()` and `close()`. The endpoint checks mTLS, the client pin and the envelope namespace. It echoes ciphertext from RAM. This is not a NAS storage service, not a durable ACK and not a new administration interface.
 
-`connectLoopbackNas({port, credentials, expectedPeerPin, serverName, engine, app, networkScope, localNetworkId})` retourneert alleen `sendCiphertext(bytes)`, `evidence()` en `close()`. De socket en opaque transportfact blijven intern. De vertrouwde hostadapter houdt `engine.authority`; een onbetrouwbare app mag die niet ontvangen.
+`connectLoopbackNas({port, credentials, expectedPeerPin, serverName, engine, app, networkScope, localNetworkId})` returns only `sendCiphertext(bytes)`, `evidence()` and `close()`. The socket and opaque transport fact remain internal. The trusted host adapter holds `engine.authority`; an untrusted app must not receive it.
 
-De adapter controleert vóór socketaanmaak `authorizeNasConnection`. Deze preflight bevestigt alleen toestemming om te proberen, geen peeridentiteit. Pas na echte TLS-controle wordt een transportfact gemaakt, gebonden aan de app, de huidige peer-koppeling en bij internet de intrekkingsgeneratie van dat recht. Vóór iedere ciphertextverzending en vóór aflevering van het antwoord wordt `engine.check` opnieuw uitgevoerd. Een fout of gesloten verbinding trekt de fact in. Na intrekken en opnieuw toestaan blijft een eerder geauthenticeerde fact ongeldig; er is een nieuwe verbinding nodig. Internetintrekking laat de toegestane LAN-route bestaan. Reeds verstuurde bytes zijn niet terug te halen. Een idle socket wordt niet door een beleidsnotificatie actief gesloten en leeft maximaal de vaste verbindingstermijn. Dit is geen native proces- of socketcapabilitygrens.
+Before socket creation the adapter checks `authorizeNasConnection`. This preflight confirms only permission to attempt, not peer identity. Only after real TLS validation is a transport fact created, bound to the app, the current peer pairing and, for internet, the revocation generation of that right. Before every ciphertext send and before delivering the reply, `engine.check` is executed again. An error or closed connection revokes the fact. After revoking and re-permitting, a previously authenticated fact remains invalid; a new connection is required. Internet revocation leaves the permitted LAN route in place. Bytes already sent cannot be recalled. An idle socket is not actively closed by a policy notification and lives at most for the fixed connection lifetime. This is not a native process or socket capability boundary.
 
-`networkScope` en `localNetworkId` zijn expliciete harnasaannames. Ook een test met het label `internet` loopt fysiek via loopback. De tests bewijzen het peergebonden toestemmingspad, geen WAN-bereikbaarheid, interface-identificatie, firewall of NAT-traversal. Vertrouwde netwerkwaarneming blijft een native integratietaak.
+`networkScope` and `localNetworkId` are explicit harness assumptions. Even a test labelled `internet` physically runs over loopback. The tests prove the peer-bound permission path, not WAN reachability, interface identification, firewall or NAT traversal. Trusted network observation remains a native integration task.
 
-Pins zijn hier hashes van het volledige certificaat. Certificaatvernieuwing verandert dus de pin; deze fixturekeuze is geen afgerond consumentenontwerp voor identiteit/rotatie. Die productflow moet veilig én automatisch binnen vooraf verleende bevoegdheden kunnen verlopen.
+Pins here are hashes of the full certificate. Certificate renewal therefore changes the pin; this fixture choice is not a finished consumer design for identity/rotation. That product flow must be able to run securely and automatically within pre-granted authorities.
 
-## Grenzen en herstel
+## Limits and recovery
 
-Maximaal vier gelijktijdige TCP-verbindingen, ook vóór TLS-authenticatie; acht frames per verbinding; maximaal 140.000 bytes per frame. Een frame heeft een vierbytes-lengteheader. De parser reserveert pas na lengtecontrole één begrensde payloadbuffer. De frame-deadline begint bij de eerste byte en wordt niet door langzaam druppelende invoer verlengd.
+At most four simultaneous TCP connections, also before TLS authentication; eight frames per connection; at most 140.000 bytes per frame. A frame has a four-byte length header. The parser reserves one bounded payload buffer only after the length check. The frame deadline starts at the first byte and is not extended by slowly trickling input.
 
-De proefgrenzen zijn 1.500 ms voor de handshake, 750 ms voor een frame/antwoord en 5.000 ms voor de volledige verbinding. Dit zijn deterministische loopbackproefwaarden, geen internetprestatie-eisen of consumentenlimieten. Het endpoint stopt bij foute framing, ongeldige namespace, quotumoverschrijding of deadline. Geen retry met een zwakker profiel, andere peer of leveranciersrelay.
+The probe limits are 1.500 ms for the handshake, 750 ms for a frame/reply and 5.000 ms for the full connection. These are deterministic loopback probe values, not internet performance requirements or consumer limits. The endpoint stops on bad framing, invalid namespace, quota overrun or deadline. No retry with a weaker profile, other peer or vendor relay.
 
-## Bewijs en open werk
+## Evidence and open work
 
-De tests gebruiken echte TLS-clients, waaronder clients die de normale adapter omzeilen om de servergrens te controleren. Zij controleren onder meer echte downgradefouten, verkeerde identiteiten/certificaten, ontbrekende toestemming vóór socketaanmaak, intrekking, oude facts, framing, quota en trage invoer. Een aangeboden TLS 1.3-sessieticket moet opnieuw tot een volledige hybride handshake leiden. Testaantallen, bronhashes, commando's en review staan in [verification/pqc-transport](../../docs/verification/pqc-transport/).
+The tests use real TLS clients, including clients that bypass the normal adapter to check the server boundary. Among other things they check real downgrade failures, wrong identities/certificates, missing permission before socket creation, revocation, old facts, framing, quotas and slow input. An offered TLS 1.3 session ticket must again lead to a full hybrid handshake. Test counts, source hashes, commands and review are in [verification/pqc-transport](../../docs/verification/pqc-transport/).
 
-Nog open: native netwerk-/cryptoport, productie-identiteits-/certificaatbeheer, postkwantumauthenticatie, echte multi-devicepairing, bruikbare blijvende clientkeys, achtergrondsync, store-transportintegratie, OS-isolatie en onafhankelijke menselijke audit. Het bestaande admin-revoke/evict-gedrag wordt door N01 getest; de ciphertext-echo is daaraan niet als server gekoppeld. M1–M6a, qsim, de bootketen en fysieke apparatuur zijn door deze proef niet gewijzigd.
+Still open: native network/crypto port, production identity/certificate management, post-quantum authentication, real multi-device pairing, usable persistent client keys, background sync, store-transport integration, OS isolation and an independent human audit. The existing admin revoke/evict behaviour is tested by N01; the ciphertext echo is not connected to it as a server. M1–M6a, qsim, the boot chain and physical equipment are not modified by this probe.

@@ -1,7 +1,7 @@
-# Derdenmateriaal voor de native compositor
+# Third-party material for the native compositor
 
-De compositor gebruikt exact `noto-sans-mono-bitmap =0.3.2` met dezelfde statische rasterfeatures als `ui/native`: regular, size_16, size_32, unicode-basic-latin, unicode-latin-1-supplement en unicode-specials. De crate is beschikbaar uit de vastgelegde offline Cargo-cache, heeft geen buildscript of fontparser en wordt zonder standaardfeatures gebouwd. Dit is de bestaande gecontroleerde asset; er wordt geen runtime-fontbestand geopend.
+The compositor uses exactly `noto-sans-mono-bitmap =0.3.2` with the same static raster features as `ui/native`: regular, size_16, size_32, unicode-basic-latin, unicode-latin-1-supplement and unicode-specials. The crate is available from the recorded offline Cargo cache, has no build script or font parser and is built without default features. This is the existing vetted asset; no runtime font file is opened.
 
-De Rust-bitmapverpakking is MIT; de afgeleide Noto Sans Mono-fontdata is SIL OFL 1.1. Beide notices staan ongewijzigd onder `licenses/`. De rechtstreeks opgenomen pure `ui/native/src/design.rs` deelt de kleurentokens met `ui/prototype/tokens.css`; er is geen afhankelijkheid van de documentcontroller of opslagclient. Alle pad-afhankelijkheden staan in de eigen Cargo.lock.
+The Rust bitmap packaging is MIT; the derived Noto Sans Mono font data is SIL OFL 1.1. Both notices are kept unchanged under `licenses/`. The directly included pure `ui/native/src/design.rs` shares the colour tokens with `ui/prototype/tokens.css`; there is no dependency on the document controller or storage client. All path dependencies are in its own Cargo.lock.
 
-Dit is geen bewijs van native weergave. Het daadwerkelijke compositor-ELF moet via de eigen DisplaySource-broker worden uitgevoerd.
+This is not evidence of native rendering. The actual compositor ELF must be run through the dedicated DisplaySource broker.
