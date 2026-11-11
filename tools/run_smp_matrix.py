@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Run the frozen SMP acceptance matrix with a bounded aggregate vCPU budget."""
+"""Run the frozen SMP section 9 matrix locally, as native-smp.yml does, within a vCPU budget.
+
+Layout mirrors the CI artifacts (smp-case-<case>/, smp-soak-<shard>/) so that
+tools/aggregate_smp_ci.py and docs/verification/k06-smp-sched/verify_artifacts.py
+check it unchanged. A failed case is recorded, never retried, and fails the matrix.
+"""
 from __future__ import annotations
 
 import argparse
@@ -11,14 +16,15 @@ import shutil
 import subprocess
 import sys
 import threading
-from datetime import datetime, timezone
 
+from aggregate_smp_ci import SOAK_CASE, SOAK_REPETITIONS, SOAK_SHARDS, aggregate
 from common import ROOT, save_json, source_hash
 from run_smp import CASES
 
 REPETITIONS = 50
+# Bounded host overcommit: TCG drops PIT edges when vCPU threads exceed host cores.
 VCPU_BUDGET = 24
-SOAK_SHARDS = (9, 9, 8, 8, 8, 8)
+NO_FPU_PROBE = ("native-smp-m3-unmap", "test-smp-m3-no-shootdown")
 
 
 class CpuBudget:
@@ -37,93 +43,83 @@ class CpuBudget:
             self.condition.notify_all()
 
 
-def invoke(command: list[str], *, build: Path, log: Path) -> None:
+def invoke(command: list[str], *, build: Path, log: Path) -> int:
     environment = os.environ.copy()
     environment["NOS_BUILD_DIR"] = str(build)
     with log.open("wb") as output:
-        result = subprocess.run(command, cwd=ROOT, env=environment, stdout=output,
-                                stderr=subprocess.STDOUT)
-    if result.returncode != 0:
-        raise RuntimeError(f"command failed ({result.returncode}); see {log}")
+        return subprocess.run(command, cwd=ROOT, env=environment, stdout=output,
+                              stderr=subprocess.STDOUT).returncode
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
+    if subprocess.run(["git", "diff", "--quiet", "HEAD", "--"], cwd=ROOT).returncode != 0:
+        raise ValueError("tracked changes present; the matrix binds to a committed HEAD")
     output = args.output_dir.resolve()
     if output.exists():
         raise ValueError("matrix output directory must not already exist")
-    output.mkdir(parents=True)
-    logs, images, runs = (output / name for name in ("logs", "images", "runs"))
-    logs.mkdir(); images.mkdir(); runs.mkdir()
+    logs, images = output / "logs", output / "images"
+    logs.mkdir(parents=True)
+    images.mkdir()
 
     frozen = source_hash()
-    profiles = sorted({profile for profile, _, _, _ in CASES.values()})
-    for profile in profiles:
+    for profile in sorted({spec[0] for spec in CASES.values()}):
         build = images / profile
-        invoke([sys.executable, "-B", "tools/build.py", "--kernel-feature", profile],
-               build=build, log=logs / f"build-{profile}.log")
-        manifest = json.loads((build / "manifest.json").read_text())
-        if manifest["source_sha256"] != frozen:
+        if invoke([sys.executable, "-B", "tools/build.py", "--kernel-feature", profile],
+                  build=build, log=logs / f"build-{profile}.log"):
+            raise RuntimeError(f"build failed: {profile}; see {logs}")
+        if json.loads((build / "manifest.json").read_text())["source_sha256"] != frozen:
             raise RuntimeError("source changed during matrix image construction")
+        if "m3" in profile and profile not in NO_FPU_PROBE:
+            if invoke([sys.executable, "-B", "userspace/tests/test_smp_fpu_probe.py",
+                       "--elf", str(build / "users" / "probe.elf")],
+                      build=build, log=build / "fpu-fixture-host.log"):
+                raise RuntimeError(f"FPU probe host check failed: {profile}")
 
     tasks = []
     for case, (profile, cpus, _, _) in CASES.items():
-        repeats = SOAK_SHARDS if case == "m3-soak-four" else (REPETITIONS,)
-        for shard, repeat in enumerate(repeats):
-            build = runs / f"{case}-{shard}"
+        shards = ([(f"smp-soak-{n}", SOAK_REPETITIONS) for n in range(SOAK_SHARDS)]
+                  if case == SOAK_CASE else [(f"smp-case-{case}", REPETITIONS)])
+        for artifact, repeat in shards:
+            build = output / artifact
             build.mkdir()
             shutil.copytree(images / profile / "esp", build / "esp")
-            shutil.copy2(images / profile / "manifest.json", build / "manifest.json")
-            tasks.append((case, shard, repeat, cpus, build))
-    # Start the six long soaks first; the shared budget admits exactly six
-    # four-vCPU guests and then backfills shorter cases as capacity returns.
-    tasks.sort(key=lambda task: (task[0] != "m3-soak-four", -task[3], task[0], task[1]))
+            for name in ("manifest.json", "fpu-fixture-host.log"):
+                if (images / profile / name).exists():
+                    shutil.copy2(images / profile / name, build / name)
+            tasks.append((artifact, case, repeat, cpus, build))
+    # Long soaks first; shorter cases backfill as vCPU capacity returns.
+    tasks.sort(key=lambda task: (task[1] != SOAK_CASE, -task[3], task[0]))
     budget = CpuBudget(VCPU_BUDGET)
 
     def execute(task):
-        case, shard, repeat, cpus, build = task
+        artifact, case, repeat, cpus, build = task
         budget.acquire(cpus)
         try:
-            invoke([sys.executable, "-B", "-u", "tools/run_smp.py", "--case", case,
-                    "--repeat", str(repeat)], build=build,
-                   log=logs / f"run-{case}-{shard}.log")
-            return task, json.loads((build / "smp-report.json").read_text())
+            return artifact, invoke([sys.executable, "-B", "-u", "tools/run_smp.py", "--case", case,
+                                     "--repeat", str(repeat)], build=build, log=logs / f"run-{artifact}.log")
         finally:
             budget.release(cpus)
 
-    results = []
+    status = {}
     with ThreadPoolExecutor(max_workers=12) as pool:
-        futures = [pool.submit(execute, task) for task in tasks]
-        for future in as_completed(futures):
-            task, report = future.result()
-            results.append((task, report))
-            print(f"MATRIX {task[0]} shard={task[1]}: {report['passed_runs']}/{report['attempted_runs']}",
-                  flush=True)
-
-    cases = {}
-    for case in CASES:
-        shards = [(task, report) for task, report in results if task[0] == case]
-        attempted = sum(report["attempted_runs"] for _, report in shards)
-        passed = sum(report["passed_runs"] for _, report in shards)
-        hashes = {report["source_sha256"] for _, report in shards}
-        cases[case] = {"attempted": attempted, "passed": passed,
-                       "shards": [str(task[4].relative_to(output)) for task, _ in shards]}
-        if attempted != REPETITIONS or passed != REPETITIONS or hashes != {frozen}:
-            raise RuntimeError(f"matrix case not 50/50 on frozen source: {case}")
+        for future in as_completed([pool.submit(execute, task) for task in tasks]):
+            artifact, code = future.result()
+            status[artifact] = code
+            print(f"MATRIX {artifact} rc={code}", flush=True)
+            save_json(output / "status.json", status)
     if source_hash() != frozen:
         raise RuntimeError("source changed during matrix execution")
-    save_json(output / "matrix-report.json", {
-        "schema": 1,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "source_sha256": frozen,
-        "vcpus_budget": VCPU_BUDGET,
-        "repetitions_per_case": REPETITIONS,
-        "passed": True,
-        "cases": cases,
-    })
-    return 0
+    shutil.rmtree(images)
+    report = output / "smp-section9-matrix-report" / "matrix-report.json"
+    try:
+        aggregate(output, report)
+    except ValueError as exc:
+        print(f"MATRIX aggregate failed: {exc}", flush=True)
+        return 1
+    return 0 if all(code == 0 for code in status.values()) else 1
 
 
 if __name__ == "__main__":
