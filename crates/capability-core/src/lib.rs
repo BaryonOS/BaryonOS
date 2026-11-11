@@ -1569,7 +1569,7 @@ impl Engine {
         // byte-per-node tables needlessly consumed 2 KiB there; bitsets keep
         // the identical bounded walk while leaving headroom for the syscall
         // and scheduler frames that led to owner exit.
-        let mut roots = [0u64; (MAX_NODES + 63) / 64];
+        let mut roots = [0u64; MAX_NODES.div_ceil(64)];
         for i in 0..MAX_NODES {
             if self.nodes[i].live && self.nodes[i].issuer == pid {
                 roots[i / 64] |= 1u64 << (i % 64);
