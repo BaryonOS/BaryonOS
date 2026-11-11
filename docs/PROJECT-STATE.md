@@ -45,38 +45,40 @@ ADR-CI-QEMU-BUNDLE-20261111 and
 **Next:** merge #307 when its required checks are green, merge main into #296
 and rerun the K06 matrix there.
 
-## NEXT AGENT HANDOFF — PR #210 Veld review repairs — 10 November 2026
+## NEXT AGENT HANDOFF — PR #210 Veld input-ownership repairs — 11 November 2026
 
-**Source:** the local candidate is based directly on current `main`,
-`342194f215297c52a5578c7d1b7f18492150e61d`, after the #257, #297, #300
-and #259 squash merges. Its replayed implementation commit is
-`7c97ce9e2237f1ddbf83827627ec97968d6913cb` (tree
-`809ff681e2203c34edd1d02fe4fb8793091be42e`). Nothing from this repair round
-has been published or treated as hosted evidence.
+**Source:** PR head `a8624b8` merged with `main` `c520703b` (only
+`docs/PROJECT-STATE.md` conflicted; both sides kept, the duplicated #299
+heading collapsed onto byte-identical content). Repair commits `eb34cfb` and
+`cdbd187`.
 
-**Review repairs:** the two native matrix profiles now keep distinct evidence
-artifacts and only the 100% profile requires the Windows bundle that it builds.
-The 200% result field can be accepted only by the complete workspace route,
-never by the switcher part gate. The compositor activity sample covers each of
-its ten counters exactly once. INP1 documents payload-free `PointerLeave`; the
-measured Materiaal RX code and budget are recorded as 157,161 bytes in 39 pages
-under the fixed 160-KiB cap, with five LOAD segments and no W+X.
+**Repairs of the five open review threads:**
+- Alt+Tab during an Alt+F7 keyboard move now rolls the move back before the
+  switcher opens, so the Alt release can no longer reach `fail(17)`.
+- `Scene::veld_owns_pointer` keeps a dismissed overlay's button-up tail inside
+  Veld, so the next press reaches the app; a trusted cover or lock still takes
+  priority (`!shell.blocks_apps()`).
+- The document menu owns every key it consumed until that key's release
+  (`menu_owned_keys`, indexed by the `repr(u8)` `PhysicalKey`), fixing both the
+  Enter-repeat draft replacement and the Backspace-repeat deletion after
+  dismissal.
+- The CodeQL cleartext-logging alert in `trusted_guard.rs` is closed by
+  dropping the formatted trusted key from an assertion message.
 
-**Local evidence:** 27 runner tests, 22 workflow-contract tests and all 110
-window-session Rust tests passed. Python compilation, warning-free formatting,
-strict preflight, the progress consistency check and `git diff --check` passed.
-The default build and TCG smoke passed (`M1:PASS`, raw exit 33), and both
-`native-window-session-probe` and `native-window-session-hidpi-probe` built and
-were inspected successfully. Independent read-only review found no remaining
-code, evidence or documentation blocker in the repair set.
+**Local evidence:** window-session 112/112 and `ui/native` 110/110 Rust tests,
+warning-denying Clippy and rustfmt for both crates, `progress.py --check` and
+`git diff --check` passed (builder). Each of the four new regressions fails
+when its fix is reverted. The integrator independently re-ran `trusted_guard`
+(7/7), `document_menu` (14/14), rustfmt and the diff check. Earlier repairs
+(distinct 100%/200% evidence artifacts, Materiaal RX 157,161 bytes in 39 pages
+under the 160-KiB cap) are unchanged.
 
-**Acceptance:** **39/100 → 39/100**. The prior bounded local 100% and 200%
-runtime attempts timed out and are not positive evidence. The final published
-head still requires both complete hosted 1800-second native matrix gates.
+**Acceptance:** **39/100 → 39/100**. No native runtime evidence is claimed;
+both hosted 1800-second native-window-session profiles must be green on the
+published head before a squash merge.
 
-**Next:** finish this replay on the actual new `main`, publish with an exact
-lease, and evaluate only current-head hosted checks and review. Squash-merge
-with the expected head only after both native profiles are green.
+**Next:** evaluate the current-head hosted checks; squash-merge with the
+expected head only after both native profiles and the required gates pass.
 
 ## NEXT AGENT HANDOFF — PR #299 ChaCha20 production unification — 10 November 2026
 
