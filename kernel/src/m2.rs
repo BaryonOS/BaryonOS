@@ -7,6 +7,8 @@ pub(crate) mod lock;
 #[cfg(feature = "milestone-m3")]
 mod m3;
 pub(crate) mod paging;
+#[cfg(any(feature = "native-acpi-s5", feature = "native-system-power"))]
+pub(crate) mod power;
 #[cfg(any(feature = "native-rtc", feature = "native-system-clock"))]
 mod rtc;
 #[cfg(feature = "native-smp")]
@@ -212,6 +214,8 @@ extern "C" fn run() -> ! {
     #[cfg(all(not(feature = "milestone-m3"), not(feature = "graphics-g0")))]
     {
         serial::write(b"M2:PASS\nM1:PASS\n");
+        #[cfg(feature = "native-acpi-s5")]
+        power::off();
         serial::exit(0x10)
     }
 }

@@ -1,6 +1,6 @@
-# Expanded Main Page — lokale leesroute
+# Expanded Main Page — local reading route
 
-De oorspronkelijke hoofdpagina bestaat grotendeels uit MediaWiki-templates. Daarom staan hieronder ook de zes inhoudelijke Main2-templates waarnaar zij verwijst. Hun wikitext is ongewijzigd en volledig opgenomen; dit is een leesbare bundeling, geen uitvoering van de MediaWiki-renderer.
+The original main page consists largely of MediaWiki templates. The six substantive Main2 templates it references are therefore also included below. Their wikitext is retained unchanged and in full; this is a readable collection, not an execution of the MediaWiki renderer.
 
 ## Expanded Main Page [W004888]
 

@@ -1,0 +1,49 @@
+title: "[Test result] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share reproducible experiments, test results and demos, including failed or partial outcomes. Use synthetic data and sanitised logs.
+        A discussion does not replace version-bound acceptance evidence in the repository. See the [test strategy](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/TEST-STRATEGY.md) and [full test release](https://github.com/simonvanieperen/BaryonOS/blob/main/docs/FULL-TEST-RELEASE.md). Follow [SECURITY.md](https://github.com/simonvanieperen/BaryonOS/blob/main/SECURITY.md) for vulnerabilities.
+  - type: dropdown
+    id: evidence_layer
+    attributes:
+      label: Evidence layer
+      description: Select the layer where this result was actually observed.
+      options:
+        - Host test or host prototype
+        - Compilation or artifact inspection
+        - Native execution in QEMU
+        - Physical hardware
+        - Human user test or external review
+        - Design or simulation without native execution
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source version and artifact
+      description: Commit or exact tested source; add a branch, image ID or SHA-256 where relevant. Explicitly identify missing version information.
+    validations:
+      required: true
+  - type: textarea
+    id: procedure
+    attributes:
+      label: Setup and reproduction
+      description: Exact commands or interaction steps, test inputs and relevant versions/profiles. For QEMU, include machine, CPU, accelerator, firmware and disk condition; an existing configuration report may provide these details.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected result, observation and evidence
+      description: What was supposed to happen and what actually happened? Include exit status or error/timeout, successful and failed cases, and links to the CI run, report, log, screenshot or video. Share only relevant sanitised excerpts.
+    validations:
+      required: true
+  - type: textarea
+    id: limits
+    attributes:
+      label: Evidence limits and next steps
+      description: Which assumptions, unperformed checks or integration steps remain open? Refer to existing issues and FR/rubric IDs where possible; a partial experiment does not automatically satisfy a criterion.
+    validations:
+      required: true

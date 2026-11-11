@@ -9,13 +9,13 @@ default = []
 test-signing-anchors = []
 
 [dependencies]
-ed25519-dalek = { version = "2.2.0", default-features = false }
+ed25519-dalek = { version = "3.0.0", default-features = false }
 ml-dsa = { version = "0.1.1", default-features = false }
 # force-soft: no SHA-NI/SSE dispatch in the UEFI loader or the ring-3 service.
 sha2 = { version = "0.10.9", default-features = false, features = ["force-soft"] }
 
 [dev-dependencies]
-hex-literal = "0.4.1"
+hex-literal = "1.0.0"
 
 [[test]]
 name = "key_policy"

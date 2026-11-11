@@ -1,0 +1,124 @@
+name: Native ACPI S5 poweroff (H05 step)
+
+on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images and builds for 1 day'
+        type: boolean
+        default: false
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore: ['docs/**', '*.md']
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', '*.md']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-power-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  native-power:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/power-native
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/power-native
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/power-host
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Pinned Rust toolchain
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Prepare report directory
+        run: mkdir -p "$NOS_BUILD_DIR/logs"
+      - name: Host oracles, S5 parser and formatting
+        run: |
+          python3 -B tools/preflight.py --strict > "$NOS_BUILD_DIR/logs/preflight.json"
+          python3 -B -m unittest discover -s tools/tests -p test_power.py -v
+          cargo +1.90.0 test --locked --manifest-path drivers/acpi-power/Cargo.toml
+          cargo +1.90.0 clippy --locked --manifest-path drivers/acpi-power/Cargo.toml --all-targets -- -D warnings
+          cargo +1.90.0 test --locked -p boot-protocol
+          cargo +1.90.0 fmt --all -- --check
+      - name: Five real S5 poweroffs (reset oracle on)
+        run: |
+          python3 -B tools/build.py --kernel-feature native-acpi-s5
+          python3 -B tools/run_power.py --repeat 5
+      - name: Corrupted DSDT copy is rejected without PM1 write
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/power-native/corrupt-dsdt
+          NOS_TARGET_DIR: ${{ github.workspace }}/target/power-native-corrupt
+        run: |
+          mkdir -p "$NOS_BUILD_DIR"
+          python3 -B tools/build.py --kernel-feature test-acpi-s5-corrupt-dsdt
+          python3 -B tools/run_power.py --repeat 2
+      - name: Preserve compact evidence and report archive availability
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          name: native-power-evidence
+          path: build/power-native/
+          if-no-files-found: error
+
+  power-system-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/power-system-gate
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/power-system-gate
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/power-system-host
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Pinned Rust toolchain
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Prepare report directory
+        run: mkdir -p "$NOS_BUILD_DIR"
+      - name: Fetch locked build dependencies before offline native builders
+        run: |
+          cargo +1.90.0 fetch --locked
+          cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml
+      - name: Validate host harness and run three POWER/cold-recovery cases
+        run: |
+          python3 -B tools/preflight.py --strict
+          python3 -B -m unittest discover -s tests -p test_system_harness.py
+          python3 -B -u tools/test_power_system.py
+      - name: Preserve POWER-system gate report
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          name: power-system-gate-report
+          path: build/power-system-gate/power-system-gate.json
+          if-no-files-found: error

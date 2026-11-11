@@ -123,7 +123,9 @@ pub fn validate_reply(request: &Header, body: &[u8; SIZE], epoch: u64) -> Result
                     length == 0
                 }
         }
-        wire::ABORT => h.revision == request.revision && bare && h.count == 0 && h.aux == 0,
+        wire::ABORT | wire::SHUTDOWN => {
+            h.revision == request.revision && bare && h.count == 0 && h.aux == 0
+        }
         wire::READ => {
             h.revision == request.revision
                 && h.aux == request.aux
@@ -388,6 +390,15 @@ impl<T: Transport> Client<T> {
         header.revision = expected;
         let (reply, _) = self.exchange(&header, &[])?;
         Self::status(&reply)
+    }
+
+    /// Final flush on the domain's base object; the service then refuses
+    /// every later mutation.
+    pub fn shutdown(&mut self, object: u64) -> Result<(), Status> {
+        let header = Header::new(wire::SHUTDOWN, self.fresh(), self.epoch, object);
+        self.simple(&header, &[])
+            .map(|_| ())
+            .map_err(|(status, _)| status)
     }
 
     /// Read a complete version in bounded pieces (`selector` 0 = current,

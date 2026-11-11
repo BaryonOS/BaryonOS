@@ -1,6 +1,6 @@
 //! Algorithm/IPC policy models with a deterministic TEST source, never proof
 //! of native entropy quality, kernel delivery, TLS or physical randomness.
-use chacha20_rng::ChaCha20Rng;
+use chacha20::ChaCha20Rng;
 use keyring_core::{
     random,
     wire::{self, Header},

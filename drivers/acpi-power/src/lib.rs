@@ -220,7 +220,9 @@ fn validate_sdt(bytes: &[u8], signature: [u8; 4]) -> Result<(), Error> {
     Ok(())
 }
 
-fn fadt_dsdt_address(fadt: &[u8]) -> Result<u64, Error> {
+/// The DSDT address a FADT declares (X_DSDT before DSDT). The kernel uses it
+/// only to choose which bytes to snapshot; `parse_s5` re-checks the binding.
+pub fn fadt_dsdt_address(fadt: &[u8]) -> Result<u64, Error> {
     if fadt.len() > FADT_X_DSDT_OFFSET && fadt.len() < FADT_X_DSDT_OFFSET + 8 {
         return Err(Error::InvalidFadtLength);
     }

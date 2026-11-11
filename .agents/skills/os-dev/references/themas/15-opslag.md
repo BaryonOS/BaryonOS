@@ -1,22 +1,22 @@
-# Blockapparaten en schijfstructuren
+# Block devices and disk structures
 
-Dit onderdeel scheidt block-I/O en schijfindeling van bestandssystemen. De wiki bevat ATA/ATAPI, AHCI, NVMe, SCSI, sectoradressering, partities en diskimages. Een bestandssysteem bovenop een apparaat en het protocol waarmee blokken worden gelezen zijn verschillende lagen.
+This section separates block I/O and disk layout from filesystems. The wiki covers ATA/ATAPI, AHCI, NVMe, SCSI, sector addressing, partitions and disk images. A filesystem above a device and the protocol used to read blocks are different layers.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [ATA PIO Mode](../corpus/wiki-04.md#w002239) [W002239] · revisie 27609 · 2023-01-31T21:30:32Z
-- [ATA/ATAPI using DMA](../corpus/wiki-04.md#w002241) [W002241] · revisie 19394 · 2016-07-02T20:51:22Z
-- [AHCI](../corpus/wiki-06.md#w002674) [W002674] · revisie 29504 · 2025-04-29T14:21:32Z
-- [NVMe](../corpus/wiki-13.md#w004432) [W004432] · revisie 30943 · 2026-09-07T18:30:41Z
-- [SCSI](../corpus/wiki-13.md#w004521) [W004521] · revisie 28359 · 2023-10-03T09:56:53Z
-- [Logical Block Addressing](../corpus/wiki-07.md#w002970) [W002970] · revisie 30324 · 2026-03-17T19:08:59Z
-- [Partition table](../corpus/wiki-06.md#w002868) [W002868] · revisie 10323 · 2010-05-18T17:31:21Z
-- [GPT](../corpus/wiki-07.md#w003126) [W003126] · revisie 27892 · 2023-07-09T04:40:45Z
-- [Disk Images](../corpus/wiki-02.md#w001606) [W001606] · revisie 26884 · 2022-01-24T01:55:20Z
+- [ATA PIO Mode](../corpus/wiki-04.md#w002239) [W002239] · revision 27609 · 2023-01-31T21:30:32Z
+- [ATA/ATAPI using DMA](../corpus/wiki-04.md#w002241) [W002241] · revision 19394 · 2016-07-02T20:51:22Z
+- [AHCI](../corpus/wiki-06.md#w002674) [W002674] · revision 29504 · 2025-04-29T14:21:32Z
+- [NVMe](../corpus/wiki-13.md#w004432) [W004432] · revision 30943 · 2026-09-07T18:30:41Z
+- [SCSI](../corpus/wiki-13.md#w004521) [W004521] · revision 28359 · 2023-10-03T09:56:53Z
+- [Logical Block Addressing](../corpus/wiki-07.md#w002970) [W002970] · revision 30324 · 2026-03-17T19:08:59Z
+- [Partition table](../corpus/wiki-06.md#w002868) [W002868] · revision 10323 · 2010-05-18T17:31:21Z
+- [GPT](../corpus/wiki-07.md#w003126) [W003126] · revision 27892 · 2023-07-09T04:40:45Z
+- [Disk Images](../corpus/wiki-02.md#w001606) [W001606] · revision 26884 · 2022-01-24T01:55:20Z
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [ADMA](../corpus/wiki-04.md#w002244) [W002244]
 - [AHCI](../corpus/wiki-06.md#w002674) [W002674]

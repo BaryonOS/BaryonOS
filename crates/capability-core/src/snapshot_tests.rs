@@ -150,6 +150,7 @@ fn every_authority_field_and_inactive_message_is_compared_exactly() {
         source!(network);
         source!(display);
         source!(input);
+        source!(power);
     });
 }
 #[test]

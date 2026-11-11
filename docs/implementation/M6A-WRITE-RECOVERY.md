@@ -1,96 +1,96 @@
-# M6a — WRITE, FLUSH en herstel op wegwerpvolume
+# M6a — WRITE, FLUSH and recovery on a disposable volume
 
-27 oktober 2026. Gekozen bouwbasis v1 op `448974b` (M5), branch `codex/m6a-write-recovery`. De vastgelegde opdracht omvat zelfstandige implementatie, daadwerkelijke QEMU-tests en het privé pushen van broncode en resultaten na afgebakende stappen. Dit document bevat criteria, geen geclaimde testresultaten.
+27 October 2026. Selected build baseline v1 at `448974b` (M5), branch `codex/m6a-write-recovery`. The recorded assignment includes autonomous implementation, actual QEMU tests and private pushes of source and results after scoped steps. This document contains criteria, not claimed test results.
 
-## Invariant en bewijsgrens
+## Invariant and evidence boundary
 
-Alleen harnasgegenereerde synthetische 64KiB-rawimages onder build/run/. Geen hostdisk, persoonlijke gegevens, NAS, firmware, productiekeys, nieuwe betaalde dienst of publieke release. Bestaande M1–M5-code/evidence en `.codex/environments/` behouden. Geen filesystem, GC of updateketen in deze stap.
+Only harness-generated synthetic 64 KiB raw images under build/run/. No host disk, personal data, NAS, firmware, production keys, new paid service or public release. Retain existing M1–M5 code/evidence and `.codex/environments/`. No file system, GC or update chain in this step.
 
-Ring-3-dienst blijft geïsoleerd; kerneltransport en protocolconform QEMU-device/backend zijn vertrouwd. Geen IOMMU of kwaadwillige-DMA-containment. Vijf bestaande gepinde kernelpagina's blijven de enige DMA-pool. Geen user-PA/MMIO/PCI-/descriptorargumenten. Volledige inputkopie vóór publicatie, geen userpointer over scheduling. Gepubliceerde buffers blijven onaangeroerd tot completion of waargenomen resetstatus0; bij ontbrekende ack offline/quarantaine tot VM-stop.
+The ring-3 service remains isolated; kernel transport and protocol-conforming QEMU device/backend are trusted. No IOMMU or containment of malicious DMA. Five existing pinned kernel pages remain the only DMA pool. No user PA/MMIO/PCI/descriptor arguments. Complete input copy before publication, no user pointer across scheduling. Published buffers remain untouched until completion or observed reset status 0; missing acknowledgement means offline/quarantine until VM stop.
 
-WRITE-completion is geen duurzaamheidsbewijs. Alleen WRITE-completion gevolgd door succesvolle echte FLUSH-completion staat een app-ACK toe. Reset bevestigt quiescence, geen rollback of duurzaamheid. Geen automatische herhaling van WRITE/FLUSH bij onzekere afloop. Echte QEMU-procesabort laat hostcaches bestaan; dit bewijst geen hoststroomuitval of atomische sectorwrites. Gedeeltelijke/corrupte records worden apart als synthetische injectie gelabeld.
+WRITE completion is not durability evidence. Only WRITE completion followed by successful actual FLUSH completion permits an app ACK. Reset confirms quiescence, not rollback or durability. No automatic retry of WRITE/FLUSH with an uncertain outcome. Actual QEMU process abort leaves host caches intact; this does not demonstrate host power loss or atomic sector writes. Partial/corrupt records are separately labelled as synthetic injection.
 
-## Autoriteit, transport en ABI
+## Authority, transport and ABI
 
-Behoud Endpoint ALL_RIGHTS31 en alle M4/M5-bits. Block READ1, WRITE32, FLUSH64; bit2 blijft ongeldig. DERIVE4/TRANSFER8/REVOKE16 behouden. Globale known-mask omvat nieuwe bits, objecttype beperkt ze vóór operatierecht. Legacy create_block_device blijft root29. Nieuwe expliciete manifestfunctie create_block_device_with_rights maakt root125; dienst ontvangt uitsluitend READ|WRITE|FLUSH97 en adminroot sluit vóór userentry. READ/WRITE sectorscope device0, first4,count4. FLUSH-recht omvat expliciet het devicebrede cache-effect.
+Retain Endpoint ALL_RIGHTS31 and all M4/M5 bits. Block READ1, WRITE32, FLUSH64; bit2 remains invalid. Retain DERIVE4/TRANSFER8/REVOKE16. Global known mask includes new bits; object type restricts them before operational right. Legacy create_block_device remains root29. New explicit manifest function create_block_device_with_rights creates root125; service receives only READ|WRITE|FLUSH97 and the admin root closes before user entry. READ/WRITE sector scope device0, first4,count4. FLUSH right explicitly includes the device-wide cache effect.
 
-M6 abi_info major1/minor2; M5 blijft1.1 en eerdere profielen1.0. M5 READ0x40/poll0x41 blijven compatibel. Nieuwe fouten: -16 OUTCOME_UNKNOWN, -17 ENOSPC, -18 CORRUPT (laatste twee dienstprotocol).
+M6 abi_info major1/minor2; M5 remains 1.1 and earlier profiles 1.0. M5 READ0x40/poll0x41 remain compatible. New errors: -16 OUTCOME_UNKNOWN, -17 ENOSPC, -18 CORRUPT (last two in service protocol).
 
-| Call | Argumenten | Resultaat |
+| Call | Arguments | Result |
 |---|---|---|
-| 0x42 WRITE | cap,relative_sector,inputptr,512,0,0 | ticket in RDX; exacte512B-snapshot vóór publicatie |
-| 0x43 FLUSH | cap,0,0,0,0,0 | ticket; geen data/sectorargument |
-| 0x41 poll | cap,ticket,outptr,320,0,0 | READ zoals M5; WRITE/FLUSH leeg Message320 met tag=ticket, RDX0 |
+| 0x42 WRITE | cap,relative_sector,inputptr,512,0,0 | Ticket in RDX; exact 512 B snapshot before publication |
+| 0x43 FLUSH | cap,0,0,0,0,0 | Ticket; no data/sector argument |
+| 0x41 poll | cap,ticket,outptr,320,0,0 | READ as in M5; WRITE/FLUSH empty Message320 with tag=ticket, RDX0 |
 
-Controle: syscall/unusedargs/exacte wiregrootte → typed cap/gen/node/object/device/operatierecht → ticket of sectorscope/scalargrenzen → transportbeschikbaarheid → hele input/outputplan → snapshot/publicatie of consumptie/kopie. Buiten scope EACCESS; input512 ongeldig EFAULT; readonly/misaligned en geldige paginaovergang zijn leesbare input. IPC-copylimiet320 blijft; aparte sector-inputhelper512. Poll herautoriseert het recht bij de opgeslagen operatie op dezelfde PID/objectkey/epoch/ticket. Ongeldige output consumeert niet.
+Check order: syscall/unused args/exact wire size → typed capability/generation/node/object/device/operational right → ticket or sector scope/scalar bounds → transport availability → complete input/output plan → snapshot/publication or consumption/copy. Outside scope returns EACCESS; invalid 512-byte input returns EFAULT; read-only/misaligned input and a valid page crossing are readable input. IPC copy limit remains 320; separate 512-byte sector-input helper. Poll reauthorises the right for the stored operation on the same PID/object key/epoch/ticket. Invalid output does not consume.
 
-Pure core bezit Operation{Read,Write,Flush}, Request.operation en expliciete Prepared/Published-semantiek, vaste descriptorchain/count en compatible M5-wrappers. READ header16→512W→status1, used513; WRITE header16→512R→status1, used1; FLUSH header16→status1, used1 en ongebruikte descriptor exactnul. FLUSH type4/sector0, WRITE type1. Markeer exposed conservatief direct vóór avail.idx, niet pas notify. M6 vereist VERSION1 en FLUSH9, weigert RO; CONFIG_WCE niet onderhandelen/aanraken. Harnas gebruikt cache=writeback, flush-respecterende backend; nooit cache=unsafe/no-flush.
+Pure core owns Operation{Read,Write,Flush}, Request.operation and explicit Prepared/Published semantics, fixed descriptor chain/count and compatible M5 wrappers. READ header16→512W→status1, used513; WRITE header16→512R→status1, used1; FLUSH header16→status1, used1 and unused descriptor exactly zero. FLUSH type4/sector0, WRITE type1. Conservatively mark exposed immediately before avail.idx, not only at notify. M6 requires VERSION1 and FLUSH9, rejects RO; do not negotiate/touch CONFIG_WCE. Harness uses cache=writeback, a backend that honours flush; never cache=unsafe/no-flush.
 
-Gepubliceerde WRITE/FLUSH met onzekere completion/timeout/exit/reset geeft Unknown, geen 'niet geschreven' of succes. Bewaar terminale uitkomst tot geldige poll of eigenaar-exit; resetack verwijdert die niet stil. Prepared-reject mag geen descriptorpublicatie of device-effect hebben. Een PUT met onzeker device-resultaat geeft -16 en blokkeert verdere mutaties tot recovery; geen WRITE-replay.
+Published WRITE/FLUSH with uncertain completion/timeout/exit/reset returns Unknown, not “not written” or success. Retain terminal outcome until valid poll or owner exit; reset acknowledgement does not silently remove it. Prepared rejection must cause no descriptor publication or device effect. A PUT with an uncertain device result returns -16 and blocks further mutations until recovery; no WRITE replay.
 
-## Journal en dienstwire
+## Journal and service wire
 
-Eigen bounded append-only journal van vier sectoren op LBA4–7. Eén waarde128B. Host initialiseert slot0/gen1/request1 met willekeurige synthetische waarde; overige drie slots nul. Andere imagebytes zijn canaries. Geen seed/verwachte waarde in guestconfig. Elk volgend record heeft generation=slot+1, request-id van PUT en de volledige nieuwe waarde. Geen overschrijven van een geldig oud record of GC. Na generatie4 geeft volgende PUT ENOSPC vóór I/O.
+Custom bounded append-only journal of four sectors at LBA4–7. One 128 B value. Host initialises slot0/gen1/request1 with a random synthetic value; other three slots zero. Other image bytes are canaries. No seed/expected value in guest configuration. Every subsequent record has generation=slot+1, PUT request ID and the complete new value. No overwrite of a valid old record or GC. After generation4, the next PUT returns ENOSPC before I/O.
 
-Record512: magic `NOSM6A01`@0; version u16=1@8; header-size u16=64@10; flags u32=0@12; generation u64@16; request-id u64@24; payload-length u32=128@32; slot u32@36; reserved24nul@40; payload128@64; zero312@192; checksum u64@504. FNV-1a64 over alle512 met checksumveld nul. Checksum aan het einde maakt prefix256-injectie betekenisvol. Alleen diagnostische corruptiedetectie, geen authenticatie/collisionvrij bewijs. Alle velden/slot/gen/lengtes/reserved/checksum worden gevalideerd vóór gebruik.
+Record512: magic `NOSM6A01`@0; version u16=1@8; header-size u16=64@10; flags u32=0@12; generation u64@16; request-id u64@24; payload-length u32=128@32; slot u32@36; reserved24zero@40; payload128@64; zero312@192; checksum u64@504. FNV-1a64 over all 512 bytes with checksum field zero. Placing the checksum at the end makes prefix256 injection meaningful. Diagnostic corruption detection only, not authentication or a collision-free proof. Validate all fields/slot/generation/lengths/reserved/checksum before use.
 
-Recovery leest alle vier records via echte READs, kiest hoogste geldige generatie; geen geldige geeft CORRUPT, nooit formatteren. Een ongeldige tail wordt niet als waarde gepresenteerd. Volledige recovery-FLUSH moet slagen vóór READY. PUT verwacht huidige generatie (CAS), schrijft alleen volgende slot en verloopt WRITE→pollsuccess→FLUSH→pollsuccess→ACK. Geen ACK vóór FLUSH. Na recovery kan een expliciete nieuwe PUT de eerstvolgende ongeldige tail vervangen; de laatste geldige waarde blijft intact.
+Recovery reads all four records through actual READs, selects the highest valid generation; none valid returns CORRUPT, never formats. An invalid tail is not presented as a value. Complete recovery FLUSH must succeed before READY. PUT expects the current generation (CAS), writes only the next slot and proceeds WRITE→poll success→FLUSH→poll success→ACK. No ACK before FLUSH. After recovery, an explicit new PUT may replace the first invalid tail; the last valid value remains intact.
 
-Nieuwe Message320-payload192, wireversie2; GET1/PUT2; flags0@4, request-id@8, serviceepoch@16, generation@24, length@32, status@36, reserved0@40, data128@48, reserved16nul@176. GETreq length0/data0; PUTreq length128 en verwacht huidige gen; GETsuccess128, PUTack0 en nieuwe gen. Epoch/velden/caps/sender/ingress volledig valideren vóór I/O. Onverwachte caps daadwerkelijk sluiten. Twee prebound ingressendpoints: GET-only en GET|PUT; reply prebound, app kiest geen LBA/replyhandle. Herstart kondigt nieuwe caps werkelijk via supervisor/client-control aan zoals M5; oude autoriteit ingetrokken. Client herhaalt onzekere PUT nooit, maar vraagt GET na rebind.
+New Message320 payload192, wire version2; GET1/PUT2; flags0@4, request-id@8, serviceepoch@16, generation@24, length@32, status@36, reserved0@40, data128@48, reserved16zero@176. GET request length0/data0; PUT request length128 and expected current generation; GET success128, PUT ACK0 and new generation. Fully validate epoch/fields/capabilities/sender/ingress before I/O. Actually close unexpected capabilities. Two prebound ingress endpoints: GET-only and GET|PUT; reply prebound, app selects no LBA/reply handle. Restart announces new capabilities through supervisor/client control as in M5; old authority revoked. Client never repeats an uncertain PUT, but requests GET after rebinding.
 
-Fixturetransformatie: nieuwe waarde byte i = vorige byte i + (0x31 + nieuwe generatie), wrapping u8. Alleen synthetische testdata, geen cryptografie. Client berekent dit uit werkelijk ontvangen GET; host berekent onafhankelijk uit de aanvankelijke image. Normaal één PUT→gen2, full drie PUTs→gen4. Request-id gelijk aan nieuwe generatie. Guest meldt uitsluitend werkelijke eindwaarde als M6A:GENERATION:N, M6A:REQUEST_ID:N, M6A:VALUE_DIGEST:16hex; geen inhoudslogs.
+Fixture transformation: new value byte i = previous byte i + (0x31 + new generation), wrapping u8. Synthetic test data only, no cryptography. Client computes this from an actually received GET; host computes independently from the initial image. Normally one PUT→gen2, full: three PUTs→gen4. Request ID equals new generation. Guest reports only the actual final value as M6A:GENERATION:N, M6A:REQUEST_ID:N, M6A:VALUE_DIGEST:16hex; no content logs.
 
-## Crashpunten
+## Crash points
 
-| Cut | Werkelijke waarneming | Toegestane recovery |
+| Cut | Actual observation | Permitted recovery |
 |---:|---|---|
-| 1 | gevalideerde WRITE vóór publicatie | oud |
-| 2 | WRITE gepubliceerd, completion nog niet waargenomen | oud of nieuw |
-| 3 | WRITE succesvol voltooid, vóór FLUSH-publicatie | oud of nieuw |
-| 4 | FLUSH gepubliceerd, completion nog niet waargenomen | oud of nieuw |
-| 5 | echte FLUSH succesvol voltooid, vóór app-ACK | nieuw |
-| 6 | app-ACK daadwerkelijk aan client geleverd | nieuw |
+| 1 | Validated WRITE before publication | Old |
+| 2 | WRITE published, completion not yet observed | Old or new |
+| 3 | WRITE completed successfully, before FLUSH publication | Old or new |
+| 4 | FLUSH published, completion not yet observed | Old or new |
+| 5 | Actual FLUSH completed successfully, before app ACK | New |
+| 6 | App ACK actually delivered to client | New |
 
-Iedere cut krijgt een echte user-UD2, reset/quiescence, nieuwe dienst-PID/epoch en IPC-rebind in dezelfde VM, plus afzonderlijk echte externe QEMU-proceskill en koude nieuwe VM op exact dezelfde harnasimage. Softwarepending is geen claim over gelijktijdige fysieke DMA. Test-only kernelgate laat user na syscallretour ud2 uitvoeren; geen vervalste devicecompletion. VMcut logt exact M6A:CUT:N en wacht uitsluitend op hostkill; geen PASS/raw33 fabriceren. Harnas vereist draaiend proces bij kill, werkelijk terminationresultaat, exact cut/bootmarkers, geen FAIL/PASS, deadline en nieuwe recovery-VM. Voor cut6 wordt daadwerkelijke clientreceive geobserveerd.
+Every cut receives an actual user UD2, reset/quiescence, new service PID/epoch and IPC rebinding in the same VM, plus a separate actual external QEMU process kill and cold new VM on exactly the same harness image. Software pending is not a claim of concurrent physical DMA. A test-only kernel gate lets the user execute ud2 after syscall return; no fabricated device completion. VM cut logs exactly M6A:CUT:N and waits exclusively for host kill; do not fabricate PASS/raw33. Harness requires a running process at kill, actual termination result, exact cut/boot markers, no FAIL/PASS, deadline and a new recovery VM. For cut6, actual client receive is observed.
 
-Recoveryfeature voert alleen GET/recovery-FLUSH uit; geen PUT. Vóór/na elk stadium snapshot/hash van volledige image. Buiten toegestane journalbytes exact onveranderd. Recoverywaarde moet onafhankelijk gelijk zijn aan geldige old/new-recorddata; na cut5/6 verplicht nieuw. Geen hybride of checksumongeldig record. Na recovery moet de hele image bytegelijk blijven (FLUSH schrijft geen rawvolumedata).
+The recovery feature performs only GET/recovery FLUSH; no PUT. Before/after every stage, snapshot/hash the complete image. Outside permitted journal bytes, everything is exactly unchanged. Recovery value must independently equal valid old/new record data; after cut5/6, new is mandatory. No hybrid or checksum-invalid record. After recovery, the complete image must remain byte-identical (FLUSH writes no raw-volume data).
 
-## Gevallen en nummers (bevroren interface)
+## Cases and numbers (frozen interface)
 
-| ID | Featureachtervoegsel test-m6a- | Vereiste kern |
+| ID | Feature suffix test-m6a- | Required core behaviour |
 |---:|---|---|
-| 0 | normaal: milestone-m6a | GET1→PUT2→FLUSH→ACK→GET2; twee images bij dezelfde binary, koude recovery |
-| 1 | service-errors | concrete malformed/GET-only-PUT/caps vóór I/O geweigerd, daarna normale PUT |
-| 2 | device-rights | typed rechten/pointers/grenzen/outputnonconsume; input snapshot positief en negatief |
-| 3 | full | gen4, daarna ENOSPC zonder I/O; koude recoverygen4 |
-| 4–8 | write-error,flush-error,write-timeout,flush-timeout,reset-timeout | Unknown, geen ACK/retry; lokale peers/poolgrenzen; koude recovery |
-| 9 | no-flush | test-only gemaskeerde feature-advertisement, init fail-closed, geen write/ACK |
-| 10 | readonly | echt RO-device, init geweigerd, geen write/ACK |
-| 11 | bad-descriptor | WRITE-draft vóór publicatie geweigerd; geen write/retry/ACK; recovery |
-| 12–13 | used-write,used-flush | lokale used-len-snapshot2 na echte completion; Unknown/geen ACK/replay, recovery |
-| 14 | torn-tail | hostinjectie prefix256 nieuw record/ontbrekende checksum vóór boot; hersteloud, geen write |
-| 15 | corrupt-all | hostcorruptie van enige geldige record, CORRUPT, geen format/write/READY |
-| 16 | stale-generation | verkeerde CAS vóór I/O geweigerd, daarna normale PUT |
-| 17 | no-device | target echt niet gekoppeld; boot-ESP niet gekozen; lokaal ENODEV |
-| 18–23 | service-cut-1 t/m6 | zes echte dienstcrashes en rebind/recovery zonder PUT-replay |
-| 24–29 | vm-cut-1 t/m6 | zes echte hostkills plus koude recovery op dezelfde image |
-| 30 | recover | nieuwe VM: alleen READ/recovery-FLUSH/GET, geen WRITE |
+| 0 | normal: milestone-m6a | GET1→PUT2→FLUSH→ACK→GET2; two images with the same binary, cold recovery |
+| 1 | service-errors | Concrete malformed/GET-only-PUT/capability requests rejected before I/O, then normal PUT |
+| 2 | device-rights | Typed rights/pointers/bounds/output non-consumption; positive and negative input snapshot cases |
+| 3 | full | gen4, then ENOSPC without I/O; cold recovery gen4 |
+| 4–8 | write-error,flush-error,write-timeout,flush-timeout,reset-timeout | Unknown, no ACK/retry; local peer/pool boundaries; cold recovery |
+| 9 | no-flush | Test-only masked feature advertisement, initialisation fails closed, no write/ACK |
+| 10 | readonly | Actual RO device, initialisation rejected, no write/ACK |
+| 11 | bad-descriptor | WRITE draft rejected before publication; no write/retry/ACK; recovery |
+| 12–13 | used-write,used-flush | Local used-length snapshot2 after actual completion; Unknown/no ACK/replay, recovery |
+| 14 | torn-tail | Host injection of prefix256 of new record/missing checksum before boot; recover old, no write |
+| 15 | corrupt-all | Host corruption of the only valid record, CORRUPT, no format/write/READY |
+| 16 | stale-generation | Wrong CAS rejected before I/O, then normal PUT |
+| 17 | no-device | Target actually unattached; boot ESP not selected; local ENODEV |
+| 18–23 | service-cut-1 through 6 | Six actual service crashes and rebinding/recovery without PUT replay |
+| 24–29 | vm-cut-1 through 6 | Six actual host kills plus cold recovery on the same image |
+| 30 | recover | New VM: only READ/recovery FLUSH/GET, no WRITE |
 
-Alle normale/negatieve eindige guests: BOOT:EBS_OK,KERNEL:ENTRY,BOOTINFO:OK,M6A:CASE:UPPER_SNAKE:PASS,M6A:SURVIVOR_PROGRESS:PASS,M6A:RESOURCES:PASS,M6A:PASS,M1:PASS in volgorde; raw33, geen timeout/FAIL. VMcut verwacht bewust hosttermination, apart gelabeld. Errorcases4–8/11–13: expliciet OUTCOME_UNKNOWN, geen eindwaardedigest; cases9/10/15/17 geen waarde/WRITE. Andere cases leveren geverifieerde eindwaarde.
+All normal/negative finite guests: BOOT:EBS_OK,KERNEL:ENTRY,BOOTINFO:OK,M6A:CASE:UPPER_SNAKE:PASS,M6A:SURVIVOR_PROGRESS:PASS,M6A:RESOURCES:PASS,M6A:PASS,M1:PASS in order; raw33, no timeout/FAIL. VM cut deliberately expects host termination, separately labelled. Error cases4–8/11–13: explicit OUTCOME_UNKNOWN, no final-value digest; cases9/10/15/17 no value/WRITE. Other cases provide a verified final value.
 
-Case2 heeft uitsluitend voor negatieve acceptatie een extra getypeerd scratchobject op sector12 met97, nooit appautoriteit. Test valide readonly512bron en misaligned crosspagebron0x40013f01 (255 bytes0x3c +257 bytes0xa7 uit RO op0x40014000), wijzig na submit RWbron naar0xe1; device moet snapshot0x3c/0xa7 krijgen. FLUSH en READ terug, geen copy uit gewijzigd userbuffer. Host staat alleen in deze case sector12-wijziging toe en vergelijkt exact deze512bytes; alle overige canaries intact. Layout M6: data40010000, message40011000, out40012000, sectorbuffer40013000, RO40014000 (eerste512bytes0xa7). Bestaande M5-ELF blijft bytegelijk.
+Case2 has an additional typed scratch object on sector12 with97 solely for negative acceptance, never app authority. Test a valid read-only 512-byte source and misaligned cross-page source0x40013f01 (255 bytes0x3c +257 bytes0xa7 from RO at0x40014000), change RW source to0xe1 after submit; device must receive snapshot0x3c/0xa7. FLUSH and READ back, no copy from the changed user buffer. Only in this case does the host permit sector12 mutation and compare exactly these512bytes; all other canaries remain intact. M6 layout: data40010000, message40011000, out40012000, sectorbuffer40013000, RO40014000 (first512bytes0xa7). Existing M5 ELF remains byte-identical.
 
-Hosttests: caps/type/subset/revoke/quota/nonwrap; READ/WRITE/FLUSH ketens/directions/len/header; Prepared/Published/Unknown/ticket/exit/reset; volledige512-input/snapshot; journalformaat/checksum/torn/full/CAS/noautoinit; wire/error/rebind; harnasrejects voor willekeurige/externe diskpaden, markers zonder echte crash/flush, buiten-journalmutaties en hybride recovery. Volledige M1–M5-regressie en onafhankelijke reviews/raw/hash-audit op de finale bron.
+Host tests: capabilities/type/subset/revoke/quota/no wraparound; READ/WRITE/FLUSH chains/directions/length/header; Prepared/Published/Unknown/ticket/exit/reset; complete 512-byte input/snapshot; journal format/checksum/torn/full/CAS/no automatic initialisation; wire/error/rebinding; harness rejections for arbitrary/external disk paths, markers without actual crash/flush, mutations outside the journal and hybrid recovery. Full M1–M5 regression and independent reviews/raw/hash audit on final source.
 
-## Ownership en oplevering
+## Ownership and delivery
 
-- K06 kernel_m2: kernel/**, crates/kernel-core/**, drivers/virtio-blk/**. Transport/syscalls/observer/coördinator. Geen root/tools/docswrites.
-- C06 quantum_contract: crates/virtio-core/** en crates/capability-core/**. Enige eigenaar gedeelde pure Rust-interfaces; deel exacte API tijdig met K06.
-- U06 product_acceptance: services/block/** en nieuwe M6-userspacebestanden/docs/tests. Dienst/journal/wire/echte roles. Geen bestaande M5-fixturewijzigingen.
-- G06 root: rootconfig/lock/tools/tests/docs/build/run/images/Git/checkpoints. Maximaal3 agents, één schrijver per bestand, één gedeeld build/QEMUslot. Eigen host-targetdirs toegestaan.
+- K06 kernel_m2: kernel/**, crates/kernel-core/**, drivers/virtio-blk/**. Transport/syscalls/observer/coordinator. No root/tools/docs writes.
+- C06 quantum_contract: crates/virtio-core/** and crates/capability-core/**. Sole owner of shared pure Rust interfaces; share exact API with K06 promptly.
+- U06 product_acceptance: services/block/** and new M6 userspace files/docs/tests. Service/journal/wire/actual roles. No existing M5 fixture changes.
+- G06 root: root configuration/lock/tools/tests/docs/build/run/images/Git/checkpoints. At most 3 agents, one writer per file, one shared build/QEMU slot. Private host target directories allowed.
 
-Root maakt build_users kindm6, m6_probe.elf/manifest-m6.json en NOS_M6_ELF; K06 bezit kernel-Cargo-featureverklaring/build.rs. Root bezit M6A_CASES in build.py en afzonderlijk run_m6.py/test_m6.py/m6_disk.py. Nieuwe dependencies alleen eigen lokale code; geen extern pakket gepland. Bron/resultaten/open punten na iedere stap en vóór lange tests privépushen, remoteHEAD controleren; geen binaries/images/caches/secrets in Git. Herstel via aparte consistente checkout448974b.
+Root creates build_users kindm6, m6_probe.elf/manifest-m6.json and NOS_M6_ELF; K06 owns kernel Cargo feature declarations/build.rs. Root owns M6A_CASES in build.py and separate run_m6.py/test_m6.py/m6_disk.py. New dependencies: project-local code only; no external package planned. After every step and before long tests, privately push source/results/open points and verify remote HEAD; no binaries/images/caches/secrets in Git. Recover through a separate consistent checkout at448974b.
 
-## Primaire bronnen
+## Primary sources
 
-OASIS Open, VIRTIO1.2 CS01,1juli2022, §§5.2.3,5.2.5.1,5.2.6 en5.2.6.2: https://docs.oasis-open.org/virtio/virtio/v1.2/virtio-v1.2.html — WRITE/FLUSH, feature/cache- en stable-write-semantiek. Gericht gecontroleerd27oktober2026. Bovenstaande quota/ABI/journal/cuts zijn projectbesluiten. Kerneltransport/QEMU/backend blijven expliciete aannames, niet door de specificatie bewezen implementatie-eigenschappen.
+OASIS Open, VIRTIO1.2 CS01, 1 July 2022, §§5.2.3,5.2.5.1,5.2.6 and5.2.6.2: https://docs.oasis-open.org/virtio/virtio/v1.2/virtio-v1.2.html — WRITE/FLUSH, feature/cache and stable-write semantics. Targeted check on 27 October 2026. Quotas/ABI/journal/cuts above are project decisions. Kernel transport/QEMU/backend remain explicit assumptions, not implementation properties demonstrated by the specification.

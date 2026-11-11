@@ -1,15 +1,16 @@
-# TPM2 CRB-transportkern
+# TPM2 CRB transport core
 
-Safe/no_std en dependencyvrij, uitsluitend voor het afzonderlijk beschreven
-QEMU10.0.13 locality0-CRB-profiel. Codecs en registertransport zijn gescheiden.
-Er is geen MMIO-adapter, fysieke TPM-write, kernelintegratie of native ankerclaim.
+Safe/no_std and dependency-free, solely for the separately documented
+QEMU10.0.13 locality0 CRB profile. Codecs and register transport are separate.
+There is no MMIO adapter, physical TPM write, kernel integration or native
+anchor claim.
 
-Contract, grenzen, bronnen en open acceptatie:
+Contract, limits, sources and open acceptance:
 [TPM2-CRB.md](../../docs/contracts/TPM2-CRB.md).
 
 `cargo +1.90.0 test --offline --locked --manifest-path drivers/tpm-crb/Cargo.toml`
-toetst de hostmodellen. Een echte `x86_64-unknown-none` librarybuild bewijst
-targetcompatibiliteit; de werkelijke adapter/VM/coldstartproeven volgen apart.
-De normatieve TCG-PTP-PDF was niet bereikbaar en blijft een expliciete open
-broncontrole. Geen hostregistermodel wordt als TPM of rollbackbescherming
-gepresenteerd.
+checks the host models. An actual `x86_64-unknown-none` library build
+demonstrates target compatibility; actual adapter/VM/cold-start experiments
+follow separately. The normative TCG PTP PDF was inaccessible and remains
+an explicit open source check. No host-register model is presented as a TPM
+or rollback protection.

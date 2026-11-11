@@ -7,6 +7,9 @@ inputs:
   path:
     description: Newline-separated evidence paths, relative to the checkout.
     required: true
+  required-paths:
+    description: Exact newline-separated paths which compact collection must retain.
+    default: ''
   job-status:
     description: Job status immediately before evidence preservation.
     required: true
@@ -39,11 +42,13 @@ runs:
       env:
         EVIDENCE_NAME: ${{ inputs.name }}
         EVIDENCE_PATHS: ${{ inputs.path }}
+        EVIDENCE_REQUIRED_PATHS: ${{ inputs.required-paths }}
         CI_TEST_STATUS: ${{ inputs.job-status }}
       run: |
         evidence_dir="$(mktemp -d "$RUNNER_TEMP/ci-evidence.XXXXXXXX")"
         python3 -B "$GITHUB_WORKSPACE/tools/ci_evidence.py" collect \
           --name "$EVIDENCE_NAME" --paths "$EVIDENCE_PATHS" \
+          --required-paths "$EVIDENCE_REQUIRED_PATHS" \
           --output "$evidence_dir" --status "$CI_TEST_STATUS"
     - name: Require evidence when the original workflow required it
       if: ${{ always() && steps.collect.outcome == 'success' && steps.collect.outputs.has-files != 'true' && inputs.if-no-files-found == 'error' }}

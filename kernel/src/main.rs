@@ -6,7 +6,10 @@
 mod framebuffer;
 #[cfg(feature = "graphics-g0")]
 mod graphics;
-#[cfg(feature = "milestone-m2")]
+#[cfg(all(feature = "milestone-m2", not(feature = "native-smp-legacy")))]
+mod m2;
+#[cfg(feature = "native-smp-legacy")]
+#[path = "m2_legacy/mod.rs"]
 mod m2;
 mod memory;
 mod serial;
@@ -18,7 +21,34 @@ compile_error!("graphics-g0 is an IF0 bootstrap, not a ring-3/compositor profile
 ))]
 compile_error!("native-rtc exclusively owns CMOS in the single-CPU IF0 bootstrap");
 #[cfg(all(
+    feature = "native-acpi-s5",
+    any(
+        feature = "milestone-m3",
+        feature = "framebuffer",
+        feature = "native-smp",
+        feature = "native-rtc"
+    )
+))]
+compile_error!("native-acpi-s5 ends the single-CPU IF0 bootstrap; no other subsystem may run");
+#[cfg(all(
+    feature = "native-system-power",
+    any(
+        feature = "native-acpi-s5",
+        feature = "native-smp",
+        feature = "framebuffer",
+        feature = "native-system-net",
+        feature = "native-system-random",
+        feature = "native-system-images",
+        feature = "native-system-clock",
+        feature = "native-system-nas-probe",
+        feature = "native-cap-digest-bench",
+        feature = "test-system-recover"
+    )
+))]
+compile_error!("native-system-power gates S5 on exactly the base native-system brokers");
+#[cfg(all(
     feature = "native-smp",
+    not(feature = "native-smp-legacy"),
     any(
         all(feature = "milestone-m3", not(feature = "native-smp-m3")),
         feature = "framebuffer",
@@ -59,6 +89,14 @@ pub extern "sysv64" fn _start(info_pointer: *const BootInfo) -> ! {
     // SAFETY: Loader-to-kernel ABI guarantees this page is mapped and initialized;
     // range checks precede the copy. M1 trusts its own loader/firmware, not user pointers.
     let info = unsafe { info_pointer.read() };
+    #[cfg(all(feature = "framebuffer", feature = "native-smp-legacy"))]
+    let info = {
+        let mut header = info;
+        // ABI 1.2 ends at byte 128, where its graphics extension starts.
+        // Only the larger ABI 1.3 header carries these SMP fields.
+        header.clear_absent_legacy_graphics_smp_fields();
+        header
+    };
     #[cfg(feature = "framebuffer")]
     let valid_header = info.validate_graphics_header(address);
     #[cfg(not(feature = "framebuffer"))]

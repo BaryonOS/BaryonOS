@@ -1,7 +1,7 @@
-# Optioneel: voeg deze sectie samen met je bestaande projectconfig.
-# Niet blind een bestaande config.toml overschrijven.
-# Gecontroleerd tegen officiële documentatie op 2026-10-26.
-# Geen credentials of versoepelde permissions opnemen.
+# Optional: merge this section into the existing project configuration.
+# Do not blindly overwrite an existing config.toml.
+# Checked against official documentation on 2026-10-26.
+# Do not include credentials or relaxed permissions.
 [agents]
 enabled = true
 max_concurrent_threads_per_session = 3

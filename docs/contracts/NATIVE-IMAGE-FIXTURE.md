@@ -1,24 +1,24 @@
-# Native image-fixture: observercontract
+# Native image fixture: observer contract
 
-IMAGE-NATIVE-OBS-1 op kernelbasis
-`15e8cfced28ad46f15f5f573e5f00e8e87b74215`. Deze opt-in-waarnemer hoort bij
-codec/probecheckpoint `9ae1c738012fc73085a04d6cfca7cd7fbc3bde46`; hij voert geen
-PNG/JPEG-parser uit in de kernel. Zie ook de componentbeschrijving
-`docs/implementation/NATIVE-IMAGES.md` bij integratie van die bronreeks.
-FR-A03, object-RPC, zoom/pan, compositor en algemene formaatacceptatie blijven open.
+IMAGE-NATIVE-OBS-1 on kernel base
+`15e8cfced28ad46f15f5f573e5f00e8e87b74215`. This opt-in observer belongs to
+codec/probe checkpoint `9ae1c738012fc73085a04d6cfca7cd7fbc3bde46`; it runs no
+PNG/JPEG parser in the kernel. See also the component description
+`docs/implementation/NATIVE-IMAGES.md` when integrating that source series.
+FR-A03, object RPC, zoom/pan, the compositor and general format acceptance remain open.
 
-## Eigenaarschap en hooks
+## Ownership and hooks
 
-Deze taak levert uitsluitend `kernel/src/m2/m3/image_fixture.rs` en dit contract.
-De integrator bezit Cargo, m3/system, ELF-selectie, bootstrap/capabilities,
-process-death, builds en VM-harnas. Voorgesteld profiel:
+This task delivers only `kernel/src/m2/m3/image_fixture.rs` and this contract.
+The integrator owns Cargo, m3/system, ELF selection, bootstrap/capabilities,
+process death, builds and the VM harness. Proposed profile:
 `native-system-images=[native-system,process-memory,fpu-context]`, ABI1.7.
-De bestaande vier diensten blijven actief; de probe start alleen bij boot in
-slot 4. Hij krijgt geen raw netwerk-, sleutel-, entropy-, opslag- of displaycap.
-De app gebruikt ABI-query/yield/exit, monotone ticks en eigen private heapgroei.
+The existing four services remain active; the probe starts only at boot in
+slot 4. It receives no raw network, key, entropy, storage or display capability.
+The app uses ABI query/yield/exit, monotonic ticks and its own private heap growth.
 
-Plaats de module en alle hooks uitsluitend onder de nieuwe profielvoorwaarde;
-oude profielen laden deze waarnemer niet. De API is:
+Place the module and all hooks only under the new profile condition;
+old profiles do not load this observer. The API is:
 
 ```rust
 bind(s: &State, actual_pid: u64, linked_elf: &[u8]);
@@ -29,93 +29,94 @@ finished() -> bool;
 check_and_print(s: &State);
 ```
 
-`bind` volgt het laden/registreren van de echte probe en het vullen van
-startupwoord 176 met diens werkelijke PID. Geef exact dezelfde gelinkte
-`IMAGE_PROBE_ELF`-slice door die de loader gebruikt. Bind bewaart PID,
-bootslot, echte starttick, oorspronkelijke mappingtelling en ELF-fingerprint.
-De startpagina en oorspronkelijke 16 heappagina's moeten al aanwezig zijn;
-de probe mag nog niet hebben uitgevoerd. Herbinding is een fout.
+`bind` follows loading/registering the actual probe and filling startup
+word 176 with its actual PID. Pass exactly the same linked
+`IMAGE_PROBE_ELF` slice used by the loader. Bind retains the PID,
+boot slot, actual start tick, original mapping count and ELF fingerprint.
+The startup page and original 16 heap pages must already exist;
+the probe must not have executed yet. Rebinding is an error.
 
-`is_probe` vereist de opgeslagen PID **en** bootslot plus levende mappings.
-Een worker die later slot 4 hergebruikt wordt daardoor niet de probe. Exit/fault
-vergelijken ook de echte `last_event.pid`; een slotnummer is geen identiteit.
-`observe_exit` leest uitsluitend een gevalideerde, door dit PID beheerde
-startpagina en legt alle woorden vast voordat geheugen wordt vrijgegeven.
-Daarna gebruikt `check_and_print` alleen de kernelsnapshot, nooit een pointer
-naar opgeruimd gebruikersgeheugen. IF=0/single-CPU-callbacks zijn vereist; geen
-observerborrow mag een schedulingpunt, IPC of gebruikersuitvoering overspannen.
+`is_probe` requires the stored PID **and** boot slot plus live mappings.
+A worker that later reuses slot 4 therefore does not become the probe.
+Exit/fault also compare the actual `last_event.pid`; a slot number is not
+an identity. `observe_exit` reads only a validated startup page owned by
+this PID and records all words before memory is freed.
+Afterwards, `check_and_print` uses only the kernel snapshot, never a pointer
+to cleaned-up user memory. IF=0/single-CPU callbacks are required; no observer
+borrow may span a scheduling point, IPC or userspace execution.
 
-De helper roept **geen** `Engine.process_died` aan. De root houdt de generieke
-Engine-/procesafhandeling en de bestaande uitzonderingsproeven intact. De
-`fault`-hook retourneert niet: hij meldt echte CPU-metadata en beëindigt alleen
-de wegwerp-VM-proef als mislukt. Eventuele Engine-bookkeeping die vóór die
-afsluiting nodig is blijft dus bij de root. Dit is geen nieuw productfaultbeleid.
-Roep `finished` op naast de bestaande joint-gates en `check_and_print` eenmaal
-vóór het uiteindelijke SYSTEM-succes. Een ontbrekende, dubbele of ongeldige
-snapshot mag nooit als een voltooid image-onderdeel tellen.
+The helper does **not** call `Engine.process_died`. Root retains generic
+Engine/process handling and the existing exception tests. The `fault` hook
+does not return: it reports actual CPU metadata and terminates only the
+disposable VM test as failed. Any Engine bookkeeping required before that
+termination therefore remains root's responsibility. This is not a new
+product fault policy. Call `finished` alongside the existing joint gates
+and `check_and_print` once before final SYSTEM success. A missing, duplicate
+or invalid snapshot must never count as a completed image component.
 
-## Vereiste gegevens en onafhankelijke kernelwaarneming
+## Required data and independent kernel observation
 
-De kern leest 15 vaste u64-woorden binnen de private startpagina:
+The kernel reads 15 fixed u64 words within the private startup page:
 
-| Offset | Betekenis / eis |
+| Offset | Meaning / requirement |
 |---|---|
-|40,240|done=1,errorstep=0; werkelijk exitcode0 en syscallvector128 |
-|400,408|PNG 8, JPEG 3; inclusief PNG-herdecode na geweigerde invoer |
-|416,424|149647 pixels, 10 negatieve uitkomsten |
-|432,440|pixel-FNV64=548683896226622996 (`079d5118b890ae14`),623808samplebytes |
-|448|1024 door de app opgegeven groeipagina's |
-|456,464|werkelijke app-arena-highwater > 0 en≤4194304; liveallocaties 0 |
-|472|1 vooraf geannuleerde decode; geen mid-decode-latentieclaim |
-|480,488|gaststart/eindtick binnen echte kernellaunch-/exittick; duur<20000ticks |
-|496|QUALITY_OPEN=0 voor de herstelde specifieke progressieve JPEG-orakelvraag |
+|40,240|done=1,errorstep=0; actual exitcode0 and syscallvector128 |
+|400,408|PNG 8, JPEG 3; including PNG redecoding after rejected input |
+|416,424|149647 pixels, 10 negative outcomes |
+|432,440|pixel-FNV64=548683896226622996 (`079d5118b890ae14`),623808 sample bytes |
+|448|1024 growth pages reported by the app |
+|456,464|actual app arena high-water mark > 0 and ≤4194304; live allocations 0 |
+|472|1 decode cancelled in advance; no mid-decode latency claim |
+|480,488|guest start/end ticks within actual kernel launch/exit ticks; duration <20000 ticks |
+|496|QUALITY_OPEN=0 for the resolved specific progressive-JPEG oracle question |
 
-De heapclaim wordt daarnaast met de kernel getoetst: 1040 totale heappagina's
-(16 bestaand + 1024 nieuw), precies 1024 extra gebruikersmappings tegenover bind,
-eigenaar PID / Kind::Data, user/RW/NX en mappingtelling binnen de ongewijzigde 2048-
-paginaquota. De userstack heeft 16 RW/NX/Kind::Stack-pagina's, met onbeschikbare
-onder-/bovengrens; ook het uiteinde van de heapsuffix blijft ongemapt. Geen
-heap, stack of quota wordt voor deze proef vergroot.
+The heap claim is also checked against the kernel: 1040 total heap pages
+(16 existing + 1024 new), exactly 1024 additional user mappings relative
+to bind, owner PID / Kind::Data, user/RW/NX and a mapping count within the
+unchanged 2048-page quota. The user stack has 16 RW/NX/Kind::Stack pages,
+with inaccessible lower/upper boundaries; the end of the heap suffix also
+remains unmapped. Neither heap, stack nor quota is enlarged for this test.
 
-De arena-accounting en pixelchecksums zijn appmetingen van de gehashte,
-gecontroleerde probe, geen algemene attestation van een willekeurige kwaadwillige
-app. De kernel parseert de allocator of afbeeldingen niet opnieuw. Hij controleert
-de eigen geheugenfeiten, exit, identiteit en echte ticks. De 10 negatieve decode-
-uitkomsten vervangen geen echte native allocator-OOM-/herstartproef: die blijft
-open tot zij afzonderlijk werkelijk wordt uitgevoerd. Een succesvolle normale
-gastuitvoering bewijst dat deze inputset met de echte 64 KiB-stack heeft gewerkt,
-niet een maximale-stackgarantie voor alle mogelijke bestanden.
+Arena accounting and pixel checksums are app measurements from the hashed,
+reviewed probe, not general attestation of an arbitrary malicious app.
+The kernel does not parse the allocator or images again. It checks its own
+memory facts, exit, identity and actual ticks. The 10 negative decoding
+outcomes do not replace an actual native allocator OOM/restart test: that
+remains open until separately executed. Successful normal guest execution
+shows that this input set worked with the actual 64 KiB stack, not a
+maximum-stack guarantee for all possible files.
 
-## ELF- en artifactbinding
+## ELF and artifact binding
 
-`bind` berekent FNV-1a64 en lengte over de **werkelijke gelinkte ELF-bytes**;
-deze verschijnen als `SYSTEM:IMAGE_ELF_FNV64` en `SYSTEM:IMAGE_ELF_BYTES`.
-FNV is uitsluitend een drift-/parityfingerprint, geen cryptografische
-authenticiteits- of bootclaim. De root moet daarnaast SHA256 van precies dit
-ELF vergelijken met het buildmanifest, include-input en vrijgegeven image.
-Voor codeccheckpoint9ae1c73 is het daadwerkelijk gebouwde input-ELF:
+`bind` calculates FNV-1a64 and length over the **actual linked ELF bytes**;
+these appear as `SYSTEM:IMAGE_ELF_FNV64` and `SYSTEM:IMAGE_ELF_BYTES`.
+FNV is only a drift/parity fingerprint, not a cryptographic authenticity
+or boot claim. Root must additionally compare SHA256 of this exact ELF
+with the build manifest, include input and released image.
+For codec checkpoint 9ae1c73, the actually built input ELF is:
 
 `ac2a0ae22021ae6dda7a37d981b5a049209ee71b669a4644c2fc5eaeec9fbff2`.
 
-Na relevante bron-/configuratieverandering moet dat opnieuw worden gebouwd en
-gebonden; een oud hashveld of oude succesvolle test is geen bewijs. Broncommit,
-profiel, QEMU-configuratie, loader/kernel/ELF/imagehashes en seriële uitvoer
-horen bij de finale rootgate. De app bevat synthetische PNG/JPEG-fixturebytes;
-er is geen hostdecoder of persoonlijke foto als OS-implementatie aanwezig.
+After a relevant source/configuration change, it must be rebuilt and bound
+again; an old hash field or old successful test is not evidence. Source commit,
+profile, QEMU configuration, loader/kernel/ELF/image hashes and serial output
+belong to the final root gate. The app contains synthetic PNG/JPEG fixture
+bytes; no host decoder or personal photograph is present as an OS implementation.
 
-Succesmarkers worden pas na geldige snapshot en gezamenlijke afronding gedrukt:
-`SYSTEM:IMAGE_*` voor PID/ELF/pixels/geheugen/ticks/guard en tenslotte
-`SYSTEM:IMAGES:PASS`. Iedere `SYSTEM:IMAGE_FAIL:*`, fault, timeout, ontbrekende
-marker of onverwachte actor maakt de gate rood. De rootrunner moet alle vereiste
-waarden strikt toetsen en ruwe uitvoer behouden.
+Success markers are printed only after a valid snapshot and joint completion:
+`SYSTEM:IMAGE_*` for PID/ELF/pixels/memory/ticks/guard and finally
+`SYSTEM:IMAGES:PASS`. Every `SYSTEM:IMAGE_FAIL:*`, fault, timeout, missing
+marker or unexpected actor makes the gate fail. The root runner must strictly
+check all required values and retain raw output.
 
-## Uitgevoerde controles van deze helper
+## Executed checks of this helper
 
-Dezelfde pure `Observer`-predicates draaien in de kernel en in 9 uitgevoerde
-hostmodelproeven: geldige snapshot, verkeerde/stale PID/slot, workerreuse,
-corruptie van elk exact te toetsen appwoord, heap-/owner-/guardtegenspraak,
-klokgrenzen, niet-nul exit, foutvector, voortijdig aftekenen, herbinding,
-dubbele exit/print en blijvende weigering na een fout. Commando:
+The same pure `Observer` predicates run in the kernel and in 9 executed
+host-model tests: valid snapshot, wrong/stale PID/slot, worker reuse,
+corruption of every app word requiring an exact check, heap/owner/guard
+contradictions, clock boundaries, nonzero exit, wrong vector, premature
+sign-off, rebinding, duplicate exit/print and persistent rejection after
+an error. Command:
 
 ```sh
 LOCALAPPDATA=/workspace/nieuw-os/.tools python3 -B tools/dev.py rustc +1.90.0 \
@@ -124,15 +125,15 @@ LOCALAPPDATA=/workspace/nieuw-os/.tools python3 -B tools/dev.py rustc +1.90.0 \
 /tmp/nieuw-os-image-fixture-model-tests --nocapture
 ```
 
-Uitkomst: 9/9, exit 0. Dit zijn modellen met expliciet aangeboden kernel-feiten,
-geen uitgevoerde CPL3-proeven of bewijs dat die feiten op hardware bestaan.
+Outcome: 9/9, exit 0. These are models with explicitly supplied kernel facts,
+not executed CPL3 tests or evidence that those facts exist on hardware.
 
-De native adapters zijn daarnaast op een private kopie van de echte 15e8cfc-
-kernel/State met Rust1.90/x86_64-unknown-none en
-`native-system,process-memory,fpu-context` getypecheckt, exit0. Alleen daar is
-een module-inclusion toegevoegd; de gedeelde bron is niet gewijzigd. Voor
-`include_bytes` zijn onuitgevoerde ELF-inputs gebruikt: dit was **cargo check**,
-geen gelinkt of opgestart joint-profiel. Het exacte typecheckrapport staat op
-`/tmp/nieuw-os-image-fixture-binding-check.json`. Rootintegratie, juiste rol-ELFs,
-volledige build en echte QEMU-uitvoering blijven vereist en zijn nog niet
-door deze helpercontrole afgetekend.
+The native adapters were also type-checked on a private copy of the actual
+15e8cfc kernel/State using Rust1.90/x86_64-unknown-none and
+`native-system,process-memory,fpu-context`, exit0. A module inclusion was
+added only there; shared source was not changed. Unexecuted ELF inputs were
+used for `include_bytes`: this was **cargo check**, not a linked or booted
+joint profile. The exact type-check report is at
+`/tmp/nieuw-os-image-fixture-binding-check.json`. Root integration, correct
+role ELFs, the complete build and actual QEMU execution remain required
+and have not been signed off by this helper check.

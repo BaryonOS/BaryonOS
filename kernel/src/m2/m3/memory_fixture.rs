@@ -29,6 +29,15 @@ struct Evidence {
     oom_survivor: usize,
     retry_requested: bool,
     retry_base: u64,
+    pressure_normal: bool,
+    pressure_elevated: bool,
+    pressure_critical: bool,
+    reclaim_budget: ReclaimBudget,
+    reclaim_requested: bool,
+    reclaim_free_before: usize,
+    reclaimed_frames: usize,
+    reclaimed_processes: usize,
+    pressure_recovered: bool,
     wipe_frames: [u64; kernel_core::USER_QUOTA],
     wipe_count: usize,
     wiped_bytes: u64,
@@ -55,6 +64,15 @@ static mut EVIDENCE: Evidence = Evidence {
     oom_survivor: MAX,
     retry_requested: false,
     retry_base: 0,
+    pressure_normal: false,
+    pressure_elevated: false,
+    pressure_critical: false,
+    reclaim_budget: ReclaimBudget::new(),
+    reclaim_requested: false,
+    reclaim_free_before: 0,
+    reclaimed_frames: 0,
+    reclaimed_processes: 0,
+    pressure_recovered: false,
     wipe_frames: [0; kernel_core::USER_QUOTA],
     wipe_count: 0,
     wiped_bytes: 0,
@@ -104,6 +122,11 @@ pub(super) fn manifest(s: &State) {
         b"MANIFEST",
     );
     let e = evidence();
+    require(
+        kernel_core::pressure::classify(s.frames.availability()) == Ok(MemoryPressure::Normal),
+        b"INITIAL_NORMAL_PRESSURE",
+    );
+    e.pressure_normal = true;
     e.baseline = s.free_count()
         + s.processes[..count]
             .iter()
@@ -118,6 +141,46 @@ pub(super) fn manifest(s: &State) {
         configure(s, slot, 1);
     }
     serial::write(b"MEMORY:MANIFEST:PASS\n");
+}
+pub(super) fn observe_pressure(s: &State) {
+    let level = match kernel_core::pressure::classify(s.frames.availability()) {
+        Ok(level) => level,
+        Err(_) => {
+            require(false, b"FRAME_AVAILABILITY");
+            return;
+        }
+    };
+    let e = evidence();
+    match level {
+        MemoryPressure::Normal => e.pressure_normal = true,
+        MemoryPressure::Elevated => e.pressure_elevated = true,
+        MemoryPressure::Critical => e.pressure_critical = true,
+    }
+}
+pub(super) fn observe_cleanup(
+    s: &State,
+    slot: usize,
+    released: usize,
+    free_before: usize,
+    free_after: usize,
+) {
+    {
+        let e = evidence();
+        if case() != 4 || !e.reclaim_requested || slot == e.oom_survivor {
+            return;
+        }
+        require(
+            free_after.checked_sub(free_before) == Some(released) && released > 0,
+            b"CONTROLLED_RECLAIM_FRAME_DELTA",
+        );
+        require(
+            e.reclaimed_frames.checked_add(released).is_some() && e.reclaimed_processes < MAX,
+            b"RECLAIM_COUNTER_BOUNDS",
+        );
+        e.reclaimed_frames += released;
+        e.reclaimed_processes += 1;
+    }
+    observe_pressure(s);
 }
 fn collect(s: &State, slot: usize) {
     let p = &s.processes[slot];
@@ -332,6 +395,9 @@ pub(super) fn poll(s: &mut State) {
         s.ticks < 10000 && s.syscall_calls < 2_000_000,
         b"BOUNDED_RUN",
     );
+    // Sample the actual allocator state while guests are still allocating.
+    // Cleanup-only samples miss the elevated and critical OOM transitions.
+    observe_pressure(s);
     let e = evidence();
     if case() == 4 {
         if !e.started
@@ -342,9 +408,28 @@ pub(super) fn poll(s: &mut State) {
         {
             e.oom_survivor = (0..MAX).find(|i| word(s, *i, OOM) == 1).unwrap_or(MAX);
             require(e.oom_survivor < MAX, b"ACTUAL_PHYSICAL_OOM_REQUIRED");
+            let availability = s.frames.availability();
+            let level = match kernel_core::pressure::classify(availability) {
+                Ok(level) => level,
+                Err(_) => {
+                    require(false, b"FRAME_AVAILABILITY");
+                    return;
+                }
+            };
+            require(
+                level == MemoryPressure::Critical,
+                b"CRITICAL_PHYSICAL_PRESSURE",
+            );
+            require(
+                e.reclaim_budget.offer(level) == kernel_core::pressure::Opportunity::Granted,
+                b"BOUNDED_RECLAIM_OPPORTUNITY",
+            );
+            e.reclaim_requested = true;
+            e.reclaim_free_before = availability.free;
             e.started = true;
             for slot in 0..MAX {
                 if slot != e.oom_survivor {
+                    require(word(s, slot, DONE) == 1, b"RECLAIM_ONLY_COMPLETED_PEERS");
                     put(s, slot, CONTROL, 1);
                 }
             }
@@ -353,6 +438,22 @@ pub(super) fn poll(s: &mut State) {
             && !e.retry_requested
             && (0..MAX).all(|i| i == e.oom_survivor || s.processes[i].status == Status::Dead)
         {
+            let availability = s.frames.availability();
+            let level = match kernel_core::pressure::classify(availability) {
+                Ok(level) => level,
+                Err(_) => {
+                    require(false, b"FRAME_AVAILABILITY");
+                    return;
+                }
+            };
+            require(
+                e.reclaimed_processes == MAX - 1
+                    && e.reclaimed_frames > 0
+                    && availability.free > e.reclaim_free_before
+                    && level != MemoryPressure::Critical,
+                b"PRESSURE_RECOVERY_AFTER_ORDERLY_CLEANUP",
+            );
+            e.pressure_recovered = true;
             e.retry_base = word(s, e.oom_survivor, SUFFIX_END);
             e.retry_requested = true;
             put(s, e.oom_survivor, CONTROL, 3);
@@ -424,6 +525,26 @@ pub(super) fn poll(s: &mut State) {
             b"OOM_RECOVERY_COUNTS",
         );
         require(case() != 4 || e.oom >= 1, b"OOM_OBSERVED");
+        require(e.pressure_normal, b"NORMAL_PRESSURE_OBSERVED");
+        if case() == 4 {
+            require(
+                e.pressure_elevated
+                    && e.pressure_critical
+                    && e.reclaim_requested
+                    && e.reclaimed_processes == MAX - 1
+                    && e.reclaimed_frames > 0
+                    && e.pressure_recovered,
+                b"PRESSURE_RECLAIM_RECOVERY",
+            );
+        } else {
+            require(
+                !e.pressure_elevated
+                    && !e.pressure_critical
+                    && !e.reclaim_requested
+                    && e.reclaimed_frames == 0,
+                b"NO_PRESSURE_RECLAIM_IN_NORMAL_CASES",
+            );
+        }
         let retained = s
             .kernel
             .owned_table_count()
@@ -448,6 +569,19 @@ pub(super) fn poll(s: &mut State) {
             (b"MEMORY:OOM_FAILURES:", e.oom),
             (b"MEMORY:OOM_RECOVERIES:", e.retries),
             (b"MEMORY:RETRY_ZERO_BYTES:", e.retry_zero),
+            (b"MEMORY:PRESSURE_NORMAL:", u64::from(e.pressure_normal)),
+            (b"MEMORY:PRESSURE_ELEVATED:", u64::from(e.pressure_elevated)),
+            (b"MEMORY:PRESSURE_CRITICAL:", u64::from(e.pressure_critical)),
+            (
+                b"MEMORY:RECLAIM_OPPORTUNITIES:",
+                u64::from(e.reclaim_requested),
+            ),
+            (b"MEMORY:RECLAIMED_PROCESSES:", e.reclaimed_processes as u64),
+            (b"MEMORY:RECLAIMED_FRAMES:", e.reclaimed_frames as u64),
+            (
+                b"MEMORY:PRESSURE_RECOVERED:",
+                u64::from(e.pressure_recovered),
+            ),
             (b"MEMORY:TIMER_IRQS:", s.timer_interrupts),
             (b"MEMORY:LIVE_PROCESSES:", 0),
             (b"MEMORY:FRAMES_RECOVERED:", 1),
@@ -456,7 +590,10 @@ pub(super) fn poll(s: &mut State) {
         ] {
             print_number(name, value);
         }
-        serial::write(b"MEMORY:GROWTH:PASS\nMEMORY:ISOLATION:PASS\n");
+        serial::write(b"MEMORY:GROWTH:PASS\nMEMORY:ISOLATION:PASS\nMEMORY:PRESSURE:PASS\n");
+        if case() == 4 {
+            serial::write(b"MEMORY:RECLAIM:PASS\n");
+        }
         if case() == 4 {
             serial::write(b"MEMORY:OOM:PASS\n");
         }

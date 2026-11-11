@@ -16,7 +16,7 @@ def body(row):
     start, length = row["start_byte"], row["length_bytes"]
     chunk = data[start:start+length]
     if hashlib.sha256(chunk).hexdigest() != row["text_sha256"]:
-        raise ValueError("bronhash wijkt af: " + row["source_id"])
+        raise ValueError("source hash mismatch: " + row["source_id"])
     return chunk.decode("utf-8")
 
 def search(query, source="all", all_namespaces=False, limit=10, title=None):
@@ -57,7 +57,7 @@ def main():
     if a.id:
         rs = [r for r in rs if r["source_id"] == a.id]
         if not rs:
-            raise SystemExit("onbekend bron-ID")
+            raise SystemExit("unknown source ID")
         for r in rs: r["_body"] = body(r); r["_score"] = 0
     else:
         rs = search(a.query or "", a.source, a.all_namespaces, a.limit, a.title)
@@ -78,4 +78,4 @@ def main():
 if __name__ == "__main__":
     try: main()
     except (OSError, ValueError, json.JSONDecodeError) as e:
-        print("FOUT:", e, file=sys.stderr); raise SystemExit(2)
+        print("ERROR:", e, file=sys.stderr); raise SystemExit(2)

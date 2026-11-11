@@ -1,197 +1,203 @@
-# Consumentenwaarde en differentiatie — onderzoeksaanvulling 28 oktober 2026
+# Consumer value and differentiation — research addition, 28 October 2026
 
-**Status:** gerichte, kritische literatuurverkenning en ontwerpvertaling.  
-**Doel:** onderbouwen welke gebruikerswaarde Nieuw OS moet toetsen om niet alleen technisch zelfstandig, maar ook productmatig noodzakelijk en herkenbaar te worden.  
-**Bewijsgrens:** dit document bevat literatuurbevindingen en projecthypothesen. Het is geen eigen gebruikersonderzoek, marktaandeelprognose, formele systematische review of bewijs dat Materiaal consumenten laat overstappen.
+**Status:** targeted, critical literature exploration and design implications.
 
-## 1. Kernconclusie
+**Purpose:** substantiate which user value Baryon OS must test to become not only technically independent but also necessary and recognisable as a product.
 
-De best onderbouwde voorlopige richting is niet “een eigen kernel” als consumentenbelofte, maar een **merkbaar betere dagelijkse taak met zo weinig mogelijk onzekerheid bij proberen en overstappen**.
+**Evidence boundary:** this document contains literature findings and project hypotheses. It is not project user research, a market-share forecast, a formal systematic review or evidence that Materiaal causes consumers to switch.
 
-Voor Materiaal wordt daarom deze te onderzoeken productbelofte gebruikt:
+## 1. Main conclusion
 
-> **Je materiaal direct terugvinden, ermee verdergaan en controle houden over wijzigingen en toegang.**
+The most substantiated preliminary direction is a **noticeably better daily task with as little uncertainty as possible when trying and switching**, rather than an independent kernel as a consumer promise.
 
-De eigen kernel, capability-architectuur, lokale AI en persoonlijke opslag zijn belangrijke projectkeuzes. Hun consumentenwaarde moet zichtbaar worden via gedrag dat iemand kan ervaren: werk terugvinden, veilig doorwerken, begrijpen wat verandert, toegang begrenzen en fouten herstellen.
+The following product promise is therefore used for investigation with Materiaal:
 
-De combinatie kan een eigen productervaring opleveren zonder te claimen dat ieder afzonderlijk principe nog nergens bestaat.
+> **Find your material immediately, continue working with it and retain control over changes and access.**
 
-## 2. Vier verschillende adoptiefasen
+The independent kernel, capability architecture, local AI and personal storage are important project choices. Their consumer value must become visible through behaviour that can be experienced: retrieving work, continuing safely, understanding changes, restricting access and recovering from errors.
 
-Een positieve eerste indruk, daadwerkelijk proberen, overstappen en blijven gebruiken zijn verschillende uitkomsten en mogen niet als één maat worden behandeld.
+The combination can provide a distinctive product experience without claiming that every individual principle is unprecedented.
 
-| Fase | Vraag van de gebruiker | Wat Nieuw OS moet aantonen | Eerste bruikbare maat |
+## 2. Four different adoption phases
+
+A positive first impression, actually trying, switching and continuing use are different outcomes and must not be treated as one measure.
+
+| Phase | User question | What Baryon OS must demonstrate | First useful measure |
 |---|---|---|---|
-| Aandacht | Waarom zou ik hiernaar kijken? | Herkenbaar voordeel en verzorgde presentatie | Begrip van de belofte; vrijwillig demo starten |
-| Proberen | Is dit mijn tijd waard? | Eén nuttige taak met weinig voorbereiding | Taaksucces; hulp; afhaken |
-| Overstappen | Kan dit mijn huidige gebruik overnemen? | Noodzakelijke apps, bestanden, apparaten en migratie | Geslaagde migratietaken; feitelijk verplaatst gebruik |
-| Blijven | Kies ik hier later opnieuw voor? | Blijvend nut, betrouwbaarheid en herstel | Vrijwillig hergebruik; terugkeer naar oude werkwijze |
+| Attention | Why should this attract attention? | Recognisable benefit and polished presentation | Understanding of the promise; voluntarily starting a demonstration |
+| Trying | Is this worth the time? | One useful task with little preparation | Task success; assistance; abandonment |
+| Switching | Can this take over current use? | Essential apps, files, devices and migration | Successful migration tasks; actual transferred usage |
+| Staying | Will this be chosen again later? | Continuing usefulness, reliability and recovery | Voluntary reuse; return to the old way of working |
 
-Onderzoek naar information-systems continuance ondersteunt dat verwachtingen, tevredenheid en ervaren nut na eerste gebruik relevant zijn voor de intentie om door te gaan (Bhattacherjee, 2001). Een indrukwekkende demo is daarom niet hetzelfde als duurzame productwaarde.
+Information-systems continuance research supports the relevance of expectations, satisfaction and perceived usefulness after initial use to the intention to continue (Bhattacherjee, 2001). An impressive demonstration is therefore not equivalent to sustained product value.
 
-## 3. Wat het bewijs wél en niet ondersteunt
+## 3. What the evidence supports and does not support
 
-### 3.1 Praktische meerwaarde, plezier en haalbaarheid
+### 3.1 Practical value, enjoyment and feasibility
 
-UTAUT2 is onderzocht bij 1.512 consumenten van mobiel internet en behandelt acceptatie als een combinatie van onder meer verwacht nut, benodigde moeite, plezier, prijswaarde, ondersteuning en gewoonte (Venkatesh et al., 2012). Het model geeft geen bewezen rangorde van functies voor een nieuw desktop-OS.
+UTAUT2 was studied among 1,512 mobile internet consumers and treats acceptance as a combination of factors including expected usefulness, required effort, enjoyment, price value, support and habit (Venkatesh et al., 2012). The model provides no proven ranking of features for a new desktop OS.
 
-Een oudere meta-analyse van innovatieadoptie vond relatieve meerwaarde, compatibiliteit en complexiteit als relatief consistente factoren over uiteenlopende innovaties (Tornatzky & Klein, 1982). “Compatibiliteit” moet hier breder worden gelezen dan binaire Windows-appcompatibiliteit: ook bestaande ervaring, werkwijzen en verwachtingen tellen.
+An older meta-analysis of innovation adoption found relative advantage, compatibility and complexity to be relatively consistent factors across varied innovations (Tornatzky & Klein, 1982). “Compatibility” must be interpreted more broadly here than binary Windows app compatibility: existing experience, working methods and expectations also count.
 
-**Projectvertaling:** demonstreer een concreet betere taak en meet wat iemand daarvoor moet leren.
+**Project implication:** demonstrate a concretely better task and measure what someone must learn to perform it.
 
-### 3.2 Tevreden gebruikers hebben een reden nodig om te veranderen
+### 3.2 Satisfied users need a reason to change
 
-Farhang et al. (2018) onderzochten Windows-gebruikers rond de overstap naar Windows 10. Tevredenheid met het bestaande systeem was een belangrijke gerapporteerde reden om niet te upgraden; privacy en compatibiliteit speelden eveneens een rol.
+Farhang et al. (2018) studied Windows users around the transition to Windows 10. Satisfaction with the existing system was an important reported reason not to upgrade; privacy and compatibility also played a role.
 
-Grzybowski en Nicolle (2021) vonden in historische gegevens over 9.799 toestelwisselingen aanwijzingen voor blijvende voorkeuren en overstapfrictie bij smartphone-OS-keuzes. De studie levert geen actuele euro- of tijdswaarde voor desktopmigratie.
+In historical data on 9,799 device switches, Grzybowski and Nicolle (2021) found indications of persistent preferences and switching friction in smartphone OS choices. The study provides no current monetary or time value for desktop migration.
 
-**Projectvertaling:** probeer Nieuw OS eerst naast het bestaande systeem; maak vooraf zichtbaar welke bestanden, programma's en apparaten ondersteund zijn en houd export/terugkeer mogelijk.
+**Project implication:** first try Baryon OS alongside the existing system; show beforehand which files, programs and devices are supported, and keep export/return possible.
 
-### 3.3 Vernieuwing moet aansluiten op aangeleerde bediening
+### 3.3 Innovation must connect to learned controls
 
-Onderzoek naar skill-based habits laat zien dat aangeleerde vaardigheden voorkeur voor bestaande producten kunnen versterken (Murray & Häubl, 2007).
+Research on skill-based habits shows that acquired skills can reinforce preference for existing products (Murray & Häubl, 2007).
 
-Een desktopstudie uit 2025 vergeleek Windows, macOS en Linux met taken, oogmetingen en de System Usability Scale bij ruim zestig geanalyseerde informaticastudenten, overwegend met Windows-ervaring. Subjectieve waardering en taakprestatie kwamen niet overal overeen; vertrouwdheid is daardoor een belangrijke mogelijke verklaring. De studie bepaalt niet welk OS voor consumenten universeel het beste is (Łazaruk et al., 2025).
+A 2025 desktop study compared Windows, macOS and Linux using tasks, eye measurements and the System Usability Scale among more than sixty analysed computer-science students, predominantly experienced with Windows. Subjective ratings and task performance did not always agree; familiarity is therefore an important possible explanation. The study does not determine which OS is universally best for consumers (Łazaruk et al., 2025).
 
-**Projectvertaling:** Materiaal mag het organisatiemodel vernieuwen, maar selectie, navigatie, bekende sneltoetsen, namen, mappen en een duidelijke route terug moeten herkenbaar blijven. Meet eerste gebruik én gebruik na oefening.
+**Project implication:** Materiaal may innovate in organisation, but selection, navigation, familiar shortcuts, names, folders and a clear route back must remain recognisable. Measure both first use and use after practice.
 
-### 3.4 Vormgeving helpt de eerste indruk, maar vervangt bruikbaarheid niet
+### 3.4 Design helps the first impression but does not replace usability
 
-Tuch et al. (2012a) vonden dat visuele complexiteit en prototypicaliteit snelle esthetische oordelen beïnvloeden. Ander onderzoek van dezelfde lijn laat zien dat mooie vormgeving een slecht bruikbare ervaring niet automatisch oplost (Tuch et al., 2012b).
+Tuch et al. (2012a) found that visual complexity and prototypicality influence rapid aesthetic judgements. Other research in the same line shows that attractive design does not automatically resolve a poorly usable experience (Tuch et al., 2012b).
 
-Hassenzahl et al. (2010) analyseerden ruim vijfhonderd terugblikken op positieve technologie-ervaringen. Onder meer competentie, stimulering en verbondenheid hingen samen met positieve gevoelens. Dit betreft correlaties in geselecteerde positieve herinneringen en bewijst geen causale OS-voorkeur.
+Hassenzahl et al. (2010) analysed more than five hundred recollections of positive technology experiences. Competence, stimulation and relatedness, among other factors, were associated with positive feelings. These are correlations in selected positive memories and do not establish causal OS preference.
 
-**Projectvertaling:** de visuele identiteit moet het productvoordeel snel leesbaar maken en ook tijdens zoeken, fouten en herstel overeind blijven.
+**Project implication:** the visual identity must make the product benefit quickly understandable and remain effective during searching, errors and recovery.
 
-## 4. Kansrijke differentiatie voor Materiaal
+## 4. Promising differentiation for Materiaal
 
-### 4.1 Terugvinden vanuit herinnerde context
+### 4.1 Retrieval through remembered context
 
-Stuff I've Seen onderzocht persoonlijke informatie-retrieval bij 234 medewerkers over zes weken. Tijd en personen bleken bruikbare aanknopingspunten naast klassieke locatie- en bestandsinformatie (Dumais et al., 2003).
+Stuff I've Seen studied personal information retrieval among 234 employees over six weeks. Time and people proved useful cues alongside conventional location and file information (Dumais et al., 2003).
 
-**Hypothese:** Materiaal kan lokale zoekingangen aanbieden op titel/type, collectie, recente activiteit, tijd en andere expliciet beschikbare context, zonder dat de gebruiker eerst hoeft te weten welke app het object “bezit”.
+**Hypothesis:** Materiaal can offer local search entry points by title/type, collection, recent activity, time and other explicitly available context, without first requiring the user to know which app “owns” the object.
 
-Behoud tegelijkertijd bestaande namen en mappen. Bergman et al. (2013) vonden in hun onderzochte populaties een duidelijke voorkeur voor mappen boven tags; dit is geen bewijs dat alternatieve ordening nooit werkt, maar wel reden om een vertrouwde route niet af te schaffen.
+Retain existing names and folders at the same time. Bergman et al. (2013) found a clear preference for folders over tags in the populations studied; this does not establish that alternative organisation never works, but is a reason to preserve a familiar route.
 
-### 4.2 Verdergaan zonder opnieuw alles bij elkaar te zoeken
+### 4.2 Continuing without assembling everything again
 
-Boardman en Sasse (2004) vonden grote persoonlijke verschillen in de manier waarop mensen informatie over verschillende gereedschappen organiseren. Dat waarschuwt tegen één automatische alles-in-één-stroom.
+Boardman and Sasse (2004) found substantial individual differences in how people organise information across tools. This cautions against one automatic all-in-one stream.
 
-**Hypothese:** bied samenhang rond door de gebruiker gekozen materiaal en taakcontext, zonder automatisch alle informatiebronnen samen te voegen.
+**Hypothesis:** provide coherence around user-selected material and task context without automatically merging all information sources.
 
-Te meten winst:
-- minder zoekwerk;
-- minder verwarring over versies;
-- minder onbedoelde kopieën;
-- sneller hervatten na onderbreking.
+Benefits to measure:
 
-### 4.3 Geschiedenis, herstel en toegangsrechten als één begrijpelijke ervaring
+- less searching;
+- less version confusion;
+- fewer unintended copies;
+- faster resumption after interruption.
 
-Versiegeschiedenis, sandboxing en permissies bestaan elders in verschillende vormen. De projectkans ligt in hun **consistente samenhang rond hetzelfde materiaal**:
+### 4.3 History, recovery and access rights as one understandable experience
 
-> Dit is veranderd; dit gereedschap deed het; deze versie is bevestigd opgeslagen; dit kun je herstellen; deze toegang geldt nu.
+Version history, sandboxing and permissions exist elsewhere in different forms. The project opportunity lies in their **consistent connection around the same material**:
 
-Een toestemmingenscherm alleen is onvoldoende. Onderzoek naar het historische Android-permissiemodel vond beperkte aandacht en begrip voor installatierechten (Felt et al., 2012).
+> This changed; this tool made the change; this version is confirmed as saved; this can be recovered; this access currently applies.
 
-**Onderzoeksvraag:** kan de gebruiker na een handeling correct uitleggen welk gereedschap welk materiaal mag gebruiken, voor welke actie, hoe lang en of het netwerktoegang heeft?
+A consent screen alone is insufficient. Research into the historical Android permission model found limited attention to and understanding of installation permissions (Felt et al., 2012).
 
-### 4.4 Privacy als waarneembaar gedrag
+**Research question:** after an action, can the user correctly explain which tool may use which material, for which action, for how long and whether it has network access?
 
-Privacy is geen gegarandeerde overstapmotor. Tsai et al. (2011) vonden dat prominente privacy-informatie koopgedrag kon beïnvloeden; Beresford et al. (2012) vonden in een andere koopproef juist dat prijsverschil zwaarder kon wegen.
+### 4.4 Privacy as observable behaviour
 
-Voor Nieuw OS betekent dit dat privacy niet alleen een slogan mag zijn. Rond materiaal moet zichtbaar en technisch waar zijn:
-- waar het staat;
-- welk gereedschap of welke persoon toegang heeft;
-- welke handelingen zijn toegestaan;
-- hoe lang dat geldt;
-- of inhoud via netwerkrechten kan worden verstuurd.
+Privacy is not a guaranteed driver of switching. Tsai et al. (2011) found that prominent privacy information could influence purchasing behaviour; Beresford et al. (2012) found in another purchasing experiment that a price difference could outweigh it.
 
-Kleppmann et al. (2019) beschrijven in *local-first software* eigenaarschap, offline beschikbaarheid en samenwerking als samenhangende ontwerpdoelen. Dit is een ontwerp- en architectuurpaper, geen bewijs dat consumenten daarom naar een nieuw OS overstappen.
+For Baryon OS, this means that privacy cannot be only a slogan. For material, the following must be visible and technically true:
 
-**Projectvertaling:** laat de kernervaring zonder NAS beginnen. Onderzoek koppelen, sleutelherstel en herstel na apparaatverlies afzonderlijk; privacywinst moet in dezelfde gebruiksproef worden afgewogen tegen extra administratie of leertijd.
+- where it is stored;
+- which tool or person has access;
+- which actions are permitted;
+- how long that applies;
+- whether content can be transmitted through network permissions.
 
-### 4.5 Tijdelijk bewaren zonder meteen te organiseren
+In *local-first software*, Kleppmann et al. (2019) describe ownership, offline availability and collaboration as connected design objectives. This is a design and architecture paper, not evidence that consumers therefore switch to a new OS.
 
-Rutishauser en Fritz (2026) onderzochten bij 29 voornamelijk studenten en IT-professionals een tijdelijke opslagplek voor webmateriaal, gekoppeld aan later te vormen groepen. De aanpak hielp sommige deelnemers hun materiaal te beheersen, maar verminderde het aantal tabbladen niet bij iedereen. Het betrof opeenvolgende fasen en geen onafhankelijke gerandomiseerde controlegroep.
+**Project implication:** let the core experience begin without a NAS. Investigate linking, key recovery and recovery after device loss separately; privacy gains must be weighed against additional administration or learning time in the same usability trial.
 
-**Hypothese:** test een optionele tijdelijke plek voor een link, foto of document waarvan iemand nog niet weet waar het thuishoort. Meet zowel later terugvinden als extra rommel en opruimlast. Dit is een onderzoeksoptie, geen nieuwe verplichte productpijler.
+### 4.5 Temporary storage without immediate organisation
 
-## 5. Rust, onderbrekingen en lokale AI
+Rutishauser and Fritz (2026) studied a temporary storage area for web material, connected to groups formed later, among 29 participants, mainly students and IT professionals. The approach helped some participants manage their material, but did not reduce tab counts for everyone. It used successive phases rather than an independent randomised control group.
 
-### 5.1 Regelbare onderbrekingen
+**Hypothesis:** test an optional temporary location for a link, photo or document whose destination is not yet clear. Measure later retrieval as well as additional clutter and tidying effort. This is a research option, not a new mandatory product pillar.
 
-Een gerandomiseerd veldexperiment met 237 smartphonegebruikers vond gunstiger ervaren aandacht en controle bij drie dagelijkse meldingenbundels (Fitz et al., 2019). Dit bewijst geen universeel optimale frequentie voor een desktop-OS. Een preregistreerde studie met 205 deelnemers vond na één week meldingen uitschakelen geen duidelijke verbetering in checkgedrag, schermtijd of ervaren productiviteit; de vrees iets te missen nam toe (Dekker et al., 2025).
+## 5. Calm, interruptions and local AI
 
-**Projectvertaling:** onderzoek voorspelbare bundeling, door de gebruiker gekozen uitzonderingen en een makkelijk terug te vinden meldingenoverzicht. Meet naast ervaren rust ook gemiste belangrijke informatie en tijd om een taak te hervatten. Presenteer dit niet als bewezen gezondheids- of productiviteitsinterventie.
+### 5.1 Adjustable interruptions
 
-### 5.2 Lokale AI: alleen behouden als taakwaarde aantoonbaar is
+A randomised field experiment with 237 smartphone users found more favourable perceived attention and control with three daily notification batches (Fitz et al., 2019). This does not establish a universally optimal frequency for a desktop OS. A preregistered study with 205 participants found no clear improvement in checking behaviour, screen time or perceived productivity after one week of disabling notifications; fear of missing out increased (Dekker et al., 2025).
 
-Lokale verwerking is een privacy-architectuurkeuze, maar geeft niet automatisch begrip of vertrouwen. Kwalitatief onderzoek naar on-device machine learning laat zien dat gebruikers onduidelijke verwachtingen kunnen houden over wat wordt geanalyseerd en waarom (West et al., 2025).
+**Project implication:** investigate predictable batching, user-selected exceptions and an easily retrievable notification overview. In addition to perceived calm, measure missed important information and time to resume a task. Do not present this as a proven health or productivity intervention.
 
-Dietvorst et al. (2018) vonden dat mensen vaker een imperfect algoritme wilden gebruiken wanneer zij de uitkomst enigszins konden aanpassen. Een meta-analyse van 106 mens-AI-experimenten laat daarnaast zien dat de meerwaarde sterk per taak verschilt (Vaccaro et al., 2024).
+### 5.2 Local AI: retain it only if task value is demonstrated
 
-**Projectvertaling:** laat de gebruiker expliciet materiaal kiezen, toon welke context wordt gebruikt, maak het resultaat corrigeerbaar en vergelijk dezelfde taak ook zonder AI.
+Local processing is a privacy architecture choice, but does not automatically produce understanding or trust. Qualitative research into on-device machine learning shows that users may retain unclear expectations about what is analysed and why (West et al., 2025).
 
-## 6. Productprioriteiten als onderzoekshypothese
+Dietvorst et al. (2018) found greater willingness to use an imperfect algorithm when people could adjust its output to some extent. A meta-analysis of 106 human–AI experiments also shows that added value differs substantially by task (Vaccaro et al., 2024).
 
-Deze volgorde is projectadvies, geen statistisch bewezen marktrangorde:
+**Project implication:** let the user explicitly select material, show the context used, make the result correctable and compare the same task without AI.
 
-1. **Voorwaarde:** noodzakelijke taken, bestandsformaten, programma's en hardware van de eerste doelgroep werken aantoonbaar.
-2. Materiaal makkelijk terugvinden en werk hervatten.
-3. Begrijpelijke geschiedenis, toegang en herstel.
-4. Beperkte leerlast en haalbare migratie.
-5. Concrete privacy met eenvoudige dagelijkse workflow.
-6. Verzorgde eigen identiteit en regelbare rust.
-7. Optionele lokale AI met bewezen meerwaarde per taak.
+## 6. Product priorities as research hypotheses
 
-## 7. Eerste geïntegreerde demonstratie
+This sequence is project advice, not a statistically proven market ranking:
 
-### Scenario DV-01 — hetzelfde materiaal blijft leidend
+1. **Prerequisite:** the initial audience's essential tasks, file formats, programs and hardware demonstrably work.
+2. Easily retrieve material and resume work.
+3. Understandable history, access and recovery.
+4. Limited learning burden and feasible migration.
+5. Concrete privacy with a simple daily workflow.
+6. Polished, distinctive identity and adjustable calm.
+7. Optional local AI with demonstrated added value per task.
 
-1. Zoek **Tuinplan** terug vanuit titel, collectie of recente context.
-2. Open het object en kies gereedschap A.
-3. Geef gereedschap A alleen de benodigde objectrechten.
-4. Maak een wijziging en toon pas “opgeslagen” nadat de betreffende opslagstatus bevestigd is.
-5. Sluit of beëindig gereedschap A.
-6. Open hetzelfde ondersteunde materiaal met gereedschap B zonder een onbedoelde nieuwe kopie als standaardworkflow.
-7. Toon geschiedenis en herstel een oudere versie als nieuwe revisie.
-8. Trek toegang van A in; een nieuwe beschermde actie van A moet worden geweigerd.
-9. Laat de gebruiker uitleggen wat is opgeslagen, wat is hersteld en welk gereedschap nu nog toegang heeft.
+## 7. First integrated demonstration
 
-### Productbewijs
+### Scenario DV-01 — the same material remains central
 
-Meet minimaal taaksucces, tijd/hulp, onbedoelde kopieën, begrip van opslagstatus en rechten, herstelsucces en vrijwillige voorkeur om dezelfde taak opnieuw via Materiaal uit te voeren.
+1. Retrieve **Tuinplan** (Garden plan) by title, collection or recent context.
+2. Open the object and select tool A.
+3. Grant tool A only the required object permissions.
+4. Make a change and show “opgeslagen” (“saved”) only after the relevant storage state is confirmed.
+5. Close or terminate tool A.
+6. Open the same supported material with tool B without an unintended new copy as the default workflow.
+7. Show history and recover an earlier version as a new revision.
+8. Revoke A's access; a new protected action by A must be denied.
+9. Ask the user to explain what was saved, what was recovered and which tool still has access.
 
-### Systeembewijs
+### Product evidence
 
-De native variant moet afzonderlijk aantonen dat toegangsgrenzen echt worden afgedwongen, bevestigd werk het beëindigen van een gereedschap overleeft binnen het opslagcontract, intrekking toekomstige beschermde acties blokkeert en onzekere opslag nooit als succes wordt gepresenteerd.
+Measure at least task success, time/assistance, unintended copies, understanding of storage state and permissions, recovery success and voluntary preference to perform the same task again through Materiaal.
 
-Een browsermock bewijst alleen interactielogica.
+### System evidence
 
-## 8. Onderzoeksprogramma
+The native variant must separately demonstrate that access boundaries are genuinely enforced, confirmed work survives tool termination within the storage contract, revocation blocks future protected actions and uncertain storage is never presented as success.
 
-- **Fase A:** 12–18 interviews/taakobservaties als praktisch startvoorstel; geen statistisch vereiste omvang.
-- **Fase B:** pilot met circa 24–36 deelnemers voor vergelijkbare taken; voor bevestigende conclusies vooraf effectgrootte/power bepalen.
-- **Fase C:** verschillende eerlijke productboodschappen testen op zelfstandig uitgevoerde taken, niet alleen klikken.
-- **Fase D:** zodra één workflow stabiel genoeg is, eerst een vierweekse vroege veldproef uitvoeren met vrijwillig gebruik, fouten, herstel, hulp en redenen om terug te keren naar de oude werkwijze. Langere 90-/180-dagenvalidatie uit de markt-/adoptiesynthese blijft een afzonderlijke latere stap.
+A browser mock establishes interaction logic only.
 
-Meet taaksucces, fouten en hulpbehoefte los van aantrekkelijkheid. NASA-TLX kan aanvullend worden gebruikt voor ervaren mentale belasting; het instrument meet werklast en bewijst geen OS-voorkeur.
+## 8. Research programme
 
-## 9. Grenzen voor positionering
+- **Phase A:** 12–18 interviews/task observations as a practical starting proposal; not a statistically required size.
+- **Phase B:** pilot with approximately 24–36 participants for comparable tasks; determine effect size/power beforehand for confirmatory conclusions.
+- **Phase C:** test different honest product messages on independently performed tasks, not only clicks.
+- **Phase D:** once one workflow is sufficiently stable, first conduct a four-week early field trial recording voluntary use, errors, recovery, assistance and reasons for returning to the old way of working. Longer 90-/180-day validation from the market/adoption synthesis remains a separate later step.
 
-Wel zeggen:
-- Nieuw OS bouwt een eigen, objectgerichte productervaring rond materiaal, gereedschappen, rechten en herstel.
-- De combinatie wordt gericht onderzocht op begrijpelijkheid en dagelijkse waarde.
-- De eigen kernel is bedoeld om systeemgrenzen consequent te kunnen afdwingen.
+Measure task success, errors and assistance needs separately from attractiveness. NASA-TLX can additionally measure perceived mental workload; the instrument measures workload and does not establish OS preference.
 
-Niet zeggen zonder nieuw bewijs:
-- “niemand anders heeft dit”;
-- “consumenten stappen hierom massaal over”;
-- “privacy is de belangrijkste koopreden”;
-- “lokale AI is per definitie aantrekkelijker”;
-- “een eigen kernel maakt het systeem automatisch veiliger of gebruiksvriendelijker”.
+## 9. Boundaries for positioning
 
-## 10. Bronnen
+Supported statements:
+
+- Baryon OS is building its own object-oriented product experience around material, tools, permissions and recovery.
+- The combination is being specifically investigated for comprehensibility and daily value.
+- The independent kernel is intended to enable consistent enforcement of system boundaries.
+
+Unsupported without new evidence:
+
+- “nobody else has this”;
+- “consumers switch en masse because of this”;
+- “privacy is the main purchasing reason”;
+- “local AI is inherently more attractive”;
+- “an independent kernel automatically makes the system safer or more usable”.
+
+## 10. References
 
 Beresford, A. R., Kübler, D., & Preibusch, S. (2012). Unwillingness to pay for privacy: A field experiment. *Economics Letters, 117*(1), 25–27. https://doi.org/10.1016/j.econlet.2012.04.077
 
@@ -241,9 +247,9 @@ Venkatesh, V., Thong, J. Y. L., & Xu, X. (2012). Consumer acceptance and use of 
 
 West, J., Cagiltay, B., Zhang, S., Li, J., Fawaz, K., & Banerjee, S. (2025). “Impressively Scary.” *CHI '25*. https://doi.org/10.1145/3706598.3713256
 
-## 11. Relatie met bestaande projectdocumenten
+## 11. Relationship to existing project documents
 
-- [DESIGN-AMBITION.md](../DESIGN-AMBITION.md) bewaart de bindende productambitie.
-- [PRODUCT-SPEC.md](../implementation/PRODUCT-SPEC.md) blijft leidend voor de bevroren P2-bouwscope.
-- [PRODUCT-AND-SOVEREIGNTY.md](../PRODUCT-AND-SOVEREIGNTY.md) bevat de bredere product- en privacyvisie.
-- Dit document voegt **onderbouwing, hypothesen en een toetsprogramma** toe en levert op zichzelf geen native voortgangspunt op.
+- [DESIGN-AMBITION.md](../DESIGN-AMBITION.md) preserves the binding product ambition.
+- [PRODUCT-SPEC.md](../implementation/PRODUCT-SPEC.md) remains authoritative for the frozen P2 build scope.
+- [PRODUCT-AND-SOVEREIGNTY.md](../PRODUCT-AND-SOVEREIGNTY.md) contains the broader product and privacy vision.
+- This document adds **rationale, hypotheses and a test programme** and earns no native progress point in itself.

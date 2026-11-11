@@ -1,57 +1,57 @@
-# Capabilitydigest: productie kiest de oorspronkelijk gemeten berekening
+# Capability digest: production selects the originally measured calculation
 
-CAP-DIGEST-TCG-2 herstelt `Engine::state_digest()` naar de volledige
-oorspronkelijke berekening uit commit
-`3f20f087a7f0ddf4757af8d3ea110dd0c044a72c`. Dit is de productie-keuze na de
-gerichte native tegenmeting. Het historische onderzoek en meetprotocol staan
-in [CAP-DIAGNOSTIC-DIGEST.md](CAP-DIAGNOSTIC-DIGEST.md); onderstaande keuze
-vervangt de eerdere tijdelijke selectie van de nulreeksvariant.
+CAP-DIGEST-TCG-2 restores `Engine::state_digest()` to the complete original
+calculation from commit
+`3f20f087a7f0ddf4757af8d3ea110dd0c044a72c`. This is the production choice
+following the focused native comparison. The historical investigation and
+measurement protocol are in [CAP-DIAGNOSTIC-DIGEST.md](CAP-DIAGNOSTIC-DIGEST.md);
+the choice below supersedes the earlier temporary selection of the zero-run variant.
 
-De productiehash verwerkt opnieuw ieder getypeerd woord met dezelfde
-`h = (h XOR woord) * 0x100000001b3 modulo 2^64`, vanaf
-`0xcbf29ce484222325`. Ieder bericht wordt met de bestaande `Message::encode()`
-naar alle 320 bytes geserialiseerd en in 40 little-endian woorden verwerkt.
-Alle velden, generaties, ongeldige logische toestanden, ongebruikte queues,
-ongebruikte capabilities en payloadbytes buiten `len` blijven deelnemen.
-Compilerpadding was geen deel van deze getypeerde stroom en wordt ook nu
-niet gelezen. De vaste stroom heeft **74.569 woorden**. Het historische
-contract telde deze formule ten onrechte op tot 74.669; dit corrigeert die
-documentatiefout, zonder een veld of operatie uit de stroom te verwijderen:
+The production hash once again processes every typed word with the same
+`h = (h XOR word) * 0x100000001b3 modulo 2^64`, starting from
+`0xcbf29ce484222325`. Each message is serialised to all 320 bytes with the
+existing `Message::encode()` and processed as 40 little-endian words.
+All fields, generations, invalid logical states, unused queues, unused
+capabilities and payload bytes beyond `len` continue to participate.
+Compiler padding was not part of this typed stream and is still not read.
+The fixed stream contains **74,575 words**. The historical contract incorrectly
+summed this formula to 74,669; this corrects that documentation error without
+removing any field or operation from the stream:
 
 ```text
 1 + 16*(2 + 256*4) + 1024*12 + 64*(8 + 16*44)
-  + 4*9 + 8*7 + 16*9 + 10*6 = 74569
+  + 4*9 + 8*7 + 16*9 + 11*6 = 74575
 ```
 
-Geen cache, dirtyflag, gedeeltelijke hash, selectie op live velden,
-rechtenverruiming, foutvolgordewijziging, ABI-wijziging of verwijderde
-syscallcontrole. `stats()` blijft dezelfde volledige digest gebruiken.
-Alle kernelcontroles vóór en na iedere IPC-operatie blijven verplicht,
-ook wanneer de operatie EAGAIN retourneert. De digest is diagnostiek,
-geen cryptografische hash, authenticatie of bewijs van botsingsvrijheid.
+No cache, dirty flag, partial hash, live-field selection, expansion of rights,
+change in error order, ABI change or removed syscall check. `stats()` continues
+to use the same complete digest. All kernel checks before and after every
+IPC operation remain mandatory, including when the operation returns EAGAIN.
+The digest is diagnostic, not a cryptographic hash, authentication or proof
+of collision freedom.
 
-## Werkelijke meting en beperkte gevolgtrekking
+## Actual measurement and limited inference
 
-De integrator heeft `native-cap-digest-bench` daadwerkelijk uitgevoerd op
-commit `48b51878c03b5b73449f563735c7854b24926fc4`, bronfingerprint v3
+The integrator actually executed `native-cap-digest-bench` on commit
+`48b51878c03b5b73449f563735c7854b24926fc4`, source fingerprint v3
 `d54262733b9e2aca9b6ec1385d2c4ba7f0087d91cabab96d3f2a722edffca60d`.
-Profiel: pc-q35-8.2, qemu64, één CPU, single-thread TCG, 256 MiB RAM,
-QEMU 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1). De echte vier-processen-
-manifestgraaf bevatte 21 handles, 29 nodes en 9 endpoints. De gebruikersapps
-en PIT-timer draaiden tijdens de meting niet. Alle drie varianten kregen
-dezelfde Engine en 128 gemeten aanroepen, verdeeld over acht geroteerde
-rondes van zestien aanroepen, met vier warmupaanroepen per variant.
+Profile: pc-q35-8.2, qemu64, one CPU, single-thread TCG, 256 MiB RAM,
+QEMU 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1). The actual four-process
+manifest graph contained 21 handles, 29 nodes and 9 endpoints. User apps
+and the PIT timer did not run during measurement. All three variants
+received the same Engine and 128 measured calls, divided into eight rotated
+rounds of sixteen calls, with four warm-up calls per variant.
 
-| Variant | Som van acht TSC-batches | Kleinste batch | Grootste batch |
+| Variant | Sum of eight TSC batches | Smallest batch | Largest batch |
 | --- | ---: | ---: | ---: |
-| Oorspronkelijke referentie | 36.998.312 | 4.203.914 | 5.101.902 |
-| Direct getypeerde berichtwoorden | 43.931.758 | 5.070.624 | 6.485.388 |
-| Nulreekscompositie | 77.735.944 | 8.745.048 | 10.404.420 |
+| Original reference | 36,998,312 | 4,203,914 | 5,101,902 |
+| Directly typed message words | 43,931,758 | 5,070,624 | 6,485,388 |
+| Zero-run composition | 77,735,944 | 8,745,048 | 10,404,420 |
 
-Alle hashvergelijkingen en volledige voor-/na-Statsvergelijkingen slaagden.
-De digest was telkens `0x31b7de1c7a15245b`. Raw QEMU-exit was 33, zonder
-timeout; de totale runnerduur was 3,68513638 seconden. De wegwerpdisk had
-dezelfde hash vóór en na. Dit rapport is zelf gelezen:
+All hash comparisons and complete before/after Stats comparisons passed.
+The digest was `0x31b7de1c7a15245b` every time. Raw QEMU exit was 33 without
+timeout; total runner duration was 3.68513638 seconds. The disposable disk
+had the same hash before and after. This report was directly inspected:
 
 ```text
 /workspace/nieuw-os-worktrees/root-materiaal/build/cap-bench/cap-bench-report.json
@@ -60,63 +60,74 @@ kernel SHA256 27c787f021e1e81050b80821907efc2b9fbe7bbf3545caa91961b59fba71eca2
 serial SHA256 d6a61a5c557d1e78614d373fba4773a0fcf84d828edd4348cbdc9dfcd56e7145
 ```
 
-Deze **ongeserialiseerde RDTSC**-verschillen zijn grove TCG-batchdiagnostiek,
-inclusief lus-, functiepointer-, black_box- en pariteitsrekenwerk. Zij meten
-geen fysieke CPU-cycli of exacte per-calllatentie. De oorspronkelijke
-berekening was de snelste van deze drie varianten in deze ene afgebakende
-proef. Er volgt geen universele rangorde voor fysieke hardware, KVM, andere
-CPU's of andere Engine-toestanden uit. Evenmin is dit GUI-, app-, disk-,
-entropy-, bootlatentie-, beveiligings- of releaseacceptatie.
+The current H05 replay based on
+`1864c283a8fe0e732044e361981b9c01d342e00b` exercised the newer four-process
+manifest with 25 handles, 35 nodes and 11 endpoints. All three implementations
+produced `0x77cd1386b23a996b`; raw QEMU exit was 33, guest duration was
+4.490098334 seconds and the disposable disk hash remained
+`49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266`.
+The result is bound to source fingerprint v3
+`2859165807d303b8dbe2f977899b96700c7eccbc8bc2348f055fe5aed8d37394`
+and stored locally in `build/pr218-final-cap-bench/cap-bench-report.json`.
+It does not replace physical-hardware evidence.
 
-De eerdere hostratio van circa 2,48 voor de nulreeksvariant voorspelde dit
-resultaat niet. De geïntegreerde GUI-run op
-`1fd879dfdde88890a68f0a23901c69acd464b582` faalde met raw exit 35 bij de
-gastdeadline: één volledig frame en 1.932 tegels. De eerste capture met
-1.608 tegels verscheen volgens de integrator na circa 170,07 seconden,
-tegenover circa 106 seconden eerder. De exacte rode run en haar grenzen
-staan in het historische contract. Er wordt geen native optimalisatiewinst
-uit die hostmeting geclaimd.
+These **unserialised RDTSC** differences are coarse TCG batch diagnostics,
+including loop, function-pointer, black_box and parity-calculation work.
+They do not measure physical CPU cycles or exact per-call latency. The
+original calculation was the fastest of these three variants in this one
+bounded test. No universal ranking for physical hardware, KVM, other CPUs
+or other Engine states follows. Nor is this GUI, app, disk, entropy,
+boot-latency, security or release acceptance.
 
-## Diagnostische alternatieven blijven controleerbaar
+The earlier host ratio of approximately 2.48 for the zero-run variant did
+not predict this result. The integrated GUI run on
+`1fd879dfdde88890a68f0a23901c69acd464b582` failed with raw exit 35 at the guest
+deadline: one complete frame and 1,932 tiles. According to the integrator,
+the first capture with 1,608 tiles appeared after approximately 170.07 seconds,
+compared with approximately 106 seconds previously. The exact failed run and
+its limitations are recorded in the historical contract. No native optimisation
+gain is claimed from that host measurement.
 
-De opt-in cratefeature `diagnostic-bench` behoudt:
+## Diagnostic alternatives remain verifiable
 
-- `diagnostic_reference_digest()`: de letterlijk behouden oude referentie.
-- `diagnostic_direct_digest()`: alle getypeerde woorden, zonder nuldetectie.
-- `diagnostic_zero_digest()`: de volledige eerdere nulreeksberekening.
+The opt-in crate feature `diagnostic-bench` retains:
 
-De nulreeksberekening is ongewijzigd verplaatst uit de productie-methode.
-Alle vijf bestaande differentiële testgroepen vergelijken voortaan ook
-deze expliciete nulreeksvariant met de referentie en productiehash. De
-wirebittests controleren daarnaast de directe berichtberekening. De
-private-corruptietests blijven ook inactive, dead, ongeldige indices,
-niet-nul trailing bytes en ongebruikte capabilities onderzoeken.
-De manifesttest vergelijkt de volledige Engine én Stats vóór en na.
+- `diagnostic_reference_digest()`: the literally preserved old reference.
+- `diagnostic_direct_digest()`: all typed words, without zero detection.
+- `diagnostic_zero_digest()`: the complete earlier zero-run calculation.
 
-Zonder de feature en buiten `cfg(test)` worden de referentie-, direct- en
-nulreeksalternatieven niet gebouwd. De productie-rlib wordt hierop met
-symbolinspectie gecontroleerd. De expliciet gestarte historische
-hostmicrobenchmark vergelijkt nog steeds referentie met nulreeks, via
-`diagnostic_zero_digest()`; hij wordt geen zinloze referentie-tegen-referentie-
-vergelijking doordat de productie-keuze verandert.
+The zero-run calculation was moved unchanged out of the production method.
+All five existing differential test groups now also compare this explicit
+zero-run variant with the reference and production hash. Wire-bit tests
+additionally check the direct message calculation. Private-corruption tests
+continue to examine inactive, dead and invalid indices, nonzero trailing
+bytes and unused capabilities. The manifest test compares the complete
+Engine and Stats before and after.
 
-De integrator moet de ZERO-functiepointer in het bestaande native meetharnas
-laten wijzen naar `Engine::diagnostic_zero_digest()`. De naam ZERO mag na
-deze productie-wijziging niet meer `Engine::state_digest` aanduiden.
-Deze componentcommit wijzigt geen kernelhook, modulewiring, runner of
-GUI-waarnemer; die bestanden blijven eigendom van de integrator.
+Without the feature and outside `cfg(test)`, the reference, direct and
+zero-run alternatives are not built. Symbol inspection checks this in the
+production rlib. The explicitly started historical host microbenchmark
+still compares reference with zero-run through `diagnostic_zero_digest()`;
+it does not become a meaningless reference-versus-reference comparison
+because the production choice changes.
 
-## Componentcontrole en hervatting
+The integrator must point the ZERO function pointer in the existing native
+measurement harness to `Engine::diagnostic_zero_digest()`. After this
+production change, the name ZERO must no longer refer to `Engine::state_digest`.
+This component commit changes no kernel hook, module wiring, runner or GUI
+observer; those files remain owned by the integrator.
 
-De productie-`state_digest`-body wordt letterlijk vergeleken met de bron
-uit 3f20; SHA256 van de gelijke body is
+## Component checks and resumption
+
+The production `state_digest` body is compared literally with the source
+from 3f20; SHA256 of the identical body is
 `29ca84c1172b4c8dffd6f4aa36270ce23fa349075963d287fd0c9b08628cb7ed`.
-De body van `stats()` blijft gelijk aan 952e9ace, evenals de verplaatste
-nulreeksbody. Dit bewaakt de exacte stroom; tests bewijzen op zichzelf geen
-botsingsvrijheid of volledige veiligheid.
+The `stats()` body remains identical to 952e9ace, as does the relocated
+zero-run body. This guards the exact stream; tests alone do not prove
+collision freedom or complete security.
 
-Eigen logs staan onder `build/cap-reference-checks/`. Reproduceerbare controles
-met Rust 1.90.0, offline/locked, eigen targetmap:
+Dedicated logs are under `build/cap-reference-checks/`. Reproducible checks
+using Rust 1.90.0, offline/locked, with a dedicated target directory:
 
 ```text
 cargo +1.90.0 fmt -p capability-core -- --check
@@ -128,15 +139,15 @@ cargo +1.90.0 build --offline --locked --release -p capability-core --target x86
 cargo +1.90.0 build --offline --locked --release -p capability-core --features diagnostic-bench --target x86_64-unknown-none
 ```
 
-Beide scalar-none-configuraties krijgen ook Clippy met `-D warnings`.
-De scalarflags zijn code-model=kernel, relocation-model=static, no-redzone,
-SSE/SSE2/SSE3/SSSE3/SSE4.1/SSE4.2/AVX/AVX2 uit en expliciete padremap.
-Alle 47 oorspronkelijke coretests blijven deel van beide testsets.
-Uitgevoerd op de bevroren componentbron: **52 standaardtests en 53 tests met
-diagnostic-bench geslaagd**, telkens nul mislukt en één expliciete
-hostmicrobenchmark ignored. Alle negen bovengenoemde fmt-, test-, Clippy-
-en buildcontroles hadden exitstatus 0. De productie-rlib bevatte geen
-DiagnosticHasher, reference-, direct- of zero-alternatiefsymbolen.
+Both scalar-none configurations also receive Clippy with `-D warnings`.
+Scalar flags are code-model=kernel, relocation-model=static, no-redzone,
+SSE/SSE2/SSE3/SSSE3/SSE4.1/SSE4.2/AVX/AVX2 disabled and explicit path remapping.
+All 47 original core tests remain part of both test sets.
+Executed on the frozen component source: **52 standard tests and 53 tests with
+diagnostic-bench passed**, each with zero failures and one explicit host
+microbenchmark ignored. All nine fmt, test, Clippy and build checks described
+above had exit status 0. The production rlib contained no DiagnosticHasher,
+reference, direct or zero-alternative symbols.
 
 ```text
 componentbron v3 ea2db2786e74508e84e42d7166194869ce550ee01243a1e4b564b92112e9801d
@@ -146,11 +157,11 @@ diagnostic none-rlib SHA256 2cbe91f0bee7ba2da82fab4bf1218d9c608369c4cf15b753ed3c
 build/cap-reference-checks/report.json SHA256 e050cc6b3b2735bebb1745a5179c8f4058f80abf38258abc0e2e7e97f00b7015
 ```
 
-De fingerprint betreft deze eigen componentworktree,
-niet roots volgende geïntegreerde kandidaat. Een read-only bronreview door
-een tweede agent bevestigde de letterlijke bodies en cfg-afscherming zonder
-concrete blocker; dat is geen onafhankelijke menselijke audit of native proef.
+The fingerprint concerns this dedicated component worktree, not root's next
+integrated candidate. A read-only source review by a second agent confirmed
+the literal bodies and cfg isolation without a concrete blocker; this is
+neither an independent human audit nor a native test.
 
-De geïntegreerde native GUI en relevante regressies moeten op de nieuwe
-exacte commit en image opnieuw worden uitgevoerd. Deze productie-keuze
-tekent geen GUI-criterium af en verhoogt geen releasepercentage.
+The integrated native GUI and relevant regressions must be rerun on the
+new exact commit and image. This production choice signs off no GUI criterion
+and does not increase the release percentage.

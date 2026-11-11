@@ -1,7 +1,7 @@
-# OS Dev skill in Nieuw OS
+# OS Dev skill in Baryon OS
 
-Deze repository bevat een repositorygebonden Agent Skill onder `.agents/skills/os-dev/`.
+This repository contains a repository-specific Agent Skill at `.agents/skills/os-dev/`.
 
-De ingebouwde bronset bevat 3.054 OSDev Wiki-pagina's (nieuwste revisie per pagina uit de aangeleverde snapshot) en alle 78 fysieke pagina's van *The little book about OS development*. Gebruik `scripts/zoeken.py` voor gerichte bronselectie.
+The bundled source set contains 3,054 OSDev Wiki pages (the latest revision of each page in the supplied snapshot) and all 78 physical pages of *The little book about OS development*. Use `scripts/zoeken.py` for targeted source selection.
 
-De skill ondersteunt technische besluitvorming en implementatie, maar verandert op zichzelf geen functionele OS-mijlpaal of voortgangspercentage.
+The skill supports technical decisions and implementation, but does not itself change a functional OS milestone or progress percentage.

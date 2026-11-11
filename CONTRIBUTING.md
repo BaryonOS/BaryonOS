@@ -2,11 +2,17 @@
 
 Baryon OS is an independent operating-system research project with its own Rust kernel. Contributions must preserve the existing architecture, security, and evidence boundaries; the kernel may not be silently replaced by an existing operating-system kernel.
 
+## Project language
+
+English is the shared language for project documentation, code comments, issues, pull requests and discussions. Use clear, professional English so contributors across Europe and beyond can follow the work. Project documentation uses an impersonal, scientific style: state requirements, design choices, observations and uncertainties precisely. Use established technical terms consistently. Private conversations may use the participant's preferred language.
+
+Preserve technical identifiers, commands, file paths, test fixtures, literal UI strings and original source quotations. Explain unfamiliar Dutch product names, such as **Materiaal**, in English when needed. Historical evidence retains its original wording; translations must not change its claims or imply a new test run.
+
 ## Choose the right place first
 
 Use [Discussions](https://github.com/simonvanieperen/BaryonOS/discussions) for questions, design trade-offs, and user-experience proposals. Use [Issues](https://github.com/simonvanieperen/BaryonOS/issues/new/choose) for reproducible defects, CI/test problems, documentation corrections, and bounded implementation tasks.
 
-The [community guide](docs/COMMUNITY.md) explains which channel fits each type of contribution. Search for existing work before opening a new issue or proposal.
+The [community guide](docs/COMMUNITY.md) explains which channel fits each type of contribution. Search for existing work before opening a new issue or proposal. An ordinary submission does not start an agent pipeline; a maintainer reviews an actionable task before assigning a pipeline label.
 
 ## Development environment
 
@@ -31,7 +37,7 @@ The main toolchain is pinned. Do not substitute a different Rust, QEMU, or firmw
 
 ## Dependencies
 
-A new dependency requires review of provenance, version, maintenance, license, relevant build scripts, and `no_std` suitability where applicable. Pin the version and update the relevant dependency and third-party documentation.
+A new dependency requires review of provenance, version, maintenance, licence, relevant build scripts, and `no_std` suitability where applicable. Pin the version and update the relevant dependency and third-party documentation.
 
 ## Code and documentation
 
@@ -41,7 +47,7 @@ Project documentation uses an impersonal, scientific style: precise, testable, a
 
 ## Verification
 
-Run at least the targeted tests, formatting, and linting relevant to the change. Use the broader gate when a shared interface, capability, driver boundary, or native integration is affected.
+Run at least the targeted tests, formatting, and linting relevant to the change. Use the broader gate when a shared interface, capability, driver boundary, or native integration is affected. Milestone acceptance may require additional gates tied to the tested source version.
 
 A test that was not run is not a passing test. The current repository ruleset requires the `host-quality` and `qemu-smoke` checks before `main` can be updated.
 
@@ -50,10 +56,10 @@ A test that was not run is not a passing test. The current repository ruleset re
 - Work on a small, reviewable branch.
 - Open a new pull request as a **draft** first.
 - Use squash merge; the repository requires linear history.
-- Resolve review threads before finalizing the pull request.
+- Resolve review threads before finalising the pull request.
 - Describe the goal, scope, security invariant, commands actually run, evidence boundary, risks, and rollback.
 - Bind evidence to the exact source revision; an old green run is not evidence for a new head.
-- The 0–100 progress score increases only when an existing criterion is fully and demonstrably accepted. It may decrease when a previously accepted criterion returns to Open because of a regression, missing evidence, or an earlier claim that proved too broad.
+- The 0–100% progress score increases only when an existing criterion is fully and demonstrably accepted. It may decrease when a previously accepted criterion returns to Open because of a regression, missing evidence, or an earlier claim that proved too broad. Assessment fields are updated after every task, even if the score is unchanged.
 
 CodeRabbit and other automated review systems are additional review layers. They do not change the acceptance criteria and do not replace required runtime tests or independent human review.
 

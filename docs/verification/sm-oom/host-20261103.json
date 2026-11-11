@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "task": "SM-OOM-1",
+  "status": "host-gates-passed-native-gates-pending",
+  "source": {
+    "branch": "simonvanieperen-studious-spoon",
+    "commit": "66fdeefde823a37a0318f3d9447cd5cfc4200477",
+    "tree": "b4e9d232396aca915cc4ed8b96d8a193a98ed679"
+  },
+  "date": "2026-11-03",
+  "environment": {
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "python": "Python 3.14.4",
+    "host": "Linux x86_64"
+  },
+  "checks": [
+    {
+      "class": "host",
+      "command": "PATH=\"$HOME/.cargo/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH\" python3 -B tools/dev.py \"$HOME/.cargo/bin/cargo\" +1.90.0 test --manifest-path crates/kernel-core/Cargo.toml --locked",
+      "exit": 0,
+      "result": "24 passed",
+      "log": "/tmp/sm-oom-kernel-core-66fdeefd.log",
+      "log_sha256": "9b461983f8616e2975e05ab791f07699adefeebf5ff46347e24eacc57d430c16"
+    },
+    {
+      "class": "host",
+      "command": "PATH=\"$HOME/.cargo/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH\" python3 -B tools/dev.py \"$HOME/.cargo/bin/cargo\" +1.90.0 test --manifest-path sdk/heap-allocator/Cargo.toml --locked",
+      "exit": 0,
+      "result": "2 unit + 13 arena + 3 pressure tests; collections executable passed",
+      "log": "/tmp/sm-oom-heap-tests-66fdeefd.log",
+      "log_sha256": "57e0e06d371767212822043d24e30577399b95406f29c08dfc5088a2b3996c4f"
+    },
+    {
+      "class": "host",
+      "command": "python3 -B -m unittest discover -s tools -p 'test_memory.py'",
+      "exit": 0,
+      "result": "9 passed",
+      "log": "/tmp/sm-oom-memory-harness-66fdeefd.log",
+      "log_sha256": "2bcea7f164f3d71966e00093389b4911e8a2dacff18086a227eb7494c53b1f50"
+    },
+    {
+      "class": "host-kernel-boundary",
+      "command": "PATH=\"/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" python3 -B -m unittest tools.tests.test_kernel_memory",
+      "exit": 0,
+      "result": "1 passed; optimized Linux x86_64 guard-page harness",
+      "log": "/tmp/sm-oom-kernel-boundaries-66fdeefd-retry.log",
+      "log_sha256": "197f6a1c4cb9c908a71bb9a33e393412d897b936391fae1c97df3a0afd8be005"
+    }
+  ],
+  "failed_attempts": [
+    {
+      "command": "PATH=\"$HOME/.cargo/bin:$PATH\" python3 -B -m unittest tools.tests.test_kernel_memory",
+      "exit": 1,
+      "reason": "rustc linker `cc` was not on PATH",
+      "log": "/tmp/sm-oom-kernel-boundaries-66fdeefd.log",
+      "log_sha256": "a9ed36b08a8003a48926bb9b8141560e26423db8e3a07bdc3532b9f561f201c5"
+    },
+    {
+      "command": "PATH=\"$HOME/.cargo/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH\" python3 -B tools/dev.py \"$HOME/.cargo/bin/cargo\" +1.90.0 test --manifest-path crates/kernel-core/Cargo.toml --locked",
+      "exit": 101,
+      "reason": "initial implementation used non-const From<bool> in a const function; replaced with const conditional arithmetic and reran successfully",
+      "log": "/tmp/sm-oom-kernel-core.log",
+      "log_sha256": "234f464336b21fa0881136b1115f6a219940c7eb894ed29c397375be2c9de322"
+    }
+  ],
+  "not_run": [
+    "scalar x86_64-unknown-none kernel/app cross-build",
+    "tools/test_memory_system.py five-case disposable-QEMU matrix, including 128 MiB physical OOM",
+    "tools/test_supervisor.py K05 cleanup regression",
+    "physical hardware and human acceptance"
+  ],
+  "evidence_boundary": "Host tests and an optimized host kernel-intrinsics boundary test only. They do not prove native pressure classification, QEMU recovery, physical hardware support, or full-release acceptance."
+}

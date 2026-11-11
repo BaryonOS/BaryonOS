@@ -1,26 +1,26 @@
-# Programmeertalen en runtime
+# Programming languages and runtime
 
-Dit deel bundelt de talenoverzichten, assembly, freestandingprogrammering, runtimeondersteuning en standaardbibliotheken. Het boek kiest C met NASM en gebruikt assembly voor processorgerichte handelingen; die keuze is een eigenschap van de bron, niet een verplichting voor een ander OS.
+This section brings together language overviews, assembly, freestanding programming, runtime support and standard libraries. The book chooses C with NASM and uses assembly for processor-specific operations; that choice belongs to the source and is not a requirement for another OS.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [Languages](../corpus/wiki-02.md#w001680) [W001680] · revisie 27206 · 2022-07-01T04:41:39Z
-- [Assembly](../corpus/wiki-01.md#w001425) [W001425] · revisie 26136 · 2021-06-13T16:02:07Z
-- [C](../corpus/wiki-03.md#w001803) [W001803] · revisie 22953 · 2018-09-25T20:25:59Z
-- [C++](../corpus/wiki-02.md#w001528) [W001528] · revisie 30364 · 2026-03-22T16:20:56Z
-- [Rust](../corpus/wiki-09.md#w003415) [W003415] · revisie 30713 · 2026-06-10T18:12:11Z
-- [Implications of writing a freestanding C project](../corpus/wiki-10.md#w003725) [W003725] · revisie 29429 · 2025-03-06T11:59:57Z
-- [C Library](../corpus/wiki-08.md#w003192) [W003192] · revisie 30151 · 2026-03-06T12:08:15Z
+- [Languages](../corpus/wiki-02.md#w001680) [W001680] · revision 27206 · 2022-07-01T04:41:39Z
+- [Assembly](../corpus/wiki-01.md#w001425) [W001425] · revision 26136 · 2021-06-13T16:02:07Z
+- [C](../corpus/wiki-03.md#w001803) [W001803] · revision 22953 · 2018-09-25T20:25:59Z
+- [C++](../corpus/wiki-02.md#w001528) [W001528] · revision 30364 · 2026-03-22T16:20:56Z
+- [Rust](../corpus/wiki-09.md#w003415) [W003415] · revision 30713 · 2026-06-10T18:12:11Z
+- [Implications of writing a freestanding C project](../corpus/wiki-10.md#w003725) [W003725] · revision 29429 · 2025-03-06T11:59:57Z
+- [C Library](../corpus/wiki-08.md#w003192) [W003192] · revision 30151 · 2026-03-06T12:08:15Z
 
-## Aansluiting op het PDF-boek
+## Related PDF book pages
 
-- Pagina 11–12: [B011](../corpus/boek.md#b011) tot [B012](../corpus/boek.md#b012).
-- Pagina 19–22: [B019](../corpus/boek.md#b019) tot [B022](../corpus/boek.md#b022).
-- Pagina 67–68: [B067](../corpus/boek.md#b067) tot [B068](../corpus/boek.md#b068).
+- Pages 11–12: [B011](../corpus/boek.md#b011) to [B012](../corpus/boek.md#b012).
+- Pages 19–22: [B019](../corpus/boek.md#b019) to [B022](../corpus/boek.md#b022).
+- Pages 67–68: [B067](../corpus/boek.md#b067) to [B068](../corpus/boek.md#b068).
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [Ada](../corpus/wiki-13.md#w004477) [W004477]
 - [Ada Bare Bones](../corpus/wiki-08.md#w003231) [W003231]

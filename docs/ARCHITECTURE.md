@@ -1,132 +1,131 @@
-# Architectuur en benodigde kennis
+# Architecture and required knowledge
 
-> Update revisie 5: de eerste bouwkeuzes staan vast in [implementation/KERNEL-AND-SECURITY-CONTRACT.md](implementation/KERNEL-AND-SECURITY-CONTRACT.md). Gebruik dat document voor directe implementatie; dit bestand bewaart de ambitie en achtergrond voor vervolgfases.
+> Revision 5 update: initial implementation choices are fixed in [implementation/KERNEL-AND-SECURITY-CONTRACT.md](implementation/KERNEL-AND-SECURITY-CONTRACT.md). Use that document for direct implementation; this file preserves the ambition and background for subsequent phases.
 
-Historische status van dit achtergrondbestand: onderzoeksvoorstel van 26 oktober 2026. De eigen kernel is inmiddels tot en met M4 geïmplementeerd en in het vastgelegde QEMU-profiel getest; zie PROJECT-STATE.md en verification/m2-m4/. Onderstaande vervolgfasekeuzes blijven voorstellen tenzij het actuele bewijs ze uitdrukkelijk afdekt.
+Historical status of this background file: research proposal of 26 October 2026. The project's own kernel has since been implemented through M4 and tested in the documented QEMU profile; see PROJECT-STATE.md and verification/m2-m4/. The subsequent-phase choices below remain proposals unless current evidence explicitly covers them.
 
-## 1. Wat ‘een eigen OS’ hier betekent
+## 1. What an independent OS means here
 
-Het doel is een eigen kernel, eigen systeemservices en eigen gebruikerservaring, zonder Linux-, BSD-, XNU-, Zircon- of seL4-kernel als onderlaag. Het wordt dus geen Linux-distributie met een andere desktop.
+The goal is an independent kernel, system services and user experience, without a Linux, BSD, XNU, Zircon or seL4 kernel underneath. It will therefore not be a Linux distribution with a different desktop.
 
-Een eigen OS hoeft niet elk hulpmiddel opnieuw uit te vinden. Rust/LLVM, Git, QEMU, UEFI-firmware, openbare hardwarestandaarden en zorgvuldig gekozen bibliotheken zijn toegestaan. Ook een ontwikkelcomputer met Windows of Linux maakt het doel-OS geen afgeleide van dat host-OS. Houd gebruikte onderdelen, versies, licenties en herkomst bij. Neem geen bestaande kernelcode stilzwijgend over.
+An independent OS need not reinvent every tool. Rust/LLVM, Git, QEMU, UEFI firmware, public hardware standards and carefully selected libraries are permitted. A development computer running Windows or Linux likewise does not make the target OS a derivative of its host OS. Track components, versions, licences and provenance. Do not silently adopt existing kernel code.
 
-Principes als processen, virtueel geheugen, microkernels en capabilities zijn bestaande technische kennis. Originaliteit moet vooral ontstaan uit een coherent product, een eigen implementatie en eigen interactieontwerp. Een nieuw ongetoetst beveiligingsmechanisme is geen voordeel op zichzelf.
+Principles such as processes, virtual memory, microkernels and capabilities are established technical knowledge. Originality should primarily arise from a coherent product, an independent implementation and its own interaction design. A novel, untested security mechanism is not an advantage in itself.
 
-Er bestaat spanning tussen ‘alles zelf’ en ‘zo snel mogelijk hoge zekerheid’. Een nieuwe kernel begint zonder de bewezen eigenschappen en jarenlange foutcorrectie van volwassen projecten. seL4 kan een onderzoeksreferentie zijn; zijn bewijzen gelden niet voor de code van Nieuw OS [A7]. Als hoge zekerheid uiteindelijk belangrijker wordt dan een eigen kern, verdient die scopekeuze een expliciete heroverweging.
+There is a tension between implementing everything independently and achieving high assurance quickly. A new kernel starts without the proven properties and years of defect correction of mature projects. seL4 can serve as a research reference; its proofs do not apply to Baryon OS code [A7]. If high assurance ultimately becomes more important than an independent kernel, that scope choice warrants explicit reconsideration.
 
-## 2. Aanbevolen eerste platform
+## 2. Recommended initial platform
 
-| Onderdeel | Eerste keuze | Reden en grens |
+| Component | Initial choice | Rationale and limit |
 |---|---|---|
-| Processor | x86_64, één virtuele CPU | Een afgebakende eerste implementatie. Een apart opt-in profiel start AP's begrensd (ADR-070); SMP-scheduling volgt later. |
-| Machine | QEMU, een vastgelegde q35-machineversie | Herhaalbare virtuele hardware; geen afhankelijkheid van de specifieke ontwikkellaptop. |
-| Accelerator | TCG als CI-baseline; lokale acceleratie optioneel | TCG vereist geen beschikbare hardwarevirtualisatie. Gebruik geen TCG-resultaten als bewijs voor prestaties op echte hardware. |
-| Firmware | OVMF/UEFI, versies en hashes vastgelegd | Standaard bootinterface. Firmware is een afhankelijkheid en onderdeel van het dreigingsmodel. |
-| Loader | Kleine eigen UEFI-loader in Rust | Laadt de eigen kernel en geeft gecontroleerd geheugenkaart en bootinformatie door. |
-| Loader-target | `x86_64-unknown-uefi` | Dit produceert een UEFI-programma; het is niet op zichzelf een onafhankelijke kernel. |
-| Kernel-target | `x86_64-unknown-none`, `#![no_std]` | Eigen bare-metal ELF-kernel, zonder host-systeemaanroepen. |
-| Eerste uitvoer | Seriële log met vaste succes-/foutcodes | Automatisch toetsbaar zonder grafische desktop. |
-| Apparaten | Eerst timer/interruptcontroller; daarna beperkte virtio-apparaten | Kleiner oppervlak dan meteen echte wifi-, GPU- en USB-hardware. |
-| Opslag | Alleen gegenereerde testimages | Geen echte schijven, partities, USB-flash of telefoon ontgrendelen in de eerste fasen. |
-| Netwerk | Uit in de eerste boot- en isolatiefasen | Netwerk pas toevoegen met eigen dreigingsmodel en tests. |
+| Processor | x86_64, one virtual CPU | A bounded initial implementation. A separate opt-in profile starts APs within defined bounds (ADR-070); SMP scheduling follows later. |
+| Machine | QEMU, a recorded q35 machine version | Repeatable virtual hardware; no dependency on the particular development laptop. |
+| Accelerator | TCG as the CI baseline; local acceleration optional | TCG requires no available hardware virtualisation. Do not use TCG results as evidence of real-hardware performance. |
+| Firmware | OVMF/UEFI, with versions and hashes recorded | Standard boot interface. Firmware is a dependency and part of the threat model. |
+| Loader | Small independent UEFI loader in Rust | Loads the independent kernel and passes a validated memory map and boot information. |
+| Loader target | `x86_64-unknown-uefi` | Produces a UEFI program; it is not itself an independent kernel. |
+| Kernel target | `x86_64-unknown-none`, `#![no_std]` | Independent bare-metal ELF kernel, without host system calls. |
+| Initial output | Serial log with fixed success/error codes | Automatically verifiable without a graphical desktop. |
+| Devices | Timer/interrupt controller first; then limited virtio devices | Smaller surface than immediately supporting real Wi-Fi, GPU and USB hardware. |
+| Storage | Generated test images only | No real disks, partitions, USB flashing or phone unlocking in the initial phases. |
+| Network | Disabled during the initial boot and isolation phases | Add networking only with its own threat model and tests. |
 
-Bronbasis: Rust documenteert aparte UEFI- en bare-metal-targets. Bij `x86_64-unknown-none` ontbreken `std` en een standaardallocator; `alloc` vraagt een eigen allocator [A1–A2]. QEMU biedt systeememulatie, verschillende accelerators en virtio-apparaten; machine- en architectuurkeuzes zijn expliciet en niet onderling uitwisselbaar [A3–A4]. Virtio is een gestandaardiseerde interface voor virtuele apparaten [A5].
+Source basis: Rust documents separate UEFI and bare-metal targets. `x86_64-unknown-none` lacks `std` and a default allocator; `alloc` requires a custom allocator [A1–A2]. QEMU provides system emulation, different accelerators and virtio devices; machine and architecture choices are explicit and not interchangeable [A3–A4]. Virtio is a standardised interface for virtual devices [A5].
 
-De loader moet de overgang na `ExitBootServices` correct afhandelen. Geheugen dat de firmware eerder beheerde, mag alleen volgens het overdrachtscontract worden hergebruikt. Een screenshot met ‘Hello world’ terwijl firmware-services nog al het werk doen, mag niet als zelfstandig werkende kernel worden gerapporteerd. De exacte boot-ABI, ELF-segmentvalidatie en geheugenkaartsemantiek krijgen vóór implementatie een ADR.
+The loader must correctly handle the transition after `ExitBootServices`. Memory previously managed by firmware may be reused only under the handover contract. A screenshot showing 'Hello world' while firmware services still do all the work must not be reported as an independently operating kernel. The exact boot ABI, ELF segment validation and memory-map semantics require an ADR before implementation.
 
-## 3. Architectuurrichting: kleine capability-microkernel
+## 3. Architectural direction: a small capability microkernel
 
-Houd het privilegieerde hart klein: adresruimten, threads/scheduling, interrupts, beperkte IPC en afdwingbare toegang tot kernelobjecten. Bestandssystemen, netwerkdiensten, pakketbeheer, grafische compositie en zoveel mogelijk drivers draaien als geïsoleerde processen. Dit is een onderzoeksrichting; IPC-complexiteit en prestaties moeten worden gemeten.
+Keep the privileged core small: address spaces, threads/scheduling, interrupts, bounded IPC and enforceable access to kernel objects. Filesystems, network services, package management, graphical composition and as many drivers as possible run as isolated processes. This is a research direction; IPC complexity and performance must be measured.
 
-Een capability is hier een door de kernel gecontroleerd recht op een specifiek object, met expliciete bewerkingen. De gebruiker geeft bijvoorbeeld één gekozen bestand vrij aan een app; de app krijgt niet automatisch toegang tot de hele thuismap. Een waarde raden of kopiëren uit een ander proces mag geen toegang opleveren. Fuchsia illustreert procesgebonden handles met afzonderlijke rechten; het is een referentie, geen over te nemen ABI [A6].
+A capability here is a kernel-checked right to a specific object, with explicit operations. For example, the user releases one selected file to an app; the app does not automatically gain access to the entire home directory. Guessing a value or copying it from another process must not grant access. Fuchsia illustrates process-bound handles with separate rights; it is a reference, not an ABI to adopt [A6].
 
-Ontwerpregels:
+Design rules:
 
-1. Standaard geen globale bestands-, netwerk-, camera- of microfoontoegang voor applicaties.
-2. Rechten doorgeven kan alleen expliciet en nooit met meer bevoegdheden dan de afzender bezit.
-3. Leg objectlevensduur, rechtenvermindering, handlehergebruik en intrekking vast. Intrekking kan toekomstige toegang stoppen, maar reeds gelezen gegevens niet terughalen.
-4. IPC heeft begrensde berichtgrootte, gevalideerde lengtes, quota, tijdslimieten en duidelijke eigendomsoverdracht.
-5. Een systeemservice is niet automatisch vertrouwd voor alle gegevens. Analyseer welke componenten voor welke veiligheidsclaim vertrouwd moeten worden.
-6. Een driver in gebruikersruimte is nog niet volledig geïsoleerd wanneer DMA buiten zijn geheugen kan komen. IOMMU-beheer en toegestane buffers moeten onderdeel zijn van echte hardwareondersteuning.
-7. Geen ‘root’-achtig algemeen recht in een normale app. Een beheerhandeling loopt via een beperkte beheerinterface; fysieke eigenaarcontrole wordt apart ontworpen.
-8. Rust vermindert bepaalde geheugenfouten maar bewijst geen correct privilegebeleid. Elk `unsafe`-blok beschrijft invariant, aannames, aanroepvoorwaarden en controlebewijs.
+1. Applications have no global file, network, camera or microphone access by default.
+2. Rights can be transferred only explicitly and never with greater authority than the sender possesses.
+3. Define object lifetimes, attenuation, handle reuse and revocation. Revocation can stop future access but cannot recover data already read.
+4. IPC has bounded message sizes, validated lengths, quotas, time limits and clear ownership transfer.
+5. A system service is not automatically trusted with all data. Analyse which components must be trusted for each security claim.
+6. A userspace driver is not fully isolated if DMA can reach outside its memory. IOMMU management and permitted buffers must be part of real-hardware support.
+7. No general root-like authority in an ordinary app. Administrative actions use a bounded management interface; physical owner control is designed separately.
+8. Rust reduces certain memory errors but does not prove a correct privilege policy. Every `unsafe` block describes its invariant, assumptions, call conditions and validation evidence.
 
-De complete beveiligingsuitwerking staat in [SECURITY-AND-QUANTUM.md](SECURITY-AND-QUANTUM.md).
+The complete security treatment is in [SECURITY-AND-QUANTUM.md](SECURITY-AND-QUANTUM.md).
 
-## 4. Productrichting die meer is dan een andere desktop
+## 4. A product direction beyond a different desktop
 
-Herziene privacygrens (27 oktober 2026): opslag lokaal of end-to-end versleuteld op een expliciet gekoppelde eigen NAS of NAS van vrienden/familie. Internet is ondersteunde productfunctionaliteit met afzonderlijke rechten; remote NAS-verkeer vereist toestemming gebonden aan de geverifieerde peer. NAS-beheer geeft ruimte-/verwijderrecht, geen inhoudssleutel. AI-inferentie blijft uitsluitend op het apparaat. Leverancierscloud, stille relays en cloudfallback zijn geen OS-opties. Zie [LOCAL-PRIVACY-CONTRACT.md](LOCAL-PRIVACY-CONTRACT.md). Derdenapps mogen via begrensde rechten internet gebruiken; dat verleent geen automatische toegang tot OS- of NAS-gegevens.
+Revised privacy boundary (27 October 2026): storage is local or end-to-end encrypted on an explicitly paired personal NAS or a NAS belonging to friends/family. Internet is supported product functionality with separate permissions; remote NAS traffic requires consent bound to the verified peer. NAS administration grants capacity/deletion rights, not a content key. AI inference remains exclusively on the device. Vendor cloud, silent relays and cloud fallback are not OS options. See [LOCAL-PRIVACY-CONTRACT.md](LOCAL-PRIVACY-CONTRACT.md). Third-party apps may use the internet through bounded permissions; that does not grant automatic access to OS or NAS data.
 
-Aanbevolen eerste producthypothese: een lokaal werkend persoonlijk systeem met begrijpelijke, tijdelijke toegang per taak. Eén consistent permissiemodel voor apps én toekomstige AI-assistenten, met een zichtbaar overzicht ‘welke app kan nu bij welke gegevens?’. Dit is een ontwerpvoorstel, geen claim van wereldwijde nieuwheid.
+Recommended initial product hypothesis: a locally operating personal system with understandable, temporary access for each task. One consistent permission model for apps and future AI assistants, with a visible overview of which app can currently access which data. This is a design proposal, not a claim of worldwide novelty.
 
-| Doel | Concreet productgedrag | Te onderzoeken bewijs |
+| Goal | Concrete product behaviour | Evidence to investigate |
 |---|---|---|
-| Gebruiksvriendelijk | Werkt zonder online account; gewone taken via consistente instellingen; goede herstelroute | Gebruikersonderzoek met taakvoltooiing, fouten en herstelbaarheid |
-| Privacyvriendelijk | Geen verplichte leverancierscloud of OS-telemetrie; E2EE naar persoonlijke NAS en optioneel opaque client-side versleutelde objecten bij een expliciet gekozen externe provider; beheer/provider krijgt geen inhoudssleutel; AI zonder netwerkrecht | Verkeersmetingen, NAS-/provideruitval, vals endpoint, providercredentials-zonder-key, manipulatie/rollback en stille uitwijkpogingen testen |
-| Zelf in te regelen | Verwisselbare shell, sneltoetsen en services; exporteerbare configuratie | Veilige standaardconfiguratie blijft intact bij normale personalisatie |
-| Europese autonomie | Open formaten, lokale taal/locale, onafhankelijke updatesleutels en verwisselbare diensten | Werkt zonder verplicht Apple-, Google- of Microsoft-account of centrale dienst |
-| Toegankelijk | Toetsenbordbediening, schaalbare tekst, hoog contrast, later semantische toegankelijkheidsboom en schermlezer | Tests met gebruikers en ondersteunende technologie |
-| Licht en snel | Beperkte achtergrondtaken, begrensd geheugengebruik, responsieve invoer | Vastgelegde RAM-, CPU-, latentie- en energieprofielen op referentiehardware |
-| Breed inzetbaar | Gedeelde kern en API, aparte desktop/touch/embedded-profielen | Dezelfde contracttests per ondersteunde platformport |
+| Usable | Works without an online account; ordinary tasks through consistent settings; sound recovery route | User research measuring task completion, errors and recoverability |
+| Privacy-respecting | No mandatory vendor cloud or OS telemetry; E2EE to a personal NAS and optional opaque client-side encrypted objects at an explicitly selected external provider; administrator/provider receives no content key; AI without network permission | Test traffic measurements, NAS/provider outages, false endpoints, provider credentials without a key, tampering/rollback and silent fallback attempts |
+| Configurable | Replaceable shell, shortcuts and services; exportable configuration | Safe defaults remain intact during ordinary personalisation |
+| European autonomy | Open formats, local language/locale, independent update keys and interchangeable services | Works without a mandatory Apple, Google or Microsoft account or central service |
+| Accessible | Keyboard operation, scalable text, high contrast, later a semantic accessibility tree and screen reader | Tests with users and assistive technology |
+| Lightweight and fast | Limited background work, bounded memory use, responsive input | Recorded RAM, CPU, latency and energy profiles on reference hardware |
+| Broadly applicable | Shared core and API, separate desktop/touch/embedded profiles | The same contract tests for each supported platform port |
 
-Geen kopie van vensterdecoraties is nodig om vertrouwde handelingen te ondersteunen. Laat vormgeving volgen uit taken. Een complete browserengine, kantooromgeving en appwinkel zijn geen eerste kernelmijlpaal. Hun kwaliteit en compatibiliteit kunnen later bepalender worden voor adoptie dan de kernel.
+Copying window decorations is not necessary to support familiar actions. Let tasks guide the design. A complete browser engine, office suite and app store are not initial kernel milestones. Their quality and compatibility may later matter more for adoption than the kernel.
 
-## 5. ‘Op elk device’ vertalen naar toetsbare ondersteuning
+## 5. Translating every device into verifiable support
 
-Eén broncodebasis kan meerdere architecturen ondersteunen; één ongewijzigd kernelbestand draait niet vanzelf op alle processoren. Bovendien verschilt hardware binnen dezelfde ISA. Een ARM64-kernel is daarmee nog geen bruikbaar telefoon-OS.
+One source tree can support multiple architectures; one unchanged kernel file does not automatically run on every processor. Hardware also differs within the same ISA. An ARM64 kernel is therefore not yet a usable phone OS.
 
-| Platform | Plan | Voorwaarden |
+| Platform | Plan | Conditions |
 |---|---|---|
-| QEMU x86_64 | Eerste ondersteunde doel | Vastgelegde machine, firmware, CPU-features en apparaten |
-| Eén echte x86_64-pc | Na VM-isolatie en hersteltests | Gedocumenteerde hardware, aparte testschijf, veilige boot-/herstelroute, DMA-beleid |
-| QEMU AArch64 | Eerste portabiliteitsproef na kerncontracten | Eigen interrupt-, MMU-, timer-, contextwissel- en bootcode |
-| RISC-V 64-bit | Mogelijke latere port | Expliciete ISA-extensies, privilegeomgeving, boardinterface en testset |
-| Smartphones/tablets | Alleen concreet gekozen modellen | Ontgrendelbaarheid, bootketen, SoC-/GPU-/touch-/camera-/modemdrivers, firmware en energiebeheer |
-| Microcontrollers zonder MMU | Ander beveiligingsprofiel of buiten scope | Geen identieke procesisolatie beloven; eventueel aparte MPU/RTOS-benadering |
-| Quantumhardware | Vanaf ontwerp Q0–Q4 onderzoeken: lokale uitvoering en eigen OS op hybride quantumcomputer | Exact uitvoeringsmodel en lokale hardware vereist; zie QUANTUM-RESEARCH.md |
+| QEMU x86_64 | First supported target | Recorded machine, firmware, CPU features and devices |
+| One real x86_64 PC | After VM isolation and recovery tests | Documented hardware, separate test disk, safe boot/recovery route, DMA policy |
+| QEMU AArch64 | First portability experiment after core contracts | Independent interrupt, MMU, timer, context-switch and boot code |
+| RISC-V 64-bit | Possible later port | Explicit ISA extensions, privilege environment, board interface and test set |
+| Smartphones/tablets | Only specifically selected models | Unlockability, boot chain, SoC/GPU/touch/camera/modem drivers, firmware and power management |
+| Microcontrollers without an MMU | Different security profile or outside scope | Do not promise identical process isolation; potentially a separate MPU/RTOS approach |
+| Quantum hardware | Investigate from design stages Q0–Q4: local execution and an independent OS on a hybrid quantum computer | Exact execution model and local hardware required; see QUANTUM-RESEARCH.md |
 
-Android documenteert dat veel toestellen vergrendeld worden geleverd en dat ontgrendeling apparaatbeleid volgt en gegevens wist [A8]. De HAL-documentatie maakt expliciet dat leveranciers apparaatspecifieke functies moeten implementeren [A9]. **Ondersteuning van de OnePlus 13 is nog niet vastgesteld.** Hiervoor ontbreekt een modelspecifieke port, driverinventaris en geteste boot-/herstelroute. Flash het toestel nu niet.
+Android documents that many devices ship locked and that unlocking follows device policy and erases data [A8]. HAL documentation explicitly requires vendors to implement device-specific functionality [A9]. **Support for the OnePlus 13 has not been established.** A model-specific port, driver inventory and tested boot/recovery route are missing. Do not flash the device at this stage.
 
-Compatibiliteit met bestaande apps is een afzonderlijk productproject. Native apps vragen een SDK, API/ABI en distributiepad. Webapps vragen een port van een grote browserengine. Windows-/Android-/Linux-apps vragen compatibiliteitslagen of gast-VM’s, licentiecontrole en extra isolatie; ondersteuning volgt niet uit de keuze Rust of microkernel. Een optionele Linux-gast is een andere keuze dan een Linux-kernel als basis, en wordt pas na expliciete scopebeslissing toegevoegd.
+Compatibility with existing apps is a separate product project. Native apps require an SDK, API/ABI and distribution path. Web apps require a port of a large browser engine. Windows, Android and Linux apps require compatibility layers or guest VMs, licence checks and additional isolation; support does not follow from choosing Rust or a microkernel. An optional Linux guest differs from using a Linux kernel as the foundation and is added only after an explicit scope decision.
 
-## 6. Welke kennis Codex nodig heeft
+## 6. Knowledge Codex requires
 
-Codex heeft geen grote kennisdump nodig die alle boeken vervangt. Het heeft de juiste versie van primaire documentatie, repo-contracten, meetbare eisen en de mogelijkheid nodig om elke aanname te testen. Elk taakbriefje noemt welke bron en welk hoofdstuk relevant zijn.
+Codex does not need a large knowledge dump replacing every book. It needs the correct version of primary documentation, repository contracts, measurable requirements and the ability to test each assumption. Every task brief identifies the relevant source and chapter.
 
-| Domein | Benodigde kennis | Te bewaren projectkennis | Aantoonbaar resultaat |
+| Domain | Required knowledge | Project knowledge to retain | Demonstrable result |
 |---|---|---|---|
-| Computerarchitectuur | Privilegeniveaus, MMU, interrupts, TLB, caches, atomics, DMA, geheugenvolgorde | CPU-/boardprofiel, featurebaseline, handleidingverwijzingen | Positieve en negatieve hardwaretests |
-| Boot/linking | UEFI, ELF/PE, linkerlayout, calling conventions, boot-services-overgang | Boot-ABI, segmentregels, geheugenkaartcontract | Boot na firmware-overdracht, corrupte image geweigerd |
-| Rust/systemen | Ownership, lifetimes, `no_std`, allocators, FFI, inline assembly, UB | Toolchainpin, dependencybeleid, `unsafe`-register | Hosttests voor pure logica plus doeltests |
-| Kernelgeheugen | Pageframes, mappings, W^X, user/kernel-grens, objectlevensduur | Invarianten en adresruimte-indeling | Geen overlap, toegangsfouten geïsoleerd |
-| Scheduling | Threads, contextwisseling, timers, prioriteiten, fairness, later SMP | Schedulercontract en quota | Voortgang en herstel onder foutbelasting |
-| Bevoegdheden/IPC | Capabilities, delegatie, revocatie, confused deputy, TOCTOU | Syscall-/IPC-/rechtencontracten | Ongeautoriseerde toegang faalt aantoonbaar |
-| Drivers | PCI, virtio, DMA, interrupts, buffers, reset/power | Ondersteunde device-ID’s en features | Malformed input en drivercrash begrensd |
-| Opslag | Block I/O, metadata, crashconsistentie, flush, herstel | On-diskformaat en migratiebeleid | Power-cut/fault-injection met consistente uitkomst |
-| Netwerk | Ethernet/IP, TCP/UDP, DNS, TLS, resource-exhaustion | Stackkeuze, poortbeleid, parsercontracten | Protocoltests, fuzzing, netwerk uit standaard |
-| Cryptografie | Entropie, sleutelbeheer, actuele standaarden, PQC, replay/downgrade | Crypto-inventaris en library-/parameterbesluiten | Bekende testvectoren en foutpaden |
-| Updates | Verificatie, sleuteldraaiing, A/B-slots, rollback versus anti-rollback | Updatemanifest en herstelontwerp | Onderbroken/malafide update laat herstel toe |
-| Grafisch/invoer | Compositor, fonts, Unicode, touch, accessibility, GPU | UI-/inputcontracten en dreigingsmodel | Responsiviteit, invoerisolatie, toegankelijke taken |
-| Apps/ecosysteem | Executable loader, SDK, ABI-versies, packages, signing | Appmanifest en compatibiliteitsbeleid | Kleine native app zonder verborgen hostafhankelijkheid |
-| Kwaliteit | Fuzzing, modelchecking, propertytests, traceanalyse, reproduceerbare builds | Acceptatiecriteria, testlogs, regressiebaselines | Andere bouwer reproduceert uitkomst |
-| Governance | Licenties, herkomst, maintainerrollen, vulnerability disclosure | Licentiebeleid, bijdragenbeleid, beslislog | Controleerbare herkomst en releaseprocedure |
+| Computer architecture | Privilege levels, MMU, interrupts, TLB, caches, atomics, DMA, memory ordering | CPU/board profile, feature baseline, manual references | Positive and negative hardware tests |
+| Boot/linking | UEFI, ELF/PE, linker layout, calling conventions, boot-services transition | Boot ABI, segment rules, memory-map contract | Boot after firmware handover; corrupted image rejected |
+| Rust/systems | Ownership, lifetimes, `no_std`, allocators, FFI, inline assembly, UB | Toolchain pin, dependency policy, `unsafe` register | Host tests for pure logic plus target tests |
+| Kernel memory | Page frames, mappings, W^X, user/kernel boundary, object lifetimes | Invariants and address-space layout | No overlap; access faults isolated |
+| Scheduling | Threads, context switches, timers, priorities, fairness, later SMP | Scheduler contract and quotas | Progress and recovery under fault load |
+| Authority/IPC | Capabilities, delegation, revocation, confused deputy, TOCTOU | Syscall/IPC/permission contracts | Unauthorised access demonstrably fails |
+| Drivers | PCI, virtio, DMA, interrupts, buffers, reset/power | Supported device IDs and features | Malformed input and driver crashes contained |
+| Storage | Block I/O, metadata, crash consistency, flush, recovery | On-disk format and migration policy | Power-cut/fault injection with consistent outcomes |
+| Network | Ethernet/IP, TCP/UDP, DNS, TLS, resource exhaustion | Stack choice, port policy, parser contracts | Protocol tests, fuzzing, network disabled by default |
+| Cryptography | Entropy, key management, current standards, PQC, replay/downgrade | Crypto inventory and library/parameter decisions | Known test vectors and failure paths |
+| Updates | Verification, key rotation, A/B slots, rollback versus anti-rollback | Update manifest and recovery design | Interrupted/malicious update permits recovery |
+| Graphics/input | Compositor, fonts, Unicode, touch, accessibility, GPU | UI/input contracts and threat model | Responsiveness, input isolation, accessible tasks |
+| Apps/ecosystem | Executable loader, SDK, ABI versions, packages, signing | App manifest and compatibility policy | Small native app without hidden host dependency |
+| Quality | Fuzzing, model checking, property tests, trace analysis, reproducible builds | Acceptance criteria, test logs, regression baselines | Another builder reproduces the outcome |
+| Governance | Licences, provenance, maintainer roles, vulnerability disclosure | Licensing policy, contribution policy, decision log | Verifiable provenance and release procedure |
 
-Rust’s bare-metal-target ondersteunt geen normale uitvoering van de Rust-testsuite [A1]. Ontwerp dus twee testlagen: host-uitvoerbare pure algoritmen en integratietests die de echte kernel in QEMU starten. Een geslaagde hosttest bewijst niet dat de kernelboot werkt.
+Rust's bare-metal target does not support ordinary execution of the Rust test suite [A1]. Design two test layers: host-executable pure algorithms and integration tests that boot the actual kernel in QEMU. A passing host test does not prove that kernel boot works.
 
-## 7. Primaire bronnen (APA 7)
+## 7. Primary sources (APA 7)
 
-Raadpleegdatum voor veranderlijke documentatie: 26 oktober 2026. Dit bestand bevat eigen ontwerpkeuzes op basis van deze bronnen; zij onderschrijven dit project niet.
+Retrieval date for changing documentation: 26 October 2026. This file contains project design choices based on these sources; they do not endorse the project.
 
-- **A1.** The Rust Project. (z.d.). *x86_64-unknown-none*. The rustc book. https://doc.rust-lang.org/rustc/platform-support/x86_64-unknown-none.html
-- **A2.** The Rust Project. (z.d.). *\*-unknown-uefi*. The rustc book. https://doc.rust-lang.org/rustc/platform-support/unknown-uefi.html
-- **A3.** QEMU Project. (z.d.). *Introduction*. QEMU documentation. https://www.qemu.org/docs/master/system/introduction.html
-- **A4.** QEMU Project. (z.d.). *Invocation*. QEMU documentation. https://www.qemu.org/docs/master/system/invocation.html
-- **A5.** OASIS. (2022, 1 juli). *Virtual I/O Device (VIRTIO) version 1.2: Committee specification 01*. https://docs.oasis-open.org/virtio/virtio/v1.2/virtio-v1.2.html
-- **A6.** Fuchsia Authors. (z.d.). *Zircon handles*. https://fuchsia.dev/fuchsia-src/concepts/kernel/handles
-- **A7.** seL4 Foundation. (z.d.). *Verification*. https://sel4.systems/Verification/
-- **A8.** Android Open Source Project. (z.d.). *Lock and unlock the bootloader*. https://source.android.com/docs/core/architecture/bootloader/locking_unlocking
-- **A9.** Android Open Source Project. (z.d.). *Hardware abstraction layer (HAL) overview*. https://source.android.com/docs/core/architecture/hal
+- **A1.** The Rust Project. (n.d.). *x86_64-unknown-none*. The rustc book. https://doc.rust-lang.org/rustc/platform-support/x86_64-unknown-none.html
+- **A2.** The Rust Project. (n.d.). *\*-unknown-uefi*. The rustc book. https://doc.rust-lang.org/rustc/platform-support/unknown-uefi.html
+- **A3.** QEMU Project. (n.d.). *Introduction*. QEMU documentation. https://www.qemu.org/docs/master/system/introduction.html
+- **A4.** QEMU Project. (n.d.). *Invocation*. QEMU documentation. https://www.qemu.org/docs/master/system/invocation.html
+- **A5.** OASIS. (2022, July 1). *Virtual I/O Device (VIRTIO) version 1.2: Committee specification 01*. https://docs.oasis-open.org/virtio/virtio/v1.2/virtio-v1.2.html
+- **A6.** Fuchsia Authors. (n.d.). *Zircon handles*. https://fuchsia.dev/fuchsia-src/concepts/kernel/handles
+- **A7.** seL4 Foundation. (n.d.). *Verification*. https://sel4.systems/Verification/
+- **A8.** Android Open Source Project. (n.d.). *Lock and unlock the bootloader*. https://source.android.com/docs/core/architecture/bootloader/locking_unlocking
+- **A9.** Android Open Source Project. (n.d.). *Hardware abstraction layer (HAL) overview*. https://source.android.com/docs/core/architecture/hal
 - **A10.** UEFI Forum. (2024). *UEFI specification 2.11*. https://uefi.org/specs/UEFI/2.11/
 
-De UEFI-inhoudsopgave is geraadpleegd; het specifieke hoofdstuk over boot-services kon in dit onderzoek niet volledig worden opgehaald. De implementatieagent moet dat hoofdstuk daadwerkelijk lezen vóór bootcode te schrijven.
-
+The UEFI table of contents was consulted; the specific boot-services chapter could not be retrieved in full during this research. The implementation agent must actually read that chapter before writing boot code.

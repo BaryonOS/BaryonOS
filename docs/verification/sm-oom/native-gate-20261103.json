@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "task": "SM-OOM-1",
+  "status": "passed",
+  "source_commit": "d5d5776e00f16229e2d1f7ff40e8badf1d30f614",
+  "source_fingerprint_version": 3,
+  "source_sha256": "9a170636a33e2761abcd191f19e0166f4f7282d67bd53e1cb0c3a5283130094c",
+  "branch": "simonvanieperen-studious-spoon",
+  "command": "PATH=\"$HOME/.cargo/bin:/tmp/sm-oom-qemu-root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$PATH\" LD_LIBRARY_PATH=/tmp/sm-oom-qemu-root/usr/lib/x86_64-linux-gnu OS_OVMF_CODE=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/sm-oom-qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_memory_system.py",
+  "exit": 0,
+  "host": {
+    "command": "python3 -B -m unittest discover -s tools -p 'test_memory.py'",
+    "exit": 0,
+    "result": "9 passed"
+  },
+  "build": {
+    "toolchain": "Rust 1.90.0",
+    "target": "x86_64-unknown-none",
+    "profiles": [
+      "native-memory",
+      "native-memory-nx",
+      "native-memory-guard",
+      "native-memory-peer",
+      "native-memory-oom"
+    ],
+    "result": "All five release kernel/loader/memory-app profiles built and were inspected."
+  },
+  "qemu": {
+    "version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)",
+    "machine": "pc-q35-8.2",
+    "cpu": "qemu64",
+    "acceleration": "TCG single-threaded",
+    "smp": 1,
+    "binary_sha256": "fa552a45c337a88fe71e1e1af9ebace875f30e88685a6986d9406c92efaf44cb",
+    "ovmf_code_sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "ovmf_vars_template_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "provisioning": "Official Ubuntu packages downloaded and extracted under /tmp; no system package installation."
+  },
+  "profiles": [
+    {
+      "case": "normal",
+      "ram_mib": 256,
+      "passed": true,
+      "report_sha256": "8bcaf7e3363b00917272006754285b575848475317068e01855106382a4d453e",
+      "kernel_sha256": "d73c684cc3647c43af322c62d9692b65f3a2396b1e32ab807ef20cce5401be19",
+      "duration_s": 2.1285166529996786
+    },
+    {
+      "case": "nx",
+      "ram_mib": 256,
+      "passed": true,
+      "report_sha256": "412d6bdda59e53d515910946add3be8f46e47883c1a8456d4536802c03338ca6",
+      "kernel_sha256": "2047cb36798ecaf811d1881c7f58d7fe642aada7e3335d1ce1729b3c8af64e4b",
+      "duration_s": 2.1169593529994017
+    },
+    {
+      "case": "guard",
+      "ram_mib": 256,
+      "passed": true,
+      "report_sha256": "8b62bcbd58c2115d062fbc6dff4112674c6304d995a234e25b7d4336d25a4385",
+      "kernel_sha256": "856df70e85a3f864e5cf4d860a054bd8959d11a03d9ca51e49988c0f1d65bfb9",
+      "duration_s": 2.1035909929996706
+    },
+    {
+      "case": "peer",
+      "ram_mib": 256,
+      "passed": true,
+      "report_sha256": "53b9f8cbe03e29d0cb1f93d38fe8c4453d6f5029cc93db9fa718ec6488ecce23",
+      "kernel_sha256": "0173c0cc01e177eec134eff10feab5935c73c26335eb4e08ceba6aad0e15d4a8",
+      "duration_s": 2.1126111739977205
+    },
+    {
+      "case": "oom",
+      "ram_mib": 128,
+      "passed": true,
+      "report_sha256": "1b061d57f49dbafbc8ebd10708b5d1ff7b86de7ecf931d973c5b4e66e8d76038",
+      "kernel_sha256": "bf97007656c807b8d3ab59b5512df5450c830bdc3e90cfc8fcd249906b6608f3",
+      "duration_s": 2.579646551002952,
+      "counters": {
+        "quota_denied": 0,
+        "oom_failures": 16,
+        "pressure_normal": 1,
+        "pressure_elevated": 1,
+        "pressure_critical": 1,
+        "reclaim_opportunities": 1,
+        "reclaimed_processes": 15,
+        "reclaimed_frames": 15204,
+        "pressure_recovered": 1,
+        "oom_recoveries": 1,
+        "retry_zero_bytes": 4096,
+        "frames_recovered": 1,
+        "live_processes": 0
+      },
+      "raw_serial_path": "build/oom/run/native-memory-oom-bc931d6e6a/serial.txt",
+      "raw_serial_sha256": "1a7ad01fc40263fd314083aeb57821209cb1b85e67677b4641f2d595b0e58ae7"
+    }
+  ],
+  "gate_report": {
+    "path": "build/memory-gate.json",
+    "sha256": "27da27e1b38e20a9eb8f13aebe0ad3b797c994ba88825ed47e20b6d5ba65a288",
+    "stdout_log": "/tmp/sm-oom-native-gate-d5d5776.log",
+    "stdout_log_sha256": "4ec0bd162ec6d98e55014ce0349d439485fd4655cb5ce7e9c0b8f14de509e4bd"
+  },
+  "limitations": [
+    "QEMU/TCG single-CPU only; no physical-hardware or human acceptance.",
+    "This fixture demonstrates bounded recovery for the tested memory profile, not a general product OOM victim policy.",
+    "The extracted QEMU binary was not compared with the CI runner build.",
+    "Each guest emitted a kvmvapic.bin lookup message on stderr; required markers, artifact bindings, timeout checks, and expected exit 33 all passed. The message's cause was not investigated."
+  ],
+  "next": "Run the existing K05 supervisor cleanup regression."
+}

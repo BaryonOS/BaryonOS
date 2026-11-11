@@ -601,7 +601,7 @@ fn restart_fixture(s: &State) -> bool {
 fn finish(s: &mut State) -> ! {
     let r = runtime();
     let app = r.app;
-    let [status, step, generated, sealed, unsealed, tamper_denied, cross_denied, revoked_denied, quota_denied, pre_restore_denied, restore_wrong_denied, restored_unseal_ok, revoked_after_restore, not_ready, entropy_denied, status_calls] =
+    let [status, step, generated, sealed, unsealed, tamper_denied, cross_denied, revoked_denied, quota_denied, recovery_export_denied, recovery_restore_denied, _, _, not_ready, entropy_denied, status_calls] =
         app;
     let mut services = [[0u64; 10]; 2];
     for (i, slot) in SERVICE_SLOTS.into_iter().enumerate() {
@@ -656,9 +656,9 @@ fn finish(s: &mut State) -> ! {
                 services[0][9] >= 1024 && services[1][9] >= 1024,
                 b"SERVICE_ENTROPY_BYTES",
             );
-            // 2 + 1 + 14 generated keys, one successful seal, two unseals.
+            // 2 + 1 + 14 generated keys, one successful seal and unseal.
             require(
-                generated >= 17 && sealed >= 1 && unsealed >= 2,
+                generated >= 17 && sealed >= 1 && unsealed >= 1,
                 b"KEY_OPERATIONS",
             );
             require(tamper_denied >= 3, b"TAMPER_NOT_DENIED");
@@ -667,16 +667,12 @@ fn finish(s: &mut State) -> ! {
                 b"RIGHTS_NOT_DENIED",
             );
             require(
-                pre_restore_denied >= 1 && restore_wrong_denied >= 1,
-                b"RECOVERY_NEGATIVE",
+                recovery_export_denied >= 1 && recovery_restore_denied >= 1,
+                b"RECOVERY_AUTHORITY_NOT_RESTRICTED",
             );
+            // Ordinary app ingress cannot perform restore in service B.
             require(
-                restored_unseal_ok >= 1 && revoked_after_restore >= 1,
-                b"RECOVERY_POSITIVE",
-            );
-            // Service A sealed once (k0); service B restored once.
-            require(
-                services[0][4] >= 1 && services[1][8] >= 1,
+                services[0][4] >= 1 && services[1][8] == 0,
                 b"SERVICE_COUNTERS",
             );
             require(not_ready == 0, b"UNEXPECTED_NOT_READY");
@@ -765,10 +761,14 @@ fn finish(s: &mut State) -> ! {
         (b"KEYRING:APP_CROSS_DENIED:", cross_denied),
         (b"KEYRING:APP_REVOKED_DENIED:", revoked_denied),
         (b"KEYRING:APP_QUOTA_DENIED:", quota_denied),
-        (b"KEYRING:APP_PRE_RESTORE_DENIED:", pre_restore_denied),
-        (b"KEYRING:APP_RESTORE_WRONG_DENIED:", restore_wrong_denied),
-        (b"KEYRING:APP_RESTORED_UNSEAL_OK:", restored_unseal_ok),
-        (b"KEYRING:APP_REVOKED_AFTER_RESTORE:", revoked_after_restore),
+        (
+            b"KEYRING:APP_RECOVERY_EXPORT_DENIED:",
+            recovery_export_denied,
+        ),
+        (
+            b"KEYRING:APP_RECOVERY_RESTORE_DENIED:",
+            recovery_restore_denied,
+        ),
         (b"KEYRING:APP_NOT_READY:", not_ready),
         (b"KEYRING:APP_ENTROPY_DENIED:", entropy_denied),
         (b"KEYRING:TICKS:", s.ticks),

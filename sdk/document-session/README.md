@@ -1,146 +1,144 @@
-# Begrensde documentbewerksessie
+# Bounded document editing session
 
-De actuele volume-route staat in `nieuw_os_document_session::volume`. Zij
-gebruikt de bestaande streamende volumeoperaties met het v7-uploadtoken voor
-documenten tot 64 KiB,
-met door de app beheerde buffers, stapsgewijs bewaren en annuleren. Zie
-[contract en integratie](../../docs/implementation/VOLUME-DOCUMENT-SESSION.md).
-De onderstaande catalogusroute blijft beschikbaar voor bestaande M6c-clients;
-haar 128-bytegrens is geen nieuwe productkeuze voor Materiaal.
+The current volume path is in `nieuw_os_document_session::volume`. It uses
+existing streaming volume operations with the v7 upload token for documents
+up to 64 KiB, with app-managed buffers, incremental saving and cancellation.
+See [contract and integration](../../docs/implementation/VOLUME-DOCUMENT-SESSION.md).
+The catalogue path below remains available for existing M6c clients;
+its 128-byte limit is not a new product decision for Materiaal.
 
-## Native bibliotheek over volume v7
+## Native library over volume v7
 
-De volume-`DocumentSession` biedt ook onderstaande begrensde bewerkingen,
-zonder extra endpoint, wireoperatie, opslagformaat of bevoegdheid:
+The volume `DocumentSession` also provides the following bounded operations,
+without an additional endpoint, wire operation, storage format or authority:
 
-| Aanroep | Gedrag |
+| Call | Behaviour |
 |---|---|
-| `list_filtered(ListFilter, out)` | Leest alle pagina's binnen één domeinklok. `All`, `Uncollected` en `Collection(1..=4)` selecteren alleen de lijst. Fouten behouden de oude uitvoerlijst. |
-| `collection_stat(index)` | Leest naam, aanwezigheid, revisie en request-ID van één collectie in het toegekende domein. |
-| `update_collection(index, expected, name)` | Maakt/hernoemt met revisie-CAS; een lege naam verwijdert alleen een lege collectie. |
-| `set_metadata(expected_revision, tags, kind, collection)` | Wijzigt metadata van het geladen document; `0` betekent geen collectie. Een geldige ACK werkt de geladen revisie bij en behoudt naam en inhoud. |
-| `read_history(expected_revision, selector, out)` | Leest historie `1..=2` gebonden aan de huidige objectrevisie. Verifieert alle delen en de checksum vóór wijziging van `out`; behoudt ook een vuil concept. |
-| `read_history_prefix(expected_revision, selector, out)` | Verifieert de **hele** historische tekst in de bestaande stagingbuffer en kopieert daarna een UTF-8-veilige prefix. `HistoryPrefix { copied, total, truncated }` maakt de presentatiegrens expliciet. Geen extra documentbuffer. |
-| `restore_history(expected_revision, selector)` | Herstelt als **nieuwe** revisie, behoudt de vervangen versie in de historie en laadt exact de bevestigde nieuwe revisie. |
-| `rename_draft(name)` + expliciet `save()` | Past de lokale titel aan; alleen bewaren publiceert de nieuwe naam samen met de inhoud. |
+| `list_filtered(ListFilter, out)` | Reads all pages within one domain clock. `All`, `Uncollected` and `Collection(1..=4)` only select the list. Errors preserve the previous output list. |
+| `collection_stat(index)` | Reads the name, presence, revision and request ID of one collection in the granted domain. |
+| `update_collection(index, expected, name)` | Creates/renames using revision CAS; an empty name deletes only an empty collection. |
+| `set_metadata(expected_revision, tags, kind, collection)` | Changes metadata of the loaded document; `0` means no collection. A valid ACK updates the loaded revision and preserves name and contents. |
+| `read_history(expected_revision, selector, out)` | Reads history `1..=2` bound to the current object revision. Verifies all parts and the checksum before changing `out`; also preserves a dirty draft. |
+| `read_history_prefix(expected_revision, selector, out)` | Verifies the **entire** historical text in the existing staging buffer, then copies a UTF-8-safe prefix. `HistoryPrefix { copied, total, truncated }` makes the presentation limit explicit. No additional document buffer. |
+| `restore_history(expected_revision, selector)` | Restores as a **new** revision, retains the replaced version in history and loads exactly the confirmed new revision. |
+| `rename_draft(name)` + explicit `save()` | Changes the local title; only saving publishes the new name together with the contents. |
 
-Mutaties vereisen `ReadWrite`, een schoon concept, geen actieve upload en geen
-conflict of onzekere uitkomst. Lezen blijft mogelijk met `ReadOnly`; die lokale
-modus verleent geen capability. Selectie, lijstfilters en historiepreview
-schrijven niets. De bestaande dienst bewaakt onder meer CAS, domeinen, quota,
-collectielidmaatschap en verwijdering van uitsluitend lege collecties.
-Een verkorte tekstpreview is dus geen gedeeltelijk geverifieerde versie. De UI
-moet `truncated` zichtbaar uitleggen; de afzonderlijke herstelactie gebruikt
-nog steeds de volledige versie en de actuele revisievoorwaarde. Niet-UTF-8-
-historie geeft bij de tekstpreview `InvalidUtf8`, ook bij ongeldige bytes na de
-getoonde prefix. De bestaande `read_history` blijft een opaque-byte-API.
+Mutations require `ReadWrite`, a clean draft, no active upload and no conflict
+or uncertain outcome. Reading remains possible with `ReadOnly`; that local
+mode grants no capability. Selection, list filters and history previews write
+nothing. The existing service enforces CAS, domains, quotas, collection
+membership and deletion of empty collections only, among other constraints.
+A truncated text preview is therefore not a partially verified version.
+The UI must visibly explain `truncated`; the separate restore action still
+uses the full version and current revision precondition. Non-UTF-8 history
+returns `InvalidUtf8` for text previews, including invalid bytes after the
+shown prefix. Existing `read_history` remains an opaque-byte API.
 
-Een verloren, misvormd of niet vertrouwd mutatieantwoord sluit de verbinding
-en kan `is_uncertain()` zetten; de client probeert nooit automatisch opnieuw.
-Bij `CommittedRefreshFailed { revision }` is het herstel juist **wel** bevestigd,
-maar het daarna lezen mislukt. De oude conceptbytes blijven beschikbaar;
-save en opnieuw herstellen zijn geblokkeerd tot een expliciete succesvolle
-`open`. De UI moet de bekende commit en de leesfout apart uitleggen en mag
-de herstelmutatie niet herhalen. Een latere nieuwe verbinding vereist de
-bestaande onafhankelijke service-/grant-herstelroute.
+A lost, malformed or untrusted mutation reply closes the connection and may
+set `is_uncertain()`; the client never retries automatically.
+`CommittedRefreshFailed { revision }` instead means restoration **was**
+confirmed but the subsequent read failed. Old draft bytes remain available;
+save and repeat restoration are blocked until an explicit successful `open`.
+The UI must explain the known commit and read error separately and must not
+repeat the restore mutation. A later new connection requires the existing
+independent service/grant recovery path.
 
-De integratietests gebruiken de echte volume-Service en capability-engine met
-een synthetische hostschijf. Zij controleren onder andere filters, metadata,
-nieuwe herstelrevisies, dirty/async-save-blokkering, read-only, stale CAS,
-verkeerd domein/antwoord, timeouts, servicecrash, onzekere publicatie en behoud
-van concept en uitvoer bij een gedeeltelijk mislukte read. Dit is hostbewijs;
-native UI-bediening en diskoracles vereisen een afzonderlijke QEMU-poort.
+Integration tests use the actual volume Service and capability engine with a
+synthetic host disk. They check filters, metadata, new restore revisions,
+dirty/async-save blocking, read-only mode, stale CAS, wrong domain/reply,
+timeouts, service crashes, uncertain publication and preservation of draft
+and output after a partially failed read, among other cases. This is host
+evidence; native UI interaction and disk oracles require a separate QEMU gate.
 
-`nieuw-os-document-session` is een allocatorvrije `no_std`-library met
-`forbid(unsafe_code)` boven de bestaande `nieuw_os_catalog_client::Session<T>`.
-Zij beheert één reeds bestaand document en een lokale conceptbuffer van
-maximaal **128 bytes**. Object-ID, naam, de bestaande catalogusprotocollen
-en het opslagformaat blijven behouden. Inhoud is opaque bytes: deze laag
-voert geen UTF-8-, tekst-, bestands- of schijfbeleid in.
+`nieuw-os-document-session` is an allocation-free `no_std` library with
+`forbid(unsafe_code)` over the existing `nieuw_os_catalog_client::Session<T>`.
+It manages one existing document and a local draft buffer of at most
+**128 bytes**. Object ID, name, existing catalogue protocols and storage
+format are preserved. Contents are opaque bytes: this layer introduces no
+UTF-8, text, file or disk policy.
 
-## API voor G1/Materiaal en andere apps
+## API for G1/Materiaal and other apps
 
-| Aanroep | Gedrag |
+| Call | Behaviour |
 |---|---|
-| `DocumentSession::new(catalog, EditMode)` | Neemt één bestaande catalogussessie over; kent geen nieuwe bevoegdheid toe. |
-| `open(object)` | Laadt een bestaand document via echte GET. Mislukking behoudt de vorige inhoud. Een vuil concept blokkeert de overstap. |
-| `draft()` | Geeft een begrensde, onveranderlijke view. `Draft` kan expliciet worden gekopieerd; getters zijn `object`, `loaded_revision`, `name`, `contents`. |
-| `replace_contents(bytes)` | Vervangt de lokale inhoud, maximaal 128 bytes; geen IPC of opslagactie. |
-| `replace_range(start..end, bytes)` | Voegt in, vervangt of verwijdert binnen bytegrenzen. Alle controles vinden vóór wijziging plaats. Tekst-/grapheemgrenzen horen bij de aanroepende app. |
-| `is_dirty()` | Vergelijkt met de laatst geladen of bevestigde bytes; terugzetten naar die bytes maakt het concept weer schoon. |
-| `save()` | Stuurt bij een gewijzigd concept één PUT met exact de geladen CAS-revisie. Een geldige ACK verhoogt de lokale revisie en maakt het concept schoon. Zonder wijziging wordt niets verstuurd. |
-| `is_conflicted()` | Een Stale-antwoord heeft de lokale basis ingehaald. Het concept blijft intact; opnieuw save doet geen nieuwe aanvraag zolang dit conflict niet expliciet is opgelost. |
-| `is_uncertain()` | Een save kan al zijn uitgevoerd. Deze toestand is blijvend voor dit sessieobject; er wordt niet opnieuw verstuurd. |
-| `discard_changes()` | Zet alleen lokale bytes terug naar de laatst geladen/ACKed toestand. Geen GET, PUT, revisieverversing of oplossing van onzekerheid. |
-| `reopen()` | Expliciete GET voor het huidige object, mits er geen onverworpen wijzigingen of onzekere save zijn. |
-| `list()` | Leest de catalogus van het toegekende domein via dezelfde eigenaar van de endpoints. Behoudt concept, geladen revisie en conflictstatus; gesloten of onzekere sessies verzenden niets. |
-| `close()` | Sluit via G03 beide endpoints; het concept blijft leesbaar. Geen verborgen syscall in `Drop`. |
+| `DocumentSession::new(catalog, EditMode)` | Takes over one existing catalogue session; grants no new authority. |
+| `open(object)` | Loads an existing document through actual GET. Failure preserves previous contents. A dirty draft blocks switching. |
+| `draft()` | Returns a bounded immutable view. `Draft` may be copied explicitly; getters are `object`, `loaded_revision`, `name`, `contents`. |
+| `replace_contents(bytes)` | Replaces local contents, at most 128 bytes; no IPC or storage action. |
+| `replace_range(start..end, bytes)` | Inserts, replaces or deletes within byte boundaries. All checks precede mutation. Text/grapheme boundaries are the calling app's responsibility. |
+| `is_dirty()` | Compares with the last loaded or confirmed bytes; restoring those bytes makes the draft clean again. |
+| `save()` | For a changed draft, sends one PUT with exactly the loaded CAS revision. A valid ACK increments the local revision and makes the draft clean. With no change, nothing is sent. |
+| `is_conflicted()` | A Stale reply has superseded the local baseline. The draft remains intact; another save sends no new request until this conflict is explicitly resolved. |
+| `is_uncertain()` | A save may already have executed. This state is permanent for this session object; nothing is resent. |
+| `discard_changes()` | Restores only local bytes to the last loaded/ACKed state. No GET, PUT, revision refresh or resolution of uncertainty. |
+| `reopen()` | Explicit GET for the current object, provided there are no undiscarded changes or uncertain save. |
+| `list()` | Reads the catalogue of the granted domain through the same endpoint owner. Preserves draft, loaded revision and conflict status; closed or uncertain sessions send nothing. |
+| `close()` | Closes both endpoints through G03; the draft remains readable. No hidden syscall in `Drop`. |
 
-`EditMode::ReadOnly` is uitsluitend lokaal appbeleid dat edit/save weigert.
-`ReadWrite` verleent geen schrijfrecht. De kernelgebonden endpointcapability
-en de echte dienst blijven beslissen. Een canoniek `Access`-antwoord blijft
-een fout en behoudt het concept. Intrekking van een echte endpoint werkt
-ook als de app `ReadWrite` gebruikt.
+`EditMode::ReadOnly` is purely local app policy that rejects editing/saving.
+`ReadWrite` grants no write permission. The kernel-bound endpoint capability
+and actual service remain authoritative. A canonical `Access` reply remains
+an error and preserves the draft. Revocation of an actual endpoint still
+works when the app uses `ReadWrite`.
 
-Houd het `DocumentSession`-object in de appstaat, zodat fouten uit een
-actiehandler het concept niet vernietigen. Een handler kan bijvoorbeeld
-`replace_contents` en daarna `save` aanroepen via `&mut DocumentSession<T>`.
-Een fout geeft de app een beslissing terug; er wordt niet automatisch
-herladen, gemengd, herhaald of overschreven.
+Keep the `DocumentSession` object in app state so errors from an action
+handler do not destroy the draft. For example, a handler can call
+`replace_contents` followed by `save` through `&mut DocumentSession<T>`.
+An error returns a decision to the app; there is no automatic reload,
+merge, retry or overwrite.
 
 ### Conflict
 
-Bij `Error::Conflict` blijven concept en geladen revisie ongewijzigd. Bewaar
-desgewenst eerst `let retained = *editor.draft().unwrap();`. Laat de app
-expliciet kiezen tussen behouden/vergelijken of verwerpen. Alleen een
-expliciete `discard_changes()` gevolgd door `reopen()` haalt een nieuwe
-basis op. De app mag daarna bewust gekozen bytes opnieuw aanbrengen; de
-volgende save gebruikt dan de nieuw geladen revisie. Deze library beslist
-niet automatisch dat het oude concept over de nieuwe versie moet worden
-geschreven.
+On `Error::Conflict`, draft and loaded revision remain unchanged. If desired,
+first retain `let retained = *editor.draft().unwrap();`. Let the app explicitly
+choose between keeping/comparing and discarding. Only explicit
+`discard_changes()` followed by `reopen()` retrieves a new baseline. The app
+may then deliberately reapply chosen bytes; the next save uses the newly
+loaded revision. This library does not automatically decide to overwrite the
+new version with the old draft.
 
-### Onzekerheid en verbroken transport
+### Uncertainty and disconnected transport
 
-Een verloren antwoord nadat de aanvraag is geplaatst, een ongeldige
-respons of `Unknown` mag geen gewone herhaalactie worden. De lokale bytes
-en oude revisie blijven behouden; G03 sluit de sessie en G07 blokkeert
-verdere saves. `discard_changes` wist die onzekerheid niet. Bewaar het
-concept, sluit de oude sessie en gebruik pas na onafhankelijk herstel een
-nieuwe catalogussessie met nieuw gevestigde grants. Laad de daadwerkelijke
-opslagtoestand vóór een eventuele nieuwe gebruikerskeuze.
+A lost reply after request publication, an invalid response or `Unknown`
+must not become an ordinary retry. Local bytes and the old revision remain
+preserved; G03 closes the session and G07 blocks further saves.
+`discard_changes` does not clear that uncertainty. Retain the draft, close
+the old session and use a new catalogue session with newly established grants
+only after independent recovery. Load actual storage state before any new
+user choice.
 
-Een aantoonbare EAGAIN-timeout vóór enqueue houdt hetzelfde concept intact,
-maar beweert niet dat een mutatie is uitgevoerd. Ook die transportverbinding
-is gesloten; er volgt geen automatische reconnect. Lokale conceptbewerking
-blijft mogelijk terwijl opslag niet beschikbaar is.
+A demonstrated EAGAIN timeout before enqueue retains the same draft but does
+not claim that a mutation executed. That transport connection is also closed;
+there is no automatic reconnect. Local draft editing remains possible while
+storage is unavailable.
 
-Ontbrekende objecten geven `NotFound` met de bestaande revisie; deze laag
-maakt niet stilzwijgend een leeg document. Aanmaken, hernoemen, verwijderen,
-zoeken en GUI-interactie blijven afzonderlijke apphandelingen via de
-bestaande catalogusinterfaces.
+Missing objects return `NotFound` with the existing revision; this layer does
+not silently create an empty document. Creation, renaming, deletion, search
+and GUI interaction remain separate app actions through existing catalogue
+interfaces.
 
-## Controles en grenzen
+## Checks and limits
 
-De hosttests gebruiken de echte capability-engine voor Message320-IPC,
-G03-transport, B01-correlatie, catalogusvalidatie, `State::prepare/commit`
-en volledige `Recovery` over de 32 bestaande journalrecords. Het hostmodel
-ordent append-WRITE, geslaagde FLUSH, commit en ACK. Een verloren reply
-wordt pas na de echte corecommit geïnjecteerd; een nieuw servicemodel bouwt
-zijn toestand uitsluitend uit de opgeslagen recordbytes op. Beschadiging
-van zo'n record wordt door de echte Recovery afgewezen.
+Host tests use the actual capability engine for Message320 IPC, G03 transport,
+B01 correlation, catalogue validation, `State::prepare/commit` and complete
+`Recovery` over the 32 existing journal records. The host model orders append
+WRITE, successful FLUSH, commit and ACK. A lost reply is injected only after
+the actual core commit; a new service model reconstructs state solely from
+the stored record bytes. Corruption of such a record is rejected by actual
+Recovery.
 
-Dit zijn **hostmodeltests**. De library wordt daarnaast voor
-`x86_64-unknown-none` gebouwd. G11 voegt een afzonderlijke opt-in native proef
-toe: de bestaande M6c-gebruikersprocessen openen een bestaand document,
-bewerken de 128 inhoudsbytes, bewaren met de geladen revisie en openen
-opnieuw. Een aparte koude VM leest via dezelfde library de echte image terug.
-De poort vereist `NOS_DOCUMENT_SESSION=1` én `NOS_SDK_RUNTIME=1`; alleen de
-normale M6c-case en recovery zijn toegestaan. De bestaande kernelobserver,
-capabilitygrenzen, 16/3 verzoeken per client en externe disk-oracle blijven
-behouden. Actuele uitgevoerde resultaten en hun exacte bronbinding staan in
-`docs/PROJECT-STATE.md`; compilatie of deze beschrijving is geen VM-bewijs.
-Deze deterministische proef heeft geen grafische bediening of algemene
-appstart. G1/Materiaal behoudt een afzonderlijke implementatie en acceptatie.
+These are **host-model tests**. The library is also built for
+`x86_64-unknown-none`. G11 adds a separate opt-in native experiment: existing
+M6c user processes open an existing document, edit its 128 content bytes,
+save with the loaded revision and reopen. A separate cold VM reads the actual
+image back through the same library. The gate requires both
+`NOS_DOCUMENT_SESSION=1` and `NOS_SDK_RUNTIME=1`; only the normal M6c case
+and recovery are allowed. The existing kernel observer, capability boundaries,
+16/3 requests per client and external disk oracle are preserved. Current
+executed results and their exact source binding are in `docs/PROJECT-STATE.md`;
+compilation or this description is not VM evidence. This deterministic
+experiment has no graphical interaction or general app startup. G1/Materiaal
+retains separate implementation and acceptance.
 
 ```sh
 CARGO_TARGET_DIR=/tmp/nieuw-os-g07-target cargo test --manifest-path sdk/Cargo.toml --workspace --locked --offline
@@ -148,6 +146,6 @@ CARGO_TARGET_DIR=/tmp/nieuw-os-g07-target cargo clippy --manifest-path sdk/Cargo
 CARGO_TARGET_DIR=/tmp/nieuw-os-g07-target cargo build --manifest-path sdk/Cargo.toml -p nieuw-os-document-session --lib --release --target x86_64-unknown-none --locked --offline
 ```
 
-Geen externe crate is toegevoegd: alle dependencies zijn de bestaande lokale
-SDK-, catalogus- en voor tests capability-crates. Het source-/testbewijs en
-de oorspronkelijke librarygrens staan in `docs/verification/parallel-g07/`.
+No external crate was added: all dependencies are the existing local SDK,
+catalogue and, for tests, capability crates. Source/test evidence and the
+original library boundary are in `docs/verification/parallel-g07/`.

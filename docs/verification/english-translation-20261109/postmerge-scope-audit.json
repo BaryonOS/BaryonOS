@@ -1,0 +1,304 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-11-09",
+  "review_type": "Independent AI source and scope comparison, with six separately authorised documentation corrections; no runtime or human-acceptance testing",
+  "comparison_base": "2ed4c087746021da3c8b96511af3209a35d0f441",
+  "repository_head": "eb8c1e927a3322ed0ae1a9c312296767ab9cdf8d",
+  "unmerged_paths": [],
+  "component_non_markdown_files": {
+    "base_files": 1608,
+    "working_files": 1608,
+    "differences": [],
+    "base_manifest_sha256": "79914656d385b5413db6a9898d0d2fc4d6f445237acee29e4162de8381b3bbf8",
+    "scope": [
+      "boot/",
+      "kernel/",
+      "crates/",
+      "drivers/",
+      "services/",
+      "sdk/",
+      "ui/",
+      "userspace/",
+      "experiments/",
+      "tests/"
+    ],
+    "method": "Compare Git blob hashes computed from current file bytes and file modes with the pinned main tree, excluding Markdown."
+  },
+  "rust_source_files": {
+    "base_files": 506,
+    "working_files": 506,
+    "differences": [],
+    "base_manifest_sha256": "6da28109ac39770fef24fa9facb26cf81123bec8c1530fb5ef902fb80aa33a20"
+  },
+  "build_manifests_configs_and_ci_workflows": {
+    "base_files": 187,
+    "working_files": 187,
+    "differences": [],
+    "base_manifest_sha256": "929929392cbcee0ca5ec14e0c1f15e4cec34c10f0857378abac8e9d3f50a18e3"
+  },
+  "official_licensing_files": {
+    "LICENSE": {
+      "equal_main": true,
+      "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04"
+    },
+    "LICENSING.md": {
+      "equal_main": true,
+      "sha256": "1d00e8fbe4a99327c495a95b6e8e94fe6de1f02172850bb82fc2fd74b2cbb3db"
+    },
+    "MPL-2.0-FILES.txt": {
+      "equal_main": true,
+      "sha256": "ed77f8300bbb3242a4c833f8cf603c204f7b2970ed48645e7c8a66c7a13a2e3c"
+    },
+    "THIRD-PARTY.md": {
+      "equal_main": true,
+      "sha256": "ef18615e8309048a25994f4fa57994a6b00d617352e8f140cc11fe328725c7e5"
+    }
+  },
+  "frozen_corpus_index_and_source_assets": {
+    "base_files": 28,
+    "working_files": 28,
+    "differences": [],
+    "base_manifest_sha256": "a0fb160758c54e5658567138c3b0467d41ff9ad1eaef969f5b8983380992a083"
+  },
+  "progress": {
+    "track_count": 10,
+    "criterion_count": 51,
+    "tracks_and_all_criterion_fields_equal_main": true,
+    "schema_version_equal_main": true,
+    "rubric_version_equal_main": true,
+    "status_counts": {
+      "accepted": 21,
+      "open": 30
+    },
+    "total_points": 100,
+    "accepted_points": 41,
+    "evidence_reference_occurrences": 48,
+    "unique_evidence_paths": 40,
+    "changed_assessment_fields": [
+      "task",
+      "source_commit",
+      "summary",
+      "branch"
+    ]
+  },
+  "discussion_forms": [
+    {
+      "old_filename": "architectuur-en-ontwerp.yml",
+      "filename": "architecture-and-design.yml",
+      "bytes_equal_to_pre_rename_english_payload": true,
+      "bytes_equal_to_dutch_main_payload": false,
+      "translated_presentation_field_count": 12,
+      "field_count": 6,
+      "translated_dropdown_choice_count": 0,
+      "non_presentation_field_differences": [],
+      "schema_and_non_presentation_fields_equal_main": true
+    },
+    {
+      "old_filename": "product-en-gebruikservaring.yml",
+      "filename": "product-and-user-experience.yml",
+      "bytes_equal_to_pre_rename_english_payload": true,
+      "bytes_equal_to_dutch_main_payload": false,
+      "translated_presentation_field_count": 16,
+      "field_count": 6,
+      "translated_dropdown_choice_count": 5,
+      "non_presentation_field_differences": [],
+      "schema_and_non_presentation_fields_equal_main": true
+    },
+    {
+      "old_filename": "vragen-en-hulp.yml",
+      "filename": "questions-and-help.yml",
+      "bytes_equal_to_pre_rename_english_payload": true,
+      "bytes_equal_to_dutch_main_payload": false,
+      "translated_presentation_field_count": 20,
+      "field_count": 5,
+      "translated_dropdown_choice_count": 11,
+      "non_presentation_field_differences": [],
+      "schema_and_non_presentation_fields_equal_main": true
+    },
+    {
+      "old_filename": "testresultaten-en-demos.yml",
+      "filename": "test-results-and-demos.yml",
+      "bytes_equal_to_pre_rename_english_payload": true,
+      "bytes_equal_to_dutch_main_payload": false,
+      "translated_presentation_field_count": 18,
+      "field_count": 6,
+      "translated_dropdown_choice_count": 6,
+      "non_presentation_field_differences": [],
+      "schema_and_non_presentation_fields_equal_main": true
+    }
+  ],
+  "category_links": {
+    "active_link_files": [
+      ".github/ISSUE_TEMPLATE/config.yml",
+      ".github/ISSUE_TEMPLATE/documentation.yml",
+      "docs/COMMUNITY.md"
+    ],
+    "active_category_url_occurrences": 10,
+    "slugs": [
+      "announcements",
+      "architecture-and-design",
+      "polls",
+      "product-and-user-experience",
+      "questions-and-help",
+      "test-results-and-demos"
+    ],
+    "all_canonical_repository_and_live_slugs": true,
+    "obsolete_active_refs": []
+  },
+  "existing_history_and_verification_files": {
+    "base_file_count": 4407,
+    "changed_existing_paths": []
+  },
+  "changed_executable_source_files": [
+    ".agents/skills/os-dev/scripts/build_corpus.py",
+    ".agents/skills/os-dev/scripts/validate_skill.py",
+    ".agents/skills/os-dev/scripts/zoeken.py",
+    "tools/agent_pipeline.py",
+    "tools/progress.py",
+    "tools/tests/test_agent_pipeline.py"
+  ],
+  "only_expected_python_tooling_changes": true,
+  "concurrent_remote_reconciliation": {
+    "remote_commit": "6dcae7c03e3d2882975d1acaa9e4d5aa78e43a11",
+    "paths": {
+      "tools/update-tool/src/main.rs": {
+        "remote_equal_main": true,
+        "worktree_equal_main": true
+      },
+      "tools/update-tool/tests/roundtrip.rs": {
+        "remote_equal_main": true,
+        "worktree_equal_main": true
+      },
+      "docs/verification/b03-key-file-boundaries.md": {
+        "remote_equal_main": true,
+        "worktree_equal_main": true
+      },
+      "docs/verification/private-vulnerability-reporting-278.md": {
+        "remote_equal_main": true,
+        "worktree_equal_main": true
+      }
+    },
+    "conclusion": "The two Rust paths and two verification reports in remote 6dcae7c are identical to main and the merged worktree. Their apparent changes against the older branch base require no additional runtime delta."
+  },
+  "review_comment_dispositions": [
+    {
+      "path": "crates/capability-core/README.md",
+      "disposition": "fixed",
+      "finding": "The active global KNOWN_RIGHTS mask was incorrectly described as 127.",
+      "resolution": "Clarified Endpoint/Block union 127 versus current KNOWN_RIGHTS 16383, preserving type-specific authority limits and historical M4/M5 execution claims.",
+      "source": "crates/capability-core/src/lib.rs",
+      "verified_constants": {
+        "ALL_RIGHTS": 31,
+        "BLOCK_RIGHTS": 125,
+        "KNOWN_RIGHTS": 16383
+      }
+    },
+    {
+      "path": "sdk/runtime/README.md",
+      "disposition": "fixed",
+      "finding": "The active privacy-contract link label referred to revision 3.",
+      "resolution": "Updated the label to revision 4, matching the current contract header; the URL and historical ABI references are unchanged.",
+      "source": "docs/LOCAL-PRIVACY-CONTRACT.md"
+    },
+    {
+      "path": "drivers/virtio-snd/TRANSPORT.md",
+      "disposition": "fixed",
+      "finding": "The proposed, unexecuted command contained Dutch placeholder descriptions.",
+      "resolution": "Translated only the dedicated OVMF/loader/kernel and disposable-directory placeholders; flags, numbers and actual literal path suffixes remain unchanged."
+    },
+    {
+      "path": "sdk/examples/image-export/README.md",
+      "disposition": "fixed",
+      "finding": "Unquoted arithmetic could render as Markdown emphasis.",
+      "resolution": "Wrapped 4 * 1024 * 1024 in inline code; the limit is unchanged."
+    },
+    {
+      "path": "experiments/quantum/README.md",
+      "disposition": "fixed",
+      "finding": "The English work-budget description retained Dutch thousands separators.",
+      "resolution": "Changed 20.000.000 to 20,000,000; the value matches MAX_WORK = 20_000_000 in qsim-core. All command blocks, including actual nieuw-os toolchain paths, are unchanged.",
+      "source": "experiments/quantum/qsim-core/src/validate.rs"
+    },
+    {
+      "path": "tools/windows-qemu/README.md",
+      "disposition": "fixed",
+      "finding": "Three prose references retained the old project brand.",
+      "resolution": "Changed those references to Baryon OS. Start-NieuwOS.ps1 filenames, commands, profiles and evidence boundaries remain unchanged."
+    }
+  ],
+  "result": "pass",
+  "counting_note": "The runtime, Rust and build scopes overlap and must not be summed.",
+  "discussion_forms_rename_baseline": "a462e0dda14658db7e4c4fa0dbad8f971201022d",
+  "discussion_forms_comparison_note": "Renaming preserves all four already translated English payloads byte for byte. Relative to Dutch main, 66 presentation fields intentionally differ, including 22 dropdown choice texts. All 23 field IDs, types, required flags, option counts and other non-presentation values are preserved.",
+  "dropdown_choice_consumer_search": {
+    "scanned": "Python tooling and CI workflow YAML",
+    "literal_matches": [],
+    "translated_choices": 22
+  },
+  "python_tooling_source_review": {
+    "non_string_ast_equal_files": [
+      ".agents/skills/os-dev/scripts/build_corpus.py",
+      ".agents/skills/os-dev/scripts/validate_skill.py",
+      ".agents/skills/os-dev/scripts/zoeken.py",
+      "tools/progress.py"
+    ],
+    "agent_pipeline_only_non_string_ast_difference": "parse_issue adds Criterion/Depends on alongside the original Criterium/Afhankelijk van aliases; duplicate criterion aliases remain rejected.",
+    "existing_pipeline_test_methods_unchanged": 19,
+    "added_pipeline_test_methods": [
+      "Planning.test_duplicate_criterion_aliases_are_rejected",
+      "Planning.test_english_fields_match_existing_dutch_tasks"
+    ],
+    "reviewed_string_changes": [
+      "English PDF page headings and record titles for future corpus generation; frozen corpus and index remain unchanged.",
+      "English diagnostics in validate_skill.py and zoeken.py, with the same JSON keys, exit handling and hash checks.",
+      "The progress renderer only adds the legacy Dutch README heading anchor relative to the restructured main renderer.",
+      "English agent prompts and PR presentation; the PR wording distinguishes merge readiness from source-bound criterion acceptance."
+    ]
+  },
+  "prose_correction_file_checks": [
+    {
+      "path": "crates/capability-core/README.md",
+      "only_requested_prose_correction": true,
+      "sha256": "f5eac0977c47a5cff830bb7a48dc017d1cd1addec6dbf84fc0c2d8f3bb175b22"
+    },
+    {
+      "path": "sdk/runtime/README.md",
+      "only_requested_prose_correction": true,
+      "sha256": "63da41ffc5b0915f72e4021287120ffbfef8c817014a97ff430f8b7f512c2748"
+    },
+    {
+      "path": "drivers/virtio-snd/TRANSPORT.md",
+      "only_requested_prose_correction": true,
+      "sha256": "a7d8d53604a9f16583a65d6a6c1c335e6dec6d60ffb7b7339fc34965c3cfa243"
+    },
+    {
+      "path": "sdk/examples/image-export/README.md",
+      "only_requested_prose_correction": true,
+      "sha256": "db42df60920e1519f82ed29cff1dd85f449fa6fcb28166755c2aec38c868cbeb"
+    },
+    {
+      "path": "experiments/quantum/README.md",
+      "only_requested_prose_correction": true,
+      "sha256": "bf31d78507cbcdf2a901b7d28b186d04e04d4402d81f06bb3f39b3e97878258e"
+    },
+    {
+      "path": "tools/windows-qemu/README.md",
+      "only_requested_prose_correction": true,
+      "sha256": "63e2986781361b3c773723e0c8887b75e168f784bf7c6411f38bc90d3aed423a"
+    }
+  ],
+  "link_target_changes_from_review_fixes": {
+    "existing_targets_changed": [],
+    "added_existing_target": {
+      "document": "crates/capability-core/README.md",
+      "target": "src/lib.rs"
+    }
+  },
+  "findings": [],
+  "verification": {
+    "scoped_diff_check": "pass",
+    "runtime_test_commands_executed": [],
+    "notes": "This audit used file/mode comparisons, JSON/YAML parsing, AST inspection, source-constant checks and targeted reference searches. Existing historical evidence was checked for path changes, not rewritten or scanned for language."
+  },
+  "writes": "Only the six explicitly assigned Markdown corrections and this audit JSON were written for this follow-up. No commits, staging, runtime edits or remote writes."
+}

@@ -23,7 +23,7 @@ The machine-readable source of truth is [progress.json](progress.json). `tools/p
 ## Fixed criteria register
 
 <!-- OS-RUBRIC:BEGIN -->
-**Current score: 41/100.**
+**Current score: 39/100.**
 
 ### K — Independent kernel and process isolation (13/15)
 
@@ -34,7 +34,7 @@ The machine-readable source of truth is [progress.json](progress.json). `tools/p
 | **K03 — Isolated preempted processes** | 2 | Accepted | Ring-3 processes have separate address spaces; an application fault does not stop the other test processes. [evidence 1](../docs/verification/m2-m4/ACCEPTANCE.md) · [evidence 2](../docs/verification/regression-m6b/FINAL-ACCEPTANCE.md) |
 | **K04 — Capabilities and bounded IPC** | 3 | Accepted | Rights reduction, generations, revocation, user-copy handling, and bounded Message320 IPC have native negative and lifecycle tests. [evidence 1](../docs/verification/m2-m4/ACCEPTANCE.md) · [evidence 2](../docs/verification/regression-m6b/FINAL-ACCEPTANCE.md) |
 | **K05 — General process and service management** | 2 | Accepted | Non-fixture applications can start and stop through bounded APIs and services can restart; dependencies and resources are released correctly. [evidence 1](../docs/verification/K05-ACCEPTANCE.md) · [evidence 2](../docs/verification/k05-startup-slots/gate/supervisor-gate.json) · [evidence 3](../docs/verification/k05-startup-slots/integration.json) |
-| **K06 — Multiple processor cores** | 2 | Open | SMP scheduling, synchronization, interrupts, and address-space switching work under concurrent load on the supported profile. [evidence 1](../docs/verification/k06-smp-sched/README.md) |
+| **K06 — Multiple processor cores** | 2 | Open | SMP scheduling, synchronization, interrupts, and address-space switching work under concurrent load on the supported profile. |
 | **K07 — Resource management under pressure** | 2 | Accepted | Memory, CPU, IPC, and handle exhaustion remain bounded per application; the usable system recovers without kernel failure. [evidence 1](../docs/verification/K07-ACCEPTANCE.md) |
 
 ### S — Storage and data recovery (13/15)
@@ -82,11 +82,11 @@ The machine-readable source of truth is [progress.json](progress.json). `tools/p
 | **N03 — Native authenticated transport** | 2 | Open | Maintained cryptography/TLS with the documented hybrid PQC choice works natively, including peer verification, negative handshakes, and no silent insecure fallback. |
 | **N04 — Enforceable network permissions** | 2 | Open | Process and destination permissions, revocation, and helper routes are enforced natively and observed in traffic; no unintended listening ports exist. |
 
-### B — Security, privacy, and updates (4/12)
+### B — Security, privacy, and updates (2/12)
 
 | Criterion | Points | Status | Acceptance and evidence |
 |---|---:|---|---|
-| **B01 — Entropy and key management** | 2 | Accepted | Native cryptographic entropy, key lifecycle, protection, and recovery use reviewed standards and tested failure paths. [evidence 1](../docs/verification/B01-ACCEPTANCE.md) · [evidence 2](../docs/verification/native-recovery-hardening/b01/keyring-gate.json) · [evidence 3](../docs/verification/native-recovery-hardening/integration.json) |
+| **B01 — Entropy and key management** | 2 | Open | Native cryptographic entropy and key lifecycle, with recovery restricted to manifest-bound management ingress. Native positive management recovery and negative ordinary-app authorization tests remain required. |
 | **B02 — Authenticated personal storage** | 2 | Open | Content and sensitive metadata are protected natively; tampering, replay/rollback within the threat model, and key loss are tested. |
 | **B03 — Signed updates and rollback** | 2 | Accepted | Authentic updates, interruption, downgrade attacks, and recovery to a valid previous version are tested end to end. [evidence 1](../docs/verification/B03-ACCEPTANCE.md) · [evidence 2](../docs/verification/b03/update-gate.json) |
 | **B04 — Trusted boot and distribution chain** | 2 | Open | Image/boot verification, key rotation, and dependency/build provenance are bounded for the release profile and independently reviewed. |

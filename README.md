@@ -9,7 +9,7 @@
 
 Baryon OS does not use the Linux, BSD, XNU, Windows, or Android kernel as its foundation. The native chain runs from UEFI/OVMF through a custom Rust loader into a `no_std` kernel, isolated user processes, system services, drivers, an SDK, and native applications.
 
-The technical architecture and product experience are developed in parallel. **Material** is the data and permission model around documents and collections; applications act as bounded tools around that material. Familiar desktop conventions remain the default for ordinary interaction.
+The technical architecture and product experience are developed in parallel. **Material** (called **Materiaal** in the current implementation) is the data and permission model around documents and collections; applications act as bounded tools around that material. Familiar desktop conventions remain the default for ordinary interaction.
 
 ## Core principles
 
@@ -55,11 +55,12 @@ Further reading: [architecture](docs/ARCHITECTURE.md) · [kernel and security co
 The codebase already contains an independent boot chain, process and capability infrastructure, userspace services, storage and recovery tracks, driver work, an SDK, and native UI/session components. Not every component is fully integrated or suitable for physical hardware yet. Formal acceptance status is determined only by the fixed progress criteria.
 
 <!-- OS-PROGRESS:BEGIN -->
+<a id="voortgang-naar-een-volwaardig-zelfstandig-os"></a>
 ## Progress toward a complete independent OS
 
-![Baryon OS: 41% of the fixed product roadmap](docs/assets/progress.svg)
+![Baryon OS: 39% of the fixed product roadmap](docs/assets/progress.svg)
 
-**41/100 weighted acceptance points.** This is a planning metric for demonstrably accepted functionality, not a time estimate, security guarantee, or claim of parity with existing operating systems.
+**39/100 weighted acceptance points.** This is a planning metric for demonstrably accepted functionality, not a time estimate, security guarantee, or claim of parity with existing operating systems.
 
 [Criteria and evidence](docs/PROGRESS.md) · [Roadmap](docs/ROADMAP.md) · [Current project status](docs/PROJECT-STATE.md)
 <!-- OS-PROGRESS:END -->
@@ -88,7 +89,7 @@ The long-term route progresses from independent boot and isolation to storage, n
 - [GitHub Wiki](https://github.com/simonvanieperen/BaryonOS/wiki)
 - [English Wiki source and publication guide](docs/WIKI.md)
 
-Historical development checkpoints are stored under [docs/history/](docs/history/) rather than in this README.
+Historical development checkpoints are stored under [docs/history/](docs/history/) rather than in this README. The former Dutch README is preserved as a dated [9 November 2026 snapshot](docs/history/README-2026-11-09.nl.md); it is not the current implementation specification.
 
 ## Contributing
 
@@ -106,6 +107,7 @@ Project-owned software listed in [MPL-2.0-FILES.txt](MPL-2.0-FILES.txt) is made 
 
 The **Baryon OS** name, project identity, and any trademark rights are not granted by the software license.
 
+<a id="waarom-de-naam-baryon-os"></a>
 ## Why “Baryon”?
 
 The name refers to baryons as composite particles and uses that composition as a metaphor for a system in which a small kernel, separate services, and a distinct user environment form one coherent whole. The metaphor is not a technical claim of safety or stability.

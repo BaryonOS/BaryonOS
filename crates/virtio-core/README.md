@@ -1,75 +1,78 @@
-# virtio-core — zuiver M5/M6-beleid
+# virtio-core — pure M5/M6 policy
 
-Safe Rust `no_std`, nul dependencies en `forbid(unsafe_code)`. Deze crate krijgt
-alleen integers en vaste arrays: geen raw pointers, MMIO, PCI-I/O, klok of heap.
-Het profiel is modern virtio-blk, split queue8, één outstanding request,
-512-byte READ en een gebruikersslice van 1–128 bytes in het M5-profiel. Het
-afzonderlijke M6-profiel voegt volledige sector-WRITE en FLUSH toe.
-IOMMU-integratie wordt niet aangeboden.
+Safe Rust `no_std`, zero dependencies and `forbid(unsafe_code)`. This crate
+receives only integers and fixed arrays: no raw pointers, MMIO, PCI I/O,
+clock or heap. The profile is modern virtio-blk, split queue8, one outstanding
+request, 512-byte READ and a user slice of 1–128 bytes in the M5 profile.
+The separate M6 profile adds full-sector WRITE and FLUSH.
+IOMMU integration is not provided.
 
 ## API
 
-- `parse_capabilities(&[u8;256], &[Bar;6]) -> Regions`: PCI-snapshot met
-  vendor/device `1af4:1042`, header0, capabilityketen met cycle-/lengtecontrole,
-  expliciete memory-BARs en niet-overlappende common/notify/ISR/device-regio's.
-  De strikte QEMU-slice vereist 8-byte common/device-offsetalignment. `Bar`
-  bevat `base/size/is_memory`; de door de kernel geprobed grootte moet bij de
-  config-BAR passen. `Regions::notify_address` controleert multiplier en bereik.
-  Adressen boven de x86-64-PTE-limiet52 worden geweigerd; de kernel controleert
-  daarnaast de werkelijk ondersteunde CPU-breedte en overlap met RAM/reserveringen.
-- `negotiate_features`: VERSION_1 en readonly vereist, alleen die twee bits
-  geaccepteerd. ACCESS_PLATFORM wordt geweigerd: dit profiel configureert geen
-  IOMMU. Overige versnellings-/queuefeatures worden niet onderhandeld.
-- `descriptor_plan(DmaPool, ram_end)` en `validate_descriptors`: vijf unieke,
-  page-aligned kernelpagina's; exact header16/RO → bounce512/device-WRITE →
-  status1/device-WRITE. Geen indirecte descriptor, variabele chain of useradres.
-  `Descriptor::encode` en `read_header` produceren little-endian bytes.
-- `validate_used(head, old_idx, new_idx, id, len, status)`: geen nieuwe entry
-  geeft Pending; één entry met correcte head is vereist. Een geslaagde READ
-  vereist len513. IO/unsupported met len1–513 levert een terminale foutuitkomst,
-  nooit toestemming om bouncegegevens als succes te leveren. Onbekende status,
-  indexsprong, verkeerde id en ongeldige lengte geven Protocol. De normale
-  16-bit ringindexwrap wordt wel ondersteund.
+- `parse_capabilities(&[u8;256], &[Bar;6]) -> Regions`: PCI snapshot with
+  vendor/device `1af4:1042`, header0, capability-chain cycle/length checks,
+  explicit memory BARs and non-overlapping common/notify/ISR/device regions.
+  The strict QEMU slice requires 8-byte common/device-offset alignment.
+  `Bar` contains `base/size/is_memory`; the kernel-probed size must match the
+  configuration BAR. `Regions::notify_address` checks multiplier and range.
+  Addresses above the x86-64 PTE limit of 52 bits are rejected; the kernel
+  additionally checks the CPU width actually supported and overlap with
+  RAM/reservations.
+- `negotiate_features`: requires VERSION_1 and readonly; accepts only those
+  two bits. ACCESS_PLATFORM is rejected: this profile configures no IOMMU.
+  Other acceleration/queue features are not negotiated.
+- `descriptor_plan(DmaPool, ram_end)` and `validate_descriptors`: five unique,
+  page-aligned kernel pages; exactly header16/RO → bounce512/device-WRITE →
+  status1/device-WRITE. No indirect descriptor, variable chain or user address.
+  `Descriptor::encode` and `read_header` produce little-endian bytes.
+- `validate_used(head, old_idx, new_idx, id, len, status)`: no new entry
+  returns Pending; one entry with the correct head is required. Successful
+  READ requires len513. IO/unsupported with len1–513 yields a terminal error
+  outcome, never permission to return bounce data as success. Unknown status,
+  index jump, wrong id and invalid length return Protocol. Normal 16-bit
+  ring-index wrapping is supported.
 - `Policy`: const initializer, `submit(Binding, Read, capacity, now, timeout)`,
   `complete`, `peek`, `consume`, `start_reset`, `reset_completed`, `timeout`.
-  Binding bevat PID en getypeerde objectkey/generation. Elke echte poll moet
-  eerst opnieuw een actuele READ-cap naar hetzelfde object autoriseren.
+  Binding contains PID and a typed object key/generation. Every actual poll
+  must first reauthorise a current READ capability to the same object.
 
-## Lifetime en bewijsgrens
+## Lifetime and evidence limits
 
-`Policy::new` begint Offline. Alleen een door de transportlaag bevestigde reset
-opent Ready met een nieuwe epoch. Submit valideert bounds en checked deadlines
-vóór publicatie van een ticket. Peek consumeert niet; de kernel valideert de
-volledige useroutput vóór consume en de daaropvolgende onfeilbare copy.
+`Policy::new` begins Offline. Only a transport-confirmed reset opens Ready
+with a new epoch. Submit validates bounds and checked deadlines before
+publishing a ticket. Peek does not consume; the kernel validates the entire
+user output before consume and the subsequent infallible copy.
 
-Timeout/cancel gaat naar Resetting en houdt de pending metadata vast. Zonder
-acknowledgement wordt de policy permanent Quarantined; late `true` heft dat niet
-op. Epoch en ticket wrappen nooit. De kernel houdt alle DMA-pagina's bootlang
-gepind en mag exposed buffers pas na completion of geverifieerde reset wijzigen.
+Timeout/cancel moves to Resetting and retains pending metadata. Without
+acknowledgement, the policy becomes permanently Quarantined; a late `true`
+does not undo this. Epoch and ticket never wrap. The kernel keeps all DMA
+pages pinned for the entire boot and may change exposed buffers only after
+completion or verified reset.
 
-**Een virtio used entry bevat geen epoch of nonce.** De parameters van
-`Policy::complete(epoch,ticket,...)` komen uit kernelmetadata. De hosttest voor
-een oude epoch bewijst alleen softwarebinding; hij detecteert geen kwaadwillige
-device-replay met dezelfde opnieuw gebruikte head-id. De echte status0-reset,
-barrières en queuequiescence moeten in de transportdriver worden bewezen.
+**A virtio used entry contains no epoch or nonce.** Parameters of
+`Policy::complete(epoch,ticket,...)` come from kernel metadata. The old-epoch
+host test demonstrates software binding only; it does not detect malicious
+device replay with the same reused head id. Actual status0 reset, barriers
+and queue quiescence must be demonstrated in the transport driver.
 
-De pure poolcontrole bewijst geen echte frame-eigenaar, pinning, cachetype of
-DMA-containment. De kernel moet die eigenschappen aan daadwerkelijke
-Frames/pagetables/PCI-registers koppelen. Zonder VT-d blijft het QEMU-device
-vertrouwd; er is geen hardware-IOMMU-claim of ondersteuning voor echte apparaten.
+The pure pool check does not establish actual frame ownership, pinning,
+cache type or DMA containment. The kernel must bind those properties to
+actual Frames/page tables/PCI registers. Without VT-d, the QEMU device
+remains trusted; there is no hardware-IOMMU claim or real-device support.
 
-## Controles
+## Checks
 
-12 hosttests dekken PCI-capability/bounds/cycles/overflow en 1.536 bytevarianten,
-descriptoradressen/flags/chain/lengtes, completionindex/id/lengte/status, slice-
-bounds, PID/objectbinding, timeout/quarantaine en epoch/ticket-no-wrap.
-Maximale tellerstanden worden alleen in de `cfg(test)`-module gezet.
+Twelve host tests cover PCI capabilities/bounds/cycles/overflow and 1,536 byte
+variants, descriptor addresses/flags/chain/lengths, completion index/id/length/
+status, slice bounds, PID/object binding, timeout/quarantine and epoch/ticket
+no-wrap. Maximum counters are set only in the `cfg(test)` module.
 
-De aanvullende capability-core-tests bewaren alle21 M4-tests en voegen vijf
-gerichte BlockDevice-tests toe: scope/type/invalidmask, adminclose, transfer/
-revocation/exit, aparte quota, generationretirement en gemengde queuecancellation.
+Additional capability-core tests preserve all 21 M4 tests and add five
+targeted BlockDevice tests: scope/type/invalidmask, adminclose,
+transfer/revocation/exit, separate quotas, generation retirement and mixed
+queue cancellation.
 
-Exacte commando's vanuit de projectroot met Rust1.90.0 en eigen
+Exact commands from the project root with Rust 1.90.0 and a separate
 `CARGO_TARGET_DIR=build/m5-core-tests`:
 
 ```text
@@ -80,12 +83,12 @@ cargo +1.90.0 check -p capability-core -p virtio-core --target x86_64-unknown-no
 git diff --check -- crates/capability-core crates/virtio-core
 ```
 
-Uitgevoerde resultaten, exacte argv en bronhashes worden lokaal bewaard in
-`verification/`; root kopieert de compacte bewijsversie naar docs/verification.
-Een hosttest is geen echte PCI-/DMA-/reset- of ring3-uitvoering. De kernelagent
-beheert die afzonderlijke grens. Terugdraaien vereist gezamenlijk verwijderen
-van deze crate en de door root beheerde workspace-/driverdependency.
+Executed results, exact argv and source hashes are retained locally in
+`verification/`; the lead agent copies the compact evidence version to
+docs/verification. A host test is not actual PCI/DMA/reset or ring3 execution.
+The kernel agent owns that separate boundary. Rollback requires removing
+this crate together with the workspace/driver dependency managed by the lead agent.
 
-Bron voor de geïnterpreteerde velden/protocolgrens:
+Source for the interpreted fields/protocol boundary:
 [OASIS VIRTIO1.2](https://docs.oasis-open.org/virtio/virtio/v1.2/virtio-v1.2.html),
-met name §§2.4,2.7,3.3,4.1 en5.2. Geen externe implementatiecode overgenomen.
+particularly §§2.4,2.7,3.3,4.1 and5.2. No external implementation code was copied.

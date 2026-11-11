@@ -123,6 +123,7 @@ class Selection:
         self.workspace = workspace
         self.output = output
         self.files: dict[str, Path] = {}
+        self.visited_directories: set[Path] = set()
         self.omitted: dict[str, dict] = {}
         self.missing: list[str] = []
         self.warnings: list[str] = []
@@ -197,6 +198,9 @@ class Selection:
             return
         info = path.lstat()
         if stat.S_ISDIR(info.st_mode):
+            if path in self.visited_directories:
+                return
+            self.visited_directories.add(path)
             for child in self.entries(path):
                 self.add(child)
         elif stat.S_ISREG(info.st_mode):
@@ -269,6 +273,30 @@ def _json_bytes(value: dict) -> bytes:
     return (json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8")
 
 
+def _required_paths(value: str) -> list[str]:
+    """Parse exact relative paths which must survive compact collection."""
+    required = []
+    for line in value.splitlines():
+        label = line.strip()
+        if not label:
+            continue
+        path = Path(label)
+        if (label != line or path.as_posix() != label
+                or any(unicodedata.category(char) in {"Cc", "Cf", "Zl", "Zp"}
+                       for char in label)
+                or path.is_absolute() or ".." in path.parts or label.startswith(("!", "~"))
+                or "\\" in label or any(char in label for char in "*?[")
+                or path.as_posix() in ("", ".")):
+            raise EvidenceError(f"Required evidence path must be exact and relative: {_path_label(label)}")
+        normalized = path.as_posix()
+        if normalized in required:
+            raise EvidenceError(f"Duplicate required evidence path: {_path_label(normalized)}")
+        required.append(normalized)
+    if len(required) > MAX_PATTERNS or any(len(path.encode("utf-8")) > 4096 for path in required):
+        raise EvidenceError("Too many or oversized required evidence paths")
+    return required
+
+
 def _receipt_bytes(receipt: dict) -> bytes:
     """Cap receipt metadata without dropping hashes of retained report files."""
     # Metadata is bounded too. Keep every retained hash; explicitly count omitted
@@ -314,12 +342,17 @@ def _summary(receipt: dict) -> str:
         f"- Checked-out commit: <code>{source['checkout_sha'] or 'unavailable'}</code>.",
         f"- Event SHA: <code>{html.escape(source['github_sha'] or 'unavailable')}</code>.",
         f"- Retained: **{len(receipt['retained'])} report(s)**, {receipt['retained_bytes']} bytes.",
+        "- Required paths retained: "
+        f"**{len(receipt['required_paths']) - len(receipt['unretained_required_paths'])}"
+        f"/{len(receipt['required_paths'])}**.",
         f"- Omitted: **{receipt['omitted_count']} path(s)**; missing patterns: **{len(receipt['missing_patterns'])}**.",
         "- Receipt: <code>_meta/receipt.json</code>. Upload availability is reported separately.",
         "- This is compact report evidence; it is not a complete raw-image or release archive.",
     ]
     if not receipt["retained"]:
         lines += ["", "**WARNING: No eligible test evidence was found. The receipt is metadata only.**"]
+    if receipt["unretained_required_paths"]:
+        lines += ["", "**ERROR: Required evidence was not retained; this collection must fail.**"]
     if receipt["omitted_list_truncated_count"]:
         lines += ["", f"Omitted-path listing truncated by {receipt['omitted_list_truncated_count']} entries; reason counts remain complete."]
     if receipt["warnings"]:
@@ -329,6 +362,7 @@ def _summary(receipt: dict) -> str:
 
 def collect(
     *, name: str, paths: str, output: Path, status: str,
+    required_paths: str = "",
     workspace: Path | None = None, environ: Mapping[str, str] | None = None,
     stdout: TextIO | None = None,
 ) -> dict:
@@ -355,6 +389,7 @@ def collect(
     patterns = [line.strip() for line in paths.splitlines() if line.strip()]
     if len(patterns) > MAX_PATTERNS or any(len(p.encode("utf-8")) > 4096 for p in patterns):
         raise EvidenceError("Too many or oversized input patterns")
+    required = _required_paths(required_paths)
     selection = Selection(root, destination)
     selection.select(patterns)
     destination.mkdir(parents=True, exist_ok=True)
@@ -409,6 +444,13 @@ def collect(
         selection.warnings.append(f"{len(selection.missing)} input pattern(s) were missing, rejected or inaccessible via safe paths")
     if not retained:
         selection.warnings.append("No eligible test evidence found; receipt is metadata only, not a passing test")
+    retained_paths = {entry["path"] for entry in retained}
+    unretained_required = [path for path in required if path not in retained_paths]
+    if unretained_required:
+        selection.warnings.append(
+            "Required evidence was not retained: "
+            + ", ".join(_path_label(path) for path in unretained_required)
+        )
     omitted = list(selection.omitted.values())
     receipt = {
         "schema_version": 1,
@@ -425,6 +467,8 @@ def collect(
         "evidence_state": "compact-reports-retained" if retained else "no-evidence",
         "retained_bytes": total,
         "retained": retained,
+        "required_paths": required,
+        "unretained_required_paths": unretained_required,
         "omitted_count": len(omitted),
         "omitted_reason_counts": dict(sorted(Counter(item["reason"] for item in omitted).items())),
         "omitted": omitted,
@@ -442,6 +486,7 @@ def collect(
         "name": name, "source": receipt["source"], "job_status_before_archive": status,
         "evidence_state": receipt["evidence_state"], "retained_files": len(retained),
         "retained_bytes": total, "omitted_count": len(omitted),
+        "required_paths": required, "unretained_required_paths": unretained_required,
         "omitted_reason_counts": receipt["omitted_reason_counts"],
         "omitted_list_truncated_count": receipt["omitted_list_truncated_count"],
         "missing_patterns": selection.missing, "warnings": selection.warnings,
@@ -454,7 +499,16 @@ def collect(
             handle.write(_summary(receipt))
     if env.get("GITHUB_OUTPUT"):
         with open(env["GITHUB_OUTPUT"], "a", encoding="utf-8") as handle:
-            handle.write(f"path={destination}\nhas-files={'true' if retained else 'false'}\n")
+            handle.write(
+                f"path={destination}\n"
+                f"has-files={'true' if retained else 'false'}\n"
+                f"required-files={'false' if unretained_required else 'true'}\n"
+            )
+    if unretained_required:
+        raise EvidenceError(
+            "Required evidence path was not retained: "
+            + ", ".join(_path_label(path) for path in unretained_required)
+        )
     return receipt
 
 
@@ -465,11 +519,18 @@ def main(argv: list[str] | None = None) -> int:
     command = commands.add_parser("collect", help="Collect bounded reports and a receipt")
     command.add_argument("--name", required=True)
     command.add_argument("--paths", required=True, help="Newline-separated explicit upload globs")
+    command.add_argument(
+        "--required-paths", default="",
+        help="Newline-separated exact paths which must be present in the compact receipt",
+    )
     command.add_argument("--output", type=Path, required=True)
     command.add_argument("--status", choices=sorted(STATUSES), required=True)
     args = parser.parse_args(argv)
     try:
-        collect(name=args.name, paths=args.paths, output=args.output, status=args.status)
+        collect(
+            name=args.name, paths=args.paths, required_paths=args.required_paths,
+            output=args.output, status=args.status,
+        )
     except (EvidenceError, OSError) as error:
         sys.stderr.write(_inert(f"COLLECTION ERROR: {error}"))
         return 2

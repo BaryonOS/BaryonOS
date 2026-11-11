@@ -190,6 +190,50 @@ fn collections(block: memory::OwnedHeapPages) {
         );
     }
     check(ALLOCATOR.usage().live_allocations == 0, 39);
+    let retained_layout = Layout::from_size_align(64, 8).unwrap();
+    let retained = ALLOCATOR
+        .try_allocate(retained_layout)
+        .unwrap_or_else(|_| fail(42));
+    // SAFETY: Fresh private allocator block; this test owns its full extent.
+    unsafe { retained.as_ptr().write_bytes(0x5d, retained_layout.size()) };
+    let held_layout = Layout::from_size_align(64 * 1024, 8).unwrap();
+    let held = ALLOCATOR
+        .try_allocate(held_layout)
+        .unwrap_or_else(|_| fail(43));
+    let request_bytes = ALLOCATOR
+        .usage()
+        .engine_free
+        .checked_add(32 * 1024)
+        .unwrap_or_else(|| fail(44));
+    let request = Layout::from_size_align(request_bytes, 8).unwrap_or_else(|_| fail(45));
+    let mut reclaim_attempts = 0;
+    let recovered = ALLOCATOR
+        .try_allocate_with_reclaim_once(request, || {
+            reclaim_attempts += 1;
+            // SAFETY: This callback runs only after a failed allocation and
+            // releases this exact live block once, outside the allocator lock.
+            unsafe { ALLOCATOR.deallocate(held, held_layout) };
+        })
+        .unwrap_or_else(|_| fail(46));
+    check(reclaim_attempts == 1, 47);
+    check(
+        unsafe {
+            core::slice::from_raw_parts(retained.as_ptr(), retained_layout.size())
+        }
+        .iter()
+        .all(|byte| *byte == 0x5d),
+        48,
+    );
+    check(
+        (block.base_address()..block.base_address() + block.len_bytes())
+            .contains(&(recovered.as_ptr() as u64)),
+        49,
+    );
+    unsafe {
+        ALLOCATOR.deallocate(recovered, request);
+        ALLOCATOR.deallocate(retained, retained_layout);
+    }
+    check(ALLOCATOR.usage().live_allocations == 0, 56);
     check(
         matches!(
             ALLOCATOR.try_allocate(Layout::from_size_align(16 * 1024 * 1024, 8).unwrap()),

@@ -1,26 +1,26 @@
-# Bootproces, firmware en bootloaders
+# Boot process, firmware and bootloaders
 
-De kennisbank bevat afzonderlijke routes voor BIOS, UEFI, bestaande bootloaders, eigen loaders en bootprotocollen. Het boek gebruikt BIOS, GRUB Legacy, Multiboot en een 32-bit kernel; de UEFI-, Limine- en 64-bitpagina’s staan als aparte bronnen naast die leerlijn, niet als stilzwijgende vervanging ervan.
+The knowledge base contains separate routes for BIOS, UEFI, existing bootloaders, custom loaders and boot protocols. The book uses BIOS, GRUB Legacy, Multiboot and a 32-bit kernel; the UEFI, Limine and 64-bit pages are separate sources alongside that learning route, not implicit replacements for it.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [Boot sequence](../corpus/wiki-07.md#w003050) [W003050] · revisie 12256 · 2011-12-12T10:34:25Z
-- [Bootloader](../corpus/wiki-02.md#w001682) [W001682] · revisie 30966 · 2026-09-22T22:19:12Z
-- [BIOS](../corpus/wiki-01.md#w001484) [W001484] · revisie 30975 · 2026-09-27T17:55:31Z
-- [UEFI](../corpus/wiki-07.md#w002924) [W002924] · revisie 30920 · 2026-08-30T00:37:03Z
-- [GRUB](../corpus/wiki-06.md#w002803) [W002803] · revisie 30711 · 2026-06-10T11:30:45Z
-- [Limine](../corpus/wiki-13.md#w004530) [W004530] · revisie 30493 · 2026-04-18T12:40:08Z
-- [Multiboot](../corpus/wiki-08.md#w003350) [W003350] · revisie 30712 · 2026-06-10T13:13:44Z
-- [OVMF](../corpus/wiki-13.md#w004562) [W004562] · revisie 30143 · 2026-03-05T23:16:12Z
+- [Boot sequence](../corpus/wiki-07.md#w003050) [W003050] · revision 12256 · 2011-12-12T10:34:25Z
+- [Bootloader](../corpus/wiki-02.md#w001682) [W001682] · revision 30966 · 2026-09-22T22:19:12Z
+- [BIOS](../corpus/wiki-01.md#w001484) [W001484] · revision 30975 · 2026-09-27T17:55:31Z
+- [UEFI](../corpus/wiki-07.md#w002924) [W002924] · revision 30920 · 2026-08-30T00:37:03Z
+- [GRUB](../corpus/wiki-06.md#w002803) [W002803] · revision 30711 · 2026-06-10T11:30:45Z
+- [Limine](../corpus/wiki-13.md#w004530) [W004530] · revision 30493 · 2026-04-18T12:40:08Z
+- [Multiboot](../corpus/wiki-08.md#w003350) [W003350] · revision 30712 · 2026-06-10T13:13:44Z
+- [OVMF](../corpus/wiki-13.md#w004562) [W004562] · revision 30143 · 2026-03-05T23:16:12Z
 
-## Aansluiting op het PDF-boek
+## Related PDF book pages
 
-- Pagina 11–17: [B011](../corpus/boek.md#b011) tot [B017](../corpus/boek.md#b017).
-- Pagina 47–49: [B047](../corpus/boek.md#b047) tot [B049](../corpus/boek.md#b049).
+- Pages 11–17: [B011](../corpus/boek.md#b011) to [B017](../corpus/boek.md#b017).
+- Pages 47–49: [B047](../corpus/boek.md#b047) to [B049](../corpus/boek.md#b049).
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [A20 Line](../corpus/wiki-01.md#w001433) [W001433]
 - [AMD Atombios](../corpus/wiki-12.md#w004257) [W004257]

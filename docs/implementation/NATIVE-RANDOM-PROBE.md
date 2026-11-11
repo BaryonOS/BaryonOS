@@ -1,175 +1,179 @@
-# Native RANDOM-proef naast de geïntegreerde systeemketen
+# Native RANDOM trial alongside the integrated system chain
 
-TASK-RANDOM-NATIVE-PROBE, basis985ed4d met de twee beoordeelde KEYRANDOM-
-commits. Deze stap levert probe/observer/dienstadapter en componentbuilds;
-**nog geen uitgevoerde native RANDOM-gate**. De integrator levert de echte
-bootstrap, feature, images, koude keten en runtimebewijzen. Alle eisen uit
-[FULL-TEST-RELEASE](../FULL-TEST-RELEASE.md) blijven verplicht.
+TASK-RANDOM-NATIVE-PROBE, baseline 985ed4d with the two reviewed KEYRANDOM
+commits. This step provides the probe/observer/service adapter and component
+builds; **no executed native RANDOM gate yet**. The integrator supplies the
+actual bootstrap, feature, images, cold chain and runtime evidence. All
+requirements from [FULL-TEST-RELEASE](../FULL-TEST-RELEASE.md) remain mandatory.
 
-## Grens en procesopbouw
+## Boundary and process structure
 
-`native-system-random` bouwt voort op `native-system,monotonic-clock`.
-Init, volume en de bestaande v7document-/cryptoproef behouden hun gedrag;
-Key krijgt de afzonderlijke RND-ingress en de app alleen de hieronder
-beschreven opt-in STATUS-barrière. Een vijfde initieel proces voert de RANDOM-proef uit. Zijn echte
-PID wordt opgeslagen; slot4 mag na exit door een worker worden hergebruikt.
-De observer leest de probegegevens vóór cleanup en bewaart een snapshot.
+`native-system-random` builds on `native-system,monotonic-clock`. Init,
+volume and the existing v7 document/cryptography trial retain their behaviour;
+Key receives the separate RND ingress and the app only the opt-in STATUS
+barrier described below. A fifth initial process runs the RANDOM trial.
+Its actual PID is stored; slot 4 may be reused by a worker after exit.
+The observer reads probe data before cleanup and retains a snapshot.
 
-De probe krijgt exact twee handles: RANDOM-SEND en eigen reply-RECV.
-Geen rawEntropySource, sleutelingress, recovery/snapshot, opslag, netwerk,
-procesbeheer, DERIVE, TRANSFER of REVOKE. De bestaande Key Service bezit twee
-sleutelingresses; RANDOM wordt zijn derde van maximaal vier endpoints.
-De probe bezit één reply-endpoint. Geen endpointquota worden verhoogd.
+The probe receives exactly two handles: RANDOM SEND and its own reply RECV.
+No rawEntropySource, key ingress, recovery/snapshot, storage, network,
+process management, DERIVE, TRANSFER or REVOKE. The existing Key Service owns
+two key ingresses; RANDOM becomes its third of at most four endpoints. The
+probe owns one reply endpoint. No endpoint quotas are increased.
 
-Bootstrap behoudt bij Key een RANDOM-root en een daarvan afgeleide
-SEND|TRANSFER|REVOKE-ancestor. Alleen een SEND-leaf gaat naar de probe.
-De Key-RECV is een afzonderlijke tak. Intrekking van de SEND-ancestor raakt
-die RECV niet; de ancestor zelf wordt wel ingetrokken. De rebindfase gebruikt
-de nog geldige ancestor vóór intrekking. De reply-root wordt na afleiding van
-de unieke probe-RECV en Key-SEND gesloten. Er is geen verborgen RECV-alias.
+Bootstrap retains a RANDOM root at Key and a SEND|TRANSFER|REVOKE ancestor
+derived from it. Only a SEND leaf goes to the probe. Key RECV is a separate
+branch. Revoking the SEND ancestor does not affect that RECV; the ancestor
+itself is revoked. The rebind phase uses the still-valid ancestor before
+revocation. The reply root is closed after deriving the unique probe RECV
+and Key SEND. There is no hidden RECV alias.
 
-De fixture verleent alleen expliciete testrebind/revoke binnen deze scope.
-Zij is geen product-API of implementatie van account-/NAS-onboarding. Kernel
-en capability-engine krijgen geen cryptografie, RNG of protocolparser.
+The fixture grants only explicit test rebind/revoke within this scope. It
+is not a product API or implementation of account/NAS onboarding. Kernel and
+capability engine receive no cryptography, RNG or protocol parser.
 
-## Vier gevallen
+## Four cases
 
-| Case | Werkelijke handelingen en aftekenbewijs |
+| Case | Actual operations and acceptance evidence |
 |---|---|
-| 0 RAW | Native RND1-IPC voor1/32/64/128/224bytes; alle9oude opcodes en9foute requestvelden geweigerd;64calls binnen een echt100tickvenster en quotaantwoord; wachten op echte ticks; call- én4096byte-reseed; nativeclose→nieuweSEND-generatie zonder principalreset; oudeIDgeweigerd; gesloten unieke replyRECV gevolgd door echte aanvraag; Key blijft werken, pending wordt gewist/ingress retired; daarna SEND-subtreeintrekking en daadwerkelijke Revoked-fout. |
-| 1 SDK/cancel | De echte SDK/NativeTransport vraagt1/32/64/128bytes; daarna wordt een werkelijk geënqueuede32byteaanvraag geannuleerd. Beide handles sluiten; latere begin/poll publiceren niets. De probe blijft leven tot de dienst de aanvraag werkelijk verwerkt heeft. |
-| 2 SDK/uncertain | De testtransportadapter voert echte native.send uit en geeft alleen ná succes opzettelijk InvalidReturn terug. Dit is expliciete caller-foutinjectie. De SDK moet Unknown melden, beide handles sluiten, geen bytes publiceren en niet opnieuw verzenden. Geen vervanging van een OS-dienst door een hostresultaat. |
-| 3 Verkeerde PID | De RND-descriptor verwacht de bestaande app-PID; de probe verstuurt echt als eigen PID. Seen=1/badCaller=1 en calls/bytes/seeds=0 bewijzen daadwerkelijk consume+weigering. Daarna bevestigt de caller minstens10echte ticks zonder antwoord; stilte alleen volstaat niet. |
+| 0 RAW | Native RND1 IPC for 1/32/64/128/224 bytes; all 9 old opcodes and 9 invalid request fields rejected; 64 calls within an actual 100-tick window and a quota reply; waiting for actual ticks; both call and 4096-byte reseed; native close→new SEND generation without principal reset; old ID rejected; closed unique reply RECV followed by an actual request; Key continues working, pending is cleared/ingress retired; then SEND-subtree revocation and an actual Revoked error. |
+| 1 SDK/cancel | The actual SDK/NativeTransport requests 1/32/64/128 bytes; an actually queued 32-byte request is then cancelled. Both handles close; later begin/poll publish nothing. The probe remains alive until the service has actually processed the request. |
+| 2 SDK/uncertain | The test transport adapter executes actual native.send and deliberately returns InvalidReturn only after success. This is explicit caller fault injection. The SDK must report Unknown, close both handles, publish no bytes and not resend. No replacement of an OS service with a host result. |
+| 3 Wrong PID | The RND descriptor expects the existing app PID; the probe actually sends as its own PID. Seen=1/badCaller=1 and calls/bytes/seeds=0 prove actual consumption+rejection. The caller then confirms at least 10 actual ticks without a reply; silence alone is insufficient. |
 
-Bij cancel/uncertain mag de reply vóór de annulering al geënqueued zijn, of
-pas bij Closed falen. Intrekking kan reeds rechtmatig geproduceerde bytes niet
-ongedaan maken. De SDK geeft de onbeantwoorde output niet aan de caller.
-Case0 veroorzaakt een gesloten-replyfout deterministisch, zonder die race.
-De bestaande systeemapp moet in ieder geval zijn2seals/2unseals/9authweigeringen
-en de4096byte plaintext-diskfixture blijven doorlopen. Deze diskfixture bewijst
-geen versleutelde opslag.
-Na de terminale RND-observatie voert de bestaande app bovendien een **nieuwe
-echte legacy-STATUS-RPC** uit met haar al bestaande, enige levende KeySession.
-De ontvangen toestand moet Ready zijn. Er worden geen extra KEY-rechten aan
-de RANDOM-probe verleend en STATUS mag geen entropy consumeren.
+For cancel/uncertain, the reply may already have been queued before
+cancellation or may fail only at Closed. Revocation cannot undo bytes already
+legitimately produced. The SDK does not release the unanswered output to the
+caller. Case 0 deterministically causes a closed-reply error without that
+race. The existing system app must in every case continue its
+2 seals/2 unseals/9 authentication rejections and the 4096-byte plaintext
+disk fixture. This disk fixture does not prove encrypted storage.
+After the terminal RND observation, the existing app additionally executes
+a **new actual legacy STATUS RPC** using its existing sole live KeySession.
+The received state must be Ready. No additional KEY permissions are granted
+to the RANDOM probe and STATUS must consume no entropy.
 
-Losse nulbytes en herhaalde korte waarden zijn geldige randomoutput. De proef
-eist alleen voor samples vanaf32bytes een aanvullende niet-allesnul/
-verschilcontrole. Dat is geen entropieschatting, statistische veiligheidstest
-of fysieke RNG-kwaliteitsclaim. De implementatie moet de echte virtio-rng en
-onderhouden ChaCha20Rng gebruiken; er is geen host-/CPU-RNG-fallback in de probe.
+Individual zero bytes and repeated short values are valid random output.
+Only for samples of at least 32 bytes does the trial require an additional
+not-all-zero/difference check. That is not an entropy estimate, statistical
+security test or physical RNG quality claim. The implementation must use
+the actual virtio-rng and maintained ChaCha20Rng; the probe has no host/CPU
+RNG fallback.
 
-## Startup, hooks en tellers
+## Startup, hooks and counters
 
-De probe gebruikt de bestaande private1024byte-startuppagina:
-32=versie1,40=resultaat,48=RND-SEND,56=reply-RECV,112=case0..3,
-160=KeyPID,176=eigenPID. Resultaat1 plus nativeexit0 betekent probegeslaagd;
-240 geeft bij falen de stap. Meetwaarden staan in400..584.
-Fase640=request,648=ack,656=nieuwSEND; deze cellen zijn uitsluitend de
-opt-in testfixture. Hun definities staan in
+The probe uses the existing private 1024-byte startup page:
+32=version1, 40=result, 48=RND-SEND, 56=reply-RECV, 112=case0..3,
+160=KeyPID, 176=ownPID. Result1 plus native exit0 means the probe passed;
+240 identifies the step on failure. Measurements are in 400..584.
+Phase 640=request, 648=ack, 656=newSEND; these cells are solely the opt-in
+test fixture. Their definitions are in
 [`contract.rs`](../../sdk/examples/random-probe/src/contract.rs).
 
-Key houdt de eerder vastgelegde descriptor:
-120=`NOSRNG01`,128=RND-RECV,136=reply-SEND,144=callerPID,152=domain0.
-Oude profielen zonder descriptor blijven zonder RND-Sys3-aanroepen werken.
-Aanvullende Key-observatiewoorden:
+Key retains the previously established descriptor:
+120=`NOSRNG01`, 128=RND-RECV, 136=reply-SEND, 144=callerPID, 152=domain0.
+Old profiles without the descriptor continue to work without RND Sys3 calls.
+Additional Key observation words:
 
-| Woord | Betekenis |
+| Word | Meaning |
 |---|---|
-| 272/280/288 | werkelijke corecalls/bytes/seeds |
-| 296/304/312 | native ingressmessages gezien / verkeerdecaller / verkeerdeopcode |
-| 320/328/336 | RNDingress retired / replypending / fout requestformaat |
-| 344/352/360 | werkelijk geënqueuede replies / Closed-fouten / pendingdeadline/budgetfouten |
-| 368/376 | geslaagde legacyreceive/poll-returns(Ok/EAGAIN) / onverwachte legacypollfouten |
+| 272/280/288 | actual core calls/bytes/seeds |
+| 296/304/312 | native ingress messages seen / wrong caller / wrong opcode |
+| 320/328/336 | RND ingress retired / reply pending / malformed request |
+| 344/352/360 | actually queued replies / Closed errors / pending deadline/budget errors |
+| 368/376 | successful legacy receive/poll returns (Ok/EAGAIN) / unexpected legacy poll errors |
 
-De requestcounters stijgen pas na echte native.receive. Pending wordt vóór
-de bijbehorende outputcounters gepubliceerd. Observerfasen wachten op een
-volledige terminale combinatie; losse userlandwoorden zijn niet atomair ten
-opzichte van timerpreëmptie.
-Na de terminale RND-observatie wacht de fixture bovendien op minstens twee
-nieuwe echte legacypoll-returns en nul fouten. Zo bewijst de native trace
-voortgang na Closed/cancel/uncertain/verkeerdecaller; een heartbeat in een
-RND-retrylus telt niet. Een nieuwe succesvolle legacy-RPC-roundtrip ná die
-fout wordt afzonderlijk door de bestaande app uitgevoerd; haar eerdere2/2/9
-of alleen deze pollcounter is daarvoor geen vervangend bewijs.
+Request counters increase only after actual native.receive. Pending is
+published before its associated output counters. Observer phases wait for
+a complete terminal combination; individual userland words are not atomic
+with respect to timer pre-emption.
+After the terminal RND observation, the fixture also waits for at least two
+new actual legacy poll returns and zero errors. The native trace thereby
+demonstrates progress after Closed/cancel/uncertain/wrong caller; a heartbeat
+in an RND retry loop does not count. A new successful legacy RPC round trip
+after that error is separately performed by the existing app; its earlier
+2/2/9 or this polling counter alone is no substitute for that evidence.
 
-Alleen dit profiel vult in de bestaande app624=`NOSRNGT1`,632=release,
-640=STATUS-ACK,648=begin- en656=eindticks. Magic0 houdt alle oude gevallen
-zonder extraRPC/Sys3-pad. De fixture zet release pas na daadwerkelijk
-geconsumeerde/verwerkte RND-input of daadwerkelijke verkeerdecallerweigering.
-De app wacht begrensd met Sys3, gebruikt begin/poll op haar bestaande sessie
-voor STATUS met een echte tickdeadline en sluit die sessie pas daarna.
-De fase-ACK naar de probe volgt pas op de werkelijke STATUS-ACK van de app;
-de oude app kan daarbij al zijn afgesloten, waarna de observer haar snapshot gebruikt.
-Documentopslag, keyrevoke,2/2/9 en diskrequestID's blijven gelijk.
-De observer bewaart dit bewijs ook vóór appcleanup en vereist
-`terminalTick <= STATUSbegin <= STATUSeinde <= appExitTick` en ACK1.
+Only this profile populates the existing app's 624=`NOSRNGT1`, 632=release,
+640=STATUS-ACK, 648=start ticks and 656=end ticks. Magic0 keeps all old cases
+without an additional RPC/Sys3 path. The fixture sets release only after
+actually consumed/processed RND input or an actual wrong-caller rejection.
+The app waits boundedly with Sys3, uses begin/poll on its existing session
+for STATUS with an actual tick deadline, and closes that session only
+afterwards. The phase ACK to the probe follows only after the app's actual
+STATUS ACK; the old app may already have exited by then, after which the
+observer uses its snapshot. Document storage, key revoke, 2/2/9 and disk
+request IDs remain the same. The observer retains this evidence before app
+cleanup too and requires
+`terminalTick <= STATUSbegin <= STATUSeinde <= appExitTick` and ACK1
+(STATUSeinde denotes the STATUS end tick).
 
-Bootstrap roept `random_fixture::bind(s,e,Binding{case,key_pid,probe_pid,
-random_root,send_ancestor,send_leaf,reply_receive})` na registratie/grants/
-startup. Daarna zijn nodig: `poll(s)`, `is_probe(s,slot)`,
-`observe_exit(s,slot)->bool` vóór cleanup bij **alle** exits: de appstatus wordt
-opgeslagen met returnfalse, de probe met returntrue. Gebruik `finished()`,
-dat beide snapshots vereist, als extra finishvoorwaarde en
-`check_and_print(s)` vóór Keycleanup. De root houdt module-/ELFkeuze,
-vijf-initiëleprocessen, featureconflicten, timeoutdiagnose, bouwmanifesten,
-gedeelde locks en run-/capturevalidatie in één integratiepatch.
+Bootstrap calls `random_fixture::bind(s,e,Binding{case,key_pid,probe_pid,
+random_root,send_ancestor,send_leaf,reply_receive})` after registration/grants/
+startup. Then required: `poll(s)`, `is_probe(s,slot)`,
+`observe_exit(s,slot)->bool` before cleanup on **all** exits: app status is
+stored with return false, probe status with return true. Use `finished()`,
+which requires both snapshots, as an additional finish condition, and
+`check_and_print(s)` before Key cleanup. Root retains module/ELF selection,
+five initial processes, feature conflicts, timeout diagnostics, build
+manifests, shared locks and run/capture validation in one integration patch.
 
-RAW verwacht app89succesantwoorden/4737bytes,110enqueues/109gevalideerde
-replies; variables5,legacy9,invalid9,quota1,rebind/stale/replay/revoke ieder1,
-capabilityweigeringen6. De Key-vector is exact:
-`[90,4769,3,110,0,9,1,0,9,109,1,0]` volgens de twaalf servicewoorden.
-SDKcancel verwacht5corecalls/257bytes/1seed,4positieve outputs/225bytes,
-5nativeenqueues,2closes en één cancel zonderretry. SDKuncertain verwacht
-1call/64bytes/1seed,1enqueue,0output en2closes zonderretry.
-WrongPID verwacht exact `[0,0,0,1,1,0,0,0,0,0,0,0]`.
-`RANDOM_PROBE_PID`, `RANDOM_KEY_PID`, `RANDOM_APP_PID` en
-`RANDOM_EXPECTED_CALLER_PID` binden de meetwaarden aan de opgeslagen echte
-procesidentiteiten; alleen WrongPID verwacht de app als caller.
-Alle gevallen vergelijken echte brokerbytes met1024+256×seeds én Key264;
-de oorspronkelijke crypto-, opslag-, lifecycle- en cleanupgates blijven vereist.
+RAW expects app 89 successful replies/4737 bytes, 110 enqueues/109 validated
+replies; variables5, legacy9, invalid9, quota1, rebind/stale/replay/revoke
+1 each, capability rejections6. The Key vector is exactly
+`[90,4769,3,110,0,9,1,0,9,109,1,0]` according to the twelve service words.
+SDK cancel expects 5 core calls/257 bytes/1 seed, 4 positive outputs/225 bytes,
+5 native enqueues, 2 closes and one cancellation without retry. SDK uncertain
+expects 1 call/64 bytes/1 seed, 1 enqueue, 0 output and 2 closes without retry.
+WrongPID expects exactly `[0,0,0,1,1,0,0,0,0,0,0,0]`.
+`RANDOM_PROBE_PID`, `RANDOM_KEY_PID`, `RANDOM_APP_PID` and
+`RANDOM_EXPECTED_CALLER_PID` bind the measurements to stored actual process
+identities; only WrongPID expects the app as caller. All cases compare actual
+broker bytes with 1024+256×seeds and Key264; the original cryptography,
+storage, lifecycle and cleanup gates remain required.
 
-## Begrensde RANDOM-replies
+## Bounded RANDOM replies
 
-De oude gedeelde sendhelper kon200.000EAGAIN-yields uitvoeren voordat legacy
-weer aan de beurt kwam. Alleen de RANDOM-replyroute is daarom veranderd:
-één nonblocking sendpoging per hoofdloop, maximaal één beheerde256bytepending
-reply,4096pogingen en een geverifieerde100tickdeadline na EAGAIN. Iedere
-hoofdloop behandelt eerst de bestaande sleutelingresses. Closed, andere fatale
-transportfouten, tijd-/budgetfouten beëindigen alleen RNDingress en wissen
-pending/outputenvelope; master, Ready en legacy-RPC's worden niet gereset.
-Een geretireerd ingress wordt niet stil opnieuw toegekend.
+The old shared send helper could perform 200,000 EAGAIN yields before legacy
+received another turn. Only the RANDOM reply route has therefore changed:
+one non-blocking send attempt per main loop, at most one managed 256-byte
+pending reply, 4096 attempts and a verified 100-tick deadline after EAGAIN.
+Each main loop first handles the existing key ingresses. Closed, other fatal
+transport errors and time/budget errors terminate only RND ingress and erase
+the pending/output envelope; master, Ready and legacy RPCs are not reset.
+A retired ingress is not silently granted again.
 
-De RAW-Closedproef en de SDKcancelcases moeten dit native uitvoeren.
-Een echt volle replyqueue met EAGAIN en zijn deadlinepad zijn aanvullend nog
-native te controleren; source-/hostcontrole maakt die runtime-eis niet groen.
-Ontbrekende/achteruitgaande tijd en bronfalen blijven ook afzonderlijke
-negatieve runtimevereisten; dit profiel maakt de echte monotone PIT-tijd niet
-opzettelijk defect om daar een resultaat voor te simuleren.
+The RAW Closed trial and SDK cancel cases must execute this natively. An
+actually full reply queue with EAGAIN and its deadline path additionally
+remain to be checked natively; source/host checks do not satisfy that runtime
+requirement. Missing/regressing time and source failure also remain separate
+negative runtime requirements; this profile does not deliberately break
+actual monotonic PIT time to simulate a result for them.
 
-## Componentbuild en bewijsgrens
+## Component build and evidence boundary
 
 `LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=<eigenmap>
 python3 -B tools/dev.py python3 -B sdk/examples/random-probe/build.py`
-bouwt `random-probe` metRust1.90 voorx86_64-unknown-none. De kernel ontvangt
-`NOS_RANDOM_PROBE_ELF=<gecontroleerd ELF>`. Argument`clippy` voert dezelfde
-native selectie met`-D warnings` uit. De probe heeft een eigen lock;
-geen root-/SDK-lock is voor deze componentbuild gewijzigd.
+builds `random-probe` with Rust 1.90 for x86_64-unknown-none (`<eigenmap>`
+denotes a dedicated directory). The kernel receives
+`NOS_RANDOM_PROBE_ELF=<gecontroleerd ELF>` (a checked ELF). Argument `clippy`
+runs the same native selection with `-D warnings`. The probe has its own
+lockfile; no root/SDK lockfile was changed for this component build.
 
-Hostchecks vergelijken alle1..224RAW-codeclengtes met de werkelijke Key-codec,
-weigeren gewijzigde replyvelden/caps en gebruiken de echte capability-engine
-voor Closed/rebind/subtreeintrekking. Zij bewijzen geen native RNG-uitvoering.
-Het componentrapport staat in
+Host checks compare all 1..224 RAW codec lengths with the actual Key codec,
+reject changed reply fields/capabilities and use the real capability engine
+for Closed/rebind/subtree revocation. They do not prove native RNG execution.
+The component report is in
 [`verification/component.json`](../../sdk/examples/random-probe/verification/component.json):
-4 nieuwe hostproeven plus61 bestaande SDK- en15 Key-clientproeven slagen;
-probe, Keydienst en systeemapp bouwen en voldoen aan Clippy voor het scalar
-native doel. De disassemblies bevatten geen FP-/SIMD-register- of CPU-RNG-
-instructiematches. Dit is een begrensde codegeneratiecontrole, geen uitvoeringsbewijs.
-De observer wordt daarnaast in een private kopie van de echte985kernel
-getypecheckt, met alleen een tijdelijke moduleverklaring en gecontroleerde
-bestaande985ELFs; bootstrap/hooks worden daarmee nog niet uitgevoerd.
+4 new host trials plus 61 existing SDK and 15 Key-client trials pass; probe,
+Key service and system app build and satisfy Clippy for the scalar native
+target. Disassemblies contain no matches for FP/SIMD registers or CPU RNG
+instructions. This is a bounded code-generation check, not execution evidence.
+The observer is also type-checked in a private copy of the actual 985 kernel,
+with only a temporary module declaration and checked existing 985 ELFs;
+bootstrap/hooks are not executed by that check.
 
-Voor native aftekening blijven de rootintegratie, alle vier werkelijke
-gevallen, koude normale/herstelketen, exacte image-/bronhashes en regressies
-verplicht. Geen volledige testrelease-, TLS-, identiteit-, certificaattijd-,
-PQC-, entropiekwaliteits- of volledige geheugenerasureclaim uit deze deelstap.
+For native acceptance, root integration, all four actual cases, the cold
+normal/recovery chain, exact image/source hashes and regressions remain
+mandatory. This partial step makes no full test-release, TLS, identity,
+certificate-time, PQC, entropy-quality or complete memory-erasure claim.

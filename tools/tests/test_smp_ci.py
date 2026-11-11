@@ -137,8 +137,8 @@ class SmpCiAggregationTests(unittest.TestCase):
         full_jobs = {"smp-environment-probe", "smp-case-50", "smp-soak-50",
                      "smp-matrix-aggregate", "smp-final-gate"}
         for event, full, diagnostic, expected in (
-            ("pull_request", False, False, {"native-smp"}),
-            ("workflow_dispatch", False, False, {"native-smp"}),
+            ("pull_request", False, False, {"native-smp", "experimental-m3-m4-smp"}),
+            ("workflow_dispatch", False, False, {"native-smp", "experimental-m3-m4-smp"}),
             ("workflow_dispatch", True, False, full_jobs),
             ("workflow_dispatch", False, True, {"diagnostic-clock"}),
             ("workflow_dispatch", True, True, {"diagnostic-clock"}),

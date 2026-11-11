@@ -7,8 +7,8 @@
 //! whole-volume rollback when both ciphertext and expected context are replayed.
 
 use chacha20poly1305::{
-    aead::{AeadInPlace, KeyInit},
-    Key, Tag, XChaCha20Poly1305, XNonce,
+    aead::{inout::InOutBuf, AeadInOut, KeyInit},
+    Tag, XChaCha20Poly1305, XNonce,
 };
 use zeroize::Zeroizing;
 
@@ -114,14 +114,14 @@ impl Service {
         let key = Zeroizing::new(self.key(domain, index)?);
         let mut nonce = [0u8; NONCE_BYTES];
         self.drbg.as_mut().ok_or(Status::NotReady)?.fill(&mut nonce);
-        let cipher = XChaCha20Poly1305::new(Key::from_slice(&*key));
+        let cipher = XChaCha20Poly1305::new((&*key).into());
         let mut body = Zeroizing::new([0u8; MAX_PLAINTEXT]);
         body[..length].copy_from_slice(plaintext);
         let tag = cipher
-            .encrypt_in_place_detached(
-                XNonce::from_slice(&nonce),
+            .encrypt_inout_detached(
+                (&nonce).into(),
                 &context.aad(index),
-                &mut body[..length],
+                InOutBuf::from(&mut body[..length]),
             )
             .map_err(|_| Status::Invalid)?;
         let end = NONCE_BYTES + length;
@@ -150,16 +150,20 @@ impl Service {
         }
         self.account(source)?;
         let key = Zeroizing::new(self.key(domain, index)?);
-        let cipher = XChaCha20Poly1305::new(Key::from_slice(&*key));
+        let cipher = XChaCha20Poly1305::new((&*key).into());
         let end = NONCE_BYTES + length;
         let mut body = Zeroizing::new([0u8; MAX_PLAINTEXT]);
         body[..length].copy_from_slice(&sealed[NONCE_BYTES..end]);
+        let nonce: &XNonce = sealed[..NONCE_BYTES]
+            .try_into()
+            .map_err(|_| Status::Invalid)?;
+        let tag: &Tag = sealed[end..].try_into().map_err(|_| Status::Invalid)?;
         if cipher
-            .decrypt_in_place_detached(
-                XNonce::from_slice(&sealed[..NONCE_BYTES]),
+            .decrypt_inout_detached(
+                nonce,
                 &expected.aad(index),
-                &mut body[..length],
-                Tag::from_slice(&sealed[end..]),
+                InOutBuf::from(&mut body[..length]),
+                tag,
             )
             .is_err()
         {

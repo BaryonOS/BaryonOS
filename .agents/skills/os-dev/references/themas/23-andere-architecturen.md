@@ -1,21 +1,21 @@
-# ARM, AArch64, RISC-V en overige platforms
+# ARM, AArch64, RISC-V and other platforms
 
-Niet-x86-architecturen blijven volwaardig opgenomen: onder andere ARM/AArch64, RISC-V, PowerPC, MIPS, SPARC en S390. Hun handleidingen, interruptmodellen, geheugenbeheer en bare-bonesprojecten zijn niet afgeleid van de 32-bit x86-code in het boek.
+Non-x86 architectures remain fully represented, including ARM/AArch64, RISC-V, PowerPC, MIPS, SPARC and S390. Their manuals, interrupt models, memory management and bare-bones projects are not derived from the book’s 32-bit x86 code.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [ARM Overview](../corpus/wiki-05.md#w002332) [W002332] · revisie 30546 · 2026-05-02T18:59:54Z
-- [AArch64](../corpus/wiki-12.md#w004267) [W004267] · revisie 30864 · 2026-07-07T17:29:26Z
-- [RISC-V](../corpus/wiki-11.md#w004033) [W004033] · revisie 28383 · 2023-10-12T17:54:42Z
-- [Raspberry Pi](../corpus/wiki-08.md#w003306) [W003306] · revisie 30457 · 2026-04-06T15:36:18Z
-- [PowerPC Overview](../corpus/wiki-03.md#w001834) [W001834] · revisie 29665 · 2025-09-18T21:46:23Z
-- [MIPS Overview](../corpus/wiki-03.md#w001832) [W001832] · revisie 29859 · 2026-01-11T19:10:23Z
-- [Sparc Hardware Docs](../corpus/wiki-07.md#w003045) [W003045] · revisie 29128 · 2024-06-18T14:53:30Z
-- [IBM Mainframe architecture](../corpus/wiki-15.md#w005085) [W005085] · revisie 30934 · 2026-09-01T00:37:40Z
+- [ARM Overview](../corpus/wiki-05.md#w002332) [W002332] · revision 30546 · 2026-05-02T18:59:54Z
+- [AArch64](../corpus/wiki-12.md#w004267) [W004267] · revision 30864 · 2026-07-07T17:29:26Z
+- [RISC-V](../corpus/wiki-11.md#w004033) [W004033] · revision 28383 · 2023-10-12T17:54:42Z
+- [Raspberry Pi](../corpus/wiki-08.md#w003306) [W003306] · revision 30457 · 2026-04-06T15:36:18Z
+- [PowerPC Overview](../corpus/wiki-03.md#w001834) [W001834] · revision 29665 · 2025-09-18T21:46:23Z
+- [MIPS Overview](../corpus/wiki-03.md#w001832) [W001832] · revision 29859 · 2026-01-11T19:10:23Z
+- [Sparc Hardware Docs](../corpus/wiki-07.md#w003045) [W003045] · revision 29128 · 2024-06-18T14:53:30Z
+- [IBM Mainframe architecture](../corpus/wiki-15.md#w005085) [W005085] · revision 30934 · 2026-09-01T00:37:40Z
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [AArch64](../corpus/wiki-12.md#w004267) [W004267]
 - [AArch64 Exceptions](../corpus/wiki-14.md#w005028) [W005028]

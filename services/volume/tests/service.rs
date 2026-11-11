@@ -745,6 +745,111 @@ fn table_write_failure_is_unknown_and_closes_instance() {
 }
 
 #[test]
+fn shutdown_flushes_once_and_refuses_later_mutations() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, 0);
+    c.write(0, 0, b"Doc", 700, fill(0, 1)).unwrap();
+    let id = c
+        .write_partial(1, 0, b"Half", 900, 320, fill(1, 1))
+        .unwrap();
+    let before = *c.transport.service.table();
+    let counters = c.transport.service.counters;
+    let logged = c.transport.disk.log.len();
+    assert_eq!(c.shutdown(0), Ok(()));
+    assert_eq!(&c.transport.disk.log[logged..], &[(common::Op::Flush, 0)]);
+    assert_eq!(c.transport.service.counters.flushes, counters.flushes + 1);
+    assert_eq!(
+        c.transport.service.counters.aborted_sessions,
+        counters.aborted_sessions + 1
+    );
+    assert!(c.transport.service.session(0).is_none());
+    assert_eq!(c.transport.service.table(), &before);
+    // The staged upload never reached the table; mutations are now refused.
+    let mut append = Header::new(wire::APPEND, id, EPOCH, 1);
+    append.aux = 320;
+    append.length = 1;
+    let (reply, _) = c.exchange(&append, &[1]).unwrap();
+    assert_eq!(reply.status, Status::Access as i32);
+    assert_eq!(c.write(2, 0, b"x", 1, fill(2, 1)), Err(Status::Access));
+    assert_eq!(c.rename(0, 1, b"x"), Err(Status::Access));
+    assert_eq!(c.delete(0, 1), Err((Status::Access, 0)));
+    assert_eq!(c.shutdown(0), Err(Status::Access));
+    assert_eq!(c.stat(0).unwrap().revision, 1);
+    assert_eq!(read_all(&mut c, 0, 1, 700), expected(0, 1, 700));
+    assert!(c.transport.disk.log[logged + 1..]
+        .iter()
+        .all(|(op, _)| *op == common::Op::Read));
+    assert_eq!(&recover(disk.settled()).unwrap(), &before);
+}
+
+#[test]
+fn shutdown_flush_failure_is_unknown_and_closes_instance() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut c = client(&mut service, &mut disk, 0);
+    c.write(0, 0, b"Doc", 100, fill(0, 1)).unwrap();
+    c.transport.disk.fail_once_at = Some(c.transport.disk.mutating_ops);
+    assert_eq!(c.shutdown(0), Err(Status::Unknown));
+    assert!(c.transport.service.uncertain());
+    assert_eq!(c.transport.service.counters.unknown, 1);
+    let ops = c.transport.disk.ops;
+    let mutating = c.transport.disk.mutating_ops;
+    assert_eq!(c.stat(0), Err((Status::Unknown, 0)));
+    assert_eq!(c.write(1, 0, b"x", 1, fill(1, 1)), Err(Status::Unknown));
+    assert_eq!(c.shutdown(0), Err(Status::Unknown));
+    assert_eq!(
+        (c.transport.disk.ops, c.transport.disk.mutating_ops),
+        (ops, mutating),
+        "no replay or new I/O"
+    );
+}
+
+#[test]
+fn shutdown_of_a_read_only_instance_is_refused_without_io() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, true);
+    assert_eq!(
+        client(&mut service, &mut disk, 0).shutdown(0),
+        Err(Status::Access)
+    );
+    assert!(disk.log.is_empty());
+}
+
+#[test]
+fn malformed_shutdown_requests_are_rejected_without_io() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let shutdown = |object| Header::new(wire::SHUTDOWN, 5, EPOCH, object);
+    let mut cases = vec![(shutdown(1), Status::Invalid)];
+    cases.push((shutdown(PER_DOMAIN as u64), Status::Access));
+    let mut h = shutdown(0);
+    h.revision = 1;
+    cases.push((h, Status::Invalid));
+    let mut h = shutdown(0);
+    h.name_length = 1;
+    cases.push((h, Status::Invalid));
+    let mut h = shutdown(0);
+    h.count = 1;
+    cases.push((h, Status::Invalid));
+    let mut h = shutdown(0);
+    h.aux = 1;
+    cases.push((h, Status::Invalid));
+    cases.push((Header::new(wire::SHUTDOWN + 1, 5, EPOCH, 0), Status::NoSys));
+    for (header, status) in &cases {
+        let reply = service.handle(0, &wire::encode(header, &[]), &mut disk);
+        assert_eq!(wire::header(&reply).status, *status as i32, "{header:?}");
+    }
+    let mut h = shutdown(0);
+    h.length = 1;
+    let reply = service.handle(0, &wire::encode(&h, b"a"), &mut disk);
+    assert_eq!(wire::header(&reply).status, Status::Invalid as i32);
+    assert!(disk.log.is_empty());
+    // Nothing above closed the instance.
+    assert_eq!(client(&mut service, &mut disk, 0).shutdown(0), Ok(()));
+}
+
+#[test]
 fn client_rejects_tampered_replies() {
     let mut disk = SimDisk::new();
     let mut service = Service::new(EPOCH, Table::EMPTY, false);

@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "branch": "simonvanieperen-studious-spoon",
+  "source_commit": "e8da9bfe009844f931bd343ae383f30e758212fb",
+  "checkpoint_head": "d6f42087eabf5dc29730eeae716f7622950b5100",
+  "source_fingerprint_version": 3,
+  "source_sha256": "a71e5654868d7dbf67e31a95a38d1c5493f52d593fb7294323084e28c2dff4b5",
+  "scope": "Native K05 supervisor wait_ticks now uses the shared cancellation-aware clock::sleep_until API.",
+  "command": "PATH=\"/tmp/nieuw-os-qemu/root/usr/bin:/tmp/nieuw-os-c-toolchain/bin:$HOME/.cargo/bin:$PATH\" LD_LIBRARY_PATH=\"/tmp/nieuw-os-qemu/root/usr/lib/x86_64-linux-gnu\" OS_OVMF_CODE=/tmp/nieuw-os-qemu/root/usr/share/OVMF/OVMF_CODE_4M.fd OS_OVMF_VARS=/tmp/nieuw-os-qemu/root/usr/share/OVMF/OVMF_VARS_4M.fd NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_supervisor.py",
+  "exit_code": 0,
+  "host_suites": {
+    "capability_core": {
+      "passed": 81,
+      "ignored": 1,
+      "failed": 0
+    },
+    "sdk_runtime": {
+      "passed": 40,
+      "failed": 0
+    },
+    "supervisor_protocol": {
+      "passed": 1,
+      "failed": 0
+    },
+    "python_harness": {
+      "passed": 8,
+      "failed": 0
+    }
+  },
+  "qemu": {
+    "version": "10.2.1 (Ubuntu package 1:10.2.1+ds-1ubuntu3.3)",
+    "machine": "pc-q35-8.2",
+    "package_sha256": "9bb6f0aa031accc0e1c4ffa25d92b7563ae1d5b0726e4b07e9f2babe876daa75",
+    "ovmf_package_sha256": "d35554c74dccef60c12d63dda1120bf1ddc3a44054a1bf4b596f7dda7504c588",
+    "ovmf_code_sha256": "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
+    "ovmf_vars_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "installation": "Official Ubuntu packages unpacked under /tmp; no system installation."
+  },
+  "cases": [
+    {
+      "case": "normal",
+      "passed": true,
+      "qemu_exit": 33,
+      "duration_seconds": 2.19,
+      "serial_sha256": "82d3a926e862c33b7b6916c6da16d556a1c2cc14322adbe773e939f236afaf6d"
+    },
+    {
+      "case": "crash",
+      "passed": true,
+      "qemu_exit": 33,
+      "duration_seconds": 2.17,
+      "serial_sha256": "84d89b18645a5755018529815ef56e9a34704417d3f969eb4957b29a0d9a0126"
+    },
+    {
+      "case": "denied",
+      "passed": true,
+      "qemu_exit": 33,
+      "duration_seconds": 2.11,
+      "serial_sha256": "6588cb046557aceb9e3ae64898feb55fc96f703faa5c895d5431d74fd4068f03"
+    },
+    {
+      "case": "parent-exit",
+      "passed": true,
+      "qemu_exit": 33,
+      "duration_seconds": 2.16,
+      "serial_sha256": "0db2e0fbbc05421d35eb65cfbbc58361be276bcb9493635322c07f0f23cbf948"
+    },
+    {
+      "case": "quota",
+      "passed": true,
+      "qemu_exit": 33,
+      "duration_seconds": 2.32,
+      "serial_sha256": "f3ae6bb4a7de7afec20c7f00aa3baad8e40902d2001ff180d32efa0b5f2f84d2"
+    },
+    {
+      "case": "wait",
+      "passed": true,
+      "qemu_exit": 33,
+      "duration_seconds": 2.87,
+      "serial_sha256": "9fdcce4e3e6b6301fb490466b50e1eeda95d729b3957fec40609722f4d1e4996"
+    }
+  ],
+  "limitations": [
+    "QEMU 10.2.1 was used with the pc-q35-8.2 machine profile; this is not a run on the CI image's QEMU build.",
+    "VM evidence only; no physical hardware or human usability test.",
+    "No maturity rubric criterion closed; score remains 41/100."
+  ],
+  "generated_logs": [
+    "build/supervisor-gate.json",
+    "build/run/supervisor-*/result.json",
+    "build/run/supervisor-*/serial.txt"
+  ]
+}

@@ -1,6 +1,10 @@
-# Security Policy
+<a id="beveiligingsbeleid"></a>
 
-Baryon OS is experimental research and development software. There is no supported production release, security SLA, or guarantee for daily use with sensitive data.
+# Security policy
+
+Baryon OS is experimental research and development software. There is no supported production release, security SLA or guarantee for daily use with sensitive data.
+
+<a id="ondersteunde-versies"></a>
 
 ## Supported versions
 
@@ -12,36 +16,62 @@ Baryon OS is experimental research and development software. There is no support
 
 A green CI run or successful review does not mean a version is safe for production use.
 
+<a id="een-kwetsbaarheid-privé-melden"></a>
+<a id="report-a-vulnerability-privately"></a>
+
 ## Reporting a vulnerability
 
-**Do not publish exploitable details in a regular issue, discussion, pull request, or log.**
+**Do not publish exploitable details in a regular issue, discussion, pull request or log.**
 
-The repository does not currently expose a verifiable private reporting channel through the project configuration available here. Until GitHub Private Vulnerability Reporting or another official private channel is enabled:
+GitHub Private Vulnerability Reporting is enabled for this repository.
+Use [Report a vulnerability](https://github.com/simonvanieperen/BaryonOS/security/advisories/new)
+to report vulnerability details privately to the repository maintainers.
+This button is also available on the public
+[Security page](https://github.com/simonvanieperen/BaryonOS/security).
+Signing in to GitHub is required to submit a report.
 
-1. open only a minimal public issue titled **`Security contact requested`**;
-2. include no vulnerability details, exploit code, secrets, personal data, or sensitive logs;
-3. wait for a maintainer-designated private channel before sharing technical details.
-
-Enabling a permanent private reporting channel remains a governance requirement before a public test release.
+If the reporting route is unavailable, do not publish vulnerability details through a public report instead. A minimal public issue titled **`Security contact requested`** may request a private channel; include no vulnerability details, exploit code, secrets, personal data or sensitive logs. Wait for a maintainer-designated private channel before sharing technical details.
 
 ## Information to include in a private report
 
-Once a private channel is available, include:
+Include the following information where known:
 
 - affected component and commit or release;
-- minimal reproducible steps;
-- expected and actual behavior;
-- potential impact;
+- minimal reproducible steps and, where possible, a minimal demonstration;
+- expected and actual behaviour;
+- potential impact and the conditions under which the issue occurs;
 - required privileges and attack vector;
-- relevant logs with secrets and personal data removed;
-- whether the issue is already publicly known.
+- test environment, tools used and relevant logs with secrets and personal data removed;
+- whether the issue is already publicly known;
+- any proposed fix or temporary mitigation.
+
+Do not include passwords, keys or real user data in the report.
+
+<a id="opvolging-en-openbaarmaking"></a>
+
+## Follow-up and disclosure
+
+Follow-up questions and coordination on a solution and disclosure take place
+through the private report. No acknowledgement, assessment or remediation
+deadline is guaranteed. Coordinate disclosure of exploitable details with the
+repository maintainers through the private report first.
 
 ## Testing boundaries
 
-Test only local emulator images or explicitly authorized test hardware. Do not test systems, accounts, or infrastructure without permission. Do not use production keys or real user data for reproduction.
+Test only local emulator images or explicitly authorised test hardware. Do not test systems, accounts or infrastructure without permission. Do not use production keys or real user data for reproduction.
 
 ## Technical security model
 
-Architecture, threat model, capability boundaries, updates, and post-quantum research are documented in [docs/SECURITY-AND-QUANTUM.md](docs/SECURITY-AND-QUANTUM.md) and the specifications under [docs/implementation/](docs/implementation/).
+Architecture, threat model, capability boundaries, updates and post-quantum research are documented in [docs/SECURITY-AND-QUANTUM.md](docs/SECURITY-AND-QUANTUM.md) and the specifications under [docs/implementation/](docs/implementation/).
 
 This document defines the **reporting process**; it is not evidence that the described security properties are fully implemented.
+
+<a id="grenzen-en-verdere-toetsing"></a>
+
+## Boundaries and further verification
+
+A private reporting channel is not evidence of system security or a completed
+release procedure. Before a public test release, supported versions, triage
+and patch/advisory procedures, production signing keys, key management,
+recovery from key compromise and external review still need to be established
+and verified.

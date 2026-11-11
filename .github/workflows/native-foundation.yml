@@ -50,7 +50,7 @@ jobs:
           rustup component add --toolchain 1.90.0 rustfmt clippy
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
       - name: Cache Cargo downloads only
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cargo/registry/index
@@ -105,8 +105,8 @@ jobs:
           RUSTFLAGS: >-
             -C no-redzone=yes
             -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2
-            --cfg chacha20_force_soft --cfg chacha20_backend="soft"
-            --cfg poly1305_force_soft --cfg sha2_backend="soft"
+            --cfg chacha20_backend="soft"
+            --cfg poly1305_backend="soft" --cfg sha2_backend="soft"
         run: |
           cargo +1.90.0 fmt --all -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/root-format.txt"
           cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check 2>&1 | tee "$NOS_BUILD_DIR/logs/sdk-format.txt"

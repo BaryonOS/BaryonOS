@@ -1,32 +1,32 @@
-# Derdencomponenten van de eerste bootproef
+# Third-party components in the initial boot probe
 
-Vastgelegd op 27 oktober 2026, op basis van de daadwerkelijk opgehaalde Cargo-package en de root-`Cargo.lock`.
+Recorded on 27 October 2026, based on the Cargo package actually retrieved and the root `Cargo.lock`.
 
 ## r-efi 7.1.0
 
-| Gegeven | Gecontroleerde waarde |
+| Item | Verified value |
 |---|---|
-| Functie | UEFI-referentietypen, protocoldefinities en constanten; geen bootloader of kernelimplementatie |
+| Purpose | UEFI reference types, protocol definitions and constants; no bootloader or kernel implementation |
 | Upstream | [r-efi/r-efi](https://github.com/r-efi/r-efi) |
-| Directe pin | `r-efi = { version = "=7.1.0", default-features = false }` in `boot/loader/Cargo.toml` |
-| Bron | Cargo-registry `https://github.com/rust-lang/crates.io-index` |
+| Direct pin | `r-efi = { version = "=7.1.0", default-features = false }` in `boot/loader/Cargo.toml` |
+| Source | Cargo registry `https://github.com/rust-lang/crates.io-index` |
 | Cargo-checksum | `b0ff379dd174eec5b2cab797063a2e7592dfcf0bf0323a50eeee724ee3537f13` |
-| Verpakte VCS-verwijzing | `a45901440b107b966273dcacc5eaff95c9a5bfbd` uit `.cargo_vcs_info.json`; package-identiteit blijft bepaald door versie/checksum |
-| Minimum-Rust volgens manifest | 1.68 |
-| `no_std` | `#![cfg_attr(not(test), no_std)]` in de echte `src/lib.rs` |
-| Buildscript | `build = false` |
-| Dependencies in deze configuratie | Geen externe transitieve dependency; optioneel `rustc-std-workspace-core` staat uit |
-| Upstream licentiekeuze | MIT OR Apache-2.0 OR LGPL-2.1-or-later |
-| Gekozen route voor dit project | MIT |
+| Packaged VCS reference | `a45901440b107b966273dcacc5eaff95c9a5bfbd` from `.cargo_vcs_info.json`; package identity remains determined by version/checksum |
+| Minimum Rust version in the manifest | 1.68 |
+| `no_std` | `#![cfg_attr(not(test), no_std)]` in the actual `src/lib.rs` |
+| Build script | `build = false` |
+| Dependencies in this configuration | No external transitive dependency; optional `rustc-std-workspace-core` is disabled |
+| Upstream licence options | MIT OR Apache-2.0 OR LGPL-2.1-or-later |
+| Selected route for this project | MIT |
 
-De broncontrole betrof het genormaliseerde verpakte `Cargo.toml`, `README.md`, `src/lib.rs`, `.cargo_vcs_info.json`, `AUTHORS` en de werkelijk gegenereerde root-lockfile. De dependency is alleen aan de UEFI-loader gekoppeld; de eigen kernel gebruikt deze crate niet. Dit bewijst geen volledige codeaudit of afwezigheid van kwetsbaarheden.
+The source review covered the normalised packaged `Cargo.toml`, `README.md`, `src/lib.rs`, `.cargo_vcs_info.json`, `AUTHORS` and the root lockfile actually generated. The dependency is linked only to the UEFI loader; the project's own kernel does not use this crate. This does not demonstrate a complete code audit or absence of vulnerabilities.
 
-[r-efi-MIT.txt](r-efi-MIT.txt) is een **ongewijzigde kopie van upstream `AUTHORS`** uit package 7.1.0. Dat bestand bevat de MIT-toestemming, copyrightvermeldingen en auteurs, naast de twee alternatieve upstreamlicentieroutes. Het volledige origineel is behouden om notices niet af te snijden; dit project kiest de MIT-route. Er is geen zelfgeschreven vervangende licentietekst toegevoegd.
+[r-efi-MIT.txt](r-efi-MIT.txt) is an **unmodified copy of upstream `AUTHORS`** from package 7.1.0. That file contains the MIT permission, copyright notices and authors, alongside the two alternative upstream licensing routes. The complete original is retained to avoid truncating notices; this project selects the MIT route. No independently written replacement licence text has been added.
 
-Versie- of checksumwijzigingen zijn een bewuste dependencywijziging: controleer herkomst, manifest, licentie, features en eventuele buildscripts opnieuw en voer de loader-/boottests uit. Behoud notices bij distributie. Verwijderen/vervangen van r-efi vereist herbeoordeling van de ruwe UEFI-ABI-bindings; het mag geen stilzwijgende overstap naar een bestaande loader of kernel veroorzaken.
+Changing the version or checksum is an intentional dependency change: review provenance, manifest, licence, features and any build scripts again, and run the loader/boot tests. Preserve notices during distribution. Removing or replacing r-efi requires reassessment of the raw UEFI ABI bindings; it must not silently introduce an existing loader or kernel as the foundation.
 
-## Andere ontwikkelcomponenten
+## Other development components
 
-Compiler, emulator en firmware zijn afzonderlijke ontwikkelcomponenten. Hun daadwerkelijke lokale herkomst en hashes staan in [DEVELOPMENT.md](../DEVELOPMENT.md) en `build/toolchain-provenance.json`. De EDK II-firmware is de packaged ontwikkelvariant; de firmwarebuildcommit is niet onafhankelijk vastgesteld. Deze bootdependency-notice is geen compleet distributie-SBOM of publicatiegoedkeuring.
+The compiler, emulator and firmware are separate development components. Their actual local provenance and hashes are recorded in [DEVELOPMENT.md](../DEVELOPMENT.md) and `build/toolchain-provenance.json`. The EDK II firmware is the packaged development variant; its build commit has not been independently established. This boot-dependency notice is not a complete distribution SBOM or publication approval.
 
-Het quantumhostexperiment heeft een eigen lockfile, [dependencyregistratie](../../experiments/quantum/THIRD-PARTY.md) en bewaarde upstreamnotices. De quantumcore heeft geen externe dependencies. Het Materiaal-browserprototype heeft geen externe runtimepackages of fonts.
+The quantum host experiment has its own lockfile, [dependency register](../../experiments/quantum/THIRD-PARTY.md) and preserved upstream notices. The quantum core has no external dependencies. The Materiaal browser prototype has no external runtime packages or fonts.

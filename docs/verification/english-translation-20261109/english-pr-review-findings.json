@@ -1,0 +1,55 @@
+{
+  "scope": "Independent comparison of supplied Dutch source and prepared English PR titles/bodies; no remote writes or verification of the historical execution claims.",
+  "reviewed_pr_numbers": [
+    154,
+    181,
+    185,
+    207,
+    210,
+    213,
+    214,
+    215,
+    216,
+    218,
+    227,
+    229,
+    231,
+    232,
+    233,
+    238,
+    243,
+    244,
+    245,
+    246,
+    257,
+    271
+  ],
+  "reviewed_count": 22,
+  "concrete_findings": [],
+  "conclusion": "No concrete meaning, numeric, authority, checkbox, evidence-boundary or link errors found in the 22 supplied translation pairs.",
+  "checks": {
+    "manual_title_and_complete_body_comparison": "Completed for all 22 pairs.",
+    "original_code_spans": "All retained; PR 229 additionally repeats main and feat/k06-5c-preempt-lock in the explicitly labelled English translation of the preserved original merge instruction.",
+    "urls_and_markdown_link_targets": "Exact multisets preserved in all 22 pairs.",
+    "checkbox_states": "Exact ordered states preserved in all 22 pairs.",
+    "digit_tokens": "Exact multisets preserved except the intentional repeated 228 and branch-name digits in the added English translation in PR 229.",
+    "table_rows": "Counts preserved.",
+    "historical_results_scores_and_caveats": "Retained; no current executions inferred."
+  },
+  "new_translations": {
+    "file": "/workspace/scratch/4c2decb13c56/english-pr-remaining-translated.json",
+    "pr_numbers": [
+      260,
+      259,
+      167,
+      155
+    ],
+    "code_spans": "Exact multisets preserved.",
+    "urls_and_markdown_link_targets": "Exact multisets preserved.",
+    "checkbox_states": "Exact ordered states preserved.",
+    "digit_tokens": "Exact multisets preserved; Dutch decimal/thousands punctuation translated to English without value changes.",
+    "table_rows": "Counts preserved.",
+    "authority": "Project-owner attribution retained in impersonal form.",
+    "publication": "Not performed."
+  }
+}

@@ -6,23 +6,26 @@
 //! master key under a caller-held secret. No cryptographic primitive is
 //! implemented here; everything comes from the pinned RustCrypto crates.
 //! The kernel never sees this code, and apps never see key bytes.
-use chacha20::{
-    cipher::{KeyIvInit, StreamCipher},
-    ChaCha20,
-};
+use chacha20::ChaCha20;
 use chacha20poly1305::{
-    aead::{AeadInPlace, KeyInit},
-    Key, Tag, XChaCha20Poly1305, XNonce,
+    aead::{inout::InOutBuf, AeadInOut, KeyInit},
+    Tag, XChaCha20Poly1305, XNonce,
 };
+use cipher::{KeyIvInit, StreamCipher};
 use hkdf_protected::Hkdf;
 use sha2_kdf::Sha256;
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
+
+#[cfg(all(target_os = "none", not(poly1305_backend = "soft")))]
+compile_error!("Key Service AEAD requires --cfg poly1305_backend=\"soft\"; no SIMD fallback");
 
 // Fail compilation if the actual selected hash/cache/block-buffer drop chain
 // loses its wiping feature. Marker bounds do not replace the source/patch
 // review, or assert anything about deep compression or compiler copies.
 const _: fn() = || {
     fn require<T: zeroize::ZeroizeOnDrop>() {}
+    require::<ChaCha20>();
+    require::<XChaCha20Poly1305>();
     require::<Sha256>();
     require::<hkdf_protected::hmac::block_api::HmacCore<Sha256>>();
     require::<hkdf_protected::hmac::Hmac<Sha256>>();
@@ -375,24 +378,23 @@ impl Service {
             return Err(Status::Invalid);
         }
         self.account(source)?;
-        let mut key = self.key(domain, index)?;
+        let key = Zeroizing::new(self.key(domain, index)?);
         let drbg = self.drbg.as_mut().ok_or(Status::NotReady)?;
         let mut nonce = [0u8; NONCE_BYTES];
         drbg.fill(&mut nonce);
-        let cipher = XChaCha20Poly1305::new(Key::from_slice(&key));
+        let cipher = XChaCha20Poly1305::new((&*key).into());
         let body = &mut out[NONCE_BYTES..NONCE_BYTES + plaintext.len()];
         body.copy_from_slice(plaintext);
         let tag = cipher
-            .encrypt_in_place_detached(
-                XNonce::from_slice(&nonce),
+            .encrypt_inout_detached(
+                (&nonce).into(),
                 &seal_aad(domain as u8, index),
-                body,
+                InOutBuf::from(body),
             )
             .map_err(|_| Status::Invalid)?;
         out[..NONCE_BYTES].copy_from_slice(&nonce);
         let end = NONCE_BYTES + plaintext.len();
         out[end..end + TAG_BYTES].copy_from_slice(&tag);
-        key.zeroize();
         self.counters.sealed += 1;
         Ok(end + TAG_BYTES)
     }
@@ -411,19 +413,23 @@ impl Service {
             return Err(Status::Invalid);
         }
         self.account(source)?;
-        let mut key = self.key(domain, index)?;
-        let cipher = XChaCha20Poly1305::new(Key::from_slice(&key));
+        let key = Zeroizing::new(self.key(domain, index)?);
+        let cipher = XChaCha20Poly1305::new((&*key).into());
         let length = sealed.len() - NONCE_BYTES - TAG_BYTES;
         let mut body = [0u8; MAX_PLAINTEXT];
         body[..length].copy_from_slice(&sealed[NONCE_BYTES..NONCE_BYTES + length]);
-        let tag = Tag::from_slice(&sealed[NONCE_BYTES + length..]);
-        let result = cipher.decrypt_in_place_detached(
-            XNonce::from_slice(&sealed[..NONCE_BYTES]),
+        let nonce: &XNonce = sealed[..NONCE_BYTES]
+            .try_into()
+            .map_err(|_| Status::Invalid)?;
+        let tag: &Tag = sealed[NONCE_BYTES + length..]
+            .try_into()
+            .map_err(|_| Status::Invalid)?;
+        let result = cipher.decrypt_inout_detached(
+            nonce,
             &seal_aad(domain as u8, index),
-            &mut body[..length],
+            InOutBuf::from(&mut body[..length]),
             tag,
         );
-        key.zeroize();
         match result {
             Ok(()) => {
                 out[..length].copy_from_slice(&body[..length]);
@@ -470,23 +476,21 @@ impl Service {
         drbg.fill(secret);
         let mut nonce = [0u8; NONCE_BYTES];
         drbg.fill(&mut nonce);
-        let mut plain = [0u8; RECOVERY_PLAIN];
+        let mut plain = Zeroizing::new([0u8; RECOVERY_PLAIN]);
         plain[..KEY_BYTES].copy_from_slice(&self.master);
         for (i, table) in self.domains.iter().enumerate() {
             plain[KEY_BYTES + i * 2..KEY_BYTES + i * 2 + 2]
                 .copy_from_slice(&table.revoked.to_le_bytes());
         }
-        let mut wrap = recovery_key(secret);
-        let cipher = XChaCha20Poly1305::new(Key::from_slice(&wrap));
+        let wrap = Zeroizing::new(recovery_key(secret));
+        let cipher = XChaCha20Poly1305::new((&*wrap).into());
         let body = &mut blob[NONCE_BYTES..NONCE_BYTES + RECOVERY_PLAIN];
-        body.copy_from_slice(&plain);
+        body.copy_from_slice(&plain[..]);
         let tag = cipher
-            .encrypt_in_place_detached(XNonce::from_slice(&nonce), RECOVERY_INFO, body)
+            .encrypt_inout_detached((&nonce).into(), RECOVERY_INFO, InOutBuf::from(body))
             .map_err(|_| Status::Invalid)?;
         blob[..NONCE_BYTES].copy_from_slice(&nonce);
         blob[NONCE_BYTES + RECOVERY_PLAIN..].copy_from_slice(&tag);
-        plain.zeroize();
-        wrap.zeroize();
         Ok(())
     }
 
@@ -503,17 +507,18 @@ impl Service {
         source: &mut impl EntropySource,
     ) -> Result<usize, Status> {
         self.account(source)?;
-        let mut wrap = recovery_key(secret);
-        let cipher = XChaCha20Poly1305::new(Key::from_slice(&wrap));
-        let mut body = [0u8; RECOVERY_PLAIN];
+        let wrap = Zeroizing::new(recovery_key(secret));
+        let cipher = XChaCha20Poly1305::new((&*wrap).into());
+        let mut body = Zeroizing::new([0u8; RECOVERY_PLAIN]);
         body.copy_from_slice(&blob[NONCE_BYTES..NONCE_BYTES + RECOVERY_PLAIN]);
-        let result = cipher.decrypt_in_place_detached(
-            XNonce::from_slice(&blob[..NONCE_BYTES]),
-            RECOVERY_INFO,
-            &mut body,
-            Tag::from_slice(&blob[NONCE_BYTES + RECOVERY_PLAIN..]),
-        );
-        wrap.zeroize();
+        let nonce: &XNonce = blob[..NONCE_BYTES]
+            .try_into()
+            .map_err(|_| Status::Invalid)?;
+        let tag: &Tag = blob[NONCE_BYTES + RECOVERY_PLAIN..]
+            .try_into()
+            .map_err(|_| Status::Invalid)?;
+        let result =
+            cipher.decrypt_inout_detached(nonce, RECOVERY_INFO, InOutBuf::from(&mut body[..]), tag);
         if result.is_err() {
             body.zeroize();
             self.counters.auth_failures += 1;

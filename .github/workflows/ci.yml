@@ -29,6 +29,25 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Validate workflows with actionlint 1.7.12
+        shell: bash
+        env:
+          ACTIONLINT_VERSION: '1.7.12'
+          ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          set -euo pipefail
+          actionlint_archive="${RUNNER_TEMP}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          actionlint_dir="${RUNNER_TEMP}/actionlint-${ACTIONLINT_VERSION}"
+          curl --fail --location --proto '=https' --tlsv1.2 \
+            --output "${actionlint_archive}" \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          printf '%s  %s\n' "${ACTIONLINT_SHA256}" "${actionlint_archive}" \
+            | sha256sum --check --strict
+          mkdir --parents "${actionlint_dir}"
+          tar --extract --gzip --file "${actionlint_archive}" \
+            --directory "${actionlint_dir}" actionlint
+          chmod 0755 "${actionlint_dir}/actionlint"
+          "${actionlint_dir}/actionlint" -shellcheck= -pyflakes=
       - name: Pinned Python
         uses: ./.github/actions/setup-python
         with:
@@ -46,7 +65,7 @@ jobs:
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
       - name: Cache Cargo downloads
         id: cargo-downloads
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cargo/registry/index
@@ -54,7 +73,7 @@ jobs:
           key: cargo-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Cache host Rust build intermediates
         id: host-build-cache
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           # Host-only outputs: never native images, acceptance reports or secrets.
           path: |
@@ -190,7 +209,7 @@ jobs:
           rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
       - name: Cache Cargo downloads
         id: cargo-downloads
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cargo/registry/index

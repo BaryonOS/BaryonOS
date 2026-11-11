@@ -1,223 +1,234 @@
-# Begrensde willekeurige bytes via de Key Service
+# Bounded random bytes through the Key Service
 
-TASK-KEYRANDOM, technische opdracht op basis `1b6a308`. De eerste stap is een
-native integreerbaar protocol, dienstbeleid en client. Hostproeven/doelbuilds
-zijn geen bewijs van native RANDOM, TLS, certificaatidentiteit of fysieke
-entropy. De integrator blijft eigenaar van kernelmanifest, gedeelde lockfiles,
-bouwprofielen en native TCP/TLS-callers. De volledige opdracht blijft leidend in
+TASK-KEYRANDOM, technical assignment based on `1b6a308`. The first step is a
+protocol, service policy and client suitable for native integration. Host
+trials/target builds do not demonstrate native RANDOM, TLS, certificate
+identity or physical entropy. The integrator retains ownership of the kernel
+manifest, shared lockfiles, build profiles and native TCP/TLS callers. The
+complete assignment remains authoritative in
 [FULL-TEST-RELEASE](../FULL-TEST-RELEASE.md).
 
-## Autoriteit en protocol
+## Authority and protocol
 
-KEY1-opcodes 1–9 behouden hun formaat en sleutelbevoegdheid. Nieuwe opcode10
-(`RANDOM`) gebruikt uitsluitend een afzonderlijk toegekend RANDOM-ingress met
-een eigen reply-endpoint en vastgelegde caller-PID/principalslot. Het domein en
-de klok komen uit de vertrouwde adapter, nooit uit payload of callerclaims.
-De twee bestaande sleutel-ingresses bieden RANDOM niet aan. Het nieuwe ingress
-weigert alle sleutel-, decryptie-, herstel- en exportopcodes, ook wanneer een
-app die rechtstreeks buiten de SDK om verzendt. Een geldige handtekening of
-een ontvangencap verleent geen bijkomende bevoegdheid.
+KEY1 opcodes 1–9 retain their format and key authority. New opcode 10
+(`RANDOM`) uses only a separately granted RANDOM ingress with its own reply
+endpoint and recorded caller PID/principal slot. Domain and clock come from
+the trusted adapter, never from payload or caller assertions. The two existing
+key ingresses do not offer RANDOM. The new ingress rejects all key,
+decryption, recovery and export opcodes, including when an app sends them
+directly outside the SDK. A valid signature or received capability grants no
+additional authority.
 
-Een bericht heeft de bestaande 16-byte KEY1-header en exact16requestbodybytes:
-`RND1` (4), versie1u16LE, gewenst aantalu16LE, acht nulbytes. Headerindex=0,
-requestID>0, status=0. Count is1..224. Een geslaagd antwoord bevat hetzelfde
-16-byte-prefix en exactcount bytes; 16header+16prefix+224=256. Alle staartbytes
-zijn nul. Fouten bevatten geen body of willekeurige bytes. RequestID's zijn per
-principalslot strikt oplopend en worden niet hergebruikt. Dit is een levende
-instantiegrens, geen persistent antirollbackanker.
+A message has the existing 16-byte KEY1 header and exactly 16 request-body
+bytes: `RND1` (4), version 1 u16LE, requested count u16LE, eight zero bytes.
+Header index=0, request ID>0, status=0. Count is 1..224. A successful response
+contains the same 16-byte prefix and exactly count bytes; 16 header + 16 prefix
++ 224 = 256. All trailing bytes are zero. Errors contain no body or random
+bytes. Request IDs strictly increase per principal slot and are not reused.
+This is a live-instance boundary, not a persistent anti-rollback anchor.
 
-De SDK gebruikt standaard chunks van hoogstens128bytes. Hij bezit één exclusief
-endpointpaar, een verwachte service-PID en één request tegelijk. Hij valideert
-afzender, tag, ontbrekende gedelegeerde caps, header/opcode/index/requestID,
-status, versie, lengte, gereserveerde bytes en padding vóór output. Annuleren
-of onzekere IPC sluit de lease; geen stil herhalen of opnieuw verkrijgen van
-bevoegdheden. Een reeds verzonden antwoord kan niet cryptografisch worden
-teruggenomen: intrekking blokkeert toekomstige handelingen, niet eerder
-rechtmatig ontvangen willekeurige bytes.
+The SDK defaults to chunks of at most 128 bytes. It owns one exclusive
+endpoint pair, an expected service PID and one request at a time. It validates
+sender, tag, absence of delegated capabilities, header/opcode/index/request
+ID, status, version, length, reserved bytes and padding before output.
+Cancellation or uncertain IPC closes the lease; no silent retry or reacquisition
+of authority. A response already sent cannot be cryptographically recalled:
+revocation blocks future actions, not random bytes previously received lawfully.
 
-`Session::begin(count)` publiceert niets; iedere `poll()` doet hoogstens één
-send- of receivepoging. Dezelfde request wordt uitsluitend na aantoonbaar
-niet-gepubliceerde EAGAIN opnieuw aangeboden. Na enqueue volgt alleen receive.
-De totale pollbegroting is1..1.000.000, zonder onbegrensde interne wachtlus.
-`Outcome::Service(NotReady/Quota)` is een volledig gevalideerd, **afgerond
-antwoord na publicatie**; dit is geen BeforeSend-toestand. Een expliciete nieuwe
-aanvraag krijgt een nieuwID. Degraded sluit het paar. Andere statuscodes,
-ongeldige antwoorden en transportonzekerheid zijn terminaal. Ook annulering
-vóór enqueue sluit het paar; er is geen verborgen regrant of replay.
+`Session::begin(count)` publishes nothing; each `poll()` makes at most one
+send or receive attempt. The same request is offered again only after an
+EAGAIN that demonstrably published nothing. After enqueue, only receive
+follows. The total poll budget is 1..1,000,000, without an unbounded internal
+wait loop. `Outcome::Service(NotReady/Quota)` is a fully validated, **completed
+response after publication**; it is not a BeforeSend state. An explicit new
+request receives a new ID. Degraded closes the pair. Other status codes,
+invalid responses and transport uncertainty are terminal. Cancellation before
+enqueue also closes the pair; there is no hidden regrant or replay.
 
-RequestID's beginnen bij1. Het endpointpaar wordt alleen bij een geslaagde
-constructor overgedragen en moet exclusief zijn. Een nieuw paar mag de
-requestgeschiedenis van een al gebruikt principalslot niet stilzwijgend
-hergebruiken: bootstrap moet een verse dienst-/principallifecycle of een later
-expliciet gecoördineerde monotone allocator leveren. Een verkeerde binding
-faalt gesloten; de client bevat geen reset-opcode. Drop probeert beide handles
-te sluiten, evenals expliciete close en terminale fouten; een mislukte close
-wordt niet later op een mogelijk hergebruikte handlegeneratie herhaald.
+Request IDs start at 1. The endpoint pair is transferred only on successful
+construction and must be exclusive. A new pair must not implicitly reuse the
+request history of an already used principal slot: bootstrap must provide a
+fresh service/principal lifecycle or a later explicitly coordinated monotonic
+allocator. Incorrect binding fails closed; the client has no reset opcode.
+Drop attempts to close both handles, as do explicit close and terminal errors;
+a failed close is not retried later against a potentially reused handle generation.
 
-## Toestand, grenzen en fouten
+## State, limits and errors
 
-De bestaande1024-byte opstart-/gezondheidstest blijft vereist. Een RANDOM-slot
-wordt pas bij zijn eerste geldige request gevoed met256nieuwe brokerbytes,
-door dezelfde continue RCT/APT-tests. HKDF-SHA256 extraheert een32-byte seed met
-het aparte RNG-v1/domein/monotone-epoch-label; geen masterkey of herstelgeheim
-wordt daarvoor gebruikt. Elk van vier vaste slots heeft een afzonderlijke
-ChaCha20Rng. Herstel van opgeslagen sleutels spoelt de RNG niet terug.
+The existing 1024-byte startup/health test remains required. A RANDOM slot is
+fed only on its first valid request, with 256 fresh broker bytes passing the
+same continuous RCT/APT tests. HKDF-SHA256 extracts a 32-byte seed using the
+separate RNG-v1/domain/monotonic-epoch label; no master key or recovery secret
+is used for this. Each of four fixed slots has a separate ChaCha20Rng.
+Restoring stored keys does not rewind the RNG.
 
-Na uiterlijk4096teruggegeven bytes of64requests volgt vóór nieuwe output een
-nieuwe gezonde256-byte seed. Er is geen generator-, seed-, seek-, serialisatie-
-of reseed-opcode voor apps. De epoch voorkomt identieke labelherhaling binnen
-de instantie, ook bij een herhaald rawblok; hij bewijst geen bronkwaliteit of
-koude rollbackbescherming. Het model veronderstelt werkelijke onvoorspelbare
-bronbytes, niet alleen bytes die een gezondheidstest doorstaan.
+After at most 4096 returned bytes or 64 requests, a new healthy 256-byte seed
+is required before further output. Apps have no generator, seed, seek,
+serialisation or reseed opcode. The epoch prevents repetition of identical
+labels within the instance, even with a repeated raw block; it does not prove
+source quality or cold rollback protection. The model assumes genuinely
+unpredictable source bytes, not merely bytes passing a health test.
 
-Per slot zijn hoogstens8192bytes en64calls per100echte PIT-ticks toegestaan.
-De adapter levert Sys3-ticks; loopaantallen of hosttijd worden niet gebruikt.
-Achteruitgaande/overlopende tijd, foute payloads, replay en quota worden vóór
-entropy/generatorverwerking geweigerd en laten output ongemoeid. Seedfalen
-geeft Degraded, wist alle RNG-caches en geeft geen fallbackoutput. Bestaande
-master, sleutelallocaties en intrekkingen blijven behouden. Een bevestigde
-sleutel wordt door een RNG-fout niet stilzwijgend ingetrokken of opnieuw
-uitgegeven. Voor Starting/Blocked geldt NotReady; Degraded blijft gesloten.
+Per slot, at most 8192 bytes and 64 calls are permitted per 100 actual PIT
+ticks. The adapter supplies Sys3 ticks; loop counts and host time are not used.
+Backward/overflowing time, invalid payloads, replay and quotas are rejected
+before entropy/generator processing and leave output untouched. Seed failure
+returns Degraded, erases all RNG caches and supplies no fallback output.
+Existing master, key allocations and revocations are retained. An RNG error
+does not implicitly revoke or reissue a confirmed key. Starting/Blocked
+return NotReady; Degraded remains closed.
 
-De expliciete raw-/seed-/outputbuffers gebruiken Zeroizing of een expliciete
-wisoperatie. De RNG-feature wist core/key en vooraf berekende blokken bij
-Drop. De hieronder beschreven KDF-patch behandelt daarnaast de expliciete
-PRK-, HMAC-keypad-, vorige/uitvoerblok- en HMAC-hashbuffers en bewaarde
-SHA2-hashstates. Die opsomming is de onderzochte grens; geen garantie over
-diepe compressietemporaries, Rust-moves, compiler-, register-, SDK-, kernel-
-of crashkopieën. Caller-owned output en reeds verleende gegevens blijven de
-verantwoordelijkheid van de ontvanger.
+Explicit raw/seed/output buffers use Zeroizing or an explicit erase operation.
+The RNG feature erases core/key and precomputed blocks on Drop. The KDF patch
+described below additionally handles explicit PRK, HMAC keypad, previous/output
+block and HMAC hash buffers and retained SHA2 hash states. That enumeration
+is the examined boundary; no guarantee covers deep compression temporaries,
+Rust moves, compiler, register, SDK, kernel or crash copies. Caller-owned output
+and data already granted remain the recipient's responsibility.
 
-## Bestaande startup-ABI en toekomstige native binding
+## Existing startup ABI and future native binding
 
-De optionele service-descriptor wordt uitsluitend door de integrator geplaatst:
-woord120=magic/versie `NOSRNG01`,128=RANDOM-RECV,136=reply-SEND,144=callerPID,
-152=RANDOM-principalslot0..3. Nulmagic betekent geen descriptor. De huidige
-keyring- en jointmanifesten gebruiken deze servicewoorden niet;112 blijft het
-bestaande casewoord,160/176 de bestaande app/servicePID's. Bij onvolledige of
-onbekende descriptor faalt initialisatie. Oude profielen zonder descriptor
-roepen Sys3 niet aan; zonder beschikbare Sys3 geeft RANDOM geen output.
-Deze afspraak reserveert startupplaatsen en is geen algemene bootstrap-ABI.
-Er is nog geen door deze stap aangebrachte kernelbinding of native aftekening.
-Woorden272/280/288 bevatten uitsluitend cumulatieve RANDOM-calls/bytes/seeds.
-Zij zijn nog geen door de kernel gevalideerd native bewijs. De adapter valideert
-de daadwerkelijke kernelafzender, tag, caps, volledige canonieke KEY1-envelope
-en RANDOM-opcode vóór Sys3 of entropy. De vijf descriptorwoorden zijn geen
-appbericht en moeten uit vertrouwde bootstrap komen. Exacte aliasing met de
-bestaande descriptorhandles wordt geweigerd; identiteit en rechten van
-verschillende handles blijven een kernel-/bootstrapverantwoordelijkheid.
+The optional service descriptor is placed exclusively by the integrator:
+word 120=magic/version `NOSRNG01`, 128=RANDOM-RECV, 136=reply-SEND, 144=caller
+PID, 152=RANDOM principal slot 0..3. Zero magic means no descriptor. Current
+keyring and joint manifests do not use these service words; 112 remains the
+existing case word, 160/176 the existing app/service PIDs. An incomplete or
+unknown descriptor fails initialisation. Old profiles without a descriptor
+do not call Sys3; without available Sys3, RANDOM produces no output. This
+agreement reserves startup positions and is not a general bootstrap ABI.
+This step has not yet introduced kernel binding or native acceptance.
+Words 272/280/288 contain only cumulative RANDOM calls/bytes/seeds. They are
+not yet kernel-validated native evidence. The adapter validates the actual
+kernel sender, tag, capabilities, complete canonical KEY1 envelope and RANDOM
+opcode before Sys3 or entropy. The five descriptor words are not an app
+message and must originate from trusted bootstrap. Exact aliasing with
+existing descriptor handles is rejected; identity and rights of different
+handles remain a kernel/bootstrap responsibility.
 
-## Afhankelijkheden en TCB per onderzochte eigenschap
+## Dependencies and TCB per examined property
 
-De RNG is de onderhouden RustCrypto-implementatie `chacha20=0.10.2`, alias
-`chacha20-rng`, uitsluitend features`rng,zeroize`, zonder default`cipher`.
-`rand_core=0.10.1` levert de RNG-traits. Bestaande AEAD/legacyDRBG blijven op
-chacha20.9.1. Nieuwe distributiechecksums:
+The DRBG and RNG use the single production RustCrypto dependency
+`chacha20=0.10.2`, with default features disabled and exactly
+`cipher,rng,zeroize` enabled. `rand_core=0.10.1` supplies RNG traits. The
+service also pins `cipher=0.5.2` with `zeroize`, because the stream wrapper's
+buffer wiping is not enabled by chacha20's own zeroize feature. Version 0.9.1
+exists only as the independent `chacha20-legacy` dev oracle for byte-exact
+DRBG compatibility and is absent from consumer product locks. Distribution
+checksums:
 
-| Crate | SHA256 | Licentie/MSRV/buildscript |
+| Crate | SHA256 | Licence/MSRV/build script |
 |---|---|---|
-| chacha20.10.2 | 65c35e4b699c7e15ccbe7ee35c005e4fc0a278d22238a2857e6ce2dadeda1b06 | MIT/Apache2;1.85;geen |
-| rand_core.10.1 | 63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69 | MIT/Apache2;1.85;geen |
-| cpufeatures.3.1 | 5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566 | MIT/Apache2;1.85;geen |
-| zeroize1.9.1 | e13084392c5e4bc371903e2935a5eaeed24905a7511356b883835e18a78f6879 | Apache2/MIT;1.85;geen |
-| cfg-if1.0.5 | 4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600 | MIT/Apache2;1.32;geen |
+| chacha20.10.2 | 65c35e4b699c7e15ccbe7ee35c005e4fc0a278d22238a2857e6ce2dadeda1b06 | MIT/Apache2; 1.85; none |
+| cipher0.5.2 | e8cf2a2c93cd704877c0858356ed03480ff301ee950b43f1cbe4573b088bfa6c | MIT/Apache2; 1.85; none |
+| rand_core.10.1 | 63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69 | MIT/Apache2; 1.85; none |
+| cpufeatures.3.1 | 5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566 | MIT/Apache2; 1.85; none |
+| zeroize1.9.1 | e13084392c5e4bc371903e2935a5eaeed24905a7511356b883835e18a78f6879 | Apache2/MIT; 1.85; none |
+| cfg-if1.0.5 | 4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600 | MIT/Apache2; 1.32; none |
 
-Archieven/registrychecksums, manifests, licenties, RNG-/Drop-code en toepasselijke
-RustSec-meldingen zijn gericht gelezen. De bekende chacha2019-counterfout is
-verholpen vanaf.2.3; de rand_core2019-uitlijningsfout vanaf.4.2 en2021-seedfout
-vanaf.6.2. Versies.10 vallen buiten die reeksen. .10.2 herstelt bovendien een
-SSE4.1-intrinsic in de SSE2-backend; .10.0/.10.1 zijn ingetrokken. Er wordt geen
-algemene auditdekking voor de nieuwe RNG-versie geclaimd. Rand_chacha.10 wordt
-niet toegevoegd; dat zou hier een overbodige PPV/SIMD-boom meenemen.
+Archives/registry checksums, manifests, licences, RNG/Drop code and relevant
+RustSec advisories were read in a targeted review. The known chacha20 2019
+counter bug is fixed from .2.3; the rand_core 2019 alignment bug from .4.2 and
+2021 seed bug from .6.2. Versions .10 fall outside those ranges. Version .10.2
+also fixes an SSE4.1 intrinsic in the SSE2 backend; .10.0/.10.1 are withdrawn.
+No general audit coverage is claimed for the new RNG version. Rand_chacha .10
+is not added; it would introduce an unnecessary PPV/SIMD tree here.
 
-De eigen kernel en Rust1.90 blijven behouden. Native compilatie vereist
-`--cfg chacha20_backend="soft"` naast de bestaande chacha20_force_soft,
-poly1305_force_soft en sha2_backend="soft". Een none-build zonder de nieuwe
-portablecfg faalt expliciet. De integrator past de gedeelde builders/lockfiles
-aan; de taak schrijft die niet. Geen std/libc/getrandom of hostfallback op het
-x86_64-none-doel. De concrete lockgraaf en objectcode worden opnieuw getest.
+The custom kernel and Rust 1.90 are retained. Native compilation requires
+`--cfg chacha20_backend="soft"`, `poly1305_backend="soft"`, and
+`sha2_backend="soft"`. The one ChaCha selector covers the DRBG, RNG, and AEAD
+0.10.2 closure; the obsolete 0.9-only selector is removed. A none build without
+the portable cfg explicitly fails. Shared builders and all four independently
+owned lockfiles carry this contract. No std/libc/getrandom or host fallback on
+the x86_64-none target. Lockgraph, freestanding build, and object inspection
+are version-specific evidence and must be revalidated after dependency changes.
 
-De TCB voor onvoorspelbaarheid omvat bron/virtio-rng/QEMU-host in dit VM-profiel,
-kernelbrokering/usercopy, gezondheidstests, HKDF en RNG-crates, dienstcode,
-compiler en portablebouwkeuze. Voor scheiding tussen principals horen daar
-capability/IPC-isolatie, de bootstrapbinding en de clientvalidatie bij. Die TCB
-is groter dan alleen de kernel. Voor uitgifte kan de geautoriseerde ontvanger
-bytes bewaren of via zijn bestaande netwerkrecht verzenden; deze API geeft
-hem geen lees-, teken-, decryptie- of exportright op persoonlijke sleutels/data.
+The TCB for unpredictability includes source/virtio-rng/QEMU host in this VM
+profile, kernel brokering/usercopy, health tests, HKDF and RNG crates, service
+code, compiler and portable build selection. Principal separation additionally
+includes capability/IPC isolation, bootstrap binding and client validation.
+This TCB is larger than the kernel alone. For issuance, the authorised
+recipient can retain bytes or send them through existing network rights; this
+API grants no read, sign, decrypt or export right over personal keys/data.
 
-TLS-identiteitsondertekening, vertrouwde certificaattijd, hybride PQC-contract,
-boot/updateauthenticiteit, persistente sleutelbescherming en fysieke RNG-
-kwaliteitsmeting blijven afzonderlijke open eisen. RANDOM rechtvaardigt geen
-klassieke/cloudfallback en geen tijd- of certificaatbypass.
+TLS identity signing, trusted certificate time, hybrid PQC contract,
+boot/update authenticity, persistent key protection and physical RNG quality
+measurement remain separate open requirements. RANDOM justifies neither
+classical/cloud fallback nor a time or certificate bypass.
 
-## Uitgevoerd bewijs en eerstvolgende integratie
+## Evidence produced and next integration step
 
-Het compacte bron-/commandobewijs staat in
+Compact source/command evidence appears in
 [`keyrandom-host-none.json`](../../services/keyring/verification/keyrandom-host-none.json).
-Op9exact gehashte bron-/manifestbestanden zijn57coretests (46bestaande en11RNG)
-en11clienttests geslaagd. Daaronder: gepubliceerde ChaCha20-zero-keyvector,
-1..224core- en1..128clientlengtes, principalbinding bij identieke bronbytes,
-quota/tijd/replay vóór mutatie, gezonde verplichte reseeds, bronfalen zonder
-master-/sleutelreset, weigering van iedere legacyop op RANDOM-ingress en
-foutieve afzender/tag/caps/opcode/requestID/status/lengte/padding.
-Transportproeven controleren deadline, annulering, onzekere send, geen resend
-na enqueue, beide endpointcloses en gesloten onverwachte caps.
+Against 9 exactly hashed source/manifest files, 57 core tests (46 existing and
+11 RNG) and 11 client tests passed. These include: published ChaCha20 zero-key
+vector, 1..224 core and 1..128 client lengths, principal binding with identical
+source bytes, quota/time/replay before mutation, healthy mandatory reseeds,
+source failure without master/key reset, rejection of every legacy operation
+on RANDOM ingress, and incorrect sender/tag/capabilities/opcode/request ID/
+status/length/padding. Transport trials check deadline, cancellation, uncertain
+send, no resend after enqueue, both endpoint closes and closure of unexpected
+capabilities.
 
-Host-Clippy voor beide crates en native-Clippy voor de dienst slagen met
-`-D warnings`; rustfmt en `git diff --check` slagen. De native releasebuilds
-voor dienst, bestaande testapp en clientbibliotheek slagen opRust1.90 voor
-x86_64-unknown-none. Objdump van de dienst bevat geen FP/SIMD-registergebruik.
-De gecontroleerde native dependencyboom bevat geen std/libc/getrandom. Een
-none-build zonder de nieuwe portablecfg is daadwerkelijk geweigerd(exit101).
+Host Clippy for both crates and native Clippy for the service pass with
+`-D warnings`; rustfmt and `git diff --check` pass. Native release builds for
+the service, existing test app and client library succeed with Rust 1.90 for
+x86_64-unknown-none. Objdump of the service contains no FP/SIMD register use.
+The checked native dependency tree contains no std/libc/getrandom. A none build
+without the new portable cfg was actually rejected (exit 101).
 
-De builds gebruiken een aparte exacte bronkopie met eigen Cargo.lock onder
-`/tmp/nieuw-os-keyrandom-integration` en target onder
-`/tmp/nieuw-os-keyrandom-target`; gedeelde root-/SDK-locks zijn ongemoeid.
-Dit is host-/crosscompilebewijs en **geen uitgevoerde native RANDOM-call**.
-De integrator moet clientworkspace/locks/buildflags, vertrouwde descriptor,
-RANDOM-only appgrant, klokprofiel en onafhankelijke runtimeproeven toevoegen.
-Vereist blijven daadwerkelijke uitgifte en weigering bij intrekking, verkeerd
-ingress, ontbrekende klok/entropy, reseedfalen en quota, plus legacyregressies
-op dezelfde geïntegreerde image. Deze stap tekent geen releasecriterium af.
+The original RANDOM evidence builds used a separate exact source copy with
+their own Cargo.lock under
+`/tmp/nieuw-os-keyrandom-integration` and target under
+`/tmp/nieuw-os-keyrandom-target`; they did not modify shared root/SDK locks.
+The later dependency consolidation updates those shared locks and has its own
+locked host/freestanding validation; it does not retroactively change the
+original runtime evidence or claim fresh object-code inspection.
+This is host/cross-compilation evidence and **not an executed native RANDOM
+call**. Trusted descriptor, RANDOM-only app grant, clock profile and independent
+runtime trials remain separate. Actual issuance and rejection on revocation,
+incorrect ingress, missing clock/entropy, reseed failure and quota remain
+required, together with legacy regressions on the same integrated image. This
+step signs off no release criterion.
 
-Gericht geraadpleegde primaire bronnen (geen algemene auditclaim):
+Primary sources consulted in the targeted review (no general audit claim):
 [RustCrypto chacha20.10.2](https://crates.io/crates/chacha20/0.10.2),
+[RustCrypto cipher0.5.2](https://crates.io/crates/cipher/0.5.2),
 [rand_core.10.1](https://crates.io/crates/rand_core/0.10.1),
 [RUSTSEC-2019-0029](https://rustsec.org/advisories/RUSTSEC-2019-0029.html),
 [RUSTSEC-2019-0035](https://rustsec.org/advisories/RUSTSEC-2019-0035.html),
 [RUSTSEC-2021-0023](https://rustsec.org/advisories/RUSTSEC-2021-0023.html).
 
-## Correctie van de KDF-geheugenhygiëne
+## KDF memory-hygiene correction
 
-Review van `fc2e2a2` vond een expliciete leemte: de gebruikte HKDF0.12/HMAC0.12
-bewaarde een entropy-afgeleide PRK/HMAC-state zonder wis-Drop. Dit was een
-beheerd geheim en wordt niet als alleen een compilerkopie afgedaan. Een
-ongedocumenteerde upgrade naar HKDF0.13 zou onvoldoende zijn: ook die bron
-liet PRK, expandblokken en verschillende HMAC-buffers ongewist.
+Review of `fc2e2a2` found an explicit gap: HKDF 0.12/HMAC 0.12 retained an
+entropy-derived PRK/HMAC state without an erasing Drop. This was a managed
+secret and is not dismissed as merely a compiler copy. An undocumented upgrade
+to HKDF 0.13 would be insufficient: that source also left PRK, expand blocks
+and several HMAC buffers unerased.
 
-Daarom gebruiken **alle productie-KDF-paden** de gerichte, reviewbare
-[HKDF0.13/HMAC0.13-hygiënevariant](../../services/keyring/vendor/README.md)
-met SHA2.11.1/zeroize. Geen eigen KDF, combiner, hash of MAC; de patch verandert
-uitsluitend bufferlevensduur, wissen en feature-/traitkoppelingen.
-Het betreft bestaande startup- en reseedafleiding van de legacy-DRBG,
-`derive_key(master,domain,index)` voor legacy/recordencryptie,
-`recovery_key` voor de bestaande recoveryfixture, `persistent::wrapping_key`
-onder het externe gebruikergeheim en `random_at` voor RANDOM-seeds.
-Alle labels, outputs, keyhandles en snapshot-/wireversies blijven gelijk.
-HKDF0.12/SHA2.10 blijven uitsluitend dev-orakels voor bytevergelijking;
-de native productieboom bevat deze oude KDF/hashpaden niet.
+Therefore **all production KDF paths** use the targeted, reviewable
+[HKDF 0.13/HMAC 0.13 hygiene variant](../../services/keyring/vendor/README.md)
+with SHA2 0.11.1/zeroize. No custom KDF, combiner, hash or MAC; the patch changes
+only buffer lifetime, erasure and feature/trait connections. This covers
+existing startup and reseed derivation of the legacy DRBG,
+`derive_key(master,domain,index)` for legacy/record encryption,
+`recovery_key` for the existing recovery fixture, `persistent::wrapping_key`
+under the external user secret, and `random_at` for RANDOM seeds.
+All labels, outputs, key handles and snapshot/wire versions remain the same.
+HKDF 0.12/SHA2 0.10 remain solely development oracles for byte comparison;
+the native production tree contains none of those old KDF/hash paths.
 
-Exacte nieuwe registrypins naast de twee lokale sourcevarianten zijn
-SHA2.11.1, digest.11.3, hybrid-array.4.15 en zeroize1.9.1. Nieuwe actieve
-registryversies komen overeen met de eerder beoordeelde TLS-graaf; HKDF.13
-en de optionele KDF.1-trait zijn aanvullend primair gecontroleerd. Er zijn
-geen nieuwe buildscripts, std/libc/getrandom of native hostfallback.
-De hoogste nieuwe MSRV is1.88; kernel/toolchain1.90 blijft behouden.
+Exact new registry pins alongside the two local source variants are SHA2
+0.11.1, digest 0.11.3, hybrid-array 0.4.15 and zeroize 1.9.1. New active registry
+versions match the previously reviewed TLS graph; HKDF .13 and the optional
+KDF .1 trait received additional primary-source checking. There are no new
+build scripts, std/libc/getrandom or native host fallback. The highest new
+MSRV is 1.88; kernel/toolchain 1.90 remains.
 
-De actuele bron-/test-/nonebuildregistratie staat in
+Current source/test/none-build records appear in
 [`hkdf-hygiene/host-none.json`](../../services/keyring/verification/hkdf-hygiene/host-none.json).
-Het eerdere RANDOM-rapport blijft historisch bewijs van de bron vóór deze
-correctie. De aanvullende proeven controleren de echte drop-markerketen,
-RFC5869/4231, oude/nieuwe bytepariteit inclusief8160bytes en foutgrens,
-HMAC/SimpleHmac/resetvarianten, legacy-DRBGreseed en RANDOM-principal/reseed-
-afleiding. Geen native RANDOM- of volledige wisaftekening volgt hieruit.
+The earlier RANDOM report remains historical evidence for the source before
+this correction. Additional trials check the actual Drop-marker chain,
+RFC5869/4231, old/new byte parity including 8160 bytes and error boundary,
+HMAC/SimpleHmac/reset variants, legacy DRBG reseed and RANDOM principal/reseed
+derivation. This establishes neither native RANDOM nor complete erasure acceptance.

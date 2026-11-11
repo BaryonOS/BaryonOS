@@ -74,7 +74,7 @@ impl Line {
         self
     }
 
-    #[cfg(feature = "native-smp")]
+    #[cfg(all(feature = "native-smp", not(feature = "native-smp-legacy")))]
     pub fn decimal(&mut self, mut value: u64) -> &mut Self {
         let mut digits = [0u8; 20];
         let mut index = digits.len();
@@ -94,7 +94,7 @@ impl Line {
     }
 }
 
-#[cfg(feature = "native-smp")]
+#[cfg(all(feature = "native-smp", not(feature = "native-smp-legacy")))]
 mod smp_line {
     use super::{write_raw, Line, LINE};
     use crate::m2::{
@@ -165,18 +165,18 @@ mod smp_line {
 
 /// Writes `bytes`; under native-smp a line leaves whole at its newline.
 pub fn write(bytes: &[u8]) {
-    #[cfg(feature = "native-smp")]
+    #[cfg(all(feature = "native-smp", not(feature = "native-smp-legacy")))]
     smp_line::write(bytes);
-    #[cfg(not(feature = "native-smp"))]
+    #[cfg(any(not(feature = "native-smp"), feature = "native-smp-legacy"))]
     write_raw(bytes);
 }
 
 /// Terminal paths (NMI, #DF, panic, fail, stuck lock): one whole line without
 /// waiting; `!` first if `SERIAL` could not be taken (DG-2).
 pub fn write_terminal(bytes: &[u8]) {
-    #[cfg(feature = "native-smp")]
+    #[cfg(all(feature = "native-smp", not(feature = "native-smp-legacy")))]
     smp_line::write_terminal(bytes);
-    #[cfg(not(feature = "native-smp"))]
+    #[cfg(any(not(feature = "native-smp"), feature = "native-smp-legacy"))]
     write_raw(bytes);
 }
 

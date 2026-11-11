@@ -1,26 +1,26 @@
-# Exceptions, interrupts en timers
+# Exceptions, interrupts and timers
 
-De bronnen behandelen interrupttabellen, handlers, processor-exceptions, interruptcontrollers en tijdbronnen. Het boek bouwt een IDT, bespreekt handlerstubs en foutcodes, en gebruikt PIC en PIT. De wiki bevat aanvullende controller- en architectuurvarianten; verwissel deze niet alsof ze dezelfde registers en regels hebben.
+The sources cover interrupt tables, handlers, processor exceptions, interrupt controllers and time sources. The book builds an IDT, discusses handler stubs and error codes, and uses the PIC and PIT. The wiki includes additional controller and architecture variants; do not interchange them as though they shared the same registers and rules.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [Interrupt descriptor table](../corpus/wiki-02.md#w001548) [W001548] · revisie 1965 · 2006-12-08T12:56:11Z
-- [Interrupt Service Routines](../corpus/wiki-02.md#w001719) [W001719] · revisie 30979 · 2026-09-27T19:56:54Z
-- [Exceptions](../corpus/wiki-05.md#w002400) [W002400] · revisie 29749 · 2025-11-08T00:40:46Z
-- [8259 PIC](../corpus/wiki-01.md#w001478) [W001478] · revisie 30849 · 2026-07-04T18:16:11Z
-- [Apic](../corpus/wiki-07.md#w002956) [W002956] · revisie 11095 · 2011-01-11T13:37:46Z
-- [IOAPIC](../corpus/wiki-05.md#w002434) [W002434] · revisie 30694 · 2026-06-07T16:19:01Z
-- [Programmable interval timer](../corpus/wiki-02.md#w001561) [W001561] · revisie 1993 · 2006-12-10T23:14:48Z
-- [HPET](../corpus/wiki-09.md#w003378) [W003378] · revisie 30935 · 2026-09-01T14:51:09Z
+- [Interrupt descriptor table](../corpus/wiki-02.md#w001548) [W001548] · revision 1965 · 2006-12-08T12:56:11Z
+- [Interrupt Service Routines](../corpus/wiki-02.md#w001719) [W001719] · revision 30979 · 2026-09-27T19:56:54Z
+- [Exceptions](../corpus/wiki-05.md#w002400) [W002400] · revision 29749 · 2025-11-08T00:40:46Z
+- [8259 PIC](../corpus/wiki-01.md#w001478) [W001478] · revision 30849 · 2026-07-04T18:16:11Z
+- [Apic](../corpus/wiki-07.md#w002956) [W002956] · revision 11095 · 2011-01-11T13:37:46Z
+- [IOAPIC](../corpus/wiki-05.md#w002434) [W002434] · revision 30694 · 2026-06-07T16:19:01Z
+- [Programmable interval timer](../corpus/wiki-02.md#w001561) [W001561] · revision 1993 · 2006-12-10T23:14:48Z
+- [HPET](../corpus/wiki-09.md#w003378) [W003378] · revision 30935 · 2026-09-01T14:51:09Z
 
-## Aansluiting op het PDF-boek
+## Related PDF book pages
 
-- Pagina 39–45: [B039](../corpus/boek.md#b039) tot [B045](../corpus/boek.md#b045).
-- Pagina 74–75: [B074](../corpus/boek.md#b074) tot [B075](../corpus/boek.md#b075).
+- Pages 39–45: [B039](../corpus/boek.md#b039) to [B045](../corpus/boek.md#b045).
+- Pages 74–75: [B074](../corpus/boek.md#b074) to [B075](../corpus/boek.md#b075).
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [8259 PIC](../corpus/wiki-01.md#w001478) [W001478]
 - [AArch64 Exceptions](../corpus/wiki-14.md#w005028) [W005028]

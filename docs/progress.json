@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-11",
-    "source_commit": "e875a30e97e53323875182bffc40423a5518ad6f",
+    "source_commit": "824a50194a12bbab225c9d25ead1a33bf821d5ae",
     "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
-    "task": "K06 step 5f: repair cross-CPU IPC throughput (R3-5) and restart the full matrix",
-    "previous_score": 41,
-    "summary": "41/100 remains 41/100. Both 10 000-round IPC cases failed 50/50 because a remote readiness wake queued behind CPU-bound peers; a head-of-queue remote wake (ADR-081 R3-5 addendum) and the named IPC_TIMEOUT_S = 180 fix this in two local native boots. Full run 43017432682 on e875a30e is in progress; K06 stays open until all 64 cases are exactly 50/50 with aggregate, K07, soaks and the executed repository gate. Merging main is blocked by a native-smp-m3 feature-name collision with the legacy SMP path from PR 154."
+    "task": "K06 step 5f: merge main (rename legacy native-smp-m3 to native-smp-legacy-m3) after the R3-5 IPC repair",
+    "previous_score": 39,
+    "summary": "39/100 remains 39/100 on merged main. The R3-5 head-of-queue remote wake and IPC_TIMEOUT_S = 180 pass two local native boots; the legacy SMP feature is renamed to native-smp-legacy-m3 and only legacy profiles use the smp-handoff loader. K06 stays open until the full 64x50 matrix, K07, soaks, aggregate and the executed repository gate pass on the merged head."
   },
   "tracks": [
     {
@@ -77,9 +77,7 @@
           "points": 2,
           "status": "open",
           "acceptance": "SMP scheduling, synchronization, interrupts, and address-space switching work under concurrent load on the supported profile.",
-          "evidence": [
-            "docs/verification/k06-smp-sched/README.md"
-          ]
+          "evidence": []
         },
         {
           "id": "K07",
@@ -371,13 +369,9 @@
           "id": "B01",
           "title": "Entropy and key management",
           "points": 2,
-          "status": "accepted",
-          "acceptance": "Native cryptographic entropy, key lifecycle, protection, and recovery use reviewed standards and tested failure paths.",
-          "evidence": [
-            "docs/verification/B01-ACCEPTANCE.md",
-            "docs/verification/native-recovery-hardening/b01/keyring-gate.json",
-            "docs/verification/native-recovery-hardening/integration.json"
-          ]
+          "status": "open",
+          "acceptance": "Native cryptographic entropy and key lifecycle, with recovery restricted to manifest-bound management ingress. Native positive management recovery and negative ordinary-app authorization tests remain required.",
+          "evidence": []
         },
         {
           "id": "B02",

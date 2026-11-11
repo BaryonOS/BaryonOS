@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-10",
+  "scope": "PR #167 current-main integration and host-verifiable review repair; not native or release acceptance",
+  "repository": "simonvanieperen/BaryonOS",
+  "branch": "veld/next-shell-20261103",
+  "prior_pr_head": "3b633064365ceb20f34d833fa86989f01acbd195",
+  "integrated_main": "5456296bbe5d0497a4a59388e421ad78945566d5",
+  "integration_commit": "5dc3dff8bd4f29d65ad4ffcdb75fb329b990240f",
+  "review_fix_commit": "307949ef46c9b6a9d80bca77ce5eaf3f2e901820",
+  "review_fix_tree": "ab04a827440eb86a6e3f1fb6f0e6f4f11d3e575e",
+  "changed_files": [
+    "tools/run_window_session.py",
+    "tools/test_window_session.py"
+  ],
+  "implementation": {
+    "stable_work_frame": "The work reference requires SHELL_READY=1 and a stateful image predicate that accepts only the second of two consecutive byte-identical full-screen captures.",
+    "ordered_key_baseline": "A one-event pointer marker must publish the expected position and exactly one INPUT increment before the tested key edge. A delayed earlier increment produces a delta of two and fails before key injection.",
+    "authority_change": false,
+    "dependency_change": false,
+    "kernel_runtime_change": false
+  },
+  "graphify": {
+    "repository": "simonvanieperen/BaryonOS",
+    "indexed_main": "5456296bbe5d0497a4a59388e421ad78945566d5",
+    "scope": "The hosted graph was used for repository and test-neighbor navigation. PR-only helper symbols were absent because the graph indexes main; no graph result is used as PR-head test evidence."
+  },
+  "verification": [
+    {
+      "command": "python3 -B tools/test_window_session.py",
+      "exit_code": 0,
+      "result": "23 host tests passed, including consecutive full-frame stability and delayed-input/lost-key negatives"
+    },
+    {
+      "command": "python3 tools/progress.py --write",
+      "exit_code": 0,
+      "result": "The 39/100 assessment and generated progress view were updated"
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "exit_code": 0,
+      "result": "The updated 39/100 rubric, evidence references, and generated views were consistent"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "result": "No whitespace errors"
+    },
+    {
+      "command": "cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/window-session/Cargo.toml --quiet",
+      "exit_code": 127,
+      "result": "Not started: cargo was not available in PATH"
+    },
+    {
+      "command": "python3 tools/preflight.py --strict",
+      "exit_code": 2,
+      "result": "Inventory failed: rustc, cargo, rustup, QEMU, OVMF, ld.lld, and clang were unavailable"
+    },
+    {
+      "command": "python3 tools/build.py",
+      "exit_code": 1,
+      "result": "Not built: FileNotFoundError for cargo"
+    },
+    {
+      "command": "python3 tools/run.py --smoke",
+      "exit_code": 1,
+      "result": "Not run: qemu-system-x86_64 was unavailable"
+    }
+  ],
+  "independent_ai_review": {
+    "result": "no blocker after causal marker revision",
+    "scope": "Read-only source and host-test review; not a human audit or native execution"
+  },
+  "required_follow_up": [
+    "Run the native switcher partial gate at 100% and 200% on the final PR head.",
+    "Require current-head CodeRabbit, CodeQL, and all repository-required checks before squash merge."
+  ]
+}

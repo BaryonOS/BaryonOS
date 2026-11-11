@@ -1,97 +1,99 @@
-# Overdraagbare mentale modellen en verwachtingscompatibiliteit
+# Transferable mental models and compatibility of expectations
 
-Onderzoeksdatum: 2 november 2026. Fase 4.5/4.6/4.8. Status: bronvergelijking en expliciete ontwerphypothesen; geen eigen interviews of geïmplementeerde interacties.
+Research date: 2 November 2026. Phases 4.5/4.6/4.8. Status: source comparison and explicit design hypotheses; no original interviews or implemented interactions.
 
-Leidend gebruikersprincipe: **“Familiar where familiarity reduces friction, innovative where innovation creates measurable value.”** Dit is de opdracht, geen onderzoeksresultaat.
+Guiding user principle: **“Familiar where familiarity reduces friction, innovative where innovation creates measurable value.”** This is the assignment, not a research result.
 
-## Bewijs en begrenzing
+## Evidence and boundaries
 
-[BRON] Nielsen beschrijft onder meer herkenning, consistentie, gebruikerscontrole en foutpreventie als heuristieken. W3C's aanvullende cognitieve richtlijn adviseert vertrouwde, consistente bediening en duidelijke relaties tussen controles en inhoud. Dit zijn ontwerp-/toegankelijkheidsrichtlijnen, geen effectproef voor een nieuwe desktop. [J01] [J03] [J04]
+[SOURCE] Nielsen's heuristics include recognition, consistency, user control, and error prevention. The W3C's supplemental cognitive guidance recommends familiar, consistent controls and clear relationships between controls and content. These are design and accessibility guidelines, not an effectiveness trial for a new desktop. [J01] [J03] [J04]
 
-[BRON] Mentale modellen verschillen per persoon en veranderen door ervaring. De bestaande vergelijkende OS-studie in het [Windows/macOS-dossier](2026-11-02/windows-macos-needs.md) gebruikte OS-afbeeldingen en een beperkte studentensteekproef; daarmee is geen kennis van een volledige installatie- of werkdag aangetoond. [J02]
+[SOURCE] Mental models differ between individuals and change through experience. The existing comparative operating-system study in the [Windows/macOS record](2026-11-02/windows-macos-needs.md) used operating-system images and a limited student sample; it does not demonstrate knowledge of a complete installation or working day. [J02]
 
-[ANALYSE] Overeenkomende documentatie bewijst dat een concept in meerdere systemen voorkomt. Zij bewijst niet dat iedere gebruiker het kent, dezelfde betekenis eraan geeft of het zonder hulp kan gebruiken. Hieronder betekent **breed gedeeld** daarom: teruggevonden bij meerdere onderzochte platformen. De taakroutes, termen, sneltoetsen en bronversies staan in [de 28-taakvergelijking](os-interaction-patterns.md); installatieconcepten in [de installatiematrix](os-installation-comparison.md).
+[ANALYSIS] Matching documentation demonstrates that a concept occurs in multiple systems. It does not demonstrate that every user knows it, assigns the same meaning to it, or can use it without assistance. Consequently, **widely shared** below means that a concept was found on multiple platforms examined. Task routes, terms, keyboard shortcuts, and source versions are recorded in the [28-task comparison](os-interaction-patterns.md); installation concepts are recorded in the [installation matrix](os-installation-comparison.md).
 
-## Vergelijking van modellen
+## Comparison of models
 
-Feitelijke platformverschillen zijn ontleend aan de genoemde taakroutes; de overdrachtsgevolgen zijn [ANALYSE].
+Factual platform differences are derived from the cited task routes; transfer implications are [ANALYSIS].
 
-| Model | Wat breed gedeeld is | Fundamenteel verschil / overdrachtsrisico | Gevolg voor nieuw-os — hypothese |
+| Model | What is widely shared | Fundamental difference / transfer risk | Implication for Baryon OS — hypothesis |
 |---|---|---|---|
-| Desktop | Een aangemelde werkomgeving met apps en systeemstatus | Een desktop hoeft geen opslagplaats voor pictogrammen te zijn; GNOME werkt sterk via overzicht | Eén stabiel thuispunt; bureaubladbestanden niet noodzakelijk maken |
-| Venster | Afzonderlijk zichtbaar werkgebied met focus | App, venster en document zijn verschillende identiteiten; sluiten beëindigt niet overal een app | Geef Sluiten een voorspelbaar venster-/documenteffect; behandel Stop app afzonderlijk |
-| Sluiten/minimaliseren/maximaliseren | Zichtbaarheid en grootte zijn bestuurbaar | macOS heeft andere positie, full-screen-/tilingbetekenis; GNOME biedt niet standaard alle titelbalkknoppen | Functies benoemen en alternatieven bieden; geen kleur of knoppositie als universele kennis aannemen |
-| Dock/taakbalk/panel | Apps openen en/of naar lopend werk terugkeren | Vastgemaakte app en actief venster zijn niet hetzelfde; GNOME-dash verschilt van Ubuntu-dock | Starten, actief werk en geselecteerd venster van elkaar onderscheiden |
-| Launcher/Start | Een vindbare ingang naar programma's | Startmenu, Activities, Launchpad/Spotlight en KDE Launcher verschillen in structuur | Eigen consistente launcher met tekst Zoeken en programma's; bekende termen als vindhulp |
-| Systeemvak/statusgebied | Netwerk, geluid en systeemstatus zijn gegroepeerd | App-tray, menu-extra's en quick settings hebben verschillende grenzen | Onderscheid permanente systeemstatus, appstatus en meldingen |
-| Quick settings/Control Centre | Veelgebruikte schakelaars nabij status | Een wifi-icoon kan een toggle of een lijst openen; klik op pictogram verschilt soms van pijltje | Aparte herkenbare actie voor aan/uit en voor netwerkkeuze; label de gevolgen |
-| Notificatiecentrum | Tijdelijke berichten zijn later terug te vinden | Locatie, kalenderkoppeling, groepering en uitzonderingen verschillen | Eén overzicht met bron, tijd en actie; focus is ander beleid dan toegang of apparaatstatus |
-| Bestandsbeheer | Benoemde bestanden, mappen, locaties en openen met een app | Finder, Explorer, Files en Dolphin delen niet alle metadata-/verplaatsingsconventies | Behoud naam/map/locatie/import/export naast Materiaal-collecties |
-| Instellingen | Een herkenbaar systeemonderdeel voor voorkeuren | Categorieën en app-/systeemgrens verschillen; GNOME/KDE zijn geen enkele Linux-structuur | Zelfde instelling via categorie én zoekresultaat naar dezelfde toestand |
-| Zoeken | Tekst invoeren om iets terug te vinden of te openen | Appzoeker, inhoudsindex, webresultaat en actie hebben verschillende scope | Resultaatsoort, locatie en bevoegdheid zichtbaar; geen actie uitvoeren bij alleen typen |
-| Drag-and-drop | Een object naar een bestemming brengen | Kopie/verplaats/alias is context- en modificatortoetsafhankelijk | Vooraf resultaat tonen; knop-/contextmenu-alternatief; ongeldige bestemming verandert niets |
-| Contextmenu | Relevante acties bij een object | Rechtermuisknop, Control-click, menutoets en touch verschillen | Zelfde commando's via menu en toetsenbord; geen essentiële actie alleen op rechtermuisknop |
-| Sneltoetsen | Snelle handelingen voor selectie, navigatie en bewerken | Ctrl versus Command; appwisselen versus vensterwisselen; instellingen zijn aanpasbaar | Echte bindings tonen; aliases mogen geen niet-ondersteunde keymapping beloven |
-| Workspaces/Spaces | Werk in meerdere groepen verdelen | Aantal, dynamiek, richting en full-screen-gedrag verschillen | Optioneel, zichtbaar benoemd werkruimtemodel; geen vereiste om één app te openen |
-| Installeren | Programma beschikbaar maken en kunnen verwijderen | Store, installer, pakket, appbundle en rechten hebben andere betekenissen | Herkomst, ondersteuning, gevolgen en verwijderen samen uitleggen; installatie is geen algemene gegevensgrant |
+| Desktop | A signed-in work environment with applications and system status | A desktop need not be a storage surface for icons; GNOME relies heavily on the overview | Provide one stable home location; do not require desktop files |
+| Window | A separately visible work area with focus | Application, window, and document are distinct identities; closing does not terminate an application everywhere | Give Close a predictable window/document effect; treat Quit application separately |
+| Close/minimise/maximise | Visibility and size can be controlled | macOS uses a different position and different full-screen/tiling semantics; GNOME does not provide all title-bar buttons by default | Name functions and provide alternatives; do not assume colour or button position is universal knowledge |
+| Dock/taskbar/panel | Open applications and/or return to work in progress | A pinned application and an active window are not the same; the GNOME dash differs from the Ubuntu dock | Distinguish launching, active work, and the selected window |
+| Launcher/Start | A discoverable entry point to programs | The Start menu, Activities, Launchpad/Spotlight, and KDE Launcher differ in structure | Provide a consistent custom launcher with the text Search and programs; use familiar terms as discovery aids |
+| System tray/status area | Network, sound, and system status are grouped | Application tray, menu extras, and quick settings have different boundaries | Distinguish persistent system status, application status, and notifications |
+| Quick settings/Control Centre | Frequently used switches near status | A Wi-Fi icon may open a toggle or a list; clicking the icon sometimes differs from clicking an arrow | Provide separate, recognisable actions for on/off and network selection; label the consequences |
+| Notification centre | Temporary messages can be found later | Location, calendar integration, grouping, and exceptions differ | Provide one overview with source, time, and action; focus is a different policy from access or device status |
+| File management | Named files, folders, locations, and opening with an application | Finder, Explorer, Files, and Dolphin do not share every metadata and movement convention | Retain name/folder/location/import/export alongside Materiaal collections |
+| Settings | A recognisable system component for preferences | Categories and application/system boundaries differ; GNOME and KDE are not one uniform Linux structure | Reach the same setting through both a category and a search result, leading to the same state |
+| Search | Enter text to find or open something | Application search, content index, web result, and action have different scopes | Show result type, location, and authority; entering text alone must not execute an action |
+| Drag and drop | Move an object to a destination | Copy/move/alias depends on context and modifier keys | Show the result in advance; provide a button/context-menu alternative; an invalid destination changes nothing |
+| Context menu | Relevant actions for an object | Right-click, Control-click, menu key, and touch differ | Provide the same commands through menus and the keyboard; no essential action is available only through right-click |
+| Keyboard shortcuts | Fast actions for selection, navigation, and editing | Ctrl versus Command; application switching versus window switching; settings are configurable | Show actual bindings; aliases must not promise unsupported key mappings |
+| Workspaces/Spaces | Divide work into multiple groups | Number, dynamics, direction, and full-screen behaviour differ | Provide an optional, visibly named workspace model; it is not required to open one application |
+| Installation | Make a program available and removable | Store, installer, package, application bundle, and permissions have different meanings | Explain provenance, support, consequences, and removal together; installation is not a general data grant |
 
-## Migratieprofielen: verwachtingen, geen persoonskennis
+## Migration profiles: expectations, not knowledge about individuals
 
-[HYPOTHESE] Deze profielen zijn gespreks-/testsegmenten. Zij zeggen niets over een individuele deelnemer voordat diens werkelijke ervaring is gevraagd. Iemand kan meerdere OS'en gebruiken of veel onderdelen nooit gebruikt hebben.
+[HYPOTHESIS] These profiles are discussion and test segments. They say nothing about an individual participant until that participant's actual experience has been elicited. A person may use multiple operating systems or may never have used many components.
 
-| Herkomst | Plausibel meegenomen kennis op grond van bestaande routes | Te toetsen verwarring / begeleiding |
+| Origin | Plausibly transferred knowledge based on existing routes | Confusion/guidance to test |
 |---|---|---|
-| Windows | Start, taakbalk/systeemvak, Explorer, Alt+Tab, randsnapping, rechtermuisknop, snelkoppelingen, Instellingen en verschillende installatiebronnen | Een apptegel is geen bestand; collectie is geen verplaatsing; sluiten is niet wissen. Verwijs Explorer naar bestands-/materiaalnavigatie en Taakbeheer naar het echte systeemoverzicht zodra dat bestaat |
-| macOS | Dock/topmenubalk, Finder, Spotlight, Mission Control/Spaces, gestures, Quick Look, appbundles en Systeeminstellingen | Ctrl/Command en app/vensterwissel niet gelijkstellen. Leg afwijkende sluit-/maximaliseerbetekenis uit, zonder de menubalk of Finder na te bouwen |
-| GNOME | Activities/overzicht, Super-zoeken, dash, dynamische workspaces, Files en quick settings | Geen verwachting van klassieke taakbalk afdwingen; zichtbare appwisseling bieden. Ontbrekende desktopiconen niet als fout presenteren |
-| KDE Plasma | Launcher, panel/taakbeheer/systeemvak, KRunner, Dolphin, System Settings, configuratie en virtuele desktops | “Task Manager” kan een panelwidget of procesoverzicht betekenen; zoekresultaten moeten disambigueren. Configuratie mag de kernbetekenis niet veranderen |
-| Ubuntu GNOME | GNOME-basis met distributiekeuzes zoals een zichtbaar dock en App Center | Ubuntu-ervaring niet automatisch op upstream GNOME projecteren; pakketbron en versie blijven relevant |
-| Eerste computer / geen voorkeur | Geen OS-specifieke kennis veronderstellen | Bied labels, voorbeelden, standaardroutes en geleidelijke details; geen verplichte cursus of verborgen sneltoets |
+| Windows | Start, taskbar/system tray, Explorer, Alt+Tab, edge snapping, right-click, shortcuts, Settings, and different installation sources | An application tile is not a file; a collection is not a move operation; closing is not deletion. Map Explorer to file/Materiaal navigation and Task Manager to the actual system overview once it exists |
+| macOS | Dock/top menu bar, Finder, Spotlight, Mission Control/Spaces, gestures, Quick Look, application bundles, and System Settings | Do not equate Ctrl with Command or application switching with window switching. Explain different close/maximise semantics without reproducing the menu bar or Finder |
+| GNOME | Activities/overview, Super search, dash, dynamic workspaces, Files, and quick settings | Do not impose an expectation of a classic taskbar; provide visible application switching. Do not present absent desktop icons as an error |
+| KDE Plasma | Launcher, panel/task manager/system tray, KRunner, Dolphin, System Settings, configuration, and virtual desktops | “Task Manager” may mean a panel widget or process overview; search results must disambiguate. Configuration must not change the core meaning |
+| Ubuntu GNOME | The GNOME base with distribution choices such as a visible dock and App Center | Do not project Ubuntu experience automatically onto upstream GNOME; package source and version remain relevant |
+| First computer/no preference | No operating-system-specific knowledge assumed | Provide labels, examples, default routes, and progressive detail; no mandatory course or hidden shortcut |
 
-## Compatibility of expectations — voorstel
+## Compatibility of expectations — proposal
 
-1. **Eén concept, één effect.** Dezelfde knop, zoekactie en sneltoets voeren dezelfde operatie uit. Herkomstkeuze verandert geen opslag, rechten, authenticatie, sluitbeleid of netwerktoegang.
-2. **Vertrouwde woorden helpen vinden.** Ondersteun gerichte synoniemen voor programma's, bestandsbeheer en systeemfuncties. Toon de eigen naam, korte betekenis en beschikbaarheid. Een alias naar een afwezig onderdeel levert geen nepresultaat op.
-3. **Begeleid verschil op het moment van handelen.** Bijvoorbeeld bij de eerste Sluiten-actie of het eerste zoeken naar Finder. Een kort wegklikbaar kaartje is een hypothese; herhaalde hints en taakonderbrekingen worden gemeten.
-4. **Laat basistaken zelfstandig bestaan.** Zoeken, mappen, menu's en zichtbare knoppen blijven bruikbaar zonder AI, gestures, herkomstprofiel of voorkennis van Materiaal.
-5. **Onderzoek begrip, niet alleen herkenning.** Vraag vóór uitvoeren welk effect iemand verwacht; vergelijk dat met werkelijk resultaat. Tel stille misverstanden, herstelwerk en hulp naast taaksucces.
+1. **One concept, one effect.** The same button, search action, and keyboard shortcut perform the same operation. Origin selection does not change storage, permissions, authentication, close policy, or network access.
+2. **Familiar words support discovery.** Support targeted synonyms for programs, file management, and system functions. Show the custom name, a short meaning, and availability. An alias for an absent component does not produce a fake result.
+3. **Guide differences at the moment of action.** Examples include the first Close action or the first search for Finder. A short dismissible card is a hypothesis; repeated hints and task interruptions are measured.
+4. **Keep basic tasks independently usable.** Search, folders, menus, and visible buttons remain usable without AI, gestures, an origin profile, or prior knowledge of Materiaal.
+5. **Investigate comprehension, not recognition alone.** Before execution, ask which effect a participant expects and compare it with the actual result. Count silent misunderstandings, recovery work, and assistance alongside task success.
 
-Uitwerking van aliases en lokale voorkeuren: [onboardingspecificatie](../product/new-os-onboarding-spec.md). Dit is nog geen implementatie.
+Aliases and local preferences are elaborated in the [onboarding specification](../product/new-os-onboarding-spec.md). This is not yet an implementation.
 
 ## Familiarity budget
 
-De categorieën zijn een **projectweging**, geen wetenschappelijke score. Standaard is KEEP FAMILIAR. EVOLVE vereist een benoemd probleem en meetbare verwachting. REINVENT/NEW vereisen aanvullend aantoonbare meerwaarde boven een vertrouwde variant én behoud van basistaken.
+The categories are a **project weighting**, not a scientific score. The default is KEEP FAMILIAR. EVOLVE requires a named problem and a measurable expectation. REINVENT/NEW additionally require demonstrable value beyond a familiar variant and preservation of basic tasks.
 
-| Onderdeel | Categorie | Motivatie / bewijsgrens |
+| Component | Category | Rationale/evidence boundary |
 |---|---|---|
-| Vooruit/Terug/Annuleren, duidelijk focus en labels | KEEP FAMILIAR | Herkenning/controle uit richtlijnen; exacte taakroute nog testen |
-| Naam/map/locatie, kopiëren/verplaatsen en nieuwe map | KEEP FAMILIAR | Breed aanwezige taakconcepten; collecties zijn aanvullend |
-| Vensterfocus, sluiten, appwissel | KEEP FAMILIAR | Betekenis voorspelbaar houden; positie/stijl kan eigen zijn |
-| Statusgebied, geluid, netwerk en vergrendelen | KEEP FAMILIAR | Direct bereikbare systeemhandelingen; niet achter assistent |
-| Contextmenu en zichtbare alternatieven | KEEP FAMILIAR | Meer dan één invoermethode; gelijke opdrachten |
-| Schijf kiezen, bewaren/wissen en bevestigen | KEEP FAMILIAR | Een onomkeerbaar gevolg verbergen levert geen zinvolle vernieuwing |
-| Instellingen met categorieën én zoeken | EVOLVE | Minder navigatiewerk als hypothese; één gedeelde instelling |
-| Zoekresultaten met bekende aliassen en zichtbare scope | EVOLVE | Eerder onderzoek toont concrete zoekfrictie; kwaliteit nog testen |
-| Installer met veilige preview en expliciet wijzigingsplan | EVOLVE | Zelfde bekende beslissingen met betere gevolgweergave; geen verwijdering van noodzakelijke keuze |
-| Privacykeuzes en toegangsherstel | EVOLVE | Gevolg, duur en intrekken combineren; herhaalde toestemming vermijden |
-| Verplichte leveranciersaccount als poort naar lokale taken | REINVENT | Bewust verwijderen uit nieuw-os-funnel volgens bestaand privacycontract; geen universeel OS-patroon of gemeten effectclaim |
-| Materiaal als blijvende identiteit boven gereedschappen | NEW voor overstappers | Bestaand projectconcept; nieuwe metafoor alleen geleidelijk introduceren naast mappen/openen |
-| Objectgerichte toegangs-/herstelinspectie | NEW voor overstappers | Optionele verdieping, geen extra leerpoort vóór ieder bestand |
+| Forward/Back/Cancel, clear focus and labels | KEEP FAMILIAR | Recognition/control from guidelines; exact task route still requires testing |
+| Name/folder/location, copy/move, and new folder | KEEP FAMILIAR | Widely present task concepts; collections are additive |
+| Window focus, closing, application switching | KEEP FAMILIAR | Keep meaning predictable; position/style may be distinct |
+| Status area, sound, network, and locking | KEEP FAMILIAR | Directly accessible system actions; not hidden behind an assistant |
+| Context menu and visible alternatives | KEEP FAMILIAR | More than one input method; equivalent commands |
+| Disk selection, preserve/erase, and confirmation | KEEP FAMILIAR | Hiding an irreversible consequence is not meaningful innovation |
+| Settings with categories and search | EVOLVE | Less navigation work as a hypothesis; one shared setting |
+| Search results with familiar aliases and visible scope | EVOLVE | Earlier research shows specific search friction; quality still requires testing |
+| Installer with safe preview and explicit change plan | EVOLVE | The same familiar decisions with better presentation of consequences; no removal of a necessary choice |
+| Privacy choices and access recovery | EVOLVE | Combine consequence, duration, and revocation; avoid repeated permission requests |
+| Mandatory vendor account as a gate to local tasks | REINVENT | Deliberately removed from the Baryon OS funnel under the existing privacy contract; no universal operating-system pattern or measured-effect claim |
+| Materiaal as a persistent identity above tools | NEW for people migrating | Existing project concept; introduce the new metaphor only gradually alongside folders/opening |
+| Object-centred access/recovery inspection | NEW for people migrating | Optional detail, not an additional learning gate before every file |
 
-**Budgetregel — hypothese:** geen nieuwe metafoor nodig voor de onomkeerbare schijfkeuze of voor de 28 basistaken. Introduceer Materiaal in één optionele voorbeeldtaak; stel de tweede nieuwe inspectiemetafoor uit tot die nodig is. Dit is een beheersregel om leerlast te begrenzen, geen bewezen numerieke bovengrens. Geen extra REINVENT/NEW toevoegen zonder variantvergelijking en regressieproef van bekende taken.
+**Budget rule — hypothesis:** no new metaphor is required for the irreversible disk choice or for the 28 basic tasks. Introduce Materiaal in one optional example task; defer the second new inspection metaphor until it is needed. This is a governance rule intended to limit learning burden, not a demonstrated numerical upper bound. Do not add another REINVENT/NEW item without a variant comparison and a regression test of familiar tasks.
 
-## Bronregister voor deze analyse
+<a id="bronregister-voor-deze-analyse"></a>
 
-Alle bronnen geraadpleegd op 2026-11-02. De platformhandleidingen en versies staan in de twee gekoppelde vergelijkingen; de bronfamilies hieronder onderbouwen het analysemodel.
+## Source register for this analysis
 
-| ID | Oorspronkelijke bron / datum | Gebruikt en beperking |
+All sources were accessed on 2026-11-02. Platform manuals and versions are recorded in the two linked comparisons; the source families below support the analysis model.
+
+| ID | Original source/date | Use and limitation |
 |---|---|---|
-| J01 | Jakob Nielsen, *10 Usability Heuristics*, 1994-04-24; herzien 2024-01-30 | Consistentie, herkenning, controle, foutpreventie. Heuristieken, geen huidige OS-gebruikersmeting |
-| J02 | Megan Chan, *Mental Models*, 2024-01-26; herzien 2026-09-01, herwerking Nielsen 2010 | Individuele verwachtingen en onjuiste modellen; voorbeelden/richtlijn, geen migratie-RCT |
-| J03 | W3C COGA, *Use a Familiar Hierarchy and Design*, bronnotitie 2021-04-29; webpresentatie 2022-01 | Cognitieve toegankelijkheid en herkenning; aanvullende guidance, geen WCAG-conformiteitscriterium |
-| J04 | W3C COGA, *Help Users Understand What Things are and How to Use Them*, zelfde notitie/webperiode | Duidelijke controles, relatie en consistentie; webcontext moet voor native getoetst worden |
-| [J05] | Microsoft Support, *Change or reset your PIN in Windows*, datum niet vermeld | PIN is niet hetzelfde als Microsoft-accountwachtwoord; geen implementatievoorbeeld voor nieuw-os |
-| [J06] | Nieuw-os privacycontract revisie 4, 2026-10-28, en bronbasis main e08fb0e/ontwikkelbron1f0dd9c | Lokale werking, geen leveranciersaccountdwang, echte rechten en open native grenzen; projectvoorwaarden, geen externe gebruikersdata |
+| J01 | Jakob Nielsen, *10 Usability Heuristics*, 1994-04-24; revised 2024-01-30 | Consistency, recognition, control, and error prevention. Heuristics, not a current operating-system user measurement |
+| J02 | Megan Chan, *Mental Models*, 2024-01-26; revised 2026-09-01, reworking Nielsen 2010 | Individual expectations and incorrect models; examples/guidance, not a migration RCT |
+| J03 | W3C COGA, *Use a Familiar Hierarchy and Design*, source note 2021-04-29; web presentation 2022-01 | Cognitive accessibility and recognition; supplemental guidance, not a WCAG conformance criterion |
+| J04 | W3C COGA, *Help Users Understand What Things are and How to Use Them*, same note/web period | Clear controls, relationships, and consistency; the web context requires testing for native use |
+| [J05] | Microsoft Support, *Change or reset your PIN in Windows*, no date stated | A PIN is not the same as a Microsoft account password; not an implementation example for Baryon OS |
+| [J06] | Baryon OS privacy contract revision 4, 2026-10-28, and source baseline main `e08fb0e`/development source `1f0dd9c` | Local operation, no mandatory vendor account, genuine permissions, and open native boundaries; project conditions, not external user data |
 
 [J01]: https://www.nngroup.com/articles/ten-usability-heuristics/
 [J02]: https://www.nngroup.com/articles/mental-models/

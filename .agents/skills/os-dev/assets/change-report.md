@@ -1,22 +1,22 @@
-# Wijzigingsverslag — invultemplate
+# Change report — template
 
-**Resultaat:** zeg wat daadwerkelijk bereikt is, niet alleen wat bedoeld was.
+**Result:** state what was actually achieved, not merely what was intended.
 
-**Context:** branch/commit, doelarchitectuur en relevante aannames.
+**Context:** branch/commit, target architecture and relevant assumptions.
 
-**Gewijzigd:** concrete bestanden, gedrag en motivatie; geen verzonnen commits.
+**Changes:** concrete files, behaviour and rationale; no invented commits.
 
-**Bronnen:** titel + revisie + W-ID, of boekpagina + B-ID; aanvullende primaire bron waar nodig.
+**Sources:** title + revision + W-ID, or book page + B-ID; additional primary source where needed.
 
-| Controle | Exacte opdracht/omgeving | Werkelijk resultaat | Bewijs |
+| Check | Exact command/environment | Actual result | Evidence |
 |---|---|---|---|
-| Baseline | In te vullen met uitgevoerde opdracht | Niet uitgevoerd / geslaagd / gefaald | Log of reden |
-| Nieuwe tests | In te vullen met uitgevoerde opdracht | Niet uitgevoerd / geslaagd / gefaald | Log of reden |
-| Emulator/hardware | Alleen als werkelijk gebruikt | Niet uitgevoerd / geslaagd / gefaald | Log of reden |
+| Baseline | Enter the command executed | Not run / passed / failed | Log or reason |
+| New tests | Enter the command executed | Not run / passed / failed | Log or reason |
+| Emulator/hardware | Only if actually used | Not run / passed / failed | Log or reason |
 
-**Risico’s en ongetest:** benoem resterende gaten en geen valse zekerheid.
+**Risks and untested areas:** identify remaining gaps without false certainty.
 
-**Rollback:** beschrijf het terugdraaien van deze wijziging zonder ander werk te wissen.
+**Rollback:** describe how to reverse this change without erasing other work.
 
-**Nieuw OS-voortgang (alleen indien van toepassing):** vorige score, aangetoonde gate,
-nieuwe score of ongewijzigd, en de gebruikte bestaande beoordelingsrubriek.
+**Baryon OS progress (only where applicable):** previous score, demonstrated gate,
+new or unchanged score, and the existing assessment rubric used.

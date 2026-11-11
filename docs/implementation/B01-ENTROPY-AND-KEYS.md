@@ -32,28 +32,36 @@ sleutels nooit aan gewone apps afgeeft.
    vastgelopen bron laat de dienst in `BLOCKED`: iedere sleuteloperatie geeft
    `NotReady`. Er is geen zwakkere terugvaloptie en geen testseed in het
    productpad.
-3. **Sleutels verlaten de dienst niet.** Apps krijgen alleen sleutelhandles
-   (domein, index). SEAL/UNSEAL gebeuren in de dienst; de domeinautoriteit komt
-   uitsluitend van het kernelgebonden ingress-endpoint. Een handle van domein A
-   is in domein B ongeldig.
+3. **Sleutels verlaten de dienst niet via app-ingress.** Apps krijgen alleen
+   sleutelhandles (domein, index). SEAL/UNSEAL gebeuren in de dienst; de
+   domeinautoriteit komt uitsluitend van het kernelgebonden ingress-endpoint.
+   Een handle van domein A is in domein B ongeldig. Alleen de afzonderlijke
+   manifest-gebonden beheer-ingress mag herstelmateriaal afgeven.
 4. **Geen eigen cryptografie.** Alleen onderhouden RustCrypto-crates met
-   vastgepinde versies: `chacha20poly1305` 0.10.1 (XChaCha20-Poly1305 AEAD,
-   RFC 8439/draft-irtf-cfrg-xchacha), `chacha20` 0.9.1 (keystream voor de
-   DRBG), `hkdf` 0.12.4 + `sha2` 0.10.9 (HKDF-SHA-256, RFC 5869), `zeroize`
-   1.8. Alle x86-SIMD-backends zijn uitgeschakeld
-   (`chacha20_force_soft`, `poly1305_force_soft`, `sha2_backend="soft"`): het
+   vastgepinde versies: `chacha20poly1305` 0.11.0 (XChaCha20-Poly1305 AEAD,
+   RFC 8439/draft-irtf-cfrg-xchacha), one production `chacha20` 0.10.2
+   dependency (DRBG and RNG) and `cipher` 0.5.2 with wrapper zeroization, plus
+   the protected HKDF/SHA-256 stack. `chacha20` 0.9.1 remains exclusively a
+   development oracle for byte-for-byte compatibility. Alle x86-SIMD-backends
+   zijn uitgeschakeld
+   (`chacha20_backend="soft"`,
+   `poly1305_backend="soft"`, `sha2_backend="soft"`): het
    profiel heeft `CR0.EM=1` en geen SSE. De DRBG is de
    fast-key-erasure-constructie op ChaCha20 (Bernstein, 2017): sleutel K,
    keystream → nieuwe K en uitvoer, oude K gewist.
+   Current dependency provenance and the portable-backend evidence boundary
+   are recorded in [KEYRING-CRYPTO-DEPENDENCIES.md](KEYRING-CRYPTO-DEPENDENCIES.md).
 5. **Binding.** Iedere AEAD-bewerking bindt formaatversie, domein,
    sleutelindex en doel (seal/herstel) in de AAD. Een ciphertext van sleutel
    A onder sleutel B, een gewijzigde byte, tag of nonce geeft `Auth` zonder
    gedeeltelijke plaintext.
 6. **Herstel zonder escrow.** EXPORT_RECOVERY levert een willekeurig 256-bit
-   herstelgeheim aan de aanvragende app (de gebruikersagent) en een blob die de
-   hoofdsleutel plus intrekkingsstatus onder dat geheim verzegelt. RESTORE in
-   een andere dienstinstantie herleidt daarmee alle domeinsleutels. Zonder het
-   geheim is de blob onbruikbaar; de dienst bewaart het geheim niet.
+   herstelgeheim en een blob die de hoofdsleutel plus intrekkingsstatus onder
+   dat geheim verzegelt uitsluitend via een afzonderlijke beheer-ingress aan
+   de manifest-genoemde supervisor/herstelprincipal. Gewone app-ingress wijst
+   EXPORT_RECOVERY en RESTORE af, ook als de app de geldige wire-opcodes kent.
+   RESTORE in een andere dienstinstantie herleidt daarmee alle domeinsleutels.
+   Zonder het geheim is de blob onbruikbaar; de dienst bewaart het geheim niet.
 7. **Intrekking.** REVOKE wist de afgeleide sleutel en markeert de index; de
    index wordt niet hergebruikt. Herstel onder dezelfde hoofdsleutel verenigt
    de bestaande en geïmporteerde intrekkingsbitmaps. Een andere hoofdsleutel
@@ -104,25 +112,27 @@ master (32 B, uit DRBG)          ──HKDF-SHA-256(info = "nieuw-os key v1" ‖
 recovery_secret (32 B, uit DRBG) ──XChaCha20-Poly1305(aad = "nieuw-os recovery v1")──> blob = nonce ‖ enc(master ‖ revoked-bitmap) ‖ tag
 ```
 
-| Op | Verzoek | Antwoord | Fouten |
-|---|---|---|---|
-| STATUS | – | state (0 starting, 1 ready, 2 blocked, 3 degraded), reden, aantal sleutels | – |
-| GENERATE | – | handle (index 0..15 binnen het domein) | NotReady, Quota (16 per domein) |
-| SEAL | handle, plaintext ≤ 128 B | nonce ‖ ciphertext ‖ tag (≤ 168 B) | NotReady, BadHandle, Revoked |
-| UNSEAL | handle, nonce ‖ ciphertext ‖ tag | plaintext | NotReady, BadHandle, Revoked, Auth |
-| REVOKE | handle | – | BadHandle |
-| EXPORT_RECOVERY | – | secret (32 B), blob (76 B) | NotReady |
-| RESTORE | secret, blob | aantal herstelde domeinen | NotReady, Auth, Invalid (andere master in gebruikte instantie) |
+| Bereik | Op | Verzoek | Antwoord | Fouten |
+|---|---|---|---|---|
+| App-domein | STATUS | – | state (0 starting, 1 ready, 2 blocked, 3 degraded), reden, aantal sleutels | – |
+| App-domein | GENERATE | – | handle (index 0..15 binnen het domein) | NotReady, Quota (16 per domein) |
+| App-domein | SEAL | handle, plaintext ≤ 128 B | nonce ‖ ciphertext ‖ tag (≤ 168 B) | NotReady, BadHandle, Revoked |
+| App-domein | UNSEAL | handle, nonce ‖ ciphertext ‖ tag | plaintext | NotReady, BadHandle, Revoked, Auth |
+| App-domein | REVOKE | handle | – | BadHandle |
+| Beheer | EXPORT_RECOVERY | – | secret (32 B), blob (76 B) | NotReady |
+| Beheer | RESTORE | secret, blob | aantal herstelde domeinen | NotReady, Auth, Invalid (andere master in gebruikte instantie) |
 
 De dienst houdt per domein een teller en de intrekkingsbitmap bij; het
-domeinnummer volgt uit het endpoint waarop het verzoek binnenkomt. Verzoeken
-met een capability, verkeerde tag of lengte worden geweigerd zonder effect.
+domeinnummer volgt uit het endpoint waarop het app-verzoek binnenkomt. De
+beheer-ingress accepteert alleen de manifest-genoemde caller, zonder
+gedelegeerde capabilities. Verzoeken met een capability, verkeerde tag of
+lengte worden geweigerd zonder effect.
 
 ## 5. Acceptatiegevallen (echte QEMU-runs)
 
 | Geval | Feature | Vereiste observatie |
 |---|---|---|
-| normal | `native-keyring` | dienst A en B worden READY (opstartentropy geslaagd); app in domein 0 en 1: GENERATE, SEAL/UNSEAL rondgang, cross-domain handle geweigerd, gemanipuleerde byte/tag/nonce geweigerd zonder plaintext, REVOKE → Revoked, 17e sleutel → Quota; EXPORT_RECOVERY bij A, UNSEAL van A-ciphertext bij B faalt vóór RESTORE (NoKey/BadHandle), RESTORE met fout geheim → Auth, RESTORE met juist geheim → UNSEAL slaagt, ingetrokken sleutel blijft ingetrokken; kernel: alleen de twee diensten lezen entropy, appverzoeken om entropy → geweigerd |
+| normal | `native-keyring` | dienst A en B worden READY (opstartentropy geslaagd); app in domein 0 en 1: GENERATE, SEAL/UNSEAL rondgang, cross-domain handle geweigerd, gemanipuleerde byte/tag/nonce geweigerd zonder plaintext, REVOKE → Revoked, 17e sleutel → Quota; app-ingress weigert EXPORT_RECOVERY en RESTORE zonder herstelbytes af te geven of toestand te wijzigen. De afzonderlijke beheer-wiretest exporteert en herstelt herstelmateriaal via de management-dispatcher; dit is hostbewijs, geen native caller-authenticatie. Kernel: alleen de twee diensten lezen entropy, appverzoeken om entropy → geweigerd |
 | no-device | `test-keyring-no-device` (QEMU zonder virtio-rng) | `entropy_read` → Offline; beide diensten BLOCKED; app: elke GENERATE → NotReady; kernel: 0 geslaagde entropyleveringen, 0 sleutels |
 | stuck | `test-keyring-stuck` | gelabelde constante-bytefixture na echte completion; Repetition Count faalt bij de opstart; BLOCKED met reden; geen sleutels |
 | timeout | `test-keyring-timeout` | lokale stille rng-egd-backend ontvangt de echte apparaataanvraag maar levert niets; deadline, reset-ACK, 0 geleverde bytes, 0 sleutels en behoud van de gepinde DMA-pool |
@@ -150,9 +160,9 @@ de softwarebackends buiten constante-tijdimplementatie van de crates zelf.
   blokkeren; daarom twee syscalls (aanvraag/ticket en poll), zoals de
   blokbroker. Twee diensten delen één brokerslot en herhalen bij `EAGAIN`.
 - **Telling in de normalcase.** De app genereert 2 + 1 + 14 = 17 sleutels
-  (waarna het quotum van 16 per domein `Quota` geeft), verzegelt één keer en
-  opent twee keer (bij A en na herstel bij B); de kernel eist precies die
-  ondergrenzen.
+  (waarna het quotum van 16 per domein `Quota` geeft), verzegelt en opent één
+  keer. Herstel via de beheer-wiretest is een afzonderlijke hosttest; het
+  oude bewijs voor app-ingress wordt niet als bewijs voor deze grens gebruikt.
 - **Codebudget.** De dienst met de portable crypto-backends is 50 KiB code;
   het voorbeeld gebruikt een eigen linkerscript met 128 KiB code vanaf
   `0x40020000` en een losse entry-pagina op `0x40000000`, binnen de

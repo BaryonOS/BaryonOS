@@ -1,44 +1,43 @@
-# Teststrategie en bewijsstatus
-Dit is een eigen testplan voor het project, geen verslag van al uitgevoerde OS-tests.
+# Test strategy and evidence status
+This is the project's own test plan, not a report of OS tests already performed.
 
-## N02 — onderscheid echte TLS, beleid en native bewijs
+## N02 — distinguish actual TLS, policy and native evidence
 
-De uitgevoerde N02-integratie onder `verification/pqc-transport/` bevat 124 tests: 85 service inclusief 30 echte loopback-TLS-proeven, plus 39 UI-statustests. Handshakebewijs registreert de onderhandelde groep/protocol/cipher, wederzijdse identiteit, negatieve downgrade-/servergevallen en het ontbreken van sessiehergebruik. Policytests zijn geen TLS-bewijs; een configureerbare groepsnaam zonder handshake evenmin. Harnasaannames LAN/internet blijven onderscheiden van daadwerkelijk gemeten loopbacktransport. Test geen productiekeys of externe apparaten. App-/toestemmingsgeneraties voorkomen herleving van oude geauthenticeerde verbindingen na intrekken en opnieuw toestaan. Geen native/QEMU-, formeel-, menselijke-audit- of PQ-authenticatieclaim aan deze resultaten verbinden.
+The completed N02 integration under `verification/pqc-transport/` contains 124 tests: 85 service tests, including 30 actual loopback TLS trials, plus 39 UI status tests. Handshake evidence records the negotiated group/protocol/cipher, mutual identity, negative downgrade/server cases and the absence of session reuse. Policy tests are not TLS evidence; neither is a configurable group name without a handshake. LAN/internet harness assumptions remain distinct from actually measured loopback transport. Do not test production keys or external devices. App/permission generations prevent old authenticated connections from reviving after revocation and renewed permission. These results support no native/QEMU, formal, human-audit or PQ-authentication claim.
 
-## Vanaf M1
-Een geslaagde build, een geslaagde emulatorboot en functionele isolatie zijn aparte resultaten. Geef elke test een naam, requirement, exacte versie/configuratie, verwachte observatie, time-out en foutcriterium. Archiveer de relevante seriële uitvoer buiten de bronboom; leg in de repository vast hoe die te reproduceren is.
+## From M1 onwards
+A successful build, successful emulator boot and functional isolation are separate results. Give each test a name, requirement, exact version/configuration, expected observation, timeout and failure criterion. Archive relevant serial output outside the source tree; record how to reproduce it in the repository.
 
-De bootrooktest moet slagen op een marker die alleen door de eigen kernel na overdracht wordt geschreven. Een loaderbanner is onvoldoende. De harness moet falen bij ontbrekende marker, onverwachte exit en time-out. Test ook dat de harness werkelijk een fout detecteert. Controleer latere stille hangs via voortgang/exit in plaats van een eindeloze QEMU-run.
+The boot smoke test must pass on a marker written only by the project's own kernel after handover. A loader banner is insufficient. The harness must fail on a missing marker, unexpected exit and timeout. Also test that the harness actually detects an error. Detect later silent hangs through progress/exit rather than an endless QEMU run.
 
-## Testlagen
-| Laag | Voorbeelden | Bewijsgrens |
+## Test layers
+| Layer | Examples | Evidence limit |
 |---|---|---|
-| Host-unit/propertytests | Bounds, allocatiemodel, capability-transities, parsers | Geen bewijs voor bare-metal timing/MMIO |
-| Cross-build/lint | Target, ABI, linker-layout, warnings, unsafe-inventaris | Geen bootbewijs |
-| Emulator-integratie | Boot, exceptions, processen, syscall/IPC, crashherstel | Virtuele hardware is geen fysieke hardware |
-| Fuzzing/fault injection | IPC, onbetrouwbare parsers, updates, disk full, uitval | Beperkt tot onderzochte inputs en uitvoertijd |
-| Formeel model | Rechten kunnen niet spontaan groeien; revocation/lifetimes | Model moet met implementatie en aannames overeenkomen |
-| Fysieke referentietests | DMA, firmware, slaapstand, energie en deviceherstel | Alleen exacte hardware-/firmwarecombinatie |
-| Externe review | Invarianten, ontwerp en implementatie | Reviewscope/rest-risico's expliciet |
+| Host unit/property tests | Bounds, allocation model, capability transitions, parsers | No evidence for bare-metal timing/MMIO |
+| Cross-build/lint | Target, ABI, linker layout, warnings, unsafe inventory | No boot evidence |
+| Emulator integration | Boot, exceptions, processes, syscall/IPC, crash recovery | Virtual hardware is not physical hardware |
+| Fuzzing/fault injection | IPC, untrusted parsers, updates, full disk, failures | Limited to examined inputs and execution time |
+| Formal model | Rights cannot grow spontaneously; revocation/lifetimes | The model must match the implementation and assumptions |
+| Physical reference tests | DMA, firmware, sleep, power and device recovery | Only the exact hardware/firmware combination |
+| External review | Invariants, design and implementation | Review scope and residual risks explicit |
 
-Gebruik tools als Miri/sanitizers alleen voor onderdelen/targets die zij ondersteunen; presenteer een hosttest niet als volledige kernelcontrole. Houd test-debugvoorzieningen buiten productieprofielen.
+Use tools such as Miri/sanitizers only for components/targets they support; do not present a host test as a full kernel check. Keep test/debug facilities out of production profiles.
 
-## Integratie-eisen per mijlpaal
-- Geen gerelateerde regressie; bekende falende tests blijven zichtbaar.
-- Negatieve test voor iedere nieuwe bevoegdheidsgrens.
-- Test run en output horen bij de samengevoegde versie.
-- Gemarkeerde mock/stub kan een interface verkennen, maar mag geen requirement afvinken.
-- Geen test aanpassen zodat een bug groen wordt zonder requirementbesluit.
-- Beperkte, reproduceerbare inputs; time-outs; geen live persoonlijke data.
+## Integration requirements for each milestone
+- No related regression; known failing tests remain visible.
+- A negative test for every new authority boundary.
+- The test run and output belong to the integrated version.
+- A labelled mock/stub may explore an interface but cannot satisfy a requirement.
+- Do not change a test merely to make a bug pass without a requirements decision.
+- Bounded, reproducible inputs; timeouts; no real personal data.
 
-## Bindende privacychecks
-Na invoering van netwerk, NAS of AI gelden alle relevante LP-tests uit LOCAL-PRIVACY-CONTRACT.md. Test peer-identiteit, eenmalige uitnodigingen, expliciete remote toegang, encryptie van inhoud én namen, adminverwijdering zonder gebruikerssleutel, stale uploads na revoke, quota/herstart, netwerkovergangen, geen leveranciersfallback, netwerkloze inferentie, gescheiden modeldownloader, combinaties van apprechten en onafhankelijk herstel van NAS-backups. Dit zijn toekomstige acceptatiecriteria; nog geen uitgevoerde resultaten.
+## Binding privacy checks
+After introducing networking, NAS or AI, all relevant LP tests from LOCAL-PRIVACY-CONTRACT.md apply. Test peer identity, single-use invitations, explicit remote access, encryption of content and names, administrator deletion without a user key, stale uploads after revocation, quotas/restarts, network transitions, no vendor fallback, networkless inference, a separate model downloader, combinations of app permissions and independent recovery of NAS backups. These are future acceptance criteria, not completed results.
 
-## Prestaties
-Vaste machineconfiguratie, versies, workload en meetgrenzen. Rapporteer sampleaantal, mediaan en spreiding/p95 waar zinvol. Vergelijk hetzelfde werk met dezelfde beveiligingsgaranties. TCG-resultaten niet vergelijken met native Windows/macOS-cijfers. Stel realistische budgetten pas na een gemeten baseline vast.
+## Performance
+Use a fixed machine configuration, versions, workload and measurement boundaries. Report sample count, median and spread/p95 where meaningful. Compare the same work with the same security guarantees. Do not compare TCG results with native Windows/macOS figures. Set realistic budgets only after measuring a baseline.
 
-## Supply chain en releases
-Later: dependencies en checksums vastleggen, SBOM, repeatable builds in schone omgevingen, bronreview, ondertekende artifacts en hersteltest. Geen secrets in CI voor onbeoordeelde externe pull requests. Releasekeys buiten gewone agents/CI-buildjobs; aparte beperkte ondertekeningsstap. Zelfhosted runners voor onbetrouwbare PR-code moeten wegwerpbaar en geïsoleerd zijn.
+## Supply chain and releases
+Later work: record dependencies and checksums, an SBOM, repeatable builds in clean environments, source review, signed artefacts and a recovery test. No CI secrets for unreviewed external pull requests. Keep release keys outside ordinary agents/CI build jobs; use a separate restricted signing step. Self-hosted runners for untrusted PR code must be disposable and isolated.
 
-Een CI-badge bewijst uitsluitend dat de geconfigureerde controles voor de genoemde versie zijn geslaagd. Geen OS-release publiceerbaar noemen voordat criteria, licentie, meldpunt, herstelroute en beperkingen zijn gecontroleerd.
-
+A CI badge proves only that the configured checks passed for the specified version. Do not describe an OS release as publishable before checking criteria, licensing, reporting channels, recovery procedures and limitations.

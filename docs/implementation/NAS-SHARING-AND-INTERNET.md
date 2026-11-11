@@ -1,123 +1,123 @@
-# N01 — internet en persoonlijke NAS-ruimte
+# N01 — internet and personal NAS space
 
-## Aanvulling P05 — 28 oktober 2026
+## P05 addition — 28 October 2026
 
-N01/N03 blijven de **persoonlijke NAS-route**. Privacycontract revisie 4 staat
-daarnaast toe dat een gebruiker een algemene externe opslagprovider expliciet
-kiest als onbetrouwbare backend voor uitsluitend opaque, client-side
-versleutelde objecten. Dat is een afzonderlijke P05-route volgens
-[ENCRYPTED-OBJECT-STORAGE.md](ENCRYPTED-OBJECT-STORAGE.md); zij vervangt de NAS
-niet, geeft de provider geen inhoudssleutel en is nooit een stille fallback.
+N01/N03 remain the **personal NAS route**. Privacy contract revision 4 also
+allows a user to explicitly select a general external storage provider as
+an untrusted backend solely for opaque, client-side encrypted objects. That
+is a separate P05 route under
+[ENCRYPTED-OBJECT-STORAGE.md](ENCRYPTED-OBJECT-STORAGE.md); it does not replace
+the NAS, gives the provider no content key and is never a silent fallback.
 
-Datum: 27 oktober 2026. Projectbesluit: internettoegang, NAS bij de gebruiker thuis als persoonlijke cloud, dezelfde OS-bediening voor client en NAS, en ruimte delen met vrienden/familie zonder hun inhoud te kunnen lezen. De NAS-beheerder mag zijn ruimte eenzijdig terugnemen.
+Date: 27 October 2026. Project decision: internet access, a NAS at the user's home as a personal cloud, the same OS controls for client and NAS, and sharing space with friends/family without being able to read their content. The NAS administrator may unilaterally reclaim the space.
 
-## Status en scope
+## Status and scope
 
-**Aanvulling N02, 27 oktober 2026:** de oorspronkelijke N01-scope hieronder blijft herkenbaar. De afzonderlijke [TLS-hostproef](../../services/nas/TRANSPORT.md) voegt werkelijk geauthenticeerd hybride loopbacktransport en aan app/generatie gebonden facts toe. Zij levert geen native NAS-netwerkdienst en koppelt de echo nog niet aan de store. Actueel bewijs: `docs/verification/pqc-transport/`; formele/native vervolgcriteria: [VERIFIABLE-SECURITY-AND-PQC.md](VERIFIABLE-SECURITY-AND-PQC.md).
+**N02 addition, 27 October 2026:** the original N01 scope below remains identifiable. The separate [TLS host trial](../../services/nas/TRANSPORT.md) adds actually authenticated hybrid loopback transport and app/generation-bound facts. It provides no native NAS network service and does not yet connect the echo to the store. Current evidence: `docs/verification/pqc-transport/`; formal/native follow-up criteria: [VERIFIABLE-SECURITY-AND-PQC.md](VERIFIABLE-SECURITY-AND-PQC.md).
 
-N01 loopt parallel aan M6a. De eigen kernel/netwerkdriver wordt in deze wijziging niet uitgebreid.
+N01 runs in parallel with M6a. This change does not extend the project's kernel/network driver.
 
-| Laag | Levering | Bewijsgrens |
+| Layer | Deliverable | Evidence boundary |
 |---|---|---|
-| Bindend productcontract | Privacycontract revisie 4, ADR-027 plus ADR-035/036, bijgewerkte architectuur/roadmap/instructies | Eisen en gekozen rolverdeling |
-| Versleutelde hostdienst | `services/nas/`: echte clientencryptie, lokale ciphertextopslag, quota, uitnodiging, intrekking en beheer | Node-hostproef; geen native OS-dienst of netwerkserver |
-| Netwerkbeleid | Default-deny beslislogica met gescheiden app-/AI-/NAS-rechten | Vertrouwde adapter moet identiteit en verbinding daadwerkelijk verifiëren |
-| Materiaal | Mijn NAS, Ruimte ontvangen, Ruimte aanbieden, identiteitscontrole, expliciet internet en hostverwijdering | Browsermock met fictieve data; geen cryptografische veiligheid van de demo |
-| Native integratie | Netwerkstack, transportauthenticatie, same-OS-NAS-installatie, persistente sleutels en kernelcapabilities | Nog te bouwen en afzonderlijk te testen |
+| Binding product contract | Privacy contract revision 4, ADR-027 plus ADR-035/036, updated architecture/roadmap/instructions | Requirements and selected role allocation |
+| Encrypted host service | `services/nas/`: actual client encryption, local ciphertext storage, quotas, invitation, revocation and administration | Node host trial; no native OS service or network server |
+| Network policy | Default-deny decision logic with separate app/AI/NAS permissions | Trusted adapter must actually verify identity and connection |
+| Materiaal | My NAS, Receive space, Offer space, identity verification, explicit internet and host removal | Browser mock with fictional data; no cryptographic security in the demo |
+| Native integration | Network stack, transport authentication, same-OS NAS installation, persistent keys and kernel capabilities | Still to be built and tested separately |
 
-De daadwerkelijk uitgevoerde testcommando's, getallen en beperkingen staan onder `docs/verification/nas/`. Geen M8-, fysieke-hardware-, internetbereikbaarheids- of productieclaim.
+Actually executed test commands, figures and limitations are under `docs/verification/nas/`. No M8, physical-hardware, internet-reachability or production claim.
 
-## 1. Gebruikersscenario's
+## 1. User scenarios
 
-### Productnorm: privacy zonder onnodige bediening
+### Product standard: privacy without unnecessary interaction
 
-Aanvullende producteis van 27 oktober 2026: de verbonden ervaring en afwerking moeten kunnen overtuigen naast Windows/macOS. Privacy is een standaard onderliggende eigenschap, geen reden om internet, samenwerken, automatisch hervatten of een moderne interface weg te laten. Veiligheid en gebruiksgemak zijn gezamenlijke acceptatiecriteria.
+Additional product requirement of 27 October 2026: the connected experience and finish must be convincing alongside Windows/macOS. Privacy is an underlying default property, not a reason to omit internet access, collaboration, automatic resumption or a modern interface. Security and ease of use are joint acceptance criteria.
 
-Een gebruiker bevestigt een nieuwe NAS-identiteit en kiest eenmalig de toegestane verbindingsscope. Daarna kiest de routeplanner automatisch het geverifieerde lokale kanaal, of reeds toegestaan direct internet naar dezelfde peer. Geen nieuwe vraag bij iedere wisseling, bestandsbewerking of normale synchronisatie. Mismatch, intrekking en niet-geautoriseerde bestemmingen blijven blokkeren. Offline werken en hervatten mogen geen verborgen dubbele bestanden of dataverlies veroorzaken; echte sync/conflictafhandeling is een nog te bouwen dienst.
+A user confirms a new NAS identity and selects the permitted connection scope once. The route planner then automatically selects the verified local channel, or already permitted direct internet access to the same peer. No new prompt for every transition, file edit or normal synchronisation. Mismatches, revocation and unauthorised destinations continue to block access. Offline work and resumption must not cause hidden duplicate files or data loss; actual synchronisation/conflict handling is a service still to be built.
 
-De huidige read-only keyrecovery, 8.192-encryptiegrens, kleine testquota en herbevestiging na browserrefresh zijn **tijdelijke proefgrenzen**. Zij zijn geen geaccepteerd dagelijks productgedrag. Voor een productversie moeten veilig blijvend sleutelbeheer, geautomatiseerde rotatie, achtergrondsync, multi-device-toegang en begrijpelijk herstel worden geïmplementeerd en getest. Een feature wordt niet productklaar door een veiligheidsprobleem als permanente gebruikersbeperking te presenteren.
+Current read-only key recovery, the 8,192-encryption limit, small test quotas and reconfirmation after browser refresh are **temporary trial boundaries**. They are not accepted everyday product behaviour. A product version requires implementation and testing of secure persistent key management, automated rotation, background synchronisation, multi-device access and understandable recovery. A feature does not become product-ready by presenting a security problem as a permanent user limitation.
 
-De bronproef demonstreert veilige automatische routeselectie, maar geen echte internetverbinding of achtergrondsync. Onboarding moet toegang, gegevenslocatie en herstel in gewone taal tonen; geavanceerde netwerk-/sleutelinstellingen horen buiten de standaardflow. Vergelijk gebruik met concrete taken en gemeten frictie; claim geen gelijkwaardigheid met bestaande platforms zonder die metingen.
+The source trial demonstrates safe automatic route selection, but no actual internet connection or background synchronisation. Onboarding must explain access, data location and recovery in plain language; advanced network/key settings belong outside the default flow. Compare use through concrete tasks and measured friction; do not claim equivalence with existing platforms without those measurements.
 
-### Eigen NAS instellen
+### Setting up a personal NAS
 
-Kies op een tweede geschikt apparaat de NAS-rol van hetzelfde OS. Kies een opslagvolume en maximumcapaciteit; toon welke data verwijderd kunnen worden als het volume opnieuw ingericht zou moeten worden. Deze toekomstige installatie vereist een eigen opdracht voordat een echte schijf wordt gewist. Maak een lokale beheeridentiteit. De client ontdekt een kandidaat of ontvangt een uitnodiging, vergelijkt de identiteit en kiest de gewenste capaciteit. Discovery verleent geen vertrouwen.
+Select the NAS role of the same OS on a second suitable device. Select a storage volume and maximum capacity; show which data could be removed if the volume needed to be reinitialised. This future installation requires a separate instruction before a real disk is erased. Create a local administrative identity. The client discovers a candidate or receives an invitation, compares the identity and selects the desired capacity. Discovery grants no trust.
 
-### Ruimte ontvangen bij familie of vrienden
+### Receiving space from family or friends
 
-De host maakt een eenmalige uitnodiging met een ruimteaanbod. De ontvanger controleert de identiteit en accepteert bewust dat de host de NAS-kopie kan verwijderen. De client genereert lokaal zijn eigen inhoudssleutel; de uitnodiging of beheerder ontvangt die sleutel niet. Koppeling geeft geen toegang tot andere gebruikers of tot het beheer van het apparaat.
+The host creates a single-use invitation offering space. The recipient checks the identity and knowingly accepts that the host can delete the NAS copy. The client generates its own content key locally; neither the invitation nor the administrator receives that key. Pairing grants no access to other users or device administration.
 
-Standaard blijft de verbinding lokaal. Gebruik vanaf een ander huis of onderweg vraagt afzonderlijke toestemming voor internet naar die gekoppelde identiteit. Veranderde identiteit onderbreekt de verbinding, ook als hostnaam of adres gelijk blijft.
+The connection remains local by default. Use from another home or while travelling requires separate permission for internet access to that paired identity. A changed identity interrupts the connection even if the hostname or address remains the same.
 
-### Ruimte aanbieden en terugnemen
+### Offering and reclaiming space
 
-De host ziet per gast een herkenbare naam of lokale alias, gebruikte ruimte, quotum en status. Geen gastdocumentnamen, voorbeelden of inhoud. 'Toegang intrekken en NAS-kopie verwijderen' vraagt alleen een duidelijke bevestiging van de beheerder. Een offline gast, verloren gastkey, versleuteld object of gastbezwaar blokkeert die beheeractie niet.
+For each guest, the host sees a recognisable name or local alias, used space, quota and status. No guest document names, previews or content. 'Revoke access and delete NAS copy' requires only clear confirmation from the administrator. An offline guest, lost guest key, encrypted object or guest objection does not block that administrative action.
 
-Na intrekking werken oude sessies en lopende uploads niet meer. Na herstart blijft de ruimte ingetrokken. Een oude client mag de namespace niet opnieuw aanmaken. Een nieuwe uitnodiging is een nieuw aanbod met een nieuwe namespace.
+After revocation, old sessions and ongoing uploads no longer work. The space remains revoked after restart. An old client must not recreate the namespace. A new invitation is a new offer with a new namespace.
 
-## 2. Vertrouwensgrenzen
+## 2. Trust boundaries
 
-De NAS wordt voor vertrouwelijkheid als onbetrouwbare opslag behandeld. De gebruikersclient en zijn geverifieerde distributieketen houden de sleutel. De NAS moet geen clientupdate of script kunnen opleggen dat inhoudsleutels ontvangt.
+For confidentiality, the NAS is treated as untrusted storage. The user's client and its verified distribution chain retain the key. The NAS must not be able to impose a client update or script that receives content keys.
 
-De beheercapability staat los van de inhoudssleutel. Een host kan op disk ciphertext lezen, maar dat is geen leesrecht op documenten. De host kan altijd beschikbaarheid beëindigen en noodzakelijke metadata waarnemen. Een lokale apparaatcompromis, verloren sleutel of doelbewuste clientcodevervanging is een andere dreiging.
+The administrative capability is separate from the content key. A host can read ciphertext on disk, but that is not permission to read documents. The host can always end availability and observe necessary metadata. A local device compromise, lost key or deliberate replacement of client code is a different threat.
 
-De browserdemo gebruikt geen echte keys, NAS of netwerk. Haar 'versleuteld'-weergave beschrijft het productcontract en wordt als simulatie gemarkeerd.
+The browser demo uses no actual keys, NAS or network. Its 'encrypted' display describes the product contract and is marked as a simulation.
 
-## 3. Opslag- en intrekkingsinvarianten
+## 3. Storage and revocation invariants
 
-1. Alleen geautoriseerde actieve namespaces mogen eigen objecten publiceren/lezen/verwijderen.
-2. NAS-opslag bevat uitsluitend de ciphertextenvelop en noodzakelijke opaque metadata; ook documentnamen zijn versleuteld.
-3. Authenticated encryption bindt schema, namespace, object en versie. Volledig verifiëren vóór plaintext teruggeven.
-4. Inhoudssleutels worden niet in serverstate, invitations, sessies, administratie of logs opgeslagen.
-5. Adminintrekking hoeft geen gebruikerssleutel, gebruikershandtekening of gebruikersconsent.
-6. Intrekking en uploadcommit worden onder dezelfde serialisatiegrens beoordeeld. De duurzame ingetrokken toestand gaat vóór cleanup.
-7. Staging/sessies/tickets binden aan de huidige namespacegeneratie. Oude autoriteit faalt ook na herstart.
-8. Verwijderde namespaces worden niet opnieuw aangemaakt door upload/resume/sync. Nieuw aanbod = nieuwe willekeurige namespace.
-9. Quota tellen ciphertext en reserveringen; metadata, objectaantal en aantallen sessies/invites/uploads hebben afzonderlijke grenzen.
-10. Gastquota mogen beheerintrekking niet verhinderen. Een echte opslagfout geeft geen onterechte duurzaamheidsbevestiging.
-11. Purge is herhaalbaar; administratieve status en werkelijke cleanupstatus blijven onderscheidbaar bij fouten.
-12. Verwijderen op deze NAS wist geen gebruikerskopieën op andere apparaten en belooft geen fysieke secure erase of vernietiging van ongecontroleerde backups.
+1. Only authorised active namespaces may publish/read/delete their own objects.
+2. NAS storage contains only the ciphertext envelope and necessary opaque metadata; document names are encrypted too.
+3. Authenticated encryption binds schema, namespace, object and version. Verify fully before returning plaintext.
+4. Content keys are not stored in server state, invitations, sessions, administration or logs.
+5. Administrative revocation requires no user key, user signature or user consent.
+6. Revocation and upload commit are evaluated under the same serialisation boundary. The durable revoked state precedes cleanup.
+7. Staging/sessions/tickets bind to the current namespace generation. Old authority fails even after restart.
+8. Deleted namespaces are not recreated by upload/resume/synchronisation. New offer = new random namespace.
+9. Quotas count ciphertext and reservations; metadata, object count and numbers of sessions/invitations/uploads have separate limits.
+10. Guest quotas must not prevent administrative revocation. An actual storage error produces no incorrect durability acknowledgement.
+11. Purge is repeatable; administrative status and actual cleanup status remain distinguishable on errors.
+12. Deletion on this NAS does not erase user copies on other devices and promises neither physical secure erasure nor destruction of uncontrolled backups.
 
-De hostproef moet haar specifieke atomische opslag- en single-writer-aannames documenteren. Een geslaagde processen-herstarttest bewijst geen herstel na fysieke stroomuitval op iedere schijf.
+The host trial must document its specific atomic-storage and single-writer assumptions. A successful process-restart test does not prove recovery from physical power loss on every disk.
 
-## 4. Netwerkbeleid
+## 4. Network policy
 
-| Principal | Standaard | Expliciete verruiming |
+| Principal | Default | Explicit expansion |
 |---|---|---|
-| Lokale AI-inferentie | Geen LAN/internet of uploadhelper | Geen cloudfallback |
-| Nieuwe derdenapp | Eigen appopslag, geen netwerk/documenten/NAS | Afzonderlijke app- en bestemmingsgrants |
-| Browser | Geen algemeen document-/NAS-recht | Internetgebruik binnen toegewezen scope |
-| NAS-sync | Geen onbekende peer; alleen gekoppelde namespace | Gecontroleerd LAN, vervolgens optioneel internet naar dezelfde identiteit |
-| Update-/modeldownloader | Geen persoonlijke context of NAS-keys | Afgebakende downloadbestemming en geverifieerde artifacts |
-| NAS-beheer | Lokale beheercapability | Remote beheer is afzonderlijke nog te ontwerpen functie |
+| Local AI inference | No LAN/internet or upload helper | No cloud fallback |
+| New third-party app | Own app storage, no network/documents/NAS | Separate app and destination grants |
+| Browser | No general document/NAS permission | Internet use within the assigned scope |
+| NAS synchronisation | No unknown peer; paired namespace only | Checked LAN, then optionally internet to the same identity |
+| Update/model downloader | No personal context or NAS keys | Bounded download destination and verified artifacts |
+| NAS administration | Local administrative capability | Remote administration is a separate function still to be designed |
 
-Een netwerkgrant is geen documentgrant. Gecombineerde bestands- en internetrechten worden zichtbaar gemaakt; een app die beide terecht bezit kan toegestane inhoud exporteren. Dat risico kan niet met een tekstbelofte worden uitgesloten.
+A network grant is not a document grant. Combined file and internet permissions are made visible; an app that legitimately holds both can export permitted content. A textual promise cannot eliminate that risk.
 
-De latere adapter controleert identiteit, TLS 1.3, doel en reële route voordat zij een geautoriseerde principal/verbinding levert. Geen mutaties via TLS 0-RTT. Een extern request mag geen route of authenticatie fabriceren met booleans. Herauthenticatie bij keyrotatie of ingetrokken sessie is verplicht. Geen automatische open beheerpoort, UPnP/portforwarding of relayfallback.
+The future adapter checks identity, TLS 1.3, destination and actual route before supplying an authorised principal/connection. No mutations through TLS 0-RTT. An external request must not fabricate a route or authentication using booleans. Reauthentication after key rotation or session revocation is mandatory. No automatically open administration port, UPnP/port forwarding or relay fallback.
 
-## 5. Cryptografische uitvoering
+## 5. Cryptographic implementation
 
-De hostproef gebruikt Node.js' onderhouden `node:crypto` met AES-256-GCM, cryptografische randomness en authenticated associated data. De precieze sleutel-/noncecyclus staat bij de implementatie; random nonces mogen niet zonder grens als onbeperkt herbruikbaar worden gepresenteerd. Geen hardcoded productiesleutels of handgemaakte cipher/hashconstructies.
+The host trial uses Node.js's maintained `node:crypto` with AES-256-GCM, cryptographic randomness and authenticated associated data. The exact key/nonce lifecycle is documented with the implementation; random nonces must not be presented as indefinitely reusable without a bound. No hardcoded production keys or custom cipher/hash constructions.
 
-TLS beschermt het transport; clientencryptie beschermt documentinhoud ook tegen de NAS-host. Deze functies vervangen elkaar niet. Sleuteloverdracht naar een tweede eigen apparaat, bruikbare offline recovery en bescherming tegen serverrollback vereisen afzonderlijke integratie. Een versleuteld oud object kan nog steeds een geldige cryptografische tag hebben; de client moet geauthenticeerde versiegeschiedenis bijhouden voordat hij versheidsclaims kan doen.
+TLS protects transport; client encryption also protects document content from the NAS host. These functions do not replace each other. Key transfer to a second owned device, usable offline recovery and protection against server rollback require separate integration. An old encrypted object can still have a valid cryptographic tag; the client must maintain authenticated version history before making freshness claims.
 
-## 6. Nog noodzakelijke native werkzaamheden
+## 6. Native work still required
 
-- Beperkte netwerkdienst met gecontroleerde socket-/bestemmingscapabilities, parsergrenzen en tests op gecompromitteerde apps.
-- TLS-/clientauthenticatie via onderhouden implementatie, sleutelpinning, keyrotatie, geen 0-RTT-mutaties.
-- Werkelijke NAS-rol in Nieuw OS, beheeropslag op een herstelbaar bestandssysteem en multi-userquota.
-- Native clientkey-opslag en herstel zonder key escrow; veilige koppeling van extra apparaten.
-- Directe bereikbaarheid, IPv4/IPv6, DNS-rebinding, NAT/CGNAT, netwerkovergangen en expliciet gekozen eigen netwerkroute. 'Plug & play overal' is niet bewezen.
-- Persistente revocation en concurrency bij meerdere processen/devices; quota en disk-full-reserves; crash/fault-injection op de uiteindelijke opslaglaag.
-- Fuzzing, sleutel-/updateketenreview en afgebakende onafhankelijke menselijke beveiligingsbeoordeling vóór gebruik voor gevoelige data.
-- Taak-, toetsenbord- en schermlezerproeven van dezelfde onboarding op client en NAS.
+- Restricted network service with checked socket/destination capabilities, parser bounds and tests involving compromised apps.
+- TLS/client authentication through a maintained implementation, key pinning, key rotation, no 0-RTT mutations.
+- Actual NAS role in Baryon OS, administrative storage on a recoverable filesystem and multi-user quotas.
+- Native client-key storage and recovery without key escrow; secure pairing of additional devices.
+- Direct reachability, IPv4/IPv6, DNS rebinding, NAT/CGNAT, network transitions and an explicitly selected network route. 'Plug and play everywhere' is not proven.
+- Persistent revocation and concurrency across multiple processes/devices; quotas and disk-full reserves; crash/fault injection on the final storage layer.
+- Fuzzing, key/update-chain review and a bounded independent human security assessment before use with sensitive data.
+- Task, keyboard and screen-reader trials of the same onboarding on client and NAS.
 
-De eerstvolgende kernelmijlpaal blijft de lopende M6a-eindverificatie. N01 wordt daarop aangesloten zodra opslag en netwerkcapabilities dat toelaten.
+The next kernel milestone remains the ongoing M6a final verification. N01 connects to it when storage and network capabilities permit.
 
-## Bronnen en besluitstatus
+## Sources and decision status
 
 - OpenJS Foundation. (2026). *Crypto: Node.js v24.22.1 documentation*. https://nodejs.org/docs/latest-v24.x/api/crypto.html
 - Rescorla, E. (2018). *The Transport Layer Security (TLS) protocol version 1.3* (RFC 8446). IETF. https://www.rfc-editor.org/rfc/rfc8446.html
 - Rose, S., Borchert, O., Mitchell, S., & Connelly, S. (2020). *Zero trust architecture* (NIST SP 800-207). NIST. https://doi.org/10.6028/NIST.SP.800-207
 
-Primaire bronnen gecontroleerd 27 oktober 2026. De functionele rolkeuze en het eenzijdige hostverwijderrecht volgen uit de expliciet vastgelegde projectopdracht. Deze bronnen keuren de implementatie niet goed.
+Primary sources checked 27 October 2026. The functional role decision and unilateral host deletion right follow from the explicitly recorded project instruction. These sources do not approve the implementation.

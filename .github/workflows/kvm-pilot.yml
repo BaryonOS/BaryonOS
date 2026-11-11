@@ -1,0 +1,155 @@
+name: Experimental hosted KVM pilot
+
+on:
+  workflow_dispatch:
+    inputs:
+      full_evidence:
+        description: 'Also retain raw images, frames and builds for 1 day'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kvm-pilot-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  kvm-pilot:
+    name: kvm-pilot-${{ matrix.gate }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        gate: [system, volume, window]
+    env:
+      PILOT_GATE: ${{ matrix.gate }}
+      NOS_QEMU_ACCEL: kvm
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/kvm-pilot/${{ matrix.gate }}
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/kvm-pilot/${{ matrix.gate }}
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/kvm-pilot/${{ matrix.gate }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Pinned Rust and real targets
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          rustup target add --toolchain 1.90.0 x86_64-unknown-none x86_64-unknown-uefi
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Require usable hosted KVM
+        run: |
+          set -euo pipefail
+          test -c /dev/kvm
+          sudo chmod 0666 /dev/kvm
+          test -r /dev/kvm
+          test -w /dev/kvm
+          qemu-system-x86_64 -accel help | grep -Fx kvm
+          python3 -B - <<'PY'
+          import sys
+          sys.path.insert(0, "tools")
+          from common import qemu_accel
+          assert qemu_accel() == "kvm"
+          PY
+      - name: Strict preflight
+        run: python3 -B tools/preflight.py --strict
+      - name: Fetch the selected gate's locked dependencies
+        run: |
+          set -euo pipefail
+          cargo +1.90.0 fetch --locked
+          cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml
+          if [[ "$PILOT_GATE" == window ]]; then
+            for manifest in \
+              sdk/examples/materiaal/Cargo.toml \
+              sdk/examples/input-service/Cargo.toml \
+              sdk/examples/window-session/Cargo.toml \
+              sdk/examples/calculator/Cargo.toml \
+              ui/graphics/Cargo.toml \
+              ui/native/Cargo.toml \
+              ui/surface-protocol/Cargo.toml
+            do
+              cargo +1.90.0 fetch --locked --manifest-path "$manifest"
+            done
+          fi
+      - name: Run the selected KVM pilot gate
+        env:
+          CARGO_NET_OFFLINE: 'true'
+        run: |
+          set -euo pipefail
+          case "$PILOT_GATE" in
+            system)
+              python3 -B -u tools/test_system.py
+              ;;
+            volume)
+              python3 -B -u tools/test_volume.py
+              ;;
+            window)
+              python3 -B -u tools/build.py --kernel-feature native-window-session-probe
+              python3 -B -u tools/run_window_session.py \
+                --clipboard \
+                --timeout 1800 \
+                --bios-rom /usr/share/seabios/bios-256k.bin \
+                --vga-rom /usr/share/seabios/vgabios-stdvga.bin
+              ;;
+            *)
+              echo "::error::Unknown KVM pilot gate: $PILOT_GATE"
+              exit 2
+              ;;
+          esac
+      - name: Require passing reports bound to KVM
+        if: ${{ always() }}
+        run: |
+          python3 -B - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          gate = os.environ["PILOT_GATE"]
+          root = Path(os.environ["NOS_BUILD_DIR"])
+          patterns = {
+              "system": ("run/system-*/result.json", 2, "system-gate.json"),
+              "volume": ("run/volume-*/result.json", 9, "volume-gate.json"),
+              "window": ("window-session-report.json", 1, None),
+          }
+          pattern, count, summary = patterns[gate]
+          reports = sorted(root.glob(pattern))
+          if len(reports) != count:
+              raise SystemExit(f"expected {count} {gate} reports, found {len(reports)}")
+          for path in reports:
+              report = json.loads(path.read_text(encoding="utf-8"))
+              command = report.get("command")
+              if report.get("passed") is not True or not isinstance(command, list):
+                  raise SystemExit(f"non-passing or malformed report: {path}")
+              try:
+                  acceleration = command[command.index("-accel") + 1]
+              except (ValueError, IndexError):
+                  raise SystemExit(f"missing acceleration evidence: {path}")
+              if acceleration != "kvm":
+                  raise SystemExit(f"non-KVM report: {path}: {acceleration}")
+          if summary is not None:
+              verdict = json.loads((root / summary).read_text(encoding="utf-8"))
+              if verdict.get("status") != "completed" or verdict.get("passed") is not True:
+                  raise SystemExit(f"gate summary did not pass: {summary}")
+          PY
+      - name: Preserve pilot evidence
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          job-status: ${{ job.status }}
+          full-evidence: ${{ inputs.full_evidence }}
+          name: kvm-pilot-${{ matrix.gate }}
+          path: |
+            build/kvm-pilot/${{ matrix.gate }}/

@@ -14,7 +14,8 @@ use keyring_core::{
     wire as kw, Status as KeyStatus, SECRET_BYTES,
 };
 use nieuw_os_sdk_runtime::{
-    native, Capability, LaunchImage, ProcessStatus, ReceiveEndpoint, Rights, SendEndpoint,
+    native, Capability, Error, Handle, LaunchImage, ProcessStatus, ReceiveEndpoint, Rights,
+    SendEndpoint,
 };
 use protocol::*;
 use volume_core::{checksum_update, client::Client, FNV_OFFSET};
@@ -228,6 +229,39 @@ fn restore_key_state() {
     support::put(EV_GENERATION, info.generation);
 }
 
+/// H05 (ADR-076): orderly poweroff with init's non-delegable POWER handle.
+/// The kernel logs each refusal itself and decides; init only sequences.
+#[inline(never)]
+fn power_off_sequence(power: Handle, image: LaunchImage) -> ! {
+    // Delegation is refused by type before any effect.
+    let grant = Capability {
+        handle: power,
+        rights: Rights::POWER,
+    };
+    check(native::spawn(image, 0, &[grant]).is_err(), 50);
+    check(native::derive(power, Rights::POWER).is_err(), 51);
+    // The volume still holds BLOCK authority: refused, nothing happens.
+    check(native::power_off(power) == Error::Kernel(-8), 52);
+    // Final flush; on Ok the volume closes its block capability. A refused
+    // flush (Unknown) leaves the decision to the kernel gate below.
+    let _ = volume().shutdown(volume_core::PER_DOMAIN as u64);
+    // Authority is checked before the gate: wrong type, forged generation.
+    check(native::power_off(image.handle()) == Error::Kernel(-6), 53);
+    let forged = Handle::from_raw(power.raw() + (1 << 32)).unwrap_or_else(|_| fail(54));
+    check(native::power_off(forged) == Error::Kernel(-4), 54);
+    for _ in 0..LIMIT * 8 {
+        match native::power_off(power) {
+            Error::Kernel(-8) => {
+                let _ = native::yield_now();
+            }
+            // Not durable this boot: stay up, the next cold start recovers.
+            Error::Kernel(-16) => native::exit(0),
+            _ => fail(55),
+        }
+    }
+    fail(56)
+}
+
 #[no_mangle]
 #[link_section = ".text.entry"]
 pub extern "C" fn _start() -> ! {
@@ -323,6 +357,9 @@ fn main() -> ! {
     check(native::close(worker.handle()).is_ok(), 16);
     for (at, value) in [(400, 2), (408, 1), (416, 1), (424, 1), (40, 1)] {
         support::put(at, value);
+    }
+    if support::word(48) != 0 {
+        power_off_sequence(handle(48), image);
     }
     native::exit(0)
 }

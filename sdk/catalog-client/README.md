@@ -1,56 +1,56 @@
-# G03 — native transport voor de bestaande catalogusclient
+# G03 — native transport for the existing catalogue client
 
-`nieuw-os-catalog-client` verbindt de bestaande
-[`catalog_core::client`](../../services/catalog/src/client.rs) met de
-[SDK-runtime](../runtime/README.md). De crate is allocatorvrij, `no_std` en
-verbiedt `unsafe`. `NativeTransport` gebruikt de echte int80-wrappers en is
-uitsluitend beschikbaar op `x86_64-unknown-none`. Er is geen nieuwe syscall,
-capabilitysoort, IPC-versie of opslagformaat.
+`nieuw-os-catalog-client` connects the existing
+[`catalog_core::client`](../../services/catalog/src/client.rs) to the
+[SDK runtime](../runtime/README.md). The crate is allocation-free, `no_std`
+and forbids `unsafe`. `NativeTransport` uses the actual int80 wrappers and is
+available only on `x86_64-unknown-none`. There is no new syscall, capability
+type, IPC version or storage format.
 
-`Session::new` krijgt dienst-epoch, verwachte kernel-PID, domein en twee reeds
-gedelegeerde endpoint-handles. De sessie neemt de verantwoordelijkheid voor
-die handles over; gebruik ze niet buiten de sessie. Constructie verleent geen
-rechten. De kernel en dienst blijven de werkelijke autoriteitsgrens.
+`Session::new` takes the service epoch, expected kernel PID, domain and two
+already delegated endpoint handles. The session assumes responsibility for
+those handles; do not use them outside the session. Construction grants no
+rights. The kernel and service remain the actual authority boundary.
 
-`exchange` ondersteunt de bestaande `Operation::{List, Get, Put, Rename, Delete}`
-en retourneert `Reply::{Catalog, Document, Mutation, NotFound, ServiceError}`.
-Documentnaam/inhoud zijn begrensde slices van het gevalideerde B01-document.
-PUT/RENAME/DELETE houden de bestaande expected-revisioncontrole. Een
-`ServiceError`, waaronder `Unknown`, is nooit een mutatiebevestiging.
+`exchange` supports existing `Operation::{List, Get, Put, Rename, Delete}`
+and returns `Reply::{Catalog, Document, Mutation, NotFound, ServiceError}`.
+Document names/contents are bounded slices of the validated B01 document.
+PUT/RENAME/DELETE retain the existing expected-revision check. A
+`ServiceError`, including `Unknown`, never confirms a mutation.
 
-## Begrensd wachten en uitkomsten
+## Bounded waiting and outcomes
 
-De caller kiest een pollbudget van 1 tot en met 1.000.000 per fase. De sendfase
-en receivefase hebben ieder dat maximum; tussendoor staat de app de CPU af.
-Alleen `EAGAIN` vóór enqueue mag de send herhalen. Zodra enqueue is bevestigd,
-wordt uitsluitend ontvangen; geen timeout, foutantwoord of cleanup leidt tot
-opnieuw verzenden van de aanvraag.
+The caller selects a poll budget from 1 through 1,000,000 per phase. The send
+and receive phases each have that maximum; the app yields the CPU between
+attempts. Only `EAGAIN` before enqueue permits retrying send. Once enqueue is
+confirmed, only receive is performed; no timeout, error reply or cleanup
+causes the request to be resent.
 
-| Delivery bij een fout | Betekenis |
+| Delivery on error | Meaning |
 |---|---|
-| `NotEnqueued` | De adapter heeft geen aanvraag gepubliceerd; bijvoorbeeld een volle queue of reguliere negatieve syscallretour |
-| `Enqueued` | De kernel heeft enqueue bevestigd; verwerking kan al hebben plaatsgevonden |
-| `Unknown` | De syscallretour is ongeldig; de adapter kan enqueue niet uitsluiten |
+| `NotEnqueued` | The adapter has published no request; for example, a full queue or ordinary negative syscall return |
+| `Enqueued` | The kernel has confirmed enqueue; processing may already have occurred |
+| `Unknown` | The syscall return is invalid; the adapter cannot rule out enqueue |
 
-De pure B01-client behandelt een reeds voorbereide mutatie conservatief als
-mogelijk onzeker. De adapter bewaart daarnaast bovenstaande preciezere
-transportuitkomst. Geen van deze fouten bewijst een schijfrollback, annulering
-of afwezigheid van latere dienst-I/O.
+The pure B01 client conservatively treats an already prepared mutation as
+potentially uncertain. The adapter additionally retains the more precise
+transport outcome above. None of these errors demonstrates disk rollback,
+cancellation or the absence of subsequent service I/O.
 
-Bij timeout, transportfout, verkeerde identiteit/correlatie, ongewenste
-capabilities of een terminaal dienstantwoord sluit de sessie. Zij probeert
-beide eigen endpoints te sluiten. Ontvangen capabilities worden pas gesloten
-nadat B01 de **oorspronkelijke** envelope heeft gezien; hun aanwezigheid wordt
-niet verborgen door vooraf `cap_count` te wissen. Alle cleanupoperaties worden
-geprobeerd, ook als een eerdere close faalt; de eerste cleanupfout blijft in
-het resultaat zichtbaar. Een gesloten sessie maakt geen nieuwe transportcall.
+On timeout, transport failure, incorrect identity/correlation, unwanted
+capabilities or a terminal service reply, the session closes. It attempts to
+close both owned endpoints. Received capabilities are closed only after B01
+has seen the **original** envelope; their presence is not hidden by clearing
+`cap_count` first. Every cleanup operation is attempted even if an earlier
+close fails; the first cleanup error remains visible in the result. A closed
+session makes no further transport calls.
 
-`close()` beëindigt een gezonde sessie expliciet. Er is geen verborgen Drop-
-syscall of automatische herstart. Na onzekerheid vraagt een nieuwe sessie
-onafhankelijk vastgestelde recovery en nieuwe grants; alleen de constructor
-opnieuw aanroepen met oude handles is geen herstelstrategie.
+`close()` explicitly ends a healthy session. There is no hidden Drop syscall
+or automatic restart. After uncertainty, a new session requires independently
+established recovery and new grants; simply invoking the constructor again
+with old handles is not a recovery strategy.
 
-## Controleren en voorbeeld
+## Checks and example
 
 ```sh
 cargo test --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-catalog-client -p nieuw-os-sdk-runtime
@@ -58,16 +58,16 @@ cargo clippy --offline --locked --manifest-path sdk/Cargo.toml -p nieuw-os-catal
 python3 -B sdk/examples/catalog-read/build.py
 ```
 
-De [catalogusleesapp](../examples/catalog-read/README.md) gebruikt deze typed
-client voor LIST→GET. De hosttests gebruiken het werkelijke pure capabilitymodel
-voor queues, PID's, delegatie, intrekking en capcleanup, en de bestaande
-cataloguscore voor CAS en documentresultaten. De commit in dat hostmodel is
-uitsluitend een geheugenwijziging: dit is geen native WRITE/FLUSH- of
-duurzaamheidsbewijs. De native G02-runtimeproef en toekomstige gewone appstart
-houden hun afzonderlijke acceptatiegrenzen.
+The [catalogue reader app](../examples/catalog-read/README.md) uses this typed
+client for LIST→GET. Host tests use the actual pure capability model for
+queues, PIDs, delegation, revocation and capability cleanup, and the existing
+catalogue core for CAS and document results. A commit in that host model is
+only an in-memory change: it is not native WRITE/FLUSH or durability evidence.
+The native G02 runtime experiment and future ordinary app startup retain
+their separate acceptance boundaries.
 
-Broncontracten: [M6c](../../docs/implementation/M6C-NAMED-CATALOG.md),
-[M6d](../../docs/implementation/M6D-IO-UNCERTAINTY.md) en
+Source contracts: [M6c](../../docs/implementation/M6C-NAMED-CATALOG.md),
+[M6d](../../docs/implementation/M6D-IO-UNCERTAINTY.md) and
 [ABI/capabilities](../../docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md).
-Brongebonden controles staan onder
+Source-bound checks are recorded under
 [`parallel-g03`](../../docs/verification/parallel-g03/).

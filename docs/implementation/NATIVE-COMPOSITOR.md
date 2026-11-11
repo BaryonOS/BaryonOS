@@ -1,129 +1,144 @@
-# TASK-NATIVE-COMPOSITOR — één toegewezen native surface
+# TASK-NATIVE-COMPOSITOR — one assigned native surface
 
-Deze ring3-server bezit uitsluitend de door root verleende DisplaySource,
-SurfaceRECV/AppReplySEND, INP1FocusSEND/FocusReplyRECV en
-SupervisorControlRECV/RegistrySEND. Geen persoonlijk volume, sleuteldienst,
-netwerk, rawInput of framebufferpointer. De eigen kernel houdt device-/copy-
-en capabilitymechanismen; SUR1-parse, focuscorrelatie en tekenbeleid blijven
-in deze afzonderlijke userspacedienst.
+This ring-3 server owns only the DisplaySource, SurfaceRECV/AppReplySEND,
+INP1FocusSEND/FocusReplyRECV and SupervisorControlRECV/RegistrySEND granted
+by root. No personal volume, key service, network, rawInput or framebuffer
+pointer. The project's kernel retains device/copy and capability mechanisms;
+SUR1 parsing, focus correlation and drawing policy remain in this separate
+userspace service.
 
-## Contract en rechten
+## Contract and permissions
 
-Rootbootstrap is een private1024B-startpagina op DATA. Alle velden zijn u64:
-32 `NOSCOMP1` little-endian,40 BootGeneration>0,48 DisplaySource,56 SurfaceRECV,
-64 AppReplySEND,72 AppPID,80 SurfaceEpoch,88 INP1FocusSEND,96 FocusReplyRECV,
-104 PolicyPID,112 PolicyEpoch,120 SupervisorControlRECV,128 RegistrySEND,
-136 InitPID,144 ClientID. Ongebruikte woorden zijn aanvankelijk0. Dit is een
-begrensd bootmanifest, geen nieuwe algemene product-ABI. Handles/PIDs uit
-payloads verlenen nooit nieuwe autoriteit. InitPID1 is de bestaande lifecycle-
-supervisor; SourcePID6, CompositorPID5 en SupervisorPID1 blijven verschillend.
-PolicyPID7 staat buiten die actorconfiguratie.
+Root bootstrap is a private 1024-B startup page at DATA. All fields are u64:
+32 `NOSCOMP1` little-endian, 40 BootGeneration>0, 48 DisplaySource,
+56 SurfaceRECV, 64 AppReplySEND, 72 AppPID, 80 SurfaceEpoch,
+88 INP1FocusSEND, 96 FocusReplyRECV, 104 PolicyPID, 112 PolicyEpoch,
+120 SupervisorControlRECV, 128 RegistrySEND, 136 InitPID, 144 ClientID.
+Unused words are initially 0. This is a bounded boot manifest, not a new
+general product ABI. Handles/PIDs in payloads never grant new authority.
+InitPID1 is the existing lifecycle supervisor; SourcePID6, CompositorPID5
+and SupervisorPID1 remain distinct. PolicyPID7 is outside that actor
+configuration.
 
-De compositor controleert de werkelijk ontvangen kernelafzender, tag en nul
-caps vóór SUR1 of control wordt verwerkt. Onverwachte ontvangen caps worden
-op alle paden eenmaal gesloten. Replybestemmingen zijn vast gebootstrapt.
-Een verkeerde app of een request kan geen eigen replycap kiezen.
-De twee sluitbare surfacehandles mogen elkaar noch de display-, focus- of
-controlroutes aliasen; bootstrap weigert zo'n overlap.
+The compositor checks the actual received kernel sender, tag and zero
+capabilities before processing SUR1 or control. Unexpected received
+capabilities are closed once on every path. Reply destinations are fixed
+at bootstrap. A wrong app or a request cannot select its own reply capability.
+The two closeable surface handles must alias neither each other nor the
+display, focus or control routes; bootstrap rejects such overlap.
 
-NativeDisplayEpoch komt uitsluitend uit de echte DisplayClient geometrycall
-en blijft intern. SUR1 INFO toont publieke GOP-breedte/hoogte, SurfaceEpoch en
-één toegewezen globale rect `(16,48,W-32,H-64)`. Gecontroleerd minimum is
-352×304, zodat de app minimaal320×240 krijgt. Alle subtracties/conversies en
-bounds worden vooraf gecontroleerd. Inputpolicy behoudt globale GOP-geometrie;
-de appadapter vertaalt alleen binnen de rect en annuleert lokale pointeracties
-buiten de surface. De compositor heeft geen rawmousehook.
+NativeDisplayEpoch comes only from the actual DisplayClient geometry call
+and remains internal. SUR1 INFO exposes public GOP width/height, SurfaceEpoch
+and one assigned global rectangle `(16,48,W-32,H-64)`. The checked minimum
+is 352×304, giving the app at least 320×240. All subtractions/conversions and
+bounds are checked beforehand. Input policy retains global GOP geometry;
+the app adapter translates only within the rectangle and cancels local
+pointer actions outside the surface. The compositor has no raw mouse hook.
 
-## Echte beeldketen
+## Actual display chain
 
-SUR1 houdt maximaal één1024B-tile. Alleen de opake CommitReady uit accept kan
-via commit_with met een verplichte callback worden voltooid. Productie gebruikt
-uitsluitend de echte DisplayClient.blit; geen hostbackend die positief bewijs
-van device-I/O levert. Een callbackfout is ook bij Ok(Reply) een negatieve
-Blit-status en wordt niet als succesvolle pixels/frame geteld.
+SUR1 retains at most one 1024-B tile. Only the opaque CommitReady from accept
+can be completed through commit_with with a mandatory callback. Production
+uses only the actual DisplayClient.blit; no host backend supplies positive
+evidence of device I/O. A callback error is a negative Blit status even with
+Ok(Reply) and is not counted as successful pixels/a frame.
 
-Er is maximaal één pending surfacereply. IPC-EAGAIN bewaart exact dat antwoord
-en stopt nieuwe SurfaceRECV, maar niet control/focusverwerking. Iedere ronde
-expireert staging vóór accept; een timeoutreply krijgt dezelfde bewaarplicht.
-Als de replydeadline verstrijkt of de replyroute gesloten is, wordt alleen
-de betreffende surface ingetrokken. Control/focus blijven beschikbaar; een
-displayfout blijft wel terminaal.
-Commit start alleen na een verse echte monotone tickcheck; geen token wordt
-over wachtrondes of willekeurige callbacks bewaard. Eerdere bevestigde tiles
-zijn zichtbare writes, geen atomische pageflip/vsync of rollbackgarantie.
+There is at most one pending surface reply. IPC EAGAIN retains exactly that
+reply and stops new SurfaceRECV, but not control/focus processing. Each round
+expires staging before accept; a timeout reply has the same retention duty.
+If the reply deadline expires or the reply route is closed, only that surface
+is revoked. Control/focus remain available; a display error is terminal.
+Commit starts only after a fresh actual monotonic tick check; no token is
+retained across wait rounds or arbitrary callbacks. Previously confirmed
+tiles are visible writes, not an atomic page flip/vsync or rollback guarantee.
 
-Vier niet-overlappende chrome-strips liggen geheel buiten de apprect. Hun
-private32×8-tegels gebruiken exact Noto Sans Mono Bitmap0.3.2 en dezelfde
-compile-time `ui/prototype/tokens.css` via de bestaande pure designmodule.
-Geen fontparser, documentcontroller, mediadecoder of documentdata zit in de
-compositorgraph. Fontpointertabellen en tekst/bitmapdata krijgen R+NX; de
-linker gebruikt vijf afzonderlijke LOAD-segmenten. De entry is directe
-externC_start met de bestaande C-stackafspraak.
+Four non-overlapping chrome strips lie entirely outside the app rectangle.
+Their private 32×8 tiles use exactly Noto Sans Mono Bitmap 0.3.2 and the same
+compile-time `ui/prototype/tokens.css` through the existing pure design module.
+The compositor graph contains no font parser, document controller, media
+decoder or document data. Font pointer tables and text/bitmap data receive
+R+NX; the linker uses five separate LOAD segments. The entry is direct
+externC_start with the existing C stack convention.
 
-Native geometry, alle pure runtimeconfiguratie en het volledig tekenen van
-chrome plus wissen van de toegewezen apprect moeten met echte DisplayClient-
-blits slagen vóór READY. Tijdens die bootstrap wordt na maximaal32tiles
-CPU-tijd afgestaan. Dit verwijdert zichtbare vorige pixels in dat gebied;
-het is geen algemene VRAM-wisgarantie. READY-tag `IPDREAD1`,32B: `IPD1`@0,versionu16=1@4,roleu16=3@6,
-SurfaceEpochu64@8,BootGeneration@16 en echte NativeDisplayEpoch@24. Init koppelt
-kernel-PID, rol, generatie en epoch. Een queued READY is geen InitACK.
+Native geometry, all pure runtime configuration and complete drawing of chrome
+plus clearing of the assigned app rectangle must succeed through actual
+DisplayClient blits before READY. During bootstrap, CPU time is yielded after
+at most 32 tiles. This removes visible previous pixels in that area; it is
+not a general VRAM erasure guarantee. READY tag `IPDREAD1`, 32 B:
+`IPD1`@0, version u16=1@4, role u16=3@6, SurfaceEpoch u64@8,
+BootGeneration@16 and actual NativeDisplayEpoch@24. Init binds kernel PID,
+role, generation and epoch. A queued READY is not InitACK.
 
-## CMP1-control
+## CMP1 control
 
-Init gebruikt tag `u64::from_le_bytes(*b"CMPCTRL1")`, precies48 bytes:
-`CMP1`@0,versionu16=1@4,opcodeu16@6,requestIDu64@8,SurfaceEpoch@16,
-BootGeneration@24,statusu64@32,stateu64@40. Requeststatus/state zijn0.
-Op1 FocusStart,2 FocusStop,3 Retire. Request-ID is niet0 en strikt monotoon.
-Geen client-ID, rect, PID of replyhandle uit de controlpayload wordt gebruikt.
+Init uses tag `u64::from_le_bytes(*b"CMPCTRL1")`, exactly 48 bytes:
+`CMP1`@0, version u16=1@4, opcode u16@6, requestID u64@8,
+SurfaceEpoch@16, BootGeneration@24, status u64@32, state u64@40.
+Request status/state are 0. Op 1 FocusStart, 2 FocusStop, 3 Retire.
+Request ID is non-zero and strictly monotonic. No client ID, rectangle, PID
+or reply handle from the control payload is used.
 
-Controlreplies gaan via de vaste RegistrySEND naar init, met opcode|0x8000 en
-dezelfde request-/epoch-/generatiebinding. Gesloten statusset:0Ok,1Malformed,
-2Access,3Binding,4Replay,5Busy,6Input,7Uncertain,8Retired,9Exhausted,10Display.
-Alleen bij status0 betekent state0Inactive,1Focused of2Retired; negatieve
-replies hebben state0 zonder een inactiefverklaring te doen.
+Control replies travel through the fixed RegistrySEND to init, with
+opcode|0x8000 and the same request/epoch/generation binding. Closed status set:
+0 Ok, 1 Malformed, 2 Access, 3 Binding, 4 Replay, 5 Busy, 6 Input,
+7 Uncertain, 8 Retired, 9 Exhausted, 10 Display. Only at status 0 does state
+mean 0 Inactive, 1 Focused or 2 Retired; negative replies have state 0 without
+declaring inactivity.
 
-Init verstuurt maximaal één onbeantwoord controlverzoek. De compositor houdt
-afzonderlijk één pending controlreply naast de surfacereply. EAGAIN bewaart
-dezelfde bytes zonder het commando opnieuw toe te passen. FocusStart stuurt
-INP1 Focus met het gebootstrapte ClientID; FocusStop en Retire sturen Focus0,
-zoals de bestaande inputcore ondersteunt. PolicyEpoch verschilt van de
-surface-/native-displayepoch. Een Focused/Inactive/Retired-succes volgt pas na
-een echte canonieke INP1-bevestiging van het gebonden policy-PID.
+Init sends at most one unanswered control request. The compositor separately
+retains one pending control reply alongside the surface reply. EAGAIN retains
+the same bytes without applying the command again. FocusStart sends INP1
+Focus with the bootstrapped ClientID; FocusStop and Retire send Focus0, as
+the existing input core supports. PolicyEpoch differs from the surface/native
+display epoch. Focused/Inactive/Retired success follows only after a real
+canonical INP1 acknowledgement from the bound policy PID.
 
 <!-- coderabbit-ai-generated:v1 -->
 
 <!-- coderabbit-ai-generated-section:v1:ede901fc3478f02c5afd36e48c878a21f2183f6326e58f58567b7934d737c8dd -->
 
-Na een geslaagde focuspublicatie wacht de compositor op antwoord zonder het
-verzoek opnieuw te versturen. Een onjuist gebonden antwoord of een verlopen
-deadline beëindigt de epoch als onzeker, zonder terugdraai- of succesclaim.
-Retire verwijdert staging, wijst een wachtende surfacereply af en sluit nieuwe
-surfaces. Na de Focus0-bevestiging wist de compositor de volledige toegewezen
-apprechthoek met begrensde achtergrondblits. Pas na voltooiing mag hij Retire
-bevestigen; een blitfout is terminaal. De replydeadline van 200 ticks begint na
-voltooiing van het wissen. De periode tussen Focus0ACK en reply kan daardoor
-langer dan 200 ticks zijn; init bewaakt de volledige compositoroperatie met een
-afzonderlijke deadline van 500 ticks. De maximale wistijd is nog niet native
-gemeten. Eerder geldig gepubliceerde antwoorden kunnen niet worden teruggehaald
-uit de kernelqueue van een ander proces.
+After successful focus publication, the compositor waits for a reply without
+resending the request. An incorrectly bound reply or expired deadline ends
+the epoch as uncertain, without a rollback or success claim. Retire removes
+staging, rejects a pending surface reply and closes new surfaces. After the
+Focus0 acknowledgement, the compositor clears the complete assigned app
+rectangle with bounded background blits. Only after completion may it
+acknowledge Retire; a blit error is terminal. The 200-tick reply deadline
+starts after clearing completes. The period between Focus0ACK and reply can
+therefore exceed 200 ticks; init monitors the entire compositor operation
+with a separate 500-tick deadline. Maximum clearing time has not yet been
+measured natively. Previously valid published replies cannot be retrieved
+from another process's kernel queue.
 
 <!-- /coderabbit-ai-generated:v1 -->
 
-## Uitvoering en bewijsgrens
+## Execution and evidence boundary
 
-Vaste rondebudgetten: maximaal één controlreceive, één focusreply, één surface-
-message en één chrometile; uitsluitend tijdens Retire maximaal32wistiles. Appflood of een volle appreplyqueue stopt de
-beschermde control-/focusroutes niet. Persoonlijke pixel-/keypayloads worden
-niet gelogd. Root bezit init-/kernelhooks, manifestgrants, de uiteindelijke
-beeld-/QMP-capture en testimage. Deze componentpoort verlangt eerst pure
-hostfoutproeven en een echte ELF-targetbuild; zij levert nog geen positieve
-fakehardware- of native desktopclaim. Werkelijke init/processdeath, native
-compositor-Materiaalbediening, herstel, multiwindow en toegankelijkheid blijven
-afzonderlijke open releasecriteria.
+Fixed round budgets: at most one control receive, one focus reply, one surface
+message and one chrome tile; only during Retire, at most 32 clearing tiles.
+App flooding or a full app reply queue does not stop protected control/focus
+routes. Personal pixel/key payloads are not logged. Root owns init/kernel
+hooks, manifest grants, final image/QMP capture and the test image. This
+component gate first requires pure host error trials and an actual ELF target
+build; it does not yet provide a positive fake-hardware or native desktop
+claim. Actual init/process death, native compositor–Materiaal operation,
+recovery, multiple windows and accessibility remain separate open release
+criteria.
 
+## Build and observation
 
-## Bouw en observatie
+`LOCALAPPDATA=/workspace/nieuw-os/.tools PATH=/workspace/.nieuw-os-env/bin:$PATH python3 sdk/examples/compositor/build.py`
+builds the dedicated standalone Cargo workspace offline/locked with Rust 1.90.0,
+scalar x86_64-unknown-none and the checked five-segment linker script. Root
+must have integrated the actual ABI1.8 wrappers; component validation uses
+only the approved temporary SDK patch and then restores it. `NOS_COMPOSITOR_ELF`
+points to the output; this ELF build is not an executed OS test.
 
-`LOCALAPPDATA=/workspace/nieuw-os/.tools PATH=/workspace/.nieuw-os-env/bin:$PATH python3 sdk/examples/compositor/build.py` bouwt de eigen standalone Cargo-workspace offline/locked met Rust1.90.0, scalar x86_64-unknown-none en het gecontroleerde vijfsegmentenlinkerscript. Root moet de echte ABI1.8-wrappers hebben geïntegreerd; bij componentvalidatie wordt uitsluitend de goedgekeurde tijdelijke SDK-patch gebruikt en daarna teruggezet. `NOS_COMPOSITOR_ELF` verwijst naar de uitvoer; deze ELF-build is geen uitgevoerde OS-test.
-
-Private startpagina-observatiewoorden zijn geen autoriteit:400 werkelijke chromeblits inclusief bootstrap,408 ontvangen surfaces,416 bevestigde echte appblits,424 pixels daarvan,432 afwijzingen,440 surfacereply-EAGAIN,448 gepubliceerde focusrequests,456 canonieke focusACKs,464 voltooid frame of0,472 Ready gequeued,480 focusstate,488 fatale stapcode,496 werkelijke apprect-wistegels inclusief bootstrap. Root moet deze correleren met echte proces-/brokergebeurtenissen, bron/ELF/imagehashes en de gerenderde interface.
+Private startup-page observation words are not authority: 400 actual chrome
+blits including bootstrap, 408 received surfaces, 416 acknowledged actual
+app blits, 424 pixels from those blits, 432 rejections, 440 surface-reply
+EAGAIN, 448 published focus requests, 456 canonical focus ACKs, 464 completed
+frame or 0, 472 Ready queued, 480 focus state, 488 fatal step code, 496 actual
+app-rectangle clearing tiles including bootstrap. Root must correlate these
+with real process/broker events, source/ELF/image hashes and the rendered
+interface.

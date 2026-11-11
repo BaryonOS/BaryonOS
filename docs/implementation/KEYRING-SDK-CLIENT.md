@@ -1,74 +1,72 @@
-# KEY1 SDK-client
+# KEY1 SDK client
 
-De zelfstandige crate `sdk/keyring-client` levert een `no_std`, allocatorvrije
-client voor de bestaande geïsoleerde sleuteldienst. Dit is het herbruikbare
-appkanaal voor sleutelcreatie, intrekking en het versleutelen/ontsleutelen van
-kleine records. Sleutelmateriaal verlaat de sleuteldienst niet via deze API.
-De systeemapp gebruikt deze nieuwe client nog niet; native uitvoering van de
-client en de volledige versleutelde opslagketen blijven open acceptatiepoorten.
+The standalone crate `sdk/keyring-client` provides a `no_std`, allocator-free
+client for the existing isolated key service. This is the reusable app channel
+for key creation, revocation and encryption/decryption of small records.
+Key material does not leave the key service through this API. The system app
+does not yet use this new client; native client execution and the complete
+encrypted storage chain remain open acceptance gates.
 
-De implementatie bouwt voort op
+Implementation builds on
 [B01](B01-ENTROPY-AND-KEYS.md), [B02](B02-SECURE-RECORDS.md),
-[het opslagcontract](ENCRYPTED-OBJECT-STORAGE.md), `services/keyring/src/wire.rs`
-en de bestaande SDK-runtime. Er zijn geen kernel-, grant-, dienst- of
-workspacewijzigingen. De eigen `[workspace]` en lockfile laten de integrator de
-gedeelde SDK later bewust aansluiten.
+[the storage contract](ENCRYPTED-OBJECT-STORAGE.md), `services/keyring/src/wire.rs`
+and the existing SDK runtime. There are no kernel, grant, service or workspace
+changes. The private `[workspace]` and lockfile let the integrator deliberately
+connect the shared SDK later.
 
-## Invariant en eigenaarschap
+## Invariant and ownership
 
-Een `Session<T>` krijgt een reeds verleend, **uitsluitend aan deze sessie
-toegewezen** zend-/ontvangstpaar, de verwachte dienst-PID, `expected_domain` en
-een begrensd pollbudget. De caller mag hetzelfde paar niet delen, buiten de
-sessie gebruiken of een volgende sessie op dezelfde oude handles openen.
-`close()` en beëindiging na protocolverlies sluiten beide eigen handles; er
-zijn geen verborgen syscalls in `Drop`. De caller moet `close()` uitvoeren
-voordat hij een ongebruikte sessie laat vallen. Een mislukte constructor neemt
-de handles niet over. Closefouten worden teruggegeven; er is geen claim dat een
-geweigerde kernel-close het object heeft vrijgegeven.
+A `Session<T>` receives an already granted send/receive pair **assigned
+exclusively to that session**, the expected service PID, `expected_domain`
+and a bounded poll budget. The caller must not share the same pair, use it
+outside the session or open a subsequent session on the same old handles.
+`close()` and termination after protocol loss close both owned handles; there
+are no hidden syscalls in `Drop`. The caller must execute `close()` before
+dropping an unused session. Failed construction does not take ownership of
+the handles. Close errors are returned; there is no claim that a rejected
+kernel close released the object.
 
-`expected_domain` controleert alleen de lokale context en antwoordtellingen.
-Het is geen bewijs van rechten. De server bepaalt het echte domein via zijn
-door de kernel geautoriseerde ingress. Bij recordopcodes 8/9 staat **geen
-domeinveld op de wire**; de bestaande serverdecoder vult dat domein in. Ook
-object, revisie en `RecordKind` zijn gevraagde context, geen toestemming. Een
-native broker moet het object en de handeling autoriseren voordat hij een
-geschikt kanaal verleent. De client maakt die ontbrekende productbroker niet
-overbodig.
+`expected_domain` checks only local context and response counts. It is not
+evidence of rights. The server determines the actual domain through its
+kernel-authorised ingress. Record opcodes 8/9 have **no domain field on the
+wire**; the existing server decoder supplies that domain. Object, revision
+and `RecordKind` are also requested context, not permission. A native broker
+must authorise the object and action before granting a suitable channel.
+The client does not remove the need for that missing product broker.
 
-De client exposeert uitsluitend de bestaande opcodes 1–5 en 8–9. Er is geen
-API voor recovery-/snapshotexport of restore (6/7), geen nieuwe grant en geen
-zelfbedacht cryptografisch algoritme. Deze types vormen geen servergrens:
-kwaadwillende apps kunnen zelf wirebytes maken. De bestaande brede
-ontwikkel-endpoints moeten door de native broker/server worden begrensd voordat
-derdenapps toegang krijgen. Toegang tot verschillende recordsoorten moet daar
-eveneens worden afgedwongen.
+The client exposes only existing opcodes 1–5 and 8–9. There is no API for
+recovery/snapshot export or restore (6/7), no new grant and no custom
+cryptographic algorithm. These types do not form a server boundary: malicious
+apps can construct wire bytes themselves. The native broker/server must
+restrict existing broad development endpoints before third-party apps receive
+access. Access to different record kinds must also be enforced there.
 
 ## Interface
 
-`begin(Operation)` kopieert en valideert het verzoek; de geretourneerde `u64`
-is uitsluitend een correlatie-ID. `poll()` doet hoogstens één IPC-poging en
-één yield, en levert `Poll::Pending` of een volledig gevalideerde `Reply`.
-`exchange(Operation)` gebruikt hetzelfde begrensde pad synchroon.
+`begin(Operation)` copies and validates the request; the returned `u64` is
+only a correlation ID. `poll()` makes at most one IPC attempt and one yield,
+returning `Poll::Pending` or a fully validated `Reply`.
+`exchange(Operation)` uses the same bounded path synchronously.
 
-| Bewerking | Getypeerd antwoord | Grenzen |
+| Operation | Typed response | Limits |
 | --- | --- | --- |
-| `Status` | `ServiceStatus` | Canonieke state/reason, beide keytellers ≤16, entropy en tellers dalen niet binnen deze sessie. |
-| `Generate` | `Generated(KeyIndex)` | Index 0–15; geen hergebruik van een al waargenomen index binnen deze dienstlevensduur. |
-| `Revoke(key)` | `Revoked` | Lege succesvolle body; verloren antwoord is geen bevestigde intrekking. |
-| `Seal` / `Unseal` | `Sealed` / `Plaintext` | Bestaande legacy context; plaintext 0–128 bytes, sealed exact plaintextlengte +40. |
-| `SealRecord` / `UnsealRecord` | `Sealed` / `Plaintext` | B02-context: volume, domein, object, revisie, chunk, lengte, soort en schema; exacte lengtes. |
+| `Status` | `ServiceStatus` | Canonical state/reason, both key counters ≤16, entropy and counters do not decrease within this session. |
+| `Generate` | `Generated(KeyIndex)` | Index 0–15; no reuse of an index already observed within this service lifetime. |
+| `Revoke(key)` | `Revoked` | Empty successful body; a lost response is not a confirmed revocation. |
+| `Seal` / `Unseal` | `Sealed` / `Plaintext` | Existing legacy context; plaintext 0–128 bytes, sealed exactly plaintext length +40. |
+| `SealRecord` / `UnsealRecord` | `Sealed` / `Plaintext` | B02 context: volume, domain, object, revision, chunk, length, kind and schema; exact lengths. |
 
-Voor namen gebruikt de caller `RecordKind::Name`; voor inhoud
-`RecordKind::Content`. De sleuteldienst authenticeert deze verschillende
-contexten. Een naamrecord kan daardoor niet als inhoud worden ontsleuteld.
-De 128-byte grens is de bestaande KEY1-recordgrens, geen productlimiet voor
-documenten. De geïntegreerde opslagdienst moet grotere objecten in records
-verdelen en de verwachte context uit geauthenticeerde metadata verkrijgen.
-Dit levert op zichzelf geen bescherming tegen replay van een volledig oud
-volume; een onafhankelijke actuele revisieanker en duurzaam sleutelherstel
-blijven onderdeel van het opslagcontract.
+For names, the caller uses `RecordKind::Name`; for content,
+`RecordKind::Content`. The key service authenticates these distinct contexts.
+A name record therefore cannot be decrypted as content. The 128-byte limit is
+the existing KEY1 record boundary, not a product limit for documents. The
+integrated storage service must divide larger objects into records and obtain
+the expected context from authenticated metadata. This does not by itself
+protect against replay of an entirely old volume; an independent current
+revision anchor and durable key recovery remain part of the storage contract.
 
-Native gebruik na een door de broker verleende exclusieve verbinding:
+Native use after the broker grants an exclusive connection (the original
+comment means: use the key exclusively through this authorised service connection):
 
 ```rust,ignore
 use nieuw_os_keyring_client::{NativeTransport, Operation, Reply, Session};
@@ -85,65 +83,64 @@ let key = match keys.exchange(Operation::Generate)? {
 keys.close()?;
 ```
 
-`KeyIndex` bevat een publieke domeinlokale index, geen ruwe sleutel of
-zelfstandig toegangsrecht. Een nieuwe dienstlevensduur vereist een nieuwe
-brokerverbinding en sessie; er is geen automatische herverbinding.
+`KeyIndex` contains a public domain-local index, not a raw key or independent
+access right. A new service lifetime requires a new broker connection and
+session; there is no automatic reconnection.
 
-## Fouten, verlies en annulering
+## Errors, loss and cancellation
 
-De parser eist dienst-PID, KEY1-tag, precies 256 bytes en nul meegestuurde
-capabilities. Daarna controleert hij opcode, index, correlatie-ID,
-lengte, nulpadding, bekende status en de exacte succesvolle antwoordvorm.
-Een canonicale dienstweigering wordt `Error::Service(Status)` en kan geen
-plaintext of ACK opleveren. Onbekende status, vervalste afzender, extra grant,
-verkeerde ID of misvormde body beëindigt de verbinding. Onverwachte ontvangen
-grants worden afzonderlijk gesloten; closefouten blijven zichtbaar.
+The parser requires the service PID, KEY1 tag, exactly 256 bytes and zero
+attached capabilities. It then checks opcode, index, correlation ID, length,
+zero padding, known status and the exact successful response shape. A
+canonical service rejection becomes `Error::Service(Status)` and cannot yield
+plaintext or ACK. Unknown status, forged sender, extra grant, incorrect ID or
+malformed body terminates the connection. Unexpected received grants are
+closed separately; close errors remain visible.
 
-Er is één lopende bewerking. Een tweede `begin` geeft `Busy`. IDs lopen
-monotoon vanaf 1; bij uitputting sluit de sessie vóór verzending, zonder wrap.
-Het pollbudget blijft over alle polls behouden en begint afzonderlijk voor de
-zend- en ontvangstfase. `EAGAIN` bij send betekent volgens de SDK-runtime dat
-niets in de kernelqueue is geplaatst. Andere onduidelijke senduitkomsten
-krijgen `Delivery::Unknown`.
+There is one pending operation. A second `begin` returns `Busy`. IDs increase
+monotonically from 1; on exhaustion, the session closes before sending,
+without wraparound. The poll budget persists across all polls and starts
+separately for the send and receive phases. According to the SDK runtime,
+`EAGAIN` on send means nothing entered the kernel queue. Other unclear send
+outcomes receive `Delivery::Unknown`.
 
-- Vóór enqueue: annuleren wist de eigen aanvraagbuffer en geeft
-  `NotPerformed`; het exclusieve kanaal blijft bruikbaar.
-- Na enqueue of bij onduidelijke publicatie: annuleren, timeout of
-  protocolverlies sluit de verbinding en geeft `MayHaveCompleted`. Er bestaat
-  geen KEY1-abortopcode; een al gepubliceerde Generate/Revoke kan nog worden
-  uitgevoerd. De client verzendt niet opnieuw en meldt geen succes zonder
-  geldig antwoord.
-- Een verloren antwoord op Generate of Revoke vereist herstel door de hogere
-  laag. Een timeout opnieuw als dezelfde handeling starten kan een tweede
-  sleutel maken of een andere toestand treffen en gebeurt hier nooit stil.
+- Before enqueue: cancellation erases the owned request buffer and returns
+  `NotPerformed`; the exclusive channel remains usable.
+- After enqueue or uncertain publication: cancellation, timeout or protocol
+  loss closes the connection and returns `MayHaveCompleted`. There is no
+  KEY1 abort opcode; an already published Generate/Revoke may still execute.
+  The client does not resend and reports no success without a valid response.
+- A lost Generate or Revoke response requires recovery by the higher layer.
+  Restarting the same action after a timeout may create a second key or
+  encounter different state, and never happens silently here.
 
-`Plaintext` heeft geen `Clone`/`Copy`, toont in `Debug` alleen de lengte en wist
-zijn eigen buffer bij drop. Eigen verzoekbuffers worden met `zeroize` gewist
-bij vernietiging en direct na een geslaagde send. Dit bewijst **niet** dat alle
-copies zijn gewist: callerbuffers, tijdelijke moves, SDK `Outgoing`/`Received`
-en kernel-/dienstbuffers hebben hun eigen levensduur. Sleutelinhoud wordt door
-deze client nooit ontvangen.
+`Plaintext` has no `Clone`/`Copy`, shows only length in `Debug` and erases its
+own buffer on drop. Owned request buffers are erased with `zeroize` on
+destruction and immediately after a successful send. This does **not** prove
+that all copies have been erased: caller buffers, temporary moves, SDK
+`Outgoing`/`Received` and kernel/service buffers have their own lifetimes.
+This client never receives key contents.
 
-## Afhankelijkheden en uitgevoerd bewijs
+## Dependencies and evidence produced
 
-De lokale dependencies zijn de bestaande SDK-runtime en `keyring-core`; de
-laatste levert uitsluitend hergebruikte protocol-/contexttypes aan de
-productclient. De hosttests gebruiken daarnaast de echte `capability-core` en
-sleuteldienstcore met herkenbare deterministische testentropy. Dat is geen
-bewijs van native entropy of native clientuitvoering.
+Local dependencies are the existing SDK runtime and `keyring-core`; the
+latter supplies only reused protocol/context types to the product client.
+Host tests additionally use actual `capability-core` and the key-service core
+with recognisable deterministic test entropy. That does not demonstrate
+native entropy or native client execution.
 
-De directe externe dependency is de reeds aanwezige RustCrypto-crate
-`zeroize = 1.9.1`, default features uit, Apache-2.0/MIT. De gepinde registry
+The direct external dependency is the existing RustCrypto crate
+`zeroize = 1.9.1`, default features disabled, Apache-2.0/MIT. The pinned registry
 checksum is `e13084392c5e4bc371903e2935a5eaeed24905a7511356b883835e18a78f6879`.
-De standalone lockfile voegt tegenover basiscommit
-`3879c3288f3b005d9df3ed5e1e40aa99c3791521` geen registryversie/checksum toe.
-Er is geen nieuwe crypto-implementatie of nieuwe buildscriptcode. De herkomst
-is dezelfde eerder gebruikte upstream RustCrypto/zeroize-release:
+Compared with baseline commit `3879c3288f3b005d9df3ed5e1e40aa99c3791521`, the
+standalone lockfile adds no registry version/checksum. There is no new crypto
+implementation or new build-script code. Origin is the same previously used
+upstream RustCrypto/zeroize release:
 <https://crates.io/crates/zeroize/1.9.1>, repository
-<https://github.com/RustCrypto/utils>. De lokale package verklaart Rust ≥1.85,
-geen buildscript en Apache-2.0 OR MIT; deze build gebruikt Rust 1.90.0.
+<https://github.com/RustCrypto/utils>. The local package declares Rust ≥1.85,
+no build script and Apache-2.0 OR MIT; this build uses Rust 1.90.0.
 
-Op 30 oktober 2026 uitgevoerd met Rust 1.90.0, offline en een eigen targetmap:
+Executed on 30 October 2026 with Rust 1.90.0, offline and a private target directory:
 
 ```sh
 LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-keyring-client-target \
@@ -153,22 +150,22 @@ LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-keyring-c
   python3 -B tools/dev.py cargo +1.90.0 clippy \
   --manifest-path sdk/keyring-client/Cargo.toml --locked --offline --all-targets -- -D warnings
 LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-keyring-client-target \
-  RUSTFLAGS='--cfg chacha20_force_soft --cfg poly1305_force_soft --cfg sha2_backend="soft"' \
+  RUSTFLAGS='--cfg chacha20_backend="soft" --cfg poly1305_backend="soft" --cfg sha2_backend="soft"' \
   python3 -B tools/dev.py cargo +1.90.0 build \
   --manifest-path sdk/keyring-client/Cargo.toml --locked --offline \
   --release --target x86_64-unknown-none --lib
 ```
 
-Resultaat: 3 unittests en 12 hostintegratietests geslaagd, geen overgeslagen
-tests; Clippy en freestanding librarybuild exit 0. Tests omvatten werkelijke
-keycreatie/intrekking, 0/1/128 bytes, 7 foutieve recordcontext/authenticatiegevallen,
-malformed replies, afgedwongen capability-intrekking, domein-injectie via echte
-ingress, tellergrenzen/-regressie, verloren Generate/Revoke-replies en beide
-annuleringsfasen. De beperkte checks staan met bron-/artifacthashes in
-`sdk/keyring-client/verification/`.
+Result: 3 unit tests and 12 host integration tests passed, no skipped tests;
+Clippy and freestanding library build exited 0. Tests include actual key
+creation/revocation, 0/1/128 bytes, 7 incorrect record-context/authentication
+cases, malformed replies, enforced capability revocation, domain injection
+through actual ingress, counter limits/regression, lost Generate/Revoke
+responses and both cancellation phases. The bounded checks are recorded with
+source/artefact hashes in `sdk/keyring-client/verification/`.
 
-Niet uitgevoerd: native appintegratie, een nieuwe QEMU-run van deze client,
-langdurige opslag/herstart, fysieke hardware, volledige objectbroker en
-persistente sleutel-/snapshot-/rollbackintegratie. Die blijven zichtbaar open
-en worden door deze SDK-stap niet afgetekend. De hoofdagent beheert de
-releaseacceptatie en voortgangsmeter.
+Not performed: native app integration, a new QEMU run of this client,
+long-term storage/restart, physical hardware, complete object broker and
+persistent key/snapshot/rollback integration. These remain explicitly open
+and are not signed off by this SDK step. The lead agent manages release
+acceptance and the progress meter.

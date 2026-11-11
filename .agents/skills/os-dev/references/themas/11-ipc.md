@@ -1,24 +1,24 @@
-# Systeemaanroepen en communicatie tussen processen
+# System calls and interprocess communication
 
-Dit deel bundelt systeemaanroepen, message passing, gedeeld geheugen en RPC. Het boek bespreekt een syscall-API, een software-interrupt als overdracht en een TSS voor de overgang naar een kernelstack. De wiki bevat andere overdrachtsmechanismen en IPC-ontwerpen; hun ABI’s blijven afzonderlijke keuzes.
+This section brings together system calls, message passing, shared memory and RPC. The book discusses a syscall API, a software interrupt as the transfer mechanism and a TSS for switching to a kernel stack. The wiki includes other transfer mechanisms and IPC designs; their ABIs remain separate choices.
 
-## Geselecteerde ingangen
+## Selected entry points
 
-- [System Calls](../corpus/wiki-04.md#w001961) [W001961] · revisie 30333 · 2026-03-17T20:54:10Z
-- [Sysenter](../corpus/wiki-08.md#w003327) [W003327] · revisie 14446 · 2013-02-07T17:46:25Z
-- [Message Passing](../corpus/wiki-02.md#w001711) [W001711] · revisie 29080 · 2024-06-07T13:37:33Z
-- [IPC Data Copying methods](../corpus/wiki-09.md#w003424) [W003424] · revisie 28094 · 2023-07-09T21:29:39Z
-- [Shared Memory](../corpus/wiki-03.md#w001765) [W001765] · revisie 28212 · 2023-07-10T18:54:12Z
-- [Remote Procedure Call](../corpus/wiki-03.md#w001763) [W001763] · revisie 13503 · 2012-06-05T09:18:12Z
-- [Signals](../corpus/wiki-03.md#w001890) [W001890] · revisie 24290 · 2020-01-10T14:38:06Z
+- [System Calls](../corpus/wiki-04.md#w001961) [W001961] · revision 30333 · 2026-03-17T20:54:10Z
+- [Sysenter](../corpus/wiki-08.md#w003327) [W003327] · revision 14446 · 2013-02-07T17:46:25Z
+- [Message Passing](../corpus/wiki-02.md#w001711) [W001711] · revision 29080 · 2024-06-07T13:37:33Z
+- [IPC Data Copying methods](../corpus/wiki-09.md#w003424) [W003424] · revision 28094 · 2023-07-09T21:29:39Z
+- [Shared Memory](../corpus/wiki-03.md#w001765) [W001765] · revision 28212 · 2023-07-10T18:54:12Z
+- [Remote Procedure Call](../corpus/wiki-03.md#w001763) [W001763] · revision 13503 · 2012-06-05T09:18:12Z
+- [Signals](../corpus/wiki-03.md#w001890) [W001890] · revision 24290 · 2020-01-10T14:38:06Z
 
-## Aansluiting op het PDF-boek
+## Related PDF book pages
 
-- Pagina 71–72: [B071](../corpus/boek.md#b071) tot [B072](../corpus/boek.md#b072).
+- Pages 71–72: [B071](../corpus/boek.md#b071) to [B072](../corpus/boek.md#b072).
 
-## Aanvullende vindplaatsen
+## Additional sources
 
-Onderstaande selectie is automatisch gemaakt op paginatitel en categorie; het is geen inhoudelijke beoordeling van ieder artikel.
+The selection below was generated automatically from page titles and categories; it is not a substantive assessment of each article.
 
 - [ARM System Calls](../corpus/wiki-07.md#w002877) [W002877]
 - [Doors (IPC)](../corpus/wiki-14.md#w004961) [W004961]
