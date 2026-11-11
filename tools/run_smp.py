@@ -6,7 +6,7 @@ import json
 import math
 import re
 import struct
-from common import BUILD, save_json, sha256, source_hash, without_acpi_diagnostics
+from common import BUILD, save_json, sha256, sha256_bytes, source_hash, without_acpi_diagnostics
 from run import run_guest, is_success
 
 MAX_CPUS = 8  # kernel/src/m2/smp.rs MAX_CPUS
@@ -643,7 +643,10 @@ def run(cases: tuple[str, ...], repeat: int = 1) -> dict:
                     expected_kernel_sha256=manifest["kernel"]["sha256"],
                     expected_loader_sha256=manifest["loader"]["sha256"],
                 )
-                item["guest"] = guest
+                # The serial transcript stays in result.json/serial.txt; the shard report keeps
+                # its hash so it fits the 1 MiB preserve-evidence per-file limit (ADR-081 5f).
+                item["guest"] = {**{k: v for k, v in guest.items() if k != "stdout"},
+                                 "stdout_sha256": sha256_bytes(guest["stdout"].encode("utf-8"))}
                 if tables:
                     item["acpi_table_sha256"] = sha256(tables[0])
                 if (guest.get("artifact_binding_passed") is not True

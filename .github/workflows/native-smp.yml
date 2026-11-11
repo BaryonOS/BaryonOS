@@ -249,7 +249,7 @@ jobs:
           git diff --exit-code
       - name: Preserve environment probe
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: ./.github/actions/preserve-evidence
         with:
           name: runner-environment-probe
           path: |
@@ -259,8 +259,11 @@ jobs:
             build/k06-smp-environment-probe/run/smp-*/serial.txt
             build/k06-smp-environment-probe/run/smp-*/stderr.txt
           if-no-files-found: warn
-          retention-days: 14
-          compression-level: 9
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          required-paths: |
+            build/k06-smp-environment-probe/manifest.json
+            build/k06-smp-environment-probe/smp-report.json
 
   smp-case-50:
     name: SMP 50/50 (${{ matrix.case }})
@@ -380,7 +383,7 @@ jobs:
           git diff --exit-code
       - name: Preserve case evidence
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: ./.github/actions/preserve-evidence
         with:
           name: smp-case-${{ matrix.case }}
           path: |
@@ -391,8 +394,11 @@ jobs:
             build/k06-smp-${{ matrix.case }}/run/smp-*/serial.txt
             build/k06-smp-${{ matrix.case }}/run/smp-*/stderr.txt
           if-no-files-found: warn
-          retention-days: 14
-          compression-level: 9
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          required-paths: |
+            build/k06-smp-${{ matrix.case }}/manifest.json
+            build/k06-smp-${{ matrix.case }}/smp-report.json
 
   smp-soak-50:
     name: SMP soak 5/50 (shard ${{ matrix.shard }})
@@ -435,7 +441,7 @@ jobs:
           git diff --exit-code
       - name: Preserve soak evidence
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: ./.github/actions/preserve-evidence
         with:
           name: smp-soak-${{ matrix.shard }}
           path: |
@@ -446,8 +452,11 @@ jobs:
             build/k06-smp-soak-${{ matrix.shard }}/run/smp-*/serial.txt
             build/k06-smp-soak-${{ matrix.shard }}/run/smp-*/stderr.txt
           if-no-files-found: warn
-          retention-days: 14
-          compression-level: 9
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          required-paths: |
+            build/k06-smp-soak-${{ matrix.shard }}/manifest.json
+            build/k06-smp-soak-${{ matrix.shard }}/smp-report.json
 
   smp-matrix-aggregate:
     name: SMP section 9 aggregate 64x50
@@ -493,15 +502,17 @@ jobs:
           git diff --exit-code
       - name: Preserve aggregate report
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: ./.github/actions/preserve-evidence
         with:
           name: smp-section9-matrix-report
           path: |
             build/k06-smp-matrix/matrix-report.json
             build/k06-smp-matrix/host-oracles.log
           if-no-files-found: error
-          retention-days: 30
-          compression-level: 9
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          required-paths: |
+            build/k06-smp-matrix/matrix-report.json
 
   smp-final-gate:
     name: SMP final repository gate
@@ -538,7 +549,7 @@ jobs:
           git diff --exit-code
       - name: Preserve final gate evidence
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: ./.github/actions/preserve-evidence
         with:
           name: smp-section9-final-gate
           path: |
@@ -551,8 +562,8 @@ jobs:
             build/k06-smp-final-gate/**/logs/*.stdout.txt
             build/k06-smp-final-gate/**/logs/*.stderr.txt
           if-no-files-found: warn
-          retention-days: 30
-          compression-level: 9
+          job-status: ${{ job.status }}
+          full-evidence: 'true'
 
   diagnostic-clock:
     name: DIAGNOSTIC ONLY — m3-one-multi 50 traced repetitions
@@ -787,7 +798,7 @@ jobs:
           git diff --exit-code
       - name: Preserve ALL diagnostic evidence, including failures
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: ./.github/actions/preserve-evidence
         with:
           name: DIAGNOSTIC-NOT-ACCEPTANCE-smp-clock-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
@@ -803,8 +814,11 @@ jobs:
             build/k06-clock-diagnostic/run/smp-*/host-before.json
             build/k06-clock-diagnostic/run/smp-*/host-after.json
           if-no-files-found: error
-          retention-days: 14
-          compression-level: 9
+          job-status: ${{ job.status }}
+          full-evidence: 'true'
+          required-paths: |
+            build/k06-clock-diagnostic/manifest.json
+            build/k06-clock-diagnostic/smp-report.json
 
   experimental-m3-m4-smp:
     name: experimental-m3-m4-smp

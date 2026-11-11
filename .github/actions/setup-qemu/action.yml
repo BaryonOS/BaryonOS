@@ -70,14 +70,18 @@ runs:
             ;;
           *) echo "::error::unsupported Ubuntu runner $VERSION_ID"; exit 2 ;;
         esac
-        cat > "$sources" <<EOF
+        write_sources() {
+          cat > "$sources" <<EOF
         Types: deb
-        URIs: https://snapshot.ubuntu.com/ubuntu/20261108T000000Z
+        URIs: $1
         Suites: $suite
         Components: main universe
         Architectures: amd64
         Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
         EOF
+        }
+        apt_source='https://snapshot.ubuntu.com/ubuntu/20261108T000000Z'
+        write_sources "$apt_source"
         apt_options=(
           -o "Dir::Etc::sourcelist=$sources"
           -o "Dir::Etc::sourceparts=-"
@@ -87,7 +91,17 @@ runs:
           # deadline; every URL, signature, package pin and hash stays fixed.
           -o Acquire::Retries=3
         )
-        sudo apt-get "${apt_options[@]}" update
+        if ! sudo apt-get "${apt_options[@]}" update; then
+          # The live archive is signed by the same Ubuntu key; the exact version pins,
+          # the dpkg check and the OVMF/SeaBIOS hashes below are unchanged, so a
+          # superseded or different package still fails closed.
+          echo '::warning::Pinned Ubuntu snapshot unavailable; using the signed Ubuntu archive with the same exact pins.'
+          apt_source='https://archive.ubuntu.com/ubuntu'
+          sudo rm -rf "$lists"
+          mkdir -p "$lists/partial"
+          write_sources "$apt_source"
+          sudo apt-get "${apt_options[@]}" update
+        fi
         sudo apt-get "${apt_options[@]}" install -y --no-install-recommends \
           --allow-downgrades --no-remove --reinstall "${packages[@]}"
 
@@ -112,7 +126,9 @@ runs:
           echo 'OS_OVMF_VARS=/usr/share/OVMF/OVMF_VARS_4M.fd'
         } >> "$GITHUB_ENV"
         {
-          echo 'Ubuntu snapshot: 20261108T000000Z'
+          echo 'Pinned Ubuntu snapshot: 20261108T000000Z'
+          echo "APT source used: $apt_source"
+          sha256sum /var/cache/apt/archives/*.deb 2>/dev/null || echo 'APT cache holds no .deb files'
           printf 'Runner image: %s / %s\n' "${ImageOS:-unknown}" "${ImageVersion:-unknown}"
           qemu-system-x86_64 --version
           for package in "${packages[@]}"; do

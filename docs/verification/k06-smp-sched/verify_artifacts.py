@@ -57,6 +57,8 @@ def main():
     repo = repository_path(args.repository)
     sys.path.insert(0, str(repo / "tools"))
     from run_smp import CASES, evaluate, GUEST_TIMEOUT_S, SOAK_TIMEOUT_S, duplicate_madt, BOOT, FORBIDDEN, required_end
+    import run_smp
+    IPC_TIMEOUT_S = getattr(run_smp, "IPC_TIMEOUT_S", GUEST_TIMEOUT_S)  # absent before the R3-5 addendum
     require(len(CASES) == 64, "oracle does not define the required 64 cases")
     oracle_hashes = {}
     for name in ("tools/run_smp.py", "tools/run.py", "tools/common.py", "tools/gate_contract.py"):
@@ -121,13 +123,13 @@ def main():
             require(case in CASES, "unknown case")
             profile, cpus, threads, outcome = CASES[case]
             artifact = report_path.relative_to(root).parts[0]
-            probe = artifact == "runner-environment-probe"
+            probe = artifact in ("runner-environment-probe", "runner-environment-probe-reports")
             require(not probe or (case == "m4-quotas-four" and not probe_checked), "invalid/duplicate environment probe")
             if probe:
                 probe_checked = True
             repeat = 1 if probe else 5 if case == SOAK else 50
             if not args.partial:
-                expected_name = r"smp-soak-[0-9]" if case == SOAK else re.escape("smp-case-" + case)
+                expected_name = (r"smp-soak-[0-9]" if case == SOAK else re.escape("smp-case-" + case)) + "(?:-reports)?"
                 require(probe or re.fullmatch(expected_name, artifact), "artifact name does not identify the expected unique case/shard")
             summary.update(case=case, artifact=artifact, environment_probe=probe,
                            requested=repeat, reported_passed=report.get("passed"))
@@ -182,7 +184,16 @@ def main():
                     require(re.fullmatch(re.escape(label) + r"-[0-9a-f]{10}", leaf), "unexpected guest directory name")
                     run_dir = report_path.parent / "run" / leaf
                     result_path = run_dir / "result.json"
-                    require(load(result_path) == guest, "raw result.json differs from embedded guest")
+                    full = load(result_path)
+                    if "stdout_sha256" in guest:
+                        # Compact shard report: result.json holds the transcript bound by hash.
+                        require(isinstance(full.get("stdout"), str)
+                                and digest(full["stdout"].encode("utf-8")) == guest["stdout_sha256"]
+                                and {k: v for k, v in full.items() if k != "stdout"}
+                                == {k: v for k, v in guest.items() if k != "stdout_sha256"},
+                                "raw result.json differs from the hash-bound guest record")
+                        guest = full
+                    require(full == guest, "raw result.json differs from embedded guest")
                     raw_used.add(result_path)
                     raw_serial, raw_stderr = read(run_dir / "serial.txt"), read(run_dir / "stderr.txt")
                     serial = raw_serial.decode("utf-8")
@@ -221,7 +232,7 @@ def main():
                                        ("-accel", f"tcg,thread={threads}"), ("-smp", str(cpus)),
                                        ("-m", "256M"), ("-nic", "none")):
                         require(option(key) == value, f"QEMU {key} differs")
-                    deadline = SOAK_TIMEOUT_S if case == SOAK else GUEST_TIMEOUT_S
+                    deadline = SOAK_TIMEOUT_S if case == SOAK else IPC_TIMEOUT_S if outcome == "m3-ipc" else GUEST_TIMEOUT_S
                     duration = guest.get("duration_s")
                     require(guest.get("timed_out") is False and guest.get("timeout_s") == deadline
                             and type(duration) in (int, float) and math.isfinite(duration)
@@ -288,7 +299,7 @@ def main():
         all_errors.append(f"matrix guest run count {matrix_run_count}, expected 3200")
     aggregate_path = args.aggregate
     if aggregate_path is None:
-        candidates = list(root.glob("smp-section9-matrix-report/matrix-report.json"))
+        candidates = list(root.glob("smp-section9-matrix-report*/**/matrix-report.json"))
         aggregate_path = candidates[0] if len(candidates) == 1 else None
     aggregate_ok = False
     if aggregate_path is not None:

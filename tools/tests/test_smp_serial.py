@@ -1,5 +1,6 @@
 import struct
 import sys
+import hashlib
 import json
 import tempfile
 from pathlib import Path
@@ -767,6 +768,11 @@ class SmpRepetitionHarness(unittest.TestCase):
             self.assertEqual(margin["clock"], "guest")
             self.assertEqual(margin["deadline_us"], 100_000)
         self.assertEqual(json.loads((self.build / "smp-report.json").read_text()), report)
+        # The transcript lives in result.json/serial.txt; the report binds it by hash only.
+        guest = report["cases"][0]["guest"]
+        self.assertNotIn("stdout", guest)
+        expected = transcript(online(1)).encode("utf-8")
+        self.assertEqual(guest["stdout_sha256"], hashlib.sha256(expected).hexdigest())
 
     def test_one_bad_iteration_is_retained_and_cannot_be_outvoted(self):
         def intermittent(label, **kwargs):
