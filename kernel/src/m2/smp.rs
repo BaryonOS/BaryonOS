@@ -2684,29 +2684,16 @@ fn clock_at(target: u64, bound: u64, last: &mut u64) -> Option<(u64, u64, u64)> 
     }
 }
 
-/// BT-1 under SMP load (spec 06 §4 "Klok"): every AP spins while the BSP
+/// BT-1 with all CPUs online (spec 06 §4 "Klok", revised by the 11 November
+/// 2026 decision in DECISIONS.md). Precision: with every AP halted, the BSP
 /// idles through CLOCK_SPAN IRQ0 ticks; on the PIT-calibrated TSC the median
-/// one-second segment must last the PIT's own period within 1%, and the clock
-/// never goes back. One scheduling delay cannot dominate the result, while
-/// sustained drift affects at least three segments. Lost IRQ0s lengthen their
-/// segments.
+/// one-second segment must last the PIT's own period within 1%. One
+/// scheduling delay cannot dominate the result, while sustained drift affects
+/// at least three segments; lost IRQ0s lengthen their segments. Load: every
+/// AP then spins while the idle BSP must still count CLOCK_SEGMENT further
+/// IRQ0s before the same 4x deadline, and every AP must show work. The clock
+/// never goes back in either phase.
 fn clock(online: usize, total: usize) -> bool {
-    // This phase runs once per boot, before any AP enters the load loop.
-    for work in &CLOCK_WORK {
-        work.0.store(0, Ordering::Relaxed);
-    }
-    CLOCK_LOAD.store(true, Ordering::Release);
-    for context in &NOS_SMP_AP_CONTEXTS[..online] {
-        let apic = context.apic_id.load(Ordering::Relaxed);
-        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32) {
-            CLOCK_LOAD.store(false, Ordering::Release);
-            serial::write(b"SMP:CLOCK:TIMEOUT:APIC=");
-            decimal(u64::from(apic));
-            serial::write(b"\n");
-            quarantine_all(online, total);
-            return false;
-        }
-    }
     let per_ms = TSC_PER_MS.load(Ordering::Acquire);
     let bound = rdtsc().saturating_add(4 * CLOCK_SPAN * per_ms);
     let mut last = CLOCK_TICKS.load(Ordering::Acquire);
@@ -2739,7 +2726,6 @@ fn clock(online: usize, total: usize) -> bool {
             })
         });
     }
-    CLOCK_LOAD.store(false, Ordering::Release);
     if edge.is_none() {
         serial::write(b"SMP:CLOCK:STOPPED\n");
         serial::fail(b"SMP_CLOCK_STOPPED")
@@ -2771,6 +2757,30 @@ fn clock(online: usize, total: usize) -> bool {
         decimal(us);
         serial::write(b"\n");
         serial::fail(b"SMP_CLOCK_DRIFT");
+    }
+    // Load phase. This runs once per boot, before any AP enters the load loop.
+    for work in &CLOCK_WORK {
+        work.0.store(0, Ordering::Relaxed);
+    }
+    CLOCK_LOAD.store(true, Ordering::Release);
+    for context in &NOS_SMP_AP_CONTEXTS[..online] {
+        let apic = context.apic_id.load(Ordering::Relaxed);
+        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32) {
+            CLOCK_LOAD.store(false, Ordering::Release);
+            serial::write(b"SMP:CLOCK:TIMEOUT:APIC=");
+            decimal(u64::from(apic));
+            serial::write(b"\n");
+            quarantine_all(online, total);
+            return false;
+        }
+    }
+    let bound = rdtsc().saturating_add(4 * CLOCK_SEGMENT * per_ms);
+    let target = CLOCK_TICKS.load(Ordering::Acquire) + CLOCK_SEGMENT;
+    let loaded = clock_at(target, bound, &mut last);
+    CLOCK_LOAD.store(false, Ordering::Release);
+    if loaded.is_none() {
+        serial::write(b"SMP:CLOCK:STOPPED\n");
+        serial::fail(b"SMP_CLOCK_STOPPED")
     }
     // Prove work on every online AP, rather than allowing one busy AP to
     // satisfy a single shared counter for all of its peers.

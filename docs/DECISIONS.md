@@ -2537,3 +2537,18 @@ The PR job `native-smp` (Ubuntu 24.04, QEMU 8.2.2 TCG) failed with `SMP:LOCK:STU
 Decision: every IF=1 spin window (`IrqLock::take`, `icr_race_window`, `icr_work`) is `sti; nop; pause; cli`. The STI shadow covers only the NOP, so a pending interrupt is taken before PAUSE or CLI on hardware and on both QEMU versions. Saved IF, lock order, the DG-1 deadline and every oracle are unchanged; the change adds one instruction per spin iteration.
 
 Hosted clock drift is a separate matter. Run 43022743756 failed the probe with a median of 1 015 575 µs per 1000 IRQ0 (1.56%; limit 1%) on a 4-vCPU hosted runner. The check measures lost IRQ0 edges, which TCG produces when guest vCPU threads and QEMU's timer starve on an oversubscribed host. The 1% limit stays, ticks are never synthesized (ADR-053), and AP spinning stays part of the test. The workflow now stops runner background services as a best effort; if drift persists on standard hosted runners, the remaining options are a larger runner (paid, Simon's decision) or a separately designed clock measurement.
+
+## K06 step 5f — clock check split into idle precision and load progress (spec 06 §4 revision) — 11 November 2026
+
+**Decision (Simon, 11 November 2026).** Simon chose to redesign the clock measurement instead of moving the SMP matrix to a paid 8-vCPU runner. This revises the "Klok" clause of K06 step specification 06-5c-2 §4. The old clause read: during the existing SMP load, Sys3 stays monotonic and rises within 1% of the PIT expectation. The revised clause has two phases:
+
+1. **Precision (all APs halted).** The BSP idles through `CLOCK_SPAN` counted IRQ0 ticks in five segments. On the PIT-calibrated TSC, the median segment must last the PIT's own period within 1%. The limit stays at 1%. Monotonicity, `SMP_CLOCK_STOPPED` and the drift diagnostics are unchanged.
+2. **Load (every AP spinning).** Every AP is woken into the existing load loop. The idle BSP must then count `CLOCK_SEGMENT` further IRQ0 ticks before a 4× deadline; otherwise the check fails with `SMP_CLOCK_STOPPED`. The clock must never go back, and every AP must show work (`SMP_CLOCK_NO_LOAD`). There is no 1% limit under load.
+
+The marker `SMP:CLOCK:PASS:CPUS=` and the fail markers are unchanged. Ticks are still never synthesized (ADR-053): only counted IRQ0s advance the clock in both phases. K06-SMP test 6 keeps a load component through the load-phase progress and work checks.
+
+**Evidence.** Under TCG the old measurement measured host CPU capacity, not guest clock behaviour. Lost or merged IRQ0 edges come from starved vCPU and timer threads. Locally, under `taskset`, the old load-phase check passed 5/5 with 4 host CPUs, failed 0/5 with 3 (2–4% drift) and failed 0/5 with 2 (20–27% drift). Lowering QEMU's priority with `renice` did not change this. On 4-vCPU hosted runners it failed in runs 43031091677 and 43031085708 (about 1.8%) and in run 43022743756 (1.56%). PROJECT-STATE records the local `taskset` reproduction of the revised check; native acceptance still comes from the hosted matrix.
+
+**Not claimed.** This change does not show that the guest clock stays within 1% while all CPUs are loaded. Under TCG on a shared host that property cannot be separated from host capacity, so it remains unproven. It must be measured again on hardware or KVM before a load-precision claim is made.
+
+**Open item.** The normative step text lives on branch `docs/k06-step-specs` (`docs/implementation/k06-steps/06-5c-2-bsp-timer-idle.md`, §4 "Klok"). It must receive the same revision when that branch is integrated.

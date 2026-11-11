@@ -1,6 +1,30 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 step 5f QEMU 8.2 spin window and hosted clock drift — 11 November 2026
+## NEXT AGENT HANDOFF — K06 step 5f clock check redesign — 11 November 2026
+
+**Source:** branch `codex/k06-5f-complete-20261109` (PR #296), on top of `9698c379`. The commit that carries this entry holds the change; the full-matrix dispatch is recorded in the PR.
+
+**Decision:** Simon chose to redesign the clock measurement instead of a paid 8-vCPU runner (option b below). The decision and its limits are in [DECISIONS.md](DECISIONS.md), "clock check split into idle precision and load progress". The 1% check is relaxed under load by decision; the hosted drift is not fixed. `clock()` in `kernel/src/m2/smp.rs` now runs two phases. First, with all APs halted, the existing 5-segment median must stay within 1% of the PIT period. Then every AP spins, and the idle BSP must count `CLOCK_SEGMENT` more IRQ0s before a 4× deadline; every AP must show work. Markers, the 1% limit, the repetitions and ADR-053 (no synthesized ticks) are unchanged.
+
+**Local evidence (QEMU 10.2.1, TCG, not acceptance):** `tools/run_smp.py --repeat 5`, QEMU confined with `taskset`. The old check failed 0/5 on the same CPU counts:
+
+| Case | Host CPUs | Result |
+|---|---|---|
+| `four` | 3 | 5/5 pass |
+| `m4-quotas-four` | 3 | 5/5 pass |
+| `four` | 2 | clock 5/5 pass; run 4/5 (r002 `SMP:ICR:LOST`) |
+| `m4-quotas-four` | 2 | clock 5/5 pass; run 4/5 (r004 `SMP:ICR:LOST`) |
+Also: `cargo fmt --all -- --check`, `test_smp_serial.py` (33 tests) and `test_gs_discipline.py` pass, and both kernel profiles build.
+
+**2-CPU observation (open, not part of this change):** with 4 guest vCPUs on 2 host CPUs, the unchanged ICR phase (`icr_work`, ack wait bounded at 2^16 spin iterations) reported `SMP:ICR:LOST` once per case. The clock check passed in all ten 2-CPU runs. Before this change the 2-CPU runs stopped at the clock check, so they never reached ICR. The hosted runner profile has 4 vCPUs; if the full matrix shows `SMP_ICR`, it is the next diagnostic target. The ICR bound was not changed.
+
+**CI on `9698c379`:** `host-quality` passes. About twenty QEMU jobs (including `qemu-smoke`, `native-smp` and `native-window-session`) failed in the step "Pinned QEMU and OVMF": runner DNS could not resolve the snapshot or `archive.ubuntu.com` (14:04–14:12 UTC, run 43034888367). That is a runner network fault, not a code result; the new push re-runs these jobs.
+
+**Open:** full 64×50 matrix, soaks, K07, aggregate and final gate on GitHub for this head. Host-quality on `2b6e81d6`/`9698c379`, `native-window-session` run 43031085350 and Copilot dynamic failure 43031108744 are not yet reviewed. Mirror the §4 "Klok" revision onto branch `docs/k06-step-specs` (`06-5c-2-bsp-timer-idle.md`). Load-phase clock precision remains unproven until it is measured on KVM or hardware.
+
+**Progress:** 39/100 → 39/100 until the hosted matrix and final gate are green.
+
+## Previous checkpoint — K06 step 5f QEMU 8.2 spin window and hosted clock drift — 11 November 2026
 
 **Source:** branch `codex/k06-5f-complete-20261109` (PR #296). Earlier commits: `e875a30e` (R3-5 remote readiness wake, `IPC_TIMEOUT_S = 180`), `02e7c4d9` (merge; legacy `native-smp-legacy-m3`), `5a391465` (preserve-evidence and snapshot fallback), `a2f517a6` (local matrix runner script; no local full matrix is used as acceptance — verification runs on GitHub-hosted runners).
 

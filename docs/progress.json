@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-11",
-    "source_commit": "2b6e81d63bdbb87c6783438bfc35406a34b4a77c",
+    "source_commit": "9698c3791df066dbba6208ad2f1e2a155e722870",
     "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
-    "task": "K06 step 5f: host-quality clippy fix; hosted SMP_CLOCK_DRIFT diagnosed as runner CPU capacity (awaiting runner/measurement decision)",
+    "task": "K06 step 5f: clock check split into idle precision and load progress (Simon's decision, spec 06 §4 revision)",
     "previous_score": 39,
-    "summary": "39/100 remains 39/100. The STI shadow fix removes LOCK_STUCK on QEMU 8.2.2. The capability-core clippy fix restores host-quality locally. SMP_CLOCK_DRIFT on 4-vCPU hosted runners was reproduced locally as host CPU capacity (4 host CPUs pass, 3 fail). K06 stays open until the full 64x50 matrix, K07, soaks, aggregate and final gate pass on GitHub-hosted runners."
+    "summary": "39/100 remains 39/100. The clock check now measures the 1% PIT precision with APs halted and only requires tick progress under AP load, by Simon's decision. Locally, the four and m4-quotas-four clock checks pass 5/5 at 3 and 2 host CPUs (previously 0/5). At 2 host CPUs, the unchanged ICR phase reported SMP:ICR:LOST once per case. K06 stays open until the full 64x50 matrix, K07, soaks, aggregate and final gate pass on GitHub."
   },
   "tracks": [
     {
