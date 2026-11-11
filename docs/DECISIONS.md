@@ -5,6 +5,45 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-PROJECT-SYNC-20261111 — Fact-derived Status and backfill for Project #5
+
+Status: accepted, 11 November 2026, on the project owner's instruction to
+integrate the existing organisation Project #5 with Issues, Pull Requests and
+Actions. It extends the conservative classifier from #303; no second project
+and no new workflow file are introduced.
+
+**Context:** the first dry-run (run 43115306190) showed that the Actions secret
+`BARYON_PROJECTS_TOKEN` is not configured. `GITHUB_TOKEN` cannot write an
+organisation project, and GraphQL is unavailable from agent sessions, so the
+project itself could not be inspected. Without a fix the daily schedule would
+fail on `main` every day.
+
+**Decision:**
+
+- Real-time transitions use the project's built-in workflows (auto-add, item
+  closed, pull request merged, item reopened, review approved/changes
+  requested). The scheduled tool complements them and does not replace them.
+- Status is derived from GitHub facts only: a merged PR or an issue closed as
+  completed becomes Done; an open draft PR In Progress; an open ready PR In
+  Review (fallback In Progress); an explicit `blocked`/`status:blocked` label
+  Blocked; an empty, Blocked or reopened-Done open issue Todo. A PR closed
+  without merge, an issue closed as not planned and any status outside the
+  managed set are left to humans.
+- Open issues and PRs missing from the project are added, at most 50 per run,
+  and only after a complete project scan.
+- Work Type, Subsystem and Priority keep the fill-only rule of #303.
+- Scheduled runs without the secret skip with a warning; manual runs fail.
+
+**Consequences:** Project Status is organisational. It never overrides a
+GitHub Actions result; Done follows a merge, never a check. Live behaviour is
+unverified until the owner adds the secret: a fine-grained token or GitHub App
+limited to organisation Projects read/write plus read access to issues,
+pull requests and metadata of this repository. Unit tests use an in-memory
+GraphQL fake.
+
+**Revise when:** the project's field options differ from the assumed names,
+or a GitHub App replaces the personal token.
+
 ## ADR-CI-QEMU-BUNDLE-20261111 — Pinned QEMU/OVMF from a signed package bundle
 
 Status: accepted, 11 November 2026, on the project owner's instruction to stop
