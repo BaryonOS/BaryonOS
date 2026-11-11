@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-11",
-    "source_commit": "f26cd05623368c1a834be538e38a2aa30f5e1df1",
+    "source_commit": "8e45e991f3f1546f815e5a43807b4d97cd9dd15b",
     "assessment_basis": "source_commit",
-    "branch": "ci/qemu-apt-bundle",
-    "task": "Install pinned CI QEMU/OVMF from a signed package bundle (ADR-CI-QEMU-BUNDLE-20261111)",
+    "branch": "ccr-cf45024e-q0nrg9",
+    "task": "Derive GitHub Project #5 Status from GitHub facts, backfill missing open items and skip scheduled runs without the Projects token (ADR-PROJECT-SYNC-20261111)",
     "previous_score": 39,
-    "summary": "39/100 to 39/100: CI infrastructure only. The QEMU/OVMF setup gains a signed, hash-pinned package bundle with snapshot and archive fallbacks; package versions and checks are unchanged. No OS functionality, native gate or product criterion changes."
+    "summary": "39/100 to 39/100: project-management automation only. Project Status stays organisational and never replaces a GitHub Actions result; no OS functionality, native gate or product criterion changes."
   },
   "tracks": [
     {
