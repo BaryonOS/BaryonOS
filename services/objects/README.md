@@ -1,124 +1,124 @@
-# M6b — native begrensde objectdienst
+# M6b — native bounded object service
 
-Eigen dependencyvrije Rust-core met `no_std` en `forbid(unsafe_code)`. `wire.rs`
-en `journal.rs` worden op de host getest en in de native ELF opgenomen.
-`user_service.rs` is de daadwerkelijke ring-3-adapter en wordt rechtstreeks
-door de native gebruikersfixture gecompileerd met `crate::{rt,wire,journal}`.
-De library alleen voert geen I/O uit en bewijst geen native isolatie/durabiliteit.
+Own dependency-free Rust core with `no_std` and `forbid(unsafe_code)`. `wire.rs`
+and `journal.rs` are tested on the host and included in the native ELF.
+`user_service.rs` is the actual ring-3 adapter and is compiled directly
+by the native user fixture with `crate::{rt,wire,journal}`.
+The library alone performs no I/O and proves no native isolation/durability.
 
-## Bevoegdheden en grenzen
+## Authorities and boundaries
 
-Vier objectslots, IDs0–3. De kernel maakt twee dienstendpoints: het ontvangende
-endpoint bepaalt domein0 (object0/1) of domein1 (object2/3). De echte
-`Message.sender_pid` moet bovendien overeenkomen met de aan dat domein gebonden
-client-PID. Een request bevat geen domein, replycapability, devicecapability,
-absoluut sectoradres of pointers naar de opslag. Onverwachte ontvangen
-capabilities worden gesloten vóór verdere verwerking.
+Four object slots, IDs0–3. The kernel creates two service endpoints: the receiving
+endpoint determines domain0 (object0/1) or domain1 (object2/3). The real
+`Message.sender_pid` must moreover match the client PID bound to that domain.
+A request contains no domain, reply capability, device capability,
+absolute sector address or pointers to the storage. Unexpected received
+capabilities are closed before further processing.
 
-De dienst bezit één Block-capability met READ|WRITE|FLUSH97, sectors4–35 van
-de synthetische schijf. Clients krijgen uitsluitend SEND naar hun eigen
-dienstendpoint en RECV op hun eigen antwoordendpoint. Rechten op hetzelfde
-endpoint omvatten in deze eerste proef GET/PUT/DELETE binnen dat domein.
+The service owns one Block capability with READ|WRITE|FLUSH97, sectors4–35 of
+the synthetic disk. Clients receive exclusively SEND to their own
+service endpoint and RECV on their own reply endpoint. Rights on the same
+endpoint cover, in this first probe, GET/PUT/DELETE within that domain.
 
-Maximaal128bytes per object,32records van512bytes, vaste tabellen, geen heap,
-geen GC, geen netwerk en geen encryptie. Dit is een native opslagfundament;
-geen filesystem, NAS, algemene app-API of productgeschikte opslaglimiet.
+At most128bytes per object,32records of512bytes, fixed tables, no heap,
+no GC, no network and no encryption. This is a native storage foundation;
+not a filesystem, NAS, general app API or product-suitable storage limit.
 
-## Mutaties en herstel
+## Mutations and recovery
 
-- GET geeft inhoud en objectrevisie. Een nooit bestaand object geeft
-  `NotFound=-19`, revisie0; een verwijderd object geeft NotFound met zijn
-  behouden tombstonerevisie. Een aanwezig leeg object geeft succes, lengte0.
-- PUT bevat de verwachte revisie. CAS0 maakt een nieuw object; de actuele
-  tombstonerevisie maakt expliciete heraanmaak mogelijk. Succes verhoogt de
-  objectrevisie met één.
-- DELETE vereist de actuele revisie en een bestaand object. Een oude revisie
-  geeft Stale; een al afwezig object met actuele revisie geeft NotFound zonder
-  I/O. De tombstone behoudt de verhoogde revisie en bevat geen oude payload.
-- `State::prepare` wijzigt niets. De adapter schrijft exact één nieuwe sector,
-  wacht op WRITE-completion en daarna op echte FLUSH-completion, roept pas
-  daarna `State::commit` aan en verstuurt het appantwoord. Een prepared record
-  mag uitsluitend op zijn oorspronkelijke toestand worden gecommit.
-- Servicecontract: iedere onzekere
-  mutatieuitkomst zet de dienst op `Unknown`. Verder geldige requests krijgen
-  `Unknown` totdat een nieuw proces het hele journal herstelt. WRITE/FLUSH
-  worden nooit automatisch herhaald. Op bron `592dccf` is de observerpanic
-  gerepareerd en zijn twee lokale WRITE-/FLUSH-statussnapshotfouten native
-  gecontroleerd. Nieuwe kerneldeadline-/reset- en poll-LIMIT-proeven zijn
-  afzonderlijk in bouw. Bij lokaal verlaten polls sluit de adapter zijn
-  enige blokcapability, zodat de kernel de pending aanvraag veilig kan
-  annuleren en resetten. Dit is geen automatische schrijfherhaling.
-  Zie de [bewijsgrenzen](../../docs/implementation/M6B-OBJECT-STORAGE.md#bewijsgrenzen).
-- `request_id` correleert verzoek en antwoord; het is geen los idempotencysysteem.
-  Een oude request met oude CAS-revisie wordt geweigerd.
-- Recovery scant alle32sectoren in volgorde. Alleen complete geldige prefixes
-  gevolgd door uitsluitend nulsectoren worden geaccepteerd. Een beschadigd
-  bezet record, gat, foutieve volgorde, revisiesprong of delete zonder bestaand
-  object geeft Corrupt. Recovery gokt geen eerdere waarde en formatteert niet.
-- Een leeg, volledig nul journal is een geldige lege toestand. Een vol journal
-  geeft Full vóór WRITE. Deze stap claimt geen herstel bij fysieke stroomuitval.
+- GET returns content and object revision. A never-existing object yields
+  `NotFound=-19`, revision0; a deleted object yields NotFound with its
+  retained tombstone revision. A present empty object yields success, length0.
+- PUT contains the expected revision. CAS0 creates a new object; the current
+  tombstone revision enables explicit re-creation. Success increments the
+  object revision by one.
+- DELETE requires the current revision and an existing object. An old revision
+  yields Stale; an already absent object with current revision yields NotFound without
+  I/O. The tombstone keeps the incremented revision and contains no old payload.
+- `State::prepare` changes nothing. The adapter writes exactly one new sector,
+  waits for WRITE completion and then for real FLUSH completion, only
+  then calls `State::commit` and sends the app reply. A prepared record
+  may be committed exclusively on its original state.
+- Service contract: every uncertain
+  mutation outcome sets the service to `Unknown`. Otherwise valid requests get
+  `Unknown` until a new process recovers the entire journal. WRITE/FLUSH
+  are never repeated automatically. On source `592dccf` the observer panic
+  has been repaired and two local WRITE/FLUSH status snapshot errors have been natively
+  checked. New kernel deadline/reset and poll LIMIT probes are
+  separately under construction. On locally abandoned polls the adapter closes its
+  only block capability, so that the kernel can safely cancel and reset the pending
+  request. This is no automatic write repetition.
+  See the [evidence boundaries](../../docs/implementation/M6B-OBJECT-STORAGE.md#bewijsgrenzen).
+- `request_id` correlates request and reply; it is not a separate idempotency system.
+  An old request with an old CAS revision is rejected.
+- Recovery scans all32sectors in order. Only complete valid prefixes
+  followed exclusively by zero sectors are accepted. A damaged
+  occupied record, gap, wrong order, revision jump or delete without an existing
+  object yields Corrupt. Recovery guesses no earlier value and does not format.
+- An empty, fully zero journal is a valid empty state. A full journal
+  yields Full before WRITE. This step claims no recovery on physical power loss.
 
-## Wireprotocol versie3
+## Wire protocol version3
 
-Payload is exact224bytes in Message320; TAG=`0x4d36424c4b000003`.
-Alle integers zijn little-endian; ongebruikte bytes en payloadstaart zijn nul.
+Payload is exactly224bytes in Message320; TAG=`0x4d36424c4b000003`.
+All integers are little-endian; unused bytes and payload tail are zero.
 
-| Offset | Betekenis |
+| Offset | Meaning |
 |---:|---|
-|0/2|u16 versie3 / operatie GET1, PUT2 of DELETE3|
-|4|u32 gereserveerd0|
-|8/16|u64 request-ID / service-epoch|
-|24/32|u64 object-ID / verwachte of geretourneerde revisie|
-|40/44|u32 lengte / i32 status|
-|48–64|gereserveerd0|
-|64–192|payload, maximaal128bytes met nulstaart|
-|192–224|gereserveerd0|
+|0/2|u16 version3 / operation GET1, PUT2 or DELETE3|
+|4|u32 reserved0|
+|8/16|u64 request ID / service epoch|
+|24/32|u64 object ID / expected or returned revision|
+|40/44|u32 length / i32 status|
+|48–64|reserved0|
+|64–192|payload, at most128bytes with zero tail|
+|192–224|reserved0|
 
-`request(id,epoch,object,revision,op,value)` en
-`reply(header,epoch,revision,status,value)` construeren bounded arrays.
-`validate_request(bytes,epoch,domain)` controleert formaat, identiteitsscope en
-semantiek; `validate_reply(bytes,request_header,epoch)` controleert correlatie,
-revisie en canonieke antwoorden. Alle foutantwoorden bevatten lengte0 en geen
-payload; alleen NotFound mag de reeds geautoriseerde objectrevisie teruggeven.
+`request(id,epoch,object,revision,op,value)` and
+`reply(header,epoch,revision,status,value)` construct bounded arrays.
+`validate_request(bytes,epoch,domain)` checks format, identity scope and
+semantics; `validate_reply(bytes,request_header,epoch)` checks correlation,
+revision and canonical replies. All error replies contain length0 and no
+payload; only NotFound may return the already authorized object revision.
 
-## Journalformaat
+## Journal format
 
 Sector512: magic `NOSM6B01`@0; version u16=1@8; header u16=64@10;
 flags u32=0@12; sequence u64@16; request-ID u64@24; object u64@32;
-revision u64@40; PUT2/DELETE3 u16@48; lengte u16@50; reserved0@52–64;
-payload@64–192 met nulstaart; padding0@192–504; checksum u64@504.
+revision u64@40; PUT2/DELETE3 u16@48; length u16@50; reserved0@52–64;
+payload@64–192 with zero tail; padding0@192–504; checksum u64@504.
 
-Sequence is exact slotindex+1. Objectrevisies nemen per object met precies één
-toe, inclusief deletes. FNV-1a64 over alle512bytes met het checksumveld nul is
-alleen diagnostische corruptiedetectie, geen authenticatie of botsingsgarantie.
+Sequence is exactly slot index+1. Object revisions increase per object by exactly one,
+including deletes. FNV-1a64 over all512bytes with the checksum field zero is
+only diagnostic corruption detection, not authentication or a collision guarantee.
 
-Publieke core-API: `State::{new,sequence,get,prepare,commit}`,
+Public core API: `State::{new,sequence,get,prepare,commit}`,
 `Prepared::record`, `decode_record`, `Recovery::{new,push,finish}`.
-`Recovery::push` heeft een blijvende fouttoestand: een eenmaal afgewezen record
-kan niet worden weggepoetst door dezelfde scanner later andere bytes te geven.
+`Recovery::push` has a persistent error state: a record once rejected
+cannot be polished away by later giving the same scanner other bytes.
 
-## Native startup en observatie
+## Native startup and observation
 
-Startupoffsets: epoch32, Block-cap48, ingress56/80, reply88/72 voor domein0/1,
-client-PIDs160/168, service-PID176, case112. De runtime levert vaste
-MSG/OUT/SECTOR-buffers en de bestaande scalaire int80-ABI.
+Startup offsets: epoch32, Block-cap48, ingress56/80, reply88/72 for domain0/1,
+client-PIDs160/168, service-PID176, case112. The runtime supplies fixed
+MSG/OUT/SECTOR buffers and the existing scalar int80 ABI.
 
-Service schrijft sequence128 en status232. Stage192:1 ready (pas na volledige
-recovery en FLUSH),2 vóór WRITE,3 na WRITE-completion vóór FLUSH,4 na
-FLUSH-completion/commit vóór appantwoord,5 Unknown. Startupfout zet status232
-en completion40=1 zonder READY. Deze velden zijn diagnostiek; de kernelobserver
-moet echte devicepublicaties/completions en IPC-antwoorden onafhankelijk volgen.
+Service writes sequence128 and status232. Stage192:1 ready (only after full
+recovery and FLUSH),2 before WRITE,3 after WRITE completion before FLUSH,4 after
+FLUSH completion/commit before app reply,5 Unknown. Startup error sets status232
+and completion40=1 without READY. These fields are diagnostics; the kernel observer
+must independently follow real device publications/completions and IPC replies.
 
-## Controles
+## Checks
 
-Gerichte hostcommando's vanuit de root:
+Targeted host commands from the root:
 
 ```text
 cargo +1.90.0 test -p object-core --locked --offline
 cargo +1.90.0 check -p object-core --target x86_64-unknown-none --locked --offline
 ```
 
-Uitgevoerde commando's, native QEMU-resultaten, bronhashes en beperkingen worden
-door root vastgelegd onder `docs/verification/`; deze handleiding is geen
-vervanging voor dat bewijs. Geen bestaande M6a-volumes of protocollen migreren:
-M6b heeft een eigen profiel, magic, versie en wegwerpimage.
+Executed commands, native QEMU results, source hashes and limitations are
+recorded by root under `docs/verification/`; this guide is no
+substitute for that evidence. No existing M6a volumes or protocols are migrated:
+M6b has its own profile, magic, version and disposable image.

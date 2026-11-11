@@ -1,60 +1,60 @@
-# G0 — eerste native grafische basis
+# G0 — first native graphics foundation
 
-28 oktober 2026, vervolg op `7b4945f`. Dit contract gaat vooraf aan uitvoering.
-G0 is een opt-in hardware-/invoerproef, geen volledige M7-desktop of compositor.
-De bestaande native opslag en het browserprototype blijven afzonderlijke sporen.
+28 October 2026, follow-up to `7b4945f`. This contract precedes execution.
+G0 is an opt-in hardware/input trial, not a full M7 desktop or compositor.
+The existing native storage and the browser prototype remain separate tracks.
 
-## Resultaat en invariant
+## Result and invariant
 
-Een eigen kernel draait na ExitBootServices op zijn eigen M2-pagetables en tekent
-via de door UEFI aangewezen framebuffer. Een begrensde PS/2-decoder verwerkt
-werkelijke QEMU-toetsen tot een lokale RAM-regel. Het scherm vermeldt expliciet
-dat dit de grafische basis is en nog geen desktop. Geen gesimuleerde bestanden,
-opslagbevestiging, apps, NAS of AI in deze proef.
+An own kernel runs after ExitBootServices on its own M2 page tables and draws
+via the framebuffer designated by UEFI. A bounded PS/2 decoder processes
+actual QEMU keys into a local RAM line. The screen explicitly states
+that this is the graphics foundation and not yet a desktop. No simulated files,
+storage confirmation, apps, NAS or AI in this trial.
 
-- Standaardboot behoudt het exacte BootInfo 1.1-contract. Alleen gekoppelde
-  `graphics-g0`-features in loader en kernel gebruiken opt-in BootInfo 1.2:
-  header 128 bytes, flags 15 en een vaste gevalideerde descriptor vanaf byte
-  128 binnen dezelfde behouden BootInfo-pagina. Oude profielen krijgen geen GOP.
-- De loader configureert/leest GOP vóór de laatste geheugenkaart/freeze; na
-  EBS volgen geen GOP-, console- of andere firmwareoproepen.
-- De kernel kopieert metadata vóór gebruik en controleert pixeltype, geometrie,
-  stride, lengte, fysieke adresbreedte, overflow en overlap. Alleen RGB/BGR
-  32-bit-pixels; geen blt-only- of willekeurige bitmaskerimplementatie.
-- Framebufferpagina's krijgen uitsluitend een aparte, begrensde supervisor-
-  RW/NX/UC-mapping. Geen verbreding van de virtio-MMIO-API en geen mapping van RAM
-  of gereserveerde normale frames als framebuffer. PAT wordt gecontroleerd.
-- `ui-core` is eigen safe Rust `no_std`, zonder heap of externe dependencies.
-  Clipping en getypte pixelgeometrie begrenzen iedere schrijfpositie. Een
-  private rijbuffer voorkomt een grote backbuffer; alleen zichtbare pixels
-  gaan via volatile stores naar de framebuffer. Padding blijft intact.
-- PS/2 Set1-invoer is een begrensde pollingproef op één QEMU-CPU, zonder IRQ1-
-  aanpassing. Releases, modifiers en extended prefixes geven geen willekeurige
-  tekst. De eerste tekstregel is begrensd ASCII; geen Unicode-/IME-claim.
-- ESC beëindigt de test met een eigen G0-marker en raw-exit 33. Geen automatische
-  groene test op basis van uitsluitend firmwarebeeld of een gemaakte screenshot.
+- Standard boot keeps the exact BootInfo 1.1 contract. Only coupled
+  `graphics-g0` features in loader and kernel use opt-in BootInfo 1.2:
+  header 128 bytes, flags 15 and a fixed validated descriptor from byte
+  128 within the same preserved BootInfo page. Old profiles get no GOP.
+- The loader configures/reads GOP before the last memory map/freeze; after
+  EBS there are no GOP, console or other firmware calls.
+- The kernel copies metadata before use and checks pixel type, geometry,
+  stride, length, physical address width, overflow and overlap. Only RGB/BGR
+  32-bit pixels; no blt-only or arbitrary bitmask implementation.
+- Framebuffer pages get exclusively a separate, bounded supervisor
+  RW/NX/UC mapping. No broadening of the virtio MMIO API and no mapping of RAM
+  or reserved normal frames as framebuffer. PAT is checked.
+- `ui-core` is own safe Rust `no_std`, without heap or external dependencies.
+  Clipping and typed pixel geometry bound every write position. A
+  private row buffer avoids a large backbuffer; only visible pixels
+  go to the framebuffer via volatile stores. Padding stays intact.
+- PS/2 Set1 input is a bounded polling trial on one QEMU CPU, without IRQ1
+  modification. Releases, modifiers and extended prefixes produce no arbitrary
+  text. The first text line is bounded ASCII; no Unicode/IME claim.
+- ESC ends the test with its own G0 marker and raw exit 33. No automatic
+  green test based solely on a firmware image or a captured screenshot.
 
-## Acceptatie en grenzen
+## Acceptance and boundaries
 
-Hosttests controleren ongeldige framebuffergeometrie/overflow, clipping,
-padding/canaries, kleurvolgorde, ongeldige scancodes, modifiers, backspace en
-volle tekstregel. De native proef moet echte post-EBS/M2/G0-markers, geïnjecteerde
-QMP-toetsaanslagen, framebufferbeelden vóór/na invoer en een correcte exit leveren.
-QMP bestuurt uitsluitend het eigen QEMU-child zonder netwerk naar de guest.
+Host tests check invalid framebuffer geometry/overflow, clipping,
+padding/canaries, colour order, invalid scancodes, modifiers, backspace and
+a full text line. The native trial must deliver real post-EBS/M2/G0 markers, injected
+QMP keystrokes, framebuffer images before/after input and a correct exit.
+QMP exclusively controls the own QEMU child without network to the guest.
 
-Een zichtbaar getypte regel is geen opslag, geïsoleerde app, invoerbroker,
-toegankelijke volledige shell of gebruikersdesktop. Die productintegratie
-vereist daarna een afzonderlijke ring-3-display-/inputdienst en capabilitygrens.
-De tijdelijke kernelbootstrap bevat uitsluitend begrensde diagnoseweergave;
-object-, app- en opslagpolicy komen er niet in.
+A visibly typed line is not storage, an isolated app, an input broker,
+an accessible full shell or a user desktop. That product integration
+then requires a separate ring-3 display/input service and capability boundary.
+The temporary kernel bootstrap contains exclusively bounded diagnostic display;
+object, app and storage policy do not go into it.
 
-Eigenaar pure core/loader/bootmetadata/native adapter: G09. Root bezit
-workspace/lockfiles, build-/QMP-harnas, documentatie en Git. Kernel-Cargo loopt
-via K08, zodat één schrijver die gedeelde interface beheert. Rollback: aparte
-checkout van `7b4945f`; bestaande bootprofielen blijven selecteerbaar.
+Owner of pure core/loader/boot metadata/native adapter: G09. Root owns
+workspace/lockfiles, build/QMP harness, documentation and Git. Kernel Cargo goes
+via K08, so that one writer manages that shared interface. Rollback: separate
+checkout of `7b4945f`; existing boot profiles remain selectable.
 
-Primaire bronnen: UEFI Forum, *UEFI Specification 2.11*, §12.9 Graphics Output
+Primary sources: UEFI Forum, *UEFI Specification 2.11*, §12.9 Graphics Output
 Protocol: https://uefi.org/specs/UEFI/2.11/12_Protocols_Console_Support.html;
-Intel, *64 and IA-32 Architectures SDM*, pagetables/PAT volgens ADR-026.
-Geraadpleegde bronversies, feitelijke tests en nog ontbrekende verificatie komen
-in PROJECT-STATE.md. Projectlimieten zijn geen eisen uit de UEFI-specificatie.
+Intel, *64 and IA-32 Architectures SDM*, page tables/PAT according to ADR-026.
+Consulted source versions, actual tests and still-missing verification go
+in PROJECT-STATE.md. Project limits are not requirements from the UEFI specification.

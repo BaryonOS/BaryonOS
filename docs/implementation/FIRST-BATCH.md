@@ -1,46 +1,46 @@
-# Eerste uitvoerbatch — onderzoek uitgevoerd, nu implementeren
-Revisie 5, 26 oktober 2026. Deze opdrachten gebruiken de gekozen implementatiespecificaties onder docs/implementation/. Zij herhalen geen brede architectuur- of conceptverkenning.
+# First execution batch — research done, now implement
+Revision 5, 26 October 2026. These assignments use the chosen implementation specifications under docs/implementation/. They do not repeat a broad architecture or concept exploration.
 
-## Werkverdeling
-De hoofdagent leest START-CODING.md, controleert bestaande gebruikerswijzigingen en beheert gedeelde configuratie. Daarna kunnen maximaal drie builders onafhankelijk werken:
-- B01: boot/ en kernel/ plus crates/boot-protocol/ en crates/elf-loader-core/; wijzigingen in rootbuildbestanden en tools/ via de hoofdagent.
-- P02: uitsluitend ui/prototype/.
-- Q01: uitsluitend experiments/quantum/ met eigen Cargo-workspace; de rootworkspace sluit deze map uit.
+## Division of work
+The main agent reads START-CODING.md, checks existing user changes and manages shared configuration. After that, at most three builders can work independently:
+- B01: boot/ and kernel/ plus crates/boot-protocol/ and crates/elf-loader-core/; changes to root build files and tools/ go via the main agent.
+- P02: exclusively ui/prototype/.
+- Q01: exclusively experiments/quantum/ with its own Cargo workspace; the root workspace excludes this directory.
 
-Nieuwe broncode ontbreekt nog; deze paden zijn te creëren. De hoofdagent bezit root Cargo.toml, rust-toolchain.toml, root Cargo.lock en tools/. B01 bezit de boot-protocol-/ELF-parsercrates volgens de overeengekomen ABI. Q01 bezit alleen zijn geneste Cargo.lock. Elk gedeeld bestand heeft één eigenaar. Gebruik geen gelijktijdige schrijvers voor die bestanden. Review en test na integratie, niet alleen per agent.
+New source code is still missing; these paths are to be created. The main agent owns root Cargo.toml, rust-toolchain.toml, root Cargo.lock and tools/. B01 owns the boot-protocol/ELF parser crates according to the agreed ABI. Q01 owns only its nested Cargo.lock. Each shared file has one owner. Do not use concurrent writers for those files. Review and test after integration, not only per agent.
 
-## B00 — werkelijke ontwikkelomgeving gereedmaken
-**Input:** BOOT-AND-TOOLCHAIN.md en tools/preflight.py.
-**Actie:** voer de read-only inventaris uit; vergelijk versies, voeg ontbrekende tools toe binnen de beschikbare bevoegdheden en verifieer de gekozen targets/firmware. Leg echte versies en firmwarehash vast. Geen bestaande gebruikersconfig vervangen.
+## B00 — prepare the actual development environment
+**Input:** BOOT-AND-TOOLCHAIN.md and tools/preflight.py.
+**Action:** run the read-only inventory; compare versions, add missing tools within the available permissions and verify the chosen targets/firmware. Record actual versions and firmware hash. Do not replace existing user config.
 
-**Klaar:** buildgereedschap werkt of er is een exacte concrete blokkade met bewijs. Een blokkade voor QEMU blokkeert P02 niet en hoeft Q01 niet te blokkeren als een Rust-hosttoolchain beschikbaar is.
+**Done:** build tooling works or there is an exact concrete blocker with evidence. A blocker for QEMU does not block P02 and need not block Q01 if a Rust host toolchain is available.
 
-## B01 — eigen loader draagt over aan eigen kernel
-**Input:** BOOT-AND-TOOLCHAIN.md, kernelcontract en toepasselijke AGENTS.md.
-**Actie:** implementeer de afgesproken ELF-loader, BootInfo, overdracht na firmwarebootservices, kernelentry en seriële rooktest. Volg de vaste baseline; open alleen gerichte documentatie bij een concrete implementatiefout.
+## B01 — own loader hands over to own kernel
+**Input:** BOOT-AND-TOOLCHAIN.md, kernel contract and applicable AGENTS.md.
+**Action:** implement the agreed ELF loader, BootInfo, handoff after firmware boot services, kernel entry and serial smoke test. Follow the fixed baseline; only open targeted documentation for a concrete implementation error.
 
-**Klaar:** kernelmarker én correcte emulatorstatus op een echte run; corrupte/ontbrekende kernel en timeout worden als fout gemeld. Firmwarebanner of alleen cross-compilatie telt niet als geslaagde kernelboot. Logs vermelden commit/basis, commands, versies en resultaat.
+**Done:** kernel marker and correct emulator status on a real run; corrupt/missing kernel and timeout are reported as failure. A firmware banner or cross-compilation alone does not count as a successful kernel boot. Logs state commit/base, commands, versions and result.
 
-## P02 — beleefbaar prototype van de gekozen productrichting
+## P02 — experienceable prototype of the chosen product direction
 **Input:** PRODUCT-SPEC.md.
-**Actie:** codeer de daarin gekozen schermen, toestandsovergangen, tokens en toetsenbordbediening. Geen nieuwe ronde conceptselectie. Gebruik lokale fictieve fixtures. Geen cloud, tracking, externe fonts of echte NAS-bestanden.
+**Action:** code the screens, state transitions, tokens and keyboard operation chosen there. No new round of concept selection. Use local fictitious fixtures. No cloud, tracking, external fonts or real NAS files.
 
-**Klaar:** de afgesproken kerntaken zijn interactief doorlopen; fout-/lege-/laadtoestanden en toegankelijkheidschecks zijn aanwezig. Test desktop en het kleinere viewport uit de specificatie. Label dit als productprototype; het draait nog niet op de eigen kernel.
+**Done:** the agreed core tasks have been walked through interactively; error/empty/loading states and accessibility checks are present. Test desktop and the smaller viewport from the specification. Label this as a product prototype; it does not yet run on the own kernel.
 
-## Q01 — lokale quantumproef
+## Q01 — local quantum trial
 **Input:** QUANTUM-SPEC.md.
-**Actie:** implementeer het vaste kleine simulatorprofiel, de jobinterface en limieten. Geen nieuwe taal-/backendselectie en geen cryptografische implementatie in deze taak. Houd simulatorcore los van host-JSON/CLI.
+**Action:** implement the fixed small simulator profile, the job interface and limits. No new language/backend selection and no cryptographic implementation in this task. Keep the simulator core separate from host JSON/CLI.
 
-**Klaar:** referentiecircuits, ongeldige requests, quota en annulering doorstaan de gespecificeerde tests. Rapporteer hostsimulatie afzonderlijk van de toekomstige OS-port/QPU. Geen netwerk of quantumcloud.
+**Done:** reference circuits, invalid requests, quotas and cancellation pass the specified tests. Report host simulation separately from the future OS port/QPU. No network or quantum cloud.
 
-## Integratie en afsluiting
-1. Hoofdagent controleert daadwerkelijke gewijzigde bestanden en shared-interfaceversies.
-2. Laat een reviewer concrete fouten en ontbrekend bewijs zoeken; review maakt niet-uitgevoerde tests niet groen.
-3. Voer relevante checks op de gecombineerde toestand uit, herstel fouten en herhaal alleen betrokken tests.
-4. Werk PROJECT-STATE.md bij met wat geïmplementeerd/gedraaid/niet gedraaid is.
-5. Sluit deze batch af met de volgende afgebakende implementatietaak; genereer geen nieuwe algemene onderzoeksopdracht.
+## Integration and closing
+1. Main agent checks the actual changed files and shared interface versions.
+2. Have a reviewer look for concrete errors and missing evidence; review does not turn unexecuted tests green.
+3. Run relevant checks on the combined state, fix errors and repeat only the affected tests.
+4. Update PROJECT-STATE.md with what was implemented/run/not run.
+5. Close this batch with the next bounded implementation task; do not generate a new general research assignment.
 
-Geen publicatie, echte schijven, firmwareflash, NAS-configuratieveranderingen of releasekeys in deze batch. Het gaat om lokale broncode, prototypes en geïsoleerde tests.
+No publication, real disks, firmware flash, NAS configuration changes or release keys in this batch. This is about local source code, prototypes and isolated tests.
 
-## Concrete ontwerpwijziging tijdens bouwen
-Als een gekozen contract aantoonbaar fout blijkt: leg de fout, bron/test en kleinste herstelkeuze vast; coördineer afhankelijke bestanden en ga door. Een goede implementatie volgt geen fout document blind. 'Ik wil eerst alle opties opnieuw vergelijken' is geen blokkerende reden.
+## Concrete design change during building
+If a chosen contract demonstrably turns out to be wrong: record the error, source/test and smallest corrective choice; coordinate dependent files and continue. A good implementation does not blindly follow a wrong document. 'I want to compare all options again first' is not a blocking reason.
