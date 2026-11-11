@@ -1,5 +1,5 @@
 name: Pinned CI QEMU
-description: Install verified QEMU and matching firmware from a fixed Ubuntu archive snapshot.
+description: Install verified QEMU and matching firmware from a pinned, signed Ubuntu package bundle.
 inputs:
   swtpm:
     description: Include the TPM emulator required by the native-system gate.
@@ -15,7 +15,6 @@ runs:
         set -euo pipefail
         . /etc/os-release
         test "$ID" = ubuntu
-        test "$VERSION_ID" = 24.04
         test "$(dpkg --print-architecture)" = amd64
         case "$INSTALL_SWTPM" in
           true|false) ;;
@@ -26,35 +25,102 @@ runs:
         # third-party repositories must not participate in this installation.
         sources="$RUNNER_TEMP/nieuw-os-ubuntu.sources"
         lists="$RUNNER_TEMP/nieuw-os-apt-lists"
-        mkdir -p "$lists/partial"
-        cat > "$sources" <<'EOF'
-        Types: deb
-        URIs: https://snapshot.ubuntu.com/ubuntu/20261108T000000Z
-        Suites: noble noble-updates noble-security
-        Components: main universe
-        Architectures: amd64
-        Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
-        EOF
+        mirror="$RUNNER_TEMP/nieuw-os-apt-mirror"
+        # Bundles built by tools/ci/build_qemu_apt_bundle.sh; see
+        # ADR-CI-QEMU-BUNDLE-20261111. The tar hash pins every file in it.
+        bundle_release='https://github.com/BaryonOS/BaryonOS/releases/download/ci-qemu-apt-20261111'
+        case "$VERSION_ID" in
+          24.04)
+            suite='noble noble-updates noble-security'
+            bundle="$bundle_release/qemu-apt-noble.tar"
+            bundle_sum='7b4a0a6b0728b121325491745369bcff3d42a0a4cf2687eb5f850a3431c963b5'
+            machine='pc-q35-8.2'
+            code_sum='ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083'
+            vga_sum='4eecd8e752efc02c6c0fe87eb92bf66934cb9ea67b0e1bc41e86f8430c8bf8a0'
+            packages=(
+              qemu-system-x86=1:8.2.2+ds-0ubuntu1.18
+              qemu-system-common=1:8.2.2+ds-0ubuntu1.18
+              qemu-system-data=1:8.2.2+ds-0ubuntu1.18
+              ovmf=2024.02-2ubuntu0.10
+              seabios=1.16.3-2
+              ipxe-qemu=1.21.1+git-20220113.fbbdc3926-0ubuntu2
+            )
+            if [ "$INSTALL_SWTPM" = true ]; then
+              packages+=(swtpm=0.7.3-0ubuntu5.24.04.1 libtpms0=0.9.3-0ubuntu4.24.04.1)
+            fi
+            ;;
+          26.04)
+            suite='resolute resolute-updates resolute-security'
+            bundle="$bundle_release/qemu-apt-resolute.tar"
+            bundle_sum='515c4a94ee7f9ed9c53aa85e8a0558ec9d2ac5d8ef2fd5d256e27e6c90530be9'
+            machine='pc-q35-10.0'
+            code_sum='874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7'
+            vga_sum='c944f5fd404a6553a32e1e0527081d40e6040d3ce1740d39766bff01871e4fde'
+            packages=(
+              qemu-system-x86=1:10.2.1+ds-1ubuntu3.3
+              qemu-system-common=1:10.2.1+ds-1ubuntu3.3
+              qemu-system-data=1:10.2.1+ds-1ubuntu3.3
+              ovmf=2025.11-3ubuntu7.3
+              seabios=1.17.0-1ubuntu1
+              ipxe-qemu=1.21.1+git-20250829.969ce2c55+dfsg-3ubuntu2
+              python3=3.14.3-0ubuntu2
+              python3-minimal=3.14.3-0ubuntu2
+              python3.14=3.14.4-1ubuntu0.2
+              python3.14-minimal=3.14.4-1ubuntu0.2
+              libpython3.14-minimal=3.14.4-1ubuntu0.2
+              libpython3.14-stdlib=3.14.4-1ubuntu0.2
+            )
+            if [ "$INSTALL_SWTPM" = true ]; then
+              echo '::error::The pinned Ubuntu 26.04 profile has no audited swtpm package set.'
+              exit 2
+            fi
+            ;;
+          *) echo "::error::unsupported Ubuntu runner $VERSION_ID"; exit 2 ;;
+        esac
         apt_options=(
           -o "Dir::Etc::sourcelist=$sources"
           -o "Dir::Etc::sourceparts=-"
           -o "Dir::State::lists=$lists"
           -o APT::Update::Error-Mode=any
+          -o Acquire::By-Hash=false
+          # Retry transient HTTP failures within the existing job deadline;
+          # every URL, signature, package pin and hash stays fixed.
+          -o Acquire::Retries=3
         )
-        packages=(
-          qemu-system-x86=1:8.2.2+ds-0ubuntu1.18
-          qemu-system-common=1:8.2.2+ds-0ubuntu1.18
-          qemu-system-data=1:8.2.2+ds-0ubuntu1.18
-          ovmf=2024.02-2ubuntu0.10
-          seabios=1.16.3-2
-          ipxe-qemu=1.21.1+git-20220113.fbbdc3926-0ubuntu2
-        )
-        if [ "$INSTALL_SWTPM" = true ]; then
-          packages+=(swtpm=0.7.3-0ubuntu5.24.04.1 libtpms0=0.9.3-0ubuntu4.24.04.1)
+        # Update and install from one source. APT verifies the Ubuntu signature,
+        # the index hashes and every package hash, whatever the source is.
+        install_from() {
+          sudo rm -rf "$lists"
+          mkdir -p "$lists/partial"
+          cat > "$sources" <<EOF
+        Types: deb
+        URIs: $1
+        Suites: $suite
+        Components: main universe
+        Architectures: amd64
+        Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+        EOF
+          sudo apt-get "${apt_options[@]}" update &&
+            sudo apt-get "${apt_options[@]}" install -y --no-install-recommends \
+              --allow-downgrades --no-remove --reinstall "${packages[@]}"
+        }
+        # The bundle is the primary source, so CI needs no Ubuntu DNS or mirror.
+        # A download, hash or APT failure falls back to the signed network path.
+        apt_source="file:$mirror"
+        if ! { curl -fsSL --retry 5 --retry-all-errors -o "$RUNNER_TEMP/nieuw-os-apt.tar" "$bundle" &&
+               printf '%s  %s\n' "$bundle_sum" "$RUNNER_TEMP/nieuw-os-apt.tar" | sha256sum --check &&
+               mkdir -p "$mirror" && tar -xf "$RUNNER_TEMP/nieuw-os-apt.tar" -C "$mirror" &&
+               install_from "$apt_source"; }; then
+          echo '::warning::Pinned package bundle unavailable or rejected; using the signed Ubuntu snapshot with the same exact pins.'
+          apt_source='https://snapshot.ubuntu.com/ubuntu/20261108T000000Z'
+          if ! install_from "$apt_source"; then
+            # The live archive is signed by the same Ubuntu key; the exact version
+            # pins, the dpkg check and the firmware hashes below still fail closed.
+            echo '::warning::Pinned Ubuntu snapshot unavailable; using the signed Ubuntu archive with the same exact pins.'
+            apt_source='https://archive.ubuntu.com/ubuntu'
+            install_from "$apt_source"
+          fi
         fi
-        sudo apt-get "${apt_options[@]}" update
-        sudo apt-get "${apt_options[@]}" install -y --no-install-recommends \
-          --allow-downgrades --no-remove --reinstall "${packages[@]}"
 
         for package in "${packages[@]}"; do
           name="${package%%=*}"
@@ -65,19 +131,25 @@ runs:
             exit 1
           fi
         done
-        qemu-system-x86_64 -machine help | awk '{print $1}' | grep -Fx pc-q35-8.2
+        qemu-system-x86_64 -machine help | awk '{print $1}' | grep -Fx "$machine"
         qemu-system-x86_64 -accel help | grep -Fx tcg
+        printf '%s  %s\n' "$code_sum" /usr/share/OVMF/OVMF_CODE_4M.fd | sha256sum --check
         sha256sum --check <<'EOF'
-        ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083  /usr/share/OVMF/OVMF_CODE_4M.fd
         5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e  /usr/share/OVMF/OVMF_VARS_4M.fd
-        4eecd8e752efc02c6c0fe87eb92bf66934cb9ea67b0e1bc41e86f8430c8bf8a0  /usr/share/seabios/vgabios-stdvga.bin
         EOF
+        printf '%s  %s\n' "$vga_sum" /usr/share/seabios/vgabios-stdvga.bin | sha256sum --check
         {
           echo 'OS_OVMF_CODE=/usr/share/OVMF/OVMF_CODE_4M.fd'
           echo 'OS_OVMF_VARS=/usr/share/OVMF/OVMF_VARS_4M.fd'
         } >> "$GITHUB_ENV"
         {
-          echo 'Ubuntu snapshot: 20261108T000000Z'
+          echo "APT source used: $apt_source"
+          if [ "$apt_source" = "file:$mirror" ]; then
+            echo "Package bundle: $bundle sha256 $bundle_sum"
+            cat "$mirror/SHA256SUMS"
+          else
+            sha256sum /var/cache/apt/archives/*.deb 2>/dev/null || echo 'APT cache holds no .deb files'
+          fi
           printf 'Runner image: %s / %s\n' "${ImageOS:-unknown}" "${ImageVersion:-unknown}"
           qemu-system-x86_64 --version
           for package in "${packages[@]}"; do
