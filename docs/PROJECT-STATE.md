@@ -1,6 +1,23 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 step 5f clock check redesign — 11 November 2026
+## NEXT AGENT HANDOFF — K06 step 5f matrix run 43057843393 and main merge — 11 November 2026
+
+**Source:** branch `codex/k06-5f-complete-20261109` (PR #296). Merge commit `24d0d09a` brings in main `c520703b`, including the #307 squash `aeaf3cb7`; `.github/actions/setup-qemu` is byte-identical to main, so the signed QEMU/OVMF package bundle stays the install path. The merge conflicted only in this file and `docs/progress.json`. Kernel, tools and workflows are unchanged on this branch since `e398039e`.
+
+**Run [43057843393](https://github.com/BaryonOS/BaryonOS/actions/runs/43057843393) on `e398039e` (rejected):** 72 of 79 jobs pass, the aggregate fails and the final gate is skipped. Details, artifact IDs and ZIP digests are in [the incident receipt](verification/k06-smp-sched/incident-43057843393.json).
+
+- **Soak shard 9, iteration 5:** `SMP_CLOCK_DRIFT` in the idle precision phase (all APs halted). Five segments of exactly 1000 IRQ0, median 1 010 389 µs against 999 847 µs (1.05%, limit 1%). The other 49 soaks and every other case pass the same check. This matches the lost-edge mechanism in [CLOCK-INVESTIGATION.md](verification/k06-smp-sched/CLOCK-INVESTIGATION.md); no guest defect is demonstrated, so the kernel is unchanged. One failure in roughly 3 200 idle checks can recur in a new 64×50 run.
+- **`m3-ipc-four`: 0/50**, each repetition stopped by the 180 s watchdog after `SMP:M3:GO`, with no FAIL marker. `m3-ipc-four-single` passes 50/50 at 71–84 s per boot.
+
+**IPC diagnosis (local, QEMU 8.2.2, not acceptance):** multi-thread TCG takes 116 s on 4 host CPUs, 130 s on 3 and 327 s on 2 (`taskset`); single-thread TCG takes 103–109 s on 2 or 4. Uncommitted counters show the unchanged oracle passing with zero wait timeouts. The IPC phase runs at about one round per scheduler tick on 4 CPUs and 0.37 on 2; most time goes to endpoints that a tick preempts and requeues behind three CPU-bound canaries. Giving the canary PAUSE hint on one pass in 64 instead of every pass made the 2-CPU run slower (432 s) and was discarded. No kernel defect is demonstrated. The 180 s watchdog (ADR-081 R3-5: at least 2.5 times the measured time) was derived from 71.8 s on a faster host and is below the completion time on the hosted 4-vCPU runner.
+
+**Blocker (owner decision):** acceptance cannot pass on the current runner without a decision. Options: (a) recalibrate `IPC_TIMEOUT_S` against a measurement on the hosted runner under the same 2.5× rule, recorded as an ADR-081 addendum; (b) run the IPC cases, or the matrix, on a larger runner (paid); (c) leave K06 open. The clock flake needs either acceptance of the rerun risk or one of the runner options already listed in DECISIONS.md. No tolerance, deadline, oracle or repetition count was changed.
+
+**Executed:** merge and conflict resolution; `python3 tools/progress.py --write` and `--check`; the local runs above. Not executed: a new 64×50 matrix (it would fail `m3-ipc-four` again without a decision), K07, the aggregate and `tools/gate.sh`.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f clock check redesign — 11 November 2026
 
 **Source:** branch `codex/k06-5f-complete-20261109` (PR #296), on top of `9698c379`. The commit that carries this entry holds the change; the full-matrix dispatch is recorded in the PR.
 

@@ -1,0 +1,83 @@
+{
+  "accepted": false,
+  "run_id": 43057843393,
+  "run_url": "https://github.com/BaryonOS/BaryonOS/actions/runs/43057843393",
+  "tested_commit": "e398039e7d082f6b74e4073f8193366ce565c02e",
+  "runner": "GitHub-hosted ubuntu-26.04, 4 vCPUs (AMD EPYC 7763, 2 cores x 2 threads), QEMU machine pc-q35-10.0",
+  "jobs": {"total": 79, "success": 72, "failure": 3, "skipped": 4},
+  "failures": [
+    {
+      "job": "SMP soak 5/50 (shard 9)",
+      "job_id": 130652584205,
+      "artifact_id": 13875646583,
+      "artifact_zip_sha256": "0e40e4314fe6232c3b0be2dad628b2dfe693b6a88bd00f95c9ffa3976a4d7665",
+      "case": "m3-soak-four",
+      "passed": 4,
+      "repeat": 5,
+      "failed_iteration": 5,
+      "failure": "SMP_CLOCK_DRIFT",
+      "phase": "idle precision, every AP halted (spec 06 §4 revision of 11 November 2026)",
+      "raw_exit": 35,
+      "timed_out": false,
+      "tsc_per_ms": 2446856,
+      "segments": [
+        {"ticks": 1000, "tsc": 2472277414, "normalized_us": 1010389},
+        {"ticks": 1000, "tsc": 2459654464, "normalized_us": 1005230},
+        {"ticks": 1000, "tsc": 2454836202, "normalized_us": 1003261},
+        {"ticks": 1000, "tsc": 2476834662, "normalized_us": 1012251},
+        {"ticks": 1000, "tsc": 2484170638, "normalized_us": 1015250}
+      ],
+      "median_us": 1010389,
+      "expected_us": 999847,
+      "limit": "1% of expected, unchanged",
+      "observation": "Every segment counted exactly 1000 IRQ0 and lasted 0.34-1.54% longer than the PIT period on the PIT-calibrated TSC; the median is 1.05%. This is the lost-edge pattern described in CLOCK-INVESTIGATION.md (overdue PIT edges merge into one pending PIC IRR bit). The other 49 soaks and every other case passed the same idle check.",
+      "guest_defect_demonstrated": false,
+      "historical_cause_proven": false
+    },
+    {
+      "job": "SMP 50/50 (m3-ipc-four)",
+      "job_id": 130652595519,
+      "artifact_id": 13886852585,
+      "artifact_zip_sha256": "6a65da26f12fa997f13a59aaa8f6850c4e89cdc5b87038578a9107d11fbe46b1",
+      "case": "m3-ipc-four",
+      "passed": 0,
+      "repeat": 50,
+      "failure": "host watchdog IPC_TIMEOUT_S = 180 after SMP:M3:GO:CPUS=4",
+      "raw_exit": null,
+      "timed_out": true,
+      "repetition_wall_s": {"min": 180.48, "max": 180.52},
+      "observation": "No FAIL, PANIC or progress marker after GO. The IPC phase prints nothing until it completes, so the transcript cannot distinguish slow progress from a hang.",
+      "guest_defect_demonstrated": false
+    },
+    {
+      "job": "SMP section 9 aggregate 64x50",
+      "job_id": 130755114174,
+      "failure": "aggregate rejects the two failures above; the final gate is skipped"
+    }
+  ],
+  "comparison": {
+    "case": "m3-ipc-four-single (same kernel profile, single-thread TCG)",
+    "job_id": 130652593001,
+    "artifact_id": 13878718294,
+    "passed": 50,
+    "repeat": 50,
+    "repetition_wall_s": {"min": 71.12, "median": 72.94, "max": 83.76}
+  },
+  "local_reproduction": {
+    "host": "4 CPUs (Intel Xeon @ 2.10 GHz, no SMT), QEMU 8.2.2, machine pc-q35-8.2, source e398039e",
+    "command": "taskset -c <cpus> python3 -B -u tools/run_smp.py --case <case> --repeat 1",
+    "note": "Diagnostic counters and a 650 s watchdog were added in an uncommitted working copy only; none of these runs is acceptance evidence.",
+    "results": [
+      {"case": "m3-ipc-four", "tcg": "multi", "host_cpus": 4, "wall_s": 116.0, "result": "pass, unmodified source and 180 s watchdog"},
+      {"case": "m3-ipc-four", "tcg": "multi", "host_cpus": 4, "wall_s": 114.5, "result": "pass", "user_ticks_cpu1": 8761, "remote_wakes": 3314, "waits": 19961, "blocked": 3314, "immediate_ready": 16647, "wake_timeouts": 0, "endpoint_tick_preemptions": 2392, "endpoint_continuations_denied": 2585},
+      {"case": "m3-ipc-four", "tcg": "multi", "host_cpus": 3, "wall_s": 130.3, "result": "pass", "user_ticks_cpu1": 10306, "remote_wakes": 5563, "endpoint_tick_preemptions": 3044},
+      {"case": "m3-ipc-four", "tcg": "multi", "host_cpus": 2, "wall_s": 326.7, "result": "pass only because of the 650 s diagnostic watchdog; exceeds 180 s", "user_ticks_cpu1": 24816, "remote_wakes": 10351, "wake_timeouts": 0, "endpoint_tick_preemptions": 6199, "endpoint_continuations_denied": 4202},
+      {"case": "m3-ipc-four-single", "tcg": "single", "host_cpus": 4, "wall_s": 103.1, "result": "pass", "remote_wakes": 16980, "endpoint_tick_preemptions": 2116},
+      {"case": "m3-ipc-four-single", "tcg": "single", "host_cpus": 2, "wall_s": 108.7, "result": "pass", "remote_wakes": 16704, "endpoint_tick_preemptions": 2250}
+    ],
+    "refuted_hypothesis": "Giving the ordinary canary PAUSE hint on one pass in 64 instead of every pass (less MTTCG BQL churn) made the 2-CPU run slower: 431.9 s against 326.7 s. The change was reverted and is not part of any commit.",
+    "interpretation": "The 10 000 rounds complete with the unchanged oracle, zero wait timeouts and no FAIL marker. Under multi-thread TCG the IPC phase runs at about one round per scheduler tick on 4 host CPUs and about 0.37 round per tick on 2; the dominant cost is an endpoint preempted by its CPU's tick and requeued behind three CPU-bound canaries. Wall time therefore scales with host CPU capacity, while single-thread TCG stays near 100 s. The 180 s watchdog was derived from 71.8 s on a faster host (ADR-081 R3-5 addendum) and is below the completion time on the hosted 4-vCPU runner class."
+  },
+  "original_artifacts_preserved": false,
+  "artifact_note": "The compact report artifacts stay on GitHub for their 3-day retention only; this record keeps the IDs, ZIP digests and the values quoted above. No artifact was copied into the repository."
+}

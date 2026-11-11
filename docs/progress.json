@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-11",
-    "source_commit": "9698c3791df066dbba6208ad2f1e2a155e722870",
-    "assessment_basis": "working_tree",
+    "source_commit": "24d0d09a2913b6e60c35fb75c4993f1f0e531b5a",
+    "assessment_basis": "source_commit",
     "branch": "codex/k06-5f-complete-20261109",
-    "task": "K06 step 5f: clock check split into idle precision and load progress (Simon's decision, spec 06 §4 revision)",
+    "task": "K06 step 5f: diagnose rejected matrix run 43057843393 (soak clock drift, m3-ipc-four watchdog) and merge main into PR #296",
     "previous_score": 39,
-    "summary": "39/100 remains 39/100. The clock check now measures the 1% PIT precision with APs halted and only requires tick progress under AP load, by Simon's decision. Locally, the four and m4-quotas-four clock checks pass 5/5 at 3 and 2 host CPUs (previously 0/5). At 2 host CPUs, the unchanged ICR phase reported SMP:ICR:LOST once per case. K06 stays open until the full 64x50 matrix, K07, soaks, aggregate and final gate pass on GitHub."
+    "summary": "39/100 remains 39/100. Run 43057843393 on e398039e is rejected: soak shard 9 hit SMP_CLOCK_DRIFT in the idle phase once (median 1.05%, limit 1% unchanged) and m3-ipc-four failed 0/50 on the 180 s host watchdog while m3-ipc-four-single passed 50/50. Local runs show the IPC rounds complete with the unchanged oracle and that multi-thread TCG time scales with host CPUs (116 s on 4, 327 s on 2); no kernel defect is demonstrated. Main (incl. #307) is merged. K06 stays open pending an owner decision on the IPC watchdog or runner and a new full 64x50 matrix, K07, soaks, aggregate and final gate."
   },
   "tracks": [
     {
