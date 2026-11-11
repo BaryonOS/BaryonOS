@@ -1,221 +1,221 @@
-# Aanvullende uitvoerings- en productcontext — 30 oktober 2026
+# Supplementary execution and product context — 30 October 2026
 
-Deze normatieve aanvulling verwerkt de twintig secties van de aanvullende
-projectopdracht. Zij vult [FULL-TEST-RELEASE](FULL-TEST-RELEASE.md) aan;
-de oorspronkelijke volledige opdracht, `/goal`, architectuur, 62 stabiele
-acceptatie-ID's, uitgevoerde werkzaamheden en geldige brongebonden bewijzen
-blijven behouden. Zij is geen afzonderlijke roadmap of lagere releaseomvang.
+This normative supplement incorporates the twenty sections of the supplementary
+project brief. It supplements [FULL-TEST-RELEASE](FULL-TEST-RELEASE.md);
+the original full brief, `/goal`, architecture, 62 stable
+acceptance IDs, work performed and valid source-bound evidence
+are retained. It is not a separate roadmap or a reduced release scope.
 
-## Vergelijking met de actuele uitvoering
+## Comparison with the current execution
 
-Al vastgelegd: eigen Rust-kernel/microkernelrichting, capabilities/IPC/isolatie,
-Materiaal, volledige apps/NAS/AI/update/herstelomvang, optionele opaque externe
-opslag, onderscheid tussen bewijsniveaus en VM-FR versus smalle regressies.
-VM-FR is al pc-q35-8.2/Nehalem-v1/1vCPU/TCG/8GiB/32GiB sparse disk, met
-vastgelegde GOP/PS2/virtio-apparaten en aparte TPM2-CRB/swtpm-state.
+Already established: own Rust kernel/microkernel direction, capabilities/IPC/isolation,
+Materiaal, full apps/NAS/AI/update/recovery scope, optional opaque external
+storage, distinction between evidence levels, and VM-FR versus narrow regressions.
+VM-FR is already pc-q35-8.2/Nehalem-v1/1vCPU/TCG/8GiB/32GiB sparse disk, with
+fixed GOP/PS2/virtio devices and separate TPM2-CRB/swtpm state.
 
-Werkelijk uitgevoerd: native diensten/documenten/recordcrypto, eigen NIC met
-ARP/UDP/DNS, FPU/klok en nu TCP met protocoltegenpartij; recente bronversies
-staan in PROJECT-STATE. Dit zijn begrensde deelprofielen met plaintext
-testdisks/RAM-sleutels, geen veilige persistente productopslag of releaseimage.
-Native desktop, complete gebruikstaken en het volledige testpakket blijven open.
+Actually executed: native services/documents/record crypto, own NIC with
+ARP/UDP/DNS, FPU/clock and now TCP with a protocol peer; recent source versions
+are in PROJECT-STATE. These are bounded partial profiles with plaintext
+test disks/RAM keys, not secure persistent product storage or a release image.
+Native desktop, complete user tasks and the full test suite remain open.
 
-Concreet aangevuld: onderstaand taak-/compatibiliteitsregister, minimale
-formaatdekking, expliciete Chromium/Gecko-vergelijking, toegankelijkheidsdetails,
-TCB per eigenschap en de vaste honderd koude starts/24uur-productsessie.
-Lopende geheugen/allocator/TLS/entropy/RTC-taken nemen de relevante runtime-
-en beveiligingsvoorwaarden mee. UI-/appwerk blijft een verplichte integratieroute.
+Concretely added: the task/compatibility register below, minimum
+format coverage, explicit Chromium/Gecko comparison, accessibility details,
+TCB per property and the fixed hundred cold starts/24-hour product session.
+Ongoing memory/allocator/TLS/entropy/RTC tasks incorporate the relevant runtime
+and security conditions. UI/app work remains a mandatory integration route.
 
-## Vast product- en consumentencontract
+## Fixed product and consumer contract
 
-Nieuw OS moet hoogwaardig dagelijks gebruik ondersteunen voor communicatie,
-internet/dienstverlening, administratie/werk/studie/onderwijs, gaming/muziek/video,
-fotografie/ontwerp/creatie en uiteenlopende digitale vaardigheden/toegankelijkheid.
-Het Europese alternatief en de eigen kernel zijn strategische keuzes, geen
-bewijs van consumentenvoorkeur, technische superioriteit of veiligheid.
-Rust blijft hoofdtaal waar voorgeschreven. Geen bestaande hostkernel als vervanging.
-Verantwoord engine-/libraryhergebruik en hostgereedschappen zijn toegestaan;
-hostfunctionaliteit geldt niet als uitvoering door Nieuw OS.
+Nieuw OS must support high-quality daily use for communication,
+internet/services, administration/work/study/education, gaming/music/video,
+photography/design/creation and diverse digital skills/accessibility.
+The European alternative and the own kernel are strategic choices, not
+evidence of consumer preference, technical superiority or security.
+Rust remains the primary language where prescribed. No existing host kernel as a replacement.
+Responsible engine/library reuse and host tooling are permitted;
+host functionality does not count as execution by Nieuw OS.
 
-Consumentenliteratuur levert hypothesen, geen reeds gemeten Nieuw-OS-gebruik:
-noodzakelijke taken kunnen uitvoeren, merkbaar voordeel, begrijpelijk/herstelbaar
-proberen en overstappen, waargemaakte dagelijkse verwachtingen, begrijpelijke
-privacy/veiligheid en verzorging samen met betrouwbaarheid. Onderzoek afzonderlijk
-installatie op bestaande hardware, gebruik naast een bestaande omgeving en
-aanschaf van een ondersteunde computer: migratie, kosten, ondersteuning en herstel
-verschillen. Neem tevreden niet-overstappers serieus. Belangstelling, willen
-proberen, werkelijk kunnen overstappen en vrijwillig blijven gebruiken zijn
-afzonderlijke uitkomsten; downloads/positieve reacties/AI-review bewijzen geen
-retentie, marktaandeel, voorkeur of betalingsbereidheid. Geen verzonnen interviews.
+Consumer literature provides hypotheses, not already measured Nieuw OS usage:
+being able to perform necessary tasks, noticeable benefit, understandable/recoverable
+trying out and switching, met daily expectations, understandable
+privacy/security, and care together with reliability. Research separately
+installation on existing hardware, use alongside an existing environment and
+purchase of a supported computer: migration, costs, support and recovery
+differ. Take satisfied non-switchers seriously. Interest, wanting to
+try, actually being able to switch and voluntarily continuing to use are
+separate outcomes; downloads/positive reactions/AI review do not prove
+retention, market share, preference or willingness to pay. No fabricated interviews.
 
-## Complete gebruikstaken en harde belemmeringen
+## Complete user tasks and hard blockers
 
-Alle rijen hieronder zijn open. VM-FR/HW-FR zijn doelen, geen actuele
-ondersteuningsclaim. Elke uitvoering vult concrete app/site/account/bestand/device-
-versies, beginsituatie, grenzen, configuratie en bewijs in. Producttests gebruiken
-eigen fixtures/testtegenpartijen; echte accounts, inhoud, apparaten of ingrijpende
-handelingen vereisen de bestaande gerichte autorisatie. Een noodzakelijke
-ontbrekende app/game/device/toegankelijkheidsfunctie blijft een zichtbare harde
-overstapbelemmering, ook als andere gemiddelden gunstig zijn.
+All rows below are open. VM-FR/HW-FR are targets, not a current
+support claim. Each execution fills in concrete app/site/account/file/device
+versions, initial situation, limits, configuration and evidence. Product tests use
+own fixtures/test peers; real accounts, content, devices or drastic
+actions require the existing targeted authorisation. A necessary
+missing app/game/device/accessibility function remains a visible hard
+switching blocker, even if other averages are favourable.
 
-| ID en doel/beginsituatie | Benodigdheden en normale uitkomst | Fouten/herstel | Bevoegdheden | Configuratie/bewijs en FR-koppeling |
+| ID and goal/initial situation | Requirements and normal outcome | Errors/recovery | Permissions | Configuration/evidence and FR mapping |
 |---|---|---|---|---|
-| UC01 document ontvangen→bewerken→school/werk sturen | Concrete communicatiebron, editor, UTF8/afgesproken uitwisselformaat; inhoud/metadata behouden, bewerken/bewaren/exporteren/verzenden | Corrupt/groot bestand, conflict, offline, onbekende opslaguitkomst; herstel zonder valse ACK | Alleen gekozen bron/object/save/export/bestemming | VM-FR/HW-FR; native gehele keten, onafhankelijke bytes/coldreopen; A01,A02,A13,O01–O07,N01–N04 |
-| UC02 bankieren/overheidsdienst | Benoemde ondersteunde site/browser, testaccount en toepasselijke authenticatie; complete representatieve taak | TLS/identiteit/certtijd/verbinding/cancel; geen onbedoelde transactie of stille retry | Benoemde bestemming, expliciete credential-/apparaatgrants; geen echte financiële handeling als automatische test | Native browser/transport/taakbewijs, externe compatibiliteit afzonderlijk; A05,N01–N04,B04 |
-| UC03 videobellen | Benoemde app/site/versie, camera/mic/audio en gecontroleerde gesprekspartner | Rechtenweigering/intrekking, deviceverlies, mute/stop/offline/herstel | Afzonderlijke camera/mic/audio/netwerkgrants | VM-FR waar beschikbaar plus HW-FR; hoorbare/zichtbare uitvoering, latency en intrekking; H01–H03,A05,A06,N04 |
-| UC04 foto's importeren→selecteren→bewerken→delen→terugvinden | Concrete bron/apparaat, PNG/JPEG, Materiaal en editor; kwaliteit/metadata/ordening behouden | Grote/corrupte foto, vol volume, verkeerde revisie, offline delen, herstel | Gekozen importbron, objecten, export/deelbestemming | Native hele keten, onafhankelijke referentiebeelden en coldreopen; A01,A03,A13,O01–O07 |
-| UC05 creatief project correct opleveren | Benoemde toepassing/versie/project, fonts/plugins/gekoppelde bestanden, collega's en export/printdoel | Ontbrekende afhankelijkheid, getrouwheids-/kleur-/exportfout en herstel | Geselecteerd project, graphics/audio/devices en gecontroleerde uitwisseling | Benoemde combinatie/taakgetrouwheid/prestatie; geen algemene suiteclaim; A13–A15,H02,O07 |
-| UC06 specifieke game met vrienden | Titel/versie/launcher/account/install/aankopen/saves/multiplayer/chat/controller/headset | Install-/save-/verbinding-/anti-cheat-/DRM-probleem; geen hostbeveiliging verlagen | Begrensde eigen opslag/netwerk/venster/input/audio/devices | Exacte combinatie en voorwaarden, FPS/framepacing/inputlatency/stabiliteit; compatibiliteitsregister, H01–H03,A11–A12,N04 |
-| UC07 bestanden overzetten→coldreopen | Benoemde bron/bestanden/formaten, import/export/volume; exacte inhoud terugvinden | Deelwrite, vol, corruptie, offline, conflict/onzekere ACK; bevestigde bytes behouden | Alleen geselecteerde bron/doel/objecten | Koude nieuwe VM, onafhankelijk bytes/orakel; O01–O07,R01 |
-| UC08 fout herstellen zonder onduidelijk verlies | Benoemde fout, historie/back-up/recovery/update en bekende gegevens | Stroomonderbreking, sleutel-/anker-/slotverlies, mislukte update | Gescopeerde herstelautoriteit, expliciet downgradebeleid | Wegwerpimages/disk+afzonderlijkeTPM-state, echte recovery en gebruikersdatacontrole; B01–B03,O04–O06,R01 |
-| UC09 zelfstandig toegankelijk werken | Keyboard-only of echte schermlezer, native semantiek/status, 200% en passende input | Focusval, verloren status, kleurafhankelijkheid, schaal/lange tekst, herstel | Afgebakende accessibility-/focus-/surfacegrants | Werkelijk gerenderd en bediend, menselijke beoordeling waar vereist; U01–U05,R01 |
+| UC01 receive document→edit→send to school/work | Concrete communication source, editor, UTF8/agreed exchange format; content/metadata preserved, edit/save/export/send | Corrupt/large file, conflict, offline, unknown storage outcome; recovery without false ACK | Only chosen source/object/save/export/destination | VM-FR/HW-FR; native entire chain, independent bytes/cold reopen; A01,A02,A13,O01–O07,N01–N04 |
+| UC02 banking/government service | Named supported site/browser, test account and applicable authentication; complete representative task | TLS/identity/cert time/connection/cancel; no unintended transaction or silent retry | Named destination, explicit credential/device grants; no real financial action as an automated test | Native browser/transport/task evidence, external compatibility separately; A05,N01–N04,B04 |
+| UC03 video calling | Named app/site/version, camera/mic/audio and controlled call partner | Permission denial/revocation, device loss, mute/stop/offline/recovery | Separate camera/mic/audio/network grants | VM-FR where available plus HW-FR; audible/visible execution, latency and revocation; H01–H03,A05,A06,N04 |
+| UC04 import photos→select→edit→share→find again | Concrete source/device, PNG/JPEG, Materiaal and editor; quality/metadata/ordering preserved | Large/corrupt photo, full volume, wrong revision, offline sharing, recovery | Chosen import source, objects, export/share destination | Native entire chain, independent reference images and cold reopen; A01,A03,A13,O01–O07 |
+| UC05 deliver creative project correctly | Named application/version/project, fonts/plugins/linked files, colleagues and export/print target | Missing dependency, fidelity/colour/export error and recovery | Selected project, graphics/audio/devices and controlled exchange | Named combination/task fidelity/performance; no general suite claim; A13–A15,H02,O07 |
+| UC06 specific game with friends | Title/version/launcher/account/install/purchases/saves/multiplayer/chat/controller/headset | Install/save/connection/anti-cheat/DRM problem; no lowering of host security | Bounded own storage/network/window/input/audio/devices | Exact combination and conditions, FPS/frame pacing/input latency/stability; compatibility register, H01–H03,A11–A12,N04 |
+| UC07 transfer files→cold reopen | Named source/files/formats, import/export/volume; find exact content again | Partial write, full, corruption, offline, conflict/uncertain ACK; confirmed bytes preserved | Only selected source/target/objects | Cold new VM, independent bytes/oracle; O01–O07,R01 |
+| UC08 recover from error without unclear loss | Named error, history/backup/recovery/update and known data | Power interruption, key/anchor/slot loss, failed update | Scoped recovery authority, explicit downgrade policy | Disposable images/disk+separate TPM state, real recovery and user data check; B01–B03,O04–O06,R01 |
+| UC09 work independently with accessibility | Keyboard-only or real screen reader, native semantics/status, 200% and suitable input | Focus trap, lost status, colour dependency, scale/long text, recovery | Bounded accessibility/focus/surface grants | Actually rendered and operated, human assessment where required; U01–U05,R01 |
 
-## Materiaal, formats en compatibiliteit
+## Materiaal, formats and compatibility
 
-Materiaal houdt objecten herkenbaar; direct apps openen blijft mogelijk. Namen,
-ordening, openen/bewerken/bewaren/delen, locatie/historie/rechten, voortgang en
-werkelijke annulering zijn consequent. Opgeslagen/bezig/mislukt blijven verschillend;
-geen stil verlies. Meldingen/onderbrekingen zijn regelbaar; kernfuncties werken
-zonder AI, NAS of internet. Vernieuwing maakt gewone taken niet onnodig moeilijk.
-Eén onderhoudbare bron voor native tokens/componenten inclusief toegankelijkheids-
-semantiek, typografie, iconen, spacing, focus/selectie, fouten en beweging.
-Iconen blijven herkenbaar. Keyboardfocus/schermlezerstatus, contrast/leesbaarheid,
-lange teksten, 200%, reduced motion en informatie zonder kleur zijn releasevoorwaarden.
-Toegankelijkheidsrechten en de beveiligingsgrens worden samen ontworpen.
+Materiaal keeps objects recognisable; opening apps directly remains possible. Names,
+ordering, open/edit/save/share, location/history/permissions, progress and
+actual cancellation are consistent. Saved/in progress/failed remain distinct;
+no silent loss. Notifications/interruptions are controllable; core functions work
+without AI, NAS or internet. Innovation does not make ordinary tasks unnecessarily hard.
+One maintainable source for native tokens/components including accessibility
+semantics, typography, icons, spacing, focus/selection, errors and motion.
+Icons remain recognisable. Keyboard focus/screen reader status, contrast/legibility,
+long texts, 200%, reduced motion and information without colour are release conditions.
+Accessibility permissions and the security boundary are designed together.
 
-Alle bestaande basisapps plus tabel-/presentatiemateriaal blijven verplicht.
-Minimale formaatdekking: UTF8, PNG/JPEG, PDF, WAV/FLAC/MP3, MP4(H264/AAC) en
-WebM(VP9/Opus). Per formaat worden lezen/schrijven/bewerkingen/profielen,
-inhoud/metadata, corruptie/grootte/unsupportedvarianten en referentieresultaten
-concreet vastgelegd vóór aftekening. Een extensie of startend venster bewijst
-geen volledige ondersteuning. Parsers/codecs/engines krijgen onderhouds-,
-licentie-, dependency/buildscript-, target-, resource- en isolatiecontrole.
+All existing base apps plus spreadsheet/presentation material remain mandatory.
+Minimum format coverage: UTF8, PNG/JPEG, PDF, WAV/FLAC/MP3, MP4(H264/AAC) and
+WebM(VP9/Opus). Per format, read/write/edit operations/profiles,
+content/metadata, corruption/size/unsupported variants and reference results are
+concretely recorded before sign-off. An extension or a window that starts does not prove
+full support. Parsers/codecs/engines get maintenance,
+licence, dependency/build script, target, resource and isolation review.
 
-| Compatibiliteitsregister | Verplichte vastlegging vóór een claim | Toestand |
+| Compatibility register | Mandatory record before a claim | State |
 |---|---|---|
-| COMP01 benoemde gamecombinatie | UC06 plus native port/API-ABIlaag/runtime/gastkeuze, titel/versie, voorwaarden en alle functionele/prestatieblokkades | Gewenst concreet doel nog te benoemen; geen universele gamestore/anti-cheatbelofte |
-| COMP02 benoemde professionele creatieve combinatie | UC05 plus projectgetrouwheid/fonts/plugins/links/kleurbeheer/GPU/randapparaten/collega-export/print | Gewenst concreet doel nog te benoemen; geen Adobe/Windows-suitecompatibiliteitsclaim |
-| COMP03 compatibiliteitsomgeving | Werkelijk afgedwongen grens, onderhoud/runtime, onderlinge apps in gedeelde gast, geselecteerde portals/netwerk/surfaces/input/audio/devices/print | Optioneel ontwerpbesluit vereist; gastkernel vervangt hostkernel niet |
+| COMP01 named game combination | UC06 plus native port/API-ABI layer/runtime/guest choice, title/version, conditions and all functional/performance blockers | Desired concrete target still to be named; no universal game store/anti-cheat promise |
+| COMP02 named professional creative combination | UC05 plus project fidelity/fonts/plugins/links/colour management/GPU/peripherals/colleague export/print | Desired concrete target still to be named; no Adobe/Windows suite compatibility claim |
+| COMP03 compatibility environment | Actually enforced boundary, maintenance/runtime, mutual apps in shared guest, selected portals/network/surfaces/input/audio/devices/print | Optional design decision required; guest kernel does not replace host kernel |
 
-Gaming/professionele creatie blijven expliciet zichtbaar; de prioriteit is het
-bruikbare OS. Geen automatische opdracht om volledige creatieve suites opnieuw
-te bouwen of onbeperkte universele compatibiliteit af te tekenen. Een laag is
-geen isolatiebewijs; gedeelde gast kan een gezamenlijke vertrouwensruimte zijn.
-Geen algemene hostrechten of hostbeveiligingsverlaging voor compatibiliteit.
-Gegevensoverdracht verloopt via begrensde open/save/klembord/drag/printportalen.
+Gaming/professional creation remain explicitly visible; the priority is the
+usable OS. No automatic mandate to rebuild full creative suites
+or to sign off unlimited universal compatibility. A layer is
+not evidence of isolation; a shared guest can be a joint trust domain.
+No general host permissions or lowering of host security for compatibility.
+Data transfer goes through bounded open/save/clipboard/drag/print portals.
 
-## Veiligheid, vertrouwen en gegevensstromen
+## Security, trust and data flows
 
-Definieer de TCB per eigenschap: boot/initialisatie/kernel, policybroker,
-sleutelbeheer, compositor en relevante hardware kunnen mede vertrouwd zijn.
-Kleine kernel/LOC/Rust bewijzen geen veiligheid; controleer unsafe/FFI/veilige
-abstracties en logica/races/deadlocks/autorisatie. Formele eigenschappen/aannames,
-tests en review blijven onderscheiden; geen geërfde seL4-bewijzen of absoluteclaims.
-Een overgenomen component blijft binnen expliciete begin-, object-, domein-,
-operatie-, delegatie-/intrekkings-/lifetime- en middelenrechten. IPC/sharedmemory
-controleert grenzen/overflow/pointers/alignment/ownership/TOCTOU/replybinding/
-cancel/deadline/cleanup. Zero-copy alleen met bewezen passende lifetimes.
-W^X/geheugen/proces-/FPU/SSE-isolatie en begrensde wachtrijen/quota blijven aan.
-Lezen plus netwerk kan toegestane verzending mogelijk maken: leg gecombineerde
-rechten uit. Intrekking blokkeert toekomstige toegang, haalt oude kopieën niet terug.
+Define the TCB per property: boot/initialisation/kernel, policy broker,
+key management, compositor and relevant hardware may be co-trusted.
+Small kernel/LOC/Rust do not prove security; check unsafe/FFI/safe
+abstractions and logic/races/deadlocks/authorisation. Formal properties/assumptions,
+tests and review remain distinguished; no inherited seL4 proofs or absolute claims.
+An adopted component remains within explicit initial, object, domain,
+operation, delegation/revocation/lifetime and resource permissions. IPC/shared memory
+checks bounds/overflow/pointers/alignment/ownership/TOCTOU/reply binding/
+cancel/deadline/cleanup. Zero-copy only with proven suitable lifetimes.
+W^X/memory/process/FPU/SSE isolation and bounded queues/quotas remain on.
+Read plus network can enable permitted transmission: explain combined
+permissions. Revocation blocks future access; it does not retrieve old copies.
 
-Drivers zijn volgens architectuur geïsoleerd; voorlopige kerneltransporten en
-resterend vertrouwen expliciet. Userspacedriver betekent geen DMA-isolatie:
-IOMMU/groepen/topologie/IRQ/bufferlevensduur, crash/reset/no-ACK/revoke/reuse
-zijn concrete gates. Ontbrekende isolatie betekent zichtbare beperking/weigering,
-geen garantie. Softwarecompositie blijft basis; GPUversnelling is afzonderlijke
-technische opgave, geen verplichte tweeGPU-consumentenconfiguratie. Meet juiste
-hardware; beveilig focus/input/surfaces/capture/klembord/overdracht. Vertrouwde
-prompts zijn herkenbaar buiten kleur. Isolatie van onbetrouwbare media/documenten
-en opstart/cleanupkosten meetbaar; geen onbewezen onmiddellijke restvernietiging.
-Timing/cache/SMT/hardwarezijkanalen zijn afzonderlijke vragen, geen algemene garanties.
+Drivers are isolated according to the architecture; provisional kernel transports and
+remaining trust are explicit. Userspace driver does not mean DMA isolation:
+IOMMU/groups/topology/IRQ/buffer lifetime, crash/reset/no-ACK/revoke/reuse
+are concrete gates. Missing isolation means a visible limitation/refusal,
+not a guarantee. Software composition remains the baseline; GPU acceleration is a separate
+technical task, not a mandatory two-GPU consumer configuration. Measure on the right
+hardware; secure focus/input/surfaces/capture/clipboard/transfer. Trusted
+prompts are recognisable without relying on colour. Isolation of untrusted media/documents
+and startup/cleanup costs are measurable; no unproven immediate residue destruction.
+Timing/cache/SMT/hardware side channels are separate questions, not general guarantees.
 
-## Opslag, netwerk, crypto, AI en herstel
+## Storage, network, crypto, AI and recovery
 
-Lokaal/eigenNAS/gedeeldeNAS blijven mogelijk; externeprovider alleen expliciet
-gekozen client-side opaque ciphertext, zonder inhoudssleutels/plaintext/gevoelige
-manifests. Encrypt ook namen/gevoelige metadata vóór provideradapter; credentials
-gescheiden. Geen verplichte leverancieraccount/cloud, escrow/stille fallback/
-OStelemetrie/externe systeeminferentie. Eigenprovideraccount verleent geen OSrechten.
-Client/NASrollen: beheerder beheert quota/blokkeert/verwijdert eigen gastkopieën
-zonder gastdecryptiesleutel/toestemming; geen inhoudslezen of wissen op andere
-apparaten. Duurzame keys/unlock/rotatie/herstel, contextgeauthenticeerde objecten/
-manifests, transacties/ACKs, offline/resume/conflicten, gedeeltelijke uploads/
-revoke, import/export/onafhankelijke back-up blijven verplicht. Encryptie garandeert
-geen beschikbaarheid/anonimiteit/herstel; grootte/timing/verbindingsmetadata kunnen
-zichtbaar zijn, sync is geen back-up. LAN/naam/privateIP is geen authenticatie.
-Herhaal binnen verleende rechten automatisch; nieuw vertrouwen/ruimere rechten/
-ingrijpende handeling vraagt opnieuw de relevante autorisatie.
+Local/own NAS/shared NAS remain possible; external provider only explicitly
+chosen client-side opaque ciphertext, without content keys/plaintext/sensitive
+manifests. Also encrypt names/sensitive metadata before the provider adapter; credentials
+separated. No mandatory vendor account/cloud, escrow/silent fallback/
+OS telemetry/external system inference. An own provider account grants no OS permissions.
+Client/NAS roles: the administrator manages quota/blocks/deletes their own guest copies
+without guest decryption key/consent; no reading of content or wiping on other
+devices. Durable keys/unlock/rotation/recovery, context-authenticated objects/
+manifests, transactions/ACKs, offline/resume/conflicts, partial uploads/
+revoke, import/export/independent backup remain mandatory. Encryption does not guarantee
+availability/anonymity/recovery; size/timing/connection metadata may be
+visible, sync is not backup. LAN/name/private IP is not authentication.
+Retry automatically within granted permissions; new trust/broader permissions/
+drastic action again requires the relevant authorisation.
 
-Netwerk omvat driver/config/routes/IP/TCP/UDP/DNS/tijd/geauthenticeerdtransport/
-proces-bestemmingsrechten. Host is uitsluitend tegenpartij. Geschikte entropy en
-onderhouden crypto, geen voorspelbare productseed/eigenprimitief. Scheid inhouds-
-encryptie/KEM/signatuur/keybeheer/bootverify/meting. ML-KEM is geheimovereenkomst,
-ML-DSA handtekening, geen toegangspolitiek. Hybride/PQC/bootcontract blijft aan;
-bij vereiste dubbele signatures is één onvoldoende. Crypto blijft waar passend
-buiten kernel, boot in expliciete boot-TCB. Updates: authenticiteit/integriteit,
-key/algoritmerotatie, slots/atomische activatie, elke onderbreking, expliciete
-downgrade en offlineherstel met gegevensbescherming. Antirollback en herstel
-samen testen: TPM2-CRB met eigen swtpm-state, disk/ankertransacties, ankerverlies/
-herstel. Hostrollback van zowel disk als TPM valt buiten deze VMgarantie.
-Geen secrets in bronnen/gewone logs/foutmeldingen/testarchieven.
+Network comprises driver/config/routes/IP/TCP/UDP/DNS/time/authenticated transport/
+process-destination permissions. The host is exclusively a peer. Suitable entropy and
+maintained crypto, no predictable product seed/own primitive. Separate content
+encryption/KEM/signature/key management/boot verification/measurement. ML-KEM is secret agreement,
+ML-DSA is a signature, not access policy. Hybrid/PQC/boot contract remains on;
+where dual signatures are required, one is insufficient. Crypto remains, where appropriate,
+outside the kernel, boot in an explicit boot TCB. Updates: authenticity/integrity,
+key/algorithm rotation, slots/atomic activation, every interruption, explicit
+downgrade and offline recovery with data protection. Test anti-rollback and recovery
+together: TPM2-CRB with its own swtpm state, disk/anchor transactions, anchor loss/
+recovery. Host rollback of both disk and TPM falls outside this VM guarantee.
+No secrets in sources/ordinary logs/error messages/test archives.
 
-AI is optioneel, werkelijk lokaal, zonder direct LAN/internet; expliciete context,
-CPU/geheugen/uitvoerquota, annulering en beperkte actiebrokers. Document/modeluitvoer
-verleent geen autoriteit. Afzonderlijke downloader alleen gekozen modellen, geen
-persoonlijke documenten/index/prompt/NASkeys. Herkomst/licentie/integriteit/parser/
-resources/target van model en engine toetsen. Ontbrekend model/capaciteit:
-begrijpelijke beperking/queue/kleiner ondersteund lokaal model/AIuit; geen externe
-inferencefallback. Kernfuncties blijven bruikbaar. Expliciete versleutelde AIback-up
-mag volgens opslagcontract; NAS/provider worden daardoor geen inferentiedienst.
+AI is optional, genuinely local, without direct LAN/internet; explicit context,
+CPU/memory/output quotas, cancellation and restricted action brokers. Document/model output
+grants no authority. A separate downloader fetches only chosen models, no
+personal documents/index/prompt/NAS keys. Assess provenance/licence/integrity/parser/
+resources/target of model and engine. Missing model/capacity:
+understandable limitation/queue/smaller supported local model/AI off; no external
+inference fallback. Core functions remain usable. Explicit encrypted AI backup
+is allowed under the storage contract; NAS/provider do not thereby become an inference service.
 
-## Uitvoering, bewijs en eindpakket
+## Execution, evidence and final package
 
-Behoud de Chromium/Gecko-vergelijking vóór enginebesluit. Concrete browser- en
-inferenceversies moeten runtime/toolchain/geheugen/threading/FS/net/graphics/CPU/
-sandbox/resources/onderhoud aantonen. Targetproeven tonen echte lokale pagina of
-modeluitvoering; hostproef apart. Vroege keten boot→nativeUI→input→app→veilig
-bewaren→afsluiten→coldreopen is tussenmijlpaal, geen lagere eindscope. Native
-quantumfunctie behouden; fysiekeQPU/CHERI/extraISA afzonderlijk bestaand onderzoek.
+Retain the Chromium/Gecko comparison before the engine decision. Concrete browser and
+inference versions must demonstrate runtime/toolchain/memory/threading/FS/net/graphics/CPU/
+sandbox/resources/maintenance. Target trials show a real local page or
+model execution; host trial separately. The early chain boot→native UI→input→app→secure
+save→shutdown→cold reopen is an interim milestone, not a reduced final scope. Native
+quantum function retained; physical QPU/CHERI/extra ISA are separate existing research.
 
-Maximale nuttige echte agents met exacte basis, exclusieve files/worktree/outputs,
-interface/afhankelijkheden/acceptatie/oplevering. Root bezit sharedABI/workspaces/
-build/status/Git en integratie. Hergebruik caches, behoud werk, geen algemene
-heraudit/reinstall zonder concrete reden. Workerpass is geen geïntegreerdepass.
-Git volgens bestaande autorisatie/branchregels; controleer daadwerkelijke remote.
+Maximum useful real agents with exact base, exclusive files/worktree/outputs,
+interface/dependencies/acceptance/delivery. Root owns shared ABI/workspaces/
+build/status/Git and integration. Reuse caches, preserve work, no general
+re-audit/reinstall without concrete reason. A worker pass is not an integrated pass.
+Git according to existing authorisation/branch rules; verify the actual remote.
 
-Bewijsniveaus: ontwerp, hostprototype, hosttest, targetbuild, eigenkernel-QEMU,
-geïntegreerde gebruikershandeling, fysieke test, menselijk onderzoek/review en
-formeel bewijs. Geen onderlinge vervanging. Regressieprofiel behouden; VM-FR
-alleen wijzigen met gemotiveerd besluit, éénCPU bewijst geen SMP, TCG geen fysieke
-game-/AI-prestatie. Test verkeerde/grants/context/generatie/identiteit, corruptie/
-overflow/grootte/vol/OOM, proces/driver/servicecrash, I/O/resetnoACK, netwerk/cert,
-transactie/powercut/staleaanvraag, key-/updateverlies, conflicten/Unknown-ACK.
-Timeout alleen groen als het bedoelde negatieve gedrag echt is vastgesteld.
-Werkelijk renderen én bedienen, schalen/accessibility/fout/herstel. Budgetten vóór
-aftekenen vastzetten; geen gunstige metingen of achteraf verschoven grenzen.
-**Honderd koude starts en 24uur gecombineerde productsessie** zodra stabiele
-integratedimage beschikbaar; de verplichting blijft nu open, nooit verkorten
-tot snelle deelproeven. Exact commit/config/tools/deps/model/assets/commando/exit/
-loader-kernel-imagehash/log/meting binden, na laatste relevante wijziging herhalen.
-Freeze tijdens tests; CI geldt alleen eigencommit, overgeslagenreview is geenreview,
-AIreview vervangt geen menselijke gate.
+Evidence levels: design, host prototype, host test, target build, own-kernel QEMU,
+integrated user action, physical test, human research/review and
+formal proof. No mutual substitution. Retain the regression profile; change VM-FR
+only with a reasoned decision, single CPU does not prove SMP, TCG does not prove physical
+game/AI performance. Test wrong/grants/context/generation/identity, corruption/
+overflow/size/full/OOM, process/driver/service crash, I/O/reset no-ACK, network/cert,
+transaction/power cut/stale request, key/update loss, conflicts/Unknown-ACK.
+A timeout is green only if the intended negative behaviour has actually been established.
+Actually render and operate, scaling/accessibility/error/recovery. Fix budgets before
+sign-off; no favourable measurements or limits shifted after the fact.
+**Hundred cold starts and a 24-hour combined product session** as soon as a stable
+integrated image is available; the obligation remains open now, never shorten
+to quick partial trials. Bind exact commit/config/tools/deps/model/assets/command/exit/
+loader-kernel-image hash/log/measurement, repeat after the last relevant change.
+Freeze during tests; CI counts only for its own commit, skipped review is not review,
+AI review does not replace a human gate.
 
-Eén voortgangsketen, ongewijzigde rubric/eindscope/gewichten; defecten zichtbaar,
-extra tests verdienen niet automatisch punten. Autonoom doorgaan met volgende
-onafhankelijke stap; maximaal één noodzakelijke productverduidelijking wanneer
-werkelijk blokkerend. Fysieke/destructieve/productiedata/credentials/betaalde/
-publicatiegrenzen respecteren, reviewbaar pakket voorbereiden en onafhankelijk
-doorwerken. Bij echte sessie/context/tool/quotalimiet exacte commit/worktrees/dirt/
-artifacts/bewijs/tests/actieve/open taken/hervatcommando bewaren; geen latere
-uitvoering beloven. Alleen compleet geslaagd eindpakket heet volwaardige testrelease:
-bron, werkelijk geteste image, reproduceerbare bouw, start/herstel/update, Nederlandse
-handleiding, configuraties, matrix/bewijs/beperkingen en fout-/logroute.
+One progress chain, unchanged rubric/final scope/weights; defects visible,
+extra tests do not automatically earn points. Continue autonomously with the next
+independent step; at most one necessary product clarification when
+actually blocking. Respect physical/destructive/production data/credentials/paid/
+publication boundaries, prepare a reviewable package and continue working
+independently. On a real session/context/tool/quota limit, preserve exact commit/worktrees/dirt/
+artifacts/evidence/tests/active/open tasks/resume command; do not promise later
+execution. Only a completely passed final package is called a full test release:
+source, actually tested image, reproducible build, start/recovery/update, Dutch-language
+manual, configurations, matrix/evidence/limitations and error/log route.
 
-Primaire beslisankers blijven seL4 proofs/assumptions/capabilities, Rust Nomicon
-races, Linux VFIO/IOMMU, Qubes FAQ, LionsOS verificatiestatus en NIST FIPS203/204
-zoals vastgelegd in de projectopdracht. Raadpleeg toepasselijke versies gericht; deze
-bronnen leveren geen implementatie, kernelvervanging of geërfd bewijs op.
+Primary decision anchors remain seL4 proofs/assumptions/capabilities, Rust Nomicon
+races, Linux VFIO/IOMMU, Qubes FAQ, LionsOS verification status and NIST FIPS203/204
+as recorded in the project brief. Consult applicable versions in a targeted way; these
+sources yield no implementation, kernel replacement or inherited proof.
 
 
 - https://sel4.systems/Verification/proofs
