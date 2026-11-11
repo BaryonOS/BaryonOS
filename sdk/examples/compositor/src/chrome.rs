@@ -174,7 +174,9 @@ fn glyph(text: &str, x: u32, y: u32, px: u32, py: u32, background: u32, color: u
                 return blend(
                     background,
                     color,
-                    raster.raster()[(py - y) as usize][(px - left) as usize],
+                    raster
+                        .pixel((px - left) as usize, (py - y) as usize)
+                        .unwrap_or(0),
                 );
             }
             left += width;
