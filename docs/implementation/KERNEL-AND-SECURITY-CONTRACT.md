@@ -1,135 +1,135 @@
-# Uitvoerbaar kernel- en beveiligingscontract M2–M4
+# Executable kernel and security contract M2–M4
 
-Datum: 26 oktober 2026. Status: **gekozen implementatiebasis, nog niet geïmplementeerd of in QEMU getest**. Dit document sluit de architectuurkeuzes voor de eerste isolatie- en capabilityproeven. De builder voert ze uit; opnieuw algemeen onderzoek doen is geen voorwaarde. Herziening vraagt een concrete tegenvoorbeeldtest, incompatibiliteit of gemeten probleem, plus een besluit met migratiepad.
+Date: 26 October 2026. Status: **chosen implementation basis, not yet implemented or tested in QEMU**. This document settles the architecture choices for the first isolation and capability trials. The builder carries them out; doing general research again is not a precondition. Revision requires a concrete counterexample test, incompatibility or measured problem, plus a decision with a migration path.
 
-Dit is een eigen Rust-microkernel. seL4 dient als openbare kennisbron voor capabilities, niet als onderliggende kernel, overgenomen ABI of veiligheidsbewijs. De bron beschrijft capabilities als rechten op kernelobjecten; de precieze tabellen, grenzen en protocollen hieronder zijn **eigen projectkeuzes** [K3]. Ook de seL4-bewijzen hebben expliciete aannames en gelden uitsluitend voor de daar beschreven configuraties [K4].
+This is an own Rust microkernel. seL4 serves as a public knowledge source for capabilities, not as an underlying kernel, adopted ABI or security proof. The source describes capabilities as rights to kernel objects; the precise tables, limits and protocols below are **own project choices** [K3]. The seL4 proofs too have explicit assumptions and apply exclusively to the configurations described there [K4].
 
-## 1. Vaste eerste configuratie
+## 1. Fixed first configuration
 
-| Onderdeel | Besluit |
+| Component | Decision |
 |---|---|
-| Machine | Het M1-profiel: QEMU q35, TCG, x86_64, één CPU, 256 MiB RAM, geen netwerk of hostschijf |
-| Kernel | Rust `no_std`, `panic=abort`, `x86_64-unknown-none`, `code-model=small`; minimale assembly |
-| Bootcompatibiliteit | Bestaande M1 `BootInfo` v1.1, 128 bytes; fysieke pointers; kernel VA=PA=`0x02000000`, gereserveerd bereik 32–48 MiB |
-| Paginaformaat | Eigen vierlaags paging, uitsluitend 4 KiB-pagina's; geen huge pages, PCID, demand paging of userspace-MMIO |
-| Processen | Maximaal 16 processen; precies één thread per adresruimte; geen gedeeld gebruikersgeheugen |
-| Executables | Eigen kleine statische ELF64-testprogramma's, System V-aanroepconventie, geen hostlibc, TLS of dynamische linker |
-| Kernelobjecten M4 | Alleen endpoints en capabilitynodes; geen algemene object-, frame- of procesaanmaak door apps |
-| Aanmaak | Een begrensd, ingebouwd testmanifest maakt processen, geheugen en endpoints; later vervangt een afzonderlijke beheerservice dit |
-| API | Eigen ABI versie 1, registergebaseerde syscalls via `int 0x80`; begrensde, niet-blokkerende IPC |
+| Machine | The M1 profile: QEMU q35, TCG, x86_64, one CPU, 256 MiB RAM, no network or host disk |
+| Kernel | Rust `no_std`, `panic=abort`, `x86_64-unknown-none`, `code-model=small`; minimal assembly |
+| Boot compatibility | Existing M1 `BootInfo` v1.1, 128 bytes; physical pointers; kernel VA=PA=`0x02000000`, reserved range 32–48 MiB |
+| Page size | Own four-level paging, exclusively 4 KiB pages; no huge pages, PCID, demand paging or userspace MMIO |
+| Processes | At most 16 processes; exactly one thread per address space; no shared user memory |
+| Executables | Own small static ELF64 test programs, System V calling convention, no host libc, TLS or dynamic linker |
+| Kernel objects M4 | Only endpoints and capability nodes; no general object, frame or process creation by apps |
+| Creation | A bounded, built-in test manifest creates processes, memory and endpoints; later a separate management service replaces this |
+| API | Own ABI version 1, register-based syscalls via `int 0x80`; bounded, non-blocking IPC |
 
-De Rust-targetdocumentatie bevestigt dat deze target geen `std`/standaardallocator heeft, standaard geen vector- of floatingpointregisters gebruikt en standaard het `kernel`-codemodel kiest. Daarom is `small` hier een expliciete override voor de lage adressen [K2]. Kernel en eerste userprogramma's gebruiken dezelfde scalar-codegeneratie; extra target-features zijn niet toegestaan in deze fase.
+The Rust target documentation confirms that this target has no `std`/standard allocator, by default uses no vector or floating-point registers and by default chooses the `kernel` code model. Therefore `small` is an explicit override here for the low addresses [K2]. Kernel and first user programs use the same scalar code generation; extra target features are not permitted in this phase.
 
-M2 kopieert en valideert BootInfo en de complete UEFI-geheugenkaart vóór hergebruik van enig geheugen. Gebruik de descriptorstride uit BootInfo, niet `size_of` van een zelfbedachte UEFI-struct. Alle optellingen, aantallen en adresbereiken zijn gecontroleerd op overflow. Versie, flags en reserveringen volgen [BOOT-AND-TOOLCHAIN.md](BOOT-AND-TOOLCHAIN.md); verander de boot-ABI hier niet.
+M2 copies and validates BootInfo and the complete UEFI memory map before reuse of any memory. Use the descriptor stride from BootInfo, not `size_of` of a self-devised UEFI struct. All additions, counts and address ranges are checked for overflow. Version, flags and reservations follow [BOOT-AND-TOOLCHAIN.md](BOOT-AND-TOOLCHAIN.md); do not change the boot ABI here.
 
-## 2. Geheugen, eigendom en exceptions
+## 2. Memory, ownership and exceptions
 
-### Adresruimte
+### Address space
 
-Alle bereiken zijn halfopen: het eindadres hoort er niet bij. Elke adresruimte heeft een eigen PML4 en PDPT. Onder PML4[0] verwijst PDPT[0] naar gedeelde supervisor-tabellen voor het gebied onder 1 GiB; PDPT[1] naar eigen usertabellen voor 1–2 GiB. Deel nooit een tabel met processpecifieke userentries tussen processen. De kernelmappings zijn identiek en uitsluitend supervisor; gebruikersmappings zijn per proces verschillend.
+All ranges are half-open: the end address is not included. Each address space has its own PML4 and PDPT. Under PML4[0], PDPT[0] points to shared supervisor tables for the area below 1 GiB; PDPT[1] to own user tables for 1–2 GiB. Never share a table with process-specific user entries between processes. The kernel mappings are identical and exclusively supervisor; user mappings differ per process.
 
-| Virtueel bereik | Gebruik en toegangsbeleid |
+| Virtual range | Use and access policy |
 |---|---|
-| `0x00000000–0x00001000` | Ongemapt; null-page |
-| `0x00001000–0x40000000` | Supervisor-only identitygebied; map uitsluitend werkelijk benodigde RAM-pagina's en expliciete bootreserveringen, nooit automatisch gaten of apparaten |
-| `0x02000000–0x03000000` | M1-kernelreservering binnen dit supervisorgebied; map imagepagina's volgens ELF-segmentrechten |
-| `0x40000000–0x60000000` | User-ELF-segmenten; eerste text op `0x40000000`; alleen werkelijk geladen segmenten aanwezig |
-| `0x60000000–0x60010000` | Eerste vaste userheap, 64 KiB, read/write, NX |
-| `0x7ffee000–0x7ffef000` | Ongemapte onderste stackguard |
-| `0x7ffef000–0x7ffff000` | Userstack, 64 KiB, read/write, NX |
-| `0x7ffff000–0x80000000` | Ongemapte bovenste stackguard |
-| Overig | Ongemapt voor userspace |
+| `0x00000000–0x00001000` | Unmapped; null page |
+| `0x00001000–0x40000000` | Supervisor-only identity area; map exclusively actually needed RAM pages and explicit boot reservations, never gaps or devices automatically |
+| `0x02000000–0x03000000` | M1 kernel reservation within this supervisor area; map image pages according to ELF segment rights |
+| `0x40000000–0x60000000` | User ELF segments; first text at `0x40000000`; only actually loaded segments present |
+| `0x60000000–0x60010000` | First fixed user heap, 64 KiB, read/write, NX |
+| `0x7ffee000–0x7ffef000` | Unmapped lower stack guard |
+| `0x7ffef000–0x7ffff000` | User stack, 64 KiB, read/write, NX |
+| `0x7ffff000–0x80000000` | Unmapped upper stack guard |
+| Other | Unmapped for userspace |
 
-Een user-ELF mag alleen niet-overlappende `PT_LOAD`-segmenten binnen het ELF-bereik leveren. Weiger writable+executable segmenten, ongelijke pagina-offsets van file/VA, overflow, ontbrekende executable entry, segmentoverlap op paginaniveau en onbekende verplichte features. Nul het volledige toegewezen geheugen vóór het kopiëren; `p_memsz - p_filesz` blijft nul. Start `RIP=e_entry`, `RSP=0x7ffff000-8`, met nul op de dummy returnpositie en overige algemene registers nul. `_start` retourneert niet.
+A user ELF may only supply non-overlapping `PT_LOAD` segments within the ELF range. Reject writable+executable segments, unequal page offsets of file/VA, overflow, missing executable entry, segment overlap at page level and unknown mandatory features. Zero the entire allocated memory before copying; `p_memsz - p_filesz` remains zero. Start `RIP=e_entry`, `RSP=0x7ffff000-8`, with zero at the dummy return position and other general registers zero. `_start` does not return.
 
-Intel beschrijft dat U/S-toestemming door de pagingniveaus heen geldt en dat CR0.WP ook supervisorwrites aan schrijfrechten bindt; NX voorkomt uitvoering op daarvoor gemarkeerde pagina's. Interrupt-/exceptiongates en privileges vormen de andere helft van de grens [K1, hoofdstukken 4–6]. Gekozen configuratie: NX verplicht, `EFER.NXE=1`, `CR0.WP=1`; user-PTE's hebben U/S=1 op alle betrokken niveaus. Kernel-leaves blijven U/S=0, ook wanneer zij een hogere tabel met userpagina's delen.
+Intel describes that U/S permission applies across the paging levels and that CR0.WP also binds supervisor writes to write permissions; NX prevents execution on pages marked for it. Interrupt/exception gates and privileges form the other half of the boundary [K1, chapters 4–6]. Chosen configuration: NX mandatory, `EFER.NXE=1`, `CR0.WP=1`; user PTEs have U/S=1 at all involved levels. Kernel leaves stay U/S=0, even when they share a higher table with user pages.
 
-Text is RO/X, rodata RO/NX, data/heap/stacks RW/NX. **Geen writable alias van een executable fysiek frame:** ook de supervisor-identityalias van usertext is RO/NX. Frameclassificatie en mappingwijzigingen controleren alle aliases. Een executable frame gaat pas terug naar de allocator nadat alle mappings verwijderd en TLB-invalidaties voltooid zijn. Aanvankelijk geen JIT of runtime-permissiewissel door apps.
+Text is RO/X, rodata RO/NX, data/heap/stacks RW/NX. **No writable alias of an executable physical frame:** the supervisor identity alias of user text is also RO/NX. Frame classification and mapping changes check all aliases. An executable frame only returns to the allocator after all mappings have been removed and TLB invalidations completed. Initially no JIT or runtime permission switching by apps.
 
-### Framebeheer
+### Frame management
 
-Elk 4 KiB-frame heeft precies één eigenaar/status: `Reserved`, `Free`, `Kernel`, `PageTable(asid)` of `User(pid, kind)`. Geen gedeelde userframes in M3/M4. Een vaste bitmap plus metadata-array volstaat; grote/groeiende allocaties zijn niet nodig aan de syscallgrens.
+Each 4 KiB frame has exactly one owner/status: `Reserved`, `Free`, `Kernel`, `PageTable(asid)` or `User(pid, kind)`. No shared user frames in M3/M4. A fixed bitmap plus metadata array suffices; large/growing allocations are not needed at the syscall boundary.
 
-1. Neem aanvankelijk alleen `EfiConventionalMemory` als kandidaat voor `Free`, zonder runtime-, nonvolatile- of bijzondere attributen; trek alle bootreserveringen, kernel, kaartbuffer, BootInfo, loader en stack expliciet af. Overlap of tegenstrijdige descriptors is een bootfout.
-2. Bouw eigen GDT, TSS, IDT en pagetables, inclusief huidige code/stack/kaart, en wissel naar eigen CR3 voordat interrupts of usermode ingeschakeld worden. Firmwarehandlers en -services zijn geen herstelpad.
-3. M2–M4 reclaimen geen `Loader*`, `BootServices*`, ACPI- of runtimegebieden. Dat kost tijdelijk RAM en vermijdt een impliciet levensduurcontract; later reclamation krijgt aparte tests.
-4. Nul een frame vóór toekenning aan een ander proces en vóór terugkeer naar `Free`. Fysieke adressen komen nooit als onbeperkte apprechten naar buiten.
-5. CR4.PCIDE en PGE blijven uit. Een proceswissel laadt CR3 opnieuw; iedere mappingwijziging krijgt de juiste lokale invalidatie vóór hergebruik. Geen remote-TLB-protocol zolang er één CPU is.
+1. Initially take only `EfiConventionalMemory` as a candidate for `Free`, without runtime, nonvolatile or special attributes; explicitly subtract all boot reservations, kernel, map buffer, BootInfo, loader and stack. Overlapping or contradictory descriptors are a boot error.
+2. Build own GDT, TSS, IDT and page tables, including current code/stack/map, and switch to own CR3 before interrupts or user mode are enabled. Firmware handlers and services are not a recovery path.
+3. M2–M4 do not reclaim `Loader*`, `BootServices*`, ACPI or runtime areas. That temporarily costs RAM and avoids an implicit lifetime contract; later reclamation gets separate tests.
+4. Zero a frame before assignment to another process and before return to `Free`. Physical addresses never leave as unrestricted app rights.
+5. CR4.PCIDE and PGE stay off. A process switch reloads CR3; every mapping change gets the correct local invalidation before reuse. No remote TLB protocol as long as there is one CPU.
 
-### CPU-context en foutbeleid
+### CPU context and fault policy
 
-GDT-selectors: kernelcode `0x08`, kerneldata `0x10`, userdata `0x1b`, usercode `0x23`, 64-bit TSS `0x28`. TSS.RSP0 wijst bij elke switch naar een eigen 16 KiB-kernelstack met ongemapte guards; double fault en NMI hebben afzonderlijke IST-stacks. Sla alle algemene registers op. DS/ES/FS/GS worden gecontroleerd geïnitialiseerd; FS/GS-bases zijn nul; userinstelling daarvan en FSGSBASE zijn uit. Debugregisters worden niet gedeeld.
+GDT selectors: kernel code `0x08`, kernel data `0x10`, user data `0x1b`, user code `0x23`, 64-bit TSS `0x28`. TSS.RSP0 points on every switch to an own 16 KiB kernel stack with unmapped guards; double fault and NMI have separate IST stacks. Save all general registers. DS/ES/FS/GS are initialised in a controlled way; FS/GS bases are zero; user setting of these and FSGSBASE are off. Debug registers are not shared.
 
-Eerste usermode ondersteunt geen x87/MMX/SIMD-registertoestand: `CR0.EM=1`, `TS=1`, `MP=1`; `CR4.OSFXSR=0`, `OSXSAVE=0`. Een poging die deze registertoestand gebruikt eindigt in een userfault; de handler schakelt de functie niet alsnog in. Scalar instructies zoals fences zijn hiervan niet automatisch uitgesloten. Dit is een tijdelijke uitvoeringsprofielkeuze, geen beperking van de productambitie. SIMD/AI komt later met volledige contextopslag en afzonderlijke lektests [K1, hoofdstuk 13].
+First user mode supports no x87/MMX/SIMD register state: `CR0.EM=1`, `TS=1`, `MP=1`; `CR4.OSFXSR=0`, `OSXSAVE=0`. An attempt that uses this register state ends in a user fault; the handler does not enable the feature after all. Scalar instructions such as fences are not automatically excluded by this. This is a temporary execution profile choice, not a limitation of the product ambition. SIMD/AI comes later with full context saving and separate leak tests [K1, chapter 13].
 
-Normale interruptgates zijn DPL0; alleen `0x80` is DPL3. Gebruik `iretq`, geen `sysret`. Bij terugkeer: gecontroleerde userselectors, user-RIP in executable pagina, user-RSP in toegestane stack, gereserveerde RFLAGS-bits correct; behoud alleen rekenflags CF/PF/AF/ZF/SF/OF en zet vaste bit1+IF. IOPL/NT/VM/DF/TF/AC zijn nul. De entry-stub voert `cld` uit vóór Rust. NMI voert geen scheduler-, allocator- of capabilitymutaties uit.
+Normal interrupt gates are DPL0; only `0x80` is DPL3. Use `iretq`, not `sysret`. On return: checked user selectors, user RIP in executable page, user RSP in permitted stack, reserved RFLAGS bits correct; preserve only arithmetic flags CF/PF/AF/ZF/SF/OF and set fixed bit1+IF. IOPL/NT/VM/DF/TF/AC are zero. The entry stub executes `cld` before Rust. NMI performs no scheduler, allocator or capability mutations.
 
-Een userfault (`#PF`, `#GP`, `#UD`, `#NM`, enz.) beëindigt dat proces, noteert begrensde lokale metadata en laat andere processen verdergaan. Een kernelfault of double fault stopt gecontroleerd; probeer geen mogelijk beschadigde kernel voort te zetten. Faultlogs bevatten geen paginainhoud of secrets. Bij procesexit: markeer `Dying`, stop scheduling, sluit eigen endpoints, ruim caprechten op, wissel naar een veilige adresruimte/stack en geef daarna frames/tables vrij. Nooit de actieve stack of actieve CR3-tabellen vrijgeven.
+A user fault (`#PF`, `#GP`, `#UD`, `#NM`, etc.) terminates that process, records bounded local metadata and lets other processes continue. A kernel fault or double fault stops in a controlled way; do not try to continue a possibly damaged kernel. Fault logs contain no page content or secrets. On process exit: mark `Dying`, stop scheduling, close own endpoints, clean up cap rights, switch to a safe address space/stack and only then release frames/tables. Never release the active stack or active CR3 tables.
 
-## 3. Scheduler met aantoonbare voortgang
+## 3. Scheduler with demonstrable progress
 
-Gebruik het legacy PIC/PIT-pad van dit QEMU-profiel: remap IRQ's naar `0x20/0x28`, maskeer alles behalve PIT IRQ0, PIT channel 0 periodiek met divisor 11932 (ongeveer 100 Hz), geen gelijktijdige APIC-timerroute. Initialisatie en EOI-code blijven in de kleine arch-laag; fysieke hardwareondersteuning volgt hier niet uit.
+Use the legacy PIC/PIT path of this QEMU profile: remap IRQs to `0x20/0x28`, mask everything except PIT IRQ0, PIT channel 0 periodic with divisor 11932 (approximately 100 Hz), no concurrent APIC timer route. Initialisation and EOI code remain in the small arch layer; physical hardware support does not follow from this.
 
-Eén FIFO-round-robinqueue, gelijke prioriteit, quantum één timertick. Statussen: `Ready`, `Running`, `Dying`, `Dead`. `yield` plaatst het proces achteraan. Lege runqueue: `sti; hlt`-idle. Aan het einde van een IRQ of syscall vindt de eventuele contextwissel plaats, nadat kernelmutaties afgerond zijn. Kernelwerk tijdens M3/M4 is niet preëmptief; interrupts zijn gemaskeerd tijdens korte, begrensde kritieke secties. Geen wachten op I/O, lockspin, rekursieve foutafhandeling of onbeperkte allocatie in een syscall.
+One FIFO round-robin queue, equal priority, quantum one timer tick. States: `Ready`, `Running`, `Dying`, `Dead`. `yield` places the process at the back. Empty run queue: `sti; hlt` idle. Any context switch takes place at the end of an IRQ or syscall, after kernel mutations have completed. Kernel work during M3/M4 is not preemptive; interrupts are masked during short, bounded critical sections. No waiting for I/O, lock spin, recursive fault handling or unbounded allocation in a syscall.
 
-**Fairnesscontract:** bij maximaal 16 permanent runnable processen bereikt ieder proces binnen 16 schedulerselecties de CPU, mits de begrensde kerneloperaties eindigen. Dit is geen realtimegarantie in milliseconden. Meet maximale syscallduur en vertraagde ticks apart; tel timerverlies niet weg als “snelle kernel”. Geen gebruikersprioriteiten of onbeperkte busy-wait binnen de kernel.
+**Fairness contract:** with at most 16 permanently runnable processes, every process reaches the CPU within 16 scheduler selections, provided the bounded kernel operations terminate. This is not a real-time guarantee in milliseconds. Measure maximum syscall duration and delayed ticks separately; do not explain away timer loss as a “fast kernel”. No user priorities or unbounded busy-wait within the kernel.
 
-## 4. Syscall-ABI v1 en veilige kopieën
+## 4. Syscall ABI v1 and safe copies
 
-`RAX`=nummer; argumenten in `RDI, RSI, RDX, R10, R8, R9`. Bij terugkeer: `RAX`=0 of negatieve foutcode, `RDX`=resultaat of nul bij fout. Overige algemene registers blijven behouden; RFLAGS volgt het bovenstaande masker. Niet-gebruikte argumenten moeten nul zijn. Alle ABI-velden zijn little-endian, vaste integerbreedtes; geen Rust-`usize`, references, `bool` of enums in onbetrouwbare bytes.
+`RAX`=number; arguments in `RDI, RSI, RDX, R10, R8, R9`. On return: `RAX`=0 or negative error code, `RDX`=result or zero on error. Other general registers are preserved; RFLAGS follows the mask above. Unused arguments must be zero. All ABI fields are little-endian, fixed integer widths; no Rust `usize`, references, `bool` or enums in untrusted bytes.
 
-| Nr. | Naam / argumenten | Resultaat bij succes |
+| No. | Name / arguments | Result on success |
 |---|---|---|
-| `0x00` | `abi_info()` | RDX=`(1 << 32)` voor major 1/minor 0 |
+| `0x00` | `abi_info()` | RDX=`(1 << 32)` for major 1/minor 0 |
 | `0x01` | `yield()` | RDX=0 |
-| `0x02` | `exit(code)` | Keert niet terug; code is lokale procesmetadata |
-| `0x10` | `cap_close(handle)` | Sluit lokale slot, ook als object gesloten/node revoked is |
-| `0x11` | `cap_derive(handle, rights)` | Nieuwe lokale handle met verminderde rechten |
-| `0x12` | `cap_revoke(handle)` | Intrekking van alle afstammelingen; eigen node blijft geldig |
-| `0x20` | `ipc_send(endpoint, message_ptr, size)` | Eén bericht gequeued, RDX=0 |
-| `0x21` | `ipc_recv(endpoint, message_ptr, size)` | Eén bericht atomisch ontvangen, RDX=payloadlengte |
+| `0x02` | `exit(code)` | Does not return; code is local process metadata |
+| `0x10` | `cap_close(handle)` | Closes local slot, also if object closed/node revoked |
+| `0x11` | `cap_derive(handle, rights)` | New local handle with reduced rights |
+| `0x12` | `cap_revoke(handle)` | Revocation of all descendants; own node remains valid |
+| `0x20` | `ipc_send(endpoint, message_ptr, size)` | One message queued, RDX=0 |
+| `0x21` | `ipc_recv(endpoint, message_ptr, size)` | One message received atomically, RDX=payload length |
 
-M3 implementeert alleen `0x00–0x02`. M4 voegt de overige toe. Onbekende syscall geeft `ENOSYS`. Er is geen userspace debugpoort, algemene kernelpointer, arbitraire fysieke mapping of globale objectopzoekfunctie.
+M3 implements only `0x00–0x02`. M4 adds the rest. Unknown syscall gives `ENOSYS`. There is no userspace debug port, general kernel pointer, arbitrary physical mapping or global object lookup function.
 
-**Copy-regel:** behandel een userpointer eerst als `u64`. Controleer canoniek adres, userbereik, `checked_add(len)`, maximumlengte, aanwezigheid/eigendom van iedere geraakte pagina en effectieve U/S- en R/W-rechten. Uitvoer vereist writable pagina's; een alleen-lezen input mag read-only zijn. Maak pas daarna via een kleine gedocumenteerde unsafe-routine een bytekopie naar een volledig geïnitialiseerde kernelbuffer. Geen `&UserStruct`, geleende userslice of ongevalideerde enum construeren. Rust maakt ook binnen `unsafe` misalignments, ongeldige waarden en aliasingschendingen niet geldig [K5].
+**Copy rule:** first treat a user pointer as `u64`. Check canonical address, user range, `checked_add(len)`, maximum length, presence/ownership of every touched page and effective U/S and R/W rights. Output requires writable pages; a read-only input may be read-only. Only then, via a small documented unsafe routine, make a byte copy into a fully initialised kernel buffer. Do not construct a `&UserStruct`, borrowed user slice or unvalidated enum. Rust does not make misalignments, invalid values and aliasing violations valid, even within `unsafe` [K5].
 
-De kernel leest invoer precies eenmaal, valideert de kopie en bewaart nooit de oorspronkelijke pointer in een queue. In dit profiel kunnen dezelfde mapping en bytes tijdens kopiëren niet door een tweede userthread, gedeeld frame, DMA of user-unmap veranderen: die mogelijkheden bestaan niet, en er vindt geen processwitch in de kopie plaats. Bij toekomstige threads/SMP/shared memory moet dit contract eerst vervangen worden door vastgezette mappings en synchronisatie; “pointer vooraf gecontroleerd” alleen voldoet dan niet.
+The kernel reads input exactly once, validates the copy and never stores the original pointer in a queue. In this profile the same mapping and bytes cannot change during copying through a second user thread, shared frame, DMA or user unmap: those possibilities do not exist, and no process switch takes place within the copy. With future threads/SMP/shared memory this contract must first be replaced by pinned mappings and synchronisation; “pointer checked in advance” alone is then insufficient.
 
-Voor IPC is `size` exact 320; anders `EMSGSIZE` vóór kopiëren. Kopieer bij ontvangst eerst naar een kernelbuffer, valideer alle outputpagina's, reserveer alle handles en commit dan in één niet-onderbreekbare operatie. Een mislukte ontvangst verandert userbuffer, queue en captable niet. Alle niet-gebruikte outputbytes zijn nul. Het vaste 320-byte formaat voorkomt lengtes die tijdens een tweede userread veranderen.
+For IPC, `size` is exactly 320; otherwise `EMSGSIZE` before copying. On receive, first copy into a kernel buffer, validate all output pages, reserve all handles and then commit in one non-interruptible operation. A failed receive does not change the user buffer, queue or cap table. All unused output bytes are zero. The fixed 320-byte format prevents lengths that change during a second user read.
 
-| Code | Betekenis |
+| Code | Meaning |
 |---|---|
-| `-1 EINVAL` | Onbekende flags/rechten, niet-nul reserved, ongeldige combinatie |
-| `-2 ENOSYS` | Syscall onbekend of niet in deze mijlpaal |
-| `-3 EFAULT` | Userbereik/pagina/effectieve rechten ongeldig |
-| `-4 EBADHANDLE` | Slot buiten tabel, leeg of generation mismatch |
-| `-5 EACCESS` | Benodigd recht ontbreekt of delegatie probeert rechten te vergroten |
-| `-6 ETYPE` | Verkeerd kernelobjecttype |
-| `-7 EQUOTA` | Proces- of globale resourcegrens bereikt |
-| `-8 EAGAIN` | Endpointqueue vol bij send of leeg bij receive |
-| `-9 ECLOSED` | Endpoint is door eigenaar gesloten/gestopt |
-| `-10 EREVOKED` | Bestaande lokale slot verwijst naar ingetrokken node |
-| `-11 EMSGSIZE` | Verkeerde ABI-size, payload >256 of cap_count >2 |
+| `-1 EINVAL` | Unknown flags/rights, non-zero reserved, invalid combination |
+| `-2 ENOSYS` | Syscall unknown or not in this milestone |
+| `-3 EFAULT` | User range/page/effective rights invalid |
+| `-4 EBADHANDLE` | Slot outside table, empty or generation mismatch |
+| `-5 EACCESS` | Required right missing or delegation attempts to enlarge rights |
+| `-6 ETYPE` | Wrong kernel object type |
+| `-7 EQUOTA` | Process or global resource limit reached |
+| `-8 EAGAIN` | Endpoint queue full on send or empty on receive |
+| `-9 ECLOSED` | Endpoint has been closed/stopped by owner |
+| `-10 EREVOKED` | Existing local slot refers to revoked node |
+| `-11 EMSGSIZE` | Wrong ABI size, payload >256 or cap_count >2 |
 
-Valideervolgorde: syscall/ongebruikte args → ABI-size → endpointhandle/generation/node/object/recht → userbuffer → berichtvelden → resources → commit. Returnwaarden lekken geen objectgegevens vóór de rechtencontrole. Een fout verandert geen rechten of resource-eigendom.
+Validation order: syscall/unused args → ABI size → endpoint handle/generation/node/object/right → user buffer → message fields → resources → commit. Return values leak no object data before the rights check. An error changes no rights or resource ownership.
 
-## 5. Capability- en IPC-model
+## 5. Capability and IPC model
 
-### Handles en rechten
+### Handles and rights
 
-Een handle is `u64 = (generation:u32 << 32) | slot:u32`. Iedere procestabel heeft 256 slots; slot 0 is altijd ongeldig. Generation start op 1, stijgt bij sluiten en wordt nooit 0. Een slot met maximale generation wordt bij sluiten permanent gepensioneerd. Nooit wraparound/ABA. Lookup gebruikt **alleen de captable van de aanroepende procescontext**, nooit een door userspace opgegeven PID.
+A handle is `u64 = (generation:u32 << 32) | slot:u32`. Every process table has 256 slots; slot 0 is always invalid. Generation starts at 1, increases on close and never becomes 0. A slot with maximum generation is permanently retired on close. Never wraparound/ABA. Lookup uses **only the cap table of the calling process context**, never a PID supplied by userspace.
 
-Een handle is geen cryptografisch geheim. Een getal uit proces B geeft A geen toegang tot B's tabel. Valt dat getal toevallig samen met een geldige eigen slot van A, dan krijgt A uitsluitend het recht dat A al bezat. De autoriteit zit in kernelmetadata, niet in moeilijk te raden cijfers; quantumcomputers veranderen dat lookupcontract niet.
+A handle is not a cryptographic secret. A number from process B gives A no access to B's table. If that number happens to coincide with a valid own slot of A, A obtains exclusively the right that A already held. The authority lies in kernel metadata, not in hard-to-guess digits; quantum computers do not change that lookup contract.
 
-Rechtenbits voor `Endpoint`: `SEND=1`, `RECV=2`, `DERIVE=4`, `TRANSFER=8`, `REVOKE=16`; alle andere bits ongeldig. `derive` vereist DERIVE, en `new_rights & !old_rights == 0`. Masker 0 is toegestaan maar geeft geen operatierecht. RECV blijft bij de endpoint-eigenaar: overdracht met RECV wordt geweigerd; een eigen lokale afleiding mag RECV houden. SEND zegt niets over bevoegdheid om bestanden, netwerk of apparaten te gebruiken.
+Rights bits for `Endpoint`: `SEND=1`, `RECV=2`, `DERIVE=4`, `TRANSFER=8`, `REVOKE=16`; all other bits invalid. `derive` requires DERIVE, and `new_rights & !old_rights == 0`. Mask 0 is permitted but gives no operation right. RECV stays with the endpoint owner: transfer with RECV is refused; an own local derivation may keep RECV. SEND says nothing about authority to use files, network or devices.
 
-Elke capslot verwijst naar een kernelnode met object-ID/generation, rechten, oudernode-ID/generation, issuer-PID en status. Nodes vormen een boom met maximale diepte 8, waarbij een root diepte 0 heeft; maximaal 1024 nodes totaal. Object- en node-ID's gebruiken intern ook generationtellers zonder wraparound. Parentnodes blijven bestaan zolang kinderen bestaan, ook na sluiten van hun laatste lokale handle. Refcounts omvatten lokale slots, kinderen en queueverwijzingen; reclaim alleen bij nul.
+Each cap slot refers to a kernel node with object ID/generation, rights, parent node ID/generation, issuer PID and status. Nodes form a tree with maximum depth 8, where a root has depth 0; at most 1024 nodes in total. Object and node IDs also use generation counters internally without wraparound. Parent nodes remain as long as children exist, even after their last local handle is closed. Refcounts include local slots, children and queue references; reclaim only at zero.
 
-`cap_revoke` vereist REVOKE en markeert alle afstammelingen revoked, ook elders in andere processen of nog in een queue. Scan maximaal 1024 nodes met per node maximaal 8 ouderstappen, en maximaal 1024 queueplaatsen; geen afhankelijkheid van tabelvolgorde of onbegrensde boomrecursie. Revoked slots blijven herkenbaar tot `cap_close`, maar geven geen toegang. `cap_close` alleen trekt afstammelingen niet in. Procesexit trekt alle nodes in zijn slots én door dat proces uitgegeven nodes/afstammelingen in; issuer-PID blijft daarvoor bewaard. Er ontstaan geen blijvende rechten uit een gestorven delegator in dit eerste profiel.
+`cap_revoke` requires REVOKE and marks all descendants revoked, also elsewhere in other processes or still in a queue. Scan at most 1024 nodes with at most 8 parent steps per node, and at most 1024 queue places; no dependence on table order or unbounded tree recursion. Revoked slots remain recognisable until `cap_close`, but give no access. `cap_close` alone does not revoke descendants. Process exit revokes all nodes in its slots and the nodes/descendants issued by that process; issuer PID is retained for this. No lasting rights arise from a dead delegator in this first profile.
 
-### Berichtformaat en transactie
+### Message format and transaction
 
-Dit is een formaatbeschrijving, geen reeds aanwezige implementatie:
+This is a format description, not an already existing implementation:
 
 ```rust
 #[repr(C)]
@@ -146,86 +146,85 @@ struct IpcMessageV1 {
 }
 ```
 
-Niet-gebruikte capdescriptors en bytes na `len` moeten bij send nul zijn; daardoor ontstaat een canonieke, controleerbare representatie. `sender_pid` komt uit de kernelcontext en is nooit een bewijs van inhoudelijke bevoegdheid voor een dienst. PID's zijn monotone `u64` zonder hergebruik/wrap in dezelfde boot.
+Unused cap descriptors and bytes after `len` must be zero on send; this yields a canonical, checkable representation. `sender_pid` comes from the kernel context and is never proof of substantive authority for a service. PIDs are monotonic `u64` without reuse/wrap within the same boot.
 
-Send maakt een snapshot; valideert endpoint-SEND, alle over te dragen caps, TRANSFER en rechtenvermindering; reserveert daarna alle node- en queueplaatsen. Overdracht is **kopie via een nieuwe afgeleide node**, geen move. De bronhandle blijft geldig. Een mislukte send laat niets achter. Per endpoint maximaal 16 berichten, FIFO, geen wachtende kernelthreads.
+Send makes a snapshot; validates endpoint SEND, all caps to be transferred, TRANSFER and rights reduction; then reserves all node and queue places. Transfer is a **copy via a new derived node**, not a move. The source handle remains valid. A failed send leaves nothing behind. At most 16 messages per endpoint, FIFO, no waiting kernel threads.
 
-Receive vereist RECV en de eigenaar-PID. Reserveer alle benodigde lokale slots vóór aflevering. Vervang bericht-handles door handles uit de ontvangers eigen tabel; rapporteer de werkelijke gedelegeerde rechten. Heeft ontvanger geen slots, geef EQUOTA en laat het bericht staan. Voor een ingetrokken cap in een nog niet afgeleverd bericht wordt het **hele bericht geannuleerd** en de reservering teruggegeven; nooit gedeeltelijk payload/rechten afleveren. Revocation ruimt zulke berichten op binnen de vaste globale scanlimieten. Reeds afgeleverde bytes kunnen niet worden teruggehaald.
+Receive requires RECV and the owner PID. Reserve all required local slots before delivery. Replace message handles with handles from the receiver's own table; report the actual delegated rights. If the receiver has no slots, return EQUOTA and leave the message in place. For a revoked cap in a not yet delivered message the **whole message is cancelled** and the reservation returned; never deliver partial payload/rights. Revocation cleans up such messages within the fixed global scan limits. Bytes already delivered cannot be retrieved.
 
-Een endpoint hoort bij precies één eigenaar. Sluiten of intrekken van diens laatste actieve RECV-handle, of zijn exit, sluit het endpoint; pending berichten worden geannuleerd. Alle overige geldige caphandles naar het object geven ECLOSED totdat gesloten; een reeds revoked node behoudt volgens de valideervolgorde EREVOKED. Objectmetadata blijft als tombstone bestaan zolang verwijzingen bestaan, zodat hergebruik geen ander endpoint bereikbaar maakt.
+An endpoint belongs to exactly one owner. Closing or revoking that owner's last active RECV handle, or its exit, closes the endpoint; pending messages are cancelled. All other valid cap handles to the object give ECLOSED until closed; an already revoked node keeps EREVOKED according to the validation order. Object metadata remains as a tombstone as long as references exist, so that reuse does not make another endpoint reachable.
 
-### Vaste quotas
+### Fixed quotas
 
-| Resource | Grens M3/M4 |
+| Resource | Limit M3/M4 |
 |---|---|
-| Processen / threads | 16 / één per proces |
-| Userframes per proces | 2048 = 8 MiB, inclusief image/heap/stack |
-| User virtual mappings | Maximaal 2048; geen automatische uitbreiding |
-| Capslots | 256 per proces, waarvan slot 0 niet bruikbaar |
-| Capnodes / boomdiepte | 1024 globaal / 8 |
-| Endpoints | 64 globaal, maximaal 4 eigendom per proces |
-| Queue | 16 berichten per endpoint; vaste 320-byte berichtstruct plus begrensde kernelmetadata |
-| IPC-transfer | Maximaal 2 caps per bericht |
+| Processes / threads | 16 / one per process |
+| User frames per process | 2048 = 8 MiB, including image/heap/stack |
+| User virtual mappings | At most 2048; no automatic extension |
+| Cap slots | 256 per process, of which slot 0 is unusable |
+| Cap nodes / tree depth | 1024 global / 8 |
+| Endpoints | 64 global, at most 4 owned per process |
+| Queue | 16 messages per endpoint; fixed 320-byte message struct plus bounded kernel metadata |
+| IPC transfer | At most 2 caps per message |
 
-Reserveer tabellen/queueplaatsen vooraf; geen allocator op basis van een userlengte. Een manifest dat grenzen overschrijdt wordt vóór processtart geweigerd. Rekenkundige quota-overschrijding en echte allocatoruitputting hebben hetzelfde gecontroleerde foutpad; nooit panic als normale resourceafhandeling. Sluiten/exit geeft capaciteit terug, behalve gepensioneerde generation-slots.
+Reserve tables/queue places in advance; no allocator based on a user length. A manifest that exceeds limits is refused before process start. Arithmetic quota overrun and real allocator exhaustion share the same controlled error path; never panic as normal resource handling. Close/exit returns capacity, except retired generation slots.
 
-## 6. Acceptatiegevallen die de builder uitvoert
+## 6. Acceptance cases the builder executes
 
-Maak pure hosttests voor intervalrekenen, frameboekhouding, captransities en IPC-transacties. Maak daarnaast QEMU-tests die de echte privilegeovergangen uitvoeren. De volgende ID's zijn opdrachten, **geen geslaagde testresultaten**. De kernelharness schrijft alleen `KS-xx:PASS` nadat de beschreven toestand is vastgesteld; userprogramma's kunnen geen succesmarker rechtstreeks afdrukken. Bewaar echte log, commit, profiel, toolversies, timeout en exitstatus volgens het bootcontract.
+Make pure host tests for interval arithmetic, frame bookkeeping, cap transitions and IPC transactions. In addition, make QEMU tests that execute the real privilege transitions. The following IDs are assignments, **not passed test results**. The kernel harness writes `KS-xx:PASS` only after the described state has been established; user programs cannot print a success marker directly. Keep the real log, commit, profile, tool versions, timeout and exit status according to the boot contract.
 
-| ID | Uitvoerbare opzet | Vereiste assertie |
+| ID | Executable setup | Required assertion |
 |---|---|---|
-| KS-01, M2 | Parse kaart met overlappende descriptor, overflow in pages×4096 en gereserveerd frame in ConventionalMemory | Eerste twee geweigerd; reservering nooit gealloceerd; alle succesvolle allocaties uniek |
-| KS-02, M2 | Schrijf patroon in frame, free, alloceer aan andere eigenaar; herhaal tot quota | Nieuw userframe volledig nul; geen dubbele eigenaar; uitputting gecontroleerd |
-| KS-03, M2 | Loop door alle pagetables plus fysieke aliasindex | Geen userpad naar kernelpagina; geen writable alias van executable frame; NX op heap/stack |
-| KS-04, M3 | A/B krijgen dezelfde user-VA met verschillende fysieke frames en verschillende patronen; switch herhaaldelijk | A ziet alleen A, B alleen B; PTE-frameverzamelingen disjunct; geen stale TLB |
-| KS-05, M3 | A leest/schrijft B's fysieke frame via het supervisor-identityadres en probeert kerneltext te schrijven | A krijgt userfault; B's bytes onveranderd; B blijft tellen |
-| KS-06, M3 | A springt naar stack/heap, raakt stackguard, voert `cli`, x87/XMM/AVX-state-instructies uit in aparte boots | Elk verboden geval stopt alleen A; kernel blijft bestuurbaar; geen FPU-state toegankelijk |
-| KS-07, M3 | 16 workers draaien zonder yield; meet per worker een privé voortgangsteller vanuit testharness | Iedereen geselecteerd in iedere ronde van 16 selecties; geen gedeeld userframe als meetshortcut |
-| KS-08, M3 | A crasht/exit tijdens belasting; controleer tabellen vóór/na en laat B doorlopen | Geen actieve-stack-free; frames/caps gereclaimed volgens contract; B maakt voortgang |
-| KS-09, M4 | IPC-pointer null, supervisoradres, noncanonical, laatste pagina+overflow, cross-page met tweede pagina afwezig/RO | EFAULT of vooraf EMSGSIZE; geen kernelcrash, gedeeltelijke uitvoer of queueverandering |
-| KS-10, M4 | Fuzz len=`257`, cap_count=`3`, size=`0/319/321/u64::MAX`, reservedbits en misaligned geldige buffer | Vastgelegde foutcodes; misalignment van bytebuffer op zichzelf toegestaan; geen UB door structcast |
-| KS-11, M4 | Testhook verandert originele inputlengte/payload ná snapshot; probeer gedeelde mapping/tweede thread/user-unmap aan te vragen | Operatie gebruikt alleen snapshot; onbeschikbare API ENOSYS; bouw-invariant één thread blijft waar |
-| KS-12, M4 | Kopieer B's numerieke handle naar A; varieer slot/gen; sluit en hergebruik eigen slot | Geen toegang tot B; stale handle EBADHANDLE; collision levert hoogstens eigen bestaande autoriteit |
-| KS-13, M4 | DERIVE/SEND zonder benodigd recht; derive met extra bit; transfer zonder TRANSFER of met RECV | EACCESS/EINVAL volgens volgorde; geen node, handle of bericht aangemaakt |
-| KS-14, M4 | A→B→C-delegatie; revoke bij A vóór en na aflevering; houd oude handles vast | Nog geen aflevering: hele bericht geannuleerd; afgeleverd: cap EREVOKED, reeds gekopieerde data blijven bestaan |
-| KS-15, M4 | Vul 16 queueplaatsen; vul ontvangers 255 slots; forceer capnodegrens/diepte 8; simuleer maximale generation in hostmodel | EAGAIN/EQUOTA zonder gedeeltelijke transacties; capaciteit keert terug na close; generation wrap onmogelijk |
-| KS-16, M4 | Eigenaar sluit laatste RECV; sender sterft met queued delegated caps; ontvanger crasht | ECLOSED of annulering volgens lifecycle; geen verweesde rechten, refcount-underflow of hergebruikte-objecttoegang |
+| KS-01, M2 | Parse map with overlapping descriptor, overflow in pages×4096 and reserved frame in ConventionalMemory | First two refused; reservation never allocated; all successful allocations unique |
+| KS-02, M2 | Write pattern into frame, free, allocate to another owner; repeat until quota | New user frame fully zero; no double owner; exhaustion controlled |
+| KS-03, M2 | Walk all page tables plus physical alias index | No user path to kernel page; no writable alias of executable frame; NX on heap/stack |
+| KS-04, M3 | A/B get the same user VA with different physical frames and different patterns; switch repeatedly | A sees only A, B only B; PTE frame sets disjoint; no stale TLB |
+| KS-05, M3 | A reads/writes B's physical frame via the supervisor identity address and tries to write kernel text | A gets user fault; B's bytes unchanged; B keeps counting |
+| KS-06, M3 | A jumps to stack/heap, hits stack guard, executes `cli`, x87/XMM/AVX state instructions in separate boots | Each forbidden case stops only A; kernel remains controllable; no FPU state accessible |
+| KS-07, M3 | 16 workers run without yield; measure a private progress counter per worker from the test harness | Everyone selected in every round of 16 selections; no shared user frame as measurement shortcut |
+| KS-08, M3 | A crashes/exits under load; check tables before/after and let B continue | No active-stack free; frames/caps reclaimed according to contract; B makes progress |
+| KS-09, M4 | IPC pointer null, supervisor address, noncanonical, last page+overflow, cross-page with second page absent/RO | EFAULT or EMSGSIZE beforehand; no kernel crash, partial output or queue change |
+| KS-10, M4 | Fuzz len=`257`, cap_count=`3`, size=`0/319/321/u64::MAX`, reserved bits and misaligned valid buffer | Recorded error codes; misalignment of byte buffer permitted in itself; no UB through struct cast |
+| KS-11, M4 | Test hook changes original input length/payload after snapshot; try to request shared mapping/second thread/user unmap | Operation uses only snapshot; unavailable API ENOSYS; build invariant one thread remains true |
+| KS-12, M4 | Copy B's numeric handle to A; vary slot/gen; close and reuse own slot | No access to B; stale handle EBADHANDLE; collision yields at most own existing authority |
+| KS-13, M4 | DERIVE/SEND without required right; derive with extra bit; transfer without TRANSFER or with RECV | EACCESS/EINVAL according to order; no node, handle or message created |
+| KS-14, M4 | A→B→C delegation; revoke at A before and after delivery; hold on to old handles | Not yet delivered: whole message cancelled; delivered: cap EREVOKED, already copied data remain |
+| KS-15, M4 | Fill 16 queue places; fill receiver's 255 slots; force cap node limit/depth 8; simulate maximum generation in host model | EAGAIN/EQUOTA without partial transactions; capacity returns after close; generation wrap impossible |
+| KS-16, M4 | Owner closes last RECV; sender dies with queued delegated caps; receiver crashes | ECLOSED or cancellation according to lifecycle; no orphaned rights, refcount underflow or reused-object access |
 
-KS-11 test de concrete single-thread-aanname en snapshotsemantiek, **geen echte SMP-racebestendigheid**. De latere introductie van concurrerende threads vereist een nieuwe testcase waarin unmap/rewrite werkelijk parallel gebeurt. Hetzelfde geldt voor toekomstige DMA.
+KS-11 tests the concrete single-thread assumption and snapshot semantics, **not real SMP race resistance**. The later introduction of concurrent threads requires a new test case in which unmap/rewrite actually happens in parallel. The same applies to future DMA.
 
-## 7. Wat iedere mijlpaal wel en niet levert
+## 7. What each milestone does and does not deliver
 
-| Beveiligingscontrole | M1 | M2 | M3 | M4 / vervolg |
+| Security control | M1 | M2 | M3 | M4 / follow-up |
 |---|---|---|---|---|
-| Eigen MMU-/framebeheer | Ontbreekt; firmwarepaging geërfd | Implementeren en KS-01–03 bewijzen | Gebruikt voor isolatie | Behouden |
-| Afzonderlijke userprocessen | Ontbreekt | Ontbreekt | KS-04–08 | Behouden |
-| Gecontroleerde syscallgrens | Ontbreekt | Ontbreekt | ABI-info/yield/exit | Copyregels en IPC-negatieve tests |
-| Caprechten/delegatie/revocatie | Ontbreekt | Ontbreekt | Ontbreekt | KS-09–16 |
-| CPU-preëmptie en quotas | Ontbreekt | Alleen vaste kernelresources | Scheduler/userframes | Caps/queues begrensd |
-| W^X | Geen claim | Kernelmappingcontrole | Ook userframes/aliases | Behouden |
-| ASLR, SMEP/SMAP, exploitmitigaties | Niet aanwezig | Niet aanwezig | Niet aanwezig in dit profiel | Afzonderlijke uitbreiding; vaste adressen blijven zichtbaar |
-| DMA/IOMMU, SMP, sidechannelbescherming | Niet aanwezig | Niet aanwezig | Niet aanwezig | Niet bewezen door deze tests |
-| Secure Boot, ondertekende updates, schijfcrypto/PQC | Niet aanwezig | Niet aanwezig | Niet aanwezig | M6/M8-contracten en quantumonderzoek |
-| NAS en lokale AI | Niet aanwezig | Niet aanwezig | Niet aanwezig | Dienstintegratie na relevante drivers/netwerk; privacygates blijven bindend |
+| Own MMU/frame management | Missing; firmware paging inherited | Implement and prove KS-01–03 | Used for isolation | Retained |
+| Separate user processes | Missing | Missing | KS-04–08 | Retained |
+| Controlled syscall boundary | Missing | Missing | ABI info/yield/exit | Copy rules and IPC negative tests |
+| Cap rights/delegation/revocation | Missing | Missing | Missing | KS-09–16 |
+| CPU preemption and quotas | Missing | Only fixed kernel resources | Scheduler/user frames | Caps/queues bounded |
+| W^X | No claim | Kernel mapping check | Also user frames/aliases | Retained |
+| ASLR, SMEP/SMAP, exploit mitigations | Not present | Not present | Not present in this profile | Separate extension; fixed addresses remain visible |
+| DMA/IOMMU, SMP, side-channel protection | Not present | Not present | Not present | Not proven by these tests |
+| Secure Boot, signed updates, disk crypto/PQC | Not present | Not present | Not present | M6/M8 contracts and quantum research |
+| NAS and local AI | Not present | Not present | Not present | Service integration after relevant drivers/network; privacy gates remain binding |
 
-“Niet aanwezig” betekent dat een M1-boot of M4-test geen dergelijke productclaim rechtvaardigt. De gekozen bescherming richt zich eerst op directe CPU-geheugentoegang en expliciete autoriteit. Speculatieve/timingkanalen, firmwarecompromis en fysieke aanvallen zijn hiermee niet opgelost.
+“Not present” means that an M1 boot or M4 test does not justify such a product claim. The chosen protection first targets direct CPU memory access and explicit authority. Speculative/timing channels, firmware compromise and physical attacks are not solved by this.
 
-## 8. Aansluiting op lokaal privégebruik
+## 8. Connection to local private use
 
-De capabilitylaag is het afdwingmechanisme waarop de latere services bouwen. Zij beslist niet zelf of een IP-adres de eigen NAS is. Maak daarvoor aparte objecten met concrete scope: gekozen bestand, benoemde NAS-dataset, goedgekeurde LAN-context, afzonderlijk internetrecht en een lokale AI-taak. Een algemeen endpoint naar een machtige helper mag deze grenzen niet omzeilen.
+The capability layer is the enforcement mechanism on which the later services build. It does not itself decide whether an IP address is the own NAS. For that, create separate objects with concrete scope: chosen file, named NAS dataset, approved LAN context, separate internet right and a local AI task. A general endpoint to a powerful helper must not bypass these boundaries.
 
-De NAS-dienst krijgt uitsluitend rechten op gekoppelde datasets en een geauthenticeerd kanaal naar de geselecteerde NAS-identiteit; LAN standaard, internet afzonderlijk expliciet toegestaan (privacycontract revisie 3). De transportdienst ziet alleen ciphertext; de client beheert de inhoudssleutels. Een NAS-admincapability mag ruimte blokkeren en verwijderen zonder gebruikersconsent, maar verleent geen decryptie- of documentleesrecht. Intrekking moet lopende uploads en herhaalde oude verzoeken bij de commitgrens stoppen. De inferentiedienst krijgt taakcontext en CPU/GPU/NPU-resources, **geen netwerkendpoint**. De modeldownloader krijgt modelopslag plus downloadrecht, geen documenten, prompts, NAS-credentials of inferentiegeschiedenis. Beperk ook delegatie en helperroutes: ontbreken van een socketrecht alleen is onvoldoende als IPC alsnog een machtige uploadhelper bereikbaar maakt.
+The NAS service gets rights exclusively to paired datasets and an authenticated channel to the selected NAS identity; LAN by default, internet separately explicitly permitted (privacy contract revision 3). The transport service sees only ciphertext; the client manages the content keys. A NAS admin capability may block and delete space without user consent, but grants no decryption or document read right. Revocation must stop running uploads and repeated old requests at the commit boundary. The inference service gets task context and CPU/GPU/NPU resources, **no network endpoint**. The model downloader gets model storage plus download right, no documents, prompts, NAS credentials or inference history. Also restrict delegation and helper routes: the absence of a socket right alone is insufficient if IPC still makes a powerful upload helper reachable.
 
-Later moet de policyservice per aanvraag opnieuw de capability, objectscope en geldige machtiging controleren; userinhoud of modeltekst verleent geen rechten. Netwerkverlies, ontbrekend model of intrekking veroorzaakt een lokale fout, geen cloudfallback. De LP-01–14-tests in [LOCAL-PRIVACY-CONTRACT.md](../LOCAL-PRIVACY-CONTRACT.md) blijven afzonderlijke acceptatie-eisen; M4 kan die nog niet bewijzen. PQC beschermt later sleutels/protocollen, maar vervangt deze isolatie en autorisatie niet.
+Later the policy service must re-check the capability, object scope and valid authorisation per request; user content or model text grants no rights. Network loss, a missing model or revocation causes a local error, no cloud fallback. The LP-01–14 tests in [LOCAL-PRIVACY-CONTRACT.md](../LOCAL-PRIVACY-CONTRACT.md) remain separate acceptance requirements; M4 cannot yet prove them. PQC will later protect keys/protocols, but does not replace this isolation and authorisation.
 
-## 9. Primaire bronnen (APA 7)
+## 9. Primary sources (APA 7)
 
-Geraadpleegd op 26 oktober 2026. De geraadpleegde Intel-PDF is expliciet de editie 2016; de gebruikte paging-/privilegebasis is geen claim dat moderne processors geen errata of extra beveiligingsvereisten hebben. De numerieke limieten, ABI, layout en tests hierboven zijn projectbesluiten.
+Accessed 26 October 2026. The consulted Intel PDF is explicitly the 2016 edition; the paging/privilege basis used is not a claim that modern processors have no errata or additional security requirements. The numeric limits, ABI, layout and tests above are project decisions.
 
-- **K1.** Intel Corporation. (2016, september). *Intel® 64 and IA-32 architectures software developer’s manual: Volume 3A, system programming guide, part 1* (Order No. 253668-060US; hoofdstukken 4–6 en 13). https://www.intel.sg/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-3a-part-1-manual.pdf
-- **K2.** The Rust Project. (z.d.). *x86_64-unknown-none*. The rustc book. Geraadpleegd op 26 oktober 2026, van https://doc.rust-lang.org/rustc/platform-support/x86_64-unknown-none.html
-- **K3.** seL4 Project. (z.d.). *Capabilities*. seL4 Documentation. Geraadpleegd op 26 oktober 2026, van https://docs.sel4.systems/Tutorials/capabilities.html
-- **K4.** seL4 Project. (z.d.). *What the proofs assume*. Geraadpleegd op 26 oktober 2026, van https://sel4.systems/Verification/assumptions.html
-- **K5.** The Rust Project. (z.d.). *Behavior considered undefined*. The Rust Reference. Geraadpleegd op 26 oktober 2026, van https://doc.rust-lang.org/reference/behavior-considered-undefined.html
-
+- **K1.** Intel Corporation. (2016, September). *Intel® 64 and IA-32 architectures software developer’s manual: Volume 3A, system programming guide, part 1* (Order No. 253668-060US; chapters 4–6 and 13). https://www.intel.sg/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-3a-part-1-manual.pdf
+- **K2.** The Rust Project. (n.d.). *x86_64-unknown-none*. The rustc book. Accessed 26 October 2026, from https://doc.rust-lang.org/rustc/platform-support/x86_64-unknown-none.html
+- **K3.** seL4 Project. (n.d.). *Capabilities*. seL4 Documentation. Accessed 26 October 2026, from https://docs.sel4.systems/Tutorials/capabilities.html
+- **K4.** seL4 Project. (n.d.). *What the proofs assume*. Accessed 26 October 2026, from https://sel4.systems/Verification/assumptions.html
+- **K5.** The Rust Project. (n.d.). *Behavior considered undefined*. The Rust Reference. Accessed 26 October 2026, from https://doc.rust-lang.org/reference/behavior-considered-undefined.html

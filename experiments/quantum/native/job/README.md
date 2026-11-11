@@ -1,24 +1,24 @@
-# L02 — native quantum-jobinterface
+# L02 — native quantum job interface
 
-Dit profiel voegt een echte gebruikersprocesroute toe boven de bestaande
-begrensde qsim-port. De kernel voert geen simulatorlogica uit: hij maakt twee
-processen, twee endpointobjecten en uitsluitend de minimale SEND/RECV-grants.
+This profile adds a real user process route on top of the existing
+bounded qsim port. The kernel executes no simulator logic: it creates two
+processes, two endpoint objects and only the minimal SEND/RECV grants.
 
-De **caller** verstuurt canonieke 256-byte `QJ01`-requests. De **dienst**
-valideert afzender, tag, lengte en requestcodec, voert de bestaande
-`qsim-native` adapter uit en stuurt een begrensd reply terug. Tijdens een job
-controleert de `Control`-callback dezelfde requestendpoint op een Cancel. Het
-aangevraagde `work_budget` wordt bij ieder checkpoint afgedwongen.
+The **caller** sends canonical 256-byte `QJ01` requests. The **service**
+validates sender, tag, length and request codec, runs the existing
+`qsim-native` adapter and sends back a bounded reply. During a job
+the `Control` callback checks the same request endpoint for a Cancel. The
+requested `work_budget` is enforced at every checkpoint.
 
-De acceptatie voert vier jobpaden uit: Bell met 4.096 shots; een zes-qubit
-X-circuit; een Cancel die via IPC tijdens uitvoering wordt opgehaald; en een
-job die door zijn werkbudget als deadline wordt beëindigd. Resultaten worden
-in vaste pagina's van maximaal zestien histogramwaarden teruggegeven.
+The acceptance runs four job paths: Bell with 4,096 shots; a six-qubit
+X circuit; a Cancel that is picked up via IPC during execution; and a
+job that is terminated by its work budget acting as a deadline. Results are
+returned in fixed pages of at most sixteen histogram values.
 
-De dienst gebruikt een private 64-KiB-arena. Na iedere beëindigde `execute`
-zijn alle tijdelijke Vecs vernietigd; pas daarna wordt de monotone arena
-teruggezet voor de volgende job. De latere kernelpoort moet aantonen dat beide
-processen, capabilities/endpoints, queues en frames volledig worden opgeruimd.
+The service uses a private 64 KiB arena. After each terminated `execute`
+all temporary Vecs have been destroyed; only then is the monotonic arena
+reset for the next job. The later kernel gate must demonstrate that both
+processes, capabilities/endpoints, queues and frames are completely cleaned up.
 
-Dit is een lokale software-simulator/jobinterface op het eigen OS. Het is geen
-fysieke QPU, geen quantumversnelling en geen cloudroute.
+This is a local software simulator/job interface on the own OS. It is not a
+physical QPU, not quantum speedup and not a cloud route.

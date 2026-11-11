@@ -1,19 +1,19 @@
-# Synthetische eigen userprobe voor M3
+# Synthetic own user probe for M3
 
-Deze kleine statische ELF64-probe is bron voor de echte ring-3-proeven KS-04–08. De hostbouw en artifacttests hieronder bewijzen de bestandsinterface; alleen de kernel/QEMU-harness kan isolatie, preëmptie en foutafhandeling aantonen.
+This small static ELF64 probe is the source for the real ring-3 trials KS-04–08. The host build and artifact tests below prove the file interface; only the kernel/QEMU harness can demonstrate isolation, preemption and fault handling.
 
-Geen dependencies, hostlibc, allocator, TLS, dynamische linker of port-I/O. De probe gebruikt uitsluitend `abi_info` (0), `yield` (1) en `exit` (2). Zij kan geen seriële succesmarker schrijven. `probe.rs` bevat bewust afzonderlijke verboden instructies voor de negatieve tests; die schakelen geen compiler-targetfeatures in.
+No dependencies, host libc, allocator, TLS, dynamic linker or port I/O. The probe uses exclusively `abi_info` (0), `yield` (1) and `exit` (2). It cannot write a serial success marker. `probe.rs` deliberately contains separate forbidden instructions for the negative tests; these enable no compiler target features.
 
-## Bouwinterface
+## Build interface
 
-De hoofdagent beheert `tools/build_users.py` en bouwt met de bestaande lokale Rust 1.90.0-omgeving:
+The main agent owns `tools/build_users.py` and builds with the existing local Rust 1.90.0 environment:
 
 ```powershell
 python tools/build_users.py
 python -B -X utf8 userspace/tests/test_probe.py --elf build/users/probe.elf
 ```
 
-De eerste opdracht roept rechtstreeks rustc aan, zodat `.cargo/config.toml` niet per ongeluk het kernellinkerscript op de userprobe toepast. Exacte flags, naast absolute bron-/uitvoerpaden:
+The first command calls rustc directly, so that `.cargo/config.toml` does not accidentally apply the kernel linker script to the user probe. Exact flags, alongside absolute source/output paths:
 
 ```text
 rustc +1.90.0 --edition=2021 --crate-type=bin --crate-name=os_user_probe
@@ -25,61 +25,61 @@ rustc +1.90.0 --edition=2021 --crate-type=bin --crate-name=os_user_probe
 -o <absolute-pad>/build/users/probe.elf <absolute-pad>/userspace/probe.rs
 ```
 
-De kernel krijgt dit artifact via `NOS_USER_ELF`; root beheert de embed-/buildvolgorde. Er is geen root-Cargo-build of wijziging aan rootconfig nodig vanuit deze map.
+The kernel receives this artifact via `NOS_USER_ELF`; root owns the embed/build order. No root Cargo build or change to root config is needed from this directory.
 
-## Vaste interface met de kernel
+## Fixed interface with the kernel
 
-ELF: `ET_EXEC`, AMD64 little-endian, entry/text op `0x40000000` met RO/X; data op `0x40010000` met RW/NX. Het linkerscript begrenst de tekst tot vóór data en houdt het datagebied exact 32 bytes. Kernelmapping verleent de daadwerkelijke paginarechten; ELF-flags op zichzelf doen dat niet.
+ELF: `ET_EXEC`, AMD64 little-endian, entry/text at `0x40000000` with RO/X; data at `0x40010000` with RW/NX. The linker script bounds the text to before data and keeps the data area exactly 32 bytes. Kernel mapping grants the actual page rights; ELF flags on their own do not.
 
-Vier little-endian `u64`-velden, door de kernel vóór processtart ingevuld:
+Four little-endian `u64` fields, filled in by the kernel before process start:
 
-| Offset | Veld | Gebruik |
+| Offset | Field | Use |
 |---|---|---|
-| +0 | mode | Selecteert één van de onderstaande takken |
-| +8 | counter | Privévoortgang; wordt vóór iedere geselecteerde handeling verhoogd |
-| +16 | pattern | Privépatroon; probe bewaart de initiële waarde in r13 en vergelijkt iedere lus |
-| +24 | target | Alleen voor modes 3–5; testharness kiest het beschermde doeladres |
+| +0 | mode | Selects one of the branches below |
+| +8 | counter | Private progress; incremented before every selected action |
+| +16 | pattern | Private pattern; probe keeps the initial value in r13 and compares it every loop |
+| +24 | target | Only for modes 3–5; test harness chooses the protected target address |
 
-Iedere procesinstantie moet eigen fysieke data-/textframes krijgen. Hetzelfde virtuele adres of hetzelfde ELF-bestand betekent geen gedeelde frames. De kernel leest voor meetdoeleinden alleen gevalideerde eigen procesframes; er is geen gedeelde usercounter.
+Every process instance must get its own physical data/text frames. The same virtual address or the same ELF file does not mean shared frames. The kernel reads, for measurement purposes, only validated own process frames; there is no shared user counter.
 
-| Mode | Handeling na counter++ |
+| Mode | Action after counter++ |
 |---|---|
-| 0 | Onbegrensde busy worker zonder yield |
-| 1 | Yield en opnieuw tellen |
-| 2 | Exit met code 0 zodra counter ≥ 8 |
-| 3 | Lees `u64` op target |
-| 4 | Schrijf `u64=1` op target; harness kiest B's supervisor-identityadres |
-| 5 | Schrijf `u64=1` op target; harness kiest kerneltext |
-| 6 | Spring naar stackbasis `0x7ffef000` |
-| 7 | Spring naar heapbasis `0x60000000` |
-| 8 | Schrijf op onderste stackguard `0x7ffee000` |
-| 9 | Schrijf op bovenste stackguard `0x7ffff000` |
+| 0 | Unbounded busy worker without yield |
+| 1 | Yield and count again |
+| 2 | Exit with code 0 once counter ≥ 8 |
+| 3 | Read `u64` at target |
+| 4 | Write `u64=1` at target; harness chooses B's supervisor identity address |
+| 5 | Write `u64=1` at target; harness chooses kernel text |
+| 6 | Jump to stack base `0x7ffef000` |
+| 7 | Jump to heap base `0x60000000` |
+| 8 | Write to lower stack guard `0x7ffee000` |
+| 9 | Write to upper stack guard `0x7ffff000` |
 | 10 | `cli` |
 | 11 | `fninit` |
 | 12 | `pxor xmm0,xmm0` |
 | 13 | `vxorps ymm0,ymm0,ymm0` |
 | 14 | `ud2` |
-| 15 | Direct exit met code 7 na de eerste counterverhoging; geen acht-iteratiedrempel |
-| 16 | ABI-info met nulargumenten via `int 0x80` nadat ESP/RSP nul is gemaakt; geen normale terugkeer |
+| 15 | Immediate exit with code 7 after the first counter increment; no eight-iteration threshold |
+| 16 | ABI info with zero arguments via `int 0x80` after ESP/RSP has been zeroed; no normal return |
 
-Vóór de eerste lus voert iedere instantie drie echte syscallcontroles uit:
+Before the first loop every instance performs three real syscall checks:
 
-1. ABI-info: RAX=0 en RDX=`1<<32`. Direct vóór `int 0x80` zet `std` de direction flag (DF). Na terugkeer leest de probe RFLAGS via `pushfq` en controleert dat DF weer nul is; het eigen foutpad voert altijd `cld` uit.
-2. Onbekend nummer `0xffff`: RAX=-2 (`ENOSYS`), RDX=0.
-3. ABI-info met één expres ongeldig ongebruikt argument RSI=1: RAX=-1 (`EINVAL`), RDX=0.
+1. ABI info: RAX=0 and RDX=`1<<32`. Directly before `int 0x80`, `std` sets the direction flag (DF). After return the probe reads RFLAGS via `pushfq` and checks that DF is zero again; its own error path always executes `cld`.
+2. Unknown number `0xffff`: RAX=-2 (`ENOSYS`), RDX=0.
+3. ABI info with one deliberately invalid unused argument RSI=1: RAX=-1 (`EINVAL`), RDX=0.
 
-Iedere preludecontrole vergelijkt RBX/RBP/R14/R15/RCX/R11 met sentinels, R12 met het vaste datagebied, R13 met het privépatroon, RSP met de afgesproken initiële stackpositie en alle niet-resultaatargumenten met hun verwachte waarde. Buiten het opzettelijke RSI=1-geval zijn ongebruikte argumenten nul. Het zijn geen hostcalls; de kernel/QEMU-proef moet deze instructies daadwerkelijk uitvoeren. Er is geen TF-probe omdat een debug-exception vóór een betrouwbare controle kan optreden; TF-sanitizing blijft apart te toetsen.
+Every prelude check compares RBX/RBP/R14/R15/RCX/R11 with sentinels, R12 with the fixed data area, R13 with the private pattern, RSP with the agreed initial stack position and all non-result arguments with their expected value. Outside the deliberate RSI=1 case, unused arguments are zero. These are not host calls; the kernel/QEMU trial must actually execute these instructions. There is no TF probe because a debug exception can occur before a reliable check; TF sanitising remains to be tested separately.
 
-Foutcodes via gewone `exit`: `0xe0` ABI-afwijking, `0xe1` veranderd patroon, `0xe2` onbekende mode, `0xe3` verboden handeling liep onverwacht door. Een terugkerende exit voert `ud2` uit. Geen van deze exits telt als een geslaagde verwachte userfault.
+Error codes via ordinary `exit`: `0xe0` ABI deviation, `0xe1` changed pattern, `0xe2` unknown mode, `0xe3` forbidden action unexpectedly continued. A returning exit executes `ud2`. None of these exits counts as a successful expected user fault.
 
-De afzonderlijke kerneltest `test-m3-b-exit` gebruikt mode 15 voor B en mode 0 voor A. Gewenst bewijs: B eindigt met code 7 en counter 1, de kernel ruimt B gecontroleerd op en A maakt daarna voortgang. Exitcode 7 is hierbij gewone procesmetadata en geen reden voor een kernelpanic. De syscallimplementatie verwerkt de exit; de testobserver beslist afzonderlijk of de verwachte toestand is bereikt.
+The separate kernel test `test-m3-b-exit` uses mode 15 for B and mode 0 for A. Desired evidence: B ends with code 7 and counter 1, the kernel cleans up B in a controlled way and A makes progress afterwards. Exit code 7 is ordinary process metadata here and no reason for a kernel panic. The syscall implementation processes the exit; the test observer separately decides whether the expected state has been reached.
 
-De kerneltest `test-m3-invalid-rsp` gebruikt mode 16 voor het testproces en mode 0 voor de andere worker. Counter is eerst eenmaal verhoogd. Daarna wist de probe alle syscallargumenten en RAX voor ABI-info, maakt ESP/RSP nul en voert `int 0x80` uit. Dit moet de softwarevalidatie van de opgeslagen returncontext bereiken: alleen het proces wordt beëindigd, de andere worker maakt voortgang. De `ud2` na `int 0x80` is een onbereikbare foutvangst; uitvoering daarvan is geen geslaagde proef. Dit is geen hardwarefaultclaim.
+The kernel test `test-m3-invalid-rsp` uses mode 16 for the test process and mode 0 for the other worker. Counter is first incremented once. Then the probe clears all syscall arguments and RAX for ABI info, zeroes ESP/RSP and executes `int 0x80`. This must reach the software validation of the saved return context: only the process is terminated, the other worker makes progress. The `ud2` after `int 0x80` is an unreachable error trap; executing it is not a successful trial. This is not a hardware fault claim.
 
-Modes 6/7 vereisen in de echte harness een page fault op exact het bedoelde doel met de instruction-fetch- en presentbits. Zonder NX kan uitvoering van nulbytes later alsnog op een ander adres faulten; alleen constateren dat A ergens fault, bewijst geen NX. Bij modes 3–5 zijn CR2 en de user/read/write-foutbits eveneens onderdeel van het bewijs. Bij alle foutmodi moet B verdergaan.
+Modes 6/7 require, in the real harness, a page fault at exactly the intended target with the instruction-fetch and present bits. Without NX, executing zero bytes can still fault later at a different address; merely observing that A faults somewhere does not prove NX. For modes 3–5, CR2 and the user/read/write fault bits are likewise part of the evidence. In all fault modes B must continue.
 
-## Bewijs en beperkingen
+## Evidence and limitations
 
-Zie `verification/R03-HOST-2026-10-27.md` en `verification/host-evidence.json` voor de actuele uitgevoerde bouw en tests. De artifacttests omvatten echte ELF-segmenten, hashes, relocatie/TLS-afwezigheid, syscallargument-/DF-codering en negatieve gemuteerde ELF-bestanden. Opcode-aanwezigheid bewijst geen uitgevoerde instructie. De tests gebruiken de door root beheerde buildinspector; zij vervangen de kernelparser en zijn geen onafhankelijke implementatie daarvan.
+See `verification/R03-HOST-2026-10-27.md` and `verification/host-evidence.json` for the current executed build and tests. The artifact tests cover real ELF segments, hashes, relocation/TLS absence, syscall argument/DF encoding and negative mutated ELF files. Opcode presence does not prove an executed instruction. The tests use the build inspector owned by root; they replace the kernel parser and are not an independent implementation of it.
 
-Alle tijdelijke mutatiebestanden staan uitsluitend onder `userspace/tests/` en worden na de tests verwijderd. Artifacts blijven onder `build/` buiten Git. Deze map bevat geen claims dat KS-04–08 al geslaagd zijn.
+All temporary mutation files reside exclusively under `userspace/tests/` and are removed after the tests. Artifacts stay under `build/` outside Git. This directory contains no claims that KS-04–08 have already passed.

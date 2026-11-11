@@ -1,12 +1,12 @@
-# Native geheugengroei-proef
+# Native memory growth test
 
-Deze architectuurproef voert werkelijke ABI1.7-geheugengroei uit in ring3 op
-de eigen kernel. De normale route gebruikt `native::heap_grow`; alleen de
-zeven opzettelijk ongeldige argumenten gebruiken een expliciet test-`int80`.
-`Vec`, `Box` en `String` gebruiken de onderhouden `sdk/heap-allocator`, uitsluitend
-boven een nieuwe eigen RW/NX-arena. Er is geen hostallocator of automatische
-geheugengroei. Elke nieuwe byte wordt voor overdracht aan de allocator gelezen
-en op nul gecontroleerd.
+This architecture test performs real ABI1.7 memory growth in ring3 on
+the own kernel. The normal route uses `native::heap_grow`; only the
+seven deliberately invalid arguments use an explicit test `int80`.
+`Vec`, `Box` and `String` use the maintained `sdk/heap-allocator`, exclusively
+on top of a new dedicated RW/NX arena. There is no host allocator or automatic
+memory growth. Every new byte is read and checked for zero before being handed
+to the allocator.
 
 ```sh
 LOCALAPPDATA=/workspace/nieuw-os/.tools \
@@ -14,67 +14,67 @@ CARGO_TARGET_DIR=build/sdk-memory-probe-rust190 \
 python3 -B sdk/examples/memory/build.py
 ```
 
-De bouw gebruikt expliciet Rust1.90.0, een eigen vastgezette lockfile en
-`x86_64-unknown-none`. Het JSON-resultaat geeft `NOS_MEMORY_ELF` en de werkelijk
-geïnspecteerde ELF/hash. Alle processen gebruiken dezelfde executable met eigen
-frames en een afzonderlijke private startpagina. Het protocol staat in
-`src/contract.rs`; het is testmetadata, geen nieuw publiek opstartcontract.
+The build explicitly uses Rust1.90.0, its own pinned lockfile and
+`x86_64-unknown-none`. The JSON result gives `NOS_MEMORY_ELF` and the actually
+inspected ELF/hash. All processes use the same executable with their own
+frames and a separate private start page. The protocol is in
+`src/contract.rs`; it is test metadata, not a new public startup contract.
 
-De hoofdagent integreert featurekeuze, ELF-embedding en
-`kernel/src/m2/m3/memory_fixture.rs` via de gedeelde bouw- en VM-procedures.
-De features zijn `native-memory` en de afgeleide `native-memory-nx`,
+The main agent integrates feature selection, ELF embedding and
+`kernel/src/m2/m3/memory_fixture.rs` via the shared build and VM procedures.
+The features are `native-memory` and the derived `native-memory-nx`,
 `native-memory-guard`, `native-memory-peer`, `native-memory-oom`.
-`native-memory` vereist `process-memory` en `fpu-context`. Legacyprofielen
-blijven afzonderlijk. Geen andere M3/M4-demofeature hoort in deze fixture.
+`native-memory` requires `process-memory` and `fpu-context`. Legacy profiles
+remain separate. No other M3/M4 demo feature belongs in this fixture.
 
-Normaal, NX, guard en peer gebruiken twee processen op het bestaande
-pc-q35-8.2/qemu64/TCG/1CPU/256MiB-regressieprofiel. Drie levens omvatten een
-nieuwe PID in het hergebruikte eerste processlot. Ieder leven controleert
-513 pagina's groei over een pagetablegrens, argumentfouten, een geweigerde
-te grote groei met daarna exact aansluitende succesvolle groei, de bestaande
-totale 2048-framequota, eigen inhoud en behouden oude heap. In negatieve
-gevallen voert uitsluitend het eerste proces daarna een echte foute
-instructie uit: NX `#PF` met error21, onbeschreven suffix schrijven met error6,
-of een fysiek frame van het levende andere proces lezen met error5.
-De observer controleert vector14, foutcode, CR2 en RIP en laat het andere
-proces aantoonbaar verder werken voordat het slot wordt hergebruikt.
+Normal, NX, guard and peer use two processes on the existing
+pc-q35-8.2/qemu64/TCG/1CPU/256MiB regression profile. Three lives include a
+new PID in the reused first process slot. Every life checks
+513 pages of growth across a page table boundary, argument errors, a refused
+oversized growth followed by exactly contiguous successful growth, the existing
+total 2048-frame quota, its own content and the preserved old heap. In negative
+cases only the first process then executes a real faulting
+instruction: NX `#PF` with error21, writing the unwritten suffix with error6,
+or reading a physical frame of the other live process with error5.
+The observer checks vector14, error code, CR2 and RIP and lets the other
+process demonstrably continue working before the slot is reused.
 
-OOM is een afzonderlijk negatief 128MiB-profiel met zestien processen.
-Elk vraagt begrensde porties van64 pagina's tot de echte kernel Quota of
-OutOfMemory meldt en houdt die frames bezet. Geen fixture onttrekt kunstmatig
-frames aan de pool. Minstens één proces moet echte fysieke uitputting melden.
-Pas wanneer alle zestien zijn geblokkeerd, mogen vijftien eindigen. Het
-overgebleven OOM-proces moet daarna één nieuwe nulgevulde pagina precies op
-de oude suffixgrens ontvangen. Dit verruimt de bestaande quota niet.
+OOM is a separate negative 128MiB profile with sixteen processes.
+Each requests bounded portions of64 pages until the real kernel reports Quota or
+OutOfMemory and keeps those frames occupied. No fixture artificially withdraws
+frames from the pool. At least one process must report real physical exhaustion.
+Only when all sixteen are blocked may fifteen exit. The
+remaining OOM process must then receive one new zero-filled page exactly at
+the old suffix boundary. This does not widen the existing quota.
 
-Vóór procesopruiming controleert de kernelobserver werkelijke eigenaar,
-RW/NX/user-PTE, supervisoralias, aliasaantallen en de onbeschreven suffixgrens.
-Direct ná opruiming en vóór hergebruik controleert hij alle vrijgegeven
-heapframes onafhankelijk: eigenaarFree, geen aliases/PTE en alle bytes nul.
-Permanente nieuwe kernelpagetables worden expliciet van de teruggewonnen
-framebalans afgetrokken en apart geteld.
+Before process cleanup the kernel observer checks the actual owner,
+RW/NX/user PTE, supervisor alias, alias counts and the unwritten suffix boundary.
+Directly after cleanup and before reuse it checks all released
+heap frames independently: ownerFree, no aliases/PTE and all bytes zero.
+Permanent new kernel page tables are explicitly subtracted from the recovered
+frame balance and counted separately.
 
-De negentien `MEMORY:`-tellers zijn in volgorde vastgelegd in de observer.
-Voor elk geval geldt:
+The nineteen `MEMORY:` counters are fixed in order in the observer.
+For every case:
 
 - `ZERO_BYTES = GROWN_PAGES * 4096`;
 - `CLEANUP_ZERO_BYTES = ZERO_BYTES + CLEAN_STARTS * 65536`;
-- `RETRY_ZERO_BYTES` is al in `ZERO_BYTES` opgenomen;
-- `ARG_DENIED = CLEAN_STARTS * 7`, alle collectie-/privatecontroles eenmaal
-  per leven, ten minste twee echte PIT-interrupts;
-- geen levende processen en `FRAMES_RECOVERED = 1`.
+- `RETRY_ZERO_BYTES` is already included in `ZERO_BYTES`;
+- `ARG_DENIED = CLEAN_STARTS * 7`, all collection/private checks once
+  per life, at least two real PIT interrupts;
+- no live processes and `FRAMES_RECOVERED = 1`.
 
-Normale en foutproeven vereisen drie schone levens,21 argumentweigeringen,
-6 quotaweigeringen en één slotreuse. Normaal eindigen drie processen;
-een foutproef telt één fout en twee normale exits. OOM vereist zestien levens,
-zestien exits,112 argumentweigeringen, minstens één fysieke OOM, één herstel,
-4096 herstelde nulbytes en geen slotreuse. Het aantal fysieke OOM's plus
-quotaweigeringen moet zestien zijn; pakketlayout of VM-allocatiedetails mogen
-dit onderscheid niet worden voorgekookt.
+Normal and fault tests require three clean lives,21 argument refusals,
+6 quota refusals and one slot reuse. Normally three processes exit;
+a fault test counts one fault and two normal exits. OOM requires sixteen lives,
+sixteen exits,112 argument refusals, at least one physical OOM, one recovery,
+4096 recovered zero bytes and no slot reuse. The number of physical OOMs plus
+quota refusals must be sixteen; package layout or VM allocation details may
+not be used to precook this distinction.
 
-Een brongebonden geslaagde VM-proef bewijst alleen deze concrete eigenschappen
-op dit regressie-/negatieve profiel. De volledige 8GiB-productrelease,
-willekeurige applicatiecompatibiliteit, fysieke hardware, SMP, heapkrimp en
-gedeelde geheugenbuffers blijven afzonderlijke acceptatiecriteria. De lokale
-ontwikkelproeven met tijdelijke integratiehooks zijn bovendien geen bewijs
-voor een andere samengestelde hoofdbranchcommit.
+A source-bound successful VM test proves only these concrete properties
+on this regression/negative profile. The complete 8GiB product release,
+arbitrary application compatibility, physical hardware, SMP, heap shrinking and
+shared memory buffers remain separate acceptance criteria. Moreover, the local
+development tests with temporary integration hooks are not evidence
+for a different composed main branch commit.

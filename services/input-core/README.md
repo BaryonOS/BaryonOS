@@ -1,33 +1,33 @@
 # Nieuw OS input service core
 
-Allocatorvrije `no_std`-core met `forbid(unsafe_code)`. Hergebruikt bestaande
-`ui-core`-PS/2-decoders en `InputRouter`; geen device-I/O, syscalls, nieuwe
-kernelrechten, native service-loop of compositor. Vier bootstrapgebonden
-RECV-ingresses scheiden bron, focuscontroller, lifecycle en appverzoeken.
+Allocator-free `no_std` core with `forbid(unsafe_code)`. Reuses the existing
+`ui-core` PS/2 decoders and `InputRouter`; no device I/O, syscalls, new
+kernel rights, native service loop or compositor. Four bootstrap-bound
+RECV ingresses separate source, focus controller, lifecycle and app requests.
 
-`Service::handle(endpoint, &Received)` valideert endpoint, kernel-afzender,
-tag/caps en de canonieke INP1-payload. De native adapter moet `Received` direct
-uit de echte kernel halen en onverwacht gedelegeerde caps expliciet sluiten.
-`Received::from_bytes` in een hosttest bewijst zelf geen herkomst.
+`Service::handle(endpoint, &Received)` validates endpoint, kernel sender,
+tag/caps and the canonical INP1 payload. The native adapter must obtain `Received` directly
+from the real kernel and explicitly close unexpectedly delegated caps.
+`Received::from_bytes` in a host test does not by itself prove provenance.
 
-Een `Reply` kiest uitsluitend een vooraf bekende `Route`; de caller maps die
-naar de vooraf verleende reply-SEND-capability. `reply_is_current` wordt in
-dezelfde servicethread vlak vóór send gecontroleerd. PEEK bewaart input totdat
-een geldige ACK volgt; focus/death/reset/overflow maken oude event-/cancelreplies
-ongeldig. Empty en commandobevestigingen zijn observaties bij afhandeling en
-verlenen geen focus; zij wissen geen later wachtende cancel.
-Een afzonderlijke cancel-watermark gaat vóór gewone events. Fouten kunnen
-met `error_reply` als canonieke negatieve status worden afgehandeld; er is
-geen fallback naar een succes- of Empty-antwoord.
+A `Reply` selects only a pre-known `Route`; the caller maps it
+to the pre-granted reply-SEND capability. `reply_is_current` is checked in
+the same service thread immediately before send. PEEK retains input until
+a valid ACK follows; focus/death/reset/overflow invalidate old event/cancel replies.
+Empty and command acknowledgements are observations at handling time and
+grant no focus; they do not clear a later pending cancel.
+A separate cancel watermark takes precedence over ordinary events. Errors can
+be handled with `error_reply` as a canonical negative status; there is
+no fallback to a success or Empty reply.
 
-Wire v1: 96 little-endian payloadbytes; header `INP1`, versie, opcode,
-requestnummer, epoch, arg0 en arg1. Antwoorden gebruiken opcode|0x8000,
-status in arg0 en de gebonden client-ID in arg1. Status 0=Ok, 1=Empty,
-2–18=`Error`. Het event begint op byte 40: soort/action/key of buttons op
-40–43, modifiers of signed delta op 44–47, eventnummer op 48, focusgeneratie
-of cancel-watermark op 56, pointer-X/Y op 64/68. Bytes 72–95 blijven nul.
-Een PEEK zonder event heeft een nulgevulde eventbody. Alle requestbytes vanaf
-40 zijn nul; ongebruikte arguments zijn eveneens nul.
+Wire v1: 96 little-endian payload bytes; header `INP1`, version, opcode,
+request number, epoch, arg0 and arg1. Replies use opcode|0x8000,
+status in arg0 and the bound client ID in arg1. Status 0=Ok, 1=Empty,
+2–18=`Error`. The event starts at byte 40: kind/action/key or buttons at
+40–43, modifiers or signed delta at 44–47, event number at 48, focus generation
+or cancel watermark at 56, pointer X/Y at 64/68. Bytes 72–95 remain zero.
+A PEEK without an event has a zero-filled event body. All request bytes from
+40 onward are zero; unused arguments are likewise zero.
 
 ```sh
 cargo +1.90.0 test --manifest-path services/input-core/Cargo.toml --locked --offline
@@ -35,6 +35,6 @@ cargo +1.90.0 clippy --manifest-path services/input-core/Cargo.toml --all-target
 cargo +1.90.0 build --manifest-path services/input-core/Cargo.toml --lib --release --target x86_64-unknown-none --locked --offline
 ```
 
-Gebruik een eigen `CARGO_TARGET_DIR` en de bestaande toolomgeving.
-[Contract en native afhankelijkheden](../../docs/implementation/NATIVE-INPUT-SERVICE.md).
-[Controleerbaar host-/targetrapport](verification/host-target.json).
+Use a dedicated `CARGO_TARGET_DIR` and the existing tool environment.
+[Contract and native dependencies](../../docs/implementation/NATIVE-INPUT-SERVICE.md).
+[Verifiable host/target report](verification/host-target.json).

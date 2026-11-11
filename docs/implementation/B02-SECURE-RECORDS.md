@@ -1,157 +1,157 @@
-# B02 — geauthenticeerde records en exacte sleutelstatus
+# B02 — authenticated records and exact key state
 
-Datum: 29 oktober 2026; aangevuld 30 oktober 2026 (FR-B02P). Taak FR-B02,
-voortbouwend op B01/ADR-043 en `services/volume`. Status: **core, wire en
-native persistentieslice geïmplementeerd en in het FR-I01-profiel onder QEMU
-bewezen (zie FR-B02P onderaan); koude rollbackankering, write-ahead in de
-dienst en volledige B02-acceptatie blijven open**.
-Er is geen nieuwe kernelcryptografie of afhankelijkheid. De bestaande
-KEY1-opcodes/ABI blijven behouden; FR-B02N voegt compatibele recordopcodes toe.
+Date: 29 October 2026; extended 30 October 2026 (FR-B02P). Task FR-B02,
+building on B01/ADR-043 and `services/volume`. Status: **core, wire and
+native persistence slice implemented and proven under QEMU in the FR-I01
+profile (see FR-B02P below); cold rollback anchoring, write-ahead in the
+service and full B02 acceptance remain open**.
+There is no new kernel cryptography or dependency. The existing
+KEY1 opcodes/ABI are preserved; FR-B02N adds compatible record opcodes.
 
-## Doel en beveiligingsgrens
+## Goal and security boundary
 
-De bestaande B01-SEAL bindt alleen domein en sleutelindex en is geen
-opslagrecordformaat. Het bestaande herstelblob kent geen exacte
-allocatieteller: legacy RESTORE maakt alle zestien indices gereserveerd.
-De nieuwe bewerkingen staan daarom in dezelfde `keyring_core::Service`,
-met dezelfde onderhouden XChaCha20-Poly1305/HKDF-SHA-256-implementaties.
-De bestaande B01-bewerkingen en hun tests blijven bruikbaar.
+The existing B01 SEAL binds only domain and key index and is not a
+storage record format. The existing recovery blob has no exact
+allocation counter: legacy RESTORE marks all sixteen indices as reserved.
+The new operations are therefore placed in the same `keyring_core::Service`,
+with the same maintained XChaCha20-Poly1305/HKDF-SHA-256 implementations.
+The existing B01 operations and their tests remain usable.
 
-De nieuwe core bevat geen schijf-I/O, geen broker die rechten toekent en geen
-trusted cold-bootklok. De dienstadapter moet domein, objecttoegang en
-verwachte revisie uit geautoriseerde systeemtoestand halen. Een app of
-opslagserver mag die autoriteit niet verkrijgen door contextvelden in te
-vullen. Gewone apps krijgen geen masterkey of persistente snapshotbevoegdheid.
+The new core contains no disk I/O, no broker that grants rights and no
+trusted cold-boot clock. The service adapter must take domain, object access and
+expected revision from authorized system state. An app or
+storage server must not obtain that authority by filling in context
+fields. Ordinary apps get no master key or persistent snapshot authority.
 
-Invarianten:
+Invariants:
 
-- Records authenticeren volume, aanvragerdomein, sleutelindex, object,
-  revisie, chunkpositie, exacte lengte, recordsoort, encodingschema, suite en
-  formaatversie. Gelijklange naam-/metadata-/inhoudrecords zijn niet uitwisselbaar.
-- Een fout levert geen gedeeltelijke plaintext op. Uitvoerbuffers en de
-  sleutelnamespace veranderen niet bij weigering. Entropiebewaking mag de
-  dienst bij bronfalen bewust in `Degraded` zetten; diagnostische tellers
-  blijven tellen volgens B01.
-- Exacte allocaties en intrekkingen worden samen met de master versleuteld.
-  Import valideert het gehele record vóór de namespacecommit. Onder dezelfde
-  master worden allocaties met maximum en intrekkingen met bitgewijze unie
-  samengevoegd; een eerder uitgegeven index wordt niet opnieuw uitgegeven.
-- Een gebruikte of aan een volume gebonden instantie wisselt niet naar een
-  andere master. Ook een leeg geldig persistent snapshot bindt de lineage;
-  legacy RESTORE biedt geen omweg.
-- Generatie-overflow geeft `Quota` vóór een gedeeltelijke namespacewijziging.
-  Tijdelijke sleutel-/plaintextbuffers gebruiken `Zeroizing`; dit is
-  geheugenhygiëne en geen claim over alle compiler-/registerkopieën.
+- Records authenticate volume, requester domain, key index, object,
+  revision, chunk position, exact length, record kind, encoding schema, suite and
+  format version. Equal-length name/metadata/content records are not interchangeable.
+- An error yields no partial plaintext. Output buffers and the
+  key namespace do not change on rejection. Entropy monitoring may deliberately put the
+  service into `Degraded` on source failure; diagnostic counters
+  keep counting as in B01.
+- Exact allocations and revocations are encrypted together with the master.
+  Import validates the entire record before the namespace commit. Under the same
+  master, allocations are merged by maximum and revocations by bitwise union;
+  a previously issued index is not issued again.
+- A used or volume-bound instance does not switch to a
+  different master. Even an empty valid persistent snapshot binds the lineage;
+  legacy RESTORE offers no bypass.
+- Generation overflow returns `Quota` before any partial namespace change.
+  Temporary key/plaintext buffers use `Zeroizing`; this is
+  memory hygiene and not a claim about all compiler/register copies.
 
-## Core-interfaces en formaten
+## Core interfaces and formats
 
-`records::RecordContext` bevat `volume: [u8; 16]`, `domain: u8`,
+`records::RecordContext` contains `volume: [u8; 16]`, `domain: u8`,
 `object: u64`, `revision: u64`, `chunk: u32`, `length: u16`,
-`kind: RecordKind` en `schema: u16` (nul ongeldig).
-`Service::seal_record` en `unseal_record` ontvangen daarnaast het
-kernelgebonden domein, de sleutelindex en de bestaande entropybron.
-De domeinen zijn uitsluitend `0..DOMAINS`; context en aanvrager moeten
-hetzelfde domein hebben. Object-ID nul en lege inhoud zijn geldige waarden.
+`kind: RecordKind` and `schema: u16` (zero invalid).
+`Service::seal_record` and `unseal_record` additionally receive the
+kernel-bound domain, the key index and the existing entropy source.
+The domains are exclusively `0..DOMAINS`; context and requester must have
+the same domain. Object ID zero and empty content are valid values.
 
-Een record bevat `nonce[24] | ciphertext[length] | tag[16]`, maximaal
-168 bytes voor de bestaande 128-bytechunk. De totale documentlengte wordt
-hierdoor niet tot 128 bytes beperkt: de native adapter moet streamen.
-De verwachte context staat niet als leesbare documentmetadata in het record.
-Namen, tags, collecties, gevoelige indexen en manifesten moeten zelf in
-geauthenticeerd versleutelde records worden opgeslagen.
+A record contains `nonce[24] | ciphertext[length] | tag[16]`, at most
+168 bytes for the existing 128-byte chunk. The total document length is
+not thereby limited to 128 bytes: the native adapter must stream.
+The expected context is not stored in the record as readable document metadata.
+Names, tags, collections, sensitive indexes and manifests must themselves be stored in
+authenticated encrypted records.
 
-De exact 64-byte AAD is canoniek little-endian:
+The exactly 64-byte AAD is canonical little-endian:
 
-| Offset | Inhoud |
+| Offset | Content |
 |---|---|
 | 0 | `NOSREC01` (8 bytes) |
-| 8, 10 | Formaatversie 1, suite 1 (beide u16) |
-| 12, 13 | Domein, sleutelindex (beide u8) |
-| 14 | Recordsoort u8: 1 inhoud, 2 naam, 3 objectmetadata, 4 volumemanifest, 5 zoekindex |
-| 15 | Gereserveerde nulbyte |
-| 16 | Volume-ID (16 bytes) |
-| 32, 40 | Object-ID en revisie (beide u64) |
-| 48 | Chunkpositie (u32) |
-| 52 | Plaintextlengte (u16) |
-| 54 | Canonieke encodingversie binnen de recordsoort (u16, niet nul) |
-| 56 | Acht gereserveerde nulbytes |
+| 8, 10 | Format version 1, suite 1 (both u16) |
+| 12, 13 | Domain, key index (both u8) |
+| 14 | Record kind u8: 1 content, 2 name, 3 object metadata, 4 volume manifest, 5 search index |
+| 15 | Reserved zero byte |
+| 16 | Volume ID (16 bytes) |
+| 32, 40 | Object ID and revision (both u64) |
+| 48 | Chunk position (u32) |
+| 52 | Plaintext length (u16) |
+| 54 | Canonical encoding version within the record kind (u16, non-zero) |
+| 56 | Eight reserved zero bytes |
 
-Suite 1 gebruikt de bestaande afgeleide B01-domein-/indexsleutel en
-XChaCha20-Poly1305 met een verse DRBG-nonce. De afzonderlijke AAD-purpose
-voorkomt uitwisseling met legacy SEAL. Lengte moet exact passen; truncatie,
-extra bytes en gewijzigde verwachte lengte worden geweigerd.
+Suite 1 uses the existing derived B01 domain/index key and
+XChaCha20-Poly1305 with a fresh DRBG nonce. The separate AAD purpose
+prevents interchange with legacy SEAL. Length must match exactly; truncation,
+extra bytes and a changed expected length are rejected.
 
-`Service::export_persistent(volume, secret, source, out)` ontvangt een
-extern gehouden willekeurig 32-bytegeheim; het retourneert `SnapshotInfo`.
-Het bewaart geen kopie van dit geheim. Dit is geen wachtwoord-KDF.
+`Service::export_persistent(volume, secret, source, out)` receives an
+externally held random 32-byte secret; it returns `SnapshotInfo`.
+It keeps no copy of this secret. This is not a password KDF.
 `restore_persistent(volume, secret, blob, minimum_generation, source)`
-retourneert dezelfde informatie na authenticatie, schema- en lineagecontrole.
-`snapshot_info()` en `key_generation()` bevatten geen sleutelbytes; hun
-beheer-/metadata-uitvoer hoort eveneens achter passende capabilities.
+returns the same information after authentication, schema and lineage checks.
+`snapshot_info()` and `key_generation()` contain no key bytes; their
+management/metadata output likewise belongs behind appropriate capabilities.
 
-Het persistente blob is exact 120 bytes:
+The persistent blob is exactly 120 bytes:
 
-| Onderdeel | Formaat |
+| Component | Format |
 |---|---|
-| Header, 32 bytes | `NOSKEY01`, versie u16=1, suite u16=1, volume-ID[16], nul[4] |
-| Nonce, 24 bytes | Verse DRBG-uitvoer |
-| Ciphertext, 48 bytes | master[32], generatie u64, per domein created u16 + revoked u16 |
-| Tag, 16 bytes | AEAD-tag over ciphertext en de gehele header |
+| Header, 32 bytes | `NOSKEY01`, version u16=1, suite u16=1, volume ID[16], zero[4] |
+| Nonce, 24 bytes | Fresh DRBG output |
+| Ciphertext, 48 bytes | master[32], generation u64, per domain created u16 + revoked u16 |
+| Tag, 16 bytes | AEAD tag over ciphertext and the entire header |
 
-De wrapsleutel komt uit HKDF-SHA-256 met salt
-`nieuw-os persistent key-state v1`, het gebruikersgeheim als IKM en info
-`wrap`. Geen zelfgemaakte cryptoprimitief. Alleen formaat, suite en
-opaque volume-ID staan buiten de encryptie; geobserveerde afmetingen en
-toegangspatronen zijn geen verborgen metadata.
+The wrap key comes from HKDF-SHA-256 with salt
+`nieuw-os persistent key-state v1`, the user secret as IKM and info
+`wrap`. No home-made crypto primitive. Only format, suite and
+opaque volume ID are outside the encryption; observed sizes and
+access patterns are not hidden metadata.
 
-GENERATE en REVOKE verhogen de generatie bij succes. Legacy RESTORE
-verhoogt haar eveneens. Een persistent import behoudt een voldoende nieuwe
-generatie of verhoogt het maximum als een samengevoegde namespace nog niet
-door die generatie wordt beschreven. Herhaald importeren van dezelfde
-actuele toestand verandert de generatie niet.
+GENERATE and REVOKE increment the generation on success. Legacy RESTORE
+increments it as well. A persistent import keeps a sufficiently new
+generation or increments the maximum if a merged namespace is not yet
+described by that generation. Repeatedly importing the same
+current state does not change the generation.
 
-## Native integratiecontract en open acceptatie
+## Native integration contract and open acceptance
 
-1. Start de bestaande Key Service met de echte entropybroker. Een aparte
-   gebruikers-/herstelagent levert het externe geheim onder een expliciete
-   beheerbevoegdheid. Geen ingebouwd fixturegeheim in het productpad.
-2. De bestaande native Key Service-adapter dispatcht de nieuwe bewerkingen
-   8/9 via `wire::dispatch_record`. De eerdere KEY1-codes, lengtes en
-   foutbetekenissen blijven intact. Hosttests voeren dezelfde dispatchfunctie
-   uit; native uitvoering via de geïntegreerde app blijft nog te bewijzen.
-3. Haal domein uit het ontvangende capability-endpoint en controleer bij iedere
-   recordbewerking het object, de actie en de actuele grant. Haal context en
-   revisie uit het geauthenticeerde volume, niet uit onbetrouwbare ciphertext.
-   Bind de recordsoort en het encodingschema aan de toegestane bewerking:
-   naamslezen verleent geen recht op een content-, manifest- of indexrecord.
-4. Sla keyallocaties/intrekkingen met de crashconsistente volumetransactie op
-   vóór een bevestigde handle of bevestigde revocation. Geef geen ciphertext-
-   of documentcommit vrij onder een nog niet duurzaam vastgelegde allocatie.
-   Bij onzekere I/O geen valse bevestiging of automatische herhaling; behoud
-   de bestaande `Unknown`- en herstelgrens. Deze adapter is nog te bouwen.
-5. Bewijs met echte VM-writes, uitschakelen en een nieuwe VM dat inhoud,
-   namen, exacte allocaties en intrekkingen behouden blijven. Lees de echte
-   images onafhankelijk uit en test bitflips, swaps, volle opslag, verkeerde
-   sleutel/domein, onderbreking en sleutelverlies. Dit native bewijs is open.
+1. Start the existing Key Service with the real entropy broker. A separate
+   user/recovery agent supplies the external secret under an explicit
+   management authority. No built-in fixture secret in the product path.
+2. The existing native Key Service adapter dispatches the new operations
+   8/9 via `wire::dispatch_record`. The earlier KEY1 codes, lengths and
+   error meanings remain intact. Host tests execute the same dispatch function;
+   native execution via the integrated app remains to be proven.
+3. Take the domain from the receiving capability endpoint and check, on every
+   record operation, the object, the action and the current grant. Take context and
+   revision from the authenticated volume, not from untrusted ciphertext.
+   Bind the record kind and the encoding schema to the permitted operation:
+   reading names grants no right to a content, manifest or index record.
+4. Store key allocations/revocations with the crash-consistent volume transaction
+   before a confirmed handle or confirmed revocation. Do not release any ciphertext
+   or document commit under an allocation that has not yet been durably recorded.
+   On uncertain I/O, no false confirmation or automatic retry; preserve
+   the existing `Unknown` and recovery boundary. This adapter is still to be built.
+5. Prove with real VM writes, shutdown and a new VM that content,
+   names, exact allocations and revocations are preserved. Read the real
+   images independently and test bit flips, swaps, full storage, wrong
+   key/domain, interruption and key loss. This native evidence is open.
 
-`minimum_generation` kan een oud geldig blob weigeren, **alleen wanneer die
-ondergrens onafhankelijk vertrouwd is**. Een tweede bestand naast het blob,
-een UI-succesmelding of een herstelde VM-snapshot levert die garantie niet.
-Een koude instantie met ondergrens nul kan een oude geldige snapshot niet
-van de actuele onderscheiden. Evenzo accepteert recorddecryptie replay als
-ook de oude verwachte manifestcontext wordt teruggezet. Volledige koude
-rollbackankering, persistente nonce-/crashanalyse en multi-writer-keylifecycle
-blijven zichtbaar open voor B02; hiervoor wordt geen criterium afgetekend.
+`minimum_generation` can reject an old valid blob, **only when that
+lower bound is independently trusted**. A second file next to the blob,
+a UI success message or a restored VM snapshot does not provide that guarantee.
+A cold instance with lower bound zero cannot distinguish an old valid snapshot
+from the current one. Likewise, record decryption accepts replay if
+the old expected manifest context is also restored. Full cold
+rollback anchoring, persistent nonce/crash analysis and multi-writer key lifecycle
+remain visibly open for B02; no criterion is signed off for these.
 
-De bestaande twee domeinen/zestien indices zijn B01-proefgrenzen. Dit werk
-verklaart die grenzen niet geschikt voor de volledige productrelease;
-schaalbare sleutel-/objectintegratie blijft een releasevereiste.
+The existing two domains/sixteen indices are B01 trial limits. This work
+does not declare those limits suitable for the full product release;
+scalable key/object integration remains a release requirement.
 
-## Uitgevoerde controles
+## Checks performed
 
-Op branch `codex/full-release-storage`, basis `73ebc1e`, met de bestaande
-Rust 1.90.0-toolomgeving. De controles gebruiken uitsluitend synthetische
-testdata, geen echte schijf, NAS, gebruikersgeheimen of productiekeys.
+On branch `codex/full-release-storage`, base `73ebc1e`, with the existing
+Rust 1.90.0 tool environment. The checks use exclusively synthetic
+test data, no real disk, NAS, user secrets or production keys.
 
 ```sh
 LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-fr-storage-target python3 -B tools/dev.py cargo +1.90.0 test --locked -p keyring-core
@@ -160,171 +160,171 @@ LOCALAPPDATA=/workspace/nieuw-os/.tools python3 -B tools/dev.py cargo +1.90.0 fm
 LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-fr-storage-target RUSTFLAGS='--cfg chacha20_backend="soft" --cfg poly1305_backend="soft" --cfg sha2_backend="soft"' python3 -B tools/dev.py cargo +1.90.0 build --locked -p keyring-core --release --target x86_64-unknown-none
 ```
 
-De hosttests voeren de echte onderhouden AEAD/HKDF-code uit, inclusief
-alle ondersteunde recordlengtes, alle bitflips van volledige records en
-snapshots, truncatie, contextwissels, generatiegrens, exacte allocatie,
-intrekkingsunie en een expliciet aangetoond onbeschermd koud replaygeval.
-De bestaande B01-tests blijven de standaardtestvectoren en eerdere
-herstel-/entropiegevallen controleren. Host-/no_std-bewijs vervangt geen
-native dienst-/schijfuitvoering of onafhankelijke beveiligingsaudit.
+The host tests execute the real maintained AEAD/HKDF code, including
+all supported record lengths, all bit flips of complete records and
+snapshots, truncation, context swaps, generation limit, exact allocation,
+revocation union and an explicitly demonstrated unprotected cold replay case.
+The existing B01 tests continue to check the standard test vectors and earlier
+recovery/entropy cases. Host/no_std evidence does not replace
+native service/disk execution or an independent security audit.
 
-Uitkomst op de uiteindelijke bron: **15 bestaande + 23 nieuwe hosttests
-geslaagd**, Clippy met `-D warnings`, formatteringscontrole, diffcontrole en
-de portable `x86_64-unknown-none`-releasebuild alle exit 0. De nieuwe
-recordsoort-/schemabinding kwam uit afzonderlijke agentreview: vóór integratie
-is de concrete uitwisselbaarheid van gelijklange naam-/inhoudrecords opgelost.
-Geen VM-run, werkelijk opgeslagen versleuteld volume of volledige koude
-antirollback is door deze deelbatch geclaimd.
+Outcome on the final source: **15 existing + 23 new host tests
+passed**, Clippy with `-D warnings`, formatting check, diff check and
+the portable `x86_64-unknown-none` release build, all exit 0. The new
+record kind/schema binding came from a separate agent review: before integration,
+the concrete interchangeability of equal-length name/content records was resolved.
+No VM run, actually stored encrypted volume or full cold
+anti-rollback is claimed by this partial batch.
 
-## FR-B02N — aangesloten KEY1-recordbewerkingen
+## FR-B02N — connected KEY1 record operations
 
-`SEAL_RECORD = 8` en `UNSEAL_RECORD = 9` gebruiken dezelfde KEY1-tag,
-256-bytepayload, 16-byteheader en normale foutantwoorden. De body is een
-canonieke context van exact 64 bytes gevolgd door plaintext respectievelijk
-`nonce | ciphertext | tag`. SEAL-body: 64..192 bytes; UNSEAL-body:
-104..232 bytes. Beide passen binnen de bestaande 240-bytebody.
+`SEAL_RECORD = 8` and `UNSEAL_RECORD = 9` use the same KEY1 tag,
+256-byte payload, 16-byte header and normal error responses. The body is a
+canonical context of exactly 64 bytes followed by plaintext or
+`nonce | ciphertext | tag` respectively. SEAL body: 64..192 bytes; UNSEAL body:
+104..232 bytes. Both fit within the existing 240-byte body.
 
-De contextprefix heeft deze vorm, onderscheiden van de interne record-AAD:
+The context prefix has this form, distinct from the internal record AAD:
 
-| Offset | Inhoud |
+| Offset | Content |
 |---|---|
 | 0 | `NOSCTX01` (8 bytes) |
-| 8, 10 | Recordformaatversie 1 en suite 1 (u16) |
-| 12 | Recordsoort u8, uitsluitend de vijf genoemde waarden |
-| 13 | Drie gereserveerde nulbytes |
-| 16 | Volume-ID[16] |
-| 32, 40 | Object-ID en revisie (u64) |
-| 48 | Chunkpositie (u32) |
-| 52, 54 | Plaintextlengte en niet-nul encodingschema (u16) |
-| 56 | Acht gereserveerde nulbytes |
+| 8, 10 | Record format version 1 and suite 1 (u16) |
+| 12 | Record kind u8, exclusively the five values listed |
+| 13 | Three reserved zero bytes |
+| 16 | Volume ID[16] |
+| 32, 40 | Object ID and revision (u64) |
+| 48 | Chunk position (u32) |
+| 52, 54 | Plaintext length and non-zero encoding schema (u16) |
+| 56 | Eight reserved zero bytes |
 
-Er staat **geen domein in de wirecontext**. De native adapter bepaalt dat
-uitsluitend uit het ontvangende endpoint. `decode_record_context` vult
-`RecordContext.domain` daarmee in. Zo wordt ciphertext onder domein A bij
-ontvangst op domein B met een andere AAD/sleutel beoordeeld en geweigerd.
-De wirecontext is geen objectgrant; de eerder beschreven object-/actiecontrole
-blijft de verantwoordelijkheid van de native toegangsadapter.
+There is **no domain in the wire context**. The native adapter determines it
+exclusively from the receiving endpoint. `decode_record_context` fills in
+`RecordContext.domain` with it. Thus ciphertext under domain A, when
+received on domain B, is evaluated with a different AAD/key and rejected.
+The wire context is not an object grant; the object/action check described earlier
+remains the responsibility of the native access adapter.
 
-Gebruik voor een native aanroeper:
+Usage for a native caller:
 
 ```rust
 let payload = keyring_core::wire::record_request(
     keyring_core::wire::SEAL_RECORD, key_index, request_id, context, plaintext,
 )?;
-// Verzend payload onder KEY1 via het reeds verleende endpoint.
-// Valideer afzender, tag, nul ontvangen capabilities, headerop|REPLY,
-// key_index, request_id, status, exacte lengte en nul padding van het antwoord.
+// Send payload under KEY1 via the already granted endpoint.
+// Validate sender, tag, zero received capabilities, headerop|REPLY,
+// key_index, request_id, status, exact length and zero padding of the response.
 ```
 
-UNSEAL gebruikt dezelfde builder met opcode 9 en het ontvangen sealed record.
-Een SEAL-antwoord bevat maximaal 168 bodybytes; een UNSEAL-antwoord maximaal
-128 bytes. Iedere fout heeft lengte nul en nulgevulde body. De dispatcher
-controleert exacte context-/datalengte, versie, suite, soorten, schema,
-reserveringen, requeststatus en ingressdomein vóór cryptografische verwerking.
-Er zijn geen persistente snapshotopcodes of nieuwe herstelbevoegdheden voor
-gewone apps toegevoegd.
+UNSEAL uses the same builder with opcode 9 and the received sealed record.
+A SEAL response contains at most 168 body bytes; an UNSEAL response at most
+128 bytes. Every error has length zero and a zero-filled body. The dispatcher
+checks exact context/data length, version, suite, kinds, schema,
+reservations, request status and ingress domain before cryptographic processing.
+No persistent snapshot opcodes or new recovery authorities have been added for
+ordinary apps.
 
-Uitgevoerd op de uiteindelijke FR-B02N-bron: **46 hosttests (15 legacy,
-23 secure-record en 8 wire/dispatch)**, Clippy met `-D warnings`, formattering
-en de echte native service-/appbuild voor `x86_64-unknown-none`, alle exit 0.
-De bestaande `sdk/examples/keyring/build.py` gebruikt expliciet portable
-crypto-backends en controleert via het linkerscript de native ELF-budgetten.
-Command voor die build:
+Executed on the final FR-B02N source: **46 host tests (15 legacy,
+23 secure-record and 8 wire/dispatch)**, Clippy with `-D warnings`, formatting
+and the real native service/app build for `x86_64-unknown-none`, all exit 0.
+The existing `sdk/examples/keyring/build.py` explicitly uses portable
+crypto backends and checks the native ELF budgets via the linker script.
+Command for that build:
 
 ```sh
 LOCALAPPDATA=/workspace/nieuw-os/.tools CARGO_TARGET_DIR=/tmp/nieuw-os-fr-storage-target/native-service python3 -B sdk/examples/keyring/build.py
 ```
 
-Dit bouwbewijs voert geen VM uit. De hoofdintegrator moet de nieuwe opcodes
-native aanroepen en cross-domain-/type-/schema-/manipulatiefouten observeren;
-de persistente opslag-/rollbackgates blijven open.
+This build evidence does not run a VM. The main integrator must invoke the new opcodes
+natively and observe cross-domain/type/schema/tampering errors;
+the persistent storage/rollback gates remain open.
 
-## FR-B02P — persistente sleutelstatus en verzegeld record native
+## FR-B02P — persistent key state and sealed record natively
 
-30 oktober 2026, ADR-051, branch `codex/b02-persistent-keystate-20261030`.
-Dit voltooit de contractstappen 1–3 en een begrensde vorm van 4–5 hierboven;
-het is geen volledige B02-acceptatie.
+30 October 2026, ADR-051, branch `codex/b02-persistent-keystate-20261030`.
+This completes contract steps 1–3 and a bounded form of 4–5 above;
+it is not full B02 acceptance.
 
 ### Wire
 
-`EXPORT_PERSISTENT = 11` en `RESTORE_PERSISTENT = 12` gebruiken dezelfde
-KEY1-tag, header en foutantwoorden. Sleutelindex moet 0 zijn.
+`EXPORT_PERSISTENT = 11` and `RESTORE_PERSISTENT = 12` use the same
+KEY1 tag, header and error responses. Key index must be 0.
 
-| Opcode | Aanvraagbody (exact) | Ok-antwoordbody |
+| Opcode | Request body (exact) | Ok response body |
 |---|---|---|
-| 11 | volume-ID[16] \| geheim[32] = 48 bytes | blob[120] \| snapshotinfo[16] = 136 bytes |
-| 12 | volume-ID[16] \| geheim[32] \| minimumgeneratie u64 \| blob[120] = 176 bytes | snapshotinfo[16] |
+| 11 | volume ID[16] \| secret[32] = 48 bytes | blob[120] \| snapshotinfo[16] = 136 bytes |
+| 12 | volume ID[16] \| secret[32] \| minimum generation u64 \| blob[120] = 176 bytes | snapshotinfo[16] |
 
-Snapshotinfo is little-endian: generatie u64, daarna per domein created u16 en
-revoked u16. `wire::dispatch_persistent` bedient uitsluitend deze twee opcodes;
-`dispatch_record`, `dispatch_random` en de legacy dispatch van de native dienst
-weigeren 11/12 met `Invalid` vóór enige cryptografische stap. Hosttests:
-`services/keyring/tests/persistent_wire.rs` (5 tests: round-trip naar koude
-instantie met behoud van intrekking en recordsleutels, verkeerd geheim,
-generatievloer, vreemd volume, alle andere opcodes/lengtes/index/status,
+Snapshotinfo is little-endian: generation u64, then per domain created u16 and
+revoked u16. `wire::dispatch_persistent` serves exclusively these two opcodes;
+`dispatch_record`, `dispatch_random` and the native service's legacy dispatch
+reject 11/12 with `Invalid` before any cryptographic step. Host tests:
+`services/keyring/tests/persistent_wire.rs` (5 tests: round trip to a cold
+instance preserving revocation and record keys, wrong secret,
+generation floor, foreign volume, all other opcodes/lengths/index/status,
 readiness).
 
 ### Native adapter
 
-De Key Service leest optioneel een derde ingress uit startwoorden 96 (receive),
-104 (reply-send) en 168 (toegestane afzender-PID). Ontbreekt woord 96, dan
-blijft het B01-profiel exact ongewijzigd. Elke aanvraag wordt op afzender,
-capabilityaantal, tag en header gecontroleerd; bewijswoorden 384–416 tellen
-gezien/exports/restores/geweigerd/verkeerde afzender. Het geheim uit de
-aanvraag wordt in `Zeroizing`-buffers verwerkt. De SDK wist de tijdelijke
-native receivebuffer bij geldige envelope-overdracht en wist `Outgoing`- en
-`Received`-envelopes bij opruimen; hun `Debug`-weergave bevat geen payload.
-Dit laat caller-owned arrays, mogelijke compiler-/registerkopieën en
-crashgeheugen buiten de garantie. De onderliggende ontvangen IPC-kopie is
-geheugenhygiëne, geen sleutelopslag- of volledige sleutelisolatiegarantie.
-De dienst weigert bij de start een admin-afzender die gelijk is aan de gewone
-sleutelclient of aan zichzelf, en admin- en RANDOM-ingress mogen geen handle
-delen. Init wist zijn eigen aanvraagkopieën na iedere uitwisseling. Een SEND
-naar dit ingress is gelijkwaardig aan de volledige sleutelnamespace (EXPORT
-onder een zelfgekozen geheim) en voor een koude instantie authenticeert het
-externe geheim de lineage; zie ADR-051.
+The Key Service optionally reads a third ingress from start words 96 (receive),
+104 (reply-send) and 168 (permitted sender PID). If word 96 is absent, the
+B01 profile remains exactly unchanged. Every request is checked for sender,
+capability count, tag and header; evidence words 384–416 count
+seen/exports/restores/rejected/wrong sender. The secret from the
+request is processed in `Zeroizing` buffers. The SDK wipes the temporary
+native receive buffer on valid envelope transfer and wipes `Outgoing` and
+`Received` envelopes on cleanup; their `Debug` representation contains no payload.
+This leaves caller-owned arrays, possible compiler/register copies and
+crash memory outside the guarantee. The underlying received IPC copy is
+memory hygiene, not a key storage or full key isolation guarantee.
+At startup the service rejects an admin sender equal to the ordinary
+key client or to itself, and admin and RANDOM ingress must not share a
+handle. Init wipes its own request copies after every exchange. A SEND
+to this ingress is equivalent to the full key namespace (EXPORT
+under a self-chosen secret), and for a cold instance the
+external secret authenticates the lineage; see ADR-051.
 
-### Geïntegreerd profiel (FR-I01, `native-system`/`test-system-recover`)
+### Integrated profile (FR-I01, `native-system`/`test-system-recover`)
 
-- Manifest: admin-kanaal Key Service ← init, antwoordkanaal init ← Key
-  Service, volumedomein 1 voor init; geen van de zes app-handles verwijst naar
-  het admin-ingress of zijn antwoordkanaal (`APP_ADMIN_HANDLE`, via de nieuwe
-  read-only `Engine::endpoint_object`) en init's nieuwe handles dragen geen
-  entropy-/blok-/launch-/netwerkrecht (`INIT_AUTHORITY`). Sinds INT3-FU-116
-  dekt die vergelijking de volledige app-handletabel: `APP_HANDLE_COUNT` eist
-  dat de zes handles onderling verschillen en dat
-  `Engine::available_slots(app)` precies `MAX_SLOTS` − 1 (gereserveerd
-  nulslot) − 6 is, zodat een zevende handle (bijvoorbeeld naar het
-  admin-ingress) het manifest laat falen. Dit geldt op het manifestmoment, in
-  ieder profiel dat het manifest uit `kernel/src/m2/m3/system.rs` uitvoert;
-  de NAS-profielen laden `system` uit `m3/nas.rs` en hebben deze controle
-  niet. Latere overdracht via IPC is
-  uitgesloten doordat geen admin-handle `TRANSFER` draagt (codelezing, geen
-  aparte native proef).
-- Normale run: app genereert sleutel 0, verzegelt/ontzegelt, voert de tien
-  contextweigeringen uit, trekt sleutel 0 in, genereert sleutel 1 en verzegelt
-  een 128-byterecord in RAM (context: volume `NOS-SYSTEM-VOL01`, object 1,
-  revisie 1, chunk 0, schema 1). Na `KEYS_READY` exporteert init de
-  sleutelstatus (created [2,0], revoked [1,0], generatie 3), weigert verkeerd
-  geheim, generatievloer en GENERATE-op-admin, commit het blob als object 8
-  (`sleutelstatus`, 120 bytes) in domein 1, importeert idempotent opnieuw en
-  stuurt `PERSISTED`. Pas dan bewaart de app het record als document 1
-  (`verzegeld`, 168 bytes) via de gewone DocumentSession.
-- Koude herstart (zelfde image, read-only blokrecht): init leest object 8,
-  weigert verkeerd geheim en vloer `u64::MAX`, herstelt met vloer 0 de exacte
-  toestand vóór `GO`. De app krijgt bij GENERATE index 2 (geen heruitgifte),
-  opent document 1 en ontzegelt het met sleutel 1; sleutel 0 geeft `Revoked`,
-  een gewijzigde laatste byte `Auth`.
-- Onafhankelijk schijforakel (`tools/volume_disk.py`, `run_system.check_disk`):
-  object 1 en 8 zijn expliciet opaque; het record bevat de bekende plaintext
-  niet, het blob draagt alleen `NOSKEY01`/versie/suite/volume-ID buiten de
-  AEAD-body; generatie 3, drie chunks, domeinklokken [2, 1].
+- Manifest: admin channel Key Service ← init, reply channel init ← Key
+  Service, volume domain 1 for init; none of the six app handles refers to
+  the admin ingress or its reply channel (`APP_ADMIN_HANDLE`, via the new
+  read-only `Engine::endpoint_object`), and init's new handles carry no
+  entropy/block/launch/network right (`INIT_AUTHORITY`). Since INT3-FU-116
+  that comparison covers the full app handle table: `APP_HANDLE_COUNT` requires
+  that the six handles are mutually distinct and that
+  `Engine::available_slots(app)` is exactly `MAX_SLOTS` − 1 (reserved
+  zero slot) − 6, so that a seventh handle (for example to the
+  admin ingress) makes the manifest fail. This holds at manifest time, in
+  every profile that executes the manifest from `kernel/src/m2/m3/system.rs`;
+  the NAS profiles load `system` from `m3/nas.rs` and do not have this
+  check. Later transfer via IPC is
+  excluded because no admin handle carries `TRANSFER` (code reading, no
+  separate native trial).
+- Normal run: the app generates key 0, seals/unseals, performs the ten
+  context rejections, revokes key 0, generates key 1 and seals
+  a 128-byte record in RAM (context: volume `NOS-SYSTEM-VOL01`, object 1,
+  revision 1, chunk 0, schema 1). After `KEYS_READY` init exports the
+  key state (created [2,0], revoked [1,0], generation 3), rejects wrong
+  secret, generation floor and GENERATE-on-admin, commits the blob as object 8
+  (`sleutelstatus`, 120 bytes) in domain 1, re-imports idempotently and
+  sends `PERSISTED`. Only then does the app store the record as document 1
+  (`verzegeld`, 168 bytes) via the ordinary DocumentSession.
+- Cold restart (same image, read-only block right): init reads object 8,
+  rejects wrong secret and floor `u64::MAX`, restores with floor 0 the exact
+  state before `GO`. On GENERATE the app gets index 2 (no reissue),
+  opens document 1 and unseals it with key 1; key 0 gives `Revoked`,
+  a modified last byte gives `Auth`.
+- Independent disk oracle (`tools/volume_disk.py`, `run_system.check_disk`):
+  objects 1 and 8 are explicitly opaque; the record does not contain the known plaintext,
+  the blob carries only `NOSKEY01`/version/suite/volume ID outside the
+  AEAD body; generation 3, three chunks, domain clocks [2, 1].
 
-Exacte uitvoering, hashes en grenzen: PROJECT-STATE.md,
-`docs/verification/full-release-b02-keystate-*` en, voor het reviewherstel
-van de admin-ingresscontrole (#116), `docs/verification/full-release-b02-review-followup/`.
-Niet bewezen: vertrouwde
-generatievloer, write-ahead per GENERATE/REVOKE binnen de dienst, verlies of
-compromittering van het externe geheim (= attacker-gekozen master bij koude
-start), meerdere schrijvers, een native tegenvoorbeeld voor de
-admin-afzendercontrole, fysieke hardware.
+Exact execution, hashes and limits: PROJECT-STATE.md,
+`docs/verification/full-release-b02-keystate-*` and, for the review fix
+of the admin ingress check (#116), `docs/verification/full-release-b02-review-followup/`.
+Not proven: trusted
+generation floor, write-ahead per GENERATE/REVOKE within the service, loss or
+compromise of the external secret (= attacker-chosen master at cold
+start), multiple writers, a native counterexample for the
+admin sender check, physical hardware.

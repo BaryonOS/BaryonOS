@@ -1,83 +1,83 @@
-# NAS-RESUME-1 — begrensde clientqueue, hostmodel
+# NAS-RESUME-1 — bounded client queue, host model
 
-`no_std`, allocatorvrij, `forbid(unsafe_code)`. Hergebruikt uitsluitend de
-lokale `nieuw-os-nas-core`-interface, `Session`, `Upload`, revisions en errors.
-Geen nieuwe identity-/wire-/crypto-ABI, transport of providerimplementatie.
-Invoer is **reeds versleutelde opaque data**; dit model versleutelt niets.
-De enige dependency is de bestaande lokale core v0.1.0 zonder buildscript.
+`no_std`, allocator-free, `forbid(unsafe_code)`. Reuses only the
+local `nieuw-os-nas-core` interface, `Session`, `Upload`, revisions and errors.
+No new identity/wire/crypto ABI, transport or provider implementation.
+Input is **already encrypted opaque data**; this model encrypts nothing.
+The only dependency is the existing local core v0.1.0 without a build script.
 
-## Invarianten en taakgrens
+## Invariants and task boundary
 
-Vier pending edits met ieder maximaal de bestaande 1.024 ciphertextbytes;
-dit zijn proefgrenzen, geen vaste productquota. Vol/duplicate/overflow weigert
-de nieuwe edit expliciet. De bestaande edit wordt nooit vervangen. Conflicten
-behouden lokale bytes, de serverversie en na expliciete observatie ook een
-geverifieerde kopie van die remote ciphertext. `take` draagt data over aan de
-caller en is geen stil verwijderen. `Debug` drukt geen ciphertext/identifiers af.
+Four pending edits, each with at most the existing 1.024 ciphertext bytes;
+these are probe limits, not fixed product quotas. Full/duplicate/overflow explicitly
+rejects the new edit. The existing edit is never replaced. Conflicts
+retain local bytes, the server version and, after explicit observation, also a
+verified copy of that remote ciphertext. `take` hands data over to the
+caller and is not a silent deletion. `Debug` prints no ciphertext/identifiers.
 
-De queue geeft geen autoriteit. `prepare` opent **zelf de gekozen namespace**,
-waarna bestaande core-authenticatie, epochbinding en CAS worden afgedwongen.
-`commit` gebruikt het echte staged ticket. Een PID, route, boolean of
-checkpoint verleent geen recht. `Principal` mag alleen uit vertrouwde ingress
-komen; dit is dezelfde aanname als de core, geen toegevoegde authenticatie.
-Een echte remote adapter moet de gekozen NAS cryptografisch identificeren.
-De bij staging bewaarde caller voorkomt dat een verkeerd gerouteerde
-commit/cancel het ticket wegneemt; deze vergelijking verleent zelf geen recht.
+The queue grants no authority. `prepare` **itself opens the selected namespace**,
+after which existing core authentication, epoch binding and CAS are enforced.
+`commit` uses the real staged ticket. A PID, route, boolean or
+checkpoint grants no right. `Principal` may only come from trusted ingress;
+this is the same assumption as the core, not added authentication.
+A real remote adapter must identify the selected NAS cryptographically.
+The caller stored at staging prevents a misrouted
+commit/cancel from taking the ticket away; this comparison itself grants no right.
 
-Offline queueing doet geen servicecalls. Een in-memory `Checkpoint` bevat
-geen live Session/Upload. `restore` zet alle niet-afgeronde edits op
-`NeedsReconcile`, ook wanneer de checkpoint vóór de dispatch is genomen.
-`Unknown`, stale/revoke en conflicten geven geen automatische replay.
-Caller-owned checkpoints zijn **geen persistent schema, durable-save ACK,
-antirollbackanker of daadwerkelijke crashbestendige lokale opslag**.
-Oude server-RAMtickets moeten bij verbindingsverlies door de bestaande
-serverlifecycle worden opgeruimd; de hosthersteltests openen een nieuwe core.
+Offline queueing makes no service calls. An in-memory `Checkpoint` contains
+no live Session/Upload. `restore` sets all unfinished edits to
+`NeedsReconcile`, even when the checkpoint was taken before the dispatch.
+`Unknown`, stale/revoke and conflicts produce no automatic replay.
+Caller-owned checkpoints are **not a persistent schema, durable-save ACK,
+anti-rollback anchor or actual crash-resistant local storage**.
+Old server RAM tickets must be cleaned up by the existing
+server lifecycle on connection loss; the host recovery tests open a new core.
 
-`reconcile` is expliciet en read-only. Een opgegeven revisiehint wordt door
-`Service::read` gevalideerd; caller/session/namespace/object blijven gebonden.
-Onveranderde base kan daarna opnieuw worden geprobeerd; exact waargenomen
-doelbytes leveren `Observed`, **niet** de oorspronkelijke commit-ACK.
-Een andere versie bewaart beide kanten, zonder overschrijven of samenvoegen.
-Een bewust gekozen nieuwe revisie moet door de gedeelde object-/Key Service
-opnieuw onder die context worden versleuteld; oude AEAD-bytes worden niet
-stil onder een andere revisie hergebruikt. `cancel` ruimt een nog niet
-gepubliceerde staging op via de bestaande core, maar bewaart de lokale edit.
-Lagere revisies blijven geblokkeerd. Cleanupfouten worden apart teruggegeven.
-De core heeft nog geen guest `head/latest`-API: automatische revisiediscovery
-wordt hier niet met een nieuwe wire of een onbetrouwbare status vervangen.
+`reconcile` is explicit and read-only. A supplied revision hint is validated by
+`Service::read`; caller/session/namespace/object remain bound.
+An unchanged base can then be retried; exactly observed
+target bytes yield `Observed`, **not** the original commit ACK.
+A different version retains both sides, without overwriting or merging.
+A deliberately chosen new revision must be re-encrypted under that context by the shared object/Key Service;
+old AEAD bytes are not
+silently reused under a different revision. `cancel` cleans up a not-yet-published
+staging via the existing core, but retains the local edit.
+Lower revisions remain blocked. Cleanup errors are returned separately.
+The core does not yet have a guest `head/latest` API: automatic revision discovery
+is not replaced here with a new wire or an untrusted status.
 
-## Bewijs en open afhankelijkheden
+## Evidence and open dependencies
 
-Hosttests gebruiken echte core-CAS/authority/storage recovery en synthetische
-opaque bytes. Crosscompile is librarybewijs, geen runtime in Nieuw OS.
-De geoptimaliseerde maximale queue (vier objecten van ieder 1.024 bytes)
-doorloopt staging, RAMcheckpoint, coreherstel, reconciliatie en publicatie op
-een hostthread met 64 KiB stack. Hostgrootten: `Client` 9.088 bytes,
-`Checkpoint` 8.608 bytes; de core-arena staat apart op caller-owned heap.
-Dit meet geen native stack-high-water of volledige native callketen.
-P02/P03/S09 en FR-P03/P04/P05 blijven open. Geen E2EE, echte netwerkuitval,
-LAN/internetovergang, native sync, apparaatkoppeling of productclaim.
-De bevroren probe ce52 en het afzonderlijke schijforakel zijn niet gewijzigd.
+Host tests use real core CAS/authority/storage recovery and synthetic
+opaque bytes. Cross-compilation is library evidence, not runtime in Nieuw OS.
+The optimized maximum queue (four objects of 1.024 bytes each)
+runs through staging, RAM checkpoint, core recovery, reconciliation and publication on
+a host thread with a 64 KiB stack. Host sizes: `Client` 9.088 bytes,
+`Checkpoint` 8.608 bytes; the core arena is separate on caller-owned heap.
+This does not measure native stack high-water or the full native call chain.
+P02/P03/S09 and FR-P03/P04/P05 remain open. No E2EE, real network outage,
+LAN/internet transition, native sync, device pairing or product claim.
+The frozen probe ce52 and the separate disk oracle are not modified.
 
-Voor de volledige keten ontbreken hier nog: geauthenticeerd gedeeld transport
-en peerbinding; Security's object/key-lifecycleinterface; duurzame lokale
-queue/versieankering; remote latest-revisiondiscovery; daadwerkelijke
-Materiaalbediening en native client/NAS-uitvoering. Providerkeuze blijft
-expliciet in de gedeelde contracten; dit model kiest/verandert geen provider,
-krijgt geen providercredentials/inhoudssleutels en heeft geen fallback.
+For the full chain the following are still missing here: authenticated shared transport
+and peer binding; Security's object/key lifecycle interface; durable local
+queue/version anchoring; remote latest-revision discovery; actual
+Materiaal operation and native client/NAS execution. Provider choice remains
+explicit in the shared contracts; this model does not select/change a provider,
+receives no provider credentials/content keys and has no fallback.
 
-Bronvaste afstemming met de eigenaars:
+Source-pinned alignment with the owners:
 
-- NET `4a0ce99ff6b88adcd0e2c6be0571b30390d8d1c8` biedt alleen
-  `KeyServiceRandom` en certificate-timebouwstenen, **geen** native handshake
-  of TLS-peer-naar-NAS-principalinterface.
-- Security `7f67471` biedt intern `RecordContext` en
-  `Service::seal_record/unseal_record`, niet een geautoriseerde NAS-app-API.
-  Mapping van NAS-namespace naar volume/lineage/epoch-authority en herstel/
-  onafhankelijke rollbackankering is niet vastgesteld. De queue leidt deze
-  rechten/context niet uit request-ID, uitnodiging of B02-fixture af.
+- NET `4a0ce99ff6b88adcd0e2c6be0571b30390d8d1c8` provides only
+  `KeyServiceRandom` and certificate-time building blocks, **no** native handshake
+  or TLS-peer-to-NAS-principal interface.
+- Security `7f67471` internally provides `RecordContext` and
+  `Service::seal_record/unseal_record`, not an authorized NAS app API.
+  Mapping from NAS namespace to volume/lineage/epoch authority and recovery/
+  independent rollback anchoring has not been established. The queue does not derive these
+  rights/context from request ID, invitation or B02 fixture.
 
-Gerichte commando's (Rust 1.90; eigen `CARGO_TARGET_DIR`):
+Targeted commands (Rust 1.90; dedicated `CARGO_TARGET_DIR`):
 
 ```sh
 cargo test --offline --locked --manifest-path services/nas/native-client/Cargo.toml
