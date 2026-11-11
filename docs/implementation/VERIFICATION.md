@@ -1,40 +1,40 @@
-# Uitgevoerde controles en bewijsgrenzen
-Onderzoeksdatum: 26 oktober 2026. Dit overzicht betreft revisie 5 van het startpakket, geen geïmplementeerd OS.
+# Executed checks and evidence boundaries
+Research date: 26 October 2026. This overview concerns revision 5 of the starter package, not an implemented OS.
 
-## Onderzoek
+## Research
 
-Vijf afgebakende onderzoeken uitgevoerd: boot/toolchain, kernelisolatie en rechten, productconcept, lokale quantumuitvoering/PQC, Europese eisen. Primaire bronnen en precieze raadpleegbeperkingen staan onderaan elk bijbehorend bestand. OSDev is de leerroute; mechanismen/standaarden zijn waar mogelijk tegen documentatie van de makers gecontroleerd.
+Five bounded investigations carried out: boot/toolchain, kernel isolation and rights, product concept, local quantum execution/PQC, European requirements. Primary sources and precise consultation limitations are at the bottom of each corresponding file. OSDev is the learning route; mechanisms/standards have where possible been checked against documentation from their makers.
 
-Er is een concrete productvergelijking gemaakt, geen gebruikersproef. De gekozen kernel en simulator zijn ontworpen, geen overgenomen implementatie. Onbereikbare exacte versiepagina's en nog niet opgehaalde packages zijn in de specificaties herkenbaar benoemd; bekende versiegegevens worden niet als succesvolle build gepresenteerd.
+A concrete product comparison was made, not a user trial. The chosen kernel and simulator are designed, not an adopted implementation. Unreachable exact version pages and packages not yet fetched are recognisably named in the specifications; known version data is not presented as a successful build.
 
-## Deze controles zijn echt uitgevoerd
+## These checks were actually executed
 
-| Controle | Resultaat | Wat dit bewijst |
+| Check | Result | What this proves |
 |---|---|---|
-| `python3 tools/preflight.py` | Exit 0, valide JSON | Inventaris werkt in de onderzoeksomgeving |
-| `python3 tools/preflight.py --strict` | Exit 2 | Ontbrekende Rust-/QEMU-/firmwarebasis wordt zichtbaar als ongereed gemeld; dit is het verwachte resultaat |
-| Python `ast.parse` op preflight | Geslaagd | Syntactisch geldige Python; niet alle toekomstige hostvarianten getest |
-| Python `tomllib` op vijf TOML-bestanden | Geslaagd | Syntaxis agentconfiguratie; geen bewijs dat iedere Codex-client deze rollen laadt |
-| Python `ctypes` BootInfo | 128 bytes, alignment 8; alle 19 offsets gelijk aan spec | Rekenkundig voorgeschreven C-layout; Rust compile-time asserts nog uitvoeren |
-| Python `ctypes` IPC | 320 bytes; caps@32, data@64 | Rekenkundig berichtformaat; syscall-/copyveiligheid nog testen |
-| Zelfstandige SplitMix64/Bell-referentieberekening | seed0: 8 shots `00:5,11:3`; 4096 shots `00:2082,11:2014` | Deterministische fixtureverwachting; geen werkende Rust-engine/QPU |
-| JSON-parse drie quantumvoorbeelden | Geslaagd | Voorbeelden zijn syntactisch JSON; toekomstige typed validator nog testen |
-| sRGB-contrastberekening zes kleurparen | 13,56; 5,15; 7,65; 6,75; 5,81; 3,77 | De vaste kleurparen kloppen; geen gerenderde WCAG-audit |
+| `python3 tools/preflight.py` | Exit 0, valid JSON | Inventory works in the research environment |
+| `python3 tools/preflight.py --strict` | Exit 2 | Missing Rust/QEMU/firmware basis is visibly reported as not ready; this is the expected result |
+| Python `ast.parse` on preflight | Passed | Syntactically valid Python; not all future host variants tested |
+| Python `tomllib` on five TOML files | Passed | Syntax of agent configuration; no evidence that every Codex client loads these roles |
+| Python `ctypes` BootInfo | 128 bytes, alignment 8; all 19 offsets equal to spec | Arithmetically prescribed C layout; Rust compile-time asserts still to be run |
+| Python `ctypes` IPC | 320 bytes; caps@32, data@64 | Arithmetic message format; syscall/copy safety still to be tested |
+| Standalone SplitMix64/Bell reference calculation | seed0: 8 shots `00:5,11:3`; 4096 shots `00:2082,11:2014` | Deterministic fixture expectation; no working Rust engine/QPU |
+| JSON parse of three quantum examples | Passed | Examples are syntactically JSON; future typed validator still to be tested |
+| sRGB contrast calculation for six colour pairs | 13.56; 5.15; 7.65; 6.75; 5.81; 3.77 | The fixed colour pairs are correct; no rendered WCAG audit |
 
-De genoemde Pythonberekeningen beëindigden met exit 0. De hoofdcontrole heeft de ABI-/IPC-layout, Bellfixtures en kleurverhoudingen opnieuw zelfstandig berekend. Een extra AI-review is documentcontrole, geen onafhankelijke menselijke securityaudit.
+The Python calculations mentioned ended with exit 0. The main check independently recalculated the ABI/IPC layout, Bell fixtures and colour ratios. An extra AI review is a document check, not an independent human security audit.
 
-## Overdracht en pakketcontrole
+## Handover and package check
 
-44 projectbestanden, 30 lokale Markdownverwijzingen gecontroleerd; geen ontbrekend doel en alle codefences gesloten. De aparte documentreview vond een dubbele README-alinea en onduidelijk eigenaarschap van buildtools; beide zijn gecorrigeerd. P02 gebruikt overal ui/prototype/. De hoofdagent beheert rootconfiguratie en tools; B01 de loader/kernel/protocol-/parsercrates; Q01 zijn eigen geneste workspace.
+44 project files, 30 local Markdown references checked; no missing target and all code fences closed. The separate document review found a duplicate README paragraph and unclear ownership of build tools; both have been corrected. P02 uses ui/prototype/ everywhere. The main agent manages root configuration and tools; B01 the loader/kernel/protocol/parser crates; Q01 its own nested workspace.
 
-## Omgeving van dit onderzoek
+## Environment of this research
 
-Linux x86_64, Python 3.12.14, Git 2.51.1, host-C-compiler GCC 13.3.0. `rustc`, `cargo`, `rustup`, `qemu-system-x86_64`, `clang` en `ld.lld` ontbreken in PATH; de onderzochte standaardlocaties bevatten geen OVMF. Er zijn geen binaries, toolchaincomponenten of firmware geïnstalleerd tijdens deze onderzoeksopdracht. Inventariseer de uitvoeromgeving bij een volgende ontwikkelsessie opnieuw. Dit onderzoek beschrijft de Linux-onderzoeksomgeving; de lokale ontwikkelcomputer is niet geïnspecteerd.
+Linux x86_64, Python 3.12.14, Git 2.51.1, host C compiler GCC 13.3.0. `rustc`, `cargo`, `rustup`, `qemu-system-x86_64`, `clang` and `ld.lld` are missing from PATH; the examined standard locations contain no OVMF. No binaries, toolchain components or firmware were installed during this research assignment. Re-inventory the execution environment in a next development session. This research describes the Linux research environment; the local development computer has not been inspected.
 
-Het preflightscript zoekt alleen naar aanwezigheid en versies. Het installeert niets, draait geen VM, zoekt niet naar NAS-apparaten en verandert geen firmware. `RUSTUP_AUTO_INSTALL=0` voorkomt impliciete toolchaindownload via rustup-proxies. Bron: https://rust-lang.github.io/rustup/environment-variables.html .
+The preflight script only looks for presence and versions. It installs nothing, runs no VM, does not search for NAS devices and changes no firmware. `RUSTUP_AUTO_INSTALL=0` prevents implicit toolchain download via rustup proxies. Source: https://rust-lang.github.io/rustup/environment-variables.html .
 
-## Niet uitgevoerd
+## Not executed
 
-Rust-dependencyresolutie, compiler-/linkertests, OVMF/QEMU-boot, EBS-retryproef, echte procesisolatie, capabilitytests, UI-browserproeven, schermlezerproeven, gebruiksonderzoek, simulator-Rusttests, crypto-integratie, fysieke QPU-aansturing, hardwareports en juridische conformiteitsbeoordeling.
+Rust dependency resolution, compiler/linker tests, OVMF/QEMU boot, EBS retry trial, real process isolation, capability tests, UI browser trials, screen reader trials, usability research, simulator Rust tests, crypto integration, physical QPU control, hardware ports and legal conformity assessment.
 
-Dit zijn uitvoeropdrachten met eigen acceptatiecriteria, geen redenen om de algemene onderzoeksronde opnieuw te starten. De eerstvolgende resultaten zijn code en echte testlogs volgens FIRST-BATCH.md.
+These are execution assignments with their own acceptance criteria, not reasons to restart the general research round. The next results are code and real test logs according to FIRST-BATCH.md.

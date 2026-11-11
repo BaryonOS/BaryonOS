@@ -1,63 +1,63 @@
-# Native quantum-jobrequests — voorstel gebruikersdienst-v1
+# Native quantum job requests — user service v1 proposal
 
-Dit zelfstandige pakket implementeert het centraal afgestemde interne
-requestcontract `QJ01`, versie 1. Het kan één bestaande IPC-payload van exact
-256 bytes getypeerd coderen en strikt valideren, zonder allocator, `unsafe`
-of externe dependency. Het is een eerste bouwsteen voor jobs buiten de
-vaste native selftest.
+This standalone package implements the centrally agreed internal
+request contract `QJ01`, version 1. It can encode one existing IPC payload of exactly
+256 bytes in typed form and validate it strictly, without an allocator, `unsafe`
+or external dependency. It is a first building block for jobs outside the
+fixed native selftest.
 
-**Uitvoering ontbreekt nog.** Er is geen jobdispatch, wachtrij, dienst,
-replyprotocol of werkende cancel-/status-/resultaatoperatie toegevoegd.
-De codec controleert het aangevraagde werkbudget; zij dwingt tijdens het
-rekenen geen quota af. De kernel-IPC, syscalls, capabilities, opslagformaten,
-de bestaande qsim-core en de native selftest veranderen niet. Het bestaande
-host-JSON-protocol `qsim-v0` blijft een afzonderlijke adapter.
+**Execution is still missing.** No job dispatch, queue, service,
+reply protocol or working cancel/status/result operation has been added.
+The codec checks the requested work budget; it does not enforce quota
+during computation. The kernel IPC, syscalls, capabilities, storage formats,
+the existing qsim-core and the native selftest do not change. The existing
+host JSON protocol `qsim-v0` remains a separate adapter.
 
-## Exact payloadcontract
+## Exact payload contract
 
-Alle meervoudige integers zijn little endian. Niet gebruikte en gereserveerde
-bytes moeten nul zijn; de decoder negeert geen extra velden of trailing data.
+All multi-byte integers are little endian. Unused and reserved
+bytes must be zero; the decoder does not ignore extra fields or trailing data.
 
-| Bytes | Veld | Regel |
+| Bytes | Field | Rule |
 |---|---|---|
-| 0–3 | magic | Exact `QJ01` |
-| 4–5 | version, u16 | Exact 1 |
+| 0–3 | magic | Exactly `QJ01` |
+| 4–5 | version, u16 | Exactly 1 |
 | 6 | operation, u8 | 1 Submit, 2 Cancel, 3 Status, 4 ResultPage |
-| 7 | qubits, u8 | Submit: 1–6; anders nul |
-| 8–15 | job_id, u64 | Altijd niet-nul |
-| 16–23 | request_id, u64 | Altijd niet-nul |
-| 24–31 | seed, u64 | Alleen Submit; iedere u64 toegestaan |
-| 32–35 | shots, u32 | Submit: 1–4.096; anders nul |
-| 36–37 | gate_count, u16 | Submit: 0–64; anders nul |
-| 38–39 | reserved | Altijd nul |
-| 40–47 | work_budget, u64 | Submit: 1–1.048.576; anders nul |
-| 48 | result_page, u8 | Alleen ResultPage: 0–3; anders nul |
-| 49–63 | reserved | Altijd nul |
-| 64–255 | maximaal 64 gates | Drie bytes per gate; alle ongebruikte bytes nul |
+| 7 | qubits, u8 | Submit: 1–6; otherwise zero |
+| 8–15 | job_id, u64 | Always non-zero |
+| 16–23 | request_id, u64 | Always non-zero |
+| 24–31 | seed, u64 | Submit only; any u64 allowed |
+| 32–35 | shots, u32 | Submit: 1–4,096; otherwise zero |
+| 36–37 | gate_count, u16 | Submit: 0–64; otherwise zero |
+| 38–39 | reserved | Always zero |
+| 40–47 | work_budget, u64 | Submit: 1–1,048,576; otherwise zero |
+| 48 | result_page, u8 | ResultPage only: 0–3; otherwise zero |
+| 49–63 | reserved | Always zero |
+| 64–255 | at most 64 gates | Three bytes per gate; all unused bytes zero |
 
-Een gate is `[operation, target, control]`. De gatecodes zijn 1 H, 2 X,
-3 Z, 4 S en 5 CX. Alleen CX gebruikt `control`; voor de andere gates moet
-die byte nul zijn. Iedere target en iedere CX-control moet kleiner zijn
-dan `qubits`, en CX-control moet verschillen van target. Validatie vindt
-plaats op de u8-indices voordat een toekomstige backend ze verbreedt.
+A gate is `[operation, target, control]`. The gate codes are 1 H, 2 X,
+3 Z, 4 S and 5 CX. Only CX uses `control`; for the other gates that
+byte must be zero. Every target and every CX control must be less than
+`qubits`, and the CX control must differ from the target. Validation takes
+place on the u8 indices before a future backend widens them.
 
-Cancel en Status bevatten naast de gemeenschappelijke header alleen de
-twee ID's. ResultPage bevat bovendien de page-index. Ook voor deze
-operaties moeten alle overige bytes nul blijven.
+Besides the common header, Cancel and Status contain only the
+two IDs. ResultPage additionally contains the page index. For these
+operations, too, all remaining bytes must stay zero.
 
-Er staat **geen caller-PID of autoriteit in de payload**. Beide ID's zijn
-correlatievelden; kennis van een job-ID geeft geen jobrechten. Een toekomstige
-userspace-dienst moet de actor aan het geauthenticeerde IPC-envelope binden,
-rechten controleren en request-ID's volgens haar afgesproken lifecycle
-verwerken. Deze codec alleen bewijst die koppeling niet. De seed blijft
-uitsluitend invoer voor herhaalbare simulatie, geen sleutel of entropybron.
+There is **no caller PID or authority in the payload**. Both IDs are
+correlation fields; knowing a job ID grants no job rights. A future
+userspace service must bind the actor to the authenticated IPC envelope,
+check rights and process request IDs according to its agreed lifecycle.
+This codec alone does not prove that binding. The seed remains
+exclusively input for repeatable simulation, not a key or entropy source.
 
-## Rust-API
+## Rust API
 
-`Identifiers::new` vereist twee niet-nul u64's. `Submit::new` valideert de
-limieten en gates vóór het kopiëren naar een vaste array. `ResultPage::new`
-controleert de page-index. Hun velden zijn privé zodat veilige aanroepers
-geen ongevalideerde request kunnen encoderen.
+`Identifiers::new` requires two non-zero u64s. `Submit::new` validates the
+limits and gates before copying into a fixed array. `ResultPage::new`
+checks the page index. Their fields are private so that safe callers
+cannot encode an unvalidated request.
 
 ```rust
 use qsim_job_protocol::{decode, encode, Gate, Identifiers, Request, Submit};
@@ -74,17 +74,17 @@ fn encode_example() -> Result<[u8; 256], qsim_job_protocol::Error> {
 }
 ```
 
-`decode(&[u8])` accepteert uitsluitend 256 bytes. `encode` schrijft altijd
-een canoniek `[u8; 256]`. Lokale `Error`-varianten beschrijven afwijzing; zij
-leggen geen antwoord-, syscall- of on-disk-foutcodering vast.
+`decode(&[u8])` accepts only 256 bytes. `encode` always writes
+a canonical `[u8; 256]`. Local `Error` variants describe rejection; they
+do not define any reply, syscall or on-disk error encoding.
 
-De Rust-typen zijn geen wirestructs: hun geheugenindeling wordt nergens
-gekopieerd of als ABI gebruikt. `Request` bevat opzettelijk de volledige
-vaste gatebuffer; daarom heeft uitsluitend dit enum een gemotiveerde lokale
-Clippy-uitzondering voor variantgrootte. Een `Box` zou juist de verboden
-allocatorafhankelijkheid toevoegen.
+The Rust types are not wire structs: their memory layout is never
+copied or used as an ABI. `Request` deliberately contains the full
+fixed gate buffer; that is why only this enum has a justified local
+Clippy exception for variant size. A `Box` would add precisely the forbidden
+allocator dependency.
 
-## Controles en reproduceren
+## Checks and reproduction
 
 ```bash
 cargo +1.90.0 test --manifest-path experiments/quantum/job-protocol/Cargo.toml --locked --offline
@@ -92,26 +92,26 @@ cargo +1.90.0 clippy --manifest-path experiments/quantum/job-protocol/Cargo.toml
 cargo +1.90.0 build --manifest-path experiments/quantum/job-protocol/Cargo.toml --lib --release --target x86_64-unknown-none --locked --offline
 ```
 
-Gebruik een eigen `CARGO_TARGET_DIR` bij parallel bouwen. De workspace staat
-los van de kernel en van de bestaande quantum-workspaces.
+Use a separate `CARGO_TARGET_DIR` when building in parallel. The workspace is
+independent of the kernel and of the existing quantum workspaces.
 
-De 13 hosttests controleren exacte golden bytes, alle vier operaties en
-vijf gatecodes, maximale arrays, minima/maxima, alle 256 afgekorte lengtes,
-te lange invoer, header- en ID-fouten, iedere gereserveerde of ongebruikte
-bytepositie, bounds en CX-regels. Een aanvullende eigenschap binnen die
-tests controleert 6.400 enkele-bytemutaties: iedere geaccepteerde mutatie
-moet zonder normalisatie identiek terugencoderen.
+The 13 host tests check exact golden bytes, all four operations and
+five gate codes, maximal arrays, minima/maxima, all 256 truncated lengths,
+over-long input, header and ID errors, every reserved or unused
+byte position, bounds and CX rules. An additional property within those
+tests checks 6,400 single-byte mutations: every accepted mutation
+must re-encode identically without normalisation.
 
-De library compileert native voor `x86_64-unknown-none`; dat is
-**compilatiebewijs, geen uitgevoerde OS-job of VM-run**. De exacte uitgevoerde
-commando's, exitstatussen, bron- en artifacthashes staan onder
+The library compiles natively for `x86_64-unknown-none`; that is
+**compilation evidence, not an executed OS job or VM run**. The exact executed
+commands, exit statuses, source and artifact hashes are under
 `docs/verification/parallel-i08`.
 
-## Kleinste vervolgstap
+## Smallest next step
 
-Verbind deze codec met een afzonderlijk geautoriseerde userspace-dispatcher,
-een afgesproken replycontract en de bestaande qsim-core. Die integratie moet
-actorbinding, lifecycle, werkelijk quota-/cancelgedrag en resultaatpagina's
-native testen. Voeg de nieuwe brondependency centraal aan de OS-bronbinding
-toe zodra de OS-build haar daadwerkelijk gebruikt. De codec wordt nog niet
-door de bestaande OS-image ingelinkt. L02 blijft daarom open.
+Connect this codec to a separately authorised userspace dispatcher,
+an agreed reply contract and the existing qsim-core. That integration must
+natively test actor binding, lifecycle, actual quota/cancel behaviour and result pages.
+Add the new source dependency centrally to the OS source binding
+as soon as the OS build actually uses it. The codec is not yet
+linked into the existing OS image. L02 therefore remains open.

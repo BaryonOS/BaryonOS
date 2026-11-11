@@ -1,52 +1,52 @@
-# Gerichte RustCrypto-geheugenhygiënepatch
+# Targeted RustCrypto memory-hygiene patch
 
-Dit zijn lokale runtimevarianten van **HKDF0.13.0** en **HMAC0.13.0**, met
-uitsluitend gewijzigde bufferlevensduur/wissen, traitcontroles en dependency-
-featurekoppelingen. De KDF-/MAC-algoritmen, labels, bytevolgorde en formaten
-blijven upstream. Dit is geen upstreamrelease of onafhankelijke crypto-audit.
+These are local runtime variants of **HKDF0.13.0** and **HMAC0.13.0**, with
+only buffer lifetime/erasure, trait checks and dependency
+feature wiring changed. The KDF/MAC algorithms, labels, byte order and formats
+remain upstream. This is not an upstream release or an independent crypto audit.
 
-| Upstreamarchief | SHA256 |
+| Upstream archive | SHA256 |
 |---|---|
 | hkdf-0.13.0.crate | 4aaa26c720c68b866f2c96ef5c1264b3e6f473fe5d4ce61cd44bbe913e553018 |
 | hmac-0.13.0.crate | 6303bc9732ae41b04cb554b844a762b4115a61bfaa81e3e83050991eeb56863f |
 
-De originele officiële bronarchieven staan in `upstream/`; hun oorspronkelijke
-bron kan rechtstreeks uit het archief worden gelezen. Elke uitgepakte variant
-behoudt `Cargo.toml.upstream`, `Cargo.toml.orig`, README en de volledige
-MIT-/Apache-2.0-licenties met oorspronkelijke auteursvermeldingen.
-De kleine brondiff staat in
+The original official source archives are in `upstream/`; their original
+source can be read directly from the archive. Each unpacked variant
+retains `Cargo.toml.upstream`, `Cargo.toml.orig`, README and the full
+MIT/Apache-2.0 licences with original author attributions.
+The small source diff is in
 [`hygiene.diff`](../verification/hkdf-hygiene/hygiene.diff).
-De lokale Cargo-manifests selecteren alleen de bibliotheken; upstreamtests en
-benches blijven in de originele archieven beschikbaar. Lokale regressies en
-oudeversie-orakels staan onder `../tests/`.
+The local Cargo manifests select only the libraries; upstream tests and
+benches remain available in the original archives. Local regressions and
+old-version oracles are under `../tests/`.
 
-De wrappers wissen in normale return-/drop-paden:
+The wrappers erase in normal return/drop paths:
 
-- De verworpen PRK in `Hkdf::new` en de optionele KDF-traitadapter.
-- Elk HKDF-expandblok en zijn vorige blok, ook bij vervanging/einde.
-- Het genormaliseerde HMAC-keyblok, ipad/opad en de lange-key-hash.
-- De interne HMAC-hash, ook in beide resetvarianten.
-- Bewaarde SimpleHmac-ipad/opad via `Zeroizing`.
+- The discarded PRK in `Hkdf::new` and the optional KDF trait adapter.
+- Each HKDF expand block and its previous block, also on replacement/end.
+- The normalized HMAC key block, ipad/opad and the long-key hash.
+- The internal HMAC hash, also in both reset variants.
+- Retained SimpleHmac ipad/opad via `Zeroizing`.
 
-Voor bewaarde HMAC-hashstates is **ook** `sha2=0.11.1/zeroize` vereist.
-De upstream SHA2-Drop wist state/block_len; digest/block-buffer wist de
-pending buffers. `ZeroizeOnDrop`-markers zijn alleen beschikbaar wanneer
-de werkelijk gekozen hash/core dezelfde marker heeft. De productielibrary
-controleert deze concrete SHA256→HMAC→HKDF-keten tijdens compilatie.
-Een verwijderde SHA2-zeroize-feature moet die compilatie laten mislukken.
+For retained HMAC hash states, `sha2=0.11.1/zeroize` is **also** required.
+The upstream SHA2 Drop erases state/block_len; digest/block-buffer erases the
+pending buffers. `ZeroizeOnDrop` markers are only available when
+the hash/core actually selected has the same marker. The production library
+checks this concrete SHA256→HMAC→HKDF chain at compile time.
+A removed SHA2 zeroize feature must make that compilation fail.
 
-`extract` retourneert volgens upstream bewust een PRK aan zijn caller;
-die caller moet zijn eigen geretourneerde bytes beschermen. `new` wist de
-PRK die deze API zelf weggooit. De productiecode gebruikt `new`/`from_prk`.
-HMAC/HKDF-uitvoer naar een caller wordt niet onverwacht gewist. De tests
-controleren bytepariteit met de oorspronkelijke implementaties.
+Per upstream, `extract` deliberately returns a PRK to its caller;
+that caller must protect its own returned bytes. `new` erases the
+PRK that this API itself discards. The production code uses `new`/`from_prk`.
+HMAC/HKDF output to a caller is not unexpectedly erased. The tests
+check byte parity with the original implementations.
 
-Deze ingreep claimt geen volledige erasure: diepe SHA-compressietemporaries,
-Rust-moves, compiler-/registerkopieën en abort/crashpaden zijn niet volledig
-onderzocht of gewist door deze patch. Geen lezen van vrijgegeven geheugen
-of onveilige objectoverschrijving wordt als wisbewijs gebruikt.
+This intervention claims no complete erasure: deep SHA compression temporaries,
+Rust moves, compiler/register copies and abort/crash paths have not been fully
+investigated or erased by this patch. No reading of freed memory
+or unsafe object overwriting is used as erasure evidence.
 
-Bij een upstreamupdate moeten archiefherkomst/licenties, patch, actieve
-graaf/features, markerketen, RFC/KAT-/bytepariteit en scalar1.90-nonebuilds
-opnieuw worden gecontroleerd. SHA2 wordt rechtstreeks uit de registry
-gebruikt; zijn algoritmebron is niet lokaal gewijzigd.
+On an upstream update, archive provenance/licences, patch, active
+graph/features, marker chain, RFC/KAT/byte parity and scalar1.90-nonebuilds
+must be rechecked. SHA2 is used directly from the registry;
+its algorithm source has not been modified locally.
