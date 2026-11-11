@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-11",
-    "source_commit": "f26cd05623368c1a834be538e38a2aa30f5e1df1",
+    "source_commit": "bfc9bdfe673d99c118e0de03422f5e932a093874",
     "assessment_basis": "source_commit",
-    "branch": "ci/qemu-apt-bundle",
-    "task": "Install pinned CI QEMU/OVMF from a signed package bundle (ADR-CI-QEMU-BUNDLE-20261111)",
+    "branch": "ccr-901455b4-q47fn2",
+    "task": "Point the Graphify guidance in AGENTS.md and the Copilot instructions at the indexed repository BaryonOS/BaryonOS",
     "previous_score": 39,
-    "summary": "39/100 to 39/100: CI infrastructure only. The QEMU/OVMF setup gains a signed, hash-pinned package bundle with snapshot and archive fallbacks; package versions and checks are unchanged. No OS functionality, native gate or product criterion changes."
+    "summary": "39/100 to 39/100: agent guidance only. The hosted Graphify identifier changes from simonvanieperen/BaryonOS to BaryonOS/BaryonOS; no OS functionality, native gate or product criterion changes."
   },
   "tracks": [
     {
