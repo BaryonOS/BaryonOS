@@ -1,112 +1,112 @@
-# Welke kennis Codex en de ontwikkelaar nodig hebben
+# What knowledge Codex and the developer need
 
-Status: leer- en onderzoeksplan, 26 oktober 2026. Een taalmodel heeft geen aantoonbare bevoegdheid als kernelontwikkelaar. Goede uitkomsten vereisen actuele specificaties, concrete interfaces, uitvoerbare tests en controle van aannames. Dit bestand is een routekaart, geen vervanging voor de genoemde handleidingen.
+Status: learning and research plan, 26 October 2026. A language model has no demonstrable competence as a kernel developer. Good outcomes require current specifications, concrete interfaces, executable tests and checking of assumptions. This file is a roadmap, not a substitute for the manuals it names.
 
-## 1. Kennis per werkgebied
+## 1. Knowledge per work area
 
-Gebruik de matrix om een taak voor te bereiden. De architectuurkeuzes en de volgorde van bouwen staan in `ARCHITECTURE.md` en `ROADMAP.md`; hier staat welke kennis vóór die taken aantoonbaar beschikbaar moet zijn.
+Use the matrix to prepare a task. The architecture choices and the build order are in `ARCHITECTURE.md` and `ROADMAP.md`; this file states which knowledge must demonstrably be available before those tasks.
 
-| Werkgebied | Wat de uitvoerende agent moet begrijpen | Te leveren bewijs of kennisbestand |
+| Work area | What the executing agent must understand | Evidence or knowledge file to deliver |
 | --- | --- | --- |
-| Git en samenwerken | Commits, branches, worktrees, conflicts, review, rollback en bestandseigenaarschap. | Kleine reviewbare wijziging, diff en herstelinstructie. |
-| Rust | Ownership, borrowing, lifetimes, generics, foutafhandeling, `no_std`, layout, FFI en voorwaarden van `unsafe`. | Voor elke onveilige grens een contract en gerichte test; verwijzing naar geldende taalregels. |
-| CPU en geheugen | Registers, privilege, virtueel/fysiek geheugen, paginatabellen, uitzonderingen, atomics en geheugenordening. | Specifiek hoofdstuk uit de gekozen ISA-handleiding; invariant en test op de gekozen target. |
-| Bouwen en opstarten | Crosscompilatie, objectformaat, linker, bootprotocol, firmware-overdracht en debug-symbolen. | Vastgelegde toolchain, bouwcommando's, artefactidentiteit en herhaalbaar opstartlog. |
-| Kernelmechanismen | Allocatie, taken, contextwisseling, scheduling, IPC, capability-rechten en objectlevensduur. | Interfacebeschrijving plus toegestane en geweigerde scenario's. |
-| Concurrency | Interrupt-context, races, deadlocks, lockvolgorde, annulering en multicoregedrag. | Vastgelegde lock- en levensduurregels; stress- en gerichte regressietests. |
-| Drivers | Device discovery, MMIO, interrupts, DMA, descriptorgrenzen, time-outs en herstel na fouten. | Precieze apparaat-/protocolspecificatie en ongeldige-inputtests. |
-| Opslag | Cachegedrag, persistente metadata, crashconsistentie, corrupte media, herstel en toegang. | Gedocumenteerd on-diskformaat, foutinjectie en hersteltest met wegwerpimages. |
-| Netwerken | Framing, parsing, adressering, routing, naamresolutie, tijd, transportbeveiliging en resourcegrenzen. | Protocolversies en grenzen; tests voor misvormde pakketten en uitputting. |
-| Beveiliging | Vertrouwensgrenzen, authenticatie versus autorisatie, sleutels, updates, herkomst en aanvallersmodellen. | Actueel threat model; elke claim gekoppeld aan test, review of bewijs. |
-| Apps en SDK | ABI/API, versiebeheer, packages, rechtenmanifest, install/uninstall en ontwikkelgereedschap. | Een kleine externe voorbeeldapp die alleen de gedocumenteerde SDK gebruikt. |
-| Grafische omgeving | Compositie, rendering, input, fonts, Unicode, accessibility, vensters en gebruikersverwachtingen. | Interactieprototype én later integratietest in het echte OS; duidelijk gescheiden. |
-| Portability en energie | Architectuurafhankelijke code, boardondersteuning, firmware, slaap/ontwaken en batterijen. | Hardwarematrix met gemeten ondersteunde functies; geen generieke apparaatbelofte. |
-| Verificatie | Unit/integratietests, property tests, fuzzing, foutinjectie, modelchecking en eventueel formele bewijzen. | Testbereik en beperkingen; reproduceerbare resultaten, geen alleen gegenereerde succesmelding. |
-| Product en beheer | UX, toegankelijkheid, lokalisatie, privacy, releaseonderhoud en communitybijdragen. | Takenlijst, gebruikerstests, privacygedrag en onderhoudsbeleid. |
+| Git and collaboration | Commits, branches, worktrees, conflicts, review, rollback and file ownership. | Small reviewable change, diff and recovery instruction. |
+| Rust | Ownership, borrowing, lifetimes, generics, error handling, `no_std`, layout, FFI and the preconditions of `unsafe`. | A contract and targeted test for every unsafe boundary; reference to the applicable language rules. |
+| CPU and memory | Registers, privilege, virtual/physical memory, page tables, exceptions, atomics and memory ordering. | Specific chapter from the chosen ISA manual; invariant and test on the chosen target. |
+| Building and booting | Cross-compilation, object format, linker, boot protocol, firmware handoff and debug symbols. | Recorded toolchain, build commands, artifact identity and repeatable boot log. |
+| Kernel mechanisms | Allocation, tasks, context switching, scheduling, IPC, capability rights and object lifetime. | Interface description plus permitted and rejected scenarios. |
+| Concurrency | Interrupt context, races, deadlocks, lock ordering, cancellation and multicore behaviour. | Recorded lock and lifetime rules; stress and targeted regression tests. |
+| Drivers | Device discovery, MMIO, interrupts, DMA, descriptor bounds, timeouts and recovery after faults. | Precise device/protocol specification and invalid-input tests. |
+| Storage | Cache behaviour, persistent metadata, crash consistency, corrupt media, recovery and access. | Documented on-disk format, fault injection and recovery test with disposable images. |
+| Networking | Framing, parsing, addressing, routing, name resolution, time, transport security and resource limits. | Protocol versions and limits; tests for malformed packets and exhaustion. |
+| Security | Trust boundaries, authentication versus authorisation, keys, updates, provenance and attacker models. | Current threat model; every claim linked to a test, review or evidence. |
+| Apps and SDK | ABI/API, versioning, packages, permission manifest, install/uninstall and developer tooling. | A small external example app that uses only the documented SDK. |
+| Graphical environment | Composition, rendering, input, fonts, Unicode, accessibility, windows and user expectations. | Interaction prototype and later an integration test in the real OS; clearly separated. |
+| Portability and energy | Architecture-dependent code, board support, firmware, sleep/wake and batteries. | Hardware matrix with measured supported functions; no generic device promise. |
+| Verification | Unit/integration tests, property tests, fuzzing, fault injection, model checking and possibly formal proofs. | Test coverage and limitations; reproducible results, not merely a generated success message. |
+| Product and management | UX, accessibility, localisation, privacy, release maintenance and community contributions. | Task list, user tests, privacy behaviour and maintenance policy. |
 
-De matrix is bewust breed: een bruikbaar OS is ook een appplatform, driverproject en onderhoudsorganisatie. Codex kan kennis ontsluiten en voorstellen doen. Het ontbrekende empirische bewijs moet uit builds, tests en onafhankelijke beoordeling komen.
+The matrix is deliberately broad: a usable OS is also an app platform, a driver project and a maintenance organisation. Codex can surface knowledge and make proposals. The missing empirical evidence must come from builds, tests and independent assessment.
 
-### Productonderzoek en consumentenadoptie
+### Product research and consumer adoption
 
-Voor UX-, onboarding-, migratie- en positioneringstaken zijn
+For UX, onboarding, migration and positioning tasks,
 [MARKET-AND-ADOPTION-2026-10-28.md](research/MARKET-AND-ADOPTION-2026-10-28.md)
-en [CONSUMER-VALUE-2026-10-28.md](research/CONSUMER-VALUE-2026-10-28.md)
-de actuele onderzoeksingangen. Houd **aandacht, proberen, overstappen en blijven
-gebruiken** als verschillende uitkomsten. Privacy, lokale AI, vormgeving en
-Europese herkomst zijn geen zelfstandige adoptiegaranties. Onderzoek
-taakprestatie, leerlast, noodzakelijke apps/bestanden/apparaten, herstel en
-vrijwillig hergebruik; ontwerpvoorstellen blijven hypotheses totdat passende
-gebruikersproeven ze ondersteunen.
+and [CONSUMER-VALUE-2026-10-28.md](research/CONSUMER-VALUE-2026-10-28.md)
+are the current research entry points. Keep **attention, trying, switching and continued
+use** as distinct outcomes. Privacy, local AI, design and
+European origin are not adoption guarantees on their own. Research
+task performance, learning burden, required apps/files/devices, recovery and
+voluntary reuse; design proposals remain hypotheses until suitable
+user trials support them.
 
-## 2. Wat vóór iedere ontwikkeltaak in de context hoort
+## 2. What belongs in the context before every development task
 
-Geef een agent niet alle documenten tegelijk. Laat hem eerst de relevante repository-instructies lezen en daarna alleen de bronstukken die voor de taak nodig zijn.
+Do not give an agent all documents at once. Have it first read the relevant repository instructions and then only the source documents needed for the task.
 
-1. **Doel en grens:** één observeerbare uitkomst, toegestane bestanden en expliciete niet-doelen.
-2. **Huidige toestand:** commit, doelplatform, versies, bestaande API's en bekende defecten.
-3. **Normatieve bron:** documentnaam, versie, hoofdstuk en URL; markeer of iets een standaard, fabrikantregel of projectkeuze is.
-4. **Invariant:** wat altijd waar moet blijven, bijvoorbeeld “een ingetrokken recht verleent geen nieuwe toegang”.
-5. **Acceptatie:** concrete positieve en negatieve gevallen, exacte commando's en betekenis van exitcodes.
-6. **Bewijs:** bewaar uitgevoerde commando's, relevante logs, uitkomst en beperkingen.
-7. **Overdracht:** wat veranderd is, wat nog onzeker is en wat de volgende taak veilig kan aannemen.
+1. **Goal and boundary:** one observable outcome, permitted files and explicit non-goals.
+2. **Current state:** commit, target platform, versions, existing APIs and known defects.
+3. **Normative source:** document name, version, chapter and URL; mark whether something is a standard, a vendor rule or a project choice.
+4. **Invariant:** what must always remain true, for example “a revoked right grants no new access”.
+5. **Acceptance:** concrete positive and negative cases, exact commands and the meaning of exit codes.
+6. **Evidence:** keep the commands executed, relevant logs, outcome and limitations.
+7. **Handoff:** what changed, what is still uncertain and what the next task can safely assume.
 
-Een verwijzing naar een document betekent niet dat de hele inhoud in het modelgeheugen aanwezig is. Voor OS-ontwikkeltaken is `.agents/skills/os-dev/SKILL.md` de lokale route naar de gebundelde OSDev Wiki-snapshot en *The little book about OS development*; laat de agent met `scripts/zoeken.py` alleen de relevante passage ophalen. Voor overige bronnen: laat de agent de relevante passage ophalen of een gecontroleerde lokale kopie lezen. Leg van gedownloade specificaties versie en checksum vast wanneer de build of review ervan afhankelijk is. Bewaar geen volledige beschermde boeken in de repository zonder passende rechten.
+A reference to a document does not mean its entire content is present in the model's memory. For OS development tasks, `.agents/skills/os-dev/SKILL.md` is the local route to the bundled OSDev Wiki snapshot and *The little book about OS development*; have the agent retrieve only the relevant passage with `scripts/zoeken.py`. For other sources: have the agent retrieve the relevant passage or read a verified local copy. Record the version and checksum of downloaded specifications when the build or review depends on them. Do not store complete protected books in the repository without appropriate rights.
 
-## 3. Persoonlijke leerroute
+## 3. Personal learning route
 
-Deze route loopt naast het OS-project en heeft geen vaste kalenderduur. Ga verder zodra de oefening zelfstandig kan worden uitgelegd en herhaald.
+This route runs alongside the OS project and has no fixed calendar duration. Move on once the exercise can be explained and repeated independently.
 
-| Stap | Oefening | Klaar wanneer |
+| Step | Exercise | Done when |
 | --- | --- | --- |
-| A. Wijzigingen beheersen | Maak een klein tekst-/Rustproject, verander het op een branch en herstel een fout met Git. | Een commit, diff en herstelactie zijn begrijpelijk zonder de hele projectmap opnieuw te kopiëren. |
-| B. Rust-basis | Bouw een klein lokaal programma dat invoer leest, valideert en fouten afhandelt. | Ownership, borrowing en `Result` zijn aan eigen code uit te leggen. |
-| C. Denken in grenzen | Ontwerp een berichtformaat met maximale lengte en valideer het in een gewone hosttest. | Misvormde invoer veroorzaakt een gecontroleerde fout en geen onbeperkte allocatie. |
-| D. Van bron naar machine | Laat Codex één functie compileren en objectbestand, symbolen en relevante assembly uitleggen. | Het verschil tussen broncode, machinecode, linker en runtime is duidelijk. |
-| E. Opstartproef | Volg de eerste mijlpaal uit de roadmap in QEMU. | De exacte build en boot zijn herhaalbaar; een foutlog kan worden teruggevonden. |
-| F. Isolatie begrijpen | Gebruik een diagram en tests om twee processen met verschillende rechten te vergelijken. | Een geslaagde legitieme toegang en geweigerde onrechtmatige toegang zijn aantoonbaar. |
-| G. Reviewen | Laat een andere agent een kleine wijziging beoordelen en beoordeel zelf de testlog. | “De agent zegt dat het klopt” is te onderscheiden van reproduceerbaar bewijs. |
+| A. Controlling changes | Make a small text/Rust project, change it on a branch and recover from an error with Git. | A commit, diff and recovery action are understandable without copying the whole project folder again. |
+| B. Rust basics | Build a small local program that reads input, validates it and handles errors. | Ownership, borrowing and `Result` can be explained using your own code. |
+| C. Thinking in boundaries | Design a message format with a maximum length and validate it in an ordinary host test. | Malformed input causes a controlled error and no unbounded allocation. |
+| D. From source to machine | Have Codex compile one function and explain the object file, symbols and relevant assembly. | The difference between source code, machine code, linker and runtime is clear. |
+| E. Boot trial | Follow the first milestone from the roadmap in QEMU. | The exact build and boot are repeatable; an error log can be found again. |
+| F. Understanding isolation | Use a diagram and tests to compare two processes with different rights. | A successful legitimate access and a rejected unauthorised access are demonstrable. |
+| G. Reviewing | Have another agent review a small change and assess the test log yourself. | “The agent says it is correct” can be distinguished from reproducible evidence. |
 
-Vraag bij een onbekend begrip om drie dingen: een uitleg van maximaal tien zinnen, een minimaal voorbeeld en wat er misgaat als de aanname onjuist is. Laat uitleg de huidige bouwstap ondersteunen; probeer niet eerst alle OS-literatuur uit te lezen.
+For an unfamiliar concept, ask for three things: an explanation of at most ten sentences, a minimal example and what goes wrong if the assumption is incorrect. Let explanations support the current build step; do not try to read all OS literature first.
 
-## 4. Actieve kennis bijhouden
+## 4. Maintaining active knowledge
 
-Houd naast de broncode bij:
+Alongside the source code, keep track of:
 
-- **Besluiten:** ADR's met probleem, opties, gekozen route, gevolgen en heroverwegingscriterium.
-- **Interfaces:** syscall-/IPC-contracten, datastructuren, versiebeleid en eigenaarschap.
-- **Aannames:** hardwaremogelijkheden, firmware, compiler, emulator en externe diensten.
-- **Bewijsregister:** claim, test-ID, target, commit, resultaat en resterende beperking.
-- **Status:** laatste werkende commit, huidige blokkade en eerstvolgende kleine taak.
-- **Afhankelijkheden:** naam, versie, herkomst, licentie, onderhoud en reden van opname.
+- **Decisions:** ADRs with problem, options, chosen route, consequences and reconsideration criterion.
+- **Interfaces:** syscall/IPC contracts, data structures, versioning policy and ownership.
+- **Assumptions:** hardware capabilities, firmware, compiler, emulator and external services.
+- **Evidence register:** claim, test ID, target, commit, result and remaining limitation.
+- **Status:** last working commit, current blocker and next small task.
+- **Dependencies:** name, version, provenance, licence, maintenance and reason for inclusion.
 
-Werk deze documenten bij wanneer de werkelijkheid verandert. Een oude chat is geen gezaghebbende bron voor het huidige systeem. Een uitvoerende agent mag een ontbrekend resultaat als “niet uitgevoerd” registreren; hij mag geen geslaagde test invullen om een mijlpaal af te ronden.
+Update these documents when reality changes. An old chat is not an authoritative source for the current system. An executing agent may record a missing result as “not executed”; it may not fill in a passed test to complete a milestone.
 
-## 5. Eerste primaire studiebronnen
+## 5. First primary study sources
 
-Lees gericht. Voor Rust is het *Book* een leerbron; de *Reference* beschrijft taalregels en is niet bedoeld als eerste introductie. Intel's systeemhandleiding behandelt onder meer geheugenbeheer, privilege, interrupts en multiprocessorondersteuning. Die bronnen bepalen geen productontwerp; ze begrenzen wat technisch correct kan zijn (Klabnik et al., z.d.; The Rust Project, z.d.; Intel, 2026).
+Read selectively. For Rust, the *Book* is a learning source; the *Reference* describes language rules and is not meant as a first introduction. Intel's system manual covers, among other things, memory management, privilege, interrupts and multiprocessor support. These sources do not determine product design; they bound what can be technically correct (Klabnik et al., n.d.; The Rust Project, n.d.; Intel, 2026).
 
-| Onderwerp | Beginpunt | Gebruik |
+| Topic | Starting point | Use |
 | --- | --- | --- |
-| Rust leren | https://doc.rust-lang.org/book/ | Eerst ownership, borrowing, enums, fouten en tests. |
-| Rust-regels | https://doc.rust-lang.org/reference/ | Taakgericht opzoeken; koppel aan de gepinde compiler. |
-| x86_64-systeemprogrammering | https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html | Volume 3 voor systeemmechanismen; relevante versies vastleggen. |
-| Open source | https://opensource.org/osd | Begrijpen wat de term wel en niet betekent. |
-| Toegankelijke webinterface | https://www.w3.org/TR/WCAG22/ | Toetsbare webcriteria; niet gelijkstellen aan volledige OS-toegankelijkheid. |
+| Learning Rust | https://doc.rust-lang.org/book/ | First ownership, borrowing, enums, errors and tests. |
+| Rust rules | https://doc.rust-lang.org/reference/ | Look up per task; tie to the pinned compiler. |
+| x86_64 systems programming | https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html | Volume 3 for system mechanisms; record the relevant versions. |
+| Open source | https://opensource.org/osd | Understand what the term does and does not mean. |
+| Accessible web interface | https://www.w3.org/TR/WCAG22/ | Testable web criteria; do not equate with full OS accessibility. |
 
-De geraadpleegde bronnen zijn geen complete technische bibliotheek. Boot-, driver-, netwerk-, cryptografie- en hardwarestandaarden worden per mijlpaal geselecteerd in de andere kennisbestanden. Voor een ongelezen of niet te openen bron schrijft de agent: “Dit kan ik niet verifiëren.”
+The sources consulted are not a complete technical library. Boot, driver, network, cryptography and hardware standards are selected per milestone in the other knowledge files. For a source that was not read or cannot be opened, the agent writes: “I cannot verify this.”
 
-## Bronnen
+## Sources
 
-Intel. (2026, 9 oktober). *Intel 64 and IA-32 architectures software developer manuals*. https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html
+Intel. (2026, October 9). *Intel 64 and IA-32 architectures software developer manuals*. https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html
 
-Klabnik, S., Nichols, C., & Krycho, C. (z.d.). *The Rust programming language*. Geraadpleegd op 26 oktober 2026, van https://doc.rust-lang.org/book/
+Klabnik, S., Nichols, C., & Krycho, C. (n.d.). *The Rust programming language*. Retrieved October 26, 2026, from https://doc.rust-lang.org/book/
 
-Open Source Initiative. (z.d.). *The Open Source Definition*. Geraadpleegd op 26 oktober 2026, van https://opensource.org/osd
+Open Source Initiative. (n.d.). *The Open Source Definition*. Retrieved October 26, 2026, from https://opensource.org/osd
 
-The Rust Project. (z.d.). *The Rust Reference*. Geraadpleegd op 26 oktober 2026, van https://doc.rust-lang.org/reference/
+The Rust Project. (n.d.). *The Rust Reference*. Retrieved October 26, 2026, from https://doc.rust-lang.org/reference/
 
-World Wide Web Consortium. (2024, 12 december). *Web Content Accessibility Guidelines (WCAG) 2.2*. https://www.w3.org/TR/WCAG22/
+World Wide Web Consortium. (2024, December 12). *Web Content Accessibility Guidelines (WCAG) 2.2*. https://www.w3.org/TR/WCAG22/
 
 
-## Aanvulling na privacycorrectie
-Lees LOCAL-PRIVACY-CONTRACT.md voor de bindende scope. Aanvullende kennis: lokale NAS-identiteitskoppeling en beperkte share-rechten, versleuteld transport en client-side backupkluis, sleutelherstel, netwerkovergangen/IPv6/DNS-rebinding, isolatie van AI-runtime en modeldownloader, modelbestandsvalidatie, gecombineerde bestand-/netwerkrechten en herstelpunten buiten de bevoegdheid van het syncaccount. Iedere implementatietaak noemt de relevante LP-acceptatietests.
+## Addendum after the privacy correction
+Read LOCAL-PRIVACY-CONTRACT.md for the binding scope. Additional knowledge: local NAS identity pairing and limited share rights, encrypted transport and client-side backup vault, key recovery, network transitions/IPv6/DNS rebinding, isolation of the AI runtime and model downloader, model file validation, combined file/network rights and restore points outside the authority of the sync account. Every implementation task names the relevant LP acceptance tests.
