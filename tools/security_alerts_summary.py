@@ -41,6 +41,10 @@ SEVERITIES = ("critical", "high", "medium", "low")
 RULE_SEVERITIES = ("error", "warning", "note", "none")
 ABSENT = "-"
 PLACEHOLDER = "(omitted)"
+PUBLIC_NOTICE = ("This output is public: code-scanning details stay in the "
+                 "Security tab (see SECURITY.md).")
+DEPENDABOT_COLUMNS = ("#", "Severity", "Ecosystem", "Package", "Manifest",
+                      "Advisory", "CVE", "Vulnerable", "First patched")
 FIELD_PATTERNS = {
     "ecosystem": re.compile(r"[a-z0-9_-]{1,40}"),
     "package": re.compile(r"[A-Za-z0-9_.@/+-]{1,214}"),
@@ -182,8 +186,7 @@ def render(repository, dependabot, code_scanning):
     lines = [
         "## Security alert summary",
         "",
-        f"Repository `{repository}`; open alerts only. This output is public: "
-        "code-scanning details stay in the Security tab (see SECURITY.md).",
+        f"Repository `{repository}`; open alerts only. " + PUBLIC_NOTICE,
         "",
     ]
     if isinstance(dependabot, FetchError):
@@ -194,9 +197,8 @@ def render(repository, dependabot, code_scanning):
         lines += [f"### Dependabot: {len(rows)} open", ""]
         if rows:
             lines += [
-                "| # | Severity | Ecosystem | Package | Manifest | Advisory | CVE "
-                "| Vulnerable | First patched |",
-                "|---|---|---|---|---|---|---|---|---|",
+                "| " + " | ".join(DEPENDABOT_COLUMNS) + " |",
+                "|" + "---|" * len(DEPENDABOT_COLUMNS),
             ]
             for number, level, *fields in rows:
                 cells = " | ".join(f"`{value}`" for value in fields)

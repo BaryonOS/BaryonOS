@@ -18,7 +18,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest import mock
+from unittest.mock import patch
 from urllib import error, request
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -213,8 +213,8 @@ class MainTests(unittest.TestCase):
         env = {"GITHUB_TOKEN": "token-value"}
         env.update(environ or {})
         stdout, stderr = io.StringIO(), io.StringIO()
-        with mock.patch.dict(os.environ, env, clear=True), \
-                mock.patch("sys.stdout", stdout), mock.patch("sys.stderr", stderr):
+        with patch.dict(os.environ, env, clear=True), \
+                patch("sys.stdout", stdout), patch("sys.stderr", stderr):
             code = summary.main(["--repository", "BaryonOS/BaryonOS"], fetch=fetch)
         return code, stdout.getvalue(), stderr.getvalue()
 
@@ -249,8 +249,8 @@ class MainTests(unittest.TestCase):
         self.assertIn("unexpected", err)
 
     def test_missing_token_or_bad_repository_is_a_usage_error(self):
-        with mock.patch.dict(os.environ, {}, clear=True), \
-                mock.patch("sys.stderr", io.StringIO()):
+        with patch.dict(os.environ, {}, clear=True), \
+                patch("sys.stderr", io.StringIO()):
             with self.assertRaises(SystemExit):
                 summary.main(["--repository", "BaryonOS/BaryonOS"])
             os.environ["GITHUB_TOKEN"] = "t"
