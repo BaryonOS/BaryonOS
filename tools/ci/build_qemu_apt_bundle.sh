@@ -11,6 +11,8 @@
 # SOURCES.txt lists the matching source packages (GPL corresponding source).
 set -euo pipefail
 export LC_ALL=C
+# The builder only downloads and checks; without root it cannot change the host.
+test "$(id -u)" -ne 0
 
 # Any official Ubuntu mirror works: apt checks the Ubuntu signature, not the host.
 snapshot="${UBUNTU_MIRROR:-https://snapshot.ubuntu.com/ubuntu/20261108T000000Z}"
@@ -71,7 +73,10 @@ apt-get "${apt_options[@]}" -qq install --print-uris -y --no-install-recommends 
 test -s "$work/uris"
 while read -r uri _ size hash; do
   uri="${uri//\'/}"; path="${uri#"$snapshot"/}"
-  test "$path" != "$uri"; case "$path" in pool/*) ;; *) exit 1 ;; esac
+  test "$path" != "$uri"
+  # apt prints percent-encoded URIs; a file: consumer needs the literal name.
+  path="$(printf '%b' "${path//%/\\x}")"
+  case "$path" in *..*) exit 1 ;; pool/*) ;; *) exit 1 ;; esac
   mkdir -p "$root/$(dirname "$path")"
   fetch "$uri" "$root/$path"
   test "$(stat -c %s "$root/$path")" = "$size"
@@ -110,9 +115,9 @@ done
 rm -rf "$work/lists" "$work/cache"; mkdir -p "$work/lists/partial" "$work/cache/archives/partial"
 write_sources "file:$root" deb Packages
 apt-get "${apt_options[@]}" -o Acquire::By-Hash=false -qq update
-apt-get "${apt_options[@]}" -qq install --print-uris -y --no-install-recommends "$@" \
-  > "$work/self-check"
-test "$(grep -vc "^'file:$root/pool/" "$work/self-check" || true)" = 0
+# Download-only install: apt must find and hash-check every .deb in the bundle.
+# It never runs dpkg, and status, lists and cache all live under $work.
+apt-get "${apt_options[@]}" -qq install --download-only -y --no-install-recommends "$@"
 
 (cd "$root" && find pool -type f -name '*.deb' | sort | xargs sha256sum) > "$root/SHA256SUMS"
 tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner -C "$root" -cf "$output" .
