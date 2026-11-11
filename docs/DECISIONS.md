@@ -5,6 +5,56 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-CI-QEMU-BUNDLE-20261111 — Pinned QEMU/OVMF from a signed package bundle
+
+Status: accepted, 11 November 2026, on the project owner's instruction to stop
+depending on Ubuntu DNS and mirrors on every CI run. This decision supplements
+ADR-CI-PINS-20261108; package versions and checks stay the same.
+
+**Problem:** on 11 November 2026, the "Pinned QEMU and OVMF" step failed on
+hosted runners. snapshot.ubuntu.com timed out over HTTPS and runner DNS for
+the Ubuntu mirrors failed. One external host blocked every QEMU workflow.
+
+**Decision:** `.github/actions/setup-qemu` first downloads a bundle from the
+GitHub release `ci-qemu-apt-20261111-r2` and checks its pinned sha256. Each bundle
+is a partial Ubuntu mirror: the Ubuntu-signed `InRelease` files, the original
+`Packages.xz` indexes and the dependency-closure `.deb` files. APT installs
+from it as a `file:` source. It still verifies the Ubuntu signature
+(`Signed-By`), the index hashes and every package hash. The exact pins, the
+dpkg version check, the machine/TCG checks and the firmware hashes stay
+fail-closed. If the bundle is missing or rejected, the action falls back with a
+warning to the signed snapshot, then to the signed archive, with the same pins.
+`tools/ci/build_qemu_apt_bundle.sh` rebuilds a bundle deterministically. The
+Ubuntu 26.04 profile from #296 is included.
+
+**Alternatives:**
+- The live archive, over HTTP or HTTPS, is signed and safe for integrity. It
+  is not reproducible: each pocket index lists only the newest version, so exact
+  pins stop resolving after the next update. It also needs Ubuntu DNS on every
+  run.
+- Actions cache entries can be evicted and are scoped per branch.
+- Workflow artifacts expire.
+- Git or LFS would add about 134 MB of binaries.
+A release asset is durable and independent of Ubuntu's availability. Its
+integrity rests on the Ubuntu signature, not on the host.
+
+**Licences:** the packages keep their Ubuntu licences. The `*-SOURCES.txt`
+release assets list the matching source packages with their sha256. Hosting
+the source tarballs next to the binaries is an open follow-up.
+
+**Evidence boundary:** both bundles were built twice from the archive with
+identical results and passed a download-only APT install from the bundle alone.
+Hosted canary run 43057156214 installed every pin from the bundle on
+ubuntu-24.04 (with swtpm) and ubuntu-26.04, with the Ubuntu mirrors blocked and
+no fallback warning; see the
+[bundle report](verification/ci-qemu-bundle-20261111.json). The first release
+(`ci-qemu-apt-20261111`) stored `.deb` files under percent-encoded names and is
+superseded; its assets are unchanged. The canary covers the two runner images
+of that date. A later image that preinstalls other versions can still miss a
+package; the action then warns and uses the signed network path. A pin update
+requires a new bundle, a new tag and new sha256 values in the action. Score
+39/100 is unchanged.
+
 ## ADR-074 — Ticket lock, irqsave and lockdep per CPU (K06 step 5a)
 
 6 November 2026; only in `native-smp`. This is the first step towards an

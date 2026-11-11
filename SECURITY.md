@@ -24,13 +24,13 @@ A green CI run or successful review does not mean a version is safe for producti
 **Do not publish exploitable details in a regular issue, discussion, pull request or log.**
 
 GitHub Private Vulnerability Reporting is enabled for this repository.
-Use [Report a vulnerability](https://github.com/simonvanieperen/BaryonOS/security/advisories/new)
+Use [Report a vulnerability](https://github.com/BaryonOS/BaryonOS/security/advisories/new)
 to report vulnerability details privately to the repository maintainers.
 This button is also available on the public
-[Security page](https://github.com/simonvanieperen/BaryonOS/security).
+[Security page](https://github.com/BaryonOS/BaryonOS/security).
 Signing in to GitHub is required to submit a report.
 
-If the reporting route is unavailable, do not publish vulnerability details through a public report instead. A minimal public issue titled **`Security contact requested`** may request a private channel; include no vulnerability details, exploit code, secrets, personal data or sensitive logs. Wait for a maintainer-designated private channel before sharing technical details.
+If the reporting route is unavailable, do not publish vulnerability details elsewhere; retry the private report later.
 
 ## Information to include in a private report
 
