@@ -1,279 +1,279 @@
-# NAS-IPC-PROBE-1 — lokale native acceptatie-interface
+# NAS-IPC-PROBE-1 — local native acceptance interface
 
-Dit is een **afzonderlijke P04-probe**, niet de geïntegreerde release, een
-interoperabel NAS-netwerkprotocol, geauthenticeerde apparaatkoppeling of
-E2EE-client. De client verstuurt herkenbaar synthetische opaque bytes,
-geen echte documenten of sleutels. P01–P04 blijven open tot hun vereiste
-native bewijs bestaat; een ELF-build levert geen punt.
+This is a **separate P04 probe**, not the integrated release, an
+interoperable NAS network protocol, authenticated device pairing or
+E2EE client. The client sends recognizably synthetic opaque bytes,
+no real documents or keys. P01–P04 remain open until their required
+native evidence exists; an ELF build earns no point.
 
-Bronwriter: NAS-spoor, uitsluitend `services/nas/**`. Kernelmanifest,
-syscallselectie, rootbuild, QEMU-runner en finale bewijsbinding blijven
-bij TL-REL. Zij worden niet door deze builder of binaries ingesteld.
+Source writer: NAS track, exclusively `services/nas/**`. Kernel manifest,
+syscall selection, root build, QEMU runner and final evidence binding remain
+with TL-REL. They are not set by this builder or these binaries.
 
-## Artefacts en geheugen
+## Artefacts and memory
 
-Rust 1.90.0, `x86_64-unknown-none`, `no_std`, statisch ELF64, geen allocator
-of externe package. Het ene `nas-probe.elf` bevat drie rollen. De afzonderlijke
-procesadresruimten en hun kernelgrants bepalen de autoriteit, niet de code
-of een rolveld uit een verzoek. `nas-volume.elf` bouwt de **ongewijzigde**
-bestaande `sdk/examples/volume-docs/src/service.rs` met diens eigen linker.
+Rust 1.90.0, `x86_64-unknown-none`, `no_std`, static ELF64, no allocator
+or external package. The single `nas-probe.elf` contains three roles. The separate
+process address spaces and their kernel grants determine authority, not the code
+or a role field from a request. `nas-volume.elf` builds the **unmodified**
+existing `sdk/examples/volume-docs/src/service.rs` with its own linker.
 
 ```sh
 NOS_BUILD_DIR=build/nas-probe python3 -B services/nas/native-probe/build.py
 ```
 
-Eigen targets `target/nas-native/{nas-probe,nas-volume}`; geïnspecteerde
-ELF's en `build-report.json` onder `build/nas-probe/users`. Binaries blijven
-buiten Git. De builder gebruikt bestaande `inspect_user`, logging en
-hashhelpers; geen tweede ELF-loader of filesystem.
+Dedicated targets `target/nas-native/{nas-probe,nas-volume}`; inspected
+ELFs and `build-report.json` under `build/nas-probe/users`. Binaries stay
+out of Git. The builder uses the existing `inspect_user`, logging and
+hash helpers; no second ELF loader or filesystem.
 
-Beide images behouden startupdata `0x40010000`, maximaal één RW/NX-pagina.
-De probe gebruikt dezelfde 64-KiB-stack `0x7ffef000..0x7ffff000` en bestaande
-64-KiB-private heap `0x60000000..0x60010000`. Alleen de NAS-rol plaatst één
-geldige `Workspace` in de heap, zonder heap-grow, allocator of tweede
-gebruiker. De normale Rust-constructor wordt gebruikt; geen aanname dat
-alle nulbits een geldige Rust-layout vormen. Core/volume blijven `unsafe`-vrij.
-De native adapter heeft uitsluitend de gedocumenteerde heapplaatsing,
-startup-/intrinsicshergebruik en stackmeting als lokale unsafe.
+Both images keep startup data `0x40010000`, at most one RW/NX page.
+The probe uses the same 64-KiB stack `0x7ffef000..0x7ffff000` and the existing
+64-KiB private heap `0x60000000..0x60010000`. Only the NAS role places one
+valid `Workspace` in the heap, without heap growth, allocator or second
+user. The normal Rust constructor is used; no assumption that
+all-zero bits form a valid Rust layout. Core/volume remain `unsafe`-free.
+The native adapter has only the documented heap placement,
+startup/intrinsics reuse and stack measurement as local unsafe.
 
-De entry markeert de vooraf gemapte stack vóór het eerste Rust-frame.
-Bij succes levert startupwoord **448** de aangeraakte stack-high-water.
-Daarvoor wordt alleen geïnitialiseerd, inactief stackgeheugen onder de
-huidige RSP gelezen; geen live Rust-borrow, redzone of andermans geheugen.
-Dit is géén formele bovengrens voor ongebruikte stackreserveringen of nog
-niet uitgevoerde foutpaden. Native waarden blijven open tot QEMU-uitvoering.
-De ELF-footprint/hash en hostmetingen staan in de bijbehorende bewijsbundle.
+The entry marks the pre-mapped stack before the first Rust frame.
+On success startup word **448** yields the touched stack high-water mark.
+For this only initialized, inactive stack memory below the
+current RSP is read; no live Rust borrow, red zone or anyone else's memory.
+This is **not** a formal upper bound for unused stack reservations or
+error paths not yet executed. Native values remain open until QEMU execution.
+The ELF footprint/hash and host measurements are in the accompanying evidence bundle.
 
-## Processen, endpoints en rechten
+## Processes, endpoints and rights
 
-Voorgestelde slots, nog door de rootintegrator te binden:
+Proposed slots, still to be bound by the root integrator:
 
-| Slot | Rol / image | Enige functionele grants |
+| Slot | Role / image | Only functional grants |
 |---|---|---|
-| 0 | beheerder / `nas-probe.elf` | SEND naar NAS-adminingress, RECV op eigen NAS-reply, SEND/RECV naar gastcoördinatie |
-| 1 | NAS / `nas-probe.elf` | twee RECV-ingresses, twee SEND-replies, SEND/RECV naar eigen volumedomein, entropybron |
-| 2 | bestaande volumedienst / `nas-volume.elf` | gescopeerd block READ/WRITE/FLUSH (koud READ-only), twee eigen RECV-ingresses en vaste SEND-replies |
-| 3 | gast / `nas-probe.elf` | SEND naar NAS-gastingress, RECV op eigen NAS-reply, SEND/RECV naar beheercoördinatie |
+| 0 | administrator / `nas-probe.elf` | SEND to NAS admin ingress, RECV on own NAS reply, SEND/RECV to guest coordination |
+| 1 | NAS / `nas-probe.elf` | two RECV ingresses, two SEND replies, SEND/RECV to own volume domain, entropy source |
+| 2 | existing volume service / `nas-volume.elf` | scoped block READ/WRITE/FLUSH (cold READ-only), two own RECV ingresses and fixed SEND replies |
+| 3 | guest / `nas-probe.elf` | SEND to NAS guest ingress, RECV on own NAS reply, SEND/RECV to admin coordination |
 
-Alleen het vertrouwde kernelmanifest mint/delegeert deze bestaande
-procesgebonden capabilities. Geen NAS-/gastverzoek kan capabilities creëren.
-Reply-endpoints horen vast bij hun werkelijke ontvanger; er zijn geen
-reply-capabilities of toegangsrechten in de wire. Iedere receive controleert
-werkelijke `Received.sender`, tag, lengte en geen capabilitybijlagen.
-Een rolveld of PID in een payload verleent geen autoriteit.
+Only the trusted kernel manifest mints/delegates these existing
+process-bound capabilities. No NAS/guest request can create capabilities.
+Reply endpoints belong fixed to their actual receiver; there are no
+reply capabilities or access rights in the wire. Every receive checks the
+actual `Received.sender`, tag, length and absence of capability attachments.
+A role field or PID in a payload grants no authority.
 
-NAS bezit volumedomein 0, object 0. De tweede volumeingress blijft
-geïsoleerd; wijs een andere manifest-PID toe en sluit ongebruikte gedelegeerde
-SEND-handles vóór start. Geef beheerder/gast geen NAS-volume-, block-,
-entropy-, launch- of netwerkgrant. Handles zijn slot/generatie **binnen één proces**; gelijke getallen
-in verschillende processen zijn geen identiteits- of delegatiebewijs.
+NAS owns volume domain 0, object 0. The second volume ingress remains
+isolated; assign a different manifest PID and close unused delegated
+SEND handles before start. Give administrator/guest no NAS volume, block,
+entropy, launch or network grant. Handles are slot/generation **within one process**; equal numbers
+in different processes are no proof of identity or delegation.
 
-`LocalBinding` maakt voor deze probe een publieke `NOSPROC1 + PID`-principal
-uit de werkelijk gecontroleerde afzender. Dit bewijst uitsluitend lokale
-procesherkomst, **geen** cryptografische apparaatidentiteit of blijvende
-accountidentiteit. Manifest-PIDs moeten bij de koude proef stabiel dezelfde
-rollen aanduiden; productidentity/restartdelegatie wordt hier niet afgeleid.
-Transport/TLS, peerpins en LAN/internetrechten blijven NET-eigenaarschap.
+For this probe `LocalBinding` makes a public `NOSPROC1 + PID` principal
+from the actually checked sender. This proves only local
+process origin, **not** a cryptographic device identity or persistent
+account identity. Manifest PIDs must stably denote the same
+roles in the cold probe; product identity/restart delegation is not derived here.
+Transport/TLS, peer pins and LAN/internet rights remain NET ownership.
 
-## Startupwords
+## Startup words
 
-Alle offsets zijn bytes in de bestaande private startup-pagina. Niet genoemd:
-nul. Bestaande volumedienst gebruikt zijn **eigen ongewijzigde** layout.
+All offsets are bytes in the existing private startup page. Not listed:
+zero. The existing volume service uses its **own unmodified** layout.
 
-| Offset | Beheerder (rol 0) | NAS (rol 1) | Gast (rol 3) |
+| Offset | Administrator (role 0) | NAS (role 1) | Guest (role 3) |
 |---|---|---|---|
 | 32 | 1 | 1 | 1 |
-| 48 | 0 | entropyhandle | 0 |
-| 56 | NAS-admin SEND | admin RECV | NAS-gast SEND |
-| 64 | eigen NAS-reply RECV | gast RECV | eigen NAS-reply RECV |
-| 72 | gastcoördinatie SEND | adminreply SEND | admincoördinatie SEND |
-| 80 | gastcoördinatie RECV | gastreply SEND | admincoördinatie RECV |
+| 48 | 0 | entropy handle | 0 |
+| 56 | NAS admin SEND | admin RECV | NAS guest SEND |
+| 64 | own NAS reply RECV | guest RECV | own NAS reply RECV |
+| 72 | guest coordination SEND | admin reply SEND | admin coordination SEND |
+| 80 | guest coordination RECV | guest reply SEND | admin coordination RECV |
 | 88 | 0 | volume SEND | 0 |
-| 96 | 0 | volume-reply RECV | 0 |
-| 112 | normaal 0, koud 1 | normaal 0, koud 1 | normaal 0, koud 1 |
+| 96 | 0 | volume reply RECV | 0 |
+| 112 | normal 0, cold 1 | normal 0, cold 1 | normal 0, cold 1 |
 | 120 | 0 | 1 | 3 |
-| 160 | NAS-PID | admin-PID | NAS-PID |
-| 168 | gast-PID | gast-PID | admin-PID |
-| 176 | eigen PID | eigen PID | eigen PID |
-| 184 | 0 | volume-PID | 0 |
+| 160 | NAS PID | admin PID | NAS PID |
+| 168 | guest PID | guest PID | admin PID |
+| 176 | own PID | own PID | own PID |
+| 184 | 0 | volume PID | 0 |
 
-De syscallset moet bestaande IPC, entropy en monotone klok omvatten.
-Geen nieuwe syscall, algemene caprechten of betrouwbare RTC-claim.
-De initieel lege synthetische disk gebruikt de bestaande
-`tools/volume_disk.py::create_image`-fixture: 2.048 sectoren, waarvan alleen
-de 580 sectoren vanaf sector 4 binnen de volumecapability vallen; canaries
-erbuiten. Gebruik nooit een hostschijf.
-Koud heropenen gebeurt op dezelfde gehashte image met READ-only blockgrant;
-verwacht nul diskmutaties. Geen automatische lege initialisatie of cleanup.
+The syscall set must include existing IPC, entropy and monotonic clock.
+No new syscall, general cap rights or trusted RTC claim.
+The initially empty synthetic disk uses the existing
+`tools/volume_disk.py::create_image` fixture: 2.048 sectors, of which only
+the 580 sectors from sector 4 fall within the volume capability; canaries
+outside it. Never use a host disk.
+Cold reopening happens on the same hashed image with a READ-only block grant;
+expect zero disk mutations. No automatic empty initialization or cleanup.
 
 ## Wire v1: NASP / 256 bytes
 
-Tag `0x4e41535000000001`, exact 256 bytes, little-endian. Coördinatie heeft
-de afzonderlijke tag `TAG+1` en vaste peercontrole; dit is geen tunnel voor
-NAS- of volumeautoriteit.
+Tag `0x4e41535000000001`, exactly 256 bytes, little-endian. Coordination has
+the separate tag `TAG+1` and a fixed peer check; this is not a tunnel for
+NAS or volume authority.
 
-| Bytes | Betekenis |
+| Bytes | Meaning |
 |---|---|
 | 0..4 | `NASP` |
-| 4..6 | versie 1 |
-| 6..8 | opcode 1..13; alleen reply zet bit `0x8000` |
-| 8..16 | niet-nul requestcorrelatie, geen capability |
-| 16..20 | status: 0 of vaste negatieve foutcode; verzoeken altijd 0 |
-| 20..22 | payloadlengte 0..104 |
-| 22..24 | nul |
-| 24..56 | namespace waar opcode dat vereist, anders nul |
-| 56..96 | 40-byte sessiehandle waar vereist, anders nul |
-| 96..136 | 40-byte uploadhandle waar vereist, anders nul |
-| 136..144 | verwachte/geretourneerde revisie of epoch |
-| 144..152 | quota, objectindex, afloop of enumeratie-index volgens opcode |
-| 152..256 | payload; alle bytes na lengte nul |
+| 4..6 | version 1 |
+| 6..8 | opcode 1..13; only a reply sets bit `0x8000` |
+| 8..16 | non-zero request correlation, not a capability |
+| 16..20 | status: 0 or fixed negative error code; requests always 0 |
+| 20..22 | payload length 0..104 |
+| 22..24 | zero |
+| 24..56 | namespace where the opcode requires it, otherwise zero |
+| 56..96 | 40-byte session handle where required, otherwise zero |
+| 96..136 | 40-byte upload handle where required, otherwise zero |
+| 136..144 | expected/returned revision or epoch |
+| 144..152 | quota, object index, expiry or enumeration index depending on opcode |
+| 152..256 | payload; all bytes after the length zero |
 
 Opcodes: 1 Invite, 2 Accept, 3 Open, 4 Stage, 5 Commit, 6 Read, 7 Usage,
 8 SetQuota, 9 Revoke, 10 Evict, 11 Shutdown, 12 UsageAt, 13 Close.
-De parser controleert ook **ongebruikte velden per opcode**, tokenvorm,
-replyvorm en lege foutreplies. Sessiedecodering verleent geen rechten:
-de core controleert caller, levende handle, namespace en epoch opnieuw.
-Geen principal, sleutel, mutable clientbuffer of capability in de wire.
+The parser also checks **unused fields per opcode**, token form,
+reply form and empty error replies. Session decoding grants no rights:
+the core re-checks caller, live handle, namespace and epoch.
+No principal, key, mutable client buffer or capability in the wire.
 
-De 104-byte-payload en één geselecteerde gast zijn zichtbare proefgrenzen,
-geen productiecapaciteit. De core heeft andere expliciete proefcaps.
-Staging reserveert quota en bevestigt geen duurzame publicatie; COMMIT
-bevestigt pas na snapshot én historypurge. Elke opslagvervangingsfout
-wordt `Unknown`, ook bij initialisatie; de originele oorzaak blijft lokale
-diagnostiek. De instantie blokkeert vervolggebruik. Geen stil opnieuw
-uitvoeren, succesfallback, oude snapshot of ACK vóór duurzaamheid.
+The 104-byte payload and one selected guest are visible probe limits,
+not production capacity. The core has other explicit probe caps.
+Staging reserves quota and does not confirm durable publication; COMMIT
+confirms only after snapshot and history purge. Every storage replacement error
+becomes `Unknown`, also on initialization; the original cause remains local
+diagnostics. The instance blocks further use. No silent
+re-execution, success fallback, old snapshot or ACK before durability.
 
-De monotone klok is alleen voor aanbiedingen binnen dezelfde boot.
-De koude probe accepteert geen oude aanbieding op geresette PIT-ticks.
-Dit is een fail-closed proefbeperking, geen afgeronde persistent-pairing-UX
-of betrouwbare tijdprovider; RTC mag dit niet stil vervangen.
+The monotonic clock is only for offers within the same boot.
+The cold probe accepts no old offer on reset PIT ticks.
+This is a fail-closed probe limitation, not a finished persistent-pairing UX
+or trusted time provider; RTC must not silently replace this.
 
-## Normale en koude assertions
+## Normal and cold assertions
 
-Normaal: admin biedt 128 bytes; gast accepteert en opent, stage/commit/leest
-96 synthetische bytes; reserveert 32 vervangingsbytes. Admin ziet used 96,
-reserved 32, weigert quota 127, trekt in zonder gastconsent. Gast krijgt
-`Stale` op oude upload/read en `Denied` op opnieuw openen. Gastbeheer via
-gastingress wordt geweigerd; ontvangen via de eigen SEND-only NAS-ingress
-geeft kernel `Access`. Dat controleert concrete rechten, niet de onjuiste
-aanname dat een numerieke handle globaal uniek is. Daarna verwijdert
-admin de ciphertext, Usage toont
-`Evicted`/used 0/reserved 0; NAS-shutdown alleen via admin.
+Normal: admin offers 128 bytes; guest accepts and opens, stages/commits/reads
+96 synthetic bytes; reserves 32 replacement bytes. Admin sees used 96,
+reserved 32, rejects quota 127, revokes without guest consent. Guest gets
+`Stale` on old upload/read and `Denied` on reopening. Guest administration via
+guest ingress is rejected; receiving via its own SEND-only NAS ingress
+gives kernel `Access`. That checks concrete rights, not the incorrect
+assumption that a numeric handle is globally unique. Afterwards
+admin deletes the ciphertext, Usage shows
+`Evicted`/used 0/reserved 0; NAS shutdown only via admin.
 
-Koud: service herstelt uitsluitend bestaande canonieke snapshot met verse
-echte entropy; admin enumereert `Evicted`, epoch 2, used/reserved 0; gast
-kan niet openen, geen beheer uitvoeren of een oude/synthetische
-sessie-/uploadhandle gebruiken. De cold-gastproef leest daarvoor alleen de
-twee onderstaande bounded testinputs; zij worden niet in de NAS-wire,
-snapshot, gewone logs of rapporten opgenomen. Idempotente eviction/shutdown
-schrijven niets.
-Geen inhoudssleutel wordt aan de NAS of beheerder geleverd.
+Cold: the service restores exclusively the existing canonical snapshot with fresh
+real entropy; admin enumerates `Evicted`, epoch 2, used/reserved 0; guest
+cannot open, perform no administration or use an old/synthetic
+session/upload handle. For this the cold guest probe reads only the
+two bounded test inputs below; they are not included in the NAS wire,
+snapshot, ordinary logs or reports. Idempotent eviction/shutdown
+write nothing.
+No content key is delivered to the NAS or administrator.
 
-## Exacte boot-1 token replay — leafvereiste, rootbinding nog open
+## Exact boot-1 token replay — leaf requirement, root binding still open
 
-De cold probe accepteert geen ingevulde productcredential of zelfgemaakte
-token. Alleen een private testhandoff met de **exacte** 40-byte
-`Session::to_bytes()` en 40-byte `Upload::to_bytes()` uit een voltooide
-normale native guest-run wordt gebruikt. De bron moet de echte `Stage`-reply
-uit die boot zijn. Een synthetic marker, willekeurige valide tokenvorm,
-andere PID, `Invitation`, request-ID, hash alleen of `PIT`-reset vervangt dit
-bewijs niet.
+The cold probe accepts no filled-in product credential or home-made
+token. Only a private test handoff with the **exact** 40-byte
+`Session::to_bytes()` and 40-byte `Upload::to_bytes()` from a completed
+normal native guest run is used. The source must be the real `Stage` reply
+from that boot. A synthetic marker, arbitrary valid token form,
+different PID, `Invitation`, request ID, hash alone or `PIT` reset does not replace this
+evidence.
 
-Cold guest startup gebruikt de bestaande private 1.024-byte startup-pagina;
-dit introduceert geen syscall, endpoint, wire-versie, capability of algemene
-bootstrap-ABI:
+Cold guest startup uses the existing private 1.024-byte startup page;
+this introduces no syscall, endpoint, wire version, capability or general
+bootstrap ABI:
 
 | Guest startup bytes | Cold input |
 |---|---|
-| 256..296 | Exacte 40-byte normal-run sessiehandle |
-| 296..336 | Exacte 40-byte normal-run uploadhandle |
+| 256..296 | Exact 40-byte normal-run session handle |
+| 296..336 | Exact 40-byte normal-run upload handle |
 
-De leaf leest uitsluitend tien bestaande aligned 64-bit startupwords en
-reconstrueert hun canonieke little-endian bytes. `Session::from_bytes` en
-`Upload::from_bytes` controleren alleen canonieke vorm, niet identiteit of
-autoriteit. Op een normale run moeten beide cold-inputbereiken nul zijn; op
-cold ontbreken/nul/ongeldig input faalt vóór replay als foutstap 47/48.
-Cold geeft de originele sessie aan `READ` (verwacht `Stale`) en exact
-`(oude sessie, oude upload)` aan `COMMIT` (verwacht `Stale`). De tweede
-native-reply bewijst dat de combinatie na recovery geen commit oplevert; door
-de bestaande core-callvolgorde wordt het oude uploadtoken daar niet los van
-de verlopen sessie geautoriseerd. Een geïsoleerde hostcoreproef gebruikt
-apart een verse actieve sessie om ook het oude uploadtoken zelfstandig te
-weigeren. Die twee uitkomsten blijven als verschillende bewijzen gelabeld.
+The leaf reads exclusively ten existing aligned 64-bit startup words and
+reconstructs their canonical little-endian bytes. `Session::from_bytes` and
+`Upload::from_bytes` check only canonical form, not identity or
+authority. On a normal run both cold input ranges must be zero; on
+cold, missing/zero/invalid input fails before replay as error step 47/48.
+Cold gives the original session to `READ` (expects `Stale`) and exactly
+`(oude sessie, oude upload)` (old session, old upload) to `COMMIT` (expects `Stale`). The second
+native reply proves that the combination yields no commit after recovery; due to
+the existing core call order the old upload token is not authorized there separately from
+the expired session. An isolated host core probe separately uses
+a fresh active session to also reject the old upload token on its own.
+Those two outcomes remain labelled as different evidence.
 
-De cold-runner moet de startup-bijlage uitsluitend uit het private artifact
-van de geslaagde normal guest-run vullen en de cold image niet uitvoeren
-zonder de complete herkomstbinding. Verplicht manifest: schema 1,
-geverifieerde broncommit, normale origin-run-ID, role `guest`, origin stage
+The cold runner must fill the startup attachment exclusively from the private artifact
+of the successful normal guest run and must not execute the cold image
+without the complete provenance binding. Required manifest: schema 1,
+verified source commit, normal origin run ID, role `guest`, origin stage
 `normal`, capture stage `normal-after-stage`, `completed=true`,
-payloadlengte 80 en SHA-256 van de exacte ruwe payload. Manifest bevat geen
-tokenbytes. Runmap en artifact zijn buiten de Git-checkout, mode 0700/0600,
-geen symlinks of extra hardlinks; artifact wordt niet naar serial, normale
-logs, CI-artifacts of Git gekopieerd. De runner maakt voor de cold boot een
-afzonderlijke read-only 0400 inputkopie, vergelijkt SHA-256 vóór injectie en
-na de run en weigert elke afwijking. Hash is hier provenance/integriteitsbinding,
-geen cryptografische identiteit of productcredential.
+payload length 80 and SHA-256 of the exact raw payload. The manifest contains no
+token bytes. Run directory and artifact are outside the Git checkout, mode 0700/0600,
+no symlinks or extra hard links; the artifact is not copied to serial, ordinary
+logs, CI artifacts or Git. For the cold boot the runner makes a
+separate read-only 0400 input copy, compares SHA-256 before injection and
+after the run and rejects any deviation. Here the hash is a provenance/integrity binding,
+not a cryptographic identity or product credential.
 
-**Root-integratie (#110), actief sinds 30 oktober 2026.** De normale gast
-schrijft het exacte paar uit zijn echte `Stage`-reply (sessie en de nooit
-gecommitte pending-upload) na uitgifte in startupbytes 256..336. Bij het
-afsluiten van de gast leest uitsluitend de kernelacceptatieharnas
-(`kernel/src/m2/m3/nas.rs`) die tien woorden, weigert een nulsessie of
-nulupload (`REPLAY_EXPORT`) en schrijft `NOSRPL01` gevolgd door de 80 bytes
-naar een eigen `isa-debugcon`-poort `0x4f8`. De runner (`tools/test_nas.py`)
-koppelt die poort aan een vooraf aangemaakt 0600-bestand in een private
-0700-map buiten de checkout, eist exact één frame van 88 bytes en schrijft
-payload en manifest via `tests/replay_handoff.py` met volledige bron-/run-/rol-/stage-
-binding. Lekcontrole (#119, normale én koude run): vóórdat iets uit de
-QEMU-uitvoer in de runmap komt, zoekt de runner in de exacte ruwe stdout
-(COM1-serial) en stderr naar elk aaneengesloten 16-bytevenster van elk van
-beide 40-bytetokens, ruw en als hex ongeacht hoofdletters. Referentie is in
-de normale run de debugcon-capture, in de koude run het vóór de start
-gebonden paar. Bij een treffer of een onleesbare capture faalt de run en
-krijgen `serial.txt` en `stderr.txt` alleen een placeholder met de
-bevindingen (labels, geen bytes), lengte en SHA-256 van de originele bytes.
-Een capture die niet exact één frame van 88 bytes is, wordt in zijn geheel
-doorzocht; een lege capture exporteerde niets en blijft leesbaar. Bij een
-geslaagde lekcontrole bevat `serial.txt` uitsluitend allowlist-markers,
-vaste foutlabels en exact 20-cijferige diagnostiek. Evaluatie gebruikt de
-originele uitvoer; filtering maakt fouten niet onzichtbaar voor de gate. Fragmenten
-korter dan 16 bytes en andere coderingen (base64, decimaal, hex met
-scheidingstekens, UTF-16) worden niet herkend. Voor de koude run valideert de
-runner opnieuw, maakt een read-only
-0400-kopie en geeft die als `-fw_cfg name=opt/nieuw-os/nas-replay` mee. De
-kernel leest het `fw_cfg`-bestand (signatuur `QEMU`, unieke naam, exact 80
-bytes). In de koude run weigert hij ontbrekende of verkeerd geframede invoer
-(`REPLAY_INPUT`) en een volledig nul-paar (`REPLAY_INPUT_ZERO`); hij vergelijkt
-de tokens niet zelf met de normale run. In de normale run weigert hij iedere
-aanwezige of onleesbare replay-invoer (`REPLAY_INPUT_IN_NORMAL`). De runner
-controleert dat de payload overeenkomt met de SHA-256 in het gebonden manifest,
-maakt een read-only invoerkopie en vergelijkt die hash opnieuw na de run. Daarna
-verwijdert hij de privémap. Rapporten, serial en CI-artifacts bevatten alleen
-de SHA-256 van het paar.
-Firmware heeft geen apparaat of driver op poort 0x4f8 en leest geen
-`opt/nieuw-os/*`-bestanden; geen proces krijgt port-I/O of een nieuwe
-capability. Recoverytellers zijn nu `[(4,0),(4,5),(0,5)]` voor
-beheerder/NAS/gast: de extra foutreply is de `COMMIT`-replay.
+**Root integration (#110), active since 30 October 2026.** The normal guest
+writes the exact pair from its real `Stage` reply (session and the never
+committed pending upload) after issuance into startup bytes 256..336. When
+the guest exits, only the kernel acceptance harness
+(`kernel/src/m2/m3/nas.rs`) reads those ten words, rejects a zero session or
+zero upload (`REPLAY_EXPORT`) and writes `NOSRPL01` followed by the 80 bytes
+to a dedicated `isa-debugcon` port `0x4f8`. The runner (`tools/test_nas.py`)
+connects that port to a pre-created 0600 file in a private
+0700 directory outside the checkout, requires exactly one frame of 88 bytes and writes
+payload and manifest via `tests/replay_handoff.py` with full source/run/role/stage
+binding. Leak check (#119, normal and cold run): before anything from the
+QEMU output enters the run directory, the runner searches the exact raw stdout
+(COM1 serial) and stderr for every contiguous 16-byte window of each of
+the two 40-byte tokens, raw and as hex regardless of case. The reference is,
+in the normal run, the debugcon capture, in the cold run the pair bound before
+start. On a hit or an unreadable capture the run fails and
+`serial.txt` and `stderr.txt` get only a placeholder with the
+findings (labels, no bytes), length and SHA-256 of the original bytes.
+A capture that is not exactly one frame of 88 bytes is searched in its
+entirety; an empty capture exported nothing and remains readable. On a
+passed leak check `serial.txt` contains exclusively allowlist markers,
+fixed error labels and exactly 20-digit diagnostics. Evaluation uses the
+original output; filtering does not make errors invisible to the gate. Fragments
+shorter than 16 bytes and other encodings (base64, decimal, hex with
+separators, UTF-16) are not detected. For the cold run the
+runner validates again, makes a read-only
+0400 copy and passes it as `-fw_cfg name=opt/nieuw-os/nas-replay`. The
+kernel reads the `fw_cfg` file (signature `QEMU`, unique name, exactly 80
+bytes). In the cold run it rejects missing or wrongly framed input
+(`REPLAY_INPUT`) and an all-zero pair (`REPLAY_INPUT_ZERO`); it does not compare
+the tokens itself with the normal run. In the normal run it rejects any
+present or unreadable replay input (`REPLAY_INPUT_IN_NORMAL`). The runner
+checks that the payload matches the SHA-256 in the bound manifest,
+makes a read-only input copy and compares that hash again after the run. Then
+it removes the private directory. Reports, serial and CI artifacts contain only
+the SHA-256 of the pair.
+Firmware has no device or driver on port 0x4f8 and reads no
+`opt/nieuw-os/*` files; no process gets port I/O or a new
+capability. Recovery counters are now `[(4,0),(4,5),(0,5)]` for
+administrator/NAS/guest: the extra error reply is the `COMMIT` replay.
 
-De hosttest maakt handles uitsluitend door de bestaande echte NAS-core-API
-aan te roepen: een sessie en upload uit een host-normaalmodel worden in RAM
-gehouden, daarna doet core recovery een nieuwe boot. Read van de oude sessie
-faalt `Stale`; om de upload afzonderlijk te testen wordt een nieuwe, actieve
-sessie geopend en de oude upload daarmee gecommit. Ook die call faalt
-`Stale`, zonder opslagwrite/ACK. Dit is een hosttest; zij vult geen native
-handoffartifact en levert geen QEMU-resultaat.
+The host test creates handles exclusively by calling the existing real NAS core API:
+a session and upload from a host normal model are kept
+in RAM, then core recovery performs a new boot. Read of the old session
+fails `Stale`; to test the upload separately a new, active
+session is opened and the old upload committed with it. That call too fails
+`Stale`, without storage write/ACK. This is a host test; it fills no native
+handoff artifact and yields no QEMU result.
 
-Diagnostiek: startupwoord 40 = 1 alleen na volledige rolassertions; 240 =
-foutstap; 400 = geslaagde RPC's, 408 = foutreplies, 416 = verkeerde caller
-(NAS) of SEND-als-RECV-weigering (gast), 424 = ongeldige envelopes, 448 =
-aangeraakte stack-high-water. 192 = 1 na geslaagde NAS-recovery/initialisatie.
-Elke fout stopt de betreffende proefrol met exit 1; geen groen alleen door
-timeout. De kernel/rootrunner moet exit 0 van beheerder/NAS/gast, de nog
-levende bestaande volumedienst, alle counters, diskbytes en de koude
-herstelrun onafhankelijk valideren. De volumedienst heeft geen nieuwe
-shutdownopcode en hoeft niet als vierde proces succesvol af te sluiten.
+Diagnostics: startup word 40 = 1 only after complete role assertions; 240 =
+error step; 400 = successful RPCs, 408 = error replies, 416 = wrong caller
+(NAS) or SEND-as-RECV rejection (guest), 424 = invalid envelopes, 448 =
+touched stack high-water mark. 192 = 1 after successful NAS recovery/initialization.
+Every error stops the relevant probe role with exit 1; no green from a
+timeout alone. The kernel/root runner must independently validate exit 0 of administrator/NAS/guest, the still
+running existing volume service, all counters, disk bytes and the cold
+recovery run. The volume service has no new
+shutdown opcode and need not exit successfully as a fourth process.
 
-**Open native gates:** de koude run zonder of met afwijkende invoer is alleen
-door code en runner-hosttests afgedekt, niet als aparte native VM-run; geen claim van
-stroomuitval, fysieke secure erase, antirollback, netwerk/TLS, E2EE,
-achtergrondsync, apparatenrotatie/herstel, UI of volledige P04-acceptatie.
+**Open native gates:** the cold run without or with deviating input is
+covered only by code and runner host tests, not as a separate native VM run; no claim of
+power loss, physical secure erase, anti-rollback, network/TLS, E2EE,
+background sync, device rotation/recovery, UI or full P04 acceptance.

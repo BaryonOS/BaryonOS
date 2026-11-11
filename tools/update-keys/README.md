@@ -1,40 +1,40 @@
-# TEST-ankers voor B03
+# TEST anchors for B03
 
-Deze sleutels zijn **testankers** voor de B03-gate (`tools/test_update.py`),
-gegenereerd met `update-tool keygen --dir tools/update-keys --label TEST`.
-De `.seed`-bestanden zijn de private seeds en staan bewust in de repository:
-de loader met feature `signed-boot-test` en de ring-3 update-dienst met
-feature `test-signing-anchors` pinnen de bijbehorende `.pub`-bytes, zodat CI
-reproduceerbaar kan ondertekenen en verifiëren. De gedeelde policy-module is
-alleen met die expliciete testfeature beschikbaar. Zij zijn **geen**
-releasesleutels en beschermen niets buiten de QEMU-acceptatie; een
-productiepolicy of releaseprofiel is niet ingericht en vereist een afzonderlijk,
-buiten CI gehouden ontwerp- en autorisatiepad (ADR-049, invariant 7 in
+These keys are **test anchors** for the B03 gate (`tools/test_update.py`),
+generated with `update-tool keygen --dir tools/update-keys --label TEST`.
+The `.seed` files are the private seeds and are deliberately in the repository:
+the loader with feature `signed-boot-test` and the ring-3 update service with
+feature `test-signing-anchors` pin the corresponding `.pub` bytes, so that CI
+can sign and verify reproducibly. The shared policy module is
+only available with that explicit test feature. They are **not**
+release keys and protect nothing outside QEMU acceptance; a
+production policy or release profile has not been set up and requires a separate
+design and authorisation path kept outside CI (ADR-049, invariant 7 in
 docs/implementation/B03-SIGNED-UPDATES.md).
 
-| Bestand | Inhoud |
+| File | Content |
 |---|---|
-| `TEST-ed25519.seed` | 32-byte Ed25519-seed (RFC 8032) |
-| `TEST-mldsa65.seed` | 32-byte ML-DSA-65-seed (FIPS 204, `KeyGen_internal`) |
-| `TEST-ed25519.pub` | 32-byte publieke sleutel (anker in loader en dienst) |
-| `TEST-mldsa65.pub` | 1952-byte publieke sleutel (anker in loader en dienst) |
-| `TEST-anchors.json` | sleutel-ID's (eerste 8 bytes van SHA-256 over de publieke sleutel) |
+| `TEST-ed25519.seed` | 32-byte Ed25519 seed (RFC 8032) |
+| `TEST-mldsa65.seed` | 32-byte ML-DSA-65 seed (FIPS 204, `KeyGen_internal`) |
+| `TEST-ed25519.pub` | 32-byte public key (anchor in loader and service) |
+| `TEST-mldsa65.pub` | 1952-byte public key (anchor in loader and service) |
+| `TEST-anchors.json` | key IDs (first 8 bytes of SHA-256 over the public key) |
 
-Dezelfde vijf bestanden bestaan met labels `TEST-next`, `TEST-revoked` en
-`TEST-expired`. Dit zijn eveneens opzettelijk openbare QEMU-fixtures, geen
-geheimen of productieankers. `update-core::test_policy` is de enige gedeelde
-beleidstabel voor loader en dienst:
+The same five files exist with labels `TEST-next`, `TEST-revoked` and
+`TEST-expired`. These are likewise deliberately public QEMU fixtures, not
+secrets or production anchors. `update-core::test_policy` is the only shared
+policy table for loader and service:
 
-| Paar | Toegestane releaseversies | Toestand |
+| Pair | Permitted release versions | State |
 |---|---|---|
-| `TEST` | 1 tot en met u64::MAX | bestaand paar, behouden voor regressies |
-| `TEST-next` | 2 tot en met u64::MAX | vooraf vastgepinde opvolger |
-| `TEST-revoked` | geen | onvoorwaardelijk ingetrokken |
-| `TEST-expired` | alleen 1 | buiten dit releasevenster geweigerd |
+| `TEST` | 1 up to and including u64::MAX | existing pair, retained for regressions |
+| `TEST-next` | 2 up to and including u64::MAX | successor pinned in advance |
+| `TEST-revoked` | none | unconditionally revoked |
+| `TEST-expired` | only 1 | refused outside this release window |
 
-`KEY_EXPIRED` betekent hier **buiten de toegestane releaseversies**, niet
-kalenderverval. De eigen RTC is geen vertrouwde tijdbron. Online sleutel-
-discovery, dynamische truststore-updates en productie-intrekkingsdistributie
-zijn niet geïmplementeerd. Het manifest kan geen anker of beleid toevoegen.
-`update-tool verify` controleert een expliciet gegeven sleutelpaar alleen
-cryptografisch; `verify-pinned` controleert het gedeelde QEMU-beleid.
+`KEY_EXPIRED` here means **outside the permitted release versions**, not
+calendar expiry. The own RTC is not a trusted time source. Online key
+discovery, dynamic trust store updates and production revocation distribution
+have not been implemented. The manifest cannot add an anchor or policy.
+`update-tool verify` checks an explicitly given key pair only
+cryptographically; `verify-pinned` checks the shared QEMU policy.

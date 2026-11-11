@@ -1,66 +1,66 @@
-# CSV-tabelconsumer
+# CSV table consumer
 
-TASK-PLATFORM-M7-CSV-TABLE, basis `d10b5cda`. Een kleine app-local
-`no_std + alloc`-tabel met een **host-only** bestandsconsumer:
-CSV importeren, cellen als tekst bewerken, exporteren en heropenen.
-Dit is geen native spreadsheetapp, formule-engine, venster of XLSX-compatibiliteit.
-Geen nieuwe registrydependency, kernel-ABI, runtime of rechtenlaag.
+TASK-PLATFORM-M7-CSV-TABLE, base `d10b5cda`. A small app-local
+`no_std + alloc` table with a **host-only** file consumer:
+import CSV, edit cells as text, export and reopen.
+This is not a native spreadsheet app, formula engine, window or XLSX compatibility.
+No new registry dependency, kernel ABI, runtime or rights layer.
 
-## Gebruik en formaat
+## Usage and format
 
 ```sh
 cargo +1.90.0 run --offline --locked --manifest-path sdk/examples/table-editor/Cargo.toml --features host-cli --bin table-csv -- --set 2 3 '€ 42,50' < invoer.csv > uitvoer.csv
 ```
 
-`--set RIJ KOLOM TEKST` mag herhaald worden; indices beginnen bij 1.
-Zonder edit wordt het bestand gecontroleerd en canoniek geschreven.
-Alle import-, argument-, edit- en exportcontroles gebeuren voordat stdout
-wordt geschreven. Bij zo'n fout: exit 1, een fout op stderr, geen CSV-output.
-Een I/O-fout tijdens schrijven kan wel gedeeltelijke output achterlaten.
-Gebruik nooit dezelfde invoer-/uitvoerbestandsnaam bij shellredirectie:
-de hostshell kan de invoer vooraf afkappen. Dit is geen atomair bestandssavepad.
+`--set RIJ KOLOM TEKST` may be repeated; indices start at 1.
+Without an edit the file is checked and written canonically.
+All import, argument, edit and export checks happen before stdout
+is written. On such an error: exit 1, an error on stderr, no CSV output.
+An I/O error during writing can still leave partial output.
+Never use the same input/output file name with shell redirection:
+the host shell may truncate the input beforehand. This is not an atomic file save path.
 
-Gekozen profiel op basis van Y. Shafranovich,
+Chosen profile based on Y. Shafranovich,
 *[RFC 4180, Common Format and MIME Type for CSV Files](https://www.rfc-editor.org/rfc/rfc4180.html)*,
-oktober 2005, paragraaf 2 (informational, geen universele CSV-standaard):
-komma's, dubbele quotes, verdubbelde quotes, geciteerde newlines en gelijke
-kolomaantallen. Spaties, headertekst en nummerachtige waarden blijven letterlijk.
-Geen schema-/type-/headerdetectie, delimitergok, platformencoding of trim.
-UTF-8, optionele UTF-8-BOM en LF-records zijn expliciete uitbreidingen.
-Een lege laatste cel na een komma blijft behouden; export quote lege cellen.
-Export is UTF-8 zonder BOM met CRLF-records en minimaal benodigde quotes.
-Een cel met leidende U+FEFF wordt gequote, zodat dit tekstteken bij
-heropenen niet als bestands-BOM verdwijnt.
-Een leeg bestand is een nulrijentabel; een lege record is een lege cel.
-Ongeldige UTF-8, NUL, losse CR buiten quotes, ragged rows, onverwachte of
-niet afgesloten quotes en tekst na een afsluitquote worden expliciet geweigerd.
+October 2005, section 2 (informational, not a universal CSV standard):
+commas, double quotes, doubled quotes, quoted newlines and equal
+column counts. Spaces, header text and number-like values remain literal.
+No schema/type/header detection, delimiter guessing, platform encoding or trim.
+UTF-8, optional UTF-8 BOM and LF records are explicit extensions.
+An empty last cell after a comma is preserved; export quotes empty cells.
+Export is UTF-8 without BOM with CRLF records and minimally required quotes.
+A cell with a leading U+FEFF is quoted, so that this text character does not
+disappear as a file BOM on reopening.
+An empty file is a zero-row table; an empty record is an empty cell.
+Invalid UTF-8, NUL, bare CR outside quotes, ragged rows, unexpected or
+unterminated quotes and text after a closing quote are explicitly refused.
 
-`Table::set_cell` is transactioneel: een mislukte edit behoudt de oorspronkelijke
-cel en het tekstbudget. `Table::export` controleert de totale uitvoergrootte en
-reserveert eerst alle uitvoerruimte. De modelallocaties zijn fallible;
-dit is geen native procesarena of bewijs van herstel bij iedere host-OOM.
+`Table::set_cell` is transactional: a failed edit preserves the original
+cell and the text budget. `Table::export` checks the total output size and
+reserves all output space first. The model allocations are fallible;
+this is not a native process arena or evidence of recovery on every host OOM.
 
-## Grenzen en veiligheid
+## Boundaries and security
 
-Maxima: 4 MiB invoer en celtekst, 8 MiB uitvoer, 64 KiB per cel,
-4096 rijen en 256 kolommen. `Limits` kan deze grenzen uitsluitend verlagen.
-Dit zijn expliciete grenzen van deze eerste consumer, geen productkeuze voor
-grote spreadsheets. Header-/vectoroverhead komt bovenop celtekst; een native
-isolatie- en harde heapquota ontbreken.
+Maxima: 4 MiB input and cell text, 8 MiB output, 64 KiB per cell,
+4096 rows and 256 columns. `Limits` can only lower these limits.
+These are explicit limits of this first consumer, not a product choice for
+large spreadsheets. Header/vector overhead comes on top of cell text; native
+isolation and hard heap quotas are missing.
 
-Cellen met `=`, `+`, `-`, `@`, tabs of formules blijven **letterlijke data**:
-deze consumer voert niets uit en wijzigt zulke waarden niet stil.
-Andere spreadsheetprogramma's kunnen diezelfde CSV wel als formule uitvoeren.
-De uitvoer is dus **niet formule-injectieveilig voor externe spreadsheets**.
-Dat vraagt een aparte expliciete exportkeuze; quoting alleen lost dit niet op.
+Cells with `=`, `+`, `-`, `@`, tabs or formulas remain **literal data**:
+this consumer executes nothing and does not silently change such values.
+Other spreadsheet programs may still execute that same CSV as a formula.
+The output is therefore **not formula-injection-safe for external spreadsheets**.
+That requires a separate explicit export choice; quoting alone does not solve this.
 
-De host-CLI ontvangt alleen de stdin-/stdout-/stderrhandles van zijn caller.
-Hij is geen Nieuw-OS-resourcebroker. Een native consumer moet via de bestaande
-objectportal en geautoriseerde volumeclient werken; padnamen of tabelcellen
-verlenen geen capability. Geen netwerk, NAS, shell-executie of cloudfallback.
-Inhoud wordt niet in foutmeldingen gelogd.
+The host CLI receives only the stdin/stdout/stderr handles of its caller.
+It is not a Nieuw OS resource broker. A native consumer must work via the existing
+object portal and authorised volume client; path names or table cells
+grant no capability. No network, NAS, shell execution or cloud fallback.
+Content is not logged in error messages.
 
-## Controles
+## Checks
 
 ```sh
 cargo +1.90.0 test --offline --locked --manifest-path sdk/examples/table-editor/Cargo.toml --features host-cli
@@ -69,8 +69,8 @@ cargo +1.90.0 fmt --manifest-path sdk/examples/table-editor/Cargo.toml -- --chec
 cargo +1.90.0 build --offline --locked --release --lib --manifest-path sdk/examples/table-editor/Cargo.toml --target x86_64-unknown-none
 ```
 
-Hosttests omvatten echte CLI-processen, import/edit/export/heropenen,
-Unicode/quotes/multiline/empty/BOM, exacte budgetgrenzen, fouttransacties,
-letterlijke formules en deterministische malformed-mutaties.
-De crossbuild bewijst uitsluitend targetcompilatie; geen native appstart,
-renderer, volumeopslag, undo/formules, XLSX/Office-pariteit of releaseacceptatie.
+Host tests cover real CLI processes, import/edit/export/reopen,
+Unicode/quotes/multiline/empty/BOM, exact budget limits, error transactions,
+literal formulas and deterministic malformed mutations.
+The cross-build proves only target compilation; no native app start,
+renderer, volume storage, undo/formulas, XLSX/Office parity or release acceptance.
