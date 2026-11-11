@@ -36,4 +36,5 @@ jobs:
         with:
           swtpm: ${{ matrix.swtpm }}
       - name: The bundle was the APT source
-        run: grep '^APT source used: file:' "$RUNNER_TEMP/nieuw-os-qemu-environment.txt"
+        run: |
+          grep '^APT source used: file:' "$RUNNER_TEMP/nieuw-os-qemu-environment.txt"
