@@ -221,7 +221,11 @@ pub(super) fn refresh(state: &mut super::State) {
         #[cfg(feature = "native-smp-m3")]
         {
             let home = process.home;
-            state.wake_ready(slot);
+            if home != super::cpu() && primary == 0 && secondary != 0 {
+                state.wake_remote_ready(slot);
+            } else {
+                state.wake_ready(slot);
+            }
             if home != super::cpu() {
                 if !super::smp::m3_reschedule(home) {
                     crate::serial::fail(b"SMP_M3_WAKE_IPI");

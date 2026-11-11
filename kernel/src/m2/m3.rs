@@ -2912,6 +2912,20 @@ impl State {
         self.enqueue(slot);
     }
 
+    /// ADR-081 R3-5: a remote readiness wake runs at the next 0xe8 selection
+    /// on its home CPU instead of behind CPU-bound peers; no extra quantum.
+    #[cfg(all(feature = "ipc-wait", feature = "native-smp-m3"))]
+    fn wake_remote_ready(&mut self, slot: usize) {
+        assert!(lock::kernel_held());
+        assert!(sched::wake(&SCHED_STATE[slot]).expect("wake blocked process"));
+        assert!(!ON_CPU[slot].load(Ordering::Acquire));
+        self.processes[slot].status = Status::Ready;
+        RUNQ[self.processes[slot].home]
+            .lock_irqsave()
+            .push_front(slot as u32, &QUEUED)
+            .expect("single RUNQ ownership");
+    }
+
     /// R3-2 / spec §6.2: the online CPU with the fewest live processes, the
     /// lowest index on a tie. Called under KERNEL during setup only.
     /// A remote kill blocks its caller until the target acknowledges on entry.

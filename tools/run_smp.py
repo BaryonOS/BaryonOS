@@ -129,6 +129,10 @@ GUEST_TIMEOUT_S = 60
 # The soak deliberately runs ten guest minutes. Keep its startup/teardown
 # allowance separate from every existing sixty-second watchdog (ADR-5F).
 SOAK_TIMEOUT_S = 660
+# L0 08: 10 000 cross-CPU IPC rounds (>= 40 000 capability syscalls) under
+# TCG. Measured 66.5-71.8 s per boot after the remote-wake fix (ADR-081 R3-5
+# addendum); 180 s keeps a >= 2.5x margin. The round count is unchanged.
+IPC_TIMEOUT_S = 180
 
 # Audit F7 (DG-2): every CPU that ran the sync test writes these lines at once,
 # in fragments; each must arrive whole, in order per CPU, before SERIAL_PASS.
@@ -611,7 +615,7 @@ def run(cases: tuple[str, ...], repeat: int = 1) -> dict:
     save_json(destination, report)
     for case in cases:
         _, cpus, threads, outcome = CASES[case]
-        watchdog = SOAK_TIMEOUT_S if outcome == "m3-soak" else GUEST_TIMEOUT_S
+        watchdog = {"m3-soak": SOAK_TIMEOUT_S, "m3-ipc": IPC_TIMEOUT_S}.get(outcome, GUEST_TIMEOUT_S)
         tables = []
         if case == "duplicate-madt":
             fixture = BUILD / "acpi" / "duplicate-madt.aml"

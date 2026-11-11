@@ -239,10 +239,27 @@ impl<const N: usize> RunQueue<N> {
         Ok(())
     }
 
+    /// BW-2 like [`push`](Self::push), but places the thread at the head.
+    /// ADR-081 R3-5: only a remote readiness wake (BLOCKED -> READY, once per
+    /// block) uses this; peers keep their FIFO order and no quantum is added.
+    pub fn push_front(&mut self, tid: u32, queued: &[AtomicBool]) -> Result<(), u32> {
+        if self.len == N
+            || queued[tid as usize]
+                .compare_exchange(false, true, Ordering::AcqRel, Ordering::Relaxed)
+                .is_err()
+        {
+            return Err(tid);
+        }
+        self.head = (self.head + N - 1) % N;
+        self.items[self.head] = tid;
+        self.len += 1;
+        Ok(())
+    }
+
     /// Remove one ID without changing the FIFO order of any peer.
     /// The caller holds this queue's lock. Scheduling may use this only for
-    /// the just-descheduled owner continuing its unexpired quantum; waking a
-    /// blocked thread still appends through `push` and receives no preference.
+    /// the just-descheduled owner continuing its unexpired quantum; a blocked
+    /// thread gains head placement only through `push_front` (ADR-081 R3-5).
     pub fn remove(&mut self, tid: u32, queued: &[AtomicBool]) -> bool {
         let Some(position) =
             (0..self.len).find(|&position| self.items[(self.head + position) % N] == tid)
@@ -430,6 +447,36 @@ mod tests {
             assert!(queue.is_empty());
             assert!(queued.iter().all(|bit| !bit.load(SC)));
         }
+    }
+
+    #[test]
+    fn push_front_runs_first_keeps_peer_order_and_bw2() {
+        // ADR-081 R3-5: a remote readiness wake is popped next; peers stay FIFO.
+        let queued = bits::<4>();
+        let mut queue = RunQueue::<3>::new();
+        for round in 0..4 {
+            queue.push(0, &queued).unwrap();
+            queue.push(1, &queued).unwrap();
+            queue.push_front(2, &queued).unwrap();
+            assert_eq!(queue.push_front(3, &queued), Err(3), "full");
+            assert!(
+                !queued[3].load(SC),
+                "a refused push_front leaves the bit clear"
+            );
+            assert_eq!(queue.push_front(0, &queued), Err(0), "double enqueue");
+            for tid in [2, 0, 1] {
+                assert_eq!(queue.pop(&queued), Some(tid), "round {round}");
+            }
+            assert!(queue.is_empty());
+            assert!(queued.iter().all(|bit| !bit.load(SC)));
+        }
+        let mut other = RunQueue::<3>::new();
+        other.push(1, &queued).unwrap();
+        assert_eq!(
+            queue.push_front(1, &queued),
+            Err(1),
+            "queued in another queue"
+        );
     }
 
     #[test]

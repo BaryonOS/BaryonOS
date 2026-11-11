@@ -276,6 +276,8 @@ ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
 - Een thread op CPU *d* wekken vanaf CPU *c* (bijvoorbeeld IPC-antwoord, ADR-053):
   onder `KERNEL` → `lock_irqsave(RUNQ[d])` → BLOCKED→READY, enqueue → unlock → als *d* ≠ *c*,
   een 0xe8-IPI naar *d*. De IPI is een hint: *d* controleert zijn queue altijd zelf.
+  Een readiness-wake (geen timeout/fout) vanaf *c* ≠ *d* komt vooraan in `RUNQ[d]`, eenmaal per
+  BLOCKED→READY en zonder extra quantum (ADR-081-aanvulling R3-5, 11 november 2026).
 - Kill van een thread die op *d* RUNNING is: markeer `DEAD_PENDING`, stuur 0xe8 en wacht
   begrensd (deadline gelijk aan de shootdown-deadline) tot *d* `state = DEAD` publiceert
   bij zijn eerstvolgende wissel. Pas daarna volgt de bestaande `cleanup` (K05) en de

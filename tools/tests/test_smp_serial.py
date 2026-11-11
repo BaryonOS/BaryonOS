@@ -794,6 +794,21 @@ class SmpRepetitionHarness(unittest.TestCase):
         self.assertFalse(report["passed"])
         self.assertEqual(report["repetitions"]["one"]["failed"], 1)
 
+    def test_only_the_ipc_outcome_gets_the_ipc_watchdog(self):
+        # ADR-081 R3-5 addendum: 10 000 rounds keep their count; only m3-ipc gets 180 s.
+        manifest = json.loads((self.build / "manifest.json").read_text())
+        manifest["kernel_feature"] = "native-smp-m3-ipc"
+        (self.build / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+        seen = []
+        def record(label, **kwargs):
+            seen.append(kwargs["timeout"])
+            return dict(self.guest(label, **kwargs), passed=False)
+        self.runner.side_effect = record
+        with self.assertRaises(ValueError):
+            run_smp.run(("m3-ipc-four",))
+        self.assertEqual(seen, [run_smp.IPC_TIMEOUT_S])
+        self.assertEqual((run_smp.IPC_TIMEOUT_S, run_smp.GUEST_TIMEOUT_S), (180, 60))
+
     def test_source_drift_aborts_before_more_repetitions(self):
         with patch.object(run_smp, "source_hash", side_effect=["frozen", "frozen", "changed"]):
             with self.assertRaisesRegex(ValueError, "changed during a run"):
