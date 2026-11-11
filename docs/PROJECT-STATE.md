@@ -29,17 +29,20 @@ reads their logs through the GitHub connector.
 - 21 CI-workflow contract tests pass.
 - actionlint 1.7.12 passes over all workflows.
 - `progress.py --check` passes.
+- Hosted PR run 43118954606 on `4cc4ecd` passed. GitHub accepted the
+  `vulnerability-alerts` scope and both lists were read: 0 open Dependabot
+  alerts and 26 open code-scanning alerts (CodeQL: 19 critical, 7 high).
 
-**Not yet shown:**
-- A hosted run that proves GitHub accepts the `vulnerability-alerts` scope and
-  returns both alert lists. The same-repository PR run provides it.
+**Open:**
+- The 26 code-scanning alerts are not yet triaged. Details are visible only in
+  the Security tab, and fixes need them to be shared through a private channel.
 - Draft PR #314 rewrites the same Project tool with Status writes and backfill.
   The workflow always checks out `main`, so the dry-run above does not cover
   #314. A dry-run is needed right after #314 merges, before the next schedule.
 
 **Acceptance:** 39/100 → 39/100; CI and backlog tooling only.
 
-**Next:** read the PR run of `Security alert summary`, then
+**Next:** triage the 26 code-scanning alerts with the project owner, then
 `python3 tools/progress.py --check`.
 
 ## NEXT AGENT HANDOFF — CI QEMU/OVMF package bundle — 11 November 2026

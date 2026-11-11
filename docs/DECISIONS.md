@@ -47,9 +47,9 @@ data the workflow token already reads. An uploaded artifact is as public as the
 log. Leaving the alerts unread keeps dependency fixes outside the backlog.
 
 **Evidence boundary:** 18 local unit and contract tests, the CI-workflow
-contract tests and actionlint 1.7.12 pass. That GitHub accepts the
-`vulnerability-alerts` scope and returns both alert lists is shown only by a
-hosted run. **Review criteria:** revisit when GitHub changes alert visibility
+contract tests and actionlint 1.7.12 pass. Hosted PR run 43118954606 showed
+that GitHub accepts the `vulnerability-alerts` scope and returns both alert
+lists to the workflow token. **Review criteria:** revisit when GitHub changes alert visibility
 on public repositories, when a code-scanning detail is needed for a fix (it is
 then shared through a private channel), or when the pinned actionlint changes.
 
