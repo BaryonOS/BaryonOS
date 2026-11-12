@@ -135,3 +135,12 @@ Local reproduction of the IPC case (QEMU 8.2.2, multi-thread TCG, `taskset`): 11
 ## Cancelled run 43118230329 (head `ae3e985`) and review fixes
 
 [Receipt](cancelled-43118230329.json): cancelled after the PR #296 review triage because the fixes for the four confirmed findings change kernel and tool sources. Before cancellation, 25 cases completed 50/50 and the K07 probe passed; 49 jobs were cancelled and the aggregate therefore failed. None of these repetitions counts toward acceptance of the fixed source. The fixes, their scope check and the local single-boot evidence are recorded in [DECISIONS.md](../../DECISIONS.md) ("review findings closed before acceptance") and the project-state handoff. The matrix is now 65 cases × 50 with `quarantine-lock-pending`, and the final gate adds the stage `k05-smp`.
+
+## Rejected full run 43125206729 (head `95bdf4c`) and scheduler settle
+
+[Incident receipt](incident-43125206729.json): 73 of 80 jobs pass, three fail and four are skipped. Every soak (50/50, idle clock check included), K07, `quarantine-lock-pending` and both IPC cases pass (`m3-ipc-four` at most 121.3 s per boot, `m3-ipc-four-single` at most 88.1 s; bound 264 s). PR #296 was merged as `4e8e235` while the run was still in progress; the merged tree equals the tested tree, and the merge does not accept K06 step 5f.
+
+- `resched-deaf` r020: after the expected kill timeout, the healthy AP1 was still inside its RUNQ tick when IQ-3 checked it; IQ-3 correctly stopped with `SMP:QUARANTINE:LOCK_HELD:40:CPU=1`. Fix: `quarantine_all` first stops the scheduler and gives every AP 200 ms to go home lock-free; new deterministic case `quarantine-sched-busy` (66 × 50). Without the fix, that case stops with the same marker.
+- `eight` r050: `SMP:SCRATCH:TIMEOUT` (500 ms after the BSP share, 8 vCPUs on 4 host vCPUs). A local 20 + 20-boot diagnostic shows the same heavy tail with and without the transit tracking of `95bdf4c`. The code and the deadline stay unchanged, and the case is rerun.
+
+Decisions and local evidence: [DECISIONS.md](../../DECISIONS.md) ("responsive APs go home before the IQ-3 checks").

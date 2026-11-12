@@ -1406,6 +1406,7 @@ fn within_ms(limit: u32, ready: impl Fn() -> bool) -> bool {
 /// shootdown protocol: reset every AP with INIT and continue on the BSP.
 /// Every AP is checked first (IQ-3): one AP's RUNQ lock may be held by another.
 fn quarantine_all(online: usize, total: usize) {
+    settle_scheduler(online);
     (0..online).for_each(stop_if_held);
     (0..online).for_each(quarantine_cpu);
     ONLINE_CPUS.store(1, Ordering::Release);
@@ -1414,6 +1415,25 @@ fn quarantine_all(online: usize, total: usize) {
     serial::write(b"\nSMP:ONLINE:1/");
     decimal(total as u64);
     serial::write(b"\n");
+}
+
+/// IQ-3 precondition (ADR-079 addendum, 12 November 2026): a responsive AP that still
+/// runs the scheduler phase may be inside its RUNQ tick when the owner checks
+/// run, and INIT would then strand that lock. Close admission first and give
+/// every AP 200 ms to go home lock-free with its timer masked (`RESUMED`, the
+/// same STOP as `stop_scheduler`). A deaf AP never reports and is checked as
+/// before; the fail-closed policy itself is unchanged.
+fn settle_scheduler(online: usize) {
+    if SCHED.load(Ordering::Acquire) != PREEMPT_RUN {
+        return;
+    }
+    SCHED.store(PREEMPT_STOP, Ordering::Release);
+    let locals = &CPU_LOCAL[..online];
+    within_ms(200, || {
+        locals
+            .iter()
+            .all(|local| local.sched_state.load(Ordering::Acquire) == RESUMED)
+    });
 }
 
 /// IQ-3 (ADR-079): the lowest lock level CPU index `cpu` holds, over every
@@ -3129,6 +3149,9 @@ const HOME: u32 = u32::MAX;
 const ROOT_MASK: u64 = !0xfff;
 /// 0, then PREEMPT_RUN / PREEMPT_STOP for a scheduler phase.
 static SCHED: AtomicU32 = AtomicU32::new(0);
+/// `test-smp-quarantine-sched-busy`: 0 idle, 1 the BSP asks AP1 to hold its
+/// RUNQ through the kill quarantine, 2 AP1 holds it until the scheduler stops.
+static SCHED_BUSY: AtomicU32 = AtomicU32::new(0);
 /// First thread in space 1: threads below it run in space 0. The 5d-1 phase
 /// sets the online AP count (thread `tid` on AP `tid % aps`); the F16 phase 2.
 static SCHED_APS: AtomicU32 = AtomicU32::new(0);
@@ -3282,8 +3305,19 @@ fn sched_switch(local: &CpuLocal, rsp: u64, busy: bool) -> Resume {
         return Resume { rsp, left: 0 };
     }
     let current = local.sched_cur.load(Ordering::Relaxed);
-    let stop = SCHED.load(Ordering::Acquire) == PREEMPT_STOP;
     let mut queue = RUNQ[slot].lock_irqsave();
+    // Fixture: AP1 is busy in its RUNQ tick when the kill quarantine starts and
+    // stays responsive: it releases RUNQ only once the scheduler is stopped.
+    if cfg!(feature = "test-smp-quarantine-sched-busy")
+        && slot == 0
+        && SCHED_BUSY.load(Ordering::Acquire) == 1
+    {
+        SCHED_BUSY.store(2, Ordering::Release);
+        while SCHED.load(Ordering::Acquire) == PREEMPT_RUN {
+            spin_loop();
+        }
+    }
+    let stop = SCHED.load(Ordering::Acquire) == PREEMPT_STOP;
     if current == HOME {
         local.saved[0].store(rsp, Ordering::Relaxed);
     } else {
@@ -3523,7 +3557,10 @@ extern "C" fn nos_smp_bw_thread(tid: u64) -> ! {
     let Some(local) = this_cpu() else { park() };
     let slot = local.slot.load(Ordering::Relaxed) as usize;
     if tid == KILLED {
-        if cfg!(feature = "test-smp-resched-deaf") {
+        if cfg!(any(
+            feature = "test-smp-resched-deaf",
+            feature = "test-smp-quarantine-sched-busy"
+        )) {
             lapic_write(0x80, 0xe0);
         }
         loop {
@@ -3637,6 +3674,13 @@ fn block_wake_kill(online: usize, total: usize) -> bool {
             Ok(_) => {}
             Err(_) => serial::fail(b"SMP_KILL_TWICE"),
         }
+    }
+    if cfg!(feature = "test-smp-quarantine-sched-busy") {
+        SCHED_BUSY.store(1, Ordering::Release);
+        if !within_ms(100, || SCHED_BUSY.load(Ordering::Acquire) == 2) {
+            serial::fail(b"SMP_TEST_SCHED_BUSY_NOT_HELD");
+        }
+        serial::write(b"SMP:QUARANTINE:SCHED_BUSY:CPU=1\n");
     }
     if !send_ipi(apic, IPI_FIXED | RESCHED_VECTOR as u32)
         || !within_ms(SHOOTDOWN_DEADLINE_MS, || {

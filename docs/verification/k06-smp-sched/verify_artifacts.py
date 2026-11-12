@@ -59,7 +59,7 @@ def main():
     from run_smp import CASES, evaluate, GUEST_TIMEOUT_S, SOAK_TIMEOUT_S, duplicate_madt, BOOT, FORBIDDEN, required_end
     import run_smp
     IPC_TIMEOUT_S = getattr(run_smp, "IPC_TIMEOUT_S", GUEST_TIMEOUT_S)  # absent before the R3-5 addendum
-    require(len(CASES) == 65, "oracle does not define the required 65 cases")
+    require(len(CASES) == 66, "oracle does not define the required 66 cases")
     oracle_hashes = {}
     for name in ("tools/run_smp.py", "tools/run.py", "tools/common.py", "tools/gate_contract.py"):
         frozen = subprocess.run(["git", "show", f"{args.commit}:{name}"], cwd=repo,
@@ -295,8 +295,8 @@ def main():
     if len({x.get("artifact") for x in observed[SOAK]}) != len(observed[SOAK]):
         all_errors.append("soak shard identities are duplicated")
     matrix_run_count = sum(x.get("attempted", 0) for x in shards if not x.get("environment_probe"))
-    if matrix_run_count != 3250:
-        all_errors.append(f"matrix guest run count {matrix_run_count}, expected 3250")
+    if matrix_run_count != 3300:
+        all_errors.append(f"matrix guest run count {matrix_run_count}, expected 3300")
     aggregate_path = args.aggregate
     if aggregate_path is None:
         candidates = list(root.glob("smp-section9-matrix-report*/**/matrix-report.json"))
@@ -305,8 +305,8 @@ def main():
     if aggregate_path is not None:
         try:
             aggregate = load(aggregate_path.resolve())
-            require(aggregate.get("passed") is True and aggregate.get("case_count") == 65
-                    and aggregate.get("guest_run_count") == 3250 and aggregate.get("repetitions_per_case") == 50
+            require(aggregate.get("passed") is True and aggregate.get("case_count") == 66
+                    and aggregate.get("guest_run_count") == 3300 and aggregate.get("repetitions_per_case") == 50
                     and aggregate.get("source_sha256") == args.source_sha256, "aggregate totals/source/pass mismatch")
             require(set(aggregate.get("cases", {})) == set(CASES), "aggregate case set differs")
             require(all(x.get("attempted") == 50 and x.get("passed") == 50 for x in aggregate["cases"].values()),

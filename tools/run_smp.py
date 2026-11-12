@@ -48,6 +48,7 @@ CASES = {
     "icr-race-control": ("test-smp-icr-race", 4, "multi", "icr-race"),
     "quarantine-lock-held": ("test-smp-quarantine-lock-held", 4, "multi", "lock-held"),
     "quarantine-lock-pending": ("test-smp-quarantine-lock-pending", 4, "multi", "lock-held"),
+    "quarantine-sched-busy": ("test-smp-quarantine-sched-busy", 4, "multi", "busy-quarantine"),
     "bsp-spin-irq-off-control": ("test-smp-bsp-spin-irq-off", 4, "multi", "bsp-spin-timeout"),
     "proc-shootdown-deaf": ("test-smp-proc-shootdown-deaf", 4, "multi", "proc-shootdown-quarantine"),
     "proc-no-shootdown-control": ("test-smp-proc-no-shootdown", 4, "multi", "proc-stale-read"),
@@ -88,7 +89,7 @@ CASES = {
     "m3-recovery-four": ("test-smp-m3-recovery", 4, "multi", "m3-recovery"),
 }
 QUARANTINE_OUTCOMES = ("invalid-madt", "timeout", "mismatch", "quarantine", "shootdown-quarantine",
-                       "timer-quarantine", "spin-quarantine", "kill-quarantine",
+                       "timer-quarantine", "spin-quarantine", "kill-quarantine", "busy-quarantine",
                        "proc-shootdown-quarantine")
 TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_IST:PASS",
             "lockdep-order": "SMP:LOCKDEP:ORDER:30->10",
@@ -277,11 +278,14 @@ def expected_smp(case: str) -> list[str]:
     if outcome == "lock-in-handler":
         # Audit F3 (LD-1): the first 0xe8 handler takes KERNEL in the scheduler phase.
         return lines + settled(started)[:-9] + [TERMINAL[outcome]]
-    if outcome == "kill-quarantine":
+    if outcome in ("kill-quarantine", "busy-quarantine"):
         # BW-3: the kill target (thread 2 on AP slot 2 = APIC 3) ignores 0xe8.
-        return lines + settled(started)[:-7] + ["SMP:KILL:TIMEOUT:APIC=3",
-                                                f"SMP:QUARANTINED:APS={started - 1}",
-                                                f"SMP:ONLINE:1/{cpus}"]
+        # IQ-3 precondition: with AP1 holding its RUNQ in a tick, the quarantine
+        # must first stop the scheduler so AP1 goes home lock-free.
+        busy = ["SMP:QUARANTINE:SCHED_BUSY:CPU=1"] if outcome == "busy-quarantine" else []
+        return lines + settled(started)[:-7] + busy + ["SMP:KILL:TIMEOUT:APIC=3",
+                                                       f"SMP:QUARANTINED:APS={started - 1}",
+                                                       f"SMP:ONLINE:1/{cpus}"]
     if outcome == "lockpair-order":
         # Audit F4 (LD-3): two ASPACE locks taken loose and descending, after scratch.
         return lines + settled(started)[:-5] + [TERMINAL[outcome]]

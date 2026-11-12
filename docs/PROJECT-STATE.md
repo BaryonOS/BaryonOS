@@ -1,6 +1,20 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 step 5f review findings fixed; full matrix pending — 12 November 2026
+## NEXT AGENT HANDOFF — K06 step 5f: run 43125206729 rejected; IQ-3 scheduler settle; full matrix pending — 12 November 2026
+
+**Source:** branch `ccr-5a0d9559-16gxmt` (follow-up PR to #296, approved by Simon), based on main `49f80b1`. PR #296 was squash-merged as `4e8e235` at 00:15 UTC while its full matrix was still running (probably auto-merge after the last review thread was resolved); the merged tree equals the tested `95bdf4c`. That merge does **not** accept K06 step 5f.
+
+**Run [43125206729](https://github.com/BaryonOS/BaryonOS/actions/runs/43125206729) on `95bdf4c` (rejected):** 73 of 80 jobs pass; every soak (idle clock check included), K07, `quarantine-lock-pending` and both IPC cases under the 660 s watchdog pass. Receipt: [incident-43125206729.json](verification/k06-smp-sched/incident-43125206729.json).
+- `resched-deaf` r020: after the expected kill timeout, healthy AP1 was inside its RUNQ tick when IQ-3 checked it → correct fail-closed `LOCK_HELD:40:CPU=1`. **Fix (Simon's choice):** `quarantine_all` first stops a running scheduler phase and waits ≤ 200 ms until every AP is home lock-free (`settle_scheduler`); deaf APs are checked as before. New deterministic case `quarantine-sched-busy` (AP1 holds RUNQ until STOP); matrix 66 × 50.
+- `eight` r050: `SMP:SCRATCH:TIMEOUT` (500 ms, 8 vCPUs on 4 host vCPUs). Local diagnostic: same heavy tail with and without transit tracking. **Decision (Simon):** code and deadline unchanged; rerun.
+
+**Executed locally (QEMU 8.2.2, 4 CPUs; not acceptance):** host oracle tests (`test_smp_serial`, `test_smp_acceptance`, 44); `quarantine-sched-busy` passes, and its mutant without `settle_scheduler` stops with `LOCK_HELD:40:CPU=1`; further fixture regressions are listed in the follow-up PR.
+
+**Next:** dispatch `native-smp.yml` (`full_matrix=true`) on the follow-up head; all 66 cases 50/50, 50 soaks, K07, aggregate and final gate (with `k05-smp`) must pass; then record acceptance (progress 39 → 41) in the same follow-up PR and merge it.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f review findings fixed; full matrix pending — 12 November 2026
 
 **Source:** branch `codex/k06-5f-complete-20261109` (PR #296); the commit carrying this entry holds the fixes. Decision and limits: [DECISIONS.md](DECISIONS.md), "review findings closed before acceptance". Run 43118230329 on `ae3e985` was cancelled because the fixes change kernel and tool sources; its 25 completed cases (50/50 each) and the K07 probe are diagnostics only ([receipt](verification/k06-smp-sched/cancelled-43118230329.json)).
 

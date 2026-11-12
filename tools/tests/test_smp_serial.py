@@ -156,6 +156,9 @@ LOCK_STUCK = started(2) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=2", "SMP:LOCK:STUCK:10:CP
 # BW-3: the kill target on AP3 (APIC 3) ignores 0xe8; INV-5 quarantine follows.
 RESCHED_DEAF = online(4)[:-9] + ["SMP:KILL:TIMEOUT:APIC=3", "SMP:QUARANTINED:APS=3",
                                  "SMP:ONLINE:1/4"] + END
+# IQ-3 precondition: AP1 holds its RUNQ in a tick until the quarantine stops the scheduler.
+SCHED_BUSY = online(4)[:-9] + ["SMP:QUARANTINE:SCHED_BUSY:CPU=1", "SMP:KILL:TIMEOUT:APIC=3",
+                               "SMP:QUARANTINED:APS=3", "SMP:ONLINE:1/4"] + END
 # Audit F19 control: without the ICR lock AP1's 0xe8 is carried to AP1 itself.
 ICR_RACE = online(4)[:-6] + ["SMP:ICR:MISROUTED"]
 # Audit F15 (IQ-3): AP2 is deaf holding KERNEL; the BSP stops instead of INIT.
@@ -185,7 +188,7 @@ VALID = {
     "gs-nmi-user": GS_NMI, "shared-scratch": SHARED,
     "lock-in-handler": LOCK_IN_HANDLER, "lockpair-order": LOCKPAIR_ORDER,
     "resched-deaf": RESCHED_DEAF, "icr-race-control": ICR_RACE,
-    "quarantine-lock-held": LOCK_HELD, "quarantine-lock-pending": LOCK_HELD, "bsp-spin-irq-off-control": BSP_SPIN_DEAF,
+    "quarantine-lock-held": LOCK_HELD, "quarantine-lock-pending": LOCK_HELD, "quarantine-sched-busy": SCHED_BUSY, "bsp-spin-irq-off-control": BSP_SPIN_DEAF,
     "proc-shootdown-deaf": PROC_DEAF, "proc-no-shootdown-control": PROC_STALE,
     "lock-stuck": LOCK_STUCK, "serial-unlocked-control": online(4),
     "m3-one": m3(1), "m3-one-multi": m3(1), "m3-two-single": m3(2), "m3-two": m3(2),
@@ -456,10 +459,17 @@ class SmpSerialOracle(unittest.TestCase):
             ("resched-deaf", [line for line in RESCHED_DEAF if "QUARANTINED" not in line]),
             ("resched-deaf", [line.replace("APIC=3", "APIC=1") for line in RESCHED_DEAF]),
             ("resched-deaf", online(4)[:-7] + ["SMP:KILL:PASS:CPUS=4"] + RESCHED_DEAF[-5:]),
+            ("resched-deaf", SCHED_BUSY),                                  # fixture marker foreign
+            ("quarantine-sched-busy", RESCHED_DEAF),                       # AP1 never held RUNQ
+            ("quarantine-sched-busy", [line.replace("CPU=1", "CPU=2") for line in SCHED_BUSY]),
+            # IQ-3 without the scheduler settle: AP1 is reset inside its RUNQ tick.
+            ("quarantine-sched-busy", SCHED_BUSY[:-4] + ["SMP:QUARANTINE:LOCK_HELD:40:CPU=1",
+                                                         "M1:FAIL:SMP_QUARANTINE_LOCK_HELD"]),
         ):
             with self.subTest(case=case, lines=lines[-6:]), self.assertRaises(ValueError):
                 evaluate(case, transcript(lines), 33, False)
         self.assertEqual(evaluate("resched-deaf", transcript(RESCHED_DEAF), 33, False)["online"], 1)
+        self.assertEqual(evaluate("quarantine-sched-busy", transcript(SCHED_BUSY), 33, False)["online"], 1)
 
     def test_gs_fixture_is_exact_and_its_markers_stay_in_their_profiles(self):
         # Audit F8: the red run (old stubs) must be rejected, FSGSBASE must be
