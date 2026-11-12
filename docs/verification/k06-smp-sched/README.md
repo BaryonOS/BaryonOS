@@ -144,3 +144,13 @@ Local reproduction of the IPC case (QEMU 8.2.2, multi-thread TCG, `taskset`): 11
 - `eight` r050: `SMP:SCRATCH:TIMEOUT` (500 ms after the BSP share, 8 vCPUs on 4 host vCPUs). A local 20 + 20-boot diagnostic shows the same heavy tail with and without the transit tracking of `95bdf4c`. The code and the deadline stay unchanged, and the case is rerun.
 
 Decisions and local evidence: [DECISIONS.md](../../DECISIONS.md) ("responsive APs go home before the IQ-3 checks").
+
+## Rejected full run 43187501026 (head `2543861`) and timing investigation
+
+Run [43187501026](https://github.com/BaryonOS/BaryonOS/actions/runs/43187501026) on `25438612403b511cdaf5d18762fec33926ee2d66` (source-v3 `8fff988fc929290da461899e3b4f5a01d3d9600ddf09a64507f2775167b5a6d6`) is rejected. It was neither cancelled nor retried. State when this section was written (10:42 UTC, 12 November 2026): 69 jobs passed, two failed, five still running; the aggregate cannot pass.
+
+- `nine-capacity` r029 (job 131078767393, artifact 13929234012, zip SHA-256 `90df06d5ed3de6df5c6b4dcc495defcf22f8e3e9f3eeb20ccddecd0ac0b6a1b0`): `SMP:SYNC:TIMEOUT:DONE=0:TOTAL=157489` after the unchanged 2 s wait; 98.4 % of 160 000 increments were done. The other 49 boots pass.
+- `m3-load-two` r003 and r006 (job 131078778379, artifact 13934623330, zip SHA-256 `d39832ca0b43552893346fec5d662dfe4eef92ae7972cb4d42b0837ad83ba0ba`): idle `SMP_CLOCK_DRIFT`, medians 1 010 679 µs and 1 012 547 µs (+1.08 %, +1.27 %), 1 000 counted IRQ0s in every segment, two guest vCPUs on a four-vCPU runner.
+- `eight`, `resched-deaf`, `quarantine-sched-busy` and all ten soak shards pass 50/50 in this run.
+
+The project owner asked for an investigation of the recurring timing incidents instead of another rerun. [TIMING-INVESTIGATION.md](TIMING-INVESTIGATION.md) holds the local measurements (143 diagnostic boots; raw data, scripts and the two diagnostic patches in [`timing-investigation/`](timing-investigation/)). No kernel or synchronisation defect was demonstrated. The proposal, ADR-082 in [DECISIONS.md](../../DECISIONS.md), is **not accepted**; no deadline, tolerance or contract has changed and K06 step 5f remains open.

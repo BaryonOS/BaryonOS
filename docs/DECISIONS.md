@@ -2676,3 +2676,66 @@ No tolerance, deadline, repetition count, oracle or security check was relaxed. 
 Fix: `quarantine_all` first calls `settle_scheduler`. If the scheduler phase is running (`SCHED == PREEMPT_RUN`), it sets `PREEMPT_STOP`, the same stop as `stop_scheduler`, and waits at most 200 ms until every AP reports `RESUMED`: home, lock-free, its timer masked. A deaf AP never reports and is checked as before. The owner and transit checks before and after INIT, the fail-closed stop and every deadline are unchanged; outside the scheduler phase nothing changes.
 
 Regression case `quarantine-sched-busy` (4 vCPUs, new feature `test-smp-quarantine-sched-busy`): APIC 3 is deaf to the kill as in `resched-deaf`, and AP1 takes its RUNQ in a tick and holds it until the scheduler is stopped. The oracle requires the precondition marker `SMP:QUARANTINE:SCHED_BUSY:CPU=1`, then the kill timeout, `SMP:QUARANTINED:APS=3`, `SMP:ONLINE:1/4` and M1:PASS. Without `settle_scheduler`, the same image stops with `SMP:QUARANTINE:LOCK_HELD:40:CPU=1`, as checked locally. The matrix becomes 66 cases × 50 (3 300 guests); the aggregate job, verifiers and handoff follow. Acceptance again requires the full matrix, all 50 soaks, K07, the aggregate and the executed final gate on the final commit.
+
+## ADR-082 (PROPOSED — not accepted) — K06 fixture deadlines: progress-bounded liveness, separately gated performance, one-sided clock precision — 12 November 2026
+
+**Status/owner:** proposal prepared at the project owner's request of 12 November 2026. Nothing in this entry is in force. No deadline, tolerance, oracle, repetition count or acceptance contract has been changed; the committed source is unchanged. Each part below needs an explicit decision by the project owner. K06 step 5f remains unaccepted.
+
+**Context.** Three consecutive full matrices were each rejected by one or two guests out of about 3 300 on a wall-clock limit: `SMP_CLOCK_DRIFT` (idle, run 43057843393), `SMP:SCRATCH:TIMEOUT` (`eight`, run 43125206729), `SMP:SYNC:TIMEOUT` (`nine-capacity`) and `SMP_CLOCK_DRIFT` twice (`m3-load-two`, both run 43187501026). Measurements and their limits are in `docs/verification/k06-smp-sched/TIMING-INVESTIGATION.md`. Summary of what was measured locally (QEMU 8.2.2, 4 host CPUs; diagnostic, not acceptance):
+
+- No kernel or synchronisation defect was demonstrated: 134 completed boots gave exact totals and no lock violation; in 24 traced boots the shared counter advanced in every 50 ms window (lowest rate 936 increments per second).
+- Sync and scratch tails appear only when the guest has more runnable vCPUs than the host has CPUs. Halving the host CPUs for the same four-vCPU guest lengthens the sync phase 37-fold; the same work is 20 times faster under single-threaded TCG. The FIFO ticket lock hands the lock to one specific waiter, and the host may have descheduled that vCPU thread (risk R02 in spec 09-5f AC-2).
+- Idle clock precision fails without guest oversubscription (hosted: 2 vCPUs on a 4-vCPU runner; local: 4 on 4 and single-threaded TCG). The deviation is one-sided (109 of 110 medians above nominal) with an exact IRQ count, as the lost-edge mechanism in `CLOCK-INVESTIGATION.md` predicts.
+- At least 36 of the 41 `within_ms` deadlines and the sync deadline are unnamed literals and none logs its margin; spec 09-5f AC-3 requires a named, motivated constant and a logged margin for every deadline.
+
+A rough estimate from these small counts is one incidental timing failure per 2 000 guests, so a 3 300-guest matrix passes with a probability of about 20 %. Rerunning is therefore not an acceptance procedure.
+
+**Alternatives.**
+
+| | A. Keep every deadline; use a suitable runner | B. Timing method for hosts that the guest oversubscribes | C. Optimise kernel or harness |
+|---|---|---|---|
+| Change | Run the acceptance matrix on a dedicated machine with at least as many isolated physical cores as guest vCPUs per job | Parts 1–3 below | Preemption-tolerant lock (unfair, yielding or paravirtual), or single-threaded TCG for 8 and 9 vCPUs |
+| Addresses sync and scratch | Yes, if cores are really dedicated | Yes | Lock change: probably; single-threaded TCG: yes (measured 20 times faster) |
+| Addresses idle clock | Only with isolation; more vCPUs alone do not (failure at 2 vCPUs on 4) | Yes (part 3) | No |
+| Contracts | Unchanged | Liveness and clock criteria are restated; needs this ADR and spec mirrors | Lock fairness (AC-2) or loss of real parallel interleavings |
+| Cost and risk | A paid larger hosted runner is still a shared virtual machine and was declined earlier for the clock incident; a self-hosted runner on a public repository needs its own security decision, and third parties cannot reproduce the result. Not verified: whether an existing self-hosted machine could run 79 jobs in acceptable time | A wrong window could hide a real stall; mitigated by the negative cases below and by keeping the original limit where the host is not oversubscribed | No defect was demonstrated, so a lock redesign is unjustified work on a security-relevant primitive; earlier `PAUSE` variants made timing worse; no paravirtual interface exists under TCG |
+
+**Recommendation: B, in three independently decidable parts.** C is not recommended because no defect was found. A remains the right place for hard real-time evidence and belongs with KVM and hardware evidence (H06), not with a shared TCG runner.
+
+*Part 1 — AC-3 conformance (no semantic change).* Give every fixture deadline a named constant with a one-line motivation, and print `SMP:MARGIN:<NAME>:<measured>/<limit>` when the wait ends. The aggregate reports the maximum margin per deadline over the matrix and flags, without failing, any deadline above 50 %. This turns every matrix into a measurement of all 42 deadlines and replaces guesswork about the next incident.
+
+*Part 2 — cooperative waits (sync tail, scratch; others only on margin evidence).* Functional correctness and time-bound performance are checked separately:
+
+- Correctness, unchanged and always fatal: exact totals (`SMP_SYNC_LOST_UPDATE`), lock violations, IQ-3, every existing negative case.
+- Liveness: every CPU that has not finished must advance its own single-writer progress counter within the present window W (2 s sync, 500 ms scratch); otherwise the present timeout marker. A deadlock or a starved CPU is therefore detected exactly as fast as today.
+- Bounded delay: a hard cap of 10 × W for the whole wait (20 s and 5 s, inside the 60 s host watchdog); exceeding it is fatal with a distinct `…:CAP` marker. Slow progress without end is not accepted.
+- Performance: on profiles where guest vCPUs do not exceed the runner's CPUs (`one`, `two`, `four`), the original W stays a fatal limit on the whole wait. On 8- and 9-vCPU profiles on a 4-vCPU runner the margin is logged and reported (part 1); a fatal performance limit for those profiles is deferred to a host with dedicated cores.
+- Out of scope: detection deadlines whose timeout is the expected verdict of a negative case (deaf AP, kill, shootdown, lock-stuck). They stay as they are.
+
+*Part 3 — idle clock precision.* Lost edges can only lengthen a segment, so the least-disturbed segment is the best estimate of the programmed period:
+
+- The shortest of the five segments must be within ±1 % of nominal (the 1 % limit of ADR-053 stays; it now applies to the minimum instead of the median).
+- No segment may be shorter than −1 % (a synthesised or double-counted tick is always fatal).
+- Every segment must stay below a loss bound of +10 %, set by the existing 2.5 × rule from the worst segment seen so far (+3.4 % hosted, +3.8 % local); sustained loss stays fatal.
+- Only counted IRQ0s advance the clock, as now. Weaker than today in one respect, stated plainly: sporadic loss in up to four of five segments is tolerated, where the median tolerates two. If that is not acceptable, the alternatives are a dedicated runner (A) or the elapsed-PIT driver design in `CLOCK-INVESTIGATION.md`.
+
+**Negative regression cases required before any part is accepted** (each must fail with its named marker, 50/50, and each needs a host-oracle test):
+
+| Case | Fault injected | Required verdict |
+|---|---|---|
+| sync-deadlock | one AP keeps the stress lock | `SMP_SYNC_TIMEOUT` within W |
+| sync-starved | one AP never advances while the others continue | `SMP_SYNC_TIMEOUT` for that CPU within W |
+| sync-crawl | every AP delays each iteration so that the cap is exceeded while progress continues | `…:CAP` |
+| sync-lost-update | one unlocked, non-atomic increment path | `SMP_SYNC_LOST_UPDATE` |
+| scratch-stalled / scratch-crawl | as above for the scratch phase | `SMP:SCRATCH:TIMEOUT` / `…:CAP` |
+| perf-gate | a `four` guest whose AP is slowed beyond W | fatal on the non-oversubscribed profile |
+| clock-wrong-divisor | PIT programmed 2 % off | minimum-segment check fails |
+| clock-synthesised | one tick counted twice per segment | lower bound fails |
+| clock-sustained-loss | IRQ0 masked for more than 10 % of each segment | loss bound fails |
+| margin-oracle | margin line missing or malformed | host oracle rejects the run |
+
+Existing cases (`lock-stuck`, `spin-irq-off`, `quarantine-*`, `ap-*-deaf`, `shared-scratch`, soaks) stay unchanged and must keep their verdicts.
+
+**Verification order if approved.** (1) Part 1 alone and one diagnostic dispatch to obtain hosted margins. (2) Parts 2 and 3 with their negative cases; local series of at least 200 boots each for `four`, `eight` and `nine-capacity`, including the two-host-CPU profile in which today's limits fail. (3) Only then one full matrix. No selective retry counts as acceptance at any step.
+
+**Risks.** The windows and the cap are engineering limits, not proofs; they bound delay but do not show real-time behaviour. TCG results do not transfer to KVM or hardware. The exposure estimate rests on five events. A review by an AI is not an independent human audit.

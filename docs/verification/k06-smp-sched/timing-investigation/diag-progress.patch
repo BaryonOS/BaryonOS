@@ -1,0 +1,53 @@
+diff --git a/kernel/src/m2/smp.rs b/kernel/src/m2/smp.rs
+index f7aedf2..646bf7a 100644
+--- a/kernel/src/m2/smp.rs
++++ b/kernel/src/m2/smp.rs
+@@ -1347,15 +1347,21 @@ pub fn start(
+     serial::write(b"\n");
+     bsp_timer_init();
+     GO.store(true, Ordering::Release);
+-    stress();
+     serial_lines();
+-    let finished = (0..200).any(|_| {
++    let mut polls = 0u64;
++    let finished = (0..200_000).any(|_| {
+         NOS_SMP_AP_CONTEXTS[..online].iter().all(finished_stress) || {
+-            wait_us(10_000);
++            wait_us(1_000);
++            polls += 1;
++            if polls % 50 == 0 {
++                serial::write(b"SMP:DIAG:P=");
++                decimal(ATOMIC_TOTAL.load(Ordering::Acquire));
++                serial::write(b"\n");
++            }
+             false
+         }
+     });
+-    let expected = ITERATIONS * (online as u64 + 1);
++    let expected = ITERATIONS * online as u64;
+     if !finished {
+         serial::write(b"SMP:SYNC:TIMEOUT:DONE=");
+         decimal(
+@@ -2810,6 +2816,13 @@ fn clock(online: usize, total: usize) -> bool {
+         serial::write(b"\n");
+         serial::fail(b"SMP_CLOCK_DRIFT");
+     }
++    serial::write(b"SMP:DIAG:CLOCK_US=");
++    decimal(us);
++    serial::write(b":");
++    decimal(ordered[0]);
++    serial::write(b":");
++    decimal(ordered[CLOCK_SEGMENTS - 1]);
++    serial::write(b"\n");
+     // Load phase. This runs once per boot, before any AP enters the load loop.
+     for work in &CLOCK_WORK {
+         work.0.store(0, Ordering::Relaxed);
+@@ -3782,7 +3795,7 @@ fn scratch(online: usize, total: usize, frames: &mut Frames<FRAME_COUNT>) -> boo
+         }
+     }
+     scratch_work(0);
+-    if !within_ms(500, || {
++    if !within_ms(5000, || {
+         locals
+             .iter()
+             .all(|local| local.scratched.load(Ordering::Acquire) == 1)
