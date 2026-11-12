@@ -168,6 +168,8 @@ extern "C" fn run() -> ! {
     #[cfg(feature = "native-smp")]
     smp::start(smp_prepared, &_discovery.madt, frames, &mut paging);
     #[cfg(feature = "native-smp")]
+    smp::margins();
+    #[cfg(feature = "native-smp")]
     lock::selftest();
     #[cfg(feature = "native-rtc")]
     rtc::run();

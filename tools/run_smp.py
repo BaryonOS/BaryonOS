@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import re
 import struct
 from common import BUILD, save_json, sha256, sha256_bytes, source_hash, without_acpi_diagnostics
@@ -140,6 +141,11 @@ IPC_TIMEOUT_S = 660
 
 # Audit F7 (DG-2): every CPU that ran the sync test writes these lines at once,
 # in fragments; each must arrive whole, in order per CPU, before SERIAL_PASS.
+# AC-3 (spec 09-5f): the largest part of its limit each guest wait used, in ms.
+# WAIT and STALL carry the wait's line in kernel/src/m2/smp.rs, LOCK the lock
+# level (DG-1 limit) and ROUND the shootdown generation.
+MARGIN = re.compile(r"SMP:MARGIN:(WAIT|STALL|LOCK|ROUND):([0-9]{1,5}):([0-9]{1,8})/([0-9]{1,8})")
+
 SERIAL_LINES = 200  # kernel/src/m2/smp.rs SERIAL_LINES
 SERIAL_LINE = re.compile(r"SMP:SER:([0-9]):([0-9]{1,3})")
 SERIAL_PASS = "SMP:SERIAL:PASS"
@@ -453,9 +459,18 @@ def unlock_terminal(case: str, stdout: str) -> str:
     return stdout
 
 
-def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict:
-    """Independent serial oracle: the exact SMP sequence after KS-03."""
-    profile, cpus, _, outcome = CASES[case]
+def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool,
+             host_cpus: int | None = None) -> dict:
+    """Independent serial oracle: the exact SMP sequence after KS-03.
+
+    A progress-bounded guest wait may use more than its limit and still be
+    alive (ADR-082). That overrun is accepted only when the host cannot run the
+    guest's vCPUs in parallel: multi-thread TCG with more vCPUs than host CPUs.
+    """
+    profile, cpus, threads, outcome = CASES[case]
+    if host_cpus is None:
+        host_cpus = len(os.sched_getaffinity(0))
+    oversubscribed = threads == "multi" and cpus > host_cpus
     terminal = outcome in TERMINAL
     end = required_end(outcome)
     stdout = unlock_terminal(case, stdout)
@@ -489,6 +504,18 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     deadline_margins = []
     recovery_crashed = None
     for line in body:
+        margin = MARGIN.fullmatch(line)
+        if margin:
+            name = f"{margin[1].lower()}_{margin[2]}"
+            used, limit = int(margin[3]), int(margin[4])
+            if limit == 0 or any(item["name"] == name for item in deadline_margins):
+                raise ValueError("Malformed or repeated deadline margin")
+            if used > limit and not (margin[1] == "WAIT" and oversubscribed):
+                raise ValueError(f"Guest wait {name} used {used} of {limit} ms")
+            deadline_margins.append({"name": name, "clock": "guest", "measured_ms": used,
+                                     "deadline_ms": limit, "measured_over_deadline": used / limit,
+                                     "remaining_ms": limit - used})
+            continue
         cr4 = re.fullmatch(r"SMP:GS:CR4=([0-9]{1,20})", line)
         if cr4 and int(cr4[1]) & (1 << 16) == 0:
             line = GS_CR4

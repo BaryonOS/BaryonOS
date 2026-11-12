@@ -32,6 +32,7 @@ use core::{
     arch::{asm, global_asm},
     hint::spin_loop,
     mem::MaybeUninit,
+    panic::Location,
     ptr,
     sync::atomic::{fence, AtomicBool, AtomicU32, AtomicU64, Ordering},
 };
@@ -361,6 +362,8 @@ pub fn past(deadline: u64) -> bool {
 /// F7 fixture (DG-2): lines every CPU writes at once, in fragments, so the
 /// host can see each line arrive whole and in order per CPU.
 const SERIAL_LINES: u64 = 200;
+/// Lines completed by all CPUs: the sync wait's progress after the counters.
+static SERIAL_DONE: AtomicU64 = AtomicU64::new(0);
 fn serial_lines() {
     let cpu = cpu_index() as u64;
     for seq in 0..SERIAL_LINES {
@@ -369,6 +372,7 @@ fn serial_lines() {
         serial::write(b":");
         decimal(seq);
         serial::write(b"\n");
+        SERIAL_DONE.fetch_add(1, Ordering::Relaxed);
     }
 }
 
@@ -772,6 +776,10 @@ fn wait_us(us: u32) -> bool {
 }
 
 const ITERATIONS: u64 = 20_000;
+/// Time the APs get for the sync stress and their serial lines after the
+/// BSP's own share. ADR-070 only asks for a bounded test; 2 s is the value in
+/// use since step 1 and is now the logged performance figure of the wait.
+const SYNC_MS: u32 = 2_000;
 static ATOMIC_TOTAL: AtomicU64 = AtomicU64::new(0);
 static LOCKED_TOTAL: TicketLock<u64> = TicketLock::new(0);
 static INSIDE: AtomicU32 = AtomicU32::new(0);
@@ -1349,15 +1357,18 @@ pub fn start(
     GO.store(true, Ordering::Release);
     stress();
     serial_lines();
-    let finished = (0..200).any(|_| {
-        NOS_SMP_AP_CONTEXTS[..online].iter().all(finished_stress) || {
-            wait_us(10_000);
-            false
-        }
-    });
+    let finished = within_progress(
+        SYNC_MS,
+        || ATOMIC_TOTAL.load(Ordering::Relaxed) + SERIAL_DONE.load(Ordering::Relaxed),
+        || NOS_SMP_AP_CONTEXTS[..online].iter().all(finished_stress),
+    );
     let expected = ITERATIONS * (online as u64 + 1);
-    if !finished {
-        serial::write(b"SMP:SYNC:TIMEOUT:DONE=");
+    if !matches!(finished, Progress::Ready) {
+        serial::write(if matches!(finished, Progress::Stalled) {
+            b"SMP:SYNC:STALLED:DONE=".as_slice()
+        } else {
+            b"SMP:SYNC:TIMEOUT:DONE="
+        });
         decimal(
             NOS_SMP_AP_CONTEXTS[..online]
                 .iter()
@@ -1367,7 +1378,11 @@ pub fn start(
         serial::write(b":TOTAL=");
         decimal(ATOMIC_TOTAL.load(Ordering::Acquire));
         serial::write(b"\n");
-        serial::fail(b"SMP_SYNC_TIMEOUT");
+        serial::fail(if matches!(finished, Progress::Stalled) {
+            b"SMP_SYNC_STALLED"
+        } else {
+            b"SMP_SYNC_TIMEOUT"
+        });
     }
     if ATOMIC_TOTAL.load(Ordering::Acquire) != expected || *LOCKED_TOTAL.lock() != expected {
         serial::fail(b"SMP_SYNC_LOST_UPDATE");
@@ -1392,14 +1407,131 @@ fn finished_stress(context: &ApContext) -> bool {
 const IPI_FIXED: u32 = 0x0000_4000;
 const IPI_NMI: u32 = 0x0000_4400;
 
+/// AC-3 (spec 09-5f): per bounded wait the largest part of its limit that any
+/// use consumed, as `kind << 62 | id << 48 | limit << 24 | used` in ms. One
+/// key always carries one limit, so the larger word is the larger use.
+static MARGINS: [AtomicU64; 64] = [const { AtomicU64::new(0) }; 64];
+static MARGIN_LOST: AtomicBool = AtomicBool::new(false);
+/// `id` is the wait's source line here (WAIT, STALL) or the lock level (LOCK).
+const MARGIN_KINDS: [&[u8]; 4] = [b"WAIT:", b"STALL:", b"LOCK:", b"ROUND:"];
+const MARGIN_WAIT: u64 = 0;
+const MARGIN_STALL: u64 = 1;
+const MARGIN_LOCK: u64 = 2;
+const MARGIN_ROUND: u64 = 3;
+
+/// Any CPU, any context: atomics only, and no write unless this use is a new
+/// maximum, so a contended lock path shares the table read-only.
+fn margin(kind: u64, id: u32, limit: u64, used: u64) {
+    let key = kind << 14 | u64::from(id) & 0x3fff;
+    let word = key << 48 | limit.min(0xff_ffff) << 24 | used.min(0xff_ffff);
+    for slot in &MARGINS {
+        let seen = match slot.load(Ordering::Relaxed) {
+            0 => slot
+                .compare_exchange(0, word, Ordering::Relaxed, Ordering::Relaxed)
+                .map_or_else(|other| other, |_| word),
+            seen => seen,
+        };
+        if seen >> 48 == key {
+            if seen < word {
+                slot.fetch_max(word, Ordering::Relaxed);
+            }
+            return;
+        }
+    }
+    // A full table must not look like complete evidence: the host rejects it.
+    MARGIN_LOST.store(true, Ordering::Relaxed);
+}
+
+/// BSP, after the self-tests: `SMP:MARGIN:<kind>:<id>:<used>/<limit>` for
+/// every wait this boot reached. The host records them and judges overruns.
+pub fn margins() {
+    for slot in &MARGINS {
+        let word = slot.load(Ordering::Relaxed);
+        if word == 0 {
+            break;
+        }
+        serial::write(b"SMP:MARGIN:");
+        serial::write(MARGIN_KINDS[(word >> 62) as usize]);
+        decimal(word >> 48 & 0x3fff);
+        serial::write(b":");
+        decimal(word & 0xff_ffff);
+        serial::write(b"/");
+        decimal(word >> 24 & 0xff_ffff);
+        serial::write(b"\n");
+    }
+    if MARGIN_LOST.load(Ordering::Relaxed) {
+        serial::write(b"SMP:MARGIN:OVERFLOW\n");
+    }
+}
+
+/// DG-1: a contended IrqLock wait that ended in time; `limit` is its
+/// `stuck_deadline`.
+pub fn lock_waited(level: u8, limit: u64) {
+    let per_ms = TSC_PER_MS.load(Ordering::Acquire).max(1);
+    let waited = (rdtsc() / per_ms + LOCK_STUCK_MS).saturating_sub(limit / per_ms);
+    margin(MARGIN_LOCK, u32::from(level), LOCK_STUCK_MS, waited);
+}
+
 /// Poll `ready` every millisecond, at most `limit` ms (PIT-bounded).
+#[track_caller]
 fn within_ms(limit: u32, ready: impl Fn() -> bool) -> bool {
-    (0..limit).any(|_| {
+    let used = (0..limit).position(|_| {
         ready() || {
             wait_us(1_000);
             false
         }
-    })
+    });
+    margin(
+        MARGIN_WAIT,
+        Location::caller().line(),
+        u64::from(limit),
+        used.map_or(u64::from(limit), |polls| polls as u64),
+    );
+    used.is_some()
+}
+
+/// A wait whose work is contended lock traffic keeps a bound that host
+/// scheduling cannot stretch into a false verdict: no progress for this long
+/// is a deadlock or a starved CPU (ADR-082).
+const STALL_MS: u32 = 1_000;
+/// Hard bound of such a wait, in multiples of its limit.
+const PROGRESS_CAP: u32 = 10;
+
+enum Progress {
+    Ready,
+    Stalled,
+    Late,
+}
+
+/// Liveness apart from performance: poll `ready` every millisecond while the
+/// monotone `progress` of the waited-for CPUs advanced within the last
+/// STALL_MS, for at most PROGRESS_CAP x `limit` ms. The margin keeps the time
+/// used against `limit`: above it the work was alive but slow, which the host
+/// rejects on every profile it can run in parallel.
+#[track_caller]
+fn within_progress(limit: u32, progress: impl Fn() -> u64, ready: impl Fn() -> bool) -> Progress {
+    let line = Location::caller().line();
+    let (mut seen, mut used, mut stalled, mut worst) = (progress(), 0, 0, 0);
+    let outcome = loop {
+        if ready() {
+            break Progress::Ready;
+        }
+        if stalled == STALL_MS {
+            break Progress::Stalled;
+        }
+        if used == limit * PROGRESS_CAP {
+            break Progress::Late;
+        }
+        wait_us(1_000);
+        used += 1;
+        let now = progress();
+        stalled = if now == seen { stalled + 1 } else { 0 };
+        seen = now;
+        worst = worst.max(stalled);
+    };
+    margin(MARGIN_WAIT, line, u64::from(limit), u64::from(used));
+    margin(MARGIN_STALL, line, u64::from(STALL_MS), u64::from(worst));
+    outcome
 }
 
 /// A CPU that cannot take a directed interrupt cannot join any later
@@ -1811,15 +1943,20 @@ fn round(root: u64, start: u64, pages: u64, targets: u64) -> Result<(), Quaranti
     // number of CPUs.
     let end = rdtsc()
         .saturating_add(u64::from(SHOOTDOWN_DEADLINE_MS) * TSC_PER_MS.load(Ordering::Acquire));
+    let limit = u64::from(SHOOTDOWN_DEADLINE_MS);
     loop {
         if let Some(cpu) = cpus()
             .find(|&cpu| local_of_cpu(cpu).shootdown_ack.load(Ordering::Acquire) != generation)
         {
             if rdtsc() > end {
+                margin(MARGIN_ROUND, 0, limit, limit);
                 return Err(Quarantined(apic_of_cpu(cpu)));
             }
             spin_loop();
         } else {
+            let per_ms = TSC_PER_MS.load(Ordering::Acquire).max(1);
+            let left = end.saturating_sub(rdtsc()) / per_ms;
+            margin(MARGIN_ROUND, 0, limit, limit.saturating_sub(left));
             return Ok(());
         }
     }
@@ -2526,15 +2663,25 @@ fn rdtsc() -> u64 {
     u64::from(high) << 32 | u64::from(low)
 }
 
+/// AC-3: the part of a TSC-bounded wait that was used when it ended.
+fn tsc_margin(line: u32, ms: u64, end: u64, done: bool) -> bool {
+    let per_ms = TSC_PER_MS.load(Ordering::Acquire).max(1);
+    let left = end.saturating_sub(rdtsc()) / per_ms;
+    margin(MARGIN_WAIT, line, ms, ms.saturating_sub(left));
+    done
+}
+
 /// Poll `ready` on any CPU for at most `ms` milliseconds of calibrated TSC.
+#[track_caller]
 fn within_tsc(ms: u64, ready: impl Fn() -> bool) -> bool {
+    let line = Location::caller().line();
     let end = rdtsc().saturating_add(ms * TSC_PER_MS.load(Ordering::Acquire));
     loop {
         if ready() {
-            return true;
+            return tsc_margin(line, ms, end, true);
         }
         if rdtsc() > end {
-            return ready();
+            return tsc_margin(line, ms, end, ready());
         }
         spin_loop();
     }
@@ -2542,14 +2689,16 @@ fn within_tsc(ms: u64, ready: impl Fn() -> bool) -> bool {
 
 /// BSP idle context: idle (BT-3) until `ready`, at most `ms` ms of TSC. The
 /// clock (IRQ0, ~1 kHz) ends every `hlt`, so the bound is always checked.
+#[track_caller]
 fn idle_until(ms: u64, ready: impl Fn() -> bool) -> bool {
+    let line = Location::caller().line();
     let end = rdtsc().saturating_add(ms * TSC_PER_MS.load(Ordering::Acquire));
     loop {
         if ready() {
-            return true;
+            return tsc_margin(line, ms, end, true);
         }
         if rdtsc() > end {
-            return ready();
+            return tsc_margin(line, ms, end, ready());
         }
         idle_halt();
     }

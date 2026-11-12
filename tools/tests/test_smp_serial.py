@@ -692,6 +692,37 @@ class SmpSerialOracle(unittest.TestCase):
             with self.subTest(case=case), self.assertRaises(ValueError):
                 evaluate(case, text, 33, False)
 
+    def test_deadline_margins_are_recorded_and_an_overrun_needs_an_oversubscribed_host(self):
+        """AC-3: margin lines leave the sequence and enter the report; a wait above its
+        limit passes only for multi-thread TCG with more vCPUs than host CPUs."""
+        def with_margins(cpus, *margins):
+            lines = online(cpus)
+            return transcript(lines[:-2] + list(margins) + END)
+        report = evaluate("four", with_margins(4, "SMP:MARGIN:WAIT:1360:12/2000",
+                                               "SMP:MARGIN:STALL:1360:3/1000",
+                                               "SMP:MARGIN:LOCK:10:6/400",
+                                               "SMP:MARGIN:ROUND:0:1/100"), 33, False, host_cpus=4)
+        margins = {item["name"]: item for item in report["deadline_margins"]}
+        self.assertEqual(margins["wait_1360"]["measured_over_deadline"], 12 / 2000)
+        self.assertEqual(set(margins), {"bsp_idle_wake", "wait_1360", "stall_1360", "lock_10", "round_0"})
+        slow = "SMP:MARGIN:WAIT:1360:2600/2000"
+        self.assertEqual(evaluate("eight", with_margins(8, slow), 33, False, host_cpus=4)["online"], 8)
+        for case, cpus, host, margin in (
+            ("eight", 8, 8, slow),                             # the host can run eight in parallel
+            ("four", 4, 4, slow),
+            ("two-single", 2, 1, slow),                        # single-thread TCG is never oversubscribed
+            ("eight", 8, 4, "SMP:MARGIN:STALL:1360:1001/1000"),  # only a WAIT may overrun
+            ("eight", 8, 4, "SMP:MARGIN:LOCK:10:401/400"),
+            ("four", 4, 4, "SMP:MARGIN:WAIT:1360:1/0"),
+            ("four", 4, 4, "SMP:MARGIN:OVERFLOW"),
+            ("four", 4, 4, "SMP:MARGIN:WAIT:1360:1/2000:x"),
+        ):
+            with self.subTest(case=case, host=host, margin=margin), self.assertRaises(ValueError):
+                evaluate(case, with_margins(cpus, margin), 33, False, host_cpus=host)
+        with self.assertRaises(ValueError):                    # one key, one line
+            evaluate("four", with_margins(4, "SMP:MARGIN:LOCK:10:6/400", "SMP:MARGIN:LOCK:10:7/400"),
+                     33, False, host_cpus=4)
+
     def test_stuck_lock_is_reported_in_its_profile_only(self):
         """F5 (DG-1): the stuck marker ends its own profile and fails all others."""
         for case, text in (

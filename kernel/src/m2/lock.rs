@@ -65,6 +65,7 @@ mod smp {
     pub fn past(_: u64) -> bool {
         false
     }
+    pub fn lock_waited(_: u8, _: u64) {}
     pub fn lock_stuck(_: u8) -> ! {
         crate::serial::fail(b"LOCK_STUCK")
     }
@@ -249,13 +250,18 @@ impl<T> IrqLock<T> {
         let outer = smp::lock_transit(self.id());
         let guard = if cfg!(feature = "native-smp") {
             let mut deadline = None;
-            self.inner.lock_with(|| {
+            let guard = self.inner.lock_with(|| {
                 relax();
                 let limit = *deadline.get_or_insert_with(smp::stuck_deadline);
                 if smp::past(limit) {
                     smp::lock_stuck(self.level);
                 }
-            })
+            });
+            // AC-3: the wait that just ended, against the same DG-1 limit.
+            if let Some(limit) = deadline {
+                smp::lock_waited(self.level, limit);
+            }
+            guard
         } else {
             self.inner.lock_with(relax)
         };
