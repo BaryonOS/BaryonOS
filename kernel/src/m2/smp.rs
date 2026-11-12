@@ -736,7 +736,8 @@ const IPI_STARTUP: u32 = 0x0000_4600;
 
 fn inb(port: u16) -> u8 {
     let value: u8;
-    // SAFETY: PIT/port-B access by the sole BSP owner in this profile.
+    // SAFETY: PIT/port-B access and the read-only PIC IRR (port 0x20) by the
+    // sole BSP owner in this profile.
     unsafe {
         asm!("in al, dx", in("dx") port, out("al") value, options(nomem, nostack));
     }
@@ -778,7 +779,8 @@ fn wait_us(us: u32) -> bool {
 const ITERATIONS: u64 = 20_000;
 /// Time the APs get for the sync stress and their serial lines after the
 /// BSP's own share. ADR-070 only asks for a bounded test; 2 s is the value in
-/// use since step 1 and is now the logged performance figure of the wait.
+/// use since step 1 and stays the bound: the guest reports the time used and
+/// the host rejects 2 s or more on every profile (ADR-082).
 const SYNC_MS: u32 = 2_000;
 static ATOMIC_TOTAL: AtomicU64 = AtomicU64::new(0);
 static LOCKED_TOTAL: TicketLock<u64> = TicketLock::new(0);
@@ -1368,7 +1370,7 @@ pub fn start(
     GO.store(true, Ordering::Release);
     stress();
     serial_lines();
-    let finished = within_progress(
+    let (finished, waited_ms, quiet_ms) = within_progress(
         SYNC_MS,
         || ATOMIC_TOTAL.load(Ordering::Relaxed) + SERIAL_DONE.load(Ordering::Relaxed),
         || NOS_SMP_AP_CONTEXTS[..online].iter().all(finished_stress),
@@ -1420,6 +1422,12 @@ pub fn start(
     }
     // Every CPU finished its lines (DONE); wholeness is the host's check.
     serial::write(b"SMP:SERIAL:PASS\n");
+    // The wait was alive; whether it was fast enough is the host's verdict.
+    serial::write(b"SMP:SYNC:WAIT_MS=");
+    decimal(u64::from(waited_ms));
+    serial::write(b":STALL_MS=");
+    decimal(u64::from(quiet_ms));
+    serial::write(b"\n");
     serial::write(b"SMP:SYNC:PASS:CPUS=");
     decimal(online as u64 + 1);
     serial::write(b"\n");
@@ -1440,12 +1448,11 @@ const IPI_NMI: u32 = 0x0000_4400;
 /// key always carries one limit, so the larger word is the larger use.
 static MARGINS: [AtomicU64; 64] = [const { AtomicU64::new(0) }; 64];
 static MARGIN_LOST: AtomicBool = AtomicBool::new(false);
-/// `id` is the wait's source line here (WAIT, STALL) or the lock level (LOCK).
-const MARGIN_KINDS: [&[u8]; 4] = [b"WAIT:", b"STALL:", b"LOCK:", b"ROUND:"];
+/// `id` is the wait's source line here (WAIT) or the lock level (LOCK).
+const MARGIN_KINDS: [&[u8]; 3] = [b"WAIT:", b"LOCK:", b"ROUND:"];
 const MARGIN_WAIT: u64 = 0;
-const MARGIN_STALL: u64 = 1;
-const MARGIN_LOCK: u64 = 2;
-const MARGIN_ROUND: u64 = 3;
+const MARGIN_LOCK: u64 = 1;
+const MARGIN_ROUND: u64 = 2;
 
 /// Any CPU, any context: atomics only, and no write unless this use is a new
 /// maximum, so a contended lock path shares the table read-only.
@@ -1471,7 +1478,7 @@ fn margin(kind: u64, id: u32, limit: u64, used: u64) {
 }
 
 /// BSP, after the self-tests: `SMP:MARGIN:<kind>:<id>:<used>/<limit>` for
-/// every wait this boot reached. The host records them and judges overruns.
+/// every wait this boot reached. The host records them.
 pub fn margins() {
     for slot in &MARGINS {
         let word = slot.load(Ordering::Relaxed);
@@ -1518,12 +1525,10 @@ fn within_ms(limit: u32, ready: impl Fn() -> bool) -> bool {
     used.is_some()
 }
 
-/// A wait whose work is contended lock traffic keeps a bound that host
-/// scheduling cannot stretch into a false verdict: no progress for this long
-/// is a deadlock or a starved CPU (ADR-082).
-const STALL_MS: u32 = 1_000;
-/// Hard bound of such a wait, in multiples of its limit.
+/// Hard bound of the sync wait, in multiples of its limit.
 const PROGRESS_CAP: u32 = 10;
+/// The sync wait polls every 10 ms, as it has since step 1.
+const PROGRESS_POLL_MS: u32 = 10;
 
 enum Progress {
     Ready,
@@ -1531,35 +1536,39 @@ enum Progress {
     Late,
 }
 
-/// Liveness apart from performance: poll `ready` every millisecond while the
-/// monotone `progress` of the waited-for CPUs advanced within the last
-/// STALL_MS, for at most PROGRESS_CAP x `limit` ms. The margin keeps the time
-/// used against `limit`: above it the work was alive but slow, which the host
-/// rejects on every profile it can run in parallel.
-#[track_caller]
-fn within_progress(limit: u32, progress: impl Fn() -> u64, ready: impl Fn() -> bool) -> Progress {
-    let line = Location::caller().line();
+/// Liveness apart from performance (ADR-082): poll `ready` while the monotone
+/// `progress` of the waited-for CPUs advanced within the last `limit` ms, for
+/// at most PROGRESS_CAP x `limit` ms. No progress for `limit` ms is a deadlock
+/// or a starved CPU. Also returns the ms waited and the longest run without
+/// progress: `limit` or more was alive but slow, which the host rejects.
+fn within_progress(
+    limit: u32,
+    progress: impl Fn() -> u64,
+    ready: impl Fn() -> bool,
+) -> (Progress, u32, u32) {
     let (mut seen, mut used, mut stalled, mut worst) = (progress(), 0, 0, 0);
     let outcome = loop {
         if ready() {
             break Progress::Ready;
         }
-        if stalled == STALL_MS {
+        if stalled >= limit {
             break Progress::Stalled;
         }
-        if used == limit * PROGRESS_CAP {
+        if used >= limit * PROGRESS_CAP {
             break Progress::Late;
         }
-        wait_us(1_000);
-        used += 1;
+        wait_us(PROGRESS_POLL_MS * 1_000);
+        used += PROGRESS_POLL_MS;
         let now = progress();
-        stalled = if now == seen { stalled + 1 } else { 0 };
+        stalled = if now == seen {
+            stalled + PROGRESS_POLL_MS
+        } else {
+            0
+        };
         seen = now;
         worst = worst.max(stalled);
     };
-    margin(MARGIN_WAIT, line, u64::from(limit), u64::from(used));
-    margin(MARGIN_STALL, line, u64::from(STALL_MS), u64::from(worst));
-    outcome
+    (outcome, used, worst)
 }
 
 /// A CPU that cannot take a directed interrupt cannot join any later
@@ -2910,7 +2919,23 @@ struct ClockEdges {
     halted: u64,
     span: u64,
     counted: u64,
+    /// `bsp_other_entries` at the last sample.
+    others: u64,
     blind: bool,
+}
+
+/// Interrupts the BSP handled that are not IRQ0: 0xf0, 0xe0, 0xd0 and 0xe8
+/// each count themselves on entry; the spurious stub is a bare `iretq`.
+fn bsp_other_entries() -> u64 {
+    [
+        &BSP_LOCAL.ipis,
+        &BSP_LOCAL.shootdowns,
+        &BSP_LOCAL.tick_count,
+        &BSP_LOCAL.resched_count,
+    ]
+    .iter()
+    .map(|count| u64::from(count.load(Ordering::Relaxed)))
+    .sum()
 }
 
 /// The longest span without IRQ0 that still counts as receptive: 1/4 period.
@@ -2927,6 +2952,7 @@ impl ClockEdges {
             halted: 0,
             span: 0,
             counted: 0,
+            others: 0,
             blind: false,
         }
     }
@@ -2947,6 +2973,7 @@ impl ClockEdges {
 
     /// After a wake, IF=0: `ticks` and `entry` are the stub's count and TSC.
     fn sample(&mut self, ticks: u64, entry: u64) {
+        let others = bsp_other_entries();
         let Some((tsc, count, pending)) = self.latch() else {
             self.blind = true;
             return;
@@ -2963,7 +2990,7 @@ impl ClockEdges {
         let edge = tsc.wrapping_sub((divisor - count) * self.period / divisor);
         if self.edge == 0 {
             (self.edge, self.books) = (edge, clock::Edges::new(pending));
-            (self.ticks, self.entry) = (ticks, entry);
+            (self.ticks, self.entry, self.others) = (ticks, entry, others);
             return;
         }
         // Whole periods between two edges; exact while the TSC calibration
@@ -2977,14 +3004,19 @@ impl ClockEdges {
             periods,
             counted: ticks - self.ticks,
             pending,
-            // One IRQ0 woke this sample, and both spans around its halt were short.
             receptive: !self.blind
-                && ticks == self.ticks + 1
-                && self.halted.wrapping_sub(self.entry) < limit
-                && tsc.wrapping_sub(entry) < limit,
+                && clock::receptive(
+                    ticks - self.ticks,
+                    others.wrapping_sub(self.others),
+                    [
+                        self.halted.wrapping_sub(self.entry),
+                        tsc.wrapping_sub(entry),
+                    ],
+                    limit,
+                ),
         });
         self.counted += ticks - self.ticks;
-        (self.ticks, self.entry, self.blind) = (ticks, entry, false);
+        (self.ticks, self.entry, self.others, self.blind) = (ticks, entry, others, false);
     }
 
     /// Just before `sti; hlt`.

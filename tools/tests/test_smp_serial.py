@@ -15,6 +15,7 @@ PREFIX = ("BdsDxe: starting Boot0002\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS
           "KS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\n"
           "KS-03:PASS\n")
 END = ["M2:PASS", "M1:PASS"]
+SYNC_WAIT = "SMP:SYNC:WAIT_MS=10:STALL_MS=0"
 
 
 def fixture(cpus):
@@ -42,7 +43,7 @@ def started(cpus):
     lines += [f"SMP:AP:{apic}:ONLINE" for apic in range(1, count)]
     if cpus > MAX_CPUS:
         lines.append(f"SMP:SKIPPED:CAPACITY={cpus - MAX_CPUS}")
-    return lines + [f"SMP:ONLINE:{count}/{cpus}", RATIO, "SMP:SERIAL:PASS",
+    return lines + [f"SMP:ONLINE:{count}/{cpus}", RATIO, "SMP:SERIAL:PASS", SYNC_WAIT,
                     f"SMP:SYNC:PASS:CPUS={count}"]
 
 
@@ -111,7 +112,8 @@ def m3(cpus, fault=False, ipc=False, migrate=False):
 
 def failed(status):
     return ["SMP:MADT:CPUS=4:DISABLED=0:HOTPLUG=0", f"SMP:AP:1:{status}",
-            "SMP:BRINGUP:STOPPED", "SMP:ONLINE:1/4", RATIO, "SMP:SERIAL:PASS", "SMP:SYNC:PASS:CPUS=1",
+            "SMP:BRINGUP:STOPPED", "SMP:ONLINE:1/4", RATIO, "SMP:SERIAL:PASS", SYNC_WAIT,
+            "SMP:SYNC:PASS:CPUS=1",
             "SMP:IPI:PASS:ROUNDS=3:CPUS=1", "SMP:SHOOTDOWN:PASS:CPUS=1",
             "SMP:SHOOTDOWN:VISIBLE:CPUS=1", "SMP:PREEMPT:PASS:CPUS=1",
             "SMP:SPIN:PASS:CPUS=1"] + bsp(1) + ["SMP:SCHED:PASS:CPUS=1"] + wake_kill(1) + [
@@ -156,7 +158,7 @@ LOCK_STUCK = started(2) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=2", "SMP:LOCK:STUCK:10:CP
 # ADR-082 fixtures: the boot stops inside the sync phase, so the serial fixture
 # lines of the CPUs that finished are written out here.
 def sync_stopped(writers, terminal):
-    return started(4)[:-2] + [f"SMP:SER:{cpu}:{seq}" for seq in range(SERIAL_LINES)
+    return started(4)[:-3] + [f"SMP:SER:{cpu}:{seq}" for seq in range(SERIAL_LINES)
                               for cpu in writers] + [terminal]
 
 
@@ -712,36 +714,50 @@ class SmpSerialOracle(unittest.TestCase):
             with self.subTest(case=case), self.assertRaises(ValueError):
                 evaluate(case, text, 33, False)
 
-    def test_deadline_margins_are_recorded_and_an_overrun_needs_an_oversubscribed_host(self):
-        """AC-3: margin lines leave the sequence and enter the report; a wait above its
-        limit passes only for multi-thread TCG with more vCPUs than host CPUs."""
-        def with_margins(cpus, *margins):
-            lines = online(cpus)
-            return transcript(lines[:-2] + list(margins) + END)
-        report = evaluate("four", with_margins(4, "SMP:MARGIN:WAIT:1360:12/2000",
-                                               "SMP:MARGIN:STALL:1360:3/1000",
+    def test_deadline_margins_are_recorded_and_carry_no_verdict(self):
+        """AC-3: margin lines leave the sequence and enter the report. Each of these
+        waits fails in the guest at its limit, so a line is only checked for shape."""
+        def with_margins(*margins):
+            return transcript(online(4)[:-2] + list(margins) + END)
+        report = evaluate("four", with_margins("SMP:MARGIN:WAIT:1360:12/2000",
                                                "SMP:MARGIN:LOCK:10:6/400",
-                                               "SMP:MARGIN:ROUND:0:1/100"), 33, False, host_cpus=4)
-        self.assertEqual(report["guest_waits"], {"wait_1360": [12, 2000], "stall_1360": [3, 1000],
-                                                 "lock_10": [6, 400], "round_0": [1, 100]})
+                                               "SMP:MARGIN:LOCK:70:431/400",  # waiter descheduled
+                                               "SMP:MARGIN:ROUND:0:1/100"), 33, False)
+        self.assertEqual(report["guest_waits"], {"sync_wait": [10, 2000], "sync_stall": [0, 2000],
+                                                 "wait_1360": [12, 2000], "lock_10": [6, 400],
+                                                 "lock_70": [431, 400], "round_0": [1, 100]})
         self.assertEqual([item["name"] for item in report["deadline_margins"]], ["bsp_idle_wake"])
-        slow = "SMP:MARGIN:WAIT:1360:2600/2000"
-        self.assertEqual(evaluate("eight", with_margins(8, slow), 33, False, host_cpus=4)["online"], 8)
-        for case, cpus, host, margin in (
-            ("eight", 8, 8, slow),                             # the host can run eight in parallel
-            ("four", 4, 4, slow),
-            ("two-single", 2, 1, slow),                        # single-thread TCG is never oversubscribed
-            ("eight", 8, 4, "SMP:MARGIN:STALL:1360:1001/1000"),  # only a WAIT may overrun
-            ("eight", 8, 4, "SMP:MARGIN:LOCK:10:401/400"),
-            ("four", 4, 4, "SMP:MARGIN:WAIT:1360:1/0"),
-            ("four", 4, 4, "SMP:MARGIN:OVERFLOW"),
-            ("four", 4, 4, "SMP:MARGIN:WAIT:1360:1/2000:x"),
+        for margin in (
+            ("SMP:MARGIN:WAIT:1360:2001/2000",),               # a wait cannot pass above its limit
+            ("SMP:MARGIN:ROUND:0:101/100",),
+            ("SMP:MARGIN:STALL:1360:3/1000",),                 # no such kind
+            ("SMP:MARGIN:WAIT:1360:1/0",),
+            ("SMP:MARGIN:OVERFLOW",),
+            ("SMP:MARGIN:WAIT:1360:1/2000:x",),
+            ("SMP:MARGIN:LOCK:10:6/400", "SMP:MARGIN:LOCK:10:7/400"),  # one key, one line
         ):
-            with self.subTest(case=case, host=host, margin=margin), self.assertRaises(ValueError):
-                evaluate(case, with_margins(cpus, margin), 33, False, host_cpus=host)
-        with self.assertRaises(ValueError):                    # one key, one line
-            evaluate("four", with_margins(4, "SMP:MARGIN:LOCK:10:6/400", "SMP:MARGIN:LOCK:10:7/400"),
-                     33, False, host_cpus=4)
+            with self.subTest(margin=margin), self.assertRaises(ValueError):
+                evaluate("four", with_margins(*margin), 33, False)
+
+    def test_sync_wait_is_required_and_bounded_on_every_profile(self):
+        """ADR-082: the guest only reports how long the sync wait took; 2 s stays the
+        bound, pinned here, also where the host cannot run the vCPUs in parallel."""
+        for case, cpus in (("four", 4), ("eight", 8), ("nine-capacity", 9), ("two-single", 2)):
+            good = transcript(online(cpus))
+            for wait in ("SMP:SYNC:WAIT_MS=0:STALL_MS=0", "SMP:SYNC:WAIT_MS=1990:STALL_MS=1990"):
+                report = evaluate(case, good.replace(SYNC_WAIT, wait), 33, False)
+                self.assertEqual(report["guest_waits"]["sync_wait"][1], 2000)
+            for bad in (
+                good.replace(SYNC_WAIT + "\n", ""),                              # the line is not optional
+                good.replace(SYNC_WAIT, "SMP:SYNC:WAIT_MS=2000:STALL_MS=0"),      # the 201st poll
+                good.replace(SYNC_WAIT, "SMP:SYNC:WAIT_MS=19990:STALL_MS=30"),    # alive but slow
+                good.replace(SYNC_WAIT, "SMP:SYNC:WAIT_MS=10:STALL_MS=20"),
+                good.replace(SYNC_WAIT, "SMP:SYNC:WAIT_MS=10:STALL_MS=0:LIMIT=9999"),
+                good.replace(SYNC_WAIT, SYNC_WAIT + "\n" + SYNC_WAIT),
+                good.replace("SMP:SERIAL:PASS\n" + SYNC_WAIT, SYNC_WAIT + "\nSMP:SERIAL:PASS"),
+            ):
+                with self.subTest(case=case, bad=bad[-400:]), self.assertRaises(ValueError):
+                    evaluate(case, bad, 33, False)
 
     def test_sync_and_clock_fixtures_stop_on_their_own_marker_only(self):
         """ADR-082: each injected defect ends its own profile with its exact marker and

@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import json
 import math
-import os
 import re
 import struct
 from common import BUILD, save_json, sha256, sha256_bytes, source_hash, without_acpi_diagnostics
@@ -159,9 +158,18 @@ IPC_TIMEOUT_S = 660
 # Audit F7 (DG-2): every CPU that ran the sync test writes these lines at once,
 # in fragments; each must arrive whole, in order per CPU, before SERIAL_PASS.
 # AC-3 (spec 09-5f): the largest part of its limit each guest wait used, in ms.
-# WAIT and STALL carry the wait's line in kernel/src/m2/smp.rs, LOCK the lock
-# level (DG-1 limit) and ROUND the shootdown generation.
-MARGIN = re.compile(r"SMP:MARGIN:(WAIT|STALL|LOCK|ROUND):([0-9]{1,5}):([0-9]{1,8})/([0-9]{1,8})")
+# WAIT carries the wait's line in kernel/src/m2/smp.rs, LOCK the lock level
+# (DG-1 limit); ROUND is the shootdown round (always id 0). Records only: each
+# of these waits fails in the guest at its limit.
+MARGIN = re.compile(r"SMP:MARGIN:(WAIT|LOCK|ROUND):([0-9]{1,5}):([0-9]{1,8})/([0-9]{1,8})")
+
+# ADR-082: the sync wait is judged apart from its liveness. The guest polls every
+# 10 ms and reports the ms it waited and the longest run without progress; it
+# fails itself only on a stall or at ten times the limit. The limit in use since
+# step 1 (ready within 200 polls) is pinned here and holds for every profile.
+SYNC_WAIT = re.compile(r"SMP:SYNC:WAIT_MS=([0-9]{1,5}):STALL_MS=([0-9]{1,5})")
+SYNC_WAITED = "SMP:SYNC:WAIT_MS=*:STALL_MS=*"
+SYNC_LIMIT_MS = 2_000
 
 # Idle clock phase: counted IRQ0s, PIT periods whose edge never arrived (LOST), the
 # part of those lost while the BSP was halted with IF=1 (HOST), counted IRQ0s beyond
@@ -248,7 +256,7 @@ def expected_smp(case: str) -> list[str]:
         (audit F7) ends before sync."""
         bw = "SKIPPED" if online == 1 else "PASS"
         icr = f"SMP:ICR:PASS:ROUNDS={ICR_ROUNDS}" if online >= 3 else "SMP:ICR:SKIPPED"
-        return [RATIO, SERIAL_PASS,
+        return [RATIO, SERIAL_PASS, SYNC_WAITED,
                 f"SMP:SYNC:PASS:CPUS={online}",
                 f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={online}",
                 f"SMP:SHOOTDOWN:PASS:CPUS={online}",
@@ -343,13 +351,13 @@ def expected_smp(case: str) -> list[str]:
         return lines + settled(started)[:-2] + [TERMINAL[outcome]]
     if outcome == "lock-stuck":
         # Audit F5 (DG-1): the AP waiting for the BSP's lock reports it, release build.
-        return lines + settled(started)[:4] + [TERMINAL[outcome]]
+        return lines + settled(started)[:5] + [TERMINAL[outcome]]
     if outcome in SYNC_WRITERS:
         return lines + [RATIO, TERMINAL[outcome]]
     if outcome in ("clock-masked", "clock-divisor"):
         done = settled(started)
         return lines + done[:done.index(f"SMP:CLOCK:PASS:CPUS={started}")] + [TERMINAL[outcome]]
-    lines += [RATIO, SERIAL_PASS, f"SMP:SYNC:PASS:CPUS={started}"]
+    lines += [RATIO, SERIAL_PASS, SYNC_WAITED, f"SMP:SYNC:PASS:CPUS={started}"]
     ipi_pass = f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}"
     if outcome == "held-across-switch":
         # Step 5c without deferral: the first tick in a lock wait switches threads.
@@ -489,18 +497,9 @@ def unlock_terminal(case: str, stdout: str) -> str:
     return stdout
 
 
-def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool,
-             host_cpus: int | None = None) -> dict:
-    """Independent serial oracle: the exact SMP sequence after KS-03.
-
-    A progress-bounded guest wait may use more than its limit and still be
-    alive (ADR-082). That overrun is accepted only when the host cannot run the
-    guest's vCPUs in parallel: multi-thread TCG with more vCPUs than host CPUs.
-    """
+def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict:
+    """Independent serial oracle: the exact SMP sequence after KS-03."""
     profile, cpus, threads, outcome = CASES[case]
-    if host_cpus is None:
-        host_cpus = len(os.sched_getaffinity(0))
-    oversubscribed = threads == "multi" and cpus > host_cpus
     terminal = outcome in TERMINAL
     end = required_end(outcome)
     stdout = unlock_terminal(case, stdout)
@@ -540,10 +539,10 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool,
         if margin:
             name = f"{margin[1].lower()}_{margin[2]}"
             used, limit = int(margin[3]), int(margin[4])
-            if limit == 0 or name in guest_waits:
+            # Only a LOCK wait can end above its limit and pass in the guest: the
+            # waiter's own vCPU was descheduled while the lock was handed to it.
+            if limit == 0 or name in guest_waits or used > limit and margin[1] != "LOCK":
                 raise ValueError("Malformed or repeated deadline margin")
-            if used > limit and not (margin[1] == "WAIT" and oversubscribed):
-                raise ValueError(f"Guest wait {name} used {used} of {limit} ms")
             # [used, limit] in ms: fifty boots must stay inside the 1 MiB evidence file limit.
             guest_waits[name] = [used, limit]
             continue
@@ -555,6 +554,14 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool,
             clock_edges = {"ticks": ticks, "lost": lost, "host": host, "extra": extra,
                            "span_us": span_us, "median_us": us, "own_median_us": own_us}
             continue
+        waited = SYNC_WAIT.fullmatch(line)
+        if waited:
+            used, quiet = int(waited[1]), int(waited[2])
+            if used >= SYNC_LIMIT_MS or quiet > used or "sync_wait" in guest_waits:
+                raise ValueError(f"Sync wait used {used} of {SYNC_LIMIT_MS} ms (stalled {quiet})")
+            guest_waits["sync_wait"] = [used, SYNC_LIMIT_MS]
+            guest_waits["sync_stall"] = [quiet, SYNC_LIMIT_MS]
+            line = SYNC_WAITED
         cr4 = re.fullmatch(r"SMP:GS:CR4=([0-9]{1,20})", line)
         if cr4 and int(cr4[1]) & (1 << 16) == 0:
             line = GS_CR4

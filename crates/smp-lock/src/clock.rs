@@ -18,6 +18,15 @@ pub struct Sample {
     pub receptive: bool,
 }
 
+/// Whether a lost edge of this sample is the host's: exactly one IRQ0 woke
+/// the CPU, it handled no other interrupt since the previous sample, and each
+/// span in which it could not take IRQ0 stayed under `limit`. Then the CPU sat
+/// in `sti; hlt` for the rest, and two edges can only have merged because the
+/// emulator presented or delivered them late.
+pub fn receptive(counted: u64, others: u64, spans: [u64; 2], limit: u64) -> bool {
+    counted == 1 && others == 0 && spans.iter().all(|span| *span < limit)
+}
+
 pub struct Edges {
     pending: bool,
     /// What the previous sample booked as missing and how: undone for each
@@ -105,6 +114,19 @@ mod tests {
             run(true, &[(0, 1, false, true), (1, 1, false, true)]),
             (0, 0, 0)
         );
+    }
+
+    #[test]
+    fn only_a_halted_cpu_with_short_spans_is_receptive() {
+        assert!(receptive(1, 0, [10, 20], 250));
+        // No IRQ0 or several since the previous sample.
+        assert!(!receptive(0, 0, [10, 20], 250));
+        assert!(!receptive(2, 0, [10, 20], 250));
+        // Another handler ran while the CPU should have been halted.
+        assert!(!receptive(1, 1, [10, 20], 250));
+        // IRQ0 could not be taken before the halt or after the wake.
+        assert!(!receptive(1, 0, [250, 20], 250));
+        assert!(!receptive(1, 0, [10, 250], 250));
     }
 
     #[test]
