@@ -4,15 +4,15 @@
 
 **Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Tested kernel and tool sources are those of `2543861`; the commit carrying this entry adds documentation and diagnostic evidence only.
 
-**Run [43187501026](https://github.com/BaryonOS/BaryonOS/actions/runs/43187501026) on `2543861` (rejected, not cancelled, not retried):** at 10:42 UTC 69 jobs passed, two failed, five were still running. `nine-capacity` r029: `SMP:SYNC:TIMEOUT:DONE=0:TOTAL=157489` (2 s wait). `m3-load-two` r003 and r006: idle `SMP_CLOCK_DRIFT` (+1.08 %, +1.27 %) with two guest vCPUs on a four-vCPU runner. `eight`, `resched-deaf`, `quarantine-sched-busy` and all soak shards pass 50/50. Details: [evidence README](verification/k06-smp-sched/README.md).
+**Run [43187501026](https://github.com/BaryonOS/BaryonOS/actions/runs/43187501026) on `2543861` (rejected, not cancelled, not retried):** final state 81 jobs: 74 passed, three failed (two case shards and the aggregate), four skipped including the final gate; receipt [incident-43187501026.json](verification/k06-smp-sched/incident-43187501026.json). `nine-capacity` r029: `SMP:SYNC:TIMEOUT:DONE=0:TOTAL=157489` (2 s wait). `m3-load-two` r003 and r006: idle `SMP_CLOCK_DRIFT` (+1.08 %, +1.27 %) with two guest vCPUs on a four-vCPU runner. `eight`, `resched-deaf`, `quarantine-sched-busy` and all soak shards pass 50/50. Both IPC cases pass inside the 264 s bound, but about 1.7 times slower than in run 43125206729 (at most 208.7 s and 144.2 s per boot). Separately, `native-window-session (2)` on `ab4a857` hit its shared 1800 s deadline (docs-only commit; not rerun). Details: [evidence README](verification/k06-smp-sched/README.md).
 
 **Investigation (project owner's instruction; diagnostic, QEMU 8.2.2, 4 host CPUs, not acceptance):** [TIMING-INVESTIGATION.md](verification/k06-smp-sched/TIMING-INVESTIGATION.md). 143 boots at 4, 8 and 9 guest vCPUs on 4 and 2 host CPUs. No kernel or synchronisation defect demonstrated: exact totals in every completed boot, progress in every 50 ms window of 24 traced boots. Sync and scratch tails appear only when the guest oversubscribes the host (FIFO ticket-lock handoff to a descheduled vCPU thread); idle clock drift is one-sided and also occurs without oversubscription (lost PIT edges in QEMU).
 
 **Open decision:** ADR-082 in [DECISIONS.md](DECISIONS.md) is a proposal with three parts (AC-3 margin logging; progress-bounded liveness with a hard cap and a separate performance gate; one-sided clock precision) and ten negative regression cases. **Nothing is implemented and no deadline or contract is changed** until the project owner decides per part.
 
-**Not done:** the final job list of run 43187501026 and its incident receipt (five jobs were still running); hosted distributions; any measurement on QEMU 10.2.1; implementation of any ADR-082 part.
+**Not done:** hosted distributions; any measurement on QEMU 10.2.1; implementation of any ADR-082 part.
 
-**Next:** record the final state of run 43187501026 in `incident-43187501026.json`; after the project owner's decision, implement the approved parts with their negative cases, verify with targeted series, and only then dispatch one full matrix (`native-smp.yml`, `full_matrix=true`). Do not start another full matrix before that, and do not merge PR #317.
+**Next:** after the project owner's decision on ADR-082, implement the approved parts with their negative cases, verify with targeted series, and only then dispatch one full matrix (`native-smp.yml`, `full_matrix=true`). Do not start another full matrix before that, and do not merge PR #317.
 
 **Progress:** 39/100 → 39/100.
 
