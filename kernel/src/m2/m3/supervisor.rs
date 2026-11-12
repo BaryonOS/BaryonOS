@@ -65,6 +65,9 @@ struct Evidence {
     last_waiting_slot: Option<usize>,
     #[cfg(feature = "test-supervisor-wait")]
     first_waiting_kill_tick: u64,
+    /// K06 5d-2 §4: home CPUs of spawned services (the spread across CPUs).
+    #[cfg(feature = "native-smp-m3")]
+    homes: u64,
 }
 static mut EVIDENCE: Evidence = Evidence {
     spawns: 0,
@@ -95,6 +98,8 @@ static mut EVIDENCE: Evidence = Evidence {
     last_waiting_slot: None,
     #[cfg(feature = "test-supervisor-wait")]
     first_waiting_kill_tick: 0,
+    #[cfg(feature = "native-smp-m3")]
+    homes: 0,
 };
 fn evidence() -> &'static mut Evidence {
     // SAFETY: KERNEL held, IF=0; every borrow ends before scheduling or cleanup.
@@ -346,6 +351,10 @@ fn spawn_checked(s: &mut State, pid: u64, a: [u64; 6]) -> Result<u64, i64> {
     // Commit: frames and tables first (prechecked), then authority.
     s.spawn_process_from(free, elf);
     let child = s.processes[free].pid;
+    #[cfg(feature = "native-smp-m3")]
+    {
+        evidence().homes |= 1 << s.processes[free].home;
+    }
     #[cfg(feature = "test-supervisor-wait")]
     if let Some(previous) = evidence().last_waiting_slot {
         require(
@@ -789,6 +798,8 @@ fn finish(s: &mut State) -> ! {
     ] {
         print_number(label, value);
     }
+    #[cfg(feature = "native-smp-m3")]
+    print_number(b"SUPERVISOR:SMP_HOMES:", ev.homes);
     serial::write(marker());
     #[cfg(feature = "native-smp-m3")]
     serial::write(b"SMP:K05:PASS\n");

@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-11",
-    "source_commit": "a88f19c7c782c62439206752ea3c79105b41aa6c",
+    "date": "2026-11-12",
+    "source_commit": "ae3e98587d7817f9be34de9b7fc2063e67e81fc3",
     "assessment_basis": "working_tree",
     "branch": "codex/k06-5f-complete-20261109",
-    "task": "K06 step 5f: recalibrate the m3-ipc host watchdog to 660 s after run 43057843393 (Simon's decision, ADR-081 R3-5 addendum 2)",
+    "task": "K06 step 5f: fix the four confirmed PR #296 review findings (IQ-3 transitional locks, DG-2 harness verdict, K05 on four vCPUs, recovery from an idle CPU) before the full matrix",
     "previous_score": 39,
-    "summary": "39/100 remains 39/100. Run 43057843393 is rejected (m3-ipc-four 0/50 on the 180 s watchdog; one idle-phase SMP_CLOCK_DRIFT in soak shard 9). By Simon's decision IPC_TIMEOUT_S becomes 660 s with the 2.5x rule kept; rounds, oracle, guest deadlines and the 1% clock limit are unchanged, and the clock flake gets no code change. K06 stays open until a new full 64x50 matrix, K07, soaks, aggregate and final gate pass."
+    "summary": "39/100 remains 39/100. The four confirmed review findings are fixed with targeted tests; local single boots and both K05 suites (one CPU and four vCPUs, 6/6 each) pass, which is not acceptance. The matrix grows to 65x50 with the new quarantine-lock-pending case. K06 stays open until the full matrix, all soaks, K07, the aggregate and the final gate pass on the final commit."
   },
   "tracks": [
     {

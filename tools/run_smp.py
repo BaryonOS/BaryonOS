@@ -47,6 +47,7 @@ CASES = {
     "resched-deaf": ("test-smp-resched-deaf", 4, "multi", "kill-quarantine"),
     "icr-race-control": ("test-smp-icr-race", 4, "multi", "icr-race"),
     "quarantine-lock-held": ("test-smp-quarantine-lock-held", 4, "multi", "lock-held"),
+    "quarantine-lock-pending": ("test-smp-quarantine-lock-pending", 4, "multi", "lock-held"),
     "bsp-spin-irq-off-control": ("test-smp-bsp-spin-irq-off", 4, "multi", "bsp-spin-timeout"),
     "proc-shootdown-deaf": ("test-smp-proc-shootdown-deaf", 4, "multi", "proc-shootdown-quarantine"),
     "proc-no-shootdown-control": ("test-smp-proc-no-shootdown", 4, "multi", "proc-stale-read"),
@@ -439,16 +440,21 @@ def required_end(outcome: str) -> tuple[str, ...]:
     return tuple(marker for marker in end if not marker.endswith("*"))
 
 
+def unlock_terminal(case: str, stdout: str) -> str:
+    """DG-2: `!` marks a terminal line written without SERIAL: only the last
+    line of a terminal profile may carry it (the exact sequence checks it)."""
+    lines = stdout.splitlines()
+    if CASES[case][3] in TERMINAL and lines and lines[-1].startswith("!"):
+        return "\n".join(lines[:-1] + [lines[-1][1:]]) + "\n"
+    return stdout
+
+
 def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> dict:
     """Independent serial oracle: the exact SMP sequence after KS-03."""
     profile, cpus, _, outcome = CASES[case]
     terminal = outcome in TERMINAL
     end = required_end(outcome)
-    # DG-2: `!` marks a terminal line written without SERIAL: only the last
-    # line of a terminal profile may carry it (the exact sequence checks it).
-    unlocked = stdout.splitlines()
-    if terminal and unlocked and unlocked[-1].startswith("!"):
-        stdout = "\n".join(unlocked[:-1] + [unlocked[-1][1:]]) + "\n"
+    stdout = unlock_terminal(case, stdout)
     if any(line.startswith("!") for line in stdout.splitlines()):
         raise ValueError("Unlocked (!) serial line that is not the terminal marker")
     if not is_success(raw_exit, stdout, timed_out, required_markers=BOOT + end,
@@ -666,7 +672,15 @@ def run(cases: tuple[str, ...], repeat: int = 1) -> dict:
                 try:
                     item["observed"] = evaluate(case, guest["stdout"], guest["raw_qemu_exit"],
                                                 guest["timed_out"])
-                    if guest.get("passed") is not True:
+                    # The harness matches markers exactly; recheck only the DG-2
+                    # fallback line, with the same exit, timeout and artifact binding.
+                    unlocked = unlock_terminal(case, guest["stdout"])
+                    if guest.get("passed") is not True and not (
+                            unlocked != guest["stdout"]
+                            and guest.get("artifact_binding_passed") is True
+                            and is_success(guest["raw_qemu_exit"], unlocked, guest["timed_out"],
+                                           required_markers=BOOT + end,
+                                           forbidden_markers=FORBIDDEN)):
                         raise ValueError("Native SMP guest harness rejected the run")
                     item["passed"] = True
                 except ValueError as exc:

@@ -18,7 +18,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-STAGES = ('host-tests', 'clippy', 'fmt', 'm2', 'k05', 'k07', 'rtc-build', 'rtc')
+STAGES = ('host-tests', 'clippy', 'fmt', 'm2', 'k05', 'k05-smp', 'k07', 'rtc-build', 'rtc')
 M2 = (
     ('own-cr3-frame-ownership-wx', 'm2', 'milestone-m2'),
     ('test-m2-ro', 'test-m2-ro', 'test-m2-ro'),
@@ -39,7 +39,7 @@ LIMITS = [
     'The existing serial oracles are replayed from the matching local source, not '
     'a separately implemented hardware model or a human security audit.',
     'A successful final-gate readback does not independently verify the separate '
-    '64x50 matrix artifact; the aggregate job must also be successful.',
+    '65x50 matrix artifact; the aggregate job must also be successful.',
 ]
 
 
@@ -117,7 +117,7 @@ class Readback:
                 'invalid kernel/loader digest')
         return manifest
 
-    def guest(self, original, *, expected_exit, timeout=60, k05=False, embedded=None):
+    def guest(self, original, *, expected_exit, timeout=60, k05=False, embedded=None, smp=False):
         path = self.mapped(original + '/result.json')
         require(path not in self.used, f'duplicate guest result: {path}')
         self.used.add(path)
@@ -144,8 +144,9 @@ class Readback:
         command = report.get('command')
         require(isinstance(command, list) and all(isinstance(arg, str) for arg in command),
                 'invalid QEMU argv')
-        for option, expected in (('-machine', 'pc-q35-10.0'), ('-accel', 'tcg,thread=single'),
-                                 ('-cpu', 'qemu64'), ('-smp', '1'), ('-m', '256M'),
+        for option, expected in (('-machine', 'pc-q35-10.0'),
+                                 ('-accel', 'tcg,thread=multi' if smp else 'tcg,thread=single'),
+                                 ('-cpu', 'qemu64'), ('-smp', '4' if smp else '1'), ('-m', '256M'),
                                  ('-display', 'none'), ('-monitor', 'none'), ('-nic', 'none')):
             require(command.count(option) == 1 and command[command.index(option) + 1] == expected,
                     f'QEMU profile mismatch: {option}')
@@ -193,7 +194,7 @@ class Readback:
                     'incomplete jobs API pages')
         require(len({job['id'] for job in jobs}) == len(jobs), 'duplicate API job IDs')
         selected = {}
-        for name in ('SMP section 9 aggregate 64x50', 'SMP final repository gate'):
+        for name in ('SMP section 9 aggregate 65x50', 'SMP final repository gate'):
             matching = [job for job in jobs if job.get('name') == name]
             require(len(matching) == 1, f'missing or duplicate job: {name}')
             job = matching[0]
@@ -213,7 +214,7 @@ class Readback:
                     and matching[0].get('conclusion') == 'success', f'final step not green: {name}')
         step = next(step for step in steps if step['name'] == required[4])
         self.started, self.completed = stamp(step['started_at']), stamp(step['completed_at'])
-        aggregate = selected['SMP section 9 aggregate 64x50']
+        aggregate = selected['SMP section 9 aggregate 65x50']
         require(stamp(aggregate['completed_at']) <= self.started <= self.completed,
                 'final gate ran before aggregate completed')
         return {'run_id': run['id'], 'final_job_id': job['id'], 'aggregate_job_id': aggregate['id']}
@@ -238,6 +239,7 @@ class Readback:
                 and tuple(item[1] for item in ends) == STAGES, 'wrong or incomplete wrapper stages')
         native = {'m2': ['python3', '-B', 'tools/test_milestones.py', '--through', 'm2'],
                   'k05': ['python3', '-B', '-u', 'tools/test_supervisor.py'],
+                  'k05-smp': ['python3', '-B', '-u', 'tools/test_supervisor.py', '--smp'],
                   'k07': ['python3', '-B', 'tools/test_resource_pressure.py'],
                   'rtc-build': ['python3', '-B', 'tools/build.py', '--kernel-feature', 'native-rtc'],
                   'rtc': ['python3', '-B', 'tools/run_rtc.py', '--case', 'all']}
@@ -287,36 +289,44 @@ class Readback:
                     expected_exit=code, forbidden_markers=forbidden), f'M2 transcript rejected: {name}')
             manifest = self.manifest('regressions/m2/logs/build-' + (label if feature is not None else 'normal') + '-manifest.json', feature)
             self.bind_artifacts(artifacts, manifest)
-        # K05: exact six source-bound process lifecycle cases and four host checks.
-        suite = self.load('regressions/k05/supervisor-gate.json')
-        self.bound(suite)
-        require(suite.get('passed') is True and suite.get('status') == 'completed'
-                and 'error' not in suite and suite.get('test_inputs') == supervisor_tests.test_inputs(),
-                'K05 suite/test-source binding mismatch')
-        require(len(suite.get('host', [])) == 4 and all(item.get('exit') == 0 for item in suite['host']),
-                'K05 host checks incomplete')
-        for item, expected in zip(suite['host'], supervisor_tests.HOST):
-            command = item.get('command', [])
-            require(command[1:] == expected[1:] and
-                    (command[0] == 'cargo' if expected[0] == 'cargo' else Path(command[0]).name.startswith('python')),
-                    'changed K05 host command')
-            require(isinstance(item.get('stdout'), str) and isinstance(item.get('stderr'), str),
-                    'K05 embedded host logs missing')
-        require([item.get('case') for item in suite.get('stages', [])] == list(supervisor_tests.PLAN),
-                'K05 exact six-case plan mismatch')
-        for item in suite['stages']:
-            case = item['case']
-            require(item.get('passed') is True and not item.get('error'), 'K05 stage failed')
-            report, artifacts = self.guest(item['run_directory'], expected_exit=33, timeout=180, k05=True)
-            require(report.get('case') == case and report.get('kernel_feature') == supervisor.FEATURE[case], 'K05 profile mismatch')
-            observed = supervisor.evaluate(case, report['stdout'], report['raw_qemu_exit'], report['timed_out'])
-            require(observed == report.get('evidence') == item.get('evidence')
-                    and report['raw_qemu_exit'] == item.get('raw_qemu_exit')
-                    and report['duration_s'] == item.get('duration_s'), 'K05 raw/summary evidence mismatch')
-            feature = supervisor.FEATURE[case]
-            manifest = self.manifest('regressions/k05/logs/build-' + feature + '-manifest.json', feature)
-            require(report.get('supervisor') == manifest.get('supervisor'), 'K05 embedded bundle metadata mismatch')
-            self.bind_artifacts(artifacts, manifest)
+        # K05: exact six source-bound process lifecycle cases and four host checks,
+        # on one CPU and, by K06 5d-2 section 4, on four vCPUs in native-smp-m3.
+        for leaf, gate, smp in (('k05', 'supervisor-gate.json', False),
+                                ('k05-smp', 'supervisor-smp-gate.json', True)):
+            features = supervisor.SMP_FEATURE if smp else supervisor.FEATURE
+            suite = self.load(f'regressions/{leaf}/{gate}')
+            self.bound(suite)
+            require(suite.get('passed') is True and suite.get('status') == 'completed'
+                    and suite.get('smp', False) is smp
+                    and 'error' not in suite and suite.get('test_inputs') == supervisor_tests.test_inputs(),
+                    'K05 suite/test-source binding mismatch')
+            require(len(suite.get('host', [])) == 4 and all(item.get('exit') == 0 for item in suite['host']),
+                    'K05 host checks incomplete')
+            for item, expected in zip(suite['host'], supervisor_tests.HOST):
+                command = item.get('command', [])
+                require(command[1:] == expected[1:] and
+                        (command[0] == 'cargo' if expected[0] == 'cargo' else Path(command[0]).name.startswith('python')),
+                        'changed K05 host command')
+                require(isinstance(item.get('stdout'), str) and isinstance(item.get('stderr'), str),
+                        'K05 embedded host logs missing')
+            require([item.get('case') for item in suite.get('stages', [])] == list(supervisor_tests.PLAN),
+                    'K05 exact six-case plan mismatch')
+            for item in suite['stages']:
+                case = item['case']
+                require(item.get('passed') is True and not item.get('error'), 'K05 stage failed')
+                report, artifacts = self.guest(item['run_directory'], expected_exit=33, timeout=180,
+                                               k05=True, smp=smp)
+                require(report.get('case') == case and report.get('kernel_feature') == features[case]
+                        and report.get('smp', False) is smp, 'K05 profile mismatch')
+                observed = supervisor.evaluate(case, report['stdout'], report['raw_qemu_exit'],
+                                               report['timed_out'], smp)
+                require(observed == report.get('evidence') == item.get('evidence')
+                        and report['raw_qemu_exit'] == item.get('raw_qemu_exit')
+                        and report['duration_s'] == item.get('duration_s'), 'K05 raw/summary evidence mismatch')
+                feature = features[case]
+                manifest = self.manifest(f'regressions/{leaf}/logs/build-' + feature + '-manifest.json', feature)
+                require(report.get('supervisor') == manifest.get('supervisor'), 'K05 embedded bundle metadata mismatch')
+                self.bind_artifacts(artifacts, manifest)
         # K07: original one-CPU M4 quotas plus two-process qsim pressure/cleanup.
         pressure = self.load('regressions/k07/resource-pressure/result.json')
         self.bound(pressure)

@@ -71,6 +71,9 @@ mod smp {
     pub fn cpu_index() -> usize {
         0
     }
+    pub fn lock_transit(_: u64) -> u64 {
+        0
+    }
 }
 
 /// One CPU's full lockdep state (keys and pair counts, audit F4). Its held
@@ -141,6 +144,11 @@ impl<T> IrqLock<T> {
 
     pub fn level(&self) -> u8 {
         self.level
+    }
+
+    /// IQ-3: this lock's identity for a CPU's transit field (never 0).
+    pub fn id(&self) -> u64 {
+        core::ptr::addr_of!(self.owner) as u64
     }
 
     /// IQ-2: the CPU index (BSP 0, AP slot + 1) that holds this lock now.
@@ -237,6 +245,8 @@ impl<T> IrqLock<T> {
         } else {
             None
         };
+        // IQ-3: from before the ticket until the owner is published.
+        let outer = smp::lock_transit(self.id());
         let guard = if cfg!(feature = "native-smp") {
             let mut deadline = None;
             self.inner.lock_with(|| {
@@ -250,6 +260,7 @@ impl<T> IrqLock<T> {
             self.inner.lock_with(relax)
         };
         self.owner.store(smp::cpu_index() as u8, Ordering::Release);
+        smp::lock_transit(outer);
         #[cfg(feature = "native-smp-m3")]
         if self.level == level::KERNEL {
             smp::m3_wait_end(wait_start);
@@ -297,8 +308,11 @@ impl<T> DerefMut for IrqGuard<'_, T> {
 
 impl<T> Drop for IrqGuard<'_, T> {
     fn drop(&mut self) {
+        // IQ-3: from clearing the owner until the ticket is released.
+        let outer = smp::lock_transit(self.owner as *const AtomicU8 as u64);
         self.owner.store(FREE, Ordering::Release);
         drop(self.guard.take());
+        smp::lock_transit(outer);
         if tracked(self.level) {
             if let Err(order) = smp::with_lockdep(|dep| dep.release(self.level, self.key)) {
                 smp::lockdep_lifo(order);

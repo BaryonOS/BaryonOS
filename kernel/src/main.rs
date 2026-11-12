@@ -64,9 +64,13 @@ compile_error!("native-smp is an IF0 M2 bring-up profile; single-CPU subsystems 
         feature = "native-fpu",
         all(
             any(feature = "ipc-wait", feature = "milestone-m4"),
-            not(any(feature = "native-smp-m3-ipc", feature = "native-smp-m4-quotas"))
+            not(any(
+                feature = "native-smp-m3-ipc",
+                feature = "native-smp-m4-quotas",
+                feature = "native-smp-supervisor"
+            ))
         ),
-        feature = "native-supervisor"
+        all(feature = "native-supervisor", not(feature = "native-smp-supervisor"))
     )
 ))]
 compile_error!("SMP services require an explicit integration profile");

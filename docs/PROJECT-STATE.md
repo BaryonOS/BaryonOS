@@ -1,6 +1,22 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 step 5f run 43057843393, main merge and IPC watchdog — 11 November 2026
+## NEXT AGENT HANDOFF — K06 step 5f review findings fixed; full matrix pending — 12 November 2026
+
+**Source:** branch `codex/k06-5f-complete-20261109` (PR #296); the commit carrying this entry holds the fixes. Decision and limits: [DECISIONS.md](DECISIONS.md), "review findings closed before acceptance". Run 43118230329 on `ae3e985` was cancelled because the fixes change kernel and tool sources; its 25 completed cases (50/50 each) and the K07 probe are diagnostics only ([receipt](verification/k06-smp-sched/cancelled-43118230329.json)).
+
+**Fixes (scope verified against `docs/k06-step-specs`):**
+- **(c) IQ-3 transitional locks:** `CpuLocal.transit` records the `IrqLock::id()` from before the ticket until the owner is published, and from clearing the owner until the ticket is released; `held_by()` stops on owner or transit for `KERNEL`/`ASPACE`/`RUNQ`/`SHOOTDOWN`. New negative case `quarantine-lock-pending`; the matrix is now 65×50 (3 250 guests).
+- **(b) DG-2 harness:** the `!` terminal fallback is accepted by the harness verdict as by the oracle; other `!` lines and artifact-binding failures still fail (new host test, mutation-checked).
+- **(d) K05 on four vCPUs:** explicit profile `native-smp-supervisor` plus five test variants; `run_supervisor.py --smp`; final-gate stage `k05-smp`. On SMP, `WAIT_IDLE_IRQS` counts BSP IRQ0s during idle, as on one CPU.
+- **(e) Recovery from idle:** `smp_idle()` dispatches a pending recovery even with an empty run queue.
+
+**Executed locally (QEMU 8.2.2, 4 CPUs; not acceptance):** `tools/tests` 310, `test_ci_workflows` 21, `cargo test -p smp-lock` 33, `fmt`; one boot each of `quarantine-lock-pending` and `quarantine-lock-held` (both `LOCK_HELD:10:CPU=2`), `spin-irq-off`, `ap-ipi-deaf`, `ap-shootdown-deaf`, `ap-timer-dead`, `resched-deaf`, `proc-shootdown-deaf`, `bsp-spin-irq-off`, `lock-stuck`, `native-smp` (6 cases), `m3-recovery-four`, `m3-kill-four`, `m3-ipc-four`, `m3-ipc-four-single`; `test_supervisor.py` 6/6 on one CPU and `test_supervisor.py --smp` 6/6 on four vCPUs (`SMP_HOMES` 6, 6, 6, 6, 15, 2; `wait` 83 idle IRQ0 ≤ 88 ticks). A first level-based version of (c) turned `spin-irq-off` into a false `LOCK_HELD` and was replaced.
+
+**Next:** full `native-smp.yml` dispatch (`full_matrix=true`) on this head; all 65 cases 50/50, 50 soaks, K07, aggregate and final gate (now including `k05-smp`) must pass; then resolve the review threads and merge PR #296.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f run 43057843393, main merge and IPC watchdog — 11 November 2026
 
 **Source:** branch `codex/k06-5f-complete-20261109` (PR #296). Merge commit `24d0d09a` brings in main `c520703b`, including the #307 squash `aeaf3cb7`; `.github/actions/setup-qemu` is byte-identical to main, so the signed QEMU/OVMF package bundle stays the install path. The merge conflicted only in this file and `docs/progress.json`. Kernel, tools and workflows are unchanged on this branch since `e398039e`.
 

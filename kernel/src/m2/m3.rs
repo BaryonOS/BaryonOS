@@ -3054,13 +3054,14 @@ pub fn ap_main() -> ! {
 #[cfg(feature = "native-smp-m3")]
 fn smp_idle() -> ! {
     loop {
-        {
+        let ticks_before = {
             // SAFETY: KERNEL held (K-1); the only live use of STATE.
             let state = unsafe { (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut() };
             state.current = MAX;
             arch::activate(state.kernel.root);
             set_rsp0(service_stack());
-        }
+            state.ticks
+        };
         kernel_leave();
         // SAFETY: no lock held, kernel CR3, this CPU's service stack. Every
         // unmasked source has a gate (BSP: PIT IRQ0 counted by m2_dispatch;
@@ -3068,17 +3069,26 @@ fn smp_idle() -> ! {
         unsafe { asm!("sti", "hlt", "cli", options(nostack)) };
         kernel_enter();
         let state = load_current();
+        // As on one CPU: the IRQ0s the BSP observed while it idled. Only the
+        // BSP takes IRQ0 and advances `ticks`; AP and 0xe8 wakes are not IRQ0s.
         #[cfg(feature = "ipc-wait")]
-        {
-            state.wait_metrics.idle_irqs = state.wait_metrics.idle_irqs.saturating_add(1);
+        if cpu() == 0 {
+            state.wait_metrics.idle_irqs = state
+                .wait_metrics
+                .idle_irqs
+                .saturating_add(state.ticks.saturating_sub(ticks_before));
         }
+        #[cfg(not(feature = "ipc-wait"))]
+        let _ = ticks_before;
         state.refresh_kills();
         #[cfg(feature = "ipc-wait")]
         wait::refresh(state);
         if let Some(next) = state.progress_observers() {
             resume(next);
         }
-        if !RUNQ[cpu()].lock_irqsave().is_empty() {
+        // select() dispatches a pending recovery first; an empty home queue
+        // (e.g. the BSP's only process in kill_wait) must not hide it.
+        if smp::m3_recovery_requested() || !RUNQ[cpu()].lock_irqsave().is_empty() {
             resume(state.select());
         }
     }

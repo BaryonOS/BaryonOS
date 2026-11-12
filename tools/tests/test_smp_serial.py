@@ -185,7 +185,7 @@ VALID = {
     "gs-nmi-user": GS_NMI, "shared-scratch": SHARED,
     "lock-in-handler": LOCK_IN_HANDLER, "lockpair-order": LOCKPAIR_ORDER,
     "resched-deaf": RESCHED_DEAF, "icr-race-control": ICR_RACE,
-    "quarantine-lock-held": LOCK_HELD, "bsp-spin-irq-off-control": BSP_SPIN_DEAF,
+    "quarantine-lock-held": LOCK_HELD, "quarantine-lock-pending": LOCK_HELD, "bsp-spin-irq-off-control": BSP_SPIN_DEAF,
     "proc-shootdown-deaf": PROC_DEAF, "proc-no-shootdown-control": PROC_STALE,
     "lock-stuck": LOCK_STUCK, "serial-unlocked-control": online(4),
     "m3-one": m3(1), "m3-one-multi": m3(1), "m3-two-single": m3(2), "m3-two": m3(2),
@@ -789,6 +789,25 @@ class SmpRepetitionHarness(unittest.TestCase):
         self.assertTrue(summary["flaky"])
         self.assertIn("error", report["cases"][1])
         self.assertFalse(report["cases"][1]["passed"])
+
+    def test_harness_accepts_only_the_dg2_terminal_fallback(self):
+        # Review finding: the exact-marker harness rejected `!SMP:LOCK:STUCK...`,
+        # which evaluate() accepts; artifact binding and other `!` lines still fail.
+        manifest = json.loads((self.build / "manifest.json").read_text())
+        manifest["kernel_feature"] = "test-smp-lock-stuck"
+        (self.build / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+        bang = transcript(LOCK_STUCK).replace("SMP:LOCK:STUCK", "!SMP:LOCK:STUCK")
+        for binding, stdout, accepted in ((True, bang, True), (False, bang, False),
+                                          (True, transcript(LOCK_STUCK).replace(
+                                              "SMP:IPI:PASS", "!SMP:IPI:PASS"), False)):
+            self.runner.side_effect = lambda label, **kwargs: dict(
+                self.guest(label, **kwargs), stdout=stdout, passed=False,
+                artifact_binding_passed=binding)
+            if accepted:
+                self.assertTrue(run_smp.run(("lock-stuck",))["passed"])
+            else:
+                with self.assertRaises(ValueError):
+                    run_smp.run(("lock-stuck",))
 
     def test_single_run_still_raises_on_a_rejected_guest(self):
         self.runner.return_value = self.guest("one", cpus=1, timeout=60)

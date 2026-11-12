@@ -25,7 +25,9 @@ M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-re
 VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "foreign", "cut-txn")
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
 SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota", "wait")
-SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES))
+SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES),
+                       # K06 5d-2 §4: the same six cases on SMP through an explicit profile.
+                       "native-smp-supervisor", *(f"test-smp-supervisor-{case}" for case in SUPERVISOR_CASES))
 KEYRING_CASES = ("no-device", "stuck", "timeout", "restart")
 KEYRING_FEATURES = ("native-keyring", *(f"test-keyring-{case}" for case in KEYRING_CASES))
 UPDATE_FEATURES = ("native-update", "test-update-cut")
@@ -53,7 +55,7 @@ KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
                    "native-smp", "test-smp-ap-stall", "test-smp-ap-mismatch", "test-smp-ap-nmi",
                    "native-acpi-s5", "test-acpi-s5-corrupt-dsdt", *LEGACY_SMP_FEATURES,
                    "test-smp-ap-double-fault", "test-smp-ap-ipi-deaf", "test-smp-ap-shootdown-deaf",
-                   "test-smp-shootdown-skipped", "test-smp-ap-timer-dead", "test-smp-lockdep-order", "test-smp-spin-irq-off", "test-smp-held-across-switch", "test-smp-double-run", "test-smp-resched-deaf", "test-smp-gs-user", "test-smp-gs-iret-fault", "test-smp-gs-nmi-user", "test-smp-shared-scratch", "test-smp-lock-in-handler", "test-smp-lockpair-order", "test-smp-icr-race", "test-smp-quarantine-lock-held", "test-smp-bsp-spin-irq-off", "test-smp-proc-shootdown-deaf", "test-smp-proc-no-shootdown", "test-smp-lock-stuck", "test-smp-serial-unlocked", "native-smp-m3", "test-smp-m3-fault", "test-smp-m3-fpu-skip", "test-m2-ro", "test-m2-nx",
+                   "test-smp-shootdown-skipped", "test-smp-ap-timer-dead", "test-smp-lockdep-order", "test-smp-spin-irq-off", "test-smp-held-across-switch", "test-smp-double-run", "test-smp-resched-deaf", "test-smp-gs-user", "test-smp-gs-iret-fault", "test-smp-gs-nmi-user", "test-smp-shared-scratch", "test-smp-lock-in-handler", "test-smp-lockpair-order", "test-smp-icr-race", "test-smp-quarantine-lock-held", "test-smp-quarantine-lock-pending", "test-smp-bsp-spin-irq-off", "test-smp-proc-shootdown-deaf", "test-smp-proc-no-shootdown", "test-smp-lock-stuck", "test-smp-serial-unlocked", "native-smp-m3", "test-smp-m3-fault", "test-smp-m3-fpu-skip", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
                    "milestone-m4", *(f"test-m4-{case}" for case, _ in M4_CASES),

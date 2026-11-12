@@ -177,6 +177,9 @@ struct CpuLocal {
     corrupt: AtomicU32,
     /// Held lock levels (step 5a, `smp_lock::Lockdep`); this CPU only, IF=0.
     lockdep: AtomicU64,
+    /// IQ-3: `IrqLock::id` of the lock whose ticket this CPU is taking before
+    /// its owner is published, or releasing after the owner was cleared; 0 if none.
+    transit: AtomicU64,
     /// Step 5b spin phase: 1 = about to wait for SPIN_LOCK (IF=0 from here),
     /// 2 = got it and released it again.
     spun: AtomicU32,
@@ -247,6 +250,7 @@ impl CpuLocal {
             saved: [const { AtomicU64::new(0) }; 3],
             corrupt: AtomicU32::new(0),
             lockdep: AtomicU64::new(0),
+            transit: AtomicU64::new(0),
             spun: AtomicU32::new(0),
             deferred: AtomicU32::new(0),
             m3_deferred: AtomicU32::new(0),
@@ -929,6 +933,14 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
         core::mem::forget(lock::KERNEL.lock_irqsave());
         park();
     }
+    if cfg!(feature = "test-smp-quarantine-lock-pending") && local.slot.load(Ordering::Relaxed) == 1
+    {
+        // AP2 goes deaf inside KERNEL's acquire window: the state IrqLock::take
+        // publishes before its ticket, with the owner field still FREE. IQ-3
+        // must still stop the system, not INIT (review finding on held_by).
+        local.transit.store(lock::KERNEL.id(), Ordering::Release);
+        park();
+    }
     loop {
         // Checked before PARK so the test cannot race into a normal park.
         if cfg!(feature = "test-smp-ap-double-fault")
@@ -1408,13 +1420,23 @@ fn quarantine_all(online: usize, total: usize) {
 /// shared IrqLock in level order. FRAMES is no lock yet: the BSP alone holds
 /// `&mut Frames` (spec 07 §5); it must join here once it becomes one.
 fn held_by(cpu: usize) -> Option<u8> {
-    let cpu = Some(cpu as u8);
+    let index = Some(cpu as u8);
+    // A ticket taken before the owner is published, or still held after the
+    // owner was cleared, shows only as the CPU's lock in transit (review finding).
+    let transit = local_of_cpu(cpu).transit.load(Ordering::Acquire);
     core::iter::once(&lock::KERNEL)
         .chain(ASPACE.iter())
-        .map(|lock| (lock.owner(), lock.level()))
-        .chain(RUNQ.iter().map(|queue| (queue.owner(), queue.level())))
-        .chain(core::iter::once((SHOOTDOWN.owner(), SHOOTDOWN.level())))
-        .find_map(|(owner, level)| (owner == cpu).then_some(level))
+        .map(|lock| (lock.owner(), lock.id(), lock.level()))
+        .chain(
+            RUNQ.iter()
+                .map(|queue| (queue.owner(), queue.id(), queue.level())),
+        )
+        .chain(core::iter::once((
+            SHOOTDOWN.owner(),
+            SHOOTDOWN.id(),
+            SHOOTDOWN.level(),
+        )))
+        .find_map(|(owner, id, level)| (owner == index || id == transit).then_some(level))
 }
 
 /// IQ-3: a lock held by a CPU that INIT resets stays held forever, and the
@@ -1428,7 +1450,10 @@ fn stop_if_held(slot: usize) {
     serial::write(b":CPU=");
     decimal(slot as u64 + 1);
     serial::write(b"\n");
-    if cfg!(feature = "test-smp-quarantine-lock-held") {
+    if cfg!(any(
+        feature = "test-smp-quarantine-lock-held",
+        feature = "test-smp-quarantine-lock-pending"
+    )) {
         serial::exit(0x10);
     }
     serial::fail(b"SMP_QUARANTINE_LOCK_HELD")
@@ -1981,6 +2006,13 @@ pub fn with_lockdep<R>(f: impl FnOnce(&mut smp_lock::Lockdep) -> R) -> R {
     // SAFETY: this CPU's own cell; every caller (`IrqLock`) runs with IF=0,
     // and `f` is a lockdep method that never re-enters.
     unsafe { local.lockdep_state.update(&local.lockdep, f) }
+}
+
+/// IQ-3: publish the lock this CPU has in transit; returns the previous one so
+/// a handler nested in a spin window restores it (LIFO). IF=0 by the caller.
+pub fn lock_transit(id: u64) -> u64 {
+    // Untracked locks (SERIAL) can run before this CPU's GS anchor exists.
+    any_cpu().map_or(0, |local| local.transit.swap(id, Ordering::AcqRel))
 }
 
 /// LD-1: IDT entries this CPU is nested in (0 = not in a handler).

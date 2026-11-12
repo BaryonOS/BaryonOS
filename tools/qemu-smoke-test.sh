@@ -56,6 +56,8 @@ run_step m2 env NOS_BUILD_DIR="$regression_root/m2" NOS_TARGET_DIR="$regression_
     python3 -B tools/test_milestones.py --through m2
 run_step k05 env NOS_BUILD_DIR="$regression_root/k05" NOS_TARGET_DIR="$regression_target/k05" CARGO_TARGET_DIR="$regression_target/k05" \
     python3 -B -u tools/test_supervisor.py
+run_step k05-smp env NOS_BUILD_DIR="$regression_root/k05-smp" NOS_TARGET_DIR="$regression_target/k05-smp" CARGO_TARGET_DIR="$regression_target/k05-smp" \
+    python3 -B -u tools/test_supervisor.py --smp
 run_step k07 env NOS_BUILD_DIR="$regression_root/k07" NOS_TARGET_DIR="$regression_target/k07" CARGO_TARGET_DIR="$regression_target/k07" \
     python3 -B tools/test_resource_pressure.py
 run_step rtc-build env NOS_BUILD_DIR="$regression_root/rtc" NOS_TARGET_DIR="$regression_target/rtc" CARGO_TARGET_DIR="$regression_target/rtc" \
