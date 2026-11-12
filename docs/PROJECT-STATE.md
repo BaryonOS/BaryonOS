@@ -1,6 +1,33 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 step 5f: structural timing repair assigned; mapping started, no source change yet — 12 November 2026
+## NEXT AGENT HANDOFF — K06 step 5f: timing repair measured; NO-GO for a full matrix; decisions D1–D5 await the project owner — 12 November 2026
+
+**Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Kernel and tool sources are those of `4616fb3`; the commit carrying this entry adds documentation and diagnostic evidence only.
+
+**Verdict:** NO-GO for a full `native-smp.yml` acceptance matrix. None was started; no soak and no final gate ran. K06 step 5f remains unaccepted. The report is [TIMING-REPAIR.md](verification/k06-smp-sched/TIMING-REPAIR.md); the decision record is ADR-082 (implemented part, plus five requested decisions that are not in force).
+
+**In the source, with every acceptance limit unchanged:** margin records for every bounded wait (`SMP:MARGIN`, no verdict); the sync wait with a liveness check (`SMP:SYNC:STALLED` after 2 s without progress, `SMP:SYNC:TIMEOUT` at a 20 s cap) and a mandatory `SMP:SYNC:WAIT_MS=:STALL_MS=` line, which the oracle rejects at 2 000 ms or more on every profile; PIT edge accounting in shadow mode (`SMP:CLOCK:EDGES`; the verdict stays the raw median within 1 %); negative fixtures `sync-stall`, `sync-slow`, `sync-lost-update`, `clock-masked`, `clock-divisor` (matrix 71 × 50); the `margin_diagnostic` dispatch input of `native-smp.yml`.
+
+**Evidence (diagnostic, not acceptance):**
+- Hosted run [43286858831](https://github.com/BaryonOS/BaryonOS/actions/runs/43286858831) on `cc1043f` (QEMU 10.2.1, matrix runner): 250/250 boots of five cases pass under the unchanged rules. Closest margins: scratch 263/500 ms, sync 901/2 000 ms, `m3-load-eight` 48.3/60 s host watchdog. 59 boots lost PIT periods (at most +0.55 %). The gate rehearsal passed every executed stage.
+- Local, QEMU 8.2.2: 518 boots in `timing-investigation/repair/boots.tsv`. All local failures on 4 host CPUs are the unchanged 1 % clock rule or the `SMP:TIMER:RATIO` band. Interleaved base against final source: 36/40 and 38/40, no visible cost of the instrumentation.
+- `4616fb3`, one boot of twelve cases: six regular cases pass, six negative cases end with their markers.
+
+**Why NO-GO:** the unchanged contract failed five guests in three full matrices (about 19 % pass probability, 95 % interval 2–58 %), and its mechanisms are still in place. A 99 % pass probability cannot be demonstrated by sampling (about 1.06 million failure-free boots would be needed). After D1–D3 the estimate is 35 % to 85–90 %, depending on whether further rare mechanisms exist.
+
+**Decisions requested from the project owner (ADR-082):** D1 sync wait on guests with more vCPUs than runner CPUs (recommended: liveness only on the five listed cases, 2 s elsewhere); D2 the same for the scratch phase, after a per-CPU progress counter and two negative cases; D3 clock median without host-charged periods, with a bound on the host share; D4 no change to the `SMP:TIMER:RATIO` band; D5 host watchdog of the `m3-load` cases 60 s → 120 s.
+
+**Open review items:** C7, C8, C9, C11, F02 (remaining witness gaps), F08, F11 and F14 in section 4 of TIMING-REPAIR.md.
+
+**Executed on `4616fb3` (local, 4 host CPUs, QEMU 8.2.2, `NOS_QEMU_MACHINE=pc-q35-8.2`), every command exit 0:** `cargo fmt --all -- --check`; `cargo clippy --locked -p boot-protocol -p smp-lock --all-targets -- -D warnings`; `cargo test --locked -p boot-protocol -p smp-lock` (432 s); the Python list of the `host-quality` job (`tools/tests`: 313 tests); `tools/build.py` and `tools/run_smp.py --case` for `four`, `eight`, `nine-capacity`, `one`, `two-single`, `m3-two`, `lock-stuck`, `sync-stall`, `sync-slow`, `sync-lost-update`, `clock-masked`, `clock-divisor`. Summary: `timing-investigation/repair/final-verification.txt`. `python3 tools/progress.py --check`: exit 0.
+
+**Not run:** any acceptance matrix, soak or final gate; the hosted runner on `4616fb3` (the hosted series ran on `cc1043f`); 50/50 of any negative fixture; KVM or hardware.
+
+**Next:** wait for the decision on D1–D5 and on the GO/NO-GO report. If approved: implement the approved parts with their negative cases, run one hosted `margin_diagnostic` over all 71 cases, then ask for approval of one full matrix. Do not start a full matrix without explicit approval.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f: structural timing repair assigned; mapping and first instrumentation steps — 12 November 2026
 
 **Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Kernel and tool sources are still those of `2543861`; every later commit, this one included, is documentation or diagnostic evidence.
 

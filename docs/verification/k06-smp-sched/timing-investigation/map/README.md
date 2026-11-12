@@ -25,5 +25,15 @@ describe the source before those changes.
 | `K06B-CLOCK.md` | Clock path in the kernel and in the QEMU 8.2.2 and 10.2.1 sources, and an attack on the first edge-accounting design | Complete; its objections led to the `smp_lock::clock` design |
 | `K06B-LOCK.md` | Liveness map of the contended phases, where the 400 ms lock bound can fire, and an attack on the progress-window candidate | Complete; verified by its author agent only |
 
-Not produced: the quantitative analysis and the completeness review. The review agent
-stopped at a usage limit twice.
+A third read-only run on 12 November 2026 reviewed the first implementation
+(`67e592c..cc1043f`, frozen at `cc1043f`). Line numbers refer to that commit. The commit
+after it changed the code in response; the disposition of every finding is in
+[TIMING-REPAIR.md](../../TIMING-REPAIR.md), section 4.
+
+| File | Content | Status |
+|---|---|---|
+| `K06C-CONTRACT.md` | Contract regression review: which limits and verdicts the change altered, oracle and workflow separation | Complete; static reading only, nothing built or run |
+| `K06C-ATTACK.md` | Adversarial review of the change and of two contract proposals: defects that would pass, healthy boots that would fail, statistics, fixture gaps | Complete; static reading and stored series only |
+
+Not produced: the completeness review of the inventory. That agent stopped at a usage
+limit twice.

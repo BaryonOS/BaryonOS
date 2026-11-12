@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-12",
-    "source_commit": "49f80b1e5fcc892f88750290873ad11bf055dbe9",
+    "source_commit": "4616fb3e9588c710e2f89a70c56685f5b48ef44b",
     "assessment_basis": "source_commit",
     "branch": "ccr-5a0d9559-16gxmt",
-    "task": "K06 step 5f: structural timing repair assigned by the project owner; read-only mapping started, no source change",
+    "task": "K06 step 5f: timing repair instrumented and measured; GO/NO-GO report with verdict NO-GO pending contract decisions D1-D5",
     "previous_score": 39,
-    "summary": "39/100 remains 39/100. After rejected run 43187501026 the project owner assigned a structural repair of the K06 timing methodology inside PR #317, with a GO/NO-GO verification report before any further full matrix. No source changed and no native boot ran in this step; no deadline or contract changed. K06 stays open until an accepted procedure passes the full matrix, soaks, K07, aggregate and final gate."
+    "summary": "39/100 remains 39/100. The K06 fixture now records the margin of every bounded wait, separates liveness from performance in the sync wait and accounts for PIT edges in shadow mode, with every acceptance limit unchanged. A hosted diagnostic passed 250/250 boots of five cases and local series were recorded, but no acceptance matrix, soak or final gate ran. The report advises against a full matrix on the unchanged contract; the contract changes D1-D5 of ADR-082 await the project owner. K06 stays open."
   },
   "tracks": [
     {
