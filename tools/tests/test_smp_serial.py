@@ -151,6 +151,24 @@ LOCK_IN_HANDLER = online(2)[:-11] + ["SMP:LOCKDEP:IN_HANDLER:10"]
 LOCKPAIR_ORDER = online(2)[:-7] + ["SMP:LOCKDEP:ORDER:20->20"]
 # Audit F5 (DG-1): the AP waits for a lock the BSP never frees, after the IPI rounds.
 LOCK_STUCK = started(2) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=2", "SMP:LOCK:STUCK:10:CPU=1"]
+
+
+# ADR-082 fixtures: the boot stops inside the sync phase, so the serial fixture
+# lines of the CPUs that finished are written out here.
+def sync_stopped(writers, terminal):
+    return started(4)[:-2] + [f"SMP:SER:{cpu}:{seq}" for seq in range(SERIAL_LINES)
+                              for cpu in writers] + [terminal]
+
+
+SYNC_STALL = sync_stopped((0, 2, 3), "SMP:SYNC:STALLED:DONE=2:TOTAL=80000")
+SYNC_SLOW = sync_stopped((0, 2, 3), "SMP:SYNC:TIMEOUT:DONE=2:TOTAL=70411")
+SYNC_LOST = sync_stopped((0, 1, 2, 3), "SMP:SYNC:LOST_UPDATE")
+BEFORE_CLOCK = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CPUS=4",
+                             "SMP:SHOOTDOWN:VISIBLE:CPUS=4", "SMP:PREEMPT:PASS:CPUS=4",
+                             "SMP:SPIN:PASS:CPUS=4"]
+EDGES = "SMP:CLOCK:EDGES:TICKS=5000:LOST=312:HOST=2:EXTRA=0:SPAN_US=3051:US=1062411:OWN_US=1062008"
+CLOCK_MASKED = BEFORE_CLOCK + [EDGES, "SMP:CLOCK:DRIFT:KERNEL"]
+CLOCK_DIVISOR = BEFORE_CLOCK + ["SMP:CLOCK:PIT_COUNT"]
 # Audit F8: the ring-3 GS fixture runs after the scheduler phase (CR4 = 104 is
 # DE|PAE|MCE as printed under OVMF/TCG; only FSGSBASE, bit 16, is checked).
 # BW-3: the kill target on AP3 (APIC 3) ignores 0xe8; INV-5 quarantine follows.
@@ -177,6 +195,8 @@ GS_IRET = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:GS:IRET_FIXUP:PASS"]
 GS_NMI = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:FAULT:AP_NMI_IST:PASS"]
 
 VALID = {
+    "sync-stall": SYNC_STALL, "sync-slow": SYNC_SLOW, "sync-lost-update": SYNC_LOST,
+    "clock-masked": CLOCK_MASKED, "clock-divisor": CLOCK_DIVISOR,
     "one": online(1), "two-single": online(2), "four": online(4), "eight": online(8),
     "nine-capacity": online(9), "duplicate-madt": ["SMP:UNAVAILABLE:INVALID_MADT"] + END,
     "ap-stall": failed("TIMEOUT"), "ap-mismatch": failed("MISMATCH"),
@@ -702,9 +722,9 @@ class SmpSerialOracle(unittest.TestCase):
                                                "SMP:MARGIN:STALL:1360:3/1000",
                                                "SMP:MARGIN:LOCK:10:6/400",
                                                "SMP:MARGIN:ROUND:0:1/100"), 33, False, host_cpus=4)
-        margins = {item["name"]: item for item in report["deadline_margins"]}
-        self.assertEqual(margins["wait_1360"]["measured_over_deadline"], 12 / 2000)
-        self.assertEqual(set(margins), {"bsp_idle_wake", "wait_1360", "stall_1360", "lock_10", "round_0"})
+        self.assertEqual(report["guest_waits"], {"wait_1360": [12, 2000], "stall_1360": [3, 1000],
+                                                 "lock_10": [6, 400], "round_0": [1, 100]})
+        self.assertEqual([item["name"] for item in report["deadline_margins"]], ["bsp_idle_wake"])
         slow = "SMP:MARGIN:WAIT:1360:2600/2000"
         self.assertEqual(evaluate("eight", with_margins(8, slow), 33, False, host_cpus=4)["online"], 8)
         for case, cpus, host, margin in (
@@ -722,6 +742,35 @@ class SmpSerialOracle(unittest.TestCase):
         with self.assertRaises(ValueError):                    # one key, one line
             evaluate("four", with_margins(4, "SMP:MARGIN:LOCK:10:6/400", "SMP:MARGIN:LOCK:10:7/400"),
                      33, False, host_cpus=4)
+
+    def test_sync_and_clock_fixtures_stop_on_their_own_marker_only(self):
+        """ADR-082: each injected defect ends its own profile with its exact marker and
+        its fixture lines; the same marker fails every other profile."""
+        for case, lines in (
+            ("sync-stall", SYNC_SLOW), ("sync-slow", SYNC_STALL),           # stall and cap are distinct
+            ("sync-stall", sync_stopped((0, 1, 2, 3), SYNC_STALL[-1])),       # AP1 must not have written
+            ("sync-stall", sync_stopped((0, 2, 3), "SMP:SYNC:STALLED:DONE=3:TOTAL=80000")),
+            ("sync-slow", sync_stopped((0, 2, 3), "SMP:SYNC:TIMEOUT:DONE=2:TOTAL=80000")),
+            ("sync-slow", sync_stopped((0, 2, 3), "SMP:SYNC:TIMEOUT:DONE=2:TOTAL=59999")),
+            ("sync-lost-update", sync_stopped((0, 2, 3), SYNC_LOST[-1])),
+            ("sync-lost-update", online(4)),                                 # defect not detected
+            ("four", SYNC_STALL), ("four", SYNC_LOST), ("four", CLOCK_MASKED), ("four", CLOCK_DIVISOR),
+            ("clock-masked", CLOCK_DIVISOR), ("clock-divisor", CLOCK_MASKED),
+            ("clock-masked", online(4)), ("clock-divisor", online(4)),
+            ("clock-masked", BEFORE_CLOCK + [EDGES, EDGES, "SMP:CLOCK:DRIFT:KERNEL"]),
+            ("clock-masked", BEFORE_CLOCK + [EDGES.replace("HOST=2", "HOST=313"), "SMP:CLOCK:DRIFT:KERNEL"]),
+        ):
+            with self.subTest(case=case, tail=lines[-1]), self.assertRaises(ValueError):
+                evaluate(case, transcript(lines), 33, False)
+        report = evaluate("clock-masked", transcript(CLOCK_MASKED), 33, False)
+        self.assertEqual(report["clock_edges"], {"ticks": 5000, "lost": 312, "host": 2, "extra": 0,
+                                                 "span_us": 3051, "median_us": 1062411,
+                                                 "own_median_us": 1062008})
+        four = online(4)
+        at = four.index("SMP:CLOCK:PASS:CPUS=4")
+        quiet = EDGES.replace("LOST=312:HOST=2", "LOST=3:HOST=3").replace("1062411", "1000450").replace("1062008", "999850")
+        self.assertEqual(evaluate("four", transcript(four[:at] + [quiet] + four[at:]), 33, False)
+                         ["clock_edges"]["host"], 3)
 
     def test_stuck_lock_is_reported_in_its_profile_only(self):
         """F5 (DG-1): the stuck marker ends its own profile and fails all others."""

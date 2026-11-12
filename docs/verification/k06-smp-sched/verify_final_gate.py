@@ -39,7 +39,7 @@ LIMITS = [
     'The existing serial oracles are replayed from the matching local source, not '
     'a separately implemented hardware model or a human security audit.',
     'A successful final-gate readback does not independently verify the separate '
-    '66x50 matrix artifact; the aggregate job must also be successful.',
+    '71x50 matrix artifact; the aggregate job must also be successful.',
 ]
 
 
@@ -194,7 +194,7 @@ class Readback:
                     'incomplete jobs API pages')
         require(len({job['id'] for job in jobs}) == len(jobs), 'duplicate API job IDs')
         selected = {}
-        for name in ('SMP section 9 aggregate 66x50', 'SMP final repository gate'):
+        for name in ('SMP section 9 aggregate 71x50', 'SMP final repository gate'):
             matching = [job for job in jobs if job.get('name') == name]
             require(len(matching) == 1, f'missing or duplicate job: {name}')
             job = matching[0]
@@ -214,7 +214,7 @@ class Readback:
                     and matching[0].get('conclusion') == 'success', f'final step not green: {name}')
         step = next(step for step in steps if step['name'] == required[4])
         self.started, self.completed = stamp(step['started_at']), stamp(step['completed_at'])
-        aggregate = selected['SMP section 9 aggregate 66x50']
+        aggregate = selected['SMP section 9 aggregate 71x50']
         require(stamp(aggregate['completed_at']) <= self.started <= self.completed,
                 'final gate ran before aggregate completed')
         return {'run_id': run['id'], 'final_job_id': job['id'], 'aggregate_job_id': aggregate['id']}

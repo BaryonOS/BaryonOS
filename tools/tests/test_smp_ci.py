@@ -103,11 +103,12 @@ class SmpCiAggregationTests(unittest.TestCase):
                          ["clock_diagnostic"]["default"], "false")
         jobs = workflow["jobs"]
 
-        def eligible(expression, event, full, diagnostic):
+        def eligible(expression, event, full, diagnostic, margin=False):
             expression = expression[3:-2].strip().replace("&&", " and ").replace("||", " or ")
             expression = expression.replace("!=", " NE ").replace("!", " not ").replace(" NE ", "!=")
             values = {("github", "event_name"): event, ("inputs", "full_matrix"): full,
-                      ("inputs", "clock_diagnostic"): diagnostic}
+                      ("inputs", "clock_diagnostic"): diagnostic,
+                      ("inputs", "margin_diagnostic"): margin}
 
             def visit(node):
                 if isinstance(node, ast.Constant):
@@ -147,6 +148,29 @@ class SmpCiAggregationTests(unittest.TestCase):
                 actual = {name for name, job in jobs.items()
                           if eligible(job["if"], event, full, diagnostic)}
                 self.assertEqual(actual, expected)
+        # A margin diagnostic excludes every acceptance and clock job, whatever else is set.
+        for full in (False, True):
+            for diagnostic in (False, True):
+                with self.subTest(margin=True, full=full, diagnostic=diagnostic):
+                    self.assertEqual({name for name, job in jobs.items()
+                                      if eligible(job["if"], "workflow_dispatch", full, diagnostic, True)},
+                                     {"diagnostic-margin", "diagnostic-gate-rehearsal"})
+        margin = jobs["diagnostic-margin"]
+        for key in ("runs-on", "timeout-minutes"):
+            self.assertEqual(margin[key], jobs["smp-case-50"][key])
+        self.assertEqual(margin["env"]["NOS_QEMU_MACHINE"], jobs["smp-case-50"]["env"]["NOS_QEMU_MACHINE"])
+        refuse = next(step for step in margin["steps"] if "OTHER_MODES" in step.get("env", {}))
+        for modes, exit_code in (("false/false", 0), ("true/false", 2), ("false/true", 2), ("/", 2)):
+            result = subprocess.run(["bash", "-c", refuse["run"]], env={"OTHER_MODES": modes},
+                                    text=True, capture_output=True)
+            self.assertEqual(result.returncode, exit_code)
+        rehearsal = jobs["diagnostic-gate-rehearsal"]
+        self.assertEqual(rehearsal["env"] | {"NOS_BUILD_DIR": 0, "NOS_TARGET_DIR": 0, "CARGO_TARGET_DIR": 0},
+                         jobs["smp-final-gate"]["env"] | {"NOS_BUILD_DIR": 0, "NOS_TARGET_DIR": 0, "CARGO_TARGET_DIR": 0})
+        self.assertTrue(rehearsal["steps"][-1]["with"]["name"].startswith("DIAGNOSTIC-NOT-ACCEPTANCE-"))
+        evidence = margin["steps"][-1]["with"]
+        self.assertTrue(evidence["name"].startswith("DIAGNOSTIC-NOT-ACCEPTANCE-"))
+        self.assertNotIn("smp-report.json", evidence["path"] + evidence["required-paths"])
         steps = jobs["diagnostic-clock"]["steps"]
         guard = next(i for i, step in enumerate(steps)
                      if "FULL_MATRIX_REQUESTED" in step.get("env", {}))

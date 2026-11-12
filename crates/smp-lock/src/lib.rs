@@ -14,6 +14,7 @@ use core::{
     sync::atomic::{AtomicU32, Ordering},
 };
 
+pub mod clock;
 pub mod sched;
 
 /// Fixed lock levels (outer -> inner). A CPU may only take a lock whose level

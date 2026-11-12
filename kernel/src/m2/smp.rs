@@ -38,7 +38,7 @@ use core::{
 };
 use kernel_core::{Frames, Kind, Owner, PAGE};
 use smp_lock::{
-    level,
+    clock, level,
     sched::{self, RunQueue},
     TicketLock,
 };
@@ -786,7 +786,11 @@ static INSIDE: AtomicU32 = AtomicU32::new(0);
 static VIOLATIONS: AtomicU32 = AtomicU32::new(0);
 
 fn stress() {
-    for _ in 0..ITERATIONS {
+    // Negative fixtures on AP1 (CPU 1): one update lost, or progress so slow
+    // that only the hard cap ends the wait.
+    let lose = cfg!(feature = "test-smp-sync-lost-update") && cpu_index() == 1;
+    let slow = cfg!(feature = "test-smp-sync-slow") && cpu_index() == 1;
+    for round in 0..ITERATIONS {
         ATOMIC_TOTAL.fetch_add(1, Ordering::Relaxed);
         let mut total = LOCKED_TOTAL.lock();
         if INSIDE.fetch_add(1, Ordering::Relaxed) != 0 {
@@ -797,9 +801,12 @@ fn stress() {
         let value = unsafe { ptr::read_volatile(&*total) };
         spin_loop();
         // SAFETY: Same exclusive location.
-        unsafe { ptr::write_volatile(&mut *total, value + 1) };
+        unsafe { ptr::write_volatile(&mut *total, value + u64::from(!(lose && round == 0))) };
         INSIDE.fetch_sub(1, Ordering::Relaxed);
         drop(total);
+        if slow {
+            within_tsc(2, || false);
+        }
     }
 }
 
@@ -892,6 +899,10 @@ extern "C" fn smp_ap_main(context: &'static ApContext) -> ! {
         spin_loop();
     }
     stress();
+    if cfg!(feature = "test-smp-sync-stall") && first {
+        // AP1 dies silently after its counting: the others finish, then nothing moves.
+        park();
+    }
     serial_lines();
     context.state.store(DONE, Ordering::Release);
     ipi_phase(context, local, first)
@@ -1378,14 +1389,31 @@ pub fn start(
         serial::write(b":TOTAL=");
         decimal(ATOMIC_TOTAL.load(Ordering::Acquire));
         serial::write(b"\n");
-        serial::fail(if matches!(finished, Progress::Stalled) {
+        let stalled = matches!(finished, Progress::Stalled);
+        if cfg!(feature = "test-smp-sync-stall") && stalled
+            || cfg!(feature = "test-smp-sync-slow") && !stalled
+        {
+            serial::exit(0x10);
+        }
+        serial::fail(if stalled {
             b"SMP_SYNC_STALLED"
         } else {
             b"SMP_SYNC_TIMEOUT"
         });
     }
     if ATOMIC_TOTAL.load(Ordering::Acquire) != expected || *LOCKED_TOTAL.lock() != expected {
+        if cfg!(feature = "test-smp-sync-lost-update") {
+            serial::write(b"SMP:SYNC:LOST_UPDATE\n");
+            serial::exit(0x10);
+        }
         serial::fail(b"SMP_SYNC_LOST_UPDATE");
+    }
+    if cfg!(any(
+        feature = "test-smp-sync-stall",
+        feature = "test-smp-sync-slow",
+        feature = "test-smp-sync-lost-update"
+    )) {
+        serial::fail(b"SMP_TEST_SYNC_NOT_DETECTED");
     }
     if VIOLATIONS.load(Ordering::Acquire) != 0 {
         serial::fail(b"SMP_SYNC_EXCLUSION");
@@ -2780,9 +2808,12 @@ fn bsp_timer_init() {
     ] {
         outb(port, value);
     }
+    // `test-smp-clock-divisor`: twice the period, which the edge accounting
+    // alone would take for one host-lost edge per tick.
+    let divisor = PIT_DIVISOR << u8::from(cfg!(feature = "test-smp-clock-divisor"));
     outb(0x43, 0x34);
-    outb(0x40, PIT_DIVISOR as u8);
-    outb(0x40, (PIT_DIVISOR >> 8) as u8);
+    outb(0x40, divisor as u8);
+    outb(0x40, (divisor >> 8) as u8);
     // S3: IRQ0/IRQ7 (0x20/0x27), 0xd0, 0xe0, 0xe8, 0xf0 and 0xff are gated
     // (`start`), so a BSP waiter may now open its window. The control keeps
     // the BSP window shut.
@@ -2860,19 +2891,132 @@ const _: () = assert!(core::mem::align_of::<ClockWork>() == 64);
 static CLOCK_WORK: [ClockWork; MAX_CPUS - 1] =
     [const { ClockWork(AtomicU64::new(0)) }; MAX_CPUS - 1];
 
+/// Idle precision phase: the sampling half of `smp_lock::clock`. After every
+/// wake the BSP reads, with IF=0, the PIC's pending IRQ0 and a latch of PIT
+/// channel 0, which places the wake on the PIT's own period grid. The BSP
+/// cannot take IRQ0 from an IRQ0 entry until its next `sti; hlt`; while that
+/// span stays under CLOCK_SPAN_PART of a period, losing an edge takes an
+/// emulator or host delay of almost a whole period, which no kernel code can
+/// prevent (`host`). Every other lost edge stays charged to the kernel.
+struct ClockEdges {
+    /// TSC ticks of one PIT period; TSC of the latest edge (0 = none yet).
+    period: u64,
+    edge: u64,
+    books: clock::Edges,
+    /// Count and IRQ0-entry TSC at the last sample, TSC before the last halt,
+    /// the longest entry-to-halt span, and counted IRQ0s since the first sample.
+    ticks: u64,
+    entry: u64,
+    halted: u64,
+    span: u64,
+    counted: u64,
+    blind: bool,
+}
+
+/// The longest span without IRQ0 that still counts as receptive: 1/4 period.
+const CLOCK_SPAN_PART: u64 = 4;
+
+impl ClockEdges {
+    fn new(per_ms: u64) -> Self {
+        Self {
+            period: per_ms * 1_000 * u64::from(PIT_DIVISOR) / PIT_HZ,
+            edge: 0,
+            books: clock::Edges::new(false),
+            ticks: 0,
+            entry: 0,
+            halted: 0,
+            span: 0,
+            counted: 0,
+            blind: false,
+        }
+    }
+
+    /// Channel 0 count and the PIC's pending IRQ0 at one TSC, IF=0. The same
+    /// IRR on both sides of a short latch proves no edge arrived in between.
+    /// Both count bytes are always read: an unread latch blocks the next one.
+    fn latch(&self) -> Option<(u64, u64, bool)> {
+        (0..3).find_map(|_| {
+            let pending = inb(0x20) & 1;
+            let tsc = rdtsc();
+            outb(0x43, 0x00);
+            let short = rdtsc().wrapping_sub(tsc) < self.period / 8;
+            let count = u64::from(inb(0x40)) | u64::from(inb(0x40)) << 8;
+            (short && inb(0x20) & 1 == pending).then_some((tsc, count, pending != 0))
+        })
+    }
+
+    /// After a wake, IF=0: `ticks` and `entry` are the stub's count and TSC.
+    fn sample(&mut self, ticks: u64, entry: u64) {
+        let Some((tsc, count, pending)) = self.latch() else {
+            self.blind = true;
+            return;
+        };
+        let divisor = u64::from(PIT_DIVISOR);
+        if count == 0 || count > divisor {
+            // Channel 0 does not run the programmed period.
+            if cfg!(feature = "test-smp-clock-divisor") {
+                serial::write(b"SMP:CLOCK:PIT_COUNT\n");
+                serial::exit(0x10);
+            }
+            serial::fail(b"SMP_CLOCK_PIT_COUNT");
+        }
+        let edge = tsc.wrapping_sub((divisor - count) * self.period / divisor);
+        if self.edge == 0 {
+            (self.edge, self.books) = (edge, clock::Edges::new(pending));
+            (self.ticks, self.entry) = (ticks, entry);
+            return;
+        }
+        // Whole periods between two edges; exact while the TSC calibration
+        // error over the gap stays under 3/8 period (about 60 periods).
+        let periods = (edge + self.period / 2).saturating_sub(self.edge) / self.period;
+        if periods != 0 {
+            self.edge = edge;
+        }
+        let limit = self.period / CLOCK_SPAN_PART;
+        self.books.account(clock::Sample {
+            periods,
+            counted: ticks - self.ticks,
+            pending,
+            // One IRQ0 woke this sample, and both spans around its halt were short.
+            receptive: !self.blind
+                && ticks == self.ticks + 1
+                && self.halted.wrapping_sub(self.entry) < limit
+                && tsc.wrapping_sub(entry) < limit,
+        });
+        self.counted += ticks - self.ticks;
+        (self.ticks, self.entry, self.blind) = (ticks, entry, false);
+    }
+
+    /// Just before `sti; hlt`.
+    fn halt(&mut self) {
+        self.halted = rdtsc();
+        if self.entry != 0 {
+            self.span = self.span.max(self.halted.wrapping_sub(self.entry));
+        }
+    }
+}
+
 /// Idle until the clock reaches `target`; snapshot (ticks, IRQ-entry TSC,
 /// observer TSC), or None at `bound`. IF=0 keeps IRQ0 from changing either
 /// edge value between the reads.
 /// Every read checks that the clock never goes back.
-fn clock_at(target: u64, bound: u64, last: &mut u64) -> Option<(u64, u64, u64)> {
+fn clock_at(
+    target: u64,
+    bound: u64,
+    last: &mut u64,
+    mut edges: Option<&mut ClockEdges>,
+) -> Option<(u64, u64, u64)> {
     loop {
         let now = CLOCK_TICKS.load(Ordering::Acquire);
         if now < *last {
             serial::fail(b"SMP_CLOCK_NOT_MONOTONIC");
         }
         *last = now;
+        let edge = CLOCK_EDGE_TSC.load(Ordering::Acquire);
+        if let Some(edges) = edges.as_deref_mut() {
+            edges.sample(now, edge);
+        }
         if now >= target {
-            let edge = CLOCK_EDGE_TSC.load(Ordering::Acquire);
             if edge == 0 {
                 serial::fail(b"SMP_CLOCK_EDGE_TSC_MISSING");
             }
@@ -2880,6 +3024,13 @@ fn clock_at(target: u64, bound: u64, last: &mut u64) -> Option<(u64, u64, u64)> 
         }
         if rdtsc() > bound {
             return None;
+        }
+        if let Some(edges) = edges.as_deref_mut() {
+            if cfg!(feature = "test-smp-clock-masked") && now % 32 == 0 {
+                // The kernel itself keeps IRQ0 out for three periods.
+                wait_us(3_000);
+            }
+            edges.halt();
         }
         idle_halt();
     }
@@ -2899,15 +3050,20 @@ fn clock(online: usize, total: usize) -> bool {
     let bound = rdtsc().saturating_add(4 * CLOCK_SPAN * per_ms);
     let mut last = CLOCK_TICKS.load(Ordering::Acquire);
     let first = last + 1;
-    let mut edge = clock_at(first, bound, &mut last);
+    let mut edges = ClockEdges::new(per_ms);
+    let mut edge = clock_at(first, bound, &mut last, Some(&mut edges));
     let mut samples = [0u64; CLOCK_SEGMENTS];
+    // The same samples without the periods whose edges the host lost.
+    let mut own = [0u64; CLOCK_SEGMENTS];
     let mut ticks = [0u64; CLOCK_SEGMENTS];
     let mut cycles = [0u64; CLOCK_SEGMENTS];
     let mut observer_start_lag = [0u64; CLOCK_SEGMENTS];
     let mut observer_end_lag = [0u64; CLOCK_SEGMENTS];
     for (index, sample) in samples.iter_mut().enumerate() {
         edge = edge.and_then(|start| {
-            clock_at(first + (index as u64 + 1) * CLOCK_SEGMENT, bound, &mut last).map(|end| {
+            let (host, extra) = (edges.books.host, edges.books.extra);
+            let target = first + (index as u64 + 1) * CLOCK_SEGMENT;
+            clock_at(target, bound, &mut last, Some(&mut edges)).map(|end| {
                 let tick_delta = end.0 - start.0;
                 let tsc_delta = end.1 - start.1;
                 if tick_delta == 0 {
@@ -2920,9 +3076,18 @@ fn clock(online: usize, total: usize) -> bool {
                 // HLT may return after the target tick. Normalize using the
                 // actual IRQ0 count, never the requested count. This does not
                 // synthesize lost interrupts: sustained IRQ loss still drifts.
-                *sample = (u128::from(tsc_delta) * 1000 * u128::from(CLOCK_SEGMENT)
-                    / (u128::from(per_ms) * u128::from(tick_delta)))
-                    as u64;
+                let normalized = |tsc: u64| {
+                    (u128::from(tsc) * 1000 * u128::from(CLOCK_SEGMENT)
+                        / (u128::from(per_ms) * u128::from(tick_delta))) as u64
+                };
+                *sample = normalized(tsc_delta);
+                // A loss booked in the previous segment may be taken back in
+                // this one (late presentation), so the difference saturates.
+                // An IRQ0 the books could not match to a period is either such
+                // an arrival or a doubled tick: both take back host credit.
+                let lost = (edges.books.host.saturating_sub(host))
+                    .saturating_sub(edges.books.extra - extra);
+                own[index] = normalized(tsc_delta.saturating_sub(lost * edges.period));
                 end
             })
         });
@@ -2934,7 +3099,38 @@ fn clock(online: usize, total: usize) -> bool {
     let mut ordered = samples;
     ordered.sort_unstable();
     let us = ordered[CLOCK_SEGMENTS / 2];
+    own.sort_unstable();
+    // Diagnostic until the project owner decides on it: the verdict below is
+    // still the median over every period, lost edges included.
+    for (label, value) in [
+        (b"SMP:CLOCK:EDGES:TICKS=".as_slice(), edges.counted),
+        (b":LOST=", edges.books.lost),
+        (b":HOST=", edges.books.host),
+        (b":EXTRA=", edges.books.extra),
+        (b":SPAN_US=", edges.span * 1000 / per_ms.max(1)),
+        (b":US=", us),
+        (b":OWN_US=", own[CLOCK_SEGMENTS / 2]),
+    ] {
+        serial::write(label);
+        decimal(value);
+    }
+    serial::write(b"\n");
     let expected = CLOCK_SEGMENT * u64::from(PIT_DIVISOR) * 1_000_000 / PIT_HZ;
+    if cfg!(feature = "test-smp-clock-masked") {
+        // Both medians must reject edges the kernel masked: none of that loss
+        // may be booked on the host.
+        if [us, own[CLOCK_SEGMENTS / 2]]
+            .iter()
+            .all(|median| median.abs_diff(expected) * 100 > expected)
+        {
+            serial::write(b"SMP:CLOCK:DRIFT:KERNEL\n");
+            serial::exit(0x10);
+        }
+        serial::fail(b"SMP_TEST_CLOCK_MASK_NOT_CHARGED");
+    }
+    if cfg!(feature = "test-smp-clock-divisor") {
+        serial::fail(b"SMP_TEST_CLOCK_DIVISOR_NOT_DETECTED");
+    }
     if us.abs_diff(expected) * 100 > expected {
         serial::write(b"SMP:CLOCK:CALIBRATION:TSC_PER_MS=");
         decimal(per_ms);
@@ -2977,7 +3173,7 @@ fn clock(online: usize, total: usize) -> bool {
     }
     let bound = rdtsc().saturating_add(4 * CLOCK_SEGMENT * per_ms);
     let target = CLOCK_TICKS.load(Ordering::Acquire) + CLOCK_SEGMENT;
-    let loaded = clock_at(target, bound, &mut last);
+    let loaded = clock_at(target, bound, &mut last, None);
     CLOCK_LOAD.store(false, Ordering::Release);
     if loaded.is_none() {
         serial::write(b"SMP:CLOCK:STOPPED\n");

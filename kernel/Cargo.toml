@@ -48,6 +48,13 @@ test-smp-proc-no-shootdown = ["native-smp"]
 # Audit F5/F7: a lock the BSP never frees (STUCK in release), and the
 # serial control without the SERIAL lock.
 test-smp-lock-stuck = ["native-smp"]
+# Structural timing repair (ADR-082): injected defects the progress-bounded
+# sync wait and the clock edge accounting must still report.
+test-smp-sync-stall = ["native-smp"]
+test-smp-sync-slow = ["native-smp"]
+test-smp-sync-lost-update = ["native-smp"]
+test-smp-clock-masked = ["native-smp"]
+test-smp-clock-divisor = ["native-smp"]
 test-smp-serial-unlocked = ["native-smp"]
 # K06 step 5d-2 (R3-1): M3 ring-3 processes on the APs; the only profile in
 # which native-smp and milestone-m3 meet.

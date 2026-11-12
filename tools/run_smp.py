@@ -54,6 +54,13 @@ CASES = {
     "proc-shootdown-deaf": ("test-smp-proc-shootdown-deaf", 4, "multi", "proc-shootdown-quarantine"),
     "proc-no-shootdown-control": ("test-smp-proc-no-shootdown", 4, "multi", "proc-stale-read"),
     "lock-stuck": ("test-smp-lock-stuck", 2, "multi", "lock-stuck"),
+    # ADR-082: injected defects under the progress-bounded sync wait and the
+    # clock edge accounting.
+    "sync-stall": ("test-smp-sync-stall", 4, "multi", "sync-stall"),
+    "sync-slow": ("test-smp-sync-slow", 4, "multi", "sync-slow"),
+    "sync-lost-update": ("test-smp-sync-lost-update", 4, "multi", "sync-lost-update"),
+    "clock-masked": ("test-smp-clock-masked", 4, "multi", "clock-masked"),
+    "clock-divisor": ("test-smp-clock-divisor", 4, "multi", "clock-divisor"),
     # K06 step 5d-2: the base M3 manifest on every online CPU (R3-1).
     "m3-one": ("native-smp-m3", 1, "single", "m3"),
     "m3-one-multi": ("native-smp-m3", 1, "multi", "m3"),
@@ -106,8 +113,18 @@ TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_I
             "bsp-spin-timeout": "SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0",
             "proc-stale-read": "SMP:SHOOTDOWN:STALE_READ",
             "lock-stuck": "SMP:LOCK:STUCK:10:CPU=1",
+            # AP1 counted and died: no progress for STALL_MS with two of three APs done.
+            "sync-stall": "SMP:SYNC:STALLED:DONE=2:TOTAL=80000",
+            # AP1 keeps counting too slowly: only the hard cap ends the wait.
+            "sync-slow": "SMP:SYNC:TIMEOUT:DONE=2:TOTAL=*",
+            "sync-lost-update": "SMP:SYNC:LOST_UPDATE",
+            "clock-masked": "SMP:CLOCK:DRIFT:KERNEL",
+            "clock-divisor": "SMP:CLOCK:PIT_COUNT",
             "m3-fpu-corrupt": "SMP:M3:FPU:CORRUPT:CONTROL",
             "m3-migrate-corrupt": "SMP:MIGRATE:CANARY:CORRUPT:CONTROL"}
+# CPUs whose serial fixture lines are complete when a sync fixture stops the boot.
+SYNC_WRITERS = {"sync-stall": (0, 2, 3), "sync-slow": (0, 2, 3), "sync-lost-update": (0, 1, 2, 3)}
+SYNC_SLOW = re.compile(r"SMP:SYNC:TIMEOUT:DONE=2:TOTAL=([0-9]{5})")
 # Audit F8: the GS fixture prints the runtime CR4 (decimal); FSGSBASE (bit 16)
 # must be clear, the value itself may differ per firmware.
 GS_CR4 = "SMP:GS:CR4=*"
@@ -145,6 +162,14 @@ IPC_TIMEOUT_S = 660
 # WAIT and STALL carry the wait's line in kernel/src/m2/smp.rs, LOCK the lock
 # level (DG-1 limit) and ROUND the shootdown generation.
 MARGIN = re.compile(r"SMP:MARGIN:(WAIT|STALL|LOCK|ROUND):([0-9]{1,5}):([0-9]{1,8})/([0-9]{1,8})")
+
+# Idle clock phase: counted IRQ0s, PIT periods whose edge never arrived (LOST), the
+# part of those lost while the BSP was halted with IF=1 (HOST), counted IRQ0s beyond
+# the periods (EXTRA), the longest IRQ0-entry-to-halt span, and the median segment
+# with (US) and without (OWN_US) the host-lost periods. Diagnostic: the kernel's
+# verdict still uses US.
+CLOCK_EDGES = re.compile(r"SMP:CLOCK:EDGES:TICKS=([0-9]{1,8}):LOST=([0-9]{1,8}):HOST=([0-9]{1,8})"
+                         r":EXTRA=([0-9]{1,8}):SPAN_US=([0-9]{1,8}):US=([0-9]{1,8}):OWN_US=([0-9]{1,8})")
 
 SERIAL_LINES = 200  # kernel/src/m2/smp.rs SERIAL_LINES
 SERIAL_LINE = re.compile(r"SMP:SER:([0-9]):([0-9]{1,3})")
@@ -319,6 +344,11 @@ def expected_smp(case: str) -> list[str]:
     if outcome == "lock-stuck":
         # Audit F5 (DG-1): the AP waiting for the BSP's lock reports it, release build.
         return lines + settled(started)[:4] + [TERMINAL[outcome]]
+    if outcome in SYNC_WRITERS:
+        return lines + [RATIO, TERMINAL[outcome]]
+    if outcome in ("clock-masked", "clock-divisor"):
+        done = settled(started)
+        return lines + done[:done.index(f"SMP:CLOCK:PASS:CPUS={started}")] + [TERMINAL[outcome]]
     lines += [RATIO, SERIAL_PASS, f"SMP:SYNC:PASS:CPUS={started}"]
     ipi_pass = f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}"
     if outcome == "held-across-switch":
@@ -497,24 +527,33 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool,
     body, seen = serial_lines(observed[len(BOOT):], control)
     writers = next((int(m[1]) for m in (re.fullmatch(r"SMP:ONLINE:([0-9]+)/[0-9]+", line)
                                         for line in body) if m), 0)
-    if not control and seen != {cpu: list(range(SERIAL_LINES))
-                                for cpu in range(writers if SERIAL_PASS in expected else 0)}:
+    wrote = SYNC_WRITERS.get(outcome, range(writers if SERIAL_PASS in expected else 0))
+    if not control and seen != {cpu: list(range(SERIAL_LINES)) for cpu in wrote}:
         raise ValueError("Serial fixture lines missing, duplicated or out of order")
     tail = []
     deadline_margins = []
+    guest_waits = {}
+    clock_edges = None
     recovery_crashed = None
     for line in body:
         margin = MARGIN.fullmatch(line)
         if margin:
             name = f"{margin[1].lower()}_{margin[2]}"
             used, limit = int(margin[3]), int(margin[4])
-            if limit == 0 or any(item["name"] == name for item in deadline_margins):
+            if limit == 0 or name in guest_waits:
                 raise ValueError("Malformed or repeated deadline margin")
             if used > limit and not (margin[1] == "WAIT" and oversubscribed):
                 raise ValueError(f"Guest wait {name} used {used} of {limit} ms")
-            deadline_margins.append({"name": name, "clock": "guest", "measured_ms": used,
-                                     "deadline_ms": limit, "measured_over_deadline": used / limit,
-                                     "remaining_ms": limit - used})
+            # [used, limit] in ms: fifty boots must stay inside the 1 MiB evidence file limit.
+            guest_waits[name] = [used, limit]
+            continue
+        edges = CLOCK_EDGES.fullmatch(line)
+        if edges:
+            ticks, lost, host, extra, span_us, us, own_us = map(int, edges.groups())
+            if clock_edges is not None or host > lost or own_us > us:
+                raise ValueError("Malformed or repeated clock edge accounting")
+            clock_edges = {"ticks": ticks, "lost": lost, "host": host, "extra": extra,
+                           "span_us": span_us, "median_us": us, "own_median_us": own_us}
             continue
         cr4 = re.fullmatch(r"SMP:GS:CR4=([0-9]{1,20})", line)
         if cr4 and int(cr4[1]) & (1 << 16) == 0:
@@ -595,6 +634,9 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool,
         received = IPC_RESCHEDULE.fullmatch(line)
         if received and outcome in ("m3-ipc", "m3-load", "m3-soak") and (0 if cpus == 1 else 1) <= int(received[1]) <= (1 << 64) - 1:
             line = "SMP:IPC:RESCHEDULE_IPIS=*"
+        slow = SYNC_SLOW.fullmatch(line)
+        if slow and outcome == "sync-slow" and 60_000 <= int(slow[1]) < 80_000:
+            line = TERMINAL["sync-slow"]
         cross = SCRATCH_CROSS.fullmatch(line)
         if cross and int(cross[1]) < min(cpus, MAX_CPUS):
             line = TERMINAL["shared-scratch"]
@@ -615,7 +657,8 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool,
         if list(map(int, pids)) != expected_pids:
             raise ValueError("Qsim SMP process identities missing, reordered or duplicated")
     return {"outcome": outcome, "profile": profile, "online": online,
-            "deadline_margins": deadline_margins,
+            "deadline_margins": deadline_margins, "guest_waits": guest_waits,
+            "clock_edges": clock_edges,
             "ap_ids": sorted({int(m[1]) for m in (re.fullmatch(r"SMP:AP:([0-9]+):.*", line)
                                                    for line in expected) if m})}
 
