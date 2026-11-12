@@ -176,10 +176,12 @@ and rerun the K06 matrix there.
 
 ## NEXT AGENT HANDOFF — PR #210 Veld input-ownership repairs — 11 November 2026
 
-**Source:** PR head `a8624b8` merged with `main` `c520703b` (only
-`docs/PROJECT-STATE.md` conflicted; both sides kept, the duplicated #299
-heading collapsed onto byte-identical content). Repair commits `eb34cfb` and
-`cdbd187`.
+**Source:** PR head `a8624b8` merged with `main` `c520703b`, then with `main`
+`1a3feb92` (after #296 and #314). Only `docs/PROJECT-STATE.md` conflicted;
+both sides were kept and the duplicated #299 heading collapsed onto
+byte-identical content. Repair commits `eb34cfb` and `cdbd187`. After the
+second merge the default, `native-window-session-probe` and
+`native-window-session` kernel builds passed locally.
 
 **Repairs of the five open review threads:**
 - Alt+Tab during an Alt+F7 keyboard move now rolls the move back before the
