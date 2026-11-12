@@ -29,6 +29,33 @@ CACHE_ACTION_SHA = "55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
 ACTIONLINT_VERSION = "1.7.12"
 ACTIONLINT_SHA256 = "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
 ACTIONLINT_TAG_COMMIT = "914e7df21a07ef503a81201c76d2b11c789d3fca"
+# Non-required workflows skip only documentation and project metadata. The
+# required ci.yml gates stay unfiltered (see test_required_gates_...).
+METADATA_PATHS_IGNORE = [
+    "docs/**",
+    "**.md",
+    ".github/ISSUE_TEMPLATE/**",
+    ".github/DISCUSSION_TEMPLATE/**",
+    ".github/workflows/project-classification.yml",
+    "tools/project_classification.py",
+    "tests/test_project_classification.py",
+]
+
+
+def github_path_filter_matches(pattern, path):
+    """Match GitHub path-filter globs: '*' stays within a segment, '**' spans."""
+    regex, i = "", 0
+    while i < len(pattern):
+        if pattern.startswith("**", i):
+            regex += ".*"
+            i += 2
+        elif pattern[i] == "*":
+            regex += "[^/]*"
+            i += 1
+        else:
+            regex += re.escape(pattern[i])
+            i += 1
+    return re.fullmatch(regex, path) is not None
 
 
 def uses_reference_is_pinned(reference):
@@ -634,6 +661,38 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                 self.assertFalse(job.get("needs"))
                 self.assertEqual(job.get("continue-on-error", "false"), "false")
                 self.assertTrue(any("run" in step for step in job["steps"]))
+
+    def test_paths_ignore_skips_only_documentation_and_project_metadata(self):
+        """Metadata-only changes must not start native matrices; code still must."""
+        filtered = 0
+        for path, workflow in self.workflows.items():
+            for event in ("pull_request", "push"):
+                trigger = workflow["on"].get(event)
+                if isinstance(trigger, dict) and "paths-ignore" in trigger:
+                    filtered += 1
+                    with self.subTest(path=path, event=event):
+                        self.assertEqual(trigger["paths-ignore"], METADATA_PATHS_IGNORE)
+        self.assertGreater(filtered, 0)
+
+        def ignored(changed):
+            return any(github_path_filter_matches(p, changed)
+                       for p in METADATA_PATHS_IGNORE)
+
+        for changed in ("README.md", "docs/PROJECT-STATE.md", "sdk/README.md",
+                        ".github/pull_request_template.md",
+                        ".github/ISSUE_TEMPLATE/bug.yml",
+                        "tools/project_classification.py"):
+            with self.subTest(ignored=changed):
+                self.assertTrue(ignored(changed))
+        for changed in ("kernel/src/main.rs", "Cargo.lock", "tools/build.py",
+                        "tools/ci_evidence.py", "tests/test_ci_workflows.py",
+                        ".github/workflows/ci.yml",
+                        ".github/workflows/native-smp.yml",
+                        ".github/actions/setup-qemu/action.yml",
+                        "sdk/examples/window-session/src/main.rs",
+                        "docs.rs", "tools/project_classification.py.orig"):
+            with self.subTest(built=changed):
+                self.assertFalse(ignored(changed))
 
     def test_only_artifact_uploads_can_tolerate_errors(self):
         """Storage failure may be optional; failed builds, tests and collectors are not."""

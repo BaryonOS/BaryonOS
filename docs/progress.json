@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-12",
-    "source_commit": "ae3e98587d7817f9be34de9b7fc2063e67e81fc3",
-    "assessment_basis": "working_tree",
-    "branch": "codex/k06-5f-complete-20261109",
-    "task": "K06 step 5f: fix the four confirmed PR #296 review findings (IQ-3 transitional locks, DG-2 harness verdict, K05 on four vCPUs, recovery from an idle CPU) before the full matrix",
+    "source_commit": "46938b0c8a91242640938ae8277e71d71140fd9c",
+    "assessment_basis": "source_commit",
+    "branch": "ccr-cf45024e-q0nrg9",
+    "task": "Derive GitHub Project #5 Status from GitHub facts, backfill missing open items, skip scheduled runs without the Projects token and keep native matrices off metadata-only changes (ADR-PROJECT-SYNC-20261111)",
     "previous_score": 39,
-    "summary": "39/100 remains 39/100. The four confirmed review findings are fixed with targeted tests; local single boots and both K05 suites (one CPU and four vCPUs, 6/6 each) pass, which is not acceptance. The matrix grows to 65x50 with the new quarantine-lock-pending case. K06 stays open until the full matrix, all soaks, K07, the aggregate and the final gate pass on the final commit."
+    "summary": "39/100 to 39/100: project-management automation only. Project Status stays organisational and never replaces a GitHub Actions result; no OS functionality, native gate or product criterion changes."
   },
   "tracks": [
     {

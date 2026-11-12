@@ -30,14 +30,20 @@ jobs:
           persist-credentials: false
       - name: Test classification rules
         run: python3 -m unittest discover -s tests -p 'test_project_classification.py'
-      - name: Classify existing project items
+      - name: Classify and synchronise project items
         env:
           BARYON_PROJECTS_TOKEN: ${{ secrets.BARYON_PROJECTS_TOKEN }}
           APPLY: ${{ github.event_name == 'schedule' || inputs.apply }}
+          EVENT: ${{ github.event_name }}
         run: |
           set -eu
+          args=()
           if [ "$APPLY" = "true" ]; then
-            python3 tools/project_classification.py --apply
-          else
-            python3 tools/project_classification.py
+            args+=(--apply)
           fi
+          # A missing secret must not turn every scheduled run red; a manual
+          # run still fails so the configuration gap stays visible.
+          if [ "$EVENT" = "schedule" ]; then
+            args+=(--skip-without-token)
+          fi
+          python3 tools/project_classification.py "${args[@]}"
