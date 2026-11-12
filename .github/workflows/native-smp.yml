@@ -7,6 +7,14 @@ on:
         description: 'Also retain raw images, frames and builds for 1 day'
         type: boolean
         default: false
+      full_matrix:
+        description: 'Run the complete SMP section 9 matrix 50 times per case'
+        type: boolean
+        default: false
+      clock_diagnostic:
+        description: 'DIAGNOSTIC ONLY: trace m3-one-multi 50 times; requires full_matrix=false'
+        type: boolean
+        default: false
   pull_request:
     types: [opened, synchronize, reopened]
     paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']
@@ -28,6 +36,7 @@ defaults:
 
 jobs:
   native-smp:
+    if: ${{ !inputs.clock_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -55,6 +64,8 @@ jobs:
           cargo +1.90.0 test --locked -p smp-lock
           cargo +1.90.0 clippy --locked -p smp-lock --all-targets -- -D warnings
           python3 -B -m unittest discover -s tools/tests -p test_smp_serial.py -v
+          # Audit F8: static swapgs/lfence discipline (sole evidence for GS-5).
+          python3 -B -m unittest discover -s tools/tests -p test_gs_discipline.py -v
           python3 -B -m unittest discover -s tools/tests -p test_acpi_serial.py -v
           cargo +1.90.0 fmt --all -- --check
       - name: Normal, capacity and duplicate-MADT boots (1/2/4/8/9 vCPUs)
@@ -101,6 +112,100 @@ jobs:
         run: |
           python3 -B tools/build.py --kernel-feature test-smp-lockdep-order
           python3 -B -u tools/run_smp.py --profile test-smp-lockdep-order
+      - name: A CPU waiting for KERNEL without the IF window is deaf (control)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-spin-irq-off
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-spin-irq-off
+          python3 -B -u tools/run_smp.py --profile test-smp-spin-irq-off
+      - name: A switch while a lock is held or awaited stops with the lockdep marker
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-held-across-switch
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-held-across-switch
+          python3 -B -u tools/run_smp.py --profile test-smp-held-across-switch
+      - name: A second push of a queued thread is refused at the push (audit F17)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-double-run
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-double-run
+          python3 -B -u tools/run_smp.py --profile test-smp-double-run
+      - name: A kill aimed at an AP that ignores 0xe8 times out and quarantines (audit F16)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-resched-deaf
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-resched-deaf
+          python3 -B -u tools/run_smp.py --profile test-smp-resched-deaf
+      - name: Ring 3 with its own GS on every AP; faulting iretq and NMI from CPL3 (audit F8)
+        run: |
+          for profile in test-smp-gs-user test-smp-gs-iret-fault test-smp-gs-nmi-user; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
+      - name: Every CPU sharing one scratch slot is caught crossing (control, ADR-075)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-shared-scratch
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-shared-scratch
+          python3 -B -u tools/run_smp.py --profile test-smp-shared-scratch
+      - name: KERNEL in a handler and a loose descending ASPACE pair stop with lockdep (F3/F4)
+        run: |
+          for profile in test-smp-lock-in-handler test-smp-lockpair-order; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
+      - name: Without the ICR lock a handler IPI replaces the destination (control, audit F19)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-icr-race
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-icr-race
+          python3 -B -u tools/run_smp.py --profile test-smp-icr-race
+      - name: A deaf AP holding KERNEL stops the system instead of INIT (audit F15)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-quarantine-lock-held
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-quarantine-lock-held
+          python3 -B -u tools/run_smp.py --profile test-smp-quarantine-lock-held
+      - name: A deaf AP inside KERNEL's acquire window also stops the system (IQ-3)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-quarantine-lock-pending
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-quarantine-lock-pending
+          python3 -B -u tools/run_smp.py --profile test-smp-quarantine-lock-pending
+      - name: A BSP spinning on KERNEL without its IF window misses a shootdown (control, step 5c-2)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-bsp-spin-irq-off
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-bsp-spin-irq-off
+          python3 -B -u tools/run_smp.py --profile test-smp-bsp-spin-irq-off
+      - name: Process shootdown - deaf AP quarantines the frame; control shows a stale read (step 5e)
+        run: |
+          for profile in test-smp-proc-shootdown-deaf test-smp-proc-no-shootdown; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
+      - name: A lock the BSP never frees is reported as STUCK in a release build (F5)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-lock-stuck
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-lock-stuck
+          python3 -B -u tools/run_smp.py --profile test-smp-lock-stuck
+      - name: Without the SERIAL lock CPUs mix a line (control, F7)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-serial-unlocked
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-serial-unlocked
+          python3 -B -u tools/run_smp.py --profile test-smp-serial-unlocked
+      - name: M3 ring-3 processes on every CPU (2/4/8 vCPUs) and an AP2 app fault (step 5d-2)
+        run: |
+          for profile in native-smp-m3 test-smp-m3-fault; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
       - name: Preserve tracked source integrity
         run: git diff --exit-code
       - name: Preserve compact evidence and report archive availability
@@ -118,8 +223,647 @@ jobs:
             build/k06-*/run/smp-*/serial.txt
             build/k06-*/run/smp-*/stderr.txt
 
+  smp-environment-probe:
+    name: SMP Ubuntu 26.04 and K07 probe
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    env:
+      NOS_QEMU_MACHINE: pc-q35-10.0
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-smp-environment-probe
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/smp-environment-probe
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/smp-environment-probe
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout frozen source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned QEMU 10.2.1 and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+        with:
+          system-python: 'true'
+      - name: Pinned Rust
+        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Quiet hosted runner background services
+        # Best effort: on the 4-vCPU hosted runner, background jobs compete with the
+        # guest vCPU threads and QEMU's PIT timer; lost IRQ0 edges show up as clock drift.
+        run: |
+          sudo systemctl stop unattended-upgrades.service apt-daily.timer apt-daily-upgrade.timer \
+            apt-daily.service apt-daily-upgrade.service man-db.timer snapd.service snapd.socket \
+            fwupd.service 2>/dev/null || true
+          nproc
+          lscpu | grep -E '^(Model name|CPU\(s\)|Thread|Core|Socket)' || true
+          cat /proc/loadavg
+          ps -eo pcpu,comm --sort=-pcpu | head -6
+      - name: Prove the runner reaches K07 and exact cleanup
+        run: |
+          python3 -B tools/build.py --kernel-feature native-smp-m4-quotas
+          python3 -B -u tools/run_smp.py --case m4-quotas-four --repeat 1
+          git diff --exit-code
+      - name: Preserve environment probe
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: runner-environment-probe
+          path: |
+            build/k06-smp-environment-probe/manifest.json
+            build/k06-smp-environment-probe/smp-report.json
+            build/k06-smp-environment-probe/run/smp-*/result.json
+            build/k06-smp-environment-probe/run/smp-*/serial.txt
+            build/k06-smp-environment-probe/run/smp-*/stderr.txt
+          if-no-files-found: warn
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          required-paths: |
+            build/k06-smp-environment-probe/manifest.json
+            build/k06-smp-environment-probe/smp-report.json
+
+  smp-case-50:
+    name: SMP 50/50 (${{ matrix.case }})
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
+    needs: smp-environment-probe
+    runs-on: ubuntu-26.04
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        case:
+          - one
+          - two-single
+          - four
+          - eight
+          - nine-capacity
+          - duplicate-madt
+          - ap-stall
+          - ap-mismatch
+          - ap-ipi-deaf
+          - ap-nmi-ist
+          - ap-double-fault-ist
+          - ap-shootdown-deaf
+          - shootdown-skipped-control
+          - ap-timer-dead
+          - lockdep-order
+          - spin-irq-off-control
+          - held-across-switch
+          - double-run
+          - gs-user
+          - gs-iret-fault
+          - gs-nmi-user
+          - shared-scratch
+          - lock-in-handler
+          - lockpair-order
+          - resched-deaf
+          - icr-race-control
+          - quarantine-lock-held
+          - quarantine-lock-pending
+          - bsp-spin-irq-off-control
+          - proc-shootdown-deaf
+          - proc-no-shootdown-control
+          - lock-stuck
+          - m3-one
+          - m3-one-multi
+          - m3-two-single
+          - m3-two
+          - m3-four-single
+          - m3-four
+          - m3-eight-single
+          - m3-eight
+          - m3-ipc-four-single
+          - m3-ipc-four
+          - m3-migrate-four-single
+          - m3-migrate-four
+          - m3-migrate-eight-single
+          - m3-migrate-eight
+          - m3-canary-control
+          - m3-fault-ap2
+          - m3-fpu-skip-control
+          - serial-unlocked-control
+          - m3-load-one
+          - m3-load-one-multi
+          - m3-load-two-single
+          - m3-load-two
+          - m3-load-four-single
+          - m3-load-four
+          - m3-load-eight-single
+          - m3-load-eight
+          - m4-quotas-four
+          - qsim-four
+          - m3-kill-four
+          - m3-unmap-four
+          - m3-unmap-control
+          - m3-recovery-four
+    env:
+      NOS_QEMU_MACHINE: pc-q35-10.0
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-smp-${{ matrix.case }}
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/smp-${{ matrix.case }}
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/smp-${{ matrix.case }}
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout frozen source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+        with:
+          system-python: 'true'
+      - name: Pinned Rust
+        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Quiet hosted runner background services
+        # Best effort: on the 4-vCPU hosted runner, background jobs compete with the
+        # guest vCPU threads and QEMU's PIT timer; lost IRQ0 edges show up as clock drift.
+        run: |
+          sudo systemctl stop unattended-upgrades.service apt-daily.timer apt-daily-upgrade.timer \
+            apt-daily.service apt-daily-upgrade.service man-db.timer snapd.service snapd.socket \
+            fwupd.service 2>/dev/null || true
+          nproc
+          lscpu | grep -E '^(Model name|CPU\(s\)|Thread|Core|Socket)' || true
+          cat /proc/loadavg
+          ps -eo pcpu,comm --sort=-pcpu | head -6
+      - name: Build one frozen profile and run the case 50 times
+        env:
+          SMP_CASE: ${{ matrix.case }}
+        run: |
+          profile="$(python3 -B - <<'PY'
+          import os
+          import sys
+          sys.path.insert(0, 'tools')
+          from run_smp import CASES
+          print(CASES[os.environ['SMP_CASE']][0])
+          PY
+          )"
+          python3 -B tools/build.py --kernel-feature "$profile"
+          set -o pipefail
+          case "$profile" in
+            # These two cases use smp_unmap.elf, not the FPU-canary probe.
+            native-smp-m3-unmap|test-smp-m3-no-shootdown) ;;
+            *m3*) python3 -B userspace/tests/test_smp_fpu_probe.py \
+              --elf "$NOS_BUILD_DIR/users/probe.elf" 2>&1 | tee "$NOS_BUILD_DIR/fpu-fixture-host.log" ;;
+          esac
+          python3 -B -u tools/run_smp.py --case "$SMP_CASE" --repeat 50
+          git diff --exit-code
+      - name: Preserve case evidence
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: smp-case-${{ matrix.case }}
+          path: |
+            build/k06-smp-${{ matrix.case }}/manifest.json
+            build/k06-smp-${{ matrix.case }}/smp-report.json
+            build/k06-smp-${{ matrix.case }}/fpu-fixture-host.log
+            build/k06-smp-${{ matrix.case }}/run/smp-*/result.json
+            build/k06-smp-${{ matrix.case }}/run/smp-*/serial.txt
+            build/k06-smp-${{ matrix.case }}/run/smp-*/stderr.txt
+          if-no-files-found: warn
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          required-paths: |
+            build/k06-smp-${{ matrix.case }}/manifest.json
+            build/k06-smp-${{ matrix.case }}/smp-report.json
+
+  smp-soak-50:
+    name: SMP soak 5/50 (shard ${{ matrix.shard }})
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
+    needs: smp-environment-probe
+    runs-on: ubuntu-26.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    env:
+      NOS_QEMU_MACHINE: pc-q35-10.0
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-smp-soak-${{ matrix.shard }}
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/smp-soak-${{ matrix.shard }}
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/smp-soak-${{ matrix.shard }}
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout frozen source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+        with:
+          system-python: 'true'
+      - name: Pinned Rust
+        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Quiet hosted runner background services
+        # Best effort: on the 4-vCPU hosted runner, background jobs compete with the
+        # guest vCPU threads and QEMU's PIT timer; lost IRQ0 edges show up as clock drift.
+        run: |
+          sudo systemctl stop unattended-upgrades.service apt-daily.timer apt-daily-upgrade.timer \
+            apt-daily.service apt-daily-upgrade.service man-db.timer snapd.service snapd.socket \
+            fwupd.service 2>/dev/null || true
+          nproc
+          lscpu | grep -E '^(Model name|CPU\(s\)|Thread|Core|Socket)' || true
+          cat /proc/loadavg
+          ps -eo pcpu,comm --sort=-pcpu | head -6
+      - name: Build the frozen soak profile and run five times
+        run: |
+          python3 -B tools/build.py --kernel-feature native-smp-m3-soak
+          set -o pipefail
+          python3 -B userspace/tests/test_smp_fpu_probe.py \
+            --elf "$NOS_BUILD_DIR/users/probe.elf" 2>&1 | tee "$NOS_BUILD_DIR/fpu-fixture-host.log"
+          python3 -B -u tools/run_smp.py --case m3-soak-four --repeat 5
+          git diff --exit-code
+      - name: Preserve soak evidence
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: smp-soak-${{ matrix.shard }}
+          path: |
+            build/k06-smp-soak-${{ matrix.shard }}/manifest.json
+            build/k06-smp-soak-${{ matrix.shard }}/smp-report.json
+            build/k06-smp-soak-${{ matrix.shard }}/fpu-fixture-host.log
+            build/k06-smp-soak-${{ matrix.shard }}/run/smp-*/result.json
+            build/k06-smp-soak-${{ matrix.shard }}/run/smp-*/serial.txt
+            build/k06-smp-soak-${{ matrix.shard }}/run/smp-*/stderr.txt
+          if-no-files-found: warn
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          required-paths: |
+            build/k06-smp-soak-${{ matrix.shard }}/manifest.json
+            build/k06-smp-soak-${{ matrix.shard }}/smp-report.json
+
+  smp-matrix-aggregate:
+    name: SMP section 9 aggregate 65x50
+    if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
+    needs: [smp-case-50, smp-soak-50]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout frozen source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+        with:
+          host-dependencies: 'true'
+      - name: Pinned Rust for guard-page host tests
+        run: |
+          rustup toolchain install 1.90.0 --profile minimal
+          cargo +1.90.0 fetch --locked --manifest-path Cargo.toml
+      - name: Download every case and soak report
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: smp-*
+          path: build/k06-smp-artifacts
+      - name: Require exact 50/50 evidence on one source hash
+        run: |
+          python3 -B tools/aggregate_smp_ci.py \
+            --input-dir build/k06-smp-artifacts \
+            --output build/k06-smp-matrix/matrix-report.json
+          git diff --exit-code
+      - name: Complete source-bound SMP host oracles
+        run: |
+          mkdir -p build/k06-smp-matrix
+          set -o pipefail
+          {
+            python3 -c 'import yaml; assert yaml.__version__ == "6.0.3", yaml.__version__'
+            cargo +1.90.0 --version
+            rustc +1.90.0 --version
+            python3 -B -m unittest discover -s tools/tests -p 'test_*.py' -v
+            python3 -B -m unittest discover -s tests -p test_qemu_smoke_gate.py -v
+          } 2>&1 | tee build/k06-smp-matrix/host-oracles.log
+          git diff --exit-code
+      - name: Preserve aggregate report
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: smp-section9-matrix-report
+          path: |
+            build/k06-smp-matrix/matrix-report.json
+            build/k06-smp-matrix/host-oracles.log
+          if-no-files-found: error
+          job-status: ${{ job.status }}
+          full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
+          required-paths: |
+            build/k06-smp-matrix/matrix-report.json
+
+  smp-final-gate:
+    name: SMP final repository gate
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
+    needs: smp-matrix-aggregate
+    runs-on: ubuntu-26.04
+    timeout-minutes: 360
+    env:
+      NOS_QEMU_MACHINE: pc-q35-10.0
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-smp-final-gate
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/smp-final-gate
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/smp-final-gate
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+      GATE_REQUIRE_QEMU: '1'
+    steps:
+      - name: Checkout accepted source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+        with:
+          system-python: 'true'
+      - name: Pinned Rust
+        run: rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Run tools/gate.sh only after the complete matrix
+        run: |
+          mkdir -p build/k06-smp-final-gate/logs
+          set -o pipefail
+          tools/gate.sh 2>&1 | tee build/k06-smp-final-gate/logs/gate.log
+          git diff --exit-code
+      - name: Preserve final gate evidence
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: smp-section9-final-gate
+          path: |
+            build/k06-smp-final-gate/logs/gate.log
+            build/k06-smp-final-gate/**/source.txt
+            build/k06-smp-final-gate/**/*.json
+            build/k06-smp-final-gate/**/serial.txt
+            build/k06-smp-final-gate/**/stderr.txt
+            build/k06-smp-final-gate/**/logs/*.log
+            build/k06-smp-final-gate/**/logs/*.stdout.txt
+            build/k06-smp-final-gate/**/logs/*.stderr.txt
+          if-no-files-found: warn
+          job-status: ${{ job.status }}
+          full-evidence: 'true'
+
+  diagnostic-clock:
+    name: DIAGNOSTIC ONLY — m3-one-multi 50 traced repetitions
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.clock_diagnostic }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 90
+    env:
+      NOS_QEMU_MACHINE: pc-q35-10.0
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-clock-diagnostic
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/k06-clock-diagnostic
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/k06-clock-diagnostic
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout the exact workflow source commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Record diagnostic scope and frozen commit
+        run: |
+          set -euo pipefail
+          mkdir -p "$NOS_BUILD_DIR/diagnostic"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          printf '%s\n' 'DIAGNOSTIC ONLY. Tracing perturbs timing. This is not K06 acceptance, an aggregate, or an executed repository gate.' \
+            | tee "$NOS_BUILD_DIR/diagnostic/NOT-ACCEPTANCE.txt"
+          git rev-parse HEAD > "$NOS_BUILD_DIR/diagnostic/checked-out-commit.txt"
+      - name: Reject simultaneous full matrix and clock diagnostics
+        env:
+          FULL_MATRIX_REQUESTED: ${{ inputs.full_matrix }}
+        run: |
+          set -euo pipefail
+          if [ "$FULL_MATRIX_REQUESTED" != false ]; then
+            echo '::error::clock_diagnostic requires full_matrix=false; no guest has started.'
+            exit 2
+          fi
+      - name: Pinned QEMU 10.2.1 and firmware from the existing fixed snapshot
+        uses: ./.github/actions/setup-qemu
+      - name: Pinned Ubuntu Python 3.14.4
+        uses: ./.github/actions/setup-python
+        with:
+          system-python: 'true'
+      - name: Pinned Rust 1.90.0
+        run: |
+          set -euo pipefail
+          rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+          rustc +1.90.0 --version | tee "$NOS_BUILD_DIR/diagnostic/rust-version.txt"
+          cp "$RUNNER_TEMP/nieuw-os-qemu-environment.txt" "$NOS_BUILD_DIR/diagnostic/qemu-environment.txt"
+      - name: Build the unchanged native-smp-m3 profile
+        run: |
+          set -euo pipefail
+          python3 -B tools/build.py --kernel-feature native-smp-m3 2>&1 | tee "$NOS_BUILD_DIR/diagnostic/build.log"
+          python3 -B userspace/tests/test_smp_fpu_probe.py \
+            --elf "$NOS_BUILD_DIR/users/probe.elf" 2>&1 | tee "$NOS_BUILD_DIR/fpu-fixture-host.log"
+      - name: DIAGNOSTIC — existing m3-one-multi oracle, 50 times, 60 seconds each
+        run: |
+          set -euo pipefail
+          python3 -B -u - <<'PY'
+          import ctypes
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import platform
+          import re
+          import shutil
+          import subprocess
+          import sys
+          import time
+
+          sys.path.insert(0, 'tools')
+          import common
+          import run_smp
+
+          build = common.BUILD.resolve()
+          diagnostics = build / 'diagnostic'
+          diagnostics.mkdir(parents=True, exist_ok=True)
+          frozen = common.source_hash()
+          original_run = subprocess.run
+          expected_case = ('native-smp-m3', 1, 'multi', 'm3')
+          # Assert the source contract instead of changing a case or watchdog.
+          assert run_smp.CASES['m3-one-multi'] == expected_case, run_smp.CASES['m3-one-multi']
+          assert run_smp.GUEST_TIMEOUT_S == 60
+          qemu = shutil.which('qemu-system-x86_64', path=common.environment()['PATH'])
+          assert qemu is not None
+          required_events = (
+              'pic_set_irq', 'pic_interrupt', 'pic_update_irq',
+              'pic_ioport_write', 'pit_ioport_read', 'pit_ioport_write',
+          )
+
+          def write_json(path, data):
+              path.write_text(json.dumps(data, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+
+          def host_context():
+              # Deliberately omit environment variables, hostname and /proc/*/environ.
+              context = {
+                  'observed_monotonic_ns': time.monotonic_ns(),
+                  'scope': 'Host context only; no scheduler trace or causal inference.',
+                  'kernel_release': platform.release(),
+                  'machine': platform.machine(),
+                  'cpu_count': os.cpu_count(),
+                  'affinity': sorted(os.sched_getaffinity(0)),
+                  'runner_image_os': os.environ.get('ImageOS'),
+                  'runner_image_version': os.environ.get('ImageVersion'),
+                  'files': {},
+              }
+              for name in ('/proc/pressure/cpu', '/sys/fs/cgroup/cpu.stat',
+                           '/sys/fs/cgroup/cpu.max', '/sys/fs/cgroup/cpuset.cpus.effective'):
+                  try:
+                      context['files'][name] = Path(name).read_text(encoding='utf-8')
+                  except OSError as exc:
+                      context['files'][name] = {'unavailable_errno': exc.errno}
+              try:
+                  context['loadavg'] = Path('/proc/loadavg').read_text().split()[:4]
+              except OSError as exc:
+                  context['loadavg'] = {'unavailable_errno': exc.errno}
+              libc = ctypes.CDLL(None, use_errno=True)
+              libc.prctl.restype = ctypes.c_int
+              slack = libc.prctl(ctypes.c_int(30), ctypes.c_ulong(0), ctypes.c_ulong(0),
+                                 ctypes.c_ulong(0), ctypes.c_ulong(0))
+              context['python_parent_timer_slack_ns'] = slack
+              context['python_parent_prctl_errno'] = ctypes.get_errno() if slack == -1 else 0
+              context['qemu_runtime_timer_slack_ns'] = 'not measured; parent value is not QEMU evidence'
+              return context
+
+          write_json(diagnostics / 'scope.json', {
+              'classification': 'DIAGNOSTIC_NOT_ACCEPTANCE',
+              'accepted_for_k06': False,
+              'case': 'm3-one-multi', 'requested_repetitions': 50,
+              'guest_watchdog_s': 60, 'source_sha256': frozen,
+              'workflow_source_commit': os.environ['GITHUB_SHA'],
+              'trace_events': required_events,
+              'limitations': [
+                  'Tracing perturbs execution and cannot replace the complete uninstrumented matrix.',
+                  'PIC events are not a Linux vCPU scheduling trace.',
+                  'No causal conclusion follows merely from host load or an instrumented pass.',
+              ],
+          })
+          write_json(diagnostics / 'host-before.json', host_context())
+          # Query event availability without starting a guest or modifying any args.
+          help_result = original_run([qemu, '-trace', 'help'], env=common.environment(),
+                                     capture_output=True, timeout=15, check=False)
+          (diagnostics / 'trace-help.stdout.txt').write_bytes(help_result.stdout)
+          (diagnostics / 'trace-help.stderr.txt').write_bytes(help_result.stderr)
+          assert help_result.returncode == 0, f'QEMU trace help exited {help_result.returncode}; raw help output retained'
+          available = {
+              match.group(1)
+              for line in (help_result.stdout + b'\n' + help_result.stderr).decode('utf-8', 'strict').splitlines()
+              if (match := re.match(r'^([A-Za-z_][A-Za-z0-9_]*)(?:\s|$)', line))
+          }
+          missing = set(required_events) - available
+          assert not missing, f'Pinned QEMU lacks required trace events: {sorted(missing)}'
+          event_file = diagnostics / 'trace-events.txt'
+          event_file.write_text('\n'.join(required_events) + '\n', encoding='ascii')
+          invocations = []
+
+          def traced_run(args, *positional, **kwargs):
+              # subprocess.check_output uses Popen directly. All other run calls,
+              # including git and QEMU --version/help, retain their original args.
+              if not (isinstance(args, list) and args and Path(args[0]).name == 'qemu-system-x86_64'
+                      and '-machine' in args):
+                  return original_run(args, *positional, **kwargs)
+              assert args[0] == qemu
+              assert '-trace' not in args
+              assert kwargs.get('timeout') == 60
+              assert args[args.index('-machine') + 1] == 'pc-q35-10.0'
+              assert args[args.index('-smp') + 1] == '1'
+              assert args[args.index('-accel') + 1] == 'tcg,thread=multi'
+              assert args[args.index('-cpu') + 1] == 'qemu64'
+              assert args[args.index('-m') + 1] == '256M'
+              prefix = 'if=pflash,unit=0,format=raw,readonly=on,file='
+              drive = args[args.index('-drive') + 1]
+              assert drive.startswith(prefix) and drive.endswith('/OVMF_CODE.fd')
+              run_dir = (common.ROOT / drive[len(prefix):]).resolve().parent
+              assert run_dir.parent == build / 'run'
+              assert run_dir.name.startswith('smp-m3-one-multi-r')
+              assert run_dir not in invocations
+              trace = run_dir / 'qemu-trace.log'
+              assert not trace.exists()
+              assert ',' not in str(trace) and ',' not in str(event_file)
+              base_command = args.copy()
+              # Mutate the actual list held by run_guest, so result.json.command
+              # truthfully retains the trace arguments passed to QEMU.
+              args.extend(['-trace', f'events={event_file},file={trace}'])
+              invocations.append(run_dir)
+              write_json(run_dir / 'diagnostic-command.json', {
+                  'classification': 'DIAGNOSTIC_NOT_ACCEPTANCE',
+                  'base_command': base_command, 'executed_command': args.copy(),
+                  'trace_file': str(trace), 'trace_event_file': str(event_file),
+                  'source_sha256': frozen,
+              })
+              write_json(run_dir / 'host-before.json', host_context())
+              try:
+                  return original_run(args, *positional, **kwargs)
+              finally:
+                  write_json(run_dir / 'host-after.json', host_context())
+
+          subprocess.run = traced_run
+          report = None
+          try:
+              report = run_smp.run(('m3-one-multi',), repeat=50)
+          finally:
+              subprocess.run = original_run
+              write_json(diagnostics / 'host-after.json', host_context())
+              write_json(diagnostics / 'trace-inventory.json', {
+                  'classification': 'DIAGNOSTIC_NOT_ACCEPTANCE',
+                  'invocations': [{
+                      'run_directory': str(directory),
+                      'trace_exists': (directory / 'qemu-trace.log').is_file(),
+                      'trace_size': ((directory / 'qemu-trace.log').stat().st_size
+                                     if (directory / 'qemu-trace.log').is_file() else None),
+                      'trace_sha256': (hashlib.sha256((directory / 'qemu-trace.log').read_bytes()).hexdigest()
+                                       if (directory / 'qemu-trace.log').is_file() else None),
+                  } for directory in invocations],
+                  'source_unchanged': common.source_hash() == frozen,
+              })
+          assert common.source_hash() == frozen, 'Frozen source changed during diagnostics'
+          assert len(invocations) == 50, f'Only {len(invocations)} traced guest invocations'
+          assert all((directory / 'qemu-trace.log').is_file()
+                     and (directory / 'qemu-trace.log').stat().st_size > 0
+                     for directory in invocations), 'Missing or empty trace evidence'
+          summary = report['repetitions']['m3-one-multi']
+          print('DIAGNOSTIC ONLY: ' + json.dumps(summary, sort_keys=True))
+          # A red repetition remains red; there is no continue-on-error wrapper.
+          raise SystemExit(0 if report['passed'] is True else 1)
+          PY
+      - name: Verify frozen checkout after diagnostics
+        if: ${{ always() }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --exit-code
+      - name: Preserve ALL diagnostic evidence, including failures
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: DIAGNOSTIC-NOT-ACCEPTANCE-smp-clock-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            build/k06-clock-diagnostic/manifest.json
+            build/k06-clock-diagnostic/smp-report.json
+            build/k06-clock-diagnostic/fpu-fixture-host.log
+            build/k06-clock-diagnostic/diagnostic/**
+            build/k06-clock-diagnostic/run/smp-*/result.json
+            build/k06-clock-diagnostic/run/smp-*/serial.txt
+            build/k06-clock-diagnostic/run/smp-*/stderr.txt
+            build/k06-clock-diagnostic/run/smp-*/qemu-trace.log
+            build/k06-clock-diagnostic/run/smp-*/diagnostic-command.json
+            build/k06-clock-diagnostic/run/smp-*/host-before.json
+            build/k06-clock-diagnostic/run/smp-*/host-after.json
+          if-no-files-found: error
+          job-status: ${{ job.status }}
+          full-evidence: 'true'
+          required-paths: |
+            build/k06-clock-diagnostic/manifest.json
+            build/k06-clock-diagnostic/smp-report.json
+
   experimental-m3-m4-smp:
     name: experimental-m3-m4-smp
+    # Same trigger as the ordinary native-smp job; never part of the section 9 matrix.
+    if: ${{ !inputs.clock_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:

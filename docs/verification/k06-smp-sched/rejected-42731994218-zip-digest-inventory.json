@@ -1,0 +1,612 @@
+{
+  "generated_at": "2026-11-10T03:02:52.335733+00:00",
+  "run_id": 42731994218,
+  "accepted": false,
+  "mode": "incremental-preservation-only",
+  "api_artifact_count": 60,
+  "zip_count": 60,
+  "all_current_original_zips_archived": true,
+  "missing": [],
+  "artifacts": [
+    {
+      "id": 13731035916,
+      "name": "smp-case-m3-migrate-eight",
+      "api_digest": "sha256:aae28da5b6520b051695b74d4fb28a2150a46faddafc42dd51a962b5c75892a3",
+      "computed_sha256": "aae28da5b6520b051695b74d4fb28a2150a46faddafc42dd51a962b5c75892a3",
+      "size_bytes": 857481,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13731020020,
+      "name": "smp-case-m3-migrate-four",
+      "api_digest": "sha256:421f85c747563a7f955a3f44342aa502266218ccc04192f06534091ebaa87ddc",
+      "computed_sha256": "421f85c747563a7f955a3f44342aa502266218ccc04192f06534091ebaa87ddc",
+      "size_bytes": 419091,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13731010197,
+      "name": "smp-case-serial-unlocked-control",
+      "api_digest": "sha256:87d930cc8a1f04e1369d7c584040c44f7c935fd48da9dd10e0667c420ac909de",
+      "computed_sha256": "87d930cc8a1f04e1369d7c584040c44f7c935fd48da9dd10e0667c420ac909de",
+      "size_bytes": 641434,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13730939029,
+      "name": "smp-case-m3-ipc-four-single",
+      "api_digest": "sha256:c4711f4fd082ba13c4ca3d251af0e6a1cfa06626e17afa38c38955ffbb28f29c",
+      "computed_sha256": "c4711f4fd082ba13c4ca3d251af0e6a1cfa06626e17afa38c38955ffbb28f29c",
+      "size_bytes": 395247,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13730809649,
+      "name": "smp-case-m3-ipc-four",
+      "api_digest": "sha256:9a8f378034e7a91169a7f502ff04bdadff6e4651c3f9fa662d375d1a7031ff72",
+      "computed_sha256": "9a8f378034e7a91169a7f502ff04bdadff6e4651c3f9fa662d375d1a7031ff72",
+      "size_bytes": 393600,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13730745039,
+      "name": "smp-soak-2",
+      "api_digest": "sha256:4bff319dc1daf0bdd4f6e4e1e21c09fb57ee9be49192f1624a9aca00dd15a454",
+      "computed_sha256": "4bff319dc1daf0bdd4f6e4e1e21c09fb57ee9be49192f1624a9aca00dd15a454",
+      "size_bytes": 50896,
+      "zip_crc_valid": true,
+      "canonical_file_count": 18,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13730625547,
+      "name": "smp-soak-0",
+      "api_digest": "sha256:87bc99d3addf582b07b61fa0dc89dbc46302787f8fd60a0a1630b6b7dc284a66",
+      "computed_sha256": "87bc99d3addf582b07b61fa0dc89dbc46302787f8fd60a0a1630b6b7dc284a66",
+      "size_bytes": 50746,
+      "zip_crc_valid": true,
+      "canonical_file_count": 18,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13730610991,
+      "name": "smp-case-m3-migrate-eight-single",
+      "api_digest": "sha256:872ed364638dc6aa2305f0e5cf15a2c55527509f9242ac46b004f02df4bdaf30",
+      "computed_sha256": "872ed364638dc6aa2305f0e5cf15a2c55527509f9242ac46b004f02df4bdaf30",
+      "size_bytes": 860463,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13730565683,
+      "name": "smp-case-m3-migrate-four-single",
+      "api_digest": "sha256:397077cf494d4d3525a70f8bf90200e37406c986cd0fba0618d32905c4195f4f",
+      "computed_sha256": "397077cf494d4d3525a70f8bf90200e37406c986cd0fba0618d32905c4195f4f",
+      "size_bytes": 423526,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13730470936,
+      "name": "smp-soak-5",
+      "api_digest": "sha256:2f0c7126c2291e9f059640cfb6d49ea70a1d7656c6ea9c0c20ff83235dd9cbf4",
+      "computed_sha256": "2f0c7126c2291e9f059640cfb6d49ea70a1d7656c6ea9c0c20ff83235dd9cbf4",
+      "size_bytes": 52183,
+      "zip_crc_valid": true,
+      "canonical_file_count": 18,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13730246412,
+      "name": "smp-soak-9",
+      "api_digest": "sha256:4206027bb3f7701994dda67abf80c03c3acb29998122d09ee516d7038587b1a3",
+      "computed_sha256": "4206027bb3f7701994dda67abf80c03c3acb29998122d09ee516d7038587b1a3",
+      "size_bytes": 52109,
+      "zip_crc_valid": true,
+      "canonical_file_count": 18,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13730035713,
+      "name": "smp-case-m3-eight-single",
+      "api_digest": "sha256:51639ac416528d66279baadfa217acc9724227473e262819ac5e143972b72794",
+      "computed_sha256": "51639ac416528d66279baadfa217acc9724227473e262819ac5e143972b72794",
+      "size_bytes": 652058,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13730021926,
+      "name": "smp-soak-6",
+      "api_digest": "sha256:f79644925bd0b221b25846eb2b8a1d2a62f535946012dfc914788d18ae0c77d4",
+      "computed_sha256": "f79644925bd0b221b25846eb2b8a1d2a62f535946012dfc914788d18ae0c77d4",
+      "size_bytes": 52155,
+      "zip_crc_valid": true,
+      "canonical_file_count": 18,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13730015093,
+      "name": "smp-case-m3-four-single",
+      "api_digest": "sha256:23c30893d6a25ca0f191262f4ab248f499686f4b4b4f00b7d95201b58c314c10",
+      "computed_sha256": "23c30893d6a25ca0f191262f4ab248f499686f4b4b4f00b7d95201b58c314c10",
+      "size_bytes": 406510,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729978157,
+      "name": "smp-soak-1",
+      "api_digest": "sha256:862729e5fef6c93af176c5a934ed9fa3bca97bcc2186f39aa3b4ff1d29b7ffa1",
+      "computed_sha256": "862729e5fef6c93af176c5a934ed9fa3bca97bcc2186f39aa3b4ff1d29b7ffa1",
+      "size_bytes": 51292,
+      "zip_crc_valid": true,
+      "canonical_file_count": 18,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729975479,
+      "name": "smp-case-m3-one",
+      "api_digest": "sha256:45ad544bc9f0b809c711c2378eec302d28cf1afcfb7a459bf54e32930764870b",
+      "computed_sha256": "45ad544bc9f0b809c711c2378eec302d28cf1afcfb7a459bf54e32930764870b",
+      "size_bytes": 195891,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729968398,
+      "name": "smp-soak-7",
+      "api_digest": "sha256:57cc72e67dac3ba4afb791500a2221249981a7d13fb035ee0049abadbe00e6e2",
+      "computed_sha256": "57cc72e67dac3ba4afb791500a2221249981a7d13fb035ee0049abadbe00e6e2",
+      "size_bytes": 50319,
+      "zip_crc_valid": true,
+      "canonical_file_count": 18,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729880091,
+      "name": "smp-case-proc-no-shootdown-control",
+      "api_digest": "sha256:6317c8d74bcf98bee81964b580e71a7b613b2d140d42e27fa933aef55d91eeb7",
+      "computed_sha256": "6317c8d74bcf98bee81964b580e71a7b613b2d140d42e27fa933aef55d91eeb7",
+      "size_bytes": 401014,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729829122,
+      "name": "smp-case-m3-fpu-skip-control",
+      "api_digest": "sha256:c6e9d61777bfa7d29d8c829b9e5a9d31a34d3e347e8fdfbe5b56bc71694b8069",
+      "computed_sha256": "c6e9d61777bfa7d29d8c829b9e5a9d31a34d3e347e8fdfbe5b56bc71694b8069",
+      "size_bytes": 407023,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729814856,
+      "name": "smp-case-m3-fault-ap2",
+      "api_digest": "sha256:3e4be4b1e5968ae2fa278850577d50f7efa2444e7498b9ae2709003aada5bc8b",
+      "computed_sha256": "3e4be4b1e5968ae2fa278850577d50f7efa2444e7498b9ae2709003aada5bc8b",
+      "size_bytes": 410451,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729791332,
+      "name": "smp-case-m3-one-multi",
+      "api_digest": "sha256:d762af3b62ba320e2e581bbfc9a955a8ec2ed0bfed0b6b426da9c8a1b1d9ff8c",
+      "computed_sha256": "d762af3b62ba320e2e581bbfc9a955a8ec2ed0bfed0b6b426da9c8a1b1d9ff8c",
+      "size_bytes": 198532,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729784599,
+      "name": "smp-case-m3-canary-control",
+      "api_digest": "sha256:9af09e677be14a2c031f77a6b71dd095b1ad982c51a42b25fdec6780ad6202a9",
+      "computed_sha256": "9af09e677be14a2c031f77a6b71dd095b1ad982c51a42b25fdec6780ad6202a9",
+      "size_bytes": 407965,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729645358,
+      "name": "smp-case-proc-shootdown-deaf",
+      "api_digest": "sha256:240630f53fc9c00e2c5e34725c0a899e7ed04ab4a45332798cc0c6006e1ae3ae",
+      "computed_sha256": "240630f53fc9c00e2c5e34725c0a899e7ed04ab4a45332798cc0c6006e1ae3ae",
+      "size_bytes": 409068,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729418080,
+      "name": "smp-case-m3-four",
+      "api_digest": "sha256:0efba8e2e2e3a98f349cb14060bd661a5740d111ef8cd31ada53f6f22d23293c",
+      "computed_sha256": "0efba8e2e2e3a98f349cb14060bd661a5740d111ef8cd31ada53f6f22d23293c",
+      "size_bytes": 404572,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729304459,
+      "name": "smp-soak-4",
+      "api_digest": "sha256:9c341838bbf1180252381823afe14c8d6990a2567999c6939d3ea6b5bc3ddd10",
+      "computed_sha256": "9c341838bbf1180252381823afe14c8d6990a2567999c6939d3ea6b5bc3ddd10",
+      "size_bytes": 50839,
+      "zip_crc_valid": true,
+      "canonical_file_count": 18,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729280111,
+      "name": "smp-case-lockpair-order",
+      "api_digest": "sha256:2d8c04f7a9e4d1131b1c0bcd86552a483bd642d9d4a9bb3f9aa198ed8766bc58",
+      "computed_sha256": "2d8c04f7a9e4d1131b1c0bcd86552a483bd642d9d4a9bb3f9aa198ed8766bc58",
+      "size_bytes": 264475,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729275038,
+      "name": "smp-case-resched-deaf",
+      "api_digest": "sha256:d84ba730f96a9f01c989d301db4f339495913e719781d4118d3829e820c019d7",
+      "computed_sha256": "d84ba730f96a9f01c989d301db4f339495913e719781d4118d3829e820c019d7",
+      "size_bytes": 401521,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729229548,
+      "name": "smp-soak-8",
+      "api_digest": "sha256:4334bf5a0ad7798b98740ed4505f0442d751bd1f02b17ad5adb8ef60b6d3cda5",
+      "computed_sha256": "4334bf5a0ad7798b98740ed4505f0442d751bd1f02b17ad5adb8ef60b6d3cda5",
+      "size_bytes": 51039,
+      "zip_crc_valid": true,
+      "canonical_file_count": 18,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13729149635,
+      "name": "smp-soak-3",
+      "api_digest": "sha256:9b6655ce080a1ac34cab6c8fff4aaf40197f3dcc88d7423df34481fac8605fff",
+      "computed_sha256": "9b6655ce080a1ac34cab6c8fff4aaf40197f3dcc88d7423df34481fac8605fff",
+      "size_bytes": 52059,
+      "zip_crc_valid": true,
+      "canonical_file_count": 18,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13728848656,
+      "name": "smp-case-m3-two-single",
+      "api_digest": "sha256:b4c30e31d93102fd1fc87cd14ceeaec0a5c569dc0449f82aa7ffc5d392bca478",
+      "computed_sha256": "b4c30e31d93102fd1fc87cd14ceeaec0a5c569dc0449f82aa7ffc5d392bca478",
+      "size_bytes": 276321,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13728814658,
+      "name": "smp-case-m3-eight",
+      "api_digest": "sha256:f4f99547282b919be5fe3f6ad484e679c8107e70e2c12c5b7a39947eafa4e4a5",
+      "computed_sha256": "f4f99547282b919be5fe3f6ad484e679c8107e70e2c12c5b7a39947eafa4e4a5",
+      "size_bytes": 700212,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13728751053,
+      "name": "smp-case-lock-in-handler",
+      "api_digest": "sha256:93ce9f831e6592578a726fe04cd2d7770c8df9e7d4e5bcb03e04b48b9533dc0f",
+      "computed_sha256": "93ce9f831e6592578a726fe04cd2d7770c8df9e7d4e5bcb03e04b48b9533dc0f",
+      "size_bytes": 235668,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13728537259,
+      "name": "smp-case-bsp-spin-irq-off-control",
+      "api_digest": "sha256:79acdd728c516cb2a2ff1dc511a794a93e4f3079e5c8aac8cddb590b3fa785b6",
+      "computed_sha256": "79acdd728c516cb2a2ff1dc511a794a93e4f3079e5c8aac8cddb590b3fa785b6",
+      "size_bytes": 396944,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13728495282,
+      "name": "smp-case-one",
+      "api_digest": "sha256:4f528b2aa05a69511ee3c6827ceb3a2f55e86c49c36cfc49e480ad127b387f41",
+      "computed_sha256": "4f528b2aa05a69511ee3c6827ceb3a2f55e86c49c36cfc49e480ad127b387f41",
+      "size_bytes": 187535,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13728480165,
+      "name": "smp-case-ap-shootdown-deaf",
+      "api_digest": "sha256:5b95fb132b120948917d767065a4113b6bcda93cfaf547ca733f03e49db8c598",
+      "computed_sha256": "5b95fb132b120948917d767065a4113b6bcda93cfaf547ca733f03e49db8c598",
+      "size_bytes": 389717,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13728439383,
+      "name": "smp-case-m3-two",
+      "api_digest": "sha256:c2a61e151f3cf5e44ca55ec88d0a46d9a1ee80077fb509562e20da636ad78561",
+      "computed_sha256": "c2a61e151f3cf5e44ca55ec88d0a46d9a1ee80077fb509562e20da636ad78561",
+      "size_bytes": 275273,
+      "zip_crc_valid": true,
+      "canonical_file_count": 153,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13728410729,
+      "name": "smp-case-two-single",
+      "api_digest": "sha256:774bc116c803c1987abbedf3df20930c46da47ebf636586f7eb53167f75ee3d7",
+      "computed_sha256": "774bc116c803c1987abbedf3df20930c46da47ebf636586f7eb53167f75ee3d7",
+      "size_bytes": 267054,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13728397275,
+      "name": "smp-case-icr-race-control",
+      "api_digest": "sha256:bd8e8cdfcd5ba0002f841dadd3af80247e5b5f74c534ee339929e19c7f5b3125",
+      "computed_sha256": "bd8e8cdfcd5ba0002f841dadd3af80247e5b5f74c534ee339929e19c7f5b3125",
+      "size_bytes": 395008,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13728143669,
+      "name": "smp-case-gs-user",
+      "api_digest": "sha256:f5605a9d98e81a2e6d7d659c039f7eaaee776fa45175d0c7862048676634c430",
+      "computed_sha256": "f5605a9d98e81a2e6d7d659c039f7eaaee776fa45175d0c7862048676634c430",
+      "size_bytes": 403922,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13728068299,
+      "name": "smp-case-lockdep-order",
+      "api_digest": "sha256:e1413f16aa338836175f484989c664382f977d050091e8cf0d48322cd27912e1",
+      "computed_sha256": "e1413f16aa338836175f484989c664382f977d050091e8cf0d48322cd27912e1",
+      "size_bytes": 255243,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727862867,
+      "name": "smp-case-ap-stall",
+      "api_digest": "sha256:cfe84c79ccc37bcd76e6769d1a7d8590248994bcfec195d9de48944fb3c2ca1f",
+      "computed_sha256": "cfe84c79ccc37bcd76e6769d1a7d8590248994bcfec195d9de48944fb3c2ca1f",
+      "size_bytes": 191871,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727848461,
+      "name": "smp-case-shootdown-skipped-control",
+      "api_digest": "sha256:604c8c95c47e7f87ca639949f86c56df6726a5699df56ae097d1048d3ae02740",
+      "computed_sha256": "604c8c95c47e7f87ca639949f86c56df6726a5699df56ae097d1048d3ae02740",
+      "size_bytes": 409353,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727839565,
+      "name": "smp-case-gs-iret-fault",
+      "api_digest": "sha256:1502d9681f5cf23ffb2f4de2386b65b5cd7672df58efc45fa2be6523d4a74b78",
+      "computed_sha256": "1502d9681f5cf23ffb2f4de2386b65b5cd7672df58efc45fa2be6523d4a74b78",
+      "size_bytes": 400036,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727834616,
+      "name": "smp-case-shared-scratch",
+      "api_digest": "sha256:7e3a033e5d89e111bc3f2d5673d373ea30920663919e1be8fc948a67af6bd545",
+      "computed_sha256": "7e3a033e5d89e111bc3f2d5673d373ea30920663919e1be8fc948a67af6bd545",
+      "size_bytes": 394647,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727802940,
+      "name": "smp-case-nine-capacity",
+      "api_digest": "sha256:a141c3177f1a40a2c7c71e8bf46b0e1633b17d92781c148dab51b803f7fd1b10",
+      "computed_sha256": "a141c3177f1a40a2c7c71e8bf46b0e1633b17d92781c148dab51b803f7fd1b10",
+      "size_bytes": 695856,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727799998,
+      "name": "smp-case-lock-stuck",
+      "api_digest": "sha256:4bc145e34f22b54b97d5a19bf4033e1f68092a9a0753b6ee92475037a8e19e40",
+      "computed_sha256": "4bc145e34f22b54b97d5a19bf4033e1f68092a9a0753b6ee92475037a8e19e40",
+      "size_bytes": 254120,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727737590,
+      "name": "smp-case-ap-ipi-deaf",
+      "api_digest": "sha256:959fc6e03cd9c0938e2b913d43d2641577ca9bdc24bd74b6636f49c97d5f1539",
+      "computed_sha256": "959fc6e03cd9c0938e2b913d43d2641577ca9bdc24bd74b6636f49c97d5f1539",
+      "size_bytes": 382912,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727724666,
+      "name": "smp-case-gs-nmi-user",
+      "api_digest": "sha256:fb0cc9cacb395377fa54a30c5bace05dd745d4ef4790a2a49484cb15aa2ec109",
+      "computed_sha256": "fb0cc9cacb395377fa54a30c5bace05dd745d4ef4790a2a49484cb15aa2ec109",
+      "size_bytes": 402562,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727707447,
+      "name": "smp-case-ap-double-fault-ist",
+      "api_digest": "sha256:e8ab1673298f8139f1c5a9ed6170077d48675b84395cfa76002e25cdd2c97660",
+      "computed_sha256": "e8ab1673298f8139f1c5a9ed6170077d48675b84395cfa76002e25cdd2c97660",
+      "size_bytes": 373670,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727698708,
+      "name": "smp-case-ap-timer-dead",
+      "api_digest": "sha256:f308bb3e914ae98c7ddf312b7665897b34eda803240ad7b8bb82a4dd10908e99",
+      "computed_sha256": "f308bb3e914ae98c7ddf312b7665897b34eda803240ad7b8bb82a4dd10908e99",
+      "size_bytes": 389518,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727622808,
+      "name": "smp-case-ap-nmi-ist",
+      "api_digest": "sha256:84d68ca2abdc411cf7c84111832547286705613f456308606598616e046edf4a",
+      "computed_sha256": "84d68ca2abdc411cf7c84111832547286705613f456308606598616e046edf4a",
+      "size_bytes": 375973,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727572087,
+      "name": "smp-case-duplicate-madt",
+      "api_digest": "sha256:5c3a82b24a3cb4c16214f7af6716c317dba98d51ee66f7c325d6b1ec758a5367",
+      "computed_sha256": "5c3a82b24a3cb4c16214f7af6716c317dba98d51ee66f7c325d6b1ec758a5367",
+      "size_bytes": 120989,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727524197,
+      "name": "smp-case-quarantine-lock-held",
+      "api_digest": "sha256:629398e6bdf78677c8e0bf9d1bed1c2252bcae4fdfb4fa79e522e9bdd8717338",
+      "computed_sha256": "629398e6bdf78677c8e0bf9d1bed1c2252bcae4fdfb4fa79e522e9bdd8717338",
+      "size_bytes": 386999,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727513526,
+      "name": "smp-case-ap-mismatch",
+      "api_digest": "sha256:63e8a8394f9a16c13aa0b43be423304fa0817fa1516de7312092f17183eb0c38",
+      "computed_sha256": "63e8a8394f9a16c13aa0b43be423304fa0817fa1516de7312092f17183eb0c38",
+      "size_bytes": 192990,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727487455,
+      "name": "runner-environment-probe",
+      "api_digest": "sha256:15c35c71f1197f11c3ebadeabbc42b10c964fd7a4cd7d0ff9826e5f7cba96aac",
+      "computed_sha256": "15c35c71f1197f11c3ebadeabbc42b10c964fd7a4cd7d0ff9826e5f7cba96aac",
+      "size_bytes": 12479,
+      "zip_crc_valid": true,
+      "canonical_file_count": 5,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727463926,
+      "name": "smp-case-eight",
+      "api_digest": "sha256:ab3c8c62dfadce5c2340f3630aebe6d744f87ad10aad8d81768a3b334fd6da86",
+      "computed_sha256": "ab3c8c62dfadce5c2340f3630aebe6d744f87ad10aad8d81768a3b334fd6da86",
+      "size_bytes": 691869,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727429423,
+      "name": "smp-case-double-run",
+      "api_digest": "sha256:4de34052d64174bc30c80466d6ac1764f9cfadc539fceab51ea1e36e991148a6",
+      "computed_sha256": "4de34052d64174bc30c80466d6ac1764f9cfadc539fceab51ea1e36e991148a6",
+      "size_bytes": 394420,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727334014,
+      "name": "smp-case-held-across-switch",
+      "api_digest": "sha256:9d1ed340d3042094ff2add416de9dcb587a85b8124722d8afe694ade400cbdc8",
+      "computed_sha256": "9d1ed340d3042094ff2add416de9dcb587a85b8124722d8afe694ade400cbdc8",
+      "size_bytes": 241435,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13727084481,
+      "name": "smp-case-spin-irq-off-control",
+      "api_digest": "sha256:f9e3beef88b1d3dcc3f86fb836db869b6e07314f33477fc70336c40c13cafc2f",
+      "computed_sha256": "f9e3beef88b1d3dcc3f86fb836db869b6e07314f33477fc70336c40c13cafc2f",
+      "size_bytes": 384979,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    },
+    {
+      "id": 13726859767,
+      "name": "smp-case-four",
+      "api_digest": "sha256:99e81ac87ede3c8fc12f86d8db6b7266a614a6a1af4c30097b289ebc10b1445b",
+      "computed_sha256": "99e81ac87ede3c8fc12f86d8db6b7266a614a6a1af4c30097b289ebc10b1445b",
+      "size_bytes": 404238,
+      "zip_crc_valid": true,
+      "canonical_file_count": 152,
+      "canonical_bytes_match_zip": true
+    }
+  ]
+}

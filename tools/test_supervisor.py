@@ -9,7 +9,7 @@ import subprocess
 import sys
 from common import BUILD, ROOT, save_json, source_hash
 from build import build
-from run_supervisor import FEATURE, run_supervisor
+from run_supervisor import FEATURE, SMP_FEATURE, run_supervisor
 
 TEST_INPUTS = "test_supervisor_*.py"
 HOST = [
@@ -28,12 +28,14 @@ def test_inputs() -> dict[str, str]:
             for path in sorted(paths)}
 
 
-def main() -> int:
+def main(smp: bool = False) -> int:
     frozen = source_hash()
     tests = test_inputs()
+    features = SMP_FEATURE if smp else FEATURE
     summary = {"schema_version": 1, "source_fingerprint_version": 3, "source_sha256": frozen,
-               "test_inputs": tests, "status": "running", "passed": False, "host": [], "stages": []}
-    path = BUILD / "supervisor-gate.json"
+               "test_inputs": tests, "smp": smp, "status": "running", "passed": False,
+               "host": [], "stages": []}
+    path = BUILD / ("supervisor-smp-gate.json" if smp else "supervisor-gate.json")
     save_json(path, summary)
     for command in HOST:
         result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
@@ -47,8 +49,8 @@ def main() -> int:
             print(f"host check failed: {' '.join(command)}")
             return 1
     for case in PLAN:
-        build(None, FEATURE[case], FEATURE[case])
-        report = run_supervisor(case)
+        build(None, features[case], features[case])
+        report = run_supervisor(case, smp=smp)
         summary["stages"].append({"case": case, "passed": report["passed"],
                                   "run_directory": report["run_directory"],
                                   "raw_qemu_exit": report["raw_qemu_exit"],
@@ -68,9 +70,10 @@ def main() -> int:
         raise
     summary.update(status="completed", passed=source_hash() == frozen and test_inputs() == tests)
     save_json(path, summary)
-    print(f"K05 gate passed={summary['passed']} stages={len(summary['stages'])}")
+    print(f"K05 {'SMP ' if smp else ''}gate passed={summary['passed']} stages={len(summary['stages'])}")
     return 0 if summary["passed"] else 1
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    # K06 5d-2 section 4: --smp runs the same six cases on four vCPUs.
+    raise SystemExit(main(smp="--smp" in sys.argv[1:]))

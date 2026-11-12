@@ -349,10 +349,11 @@ class WorkflowContractTests(unittest.TestCase):
 
     def test_all_jobs_use_standard_hosted_ubuntu(self):
         """No custom label, dynamic selector or persistent runner can return."""
+        # ubuntu-26.04 is a standard hosted image; the K06 matrix pins QEMU 10.2.1 there.
         self.assertTrue(self.workflows)
         for path, job_id, job in self.jobs():
             with self.subTest(path=path, job=job_id):
-                self.assertEqual(job.get("runs-on"), "ubuntu-24.04")
+                self.assertIn(job.get("runs-on"), ("ubuntu-24.04", "ubuntu-26.04"))
 
     def test_kvm_pilot_is_manual_hosted_and_cannot_replace_tcg_acceptance(self):
         """Keep KVM opt-in, fail-closed, narrow, and outside required checks."""

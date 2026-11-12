@@ -1,13 +1,29 @@
 //! Opt-in I02 observer for the fixed ring-3 qsim acceptance executable.
 //! No simulator algorithm, app/job policy, allocator, or new authority lives
 //! here. All computation remains in two independent userspace processes.
-//! Single CPU, IF=0, kernel CR3/service stack: copy only bounded owned words.
+//! KERNEL/IF=0, kernel CR3/service stack: copy only bounded owned words.
+//! The SMP profile parks all CPUs before accepting completed reports or freeing
+//! frames; its in-flight samples never constitute a completion verdict.
 use super::*;
 
-const PROCESS_COUNT: usize = 2;
+const PROCESS_COUNT: usize = if cfg!(any(
+    feature = "native-smp-qsim",
+    feature = "native-smp-m3-soak"
+)) {
+    4
+} else {
+    2
+};
+const PROCESS_START: usize = if cfg!(feature = "native-smp-m3-soak") {
+    4
+} else {
+    0
+};
 const REPORT_WORDS: usize = 14;
 const TIMEOUT_TICKS: u64 = 2000;
 const USEFUL_ARENA_BYTES: u64 = 7216;
+#[cfg(feature = "native-smp-m3-soak")]
+static mut SOAK_DONE: bool = false;
 
 fn fail(reason: &[u8]) -> ! {
     serial::write(b"QSIM:FAIL:");
@@ -19,13 +35,14 @@ fn fail(reason: &[u8]) -> ! {
 fn snapshot(process: &Process) -> [u64; REPORT_WORDS] {
     // These 112 bytes are within the kernel-validated private RW report page.
     // The event path has switched to the permanent kernel root and stack;
-    // no userspace thread can mutate a report while this snapshot is copied.
+    // completed SMP reports are validated again after all CPUs have parked.
     core::array::from_fn(|word| read_word(process.physical(DATA + word as u64 * 8)))
 }
 
+#[cfg(not(feature = "native-smp-m3-soak"))]
 fn releasable_frames(state: &State) -> usize {
     let mut total = 0usize;
-    for process in &state.processes[..state.amount] {
+    for process in &state.processes[PROCESS_START..PROCESS_START + PROCESS_COUNT] {
         let Some(paging) = process.paging.as_ref() else {
             fail(b"MISSING_ADDRESS_SPACE");
         };
@@ -39,10 +56,16 @@ fn releasable_frames(state: &State) -> usize {
 }
 
 pub fn manifest(state: &mut State) {
-    if state.amount != PROCESS_COUNT || state.fault || state.exited || state.unexpected {
+    if state.amount < PROCESS_START + PROCESS_COUNT
+        || state.fault
+        || state.exited
+        || state.unexpected
+    {
         fail(b"MANIFEST_STATE");
     }
-    for process in &state.processes[..state.amount] {
+    #[cfg(feature = "native-smp-qsim")]
+    assert_eq!(smp::online_mask(), 0b1111);
+    for process in &state.processes[PROCESS_START..PROCESS_START + PROCESS_COUNT] {
         if process.status != Status::Ready
             || process.pid == 0
             || !process
@@ -61,21 +84,28 @@ pub fn manifest(state: &mut State) {
             fail(b"MANIFEST_REPORT");
         }
     }
-    let first = &state.processes[0];
-    let second = &state.processes[1];
-    if first.pid == second.pid
-        || first.pattern == second.pattern
-        || first.paging.as_ref().unwrap().root == second.paging.as_ref().unwrap().root
-        || first.physical(DATA) == second.physical(DATA)
-        || first.physical(HEAP) == second.physical(HEAP)
-        || first.physical(HEAP + 65536 - 8) == second.physical(HEAP + 65536 - 8)
-    {
-        fail(b"MANIFEST_SHARED_MEMORY");
+    for left in 0..PROCESS_COUNT {
+        for right in left + 1..PROCESS_COUNT {
+            let first = &state.processes[PROCESS_START + left];
+            let second = &state.processes[PROCESS_START + right];
+            if first.pid == second.pid
+                || first.pattern == second.pattern
+                || first.paging.as_ref().unwrap().root == second.paging.as_ref().unwrap().root
+                || first.physical(DATA) == second.physical(DATA)
+                || first.physical(HEAP) == second.physical(HEAP)
+                || first.physical(HEAP + 65536 - 8) == second.physical(HEAP + 65536 - 8)
+            {
+                fail(b"MANIFEST_SHARED_MEMORY");
+            }
+        }
     }
-    state.free_baseline = state
-        .free_count()
-        .checked_add(releasable_frames(state))
-        .unwrap_or_else(|| fail(b"FRAME_BASELINE_OVERFLOW"));
+    #[cfg(not(feature = "native-smp-m3-soak"))]
+    {
+        state.free_baseline = state
+            .free_count()
+            .checked_add(releasable_frames(state))
+            .unwrap_or_else(|| fail(b"FRAME_BASELINE_OVERFLOW"));
+    }
     serial::write(b"QSIM:MANIFEST:PASS\n");
 }
 
@@ -97,7 +127,19 @@ fn valid_completed_report(report: &[u64; REPORT_WORDS], pattern: u64) -> bool {
 }
 
 pub fn poll(state: &mut State) -> Option<*const u64> {
-    if state.amount != PROCESS_COUNT || state.fault || state.exited || state.unexpected {
+    #[cfg(feature = "native-smp-m3-soak")]
+    if unsafe { SOAK_DONE } {
+        return None;
+    }
+    #[cfg(feature = "native-smp-m3-soak")]
+    if !m4::soak_done() {
+        return None;
+    }
+    if state.amount < PROCESS_START + PROCESS_COUNT
+        || state.fault
+        || state.exited
+        || state.unexpected
+    {
         print_number(b"QSIM:LAST_EVENT_PID:", state.last_event.pid);
         print_number(b"QSIM:LAST_EVENT_VECTOR:", state.last_event.vector);
         print_number(b"QSIM:LAST_EVENT_CODE:", state.last_event.code);
@@ -108,7 +150,10 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
     }
     let mut reports = [[0; REPORT_WORDS]; PROCESS_COUNT];
     let mut complete = true;
-    for (slot, process) in state.processes[..state.amount].iter().enumerate() {
+    for (slot, process) in state.processes[PROCESS_START..PROCESS_START + PROCESS_COUNT]
+        .iter()
+        .enumerate()
+    {
         if !matches!(process.status, Status::Ready | Status::Running) {
             fail(b"PROCESS_NOT_LIVE");
         }
@@ -122,6 +167,7 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
             fail(b"APP_REPORT");
         }
         if report[4] == 1 {
+            #[cfg(not(feature = "native-smp-qsim"))]
             if !valid_completed_report(&report, process.pattern) || process.selected == 0 {
                 fail(b"RESULT_MISMATCH");
             }
@@ -130,48 +176,103 @@ pub fn poll(state: &mut State) -> Option<*const u64> {
         }
         reports[slot] = report;
     }
+    #[cfg(feature = "native-smp-qsim")]
+    {
+        complete &= (0..4).all(|cpu| state.cpu_ticks[cpu] > 0 && state.cpu_switches[cpu] >= 1);
+    }
     if !complete || state.timer_interrupts == 0 {
         // Always bypass the ordinary M3 fixture verdict for this opt-in image.
         // The returned pointer belongs to the selected kernel-owned context;
         // no reference into the copied report survives this scheduling point.
+        #[cfg(not(feature = "native-smp-qsim"))]
         return Some(state.select());
+        #[cfg(feature = "native-smp-qsim")]
+        return None;
     }
 
-    state.audit();
-    let released = releasable_frames(state);
-    let free_before = state.free_count();
-    if free_before.checked_add(released) != Some(state.free_baseline) {
-        fail(b"FRAME_BASELINE_CHANGED");
+    // The stop releases KERNEL while the other CPUs leave their user contexts;
+    // no State or userspace borrow is retained across it. Completed status is
+    // only a readiness hint until these stable, parked snapshots are checked.
+    #[cfg(feature = "native-smp-qsim")]
+    let state = super::smp_stop_for_cleanup();
+    #[cfg(feature = "native-smp-qsim")]
+    for (slot, process) in state.processes[..state.amount].iter().enumerate() {
+        reports[slot] = snapshot(process);
+        if !valid_completed_report(&reports[slot], process.pattern) || process.selected == 0 {
+            fail(b"RESULT_MISMATCH");
+        }
     }
-    for (slot, report) in reports.iter().enumerate() {
-        print_number(b"QSIM:PROCESS_PID:", state.processes[slot].pid);
-        print_number(b"QSIM:PROCESS_CHECKPOINTS:", report[1]);
-        print_number(b"QSIM:PROCESS_USEFUL_ARENA:", report[9]);
-        print_number(b"QSIM:PROCESS_MAX_WORK_GAP:", report[10]);
-    }
-    serial::write(b"QSIM:BELL4096:PASS\nQSIM:SIX_QUBIT:PASS\nQSIM:CANCEL:PASS\n");
-    serial::write(b"QSIM:DEADLINE:PASS\nQSIM:RESOURCE_LIMITS:PASS\nQSIM:PROCESS_ISOLATION:PASS\n");
-    print_number(b"QSIM:TIMER_IRQS:", state.timer_interrupts);
-    print_number(b"QSIM:SYSCALL_CALLS:", state.syscall_calls);
 
-    // The event handler already copied the interrupted frame onto its permanent
-    // service stack. Retain that root/stack before freeing either user's tables
-    // or per-process kernel stack; cleanup performs per-owner zero/free checks.
-    arch::activate(state.kernel.root);
-    arch::process_stack(arch::service_stack());
-    state.current = MAX;
-    for slot in 0..state.amount {
-        state.processes[slot].status = Status::Dying;
-        state.cleanup(slot);
-    }
-    if state.free_count() != state.free_baseline
-        || state.processes[..state.amount].iter().any(|process| {
-            process.status != Status::Dead || process.paging.is_some() || process.count != 0
-        })
+    #[cfg(feature = "native-smp-m3-soak")]
     {
-        fail(b"CLEANUP");
+        for (slot, report) in reports.iter().enumerate() {
+            let process = &state.processes[PROCESS_START + slot];
+            if !valid_completed_report(report, process.pattern) || process.selected == 0 {
+                fail(b"RESULT_MISMATCH");
+            }
+            print_number(b"QSIM:PROCESS_PID:", process.pid);
+            print_number(b"QSIM:PROCESS_CHECKPOINTS:", report[1]);
+            print_number(b"QSIM:PROCESS_USEFUL_ARENA:", report[9]);
+            print_number(b"QSIM:PROCESS_MAX_WORK_GAP:", report[10]);
+        }
+        serial::write(b"QSIM:BELL4096:PASS\nQSIM:SIX_QUBIT:PASS\nQSIM:CANCEL:PASS\n");
+        serial::write(
+            b"QSIM:DEADLINE:PASS\nQSIM:RESOURCE_LIMITS:PASS\nQSIM:PROCESS_ISOLATION:PASS\n",
+        );
+        serial::write(b"SMP:SOAK:K07:QSIM:PASS:CPUS=4\n");
+        // SAFETY: KERNEL/IF=0 is the sole observer of this fixture flag.
+        unsafe { SOAK_DONE = true };
+        return None;
     }
-    print_number(b"QSIM:CLEANUP_FRAMES:", released as u64);
-    serial::write(b"QSIM:CLEANUP:PASS\nQSIM:PASS\nM1:PASS\n");
-    serial::exit(0x10)
+
+    #[cfg(not(feature = "native-smp-m3-soak"))]
+    {
+        state.audit();
+        let released = releasable_frames(state);
+        let free_before = state.free_count();
+        if free_before.checked_add(released) != Some(state.free_baseline) {
+            fail(b"FRAME_BASELINE_CHANGED");
+        }
+        for (slot, report) in reports.iter().enumerate() {
+            print_number(b"QSIM:PROCESS_PID:", state.processes[slot].pid);
+            print_number(b"QSIM:PROCESS_CHECKPOINTS:", report[1]);
+            print_number(b"QSIM:PROCESS_USEFUL_ARENA:", report[9]);
+            print_number(b"QSIM:PROCESS_MAX_WORK_GAP:", report[10]);
+        }
+        serial::write(b"QSIM:BELL4096:PASS\nQSIM:SIX_QUBIT:PASS\nQSIM:CANCEL:PASS\n");
+        serial::write(
+            b"QSIM:DEADLINE:PASS\nQSIM:RESOURCE_LIMITS:PASS\nQSIM:PROCESS_ISOLATION:PASS\n",
+        );
+        print_number(b"QSIM:TIMER_IRQS:", state.timer_interrupts);
+        print_number(b"QSIM:SYSCALL_CALLS:", state.syscall_calls);
+
+        // The event handler already copied the interrupted frame onto its permanent
+        // service stack. Retain that root/stack before freeing either user's tables
+        // or per-process kernel stack; cleanup performs per-owner zero/free checks.
+        arch::activate(state.kernel.root);
+        arch::process_stack(arch::service_stack());
+        state.current = MAX;
+        for slot in 0..state.amount {
+            state.processes[slot].status = Status::Dying;
+            state.cleanup(slot);
+        }
+        if state.free_count() != state.free_baseline
+            || state.processes[..state.amount].iter().any(|process| {
+                process.status != Status::Dead || process.paging.is_some() || process.count != 0
+            })
+        {
+            fail(b"CLEANUP");
+        }
+        print_number(b"QSIM:CLEANUP_FRAMES:", released as u64);
+        #[cfg(feature = "native-smp-qsim")]
+        serial::write(b"SMP:K07:QSIM:PASS:CPUS=4\n");
+        serial::write(b"QSIM:CLEANUP:PASS\nQSIM:PASS\nM1:PASS\n");
+        serial::exit(0x10)
+    }
+}
+
+#[cfg(feature = "native-smp-m3-soak")]
+pub fn soak_done() -> bool {
+    // SAFETY: called only from the KERNEL-serialized progress path.
+    unsafe { SOAK_DONE }
 }

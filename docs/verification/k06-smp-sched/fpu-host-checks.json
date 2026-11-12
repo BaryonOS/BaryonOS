@@ -1,0 +1,51 @@
+{
+  "accepted": false,
+  "source_fingerprint_version": 3,
+  "source_sha256": "cc19201b30d3a9108de30cbc82af2a0d68816afd3fb43eed1cf7c394ae57887c",
+  "base_commit": "661330dfad001238117f31ad22aaba12c3129aca",
+  "assessment_basis": "working_tree",
+  "checks": [
+    {
+      "name": "fpu-ready-build",
+      "command": "NOS_BUILD_DIR=build/k06-fpu-ready-v2 NOS_TARGET_DIR=target/k06-fpu-ready python3 -B tools/build.py --kernel-feature native-smp-m3",
+      "exit": 0,
+      "raw_log_sha256": "f422d428ae8fe65cedf1d80d36eeca80a4f7dc8403ce336fd70e3d1233757602",
+      "log": "fpu-ready-build.log.gz"
+    },
+    {
+      "name": "fpu-soak-build",
+      "command": "NOS_BUILD_DIR=build/k06-fpu-soak-v2 NOS_TARGET_DIR=target/k06-fpu-soak-build python3 -B tools/build.py --kernel-feature native-smp-m3-soak",
+      "exit": 0,
+      "raw_log_sha256": "fa1139a0455f168339c533c3788658322c16f386b5995048e306dbbc1771d097",
+      "log": "fpu-soak-build.log.gz"
+    },
+    {
+      "name": "fpu-artifact-hosttests",
+      "command": "python3 -B userspace/tests/test_smp_fpu_probe.py --elf build/k06-fpu-ready-v2/users/probe.elf",
+      "exit": 0,
+      "raw_log_sha256": "a8c975601661deae2019c7666e061751d824529e348d9b5d655dd202944954f0",
+      "log": "fpu-artifact-hosttests.log.gz"
+    },
+    {
+      "name": "fpu-soak-artifact-hosttests",
+      "command": "python3 -B userspace/tests/test_smp_fpu_probe.py --elf build/k06-fpu-soak-v2/users/probe.elf",
+      "exit": 0,
+      "raw_log_sha256": "a8c975601661deae2019c7666e061751d824529e348d9b5d655dd202944954f0",
+      "log": "fpu-soak-artifact-hosttests.log.gz"
+    },
+    {
+      "name": "fpu-smp-hosttests",
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_smp*.py' -v",
+      "exit": 0,
+      "raw_log_sha256": "a50060bb1cd5ecda657effda54126e34f64c13c14afa560577bb2f9fb638f3f4",
+      "log": "fpu-smp-hosttests.log.gz"
+    }
+  ],
+  "additional_checks": {
+    "fmt": "exit 0",
+    "workflow_shell_syntax": "exit 0",
+    "git_diff_check": "exit 0"
+  },
+  "native_guests_started_locally": 0,
+  "limits": "Host artifact and crossbuild evidence only. Existing 1000-switch, 1% clock, quota, watchdog and 50/50 limits remain mandatory in a new complete run."
+}

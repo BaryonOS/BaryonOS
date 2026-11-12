@@ -1,0 +1,620 @@
+{
+  "schema_version": 1,
+  "task": "SYSTEM-MATURITY-SMP AP bring-up, M3 scheduling, process exit, and cross-CPU M4 IPC/revoke",
+  "source_fingerprint_version": 3,
+  "source_sha256": "2f023f898407d9d6165acdcf5d2f39485bda8c9d45055c63897fe9ea6c449bc2",
+  "source_commit": "824a50194a12bbab225c9d25ead1a33bf821d5ae",
+  "branch": "codex/k06-5f-complete-20261109",
+  "invocation": {
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "tools/test_smp.py"
+    ],
+    "environment": {
+      "LD_LIBRARY_PATH": null,
+      "OS_OVMF_CODE": null,
+      "OS_OVMF_VARS": null
+    },
+    "tool_paths": {
+      "cargo": "/home/simon/.cargo/bin/cargo",
+      "rustc": "/home/simon/.cargo/bin/rustc",
+      "cc": "/usr/bin/cc",
+      "qemu": "/usr/bin/qemu-system-x86_64"
+    }
+  },
+  "date_europe_amsterdam": "2026-11-11",
+  "status": "completed",
+  "passed": true,
+  "host": {
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/tests",
+      "-p",
+      "test_smp_host.py"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ".......................\n----------------------------------------------------------------------\nRan 23 tests in 0.017s\n\nOK\n"
+  },
+  "stages": [
+    {
+      "profile": "single-m2",
+      "kernel_feature": "milestone-m2",
+      "cpu_count": 1,
+      "runner": "m2",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 1.8054139020005096,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/smp-single-947ef3cdf5",
+      "evidence": null,
+      "error": null
+    },
+    {
+      "profile": "two-m2",
+      "kernel_feature": "native-smp-legacy",
+      "cpu_count": 2,
+      "runner": "smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 4.90788237400011,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/smp-2-9fba9a1972",
+      "evidence": {
+        "cpu_count": 2,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "rendezvous_generations": 64,
+        "workers": 64
+      },
+      "error": null
+    },
+    {
+      "profile": "four-m2",
+      "kernel_feature": "native-smp-legacy",
+      "cpu_count": 4,
+      "runner": "smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 29.82849004000036,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/smp-4-b61ea0e77b",
+      "evidence": {
+        "cpu_count": 4,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "rendezvous_generations": 64,
+        "workers": 64
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-two",
+      "kernel_feature": "native-smp-legacy-m3",
+      "cpu_count": 2,
+      "runner": "m3-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 5.671983053000076,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/smp-2-2b323edbfa",
+      "evidence": {
+        "cpu_count": 2,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "per_cpu_process_selections": [
+          88,
+          87
+        ],
+        "ap_cr0_wp_em_ts": 7
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-exit-two",
+      "kernel_feature": "native-smp-m3-exit",
+      "cpu_count": 2,
+      "runner": "m3-exit-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 5.0520346550001705,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/smp-2-6f8070ede7",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            7,
+            4
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "process_cleanup_event": {
+          "slot": 0,
+          "cpu": 1
+        }
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-lock-contention-two",
+      "kernel_feature": "native-smp-m3-lock-contention",
+      "cpu_count": 2,
+      "runner": "m3-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 5.692110480999872,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/smp-2-c203267539",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            89,
+            87
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "lock_contention_attempts": 48956
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-tlb-reuse-two",
+      "kernel_feature": "native-smp-m3-tlb-reuse",
+      "cpu_count": 2,
+      "runner": "m3-tlb-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 5.010917753000285,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/smp-2-af8b574383",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            7,
+            9
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "process_cleanup_events": [
+          {
+            "slot": 0,
+            "cpu": 1
+          },
+          {
+            "slot": 0,
+            "cpu": 1
+          }
+        ],
+        "stale_mapping_target_retained_until_replacement_exit": true
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-x87-two",
+      "kernel_feature": "native-smp-legacy-m3,test-m3-x87",
+      "cpu_count": 2,
+      "runner": "native-smp-m3-x87",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 4.963943243999893,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/smp-2-d49651c95f",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            7,
+            4
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "x87_fault_cpu": 1
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-unexpected-ud-two",
+      "kernel_feature": "native-smp-legacy-m3,test-m3-ud",
+      "cpu_count": 2,
+      "runner": "native-smp-m3-unexpected-ud",
+      "passed": true,
+      "raw_qemu_exit": 35,
+      "duration_s": 5.007264244999533,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/smp-2-0466f4d399",
+      "evidence": {
+        "cpu_count": 2,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "ap_cr0_wp_em_ts": 7,
+        "fault_injection": "unexpected-user-ud",
+        "failure_marker": "M3:FAIL:UNEXPECTED_USER_EVENT",
+        "scheduler_pass": false
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-single-regression",
+      "kernel_feature": "milestone-m3",
+      "cpu_count": 1,
+      "runner": "m3",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 3.4815225719994487,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/m3-single-smp-regression-e14b7ce6d8",
+      "evidence": null,
+      "error": null
+    },
+    {
+      "profile": "m3-four",
+      "kernel_feature": "native-smp-legacy-m3",
+      "cpu_count": 4,
+      "runner": "m3-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 28.854264608999983,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/smp-4-1a9f4f3f45",
+      "evidence": {
+        "cpu_count": 4,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "per_cpu_process_selections": [
+          75,
+          79,
+          74,
+          73
+        ],
+        "ap_cr0_wp_em_ts": 7
+      },
+      "error": null
+    },
+    {
+      "profile": "m4-two",
+      "kernel_feature": "native-smp-m4",
+      "cpu_count": 2,
+      "runner": "m4-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 5.141558156000428,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/smp-2-db10de19a7",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            240,
+            250
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "ipc_events": [
+          {
+            "operation": "send",
+            "slot": 0,
+            "cpu": 0
+          },
+          {
+            "operation": "recv",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "send",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "recv",
+            "slot": 2,
+            "cpu": 0
+          }
+        ],
+        "cross_cpu_message_pairs": [
+          {
+            "sender_slot": 0,
+            "receiver_slot": 1,
+            "sender_cpu": 0,
+            "receiver_cpu": 1
+          },
+          {
+            "sender_slot": 1,
+            "receiver_slot": 2,
+            "sender_cpu": 1,
+            "receiver_cpu": 0
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "profile": "m4-two-repeat",
+      "kernel_feature": "native-smp-m4",
+      "cpu_count": 2,
+      "runner": "m4-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 4.984184787999766,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/smp-2-3bd56d8bb5",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            123,
+            130
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "ipc_events": [
+          {
+            "operation": "send",
+            "slot": 0,
+            "cpu": 0
+          },
+          {
+            "operation": "recv",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "send",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "recv",
+            "slot": 2,
+            "cpu": 0
+          }
+        ],
+        "cross_cpu_message_pairs": [
+          {
+            "sender_slot": 0,
+            "receiver_slot": 1,
+            "sender_cpu": 0,
+            "receiver_cpu": 1
+          },
+          {
+            "sender_slot": 1,
+            "receiver_slot": 2,
+            "sender_cpu": 1,
+            "receiver_cpu": 0
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "profile": "m4-lifecycle-two",
+      "kernel_feature": "native-smp-m4,test-m4-lifecycle",
+      "cpu_count": 2,
+      "runner": "m4-lifecycle-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 5.012772281999787,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/smp-2-1db5b8dbfe",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            31,
+            8
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "quiescence_rounds": 3,
+        "cleanup_rounds": 3,
+        "process_table_resets": 2
+      },
+      "error": null
+    },
+    {
+      "profile": "m4-revoke-two",
+      "kernel_feature": "native-smp-m4-revoke",
+      "cpu_count": 2,
+      "runner": "m4-revoke-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 5.102856452000196,
+      "run_directory": "/home/simon/projects/nieuw-os-codex-5f-20261109/build/merge-legacy-ci/run/smp-2-19e65206df",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            742,
+            772
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "events": [
+          {
+            "operation": "send",
+            "slot": 0,
+            "cpu": 0
+          },
+          {
+            "operation": "revoke",
+            "slot": 0,
+            "cpu": 0
+          },
+          {
+            "operation": "send",
+            "slot": 0,
+            "cpu": 0
+          },
+          {
+            "operation": "recv",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "send",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "recv",
+            "slot": 2,
+            "cpu": 0
+          },
+          {
+            "operation": "revoke",
+            "slot": 0,
+            "cpu": 0
+          },
+          {
+            "operation": "revoked",
+            "slot": 2,
+            "cpu": 0
+          },
+          {
+            "operation": "revoked",
+            "slot": 1,
+            "cpu": 1
+          }
+        ],
+        "cross_cpu_revocation": {
+          "revoker_cpu": 0,
+          "receiver_slot": 1,
+          "receiver_cpu": 1
+        }
+      },
+      "error": null
+    }
+  ],
+  "acceptance_boundary": "AP startup, bounded rendezvous, per-CPU M3 process scheduling, and successful process-exit cleanup on an AP plus cross-CPU M4 ring-3 IPC and revoked-capability rejection, including M4 quiescence before cleanup and repeated lifecycle resets; not full K06 remote TLB or general race acceptance."
+}
