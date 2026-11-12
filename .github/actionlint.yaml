@@ -1,0 +1,6 @@
+# actionlint 1.7.12 predates GitHub's standard hosted ubuntu-26.04 image, which the
+# K06 section 9 matrix needs for its pinned QEMU 10.2.1. It is not a self-hosted runner;
+# tests/test_ci_workflows.py still admits only ubuntu-24.04 and ubuntu-26.04.
+self-hosted-runner:
+  labels:
+    - ubuntu-26.04

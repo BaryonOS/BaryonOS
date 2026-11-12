@@ -1,0 +1,27 @@
+{
+  "accepted": false,
+  "run_id": 42731994218,
+  "run_url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42731994218",
+  "tested_commit": "59a30f10ceb558d1e31408afece49ca5c331df20",
+  "source_sha256": "505c25139b4d23d78aa9da406108aad437ba7a763b1b1c67b0cc6074a4d8f2ae",
+  "job_id": 129569901500,
+  "artifact_id": 13729275038,
+  "original_zip_sha256": "d84ba730f96a9f01c989d301db4f339495913e719781d4118d3829e820c019d7",
+  "original_zip_size": 401521,
+  "case": "resched-deaf",
+  "passed": 46,
+  "repeat": 50,
+  "failed_iterations": [
+    5,
+    38,
+    40,
+    43
+  ],
+  "failure": "SMP_CLOCK_DRIFT",
+  "raw_exit": 35,
+  "timed_out": false,
+  "observation": "Every failed sample contains exactly 1000 IRQ0 ticks. All four medians exceed the unchanged 1% threshold. Observation overshoot does not explain these failures.",
+  "raw_evidence": "incident-42731994218-resched-deaf-raw.json.gz",
+  "historical_cause_proven": false,
+  "original_artifacts_preserved": true
+}

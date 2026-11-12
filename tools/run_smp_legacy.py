@@ -25,7 +25,7 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
         raise ValueError("SMP QEMU profiles are exactly 2 or 4 CPUs")
     if profile not in (
         "native-smp",
-        "native-smp-m3",
+        "native-smp-legacy-m3",
         "native-smp-m3-exit",
         "native-smp-m3-tlb-reuse",
         "native-smp-m3-lock-contention",
@@ -56,7 +56,7 @@ def expected_markers(cpus: int, profile: str = "native-smp") -> tuple[str, ...]:
     )
     return markers + (("M3:SMP:SCHEDULER:PASS",)
                       if profile in (
-                          "native-smp-m3",
+                          "native-smp-legacy-m3",
                           "native-smp-m3-exit",
                           "native-smp-m3-tlb-reuse",
                           "native-smp-m3-lock-contention",
@@ -126,7 +126,7 @@ def evaluate(cpus: int, stdout: str, returncode: int | None, timed_out: bool) ->
 
 
 def evaluate_m3(cpus: int, stdout: str, returncode: int | None, timed_out: bool) -> dict:
-    expected_markers(cpus, "native-smp-m3")
+    expected_markers(cpus, "native-smp-legacy-m3")
     lines, parsed, expected_protection = _m3_inventory(cpus, stdout)
 
     cpu_markers = [line for line in lines if line.startswith("M3:SMP:CPU:")]
@@ -604,8 +604,8 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
     expected_kernel_feature = {
         "native-smp": "native-smp-legacy",
         "native-smp-m4-lifecycle": "native-smp-m4,test-m4-lifecycle",
-        "native-smp-m3-x87": "native-smp-m3,test-m3-x87",
-        "native-smp-m3-unexpected-ud": "native-smp-m3,test-m3-ud",
+        "native-smp-m3-x87": "native-smp-legacy-m3,test-m3-x87",
+        "native-smp-m3-unexpected-ud": "native-smp-legacy-m3,test-m3-ud",
     }.get(profile, profile)
     if (manifest.get("kernel_feature") != expected_kernel_feature
             or manifest.get("loader_feature") != "smp-handoff"
@@ -694,10 +694,10 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
                                for marker in (
                                    f"M3:SMP:AP:PROTECTION_CPU:{index:020d}",
                                    "M3:SMP:AP:CR0_WP_EM_TS:00000000000000000007",
-                               ) if profile.startswith(("native-smp-m3", "native-smp-m4"))),
+                               ) if profile.startswith(("native-smp-legacy-m3", "native-smp-m4"))),
                              *(("M3:SMP:SCHEDULER:PASS",)
                                if profile in (
-                                   "native-smp-m3",
+                                   "native-smp-legacy-m3",
                                    "native-smp-m3-exit",
                                    "native-smp-m3-tlb-reuse",
                                    "native-smp-m3-lock-contention",
@@ -764,7 +764,7 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
             "native-smp-m3-unexpected-ud": lambda: evaluate_m3_unexpected_ud(
                 cpus, stdout, raw_exit, timed_out
             ),
-            "native-smp-m3": lambda: evaluate_m3(cpus, stdout, raw_exit, timed_out),
+            "native-smp-legacy-m3": lambda: evaluate_m3(cpus, stdout, raw_exit, timed_out),
         }.get(profile, lambda: evaluate(cpus, stdout, raw_exit, timed_out))()
         report["passed"] = source_hash() == frozen
         if not report["passed"]:

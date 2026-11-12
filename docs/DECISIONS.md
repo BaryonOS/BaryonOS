@@ -5,6 +5,49 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-PROJECT-SYNC-20261111 — Fact-derived Status and backfill for Project #5
+
+Status: accepted, 11 November 2026, on the project owner's instruction to
+integrate the existing organisation Project #5 with Issues, Pull Requests and
+Actions. It extends the conservative classifier from #303; no second project
+and no new workflow file are introduced.
+
+**Context:** the first dry-run (run 43115306190) showed that the Actions secret
+`BARYON_PROJECTS_TOKEN` is not configured. `GITHUB_TOKEN` cannot write an
+organisation project, and GraphQL is unavailable from agent sessions, so the
+project itself could not be inspected. Without a fix the daily schedule would
+fail on `main` every day.
+
+**Decision:**
+
+- Real-time transitions use the project's built-in workflows (auto-add, item
+  closed, pull request merged, item reopened, review approved/changes
+  requested). The scheduled tool complements them and does not replace them.
+- Status is derived from GitHub facts only: a merged PR or an issue closed as
+  completed becomes Done; an open draft PR In Progress; an open ready PR In
+  Review (fallback In Progress); an explicit `blocked`/`status:blocked` label
+  Blocked; an empty, Blocked or reopened-Done open issue Todo. A PR closed
+  without merge, an issue closed as not planned and any status outside the
+  managed set are left to humans.
+- Open issues and PRs missing from the project are added, at most 50 per run,
+  and only after a complete project scan.
+- Work Type, Subsystem and Priority keep the fill-only rule of #303.
+- Scheduled runs without the secret skip with a warning; manual runs fail.
+- The 17 non-required workflows with `paths-ignore` (33 triggers) share one list that skips
+  documentation, all Markdown, issue/discussion templates and this project
+  tooling. A contract test fixes that list and proves that code, lockfile,
+  build-tool and workflow paths still trigger them; `ci.yml` stays unfiltered.
+
+**Consequences:** Project Status is organisational. It never overrides a
+GitHub Actions result; Done follows a merge, never a check. Live behaviour is
+unverified until the owner adds the secret: a fine-grained token or GitHub App
+limited to organisation Projects read/write plus read access to issues,
+pull requests and metadata of this repository. Unit tests use an in-memory
+GraphQL fake.
+
+**Revise when:** the project's field options differ from the assumed names,
+or a GitHub App replaces the personal token.
+
 ## ADR-CI-QEMU-BUNDLE-20261111 — Pinned QEMU/OVMF from a signed package bundle
 
 Status: accepted, 11 November 2026, on the project owner's instruction to stop
@@ -2492,3 +2535,133 @@ restores the previous presentation without reverting code or technical contracts
 - distribution still requires a separate release/SBOM/notice review.
 
 **Review criterion:** changing the primary license, scope, or exclusions requires a separate decision that addresses migration consequences for already covered files and contributions.
+
+## ADR-K06-5F-20261109 — Bound and measure SMP acceptance without widening authority
+
+**Date:** 9 November 2026. **Status:** implementation in progress; native acceptance open.
+
+**Source:** `main` `1db01c4a1fe9e433396c58af4e6b3732034ee2e9`, with the selected kernel, scheduler and test changes from `feat/k06-5e-proc-shootdown` `f141995ce6d5a0032cb90dea1466a24dc71b2f4d`. The latter includes the step-5d-2/FPU checkpoint `4030c4f4`. Unrelated runner migrations are excluded. The normative acceptance requirements remain [L0 step 5f](https://github.com/simonvanieperen/BaryonOS/blob/docs/k06-step-specs/docs/implementation/k06-steps/09-5f-acceptance.md).
+
+**Decision:** complete cross-CPU IPC, address-space-locked usercopy and remote process lifecycle handling before accepting migration or SMP quota evidence. Process state remains protected by KERNEL. Usercopy and mapping changes use the process address-space lock. A remote wake publishes runnable state before sending vector `0xe8`; an interrupt is a hint, and the receiver rechecks state under KERNEL. A process must leave its old CPU and address space before its storage, stack or FPU image can be reassigned or freed.
+
+The existing KERNEL lock-stuck bound is retained at 400 ms. The maximum deferred ticks during one acquisition is bounded at 40, derived from that bound and the existing 10 ms process timer period. Per-CPU maxima and both limits are emitted before CPUs are parked. These are acceptance limits, not measured results; they will not be enlarged in response to a failing test without a separate decision. TSC timing is restricted to the existing calibrated QEMU/TCG model. Host overcommit and ticket-lock contention remain R02 risks.
+
+One shootdown generation has one 100-ms calibrated-TSC deadline, independent
+of the number of target CPUs; it is not restarted per acknowledgement. The
+ten-minute four-vCPU soak uses one scheduler manifest with four real M4 quota
+processes, four real qsim pressure processes, a cross-CPU IPC pair and eight
+additional CPU-bound processes. M4 authority is cleaned before the IPC pair
+is admitted so unrelated queued messages cannot satisfy or perturb the quota
+oracle. The qsim result is accepted only after the M4 proof, while all eighteen
+processes remain subject to the final frame/FPU/scheduler cleanup balance.
+
+Each matrix case requires 50 successful repetitions. Any failed repetition leaves that case unaccepted; source or artifact drift terminates the run and preserves the partial report. A one-vCPU run is regression evidence. Host watchdog ratios and guest deadline ratios are separate measurements. Mocked harness tests never count as native runs.
+
+**Open acceptance:** complete L0 §9 workloads, migration with GPR/x87/SSE canaries and `active_cpus` checks, remote kill and exact cleanup, real K07 pressure across four CPUs, the 30-second concurrent workload, the ten-minute soak, negative controls and unchanged regressions. The current host checks and source integration do not accept K06 or extend K07 to SMP. No physical-hardware, speculative-execution, x2APIC or human-audit claim is made.
+
+**Recovery:** retain the original worktrees and source branches. The 5f work is isolated on `codex/k06-5f-acceptance-20261109`; revert its reviewed commits to remove the change. No host disk, firmware, NAS or production key is part of the test configuration.
+
+
+### K06 step 5f measurement and gate repair — 10 November 2026
+
+Run 42723127310 on `f808d591` is rejected because `nine-capacity` iteration 16 fails the unchanged clock-drift gate (49/50). The old evidence logs only the median and does not distinguish IRQ loss from observation jitter. An idle return can observe more ticks than its requested target. Clock samples therefore retain a coherent IRQ0 tick/TSC snapshot with IF=0 and normalize elapsed TSC against the actual tick delta. Five target segments, their median, the observation deadline and the exact 1% drift limit remain fixed. Failure logs retain calibration plus each tick/TSC delta. Missing IRQs are not synthesized and sustained drift remains a failure.
+
+The final repository gate previously required a missing `tools/qemu-smoke-test.sh`. The executable wrapper now runs the existing M2, K05, single-CPU K07 and RTC regression gates sequentially, with fresh isolated output directories and source checks. Host oracles, Clippy and formatting checks remain required. The workflow preserves nested reports and raw logs. The entire 64-by-50 matrix must restart from zero on the corrected source; no earlier passing repetition is reused.
+
+
+### K06 step 5f FPU-canary readiness — 10 November 2026
+
+The original run rejects `m3-four-single` iteration 33 with an FPU image mismatch. Its general loop-progress word is incremented before register initialization/checks, and the readiness flag was published before initialization. The fixture stop predicate is strengthened to require completed canary readiness for every live canary; the probe publishes it only after successful GPR/x87/SSE checks. The existing non-canary M4/qsim soak slots remain governed by their own oracles. Final FPU-image comparisons, negative controls, 1000-switch minimum, quotas and deadlines are unchanged. Failure diagnostics retain the slot, expected pattern, actual registers, TOP/tag and saved RIP. The old log lacks those fields and does not establish exact historical causality.
+
+A host artifact/mutation check validates the actual probe RX instruction order and failure branches. CI executes it before relevant M3 cases and soak runs and retains its log. The two distinct unmap executables are excluded from that probe-specific check. A complete 64-by-50 restart is required on the corrected source; the earlier pending source is not reused.
+
+
+### K06 step 5f bounded observer cost — 10 November 2026
+
+The original eight-CPU single-TCG base case is 15/50 and migration case is 17/50, including ten unchanged 60-second watchdog failures in total. Per-process/register timeout diagnostics are absent, so exact historical timeout causality remains unproven. Source review identifies an unnecessary all-process physical-pattern scan on every M3 entry: sixteen reads each acquire ASPACE and map/unmap a scratch page, adding 32 INVLPG instructions per entry under KERNEL. Only the entering process is now sampled before cleanup; all live processes are scanned after STOP before any release. Observer sampling frequency changes to each process's own entries. The actual ring-3 pattern check remains on every loop. All genuine user-return permission walks and usercopy, shootdown, lock and resource enforcement remain unchanged. No workload, 1000-switch minimum, watchdog, quota or safety limit is reduced or increased. A full restart must establish runtime results; static work reduction is not a measured speedup.
+
+## K06 step 5f — per-AP clock-load observation — 10 November 2026
+
+Restart 42731994218 on `59a30f10` is rejected: `resched-deaf` 46/50, with four median clock-drift failures and exactly 1000 IRQ0 ticks in every sample. This evidence excludes the previously corrected observation-edge overshoot for these failures, without proving why IRQ0 falls behind its reference.
+
+The clock fixture's single shared progress counter forced a locked RMW from every busy AP. Progress observation now uses independent 64-byte-separated single-writer counters and requires nonzero work from every online AP. The APs retain their continuously busy loops and PAUSE; separate synchronization tests, PIT/IRQ0, five samples, exact 1% and deadlines are unchanged. The fixture loses shared observer contention, as explicitly recorded. QEMU's use of host atomics does not establish a global QEMU lock or a causal explanation of the recorded drift. Host/crossbuild and object-code checks are not native acceptance. A new full 64×50 run and executed repository gate remain mandatory.
+
+## K06 step 5f — syscall quantum and audit boundaries — 10 November 2026
+
+L0 section 6.3 makes timer, explicit yield, blocking and reschedule the switch causes. Treating every completed nonblocking syscall as yield needlessly forfeits the caller's remaining quantum. The shared selector may now continue that caller only when its CPU's actual deferred-timer and reschedule generations have not changed. The complete existing return/ownership path remains mandatory; continuation acknowledges no new quantum and preserves every peer's FIFO order. Wake remains FIFO. This is not proof of the IPC deadline.
+
+Engine audits move from repeated observations of unchanged state to every completed capability syscall, the existing bootstrap/exit boundaries and final quiescent STOP. Exact authority snapshots, rollback/output checks, usercopy leases and observable erasure remain unchanged. An independent source review and host models support this candidate; full native acceptance remains mandatory.
+
+A separate manual diagnostic mode shares the full matrix concurrency lock, rejects simultaneous matrix input and retains raw executed trace commands. It neither relaxes native limits nor supplies acceptance repetitions. HTTP 503 snapshot failures receive three APT retries with the same signed snapshot, pins and hashes; persistent setup failure remains failure and supplies no native evidence. ADR-053's counted-IRQ0 rule is unchanged; elapsed-counter compensation requires an explicit normative decision and is not implemented.
+
+## K06 step 5f — ordinary canary CPU hint — 10 November 2026
+
+The complete mode19 canary-check path gains one PAUSE before its normal loop back-edge. Mode20 IPC, forced migration-Yield and legacy mode0 paths bypass it. PAUSE is a guest CPU hint; it neither blocks/yields the process nor increments the actual context-switch evidence. All 1000-switch, FPU, workload, clock and deadline checks remain.
+
+The specified TCG profiles may benefit from finer host-vCPU interleaving: QEMU 10.2.1 exits its CPU loop on PAUSE, while its ordinary round-robin kick timer is 100 ms. Infinite starvation is not established, and the five historical eight-vCPU watchdogs are not causally explained by source inspection alone. Host/crossbuild and real-ELF checks pass; native performance and MTTCG BQL overhead remain to be measured. The full 64×50 acceptance restarts on the new frozen source.
+
+## K06 step 5f — proven capless IPC and IRQ-entry clock edge — 10 November 2026
+
+Run 42748931069 on `22dfceaf` is rejected. Sixty of 63 ordinary cases and all ten soak shards pass, but both 10000-round IPC cases time out in every repetition and `m3-canary-control` is 49/50. The environment/K07 probe and both regular K07 cases pass; the aggregate fails and the final gate is skipped. No repetition from this run counts toward acceptance.
+
+Each IPC pair requires at least 40000 successful capability calls. A capability-free SEND or RECV may now omit the otherwise unused exact authority snapshot only after the complete message or output plan, endpoint authority and queue state prove under KERNEL and ASPACE serialization that dispatch has no remaining error path. Capability transfers, unavailable queues, malformed calls, usercopy failures and every other possibly failing operation retain the exact snapshot, rollback comparison and observable wipe. Full structural Engine audits remain at bootstrap, process exit/cleanup and final quiescent STOP. The syscall-local authority, usercopy and output checks remain. Mode20 gains a PAUSE host-vCPU hint before every IPC step; its SEND/RECV/WAIT protocol, FIFO behavior, 10000 rounds and 60-second bound remain unchanged.
+
+The rejected clock repetition counts exactly 1000 IRQ0 entries in each of five segments, while its old endpoint read occurs after return from the final interrupt. IRQ0 now records TSC immediately before publishing each actual tick. Measurement still uses five consecutive 1000-tick segments, actual tick normalization, their median and the exact 1% bound. It synthesizes no tick, and missing or coalesced IRQ0 entries still lengthen the measured interval. Host checks establish implementation consistency only; a complete new 64×50 run and an actually executed green repository gate remain mandatory.
+
+## K06 step 5f — enforce the deaf fixture precondition — 10 November 2026
+
+Run 42809499884 rejects source `3dd6194f`: process-shootdown-deaf is 48/50 because AP1 owns RUNQ at quarantine, and the BSP-spin control is 49/50 because of sustained clock drift. IQ-3 correctly stops before resetting a lock owner. L0 step 07 section 4 explicitly requires the deliberately deaf AP to hold no lock. A test-only, normally acknowledged kernel setup round now closes scheduler admission and masks AP timers while retaining their real CR3/ACTIVE/context. Pending timer/reschedule entries resume without RUNQ. All APs must acknowledge this setup, remain lock-free, and show new AP1 reader progress before the actual A unmap. The A-round still receives no flush/ack; all existing deadlines, frame quarantine and before/after-INIT owner checks remain unchanged. The serial oracle requires the new precondition marker. This does not change production quarantine policy.
+
+The clock-load observer now performs 64 dependent integer steps before each progress store and PAUSE. APs remain continuously busy; QEMU 10.2.1 requires a TCG-loop exit and BQL round trip for each PAUSE. The changed instruction mix reduces that observer overhead per work step, without changing IRQ0 counting, five samples, median, exact 1%, deadlines or work quotas. Historical drift causality and native effectiveness remain unproved. Host/crossbuild/object-code checks are supporting evidence only. Review this choice if the full matrix still fails, and retain every rejected original artifact.
+
+## K06 step 5f — remote readiness wake runs next (ADR-081 R3-5 addendum) — 11 November 2026
+
+Both 10 000-round IPC cases (`m3-ipc-four`, `m3-ipc-four-single`) failed 50/50 in every full run, always by the 60-second host watchdog after `SMP:M3:GO`. A local single-boot trace on frozen source `54a9d5c1` shows the cause: zero wait timeouts and one reschedule IPI per remote wake, yet exactly one round per four PIT ticks. A woken endpoint was appended behind the CPU-bound canaries on its home CPU, so the 0xe8 selection ran a canary and the endpoint waited about two quanta per wake (about 400 s for 10 000 rounds). The earlier syscall-cost and PAUSE changes could not remove this latency.
+
+Decision: a wake from `wait::refresh` that is a readiness wake (`primary == 0`, non-empty mask) for a thread whose home CPU differs from the waking CPU is placed at the head of that home RUNQ through `RunQueue::push_front`. Timeout, error, kill and local wakes keep FIFO `push`. Head placement happens at most once per BLOCKED→READY transition and grants no new quantum; the thread is preempted at the next tick as before. Homes, explicit-only migration (AC-1), the KERNEL→RUNQ lock order, BW-2 single queue ownership and the 0xe8 hint semantics are unchanged. Host tests cover head order, peer FIFO order, full-ring and double-enqueue refusal.
+
+After this change the same trace runs at about 190 rounds per 100 ticks. Two clean local boots on QEMU 10.2.1 pass the unchanged serial oracle (10 000 rounds, `SMP:IPC:PASS`, FAIR waits at most 5 ms against 400 ms) in 71.8 s (multi-thread TCG) and 66.5 s (single-thread TCG). The workload of at least 40 000 capability syscalls does not fit the generic 60-second per-boot watchdog. `tools/run_smp.py` therefore gives only the `m3-ipc` outcome the named constant `IPC_TIMEOUT_S = 180` (at least 2.5 times the measured time), analogous to `SOAK_TIMEOUT_S`. The round count, the oracle and every guest deadline are unchanged; `GUEST_TIMEOUT_S` stays 60.
+
+Residual risk (R02): a colluding cross-CPU pair can obtain about two quanta per round-robin cycle on its home CPUs instead of one. Starvation is excluded because each head placement requires a fresh block and a remote readiness event. Acceptance still requires the full 64×50 matrix on the final source; the two local boots are supporting evidence only.
+
+## K06 step 5f — interruptible spin window survives QEMU 8.2 PAUSE (ADR-081 addendum) — 11 November 2026
+
+The PR job `native-smp` (Ubuntu 24.04, QEMU 8.2.2 TCG) failed with `SMP:LOCK:STUCK:10:CPU=1`: a CPU spinning on `PREEMPT_LOCK` with IF=1 never took the deferred tick, so the holder's 500 ms wait lost to the 400 ms DG-1 deadline. Cause: the spin window `sti; pause; cli` relies on interrupts being taken after the STI shadow ends. In QEMU 8.2 `helper_pause` leaves the translation block through `cpu_loop_exit` without clearing `HF_INHIBIT_IRQ_MASK`, so the window is deaf; QEMU 10.2 clears it through `do_end_instruction`, which is why the K06 matrix on 26.04 never showed this.
+
+Decision: every IF=1 spin window (`IrqLock::take`, `icr_race_window`, `icr_work`) is `sti; nop; pause; cli`. The STI shadow covers only the NOP, so a pending interrupt is taken before PAUSE or CLI on hardware and on both QEMU versions. Saved IF, lock order, the DG-1 deadline and every oracle are unchanged; the change adds one instruction per spin iteration.
+
+Hosted clock drift is a separate matter. Run 43022743756 failed the probe with a median of 1 015 575 µs per 1000 IRQ0 (1.56%; limit 1%) on a 4-vCPU hosted runner. The check measures lost IRQ0 edges, which TCG produces when guest vCPU threads and QEMU's timer starve on an oversubscribed host. The 1% limit stays, ticks are never synthesized (ADR-053), and AP spinning stays part of the test. The workflow now stops runner background services as a best effort; if drift persists on standard hosted runners, the remaining options are a larger runner (paid, Simon's decision) or a separately designed clock measurement.
+
+## K06 step 5f — clock check split into idle precision and load progress (spec 06 §4 revision) — 11 November 2026
+
+**Decision (Simon, 11 November 2026).** Simon chose to redesign the clock measurement instead of moving the SMP matrix to a paid 8-vCPU runner. This revises the "Klok" clause of K06 step specification 06-5c-2 §4. The old clause read: during the existing SMP load, Sys3 stays monotonic and rises within 1% of the PIT expectation. The revised clause has two phases:
+
+1. **Precision (all APs halted).** The BSP idles through `CLOCK_SPAN` counted IRQ0 ticks in five segments. On the PIT-calibrated TSC, the median segment must last the PIT's own period within 1%. The limit stays at 1%. Monotonicity, `SMP_CLOCK_STOPPED` and the drift diagnostics are unchanged.
+2. **Load (every AP spinning).** Every AP is woken into the existing load loop. The idle BSP must then count `CLOCK_SEGMENT` further IRQ0 ticks before a 4× deadline; otherwise the check fails with `SMP_CLOCK_STOPPED`. The clock must never go back, and every AP must show work (`SMP_CLOCK_NO_LOAD`). There is no 1% limit under load.
+
+The marker `SMP:CLOCK:PASS:CPUS=` and the fail markers are unchanged. Ticks are still never synthesized (ADR-053): only counted IRQ0s advance the clock in both phases. K06-SMP test 6 keeps a load component through the load-phase progress and work checks.
+
+**Evidence.** Under TCG the old measurement measured host CPU capacity, not guest clock behaviour. Lost or merged IRQ0 edges come from starved vCPU and timer threads. Locally, under `taskset`, the old load-phase check passed 5/5 with 4 host CPUs, failed 0/5 with 3 (2–4% drift) and failed 0/5 with 2 (20–27% drift). Lowering QEMU's priority with `renice` did not change this. On 4-vCPU hosted runners it failed in runs 43031091677 and 43031085708 (about 1.8%) and in run 43022743756 (1.56%). PROJECT-STATE records the local `taskset` reproduction of the revised check; native acceptance still comes from the hosted matrix.
+
+**Not claimed.** This change does not show that the guest clock stays within 1% while all CPUs are loaded. Under TCG on a shared host that property cannot be separated from host capacity, so it remains unproven. It must be measured again on hardware or KVM before a load-precision claim is made.
+
+**Open item.** The normative step text lives on branch `docs/k06-step-specs` (`docs/implementation/k06-steps/06-5c-2-bsp-timer-idle.md`, §4 "Klok"). It must receive the same revision when that branch is integrated.
+
+## K06 step 5f — IPC watchdog recalibrated for hosted runners (ADR-081 R3-5 addendum 2) — 11 November 2026
+
+**Decision (Simon, 11 November 2026).** Full run 43057843393 on `e398039e` failed `m3-ipc-four` 0/50: every repetition hit the 180-second host watchdog after `SMP:M3:GO`, without a FAIL marker, on GitHub-hosted 4-vCPU runners (2 cores with SMT). `m3-ipc-four-single` passed 50/50 at 71–84 s. Locally, with QEMU 8.2.2 confined by `taskset`, multi-thread TCG completes the unchanged 10 000 rounds in 116 s on 4 host CPUs, 130 s on 3 and 327 s on 2, with zero wait timeouts; single-thread TCG takes 103–109 s. The IPC phase runs at about one round per scheduler tick, so its wall time scales with host CPU capacity. No kernel defect is demonstrated. The R3-5 value of 180 s came from 71.8 s on a faster host and therefore violated its own rule of at least 2.5 times the measured time on the acceptance runner.
+
+`IPC_TIMEOUT_S` becomes 660 s, the existing maximum of `tools/run.py` and equal to `SOAK_TIMEOUT_S`. The round count, the oracle, the FAIR limits, every guest deadline and `GUEST_TIMEOUT_S = 60` are unchanged. The 2.5× rule stays: if the hosted per-boot time of `m3-ipc-four` in the next full run exceeds 264 s, the margin is insufficient and K06 stays open; the runner question then returns to the owner. A canary PAUSE hint on one pass in 64 instead of every pass was measured (432 s against 327 s on 2 CPUs) and rejected.
+
+The single idle-phase `SMP_CLOCK_DRIFT` in the same run (soak shard 9, median 1.05%, limit 1%) receives no code change by the same decision; the next full run starts from zero and a recurrence rejects it.
+
+## K06 step 5f — review findings closed before acceptance (ADR-079/ADR-081 addendum) — 12 November 2026
+
+**Decision (Simon, 12 November 2026):** fix all four confirmed review findings on PR #296 before the full matrix, rather than defer them. Run 43118230329 on `ae3e985` was cancelled because these changes alter kernel and tool sources; its 25 completed cases (50/50 each) are retained as diagnostics only ([receipt](verification/k06-smp-sched/cancelled-43118230329.json)).
+
+1. **IQ-3 transitional lock states (ADR-079).** `held_by()` read only the owner fields, so an AP reset between taking a ticket and publishing its owner, or between clearing the owner and releasing the ticket, left a stranded ticket undetected. Each CPU now records the `IrqLock::id()` of the lock in that window (`CpuLocal.transit`, saved and restored LIFO so a handler in the spin window cannot erase it). `held_by()` stops on an owner match or a transit match, only for the IQ-3 locks (`KERNEL`, `ASPACE`, `RUNQ`, `SHOOTDOWN`). A level-based lockdep check was tried first and rejected: the test lock `SPIN_LOCK` shares level 10 with `KERNEL`, which turned the accepted `spin-irq-off-control` quarantine into a false `LOCK_HELD`. New negative case `quarantine-lock-pending` (AP2 deaf inside KERNEL's acquire window, `SMP:QUARANTINE:LOCK_HELD:10:CPU=2`) joins the matrix, which becomes 65 cases × 50 (3 250 guests); the verifiers and the aggregate job name follow.
+2. **DG-2 harness verdict.** `run_smp.py` accepted the `!`-prefixed terminal fallback in its oracle but rejected it in the exact-marker harness check. The harness verdict is now recomputed only for that fallback line, with the same exit, timeout and artifact binding.
+3. **K05 on four vCPUs (spec 5d-2 §4).** The explicit integration profile `native-smp-supervisor` (= `native-smp-m3` + `native-supervisor`) and its five `test-smp-supervisor-*` variants are the only way the build guard admits the supervisor on SMP. `run_supervisor.py --smp` runs the six cases on four vCPUs (multi-thread TCG) with the unchanged evidence oracle plus `SMP:ONLINE:4/4`, `SMP:K05:PASS` and `SUPERVISOR:SMP_HOMES` (at least one spawned service on an AP). The final gate gains the stage `k05-smp` (`test_supervisor.py --smp`). On SMP, `WAIT_IDLE_IRQS` now counts, as on one CPU, the IRQ0s the BSP observed while idle; it previously counted every idle wake of every CPU, which broke the unchanged `WAIT_IDLE_IRQS <= TICKS` check.
+4. **Recovery from an idle CPU.** `smp_idle()` dispatched `select()`, and with it `smp_recovery::recover()`, only when its run queue was non-empty. A recovery request reaching an idle BSP with an empty queue (reachable once the supervisor runs on SMP) therefore stalled. A pending recovery now dispatches `select()` regardless of queue occupancy.
+
+No tolerance, deadline, repetition count, oracle or security check was relaxed. Acceptance still requires the full 65×50 matrix, all 50 soaks, K07, the aggregate and the executed final gate on the final commit.

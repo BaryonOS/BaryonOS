@@ -14,6 +14,8 @@ use core::{
     sync::atomic::{AtomicU32, Ordering},
 };
 
+pub mod sched;
+
 /// Fixed lock levels (outer -> inner). A CPU may only take a lock whose level
 /// is strictly higher than every lock it already holds.
 pub mod level {
@@ -56,15 +58,22 @@ impl<T> TicketLock<T> {
 
     /// Unbounded spin (release builds, after lockdep proved the order).
     pub fn lock(&self) -> Guard<'_, T> {
+        self.lock_with(|| {})
+    }
+
+    /// Unbounded spin, calling `relax` between polls (step 5b: the kernel's
+    /// `sti; nop; pause; cli` window for KERNEL/ASPACE, spec §4.3).
+    pub fn lock_with(&self, mut relax: impl FnMut()) -> Guard<'_, T> {
         let ticket = self.next.fetch_add(1, Ordering::Relaxed);
         while self.owner.load(Ordering::Acquire) != ticket {
+            relax();
             spin_loop();
         }
         Guard::new(self)
     }
 
     /// Spin at most `limit` polls, calling `relax` between polls (e.g. the
-    /// kernel's `sti; pause; cli` window, spec §4.3).
+    /// kernel's `sti; nop; pause; cli` window, spec §4.3).
     pub fn lock_bounded(&self, limit: u32, mut relax: impl FnMut()) -> Result<Guard<'_, T>, Stuck> {
         let ticket = self.next.fetch_add(1, Ordering::Relaxed);
         for _ in 0..limit {
@@ -144,33 +153,52 @@ pub struct Order {
     pub wanted: u8,
 }
 
-/// Per-CPU set of held lock levels (bit per level, levels 0..=63). Touched
-/// only by its own CPU with interrupts masked.
+/// Per-CPU lock-order state (levels 0..=63). Touched only by its own CPU with
+/// interrupts masked.
 ///
-/// shortcut: one bit per level, so two RUNQ locks (spec §4.2, ascending CPU
-/// index) cannot both be recorded; extend with a nesting count in step 5d.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+/// Audit F4 (LD-3/LD-4): per level a count of 0, 1 or 2 (bits in `held` and
+/// `pairs`) and the keys taken, in order. Two locks of one level exist only
+/// as a `lock_pair`: the second via [`Lockdep::acquire_paired`] with a higher
+/// key (ASPACE: pid, RUNQ: CPU index), released before the first.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Lockdep {
     held: u64,
+    pairs: u64,
+    keys: [[u32; 2]; 64],
+}
+
+impl Default for Lockdep {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Lockdep {
     pub const fn new() -> Self {
-        Self { held: 0 }
+        Self {
+            held: 0,
+            pairs: 0,
+            keys: [[0; 2]; 64],
+        }
     }
-    pub const fn from_bits(held: u64) -> Self {
-        Self { held }
-    }
-    pub const fn bits(self) -> u64 {
+
+    /// Levels with at least one lock held or awaited (the switch check and
+    /// the cross-CPU mirror).
+    pub const fn held_mask(&self) -> u64 {
         self.held
     }
 
-    fn highest(self) -> Option<u8> {
+    fn highest(&self) -> Option<u8> {
         (self.held != 0).then(|| 63 - self.held.leading_zeros() as u8)
     }
 
-    /// Record `level` before spinning on the lock.
-    pub fn acquire(&mut self, level: u8) -> Result<(), Order> {
+    fn count(&self, level: u8) -> usize {
+        (self.held >> level & 1) as usize + (self.pairs >> level & 1) as usize
+    }
+
+    /// Record a single lock before spinning on it: `level` must be above every
+    /// held level, so a second lock of a held level is refused (LD-3).
+    pub fn acquire(&mut self, level: u8, key: u32) -> Result<(), Order> {
         assert!(level < 64);
         match self.highest() {
             Some(held) if held >= level => Err(Order {
@@ -179,18 +207,62 @@ impl Lockdep {
             }),
             _ => {
                 self.held |= 1 << level;
+                self.keys[level as usize][0] = key;
                 Ok(())
             }
         }
     }
 
-    /// Forget `level`; releasing a level that is not held is a kernel bug.
-    pub fn release(&mut self, level: u8) {
+    /// Record the second lock of a `lock_pair`: `level` must be the highest
+    /// held level with exactly one lock, and `key` above that lock's key.
+    pub fn acquire_paired(&mut self, level: u8, key: u32) -> Result<(), Order> {
+        assert!(level < 64);
+        match self.highest() {
+            Some(held) if held == level && self.count(level) == 1 => {
+                if self.keys[level as usize][0] >= key {
+                    return Err(Order {
+                        held,
+                        wanted: level,
+                    });
+                }
+                self.pairs |= 1 << level;
+                self.keys[level as usize][1] = key;
+                Ok(())
+            }
+            held => Err(Order {
+                held: held.unwrap_or(0),
+                wanted: level,
+            }),
+        }
+    }
+
+    /// Forget the lock `key` of `level`; releasing a lock that is not held is
+    /// a kernel bug. Release must be LIFO (audit F2, LD-4): each guard restores
+    /// its own saved IF, so dropping an outer guard first would re-enable
+    /// interrupts while an inner (handler-level) lock is still held. Of a pair
+    /// the second key goes first. `Err` leaves the state unchanged.
+    pub fn release(&mut self, level: u8, key: u32) -> Result<(), Order> {
+        assert!(level < 64);
+        let count = self.count(level);
+        let keys = &mut self.keys[level as usize];
         assert!(
-            level < 64 && self.held & (1 << level) != 0,
-            "lockdep: release of unheld level"
+            keys[..count].contains(&key),
+            "lockdep: release of unheld lock"
         );
-        self.held &= !(1 << level);
+        let held = 63 - self.held.leading_zeros() as u8;
+        if held != level || keys[count - 1] != key {
+            return Err(Order {
+                held,
+                wanted: level,
+            });
+        }
+        keys[count - 1] = 0;
+        if count == 2 {
+            self.pairs &= !(1 << level);
+        } else {
+            self.held &= !(1 << level);
+        }
+        Ok(())
     }
 
     /// At a context switch only the levels in `allowed` (the RUNQ hand-over,
@@ -277,6 +349,34 @@ mod tests {
     }
 
     #[test]
+    fn lock_with_relaxes_while_waiting() {
+        use std::sync::atomic::AtomicU64;
+        let lock = Arc::new(TicketLock::new(0u32));
+        let relaxed = Arc::new(AtomicU64::new(0));
+        let held = lock.lock();
+        let waiter = {
+            let (lock, relaxed) = (Arc::clone(&lock), Arc::clone(&relaxed));
+            thread::spawn(move || {
+                *lock.lock_with(|| {
+                    relaxed.fetch_add(1, Ordering::Relaxed);
+                }) += 1;
+            })
+        };
+        // The holder releases only after the waiter has demonstrably relaxed.
+        while relaxed.load(Ordering::Relaxed) == 0 {
+            thread::yield_now();
+        }
+        assert_eq!(*held, 0, "waiter got in while the lock was held");
+        drop(held);
+        waiter.join().unwrap();
+        assert_eq!(*lock.lock(), 1);
+        // Uncontended: granted at once, relax never runs.
+        let mut calls = 0;
+        drop(TicketLock::new(()).lock_with(|| calls += 1));
+        assert_eq!(calls, 0);
+    }
+
+    #[test]
     fn ticket_counter_wraps() {
         let lock = TicketLock::new(0);
         lock.next.store(u32::MAX, Ordering::Relaxed);
@@ -289,39 +389,39 @@ mod tests {
     #[test]
     fn lockdep_enforces_ascending_order() {
         let mut dep = Lockdep::new();
-        dep.acquire(level::KERNEL).unwrap();
-        dep.acquire(level::FRAMES).unwrap();
+        dep.acquire(level::KERNEL, 0).unwrap();
+        dep.acquire(level::FRAMES, 0).unwrap();
         assert_eq!(
-            dep.acquire(level::ASPACE),
+            dep.acquire(level::ASPACE, 0),
             Err(Order {
                 held: level::FRAMES,
                 wanted: level::ASPACE
             })
         );
         assert_eq!(
-            dep.acquire(level::FRAMES),
+            dep.acquire(level::FRAMES, 1),
             Err(Order {
                 held: 30,
                 wanted: 30
             })
         );
-        dep.release(level::FRAMES);
-        dep.acquire(level::ASPACE).unwrap();
-        dep.release(level::ASPACE);
-        dep.release(level::KERNEL);
+        dep.release(level::FRAMES, 0).unwrap();
+        dep.acquire(level::ASPACE, 0).unwrap();
+        dep.release(level::ASPACE, 0).unwrap();
+        dep.release(level::KERNEL, 0).unwrap();
         assert_eq!(dep, Lockdep::new());
 
         let mut reverse = Lockdep::new();
-        reverse.acquire(level::FRAMES).unwrap();
+        reverse.acquire(level::FRAMES, 0).unwrap();
         assert_eq!(
-            reverse.acquire(level::KERNEL),
+            reverse.acquire(level::KERNEL, 0),
             Err(Order {
                 held: 30,
                 wanted: 10
             })
         );
         // A rejected acquire leaves the held set unchanged.
-        assert_eq!(reverse.bits(), 1 << level::FRAMES);
+        assert_eq!(reverse.held_mask(), 1 << level::FRAMES);
     }
 
     #[test]
@@ -329,17 +429,190 @@ mod tests {
         let runq = 1u64 << level::RUNQ;
         let mut dep = Lockdep::new();
         assert_eq!(dep.check_switch(runq), Ok(()));
-        dep.acquire(level::RUNQ).unwrap();
+        dep.acquire(level::RUNQ, 1).unwrap();
+        assert_eq!(dep.check_switch(runq), Ok(()));
+        dep.acquire_paired(level::RUNQ, 2).unwrap();
         assert_eq!(dep.check_switch(runq), Ok(()));
         assert_eq!(dep.check_switch(0), Err(runq));
         let mut kernel = Lockdep::new();
-        kernel.acquire(level::KERNEL).unwrap();
+        kernel.acquire(level::KERNEL, 0).unwrap();
         assert_eq!(kernel.check_switch(runq), Err(1 << level::KERNEL));
     }
 
     #[test]
     #[should_panic(expected = "unheld")]
     fn lockdep_rejects_unbalanced_release() {
-        Lockdep::new().release(level::KERNEL);
+        let _ = Lockdep::new().release(level::KERNEL, 0);
+    }
+
+    #[test]
+    #[should_panic(expected = "unheld")]
+    fn lockdep_rejects_release_of_another_key() {
+        let mut dep = Lockdep::new();
+        dep.acquire(level::ASPACE, 3).unwrap();
+        let _ = dep.release(level::ASPACE, 4);
+    }
+
+    #[test]
+    fn lockdep_rejects_out_of_order_release() {
+        // F2: KERNEL (IF=1 saved) then RUNQ; dropping KERNEL first would `sti`
+        // with RUNQ held, letting a tick deadlock on this CPU's own RUNQ.
+        let mut dep = Lockdep::new();
+        dep.acquire(level::KERNEL, 0).unwrap();
+        dep.acquire(level::RUNQ, 0).unwrap();
+        let both = dep;
+        assert_eq!(
+            dep.release(level::KERNEL, 0),
+            Err(Order {
+                held: level::RUNQ,
+                wanted: level::KERNEL
+            })
+        );
+        assert_eq!(dep, both);
+        dep.release(level::RUNQ, 0).unwrap();
+        dep.release(level::KERNEL, 0).unwrap();
+        assert_eq!(dep, Lockdep::new());
+    }
+
+    const ASPACE_20: Order = Order {
+        held: level::ASPACE,
+        wanted: level::ASPACE,
+    };
+
+    #[test]
+    fn lockdep_pair_nests_and_unwinds_second_key_first() {
+        let mut dep = Lockdep::new();
+        dep.acquire(level::KERNEL, 0).unwrap();
+        dep.acquire(level::ASPACE, 3).unwrap();
+        dep.acquire_paired(level::ASPACE, 7).unwrap();
+        dep.acquire(level::FRAMES, 0).unwrap();
+        assert_eq!(
+            dep.held_mask(),
+            1 << level::KERNEL | 1 << level::ASPACE | 1 << level::FRAMES
+        );
+        dep.release(level::FRAMES, 0).unwrap();
+        // LD-4: the first key of the pair cannot go before the second.
+        let paired = dep;
+        assert_eq!(dep.release(level::ASPACE, 3), Err(ASPACE_20));
+        assert_eq!(dep, paired);
+        dep.release(level::ASPACE, 7).unwrap();
+        assert_eq!(dep.held_mask(), 1 << level::KERNEL | 1 << level::ASPACE);
+        dep.release(level::ASPACE, 3).unwrap();
+        dep.release(level::KERNEL, 0).unwrap();
+        assert_eq!(dep, Lockdep::new());
+    }
+
+    #[test]
+    fn lockdep_pair_refuses_wrong_order_third_lock_and_loose_second() {
+        // Pair in the wrong (descending, or equal) key order.
+        let mut dep = Lockdep::new();
+        dep.acquire(level::ASPACE, 7).unwrap();
+        assert_eq!(dep.acquire_paired(level::ASPACE, 3), Err(ASPACE_20));
+        assert_eq!(dep.acquire_paired(level::ASPACE, 7), Err(ASPACE_20));
+        // A second lock of the level outside `lock_pair`, even ascending.
+        assert_eq!(dep.acquire(level::ASPACE, 9), Err(ASPACE_20));
+        // A third lock of a paired level, single or paired.
+        dep.acquire_paired(level::ASPACE, 8).unwrap();
+        let pair = dep;
+        assert_eq!(dep.acquire(level::ASPACE, 9), Err(ASPACE_20));
+        assert_eq!(dep.acquire_paired(level::ASPACE, 9), Err(ASPACE_20));
+        assert_eq!(dep, pair);
+        // The second half needs its first: not alone, not under another level.
+        let mut empty = Lockdep::new();
+        assert_eq!(
+            empty.acquire_paired(level::RUNQ, 1),
+            Err(Order {
+                held: 0,
+                wanted: level::RUNQ
+            })
+        );
+        let mut nested = Lockdep::new();
+        nested.acquire(level::ASPACE, 1).unwrap();
+        nested.acquire(level::FRAMES, 0).unwrap();
+        assert_eq!(
+            nested.acquire_paired(level::ASPACE, 2),
+            Err(Order {
+                held: level::FRAMES,
+                wanted: level::ASPACE
+            })
+        );
+        assert_eq!(empty, Lockdep::new());
+    }
+
+    /// F-T1: random acquire/pair/release sequences against a plain stack of
+    /// `(level, key, paired)`, which states LD-3/LD-4 directly. Both must
+    /// agree on every step's result and on the held levels.
+    #[test]
+    fn lockdep_matches_reference_model() {
+        const LEVELS: [u8; 6] = [
+            level::KERNEL,
+            level::ASPACE,
+            level::FRAMES,
+            level::RUNQ,
+            level::SHOOTDOWN,
+            level::ICR,
+        ];
+        let mut seed = 0x9e37_79b9_7f4a_7c15u64;
+        let mut next = |bound: usize| {
+            seed ^= seed << 13;
+            seed ^= seed >> 7;
+            seed ^= seed << 17;
+            (seed % bound as u64) as usize
+        };
+        let (mut accepted, mut refused) = (0u32, 0u32);
+        for _ in 0..2_000 {
+            let mut dep = Lockdep::new();
+            let mut model: Vec<(u8, u32, bool)> = Vec::new();
+            for _ in 0..24 {
+                let top = model.last().copied();
+                let (got, want) = match next(3) {
+                    0 => {
+                        let (lvl, key) = (LEVELS[next(LEVELS.len())], next(4) as u32);
+                        let ok = top.is_none_or(|(held, _, _)| held < lvl);
+                        if ok {
+                            model.push((lvl, key, false));
+                        }
+                        (dep.acquire(lvl, key).is_ok(), ok)
+                    }
+                    1 => {
+                        // Mostly the top level, so pairs actually form.
+                        let lvl = match top {
+                            Some((held, _, _)) if next(4) != 0 => held,
+                            _ => LEVELS[next(LEVELS.len())],
+                        };
+                        let key = next(4) as u32;
+                        let ok = top.is_some_and(|(held, first, paired)| {
+                            held == lvl && !paired && first < key
+                        });
+                        if ok {
+                            model.push((lvl, key, true));
+                        }
+                        (dep.acquire_paired(lvl, key).is_ok(), ok)
+                    }
+                    _ if model.is_empty() => continue,
+                    _ => {
+                        let (lvl, key, _) = model[next(model.len())];
+                        let ok = top.is_some_and(|(held, last, _)| held == lvl && last == key);
+                        if ok {
+                            model.pop();
+                        }
+                        (dep.release(lvl, key).is_ok(), ok)
+                    }
+                };
+                assert_eq!(got, want, "lockdep and model disagree");
+                let mask = model.iter().fold(0u64, |mask, (lvl, _, _)| mask | 1 << lvl);
+                assert_eq!(dep.held_mask(), mask);
+                if want {
+                    accepted += 1;
+                } else {
+                    refused += 1;
+                }
+            }
+        }
+        // The generator exercised both outcomes, not one trivial branch.
+        assert!(
+            accepted > 10_000 && refused > 10_000,
+            "{accepted}/{refused}"
+        );
     }
 }

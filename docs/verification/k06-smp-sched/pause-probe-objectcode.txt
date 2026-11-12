@@ -1,0 +1,26 @@
+
+build/k06-pause-m3/users/probe.elf:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+--
+    4000057d:	75 43                	jne    400005c2 <_start+0x5c2>
+    4000057f:	66 4c 0f 7e f8       	movq   %xmm15,%rax
+    40000584:	48 f7 d0             	not    %rax
+    40000587:	4c 39 e8             	cmp    %r13,%rax
+    4000058a:	75 36                	jne    400005c2 <_start+0x5c2>
+    4000058c:	d9 c0                	fld    %st(0)
+    4000058e:	df 7c 24 f8          	fistpll -0x8(%rsp)
+    40000592:	4c 39 6c 24 f8       	cmp    %r13,-0x8(%rsp)
+    40000597:	75 29                	jne    400005c2 <_start+0x5c2>
+    40000599:	49 c7 84 24 80 00 00 	movq   $0x1,0x80(%r12)
+    400005a0:	00 01 00 00 00 
+    400005a5:	49 83 3c 24 14       	cmpq   $0x14,(%r12)
+    400005aa:	74 19                	je     400005c5 <_start+0x5c5>
+    400005ac:	49 83 bc 24 88 00 00 	cmpq   $0x0,0x88(%r12)
+    400005b3:	00 00 
+    400005b5:	0f 85 d7 fd ff ff    	jne    40000392 <_start+0x392>
+    400005bb:	f3 90                	pause
+    400005bd:	e9 f8 fc ff ff       	jmp    400002ba <_start+0x2ba>
+    400005c2:	cc                   	int3
+    400005c3:	0f 0b                	ud2

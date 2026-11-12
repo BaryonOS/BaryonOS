@@ -123,7 +123,7 @@ static mut RUNTIME: Runtime = Runtime {
     input_progress: [[u64::MAX; 2]; 2],
 };
 fn runtime() -> &'static mut Runtime {
-    // SAFETY: Single CPU, IF=0, nonreentrant scheduler/syscall callbacks. Every
+    // SAFETY: KERNEL held, IF=0, nonreentrant scheduler/syscall callbacks. Every
     // borrow ends before cleanup, a nested accessor or scheduling. No user
     // pointer/reference is retained in this kernel-owned bookkeeping.
     unsafe { &mut *ptr::addr_of_mut!(RUNTIME) }

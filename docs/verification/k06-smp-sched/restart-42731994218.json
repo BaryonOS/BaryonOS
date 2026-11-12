@@ -1,0 +1,17 @@
+{
+  "run_id": 42731994218,
+  "run_url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42731994218",
+  "tested_commit": "59a30f10ceb558d1e31408afece49ca5c331df20",
+  "source_fingerprint_version": 3,
+  "source_sha256": "505c25139b4d23d78aa9da406108aad437ba7a763b1b1c67b0cc6074a4d8f2ae",
+  "full_matrix": true,
+  "full_evidence": false,
+  "status_at_checkpoint": "rejected while still running: resched-deaf46/50, four clock-drift failures; next full source restart required",
+  "accepted": false,
+  "previous_run_retained": 42723127310,
+  "superseded_pending_restarts": [
+    42727641812,
+    42730151923
+  ],
+  "native_guests_started_locally": 0
+}
