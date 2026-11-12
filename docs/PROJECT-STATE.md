@@ -1,6 +1,135 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — CI QEMU/OVMF package bundle — 11 November 2026
+## NEXT AGENT HANDOFF — K06 step 5f review findings fixed; full matrix pending — 12 November 2026
+
+**Source:** branch `codex/k06-5f-complete-20261109` (PR #296); the commit carrying this entry holds the fixes. Decision and limits: [DECISIONS.md](DECISIONS.md), "review findings closed before acceptance". Run 43118230329 on `ae3e985` was cancelled because the fixes change kernel and tool sources; its 25 completed cases (50/50 each) and the K07 probe are diagnostics only ([receipt](verification/k06-smp-sched/cancelled-43118230329.json)).
+
+**Fixes (scope verified against `docs/k06-step-specs`):**
+- **(c) IQ-3 transitional locks:** `CpuLocal.transit` records the `IrqLock::id()` from before the ticket until the owner is published, and from clearing the owner until the ticket is released; `held_by()` stops on owner or transit for `KERNEL`/`ASPACE`/`RUNQ`/`SHOOTDOWN`. New negative case `quarantine-lock-pending`; the matrix is now 65×50 (3 250 guests).
+- **(b) DG-2 harness:** the `!` terminal fallback is accepted by the harness verdict as by the oracle; other `!` lines and artifact-binding failures still fail (new host test, mutation-checked).
+- **(d) K05 on four vCPUs:** explicit profile `native-smp-supervisor` plus five test variants; `run_supervisor.py --smp`; final-gate stage `k05-smp`. On SMP, `WAIT_IDLE_IRQS` counts BSP IRQ0s during idle, as on one CPU.
+- **(e) Recovery from idle:** `smp_idle()` dispatches a pending recovery even with an empty run queue.
+
+**Executed locally (QEMU 8.2.2, 4 CPUs; not acceptance):** `tools/tests` 310, `test_ci_workflows` 21, `cargo test -p smp-lock` 33, `fmt`; one boot each of `quarantine-lock-pending` and `quarantine-lock-held` (both `LOCK_HELD:10:CPU=2`), `spin-irq-off`, `ap-ipi-deaf`, `ap-shootdown-deaf`, `ap-timer-dead`, `resched-deaf`, `proc-shootdown-deaf`, `bsp-spin-irq-off`, `lock-stuck`, `native-smp` (6 cases), `m3-recovery-four`, `m3-kill-four`, `m3-ipc-four`, `m3-ipc-four-single`; `test_supervisor.py` 6/6 on one CPU and `test_supervisor.py --smp` 6/6 on four vCPUs (`SMP_HOMES` 6, 6, 6, 6, 15, 2; `wait` 83 idle IRQ0 ≤ 88 ticks). A first level-based version of (c) turned `spin-irq-off` into a false `LOCK_HELD` and was replaced.
+
+**Next:** full `native-smp.yml` dispatch (`full_matrix=true`) on this head; all 65 cases 50/50, 50 soaks, K07, aggregate and final gate (now including `k05-smp`) must pass; then resolve the review threads and merge PR #296.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f run 43057843393, main merge and IPC watchdog — 11 November 2026
+
+**Source:** branch `codex/k06-5f-complete-20261109` (PR #296). Merge commit `24d0d09a` brings in main `c520703b`, including the #307 squash `aeaf3cb7`; `.github/actions/setup-qemu` is byte-identical to main, so the signed QEMU/OVMF package bundle stays the install path. The merge conflicted only in this file and `docs/progress.json`. Kernel, tools and workflows are unchanged on this branch since `e398039e`.
+
+**Run [43057843393](https://github.com/BaryonOS/BaryonOS/actions/runs/43057843393) on `e398039e` (rejected):** 72 of 79 jobs pass, the aggregate fails and the final gate is skipped. Details, artifact IDs and ZIP digests are in [the incident receipt](verification/k06-smp-sched/incident-43057843393.json).
+
+- **Soak shard 9, iteration 5:** `SMP_CLOCK_DRIFT` in the idle precision phase (all APs halted). Five segments of exactly 1000 IRQ0, median 1 010 389 µs against 999 847 µs (1.05%, limit 1%). The other 49 soaks and every other case pass the same check. This matches the lost-edge mechanism in [CLOCK-INVESTIGATION.md](verification/k06-smp-sched/CLOCK-INVESTIGATION.md); no guest defect is demonstrated, so the kernel is unchanged. One failure in roughly 3 200 idle checks can recur in a new 64×50 run.
+- **`m3-ipc-four`: 0/50**, each repetition stopped by the 180 s watchdog after `SMP:M3:GO`, with no FAIL marker. `m3-ipc-four-single` passes 50/50 at 71–84 s per boot.
+
+**IPC diagnosis (local, QEMU 8.2.2, not acceptance):** multi-thread TCG takes 116 s on 4 host CPUs, 130 s on 3 and 327 s on 2 (`taskset`); single-thread TCG takes 103–109 s on 2 or 4. Uncommitted counters show the unchanged oracle passing with zero wait timeouts. The IPC phase runs at about one round per scheduler tick on 4 CPUs and 0.37 on 2; most time goes to endpoints that a tick preempts and requeues behind three CPU-bound canaries. Giving the canary PAUSE hint on one pass in 64 instead of every pass made the 2-CPU run slower (432 s) and was discarded. No kernel defect is demonstrated. The 180 s watchdog (ADR-081 R3-5: at least 2.5 times the measured time) was derived from 71.8 s on a faster host and is below the completion time on the hosted 4-vCPU runner.
+
+**Decision (Simon, 11 November 2026):** `IPC_TIMEOUT_S` 180 → 660 s (`tools/run_smp.py`, ADR-081 R3-5 addendum 2 in [DECISIONS.md](DECISIONS.md)). The 2.5× rule stays: a hosted per-boot time above 264 s for `m3-ipc-four` keeps K06 open. The idle clock flake gets no code change; the next full run starts from zero and a recurrence rejects it. Rounds, oracle, FAIR limits, guest deadlines, `GUEST_TIMEOUT_S` and the 1% clock limit are unchanged.
+
+**Executed:** merge and conflict resolution; the local runs above; after the decision `tools/tests` (309) and `tests/test_ci_workflows.py` pass, and one native `m3-ipc-four` boot passes in 108.6 s with `timeout_s` 660 (local QEMU 8.2.2, 4 CPUs, not acceptance); `python3 tools/progress.py --write` and `--check`. Pending at this checkpoint: the full 64×50 matrix dispatch on this commit, K07, the aggregate and `tools/gate.sh`.
+
+**Next:** dispatch `native-smp.yml` with `full_matrix=true` on this head; read every failed job; record the hosted `m3-ipc-four` per-boot times against the 264 s bound; merge PR #296 only after the matrix, aggregate and final gate pass.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f clock check redesign — 11 November 2026
+
+**Source:** branch `codex/k06-5f-complete-20261109` (PR #296), on top of `9698c379`. The commit that carries this entry holds the change; the full-matrix dispatch is recorded in the PR.
+
+**Decision:** Simon chose to redesign the clock measurement instead of a paid 8-vCPU runner (option b below). The decision and its limits are in [DECISIONS.md](DECISIONS.md), "clock check split into idle precision and load progress". The 1% check is relaxed under load by decision; the hosted drift is not fixed. `clock()` in `kernel/src/m2/smp.rs` now runs two phases. First, with all APs halted, the existing 5-segment median must stay within 1% of the PIT period. Then every AP spins, and the idle BSP must count `CLOCK_SEGMENT` more IRQ0s before a 4× deadline; every AP must show work. Markers, the 1% limit, the repetitions and ADR-053 (no synthesized ticks) are unchanged.
+
+**Local evidence (QEMU 10.2.1, TCG, not acceptance):** `tools/run_smp.py --repeat 5`, QEMU confined with `taskset`. The old check failed 0/5 on the same CPU counts:
+
+| Case | Host CPUs | Result |
+|---|---|---|
+| `four` | 3 | 5/5 pass |
+| `m4-quotas-four` | 3 | 5/5 pass |
+| `four` | 2 | clock 5/5 pass; run 4/5 (r002 `SMP:ICR:LOST`) |
+| `m4-quotas-four` | 2 | clock 5/5 pass; run 4/5 (r004 `SMP:ICR:LOST`) |
+Also: `cargo fmt --all -- --check`, `test_smp_serial.py` (33 tests) and `test_gs_discipline.py` pass, and both kernel profiles build.
+
+**2-CPU observation (open, not part of this change):** with 4 guest vCPUs on 2 host CPUs, the unchanged ICR phase (`icr_work`, ack wait bounded at 2^16 spin iterations) reported `SMP:ICR:LOST` once per case. The clock check passed in all ten 2-CPU runs. Before this change the 2-CPU runs stopped at the clock check, so they never reached ICR. The hosted runner profile has 4 vCPUs; if the full matrix shows `SMP_ICR`, it is the next diagnostic target. The ICR bound was not changed.
+
+**CI on `9698c379`:** `host-quality` passes. About twenty QEMU jobs (including `qemu-smoke`, `native-smp` and `native-window-session`) failed in the step "Pinned QEMU and OVMF": runner DNS could not resolve the snapshot or `archive.ubuntu.com` (14:04–14:12 UTC, run 43034888367). That is a runner network fault, not a code result; the new push re-runs these jobs.
+
+**CI on `ff2aad23`:** the same fault recurred at 14:26–14:35 UTC. All QEMU push jobs and all three attempts of matrix dispatch run 43038515659 failed in the apt step on `Temporary failure resolving` for `snapshot.ubuntu.com` and `archive.ubuntu.com`, on both `ubuntu-24.04` and `ubuntu-26.04`. crates.io and GitHub traffic in the same runs succeeded. The 64×50 body never executed, so that run is no SMP result. No pin or check was changed on this branch in response.
+
+**Shared CI fix:** #307 makes the setup install from a pinned, signed package bundle, so CI no longer needs the Ubuntu hosts (hosted canary run 43057156214; see the #307 checkpoint below). That branch is merged into this one. The 64×50 matrix is dispatched again on the merge commit; its run ID and result are not recorded here yet.
+
+**Open:** full 64×50 matrix, soaks, K07, aggregate and final gate on GitHub for this head. Host-quality on `2b6e81d6`/`9698c379`, `native-window-session` run 43031085350 and Copilot dynamic failure 43031108744 are not yet reviewed. Mirror the §4 "Klok" revision onto branch `docs/k06-step-specs` (`06-5c-2-bsp-timer-idle.md`). Load-phase clock precision remains unproven until it is measured on KVM or hardware.
+
+**Progress:** 39/100 → 39/100 until the hosted matrix and final gate are green.
+
+## Previous checkpoint — K06 step 5f QEMU 8.2 spin window and hosted clock drift — 11 November 2026
+
+**Source:** branch `codex/k06-5f-complete-20261109` (PR #296). Earlier commits: `e875a30e` (R3-5 remote readiness wake, `IPC_TIMEOUT_S = 180`), `02e7c4d9` (merge; legacy `native-smp-legacy-m3`), `5a391465` (preserve-evidence and snapshot fallback), `a2f517a6` (local matrix runner script; no local full matrix is used as acceptance — verification runs on GitHub-hosted runners).
+
+**Spin window fix:** the PR job `native-smp` on QEMU 8.2.2 failed with `SMP:LOCK:STUCK:10:CPU=1` because QEMU 8.2 `PAUSE` leaves the STI interrupt shadow set. All IF=1 spin windows are now `sti; nop; pause; cli` (see the ADR-081 addendum in [DECISIONS.md](DECISIONS.md)). Locally on QEMU 10.2.1: `two-single` 2/2, `cargo test -p smp-lock`, SMP host tests, `cargo fmt --check`. Proof on 8.2.2 comes from the PR job.
+
+**Artifact contract (#294):** all K06 uploads use `./.github/actions/preserve-evidence` with `required-paths`; `smp-report.json` stores `stdout_sha256` instead of the duplicated transcript, so eight-CPU reports stay below 1 MiB. `setup-qemu` keeps the pinned snapshot first and falls back to `archive.ubuntu.com` with the same keyring, exact pins, `dpkg` check and firmware hashes; run 43022743756 passed that step.
+
+**Hosted clock drift (blocker, open):** on head `2e77e2e3` both `native-smp` runs (43031091677, 43031085708; QEMU 8.2.2 and 10.2.1) still fail only with `M1:FAIL:SMP_CLOCK_DRIFT` (`smp-four`, about 1.8% against 1%). `SMP:LOCK:STUCK` no longer occurs, so the STI-shadow fix holds on 8.2.2. Stopping background services had no effect (load average 0.53 during the failure). Local reproduction, `m4-quotas-four`, 5 repetitions per row, QEMU confined with `taskset`:
+
+| Host CPUs | Result | Drift |
+|---|---|---|
+| 4 | 5/5 pass | — |
+| 3 | 0/5 | 2.0–4.0% |
+| 2 | 0/5 | 20–27% |
+
+Renicing the AP vCPU threads does not help: nice 10 on 3 CPUs gives 2.2–4.7%, nice 19 gives 1.9–2.9%. The cause is host CPU capacity for TCG emulation. A 4-vCPU guest on the 4-vCPU hosted runner (2 cores × SMT) loses IRQ0 edges. The 1% limit, the test content and the repetitions stay unchanged, and ADR-053 forbids synthesized ticks.
+
+**Host quality:** `2b6e81d6` fixes clippy `manual_div_ceil` in `capability-core` (`MAX_NODES.div_ceil(64)`). Locally the CI clippy scope, `cargo test -p capability-core` and `cargo fmt --check` pass.
+
+**Next (Simon's decision):** either (a) approve a larger hosted runner with at least 8 vCPUs (paid), or (b) design a separate clock measurement within ADR-053 (for example, the BSP measures while the APs idle, and CLOCK_LOAD gets its own progress criterion). This is a decision record, not a silent change. Do not re-dispatch the full matrix without a new code change. Acceptance requires all 64 cases at 50/50, 50 soaks, K07, a green aggregate and the final gate.
+
+**Progress:** 39/100 → 39/100 until the hosted matrix and final gate are green.
+
+## Previous checkpoint — K06 step 5f acceptance repair — 10 November 2026
+
+**Copilot execution handoff:** [self-contained continuation prompt](verification/k06-smp-sched/COPILOT-HANDOFF.md). Continue the existing two GitHub runs and exact branch; do not dispatch a duplicate of pending run `42818153989`. The final-gate verifier is now tracked beside the matrix verifier, so continuation does not require the previous Cloud workspace. At the handoff check the old run has 29 ordinary successes, two known failed cases and ten successful soak shards; both IPC jobs are running. The candidate run is pending with zero jobs. These live counts must be refreshed before acting. GitHub workflows remain untouched by this handoff.
+
+**Current frozen source and queued restart:** `54a9d5c17291b862e30240e49ed4cde0d479315b`, source-v3 `727676734c47e4efabedb49831763d71c1cd08c5698704de4e1c12a26e57232b`, on the same existing branch. [Full run 42818153989](https://github.com/BaryonOS/BaryonOS/actions/runs/42818153989) was dispatched from zero with `full_matrix=true`, diagnostics off, and is pending behind rejected run `42809499884` in the unchanged branch concurrency group. Its jobs have not started at this checkpoint. No old repetition is reused. [Frozen restart receipt](verification/k06-smp-sched/restart-42818153989.json).
+
+**Source and rejected active run:** existing branch `codex/k06-5f-complete-20261109`, tested native source `3dd6194f02231e8f1db61940242d8d90318daf1d`, source-v3 `05f680b768def10a2495e5958fa3af2fb95b50be19c755cce728f8c850ac887a`. [Full restart 42809499884](https://github.com/BaryonOS/BaryonOS/actions/runs/42809499884) remains running but is rejected: `proc-shootdown-deaf` is 48/50 with RUNQ held at quarantine; `bsp-spin-irq-off-control` is 49/50 with clock drift. Independent partial readback verifies 1547/1550 attempts, including all 50 complete soaks; no repetition is reused. The repository is now `BaryonOS/BaryonOS` with the same repository ID 1435549142. After organization installation 180498948, fetch, push and workflow dispatch succeed. [Exact failures and retained ZIP bindings](verification/k06-smp-sched/rejected-42809499884-checkpoint.json).
+
+**Corrected fixture candidate:** source-v3 `727676734c47e4efabedb49831763d71c1cd08c5698704de4e1c12a26e57232b`. The deaf-process test first proves its L0-required lock-free precondition through a real kernel setup round and scheduler-admission closure; pending timer/reschedule entries cannot acquire RUNQ afterwards. The A-round still receives no flush/ack, and frame quarantine, IQ-3 checks and INIT remain intact. Clock-load APs execute 64 dependent integer steps before each separate progress store and PAUSE, preserving continuous work and every clock criterion while reducing TCG CPU-loop exits per work step. Historical drift causality and native recovery remain unproved. Four matching crossbuilds, 275 host tests, 48 focused oracles, fmt/diff and actual ELF checks pass. [Host receipt](verification/k06-smp-sched/fixture-repair-host-checks.json).
+
+**Cancelled attempt:** run `42803221546` on the same source ended cancelled: eight ordinary jobs and the environment probe report success, 55 ordinary jobs and all ten soak shards are cancelled; aggregate and final gate are absent. All nine original ZIPs are retained locally with API SHA-256/size and ZIP CRC verified. No repetition is reused, and no native acceptance is inferred from API statuses alone.
+
+**Rejected preceding source:** [Full restart 42748931069](https://github.com/BaryonOS/BaryonOS/actions/runs/42748931069) is rejected on frozen source `22dfceaf1fe4b1c4a499440b4199b951d85025f9`, source-v3 `58f7cc8a20db1c0f3afe30241fb14c125e7c75b62b984c6412056a19923a3eae`: 60/63 ordinary jobs and all ten soak shards pass, both IPC jobs are 0/50, and `m3-canary-control` is 49/50. Environment/K07 and both regular K07 jobs pass, but the aggregator fails and the final gate is skipped. None of its repetitions is reused. Diagnostic `42746512322` on `3b6c9a68` passed its 50 traced repetitions and was independently read back; it also supplies zero acceptance repetitions.
+
+**Rejected evidence:** [run 42723127310](https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310) is completed with failure on incoming source `f808d591`, source-v3 `759320893ea058b90d0bc764cd2b9534734827131a212ad5ba27f5501db6e8ac`. Independent raw-artifact readback checks all 3200 guests: 2976 pass and 224 fail across ten ordinary cases (63 FPU-image mismatches, 159 watchdogs and two clock-drift failures). K07 M4/qsim each pass 50/50 and all 50 complete soaks pass on that rejected source. The aggregator fails; the final gate is skipped. All 74 original artifact ZIPs remain intact, with API digest/size, CRC and canonical bytes checked. Complete payloads and terminal metadata are retained locally; compact results and representative raw failures are committed. [Complete counts and preservation receipt](verification/k06-smp-sched/README.md). No old repetition counts toward the new run.
+
+**Corrections under verification:** clock sampling retains actual PIT tick deltas instead of assuming that an idle return observes exactly the requested target. The five segments, median and exact 1% limit remain unchanged; diagnostics distinguish actual tick counts and TSC deltas on failure. The old transcript does not establish the cause of the observed drift. The missing executable final smoketest wrapper now invokes existing M2, K05 6/6, single-CPU K07 and RTC 5/5 regressions sequentially; host oracles, Clippy/fmt and nested evidence retention are restored. No quotas, guest timeouts, soak duration or repetition requirements are reduced.
+
+**Progress:** **41/100 → 41/100**. K06 and the K07 SMP evidence extension remain open. Completion requires all 64 cases at exactly 50/50 (3200 unique guest runs), including 50 complete combined soaks, independent raw-artifact verification, a green aggregator and the subsequent executed `tools/gate.sh` with retained log. A new full workflow must start from zero on the corrected source; a failed-job rerun is insufficient.
+
+**Executed before restart:** `native-smp` crossbuild, `cargo check --lib`, all 274 Python tool tests without skips, four orchestration tests, formatting, shell syntax, progress consistency and diff whitespace checks pass. Full Cargo tests also pass (525 tests), as does the existing SMP Clippy scope. An extra workspace-wide Clippy check reports an existing lint in unrelated `capability-core`; its failed log is retained without changing that code. [Host-check receipt](verification/k06-smp-sched/host-checks.json). No local guest was started.
+
+**Additional FPU repair:** probe readiness now follows full initialization and the first successful GPR/x87/SSE checks. The stop condition waits for every live canary, while retaining the original non-canary soak exclusions and final register comparisons. M3/soak crossbuilds, 47 SMP host tests and 8/8 real-ELF mutation checks on each probe pass. [FPU host receipt](verification/k06-smp-sched/fpu-host-checks.json). The old artifact lacks slot/register values, so exact historical causality remains unproven.
+
+**Observer correction under verification:** redundant all-process scratch scans on every entry are replaced by a check of the entering process before cleanup and a complete live-process scan after STOP. The user-loop pattern check, true return-permission walks, usercopy/shootdown/resource checks, locks, workload, 1000-switch minimum and deadlines remain intact. Observer sampling per process now follows its own entries. Crossbuilds, 47 SMP host tests and 8/8 artifact checks on each probe pass; no runtime speedup or timeout-recovery claim is made. [Observer receipt](verification/k06-smp-sched/observer-host-checks.json).
+
+**Additional rejected restart:** [run 42731994218](https://github.com/simonvanieperen/BaryonOS/actions/runs/42731994218) is still running but cannot pass acceptance: `resched-deaf` is 46/50, with clock drift at iterations 5, 38, 40 and 43 (raw exit 35, no timeout). Every measured segment contains exactly 1000 IRQ0 ticks; the four medians exceed 1%. The exact original ZIP, API digest and four raw repetitions are preserved in the [incident receipt](verification/k06-smp-sched/incident-42731994218.json). Tick-edge overshoot does not explain these failures. No result from this source can count toward the next full restart.
+
+**Per-AP observer candidate:** the clock fixture previously made all busy APs execute a locked RMW on one shared progress word. Each AP now maintains its own 64-byte-separated single-writer counter using ordinary atomic stores. The continuously busy AP loops, PAUSE, IRQ0 clock, five samples, 1% boundary and all deadlines remain intact; every online AP must show progress. The workload mix consequently loses shared observer contention; the separate synchronization/lock tests remain intact. This is a fixture correction, not proof of the historical cause or proof that clock drift is resolved. Crossbuild, 47 SMP host tests, fmt and diff checks pass; actual object code retains a per-AP store/PAUSE loop without the shared LOCK instruction. [Host/objectcode receipt](verification/k06-smp-sched/clock-per-ap-host-checks.json). The corresponding earlier full restart `42741185181` was superseded while pending and supplied no native acceptance.
+
+**Current scheduler/IPC correction (host-checked only):** ordinary nonblocking syscalls may retain their remaining quantum. Run 42748931069 shows that this alone does not meet the 10000-round IPC bound. The replacement proves capability-free SEND/RECV success under KERNEL and ASPACE before omitting a snapshot that successful calls never compare; every possibly failing, capability-bearing, malformed or usercopy path keeps the exact snapshot, comparison and observable wipe. Complete Engine audits remain at bootstrap, exit/cleanup and final STOP instead of running a full-table observer scan after every successful syscall. Mode20 receives a PAUSE host-vCPU hint without guest Yield, blocking, FIFO priority or reduced IPC count. Capability tests, focused Python oracles, matching IPC/soak crossbuilds and actual-ELF checks pass; native throughput remains unproved.
+
+**Completed rejected restart:** the 59a run ended with failure. Independent raw readback verifies 2500 executed attempts: 2386 pass and 114 fail (106 watchdogs, eight clock-drift failures). Another 700 repetitions are missing after 14 HTTP 503 setup failures. Exactly 43 cases pass 50/50; seven cases have native failures. Both IPC cases are 0/50 with 60-second watchdogs; `m3-eight-single` is 45/50; one-CPU `m3-one-multi` is 47/50; only 49/50 full soaks pass, and regular K07 quota/qsim cases are missing. Aggregate fails and the final gate is skipped. All 60 original ZIP artifacts are API-hash/size/CRC/canonical-byte verified and retained. [Final counts](verification/k06-smp-sched/rejected-42731994218-rejected-run-summary.json) and [complete rejected readback](verification/k06-smp-sched/rejected-42731994218-final-verification.json.gz). Three APT retries preserve the same signed snapshot, pins, hashes and execution bounds; recovery must still be demonstrated natively.
+
+**Clock boundary:** [primary-source investigation](verification/k06-smp-sched/CLOCK-INVESTIGATION.md) finds no established EOI/ExtINT/HLT defect. QEMU can process overdue PIT edges before a PIC acknowledgement; the PIC retains one pending bit. Historical causality still requires a trace. QEMU already requests 1 ns timer slack. ADR-053 explicitly permits only actually counted IRQ0s to increase the clock, so elapsed-PIT or TSC compensation is not silently introduced. The one-CPU failure remains unexplained by per-AP counters.
+
+**Canary hint (host-checked only):** a single PAUSE follows the complete ordinary mode19 GPR/x87/SSE check and readiness store. The earlier mode20 IPC and explicit migration-yield branches bypass it; the legacy mode0 loop is unchanged. This changes QEMU host-vCPU interleaving without guest Yield/HLT/block or extra process switches. The 1000 real-switch requirement, loads, deadlines and final checks remain. Three matching crossbuilds, 48 SMP host tests and eight real-ELF tests per canary profile pass; actual disassembly and independent source review confirm placement. [Receipt](verification/k06-smp-sched/pause-host-checks.json). Runtime improvement and historical causality remain unproved; MTTCG may incur BQL overhead.
+
+**Clock correction under verification:** the failed canary-control repetition counted exactly 1000 IRQ0 entries in every segment, while the old observer read TSC only after returning from the final interrupt. The IRQ0 stub now records TSC immediately before publishing each real counted tick. Segment count, actual tick normalization, median, exact 1% limit and deadline remain unchanged; no elapsed tick is synthesized. Failure diagnostics retain observer lag. This removes only post-interrupt observation latency and still makes missing/coalesced IRQ0 entries lengthen a 1000-entry interval. Native recovery remains unproved.
+
+**Next:** monitor queued run `42818153989` and preserve the completing rejected run `42809499884`. Do not cancel either or run a local QEMU matrix. For the corrected source require all 64 cases exactly 50/50, 3200 raw verified guests, regular K07, all 50 complete soaks, aggregate success and the subsequent actually executed tools/gate.sh with retained log. Compare aggregate and gate artifacts independently. Any red or missing repetition keeps K06 open.
+
+## Checkpoint (PR #307) — CI QEMU/OVMF package bundle — 11 November 2026
 
 **Source:** branch `ci/qemu-apt-bundle` (PR #307) from main `c07506c8`;
 builder and action commit `f26cd05623368c1a834be538e38a2aa30f5e1df1`.
@@ -45,7 +174,7 @@ ADR-CI-QEMU-BUNDLE-20261111 and
 **Next:** merge #307 when its required checks are green, merge main into #296
 and rerun the K06 matrix there.
 
-## NEXT AGENT HANDOFF — PR #299 ChaCha20 production unification — 10 November 2026
+## Checkpoint (main) — PR #299 ChaCha20 production unification — 10 November 2026
 
 **Source:** this local candidate is based directly on the actual PR #297
 squash `2d17a3870c0f22254af0a749d3f29128fe2e11ae` (tree
@@ -124,7 +253,7 @@ in progress; that unfinished job is not positive evidence. Any real publication
 audit must run against its exact advertised source tip and must keep
 `publication_clearance` false.
 
-## NEXT AGENT HANDOFF — PR #218 H05 step-2 replay after #269 — 10 November 2026
+## Checkpoint (main) — PR #218 H05 step-2 replay after #269 — 10 November 2026
 
 **Source:** local branch `codex/pr218-final-20261110`, based directly on
 `main` `1864c283a8fe0e732044e361981b9c01d342e00b` (tree
@@ -189,7 +318,7 @@ review or physical-hardware support; H05 remains open.
 commit and publish only through the parent integration flow. Current-head
 hosted checks and review remain required before any guarded squash merge.
 
-## NEXT AGENT HANDOFF — Issue #292 target-flag repair — 10 November 2026
+## Checkpoint (main) — Issue #292 target-flag repair — 10 November 2026
 
 **Source:** PR #295 local integration commit
 `16d2fb3d6c3d2e66b66888fcf5577b316a9f580a`, rebased onto the #287 squash
@@ -356,7 +485,7 @@ Dependabot coverage is extended to the remaining independent Cargo workspaces. T
 
 SDK monthly Dependabot coverage is retained on current main. The current documentation hierarchy is preserved. Progress remains 41/100; no new product acceptance. Local `python tools/preflight.py --strict`, `python tools/build.py`, and `python tools/run.py --smoke` passed (exit 0 each; QEMU raw exit 33, M1:PASS). No physical-hardware acceptance is claimed.
 
-## NEXT AGENT HANDOFF — documentation hierarchy and governance — 9 November 2026
+## Previous checkpoint — documentation hierarchy and governance — 9 November 2026
 
 **Source and scope:** base `main` `f704f078213170e72292a5a491f0ee83bd588955`, branch `docs/restructure-project-docs-20261109`. The active README, contribution guidance, security policy, licensing documentation, and status layers have been reorganized so that each information type has one primary source. Historical content was preserved under `docs/history/` before the active files were shortened.
 

@@ -87,6 +87,7 @@ def build_users(kind="probe", *, short_poll=False, sdk_runtime=False, document_s
     if document_session and (kind != "m6c" or not sdk_runtime):
         raise ValueError("Document-session probe requires M6c and its SDK runtime bridge")
     fixtures = {"probe": ("probe", "linker.ld", "probe", "manifest.json"),
+                "smp-unmap": ("smp_unmap", "linker.ld", "smp_unmap", "manifest-smp-unmap.json"),
                 "ipc": ("ipc_probe", "ipc_linker.ld", "ipc_probe", "manifest-ipc.json"),
                 "large": ("probe", "large_linker.ld", "probe_large", "manifest-large.json"),
                 "m5": ("m5_probe", "m5_linker.ld", "m5_probe", "manifest-m5.json"),
@@ -205,5 +206,5 @@ def build_users(kind="probe", *, short_poll=False, sdk_runtime=False, document_s
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--kind", choices=["probe", "ipc", "large", "m5", "m6", "m6b", "m6c"], default="probe")
+    parser.add_argument("--kind", choices=["probe", "smp-unmap", "ipc", "large", "m5", "m6", "m6b", "m6c"], default="probe")
     build_users(parser.parse_args().kind)

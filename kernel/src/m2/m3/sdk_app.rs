@@ -25,7 +25,7 @@ static mut EVIDENCE: Evidence = Evidence {
 };
 
 fn evidence() -> &'static mut Evidence {
-    // SAFETY: One CPU, IF=0; serialized kernel service-stack access.
+    // SAFETY: KERNEL held, IF=0; serialized kernel service-stack access.
     unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
 }
 fn fail(reason: &[u8]) -> ! {

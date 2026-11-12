@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-11",
-    "source_commit": "f26cd05623368c1a834be538e38a2aa30f5e1df1",
-    "assessment_basis": "source_commit",
-    "branch": "ci/qemu-apt-bundle",
-    "task": "Install pinned CI QEMU/OVMF from a signed package bundle (ADR-CI-QEMU-BUNDLE-20261111)",
+    "date": "2026-11-12",
+    "source_commit": "ae3e98587d7817f9be34de9b7fc2063e67e81fc3",
+    "assessment_basis": "working_tree",
+    "branch": "codex/k06-5f-complete-20261109",
+    "task": "K06 step 5f: fix the four confirmed PR #296 review findings (IQ-3 transitional locks, DG-2 harness verdict, K05 on four vCPUs, recovery from an idle CPU) before the full matrix",
     "previous_score": 39,
-    "summary": "39/100 to 39/100: CI infrastructure only. The QEMU/OVMF setup gains a signed, hash-pinned package bundle with snapshot and archive fallbacks; package versions and checks are unchanged. No OS functionality, native gate or product criterion changes."
+    "summary": "39/100 remains 39/100. The four confirmed review findings are fixed with targeted tests; local single boots and both K05 suites (one CPU and four vCPUs, 6/6 each) pass, which is not acceptance. The matrix grows to 65x50 with the new quarantine-lock-pending case. K06 stays open until the full matrix, all soaks, K07, the aggregate and the final gate pass on the final commit."
   },
   "tracks": [
     {

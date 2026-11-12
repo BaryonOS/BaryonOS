@@ -134,7 +134,7 @@ static mut RUNTIME: Runtime = Runtime {
     last_result: [0; MAX],
 };
 fn runtime() -> &'static mut Runtime {
-    // SAFETY: Single CPU/IF0 service-stack execution. No device IRQ borrows this
+    // SAFETY: KERNEL-held IF0 service-stack execution. No device IRQ borrows this
     // state, and no Runtime borrow is retained across cleanup/restart callbacks.
     unsafe { &mut *ptr::addr_of_mut!(RUNTIME) }
 }

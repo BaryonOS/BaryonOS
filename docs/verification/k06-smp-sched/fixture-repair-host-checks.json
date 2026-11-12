@@ -1,0 +1,104 @@
+{
+  "source_fingerprint_version": 3,
+  "source_sha256": "727676734c47e4efabedb49831763d71c1cd08c5698704de4e1c12a26e57232b",
+  "native_guests_executed_locally": 0,
+  "crossbuilds": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "test-smp-proc-shootdown-deaf"
+      ],
+      "exit_code": 0,
+      "build_directory": "build/k06-deaf-lock-free",
+      "manifest_sha256": "89c0c60e4adacdab9e2d9d09f5cf5f0f9942aa7ec9f2549ba19d9ddc004b701b",
+      "source_sha256": "727676734c47e4efabedb49831763d71c1cd08c5698704de4e1c12a26e57232b",
+      "kernel_sha256": "cbd861f7d7e5134eb2cd3cf720ea119976d2408645fd040294b2507b3e846cc8",
+      "loader_sha256": "be64d5e5d5c83c4ca3a5c00a20a64bf5a5097699b840c1d7445d8be88abb391a"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-smp"
+      ],
+      "exit_code": 0,
+      "build_directory": "build/k06-clock-batch",
+      "manifest_sha256": "3b0d081ed1560ae4a83bd498526aaf7edbfed381719582a3468a652f9167d7f7",
+      "source_sha256": "727676734c47e4efabedb49831763d71c1cd08c5698704de4e1c12a26e57232b",
+      "kernel_sha256": "8fe2dbcd8139227c859a340bad5abbd97807365098d4967e3716be8f96f93eb1",
+      "loader_sha256": "be64d5e5d5c83c4ca3a5c00a20a64bf5a5097699b840c1d7445d8be88abb391a"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "test-smp-bsp-spin-irq-off"
+      ],
+      "exit_code": 0,
+      "build_directory": "build/k06-bsp-control-batch",
+      "manifest_sha256": "61c0e35108fa14131c132bce83601d93bda734edb99419e8df510ea5b143281e",
+      "source_sha256": "727676734c47e4efabedb49831763d71c1cd08c5698704de4e1c12a26e57232b",
+      "kernel_sha256": "18072253b30993bf81d6c1212997a9691d0bf6e6c4bd63902b888b0d091d4851",
+      "loader_sha256": "be64d5e5d5c83c4ca3a5c00a20a64bf5a5097699b840c1d7445d8be88abb391a"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-smp-m3-ipc"
+      ],
+      "exit_code": 0,
+      "build_directory": "build/k06-ipc-fixture-batch",
+      "manifest_sha256": "d6e1e2be29c552cd33fb3ac4e4b338dac8792ca0e3bc376bf9f102c75f124964",
+      "source_sha256": "727676734c47e4efabedb49831763d71c1cd08c5698704de4e1c12a26e57232b",
+      "kernel_sha256": "95e79c940e06e1513c71e2fa2dc5bbe20652443b06bff72cea2de08a236e8155",
+      "loader_sha256": "be64d5e5d5c83c4ca3a5c00a20a64bf5a5097699b840c1d7445d8be88abb391a"
+    }
+  ],
+  "checks": [
+    {
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_*.py",
+      "exit_code": 0,
+      "passed": 275,
+      "skipped": 0,
+      "log": "fixture-repair-hosttests.log.gz"
+    },
+    {
+      "command": "python3 -B -m unittest tools.tests.test_smp_ci tools.tests.test_smp_serial tools.tests.test_smp_acceptance",
+      "exit_code": 0,
+      "passed": 48,
+      "log": "fixture-repair-focused-oracles.log.gz"
+    },
+    {
+      "command": "cargo +1.90.0 fmt --all -- --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "host_environment": {
+    "rust": "1.90.0",
+    "TMPDIR": "/workspace/nieuw-os/build/k06-handoff/tmp-final",
+    "CARGO_TARGET_DIR": "/workspace/nieuw-os/target/k06-fixture-host"
+  },
+  "objectcode": "fixture-clock-batch-objectcode.txt",
+  "objectcode_observed": "64 dependent integer IMUL/ROL/INC steps, separate progress INC/MOV, then PAUSE; no helper call or LOCK in the bounded loop",
+  "independent_source_review": "No remaining source blocker after correcting the M3-only online_mask reference; review is by a second AI, not a human audit.",
+  "limits": [
+    "No local QEMU guest is executed; mocked host output is not native evidence.",
+    "Clock-load instruction mix and TCG exit frequency change; historical causality and native benefit are unproved.",
+    "Every original failed repetition remains rejected.",
+    "Full acceptance requires a new exact 64x50 matrix, K07, 50 complete soaks, aggregate and actually executed tools/gate.sh."
+  ]
+}

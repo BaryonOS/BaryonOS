@@ -1,0 +1,209 @@
+{
+  "accepted": false,
+  "run_id": 42723127310,
+  "run_url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310",
+  "tested_commit": "f808d59150466aee3de24452ea408250b8f4dca6",
+  "source_fingerprint_version": 3,
+  "source_sha256": "759320893ea058b90d0bc764cd2b9534734827131a212ad5ba27f5501db6e8ac",
+  "case": "nine-capacity",
+  "repetitions": {
+    "requested": 50,
+    "attempted": 50,
+    "passed": 49,
+    "failed": 1,
+    "complete": true,
+    "flaky": true,
+    "evidence_kind": "smp"
+  },
+  "failed_iteration": 16,
+  "raw_qemu_exit": 35,
+  "timed_out": false,
+  "observed_failure": "SMP:CLOCK:DRIFT:US=1010334; M1:FAIL:SMP_CLOCK_DRIFT",
+  "artifact": {
+    "id": 13721803223,
+    "sha256": "59bb36d75a0e1d72db33c96b74501eae78d0f636a1a297f5892c70f00b50190c",
+    "url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310/artifacts/13721803223"
+  },
+  "raw_file_sha256": {
+    "serial.txt": "1554bdf6a9922a0110c3de5a668640b26c04bbb395850e15bb7d6526c64742fe",
+    "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "result.json": "0c2bc888adbef2d823e6b0742fb5654ffd905dde559d8d519fa9104807b59abd"
+  },
+  "boundary": "Failure evidence only. The old transcript does not identify IRQ loss versus observation jitter. No 50/50 acceptance can be inferred. Original GitHub artifacts remain intact.",
+  "additional_failure": {
+    "case": "shared-scratch",
+    "repetitions": {
+      "requested": 50,
+      "attempted": 50,
+      "passed": 49,
+      "failed": 1,
+      "complete": true,
+      "flaky": true,
+      "evidence_kind": "smp"
+    },
+    "failed_iteration": 10,
+    "observed_failure": "SMP:CLOCK:DRIFT:US=1010549; M1:FAIL:SMP_CLOCK_DRIFT",
+    "raw_qemu_exit": 35,
+    "timed_out": false,
+    "artifact": {
+      "id": 13722247178,
+      "sha256": "e50e460da321c6d7e59fa80eaf73e5737412f541f51f1d8c970a3fd2cc4868a7",
+      "url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310/artifacts/13722247178"
+    },
+    "raw_file_sha256": {
+      "serial.txt": "1565f7d5e6f57cfa8a67002d5e1277e6a9810d540f61b991ac24a4b54869f20b",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result.json": "a1bdc78c1631a57ba1f42444b59d07f8f689acb34c8133fd73fece396122c97f"
+    }
+  },
+  "fpu_failure": {
+    "case": "m3-four-single",
+    "repetitions": {
+      "requested": 50,
+      "attempted": 50,
+      "passed": 49,
+      "failed": 1,
+      "complete": true,
+      "flaky": true,
+      "evidence_kind": "smp"
+    },
+    "failed_iteration": 33,
+    "observed_failure": "SMP:M3:FPU:IMAGE_MISMATCH; M1:FAIL:SMP_M3_FPU_IMAGE",
+    "clock_passed": true,
+    "raw_qemu_exit": 35,
+    "timed_out": false,
+    "artifact": {
+      "id": 13722993128,
+      "sha256": "b2a7b3fdc4edd0ce81a6c84b2128ff9bcd8d4d856a04a006abd4dcc31faa10d1",
+      "url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310/artifacts/13722993128"
+    },
+    "raw_file_sha256": {
+      "serial.txt": "2d166b612c883761df27b356254746aa94e005289d0ad0d17616e7bb09ed4b65",
+      "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result.json": "f87565d9bbf89176d10d58f15b213e600a03bc4d1a1bd833a81f171609faa904"
+    },
+    "limits": "The old log does not identify the mismatched slot or register. Premature canary-readiness publication is a reachable fixture defect; exact historical causality is not established."
+  },
+  "additional_failed_cases": [
+    {
+      "case": "m3-eight-single",
+      "repetitions": {
+        "requested": 50,
+        "attempted": 50,
+        "passed": 15,
+        "failed": 35,
+        "complete": true,
+        "flaky": true,
+        "evidence_kind": "smp"
+      },
+      "failure_kinds": {
+        "fpu_image_mismatch": 26,
+        "watchdog_timeout": 9
+      },
+      "failed_iterations": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        25,
+        26,
+        28,
+        29,
+        30,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        43,
+        47,
+        48,
+        50
+      ],
+      "artifact": {
+        "id": 13723918175,
+        "sha256": "e0f1f9edde073dd31cb62d0cd2ec192ec0d76ac2883bb02adb7717c9b4129735",
+        "url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310/artifacts/13723918175"
+      },
+      "full_original_report": "m3-eight-single-original-full-report.json.gz",
+      "raw_report_sha256": "63aad154d28dfea4b9937ade8c6fbe01d7771b493c2db4d61c6a4ce0a2ef3587",
+      "limits": "Old raw outputs do not identify the individual process/register that blocked progress; watchdog remains 60 seconds."
+    },
+    {
+      "case": "m3-migrate-eight-single",
+      "repetitions": {
+        "requested": 50,
+        "attempted": 50,
+        "passed": 17,
+        "failed": 33,
+        "complete": true,
+        "flaky": true,
+        "evidence_kind": "smp"
+      },
+      "failure_kinds": {
+        "fpu_image_mismatch": 32,
+        "watchdog_timeout": 1
+      },
+      "failed_iterations": [
+        1,
+        2,
+        4,
+        6,
+        8,
+        9,
+        10,
+        13,
+        14,
+        16,
+        18,
+        20,
+        21,
+        24,
+        25,
+        26,
+        27,
+        30,
+        31,
+        32,
+        34,
+        37,
+        38,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        50
+      ],
+      "artifact": {
+        "id": 13724801923,
+        "sha256": "490ae61d4f4f37cdc558fbb4d8f3730521c9525a7d820abedaba5b8430edefa0",
+        "url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310/artifacts/13724801923"
+      },
+      "full_original_report": "m3-migrate-eight-single-original-full-report.json.gz",
+      "raw_report_sha256": "29d4fe444e9c0c3ac237858d37146d2822c203c1e76e888f4b99c13a7b1e9eca",
+      "limits": "Old raw outputs do not identify the individual process/register that blocked progress; watchdog remains 60 seconds."
+    }
+  ]
+}
