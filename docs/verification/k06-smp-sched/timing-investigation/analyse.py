@@ -13,7 +13,8 @@ def q(v, p):
 
 
 for path in sys.argv[1:]:
-    rows = [json.loads(l) for l in open(path)]
+    with open(path) as source:
+        rows = [json.loads(l) for l in source]
     if not rows:
         continue
     r0 = rows[0]

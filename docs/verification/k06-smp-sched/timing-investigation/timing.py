@@ -30,7 +30,7 @@ def sample(pid, box, stop):
                             invol = int(line.split()[1])
                 snap[tid] = (comm, run, wait, slices, invol)
         except OSError:
-            pass
+            pass  # a thread or the process exited between listing and reading
         if any(v[0].startswith("CPU ") for v in snap.values()):
             box["threads"] = snap
         stop.wait(0.05)

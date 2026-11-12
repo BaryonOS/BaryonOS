@@ -2,7 +2,8 @@
 """Progress analysis: SMP:DIAG:P=<total> lines printed every 50 guest polls."""
 import json, sys, statistics as st
 for path in sys.argv[1:]:
-    rows = [json.loads(l) for l in open(path)]
+    with open(path) as source:
+        rows = [json.loads(l) for l in source]
     if not rows: continue
     print(f"\n== {path.split('/')[-1]} vCPUs={rows[0]['cpus']} host={rows[0]['hostcpus']} accel={rows[0]['accel']} boots={len(rows)}")
     for r in rows:
