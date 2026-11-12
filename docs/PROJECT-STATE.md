@@ -1,6 +1,30 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 step 5f: run 43187501026 rejected; timing investigation and ADR-082 proposal await the project owner — 12 November 2026
+## NEXT AGENT HANDOFF — K06 step 5f: structural timing repair assigned; mapping started, no source change yet — 12 November 2026
+
+**Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Kernel and tool sources are still those of `2543861`; every later commit, this one included, is documentation or diagnostic evidence.
+
+**Assignment (project owner, 12 November 2026):** resolve the timing fragility of the K06 acceptance fixture structurally inside PR #317, beyond the three observed incidents. Implementation is permitted as long as safety invariants and functional correctness are preserved; ADR-082 is a starting point, not a mandatory design. Deadlocks, lost updates, lock violations and missing progress stay fatal; every wait keeps a checkable bound; overruns are not hidden; liveness and performance are checked separately; clock precision must not pass through a weaker method. Normative limits (scratch 500 ms, clock 1 %) change only with the project owner's explicit approval. A GO/NO-GO verification report comes first: **no full matrix before the project owner has reviewed that report and given explicit permission.** No selective retries, no second PR, no auto-merge.
+
+**State:** no source change and no native boot since the investigation. A read-only mapping of every wall-clock limit (kernel fixture, oracle, workflow, specifications, emulator semantics, hosted margins) was started in the working session; its reports are not part of this commit. Confirmed in source at `ec9a8b8`:
+- `tools/run_smp.py` `evaluate()` compares the normalised serial tail with an exact expected sequence, so a new margin line must be parsed and removed by the oracle. `deadline_margins` already records `bsp_idle_wake`, `remote_kill_ack`, `kernel_lock_wait` and `kernel_lock_deferred`.
+- `kernel/src/m2/smp.rs` has 40 `within_ms` call sites (the count of 41 in TIMING-INVESTIGATION.md includes the definition; to be corrected there), the unnamed 2 s sync wait, and two further bounded-wait helpers on the TSC, `within_tsc` and `idle_until`.
+- PIT channel 0 is programmed as a rate generator (control word `0x34`, divisor 1193, `smp.rs:2634`), so its count can be latched to place an IRQ0 inside its period.
+- `native-smp.yml` offers only the `full_matrix` and `clock_diagnostic` dispatch inputs; a targeted hosted run of chosen cases needs a new diagnostic input.
+
+**Hosted margins of run 43187501026 (76 artifacts, 3 301 boots; extracted by a subagent, not yet recomputed independently, tables not yet committed):** three failed boots, none timed out. Soak boots take 610–612 s of the 660 s watchdog (600 s of that is the fixed load phase); `m3-load-eight` up to 47.3 s of 60 s; every case outside the load and soak families stays at or below 0.41 of its watchdog. `SMP:TIMER:RATIO` 62 527–65 138 inside 50 000–75 000; `SMP:FAIR` wait at most 23 ms of 400 ms; `SMP:IDLE:WAKE_US` at most 262.
+
+**Planned order (design not decided; every contract change needs approval):** (1) finish the inventory and have the design attacked; (2) margin instrumentation for every limit (spec 09-5f AC-3) and a ranking under controlled oversubscription (8 and 9 vCPUs on 4 host CPUs, 4 on 2); (3) progress-bounded liveness where the ranking shows exposure, and a clock measurement that checks the programmed period on every tick and counts lost edges separately; (4) negative cases with oracle and host tests; (5) local series and a targeted hosted run on QEMU 10.2.1; (6) documentation and the GO/NO-GO report.
+
+**Limit to state in that report:** a 99 % pass probability for about 3 300 guests implies a per-guest failure probability near 3 × 10⁻⁶, which boot sampling cannot demonstrate directly; the argument has to rest on removed mechanisms and on margins measured under harsher conditions than the hosted runner.
+
+**Not run:** clippy; any native boot; anything on the hosted runner.
+
+**Next:** build the stock image (`NOS_QEMU_MACHINE=pc-q35-8.2`, build directory inside the checkout, `python3 -B tools/build.py --kernel-feature native-smp`), add the margin instrumentation, and run the ranking series with [`timing.py`](verification/k06-smp-sched/timing-investigation/timing.py), one series at a time.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f: run 43187501026 rejected; timing investigation and ADR-082 proposal — 12 November 2026
 
 **Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Tested kernel and tool sources are those of `2543861`; the commit carrying this entry adds documentation and diagnostic evidence only.
 

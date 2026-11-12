@@ -6,9 +6,9 @@
     "source_commit": "49f80b1e5fcc892f88750290873ad11bf055dbe9",
     "assessment_basis": "source_commit",
     "branch": "ccr-5a0d9559-16gxmt",
-    "task": "K06 step 5f: full run 43187501026 rejected (nine-capacity sync timeout, m3-load-two idle clock drift); timing investigation and proposed ADR-082, documentation and diagnostics only",
+    "task": "K06 step 5f: structural timing repair assigned by the project owner; read-only mapping started, no source change",
     "previous_score": 39,
-    "summary": "39/100 remains 39/100. Run 43187501026 on 2543861 is rejected by two shards on wall-clock limits. A local diagnostic series (143 boots) demonstrates no kernel or synchronisation defect; ADR-082 is proposed and not accepted, so no deadline or contract changed. K06 stays open until an accepted procedure passes the full matrix, soaks, K07, aggregate and final gate."
+    "summary": "39/100 remains 39/100. After rejected run 43187501026 the project owner assigned a structural repair of the K06 timing methodology inside PR #317, with a GO/NO-GO verification report before any further full matrix. No source changed and no native boot ran in this step; no deadline or contract changed. K06 stays open until an accepted procedure passes the full matrix, soaks, K07, aggregate and final gate."
   },
   "tracks": [
     {
