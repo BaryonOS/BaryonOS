@@ -607,6 +607,23 @@ fn global_mouse_coordinates_drag_offsets_and_outside_reentry_are_not_clamped_cli
 }
 
 #[test]
+fn pointer_leave_drops_drag_without_changing_focus_or_image_state() {
+    let mut v = loaded();
+    v.command(Command::ZoomIn).unwrap();
+    v.input(mouse(150, 100, true, true)).unwrap();
+    v.input(mouse(140, 90, true, false)).unwrap();
+    let pan = v.pan();
+    let zoom = v.semantics().zoom;
+    assert!(v.semantics().focused);
+    v.input(Event::PointerLeave).unwrap();
+    assert!(v.semantics().focused);
+    assert_eq!(v.state(), State::Ready);
+    assert_eq!(v.semantics().zoom, zoom);
+    v.input(mouse(130, 90, true, false)).unwrap();
+    assert_eq!(v.pan(), pan);
+}
+
+#[test]
 fn geometry_selection_and_scale_are_checked() {
     assert!(matches!(
         Viewer::new(geometry(0, 1), 1),

@@ -28,9 +28,17 @@ defaults:
 jobs:
   native-window-session:
     runs-on: ubuntu-24.04
-    # Three isolated boots: full regression, library mutation, cold reopen.
+    # Independent workspace profiles; scale 1 also runs library recovery,
+    # both switcher profiles and Windows bundle packaging.
     timeout-minutes: 110
+    strategy:
+      fail-fast: false
+      matrix:
+        scale: [1, 2]
     env:
+      NOS_WINDOW_SCALE: ${{ matrix.scale }}
+      NOS_WINDOW_PROBE_FEATURE: ${{ matrix.scale == 2 && 'native-window-session-hidpi-probe' || 'native-window-session-probe' }}
+      NOS_WINDOW_NORMAL_FEATURE: ${{ matrix.scale == 2 && 'native-window-session-hidpi' || 'native-window-session' }}
       NOS_QEMU_MACHINE: pc-q35-8.2
       NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/probe
       NOS_TARGET_DIR: ${{ github.workspace }}/target/window-session-ci-native
@@ -127,12 +135,14 @@ jobs:
         # eight fresh CPL3 ELFs plus the current own kernel and UEFI loader.
         env:
           CARGO_NET_OFFLINE: 'true'
-        run: python3 -B -u tools/build.py --kernel-feature native-window-session-probe 2>&1 | tee "$CI_EVIDENCE_DIR/probe-build.txt"
+        run: python3 -B -u tools/build.py --kernel-feature "$NOS_WINDOW_PROBE_FEATURE" 2>&1 | tee "$CI_EVIDENCE_DIR/probe-build.txt"
       - name: Actual input, unmasked pixels, isolation, crash recovery and disk
         id: native-gate
         run: |
           python3 -B -u tools/run_window_session.py \
             --clipboard \
+            --workspace \
+            --scale "$NOS_WINDOW_SCALE" \
             --timeout 1800 \
             --bios-rom /usr/share/seabios/bios-256k.bin \
             --vga-rom /usr/share/seabios/vgabios-stdvga.bin \
@@ -143,8 +153,20 @@ jobs:
           report = json.loads((Path(os.environ["NOS_BUILD_DIR"]) / "window-session-report.json").read_text())
           assert report["passed"] is True and report["native_gate"] is True
           assert report["clipboard_requested"] is True and report["clipboard_gate"] is True
+          assert report["workspace_requested"] is True and report["workspace_gate"] is True
+          assert report["document_tools_gate"] is True
+          assert report["document_menu_gate"] is True
+          assert report["pointer_leave_gate"] is True
+          assert report["app_high_contrast_gate"] is True
+          assert report["window_states_gate"] is True
+          assert report["keyboard_window_move_gate"] is True
+          assert report["notification_panel_gate"] is True
+          assert report["trusted_lock_gate"] is True
+          assert report["locked_f7_gate"] is True
           assert report["smoke_only"] is False and report["raw_qemu_exit"] == 33
-          assert report["kernel_feature"] == "native-window-session-probe"
+          assert report["kernel_feature"] == os.environ["NOS_WINDOW_PROBE_FEATURE"]
+          assert report["scale"] == int(os.environ["NOS_WINDOW_SCALE"])
+          assert report["native_scale200_gate"] is (report["scale"] == 2)
           volume = Path(report["run_directory"]) / "volume.img"
           with volume.open("rb") as image:
               digest = hashlib.file_digest(image, "sha256").hexdigest()
@@ -152,6 +174,8 @@ jobs:
               digest + "  " + volume.relative_to(Path.cwd()).as_posix() + "\n")
           PY
       - name: Native material names, collections, search and revision recovery
+        # Library walkthrough and cold parent are 100%-profile gates.
+        if: ${{ matrix.scale == 1 }}
         run: |
           python3 -B -u tools/run_window_session.py \
             --library --timeout 1800 \
@@ -171,6 +195,8 @@ jobs:
           (output / "library-parent.txt").write_text(report["run_directory"] + "\n")
           PY
       - name: Cold reopen the source-bound disposable library image
+        # Library walkthrough and cold parent are 100%-profile gates.
+        if: ${{ matrix.scale == 1 }}
         run: |
           read -r library_parent < "$CI_EVIDENCE_DIR/library-parent.txt"
           python3 -B -u tools/run_window_session.py \
@@ -190,6 +216,7 @@ jobs:
           (Path(os.environ["CI_EVIDENCE_DIR"]) / "library-cold-report.json").write_bytes(path.read_bytes())
           PY
       - name: Native window-switcher partial gate at 100% and 200%
+        if: ${{ matrix.scale == 1 }}
         env:
           CARGO_NET_OFFLINE: 'true'
         run: |
@@ -230,9 +257,9 @@ jobs:
           CARGO_NET_OFFLINE: 'true'
         # Separate build directories retain the probe manifest and every tested
         # input. Packaging never substitutes the fault-injection probe image.
-        run: python3 -B -u tools/build.py --kernel-feature native-window-session 2>&1 | tee "$CI_EVIDENCE_DIR/normal-build.txt"
+        run: python3 -B -u tools/build.py --kernel-feature "$NOS_WINDOW_NORMAL_FEATURE" 2>&1 | tee "$CI_EVIDENCE_DIR/normal-build.txt"
       - name: Package the reviewable Windows QEMU bundle
-        if: ${{ success() && steps.native-gate.outcome == 'success' }}
+        if: ${{ success() && steps.native-gate.outcome == 'success' && matrix.scale == 1 }}
         env:
           NOS_BUILD_DIR: ${{ github.workspace }}/build/window-session-ci/normal
         # Ubuntu packaging and Linux native execution do not claim Windows
@@ -265,10 +292,10 @@ jobs:
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence
         with:
-          package-path: build/window-session-ci/evidence/NieuwOS-Venstersessie-Windows-QEMU.zip
+          package-path: ${{ matrix.scale == 1 && 'build/window-session-ci/evidence/NieuwOS-Venstersessie-Windows-QEMU.zip' || '' }}
           job-status: ${{ job.status }}
           full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
-          name: native-window-session-evidence-and-windows-bundle
+          name: native-window-session-scale-${{ matrix.scale }}-evidence-and-windows-bundle
           path: |
             build/window-session-ci/evidence/
             build/window-session-ci/probe/manifest.json

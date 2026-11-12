@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-12",
-    "source_commit": "46938b0c8a91242640938ae8277e71d71140fd9c",
+    "source_commit": "cdbd187b16afc12176e9a11bc7cb9753a1540425",
     "assessment_basis": "source_commit",
-    "branch": "ccr-cf45024e-q0nrg9",
-    "task": "Derive GitHub Project #5 Status from GitHub facts, backfill missing open items, skip scheduled runs without the Projects token and keep native matrices off metadata-only changes (ADR-PROJECT-SYNC-20261111)",
+    "branch": "veld/rebuild-on-shell-20261105",
+    "task": "PR #210: fix the five open review findings (Alt+Tab during keyboard move, Veld pointer tail, document-menu key ownership through repeat/release, CodeQL test logging) and merge current main",
     "previous_score": 39,
-    "summary": "39/100 to 39/100: project-management automation only. Project Status stays organisational and never replaces a GitHub Actions result; no OS functionality, native gate or product criterion changes."
+    "summary": "39/100 remains 39/100. Input-ownership repairs with targeted regressions and host tests only; both hosted 1800-second native-window-session profiles are still required on the published head. No native runtime evidence is claimed."
   },
   "tracks": [
     {

@@ -220,6 +220,7 @@ impl<I: Transport, S: Transport> App<I, S> {
                     self.model.keyboard(key);
                 }
                 Event::Cancel(_) => self.model.cancel_focus(),
+                Event::PointerLeave => self.model.cancel_pointer(),
                 Event::Mouse { input, x, y } => {
                     increment(&mut self.evidence.mice)?;
                     self.model.focus_gained();

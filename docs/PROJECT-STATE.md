@@ -174,6 +174,43 @@ ADR-CI-QEMU-BUNDLE-20261111 and
 **Next:** merge #307 when its required checks are green, merge main into #296
 and rerun the K06 matrix there.
 
+## NEXT AGENT HANDOFF — PR #210 Veld input-ownership repairs — 11 November 2026
+
+**Source:** PR head `a8624b8` merged with `main` `c520703b`, then with `main`
+`1a3feb92` (after #296 and #314). Only `docs/PROJECT-STATE.md` conflicted;
+both sides were kept and the duplicated #299 heading collapsed onto
+byte-identical content. Repair commits `eb34cfb` and `cdbd187`. After the
+second merge the default, `native-window-session-probe` and
+`native-window-session` kernel builds passed locally.
+
+**Repairs of the five open review threads:**
+- Alt+Tab during an Alt+F7 keyboard move now rolls the move back before the
+  switcher opens, so the Alt release can no longer reach `fail(17)`.
+- `Scene::veld_owns_pointer` keeps a dismissed overlay's button-up tail inside
+  Veld, so the next press reaches the app; a trusted cover or lock still takes
+  priority (`!shell.blocks_apps()`).
+- The document menu owns every key it consumed until that key's release
+  (`menu_owned_keys`, indexed by the `repr(u8)` `PhysicalKey`), fixing both the
+  Enter-repeat draft replacement and the Backspace-repeat deletion after
+  dismissal.
+- The CodeQL cleartext-logging alert in `trusted_guard.rs` is closed by
+  dropping the formatted trusted key from an assertion message.
+
+**Local evidence:** window-session 112/112 and `ui/native` 110/110 Rust tests,
+warning-denying Clippy and rustfmt for both crates, `progress.py --check` and
+`git diff --check` passed (builder). Each of the four new regressions fails
+when its fix is reverted. The integrator independently re-ran `trusted_guard`
+(7/7), `document_menu` (14/14), rustfmt and the diff check. Earlier repairs
+(distinct 100%/200% evidence artifacts, Materiaal RX 157,161 bytes in 39 pages
+under the 160-KiB cap) are unchanged.
+
+**Acceptance:** **39/100 → 39/100**. No native runtime evidence is claimed;
+both hosted 1800-second native-window-session profiles must be green on the
+published head before a squash merge.
+
+**Next:** evaluate the current-head hosted checks; squash-merge with the
+expected head only after both native profiles and the required gates pass.
+
 ## Checkpoint (main) — PR #299 ChaCha20 production unification — 10 November 2026
 
 **Source:** this local candidate is based directly on the actual PR #297

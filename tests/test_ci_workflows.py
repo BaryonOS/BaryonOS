@@ -706,6 +706,28 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                     self.assertEqual(path, EVIDENCE_ACTION)
                     self.assertTrue(step.get("uses", "").startswith("actions/upload-artifact@"))
 
+    def test_window_matrix_requires_package_only_for_scale_one(self):
+        """Scale two must retain evidence without requiring or colliding on a scale-one bundle."""
+        workflow = self.workflows[".github/workflows/native-window-session.yml"]
+        job = workflow["jobs"]["native-window-session"]
+        preserve = next(
+            step for step in job["steps"]
+            if step.get("uses") == "./.github/actions/preserve-evidence"
+        )
+        inputs = preserve["with"]
+        self.assertEqual(
+            inputs["package-path"],
+            "${{ matrix.scale == 1 && "
+            "'build/window-session-ci/evidence/NieuwOS-Venstersessie-Windows-QEMU.zip' || '' }}",
+        )
+        self.assertIn("${{ matrix.scale }}", inputs["name"])
+
+        package = next(
+            step for step in job["steps"]
+            if step.get("name") == "Package the reviewable Windows QEMU bundle"
+        )
+        self.assertIn("matrix.scale == 1", package["if"])
+
     def test_pr_lifecycle_runs_once_without_skipping_drafts(self):
         """Draft changes are tested already, so becoming ready need not repeat them."""
         for path, workflow in self.workflows.items():

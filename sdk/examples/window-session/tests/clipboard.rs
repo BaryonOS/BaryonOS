@@ -135,6 +135,30 @@ fn cross_app_copy_paste_requires_two_real_gestures_and_one_use_per_offer() {
 }
 
 #[test]
+fn pointer_leave_never_authorizes_clipboard_or_changes_focus_generation() {
+    let mut queues = queues();
+    let generation = queues[0].generation();
+    queues[0].push(Event::PointerLeave).unwrap();
+    let bytes = input(&mut queues[0], 0, wire::Operation::Peek, 1, 0);
+    assert_eq!(bytes[40], 4);
+    assert!(bytes[41..48].iter().chain(&bytes[64..]).all(|b| *b == 0));
+    for operation in [Operation::Copy, Operation::Paste] {
+        let header = Header {
+            operation,
+            request: 2,
+            epoch: EPOCH,
+            sequence: 1,
+            generation,
+        };
+        assert!(!queues[0].authorizes_clipboard(PIDS[0], header));
+        assert!(!queues[0].authorizes_clipboard(PIDS[1], header));
+    }
+    assert_eq!(queues[0].generation(), generation);
+    input(&mut queues[0], 0, wire::Operation::Ack, 2, 1);
+    assert!(!queues[0].has_pending());
+}
+
+#[test]
 fn sender_focus_role_epoch_sequence_generation_and_offered_state_are_authority() {
     for wrong in 0..10 {
         let mut queues = queues();
