@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-13",
-    "source_commit": "7bf578d4cb326abd79190ec8d780f5216814baab",
+    "source_commit": "a60425abd67001165228b124b2c761e605121e22",
     "assessment_basis": "source_commit",
     "branch": "ccr-cf45024e-q0nrg9",
     "task": "Per-scale harness deadline for the 200% native window gate (ADR-WINDOW-SCALE2-DEADLINE-20261112)",
     "previous_score": 41,
-    "summary": "41/100 stays 41/100. CI harness hardening only: scale 1 keeps the preregistered 1800 s bound and scale 2 may use 2700 s on slower hosted runners, after two scale-2 timeouts on main 49f80b1e (run 43137766280); no phase or assertion changes and no product criterion changes."
+    "summary": "41/100 stays 41/100. CI harness hardening only: scale 1 keeps the preregistered 1800 s bound and scale 2 may use 2700 s on slower hosted runners, after two scale-2 timeouts on main 49f80b1e (run 43137766280); no phase or assertion changes and no product criterion changes. Merged with main a60425ab (#313, #315, #320; no criterion change)."
   },
   "tracks": [
     {
