@@ -1,6 +1,6 @@
-import json,sys,re,glob,os,collections,statistics as st
+import json,sys,re,glob,os,collections,statistics as st; from pathlib import Path
 root,out1,out2,namesf=sys.argv[1:5]
-names=[l.strip() for l in open(namesf) if l.strip()]
+names=[l.strip() for l in Path(namesf).read_text().splitlines() if l.strip()]
 def mmm(v):
     return (min(v),st.median(v),max(v)) if v else ('','','')
 def f(x,nd=3):
@@ -11,13 +11,13 @@ for n in names:
     if not fs: noresult.append(n); continue
     groups=collections.defaultdict(list)
     for p in fs:
-        try: d=json.load(open(p))
+        try: d=json.loads(Path(p).read_text())
         except Exception as e: bad+=1; continue
         base=re.sub(r'-r\d+-of-\d+$','',d.get('label',''))
         groups[base].append(d)
     for base,ds in sorted(groups.items()):
         dur=[d['duration_s'] for d in ds]; to=sorted({d['timeout_s'] for d in ds})
-        mx=max(dur); tmax=max(to)
+        mx=max(dur)
         rows1.append([n,base,len(ds),sum(1 for d in ds if d.get('passed')),sum(1 for d in ds if d.get('timed_out')),
             sum(1 for d in ds if d.get('raw_qemu_exit')!=d.get('expected_exit')),'/'.join(map(str,to)),
             min(dur),st.median(dur),mx,max(d['duration_s']/d['timeout_s'] for d in ds)])
