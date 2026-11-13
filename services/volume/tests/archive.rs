@@ -10,7 +10,7 @@ use volume_core::{
     client::{Client, Stat, Transport},
     service::Service,
     table::Table,
-    wire, Disk, Status, CHUNK, FNV_OFFSET, MAX_LENGTH, SECTOR,
+    ustar, wire, Disk, Status, CHUNK, FNV_OFFSET, MAX_LENGTH, SECTOR,
 };
 
 const EPOCH: u64 = 4;
@@ -930,4 +930,118 @@ fn disk_source_refuses_empty_oversized_and_damaged_ranges() {
         padded.sectors[needed - 1][SECTOR - 1] = 0xFF;
     }
     assert!(verify(&mut padded, needed as u64).is_ok());
+}
+
+/// Python's stdlib `tarfile` is the independent reader of the ustar export.
+const TARFILE: &str = r#"
+import sys, io, tarfile
+t = tarfile.open(fileobj=io.BytesIO(sys.stdin.buffer.read()), mode="r:", encoding="utf-8", errors="strict")
+for m in t.getmembers():
+    d = t.extractfile(m).read() if m.isfile() else b""
+    line = "\t".join(map(str, (m.name, m.pax_headers.get("path", "-"), m.type.decode(), m.size, oct(m.mode), m.mtime, m.uid, m.gid, d.hex())))
+    sys.stdout.buffer.write(line.encode("utf-8") + b"\n")
+"#;
+
+fn tarfile(tar: &[u8]) -> Vec<String> {
+    use std::io::Write;
+    use std::process::{Command, Stdio};
+    let mut child = Command::new("python3")
+        .args(["-I", "-c", TARFILE])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("python3 is the independent ustar reader; not run is not a pass");
+    child.stdin.take().unwrap().write_all(tar).unwrap();
+    let out = child.wait_with_output().unwrap();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    String::from_utf8(out.stdout)
+        .unwrap()
+        .lines()
+        .map(str::to_owned)
+        .collect()
+}
+
+fn ustar(bytes: &[u8]) -> (Result<archive::Summary, Status>, Vec<u8>) {
+    let mut out = Bytes(Vec::new());
+    let result = ustar::from_archive(&mut reader(bytes), &mut scratch(), &mut out);
+    (result, out.0)
+}
+
+#[test]
+fn ustar_export_opens_with_a_standard_reader() {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut source = client(&mut service, &mut disk, 0);
+    populate(&mut source, 5000);
+    source
+        .write(2, 0, "Notitie ✓".as_bytes(), 50, fill(2, 1))
+        .unwrap();
+    let mut bytes = Bytes(Vec::new());
+    archive::export(&mut source, 0, &mut bytes).unwrap();
+    assert!(archive::verify(&mut reader(&bytes.0), &mut scratch()).is_ok());
+    let (result, tar) = ustar(&bytes.0);
+    assert_eq!(result.map(|s| s.objects), Ok(4));
+    assert_eq!(tar.len() % ustar::BLOCK, 0);
+    assert!(tar[tar.len() - 2 * ustar::BLOCK..].iter().all(|&b| b == 0));
+    let hex = |data: &[u8]| data.iter().map(|b| format!("{b:02x}")).collect::<String>();
+    let file = |name: &str, pax: &str, data: Vec<u8>| {
+        format!(
+            "{name}\t{pax}\t0\t{}\t0o644\t0\t0\t0\t{}",
+            data.len(),
+            hex(&data)
+        )
+    };
+    // The non-ASCII name reaches the reader through its pax path record.
+    assert_eq!(
+        tarfile(&tar),
+        [
+            file("Werk/Notes", "-", expected(0, 1, 300)),
+            file("Plan", "-", expected(1, 2, 5000)),
+            file("Notitie ✓", "Notitie ✓", expected(2, 1, 50)),
+            file("Empty", "-", Vec::new()),
+        ]
+    );
+    assert_eq!(ustar(&bytes.0).1, tar, "equal archives give equal bytes");
+}
+
+#[test]
+fn ustar_export_ends_only_after_the_whole_archive_checked_out() {
+    let bytes = exported(500);
+    let (result, good) = ustar(&bytes);
+    assert!(result.is_ok());
+    let mut bad = bytes.clone();
+    *bad.last_mut().unwrap() ^= 1;
+    let (result, partial) = ustar(&bad);
+    assert_eq!(result, Err(Status::Corrupt));
+    // Every file was written, but not the end-of-archive blocks. Readers accept
+    // that silently, so callers verify first and discard the output on error.
+    assert_eq!(partial, good[..good.len() - 2 * ustar::BLOCK]);
+}
+
+#[test]
+fn ustar_export_refuses_paths_that_would_collide() {
+    let bytes = exported(500);
+    let plan = HEADER + 48 + OBJECT_RECORD + 300;
+    let rename = |name: &'static [u8], collection: u8| {
+        resealed(bytes.clone(), plan, OBJECT_RECORD, move |r| {
+            r[1] = name.len() as u8;
+            r[2] = collection;
+            r[48..80].fill(0);
+            r[48..48 + name.len()].copy_from_slice(name);
+        })
+    };
+    assert!(
+        ustar(&rename(b"Plan", 0)).0.is_ok(),
+        "an unchanged rename stays exportable"
+    );
+    // A file and a directory at "Werk"; two files at "Werk/Notes".
+    for archive in [rename(b"Werk", 0), rename(b"Notes", 1)] {
+        assert!(archive::verify(&mut reader(&archive), &mut scratch()).is_ok());
+        assert_eq!(ustar(&archive).0, Err(Status::Invalid));
+    }
 }
