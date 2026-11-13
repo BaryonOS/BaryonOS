@@ -6,6 +6,8 @@ pub mod damage;
 
 mod atlas;
 pub mod icon;
+pub mod mark;
+mod mark_geometry;
 pub mod text;
 pub mod theme;
 
