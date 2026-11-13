@@ -111,9 +111,9 @@ class WindowRunnerTests(unittest.TestCase):
         # Scale-2 part gates keep 1800 s: the wider bound belongs to the full
         # clipboard/workspace gate only, not to every scale-2 run.
         for timeout in (1801, 2700):
-            with self.subTest(mode="switcher", timeout=timeout):
-                with self.assertRaisesRegex(ValueError, r"30\.\.1800 seconds at scale 2"):
-                    window.run(timeout=timeout, bios_rom=None, vga_rom=None, switcher=True, scale=2)
+            with (self.subTest(mode="switcher", timeout=timeout),
+                  self.assertRaisesRegex(ValueError, r"30\.\.1800 seconds at scale 2")):
+                window.run(timeout=timeout, bios_rom=None, vga_rom=None, switcher=True, scale=2)
         with self.assertRaisesRegex(ValueError, r"30\.\.1800 seconds at scale 2"):
             window.run(timeout=2700, bios_rom=None, vga_rom=None, workspace=True, scale=2)
         # 2700 s passes the deadline check for the scale-2 clipboard/workspace
