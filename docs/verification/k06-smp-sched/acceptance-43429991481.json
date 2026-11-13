@@ -7,10 +7,10 @@
   "event": "workflow_dispatch",
   "tested_commit": "880984bb29c316e606490c0fa235b119ed4bb553",
   "source_sha256": "e693759d89705970ecaa9c315b0423261fdc7924235af566beb363419eabd255",
-  "runner": "GitHub-hosted ubuntu-26.04 jobs with 4 vCPUs; the CPU model differs per job (see timing_margins); QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3), machine pc-q35-10.0; aggregate on ubuntu-24.04; final gate on ubuntu-26.04",
+  "runner": "GitHub-hosted ubuntu-26.04 matrix jobs; the two job logs read (131901260355, 131901259209) show 4 vCPUs with different CPU models (see timing_margins); QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3), machine pc-q35-10.0; aggregate on ubuntu-24.04; final gate on ubuntu-26.04",
   "dispatched_utc": "2026-11-13T13:00:57Z",
   "last_job_completed_utc": "2026-11-13T16:52:01Z",
-  "handling": "Dispatched once with the project owner's permission on the repaired head. Not cancelled, no job retried, first attempt only. No source, deadline, tolerance or verdict was changed in response to the run.",
+  "handling": "Dispatched once with the project owner's permission on the repaired head. Not cancelled, no job retried, first attempt only. No kernel, harness, deadline or tolerance was changed in response to the run; the read-only verifier verify_final_gate.py was corrected afterwards (see verifier_correction).",
   "jobs": {
     "total": 91,
     "success": 86,
@@ -21,7 +21,8 @@
       "DIAGNOSTIC margins (${{ matrix.case }})",
       "experimental-m3-m4-smp",
       "native-smp"
-    ]
+    ],
+    "skip_reason": "the three DIAGNOSTIC jobs need clock_diagnostic or margin_diagnostic; native-smp and experimental-m3-m4-smp run only when full_matrix is not dispatched"
   },
   "passed": "K07 environment probe; all 73 per-case 50/50 jobs; all 10 soak shards (the soak is the 74th case, 10 x 5); 3700 of 3700 guests; aggregate steps 'Require exact 50/50 evidence on one source hash' and 'Complete source-bound SMP host oracles'; 'SMP final repository gate' ran tools/gate.sh and succeeded",
   "final_gate": {
@@ -176,7 +177,7 @@
       },
       "api_run_sha256": "173be00466ae5714fb40a7f5b63f0a03bda57b7294f72116e9ab74ac69b907ed",
       "api_jobs_sha256": "d2ca55a9519d28644fb024c5ab18fd00554e24107adc6b6887feeec6020b0211",
-      "repo_binding": "run with --repo on the worktree at d0d2e300, whose source_hash() equals the tested e693759d"
+      "repo_binding": "first run with --repo on the 880984b worktree with the repair applied before its commit; the blob committed in d0d2e300 has the same sha256 (repaired_sha256) and exits 0 again from head ed554a5a; source_hash() equals the tested e693759d at both"
     }
   },
   "not_verified": "Compact artifacts omit executable and firmware bytes; their recorded hashes are cross-bound, not rehashed. QEMU/TCG on GitHub-hosted runners only: no physical hardware, no KVM, no other supported-hardware profile. Verification by the implementing AI is not an independent human audit. 50/50 per case bounds the per-case failure probability statistically; it does not prove absence of rare races.",

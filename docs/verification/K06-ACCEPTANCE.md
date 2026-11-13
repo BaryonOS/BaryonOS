@@ -17,7 +17,8 @@ GitHub Actions **native-smp**, run
 [43429991481](https://github.com/BaryonOS/BaryonOS/actions/runs/43429991481)
 (`workflow_dispatch`, full matrix, dispatched once with the project owner's permission,
 first attempt, not cancelled, no job retried): 91 jobs, 86 succeeded, 5 skipped by design
-(diagnostic, experimental and pull-request-only jobs), none failed.
+(three diagnostic jobs, and `native-smp` and `experimental-m3-m4-smp`, which run only outside
+a full-matrix dispatch), none failed.
 
 | Check | Result |
 |---|---|
