@@ -100,14 +100,14 @@ otherwise `Corrupt`) and `verify` remains the only acceptance gate. The native
 block adapter is shared by service and portal in `volume-docs/src/disk.rs`.
 
 **Kernel fixture profile** (`kernel/src/m2/m3/volume.rs`, features
-`test-volume-archive-export|restore|corrupt`, cases 7–9):
+`test-volume-archive-export|restore|corrupt|conflict`, cases 7–10):
 - Slot 1 is the backup portal. It alone receives a block capability on device
   0, sectors 1000..2040 of the disposable test image, disjoint from the volume
   scope 4..584 (compile-time assertion). The range ends below the 2048-sector
   image, so the portal's past-the-end probe is refused by the capability
   scope rather than by the device size; the largest v1 archive (525 328 bytes,
-  1027 sectors) fits. Export grants READ|WRITE|FLUSH; restore and corrupt
-  grant READ only (`ARCHIVE_READONLY_RIGHTS`). The handle is startup word 504.
+  1027 sectors) fits. Export grants READ|WRITE|FLUSH; restore, corrupt and
+  conflict grant READ only (`ARCHIVE_READONLY_RIGHTS`). The handle is startup word 504.
   No handle enumeration exists, so the manifest counts instead: it fails with
   `ARCHIVE_ESCAPE` unless the grant adds exactly one block object, node and
   handle, that handle is held by slot 1, the service and slot 2 hold exactly
@@ -118,9 +118,9 @@ block adapter is shared by service and portal in `volume-docs/src/disk.rs`.
 - Archive I/O is counted per capability object at publication and kept out of
   the volume table/data write classification. `finish` fails with
   `ARCHIVE_IO` unless export wrote, flushed and read back only through the
-  archive object, and restore/corrupt only read it. Evidence lines
+  archive object, and restore, corrupt and conflict only read it. Evidence lines
   `VOLUME:ARCHIVE:READS|WRITES|FLUSHES`; markers
-  `VOLUME:CASE:ARCHIVE_EXPORT|ARCHIVE_RESTORE|ARCHIVE_CORRUPT:PASS`.
+  `VOLUME:CASE:ARCHIVE_EXPORT|ARCHIVE_RESTORE|ARCHIVE_CORRUPT|ARCHIVE_CONFLICT:PASS`.
 - Calls on the portal's own archive object (pending collects, the scope
   probe) are not counted as app device denials; every app's own-handle and
   forged-handle probes still are, and each app must show at least one.
@@ -129,8 +129,8 @@ block adapter is shared by service and portal in `volume-docs/src/disk.rs`.
 target directory `volume-docs-portal`; the normal build would exceed the
 64 KiB startup text boundary with both paths). The archive cases use the
 normal `volume-service` build unchanged. The 64 KiB archive scratch is the
-private RW/NX heap the kernel premaps at `0x6000_0000`. Restore and corrupt
-share one flow: `verify` the whole archive, then `restore`. Corrupt must stop
+private RW/NX heap the kernel premaps at `0x6000_0000`. Restore, corrupt and
+conflict share one flow: `verify` the whole archive, then `restore`. Corrupt must stop
 at `verify` with `Corrupt`, and the volume must stay empty.
 
 **Serialization.** The broker serves one block request at a time and answers
@@ -140,7 +140,7 @@ using the service. The first gate run without this ordering failed the
 corrupt case with a Busy status instead of `Corrupt` (step 740).
 
 **Runner stages** (`tools/run_volume.py`, plan of `tools/test_volume.py`, now
-12 QEMU runs): `archive-export` on the image left by `recover` (volume mounted
+13 QEMU runs): `archive-export` on the image left by `recover` (volume mounted
 read-only, every byte outside the archive range unchanged, zero padding, no
 write past the archive, writes = ⌈length/512⌉); `archive-restore` and
 `archive-corrupt` on a fresh image that holds only the copied archive range
@@ -155,9 +155,25 @@ creates no unreferenced collection. The archive
 header carries LIST's domain generation (sum of the domain's object and
 collection revisions), not the global volume generation.
 
+`archive-conflict` restores the same archive into a fresh image whose domain
+already holds two written objects and two collections: one object occupies an
+archived slot, the other carries the name of another archived object;
+collection 1 has the archived name, collection 2 another name. The expected end
+state comes from `volume_archive.expected_restore`, which follows the restore
+rule above and shares no code with `volume-core`. The stage requires at least
+one slot conflict, name conflict, uncollected object and reused collection.
+Both conflicting archived objects stay unrestored, the pre-existing objects
+stay at revision 1, collection 2 is not renamed, and the archived object that
+referred to it is restored outside a collection. The conflict and plain restore
+oracles each refuse the other stage's after-image. Two rules cannot be reached
+with this two-collection archive and are host tests in
+`services/volume/tests/archive.rs` instead: no collection is created for a
+conflicting object, and an uncollected object without other metadata stays at
+revision 1.
+
 **Still open for S09:** a user-chosen target behind its own capability (not a
 fixture range on the same disk); export to documented common formats; the
-encrypted NAS/provider variant; a user-facing task; native name-conflict and
-full-target cases; a second simultaneously attached disk (archive and volume
+encrypted NAS/provider variant; a user-facing task; a native full-target case;
+a second simultaneously attached disk (archive and volume
 share one virtual device here). Plaintext archives are used only on
 harness-assigned local test images.
