@@ -32,6 +32,10 @@ const RUN_TICKS: u64 = 60_000;
 const ARCHIVE_FIRST_SECTOR: u64 = 1000;
 const ARCHIVE_SECTORS: u64 = 1040;
 const _: () = assert!(FIRST_SECTOR + SECTORS <= ARCHIVE_FIRST_SECTOR);
+/// Full-target case: the portal's archive scope is cut to fewer sectors than
+/// the exported fixture archive needs (180).
+const FULL_SECTORS: u64 = 100;
+const _: () = assert!(FULL_SECTORS < ARCHIVE_SECTORS);
 
 #[derive(Clone, Copy)]
 struct AppEvidence {
@@ -236,6 +240,8 @@ fn case() -> u64 {
         9
     } else if cfg!(feature = "test-volume-archive-conflict") {
         10
+    } else if cfg!(feature = "test-volume-archive-full") {
+        11
     } else {
         0
     }
@@ -244,10 +250,10 @@ fn case() -> u64 {
 fn read_only() -> bool {
     cfg!(feature = "test-system-recover") || matches!(case(), 1 | 4 | 5)
 }
-/// Archive export writes only the archive range: the device stays writable,
-/// but the volume service receives READ alone.
+/// Archive export (also into a too-small target) writes only the archive
+/// range: the device stays writable, but the volume service receives READ alone.
 fn service_read_only() -> bool {
-    read_only() || case() == 7
+    read_only() || matches!(case(), 7 | 11)
 }
 fn marker() -> &'static [u8] {
     match case() {
@@ -259,6 +265,7 @@ fn marker() -> &'static [u8] {
         8 => b"VOLUME:CASE:ARCHIVE_RESTORE:PASS\n",
         9 => b"VOLUME:CASE:ARCHIVE_CORRUPT:PASS\n",
         10 => b"VOLUME:CASE:ARCHIVE_CONFLICT:PASS\n",
+        11 => b"VOLUME:CASE:ARCHIVE_FULL:PASS\n",
         _ => b"VOLUME:FAIL:CUT_NOT_OBSERVED\n",
     }
 }
@@ -462,7 +469,7 @@ pub fn manifest(s: &mut State) {
     {
         fail(b"READONLY_RIGHTS");
     }
-    if matches!(case(), 7..=10) {
+    if matches!(case(), 7..=11) {
         archive_grant(s, e, service, clients, block);
     }
     if !e.check_invariants() {
@@ -476,15 +483,21 @@ pub fn manifest(s: &mut State) {
 }
 
 /// S09 fixture grant: the slot-1 portal alone receives the archive range;
-/// export READ|WRITE|FLUSH; restore, corrupt and conflict READ only. The service and
-/// slot 2 keep exactly their earlier authority.
+/// export READ|WRITE|FLUSH; restore, corrupt and conflict READ only; the
+/// full-target export READ|WRITE|FLUSH on the first FULL_SECTORS only. The
+/// service and slot 2 keep exactly their earlier authority.
 fn archive_grant(s: &mut State, e: &mut Engine, service: u64, clients: [u64; 2], block: u64) {
+    let writes = matches!(case(), 7 | 11);
     let scope = BlockScope {
         device: 0,
         first_sector: ARCHIVE_FIRST_SECTOR,
-        sector_count: ARCHIVE_SECTORS,
+        sector_count: if case() == 11 {
+            FULL_SECTORS
+        } else {
+            ARCHIVE_SECTORS
+        },
     };
-    let rights = if case() == 7 {
+    let rights = if writes {
         BLOCK_READ | BLOCK_WRITE | BLOCK_FLUSH
     } else {
         BLOCK_READ
@@ -514,7 +527,7 @@ fn archive_grant(s: &mut State, e: &mut Engine, service: u64, clients: [u64; 2],
     if auth.scope() != scope {
         fail(b"ARCHIVE_SCOPE");
     }
-    if case() != 7
+    if !writes
         && (e.check_block(clients[0], handle, BLOCK_WRITE).is_ok()
             || e.check_block(clients[0], handle, BLOCK_FLUSH).is_ok())
     {
@@ -1072,11 +1085,13 @@ fn finish(s: &mut State) -> ! {
         }
         // Export: every write and flush went to the archive range and the
         // portal read the archive back; restore, corrupt and conflict only
-        // read it.
+        // read it. Full target: the export filled exactly the cut scope and
+        // never flushed, and the portal read the unfinished range back.
         let a = r.archive_ops;
         let archive = match case() {
             7 => a[0] > 0 && a[1] > 0 && a[2] > 0 && r.publications[1..] == a[1..],
             8..=10 => a[0] > 0 && a[1..] == [0, 0],
+            11 => a[0] > 0 && a[1..] == [FULL_SECTORS, 0] && r.publications[1..] == a[1..],
             _ => a == [0; 3],
         };
         if !archive {
@@ -1151,7 +1166,7 @@ fn finish(s: &mut State) -> ! {
     print_number(b"VOLUME:BROKER:FLUSHES:", r.publications[2]);
     print_number(b"VOLUME:BROKER:TABLE_SECTOR_WRITES:", r.table_writes);
     print_number(b"VOLUME:BROKER:DATA_SECTOR_WRITES:", r.data_writes);
-    if matches!(case(), 7..=10) {
+    if matches!(case(), 7..=11) {
         print_number(b"VOLUME:ARCHIVE:READS:", r.archive_ops[0]);
         print_number(b"VOLUME:ARCHIVE:WRITES:", r.archive_ops[1]);
         print_number(b"VOLUME:ARCHIVE:FLUSHES:", r.archive_ops[2]);

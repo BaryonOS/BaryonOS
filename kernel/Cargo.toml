@@ -300,6 +300,7 @@ test-volume-archive-export = ["native-volume"]
 test-volume-archive-restore = ["native-volume"]
 test-volume-archive-corrupt = ["native-volume"]
 test-volume-archive-conflict = ["native-volume"]
+test-volume-archive-full = ["native-volume"]
 
 # B03 signed updates: generic broker over the slot store, one ring-3 update
 # service; the kernel's own version comes from the build env NOS_IMAGE_VERSION.

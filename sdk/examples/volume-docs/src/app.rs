@@ -47,12 +47,17 @@ const ARCHIVE_RESTORE: u64 = 8;
 const ARCHIVE_CORRUPT: u64 = 9;
 #[cfg(feature = "archive-portal")]
 const ARCHIVE_CONFLICT: u64 = 10;
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_FULL: u64 = 11;
 /// Startup word with the portal's archive range capability (slot 1, archive
 /// cases only); the range size must equal the kernel manifest's scope.
 #[cfg(feature = "archive-portal")]
 const ARCHIVE_HANDLE: u64 = 504;
 #[cfg(feature = "archive-portal")]
 const ARCHIVE_SECTORS: u64 = 1040;
+/// Scope of the full-target case, below the 180 sectors the export needs.
+#[cfg(feature = "archive-portal")]
+const FULL_SECTORS: u64 = 100;
 /// Private, zeroed 64 KiB RW/NX heap the kernel maps for every process
 /// before entry; the portal's only use is the archive content scratch.
 #[cfg(feature = "archive-portal")]
@@ -821,10 +826,12 @@ fn portal(app: &mut App, case: u64) {
         Handle::from_raw(support::word(ARCHIVE_HANDLE)).unwrap_or_else(|_| fail(700)),
     );
     // The capability ends at its scope: the first sector past it is refused.
-    check(
-        native::block_read(device, ARCHIVE_SECTORS, 0, 128).is_err(),
-        701,
-    );
+    let sectors = if case == ARCHIVE_FULL {
+        FULL_SECTORS
+    } else {
+        ARCHIVE_SECTORS
+    };
+    check(native::block_read(device, sectors, 0, 128).is_err(), 701);
     // SAFETY: the kernel maps HEAP..HEAP+64 KiB private, zeroed RW/NX for this
     // process before entry and nothing else here uses it; this is the only
     // reference, held for the rest of the portal run on one thread.
@@ -949,6 +956,35 @@ fn portal(app: &mut App, case: u64) {
             app.collection_is(0, 2, Some("Anders"), 1, 797);
             check(app.list(0, 799).1 == 5, 800);
         }
+        ARCHIVE_FULL => {
+            // Same read-only source as export, but the target is too small.
+            verify_final(app, FINAL_A, 802);
+            let mut sink = DiskSink::new(&mut disk, FULL_SECTORS);
+            check(
+                archive::export(&mut app.client, 0, &mut sink) == Err(Status::Full),
+                810,
+            );
+            // No finish: a failed export is never padded or flushed.
+            // The kernel also refuses a write past the cut scope.
+            check(
+                native::block_write(device, FULL_SECTORS, &[0; 512]).is_err(),
+                811,
+            );
+            // The unfinished range is not an archive: its header claims more
+            // than the range holds.
+            check(
+                archive::verify(&mut DiskSource::new(&mut disk, FULL_SECTORS), scratch)
+                    == Err(Status::Corrupt),
+                812,
+            );
+            // The source volume still answers; the host checks its bytes.
+            check(app.list(0, 813).1 == FINAL_A.len(), 814);
+            let object = app.object(7);
+            check(
+                app.client.write(object, 0, b"Nee", 1, fill(object, 1)) == Err(Status::Access),
+                815,
+            );
+        }
         _ => fail(769),
     }
     app.phase(2);
@@ -1005,13 +1041,15 @@ fn run() {
         #[cfg(not(feature = "archive-portal"))]
         RECOVER_CUT => recover_cut(&mut app),
         #[cfg(feature = "archive-portal")]
-        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT if domain == 0 => {
+        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT | ARCHIVE_FULL
+            if domain == 0 =>
+        {
             portal(&mut app, case)
         }
         // The ordinary app holds no archive authority; it reports its domain
         // only after the portal finished its archive I/O (kernel gate 2).
         #[cfg(feature = "archive-portal")]
-        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT => {
+        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT | ARCHIVE_FULL => {
             app.phase(1);
             app.wait_gate(2);
             app.report(760)

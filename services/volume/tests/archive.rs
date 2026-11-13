@@ -784,11 +784,16 @@ fn sectors_for(length: usize) -> usize {
 }
 
 fn export_to_range(big: usize, range: &mut Range) -> Result<u64, Status> {
+    let capacity = range.sectors.len() as u64;
+    export_scoped(big, range, capacity)
+}
+
+/// Export into the first `capacity` sectors of `range` (a cut target scope).
+fn export_scoped(big: usize, range: &mut Range, capacity: u64) -> Result<u64, Status> {
     let mut disk = SimDisk::new();
     let mut service = Service::new(EPOCH, Table::EMPTY, false);
     let mut source = client(&mut service, &mut disk, 0);
     populate(&mut source, big);
-    let capacity = range.sectors.len() as u64;
     let mut sink = DiskSink::new(range, capacity);
     archive::export(&mut source, 0, &mut sink)?;
     sink.finish()
@@ -846,6 +851,39 @@ fn disk_sink_reports_full_at_the_exact_boundary_and_device_errors() {
         failing.fail_write_at = Some(at);
         assert_eq!(export_to_range(big, &mut failing), Err(Status::Io));
         assert_eq!(failing.flushes, 0);
+    }
+}
+
+#[test]
+fn full_target_leaves_no_archive_and_a_later_export_over_it_verifies() {
+    let big = CHUNK + 1;
+    let bytes = exported(big);
+    let needed = sectors_for(bytes.len());
+    // One sector short (only the buffered tail is missing: `finish` reports
+    // Full) and half the archive (the stream itself reports Full).
+    for short in [needed as u64 - 1, needed as u64 / 2] {
+        let mut range = Range::new(needed);
+        assert_eq!(export_scoped(big, &mut range, short), Err(Status::Full));
+        assert_eq!(range.flushes, 0);
+        assert!(range.sectors[short as usize..]
+            .iter()
+            .all(|sector| *sector == [0xA5; SECTOR]));
+        // Neither the cut scope nor a scope that fits accepts the leftover.
+        for capacity in [short, needed as u64] {
+            assert_eq!(
+                archive::verify(&mut DiskSource::new(&mut range, capacity), &mut scratch()),
+                Err(Status::Corrupt),
+                "short {short}, capacity {capacity}"
+            );
+        }
+        // A retry into a target that fits overwrites the leftover and verifies.
+        assert_eq!(export_to_range(big, &mut range), Ok(bytes.len() as u64));
+        assert_eq!(&range.bytes()[..bytes.len()], &bytes[..]);
+        assert!(archive::verify(
+            &mut DiskSource::new(&mut range, needed as u64),
+            &mut scratch()
+        )
+        .is_ok());
     }
 }
 
