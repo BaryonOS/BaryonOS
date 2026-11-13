@@ -61,6 +61,20 @@ A test that was not run is not a passing test. The current repository ruleset re
 - Bind evidence to the exact source revision; an old green run is not evidence for a new head.
 - The 0–100% progress score increases only when an existing criterion is fully and demonstrably accepted. It may decrease when a previously accepted criterion returns to Open because of a regression, missing evidence, or an earlier claim that proved too broad. Assessment fields are updated after every task, even if the score is unchanged.
 
+### Holding a pull request for native acceptance
+
+Only `host-quality`, `qemu-smoke` and `merge-hold` gate merging. Native
+matrices, soaks and final gates that run outside those checks, for example by
+manual dispatch, do not block a merge on their own, and a job skipped by its
+`if` condition reports success. When a pull request's merge condition
+includes such acceptance:
+
+- set the `acceptance-pending` label before enabling auto-merge or requesting
+  a merge; `merge-hold` then fails;
+- remove the label only after the acceptance has passed, not been skipped, on
+  the current head commit;
+- set the label again after any new push that invalidates that evidence.
+
 CodeRabbit and other automated review systems are additional review layers. They do not change the acceptance criteria and do not replace required runtime tests or independent human review.
 
 ## Licensing contributions

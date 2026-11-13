@@ -1,0 +1,35 @@
+# Required merge gate for PRs whose acceptance runs outside the required checks.
+# While the `acceptance-pending` label is set, this check fails, so neither a
+# manual merge nor auto-merge can complete. The owning session removes the
+# label only after its native acceptance (for example a dispatch-only matrix
+# and final gate) has passed on the PR's head commit. See
+# ADR-MERGE-HOLD-20261113 in docs/DECISIONS.md.
+name: Merge hold
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: merge-hold-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  merge-hold:
+    name: merge-hold
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions: {}
+    steps:
+      - name: Fail while native acceptance is pending
+        env:
+          ACCEPTANCE_PENDING: ${{ contains(github.event.pull_request.labels.*.name, 'acceptance-pending') }}
+        run: |
+          if [ "$ACCEPTANCE_PENDING" = "true" ]; then
+            echo "::error::The 'acceptance-pending' label is set. Remove it only after the required native acceptance has passed on this head commit."
+            exit 1
+          fi
+          echo "No acceptance hold is set."

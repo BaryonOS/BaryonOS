@@ -5,6 +5,48 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-MERGE-HOLD-20261113 — Label-driven required merge hold for out-of-band acceptance
+
+Status: accepted, 13 November 2026, on the project owner's instruction after
+#296 merged before its K06 acceptance matrix had finished.
+
+**Context:**
+
+- #296 was squash-merged by auto-merge, enabled two days earlier, as soon as
+  the only required checks `host-quality` and `qemu-smoke` passed.
+- The dispatch-only SMP matrix later failed: `SMP 50/50 (eight)`,
+  `(resched-deaf)` and the 65x50 aggregate.
+- Requiring `SMP final repository gate` directly would not help. On pull
+  request events that job is skipped, and GitHub documents that a skipped job
+  reports success, even for a required check. A check that never runs on pull
+  requests would instead block every pull request.
+
+**Decision:**
+
+- `.github/workflows/merge-hold.yml` runs a job named `merge-hold` on every
+  pull request: opened, synchronize, reopened, labeled and unlabeled. It has no
+  path filter, no `if`, no checkout and an empty token permission set.
+- The job fails while the `acceptance-pending` label is set.
+- The owning session sets the label when a merge condition includes
+  non-required acceptance. It removes the label only after that acceptance has
+  passed on the head commit.
+- `merge-hold` is added to the required status checks of the `main` ruleset,
+  but only after the workflow is on `main` and reports on pull requests.
+
+**Consequences:**
+
+- Auto-merge or a manual merge cannot complete while the hold is set.
+- After the ruleset change, an open pull request without a `merge-hold`
+  result waits until its next push or label event. That is a fail-closed
+  effect.
+- The measure depends on owners setting the label; it does not detect
+  out-of-band acceptance by itself. A contract test executes the job's shell
+  step for set and unset labels and pins the trigger, permissions and absence
+  of filters.
+
+**Revise when:** a reliable, always-reporting aggregate of out-of-band
+acceptance becomes available, or the merge queue is adopted.
+
 ## ADR-PROJECT-SYNC-20261111 — Fact-derived Status and backfill for Project #5
 
 Status: accepted, 11 November 2026, on the project owner's instruction to
