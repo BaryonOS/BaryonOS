@@ -1,9 +1,8 @@
-# Required merge gate for PRs whose acceptance runs outside the required checks.
-# While the `acceptance-pending` label is set, this check fails, so neither a
-# manual merge nor auto-merge can complete. The owning session removes the
-# label only after its native acceptance (for example a dispatch-only matrix
-# and final gate) has passed on the PR's head commit. See
-# ADR-MERGE-HOLD-20261113 in docs/DECISIONS.md.
+# Merge gate for PRs whose acceptance runs outside the required checks.
+# While the `acceptance-pending` label is set, this check fails unless a trusted
+# participant commented `acceptance-released: <head SHA>` for the current head
+# commit. A new push changes the SHA and re-arms the hold. Labels and comments
+# are read live (tools/merge_hold.py). See ADR-MERGE-HOLD-20261113.
 name: Merge hold
 
 on:
@@ -21,15 +20,21 @@ jobs:
   merge-hold:
     name: merge-hold
     runs-on: ubuntu-24.04
-    timeout-minutes: 2
-    permissions: {}
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
     steps:
-      - name: Fail while native acceptance is pending
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Fail while acceptance is pending for this head commit
+        shell: bash
         env:
-          ACCEPTANCE_PENDING: ${{ contains(github.event.pull_request.labels.*.name, 'acceptance-pending') }}
-        run: |
-          if [ "$ACCEPTANCE_PENDING" = "true" ]; then
-            echo "::error::The 'acceptance-pending' label is set. Remove it only after the required native acceptance has passed on this head commit."
-            exit 1
-          fi
-          echo "No acceptance hold is set."
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 -B tools/merge_hold.py

@@ -694,8 +694,8 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
             with self.subTest(built=changed):
                 self.assertFalse(ignored(changed))
 
-    def test_merge_hold_is_an_unfiltered_label_driven_required_gate(self):
-        """The hold must always report, run cheaply and fail only while labelled."""
+    def test_merge_hold_is_an_unfiltered_live_read_required_gate(self):
+        """The hold must always report, read live state and never be skipped."""
         path = ".github/workflows/merge-hold.yml"
         workflow = self.workflows[path]
         trigger = workflow["on"]["pull_request"]
@@ -704,32 +704,34 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
             set(trigger["types"]),
             {"opened", "synchronize", "reopened", "labeled", "unlabeled"},
         )
-        self.assertNotIn("paths", trigger)
-        self.assertNotIn("paths-ignore", trigger)
-        self.assertNotIn("branches", trigger)
+        for key in ("paths", "paths-ignore", "branches", "branches-ignore"):
+            self.assertNotIn(key, trigger)
+        self.assertNotIn("defaults", workflow)
         self.assertEqual(list(workflow["jobs"]), ["merge-hold"])
         job = workflow["jobs"]["merge-hold"]
         self.assertEqual(job["name"], "merge-hold")
-        self.assertEqual(job["permissions"], {})
-        for key in ("if", "needs", "continue-on-error", "strategy"):
-            self.assertNotIn(key, job)
-        (step,) = job["steps"]
-        self.assertNotIn("uses", step)
         self.assertEqual(
-            step["env"]["ACCEPTANCE_PENDING"],
-            "${{ contains(github.event.pull_request.labels.*.name, "
-            "'acceptance-pending') }}",
+            job["permissions"],
+            {"contents": "read", "issues": "read", "pull-requests": "read"},
         )
-        self.assertNotIn("${{", step["run"])
-        for pending, expected in (("true", 1), ("false", 0), ("", 0)):
-            with self.subTest(pending=pending):
-                result = subprocess.run(
-                    ["bash", "-e", "-o", "pipefail", "-c", step["run"]],
-                    env={"PATH": os.environ.get("PATH", ""),
-                         "ACCEPTANCE_PENDING": pending},
-                    capture_output=True, text=True, check=False, timeout=10,
-                )
-                self.assertEqual(result.returncode, expected, result.stdout)
+        for key in ("if", "needs", "continue-on-error", "strategy", "defaults",
+                    "container", "services"):
+            self.assertNotIn(key, job)
+        checkout, decide = job["steps"]
+        self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
+        self.assertEqual(checkout["with"], {"persist-credentials": "false"})
+        for step in (checkout, decide):
+            for key in ("if", "continue-on-error", "working-directory"):
+                self.assertNotIn(key, step)
+        self.assertNotIn("uses", decide)
+        self.assertEqual(decide["shell"], "bash")
+        self.assertEqual(decide["run"].strip(), "python3 -B tools/merge_hold.py")
+        self.assertEqual(decide["env"], {
+            "GH_TOKEN": "${{ github.token }}",
+            "REPO": "${{ github.repository }}",
+            "PR_NUMBER": "${{ github.event.pull_request.number }}",
+            "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",
+        })
 
     def test_only_artifact_uploads_can_tolerate_errors(self):
         """Storage failure may be optional; failed builds, tests and collectors are not."""

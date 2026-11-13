@@ -5,44 +5,55 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
-## ADR-MERGE-HOLD-20261113 — Label-driven required merge hold for out-of-band acceptance
+## ADR-MERGE-HOLD-20261113 — SHA-bound required merge hold for out-of-band acceptance
 
 Status: accepted, 13 November 2026, on the project owner's instruction after
 #296 merged before its K06 acceptance matrix had finished.
 
 **Context:**
-
-- #296 was squash-merged by auto-merge, enabled two days earlier, as soon as
-  the only required checks `host-quality` and `qemu-smoke` passed.
-- The dispatch-only SMP matrix later failed: `SMP 50/50 (eight)`,
-  `(resched-deaf)` and the 65x50 aggregate.
-- Requiring `SMP final repository gate` directly would not help. On pull
-  request events that job is skipped, and GitHub documents that a skipped job
-  reports success, even for a required check. A check that never runs on pull
-  requests would instead block every pull request.
+- #296 was squash-merged at 2026-11-12 00:15:40 UTC by auto-merge, which had
+  been enabled on 10 November. At that time only the required checks
+  `host-quality` and `qemu-smoke` had passed on head `95bdf4cb`.
+- The SMP matrix that was dispatched on that head later reported failures:
+  `SMP 50/50 (eight)`, `SMP 50/50 (resched-deaf)` and the 65x50 aggregate.
+- Requiring the dispatch-only `SMP final repository gate` directly would not
+  help. On pull request events that job is skipped, and GitHub documents that
+  a job skipped by a conditional reports success.
+- The same day the project owner decided that sessions may create and update
+  draft PRs autonomously, but never merge, or enable auto-merge, without
+  explicit approval.
 
 **Decision:**
+- `.github/workflows/merge-hold.yml` runs `tools/merge_hold.py` on every pull
+  request opened, synchronize, reopened, labeled and unlabeled event. It has
+  no path filter and no `if`, and runs with read-only permissions.
+- The script reads labels and comments live through REST and fails closed on
+  any API or input error.
+- With the `acceptance-pending` label present, the check passes only when a
+  participant whose author association is OWNER, MEMBER or COLLABORATOR has
+  commented the exact line `acceptance-released: <head SHA>`. A new push
+  changes the SHA and re-arms the hold.
+- `merge-hold` is added to the `main` ruleset's required checks, pinned to the
+  GitHub Actions app (integration 15368). This happens only after the workflow
+  is on `main`, its behaviour has been verified on a pull request, and the
+  open pull requests have been notified.
 
-- `.github/workflows/merge-hold.yml` runs a job named `merge-hold` on every
-  pull request: opened, synchronize, reopened, labeled and unlabeled. It has no
-  path filter, no `if`, no checkout and an empty token permission set.
-- The job fails while the `acceptance-pending` label is set.
-- The owning session sets the label when a merge condition includes
-  non-required acceptance. It removes the label only after that acceptance has
-  passed on the head commit.
-- `merge-hold` is added to the required status checks of the `main` ruleset,
-  but only after the workflow is on `main` and reports on pull requests.
-
-**Consequences:**
-
-- Auto-merge or a manual merge cannot complete while the hold is set.
-- After the ruleset change, an open pull request without a `merge-hold`
-  result waits until its next push or label event. That is a fail-closed
-  effect.
-- The measure depends on owners setting the label; it does not detect
-  out-of-band acceptance by itself. A contract test executes the job's shell
-  step for set and unset labels and pins the trigger, permissions and absence
-  of filters.
+**Consequences and limits:**
+- The hold is opt-in. Owners must set the label; the check does not detect
+  out-of-band acceptance by itself.
+- Between setting the label and the failing run being recorded, an earlier
+  success on the same head still counts. The label is therefore set when the
+  pull request is opened or before any merge request.
+- Like every `pull_request` gate, a pull request can change its own workflow
+  and script. The gate protects against omission, not against a malicious
+  writer; review of `.github/` and `tools/` changes remains necessary.
+- A label change made with a workflow's `GITHUB_TOKEN` starts no new run.
+- Once the check is required, disabling or renaming the workflow or job
+  blocks every pull request to `main`. Roll back by first removing the
+  required check from the ruleset, then reverting the workflow.
+- Unit tests cover the decision, pagination and fail-closed paths. A
+  contract test pins the trigger, the permissions and the absence of `if`,
+  `defaults` and filters.
 
 **Revise when:** a reliable, always-reporting aggregate of out-of-band
 acceptance becomes available, or the merge queue is adopted.
