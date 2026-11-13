@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-13",
-    "source_commit": "56724f39375c6557d3e763e286a00716554313d7",
+    "source_commit": "1a99a1d422ebec458febcac69920d2d49a18c6da",
     "assessment_basis": "source_commit",
     "branch": "ccr-cf45024e-merge-hold",
-    "task": "Add the label-driven merge-hold required gate so out-of-band native acceptance cannot be bypassed by auto-merge (ADR-MERGE-HOLD-20261113)",
+    "task": "Add the SHA-bound, live-reading merge-hold required gate and record the owner's no-auto-merge decision (ADR-MERGE-HOLD-20261113)",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Merge-governance tooling only: a cheap, always-reporting merge-hold check fails while the acceptance-pending label is set; no OS functionality, native gate or product criterion changes."
+    "summary": "41/100 remains 41/100. Merge-governance tooling only: merge-hold fails while acceptance-pending is set unless a trusted acceptance-released comment names the current head SHA; no OS functionality, native gate or product criterion changes."
   },
   "tracks": [
     {
