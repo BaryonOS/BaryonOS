@@ -200,9 +200,61 @@ archive. It does not show that a failed export invalidates an older archive
 already in the range; an older archive whose leading sectors equal the new
 stream would still verify as that older archive.
 
+## User export to ustar (proposed format, host-tested, 13 November 2026)
+
+**Status:** proposed for confirmation by the project owner (D6 in
+[S09-BACKUP-DESTINATION-PROPOSAL.md](S09-BACKUP-DESTINATION-PROPOSAL.md));
+host-tested only. It changes no capability. It has no native stage, because
+writing it out needs a destination (D1).
+
+`ustar::from_archive` converts a format-v1 archive into a POSIX.1-1988 ustar
+stream, with POSIX.1-2001 pax `path` records for names that are not ASCII.
+Common tools open it without Baryon OS.
+- **Layout.** Per object, in slot order, one regular file holding its bytes
+  as stored: `<collection>/<name>` for a collected object, `<name>` otherwise.
+  There are no directory entries, so an empty collection is not exported.
+  A path is at most 65 bytes and fits the 100-byte ustar name field; a
+  compile-time assertion pins this.
+- **Fixed fields.** Mode 0644, uid and gid 0, empty owner names and mtime 0.
+  Object times are a per-domain logical clock, not wall-clock time. Equal
+  archives give equal bytes.
+- **Lossy by design.** Kind, tags, revisions, times, slots and collection
+  indices are dropped. The export is for other systems, not a recovery copy,
+  and nothing restores from it. Content is not converted: the volume has no
+  registry of kinds, so a document is exported as the bytes it holds.
+- **Refusals.** Two objects with one path, or an uncollected object whose name
+  equals a declared collection's name (a file and a directory at one path),
+  give `Invalid`. Nothing is renamed.
+- **Order of checks.** Each file is written while `archive::walk` checks its
+  object. The two end-of-archive blocks are written only after the trailer and
+  the end of the stream have been checked. Common readers accept a stream
+  without those blocks, so the caller verifies the same bytes first and
+  discards the output on any error, as for restore.
+- **Names.** Object and collection names are UTF-8 without control
+  characters, `/`, `\` or bidirectional controls, and are never `.` or `..`,
+  so a path cannot leave its directory. Not handled: characters that Windows
+  forbids in file names (for example `:` or `?`), and names that differ only
+  in case, which collide when extracted on a case-insensitive file system.
+
+**Evidence (host).** Three `volume-core` tests in
+`services/volume/tests/archive.rs`:
+- Python's standard `tarfile` module is the independent reader. It reads an
+  export that contains a collection, a multi-chunk object, an empty object and
+  the name `Notitie ✓`. Names, the pax `path` record, type, size, mode, mtime,
+  uid, gid and content all match, and a second conversion gives equal bytes.
+- An archive with a flipped trailer byte gives `Corrupt`, and the output then
+  lacks exactly the two end-of-archive blocks.
+- Resealed archives that `verify` accepts but whose paths collide give
+  `Invalid`.
+
+Seven mutants of the converter were each killed: no pax record, no
+file/directory check, no duplicate check, a checksum off by one, mode 0600,
+end blocks before the trailer check, and no content padding. Not checked: GNU
+tar, bsdtar and Windows `tar` as readers, and a native stage.
+
 **Still open for S09:** a user-chosen target behind its own capability (not a
-fixture range on the same disk); export to documented common formats; the
-encrypted NAS/provider variant; a user-facing task;
+fixture range on the same disk); confirmation of the proposed ustar export
+(D6) and a native stage that writes it out; the encrypted NAS/provider variant; a user-facing task;
 a second simultaneously attached disk (archive and volume
 share one virtual device here). Plaintext archives are used only on
 harness-assigned local test images. The destination and its capability
