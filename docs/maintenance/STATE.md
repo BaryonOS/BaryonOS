@@ -73,8 +73,14 @@ Merges into PR branches are non-fast-forward merges of `origin/main`; no rebase 
 ## Next step
 
 - Fix any CI failure that Auto-fix reports on #320 (bound to this session).
-- Next eligible maintenance task: issue and discussion templates still link to
+- Low-priority finding, deferred: 154 links in 34 files still point to
   `github.com/simonvanieperen/BaryonOS` (GitHub redirects them after the
-  transfer); a small link-update PR, after #313 merges to avoid overlap.
+  transfer). `tests/test_ci_workflows.py` pins two of them as canonical
+  milestone links that must match the GitHub milestone descriptions, so a
+  migration also changes milestone text on GitHub. Historical records
+  (`DECISIONS.md`, `PROJECT-STATE.md`, `docs/history/`) should keep their links.
+  `tools/publication_audit.py` already uses `BaryonOS/BaryonOS` (id 1435549142,
+  matches the live repository). Do it when no other session is editing
+  `README.md`, `docs/ROADMAP.md` or the wiki pages.
 - Act on approval-queue answers; recheck head commit, required checks, review
   state and mergeability immediately before any approved merge.
