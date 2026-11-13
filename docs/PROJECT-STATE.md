@@ -1,6 +1,87 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 step 5f accepted: full matrix 43429991481 and the final gate pass on `880984b` — 13 November 2026
+## NEXT AGENT HANDOFF — Security alert summary and Project #5 access — 11 November 2026
+
+**Source:** branch `ccr-db0981b4-k5rug1` from main
+`c520703b17169912691132b15d2306c9a5199de9`; `main` `bf4aa716` merged in on
+13 November 2026 without changes to this work.
+
+**Problem:** agent sessions cannot read the backlog's security inputs or
+Project #5. GraphQL and organisation `projectsV2` routes are blocked by the
+session proxy. Dependabot and code-scanning alerts return "Resource not
+accessible by integration". Secret-scanning alerts are blocked by the proxy.
+These limits belong to the session platform; repository settings cannot lift
+them.
+
+**Route:** GitHub Actions does the work, and a session dispatches the runs and
+reads their logs through the GitHub connector.
+
+- Project #5: the project owner configured `BARYON_PROJECTS_TOKEN`. Dry-run
+  43117446009 on `c520703` passed: 43 items scanned, 38 fill-only field
+  suggestions, 0 changes. This proves GraphQL access with the token.
+- Alerts (this change): `.github/workflows/security-alerts.yml` and
+  `tools/security_alerts_summary.py` (ADR-CI-SECURITY-ALERTS-20261111). Logs are
+  public, so the summary publishes only publicly derivable Dependabot fields and
+  aggregate code-scanning counts. Secret scanning stays manual.
+
+**Evidence:**
+- 18 local tests pass (`tests/test_security_alerts_summary.py`) on Python
+  3.12 and 3.13.
+- 21 CI-workflow contract tests pass.
+- actionlint 1.7.12 passes over all workflows.
+- `progress.py --check` passes.
+- Hosted PR run 43118954606 on `4cc4ecd` passed. GitHub accepted the
+  `vulnerability-alerts` scope and both lists were read: 0 open Dependabot
+  alerts and 26 open code-scanning alerts (CodeQL: 19 critical, 7 high).
+
+**Open:**
+- Triage of the 26 code-scanning alerts (13 November 2026): the three
+  JavaScript alerts are fixed in draft PR #320; the 23 Rust alerts were
+  classified as test fixtures or false positives and await the project owner's
+  decision. No alert was dismissed.
+- PR #314 merged on 12 November 2026 (`1a3feb92`). Its Project #5 dry-run on
+  that commit passed (run 43136541042, `APPLY: false`), followed by two applied
+  runs (43136951547, 43137042857); scheduled runs have succeeded since.
+
+**Acceptance:** 41/100 → 41/100; CI and backlog tooling only.
+
+**Next:** the project owner's decision on the proposed classification of the
+23 Rust code-scanning alerts; then `python3 tools/progress.py --check`.
+
+## Previous checkpoint — K06 branch documentation ported; old K06 pull requests ready to close — 13 November 2026
+
+**Source:** branch `docs/k06-branch-docs-port` from `main` `c76daf7` (PR #317 squash-merged at 18:25 UTC; all 19
+workflow runs on `c76daf7` succeeded). Documentation only: no file in `source_hash()` changes.
+
+**Finding:** the code of the unmerged K06 pull requests #227, #229, #238 and #246 is on `main` through #296; every kernel
+feature and `run_smp.py` profile they add exists there. Their documentation and the specifications of #232 never
+reached `main`: the bodies of ADR-075 and ADR-077 to ADR-081 (recorded as missing in
+`verification/k06-smp-sched/timing-investigation/map/K06A-SPEC.md`), the branch addenda to ADR-074 and ADR-072, the ten
+L0 step specifications and 42 branch evidence files.
+
+**Change:**
+- [history/k06-branch-prs-2026-11-06/](history/k06-branch-prs-2026-11-06/README.md): the Dutch originals, byte-identical
+  (git blob ids in `disposition.json`), and per pull request a documentation patch that reproduces its head exactly
+  from its merge base; `disposition.json` records, per changed file, where its content now is.
+- `docs/DECISIONS.md`: English ADR-075, ADR-077 to ADR-081 and ADR-083. ADR-083 was ADR-076 on the branches; `main`
+  already uses ADR-076 for ACPI S5, and `kernel/src/m2/arch.rs` still cites "ADR-076 GS-1..GS-10" (left unchanged to
+  keep the source fingerprint). English branch addenda to ADR-074 and ADR-072; revision note on ADR-024.
+- `docs/implementation/k06-steps/`: English L0 step specifications; `docs/implementation/K06-SMP.md`: an English
+  section "Branch additions, 6–11 November 2026".
+
+**Not changed:** code, workflows, evidence of the accepted run, scores. Status handoffs, progress assessments and
+`tools/auto-loop.sh` of the old branches are superseded and only archived.
+
+**Checks:** `source_hash()` unchanged (`e693759d…`); `progress.py --check` consistent; 111 relative links resolve. The
+translations were compared with the Dutch originals by a separate AI fidelity pass (numbers, IDs, paths, backticked
+spans, structure); no human review. The historical texts keep branch-era paths and line numbers.
+
+**Next:** after the project owner's approval, merge this pull request and close #227, #229, #232, #238 and #246 with a
+reference to the archive; their branches stay in place.
+
+**Progress:** 41/100 → 41/100.
+
+## Previous checkpoint — K06 step 5f accepted: full matrix 43429991481 and the final gate pass on `880984b` — 13 November 2026
 
 **Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Tested commit `880984bb29c316e606490c0fa235b119ed4bb553` (source-v3 `e693759d89705970ecaa9c315b0423261fdc7924235af566beb363419eabd255`). Later commits change verification and documentation files only.
 
