@@ -16,6 +16,8 @@ re-triage. It is not a roadmap and does not change any progress criterion.
 
 ## Snapshot — 13 November 2026, 21:00 (Europe/Amsterdam)
 
+Update 22:22: `origin/main` is at `f9c3bb7d` (#320). The paragraph below describes `bf4aa716`.
+
 `origin/main` at `bf4aa716` (#319). Latest run per workflow on `main` is green,
 including `native-window-session` on `c76daf7b` (run 43482464397). The only red
 run on `bf4aa716` is the GitHub-managed `Copilot` reviewer (run 43501362868): its
@@ -61,23 +63,25 @@ Merges into PR branches are non-fast-forward merges of `origin/main`; no rebase 
 
 ## Approval queue (project owner)
 
-Status read at 22:30 (Europe/Amsterdam). All four updated PRs are drafts with
-no review decision and 0 unresolved review threads; `host-quality` passed on
-each head. Remaining pending checks were native QEMU gates (`native-smp`,
-`native-window-session`, `native-system`) and CodeQL Rust on #315.
+The project owner approved the queue #320 → #313 → #316 → #315 on 13 November
+2026 and chose the merge gate: the required checks (`host-quality`,
+`qemu-smoke`) for #320 and #313, whose diffs cannot affect the native gates;
+#316 merges only after `native-window-session` passes on its updated head; #315
+follows #316. Before each merge this session rechecks the head SHA, required
+checks, unresolved review threads (the ruleset requires thread resolution),
+mergeability and the changed-file list, and pins the merge to the full head SHA.
+Auto-merge is not armed.
 
-| Order | PR | Head | Risk | Recommendation |
-|---|---|---|---|---|
-| 1 | #320 security fix (3 files) | `77f59101` | Low; no `progress.json` change | Approve; mark ready when the native gates finish. |
-| 2 | #313 docs (3 files) | `aed017fc` | Low | Approve. |
-| 3 | #316 CI harness deadline | `8e7800b7` | Low; harness bound only | Approve after `native-window-session` passes on its head. |
-| 4 | #315 CI/security tooling | `82a1747d` | Low; read-only scheduled workflow | Approve last: it edits the top of `PROJECT-STATE.md` and cites #320. |
+| Order | PR | Status |
+|---|---|---|
+| 1 | #320 security fix | Merged `f9c3bb7d` at head `77f59101`. `native-window-session` (1)/(2) were still running at merge. |
+| 2 | #313 Graphify repository ID | Updated with `main` as `099eb078` (clean merge; diff is its 3 files; `progress.py --check` passes). At 22:22 (Europe/Amsterdam) `qemu-smoke` had passed and `host-quality` was still running; not merged yet. |
+| 3 | #316 window-gate harness deadline | Held at `8e7800b7` until #313 merges, so the hour-long window gate runs once. Then merge `main` once (the `progress.json` assessment will conflict with #313), re-run the 28 + 54 tests, push, and merge after `native-window-session` passes on that head. |
+| 4 | #315 security alert summary | Held at `82a1747d`: updating it before #316 merges would spend a native cycle that the next `main` change invalidates. |
 
-The order is not a batch. #313, #316 and #315 each rewrite the same
-`progress.json` assessment against `bf4aa716`, and the strict up-to-date rule
-puts each remaining PR behind after a merge. After every merge, the next PR
-needs a fresh merge of `main` (re-resolving its assessment) and one CI cycle
-before it can merge. No branch is updated ahead of approval.
+The PRs rewrite the same `progress.json` assessment and the strict up-to-date
+rule puts each remaining PR behind after a merge, so each needs a fresh merge of
+`main` (re-resolving its assessment) and one CI cycle before it can merge.
 
 Decisions without a merge:
 
@@ -92,9 +96,16 @@ Decisions without a merge:
 
 ## Next step
 
-- On resume, first read the checks of #313, #316 and #315 (only #320 is
-  watched by Auto-fix) and fix any failure on those branches.
-- Fix any CI failure that Auto-fix reports on #320 (bound to this session).
+- On resume, first read CodeQL run 43509417219 on `main` (`f9c3bb7d`) and
+  confirm that alerts #1–#3 are closed; until then they are pending
+  verification, not closed.
+- Resume: recheck #313 (head `099eb078`, required checks, threads, files) and squash-merge it pinned to the full head SHA. Then update #316 once from the new `main`, push, and confirm the remote SHA. The project owner says continue when `native-window-session` finishes on #316's new head.
+- #315 after #316 merges: merge `main` (re-resolve the `progress.json`
+  assessment and the top of `PROJECT-STATE.md`), re-run its 18 + 54 tests,
+  push, then gate on the checks its diff can affect (`Analyze (actions)`, its
+  new workflow's run) as well as the two required ones.
+- Auto-fix watches no open PR now that #320 has merged; read the checks of the
+  queued PRs directly.
 - Low-priority finding, deferred: 154 links in 34 files still point to
   `github.com/simonvanieperen/BaryonOS` (GitHub redirects them after the
   transfer). `tests/test_ci_workflows.py` pins two of them as canonical
@@ -104,5 +115,3 @@ Decisions without a merge:
   `tools/publication_audit.py` already uses `BaryonOS/BaryonOS` (id 1435549142,
   matches the live repository). Do it when no other session is editing
   `README.md`, `docs/ROADMAP.md` or the wiki pages.
-- Act on approval-queue answers; recheck head commit, required checks, review
-  state and mergeability immediately before any approved merge.
