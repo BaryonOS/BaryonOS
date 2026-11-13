@@ -163,19 +163,19 @@ as working notes in [`timing-investigation/map/`](timing-investigation/map/READM
 | C4/F10: a recorded lock wait above 400 ms was rejected by the host only | Removed. Records carry no verdict (see ADR-082, "considered and not adopted") |
 | C5/F09: a 1 s stall limit was stricter than the former rule | Fixed. The stall window equals the 2 s limit; such a wait failed before as well |
 | C6/F04: unmeasured observer effect of the clock sampling | Measured, section 3.4 |
-| C7: margin bookkeeping runs inside contended critical sections | Open. Covered only indirectly by section 3.4 |
-| C8: margin keys are source line numbers | Open (records only). The sync wait has a stable name |
-| C9: 36 of 40 `within_ms` limits remain unnamed literals; the aggregate does not summarise margins | Open AC-3 work |
+| C7: margin bookkeeping runs inside contended critical sections | Fixed (section 7): booked after the owner is published, in one slot per lock level, without a table scan |
+| C8: margin keys are source line numbers | Not a blocker (section 7): the waits that carry a verdict have stable names (`sync_wait`, `scratch_wait`); the other records carry no verdict and are compared within one source hash, which the evidence binds |
+| C9: 36 of 40 `within_ms` limits remain unnamed literals; the aggregate does not summarise margins | Fixed (section 7): every deadline is a named constant with its reason, values unchanged; the aggregate keeps the largest margin per wait and case |
 | C10: margin and edge lines are accepted at any position | Unchanged; they carry no verdict |
-| C11: the gate rehearsal job has no refuse step | Open; every acceptance job is skipped in that mode |
+| C11: the gate rehearsal job has no refuse step | Fixed (section 7) |
 | C12/F15: stale comments; ADR-082 said the source was unchanged | Fixed |
 | F01: a fatal `EXTRA` would fail healthy boots | Confirmed in data (section 3.3). ADR-082 D3 does not make `EXTRA` fatal |
-| F02: the receptive witness saw only two spans | Partly closed: a sample is receptive only if exactly one IRQ0 was counted and no other interrupt entered the BSP. Remaining gaps are listed in ADR-082 D3 |
+| F02: the receptive witness saw only two spans | Closed (section 7): entry stamp before the LAPIC read, halt stamp right before `sti`, every AP wake and every AP outside its `hlt` voids the host credit; fixture `clock-other-cpu` |
 | F03/F12/F13: size and shape of the host-loss bound | Open; part of decision D3 |
 | F07: a per-case median rule rejects healthy boots | The rule is not proposed |
-| F08: scratch has no per-CPU progress counter; the lock-pair wait has the same shape | Open; part of decision D2 |
-| F11: fixture coverage | Partly open; required cases are listed in ADR-082 |
-| F14: a deadlock inside the BSP's own sync share ends in the 60 s watchdog without a marker | Open (pre-existing) |
+| F08: scratch has no per-CPU progress counter; the lock-pair wait has the same shape | Fixed for scratch with D2 (section 7). The lock pair keeps its 2 s bound: hosted maximum 4 ms |
+| F11: fixture coverage | Closed (section 7): `scratch-stall`, `scratch-slow`, `clock-other-cpu`; `sync-slow` made independent of poll stretch; oracle and host tests for D1–D3 |
+| F14: a deadlock inside the BSP's own sync share ends in the 60 s watchdog without a marker | Not a blocker (section 7): such a deadlock still fails the boot through the host watchdog; only the marker is missing |
 | F16: a 99 % pass probability cannot be demonstrated by sampling | Agreed; ADR-082, "Statistics" |
 
 ## 5. Verification executed on `4616fb3`

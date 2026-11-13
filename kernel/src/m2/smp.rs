@@ -4464,6 +4464,11 @@ fn lock_pairs(online: usize, total: usize) -> bool {
 const ICR_ROUNDS: u32 = 10_000;
 const ICR_PASSED: u32 = 1;
 const ICR_TIMEOUT: u32 = 2;
+/// Liveness, not performance (as ADR-082 D1): the partner takes each 0xe8 in
+/// its next interrupt window unless the host descheduled its vCPU, while a
+/// lost or misrouted 0xe8 never arrives and still ends the wait. Replaces a
+/// count of 65 536 PAUSEs, whose duration was the host's (K06A-SITES N01).
+const ICR_ACK_MS: u64 = 2_000;
 static ICR_RUN: AtomicBool = AtomicBool::new(false);
 static ICR_FAULT: AtomicBool = AtomicBool::new(false);
 static ICR_RACED: AtomicBool = AtomicBool::new(false);
@@ -4506,11 +4511,17 @@ fn icr_work(local: &CpuLocal, slot: usize) {
             break;
         }
         local.icr_sent.store(round, Ordering::Release);
-        let acked = (0..1 << 16).any(|_| {
+        let end = rdtsc().saturating_add(ICR_ACK_MS * TSC_PER_MS.load(Ordering::Acquire));
+        let acked = loop {
             // SAFETY: as in `icr_race_window`; IF is 0 again after `cli`.
             unsafe { asm!("sti", "nop", "pause", "cli") };
-            partner.resched_count.load(Ordering::Acquire) >= round
-        });
+            if partner.resched_count.load(Ordering::Acquire) >= round {
+                break true;
+            }
+            if rdtsc() > end {
+                break false;
+            }
+        };
         if !acked {
             done = ICR_TIMEOUT;
             break;
