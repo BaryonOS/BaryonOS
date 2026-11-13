@@ -371,9 +371,10 @@ class Readback:
             require(rtc.evaluate(report['stdout'], report['raw_qemu_exit'], report['timed_out'], rtc.CASES[case]) == item.get('observed'), 'RTC oracle/summary mismatch')
             self.bind_artifacts(artifacts, manifest)
         raw = {path.resolve() for path in self.root.rglob('result.json') if path.parent.parent.name == 'run'}
-        require(raw == self.used and len(raw) == 20, 'missing or additional native guest evidence')
-        return {'m2_groups': 8, 'm2_native_runs': 7, 'k05_cases': 6, 'k07_native_runs': 2,
-                'rtc_cases': 5, 'total_native_runs': 20, 'raw_result_sha256': self.guest_hashes}
+        # 7 M2 + 6 K05 + 6 K05-SMP + 2 K07 + 5 RTC guests; every one must be consumed above.
+        require(raw == self.used and len(raw) == 26, 'missing or additional native guest evidence')
+        return {'m2_groups': 8, 'm2_native_runs': 7, 'k05_cases': 6, 'k05_smp_cases': 6, 'k07_native_runs': 2,
+                'rtc_cases': 5, 'total_native_runs': 26, 'raw_result_sha256': self.guest_hashes}
 
 
 def main():
