@@ -1,0 +1,1346 @@
+{
+  "accepted": true,
+  "scope": "K06 step 5f: complete native-smp section 9 matrix (74 cases x 50) plus the final repository gate on one source fingerprint",
+  "run_id": 43429991481,
+  "run_url": "https://github.com/BaryonOS/BaryonOS/actions/runs/43429991481",
+  "run_attempt": 1,
+  "event": "workflow_dispatch",
+  "tested_commit": "880984bb29c316e606490c0fa235b119ed4bb553",
+  "source_sha256": "e693759d89705970ecaa9c315b0423261fdc7924235af566beb363419eabd255",
+  "runner": "GitHub-hosted ubuntu-26.04 jobs with 4 vCPUs; the CPU model differs per job (see timing_margins); QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3), machine pc-q35-10.0; aggregate on ubuntu-24.04; final gate on ubuntu-26.04",
+  "dispatched_utc": "2026-11-13T13:00:57Z",
+  "last_job_completed_utc": "2026-11-13T16:52:01Z",
+  "handling": "Dispatched once with the project owner's permission on the repaired head. Not cancelled, no job retried, first attempt only. No source, deadline, tolerance or verdict was changed in response to the run.",
+  "jobs": {
+    "total": 91,
+    "success": 86,
+    "skipped": 5,
+    "skipped_by_design": [
+      "DIAGNOSTIC ONLY — m3-one-multi 50 traced repetitions",
+      "DIAGNOSTIC final gate rehearsal",
+      "DIAGNOSTIC margins (${{ matrix.case }})",
+      "experimental-m3-m4-smp",
+      "native-smp"
+    ]
+  },
+  "passed": "K07 environment probe; all 73 per-case 50/50 jobs; all 10 soak shards (the soak is the 74th case, 10 x 5); 3700 of 3700 guests; aggregate steps 'Require exact 50/50 evidence on one source hash' and 'Complete source-bound SMP host oracles'; 'SMP final repository gate' ran tools/gate.sh and succeeded",
+  "final_gate": {
+    "job_id": 132020175140,
+    "started_utc": "2026-11-13T16:37:33Z",
+    "completed_utc": "2026-11-13T16:52:01Z",
+    "wrapper_stages": {
+      "host-tests": {
+        "exit": 0,
+        "elapsed_s": 260
+      },
+      "clippy": {
+        "exit": 0,
+        "elapsed_s": 0
+      },
+      "fmt": {
+        "exit": 0,
+        "elapsed_s": 1
+      },
+      "m2": {
+        "exit": 0,
+        "elapsed_s": 30
+      },
+      "k05": {
+        "exit": 0,
+        "elapsed_s": 42
+      },
+      "k05-smp": {
+        "exit": 0,
+        "elapsed_s": 104
+      },
+      "k07": {
+        "exit": 0,
+        "elapsed_s": 16
+      },
+      "rtc-build": {
+        "exit": 0,
+        "elapsed_s": 3
+      },
+      "rtc": {
+        "exit": 0,
+        "elapsed_s": 17
+      }
+    },
+    "native_evidence": {
+      "m2_groups": 8,
+      "m2_native_runs": 7,
+      "k05_cases": 6,
+      "k05_smp_cases": 6,
+      "k07_native_runs": 2,
+      "rtc_cases": 5,
+      "total_native_runs": 26
+    },
+    "gate_log_sha256": "bb0fc33c2f3140c124c44c32c8496acd0cd9879a6deccf9919a5f75b4a6e1893",
+    "artifacts": [
+      {
+        "name": "smp-section9-final-gate",
+        "id": 14057758666,
+        "zip_sha256": "1f30eed6c689a8bed99110bb0036554ac1b5bfe6ea01aa8ddd40eabb7be176a5"
+      },
+      {
+        "name": "smp-section9-final-gate-reports",
+        "id": 14058717337,
+        "zip_sha256": "944bf3365ca28763de6acfd6d844fa1b31c76107035e921423266e472fb70437"
+      }
+    ]
+  },
+  "verifier_correction": {
+    "file": "docs/verification/k06-smp-sched/verify_final_gate.py",
+    "as_tested_sha256": "c310b372865f4ac96f3057c6a5098c2775ec65e4b992f485fdf82b8c56131207",
+    "as_tested_result": {
+      "exit_status": 1,
+      "output": {
+        "passed": false,
+        "error": "ValueError: missing or additional native guest evidence"
+      }
+    },
+    "cause": "Since #296 the verifier checks the k05-smp stage (six guests) but kept the pre-SMP literal of 20 raw guest results; raw == self.used could only hold at 7 M2 + 6 K05 + 6 K05-SMP + 2 K07 + 5 RTC = 26. A verifier defect, found after the run; the CI final-gate job itself succeeded.",
+    "repair_commit": "d0d2e300",
+    "repaired_sha256": "85f9be7d6b183d2b57eaf844ba80dbae2266bbdb4fc5c4d75f7da1aefc735e6c",
+    "repaired_result": {
+      "exit_status": 0,
+      "passed": true
+    },
+    "negative_checks": [
+      "one k05-smp result.json removed from a copy -> exit 1 (missing regular artifact)",
+      "one extra unconsumed result.json added to a copy -> exit 1 (missing or additional native guest evidence)"
+    ],
+    "source_fingerprint": "docs/ is outside source_hash(); source_sha256 unchanged"
+  },
+  "timing_margins": {
+    "m3-ipc-four": {
+      "passed": "50/50",
+      "limit_s": 264,
+      "boot_s_min": 201.3,
+      "boot_s_median": 207.6,
+      "boot_s_max": 224.1,
+      "job_id": 131901260355,
+      "job_minutes": 175,
+      "artifact_id": 14057083260,
+      "artifact_zip_sha256": "61478f7dcd3f61fc93c5e6cc62b01cdb59c247aae768b9875c39015f9c1094bc",
+      "runner_cpu_from_job_log": "AMD EPYC 7763 64-Core Processor, 4 CPUs (job 131901260355)"
+    },
+    "m3-ipc-four-single": {
+      "passed": "50/50",
+      "limit_s": 264,
+      "boot_s_min": 93.8,
+      "boot_s_median": 98.7,
+      "boot_s_max": 116.2,
+      "job_id": 131901259209,
+      "job_minutes": 84,
+      "artifact_id": 14049631668,
+      "artifact_zip_sha256": "3104e904d7671d1a2190581b52005a23294c7f430436ad1b310f8593a3cac62f",
+      "runner_cpu_from_job_log": "AMD EPYC 9V74 80-Core Processor, 4 CPUs (job 131901259209)"
+    },
+    "m3-load-eight": {
+      "passed": "50/50",
+      "limit_s": 125,
+      "boot_s_min": 42.4,
+      "boot_s_median": 42.8,
+      "boot_s_max": 43.4,
+      "job_id": 131901263538,
+      "job_minutes": 36,
+      "artifact_id": 14046659060,
+      "artifact_zip_sha256": "3fe5187f176d593a8402cf24807d361b2e90b5e31cbc4e60160211f9556a282c"
+    },
+    "rule": "IPC_TIMEOUT_S 660 with documentary bound 264 s (ADR-081 R3-5 addendum 2); LOAD_TIMEOUT_S 125 (ADR-082 D5)",
+    "comparison": "Run 43403835073: m3-ipc-four max 158.3 s on INTEL(R) XEON(R) PLATINUM 8573C (job 131813558697); m3-ipc-four-single max 110.7 s on AMD EPYC 9V74 (job 131813557577). The hosted 4-vCPU pool is heterogeneous; the IPC margin depends on the CPU model the job lands on."
+  },
+  "verification": {
+    "artifact_zips": "87 artifacts downloaded; each ZIP SHA-256 equals the API digest, ZIP CRC verified, no absolute or parent paths",
+    "verify_artifacts.py": {
+      "accepted": true,
+      "mode": "complete-matrix",
+      "verifier_sha256": "e1f7c174f61841e36b1702faa7b610fdb8ff7360c82fdffcc4740fcf90ab8652",
+      "reports_checked": 84,
+      "matrix_guest_runs_checked": 3700,
+      "independently_verified_passed_runs": 3700,
+      "aggregate_verified": true,
+      "environment_probe_checked": true,
+      "exit_status": 0
+    },
+    "verify_final_gate.py": {
+      "exit_status": 0,
+      "passed": true,
+      "verifier_sha256": "85f9be7d6b183d2b57eaf844ba80dbae2266bbdb4fc5c4d75f7da1aefc735e6c",
+      "verification_kind": "retained-final-gate-evidence-readback",
+      "api": {
+        "run_id": 43429991481,
+        "final_job_id": 132020175140,
+        "aggregate_job_id": 132019461032
+      },
+      "api_run_sha256": "173be00466ae5714fb40a7f5b63f0a03bda57b7294f72116e9ab74ac69b907ed",
+      "api_jobs_sha256": "d2ca55a9519d28644fb024c5ab18fd00554e24107adc6b6887feeec6020b0211",
+      "repo_binding": "run with --repo on the worktree at d0d2e300, whose source_hash() equals the tested e693759d"
+    }
+  },
+  "not_verified": "Compact artifacts omit executable and firmware bytes; their recorded hashes are cross-bound, not rehashed. QEMU/TCG on GitHub-hosted runners only: no physical hardware, no KVM, no other supported-hardware profile. Verification by the implementing AI is not an independent human audit. 50/50 per case bounds the per-case failure probability statistically; it does not prove absence of rare races.",
+  "artifacts": [
+    {
+      "name": "runner-environment-probe-reports",
+      "id": 14038751470,
+      "size_in_bytes": 12028,
+      "zip_sha256": "cb643db72b4b5601075a34ccf4047aed0ece67f8f007293c50302d314b0c9207"
+    },
+    {
+      "name": "smp-case-ap-double-fault-ist-reports",
+      "id": 14039022531,
+      "size_in_bytes": 346648,
+      "zip_sha256": "653b76f44ef8ffd0299453c25bf9a53c5faf5a19f63a5e04baaf9dd945a7ec3e"
+    },
+    {
+      "name": "smp-case-ap-ipi-deaf-reports",
+      "id": 14039027055,
+      "size_in_bytes": 349215,
+      "zip_sha256": "6195448dedcf8631396c412a1a5ac3bdec864c89e2619727a8db1865a6c0c85f"
+    },
+    {
+      "name": "smp-case-ap-mismatch-reports",
+      "id": 14040231807,
+      "size_in_bytes": 218584,
+      "zip_sha256": "68745f6b0062460f820f706cb67c7f4f6591009946386b9212d3a75a0d85e37d"
+    },
+    {
+      "name": "smp-case-ap-nmi-ist-reports",
+      "id": 14040330782,
+      "size_in_bytes": 342475,
+      "zip_sha256": "235533158ca94b6a230a133d888062593f6c890f4faa15be8f5f5f22fcc5350f"
+    },
+    {
+      "name": "smp-case-ap-shootdown-deaf-reports",
+      "id": 14039702364,
+      "size_in_bytes": 357197,
+      "zip_sha256": "e349d4480d235704e79a30f9ddf777e77630cca673189c7a1d17b51d90900f15"
+    },
+    {
+      "name": "smp-case-ap-stall-reports",
+      "id": 14038748059,
+      "size_in_bytes": 216836,
+      "zip_sha256": "6260d1591400b53a547a12dae7761b6f93dcbe85006ad25da9c1be10246bf672"
+    },
+    {
+      "name": "smp-case-ap-timer-dead-reports",
+      "id": 14039118234,
+      "size_in_bytes": 357025,
+      "zip_sha256": "1c9896ec4e38850c7c25c0387b725180a33c528bd1fc0697aa1cddf34419b151"
+    },
+    {
+      "name": "smp-case-bsp-spin-irq-off-control-reports",
+      "id": 14043455249,
+      "size_in_bytes": 363734,
+      "zip_sha256": "59cd5e49759f313b4858f14fcf502c24780514ea2dac4248ea020663d73e42cc"
+    },
+    {
+      "name": "smp-case-clock-divisor-reports",
+      "id": 14043515057,
+      "size_in_bytes": 347775,
+      "zip_sha256": "da134bf4212f6732b7f08bed6d090fd350fc8c68451e5424944fb9921b6505b2"
+    },
+    {
+      "name": "smp-case-clock-masked-reports",
+      "id": 14043680309,
+      "size_in_bytes": 354314,
+      "zip_sha256": "d6d174fac367c589b8981797ea4bbcaa591cfce73117cdb91f9d9df56c27f3d6"
+    },
+    {
+      "name": "smp-case-clock-other-cpu-reports",
+      "id": 14042861066,
+      "size_in_bytes": 356855,
+      "zip_sha256": "e8736fa69e3fcb7de506c865b646b21de12254cc46e191599ed664af0edee90e"
+    },
+    {
+      "name": "smp-case-double-run-reports",
+      "id": 14039019208,
+      "size_in_bytes": 357216,
+      "zip_sha256": "3ada886e4af1b70428389517ce2c22b1cb0d30c1cd4bdabc47018bca1dfdf2aa"
+    },
+    {
+      "name": "smp-case-duplicate-madt-reports",
+      "id": 14040390434,
+      "size_in_bytes": 133601,
+      "zip_sha256": "eca1262d6660ddc9d36d9167f7cf67e90a6aa54d90ff4419f8e9ecc3a372e23c"
+    },
+    {
+      "name": "smp-case-eight-reports",
+      "id": 14038888643,
+      "size_in_bytes": 564838,
+      "zip_sha256": "c630ae4346d487cfc2d252ea768882bc605e50adf533a236f114b56fafa0e78c"
+    },
+    {
+      "name": "smp-case-four-reports",
+      "id": 14039747903,
+      "size_in_bytes": 384122,
+      "zip_sha256": "7d5d59be37f74982e737de17f3c3ea437fae5af2167871852e5887d5b7f6ebe6"
+    },
+    {
+      "name": "smp-case-gs-iret-fault-reports",
+      "id": 14041685456,
+      "size_in_bytes": 366505,
+      "zip_sha256": "7cada0eabe9d3b866f2d252e0171fee6d69bc9ed8d7c590fdeba7d851836a182"
+    },
+    {
+      "name": "smp-case-gs-nmi-user-reports",
+      "id": 14039934424,
+      "size_in_bytes": 365201,
+      "zip_sha256": "e39043c7a1796e4dc9c8ed81f094afd1d949c0d526c7dfdaa83d25b905b04678"
+    },
+    {
+      "name": "smp-case-gs-user-reports",
+      "id": 14040715330,
+      "size_in_bytes": 391069,
+      "zip_sha256": "3bd3f0a87563e3e2729efb2aa3359b43e5270f2ba2aa5e5084059e8c22419e08"
+    },
+    {
+      "name": "smp-case-held-across-switch-reports",
+      "id": 14039468698,
+      "size_in_bytes": 249326,
+      "zip_sha256": "3714822121f087ac68fe8522c2aea5ea0ee659099d54102bd4a779123a52bab4"
+    },
+    {
+      "name": "smp-case-icr-race-control-reports",
+      "id": 14040511762,
+      "size_in_bytes": 363247,
+      "zip_sha256": "b867a827f503ae6a447448e1ea1d98c677e0bae14b254f0e569994c8b493ae6b"
+    },
+    {
+      "name": "smp-case-lock-in-handler-reports",
+      "id": 14040565939,
+      "size_in_bytes": 259430,
+      "zip_sha256": "091173373394f650b008190a6a5721ec6dc58fef3dd4b2fb7d8579e06fc2aa5a"
+    },
+    {
+      "name": "smp-case-lock-stuck-reports",
+      "id": 14041345381,
+      "size_in_bytes": 241152,
+      "zip_sha256": "30f73dc35ee7f03ab9faec5ef6a437e8a773b9df9447fd0403947dd20689a990"
+    },
+    {
+      "name": "smp-case-lockdep-order-reports",
+      "id": 14039118886,
+      "size_in_bytes": 286402,
+      "zip_sha256": "68f67ed6be0380d7409930097332f1c65d8dd58861480af56c0616696a9ae260"
+    },
+    {
+      "name": "smp-case-lockpair-order-reports",
+      "id": 14039759698,
+      "size_in_bytes": 259960,
+      "zip_sha256": "3df0726d30eede5c1fb46869c7dae85ebc72c5c98d216993a3790a3546d40813"
+    },
+    {
+      "name": "smp-case-m3-canary-control-reports",
+      "id": 14045726669,
+      "size_in_bytes": 398827,
+      "zip_sha256": "2e22411ea2fcca9964749c20ba9ab0a91e4ae4cb01cd94f38376ea0f0452b41f"
+    },
+    {
+      "name": "smp-case-m3-eight-reports",
+      "id": 14044855577,
+      "size_in_bytes": 577210,
+      "zip_sha256": "f92165adc719df6f80a00ae51ae4ff478489b5b080e497a0c43865ef57ee872d"
+    },
+    {
+      "name": "smp-case-m3-eight-single-reports",
+      "id": 14043529660,
+      "size_in_bytes": 609411,
+      "zip_sha256": "eed62864198e2f0581d117634435d08281e8daa99d44e5bea4700bdf34209424"
+    },
+    {
+      "name": "smp-case-m3-fault-ap2-reports",
+      "id": 14045492619,
+      "size_in_bytes": 399468,
+      "zip_sha256": "b7a9ee9b9503f64d8e9f1aa2c615ea9a2da084039e73ec806fef084c41aa0bad"
+    },
+    {
+      "name": "smp-case-m3-four-reports",
+      "id": 14042919375,
+      "size_in_bytes": 394994,
+      "zip_sha256": "1312694c597d276ca4da22d82604e4b2a5ffea35e3327aec4ace74447b05cc79"
+    },
+    {
+      "name": "smp-case-m3-four-single-reports",
+      "id": 14043813574,
+      "size_in_bytes": 400075,
+      "zip_sha256": "e37dc968d61efeadb6fba3ec82efc87424ec796890bf69be87dbac43a90e1d50"
+    },
+    {
+      "name": "smp-case-m3-fpu-skip-control-reports",
+      "id": 14045580917,
+      "size_in_bytes": 397258,
+      "zip_sha256": "1acc106e027a74b3421a025b94c0f7d09af472391b84b7b2e5097c7906861276"
+    },
+    {
+      "name": "smp-case-m3-ipc-four-reports",
+      "id": 14057083260,
+      "size_in_bytes": 411472,
+      "zip_sha256": "61478f7dcd3f61fc93c5e6cc62b01cdb59c247aae768b9875c39015f9c1094bc"
+    },
+    {
+      "name": "smp-case-m3-ipc-four-single-reports",
+      "id": 14049631668,
+      "size_in_bytes": 415062,
+      "zip_sha256": "3104e904d7671d1a2190581b52005a23294c7f430436ad1b310f8593a3cac62f"
+    },
+    {
+      "name": "smp-case-m3-kill-four-reports",
+      "id": 14047974026,
+      "size_in_bytes": 409982,
+      "zip_sha256": "407846206361d3ef77a7d2da13c4f7ba94e011bd1159840f40c225d7ddb8aff3"
+    },
+    {
+      "name": "smp-case-m3-load-eight-reports",
+      "id": 14046659060,
+      "size_in_bytes": 601903,
+      "zip_sha256": "3fe5187f176d593a8402cf24807d361b2e90b5e31cbc4e60160211f9556a282c"
+    },
+    {
+      "name": "smp-case-m3-load-eight-single-reports",
+      "id": 14047139574,
+      "size_in_bytes": 630744,
+      "zip_sha256": "6e399290ac473a9d45dd03376b69f656fa87bb1cc64836b939270e69b9e76471"
+    },
+    {
+      "name": "smp-case-m3-load-four-reports",
+      "id": 14047791863,
+      "size_in_bytes": 414068,
+      "zip_sha256": "3689dc2d2f20113db0dba54fe6fbd7d237b336c71950f4bc5a7be9ddba7916b2"
+    },
+    {
+      "name": "smp-case-m3-load-four-single-reports",
+      "id": 14047073255,
+      "size_in_bytes": 418244,
+      "zip_sha256": "ec0eecb99a4cd68f2107da1c0cb6b8d12e18c3d639854931d317cc52bcd25149"
+    },
+    {
+      "name": "smp-case-m3-load-one-multi-reports",
+      "id": 14048111054,
+      "size_in_bytes": 235634,
+      "zip_sha256": "964235a271cc83fecf51b0e305ed7165bd3ee26891b2bfb1c3b40340c41f5ce1"
+    },
+    {
+      "name": "smp-case-m3-load-one-reports",
+      "id": 14046513214,
+      "size_in_bytes": 231650,
+      "zip_sha256": "42bd30f1bdf3ff22e4d327c48a5fe031e2455538627295a7c702e59052c6c975"
+    },
+    {
+      "name": "smp-case-m3-load-two-reports",
+      "id": 14046998129,
+      "size_in_bytes": 302629,
+      "zip_sha256": "9092dca6a81b01a2f8f6898d1c5b860b394dcdf11d587d15f876c2312f9aa82e"
+    },
+    {
+      "name": "smp-case-m3-load-two-single-reports",
+      "id": 14047996212,
+      "size_in_bytes": 307343,
+      "zip_sha256": "27bbeb9f222710134237f14f4a7379ea0a1eb70d6a7b12965dad7221a2265d62"
+    },
+    {
+      "name": "smp-case-m3-migrate-eight-reports",
+      "id": 14044752867,
+      "size_in_bytes": 586653,
+      "zip_sha256": "34188bd4a5cb24302953bbd996e3735a10a8822388a2e5f7522edef258833fa2"
+    },
+    {
+      "name": "smp-case-m3-migrate-eight-single-reports",
+      "id": 14044377666,
+      "size_in_bytes": 631704,
+      "zip_sha256": "512665dcd1b8ee21778c2202ce5ae7573d9014a98d514ed54b33c51ac9c622fc"
+    },
+    {
+      "name": "smp-case-m3-migrate-four-reports",
+      "id": 14044517416,
+      "size_in_bytes": 413816,
+      "zip_sha256": "3d7678eb60e5ec9b71077f1c74311dae5c1f198a1a99314af566d71eb89f3380"
+    },
+    {
+      "name": "smp-case-m3-migrate-four-single-reports",
+      "id": 14044297509,
+      "size_in_bytes": 418378,
+      "zip_sha256": "afc124899074a047ac33544914d05f10399602c35d65a2d6d7c5b8b019e88d31"
+    },
+    {
+      "name": "smp-case-m3-one-multi-reports",
+      "id": 14042863247,
+      "size_in_bytes": 222924,
+      "zip_sha256": "8080b6ce967ecef70af22d70e64242c7ecd774f50cfdc1ce6857ec0143d0aa4e"
+    },
+    {
+      "name": "smp-case-m3-one-reports",
+      "id": 14042983230,
+      "size_in_bytes": 218973,
+      "zip_sha256": "1e0788648df13e32c95d3a45eca0d0b7cd0f2cfcc3ee72f45884b3f169939049"
+    },
+    {
+      "name": "smp-case-m3-recovery-four-reports",
+      "id": 14049326617,
+      "size_in_bytes": 413851,
+      "zip_sha256": "4976be1729fe7605b720b8086e990becb8230896c532f2b4431dddbf59d8d59e"
+    },
+    {
+      "name": "smp-case-m3-two-reports",
+      "id": 14042349642,
+      "size_in_bytes": 289650,
+      "zip_sha256": "54bf0c152a2ded05da1ec46d75b0b0f0ab1e405eb66d4dd00e192b6b72d58a21"
+    },
+    {
+      "name": "smp-case-m3-two-single-reports",
+      "id": 14044013078,
+      "size_in_bytes": 292624,
+      "zip_sha256": "cd821721088191a57d7fa624dbc41bfed02e10b6b474882f14011d08a767106f"
+    },
+    {
+      "name": "smp-case-m3-unmap-control-reports",
+      "id": 14049105095,
+      "size_in_bytes": 396623,
+      "zip_sha256": "06df129529eb06960396abea62b0832e14a1930b47bcf3c55a2ba18cbc21a9ce"
+    },
+    {
+      "name": "smp-case-m3-unmap-four-reports",
+      "id": 14047887973,
+      "size_in_bytes": 396861,
+      "zip_sha256": "19160c15cd330dfc24915ec8d81d3ed59154ae1a79979ad279a0587f733af111"
+    },
+    {
+      "name": "smp-case-m4-quotas-four-reports",
+      "id": 14048350438,
+      "size_in_bytes": 409458,
+      "zip_sha256": "1712ca9a8e56d2848aed5ea0bca005f2a299a8d7e7e2a63beb8337641b71d8e9"
+    },
+    {
+      "name": "smp-case-nine-capacity-reports",
+      "id": 14039878349,
+      "size_in_bytes": 566991,
+      "zip_sha256": "871033cbeb92357b400996862a6dbcb96a79309baf98750ba6ba9ed485d64df6"
+    },
+    {
+      "name": "smp-case-one-reports",
+      "id": 14039518034,
+      "size_in_bytes": 211041,
+      "zip_sha256": "cadba17123872b2e4180774a8c145d536f2d65c9fa2b76f7af787f509037a8b7"
+    },
+    {
+      "name": "smp-case-proc-no-shootdown-control-reports",
+      "id": 14042810480,
+      "size_in_bytes": 371887,
+      "zip_sha256": "af7fbf593ecfcc7332ebfc55ad5b1f39345f84972d8e14693a8bc751591a2472"
+    },
+    {
+      "name": "smp-case-proc-shootdown-deaf-reports",
+      "id": 14042141977,
+      "size_in_bytes": 400047,
+      "zip_sha256": "5d2b1d534ec4e9eed3ca86650c4d754d35359d98da43af450858e9a2cadf9005"
+    },
+    {
+      "name": "smp-case-qsim-four-reports",
+      "id": 14047509300,
+      "size_in_bytes": 423219,
+      "zip_sha256": "37795134d991ac9582d60362885ff79a9c8e77062149bc6893766d0bbd436675"
+    },
+    {
+      "name": "smp-case-quarantine-lock-held-reports",
+      "id": 14040214342,
+      "size_in_bytes": 350156,
+      "zip_sha256": "d3d18e686d9eaaddce89fd2e4281ab88b86d492f9e990cb924a9a3fc6e1ed0ea"
+    },
+    {
+      "name": "smp-case-quarantine-lock-pending-reports",
+      "id": 14042185100,
+      "size_in_bytes": 352186,
+      "zip_sha256": "1ff315f6ab3ee41d72574e836b7ea9481a56b1ffe7ce6dcad79c6b84223633bf"
+    },
+    {
+      "name": "smp-case-quarantine-sched-busy-reports",
+      "id": 14042391449,
+      "size_in_bytes": 392622,
+      "zip_sha256": "2d657daa5e55f99371234baa9dfbe567fb2f121df79c63eafcebccd8e2f2056c"
+    },
+    {
+      "name": "smp-case-resched-deaf-reports",
+      "id": 14040064756,
+      "size_in_bytes": 385046,
+      "zip_sha256": "147d347b11d85584a85acee9fd4a9f77da69d05123b140e09311c78b0c0711e6"
+    },
+    {
+      "name": "smp-case-scratch-slow-reports",
+      "id": 14042977375,
+      "size_in_bytes": 359267,
+      "zip_sha256": "866ddd7afed8388c7c0c1b13ac22fdf8605923add71293853ae1d96e468418f7"
+    },
+    {
+      "name": "smp-case-scratch-stall-reports",
+      "id": 14042841442,
+      "size_in_bytes": 360710,
+      "zip_sha256": "dfd07e2ea9636fc16e823af726ae1eb9e4bef38b63da9c6ef79dbc20a6d5ef40"
+    },
+    {
+      "name": "smp-case-serial-unlocked-control-reports",
+      "id": 14045536333,
+      "size_in_bytes": 529355,
+      "zip_sha256": "d264abcc3b0b6ae29a2d31fd4776b6a8b74976f4459dbb98c44ad0eacdabe9be"
+    },
+    {
+      "name": "smp-case-shared-scratch-reports",
+      "id": 14040079471,
+      "size_in_bytes": 360535,
+      "zip_sha256": "51eb9bc82e02dab5904f60f8d5c2f647ea6cd22fb8b7beabb9854288d8fefa32"
+    },
+    {
+      "name": "smp-case-shootdown-skipped-control-reports",
+      "id": 14038978756,
+      "size_in_bytes": 399908,
+      "zip_sha256": "720b5719c3e02070f57c011cafabe50fe099f431c8dbac8e5d76b7c8eab259aa"
+    },
+    {
+      "name": "smp-case-spin-irq-off-control-reports",
+      "id": 14039189185,
+      "size_in_bytes": 364397,
+      "zip_sha256": "caaa3cc04973b1f45a989702e5e8003c1ff13b79fcceb043a33924ef79aa1dbc"
+    },
+    {
+      "name": "smp-case-sync-lost-update-reports",
+      "id": 14042065908,
+      "size_in_bytes": 340989,
+      "zip_sha256": "7ced412d98da585c9496f5e84f8706884d0a84473047659d7727a240d0870db5"
+    },
+    {
+      "name": "smp-case-sync-slow-reports",
+      "id": 14042403357,
+      "size_in_bytes": 286919,
+      "zip_sha256": "29d4c34aabd213c6d77fac743e75a8a46efbf2833fd9b90c9a9664b41050314f"
+    },
+    {
+      "name": "smp-case-sync-stall-reports",
+      "id": 14040906198,
+      "size_in_bytes": 288352,
+      "zip_sha256": "4acc7688fc0ab5b0fa2fc7883ac8485c9d82632b385ed3196b17a455b1c774a1"
+    },
+    {
+      "name": "smp-case-two-single-reports",
+      "id": 14039738123,
+      "size_in_bytes": 285167,
+      "zip_sha256": "b3854191b6d8fdb0d868d2a9c5a1409054c0632209b7da1b313f73cb77c34265"
+    },
+    {
+      "name": "smp-section9-final-gate",
+      "id": 14057758666,
+      "size_in_bytes": 270107,
+      "zip_sha256": "1f30eed6c689a8bed99110bb0036554ac1b5bfe6ea01aa8ddd40eabb7be176a5"
+    },
+    {
+      "name": "smp-section9-final-gate-reports",
+      "id": 14058717337,
+      "size_in_bytes": 294620,
+      "zip_sha256": "944bf3365ca28763de6acfd6d844fa1b31c76107035e921423266e472fb70437"
+    },
+    {
+      "name": "smp-section9-matrix-report-reports",
+      "id": 14058360776,
+      "size_in_bytes": 17180,
+      "zip_sha256": "d7af6acce61d67574942c1c7d1d6711af092c15dac9e6f8ff9ee906417146355"
+    },
+    {
+      "name": "smp-soak-0-reports",
+      "id": 14043884463,
+      "size_in_bytes": 49023,
+      "zip_sha256": "fb219853bc789bce009e050c798fb3f59cc016937cc90f50b63abaea69fce6a4"
+    },
+    {
+      "name": "smp-soak-1-reports",
+      "id": 14043739537,
+      "size_in_bytes": 48915,
+      "zip_sha256": "eef0a39a78d1cd05712bfa83aedf3262fe51f53f92f912226af5dd9475039241"
+    },
+    {
+      "name": "smp-soak-2-reports",
+      "id": 14043934612,
+      "size_in_bytes": 49101,
+      "zip_sha256": "822dd93926348cc6ebcebd1d486a0c1ade050ab5508ba69ccb4073f391b1e3f0"
+    },
+    {
+      "name": "smp-soak-3-reports",
+      "id": 14043164992,
+      "size_in_bytes": 48902,
+      "zip_sha256": "37eab5cbecf21aa4ba3d9f070fc8a04fa723cb1117950ee155f59a83a4c8755f"
+    },
+    {
+      "name": "smp-soak-4-reports",
+      "id": 14044325357,
+      "size_in_bytes": 49186,
+      "zip_sha256": "e000ba51cd69ffeecf62d74c9ee62ca8c1f6822d1a643026077c8ed8e989ec6d"
+    },
+    {
+      "name": "smp-soak-5-reports",
+      "id": 14044170570,
+      "size_in_bytes": 48993,
+      "zip_sha256": "9b101e02099268daf441686b9cfba93c3c90d74f35dfc68d248e20f314cf96d1"
+    },
+    {
+      "name": "smp-soak-6-reports",
+      "id": 14043839504,
+      "size_in_bytes": 49056,
+      "zip_sha256": "c7ae873accc5060e9777434bb9a322bb22cfa293477fc4bc3efd705480d621b1"
+    },
+    {
+      "name": "smp-soak-7-reports",
+      "id": 14043814352,
+      "size_in_bytes": 49090,
+      "zip_sha256": "ca0d9ea68b8a7a1e50f782723d61e973ba85f7753d167a48469d8ecfd4966ee9"
+    },
+    {
+      "name": "smp-soak-8-reports",
+      "id": 14042889772,
+      "size_in_bytes": 49043,
+      "zip_sha256": "98208835bcf675da8dcd92ff3826adc65ede1b37fceca0e5912f3888ff36ec56"
+    },
+    {
+      "name": "smp-soak-9-reports",
+      "id": 14043339632,
+      "size_in_bytes": 49057,
+      "zip_sha256": "d8f4b4a304a5f62aa21d3d6fa1ac155378259a7c7909ce7f711925365b6d8f03"
+    }
+  ],
+  "job_results": [
+    {
+      "id": 131900799140,
+      "name": "SMP Ubuntu 26.04 and K07 probe",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:01Z",
+      "completed_at": "2026-11-13T13:01:53Z"
+    },
+    {
+      "id": 131900801014,
+      "name": "DIAGNOSTIC final gate rehearsal",
+      "conclusion": "skipped",
+      "started_at": "2026-11-13T13:00:59Z",
+      "completed_at": "2026-11-13T13:00:58Z"
+    },
+    {
+      "id": 131900801402,
+      "name": "DIAGNOSTIC ONLY — m3-one-multi 50 traced repetitions",
+      "conclusion": "skipped",
+      "started_at": "2026-11-13T13:00:59Z",
+      "completed_at": "2026-11-13T13:00:58Z"
+    },
+    {
+      "id": 131900801452,
+      "name": "experimental-m3-m4-smp",
+      "conclusion": "skipped",
+      "started_at": "2026-11-13T13:00:59Z",
+      "completed_at": "2026-11-13T13:00:58Z"
+    },
+    {
+      "id": 131900801489,
+      "name": "DIAGNOSTIC margins (${{ matrix.case }})",
+      "conclusion": "skipped",
+      "started_at": "2026-11-13T13:00:59Z",
+      "completed_at": "2026-11-13T13:00:58Z"
+    },
+    {
+      "id": 131900801644,
+      "name": "native-smp",
+      "conclusion": "skipped",
+      "started_at": "2026-11-13T13:00:59Z",
+      "completed_at": "2026-11-13T13:00:58Z"
+    },
+    {
+      "id": 131901248608,
+      "name": "SMP soak 5/50 (shard 2)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:56Z",
+      "completed_at": "2026-11-13T13:53:45Z"
+    },
+    {
+      "id": 131901248618,
+      "name": "SMP soak 5/50 (shard 1)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:56Z",
+      "completed_at": "2026-11-13T13:53:41Z"
+    },
+    {
+      "id": 131901248677,
+      "name": "SMP soak 5/50 (shard 0)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:55Z",
+      "completed_at": "2026-11-13T13:54:02Z"
+    },
+    {
+      "id": 131901248683,
+      "name": "SMP soak 5/50 (shard 5)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:55Z",
+      "completed_at": "2026-11-13T13:53:37Z"
+    },
+    {
+      "id": 131901248705,
+      "name": "SMP soak 5/50 (shard 3)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:56Z",
+      "completed_at": "2026-11-13T13:53:54Z"
+    },
+    {
+      "id": 131901248706,
+      "name": "SMP soak 5/50 (shard 4)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:56Z",
+      "completed_at": "2026-11-13T13:53:59Z"
+    },
+    {
+      "id": 131901248709,
+      "name": "SMP soak 5/50 (shard 8)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:55Z",
+      "completed_at": "2026-11-13T13:53:42Z"
+    },
+    {
+      "id": 131901248735,
+      "name": "SMP soak 5/50 (shard 7)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:56Z",
+      "completed_at": "2026-11-13T13:53:20Z"
+    },
+    {
+      "id": 131901248787,
+      "name": "SMP soak 5/50 (shard 6)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:56Z",
+      "completed_at": "2026-11-13T13:53:37Z"
+    },
+    {
+      "id": 131901248805,
+      "name": "SMP soak 5/50 (shard 9)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:56Z",
+      "completed_at": "2026-11-13T13:53:47Z"
+    },
+    {
+      "id": 131901250732,
+      "name": "SMP 50/50 (one)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:56Z",
+      "completed_at": "2026-11-13T13:09:51Z"
+    },
+    {
+      "id": 131901250758,
+      "name": "SMP 50/50 (nine-capacity)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:56Z",
+      "completed_at": "2026-11-13T13:13:09Z"
+    },
+    {
+      "id": 131901250764,
+      "name": "SMP 50/50 (four)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:56Z",
+      "completed_at": "2026-11-13T13:10:23Z"
+    },
+    {
+      "id": 131901250767,
+      "name": "SMP 50/50 (two-single)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:56Z",
+      "completed_at": "2026-11-13T13:11:16Z"
+    },
+    {
+      "id": 131901250834,
+      "name": "SMP 50/50 (eight)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:55Z",
+      "completed_at": "2026-11-13T13:15:02Z"
+    },
+    {
+      "id": 131901250892,
+      "name": "SMP 50/50 (duplicate-madt)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:55Z",
+      "completed_at": "2026-11-13T13:05:24Z"
+    },
+    {
+      "id": 131901250918,
+      "name": "SMP 50/50 (ap-stall)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:57Z",
+      "completed_at": "2026-11-13T13:11:28Z"
+    },
+    {
+      "id": 131901250938,
+      "name": "SMP 50/50 (ap-ipi-deaf)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:56Z",
+      "completed_at": "2026-11-13T13:06:11Z"
+    },
+    {
+      "id": 131901250948,
+      "name": "SMP 50/50 (held-across-switch)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:09:54Z",
+      "completed_at": "2026-11-13T13:12:21Z"
+    },
+    {
+      "id": 131901250950,
+      "name": "SMP 50/50 (double-run)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:10:26Z",
+      "completed_at": "2026-11-13T13:18:50Z"
+    },
+    {
+      "id": 131901250967,
+      "name": "SMP 50/50 (ap-shootdown-deaf)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:05:26Z",
+      "completed_at": "2026-11-13T13:08:54Z"
+    },
+    {
+      "id": 131901250975,
+      "name": "SMP 50/50 (ap-timer-dead)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:08:56Z",
+      "completed_at": "2026-11-13T13:13:40Z"
+    },
+    {
+      "id": 131901250992,
+      "name": "SMP 50/50 (lockdep-order)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:09:12Z",
+      "completed_at": "2026-11-13T13:17:54Z"
+    },
+    {
+      "id": 131901251006,
+      "name": "SMP 50/50 (gs-iret-fault)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:11:30Z",
+      "completed_at": "2026-11-13T13:21:52Z"
+    },
+    {
+      "id": 131901251026,
+      "name": "SMP 50/50 (ap-mismatch)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:56Z",
+      "completed_at": "2026-11-13T13:09:23Z"
+    },
+    {
+      "id": 131901251048,
+      "name": "SMP 50/50 (ap-double-fault-ist)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:05:22Z",
+      "completed_at": "2026-11-13T13:09:09Z"
+    },
+    {
+      "id": 131901251063,
+      "name": "SMP 50/50 (ap-nmi-ist)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:01:55Z",
+      "completed_at": "2026-11-13T13:05:19Z"
+    },
+    {
+      "id": 131901251217,
+      "name": "SMP 50/50 (gs-user)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:11:19Z",
+      "completed_at": "2026-11-13T13:20:35Z"
+    },
+    {
+      "id": 131901251253,
+      "name": "SMP 50/50 (spin-irq-off-control)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:09:26Z",
+      "completed_at": "2026-11-13T13:13:28Z"
+    },
+    {
+      "id": 131901251404,
+      "name": "SMP 50/50 (shootdown-skipped-control)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:06:14Z",
+      "completed_at": "2026-11-13T13:16:38Z"
+    },
+    {
+      "id": 131901253472,
+      "name": "SMP 50/50 (gs-nmi-user)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:12:24Z",
+      "completed_at": "2026-11-13T13:21:57Z"
+    },
+    {
+      "id": 131901254139,
+      "name": "SMP 50/50 (quarantine-sched-busy)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:20:38Z",
+      "completed_at": "2026-11-13T13:29:57Z"
+    },
+    {
+      "id": 131901254197,
+      "name": "SMP 50/50 (lock-in-handler)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:13:31Z",
+      "completed_at": "2026-11-13T13:22:34Z"
+    },
+    {
+      "id": 131901254206,
+      "name": "SMP 50/50 (quarantine-lock-pending)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:18:52Z",
+      "completed_at": "2026-11-13T13:21:51Z"
+    },
+    {
+      "id": 131901254222,
+      "name": "SMP 50/50 (lockpair-order)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:13:42Z",
+      "completed_at": "2026-11-13T13:22:06Z"
+    },
+    {
+      "id": 131901254241,
+      "name": "SMP 50/50 (resched-deaf)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:15:05Z",
+      "completed_at": "2026-11-13T13:24:38Z"
+    },
+    {
+      "id": 131901254247,
+      "name": "SMP 50/50 (icr-race-control)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:16:40Z",
+      "completed_at": "2026-11-13T13:26:10Z"
+    },
+    {
+      "id": 131901254350,
+      "name": "SMP 50/50 (shared-scratch)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:13:11Z",
+      "completed_at": "2026-11-13T13:22:14Z"
+    },
+    {
+      "id": 131901254396,
+      "name": "SMP 50/50 (quarantine-lock-held)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:17:57Z",
+      "completed_at": "2026-11-13T13:22:14Z"
+    },
+    {
+      "id": 131901254515,
+      "name": "SMP 50/50 (bsp-spin-irq-off-control)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:21:53Z",
+      "completed_at": "2026-11-13T13:30:50Z"
+    },
+    {
+      "id": 131901256123,
+      "name": "SMP 50/50 (proc-shootdown-deaf)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:21:55Z",
+      "completed_at": "2026-11-13T13:32:39Z"
+    },
+    {
+      "id": 131901256553,
+      "name": "SMP 50/50 (sync-stall)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:22:18Z",
+      "completed_at": "2026-11-13T13:27:13Z"
+    },
+    {
+      "id": 131901256575,
+      "name": "SMP 50/50 (sync-slow)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:22:16Z",
+      "completed_at": "2026-11-13T13:41:33Z"
+    },
+    {
+      "id": 131901256613,
+      "name": "SMP 50/50 (lock-stuck)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:22:08Z",
+      "completed_at": "2026-11-13T13:25:38Z"
+    },
+    {
+      "id": 131901256626,
+      "name": "SMP 50/50 (proc-no-shootdown-control)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:22:00Z",
+      "completed_at": "2026-11-13T13:31:10Z"
+    },
+    {
+      "id": 131901256655,
+      "name": "SMP 50/50 (sync-lost-update)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:22:37Z",
+      "completed_at": "2026-11-13T13:25:57Z"
+    },
+    {
+      "id": 131901256669,
+      "name": "SMP 50/50 (clock-masked)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:24:41Z",
+      "completed_at": "2026-11-13T13:31:52Z"
+    },
+    {
+      "id": 131901257022,
+      "name": "SMP 50/50 (clock-divisor)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:25:40Z",
+      "completed_at": "2026-11-13T13:29:52Z"
+    },
+    {
+      "id": 131901257063,
+      "name": "SMP 50/50 (scratch-stall)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:26:12Z",
+      "completed_at": "2026-11-13T13:36:18Z"
+    },
+    {
+      "id": 131901257082,
+      "name": "SMP 50/50 (clock-other-cpu)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:26:00Z",
+      "completed_at": "2026-11-13T13:34:47Z"
+    },
+    {
+      "id": 131901258344,
+      "name": "SMP 50/50 (scratch-slow)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:27:15Z",
+      "completed_at": "2026-11-13T13:40:58Z"
+    },
+    {
+      "id": 131901258708,
+      "name": "SMP 50/50 (m3-one)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:29:54Z",
+      "completed_at": "2026-11-13T13:46:58Z"
+    },
+    {
+      "id": 131901258903,
+      "name": "SMP 50/50 (m3-four-single)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:31:54Z",
+      "completed_at": "2026-11-13T13:49:15Z"
+    },
+    {
+      "id": 131901258911,
+      "name": "SMP 50/50 (m3-one-multi)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:29:59Z",
+      "completed_at": "2026-11-13T13:46:37Z"
+    },
+    {
+      "id": 131901258976,
+      "name": "SMP 50/50 (m3-two-single)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:30:53Z",
+      "completed_at": "2026-11-13T13:47:55Z"
+    },
+    {
+      "id": 131901258982,
+      "name": "SMP 50/50 (m3-two)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:31:13Z",
+      "completed_at": "2026-11-13T13:49:20Z"
+    },
+    {
+      "id": 131901259110,
+      "name": "SMP 50/50 (m3-four)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:32:41Z",
+      "completed_at": "2026-11-13T13:51:41Z"
+    },
+    {
+      "id": 131901259146,
+      "name": "SMP 50/50 (m3-eight)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:36:20Z",
+      "completed_at": "2026-11-13T13:57:41Z"
+    },
+    {
+      "id": 131901259209,
+      "name": "SMP 50/50 (m3-ipc-four-single)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:41:00Z",
+      "completed_at": "2026-11-13T15:04:47Z"
+    },
+    {
+      "id": 131901259270,
+      "name": "SMP 50/50 (m3-eight-single)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:34:49Z",
+      "completed_at": "2026-11-13T13:53:30Z"
+    },
+    {
+      "id": 131901260355,
+      "name": "SMP 50/50 (m3-ipc-four)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:41:35Z",
+      "completed_at": "2026-11-13T16:36:18Z"
+    },
+    {
+      "id": 131901260811,
+      "name": "SMP 50/50 (m3-migrate-four)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:47:00Z",
+      "completed_at": "2026-11-13T14:06:06Z"
+    },
+    {
+      "id": 131901260925,
+      "name": "SMP 50/50 (m3-migrate-four-single)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:46:39Z",
+      "completed_at": "2026-11-13T14:05:10Z"
+    },
+    {
+      "id": 131901261095,
+      "name": "SMP 50/50 (m3-migrate-eight-single)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:47:57Z",
+      "completed_at": "2026-11-13T14:06:41Z"
+    },
+    {
+      "id": 131901261182,
+      "name": "SMP 50/50 (m3-migrate-eight)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:49:17Z",
+      "completed_at": "2026-11-13T14:09:06Z"
+    },
+    {
+      "id": 131901261289,
+      "name": "SMP 50/50 (m3-fault-ap2)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:51:44Z",
+      "completed_at": "2026-11-13T14:09:47Z"
+    },
+    {
+      "id": 131901261313,
+      "name": "SMP 50/50 (m3-canary-control)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:49:22Z",
+      "completed_at": "2026-11-13T14:06:11Z"
+    },
+    {
+      "id": 131901261434,
+      "name": "SMP 50/50 (serial-unlocked-control)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:57:43Z",
+      "completed_at": "2026-11-13T14:06:07Z"
+    },
+    {
+      "id": 131901261444,
+      "name": "SMP 50/50 (m3-fpu-skip-control)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T13:53:32Z",
+      "completed_at": "2026-11-13T14:02:36Z"
+    },
+    {
+      "id": 131901261998,
+      "name": "SMP 50/50 (m3-load-one)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T14:02:39Z",
+      "completed_at": "2026-11-13T14:36:29Z"
+    },
+    {
+      "id": 131901262466,
+      "name": "SMP 50/50 (m3-load-one-multi)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T14:05:12Z",
+      "completed_at": "2026-11-13T14:39:04Z"
+    },
+    {
+      "id": 131901263017,
+      "name": "SMP 50/50 (m3-load-two-single)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T14:06:09Z",
+      "completed_at": "2026-11-13T14:39:17Z"
+    },
+    {
+      "id": 131901263150,
+      "name": "SMP 50/50 (m3-load-two)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T14:06:09Z",
+      "completed_at": "2026-11-13T14:40:03Z"
+    },
+    {
+      "id": 131901263229,
+      "name": "SMP 50/50 (m3-load-four-single)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T14:06:14Z",
+      "completed_at": "2026-11-13T14:40:12Z"
+    },
+    {
+      "id": 131901263292,
+      "name": "SMP 50/50 (m3-load-four)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T14:06:43Z",
+      "completed_at": "2026-11-13T14:42:15Z"
+    },
+    {
+      "id": 131901263298,
+      "name": "SMP 50/50 (m3-load-eight-single)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T14:09:08Z",
+      "completed_at": "2026-11-13T14:44:21Z"
+    },
+    {
+      "id": 131901263538,
+      "name": "SMP 50/50 (m3-load-eight)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T14:09:49Z",
+      "completed_at": "2026-11-13T14:46:16Z"
+    },
+    {
+      "id": 131901263654,
+      "name": "SMP 50/50 (m4-quotas-four)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T14:36:31Z",
+      "completed_at": "2026-11-13T14:47:27Z"
+    },
+    {
+      "id": 131901263888,
+      "name": "SMP 50/50 (qsim-four)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T14:39:06Z",
+      "completed_at": "2026-11-13T14:50:11Z"
+    },
+    {
+      "id": 131901264079,
+      "name": "SMP 50/50 (m3-kill-four)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T14:39:19Z",
+      "completed_at": "2026-11-13T14:58:04Z"
+    },
+    {
+      "id": 131901264533,
+      "name": "SMP 50/50 (m3-unmap-four)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T14:40:06Z",
+      "completed_at": "2026-11-13T14:50:56Z"
+    },
+    {
+      "id": 131901265466,
+      "name": "SMP 50/50 (m3-unmap-control)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T14:40:14Z",
+      "completed_at": "2026-11-13T14:50:59Z"
+    },
+    {
+      "id": 131901265508,
+      "name": "SMP 50/50 (m3-recovery-four)",
+      "conclusion": "success",
+      "started_at": "2026-11-13T14:42:18Z",
+      "completed_at": "2026-11-13T15:01:18Z"
+    },
+    {
+      "id": 132019461032,
+      "name": "SMP section 9 aggregate 74x50",
+      "conclusion": "success",
+      "started_at": "2026-11-13T16:36:21Z",
+      "completed_at": "2026-11-13T16:37:30Z"
+    },
+    {
+      "id": 132020175140,
+      "name": "SMP final repository gate",
+      "conclusion": "success",
+      "started_at": "2026-11-13T16:37:33Z",
+      "completed_at": "2026-11-13T16:52:01Z"
+    }
+  ]
+}

@@ -394,3 +394,38 @@ both with a Jeffreys point estimate and the 95 % upper bound of the per-guest ra
 | Section 7.4's assumption (the five earlier failures are removed by construction) extended by this source's hosted guests | about 13 790 | about 87 % | about 45 % |
 | This source's own hosted guests only (240 diagnostic boots and this run) | about 3 940 | about 72 % | about 6 % |
 
+### 7.6 Result of the full matrix (run 43429991481): accepted
+
+Run [43429991481](https://github.com/BaryonOS/BaryonOS/actions/runs/43429991481) was
+dispatched with the project owner's permission on `880984bb29c316e606490c0fa235b119ed4bb553`,
+which contains the oracle repair `790e122` (source-v3 unchanged at `e693759d…`). It ran
+once, was neither cancelled nor retried, and is **accepted**. Receipt:
+[`acceptance-43429991481.json`](acceptance-43429991481.json); summary:
+[`../K06-ACCEPTANCE.md`](../K06-ACCEPTANCE.md).
+
+| Item | Result |
+|---|---|
+| Jobs | 91: 86 success, 5 skipped by design, 0 failed |
+| Guests | 3 700 of 3 700 passed: 73 per-case jobs 50/50, ten soak shards 5/5, K07 probe passed; no timing incident |
+| Aggregate | both steps succeed, including "Complete source-bound SMP host oracles" ([`host-oracles-43429991481.log.gz`](host-oracles-43429991481.log.gz)) |
+| Final repository gate | `tools/gate.sh` succeeds; 26 native guests ([`final-gate-log-43429991481.log.gz`](final-gate-log-43429991481.log.gz)) |
+| `verify_artifacts.py` | exit 0: 84 reports, 3 700 runs independently verified; 87 artifact ZIPs match their API digests ([`verify-artifacts-43429991481.json.gz`](verify-artifacts-43429991481.json.gz)) |
+| `verify_final_gate.py` | exit 1 as tested; exit 0 after the verifier repair `d0d2e30` ([`verify-final-gate-43429991481.json.gz`](verify-final-gate-43429991481.json.gz)) |
+| Host watchdog margins | `m3-ipc-four` 201.3–224.1 s (median 207.6 s; 85 % of the 264 s bound), `m3-ipc-four-single` 93.8–116.2 s, `m3-load-eight` 42.4–43.4 of 125 s |
+
+**Verifier repair.** `verify_final_gate.py` requires that every raw guest result in the
+final-gate artifact is consumed by a check. Since #296 it checks the K05-SMP stage (six
+guests), but the same commit kept the pre-SMP literal of 20; the requirement could only hold
+at 26. Commit `d0d2e30` corrects the literal and the summary; the consumption check is
+unchanged. Negative checks on copies of the artifact (one K05-SMP result removed; one
+extra unconsumed result added) both exit 1. The defect lay in the read-only verifier, not
+in the kernel, the CI gate or the runner.
+
+**Runner variance.** The `m3-ipc-four` job ran on an AMD EPYC 7763; in run 43403835073 it
+ran on an Intel Xeon Platinum 8573C (max 158.3 s). `m3-ipc-four-single` ran on an AMD EPYC
+9V74 in both runs (max 116.2 s and 110.7 s). The margin of the 264 s bound therefore depends
+on the hosted CPU model; 85 % is the closest observed.
+
+**Not verified.** QEMU/TCG on hosted runners only: no KVM, no physical hardware. Compact
+artifacts omit executable and firmware bytes. No independent human audit.
+

@@ -1,6 +1,26 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 step 5f: full matrix 43403835073 passes every guest but is rejected on a stale host oracle; repaired; a new matrix needs permission — 13 November 2026
+## NEXT AGENT HANDOFF — K06 step 5f accepted: full matrix 43429991481 and the final gate pass on `880984b` — 13 November 2026
+
+**Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Tested commit `880984bb29c316e606490c0fa235b119ed4bb553` (source-v3 `e693759d89705970ecaa9c315b0423261fdc7924235af566beb363419eabd255`). Later commits change verification and documentation files only.
+
+**Run [43429991481](https://github.com/BaryonOS/BaryonOS/actions/runs/43429991481)** (`full_matrix=true`, permitted by the project owner, first attempt, not cancelled, no retry): **accepted.**
+- 91 jobs: 86 success, 5 skipped by design, 0 failed. 3 700 of 3 700 guests pass (73 per-case jobs 50/50, ten soak shards, K07 probe); no timing incident.
+- Aggregate: both steps succeed, including the source-bound host oracles that failed in run 43403835073.
+- Final repository gate: `tools/gate.sh` succeeds (host tests, clippy, fmt, 26 native guests: M2 7, K05 6, K05-SMP 6, K07 2, RTC 5).
+- Read-only readback: `verify_artifacts.py` exit 0 (3 700 runs, 87 ZIPs match API digests); `verify_final_gate.py` exit 1 as tested, exit 0 after commit `d0d2e30`, which corrects its stale count of 20 native guests to 26 (the K05-SMP stage added in #296); negative checks still exit 1.
+- Margins: `m3-ipc-four` 201.3–224.1 s of 264 s (85 %; AMD EPYC 7763 runner, 158.3 s on an Intel Xeon in the previous run), `m3-ipc-four-single` at most 116.2 s, `m3-load-eight` at most 43.4 of 125 s.
+- Evidence: [K06-ACCEPTANCE.md](verification/K06-ACCEPTANCE.md), `verification/k06-smp-sched/acceptance-43429991481.json` and the compact `*-43429991481.*.gz` files; [TIMING-REPAIR.md](verification/k06-smp-sched/TIMING-REPAIR.md) section 7.6.
+
+**Not run:** KVM, physical hardware, an independent human audit. Compact artifacts omit executable and firmware bytes.
+
+**Open risk:** the IPC margin depends on the hosted CPU model; 85 % of the 264 s bound is the closest observed.
+
+**Next:** review and merge of PR #317 by the project owner (draft, no auto-merge); then the next open criterion on the critical path.
+
+**Progress:** 39/100 → 41/100 (K06, 2 points).
+
+## Previous checkpoint — K06 step 5f: full matrix 43403835073 passes every guest but is rejected on a stale host oracle; repaired; a new matrix needs permission — 13 November 2026
 
 **Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Tested commit `c95d1d2` (source-v3 `e693759d89705970ecaa9c315b0423261fdc7924235af566beb363419eabd255`, identical to the ADR-082 candidate `4eb18b1`). Repair commit `790e122` touches only `tests/`, outside the source fingerprint; later commits change documentation and evidence only.
 
