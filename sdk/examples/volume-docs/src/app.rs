@@ -1,6 +1,9 @@
 #![no_std]
 #![no_main]
 #![deny(unsafe_op_in_unsafe_fn)]
+// The archive-portal build keeps only the S09 portal path so app text stays
+// within the 64 KiB startup boundary; the fixture code it leaves out is unused.
+#![cfg_attr(feature = "archive-portal", allow(dead_code, unused_imports))]
 //! Native M6e document app. Two instances run in separate address spaces,
 //! each with only a send/reply endpoint pair to the volume service. All
 //! results are app-reported evidence; the host disk oracle checks the image.
@@ -8,9 +11,16 @@
 #[cfg(not(all(target_arch = "x86_64", target_os = "none")))]
 compile_error!("volume-app is only for the Nieuw OS x86_64-unknown-none target");
 
+#[cfg_attr(not(feature = "archive-portal"), allow(dead_code))]
+mod disk;
 mod support;
 
+use disk::tick;
+#[cfg(feature = "archive-portal")]
+use disk::NativeDisk;
 use nieuw_os_sdk_runtime::{native, BlockDevice, Handle, Outgoing, ReceiveEndpoint, SendEndpoint};
+#[cfg(feature = "archive-portal")]
+use volume_core::archive::{self, DiskSink, DiskSource, Report};
 use volume_core::{
     checksum_update,
     client::{Client, HistoryInfo, Stat, Transport},
@@ -28,10 +38,32 @@ const CUT_TABLE: u64 = 3;
 const RECOVER_CUT: u64 = 4;
 const CORRUPT: u64 = 5;
 const CUT_TXN: u64 = 6;
-
-fn tick() {
-    support::put(8, support::word(8).wrapping_add(1));
-}
+// S09 archive cases: slot 1 is the backup portal, slot 2 an ordinary app.
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_EXPORT: u64 = 7;
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_RESTORE: u64 = 8;
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_CORRUPT: u64 = 9;
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_CONFLICT: u64 = 10;
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_FULL: u64 = 11;
+/// Startup word with the portal's archive range capability (slot 1, archive
+/// cases only); the range size must equal the kernel manifest's scope.
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_HANDLE: u64 = 504;
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_SECTORS: u64 = 1040;
+/// Scope of the full-target case, below the 180 sectors the export needs.
+#[cfg(feature = "archive-portal")]
+const FULL_SECTORS: u64 = 100;
+/// Private, zeroed 64 KiB RW/NX heap the kernel maps for every process
+/// before entry; the portal's only use is the archive content scratch.
+#[cfg(feature = "archive-portal")]
+const HEAP: usize = 0x6000_0000;
+#[cfg(feature = "archive-portal")]
+const _: () = assert!(MAX_LENGTH == 0x10000);
 
 fn fail(step: u64) -> ! {
     support::put(240, step);
@@ -768,6 +800,197 @@ fn recover_cut(app: &mut App) {
     app.report(30);
 }
 
+/// The portal's verify-then-restore flow (spec: the trailer follows the last
+/// object, so restore may only run on bytes that `verify` accepted).
+#[cfg(feature = "archive-portal")]
+fn verified_restore(
+    disk: &mut NativeDisk,
+    scratch: &mut [u8; MAX_LENGTH],
+    app: &mut App,
+) -> Result<Report, (Status, Report)> {
+    archive::verify(&mut DiskSource::new(disk, ARCHIVE_SECTORS), scratch)
+        .map_err(|status| (status, Report::default()))?;
+    archive::restore(
+        &mut DiskSource::new(disk, ARCHIVE_SECTORS),
+        scratch,
+        &mut app.client,
+        0,
+    )
+}
+
+/// S09 backup portal: the only process with a capability on the archive
+/// range, plus a volume client bound to domain 0 like any app.
+#[cfg(feature = "archive-portal")]
+fn portal(app: &mut App, case: u64) {
+    let device = BlockDevice::from_handle(
+        Handle::from_raw(support::word(ARCHIVE_HANDLE)).unwrap_or_else(|_| fail(700)),
+    );
+    // The capability ends at its scope: the first sector past it is refused.
+    let sectors = if case == ARCHIVE_FULL {
+        FULL_SECTORS
+    } else {
+        ARCHIVE_SECTORS
+    };
+    check(native::block_read(device, sectors, 0, 128).is_err(), 701);
+    // SAFETY: the kernel maps HEAP..HEAP+64 KiB private, zeroed RW/NX for this
+    // process before entry and nothing else here uses it; this is the only
+    // reference, held for the rest of the portal run on one thread.
+    let scratch = unsafe { &mut *(HEAP as *mut [u8; MAX_LENGTH]) };
+    let mut disk = NativeDisk { device };
+    // The broker serves one block request at a time (others get Busy), so
+    // archive I/O must not overlap service I/O: slot 2 waits for phase 2,
+    // and every case reaches a READY service before its first archive read.
+    app.phase(1);
+    match case {
+        ARCHIVE_EXPORT => {
+            // The source is the recovered normal fixture, mounted read-only.
+            verify_final(app, FINAL_A, 702);
+            let mut sink = DiskSink::new(&mut disk, ARCHIVE_SECTORS);
+            let summary =
+                archive::export(&mut app.client, 0, &mut sink).unwrap_or_else(|_| fail(710));
+            sink.finish().unwrap_or_else(|_| fail(711));
+            check(
+                summary.objects == FINAL_A.len() && summary.collections == 2,
+                712,
+            );
+            // Read the stored bytes back through the same capability.
+            let stored = archive::verify(&mut DiskSource::new(&mut disk, ARCHIVE_SECTORS), scratch)
+                .unwrap_or_else(|_| fail(713));
+            check(stored == summary, 714);
+            let object = app.object(7);
+            check(
+                app.client.write(object, 0, b"Nee", 1, fill(object, 1)) == Err(Status::Access),
+                715,
+            );
+        }
+        ARCHIVE_RESTORE => {
+            // Source loss: a fresh volume whose domain starts empty.
+            check(app.list(0, 720).1 == 0, 721);
+            let report = verified_restore(&mut disk, scratch, app).unwrap_or_else(|_| fail(723));
+            let all = FINAL_A.iter().fold(0u8, |mask, item| mask | 1 << item.0);
+            check(
+                report
+                    == Report {
+                        restored: all,
+                        ..Report::default()
+                    },
+                724,
+            );
+            for (index, _, content, length, name, collection, _) in FINAL_A {
+                let stat = app.verify(*index, *content, 730);
+                check(
+                    stat.length == *length
+                        && &stat.name[..stat.name_length] == name.as_bytes()
+                        && stat.collection == *collection
+                        && stat.history_count == 0,
+                    735,
+                );
+            }
+            check(app.list(0, 736).1 == FINAL_A.len(), 737);
+        }
+        ARCHIVE_CORRUPT => {
+            // Corrupt archive: the same flow as restore refuses it at verify,
+            // so restore never runs and nothing is restored.
+            check(app.list(0, 738).1 == 0, 739);
+            check(
+                verified_restore(&mut disk, scratch, app)
+                    == Err((Status::Corrupt, Report::default())),
+                740,
+            );
+            check(app.list(0, 741).1 == 0, 742);
+        }
+        ARCHIVE_CONFLICT => {
+            // Restore into a domain that already holds data. Slot 3 is taken
+            // under another name and slot 6 uses the name of archive slot 4:
+            // both conflicts stay untouched. Collection 2 holds another name,
+            // so archive slot 1 lands outside a collection (kind kept);
+            // collection 1 is equal, so archive slot 2 reuses it.
+            check(app.list(0, 770).1 == 0, 771);
+            app.write(3, 0, b"Bezet", 77, 772);
+            app.write(6, 0, b"Herstart", 33, 776);
+            check(app.client.collection(0, 1, 0, b"Werk") == Ok(1), 780);
+            check(app.client.collection(0, 2, 0, b"Anders") == Ok(1), 781);
+            let report = verified_restore(&mut disk, scratch, app).unwrap_or_else(|_| fail(782));
+            check(
+                report
+                    == Report {
+                        restored: 1 << 1 | 1 << 2 | 1 << 5,
+                        conflicts: 1 << 3 | 1 << 4,
+                        uncollected: 1 << 1,
+                        bare: 0,
+                    },
+                783,
+            );
+            for (index, name, length, step) in [(3, "Bezet", 77, 784), (6, "Herstart", 33, 787)] {
+                let stat = app.verify(index, 1, step);
+                check(
+                    stat.revision == 1
+                        && stat.length == length
+                        && &stat.name[..stat.name_length] == name.as_bytes()
+                        && stat.collection == 0,
+                    step + 2,
+                );
+            }
+            let missing = app.object(4);
+            check(
+                matches!(app.client.stat(missing), Err((Status::NotFound, 0))),
+                790,
+            );
+            for (index, revision, collection, kind) in [(1, 2, 0, 2), (2, 2, 1, 0), (5, 1, 0, 0)] {
+                let &(_, _, content, length, name, _, _) = FINAL_A
+                    .iter()
+                    .find(|item| item.0 == index)
+                    .unwrap_or_else(|| fail(791));
+                let stat = app.verify(index, content, 792);
+                check(
+                    stat.revision == revision
+                        && stat.length == length
+                        && &stat.name[..stat.name_length] == name.as_bytes()
+                        && stat.collection == collection
+                        && stat.kind == kind
+                        && stat.history_count == 0,
+                    794,
+                );
+            }
+            app.collection_is(0, 1, Some("Werk"), 1, 795);
+            app.collection_is(0, 2, Some("Anders"), 1, 797);
+            check(app.list(0, 799).1 == 5, 800);
+        }
+        ARCHIVE_FULL => {
+            // Same read-only source as export, but the target is too small.
+            verify_final(app, FINAL_A, 802);
+            let mut sink = DiskSink::new(&mut disk, FULL_SECTORS);
+            check(
+                archive::export(&mut app.client, 0, &mut sink) == Err(Status::Full),
+                810,
+            );
+            // No finish: a failed export is never padded or flushed.
+            // The kernel also refuses a write past the cut scope.
+            check(
+                native::block_write(device, FULL_SECTORS, &[0; 512]).is_err(),
+                811,
+            );
+            // The unfinished range is not an archive: its header claims more
+            // than the range holds.
+            check(
+                archive::verify(&mut DiskSource::new(&mut disk, FULL_SECTORS), scratch)
+                    == Err(Status::Corrupt),
+                812,
+            );
+            // The source volume still answers; the host checks its bytes.
+            check(app.list(0, 813).1 == FINAL_A.len(), 814);
+            let object = app.object(7);
+            check(
+                app.client.write(object, 0, b"Nee", 1, fill(object, 1)) == Err(Status::Access),
+                815,
+            );
+        }
+        _ => fail(769),
+    }
+    app.phase(2);
+    app.report(750);
+}
+
 fn run() {
     check(native::check_abi().is_ok(), 1);
     let slot = support::word(0);
@@ -807,11 +1030,30 @@ fn run() {
         commits: 0,
     };
     match case {
+        #[cfg(not(feature = "archive-portal"))]
         NORMAL if domain == 0 => normal_a(&mut app),
+        #[cfg(not(feature = "archive-portal"))]
         NORMAL => normal_b(&mut app),
+        #[cfg(not(feature = "archive-portal"))]
         RECOVER => recover(&mut app),
+        #[cfg(not(feature = "archive-portal"))]
         CUT_DATA | CUT_TABLE | CUT_TXN => cut(&mut app, case),
+        #[cfg(not(feature = "archive-portal"))]
         RECOVER_CUT => recover_cut(&mut app),
+        #[cfg(feature = "archive-portal")]
+        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT | ARCHIVE_FULL
+            if domain == 0 =>
+        {
+            portal(&mut app, case)
+        }
+        // The ordinary app holds no archive authority; it reports its domain
+        // only after the portal finished its archive I/O (kernel gate 2).
+        #[cfg(feature = "archive-portal")]
+        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT | ARCHIVE_FULL => {
+            app.phase(1);
+            app.wait_gate(2);
+            app.report(760)
+        }
         _ => fail(5),
     }
     support::put(40, 1);

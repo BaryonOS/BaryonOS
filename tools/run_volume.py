@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """M6e QEMU runner: fresh guarded volume images, real host kills and a cold
-read-only recovery of exactly the preserved image, checked by the host oracle."""
+read-only recovery of exactly the preserved image, checked by the host oracle.
+The S09 archive stages add an export into a disjoint archive range of the same
+disposable image, a restore, a damaged-archive refusal and a restore into a
+domain with conflicting names and collections on fresh images, and an export
+into a target too small for the archive that must fail without a usable archive."""
 from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
@@ -17,6 +21,7 @@ import time
 import uuid
 from common import ROOT, BUILD, environment, firmware, qemu_accel, qemu_machine, save_json, sha256, source_hash
 from build import VOLUME_FEATURES
+import volume_archive
 import volume_disk
 
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK")
@@ -24,12 +29,41 @@ FAILURES = ("PANIC", "FAIL", "M5:FAIL")
 FEATURE = {"normal": "native-volume", "recover": "test-volume-recover",
            "cut-data": "test-volume-cut-data", "cut-table": "test-volume-cut-table",
            "cut-txn": "test-volume-cut-txn", "recover-cut": "test-volume-recover-cut",
-           "corrupt": "test-volume-corrupt", "foreign": "test-volume-foreign"}
+           "corrupt": "test-volume-corrupt", "foreign": "test-volume-foreign",
+           "archive-export": "test-volume-archive-export",
+           "archive-restore": "test-volume-archive-restore",
+           "archive-corrupt": "test-volume-archive-corrupt",
+           "archive-conflict": "test-volume-archive-conflict",
+           "archive-full": "test-volume-archive-full"}
 CUT_MARKER = {"cut-data": "VOLUME:CUT:DATA", "cut-table": "VOLUME:CUT:TABLE", "cut-txn": "VOLUME:CUT:TXN"}
 CASE_MARKER = {"normal": "NORMAL", "recover": "RECOVER", "recover-cut": "RECOVER_CUT",
-               "corrupt": "CORRUPT", "foreign": "CORRUPT"}
+               "corrupt": "CORRUPT", "foreign": "CORRUPT", "archive-export": "ARCHIVE_EXPORT",
+               "archive-restore": "ARCHIVE_RESTORE", "archive-corrupt": "ARCHIVE_CORRUPT",
+               "archive-conflict": "ARCHIVE_CONFLICT", "archive-full": "ARCHIVE_FULL"}
 READ_ONLY = ("recover", "recover-cut", "corrupt", "foreign")
 MAX_TIMEOUT = 600
+# S09 archive range; must equal ARCHIVE_FIRST_SECTOR/ARCHIVE_SECTORS in the
+# kernel volume profile and ARCHIVE_SECTORS in the portal app.
+ARCHIVE_FIRST, ARCHIVE_SECTORS, SECTOR = 1000, 1040, 512
+ARCHIVE_SPAN = slice(ARCHIVE_FIRST * SECTOR, (ARCHIVE_FIRST + ARCHIVE_SECTORS) * SECTOR)
+# A real sector follows the range (the portal's scope probe must not be refused
+# by the device capacity instead), and the largest v1 archive fits it.
+assert ARCHIVE_FIRST + ARCHIVE_SECTORS < volume_disk.IMAGE_SECTORS
+assert volume_disk.FIRST + volume_disk.VOLUME_SECTORS <= ARCHIVE_FIRST
+assert (volume_archive.HEADER + volume_archive.TRAILER + volume_archive.COLLECTIONS * volume_archive.COLLECTION_RECORD
+        + volume_archive.OBJECTS * (volume_archive.OBJECT_RECORD + volume_archive.MAX_LENGTH)
+        <= ARCHIVE_SECTORS * SECTOR)
+RESTORED = ("archive-restore", "archive-corrupt", "archive-conflict")
+# archive-full: the portal's scope is cut to FULL_SECTORS (FULL_SECTORS in the
+# kernel volume profile and the portal app), below the fixture archive's length.
+FULL_SECTORS = 100
+assert FULL_SECTORS < ARCHIVE_SECTORS
+FULL_END = ARCHIVE_SPAN.start + FULL_SECTORS * SECTOR
+# Domain-0 state the portal writes before the archive-conflict restore (mirrors
+# portal() in sdk/examples/volume-docs/src/app.rs): object -> (name, length),
+# content = fixture(object, 1, length); collection index -> name.
+CONFLICT_OBJECTS = {3: ("Bezet", 77), 6: ("Herstart", 33)}
+CONFLICT_COLLECTIONS = {1: "Werk", 2: "Anders"}
 
 # Expected final state of the normal fixture: object -> (revision, content
 # revision, length, name, collection, content revisions of the history).
@@ -155,12 +189,43 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
     if case not in ("normal", "cut-data", "cut-table", "cut-txn", "corrupt", "foreign"):
         parent = last["case"]
         if (case, parent) not in (("recover", "normal"), ("recover-cut", "cut-data"),
-                                  ("recover-cut", "cut-table"), ("recover-cut", "cut-txn")):
+                                  ("recover-cut", "cut-table"), ("recover-cut", "cut-txn"),
+                                  ("archive-export", "recover"), ("archive-restore", "archive-export"),
+                                  ("archive-corrupt", "archive-export"), ("archive-conflict", "archive-export"),
+                                  ("archive-full", "archive-export")):
             raise ValueError(f"{case} cannot follow {parent}")
+    archive_flip = archive_reference = None
+    if case == "archive-full":
+        # The export stage's input again: the recovered fixture whose archive
+        # range holds its canaries and no archive. The export stage's archive
+        # is the reference for the bytes the too-small target may receive.
+        exported = (volume_dir / "volume.img").read_bytes()
+        archive_reference = stored_archive(exported)
+        fresh = outside_archive(exported)
+        volume_dir = BUILD / "run" / f"volume-image-{uuid.uuid4().hex[:10]}"
+        volume_dir.mkdir(parents=True)
+        (volume_dir / "volume.img").write_bytes(fresh)
+        info = dict(info, variant=case, sha256=hashlib.sha256(fresh).hexdigest())
+        (volume_dir / "volume.json").write_text(json.dumps(info, indent=2) + "\n", encoding="utf-8")
+    elif case in RESTORED:
+        # Source loss: a fresh image that holds only the exported archive range.
+        exported = (volume_dir / "volume.img").read_bytes()
+        volume_dir = BUILD / "run" / f"volume-image-{uuid.uuid4().hex[:10]}"
+        volume_dir.mkdir(parents=True)
+        info = volume_disk.create_image(volume_dir / "volume.img", "empty")
+        fresh = bytearray((volume_dir / "volume.img").read_bytes())
+        fresh[ARCHIVE_SPAN] = exported[ARCHIVE_SPAN]
+        if case == "archive-corrupt":
+            archive_flip = volume_archive.stored_length(exported[ARCHIVE_SPAN][:64]) // 2
+            fresh[ARCHIVE_SPAN.start + archive_flip] ^= 0x01
+        (volume_dir / "volume.img").write_bytes(bytes(fresh))
+        info = dict(info, variant=case, sha256=hashlib.sha256(fresh).hexdigest(), archive_flip=archive_flip)
+        (volume_dir / "volume.json").write_text(json.dumps(info, indent=2) + "\n", encoding="utf-8")
     image = volume_dir / "volume.img"
     if image.stat().st_nlink != 1:
         raise ValueError("volume image must have exactly one link")
     before = sha256(image)
+    before_bytes = image.read_bytes()
     rel = run_dir.relative_to(ROOT).as_posix()
     image_rel = image.relative_to(ROOT).as_posix()
     readonly = "on" if case in READ_ONLY else "off"
@@ -213,6 +278,8 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
                 if "accepted" in str(error):
                     raise
                 oracle = {"refused": str(error)}
+        elif case.startswith("archive-"):
+            oracle = check_archive(case, before_bytes, image.read_bytes(), evidence, archive_reference)
         else:
             oracle = volume_disk.analyse(image.read_bytes())
             check_state(case, oracle, evidence, parent)
@@ -228,6 +295,141 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
     if "error" in report:
         print(report["error"])
     return report, volume_dir
+
+
+def outside_archive(image: bytes) -> bytes:
+    """The image with the archive range back at its canaries, as the volume
+    oracle requires every sector outside the volume scope to be."""
+    data = bytearray(image)
+    data[ARCHIVE_SPAN] = b"".join(volume_disk.canary(index)
+                                  for index in range(ARCHIVE_FIRST, ARCHIVE_FIRST + ARCHIVE_SECTORS))
+    return bytes(data)
+
+
+def stored_archive(image: bytes) -> bytes:
+    region = image[ARCHIVE_SPAN]
+    length = volume_archive.stored_length(region[:volume_archive.HEADER])
+    if length > len(region):
+        raise ValueError("archive header claims more than the archive range")
+    return region[:length]
+
+
+def check_archive(case: str, before: bytes, after: bytes, evidence, reference: bytes | None = None):
+    """Byte-level S09 acceptance with the independent format reader and the
+    volume oracle; the kernel already counted archive I/O per capability."""
+    counts = [evidence[f"VOLUME:ARCHIVE:{name}:"] for name in ("READS", "WRITES", "FLUSHES")]
+    if case == "archive-full":
+        # Spec: a full target leaves no finalized archive and verify refuses it.
+        if reference is None or len(reference) <= FULL_SECTORS * SECTOR:
+            raise ValueError("the full-target reference archive fits the cut range")
+        if after[:ARCHIVE_SPAN.start] != before[:ARCHIVE_SPAN.start] or after[FULL_END:] != before[FULL_END:]:
+            raise ValueError("full-target export changed sectors outside the cut range")
+        data = after[ARCHIVE_SPAN.start:FULL_END]
+        # The same source yields the same stream: the cut range holds exactly its prefix.
+        if data != reference[:len(data)]:
+            raise ValueError("cut range differs from the prefix of the export stage's archive")
+        if counts[0] == 0 or counts[1:] != [FULL_SECTORS, 0]:
+            raise ValueError(f"archive I/O counts {counts}")
+        # Neither the cut range nor the full archive range (what a later reader
+        # with the normal scope would see) may parse as an archive.
+        for label, candidate in (("cut range", data), ("archive range", stored_archive(after))):
+            try:
+                volume_archive.parse(candidate)
+                raise ValueError(f"format reader accepted the unfinished {label}")
+            except ValueError as error:
+                if "accepted" in str(error):
+                    raise
+        oracle = volume_disk.analyse(outside_archive(after))
+        check_state("recover", oracle, evidence)
+    elif case == "archive-export":
+        if after[:ARCHIVE_SPAN.start] != before[:ARCHIVE_SPAN.start]:
+            raise ValueError("export changed sectors outside the archive range")
+        data = stored_archive(after)
+        end = ARCHIVE_SPAN.start + -(-len(data) // SECTOR) * SECTOR
+        if after[ARCHIVE_SPAN.start + len(data):end] != bytes(end - ARCHIVE_SPAN.start - len(data)):
+            raise ValueError("archive tail padding is not zero")
+        if after[end:] != before[end:]:
+            raise ValueError("export wrote past the archive length")
+        if counts[1] != (end - ARCHIVE_SPAN.start) // SECTOR or counts[0] == 0 or counts[2] == 0:
+            raise ValueError(f"archive I/O counts {counts}")
+        archive = volume_archive.parse(data)
+        oracle = volume_disk.analyse(outside_archive(after))
+        check_state("recover", oracle, evidence)
+        # The header carries the domain generation that LIST reports: the sum
+        # of the domain's object and collection revisions (not the global one).
+        domain = (sum(item["revision"] for item in oracle["objects"][:volume_disk.PER_DOMAIN])
+                  + sum(c["revision"] for c in oracle["collections"] if c["domain"] == 0))
+        if archive["generation"] != domain:
+            raise ValueError("archive generation differs from the domain generation")
+        present = [item["object"] for item in oracle["objects"][:volume_disk.PER_DOMAIN] if item["present"]]
+        if [item["slot"] for item in archive["objects"]] != present:
+            raise ValueError("archive objects differ from the domain-0 objects")
+        for source in archive["objects"]:
+            item = oracle["objects"][source["slot"]]
+            version = current(item)
+            found = (source["name"], source["length"], source["collection"], source["revision"],
+                     source["tags"], source["kind"], source["created"], source["modified"], source["content"])
+            want = (version["name"], version["length"], item["collection"], item["revision"], item["tags"],
+                    item["kind"], item["created"], item["modified"],
+                    volume_disk.fixture(source["slot"], version["content_revision"], version["length"]))
+            if found != want:
+                raise ValueError(f"archive object {source['slot']} differs from the volume")
+        names = {c["index"]: c["name"] for c in oracle["collections"] if c["domain"] == 0 and c["present"]}
+        if archive["collections"] != names:
+            raise ValueError("archive collections differ from the volume")
+    else:
+        if after[ARCHIVE_SPAN] != before[ARCHIVE_SPAN] or counts[0] == 0 or counts[1:] != [0, 0]:
+            raise ValueError(f"archive range changed or I/O counts {counts}")
+        data = stored_archive(before)
+        if case == "archive-corrupt":
+            try:
+                volume_archive.parse(data)
+                raise ValueError("format reader accepted the damaged archive")
+            except ValueError as error:
+                if "accepted" in str(error):
+                    raise
+            oracle = volume_disk.analyse(outside_archive(after))
+            pre, expected = {}, volume_archive.expected_restore({"objects": []}, {}, {})
+        else:
+            archive = volume_archive.parse(data)
+            pre, held = (CONFLICT_OBJECTS, CONFLICT_COLLECTIONS) if case == "archive-conflict" else ({}, {})
+            # The end state follows from the archive and the pre-state by the spec rule alone.
+            expected = volume_archive.expected_restore(archive, {o: name for o, (name, _) in pre.items()}, held)
+            # The native fixture exercises these four rules. Two more are host tests in
+            # services/volume/tests/archive.rs: "no collection for a conflicting object" cannot hold
+            # together with the four here (the archive has only two collected objects), and
+            # "uncollected without metadata stays at revision 1" is not exercised by this fixture.
+            if case == "archive-conflict" and not all(
+                    expected[key] for key in ("slot_conflicts", "name_conflicts", "uncollected", "reused")):
+                raise ValueError(f"conflict fixture misses a restore rule: {expected}")
+            # Only restored objects carry archive bytes; the pre-state must stay a written fixture.
+            oracle = volume_disk.analyse(outside_archive(after), opaque=frozenset(expected["objects"]))
+        for item in oracle["objects"]:
+            obj, source = item["object"], expected["objects"].get(item["object"])
+            if obj in pre:
+                version = current(item)
+                found = (item["revision"], len(item["versions"]), version["name"], version["length"],
+                         version["content_revision"], item["collection"], item["tags"], item["kind"])
+                if found != (1, 1, *pre[obj], 1, 0, 0, 0):
+                    raise ValueError(f"restore changed pre-existing object {obj}: {found}")
+            elif source is None:
+                if item["present"] or item["revision"]:
+                    raise ValueError(f"unexpected object {obj} after {case}")
+            else:
+                version = current(item)
+                found = (item["revision"], len(item["versions"]), version["name"], version["length"],
+                         item["collection"], item["tags"], item["kind"], bytes.fromhex(version["content_hex"]))
+                want = (source["revision"], 1, source["name"], source["length"], source["collection"],
+                        source["tags"], source["kind"], source["content"])
+                if found != want:
+                    raise ValueError(f"restored object {obj} differs from the archive: {found[:7]}")
+        check_collections(oracle, {(0, index): name for index, name in expected["collections"].items()})
+        if [evidence["VOLUME:A:DIGEST:"], evidence["VOLUME:B:DIGEST:"]] != oracle["digests"]:
+            raise ValueError("guest-reported digests differ from the disk oracle")
+    oracle["archive"] = {"length": len(data), "sha256": hashlib.sha256(data).hexdigest(), "io": counts}
+    if reference is not None:
+        oracle["archive"]["reference_length"] = len(reference)
+    return oracle
 
 
 def current(item):
