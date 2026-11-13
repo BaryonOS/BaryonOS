@@ -6,7 +6,7 @@ Uses the run-length encoding of ui/graphics/scripts/generate_font.py (rows of
 three character sets. Glyph and row tables are not included. Glyphs larger than
 the generator's 96 px bound are skipped and counted.
 
-Usage: python3 -I ui/design/typography/atlas_estimate.py FONT.ttf [feature,feature]
+Usage: python3 -I ui/design/typography/atlas_estimate.py FONT.ttf [feature,feature] [weight:px,...]
 """
 import sys
 from pathlib import Path
@@ -28,7 +28,7 @@ def font_at(path, size, weight, opsz):
         vals.append(max(a['minimum'], min(a['maximum'], v)))
     f.set_variation_by_axes(vals); return f
 def encode(path, specs, chars, feats):
-    total = 0; missing = 0; too_big = []
+    total = 0; too_big = []
     for weight, size in specs:
         f = font_at(path, size, weight, min(32, max(14, size)))
         for ch in chars:
@@ -49,7 +49,10 @@ path = Path(sys.argv[1]); feats = sys.argv[2].split(',') if len(sys.argv) > 2 an
 TODAY = [(400, 12), (400, 16), (400, 24), (400, 32), (600, 16), (600, 32), (600, 64)]
 FULL = [(400, s) for s in (12, 13, 15, 16, 24, 26, 30, 32)] + [(600, s) for s in (13, 15, 18, 22, 28, 26, 30, 36, 44, 56)] + [(400, 48), (400, 96)]
 REDUCED = [(400, 12), (400, 15), (600, 15), (600, 22), (400, 48), (400, 24), (400, 30), (600, 30), (600, 44)]
-for name, specs in (('today records', TODAY), ('full scale', FULL), ('reduced set', REDUCED)):
+SETS_TO_RUN = (('today records', TODAY), ('full scale', FULL), ('reduced set', REDUCED))
+if len(sys.argv) > 3:  # optional own record set "weight:px,weight:px,..." (e.g. a face's equal-x-height sizes)
+    SETS_TO_RUN = (('own records', [tuple(int(v) for v in r.split(':')) for r in sys.argv[3].split(',')]),)
+for name, specs in SETS_TO_RUN:
     for cname, chars in SETS.items():
         n, big = encode(path, specs, chars, feats)
         print(f"{path.stem.split('[')[0]:28} {name:15} {cname:24} {len(chars):4} chars {len(specs):2} records  {n/1024:7.1f} KiB" + (f"  >96px: {len(big)}" if big else ""))
