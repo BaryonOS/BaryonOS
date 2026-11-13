@@ -4,9 +4,8 @@ import contextlib
 import io
 import os
 import sys
-import unittest
 from pathlib import Path
-from unittest import mock
+from unittest import TestCase, main, mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import merge_hold
@@ -20,7 +19,7 @@ def comment(body, association="MEMBER"):
     return {"body": body, "author_association": association}
 
 
-class DecisionTests(unittest.TestCase):
+class DecisionTests(TestCase):
     def test_no_label_passes(self):
         self.assertTrue(merge_hold.decide(["bug"], [], HEAD)[0])
 
@@ -58,7 +57,7 @@ class DecisionTests(unittest.TestCase):
                 self.assertFalse(merge_hold.decide([], [], head)[0])
 
 
-class MainTests(unittest.TestCase):
+class MainTests(TestCase):
     def run_main(self, env, fetch):
         out = io.StringIO()
         with mock.patch.dict(os.environ, env, clear=True), \
@@ -106,7 +105,7 @@ class MainTests(unittest.TestCase):
         self.assertEqual(self.run_main(ENV, odd)[0], 1)
 
 
-class FetchTests(unittest.TestCase):
+class FetchTests(TestCase):
     @staticmethod
     def pages(*bodies):
         responses = [io.BytesIO(body.encode()) for body in bodies]
@@ -142,4 +141,4 @@ class FetchTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    main()

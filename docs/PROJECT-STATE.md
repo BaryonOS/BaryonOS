@@ -1,6 +1,86 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 branch documentation ported; old K06 pull requests ready to close — 13 November 2026
+## NEXT AGENT HANDOFF — S09 native archive slice: export, restore, damaged-archive refusal, name-conflict restore and a full target pass the local volume gate (14/14) — 13 November 2026
+
+**Source:** branch `feat/s09-native-archive`, draft PR #318 (no auto-merge). Tested commit `e88e0ad5` (source-v3 `a924a051f18bb1044526ba641d58023356e19564b5cd3a68823f90a14a1f69af`, which includes the AI-review fixes); later commits change documentation and evidence only.
+
+**Done:**
+- Kernel volume profile cases 7–11 (`test-volume-archive-export|restore|corrupt|conflict|full`). The slot-1 portal alone gets the archive range (device 0, sectors 1000..2040, disjoint from the volume 4..584): READ|WRITE|FLUSH for export, READ only for restore, corrupt and conflict, and READ|WRITE|FLUSH on the first 100 sectors only for the full-target case.
+- During export (cases 7 and 11) the volume service is READ-only. Archive I/O is counted per capability object. `ARCHIVE_ESCAPE` counts block objects, nodes and per-process handles, and checks that the service's handle does not resolve to the archive object key. Calls on the portal's own archive object are not counted as app device denials.
+- Portal build `volume-app --features archive-portal`; the normal `volume-service` build is unchanged.
+- An independent Python reader of format v1 (`tools/volume_archive.py`) plus unit tests, including resealed tamper cases; all 10 reader mutations were killed. `expected_restore` derives the restore end state from the spec rule.
+- Five archive runner stages; `tools/test_volume.py` now runs 14 QEMU stages. The conflict stage covers slot and name conflicts, a reused collection, and a collection that keeps another name and whose archived object is restored uncollected. The full-target stage requires `Full`, no flush, `verify` refusal, and an unchanged volume. Three further rules are `volume-core` host tests.
+- Decision proposal for the user-chosen destination and its capability: [S09-BACKUP-DESTINATION-PROPOSAL.md](implementation/S09-BACKUP-DESTINATION-PROPOSAL.md). It establishes no contract.
+
+**Evidence:** local `tools/test_volume.py` on `e88e0ad5`: exit 0, `passed=true`, 14/14 stages, 157 s wall time (QEMU 10.2.1 TCG):
+- Export: 91 801-byte archive, 180 writes, all archive I/O, 0 service commits.
+- Restore on a fresh image holding only the archive range: 5 objects byte-identical.
+- One flipped byte: the guest refuses it, the reader refuses it, and the image is unchanged.
+- Conflict: restored {1, 2, 5}, conflicts {3, 4}, uncollected {1}; the pre-state is unchanged. The conflict and restore oracles each refuse the other stage's image.
+- Full target (100 of the 180 sectors needed): `Full`, archive I/O 4/100/0, the 100 sectors equal the archive's prefix, the reader refuses the cut and the full range, and the volume is unchanged. The full-target and export oracles each refuse the other stage's image.
+- Details: [S09 native evidence](verification/s09-archive/NATIVE-20261113.md); design and limits: [S09-BACKUP-ARCHIVE.md](implementation/S09-BACKUP-ARCHIVE.md).
+- Also recorded there: two failing intermediate runs (a wrong host generation check, and a broker Busy race fixed by ordering) and the superseded passes of runs 3–9.
+- A `native-system` kernel build also passes on this tree; its 2 warnings come from files this branch does not change.
+
+**Not run:** CI volume-acceptance on this head (pending); KVM; hardware; a second attached disk; an independent human audit.
+
+**Open for the project owner (workflow files are not changed here):** `.github/workflows/kvm-pilot.yml` expects 9 volume stage reports and `volume-acceptance.yml` names "9 QEMU runs"; the gate now runs 14 stages, so the KVM pilot's volume job would fail closed on this branch.
+
+**Open (S09 stays open):** a user-chosen target behind its own capability (decision proposal D1–D5 awaits the project owner); documented common export formats; the encrypted NAS/provider variant (proposed to wait for B01); a user task.
+
+**Next:** a decision by the project owner on the destination proposal, and review of PR #318. Without that decision, the remaining S09 work that needs no new trust boundary is a documented common export format, specified and host-tested first.
+
+**Progress:** 41/100 → 41/100 (S09 not accepted).
+
+## Previous checkpoint — Security alert summary and Project #5 access — 11 November 2026
+
+**Source:** branch `ccr-db0981b4-k5rug1` from main
+`c520703b17169912691132b15d2306c9a5199de9`; `main` `bf4aa716` merged in on
+13 November 2026 without changes to this work.
+
+**Problem:** agent sessions cannot read the backlog's security inputs or
+Project #5. GraphQL and organisation `projectsV2` routes are blocked by the
+session proxy. Dependabot and code-scanning alerts return "Resource not
+accessible by integration". Secret-scanning alerts are blocked by the proxy.
+These limits belong to the session platform; repository settings cannot lift
+them.
+
+**Route:** GitHub Actions does the work, and a session dispatches the runs and
+reads their logs through the GitHub connector.
+
+- Project #5: the project owner configured `BARYON_PROJECTS_TOKEN`. Dry-run
+  43117446009 on `c520703` passed: 43 items scanned, 38 fill-only field
+  suggestions, 0 changes. This proves GraphQL access with the token.
+- Alerts (this change): `.github/workflows/security-alerts.yml` and
+  `tools/security_alerts_summary.py` (ADR-CI-SECURITY-ALERTS-20261111). Logs are
+  public, so the summary publishes only publicly derivable Dependabot fields and
+  aggregate code-scanning counts. Secret scanning stays manual.
+
+**Evidence:**
+- 18 local tests pass (`tests/test_security_alerts_summary.py`) on Python
+  3.12 and 3.13.
+- 21 CI-workflow contract tests pass.
+- actionlint 1.7.12 passes over all workflows.
+- `progress.py --check` passes.
+- Hosted PR run 43118954606 on `4cc4ecd` passed. GitHub accepted the
+  `vulnerability-alerts` scope and both lists were read: 0 open Dependabot
+  alerts and 26 open code-scanning alerts (CodeQL: 19 critical, 7 high).
+
+**Open:**
+- Triage of the 26 code-scanning alerts (13 November 2026): the three
+  JavaScript alerts are fixed in draft PR #320; the 23 Rust alerts were
+  classified as test fixtures or false positives and await the project owner's
+  decision. No alert was dismissed.
+- PR #314 merged on 12 November 2026 (`1a3feb92`). Its Project #5 dry-run on
+  that commit passed (run 43136541042, `APPLY: false`), followed by two applied
+  runs (43136951547, 43137042857); scheduled runs have succeeded since.
+
+**Acceptance:** 41/100 → 41/100; CI and backlog tooling only.
+
+**Next:** the project owner's decision on the proposed classification of the
+23 Rust code-scanning alerts; then `python3 tools/progress.py --check`.
+
+## Previous checkpoint — K06 branch documentation ported (merged as #319); old K06 pull requests ready to close — 13 November 2026
 
 **Source:** branch `docs/k06-branch-docs-port` from `main` `c76daf7` (PR #317 squash-merged at 18:25 UTC; all 19
 workflow runs on `c76daf7` succeeded). Documentation only: no file in `source_hash()` changes.
