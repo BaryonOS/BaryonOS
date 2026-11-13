@@ -1,6 +1,54 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 branch documentation ported; old K06 pull requests ready to close — 13 November 2026
+## NEXT AGENT HANDOFF — Security alert summary and Project #5 access — 11 November 2026
+
+**Source:** branch `ccr-db0981b4-k5rug1` from main
+`c520703b17169912691132b15d2306c9a5199de9`; `main` `bf4aa716` merged in on
+13 November 2026 without changes to this work.
+
+**Problem:** agent sessions cannot read the backlog's security inputs or
+Project #5. GraphQL and organisation `projectsV2` routes are blocked by the
+session proxy. Dependabot and code-scanning alerts return "Resource not
+accessible by integration". Secret-scanning alerts are blocked by the proxy.
+These limits belong to the session platform; repository settings cannot lift
+them.
+
+**Route:** GitHub Actions does the work, and a session dispatches the runs and
+reads their logs through the GitHub connector.
+
+- Project #5: the project owner configured `BARYON_PROJECTS_TOKEN`. Dry-run
+  43117446009 on `c520703` passed: 43 items scanned, 38 fill-only field
+  suggestions, 0 changes. This proves GraphQL access with the token.
+- Alerts (this change): `.github/workflows/security-alerts.yml` and
+  `tools/security_alerts_summary.py` (ADR-CI-SECURITY-ALERTS-20261111). Logs are
+  public, so the summary publishes only publicly derivable Dependabot fields and
+  aggregate code-scanning counts. Secret scanning stays manual.
+
+**Evidence:**
+- 18 local tests pass (`tests/test_security_alerts_summary.py`) on Python
+  3.12 and 3.13.
+- 21 CI-workflow contract tests pass.
+- actionlint 1.7.12 passes over all workflows.
+- `progress.py --check` passes.
+- Hosted PR run 43118954606 on `4cc4ecd` passed. GitHub accepted the
+  `vulnerability-alerts` scope and both lists were read: 0 open Dependabot
+  alerts and 26 open code-scanning alerts (CodeQL: 19 critical, 7 high).
+
+**Open:**
+- Triage of the 26 code-scanning alerts (13 November 2026): the three
+  JavaScript alerts are fixed in draft PR #320; the 23 Rust alerts were
+  classified as test fixtures or false positives and await the project owner's
+  decision. No alert was dismissed.
+- PR #314 merged on 12 November 2026 (`1a3feb92`). Its Project #5 dry-run on
+  that commit passed (run 43136541042, `APPLY: false`), followed by two applied
+  runs (43136951547, 43137042857); scheduled runs have succeeded since.
+
+**Acceptance:** 41/100 → 41/100; CI and backlog tooling only.
+
+**Next:** the project owner's decision on the proposed classification of the
+23 Rust code-scanning alerts; then `python3 tools/progress.py --check`.
+
+## Previous checkpoint — K06 branch documentation ported; old K06 pull requests ready to close — 13 November 2026
 
 **Source:** branch `docs/k06-branch-docs-port` from `main` `c76daf7` (PR #317 squash-merged at 18:25 UTC; all 19
 workflow runs on `c76daf7` succeeded). Documentation only: no file in `source_hash()` changes.
