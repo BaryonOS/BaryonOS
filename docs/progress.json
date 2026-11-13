@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-12",
-    "source_commit": "cdbd187b16afc12176e9a11bc7cb9753a1540425",
+    "date": "2026-11-13",
+    "source_commit": "880984bb29c316e606490c0fa235b119ed4bb553",
     "assessment_basis": "source_commit",
-    "branch": "veld/rebuild-on-shell-20261105",
-    "task": "PR #210: fix the five open review findings (Alt+Tab during keyboard move, Veld pointer tail, document-menu key ownership through repeat/release, CodeQL test logging) and merge current main",
+    "branch": "ccr-5a0d9559-16gxmt",
+    "task": "K06 step 5f: full native-smp matrix run 43429991481 on 880984b evaluated and accepted; stale native-guest count in verify_final_gate.py corrected (d0d2e30)",
     "previous_score": 39,
-    "summary": "39/100 remains 39/100. Input-ownership repairs with targeted regressions and host tests only; both hosted 1800-second native-window-session profiles are still required on the published head. No native runtime evidence is claimed."
+    "summary": "39/100 becomes 41/100: K06 (2 points) is accepted. Full matrix run 43429991481 on 880984b (source-v3 e693759d), dispatched with the project owner's permission, first attempt, no retry: 91 jobs, 86 success, 5 skipped by design, 0 failed. All 3700 guests pass (73 per-case jobs 50/50, ten soak shards, K07 probe), both aggregate steps succeed including the source-bound host oracles, and the final repository gate runs tools/gate.sh with 26 native guests and succeeds. verify_artifacts.py exits 0 on 87 digest-checked artifacts. verify_final_gate.py exited 1 as tested because its count of native guests predated the K05-SMP stage (20 instead of 26); commit d0d2e30 corrects the count with the consumption check unchanged, after which it exits 0 and negative checks still fail. m3-ipc-four peaks at 224.1 s of the 264 s bound on an AMD EPYC 7763 runner. Evidence: docs/verification/K06-ACCEPTANCE.md. Limits: QEMU/TCG on hosted runners only, no hardware, no independent human audit."
   },
   "tracks": [
     {
@@ -75,9 +75,9 @@
           "id": "K06",
           "title": "Multiple processor cores",
           "points": 2,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "SMP scheduling, synchronization, interrupts, and address-space switching work under concurrent load on the supported profile.",
-          "evidence": []
+          "evidence": ["docs/verification/K06-ACCEPTANCE.md"]
         },
         {
           "id": "K07",

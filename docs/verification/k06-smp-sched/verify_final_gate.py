@@ -39,7 +39,7 @@ LIMITS = [
     'The existing serial oracles are replayed from the matching local source, not '
     'a separately implemented hardware model or a human security audit.',
     'A successful final-gate readback does not independently verify the separate '
-    '65x50 matrix artifact; the aggregate job must also be successful.',
+    '74x50 matrix artifact; the aggregate job must also be successful.',
 ]
 
 
@@ -194,7 +194,7 @@ class Readback:
                     'incomplete jobs API pages')
         require(len({job['id'] for job in jobs}) == len(jobs), 'duplicate API job IDs')
         selected = {}
-        for name in ('SMP section 9 aggregate 65x50', 'SMP final repository gate'):
+        for name in ('SMP section 9 aggregate 74x50', 'SMP final repository gate'):
             matching = [job for job in jobs if job.get('name') == name]
             require(len(matching) == 1, f'missing or duplicate job: {name}')
             job = matching[0]
@@ -214,7 +214,7 @@ class Readback:
                     and matching[0].get('conclusion') == 'success', f'final step not green: {name}')
         step = next(step for step in steps if step['name'] == required[4])
         self.started, self.completed = stamp(step['started_at']), stamp(step['completed_at'])
-        aggregate = selected['SMP section 9 aggregate 65x50']
+        aggregate = selected['SMP section 9 aggregate 74x50']
         require(stamp(aggregate['completed_at']) <= self.started <= self.completed,
                 'final gate ran before aggregate completed')
         return {'run_id': run['id'], 'final_job_id': job['id'], 'aggregate_job_id': aggregate['id']}
@@ -371,9 +371,10 @@ class Readback:
             require(rtc.evaluate(report['stdout'], report['raw_qemu_exit'], report['timed_out'], rtc.CASES[case]) == item.get('observed'), 'RTC oracle/summary mismatch')
             self.bind_artifacts(artifacts, manifest)
         raw = {path.resolve() for path in self.root.rglob('result.json') if path.parent.parent.name == 'run'}
-        require(raw == self.used and len(raw) == 20, 'missing or additional native guest evidence')
-        return {'m2_groups': 8, 'm2_native_runs': 7, 'k05_cases': 6, 'k07_native_runs': 2,
-                'rtc_cases': 5, 'total_native_runs': 20, 'raw_result_sha256': self.guest_hashes}
+        # 7 M2 + 6 K05 + 6 K05-SMP + 2 K07 + 5 RTC guests; every one must be consumed above.
+        require(raw == self.used and len(raw) == 26, 'missing or additional native guest evidence')
+        return {'m2_groups': 8, 'm2_native_runs': 7, 'k05_cases': 6, 'k05_smp_cases': 6, 'k07_native_runs': 2,
+                'rtc_cases': 5, 'total_native_runs': 26, 'raw_result_sha256': self.guest_hashes}
 
 
 def main():

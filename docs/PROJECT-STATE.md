@@ -1,6 +1,158 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 step 5f review findings fixed; full matrix pending — 12 November 2026
+## NEXT AGENT HANDOFF — K06 step 5f accepted: full matrix 43429991481 and the final gate pass on `880984b` — 13 November 2026
+
+**Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Tested commit `880984bb29c316e606490c0fa235b119ed4bb553` (source-v3 `e693759d89705970ecaa9c315b0423261fdc7924235af566beb363419eabd255`). Later commits change verification and documentation files only.
+
+**Run [43429991481](https://github.com/BaryonOS/BaryonOS/actions/runs/43429991481)** (`full_matrix=true`, permitted by the project owner, first attempt, not cancelled, no retry): **accepted.**
+- 91 jobs: 86 success, 5 skipped by design, 0 failed. 3 700 of 3 700 guests pass (73 per-case jobs 50/50, ten soak shards, K07 probe); no timing incident.
+- Aggregate: both steps succeed, including the source-bound host oracles that failed in run 43403835073.
+- Final repository gate: `tools/gate.sh` succeeds (host tests, clippy, fmt, 26 native guests: M2 7, K05 6, K05-SMP 6, K07 2, RTC 5).
+- Read-only readback: `verify_artifacts.py` exit 0 (3 700 runs, 87 ZIPs match API digests); `verify_final_gate.py` exit 1 as tested, exit 0 after commit `d0d2e30`, which corrects its stale count of 20 native guests to 26 (the K05-SMP stage added in #296); negative checks still exit 1.
+- Margins: `m3-ipc-four` 201.3–224.1 s of 264 s (85 %; AMD EPYC 7763 runner, 158.3 s on an Intel Xeon in the previous run), `m3-ipc-four-single` at most 116.2 s, `m3-load-eight` at most 43.4 of 125 s.
+- Evidence: [K06-ACCEPTANCE.md](verification/K06-ACCEPTANCE.md), `verification/k06-smp-sched/acceptance-43429991481.json` and the compact `*-43429991481.*.gz` files; [TIMING-REPAIR.md](verification/k06-smp-sched/TIMING-REPAIR.md) section 7.6.
+
+**Not run:** KVM, physical hardware, an independent human audit. Compact artifacts omit executable and firmware bytes.
+
+**Open risk:** the IPC margin depends on the hosted CPU model; 85 % of the 264 s bound is the closest observed.
+
+**Next:** review and merge of PR #317 by the project owner (draft, no auto-merge); then the next open criterion on the critical path.
+
+**Progress:** 39/100 → 41/100 (K06, 2 points).
+
+## Previous checkpoint — K06 step 5f: full matrix 43403835073 passes every guest but is rejected on a stale host oracle; repaired; a new matrix needs permission — 13 November 2026
+
+**Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Tested commit `c95d1d2` (source-v3 `e693759d89705970ecaa9c315b0423261fdc7924235af566beb363419eabd255`, identical to the ADR-082 candidate `4eb18b1`). Repair commit `790e122` touches only `tests/`, outside the source fingerprint; later commits change documentation and evidence only.
+
+**Run [43403835073](https://github.com/BaryonOS/BaryonOS/actions/runs/43403835073)** (`full_matrix=true`, permitted by the project owner, first attempt, not cancelled, no retry): **rejected.**
+- 3 700 of 3 700 guests pass: 73 per-case jobs 50/50, ten soak shards, K07 probe. No timing incident. The aggregate's 50/50 step passes (74 cases, 3 700 guest runs, one source hash). `verify_artifacts.py` exits 0 on the 85 downloaded, digest-checked artifacts.
+- The aggregate's host-oracle step fails: `tests/test_qemu_smoke_gate.py` expected the gate sequence without the `k05-smp` stage that `tools/qemu-smoke-test.sh` runs since #296 (and `verify_final_gate.py` requires). `tools/tests` 317 OK. The final repository gate is skipped, so acceptance is not reached.
+- Classification: test-harness oracle defect; not a kernel defect, not a runner fault. The test runs only in the aggregate step, which no earlier matrix reached.
+- Margins: `m3-ipc-four` at most 158.3 s per boot (bound 264 s), `m3-ipc-four-single` at most 110.7 s, `m3-load-eight` at most 47.6 of 125 s.
+- Evidence: `verification/k06-smp-sched/incident-43403835073.json`, `matrix-report-43403835073.json.gz`, `host-oracles-43403835073.log.gz`, `verify-artifacts-43403835073.json.gz`; [TIMING-REPAIR.md](verification/k06-smp-sched/TIMING-REPAIR.md) section 7.5.
+
+**Repair `790e122`:** the oracle requires the `k05-smp` call and five isolated build directories (tightened; gate script unchanged). Local after the repair: `tests/test_qemu_smoke_gate.py` 4 OK, `tools/tests` 317 OK (after `cargo +1.90.0 fetch --locked`), PyYAML 6.0.3, source hash unchanged.
+
+**Not run:** the real final repository gate on this source (only the diagnostic rehearsal in run 43352859422); `verify_final_gate.py`; KVM or hardware.
+
+**Blocker:** acceptance needs one new full matrix on a head that contains `790e122`; the earlier permission covered exactly one matrix. Pass probability of a repeat (Jeffreys point estimate / 95 % lower bound): about 87 % / 45 % on section 7.4's basis extended by this run (about 13 790 clean guests); about 72 % / 6 % from this source's own 3 940 hosted guests alone (TIMING-REPAIR.md 7.5).
+
+**Next:** on the project owner's permission, dispatch `native-smp.yml` with `full_matrix=true` on the PR head; read every failed job; no selective retries. On a pass of all 74 cases 50/50, the soaks, K07, the aggregate and the final gate, run `verify_final_gate.py` and record acceptance (progress 39 → 41) in PR #317.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f: ADR-082 D1–D5 implemented and verified; GO for one full matrix, pending the project owner's permission — 13 November 2026
+
+**Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Candidate source `4eb18b1`; later commits change documentation and evidence only.
+
+**Decision (project owner, 13 November 2026):** D1–D5 of ADR-082 approved in a stated direction, on the condition that every correctness and security invariant stays intact. Implemented as recorded in ADR-082 ("Decision of 13 November 2026 and its implementation") and [TIMING-REPAIR.md](verification/k06-smp-sched/TIMING-REPAIR.md) section 7:
+- D1/D2: per-CPU single-writer progress; 2 s (sync) and 500 ms (scratch) without own progress are fatal in the guest, with caps of 20 s and 5 s. The oracle judges 2 s and 500 ms on every case except `eight`, `nine-capacity`, `m3-eight`, `m3-migrate-eight`, `m3-load-eight` (fixed list). The performance check of eight contending CPUs against those limits now needs an environment with enough dedicated cores, or KVM/hardware (H06).
+- D3: witness gaps closed (entry stamp before the LAPIC read, halt stamp before `sti`, AP wakes); verdict = median without host-charged periods within 1 % on both sides, majority bound of 10 % host credit, oracle recheck of the judged median.
+- D4 unchanged; D5 `m3-load` host watchdog 125 s.
+- Defect repair outside D1–D5: the ICR exchange's per-acknowledgement bound was 65 536 PAUSEs and failed a healthy local `eight` boot; now 2 s of TSC.
+- Review items C7, C9, C11, F02, F08, F11 fixed; C8 and F14 not blockers (reasons in TIMING-REPAIR.md section 4). Two AI reviews of the implementation found five further items (K1, K2, F1–F3), all fixed.
+- New fixtures `scratch-stall`, `scratch-slow`, `clock-other-cpu`; matrix 74 × 50 (3 700 guests).
+
+**Evidence (diagnostic, not acceptance):**
+- Hosted run [43352859422](https://github.com/BaryonOS/BaryonOS/actions/runs/43352859422) on `4eb18b1` (QEMU 10.2.1, matrix runner, 20 boots per case): 240/240 boots of twelve cases (four, eight, nine-capacity, m3-eight, m3-migrate-eight, m3-load-two, m3-load-eight, m3-ipc-four and the fixtures scratch-stall, scratch-slow, clock-other-cpu, icr-race-control); judged waits at most 3.3 % of their limits, lock waits at most 26 of 400 ms, no CPU without own progress for more than 9 ms; judged clock median −0.16 … −0.01 % while two raw medians reached +1.37 %; m3-load-eight 47.3 of 125 s, m3-ipc-four 198.7–211.8 s; gate rehearsal success. Rows: `repair/adr082-hosted-boots.tsv`.
+- PR run [43353618663](https://github.com/BaryonOS/BaryonOS/actions/runs/43353618663) on `3dbc62c` (same source): `native-smp` success.
+- Local, QEMU 8.2.2: 69 boots, 68 passed (the failure is the ICR loop count, repaired); 3-CPU overcommit trials pass. `tools/tests` 317 OK, `tests/test_ci_*` OK, `cargo test -p boot-protocol -p smp-lock` OK, fmt and clippy clean, `tools/preflight.py` complete.
+
+**GO/NO-GO:** GO for one full `native-smp.yml` matrix (`full_matrix=true`) on the candidate, **only after the project owner's explicit permission**. Every known failure mechanism is removed by construction or bounded with a measured hosted margin; every negative fixture still stops on its own marker. Pass probability: point estimate about 80–85 % for 3 700 guests, 95 % lower bound about 30 %; 99 % is not demonstrable by sampling (about one million clean boots would be needed). Residual risks: unknown rare classes; the soak watchdog (612 of 660 s, 600 s of it fixed); the documentary 264 s IPC bound of ADR-081 (211.8 s, 80 % used); DG-1 400 ms lock waits (hosted maximum 26 ms).
+
+**Not run:** any acceptance matrix, soak or final gate on this source; KVM or hardware; the five overcommitted cases on an environment that can judge their performance limits.
+
+**Next:** on permission, dispatch `native-smp.yml` with `full_matrix=true` on the PR head; read every failed job; no selective retries. On a pass of all 74 cases 50/50, the soaks, K07, the aggregate and the final gate, record acceptance (progress 39 → 41) in PR #317.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f: timing repair measured; NO-GO for a full matrix; decisions D1–D5 await the project owner — 12 November 2026
+
+**Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Kernel and tool sources are those of `4616fb3`; the commit carrying this entry adds documentation and diagnostic evidence only.
+
+**Verdict:** NO-GO for a full `native-smp.yml` acceptance matrix. None was started; no soak and no final gate ran. K06 step 5f remains unaccepted. The report is [TIMING-REPAIR.md](verification/k06-smp-sched/TIMING-REPAIR.md); the decision record is ADR-082 (implemented part, plus five requested decisions that are not in force).
+
+**In the source, with every acceptance limit unchanged:** margin records for every bounded wait (`SMP:MARGIN`, no verdict); the sync wait with a liveness check (`SMP:SYNC:STALLED` after 2 s without progress, `SMP:SYNC:TIMEOUT` at a 20 s cap) and a mandatory `SMP:SYNC:WAIT_MS=:STALL_MS=` line, which the oracle rejects at 2 000 ms or more on every profile; PIT edge accounting in shadow mode (`SMP:CLOCK:EDGES`; the verdict stays the raw median within 1 %); negative fixtures `sync-stall`, `sync-slow`, `sync-lost-update`, `clock-masked`, `clock-divisor` (matrix 71 × 50); the `margin_diagnostic` dispatch input of `native-smp.yml`.
+
+**Evidence (diagnostic, not acceptance):**
+- Hosted run [43286858831](https://github.com/BaryonOS/BaryonOS/actions/runs/43286858831) on `cc1043f` (QEMU 10.2.1, matrix runner): 250/250 boots of five cases pass under the unchanged rules. Closest margins: scratch 263/500 ms, sync 901/2 000 ms, `m3-load-eight` 48.3/60 s host watchdog. 59 boots lost PIT periods (at most +0.55 %). The gate rehearsal passed every executed stage.
+- Local, QEMU 8.2.2: 518 boots in `timing-investigation/repair/boots.tsv`. All local failures on 4 host CPUs are the unchanged 1 % clock rule or the `SMP:TIMER:RATIO` band. Interleaved base against final source: 36/40 and 38/40, no visible cost of the instrumentation. The reports behind the table and the measurement scripts are in `timing-investigation/repair/raw-reports.tar.gz`.
+- `4616fb3`, one boot of twelve cases: six regular cases pass, six negative cases end with their markers.
+- Pull-request checks on `cbaf6c2` (documentation on top of `4616fb3`): 49 passed, 8 skipped (the acceptance and diagnostic jobs, which do not run on a pull-request event), none failed. The pull-request job `native-smp` ([run 43302817750](https://github.com/BaryonOS/BaryonOS/actions/runs/43302817750)) runs on `ubuntu-24.04` with machine type `pc-q35-8.2`, so it is no evidence for the matrix runner (`ubuntu-26.04`, QEMU 10.2.1).
+
+**Why NO-GO:** the unchanged contract failed five guests in three full matrices (about 19 % pass probability, 95 % interval 2–58 %), and its mechanisms are still in place. A 99 % pass probability cannot be demonstrated by sampling (about 1.06 million failure-free boots would be needed). After D1–D3 the estimate is 35 % to 85–90 %, depending on whether further rare mechanisms exist.
+
+**Decisions requested from the project owner (ADR-082):** D1 sync wait on guests with more vCPUs than runner CPUs (recommended: liveness only on the five listed cases, 2 s elsewhere); D2 the same for the scratch phase, after a per-CPU progress counter and two negative cases; D3 clock median without host-charged periods, with a bound on the host share; D4 no change to the `SMP:TIMER:RATIO` band; D5 host watchdog of the `m3-load` cases 60 s → 120 s.
+
+**Open review items:** C7, C8, C9, C11, F02 (remaining witness gaps), F08, F11 and F14 in section 4 of TIMING-REPAIR.md.
+
+**Executed on `4616fb3` (local, 4 host CPUs, QEMU 8.2.2, `NOS_QEMU_MACHINE=pc-q35-8.2`), every command exit 0:** `cargo fmt --all -- --check`; `cargo clippy --locked -p boot-protocol -p smp-lock --all-targets -- -D warnings`; `cargo test --locked -p boot-protocol -p smp-lock` (432 s); the Python list of the `host-quality` job (`tools/tests`: 313 tests); `tools/build.py` and `tools/run_smp.py --case` for `four`, `eight`, `nine-capacity`, `one`, `two-single`, `m3-two`, `lock-stuck`, `sync-stall`, `sync-slow`, `sync-lost-update`, `clock-masked`, `clock-divisor`. Summary: `timing-investigation/repair/final-verification.txt`. `python3 tools/progress.py --check`: exit 0.
+
+**Not run:** any acceptance matrix, soak or final gate; the matrix runner (QEMU 10.2.1) on `4616fb3` (the hosted series ran on `cc1043f`); 50/50 of any negative fixture; KVM or hardware.
+
+**Next:** wait for the decision on D1–D5 and on the GO/NO-GO report. If approved: implement the approved parts with their negative cases, run one hosted `margin_diagnostic` over all 71 cases, then ask for approval of one full matrix. Do not start a full matrix without explicit approval.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f: structural timing repair assigned; mapping and first instrumentation steps — 12 November 2026
+
+**Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Kernel and tool sources are still those of `2543861`; every later commit, this one included, is documentation or diagnostic evidence.
+
+**Assignment (project owner, 12 November 2026):** resolve the timing fragility of the K06 acceptance fixture structurally inside PR #317, beyond the three observed incidents. Implementation is permitted as long as safety invariants and functional correctness are preserved; ADR-082 is a starting point, not a mandatory design. Deadlocks, lost updates, lock violations and missing progress stay fatal; every wait keeps a checkable bound; overruns are not hidden; liveness and performance are checked separately; clock precision must not pass through a weaker method. Normative limits (scratch 500 ms, clock 1 %) change only with the project owner's explicit approval. A GO/NO-GO verification report comes first: **no full matrix before the project owner has reviewed that report and given explicit permission.** No selective retries, no second PR, no auto-merge.
+
+**State:** no source change and no native boot since the investigation. A read-only mapping of every wall-clock limit (kernel fixture, oracle, workflow, specifications, emulator semantics, hosted margins) was started in the working session and stopped at a usage limit after one of seven reports. What exists is stored as working notes, not acceptance evidence, in [timing-investigation/map/](verification/k06-smp-sched/timing-investigation/map/README.md): the normative map (`K06A-SPEC.md`, complete), an inventory table of the kernel limits without its report (`K06A-SITES.tsv`, treat as incomplete) and the hosted margin tables. Still to map: oracle and workflow, clock path and emulator semantics, lock handoff and liveness, quantitative analysis, completeness review. Confirmed in source at `ec9a8b8`:
+- `tools/run_smp.py` `evaluate()` compares the normalised serial tail with an exact expected sequence, so a new margin line must be parsed and removed by the oracle. `deadline_margins` already records `bsp_idle_wake`, `remote_kill_ack`, `kernel_lock_wait` and `kernel_lock_deferred`.
+- `kernel/src/m2/smp.rs` has 40 `within_ms` call sites (the count of 41 in TIMING-INVESTIGATION.md includes the definition; to be corrected there), the unnamed 2 s sync wait, and two further bounded-wait helpers on the TSC, `within_tsc` and `idle_until`.
+- PIT channel 0 is programmed as a rate generator (control word `0x34`, divisor 1193, `smp.rs:2634`), so its count can be latched to place an IRQ0 inside its period.
+- `native-smp.yml` offers only the `full_matrix` and `clock_diagnostic` dispatch inputs; a targeted hosted run of chosen cases needs a new diagnostic input.
+
+**Intermediate step, 12 November 2026 (not accepted, no acceptance evidence):** first source change of the repair. (1) Spec 09-5f AC-3 margin logging: `within_ms`, `within_tsc`, `idle_until`, every contended `IrqLock` wait (DG-1 limit) and every shootdown generation record the largest part of their limit that a boot used; the BSP prints `SMP:MARGIN:<WAIT|STALL|LOCK|ROUND>:<id>:<used>/<limit>` once after the self-tests and `tools/run_smp.py` moves the lines into `deadline_margins` (`id` is the source line of the wait in `kernel/src/m2/smp.rs`, or the lock level). (2) The sync stress wait, which has no normative value, is now the named `SYNC_MS` (2 s, unchanged) under a progress rule: the shared counter and the serial fixture lines must advance within every `STALL_MS` (1 s) and the wait ends after at most ten times its limit; a stall is `SMP:SYNC:STALLED`, the cap `SMP:SYNC:TIMEOUT`, and all exact end checks are unchanged. The oracle rejects a wait above its limit unless the host cannot run the guest in parallel (multi-thread TCG with more vCPUs than host CPUs). Scratch (500 ms) and the clock verdict (1 %) are **unchanged**; changing either is a contract decision for the project owner. Executed locally (QEMU 8.2.2, 4 CPUs): `python3 -B -m unittest discover -s tools/tests -q` 311 OK; one boot each of `four`, `eight`, `nine-capacity` passes. `STALL_MS` and the cap are provisional until the ranking series below; ADR-082 is not yet rewritten.
+
+**Second intermediate step, 12 November 2026 (not accepted, no acceptance evidence; every verdict unchanged):** (1) Clock edge accounting in shadow mode. After every wake of the idle precision phase the BSP reads the PIC's pending IRQ0 and latches PIT channel 0, which places the wake on the PIT's own period grid; `smp_lock::clock::Edges` (host-tested) books each period as counted, pending, lost or late, and charges a lost edge to the host only when one IRQ0 woke the sample and both spans around its halt stayed under a quarter period. Every boot prints `SMP:CLOCK:EDGES:TICKS=..:LOST=..:HOST=..:EXTRA=..:SPAN_US=..:US=..:OWN_US=..`; the verdict is still the raw median within 1 %. A latch count outside `1..=PIT_DIVISOR` is fatal (`SMP_CLOCK_PIT_COUNT`). (2) Five negative cases with their own markers: `sync-stall`, `sync-slow`, `sync-lost-update`, `clock-masked`, `clock-divisor`; the matrix definition becomes 71x50 (3 550 guests), not run. (3) Workflow input `margin_diagnostic` boots chosen cases on the matrix runner for their margins under a non-acceptance artifact name and rehearses `tools/gate.sh` on the final-gate runner, which no rejected matrix ever reached; every acceptance job is excluded in that mode. (4) The oracle keeps `guest_waits` and `clock_edges` per boot. Executed locally (QEMU 8.2.2, 4 CPUs): `python3 -B -m unittest discover -s tools/tests -q` 312 OK; `tests/test_ci_workflows.py` 23 OK; `cargo test --locked -p smp-lock` 36 passed before the last accounting change and its four `clock::` tests after it; `cargo fmt --all -- --check` and `cargo clippy --locked -p smp-lock --all-targets -- -D warnings` clean; each new negative case stopped on its own marker once (`clock-masked` on the final source, the other four before the last two-line accounting change); `four` passed once and failed once with `SMP_CLOCK_DRIFT` (raw median +1.15 %) while all 59 lost edges were booked on the host and the median without them was 0.06 % below nominal ([`repair/local-first-boots.txt`](verification/k06-smp-sched/timing-investigation/repair/local-first-boots.txt)). Series A on the previous commit (30/30 `eight`, 26/30 `nine-capacity`, 19/20 `four`; all failures but one are the unchanged clock rule) is summarised in the GO/NO-GO report that follows. **Not run:** the full matrix, the hosted diagnostic, the kernel gate `tools/gate.sh`. Separate finding: `native-window-session (2)` exceeded its 1 800 s host deadline on this PR for the docs-only head `ab4a857` and for `ed05150`, and passed for `2543861` and `1bb2d21`; the SMP change is not compiled into that image (`native-smp` is not among its features).
+
+**Hosted margins of run 43187501026 (76 artifacts, 3 301 boots; extracted by a subagent, not yet recomputed independently; tables in the map directory):** three failed boots, none timed out. Soak boots take 610–612 s of the 660 s watchdog (600 s of that is the fixed load phase); `m3-load-eight` up to 47.3 s of 60 s; every case outside the load and soak families stays at or below 0.41 of its watchdog. `SMP:TIMER:RATIO` 62 527–65 138 inside 50 000–75 000; `SMP:FAIR` wait at most 23 ms of 400 ms; `SMP:IDLE:WAKE_US` at most 262.
+
+**Planned order (design not decided; every contract change needs approval):** (1) finish the inventory and have the design attacked; (2) margin instrumentation for every limit (spec 09-5f AC-3) and a ranking under controlled oversubscription (8 and 9 vCPUs on 4 host CPUs, 4 on 2); (3) progress-bounded liveness where the ranking shows exposure, and a clock measurement that checks the programmed period on every tick and counts lost edges separately; (4) negative cases with oracle and host tests; (5) local series and a targeted hosted run on QEMU 10.2.1; (6) documentation and the GO/NO-GO report.
+
+**Limit to state in that report:** a 99 % pass probability for about 3 300 guests implies a per-guest failure probability near 3 × 10⁻⁶, which boot sampling cannot demonstrate directly; the argument has to rest on removed mechanisms and on margins measured under harsher conditions than the hosted runner.
+
+**Not run:** clippy; any native boot; anything on the hosted runner.
+
+**Next:** build the stock image (`NOS_QEMU_MACHINE=pc-q35-8.2`, build directory inside the checkout, `python3 -B tools/build.py --kernel-feature native-smp`), add the margin instrumentation, and run the ranking series with [`timing.py`](verification/k06-smp-sched/timing-investigation/timing.py), one series at a time.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f: run 43187501026 rejected; timing investigation and ADR-082 proposal — 12 November 2026
+
+**Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Tested kernel and tool sources are those of `2543861`; the commit carrying this entry adds documentation and diagnostic evidence only.
+
+**Run [43187501026](https://github.com/BaryonOS/BaryonOS/actions/runs/43187501026) on `2543861` (rejected, not cancelled, not retried):** final state 81 jobs: 74 passed, three failed (two case shards and the aggregate), four skipped including the final gate; receipt [incident-43187501026.json](verification/k06-smp-sched/incident-43187501026.json). `nine-capacity` r029: `SMP:SYNC:TIMEOUT:DONE=0:TOTAL=157489` (2 s wait). `m3-load-two` r003 and r006: idle `SMP_CLOCK_DRIFT` (+1.08 %, +1.27 %) with two guest vCPUs on a four-vCPU runner. `eight`, `resched-deaf`, `quarantine-sched-busy` and all soak shards pass 50/50. Both IPC cases pass inside the 264 s bound, but about 1.7 times slower than in run 43125206729 (at most 208.7 s and 144.2 s per boot). Separately, `native-window-session (2)` on `ab4a857` hit its shared 1800 s deadline (docs-only commit; not rerun). Details: [evidence README](verification/k06-smp-sched/README.md).
+
+**Investigation (project owner's instruction; diagnostic, QEMU 8.2.2, 4 host CPUs, not acceptance):** [TIMING-INVESTIGATION.md](verification/k06-smp-sched/TIMING-INVESTIGATION.md). 143 boots at 4, 8 and 9 guest vCPUs on 4 and 2 host CPUs. No kernel or synchronisation defect demonstrated: exact totals in every completed boot, progress in every 50 ms window of 24 traced boots. Sync and scratch tails appear only when the guest oversubscribes the host (FIFO ticket-lock handoff to a descheduled vCPU thread); idle clock drift is one-sided and also occurs without oversubscription (lost PIT edges in QEMU).
+
+**Open decision:** ADR-082 in [DECISIONS.md](DECISIONS.md) is a proposal with three parts (AC-3 margin logging; progress-bounded liveness with a hard cap and a separate performance gate; one-sided clock precision) and ten negative regression cases. **Nothing is implemented and no deadline or contract is changed** until the project owner decides per part.
+
+**Not done:** hosted distributions; any measurement on QEMU 10.2.1; implementation of any ADR-082 part.
+
+**Next:** after the project owner's decision on ADR-082, implement the approved parts with their negative cases, verify with targeted series, and only then dispatch one full matrix (`native-smp.yml`, `full_matrix=true`). Do not start another full matrix before that, and do not merge PR #317.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f: run 43125206729 rejected; IQ-3 scheduler settle — 12 November 2026
+
+**Source:** branch `ccr-5a0d9559-16gxmt` (follow-up PR to #296, approved by Simon), based on main `49f80b1`. PR #296 was squash-merged as `4e8e235` at 00:15 UTC while its full matrix was still running (probably auto-merge after the last review thread was resolved); the merged tree equals the tested `95bdf4c`. That merge does **not** accept K06 step 5f.
+
+**Run [43125206729](https://github.com/BaryonOS/BaryonOS/actions/runs/43125206729) on `95bdf4c` (rejected):** 73 of 80 jobs pass; every soak (idle clock check included), K07, `quarantine-lock-pending` and both IPC cases under the 660 s watchdog pass. Receipt: [incident-43125206729.json](verification/k06-smp-sched/incident-43125206729.json).
+- `resched-deaf` r020: after the expected kill timeout, healthy AP1 was inside its RUNQ tick when IQ-3 checked it → correct fail-closed `LOCK_HELD:40:CPU=1`. **Fix (Simon's choice):** `quarantine_all` first stops a running scheduler phase and waits ≤ 200 ms until every AP is home lock-free (`settle_scheduler`); deaf APs are checked as before. New deterministic case `quarantine-sched-busy` (AP1 holds RUNQ until STOP); matrix 66 × 50.
+- `eight` r050: `SMP:SCRATCH:TIMEOUT` (500 ms, 8 vCPUs on 4 host vCPUs). Local diagnostic: same heavy tail with and without transit tracking. **Decision (Simon):** code and deadline unchanged; rerun.
+
+**Executed locally (QEMU 8.2.2, 4 CPUs; not acceptance):** host oracle tests (`test_smp_serial`, `test_smp_acceptance`, 44); `quarantine-sched-busy` passes, and its mutant without `settle_scheduler` stops with `LOCK_HELD:40:CPU=1`; further fixture regressions are listed in the follow-up PR.
+
+**Next:** dispatch `native-smp.yml` (`full_matrix=true`) on the follow-up head; all 66 cases 50/50, 50 soaks, K07, aggregate and final gate (with `k05-smp`) must pass; then record acceptance (progress 39 → 41) in the same follow-up PR and merge it.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f review findings fixed; full matrix pending — 12 November 2026
 
 **Source:** branch `codex/k06-5f-complete-20261109` (PR #296); the commit carrying this entry holds the fixes. Decision and limits: [DECISIONS.md](DECISIONS.md), "review findings closed before acceptance". Run 43118230329 on `ae3e985` was cancelled because the fixes change kernel and tool sources; its 25 completed cases (50/50 each) and the K07 probe are diagnostics only ([receipt](verification/k06-smp-sched/cancelled-43118230329.json)).
 

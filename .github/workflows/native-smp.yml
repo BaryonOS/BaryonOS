@@ -15,6 +15,18 @@ on:
         description: 'DIAGNOSTIC ONLY: trace m3-one-multi 50 times; requires full_matrix=false'
         type: boolean
         default: false
+      margin_diagnostic:
+        description: 'DIAGNOSTIC ONLY: boot margin_cases margin_repeat times on the matrix runner; excludes every other mode'
+        type: boolean
+        default: false
+      margin_cases:
+        description: 'DIAGNOSTIC ONLY: JSON list of tools/run_smp.py case names'
+        type: string
+        default: '["eight", "nine-capacity", "four", "m3-load-two"]'
+      margin_repeat:
+        description: 'DIAGNOSTIC ONLY: boots per case'
+        type: string
+        default: '50'
   pull_request:
     types: [opened, synchronize, reopened]
     paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']
@@ -36,9 +48,10 @@ defaults:
 
 jobs:
   native-smp:
-    if: ${{ !inputs.clock_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix) }}
+    if: ${{ !inputs.clock_diagnostic && !inputs.margin_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix) }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    # 16 min 16 s on ed05150; the ADR-082 fixtures add five builds and boots.
+    timeout-minutes: 30
     env:
       NOS_QEMU_MACHINE: pc-q35-8.2
       NOS_TARGET_DIR: ${{ github.workspace }}/target/smp-native
@@ -174,6 +187,12 @@ jobs:
         run: |
           python3 -B tools/build.py --kernel-feature test-smp-quarantine-lock-pending
           python3 -B -u tools/run_smp.py --profile test-smp-quarantine-lock-pending
+      - name: A responsive AP busy in its RUNQ tick goes home before the kill quarantine (IQ-3)
+        env:
+          NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-quarantine-sched-busy
+        run: |
+          python3 -B tools/build.py --kernel-feature test-smp-quarantine-sched-busy
+          python3 -B -u tools/run_smp.py --profile test-smp-quarantine-sched-busy
       - name: A BSP spinning on KERNEL without its IF window misses a shootdown (control, step 5c-2)
         env:
           NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-test-smp-bsp-spin-irq-off
@@ -199,6 +218,15 @@ jobs:
         run: |
           python3 -B tools/build.py --kernel-feature test-smp-serial-unlocked
           python3 -B -u tools/run_smp.py --profile test-smp-serial-unlocked
+      - name: Injected sync, scratch and clock defects end on their own marker (ADR-082)
+        run: |
+          for profile in test-smp-sync-stall test-smp-sync-slow test-smp-sync-lost-update \
+              test-smp-clock-masked test-smp-clock-divisor test-smp-clock-other-cpu \
+              test-smp-scratch-stall test-smp-scratch-slow; do
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
+            python3 -B tools/build.py --kernel-feature "$profile"
+            python3 -B -u tools/run_smp.py --profile "$profile"
+          done
       - name: M3 ring-3 processes on every CPU (2/4/8 vCPUs) and an AP2 app fault (step 5d-2)
         run: |
           for profile in native-smp-m3 test-smp-m3-fault; do
@@ -225,7 +253,7 @@ jobs:
 
   smp-environment-probe:
     name: SMP Ubuntu 26.04 and K07 probe
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic && !inputs.margin_diagnostic }}
     runs-on: ubuntu-26.04
     timeout-minutes: 30
     env:
@@ -284,7 +312,7 @@ jobs:
 
   smp-case-50:
     name: SMP 50/50 (${{ matrix.case }})
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic && !inputs.margin_diagnostic }}
     needs: smp-environment-probe
     runs-on: ubuntu-26.04
     timeout-minutes: 330
@@ -321,10 +349,19 @@ jobs:
           - icr-race-control
           - quarantine-lock-held
           - quarantine-lock-pending
+          - quarantine-sched-busy
           - bsp-spin-irq-off-control
           - proc-shootdown-deaf
           - proc-no-shootdown-control
           - lock-stuck
+          - sync-stall
+          - sync-slow
+          - sync-lost-update
+          - clock-masked
+          - clock-divisor
+          - clock-other-cpu
+          - scratch-stall
+          - scratch-slow
           - m3-one
           - m3-one-multi
           - m3-two-single
@@ -429,9 +466,152 @@ jobs:
             build/k06-smp-${{ matrix.case }}/manifest.json
             build/k06-smp-${{ matrix.case }}/smp-report.json
 
+  diagnostic-margin:
+    name: DIAGNOSTIC margins (${{ matrix.case }})
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.margin_diagnostic }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        case: ${{ fromJSON(inputs.margin_cases) }}
+    env:
+      NOS_QEMU_MACHINE: pc-q35-10.0
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-margin-${{ matrix.case }}
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/margin-${{ matrix.case }}
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/margin-${{ matrix.case }}
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout frozen source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Refuse to run beside an acceptance or clock mode
+        env:
+          OTHER_MODES: ${{ inputs.full_matrix }}/${{ inputs.clock_diagnostic }}
+        run: |
+          test "$OTHER_MODES" = "false/false" || {
+            echo "margin_diagnostic requires full_matrix=false and clock_diagnostic=false" >&2
+            exit 2
+          }
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+        with:
+          system-python: 'true'
+      - name: Pinned Rust
+        run: rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Quiet hosted runner background services
+        # The same best-effort step as the acceptance shards, so margins are comparable.
+        run: |
+          sudo systemctl stop unattended-upgrades.service apt-daily.timer apt-daily-upgrade.timer \
+            apt-daily.service apt-daily-upgrade.service man-db.timer snapd.service snapd.socket \
+            fwupd.service 2>/dev/null || true
+          nproc
+          lscpu | grep -E '^(Model name|CPU\(s\)|Thread|Core|Socket)' || true
+          cat /proc/loadavg
+      - name: Build one profile and boot the case for its margins (not acceptance)
+        env:
+          SMP_CASE: ${{ matrix.case }}
+          SMP_REPEAT: ${{ inputs.margin_repeat }}
+        run: |
+          profile="$(python3 -B - <<'PY'
+          import os
+          import sys
+          sys.path.insert(0, 'tools')
+          from run_smp import CASES
+          print(CASES[os.environ['SMP_CASE']][0])
+          PY
+          )"
+          python3 -B tools/build.py --kernel-feature "$profile"
+          status=0
+          python3 -B -u tools/run_smp.py --case "$SMP_CASE" --repeat "$SMP_REPEAT" || status=$?
+          # A report under another name cannot enter the aggregate or the verifier.
+          mkdir -p "$NOS_BUILD_DIR/diagnostic"
+          echo "DIAGNOSTIC ONLY. Not K06 acceptance evidence and not a matrix repetition." \
+            > "$NOS_BUILD_DIR/diagnostic/NOT-ACCEPTANCE.txt"
+          cp "$RUNNER_TEMP/nieuw-os-qemu-environment.txt" "$NOS_BUILD_DIR/diagnostic/" 2>/dev/null || true
+          mv "$NOS_BUILD_DIR/smp-report.json" "$NOS_BUILD_DIR/diagnostic/margin-report.json"
+          git diff --exit-code
+          exit "$status"
+      - name: Preserve diagnostic evidence
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: DIAGNOSTIC-NOT-ACCEPTANCE-smp-margin-${{ matrix.case }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            build/k06-margin-${{ matrix.case }}/manifest.json
+            build/k06-margin-${{ matrix.case }}/diagnostic/
+            build/k06-margin-${{ matrix.case }}/run/smp-*/result.json
+            build/k06-margin-${{ matrix.case }}/run/smp-*/serial.txt
+            build/k06-margin-${{ matrix.case }}/run/smp-*/stderr.txt
+          if-no-files-found: error
+          job-status: ${{ job.status }}
+          full-evidence: 'false'
+          required-paths: |
+            build/k06-margin-${{ matrix.case }}/manifest.json
+            build/k06-margin-${{ matrix.case }}/diagnostic/margin-report.json
+
+  diagnostic-gate-rehearsal:
+    name: DIAGNOSTIC final gate rehearsal
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.margin_diagnostic }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 360
+    env:
+      NOS_QEMU_MACHINE: pc-q35-10.0
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/k06-gate-rehearsal
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/gate-rehearsal
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/gate-rehearsal
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+      GATE_REQUIRE_QEMU: '1'
+    steps:
+      - name: Checkout frozen source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Refuse to run beside an acceptance or clock mode
+        env:
+          OTHER_MODES: ${{ inputs.full_matrix }}/${{ inputs.clock_diagnostic }}
+        run: |
+          test "$OTHER_MODES" = "false/false" || {
+            echo "margin_diagnostic requires full_matrix=false and clock_diagnostic=false" >&2
+            exit 2
+          }
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+        with:
+          system-python: 'true'
+      - name: Pinned Rust
+        run: rustup toolchain install 1.90.0 --profile minimal --component rustfmt,clippy --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Rehearse tools/gate.sh on the final-gate runner (not acceptance, no matrix before it)
+        run: |
+          mkdir -p build/k06-gate-rehearsal/logs
+          set -o pipefail
+          tools/gate.sh 2>&1 | tee build/k06-gate-rehearsal/logs/gate.log
+          git diff --exit-code
+      - name: Preserve rehearsal evidence
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          name: DIAGNOSTIC-NOT-ACCEPTANCE-smp-gate-rehearsal-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            build/k06-gate-rehearsal/logs/gate.log
+            build/k06-gate-rehearsal/**/source.txt
+            build/k06-gate-rehearsal/**/logs/*.log
+            build/k06-gate-rehearsal/**/serial.txt
+          if-no-files-found: warn
+          job-status: ${{ job.status }}
+          full-evidence: 'false'
+
   smp-soak-50:
     name: SMP soak 5/50 (shard ${{ matrix.shard }})
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic && !inputs.margin_diagnostic }}
     needs: smp-environment-probe
     runs-on: ubuntu-26.04
     timeout-minutes: 90
@@ -499,8 +679,8 @@ jobs:
             build/k06-smp-soak-${{ matrix.shard }}/smp-report.json
 
   smp-matrix-aggregate:
-    name: SMP section 9 aggregate 65x50
-    if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
+    name: SMP section 9 aggregate 74x50
+    if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic && !inputs.margin_diagnostic }}
     needs: [smp-case-50, smp-soak-50]
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -556,7 +736,7 @@ jobs:
 
   smp-final-gate:
     name: SMP final repository gate
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic && !inputs.margin_diagnostic }}
     needs: smp-matrix-aggregate
     runs-on: ubuntu-26.04
     timeout-minutes: 360
@@ -607,7 +787,7 @@ jobs:
 
   diagnostic-clock:
     name: DIAGNOSTIC ONLY — m3-one-multi 50 traced repetitions
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.clock_diagnostic }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.clock_diagnostic && !inputs.margin_diagnostic }}
     runs-on: ubuntu-26.04
     timeout-minutes: 90
     env:
@@ -863,7 +1043,7 @@ jobs:
   experimental-m3-m4-smp:
     name: experimental-m3-m4-smp
     # Same trigger as the ordinary native-smp job; never part of the section 9 matrix.
-    if: ${{ !inputs.clock_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix) }}
+    if: ${{ !inputs.clock_diagnostic && !inputs.margin_diagnostic && (github.event_name != 'workflow_dispatch' || !inputs.full_matrix) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:

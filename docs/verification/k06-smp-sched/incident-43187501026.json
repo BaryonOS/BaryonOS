@@ -1,0 +1,677 @@
+{
+ "accepted": false,
+ "run_id": 43187501026,
+ "run_url": "https://github.com/BaryonOS/BaryonOS/actions/runs/43187501026",
+ "tested_commit": "25438612403b511cdaf5d18762fec33926ee2d66",
+ "source_sha256": "8fff988fc929290da461899e3b4f5a01d3d9600ddf09a64507f2775167b5a6d6",
+ "runner": "GitHub-hosted ubuntu-26.04, 4 vCPUs, QEMU 10.2.1, machine pc-q35-10.0",
+ "dispatched_utc": "2026-11-12T08:59:32Z",
+ "last_job_completed_utc": "2026-11-12T12:22:55Z",
+ "handling": "Not cancelled, no job retried, first attempt only. No source, deadline, tolerance or oracle was changed in response.",
+ "jobs": {
+  "total": 81,
+  "success": 74,
+  "skipped": 4,
+  "failure": 3
+ },
+ "passed_without_incident": "K07 probe; 64 of 66 per-case 50/50 jobs, including eight, resched-deaf, quarantine-sched-busy and quarantine-lock-pending; all 10 soak shards (50/50 soaks, idle clock check in every boot)",
+ "failures": [
+  {
+   "job": "SMP 50/50 (nine-capacity)",
+   "job_id": 131078767393,
+   "artifact_id": 13929234012,
+   "artifact_zip_sha256": "90df06d5ed3de6df5c6b4dcc495defcf22f8e3e9f3eeb20ccddecd0ac0b6a1b0",
+   "case": "nine-capacity",
+   "passed": 49,
+   "repeat": 50,
+   "failed_iterations": [
+    29
+   ],
+   "raw_exit": 35,
+   "timed_out": false,
+   "duration_s": 5.61,
+   "markers": [
+    "SMP:ONLINE:8/9",
+    "SMP:TIMER:RATIO:62739",
+    "SMP:SYNC:TIMEOUT:DONE=0:TOTAL=157489",
+    "M1:FAIL:SMP_SYNC_TIMEOUT"
+   ],
+   "cause": "The sync-stress wait (200 polls of 10 ms after the BSP's own share) expired with 157 489 of 160 000 increments done and no AP finished. No lost update or lock violation was reported. The other 49 boots pass in 13.5-14.2 s."
+  },
+  {
+   "job": "SMP 50/50 (m3-load-two)",
+   "job_id": 131078778379,
+   "artifact_id": 13934623330,
+   "artifact_zip_sha256": "d39832ca0b43552893346fec5d662dfe4eef92ae7972cb4d42b0837ad83ba0ba",
+   "case": "m3-load-two",
+   "passed": 48,
+   "repeat": 50,
+   "failed_iterations": [
+    3,
+    6
+   ],
+   "raw_exit": 35,
+   "timed_out": false,
+   "markers": [
+    "SMP:CLOCK:DRIFT:US=1010679 (r003)",
+    "SMP:CLOCK:DRIFT:US=1012547 (r006)",
+    "M1:FAIL:SMP_CLOCK_DRIFT"
+   ],
+   "segments_normalized_us": {
+    "r003": [
+     1033790,
+     1010679,
+     1013686,
+     1007673,
+     999684
+    ],
+    "r006": [
+     1023299,
+     1019571,
+     1008527,
+     1005559,
+     1012547
+    ]
+   },
+   "cause": "Idle clock-precision check, AP halted, two guest vCPUs on a four-vCPU runner. Every segment counted 1000 IRQ0s; the median exceeds the unchanged 1 % limit (nominal 999 847 us) by 1.08 % and 1.27 %."
+  },
+  {
+   "job": "SMP section 9 aggregate 66x50",
+   "job_id": 131179574857,
+   "cause": "Consequence of the two rejected case shards; the final repository gate was skipped."
+  }
+ ],
+ "ipc_watchdog_margin": {
+  "rule": "IPC_TIMEOUT_S = 660; acceptance requires every boot <= 264 s (2.5x rule)",
+  "m3-ipc-four": {
+   "passed": "50/50",
+   "boot_s_min": 198.2,
+   "boot_s_median": 204.6,
+   "boot_s_max": 208.7,
+   "job_minutes": 171,
+   "artifact_id": 13944481614,
+   "artifact_zip_sha256": "8bfcabc483911438be367f26500eac2fd0476027ed1aa6e956ab90a668239007"
+  },
+  "m3-ipc-four-single": {
+   "passed": "50/50",
+   "boot_s_min": 124.0,
+   "boot_s_median": 125.2,
+   "boot_s_max": 144.2,
+   "job_minutes": 107,
+   "artifact_id": 13940225493,
+   "artifact_zip_sha256": "914a62304ba40ded7b7986a9901c2d5676cba2e6d3a80e4d4c9c4f632e233696"
+  },
+  "note": "Both cases pass inside the bound, but the same sources took at most 121.3 s and 88.1 s per boot in run 43125206729. The hosted runner was about 1.7 times slower in this run; the margin to 264 s shrank to 21 %."
+ },
+ "not_verified": "Artifacts of the passing shards other than the two IPC cases were not downloaded or re-hashed; their verdicts are the job conclusions reported by GitHub. No matrix-report.json exists because the aggregate failed.",
+ "follow_up": "TIMING-INVESTIGATION.md and proposed ADR-082 (docs/DECISIONS.md); nothing is implemented without the project owner's decision.",
+ "job_results": [
+  {
+   "id": 131078266321,
+   "name": "DIAGNOSTIC ONLY — m3-one-multi 50 traced repetitions",
+   "conclusion": "skipped",
+   "started_at": "2026-11-12T08:59:34Z",
+   "completed_at": "2026-11-12T08:59:34Z"
+  },
+  {
+   "id": 131078767350,
+   "name": "SMP 50/50 (ap-double-fault-ist)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:04:07Z",
+   "completed_at": "2026-11-12T09:08:15Z"
+  },
+  {
+   "id": 131078767323,
+   "name": "SMP 50/50 (ap-ipi-deaf)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:04:05Z"
+  },
+  {
+   "id": 131078767850,
+   "name": "SMP 50/50 (ap-mismatch)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:08:53Z"
+  },
+  {
+   "id": 131078767462,
+   "name": "SMP 50/50 (ap-nmi-ist)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:04:50Z"
+  },
+  {
+   "id": 131078767390,
+   "name": "SMP 50/50 (ap-shootdown-deaf)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:04:09Z",
+   "completed_at": "2026-11-12T09:08:28Z"
+  },
+  {
+   "id": 131078767318,
+   "name": "SMP 50/50 (ap-stall)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:08:49Z"
+  },
+  {
+   "id": 131078767679,
+   "name": "SMP 50/50 (ap-timer-dead)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:08:03Z",
+   "completed_at": "2026-11-12T09:12:32Z"
+  },
+  {
+   "id": 131078770903,
+   "name": "SMP 50/50 (bsp-spin-irq-off-control)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:19:52Z",
+   "completed_at": "2026-11-12T09:28:51Z"
+  },
+  {
+   "id": 131078767598,
+   "name": "SMP 50/50 (double-run)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:08:55Z",
+   "completed_at": "2026-11-12T09:17:47Z"
+  },
+  {
+   "id": 131078767345,
+   "name": "SMP 50/50 (duplicate-madt)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:04:07Z"
+  },
+  {
+   "id": 131078767314,
+   "name": "SMP 50/50 (eight)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:11:43Z"
+  },
+  {
+   "id": 131078767371,
+   "name": "SMP 50/50 (four)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:11:06Z"
+  },
+  {
+   "id": 131078767614,
+   "name": "SMP 50/50 (gs-iret-fault)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:11:09Z",
+   "completed_at": "2026-11-12T09:20:26Z"
+  },
+  {
+   "id": 131078770323,
+   "name": "SMP 50/50 (gs-nmi-user)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:11:46Z",
+   "completed_at": "2026-11-12T09:21:13Z"
+  },
+  {
+   "id": 131078767629,
+   "name": "SMP 50/50 (gs-user)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:09:30Z",
+   "completed_at": "2026-11-12T09:17:56Z"
+  },
+  {
+   "id": 131078767562,
+   "name": "SMP 50/50 (held-across-switch)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:08:51Z",
+   "completed_at": "2026-11-12T09:11:47Z"
+  },
+  {
+   "id": 131078770420,
+   "name": "SMP 50/50 (icr-race-control)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:14:16Z",
+   "completed_at": "2026-11-12T09:24:04Z"
+  },
+  {
+   "id": 131078770310,
+   "name": "SMP 50/50 (lock-in-handler)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:12:05Z",
+   "completed_at": "2026-11-12T09:19:50Z"
+  },
+  {
+   "id": 131078772754,
+   "name": "SMP 50/50 (lock-stuck)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:21:06Z",
+   "completed_at": "2026-11-12T09:24:26Z"
+  },
+  {
+   "id": 131078768034,
+   "name": "SMP 50/50 (lockdep-order)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:08:17Z",
+   "completed_at": "2026-11-12T09:16:44Z"
+  },
+  {
+   "id": 131078770395,
+   "name": "SMP 50/50 (lockpair-order)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:12:34Z",
+   "completed_at": "2026-11-12T09:21:29Z"
+  },
+  {
+   "id": 131078776394,
+   "name": "SMP 50/50 (m3-canary-control)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:41:14Z",
+   "completed_at": "2026-11-12T09:56:11Z"
+  },
+  {
+   "id": 131078775353,
+   "name": "SMP 50/50 (m3-eight)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:28:53Z",
+   "completed_at": "2026-11-12T09:48:43Z"
+  },
+  {
+   "id": 131078773331,
+   "name": "SMP 50/50 (m3-eight-single)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:27:17Z",
+   "completed_at": "2026-11-12T09:45:36Z"
+  },
+  {
+   "id": 131078776811,
+   "name": "SMP 50/50 (m3-fault-ap2)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:43:32Z",
+   "completed_at": "2026-11-12T10:02:39Z"
+  },
+  {
+   "id": 131078773699,
+   "name": "SMP 50/50 (m3-four)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:24:28Z",
+   "completed_at": "2026-11-12T09:43:29Z"
+  },
+  {
+   "id": 131078773162,
+   "name": "SMP 50/50 (m3-four-single)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:24:06Z",
+   "completed_at": "2026-11-12T09:41:12Z"
+  },
+  {
+   "id": 131078777402,
+   "name": "SMP 50/50 (m3-fpu-skip-control)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:45:39Z",
+   "completed_at": "2026-11-12T09:56:17Z"
+  },
+  {
+   "id": 131078775569,
+   "name": "SMP 50/50 (m3-ipc-four)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:30:55Z",
+   "completed_at": "2026-11-12T12:22:16Z"
+  },
+  {
+   "id": 131078775197,
+   "name": "SMP 50/50 (m3-ipc-four-single)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:29:55Z",
+   "completed_at": "2026-11-12T11:16:30Z"
+  },
+  {
+   "id": 131078780949,
+   "name": "SMP 50/50 (m3-kill-four)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T10:29:38Z",
+   "completed_at": "2026-11-12T10:46:31Z"
+  },
+  {
+   "id": 131078779602,
+   "name": "SMP 50/50 (m3-load-eight)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T10:02:41Z",
+   "completed_at": "2026-11-12T10:42:42Z"
+  },
+  {
+   "id": 131078779515,
+   "name": "SMP 50/50 (m3-load-eight-single)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T10:00:39Z",
+   "completed_at": "2026-11-12T10:34:18Z"
+  },
+  {
+   "id": 131078778547,
+   "name": "SMP 50/50 (m3-load-four)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:59:28Z",
+   "completed_at": "2026-11-12T10:34:01Z"
+  },
+  {
+   "id": 131078778443,
+   "name": "SMP 50/50 (m3-load-four-single)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:56:20Z",
+   "completed_at": "2026-11-12T10:31:20Z"
+  },
+  {
+   "id": 131078778435,
+   "name": "SMP 50/50 (m3-load-one)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:55:30Z",
+   "completed_at": "2026-11-12T10:29:28Z"
+  },
+  {
+   "id": 131078778444,
+   "name": "SMP 50/50 (m3-load-one-multi)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:55:45Z",
+   "completed_at": "2026-11-12T10:28:20Z"
+  },
+  {
+   "id": 131078778379,
+   "name": "SMP 50/50 (m3-load-two)",
+   "conclusion": "failure",
+   "started_at": "2026-11-12T09:56:14Z",
+   "completed_at": "2026-11-12T10:29:36Z"
+  },
+  {
+   "id": 131078778342,
+   "name": "SMP 50/50 (m3-load-two-single)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:56:13Z",
+   "completed_at": "2026-11-12T10:29:56Z"
+  },
+  {
+   "id": 131078775794,
+   "name": "SMP 50/50 (m3-migrate-eight)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:39:40Z",
+   "completed_at": "2026-11-12T10:00:36Z"
+  },
+  {
+   "id": 131078775859,
+   "name": "SMP 50/50 (m3-migrate-eight-single)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:38:37Z",
+   "completed_at": "2026-11-12T09:56:12Z"
+  },
+  {
+   "id": 131078775755,
+   "name": "SMP 50/50 (m3-migrate-four)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:38:30Z",
+   "completed_at": "2026-11-12T09:55:28Z"
+  },
+  {
+   "id": 131078775758,
+   "name": "SMP 50/50 (m3-migrate-four-single)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:37:41Z",
+   "completed_at": "2026-11-12T09:55:43Z"
+  },
+  {
+   "id": 131078773071,
+   "name": "SMP 50/50 (m3-one)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:21:15Z",
+   "completed_at": "2026-11-12T09:37:38Z"
+  },
+  {
+   "id": 131078773067,
+   "name": "SMP 50/50 (m3-one-multi)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:21:31Z",
+   "completed_at": "2026-11-12T09:38:28Z"
+  },
+  {
+   "id": 131078781176,
+   "name": "SMP 50/50 (m3-recovery-four)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T10:34:04Z",
+   "completed_at": "2026-11-12T10:53:10Z"
+  },
+  {
+   "id": 131078773304,
+   "name": "SMP 50/50 (m3-two)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:22:19Z",
+   "completed_at": "2026-11-12T09:39:38Z"
+  },
+  {
+   "id": 131078773109,
+   "name": "SMP 50/50 (m3-two-single)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:22:18Z",
+   "completed_at": "2026-11-12T09:38:35Z"
+  },
+  {
+   "id": 131078781312,
+   "name": "SMP 50/50 (m3-unmap-control)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T10:31:22Z",
+   "completed_at": "2026-11-12T10:40:51Z"
+  },
+  {
+   "id": 131078781092,
+   "name": "SMP 50/50 (m3-unmap-four)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T10:29:58Z",
+   "completed_at": "2026-11-12T10:39:29Z"
+  },
+  {
+   "id": 131078780482,
+   "name": "SMP 50/50 (m4-quotas-four)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T10:28:23Z",
+   "completed_at": "2026-11-12T10:38:14Z"
+  },
+  {
+   "id": 131078767393,
+   "name": "SMP 50/50 (nine-capacity)",
+   "conclusion": "failure",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:12:57Z"
+  },
+  {
+   "id": 131078767552,
+   "name": "SMP 50/50 (one)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:08:00Z"
+  },
+  {
+   "id": 131078774226,
+   "name": "SMP 50/50 (proc-no-shootdown-control)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:20:28Z",
+   "completed_at": "2026-11-12T09:30:52Z"
+  },
+  {
+   "id": 131078772551,
+   "name": "SMP 50/50 (proc-shootdown-deaf)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:20:20Z",
+   "completed_at": "2026-11-12T09:29:52Z"
+  },
+  {
+   "id": 131078780859,
+   "name": "SMP 50/50 (qsim-four)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T10:29:31Z",
+   "completed_at": "2026-11-12T10:39:02Z"
+  },
+  {
+   "id": 131078770390,
+   "name": "SMP 50/50 (quarantine-lock-held)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:16:46Z",
+   "completed_at": "2026-11-12T09:20:17Z"
+  },
+  {
+   "id": 131078770586,
+   "name": "SMP 50/50 (quarantine-lock-pending)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:17:50Z",
+   "completed_at": "2026-11-12T09:22:16Z"
+  },
+  {
+   "id": 131078770599,
+   "name": "SMP 50/50 (quarantine-sched-busy)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:17:59Z",
+   "completed_at": "2026-11-12T09:27:14Z"
+  },
+  {
+   "id": 131078770400,
+   "name": "SMP 50/50 (resched-deaf)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:12:59Z",
+   "completed_at": "2026-11-12T09:22:15Z"
+  },
+  {
+   "id": 131078778332,
+   "name": "SMP 50/50 (serial-unlocked-control)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:48:48Z",
+   "completed_at": "2026-11-12T09:59:26Z"
+  },
+  {
+   "id": 131078770035,
+   "name": "SMP 50/50 (shared-scratch)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:11:49Z",
+   "completed_at": "2026-11-12T09:21:04Z"
+  },
+  {
+   "id": 131078767411,
+   "name": "SMP 50/50 (shootdown-skipped-control)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:04:52Z",
+   "completed_at": "2026-11-12T09:14:14Z"
+  },
+  {
+   "id": 131078767675,
+   "name": "SMP 50/50 (spin-irq-off-control)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:08:31Z",
+   "completed_at": "2026-11-12T09:12:01Z"
+  },
+  {
+   "id": 131078767383,
+   "name": "SMP 50/50 (two-single)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:09:28Z"
+  },
+  {
+   "id": 131078264074,
+   "name": "SMP Ubuntu 26.04 and K07 probe",
+   "conclusion": "success",
+   "started_at": "2026-11-12T08:59:37Z",
+   "completed_at": "2026-11-12T09:00:35Z"
+  },
+  {
+   "id": 131179902969,
+   "name": "SMP final repository gate",
+   "conclusion": "skipped",
+   "started_at": "2026-11-12T12:22:55Z",
+   "completed_at": "2026-11-12T12:22:55Z"
+  },
+  {
+   "id": 131179574857,
+   "name": "SMP section 9 aggregate 66x50",
+   "conclusion": "failure",
+   "started_at": "2026-11-12T12:22:20Z",
+   "completed_at": "2026-11-12T12:22:55Z"
+  },
+  {
+   "id": 131078766487,
+   "name": "SMP soak 5/50 (shard 0)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:37Z",
+   "completed_at": "2026-11-12T09:52:07Z"
+  },
+  {
+   "id": 131078766480,
+   "name": "SMP soak 5/50 (shard 1)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:52:21Z"
+  },
+  {
+   "id": 131078766260,
+   "name": "SMP soak 5/50 (shard 2)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:52:16Z"
+  },
+  {
+   "id": 131078766308,
+   "name": "SMP soak 5/50 (shard 3)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:52:24Z"
+  },
+  {
+   "id": 131078766355,
+   "name": "SMP soak 5/50 (shard 4)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:52:19Z"
+  },
+  {
+   "id": 131078766351,
+   "name": "SMP soak 5/50 (shard 5)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:52:40Z"
+  },
+  {
+   "id": 131078767365,
+   "name": "SMP soak 5/50 (shard 6)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:52:15Z"
+  },
+  {
+   "id": 131078766444,
+   "name": "SMP soak 5/50 (shard 7)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:52:09Z"
+  },
+  {
+   "id": 131078766416,
+   "name": "SMP soak 5/50 (shard 8)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:52:27Z"
+  },
+  {
+   "id": 131078766337,
+   "name": "SMP soak 5/50 (shard 9)",
+   "conclusion": "success",
+   "started_at": "2026-11-12T09:00:38Z",
+   "completed_at": "2026-11-12T09:52:23Z"
+  },
+  {
+   "id": 131078266234,
+   "name": "experimental-m3-m4-smp",
+   "conclusion": "skipped",
+   "started_at": "2026-11-12T08:59:34Z",
+   "completed_at": "2026-11-12T08:59:34Z"
+  },
+  {
+   "id": 131078266605,
+   "name": "native-smp",
+   "conclusion": "skipped",
+   "started_at": "2026-11-12T08:59:34Z",
+   "completed_at": "2026-11-12T08:59:34Z"
+  }
+ ]
+}

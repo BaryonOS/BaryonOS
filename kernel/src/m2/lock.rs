@@ -65,6 +65,7 @@ mod smp {
     pub fn past(_: u64) -> bool {
         false
     }
+    pub fn lock_waited(_: u8, _: u64) {}
     pub fn lock_stuck(_: u8) -> ! {
         crate::serial::fail(b"LOCK_STUCK")
     }
@@ -247,8 +248,8 @@ impl<T> IrqLock<T> {
         };
         // IQ-3: from before the ticket until the owner is published.
         let outer = smp::lock_transit(self.id());
+        let mut deadline = None;
         let guard = if cfg!(feature = "native-smp") {
-            let mut deadline = None;
             self.inner.lock_with(|| {
                 relax();
                 let limit = *deadline.get_or_insert_with(smp::stuck_deadline);
@@ -261,6 +262,11 @@ impl<T> IrqLock<T> {
         };
         self.owner.store(smp::cpu_index() as u8, Ordering::Release);
         smp::lock_transit(outer);
+        // AC-3: the wait that just ended, against the same DG-1 limit; booked
+        // after the owner is published, so the IQ-3 transit window is unchanged.
+        if let Some(limit) = deadline {
+            smp::lock_waited(self.level, limit);
+        }
         #[cfg(feature = "native-smp-m3")]
         if self.level == level::KERNEL {
             smp::m3_wait_end(wait_start);
