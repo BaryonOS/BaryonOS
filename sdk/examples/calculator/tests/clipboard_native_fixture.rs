@@ -60,5 +60,25 @@ fn render_native_clipboard_calculator_oracles() {
             "clipboard-calculator-copied",
             directory.as_deref(),
         );
+        let mut calculated = Model::new();
+        for byte in b"2+3" {
+            calculated.command(Command::Insert(*byte));
+        }
+        calculated.command(Command::Evaluate);
+        calculated.command(Command::Evaluate);
+        calculated.set_high_contrast(true);
+        snapshot(
+            &calculated,
+            view,
+            "calculator-high-contrast",
+            directory.as_deref(),
+        );
+        calculated.set_high_contrast(false);
+        snapshot(
+            &calculated,
+            view,
+            "calculator-contrast-restored",
+            directory.as_deref(),
+        );
     }
 }

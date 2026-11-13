@@ -1,8 +1,19 @@
 #!/usr/bin/env python3
-"""Conservatively classify existing GitHub Projects V2 items.
+"""Conservatively classify and synchronise existing GitHub Projects V2 items.
 
-Only unambiguous conventional title prefixes and explicit labels are used.
-Existing field values are never overwritten. No status or issue state changes.
+Work Type, Subsystem and Priority come only from unambiguous conventional
+title prefixes and explicit labels; existing values are never overwritten.
+
+Status is derived from GitHub facts (issue/PR state, draft flag and an explicit
+``blocked`` label). Terminal facts win: a merged PR or an issue closed as
+completed becomes Done. Manually chosen statuses outside the managed set are
+left untouched. Project Status is organisational only; it never replaces a
+GitHub Actions result.
+
+Open issues and pull requests of the repository that are missing from the
+project are added (bounded per run). Nothing is added when the project scan was
+truncated, so the dry-run and apply outputs stay exact. No issue, PR, label or
+milestone is modified.
 """
 
 import argparse
@@ -56,6 +67,24 @@ TITLE_PATTERN = re.compile(
     r"(?:\(([a-z0-9_.-]+)\))?!?:", re.IGNORECASE
 )
 
+STATUS_FIELD = "Status"
+BLOCKED_LABELS = {"blocked", "status:blocked"}
+# Statuses this tool may move a pull request between. A PR with any other
+# (manually chosen) status keeps it.
+MANAGED_PR_STATUSES = {"todo", "in progress", "in review", "blocked", "done"}
+# Open issues are only filled or corrected from these values.
+CORRECTABLE_ISSUE_STATUSES = {"", "blocked", "done"}
+# Candidate option names in order of preference; the first existing one wins.
+STATUS_CANDIDATES = {
+    "todo": ("Todo", "To do", "Backlog"),
+    "in progress": ("In Progress",),
+    "in review": ("In Review", "In Progress"),
+    "blocked": ("Blocked",),
+    "done": ("Done",),
+}
+MAX_ADDS_PER_RUN = 50
+MAX_OPEN_CONTENT = 500
+
 PROJECT_QUERY = """
 query($org: String!, $number: Int!, $cursor: String) {
   organization(login: $org) {
@@ -75,12 +104,13 @@ query($org: String!, $number: Int!, $cursor: String) {
         nodes {
           id
           content {
+            __typename
             ... on Issue {
-              number title repository { nameWithOwner }
+              id number title state stateReason repository { nameWithOwner }
               labels(first: 50) { nodes { name } }
             }
             ... on PullRequest {
-              number title repository { nameWithOwner }
+              id number title state isDraft repository { nameWithOwner }
               labels(first: 50) { nodes { name } }
             }
           }
@@ -99,12 +129,31 @@ query($org: String!, $number: Int!, $cursor: String) {
 }
 """
 
+OPEN_CONTENT_QUERY = """
+query($owner: String!, $name: String!, $cursor: String) {
+  repository(owner: $owner, name: $name) {
+    %s(states: OPEN, first: 100, after: $cursor) {
+      pageInfo { hasNextPage endCursor }
+      nodes { id number }
+    }
+  }
+}
+"""
+
 UPDATE_QUERY = """
 mutation($project: ID!, $item: ID!, $field: ID!, $option: String!) {
   updateProjectV2ItemFieldValue(input: {
     projectId: $project, itemId: $item, fieldId: $field,
     value: { singleSelectOptionId: $option }
   }) { projectV2Item { id } }
+}
+"""
+
+ADD_QUERY = """
+mutation($project: ID!, $content: ID!) {
+  addProjectV2ItemById(input: { projectId: $project, contentId: $content }) {
+    item { id }
+  }
 }
 """
 
@@ -155,6 +204,87 @@ def classify(title, labels):
     return suggestions
 
 
+def derive_status(content, labels, current):
+    """Return the managed status key derived from GitHub facts, or None.
+
+    ``current`` is the item's present Status option name ("" when empty).
+    """
+    kind = content.get("__typename")
+    state = content.get("state")
+    current = (current or "").casefold()
+    blocked = any(label.lower().strip() in BLOCKED_LABELS for label in labels)
+    if kind == "PullRequest":
+        if current and current not in MANAGED_PR_STATUSES:
+            return None
+        if state == "MERGED":
+            return "done"
+        if state != "OPEN":
+            return None  # closed without merge: a human decision
+        if blocked:
+            return "blocked"
+        return "in progress" if content.get("isDraft") else "in review"
+    if kind == "Issue":
+        if state == "CLOSED":
+            reason = content.get("stateReason") or "COMPLETED"
+            return "done" if reason == "COMPLETED" else None
+        if state != "OPEN":
+            return None
+        if blocked:
+            return "blocked"
+        return "todo" if current in CORRECTABLE_ISSUE_STATUSES else None
+    return None
+
+
+def resolve_option(field, key):
+    """Return the first existing option for a managed status key."""
+    for candidate in STATUS_CANDIDATES.get(key, ()):
+        for option in field["options"]:
+            if option["name"].casefold() == candidate.casefold():
+                return option
+    return None
+
+
+def proposed_updates(item, fields):
+    content = item.get("content")
+    if not content:
+        return []
+    labels = [node["name"] for node in (content.get("labels") or {}).get("nodes", [])
+              if node]
+    suggested = classify(content.get("title", ""), labels)
+    current = {
+        node["field"]["name"]: node["name"] for node in item["fieldValues"]["nodes"]
+        if node and node.get("field") and node.get("name")
+    }
+    updates = []
+    for name, desired in suggested.items():
+        if name in current or name not in fields:
+            continue
+        field = fields[name]
+        option = next((o for o in field["options"]
+                       if o["name"].casefold() == desired.casefold()), None)
+        if option:
+            updates.append((name, desired, field["id"], option["id"]))
+
+    if STATUS_FIELD in fields:
+        present = current.get(STATUS_FIELD, "")
+        key = derive_status(content, labels, present)
+        option = resolve_option(fields[STATUS_FIELD], key) if key else None
+        if option and option["name"].casefold() != present.casefold():
+            updates.append((STATUS_FIELD, option["name"],
+                            fields[STATUS_FIELD]["id"], option["id"]))
+    return updates
+
+
+def missing_content(project_content_ids, open_items):
+    """Open repository items absent from the project, in a stable order."""
+    seen, missing = set(project_content_ids), []
+    for node in open_items:
+        if node["id"] not in seen:
+            seen.add(node["id"])
+            missing.append(node)
+    return missing
+
+
 def graphql(token, query, variables):
     req = request.Request(
         "https://api.github.com/graphql",
@@ -178,45 +308,51 @@ def graphql(token, query, variables):
     return result["data"]
 
 
-def proposed_updates(item, fields):
-    content = item.get("content")
-    if not content:
-        return []
-    labels = [node["name"] for node in (content.get("labels") or {}).get("nodes", [])
-              if node]
-    suggested = classify(content.get("title", ""), labels)
-    current = {
-        node["field"]["name"] for node in item["fieldValues"]["nodes"]
-        if node and node.get("field") and node.get("name")
-    }
-    updates = []
-    for name, desired in suggested.items():
-        if name in current or name not in fields:
-            continue
-        field = fields[name]
-        option = next((o for o in field["options"]
-                       if o["name"].casefold() == desired.casefold()), None)
-        if option:
-            updates.append((name, desired, field["id"], option["id"]))
-    return updates
+def open_content(token, repo, connection):
+    """Yield open issues or pull requests of one repository, bounded."""
+    owner, name = repo.split("/", 1)
+    cursor, count = None, 0
+    while True:
+        data = graphql(token, OPEN_CONTENT_QUERY % connection,
+                       {"owner": owner, "name": name, "cursor": cursor})
+        repository = data.get("repository")
+        if repository is None:
+            raise RuntimeError("Repository not found or token lacks read access")
+        page = repository[connection]
+        for node in page["nodes"]:
+            if node:
+                count += 1
+                if count > MAX_OPEN_CONTENT:
+                    raise RuntimeError(f"More than {MAX_OPEN_CONTENT} open {connection}")
+                yield node
+        if not page["pageInfo"]["hasNextPage"]:
+            return
+        cursor = page["pageInfo"]["endCursor"]
+        if not cursor:
+            raise RuntimeError("Pagination cursor missing")
 
 
-def run(token, org, repo, number, limit, apply):
+def run(token, org, repo, number, limit, apply, add_missing=True):
     cursor, seen, changed, suggested_count = None, 0, 0, 0
-    while seen < limit:
+    content_ids, truncated, project_id = set(), False, None
+    while True:
         data = graphql(token, PROJECT_QUERY,
                        {"org": org, "number": number, "cursor": cursor})
         project = (data.get("organization") or {}).get("projectV2")
         if project is None:
             raise RuntimeError("Project not found or token lacks Projects access")
+        project_id = project["id"]
         fields = {node["name"]: node for node in project["fields"]["nodes"]
                   if node and node.get("name") and "options" in node}
         connection = project["items"]
         for item in connection["nodes"]:
             if seen >= limit:
+                truncated = True
                 break
             seen += 1
             content = item.get("content") or {}
+            if content.get("id"):
+                content_ids.add(content["id"])
             if (content.get("repository") or {}).get("nameWithOwner", "").lower() != repo.lower():
                 continue
             for field, value, field_id, option_id in proposed_updates(item, fields):
@@ -224,18 +360,39 @@ def run(token, org, repo, number, limit, apply):
                 print(f"{'APPLY' if apply else 'DRY-RUN'} #{content['number']}: {field} = {value}")
                 if apply:
                     graphql(token, UPDATE_QUERY, {
-                        "project": project["id"], "item": item["id"],
+                        "project": project_id, "item": item["id"],
                         "field": field_id, "option": option_id,
                     })
                     changed += 1
-        if not connection["pageInfo"]["hasNextPage"] or seen >= limit:
+        if truncated or not connection["pageInfo"]["hasNextPage"]:
+            break
+        if seen >= limit:
+            truncated = True  # more pages exist beyond the limit
             break
         cursor = connection["pageInfo"]["endCursor"]
         if not cursor:
             raise RuntimeError("Pagination cursor missing")
-    print(f"Scanned {seen} items; suggested {suggested_count}; updated {changed}.")
+
+    added = planned = 0
+    if add_missing and truncated:
+        print("Project scan truncated by --limit; skipping additions.")
+    elif add_missing:
+        open_items = list(open_content(token, repo, "issues"))
+        open_items += list(open_content(token, repo, "pullRequests"))
+        missing = missing_content(content_ids, open_items)
+        if len(missing) > MAX_ADDS_PER_RUN:
+            print(f"{len(missing)} open items missing; adding the first {MAX_ADDS_PER_RUN}.")
+            missing = missing[:MAX_ADDS_PER_RUN]
+        for node in missing:
+            planned += 1
+            print(f"{'APPLY' if apply else 'DRY-RUN'} #{node['number']}: add to project")
+            if apply:
+                graphql(token, ADD_QUERY, {"project": project_id, "content": node["id"]})
+                added += 1
+    print(f"Scanned {seen} items; suggested {suggested_count}; updated {changed}; "
+          f"missing {planned}; added {added}.")
     if not apply:
-        print("Dry-run: no project fields were modified.")
+        print("Dry-run: no project fields or items were modified.")
 
 
 def main():
@@ -243,16 +400,27 @@ def main():
     parser.add_argument("--organization", default="BaryonOS")
     parser.add_argument("--repository", default="BaryonOS/BaryonOS")
     parser.add_argument("--project", type=int, default=5)
-    parser.add_argument("--limit", type=int, default=200)
+    parser.add_argument("--limit", type=int, default=500)
     parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--no-add-missing", action="store_true",
+                        help="Do not add open issues/PRs missing from the project")
+    parser.add_argument("--skip-without-token", action="store_true",
+                        help="Exit 0 with a warning when the token is not configured")
     args = parser.parse_args()
-    if not 1 <= args.limit <= 500:
-        parser.error("--limit must be between 1 and 500")
+    if not 1 <= args.limit <= 1000:
+        parser.error("--limit must be between 1 and 1000")
+    if args.repository.count("/") != 1:
+        parser.error("--repository must be owner/name")
     token = os.environ.get("BARYON_PROJECTS_TOKEN")
     if not token:
+        if args.skip_without_token:
+            print("::warning::BARYON_PROJECTS_TOKEN is not configured; "
+                  "Project synchronisation skipped.")
+            return 0
         parser.error("BARYON_PROJECTS_TOKEN is required (Projects read/write permission)")
     try:
-        run(token, args.organization, args.repository, args.project, args.limit, args.apply)
+        run(token, args.organization, args.repository, args.project, args.limit,
+            args.apply, add_missing=not args.no_add_missing)
     except (RuntimeError, error.URLError, KeyError, TypeError) as exc:
         print(f"Project classification failed: {exc}", file=sys.stderr)
         return 1

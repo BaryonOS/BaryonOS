@@ -6,17 +6,59 @@ use core::{
     ptr,
 };
 
+/// GS discipline (audit F8, ADR-076 GS-1..GS-10). Entry prologue of an
+/// IRQ/IPI stub, `cs` = offset of the CPU frame's CS from RSP: `swapgs` iff
+/// that frame came from CPL3 (GS-2), then `lfence` on the join so a
+/// mispredicted branch cannot reach a GS-relative load (GS-5). Nothing that
+/// uses GS, calls or enters Rust may precede it (GS-4).
+#[cfg(feature = "native-smp")]
+macro_rules! gs_entry {
+    ($cs:literal) => {
+        concat!(
+            "test byte ptr [rsp+",
+            $cs,
+            "], 3\n",
+            "jz 7f\n",
+            "swapgs\n",
+            "7:\n",
+            "lfence\n"
+        )
+    };
+}
+/// Exit epilogue directly before `iretq` (RSP at the CPU frame): `swapgs`
+/// iff the frame being restored is CPL3 (GS-2), IF=0 up to `iretq` (GS-8).
+/// `$label` marks the `iretq` for the GS-7 fixup in `m2_exception_common`.
+#[cfg(any(feature = "native-smp", feature = "milestone-m3"))]
+macro_rules! gs_exit {
+    ($label:literal) => {
+        concat!(
+            "test byte ptr [rsp+8], 3\n",
+            "jz 7f\n",
+            "swapgs\n",
+            "7:\n",
+            ".globl ",
+            $label,
+            "\n",
+            $label,
+            ":\n",
+            "iretq\n"
+        )
+    };
+}
+#[cfg(feature = "native-smp")]
+pub(super) use {gs_entry, gs_exit};
+
 #[repr(C, align(4096))]
 pub struct Stack {
     lower: [u8; 4096],
-    data: [u8; 16384],
+    data: [u8; 32768],
     upper: [u8; 4096],
 }
 impl Stack {
     const fn new() -> Self {
         Self {
             lower: [0; 4096],
-            data: [0; 16384],
+            data: [0; 32768],
             upper: [0; 4096],
         }
     }
@@ -25,13 +67,13 @@ static mut MAIN: Stack = Stack::new();
 static mut DOUBLE: Stack = Stack::new();
 static mut NMI: Stack = Stack::new();
 pub fn stack_top() -> u64 {
-    ptr::addr_of!(MAIN) as u64 + 20480
+    ptr::addr_of!(MAIN) as u64 + 36864
 }
 pub fn guard_pages() -> [u64; 6] {
     let main = ptr::addr_of!(MAIN) as u64;
     let double = ptr::addr_of!(DOUBLE) as u64;
     let nmi = ptr::addr_of!(NMI) as u64;
-    [main, main + 20480, double, double + 20480, nmi, nmi + 20480]
+    [main, main + 36864, double, double + 36864, nmi, nmi + 36864]
 }
 pub fn is_guard(address: u64) -> bool {
     guard_pages().contains(&address)
@@ -106,11 +148,11 @@ pub fn install() {
             .write_unaligned(stack_top());
         ptr::addr_of_mut!(TSS.ist)
             .cast::<u64>()
-            .write_unaligned(ptr::addr_of!(DOUBLE) as u64 + 20480);
+            .write_unaligned(ptr::addr_of!(DOUBLE) as u64 + 36864);
         ptr::addr_of_mut!(TSS.ist)
             .cast::<u64>()
             .add(1)
-            .write_unaligned(ptr::addr_of!(NMI) as u64 + 20480);
+            .write_unaligned(ptr::addr_of!(NMI) as u64 + 36864);
         let base = ptr::addr_of!(TSS) as u64;
         let low = 103 | ((base & 0xffffff) << 16) | (0x89 << 40) | (((base >> 24) & 0xff) << 56);
         ptr::addr_of_mut!(GDT).write([
@@ -243,11 +285,30 @@ pub fn install_ap(tables: *mut CpuTables, rsp0: u64, double_top: u64, nmi_top: u
     }
 }
 
+/// RSP0 of one AP's own TSS (the stack a CPL3 interrupt lands on). Only the
+/// owning AP calls this, with IF=0, for its exclusive `tables` slot.
+#[cfg(feature = "native-smp")]
+pub fn ap_rsp0(tables: *mut CpuTables, rsp0: u64) {
+    // SAFETY: `tables` is the caller's own permanent CpuTables slot (see
+    // install_ap); the packed field is written unaligned. The CPU reads RSP0
+    // only on the next privilege change, which cannot happen while IF=0 here.
+    unsafe {
+        ptr::addr_of_mut!((*tables).tss.rsp)
+            .cast::<u64>()
+            .write_unaligned(rsp0);
+    }
+}
+
 /// BSP-only, before any AP starts: supervisor interrupt gate for the SMP IPI
-/// (0xf0) or spurious (0xff) vector. Never a user-callable gate.
+/// (0xf0), spurious (0xff), shootdown (0xe0), timer (0xd0), reschedule
+/// (0xe8), or the PIC's clock IRQ0 (0x20) and spurious IRQ7 (0x27) vector
+/// (step 5c-2). Never a user-callable gate.
 #[cfg(feature = "native-smp")]
 pub fn smp_gate(vector: usize, address: u64) {
-    assert!(matches!(vector, 0xd0 | 0xe0 | 0xf0 | 0xff));
+    assert!(matches!(
+        vector,
+        0x20 | 0x27 | 0xd0 | 0xe0 | 0xe8 | 0xf0 | 0xff
+    ));
     let gate = Gate {
         lo: address as u16,
         cs: 8,
@@ -389,8 +450,8 @@ extern "C" fn m2_exception(frame: *const u64) -> ! {
     }
     // Test-only AP IST probes: accepted solely on that AP's own IST stack.
     #[cfg(feature = "native-smp")]
-    if let Some(marker) = super::smp::ist_fault_marker(vector, error, cs, frame) {
-        serial::write(marker);
+    if let Some(marker) = super::smp::ist_fault_marker(vector, error, rip, cs, cr2, frame) {
+        serial::write_terminal(marker);
         serial::exit(0x10);
     }
     if cfg!(feature = "test-m2-double-fault") && vector == 8 && error == 0 && cs == 8 {
@@ -405,25 +466,25 @@ extern "C" fn m2_exception(frame: *const u64) -> ! {
         };
         let start = frame as u64;
         if rsp >= double + 4096
-            && rsp < double + 20480
+            && rsp < double + 36864
             && start >= double + 4096
             && start
                 .checked_add(22 * 8)
-                .is_some_and(|end| end <= double + 20480)
+                .is_some_and(|end| end <= double + 36864)
             && old_rsp >= main
             && old_rsp < main + 4096
         {
-            serial::write(b"M2:FAULT:DF_IST:PASS\n");
+            serial::write_terminal(b"M2:FAULT:DF_IST:PASS\n");
             serial::exit(0x11);
         }
     }
     let supervisor = cs == 8 && error & 4 == 0;
     if cfg!(feature = "test-m2-kernel-fault") && vector == 6 && error == 0 && cs == 8 {
-        serial::write(b"M2:FAULT:KERNEL_UD:PASS\n");
+        serial::write_terminal(b"M2:FAULT:KERNEL_UD:PASS\n");
     }
     if vector == 14 && supervisor {
         if cfg!(feature = "test-m2-ro") && cr2 == super::text_start() && error & 0x1f == 3 {
-            serial::write(b"M2:FAULT:RO:PASS\n");
+            serial::write_terminal(b"M2:FAULT:RO:PASS\n");
             serial::exit(0x10);
         }
         if cfg!(feature = "test-m2-nx")
@@ -431,41 +492,46 @@ extern "C" fn m2_exception(frame: *const u64) -> ! {
             && rip == cr2
             && error & 0x1f == 17
         {
-            serial::write(b"M2:FAULT:NX:PASS\n");
+            serial::write_terminal(b"M2:FAULT:NX:PASS\n");
             serial::exit(0x10);
         }
         if cfg!(feature = "test-m2-absent") && cr2 == 0 && error & 0x1f == 0 {
-            serial::write(b"M2:FAULT:ABSENT:PASS\n");
+            serial::write_terminal(b"M2:FAULT:ABSENT:PASS\n");
             serial::exit(0x10);
         }
     }
-    serial::write(b"M2:FAIL:KERNEL_EXCEPTION\n");
+    serial::write_terminal(b"M2:FAIL:KERNEL_EXCEPTION\n");
     serial::exit(0x11)
 }
 
 // All GPRs are saved before entering Rust. The call stack is SysV aligned and DF
 // cleared. No floating point context is used. Non-returning M2 failure path.
+// GS (audit F8): every vector except NMI (2), #DF (8) and #MC (18) runs the
+// prologue in `m2_exception_common` (CS at +24 after EX normalized the frame).
+// A faulting `iretq` to CPL3 reports CS=8 with the user GS already loaded, so
+// a frame RIP equal to one of the `nos_iret_user_*` labels also swaps (GS-7).
+// The paranoid vectors never swap or use GS and stay terminal (GS-6).
 global_asm!(
     r#"
 .section .text
-.macro EX n, err=0
+.macro EX n, err=0, path=m2_exception_common
 .global m2_exc_\n
 m2_exc_\n:
 .if \err == 0
  push 0
 .endif
  push \n
- jmp m2_exception_common
+ jmp \path
 .endm
 EX 0
 EX 1
-EX 2
+EX 2,0,m2_exception_paranoid
 EX 3
 EX 4
 EX 5
 EX 6
 EX 7
-EX 8,1
+EX 8,1,m2_exception_paranoid
 EX 9
 EX 10,1
 EX 11,1
@@ -475,7 +541,7 @@ EX 14,1
 EX 15
 EX 16
 EX 17,1
-EX 18
+EX 18,0,m2_exception_paranoid
 EX 19
 EX 20
 EX 21,1
@@ -490,6 +556,26 @@ EX 29,1
 EX 30,1
 EX 31
 m2_exception_common:
+ test byte ptr [rsp+24],3
+ jnz 7f
+.if {smp}
+ cmp qword ptr [rsp+16],offset nos_iret_user_timer
+ je 7f
+ cmp qword ptr [rsp+16],offset nos_iret_user_ipi
+ je 7f
+ cmp qword ptr [rsp+16],offset nos_iret_user_shootdown
+ je 7f
+.endif
+.if {m3}
+ cmp qword ptr [rsp+16],offset nos_iret_user_m3
+ je 7f
+.endif
+ jmp 8f
+7:
+ swapgs
+8:
+ lfence
+m2_exception_paranoid:
  cld
  push rax
  push rcx
@@ -515,7 +601,9 @@ exception_addresses:
 .quad m2_exc_8,m2_exc_9,m2_exc_10,m2_exc_11,m2_exc_12,m2_exc_13,m2_exc_14,m2_exc_15
 .quad m2_exc_16,m2_exc_17,m2_exc_18,m2_exc_19,m2_exc_20,m2_exc_21,m2_exc_22,m2_exc_23
 .quad m2_exc_24,m2_exc_25,m2_exc_26,m2_exc_27,m2_exc_28,m2_exc_29,m2_exc_30,m2_exc_31
-"#
+"#,
+    smp = const cfg!(feature = "native-smp") as u8,
+    m3 = const cfg!(feature = "milestone-m3") as u8,
 );
 
 #[cfg(not(feature = "milestone-m3"))]
@@ -531,7 +619,8 @@ m2_dispatch:
 );
 #[cfg(feature = "milestone-m3")]
 global_asm!(
-    r#"
+    concat!(
+        r#"
 .section .text
 .global m3_timer
 m3_timer:
@@ -543,18 +632,65 @@ m3_syscall:
  push 0
  push 128
  jmp m2_exception_common
+ .if {smp_m3}
+// Step 5d-2: an AP's M3 tick (LAPIC 0xd0). From CPL3 the full M3 entry; from
+// CPL0 (idle hlt or a KERNEL wait window) only EOI, no GS, stack or Rust,
+// then the reviewed `iretq` of the spurious stub (like the 5c-2 clock stub).
+.global m3_ap_timer
+m3_ap_timer:
+ test byte ptr [rsp+8],3
+ jz 1f
+ push 0
+ push 0xd0
+ jmp m2_exception_common
+1:
+ push rax
+ mov rax,gs:[0]
+ inc dword ptr [rax+{m3_deferred}]
+ movabs rax,{lapic_eoi}
+ mov dword ptr [rax],0
+ pop rax
+ jmp nos_smp_spurious_entry
+.global m3_reschedule
+m3_reschedule:
+ test byte ptr [rsp+8],3
+ jz 1f
+ push 0
+ push 0xe8
+ jmp m2_exception_common
+1:
+ // A KERNEL waiter or idle CPU must not borrow M3 state from an IRQ.
+ push rax
+ mov rax,gs:[0]
+ inc dword ptr [rax+{m3_resched}]
+ movabs rax,{lapic_eoi}
+ mov dword ptr [rax],0
+ pop rax
+ jmp nos_smp_spurious_entry
+ .endif
 m2_dispatch:
  cmp qword ptr [rsp+120],2
  je m3_terminal
  cmp qword ptr [rsp+120],8
  je m3_terminal
+ cmp qword ptr [rsp+120],18
+ je m3_terminal
  cmp qword ptr [rsp+120],32
  jne m3_user_entry
  cmp qword ptr [rsp+144],8
  jne m3_user_entry
+ .if {smp_m3}
+ // Step 5d-2: a BSP waiting for KERNEL opens its IF window (5b), so IRQ0 may
+ // arrive in any CPL0 wait; it is counted and folded into ticks under KERNEL.
+ .else
  cmp byte ptr [rip+m3_idle_active],1
  jne m3_terminal
+ .endif
  inc qword ptr [rip+m3_idle_wakeups]
+ .if {smp_m3}
+ mov rax,gs:[0]
+ inc dword ptr [rax+{m3_deferred}]
+ .endif
  mov al,0x20
  out 0x20,al
  mov rax,rsp
@@ -567,12 +703,25 @@ m3_user_entry:
  .if {fpu_context}
  // GPRs already saved. The current owned aligned image is supervisor-only
  // mapped in every user CR3. Save before any Rust or another process runs.
+ .if {smp_m3}
+ // R3-3: this CPU's current image (GS anchor, after the entry swapgs).
+ call nos_smp_m3_fpu
+ fxsave64 [rax]
+ lock inc qword ptr [rip+m3_fpu_saves]
+ .else
  mov rax,[rip+m3_fpu_current]
  fxsave64 [rax]
  inc qword ptr [rip+m3_fpu_saves]
  .endif
+ .endif
  mov rdi,rsp
+ .if {smp_m3}
+ // R3-4: this CPU's service stack (GS anchor, after the entry swapgs).
+ call nos_smp_m3_stack
+ mov rsp,rax
+ .else
  mov rsp,[rip+m3_service_stack]
+ .endif
  and rsp,-16
  call m3_event
 .global m3_restore
@@ -583,9 +732,18 @@ m3_restore:
  jne 9f
  // Final restore occurs after ALL Rust, under the selected user root. These
  // pages are supervisor-only and permanent; only GPR pops/iret follow it.
+ .if {smp_m3}
+ // RSP is the saved context in STATE, not a stack: no call. The helper reads
+ // this CPU's image through GS (still the kernel anchor) and jumps back.
+ jmp nos_smp_m3_fxrstor
+.global m3_fxrstor_done
+m3_fxrstor_done:
+ lock inc qword ptr [rip+m3_fpu_restores]
+ .else
  mov rax,[rip+m3_fpu_current]
  fxrstor64 [rax]
  inc qword ptr [rip+m3_fpu_restores]
+ .endif
 9:
  .endif
  pop r15
@@ -604,12 +762,31 @@ m3_restore:
  pop rcx
  pop rax
  add rsp,16
- iretq
+"#,
+        gs_exit!("nos_iret_user_m3"),
+        r#"
 m3_terminal:
  mov rdi,rsp
  and rsp,-16
  call m2_exception
  ud2
-"#,
+"#
+    ),
     fpu_context = const cfg!(feature = "fpu-context") as u8,
+    smp_m3 = const cfg!(feature = "native-smp-m3") as u8,
+    lapic_eoi = const LAPIC_EOI,
+    m3_deferred = const M3_DEFERRED_OFFSET,
+    m3_resched = const M3_RESCHED_OFFSET,
 );
+#[cfg(feature = "native-smp-m3")]
+const LAPIC_EOI: u64 = super::paging::LAPIC_WINDOW + 0xb0;
+#[cfg(all(feature = "milestone-m3", not(feature = "native-smp-m3")))]
+const LAPIC_EOI: u64 = 0;
+#[cfg(feature = "native-smp-m3")]
+const M3_DEFERRED_OFFSET: usize = super::smp::M3_DEFERRED_OFFSET;
+#[cfg(all(feature = "milestone-m3", not(feature = "native-smp-m3")))]
+const M3_DEFERRED_OFFSET: usize = 0;
+#[cfg(feature = "native-smp-m3")]
+const M3_RESCHED_OFFSET: usize = super::smp::M3_RESCHED_OFFSET;
+#[cfg(all(feature = "milestone-m3", not(feature = "native-smp-m3")))]
+const M3_RESCHED_OFFSET: usize = 0;

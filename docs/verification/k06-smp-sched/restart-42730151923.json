@@ -1,0 +1,16 @@
+{
+  "run_id": 42730151923,
+  "run_url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42730151923",
+  "tested_commit": "a0b27619abc79f0afcf588078d62c357d337fe93",
+  "source_fingerprint_version": 3,
+  "source_sha256": "cc19201b30d3a9108de30cbc82af2a0d68816afd3fb43eed1cf7c394ae57887c",
+  "full_matrix": true,
+  "full_evidence": false,
+  "status_at_checkpoint": "completed",
+  "accepted": false,
+  "previous_run_retained": 42723127310,
+  "superseded_pending_restart": 42727641812,
+  "native_guests_started_locally": 0,
+  "conclusion": "cancelled",
+  "reason": "Superseded while pending by the complete observer-repair source; no matrix evidence accepted."
+}

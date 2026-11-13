@@ -1,0 +1,1110 @@
+{
+  "schema": 1,
+  "generated_at": "2026-11-10T01:42:36.729190+00:00",
+  "accepted": false,
+  "run_id": 42723127310,
+  "run_url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310",
+  "status": "completed",
+  "conclusion": "failure",
+  "tested_commit": "f808d59150466aee3de24452ea408250b8f4dca6",
+  "source_sha256": "759320893ea058b90d0bc764cd2b9534734827131a212ad5ba27f5501db6e8ac",
+  "qemu_versions": [
+    "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers"
+  ],
+  "matrix": {
+    "case_count": 64,
+    "regular_cases": 63,
+    "repetitions_per_case": 50,
+    "guest_runs_checked": 3200,
+    "independently_verified_passed": 2976,
+    "failed_runs": 224,
+    "fully_green_cases": 54,
+    "failed_case_count": 10,
+    "missing_cases": []
+  },
+  "case_counts": {
+    "ap-double-fault-ist": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "ap-ipi-deaf": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "ap-mismatch": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "ap-nmi-ist": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "ap-shootdown-deaf": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "ap-stall": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "ap-timer-dead": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "bsp-spin-irq-off-control": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "double-run": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "duplicate-madt": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "eight": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "four": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "gs-iret-fault": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "gs-nmi-user": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "gs-user": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "held-across-switch": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "icr-race-control": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "lock-in-handler": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "lock-stuck": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "lockdep-order": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "lockpair-order": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-canary-control": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-eight": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-eight-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 15,
+      "independently_verified_passed": 15,
+      "failed": 35,
+      "shard_count": 1,
+      "all_reports_passed": false
+    },
+    "m3-fault-ap2": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-four": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-four-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 49,
+      "independently_verified_passed": 49,
+      "failed": 1,
+      "shard_count": 1,
+      "all_reports_passed": false
+    },
+    "m3-fpu-skip-control": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-ipc-four": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 0,
+      "independently_verified_passed": 0,
+      "failed": 50,
+      "shard_count": 1,
+      "all_reports_passed": false
+    },
+    "m3-ipc-four-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 0,
+      "independently_verified_passed": 0,
+      "failed": 50,
+      "shard_count": 1,
+      "all_reports_passed": false
+    },
+    "m3-kill-four": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-load-eight": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-load-eight-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 2,
+      "independently_verified_passed": 2,
+      "failed": 48,
+      "shard_count": 1,
+      "all_reports_passed": false
+    },
+    "m3-load-four": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-load-four-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-load-one": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-load-one-multi": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-load-two": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 49,
+      "independently_verified_passed": 49,
+      "failed": 1,
+      "shard_count": 1,
+      "all_reports_passed": false
+    },
+    "m3-load-two-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 46,
+      "independently_verified_passed": 46,
+      "failed": 4,
+      "shard_count": 1,
+      "all_reports_passed": false
+    },
+    "m3-migrate-eight": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-migrate-eight-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 17,
+      "independently_verified_passed": 17,
+      "failed": 33,
+      "shard_count": 1,
+      "all_reports_passed": false
+    },
+    "m3-migrate-four": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-migrate-four-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-one": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-one-multi": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-recovery-four": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-soak-four": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 10,
+      "all_reports_passed": true
+    },
+    "m3-two": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-two-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-unmap-control": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m3-unmap-four": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "m4-quotas-four": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "nine-capacity": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 49,
+      "independently_verified_passed": 49,
+      "failed": 1,
+      "shard_count": 1,
+      "all_reports_passed": false
+    },
+    "one": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "proc-no-shootdown-control": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "proc-shootdown-deaf": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "qsim-four": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "quarantine-lock-held": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "resched-deaf": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "serial-unlocked-control": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "shared-scratch": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 49,
+      "independently_verified_passed": 49,
+      "failed": 1,
+      "shard_count": 1,
+      "all_reports_passed": false
+    },
+    "shootdown-skipped-control": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "spin-irq-off-control": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "two-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    }
+  },
+  "failed_cases": {
+    "m3-eight-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 15,
+      "independently_verified_passed": 15,
+      "failed": 35,
+      "shard_count": 1,
+      "all_reports_passed": false,
+      "failed_iterations": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        9,
+        10,
+        11,
+        12,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        25,
+        26,
+        28,
+        29,
+        30,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        43,
+        47,
+        48,
+        50
+      ]
+    },
+    "m3-four-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 49,
+      "independently_verified_passed": 49,
+      "failed": 1,
+      "shard_count": 1,
+      "all_reports_passed": false,
+      "failed_iterations": [
+        33
+      ]
+    },
+    "m3-ipc-four": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 0,
+      "independently_verified_passed": 0,
+      "failed": 50,
+      "shard_count": 1,
+      "all_reports_passed": false,
+      "failed_iterations": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ]
+    },
+    "m3-ipc-four-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 0,
+      "independently_verified_passed": 0,
+      "failed": 50,
+      "shard_count": 1,
+      "all_reports_passed": false,
+      "failed_iterations": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ]
+    },
+    "m3-load-eight-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 2,
+      "independently_verified_passed": 2,
+      "failed": 48,
+      "shard_count": 1,
+      "all_reports_passed": false,
+      "failed_iterations": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50
+      ]
+    },
+    "m3-load-two": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 49,
+      "independently_verified_passed": 49,
+      "failed": 1,
+      "shard_count": 1,
+      "all_reports_passed": false,
+      "failed_iterations": [
+        43
+      ]
+    },
+    "m3-load-two-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 46,
+      "independently_verified_passed": 46,
+      "failed": 4,
+      "shard_count": 1,
+      "all_reports_passed": false,
+      "failed_iterations": [
+        5,
+        17,
+        21,
+        41
+      ]
+    },
+    "m3-migrate-eight-single": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 17,
+      "independently_verified_passed": 17,
+      "failed": 33,
+      "shard_count": 1,
+      "all_reports_passed": false,
+      "failed_iterations": [
+        1,
+        2,
+        4,
+        6,
+        8,
+        9,
+        10,
+        13,
+        14,
+        16,
+        18,
+        20,
+        21,
+        24,
+        25,
+        26,
+        27,
+        30,
+        31,
+        32,
+        34,
+        37,
+        38,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        50
+      ]
+    },
+    "nine-capacity": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 49,
+      "independently_verified_passed": 49,
+      "failed": 1,
+      "shard_count": 1,
+      "all_reports_passed": false,
+      "failed_iterations": [
+        16
+      ]
+    },
+    "shared-scratch": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 49,
+      "independently_verified_passed": 49,
+      "failed": 1,
+      "shard_count": 1,
+      "all_reports_passed": false,
+      "failed_iterations": [
+        10
+      ]
+    }
+  },
+  "observed_failure_categories": {
+    "fpu_image_mismatch": 63,
+    "host_watchdog_timeout": 159,
+    "clock_drift": 2
+  },
+  "environment_probe": {
+    "native_runs": 1,
+    "independently_checked": true,
+    "matrix_count_includes_probe": false
+  },
+  "k07": {
+    "m4_quotas": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "qsim_pressure": {
+      "requested": 50,
+      "attempted": 50,
+      "reported_passed": 50,
+      "independently_verified_passed": 50,
+      "failed": 0,
+      "shard_count": 1,
+      "all_reports_passed": true
+    },
+    "scope": "These passing old-source cases do not accept K06 or a newer-source matrix."
+  },
+  "combined_soak": {
+    "shards": 10,
+    "repetitions": 50,
+    "passed": 50,
+    "min_guest_elapsed_ms": 600000,
+    "max_guest_elapsed_ms": 600007,
+    "guest_elapsed_ms": [
+      600002,
+      600000,
+      600001,
+      600002,
+      600004,
+      600005,
+      600002,
+      600006,
+      600003,
+      600004,
+      600000,
+      600000,
+      600001,
+      600000,
+      600002,
+      600000,
+      600004,
+      600002,
+      600000,
+      600000,
+      600001,
+      600006,
+      600003,
+      600000,
+      600001,
+      600000,
+      600000,
+      600001,
+      600002,
+      600005,
+      600004,
+      600001,
+      600001,
+      600000,
+      600005,
+      600007,
+      600000,
+      600005,
+      600000,
+      600003,
+      600000,
+      600002,
+      600005,
+      600002,
+      600000,
+      600001,
+      600002,
+      600000,
+      600000,
+      600003
+    ],
+    "combined_m4_qsim_ipc_cpu_load_and_cleanup_independently_rechecked": true
+  },
+  "gates": {
+    "SMP Ubuntu 26.04 and K07 probe": {
+      "id": 129522084999,
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-09T23:46:57Z",
+      "completed_at": "2026-11-09T23:47:50Z",
+      "html_url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310/job/129522084999"
+    },
+    "SMP section 9 aggregate 64x50": {
+      "id": 129569301861,
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-11-10T01:38:37Z",
+      "completed_at": "2026-11-10T01:38:57Z",
+      "html_url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310/job/129569301861"
+    },
+    "SMP final repository gate": {
+      "id": 129569438389,
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-11-10T01:38:57Z",
+      "completed_at": "2026-11-10T01:38:57Z",
+      "html_url": "https://github.com/simonvanieperen/BaryonOS/actions/runs/42723127310/job/129569438389"
+    }
+  },
+  "aggregate_report_present": false,
+  "tools_gate_executed": false,
+  "artifact_count": 74,
+  "zip_digest_inventory": "zip-digest-inventory.json",
+  "verification": {
+    "path": "final-verification.json",
+    "sha256": "d3f4d52c3ae40d86d29ce035a1e7a0f6fe2e15fd4d08a854c8fd4994d8f20e6e",
+    "exit_code": 1,
+    "mode": "partial-diagnostic",
+    "note": "All 3200 matrix runs are retained and checked. Diagnostic mode never accepts a run; the run also has 224 real failed repetitions and a failed aggregate."
+  },
+  "api_files": {
+    "final-run-refreshed.json": {
+      "path": "final-run-refreshed.json",
+      "sha256": "ded5c870efe931d0a8c84f8a7c82e45960a1a5f5a349946f9ae63b5e32084343"
+    },
+    "final-jobs-refreshed.json": {
+      "path": "final-jobs-refreshed.json",
+      "sha256": "a0a1e4a63e2709d1a41b882356a947900474152a2fff7df5ed10c758ee70428e"
+    },
+    "final-artifacts-refreshed.json": {
+      "path": "final-artifacts-refreshed.json",
+      "sha256": "a106ade20054b59467865256c10f42b4dba736dfebbebbae386c63463aa7fff7"
+    }
+  },
+  "preservation": {
+    "all_original_api_artifacts_downloaded": true,
+    "all_api_digests_matched": true,
+    "all_zip_crc_valid": true,
+    "all_canonical_bytes_match_original_zips": true,
+    "removed_files": 0,
+    "legacy_duplicate_zip_copies_preserved": [
+      {
+        "path": "build/k06-handoff/run-42723127310/nine-capacity.zip",
+        "sha256": "59bb36d75a0e1d72db33c96b74501eae78d0f636a1a297f5892c70f00b50190c"
+      },
+      {
+        "path": "build/k06-handoff/run-42723127310/shared-scratch.zip",
+        "sha256": "e50e460da321c6d7e59fa80eaf73e5737412f541f51f1d8c970a3fd2cc4868a7"
+      }
+    ]
+  },
+  "limits": [
+    "No guest is executed by this verifier.",
+    "The strict serial oracle is rerun from the selected checkout; this is an independent artifact readback, not an independent oracle implementation.",
+    "Compact artifacts omit kernel/loader ELF/PE and firmware bytes; recorded hashes are cross-bound to manifests, not independently recomputed from absent binaries.",
+    "GitHub artifact ZIP digests and run metadata must be checked separately against the retained API inventory.",
+    "Final tools/gate.sh execution and all required regression reports must be verified separately before accepting K06.",
+    "No physical hardware or human security audit evidence is provided.",
+    "The old run remains rejected. Passing K07 and all 50 combined soaks do not compensate for any failed ordinary repetition.",
+    "The aggregate job failed and produced no aggregate report. The final tools/gate.sh job was skipped; no final-gate success or log exists for this run.",
+    "Observed failure markers/watchdogs are recorded without claiming that one causal diagnosis explains every failed repetition."
+  ],
+  "zip_digest_inventory_sha256": "44cc97db4e3a9a11f9d8f683174d597eec3b336d55566393ce95ed2f522981ce"
+}

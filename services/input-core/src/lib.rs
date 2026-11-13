@@ -74,8 +74,14 @@ pub enum CancelReason {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Event {
     Key(KeyboardEvent),
-    Mouse { input: MouseEvent, x: u32, y: u32 },
+    Mouse {
+        input: MouseEvent,
+        x: u32,
+        y: u32,
+    },
     Cancel(CancelReason),
+    /// Compositor-observed app-boundary exit, without outside pointer data.
+    PointerLeave,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct Queued {

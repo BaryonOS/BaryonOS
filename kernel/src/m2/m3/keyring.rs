@@ -94,7 +94,7 @@ static mut RUNTIME: Runtime = Runtime {
     finish: 0,
 };
 fn runtime() -> &'static mut Runtime {
-    // SAFETY: Single CPU, IF=0; each borrow ends before scheduling or cleanup.
+    // SAFETY: KERNEL held, IF=0; each borrow ends before scheduling or cleanup.
     unsafe { &mut *ptr::addr_of_mut!(RUNTIME) }
 }
 

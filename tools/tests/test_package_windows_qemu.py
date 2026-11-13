@@ -130,7 +130,7 @@ class WindowsQemuPackageTests(unittest.TestCase):
                         package.validate_build(self.build, verify_source=False)
 
     def test_window_probe_and_hidpi_are_not_interactive_packages(self):
-        for feature in ("native-window-session-probe", "native-window-session-hidpi"):
+        for feature in ("native-window-session-probe", "native-window-session-hidpi", "native-window-session-hidpi-probe"):
             self.window_profile()
             self.manifest["kernel_feature"] = feature
             self.save_manifest()

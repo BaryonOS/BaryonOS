@@ -23,9 +23,9 @@ The machine-readable source of truth is [progress.json](progress.json). `tools/p
 ## Fixed criteria register
 
 <!-- OS-RUBRIC:BEGIN -->
-**Current score: 39/100.**
+**Current score: 41/100.**
 
-### K — Independent kernel and process isolation (13/15)
+### K — Independent kernel and process isolation (15/15)
 
 | Criterion | Points | Status | Acceptance and evidence |
 |---|---:|---|---|
@@ -34,7 +34,7 @@ The machine-readable source of truth is [progress.json](progress.json). `tools/p
 | **K03 — Isolated preempted processes** | 2 | Accepted | Ring-3 processes have separate address spaces; an application fault does not stop the other test processes. [evidence 1](../docs/verification/m2-m4/ACCEPTANCE.md) · [evidence 2](../docs/verification/regression-m6b/FINAL-ACCEPTANCE.md) |
 | **K04 — Capabilities and bounded IPC** | 3 | Accepted | Rights reduction, generations, revocation, user-copy handling, and bounded Message320 IPC have native negative and lifecycle tests. [evidence 1](../docs/verification/m2-m4/ACCEPTANCE.md) · [evidence 2](../docs/verification/regression-m6b/FINAL-ACCEPTANCE.md) |
 | **K05 — General process and service management** | 2 | Accepted | Non-fixture applications can start and stop through bounded APIs and services can restart; dependencies and resources are released correctly. [evidence 1](../docs/verification/K05-ACCEPTANCE.md) · [evidence 2](../docs/verification/k05-startup-slots/gate/supervisor-gate.json) · [evidence 3](../docs/verification/k05-startup-slots/integration.json) |
-| **K06 — Multiple processor cores** | 2 | Open | SMP scheduling, synchronization, interrupts, and address-space switching work under concurrent load on the supported profile. |
+| **K06 — Multiple processor cores** | 2 | Accepted | SMP scheduling, synchronization, interrupts, and address-space switching work under concurrent load on the supported profile. [evidence 1](../docs/verification/K06-ACCEPTANCE.md) |
 | **K07 — Resource management under pressure** | 2 | Accepted | Memory, CPU, IPC, and handle exhaustion remain bounded per application; the usable system recovers without kernel failure. [evidence 1](../docs/verification/K07-ACCEPTANCE.md) |
 
 ### S — Storage and data recovery (13/15)

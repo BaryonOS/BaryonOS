@@ -1,0 +1,24 @@
+ 2005980:	0f b6 05 4d 27 32 00 	movzbl 0x32274d(%rip),%eax        # 23280d4 <os_kernel::m2::smp::CLOCK_LOAD>
+ 2005987:	84 c0                	test   %al,%al
+ 2005989:	74 38                	je     20059c3 <os_kernel::m2::smp::ipi_phase+0x5e3>
+ 200598b:	41 83 fd 06          	cmp    $0x6,%r13d
+ 200598f:	0f 87 ef 04 00 00    	ja     2005e84 <os_kernel::m2::smp::ipi_phase+0xaa4>
+ 2005995:	4c 89 e8             	mov    %r13,%rax
+ 2005998:	48 c1 e0 06          	shl    $0x6,%rax
+ 200599c:	48 8d 80 00 81 32 02 	lea    0x2328100(%rax),%rax
+ 20059a3:	b9 01 00 00 00       	mov    $0x1,%ecx
+ 20059a8:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+ 20059af:	00 
+ 20059b0:	48 89 08             	mov    %rcx,(%rax)
+ 20059b3:	f3 90                	pause
+ 20059b5:	0f b6 15 18 27 32 00 	movzbl 0x322718(%rip),%edx        # 23280d4 <os_kernel::m2::smp::CLOCK_LOAD>
+ 20059bc:	48 ff c1             	inc    %rcx
+ 20059bf:	84 d2                	test   %dl,%dl
+ 20059c1:	75 ed                	jne    20059b0 <os_kernel::m2::smp::ipi_phase+0x5d0>
+ 20059c3:	4d 85 ed             	test   %r13,%r13
+ 20059c6:	0f 84 d4 00 00 00    	je     2005aa0 <os_kernel::m2::smp::ipi_phase+0x6c0>
+ 20059cc:	0f b6 05 a6 26 32 00 	movzbl 0x3226a6(%rip),%eax        # 2328079 <os_kernel::m2::smp::PARK>
+ 20059d3:	84 c0                	test   %al,%al
+ 20059d5:	0f 85 3f 04 00 00    	jne    2005e1a <os_kernel::m2::smp::ipi_phase+0xa3a>
+ 20059db:	0f 20 de             	mov    %cr3,%rsi
+ 20059de:	48 8b 3d 13 2a 32 00 	mov    0x322a13(%rip),%rdi        # 23283f8 <os_kernel::m2::smp::KERNEL_CR3>

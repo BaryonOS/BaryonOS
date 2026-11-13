@@ -121,7 +121,7 @@ struct Runtime {
 }
 
 fn runtime() -> &'static mut Runtime {
-    // SAFETY: Initialized once by prepare; one CPU, IF=0 during each bounded
+    // SAFETY: Initialized once by prepare; KERNEL held, IF=0 during each bounded
     // selection hook. Borrow ends before scheduling/idle; ISR never uses this.
     unsafe {
         (&mut *ptr::addr_of_mut!(RUNTIME))

@@ -286,11 +286,15 @@ class WorkflowContractTests(unittest.TestCase):
     def test_actionlint_exception_is_one_message_in_one_file(self):
         config = yaml.load((ROOT / ".github/actionlint.yaml").read_text(encoding="utf-8"),
                            Loader=yaml.BaseLoader)
-        self.assertEqual(config, {"paths": {
-            ".github/workflows/security-alerts.yml": {
-                "ignore": ['unknown permission scope "vulnerability-alerts"'],
+        # The runner-label entry belongs to the K06 matrix (tests/test_ci_workflows.py).
+        self.assertEqual(config, {
+            "self-hosted-runner": {"labels": ["ubuntu-26.04"]},
+            "paths": {
+                ".github/workflows/security-alerts.yml": {
+                    "ignore": ['unknown permission scope "vulnerability-alerts"'],
+                },
             },
-        }})
+        })
 
 
 if __name__ == "__main__":

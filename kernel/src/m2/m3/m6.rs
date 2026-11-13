@@ -154,7 +154,7 @@ static mut RUNTIME: Runtime = Runtime {
     bad: None,
 };
 fn runtime() -> &'static mut Runtime {
-    // SAFETY: Single CPU, IF0, permanent kernel service stack; no device IRQ
+    // SAFETY: KERNEL held, IF0, permanent kernel service stack; no device IRQ
     // borrows this state. No borrow is retained across cleanup or scheduling.
     unsafe { &mut *ptr::addr_of_mut!(RUNTIME) }
 }

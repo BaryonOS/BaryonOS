@@ -12,7 +12,14 @@ use core::ptr;
 #[derive(Clone, Copy)]
 struct Image([u8; 512]);
 const _: () = assert!(
-    core::mem::size_of::<Image>() == 512 && core::mem::align_of::<Image>() == 16 && MAX == 16
+    core::mem::size_of::<Image>() == 512
+        && core::mem::align_of::<Image>() == 16
+        && MAX
+            == if cfg!(feature = "native-smp-m3-load") {
+                18
+            } else {
+                16
+            }
 );
 static mut IMAGES: [Image; MAX] = [Image([0; 512]); MAX];
 #[no_mangle]
@@ -32,7 +39,7 @@ fn address(slot: usize) -> *mut u8 {
 }
 pub(super) fn clear(slot: usize) {
     let image = address(slot);
-    // SAFETY: One CPU, IF=0, owned permanent supervisor-only metadata. The user
+    // SAFETY: KERNEL held, IF=0, owned permanent supervisor-only metadata. The user
     // entry save has finished before cleanup; it cannot run during this wipe.
     unsafe { ptr::write_bytes(image, 0, 512) };
 }
@@ -51,12 +58,36 @@ pub(super) fn initialize(slot: usize) {
 pub(super) fn select(slot: usize) {
     let image = address(slot);
     assert_eq!(image as usize & 15, 0);
-    // SAFETY: IF=0, single-CPU. Set only a validated owned pointer; the terminal
+    // SAFETY: IF=0, KERNEL held. Set only a validated owned pointer; the terminal
     // assembly path restores this image AFTER all Rust and immediately before
     // pop/iret. Context was initialized or saved by actual FXSAVE64, so its
     // MXCSR is valid. No references to this image survive a user return.
     unsafe {
         ptr::addr_of_mut!(m3_fpu_current).write(image as u64);
+    }
+    // R3-3: on SMP the exit path reads this CPU's own slot.
+    #[cfg(feature = "native-smp-m3")]
+    super::smp::set_m3_fpu(image as u64);
+}
+
+/// Step 5d-2 FPU canary evidence: one little-endian qword of a saved image
+/// (KERNEL held; the owner is not running, its last FXSAVE is complete).
+#[cfg(feature = "native-smp-m3")]
+pub(super) fn image_qword(slot: usize, offset: usize) -> u64 {
+    assert!(offset % 8 == 0 && offset <= 504);
+    // SAFETY: owned, aligned, permanent 512-byte image; read-only access.
+    unsafe { address(slot).add(offset).cast::<u64>().read() }
+}
+
+/// Totals of the assembly counters (diagnostic, `lock inc` on SMP).
+#[cfg(feature = "native-smp-m3")]
+pub(super) fn counts() -> (u64, u64) {
+    // SAFETY: plain reads of two permanent counters, KERNEL held.
+    unsafe {
+        (
+            ptr::addr_of!(m3_fpu_saves).read_volatile(),
+            ptr::addr_of!(m3_fpu_restores).read_volatile(),
+        )
     }
 }
 
@@ -94,7 +125,7 @@ pub(super) mod fixture {
         first_b_loops: 0,
     };
     fn evidence() -> &'static mut Evidence {
-        // SAFETY: This fixture runs only under the single-CPU IF=0 event loop.
+        // SAFETY: This fixture runs only under the KERNEL-held IF=0 event loop.
         unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
     }
     fn require(ok: bool, why: &[u8]) {
@@ -230,7 +261,7 @@ pub(super) mod fixture {
                     .all(|x| *x == 0);
             require(zero, b"CONTEXT_WIPE");
             // SAFETY: IF=0, no user is live. Assembly cannot update either
-            // permanent single-CPU diagnostic counter during these reads.
+            // permanent diagnostic counter (KERNEL held) during these reads.
             let saves = unsafe { ptr::addr_of!(m3_fpu_saves).read() };
             // SAFETY: Same stopped-user/IF=0 counter ownership as above.
             let restores = unsafe { ptr::addr_of!(m3_fpu_restores).read() };

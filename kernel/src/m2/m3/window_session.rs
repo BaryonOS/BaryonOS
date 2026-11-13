@@ -70,7 +70,7 @@ struct Runtime {
         feature = "native-window-session-probe",
         feature = "native-session-route"
     ))]
-    compositor_activity: [u64; 9],
+    compositor_activity: [u64; 10],
     #[cfg(any(
         feature = "native-window-session-probe",
         feature = "native-session-route"
@@ -115,7 +115,7 @@ static mut RUNTIME: Runtime = Runtime {
         feature = "native-window-session-probe",
         feature = "native-session-route"
     ))]
-    compositor_activity: [u64::MAX; 9],
+    compositor_activity: [u64::MAX; 10],
     #[cfg(any(
         feature = "native-window-session-probe",
         feature = "native-session-route"
@@ -123,7 +123,7 @@ static mut RUNTIME: Runtime = Runtime {
     input_progress: [[u64::MAX; 2]; 2],
 };
 fn runtime() -> &'static mut Runtime {
-    // SAFETY: Single CPU, IF=0, nonreentrant scheduler/syscall callbacks. Every
+    // SAFETY: KERNEL held, IF=0, nonreentrant scheduler/syscall callbacks. Every
     // borrow ends before cleanup, a nested accessor or scheduling. No user
     // pointer/reference is retained in this kernel-owned bookkeeping.
     unsafe { &mut *ptr::addr_of_mut!(RUNTIME) }
@@ -597,7 +597,7 @@ fn restart_checked(s: &mut State, slot: usize, a: [u64; 6]) -> Result<u64, i64> 
         runtime().app_generations = [u64::MAX; 2];
         runtime().compositor_commits = u64::MAX;
         runtime().compositor_sample_tick = u64::MAX;
-        runtime().compositor_activity = [u64::MAX; 9];
+        runtime().compositor_activity = [u64::MAX; 10];
     }
     runtime().restarts = r
         .restarts
@@ -770,6 +770,8 @@ fn snapshots(s: &State) {
     if s.processes[COMP].status != Status::Dead && word(s, COMP, 400) == 1 {
         let commits = word(s, COMP, 416);
         let activity = [
+            word(s, COMP, 424),
+            word(s, COMP, 432),
             word(s, COMP, 440),
             word(s, COMP, 448),
             word(s, COMP, 456),
@@ -778,7 +780,6 @@ fn snapshots(s: &State) {
             word(s, COMP, 512),
             word(s, COMP, 520),
             word(s, COMP, 528),
-            word(s, COMP, 424),
         ];
         let previous = *runtime();
         if previous.compositor_sample_tick == u64::MAX
