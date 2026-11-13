@@ -299,8 +299,12 @@ def check_archive(case: str, before: bytes, after: bytes, evidence):
         archive = volume_archive.parse(data)
         oracle = volume_disk.analyse(outside_archive(after))
         check_state("recover", oracle, evidence)
-        if archive["generation"] != oracle["generation"]:
-            raise ValueError("archive generation differs from the volume")
+        # The header carries the domain generation that LIST reports: the sum
+        # of the domain's object and collection revisions (not the global one).
+        domain = (sum(item["revision"] for item in oracle["objects"][:volume_disk.PER_DOMAIN])
+                  + sum(c["revision"] for c in oracle["collections"] if c["domain"] == 0))
+        if archive["generation"] != domain:
+            raise ValueError("archive generation differs from the domain generation")
         present = [item["object"] for item in oracle["objects"][:volume_disk.PER_DOMAIN] if item["present"]]
         if [item["slot"] for item in archive["objects"]] != present:
             raise ValueError("archive objects differ from the domain-0 objects")

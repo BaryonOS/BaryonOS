@@ -944,7 +944,8 @@ pub fn observe_fault(_s: &mut State, slot: usize, _context: &[u64; 22]) {
 }
 
 fn barriers(s: &State) {
-    // Fixture-only ordering of the quota/full phases. Gates carry no
+    // Fixture-only ordering of the quota/full phases, and in the S09 archive
+    // cases of slot 2 after the portal's archive I/O. Gates carry no
     // authority: the service still authorizes every request by endpoint.
     for slot in 1..3 {
         if s.processes[slot].status != Status::Dead {

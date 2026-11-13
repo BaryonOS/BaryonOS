@@ -810,6 +810,10 @@ fn portal(app: &mut App, case: u64) {
     // reference, held for the rest of the portal run on one thread.
     let scratch = unsafe { &mut *(HEAP as *mut [u8; MAX_LENGTH]) };
     let mut disk = NativeDisk { device };
+    // The broker serves one block request at a time (others get Busy), so
+    // archive I/O must not overlap service I/O: slot 2 waits for phase 2,
+    // and every case reaches a READY service before its first archive read.
+    app.phase(1);
     match case {
         ARCHIVE_EXPORT => {
             // The source is the recovered normal fixture, mounted read-only.
@@ -867,6 +871,7 @@ fn portal(app: &mut App, case: u64) {
         }
         _ => {
             // Corrupt archive: refused by verify, so nothing is restored.
+            check(app.list(0, 738).1 == 0, 739);
             check(
                 archive::verify(&mut DiskSource::new(&mut disk, ARCHIVE_SECTORS), scratch)
                     == Err(Status::Corrupt),
@@ -875,6 +880,7 @@ fn portal(app: &mut App, case: u64) {
             check(app.list(0, 741).1 == 0, 742);
         }
     }
+    app.phase(2);
     app.report(750);
 }
 
@@ -929,9 +935,14 @@ fn run() {
         RECOVER_CUT => recover_cut(&mut app),
         #[cfg(feature = "archive-portal")]
         ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT if domain == 0 => portal(&mut app, case),
-        // The ordinary app holds no archive authority; it only reports its domain.
+        // The ordinary app holds no archive authority; it reports its domain
+        // only after the portal finished its archive I/O (kernel gate 2).
         #[cfg(feature = "archive-portal")]
-        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT => app.report(760),
+        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT => {
+            app.phase(1);
+            app.wait_gate(2);
+            app.report(760)
+        }
         _ => fail(5),
     }
     support::put(40, 1);
