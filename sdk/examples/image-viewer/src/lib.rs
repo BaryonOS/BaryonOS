@@ -501,6 +501,7 @@ impl<'a> Viewer<'a> {
     pub fn input(&mut self, event: Event) -> Result<(), Error> {
         self.live()?;
         match event {
+            Event::PointerLeave => self.drag = None,
             Event::Cancel(_) => {
                 self.drag = None;
                 self.focused = false;

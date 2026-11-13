@@ -184,7 +184,7 @@ deze stap uit user mode op meerdere CPU's, niet uit parallelle syscalls.
 **Deadlockvrijheid bij shootdown:** een CPU die op acks wacht, houdt `SHOOTDOWN` en
 eventueel `ASPACE`/`FRAMES` vast, maar heeft IF=0. Doel-CPU's moeten de 0xe0-IPI dus kunnen
 nemen terwijl zij zelf in de kernel spinnen op `KERNEL`. Daarom:
-**spinnen op `KERNEL` en `ASPACE` gebeurt met IF=1** (de spinlus doet `sti; pause; cli`),
+**spinnen op `KERNEL` en `ASPACE` gebeurt met IF=1** (de spinlus doet `sti; nop; pause; cli`),
 en de 0xe0-handler neemt geen lock. Op die manier kan een CPU die op een lock wacht altijd
 een shootdown afhandelen. De CPU die de lock vasthoudt, wacht nooit op een CPU die zelf
 een handler-lock wil.
@@ -276,6 +276,8 @@ ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
 - Een thread op CPU *d* wekken vanaf CPU *c* (bijvoorbeeld IPC-antwoord, ADR-053):
   onder `KERNEL` → `lock_irqsave(RUNQ[d])` → BLOCKED→READY, enqueue → unlock → als *d* ≠ *c*,
   een 0xe8-IPI naar *d*. De IPI is een hint: *d* controleert zijn queue altijd zelf.
+  Een readiness-wake (geen timeout/fout) vanaf *c* ≠ *d* komt vooraan in `RUNQ[d]`, eenmaal per
+  BLOCKED→READY en zonder extra quantum (ADR-081-aanvulling R3-5, 11 november 2026).
 - Kill van een thread die op *d* RUNNING is: markeer `DEAD_PENDING`, stuur 0xe8 en wacht
   begrensd (deadline gelijk aan de shootdown-deadline) tot *d* `state = DEAD` publiceert
   bij zijn eerstvolgende wissel. Pas daarna volgt de bestaande `cleanup` (K05) en de
@@ -428,3 +430,194 @@ python3 -B -u tools/run_smp.py --profile native-smp
   vertalingen gemeten worden, niet dat fysieke CPU's zich hetzelfde gedragen.
 - Device-IRQ's blijven gepolld/op de BSP; IOAPIC naar AP's valt buiten K06.
 - Review door AI is geen menselijke audit (B05 blijft open).
+
+## Branch additions, 6–11 November 2026 (ported 13 November 2026)
+> English translation of lines that PRs #246, #229 and #227 added to this specification on the K06 branches and
+> that never reached `main`. The Dutch originals are archived as patches in `docs/history/k06-branch-prs-2026-11-06/patches/`;
+> the *Amends* lines quote the replaced Dutch text above in translation. The additions describe the
+> branch state of those dates; ADR-075 to ADR-081, ADR-083 and the step specifications in
+> `docs/implementation/k06-steps/` hold the corresponding decisions.
+
+### §2 Security invariants: new INV-8
+
+*Amends §2: inserted directly after INV-7 (PR #246; identical in PR #229).*
+
+- **INV-8 GS discipline (ADR-083, audit finding F8).** Every kernel entry from CPL3 uses
+  the GS anchor only after `swapgs` and `lfence`; ring 3 can never bring GS_BASE into kernel context.
+  - GS-1: between prologue and epilogue, GS_BASE contains the anchor of this CPU and KERNEL_GS_BASE
+    the user value; in CPL3 the reverse.
+  - GS-2: `swapgs` only if `CS & 3 == 3` in the frame of *that* entry, or of the frame that
+    `iretq` restores.
+  - GS-3: at most one entry `swapgs`.
+  - GS-4: no `gs:`, `call` or Rust before the prologue.
+  - GS-5: `lfence` at the join point.
+  - GS-6: NMI/#DF/#MC never `swapgs` or GS; terminal, the CPU follows from the IST address.
+  - GS-7: a frame RIP on a `nos_iret_user_*` label (a faulting `iretq`) also swaps.
+  - GS-8: IF=0 from the exit `swapgs` until `iretq`.
+  - GS-9: no `mov gs` or GS MSR write after init.
+  - GS-10: CR4.FSGSBASE=0 and EFER.SCE=0.
+
+  *Falsified if* an IPI, tick or exception from CPL3 with a GS_BASE chosen by ring 3
+  counts or writes anywhere other than in its own `CpuLocal` (§9 tests 15–17).
+
+  *PR #229 only (already English in the source, reproduced verbatim; it follows the refutation
+  clause inside INV-8):*
+
+  **Current evidence boundary:** N1–N3 previously exercised user-entry
+  behavior, the GS-7 `iretq` fixup, and NMI via IST. The current patch
+  strengthens N1/N3: the AP's user descriptor has a nonzero GS base and the
+  BSP waits for an observed timer frame after `mov gs`, checking that base
+  before sending IPIs and shootdowns. The strengthened behavior requires new
+  native CI evidence and is not yet accepted. GS-4, GS-5, GS-8 and GS-9 have
+  static lint coverage only. No native negative GS-10 precondition profile
+  or CPL3 #DF/#MC test has been executed.
+
+### §3.1 BSP, item 4
+
+*Amends §3.1 item 4: replaces its last line, "[to be verified: the current IRQ0 route (8259 or IOAPIC) and whether it remains masked to the APs]".*
+
+   **Verified and built (step 5c-2, ADR-080):** `native-smp` excludes M3, so no PIC
+   programming or Sys3 existed there. `bsp_timer_init` remaps the 8259 to 0x20/0x28 (only IRQ0
+   unmasked), sets PIT channel 0 to ~1 kHz and delivers via LINT0 (ExtINT) to the BSP only; APs mask
+   LINT0. The IOAPIC is not used. In addition: LAPIC/PIT calibration (`SMP:TIMER:RATIO`, band in
+   ADR-080), `irq_ready` on the BSP and the idle context (`idle_halt`).
+
+### §3.3 Vectors (fixed)
+
+*Amends the §3.3 vector table: replaces the row "0x20 (or the existing IRQ0 vector) [to be verified] | PIT, monotonic clock | BSP only" and adds a 0x27 row after it.*
+
+| Vector | Purpose | Recipient |
+|---|---|---|
+| 0x20 | PIT IRQ0 via the 8259 (ExtINT on LINT0), monotonic clock (ADR-080) | BSP only |
+| 0x27 | spurious IRQ7 from the 8259 | BSP only |
+
+### §5 heading
+
+*Amends the §5 heading: replaces "5. Revision of ADR-024 (proposed as ADR-074)".*
+
+**5. Revision of ADR-024 (recorded as ADR-075, step 5b-2)**
+
+### §6.1 Data structures
+
+*Amends §6.1: extends the end of the `PerCpu` item ("via the GS anchor.") and replaces the `Thread` item, "`Thread { tid, pid, state: AtomicU8 {READY, RUNNING(cpu), BLOCKED, DEAD}, home_cpu, kstack, fxsave: [u8; 512] align 16, gpr_frame }`."*
+
+- (`PerCpu` item, continued after "via the GS anchor.") The idle thread is the CPU's home loop
+  (`sti; hlt; cli`, step 6.3.9; in the fixture `CpuLocal.saved[0]`); it is never in a queue
+  (BW-4, ADR-078).
+- `Thread { tid, pid, state: AtomicU32 {READY, RUNNING(cpu), BLOCKING, READY_PENDING, BLOCKED,
+  DEAD_PENDING, DEAD}, queued: AtomicBool, home_cpu, kstack, fxsave: [u8; 512] align 16,
+  gpr_frame }`. Transitions only via `smp_lock::sched` (one atomic step per function,
+  ADR-078); `queued` is set by `RunQueue::push` and cleared by `pop` (BW-2).
+
+### §6.3 Context switch, item 4
+
+*Amends §6.3 item 4: replaces "`lock_irqsave(RUNQ[c])`; `T.state`: RUNNING(c) → READY (in the queue) or BLOCKED/DEAD (not in the queue). Select the next `U` (round-robin); `U.state` READY → RUNNING(c) with `compare_exchange` (INV-3; if it fails, `SMP:SCHED:DOUBLE_RUN` and a stop follow)."*
+
+4. `lock_irqsave(RUNQ[c])`; `T.state`: RUNNING(c) → READY (in the queue), BLOCKING → BLOCKED
+   (not in the queue), READY_PENDING → READY (in the queue) or DEAD_PENDING (back in the queue,
+   to be cleaned up at a later switch; §6.4). Select the next `U` (round-robin);
+   `U.state` READY → RUNNING(c) with `compare_exchange` (INV-3; if it fails,
+   `SMP:SCHED:DOUBLE_RUN` and a stop follow). A popped DEAD_PENDING thread becomes DEAD as soon
+   as no CPU is still on its stack, otherwise it goes back into the queue. A second push of a
+   thread that is already in a queue gives `SMP:SCHED:DOUBLE_ENQUEUE` and a stop (BW-2).
+
+### §6.4 Waking and kill across CPUs
+
+*Amends §6.4: inserts a new first item (BW-1); in the wake item, replaces "under `KERNEL` → `lock_irqsave(RUNQ[d])` → BLOCKED→READY, enqueue → unlock → if *d* ≠ *c*, a 0xe8 IPI to *d*. The IPI is a hint: *d* always checks its queue itself." (the readiness-wake sentence that `main` carries after it is not part of the branch diff); and replaces the kill item, "Kill of a thread that is RUNNING on *d*: mark `DEAD_PENDING`, send 0xe8 and wait, bounded (deadline equal to the shootdown deadline), until *d* publishes `state = DEAD` at its next switch. Only then do the existing `cleanup` (K05) and the address-space shootdown (§7.2) follow. No ack within the deadline → INV-5."*
+
+- **Blocking in two phases (BW-1, ADR-078).** The thread itself: `block_prepare`
+  (RUNNING(c) → BLOCKING) before or while it checks its wait condition under the lock
+  of the waker; then release the lock (INV-7) and request a switch (tick or its own 0xe8). The switch
+  performs `block_commit`: BLOCKING → BLOCKED, or READY_PENDING → READY if a wake has occurred in the meantime.
+  A condition that already turns out to be true after `block_prepare` is handled by the thread with `wake` on itself.
+- Waking a thread on CPU *d* from CPU *c* (for example an IPC reply, ADR-053):
+  under `KERNEL` → `lock_irqsave(RUNQ[d])` → `wake`: BLOCKED→READY and enqueue, or
+  BLOCKING→READY_PENDING (no enqueue; the switch on *d* puts it back) → unlock → if it
+  has been placed in a queue and *d* ≠ *c*, a 0xe8 IPI to *d*. The IPI is a hint: *d*
+  always checks its queue itself. A `wake` on a thread that is still RUNNING does nothing:
+  that thread checks its condition after `block_prepare`.
+- Kill (BW-3): `kill_request` sets every live state to `DEAD_PENDING`; if it was BLOCKED,
+  the killer places it in the queue of *d*. Send 0xe8 and wait, bounded
+  (`SHOOTDOWN_DEADLINE_MS`, equal to the shootdown deadline), for `DEAD`. *d* puts a dying
+  current thread back into its queue at the switch; the next switch that pops it
+  publishes `DEAD` with `kill_commit`, and only if the stub has already cleared `on_cpu` (F1).
+  Only then do the existing `cleanup` (K05) and the address-space shootdown (§7.2) follow. No
+  `DEAD` within the deadline → INV-5 (until step 05: `SMP:KILL:TIMEOUT:APIC=<n>` and quarantine).
+
+### §6.5 Preemption
+
+*Amends §6.5: replaces the whole paragraph, "LAPIC timer 0xd0 on every CPU, periodic, the same divisor as ADR-073. The handler does only: `timer_ticks += 1`; on every *k*-th tick `need_resched = true`; EOI. Calibration against the PIT is **not** needed for K06 (the clock comes from the PIT), but the number of ticks per PIT tick is logged in the gate. [uncalibrated, see ADR-073 "Open"]".*
+
+LAPIC timer 0xd0 on every CPU, BSP included (step 5c-2), periodic, the same divisor as
+ADR-073. Built (ADR-080, BT-4): 0xd0 counts `tick_count` and is a switch point; 0xe8 counts
+`resched_count` separately (no longer a tick, F11) and sets `need_resched`. A 0xe8 deferred by INV-5c
+remains as a flag until the next switch point: the release of the last lock back to IF=1
+(self-0xe8), idle, or a later entry with an empty lockdep. Calibration against the PIT is **not** needed
+for K06 (the clock comes from the PIT); the number of LAPIC ticks per PIT tick is measured at boot,
+logged (`SMP:TIMER:RATIO`) and checked by the gate against a band fixed in advance.
+
+### §7.2a (new subsection)
+
+*Amends §7: inserts a new subsection 7.2a between §7.2 (Process exit) and §7.3.*
+
+**7.2a Realised in step 5e (ADR-072 addendum, 6 November 2026)**
+
+`smp.rs`: `shootdown_process(space, start, pages)` and `shootdown_kernel(start, pages)`, with one
+internal `round` under `SHOOTDOWN`. `paging.rs`: `unmap_shot` = clear the PTE + local `invlpg` →
+round → free the metadata (PS-3). The two test spaces are now real spaces (`build_spaces`, own
+PML4/PDPT/PD/PT, kernel PD shared via PDPT entry 0, a different frame at `0x4000_0000`). The
+PML4 copies from 5d-1 no longer exist. Native fixture (after ICR): `SMP:ISOLATION:PASS` and
+`SMP:UNMAP_RACE:PASS` (`SKIPPED` with one CPU), with the controls `test-smp-proc-shootdown-deaf` and
+`test-smp-proc-no-shootdown`. The reader's #PF is controlled: `nos_smp_race_read` receives `RACE_FAULT`
+through an exception fixup and resumes through the reviewed `iretq` of the spurious stub
+(CPL0 only). **Not built:** the M3 path (no M3 under `native-smp`), the
+`check_invariants` rules in the engine and a rights-reduction API. See ADR-072 (addendum).
+
+### §8 Implementation steps (step table)
+
+*Amends the §8 step table: replaces rows 5b ("`KERNEL` lock around all M3 syscalls; per-CPU scratch slot; ADR-074"), 5c ("BSP LAPIC timer + idle with `sti; hlt`; PIT remains the clock"), 5d ("Per-CPU run queues; user processes on APs; CR3 switch §6.3; 0xe8") and 5e ("Process-wide shootdown §7.1/7.2") with the following rows between 5a and 5f.*
+
+| Step | Result | Write files (expected) | Gate |
+|---|---|---|---|
+| 5b | Controlled spinning with IF=1 on `KERNEL`/`ASPACE` (§4.3, ADR-074 addendum); APs only | `crates/smp-lock`, `kernel/src/m2/lock.rs`, `smp.rs` fixture | `SMP:SPIN:PASS`; control `test-smp-spin-irq-off` → `SMP:SPIN:SHOOTDOWN_TIMEOUT` + quarantine |
+| 5b-2 | `KERNEL` lock around all M3 syscalls; per-CPU scratch slot; ADR-075 (realised) | `lock.rs`, `m3.rs`, `paging.rs`, `smp.rs` fixture, `docs/DECISIONS.md` | `SMP:SCRATCH:PASS:CPUS=n`; control `test-smp-shared-scratch` → `SMP:SCRATCH:CROSS:CPU=n`; full `milestone-m2` and M3 regression on 1 CPU, unchanged |
+| 5c | Preemption deferred while lockdep is not empty (held or watched lock); `HELD_ACROSS_SWITCH` on violation (ADR-074 addendum) | `smp.rs` | lock fixture in `SMP:PREEMPT:PASS`; `test-smp-held-across-switch` → marker |
+| 5c-2 | BSP LAPIC timer + idle with `sti; hlt`; PIT remains the clock | `smp.rs`, idle loop | `native-rtc` 5/5, monotonic-clock check, BSP preemption canary |
+| 5d(-1) | Run queues per AP, thread-state CAS (INV-3), 0xe8 wake-up, CR3 switch §6.3 with `active_cpus` (INV-4), with kernel threads in two address spaces (ADR-074 addendum) | `crates/smp-lock` (`sched`), `smp.rs` | `SMP:SCHED:PASS:CPUS=n`; `test-smp-double-run` → `SMP:SCHED:DOUBLE_RUN` |
+| F8 | `swapgs` discipline in all IDT stubs (INV-8, ADR-083); ring-3 GS fixture | `arch.rs`, `smp.rs`, `tools/tests/test_gs_discipline.py` | red on the old stubs; `SMP:GS:PASS`, `SMP:GS:IRET_FIXUP:PASS`, NMI from CPL3; static lint |
+| 5d-2 | Ring-3 processes on APs with the same scheduler core (after 5b-2 and 5c-2; INV-2) | M3 scheduler, `smp.rs` | K05 6/6 on 4 vCPUs; `SMP:SCHED:CPUS=n` with user work on every CPU |
+| 5d-2a | **Built (ADR-081):** profile `native-smp-m3`, base M3 manifest on every online CPU (home at spawn, `current` per CPU, entry under `KERNEL`, kernel round before freeing, stop-the-world) | `m3.rs`, `smp.rs`, `arch.rs` | `SMP:M3:CPU=<i>:USER_TICKS>0:SWITCHES>=4`, `SMP:SCHED:CPUS=n` on 2/4/8 vCPUs; `test-smp-m3-fault` → `SMP:M3:K03:PASS` |
+| 5d-2b | **Built (ADR-081, addendum):** FPU context per CPU (R3-3), FPU canary in all SMP processes, 1000 switches per CPU | `smp.rs`, `arch.rs`, `m3.rs`, `fpu.rs`, `userspace/probe.rs` | `SMP:M3:FPU:PASS:PROCESSES=16`; `test-smp-m3-fpu-skip` → `SMP:M3:FPU:CORRUPT:CONTROL` |
+| 5d-2c | Open: IPC across CPUs (M4 + `ipc-wait` on SMP, 0xe8, `lock_pair`), usercopy under `ASPACE`, K05 on SMP, GS N1-N3 with M3 | `m3.rs`, `wait.rs`, `m4.rs`, `smp.rs` | spec 08 §4 |
+| 5e | Process-wide shootdown §7.1/7.2 (realised for the fixture spaces, §7.2a) | paging/unmap, cleanup | deaf-AP negative, control without shootdown (must show a stale read) |
+
+*PR #227 (head `1bbd85d`) carried an earlier wording of the 5b-2 row; PR #246 carries the row above:*
+
+| Step | Result | Write files (expected) | Gate |
+|---|---|---|---|
+| 5b-2 | `KERNEL` lock around all M3 syscalls; per-CPU scratch slot; ADR-075 | M3 entry point, paging scratch code, `docs/DECISIONS.md` | full `milestone-m2` and M3 regression on 1 CPU, unchanged |
+
+### §9 Acceptance and negative tests
+
+*Amends §9 (negative tests): replaces test 8, "`test-smp-held-across-switch` → `SMP:LOCKDEP:HELD_ACROSS_SWITCH`.", and appends tests 14–18 after test 13.*
+
+Replacement for test 8:
+
+8. `test-smp-held-across-switch` (step 5c: preemption without deferral in the presence of a watched lock) →
+   `SMP:LOCKDEP:HELD_ACROSS_SWITCH`.
+
+Appended after test 13:
+
+14. `test-smp-spin-irq-off` (control profile, step 5b): waiting on `KERNEL` without an IF window →
+    the waiting AP does not acknowledge the shootdown → `SMP:SPIN:SHOOTDOWN_TIMEOUT` and INIT for all APs.
+15. `test-smp-gs-user` (F8, INV-8): ring 3 on every AP loads GS itself (0x1b or null). 0xf0, 0xe0,
+    0xe8 and ticks from CPL3 count in the CPU's own anchor → `SMP:GS:PASS`. On the old stubs
+    this gave `SMP:GS:HIJACK` (red evidence).
+16. `test-smp-gs-iret-fault`: an `iretq` to CPL3 fails (SS 0x13) after the exit `swapgs` → the
+    GS-7 fixup restores the anchor → `SMP:GS:IRET_FIXUP:PASS`.
+17. `test-smp-gs-nmi-user`: an NMI to an AP in CPL3 with user GS → AP recognised via the
+    IST address, without GS → `SMP:FAULT:AP_NMI_IST:PASS`.
+
+18. `test-smp-shared-scratch` (control profile, step 5b-2): all CPUs in scratch slot 0 →
+    `SMP:SCRATCH:CROSS:CPU=n` (occupied slot PTE or foreign pattern). This proves that
+    `SMP:SCRATCH:PASS` measures a real hazard.

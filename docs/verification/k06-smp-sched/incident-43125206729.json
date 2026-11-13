@@ -1,0 +1,88 @@
+{
+  "accepted": false,
+  "run_id": 43125206729,
+  "run_url": "https://github.com/BaryonOS/BaryonOS/actions/runs/43125206729",
+  "tested_commit": "95bdf4cbd6ebe77b1abc19d759ad7fca5bc4fbd5",
+  "source_sha256": "7f0659ad1125900f0f14e90dcb88608ee2228a39179cacd650c04b0ef32c84ac",
+  "merged_tree_note": "PR #296 was squash-merged as 4e8e235 at 2026-11-12T00:15:40Z while this run was still running; the merged tree equals the tested tree (4ba391b0). K06 step 5f was not accepted by that merge.",
+  "runner": "GitHub-hosted ubuntu-26.04, 4 vCPUs, QEMU 10.2.1, machine pc-q35-10.0",
+  "jobs": {
+    "total": 80,
+    "success": 73,
+    "failure": 3,
+    "skipped": 4
+  },
+  "passed_without_incident": "K07 probe; 62 of 64 per-case 50/50 jobs; all 10 soak shards (50/50 soaks, idle clock check in every boot); m3-ipc-four 50/50 (job 83.3 min) and m3-ipc-four-single 50/50 (64.9 min) under IPC_TIMEOUT_S = 660; quarantine-lock-pending 50/50",
+  "failures": [
+    {
+      "job": "SMP 50/50 (eight)",
+      "job_id": 130875776834,
+      "artifact_id": 13903477198,
+      "artifact_zip_sha256": "a7aa2eee437edcb8278b6baf0c9f819b0608db14e6735d2294617f869388f672",
+      "case": "eight",
+      "passed": 49,
+      "repeat": 50,
+      "failed_iteration": 50,
+      "raw_exit": 35,
+      "timed_out": false,
+      "markers": [
+        "SMP:KILL:PASS:CPUS=8",
+        "SMP:SCRATCH:TIMEOUT",
+        "SMP:QUARANTINE:LOCK_HELD:10:CPU=1",
+        "M1:FAIL:SMP_QUARANTINE_LOCK_HELD"
+      ],
+      "cause": "The step 5b-2 scratch phase exceeded its unchanged 500 ms deadline after the BSP's own share (8 vCPUs on a 4-vCPU host). The oracle requires SMP:SCRATCH:PASS, so the boot fails on the timeout itself; LOCK_HELD only reports that AP1 was still inside its KERNEL rounds when IQ-3 checked it.",
+      "transit_tracking_ruled_out": "Local diagnostic (QEMU 8.2.2, 4 host CPUs, case eight, 20 boots each, scratch wait after the BSP share): with transit tracking mean 30.0 ms, median 15.5 ms, max 291 ms; with transit tracking disabled mean 29.9 ms, median 13.5 ms, max 198 ms. The heavy tail exists without the 95bdf4c change.",
+      "decision": "Simon, 12 November 2026: no code or deadline change; rerun. Recorded as a hosted-runner timing tail.",
+      "guest_defect_demonstrated": false
+    },
+    {
+      "job": "SMP 50/50 (resched-deaf)",
+      "job_id": 130875779166,
+      "artifact_id": 13904286146,
+      "artifact_zip_sha256": "8238ecfcd178eb70cd7c23e9948bd1662b3d12f0b83b9639e2ef40e4b87a9941",
+      "case": "resched-deaf",
+      "passed": 49,
+      "repeat": 50,
+      "failed_iteration": 20,
+      "raw_exit": 35,
+      "timed_out": false,
+      "markers": [
+        "SMP:WAKE:PASS:CPUS=4",
+        "SMP:KILL:TIMEOUT:APIC=3",
+        "SMP:QUARANTINE:LOCK_HELD:40:CPU=1",
+        "M1:FAIL:SMP_QUARANTINE_LOCK_HELD"
+      ],
+      "cause": "After the expected kill timeout on APIC 3, quarantine_all resets every AP while the healthy, responsive AP1 still runs the scheduler phase; its tick held or was acquiring its RUNQ (level 40) when IQ-3 checked it, so IQ-3 correctly stopped instead of resetting a lock holder. The same class as run 42809499884 (owner-only check); the 95bdf4c transit tracking only widens the detection window.",
+      "decision": "Simon, 12 November 2026: stop the scheduler before the IQ-3 checks (ADR-079 addendum of 12 November 2026); deterministic case quarantine-sched-busy.",
+      "guest_defect_demonstrated": true
+    },
+    {
+      "job": "SMP section 9 aggregate 65x50",
+      "job_id": 130920182229,
+      "failure": "aggregate rejects the two failures above; the final gate is skipped"
+    }
+  ],
+  "ipc_per_boot_s": {
+    "m3-ipc-four": {
+      "artifact_id": 13908891374,
+      "passed": 50,
+      "repeat": 50,
+      "min": 94.8,
+      "median": 97.2,
+      "max": 121.3,
+      "bound_264s_exceeded": 0
+    },
+    "m3-ipc-four-single": {
+      "artifact_id": 13907378358,
+      "passed": 50,
+      "repeat": 50,
+      "min": 70.8,
+      "median": 76.0,
+      "max": 88.1,
+      "bound_264s_exceeded": 0
+    },
+    "watchdog_s": 660,
+    "rule": "ADR-081 R3-5 addendum 2: per-boot time must stay at or below 660/2.5 = 264 s"
+  }
+}

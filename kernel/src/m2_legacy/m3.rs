@@ -13,7 +13,7 @@ use core::{
     mem::{replace, MaybeUninit},
     ptr,
 };
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 use core::{
     hint::spin_loop,
     sync::atomic::{AtomicBool, Ordering},
@@ -324,10 +324,10 @@ const STACK: u64 = if cfg!(feature = "native-update") {
 };
 const STACK_END: u64 = 0x7ffff000;
 const MAX: usize = 16;
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 const SMP_CPUS: usize = boot_protocol::smp::MAX_CPUS;
-#[cfg(all(feature = "native-smp-m3", feature = "fpu-context"))]
-compile_error!("native-smp-m3 excludes FPU state until it is modeled per CPU");
+#[cfg(all(feature = "native-smp-legacy-m3", feature = "fpu-context"))]
+compile_error!("native-smp-legacy-m3 excludes FPU state until it is modeled per CPU");
 const MAPS: usize = 2048;
 const ADDRESS: u64 = 0x000f_ffff_ffff_f000;
 const NX: u64 = 1 << 63;
@@ -432,11 +432,11 @@ struct State {
     kernel: Paging,
     processes: [Process; MAX],
     current: usize,
-    #[cfg(feature = "native-smp-m3")]
+    #[cfg(feature = "native-smp-legacy-m3")]
     cpu_current: [usize; SMP_CPUS],
-    #[cfg(feature = "native-smp-m3")]
+    #[cfg(feature = "native-smp-legacy-m3")]
     round_robin_cursor: usize,
-    #[cfg(feature = "native-smp-m3")]
+    #[cfg(feature = "native-smp-legacy-m3")]
     cpu_selections: [u64; SMP_CPUS],
     #[cfg(feature = "native-smp-m3-tlb-reuse")]
     tlb_reuse_phase: u8,
@@ -482,15 +482,15 @@ struct EventRecord {
     cr2: u64,
 }
 static mut STATE: MaybeUninit<State> = MaybeUninit::uninit();
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 static M3_LOCKED: AtomicBool = AtomicBool::new(false);
 #[cfg(feature = "native-smp-m3-lock-contention")]
 static M3_LOCK_CONTENTIONS: AtomicU64 = AtomicU64::new(0);
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 const M3_LOCK_POLLS: usize = 100_000_000;
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 struct M3Guard;
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 impl M3Guard {
     fn acquire() -> Self {
         for _ in 0..M3_LOCK_POLLS {
@@ -507,7 +507,7 @@ impl M3Guard {
         serial::fail(b"M3:SMP:LOCK_TIMEOUT")
     }
 }
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 impl Drop for M3Guard {
     fn drop(&mut self) {
         M3_LOCKED.store(false, Ordering::Release);
@@ -522,7 +522,7 @@ static mut m3_idle_wakeups: u64 = 0;
 extern "C" {
     fn m3_timer();
     fn m3_syscall();
-    #[cfg(feature = "native-smp-m3")]
+    #[cfg(feature = "native-smp-legacy-m3")]
     fn m3_schedule_ipi();
     fn m3_restore();
 }
@@ -657,7 +657,7 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
                 .write(Process::new());
         }
         ptr::addr_of_mut!((*state).current).write(MAX);
-        #[cfg(feature = "native-smp-m3")]
+        #[cfg(feature = "native-smp-legacy-m3")]
         {
             ptr::addr_of_mut!((*state).cpu_current).write([MAX; SMP_CPUS]);
             ptr::addr_of_mut!((*state).round_robin_cursor).write(0);
@@ -700,7 +700,7 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
         ptr::addr_of_mut!((*state).wait_metrics).write(wait::Metrics::EMPTY);
         arch::user_gate(32, m3_timer as *const () as u64, false);
         arch::user_gate(128, m3_syscall as *const () as u64, true);
-        #[cfg(feature = "native-smp-m3")]
+        #[cfg(feature = "native-smp-legacy-m3")]
         arch::user_gate(0xf1, m3_schedule_ipi as *const () as u64, false);
         let state = (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut();
         #[cfg(feature = "display-input")]
@@ -709,7 +709,7 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
             ps2::prepare();
         }
         state.setup();
-        #[cfg(feature = "native-smp-m3")]
+        #[cfg(feature = "native-smp-legacy-m3")]
         {
             let bootstrap = super::smp::bootstrap_index();
             arch::set_cpu_local(bootstrap, arch::service_stack(), true);
@@ -761,13 +761,13 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
                     .unwrap_or_else(|| serial::fail(b"M3:SMP:NO_BOOT_PROCESS"))
             };
             #[cfg(all(
-                feature = "native-smp-m3",
+                feature = "native-smp-legacy-m3",
                 not(any(feature = "native-smp-m4", feature = "native-smp-m3-lock-contention"))
             ))]
             let next = state
                 .select_smp(super::smp::bootstrap_index())
                 .unwrap_or_else(|| serial::fail(b"M3:SMP:NO_BOOT_PROCESS"));
-            #[cfg(not(feature = "native-smp-m3"))]
+            #[cfg(not(feature = "native-smp-legacy-m3"))]
             let next = state.select();
             asm!("mov rax, {context}","jmp {restore}",context=in(reg) next,restore=sym m3_restore,options(noreturn));
         }
@@ -777,7 +777,7 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
 impl State {
     fn setup(&mut self) {
         self.current = MAX;
-        #[cfg(feature = "native-smp-m3")]
+        #[cfg(feature = "native-smp-legacy-m3")]
         {
             self.cpu_current = [MAX; SMP_CPUS];
             self.round_robin_cursor = 0;
@@ -1187,7 +1187,7 @@ impl State {
         display_fixture::poll(state);
         None
     }
-    #[cfg_attr(feature = "native-smp-m3", allow(dead_code))]
+    #[cfg_attr(feature = "native-smp-legacy-m3", allow(dead_code))]
     fn select(&mut self) -> *const u64 {
         'selection: loop {
             #[cfg(feature = "ipc-wait")]
@@ -1292,7 +1292,7 @@ impl State {
             self.idle()
         }
     }
-    #[cfg(feature = "native-smp-m3")]
+    #[cfg(feature = "native-smp-legacy-m3")]
     fn select_smp(&mut self, cpu: usize) -> Option<*const u64> {
         assert!(cpu < SMP_CPUS && cpu < super::ap::cpu_count());
         assert!(self.amount > 0 && self.amount <= MAX);
@@ -1315,7 +1315,7 @@ impl State {
             if cpu != (if slot == 0 { 1 } else { 0 }) {
                 continue;
             }
-            #[cfg(all(feature = "native-smp-m3", feature = "test-m3-x87"))]
+            #[cfg(all(feature = "native-smp-legacy-m3", feature = "test-m3-x87"))]
             {
                 let bootstrap = super::smp::bootstrap_index();
                 let fault_cpu = (0..super::ap::cpu_count())
@@ -1405,11 +1405,11 @@ impl State {
     }
 
     fn select_after_event(&mut self, cpu: usize) -> *const u64 {
-        #[cfg(feature = "native-smp-m3")]
+        #[cfg(feature = "native-smp-legacy-m3")]
         {
             self.select_smp(cpu).unwrap_or(ptr::null())
         }
-        #[cfg(not(feature = "native-smp-m3"))]
+        #[cfg(not(feature = "native-smp-legacy-m3"))]
         {
             let _ = cpu;
             self.select()
@@ -1452,7 +1452,7 @@ impl State {
         // it cannot complete a timer-only wait before the absolute deadline.
         self.progress_observers()
     }
-    #[cfg_attr(feature = "native-smp-m3", allow(dead_code))]
+    #[cfg_attr(feature = "native-smp-legacy-m3", allow(dead_code))]
     fn idle(&mut self) -> ! {
         arch::activate(self.kernel.root);
         arch::process_stack(arch::service_stack());
@@ -1492,7 +1492,7 @@ impl State {
         }
     }
     fn cleanup(&mut self, slot: usize) {
-        #[cfg(feature = "native-smp-m3")]
+        #[cfg(feature = "native-smp-legacy-m3")]
         {
             let current_cpu = arch::current_cpu_index();
             if !self
@@ -1584,7 +1584,7 @@ impl State {
         }
     }
     fn complete_round(&mut self) -> ! {
-        #[cfg(feature = "native-smp-m3")]
+        #[cfg(feature = "native-smp-legacy-m3")]
         {
             if self.unexpected {
                 serial::write(b"M3:FAIL:UNEXPECTED_USER_EVENT\n");
@@ -1606,7 +1606,7 @@ impl State {
             serial::write(b"M3:SMP:SCHEDULER:PASS\n");
             serial::exit(0x10);
         }
-        #[cfg(not(feature = "native-smp-m3"))]
+        #[cfg(not(feature = "native-smp-legacy-m3"))]
         {
             for slot in 0..self.amount {
                 if self.processes[slot].status != Status::Dead {
@@ -1868,7 +1868,7 @@ impl State {
                         && (record.vector != 14 || record.cr2 == e.2)
                         && (!(mode() == 6 || mode() == 7) || record.rip == e.2)
                 });
-            let inject_unexpected = cfg!(feature = "native-smp-m3") && mode() == 14;
+            let inject_unexpected = cfg!(feature = "native-smp-legacy-m3") && mode() == 14;
             self.unexpected |= !valid || inject_unexpected;
             if valid && !inject_unexpected {
                 serial::write(fault_marker());
@@ -1895,7 +1895,7 @@ impl State {
     }
 }
 
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 pub(super) fn start_ap(index: usize) -> ! {
     let protection = arch::protection_status();
     let expected_protection = if cfg!(feature = "fpu-context") { 1 } else { 7 };
@@ -1911,7 +1911,7 @@ pub(super) fn start_ap(index: usize) -> ! {
     m3_cpu_idle()
 }
 
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 #[no_mangle]
 extern "C" fn m3_cpu_idle() -> ! {
     loop {
@@ -1925,7 +1925,7 @@ extern "C" fn m3_cpu_idle() -> ! {
 
 #[no_mangle]
 extern "C" fn m3_event(source: *const u64) -> *const u64 {
-    #[cfg(feature = "native-smp-m3")]
+    #[cfg(feature = "native-smp-legacy-m3")]
     {
         #[cfg(feature = "native-smp-m4")]
         let cpu = arch::current_cpu_index();
@@ -1947,7 +1947,7 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
         }
         return next;
     }
-    #[cfg(not(feature = "native-smp-m3"))]
+    #[cfg(not(feature = "native-smp-legacy-m3"))]
     {
         // SAFETY: The ordinary M3 profile has one CPU and interrupt-gate entry.
         let state = unsafe { (&mut *ptr::addr_of_mut!(STATE)).assume_init_mut() };
@@ -1957,7 +1957,7 @@ extern "C" fn m3_event(source: *const u64) -> *const u64 {
 
 fn m3_event_locked(state: &mut State, source: *const u64) -> *const u64 {
     let begin = clock();
-    #[cfg(feature = "native-smp-m3")]
+    #[cfg(feature = "native-smp-legacy-m3")]
     {
         let cpu = arch::current_cpu_index();
         // SAFETY: The assembly entry supplied a live normalized interrupt frame
@@ -1996,13 +1996,13 @@ fn m3_event_locked(state: &mut State, source: *const u64) -> *const u64 {
             return state.select_smp(cpu).unwrap_or(source);
         }
     }
-    #[cfg(feature = "native-smp-m3")]
+    #[cfg(feature = "native-smp-legacy-m3")]
     let cpu = arch::current_cpu_index();
-    #[cfg(not(feature = "native-smp-m3"))]
+    #[cfg(not(feature = "native-smp-legacy-m3"))]
     let cpu = 0;
-    #[cfg(feature = "native-smp-m3")]
+    #[cfg(feature = "native-smp-legacy-m3")]
     let current = state.cpu_current[cpu];
-    #[cfg(not(feature = "native-smp-m3"))]
+    #[cfg(not(feature = "native-smp-legacy-m3"))]
     let current = state.current;
     assert!(current < state.amount);
     let mut context = [0u64; 22];
@@ -2034,13 +2034,13 @@ fn m3_event_locked(state: &mut State, source: *const u64) -> *const u64 {
                 core::cmp::max(state.max_tick_gap, begin.saturating_sub(state.last_tick));
         }
         state.last_tick = begin;
-        #[cfg(feature = "native-smp-m3")]
+        #[cfg(feature = "native-smp-legacy-m3")]
         {
             assert_eq!(cpu, super::smp::bootstrap_index(), "PIT interrupt on AP");
             super::smp::schedule_aps();
         }
     } else if vector == 0xf1 {
-        #[cfg(feature = "native-smp-m3")]
+        #[cfg(feature = "native-smp-legacy-m3")]
         super::smp::acknowledge_schedule_ipi();
     } else if vector == 128 {
         state.had_syscall_df_entry |= context[19] & (1 << 10) != 0;
@@ -2254,7 +2254,7 @@ fn m3_event_locked(state: &mut State, source: *const u64) -> *const u64 {
             cr2,
         };
         let counter = read_word(state.processes[current].physical(DATA + 8));
-        #[cfg(all(feature = "native-smp-m3", feature = "test-m3-x87"))]
+        #[cfg(all(feature = "native-smp-legacy-m3", feature = "test-m3-x87"))]
         print_number(b"M3:SMP:FAULT_CPU:", cpu as u64);
         state.observer_fault(current, &context, counter);
         state.fault = true;
@@ -2333,7 +2333,7 @@ fn m3_event_locked(state: &mut State, source: *const u64) -> *const u64 {
             state.processes[current].status = Status::Ready;
         }
     }
-    #[cfg(feature = "native-smp-m3")]
+    #[cfg(feature = "native-smp-legacy-m3")]
     {
         assert_eq!(state.cpu_current[cpu], current);
         state.cpu_current[cpu] = MAX;

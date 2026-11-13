@@ -61,6 +61,7 @@ crates/pci-core/Cargo.toml
 crates/pci-core/src/lib.rs
 crates/smp-lock/Cargo.toml
 crates/smp-lock/src/lib.rs
+crates/smp-lock/src/sched.rs
 crates/ui-core/Cargo.toml
 crates/ui-core/src/font.rs
 crates/ui-core/src/input.rs
@@ -694,6 +695,7 @@ tools/capture_volume.py
 tools/ci_evidence.py
 tools/common.py
 tools/dev.py
+tools/gate.sh
 tools/gate_contract.py
 tools/m5_disk.py
 tools/m5_evidence.py
@@ -771,6 +773,7 @@ tools/tests/native_snapshot_wipe.rs
 tools/tests/test_acpi_serial.py
 tools/tests/test_agent_pipeline.py
 tools/tests/test_cap_bench.py
+tools/tests/test_gs_discipline.py
 tools/tests/test_images.py
 tools/tests/test_ipc_wait.py
 tools/tests/test_kernel_memory.py

@@ -1,0 +1,33 @@
+{
+  "accepted": false,
+  "source_sha256": "0f5144e3a17b1b5d0a0e91b24fb8dcf4db8cf5e82965dc96d4f0d2db4d591a18",
+  "source_fingerprint_version": 3,
+  "assessment_basis": "working_tree",
+  "base_commit": "66fc08788675c426d2da2e15bb0ae9c7ea2b71bb",
+  "checks": [
+    {
+      "name": "clock-per-ap-build",
+      "command": "NOS_BUILD_DIR=build/k06-clock-per-ap NOS_TARGET_DIR=target/k06-clock-per-ap python3 -B tools/build.py --kernel-feature native-smp",
+      "exit": 0,
+      "log": "clock-per-ap-build.log.gz",
+      "raw_log_sha256": "a083cd7ec03a34382802d1afe8cf66d1584a43b79d9ff1d00f89defca90a7b87"
+    },
+    {
+      "name": "clock-per-ap-hosttests",
+      "command": "python3 -B tools/dev.py python3 -B -m unittest discover -s tools/tests -p 'test_smp*.py' -v",
+      "exit": 0,
+      "log": "clock-per-ap-hosttests.log.gz",
+      "raw_log_sha256": "0b2e3a0df9a34b7931138e41111f22c269df103ac5cb03baf75265ed611bb52a"
+    }
+  ],
+  "smp_host_tests": 47,
+  "additional_checks": {
+    "fmt": "exit 0",
+    "git_diff_check": "exit 0"
+  },
+  "objectcode": "clock-per-ap-objectcode.txt",
+  "native_guests_started_locally": 0,
+  "limits": "The shared locked-RMW progress observer is replaced by independent per-AP stores; CPU busy loops remain, and every AP must show progress. The previous workload mix included contended observer atomics. This fixture change does not prove the historical cause of IRQ0 clock drift or establish that new native runs pass.",
+  "built_kernel_sha256": "48a715843faab3dbf24a5aeb2aa2685f378d9191154857e6df92c705a0024e2f",
+  "build_manifest_sha256": "8e393cd8fa69cb3a3d7cafa4cbebd480756da9b600c46fce26ed5ccb663411d2"
+}

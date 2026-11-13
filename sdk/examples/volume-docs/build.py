@@ -13,6 +13,11 @@ from common import environment as toolchain_environment
 
 def main() -> int:
     environment = toolchain_environment()
+    # `--archive-portal` builds the S09 portal variant of volume-app.
+    if sys.argv[1:] not in ([], ["--archive-portal"]):
+        print("usage: build.py [--archive-portal]", file=sys.stderr)
+        return 2
+    features = "native,archive-portal" if sys.argv[1:] else "native"
     # Explicit target flags prevent inheriting the parent kernel linker script.
     flags = ["-C", "code-model=small", "-C", "relocation-model=static",
              "-C", "no-redzone=yes", "-C", "linker=rust-lld",
@@ -22,7 +27,7 @@ def main() -> int:
     environment.setdefault("CARGO_TARGET_DIR", str(ROOT / "build/sdk-volume-docs"))
     command = ["cargo", "build", "--offline", "--locked", "--release",
                "--manifest-path", str(ROOT / "sdk/Cargo.toml"),
-               "-p", "nieuw-os-volume-docs-example", "--features", "native",
+               "-p", "nieuw-os-volume-docs-example", "--features", features,
                "--bins", "--target", "x86_64-unknown-none"]
     print(json.dumps({"command": command, "target_dir": environment["CARGO_TARGET_DIR"]}), flush=True)
     return subprocess.run(command, cwd=ROOT, env=environment, check=False).returncode

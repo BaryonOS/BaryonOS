@@ -1,0 +1,15 @@
+# actionlint 1.7.12 predates GitHub's standard hosted ubuntu-26.04 image, which the
+# K06 section 9 matrix needs for its pinned QEMU 10.2.1. It is not a self-hosted runner;
+# tests/test_ci_workflows.py still admits only ubuntu-24.04 and ubuntu-26.04.
+self-hosted-runner:
+  labels:
+    - ubuntu-26.04
+# actionlint 1.7.12 (pinned in ci.yml) also predates the documented
+# `vulnerability-alerts` workflow-token permission. Only that diagnostic is
+# ignored, and only for the one workflow that needs it
+# (ADR-CI-SECURITY-ALERTS-20261111). Remove this entry when the pinned
+# actionlint recognises the scope.
+paths:
+  .github/workflows/security-alerts.yml:
+    ignore:
+      - 'unknown permission scope "vulnerability-alerts"'

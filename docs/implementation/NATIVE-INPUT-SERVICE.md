@@ -66,7 +66,9 @@ missing/extra bytes and old request numbers are rejected before any authority
 change.
 
 Replies bind opcode+reply bit, request ID and service epoch. A PEEK contains
-Empty or one key/mouse/cancel event, with event number and focus generation.
+empty or one key/mouse/cancel/`PointerLeave` event, with event number and focus
+generation. `PointerLeave` is payload-free: it exposes no outside-surface
+coordinates, button state or other pointer data.
 Key ID follows the explicit `PhysicalKey` u8 representation of this source
 contract; compatible extension requires retaining existing numbers or a new
 wire version. Arrow keys are physical keys; Unicode/text layout and hit

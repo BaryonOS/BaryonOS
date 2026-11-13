@@ -1,0 +1,10 @@
+{
+  "run_id": 42723127310,
+  "accepted": false,
+  "archive": "build/k06-handoff/run-42723127310/rejected-42723127310-artifacts.tar.gz",
+  "sha256": "9cbae8c176793b6d968fe5008eed7e11190034dc94c1b892f4db000919bd964f",
+  "compressed_bytes": 13930997,
+  "file_count": 9758,
+  "purpose": "All exact UTF-8 artifact payloads and terminal metadata are retained locally; all original ZIPs remain unchanged locally and on GitHub. Compact case counts, ZIP hashes, representative failures and the complete independent verification result are committed.",
+  "original_zip_inventory": "rejected-42723127310-zip-digest-inventory.json"
+}

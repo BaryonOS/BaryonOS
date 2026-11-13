@@ -1,0 +1,454 @@
+{
+ "schema_version": 1,
+ "source_commit": "48dcae6ad5e5a13aee24265e23dfbce9eff4e330",
+ "evidence": "local QEMU 10.2.1 / OVMF / TCG on the WSL host; no CI, no hardware",
+ "profiles": [
+  {
+   "profile": "native-smp",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "f1fc87a18c94df1376c1027381f63d5d24074cce3ad3705dbc02a54006b4aab8",
+   "cases": [
+    {
+     "case": "one",
+     "passed": true,
+     "cpus": 1,
+     "tcg_threads": "single",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "f84fcc9e80fdcd9b0729375fc5db234caa27945426f5cd35941132c1132e17c6",
+     "markers": [
+      "SMP:ONLINE:1/1",
+      "SMP:SCHED:PASS:CPUS=1",
+      "SMP:SCRATCH:PASS:CPUS=1",
+      "SMP:PARKED:APS=0",
+      "M2:PASS",
+      "M1:PASS"
+     ]
+    },
+    {
+     "case": "two-single",
+     "passed": true,
+     "cpus": 2,
+     "tcg_threads": "single",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "f84fcc9e80fdcd9b0729375fc5db234caa27945426f5cd35941132c1132e17c6",
+     "markers": [
+      "SMP:ONLINE:2/2",
+      "SMP:SCHED:PASS:CPUS=2",
+      "SMP:SCRATCH:PASS:CPUS=2",
+      "SMP:PARKED:APS=1",
+      "M2:PASS",
+      "M1:PASS"
+     ]
+    },
+    {
+     "case": "four",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "f84fcc9e80fdcd9b0729375fc5db234caa27945426f5cd35941132c1132e17c6",
+     "markers": [
+      "SMP:ONLINE:4/4",
+      "SMP:SCHED:PASS:CPUS=4",
+      "SMP:SCRATCH:PASS:CPUS=4",
+      "SMP:PARKED:APS=3",
+      "M2:PASS",
+      "M1:PASS"
+     ]
+    },
+    {
+     "case": "eight",
+     "passed": true,
+     "cpus": 8,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "f84fcc9e80fdcd9b0729375fc5db234caa27945426f5cd35941132c1132e17c6",
+     "markers": [
+      "SMP:ONLINE:8/8",
+      "SMP:SCHED:PASS:CPUS=8",
+      "SMP:SCRATCH:PASS:CPUS=8",
+      "SMP:PARKED:APS=7",
+      "M2:PASS",
+      "M1:PASS"
+     ]
+    },
+    {
+     "case": "nine-capacity",
+     "passed": true,
+     "cpus": 9,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "f84fcc9e80fdcd9b0729375fc5db234caa27945426f5cd35941132c1132e17c6",
+     "markers": [
+      "SMP:ONLINE:8/9",
+      "SMP:SCHED:PASS:CPUS=8",
+      "SMP:SCRATCH:PASS:CPUS=8",
+      "SMP:PARKED:APS=7",
+      "M2:PASS",
+      "M1:PASS"
+     ]
+    },
+    {
+     "case": "duplicate-madt",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "f84fcc9e80fdcd9b0729375fc5db234caa27945426f5cd35941132c1132e17c6",
+     "markers": [
+      "M2:PASS",
+      "M1:PASS"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-ap-double-fault",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "5911ca2596e46b79d77ca52f1c9e74384d3a608227607e6b2c41c5aab88d0da9",
+   "cases": [
+    {
+     "case": "ap-double-fault-ist",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "05833cbdf6d478fdff2914d222e8cd246c4f97780e82447288bfaf8ea72fe996",
+     "markers": [
+      "SMP:ONLINE:4/4"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-ap-ipi-deaf",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "40a58ed60146f201f14d327f7408cd45475fe0381443eb0a2da3d1768df77baa",
+   "cases": [
+    {
+     "case": "ap-ipi-deaf",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "8307253db649205df8522316daa4fd832e5727864a3a7de0cddb84f131e6a55c",
+     "markers": [
+      "SMP:ONLINE:4/4",
+      "SMP:ONLINE:1/4",
+      "M2:PASS",
+      "M1:PASS"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-ap-mismatch",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "3a2ace052939adb24c0ef010a76c5b00a74b5225ef3c92b884c52a944e428645",
+   "cases": [
+    {
+     "case": "ap-mismatch",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "cca4f442e5def6f38d31a2faa4eb786e0e6ed681cf0f1af0304556530c1510d2",
+     "markers": [
+      "SMP:ONLINE:1/4",
+      "SMP:SCHED:PASS:CPUS=1",
+      "SMP:SCRATCH:PASS:CPUS=1",
+      "SMP:PARKED:APS=0",
+      "M2:PASS",
+      "M1:PASS"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-ap-nmi",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "7f9061e5174a1a0424908d07ebfb7f8c86d50df7939644693a5113a25852a628",
+   "cases": [
+    {
+     "case": "ap-nmi-ist",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "1d1089ac5772370e92394abf1dbda8ad72e2f4d2010b830238d9654a75b6d863",
+     "markers": [
+      "SMP:ONLINE:4/4"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-ap-shootdown-deaf",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "23a27b84214db21dbb7b9c312f73fdc1c4ca13debf601b7c957095c15bb4190f",
+   "cases": [
+    {
+     "case": "ap-shootdown-deaf",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "437638af39951f01a8b1f8ea444d3c1ee5f132756b3f7729cc48b3dca8f329d2",
+     "markers": [
+      "SMP:ONLINE:4/4",
+      "SMP:ONLINE:1/4",
+      "M2:PASS",
+      "M1:PASS"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-ap-stall",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "b7ecf87f1f7f8cf43a7132ba5a0b08d18a388e6a135e826be1cbcbf7dbe5f34b",
+   "cases": [
+    {
+     "case": "ap-stall",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "b13da98c1463c674e822dc028e61e313126f2a9311d658b711368a15dc13cc5f",
+     "markers": [
+      "SMP:ONLINE:1/4",
+      "SMP:SCHED:PASS:CPUS=1",
+      "SMP:SCRATCH:PASS:CPUS=1",
+      "SMP:PARKED:APS=0",
+      "M2:PASS",
+      "M1:PASS"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-ap-timer-dead",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "1a1d93ecc4a55f39f02e88ee80f0a3a07786ac428664978b01b64e0c67c762e1",
+   "cases": [
+    {
+     "case": "ap-timer-dead",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "8d42c15e3b0e065893c237fec0761bed9ea4cfb3dc092f88d2f7ddc386bd5664",
+     "markers": [
+      "SMP:ONLINE:4/4",
+      "SMP:ONLINE:1/4",
+      "M2:PASS",
+      "M1:PASS"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-double-run",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "af351011fa6500006bd7d2fa0548145bcac34e2fb3018b4d342a53c4555b1de9",
+   "cases": [
+    {
+     "case": "double-run",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "d819cefeae5630a0e1e7bb5d2d77aa0f857f2d5bcfa5c4abde26ed94a423af86",
+     "markers": [
+      "SMP:ONLINE:4/4",
+      "SMP:SCHED:DOUBLE_RUN"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-gs-iret-fault",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "c075600964a5c9eca5fceda99f916b545abf259e2b4d6d7ca883e541b02e3846",
+   "cases": [
+    {
+     "case": "gs-iret-fault",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "9ca88f3e7185dab32b8c96d9f5407f365cbdd3a13908628f84838d894d44b098",
+     "markers": [
+      "SMP:ONLINE:4/4",
+      "SMP:SCHED:PASS:CPUS=4",
+      "SMP:SCRATCH:PASS:CPUS=4"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-gs-nmi-user",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "f997059238bf78746d18090d5717f948b3dd4e5666c2e1d11b55584b4b07cd65",
+   "cases": [
+    {
+     "case": "gs-nmi-user",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "d91e4e503028a2277a7061f814ac343dbee4d7a1c52299e8e672653bcdce056c",
+     "markers": [
+      "SMP:ONLINE:4/4",
+      "SMP:SCHED:PASS:CPUS=4",
+      "SMP:SCRATCH:PASS:CPUS=4"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-gs-user",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "8c4342f3602f614197336c8d24a3c1290315ba49189ba9b53f602d41154cb88c",
+   "cases": [
+    {
+     "case": "gs-user",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "ac294babbb9212a8bb524014145ee3dd7525132ac874f0832d0fdffd4b5f546b",
+     "markers": [
+      "SMP:ONLINE:4/4",
+      "SMP:SCHED:PASS:CPUS=4",
+      "SMP:SCRATCH:PASS:CPUS=4",
+      "SMP:PARKED:APS=3",
+      "M2:PASS",
+      "M1:PASS"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-held-across-switch",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "0fcdbd58587b18c739fa0864641c47b9c442aafdd42d1cbe5a9395e8c9ae197c",
+   "cases": [
+    {
+     "case": "held-across-switch",
+     "passed": true,
+     "cpus": 2,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "368d3f86185bd31dc0967ce41206b727ab1008d26dffc86e0c51e4f420d4d05e",
+     "markers": [
+      "SMP:ONLINE:2/2"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-lockdep-order",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "2eaa6e645303fae522b850ac9bc979deaac92958f8263f60909b19096466391e",
+   "cases": [
+    {
+     "case": "lockdep-order",
+     "passed": true,
+     "cpus": 2,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "21b71db8cb3f17f6b39f9962808be45d3c1d59ce8332fe181a509cc3c1a6f012",
+     "markers": [
+      "SMP:ONLINE:2/2",
+      "SMP:SCHED:PASS:CPUS=2",
+      "SMP:SCRATCH:PASS:CPUS=2",
+      "SMP:PARKED:APS=1"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-shared-scratch",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "a49d462df256df36f3a6e138a3fb81ad5f7beb3cb56d315f0b52ef32aad0a74c",
+   "cases": [
+    {
+     "case": "shared-scratch",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "3667d3284f6e407fe17421bf04b30d23f7836b31112e9dac2bfba25a2a044a39",
+     "markers": [
+      "SMP:ONLINE:4/4",
+      "SMP:SCHED:PASS:CPUS=4",
+      "SMP:SCRATCH:CROSS:CPU=0"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-shootdown-skipped",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "4c989e77b5bcc96dede7f9bf2672406d136610b3baeff5a43f706c8b3fc4d44c",
+   "cases": [
+    {
+     "case": "shootdown-skipped-control",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "3d339b022970729f30e60878e9259e89f6c5c53ebafba794c75c44160db65b93",
+     "markers": [
+      "SMP:ONLINE:4/4",
+      "SMP:SCHED:PASS:CPUS=4",
+      "SMP:SCRATCH:PASS:CPUS=4",
+      "SMP:PARKED:APS=3",
+      "M2:PASS",
+      "M1:PASS"
+     ]
+    }
+   ]
+  },
+  {
+   "profile": "test-smp-spin-irq-off",
+   "passed": true,
+   "source_sha256": "7ede30a1e78f9e11e11c32b7c148fcc2f88812debba2be8ca54007afc43f0357",
+   "manifest_sha256": "b231185c5e9ad99d35bb014d8d7f3fd6f8b9eabca331667fe73e8df8eb20486a",
+   "cases": [
+    {
+     "case": "spin-irq-off-control",
+     "passed": true,
+     "cpus": 4,
+     "tcg_threads": "multi",
+     "raw_qemu_exit": 33,
+     "kernel_sha256": "4ec987f61f189e3de7ac0e1960ec35b7ff3e6c8c74f7427d6b1ca3d12e147747",
+     "markers": [
+      "SMP:ONLINE:4/4",
+      "SMP:ONLINE:1/4",
+      "M2:PASS",
+      "M1:PASS"
+     ]
+    }
+   ]
+  }
+ ],
+ "summary": "22/22 cases over 17 profiles passed"
+}

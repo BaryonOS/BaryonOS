@@ -24,6 +24,10 @@ MILESTONE_MARKERS = {
     "m5": MARKERS[:3] + ("M5:CASE:READ:PASS", "M5:SURVIVOR_PROGRESS:PASS",
                          "M5:RESOURCES:PASS", "M5:PASS", "M1:PASS"),
 }
+# The longest admitted native profile is the specified 600-second SMP soak;
+# its runner reserves 60 seconds for measured boot and teardown. Callers still
+# have to opt in explicitly because the ordinary default remains 60 seconds.
+MAX_GUEST_TIMEOUT_S = 660
 
 
 def is_success(returncode, stdout, timed_out=False, *, required_markers=MARKERS,
@@ -60,8 +64,8 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
         rtc_arguments = ["-rtc", f"base={rtc_base},clock=vm,driftfix=none"]
     if not BUILD.resolve().is_relative_to(ROOT.resolve()):
         raise ValueError("NOS_BUILD_DIR must be inside the checkout for QEMU runs")
-    if not 0 < timeout <= 60:
-        raise ValueError("guest timeout must be in (0,60]")
+    if not 0 < timeout <= MAX_GUEST_TIMEOUT_S:
+        raise ValueError(f"guest timeout must be in (0,{MAX_GUEST_TIMEOUT_S}]")
     if type(memory_mib) is not int or memory_mib not in (128, 256):
         raise ValueError("Choose the explicit 128 MiB OOM or 256 MiB regression profile")
     machine = qemu_machine()

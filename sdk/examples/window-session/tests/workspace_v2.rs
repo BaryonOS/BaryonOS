@@ -1,7 +1,7 @@
 //! Native renderer contracts and opt-in host previews. No VM is executed here.
 use nieuw_os_graphics::Rect;
 use nieuw_os_surface_protocol::Rectangle;
-use nieuw_os_window_session::scene::{Damage, Scene, MAX_PIXELS};
+use nieuw_os_window_session::scene::{Damage, Scene, WorkspaceMode, MAX_PIXELS};
 use ui_core::{KeyAction, KeyboardEvent, KeyboardModifiers, PhysicalKey, Set1Keyboard};
 
 fn damage_covers(damage: &mut Damage, bounds: Rect) {
@@ -14,6 +14,180 @@ fn damage_covers(damage: &mut Damage, bounds: Rect) {
             );
         }
     }
+}
+#[test]
+fn work_search_accepts_known_terms_but_never_invents_missing_functions() {
+    for (query, expected) in [
+        ("Mijn materiaal", Some(0)),
+        ("Documenten", Some(0)),
+        ("Finder", Some(0)),
+        ("Verkenner", Some(0)),
+        ("Dolphin", Some(0)),
+        ("Explorer", Some(0)),
+        ("Berekening", Some(1)),
+        ("Calculator", Some(1)),
+        ("Gereedschap", Some(1)),
+        ("Task Manager", None),
+        ("Instellingen", None),
+        ("wifi", None),
+    ] {
+        let mut scene = Scene::new(1280, 720, 1, [1, 2]).unwrap();
+        scene.palette_open();
+        for byte in query.bytes() {
+            assert!(scene.palette_insert(byte));
+        }
+        assert_eq!(scene.palette_selected(), expected, "{query}");
+        assert_eq!(scene.focused, 0, "search must not execute a result");
+    }
+}
+
+fn repaint(scene: &Scene, damage: &mut Damage, screen: &mut [u32], backing: &[u32]) {
+    while let Some(tile) = damage.next_tile() {
+        let mut pixels = [0; 256];
+        scene.render(tile, &mut pixels, backing).unwrap();
+        for row in 0..tile.height as usize {
+            let start = (tile.y as usize + row) * scene.width as usize + tile.x as usize;
+            screen[start..start + tile.width as usize].copy_from_slice(
+                &pixels[row * tile.width as usize..(row + 1) * tile.width as usize],
+            );
+        }
+    }
+    let mut expected = vec![0; screen.len()];
+    scene
+        .render_reference(
+            Rect::new(0, 0, scene.width, scene.height),
+            &mut expected,
+            backing,
+        )
+        .unwrap();
+    if let Some(at) = screen.iter().zip(&expected).position(|(a, b)| a != b) {
+        panic!(
+            "damage differs from reference at ({},{}): {:x} != {:x}",
+            at % scene.width as usize,
+            at / scene.width as usize,
+            screen[at],
+            expected[at]
+        );
+    }
+}
+
+#[test]
+fn focus_and_arrange_preserve_app_contracts_and_repaint_every_changed_pixel() {
+    let mut backing = vec![0xabcdef; MAX_PIXELS];
+    for (w, h, s) in [(800, 500, 1), (1280, 720, 1), (1920, 1080, 2)] {
+        let mut scene = Scene::new(w, h, s, [17, 29]).unwrap();
+        let contracts = scene.windows.map(|window| (window.geometry, window.offset));
+        let split = scene.windows[1].offset;
+        backing[..split].fill(0xc0ffee);
+        backing[split..].fill(0xabcdef);
+        let mut screen = vec![0; (w * h) as usize];
+        let mut damage = Damage::new(w, h).unwrap();
+        damage.mark(Rect::new(0, 0, w, h));
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        scene.toggle_focus(&mut damage);
+        assert_eq!(scene.workspace_mode(), WorkspaceMode::Focus);
+        assert!(scene.visible(0));
+        assert!(!scene.visible(1));
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        let hidden = scene.windows[1].body;
+        assert_eq!(
+            scene.mouse_with_damage(
+                (hidden.x + hidden.width as i32 - 4) as u32,
+                (hidden.y + 4) as u32,
+                true,
+                true,
+                &mut damage
+            ),
+            Ok(None)
+        );
+        assert_eq!(scene.focused, 0);
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        let task = scene.task_button(1);
+        assert_eq!(
+            scene.mouse_with_damage(
+                (task.x + 5) as u32,
+                (task.y + 5) as u32,
+                true,
+                true,
+                &mut damage
+            ),
+            Ok(None)
+        );
+        assert!(scene.visible(1));
+        assert!(!scene.visible(0));
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        // Main's header has no Veld mode button; F7 is the same toggle.
+        scene.toggle_focus(&mut damage);
+        assert_eq!(scene.workspace_mode(), WorkspaceMode::Work);
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        let frame = scene.frame(1);
+        scene
+            .mouse_with_damage(
+                (frame.x + 30) as u32,
+                (frame.y + 10) as u32,
+                true,
+                true,
+                &mut damage,
+            )
+            .unwrap();
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        scene
+            .mouse_with_damage(200 * s, 110 * s, true, false, &mut damage)
+            .unwrap();
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        scene.arrange(&mut damage);
+        repaint(&scene, &mut damage, &mut screen, &backing);
+        assert_eq!(scene.windows[1].body.y, 140 * s as i32);
+        assert_eq!(
+            scene.windows.map(|window| (window.geometry, window.offset)),
+            contracts
+        );
+        let bodies = scene.windows.map(|window| window.body);
+        scene.mouse(300 * s, 120 * s, true, false).unwrap();
+        assert_eq!(
+            scene.windows.map(|window| window.body),
+            bodies,
+            "arrange cancels drag"
+        );
+    }
+}
+
+#[test]
+fn workspace_keys_own_repeat_and_release_without_leaking_to_apps() {
+    let mut scene = Scene::new(1280, 720, 1, [1, 2]).unwrap();
+    let mut damage = Damage::new(1280, 720).unwrap();
+    for (key, mode) in [
+        (PhysicalKey::F7, WorkspaceMode::Focus),
+        (PhysicalKey::F8, WorkspaceMode::Work),
+    ] {
+        let mut event = KeyboardEvent {
+            key,
+            action: KeyAction::Press,
+            modifiers: KeyboardModifiers::default(),
+        };
+        assert!(scene.palette_key(event, &mut damage).unwrap());
+        assert_eq!(scene.workspace_mode(), mode);
+        assert!(scene.palette_key(event, &mut damage).unwrap());
+        assert_eq!(
+            scene.workspace_mode(),
+            mode,
+            "repeat must not toggle mode again"
+        );
+        event.action = KeyAction::Release;
+        assert!(scene.palette_key(event, &mut damage).unwrap());
+    }
+    // Main's dock owns search (Zoeken); the Veld palette stays on Ctrl+K.
+    let ctrl_k = KeyboardEvent {
+        key: PhysicalKey::K,
+        action: KeyAction::Press,
+        modifiers: KeyboardModifiers {
+            left_control: true,
+            ..Default::default()
+        },
+    };
+    assert!(scene.palette_key(ctrl_k, &mut damage).unwrap());
+    assert!(scene.palette_is_open());
+    damage_covers(&mut damage, scene.palette_paint_bounds());
 }
 
 #[test]
@@ -74,8 +248,13 @@ fn palette_cannot_open_over_trusted_pages_and_can_reveal_a_hidden_app() {
             .palette_key(keyboard.feed(0xa5).unwrap().unwrap(), &mut damage)
             .unwrap());
         scene.cancel_palette_input(&mut damage);
-        assert!(!scene
+        // Veld keeps ownership of a cancelled press until its release, so the
+        // release cannot leak to an app; a fresh press is not stuck.
+        assert!(scene
             .palette_key(keyboard.feed(0x9c).unwrap().unwrap(), &mut damage)
+            .unwrap());
+        assert!(!scene
+            .palette_key(keyboard.feed(0x1c).unwrap().unwrap(), &mut damage)
             .unwrap());
     }
 }

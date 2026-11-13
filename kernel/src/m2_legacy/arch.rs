@@ -116,7 +116,7 @@ static mut GDT: [u64; 7] = [0; 7];
 static mut AP_TSS: [Tss; MAX_APS] = [Tss::new(), Tss::new(), Tss::new(), Tss::new()];
 #[cfg(feature = "native-smp")]
 static mut AP_GDT: [[u64; 7]; MAX_APS] = [[0; 7]; MAX_APS];
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 #[repr(C)]
 #[derive(Clone, Copy)]
 struct CpuLocal {
@@ -124,13 +124,13 @@ struct CpuLocal {
     logical_index: u64,
     is_bootstrap: u64,
 }
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 const EMPTY_CPU_LOCAL: CpuLocal = CpuLocal {
     service_stack: 0,
     logical_index: 0,
     is_bootstrap: 0,
 };
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 static mut CPU_LOCAL: [CpuLocal; MAX_APS] = [EMPTY_CPU_LOCAL; MAX_APS];
 #[derive(Clone, Copy)]
 #[repr(C, packed)]
@@ -291,7 +291,7 @@ pub fn install_ap(index: usize, stack_top: u64) {
     }
 }
 
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 pub fn set_cpu_local(index: usize, service_stack: u64, is_bootstrap: bool) {
     assert!(index < MAX_APS && service_stack.is_multiple_of(16));
     // SAFETY: Each logical CPU initializes only its own permanent local record
@@ -321,7 +321,7 @@ pub fn set_cpu_local(index: usize, service_stack: u64, is_bootstrap: bool) {
     }
 }
 
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 pub fn current_cpu_index() -> usize {
     let index: u64;
     // SAFETY: The kernel GS base is installed before M3 starts; user-origin
@@ -381,7 +381,7 @@ pub fn protection() {
         asm!("mov cr0, {}",in(reg) cr0,options(nostack));
     }
 }
-#[cfg(feature = "native-smp-m3")]
+#[cfg(feature = "native-smp-legacy-m3")]
 pub fn protection_status() -> u8 {
     let cr0: u64;
     // SAFETY: Reading the local CPU's CR0 at CPL0 has no memory or control-flow effects.
@@ -411,7 +411,7 @@ pub fn service_stack() -> u64 {
 }
 #[cfg(feature = "milestone-m3")]
 pub fn process_stack(top: u64) {
-    #[cfg(feature = "native-smp-m3")]
+    #[cfg(feature = "native-smp-legacy-m3")]
     {
         let index = current_cpu_index();
         let is_bootstrap: u64;
@@ -453,7 +453,9 @@ pub fn reset_debug() {
 }
 #[cfg(feature = "milestone-m3")]
 pub fn user_gate(vector: usize, address: u64, user: bool) {
-    assert!(vector == 32 || vector == 128 || cfg!(feature = "native-smp-m3") && vector == 0xf1);
+    assert!(
+        vector == 32 || vector == 128 || cfg!(feature = "native-smp-legacy-m3") && vector == 0xf1
+    );
     let gate = Gate {
         lo: address as u16,
         cs: 8,
@@ -757,5 +759,5 @@ m3_terminal:
  ud2
 "#,
     fpu_context = const cfg!(feature = "fpu-context") as u8,
-    native_smp_m3 = const cfg!(feature = "native-smp-m3") as u8,
+    native_smp_m3 = const cfg!(feature = "native-smp-legacy-m3") as u8,
 );

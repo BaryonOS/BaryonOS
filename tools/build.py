@@ -22,10 +22,15 @@ M6B_TIMEOUT_CASES = ("write-timeout", "flush-timeout", "reset-timeout", "write-p
 M6B_FAULT_CASES = ("write-error", "flush-error") + M6B_TIMEOUT_CASES
 M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cut-after-flush") + M6B_FAULT_CASES
 M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename") + M6C_FAULT_CASES
-VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "foreign", "cut-txn")
+VOLUME_ARCHIVE_CASES = ("archive-export", "archive-restore", "archive-corrupt", "archive-conflict",
+                        "archive-full")
+VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "foreign", "cut-txn",
+                *VOLUME_ARCHIVE_CASES)
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
 SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota", "wait")
-SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES))
+SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES),
+                       # K06 5d-2 §4: the same six cases on SMP through an explicit profile.
+                       "native-smp-supervisor", *(f"test-smp-supervisor-{case}" for case in SUPERVISOR_CASES))
 KEYRING_CASES = ("no-device", "stuck", "timeout", "restart")
 KEYRING_FEATURES = ("native-keyring", *(f"test-keyring-{case}" for case in KEYRING_CASES))
 UPDATE_FEATURES = ("native-update", "test-update-cut")
@@ -41,13 +46,22 @@ SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
 POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error", "test-system-power-flush-timeout")
 SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
+# PR 154 legacy SMP path (kernel/src/m2_legacy); every name enables native-smp-legacy and
+# needs the smp-handoff loader. K06 native-smp* profiles use the default loader.
+LEGACY_SMP_FEATURES = ("native-smp-legacy", "native-smp-legacy-m3", "native-smp-m3-exit", "native-smp-m3-tlb-reuse",
+                       "native-smp-m3-lock-contention", "native-smp-m4", "native-smp-m4-revoke")
 KERNEL_FEATURES = ["test-panic", "test-hang", "milestone-m2", "native-rtc",
-                   "native-acpi-s5", "test-acpi-s5-corrupt-dsdt",
-                   "native-smp", "native-smp-legacy", "native-smp-m3", "native-smp-m3-exit",
-                   "native-smp-m3-tlb-reuse", "native-smp-m3-lock-contention", "native-smp-m4",
-                   "test-smp-ap-stall", "test-smp-ap-mismatch", "test-smp-ap-nmi",
+                   "native-smp-m3-ipc", "native-smp-m3-migrate", "test-smp-m3-canary",
+                   "native-smp-m3-load", "native-smp-m3-soak", "native-smp-m4-quotas", "native-smp-qsim", "native-smp-m3-kill",
+                   "native-smp-m3-unmap", "test-smp-m3-no-shootdown",
+                   "test-smp-m3-recovery",
+                   "native-smp", "test-smp-ap-stall", "test-smp-ap-mismatch", "test-smp-ap-nmi",
+                   "native-acpi-s5", "test-acpi-s5-corrupt-dsdt", *LEGACY_SMP_FEATURES,
                    "test-smp-ap-double-fault", "test-smp-ap-ipi-deaf", "test-smp-ap-shootdown-deaf",
-                   "test-smp-shootdown-skipped", "test-smp-ap-timer-dead", "test-smp-lockdep-order", "test-m2-ro", "test-m2-nx",
+                   "test-smp-shootdown-skipped", "test-smp-ap-timer-dead", "test-smp-lockdep-order", "test-smp-spin-irq-off", "test-smp-held-across-switch", "test-smp-double-run", "test-smp-resched-deaf", "test-smp-gs-user", "test-smp-gs-iret-fault", "test-smp-gs-nmi-user", "test-smp-shared-scratch", "test-smp-lock-in-handler", "test-smp-lockpair-order", "test-smp-icr-race", "test-smp-quarantine-lock-held", "test-smp-quarantine-lock-pending", "test-smp-quarantine-sched-busy", "test-smp-bsp-spin-irq-off", "test-smp-proc-shootdown-deaf", "test-smp-proc-no-shootdown", "test-smp-lock-stuck", "test-smp-serial-unlocked",
+                   "test-smp-sync-stall", "test-smp-sync-slow", "test-smp-sync-lost-update",
+                   "test-smp-clock-masked", "test-smp-clock-divisor", "test-smp-clock-other-cpu",
+                   "test-smp-scratch-stall", "test-smp-scratch-slow", "native-smp-m3", "test-smp-m3-fault", "test-smp-m3-fpu-skip", "test-m2-ro", "test-m2-nx",
                    "test-m2-absent", "test-m2-kernel-fault", "test-m2-double-fault",
                    "milestone-m3", "test-m3-idle", "test-m3-large-image", *(f"test-m3-{case}" for case in M3_CASES),
                    "milestone-m4", *(f"test-m4-{case}" for case, _ in M4_CASES),
@@ -125,7 +139,7 @@ def inspect_pe(path):
 def native_smp_handoff_required(kernel_feature):
     """Only opt-in native SMP test profiles need the ACPI/MADT SMP handoff."""
     return bool(kernel_feature and any(
-        (part == "native-smp-legacy" or part.startswith("native-smp-m3") or part.startswith("native-smp-m4"))
+        part in LEGACY_SMP_FEATURES
         for part in kernel_feature.split(",")
     ))
 
@@ -191,7 +205,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
     elif kernel_feature in ("native-fpu", "test-fpu-wait"):
         from run_fpu import build_users as build_fpu_users
         extra_env, qsim_report = build_fpu_users()
-    elif kernel_feature == "native-qsim":
+    elif kernel_feature in ("native-qsim", "native-smp-qsim", "native-smp-m3-soak"):
         output = BUILD / "users/qsim"
         run_logged([sys.executable, "-B", str(ROOT / "experiments/quantum/native/build.py"),
                     "--output-dir", str(output), "--target-dir", str(TARGET / "qsim-user")],
@@ -291,6 +305,13 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
                    "build-volume-docs", extra_env={"CARGO_TARGET_DIR": str(volume_target)})
         app = volume_target / "x86_64-unknown-none/release/volume-app"
         service = volume_target / "x86_64-unknown-none/release/volume-service"
+        if kernel_feature in (f"test-volume-{case}" for case in VOLUME_ARCHIVE_CASES):
+            # S09 portal app (separate target dir); the service stays the normal build.
+            portal_target = TARGET / "volume-docs-portal"
+            run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/volume-docs/build.py"),
+                        "--archive-portal"], "build-volume-docs-portal",
+                       extra_env={"CARGO_TARGET_DIR": str(portal_target)})
+            app = portal_target / "x86_64-unknown-none/release/volume-app"
         qsim_report = {
             "app_sha256": sha256(app), "app_elf": inspect_user(app),
             "service_sha256": sha256(service), "service_elf": inspect_user(service),
@@ -331,8 +352,9 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         extra_env = {f"NOS_KEYRING_{name.upper()}_ELF": str(path.resolve()) for name, path in binaries.items()}
     if kernel_feature and any(m in kernel_feature for m in ("m3", "m4", "m5", "m6a", "m6b", "m6c")):
         from build_users import build_users
-        extra_env = {"NOS_USER_ELF": str(build_users("large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
-        if any(m in kernel_feature for m in ("m4", "m5", "m6a", "m6b", "m6c")):
+        extra_env = {**(extra_env or {}), "NOS_USER_ELF": str(build_users("smp-unmap" if kernel_feature in ("native-smp-m3-unmap", "test-smp-m3-no-shootdown") else "large" if kernel_feature == "test-m3-large-image" else "probe").resolve())}
+        if (any(m in kernel_feature for m in ("m4", "m5", "m6a", "m6b", "m6c"))
+                or kernel_feature == "native-smp-m3-soak"):
             extra_env["NOS_IPC_ELF"] = str(build_users("ipc").resolve())
         if any(m in kernel_feature for m in ("m5", "m6a", "m6b", "m6c")):
             extra_env["NOS_M5_ELF"] = str(build_users("m5").resolve())
