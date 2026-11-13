@@ -1,4 +1,6 @@
 """Adversarial host checks for the native runner, never OS execution."""
+from pathlib import Path
+import re
 import unittest
 import subprocess
 import sys
@@ -97,6 +99,17 @@ class WindowRunnerTests(unittest.TestCase):
         self.assertIn("--switcher", result.stdout)
         self.assertIn("200%", result.stdout)
 
+    def test_scale200_evidence_requires_the_complete_workspace_gate(self):
+        self.assertTrue(window.full_scale200_gate(2, True, False, False))
+        for arguments in (
+            (1, True, False, False),
+            (2, False, False, True),
+            (2, False, False, False),
+            (2, True, True, False),
+            (2, True, False, True),
+        ):
+            self.assertFalse(window.full_scale200_gate(*arguments))
+
     def test_calculator_recall_is_not_a_combined_diagnostic_or_storage_gate(self):
         for flag in ("smoke", "recovery_handshake", "clipboard"):
             with self.assertRaises(ValueError):
@@ -176,11 +189,34 @@ class WindowRunnerTests(unittest.TestCase):
 
     def test_library_cannot_reuse_an_unvalidated_or_different_mode(self):
         for flags in ({"smoke": True}, {"recovery_handshake": True},
-                      {"clipboard": True}, {"session_route": True}):
+                      {"clipboard": True}, {"session_route": True},
+                      {"workspace": True}, {"scale": 2}):
             with self.assertRaises(ValueError):
                 window.run(timeout=30, bios_rom=None, vga_rom=None, library=True, **flags)
         with self.assertRaises(ValueError):
             window.run(timeout=30, bios_rom=None, vga_rom=None, library_parent="unvalidated")
+        # The public session route is a separate 100% keyboard gate as well.
+        for flags in ({"workspace": True}, {"scale": 2}):
+            with self.assertRaises(ValueError):
+                window.run(timeout=30, bios_rom=None, vga_rom=None, session_route=True, **flags)
+
+    def test_hidpi_and_route_builds_require_their_own_loader(self):
+        self.assertEqual(window.HIDPI_FEATURE, "native-window-session-hidpi-probe")
+        self.assertEqual(window.ROUTE_FEATURE, "native-session-route")
+        import build  # tools/ is already on sys.path for run_window_session
+        self.assertLessEqual({window.FEATURE, window.HIDPI_FEATURE, window.ROUTE_FEATURE}, set(build.WINDOW_FEATURES))
+
+    def test_compositor_snapshot_requires_main_shell_counters(self):
+        self.assertLessEqual({"SHELL", "SHELL_READY", "INPUT"}, window.SNAPSHOT_FIELDS["COMPOSITOR"])
+
+    def test_kernel_activity_samples_each_compositor_counter_once(self):
+        source = (Path(__file__).resolve().parents[1] / "kernel/src/m2/m3/window_session.rs").read_text()
+        activity = re.search(r"let activity = \[(.*?)\];", source, re.DOTALL)
+        self.assertIsNotNone(activity)
+        offsets = [int(value) for value in re.findall(r"word\(s, COMP, (\d+)\)", activity.group(1))]
+        expected = {424, 432, 440, 448, 456, 496, 504, 512, 520, 528}
+        self.assertEqual(set(offsets), expected)
+        self.assertEqual(len(offsets), len(expected))
 
     def test_exact_snapshot_rejects_missing_duplicate_or_oversized_fields(self):
         raw=block()

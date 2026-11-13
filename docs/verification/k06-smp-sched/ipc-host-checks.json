@@ -1,0 +1,94 @@
+{
+  "accepted": false,
+  "generated_at": "2026-11-10T02:48:01.097230+00:00",
+  "source_fingerprint_version": 3,
+  "source_sha256": "a6ce4a41bea9d95462d9803abcff5bf690eb31c1431e4e7807cab0d312af02f9",
+  "base_commit": "55ec046fb287cf6bf06b96a4421cf2aac0f4723a",
+  "assessment_basis": "working_tree",
+  "checks": [
+    {
+      "name": "ipc-scheduler-hosttests",
+      "command": "CARGO_TARGET_DIR=target/k06-ipc-host python3 -B tools/dev.py cargo +1.90.0 test --locked -p smp-lock",
+      "exit": 0,
+      "raw_log_sha256": "13326813d1c70a362d46aa0d748de0ac4ffeb4cc0b76a8a022ee2296bfafec0d",
+      "log": "ipc-scheduler-hosttests.log.gz",
+      "source_sha256_at_execution": "215ab7d5fc880ae6988e19c1ec0fb7595a14292573bc3fb59411ca29caacda2a",
+      "binding_note": "Subsequent edits affect only CI workflow/guard tests; these kernel/core source bytes remain identical."
+    },
+    {
+      "name": "ipc-scheduler-clippy",
+      "command": "CARGO_TARGET_DIR=target/k06-ipc-host python3 -B tools/dev.py cargo +1.90.0 clippy --locked -p boot-protocol -p smp-lock --all-targets -- -D warnings",
+      "exit": 0,
+      "raw_log_sha256": "aad6fc4749fcf708ce77054f656a34a8c0e5448957cc26cb9317433741874d39",
+      "log": "ipc-scheduler-clippy.log.gz",
+      "source_sha256_at_execution": "215ab7d5fc880ae6988e19c1ec0fb7595a14292573bc3fb59411ca29caacda2a",
+      "binding_note": "Subsequent edits affect only CI workflow/guard tests; these kernel/core source bytes remain identical."
+    },
+    {
+      "name": "ipc-all-tools-hosttests",
+      "command": "python3 -B tools/dev.py python3 -B -m unittest discover -s tools/tests -p 'test_*.py' -v",
+      "exit": 0,
+      "raw_log_sha256": "a060161352d810fc944609f5a0c712c92b5921149922933c9350a50500c1017e",
+      "log": "ipc-all-tools-hosttests.log.gz"
+    },
+    {
+      "name": "ipc-m3-build",
+      "command": "NOS_BUILD_DIR=build/k06-ipc-m3 NOS_TARGET_DIR=target/k06-ipc-m3 python3 -B tools/build.py --kernel-feature native-smp-m3",
+      "exit": 0,
+      "raw_log_sha256": "112b2b3af1cb04c0ab8e175773bc272a2af76ac8840934c81052857150278d24",
+      "log": "ipc-m3-build.log.gz"
+    },
+    {
+      "name": "ipc-soak-build",
+      "command": "NOS_BUILD_DIR=build/k06-ipc-soak NOS_TARGET_DIR=target/k06-ipc-soak python3 -B tools/build.py --kernel-feature native-smp-m3-soak",
+      "exit": 0,
+      "raw_log_sha256": "d9f2eab94c2f75448604de62216fd1a6844889d24e3f958d20d2cc44db95089f",
+      "log": "ipc-soak-build.log.gz"
+    },
+    {
+      "name": "ipc-supervisor-build",
+      "command": "NOS_BUILD_DIR=build/k06-ipc-supervisor NOS_TARGET_DIR=target/k06-ipc-supervisor python3 -B tools/build.py --kernel-feature native-supervisor",
+      "exit": 0,
+      "raw_log_sha256": "1094ad46237036963fcc00715e4df88c416a10f5f23efbba4331ab3b6d74100f",
+      "log": "ipc-supervisor-build.log.gz"
+    },
+    {
+      "name": "ipc-m3-probe-hosttests",
+      "command": "python3 -B userspace/tests/test_smp_fpu_probe.py --elf build/k06-ipc-m3/users/probe.elf",
+      "exit": 0,
+      "raw_log_sha256": "a8c975601661deae2019c7666e061751d824529e348d9b5d655dd202944954f0",
+      "log": "ipc-m3-probe-hosttests.log.gz"
+    },
+    {
+      "name": "ipc-soak-probe-hosttests",
+      "command": "python3 -B userspace/tests/test_smp_fpu_probe.py --elf build/k06-ipc-soak/users/probe.elf",
+      "exit": 0,
+      "raw_log_sha256": "a8c975601661deae2019c7666e061751d824529e348d9b5d655dd202944954f0",
+      "log": "ipc-soak-probe-hosttests.log.gz"
+    }
+  ],
+  "counts": {
+    "smp_lock_unit_tests": 31,
+    "smp_lock_doc_tests": 1,
+    "tools_host_tests": 275,
+    "real_elf_probe_tests_per_profile": 8,
+    "smp_ci_tests": 6
+  },
+  "additional_checks": {
+    "rustfmt": "exit0",
+    "git_diff_check": "exit0",
+    "setup_qemu_shell_syntax": "exit0",
+    "full_workflow_shell_syntax": "41 Bash blocks exit0"
+  },
+  "native_guests_started_locally": 0,
+  "limits": [
+    "The new five core tests cover queue wrapping/ownership and unrenewed event-generation quanta; they are not complete kernel integration tests.",
+    "The central return validator, dispatch CAS, stack/FPU/CR3 path and FIFO wake policy remain shared and unchanged. Native starvation, IPC throughput and timeout recovery remain unproved.",
+    "Prior525-test workspace evidence predates this scheduler change. A new full matrix and subsequent executed repository gate remain mandatory."
+  ],
+  "kernel_core_sha256": {
+    "crates/smp-lock/src/sched.rs": "0b2ac79badace23dbebca73f7c2e81024d080ec017ce33dd3af4a48d23590422",
+    "kernel/src/m2/m3.rs": "551faed77e494be3d788c494923eb2491018925e8ae4bfb634a5af7b3617ab5c",
+    "kernel/src/m2/smp.rs": "f6954638301498399593e8c1759d8c7f1c02f500b97b319d4c3a772e30cfb14b"
+  }
+}

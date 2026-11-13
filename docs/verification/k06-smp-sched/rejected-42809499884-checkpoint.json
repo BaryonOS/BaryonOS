@@ -1,0 +1,64 @@
+{
+  "run_id": 42809499884,
+  "run_url": "https://github.com/BaryonOS/BaryonOS/actions/runs/42809499884",
+  "tested_commit": "3dd6194f02231e8f1db61940242d8d90318daf1d",
+  "source_sha256": "05f680b768def10a2495e5958fa3af2fb95b50be19c755cce728f8c850ac887a",
+  "accepted": false,
+  "status_at_checkpoint": "still running; rejected by three native failures",
+  "independent_partial_readback": {
+    "attempted": 1550,
+    "passed": 1547,
+    "failed": 3,
+    "complete_soaks_passed": 50
+  },
+  "failing_cases": {
+    "proc-shootdown-deaf": {
+      "passed": 48,
+      "requested": 50,
+      "iterations": [
+        18,
+        21
+      ],
+      "marker": "SMP:QUARANTINE:LOCK_HELD:40:CPU=1; M1:FAIL:SMP_QUARANTINE_LOCK_HELD"
+    },
+    "bsp-spin-irq-off-control": {
+      "passed": 49,
+      "requested": 50,
+      "iterations": [
+        45
+      ],
+      "marker": "M1:FAIL:SMP_CLOCK_DRIFT",
+      "normalized_us": [
+        1013723,
+        1014537,
+        1023535,
+        1027186,
+        1014857
+      ],
+      "median_us": 1014857,
+      "each_segment_irq0_ticks": 1000
+    }
+  },
+  "original_failure_zips": [
+    {
+      "artifact_id": 13764660489,
+      "name": "smp-case-bsp-spin-irq-off-control",
+      "sha256": "44d4097f4efe90f94443ccbee9ce61a604e281d578f4fed834b260802931dae5",
+      "size": 388488,
+      "entries": 152,
+      "crc_passed": true,
+      "canonical_bytes_match": true
+    },
+    {
+      "artifact_id": 13763809762,
+      "name": "smp-case-proc-shootdown-deaf",
+      "sha256": "9b5beba6a6ba70e4c261695fdf6734388fa5997ac94752c06cced4b0eba4f94d",
+      "size": 401006,
+      "entries": 152,
+      "crc_passed": true,
+      "canonical_bytes_match": true
+    }
+  ],
+  "gate": "not executed at checkpoint; cannot pass after failed aggregate",
+  "reused_acceptance_repetitions": 0
+}

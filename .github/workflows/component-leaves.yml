@@ -3,10 +3,10 @@ name: Component leaf quality
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    paths-ignore: ['docs/**', '*.md']
+    paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']
   push:
     branches: [main]
-    paths-ignore: ['docs/**', '*.md']
+    paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']
   workflow_dispatch:
 
 permissions:

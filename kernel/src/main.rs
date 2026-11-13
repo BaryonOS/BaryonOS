@@ -50,13 +50,30 @@ compile_error!("native-system-power gates S5 on exactly the base native-system b
     feature = "native-smp",
     not(feature = "native-smp-legacy"),
     any(
-        feature = "milestone-m3",
+        all(feature = "milestone-m3", not(feature = "native-smp-m3")),
         feature = "framebuffer",
         feature = "native-rtc",
         feature = "graphics-g0"
     )
 ))]
 compile_error!("native-smp is an IF0 M2 bring-up profile; single-CPU subsystems stay excluded");
+// Service profiles remain single-CPU unless an explicit SMP fixture admits them.
+#[cfg(all(
+    feature = "native-smp-m3",
+    any(
+        feature = "native-fpu",
+        all(
+            any(feature = "ipc-wait", feature = "milestone-m4"),
+            not(any(
+                feature = "native-smp-m3-ipc",
+                feature = "native-smp-m4-quotas",
+                feature = "native-smp-supervisor"
+            ))
+        ),
+        all(feature = "native-supervisor", not(feature = "native-smp-supervisor"))
+    )
+))]
+compile_error!("SMP services require an explicit integration profile");
 
 use boot_protocol::{BootInfo, ADDRESS_LIMIT, PAGE_SIZE};
 use core::{arch::asm, ptr};
@@ -172,9 +189,14 @@ fn panic(info: &core::panic::PanicInfo<'_>) -> ! {
             *digit = b'0' + (n % 10) as u8;
             n /= 10;
         }
-        serial::write(b"M2:PANIC_LINE:");
-        serial::write(&digits);
-        serial::write(b"\n");
+        // DG-2: a terminal line, whole and without waiting for SERIAL.
+        let mut line = serial::Line::new();
+        serial::write_terminal(
+            line.push(b"M2:PANIC_LINE:")
+                .push(&digits)
+                .push(b"\n")
+                .as_bytes(),
+        );
     }
     #[cfg(not(feature = "milestone-m2"))]
     let _ = info;

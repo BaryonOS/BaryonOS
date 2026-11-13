@@ -105,6 +105,7 @@ pub(super) struct Metrics {
     pub wake_timeout: u64,
     pub wake_error: u64,
     pub idle_irqs: u64,
+    pub remote_wakes: u64,
 }
 impl Metrics {
     pub const EMPTY: Self = Self {
@@ -116,6 +117,7 @@ impl Metrics {
         wake_timeout: 0,
         wake_error: 0,
         idle_irqs: 0,
+        remote_wakes: 0,
     };
 }
 
@@ -161,6 +163,8 @@ fn register(state: &mut super::State, slot: usize, args: [u64; 6]) -> Result<Opt
     let count = validate_arguments(args, state.ticks)?;
     let mut wire = [0; WIRE_BYTES];
     if count != 0 {
+        #[cfg(feature = "native-smp-m3")]
+        let _address = super::ASPACE[slot].lock_irqsave();
         let length = count * CONDITION_BYTES;
         let plan = super::m4::plan(state, slot, args[0], length as u64, false)?;
         let snapshot = super::m4::read_plan(&plan);
@@ -180,7 +184,9 @@ fn register(state: &mut super::State, slot: usize, args: [u64; 6]) -> Result<Opt
 #[cfg(not(test))]
 pub(super) fn refresh(state: &mut super::State) {
     for slot in 0..state.amount {
-        if state.processes[slot].status != super::Status::Waiting {
+        if state.processes[slot].status != super::Status::Waiting
+            || state.processes[slot].wait.is_none()
+        {
             continue;
         }
         let waiting = state.processes[slot]
@@ -208,7 +214,25 @@ pub(super) fn refresh(state: &mut super::State) {
         process.wait = None;
         process.context[14] = primary as u64;
         process.context[12] = secondary;
-        process.status = super::Status::Ready;
+        #[cfg(not(feature = "native-smp-m3"))]
+        {
+            process.status = super::Status::Ready;
+        }
+        #[cfg(feature = "native-smp-m3")]
+        {
+            let home = process.home;
+            if home != super::cpu() && primary == 0 && secondary != 0 {
+                state.wake_remote_ready(slot);
+            } else {
+                state.wake_ready(slot);
+            }
+            if home != super::cpu() {
+                if !super::smp::m3_reschedule(home) {
+                    crate::serial::fail(b"SMP_M3_WAKE_IPI");
+                }
+                state.wait_metrics.remote_wakes += 1;
+            }
+        }
     }
 }
 

@@ -4,6 +4,14 @@ use crate::session::{Account, AccountId, SessionFlow, UnavailableBroker};
 use nieuw_os_graphics::{Canvas, Font, Icon, Rect, Size, Weight};
 use ui_core::{KeyAction, KeyboardEvent, PhysicalKey};
 
+// Trusted dock roles on main's dark desktop; contrast is computed in tests.
+pub const DOCK_BAR: u32 = 0xf2f1ec;
+pub const DOCK_HOVER: u32 = 0xe3ede8;
+pub const DOCK_ACTIVE: u32 = 0xffffff;
+pub const DOCK_TEXT: u32 = 0x20262d;
+pub const DOCK_ICON: u32 = 0x30434b;
+pub const DOCK_ACCENT: u32 = 0x14655e;
+pub const DOCK_MARKER: u32 = 0x5c6570;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Page {
     Lock,
@@ -615,26 +623,39 @@ impl Shell {
         );
         if self.page == Page::Desktop {
             let y = (height / scale) as i32 - 64;
-            c.fill_rect(r(0, y, width / scale, 64), 0xf2f1ec);
+            c.fill_rect(r(0, y, width / scale, 64), DOCK_BAR);
             for (x, w, label, icon, index) in [
                 (16, 152, "Zoeken", Icon::Search, 2),
                 (188, 152, "Materiaal", Icon::Folder, 0),
                 (360, 172, "Rekenmachine", Icon::Apps, 1),
             ] {
                 if hovered == Some(index) && focused != index {
-                    c.rounded_rect(r(x, y + 8, w, 48), 8 * scale, 0xe3ede8);
+                    c.rounded_rect(r(x, y + 8, w, 48), 8 * scale, DOCK_HOVER);
                 }
                 if focused == index && !self.hidden[index] {
-                    c.rounded_rect(r(x, y + 8, w, 48), 8 * scale, 0xffffff);
-                    c.fill_rect(r(x + 16, y + 56, w - 32, 3), 0x14655e);
+                    c.rounded_rect(r(x, y + 8, w, 48), 8 * scale, DOCK_ACTIVE);
+                    c.fill_rect(r(x + 16, y + 56, w - 32, 3), DOCK_ACCENT);
                 }
-                c.icon(r(x + 12, y + 20, 20, 20), icon, 0x30434b, scale);
-                c.text((x + 42) * s, (y + 18) * s, label, bold, 0x20262d);
+                c.icon(r(x + 12, y + 20, 20, 20), icon, DOCK_ICON, scale);
+                c.text((x + 42) * s, (y + 18) * s, label, bold, DOCK_TEXT);
+                // Veld minimized marker: shape and position, not color alone.
+                if index < self.hidden.len() && self.hidden[index] {
+                    let marker = r(x + 16, y + 44, 12, 6);
+                    c.fill_rect(marker, DOCK_MARKER);
+                    c.fill_rect(
+                        Rect::new(marker.x + s, marker.y + s, 10 * scale, 4 * scale),
+                        if hovered == Some(index) {
+                            DOCK_HOVER
+                        } else {
+                            DOCK_BAR
+                        },
+                    );
+                }
             }
             c.icon(
                 Rect::new(width as i32 - 158 * s, (y + 22) * s, 20 * scale, 20 * scale),
                 Icon::Settings,
-                0x30434b,
+                DOCK_ICON,
                 scale,
             );
             c.text(
@@ -642,7 +663,7 @@ impl Shell {
                 (y + 20) * s,
                 "Systeem",
                 body,
-                0x20262d,
+                DOCK_TEXT,
             );
             return;
         }

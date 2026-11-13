@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-11",
-    "source_commit": "bfc9bdfe673d99c118e0de03422f5e932a093874",
+    "date": "2026-11-13",
+    "source_commit": "bf4aa71645f8f9ccb1c95e2cb588dc09443993b4",
     "assessment_basis": "source_commit",
     "branch": "ccr-901455b4-q47fn2",
     "task": "Point the Graphify guidance in AGENTS.md and the Copilot instructions at the indexed repository BaryonOS/BaryonOS",
-    "previous_score": 39,
-    "summary": "39/100 to 39/100: agent guidance only. The hosted Graphify identifier changes from simonvanieperen/BaryonOS to BaryonOS/BaryonOS; no OS functionality, native gate or product criterion changes."
+    "previous_score": 41,
+    "summary": "41/100 stays 41/100: agent guidance only. The hosted Graphify identifier changes from simonvanieperen/BaryonOS to BaryonOS/BaryonOS, the only repository of this project that the hosted index lists; no OS functionality, native gate or product criterion changes."
   },
   "tracks": [
     {
@@ -75,9 +75,11 @@
           "id": "K06",
           "title": "Multiple processor cores",
           "points": 2,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "SMP scheduling, synchronization, interrupts, and address-space switching work under concurrent load on the supported profile.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/K06-ACCEPTANCE.md"
+          ]
         },
         {
           "id": "K07",

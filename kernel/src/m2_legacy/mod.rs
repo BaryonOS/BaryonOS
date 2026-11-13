@@ -177,9 +177,9 @@ extern "C" fn run() -> ! {
     {
         smp::start_and_test(&smp_info);
         serial::write(b"SMP:PASS\n");
-        #[cfg(feature = "native-smp-m3")]
+        #[cfg(feature = "native-smp-legacy-m3")]
         m3::start(frames, paging);
-        #[cfg(not(feature = "native-smp-m3"))]
+        #[cfg(not(feature = "native-smp-legacy-m3"))]
         serial::exit(0x10);
     }
     #[cfg(not(feature = "native-smp"))]

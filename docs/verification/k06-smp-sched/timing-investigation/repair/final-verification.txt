@@ -1,0 +1,57 @@
+Final local verification of the working tree committed unchanged as 4616fb3 (QEMU 8.2.2, pc-q35-8.2,
+4 host CPUs, 12 November 2026). Line 1: base commit; line 2: modified files at the time; then one line
+per step (exit status, seconds) and, for boots, the distinct sync, clock and terminal marker lines.
+
+c3c289086a9af9f663e73ba65c2d7103d173dd6f
+ M crates/smp-lock/src/clock.rs  M docs/verification/k06-smp-sched/timing-investigation/map/README.md  M kernel/src/m2/smp.rs  M tools/run_smp.py  M tools/tests/test_smp_serial.py ?? docs/verification/k06-smp-sched/timing-investigation/map/K06C-ATTACK.md ?? docs/verification/k06-smp-sched/timing-investigation/map/K06C-CONTRACT.md ?? docs/verification/k06-smp-sched/timing-investigation/repair/README.md 
+fmt exit=0 secs=2 
+clippy exit=0 secs=0 
+rust-host-tests exit=0 secs=432 test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s test result: ok. 37 passed; 0 failed; 0 ignored; 0 measured; 0 fi
+py-compileall exit=0 secs=1 
+py-ci-evidence exit=0 secs=14 Ran 31 tests in 14.138s OK 
+py-ci-workflows exit=0 secs=0 Ran 23 tests in 0.263s OK 
+py-document-session exit=0 secs=1 Ran 35 tests in 0.581s OK 
+py-volume exit=0 secs=2 Ran 37 tests in 1.371s OK 
+py-system exit=0 secs=4 Ran 53 tests in 3.804s OK 
+py-tools-tests exit=0 secs=33 Ran 313 tests in 32.748s OK 
+py-skill-validate exit=0 secs=1 
+py-skill-tests exit=0 secs=1 Ran 6 tests in 0.356s OK 
+py-harness-test_common exit=0 secs=0 Ran 10 tests in 0.018s OK 
+py-harness-test_preflight exit=0 secs=0 Ran 24 tests in 0.250s OK 
+py-harness-test_build_paths exit=0 secs=0 Ran 3 tests in 0.009s OK 
+py-harness-test_guest_harness exit=0 secs=0 Ran 7 tests in 0.001s OK 
+py-harness-test_m1_artifact_binding exit=0 secs=1 Ran 8 tests in 0.083s OK 
+py-harness-test_m6c_* exit=0 secs=1 Ran 49 tests in 0.986s OK 
+build-native-smp exit=0 secs=3 
+boot-four exit=0 secs=13 
+   M1:PASS SMP:CLOCK:EDGES:TICKS=5001:LOST=34:HOST=33:EXTRA=0:SPAN_US=1981:US=1004660:OWN_US=999661 SMP:SYNC:WAIT_MS=0:STALL_MS=0 
+boot-eight exit=0 secs=24 
+   M1:PASS SMP:CLOCK:EDGES:TICKS=5001:LOST=25:HOST=24:EXTRA=1:SPAN_US=487:US=1004118:OWN_US=999237 SMP:SYNC:WAIT_MS=20:STALL_MS=0 
+boot-nine-capacity exit=0 secs=24 
+   M1:PASS SMP:CLOCK:EDGES:TICKS=5001:LOST=53:HOST=53:EXTRA=0:SPAN_US=469:US=1008204:OWN_US=999205 SMP:SYNC:WAIT_MS=530:STALL_MS=0 
+boot-one exit=0 secs=9 
+   M1:PASS SMP:CLOCK:EDGES:TICKS=5001:LOST=40:HOST=40:EXTRA=0:SPAN_US=433:US=1007661:OWN_US=999629 SMP:SYNC:WAIT_MS=0:STALL_MS=0 
+boot-two-single exit=0 secs=12 
+   M1:PASS SMP:CLOCK:EDGES:TICKS=5001:LOST=50:HOST=49:EXTRA=0:SPAN_US=284:US=1004691:OWN_US=999682 SMP:SYNC:WAIT_MS=10:STALL_MS=0 
+build-native-smp-m3 exit=0 secs=4 
+boot-m3-two exit=0 secs=22 
+   M1:PASS SMP:CLOCK:EDGES:TICKS=5001:LOST=39:HOST=36:EXTRA=0:SPAN_US=1791:US=1003587:OWN_US=999587 SMP:SYNC:WAIT_MS=0:STALL_MS=0 
+build-test-smp-lock-stuck exit=0 secs=3 
+boot-lock-stuck exit=0 secs=7 
+   SMP:LOCK:STUCK:10:CPU=1 SMP:SYNC:WAIT_MS=0:STALL_MS=0 
+build-test-smp-sync-stall exit=0 secs=2 
+boot-sync-stall exit=0 secs=7 
+   SMP:SYNC:STALLED:DONE=2:TOTAL=80000 
+build-test-smp-sync-slow exit=0 secs=2 
+boot-sync-slow exit=0 secs=25 
+   SMP:SYNC:TIMEOUT:DONE=2:TOTAL=70286 
+build-test-smp-sync-lost-update exit=0 secs=2 
+boot-sync-lost-update exit=0 secs=5 
+   SMP:SYNC:LOST_UPDATE 
+build-test-smp-clock-masked exit=0 secs=3 
+boot-clock-masked exit=0 secs=10 
+   SMP:CLOCK:DRIFT:KERNEL SMP:CLOCK:EDGES:TICKS=5001:LOST=328:HOST=21:EXTRA=0:SPAN_US=3061:US=1061129:OWN_US=1058897 SMP:SYNC:WAIT_MS=0:STALL_MS=0 
+build-test-smp-clock-divisor exit=0 secs=2 
+boot-clock-divisor exit=0 secs=6 
+   SMP:CLOCK:PIT_COUNT SMP:SYNC:WAIT_MS=10:STALL_MS=0 
+done

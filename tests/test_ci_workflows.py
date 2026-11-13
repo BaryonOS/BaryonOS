@@ -29,6 +29,33 @@ CACHE_ACTION_SHA = "55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
 ACTIONLINT_VERSION = "1.7.12"
 ACTIONLINT_SHA256 = "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
 ACTIONLINT_TAG_COMMIT = "914e7df21a07ef503a81201c76d2b11c789d3fca"
+# Non-required workflows skip only documentation and project metadata. The
+# required ci.yml gates stay unfiltered (see test_required_gates_...).
+METADATA_PATHS_IGNORE = [
+    "docs/**",
+    "**.md",
+    ".github/ISSUE_TEMPLATE/**",
+    ".github/DISCUSSION_TEMPLATE/**",
+    ".github/workflows/project-classification.yml",
+    "tools/project_classification.py",
+    "tests/test_project_classification.py",
+]
+
+
+def github_path_filter_matches(pattern, path):
+    """Match GitHub path-filter globs: '*' stays within a segment, '**' spans."""
+    regex, i = "", 0
+    while i < len(pattern):
+        if pattern.startswith("**", i):
+            regex += ".*"
+            i += 2
+        elif pattern[i] == "*":
+            regex += "[^/]*"
+            i += 1
+        else:
+            regex += re.escape(pattern[i])
+            i += 1
+    return re.fullmatch(regex, path) is not None
 
 
 def uses_reference_is_pinned(reference):
@@ -322,10 +349,11 @@ class WorkflowContractTests(unittest.TestCase):
 
     def test_all_jobs_use_standard_hosted_ubuntu(self):
         """No custom label, dynamic selector or persistent runner can return."""
+        # ubuntu-26.04 is a standard hosted image; the K06 matrix pins QEMU 10.2.1 there.
         self.assertTrue(self.workflows)
         for path, job_id, job in self.jobs():
             with self.subTest(path=path, job=job_id):
-                self.assertEqual(job.get("runs-on"), "ubuntu-24.04")
+                self.assertIn(job.get("runs-on"), ("ubuntu-24.04", "ubuntu-26.04"))
 
     def test_kvm_pilot_is_manual_hosted_and_cannot_replace_tcg_acceptance(self):
         """Keep KVM opt-in, fail-closed, narrow, and outside required checks."""
@@ -634,6 +662,38 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                 self.assertEqual(job.get("continue-on-error", "false"), "false")
                 self.assertTrue(any("run" in step for step in job["steps"]))
 
+    def test_paths_ignore_skips_only_documentation_and_project_metadata(self):
+        """Metadata-only changes must not start native matrices; code still must."""
+        filtered = 0
+        for path, workflow in self.workflows.items():
+            for event in ("pull_request", "push"):
+                trigger = workflow["on"].get(event)
+                if isinstance(trigger, dict) and "paths-ignore" in trigger:
+                    filtered += 1
+                    with self.subTest(path=path, event=event):
+                        self.assertEqual(trigger["paths-ignore"], METADATA_PATHS_IGNORE)
+        self.assertGreater(filtered, 0)
+
+        def ignored(changed):
+            return any(github_path_filter_matches(p, changed)
+                       for p in METADATA_PATHS_IGNORE)
+
+        for changed in ("README.md", "docs/PROJECT-STATE.md", "sdk/README.md",
+                        ".github/pull_request_template.md",
+                        ".github/ISSUE_TEMPLATE/bug.yml",
+                        "tools/project_classification.py"):
+            with self.subTest(ignored=changed):
+                self.assertTrue(ignored(changed))
+        for changed in ("kernel/src/main.rs", "Cargo.lock", "tools/build.py",
+                        "tools/ci_evidence.py", "tests/test_ci_workflows.py",
+                        ".github/workflows/ci.yml",
+                        ".github/workflows/native-smp.yml",
+                        ".github/actions/setup-qemu/action.yml",
+                        "sdk/examples/window-session/src/main.rs",
+                        "docs.rs", "tools/project_classification.py.orig"):
+            with self.subTest(built=changed):
+                self.assertFalse(ignored(changed))
+
     def test_only_artifact_uploads_can_tolerate_errors(self):
         """Storage failure may be optional; failed builds, tests and collectors are not."""
         for path, job_id, job in self.jobs():
@@ -645,6 +705,28 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                     self.assertEqual(step["continue-on-error"], "true")
                     self.assertEqual(path, EVIDENCE_ACTION)
                     self.assertTrue(step.get("uses", "").startswith("actions/upload-artifact@"))
+
+    def test_window_matrix_requires_package_only_for_scale_one(self):
+        """Scale two must retain evidence without requiring or colliding on a scale-one bundle."""
+        workflow = self.workflows[".github/workflows/native-window-session.yml"]
+        job = workflow["jobs"]["native-window-session"]
+        preserve = next(
+            step for step in job["steps"]
+            if step.get("uses") == "./.github/actions/preserve-evidence"
+        )
+        inputs = preserve["with"]
+        self.assertEqual(
+            inputs["package-path"],
+            "${{ matrix.scale == 1 && "
+            "'build/window-session-ci/evidence/NieuwOS-Venstersessie-Windows-QEMU.zip' || '' }}",
+        )
+        self.assertIn("${{ matrix.scale }}", inputs["name"])
+
+        package = next(
+            step for step in job["steps"]
+            if step.get("name") == "Package the reviewable Windows QEMU bundle"
+        )
+        self.assertIn("matrix.scale == 1", package["if"])
 
     def test_pr_lifecycle_runs_once_without_skipping_drafts(self):
         """Draft changes are tested already, so becoming ready need not repeat them."""

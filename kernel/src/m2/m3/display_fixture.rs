@@ -58,7 +58,7 @@ static mut EVIDENCE: Evidence = Evidence {
     old_sources: [0; 2],
 };
 fn evidence() -> &'static mut Evidence {
-    // SAFETY: One CPU, IF0; sequential fixture callbacks. No borrow survives a
+    // SAFETY: KERNEL held, IF0; sequential fixture callbacks. No borrow survives a
     // scheduler/cleanup call or another call to this accessor.
     unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
 }

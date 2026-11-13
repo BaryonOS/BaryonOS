@@ -588,12 +588,12 @@ class RunnerTimeoutTests(unittest.TestCase):
                         [(entry.args[0], entry.kwargs["profile"]) for entry in smp_runner.call_args_list],
                         [
                             (2, "native-smp"), (4, "native-smp"),
-                            (2, "native-smp-m3"), (2, "native-smp-m3-exit"),
+                            (2, "native-smp-legacy-m3"), (2, "native-smp-m3-exit"),
                             (2, "native-smp-m3-lock-contention"),
                             (2, "native-smp-m3-tlb-reuse"),
                             (2, "native-smp-m3-x87"),
                             (2, "native-smp-m3-unexpected-ud"),
-                            (4, "native-smp-m3"), (2, "native-smp-m4"),
+                            (4, "native-smp-legacy-m3"), (2, "native-smp-m4"),
                             (2, "native-smp-m4"), (2, "native-smp-m4-lifecycle"),
                             (2, "native-smp-m4-revoke"),
                         ],
@@ -610,9 +610,9 @@ class SmpLoaderProfileTests(unittest.TestCase):
         from build import native_smp_handoff_required
 
         for feature in (
-            "native-smp-legacy", "native-smp-m3", "native-smp-m3-exit",
+            "native-smp-legacy", "native-smp-legacy-m3", "native-smp-m3-exit",
             "native-smp-m3-tlb-reuse", "native-smp-m3-lock-contention",
-            "native-smp-m3,test-m3-x87", "native-smp-m3,test-m3-ud",
+            "native-smp-legacy-m3,test-m3-x87", "native-smp-legacy-m3,test-m3-ud",
             "native-smp-m4", "native-smp-m4-revoke",
             "native-smp-m4,test-m4-lifecycle",
         ):

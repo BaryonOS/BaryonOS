@@ -36,7 +36,7 @@ mod replay {
     pub const FW_CFG_NAME: &[u8] = b"opt/nieuw-os/nas-replay";
 
     fn out8(port: u16, value: u8) {
-        // SAFETY: CPL0 acceptance kernel, single CPU with IF=0. The debugcon
+        // SAFETY: CPL0 acceptance kernel, KERNEL held with IF=0. The debugcon
         // port is a write-only byte sink; no memory is accessed.
         unsafe {
             asm!("out dx, al", in("dx") port, in("al") value, options(nomem, nostack, preserves_flags));
@@ -128,7 +128,7 @@ static mut EVIDENCE: Evidence = Evidence {
     kernel_tables: 0,
 };
 fn evidence() -> &'static mut Evidence {
-    // SAFETY: Single CPU, interrupts disabled; borrow ends before scheduling.
+    // SAFETY: KERNEL held, interrupts disabled; borrow ends before scheduling.
     unsafe { &mut *ptr::addr_of_mut!(EVIDENCE) }
 }
 fn fail(reason: &[u8]) -> ! {

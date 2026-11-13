@@ -317,6 +317,191 @@ fn image(model: &Model, view: Viewport) -> Vec<u32> {
 }
 
 #[test]
+fn high_contrast_preserves_calculation_selection_and_exact_default_pixels() {
+    for (width, height, scale) in [(320, 240, 1), (640, 480, 2), (320, 484, 1), (640, 608, 2)] {
+        let view = Viewport::new(width, height, scale).unwrap();
+        let mut model = Model::new();
+        type_text(&mut model, "2+3");
+        model.command(Command::Evaluate);
+        model.command(Command::SelectAll);
+        let state = (
+            model.expression().to_owned(),
+            model.selection(),
+            model.answer(),
+            model.caret(),
+            model.focus(),
+            model.active(),
+            model.notice(),
+            model.evaluations(),
+        );
+        let default = image(&model, view);
+        assert!(model.presented(model.generation()));
+        let generation = model.generation();
+        model.set_high_contrast(false);
+        assert_eq!(model.generation(), generation);
+        assert!(!model.paint_damage(view).intersects(0, 0, width, height));
+        model.set_high_contrast(true);
+        assert!(model.high_contrast());
+        for (x, y) in [
+            (0, 0),
+            (width - 1, 0),
+            (0, height - 1),
+            (width - 1, height - 1),
+        ] {
+            assert!(model.paint_damage(view).intersects(x, y, 1, 1));
+        }
+        let contrast = image(&model, view);
+        assert_ne!(default, contrast);
+        for color in [0, 0xffffff, 0xffff00, 0x00ffff] {
+            assert!(
+                contrast.contains(&color),
+                "Missing real role color {color:x}"
+            );
+        }
+        assert_eq!(
+            (
+                model.expression().to_owned(),
+                model.selection(),
+                model.answer(),
+                model.caret(),
+                model.focus(),
+                model.active(),
+                model.notice(),
+                model.evaluations()
+            ),
+            state
+        );
+        model.set_high_contrast(false);
+        assert_eq!(image(&model, view), default);
+    }
+}
+
+#[test]
+fn selected_result_high_contrast_uses_legible_black_text_on_cyan_fill() {
+    use nieuw_os_graphics::theme::HIGH_CONTRAST;
+    for (width, height, scale) in [(320, 240, 1), (640, 480, 2), (320, 484, 1), (640, 608, 2)] {
+        let view = Viewport::new(width, height, scale).unwrap();
+        let mut model = Model::new();
+        type_text(&mut model, "2+3");
+        model.command(Command::Evaluate);
+        model.command(Command::SelectResult);
+        assert!(model.result_selected());
+        model.set_high_contrast(true);
+        let pixels = image(&model, view);
+        let bounds = Layout::new(view).result_bounds(scale);
+        let mut black_glyphs = 0;
+        let mut cyan_background = 0;
+        for y in (bounds.y * scale)..((bounds.y + bounds.height) * scale) {
+            for x in (bounds.x * scale)..((bounds.x + bounds.width) * scale) {
+                let pixel = pixels[(y * width + x) as usize];
+                black_glyphs += u32::from(pixel == 0x000000);
+                cyan_background += u32::from(pixel == HIGH_CONTRAST.accent_soft);
+            }
+        }
+        assert!(
+            black_glyphs > 0 && cyan_background > 0,
+            "selected result contrast pixels missing"
+        );
+    }
+}
+
+#[test]
+fn high_contrast_role_pairs_exceed_text_and_focus_thresholds() {
+    use nieuw_os_graphics::theme::{HIGH_CONTRAST as p, HIGH_CONTRAST_DANGER};
+    let luminance = |color: u32| {
+        let channel = |shift: u32| {
+            let value = f64::from((color >> shift) & 255u32) / 255.0;
+            if value <= 0.04045 {
+                value / 12.92
+            } else {
+                ((value + 0.055) / 1.055).powf(2.4)
+            }
+        };
+        0.2126 * channel(16) + 0.7152 * channel(8) + 0.0722 * channel(0)
+    };
+    for (foreground, background, minimum) in [
+        (p.text, p.background, 7.0),
+        (p.muted, p.background, 7.0),
+        (HIGH_CONTRAST_DANGER, p.background, 7.0),
+        (0, p.accent, 7.0),
+        (0, p.accent_soft, 7.0),
+        (p.border, p.background, 3.0),
+        (p.accent, p.background, 3.0),
+    ] {
+        let a = luminance(foreground);
+        let b = luminance(background);
+        let ratio = (a.max(b) + 0.05) / (a.min(b) + 0.05);
+        assert!(
+            ratio >= minimum,
+            "Contrast {foreground:x}/{background:x}: {ratio}"
+        );
+    }
+}
+
+#[test]
+fn high_contrast_hotkey_is_exact_and_never_toggles_on_release_or_repeat() {
+    let mut model = Model::new();
+    type_text(&mut model, "7/0");
+    model.command(Command::Evaluate);
+    let notice = model.notice();
+    let evaluations = model.evaluations();
+    let failures = model.failures();
+    let chord = KeyboardEvent {
+        key: PhysicalKey::H,
+        action: KeyAction::Press,
+        modifiers: KeyboardModifiers {
+            left_control: true,
+            left_alt: true,
+            ..Default::default()
+        },
+    };
+    for action in [KeyAction::Release, KeyAction::Repeat, KeyAction::Pulse] {
+        model.keyboard(KeyboardEvent { action, ..chord });
+        assert!(!model.high_contrast());
+    }
+    for modifiers in [
+        KeyboardModifiers {
+            left_control: true,
+            ..Default::default()
+        },
+        KeyboardModifiers {
+            left_alt: true,
+            ..Default::default()
+        },
+        KeyboardModifiers {
+            left_shift: true,
+            ..chord.modifiers
+        },
+        KeyboardModifiers {
+            left_super: true,
+            ..chord.modifiers
+        },
+    ] {
+        model.keyboard(KeyboardEvent { modifiers, ..chord });
+        assert!(!model.high_contrast());
+    }
+    model.keyboard(chord);
+    assert!(model.high_contrast());
+    assert_eq!(model.expression(), "7/0");
+    assert_eq!(model.notice(), notice);
+    assert_eq!(model.evaluations(), evaluations);
+    assert_eq!(model.failures(), failures);
+    for scale in [1, 2] {
+        let pixels = image(
+            &model,
+            Viewport::new(320 * scale, 484 * scale, scale).unwrap(),
+        );
+        assert!(pixels.contains(&0xffb4b4), "Error must remain visible");
+        assert!(
+            !model.notice().label().is_empty(),
+            "Error is not color-only"
+        );
+    }
+    model.keyboard(chord);
+    assert!(!model.high_contrast());
+}
+
+#[test]
 fn proportional_formula_hit_testing_and_caret_follow_exact_visible_advances() {
     for scale in [1, 2] {
         let view = Viewport::new(320 * scale, 484 * scale, scale).unwrap();
