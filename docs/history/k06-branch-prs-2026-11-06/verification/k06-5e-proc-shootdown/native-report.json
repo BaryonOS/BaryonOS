@@ -1,0 +1,337 @@
+{
+ "schema_version": 1,
+ "source_sha256": [
+  "fdc7ab040b78aef18d3b9868b3819e734eb072d2d7d22cea8531a57cc1ca90af"
+ ],
+ "cases": [
+  {
+   "profile": "native-smp",
+   "case": "one",
+   "cpus": 1,
+   "tcg_threads": "single",
+   "passed": true,
+   "outcome": "online",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "ab81e422e7a5d4262b35dbfc7895ee8f82aa6db26ae77209344cf27b4f02b9e3",
+   "isolation": "SKIPPED",
+   "unmap_race": "SKIPPED"
+  },
+  {
+   "profile": "native-smp",
+   "case": "two-single",
+   "cpus": 2,
+   "tcg_threads": "single",
+   "passed": true,
+   "outcome": "online",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "ab81e422e7a5d4262b35dbfc7895ee8f82aa6db26ae77209344cf27b4f02b9e3",
+   "isolation": "PASS",
+   "unmap_race": "PASS"
+  },
+  {
+   "profile": "native-smp",
+   "case": "four",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "online",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "ab81e422e7a5d4262b35dbfc7895ee8f82aa6db26ae77209344cf27b4f02b9e3",
+   "isolation": "PASS",
+   "unmap_race": "PASS"
+  },
+  {
+   "profile": "native-smp",
+   "case": "eight",
+   "cpus": 8,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "online",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "ab81e422e7a5d4262b35dbfc7895ee8f82aa6db26ae77209344cf27b4f02b9e3",
+   "isolation": "PASS",
+   "unmap_race": "PASS"
+  },
+  {
+   "profile": "native-smp",
+   "case": "nine-capacity",
+   "cpus": 9,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "online",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "ab81e422e7a5d4262b35dbfc7895ee8f82aa6db26ae77209344cf27b4f02b9e3",
+   "isolation": "PASS",
+   "unmap_race": "PASS"
+  },
+  {
+   "profile": "native-smp",
+   "case": "duplicate-madt",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "invalid-madt",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "ab81e422e7a5d4262b35dbfc7895ee8f82aa6db26ae77209344cf27b4f02b9e3"
+  },
+  {
+   "profile": "test-smp-ap-double-fault",
+   "case": "ap-double-fault-ist",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "df-ist",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "1c0311148397525610b48ee3cf3866e70ba0fecb514576c11e65ef9cc244a4c9"
+  },
+  {
+   "profile": "test-smp-ap-ipi-deaf",
+   "case": "ap-ipi-deaf",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "quarantine",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "56eb472c6ff9bca57b89dd75e872c64df5e1cd67ce6e14def849e30b0b8b273f"
+  },
+  {
+   "profile": "test-smp-ap-mismatch",
+   "case": "ap-mismatch",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "mismatch",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "6c4d6dfcf3f48c4721c464ce355154d5d5f704b14888f89c53b2afcd8db6f551",
+   "isolation": "SKIPPED",
+   "unmap_race": "SKIPPED"
+  },
+  {
+   "profile": "test-smp-ap-nmi",
+   "case": "ap-nmi-ist",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "nmi-ist",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "733d755d1052717385fe7f95d1a7932274a4aae1ef899eb5f119270817251df1"
+  },
+  {
+   "profile": "test-smp-ap-shootdown-deaf",
+   "case": "ap-shootdown-deaf",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "shootdown-quarantine",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "9ef0dbda5f03d6f12f5bfb9f81c7054bf5735aff001589c030a9b08d153858b3",
+   "frame_quarantined": "SMP:SHOOTDOWN:FRAME_QUARANTINED"
+  },
+  {
+   "profile": "test-smp-ap-stall",
+   "case": "ap-stall",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "timeout",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "98ac1d27065e5fc69f3489385aa740fd00b5f3a3952cd6bb08fadc036051bd86",
+   "isolation": "SKIPPED",
+   "unmap_race": "SKIPPED"
+  },
+  {
+   "profile": "test-smp-ap-timer-dead",
+   "case": "ap-timer-dead",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "timer-quarantine",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "c6ec97e28e3183635320190a8ede03523924742b5ae38e21e48d458751da3ea3"
+  },
+  {
+   "profile": "test-smp-bsp-spin-irq-off",
+   "case": "bsp-spin-irq-off-control",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "bsp-spin-timeout",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "0630bae5756924538231396f674daf305da9fdb8fd5724c1ceb84cc72b1db020"
+  },
+  {
+   "profile": "test-smp-double-run",
+   "case": "double-run",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "double-run",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "d8be5c06287f6f2a0470f13dafb10ebc4e136eac32e53235a7e87f14fe7596cf"
+  },
+  {
+   "profile": "test-smp-gs-iret-fault",
+   "case": "gs-iret-fault",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "gs-iret-fault",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "193093b8f44383901498c1eb1e989eaf8e798e1f6cbe81e792f36b86007eb8d6",
+   "isolation": "PASS",
+   "unmap_race": "PASS"
+  },
+  {
+   "profile": "test-smp-gs-nmi-user",
+   "case": "gs-nmi-user",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "gs-nmi-user",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "2afbca674a948789478e6c11548125ae4045252c5fde3147a97a93fdfd48c726",
+   "isolation": "PASS",
+   "unmap_race": "PASS"
+  },
+  {
+   "profile": "test-smp-gs-user",
+   "case": "gs-user",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "gs-user",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "fc095492bbf23200a3aee2cfef3632ac15d4f0432c8ced56a51ed9e1cd7cf280",
+   "isolation": "PASS",
+   "unmap_race": "PASS"
+  },
+  {
+   "profile": "test-smp-held-across-switch",
+   "case": "held-across-switch",
+   "cpus": 2,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "held-across-switch",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "24f4469a9cabd667c3b27ceb6b6b81f64958d9a70891fb29b4a9a175ca055e87"
+  },
+  {
+   "profile": "test-smp-icr-race",
+   "case": "icr-race-control",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "icr-race",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "2580d1e47ccc40719a9d350f16d6fee4422eae491ac6969a869c920e65e8ff93"
+  },
+  {
+   "profile": "test-smp-lock-in-handler",
+   "case": "lock-in-handler",
+   "cpus": 2,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "lock-in-handler",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "9599ddf9921f42f800e86bddfc5ba3fa855cfc0edc07e29488e9db0789ec8497"
+  },
+  {
+   "profile": "test-smp-lockdep-order",
+   "case": "lockdep-order",
+   "cpus": 2,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "lockdep-order",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "9c7fe9823ebbce700a53e9592441bae5a18af9559c2c0b9a4fb12be7a86aeee5",
+   "isolation": "PASS",
+   "unmap_race": "PASS"
+  },
+  {
+   "profile": "test-smp-lockpair-order",
+   "case": "lockpair-order",
+   "cpus": 2,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "lockpair-order",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "db9e94472dd21921990c7c24047e46c8b651edb21a2d54439f06d1c1180098af"
+  },
+  {
+   "profile": "test-smp-proc-no-shootdown",
+   "case": "proc-no-shootdown-control",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "proc-stale-read",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "9ff22fbc20d82c73863844e60906494fc806f64e2a731fd151b201dc4a72c02c",
+   "isolation": "PASS",
+   "stale_read": "SMP:SHOOTDOWN:STALE_READ"
+  },
+  {
+   "profile": "test-smp-proc-shootdown-deaf",
+   "case": "proc-shootdown-deaf",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "proc-shootdown-quarantine",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "7d410e13a66abdf3fc03c341eaf09fe812b49af65323bb210ab0790a749c5a40",
+   "isolation": "PASS",
+   "frame_quarantined": "SMP:SHOOTDOWN:FRAME_QUARANTINED"
+  },
+  {
+   "profile": "test-smp-quarantine-lock-held",
+   "case": "quarantine-lock-held",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "lock-held",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "e2e79b86af34c32faa11af9b188fb307e647eb806744d3cc48c992a63659e02e"
+  },
+  {
+   "profile": "test-smp-resched-deaf",
+   "case": "resched-deaf",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "kill-quarantine",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "3a059096f92cd24ec486ad7217db63125c97fb84c8fbc0ea893bec401988020e"
+  },
+  {
+   "profile": "test-smp-shared-scratch",
+   "case": "shared-scratch",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "shared-scratch",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "601f7c9e4a973613490131821a6125a60369dbcfffc286c6e0de4a8ad6e60f21"
+  },
+  {
+   "profile": "test-smp-shootdown-skipped",
+   "case": "shootdown-skipped-control",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "stale-control",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "0399ae41d1e0ec97e8c9db9f8bbcde94ee5166caa2c9c2d41a8dedc8028e6a4a",
+   "isolation": "PASS",
+   "unmap_race": "PASS"
+  },
+  {
+   "profile": "test-smp-spin-irq-off",
+   "case": "spin-irq-off-control",
+   "cpus": 4,
+   "tcg_threads": "multi",
+   "passed": true,
+   "outcome": "spin-quarantine",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "7ef89f11fa7c68ec1460cc839ff198b82784357b4958de1dc97b6c8cd5255d6b"
+  }
+ ]
+}

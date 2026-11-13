@@ -1,0 +1,300 @@
+{
+  "schema_version": 1,
+  "source_sha256": "412e6740bc3383220d1ed38e0658290a2d32c776aed8000fdbc9bc11c19bd1e8",
+  "cases": [
+    {
+      "profile": "native-smp",
+      "case": "one",
+      "cpus": 1,
+      "passed": true,
+      "outcome": "online",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "8523c9d0a2afaf4495bed0f0e7fb379dd75187853f209bd2923fe79f48d0d0d6",
+      "timer_ratio": 62572
+    },
+    {
+      "profile": "native-smp",
+      "case": "two-single",
+      "cpus": 2,
+      "passed": true,
+      "outcome": "online",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "8523c9d0a2afaf4495bed0f0e7fb379dd75187853f209bd2923fe79f48d0d0d6",
+      "timer_ratio": 62565,
+      "idle_wake_us": 39
+    },
+    {
+      "profile": "native-smp",
+      "case": "four",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "online",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "8523c9d0a2afaf4495bed0f0e7fb379dd75187853f209bd2923fe79f48d0d0d6",
+      "timer_ratio": 62727,
+      "idle_wake_us": 120
+    },
+    {
+      "profile": "native-smp",
+      "case": "eight",
+      "cpus": 8,
+      "passed": true,
+      "outcome": "online",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "8523c9d0a2afaf4495bed0f0e7fb379dd75187853f209bd2923fe79f48d0d0d6",
+      "timer_ratio": 62747,
+      "idle_wake_us": 104
+    },
+    {
+      "profile": "native-smp",
+      "case": "nine-capacity",
+      "cpus": 9,
+      "passed": true,
+      "outcome": "online",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "8523c9d0a2afaf4495bed0f0e7fb379dd75187853f209bd2923fe79f48d0d0d6",
+      "timer_ratio": 62871,
+      "idle_wake_us": 54
+    },
+    {
+      "profile": "native-smp",
+      "case": "duplicate-madt",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "invalid-madt",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "8523c9d0a2afaf4495bed0f0e7fb379dd75187853f209bd2923fe79f48d0d0d6"
+    },
+    {
+      "profile": "test-smp-ap-double-fault",
+      "case": "ap-double-fault-ist",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "df-ist",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "f19862e334e553536ec73983c2088c549eadca6eb06568771c7bc423771bd86e",
+      "timer_ratio": 62652
+    },
+    {
+      "profile": "test-smp-ap-ipi-deaf",
+      "case": "ap-ipi-deaf",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "quarantine",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "c6afb22f967bccb69d469f90c991c8560dac5b7da7996b44d7a7f29983a3190b",
+      "timer_ratio": 62629
+    },
+    {
+      "profile": "test-smp-ap-mismatch",
+      "case": "ap-mismatch",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "mismatch",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "2b66718b8312856a500372543d6e9f2b74c5193f0f69afe8e0988e78185f4e5b",
+      "timer_ratio": 62564
+    },
+    {
+      "profile": "test-smp-ap-nmi",
+      "case": "ap-nmi-ist",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "nmi-ist",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "0c3dcda861b13df25ea2927d3faeaad9348446063993d1e2874436bee8cbcac2",
+      "timer_ratio": 62685
+    },
+    {
+      "profile": "test-smp-ap-shootdown-deaf",
+      "case": "ap-shootdown-deaf",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "shootdown-quarantine",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "bc7d060637b42b88a19d4dd7a11d68cefd98d683e7c45fb1ad85222285e9be19",
+      "timer_ratio": 62698
+    },
+    {
+      "profile": "test-smp-ap-stall",
+      "case": "ap-stall",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "timeout",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "1b1ed9b3f0e9a3c1c56d3a132c91dd919fa0400e796c488e49720e036d8de688",
+      "timer_ratio": 62559
+    },
+    {
+      "profile": "test-smp-ap-timer-dead",
+      "case": "ap-timer-dead",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "timer-quarantine",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "3a2026ab9b038277538ead364809241ed68ad2e5bfd1be795859c71b08e2b97a",
+      "timer_ratio": 62642
+    },
+    {
+      "profile": "test-smp-bsp-spin-irq-off",
+      "case": "bsp-spin-irq-off-control",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "bsp-spin-timeout",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "82f28d4035df8e46eb16d5c19ae98d15263fd49f416564e3db5295cb0c8691a8",
+      "timer_ratio": 62712
+    },
+    {
+      "profile": "test-smp-double-run",
+      "case": "double-run",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "double-run",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "8dc8b0b7125bbee64371af47fcbfd8039212a0048321e07e7c09833c8df89bdf",
+      "timer_ratio": 62616,
+      "idle_wake_us": 93
+    },
+    {
+      "profile": "test-smp-gs-iret-fault",
+      "case": "gs-iret-fault",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "gs-iret-fault",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "cac81a051e21b73adaea03a40214b981703019b7d3113d2c7f4609e2133eaa32",
+      "timer_ratio": 62605,
+      "idle_wake_us": 132
+    },
+    {
+      "profile": "test-smp-gs-nmi-user",
+      "case": "gs-nmi-user",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "gs-nmi-user",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "0c7c08e2720f627dd5a62eec033f028b91c9996d21502da4d6cad17d58292672",
+      "timer_ratio": 62639,
+      "idle_wake_us": 231
+    },
+    {
+      "profile": "test-smp-gs-user",
+      "case": "gs-user",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "gs-user",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "e238b73386ff943365caca03ab4217dbb152deb1098edb2c3976d01c05b79e54",
+      "timer_ratio": 62771,
+      "idle_wake_us": 248
+    },
+    {
+      "profile": "test-smp-held-across-switch",
+      "case": "held-across-switch",
+      "cpus": 2,
+      "passed": true,
+      "outcome": "held-across-switch",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "bb37c3ded7050cca50ad61d42de4652927633fea49b2e94949ca4216643b56bc",
+      "timer_ratio": 62790
+    },
+    {
+      "profile": "test-smp-icr-race",
+      "case": "icr-race-control",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "icr-race",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "516e1e55668e086dccb35c7f40643f74464921ea330f4caf515813a65a161368",
+      "timer_ratio": 62754,
+      "idle_wake_us": 143
+    },
+    {
+      "profile": "test-smp-lock-in-handler",
+      "case": "lock-in-handler",
+      "cpus": 2,
+      "passed": true,
+      "outcome": "lock-in-handler",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "43db341948c600abbb81deadb27c54dd503e4720dcd95343249510cf67b5e31f",
+      "timer_ratio": 62712,
+      "idle_wake_us": 58
+    },
+    {
+      "profile": "test-smp-lockdep-order",
+      "case": "lockdep-order",
+      "cpus": 2,
+      "passed": true,
+      "outcome": "lockdep-order",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "c228481f88222ae85049ba806de8dcec6927d587d6737b17a9ea2b1b35b300cf",
+      "timer_ratio": 62616,
+      "idle_wake_us": 54
+    },
+    {
+      "profile": "test-smp-lockpair-order",
+      "case": "lockpair-order",
+      "cpus": 2,
+      "passed": true,
+      "outcome": "lockpair-order",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "d53d941df7d7be633d96256b2fc344d321454453e7312ea1c8a4c2136c52e7d4",
+      "timer_ratio": 62586,
+      "idle_wake_us": 52
+    },
+    {
+      "profile": "test-smp-quarantine-lock-held",
+      "case": "quarantine-lock-held",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "lock-held",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "c1d25cbc1eb75fb14e40b69421580ed62abf6e754bdbcdcbdc7e2c3bad2c4d46",
+      "timer_ratio": 62696
+    },
+    {
+      "profile": "test-smp-resched-deaf",
+      "case": "resched-deaf",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "kill-quarantine",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "9c4459b110e58bab8cad60d5b28e710d0038382ff4c5760ada0f373b73a703a8",
+      "timer_ratio": 62738,
+      "idle_wake_us": 103
+    },
+    {
+      "profile": "test-smp-shared-scratch",
+      "case": "shared-scratch",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "shared-scratch",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "6df556d4a63c233524777c8e0dd2369469668810262bcd5f24796f9000d67c45",
+      "timer_ratio": 62729,
+      "idle_wake_us": 98
+    },
+    {
+      "profile": "test-smp-shootdown-skipped",
+      "case": "shootdown-skipped-control",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "stale-control",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "0dde833d43a2d235a938df71352241164415ad8b76c266f9cda2739fadd6e13e",
+      "timer_ratio": 62734,
+      "idle_wake_us": 60
+    },
+    {
+      "profile": "test-smp-spin-irq-off",
+      "case": "spin-irq-off-control",
+      "cpus": 4,
+      "passed": true,
+      "outcome": "spin-quarantine",
+      "raw_qemu_exit": 33,
+      "manifest_sha256": "c6b7f5b5833e27788be117e8b1930121ba0a43a61587fb39d7fa78872f739dfc",
+      "timer_ratio": 62585
+    }
+  ]
+}

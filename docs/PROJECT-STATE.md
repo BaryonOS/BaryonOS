@@ -29,6 +29,39 @@
 
 **Progress:** 41/100 → 41/100 (S09 not accepted).
 
+## Previous checkpoint — K06 branch documentation ported (merged as #319); old K06 pull requests ready to close — 13 November 2026
+
+**Source:** branch `docs/k06-branch-docs-port` from `main` `c76daf7` (PR #317 squash-merged at 18:25 UTC; all 19
+workflow runs on `c76daf7` succeeded). Documentation only: no file in `source_hash()` changes.
+
+**Finding:** the code of the unmerged K06 pull requests #227, #229, #238 and #246 is on `main` through #296; every kernel
+feature and `run_smp.py` profile they add exists there. Their documentation and the specifications of #232 never
+reached `main`: the bodies of ADR-075 and ADR-077 to ADR-081 (recorded as missing in
+`verification/k06-smp-sched/timing-investigation/map/K06A-SPEC.md`), the branch addenda to ADR-074 and ADR-072, the ten
+L0 step specifications and 42 branch evidence files.
+
+**Change:**
+- [history/k06-branch-prs-2026-11-06/](history/k06-branch-prs-2026-11-06/README.md): the Dutch originals, byte-identical
+  (git blob ids in `disposition.json`), and per pull request a documentation patch that reproduces its head exactly
+  from its merge base; `disposition.json` records, per changed file, where its content now is.
+- `docs/DECISIONS.md`: English ADR-075, ADR-077 to ADR-081 and ADR-083. ADR-083 was ADR-076 on the branches; `main`
+  already uses ADR-076 for ACPI S5, and `kernel/src/m2/arch.rs` still cites "ADR-076 GS-1..GS-10" (left unchanged to
+  keep the source fingerprint). English branch addenda to ADR-074 and ADR-072; revision note on ADR-024.
+- `docs/implementation/k06-steps/`: English L0 step specifications; `docs/implementation/K06-SMP.md`: an English
+  section "Branch additions, 6–11 November 2026".
+
+**Not changed:** code, workflows, evidence of the accepted run, scores. Status handoffs, progress assessments and
+`tools/auto-loop.sh` of the old branches are superseded and only archived.
+
+**Checks:** `source_hash()` unchanged (`e693759d…`); `progress.py --check` consistent; 111 relative links resolve. The
+translations were compared with the Dutch originals by a separate AI fidelity pass (numbers, IDs, paths, backticked
+spans, structure); no human review. The historical texts keep branch-era paths and line numbers.
+
+**Next:** after the project owner's approval, merge this pull request and close #227, #229, #232, #238 and #246 with a
+reference to the archive; their branches stay in place.
+
+**Progress:** 41/100 → 41/100.
+
 ## Previous checkpoint — K06 step 5f accepted: full matrix 43429991481 and the final gate pass on `880984b` — 13 November 2026
 
 **Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Tested commit `880984bb29c316e606490c0fa235b119ed4bb553` (source-v3 `e693759d89705970ecaa9c315b0423261fdc7924235af566beb363419eabd255`). Later commits change verification and documentation files only.
