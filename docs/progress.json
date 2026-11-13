@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-13",
-    "source_commit": "4eb18b15a399636f87845e9706c2d5bb1e290ac8",
+    "source_commit": "790e122e0b084c0badf761fcd8dba9519ddccab0",
     "assessment_basis": "source_commit",
     "branch": "ccr-5a0d9559-16gxmt",
-    "task": "K06 step 5f: ADR-082 D1-D5 implemented after the project owner's decision; targeted local and hosted verification; GO/NO-GO report with verdict GO for one full matrix, pending permission",
+    "task": "K06 step 5f: full native-smp matrix run 43403835073 on c95d1d2 evaluated; stale host oracle in tests/test_qemu_smoke_gate.py repaired",
     "previous_score": 39,
-    "summary": "39/100 remains 39/100. The approved contract changes D1-D5 of ADR-082 are implemented (per-CPU progress-bounded sync and scratch waits judged for performance off the five overcommitted cases, clock verdict on the median without host-charged periods with a complete witness, 125 s m3-load watchdog), plus a repair of the ICR acknowledgement bound and the open review items. 240/240 hosted diagnostic boots, the gate rehearsal and the pull-request run pass on the candidate, and every negative fixture stops on its own marker. No acceptance matrix, soak or final gate ran, so K06 step 5f stays open until the project owner permits one full matrix and it passes."
+    "summary": "39/100 remains 39/100. Full matrix run 43403835073 on c95d1d2 (source-v3 e693759d, the ADR-082 candidate) passed all 3700 guests: 73 per-case jobs 50/50, ten soak shards, the K07 probe and the aggregate's 50/50 step, with no timing incident; verify_artifacts.py exits 0 on the digest-checked artifacts. The aggregate's host-oracle step failed because tests/test_qemu_smoke_gate.py still expected the gate sequence without the k05-smp stage, so the final repository gate was skipped. This is a test-harness oracle defect, not a kernel or runner fault; commit 790e122 tightens the oracle without changing the source hash. K06 step 5f stays open: acceptance needs one new full matrix including the final gate, which requires the project owner's permission."
   },
   "tracks": [
     {

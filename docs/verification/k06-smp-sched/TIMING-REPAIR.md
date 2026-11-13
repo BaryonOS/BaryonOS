@@ -348,3 +348,46 @@ limits stay testable through the recorded `WAIT_MS` values (per boot and in the 
 margin summary) but are not judged; judging them needs an environment with at least as many
 dedicated cores as vCPUs, or KVM or hardware (H06).
 
+### 7.5 Result of the full matrix (run 43403835073)
+
+Run [43403835073](https://github.com/BaryonOS/BaryonOS/actions/runs/43403835073) was
+dispatched with the project owner's permission on `c95d1d2a6fe1f37674c098c21d12d1d29bb1cce3`
+(source-v3 `e693759d89705970ecaa9c315b0423261fdc7924235af566beb363419eabd255`, identical to
+the candidate `4eb18b1`). It ran once, was neither cancelled nor retried, and is **rejected**
+because the final repository gate did not run. Receipt: [`incident-43403835073.json`](incident-43403835073.json).
+
+| Item | Result |
+|---|---|
+| Guests | 3 700 of 3 700 passed: 73 per-case jobs 50/50, ten soak shards 5/5 (the soak is the 74th case), K07 probe passed |
+| Timing incidents | none; the three earlier matrices had one or two each |
+| Aggregate, step "Require exact 50/50 evidence on one source hash" | success: `matrix-report.json` passed, 74 cases, 3 700 guest runs, one source hash |
+| Aggregate, step "Complete source-bound SMP host oracles" | **failure**: `tools/tests` 317 OK; `tests/test_qemu_smoke_gate.py` 1 of 4 failed |
+| Final repository gate | skipped (`needs: smp-matrix-aggregate`) |
+| `verify_artifacts.py` (read-only, local) | exit 0: 84 reports, 3 700 runs independently verified, aggregate verified, environment probe checked; 85 artifact ZIPs match their API digests |
+| Host watchdog margins | `m3-ipc-four` 138.6–158.3 s (median 143.2 s; 60 % of the 264 s bound), `m3-ipc-four-single` 94.7–110.7 s, `m3-load-eight` 46.0–47.6 of 125 s |
+
+**Cause.** `tools/qemu-smoke-test.sh` has run the isolated `k05-smp` stage
+(`test_supervisor.py --smp`) since #296, and `verify_final_gate.py` requires that stage.
+The host oracle `test_all_required_native_gates_run_sequentially_in_isolated_directories`
+still expected the pre-SMP sequence and four build directories. The test runs only in this
+aggregate step, which no earlier full matrix reached because each failed in a case job first.
+The failure is deterministic and reproduces locally on `c95d1d2`. Classification: a
+test-harness oracle defect; not a kernel defect and not a runner fault.
+
+**Repair.** Commit `790e122` makes the oracle require the `k05-smp` call and five isolated
+build directories. The oracle is tightened; the gate script is unchanged. `tests/` lies outside
+the source fingerprint, so the source hash stays `e693759d…`. Locally after the repair:
+PyYAML 6.0.3, `tests/test_qemu_smoke_gate.py` 4 OK, `tools/tests` 317 OK (after
+`cargo +1.90.0 fetch --locked`, as in the aggregate job; without the fetch,
+`test_snapshot_wipe` cannot resolve `ed25519-dalek` offline).
+
+**Not verified.** The real final repository gate never executed on this source; the
+diagnostic rehearsal of `tools/gate.sh` on the same runner image (run 43352859422, `4eb18b1`)
+is not acceptance. `verify_final_gate.py` has no artifact to read.
+
+**Next.** Acceptance needs one new full matrix on a head that contains the repair. It is not
+started without the project owner's permission. Sampling alone supports a moderate
+expectation: with no failure in about 3 940 hosted guests of this source (240 diagnostic boots
+and this run) and a Jeffreys prior, the predictive probability that 3 700 further guests pass is
+about 72 %; a per-guest rate at the 95 % upper bound (3 / 3 940) would give about 6 %.
+

@@ -1,6 +1,27 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 step 5f: ADR-082 D1–D5 implemented and verified; GO for one full matrix, pending the project owner's permission — 13 November 2026
+## NEXT AGENT HANDOFF — K06 step 5f: full matrix 43403835073 passes every guest but is rejected on a stale host oracle; repaired; a new matrix needs permission — 13 November 2026
+
+**Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Tested commit `c95d1d2` (source-v3 `e693759d89705970ecaa9c315b0423261fdc7924235af566beb363419eabd255`, identical to the ADR-082 candidate `4eb18b1`). Repair commit `790e122` touches only `tests/`, outside the source fingerprint; later commits change documentation and evidence only.
+
+**Run [43403835073](https://github.com/BaryonOS/BaryonOS/actions/runs/43403835073)** (`full_matrix=true`, permitted by the project owner, first attempt, not cancelled, no retry): **rejected.**
+- 3 700 of 3 700 guests pass: 73 per-case jobs 50/50, ten soak shards, K07 probe. No timing incident. The aggregate's 50/50 step passes (74 cases, 3 700 guest runs, one source hash). `verify_artifacts.py` exits 0 on the 85 downloaded, digest-checked artifacts.
+- The aggregate's host-oracle step fails: `tests/test_qemu_smoke_gate.py` expected the gate sequence without the `k05-smp` stage that `tools/qemu-smoke-test.sh` runs since #296 (and `verify_final_gate.py` requires). `tools/tests` 317 OK. The final repository gate is skipped, so acceptance is not reached.
+- Classification: test-harness oracle defect; not a kernel defect, not a runner fault. The test runs only in the aggregate step, which no earlier matrix reached.
+- Margins: `m3-ipc-four` at most 158.3 s per boot (bound 264 s), `m3-ipc-four-single` at most 110.7 s, `m3-load-eight` at most 47.6 of 125 s.
+- Evidence: `verification/k06-smp-sched/incident-43403835073.json`, `matrix-report-43403835073.json.gz`, `host-oracles-43403835073.log.gz`, `verify-artifacts-43403835073.json.gz`; [TIMING-REPAIR.md](verification/k06-smp-sched/TIMING-REPAIR.md) section 7.5.
+
+**Repair `790e122`:** the oracle requires the `k05-smp` call and five isolated build directories (tightened; gate script unchanged). Local after the repair: `tests/test_qemu_smoke_gate.py` 4 OK, `tools/tests` 317 OK (after `cargo +1.90.0 fetch --locked`), PyYAML 6.0.3, source hash unchanged.
+
+**Not run:** the real final repository gate on this source (only the diagnostic rehearsal in run 43352859422); `verify_final_gate.py`; KVM or hardware.
+
+**Blocker:** acceptance needs one new full matrix on a head that contains `790e122`; the earlier permission covered exactly one matrix. Sampling estimate for a repeat: about 72 % (Jeffreys, no failure in about 3 940 hosted guests of this source); about 6 % at the 95 % upper bound of the per-guest rate.
+
+**Next:** on the project owner's permission, dispatch `native-smp.yml` with `full_matrix=true` on the PR head; read every failed job; no selective retries. On a pass of all 74 cases 50/50, the soaks, K07, the aggregate and the final gate, run `verify_final_gate.py` and record acceptance (progress 39 → 41) in PR #317.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f: ADR-082 D1–D5 implemented and verified; GO for one full matrix, pending the project owner's permission — 13 November 2026
 
 **Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Candidate source `4eb18b1`; later commits change documentation and evidence only.
 
