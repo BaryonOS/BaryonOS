@@ -2,7 +2,7 @@
 
 ## NEXT AGENT HANDOFF — S09 native archive slice: export, restore, damaged-archive refusal, name-conflict restore and a full target pass the local volume gate (14/14) — 13 November 2026
 
-**Source:** branch `feat/s09-native-archive`, draft PR #318 (no auto-merge). Tested commit `f9142720` (source-v3 `4f4555b8793e0ac905e971f1fdd3fdfc509f0c7aefbab2ff07c94a8f31ddf0f7`); later commits change documentation and evidence only.
+**Source:** branch `feat/s09-native-archive`, draft PR #318 (no auto-merge). Tested commit `e88e0ad5` (source-v3 `a924a051f18bb1044526ba641d58023356e19564b5cd3a68823f90a14a1f69af`, which includes the AI-review fixes); later commits change documentation and evidence only.
 
 **Done:**
 - Kernel volume profile cases 7–11 (`test-volume-archive-export|restore|corrupt|conflict|full`). The slot-1 portal alone gets the archive range (device 0, sectors 1000..2040, disjoint from the volume 4..584): READ|WRITE|FLUSH for export, READ only for restore, corrupt and conflict, and READ|WRITE|FLUSH on the first 100 sectors only for the full-target case.
@@ -12,14 +12,14 @@
 - Five archive runner stages; `tools/test_volume.py` now runs 14 QEMU stages. The conflict stage covers slot and name conflicts, a reused collection, and a collection that keeps another name and whose archived object is restored uncollected. The full-target stage requires `Full`, no flush, `verify` refusal, and an unchanged volume. Three further rules are `volume-core` host tests.
 - Decision proposal for the user-chosen destination and its capability: [S09-BACKUP-DESTINATION-PROPOSAL.md](implementation/S09-BACKUP-DESTINATION-PROPOSAL.md). It establishes no contract.
 
-**Evidence:** local `tools/test_volume.py` on `f9142720`: exit 0, `passed=true`, 14/14 stages, 165 s wall time (QEMU 10.2.1 TCG):
+**Evidence:** local `tools/test_volume.py` on `e88e0ad5`: exit 0, `passed=true`, 14/14 stages, 157 s wall time (QEMU 10.2.1 TCG):
 - Export: 91 801-byte archive, 180 writes, all archive I/O, 0 service commits.
 - Restore on a fresh image holding only the archive range: 5 objects byte-identical.
 - One flipped byte: the guest refuses it, the reader refuses it, and the image is unchanged.
 - Conflict: restored {1, 2, 5}, conflicts {3, 4}, uncollected {1}; the pre-state is unchanged. The conflict and restore oracles each refuse the other stage's image.
 - Full target (100 of the 180 sectors needed): `Full`, archive I/O 4/100/0, the 100 sectors equal the archive's prefix, the reader refuses the cut and the full range, and the volume is unchanged. The full-target and export oracles each refuse the other stage's image.
 - Details: [S09 native evidence](verification/s09-archive/NATIVE-20261113.md); design and limits: [S09-BACKUP-ARCHIVE.md](implementation/S09-BACKUP-ARCHIVE.md).
-- Also recorded there: two failing intermediate runs (a wrong host generation check, and a broker Busy race fixed by ordering) and the superseded passes of runs 3–8.
+- Also recorded there: two failing intermediate runs (a wrong host generation check, and a broker Busy race fixed by ordering) and the superseded passes of runs 3–9.
 - A `native-system` kernel build also passes on this tree; its 2 warnings come from files this branch does not change.
 
 **Not run:** CI volume-acceptance on this head (pending); KVM; hardware; a second attached disk; an independent human audit.

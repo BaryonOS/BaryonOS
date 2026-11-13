@@ -2,8 +2,8 @@
  "schema_version": 1,
  "kind": "local tools/test_volume.py run (not CI)",
  "date": "2026-11-13",
- "source_commit": "f9142720",
- "source_sha256": "4f4555b8793e0ac905e971f1fdd3fdfc509f0c7aefbab2ff07c94a8f31ddf0f7",
+ "source_commit": "e88e0ad5",
+ "source_sha256": "a924a051f18bb1044526ba641d58023356e19564b5cd3a68823f90a14a1f69af",
  "passed": true,
  "host": [
   {
@@ -12,8 +12,8 @@
    "totals": [
     "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
     "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
-    "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.68s",
-    "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.43s",
+    "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
     "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
     "test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s",
     "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
@@ -35,7 +35,7 @@
    "command": "/usr/bin/python3 -B -m unittest discover -s tests -p test_volume_*.py",
    "exit": 0,
    "totals": [
-    "Ran 48 tests in 0.965s",
+    "Ran 48 tests in 0.974s",
     "OK"
    ]
   }
@@ -48,7 +48,7 @@
    "raw_qemu_exit": 33,
    "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
    "after_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
-   "duration_s": 41.9,
+   "duration_s": 42.3,
    "kernel_sha256": "d581af60ecf2c79cf64639e780a3faa726dad467058086642d5d0da35d618c71"
   },
   {
@@ -58,7 +58,7 @@
    "raw_qemu_exit": 33,
    "before_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
    "after_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
-   "duration_s": 24.7,
+   "duration_s": 24.5,
    "kernel_sha256": "cd1830e89f28cd835009e493fe43ac9390653e594360b39ffb93820223bc6cf2"
   },
   {
@@ -279,7 +279,7 @@
    "raw_qemu_exit": -9,
    "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
    "after_sha256": "c0cb5292df11f9ab56875652cee5bd4d812616e21fa52b3422ff03610e96b2bf",
-   "duration_s": 2.9,
+   "duration_s": 3.0,
    "kernel_sha256": "4ba3bfd794307ee455a850aee909c0d4fd16e80fe35ecede74c4905ab760bd1e"
   },
   {
@@ -299,7 +299,7 @@
    "raw_qemu_exit": -9,
    "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
    "after_sha256": "2d37c7c157c78fae8eec078ca869e69ffdb03ca03cd82b0b65bb3f83e39f423d",
-   "duration_s": 3.2,
+   "duration_s": 3.1,
    "kernel_sha256": "e1d49c89447c29b7e19652bc529659a83d3fef8513168e06bc8223597a972b23"
   },
   {
@@ -329,7 +329,7 @@
    "raw_qemu_exit": 33,
    "before_sha256": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
    "after_sha256": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
-   "duration_s": 2.3,
+   "duration_s": 2.2,
    "kernel_sha256": "5a435a17f38a6a572dca1444272279a0a3139bebd8523486a5f544e10d27489f"
   },
   {
