@@ -16,6 +16,7 @@ PREFIX = ("BdsDxe: starting Boot0002\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS
           "KS-03:PASS\n")
 END = ["M2:PASS", "M1:PASS"]
 SYNC_WAIT = "SMP:SYNC:WAIT_MS=10:STALL_MS=0"
+SCRATCH_WAIT = ":WAIT_MS=12:STALL_MS=3"
 
 
 def fixture(cpus):
@@ -85,7 +86,7 @@ def online(cpus):
                             f"SMP:PREEMPT:PASS:CPUS={count}",
                             f"SMP:SPIN:PASS:CPUS={count}"] + bsp(count) + [
                             f"SMP:SCHED:PASS:CPUS={count}"] + wake_kill(count) + [
-                            f"SMP:SCRATCH:PASS:CPUS={count}",
+                            f"SMP:SCRATCH:PASS:CPUS={count}{SCRATCH_WAIT}",
                             f"SMP:LOCKPAIR:PASS:CPUS={count}", icr(count), *proc(count),
                             f"SMP:PARKED:APS={count - 1}"] + END
 
@@ -117,7 +118,7 @@ def failed(status):
             "SMP:IPI:PASS:ROUNDS=3:CPUS=1", "SMP:SHOOTDOWN:PASS:CPUS=1",
             "SMP:SHOOTDOWN:VISIBLE:CPUS=1", "SMP:PREEMPT:PASS:CPUS=1",
             "SMP:SPIN:PASS:CPUS=1"] + bsp(1) + ["SMP:SCHED:PASS:CPUS=1"] + wake_kill(1) + [
-            "SMP:SCRATCH:PASS:CPUS=1", "SMP:LOCKPAIR:PASS:CPUS=1", icr(1), *proc(1),
+            "SMP:SCRATCH:PASS:CPUS=1" + SCRATCH_WAIT, "SMP:LOCKPAIR:PASS:CPUS=1", icr(1), *proc(1),
             "SMP:PARKED:APS=0"] + END
 
 
@@ -131,7 +132,7 @@ STALE_CONTROL = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:SKI
                               "SMP:SHOOTDOWN:STALE:APS=3", "SMP:PREEMPT:PASS:CPUS=4",
                               "SMP:SPIN:PASS:CPUS=4"] + bsp(4) + [
                               "SMP:SCHED:PASS:CPUS=4"] + wake_kill(4) + [
-                              "SMP:SCRATCH:PASS:CPUS=4", "SMP:LOCKPAIR:PASS:CPUS=4", icr(4),
+                              "SMP:SCRATCH:PASS:CPUS=4" + SCRATCH_WAIT, "SMP:LOCKPAIR:PASS:CPUS=4", icr(4),
                               *proc(4), "SMP:PARKED:APS=3"] + END
 LOCKDEP_ORDER = online(2)[:-2] + ["SMP:LOCKDEP:ORDER:30->10"]
 TIMER_DEAD = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CPUS=4",
@@ -162,7 +163,7 @@ def sync_stopped(writers, terminal):
                               for cpu in writers] + [terminal]
 
 
-SYNC_STALL = sync_stopped((0, 2, 3), "SMP:SYNC:STALLED:DONE=2:TOTAL=80000")
+SYNC_STALL = sync_stopped((0, 2, 3), "SMP:SYNC:STALLED:CPU=1:DONE=2:TOTAL=80000")
 SYNC_SLOW = sync_stopped((0, 2, 3), "SMP:SYNC:TIMEOUT:DONE=2:TOTAL=70411")
 SYNC_LOST = sync_stopped((0, 1, 2, 3), "SMP:SYNC:LOST_UPDATE")
 BEFORE_CLOCK = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS:CPUS=4",
@@ -170,6 +171,10 @@ BEFORE_CLOCK = started(4) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=4", "SMP:SHOOTDOWN:PASS
                              "SMP:SPIN:PASS:CPUS=4"]
 EDGES = "SMP:CLOCK:EDGES:TICKS=5000:LOST=312:HOST=2:EXTRA=0:SPAN_US=3051:US=1062411:OWN_US=1062008"
 CLOCK_MASKED = BEFORE_CLOCK + [EDGES, "SMP:CLOCK:DRIFT:KERNEL"]
+# ADR-082 D2: the scratch phase stops on AP1's stall or at the cap.
+BEFORE_SCRATCH = online(4)[:online(4).index("SMP:SCRATCH:PASS:CPUS=4" + SCRATCH_WAIT)]
+SCRATCH_STALL = BEFORE_SCRATCH + ["SMP:SCRATCH:STALLED:CPU=1"]
+SCRATCH_SLOW = BEFORE_SCRATCH + ["SMP:SCRATCH:TIMEOUT"]
 CLOCK_DIVISOR = BEFORE_CLOCK + ["SMP:CLOCK:PIT_COUNT"]
 # Audit F8: the ring-3 GS fixture runs after the scheduler phase (CR4 = 104 is
 # DE|PAE|MCE as printed under OVMF/TCG; only FSGSBASE, bit 16, is checked).
@@ -198,7 +203,8 @@ GS_NMI = online(4)[:-3] + ["SMP:GS:CR4=104", "SMP:FAULT:AP_NMI_IST:PASS"]
 
 VALID = {
     "sync-stall": SYNC_STALL, "sync-slow": SYNC_SLOW, "sync-lost-update": SYNC_LOST,
-    "clock-masked": CLOCK_MASKED, "clock-divisor": CLOCK_DIVISOR,
+    "clock-masked": CLOCK_MASKED, "clock-divisor": CLOCK_DIVISOR, "clock-other-cpu": CLOCK_MASKED,
+    "scratch-stall": SCRATCH_STALL, "scratch-slow": SCRATCH_SLOW,
     "one": online(1), "two-single": online(2), "four": online(4), "eight": online(8),
     "nine-capacity": online(9), "duplicate-madt": ["SMP:UNAVAILABLE:INVALID_MADT"] + END,
     "ap-stall": failed("TIMEOUT"), "ap-mismatch": failed("MISMATCH"),
@@ -724,6 +730,7 @@ class SmpSerialOracle(unittest.TestCase):
                                                "SMP:MARGIN:LOCK:70:431/400",  # waiter descheduled
                                                "SMP:MARGIN:ROUND:0:1/100"), 33, False)
         self.assertEqual(report["guest_waits"], {"sync_wait": [10, 2000], "sync_stall": [0, 2000],
+                                                 "scratch_wait": [12, 500], "scratch_stall": [3, 500],
                                                  "wait_1360": [12, 2000], "lock_10": [6, 400],
                                                  "lock_70": [431, 400], "round_0": [1, 100]})
         self.assertEqual([item["name"] for item in report["deadline_margins"]], ["bsp_idle_wake"])
@@ -740,17 +747,22 @@ class SmpSerialOracle(unittest.TestCase):
                 evaluate("four", with_margins(*margin), 33, False)
 
     def test_sync_wait_is_required_and_bounded_on_every_profile(self):
-        """ADR-082: the guest only reports how long the sync wait took; 2 s stays the
-        bound, pinned here, also where the host cannot run the vCPUs in parallel."""
+        """ADR-082 D1: the guest reports how long the sync wait took; 2 s, pinned here,
+        holds on every profile except the five overcommitted TCG cases, where only
+        the guest's liveness checks and the 20 s cap decide."""
         for case, cpus in (("four", 4), ("eight", 8), ("nine-capacity", 9), ("two-single", 2)):
             good = transcript(online(cpus))
-            for wait in ("SMP:SYNC:WAIT_MS=0:STALL_MS=0", "SMP:SYNC:WAIT_MS=1990:STALL_MS=1990"):
+            slow = ("SMP:SYNC:WAIT_MS=2000:STALL_MS=0", "SMP:SYNC:WAIT_MS=19990:STALL_MS=1990")
+            overcommitted = case in ("eight", "nine-capacity")
+            for wait in ("SMP:SYNC:WAIT_MS=0:STALL_MS=0", "SMP:SYNC:WAIT_MS=1990:STALL_MS=1990",
+                         *(slow if overcommitted else ())):
                 report = evaluate(case, good.replace(SYNC_WAIT, wait), 33, False)
                 self.assertEqual(report["guest_waits"]["sync_wait"][1], 2000)
             for bad in (
+                *(() if overcommitted else (good.replace(SYNC_WAIT, wait) for wait in slow)),
                 good.replace(SYNC_WAIT + "\n", ""),                              # the line is not optional
-                good.replace(SYNC_WAIT, "SMP:SYNC:WAIT_MS=2000:STALL_MS=0"),      # the 201st poll
-                good.replace(SYNC_WAIT, "SMP:SYNC:WAIT_MS=19990:STALL_MS=30"),    # alive but slow
+                good.replace(SYNC_WAIT, "SMP:SYNC:WAIT_MS=3000:STALL_MS=2000"),   # a stall is never alive
+                good.replace(SYNC_WAIT, "SMP:SYNC:WAIT_MS=20010:STALL_MS=0"),     # beyond the hard cap
                 good.replace(SYNC_WAIT, "SMP:SYNC:WAIT_MS=10:STALL_MS=20"),
                 good.replace(SYNC_WAIT, "SMP:SYNC:WAIT_MS=10:STALL_MS=0:LIMIT=9999"),
                 good.replace(SYNC_WAIT, SYNC_WAIT + "\n" + SYNC_WAIT),
@@ -759,13 +771,69 @@ class SmpSerialOracle(unittest.TestCase):
                 with self.subTest(case=case, bad=bad[-400:]), self.assertRaises(ValueError):
                     evaluate(case, bad, 33, False)
 
+    def test_scratch_wait_is_required_and_bounded_off_the_overcommitted_cases(self):
+        """ADR-082 D2: spec 01's 500 ms holds on every profile except the five
+        overcommitted TCG cases; a stall (500 ms without own progress) and the 5 s
+        cap never pass, and the wait fields are not optional."""
+        for case, cpus in (("four", 4), ("eight", 8), ("nine-capacity", 9), ("one", 1)):
+            good = transcript(online(cpus))
+            count = min(cpus, MAX_CPUS)
+            line = f"SMP:SCRATCH:PASS:CPUS={count}{SCRATCH_WAIT}"
+            slow = f"SMP:SCRATCH:PASS:CPUS={count}:WAIT_MS=4990:STALL_MS=490"
+            overcommitted = case in ("eight", "nine-capacity")
+            report = evaluate(case, good.replace(line, f"SMP:SCRATCH:PASS:CPUS={count}:WAIT_MS=499:STALL_MS=0"), 33, False)
+            self.assertEqual(report["guest_waits"]["scratch_wait"], [499, 500])
+            if overcommitted:
+                self.assertEqual(evaluate(case, good.replace(line, slow), 33, False)["guest_waits"]
+                                 ["scratch_stall"], [490, 500])
+            for bad in (
+                *(() if overcommitted else (slow, f"SMP:SCRATCH:PASS:CPUS={count}:WAIT_MS=500:STALL_MS=0")),
+                f"SMP:SCRATCH:PASS:CPUS={count}",                                 # wait fields required
+                f"SMP:SCRATCH:PASS:CPUS={count}:WAIT_MS=900:STALL_MS=500",       # a stall
+                f"SMP:SCRATCH:PASS:CPUS={count}:WAIT_MS=5001:STALL_MS=0",        # beyond the cap
+                f"SMP:SCRATCH:PASS:CPUS={count}:WAIT_MS=10:STALL_MS=20",
+                f"SMP:SCRATCH:PASS:CPUS={count}:WAIT_MS=*:STALL_MS=*",
+            ):
+                with self.subTest(case=case, bad=bad), self.assertRaises(ValueError):
+                    evaluate(case, good.replace(line, bad), 33, False)
+
+    def test_the_judged_clock_median_is_rechecked_against_the_pit(self):
+        """ADR-082 D3: the oracle pins the PIT period and rejects a judged median more
+        than 1 % off on both sides, outside the clock fixtures."""
+        four = online(4)
+        at = four.index("SMP:CLOCK:PASS:CPUS=4")
+        edges = EDGES.replace("1062008", "{own}")
+        for own, passes in ((989_849, True), (1_009_845, True), (989_848, False), (1_009_846, False)):
+            text = transcript(four[:at] + [edges.format(own=own)] + four[at:])
+            if passes:
+                self.assertEqual(evaluate("four", text, 33, False)["clock_edges"]["own_median_us"], own)
+            else:
+                with self.subTest(own=own), self.assertRaises(ValueError):
+                    evaluate("four", text, 33, False)
+
+    def test_m3_load_host_watchdog_keeps_two_and_a_half_times_the_hosted_maximum(self):
+        """ADR-082 D5: 125 s for the m3-load outcome only (48.3 s measured x 2.5)."""
+        self.assertEqual(run_smp.LOAD_TIMEOUT_S, 125)
+        self.assertGreaterEqual(run_smp.LOAD_TIMEOUT_S, 2.5 * 48.3)
+        self.assertEqual(run_smp.GUEST_TIMEOUT_S, 60)
+        self.assertEqual(run_smp.OVERCOMMITTED, {"eight", "nine-capacity", "m3-eight",
+                                                 "m3-migrate-eight", "m3-load-eight"})
+        self.assertTrue(all(run_smp.CASES[case][1] > 4 and run_smp.CASES[case][2] == "multi"
+                            for case in run_smp.OVERCOMMITTED))
+
     def test_sync_and_clock_fixtures_stop_on_their_own_marker_only(self):
         """ADR-082: each injected defect ends its own profile with its exact marker and
         its fixture lines; the same marker fails every other profile."""
         for case, lines in (
             ("sync-stall", SYNC_SLOW), ("sync-slow", SYNC_STALL),           # stall and cap are distinct
             ("sync-stall", sync_stopped((0, 1, 2, 3), SYNC_STALL[-1])),       # AP1 must not have written
-            ("sync-stall", sync_stopped((0, 2, 3), "SMP:SYNC:STALLED:DONE=3:TOTAL=80000")),
+            ("sync-stall", sync_stopped((0, 2, 3), "SMP:SYNC:STALLED:CPU=1:DONE=3:TOTAL=80000")),
+            ("sync-stall", sync_stopped((0, 2, 3), "SMP:SYNC:STALLED:CPU=2:DONE=2:TOTAL=80000")),
+            ("scratch-stall", SCRATCH_SLOW), ("scratch-slow", SCRATCH_STALL),
+            ("scratch-stall", BEFORE_SCRATCH + ["SMP:SCRATCH:STALLED:CPU=2"]),
+            ("scratch-stall", online(4)), ("scratch-slow", online(4)),
+            ("four", SCRATCH_STALL), ("four", SCRATCH_SLOW),
+            ("clock-other-cpu", CLOCK_DIVISOR), ("clock-other-cpu", online(4)),
             ("sync-slow", sync_stopped((0, 2, 3), "SMP:SYNC:TIMEOUT:DONE=2:TOTAL=80000")),
             ("sync-slow", sync_stopped((0, 2, 3), "SMP:SYNC:TIMEOUT:DONE=2:TOTAL=59999")),
             ("sync-lost-update", sync_stopped((0, 2, 3), SYNC_LOST[-1])),

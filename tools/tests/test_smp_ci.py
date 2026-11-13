@@ -27,7 +27,10 @@ class SmpCiAggregationTests(unittest.TestCase):
             "repetitions": {case: {"requested": repeat, "attempted": repeat,
                                     "passed": repeat, "failed": 0, "complete": True,
                                     "flaky": False}},
-            "cases": [{"case": case, "passed": True} for _ in range(repeat)],
+            "cases": [{"case": case, "passed": True,
+                       "observed": {"guest_waits": {"sync_wait": [run, 2000]}},
+                       "host_watchdog": {"measured_s": 10.0 + run, "deadline_s": 60}}
+                      for run in range(repeat)],
         }
 
     def fixtures(self, root):
@@ -49,6 +52,10 @@ class SmpCiAggregationTests(unittest.TestCase):
             self.assertEqual(result["case_count"], len(CASES))
             self.assertEqual(result["guest_run_count"], len(CASES) * REPETITIONS)
             self.assertTrue(all(item["passed"] == REPETITIONS for item in result["cases"].values()))
+            # AC-3: the largest margin over every boot of a case is summarised.
+            self.assertEqual(result["cases"]["four"]["margins"],
+                             {"host_watchdog_s": [10.0 + REPETITIONS - 1, 60],
+                              "sync_wait": [REPETITIONS - 1, 2000]})
 
     def test_rejects_missing_soak_shard(self):
         with tempfile.TemporaryDirectory() as directory:

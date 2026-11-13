@@ -60,6 +60,9 @@ CASES = {
     "sync-lost-update": ("test-smp-sync-lost-update", 4, "multi", "sync-lost-update"),
     "clock-masked": ("test-smp-clock-masked", 4, "multi", "clock-masked"),
     "clock-divisor": ("test-smp-clock-divisor", 4, "multi", "clock-divisor"),
+    "clock-other-cpu": ("test-smp-clock-other-cpu", 4, "multi", "clock-other-cpu"),
+    "scratch-stall": ("test-smp-scratch-stall", 4, "multi", "scratch-stall"),
+    "scratch-slow": ("test-smp-scratch-slow", 4, "multi", "scratch-slow"),
     # K06 step 5d-2: the base M3 manifest on every online CPU (R3-1).
     "m3-one": ("native-smp-m3", 1, "single", "m3"),
     "m3-one-multi": ("native-smp-m3", 1, "multi", "m3"),
@@ -112,13 +115,18 @@ TERMINAL = {"nmi-ist": "SMP:FAULT:AP_NMI_IST:PASS", "df-ist": "SMP:FAULT:AP_DF_I
             "bsp-spin-timeout": "SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0",
             "proc-stale-read": "SMP:SHOOTDOWN:STALE_READ",
             "lock-stuck": "SMP:LOCK:STUCK:10:CPU=1",
-            # AP1 counted and died: no progress for STALL_MS with two of three APs done.
-            "sync-stall": "SMP:SYNC:STALLED:DONE=2:TOTAL=80000",
+            # AP1 counted and died: no own progress for 2 s, two of three APs done.
+            "sync-stall": "SMP:SYNC:STALLED:CPU=1:DONE=2:TOTAL=80000",
             # AP1 keeps counting too slowly: only the hard cap ends the wait.
             "sync-slow": "SMP:SYNC:TIMEOUT:DONE=2:TOTAL=*",
             "sync-lost-update": "SMP:SYNC:LOST_UPDATE",
             "clock-masked": "SMP:CLOCK:DRIFT:KERNEL",
             "clock-divisor": "SMP:CLOCK:PIT_COUNT",
+            "clock-other-cpu": "SMP:CLOCK:DRIFT:KERNEL",
+            # ADR-082 D2: AP1 dies mid-fill (no own progress for 500 ms), or
+            # crawls until the 5 s cap.
+            "scratch-stall": "SMP:SCRATCH:STALLED:CPU=1",
+            "scratch-slow": "SMP:SCRATCH:TIMEOUT",
             "m3-fpu-corrupt": "SMP:M3:FPU:CORRUPT:CONTROL",
             "m3-migrate-corrupt": "SMP:MIGRATE:CANARY:CORRUPT:CONTROL"}
 # CPUs whose serial fixture lines are complete when a sync fixture stops the boot.
@@ -154,6 +162,10 @@ SOAK_TIMEOUT_S = 660
 # addendum 2). 660 s is run.py's maximum; acceptance requires >= 2.5x margin
 # against the measured hosted time. The round count is unchanged.
 IPC_TIMEOUT_S = 660
+# ADR-082 D5: m3-load needs up to 48.3 s on the hosted matrix runner (30 s of it
+# the fixed load phase); 125 s keeps ADR-081's >= 2.5x margin. Guest deadlines,
+# the 30 s load phase and its per-CPU checks are unchanged.
+LOAD_TIMEOUT_S = 125
 
 # Audit F7 (DG-2): every CPU that ran the sync test writes these lines at once,
 # in fragments; each must arrive whole, in order per CPU, before SERIAL_PASS.
@@ -170,14 +182,30 @@ MARGIN = re.compile(r"SMP:MARGIN:(WAIT|LOCK|ROUND):([0-9]{1,5}):([0-9]{1,8})/([0
 SYNC_WAIT = re.compile(r"SMP:SYNC:WAIT_MS=([0-9]{1,5}):STALL_MS=([0-9]{1,5})")
 SYNC_WAITED = "SMP:SYNC:WAIT_MS=*:STALL_MS=*"
 SYNC_LIMIT_MS = 2_000
+# ADR-082 D2: the scratch PASS line carries the wait (spec 01: 500 ms) and the
+# longest run without own progress of any AP; the guest stops at 500 ms
+# without progress and at 5 s.
+SCRATCH_PASS = re.compile(r"SMP:SCRATCH:PASS:CPUS=([0-9]):WAIT_MS=([0-9]{1,5}):STALL_MS=([0-9]{1,5})")
+SCRATCH_LIMIT_MS = 500
+# ADR-082 D1/D2 (decision of 13 November 2026): multi-thread TCG cases whose
+# runnable vCPUs exceed the matrix runner's four CPUs. On these the guest's
+# liveness checks (no own progress for the limit, ten times the limit as a hard
+# cap) decide; the time is recorded but measures the host scheduler, so the
+# performance limits above are not judged here. A fixed list keeps the verdict
+# independent of the machine that evaluates it (review finding C3).
+OVERCOMMITTED = frozenset({"eight", "nine-capacity", "m3-eight", "m3-migrate-eight", "m3-load-eight"})
 
 # Idle clock phase: counted IRQ0s, PIT periods whose edge never arrived (LOST), the
 # part of those lost while the BSP was halted with IF=1 (HOST), counted IRQ0s beyond
 # the periods (EXTRA), the longest IRQ0-entry-to-halt span, and the median segment
-# with (US) and without (OWN_US) the host-lost periods. Diagnostic: the kernel's
-# verdict still uses US.
+# with (US) and without (OWN_US) the host-lost periods. ADR-082 D3: the kernel
+# judges OWN_US within 1 % on both sides (and the host credit of that segment);
+# the oracle rechecks OWN_US against the PIT period, pinned here.
 CLOCK_EDGES = re.compile(r"SMP:CLOCK:EDGES:TICKS=([0-9]{1,8}):LOST=([0-9]{1,8}):HOST=([0-9]{1,8})"
                          r":EXTRA=([0-9]{1,8}):SPAN_US=([0-9]{1,8}):US=([0-9]{1,8}):OWN_US=([0-9]{1,8})")
+
+CLOCK_EXPECTED_US = 999_847  # CLOCK_SEGMENT ticks of PIT_DIVISOR 1193 at 1 193 182 Hz
+CLOCK_FIXTURES = ("clock-masked", "clock-divisor", "clock-other-cpu")
 
 SERIAL_LINES = 200  # kernel/src/m2/smp.rs SERIAL_LINES
 SERIAL_LINE = re.compile(r"SMP:SER:([0-9]):([0-9]{1,3})")
@@ -267,7 +295,7 @@ def expected_smp(case: str) -> list[str]:
                 f"SMP:SCHED:PASS:CPUS={online}",
                 f"SMP:WAKE:{bw}:CPUS={online}",
                 f"SMP:KILL:{bw}:CPUS={online}",
-                f"SMP:SCRATCH:PASS:CPUS={online}",
+                f"SMP:SCRATCH:PASS:CPUS={online}:WAIT_MS=*:STALL_MS=*",
                 f"SMP:LOCKPAIR:PASS:CPUS={online}",
                 f"{icr}:CPUS={online}",
                 f"SMP:ISOLATION:{bw}:CPUS={online}",
@@ -354,9 +382,12 @@ def expected_smp(case: str) -> list[str]:
         return lines + settled(started)[:5] + [TERMINAL[outcome]]
     if outcome in SYNC_WRITERS:
         return lines + [RATIO, TERMINAL[outcome]]
-    if outcome in ("clock-masked", "clock-divisor"):
+    if outcome in CLOCK_FIXTURES:
         done = settled(started)
         return lines + done[:done.index(f"SMP:CLOCK:PASS:CPUS={started}")] + [TERMINAL[outcome]]
+    if outcome in ("scratch-stall", "scratch-slow"):
+        done = settled(started)
+        return lines + done[:done.index(f"SMP:SCRATCH:PASS:CPUS={started}:WAIT_MS=*:STALL_MS=*")] + [TERMINAL[outcome]]
     lines += [RATIO, SERIAL_PASS, SYNC_WAITED, f"SMP:SYNC:PASS:CPUS={started}"]
     ipi_pass = f"SMP:IPI:PASS:ROUNDS={IPI_ROUNDS}:CPUS={started}"
     if outcome == "held-across-switch":
@@ -381,7 +412,7 @@ def expected_smp(case: str) -> list[str]:
                         f"SMP:SCHED:PASS:CPUS={started}",
                         f"SMP:WAKE:PASS:CPUS={started}",
                         f"SMP:KILL:PASS:CPUS={started}",
-                        f"SMP:SCRATCH:PASS:CPUS={started}",
+                        f"SMP:SCRATCH:PASS:CPUS={started}:WAIT_MS=*:STALL_MS=*",
                         f"SMP:LOCKPAIR:PASS:CPUS={started}",
                         f"SMP:ICR:PASS:ROUNDS={ICR_ROUNDS}:CPUS={started}",
                         f"SMP:ISOLATION:PASS:CPUS={started}",
@@ -535,6 +566,9 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
     clock_edges = None
     recovery_crashed = None
     for line in body:
+        # '*' marks a placeholder of the expected sequence; the guest never prints it.
+        if "*" in line:
+            raise ValueError("Placeholder character in guest output")
         margin = MARGIN.fullmatch(line)
         if margin:
             name = f"{margin[1].lower()}_{margin[2]}"
@@ -551,17 +585,29 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
             ticks, lost, host, extra, span_us, us, own_us = map(int, edges.groups())
             if clock_edges is not None or host > lost or own_us > us:
                 raise ValueError("Malformed or repeated clock edge accounting")
+            if outcome not in CLOCK_FIXTURES and abs(own_us - CLOCK_EXPECTED_US) * 100 > CLOCK_EXPECTED_US:
+                raise ValueError(f"Judged clock median {own_us} us is outside 1 % of {CLOCK_EXPECTED_US} us")
             clock_edges = {"ticks": ticks, "lost": lost, "host": host, "extra": extra,
                            "span_us": span_us, "median_us": us, "own_median_us": own_us}
             continue
         waited = SYNC_WAIT.fullmatch(line)
         if waited:
             used, quiet = int(waited[1]), int(waited[2])
-            if used >= SYNC_LIMIT_MS or quiet > used or "sync_wait" in guest_waits:
+            if (used >= SYNC_LIMIT_MS and case not in OVERCOMMITTED or quiet >= SYNC_LIMIT_MS
+                    or quiet > used or used > 10 * SYNC_LIMIT_MS or "sync_wait" in guest_waits):
                 raise ValueError(f"Sync wait used {used} of {SYNC_LIMIT_MS} ms (stalled {quiet})")
             guest_waits["sync_wait"] = [used, SYNC_LIMIT_MS]
             guest_waits["sync_stall"] = [quiet, SYNC_LIMIT_MS]
             line = SYNC_WAITED
+        scratched = SCRATCH_PASS.fullmatch(line)
+        if scratched:
+            used, quiet = int(scratched[2]), int(scratched[3])
+            if (used >= SCRATCH_LIMIT_MS and case not in OVERCOMMITTED or quiet >= SCRATCH_LIMIT_MS
+                    or quiet > used or used > 10 * SCRATCH_LIMIT_MS or "scratch_wait" in guest_waits):
+                raise ValueError(f"Scratch wait used {used} of {SCRATCH_LIMIT_MS} ms (stalled {quiet})")
+            guest_waits["scratch_wait"] = [used, SCRATCH_LIMIT_MS]
+            guest_waits["scratch_stall"] = [quiet, SCRATCH_LIMIT_MS]
+            line = f"SMP:SCRATCH:PASS:CPUS={scratched[1]}:WAIT_MS=*:STALL_MS=*"
         cr4 = re.fullmatch(r"SMP:GS:CR4=([0-9]{1,20})", line)
         if cr4 and int(cr4[1]) & (1 << 16) == 0:
             line = GS_CR4
@@ -704,7 +750,8 @@ def run(cases: tuple[str, ...], repeat: int = 1) -> dict:
     save_json(destination, report)
     for case in cases:
         _, cpus, threads, outcome = CASES[case]
-        watchdog = {"m3-soak": SOAK_TIMEOUT_S, "m3-ipc": IPC_TIMEOUT_S}.get(outcome, GUEST_TIMEOUT_S)
+        watchdog = {"m3-soak": SOAK_TIMEOUT_S, "m3-ipc": IPC_TIMEOUT_S,
+                    "m3-load": LOAD_TIMEOUT_S}.get(outcome, GUEST_TIMEOUT_S)
         tables = []
         if case == "duplicate-madt":
             fixture = BUILD / "acpi" / "duplicate-madt.aml"

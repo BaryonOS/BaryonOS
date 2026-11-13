@@ -203,6 +203,8 @@ struct CpuLocal {
     user_ticks: AtomicU32,
     /// Step 5b-2 scratch fixture: 1 once this AP finished its share.
     scratched: AtomicU32,
+    /// Odd while this AP is in its idle `hlt`; this AP only (ADR-082 D3).
+    halts: AtomicU32,
     /// LD-1 (audit F3): IDT entries this CPU is nested in. Every GS stub
     /// counts it after `gs_entry!` and before `gs_exit!`; this CPU only.
     irq_depth: AtomicU32,
@@ -265,6 +267,7 @@ impl CpuLocal {
             gs_state: AtomicU32::new(0),
             user_ticks: AtomicU32::new(0),
             scratched: AtomicU32::new(0),
+            halts: AtomicU32::new(0),
             irq_depth: AtomicU32::new(0),
             lockdep_state: lock::LockdepCell::new(),
             paired: AtomicU32::new(0),
@@ -373,6 +376,7 @@ fn serial_lines() {
         decimal(seq);
         serial::write(b"\n");
         SERIAL_DONE.fetch_add(1, Ordering::Relaxed);
+        SYNC_WORK[cpu as usize].bump();
     }
 }
 
@@ -430,17 +434,18 @@ global_asm!(
     ".globl nos_smp_clock_entry",
     "nos_smp_clock_entry:",
     "    push rax",
+    "    push rdx",
+    // Bind each counted IRQ0 to its entry TSC, read first so the LAPIC MMIO
+    // below lies inside the measured span (ADR-082 D3, F02). The following
+    // locked tick publication makes the store visible to the IF=0 observer.
+    "    rdtsc",
+    "    shl rdx, 32",
+    "    or rdx, rax",
     "    mov eax, dword ptr [{lapic_id}]",
     "    shr eax, 24",
     "    cmp eax, dword ptr [rip + {bsp}]",
     "    jne 2f",
-    "    push rdx",
-    // Bind each counted IRQ0 to its entry TSC. The following locked tick
-    // publication makes this preceding store visible to the IF=0 observer.
-    "    rdtsc",
-    "    shl rdx, 32",
-    "    or rax, rdx",
-    "    mov qword ptr [rip + {clock_edge_tsc}], rax",
+    "    mov qword ptr [rip + {clock_edge_tsc}], rdx",
     "    lock inc qword ptr [rip + {clock}]",
     "    mov al, 0x20",
     "    out 0x20, al",
@@ -779,8 +784,9 @@ fn wait_us(us: u32) -> bool {
 const ITERATIONS: u64 = 20_000;
 /// Time the APs get for the sync stress and their serial lines after the
 /// BSP's own share. ADR-070 only asks for a bounded test; 2 s is the value in
-/// use since step 1 and stays the bound: the guest reports the time used and
-/// the host rejects 2 s or more on every profile (ADR-082).
+/// use since step 1. ADR-082 D1: an AP without own progress for 2 s is fatal
+/// in the guest, the wait ends at 10 x 2 s, and the host rejects a wait of
+/// 2 s or more on every profile except the five overcommitted TCG cases.
 const SYNC_MS: u32 = 2_000;
 static ATOMIC_TOTAL: AtomicU64 = AtomicU64::new(0);
 static LOCKED_TOTAL: TicketLock<u64> = TicketLock::new(0);
@@ -790,9 +796,11 @@ static VIOLATIONS: AtomicU32 = AtomicU32::new(0);
 fn stress() {
     // Negative fixtures on AP1 (CPU 1): one update lost, or progress so slow
     // that only the hard cap ends the wait.
-    let lose = cfg!(feature = "test-smp-sync-lost-update") && cpu_index() == 1;
-    let slow = cfg!(feature = "test-smp-sync-slow") && cpu_index() == 1;
+    let cpu = cpu_index();
+    let lose = cfg!(feature = "test-smp-sync-lost-update") && cpu == 1;
+    let slow = cfg!(feature = "test-smp-sync-slow") && cpu == 1;
     for round in 0..ITERATIONS {
+        SYNC_WORK[cpu].bump();
         ATOMIC_TOTAL.fetch_add(1, Ordering::Relaxed);
         let mut total = LOCKED_TOTAL.lock();
         if INSIDE.fetch_add(1, Ordering::Relaxed) != 0 {
@@ -807,7 +815,9 @@ fn stress() {
         INSIDE.fetch_sub(1, Ordering::Relaxed);
         drop(total);
         if slow {
-            within_tsc(2, || false);
+            // 100 s for the share: far beyond the 20 s cap even when polls
+            // stretch, with progress every 5 ms (F11).
+            within_tsc(5, || false);
         }
     }
 }
@@ -962,6 +972,7 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
         local.transit.store(lock::KERNEL.id(), Ordering::Release);
         park();
     }
+    let mut poked = 0;
     loop {
         // Checked before PARK so the test cannot race into a normal park.
         if cfg!(feature = "test-smp-ap-double-fault")
@@ -1085,10 +1096,24 @@ fn ipi_phase(context: &ApContext, local: &CpuLocal, first: bool) -> ! {
         if PARK.load(Ordering::Acquire) {
             break;
         }
+        if cfg!(feature = "test-smp-clock-other-cpu") && slot == 0 {
+            let poke = CLOCK_POKE.load(Ordering::Acquire);
+            if poke != poked {
+                // Injected defect: another CPU keeps IRQ0 out for three periods.
+                poked = poke;
+                let mask = inb(0x21);
+                outb(0x21, mask | 1);
+                within_tsc(3, || false);
+                outb(0x21, mask);
+            }
+        }
         // STI's one-instruction shadow makes `sti; hlt` atomic, so an IPI
         // that becomes pending after the PARK check still wakes this CPU.
         // Local sources are masked; see the function comment for others.
+        let halts = local.halts.load(Ordering::Relaxed);
+        local.halts.store(halts + 1, Ordering::Release);
         idle_halt();
+        local.halts.store(halts + 2, Ordering::Release);
     }
     context.state.store(PARKED, Ordering::Release);
     park()
@@ -1370,18 +1395,25 @@ pub fn start(
     GO.store(true, Ordering::Release);
     stress();
     serial_lines();
+    let aps = &NOS_SMP_AP_CONTEXTS[..online];
     let (finished, waited_ms, quiet_ms) = within_progress(
         SYNC_MS,
-        || ATOMIC_TOTAL.load(Ordering::Relaxed) + SERIAL_DONE.load(Ordering::Relaxed),
-        || NOS_SMP_AP_CONTEXTS[..online].iter().all(finished_stress),
+        SYNC_POLL_MS,
+        online,
+        |slot| {
+            (!finished_stress(&aps[slot])).then(|| SYNC_WORK[slot + 1].0.load(Ordering::Relaxed))
+        },
+        || aps.iter().all(finished_stress),
     );
     let expected = ITERATIONS * (online as u64 + 1);
     if !matches!(finished, Progress::Ready) {
-        serial::write(if matches!(finished, Progress::Stalled) {
-            b"SMP:SYNC:STALLED:DONE=".as_slice()
+        if let Progress::Stalled(cpu) = finished {
+            serial::write(b"SMP:SYNC:STALLED:CPU=");
+            decimal(cpu as u64);
+            serial::write(b":DONE=");
         } else {
-            b"SMP:SYNC:TIMEOUT:DONE="
-        });
+            serial::write(b"SMP:SYNC:TIMEOUT:DONE=");
+        }
         decimal(
             NOS_SMP_AP_CONTEXTS[..online]
                 .iter()
@@ -1391,7 +1423,7 @@ pub fn start(
         serial::write(b":TOTAL=");
         decimal(ATOMIC_TOTAL.load(Ordering::Acquire));
         serial::write(b"\n");
-        let stalled = matches!(finished, Progress::Stalled);
+        let stalled = matches!(finished, Progress::Stalled(_));
         if cfg!(feature = "test-smp-sync-stall") && stalled
             || cfg!(feature = "test-smp-sync-slow") && !stalled
         {
@@ -1477,9 +1509,19 @@ fn margin(kind: u64, id: u32, limit: u64, used: u64) {
     MARGIN_LOST.store(true, Ordering::Relaxed);
 }
 
+/// Longest contended wait + 1 (0 = never contended) per lock level / 10. One
+/// slot per level and no write unless it grows: the waiter books it while it
+/// holds the lock (C7), so it never scans the shared table there.
+static LOCK_WAITS: [AtomicU64; 8] = [const { AtomicU64::new(0) }; 8];
+
 /// BSP, after the self-tests: `SMP:MARGIN:<kind>:<id>:<used>/<limit>` for
 /// every wait this boot reached. The host records them.
 pub fn margins() {
+    for (index, slot) in LOCK_WAITS.iter().enumerate() {
+        if let Some(waited) = slot.load(Ordering::Relaxed).checked_sub(1) {
+            margin(MARGIN_LOCK, index as u32 * 10, LOCK_STUCK_MS, waited);
+        }
+    }
     for slot in &MARGINS {
         let word = slot.load(Ordering::Relaxed);
         if word == 0 {
@@ -1503,9 +1545,31 @@ pub fn margins() {
 /// `stuck_deadline`.
 pub fn lock_waited(level: u8, limit: u64) {
     let per_ms = TSC_PER_MS.load(Ordering::Acquire).max(1);
-    let waited = (rdtsc() / per_ms + LOCK_STUCK_MS).saturating_sub(limit / per_ms);
-    margin(MARGIN_LOCK, u32::from(level), LOCK_STUCK_MS, waited);
+    let waited = (rdtsc() / per_ms + LOCK_STUCK_MS).saturating_sub(limit / per_ms) + 1;
+    let slot = &LOCK_WAITS[usize::from(level / 10)];
+    if slot.load(Ordering::Relaxed) < waited {
+        slot.fetch_max(waited, Ordering::Relaxed);
+    }
 }
+
+/// AC-3 (spec 09-5f): the fixture's wall-clock bounds, named with their reason.
+/// The values are those in use since the steps that introduced each wait.
+/// An idle AP answers a directed IPI, or reaches the state its handler or its
+/// next home-loop pass enters: one interrupt round trip.
+const ACK_MS: u32 = 100;
+/// An AP leaves a scheduler, preemption or GS step and is home again within a
+/// few timer ticks (settle_scheduler: owner decision of 12 November 2026).
+const STEP_MS: u32 = 200;
+/// An AP completes a short piece of work it was sent: some ticks, context
+/// switches, a cross-CPU read or one wake/kill round.
+const WORK_MS: u32 = 500;
+/// Every AP finished its sync lines and is ready for IPIs; the unmap race's
+/// reader faults or reads the reused frame.
+const READY_MS: u32 = 1_000;
+/// A negative fixture's fault must end the VM first: returning fails the boot.
+const FATAL_MS: u32 = 1_000;
+/// PAIR_ROUNDS contended lock pairs on every CPU (audit F4).
+const PAIR_MS: u32 = 2_000;
 
 /// Poll `ready` every millisecond, at most `limit` ms (PIT-bounded).
 #[track_caller]
@@ -1525,48 +1589,60 @@ fn within_ms(limit: u32, ready: impl Fn() -> bool) -> bool {
     used.is_some()
 }
 
-/// Hard bound of the sync wait, in multiples of its limit.
+/// Hard bound of a progress-bounded wait, in multiples of its limit.
 const PROGRESS_CAP: u32 = 10;
 /// The sync wait polls every 10 ms, as it has since step 1.
-const PROGRESS_POLL_MS: u32 = 10;
+const SYNC_POLL_MS: u32 = 10;
 
 enum Progress {
     Ready,
-    Stalled,
+    /// This waited-for CPU (BSP 0, AP slot + 1) made no own progress.
+    Stalled(usize),
     Late,
 }
 
-/// Liveness apart from performance (ADR-082): poll `ready` while the monotone
-/// `progress` of the waited-for CPUs advanced within the last `limit` ms, for
-/// at most PROGRESS_CAP x `limit` ms. No progress for `limit` ms is a deadlock
-/// or a starved CPU. Also returns the ms waited and the longest run without
-/// progress: `limit` or more was alive but slow, which the host rejects.
+/// Liveness apart from performance (ADR-082 D1, D2): poll `ready` every `poll`
+/// ms while every waited-for AP that has not finished advanced its own `work`
+/// within the last `limit` ms, for at most PROGRESS_CAP x `limit` ms. `work(slot)`
+/// is that AP's single-writer progress, None once it finished. No own progress
+/// for `limit` ms is a deadlock or a starved CPU, whatever the others do. Also
+/// returns the ms waited and the longest run without own progress of any
+/// unfinished AP: the host judges the time against `limit`.
 fn within_progress(
     limit: u32,
-    progress: impl Fn() -> u64,
+    poll: u32,
+    aps: usize,
+    work: impl Fn(usize) -> Option<u64>,
     ready: impl Fn() -> bool,
 ) -> (Progress, u32, u32) {
-    let (mut seen, mut used, mut stalled, mut worst) = (progress(), 0, 0, 0);
+    let mut seen = [0u64; MAX_CPUS];
+    let mut quiet = [0u32; MAX_CPUS];
+    for (slot, seen) in seen[..aps].iter_mut().enumerate() {
+        *seen = work(slot).unwrap_or(0);
+    }
+    let (mut used, mut worst) = (0, 0);
     let outcome = loop {
         if ready() {
             break Progress::Ready;
         }
-        if stalled >= limit {
-            break Progress::Stalled;
+        if let Some(slot) = (0..aps).find(|&slot| quiet[slot] >= limit) {
+            break Progress::Stalled(slot + 1);
         }
         if used >= limit * PROGRESS_CAP {
             break Progress::Late;
         }
-        wait_us(PROGRESS_POLL_MS * 1_000);
-        used += PROGRESS_POLL_MS;
-        let now = progress();
-        stalled = if now == seen {
-            stalled + PROGRESS_POLL_MS
-        } else {
-            0
-        };
-        seen = now;
-        worst = worst.max(stalled);
+        wait_us(poll * 1_000);
+        used += poll;
+        for slot in 0..aps {
+            quiet[slot] = match work(slot) {
+                Some(now) if now == seen[slot] => quiet[slot] + poll,
+                now => {
+                    seen[slot] = now.unwrap_or(seen[slot]);
+                    0
+                }
+            };
+            worst = worst.max(quiet[slot]);
+        }
     };
     (outcome, used, worst)
 }
@@ -1598,7 +1674,7 @@ fn settle_scheduler(online: usize) {
     }
     SCHED.store(PREEMPT_STOP, Ordering::Release);
     let locals = &CPU_LOCAL[..online];
-    within_ms(200, || {
+    within_ms(STEP_MS, || {
         locals
             .iter()
             .all(|local| local.sched_state.load(Ordering::Acquire) == RESUMED)
@@ -1711,7 +1787,7 @@ fn ipis(
     paging: &mut paging::Paging,
 ) {
     let aps = &NOS_SMP_AP_CONTEXTS[..online];
-    if !within_ms(1_000, || {
+    if !within_ms(READY_MS, || {
         aps.iter()
             .all(|context| context.state.load(Ordering::Acquire) == IPI_READY)
     }) {
@@ -1722,7 +1798,7 @@ fn ipis(
         for (slot, context) in aps.iter().enumerate() {
             let apic = context.apic_id.load(Ordering::Relaxed);
             if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
-                || !within_ms(100, || {
+                || !within_ms(ACK_MS, || {
                     CPU_LOCAL[slot].ipis.load(Ordering::Acquire) >= round
                 })
             {
@@ -1733,7 +1809,7 @@ fn ipis(
             }
             if cfg!(feature = "test-smp-ap-double-fault") && slot == 0 && round == 1 {
                 // That AP now faults on its own IST1 stack and ends the VM.
-                within_ms(1_000, || false);
+                within_ms(FATAL_MS, || false);
                 serial::fail(b"SMP_AP_DF_NOT_ON_IST");
             }
         }
@@ -1759,14 +1835,14 @@ fn ipis(
             aps[0].apic_id.load(Ordering::Relaxed),
             IPI_FIXED | IPI_VECTOR as u32,
         );
-        within_ms(1_000, || false);
+        within_ms(FATAL_MS, || false);
         serial::fail(b"SMP_LOCK_STUCK_MISSED");
     }
     if cfg!(feature = "test-smp-ap-nmi") && online != 0 {
         let apic = aps[0].apic_id.load(Ordering::Relaxed);
         if send_ipi(apic, IPI_NMI) {
             // The AP's IST2 handler must end the VM with its marker.
-            within_ms(1_000, || false);
+            within_ms(FATAL_MS, || false);
         }
         serial::fail(b"SMP_AP_NMI_NOT_ON_IST");
     }
@@ -1804,7 +1880,7 @@ fn ipis(
     for (slot, context) in aps.iter().enumerate() {
         let apic = context.apic_id.load(Ordering::Relaxed);
         if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
-            || !within_ms(100, || context.state.load(Ordering::Acquire) == PARKED)
+            || !within_ms(ACK_MS, || context.state.load(Ordering::Acquire) == PARKED)
         {
             serial::write(b"SMP:PARK:TIMEOUT:SLOT=");
             decimal(slot as u64);
@@ -2073,7 +2149,7 @@ fn probe_visibility(online: usize, total: usize, skipped: bool) -> bool {
     for (context, local) in NOS_SMP_AP_CONTEXTS[..online].iter().zip(locals) {
         let apic = context.apic_id.load(Ordering::Relaxed);
         if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
-            || !within_ms(100, || local.probed.load(Ordering::Acquire) == 1)
+            || !within_ms(ACK_MS, || local.probed.load(Ordering::Acquire) == 1)
         {
             serial::write(b"SMP:SHOOTDOWN:PROBE_TIMEOUT\n");
             quarantine_all(online, total);
@@ -2510,13 +2586,13 @@ fn preemption(online: usize, total: usize) -> bool {
                     .iter()
                     .all(|count| count.load(Ordering::Acquire) != 0)
         };
-        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32) || !within_ms(500, progressed) || {
+        if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32) || !within_ms(WORK_MS, progressed) || {
             // Both threads must keep advancing between two BSP samples.
             let before = local
                 .counts
                 .each_ref()
                 .map(|count| count.load(Ordering::Acquire));
-            !within_ms(500, || {
+            !within_ms(WORK_MS, || {
                 local
                     .counts
                     .iter()
@@ -2540,7 +2616,7 @@ fn preemption(online: usize, total: usize) -> bool {
     for (context, local) in aps.iter().zip(locals) {
         let apic = context.apic_id.load(Ordering::Relaxed);
         if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
-            || !within_ms(200, || local.preempt.load(Ordering::Acquire) == RESUMED)
+            || !within_ms(STEP_MS, || local.preempt.load(Ordering::Acquire) == RESUMED)
         {
             serial::write(b"SMP:PREEMPT:STOP_TIMEOUT\n");
             quarantine_all(online, total);
@@ -2589,15 +2665,16 @@ fn preempt_under_lock(locals: &[CpuLocal]) {
     for local in locals {
         // The first deferred tick means the running thread is now the waiter.
         let start = local.deferred.load(Ordering::Acquire);
-        if !within_ms(500, || local.deferred.load(Ordering::Acquire) > start) {
+        if !within_ms(WORK_MS, || local.deferred.load(Ordering::Acquire) > start) {
             serial::fail(b"SMP_PREEMPT_LOCK_NO_TICK");
         }
         let (first, switches) = (
             local.deferred.load(Ordering::Acquire),
             local.switches.load(Ordering::Acquire),
         );
-        if !within_ms(500, || local.deferred.load(Ordering::Acquire) >= first + 2)
-            || local.switches.load(Ordering::Acquire) != switches
+        if !within_ms(WORK_MS, || {
+            local.deferred.load(Ordering::Acquire) >= first + 2
+        }) || local.switches.load(Ordering::Acquire) != switches
         {
             serial::fail(b"SMP_PREEMPT_LOCK_SWITCHED");
         }
@@ -2610,7 +2687,7 @@ fn preempt_under_lock(locals: &[CpuLocal]) {
     drop(held);
     PREEMPT_LOCKED.store(false, Ordering::Release);
     for (local, before) in locals.iter().zip(switches) {
-        if !within_ms(500, || local.switches.load(Ordering::Acquire) > before) {
+        if !within_ms(WORK_MS, || local.switches.load(Ordering::Acquire) > before) {
             serial::fail(b"SMP_PREEMPT_LOCK_NOT_RESUMED");
         }
     }
@@ -2633,7 +2710,7 @@ fn spin_window(online: usize, total: usize) -> bool {
     for (context, local) in aps.iter().zip(locals) {
         let apic = context.apic_id.load(Ordering::Relaxed);
         if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
-            || !within_ms(100, || local.spun.load(Ordering::Acquire) == 1)
+            || !within_ms(ACK_MS, || local.spun.load(Ordering::Acquire) == 1)
         {
             serial::write(b"SMP:SPIN:TIMEOUT:APIC=");
             decimal(u64::from(apic));
@@ -2653,7 +2730,7 @@ fn spin_window(online: usize, total: usize) -> bool {
     }
     drop(held);
     for local in locals {
-        if !within_ms(100, || local.spun.load(Ordering::Acquire) == 2) {
+        if !within_ms(ACK_MS, || local.spun.load(Ordering::Acquire) == 2) {
             serial::fail(b"SMP_SPIN_NOT_GRANTED");
         }
         if local.lockdep.load(Ordering::Acquire) != 0 {
@@ -2741,9 +2818,15 @@ fn idle_until(ms: u64, ready: impl Fn() -> bool) -> bool {
     }
 }
 
-/// BT-3: the only `sti; hlt; cli`, in a CPU's idle (home) context. It runs
-/// under the kernel CR3 with an empty lockdep set, or the VM stops.
 fn idle_halt() {
+    idle_halt_after(|| ());
+}
+
+/// BT-3: the only `sti; hlt; cli`, in a CPU's idle (home) context. It runs
+/// under the kernel CR3 with an empty lockdep set, or the VM stops. `before`
+/// runs right before `sti`: the clock's halt stamp then covers every
+/// instruction with IF=0 (ADR-082 D3, F02).
+fn idle_halt_after(before: impl FnOnce()) {
     let cr3: u64;
     // SAFETY: CPL0 register read.
     unsafe { asm!("mov {}, cr3", out(reg) cr3, options(nomem, nostack)) };
@@ -2751,6 +2834,7 @@ fn idle_halt() {
     if lockdep().load(Ordering::Relaxed) != 0 || (kernel != 0 && (cr3 ^ kernel) & ROOT_MASK != 0) {
         serial::fail(b"SMP_IDLE_STATE");
     }
+    before();
     // SAFETY: CPL0 idle context with IF=0 and every unmasked source gated.
     // STI's shadow covers HLT, so an interrupt that became pending before HLT
     // still ends it; handlers may change memory, hence no `nomem`.
@@ -2890,15 +2974,26 @@ const CLOCK_SEGMENT: u64 = 1_000;
 const CLOCK_SEGMENTS: usize = 5;
 const CLOCK_SPAN: u64 = CLOCK_SEGMENT * CLOCK_SEGMENTS as u64;
 static CLOCK_LOAD: AtomicBool = AtomicBool::new(false);
-// Keep independent AP progress words on separate 64-byte lines. The load
+/// `test-smp-clock-other-cpu`: bumped by the BSP before it wakes AP1 to mask IRQ0.
+static CLOCK_POKE: AtomicU32 = AtomicU32::new(0);
+// Keep independent progress words on separate 64-byte lines. The load
 // remains a continuously busy loop on every AP; no inter-AP synchronization
-// is needed to count each AP's own work. KERNEL/ticketlock tests are separate.
+// is needed to count each CPU's own work. KERNEL/ticketlock tests are separate.
 #[repr(align(64))]
-struct ClockWork(AtomicU64);
-const _: () = assert!(core::mem::size_of::<ClockWork>() == 64);
-const _: () = assert!(core::mem::align_of::<ClockWork>() == 64);
-static CLOCK_WORK: [ClockWork; MAX_CPUS - 1] =
-    [const { ClockWork(AtomicU64::new(0)) }; MAX_CPUS - 1];
+struct Work(AtomicU64);
+const _: () = assert!(core::mem::size_of::<Work>() == 64);
+const _: () = assert!(core::mem::align_of::<Work>() == 64);
+impl Work {
+    /// Only this word's own CPU writes it: no locked RMW in the measured work.
+    fn bump(&self) {
+        self.0
+            .store(self.0.load(Ordering::Relaxed) + 1, Ordering::Relaxed);
+    }
+}
+static CLOCK_WORK: [Work; MAX_CPUS - 1] = [const { Work(AtomicU64::new(0)) }; MAX_CPUS - 1];
+/// ADR-082 D1/D2: each CPU's own sync and scratch progress (BSP 0, AP slot + 1).
+static SYNC_WORK: [Work; MAX_CPUS] = [const { Work(AtomicU64::new(0)) }; MAX_CPUS];
+static SCRATCH_WORK: [Work; MAX_CPUS] = [const { Work(AtomicU64::new(0)) }; MAX_CPUS];
 
 /// Idle precision phase: the sampling half of `smp_lock::clock`. After every
 /// wake the BSP reads, with IF=0, the PIC's pending IRQ0 and a latch of PIT
@@ -2919,15 +3014,19 @@ struct ClockEdges {
     halted: u64,
     span: u64,
     counted: u64,
-    /// `bsp_other_entries` at the last sample.
+    /// `other_entries` at the last sample, and the APs it watches.
     others: u64,
+    aps: usize,
     blind: bool,
 }
 
-/// Interrupts the BSP handled that are not IRQ0: 0xf0, 0xe0, 0xd0 and 0xe8
-/// each count themselves on entry; the spurious stub is a bare `iretq`.
-fn bsp_other_entries() -> u64 {
-    [
+/// Kernel activity other than IRQ0 on the BSP and halting: interrupts the BSP
+/// handled (0xf0, 0xe0, 0xd0 and 0xe8 count themselves on entry; the spurious
+/// stub is a bare `iretq`), plus every wake of an AP (F02 (d): another CPU can
+/// mask the PIC or rewrite the PIT). Also whether every AP is in its idle
+/// `hlt` now; an AP elsewhere could do so at any time.
+fn other_entries(aps: usize) -> (u64, bool) {
+    let bsp: u64 = [
         &BSP_LOCAL.ipis,
         &BSP_LOCAL.shootdowns,
         &BSP_LOCAL.tick_count,
@@ -2935,14 +3034,20 @@ fn bsp_other_entries() -> u64 {
     ]
     .iter()
     .map(|count| u64::from(count.load(Ordering::Relaxed)))
-    .sum()
+    .sum();
+    CPU_LOCAL[..aps]
+        .iter()
+        .fold((bsp, true), |(sum, halted), local| {
+            let halts = local.halts.load(Ordering::Acquire);
+            (sum + u64::from(halts), halted && halts & 1 == 1)
+        })
 }
 
 /// The longest span without IRQ0 that still counts as receptive: 1/4 period.
 const CLOCK_SPAN_PART: u64 = 4;
 
 impl ClockEdges {
-    fn new(per_ms: u64) -> Self {
+    fn new(per_ms: u64, aps: usize) -> Self {
         Self {
             period: per_ms * 1_000 * u64::from(PIT_DIVISOR) / PIT_HZ,
             edge: 0,
@@ -2953,6 +3058,7 @@ impl ClockEdges {
             span: 0,
             counted: 0,
             others: 0,
+            aps,
             blind: false,
         }
     }
@@ -2973,7 +3079,7 @@ impl ClockEdges {
 
     /// After a wake, IF=0: `ticks` and `entry` are the stub's count and TSC.
     fn sample(&mut self, ticks: u64, entry: u64) {
-        let others = bsp_other_entries();
+        let (others, halted) = other_entries(self.aps);
         let Some((tsc, count, pending)) = self.latch() else {
             self.blind = true;
             return;
@@ -3007,7 +3113,7 @@ impl ClockEdges {
             receptive: !self.blind
                 && clock::receptive(
                     ticks - self.ticks,
-                    others.wrapping_sub(self.others),
+                    others.wrapping_sub(self.others) + u64::from(!halted),
                     [
                         self.halted.wrapping_sub(self.entry),
                         tsc.wrapping_sub(entry),
@@ -3057,14 +3163,23 @@ fn clock_at(
         if rdtsc() > bound {
             return None;
         }
-        if let Some(edges) = edges.as_deref_mut() {
-            if cfg!(feature = "test-smp-clock-masked") && now % 32 == 0 {
-                // The kernel itself keeps IRQ0 out for three periods.
-                wait_us(3_000);
-            }
-            edges.halt();
+        let Some(edges) = edges.as_deref_mut() else {
+            idle_halt();
+            continue;
+        };
+        if cfg!(feature = "test-smp-clock-masked") && now % 32 == 0 {
+            // The kernel itself keeps IRQ0 out for three periods.
+            wait_us(3_000);
         }
-        idle_halt();
+        if cfg!(feature = "test-smp-clock-other-cpu") && now % 32 == 0 && edges.aps != 0 {
+            // AP1 masks IRQ0 in the PIC for three periods (see its home loop).
+            CLOCK_POKE.fetch_add(1, Ordering::Release);
+            send_ipi(
+                NOS_SMP_AP_CONTEXTS[0].apic_id.load(Ordering::Relaxed),
+                IPI_FIXED | IPI_VECTOR as u32,
+            );
+        }
+        idle_halt_after(|| edges.halt());
     }
 }
 
@@ -3082,11 +3197,12 @@ fn clock(online: usize, total: usize) -> bool {
     let bound = rdtsc().saturating_add(4 * CLOCK_SPAN * per_ms);
     let mut last = CLOCK_TICKS.load(Ordering::Acquire);
     let first = last + 1;
-    let mut edges = ClockEdges::new(per_ms);
+    let mut edges = ClockEdges::new(per_ms, online);
     let mut edge = clock_at(first, bound, &mut last, Some(&mut edges));
     let mut samples = [0u64; CLOCK_SEGMENTS];
-    // The same samples without the periods whose edges the host lost.
-    let mut own = [0u64; CLOCK_SEGMENTS];
+    // The same samples without the periods whose edges the host lost, and
+    // that credit, in µs (ADR-082 D3).
+    let mut own = [(0u64, 0u64); CLOCK_SEGMENTS];
     let mut ticks = [0u64; CLOCK_SEGMENTS];
     let mut cycles = [0u64; CLOCK_SEGMENTS];
     let mut observer_start_lag = [0u64; CLOCK_SEGMENTS];
@@ -3119,7 +3235,8 @@ fn clock(online: usize, total: usize) -> bool {
                 // an arrival or a doubled tick: both take back host credit.
                 let lost = (edges.books.host.saturating_sub(host))
                     .saturating_sub(edges.books.extra - extra);
-                own[index] = normalized(tsc_delta.saturating_sub(lost * edges.period));
+                let credit = (lost * edges.period).min(tsc_delta);
+                own[index] = (normalized(tsc_delta - credit), normalized(credit));
                 end
             })
         });
@@ -3131,9 +3248,13 @@ fn clock(online: usize, total: usize) -> bool {
     let mut ordered = samples;
     ordered.sort_unstable();
     let us = ordered[CLOCK_SEGMENTS / 2];
-    own.sort_unstable();
-    // Diagnostic until the project owner decides on it: the verdict below is
-    // still the median over every period, lost edges included.
+    let expected = CLOCK_SEGMENT * u64::from(PIT_DIVISOR) * 1_000_000 / PIT_HZ;
+    // ADR-082 D3: the median without host-charged periods is judged, within
+    // 1 % on both sides; the raw median `us` is reported beside it.
+    let verdict = clock::judge(&mut own, expected);
+    let (clock::Verdict::Pass(own_us)
+    | clock::Verdict::Drift(own_us)
+    | clock::Verdict::HostBound(own_us)) = verdict;
     for (label, value) in [
         (b"SMP:CLOCK:EDGES:TICKS=".as_slice(), edges.counted),
         (b":LOST=", edges.books.lost),
@@ -3141,20 +3262,19 @@ fn clock(online: usize, total: usize) -> bool {
         (b":EXTRA=", edges.books.extra),
         (b":SPAN_US=", edges.span * 1000 / per_ms.max(1)),
         (b":US=", us),
-        (b":OWN_US=", own[CLOCK_SEGMENTS / 2]),
+        (b":OWN_US=", own_us),
     ] {
         serial::write(label);
         decimal(value);
     }
     serial::write(b"\n");
-    let expected = CLOCK_SEGMENT * u64::from(PIT_DIVISOR) * 1_000_000 / PIT_HZ;
-    if cfg!(feature = "test-smp-clock-masked") {
-        // Both medians must reject edges the kernel masked: none of that loss
-        // may be booked on the host.
-        if [us, own[CLOCK_SEGMENTS / 2]]
-            .iter()
-            .all(|median| median.abs_diff(expected) * 100 > expected)
-        {
+    if cfg!(any(
+        feature = "test-smp-clock-masked",
+        feature = "test-smp-clock-other-cpu"
+    )) {
+        // Edges the kernel kept out (on the BSP, or AP1 through the PIC) must
+        // stay in the judged median, so the verdict rejects them.
+        if matches!(verdict, clock::Verdict::Drift(_)) && us.abs_diff(expected) * 100 > expected {
             serial::write(b"SMP:CLOCK:DRIFT:KERNEL\n");
             serial::exit(0x10);
         }
@@ -3163,7 +3283,10 @@ fn clock(online: usize, total: usize) -> bool {
     if cfg!(feature = "test-smp-clock-divisor") {
         serial::fail(b"SMP_TEST_CLOCK_DIVISOR_NOT_DETECTED");
     }
-    if us.abs_diff(expected) * 100 > expected {
+    if let clock::Verdict::HostBound(_) = verdict {
+        serial::write(b"SMP:CLOCK:HOST_BOUND\n");
+    }
+    if !matches!(verdict, clock::Verdict::Pass(_)) {
         serial::write(b"SMP:CLOCK:CALIBRATION:TSC_PER_MS=");
         decimal(per_ms);
         serial::write(b"\n");
@@ -3185,7 +3308,11 @@ fn clock(online: usize, total: usize) -> bool {
         serial::write(b"SMP:CLOCK:DRIFT:US=");
         decimal(us);
         serial::write(b"\n");
-        serial::fail(b"SMP_CLOCK_DRIFT");
+        serial::fail(if matches!(verdict, clock::Verdict::HostBound(_)) {
+            b"SMP_CLOCK_HOST_BOUND".as_slice()
+        } else {
+            b"SMP_CLOCK_DRIFT"
+        });
     }
     // Load phase. This runs once per boot, before any AP enters the load loop.
     for work in &CLOCK_WORK {
@@ -3254,9 +3381,9 @@ fn bsp_preempt(online: usize) -> bool {
             && local.switches.load(Ordering::Acquire) >= MIN_SWITCHES
             && counts().iter().all(|&count| count != 0)
     };
-    if !idle_until(500, progressed) || {
+    if !idle_until(WORK_MS.into(), progressed) || {
         let before = counts();
-        !idle_until(500, || {
+        !idle_until(WORK_MS.into(), || {
             counts().iter().zip(before).all(|(&now, old)| now > old)
         })
     } {
@@ -3318,7 +3445,7 @@ fn bsp_spin(online: usize, total: usize) -> bool {
     let apic = apic_of(0);
     BSP_SPIN.store(STEP_RUN, Ordering::Release);
     if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
-        || !within_ms(100, || BSP_SPIN.load(Ordering::Acquire) == STEP_HELD)
+        || !within_ms(ACK_MS, || BSP_SPIN.load(Ordering::Acquire) == STEP_HELD)
     {
         serial::write(b"SMP:BSP_SPIN:TIMEOUT:APIC=");
         decimal(u64::from(apic));
@@ -3365,7 +3492,7 @@ fn idle_wake_work() {
     {
         return;
     }
-    if within_tsc(100, || IDLE_HALTING.load(Ordering::Acquire)) {
+    if within_tsc(ACK_MS.into(), || IDLE_HALTING.load(Ordering::Acquire)) {
         IDLE_SENT_TSC.store(rdtsc(), Ordering::Release);
         send_ipi(
             BSP_APIC_ID.load(Ordering::Relaxed),
@@ -3387,12 +3514,12 @@ fn idle_defer_work() {
     let guard = IDLE_LOCK.lock_irqsave();
     let deferred = BSP_LOCAL.deferred.load(Ordering::Acquire);
     IDLE_AP.store(STEP_HELD, Ordering::Release);
-    let ok = within_tsc(100, || {
+    let ok = within_tsc(ACK_MS.into(), || {
         BSP_LOCAL.lockdep.load(Ordering::Acquire) & (1 << level::KERNEL) != 0
     }) && send_ipi(
         BSP_APIC_ID.load(Ordering::Relaxed),
         IPI_FIXED | RESCHED_VECTOR as u32,
-    ) && within_tsc(100, || {
+    ) && within_tsc(ACK_MS.into(), || {
         BSP_LOCAL.deferred.load(Ordering::Acquire) > deferred
     });
     IDLE_AP.store(
@@ -3447,7 +3574,7 @@ fn idle(online: usize, total: usize) -> bool {
         return idle_timeout(apic, online, total);
     }
     IDLE_HALTING.store(true, Ordering::Release);
-    let woken = idle_until(200, || {
+    let woken = idle_until(STEP_MS.into(), || {
         local.resched_count.load(Ordering::Acquire) != resched
     });
     IDLE_HALTING.store(false, Ordering::Release);
@@ -3480,7 +3607,7 @@ fn idle(online: usize, total: usize) -> bool {
     BSP_PHASE.store(BSP_DEFER, Ordering::Release);
     IDLE_PHASE.store(IDLE_DEFER, Ordering::Release);
     if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
-        || !within_ms(100, || IDLE_AP.load(Ordering::Acquire) == STEP_HELD)
+        || !within_ms(ACK_MS, || IDLE_AP.load(Ordering::Acquire) == STEP_HELD)
     {
         BSP_PHASE.store(0, Ordering::Release);
         return idle_timeout(apic, online, total);
@@ -3494,7 +3621,7 @@ fn idle(online: usize, total: usize) -> bool {
     // The pending self 0xe8 switches to the thread in the first idle window;
     // the thread's release switches back here. A stuck thread never returns,
     // but its own waits are bounded and end the VM.
-    let returned = idle_until(500, || IDLE_THREAD.load(Ordering::Acquire) == 2);
+    let returned = idle_until(WORK_MS.into(), || IDLE_THREAD.load(Ordering::Acquire) == 2);
     BSP_PHASE.store(0, Ordering::Release);
     if !returned
         || local.current.load(Ordering::Acquire) != 0
@@ -3800,7 +3927,7 @@ fn schedule(online: usize, total: usize) -> bool {
         for (slot, context) in aps.iter().enumerate() {
             let apic = context.apic_id.load(Ordering::Relaxed);
             if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
-                || !within_ms(500, || PROGRESS[slot].load(Ordering::Acquire) != 0)
+                || !within_ms(WORK_MS, || PROGRESS[slot].load(Ordering::Acquire) != 0)
             {
                 return sched_timeout(apic, online, total);
             }
@@ -3816,14 +3943,14 @@ fn schedule(online: usize, total: usize) -> bool {
             }
             let (here, woken) = (&PROGRESS[slot], &PROGRESS[tid]);
             if !send_ipi(apic, IPI_FIXED | RESCHED_VECTOR as u32)
-                || !within_ms(500, || {
+                || !within_ms(WORK_MS, || {
                     local.resched_count.load(Ordering::Acquire) != 0
                         && woken.load(Ordering::Acquire) != 0
                         && local.cr3_switches.load(Ordering::Acquire) >= MIN_SWITCHES
                 })
                 || {
                     let before = (here.load(Ordering::Acquire), woken.load(Ordering::Acquire));
-                    !within_ms(500, || {
+                    !within_ms(WORK_MS, || {
                         here.load(Ordering::Acquire) > before.0
                             && woken.load(Ordering::Acquire) > before.1
                     })
@@ -3850,7 +3977,7 @@ fn schedule(online: usize, total: usize) -> bool {
 fn stop_scheduler(online: usize, total: usize) -> bool {
     let locals = &CPU_LOCAL[..online];
     SCHED.store(PREEMPT_STOP, Ordering::Release);
-    if !within_ms(200, || {
+    if !within_ms(STEP_MS, || {
         locals
             .iter()
             .all(|local| local.sched_state.load(Ordering::Acquire) == RESUMED)
@@ -4018,7 +4145,7 @@ fn block_wake_kill(online: usize, total: usize) -> bool {
     let rounds = |tid: usize| PROGRESS[tid].load(Ordering::Acquire);
     if !within_ms(WAKE_DEADLINE_MS, || {
         rounds(0) == WAKE_ROUNDS && rounds(1) == WAKE_ROUNDS
-    }) || !within_ms(100, || {
+    }) || !within_ms(ACK_MS, || {
         (0..KILLED).all(|tid| THREAD_STATE[tid].load(Ordering::Acquire) == sched::BLOCKED)
     }) || SCHED_FAULT.load(Ordering::Acquire) != 0
     {
@@ -4040,7 +4167,8 @@ fn block_wake_kill(online: usize, total: usize) -> bool {
         state.store(sched::READY, Ordering::Release);
         enqueue(&mut queue, KILLED as u32);
     }
-    if !send_ipi(apic, IPI_FIXED | RESCHED_VECTOR as u32) || !within_ms(500, || rounds(KILLED) != 0)
+    if !send_ipi(apic, IPI_FIXED | RESCHED_VECTOR as u32)
+        || !within_ms(WORK_MS, || rounds(KILLED) != 0)
     {
         return sched_timeout(apic, online, total);
     }
@@ -4054,7 +4182,7 @@ fn block_wake_kill(online: usize, total: usize) -> bool {
     }
     if cfg!(feature = "test-smp-quarantine-sched-busy") {
         SCHED_BUSY.store(1, Ordering::Release);
-        if !within_ms(100, || SCHED_BUSY.load(Ordering::Acquire) == 2) {
+        if !within_ms(ACK_MS, || SCHED_BUSY.load(Ordering::Acquire) == 2) {
             serial::fail(b"SMP_TEST_SCHED_BUSY_NOT_HELD");
         }
         serial::write(b"SMP:QUARANTINE:SCHED_BUSY:CPU=1\n");
@@ -4114,7 +4242,16 @@ fn scratch_work(cpu: usize) {
     let pa = SCRATCH_FRAMES[cpu].load(Ordering::Acquire);
     let byte = 0xa5 ^ cpu as u8;
     let word = u64::from_ne_bytes([byte; 8]);
-    for _ in 0..SCRATCH_ROUNDS {
+    for round in 0..SCRATCH_ROUNDS {
+        SCRATCH_WORK[cpu].bump();
+        if cpu == 1 && cfg!(feature = "test-smp-scratch-stall") && round == 8 {
+            // AP1 dies mid-fill, outside any lock: its progress stops.
+            park();
+        }
+        if cpu == 1 && cfg!(feature = "test-smp-scratch-slow") {
+            // About 10 s for the share, beyond the 5 s cap, progress every 10 ms.
+            within_tsc(10, || false);
+        }
         paging::zero_dynamic(pa);
         // SAFETY: the slot maps exactly this CPU's own Kernel-owned frame;
         // one page is written through the callback's pointer only.
@@ -4129,15 +4266,22 @@ fn scratch_work(cpu: usize) {
         }
     }
     for _ in 0..KERNEL_ROUNDS {
+        SCRATCH_WORK[cpu].bump();
         let _kernel = lock::KERNEL.lock_irqsave();
         assert!(lock::kernel_held());
         SCRATCH_COUNT.store(SCRATCH_COUNT.load(Ordering::Relaxed) + 1, Ordering::Relaxed);
     }
 }
 
+/// Spec 01: the APs' scratch shares end within 500 ms after the BSP's own.
+/// ADR-082 D2: in the guest an AP without own progress for 500 ms is a stall
+/// and 10 x 500 ms the hard cap; the host judges the 500 ms on every profile
+/// except the five overcommitted TCG cases.
+const SCRATCH_MS: u32 = 500;
+
 /// BSP: give every online CPU its own frame, run all shares concurrently and
 /// require every pattern intact, KERNEL_ROUNDS per CPU counted and lockdep
-/// empty. APs get 500 ms after the BSP's own share; a silent AP is quarantined.
+/// empty. A stalled or capped AP is quarantined.
 fn scratch(online: usize, total: usize, frames: &mut Frames<FRAME_COUNT>) -> bool {
     for frame in &SCRATCH_FRAMES[..=online] {
         let pa = frames
@@ -4159,14 +4303,42 @@ fn scratch(online: usize, total: usize, frames: &mut Frames<FRAME_COUNT>) -> boo
         }
     }
     scratch_work(0);
-    if !within_ms(500, || {
-        locals
-            .iter()
-            .all(|local| local.scratched.load(Ordering::Acquire) == 1)
-    }) {
-        serial::write(b"SMP:SCRATCH:TIMEOUT\n");
+    let (finished, waited_ms, quiet_ms) = within_progress(
+        SCRATCH_MS,
+        1,
+        online,
+        |slot| {
+            (locals[slot].scratched.load(Ordering::Acquire) == 0)
+                .then(|| SCRATCH_WORK[slot + 1].0.load(Ordering::Relaxed))
+        },
+        || {
+            locals
+                .iter()
+                .all(|local| local.scratched.load(Ordering::Acquire) == 1)
+        },
+    );
+    if !matches!(finished, Progress::Ready) {
+        let stalled = matches!(finished, Progress::Stalled(1));
+        if let Progress::Stalled(cpu) = finished {
+            serial::write(b"SMP:SCRATCH:STALLED:CPU=");
+            decimal(cpu as u64);
+            serial::write(b"\n");
+        } else {
+            serial::write(b"SMP:SCRATCH:TIMEOUT\n");
+        }
+        if cfg!(feature = "test-smp-scratch-stall") && stalled
+            || cfg!(feature = "test-smp-scratch-slow") && matches!(finished, Progress::Late)
+        {
+            serial::exit(0x10);
+        }
         quarantine_all(online, total);
         return false;
+    }
+    if cfg!(any(
+        feature = "test-smp-scratch-stall",
+        feature = "test-smp-scratch-slow"
+    )) {
+        serial::fail(b"SMP_TEST_SCRATCH_NOT_DETECTED");
     }
     if cfg!(feature = "test-smp-shared-scratch") {
         serial::fail(b"SMP_SCRATCH_NO_CROSS");
@@ -4197,6 +4369,11 @@ fn scratch(online: usize, total: usize, frames: &mut Frames<FRAME_COUNT>) -> boo
     }
     serial::write(b"SMP:SCRATCH:PASS:CPUS=");
     decimal(online as u64 + 1);
+    // Alive; whether 500 ms was enough is the host's verdict (ADR-082 D2).
+    serial::write(b":WAIT_MS=");
+    decimal(u64::from(waited_ms));
+    serial::write(b":STALL_MS=");
+    decimal(u64::from(quiet_ms));
     serial::write(b"\n");
     true
 }
@@ -4251,7 +4428,7 @@ fn lock_pairs(online: usize, total: usize) -> bool {
         }
     }
     pair_work(0);
-    if !within_ms(2_000, || {
+    if !within_ms(PAIR_MS, || {
         locals
             .iter()
             .all(|local| local.paired.load(Ordering::Acquire) == 1)
@@ -4689,7 +4866,7 @@ fn proc_shootdown(
     decimal(online as u64 + 1);
     serial::write(b"\n");
     RACE_RUN.store(true, Ordering::Release);
-    if !within_ms(500, || RACE_READS.load(Ordering::Acquire) != 0) {
+    if !within_ms(WORK_MS, || RACE_READS.load(Ordering::Acquire) != 0) {
         return sched_timeout(apic_of(0), online, total);
     }
     if cfg!(feature = "test-smp-proc-shootdown-deaf") {
@@ -4703,7 +4880,7 @@ fn proc_shootdown(
         assert_eq!(PROC_DEAF_FROZEN.load(Ordering::Acquire), targets);
         assert!((1..=online).all(|cpu| held_by(cpu).is_none()));
         let reads = RACE_READS.load(Ordering::Acquire);
-        if !within_ms(500, || {
+        if !within_ms(WORK_MS, || {
             RACE_READS.load(Ordering::Acquire) > reads && ACTIVE[0].load(Ordering::SeqCst) == 1 << 1
         }) {
             return sched_timeout(apic_of(0), online, total);
@@ -4738,7 +4915,7 @@ fn proc_shootdown(
         serial::fail(b"SMP_UNMAP_RACE_REUSE");
     }
     check_live(frames, &[a, b]);
-    if !within_ms(1_000, || {
+    if !within_ms(READY_MS, || {
         RACE_FAULTED.load(Ordering::Acquire) || RACE_STALE.load(Ordering::Acquire)
     }) {
         return sched_timeout(apic_of(0), online, total);
@@ -4950,13 +5127,15 @@ fn gs_user(online: usize, total: usize) -> bool {
     for (context, local) in aps.iter().zip(locals) {
         let apic = context.apic_id.load(Ordering::Relaxed);
         if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
-            || !within_ms(500, || local.gs_state.load(Ordering::Acquire) == GS_USER)
+            || !within_ms(WORK_MS, || {
+                local.gs_state.load(Ordering::Acquire) == GS_USER
+            })
         {
             return gs_timeout(apic, online, total);
         }
         if cfg!(feature = "test-smp-gs-iret-fault") {
             // That AP's first exit to ring 3 faults and its handler ends the VM.
-            within_ms(1_000, || false);
+            within_ms(FATAL_MS, || false);
             serial::fail(b"SMP_GS_IRET_NO_FIXUP");
         }
     }
@@ -4964,7 +5143,7 @@ fn gs_user(online: usize, total: usize) -> bool {
     wait_us(1_000);
     if cfg!(feature = "test-smp-gs-nmi-user") {
         if send_ipi(aps[0].apic_id.load(Ordering::Relaxed), IPI_NMI) {
-            within_ms(1_000, || false);
+            within_ms(FATAL_MS, || false);
         }
         serial::fail(b"SMP_GS_NMI_NOT_ON_IST");
     }
@@ -4973,7 +5152,9 @@ fn gs_user(online: usize, total: usize) -> bool {
         let base = local.ipis.load(Ordering::Acquire);
         for round in 1..=IPI_ROUNDS {
             if !send_ipi(apic, IPI_FIXED | IPI_VECTOR as u32)
-                || !within_ms(100, || local.ipis.load(Ordering::Acquire) >= base + round)
+                || !within_ms(ACK_MS, || {
+                    local.ipis.load(Ordering::Acquire) >= base + round
+                })
             {
                 return gs_timeout(apic, online, total);
             }
@@ -4986,7 +5167,7 @@ fn gs_user(online: usize, total: usize) -> bool {
         let apic = context.apic_id.load(Ordering::Relaxed);
         let resched = local.resched_count.load(Ordering::Acquire);
         if !send_ipi(apic, IPI_FIXED | RESCHED_VECTOR as u32)
-            || !within_ms(500, || {
+            || !within_ms(WORK_MS, || {
                 local.resched_count.load(Ordering::Acquire) > resched
                     && local.gs_state.load(Ordering::Acquire) == GS_PERIODIC
                     && local.user_ticks.load(Ordering::Acquire) >= MIN_TICKS
@@ -4996,7 +5177,7 @@ fn gs_user(online: usize, total: usize) -> bool {
         }
     }
     GS.store(PREEMPT_STOP, Ordering::Release);
-    if !within_ms(200, || {
+    if !within_ms(STEP_MS, || {
         locals
             .iter()
             .all(|local| local.gs_state.load(Ordering::Acquire) == GS_RESUMED)

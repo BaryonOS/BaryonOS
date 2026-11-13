@@ -218,10 +218,11 @@ jobs:
         run: |
           python3 -B tools/build.py --kernel-feature test-smp-serial-unlocked
           python3 -B -u tools/run_smp.py --profile test-smp-serial-unlocked
-      - name: Injected sync and clock defects end on their own marker (ADR-082)
+      - name: Injected sync, scratch and clock defects end on their own marker (ADR-082)
         run: |
           for profile in test-smp-sync-stall test-smp-sync-slow test-smp-sync-lost-update \
-              test-smp-clock-masked test-smp-clock-divisor; do
+              test-smp-clock-masked test-smp-clock-divisor test-smp-clock-other-cpu \
+              test-smp-scratch-stall test-smp-scratch-slow; do
             export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/k06-$profile"
             python3 -B tools/build.py --kernel-feature "$profile"
             python3 -B -u tools/run_smp.py --profile "$profile"
@@ -358,6 +359,9 @@ jobs:
           - sync-lost-update
           - clock-masked
           - clock-divisor
+          - clock-other-cpu
+          - scratch-stall
+          - scratch-slow
           - m3-one
           - m3-one-multi
           - m3-two-single
@@ -569,6 +573,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Refuse to run beside an acceptance or clock mode
+        env:
+          OTHER_MODES: ${{ inputs.full_matrix }}/${{ inputs.clock_diagnostic }}
+        run: |
+          test "$OTHER_MODES" = "false/false" || {
+            echo "margin_diagnostic requires full_matrix=false and clock_diagnostic=false" >&2
+            exit 2
+          }
       - name: Pinned QEMU and OVMF
         uses: ./.github/actions/setup-qemu
       - name: Pinned Python
@@ -667,7 +679,7 @@ jobs:
             build/k06-smp-soak-${{ matrix.shard }}/smp-report.json
 
   smp-matrix-aggregate:
-    name: SMP section 9 aggregate 71x50
+    name: SMP section 9 aggregate 74x50
     if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.full_matrix && !inputs.clock_diagnostic && !inputs.margin_diagnostic }}
     needs: [smp-case-50, smp-soak-50]
     runs-on: ubuntu-24.04

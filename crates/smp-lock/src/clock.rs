@@ -81,6 +81,35 @@ impl Edges {
     }
 }
 
+/// Outcome of the idle clock check over its segments (ADR-082 D3).
+#[derive(Debug, PartialEq, Eq)]
+pub enum Verdict {
+    /// The judged median segment, in µs.
+    Pass(u64),
+    /// The judged median is more than 1 % from the PIT's own period.
+    Drift(u64),
+    /// More than a tenth of the judged segment was credited to the host: the
+    /// witness is not trusted that far, whatever the median says.
+    HostBound(u64),
+}
+
+/// ADR-082 D3: each segment as (`own`, `host`) µs, where `own` keeps every
+/// period except those the witness charged to the host and `host` is that
+/// credit. The median of `own` must be within 1 % of `expected` on both sides,
+/// so kernel-charged loss and doubled ticks still fail, and its segment may
+/// owe at most 10 % of its length to the host credit.
+pub fn judge(segments: &mut [(u64, u64)], expected: u64) -> Verdict {
+    segments.sort_unstable();
+    let (own, host) = segments[segments.len() / 2];
+    if host * 10 > own + host {
+        Verdict::HostBound(own)
+    } else if own.abs_diff(expected) * 100 > expected {
+        Verdict::Drift(own)
+    } else {
+        Verdict::Pass(own)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -218,5 +247,47 @@ mod tests {
             run(false, &[(2, 0, false, true), (0, 3, false, true)]),
             (0, 0, 1)
         );
+    }
+    const NOMINAL: u64 = 999_847;
+
+    #[test]
+    fn the_median_without_host_credit_is_judged_on_both_sides() {
+        // Host-lost periods alone, every segment: the kernel's clock is exact.
+        let mut segments = [(NOMINAL, 20_000); 5];
+        assert_eq!(judge(&mut segments, NOMINAL), Verdict::Pass(NOMINAL));
+        // Loss charged to the kernel stays in `own`: +1.2 % fails.
+        let mut segments = [(NOMINAL + 12_000, 0); 5];
+        assert_eq!(
+            judge(&mut segments, NOMINAL),
+            Verdict::Drift(NOMINAL + 12_000)
+        );
+        // Doubled or synthesised ticks make segments short: -1.2 % fails.
+        let mut segments = [(NOMINAL - 12_000, 0); 5];
+        assert!(matches!(judge(&mut segments, NOMINAL), Verdict::Drift(_)));
+        // Exactly 1 % passes, as in the raw rule.
+        let mut segments = [(NOMINAL + NOMINAL / 100, 0); 5];
+        assert!(matches!(judge(&mut segments, NOMINAL), Verdict::Pass(_)));
+    }
+
+    #[test]
+    fn two_bad_segments_do_not_move_the_median() {
+        // A long host stall and a kernel stall, each in one segment.
+        let mut segments = [
+            (NOMINAL, 0),
+            (NOMINAL + 500_000, 0),
+            (NOMINAL + 2, 900_000),
+            (NOMINAL - 1, 0),
+            (NOMINAL + 1, 10),
+        ];
+        assert_eq!(judge(&mut segments, NOMINAL), Verdict::Pass(NOMINAL + 1));
+    }
+
+    #[test]
+    fn host_credit_above_a_tenth_of_the_judged_segment_fails() {
+        // 111 112 of 1 110 959 µs credited: just above 10 %.
+        let mut segments = [(NOMINAL, 111_112); 5];
+        assert_eq!(judge(&mut segments, NOMINAL), Verdict::HostBound(NOMINAL));
+        let mut segments = [(NOMINAL, 111_094); 5];
+        assert_eq!(judge(&mut segments, NOMINAL), Verdict::Pass(NOMINAL));
     }
 }

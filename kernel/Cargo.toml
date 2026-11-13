@@ -55,6 +55,9 @@ test-smp-sync-slow = ["native-smp"]
 test-smp-sync-lost-update = ["native-smp"]
 test-smp-clock-masked = ["native-smp"]
 test-smp-clock-divisor = ["native-smp"]
+test-smp-clock-other-cpu = ["native-smp"]
+test-smp-scratch-stall = ["native-smp"]
+test-smp-scratch-slow = ["native-smp"]
 test-smp-serial-unlocked = ["native-smp"]
 # K06 step 5d-2 (R3-1): M3 ring-3 processes on the APs; the only profile in
 # which native-smp and milestone-m3 meet.
