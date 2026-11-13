@@ -12,9 +12,11 @@ renderer). A design or simulation is never evidence of a working OS feature.
 | [BRAND.md](BRAND.md) | BaryonOS mark v1, variants, wordmark, how the mark informs the system | v1; refinement follows direction selection |
 | [NAMING-AND-IA.md](NAMING-AND-IA.md) | Naming review, recommended names, IA, vocabulary, localisation, old → new mapping | Proposal P-NAMES-1, awaiting project-owner decision |
 | [NATIVE-FEASIBILITY.md](NATIVE-FEASIBILITY.md) | Renderer capabilities, test oracles, plan for the native slice | Analysis |
-| CONCEPTS.md | Three visual directions, critique and selection | In progress |
+| [CONCEPTS.md](CONCEPTS.md) | Three visual directions, rubric critique and selection | Orbitaal selected, v2 revision pending |
+| [TYPOGRAPHY.md](TYPOGRAPHY.md) | Typeface research, measurements, specimens, selection, token specification, native assessment | Selection in progress |
 | DESIGN-SYSTEM.md | Tokens, components, motion, themes, accessibility | Pending |
 
 Assets: `ui/design/brand/` (generated mark files), `ui/design/fonts/`
 (OFL typefaces with [provenance](../../ui/design/fonts/FONTS.md)),
-`ui/design/concepts/` (concept boards).
+`ui/design/concepts/` (concept boards), `ui/design/typography/` (measurement
+and specimen tooling).
