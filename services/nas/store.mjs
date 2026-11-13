@@ -22,10 +22,22 @@ const equalDigest = (a, b) => typeof b === 'string' && NAMESPACE.test(b) &&
   timingSafeEqual(Buffer.from(a, 'hex'), Buffer.from(b, 'hex'));
 const usedBytes = (ns) => Object.values(ns.objects).reduce((sum, record) => sum + record.size, 0);
 
+// Validate the opened descriptor, not the path: a path check followed by a reopen
+// lets a concurrent rename swap in a symlink or larger file between the two calls.
+// O_NOFOLLOW rejects a symlink at open; O_NONBLOCK keeps a FIFO from blocking open.
+const READ_FLAGS = fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK;
 function readSmall(file, maximum) {
-  const stat = fs.lstatSync(file);
-  if (!stat.isFile() || stat.isSymbolicLink() || stat.size > maximum) fail('INVALID_STORE');
-  return fs.readFileSync(file);
+  let fd;
+  try { fd = fs.openSync(file, READ_FLAGS); }
+  catch (error) { if (error.code === 'ELOOP') fail('INVALID_STORE'); throw error; }
+  try {
+    const stat = fs.fstatSync(fd);
+    if (!stat.isFile() || stat.size > maximum) fail('INVALID_STORE');
+    const bytes = Buffer.alloc(stat.size + 1);
+    // One extra byte detects a file that changed size after fstat.
+    if (fs.readSync(fd, bytes, 0, bytes.length, 0) !== stat.size) fail('INVALID_STORE');
+    return bytes.subarray(0, stat.size);
+  } finally { fs.closeSync(fd); }
 }
 function validateState(state, marker) {
   requireKeys(state, ['format', 'storeId', 'peerIdentity', 'adminDigest', 'namespaces']);
