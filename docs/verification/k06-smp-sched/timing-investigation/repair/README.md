@@ -65,3 +65,20 @@ kept as recorded.
 Step summary of the final local verification of `4616fb3`: lint, host tests, builds and one
 boot of twelve cases, with exit status, duration and the marker lines of each boot. The
 serial transcripts of these boots were not kept.
+
+## `raw-reports.tar.gz`
+
+The reports from which `boots.tsv` was derived, and the scripts that produced them, as one
+reproducible archive (sorted members, zeroed timestamps). Diagnostic material, kept so that
+the table can be recomputed after the hosted artifacts have expired.
+
+| Member | Content |
+|---|---|
+| `local/series/*.json`, `*.log` | Series `local-A` (`a-…`) and `local-B` (`b-…`; `h0-3` and `h0-1` name the host CPU set): one row per boot with verdict, duration, failing lines, every margin record and the clock accounting; the logs of series A hold the serial output |
+| `local/ab/*.json`, `*.log` | Series `local-AB`: one report per boot, arm A (`67e592c`) and arm B (the source of `4616fb3`) |
+| `hosted-43286858831/<case>/margin-report.json`, `receipt.json` | The report and receipt of each hosted diagnostic job (50 boots per case) and the receipt of the gate rehearsal. Serial transcripts are not included; they remain in the artifacts listed above until GitHub removes them |
+| `scripts/` | `series2.py` (one series on a host CPU set), `ab.sh` (the interleaved comparison), `hosted.py` and `analyse.py` (summaries), `mk_boots.py` (builds `boots.tsv`), `final.sh` (the final local verification), as run |
+
+The absolute path of the session work directory was replaced by `<scratch>` in every
+member; nothing else was altered. The local reports hold 268 boots and the hosted reports
+250, the 518 rows of `boots.tsv`.

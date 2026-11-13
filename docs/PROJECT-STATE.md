@@ -10,8 +10,9 @@
 
 **Evidence (diagnostic, not acceptance):**
 - Hosted run [43286858831](https://github.com/BaryonOS/BaryonOS/actions/runs/43286858831) on `cc1043f` (QEMU 10.2.1, matrix runner): 250/250 boots of five cases pass under the unchanged rules. Closest margins: scratch 263/500 ms, sync 901/2 000 ms, `m3-load-eight` 48.3/60 s host watchdog. 59 boots lost PIT periods (at most +0.55 %). The gate rehearsal passed every executed stage.
-- Local, QEMU 8.2.2: 518 boots in `timing-investigation/repair/boots.tsv`. All local failures on 4 host CPUs are the unchanged 1 % clock rule or the `SMP:TIMER:RATIO` band. Interleaved base against final source: 36/40 and 38/40, no visible cost of the instrumentation.
+- Local, QEMU 8.2.2: 518 boots in `timing-investigation/repair/boots.tsv`. All local failures on 4 host CPUs are the unchanged 1 % clock rule or the `SMP:TIMER:RATIO` band. Interleaved base against final source: 36/40 and 38/40, no visible cost of the instrumentation. The reports behind the table and the measurement scripts are in `timing-investigation/repair/raw-reports.tar.gz`.
 - `4616fb3`, one boot of twelve cases: six regular cases pass, six negative cases end with their markers.
+- Pull-request checks on `cbaf6c2` (documentation on top of `4616fb3`): 49 passed, 8 skipped (the acceptance and diagnostic jobs, which do not run on a pull-request event), none failed. The pull-request job `native-smp` ([run 43302817750](https://github.com/BaryonOS/BaryonOS/actions/runs/43302817750)) runs on `ubuntu-24.04` with machine type `pc-q35-8.2`, so it is no evidence for the matrix runner (`ubuntu-26.04`, QEMU 10.2.1).
 
 **Why NO-GO:** the unchanged contract failed five guests in three full matrices (about 19 % pass probability, 95 % interval 2–58 %), and its mechanisms are still in place. A 99 % pass probability cannot be demonstrated by sampling (about 1.06 million failure-free boots would be needed). After D1–D3 the estimate is 35 % to 85–90 %, depending on whether further rare mechanisms exist.
 
@@ -21,7 +22,7 @@
 
 **Executed on `4616fb3` (local, 4 host CPUs, QEMU 8.2.2, `NOS_QEMU_MACHINE=pc-q35-8.2`), every command exit 0:** `cargo fmt --all -- --check`; `cargo clippy --locked -p boot-protocol -p smp-lock --all-targets -- -D warnings`; `cargo test --locked -p boot-protocol -p smp-lock` (432 s); the Python list of the `host-quality` job (`tools/tests`: 313 tests); `tools/build.py` and `tools/run_smp.py --case` for `four`, `eight`, `nine-capacity`, `one`, `two-single`, `m3-two`, `lock-stuck`, `sync-stall`, `sync-slow`, `sync-lost-update`, `clock-masked`, `clock-divisor`. Summary: `timing-investigation/repair/final-verification.txt`. `python3 tools/progress.py --check`: exit 0.
 
-**Not run:** any acceptance matrix, soak or final gate; the hosted runner on `4616fb3` (the hosted series ran on `cc1043f`); 50/50 of any negative fixture; KVM or hardware.
+**Not run:** any acceptance matrix, soak or final gate; the matrix runner (QEMU 10.2.1) on `4616fb3` (the hosted series ran on `cc1043f`); 50/50 of any negative fixture; KVM or hardware.
 
 **Next:** wait for the decision on D1–D5 and on the GO/NO-GO report. If approved: implement the approved parts with their negative cases, run one hosted `margin_diagnostic` over all 71 cases, then ask for approval of one full matrix. Do not start a full matrix without explicit approval.
 
