@@ -22,6 +22,8 @@
 - Also recorded there: two failing intermediate runs (a wrong host generation check, and a broker Busy race fixed by ordering) and the superseded passes of runs 3–9.
 - A `native-system` kernel build also passes on this tree; its 2 warnings come from files this branch does not change.
 
+**Checkpoint 13 November 2026, late:** merge `f355a64f` (main `a60425ab`) and commit `c8b55305` (proposed ustar user export, `services/volume/src/ustar.rs`, D6 in the destination proposal) pass a local `tools/test_volume.py` run 11: exit 0, 14/14 stages, source-v3 `e6d66a9d302584dac9323db0341463563c25271c0b0dae560bcf317f32fe0002` before and after, 161 s wall time. Archive and image hashes equal run 10; the portal (`a1471f2f…`, text still 47 698 bytes) and service (`f2609771…`) binaries have new hashes. `docs/verification/s09-archive/NATIVE-20261113.md` still describes run 10. An AI review of the ustar step confirmed six findings that are still open: a name such as `C:` can leave the extraction directory on Windows; Windows and Unicode-normalisation name collisions are not documented; the spec's bidirectional-control wording; refusal on an empty collection's name; "common tools open it" and "needs no checksum" overstate. The format reviewer was stopped before it finished.
+
 **Not run:** CI volume-acceptance on this head (pending); KVM; hardware; a second attached disk; an independent human audit.
 
 **Open for the project owner (workflow files are not changed here):** `.github/workflows/kvm-pilot.yml` expects 9 volume stage reports and `volume-acceptance.yml` names "9 QEMU runs"; the gate now runs 14 stages, so the KVM pilot's volume job would fail closed on this branch.

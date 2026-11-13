@@ -2,8 +2,8 @@
  "schema_version": 1,
  "kind": "local tools/test_volume.py run (not CI)",
  "date": "2026-11-13",
- "source_commit": "e88e0ad5",
- "source_sha256": "a924a051f18bb1044526ba641d58023356e19564b5cd3a68823f90a14a1f69af",
+ "source_commit": "c8b55305",
+ "source_sha256": "e6d66a9d302584dac9323db0341463563c25271c0b0dae560bcf317f32fe0002",
  "passed": true,
  "host": [
   {
@@ -11,11 +11,11 @@
    "exit": 0,
    "totals": [
     "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
-    "test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
-    "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.43s",
-    "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+    "test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+    "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.48s",
+    "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
     "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
-    "test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s",
+    "test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s",
     "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
     "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
    ]
@@ -35,7 +35,7 @@
    "command": "/usr/bin/python3 -B -m unittest discover -s tests -p test_volume_*.py",
    "exit": 0,
    "totals": [
-    "Ran 48 tests in 0.974s",
+    "Ran 48 tests in 0.964s",
     "OK"
    ]
   }
@@ -48,8 +48,8 @@
    "raw_qemu_exit": 33,
    "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
    "after_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
-   "duration_s": 42.3,
-   "kernel_sha256": "d581af60ecf2c79cf64639e780a3faa726dad467058086642d5d0da35d618c71"
+   "duration_s": 42.1,
+   "kernel_sha256": "9c0e647d25f278287623fc46a159ed1390a25829be2801d09431fa6e4178447d"
   },
   {
    "case": "recover",
@@ -58,8 +58,8 @@
    "raw_qemu_exit": 33,
    "before_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
    "after_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
-   "duration_s": 24.5,
-   "kernel_sha256": "cd1830e89f28cd835009e493fe43ac9390653e594360b39ffb93820223bc6cf2"
+   "duration_s": 25.4,
+   "kernel_sha256": "b3b1b455894d517aeb8a817b2039cee29a13bacb5ea362bcedd83cb3667e3cb0"
   },
   {
    "case": "archive-export",
@@ -69,10 +69,10 @@
    "before_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
    "after_sha256": "2206417fa25a3804962aa95f57c45c23c2d7de7c8b9df50dc98426c703c34008",
    "duration_s": 5.3,
-   "kernel_sha256": "60bb91c1e8e15ec4e5a10cd72a977fdcdd5d6ad140376c47a9fb9b9180973351",
+   "kernel_sha256": "1b38f20da2b6167c0a6bb5d92d28a08c110924f32d7c842b88f64b953424578b",
    "volume_docs": {
-    "app_sha256": "942afb4cc1372f8375447b917c2ce523cc290b4a460e57212885541b6159940d",
-    "service_sha256": "5bc8ed324d8fd68daf76bea1afec3a7ce397ae4c8ab424192f8a33353d086c14"
+    "app_sha256": "a1471f2fc9119251ea06dade91ea2de6645fe31694e53245958a36678de37a76",
+    "service_sha256": "f26097715a8189ffe3d1d97f4b7f7f049e5d99ff480fe00e7c68a1c094760075"
    },
    "archive": {
     "length": 91801,
@@ -110,11 +110,11 @@
    "raw_qemu_exit": 33,
    "before_sha256": "17ad617ff3522eb6b82dccf66f188ed6e8bf6666cee3bc4ad8a5b7fd70a14c2a",
    "after_sha256": "51ec4abd05042743a013803ef46ec870e1870fbc8f8d7d5bd63dfac2fb0a8301",
-   "duration_s": 4.6,
-   "kernel_sha256": "66aa4244c14b42edab2947c8b9330c6ddae000d237ea7602403ac5d21b7f6fe2",
+   "duration_s": 4.7,
+   "kernel_sha256": "4e2c3f69568fcf223535f497d1acb3ee630b02624eb516b8c0e56424702ed528",
    "volume_docs": {
-    "app_sha256": "942afb4cc1372f8375447b917c2ce523cc290b4a460e57212885541b6159940d",
-    "service_sha256": "5bc8ed324d8fd68daf76bea1afec3a7ce397ae4c8ab424192f8a33353d086c14"
+    "app_sha256": "a1471f2fc9119251ea06dade91ea2de6645fe31694e53245958a36678de37a76",
+    "service_sha256": "f26097715a8189ffe3d1d97f4b7f7f049e5d99ff480fe00e7c68a1c094760075"
    },
    "archive": {
     "length": 91801,
@@ -153,10 +153,10 @@
    "before_sha256": "22edd5a172db843c96585ddcc810d230654c42d901b13a349f4abee0dbb3b379",
    "after_sha256": "22edd5a172db843c96585ddcc810d230654c42d901b13a349f4abee0dbb3b379",
    "duration_s": 3.0,
-   "kernel_sha256": "5746e786affab9949aa30316cf6370b1c7aefce5c3791b645b89272a6d16b339",
+   "kernel_sha256": "a9bd8b3bc226dcd75d0633155c45bb616b49ba0b8efe6f6c207aabe9104fc5c1",
    "volume_docs": {
-    "app_sha256": "942afb4cc1372f8375447b917c2ce523cc290b4a460e57212885541b6159940d",
-    "service_sha256": "5bc8ed324d8fd68daf76bea1afec3a7ce397ae4c8ab424192f8a33353d086c14"
+    "app_sha256": "a1471f2fc9119251ea06dade91ea2de6645fe31694e53245958a36678de37a76",
+    "service_sha256": "f26097715a8189ffe3d1d97f4b7f7f049e5d99ff480fe00e7c68a1c094760075"
    },
    "archive": {
     "length": 91801,
@@ -194,11 +194,11 @@
    "raw_qemu_exit": 33,
    "before_sha256": "17ad617ff3522eb6b82dccf66f188ed6e8bf6666cee3bc4ad8a5b7fd70a14c2a",
    "after_sha256": "dbcc97ea58e195f7e0d35687d492aff1e2af10564212561706f11a170a07e8e4",
-   "duration_s": 4.3,
-   "kernel_sha256": "bf5840662f79a5817f2409bbad6dbf0c209c88c878d8f7f8fa2d27a112daeaa3",
+   "duration_s": 4.4,
+   "kernel_sha256": "719fa0b91a0e3933a2085f39eb8e6bf489221031ed9147fe11bc246278c2b7a8",
    "volume_docs": {
-    "app_sha256": "942afb4cc1372f8375447b917c2ce523cc290b4a460e57212885541b6159940d",
-    "service_sha256": "5bc8ed324d8fd68daf76bea1afec3a7ce397ae4c8ab424192f8a33353d086c14"
+    "app_sha256": "a1471f2fc9119251ea06dade91ea2de6645fe31694e53245958a36678de37a76",
+    "service_sha256": "f26097715a8189ffe3d1d97f4b7f7f049e5d99ff480fe00e7c68a1c094760075"
    },
    "archive": {
     "length": 91801,
@@ -236,11 +236,11 @@
    "raw_qemu_exit": 33,
    "before_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
    "after_sha256": "b0c5d7ae37095c12b391316a4391ae6ab3616cfb0dfba46cfd8254c906f1e628",
-   "duration_s": 4.2,
-   "kernel_sha256": "bc3467d1aebb96cc0113e3e54d3c2d5c163a07319083f0f9907d89a53bf737c0",
+   "duration_s": 4.3,
+   "kernel_sha256": "3979c08ac687ca165fe852bf0761fd9359a3f85afe55b0492c2587ff3966bd06",
    "volume_docs": {
-    "app_sha256": "942afb4cc1372f8375447b917c2ce523cc290b4a460e57212885541b6159940d",
-    "service_sha256": "5bc8ed324d8fd68daf76bea1afec3a7ce397ae4c8ab424192f8a33353d086c14"
+    "app_sha256": "a1471f2fc9119251ea06dade91ea2de6645fe31694e53245958a36678de37a76",
+    "service_sha256": "f26097715a8189ffe3d1d97f4b7f7f049e5d99ff480fe00e7c68a1c094760075"
    },
    "archive": {
     "length": 51200,
@@ -280,7 +280,7 @@
    "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
    "after_sha256": "c0cb5292df11f9ab56875652cee5bd4d812616e21fa52b3422ff03610e96b2bf",
    "duration_s": 3.0,
-   "kernel_sha256": "4ba3bfd794307ee455a850aee909c0d4fd16e80fe35ecede74c4905ab760bd1e"
+   "kernel_sha256": "540b79ce35858357ea2d44cda61e54376e324f7473d3a10b5c2a1a0cd6b6f9b3"
   },
   {
    "case": "recover-cut",
@@ -289,8 +289,8 @@
    "raw_qemu_exit": 33,
    "before_sha256": "c0cb5292df11f9ab56875652cee5bd4d812616e21fa52b3422ff03610e96b2bf",
    "after_sha256": "c0cb5292df11f9ab56875652cee5bd4d812616e21fa52b3422ff03610e96b2bf",
-   "duration_s": 2.2,
-   "kernel_sha256": "5a435a17f38a6a572dca1444272279a0a3139bebd8523486a5f544e10d27489f"
+   "duration_s": 2.3,
+   "kernel_sha256": "c310049eede47eb143957e33dedcbf0961b1423cb05d81b610eeae561508d07d"
   },
   {
    "case": "cut-table",
@@ -299,8 +299,8 @@
    "raw_qemu_exit": -9,
    "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
    "after_sha256": "2d37c7c157c78fae8eec078ca869e69ffdb03ca03cd82b0b65bb3f83e39f423d",
-   "duration_s": 3.1,
-   "kernel_sha256": "e1d49c89447c29b7e19652bc529659a83d3fef8513168e06bc8223597a972b23"
+   "duration_s": 3.2,
+   "kernel_sha256": "a3b5e16f6042d913428326e07188d6d6d0cf77fffb114665e637fef6371e7321"
   },
   {
    "case": "recover-cut",
@@ -309,8 +309,8 @@
    "raw_qemu_exit": 33,
    "before_sha256": "2d37c7c157c78fae8eec078ca869e69ffdb03ca03cd82b0b65bb3f83e39f423d",
    "after_sha256": "2d37c7c157c78fae8eec078ca869e69ffdb03ca03cd82b0b65bb3f83e39f423d",
-   "duration_s": 2.3,
-   "kernel_sha256": "5a435a17f38a6a572dca1444272279a0a3139bebd8523486a5f544e10d27489f"
+   "duration_s": 2.2,
+   "kernel_sha256": "c310049eede47eb143957e33dedcbf0961b1423cb05d81b610eeae561508d07d"
   },
   {
    "case": "cut-txn",
@@ -320,7 +320,7 @@
    "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
    "after_sha256": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
    "duration_s": 2.9,
-   "kernel_sha256": "2fee33e21d55c47252b7569822475355a69f3745ab1c8c6447effc2ddcdf3ebc"
+   "kernel_sha256": "38a9b86e561cfdff55dc282898a47fe17b8ed73cdb97862127ad98026f790a36"
   },
   {
    "case": "recover-cut",
@@ -329,8 +329,8 @@
    "raw_qemu_exit": 33,
    "before_sha256": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
    "after_sha256": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
-   "duration_s": 2.2,
-   "kernel_sha256": "5a435a17f38a6a572dca1444272279a0a3139bebd8523486a5f544e10d27489f"
+   "duration_s": 2.3,
+   "kernel_sha256": "c310049eede47eb143957e33dedcbf0961b1423cb05d81b610eeae561508d07d"
   },
   {
    "case": "corrupt",
@@ -339,8 +339,8 @@
    "raw_qemu_exit": 33,
    "before_sha256": "a19398f1597865bf1f565764a5494159a0cad3c7971f41d9b3c5e41a94ca2485",
    "after_sha256": "a19398f1597865bf1f565764a5494159a0cad3c7971f41d9b3c5e41a94ca2485",
-   "duration_s": 1.8,
-   "kernel_sha256": "287a881cec02ce5723b64ce79b7753462ed05994189aa48e4d67d296e88ffb9c"
+   "duration_s": 1.9,
+   "kernel_sha256": "67c6be59a0f45190c218d85e08f7ec527b6ea87b554ae28be9682662f05cd3e7"
   }
  ],
  "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)"
