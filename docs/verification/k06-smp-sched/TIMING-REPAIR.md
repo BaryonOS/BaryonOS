@@ -2,8 +2,10 @@
 
 Diagnostic only. Nothing in this note is native acceptance, and no acceptance matrix has
 run on the source described here. The decision record is ADR-082 in
-[DECISIONS.md](../../DECISIONS.md); its contract parts are proposals. The preceding
-investigation is [TIMING-INVESTIGATION.md](TIMING-INVESTIGATION.md).
+[DECISIONS.md](../../DECISIONS.md). Sections 1–6 describe the state of 12 November, when its
+contract parts were proposals; the project owner decided them on 13 November 2026, and
+section 7 records their implementation and verification. The preceding investigation is
+[TIMING-INVESTIGATION.md](TIMING-INVESTIGATION.md).
 
 ## 1. What the source contains
 
@@ -219,3 +221,64 @@ and in the hosted gate rehearsal (259 s for the host-test stage).
 - The five negative fixtures were booted locally (QEMU 8.2.2) and not on the hosted runner; none has run 50/50.
 - KVM and physical hardware.
 - The remaining gaps of the receptive witness (ADR-082 D3) have no negative case.
+
+## 7. Implementation of the decision of 13 November 2026
+
+Diagnostic evidence; no acceptance matrix has run. Decision text: ADR-082, "Decision of
+13 November 2026 and its implementation". Source: `c47ab74`, `d1cf67e`, `10d1dc7` and
+`4eb18b1` on PR #317; the candidate is `4eb18b1`.
+
+### 7.1 Changes and reasons
+
+| Part | Change | Reason |
+|---|---|---|
+| D1 sync | Single-writer progress word per CPU; an AP without own progress for 2 s stops the guest (`SMP:SYNC:STALLED:CPU=<n>`); cap 20 s. The oracle judges 2 000 ms off the five overcommitted cases (fixed list `OVERCOMMITTED`) | Liveness apart from host performance; per-CPU detection names the stalled CPU instead of waiting for the others to finish |
+| D2 scratch | Progress word per CPU in every fill and KERNEL round; 500 ms without own progress stops the guest (`SMP:SCRATCH:STALLED:CPU=<n>`), cap 5 s, both quarantine; PASS line with `WAIT_MS`/`STALL_MS`; the oracle judges spec 01's 500 ms off the five cases | As D1; spec 01 stays measurable on every other case and on a suitable environment |
+| D3 clock | Entry stamp before the LAPIC MMIO read; halt stamp right before `sti`; AP wakes and APs outside `hlt` void the host credit; the verdict is the median without host-charged periods within 1 % on both sides, with a majority bound of 10 % host credit per segment (`smp_lock::clock::judge`); the oracle requires the edge line before the verdict and rechecks the judged median | Close F02 (b)–(d); (e) needs no fit: a span below a quarter period cannot merge two edges |
+| D5 | `m3-load` host watchdog 125 s | 2.5 × 48.3 s (ADR-081 rule); guest checks unchanged |
+| ICR (F19 fixture) | Each acknowledgement bounded by 2 s of TSC instead of 65 536 PAUSEs | The loop count failed a healthy local `eight` boot (`SMP:ICR:LOST`); a lost or misrouted 0xe8 still never arrives |
+| C7 | Lock waits booked after the owner is published, one slot per level | No table scan inside contended critical sections; IQ-3 transit window unchanged |
+| C9 / AC-3 | Named deadline constants `ACK_MS`, `STEP_MS`, `WORK_MS`, `READY_MS`, `FATAL_MS`, `PAIR_MS` (values unchanged); the aggregate keeps the largest margin per wait and case | Spec 09-5f AC-3 |
+| C11 | Refuse step in the gate rehearsal | Mode separation |
+| Oracle | A guest line containing the placeholder character `*` is rejected | A literal placeholder could otherwise match an expected line |
+| Fixtures | `scratch-stall`, `scratch-slow`, `clock-other-cpu`; `sync-slow` crawls 5 ms per round (100 s share); matrix 74 × 50 | F11; each relaxation has a fault that it must still reject |
+
+Two read-only AI reviews of `c47ab74` (kernel correctness; oracle and contract) found five
+items, all fixed in `10d1dc7` and `4eb18b1`: K1 (a 10 % bound on the median segment alone
+could fail a healthy boot whose single host-stalled segment lands on the median; now a
+majority rule), K2 (exact `DONE` count of `sync-stall`), F1 (`scratch-slow` could finish
+before the cap under slow polls), F2 (the edge line was optional, so the oracle recheck could
+be skipped), F3 (the watchdog test did not run `run()`). A review by an AI is not an
+independent human audit.
+
+### 7.2 Local verification (QEMU 8.2.2, `pc-q35-8.2`)
+
+69 boots, one row each in
+[`repair/adr082-local-boots.tsv`](timing-investigation/repair/adr082-local-boots.tsv); raw
+rows and scripts in `repair/adr082-local-runs.tar.gz`.
+
+| Series | Source | Host CPUs | Boots | Passed |
+|---|---|---|---|---|
+| r1 | `c47ab74` | 4 | 22 | 21 (`eight`: `SMP:ICR:LOST`, the PAUSE-count ack; repaired in `d1cf67e`) |
+| r2 | `d1cf67e` | 4 | 9 (`icr-race-control`, `eight` × 5, `nine-capacity` × 3) | 9 |
+| r2 | `d1cf67e` | 3 (`taskset`) | 8 (`eight` × 3, `nine-capacity` × 3, `four` × 2) | 8 |
+| r3 | `10d1dc7` | 4 | 4 (`sync-stall`, `four`, `clock-masked`, `clock-other-cpu`) | 4 |
+| final | `4eb18b1` | 4 | 26: `one`, `two-single`, `four`, `eight`, `nine-capacity`, `m3-two`, `m3-eight`, `m3-load-eight`, `m3-recovery-four`, every sync, clock and scratch fixture, `lock-stuck`, `shared-scratch`, `lockpair-order`, `icr-race-control`, `ap-ipi-deaf`, `ap-shootdown-deaf`, `resched-deaf`, `quarantine-sched-busy`, `quarantine-lock-held` | 26 |
+
+- Every negative case ended on its own marker; every regular case passed the oracle of its
+  source. `m3-load-eight` took 49.8–50.2 s (watchdog 125 s).
+- Margins (ms, maximum): on the five overcommitted cases, sync 510 (4 CPUs) and 1 540
+  (3 CPUs), scratch 266; the longest run without own progress of any CPU was 20 (sync,
+  window 2 000) and 14 (scratch, window 500). On every other case sync stayed at or below
+  100 and scratch at or below 14.
+- Clock, 47 regular boots: raw median −0.16 … +2.01 % (one boot above 1 %, which the old
+  rule would have failed: 96 periods lost, 94 charged to the host), judged median
+  −0.19 … −0.01 %; at most 10 kernel-charged periods per boot. `clock-masked` and
+  `clock-other-cpu` (six boots) lost 313–342 periods, of which at most 26 were credited to
+  the host, and stopped with a judged median of +6.1 %.
+- Host and oracle tests on `4eb18b1`: `tools/tests` 317 OK; `tests/test_ci_*` OK;
+  `cargo fmt --check`; `cargo clippy -p boot-protocol -p smp-lock -D warnings`;
+  `cargo test --locked -p boot-protocol -p smp-lock` (70 tests, 358 s, 4 CPUs); every
+  affected profile builds with the warnings of the base.
+  `tools/preflight.py`: nothing missing.
+

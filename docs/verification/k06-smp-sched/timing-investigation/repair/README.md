@@ -82,3 +82,14 @@ the table can be recomputed after the hosted artifacts have expired.
 The absolute path of the session work directory was replaced by `<scratch>` in every
 member; nothing else was altered. The local reports hold 268 boots and the hosted reports
 250, the 518 rows of `boots.tsv`.
+
+## `adr082-local-boots.tsv` (13 November 2026)
+
+Local boots of the ADR-082 implementation (TIMING-REPAIR.md section 7.2), QEMU 8.2.2,
+`pc-q35-8.2`. Columns: `series` (`adr082-r1`, `-r2`, `-r2-3cpu`, `-r3`, `-final`), `commit`,
+`qemu`, `host_cpus`, `case`, `passed`, `failure` (oracle message of a failed boot),
+`duration_s`, `sync_ms`/`sync_stall_ms` and `scratch_ms`/`scratch_stall_ms` (wait and longest
+run without own progress of any CPU), and the clock fields `lost`, `host`, `median_us` (raw)
+and `own_median_us` (judged). Empty fields: not reached. `adr082-local-runs.tar.gz` holds the
+JSON rows and the three scripts that produced and converted them.
+
