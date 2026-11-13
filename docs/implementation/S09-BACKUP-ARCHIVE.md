@@ -101,28 +101,31 @@ otherwise `Corrupt`) and `verify` remains the only acceptance gate. The native
 block adapter is shared by service and portal in `volume-docs/src/disk.rs`.
 
 **Kernel fixture profile** (`kernel/src/m2/m3/volume.rs`, features
-`test-volume-archive-export|restore|corrupt|conflict`, cases 7–10):
+`test-volume-archive-export|restore|corrupt|conflict|full`, cases 7–11):
 - Slot 1 is the backup portal. It alone receives a block capability on device
   0, sectors 1000..2040 of the disposable test image, disjoint from the volume
   scope 4..584 (compile-time assertion). The range ends below the 2048-sector
   image, so the portal's past-the-end probe is refused by the capability
   scope rather than by the device size; the largest v1 archive (525 328 bytes,
   1027 sectors) fits. Export grants READ|WRITE|FLUSH; restore, corrupt and
-  conflict grant READ only (`ARCHIVE_READONLY_RIGHTS`). The handle is startup word 504.
+  conflict grant READ only (`ARCHIVE_READONLY_RIGHTS`). The full-target case
+  grants READ|WRITE|FLUSH on only the first 100 sectors of the range. The handle is startup word 504.
   No handle enumeration exists, so the manifest counts instead: it fails with
   `ARCHIVE_ESCAPE` unless the grant adds exactly one block object, node and
   handle, that handle is held by slot 1, the service and slot 2 hold exactly
   as many handles as before, and the service's own block handle resolves to a
   different object key. Service and slot 2 keep their earlier authority.
-- During export the device stays writable but the volume service receives
+- During export (cases 7 and 11) the device stays writable but the volume service receives
   READ only (`service_read_only`), so every write and flush goes to the archive.
 - Archive I/O is counted per capability object at publication and kept out of
   the volume table/data write classification. `finish` fails with
   `ARCHIVE_IO` unless every export write and flush went through the archive
   object and the portal read the archive back through it, and restore,
-  corrupt and conflict only read it. Evidence lines
+  corrupt and conflict only read it. In the full-target case the portal must
+  write exactly the 100 sectors of its scope, flush nothing and read the range
+  back. Evidence lines
   `VOLUME:ARCHIVE:READS|WRITES|FLUSHES`; markers
-  `VOLUME:CASE:ARCHIVE_EXPORT|ARCHIVE_RESTORE|ARCHIVE_CORRUPT|ARCHIVE_CONFLICT:PASS`.
+  `VOLUME:CASE:ARCHIVE_EXPORT|ARCHIVE_RESTORE|ARCHIVE_CORRUPT|ARCHIVE_CONFLICT|ARCHIVE_FULL:PASS`.
 - Calls on the portal's own archive object (pending collects, the scope
   probe) are not counted as app device denials; every app's own-handle and
   forged-handle probes still are, and each app must show at least one.
@@ -143,7 +146,7 @@ without this ordering (run 2) failed it with a Busy status instead of
 `Corrupt` (step 740).
 
 **Runner stages** (`tools/run_volume.py`, plan of `tools/test_volume.py`, now
-13 QEMU runs): `archive-export` on the image left by `recover` (volume mounted
+14 QEMU runs): `archive-export` on the image left by `recover` (volume mounted
 read-only, every byte outside the archive range unchanged, zero padding, no
 write past the archive, writes = ⌈length/512⌉); `archive-restore` and
 `archive-corrupt` on a fresh image that holds only the copied archive range
@@ -175,9 +178,31 @@ cannot hold together with the four rules above. An uncollected object without
 other metadata stays at revision 1: this fixture does not exercise it,
 because its uncollected object has a kind.
 
+`archive-full` exports the recovered fixture into a target too small for it.
+Its image is the export stage's input again: the export stage's output with
+the archive range set back to its canaries, byte-identical to that input.
+The portal's scope covers 100 sectors; the archive needs 180. The spec
+requires that a full target leaves no finalized archive and that `verify`
+refuses it. The portal must receive `Full` from `export` and does not finish
+the sink, so nothing is padded or flushed; the kernel refuses a write at
+sector 100; `verify` refuses the range with `Corrupt`; the volume still lists
+its objects and refuses a document write. The runner requires that the 100
+sectors equal the prefix of the export stage's archive, that no other sector
+changed, that the independent reader refuses both the cut range and the full
+archive range, and that the volume oracle still sees the recovered fixture.
+A `volume-core` host test adds the two ways a target can be too small (only
+the buffered last sector missing, where `finish` reports `Full`, and a
+stream that runs out mid-way) and shows that a later export over the
+leftover verifies. Limit: the stage starts from a range without an earlier
+archive. It does not show that a failed export invalidates an older archive
+already in the range; an older archive whose leading sectors equal the new
+stream would still verify as that older archive.
+
 **Still open for S09:** a user-chosen target behind its own capability (not a
 fixture range on the same disk); export to documented common formats; the
-encrypted NAS/provider variant; a user-facing task; a native full-target case;
+encrypted NAS/provider variant; a user-facing task;
 a second simultaneously attached disk (archive and volume
 share one virtual device here). Plaintext archives are used only on
-harness-assigned local test images.
+harness-assigned local test images. The destination and its capability
+are put to the project owner as a decision proposal, not a contract:
+[S09-BACKUP-DESTINATION-PROPOSAL.md](S09-BACKUP-DESTINATION-PROPOSAL.md).

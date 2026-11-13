@@ -1,30 +1,32 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — S09 native archive slice: export, restore, damaged-archive refusal and name-conflict restore pass the local volume gate (13/13) — 13 November 2026
+## NEXT AGENT HANDOFF — S09 native archive slice: export, restore, damaged-archive refusal, name-conflict restore and a full target pass the local volume gate (14/14) — 13 November 2026
 
-**Source:** branch `feat/s09-native-archive`, draft PR #318 (no auto-merge). Tested commit `93bb3dd9`, the merge of `main` `7bf578d4` (source-v3 `a22280ff8c15d95e8ea4222cc1b50d1b27c52ac6dd38ec21b0b05a4db7c8f1cc`, which includes the AI-review fixes); later commits change documentation and evidence only.
+**Source:** branch `feat/s09-native-archive`, draft PR #318 (no auto-merge). Tested commit `f9142720` (source-v3 `4f4555b8793e0ac905e971f1fdd3fdfc509f0c7aefbab2ff07c94a8f31ddf0f7`); later commits change documentation and evidence only.
 
 **Done:**
-- Kernel volume profile cases 7–10 (`test-volume-archive-export|restore|corrupt|conflict`). The slot-1 portal alone gets the archive range (device 0, sectors 1000..2040, disjoint from the volume 4..584): READ|WRITE|FLUSH for export, READ only otherwise.
-- During export the volume service is READ-only. Archive I/O is counted per capability object. `ARCHIVE_ESCAPE` counts block objects, nodes and per-process handles, and checks that the service's handle does not resolve to the archive object key. Calls on the portal's own archive object are not counted as app device denials.
+- Kernel volume profile cases 7–11 (`test-volume-archive-export|restore|corrupt|conflict|full`). The slot-1 portal alone gets the archive range (device 0, sectors 1000..2040, disjoint from the volume 4..584): READ|WRITE|FLUSH for export, READ only for restore, corrupt and conflict, and READ|WRITE|FLUSH on the first 100 sectors only for the full-target case.
+- During export (cases 7 and 11) the volume service is READ-only. Archive I/O is counted per capability object. `ARCHIVE_ESCAPE` counts block objects, nodes and per-process handles, and checks that the service's handle does not resolve to the archive object key. Calls on the portal's own archive object are not counted as app device denials.
 - Portal build `volume-app --features archive-portal`; the normal `volume-service` build is unchanged.
 - An independent Python reader of format v1 (`tools/volume_archive.py`) plus unit tests, including resealed tamper cases; all 10 reader mutations were killed. `expected_restore` derives the restore end state from the spec rule.
-- Four archive runner stages; `tools/test_volume.py` now runs 13 QEMU stages. The conflict stage covers slot and name conflicts, a reused collection, and a collection that keeps another name and whose archived object is restored uncollected. Two further rules are `volume-core` host tests.
+- Five archive runner stages; `tools/test_volume.py` now runs 14 QEMU stages. The conflict stage covers slot and name conflicts, a reused collection, and a collection that keeps another name and whose archived object is restored uncollected. The full-target stage requires `Full`, no flush, `verify` refusal, and an unchanged volume. Three further rules are `volume-core` host tests.
+- Decision proposal for the user-chosen destination and its capability: [S09-BACKUP-DESTINATION-PROPOSAL.md](implementation/S09-BACKUP-DESTINATION-PROPOSAL.md). It establishes no contract.
 
-**Evidence:** local `tools/test_volume.py` on `93bb3dd9`: exit 0, `passed=true`, 13/13 stages in 141 s (QEMU 10.2.1 TCG):
+**Evidence:** local `tools/test_volume.py` on `f9142720`: exit 0, `passed=true`, 14/14 stages, 165 s wall time (QEMU 10.2.1 TCG):
 - Export: 91 801-byte archive, 180 writes, all archive I/O, 0 service commits.
 - Restore on a fresh image holding only the archive range: 5 objects byte-identical.
 - One flipped byte: the guest refuses it, the reader refuses it, and the image is unchanged.
 - Conflict: restored {1, 2, 5}, conflicts {3, 4}, uncollected {1}; the pre-state is unchanged. The conflict and restore oracles each refuse the other stage's image.
+- Full target (100 of the 180 sectors needed): `Full`, archive I/O 4/100/0, the 100 sectors equal the archive's prefix, the reader refuses the cut and the full range, and the volume is unchanged. The full-target and export oracles each refuse the other stage's image.
 - Details: [S09 native evidence](verification/s09-archive/NATIVE-20261113.md); design and limits: [S09-BACKUP-ARCHIVE.md](implementation/S09-BACKUP-ARCHIVE.md).
-- Also recorded there: two failing intermediate runs (a wrong host generation check, and a broker Busy race fixed by ordering) and the superseded passes of runs 3–7.
+- Also recorded there: two failing intermediate runs (a wrong host generation check, and a broker Busy race fixed by ordering) and the superseded passes of runs 3–8.
 - A `native-system` kernel build also passes on this tree; its 2 warnings come from files this branch does not change.
 
 **Not run:** CI volume-acceptance on this head (pending); KVM; hardware; a second attached disk; an independent human audit.
 
-**Open (S09 stays open):** a user-chosen target behind its own capability; documented common export formats; the encrypted NAS/provider variant; a user task; a native full-target case.
+**Open (S09 stays open):** a user-chosen target behind its own capability (decision proposal D1–D5 awaits the project owner); documented common export formats; the encrypted NAS/provider variant (proposed to wait for B01); a user task.
 
-**Next:** review of PR #318 by the project owner. The next S09 step is a user-chosen target capability (needs a design decision by the project owner); a native full-target case can be added without one.
+**Next:** a decision by the project owner on the destination proposal, and review of PR #318. Without that decision, the remaining S09 work that needs no new trust boundary is a documented common export format, specified and host-tested first.
 
 **Progress:** 41/100 → 41/100 (S09 not accepted).
 
