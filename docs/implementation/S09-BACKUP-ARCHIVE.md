@@ -87,3 +87,37 @@ Open for S09/FR-O06: native backup portal with a target volume and capability
 chosen by the user, native QEMU trial with a second virtual disk,
 user export to common formats (e.g. plain text/image per
 document), encrypted variant for NAS/provider, and a user task.
+
+## Native slice — in progress (13 November 2026, branch `feat/s09-native-archive`)
+
+**Done (host-tested, not native-run):** `archive::DiskSink` and
+`archive::DiskSource` store an archive from sector 0 of a dedicated raw block
+range. No extra framing: the length follows from the header counts (bounded
+by the range, otherwise `Corrupt`) and `verify` remains the only acceptance
+gate. Three new tests in `services/volume/tests/archive.rs` (round trip with
+untouched sectors, `Full` at the exact boundary and device errors, empty,
+oversized, flipped and padded ranges). The native block adapter moved from
+`volume-docs/src/service.rs` to the shared `volume-docs/src/disk.rs`.
+
+**Planned next step (not implemented):**
+- Kernel features `test-volume-archive-export|restore|corrupt` in
+  `kernel/src/m2/m3/volume.rs` (cases 7–9).
+- Slot 1 becomes the portal. It alone receives a block capability on device 0,
+  sectors 1000..2048, disjoint from the volume scope 4..584 (compile-time
+  assertion). Export grants READ|WRITE|FLUSH; restore and corrupt grant READ only.
+  The handle goes in startup word 504. The service and slot 2 must not reach
+  that object key.
+- During export the service mount is read-only, so every write and flush goes
+  to the archive range (separate archive I/O counters).
+- The 64 KiB scratch is the premapped private heap at `0x6000_0000`; the app
+  stack is too small.
+- Runner stages: `archive-export` after `normal`/`recover`, then cold
+  `archive-restore` and `archive-corrupt` on a fresh image. Only the archive
+  range is copied into these images; the source volume is gone.
+- An independent Python parser of format v1 is the oracle. Use
+  `volume_disk.analyse(..., opaque=...)` for the restored objects.
+- **Pitfall:** `volume_disk.create_image`/`analyse` place and require canaries on
+  every sector outside the volume scope, including the archive range. The
+  oracle must exclude the archive range for the archive stages only.
+- Stated limit: archive and volume share one virtual device. A simultaneously
+  attached second disk remains untested.

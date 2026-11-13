@@ -5,12 +5,12 @@ mod common;
 
 use common::{fill, pattern, recover, Local, SimDisk};
 use volume_core::{
-    archive::{self, Report, Sink, Source, HEADER, OBJECT_RECORD, TRAILER},
+    archive::{self, DiskSink, DiskSource, Report, Sink, Source, HEADER, OBJECT_RECORD, TRAILER},
     checksum_update,
     client::{Client, Stat, Transport},
     service::Service,
     table::Table,
-    wire, Status, CHUNK, FNV_OFFSET, MAX_LENGTH,
+    wire, Disk, Status, CHUNK, FNV_OFFSET, MAX_LENGTH, SECTOR,
 };
 
 const EPOCH: u64 = 4;
@@ -680,4 +680,156 @@ fn failed_metadata_is_reported_as_bare() {
     );
     let stat = client(&mut service, &mut disk, 1).stat(8).unwrap();
     assert_eq!((stat.tags, stat.collection), (0, 0));
+}
+
+/// A dedicated raw sector range (the native portal target), pre-filled with
+/// a canary so untouched sectors stay recognizable.
+struct Range {
+    sectors: Vec<[u8; SECTOR]>,
+    fail_write_at: Option<u64>,
+    flushes: usize,
+}
+impl Range {
+    fn new(sectors: usize) -> Self {
+        Self {
+            sectors: vec![[0xA5; SECTOR]; sectors],
+            fail_write_at: None,
+            flushes: 0,
+        }
+    }
+    fn bytes(&self) -> Vec<u8> {
+        self.sectors.iter().flatten().copied().collect()
+    }
+}
+impl Disk for Range {
+    fn read(&mut self, sector: u64, buffer: &mut [u8; SECTOR]) -> Result<(), Status> {
+        *buffer = self.sectors[sector as usize]; // panics outside the range
+        Ok(())
+    }
+    fn write(&mut self, sector: u64, buffer: &[u8; SECTOR]) -> Result<(), Status> {
+        if self.fail_write_at == Some(sector) {
+            return Err(Status::Io);
+        }
+        self.sectors[sector as usize] = *buffer;
+        Ok(())
+    }
+    fn flush(&mut self) -> Result<(), Status> {
+        self.flushes += 1;
+        Ok(())
+    }
+}
+
+fn sectors_for(length: usize) -> usize {
+    length.div_ceil(SECTOR)
+}
+
+fn export_to_range(big: usize, range: &mut Range) -> Result<u64, Status> {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut source = client(&mut service, &mut disk, 0);
+    populate(&mut source, big);
+    let capacity = range.sectors.len() as u64;
+    let mut sink = DiskSink::new(range, capacity);
+    archive::export(&mut source, 0, &mut sink)?;
+    sink.finish()
+}
+
+#[test]
+fn disk_range_round_trip_keeps_bytes_and_untouched_sectors() {
+    let big = 2 * CHUNK + 173;
+    let bytes = exported(big);
+    let used = sectors_for(bytes.len());
+    let mut range = Range::new(used + 3);
+    assert_eq!(export_to_range(big, &mut range), Ok(bytes.len() as u64));
+    assert_eq!(range.flushes, 1);
+    let stored = range.bytes();
+    assert_eq!(&stored[..bytes.len()], &bytes[..]);
+    assert!(stored[bytes.len()..used * SECTOR].iter().all(|b| *b == 0));
+    assert!(stored[used * SECTOR..].iter().all(|b| *b == 0xA5));
+
+    let capacity = range.sectors.len() as u64;
+    let summary =
+        archive::verify(&mut DiskSource::new(&mut range, capacity), &mut scratch()).unwrap();
+    assert_eq!(
+        (summary.objects, summary.content_bytes),
+        (3, 300 + big as u64)
+    );
+    // Restore from the range alone into a fresh destination volume.
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut destination = client(&mut service, &mut disk, 1);
+    let report = archive::restore(
+        &mut DiskSource::new(&mut range, capacity),
+        &mut scratch(),
+        &mut destination,
+        1,
+    )
+    .unwrap();
+    assert_eq!(report.restored, 0b10_0011);
+    assert_eq!(content(&mut destination, 9).1, expected(1, 2, big));
+}
+
+#[test]
+fn disk_sink_reports_full_at_the_exact_boundary_and_device_errors() {
+    let big = CHUNK + 1;
+    let length = exported(big).len();
+    let needed = sectors_for(length);
+    assert_eq!(
+        export_to_range(big, &mut Range::new(needed)),
+        Ok(length as u64)
+    );
+    let mut short = Range::new(needed - 1);
+    assert_eq!(export_to_range(big, &mut short), Err(Status::Full));
+    assert_eq!(short.flushes, 0, "a failed export must not flush");
+    for at in [0, needed as u64 - 1] {
+        let mut failing = Range::new(needed);
+        failing.fail_write_at = Some(at);
+        assert_eq!(export_to_range(big, &mut failing), Err(Status::Io));
+        assert_eq!(failing.flushes, 0);
+    }
+}
+
+#[test]
+fn disk_source_refuses_empty_oversized_and_damaged_ranges() {
+    let big = CHUNK;
+    let length = exported(big).len();
+    let needed = sectors_for(length);
+    let verify = |range: &mut Range, capacity: u64| {
+        archive::verify(&mut DiskSource::new(range, capacity), &mut scratch())
+    };
+    // No archive at all, a zero-length range, and a range one sector short.
+    let mut zeroed = Range::new(needed);
+    zeroed.sectors.iter_mut().for_each(|s| *s = [0; SECTOR]);
+    assert_eq!(verify(&mut zeroed, needed as u64), Err(Status::Corrupt));
+    let mut range = Range::new(needed);
+    export_to_range(big, &mut range).unwrap();
+    assert_eq!(verify(&mut range, 0), Err(Status::Corrupt));
+    assert_eq!(verify(&mut range, needed as u64 - 1), Err(Status::Corrupt));
+    assert!(verify(&mut range, needed as u64).is_ok());
+    // Counts claiming more content than the range holds are refused before
+    // any read beyond the range (Range panics on such a read).
+    let mut forged = Range::new(needed);
+    export_to_range(big, &mut forged).unwrap();
+    forged.sectors[0][24..32].copy_from_slice(&u64::MAX.to_le_bytes());
+    assert_eq!(verify(&mut forged, needed as u64), Err(Status::Corrupt));
+    forged.sectors[0][24..32].copy_from_slice(&(needed as u64 * 512).to_le_bytes());
+    assert_eq!(verify(&mut forged, needed as u64), Err(Status::Corrupt));
+    // One flipped bit anywhere in the archive bytes.
+    for at in [0, HEADER + 5, length / 2, length - 1] {
+        let mut flipped = Range::new(needed);
+        export_to_range(big, &mut flipped).unwrap();
+        flipped.sectors[at / SECTOR][at % SECTOR] ^= 0x01;
+        assert_eq!(
+            verify(&mut flipped, needed as u64),
+            Err(Status::Corrupt),
+            "at {at}"
+        );
+    }
+    // Padding after the trailer is outside the archive and is ignored.
+    let mut padded = Range::new(needed);
+    export_to_range(big, &mut padded).unwrap();
+    if length % SECTOR != 0 {
+        padded.sectors[needed - 1][SECTOR - 1] = 0xFF;
+    }
+    assert!(verify(&mut padded, needed as u64).is_ok());
 }
