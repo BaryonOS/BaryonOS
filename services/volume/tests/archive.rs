@@ -396,6 +396,66 @@ fn restore_never_overwrites_objects_names_or_collections() {
 }
 
 #[test]
+fn restore_creates_no_collection_for_a_conflicting_object() {
+    // "Notes" (slot 0) is the only object in collection 1; when it conflicts
+    // by slot or by name, restore must not create that collection.
+    let bytes = exported(64);
+    for (object, name) in [(8, &b"Keep"[..]), (12, &b"Notes"[..])] {
+        let mut disk = SimDisk::new();
+        let mut service = Service::new(EPOCH, Table::EMPTY, false);
+        let mut destination = client(&mut service, &mut disk, 1);
+        destination
+            .write(object, 0, name, 21, fill(object, 1))
+            .unwrap();
+        let report =
+            archive::restore(&mut reader(&bytes), &mut scratch(), &mut destination, 1).unwrap();
+        assert_eq!(
+            report,
+            Report {
+                restored: 0b10_0010,
+                conflicts: 0b1,
+                uncollected: 0,
+                bare: 0
+            }
+        );
+        let info = destination.collection_stat(1, 1).unwrap();
+        assert_eq!((info.present, info.revision), (false, 0));
+        assert_eq!(content(&mut destination, object).1, expected(object, 1, 21));
+    }
+}
+
+#[test]
+fn uncollected_object_without_metadata_stays_at_revision_one() {
+    // A collected source object without tags or kind, restored where its
+    // collection index holds another name: content only, no META.
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut source = client(&mut service, &mut disk, 0);
+    source.collection(0, 1, 0, b"Werk").unwrap();
+    let revision = source.write(0, 0, b"Bare", 40, fill(0, 1)).unwrap().0;
+    source.meta(0, revision, 0, 0, 1).unwrap();
+    let mut out = Bytes(Vec::new());
+    archive::export(&mut source, 0, &mut out).unwrap();
+
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut destination = client(&mut service, &mut disk, 1);
+    destination.collection(1, 1, 0, "Privé".as_bytes()).unwrap();
+    let report =
+        archive::restore(&mut reader(&out.0), &mut scratch(), &mut destination, 1).unwrap();
+    assert_eq!(
+        (report.restored, report.uncollected, report.bare),
+        (0b1, 0b1, 0)
+    );
+    let (stat, data) = content(&mut destination, 8);
+    assert_eq!(
+        (stat.revision, stat.collection, stat.tags, stat.kind),
+        (1, 0, 0, 0)
+    );
+    assert_eq!(data, expected(0, 1, 40));
+}
+
+#[test]
 fn unverified_truncated_restore_commits_only_checked_objects() {
     let big = 2 * CHUNK;
     let bytes = exported(big);

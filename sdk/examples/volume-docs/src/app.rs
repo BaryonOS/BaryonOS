@@ -947,7 +947,7 @@ fn portal(app: &mut App, case: u64) {
             }
             app.collection_is(0, 1, Some("Werk"), 1, 795);
             app.collection_is(0, 2, Some("Anders"), 1, 797);
-            check(app.list(0, 798).1 == 5, 799);
+            check(app.list(0, 799).1 == 5, 800);
         }
         _ => fail(769),
     }

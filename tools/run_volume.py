@@ -351,6 +351,9 @@ def check_archive(case: str, before: bytes, after: bytes, evidence):
             pre, held = (CONFLICT_OBJECTS, CONFLICT_COLLECTIONS) if case == "archive-conflict" else ({}, {})
             # The end state follows from the archive and the pre-state by the spec rule alone.
             expected = volume_archive.expected_restore(archive, {o: name for o, (name, _) in pre.items()}, held)
+            # The native fixture covers these four rules; "no collection for a conflicting object"
+            # and "uncollected without metadata stays at revision 1" are host tests in
+            # services/volume/tests/archive.rs (the archive has only two collected objects).
             if case == "archive-conflict" and not all(
                     expected[key] for key in ("slot_conflicts", "name_conflicts", "uncollected", "reused")):
                 raise ValueError(f"conflict fixture misses a restore rule: {expected}")
