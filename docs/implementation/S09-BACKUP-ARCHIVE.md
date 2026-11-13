@@ -88,36 +88,63 @@ chosen by the user, native QEMU trial with a second virtual disk,
 user export to common formats (e.g. plain text/image per
 document), encrypted variant for NAS/provider, and a user task.
 
-## Native slice — in progress (13 November 2026, branch `feat/s09-native-archive`)
+## Native slice — local QEMU gate passes (13 November 2026, branch `feat/s09-native-archive`)
 
-**Done (host-tested, not native-run):** `archive::DiskSink` and
-`archive::DiskSource` store an archive from sector 0 of a dedicated raw block
-range. No extra framing: the length follows from the header counts (bounded
-by the range, otherwise `Corrupt`) and `verify` remains the only acceptance
-gate. Three new tests in `services/volume/tests/archive.rs` (round trip with
-untouched sectors, `Full` at the exact boundary and device errors, empty,
-oversized, flipped and padded ranges). The native block adapter moved from
-`volume-docs/src/service.rs` to the shared `volume-docs/src/disk.rs`.
+**Status:** implemented and locally gate-tested; S09 stays **open** (see
+"Still open"). Evidence: [verification/s09-archive/NATIVE-20261113.md](../verification/s09-archive/NATIVE-20261113.md).
 
-**Planned next step (not implemented):**
-- Kernel features `test-volume-archive-export|restore|corrupt` in
-  `kernel/src/m2/m3/volume.rs` (cases 7–9).
-- Slot 1 becomes the portal. It alone receives a block capability on device 0,
-  sectors 1000..2048, disjoint from the volume scope 4..584 (compile-time
-  assertion). Export grants READ|WRITE|FLUSH; restore and corrupt grant READ only.
-  The handle goes in startup word 504. The service and slot 2 must not reach
-  that object key.
-- During export the service mount is read-only, so every write and flush goes
-  to the archive range (separate archive I/O counters).
-- The 64 KiB scratch is the premapped private heap at `0x6000_0000`; the app
-  stack is too small.
-- Runner stages: `archive-export` after `normal`/`recover`, then cold
-  `archive-restore` and `archive-corrupt` on a fresh image. Only the archive
-  range is copied into these images; the source volume is gone.
-- An independent Python parser of format v1 is the oracle. Use
-  `volume_disk.analyse(..., opaque=...)` for the restored objects.
-- **Pitfall:** `volume_disk.create_image`/`analyse` place and require canaries on
-  every sector outside the volume scope, including the archive range. The
-  oracle must exclude the archive range for the archive stages only.
-- Stated limit: archive and volume share one virtual device. A simultaneously
-  attached second disk remains untested.
+**Range adapters (host-tested).** `archive::DiskSink` and `archive::DiskSource`
+store an archive from sector 0 of a dedicated raw block range. No extra
+framing: the length follows from the header counts (bounded by the range,
+otherwise `Corrupt`) and `verify` remains the only acceptance gate. The native
+block adapter is shared by service and portal in `volume-docs/src/disk.rs`.
+
+**Kernel fixture profile** (`kernel/src/m2/m3/volume.rs`, features
+`test-volume-archive-export|restore|corrupt`, cases 7–9):
+- Slot 1 is the backup portal. It alone receives a block capability on device
+  0, sectors 1000..2048 of the disposable test image, disjoint from the volume
+  scope 4..584 (compile-time assertion). Export grants READ|WRITE|FLUSH;
+  restore and corrupt grant READ only (`ARCHIVE_READONLY_RIGHTS`). The handle
+  is startup word 504. The manifest fails with `ARCHIVE_ESCAPE` if the service
+  or slot 2 reaches the archive *object* (compared by object key, since handle
+  numbers are per process). Service and slot 2 keep their earlier authority.
+- During export the device stays writable but the volume service receives
+  READ only (`service_read_only`), so every write and flush goes to the archive.
+- Archive I/O is counted per capability object at publication and kept out of
+  the volume table/data write classification. `finish` fails with
+  `ARCHIVE_IO` unless export wrote, flushed and read back only through the
+  archive object, and restore/corrupt only read it. Evidence lines
+  `VOLUME:ARCHIVE:READS|WRITES|FLUSHES`; markers
+  `VOLUME:CASE:ARCHIVE_EXPORT|ARCHIVE_RESTORE|ARCHIVE_CORRUPT:PASS`.
+
+**Portal app.** `volume-app` built with feature `archive-portal` (separate
+target directory `volume-docs-portal`; the normal build would exceed the
+64 KiB startup text boundary with both paths). The archive cases use the
+normal `volume-service` build unchanged. The 64 KiB archive scratch is the
+private RW/NX heap the kernel premaps at `0x6000_0000`.
+
+**Serialization.** The broker serves one block request at a time and answers
+others with Busy. The portal therefore reaches a READY service before its
+first archive read, and slot 2 waits for kernel gate 2 (portal phase 2) before
+using the service. The first gate run without this ordering failed the
+corrupt case with a Busy status instead of `Corrupt` (step 740).
+
+**Runner stages** (`tools/run_volume.py`, plan of `tools/test_volume.py`, now
+12 QEMU runs): `archive-export` on the image left by `recover` (volume mounted
+read-only, every byte outside the archive range unchanged, zero padding, no
+write past the archive, writes = ⌈length/512⌉); `archive-restore` and
+`archive-corrupt` on a fresh image that holds only the copied archive range
+(source loss); corrupt flips one byte at `length // 2`. The independent reader
+`tools/volume_archive.py` parses every guest-written archive and must refuse
+the damaged one. Restored objects are compared byte for byte with the archive
+through `volume_disk.analyse(..., opaque=...)` (revision 1, or 2 after
+metadata), and the guest digests must equal the oracle digests. The archive
+header carries LIST's domain generation (sum of the domain's object and
+collection revisions), not the global volume generation.
+
+**Still open for S09:** a user-chosen target behind its own capability (not a
+fixture range on the same disk); export to documented common formats; the
+encrypted NAS/provider variant; a user-facing task; native name-conflict and
+full-target cases; a second simultaneously attached disk (archive and volume
+share one virtual device here). Plaintext archives are used only on
+harness-assigned local test images.

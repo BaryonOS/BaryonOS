@@ -1,0 +1,262 @@
+{
+ "schema_version": 1,
+ "kind": "local tools/test_volume.py run (not CI)",
+ "date": "2026-11-13",
+ "source_commit": "f3d0e03e",
+ "source_sha256": "4ffa8c5e8b2b1209b5618372218182d8aaaece1c7abb923f87b713dec498443c",
+ "passed": true,
+ "host": [
+  {
+   "command": "cargo +1.90.0 test --locked -p volume-core",
+   "exit": 0,
+   "totals": [
+    "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+    "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.33s",
+    "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+    "test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s",
+    "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+   ]
+  },
+  {
+   "command": "cargo +1.90.0 test --locked --manifest-path sdk/Cargo.toml -p nieuw-os-sdk-runtime",
+   "exit": 0,
+   "totals": [
+    "test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+    "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+   ]
+  },
+  {
+   "command": "/usr/bin/python3 -B -m unittest discover -s tests -p test_volume_*.py",
+   "exit": 0,
+   "totals": [
+    "Ran 41 tests in 0.939s",
+    "OK"
+   ]
+  }
+ ],
+ "stages": [
+  {
+   "case": "normal",
+   "parent": null,
+   "passed": true,
+   "raw_qemu_exit": 33,
+   "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+   "after_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+   "duration_s": 41.9,
+   "kernel_sha256": "4c4f37fd13a117fbc5221fa650e4737b5408f0391bd3f03a439b93d13508624a"
+  },
+  {
+   "case": "recover",
+   "parent": "normal",
+   "passed": true,
+   "raw_qemu_exit": 33,
+   "before_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+   "after_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+   "duration_s": 26.3,
+   "kernel_sha256": "9c2eb16e04a89fa0eaa72281948de12fb24aeeae4823cbb992aa84203df14e2b"
+  },
+  {
+   "case": "archive-export",
+   "parent": "recover",
+   "passed": true,
+   "raw_qemu_exit": 33,
+   "before_sha256": "19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3",
+   "after_sha256": "2206417fa25a3804962aa95f57c45c23c2d7de7c8b9df50dc98426c703c34008",
+   "duration_s": 3.9,
+   "kernel_sha256": "8e06737e2bada93a626d3d3161a95e8dc095088dbc27c482a296fd21dc1e87ce",
+   "volume_docs": {
+    "app_sha256": "910ed276e910231fb7198298bd94ff8d2bd1b1c1729f284cb42d1686088dd5b5",
+    "service_sha256": "5bc8ed324d8fd68daf76bea1afec3a7ce397ae4c8ab424192f8a33353d086c14"
+   },
+   "archive": {
+    "length": 91801,
+    "sha256": "d75aa5c812a33b1c1b29447390e20311fb1406ee38e7b7eed0ec8b2d35e3bde1",
+    "io": [
+     720,
+     180,
+     1
+    ]
+   },
+   "evidence": {
+    "VOLUME:A:DOCS:": 5,
+    "VOLUME:A:DIGEST:": 5586531168511146659,
+    "VOLUME:B:DOCS:": 0,
+    "VOLUME:B:DIGEST:": 16427685867521082448,
+    "VOLUME:SERVICE:GENERATION:": 84,
+    "VOLUME:SERVICE:COMMITS:": 0,
+    "VOLUME:BROKER:READS:": 2832,
+    "VOLUME:BROKER:WRITES:": 180,
+    "VOLUME:BROKER:FLUSHES:": 1,
+    "VOLUME:ARCHIVE:READS:": 720,
+    "VOLUME:ARCHIVE:WRITES:": 180,
+    "VOLUME:ARCHIVE:FLUSHES:": 1,
+    "VOLUME:APP_DEVICE_DENIALS:": 26
+   },
+   "oracle_digests": [
+    5586531168511146659,
+    16427685867521082448
+   ]
+  },
+  {
+   "case": "archive-restore",
+   "parent": "archive-export",
+   "passed": true,
+   "raw_qemu_exit": 33,
+   "before_sha256": "17ad617ff3522eb6b82dccf66f188ed6e8bf6666cee3bc4ad8a5b7fd70a14c2a",
+   "after_sha256": "51ec4abd05042743a013803ef46ec870e1870fbc8f8d7d5bd63dfac2fb0a8301",
+   "duration_s": 4.6,
+   "kernel_sha256": "616f608a806f0d9352831d1567eb04fbf097e163b06976ef79075bd6a9d2a1ef",
+   "volume_docs": {
+    "app_sha256": "910ed276e910231fb7198298bd94ff8d2bd1b1c1729f284cb42d1686088dd5b5",
+    "service_sha256": "5bc8ed324d8fd68daf76bea1afec3a7ce397ae4c8ab424192f8a33353d086c14"
+   },
+   "archive": {
+    "length": 91801,
+    "sha256": "d75aa5c812a33b1c1b29447390e20311fb1406ee38e7b7eed0ec8b2d35e3bde1",
+    "io": [
+     1440,
+     0,
+     0
+    ]
+   },
+   "evidence": {
+    "VOLUME:A:DOCS:": 5,
+    "VOLUME:A:DIGEST:": 17619390852620926708,
+    "VOLUME:B:DOCS:": 0,
+    "VOLUME:B:DIGEST:": 10252960164691450465,
+    "VOLUME:SERVICE:GENERATION:": 9,
+    "VOLUME:SERVICE:COMMITS:": 9,
+    "VOLUME:BROKER:READS:": 4476,
+    "VOLUME:BROKER:WRITES:": 486,
+    "VOLUME:BROKER:FLUSHES:": 16,
+    "VOLUME:ARCHIVE:READS:": 1440,
+    "VOLUME:ARCHIVE:WRITES:": 0,
+    "VOLUME:ARCHIVE:FLUSHES:": 0,
+    "VOLUME:APP_DEVICE_DENIALS:": 7
+   },
+   "oracle_digests": [
+    17619390852620926708,
+    10252960164691450465
+   ]
+  },
+  {
+   "case": "archive-corrupt",
+   "parent": "archive-export",
+   "passed": true,
+   "raw_qemu_exit": 33,
+   "before_sha256": "22edd5a172db843c96585ddcc810d230654c42d901b13a349f4abee0dbb3b379",
+   "after_sha256": "22edd5a172db843c96585ddcc810d230654c42d901b13a349f4abee0dbb3b379",
+   "duration_s": 2.9,
+   "kernel_sha256": "4d1e0760317fab97dbfb7c3026bad9910f299886cc1e137f3a655822dab53049",
+   "volume_docs": {
+    "app_sha256": "910ed276e910231fb7198298bd94ff8d2bd1b1c1729f284cb42d1686088dd5b5",
+    "service_sha256": "5bc8ed324d8fd68daf76bea1afec3a7ce397ae4c8ab424192f8a33353d086c14"
+   },
+   "archive": {
+    "length": 91801,
+    "sha256": "e53cd411ab6b116f08020f6ff7bb4798c91e2aab2a5443bf1dec569ed8956f08",
+    "io": [
+     720,
+     0,
+     0
+    ]
+   },
+   "evidence": {
+    "VOLUME:A:DOCS:": 0,
+    "VOLUME:A:DIGEST:": 10252960164691450465,
+    "VOLUME:B:DOCS:": 0,
+    "VOLUME:B:DIGEST:": 10252960164691450465,
+    "VOLUME:SERVICE:GENERATION:": 0,
+    "VOLUME:SERVICE:COMMITS:": 0,
+    "VOLUME:BROKER:READS:": 3040,
+    "VOLUME:BROKER:WRITES:": 0,
+    "VOLUME:BROKER:FLUSHES:": 1,
+    "VOLUME:ARCHIVE:READS:": 720,
+    "VOLUME:ARCHIVE:WRITES:": 0,
+    "VOLUME:ARCHIVE:FLUSHES:": 0,
+    "VOLUME:APP_DEVICE_DENIALS:": 9
+   },
+   "oracle_digests": [
+    10252960164691450465,
+    10252960164691450465
+   ]
+  },
+  {
+   "case": "cut-data",
+   "parent": null,
+   "passed": true,
+   "raw_qemu_exit": -9,
+   "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+   "after_sha256": "c0cb5292df11f9ab56875652cee5bd4d812616e21fa52b3422ff03610e96b2bf",
+   "duration_s": 2.9,
+   "kernel_sha256": "a37b55bbfcdf2421ef9e5001d46c88d0db3fbfaf12b6611bd2e36aca49c1a5cc"
+  },
+  {
+   "case": "recover-cut",
+   "parent": "cut-data",
+   "passed": true,
+   "raw_qemu_exit": 33,
+   "before_sha256": "c0cb5292df11f9ab56875652cee5bd4d812616e21fa52b3422ff03610e96b2bf",
+   "after_sha256": "c0cb5292df11f9ab56875652cee5bd4d812616e21fa52b3422ff03610e96b2bf",
+   "duration_s": 2.3,
+   "kernel_sha256": "641b03658c43e764bd60c74e11709b83a556a832f4f3df71bceed014cd0a350f"
+  },
+  {
+   "case": "cut-table",
+   "parent": null,
+   "passed": true,
+   "raw_qemu_exit": -9,
+   "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+   "after_sha256": "2d37c7c157c78fae8eec078ca869e69ffdb03ca03cd82b0b65bb3f83e39f423d",
+   "duration_s": 3.1,
+   "kernel_sha256": "3b92d524b809785b526eca926109291003ef3a1e974e1f51cffdf7f87166f9c7"
+  },
+  {
+   "case": "recover-cut",
+   "parent": "cut-table",
+   "passed": true,
+   "raw_qemu_exit": 33,
+   "before_sha256": "2d37c7c157c78fae8eec078ca869e69ffdb03ca03cd82b0b65bb3f83e39f423d",
+   "after_sha256": "2d37c7c157c78fae8eec078ca869e69ffdb03ca03cd82b0b65bb3f83e39f423d",
+   "duration_s": 2.3,
+   "kernel_sha256": "641b03658c43e764bd60c74e11709b83a556a832f4f3df71bceed014cd0a350f"
+  },
+  {
+   "case": "cut-txn",
+   "parent": null,
+   "passed": true,
+   "raw_qemu_exit": -9,
+   "before_sha256": "49c40c316234e2e4e4c8dd681a057b1b36611648896dcacba1794263b711c266",
+   "after_sha256": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
+   "duration_s": 2.8,
+   "kernel_sha256": "6d99efe4b033d3bc947509d074c53edd4b2da8dadea2cd11ffd415c8c307356c"
+  },
+  {
+   "case": "recover-cut",
+   "parent": "cut-txn",
+   "passed": true,
+   "raw_qemu_exit": 33,
+   "before_sha256": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
+   "after_sha256": "ede3a54c8ed3e3012e68e11152e36eb14445da0e18f5905dc406673e96268b44",
+   "duration_s": 2.3,
+   "kernel_sha256": "641b03658c43e764bd60c74e11709b83a556a832f4f3df71bceed014cd0a350f"
+  },
+  {
+   "case": "corrupt",
+   "parent": null,
+   "passed": true,
+   "raw_qemu_exit": 33,
+   "before_sha256": "a19398f1597865bf1f565764a5494159a0cad3c7971f41d9b3c5e41a94ca2485",
+   "after_sha256": "a19398f1597865bf1f565764a5494159a0cad3c7971f41d9b3c5e41a94ca2485",
+   "duration_s": 1.8,
+   "kernel_sha256": "c4b170408c7a507942cc581dcabd7d7eead4c219f6fcaa49c0c62b4c20949220"
+  }
+ ],
+ "qemu_version": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3)"
+}
