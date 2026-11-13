@@ -17,6 +17,7 @@ PREFIX = ("BdsDxe: starting Boot0002\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS
 END = ["M2:PASS", "M1:PASS"]
 SYNC_WAIT = "SMP:SYNC:WAIT_MS=10:STALL_MS=0"
 SCRATCH_WAIT = ":WAIT_MS=12:STALL_MS=3"
+CLOCK_EDGES = "SMP:CLOCK:EDGES:TICKS=5001:LOST=3:HOST=3:EXTRA=0:SPAN_US=306:US=999614:OWN_US=999614"
 
 
 def fixture(cpus):
@@ -54,7 +55,7 @@ RATIO = "SMP:TIMER:RATIO:62500"
 
 def bsp(count):
     """Step 5c-2 BSP phases; the shootdown target and idle wake need one AP."""
-    lines = [f"SMP:CLOCK:PASS:CPUS={count}", f"SMP:BSP_PREEMPT:PASS:CPUS={count}"]
+    lines = [CLOCK_EDGES, f"SMP:CLOCK:PASS:CPUS={count}", f"SMP:BSP_PREEMPT:PASS:CPUS={count}"]
     if count == 1:
         return lines + ["SMP:BSP_SPIN:SKIPPED:CPUS=1", "SMP:IDLE:SKIPPED:CPUS=1"]
     return lines + [f"SMP:BSP_SPIN:PASS:CPUS={count}", "SMP:IDLE:WAKE_US=412",
@@ -801,10 +802,10 @@ class SmpSerialOracle(unittest.TestCase):
         """ADR-082 D3: the oracle pins the PIT period and rejects a judged median more
         than 1 % off on both sides, outside the clock fixtures."""
         four = online(4)
-        at = four.index("SMP:CLOCK:PASS:CPUS=4")
+        at = four.index(CLOCK_EDGES)
         edges = EDGES.replace("1062008", "{own}")
         for own, passes in ((989_849, True), (1_009_845, True), (989_848, False), (1_009_846, False)):
-            text = transcript(four[:at] + [edges.format(own=own)] + four[at:])
+            text = transcript(four[:at] + [edges.format(own=own)] + four[at + 1:])
             if passes:
                 self.assertEqual(evaluate("four", text, 33, False)["clock_edges"]["own_median_us"], own)
             else:
@@ -851,10 +852,22 @@ class SmpSerialOracle(unittest.TestCase):
                                                  "span_us": 3051, "median_us": 1062411,
                                                  "own_median_us": 1062008})
         four = online(4)
-        at = four.index("SMP:CLOCK:PASS:CPUS=4")
+        at = four.index(CLOCK_EDGES)
         quiet = EDGES.replace("LOST=312:HOST=2", "LOST=3:HOST=3").replace("1062411", "1000450").replace("1062008", "999850")
-        self.assertEqual(evaluate("four", transcript(four[:at] + [quiet] + four[at:]), 33, False)
+        self.assertEqual(evaluate("four", transcript(four[:at] + [quiet] + four[at + 1:]), 33, False)
                          ["clock_edges"]["host"], 3)
+        # Review F2: the edge line is required, once, right before the clock verdict,
+        # and the loss fixtures must show the injected loss in both medians.
+        for case, lines in (
+            ("four", four[:at] + four[at + 1:]),
+            ("four", four[:at] + four[at + 1:at + 2] + [CLOCK_EDGES] + four[at + 2:]),
+            ("clock-masked", BEFORE_CLOCK + [CLOCK_EDGES, "SMP:CLOCK:DRIFT:KERNEL"]),
+            ("clock-other-cpu", BEFORE_CLOCK + [EDGES.replace("1062008", "999850"), "SMP:CLOCK:DRIFT:KERNEL"]),
+            ("clock-other-cpu", BEFORE_CLOCK + ["SMP:CLOCK:DRIFT:KERNEL"]),
+            ("clock-divisor", BEFORE_CLOCK + [CLOCK_EDGES, "SMP:CLOCK:PIT_COUNT"]),
+        ):
+            with self.subTest(case=case, tail=lines[-2]), self.assertRaises(ValueError):
+                evaluate(case, transcript(lines), 33, False)
 
     def test_stuck_lock_is_reported_in_its_profile_only(self):
         """F5 (DG-1): the stuck marker ends its own profile and fails all others."""
@@ -992,6 +1005,22 @@ class SmpRepetitionHarness(unittest.TestCase):
         report = json.loads((self.build / "smp-report.json").read_text())
         self.assertFalse(report["passed"])
         self.assertEqual(report["repetitions"]["one"]["failed"], 1)
+
+    def test_only_the_m3_load_outcome_gets_the_load_watchdog(self):
+        # ADR-082 D5: 125 s for the m3-load outcome; others keep their watchdog (review F3).
+        for feature, case, timeout in (("native-smp-m3-load", "m3-load-four", 125),
+                                       ("native-smp", "four", 60)):
+            manifest = json.loads((self.build / "manifest.json").read_text())
+            manifest["kernel_feature"] = feature
+            (self.build / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+            seen = []
+            def record(label, **kwargs):
+                seen.append(kwargs["timeout"])
+                return dict(self.guest(label, **kwargs), passed=False)
+            self.runner.side_effect = record
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                run_smp.run((case,))
+            self.assertEqual(seen, [timeout])
 
     def test_only_the_ipc_outcome_gets_the_ipc_watchdog(self):
         # ADR-081 R3-5 addendum 2: 10 000 rounds keep their count; only m3-ipc gets 660 s.

@@ -206,6 +206,9 @@ CLOCK_EDGES = re.compile(r"SMP:CLOCK:EDGES:TICKS=([0-9]{1,8}):LOST=([0-9]{1,8}):
 
 CLOCK_EXPECTED_US = 999_847  # CLOCK_SEGMENT ticks of PIT_DIVISOR 1193 at 1 193 182 Hz
 CLOCK_FIXTURES = ("clock-masked", "clock-divisor", "clock-other-cpu")
+# The edge line carries the judged median, so it is required right before the
+# clock verdict (review F2), not accepted anywhere.
+CLOCK_EDGED = "SMP:CLOCK:EDGES:*"
 
 SERIAL_LINES = 200  # kernel/src/m2/smp.rs SERIAL_LINES
 SERIAL_LINE = re.compile(r"SMP:SER:([0-9]):([0-9]{1,3})")
@@ -257,7 +260,7 @@ def duplicate_madt() -> bytes:
 
 def bsp_phases(online: int) -> list[str]:
     """Step 5c-2 between the AP spin proof and the scheduler."""
-    lines = [f"SMP:CLOCK:PASS:CPUS={online}", f"SMP:BSP_PREEMPT:PASS:CPUS={online}"]
+    lines = [CLOCK_EDGED, f"SMP:CLOCK:PASS:CPUS={online}", f"SMP:BSP_PREEMPT:PASS:CPUS={online}"]
     if online == 1:
         return lines + ["SMP:BSP_SPIN:SKIPPED:CPUS=1", "SMP:IDLE:SKIPPED:CPUS=1"]
     return lines + [f"SMP:BSP_SPIN:PASS:CPUS={online}", IDLE_WAKE, f"SMP:IDLE:PASS:CPUS={online}"]
@@ -383,8 +386,10 @@ def expected_smp(case: str) -> list[str]:
     if outcome in SYNC_WRITERS:
         return lines + [RATIO, TERMINAL[outcome]]
     if outcome in CLOCK_FIXTURES:
+        # The divisor check stops before the edge line; the loss fixtures after it.
         done = settled(started)
-        return lines + done[:done.index(f"SMP:CLOCK:PASS:CPUS={started}")] + [TERMINAL[outcome]]
+        cut = CLOCK_EDGED if outcome == "clock-divisor" else f"SMP:CLOCK:PASS:CPUS={started}"
+        return lines + done[:done.index(cut)] + [TERMINAL[outcome]]
     if outcome in ("scratch-stall", "scratch-slow"):
         done = settled(started)
         return lines + done[:done.index(f"SMP:SCRATCH:PASS:CPUS={started}:WAIT_MS=*:STALL_MS=*")] + [TERMINAL[outcome]]
@@ -585,11 +590,14 @@ def evaluate(case: str, stdout: str, raw_exit: int | None, timed_out: bool) -> d
             ticks, lost, host, extra, span_us, us, own_us = map(int, edges.groups())
             if clock_edges is not None or host > lost or own_us > us:
                 raise ValueError("Malformed or repeated clock edge accounting")
-            if outcome not in CLOCK_FIXTURES and abs(own_us - CLOCK_EXPECTED_US) * 100 > CLOCK_EXPECTED_US:
-                raise ValueError(f"Judged clock median {own_us} us is outside 1 % of {CLOCK_EXPECTED_US} us")
+            drifted = [abs(median - CLOCK_EXPECTED_US) * 100 > CLOCK_EXPECTED_US for median in (us, own_us)]
+            # The loss fixtures must leave both medians outside 1 %; every other
+            # case passes only with the judged median inside it.
+            if not all(drifted) if outcome in ("clock-masked", "clock-other-cpu") else drifted[1]:
+                raise ValueError(f"Judged clock median {own_us} us (raw {us} us) against {CLOCK_EXPECTED_US} us")
             clock_edges = {"ticks": ticks, "lost": lost, "host": host, "extra": extra,
                            "span_us": span_us, "median_us": us, "own_median_us": own_us}
-            continue
+            line = CLOCK_EDGED
         waited = SYNC_WAIT.fullmatch(line)
         if waited:
             used, quiet = int(waited[1]), int(waited[2])

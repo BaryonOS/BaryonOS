@@ -4253,8 +4253,9 @@ fn scratch_work(cpu: usize) {
             park();
         }
         if cpu == 1 && cfg!(feature = "test-smp-scratch-slow") {
-            // About 10 s for the share, beyond the 5 s cap, progress every 10 ms.
-            within_tsc(10, || false);
+            // About 51 s for the share: beyond the 5 s cap even when the BSP's
+            // 1 ms polls stretch tenfold, with progress every 50 ms (review F1).
+            within_tsc(50, || false);
         }
         paging::zero_dynamic(pa);
         // SAFETY: the slot maps exactly this CPU's own Kernel-owned frame;
