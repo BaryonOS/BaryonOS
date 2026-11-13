@@ -476,7 +476,7 @@ pub fn manifest(s: &mut State) {
 }
 
 /// S09 fixture grant: the slot-1 portal alone receives the archive range;
-/// export READ|WRITE|FLUSH, restore and corrupt READ only. The service and
+/// export READ|WRITE|FLUSH; restore, corrupt and conflict READ only. The service and
 /// slot 2 keep exactly their earlier authority.
 fn archive_grant(s: &mut State, e: &mut Engine, service: u64, clients: [u64; 2], block: u64) {
     let scope = BlockScope {

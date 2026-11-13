@@ -2,7 +2,8 @@
 """M6e QEMU runner: fresh guarded volume images, real host kills and a cold
 read-only recovery of exactly the preserved image, checked by the host oracle.
 The S09 archive stages add an export into a disjoint archive range of the same
-disposable image, and a restore and a damaged-archive refusal on fresh images."""
+disposable image, and a restore, a damaged-archive refusal and a restore into a
+domain with conflicting names and collections on fresh images."""
 from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
@@ -351,9 +352,10 @@ def check_archive(case: str, before: bytes, after: bytes, evidence):
             pre, held = (CONFLICT_OBJECTS, CONFLICT_COLLECTIONS) if case == "archive-conflict" else ({}, {})
             # The end state follows from the archive and the pre-state by the spec rule alone.
             expected = volume_archive.expected_restore(archive, {o: name for o, (name, _) in pre.items()}, held)
-            # The native fixture covers these four rules; "no collection for a conflicting object"
-            # and "uncollected without metadata stays at revision 1" are host tests in
-            # services/volume/tests/archive.rs (the archive has only two collected objects).
+            # The native fixture exercises these four rules. Two more are host tests in
+            # services/volume/tests/archive.rs: "no collection for a conflicting object" cannot hold
+            # together with the four here (the archive has only two collected objects), and
+            # "uncollected without metadata stays at revision 1" is not exercised by this fixture.
             if case == "archive-conflict" and not all(
                     expected[key] for key in ("slot_conflicts", "name_conflicts", "uncollected", "reused")):
                 raise ValueError(f"conflict fixture misses a restore rule: {expected}")
