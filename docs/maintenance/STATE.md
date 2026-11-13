@@ -61,17 +61,39 @@ Merges into PR branches are non-fast-forward merges of `origin/main`; no rebase 
 
 ## Approval queue (project owner)
 
-1. **#320** (security, low risk, 3 files): merge once its checks pass. Recommendation: approve.
-2. **#313** (docs, 3 files): merge after checks. Recommendation: approve.
-3. **#316** (CI, harness deadline only): merge after the window gate passes on its head. Recommendation: approve; the description's "main is red" premise is outdated, the change remains useful against runner variance.
-4. **#315** (CI/security tooling): merge after checks. Recommendation: approve; it adds one scheduled read-only workflow.
-5. **#304**: decide the two Medium review findings first. Recommendation: disable auto-merge until they are resolved, because a branch update would merge it.
-6. **#302**: decide whether coverage belongs in the required gate. Recommendation: disable auto-merge and close or rework; it needs a fix of the coverage artifact step and conflict resolution.
-7. **23 Rust code-scanning alerts**: approve the per-alert classification above, then dismiss each with its reason ("used in tests" or "false positive") and a link to this record. No dismissal without approval.
-8. **#260**: retire, or select specific changes for a new small PR (publication decision).
+Status read at 22:30 (Europe/Amsterdam). All four updated PRs are drafts with
+no review decision and 0 unresolved review threads; `host-quality` passed on
+each head. Remaining pending checks were native QEMU gates (`native-smp`,
+`native-window-session`, `native-system`) and CodeQL Rust on #315.
+
+| Order | PR | Head | Risk | Recommendation |
+|---|---|---|---|---|
+| 1 | #320 security fix (3 files) | `77f59101` | Low; no `progress.json` change | Approve; mark ready when the native gates finish. |
+| 2 | #313 docs (3 files) | `aed017fc` | Low | Approve. |
+| 3 | #316 CI harness deadline | `8e7800b7` | Low; harness bound only | Approve after `native-window-session` passes on its head. |
+| 4 | #315 CI/security tooling | `82a1747d` | Low; read-only scheduled workflow | Approve last: it edits the top of `PROJECT-STATE.md` and cites #320. |
+
+The order is not a batch. #313, #316 and #315 each rewrite the same
+`progress.json` assessment against `bf4aa716`, and the strict up-to-date rule
+puts each remaining PR behind after a merge. After every merge, the next PR
+needs a fresh merge of `main` (re-resolving its assessment) and one CI cycle
+before it can merge. No branch is updated ahead of approval.
+
+Decisions without a merge:
+
+5. **#304**: decide the two Medium review findings. Recommendation: disable
+   auto-merge until they are resolved; any branch update would merge it.
+6. **#302**: decide whether coverage belongs in the required gate.
+   Recommendation: disable auto-merge, then close or rework (coverage artifact
+   step and conflicts).
+7. **23 Rust code-scanning alerts**: approve the per-alert classification, then
+   dismiss each with its reason and a link to this record.
+8. **#260**: retire, or select specific changes for a new small PR.
 
 ## Next step
 
+- On resume, first read the checks of #313, #316 and #315 (only #320 is
+  watched by Auto-fix) and fix any failure on those branches.
 - Fix any CI failure that Auto-fix reports on #320 (bound to this session).
 - Low-priority finding, deferred: 154 links in 34 files still point to
   `github.com/simonvanieperen/BaryonOS` (GitHub redirects them after the
