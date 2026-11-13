@@ -1,0 +1,1741 @@
+[
+ {
+  "file": "Archivo[wdth,wght].ttf",
+  "sha256": "0e094a7d3c7c4c25cf1310c4b30014f1dae9332220b1c2c88f4fa996f0b05053",
+  "bytes": 658596,
+  "axes": [
+   {
+    "tag": "wght",
+    "min": 100.0,
+    "default": 600.0,
+    "max": 900.0
+   },
+   {
+    "tag": "wdth",
+    "min": 62.0,
+    "default": 100.0,
+    "max": 125.0
+   }
+  ],
+  "gsub_features": [
+   "aalt",
+   "case",
+   "ccmp",
+   "dnom",
+   "frac",
+   "liga",
+   "lnum",
+   "locl",
+   "numr",
+   "onum",
+   "ordn",
+   "pnum",
+   "rvrn",
+   "sinf",
+   "subs",
+   "sups",
+   "tnum",
+   "zero"
+  ],
+  "gpos_features": [
+   "kern",
+   "mark",
+   "mkmk"
+  ],
+  "has_tnum": true,
+  "has_zero": true,
+  "glyph_count_cmap": 653,
+  "coverage": {
+   "eu_latin_languages": 21,
+   "eu_latin_of": 21,
+   "eu_latin_gaps": {},
+   "scripts": {
+    "el": false,
+    "bg": false
+   },
+   "ui_symbols_missing": " ",
+   "ij_ligature": true
+  },
+  "metrics": {
+   "upm": 1000,
+   "x_height": 0.526,
+   "cap_height": 0.686,
+   "x_to_cap": 0.767,
+   "line_gap_total": 1.088
+  },
+  "shape": {
+   "avg_advance_em": 0.496,
+   "stroke_contrast": 0.833,
+   "aperture_c": 0.245,
+   "aperture_e": 0.114,
+   "chars_per_560px_at_15px": 86.9
+  },
+  "pairs": {
+   "I/l": {
+    "1x": 0.498,
+    "2x": 0.21
+   },
+   "l/1": {
+    "1x": 0.407,
+    "2x": 0.329
+   },
+   "I/1": {
+    "1x": 0.468,
+    "2x": 0.43
+   },
+   "O/0": {
+    "1x": 0.527,
+    "2x": 0.597
+   },
+   "rn/m": {
+    "1x": 0.245,
+    "2x": 0.188
+   },
+   "c/e": {
+    "1x": 0.146,
+    "2x": 0.241
+   },
+   "6/8": {
+    "1x": 0.198,
+    "2x": 0.218
+   },
+   "5/S": {
+    "1x": 0.403,
+    "2x": 0.367
+   },
+   "B/8": {
+    "1x": 0.433,
+    "2x": 0.402
+   },
+   "a/o": {
+    "1x": 0.377,
+    "2x": 0.327
+   },
+   "cl/d": {
+    "1x": 0.417,
+    "2x": 0.734
+   },
+   "vv/w": {
+    "1x": 0.623,
+    "2x": 0.769
+   }
+  },
+  "pair_min_1x": 0.146,
+  "pair_mean_1x": 0.395,
+  "alternates": [
+   "zero"
+  ],
+  "pairs_with_alternates_1x": {
+   "zero": {
+    "O/0": 0.564
+   }
+  }
+ },
+ {
+  "file": "AtkinsonHyperlegibleNext[wght].ttf",
+  "sha256": "5a455d1cfa099b601ab70751bb9673e8fe1854dc4500c80e1a220d0d75e31745",
+  "bytes": 114552,
+  "axes": [
+   {
+    "tag": "wght",
+    "min": 200.0,
+    "default": 400.0,
+    "max": 800.0
+   }
+  ],
+  "gsub_features": [
+   "aalt",
+   "case",
+   "ccmp",
+   "frac",
+   "locl",
+   "ordn",
+   "pnum",
+   "sups",
+   "tnum"
+  ],
+  "gpos_features": [
+   "kern",
+   "mark",
+   "mkmk"
+  ],
+  "has_tnum": true,
+  "has_zero": false,
+  "glyph_count_cmap": 362,
+  "coverage": {
+   "eu_latin_languages": 21,
+   "eu_latin_of": 21,
+   "eu_latin_gaps": {},
+   "scripts": {
+    "el": false,
+    "bg": false
+   },
+   "ui_symbols_missing": "→←↑↓ ",
+   "ij_ligature": true
+  },
+  "metrics": {
+   "upm": 1000,
+   "x_height": 0.496,
+   "cap_height": 0.668,
+   "x_to_cap": 0.743,
+   "line_gap_total": 1.3
+  },
+  "shape": {
+   "avg_advance_em": 0.487,
+   "stroke_contrast": 0.833,
+   "aperture_c": 0.493,
+   "aperture_e": 0.251,
+   "chars_per_560px_at_15px": 86.0
+  },
+  "pairs": {
+   "I/l": {
+    "1x": 0.448,
+    "2x": 0.321
+   },
+   "l/1": {
+    "1x": 0.753,
+    "2x": 0.637
+   },
+   "I/1": {
+    "1x": 0.578,
+    "2x": 0.572
+   },
+   "O/0": {
+    "1x": 0.371,
+    "2x": 0.356
+   },
+   "rn/m": {
+    "1x": 0.169,
+    "2x": 0.292
+   },
+   "c/e": {
+    "1x": 0.366,
+    "2x": 0.276
+   },
+   "6/8": {
+    "1x": 0.221,
+    "2x": 0.297
+   },
+   "5/S": {
+    "1x": 0.361,
+    "2x": 0.321
+   },
+   "B/8": {
+    "1x": 0.351,
+    "2x": 0.329
+   },
+   "a/o": {
+    "1x": 0.338,
+    "2x": 0.316
+   },
+   "cl/d": {
+    "1x": 0.543,
+    "2x": 0.666
+   },
+   "vv/w": {
+    "1x": 0.646,
+    "2x": 0.726
+   }
+  },
+  "pair_min_1x": 0.169,
+  "pair_mean_1x": 0.429,
+  "alternates": [],
+  "pairs_with_alternates_1x": {}
+ },
+ {
+  "file": "Exo2[wght].ttf",
+  "sha256": "205a448676a2586f9c57c25f3d5c58ca8db7e6cf5edf7506783a010c6fe2bfb5",
+  "bytes": 303940,
+  "axes": [
+   {
+    "tag": "wght",
+    "min": 100.0,
+    "default": 400.0,
+    "max": 900.0
+   }
+  ],
+  "gsub_features": [
+   "aalt",
+   "case",
+   "ccmp",
+   "dlig",
+   "dnom",
+   "frac",
+   "liga",
+   "lnum",
+   "locl",
+   "numr",
+   "onum",
+   "ordn",
+   "pnum",
+   "rvrn",
+   "sinf",
+   "subs",
+   "sups",
+   "tnum"
+  ],
+  "gpos_features": [
+   "kern",
+   "mark"
+  ],
+  "has_tnum": true,
+  "has_zero": false,
+  "glyph_count_cmap": 911,
+  "coverage": {
+   "eu_latin_languages": 21,
+   "eu_latin_of": 21,
+   "eu_latin_gaps": {},
+   "scripts": {
+    "el": false,
+    "bg": true
+   },
+   "ui_symbols_missing": "→←↑↓ ",
+   "ij_ligature": true
+  },
+  "metrics": {
+   "upm": 1000,
+   "x_height": 0.487,
+   "cap_height": 0.69,
+   "x_to_cap": 0.706,
+   "line_gap_total": 1.2
+  },
+  "shape": {
+   "avg_advance_em": 0.519,
+   "stroke_contrast": 0.829,
+   "aperture_c": 0.702,
+   "aperture_e": 0.293,
+   "chars_per_560px_at_15px": 84.1
+  },
+  "pairs": {
+   "I/l": {
+    "1x": 0.34,
+    "2x": 0.346
+   },
+   "l/1": {
+    "1x": 0.744,
+    "2x": 0.669
+   },
+   "I/1": {
+    "1x": 0.765,
+    "2x": 0.51
+   },
+   "O/0": {
+    "1x": 0.355,
+    "2x": 0.287
+   },
+   "rn/m": {
+    "1x": 0.414,
+    "2x": 0.356
+   },
+   "c/e": {
+    "1x": 0.324,
+    "2x": 0.276
+   },
+   "6/8": {
+    "1x": 0.386,
+    "2x": 0.29
+   },
+   "5/S": {
+    "1x": 0.232,
+    "2x": 0.21
+   },
+   "B/8": {
+    "1x": 0.163,
+    "2x": 0.175
+   },
+   "a/o": {
+    "1x": 0.318,
+    "2x": 0.315
+   },
+   "cl/d": {
+    "1x": 0.434,
+    "2x": 0.629
+   },
+   "vv/w": {
+    "1x": 0.509,
+    "2x": 0.754
+   }
+  },
+  "pair_min_1x": 0.163,
+  "pair_mean_1x": 0.415,
+  "alternates": [],
+  "pairs_with_alternates_1x": {}
+ },
+ {
+  "file": "FunnelDisplay[wght].ttf",
+  "sha256": "b4151c9c4b7b07eb74320096b4ff4156cca8821f5adfab34af9fd9a2d6c1179d",
+  "bytes": 53436,
+  "axes": [
+   {
+    "tag": "wght",
+    "min": 300.0,
+    "default": 300.0,
+    "max": 800.0
+   }
+  ],
+  "gsub_features": [
+   "aalt",
+   "case",
+   "ccmp",
+   "frac",
+   "liga",
+   "locl",
+   "ordn",
+   "pnum",
+   "sups",
+   "tnum"
+  ],
+  "gpos_features": [
+   "kern",
+   "mark",
+   "mkmk"
+  ],
+  "has_tnum": true,
+  "has_zero": false,
+  "glyph_count_cmap": 348,
+  "coverage": {
+   "eu_latin_languages": 21,
+   "eu_latin_of": 21,
+   "eu_latin_gaps": {},
+   "scripts": {
+    "el": false,
+    "bg": false
+   },
+   "ui_symbols_missing": "≤≥≠→←↑↓  ",
+   "ij_ligature": true
+  },
+  "metrics": {
+   "upm": 1200,
+   "x_height": 0.5,
+   "cap_height": 0.675,
+   "x_to_cap": 0.741,
+   "line_gap_total": 1.25
+  },
+  "shape": {
+   "avg_advance_em": 0.536,
+   "stroke_contrast": 0.892,
+   "aperture_c": 0.308,
+   "aperture_e": 0.159,
+   "chars_per_560px_at_15px": 80.8
+  },
+  "pairs": {
+   "I/l": {
+    "1x": 0.152,
+    "2x": 0.173
+   },
+   "l/1": {
+    "1x": 0.605,
+    "2x": 0.452
+   },
+   "I/1": {
+    "1x": 0.685,
+    "2x": 0.462
+   },
+   "O/0": {
+    "1x": 0.453,
+    "2x": 0.502
+   },
+   "rn/m": {
+    "1x": 0.272,
+    "2x": 0.257
+   },
+   "c/e": {
+    "1x": 0.176,
+    "2x": 0.277
+   },
+   "6/8": {
+    "1x": 0.163,
+    "2x": 0.211
+   },
+   "5/S": {
+    "1x": 0.315,
+    "2x": 0.351
+   },
+   "B/8": {
+    "1x": 0.399,
+    "2x": 0.326
+   },
+   "a/o": {
+    "1x": 0.345,
+    "2x": 0.367
+   },
+   "cl/d": {
+    "1x": 0.423,
+    "2x": 0.617
+   },
+   "vv/w": {
+    "1x": 0.553,
+    "2x": 0.702
+   }
+  },
+  "pair_min_1x": 0.152,
+  "pair_mean_1x": 0.378,
+  "alternates": [],
+  "pairs_with_alternates_1x": {}
+ },
+ {
+  "file": "FunnelSans[wght].ttf",
+  "sha256": "652c9834434bc01835c4e75a73d3c7e42ff2e4beb261cc851cb911e889af6a77",
+  "bytes": 53268,
+  "axes": [
+   {
+    "tag": "wght",
+    "min": 300.0,
+    "default": 300.0,
+    "max": 800.0
+   }
+  ],
+  "gsub_features": [
+   "aalt",
+   "case",
+   "ccmp",
+   "frac",
+   "liga",
+   "locl",
+   "ordn",
+   "pnum",
+   "sups",
+   "tnum"
+  ],
+  "gpos_features": [
+   "kern",
+   "mark",
+   "mkmk"
+  ],
+  "has_tnum": true,
+  "has_zero": false,
+  "glyph_count_cmap": 348,
+  "coverage": {
+   "eu_latin_languages": 21,
+   "eu_latin_of": 21,
+   "eu_latin_gaps": {},
+   "scripts": {
+    "el": false,
+    "bg": false
+   },
+   "ui_symbols_missing": "≤≥≠→←↑↓  ",
+   "ij_ligature": true
+  },
+  "metrics": {
+   "upm": 1200,
+   "x_height": 0.5,
+   "cap_height": 0.675,
+   "x_to_cap": 0.741,
+   "line_gap_total": 1.25
+  },
+  "shape": {
+   "avg_advance_em": 0.503,
+   "stroke_contrast": 0.917,
+   "aperture_c": 0.308,
+   "aperture_e": 0.159,
+   "chars_per_560px_at_15px": 85.1
+  },
+  "pairs": {
+   "I/l": {
+    "1x": 0.158,
+    "2x": 0.179
+   },
+   "l/1": {
+    "1x": 0.533,
+    "2x": 0.453
+   },
+   "I/1": {
+    "1x": 0.423,
+    "2x": 0.467
+   },
+   "O/0": {
+    "1x": 0.446,
+    "2x": 0.5
+   },
+   "rn/m": {
+    "1x": 0.434,
+    "2x": 0.276
+   },
+   "c/e": {
+    "1x": 0.172,
+    "2x": 0.247
+   },
+   "6/8": {
+    "1x": 0.175,
+    "2x": 0.204
+   },
+   "5/S": {
+    "1x": 0.277,
+    "2x": 0.3
+   },
+   "B/8": {
+    "1x": 0.354,
+    "2x": 0.302
+   },
+   "a/o": {
+    "1x": 0.319,
+    "2x": 0.301
+   },
+   "cl/d": {
+    "1x": 0.557,
+    "2x": 0.679
+   },
+   "vv/w": {
+    "1x": 0.551,
+    "2x": 0.703
+   }
+  },
+  "pair_min_1x": 0.158,
+  "pair_mean_1x": 0.367,
+  "alternates": [],
+  "pairs_with_alternates_1x": {}
+ },
+ {
+  "file": "Geist[wght].ttf",
+  "sha256": "73894e0448cae90a92b6c2f8732b7bb9acb7b94c418bff559dad4a18e1de9659",
+  "bytes": 169056,
+  "axes": [
+   {
+    "tag": "wght",
+    "min": 100.0,
+    "default": 400.0,
+    "max": 900.0
+   }
+  ],
+  "gsub_features": [
+   "aalt",
+   "case",
+   "ccmp",
+   "dlig",
+   "dnom",
+   "frac",
+   "liga",
+   "locl",
+   "numr",
+   "ordn",
+   "pnum",
+   "sinf",
+   "ss01",
+   "ss02",
+   "ss03",
+   "ss04",
+   "ss05",
+   "ss06",
+   "ss07",
+   "ss08",
+   "ss09",
+   "ss10",
+   "ss11",
+   "subs",
+   "sups",
+   "tnum"
+  ],
+  "gpos_features": [
+   "kern",
+   "mark",
+   "mkmk"
+  ],
+  "has_tnum": true,
+  "has_zero": false,
+  "glyph_count_cmap": 728,
+  "coverage": {
+   "eu_latin_languages": 21,
+   "eu_latin_of": 21,
+   "eu_latin_gaps": {},
+   "scripts": {
+    "el": false,
+    "bg": true
+   },
+   "ui_symbols_missing": "  ",
+   "ij_ligature": true
+  },
+  "metrics": {
+   "upm": 1000,
+   "x_height": 0.53,
+   "cap_height": 0.71,
+   "x_to_cap": 0.746,
+   "line_gap_total": 1.3
+  },
+  "shape": {
+   "avg_advance_em": 0.515,
+   "stroke_contrast": 0.914,
+   "aperture_c": 0.306,
+   "aperture_e": 0.153,
+   "chars_per_560px_at_15px": 83.0
+  },
+  "pairs": {
+   "I/l": {
+    "1x": 0.061,
+    "2x": 0.057
+   },
+   "l/1": {
+    "1x": 0.528,
+    "2x": 0.42
+   },
+   "I/1": {
+    "1x": 0.544,
+    "2x": 0.445
+   },
+   "O/0": {
+    "1x": 0.271,
+    "2x": 0.331
+   },
+   "rn/m": {
+    "1x": 0.129,
+    "2x": 0.293
+   },
+   "c/e": {
+    "1x": 0.186,
+    "2x": 0.258
+   },
+   "6/8": {
+    "1x": 0.296,
+    "2x": 0.282
+   },
+   "5/S": {
+    "1x": 0.323,
+    "2x": 0.37
+   },
+   "B/8": {
+    "1x": 0.516,
+    "2x": 0.247
+   },
+   "a/o": {
+    "1x": 0.308,
+    "2x": 0.318
+   },
+   "cl/d": {
+    "1x": 0.662,
+    "2x": 0.777
+   },
+   "vv/w": {
+    "1x": 0.587,
+    "2x": 0.794
+   }
+  },
+  "pair_min_1x": 0.061,
+  "pair_mean_1x": 0.368,
+  "alternates": [],
+  "pairs_with_alternates_1x": {}
+ },
+ {
+  "file": "InstrumentSans[wdth,wght].ttf",
+  "sha256": "b24f1812584816958afcf22e22d08e44318c5e51651e25d2438efdde389b33b1",
+  "bytes": 194336,
+  "axes": [
+   {
+    "tag": "wdth",
+    "min": 75.0,
+    "default": 100.0,
+    "max": 100.0
+   },
+   {
+    "tag": "wght",
+    "min": 400.0,
+    "default": 400.0,
+    "max": 700.0
+   }
+  ],
+  "gsub_features": [
+   "aalt",
+   "case",
+   "ccmp",
+   "liga",
+   "locl",
+   "ordn",
+   "pnum",
+   "ss01",
+   "ss02",
+   "ss03",
+   "ss04",
+   "ss05",
+   "ss06",
+   "ss07",
+   "ss08",
+   "ss09",
+   "ss10",
+   "ss11",
+   "ss12",
+   "tnum"
+  ],
+  "gpos_features": [
+   "kern",
+   "mark",
+   "mkmk"
+  ],
+  "has_tnum": true,
+  "has_zero": false,
+  "glyph_count_cmap": 343,
+  "coverage": {
+   "eu_latin_languages": 21,
+   "eu_latin_of": 21,
+   "eu_latin_gaps": {},
+   "scripts": {
+    "el": false,
+    "bg": false
+   },
+   "ui_symbols_missing": "≤≥≠  ",
+   "ij_ligature": true
+  },
+  "metrics": {
+   "upm": 1000,
+   "x_height": 0.51,
+   "cap_height": 0.72,
+   "x_to_cap": 0.708,
+   "line_gap_total": 1.22
+  },
+  "shape": {
+   "avg_advance_em": 0.523,
+   "stroke_contrast": 0.818,
+   "aperture_c": 0.325,
+   "aperture_e": 0.17,
+   "chars_per_560px_at_15px": 83.9
+  },
+  "pairs": {
+   "I/l": {
+    "1x": 0.173,
+    "2x": 0.111
+   },
+   "l/1": {
+    "1x": 0.812,
+    "2x": 0.762
+   },
+   "I/1": {
+    "1x": 0.834,
+    "2x": 0.83
+   },
+   "O/0": {
+    "1x": 0.402,
+    "2x": 0.392
+   },
+   "rn/m": {
+    "1x": 0.541,
+    "2x": 0.28
+   },
+   "c/e": {
+    "1x": 0.204,
+    "2x": 0.297
+   },
+   "6/8": {
+    "1x": 0.2,
+    "2x": 0.275
+   },
+   "5/S": {
+    "1x": 0.392,
+    "2x": 0.368
+   },
+   "B/8": {
+    "1x": 0.374,
+    "2x": 0.285
+   },
+   "a/o": {
+    "1x": 0.397,
+    "2x": 0.372
+   },
+   "cl/d": {
+    "1x": 0.515,
+    "2x": 0.688
+   },
+   "vv/w": {
+    "1x": 0.693,
+    "2x": 0.829
+   }
+  },
+  "pair_min_1x": 0.173,
+  "pair_mean_1x": 0.461,
+  "alternates": [],
+  "pairs_with_alternates_1x": {}
+ },
+ {
+  "file": "Inter[opsz,wght].ttf",
+  "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
+  "bytes": 876576,
+  "axes": [
+   {
+    "tag": "opsz",
+    "min": 14.0,
+    "default": 14.0,
+    "max": 32.0
+   },
+   {
+    "tag": "wght",
+    "min": 100.0,
+    "default": 400.0,
+    "max": 900.0
+   }
+  ],
+  "gsub_features": [
+   "aalt",
+   "calt",
+   "case",
+   "ccmp",
+   "cv01",
+   "cv02",
+   "cv03",
+   "cv04",
+   "cv05",
+   "cv06",
+   "cv07",
+   "cv08",
+   "cv09",
+   "cv10",
+   "cv11",
+   "cv12",
+   "cv13",
+   "cv14",
+   "dlig",
+   "dnom",
+   "frac",
+   "locl",
+   "numr",
+   "ordn",
+   "pnum",
+   "salt",
+   "sinf",
+   "ss01",
+   "ss02",
+   "ss03",
+   "ss04",
+   "ss05",
+   "ss06",
+   "ss07",
+   "ss08",
+   "subs",
+   "sups",
+   "tnum",
+   "zero"
+  ],
+  "gpos_features": [
+   "cpsp",
+   "kern",
+   "mark",
+   "mkmk"
+  ],
+  "has_tnum": true,
+  "has_zero": true,
+  "glyph_count_cmap": 2849,
+  "coverage": {
+   "eu_latin_languages": 21,
+   "eu_latin_of": 21,
+   "eu_latin_gaps": {},
+   "scripts": {
+    "el": true,
+    "bg": true
+   },
+   "ui_symbols_missing": "",
+   "ij_ligature": true
+  },
+  "metrics": {
+   "upm": 2048,
+   "x_height": 0.5458984375,
+   "cap_height": 0.7275390625,
+   "x_to_cap": 0.75,
+   "line_gap_total": 1.21
+  },
+  "shape": {
+   "avg_advance_em": 0.49,
+   "stroke_contrast": 0.882,
+   "aperture_c": 0.333,
+   "aperture_e": 0.153,
+   "chars_per_560px_at_15px": 80.0
+  },
+  "pairs": {
+   "I/l": {
+    "1x": 0.3,
+    "2x": 0.202
+   },
+   "l/1": {
+    "1x": 0.665,
+    "2x": 0.587
+   },
+   "I/1": {
+    "1x": 0.75,
+    "2x": 0.734
+   },
+   "O/0": {
+    "1x": 0.41,
+    "2x": 0.466
+   },
+   "rn/m": {
+    "1x": 0.448,
+    "2x": 0.26
+   },
+   "c/e": {
+    "1x": 0.281,
+    "2x": 0.186
+   },
+   "6/8": {
+    "1x": 0.249,
+    "2x": 0.273
+   },
+   "5/S": {
+    "1x": 0.298,
+    "2x": 0.373
+   },
+   "B/8": {
+    "1x": 0.354,
+    "2x": 0.284
+   },
+   "a/o": {
+    "1x": 0.347,
+    "2x": 0.308
+   },
+   "cl/d": {
+    "1x": 0.554,
+    "2x": 0.713
+   },
+   "vv/w": {
+    "1x": 0.687,
+    "2x": 0.789
+   }
+  },
+  "pair_min_1x": 0.249,
+  "pair_mean_1x": 0.445,
+  "alternates": [
+   "cv05",
+   "cv08",
+   "zero"
+  ],
+  "pairs_with_alternates_1x": {
+   "cv05": {
+    "I/l": 0.329,
+    "l/1": 0.745,
+    "cl/d": 0.569
+   },
+   "cv08": {
+    "I/l": 0.523,
+    "I/1": 0.416
+   },
+   "zero": {
+    "O/0": 0.46
+   }
+  }
+ },
+ {
+  "file": "Lexend[wght].ttf",
+  "sha256": "3add53e641fbc81da64da4bb254285e2831b52b029527bc0714e2b9610832ee6",
+  "bytes": 175756,
+  "axes": [
+   {
+    "tag": "wght",
+    "min": 100.0,
+    "default": 400.0,
+    "max": 900.0
+   }
+  ],
+  "gsub_features": [
+   "aalt",
+   "case",
+   "ccmp",
+   "dlig",
+   "dnom",
+   "frac",
+   "liga",
+   "locl",
+   "numr",
+   "ordn",
+   "sinf",
+   "ss01",
+   "subs",
+   "sups",
+   "zero"
+  ],
+  "gpos_features": [
+   "kern",
+   "mark",
+   "mkmk"
+  ],
+  "has_tnum": false,
+  "has_zero": true,
+  "glyph_count_cmap": 685,
+  "coverage": {
+   "eu_latin_languages": 21,
+   "eu_latin_of": 21,
+   "eu_latin_gaps": {},
+   "scripts": {
+    "el": false,
+    "bg": false
+   },
+   "ui_symbols_missing": "→←↑↓ ",
+   "ij_ligature": true
+  },
+  "metrics": {
+   "upm": 1000,
+   "x_height": 0.525,
+   "cap_height": 0.7,
+   "x_to_cap": 0.75,
+   "line_gap_total": 1.25
+  },
+  "shape": {
+   "avg_advance_em": 0.549,
+   "stroke_contrast": 0.905,
+   "aperture_c": 0.365,
+   "aperture_e": 0.196,
+   "chars_per_560px_at_15px": 77.3
+  },
+  "pairs": {
+   "I/l": {
+    "1x": 0.393,
+    "2x": 0.326
+   },
+   "l/1": {
+    "1x": 0.452,
+    "2x": 0.342
+   },
+   "I/1": {
+    "1x": 0.347,
+    "2x": 0.212
+   },
+   "O/0": {
+    "1x": 0.398,
+    "2x": 0.431
+   },
+   "rn/m": {
+    "1x": 0.369,
+    "2x": 0.269
+   },
+   "c/e": {
+    "1x": 0.193,
+    "2x": 0.263
+   },
+   "6/8": {
+    "1x": 0.314,
+    "2x": 0.348
+   },
+   "5/S": {
+    "1x": 0.309,
+    "2x": 0.265
+   },
+   "B/8": {
+    "1x": 0.31,
+    "2x": 0.315
+   },
+   "a/o": {
+    "1x": 0.135,
+    "2x": 0.15
+   },
+   "cl/d": {
+    "1x": 0.26,
+    "2x": 0.502
+   },
+   "vv/w": {
+    "1x": 0.746,
+    "2x": 0.833
+   }
+  },
+  "pair_min_1x": 0.135,
+  "pair_mean_1x": 0.352,
+  "alternates": [
+   "zero"
+  ],
+  "pairs_with_alternates_1x": {
+   "zero": {
+    "O/0": 0.418
+   }
+  }
+ },
+ {
+  "file": "Manrope[wght].ttf",
+  "sha256": "3ae11c49db0455a3cc33e37d380f20fdb8c7f8b41dc07625c177e3d87a9d6ae6",
+  "bytes": 164700,
+  "axes": [
+   {
+    "tag": "wght",
+    "min": 200.0,
+    "default": 200.0,
+    "max": 800.0
+   }
+  ],
+  "gsub_features": [
+   "aalt",
+   "calt",
+   "case",
+   "dnom",
+   "frac",
+   "liga",
+   "locl",
+   "numr",
+   "ordn",
+   "pnum",
+   "sinf",
+   "subs",
+   "sups",
+   "tnum"
+  ],
+  "gpos_features": [
+   "kern"
+  ],
+  "has_tnum": true,
+  "has_zero": false,
+  "glyph_count_cmap": 678,
+  "coverage": {
+   "eu_latin_languages": 21,
+   "eu_latin_of": 21,
+   "eu_latin_gaps": {},
+   "scripts": {
+    "el": true,
+    "bg": true
+   },
+   "ui_symbols_missing": "  ",
+   "ij_ligature": false
+  },
+  "metrics": {
+   "upm": 2000,
+   "x_height": 0.54,
+   "cap_height": 0.72,
+   "x_to_cap": 0.75,
+   "line_gap_total": 1.366
+  },
+  "shape": {
+   "avg_advance_em": 0.521,
+   "stroke_contrast": 0.903,
+   "aperture_c": 0.417,
+   "aperture_e": 0.171,
+   "chars_per_560px_at_15px": 83.8
+  },
+  "pairs": {
+   "I/l": {
+    "1x": 0.0,
+    "2x": 0.0
+   },
+   "l/1": {
+    "1x": 0.652,
+    "2x": 0.403
+   },
+   "I/1": {
+    "1x": 0.652,
+    "2x": 0.403
+   },
+   "O/0": {
+    "1x": 0.477,
+    "2x": 0.541
+   },
+   "rn/m": {
+    "1x": 0.388,
+    "2x": 0.36
+   },
+   "c/e": {
+    "1x": 0.268,
+    "2x": 0.226
+   },
+   "6/8": {
+    "1x": 0.283,
+    "2x": 0.301
+   },
+   "5/S": {
+    "1x": 0.358,
+    "2x": 0.403
+   },
+   "B/8": {
+    "1x": 0.389,
+    "2x": 0.38
+   },
+   "a/o": {
+    "1x": 0.35,
+    "2x": 0.34
+   },
+   "cl/d": {
+    "1x": 0.554,
+    "2x": 0.641
+   },
+   "vv/w": {
+    "1x": 0.609,
+    "2x": 0.792
+   }
+  },
+  "pair_min_1x": 0.0,
+  "pair_mean_1x": 0.415,
+  "alternates": [],
+  "pairs_with_alternates_1x": {}
+ },
+ {
+  "file": "Oxanium[wght].ttf",
+  "sha256": "2ce01d946e1e1ffc8d7eecfffbda8623bedd63eaf811a20488c4b69af45babb0",
+  "bytes": 43536,
+  "axes": [
+   {
+    "tag": "wght",
+    "min": 200.0,
+    "default": 200.0,
+    "max": 800.0
+   }
+  ],
+  "gsub_features": [
+   "ccmp",
+   "pnum",
+   "zero"
+  ],
+  "gpos_features": [
+   "kern",
+   "mark"
+  ],
+  "has_tnum": false,
+  "has_zero": true,
+  "glyph_count_cmap": 357,
+  "coverage": {
+   "eu_latin_languages": 20,
+   "eu_latin_of": 21,
+   "eu_latin_gaps": {
+    "mt": "ċġħĊĠĦ"
+   },
+   "scripts": {
+    "el": false,
+    "bg": false
+   },
+   "ui_symbols_missing": "→←↑↓  ",
+   "ij_ligature": false
+  },
+  "metrics": {
+   "upm": 1000,
+   "x_height": 0.515,
+   "cap_height": 0.69,
+   "x_to_cap": 0.746,
+   "line_gap_total": 1.25
+  },
+  "shape": {
+   "avg_advance_em": 0.521,
+   "stroke_contrast": 0.875,
+   "aperture_c": 0.731,
+   "aperture_e": 0.308,
+   "chars_per_560px_at_15px": 82.5
+  },
+  "pairs": {
+   "I/l": {
+    "1x": 0.205,
+    "2x": 0.237
+   },
+   "l/1": {
+    "1x": 0.527,
+    "2x": 0.445
+   },
+   "I/1": {
+    "1x": 0.453,
+    "2x": 0.347
+   },
+   "O/0": {
+    "1x": 0.351,
+    "2x": 0.361
+   },
+   "rn/m": {
+    "1x": 0.308,
+    "2x": 0.208
+   },
+   "c/e": {
+    "1x": 0.258,
+    "2x": 0.358
+   },
+   "6/8": {
+    "1x": 0.098,
+    "2x": 0.126
+   },
+   "5/S": {
+    "1x": 0.098,
+    "2x": 0.105
+   },
+   "B/8": {
+    "1x": 0.27,
+    "2x": 0.169
+   },
+   "a/o": {
+    "1x": 0.322,
+    "2x": 0.287
+   },
+   "cl/d": {
+    "1x": 0.584,
+    "2x": 0.65
+   },
+   "vv/w": {
+    "1x": 0.527,
+    "2x": 0.709
+   }
+  },
+  "pair_min_1x": 0.098,
+  "pair_mean_1x": 0.333,
+  "alternates": [
+   "zero"
+  ],
+  "pairs_with_alternates_1x": {
+   "zero": {
+    "O/0": 0.368
+   }
+  }
+ },
+ {
+  "file": "Saira[wdth,wght].ttf",
+  "sha256": "9d050fc5a01c85f74c4257c207d50b55d1e40c37308c642f974a2c5003231dde",
+  "bytes": 483700,
+  "axes": [
+   {
+    "tag": "wght",
+    "min": 100.0,
+    "default": 100.0,
+    "max": 900.0
+   },
+   {
+    "tag": "wdth",
+    "min": 50.0,
+    "default": 100.0,
+    "max": 125.0
+   }
+  ],
+  "gsub_features": [
+   "aalt",
+   "case",
+   "ccmp",
+   "dnom",
+   "frac",
+   "liga",
+   "lnum",
+   "locl",
+   "numr",
+   "onum",
+   "ordn",
+   "pnum",
+   "rvrn",
+   "salt",
+   "sinf",
+   "ss01",
+   "ss02",
+   "subs",
+   "sups",
+   "titl",
+   "tnum",
+   "zero"
+  ],
+  "gpos_features": [
+   "kern",
+   "mark",
+   "mkmk"
+  ],
+  "has_tnum": true,
+  "has_zero": true,
+  "glyph_count_cmap": 661,
+  "coverage": {
+   "eu_latin_languages": 21,
+   "eu_latin_of": 21,
+   "eu_latin_gaps": {},
+   "scripts": {
+    "el": false,
+    "bg": false
+   },
+   "ui_symbols_missing": "  ",
+   "ij_ligature": true
+  },
+  "metrics": {
+   "upm": 1000,
+   "x_height": 0.51,
+   "cap_height": 0.688,
+   "x_to_cap": 0.741,
+   "line_gap_total": 1.574
+  },
+  "shape": {
+   "avg_advance_em": 0.525,
+   "stroke_contrast": 0.875,
+   "aperture_c": 0.719,
+   "aperture_e": 0.305,
+   "chars_per_560px_at_15px": 82.6
+  },
+  "pairs": {
+   "I/l": {
+    "1x": 0.208,
+    "2x": 0.13
+   },
+   "l/1": {
+    "1x": 0.565,
+    "2x": 0.419
+   },
+   "I/1": {
+    "1x": 0.526,
+    "2x": 0.487
+   },
+   "O/0": {
+    "1x": 0.172,
+    "2x": 0.164
+   },
+   "rn/m": {
+    "1x": 0.501,
+    "2x": 0.296
+   },
+   "c/e": {
+    "1x": 0.388,
+    "2x": 0.428
+   },
+   "6/8": {
+    "1x": 0.254,
+    "2x": 0.243
+   },
+   "5/S": {
+    "1x": 0.286,
+    "2x": 0.162
+   },
+   "B/8": {
+    "1x": 0.202,
+    "2x": 0.183
+   },
+   "a/o": {
+    "1x": 0.196,
+    "2x": 0.323
+   },
+   "cl/d": {
+    "1x": 0.357,
+    "2x": 0.466
+   },
+   "vv/w": {
+    "1x": 0.576,
+    "2x": 0.825
+   }
+  },
+  "pair_min_1x": 0.172,
+  "pair_mean_1x": 0.353,
+  "alternates": [
+   "zero"
+  ],
+  "pairs_with_alternates_1x": {
+   "zero": {
+    "O/0": 0.239
+   }
+  }
+ },
+ {
+  "file": "Sora[wght].ttf",
+  "sha256": "84ff7096ae3ec6c8be47d906d1a0ba4de7f2ce78c615275c77301964a316e16c",
+  "bytes": 111400,
+  "axes": [
+   {
+    "tag": "wght",
+    "min": 100.0,
+    "default": 400.0,
+    "max": 800.0
+   }
+  ],
+  "gsub_features": [
+   "aalt",
+   "case",
+   "ccmp",
+   "dlig",
+   "dnom",
+   "frac",
+   "liga",
+   "locl",
+   "numr",
+   "ordn",
+   "salt",
+   "ss01",
+   "sups",
+   "tnum"
+  ],
+  "gpos_features": [
+   "kern",
+   "mark",
+   "mkmk"
+  ],
+  "has_tnum": true,
+  "has_zero": false,
+  "glyph_count_cmap": 378,
+  "coverage": {
+   "eu_latin_languages": 21,
+   "eu_latin_of": 21,
+   "eu_latin_gaps": {},
+   "scripts": {
+    "el": false,
+    "bg": false
+   },
+   "ui_symbols_missing": "≠→←↑↓  ",
+   "ij_ligature": false
+  },
+  "metrics": {
+   "upm": 1000,
+   "x_height": 0.534,
+   "cap_height": 0.73,
+   "x_to_cap": 0.732,
+   "line_gap_total": 1.26
+  },
+  "shape": {
+   "avg_advance_em": 0.577,
+   "stroke_contrast": 0.895,
+   "aperture_c": 0.285,
+   "aperture_e": 0.158,
+   "chars_per_560px_at_15px": 74.9
+  },
+  "pairs": {
+   "I/l": {
+    "1x": 0.347,
+    "2x": 0.244
+   },
+   "l/1": {
+    "1x": 0.302,
+    "2x": 0.226
+   },
+   "I/1": {
+    "1x": 0.252,
+    "2x": 0.464
+   },
+   "O/0": {
+    "1x": 0.334,
+    "2x": 0.363
+   },
+   "rn/m": {
+    "1x": 0.16,
+    "2x": 0.246
+   },
+   "c/e": {
+    "1x": 0.197,
+    "2x": 0.192
+   },
+   "6/8": {
+    "1x": 0.205,
+    "2x": 0.316
+   },
+   "5/S": {
+    "1x": 0.331,
+    "2x": 0.322
+   },
+   "B/8": {
+    "1x": 0.29,
+    "2x": 0.214
+   },
+   "a/o": {
+    "1x": 0.384,
+    "2x": 0.426
+   },
+   "cl/d": {
+    "1x": 0.522,
+    "2x": 0.691
+   },
+   "vv/w": {
+    "1x": 0.616,
+    "2x": 0.748
+   }
+  },
+  "pair_min_1x": 0.16,
+  "pair_mean_1x": 0.328,
+  "alternates": [],
+  "pairs_with_alternates_1x": {}
+ },
+ {
+  "file": "SpaceGrotesk[wght].ttf",
+  "sha256": "acad6de1fc93436f5c0f1f4137751ef04f1aea3063e7036535970ffcfbd79f72",
+  "bytes": 136676,
+  "axes": [
+   {
+    "tag": "wght",
+    "min": 300.0,
+    "default": 300.0,
+    "max": 700.0
+   }
+  ],
+  "gsub_features": [
+   "aalt",
+   "case",
+   "ccmp",
+   "dnom",
+   "frac",
+   "liga",
+   "lnum",
+   "locl",
+   "numr",
+   "onum",
+   "ordn",
+   "pnum",
+   "salt",
+   "sinf",
+   "ss01",
+   "ss02",
+   "ss03",
+   "ss04",
+   "ss05",
+   "subs",
+   "sups",
+   "tnum",
+   "zero"
+  ],
+  "gpos_features": [
+   "kern",
+   "mark",
+   "mkmk"
+  ],
+  "has_tnum": true,
+  "has_zero": true,
+  "glyph_count_cmap": 735,
+  "coverage": {
+   "eu_latin_languages": 21,
+   "eu_latin_of": 21,
+   "eu_latin_gaps": {},
+   "scripts": {
+    "el": false,
+    "bg": false
+   },
+   "ui_symbols_missing": " ",
+   "ij_ligature": true
+  },
+  "metrics": {
+   "upm": 1000,
+   "x_height": 0.486,
+   "cap_height": 0.7,
+   "x_to_cap": 0.694,
+   "line_gap_total": 1.276
+  },
+  "shape": {
+   "avg_advance_em": 0.553,
+   "stroke_contrast": 0.875,
+   "aperture_c": 0.228,
+   "aperture_e": 0.155,
+   "chars_per_560px_at_15px": 78.7
+  },
+  "pairs": {
+   "I/l": {
+    "1x": 0.158,
+    "2x": 0.0
+   },
+   "l/1": {
+    "1x": 0.793,
+    "2x": 0.836
+   },
+   "I/1": {
+    "1x": 0.804,
+    "2x": 0.836
+   },
+   "O/0": {
+    "1x": 0.3,
+    "2x": 0.18
+   },
+   "rn/m": {
+    "1x": 0.474,
+    "2x": 0.515
+   },
+   "c/e": {
+    "1x": 0.259,
+    "2x": 0.228
+   },
+   "6/8": {
+    "1x": 0.308,
+    "2x": 0.283
+   },
+   "5/S": {
+    "1x": 0.331,
+    "2x": 0.346
+   },
+   "B/8": {
+    "1x": 0.365,
+    "2x": 0.369
+   },
+   "a/o": {
+    "1x": 0.363,
+    "2x": 0.419
+   },
+   "cl/d": {
+    "1x": 0.617,
+    "2x": 0.798
+   },
+   "vv/w": {
+    "1x": 0.583,
+    "2x": 0.755
+   }
+  },
+  "pair_min_1x": 0.158,
+  "pair_mean_1x": 0.446,
+  "alternates": [
+   "zero"
+  ],
+  "pairs_with_alternates_1x": {
+   "zero": {
+    "O/0": 0.348
+   }
+  }
+ }
+]
