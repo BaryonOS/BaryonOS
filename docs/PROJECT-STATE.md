@@ -2,21 +2,24 @@
 
 ## NEXT AGENT HANDOFF — S09 native archive slice: export, restore and damaged-archive refusal pass the local volume gate (12/12) — 13 November 2026
 
-**Source:** branch `feat/s09-native-archive`, draft PR #318 (no auto-merge). Tested commit `f3d0e03e` (source-v3 `4ffa8c5e8b2b1209b5618372218182d8aaaece1c7abb923f87b713dec498443c`); later commits change documentation and evidence only.
+**Source:** branch `feat/s09-native-archive`, draft PR #318 (no auto-merge). Tested commit `9d966776` (source-v3 `52f645f1cd17c1e98218f9b610b6850eea565c3ee57894c56dea7835e940cba5`, which includes the AI-review fixes); later commits change documentation and evidence only.
 
 **Done:**
 - Kernel volume profile cases 7–9 (`test-volume-archive-export|restore|corrupt`). The slot-1 portal alone gets the archive range (device 0, sectors 1000..2040, disjoint from the volume 4..584): READ|WRITE|FLUSH for export, READ only otherwise.
-- During export the volume service is READ-only. Archive I/O is counted per capability object, and an object-key escape check covers the service and slot 2.
+- During export the volume service is READ-only. Archive I/O is counted per capability object. `ARCHIVE_ESCAPE` counts block objects, nodes and per-process handles, and checks that the service's handle does not resolve to the archive object key. Calls on the portal's own archive object are not counted as app device denials.
 - Portal build `volume-app --features archive-portal`; the normal `volume-service` build is unchanged.
-- An independent Python reader of format v1 (`tools/volume_archive.py`) plus unit tests.
+- An independent Python reader of format v1 (`tools/volume_archive.py`) plus unit tests, including resealed tamper cases. All 10 reader mutations were killed.
 - Three runner stages; `tools/test_volume.py` now runs 12 QEMU stages.
 
-**Evidence:** local `tools/test_volume.py` exit 0, `passed=true`, 12/12 stages (QEMU 10.2.1 TCG):
+**Evidence:** local `tools/test_volume.py` on `9d966776`: exit 0, `passed=true`, 12/12 stages in 147 s (QEMU 10.2.1 TCG):
 - Export: 91 801-byte archive, 180 writes, all archive I/O, 0 service commits.
 - Restore on a fresh image holding only the archive range: 5 objects byte-identical.
 - One flipped byte: the guest refuses it, the reader refuses it, and the image is unchanged.
 - Details: [S09 native evidence](verification/s09-archive/NATIVE-20261113.md); design and limits: [S09-BACKUP-ARCHIVE.md](implementation/S09-BACKUP-ARCHIVE.md).
-- Two failing intermediate runs are recorded there: a wrong host generation check, and a broker Busy race that was fixed by ordering.
+- Also recorded there:
+  - two failing intermediate runs: a wrong host generation check, and a broker Busy race that was fixed by ordering;
+  - the run-3 pass at `f3d0e03e`, superseded by the review fixes.
+- A `native-system` kernel build also passes; its 2 warnings come from files this branch does not change.
 
 **Not run:** CI volume-acceptance on this head (pending); KVM; hardware; a second attached disk; an independent human audit.
 

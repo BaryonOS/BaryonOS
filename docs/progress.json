@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-13",
-    "source_commit": "f3d0e03e93a1fcdec0d73f2fff1edb18504bca11",
+    "source_commit": "9d96677640e612420d24454e093f830c5b682bd4",
     "assessment_basis": "source_commit",
     "branch": "feat/s09-native-archive",
     "task": "S09 native archive slice: kernel cases 7-9 with a portal-only archive range capability, export/restore/damaged-archive QEMU stages and an independent format-v1 reader",
     "previous_score": 41,
-    "summary": "41/100 stays 41/100: S09 (2 points) remains open. On f3d0e03e (source-v3 4ffa8c5e) the local tools/test_volume.py gate passes 12/12 QEMU stages, including archive export into a disjoint, portal-only range of the disposable test image (volume service READ-only, 91 801-byte archive, all writes archive I/O), restore from only that range on a fresh image (5 objects byte-identical), and refusal of an archive with one flipped byte by both guest and independent reader. Evidence: docs/verification/s09-archive/NATIVE-20261113.md. Not met for S09: a user-chosen target behind its own capability, documented common export formats, the encrypted NAS/provider variant, a user task, native name-conflict and full-target cases. Limits: local QEMU/TCG only, CI on this head pending, one virtual disk shared by archive and volume, no hardware, no independent human audit."
+    "summary": "41/100 stays 41/100: S09 (2 points) remains open. On 9d966776 (source-v3 52f645f1) the local tools/test_volume.py gate passes 12/12 QEMU stages: archive export into a disjoint, portal-only range of the disposable test image (volume service READ-only, 91 801-byte archive, all writes archive I/O); restore from only that range on a fresh image (5 objects byte-identical); refusal of an archive with one flipped byte by both guest and independent reader. This run includes the AI-review fixes (handle-count escape check, no denial counting on the portal's own archive object, a range ending below the image, one verify-then-restore flow, stricter oracle and reader tests). Evidence: docs/verification/s09-archive/NATIVE-20261113.md. Not met for S09: a user-chosen target behind its own capability, documented common export formats, the encrypted NAS/provider variant, a user task, native name-conflict and full-target cases. Limits: local QEMU/TCG only, CI on this head pending, one virtual disk shared by archive and volume, no hardware, no independent human audit."
   },
   "tracks": [
     {
