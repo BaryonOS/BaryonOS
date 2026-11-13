@@ -1,8 +1,9 @@
 # S09 — Recovery copy and export archive (format v1)
 
 **Status:** host-implemented in `services/volume/src/archive.rs`, tested in
-`services/volume/tests/archive.rs`. No native portal yet, no user task,
-no physical disk. S09 remains open.
+`services/volume/tests/archive.rs`; a native fixture portal passes the local
+QEMU gate (see "Native slice"). No user-chosen target, no user task, no
+physical disk. S09 remains open.
 
 ## Goal and invariant
 
@@ -117,8 +118,9 @@ block adapter is shared by service and portal in `volume-docs/src/disk.rs`.
   READ only (`service_read_only`), so every write and flush goes to the archive.
 - Archive I/O is counted per capability object at publication and kept out of
   the volume table/data write classification. `finish` fails with
-  `ARCHIVE_IO` unless export wrote, flushed and read back only through the
-  archive object, and restore, corrupt and conflict only read it. Evidence lines
+  `ARCHIVE_IO` unless every export write and flush went through the archive
+  object and the portal read the archive back through it, and restore,
+  corrupt and conflict only read it. Evidence lines
   `VOLUME:ARCHIVE:READS|WRITES|FLUSHES`; markers
   `VOLUME:CASE:ARCHIVE_EXPORT|ARCHIVE_RESTORE|ARCHIVE_CORRUPT|ARCHIVE_CONFLICT:PASS`.
 - Calls on the portal's own archive object (pending collects, the scope
@@ -136,8 +138,9 @@ at `verify` with `Corrupt`, and the volume must stay empty.
 **Serialization.** The broker serves one block request at a time and answers
 others with Busy. The portal therefore reaches a READY service before its
 first archive read, and slot 2 waits for kernel gate 2 (portal phase 2) before
-using the service. The first gate run without this ordering failed the
-corrupt case with a Busy status instead of `Corrupt` (step 740).
+using the service. The first gate run that reached the corrupt stage
+without this ordering (run 2) failed it with a Busy status instead of
+`Corrupt` (step 740).
 
 **Runner stages** (`tools/run_volume.py`, plan of `tools/test_volume.py`, now
 13 QEMU runs): `archive-export` on the image left by `recover` (volume mounted
@@ -165,11 +168,12 @@ one slot conflict, name conflict, uncollected object and reused collection.
 Both conflicting archived objects stay unrestored, the pre-existing objects
 stay at revision 1, collection 2 is not renamed, and the archived object that
 referred to it is restored outside a collection. The conflict and plain restore
-oracles each refuse the other stage's after-image. Two rules cannot be reached
-with this two-collection archive and are host tests in
-`services/volume/tests/archive.rs` instead: no collection is created for a
-conflicting object, and an uncollected object without other metadata stays at
-revision 1.
+oracles each refuse the other stage's after-image. Two more rules are host tests
+in `services/volume/tests/archive.rs`. No collection is created for a
+conflicting object: with only two collected objects in the archive, this
+cannot hold together with the four rules above. An uncollected object without
+other metadata stays at revision 1: this fixture does not exercise it,
+because its uncollected object has a kind.
 
 **Still open for S09:** a user-chosen target behind its own capability (not a
 fixture range on the same disk); export to documented common formats; the
