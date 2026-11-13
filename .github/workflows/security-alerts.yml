@@ -1,0 +1,46 @@
+name: Security alert summary
+
+# Reads open Dependabot and code-scanning alerts with the read-only workflow
+# token. Logs of this public repository are public, so the summary publishes
+# only publicly derivable Dependabot fields and aggregate code-scanning counts
+# (ADR-CI-SECURITY-ALERTS-20261111, SECURITY.md).
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "41 5 * * *"
+  pull_request:
+    paths:
+      - .github/workflows/security-alerts.yml
+      - .github/actionlint.yaml
+      - tools/security_alerts_summary.py
+      - tests/test_security_alerts_summary.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-alert-summary-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  summarise:
+    # Fork pull requests never receive alert-read permissions.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      security-events: read
+      vulnerability-alerts: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Test summary rules
+        run: python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'
+      - name: Summarise open alerts
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 -B tools/security_alerts_summary.py --repository "$GITHUB_REPOSITORY"
