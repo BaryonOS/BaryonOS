@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-12",
-    "source_commit": "ebc5a6bb5e7cfcfb7fec9e9cce586ce8286e9ade",
+    "date": "2026-11-13",
+    "source_commit": "bf4aa71645f8f9ccb1c95e2cb588dc09443993b4",
     "assessment_basis": "source_commit",
     "branch": "ccr-cf45024e-q0nrg9",
-    "task": "Repair main after #210: per-scale harness deadline for the 200% native window gate (ADR-WINDOW-SCALE2-DEADLINE-20261112)",
-    "previous_score": 39,
-    "summary": "39/100 remains 39/100. CI harness repair only: scale 1 keeps the preregistered 1800 s bound and scale 2 may use 2700 s on slower hosted runners; no phase or assertion changes and no product criterion changes."
+    "task": "Per-scale harness deadline for the 200% native window gate (ADR-WINDOW-SCALE2-DEADLINE-20261112)",
+    "previous_score": 41,
+    "summary": "41/100 stays 41/100. CI harness hardening only: scale 1 keeps the preregistered 1800 s bound and scale 2 may use 2700 s on slower hosted runners, after two scale-2 timeouts on main 49f80b1e (run 43137766280); no phase or assertion changes and no product criterion changes."
   },
   "tracks": [
     {
@@ -75,9 +75,11 @@
           "id": "K06",
           "title": "Multiple processor cores",
           "points": 2,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "SMP scheduling, synchronization, interrupts, and address-space switching work under concurrent load on the supported profile.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/K06-ACCEPTANCE.md"
+          ]
         },
         {
           "id": "K07",

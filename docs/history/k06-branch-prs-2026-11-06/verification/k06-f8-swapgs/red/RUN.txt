@@ -1,0 +1,5 @@
+commit=d9efdf252c3f8cbbc1bc250d0576987c1a2c38db
+build_exit=0
+run_exit=1 (verwacht: oracle weigert)
+qemu_raw_exit=35
+duration_s=3

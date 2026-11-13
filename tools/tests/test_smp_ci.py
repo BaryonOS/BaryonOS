@@ -27,7 +27,10 @@ class SmpCiAggregationTests(unittest.TestCase):
             "repetitions": {case: {"requested": repeat, "attempted": repeat,
                                     "passed": repeat, "failed": 0, "complete": True,
                                     "flaky": False}},
-            "cases": [{"case": case, "passed": True} for _ in range(repeat)],
+            "cases": [{"case": case, "passed": True,
+                       "observed": {"guest_waits": {"sync_wait": [run, 2000]}},
+                       "host_watchdog": {"measured_s": 10.0 + run, "deadline_s": 60}}
+                      for run in range(repeat)],
         }
 
     def fixtures(self, root):
@@ -49,6 +52,10 @@ class SmpCiAggregationTests(unittest.TestCase):
             self.assertEqual(result["case_count"], len(CASES))
             self.assertEqual(result["guest_run_count"], len(CASES) * REPETITIONS)
             self.assertTrue(all(item["passed"] == REPETITIONS for item in result["cases"].values()))
+            # AC-3: the largest margin over every boot of a case is summarised.
+            self.assertEqual(result["cases"]["four"]["margins"],
+                             {"host_watchdog_s": [10.0 + REPETITIONS - 1, 60],
+                              "sync_wait": [REPETITIONS - 1, 2000]})
 
     def test_rejects_missing_soak_shard(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -103,11 +110,12 @@ class SmpCiAggregationTests(unittest.TestCase):
                          ["clock_diagnostic"]["default"], "false")
         jobs = workflow["jobs"]
 
-        def eligible(expression, event, full, diagnostic):
+        def eligible(expression, event, full, diagnostic, margin=False):
             expression = expression[3:-2].strip().replace("&&", " and ").replace("||", " or ")
             expression = expression.replace("!=", " NE ").replace("!", " not ").replace(" NE ", "!=")
             values = {("github", "event_name"): event, ("inputs", "full_matrix"): full,
-                      ("inputs", "clock_diagnostic"): diagnostic}
+                      ("inputs", "clock_diagnostic"): diagnostic,
+                      ("inputs", "margin_diagnostic"): margin}
 
             def visit(node):
                 if isinstance(node, ast.Constant):
@@ -147,6 +155,29 @@ class SmpCiAggregationTests(unittest.TestCase):
                 actual = {name for name, job in jobs.items()
                           if eligible(job["if"], event, full, diagnostic)}
                 self.assertEqual(actual, expected)
+        # A margin diagnostic excludes every acceptance and clock job, whatever else is set.
+        for full in (False, True):
+            for diagnostic in (False, True):
+                with self.subTest(margin=True, full=full, diagnostic=diagnostic):
+                    self.assertEqual({name for name, job in jobs.items()
+                                      if eligible(job["if"], "workflow_dispatch", full, diagnostic, True)},
+                                     {"diagnostic-margin", "diagnostic-gate-rehearsal"})
+        margin = jobs["diagnostic-margin"]
+        for key in ("runs-on", "timeout-minutes"):
+            self.assertEqual(margin[key], jobs["smp-case-50"][key])
+        self.assertEqual(margin["env"]["NOS_QEMU_MACHINE"], jobs["smp-case-50"]["env"]["NOS_QEMU_MACHINE"])
+        refuse = next(step for step in margin["steps"] if "OTHER_MODES" in step.get("env", {}))
+        for modes, exit_code in (("false/false", 0), ("true/false", 2), ("false/true", 2), ("/", 2)):
+            result = subprocess.run(["bash", "-c", refuse["run"]], env={"OTHER_MODES": modes},
+                                    text=True, capture_output=True)
+            self.assertEqual(result.returncode, exit_code)
+        rehearsal = jobs["diagnostic-gate-rehearsal"]
+        self.assertEqual(rehearsal["env"] | {"NOS_BUILD_DIR": 0, "NOS_TARGET_DIR": 0, "CARGO_TARGET_DIR": 0},
+                         jobs["smp-final-gate"]["env"] | {"NOS_BUILD_DIR": 0, "NOS_TARGET_DIR": 0, "CARGO_TARGET_DIR": 0})
+        self.assertTrue(rehearsal["steps"][-1]["with"]["name"].startswith("DIAGNOSTIC-NOT-ACCEPTANCE-"))
+        evidence = margin["steps"][-1]["with"]
+        self.assertTrue(evidence["name"].startswith("DIAGNOSTIC-NOT-ACCEPTANCE-"))
+        self.assertNotIn("smp-report.json", evidence["path"] + evidence["required-paths"])
         steps = jobs["diagnostic-clock"]["steps"]
         guard = next(i for i, step in enumerate(steps)
                      if "FULL_MATRIX_REQUESTED" in step.get("env", {}))

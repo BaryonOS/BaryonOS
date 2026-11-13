@@ -1,0 +1,77 @@
+artifact	case	boots	timer_ratio_boots	timer_ratio_min	timer_ratio_median	timer_ratio_max	timer_ratio_out_of_50000_75000	fair_boots	fair_wait_ms_min	fair_wait_ms_median	fair_wait_ms_max	fair_limit_ms	fair_deferred_min	fair_deferred_median	fair_deferred_max	fair_limit_ticks	idle_wake_boots	idle_wake_us_min	idle_wake_us_median	idle_wake_us_max	load_boots	load_workers	load_elapsed_ms_min	load_elapsed_ms_median	load_elapsed_ms_max	timeout_drift_stuck_fail_lines
+runner-environment-probe-reports	smp-m4-quotas-four	1	1	62675	62675	62675	0	1	5	5	5	400	1	1	1	40	1	75	75	75	0					
+smp-case-ap-double-fault-ist-reports	smp-ap-double-fault-ist	50	50	62626	62663.000	63442	0	0									0				0					
+smp-case-ap-ipi-deaf-reports	smp-ap-ipi-deaf	50	50	62637	62667.000	62801	0	0									0				0					SMP:IPI:TIMEOUT:APIC=1 x50 (boots=50)
+smp-case-ap-mismatch-reports	smp-ap-mismatch	50	50	62558	62580.000	62608	0	0									0				0					
+smp-case-ap-nmi-ist-reports	smp-ap-nmi-ist	50	50	62652	62691.000	62949	0	0									0				0					
+smp-case-ap-shootdown-deaf-reports	smp-ap-shootdown-deaf	50	50	62661	62710.500	63367	0	0									0				0					SMP:SHOOTDOWN:TIMEOUT:APIC=1 x50 (boots=50)
+smp-case-ap-stall-reports	smp-ap-stall	50	50	62533	62545.000	62826	0	0									0				0					SMP:AP:1:TIMEOUT x50 (boots=50)
+smp-case-ap-timer-dead-reports	smp-ap-timer-dead	50	50	62664	62700.000	62742	0	0									0				0					SMP:PREEMPT:TIMEOUT:APIC=1 x50 (boots=50)
+smp-case-bsp-spin-irq-off-control-reports	smp-bsp-spin-irq-off-control	50	50	62659	62712.000	63473	0	0									0				0					SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0 x50 (boots=50)
+smp-case-double-run-reports	smp-double-run	50	50	62665	62693.500	62774	0	0									50	79	104.500	165	0					
+smp-case-duplicate-madt-reports	smp-duplicate-madt	50	0				0	0									0				0					
+smp-case-eight-reports	smp-eight	50	50	62613	62694.000	62947	0	0									50	51	64.000	183	0					
+smp-case-four-reports	smp-four	50	50	62623	62691.000	62952	0	0									50	74	110.500	159	0					
+smp-case-gs-iret-fault-reports	smp-gs-iret-fault	50	50	62608	62662.500	64273	0	0									50	65	75.000	136	0					
+smp-case-gs-nmi-user-reports	smp-gs-nmi-user	50	50	62639	62662.000	62701	0	0									50	61	75.500	97	0					
+smp-case-gs-user-reports	smp-gs-user	50	50	62594	62617.000	62649	0	0									50	140	153.000	262	0					
+smp-case-held-across-switch-reports	smp-held-across-switch	50	50	62584	62593.500	62609	0	0									0				0					
+smp-case-icr-race-control-reports	smp-icr-race-control	50	50	62629	62679.000	62844	0	0									50	77	99.500	141	0					
+smp-case-lock-in-handler-reports	smp-lock-in-handler	50	50	62535	62553.000	62597	0	0									50	48	58.000	175	0					
+smp-case-lock-stuck-reports	smp-lock-stuck	50	50	62583	62608.000	62638	0	0									0				0					SMP:LOCK:STUCK:10:CPU=1 x50 (boots=50)
+smp-case-lockdep-order-reports	smp-lockdep-order	50	50	62561	62598.500	62653	0	0									50	61	77.000	132	0					
+smp-case-lockpair-order-reports	smp-lockpair-order	50	50	62574	62589.500	62611	0	0									50	77	111.500	145	0					
+smp-case-m3-canary-control-reports	smp-m3-canary-control	50	50	62577	62600.000	62751	0	0									50	48	58.500	82	0					
+smp-case-m3-eight-reports	smp-m3-eight	50	50	62627	62673.000	62940	0	0									50	56	67.000	163	0					
+smp-case-m3-eight-single-reports	smp-m3-eight-single	50	50	62557	62564.000	62595	0	0									50	72	96.000	163	0					
+smp-case-m3-fault-ap2-reports	smp-m3-fault-ap2	50	50	62628	62686.500	63193	0	0									50	73	111.000	196	0					
+smp-case-m3-four-reports	smp-m3-four	50	50	62664	62699.000	63022	0	0									50	73	108.000	173	0					
+smp-case-m3-four-single-reports	smp-m3-four-single	50	50	62571	62586.000	62636	0	0									50	53	64.000	107	0					
+smp-case-m3-fpu-skip-control-reports	smp-m3-fpu-skip-control	50	50	62636	62657.000	62702	0	0									50	77	110.000	147	0					
+smp-case-m3-ipc-four-reports	smp-m3-ipc-four	50	50	62636	62668.500	63115	0	50	7	11.000	12	400	1	2.000	2	40	50	72	103.000	134	0					
+smp-case-m3-ipc-four-single-reports	smp-m3-ipc-four-single	50	50	62587	62596.000	62622	0	50	5	7.000	7	400	1	1.000	1	40	50	69	81.500	168	0					
+smp-case-m3-kill-four-reports	smp-m3-kill-four	50	50	62582	62621.500	62734	0	0									50	50	60.000	172	0					
+smp-case-m3-load-eight-reports	smp-m3-load-eight	50	50	62690	62850.500	63423	0	50	9	14.000	23	400	1	2.000	3	40	50	84	109.500	143	50	16	30000	30002.000	30008	
+smp-case-m3-load-eight-single-reports	smp-m3-load-eight-single	50	50	62535	62552.500	62614	0	50	4	4.000	7	400	1	1.000	1	40	50	44	47.000	150	50	16	30000	30008.000	30009	
+smp-case-m3-load-four-reports	smp-m3-load-four	50	50	62633	62661.500	62722	0	50	4	7.000	12	400	1	1.000	1	40	50	60	72.000	103	50	16	30000	30003.000	30009	
+smp-case-m3-load-four-single-reports	smp-m3-load-four-single	50	50	62566	62590.000	62616	0	50	7	7.000	10	400	1	1.000	1	40	50	73	85.500	149	50	16	30000	30007.000	30008	
+smp-case-m3-load-one-multi-reports	smp-m3-load-one-multi	50	50	62531	62544.500	62630	0	50	0	1.000	1	400	0	0.000	0	40	0				50	16	30009	30009.500	30010	
+smp-case-m3-load-one-reports	smp-m3-load-one	50	50	62563	62583.000	62626	0	50	0	1.000	1	400	0	0.000	0	40	0				50	16	30007	30009.000	30009	
+smp-case-m3-load-two-reports	smp-m3-load-two	50	50	62580	62603.000	62895	0	48	3	3.000	5	400	1	1.000	1	40	48	76	100.000	159	48	16	30000	30003.000	30007	M1:FAIL:SMP_CLOCK_DRIFT x2 (boots=2); SMP:CLOCK:DRIFT:US=1010679 x1 (boots=1); SMP:CLOCK:DRIFT:US=1012547 x1 (boots=1)
+smp-case-m3-load-two-single-reports	smp-m3-load-two-single	50	50	62567	62577.500	62642	0	50	2	2.000	6	400	1	1.000	1	40	50	54	55.000	66	50	16	30000	30008.000	30008	
+smp-case-m3-migrate-eight-reports	smp-m3-migrate-eight	50	50	62679	62781.500	64386	0	50	5	5.000	8	400	0	1.000	1	40	50	62	83.000	148	0					
+smp-case-m3-migrate-eight-single-reports	smp-m3-migrate-eight-single	50	50	62574	62582.000	62603	0	50	4	4.000	4	400	0	0.000	1	40	50	53	61.000	95	0					
+smp-case-m3-migrate-four-reports	smp-m3-migrate-four	50	50	62584	62623.000	64804	0	50	2	3.000	5	400	0	0.000	1	40	50	47	54.500	103	0					
+smp-case-m3-migrate-four-single-reports	smp-m3-migrate-four-single	50	50	62560	62568.000	62590	0	50	3	4.000	5	400	0	0.000	1	40	50	68	81.000	122	0					
+smp-case-m3-one-multi-reports	smp-m3-one-multi	50	50	62554	62559.000	62595	0	0									0				0					
+smp-case-m3-one-reports	smp-m3-one	50	50	62568	62577.000	62603	0	0									0				0					
+smp-case-m3-recovery-four-reports	smp-m3-recovery-four	50	50	62638	62661.000	63403	0	0									50	76	93.500	147	0					SMP:M3:SHOOTDOWN_TIMEOUT x50 (boots=50)
+smp-case-m3-two-reports	smp-m3-two	50	50	62585	62596.000	62622	0	0									50	65	77.000	97	0					
+smp-case-m3-two-single-reports	smp-m3-two-single	50	50	62527	62531.000	62557	0	0									50	40	43.000	60	0					
+smp-case-m3-unmap-control-reports	smp-m3-unmap-control	50	50	62641	62663.000	64334	0	0									50	60	73.000	112	0					
+smp-case-m3-unmap-four-reports	smp-m3-unmap-four	50	50	62626	62661.000	62786	0	0									50	61	77.000	102	0					
+smp-case-m4-quotas-four-reports	smp-m4-quotas-four	50	50	62640	62656.000	65138	0	50	3	4.000	5	400	1	1.000	1	40	50	64	74.000	103	0					
+smp-case-nine-capacity-reports	smp-nine-capacity	50	50	62645	62763.000	62897	0	0									49	57	77	98	0					M1:FAIL:SMP_SYNC_TIMEOUT x1 (boots=1); SMP:SYNC:TIMEOUT:DONE=0:TOTAL=157489 x1 (boots=1)
+smp-case-one-reports	smp-one	50	50	62529	62534.000	62563	0	0									0				0					
+smp-case-proc-no-shootdown-control-reports	smp-proc-no-shootdown-control	50	50	62643	62692.500	62788	0	0									50	78	113.000	160	0					
+smp-case-proc-shootdown-deaf-reports	smp-proc-shootdown-deaf	50	50	62627	62657.000	62822	0	0									50	145	166.000	193	0					SMP:SHOOTDOWN:TIMEOUT:APIC=1 x50 (boots=50)
+smp-case-qsim-four-reports	smp-qsim-four	50	50	62637	62661.000	62702	0	50	4	4.000	9	400	1	1.000	1	40	50	59	73.500	99	0					
+smp-case-quarantine-lock-held-reports	smp-quarantine-lock-held	50	50	62657	62683.500	62753	0	0									0				0					SMP:IPI:TIMEOUT:APIC=2 x50 (boots=50)
+smp-case-quarantine-lock-pending-reports	smp-quarantine-lock-pending	50	50	62668	62695.000	62734	0	0									0				0					SMP:IPI:TIMEOUT:APIC=2 x50 (boots=50)
+smp-case-quarantine-sched-busy-reports	smp-quarantine-sched-busy	50	50	62660	62697.000	62778	0	0									50	78	103.500	129	0					SMP:KILL:TIMEOUT:APIC=3 x50 (boots=50)
+smp-case-resched-deaf-reports	smp-resched-deaf	50	50	62634	62689.000	62745	0	0									50	82	106.000	137	0					SMP:KILL:TIMEOUT:APIC=3 x50 (boots=50)
+smp-case-serial-unlocked-control-reports	smp-serial-unlocked-control	50	50	62669	62708.000	63157	0	0									50	75	106.000	152	0					
+smp-case-shared-scratch-reports	smp-shared-scratch	50	50	62651	62686.500	64414	0	0									50	79	103.000	127	0					
+smp-case-shootdown-skipped-control-reports	smp-shootdown-skipped-control	50	50	62648	62666.000	62699	0	0									50	59	78.000	129	0					
+smp-case-spin-irq-off-control-reports	smp-spin-irq-off-control	50	50	62627	62655.500	62863	0	0									0				0					SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=1 x50 (boots=50)
+smp-case-two-single-reports	smp-two-single	50	50	62547	62557.500	62587	0	0									50	64	85.500	149	0					
+smp-soak-0-reports	smp-m3-soak-four	5	5	62636	62657	62672	0	5	10	11	11	400	1	1	1	40	5	64	70	73	5	16	600000	600001	600007	
+smp-soak-1-reports	smp-m3-soak-four	5	5	62699	62727	62743	0	5	17	18	19	400	1	1	1	40	5	78	109	127	5	16	600000	600002	600005	
+smp-soak-2-reports	smp-m3-soak-four	5	5	62670	62703	62731	0	5	15	16	17	400	1	1	2	40	5	83	96	112	5	16	600001	600004	600007	
+smp-soak-3-reports	smp-m3-soak-four	5	5	62652	62691	62709	0	5	16	17	18	400	1	1	1	40	5	81	107	122	5	16	600000	600001	600007	
+smp-soak-4-reports	smp-m3-soak-four	5	5	62689	62726	62727	0	5	16	17	18	400	1	1	1	40	5	85	112	121	5	16	600001	600003	600007	
+smp-soak-5-reports	smp-m3-soak-four	5	5	62640	62677	62725	0	5	17	17	18	400	1	1	1	40	5	77	108	145	5	16	600000	600002	600006	
+smp-soak-6-reports	smp-m3-soak-four	5	5	62641	62659	62676	0	5	10	11	12	400	1	1	1	40	5	67	78	111	5	16	600000	600001	600006	
+smp-soak-7-reports	smp-m3-soak-four	5	5	62642	62666	62695	0	5	10	12	12	400	1	1	1	40	5	60	73	92	5	16	600000	600000	600001	
+smp-soak-8-reports	smp-m3-soak-four	5	5	62651	62685	62722	0	5	17	17	18	400	1	1	2	40	5	74	95	114	5	16	600000	600001	600008	
+smp-soak-9-reports	smp-m3-soak-four	5	5	62662	62716	62753	0	5	14	14	15	400	1	1	1	40	5	88	108	118	5	16	600000	600001	600007	

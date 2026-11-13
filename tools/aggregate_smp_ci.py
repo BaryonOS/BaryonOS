@@ -58,10 +58,22 @@ def aggregate(input_dir: Path, output: Path) -> dict:
         passed = sum(report["repetitions"][case]["passed"] for _, report in shards)
         if attempted != REPETITIONS or passed != REPETITIONS:
             raise ValueError(f"case is not 50/50: {case}")
+        # AC-3 (spec 09-5f): the largest part of each limit any of the 50 boots
+        # used, [used, limit]; a record, not a verdict.
+        margins = {}
+        for _, report in shards:
+            for run in report["cases"]:
+                waits = list(run.get("observed", {}).get("guest_waits", {}).items())
+                watchdog = run.get("host_watchdog")
+                if watchdog:
+                    waits.append(("host_watchdog_s", [watchdog["measured_s"], watchdog["deadline_s"]]))
+                for name, (used, limit) in waits:
+                    margins[name] = [max(used, margins.get(name, [used])[0]), limit]
         cases[case] = {
             "attempted": attempted,
             "passed": passed,
             "reports": [str(path.relative_to(root)) for path, _ in shards],
+            "margins": dict(sorted(margins.items())),
         }
 
     result = {

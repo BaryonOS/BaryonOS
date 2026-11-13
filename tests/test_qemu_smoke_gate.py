@@ -67,11 +67,12 @@ class QemuSmokeGateTests(unittest.TestCase):
         self.assertEqual([call["args"] for call in native], [
             ["-B", "tools/test_milestones.py", "--through", "m2"],
             ["-B", "-u", "tools/test_supervisor.py"],
+            ["-B", "-u", "tools/test_supervisor.py", "--smp"],
             ["-B", "tools/test_resource_pressure.py"],
             ["-B", "tools/build.py", "--kernel-feature", "native-rtc"],
             ["-B", "tools/run_rtc.py", "--case", "all"],
         ])
-        self.assertEqual(len({call["build"] for call in native}), 4)
+        self.assertEqual(len({call["build"] for call in native}), 5)
         self.assertEqual(native[-1]["build"], native[-2]["build"])
         for call in native:
             self.assertTrue(Path(call["build"]).is_relative_to(self.build / "regressions"))
