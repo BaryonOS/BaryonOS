@@ -385,6 +385,7 @@ def analyse(image: bytes, opaque=frozenset()):
             versions.append(decoded)
         objects.append({"object": obj, "revision": entry["revision"], "present": entry["present"],
                         "collection": entry["collection"], "tags": entry["tags"], "kind": entry["kind"],
+                        "created": entry["created"], "modified": entry["modified"],
                         "request_id": entry["request_id"], "versions": versions})
     used = sum(len(unique_chunks(e)) for e in table["entries"])
     collections = [{"index": i % COLLECTIONS + 1, "domain": i // COLLECTIONS, "present": c["present"],
