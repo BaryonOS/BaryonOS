@@ -147,6 +147,10 @@ def raster(font, text: str, w: int, h: int, baseline: int, features=None) -> np.
     return np.asarray(img, dtype=np.float64) / 255.0
 
 
+# Global alternates the design system would switch on per family (docs/design/TYPOGRAPHY.md).
+CONFIGURED = {"Inter": ["cv05", "cv08", "ss01"]}
+
+
 def distinctness(path: Path, axes: list, a: str, b: str, size: int, features=None) -> float:
     font = load(path, size, axes)
     w, h = size * 3, size * 2
@@ -217,7 +221,15 @@ def measure(path: Path) -> dict:
     for f in alt:
         alt_pairs[f] = {f"{a}/{b}": round(float(np.mean([distinctness(path, axes, a, b, s, [f]) for s in SIZES_1X])), 3)
                         for a, b in affects[f]}
+    # The configuration a family would ship with, measured as a whole (see CONFIGURED).
+    conf = next((v for k, v in CONFIGURED.items() if path.name.startswith(k)), None)
+    configured = None
+    if conf:
+        configured = {"features": conf, "pairs": {
+            f"{a}/{b}": round(float(np.mean([distinctness(path, axes, a, b, s, conf) for s in SIZES_1X])), 3)
+            for a, b in PAIRS}}
     return {
+        "configured": configured,
         "file": path.name,
         "sha256": hashlib.sha256(data).hexdigest(),
         "bytes": len(data),
@@ -269,6 +281,15 @@ def markdown(results: list) -> str:
         for f, vals in r["pairs_with_alternates_1x"].items():
             lines.append(f"| {r['file']} | {f} | " + ", ".join(
                 f"{k} {r['pairs'][k]['1x']} → {v}" for k, v in vals.items()) + " |")
+    conf = [r for r in results if r["configured"]]
+    if conf:
+        keys = list(conf[0]["configured"]["pairs"])
+        lines += ["", "Configured sets as shipped, all features together (100 %):", "",
+                  "| Font | features | " + " | ".join(keys) + " | min | mean |", "|---|---|" + "---|" * (len(keys) + 2)]
+        for r in conf:
+            vals = [r["configured"]["pairs"][k] for k in keys]
+            lines.append(f"| {r['file']} | {' '.join(r['configured']['features'])} | " + " | ".join(str(v) for v in vals)
+                         + f" | {min(vals)} | {round(float(np.mean(vals)), 3)} |")
     return "\n".join(lines) + "\n"
 
 

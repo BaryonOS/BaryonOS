@@ -65,3 +65,9 @@ Disambiguation features, each on its own (100 %, only the pairs a feature can ch
 | Oxanium[wght].ttf | zero | O/0 0.351 → 0.368 |
 | Saira[wdth,wght].ttf | zero | O/0 0.172 → 0.239 |
 | SpaceGrotesk[wght].ttf | zero | O/0 0.3 → 0.348 |
+
+Configured sets as shipped, all features together (100 %):
+
+| Font | features | I/l | l/1 | I/1 | O/0 | rn/m | c/e | 6/8 | 5/S | B/8 | a/o | cl/d | vv/w | min | mean |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Inter[opsz,wght].ttf | cv05 cv08 ss01 | 0.591 | 0.745 | 0.416 | 0.41 | 0.448 | 0.281 | 0.442 | 0.298 | 0.354 | 0.347 | 0.569 | 0.687 | 0.281 | 0.466 |

@@ -1,5 +1,6 @@
 [
  {
+  "configured": null,
   "file": "Archivo[wdth,wght].ttf",
   "sha256": "0e094a7d3c7c4c25cf1310c4b30014f1dae9332220b1c2c88f4fa996f0b05053",
   "bytes": 658596,
@@ -132,6 +133,7 @@
   }
  },
  {
+  "configured": null,
   "file": "AtkinsonHyperlegibleNext[wght].ttf",
   "sha256": "5a455d1cfa099b601ab70751bb9673e8fe1854dc4500c80e1a220d0d75e31745",
   "bytes": 114552,
@@ -243,6 +245,7 @@
   "pairs_with_alternates_1x": {}
  },
  {
+  "configured": null,
   "file": "Exo2[wght].ttf",
   "sha256": "205a448676a2586f9c57c25f3d5c58ca8db7e6cf5edf7506783a010c6fe2bfb5",
   "bytes": 303940,
@@ -362,6 +365,7 @@
   "pairs_with_alternates_1x": {}
  },
  {
+  "configured": null,
   "file": "FunnelDisplay[wght].ttf",
   "sha256": "b4151c9c4b7b07eb74320096b4ff4156cca8821f5adfab34af9fd9a2d6c1179d",
   "bytes": 53436,
@@ -474,6 +478,7 @@
   "pairs_with_alternates_1x": {}
  },
  {
+  "configured": null,
   "file": "FunnelSans[wght].ttf",
   "sha256": "652c9834434bc01835c4e75a73d3c7e42ff2e4beb261cc851cb911e889af6a77",
   "bytes": 53268,
@@ -586,6 +591,7 @@
   "pairs_with_alternates_1x": {}
  },
  {
+  "configured": null,
   "file": "Geist[wght].ttf",
   "sha256": "73894e0448cae90a92b6c2f8732b7bb9acb7b94c418bff559dad4a18e1de9659",
   "bytes": 169056,
@@ -714,6 +720,7 @@
   "pairs_with_alternates_1x": {}
  },
  {
+  "configured": null,
   "file": "InstrumentSans[wdth,wght].ttf",
   "sha256": "b24f1812584816958afcf22e22d08e44318c5e51651e25d2438efdde389b33b1",
   "bytes": 194336,
@@ -842,6 +849,27 @@
   "pairs_with_alternates_1x": {}
  },
  {
+  "configured": {
+   "features": [
+    "cv05",
+    "cv08",
+    "ss01"
+   ],
+   "pairs": {
+    "I/l": 0.591,
+    "l/1": 0.745,
+    "I/1": 0.416,
+    "O/0": 0.41,
+    "rn/m": 0.448,
+    "c/e": 0.281,
+    "6/8": 0.442,
+    "5/S": 0.298,
+    "B/8": 0.354,
+    "a/o": 0.347,
+    "cl/d": 0.569,
+    "vv/w": 0.687
+   }
+  },
   "file": "Inter[opsz,wght].ttf",
   "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
   "bytes": 876576,
@@ -1007,6 +1035,7 @@
   }
  },
  {
+  "configured": null,
   "file": "Lexend[wght].ttf",
   "sha256": "3add53e641fbc81da64da4bb254285e2831b52b029527bc0714e2b9610832ee6",
   "bytes": 175756,
@@ -1130,6 +1159,7 @@
   }
  },
  {
+  "configured": null,
   "file": "Manrope[wght].ttf",
   "sha256": "3ae11c49db0455a3cc33e37d380f20fdb8c7f8b41dc07625c177e3d87a9d6ae6",
   "bytes": 164700,
@@ -1244,6 +1274,7 @@
   "pairs_with_alternates_1x": {}
  },
  {
+  "configured": null,
   "file": "Oxanium[wght].ttf",
   "sha256": "2ce01d946e1e1ffc8d7eecfffbda8623bedd63eaf811a20488c4b69af45babb0",
   "bytes": 43536,
@@ -1356,6 +1387,7 @@
   }
  },
  {
+  "configured": null,
   "file": "Saira[wdth,wght].ttf",
   "sha256": "9d050fc5a01c85f74c4257c207d50b55d1e40c37308c642f974a2c5003231dde",
   "bytes": 483700,
@@ -1492,6 +1524,7 @@
   }
  },
  {
+  "configured": null,
   "file": "Sora[wght].ttf",
   "sha256": "84ff7096ae3ec6c8be47d906d1a0ba4de7f2ce78c615275c77301964a316e16c",
   "bytes": 111400,
@@ -1608,6 +1641,7 @@
   "pairs_with_alternates_1x": {}
  },
  {
+  "configured": null,
   "file": "SpaceGrotesk[wght].ttf",
   "sha256": "acad6de1fc93436f5c0f1f4137751ef04f1aea3063e7036535970ffcfbd79f72",
   "bytes": 136676,
