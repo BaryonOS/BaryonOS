@@ -1,0 +1,1299 @@
+diff --git a/.gitignore b/.gitignore
+index 2cc6cd8b..7f842b1d 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -34,3 +34,4 @@ __pycache__/
+ 
+ # Lokale Graphify-uitvoer; alleen de gehoste MCP is in gebruik (AGENTS.md)
+ /graphify-out/
++.claude/
+diff --git a/README.md b/README.md
+index 7f63ae14..cbddedd9 100644
+--- a/README.md
++++ b/README.md
+@@ -60,11 +60,11 @@ alleen een nette desktop haalt die eindgrens niet.
+ | Dagelijks gebruik en onderhoudbare release | 5 | 0 |
+ | **Totaal** | **100** | **41** |
+ 
+-**Herbeoordeeld:** 2026-11-06 · **Rubric:** v1 ·
+-**Bron:** [`edb252db`](https://github.com/simonvanieperen/nieuw-os/commit/edb252dbc91f3fa83c12d6aaf7008a5184cb74d3) ·
+-**Ontwikkelbranch:** `feat/k06-5a-ticketlock-lockdep`.
+-Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5a: ticketlock, irqsave en lockdep per CPU (ADR-074).
+-41/100 blijft 41/100. K06 stap 5a voegt een ticketlock, irqsave en lockdep toe, met hosttests en een negatief native profiel. Native QEMU-bewijs is nog niet uitgevoerd en K06 vraagt een volledige SMP-scheduler (stap 5b t/m 5f), dus K06 blijft open.
++**Herbeoordeeld:** 2026-11-07 · **Rubric:** v1 ·
++**Bron:** [`ca0b7e5f`](https://github.com/simonvanieperen/nieuw-os/commit/ca0b7e5f875c9e22759c3514088c35e43d3eaaea) ·
++**Ontwikkelbranch:** `feat/k06-5d2-ring3-smp`.
++Deze opdracht: **41% → 41% (+0 procentpunt)**. **Opdracht:** K06 stap 5d-2a/b: M3-ring-3-processen op elke online CPU met FPU-context per CPU (ADR-081).
++41/100 blijft 41/100. In native-smp-m3 draaien 16 ring-3-processen verdeeld over alle online CPU's, elk een FPU-canary: 1000 wissels per CPU, daarna een kernelcontrole van ST0/XMM0/XMM15 in elk FXSAVE-beeld; de controle zonder FXRSTOR faalt zoals bedoeld en een appfault op AP2 stopt alleen dat proces. Native lokaal: SMP 38/38 over 30 profielen, M2/M3, K05, K07, rtc, IPC-wait, FPU en gate.sh groen. K06 blijft open: IPC over CPU's, usercopy onder ASPACE, K05 op SMP en de §9-matrix (09) ontbreken.
+ 
+ De meter geldt voor de beoordeelde ontwikkelstand; opname in `main` en een
+ productrelease zijn afzonderlijke gebeurtenissen. Hostprototypes van Materiaal,
+diff --git a/docs/DECISIONS.md b/docs/DECISIONS.md
+index 283c8bcf..690824bd 100644
+--- a/docs/DECISIONS.md
++++ b/docs/DECISIONS.md
+@@ -1,5 +1,442 @@
+ # Ontwerpbesluiten
+ 
++## ADR-081 — M3-ring-3-processen op elke online CPU (K06 stap 5d-2a)
++
++6 november 2026; effect alleen in het nieuwe profiel `native-smp-m3` (en zijn negatieve variant
++`test-smp-m3-fault`). Taakspec: `docs/implementation/k06-steps/08-5d-2-ring3-on-aps.md`. Bouwt op
++ADR-074 t/m -080. **Probleem:** na de zelftests parkeerden alle AP's; `native-smp` sloot M3 uit
++(`compile_error`). Geen AP deed productiewerk.
++
++**Besluit (R3-1 t/m R3-4, deelstap a):**
++1. **Profiel.** `native-smp-m3 = native-smp + milestone-m3`; de `compile_error` vervalt alleen
++   daarvoor. Het profiel draagt in deze deelstap alleen het basis-M3-manifest (16 processen);
++   `fpu-context`, `ipc-wait`, M4 en de supervisor zijn er nog met een `compile_error` uitgesloten.
++   Alle andere profielen blijven één CPU.
++2. **Overdracht.** `smp::start` draait alle zelftests ongewijzigd en laat de AP's daarna in hun
++   thuislus (`SMP:M3:WAITING:APS=n`) in plaats van te parkeren. `m3::start` bouwt de procestabel
++   onder `KERNEL`, waarna `smp::m3_go` de BSP-LAPIC-timer maskeert, elke online CPU een
++   M3-servicestack geeft (BSP: MAIN; AP: zijn MAIN-stack), gate 0xd0 op `m3_ap_timer` zet en
++   `M3_GO` vrijgeeft. Een AP start dan zijn LAPIC-tick (~10 ms) en gaat `m3::ap_main` in.
++3. **Plaatsing (R3-2, spec §6.2).** Bij spawn `home` = de online CPU met de minste levende
++   processen, de laagste index bij gelijkspel. `select` kiest alleen processen met `home` = deze
++   CPU. Geen migratie, geen load balancing. Daarmee draait een proces op hoogstens één CPU
++   (INV-3).
++4. **Entry (R3-4).** Elke M3-entry neemt `KERNEL` (ADR-075). Binnen `KERNEL` is `State.current`
++   altijd van de houder: `load_current` zet de waarde van deze CPU erin, `kernel_leave` zet hem
++   terug in `CPU_CURRENT`. De stub haalt de servicestack na zijn `swapgs` via het GS-anker
++   (`nos_smp_m3_stack`); TSS.RSP0 wordt per CPU gezet (`smp::rsp0`). De AP-tick 0xd0 doet vanuit
++   CPL3 de volledige M3-entry. Vanuit CPL0 (idle, of een spinvenster van `KERNEL`) geeft hij
++   alleen EOI en keert terug via de beoordeelde `iretq` van de spurious-stub. Op de BSP blijft
++   PIT-IRQ0 de M3-tick en de klok. Een IRQ0 tijdens een CPL0-wacht wordt geteld en onder `KERNEL`
++   in `ticks` opgenomen.
++5. **Adresruimte (INV-4).** `Process.active` krijgt de bit van deze CPU vóór de CR3-load en
++   verliest hem na de load van de kernel-CR3 bij de entry. `cleanup` weigert een proces dat nog
++   op een andere CPU actief is (`SMP:M3:REMOTE_ACTIVE`).
++6. **Vrijgeven (INV-1, spec §5 punt 6).** `cleanup` wist op SMP eerst alle PTE's (gebruikershelft
++   en kernelaliassen), doet dan één kernelronde naar alle online CPU's (`shootdown_kernel`,
++   CR3-reload) en geeft pas daarna de frames vrij.
++7. **Idle en einde (INV-7).** Een CPU zonder klaar proces laat `KERNEL` los vóór `sti; hlt`.
++   Het einde van de fixture is een stop-the-world: de stoppende CPU laat `KERNEL` los, elke andere
++   CPU parkeert bij zijn volgende entry met de kernel-CR3 en IF=0 (zonder STATE aan te raken) en
++   verlaat `ONLINE_CPUS`. Daarna volgen de cleanup en de balanscontrole.
++
++**Shortcuts (vastgelegd):** (a) een spawn na `M3_GO` wordt geweigerd (een assert), omdat die
++kernelhelft-rondes vereist; dat komt met K05 op SMP. (b) Een kernelronde zonder ack stopt de VM
++(`SMP:M3:SHOOTDOWN_TIMEOUT`) in plaats van quarantaine plus migratie naar de BSP (spec §6.2(a));
++dat volgt in 09. (c) De M3-tick van een AP is een vaste LAPIC-telling (625 000, ~10 ms bij de
++ADR-080-ratio), niet per CPU geijkt.
++
++**Bijvangst:** `build_spaces` (5e) gaf de twee testruimten als waarde terug. Dat kostte ~13 KiB
++van de 16-KiB MAIN-stack. In het grotere M3-build gaf dat een #DF (stack-overflow in de
++zelftest). Beide ruimten staan nu statisch.
++
++**Weerlegd als:** een CPU zonder user-ticks of met minder dan 4 wissels eindigt, een proces op
++twee CPU's tegelijk draait, een frame wordt vrijgegeven voordat elke CPU de kernelronde heeft
++bevestigd, of een appfault op AP2 meer stopt dan dat ene proces.
++
++**Aanvulling 5d-2b (R3-3, FPU in de wissel):** `native-smp-m3` neemt `fpu-context` mee
++(CR0/CR4/EFER zet `arch::protection` vóór de AP-bringup; de AP's nemen ze exact over, ADR-070).
++Het beeld van het lopende proces staat per CPU in `CpuLocal.m3_fpu` (`fpu::select` schrijft
++het). De entry haalt het na de `swapgs` op via `nos_smp_m3_fpu` en doet de FXSAVE vóór enige
++Rust-code. De exit doet de FXRSTOR direct vóór de GPR-pops via `nos_smp_m3_fxrstor`: RSP is dan
++de opgeslagen context in STATE en geen stack, dus de helper wordt met `jmp` bereikt en verlaten
++(ADR-045). De diagnosetellers lopen met `lock inc`. Bewijs: elk SMP-proces is een FPU-canary
++(probe-modus 19: `st0`, `xmm0` en `xmm15` met eigen waarden, elke lusronde gecontroleerd, `int3`
++bij afwijking). De eindvoorwaarde eist 1000 wissels per CPU. Daarna controleert de kernel
++ST0/XMM0/XMM15 in elk opgeslagen beeld (`SMP:M3:FPU:PASS`). De controle
++`test-smp-m3-fpu-skip` laat de FXRSTOR weg en moet `SMP:M3:FPU:CORRUPT:CONTROL` geven. Een
++`int3` vanuit CPL3 komt via de DPL0-gate binnen als #GP met foutcode 0x1a; beide vormen gelden
++als canary-alarm.
++
++**Open (5d-2c en verder):** IPC over CPU's (R3-5) vraagt M4 (capability-engine) plus
++`ipc-wait` op SMP. Concreet: `wait::refresh` moet bij Waiting→Ready voor een proces met een
++andere `home` 0xe8 sturen, `smp_idle` moet eerst `refresh` draaien, de kopie tussen
++adresruimten moet `lock_pair(ASPACE[a], ASPACE[b])` nemen, en er is een ping-pongprogramma met
++10 000 rondes nodig (geen nieuwe syscall, INV-6). Verder: usercopy onder `ASPACE` (R3-6), quota
++per proces en K05 op SMP met spawn na GO (R3-7), en Ring-3-GS N1-N3 met M3-processen.
++
++## ADR-080 — BSP-timer, PIT-klok, idle en reschedule-vlag op de BSP (K06 stap 5c-2, auditbevindingen F6/F9/F11/F13)
++
++6 november 2026; effect alleen in `native-smp`. Taakspec:
++`docs/implementation/k06-steps/06-5c-2-bsp-timer-idle.md`. Aanvulling op ADR-073 (preëmptie op de
++AP's) en ADR-074 (spinvenster S1/S3). **Probleem:** de BSP had geen preëmptie, geen idle met
++interrupts en geen spinvenster. Spint de BSP op `KERNEL` terwijl een AP een shootdown start, dan
++neemt hij 0xe0 niet aan en volgt een valse quarantaine van alle AP's (F6). 0xe8 sprong naar het
++timerpad en telde als tick (F11). De LAPIC-timer was ongekalibreerd (F9).
++
++**Vastgesteld (spec §0 "te verifiëren"):** `native-smp` sluit M3 uit (`compile_error` in
++`main.rs`), dus de PIC-programmering in `m3.rs` en Sys3 bestaan in dit profiel niet. De BSP draaide
++er tot nu toe volledig met IF=0 en programmeerde de 8259 niet. Dit besluit voert daarom in
++`native-smp` zelf de PIT-IRQ0-klok in; het M3-pad (`m3.rs`, Sys3) is ongewijzigd. In QEMU levert de
++8259 alleen aan de LINT0 van de eerste CPU (virtual wire); de AP's maskeren LINT0 al sinds stap 2.
++
++**Besluit (normatief):**
++- **BT-1 Eén klok.** `bsp_timer_init` (BSP, IF=0, na de bring-up en vóór `GO`) remapt de 8259 naar
++  0x20/0x28, maskeert alles behalve IRQ0 en zet PIT-kanaal 0 als rate generator op deler 1193
++  (1000,15 Hz). De IRQ0-stub (vector 0x20, geen GS, geen lock) telt `CLOCK_TICKS` en stuurt een
++  PIC-EOI. Hij controleert met het LAPIC-ID dat hij op de BSP draait; een AP die IRQ0 krijgt, stopt
++  de VM met `SMP:CLOCK:AP_IRQ0`. Spurious IRQ7 (0x27) krijgt de spurious-stub. De LAPIC-timer
++  levert alleen preëmptieticks.
++- **BT-2 BSP gelijk aan een AP.** De BSP krijgt 0xd0 met deler 16 (`start_timer`), dezelfde
++  INV-5c-uitstel en dezelfde switchregels (`bsp_switch`; het home-context is op de BSP de
++  orkestrator en draait daarom mee in de rotatie). `CpuLocal.irq_ready` wordt per CPU gezet zodra
++  elke ongemaskeerde bron een IDT-gate heeft: op een AP na het maskeren van de LVT's in
++  `ipi_phase`, op de BSP aan het eind van `bsp_timer_init` (LINT0 = ExtINT voor de PIC, LINT1 =
++  NMI naar vector 2, alle overige LVT's gemaskeerd; gates 0x20, 0x27, 0xd0, 0xe0, 0xe8, 0xf0,
++  0xff). Het vensterpredicaat in `lock.rs` wordt `level <= ASPACE && irq_depth == 0 && irq_ready`
++  (was `on_ap()`).
++- **BT-3 Idle.** `idle_halt` is de enige `sti; hlt; cli`. Hij controleert een lege lockdep-set en
++  de kernel-CR3 (`KERNEL_CR3`, nu al in `bsp_timer_init` gezet) en stopt anders met
++  `SMP_IDLE_STATE`. Gebruikt door de AP-home-lus en door de BSP (`idle_until`).
++- **BT-4 Reschedule-vlag.** De 0xe8-stub telt `resched_count` vóór hij het timerlichaam in springt.
++  `smp_preempt` vergelijkt dat met `resched_seen`: verschil = 0xe8 (`need_resched = true`, geen
++  tick), anders 0xd0 (`tick_count += 1`). Velden hernoemd: `ticks` → `tick_count`, `resched` →
++  `resched_count`. Een door INV-5c uitgestelde 0xe8 blijft als `need_resched` staan. Een
++  `IrqGuard` die de laatste lock vrijgeeft en IF=1 herstelt buiten een handler, roept
++  `resched_on_release` aan: die zet een staande vlag om in een self-0xe8, die direct na de `sti`
++  binnenkomt en wisselt. Elk ander switchpunt wist de vlag. De ICR-fixture wisselt nooit en wist
++  de vlag zelf.
++- **BT-5 Gekalibreerde band.** `bsp_timer_init` meet over 100 ms van PIT-kanaal 2 zowel de LAPIC-
++  timer (deler 16) als de TSC en logt `SMP:TIMER:RATIO:<LAPIC-ticks per PIT-IRQ0-tick>`. **De band
++  is vooraf vastgelegd op [50 000, 75 000]**, voor QEMU's APIC-timerklok van 1 GHz (verwacht
++  62 500); de oracle (`tools/run_smp.py`, `RATIO_BAND`) weigert alles daarbuiten en de band wordt
++  niet achteraf verruimd. Een andere band (andere hypervisor of echte hardware) vergt een nieuw
++  besluit. `TSC_PER_MS` dient als tijdbasis voor begrensde wachten op AP's, die de PIT niet
++  aanraken (ADR-070).
++- **BT-6 Contract kernelthreads (F13).** Fixture-kernelthreads (stap 4, 5d-1, F16 en de BSP-threads
++  van deze stap) draaien met IF=1 als "pseudo-user": hun terugkeer naar IF=1 geldt als het veilige
++  punt van BT-4. Echte kernelcode blijft IF=0 (spec §4.3); IF=1 alleen in user mode, in de idle-
++  context en in het begrensde `sti; pause; cli`-venster van een KERNEL/ASPACE-wachter.
++
++**Bewijs:** native fixtures in `native-smp` (na `SMP:SPIN:PASS`, vóór `SMP:SCHED:PASS`):
++`SMP:CLOCK:PASS` (alle AP's belast, de BSP idle't door 500 IRQ0-ticks; duur op de PIT-gekalibreerde
++TSC binnen 1% van 499 923 µs; de klok gaat nooit terug), `SMP:BSP_PREEMPT:PASS` (twee BSP-threads
++met registercanaries, ≥8 ticks en ≥4 wissels, beide threads lopen door, bevroren na stop),
++`SMP:BSP_SPIN:PASS` (AP1 houdt KERNEL, wacht tot de BSP erop spint, stuurt een shootdown naar alleen
++de BSP; ack binnen 100 ms, geen quarantaine) en `SMP:IDLE:WAKE_US=<n>` + `SMP:IDLE:PASS` (idle-wek
++door AP1 met 0xe8, latentie gelogd en < 100 ms; daarna een BSP-thread die wacht op een lock van AP1
++terwijl de timer gemaskeerd is: AP1's 0xe8 wordt uitgesteld en pas de release wisselt). Zonder AP:
++`SMP:BSP_SPIN:SKIPPED`/`SMP:IDLE:SKIPPED`. Controle `test-smp-bsp-spin-irq-off`: het BSP-venster
++blijft dicht → `SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=0`, exit 0x10. Mutant zonder de release-hook
++(lokaal, niet gecommit): `SMP:IDLE:RESCHED_LOST`. Zie `docs/verification/k06-5c2-bsp-timer/`.
++
++**Grenzen en shortcuts:** QEMU/TCG, geen hardwarebewijs. De TSC wordt als constant en gelijk op
++alle CPU's aangenomen (QEMU/KVM); echte hardware vraagt eerst een invariant-TSC-controle. De
++ratio wordt alleen gelogd; `TIMER_INITIAL` blijft 20 000 (ongewijzigde tickperiode). De BSP heeft
++nog geen run queue: `ADOPTED` (ADR-079) wordt nog niet leeggehaald; dat moet de stap die de BSP
++een queue geeft (5d-2 of 5f). Een IRQ0 die langer dan één periode wacht (BSP met IF=0) gaat
++verloren; de klok telt alleen ticks die de BSP in een IF=1-context krijgt. Dat is voor een
++tickklok inherent en wordt door de klokcheck tijdens idle gemeten, niet tijdens IF=0-werk. Buiten
++scope: TSC-deadline, tickless idle, IOAPIC-routering, energiebeheer (H05).
++
++## ADR-079 — ICR-lock per CPU en quarantaine stopt bij een gehouden lock (K06, auditbevindingen F19/F15)
++
++6 november 2026; effect alleen in `native-smp` (het eigenaarsveld bestaat in elke build, maar
++één-CPU-profielen schrijven er alleen CPU 0 in). Taakspec:
++`docs/implementation/k06-steps/05-F19-F15-icr-quarantine.md`. Aanvulling op ADR-071 (quarantaine
++van een dove AP) en ADR-072 (shootdown-deadline). **Probleem:** F19: `send_ipi` schreef ICR-hoog
++(0x310) en ICR-laag (0x300) zonder lock. Een handler op dezelfde CPU die tussen die twee
++schrijfacties zelf een IPI stuurt, vervangt de bestemming. F15: `quarantine_all` reset een dove
++AP met INIT, ook als die AP `KERNEL` of een `RUNQ` vasthoudt. Die lock blijft dan voor altijd
++dicht, en de BSP blokkeert bij de volgende acquire.
++
++**Besluit (normatief):**
++- **IQ-1 ICR atomair per CPU.** `CpuLocal.icr` is een `IrqLock` op niveau 60 (ICR). `send_ipi`
++  neemt die lock (irqsave) om de idle-wacht, ICR-hoog, ICR-laag en de afsluitende idle-wacht.
++  Het is de enige plek die 0x310/0x300 schrijft. Een lock per CPU volstaat: elke xAPIC heeft zijn
++  eigen ICR, dus alleen een handler op dezelfde CPU kan ertussen komen, en irqsave sluit die uit.
++  Handlers mogen niveau 60 nemen (LD-1 weigert alleen KERNEL/ASPACE).
++- **IQ-2 Elke lock kent zijn eigenaar.** `IrqLock` heeft een `AtomicU8 owner`: de CPU-index van
++  de houder (BSP 0, AP slot + 1) direct na het verkrijgen, `FREE` (0xff) vóór het vrijgeven. De
++  ticketlogica verandert niet. `IrqLock::owner()` en `level()` zijn de leesinterface.
++- **IQ-3 Beleid bij een dode CPU.** `quarantine_all` controleert eerst alle AP's
++  (`stop_if_held`) en roept daarna per AP `quarantine_cpu(slot)` aan. Er wordt eerst gecontroleerd
++  omdat de RUNQ-lock van de ene AP door een andere AP vastgehouden kan worden.
++  `quarantine_cpu`: alleen op de BSP; controle, INIT, 1 ms wachten, opnieuw controleren (een dove
++  AP die nog draaide, kan na de eerste controle een lock genomen hebben). Daarna gaan de
++  READY-threads uit zijn queue naar de BSP (`ADOPTED`), en de thread die hij draaide (of op wiens
++  stack hij nog stond) geldt als gecrasht (`kill_request`, `CRASHED`). Er wordt niets gemigreerd.
++  Gecontroleerd worden de eigenaarsvelden van `lock::KERNEL` en alle `RUNQ`; ASPACE, FRAMES en
++  SHOOTDOWN bestaan nog niet als `IrqLock` en moeten aan `held_by` worden toegevoegd zodra ze er
++  zijn. Houdt de AP iets vast, dan volgt `SMP:QUARANTINE:LOCK_HELD:<laagste niveau>:CPU=<n>` en
++  een systeemstop (`serial::fail`, of exit 0x10 in `test-smp-quarantine-lock-held`). Een lock
++  losbreken mag niet.
++- **IQ-4 Een AP initieert nooit quarantaine.** `quarantine_cpu` op een AP stopt met
++  `SMP_QUARANTINE_ON_AP`. Een AP die in de ICR-fixture geen ack krijgt, meldt dat alleen via
++  `icr_done`; de BSP beslist. Een 0xe8 naar de BSP volgt pas met 5c-2 (de BSP neemt nu geen
++  interrupts aan). Nagegaan: geen AP-pad roept `quarantine_all` aan. Of een AP in 08 zelf een
++  shootdown start, blijft een open vraag voor 08.
++
++**Bewijs:** native fixture `SMP:ICR:PASS:ROUNDS=10000` (AP1↔AP2, elk 10.000 0xe8 met ack vóór
++de volgende, terwijl elke 0xd0/0xe8-entry vanuit de handler een self-IPI 0xf0 stuurt). Controle
++`test-smp-icr-race`: zonder lock en met één 0xd0 tussen hoog en laag op AP1 ziet de oracle
++`SMP:ICR:LOST` (AP1's 0xe8 komt op AP1 terecht en smelt daar samen met de 0xe8 van AP2) of
++`SMP:ICR:MISROUTED`. `test-smp-quarantine-lock-held`: AP2 neemt KERNEL en wordt doof →
++`SMP:QUARANTINE:LOCK_HELD:10:CPU=2`, exit 0x10, geen hang. Zie `docs/verification/k06-f19f15-icr/`.
++
++**Grenzen en shortcuts:** de BSP heeft vóór 5c-2 geen run queue, dus `ADOPTED` wordt bijgehouden
++maar nog niet gedraaid; 5c-2 moet die leeghalen. Kernelthreads hebben geen proces, dus de
++K05-faultroute heeft bij een crash niets te beëindigen; ring-3-threads op AP's (5d-2) moeten die
++route nemen. Een AP die als *wachter* in een ticketlock sterft, houdt zijn ticket vast. Die lock
++loopt daarna ook vast, maar wordt door IQ-3 (alleen eigenaar) niet gezien. De testlock
++`SPIN_LOCK` in `test-smp-spin-irq-off` is precies zo'n geval (bewust onbruikbaar na de controle).
++Voor KERNEL/RUNQ is dit een open punt; de lockdep-spiegel (gehouden *of afgewacht*) zou het
++kunnen dekken. Buiten scope: herstel na een dode eigenaar, x2APIC (ICR in één MSR-schrijfactie),
++broadcast-IPI's.
++
++## ADR-078 — Schedulerprotocol: blokkeren in twee fasen, queued-bit en begrensde kill (K06, auditbevindingen F16/F17)
++
++6 november 2026; effect alleen in `native-smp`. Taakspec:
++`docs/implementation/k06-steps/04-F16-F17-block-wake-kill.md`; spec `K06-SMP.md` §6.1, §6.3
++en §6.4 bijgewerkt. **Probleem:** F16: `smp_lock::sched` kende geen RUNNING→BLOCKED, geen
++DEAD(_PENDING) en geen kill. Een thread die besluit te blokkeren terwijl een waker op een andere
++CPU al wekt, verloor die wake (`wake` gaf `Err(RUNNING)`). F17: een dubbele enqueue werd pas bij
++een latere `dispatch` gezien, dus de double-run-test hing van timing af.
++
++**Besluit (normatief):**
++- **Toestanden** (`AtomicU32`): READY 0, BLOCKED 1, BLOCKING 2, READY_PENDING 3, DEAD_PENDING 4,
++  DEAD 5, RUNNING(cpu) = 8 + cpu. Elke overgang is één atomaire stap (CAS of `fetch_update`
++  met een pure stapfunctie): `dispatch`, `yield_cpu`, `block_prepare`, `block_commit`, `wake`,
++  `kill_request`, `kill_commit`.
++- **BW-1 Geen verloren wake.** De thread doet `block_prepare` (RUNNING(c)→BLOCKING) onder de
++  lock van zijn waker of vóór het controleren van zijn voorwaarde (SeqCst), geeft de lock vrij
++  en vraagt een wissel. `wake` zet BLOCKED→READY (de waker zet hem in de queue en stuurt 0xe8)
++  of BLOCKING→READY_PENDING (geen enqueue). De wissel doet `block_commit`: BLOCKING→BLOCKED of
++  READY_PENDING→READY plus requeue. Een voorwaarde die na `block_prepare` al waar is, regelt de
++  thread met `wake` op zichzelf.
++- **BW-2 Eén keer in een queue.** `queued[tid]`, gedeeld door alle queues: `RunQueue::push`
++  CAS 0→1, `pop` 1→0. Een tweede push geeft `SMP:SCHED:DOUBLE_ENQUEUE` en stop
++  (`test-smp-double-run`: exit 0x10).
++- **BW-3 Begrensde kill.** `kill_request`: elke levende toestand → DEAD_PENDING; was hij BLOCKED,
++  dan zet de killer hem in de queue van *d*. Daarna 0xe8 en wachten op DEAD binnen
++  `SHOOTDOWN_DEADLINE_MS` (100 ms, dezelfde constante als de shootdown-acks). *d* zet een
++  stervende huidige thread bij de wissel terug in zijn eigen queue en verlaat de stack. De
++  eerstvolgende wissel die hem popt, doet `kill_commit`: DEAD alleen als `on_cpu` gewist is
++  (F1), anders opnieuw in de queue. Een DEAD-thread staat nergens in een queue en geen CPU staat
++  op zijn stack. Geen DEAD binnen de deadline → `SMP:KILL:TIMEOUT:APIC=<n>` en quarantaine van
++  alle AP's (INV-5; het beleid met vastgehouden locks volgt in stap 05).
++- **BW-4 Idle per CPU.** De idle-thread is de bestaande thuislus van elke AP (`sti; hlt; cli`,
++  context in `CpuLocal.saved[0]`, `HOME`). Die staat nooit in een queue en draait onder de
++  kernel-CR3. Een aparte idle-threadstack voegt hier niets toe.
++- **BW-5** ongewijzigd: geen lock over de wissel, alleen RUNQ binnen de wissel.
++
++**Afwijking van de taakspec:** de spec vraagt loom-modellen. Loom 0.7.2 is geen dependency
++geworden. Dat zou 33 nieuwe crates betekenen met build scripts (`cc`, `rustversion`, `generator`),
++en `generator 0.8.12` vereist Rust 1.95 terwijl de toolchain op 1.90 is gepind. Volgens AGENTS.md
++moeten herkomst, licentie, onderhoud en build scripts eerst getoetst worden. In plaats daarvan
++draaien uitputtende interleavingmodellen in `sched.rs` (zonder dependency). Ze proberen elke
++volgorde van de atomaire stappen van de echte functies: block/wake met twee threads en een waker,
++en kill tijdens RUNNING met F1-claim en stub. Elk model heeft een mutant die het moet weerleggen:
++het 5d-1-protocol verliest een wake, en een DEAD die op de stack wordt gepubliceerd laat de
++cleanup racen. Grens: alleen sequentieel consistente uitvoeringen, geen zwakkere ordeningen.
++Loom blijft een open punt (F-T1).
++
++**Fixture:** threads A/B op AP1/AP2 geven 10.000 keer een beurt door onder `lock::KERNEL`. Ze
++blokkeren met `block_prepare` onder KERNEL en vragen de wissel met een eigen 0xe8 (IF=0 rond de
++ICR-schrijfactie). Daarna doodt de BSP thread K (alleen in ruimte 1) op AP3. Met minder AP's
++delen de threads CPU's (`tid % AP's`); zonder AP's meldt de kernel `SMP:WAKE/KILL:SKIPPED`.
++`test-smp-resched-deaf`: K zet TPR op klasse 0xe, waardoor AP3 0xd0/0xe8 niet aanneemt.
++
++**Bewijs:** zie `docs/verification/k06-f16f17-sched/`: native QEMU/TCG 25/25 SMP-gevallen over 20
++profielen op één bron (`SMP:WAKE:PASS`/`SMP:KILL:PASS` voor 2/4/8/8 CPU's,
++`SMP:SCHED:DOUBLE_ENQUEUE`, `SMP:KILL:TIMEOUT:APIC=3`); M2/M3, rtc, K05 en K07 ongewijzigd groen.
++Geen CI of hardware.
++
++**Buiten scope:** de echte M3-IPC-wachtrijen (stap 08), migratie (09), het INV-5-beleid met
++vastgehouden locks (05), K05-cleanup en procesbrede shootdown na DEAD (07).
++
++## ADR-077 — Lockdep met handlercontext en lockparen per niveau (K06, auditbevindingen F3/F4)
++
++6 november 2026; aanvulling op ADR-074, effect alleen in `native-smp` (M3 bouwt de lockcode mee
++met diepte 0). Taakspec: `docs/implementation/k06-steps/02-F3-F4-lockdep-context.md`.
++**Probleem:** F3: dat handlers nooit `KERNEL`/`ASPACE` nemen, stond alleen in commentaar. Een
++handler die ze toch nam op een CPU zonder locks slaagde in lockdep en opende het
++`sti; pause; cli`-venster binnen de handler (geneste interrupts op dezelfde stack). F4: lockdep
++had één bit per niveau, dus een IPC-kopie tussen twee adresruimten (twee `ASPACE`) of een
++migratie (twee `RUNQ`) gaf een valse `SMP:LOCKDEP:ORDER`.
++
++**Besluit (normatief):**
++- **LD-1 Context.** `CpuLocal.irq_depth` telt de geneste IDT-entries van deze CPU. Elke GS-stub
++  (0xf0, 0xe0, en 0xd0/0xe8 in het gedeelde timerlichaam) doet `inc gs:[irq_depth]` direct na
++  `gs_entry!` en `dec` direct vóór `gs_exit!`. Na een threadwissel hoort elke exit nog steeds bij
++  één entry op dezelfde CPU. NMI/#DF/#MC (geen GS, GS-6) en de terminale exceptiestub tellen
++  niet mee; zij keren niet terug en nemen geen locks. `lock_irqsave` op niveau ≤ `ASPACE` met
++  diepte > 0 geeft `SMP:LOCKDEP:IN_HANDLER:<niveau>` en stopt, vóór lockdep en vóór het spinnen.
++- **LD-2.** Het venster opent alleen bij diepte 0 (naast de bestaande voorwaarden uit 5b).
++- **LD-3 Paren.** Twee locks van één niveau alleen via `IrqLock::lock_pair(a, b)`. Die neemt ze
++  op oplopende sleutel, ongeacht de argumentvolgorde. De sleutel ligt vast bij de constructie
++  (`IrqLock::keyed`): pid voor `ASPACE`, CPU-index (AP-slot + 1) voor `RUNQ`. `Lockdep` houdt per
++  niveau een teller (0/1/2, als bits in `held` en `pairs`) en de genomen sleutels bij. Een
++  tweede acquire op een vastgehouden niveau via `acquire` (dus buiten `lock_pair`), een derde
++  lock, of een tweede helft met een lagere of gelijke sleutel geeft `SMP:LOCKDEP:ORDER`. Dezelfde
++  lock twee keer, gelijke sleutels of verschillende niveaus stoppen ook met die marker (geen
++  zelf-deadlock).
++- **LD-4 LIFO blijft.** `release(level, key)` eist het hoogste niveau én de laatst genomen
++  sleutel; van een paar gaat de tweede eerst. Het vrijgeven van een niet-vastgehouden lock is
++  een kernelbug (panic).
++- **Interface.** `Lockdep::acquire(level, key)`, `acquire_paired(level, key)` (alleen de tweede
++  helft van `lock_pair`; de spec noemt "buiten `lock_pair`", dus lockdep moet dat onderscheiden),
++  `release(level, key)`, `held_mask()`. `from_bits`/`bits` vervallen. De volledige staat staat per
++  CPU in `lock::LockdepCell` (alleen deze CPU, IF=0); het bestaande `AtomicU64` blijft als spiegel
++  van `held_mask` voor `kernel_held()`, de preempt-uitstelcontrole en de BSP-controles.
++  `lock_pair` geeft `(lage sleutel, hoge sleutel)`; met `let (low, high) = …` valt `high` eerst.
++  Wie het tupel als geheel dropt, geeft `low` eerst vrij en stopt met de LIFO-marker.
++
++**Bewijs:** zie `docs/verification/k06-f3f4-lockdep/`.
++
++**Buiten scope:** meer dan twee locks van één niveau, een runtime-eigenaar per lock (stap 05),
++het SERIAL-niveau 70 (past nog niet in het 64-bitsmasker; stap 03), een loom-model van
++`TicketLock` (F-T1; nieuwe dependency eerst toetsen, zie het bewijs).
++
++**Bewijs (samengevat):** native QEMU/TCG 24/24 SMP-gevallen over 19 profielen op één bron, met
++`SMP:LOCKPAIR:PASS:CPUS=1/2/4/8/8`, `SMP:LOCKDEP:IN_HANDLER:10` en `SMP:LOCKDEP:ORDER:20->20`;
++M2/M3, rtc, K05 en K07 ongewijzigd groen; propertytest tegen een referentiemodel. Geen CI of
++hardware.
++
++## ADR-076 — `swapgs`-discipline voor het per-CPU-GS-anker (K06, auditbevinding F8)
++
++6 november 2026; geldt voor alle profielen, met effect alleen in `native-smp`. ADR-075 blijft
++gereserveerd voor 5b-2. **Probleem:** het per-CPU-anker (`CpuLocal`) staat in
++`IA32_GS_BASE`, maar de IDT-stubs 0xf0, 0xe0 en 0xe8 volgden `gs:[0]` zonder `swapgs`. Ring 3
++kan GS_BASE zonder rechten op 0 zetten (`mov gs, 0x1b`; de DPL3-datadescriptor heeft base 0),
++waarna elke IPI een pointer uit gebruikersgeheugen volgt en daar locked naartoe schrijft (SMEP
++en SMAP staan uit). Dat blokkeert ring 3 op AP's (5d-2).
++
++**Besluit (normatief: GS-1..GS-10 in `docs/implementation/K06-SMP.md` INV-8):**
++- In CPL0 staat het anker van deze CPU in GS_BASE en de gebruikerswaarde in KERNEL_GS_BASE; in
++  CPL3 is het andersom. Bij entry volgt `swapgs` alleen als CS in het hardwareframe van díe entry
++  RPL3 heeft. Bij exit geldt hetzelfde voor het frame dat `iretq` herstelt (na een wissel
++  eventueel van een andere thread). Er wordt geen eerdere beslissing onthouden.
++- Eén definitie: `arch::gs_entry!` (`test; jz; swapgs; lfence` als eerste instructies, vóór
++  elke push of `gs:`-operand) en `arch::gs_exit!` (`test; jz; swapgs` direct vóór een gelabelde
++  `iretq`, met IF=0). 0xe8 springt na zijn eigen proloog naar het timerlichaam: één `swapgs` per
++  entry.
++- Exceptions: dezelfde proloog in `m2_exception_common`. Een `iretq` naar CPL3 die faalt
++  (#GP/#SS/#NP) meldt CS=8 terwijl de user-GS al geladen is. Een frame-RIP gelijk aan een
++  `nos_iret_user_*`-label swapt daarom ook, en het pad blijft terminaal. NMI, #DF en #MC lopen
++  via `m2_exception_paranoid`: nooit `swapgs` of GS, terminaal. Het IST-stackadres
++  identificeert de AP. M3 stuurt #MC nu ook naar `m3_terminal`.
++- Voorwaarde: CR4.FSGSBASE=0 en EFER.SCE=0, anders `SMP:GS:PRECONDITION` en stop. FSGSBASE,
++  `syscall`/`sysret`, user-TLS via GS en NMI's die terugkeren vergen elk een nieuw ADR.
++
++**Bewijs:** rood eerst. Commit `c2f1bed0` (fixture op de oude stubs) geeft
++`SMP:GS:HIJACK` en `M2:FAIL:KERNEL_EXCEPTION`. Daarna, op de fix, N1 `SMP:GS:PASS:CPUS=4`, N2
++`SMP:GS:IRET_FIXUP:PASS` en N3 `SMP:FAULT:AP_NMI_IST:PASS` (QEMU-TCG, 4 vCPU's). Een mutant
++zonder de GS-7-labelvergelijking laat N2 falen. De statische lint `tools/tests/test_gs_discipline.py`
++is het enige bewijs voor de `lfence` (TCG modelleert geen speculatie) en keurt de oude stubs af.
++Zie `docs/verification/k06-f8-swapgs/`.
++
++**Afwijkingen van de taakspec:** VA 0 is in de fixture niet als user-pagina gemapt, omdat die
++in de gedeelde kernel-PD valt. Het rode bewijs is daarom de supervisor-#PF op cr2<4096, niet een
++schrijfactie in een schildwachtpagina. N2 gebruikt SS=0x13 in plaats van een niet-canonieke RIP:
++QEMU-TCG controleert die RIP bij `iretq` niet (de #GP kwam vanuit CPL3). Op echte hardware is dat
++niet getest. De GS-10-check draait op de BSP; AP's nemen exact diens CR4/EFER over of worden als
++MISMATCH geweigerd.
++
++**Open:** SMEP/SMAP (aparte hardening), het selectorlek tussen processen op één CPU (vóór 5d-2),
++#MC op een eigen IST-stack, AMD-null-selectorgedrag (niet testbaar onder TCG) en hardwarebewijs.
++AI-review is geen menselijke audit (B05).
++
++## ADR-075 — Eén KERNEL-lock om de M3-entry en een scratchslot per CPU (K06 stap 5b-2; herziening ADR-024)
++
++6 november 2026. **Probleem:** ring 3 op AP's (5d-2) betekent dat twee CPU's tegelijk een
++syscall of fault kunnen afhandelen. De M3-staat (`STATE`), de frame-allocator, paging, IPC-wachtrijen,
++quota en de supervisor zijn tot nu toe alleen beschermd door "één CPU, IF=0". Het ene globale
++scratchslot uit ADR-024 laat twee CPU's elkaars frame nullen of lezen: een lek of corruptie tussen
++processen (INV-2). Deze stap maakt de kernel SMP-veilig **zonder** het één-CPU-gedrag te
++veranderen. M3 blijft uitgesloten van `native-smp` tot 5d-2.
++
++**Besluit (normatief: K-1..K-5 in `docs/implementation/k06-steps/01-5b-2-kernel-lock-scratch.md`):**
++- **K-1 Eén kernelsectie.** `lock::KERNEL: IrqLock<()>` (niveau 10) beschermt elke mutatie van
++  `STATE`, de frame-allocator, paging, IPC-wachtrijen, quota en de supervisor. `m3_event` neemt
++  de lock direct na de entry-stub en geeft hem pas vrij vlak vóór de terugkeer naar de stub.
++  Vóór de lock leest `m3_event` alleen het CS van zijn eigen onderbroken frame. Zo houdt een
++  kernel-exception binnen een vastgehouden sectie de marker `M3:FAIL:KERNEL_EXCEPTION` en gaat
++  hij niet als lockdep-fout eindigen. `m3::start` neemt de lock vóór de opbouw van `STATE`.
++  `lock::kernel_held()` (het lockdep-bit van deze CPU) wordt in `select`/`cleanup`
++  gecontroleerd met een `debug_assert`, en in de native fixture met een `assert`.
++- **INV-7 en de sprong naar ring 3.** `complete_round` en `m3::start` hervatten user-mode met
++  `jmp m3_restore` vanuit een diepe aanroep, zonder de stack van `m3_event` af te wikkelen. Een
++  lokale guard zou daar nooit vallen: KERNEL bleef dan bezet en het volgende event liep vast. De
++  guard staat daarom in één slot (`KERNEL_GUARD`) dat alleen de houder aanraakt, dus de lock zelf
++  maakt de toegang exclusief. `kernel_leave()` zit vóór elke `return` naar de stub en in
++  `resume()`, de enige weg naar `m3_restore` vanuit Rust. Geen lock gaat over een wissel.
++- **Eén-CPU-profielen.** `lock.rs` compileert nu ook voor M3, met één lockdep-woord en zonder
++  GS-anker. Op één CPU neemt de lock altijd direct, zonder wachter en zonder IF-venster (K-3).
++  Idle met `sti; hlt` blijft binnen de sectie: de IRQ0-idleroute raakt alleen ruwe tellers. Op
++  SMP moet idle de sectie verlaten (5c-2/5d-2).
++- **K-4.** SAFETY-teksten in `m3.rs` en `m3/*.rs` noemen "KERNEL held" als grond, niet langer
++  "single CPU".
++
++**Herziening ADR-024 (K06-SMP §5, punt 1–7):**
++1. Mappingarena ongewijzigd, 2048 mappings per proces, statisch. Toegang onder `KERNEL`;
++   `ASPACE[pid]` volgt wanneer er fijnmazige locks komen.
++2. **Scratchslot per CPU (K-2).** CPU *i* gebruikt alleen VA `SCRATCH + i·4096` (`SCRATCH =
++   0x3fff0000`, 8 slots, supervisor RW/NX of RO/NX). Alle slots delen de PT van `FIRMWARE_SCRATCH`
++   (compile-time assert), dus één CPU houdt hetzelfde aantal tabellen. Het adres bestaat alleen
++   via `paging::scratch_slot()`, met index `smp::cpu_index()` (BSP 0, AP slot+1, via het
++   GS-anker) of altijd 0 zonder `native-smp`. Invalidatie blijft lokaal (`invlpg`). Een bezette
++   slot-PTE stopt: `SMP:SCRATCH:CROSS` op SMP, anders een panic.
++   *Restrisico:* een speculatief gecachete vreemde slot-entry wordt architecturaal nooit gebruikt,
++   maar speculatieve side-channels daarop vallen buiten dit model.
++3. De weigering van een executable alias en de RO/NX-helper blijven ongewijzigd.
++4. Er komt nog steeds geen identity-map van vrij RAM of MMIO.
++5. ASID blijft een interne teller en PCID blijft uit.
++6. Een wijziging in de gedeelde kernelhelft, behalve het eigen scratchslot, vereist een
++   shootdown naar alle online CPU's (ADR-072).
++   *Aanvulling stap 5e:* gebouwd als `shootdown_kernel` (doelset `ONLINE_CPUS & !self`). De
++   kernelhelft is precies PDPT-entry 0 (één PD). Elke ruimte deelt die PD via de pointer
++   (`Paging::new_user`). Er wordt dus niets gekopieerd dat uit de pas kan lopen, en er is nooit een
++   nieuwe PML4-entry nodig. In `native-smp` controleren asserts dat er geen kernelmapping boven 1 GiB
++   komt en dat de kernelroot buiten entry 0 leeg is.
++7. **Herzien bij:** PCID, fijnmazige subsysteemlocks, idle buiten de sectie (5c-2), M3 op AP's
++   (5d-2), DMA/IOMMU of een nieuwe mapping-API. De grote lock begrenst de parallelle
++   syscall-doorvoer (R02-risico, geen K06-eis).
++
++**Gevolg voor `native-smp`:** de BSP roept `begin_scratch` aan in `smp::start`, direct na zijn
++GS-anker en vóór de eerste AP. Daarna leest en schrijft hij paging via zijn eigen slot.
++`Paging::audit` slaat alleen het actieve slot van de lezende CPU over: de walk zelf mapt de
++gelezen tabel daar. Elk ander slot moet leeg zijn. AP's mappen een tijdelijke pagina alleen in
++hun eigen slot; allocator- en paginatabelwijzigingen blijven BSP-only (ADR-070).
++
++**Bewijs:** native fixture na `SMP:SCHED:PASS`, vóór `SMP:GS:*` en `SMP:PARKED`. Elke CPU
++nult, vult (`0xa5 ^ index`) en controleert 1024 keer zijn eigen frame via zijn eigen slot,
++tegelijk met de andere CPU's. Daarna neemt elke CPU 1000 keer `KERNEL` en verhoogt een teller
++met een losse load en store. De eis is: alle patronen intact, teller = 1000 × CPU's, lockdep
++leeg → `SMP:SCRATCH:PASS:CPUS=n`. Het controleprofiel `test-smp-shared-scratch` (alle CPU's in
++slot 0, 4 vCPU's) moet `SMP:SCRATCH:CROSS:CPU=<n>` geven en exit 0x10. Die marker meldt zowel
++een bezette slot-PTE als een vreemd patroon. Native resultaten en commando's staan in
++`docs/PROJECT-STATE.md`.
++
++**Afwijkingen van de taakspec:** de deadline van 500 ms begint pas nadat de BSP zijn eigen deel
++heeft afgerond; de M2-PIT-helpers meten geen totale looptijd. De guard staat in een slot in
++plaats van in `let _k`, om de reden hierboven. De SCRATCH-VA verschuift van `0x3fffe000` naar
++`0x3fff0000`; de tabel is dezelfde. De fixtureframes worden na de proef vrijgegeven: elke CPU
++heeft zijn slot-PTE zelf gewist en geïnvalideerd, en geen CPU raakt een vreemd slot-VA aan.
++
++**Open:** KERNEL op het M3-pad op AP's en idle buiten de sectie (5c-2/5d-2), fijnmazige locks,
++hardwarebewijs. QEMU-TCG modelleert geen speculatie. AI-review is geen menselijke audit (B05).
++
+ ## ADR-074 — Ticketlock, irqsave en lockdep per CPU (K06 stap 5a)
+ 
+ 6 november 2026; alleen in `native-smp`. Dit is de eerste stap naar een
+@@ -33,10 +470,146 @@ ADR-024 krijgt daarmee ADR-075, niet ADR-074 zoals de spec voorstelde.
+ Lockdep heeft één bit per niveau, dus twee RUNQ-locks tegelijk vragen in
+ stap 5d een nestteller. Spinnen met IF=1 op KERNEL/ASPACE (§4.3) volgt in 5b.
+ 
++**Aanvulling stap 5b (6 november 2026): gecontroleerd spinnen met IF=1.** Wie
++wacht op een lock van niveau KERNEL of ASPACE, opent tussen twee pollingen een
++venster `sti; pause; cli`. Een CPU die zo wacht, kan daardoor nog een shootdown
++(0xe0) bevestigen van de lockhouder, die zelf met IF=0 op die ack wacht. Zonder
++venster ontstaat een deadlock. Afbakening:
++- Alleen voor niveau ≤ ASPACE. Alle andere niveaus spinnen met IF=0, omdat RUNQ,
++  ICR en SERIAL ook vanuit handlers worden genomen.
++- Lockdep legt het niveau vast vóór het spinnen. Een wachter houdt dus hoogstens
++  KERNEL vast, en dat ligt onder elk handlerniveau. Handlers nemen nooit
++  KERNEL/ASPACE; dat is in deze stap een structuurcontract, zonder runtimecheck.
++- Alleen op AP's (`smp::on_ap`). De BSP krijgt het venster in 5c, zodra zijn
++  interruptbronnen vastliggen.
++- De bewaarde IF van vóór `lock_irqsave` verandert niet. Release-builds spinnen
++  onbegrensd via `TicketLock::lock_with`.
++- **Voorwaarde voor 5c/5d:** voordat een timer wordt gewapend op een CPU die
++  KERNEL/ASPACE neemt, mag de preëmptiehandler niet wisselen zolang de
++  lockdepset niet leeg is (INV-7). In 5b is de AP-timer in de spinfase al gemaskeerd.
++
++Bewijs: een native fixture na PREEMPT. De BSP houdt een lock op KERNEL-niveau
++terwijl elke AP er met IF=0 op wacht, en eist binnen 100 ms een shootdown-ack
++van iedere AP (`SMP:SPIN:PASS`). Het controleprofiel `test-smp-spin-irq-off`
++(zonder venster) moet `SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=1` geven, gevolgd door
++quarantaine. Dat bewijst dat de fixture een echt gevaar meet. Lokaal: de
++hosttest `lock_with`, de serial-oracle en kernelbuilds. **Native QEMU staat
++open** (`native-smp.yml`). De oude 5b-inhoud (KERNEL-lock om M3-syscalls,
++scratchslot per CPU, ADR-075) schuift door naar stap 5b-2.
++
++**Aanvulling stap 5c (6 november 2026): geen wissel met een vastgehouden of
++bewaakte lock (INV-7).** Lockdep geldt per CPU, niet per thread. Een timertick
++(0xd0) kan alleen binnenkomen met een lock vastgehouden of bewaakt via het
++5b-venster: binnen een vastgehouden sectie is IF=0. `smp_preempt` stelt zo'n tick
++daarom uit wanneer de lockdepset van deze CPU niet leeg is. De onderbroken context
++hervat ongewijzigd, telt `deferred`, en een latere tick probeert het opnieuw. Dat
++geldt ook voor STOP, de wissel naar home. Een wissel die toch met een niet-lege set
++plaatsvindt, geeft `SMP:LOCKDEP:HELD_ACROSS_SWITCH` en stopt (spec §4.4).
++- Geen `need_resched` of directe herplanning bij het vrijgeven: de volgende tick
++  volstaat. *shortcut: wissel wacht hoogstens één timerperiode; herzien in 5d als de
++  runqueue-latentie dat vraagt.*
++- De BSP-LAPIC-timer en idle met `sti; hlt` (de oude 5c) heten nu 5c-2. Het
++  BSP-venster uit 5b volgt daar.
++
++Bewijs: opgevouwen in `SMP:PREEMPT:PASS`. De BSP houdt een lock op KERNEL-niveau
++terwijl de draaiende thread op elke AP erop wacht. Eis: `deferred` stijgt,
++`switches` blijft gelijk over ten minste twee uitgestelde ticks, en na het
++vrijgeven loopt `switches` weer op. Het negatieve profiel
++`test-smp-held-across-switch` (zonder uitstel) moet de marker geven, met exit
++0x10. Lokaal: serial-oracle en kernelbuilds. **Native QEMU staat open**
++(`native-smp.yml`).
++
++**Aanvulling stap 5d-1 (6 november 2026): runqueues per AP en CR3-wissel (spec
++§6.1–6.4).** Stap 5d is gesplitst. Ring-3-processen op AP's (5d-2) vereisen eerst de
++KERNEL-lock om M3 en een scratchslot per CPU (5b-2). Zonder die lock muteren twee
++CPU's de M3-staat en het ene globale scratchslot tegelijk (INV-2). 5d-1 bouwt de
++schedulerkern met kernelthreads:
++- `smp_lock::sched`: FIFO-`RunQueue` met vaste capaciteit en een statuswoord per
++  thread. Een thread komt alleen op CPU *c* via CAS READY → RUNNING(*c*) (INV-3);
++  teruggeven gaat via RUNNING(*c*) → READY (Release, na het opslaan van RSP). Een
++  mislukte CAS of een volle queue geeft `SMP:SCHED:DOUBLE_RUN` en stopt.
++- `sched_switch` draait in het timerpad, ná het 5c-uitstel, dus met lege lockdep
++  (INV-7). Het houdt alleen RUNQ (niveau 40) vast, voor de overdracht en de
++  CR3-wissel, en geeft die vóór IRETQ terug.
++- Adresruimtewissel volgens §6.3: `ACTIVE[nieuw] |= c` → `mov cr3` →
++  `ACTIVE[oud] &= !c`, met SeqCst (INV-4). De testruimten zijn PML4-kopieën van de
++  kernel-root: zelfde kernelhelft, geen user-mappings. *shortcut: de twee rootframes
++  worden niet vrijgegeven; echte procesruimten komen in 5d-2.*
++- Vector 0xe8 (wekken): de stub telt en neemt het timerpad. `arch::smp_gate` laat
++  0xe8 toe, als supervisorgate.
++- Geen FXSAVE in deze wissel: kernelthreads zijn soft-float. FPU-context hoort bij
++  ring-3 in 5d-2 (ADR-045).
++
++Bewijs: `SMP:SCHED:PASS:CPUS=n` na `SMP:SPIN:PASS`. Twee threads per AP, één per
++ruimte; de tweede wordt cross-CPU gewekt met 0xe8. Elke AP wisselt ten minste 4× van
++CR3, en elke thread controleert met IF=0 zijn CR3 en zijn `ACTIVE`-bit. Na STOP staat
++iedere AP thuis onder de kernel-CR3, is `ACTIVE` leeg en staat de voortgang stil. Het
++negatieve profiel `test-smp-double-run` zet thread 0 in twee queues en moet de marker
++geven, met exit 0x10. Native lokaal: zie `docs/verification/k06-smp-sched/`.
++
++**Aanvulling auditfixes F1/F2 (6 november 2026, K06-audit).**
++- **F2, LIFO-release.** Elke `IrqGuard` herstelt zijn eigen IF. Als een buitenste
++  guard eerder vrijkomt dan een binnenste, zou `sti` volgen terwijl de binnenste lock
++  (bijv. RUNQ) nog vastzit. Een tick zou dan vastlopen op de eigen RUNQ.
++  `Lockdep::release` eist nu `level == highest()`. Anders stopt de VM met
++  `SMP:LOCKDEP:LIFO:<held>-><released>`, vóórdat IF wordt hersteld.
++- **F1, overdracht van de stack.** `yield_cpu` publiceert READY terwijl de CPU nog
++  op de stack van de thread draait. Die stack verlaat de CPU pas in de stub, met
++  `mov rsp`. Een vlag per thread, `THREAD_ON_CPU`, regelt de overdracht.
++  `smp_preempt` geeft `Resume {rsp, left}` terug in RAX:RDX. De stub wist
++  `[left]` direct na `mov rsp`; op x86 is dat een release-store. `sched_switch` claimt
++  de vlag van de volgende thread met een CAS (Acquire). **Er wordt in de wissel nooit
++  gewacht.** Twee CPU's die van thread ruilen zouden anders met IF=0 op elkaar wachten.
++  Mislukt de claim, dan gaat de thread terug via RUNNING(*c*) → READY. Hij komt achter
++  in de eigen queue en de CPU draait die tick thuis. Dit is hetzelfde patroon als
++  `on_cpu` in Linux, maar zonder wachten in de switch. *Grens: de double-run-test blijft
++  timingafhankelijk (F17, een `queued`-bit, staat nog open).*
++
+ **Alternatieven overwogen.** De bestaande TTAS-lock: vervangen, omdat die
+ niet FIFO is en onder TCG kan uithongeren. Lockdep alleen in debugbuilds:
+ verworpen, omdat de native gate releasebuilds draait.
+ 
++**Aanvulling auditfixes F5/F7 (6 november 2026, K06-audit, L0-spec
++`docs/implementation/k06-steps/03-F5-F7-stuck-serial.md`).**
++- **F5, begrensd wachten ook in release (DG-1).** De begrensde spin hing aan
++  `cfg!(debug_assertions)`, maar elke native gate bouwt `--release`: een deadlock werd
++  dan een host-timeout zonder diagnose. Nu kiest `cfg(feature = "native-smp")` de
++  begrensde variant. Alle `test-smp-*`-profielen erven die feature. De grens is een
++  tijd: `LOCK_STUCK_MS = 4 × SHOOTDOWN_DEADLINE_MS` = 400 ms, gerekend vanaf de eerste
++  gecontesteerde poll. Overschrijding geeft `SMP:LOCK:STUCK:<niveau>:CPU=<n>` en stopt
++  de VM. Eén-CPU-profielen (M3) blijven onbegrensd: daar is geen wachter.
++- **Tijdsbasis, afwijking van de letter van de spec.** De spec zegt "gemeten met de
++  PIT-klok". Maar de PIT is van de BSP (ADR-070) en een AP mag hem niet aanraken. De BSP
++  ijkt daarom vóór de eerste IPI 10 ms PIT-kanaal 2 tegen de TSC (`TSC_PER_MS`). Een
++  wachter op welke CPU dan ook leest alleen de TSC. De PIT blijft dus de tijdsbasis,
++  maar de meting tijdens het spinnen loopt via de TSC. Aanname: de TSC loopt met een
++  vaste snelheid (QEMU/TCG, KVM). *shortcut: vervang dit door de gekalibreerde TSC van
++  stap 06.* Mislukt de ijking, dan stopt de boot met `M1:FAIL:SMP_TSC_CALIBRATION`.
++- **F7, één regel is ondeelbaar (DG-2).** `serial.rs` heeft onder `native-smp` een
++  `static SERIAL: IrqLock<()>` op niveau 70 (irqsave, begrensd volgens DG-1).
++  `serial::write` verzamelt fragmenten in een regelbuffer per CPU (IF=0). Bij de
++  newline gaat de hele regel in één keer onder `SERIAL` naar buiten. Zo bleven de ruim
++  tweehonderd bestaande schrijfplekken ongewijzigd. Terminale paden (de gedeelde
++  exceptionhandler met NMI/#DF, `panic`, `fail`, `lock_stuck`) schrijven met
++  `write_terminal`: een begrensde `try_lock` zonder lockdep. Lukt die niet, dan gaat de
++  regel toch naar buiten, met `!` ervoor. De host-oracle accepteert `!` alleen op de
++  laatste regel van een terminaal profiel.
++- **Bevinding: lockdep kent geen niveau 70.** `smp_lock::Lockdep` houdt niveaus 0..=63
++  bij in één `u64` (`assert!(level < 64)`). `SERIAL = 70` was tot nu toe nooit gebruikt.
++  *shortcut: `SERIAL` wordt niet in het lockdepwoord vastgelegd.* Het is het hoogste
++  niveau en een leaf (`write_raw` neemt geen lock), en het wordt alleen met IF=0
++  vastgehouden. Een herintreding op dezelfde CPU ziet DG-1 als `SMP:LOCK:STUCK:70`.
++  Verbreed `Lockdep` (crate `smp-lock`, buiten deze stap) zodra een niveau boven 63
++  ordening nodig heeft.
++- **DG-3.** Zonder `native-smp`, en vóór `smp::start` het GS-anker zet, gaan de bytes
++  ongewijzigd en direct naar de UART. `fail` en `panic` stellen hun regel nu eerst
++  samen, met byte-gelijke uitvoer.
++- **Bewijs.** In elk `native-smp`-image schrijft elke CPU na de synctest 200 regels
++  `SMP:SER:<cpu>:<seq>` in fragmenten, door elkaar. Daarna volgt `SMP:SERIAL:PASS`. De
++  host eist elke regel heel, per CPU de volgorde 0..199, en geen regel buiten die fase.
++  `test-smp-lock-stuck` (2 vCPU's): de BSP houdt een KERNEL-niveaulock vast. Verwacht:
++  `SMP:LOCK:STUCK:10:CPU=1`, exit 0x10. Native lokaal: `docs/verification/k06-f5f7-diagnostics/`.
++
+ ## ADR-073 — Gepreëmpteerde kernelthreads op AP's (K06 stap 4)
+ 
+ 5 november 2026; alleen in `native-smp`, de BSP blijft IF=0. Iedere AP
+@@ -108,6 +681,37 @@ de SMP-scheduler volgen nog; ADR-024 blijft tot dan ongewijzigd geldig.
+ 
+ **Status:** geaccepteerd in het opt-in `native-smp`-profiel; K06 blijft open.
+ 
++**Aanvulling 6 november 2026 — procesbrede shootdown op `active_cpus` (K06 stap 5e, auditbevinding
++F18).** Taakspec `docs/implementation/k06-steps/07-5e-process-shootdown.md`. De ronde is algemeen
++geworden (`smp.rs`):
++- **PS-1:** `shootdown_process(space, start, pages)` neemt na de PTE-wijziging een `fence(SeqCst)` en
++  de snapshot `targets = ACTIVE[space] & !self`. Alleen die CPU's krijgen 0xe0. De wisselvolgorde
++  (bit aan vóór de CR3-load, uit erna; §6.3 stap 5) maakt `ACTIVE` een superset van wie de oude
++  vertaling kan cachen.
++- **PS-2:** één gepubliceerde ronde `{root, start, pages, gen}` onder het lock `SHOOTDOWN`
++  (niveau 50). Een ronde met `root = 0` geldt voor de gedeelde kernelhelft. Tot 32 pagina's gebruikt
++  de handler `invlpg` per pagina, daarboven een CR3-reload. De handler (`smp_shootdown`, Rust achter
++  een stub die de caller-saved registers bewaart) flusht alleen als zijn CR3 de gepubliceerde root
++  is, of bij de kernelhelft. Hij ackt **altijd** met de generatie en telt per CPU zijn rondes.
++  "pid" is in de fixture de ruimte-index; de handler vergelijkt de root, niet een pid.
++- **PS-3:** `Paging::unmap_shot` wist de PTE en invalideert lokaal. Daarna volgt de ronde en pas na
++  alle acks het vrijgeven van de alias-metadata, dus pas daarna kan `free` slagen. Ontbreekt een ack,
++  dan blijven de metadata staan (quarantaine) en volgt het IQ-3-beleid (ADR-079).
++- **PS-4:** `shootdown_kernel` gaat naar alle online CPU's (`ONLINE_CPUS`, ook de BSP als een AP de
++  ronde start). De wachttijd loopt op de gekalibreerde TSC, zodat elke CPU een ronde kan starten; de
++  ronde van AP1 naar de BSP uit stap 5c-2 gebruikt nu dezelfde functie.
++- **PS-5:** de fixture verwijdert een ruimte pas als `ACTIVE` 0 is. Hij unmapt met een ronde, doet een
++  ronde over de hele user-GiB (CR3-reload op elk doel, dus ook paging-structure caches weg) en geeft
++  daarna de tabellen vrij. Er wordt gecontroleerd dat geen levende ruimte een vrij frame noemt en dat
++  `ACTIVE` van een dode ruimte 0 is.
++
++**Bewijs (lokaal, QEMU/TCG):** zie `docs/verification/k06-5e-proc-shootdown/`: isolatie 10 000×
++per ruimte, unmap-race met een gecontroleerde #PF, doelset per CPU geteld, en beide negatieve
++profielen. **Open:** M3-processen draaien niet onder `native-smp` (`compile_error`), dus de M3-unmap-
++en cleanuproute en de engine-`check_invariants` zijn niet gewijzigd. Dat volgt met 5d-2. Er is nog
++geen rechtenverlagings-API zonder aanroeper (YAGNI); die volgt hetzelfde `unmap_shot`-patroon.
++FRAMES is nog geen lock: alleen de BSP heeft `&mut Frames`.
++
+ **Alternatieven overwogen.**
+ - Alleen het venster ongeldig maken en de identity-alias lokaal laten
+   vallen: verworpen na review, omdat een AP met een gedeelde CR3 die alias
+@@ -993,7 +1597,7 @@ ID, datum, status, context, alternatieven, besluit, onderbouwing/bronnen, gevolg
+ 
+ **ADR-023 — Alleen WB-capabele normale ConventionalMemory, cachebits gecombineerd.** De eerste M2-run faalde vóór KS-02 doordat OVMF `0x0f` meldt en de allocator uitsluitend exact WB accepteerde. UEFI-attributen beschrijven mogelijkheden; UC/WC/WT/WB mogen samen voorkomen. De allocator vereist WB, staat uitsluitend deze vier cachebits toe en weigert overige/bijzondere attributen. Bron: TianoCore/EDK II, `edk2-stable202508`, [UefiSpec.h, EFI_MEMORY_DESCRIPTOR en cachebits](https://github.com/tianocore/edk2/blob/edk2-stable202508/MdePkg/Include/Uefi/UefiSpec.h), gecontroleerd 27 oktober 2026. De huidige package is daarmee niet als exact die firmwareversie geïdentificeerd. Regressie test zowel `0x0f` als geweigerde special/unknown-bits; echte M2-poort slaagt. Andere platformprofielen vereisen opnieuw beoordeling van geheugenattributen; geen stil reclaim van Loader/BootServices/runtime/ACPI-geheugen.
+ 
+-**ADR-024 — Statische2048-mappingarena en één tijdelijk scratchslot.** Iedere procescontext heeft de contractcapaciteit2048 mappings; grote metadata staat statisch buiten de16KiB-kernelstack. PID is monotoneu64; interne ASID is afzonderlijk begrensd. Allocatorzeroing/tabeltoegang gebruikt een tijdelijk supervisor/NX-slot, met invalidatie vóór gebruik en na clear. Een writable scratchalias naar een executable fysiek frame wordt geweigerd; readonly input heeft een aparte RO/NX-helper. Geen willekeurige identitymap van vrije RAM/gaten/MMIO. Bewijs: kernelbron ed09818, volle M2/M3-gate, echte67-userpage/BSS-zero-regressie en per-processcleanupbalans. Herzie bij SMP/DMA/nieuwe mapping-API; de serialisatie geldt alleen in het huidige één-CPU/één-threadprofiel. Herstel via een consistente eerdere bronversie in een afzonderlijke checkout, zonder huidige wijzigingen te wissen.
++**ADR-024 — Statische2048-mappingarena en één tijdelijk scratchslot.** Iedere procescontext heeft de contractcapaciteit2048 mappings; grote metadata staat statisch buiten de16KiB-kernelstack. PID is monotoneu64; interne ASID is afzonderlijk begrensd. Allocatorzeroing/tabeltoegang gebruikt een tijdelijk supervisor/NX-slot, met invalidatie vóór gebruik en na clear. Een writable scratchalias naar een executable fysiek frame wordt geweigerd; readonly input heeft een aparte RO/NX-helper. Geen willekeurige identitymap van vrije RAM/gaten/MMIO. Bewijs: kernelbron ed09818, volle M2/M3-gate, echte67-userpage/BSS-zero-regressie en per-processcleanupbalans. Herzie bij SMP/DMA/nieuwe mapping-API; de serialisatie geldt alleen in het huidige één-CPU/één-threadprofiel. **Herzien door ADR-075** (KERNEL-lock en scratchslot per CPU). Herstel via een consistente eerdere bronversie in een afzonderlijke checkout, zonder huidige wijzigingen te wissen.
+ 
+ **ADR-025 — Safe vaste capability-engine met afzonderlijke usercopygrens.** `capability-core` is eigen dependencyvrije no_std-code zonder unsafe/heap; de kernel bewaakt userpointers, syscallvolgorde en320-byte-kopieën. Engine-receive commit pas na volledige outputvalidatie, daarna volgt de in dit profiel onfeilbare bytecopy. Rootautoriteit komt uitsluitend uit het statische testmanifest, niet uit een algemene userspace-objectlookup. Revoke trekt afstammelingen in; exit ook eigen/issued autoriteit. Gesloten objecttombstones blijven bestaan tot laatste ref. Hosttests vergelijken de volledige Engine-toestand; kernelchecksums zijn diagnostiek. Bewijs:21coretests,alle acht echte M4-cases en onafhankelijke gerichte review. Herzie vóór threads/sharedmemory/DMA/dynamische applicatie- of objecttypen; geen extrapolatie naar zulke garanties. Geen boot-ABI-wijziging of hostconfigmigratie.
+ 
+diff --git a/docs/PROJECT-STATE.md b/docs/PROJECT-STATE.md
+index 92466e78..9d234499 100644
+--- a/docs/PROJECT-STATE.md
++++ b/docs/PROJECT-STATE.md
+@@ -1,6 +1,365 @@
+ # Actuele projectstatus
+ 
+-## NEXT AGENT HANDOFF — K06 stap 5a, ticketlock, irqsave en lockdep — 6 november 2026
++## NEXT AGENT HANDOFF — K06 stap 5d-2a/b, M3-ring-3-processen op elke CPU met FPU-context per CPU (ADR-081) — 7 november 2026
++
++**Bron:** `ca0b7e5f` op `feat/k06-5d2-ring3-smp` (worktree `nieuw-os-k06-5d2`, concept-PR #247),
++gestapeld op `feat/k06-5e-proc-shootdown` (#244), met F5/F7 (#238) erin (merge `fb7a23cd` +
++correctie `4444eb52`; voorwaarde 03 van spec 08 §0). Taakspec:
++`docs/implementation/k06-steps/08-5d-2-ring3-on-aps.md`. **41 → 41/100**; K06 blijft open.
++
++**Gerealiseerd:** (a) Profiel `native-smp-m3`: het basis-M3-manifest (16 processen) draait op
++alle online CPU's. Thuis-CPU bij spawn, `current` per CPU, elke entry onder `KERNEL`, RSP0 en
++servicestack per CPU, INV-4-bits, eerst een kernelronde en dan pas vrijgeven, idle zonder
++`KERNEL`, stop-the-world met één stopper. Een appfault op AP2 stopt alleen dat proces. (b) R3-3:
++FPU-context per CPU (FXSAVE na de entry, FXRSTOR direct vóór de pops). Alle processen zijn
++FPU-canaries; vereist zijn 1000 wissels per CPU, gevolgd door een beeldcontrole door de kernel.
++De controle zonder FXRSTOR moet falen.
++
++**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG):** `docs/verification/k06-5d2a-ring3-smp/` (`efe75124`) en
++`docs/verification/k06-5d2b-fpu/` (`ca0b7e5f`): SMP 38/38 over 30 profielen; M2/M3, K05, K07, rtc,
++IPC-wait, FPU en `tools/gate.sh` groen. **Niet uitgevoerd:** CI, hardware, menselijke audit, M4 (#235).
++
++**Open (5d-2c):** (1) IPC-ping-pong over CPU's (R3-5). Daarvoor moeten M4 en `ipc-wait` naar
++SMP: 0xe8 bij Waiting→Ready voor een proces met een andere thuis-CPU, `refresh` in `smp_idle`,
++`lock_pair(ASPACE)` bij de kopie, en een ping-pongprogramma zonder nieuwe syscall. (2) Usercopy
++onder `ASPACE` (R3-6). (3) K05 op SMP met spawn na GO en kill over CPU's (R3-7). (4) GS N1-N3 met
++M3-processen. (5) De `SMP:CLOCK`-zelftest (1%-band) is onder TCG soms te krap, ook op de basis;
++de band is niet verruimd. (6) Shortcuts uit ADR-081.
++**Eerstvolgend commando:**
++`export NOS_BUILD_DIR="$PWD/build/k06-native-smp-m3"; python3 -B tools/build.py --kernel-feature native-smp-m3 && python3 -B -u tools/run_smp.py --profile native-smp-m3`.
++
++## Historisch checkpoint — K06 stap 5d-2a, M3-ring-3-processen op elke online CPU (ADR-081) — 6 november 2026
++
++Zie `docs/verification/k06-5d2a-ring3-smp/` (bron `efe75124`).
++
++## Historisch checkpoint — K06 stap 5e, procesbrede TLB-shootdown op `active_cpus` (aanvulling ADR-072/-075) — 6 november 2026
++
++**Bron:** `730ce80a` op `feat/k06-5e-proc-shootdown` (worktree `nieuw-os-k06-5e`), gestapeld op
++`feat/k06-5c2-bsp-timer` (`0d197dc1`). Taakspec: `docs/implementation/k06-steps/07-5e-process-shootdown.md`
++(L0, branch `docs/k06-step-specs`, PR #232). **41 → 41/100**; K06 blijft open.
++
++**Gerealiseerd:** PS-1 `shootdown_process(space, start, pages)`: snapshot `ACTIVE[space] & !self`
++na `fence(SeqCst)`. PS-2: één gepubliceerde ronde `{root, start, pages, gen}` onder `SHOOTDOWN`
++(niveau 50). De 0xe0-handler staat nu in Rust: flush alleen bij de eigen CR3 of de kernelhelft
++(≤ 32 pagina's `invlpg`, anders een CR3-reload), daarna altijd een ack en een teller per CPU.
++De deadline loopt op de TSC, dus ook een AP kan een ronde starten (de ronde van AP1 naar de BSP uit
++5c-2 gebruikt dezelfde functie). PS-3: `Paging::unmap_shot` (PTE wissen → ronde → metadata vrij).
++PS-4: `shootdown_kernel` naar `ONLINE_CPUS`. De kernelhelft is PDPT[0], gedeeld via de pointer;
++asserts houden dat zo. PS-5: `exit_space` met een ronde over de hele user-GiB, regels "levende ruimte
++noemt geen vrij frame" en "`ACTIVE` van een dode ruimte is 0". Echte testruimten (`build_spaces`)
++vervangen de PML4-kopieën. Fixture na ICR: `SMP:ISOLATION` (10 000×) en `SMP:UNMAP_RACE`
++(gecontroleerde #PF via fixup; doelset per CPU geteld). Controles `test-smp-proc-shootdown-deaf`
++en `test-smp-proc-no-shootdown`, ook in `native-smp.yml`. `smp-lock::sched::switch_space` krijgt
++een hostmodel met nep-CR3. IQ-3 `held_by` kent nu ook ASPACE en SHOOTDOWN.
++
++**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `fdc7ab04…`):** zie `docs/verification/k06-5e-proc-shootdown/`. SMP 30/30 over 25 profielen; M2 8/8 en M3 22/22; `cargo test -p smp-lock` 26+1 (hostmodel, rood met de verkeerde volgorde); oracle + GS-lint 25/25; `tools/gate.sh` exit 0 (520 geslaagd, 1 ignored; QEMU-smoke-script ontbreekt).
++**Niet uitgevoerd:** CI op de gestapelde PR, hardware, menselijke audit, M4 (pad-bug, #235).
++
++**Open:** het M3-pad (`m3.rs`-cleanup, engine-`check_invariants`) is niet gewijzigd, omdat M3 niet
++onder `native-smp` draait (`compile_error`); dat volgt met 08 (5d-2). Er is nog geen
++rechtenverlagings-API (er is geen aanroeper). FRAMES is nog geen lock. `feat/k06-5c2-bsp-timer`
++stond bij de start niet op de remote; deze branch draagt die commits mee.
++Volgende stap: 08 (5d-2, ring-3-processen op AP's).
++**Eerstvolgend commando:**
++`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-proc-shootdown-deaf"; python3 -B tools/build.py --kernel-feature test-smp-proc-shootdown-deaf && python3 -B -u tools/run_smp.py --profile test-smp-proc-shootdown-deaf`.
++
++## Historisch checkpoint — K06 stap 5c-2, BSP-timer, PIT-klok, idle en reschedule-vlag (ADR-080) — 6 november 2026
++
++**Bron:** `5020b904` op `feat/k06-5c2-bsp-timer` (worktree `nieuw-os-k06-5c2`), gestapeld op
++`feat/k06-5b2-kernel-lock` (`068fd857`, met F3/F4, F16/F17 en F19/F15). Taakspec:
++`docs/implementation/k06-steps/06-5c-2-bsp-timer-idle.md`; ontwerp ADR-080. **41 → 41/100**;
++K06 blijft open.
++
++**Vastgesteld:** `native-smp` sluit M3 uit, dus daar bestonden geen PIC-programmering en geen Sys3;
++de BSP draaide volledig met IF=0. De PIT-IRQ0-klok is daarom in `native-smp` zelf gebouwd.
++
++**Gerealiseerd:** BT-1: `bsp_timer_init` (vóór `GO`) remapt de 8259 (alleen IRQ0 → 0x20), PIT-kanaal
++0 op ~1 kHz, IRQ0-stub telt `CLOCK_TICKS` en stopt bij een AP. BT-2: 0xd0 op de BSP (deler 16),
++INV-5c-uitstel en `bsp_switch`; `CpuLocal.irq_ready`; vensterpredicaat in `lock.rs`
++`level <= ASPACE && irq_depth == 0 && irq_ready`. BT-3: `idle_halt` (lege lockdep, kernel-CR3).
++BT-4 (F11): 0xe8 telt `resched_count` en zet `need_resched`, geen tick meer; een uitgestelde 0xe8
++wordt bij de release van de laatste lock een self-0xe8 (`resched_on_release`). BT-5 (F9):
++LAPIC/PIT- en TSC-kalibratie, `SMP:TIMER:RATIO`, band [50 000, 75 000] vooraf in ADR-080. BT-6:
++contract kernelthreads in ADR-080. Fixtures `SMP:CLOCK`, `SMP:BSP_PREEMPT`, `SMP:BSP_SPIN`,
++`SMP:IDLE:WAKE_US` + `SMP:IDLE` (na SPIN, vóór SCHED); controle `test-smp-bsp-spin-irq-off`, ook in
++`native-smp.yml`.
++
++**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `412e6740…`):** zie
++`docs/verification/k06-5c2-bsp-timer/`. SMP 28/28 over 23 profielen (ratio 62 559–62 871,
++wake 39–248 µs); rode mutant zonder release-hook → `SMP:IDLE:RESCHED_LOST`.
++M2 8/8 en M3 22/22, rtc 5/5, K05 6/6; `cargo test -p smp-lock` 24+1, `-p boot-protocol` 28,
++clippy en fmt schoon, oracle 16/16, GS-lint 8/8; `tools/gate.sh` exit 0 (518 geslaagd, 1 ignored;
++QEMU-smoke-script ontbreekt).
++**Niet uitgevoerd:** CI op de gestapelde PR, hardware, M4 (pad-bug, #235), kernel-clippy (faalt al
++op de basis, geen nieuwe meldingen).
++
++**Open:** `ADOPTED` (ADR-079) wacht nog steeds op een BSP-runqueue (5d-2 of 5f); TSC als constant
++aangenomen (hardware: invariant-TSC-controle); de klokafwijking wordt bij PASS niet gelogd.
++Volgende stap: 07 (5e, procesbrede shootdown op `active_cpus`).
++**Eerstvolgend commando:**
++`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-bsp-spin-irq-off"; python3 -B tools/build.py --kernel-feature test-smp-bsp-spin-irq-off && python3 -B -u tools/run_smp.py --profile test-smp-bsp-spin-irq-off`.
++
++## Historisch checkpoint — K06 F19/F15, ICR-lock per CPU en quarantaine stopt bij een gehouden lock (ADR-079) — 6 november 2026
++
++**Bron:** branch `fix/k06-f19-f15-icr-quarantine` (worktree `nieuw-os-k06-f19`), gestapeld op
++`feat/k06-5b2-kernel-lock` (`81b648ba`, met F16/F17 uit #239). Taakspec:
++`docs/implementation/k06-steps/05-F19-F15-icr-quarantine.md`; ontwerp ADR-079. **41 → 41/100**;
++K06 blijft open.
++
++**Gerealiseerd:** IQ-1: `CpuLocal.icr` (niveau 60, irqsave) om idle-wacht, ICR-hoog, ICR-laag en
++afsluitende wacht in `send_ipi`. IQ-2: `IrqLock.owner` (CPU-index of `FREE`) en `owner()`/`level()`.
++IQ-3: `quarantine_all` controleert eerst alle AP's, daarna per AP `quarantine_cpu`: controle →
++INIT → 1 ms → hercontrole → READY-threads naar `ADOPTED`, de lopende thread `crash`
++(`kill_request`). Een gehouden KERNEL/RUNQ geeft `SMP:QUARANTINE:LOCK_HELD:<niveau>:CPU=<n>` en
++een stop. IQ-4: `quarantine_cpu` op een AP stopt. Native fase `icr` na LOCKPAIR:
++`SMP:ICR:PASS:ROUNDS=10000:CPUS=n` (onder twee AP's `SKIPPED`). Nieuwe profielen
++`test-smp-icr-race` en `test-smp-quarantine-lock-held`, ook in `native-smp.yml`.
++
++**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `dc44d588…`):** zie
++`docs/verification/k06-f19f15-icr/`. SMP 27/27 over 22 profielen, alle bestaande dove-AP-profielen
++ongewijzigd. M2 8/8 en M3 22/22, rtc, K05, K07;
++`cargo test -p smp-lock` 24+1, clippy en fmt schoon, oracle 15/15, GS-lint 8/8; `tools/gate.sh` exit 0
++(518 geslaagd, 1 ignored; QEMU-smoke-script ontbreekt).
++**Niet uitgevoerd:** CI op de gestapelde PR, hardware, M4 (pad-bug, #235).
++
++**Open:** een AP die als *wachter* in een ticketlock sterft, wordt door IQ-3 niet gezien
++(alleen eigenaren); `ADOPTED` wacht op de BSP-runqueue (5c-2); de K05-route bij een crash geldt
++pas voor ring-3-threads (5d-2); ASPACE/FRAMES/SHOOTDOWN moeten in `held_by` zodra ze locks zijn;
++of een AP in 08 zelf een shootdown start (IQ-4). Volgende stap: 06 (5c-2, BSP-timer en idle).
++**Eerstvolgend commando:**
++`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-quarantine-lock-held"; python3 -B tools/build.py --kernel-feature test-smp-quarantine-lock-held && python3 -B -u tools/run_smp.py --profile test-smp-quarantine-lock-held`.
++
++## Historisch checkpoint — K06 F16/F17, blokkeren, wekken en doden zonder lost-wakeup (ADR-078) — 6 november 2026
++
++**Bron:** `880d6d74` op `fix/k06-f16-f17-sched-protocol` (worktree `nieuw-os-k06-f16`), gestapeld op
++`feat/k06-5b2-kernel-lock` (#234, `59476e17`, met F3/F4 uit #237). Taakspec:
++`docs/implementation/k06-steps/04-F16-F17-block-wake-kill.md` (branch `docs/k06-step-specs`);
++ontwerp ADR-078. **41 → 41/100**; K06 blijft open.
++
++**Gerealiseerd:** `smp_lock::sched` met READY/RUNNING(cpu)/BLOCKING/READY_PENDING/BLOCKED/
++DEAD_PENDING/DEAD en `block_prepare`/`block_commit`/`wake`/`kill_request`/`kill_commit` (elk één
++atomaire stap). `RunQueue::push`/`pop` beheren een gedeelde `queued`-bit; een tweede push geeft
++`SMP:SCHED:DOUBLE_ENQUEUE`. `sched_switch` gebruikt `leave`/`pick`: READY_PENDING → requeue,
++BLOCKING → BLOCKED, DEAD_PENDING → terug in de eigen queue en DEAD bij een latere wissel zodra
++`on_cpu` gewist is. De thuislus is de idle-thread (BW-4). `SHOOTDOWN_DEADLINE_MS` (100 ms) wordt
++gedeeld door shootdown en kill. Native fase `block_wake_kill` na SCHED: `SMP:WAKE:PASS`
++(10.000 ping-pongrondes onder KERNEL) en `SMP:KILL:PASS`, of `…:SKIPPED:CPUS=1` zonder AP's.
++`test-smp-double-run` stopt nu bij de push; nieuw `test-smp-resched-deaf`.
++
++**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `01daa964…`):** zie
++`docs/verification/k06-f16f17-sched/`. SMP 25/25 over 20 profielen; M2 8/8 en M3 22/22, rtc, K05,
++K07; `cargo test -p smp-lock` 24+1 (uitputtende interleavingmodellen met mutanten), clippy en fmt
++schoon, oracle 13/13, GS-lint 8/8; `tools/gate.sh` exit 0 (518 geslaagd, 1 ignored;
++QEMU-smoke-script ontbreekt).
++**Afwijking van de spec:** geen loom (33 crates, `generator 0.8.12` vereist Rust 1.95 > 1.90). De
++modellen dekken alleen SC-uitvoeringen. **Niet uitgevoerd:** loom, M4 (pad-bug, #235), CI op de
++gestapelde PR, hardware.
++
++**Open:** loom (F-T1), echte IPC-wachtrijen (08), migratie (09), INV-5-beleid met vastgehouden
++locks (05). Volgende stap: 05 (F19/F15, ICR-lock en quarantainebeleid) of 06 (5c-2).
++**Eerstvolgend commando:**
++`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-resched-deaf"; python3 -B tools/build.py --kernel-feature test-smp-resched-deaf && python3 -B -u tools/run_smp.py --profile test-smp-resched-deaf`.
++
++## Historisch checkpoint — K06 F3/F4, lockdep met handlercontext en lockparen (ADR-077) — 6 november 2026
++
++**Bron:** `394bba37` op `fix/k06-f3-f4-lockdep` (worktree `nieuw-os-k06-f3f4`), gestapeld op
++`feat/k06-5b2-kernel-lock` (#234, `de7a07b5`). Taakspec: `docs/implementation/k06-steps/02-F3-F4-lockdep-context.md`
++(branch `docs/k06-step-specs`); ontwerp ADR-077. **41 → 41/100**; K06 blijft open.
++
++**Gerealiseerd:** LD-1: `CpuLocal.irq_depth`, opgehoogd na `gs_entry!` en verlaagd vóór
++`gs_exit!` in de stubs 0xf0/0xe0 en het timerlichaam (0xd0/0xe8). KERNEL/ASPACE in een handler
++geeft `SMP:LOCKDEP:IN_HANDLER:<niveau>`. LD-2: het venster alleen bij diepte 0. LD-3/LD-4:
++`Lockdep` met per niveau een teller (0/1/2) en sleutels, `acquire`/`acquire_paired`/`release`
++met sleutel en `IrqLock::keyed` + `lock_pair` (oplopende sleutel, `(low, high)`). `RUNQ` heeft
++nu sleutel = CPU-index. Volledige staat per CPU in `lock::LockdepCell`; het `AtomicU64` blijft
++als spiegel. Fixture `SMP:LOCKPAIR:PASS:CPUS=n` en controles `test-smp-lock-in-handler` en
++`test-smp-lockpair-order`; GS-lint controleert de teller.
++
++**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG, bron `5ea3759b…`):** zie
++`docs/verification/k06-f3f4-lockdep/`. SMP 24/24 over 19 profielen; M2 8/8 en M3 22/22, rtc, K05,
++K07; `cargo test -p smp-lock` 18 (incl. propertytest), clippy en fmt schoon, oracle 13/13, GS-lint
++8/8; `tools/gate.sh` exit 0 (511 geslaagd, 1 ignored; QEMU-smoke-script ontbreekt).
++**Niet uitgevoerd:** loom-model van `TicketLock` (nieuwe dependency nog niet getoetst), M4
++(pad-bug, #235), CI op de gestapelde PR, hardware.
++
++**Open:** loom (F-T1), ASPACE-paren nog zonder echte IPC-gebruiker (komt met 5d-2/IPC op SMP).
++Volgende stap: 03 (F5/F7, begrensde spin in release en SERIAL-lock) of 05 (F19/F15).
++**Eerstvolgend commando:**
++`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-lock-in-handler"; python3 -B tools/build.py --kernel-feature test-smp-lock-in-handler && python3 -B -u tools/run_smp.py --profile test-smp-lock-in-handler`.
++
++## Historisch checkpoint — K06 stap 5b-2, KERNEL-lock en scratchslot per CPU (ADR-075) — 6 november 2026
++
++**Bron:** `48dcae6a` op `feat/k06-5b2-kernel-lock` (worktree `nieuw-os-k06-5b2`), gestapeld op
++`fix/k06-f8-swapgs` (#231, `7ffdacfa`). Taakspec: `docs/implementation/k06-steps/01-5b-2-kernel-lock-scratch.md`
++(branch `docs/k06-step-specs`); ontwerp ADR-075. **41 → 41/100**; K06 blijft open.
++
++**Gerealiseerd:** `lock::KERNEL` met `kernel_held()`; `lock.rs` bouwt ook voor M3, met een
++lockdep-woord voor één CPU. `m3_event` neemt KERNEL na de CS-check en geeft hem vrij vlak vóór
++de stub. `m3::start`/`complete_round` hervatten via `resume()`, dat KERNEL eerst vrijgeeft: de
++guard staat in een slot dat de lock zelf beschermt, want `complete_round` springt naar ring 3
++zonder af te wikkelen. SAFETY-teksten in `m3.rs` en `m3/*.rs` noemen KERNEL als grond.
++`SCRATCH_ENTRY` is per CPU (`SCRATCH + i·4096`, 8 slots, dezelfde PT). De audit slaat alleen
++het actieve slot van de lezende CPU over. Native fixture `SMP:SCRATCH:PASS` en controle
++`test-smp-shared-scratch` (`SMP:SCRATCH:CROSS:CPU=n`; een #PF op het gedeelde slot telt mee).
++
++**Bewijs (lokaal, QEMU 10.2.1/OVMF/TCG):** zie `docs/verification/k06-5b2-kernel-lock/`. Volledige
++SMP-matrix 17 profielen op `48dcae6a`; controle 12/12 rood zoals bedoeld. Eén-CPU-regressie
++(op de werkboom van `f6912a63` vóór fmt; daarna zijn alleen opmaak en een
++controle-only-cfg in `smp.rs` veranderd): `test_milestones.py --through m4` (M2 8/8, M3 22/22,
++M4 12/12), `test_supervisor.py` (K05 6 stappen), `test_resource_pressure.py` (K07),
++`run_rtc.py --case all` 5/5, `run_ipc_wait.py`, `run_fpu.py` en `test-fpu-wait`;
++`test_memory_system.py` op de schone commit. Alle 198 kernelprofielen uit `build.py` bouwen
++(de update-profielen met `--image-version 2`). `tools/gate.sh` exit 0 (507 geslaagd, 1 ignored).
++`cargo fmt --check` (workspace en kernel) en clippy `smp-lock -D warnings` zijn schoon,
++`test_smp_serial.py` 11/11. **Niet uitgevoerd:** `native-smp.yml`/CI op de PR (een gestapelde
++base draait geen native-smp-CI), fysieke hardware. `tools/test_milestones.py:160` heeft een
++hardgecodeerd `build/users`-pad, waardoor M4 faalt met een eigen `NOS_BUILD_DIR` (losse taak).
++
++**Open:** idle (`sti; hlt`) staat nog binnen de KERNEL-sectie (5c-2) en M3 op AP's (5d-2). De
++500-ms-deadline begint na het BSP-deel. Fijnmazige locks vallen buiten K06. Volgende stap:
++5c-2 (BSP-timer en idle), daarna 5d-2.
++**Eerstvolgend commando:**
++`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-shared-scratch"; python3 -B tools/build.py --kernel-feature test-smp-shared-scratch && python3 -B -u tools/run_smp.py --profile test-smp-shared-scratch`.
++
++## Historisch checkpoint — K06 auditbevinding F8 (`swapgs`-discipline, ADR-076) — 6 november 2026
++
++**Bron:** `91e84b75` op `fix/k06-f8-swapgs` (worktree `nieuw-os-k06-f8`), gestapeld op
++`fix/k06-f1-f2-lifo-oncpu` (#230, `5dccf290`). Ontwerp: ADR-076, K06-SMP.md INV-8 (GS-1..GS-10).
++**41 → 41/100**; K06 blijft open.
++
++**Gerealiseerd:** `arch::gs_entry!`/`gs_exit!` (één definitie) in de stubs 0xd0/0xe0/0xe8/0xf0 en
++`m3_restore`. In `m2_exception_common` dezelfde proloog met de GS-7-fixup voor een faulting
++`iretq`. NMI/#DF/#MC lopen via `m2_exception_paranoid` (GS-vrij, terminaal). GS-10-check op de BSP.
++Ring-3-GS-fixture `test-smp-gs-{user,iret-fault,nmi-user}` en statische lint
++`tools/tests/test_gs_discipline.py`.
++
++**Bewijs (lokaal, native QEMU 10.2.1/OVMF/TCG):** eerst rood: `c2f1bed0` geeft `SMP:GS:HIJACK`.
++Groen: 21/21 SMP-gevallen over 16 profielen, M2-gate, K05 6/6, native-fpu en fpu-wait. Een
++mutant zonder GS-7 laat N2 falen. Zie `docs/verification/k06-f8-swapgs/`. `tools/gate.sh` exit 0
++(507 geslaagd, 1 ignored; QEMU-smoke-script ontbreekt). Clippy schoon voor `smp-lock` en
++`boot-protocol`.
++**Niet uitgevoerd/open:** CI (een gestapelde base start `native-smp.yml` niet), hardware,
++speculatie (alleen statisch). Kernel-clippy `-D warnings` faalt al vóór deze wijziging
++(paging/main/serial). Afwijkingen: N2 via SS=0x13 (TCG controleert canonieke RIP bij `iretq`
++niet); VA 0 niet user-gemapt.
++
++**Open uit de audit:** 5b-2/F20, F3, F4, F16, F17, F19, F15, het selectorlek (vóór 5d-2) en
++SMEP/SMAP; daarna 5c-2, 5e, 5d-2 en 5f.
++**Eerstvolgend commando:**
++`export NOS_TARGET_DIR="$PWD/target/smp-native" NOS_BUILD_DIR="$PWD/build/k06-test-smp-gs-user"; python3 -B tools/build.py --kernel-feature test-smp-gs-user && python3 -B -u tools/run_smp.py --profile test-smp-gs-user`.
++
++## Historisch checkpoint — K06 auditfixes F1 (on_cpu) en F2 (LIFO-lockdep) — 6 november 2026
++
++**Bron:** `600cee93` op `fix/k06-f1-f2-lifo-oncpu` (worktree `nieuw-os-k06-5d`), gestapeld op
++`feat/k06-5d-runqueues` (`76c67f22`). Ontwerp: aanvulling "auditfixes F1/F2" in ADR-074.
++**41 → 41/100**; K06 blijft open.
++
++**Gerealiseerd:** F2: `Lockdep::release` eist LIFO; een release buiten volgorde geeft
++`SMP:LOCKDEP:LIFO:<held>-><released>` en stopt, vóórdat IF wordt hersteld. F1: vlag
++`THREAD_ON_CPU` per thread, gewist door de timerstub na `mov rsp` (`Resume` in RAX:RDX).
++`sched_switch` claimt de vlag met een CAS en wacht nooit; bij een mislukte claim gaat de thread
++terug in de queue en draait de CPU thuis.
++
++**Bewijs (lokaal, native QEMU 10.2.1/OVMF/TCG):** 18/18 over 13 SMP-profielen; herhaald
++`double-run` 10/10 en `four`/`eight`/`two-single` elk 5/5. Zie
++`docs/verification/k06-audit-f1-f2/`. `tools/gate.sh` exit 0 (507 geslaagd, 1 ignored; de
++gate bouwt de native-smp-kernel niet en de QEMU-smoke ontbreekt). Hosttests
++`lockdep_rejects_out_of_order_release` en `stack_is_never_shared_after_early_ready`.
++**Niet uitgevoerd:** CI op de PR (een gestapelde base start `native-smp.yml` niet), en een native
++negatief profiel voor LIFO of de F1-race.
++
++**Open uit de audit:** F8 (GS-anker of `swapgs`, blokkeert ring 3), 5b-2/F20, F3, F4, F16, F17,
++F19 en F15; daarna 5c-2, 5e, 5d-2 en 5f.
++**Eerstvolgend commando:**
++`export NOS_TARGET_DIR="$PWD/target/k06" NOS_BUILD_DIR="$PWD/build/k06-native-smp"; python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
++
++## Historisch checkpoint — K06 stap 5d-1, runqueues per AP en CR3-wissel — 6 november 2026
++
++**Bron:** `7079f788` op `feat/k06-5d-runqueues` (worktree `nieuw-os-k06-5d`), gestapeld op
++#228 (5c, `b593930c`) en #227 (5b). Taakspec: `/tmp/task_spec_5d.md` (lokaal); ontwerp:
++aanvulling stap 5d-1 in ADR-074. **41 → 41/100**; K06 blijft open.
++
++**Splitsing:** 5d uit spec §8 vraagt ook ring-3-processen op AP's. Dat kan pas na 5b-2
++(KERNEL-lock om M3, scratchslot per CPU); anders muteren twee CPU's de M3-staat en het ene
++scratchslot tegelijk (INV-2). Daarom: 5d-1 (dit) en 5d-2 (ring-3 op AP's, poort K05 6/6 op
++4 vCPU's).
++
++**Gerealiseerd:** `smp_lock::sched` (RunQueue en threadstatus-CAS, INV-3). `sched_switch`
++draait in het timerpad ná het 5c-uitstel; CR3-wissel volgens §6.3 met `ACTIVE` (INV-4);
++wekvector 0xe8. Fixture `SMP:SCHED:PASS:CPUS=n` met 2 kernelthreads per AP in twee
++adresruimten, de tweede cross-CPU gewekt. Negatief profiel `test-smp-double-run` →
++`SMP:SCHED:DOUBLE_RUN`.
++
++**Bewijs (lokaal, native QEMU 10.2.1/OVMF/TCG):** 18/18 gevallen over 13 SMP-profielen,
++zie `docs/verification/k06-smp-sched/`. `tools/gate.sh` exit 0 (505 geslaagd, 1 ignored;
++QEMU-smoke ontbreekt in de repo), M2-gate geslaagd, `test_smp_serial.py` 9/9, fmt en clippy
++schoon. **Niet uitgevoerd:** CI (`native-smp.yml`) op de PR, en K05 op meerdere vCPU's
++(hoort bij 5d-2).
++
++**Open:** 5b-2, 5c-2, daarna 5d-2 (ring-3 op AP's, FXSAVE in de wissel), 5e en 5f.
++**Eerstvolgend commando:**
++`export NOS_BUILD_DIR="$PWD/build/k06-native-smp"; python3 -B tools/build.py --kernel-feature native-smp && python3 -B -u tools/run_smp.py --profile native-smp`.
++
++## Historisch checkpoint — K06 stap 5c, geen preëmptie met een actieve lock — 6 november 2026
++
++**Bron:** `bdcced5e` op `feat/k06-5c-preempt-lock`, gestapeld op 5b (`b7cb7ce7`, PR #227).
++Taakspec: `/tmp/task_spec_5c.md` (lokaal); ontwerp: aanvulling stap 5c in ADR-074.
++**41 → 41/100**; K06 blijft open.
++
++**Gerealiseerd:** `smp_preempt` stelt een tick uit (`CpuLocal.deferred`) zolang de
++lockdepset van de CPU niet leeg is, dus zolang een KERNEL/ASPACE-lock wordt vastgehouden
++of in het 5b-venster bewaakt. Dat geldt ook voor STOP. Een wissel met een niet-lege set
++geeft `SMP:LOCKDEP:HELD_ACROSS_SWITCH` en stopt. Native fixture in `SMP:PREEMPT:PASS`:
++de BSP houdt een lock op KERNEL-niveau terwijl de draaiende thread op elke AP erop wacht.
++Eis: `deferred` stijgt, `switches` blijft staan en hervat na het vrijgeven. Het negatieve
++profiel `test-smp-held-across-switch` moet de marker geven, met exit 0x10.
++
++**Bewijs (lokaal):** `tools/gate.sh` exit 0 (502 geslaagd, 1 ignored, 34 s),
++`test_smp_serial.py` 8/8, `cargo fmt --check` (workspace en kernel) schoon, clippy
++`smp-lock -D warnings` schoon. Kernelbuilds `native-smp`, `test-smp-held-across-switch`
++en `milestone-m2` slagen. **Niet uitgevoerd:** native QEMU (geen QEMU in deze
++WSL-omgeving), dus `native-smp.yml` op de PR.
++**Native (later, QEMU 10.2.1 + OVMF van de host, `tools/run_smp.py`):** `native-smp` 6/6
++(one, two-single, four, eight, nine-capacity, duplicate-madt), `test-smp-held-across-switch`
++1/1 (marker, raw 33), `test-smp-lockdep-order` 1/1 en `test-smp-spin-irq-off` 1/1
++(`SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=1` + quarantaine). Rapporten in `build/k06-*/smp-report.json`
++(lokaal, niet in Git). Een fout die de 5d-sessie vond: zonder IF-venster kreeg de 5c-fixture in
++`test-smp-spin-irq-off` nooit een tick (`SMP_PREEMPT_LOCK_NO_TICK`). Opgelost: dat controleprofiel
++slaat de fixture over.
++
++**Open:** 5b-2 (KERNEL-lock om M3-syscalls, scratchslot per CPU, ADR-075), 5c-2
++(BSP-LAPIC-timer + idle `sti; hlt`, BSP-venster), en daarna 5d t/m 5f. Er is nog geen
++runtimecheck dat handlers geen KERNEL/ASPACE nemen.
++**Eerstvolgend commando:**
++`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-held-across-switch"; python3 -B tools/build.py --kernel-feature test-smp-held-across-switch && python3 -B -u tools/run_smp.py --profile test-smp-held-across-switch`.
++
++## Historisch checkpoint — K06 stap 5b, gecontroleerd spinnen met IF=1 — 6 november 2026
++
++**Bron:** `5481d407` op `feat/k06-5b-spin-irq` (main `5ae0757d` met #225 = 5a, plus de
++lokale `tools/gate.sh`). Taakspec: `/tmp/task_spec_5b.md` (lokaal); ontwerp:
++aanvulling stap 5b in ADR-074. **41 → 41/100**; K06 blijft open.
++
++**Gerealiseerd:** `TicketLock::lock_with` (onbegrensd met relax). `IrqLock` opent voor
++KERNEL/ASPACE op AP's een venster `sti; pause; cli` tussen pollingen. Daarnaast een native
++fixture na PREEMPT: de BSP houdt een KERNEL-lock vast terwijl elke AP met IF=0 wacht, en eist
++een shootdown-ack (`SMP:SPIN:PASS`). Het dove controleprofiel `test-smp-spin-irq-off`
++moet `SMP:SPIN:SHOOTDOWN_TIMEOUT:APIC=1` geven, gevolgd door quarantaine.
++
++**Bewijs (lokaal):** `tools/gate.sh` exit 0 (502 geslaagd, 1 ignored), `test_smp_serial.py`
++7/7, `cargo fmt --check` (workspace en kernel) schoon, clippy `smp-lock -D warnings` schoon.
++Kernelbuilds `native-smp`, `test-smp-spin-irq-off`, `test-smp-lockdep-order` en
++`milestone-m2` slagen. **Niet uitgevoerd:** native QEMU (geen QEMU in deze WSL-omgeving),
++dus `native-smp.yml` op de PR. De bredere `tools/tests`-discovery geeft 2 importfouten
++(`test_tpm`, `test_materiaal_cold`); die staan er ook zonder deze wijziging.
++
++**Open:** voordat een timer wordt gewapend op een CPU die KERNEL/ASPACE neemt, moet de
++preëmptie worden uitgesteld zolang lockdep niet leeg is. Er is nog geen runtimecheck dat
++handlers geen KERNEL/ASPACE nemen. Volgende stap: 5b-2 (KERNEL-lock om M3-syscalls,
++scratchslot per CPU, ADR-075), daarna 5c t/m 5f.
++**Eerstvolgend commando:**
++`export NOS_BUILD_DIR="$PWD/build/k06-test-smp-spin-irq-off"; python3 -B tools/build.py --kernel-feature test-smp-spin-irq-off && python3 -B -u tools/run_smp.py --profile test-smp-spin-irq-off`.
++
++## Historisch checkpoint — K06 stap 5a, ticketlock, irqsave en lockdep — 6 november 2026
+ 
+ **Bron:** branch `feat/k06-5a-ticketlock-lockdep` op main `2c7edaf5`; spec
+ `docs/implementation/K06-SMP.md` (§4, stap 5a). **41 → 41/100**; K06 blijft open.
+diff --git a/docs/assets/progress.svg b/docs/assets/progress.svg
+index d29c5f44..094f5997 100644
+--- a/docs/assets/progress.svg
++++ b/docs/assets/progress.svg
+@@ -1,11 +1,11 @@
+ <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 226" role="img" aria-labelledby="title description">
+   <title id="title">Nieuw OS: 41% van de vaste productroadmap</title>
+-  <desc id="description">41 van 100 gewogen acceptatiepunten. Nul is niet begonnen; honderd is een volwaardig zelfstandig OS op ondersteunde hardware. Beoordeeld op 2026-11-06. Geen tijds- of veiligheidsscore.</desc>
++  <desc id="description">41 van 100 gewogen acceptatiepunten. Nul is niet begonnen; honderd is een volwaardig zelfstandig OS op ondersteunde hardware. Beoordeeld op 2026-11-07. Geen tijds- of veiligheidsscore.</desc>
+   <rect width="960" height="226" rx="16" fill="#f4f1eb"/>
+   <text x="48" y="40" fill="#45504c" font-family="system-ui,sans-serif" font-size="14" font-weight="600" letter-spacing="2">NIEUW OS · EIGEN KERNEL · EIGEN PRODUCT</text>
+   <text x="48" y="104" fill="#173e34" font-family="system-ui,sans-serif" font-size="56" font-weight="700">41%</text>
+   <text x="238" y="78" fill="#173e34" font-family="system-ui,sans-serif" font-size="21" font-weight="600">Van eigen kern naar dagelijks bruikbaar OS</text>
+-  <text x="238" y="105" fill="#45504c" font-family="system-ui,sans-serif" font-size="15">41 / 100 acceptatiepunten · herbeoordeeld 2026-11-06</text>
++  <text x="238" y="105" fill="#45504c" font-family="system-ui,sans-serif" font-size="15">41 / 100 acceptatiepunten · herbeoordeeld 2026-11-07</text>
+   <rect x="66" y="136" width="828" height="19" rx="9.5" fill="#d5ddd5"/>
+   <rect x="66" y="136" width="339.48" height="19" rx="9.5" fill="#207459"/>
+   <g fill="#45504c" font-family="system-ui,sans-serif" font-size="13" text-anchor="middle">
+diff --git a/docs/implementation/K06-SMP.md b/docs/implementation/K06-SMP.md
+index 47d53527..7bdd525e 100644
+--- a/docs/implementation/K06-SMP.md
++++ b/docs/implementation/K06-SMP.md
+@@ -74,6 +74,23 @@ Elke invariant heeft een weerlegging; de weerlegging wordt een negatieve test (
+ - **INV-7 Geen lock over een contextwissel.** Bij een wissel houdt een CPU geen lock vast,
+   behalve de runqueue-overdracht uit §6.3. Er is geen lock die een thread kan vasthouden
+   terwijl hij geparkeerd is.
++- **INV-8 GS-discipline (ADR-076, auditbevinding F8).** Elke kernelentry vanuit CPL3 gebruikt
++  het GS-anker pas na `swapgs` en `lfence`; ring 3 kan GS_BASE nooit in kernelcontext brengen.
++  - GS-1: tussen proloog en epiloog bevat GS_BASE het anker van deze CPU en KERNEL_GS_BASE de
++    gebruikerswaarde; in CPL3 andersom.
++  - GS-2: `swapgs` alleen als `CS & 3 == 3` in het frame van díe entry, of van het frame dat
++    `iretq` herstelt.
++  - GS-3: hoogstens één entry-`swapgs`.
++  - GS-4: geen `gs:`, `call` of Rust vóór de proloog.
++  - GS-5: `lfence` op het join-punt.
++  - GS-6: NMI/#DF/#MC nooit `swapgs` of GS; terminaal, de CPU volgt uit het IST-adres.
++  - GS-7: een frame-RIP op een `nos_iret_user_*`-label (een faulting `iretq`) swapt ook.
++  - GS-8: IF=0 van de exit-`swapgs` tot `iretq`.
++  - GS-9: geen `mov gs` of GS-MSR-schrijfactie na de init.
++  - GS-10: CR4.FSGSBASE=0 en EFER.SCE=0.
++
++  *Weerlegd als* een IPI, tick of exception vanuit CPL3 met een door ring 3 gekozen GS_BASE
++  ergens anders telt of schrijft dan in het eigen `CpuLocal` (§9 test 15–17).
+ 
+ ---
+ 
+@@ -93,7 +110,11 @@ bringup doen.
+ 4. **Nieuw:** LAPIC-timer op de BSP met dezelfde vector 0xd0 en dezelfde deler als de AP's.
+    De PIT-IRQ0 blijft **alleen op de BSP** de bron van de monotone klok (ADR-045 Sys3,
+    ADR-053). De LAPIC-timer levert alleen preëmptieticks en wordt niet als klok gebruikt.
+-   [te verifiëren: de huidige IRQ0-route (8259 of IOAPIC) en of die gemaskeerd naar AP's blijft]
++   **Geverifieerd en gebouwd (stap 5c-2, ADR-080):** `native-smp` sluit M3 uit, dus daar bestond
++   geen PIC-programmering of Sys3. `bsp_timer_init` remapt de 8259 naar 0x20/0x28 (alleen IRQ0
++   open), zet PIT-kanaal 0 op ~1 kHz en levert via LINT0 (ExtINT) alleen aan de BSP; AP's maskeren
++   LINT0. De IOAPIC wordt niet gebruikt. Daarbij: kalibratie LAPIC/PIT (`SMP:TIMER:RATIO`, band in
++   ADR-080), `irq_ready` op de BSP en de idle-context (`idle_halt`).
+ 5. Daarna pas de M3-init (procestabel, manifest, eerste processen) **onder de kernellock** (§4).
+ 6. BSP zet IF=1 alleen in user mode en in de idle-lus (`sti; hlt; cli`, het bestaande
+    ADR-053-patroon). Kernelcode draait verder met IF=0, behalve waar §4.3 dat toestaat.
+@@ -109,7 +130,8 @@ bringup doen.
+ 
+ | Vector | Doel | Ontvanger |
+ |---|---|---|
+-| 0x20 (of de bestaande IRQ0-vector) [te verifiëren] | PIT, monotone klok | alleen BSP |
++| 0x20 | PIT-IRQ0 via de 8259 (ExtINT op LINT0), monotone klok (ADR-080) | alleen BSP |
++| 0x27 | spurious IRQ7 van de 8259 | alleen BSP |
+ | 0xd0 | LAPIC-timer, preëmptie | alle CPU's |
+ | 0xe0 | TLB-shootdown | doel-CPU's uit `active_cpus` of alle online |
+ | 0xe8 | **nieuw:** reschedule/kill-IPI | één doel-CPU |
+@@ -199,7 +221,7 @@ omgekeerde volgorde en moet die marker geven (§9).
+ 
+ ---
+ 
+-## 5. Herziening ADR-024 (voorgesteld als ADR-074)
++## 5. Herziening ADR-024 (vastgelegd als ADR-075, stap 5b-2)
+ 
+ ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
+ 
+@@ -229,9 +251,12 @@ ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
+ 
+ - `PerCpu { index, apic_id, runq: RUNQ lock<FixedQueue<Tid, N>>, current: Option<Tid>,
+   idle_tid, scratch_va, tss, lockdep, need_resched: AtomicBool, timer_ticks: AtomicU64 }`
+-  via het GS-anker.
+-- `Thread { tid, pid, state: AtomicU8 {READY, RUNNING(cpu), BLOCKED, DEAD}, home_cpu,
+-  kstack, fxsave: [u8; 512] align 16, gpr_frame }`.
++  via het GS-anker. De idle-thread is de thuislus van de CPU (`sti; hlt; cli`, stap 6.3.9;
++  in de fixture `CpuLocal.saved[0]`); hij staat nooit in een queue (BW-4, ADR-078).
++- `Thread { tid, pid, state: AtomicU32 {READY, RUNNING(cpu), BLOCKING, READY_PENDING, BLOCKED,
++  DEAD_PENDING, DEAD}, queued: AtomicBool, home_cpu, kstack, fxsave: [u8; 512] align 16,
++  gpr_frame }`. Overgangen alleen via `smp_lock::sched` (één atomaire stap per functie,
++  ADR-078); `queued` wordt gezet door `RunQueue::push` en gewist door `pop` (BW-2).
+   [te verifiëren: hoe de huidige M3-procesentry thread en proces combineert; dit wordt
+   één thread per proces zolang M3 geen threads heeft]
+ - `Process.active_cpus: AtomicU64` (bit per CPU-index; `MAX_CPUS = 8` past ruim).
+@@ -255,9 +280,13 @@ ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
+ 2. `held_mask` moet leeg zijn (lockdep).
+ 3. FXSAVE van de huidige thread `T` naar `T.fxsave` (ADR-045: na de laatste Rust-code van de
+    oude context, vóór de CR3-selectie).
+-4. `lock_irqsave(RUNQ[c])`; `T.state`: RUNNING(c) → READY (in de queue) of BLOCKED/DEAD
+-   (niet in de queue). Kies de volgende `U` (round-robin); `U.state` READY → RUNNING(c)
+-   met `compare_exchange` (INV-3; mislukt het, dan volgt `SMP:SCHED:DOUBLE_RUN` en stop).
++4. `lock_irqsave(RUNQ[c])`; `T.state`: RUNNING(c) → READY (in de queue), BLOCKING → BLOCKED
++   (niet in de queue), READY_PENDING → READY (in de queue) of DEAD_PENDING (terug in de queue,
++   om bij een latere wissel te worden opgeruimd; §6.4). Kies de volgende `U` (round-robin);
++   `U.state` READY → RUNNING(c) met `compare_exchange` (INV-3; mislukt het, dan volgt
++   `SMP:SCHED:DOUBLE_RUN` en stop). Een gepopte DEAD_PENDING-thread wordt DEAD zodra geen CPU
++   meer op zijn stack staat, anders weer in de queue. Een tweede push van een thread die al in
++   een queue staat geeft `SMP:SCHED:DOUBLE_ENQUEUE` en stop (BW-2).
+ 5. **Adresruimtewissel:** als `U.pid != T.pid`:
+    a. `U.process.active_cpus.fetch_or(1<<c, SeqCst)` **vóór** de CR3-load;
+    b. `mov cr3, U.process.cr3`;
+@@ -273,20 +302,34 @@ ADR-024 eist zelf een herziening "bij SMP". Voorgestelde nieuwe tekst:
+ 
+ ### 6.4 Wekken en kill over CPU's heen
+ 
++- **Blokkeren in twee fasen (BW-1, ADR-078).** De thread zelf: `block_prepare`
++  (RUNNING(c) → BLOCKING) vóórdat of terwijl hij zijn wachtvoorwaarde controleert onder de lock
++  van de waker; daarna de lock los (INV-7) en een wissel vragen (tick of eigen 0xe8). De wissel
++  doet `block_commit`: BLOCKING → BLOCKED, of READY_PENDING → READY als er intussen gewekt is.
++  Een voorwaarde die na `block_prepare` al waar blijkt, regelt de thread met `wake` op zichzelf.
+ - Een thread op CPU *d* wekken vanaf CPU *c* (bijvoorbeeld IPC-antwoord, ADR-053):
+-  onder `KERNEL` → `lock_irqsave(RUNQ[d])` → BLOCKED→READY, enqueue → unlock → als *d* ≠ *c*,
+-  een 0xe8-IPI naar *d*. De IPI is een hint: *d* controleert zijn queue altijd zelf.
+-- Kill van een thread die op *d* RUNNING is: markeer `DEAD_PENDING`, stuur 0xe8 en wacht
+-  begrensd (deadline gelijk aan de shootdown-deadline) tot *d* `state = DEAD` publiceert
+-  bij zijn eerstvolgende wissel. Pas daarna volgt de bestaande `cleanup` (K05) en de
+-  adresruimte-shootdown (§7.2). Geen ack binnen de deadline → INV-5.
++  onder `KERNEL` → `lock_irqsave(RUNQ[d])` → `wake`: BLOCKED→READY en enqueue, of
++  BLOCKING→READY_PENDING (geen enqueue; de wissel van *d* zet hem terug) → unlock → als hij
++  in een queue is gezet en *d* ≠ *c*, een 0xe8-IPI naar *d*. De IPI is een hint: *d*
++  controleert zijn queue altijd zelf. Een `wake` op een thread die nog RUNNING is, doet niets:
++  die controleert zijn voorwaarde na `block_prepare`.
++- Kill (BW-3): `kill_request` zet elke levende toestand op `DEAD_PENDING`; was hij BLOCKED,
++  dan zet de killer hem in de queue van *d*. Stuur 0xe8 en wacht begrensd
++  (`SHOOTDOWN_DEADLINE_MS`, gelijk aan de shootdown-deadline) op `DEAD`. *d* zet een stervende
++  huidige thread bij de wissel terug in zijn queue; de eerstvolgende wissel die hem popt,
++  publiceert `DEAD` met `kill_commit`, en alleen als de stub `on_cpu` al heeft gewist (F1).
++  Pas daarna volgt de bestaande `cleanup` (K05) en de adresruimte-shootdown (§7.2). Geen
++  `DEAD` binnen de deadline → INV-5 (tot stap 05: `SMP:KILL:TIMEOUT:APIC=<n>` en quarantaine).
+ 
+ ### 6.5 Preëmptie
+ 
+-LAPIC-timer 0xd0 op elke CPU, periodiek, dezelfde deler als ADR-073. De handler doet alleen:
+-`timer_ticks += 1`; bij elk *k*-de tick `need_resched = true`; EOI. Kalibratie tegen de PIT is
+-**niet** nodig voor K06 (de klok komt uit de PIT), maar het aantal ticks per PIT-tick wordt
+-in de gate gelogd. [ongekalibreerd, zie ADR-073 "Open"]
++LAPIC-timer 0xd0 op elke CPU, BSP inbegrepen (stap 5c-2), periodiek, dezelfde deler als
++ADR-073. Gebouwd (ADR-080, BT-4): 0xd0 telt `tick_count` en is een switchpunt; 0xe8 telt apart
++`resched_count` (geen tick meer, F11) en zet `need_resched`. Een door INV-5c uitgestelde 0xe8
++blijft als vlag staan tot het volgende switchpunt: de release van de laatste lock terug naar IF=1
++(self-0xe8), idle of een latere entry met lege lockdep. Kalibratie tegen de PIT is **niet** nodig
++voor K06 (de klok komt uit de PIT); het aantal LAPIC-ticks per PIT-tick wordt bij de boot gemeten,
++gelogd (`SMP:TIMER:RATIO`) en door de gate tegen een vooraf vastgelegde band getoetst.
+ 
+ ---
+ 
+@@ -323,6 +366,19 @@ zelf, die eerst naar de kernel-CR3 wisselt → shootdown met `targets` = de snap
+ `check_invariants` krijgt: *geen vrij frame wordt nog door een PTE in een levende adresruimte genoemd*
+ en *`active_cpus` van een dood proces is 0*.
+ 
++### 7.2a Gerealiseerd in stap 5e (aanvulling ADR-072, 6 november 2026)
++
++`smp.rs`: `shootdown_process(space, start, pages)` en `shootdown_kernel(start, pages)`, met één
++interne `round` onder `SHOOTDOWN`. `paging.rs`: `unmap_shot` = PTE wissen + lokaal `invlpg` →
++ronde → metadata vrijgeven (PS-3). De twee testruimten zijn nu echte ruimten (`build_spaces`, eigen
++PML4/PDPT/PD/PT, kernel-PD gedeeld via PDPT-entry 0, ander frame op `0x4000_0000`). De
++PML4-kopieën van 5d-1 bestaan niet meer. Native fixture (na ICR): `SMP:ISOLATION:PASS` en
++`SMP:UNMAP_RACE:PASS` (bij één CPU `SKIPPED`), met de controles `test-smp-proc-shootdown-deaf` en
++`test-smp-proc-no-shootdown`. De #PF van de lezer is gecontroleerd: `nos_smp_race_read` krijgt via
++een exception-fixup `RACE_FAULT` terug en hervat via de beoordeelde `iretq` van de spurious-stub
++(alleen CPL0). **Niet gebouwd:** het M3-pad (geen M3 onder `native-smp`), de
++`check_invariants`-regels in de engine en een rechtenverlagings-API. Zie ADR-072 (aanvulling).
++
+ ### 7.3 FPU-context bij migratie (ADR-045)
+ 
+ `T.fxsave` is geldig zodra stap 6.3.3 op de oude CPU klaar is. De `RUNQ`-release (stap 6.3.7)
+@@ -344,10 +400,17 @@ onbereikbaar, maar het contract geldt vooruit.
+ | Stap | Resultaat | Schrijfbestanden (verwacht) | Poort |
+ |---|---|---|---|
+ | 5a | Ticketlock + irqsave + lockdep + per-CPU-blok voor de BSP | `kernel/src/m2/smp.rs` of een nieuw `kernel/src/m2/lock.rs` [te verifiëren: moduleconventie] | hosttests van de lock (loom/stress op de host), native lockdep-negatief |
+-| 5b | `KERNEL`-lock om alle M3-syscalls; scratchslot per CPU; ADR-074 | M3-entrypoint, paging-scratchcode, `docs/DECISIONS.md` | volle `milestone-m2`- en M3-regressie op 1 CPU, ongewijzigd |
+-| 5c | BSP LAPIC-timer + idle met `sti; hlt`; PIT blijft de klok | `smp.rs`, idle-lus | `native-rtc` 5/5, monotone-klokcheck, BSP-preëmptiecanary |
+-| 5d | Runqueues per CPU; gebruikersprocessen op AP's; CR3-wissel §6.3; 0xe8 | M3-scheduler, `smp.rs` | K05 6/6 op 4 vCPU's; `SMP:SCHED:CPUS=n` met user-werk op elke CPU |
+-| 5e | Procesbrede shootdown §7.1/7.2 | paging/unmap, cleanup | dove-AP-negatief, controle zonder shootdown (moet stale-read tonen) |
++| 5b | Gecontroleerd spinnen met IF=1 op `KERNEL`/`ASPACE` (§4.3, aanvulling ADR-074); alleen AP's | `crates/smp-lock`, `kernel/src/m2/lock.rs`, `smp.rs`-fixture | `SMP:SPIN:PASS`; controle `test-smp-spin-irq-off` → `SMP:SPIN:SHOOTDOWN_TIMEOUT` + quarantaine |
++| 5b-2 | `KERNEL`-lock om alle M3-syscalls; scratchslot per CPU; ADR-075 (gerealiseerd) | `lock.rs`, `m3.rs`, `paging.rs`, `smp.rs`-fixture, `docs/DECISIONS.md` | `SMP:SCRATCH:PASS:CPUS=n`; controle `test-smp-shared-scratch` → `SMP:SCRATCH:CROSS:CPU=n`; volle `milestone-m2`- en M3-regressie op 1 CPU, ongewijzigd |
++| 5c | Preëmptie uitgesteld zolang lockdep niet leeg is (vastgehouden of bewaakte lock); `HELD_ACROSS_SWITCH` bij schending (aanvulling ADR-074) | `smp.rs` | lockfixture in `SMP:PREEMPT:PASS`; `test-smp-held-across-switch` → marker |
++| 5c-2 | BSP LAPIC-timer + idle met `sti; hlt`; PIT blijft de klok | `smp.rs`, idle-lus | `native-rtc` 5/5, monotone-klokcheck, BSP-preëmptiecanary |
++| 5d(-1) | Runqueues per AP, threadstatus-CAS (INV-3), 0xe8-wekken, CR3-wissel §6.3 met `active_cpus` (INV-4), met kernelthreads in twee adresruimten (aanvulling ADR-074) | `crates/smp-lock` (`sched`), `smp.rs` | `SMP:SCHED:PASS:CPUS=n`; `test-smp-double-run` → `SMP:SCHED:DOUBLE_RUN` |
++| F8 | `swapgs`-discipline in alle IDT-stubs (INV-8, ADR-076); ring-3-GS-fixture | `arch.rs`, `smp.rs`, `tools/tests/test_gs_discipline.py` | rood op de oude stubs; `SMP:GS:PASS`, `SMP:GS:IRET_FIXUP:PASS`, NMI vanuit CPL3; statische lint |
++| 5d-2 | Ring-3-processen op AP's met dezelfde kern (na 5b-2 en 5c-2; INV-2) | M3-scheduler, `smp.rs` | K05 6/6 op 4 vCPU's; `SMP:SCHED:CPUS=n` met user-werk op elke CPU |
++| 5d-2a | **Gebouwd (ADR-081):** profiel `native-smp-m3`, basis-M3-manifest op elke online CPU (home bij spawn, `current` per CPU, entry onder `KERNEL`, kernelronde vóór vrijgeven, stop-the-world) | `m3.rs`, `smp.rs`, `arch.rs` | `SMP:M3:CPU=<i>:USER_TICKS>0:SWITCHES>=4`, `SMP:SCHED:CPUS=n` op 2/4/8 vCPU's; `test-smp-m3-fault` → `SMP:M3:K03:PASS` |
++| 5d-2b | **Gebouwd (ADR-081, aanvulling):** FPU-context per CPU (R3-3), alle SMP-processen FPU-canary, 1000 wissels per CPU | `smp.rs`, `arch.rs`, `m3.rs`, `fpu.rs`, `userspace/probe.rs` | `SMP:M3:FPU:PASS:PROCESSES=16`; `test-smp-m3-fpu-skip` → `SMP:M3:FPU:CORRUPT:CONTROL` |
++| 5d-2c | Open: IPC over CPU's (M4 + `ipc-wait` op SMP, 0xe8, `lock_pair`), usercopy onder `ASPACE`, K05 op SMP, GS N1-N3 met M3 | `m3.rs`, `wait.rs`, `m4.rs`, `smp.rs` | spec 08 §4 |
++| 5e | Procesbrede shootdown §7.1/7.2 (gerealiseerd voor de fixture-ruimten, §7.2a) | paging/unmap, cleanup | dove-AP-negatief, controle zonder shootdown (moet stale-read tonen) |
+ | 5f | Migratiefixture + concurrente stress + K06-acceptatie | testfixtures, `tools/run_smp.py`, `docs/verification/k06-smp-sched/` | §9 compleet; progress K06 → accepted |
+ 
+ Na elke stap: PROJECT-STATE bijwerken, committen, pushen, een concept-PR met auto-merge
+@@ -377,7 +440,8 @@ Profielen: 1, 2, 4 en 8 vCPU's; zowel single- als multi-thread-TCG (`-accel tcg,
+ 
+ **Negatief (moet de juiste marker en fail-closed gedrag geven):**
+ 7. `test-smp-lockdep-order`: omgekeerde lockvolgorde → `SMP:LOCKDEP:ORDER`.
+-8. `test-smp-held-across-switch` → `SMP:LOCKDEP:HELD_ACROSS_SWITCH`.
++8. `test-smp-held-across-switch` (stap 5c: preëmptie zonder uitstel bij een bewaakte lock) →
++   `SMP:LOCKDEP:HELD_ACROSS_SWITCH`.
+ 9. `test-smp-proc-shootdown-deaf`: één AP negeert 0xe0 → frame in quarantaine, INIT voor
+    alle AP's, threads naar de BSP, de boot gaat verder als één CPU.
+ 10. `test-smp-proc-no-shootdown` (controleprofiel): zonder shootdown leest P in test 3 het
+@@ -386,6 +450,19 @@ Profielen: 1, 2, 4 en 8 vCPU's; zowel single- als multi-thread-TCG (`-accel tcg,
+ 12. `test-smp-resched-deaf`: AP negeert 0xe8 tijdens een kill → INV-5-pad.
+ 13. Canary-injectie (open punt uit ADR-073): corrumpeer bewust een bewaard register → de
+     canary moet afgaan.
++14. `test-smp-spin-irq-off` (controleprofiel, stap 5b): wachten op `KERNEL` zonder IF-venster →
++    de wachtende AP bevestigt de shootdown niet → `SMP:SPIN:SHOOTDOWN_TIMEOUT` en INIT voor alle AP's.
++15. `test-smp-gs-user` (F8, INV-8): ring 3 op elke AP laadt zelf GS (0x1b of null). 0xf0, 0xe0,
++    0xe8 en ticks vanuit CPL3 tellen in het eigen anker → `SMP:GS:PASS`. Op de oude stubs gaf
++    dit `SMP:GS:HIJACK` (rood bewijs).
++16. `test-smp-gs-iret-fault`: een `iretq` naar CPL3 faalt (SS 0x13) na de exit-`swapgs` → de
++    GS-7-fixup herstelt het anker → `SMP:GS:IRET_FIXUP:PASS`.
++17. `test-smp-gs-nmi-user`: een NMI naar een AP in CPL3 met gebruikers-GS → AP herkend via het
++    IST-adres, zonder GS → `SMP:FAULT:AP_NMI_IST:PASS`.
++
++18. `test-smp-shared-scratch` (controleprofiel, stap 5b-2): alle CPU's in scratchslot 0 →
++    `SMP:SCRATCH:CROSS:CPU=n` (bezette slot-PTE of vreemd patroon). Dat bewijst dat
++    `SMP:SCRATCH:PASS` een echt gevaar meet.
+ 
+ **Regressie (ongewijzigd groen):** `milestone-m2` (TCG/1CPU), K05 6/6, `native-rtc` 5/5,
+ alle stap-1–4-gevallen (14/14), host-tests `boot-protocol`, `tools/tests`, Clippy, fmt.
+diff --git a/docs/progress.json b/docs/progress.json
+index aa065917..8c6473a7 100644
+--- a/docs/progress.json
++++ b/docs/progress.json
+@@ -2,8 +2,8 @@
+   "schema_version": 1,
+   "rubric_version": 1,
+   "assessment": {
+-    "date": "2026-11-06",
+-    "source_commit": "edb252dbc91f3fa83c12d6aaf7008a5184cb74d3",
++    "date": "2026-11-07",
++    "source_commit": "ca0b7e5f875c9e22759c3514088c35e43d3eaaea",
+     "assessment_basis": "source_commit",
+     "reviewed_commit": "cc1dea7eeeae01448a378ee422837b0438ecc7b5",
+     "reviewed_commit_context": "Historische review van de PR148-documentatiestatus en reikwijdte van hostbewijs; geen integratiereview.",
+@@ -15,10 +15,10 @@
+       "evidence_basis": "Git-mergeouders en handoff in docs/PROJECT-STATE.md; gerichte integratietests zijn daar gemeld met uitvoer uitsluitend in het sessietranscript. De eerdere PR148-hostreceipts zijn geen integratiereviewbewijs.",
+       "missing_evidence": "Afzonderlijk, brongebonden bewijs van de integratiereview ontbreekt; nieuwe-head CI en review moeten nog worden beoordeeld."
+     },
+-    "branch": "feat/k06-5a-ticketlock-lockdep",
+-    "task": "K06 stap 5a: ticketlock, irqsave en lockdep per CPU (ADR-074)",
++    "branch": "feat/k06-5d2-ring3-smp",
++    "task": "K06 stap 5d-2a/b: M3-ring-3-processen op elke online CPU met FPU-context per CPU (ADR-081)",
+     "previous_score": 41,
+-    "summary": "41/100 blijft 41/100. K06 stap 5a voegt een ticketlock, irqsave en lockdep toe, met hosttests en een negatief native profiel. Native QEMU-bewijs is nog niet uitgevoerd en K06 vraagt een volledige SMP-scheduler (stap 5b t/m 5f), dus K06 blijft open."
++    "summary": "41/100 blijft 41/100. In native-smp-m3 draaien 16 ring-3-processen verdeeld over alle online CPU's, elk een FPU-canary: 1000 wissels per CPU, daarna een kernelcontrole van ST0/XMM0/XMM15 in elk FXSAVE-beeld; de controle zonder FXRSTOR faalt zoals bedoeld en een appfault op AP2 stopt alleen dat proces. Native lokaal: SMP 38/38 over 30 profielen, M2/M3, K05, K07, rtc, IPC-wait, FPU en gate.sh groen. K06 blijft open: IPC over CPU's, usercopy onder ASPACE, K05 op SMP en de §9-matrix (09) ontbreken."
+   },
+   "tracks": [
+     {

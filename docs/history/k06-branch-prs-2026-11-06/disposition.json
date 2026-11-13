@@ -1,0 +1,2674 @@
+{
+ "schema": "k06-branch-prs-disposition/v1",
+ "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+ "method": "per changed file of each PR (git diff --name-status <merge-base> <head>); code lines are counted verbatim in the same file on main; archived copies are checked by git blob id",
+ "prs": {
+  "227": {
+   "head": "1bbd85dccc6f6cb98ad61ea07c38b0e7fec8c041",
+   "merge_base": "c663f0b6386203e17e28d52c2c79da161205ee26",
+   "files": {
+    ".github/workflows/native-smp.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 12,
+     "added_lines_found_verbatim_in_same_file_on_main": 12
+    },
+    ".github/workflows/storage-resilience.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    ".github/workflows/volume-acceptance.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    ".gitignore": {
+     "pr_status": "M",
+     "disposition": "archived_patch_not_adopted",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr227-docs.patch",
+     "note": "the added '.claude/' ignore line was not adopted on main; adopting it is a separate decision"
+    },
+    "crates/smp-lock/src/lib.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 28,
+     "added_lines_found_verbatim_in_same_file_on_main": 27
+    },
+    "docs/DECISIONS.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr227-docs.patch",
+     "translation": "docs/DECISIONS.md: ADR-075, ADR-077 to ADR-081 and ADR-083 (branch ADR-076); branch addenda to ADR-074 and ADR-072; ADR-024 revision note"
+    },
+    "docs/PROJECT-STATE.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_superseded",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr227-docs.patch",
+     "by": "later status and assessments on main (docs/PROJECT-STATE.md, docs/progress.json; 41/100)"
+    },
+    "docs/implementation/K06-SMP.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr227-docs.patch",
+     "translation": "docs/implementation/K06-SMP.md, section 'Branch additions, 6–11 November 2026'"
+    },
+    "kernel/Cargo.toml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 2,
+     "added_lines_found_verbatim_in_same_file_on_main": 2
+    },
+    "kernel/src/m2/lock.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 19,
+     "added_lines_found_verbatim_in_same_file_on_main": 6
+    },
+    "kernel/src/m2/smp.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 122,
+     "added_lines_found_verbatim_in_same_file_on_main": 104
+    },
+    "tools/auto-loop.sh": {
+     "pr_status": "A",
+     "disposition": "superseded",
+     "by": "tools/agent_pipeline.py (AGENTS.md, autonomous agent pipeline)",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/superseded-tools/auto-loop.pr227.sh",
+     "blob": "27b653e9e64444ddf26b3988538d01e87eb46b29",
+     "byte_identical": true
+    },
+    "tools/build.py": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 0
+    },
+    "tools/gate.sh": {
+     "pr_status": "A",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 28,
+     "added_lines_found_verbatim_in_same_file_on_main": 20
+    },
+    "tools/run_smp.py": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 25,
+     "added_lines_found_verbatim_in_same_file_on_main": 16
+    },
+    "tools/tests/test_smp_serial.py": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 41,
+     "added_lines_found_verbatim_in_same_file_on_main": 38
+    }
+   }
+  },
+  "229": {
+   "head": "803ea3dde3edfbe7079314bde94089dff9b13ba3",
+   "merge_base": "5ae0757de82217ba0961ce580a6d7d530988fc5c",
+   "files": {
+    ".github/actions/preserve-evidence/action.yml": {
+     "pr_status": "A",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 155,
+     "added_lines_found_verbatim_in_same_file_on_main": 155
+    },
+    ".github/actions/setup-python/action.yml": {
+     "pr_status": "A",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 25,
+     "added_lines_found_verbatim_in_same_file_on_main": 24
+    },
+    ".github/actions/setup-python/requirements.txt": {
+     "pr_status": "A",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 3,
+     "added_lines_found_verbatim_in_same_file_on_main": 3
+    },
+    ".github/actions/setup-qemu/action.yml": {
+     "pr_status": "A",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 77,
+     "added_lines_found_verbatim_in_same_file_on_main": 67
+    },
+    ".github/workflows/app-management-quality.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 6,
+     "added_lines_found_verbatim_in_same_file_on_main": 4
+    },
+    ".github/workflows/artifact-store-quality.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 11,
+     "added_lines_found_verbatim_in_same_file_on_main": 10
+    },
+    ".github/workflows/ci.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 106,
+     "added_lines_found_verbatim_in_same_file_on_main": 103
+    },
+    ".github/workflows/component-leaves.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 7,
+     "added_lines_found_verbatim_in_same_file_on_main": 5
+    },
+    ".github/workflows/entropy-keys.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 19,
+     "added_lines_found_verbatim_in_same_file_on_main": 17
+    },
+    ".github/workflows/materiaal-probe.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 16,
+     "added_lines_found_verbatim_in_same_file_on_main": 16
+    },
+    ".github/workflows/nas-core.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 21,
+     "added_lines_found_verbatim_in_same_file_on_main": 19
+    },
+    ".github/workflows/native-display-input.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 20,
+     "added_lines_found_verbatim_in_same_file_on_main": 18
+    },
+    ".github/workflows/native-foundation.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 20,
+     "added_lines_found_verbatim_in_same_file_on_main": 18
+    },
+    ".github/workflows/native-rtc.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 21,
+     "added_lines_found_verbatim_in_same_file_on_main": 19
+    },
+    ".github/workflows/native-smp.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 90,
+     "added_lines_found_verbatim_in_same_file_on_main": 90
+    },
+    ".github/workflows/native-system.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 21,
+     "added_lines_found_verbatim_in_same_file_on_main": 19
+    },
+    ".github/workflows/native-window-session.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 21,
+     "added_lines_found_verbatim_in_same_file_on_main": 18
+    },
+    ".github/workflows/net-broker-quality.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 22,
+     "added_lines_found_verbatim_in_same_file_on_main": 20
+    },
+    ".github/workflows/net-tls-quality.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 6,
+     "added_lines_found_verbatim_in_same_file_on_main": 4
+    },
+    ".github/workflows/process-management.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 19,
+     "added_lines_found_verbatim_in_same_file_on_main": 17
+    },
+    ".github/workflows/resource-pressure.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 9,
+     "added_lines_found_verbatim_in_same_file_on_main": 8
+    },
+    ".github/workflows/signed-updates.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 19,
+     "added_lines_found_verbatim_in_same_file_on_main": 17
+    },
+    ".github/workflows/storage-resilience.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 18,
+     "added_lines_found_verbatim_in_same_file_on_main": 17
+    },
+    ".github/workflows/volume-acceptance.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 18,
+     "added_lines_found_verbatim_in_same_file_on_main": 17
+    },
+    ".github/workflows/windows-qemu-test-version.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 22,
+     "added_lines_found_verbatim_in_same_file_on_main": 20
+    },
+    ".gitignore": {
+     "pr_status": "M",
+     "disposition": "archived_patch_not_adopted",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr246-docs.patch + patches/pr229-docs-relative-to-pr246.patch",
+     "note": "the added '.claude/' ignore line was not adopted on main; adopting it is a separate decision"
+    },
+    "README.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_superseded",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr246-docs.patch + patches/pr229-docs-relative-to-pr246.patch",
+     "by": "later status and assessments on main (docs/PROJECT-STATE.md, docs/progress.json; 41/100)"
+    },
+    "crates/smp-lock/src/lib.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 246,
+     "added_lines_found_verbatim_in_same_file_on_main": 245
+    },
+    "crates/smp-lock/src/sched.rs": {
+     "pr_status": "A",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 614,
+     "added_lines_found_verbatim_in_same_file_on_main": 605
+    },
+    "docs/DECISIONS.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr246-docs.patch + patches/pr229-docs-relative-to-pr246.patch",
+     "translation": "docs/DECISIONS.md: ADR-075, ADR-077 to ADR-081 and ADR-083 (branch ADR-076); branch addenda to ADR-074 and ADR-072; ADR-024 revision note"
+    },
+    "docs/PROJECT-STATE.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_superseded",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr246-docs.patch + patches/pr229-docs-relative-to-pr246.patch",
+     "by": "later status and assessments on main (docs/PROJECT-STATE.md, docs/progress.json; 41/100)"
+    },
+    "docs/assets/progress.svg": {
+     "pr_status": "M",
+     "disposition": "archived_patch_superseded",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr246-docs.patch + patches/pr229-docs-relative-to-pr246.patch",
+     "by": "later status and assessments on main (docs/PROJECT-STATE.md, docs/progress.json; 41/100)"
+    },
+    "docs/implementation/K06-SMP.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr246-docs.patch + patches/pr229-docs-relative-to-pr246.patch",
+     "translation": "docs/implementation/K06-SMP.md, section 'Branch additions, 6–11 November 2026'"
+    },
+    "docs/progress.json": {
+     "pr_status": "M",
+     "disposition": "archived_patch_superseded",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr246-docs.patch + patches/pr229-docs-relative-to-pr246.patch",
+     "by": "later status and assessments on main (docs/PROJECT-STATE.md, docs/progress.json; 41/100)"
+    },
+    "docs/verification/k06-5b2-kernel-lock/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5b2-kernel-lock/README.md",
+     "blob": "5267be174cb9e44fbb5cfced8d8f2c4812c31807",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5b2-kernel-lock/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5b2-kernel-lock/native-report.json",
+     "blob": "ab83ffddc17d350d4bb85955d865c228151ebfe6",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5c2-bsp-timer/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5c2-bsp-timer/README.md",
+     "blob": "f437974c43a14c1a961d7bbcb02b4364ed43d296",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5c2-bsp-timer/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5c2-bsp-timer/SHA256SUMS",
+     "blob": "3f1f5fec109eaa355d5c24fff0133a1e1f2c6162",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5c2-bsp-timer/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5c2-bsp-timer/native-report.json",
+     "blob": "c733c75208f6b32f307f2a5e9a798a137dc6d998",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5d2-f5f7-integration/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5d2-f5f7-integration/README.md",
+     "blob": "719314a44dbc764d7b625d4155432a4c0968b433",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5d2a-ring3-smp/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5d2a-ring3-smp/README.md",
+     "blob": "1d8b6a984a13516830c1c2ed7fb8145224637d40",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5d2a-ring3-smp/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5d2a-ring3-smp/SHA256SUMS",
+     "blob": "8c3de05e0db427020f63e8d06ad2eaed714161af",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5d2a-ring3-smp/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5d2a-ring3-smp/native-report.json",
+     "blob": "2c96d94154d0a2b3a52e93868fca1ad0e418ad89",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5d2b-fpu/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5d2b-fpu/README.md",
+     "blob": "1a792778f7691bc78725e07f8408e2460a5175a7",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5d2b-fpu/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5d2b-fpu/SHA256SUMS",
+     "blob": "e159560040f774aa78a0d99692c4ab9f01d0aa3c",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5d2b-fpu/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5d2b-fpu/native-report.json",
+     "blob": "3681251e225d5452b11c39d6eba8e91d8e12c7d7",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5e-proc-shootdown/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5e-proc-shootdown/README.md",
+     "blob": "6dd28229f621e9718919ff3622ea8e45e8e35c04",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5e-proc-shootdown/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5e-proc-shootdown/SHA256SUMS",
+     "blob": "e460e4b44603131097aee58b740933045c63a881",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5e-proc-shootdown/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5e-proc-shootdown/native-report.json",
+     "blob": "65119d83e6fed2da651449a37fb034bcc375b52c",
+     "byte_identical": true
+    },
+    "docs/verification/k06-audit-f1-f2/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-audit-f1-f2/README.md",
+     "blob": "9da8a6bcb2602f832d14e6f2ef2054db2a4c0adf",
+     "byte_identical": true
+    },
+    "docs/verification/k06-audit-f1-f2/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-audit-f1-f2/native-report.json",
+     "blob": "91904ec58d06f0a7547c98f123b3b0f14ecdf959",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f16f17-sched/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f16f17-sched/README.md",
+     "blob": "3bfd09a8779d728c027af1d4fb45ffa7f50b0379",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f16f17-sched/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f16f17-sched/SHA256SUMS",
+     "blob": "456cf7bde7c21239306622a69a9005f629e96588",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f16f17-sched/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f16f17-sched/native-report.json",
+     "blob": "df466abc7cabf5d4c9f206efbb218b551970c732",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f19f15-icr/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f19f15-icr/README.md",
+     "blob": "a24173f15d36e1ed1417ed4b3fb9d6451f013a04",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f19f15-icr/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f19f15-icr/SHA256SUMS",
+     "blob": "42ef124c01c9d544d99e26dc9ccab9a12593f151",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f19f15-icr/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f19f15-icr/native-report.json",
+     "blob": "29931ae79d09ccfc6fa561bdecfedcb70eab26e1",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f3f4-lockdep/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f3f4-lockdep/README.md",
+     "blob": "a83351a2f6e144376f0029786d88a66ec6d5f98c",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f3f4-lockdep/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f3f4-lockdep/SHA256SUMS",
+     "blob": "652bcca9dbf23d4de257a4b8aba53952814ab41d",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f3f4-lockdep/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f3f4-lockdep/native-report.json",
+     "blob": "fe3bb968f4059be6664d536e0c19303598acd407",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f5f7-diagnostics/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f5f7-diagnostics/README.md",
+     "blob": "96c2d2de9ff7c9607d57fb6b828c840169548ddb",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f5f7-diagnostics/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f5f7-diagnostics/SHA256SUMS",
+     "blob": "05c173408055d8249757bc311549f48ce3f6e2dc",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f5f7-diagnostics/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f5f7-diagnostics/native-report.json",
+     "blob": "13f79209de46d2fd1517462d6427743ffde3f5ae",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/README.md",
+     "blob": "69134d6ad1f65933b172ce51795ae0592a8acfc1",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/SHA256SUMS",
+     "blob": "437311bee9d9bbabae9b750ae8be2752cae1c4dc",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/gs-iret-fault-serial.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/gs-iret-fault-serial.txt",
+     "blob": "01672a4d8c84cf9330894e8106479354eb977792",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/gs-nmi-user-serial.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/gs-nmi-user-serial.txt",
+     "blob": "0ace5bd6f29f5291c28225e74b85ff55b662c3b6",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/gs-user-serial.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/gs-user-serial.txt",
+     "blob": "ff609318b664177e3598134c1f3d389c209033a6",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/native-report.json",
+     "blob": "69444ed0a114bbb30ed1f966eec8ac67f7a10603",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/RUN.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/RUN.txt",
+     "blob": "2af8320f3b89b6d35f0f243b82d5998b71575a98",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/SHA256SUMS",
+     "blob": "12a18703bef4572d145e5f15f4b0a66a57178d03",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/gs-user-result.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/gs-user-result.json",
+     "blob": "4d23713ba9c87e6277a58654ad28791a4548591f",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/gs-user-serial.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/gs-user-serial.txt",
+     "blob": "869f3e44450d879f5f5d43387c6c11baeb4bf32e",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/manifest.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/manifest.json",
+     "blob": "1c900bbc69202d2669ba8c83bf6f9cf41c1f573e",
+     "byte_identical": true
+    },
+    "docs/verification/k06-smp-sched/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-smp-sched/README.md",
+     "blob": "3f986fe91cd04a3ceb929bab897f7c44d110231c",
+     "byte_identical": true
+    },
+    "docs/verification/k06-smp-sched/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-smp-sched/native-report.json",
+     "blob": "863d1b260470b3b25adad0f12532068a8bca65f8",
+     "byte_identical": true
+    },
+    "kernel/Cargo.toml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 26,
+     "added_lines_found_verbatim_in_same_file_on_main": 26
+    },
+    "kernel/src/m2.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 5,
+     "added_lines_found_verbatim_in_same_file_on_main": 5
+    },
+    "kernel/src/m2/arch.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 158,
+     "added_lines_found_verbatim_in_same_file_on_main": 145
+    },
+    "kernel/src/m2/lock.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 185,
+     "added_lines_found_verbatim_in_same_file_on_main": 181
+    },
+    "kernel/src/m2/m3.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 411,
+     "added_lines_found_verbatim_in_same_file_on_main": 388
+    },
+    "kernel/src/m2/m3/desktop.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/display.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/display_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/fpu.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 21,
+     "added_lines_found_verbatim_in_same_file_on_main": 21
+    },
+    "kernel/src/m2/m3/heap.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/image_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/keyring.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m4.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 2,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m5.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m6.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m6b.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m6c.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/memory_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/nas.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 2,
+     "added_lines_found_verbatim_in_same_file_on_main": 2
+    },
+    "kernel/src/m2/m3/network.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 2,
+     "added_lines_found_verbatim_in_same_file_on_main": 2
+    },
+    "kernel/src/m2/m3/network_service.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/ps2.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/random_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/sdk_app.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/supervisor.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/system.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/tpm_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/update.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/volume.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/wait_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/window_session.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/paging.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 134,
+     "added_lines_found_verbatim_in_same_file_on_main": 132
+    },
+    "kernel/src/m2/smp.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 2528,
+     "added_lines_found_verbatim_in_same_file_on_main": 2424
+    },
+    "kernel/src/main.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 17,
+     "added_lines_found_verbatim_in_same_file_on_main": 12
+    },
+    "kernel/src/serial.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 105,
+     "added_lines_found_verbatim_in_same_file_on_main": 99
+    },
+    "tools/auto-loop.sh": {
+     "pr_status": "A",
+     "disposition": "superseded",
+     "by": "tools/agent_pipeline.py (AGENTS.md, autonomous agent pipeline)",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/superseded-tools/auto-loop.sh",
+     "blob": "feb487816cd42a0e7fd34eacc451064c6724cbdb",
+     "byte_identical": true
+    },
+    "tools/build.py": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 0
+    },
+    "tools/ci_evidence.py": {
+     "pr_status": "A",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 423,
+     "added_lines_found_verbatim_in_same_file_on_main": 421
+    },
+    "tools/gate.sh": {
+     "pr_status": "A",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 25,
+     "added_lines_found_verbatim_in_same_file_on_main": 25
+    },
+    "tools/run_smp.py": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 273,
+     "added_lines_found_verbatim_in_same_file_on_main": 234
+    },
+    "tools/tests/test_gs_discipline.py": {
+     "pr_status": "A",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 197,
+     "added_lines_found_verbatim_in_same_file_on_main": 191
+    },
+    "tools/tests/test_smp_serial.py": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 396,
+     "added_lines_found_verbatim_in_same_file_on_main": 386
+    },
+    "userspace/probe.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 29,
+     "added_lines_found_verbatim_in_same_file_on_main": 27
+    }
+   }
+  },
+  "232": {
+   "head": "dcd80d1d643966e61420f76091489af995bf62eb",
+   "merge_base": "342194f215297c52a5578c7d1b7f18492150e61d",
+   "files": {
+    "docs/PROJECT-STATE.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_superseded",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr232-docs.patch",
+     "by": "later status and assessments on main (docs/PROJECT-STATE.md, docs/progress.json; 41/100)"
+    },
+    "docs/implementation/k06-steps/01-5b-2-kernel-lock-scratch.md": {
+     "pr_status": "A",
+     "disposition": "archived_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/k06-steps/01-5b-2-kernel-lock-scratch.md",
+     "blob": "2ecdd6c239642667d6490240174336a2502db5ed",
+     "byte_identical": true,
+     "translation": "docs/implementation/k06-steps/01-5b-2-kernel-lock-scratch.md"
+    },
+    "docs/implementation/k06-steps/02-F3-F4-lockdep-context.md": {
+     "pr_status": "A",
+     "disposition": "archived_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/k06-steps/02-F3-F4-lockdep-context.md",
+     "blob": "27004cccc8aee3fb57c876c171217c7da63178ed",
+     "byte_identical": true,
+     "translation": "docs/implementation/k06-steps/02-F3-F4-lockdep-context.md"
+    },
+    "docs/implementation/k06-steps/03-F5-F7-stuck-serial.md": {
+     "pr_status": "A",
+     "disposition": "archived_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/k06-steps/03-F5-F7-stuck-serial.md",
+     "blob": "363db84b89449afc6de21cf9d3149a9495d7dc4a",
+     "byte_identical": true,
+     "translation": "docs/implementation/k06-steps/03-F5-F7-stuck-serial.md"
+    },
+    "docs/implementation/k06-steps/04-F16-F17-block-wake-kill.md": {
+     "pr_status": "A",
+     "disposition": "archived_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/k06-steps/04-F16-F17-block-wake-kill.md",
+     "blob": "cda4e6cb1f0aed2cdf6bcc34506ea1cc90aa98f3",
+     "byte_identical": true,
+     "translation": "docs/implementation/k06-steps/04-F16-F17-block-wake-kill.md"
+    },
+    "docs/implementation/k06-steps/05-F19-F15-icr-quarantine.md": {
+     "pr_status": "A",
+     "disposition": "archived_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/k06-steps/05-F19-F15-icr-quarantine.md",
+     "blob": "69dce9e568af3a1442ce075ff640914cc6f85bd7",
+     "byte_identical": true,
+     "translation": "docs/implementation/k06-steps/05-F19-F15-icr-quarantine.md"
+    },
+    "docs/implementation/k06-steps/06-5c-2-bsp-timer-idle.md": {
+     "pr_status": "A",
+     "disposition": "archived_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/k06-steps/06-5c-2-bsp-timer-idle.md",
+     "blob": "2975dfa41835a718f1f80aee664df2f9cf57a302",
+     "byte_identical": true,
+     "translation": "docs/implementation/k06-steps/06-5c-2-bsp-timer-idle.md"
+    },
+    "docs/implementation/k06-steps/07-5e-process-shootdown.md": {
+     "pr_status": "A",
+     "disposition": "archived_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/k06-steps/07-5e-process-shootdown.md",
+     "blob": "7dbcac54ff1853549af8cee3f7318a602acdbee9",
+     "byte_identical": true,
+     "translation": "docs/implementation/k06-steps/07-5e-process-shootdown.md"
+    },
+    "docs/implementation/k06-steps/08-5d-2-ring3-on-aps.md": {
+     "pr_status": "A",
+     "disposition": "archived_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/k06-steps/08-5d-2-ring3-on-aps.md",
+     "blob": "4849efa930a69bd81492b34562b41f7eaefbf323",
+     "byte_identical": true,
+     "translation": "docs/implementation/k06-steps/08-5d-2-ring3-on-aps.md"
+    },
+    "docs/implementation/k06-steps/09-5f-acceptance.md": {
+     "pr_status": "A",
+     "disposition": "archived_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/k06-steps/09-5f-acceptance.md",
+     "blob": "e7a6e34a0f5c8a9377c95f49dae520a009fa970e",
+     "byte_identical": true,
+     "translation": "docs/implementation/k06-steps/09-5f-acceptance.md"
+    },
+    "docs/implementation/k06-steps/README.md": {
+     "pr_status": "A",
+     "disposition": "archived_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/k06-steps/README.md",
+     "blob": "f839b578275c8cb94437a1e7033046980ab202af",
+     "byte_identical": true,
+     "translation": "docs/implementation/k06-steps/README.md"
+    },
+    "docs/progress.json": {
+     "pr_status": "M",
+     "disposition": "archived_patch_superseded",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr232-docs.patch",
+     "by": "later status and assessments on main (docs/PROJECT-STATE.md, docs/progress.json; 41/100)"
+    }
+   }
+  },
+  "238": {
+   "head": "5b864e29ac216336800eba42564a8af6856b7636",
+   "merge_base": "76c67f225428e86de20533350cdeba91a38d4056",
+   "files": {
+    ".github/workflows/app-management-quality.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 7,
+     "added_lines_found_verbatim_in_same_file_on_main": 5
+    },
+    ".github/workflows/artifact-store-quality.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 12,
+     "added_lines_found_verbatim_in_same_file_on_main": 11
+    },
+    ".github/workflows/ci.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 102,
+     "added_lines_found_verbatim_in_same_file_on_main": 102
+    },
+    ".github/workflows/component-leaves.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 8,
+     "added_lines_found_verbatim_in_same_file_on_main": 6
+    },
+    ".github/workflows/entropy-keys.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 20,
+     "added_lines_found_verbatim_in_same_file_on_main": 18
+    },
+    ".github/workflows/materiaal-probe.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 17,
+     "added_lines_found_verbatim_in_same_file_on_main": 17
+    },
+    ".github/workflows/nas-core.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 23,
+     "added_lines_found_verbatim_in_same_file_on_main": 21
+    },
+    ".github/workflows/native-display-input.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 21,
+     "added_lines_found_verbatim_in_same_file_on_main": 19
+    },
+    ".github/workflows/native-foundation.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 21,
+     "added_lines_found_verbatim_in_same_file_on_main": 19
+    },
+    ".github/workflows/native-rtc.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 22,
+     "added_lines_found_verbatim_in_same_file_on_main": 20
+    },
+    ".github/workflows/native-smp.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 35,
+     "added_lines_found_verbatim_in_same_file_on_main": 35
+    },
+    ".github/workflows/native-system.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 22,
+     "added_lines_found_verbatim_in_same_file_on_main": 20
+    },
+    ".github/workflows/native-window-session.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 22,
+     "added_lines_found_verbatim_in_same_file_on_main": 19
+    },
+    ".github/workflows/net-broker-quality.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 24,
+     "added_lines_found_verbatim_in_same_file_on_main": 22
+    },
+    ".github/workflows/net-tls-quality.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 7,
+     "added_lines_found_verbatim_in_same_file_on_main": 5
+    },
+    ".github/workflows/process-management.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 20,
+     "added_lines_found_verbatim_in_same_file_on_main": 18
+    },
+    ".github/workflows/resource-pressure.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 10,
+     "added_lines_found_verbatim_in_same_file_on_main": 9
+    },
+    ".github/workflows/signed-updates.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 20,
+     "added_lines_found_verbatim_in_same_file_on_main": 18
+    },
+    ".github/workflows/storage-resilience.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 19,
+     "added_lines_found_verbatim_in_same_file_on_main": 18
+    },
+    ".github/workflows/volume-acceptance.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 19,
+     "added_lines_found_verbatim_in_same_file_on_main": 18
+    },
+    ".github/workflows/windows-qemu-test-version.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 23,
+     "added_lines_found_verbatim_in_same_file_on_main": 21
+    },
+    "README.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_superseded",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr238-docs.patch",
+     "by": "later status and assessments on main (docs/PROJECT-STATE.md, docs/progress.json; 41/100)"
+    },
+    "crates/smp-lock/src/lib.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 217,
+     "added_lines_found_verbatim_in_same_file_on_main": 217
+    },
+    "crates/smp-lock/src/sched.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 42,
+     "added_lines_found_verbatim_in_same_file_on_main": 40
+    },
+    "docs/DECISIONS.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr238-docs.patch",
+     "translation": "docs/DECISIONS.md: ADR-075, ADR-077 to ADR-081 and ADR-083 (branch ADR-076); branch addenda to ADR-074 and ADR-072; ADR-024 revision note"
+    },
+    "docs/PROJECT-STATE.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_superseded",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr238-docs.patch",
+     "by": "later status and assessments on main (docs/PROJECT-STATE.md, docs/progress.json; 41/100)"
+    },
+    "docs/implementation/K06-SMP.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr238-docs.patch",
+     "translation": "docs/implementation/K06-SMP.md, section 'Branch additions, 6–11 November 2026'"
+    },
+    "docs/progress.json": {
+     "pr_status": "M",
+     "disposition": "archived_patch_superseded",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr238-docs.patch",
+     "by": "later status and assessments on main (docs/PROJECT-STATE.md, docs/progress.json; 41/100)"
+    },
+    "docs/verification/k06-5b2-kernel-lock/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5b2-kernel-lock/README.md",
+     "blob": "5267be174cb9e44fbb5cfced8d8f2c4812c31807",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5b2-kernel-lock/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5b2-kernel-lock/native-report.json",
+     "blob": "ab83ffddc17d350d4bb85955d865c228151ebfe6",
+     "byte_identical": true
+    },
+    "docs/verification/k06-audit-f1-f2/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-audit-f1-f2/README.md",
+     "blob": "9da8a6bcb2602f832d14e6f2ef2054db2a4c0adf",
+     "byte_identical": true
+    },
+    "docs/verification/k06-audit-f1-f2/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-audit-f1-f2/native-report.json",
+     "blob": "91904ec58d06f0a7547c98f123b3b0f14ecdf959",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f3f4-lockdep/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f3f4-lockdep/README.md",
+     "blob": "a83351a2f6e144376f0029786d88a66ec6d5f98c",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f3f4-lockdep/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f3f4-lockdep/SHA256SUMS",
+     "blob": "652bcca9dbf23d4de257a4b8aba53952814ab41d",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f3f4-lockdep/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f3f4-lockdep/native-report.json",
+     "blob": "fe3bb968f4059be6664d536e0c19303598acd407",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f5f7-diagnostics/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f5f7-diagnostics/README.md",
+     "blob": "96c2d2de9ff7c9607d57fb6b828c840169548ddb",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f5f7-diagnostics/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f5f7-diagnostics/SHA256SUMS",
+     "blob": "05c173408055d8249757bc311549f48ce3f6e2dc",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f5f7-diagnostics/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f5f7-diagnostics/native-report.json",
+     "blob": "13f79209de46d2fd1517462d6427743ffde3f5ae",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/README.md",
+     "blob": "69134d6ad1f65933b172ce51795ae0592a8acfc1",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/SHA256SUMS",
+     "blob": "437311bee9d9bbabae9b750ae8be2752cae1c4dc",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/gs-iret-fault-serial.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/gs-iret-fault-serial.txt",
+     "blob": "01672a4d8c84cf9330894e8106479354eb977792",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/gs-nmi-user-serial.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/gs-nmi-user-serial.txt",
+     "blob": "0ace5bd6f29f5291c28225e74b85ff55b662c3b6",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/gs-user-serial.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/gs-user-serial.txt",
+     "blob": "ff609318b664177e3598134c1f3d389c209033a6",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/native-report.json",
+     "blob": "69444ed0a114bbb30ed1f966eec8ac67f7a10603",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/RUN.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/RUN.txt",
+     "blob": "2af8320f3b89b6d35f0f243b82d5998b71575a98",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/SHA256SUMS",
+     "blob": "12a18703bef4572d145e5f15f4b0a66a57178d03",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/gs-user-result.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/gs-user-result.json",
+     "blob": "4d23713ba9c87e6277a58654ad28791a4548591f",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/gs-user-serial.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/gs-user-serial.txt",
+     "blob": "869f3e44450d879f5f5d43387c6c11baeb4bf32e",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/manifest.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/manifest.json",
+     "blob": "1c900bbc69202d2669ba8c83bf6f9cf41c1f573e",
+     "byte_identical": true
+    },
+    "kernel/Cargo.toml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 10,
+     "added_lines_found_verbatim_in_same_file_on_main": 10
+    },
+    "kernel/src/m2.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 5,
+     "added_lines_found_verbatim_in_same_file_on_main": 5
+    },
+    "kernel/src/m2/arch.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 88,
+     "added_lines_found_verbatim_in_same_file_on_main": 88
+    },
+    "kernel/src/m2/lock.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 148,
+     "added_lines_found_verbatim_in_same_file_on_main": 143
+    },
+    "kernel/src/m2/m3.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 54,
+     "added_lines_found_verbatim_in_same_file_on_main": 54
+    },
+    "kernel/src/m2/m3/desktop.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/display.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/display_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/fpu.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 4,
+     "added_lines_found_verbatim_in_same_file_on_main": 4
+    },
+    "kernel/src/m2/m3/heap.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/image_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/keyring.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m4.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m5.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m6.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m6b.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m6c.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/memory_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/nas.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 2,
+     "added_lines_found_verbatim_in_same_file_on_main": 2
+    },
+    "kernel/src/m2/m3/network.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 2,
+     "added_lines_found_verbatim_in_same_file_on_main": 2
+    },
+    "kernel/src/m2/m3/network_service.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/ps2.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/random_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/sdk_app.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/supervisor.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/system.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/tpm_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/update.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/volume.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/wait_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/window_session.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/paging.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 82,
+     "added_lines_found_verbatim_in_same_file_on_main": 82
+    },
+    "kernel/src/m2/smp.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 651,
+     "added_lines_found_verbatim_in_same_file_on_main": 618
+    },
+    "kernel/src/main.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 7,
+     "added_lines_found_verbatim_in_same_file_on_main": 7
+    },
+    "kernel/src/serial.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 105,
+     "added_lines_found_verbatim_in_same_file_on_main": 99
+    },
+    "tools/build.py": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 0
+    },
+    "tools/run_smp.py": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 115,
+     "added_lines_found_verbatim_in_same_file_on_main": 90
+    },
+    "tools/tests/test_gs_discipline.py": {
+     "pr_status": "A",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 186,
+     "added_lines_found_verbatim_in_same_file_on_main": 178
+    },
+    "tools/tests/test_smp_serial.py": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 158,
+     "added_lines_found_verbatim_in_same_file_on_main": 146
+    }
+   }
+  },
+  "246": {
+   "head": "273b2eb1ce5ac3563a2f6814012983e06f71b9d1",
+   "merge_base": "5ae0757de82217ba0961ce580a6d7d530988fc5c",
+   "files": {
+    ".github/workflows/app-management-quality.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 6,
+     "added_lines_found_verbatim_in_same_file_on_main": 4
+    },
+    ".github/workflows/artifact-store-quality.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 11,
+     "added_lines_found_verbatim_in_same_file_on_main": 10
+    },
+    ".github/workflows/ci.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 100,
+     "added_lines_found_verbatim_in_same_file_on_main": 100
+    },
+    ".github/workflows/component-leaves.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 7,
+     "added_lines_found_verbatim_in_same_file_on_main": 5
+    },
+    ".github/workflows/entropy-keys.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 19,
+     "added_lines_found_verbatim_in_same_file_on_main": 17
+    },
+    ".github/workflows/materiaal-probe.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 16,
+     "added_lines_found_verbatim_in_same_file_on_main": 16
+    },
+    ".github/workflows/nas-core.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 21,
+     "added_lines_found_verbatim_in_same_file_on_main": 19
+    },
+    ".github/workflows/native-display-input.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 20,
+     "added_lines_found_verbatim_in_same_file_on_main": 18
+    },
+    ".github/workflows/native-foundation.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 20,
+     "added_lines_found_verbatim_in_same_file_on_main": 18
+    },
+    ".github/workflows/native-rtc.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 21,
+     "added_lines_found_verbatim_in_same_file_on_main": 19
+    },
+    ".github/workflows/native-smp.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 90,
+     "added_lines_found_verbatim_in_same_file_on_main": 90
+    },
+    ".github/workflows/native-system.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 21,
+     "added_lines_found_verbatim_in_same_file_on_main": 19
+    },
+    ".github/workflows/native-window-session.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 21,
+     "added_lines_found_verbatim_in_same_file_on_main": 18
+    },
+    ".github/workflows/net-broker-quality.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 22,
+     "added_lines_found_verbatim_in_same_file_on_main": 20
+    },
+    ".github/workflows/net-tls-quality.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 6,
+     "added_lines_found_verbatim_in_same_file_on_main": 4
+    },
+    ".github/workflows/process-management.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 19,
+     "added_lines_found_verbatim_in_same_file_on_main": 17
+    },
+    ".github/workflows/resource-pressure.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 9,
+     "added_lines_found_verbatim_in_same_file_on_main": 8
+    },
+    ".github/workflows/signed-updates.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 19,
+     "added_lines_found_verbatim_in_same_file_on_main": 17
+    },
+    ".github/workflows/storage-resilience.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 18,
+     "added_lines_found_verbatim_in_same_file_on_main": 17
+    },
+    ".github/workflows/volume-acceptance.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 18,
+     "added_lines_found_verbatim_in_same_file_on_main": 17
+    },
+    ".github/workflows/windows-qemu-test-version.yml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 22,
+     "added_lines_found_verbatim_in_same_file_on_main": 20
+    },
+    ".gitignore": {
+     "pr_status": "M",
+     "disposition": "archived_patch_not_adopted",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr246-docs.patch",
+     "note": "the added '.claude/' ignore line was not adopted on main; adopting it is a separate decision"
+    },
+    "README.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_superseded",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr246-docs.patch",
+     "by": "later status and assessments on main (docs/PROJECT-STATE.md, docs/progress.json; 41/100)"
+    },
+    "crates/smp-lock/src/lib.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 246,
+     "added_lines_found_verbatim_in_same_file_on_main": 245
+    },
+    "crates/smp-lock/src/sched.rs": {
+     "pr_status": "A",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 607,
+     "added_lines_found_verbatim_in_same_file_on_main": 607
+    },
+    "docs/DECISIONS.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr246-docs.patch",
+     "translation": "docs/DECISIONS.md: ADR-075, ADR-077 to ADR-081 and ADR-083 (branch ADR-076); branch addenda to ADR-074 and ADR-072; ADR-024 revision note"
+    },
+    "docs/PROJECT-STATE.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_superseded",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr246-docs.patch",
+     "by": "later status and assessments on main (docs/PROJECT-STATE.md, docs/progress.json; 41/100)"
+    },
+    "docs/assets/progress.svg": {
+     "pr_status": "M",
+     "disposition": "archived_patch_superseded",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr246-docs.patch",
+     "by": "later status and assessments on main (docs/PROJECT-STATE.md, docs/progress.json; 41/100)"
+    },
+    "docs/implementation/K06-SMP.md": {
+     "pr_status": "M",
+     "disposition": "archived_patch_and_translated",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr246-docs.patch",
+     "translation": "docs/implementation/K06-SMP.md, section 'Branch additions, 6–11 November 2026'"
+    },
+    "docs/progress.json": {
+     "pr_status": "M",
+     "disposition": "archived_patch_superseded",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/patches/pr246-docs.patch",
+     "by": "later status and assessments on main (docs/PROJECT-STATE.md, docs/progress.json; 41/100)"
+    },
+    "docs/verification/k06-5b2-kernel-lock/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5b2-kernel-lock/README.md",
+     "blob": "5267be174cb9e44fbb5cfced8d8f2c4812c31807",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5b2-kernel-lock/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5b2-kernel-lock/native-report.json",
+     "blob": "ab83ffddc17d350d4bb85955d865c228151ebfe6",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5c2-bsp-timer/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5c2-bsp-timer/README.md",
+     "blob": "f437974c43a14c1a961d7bbcb02b4364ed43d296",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5c2-bsp-timer/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5c2-bsp-timer/SHA256SUMS",
+     "blob": "3f1f5fec109eaa355d5c24fff0133a1e1f2c6162",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5c2-bsp-timer/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5c2-bsp-timer/native-report.json",
+     "blob": "c733c75208f6b32f307f2a5e9a798a137dc6d998",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5d2-f5f7-integration/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5d2-f5f7-integration/README.md",
+     "blob": "719314a44dbc764d7b625d4155432a4c0968b433",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5d2a-ring3-smp/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5d2a-ring3-smp/README.md",
+     "blob": "1d8b6a984a13516830c1c2ed7fb8145224637d40",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5d2a-ring3-smp/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5d2a-ring3-smp/SHA256SUMS",
+     "blob": "8c3de05e0db427020f63e8d06ad2eaed714161af",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5d2a-ring3-smp/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5d2a-ring3-smp/native-report.json",
+     "blob": "2c96d94154d0a2b3a52e93868fca1ad0e418ad89",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5d2b-fpu/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5d2b-fpu/README.md",
+     "blob": "1a792778f7691bc78725e07f8408e2460a5175a7",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5d2b-fpu/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5d2b-fpu/SHA256SUMS",
+     "blob": "e159560040f774aa78a0d99692c4ab9f01d0aa3c",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5d2b-fpu/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5d2b-fpu/native-report.json",
+     "blob": "3681251e225d5452b11c39d6eba8e91d8e12c7d7",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5e-proc-shootdown/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5e-proc-shootdown/README.md",
+     "blob": "6dd28229f621e9718919ff3622ea8e45e8e35c04",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5e-proc-shootdown/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5e-proc-shootdown/SHA256SUMS",
+     "blob": "e460e4b44603131097aee58b740933045c63a881",
+     "byte_identical": true
+    },
+    "docs/verification/k06-5e-proc-shootdown/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-5e-proc-shootdown/native-report.json",
+     "blob": "65119d83e6fed2da651449a37fb034bcc375b52c",
+     "byte_identical": true
+    },
+    "docs/verification/k06-audit-f1-f2/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-audit-f1-f2/README.md",
+     "blob": "9da8a6bcb2602f832d14e6f2ef2054db2a4c0adf",
+     "byte_identical": true
+    },
+    "docs/verification/k06-audit-f1-f2/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-audit-f1-f2/native-report.json",
+     "blob": "91904ec58d06f0a7547c98f123b3b0f14ecdf959",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f16f17-sched/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f16f17-sched/README.md",
+     "blob": "3bfd09a8779d728c027af1d4fb45ffa7f50b0379",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f16f17-sched/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f16f17-sched/SHA256SUMS",
+     "blob": "456cf7bde7c21239306622a69a9005f629e96588",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f16f17-sched/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f16f17-sched/native-report.json",
+     "blob": "df466abc7cabf5d4c9f206efbb218b551970c732",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f19f15-icr/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f19f15-icr/README.md",
+     "blob": "a24173f15d36e1ed1417ed4b3fb9d6451f013a04",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f19f15-icr/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f19f15-icr/SHA256SUMS",
+     "blob": "42ef124c01c9d544d99e26dc9ccab9a12593f151",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f19f15-icr/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f19f15-icr/native-report.json",
+     "blob": "29931ae79d09ccfc6fa561bdecfedcb70eab26e1",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f3f4-lockdep/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f3f4-lockdep/README.md",
+     "blob": "a83351a2f6e144376f0029786d88a66ec6d5f98c",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f3f4-lockdep/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f3f4-lockdep/SHA256SUMS",
+     "blob": "652bcca9dbf23d4de257a4b8aba53952814ab41d",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f3f4-lockdep/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f3f4-lockdep/native-report.json",
+     "blob": "fe3bb968f4059be6664d536e0c19303598acd407",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f5f7-diagnostics/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f5f7-diagnostics/README.md",
+     "blob": "96c2d2de9ff7c9607d57fb6b828c840169548ddb",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f5f7-diagnostics/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f5f7-diagnostics/SHA256SUMS",
+     "blob": "05c173408055d8249757bc311549f48ce3f6e2dc",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f5f7-diagnostics/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f5f7-diagnostics/native-report.json",
+     "blob": "13f79209de46d2fd1517462d6427743ffde3f5ae",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/README.md",
+     "blob": "69134d6ad1f65933b172ce51795ae0592a8acfc1",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/SHA256SUMS",
+     "blob": "437311bee9d9bbabae9b750ae8be2752cae1c4dc",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/gs-iret-fault-serial.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/gs-iret-fault-serial.txt",
+     "blob": "01672a4d8c84cf9330894e8106479354eb977792",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/gs-nmi-user-serial.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/gs-nmi-user-serial.txt",
+     "blob": "0ace5bd6f29f5291c28225e74b85ff55b662c3b6",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/gs-user-serial.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/gs-user-serial.txt",
+     "blob": "ff609318b664177e3598134c1f3d389c209033a6",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/green/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/green/native-report.json",
+     "blob": "69444ed0a114bbb30ed1f966eec8ac67f7a10603",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/RUN.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/RUN.txt",
+     "blob": "2af8320f3b89b6d35f0f243b82d5998b71575a98",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/SHA256SUMS": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/SHA256SUMS",
+     "blob": "12a18703bef4572d145e5f15f4b0a66a57178d03",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/gs-user-result.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/gs-user-result.json",
+     "blob": "4d23713ba9c87e6277a58654ad28791a4548591f",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/gs-user-serial.txt": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/gs-user-serial.txt",
+     "blob": "869f3e44450d879f5f5d43387c6c11baeb4bf32e",
+     "byte_identical": true
+    },
+    "docs/verification/k06-f8-swapgs/red/manifest.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-f8-swapgs/red/manifest.json",
+     "blob": "1c900bbc69202d2669ba8c83bf6f9cf41c1f573e",
+     "byte_identical": true
+    },
+    "docs/verification/k06-smp-sched/README.md": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-smp-sched/README.md",
+     "blob": "3f986fe91cd04a3ceb929bab897f7c44d110231c",
+     "byte_identical": true
+    },
+    "docs/verification/k06-smp-sched/native-report.json": {
+     "pr_status": "A",
+     "disposition": "archived",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/verification/k06-smp-sched/native-report.json",
+     "blob": "863d1b260470b3b25adad0f12532068a8bca65f8",
+     "byte_identical": true
+    },
+    "kernel/Cargo.toml": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 26,
+     "added_lines_found_verbatim_in_same_file_on_main": 26
+    },
+    "kernel/src/m2.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 5,
+     "added_lines_found_verbatim_in_same_file_on_main": 5
+    },
+    "kernel/src/m2/arch.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 144,
+     "added_lines_found_verbatim_in_same_file_on_main": 144
+    },
+    "kernel/src/m2/lock.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 185,
+     "added_lines_found_verbatim_in_same_file_on_main": 181
+    },
+    "kernel/src/m2/m3.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 411,
+     "added_lines_found_verbatim_in_same_file_on_main": 388
+    },
+    "kernel/src/m2/m3/desktop.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/display.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/display_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/fpu.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 21,
+     "added_lines_found_verbatim_in_same_file_on_main": 21
+    },
+    "kernel/src/m2/m3/heap.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/image_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/keyring.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m4.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m5.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m6.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m6b.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/m6c.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/memory_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/nas.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 2,
+     "added_lines_found_verbatim_in_same_file_on_main": 2
+    },
+    "kernel/src/m2/m3/network.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 2,
+     "added_lines_found_verbatim_in_same_file_on_main": 2
+    },
+    "kernel/src/m2/m3/network_service.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/ps2.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/random_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/sdk_app.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/supervisor.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/system.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/tpm_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/update.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/volume.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/wait_fixture.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "identical",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/m3/window_session.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 1
+    },
+    "kernel/src/m2/paging.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 134,
+     "added_lines_found_verbatim_in_same_file_on_main": 132
+    },
+    "kernel/src/m2/smp.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 2509,
+     "added_lines_found_verbatim_in_same_file_on_main": 2423
+    },
+    "kernel/src/main.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 17,
+     "added_lines_found_verbatim_in_same_file_on_main": 12
+    },
+    "kernel/src/serial.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 105,
+     "added_lines_found_verbatim_in_same_file_on_main": 99
+    },
+    "tools/auto-loop.sh": {
+     "pr_status": "A",
+     "disposition": "superseded",
+     "by": "tools/agent_pipeline.py (AGENTS.md, autonomous agent pipeline)",
+     "archive": "docs/history/k06-branch-prs-2026-11-06/superseded-tools/auto-loop.sh",
+     "blob": "feb487816cd42a0e7fd34eacc451064c6724cbdb",
+     "byte_identical": true
+    },
+    "tools/build.py": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 1,
+     "added_lines_found_verbatim_in_same_file_on_main": 0
+    },
+    "tools/gate.sh": {
+     "pr_status": "A",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 25,
+     "added_lines_found_verbatim_in_same_file_on_main": 25
+    },
+    "tools/run_smp.py": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 273,
+     "added_lines_found_verbatim_in_same_file_on_main": 234
+    },
+    "tools/tests/test_gs_discipline.py": {
+     "pr_status": "A",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 196,
+     "added_lines_found_verbatim_in_same_file_on_main": 193
+    },
+    "tools/tests/test_smp_serial.py": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 396,
+     "added_lines_found_verbatim_in_same_file_on_main": 386
+    },
+    "userspace/probe.rs": {
+     "pr_status": "M",
+     "disposition": "on_main_via_pr296",
+     "main_commit": "c76daf7b7d75d90df1942e4c5b107834e16be9ff",
+     "main_state": "differs",
+     "added_lines": 29,
+     "added_lines_found_verbatim_in_same_file_on_main": 27
+    }
+   }
+  }
+ }
+}
