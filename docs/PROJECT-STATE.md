@@ -39,8 +39,9 @@ reads their logs through the GitHub connector.
   JavaScript alerts are fixed in draft PR #320; the 23 Rust alerts were
   classified as test fixtures or false positives and await the project owner's
   decision. No alert was dismissed.
-- PR #314 merged on 12 November 2026; a Project #5 dry-run on `main` after that
-  merge is still to be recorded.
+- PR #314 merged on 12 November 2026 (`1a3feb92`). Its Project #5 dry-run on
+  that commit passed (run 43136541042, `APPLY: false`), followed by two applied
+  runs (43136951547, 43137042857); scheduled runs have succeeded since.
 
 **Acceptance:** 41/100 → 41/100; CI and backlog tooling only.
 
