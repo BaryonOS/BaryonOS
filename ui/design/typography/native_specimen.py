@@ -6,13 +6,14 @@ per-glyph Pillow/FreeType rasters, 4-bit coverage (16 levels), 26.6 advances
 accumulated and floored per glyph, no kerning, no shaping, no OpenType
 shaping. OpenType alternates in FEATURES are applied per glyph, the way a
 build-time atlas would bake a 1:1 substitution. Sizes are the proposed type
-tokens (docs/design/TYPOGRAPHY.md); 200 % doubles them. This is a build-time
+tokens at equal x-height (TYPOGRAPHY.md F7); 200 % doubles them. Build-time
 simulation of the native output, not a QEMU capture.
 
 Usage: python3 -I ui/design/typography/native_specimen.py [--blind] OUT_DIR FONT_DIR [FONT_DIR...]
 --blind labels rows with neutral codes and prints the key, for unbiased review.
 """
 import hashlib
+import math
 import sys
 from pathlib import Path
 
@@ -26,8 +27,18 @@ LINES = [  # (role, text); Latin-1 plus … and €, the native character set
     ("strong", "Webvenster wil Tuinplan versturen naar tuinplanner.example"),
     ("small", "Il1| O0o rn m cl d 6 8 5 S B 8  € 1.234,56  13-11-2026 09:41:07  Größe Ålesund"),
 ]
-# role -> (weight, size at 100 %); 200 % doubles the size, as the native atlas does.
-ROLES = {"ui": (400, 15), "read": (400, 16), "strong": (600, 15), "small": (400, 13)}
+# Equal x-height, not equal px (TYPOGRAPHY.md F7): UI size = ceil(7.9 px / x-height).
+# x-heights (OS/2 sxHeight / unitsPerEm) from measure_fonts.py; unmeasured faces stay at 15 px.
+XH = {"Inter": 0.546, "AtkinsonHyperlegibleNext": 0.496, "Exo2": 0.487, "Archivo": 0.526,
+      "FunnelSans": 0.500, "Saira": 0.510, "Sora": 0.534}
+
+
+def roles(family: str) -> dict:
+    """role -> (weight, size at 100 %); 200 % doubles the size, as the native atlas does."""
+    xh = XH.get(family, 7.9 / 15)
+    ui = math.ceil(7.9 / xh - 1e-9)
+    small = max(12, round(13 * XH["Inter"] / xh))  # 13 px of Inter's x-height
+    return {"ui": (400, ui), "read": (400, ui + 1), "strong": (600, ui), "small": (400, small)}
 # Alternates baked into the atlas per family (font file stem prefix). Digits
 # additionally get tnum so clocks and columns do not jitter; only digits, because
 # Inter's tnum also makes the hyphen tabular ("Thuis -NAS").
@@ -82,7 +93,7 @@ def draw_native(img: Image.Image, x: int, y: int, text: str, font, colour, featu
 def sheet(fonts: list, theme: str, scale: int, codes=None) -> Image.Image:
     bg, fg, muted = THEMES[theme]
     label_font = ImageFont.load_default(12 * scale)
-    row_h = 112 * scale
+    row_h = 124 * scale
     img = Image.new("RGB", (980 * scale, 16 * scale + row_h * len(fonts)), bg)
     d = ImageDraw.Draw(img)
     for i, path in enumerate(fonts):
@@ -92,8 +103,9 @@ def sheet(fonts: list, theme: str, scale: int, codes=None) -> Image.Image:
         label = f"Specimen {codes[i]}" if codes else family + (f"  ({' '.join(feats)})" if feats else "")
         d.text((12 * scale, y0), label, font=label_font, fill=muted)
         y = y0 + 18 * scale
+        sizes = roles(family)
         for role, text in LINES:
-            weight, size = ROLES[role]
+            weight, size = sizes[role]
             f = font_at(path, size * scale, weight)
             draw_native(img, 12 * scale, y, text, f, muted if role == "small" else fg, feats)
             y += (size + 8) * scale
@@ -105,6 +117,8 @@ def main() -> None:
     blind = args[:1] == ["--blind"]
     out, dirs = Path(args[blind]), args[blind + 1:]
     fonts = sorted({p.name: p for d in dirs for p in Path(d).glob("*.ttf")}.values(), key=lambda p: p.name)
+    if not fonts:  # an empty sheet would otherwise be written and look like success
+        sys.exit(f"no .ttf files in FONT_DIR {dirs}; pass directories, not font files")
     codes = None
     if blind:  # neutral, order-independent codes: rows are shuffled by a hash of the file name
         fonts.sort(key=lambda p: hashlib.sha256(p.name.encode()).hexdigest())

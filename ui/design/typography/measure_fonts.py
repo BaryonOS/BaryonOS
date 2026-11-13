@@ -85,7 +85,7 @@ def cmap_codepoints(data: bytes, t: dict) -> set:
     n = struct.unpack(">H", data[off + 2: off + 4])[0]
     best = None
     for i in range(n):
-        pid, eid, sub = struct.unpack(">HHI", data[off + 4 + 8 * i: off + 12 + 8 * i])
+        pid, _eid, sub = struct.unpack(">HHI", data[off + 4 + 8 * i: off + 12 + 8 * i])
         fmt = struct.unpack(">H", data[off + sub: off + sub + 2])[0]
         if fmt == 12:
             best = (12, off + sub)
