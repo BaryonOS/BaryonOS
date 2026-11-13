@@ -16,7 +16,7 @@ re-triage. It is not a roadmap and does not change any progress criterion.
 
 ## Snapshot — 13 November 2026, 21:00 (Europe/Amsterdam)
 
-Update 22:22: `origin/main` is at `f9c3bb7d` (#320). The paragraph below describes `bf4aa716`.
+Update 22:25: `origin/main` is at `7bf578d4` (#313, after #320 as `f9c3bb7d`). The paragraph below describes `bf4aa716`.
 
 `origin/main` at `bf4aa716` (#319). Latest run per workflow on `main` is green,
 including `native-window-session` on `c76daf7b` (run 43482464397). The only red
@@ -30,7 +30,7 @@ Dependabot: 0 alerts in any state. Code scanning: 26 open alerts (CodeQL).
 
 | Alert | Rule | Location | Classification | Action |
 |---|---|---|---|---|
-| #1, #2 | js/xss-through-dom | `ui/prototype/app.js:315`, `:453` | Confirmed missing escape, one root cause. SARIF flow: `element.dataset.value` (line 379) sets `collection`, which `materialResults()` interpolates unescaped into an `<h2>` (line 154) that reaches both `innerHTML` sinks. Values currently come from the constant `COLLECTIONS` list, so not exploitable today; the `data-value` attribute (line 147) is also unescaped. Host prototype only; not in `source_hash()`. | **Fixed by #320**, merged as `f9c3bb7d`. CodeQL JavaScript analysis of `refs/pull/320/merge` (`cc55e4f2`) reported 0 results (3 on the previous `main`). The alerts close when CodeQL on `main` analyses `f9c3bb7d` (run 43509417219). |
+| #1, #2 | js/xss-through-dom | `ui/prototype/app.js:315`, `:453` | Confirmed missing escape, one root cause. SARIF flow: `element.dataset.value` (line 379) sets `collection`, which `materialResults()` interpolates unescaped into an `<h2>` (line 154) that reaches both `innerHTML` sinks. Values currently come from the constant `COLLECTIONS` list, so not exploitable today; the `data-value` attribute (line 147) is also unescaped. Host prototype only; not in `source_hash()`. | **Fixed by #320**, merged as `f9c3bb7d`. CodeQL JavaScript analysis of `refs/pull/320/merge` (`cc55e4f2`) reported 0 results (3 on the previous `main`). **Closed (state `fixed`)** by the JavaScript analysis of `main` at `f9c3bb7d` (analysis 2164541747, 0 results, 21:18 UTC). |
 | #3 | js/file-system-race | `services/nas/store.mjs:26-28` | Confirmed check-then-use: `lstatSync` validates type and size, then `readFileSync` reopens the path, so a swap between the two calls bypasses the symlink and size checks. Host NAS prototype; inside `source_hash()`. | **Fixed by #320** (descriptor-based read, `O_NOFOLLOW`/`O_NONBLOCK`, two regression tests); same CodeQL evidence. |
 | #4–#12, #20, #21, #24, #25, #33 | rust/hard-coded-cryptographic-value | `ui/native/tests/session.rs`, `services/keyring/tests/{kdf_hygiene,secure_records}.rs` | Test fixtures: synthetic password bytes (`b"synthetic-only"`, `b'x'`, `b"123456"`), zero-initialised output buffers and public domain-separation labels in a KDF regression test. No production secret. | Proposed dismissal "used in tests"; owner decision. |
 | #14, #15, #17 | same | `services/keyring/src/lib.rs:124,132,141` | False positive: zero-initialised output buffers that `Hkdf::expand` or the ChaCha20 keystream overwrite before use. | Proposed dismissal "false positive"; owner decision. |
@@ -75,8 +75,8 @@ Auto-merge is not armed.
 | Order | PR | Status |
 |---|---|---|
 | 1 | #320 security fix | Merged `f9c3bb7d` at head `77f59101`. `native-window-session` (1)/(2) were still running at merge. |
-| 2 | #313 Graphify repository ID | Updated with `main` as `099eb078` (clean merge; diff is its 3 files; `progress.py --check` passes). At 22:22 (Europe/Amsterdam) `qemu-smoke` had passed and `host-quality` was still running; not merged yet. |
-| 3 | #316 window-gate harness deadline | Held at `8e7800b7` until #313 merges, so the hour-long window gate runs once. Then merge `main` once (the `progress.json` assessment will conflict with #313), re-run the 28 + 54 tests, push, and merge after `native-window-session` passes on that head. |
+| 2 | #313 Graphify repository ID | Merged `7bf578d4` at head `099eb078` (clean merge of `main`; diff was its 3 files; required checks green; 0 unresolved threads). `Analyze (rust)` was still running and cannot be affected by a Markdown/JSON diff. |
+| 3 | #316 window-gate harness deadline | Updated with `main` as `92cdaeb8`: the `progress.json` conflict was resolved to #316's assessment on `7bf578d4`; `progress.py --write`/`--check` consistent; `tools/test_window_session.py` 28 OK; CI contract tests 54 OK; diff to `main` is its 5 files. Merges after `native-window-session` (run 43510320637) passes on `92cdaeb8`, plus the required checks. |
 | 4 | #315 security alert summary | Held at `82a1747d`: updating it before #316 merges would spend a native cycle that the next `main` change invalidates. |
 
 The PRs rewrite the same `progress.json` assessment and the strict up-to-date
@@ -96,10 +96,12 @@ Decisions without a merge:
 
 ## Next step
 
-- On resume, first read CodeQL run 43509417219 on `main` (`f9c3bb7d`) and
-  confirm that alerts #1–#3 are closed; until then they are pending
-  verification, not closed.
-- Resume: recheck #313 (head `099eb078`, required checks, threads, files) and squash-merge it pinned to the full head SHA. Then update #316 once from the new `main`, push, and confirm the remote SHA. The project owner says continue when `native-window-session` finishes on #316's new head.
+- On resume: read run 43510320637 (`native-window-session` (1) and (2)) and the
+  required checks on #316 head `92cdaeb8`. If green and the head is unchanged
+  with 0 unresolved threads, squash-merge #316 pinned to the full head SHA.
+- CodeQL `Analyze (rust)` on `main` at `f9c3bb7d` was cancelled by the next push
+  (analysis 2164572811 reports an unsuccessful execution with 0 rules); the 23
+  Rust alerts stay open, as expected. The run on `7bf578d4` re-analyses Rust.
 - #315 after #316 merges: merge `main` (re-resolve the `progress.json`
   assessment and the top of `PROJECT-STATE.md`), re-run its 18 + 54 tests,
   push, then gate on the checks its diff can affect (`Analyze (actions)`, its
