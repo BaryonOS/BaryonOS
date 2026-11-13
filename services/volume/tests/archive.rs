@@ -828,7 +828,7 @@ fn disk_source_refuses_empty_oversized_and_damaged_ranges() {
     // Padding after the trailer is outside the archive and is ignored.
     let mut padded = Range::new(needed);
     export_to_range(big, &mut padded).unwrap();
-    if length % SECTOR != 0 {
+    if !length.is_multiple_of(SECTOR) {
         padded.sectors[needed - 1][SECTOR - 1] = 0xFF;
     }
     assert!(verify(&mut padded, needed as u64).is_ok());
