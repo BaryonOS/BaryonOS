@@ -28,8 +28,8 @@ Dependabot: 0 alerts in any state. Code scanning: 26 open alerts (CodeQL).
 
 | Alert | Rule | Location | Classification | Action |
 |---|---|---|---|---|
-| #1, #2 | js/xss-through-dom | `ui/prototype/app.js:315`, `:453` | Confirmed missing escape, one root cause. SARIF flow: `element.dataset.value` (line 379) sets `collection`, which `materialResults()` interpolates unescaped into an `<h2>` (line 154) that reaches both `innerHTML` sinks. Values currently come from the constant `COLLECTIONS` list, so not exploitable today; the `data-value` attribute (line 147) is also unescaped. Host prototype only; not in `source_hash()`. | Fix prepared (see below). |
-| #3 | js/file-system-race | `services/nas/store.mjs:26-28` | Confirmed check-then-use: `lstatSync` validates type and size, then `readFileSync` reopens the path, so a swap between the two calls bypasses the symlink and size checks. Host NAS prototype; inside `source_hash()`. | Fix prepared (see below). |
+| #1, #2 | js/xss-through-dom | `ui/prototype/app.js:315`, `:453` | Confirmed missing escape, one root cause. SARIF flow: `element.dataset.value` (line 379) sets `collection`, which `materialResults()` interpolates unescaped into an `<h2>` (line 154) that reaches both `innerHTML` sinks. Values currently come from the constant `COLLECTIONS` list, so not exploitable today; the `data-value` attribute (line 147) is also unescaped. Host prototype only; not in `source_hash()`. | **Fixed in draft PR #320**; CodeQL JavaScript analysis of `refs/pull/320/merge` (`cc55e4f2`) reports 0 results (3 on `main`). Alerts close when #320 merges. |
+| #3 | js/file-system-race | `services/nas/store.mjs:26-28` | Confirmed check-then-use: `lstatSync` validates type and size, then `readFileSync` reopens the path, so a swap between the two calls bypasses the symlink and size checks. Host NAS prototype; inside `source_hash()`. | **Fixed in draft PR #320** (descriptor-based read, `O_NOFOLLOW`/`O_NONBLOCK`, two regression tests); same CodeQL evidence. |
 | #4–#12, #20, #21, #24, #25, #33 | rust/hard-coded-cryptographic-value | `ui/native/tests/session.rs`, `services/keyring/tests/{kdf_hygiene,secure_records}.rs` | Test fixtures: synthetic password bytes (`b"synthetic-only"`, `b'x'`, `b"123456"`), zero-initialised output buffers and public domain-separation labels in a KDF regression test. No production secret. | Proposed dismissal "used in tests"; owner decision. |
 | #14, #15, #17 | same | `services/keyring/src/lib.rs:124,132,141` | False positive: zero-initialised output buffers that `Hkdf::expand` or the ChaCha20 keystream overwrite before use. | Proposed dismissal "false positive"; owner decision. |
 | #16 | same | `services/keyring/src/lib.rs:140` | By design: fast-key-erasure DRBG (Bernstein, 2017) uses a fixed all-zero nonce, sound because every key is used for exactly one keystream call and then replaced (`fill`, `reseed`). | Proposed dismissal "false positive" with this invariant; owner decision. |
@@ -41,25 +41,40 @@ changed to silence the scanner; no alert has been dismissed by this session.
 
 ## Pull request triage
 
-| PR | State | Classification | Next action |
+| PR | State | Classification | Done in this session |
 |---|---|---|---|
-| #318 | Draft, S09 | Active work owned by the OS-development session | None. |
-| #313 | Draft, conflict in `docs/progress.json` | Documentation cleanup; still needed: the hosted Graphify index lists only `BaryonOS/BaryonOS` | Merge `origin/main`, resolve, verify. |
-| #316 | Draft, conflict in `docs/progress.json` | CI flake hardening for the 200 % window gate (main is green again on `c76daf7b`) | Merge `origin/main`, resolve, verify. |
-| #315 | Draft, conflicts in `actionlint.yaml`, `DECISIONS.md`, `PROJECT-STATE.md`, `progress.json` | CI/security maintenance; adds a workflow that reads alerts | Review token permissions and published output, then resolve. |
-| #304 | Ready, behind, auto-merge armed | Feature (A02); all checks pass on its head | Hold: updating the branch would trigger an unapproved auto-merge. Approval queue. |
-| #302 | Ready, bot-authored, conflicts, auto-merge armed, `host-quality` and `experimental-m3-m4-smp` fail | CI/integration blocker; overlaps #315 in `ci.yml` and `actionlint.yaml` | Diagnose read-only; blocked. |
+| #318 | Draft, S09 | Active work owned by the OS-development session | None (read-only). |
+| #320 | Draft, new | Security fix for alerts #1–#3 | Opened from `main`; Node suites: prototype 41/41, NAS 75/87 (the 12 failures are N02 real-TLS tests that fail identically on unmodified `main` with local Node 22; CI pins Node 24.22.1). |
+| #313 | Draft | Documentation cleanup; still needed: the hosted Graphify index lists only `BaryonOS/BaryonOS` | Merged `main` (`aed017fc`); diff to `main` is the 3 intended files; `progress.py --check` passes. |
+| #316 | Draft | CI flake hardening for the 200 % window gate | Merged `main` (`8e7800b7`); `tools/test_window_session.py` 28 OK; CI workflow contract tests 54 OK. Its description still says `main` is red; `main` passed the window gate again on `c76daf7b`. |
+| #315 | Draft | CI/security tooling; read-only token scopes, same-repo PRs only, aggregate code-scanning counts only | Merged `main` (`f09f6275`): combined `actionlint.yaml`, both ADRs kept, its handoff on top of PROJECT-STATE with triage status; config test updated to pin both entries; 18 + 54 tests OK. |
+| #304 | Ready, behind, auto-merge armed | Feature (A02). Owner's local review of 13 Nov reports two Medium findings (silent one-generation rollback after an acknowledged commit; torn first `format` returns `Corrupt` with no safe rule) | Not touched: updating the branch would trigger auto-merge with open findings. |
+| #302 | Ready, bot-authored, conflicts, auto-merge armed | CI blocker: `host-quality` fails in "Preserve Rust coverage artifact" ("No readable test evidence was produced"); `experimental-m3-m4-smp` failed on 11 Nov; conflicts in `actionlint.yaml` and `tests/test_ci_evidence_workflow_verifier.py`; overlaps #315 in `ci.yml` | Not touched (auto-merge armed). |
+
+Merges into PR branches are non-fast-forward merges of `origin/main`; no rebase or force-push. Each `progress.json` conflict was resolved to main's criteria plus a fresh assessment for that PR (41/100 stays 41/100).
 
 ## Issues
 
-Not yet reviewed in this session: #283, #277, #274, #43, #42, #41, #39.
+- #283: disposition comment posted (issuecomment-6864877559). 25 of 33 PRs merged; #227, #229, #232, #238, #246 superseded by #296/#319; #245 rejected with rationale; #270 superseded by #269. Only #260 lacks a recorded decision; issue left open.
+- #39, #41, #42 (feature criteria), #43 (execution route), #274 (English coverage, ongoing), #277 (wiki publication): roadmap or publication work, not maintenance; left unchanged.
+- Main's only red run (`Copilot` reviewer, run 43501362868) is a GitHub-managed agent blocked by its firewall; not a repository workflow.
 
-## Approval queue
+## Approval queue (project owner)
 
-Empty.
+1. **#320** (security, low risk, 3 files): merge once its checks pass. Recommendation: approve.
+2. **#313** (docs, 3 files): merge after checks. Recommendation: approve.
+3. **#316** (CI, harness deadline only): merge after the window gate passes on its head. Recommendation: approve; the description's "main is red" premise is outdated, the change remains useful against runner variance.
+4. **#315** (CI/security tooling): merge after checks. Recommendation: approve; it adds one scheduled read-only workflow.
+5. **#304**: decide the two Medium review findings first. Recommendation: disable auto-merge until they are resolved, because a branch update would merge it.
+6. **#302**: decide whether coverage belongs in the required gate. Recommendation: disable auto-merge and close or rework; it needs a fix of the coverage artifact step and conflict resolution.
+7. **23 Rust code-scanning alerts**: approve the per-alert classification above, then dismiss each with its reason ("used in tests" or "false positive") and a link to this record. No dismissal without approval.
+8. **#260**: retire, or select specific changes for a new small PR (publication decision).
 
 ## Next step
 
-Prepare the escape fix for alerts #1/#2 and the file-descriptor read for #3 on a
-branch from `origin/main`, run `node --test --test-isolation=none
-ui/prototype/tests/*.test.mjs services/nas/tests/*.test.mjs`, and open a draft PR.
+- Fix any CI failure that Auto-fix reports on #320 (bound to this session).
+- Next eligible maintenance task: issue and discussion templates still link to
+  `github.com/simonvanieperen/BaryonOS` (GitHub redirects them after the
+  transfer); a small link-update PR, after #313 merges to avoid overlap.
+- Act on approval-queue answers; recheck head commit, required checks, review
+  state and mergeability immediately before any approved merge.
