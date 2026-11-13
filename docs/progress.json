@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-13",
-    "source_commit": "bf4aa71645f8f9ccb1c95e2cb588dc09443993b4",
+    "source_commit": "56724f39375c6557d3e763e286a00716554313d7",
     "assessment_basis": "source_commit",
-    "branch": "ccr-901455b4-q47fn2",
-    "task": "Point the Graphify guidance in AGENTS.md and the Copilot instructions at the indexed repository BaryonOS/BaryonOS",
+    "branch": "ccr-cf45024e-merge-hold",
+    "task": "Add the label-driven merge-hold required gate so out-of-band native acceptance cannot be bypassed by auto-merge (ADR-MERGE-HOLD-20261113)",
     "previous_score": 41,
-    "summary": "41/100 stays 41/100: agent guidance only. The hosted Graphify identifier changes from simonvanieperen/BaryonOS to BaryonOS/BaryonOS, the only repository of this project that the hosted index lists; no OS functionality, native gate or product criterion changes."
+    "summary": "41/100 remains 41/100. Merge-governance tooling only: a cheap, always-reporting merge-hold check fails while the acceptance-pending label is set; no OS functionality, native gate or product criterion changes."
   },
   "tracks": [
     {
