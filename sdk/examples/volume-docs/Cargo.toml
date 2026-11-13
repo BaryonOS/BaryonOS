@@ -6,6 +6,8 @@ publish = false
 
 [features]
 native = []
+# S09 portal build of volume-app, used only by the archive kernel cases.
+archive-portal = []
 
 [dependencies]
 nieuw-os-sdk-runtime = { path = "../../runtime" }

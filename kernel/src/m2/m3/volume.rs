@@ -5,7 +5,9 @@
 //! from the app-reported evidence AND the independent host disk oracle.
 //! Single CPU, IF0; owned snapshots, no retained userspace pointer or DMA alias.
 use super::*;
-use capability_core::{BlockScope, Message, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE, RECV, SEND};
+use capability_core::{
+    BlockScope, Engine, Message, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE, RECV, SEND,
+};
 use virtio_blk_driver::{Device, Discovery, DmaPool};
 use virtio_core::{Binding, Completion, Operation, Phase, Policy};
 
@@ -22,6 +24,11 @@ const SECTORS: u64 = 580;
 const TABLE_REGION: u64 = 68;
 /// Whole-run budget in 100 Hz timer ticks; the host also bounds wall time.
 const RUN_TICKS: u64 = 60_000;
+/// S09 archive fixtures only: a disjoint range of the same disposable test
+/// image (sectors 1000..2048), granted to the slot-1 backup portal alone.
+const ARCHIVE_FIRST_SECTOR: u64 = 1000;
+const ARCHIVE_SECTORS: u64 = 1048;
+const _: () = assert!(FIRST_SECTOR + SECTORS <= ARCHIVE_FIRST_SECTOR);
 
 #[derive(Clone, Copy)]
 struct AppEvidence {
@@ -88,6 +95,9 @@ struct Runtime {
     apps: [AppEvidence; 2],
     service_startup: u64,
     finish: bool,
+    /// Block object of the portal's archive range (archive fixtures only).
+    archive_key: Option<u64>,
+    archive_ops: [u64; 3],
 }
 static mut RUNTIME: Runtime = Runtime {
     info: None,
@@ -126,6 +136,8 @@ static mut RUNTIME: Runtime = Runtime {
     apps: [NO_APP; 2],
     service_startup: 0,
     finish: false,
+    archive_key: None,
+    archive_ops: [0; 3],
 };
 fn runtime() -> &'static mut Runtime {
     // SAFETY: Entered with KERNEL held and IF0 on the permanent kernel stack.
@@ -213,12 +225,24 @@ fn case() -> u64 {
         5
     } else if cfg!(feature = "test-volume-cut-txn") {
         6
+    } else if cfg!(feature = "test-volume-archive-export") {
+        7
+    } else if cfg!(feature = "test-volume-archive-restore") {
+        8
+    } else if cfg!(feature = "test-volume-archive-corrupt") {
+        9
     } else {
         0
     }
 }
+/// Device-level read-only mount (emulator, virtio negotiation and service).
 fn read_only() -> bool {
     cfg!(feature = "test-system-recover") || matches!(case(), 1 | 4 | 5)
+}
+/// Archive export writes only the archive range: the device stays writable,
+/// but the volume service receives READ alone.
+fn service_read_only() -> bool {
+    read_only() || case() == 7
 }
 fn marker() -> &'static [u8] {
     match case() {
@@ -226,6 +250,9 @@ fn marker() -> &'static [u8] {
         1 => b"VOLUME:CASE:RECOVER:PASS\n",
         4 => b"VOLUME:CASE:RECOVER_CUT:PASS\n",
         5 => b"VOLUME:CASE:CORRUPT:PASS\n",
+        7 => b"VOLUME:CASE:ARCHIVE_EXPORT:PASS\n",
+        8 => b"VOLUME:CASE:ARCHIVE_RESTORE:PASS\n",
+        9 => b"VOLUME:CASE:ARCHIVE_CORRUPT:PASS\n",
         _ => b"VOLUME:FAIL:CUT_NOT_OBSERVED\n",
     }
 }
@@ -365,7 +392,7 @@ pub fn manifest(s: &mut State) {
     }
     // Recovery fixtures mount the same image read-only at the emulator, the
     // virtio feature negotiation and this capability; only READ is granted.
-    let rights = if read_only() {
+    let rights = if service_read_only() {
         BLOCK_READ
     } else {
         BLOCK_READ | BLOCK_WRITE | BLOCK_FLUSH
@@ -402,7 +429,7 @@ pub fn manifest(s: &mut State) {
         (80, r.roots[1]),
         (88, r.replies[0]),
         (72, r.replies[1]),
-        (120, u64::from(read_only())),
+        (120, u64::from(service_read_only())),
         (192, 0),
         (232, 0),
     ] {
@@ -423,11 +450,14 @@ pub fn manifest(s: &mut State) {
             fail(b"APP_RECV_ON_SEND");
         }
     }
-    if read_only()
+    if service_read_only()
         && (e.check_block(service, block, BLOCK_WRITE).is_ok()
             || e.check_block(service, block, BLOCK_FLUSH).is_ok())
     {
         fail(b"READONLY_RIGHTS");
+    }
+    if matches!(case(), 7..=9) {
+        archive_grant(s, e, service, clients, block);
     }
     if !e.check_invariants() {
         fail(b"MANIFEST_ENGINE");
@@ -437,6 +467,47 @@ pub fn manifest(s: &mut State) {
         .checked_add(releasable_frames(s))
         .unwrap_or_else(|| fail(b"FRAME_BASELINE_OVERFLOW"));
     serial::write(b"VOLUME:MANIFEST:PASS\n");
+}
+
+/// S09 fixture grant: the slot-1 portal alone receives the archive range;
+/// export READ|WRITE|FLUSH, restore and corrupt READ only. The service and
+/// slot 2 keep exactly their earlier authority.
+fn archive_grant(s: &mut State, e: &mut Engine, service: u64, clients: [u64; 2], block: u64) {
+    let scope = BlockScope {
+        device: 0,
+        first_sector: ARCHIVE_FIRST_SECTOR,
+        sector_count: ARCHIVE_SECTORS,
+    };
+    let rights = if case() == 7 {
+        BLOCK_READ | BLOCK_WRITE | BLOCK_FLUSH
+    } else {
+        BLOCK_READ
+    };
+    let handle = e
+        .create_block_device_with_rights(clients[0], scope, rights)
+        .unwrap();
+    let auth = e.check_block(clients[0], handle, rights).unwrap();
+    if auth.scope() != scope {
+        fail(b"ARCHIVE_SCOPE");
+    }
+    if case() != 7
+        && (e.check_block(clients[0], handle, BLOCK_WRITE).is_ok()
+            || e.check_block(clients[0], handle, BLOCK_FLUSH).is_ok())
+    {
+        fail(b"ARCHIVE_READONLY_RIGHTS");
+    }
+    // Handle numbers are per process, so compare the object reached, not
+    // the number: neither the service nor slot 2 may reach the archive.
+    let key = auth.object_key();
+    for (pid, h) in [(service, handle), (service, block), (clients[1], handle)] {
+        if e.check_block(pid, h, 0)
+            .is_ok_and(|other| other.object_key() == key)
+        {
+            fail(b"ARCHIVE_ESCAPE");
+        }
+    }
+    runtime().archive_key = Some(key);
+    put(s, 1, 504, handle);
 }
 
 fn err(e: virtio_core::Error) -> i64 {
@@ -500,8 +571,9 @@ pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
     match device_call(s, slot, n, a) {
         Ok(v) => (0, v),
         Err(code) => {
-            // Apps hold no block capability at all: every app block call
-            // must fail at the authority check before any device effect.
+            // Apps hold no volume block capability: every app call to it
+            // fails at the authority check before any device effect (the
+            // S09 portal's own archive range is accounted separately).
             #[cfg(not(feature = "native-system"))]
             if slot > 0 {
                 runtime().app_device_denials[slot - 1] += 1;
@@ -641,6 +713,9 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         .publish_prepared(suppress)
         .unwrap();
     r.publications[operation_index(op)] += 1;
+    if r.archive_key == Some(binding.object_key) {
+        r.archive_ops[operation_index(op)] += 1;
+    }
     r.published_at = s.ticks;
     Ok(request.ticket)
 }
@@ -762,6 +837,10 @@ fn advance(s: &State) {
                 .complete(request.epoch, request.ticket, Completion::Success)
                 .unwrap();
             if let Operation::Write { sector } = request.operation {
+                // Archive sectors are neither volume table nor content writes.
+                if r.archive_key == Some(request.binding.object_key) {
+                    return;
+                }
                 let relative = sector - FIRST_SECTOR;
                 if relative < TABLE_REGION {
                     r.table_writes += 1;
@@ -961,6 +1040,17 @@ fn finish(s: &mut State) -> ! {
         if read_only() && r.publications[1..] != [0, 0] {
             fail(b"READONLY_MUTATED");
         }
+        // Export: every write and flush went to the archive range and the
+        // portal read the archive back; restore/corrupt only read it.
+        let a = r.archive_ops;
+        let archive = match case() {
+            7 => a[0] > 0 && a[1] > 0 && a[2] > 0 && r.publications[1..] == a[1..],
+            8 | 9 => a[0] > 0 && a[1..] == [0, 0],
+            _ => a == [0; 3],
+        };
+        if !archive {
+            fail(b"ARCHIVE_IO");
+        }
         if r.app_device_denials.iter().any(|count| *count == 0) {
             fail(b"APP_DEVICE_DENIAL_NOT_OBSERVED");
         }
@@ -1030,6 +1120,11 @@ fn finish(s: &mut State) -> ! {
     print_number(b"VOLUME:BROKER:FLUSHES:", r.publications[2]);
     print_number(b"VOLUME:BROKER:TABLE_SECTOR_WRITES:", r.table_writes);
     print_number(b"VOLUME:BROKER:DATA_SECTOR_WRITES:", r.data_writes);
+    if matches!(case(), 7..=9) {
+        print_number(b"VOLUME:ARCHIVE:READS:", r.archive_ops[0]);
+        print_number(b"VOLUME:ARCHIVE:WRITES:", r.archive_ops[1]);
+        print_number(b"VOLUME:ARCHIVE:FLUSHES:", r.archive_ops[2]);
+    }
     print_number(
         b"VOLUME:APP_DEVICE_DENIALS:",
         r.app_device_denials[0] + r.app_device_denials[1],

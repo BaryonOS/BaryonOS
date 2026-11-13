@@ -1,6 +1,9 @@
 #![no_std]
 #![no_main]
 #![deny(unsafe_op_in_unsafe_fn)]
+// The archive-portal build keeps only the S09 portal path so app text stays
+// within the 64 KiB startup boundary; the fixture code it leaves out is unused.
+#![cfg_attr(feature = "archive-portal", allow(dead_code, unused_imports))]
 //! Native M6e document app. Two instances run in separate address spaces,
 //! each with only a send/reply endpoint pair to the volume service. All
 //! results are app-reported evidence; the host disk oracle checks the image.
@@ -8,9 +11,16 @@
 #[cfg(not(all(target_arch = "x86_64", target_os = "none")))]
 compile_error!("volume-app is only for the Nieuw OS x86_64-unknown-none target");
 
+#[cfg_attr(not(feature = "archive-portal"), allow(dead_code))]
+mod disk;
 mod support;
 
+use disk::tick;
+#[cfg(feature = "archive-portal")]
+use disk::NativeDisk;
 use nieuw_os_sdk_runtime::{native, BlockDevice, Handle, Outgoing, ReceiveEndpoint, SendEndpoint};
+#[cfg(feature = "archive-portal")]
+use volume_core::archive::{self, DiskSink, DiskSource, Report};
 use volume_core::{
     checksum_update,
     client::{Client, HistoryInfo, Stat, Transport},
@@ -28,10 +38,25 @@ const CUT_TABLE: u64 = 3;
 const RECOVER_CUT: u64 = 4;
 const CORRUPT: u64 = 5;
 const CUT_TXN: u64 = 6;
-
-fn tick() {
-    support::put(8, support::word(8).wrapping_add(1));
-}
+// S09 archive cases: slot 1 is the backup portal, slot 2 an ordinary app.
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_EXPORT: u64 = 7;
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_RESTORE: u64 = 8;
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_CORRUPT: u64 = 9;
+/// Startup word with the portal's archive range capability (slot 1, archive
+/// cases only); the range size must equal the kernel manifest's scope.
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_HANDLE: u64 = 504;
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_SECTORS: u64 = 1048;
+/// Private, zeroed 64 KiB RW/NX heap the kernel maps for every process
+/// before entry; the portal's only use is the archive content scratch.
+#[cfg(feature = "archive-portal")]
+const HEAP: usize = 0x6000_0000;
+#[cfg(feature = "archive-portal")]
+const _: () = assert!(MAX_LENGTH == 0x10000);
 
 fn fail(step: u64) -> ! {
     support::put(240, step);
@@ -768,6 +793,91 @@ fn recover_cut(app: &mut App) {
     app.report(30);
 }
 
+/// S09 backup portal: the only process with a capability on the archive
+/// range, plus a volume client bound to domain 0 like any app.
+#[cfg(feature = "archive-portal")]
+fn portal(app: &mut App, case: u64) {
+    let device = BlockDevice::from_handle(
+        Handle::from_raw(support::word(ARCHIVE_HANDLE)).unwrap_or_else(|_| fail(700)),
+    );
+    // The capability ends at its scope: the first sector past it is refused.
+    check(
+        native::block_read(device, ARCHIVE_SECTORS, 0, 128).is_err(),
+        701,
+    );
+    // SAFETY: the kernel maps HEAP..HEAP+64 KiB private, zeroed RW/NX for this
+    // process before entry and nothing else here uses it; this is the only
+    // reference, held for the rest of the portal run on one thread.
+    let scratch = unsafe { &mut *(HEAP as *mut [u8; MAX_LENGTH]) };
+    let mut disk = NativeDisk { device };
+    match case {
+        ARCHIVE_EXPORT => {
+            // The source is the recovered normal fixture, mounted read-only.
+            verify_final(app, FINAL_A, 702);
+            let mut sink = DiskSink::new(&mut disk, ARCHIVE_SECTORS);
+            let summary =
+                archive::export(&mut app.client, 0, &mut sink).unwrap_or_else(|_| fail(710));
+            sink.finish().unwrap_or_else(|_| fail(711));
+            check(
+                summary.objects == FINAL_A.len() && summary.collections == 2,
+                712,
+            );
+            // Read the stored bytes back through the same capability.
+            let stored = archive::verify(&mut DiskSource::new(&mut disk, ARCHIVE_SECTORS), scratch)
+                .unwrap_or_else(|_| fail(713));
+            check(stored == summary, 714);
+            let object = app.object(7);
+            check(
+                app.client.write(object, 0, b"Nee", 1, fill(object, 1)) == Err(Status::Access),
+                715,
+            );
+        }
+        ARCHIVE_RESTORE => {
+            // Source loss: a fresh volume whose domain starts empty.
+            check(app.list(0, 720).1 == 0, 721);
+            archive::verify(&mut DiskSource::new(&mut disk, ARCHIVE_SECTORS), scratch)
+                .unwrap_or_else(|_| fail(722));
+            let report = archive::restore(
+                &mut DiskSource::new(&mut disk, ARCHIVE_SECTORS),
+                scratch,
+                &mut app.client,
+                0,
+            )
+            .unwrap_or_else(|_| fail(723));
+            let all = FINAL_A.iter().fold(0u8, |mask, item| mask | 1 << item.0);
+            check(
+                report
+                    == Report {
+                        restored: all,
+                        ..Report::default()
+                    },
+                724,
+            );
+            for (index, _, content, length, name, collection, _) in FINAL_A {
+                let stat = app.verify(*index, *content, 730);
+                check(
+                    stat.length == *length
+                        && &stat.name[..stat.name_length] == name.as_bytes()
+                        && stat.collection == *collection
+                        && stat.history_count == 0,
+                    735,
+                );
+            }
+            check(app.list(0, 736).1 == FINAL_A.len(), 737);
+        }
+        _ => {
+            // Corrupt archive: refused by verify, so nothing is restored.
+            check(
+                archive::verify(&mut DiskSource::new(&mut disk, ARCHIVE_SECTORS), scratch)
+                    == Err(Status::Corrupt),
+                740,
+            );
+            check(app.list(0, 741).1 == 0, 742);
+        }
+    }
+    app.report(750);
+}
+
 fn run() {
     check(native::check_abi().is_ok(), 1);
     let slot = support::word(0);
@@ -807,11 +917,21 @@ fn run() {
         commits: 0,
     };
     match case {
+        #[cfg(not(feature = "archive-portal"))]
         NORMAL if domain == 0 => normal_a(&mut app),
+        #[cfg(not(feature = "archive-portal"))]
         NORMAL => normal_b(&mut app),
+        #[cfg(not(feature = "archive-portal"))]
         RECOVER => recover(&mut app),
+        #[cfg(not(feature = "archive-portal"))]
         CUT_DATA | CUT_TABLE | CUT_TXN => cut(&mut app, case),
+        #[cfg(not(feature = "archive-portal"))]
         RECOVER_CUT => recover_cut(&mut app),
+        #[cfg(feature = "archive-portal")]
+        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT if domain == 0 => portal(&mut app, case),
+        // The ordinary app holds no archive authority; it only reports its domain.
+        #[cfg(feature = "archive-portal")]
+        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT => app.report(760),
         _ => fail(5),
     }
     support::put(40, 1);
