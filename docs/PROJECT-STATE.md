@@ -24,6 +24,8 @@
 
 **Not run:** CI volume-acceptance on this head (pending); KVM; hardware; a second attached disk; an independent human audit.
 
+**Open for the project owner (workflow files are not changed here):** `.github/workflows/kvm-pilot.yml` expects 9 volume stage reports and `volume-acceptance.yml` names "9 QEMU runs"; the gate now runs 14 stages, so the KVM pilot's volume job would fail closed on this branch.
+
 **Open (S09 stays open):** a user-chosen target behind its own capability (decision proposal D1–D5 awaits the project owner); documented common export formats; the encrypted NAS/provider variant (proposed to wait for B01); a user task.
 
 **Next:** a decision by the project owner on the destination proposal, and review of PR #318. Without that decision, the remaining S09 work that needs no new trust boundary is a documented common export format, specified and host-tested first.

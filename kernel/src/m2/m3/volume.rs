@@ -1085,8 +1085,10 @@ fn finish(s: &mut State) -> ! {
         }
         // Export: every write and flush went to the archive range and the
         // portal read the archive back; restore, corrupt and conflict only
-        // read it. Full target: the export filled exactly the cut scope and
-        // never flushed, and the portal read the unfinished range back.
+        // read it. Full target: as many archive writes as the cut scope has
+        // sectors, no flush, and at least one archive read (the portal's
+        // verify reads the header and refuses it); the host compares the
+        // written sectors byte for byte.
         let a = r.archive_ops;
         let archive = match case() {
             7 => a[0] > 0 && a[1] > 0 && a[2] > 0 && r.publications[1..] == a[1..],

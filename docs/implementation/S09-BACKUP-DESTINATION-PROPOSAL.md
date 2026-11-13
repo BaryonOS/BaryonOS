@@ -31,9 +31,7 @@ These come from existing documents and are not open for this decision:
 - **No implicit authority.** Installation grants no file, NAS, device or
   export right; permissions are separate, visible and revocable
   (LOCAL-PRIVACY-CONTRACT.md, section 4).
-- **Restore never overwrites** (S09-BACKUP-ARCHIVE.md). This holds for the
-  destination too: an export must not overwrite data on the target that is
-  not a previous archive of the same user.
+- **Restore never overwrites** (S09-BACKUP-ARCHIVE.md).
 - **`verify` remains the only acceptance check** for an archive.
 
 ## Decisions requested
@@ -54,6 +52,11 @@ These come from existing documents and are not open for this decision:
 - **(c) An archive object in another volume domain of the same machine.**
   This is not an independent copy if the volume or the device is lost, and v1
   objects are limited to 64 KiB. It is listed for completeness only.
+
+*Proposed rule for every option (new, not an existing constraint):* an
+export must not overwrite data on the target that is not a previous archive
+of the same user. Under (a) only the component that picks the range can
+uphold it; under (b) the destination service does.
 
 *Recommendation:* (b) as the product design. Keep (a) as the test fixture,
 and possibly as the first native step towards (b) on a dedicated, whole
@@ -81,12 +84,15 @@ hold a raw export path for personal data.
   `verify`.
 - Restore: read-only on one destination entry; write on the user's domain
   through the normal volume client, under the restore rule.
-- The volume service never receives destination rights; the portal never
-  receives the volume's block capability. Both points already hold in the
-  fixture and are counted by the kernel (`ARCHIVE_ESCAPE`).
+- The volume service never receives destination rights; the fixture kernel
+  counts this (`ARCHIVE_ESCAPE`). The portal never receives the volume's
+  block capability; in the fixture this holds because the manifest never
+  delegates it, and no kernel check counts it.
 
 *Recommendation:* adopt these per-operation rights as written; they mirror the
-fixture (cases 7–11) and add no new kernel mechanism for D1 (a).
+fixture (cases 7–11) and add no new kernel mechanism for D1 (a). A product
+grant should also check the portal side explicitly, for example that none of
+the portal's handles resolves to the volume's block object.
 
 ### D4 — Which component holds the authority
 
@@ -100,10 +106,12 @@ destination.
 
 ### D5 — Encrypted destinations (NAS and provider)
 
-- **(a) Not before B01.** Use encrypted destinations only after key handling
-  (B01, currently parked) and the ENCRYPTED-OBJECT-STORAGE layer exist. Until
-  then, plaintext archives go to local user-owned targets only.
-- **(b) A separate archive key now**, without B01.
+- **(a) Not before the key path.** Use encrypted destinations only after key
+  handling (B01, currently parked in this work) and the client-side
+  encryption that S09-BACKUP-ARCHIVE.md names (B02, P01,
+  ENCRYPTED-OBJECT-STORAGE) exist. Until then, plaintext archives go to local
+  user-owned targets only.
+- **(b) A separate archive key now**, without that key path.
 
 *Recommendation:* (a). (b) would introduce key handling outside the reviewed
 key path, which the project rules do not allow without a recorded threat

@@ -121,9 +121,11 @@ block adapter is shared by service and portal in `volume-docs/src/disk.rs`.
   the volume table/data write classification. `finish` fails with
   `ARCHIVE_IO` unless every export write and flush went through the archive
   object and the portal read the archive back through it, and restore,
-  corrupt and conflict only read it. In the full-target case the portal must
-  write exactly the 100 sectors of its scope, flush nothing and read the range
-  back. Evidence lines
+  corrupt and conflict only read it. In the full-target case it requires as many
+  archive writes as the cut scope has sectors (100), no flush and at least one
+  archive read. The portal's `verify` reads only the header sector and refuses
+  it at the length bound, so the contents of the 100 sectors are checked by
+  the host oracle alone. Evidence lines
   `VOLUME:ARCHIVE:READS|WRITES|FLUSHES`; markers
   `VOLUME:CASE:ARCHIVE_EXPORT|ARCHIVE_RESTORE|ARCHIVE_CORRUPT|ARCHIVE_CONFLICT|ARCHIVE_FULL:PASS`.
 - Calls on the portal's own archive object (pending collects, the scope
