@@ -2,7 +2,7 @@
 
 ## NEXT AGENT HANDOFF — S09 native archive slice: export, restore, damaged-archive refusal and name-conflict restore pass the local volume gate (13/13) — 13 November 2026
 
-**Source:** branch `feat/s09-native-archive`, draft PR #318 (no auto-merge). Tested commit `bcc589a8` (source-v3 `a63921e8f4e98deb3d2da591faeabdd6cc51447b2ec5148c1d9e5da7f600a5ba`, which includes the AI-review fixes); later commits change documentation and evidence only.
+**Source:** branch `feat/s09-native-archive`, draft PR #318 (no auto-merge). Tested commit `93bb3dd9`, the merge of `main` `7bf578d4` (source-v3 `a22280ff8c15d95e8ea4222cc1b50d1b27c52ac6dd38ec21b0b05a4db7c8f1cc`, which includes the AI-review fixes); later commits change documentation and evidence only.
 
 **Done:**
 - Kernel volume profile cases 7–10 (`test-volume-archive-export|restore|corrupt|conflict`). The slot-1 portal alone gets the archive range (device 0, sectors 1000..2040, disjoint from the volume 4..584): READ|WRITE|FLUSH for export, READ only otherwise.
@@ -11,13 +11,13 @@
 - An independent Python reader of format v1 (`tools/volume_archive.py`) plus unit tests, including resealed tamper cases; all 10 reader mutations were killed. `expected_restore` derives the restore end state from the spec rule.
 - Four archive runner stages; `tools/test_volume.py` now runs 13 QEMU stages. The conflict stage covers slot and name conflicts, a reused collection, and a collection that keeps another name and whose archived object is restored uncollected. Two further rules are `volume-core` host tests.
 
-**Evidence:** local `tools/test_volume.py` on `bcc589a8`: exit 0, `passed=true`, 13/13 stages in 151 s (QEMU 10.2.1 TCG):
+**Evidence:** local `tools/test_volume.py` on `93bb3dd9`: exit 0, `passed=true`, 13/13 stages in 141 s (QEMU 10.2.1 TCG):
 - Export: 91 801-byte archive, 180 writes, all archive I/O, 0 service commits.
 - Restore on a fresh image holding only the archive range: 5 objects byte-identical.
 - One flipped byte: the guest refuses it, the reader refuses it, and the image is unchanged.
 - Conflict: restored {1, 2, 5}, conflicts {3, 4}, uncollected {1}; the pre-state is unchanged. The conflict and restore oracles each refuse the other stage's image.
 - Details: [S09 native evidence](verification/s09-archive/NATIVE-20261113.md); design and limits: [S09-BACKUP-ARCHIVE.md](implementation/S09-BACKUP-ARCHIVE.md).
-- Also recorded there: two failing intermediate runs (a wrong host generation check, and a broker Busy race fixed by ordering) and the superseded passes of runs 3–6.
+- Also recorded there: two failing intermediate runs (a wrong host generation check, and a broker Busy race fixed by ordering) and the superseded passes of runs 3–7.
 - A `native-system` kernel build also passes on this tree; its 2 warnings come from files this branch does not change.
 
 **Not run:** CI volume-acceptance on this head (pending); KVM; hardware; a second attached disk; an independent human audit.
