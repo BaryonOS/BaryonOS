@@ -1,6 +1,31 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — K06 step 5f: timing repair measured; NO-GO for a full matrix; decisions D1–D5 await the project owner — 12 November 2026
+## NEXT AGENT HANDOFF — K06 step 5f: ADR-082 D1–D5 implemented and verified; GO for one full matrix, pending the project owner's permission — 13 November 2026
+
+**Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Candidate source `4eb18b1`; later commits change documentation and evidence only.
+
+**Decision (project owner, 13 November 2026):** D1–D5 of ADR-082 approved in a stated direction, on the condition that every correctness and security invariant stays intact. Implemented as recorded in ADR-082 ("Decision of 13 November 2026 and its implementation") and [TIMING-REPAIR.md](verification/k06-smp-sched/TIMING-REPAIR.md) section 7:
+- D1/D2: per-CPU single-writer progress; 2 s (sync) and 500 ms (scratch) without own progress are fatal in the guest, with caps of 20 s and 5 s. The oracle judges 2 s and 500 ms on every case except `eight`, `nine-capacity`, `m3-eight`, `m3-migrate-eight`, `m3-load-eight` (fixed list). The performance check of eight contending CPUs against those limits now needs an environment with enough dedicated cores, or KVM/hardware (H06).
+- D3: witness gaps closed (entry stamp before the LAPIC read, halt stamp before `sti`, AP wakes); verdict = median without host-charged periods within 1 % on both sides, majority bound of 10 % host credit, oracle recheck of the judged median.
+- D4 unchanged; D5 `m3-load` host watchdog 125 s.
+- Defect repair outside D1–D5: the ICR exchange's per-acknowledgement bound was 65 536 PAUSEs and failed a healthy local `eight` boot; now 2 s of TSC.
+- Review items C7, C9, C11, F02, F08, F11 fixed; C8 and F14 not blockers (reasons in TIMING-REPAIR.md section 4). Two AI reviews of the implementation found five further items (K1, K2, F1–F3), all fixed.
+- New fixtures `scratch-stall`, `scratch-slow`, `clock-other-cpu`; matrix 74 × 50 (3 700 guests).
+
+**Evidence (diagnostic, not acceptance):**
+- Hosted run [43352859422](https://github.com/BaryonOS/BaryonOS/actions/runs/43352859422) on `4eb18b1` (QEMU 10.2.1, matrix runner, 20 boots per case): 240/240 boots of twelve cases (four, eight, nine-capacity, m3-eight, m3-migrate-eight, m3-load-two, m3-load-eight, m3-ipc-four and the fixtures scratch-stall, scratch-slow, clock-other-cpu, icr-race-control); judged waits at most 3.3 % of their limits, lock waits at most 26 of 400 ms, no CPU without own progress for more than 9 ms; judged clock median −0.16 … −0.01 % while two raw medians reached +1.37 %; m3-load-eight 47.3 of 125 s, m3-ipc-four 198.7–211.8 s; gate rehearsal success. Rows: `repair/adr082-hosted-boots.tsv`.
+- PR run [43353618663](https://github.com/BaryonOS/BaryonOS/actions/runs/43353618663) on `3dbc62c` (same source): `native-smp` success.
+- Local, QEMU 8.2.2: 69 boots, 68 passed (the failure is the ICR loop count, repaired); 3-CPU overcommit trials pass. `tools/tests` 317 OK, `tests/test_ci_*` OK, `cargo test -p boot-protocol -p smp-lock` OK, fmt and clippy clean, `tools/preflight.py` complete.
+
+**GO/NO-GO:** GO for one full `native-smp.yml` matrix (`full_matrix=true`) on the candidate, **only after the project owner's explicit permission**. Every known failure mechanism is removed by construction or bounded with a measured hosted margin; every negative fixture still stops on its own marker. Pass probability: point estimate about 80–85 % for 3 700 guests, 95 % lower bound about 30 %; 99 % is not demonstrable by sampling (about one million clean boots would be needed). Residual risks: unknown rare classes; the soak watchdog (612 of 660 s, 600 s of it fixed); the documentary 264 s IPC bound of ADR-081 (211.8 s, 80 % used); DG-1 400 ms lock waits (hosted maximum 26 ms).
+
+**Not run:** any acceptance matrix, soak or final gate on this source; KVM or hardware; the five overcommitted cases on an environment that can judge their performance limits.
+
+**Next:** on permission, dispatch `native-smp.yml` with `full_matrix=true` on the PR head; read every failed job; no selective retries. On a pass of all 74 cases 50/50, the soaks, K07, the aggregate and the final gate, record acceptance (progress 39 → 41) in PR #317.
+
+**Progress:** 39/100 → 39/100.
+
+## Previous checkpoint — K06 step 5f: timing repair measured; NO-GO for a full matrix; decisions D1–D5 await the project owner — 12 November 2026
 
 **Source:** branch `ccr-5a0d9559-16gxmt`, PR #317 (draft, no auto-merge, the only permitted K06 follow-up PR). Kernel and tool sources are those of `4616fb3`; the commit carrying this entry adds documentation and diagnostic evidence only.
 

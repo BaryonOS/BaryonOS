@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-12",
-    "source_commit": "4616fb3e9588c710e2f89a70c56685f5b48ef44b",
+    "date": "2026-11-13",
+    "source_commit": "4eb18b15a399636f87845e9706c2d5bb1e290ac8",
     "assessment_basis": "source_commit",
     "branch": "ccr-5a0d9559-16gxmt",
-    "task": "K06 step 5f: timing repair instrumented and measured; GO/NO-GO report with verdict NO-GO pending contract decisions D1-D5",
+    "task": "K06 step 5f: ADR-082 D1-D5 implemented after the project owner's decision; targeted local and hosted verification; GO/NO-GO report with verdict GO for one full matrix, pending permission",
     "previous_score": 39,
-    "summary": "39/100 remains 39/100. The K06 fixture now records the margin of every bounded wait, separates liveness from performance in the sync wait and accounts for PIT edges in shadow mode, with every acceptance limit unchanged. A hosted diagnostic passed 250/250 boots of five cases and local series were recorded, but no acceptance matrix, soak or final gate ran. The report advises against a full matrix on the unchanged contract; the contract changes D1-D5 of ADR-082 await the project owner. K06 stays open."
+    "summary": "39/100 remains 39/100. The approved contract changes D1-D5 of ADR-082 are implemented (per-CPU progress-bounded sync and scratch waits judged for performance off the five overcommitted cases, clock verdict on the median without host-charged periods with a complete witness, 125 s m3-load watchdog), plus a repair of the ICR acknowledgement bound and the open review items. 240/240 hosted diagnostic boots, the gate rehearsal and the pull-request run pass on the candidate, and every negative fixture stops on its own marker. No acceptance matrix, soak or final gate ran, so K06 step 5f stays open until the project owner permits one full matrix and it passes."
   },
   "tracks": [
     {

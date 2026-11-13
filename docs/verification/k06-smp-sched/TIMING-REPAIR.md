@@ -282,3 +282,69 @@ rows and scripts in `repair/adr082-local-runs.tar.gz`.
   affected profile builds with the warnings of the base.
   `tools/preflight.py`: nothing missing.
 
+### 7.3 Hosted diagnostic on the candidate
+
+Run [43352859422](https://github.com/BaryonOS/BaryonOS/actions/runs/43352859422)
+(`margin_diagnostic`, source `4eb18b1`, matrix runner `ubuntu-26.04`, 4 vCPUs, QEMU 10.2.1,
+`pc-q35-10.0`), 20 boots per case. One row per boot in
+[`repair/adr082-hosted-boots.tsv`](timing-investigation/repair/adr082-hosted-boots.tsv);
+artifact digests in `repair/adr082-hosted-artifacts.txt`. Not acceptance evidence.
+
+| Case | Passed | Sync wait / longest stall (ms) | Scratch wait / longest stall (ms) | Raw median | Judged median | Lost / host-charged, max per boot | Longest lock wait (ms, limit 400) | Host time, max (s) |
+|---|---|---|---|---|---|---|---|---|
+| `four` | 20/20 | 40 / 0 | 3 / 0 | −0.05 … −0.02 % | −0.05 … −0.02 % | 2 / 1 | 8 | 10.1 of 60 |
+| `eight` | 20/20 | 220 / 0 | 201 / 8 | −0.08 … −0.02 % | −0.08 … −0.02 % | 1 / 1 | 21 | 15.0 of 60 |
+| `nine-capacity` | 20/20 | 260 / 0 | 60 / 9 | −0.10 … −0.02 % | −0.10 … −0.02 % | 2 / 1 | 21 | 16.7 of 60 |
+| `m3-eight` | 20/20 | 260 / 0 | 202 / 7 | −0.16 … +0.03 % | −0.16 … −0.03 % | 6 / 6 | 26 | 28.4 of 60 |
+| `m3-migrate-eight` | 20/20 | 270 / 0 | 185 / 8 | −0.11 … −0.02 % | −0.11 … −0.02 % | 1 / 0 | 24 | 24.4 of 60 |
+| `m3-load-two` | 20/20 | 0 / 0 | 1 / 0 | −0.03 … −0.01 % | −0.03 … −0.01 % | 1 / 0 | 3 | 39.7 of 125 |
+| `m3-load-eight` | 20/20 | 280 / 0 | 120 / 5 | −0.09 … −0.03 % | −0.09 … −0.03 % | 2 / 2 | 23 | 47.3 of 125 |
+| `m3-ipc-four` | 20/20 | 50 / 0 | 15 / 1 | −0.05 … −0.02 % | −0.05 … −0.02 % | 1 / 0 | 11 | 211.8 of 660 (ADR-081 documentary bound 264) |
+| `icr-race-control` | 20/20 | 30 / 0 | 6 / 0 | −0.06 … −0.02 % | −0.06 … −0.02 % | 2 / 1 | — | 12.1 of 60 |
+| `scratch-stall` | 20/20 | 50 / 0 | stops at the stall | −0.08 … +1.37 % | −0.08 … −0.02 % | 66 / 66 | — | 10.8 of 60 |
+| `scratch-slow` | 20/20 | 70 / 0 | stops at the cap | −0.05 … −0.02 % | −0.05 … −0.02 % | 1 / 1 | — | 15.4 of 60 |
+| `clock-other-cpu` | 20/20 | 50 / 0 | — | +6.13 … +6.18 % | +6.13 … +6.18 % | 316 / 0 | — | 8.0 of 60 |
+
+- 240 of 240 boots ended as their oracle requires. Two `scratch-stall` boots lost 66 PIT
+  periods, all while the BSP was demonstrably halted; their raw medians (up to +1.37 %) would
+  have failed the old rule, the judged medians stay at −0.08 … −0.02 %. In `clock-other-cpu`
+  none of the 316 lost periods per boot was credited to the host.
+- Every other recorded wait used at most 3.3 % of its limit. Sync and scratch waits on the
+  overcommitted cases stayed at or below 14 % (sync) and 41 % (scratch) of the limits that the
+  oracle no longer judges there; no CPU went without own progress for more than 9 ms.
+- `m3-ipc-four` took 198.7–211.8 s per boot (median 203.5 s), as in run 43187501026
+  (198–209 s): 32 % of the 660 s watchdog and 80 % of the 264 s bound that ADR-081 R3-5
+  addendum 2 sets for acceptance. That bound is documentary; no tool checks it.
+- Gate rehearsal on the final-gate runner: success in 14 min; regression stages `host-tests`,
+  `clippy`, `fmt`, `m2`, `k05`, `k05-smp`, `k07`, `rtc-build` and `rtc` all exit 0.
+- Pull-request run [43353618663](https://github.com/BaryonOS/BaryonOS/actions/runs/43353618663)
+  on `3dbc62c` (documentation only on top of `4eb18b1`): `native-smp` success, every profile
+  and every fixture once on `ubuntu-24.04` with `pc-q35-8.2`.
+
+### 7.4 GO/NO-GO for one full matrix
+
+**GO**, to be started only with the project owner's explicit permission.
+
+| Check | Result |
+|---|---|
+| Every known failure mechanism covered | Sync and scratch tails on overcommitted guests (D1, D2), host-lost PIT edges (D3), the `m3-load` watchdog margin (D5) and the ICR loop-count bound are removed by construction; the five matrix incidents of runs 43057843393, 43125206729 and 43187501026 belong to these mechanisms |
+| Negative tests still detect real faults | Every fixture stops on its own marker: locally on `4eb18b1`, in PR run 43353618663, and 20/20 on the matrix runner for `scratch-stall`, `scratch-slow`, `clock-other-cpu` and `icr-race-control`; host tests cover the oracle rules and `judge` |
+| Margins and runner capacity | Judged waits used at most 3.3 % of their limits on the matrix runner, lock waits at most 26 of 400 ms, the longest run without own progress 9 ms; host watchdogs: `m3-load-eight` 47.3 of 125 s, `m3-ipc-four` 211.8 of 660 s |
+| Conformity with the approved contracts | D1–D5 as decided on 13 November 2026; the ICR repair touches no normative limit; no security or correctness check was relaxed (deadlock, lost update, lock violation and missing progress stay fatal, every wait is bounded) |
+
+Pass probability for one matrix of 3 700 guests, stated with its assumptions: the five
+known failures in about 9 850 earlier guests are removed by construction, and no other
+timing class failed in those guests. With a Jeffreys estimate of the remaining per-guest
+rate (0.5 / 9 850) the point estimate is about 83 %; the 95 % upper bound on that rate
+(3 / 9 850) gives a lower bound of about 32 %. The new code itself has 240 hosted, 69 local
+and one full PR pass behind it. 99 % is not demonstrable: it needs a per-guest rate of at
+most 2.8 × 10⁻⁶, about one million clean boots.
+
+Residual risks: an unknown rare class; the soak watchdog (612 of 660 s, 600 s of it the
+fixed load); the documentary 264 s IPC bound (80 % used, while run 43125206729 needed only
+121 s, so runner speed varies by a factor of about 1.7); DG-1's 400 ms lock waits on
+overcommitted guests (26 ms hosted). On the five overcommitted cases the 2 s and 500 ms
+limits stay testable through the recorded `WAIT_MS` values (per boot and in the aggregate's
+margin summary) but are not judged; judging them needs an environment with at least as many
+dedicated cores as vCPUs, or KVM or hardware (H06).
+
