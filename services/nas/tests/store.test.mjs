@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fork } from 'node:child_process';
+import { execFileSync, fork } from 'node:child_process';
 import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { NasStore } from '../store.mjs';
@@ -197,6 +197,20 @@ test('symlinked snapshots are rejected without touching the target', (t) => {
   fs.writeFileSync(target, 'synthetic sentinel'); fs.unlinkSync(state); fs.symlinkSync(target, state);
   assert.throws(() => NasStore.openSynthetic({ directory }), { code: 'INVALID_STORE' });
   assert.equal(fs.readFileSync(target, 'utf8'), 'synthetic sentinel');
+});
+
+test('a symlinked store marker is rejected at open', (t) => {
+  const holder = fixture(t); const directory = holder.store.directory; holder.store.close();
+  const marker = path.join(directory, 'synthetic.json'); const copy = path.join(directory, 'marker-copy.json');
+  fs.renameSync(marker, copy); fs.symlinkSync(copy, marker);
+  assert.throws(() => NasStore.openSynthetic({ directory }), { code: 'INVALID_STORE' });
+});
+
+test('a FIFO in place of the snapshot is rejected without blocking', (t) => {
+  const holder = fixture(t); const directory = holder.store.directory; holder.store.close();
+  const state = path.join(directory, 'state.json'); fs.unlinkSync(state);
+  try { execFileSync('mkfifo', [state]); } catch { t.skip('mkfifo unavailable'); return; }
+  assert.throws(() => NasStore.openSynthetic({ directory }), { code: 'INVALID_STORE' });
 });
 
 test('nonce reservations keep a full ledger valid after competing uploads and restart', (t) => {
