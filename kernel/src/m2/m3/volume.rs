@@ -234,6 +234,8 @@ fn case() -> u64 {
         8
     } else if cfg!(feature = "test-volume-archive-corrupt") {
         9
+    } else if cfg!(feature = "test-volume-archive-conflict") {
+        10
     } else {
         0
     }
@@ -256,6 +258,7 @@ fn marker() -> &'static [u8] {
         7 => b"VOLUME:CASE:ARCHIVE_EXPORT:PASS\n",
         8 => b"VOLUME:CASE:ARCHIVE_RESTORE:PASS\n",
         9 => b"VOLUME:CASE:ARCHIVE_CORRUPT:PASS\n",
+        10 => b"VOLUME:CASE:ARCHIVE_CONFLICT:PASS\n",
         _ => b"VOLUME:FAIL:CUT_NOT_OBSERVED\n",
     }
 }
@@ -459,7 +462,7 @@ pub fn manifest(s: &mut State) {
     {
         fail(b"READONLY_RIGHTS");
     }
-    if matches!(case(), 7..=9) {
+    if matches!(case(), 7..=10) {
         archive_grant(s, e, service, clients, block);
     }
     if !e.check_invariants() {
@@ -1068,11 +1071,12 @@ fn finish(s: &mut State) -> ! {
             fail(b"READONLY_MUTATED");
         }
         // Export: every write and flush went to the archive range and the
-        // portal read the archive back; restore/corrupt only read it.
+        // portal read the archive back; restore, corrupt and conflict only
+        // read it.
         let a = r.archive_ops;
         let archive = match case() {
             7 => a[0] > 0 && a[1] > 0 && a[2] > 0 && r.publications[1..] == a[1..],
-            8 | 9 => a[0] > 0 && a[1..] == [0, 0],
+            8..=10 => a[0] > 0 && a[1..] == [0, 0],
             _ => a == [0; 3],
         };
         if !archive {
@@ -1147,7 +1151,7 @@ fn finish(s: &mut State) -> ! {
     print_number(b"VOLUME:BROKER:FLUSHES:", r.publications[2]);
     print_number(b"VOLUME:BROKER:TABLE_SECTOR_WRITES:", r.table_writes);
     print_number(b"VOLUME:BROKER:DATA_SECTOR_WRITES:", r.data_writes);
-    if matches!(case(), 7..=9) {
+    if matches!(case(), 7..=10) {
         print_number(b"VOLUME:ARCHIVE:READS:", r.archive_ops[0]);
         print_number(b"VOLUME:ARCHIVE:WRITES:", r.archive_ops[1]);
         print_number(b"VOLUME:ARCHIVE:FLUSHES:", r.archive_ops[2]);

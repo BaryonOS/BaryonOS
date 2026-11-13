@@ -45,6 +45,8 @@ const ARCHIVE_EXPORT: u64 = 7;
 const ARCHIVE_RESTORE: u64 = 8;
 #[cfg(feature = "archive-portal")]
 const ARCHIVE_CORRUPT: u64 = 9;
+#[cfg(feature = "archive-portal")]
+const ARCHIVE_CONFLICT: u64 = 10;
 /// Startup word with the portal's archive range capability (slot 1, archive
 /// cases only); the range size must equal the kernel manifest's scope.
 #[cfg(feature = "archive-portal")]
@@ -879,7 +881,7 @@ fn portal(app: &mut App, case: u64) {
             }
             check(app.list(0, 736).1 == FINAL_A.len(), 737);
         }
-        _ => {
+        ARCHIVE_CORRUPT => {
             // Corrupt archive: the same flow as restore refuses it at verify,
             // so restore never runs and nothing is restored.
             check(app.list(0, 738).1 == 0, 739);
@@ -890,6 +892,64 @@ fn portal(app: &mut App, case: u64) {
             );
             check(app.list(0, 741).1 == 0, 742);
         }
+        ARCHIVE_CONFLICT => {
+            // Restore into a domain that already holds data. Slot 3 is taken
+            // under another name and slot 6 uses the name of archive slot 4:
+            // both conflicts stay untouched. Collection 2 holds another name,
+            // so archive slot 1 lands outside a collection (kind kept);
+            // collection 1 is equal, so archive slot 2 reuses it.
+            check(app.list(0, 770).1 == 0, 771);
+            app.write(3, 0, b"Bezet", 77, 772);
+            app.write(6, 0, b"Herstart", 33, 776);
+            check(app.client.collection(0, 1, 0, b"Werk") == Ok(1), 780);
+            check(app.client.collection(0, 2, 0, b"Anders") == Ok(1), 781);
+            let report = verified_restore(&mut disk, scratch, app).unwrap_or_else(|_| fail(782));
+            check(
+                report
+                    == Report {
+                        restored: 1 << 1 | 1 << 2 | 1 << 5,
+                        conflicts: 1 << 3 | 1 << 4,
+                        uncollected: 1 << 1,
+                        bare: 0,
+                    },
+                783,
+            );
+            for (index, name, length, step) in [(3, "Bezet", 77, 784), (6, "Herstart", 33, 787)] {
+                let stat = app.verify(index, 1, step);
+                check(
+                    stat.revision == 1
+                        && stat.length == length
+                        && &stat.name[..stat.name_length] == name.as_bytes()
+                        && stat.collection == 0,
+                    step + 2,
+                );
+            }
+            let missing = app.object(4);
+            check(
+                matches!(app.client.stat(missing), Err((Status::NotFound, 0))),
+                790,
+            );
+            for (index, revision, collection, kind) in [(1, 2, 0, 2), (2, 2, 1, 0), (5, 1, 0, 0)] {
+                let &(_, _, content, length, name, _, _) = FINAL_A
+                    .iter()
+                    .find(|item| item.0 == index)
+                    .unwrap_or_else(|| fail(791));
+                let stat = app.verify(index, content, 792);
+                check(
+                    stat.revision == revision
+                        && stat.length == length
+                        && &stat.name[..stat.name_length] == name.as_bytes()
+                        && stat.collection == collection
+                        && stat.kind == kind
+                        && stat.history_count == 0,
+                    794,
+                );
+            }
+            app.collection_is(0, 1, Some("Werk"), 1, 795);
+            app.collection_is(0, 2, Some("Anders"), 1, 797);
+            check(app.list(0, 798).1 == 5, 799);
+        }
+        _ => fail(769),
     }
     app.phase(2);
     app.report(750);
@@ -945,11 +1005,13 @@ fn run() {
         #[cfg(not(feature = "archive-portal"))]
         RECOVER_CUT => recover_cut(&mut app),
         #[cfg(feature = "archive-portal")]
-        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT if domain == 0 => portal(&mut app, case),
+        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT if domain == 0 => {
+            portal(&mut app, case)
+        }
         // The ordinary app holds no archive authority; it reports its domain
         // only after the portal finished its archive I/O (kernel gate 2).
         #[cfg(feature = "archive-portal")]
-        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT => {
+        ARCHIVE_EXPORT | ARCHIVE_RESTORE | ARCHIVE_CORRUPT | ARCHIVE_CONFLICT => {
             app.phase(1);
             app.wait_gate(2);
             app.report(760)

@@ -95,3 +95,35 @@ def parse(data: bytes) -> dict:
         raise ValueError("bytes after the archive trailer")
     return dict(generation=generation, content_bytes=content_bytes, collections=collections,
                 objects=objects, length=len(data))
+
+
+def expected_restore(archive: dict, names: dict[int, str], collections: dict[int, str]) -> dict:
+    """End state that restore must reach by the spec rule in a domain that already holds the
+    present objects `names` (slot -> name, no tombstones) and `collections` (index -> name).
+
+    An occupied slot or an already used name is a conflict and stays untouched. A collection
+    index that holds another name is never renamed: its object is restored outside a
+    collection. A missing collection is created only for an object that is restored into it.
+    Restore writes content (revision 1), then metadata (revision 2) if any is set.
+    """
+    used = set(names.values())
+    state = dict(objects={}, collections=dict(collections), slot_conflicts=set(),
+                 name_conflicts=set(), uncollected=set(), reused=set())
+    for item in archive["objects"]:
+        slot, index = item["slot"], item["collection"]
+        if slot in names or item["name"] in used:
+            state["slot_conflicts" if slot in names else "name_conflicts"].add(slot)
+            continue
+        if index:
+            name = archive["collections"][index]
+            if index not in collections:
+                state["collections"][index] = name
+            elif collections[index] == name:
+                state["reused"].add(slot)
+            else:
+                state["uncollected"].add(slot)
+                index = 0
+        state["objects"][slot] = dict(name=item["name"], length=item["length"], content=item["content"],
+                                      collection=index, tags=item["tags"], kind=item["kind"],
+                                      revision=2 if item["tags"] or item["kind"] or index else 1)
+    return state

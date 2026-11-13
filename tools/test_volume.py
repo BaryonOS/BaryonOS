@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Complete M6e/S06 gate: host tests, then twelve real QEMU invocations in order.
+"""Complete M6e/S06 gate: host tests, then thirteen real QEMU invocations in order.
 
 normal -> cold read-only recover (same image) -> S09 archive export into a
 disjoint range of that image (volume mounted read-only) -> restore of only that
-range on a fresh image, and the same range with one damaged byte refused;
+range on a fresh image, the same range with one damaged byte refused, and a
+restore into a domain that already holds conflicting names and collections;
 cut-data (real kill) -> cold
 recover; cut-table (real kill) -> cold recover; cut-txn (real kill inside a
 multi-object transaction) -> cold recover; corrupt image refused.
@@ -42,6 +43,7 @@ def test_inputs() -> dict[str, str]:
 
 PLAN = [("normal", None), ("recover", "normal"), ("archive-export", "recover"),
         ("archive-restore", "archive-export"), ("archive-corrupt", "archive-export"),
+        ("archive-conflict", "archive-export"),
         ("cut-data", None), ("recover-cut", "cut-data"), ("cut-table", None),
         ("recover-cut", "cut-table"), ("cut-txn", None), ("recover-cut", "cut-txn"), ("corrupt", None)]
 

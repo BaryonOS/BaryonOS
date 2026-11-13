@@ -30,11 +30,13 @@ FEATURE = {"normal": "native-volume", "recover": "test-volume-recover",
            "corrupt": "test-volume-corrupt", "foreign": "test-volume-foreign",
            "archive-export": "test-volume-archive-export",
            "archive-restore": "test-volume-archive-restore",
-           "archive-corrupt": "test-volume-archive-corrupt"}
+           "archive-corrupt": "test-volume-archive-corrupt",
+           "archive-conflict": "test-volume-archive-conflict"}
 CUT_MARKER = {"cut-data": "VOLUME:CUT:DATA", "cut-table": "VOLUME:CUT:TABLE", "cut-txn": "VOLUME:CUT:TXN"}
 CASE_MARKER = {"normal": "NORMAL", "recover": "RECOVER", "recover-cut": "RECOVER_CUT",
                "corrupt": "CORRUPT", "foreign": "CORRUPT", "archive-export": "ARCHIVE_EXPORT",
-               "archive-restore": "ARCHIVE_RESTORE", "archive-corrupt": "ARCHIVE_CORRUPT"}
+               "archive-restore": "ARCHIVE_RESTORE", "archive-corrupt": "ARCHIVE_CORRUPT",
+               "archive-conflict": "ARCHIVE_CONFLICT"}
 READ_ONLY = ("recover", "recover-cut", "corrupt", "foreign")
 MAX_TIMEOUT = 600
 # S09 archive range; must equal ARCHIVE_FIRST_SECTOR/ARCHIVE_SECTORS in the
@@ -48,7 +50,12 @@ assert volume_disk.FIRST + volume_disk.VOLUME_SECTORS <= ARCHIVE_FIRST
 assert (volume_archive.HEADER + volume_archive.TRAILER + volume_archive.COLLECTIONS * volume_archive.COLLECTION_RECORD
         + volume_archive.OBJECTS * (volume_archive.OBJECT_RECORD + volume_archive.MAX_LENGTH)
         <= ARCHIVE_SECTORS * SECTOR)
-RESTORED = ("archive-restore", "archive-corrupt")
+RESTORED = ("archive-restore", "archive-corrupt", "archive-conflict")
+# Domain-0 state the portal writes before the archive-conflict restore (mirrors
+# portal() in sdk/examples/volume-docs/src/app.rs): object -> (name, length),
+# content = fixture(object, 1, length); collection index -> name.
+CONFLICT_OBJECTS = {3: ("Bezet", 77), 6: ("Herstart", 33)}
+CONFLICT_COLLECTIONS = {1: "Werk", 2: "Anders"}
 
 # Expected final state of the normal fixture: object -> (revision, content
 # revision, length, name, collection, content revisions of the history).
@@ -176,7 +183,7 @@ def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT
         if (case, parent) not in (("recover", "normal"), ("recover-cut", "cut-data"),
                                   ("recover-cut", "cut-table"), ("recover-cut", "cut-txn"),
                                   ("archive-export", "recover"), ("archive-restore", "archive-export"),
-                                  ("archive-corrupt", "archive-export")):
+                                  ("archive-corrupt", "archive-export"), ("archive-conflict", "archive-export")):
             raise ValueError(f"{case} cannot follow {parent}")
     archive_flip = None
     if case in RESTORED:
@@ -338,31 +345,37 @@ def check_archive(case: str, before: bytes, after: bytes, evidence):
                 if "accepted" in str(error):
                     raise
             oracle = volume_disk.analyse(outside_archive(after))
-            archive = {"objects": [], "collections": {}}
+            pre, expected = {}, volume_archive.expected_restore({"objects": []}, {}, {})
         else:
             archive = volume_archive.parse(data)
-            oracle = volume_disk.analyse(outside_archive(after),
-                                         opaque=frozenset(item["slot"] for item in archive["objects"]))
-        sources = {item["slot"]: item for item in archive["objects"]}
+            pre, held = (CONFLICT_OBJECTS, CONFLICT_COLLECTIONS) if case == "archive-conflict" else ({}, {})
+            # The end state follows from the archive and the pre-state by the spec rule alone.
+            expected = volume_archive.expected_restore(archive, {o: name for o, (name, _) in pre.items()}, held)
+            if case == "archive-conflict" and not all(
+                    expected[key] for key in ("slot_conflicts", "name_conflicts", "uncollected", "reused")):
+                raise ValueError(f"conflict fixture misses a restore rule: {expected}")
+            # Only restored objects carry archive bytes; the pre-state must stay a written fixture.
+            oracle = volume_disk.analyse(outside_archive(after), opaque=frozenset(expected["objects"]))
         for item in oracle["objects"]:
-            source = sources.get(item["object"])
-            if source is None:
+            obj, source = item["object"], expected["objects"].get(item["object"])
+            if obj in pre:
+                version = current(item)
+                found = (item["revision"], len(item["versions"]), version["name"], version["length"],
+                         version["content_revision"], item["collection"], item["tags"], item["kind"])
+                if found != (1, 1, *pre[obj], 1, 0, 0, 0):
+                    raise ValueError(f"restore changed pre-existing object {obj}: {found}")
+            elif source is None:
                 if item["present"] or item["revision"]:
-                    raise ValueError(f"unexpected object {item['object']} after {case}")
-                continue
-            version = current(item)
-            # Restore writes content (revision 1), then metadata (revision 2).
-            meta = bool(source["tags"] or source["kind"] or source["collection"])
-            found = (item["revision"], len(item["versions"]), version["name"], version["length"],
-                     item["collection"], item["tags"], item["kind"], bytes.fromhex(version["content_hex"]))
-            want = (2 if meta else 1, 1, source["name"], source["length"], source["collection"],
-                    source["tags"], source["kind"], source["content"])
-            if found != want:
-                raise ValueError(f"restored object {item['object']} differs from the archive: {found[:7]}")
-        # Restore creates a collection only for an object that refers to it.
-        used = {item["collection"] for item in archive["objects"]}
-        check_collections(oracle, {(0, index): name for index, name in archive["collections"].items()
-                                   if index in used})
+                    raise ValueError(f"unexpected object {obj} after {case}")
+            else:
+                version = current(item)
+                found = (item["revision"], len(item["versions"]), version["name"], version["length"],
+                         item["collection"], item["tags"], item["kind"], bytes.fromhex(version["content_hex"]))
+                want = (source["revision"], 1, source["name"], source["length"], source["collection"],
+                        source["tags"], source["kind"], source["content"])
+                if found != want:
+                    raise ValueError(f"restored object {obj} differs from the archive: {found[:7]}")
+        check_collections(oracle, {(0, index): name for index, name in expected["collections"].items()})
         if [evidence["VOLUME:A:DIGEST:"], evidence["VOLUME:B:DIGEST:"]] != oracle["digests"]:
             raise ValueError("guest-reported digests differ from the disk oracle")
     oracle["archive"] = {"length": len(data), "sha256": hashlib.sha256(data).hexdigest(), "io": counts}

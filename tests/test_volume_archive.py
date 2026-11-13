@@ -157,5 +157,30 @@ class ArchiveReaderTests(unittest.TestCase):
                 va.parse(encode(collections, objects))
 
 
+class ExpectedRestoreTests(unittest.TestCase):
+    """The spec rule the native conflict stage is checked against (tools/run_volume.py)."""
+
+    def test_empty_domain_restores_everything_and_creates_referenced_collections(self):
+        state = va.expected_restore(va.parse(SAMPLE), {}, {})
+        self.assertEqual({slot: (o["revision"], o["collection"]) for slot, o in state["objects"].items()},
+                         {0: (1, 0), 2: (2, 3), 7: (2, 1)})
+        self.assertEqual(state["collections"], {1: "Werk", 3: "Privé"})
+        self.assertFalse(state["slot_conflicts"] | state["name_conflicts"] | state["uncollected"] | state["reused"])
+
+    def test_conflicts_are_untouched_and_a_renamed_collection_is_not_reused(self):
+        state = va.expected_restore(va.parse(SAMPLE), {0: "Bezet", 5: "Laatste"}, {3: "Anders"})
+        self.assertEqual((state["slot_conflicts"], state["name_conflicts"], state["uncollected"]), ({0}, {7}, {2}))
+        # Slot 2 keeps its kind and tags (revision 2) but lands outside a collection.
+        self.assertEqual({slot: (o["revision"], o["collection"], o["kind"]) for slot, o in state["objects"].items()},
+                         {2: (2, 0, 4)})
+        # Collection 1 is only referenced by the conflicting slot 7, so it is not created.
+        self.assertEqual(state["collections"], {3: "Anders"})
+
+    def test_an_equal_collection_is_reused(self):
+        state = va.expected_restore(va.parse(SAMPLE), {}, {1: "Werk"})
+        self.assertEqual((state["reused"], state["objects"][7]["collection"]), ({7}, 1))
+        self.assertEqual(state["collections"], {1: "Werk", 3: "Privé"})
+
+
 if __name__ == "__main__":
     unittest.main()
