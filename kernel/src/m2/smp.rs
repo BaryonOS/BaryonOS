@@ -1407,6 +1407,10 @@ pub fn start(
     );
     let expected = ITERATIONS * (online as u64 + 1);
     if !matches!(finished, Progress::Ready) {
+        if cfg!(feature = "test-smp-sync-stall") {
+            // Keep the fixture's DONE count exact: AP1 is dead, the others finish.
+            within_ms(SYNC_MS, || aps[1..].iter().all(finished_stress));
+        }
         if let Progress::Stalled(cpu) = finished {
             serial::write(b"SMP:SYNC:STALLED:CPU=");
             decimal(cpu as u64);

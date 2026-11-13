@@ -88,20 +88,26 @@ pub enum Verdict {
     Pass(u64),
     /// The judged median is more than 1 % from the PIT's own period.
     Drift(u64),
-    /// More than a tenth of the judged segment was credited to the host: the
-    /// witness is not trusted that far, whatever the median says.
+    /// Most segments owe more than a tenth of their length to the host credit:
+    /// the witness is not trusted that far, whatever the median says.
     HostBound(u64),
 }
 
 /// ADR-082 D3: each segment as (`own`, `host`) µs, where `own` keeps every
 /// period except those the witness charged to the host and `host` is that
 /// credit. The median of `own` must be within 1 % of `expected` on both sides,
-/// so kernel-charged loss and doubled ticks still fail, and its segment may
-/// owe at most 10 % of its length to the host credit.
+/// so kernel-charged loss and doubled ticks still fail, and at most a minority
+/// of segments may owe more than 10 % of their length to the host credit. A
+/// stall in one or two segments cannot move the median either way, as with
+/// the raw median; it must not fail through the bound either.
 pub fn judge(segments: &mut [(u64, u64)], expected: u64) -> Verdict {
+    let over = segments
+        .iter()
+        .filter(|&&(own, host)| host * 10 > own + host)
+        .count();
     segments.sort_unstable();
-    let (own, host) = segments[segments.len() / 2];
-    if host * 10 > own + host {
+    let (own, _) = segments[segments.len() / 2];
+    if over * 2 > segments.len() {
         Verdict::HostBound(own)
     } else if own.abs_diff(expected) * 100 > expected {
         Verdict::Drift(own)
@@ -271,23 +277,42 @@ mod tests {
 
     #[test]
     fn two_bad_segments_do_not_move_the_median() {
-        // A long host stall and a kernel stall, each in one segment.
+        // A long host stall and a kernel stall, each in one segment; the
+        // stalled segment's own value lands on the median (review K1).
         let mut segments = [
-            (NOMINAL, 0),
+            (NOMINAL - 1, 0),
             (NOMINAL + 500_000, 0),
-            (NOMINAL + 2, 900_000),
+            (NOMINAL, 900_000),
             (NOMINAL - 1, 0),
             (NOMINAL + 1, 10),
         ];
-        assert_eq!(judge(&mut segments, NOMINAL), Verdict::Pass(NOMINAL + 1));
+        assert_eq!(judge(&mut segments, NOMINAL), Verdict::Pass(NOMINAL));
+        // Two host stalls are still a minority.
+        let mut segments = [
+            (NOMINAL, 900_000),
+            (NOMINAL, 150_000),
+            (NOMINAL, 0),
+            (NOMINAL, 0),
+            (NOMINAL, 0),
+        ];
+        assert_eq!(judge(&mut segments, NOMINAL), Verdict::Pass(NOMINAL));
     }
 
     #[test]
-    fn host_credit_above_a_tenth_of_the_judged_segment_fails() {
+    fn host_credit_above_a_tenth_of_most_segments_fails() {
         // 111 112 of 1 110 959 µs credited: just above 10 %.
         let mut segments = [(NOMINAL, 111_112); 5];
         assert_eq!(judge(&mut segments, NOMINAL), Verdict::HostBound(NOMINAL));
         let mut segments = [(NOMINAL, 111_094); 5];
         assert_eq!(judge(&mut segments, NOMINAL), Verdict::Pass(NOMINAL));
+        // Three of five over the bound is a majority.
+        let mut segments = [
+            (NOMINAL, 111_112),
+            (NOMINAL, 0),
+            (NOMINAL, 111_112),
+            (NOMINAL, 0),
+            (NOMINAL, 900_000),
+        ];
+        assert_eq!(judge(&mut segments, NOMINAL), Verdict::HostBound(NOMINAL));
     }
 }
