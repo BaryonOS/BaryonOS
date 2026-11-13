@@ -108,7 +108,7 @@ def main() -> None:
     codes = None
     if blind:  # neutral, order-independent codes: rows are shuffled by a hash of the file name
         fonts.sort(key=lambda p: hashlib.sha256(p.name.encode()).hexdigest())
-        codes = [chr(ord("P") + i) for i in range(len(fonts))]
+        codes = [str(i + 1) for i in range(len(fonts))]  # digits: browser specimens use letters
         for c, p in zip(codes, fonts):
             print(f"key {c} = {p.stem}")
     out.mkdir(parents=True, exist_ok=True)
