@@ -5,7 +5,7 @@
   "run_attempt": 1,
   "tested_commit": "c95d1d2a6fe1f37674c098c21d12d1d29bb1cce3",
   "source_sha256": "e693759d89705970ecaa9c315b0423261fdc7924235af566beb363419eabd255",
-  "runner": "GitHub-hosted ubuntu-26.04, 4 vCPUs, QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3), machine pc-q35-10.0; aggregate on ubuntu-24.04",
+  "runner": "GitHub-hosted ubuntu-26.04 (host CPU count not recorded in this run's artifacts), QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.3), machine pc-q35-10.0; aggregate on ubuntu-24.04",
   "dispatched_utc": "2026-11-13T09:44:30Z",
   "last_job_completed_utc": "2026-11-13T12:28:34Z",
   "handling": "Not cancelled, no job retried, first attempt only. No source, deadline, tolerance or verdict was changed in response. The stale host-oracle expectation was corrected afterwards in commit 790e122e, outside the source fingerprint.",

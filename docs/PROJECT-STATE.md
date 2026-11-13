@@ -15,7 +15,7 @@
 
 **Not run:** the real final repository gate on this source (only the diagnostic rehearsal in run 43352859422); `verify_final_gate.py`; KVM or hardware.
 
-**Blocker:** acceptance needs one new full matrix on a head that contains `790e122`; the earlier permission covered exactly one matrix. Sampling estimate for a repeat: about 72 % (Jeffreys, no failure in about 3 940 hosted guests of this source); about 6 % at the 95 % upper bound of the per-guest rate.
+**Blocker:** acceptance needs one new full matrix on a head that contains `790e122`; the earlier permission covered exactly one matrix. Pass probability of a repeat (Jeffreys point estimate / 95 % lower bound): about 87 % / 45 % on section 7.4's basis extended by this run (about 13 790 clean guests); about 72 % / 6 % from this source's own 3 940 hosted guests alone (TIMING-REPAIR.md 7.5).
 
 **Next:** on the project owner's permission, dispatch `native-smp.yml` with `full_matrix=true` on the PR head; read every failed job; no selective retries. On a pass of all 74 cases 50/50, the soaks, K07, the aggregate and the final gate, run `verify_final_gate.py` and record acceptance (progress 39 → 41) in PR #317.
 

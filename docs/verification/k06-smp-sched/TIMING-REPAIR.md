@@ -386,8 +386,11 @@ diagnostic rehearsal of `tools/gate.sh` on the same runner image (run 4335285942
 is not acceptance. `verify_final_gate.py` has no artifact to read.
 
 **Next.** Acceptance needs one new full matrix on a head that contains the repair. It is not
-started without the project owner's permission. Sampling alone supports a moderate
-expectation: with no failure in about 3 940 hosted guests of this source (240 diagnostic boots
-and this run) and a Jeffreys prior, the predictive probability that 3 700 further guests pass is
-about 72 %; a per-guest rate at the 95 % upper bound (3 / 3 940) would give about 6 %.
+started without the project owner's permission. Pass probability of a repeat on two bases,
+both with a Jeffreys point estimate and the 95 % upper bound of the per-guest rate:
+
+| Basis | Clean guests | Point estimate | Lower bound |
+|---|---|---|---|
+| Section 7.4's assumption (the five earlier failures are removed by construction) extended by this source's hosted guests | about 13 790 | about 87 % | about 45 % |
+| This source's own hosted guests only (240 diagnostic boots and this run) | about 3 940 | about 72 % | about 6 % |
 
