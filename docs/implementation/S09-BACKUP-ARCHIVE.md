@@ -102,12 +102,17 @@ block adapter is shared by service and portal in `volume-docs/src/disk.rs`.
 **Kernel fixture profile** (`kernel/src/m2/m3/volume.rs`, features
 `test-volume-archive-export|restore|corrupt`, cases 7–9):
 - Slot 1 is the backup portal. It alone receives a block capability on device
-  0, sectors 1000..2048 of the disposable test image, disjoint from the volume
-  scope 4..584 (compile-time assertion). Export grants READ|WRITE|FLUSH;
-  restore and corrupt grant READ only (`ARCHIVE_READONLY_RIGHTS`). The handle
-  is startup word 504. The manifest fails with `ARCHIVE_ESCAPE` if the service
-  or slot 2 reaches the archive *object* (compared by object key, since handle
-  numbers are per process). Service and slot 2 keep their earlier authority.
+  0, sectors 1000..2040 of the disposable test image, disjoint from the volume
+  scope 4..584 (compile-time assertion). The range ends below the 2048-sector
+  image, so the portal's past-the-end probe is refused by the capability
+  scope rather than by the device size; the largest v1 archive (525 328 bytes,
+  1027 sectors) fits. Export grants READ|WRITE|FLUSH; restore and corrupt
+  grant READ only (`ARCHIVE_READONLY_RIGHTS`). The handle is startup word 504.
+  No handle enumeration exists, so the manifest counts instead: it fails with
+  `ARCHIVE_ESCAPE` unless the grant adds exactly one block object, node and
+  handle, that handle is held by slot 1, the service and slot 2 hold exactly
+  as many handles as before, and the service's own block handle resolves to a
+  different object key. Service and slot 2 keep their earlier authority.
 - During export the device stays writable but the volume service receives
   READ only (`service_read_only`), so every write and flush goes to the archive.
 - Archive I/O is counted per capability object at publication and kept out of
@@ -116,12 +121,17 @@ block adapter is shared by service and portal in `volume-docs/src/disk.rs`.
   archive object, and restore/corrupt only read it. Evidence lines
   `VOLUME:ARCHIVE:READS|WRITES|FLUSHES`; markers
   `VOLUME:CASE:ARCHIVE_EXPORT|ARCHIVE_RESTORE|ARCHIVE_CORRUPT:PASS`.
+- Calls on the portal's own archive object (pending collects, the scope
+  probe) are not counted as app device denials; every app's own-handle and
+  forged-handle probes still are, and each app must show at least one.
 
 **Portal app.** `volume-app` built with feature `archive-portal` (separate
 target directory `volume-docs-portal`; the normal build would exceed the
 64 KiB startup text boundary with both paths). The archive cases use the
 normal `volume-service` build unchanged. The 64 KiB archive scratch is the
-private RW/NX heap the kernel premaps at `0x6000_0000`.
+private RW/NX heap the kernel premaps at `0x6000_0000`. Restore and corrupt
+share one flow: `verify` the whole archive, then `restore`. Corrupt must stop
+at `verify` with `Corrupt`, and the volume must stay empty.
 
 **Serialization.** The broker serves one block request at a time and answers
 others with Busy. The portal therefore reaches a READY service before its
@@ -138,7 +148,10 @@ write past the archive, writes = ⌈length/512⌉); `archive-restore` and
 `tools/volume_archive.py` parses every guest-written archive and must refuse
 the damaged one. Restored objects are compared byte for byte with the archive
 through `volume_disk.analyse(..., opaque=...)` (revision 1, or 2 after
-metadata), and the guest digests must equal the oracle digests. The archive
+metadata), and the guest digests must equal the oracle digests. Export also
+compares each object's created and modified times with the volume; restore
+expects only the collections a restored object refers to, because restore
+creates no unreferenced collection. The archive
 header carries LIST's domain generation (sum of the domain's object and
 collection revisions), not the global volume generation.
 

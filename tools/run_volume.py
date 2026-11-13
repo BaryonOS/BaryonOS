@@ -39,10 +39,15 @@ READ_ONLY = ("recover", "recover-cut", "corrupt", "foreign")
 MAX_TIMEOUT = 600
 # S09 archive range; must equal ARCHIVE_FIRST_SECTOR/ARCHIVE_SECTORS in the
 # kernel volume profile and ARCHIVE_SECTORS in the portal app.
-ARCHIVE_FIRST, ARCHIVE_SECTORS, SECTOR = 1000, 1048, 512
+ARCHIVE_FIRST, ARCHIVE_SECTORS, SECTOR = 1000, 1040, 512
 ARCHIVE_SPAN = slice(ARCHIVE_FIRST * SECTOR, (ARCHIVE_FIRST + ARCHIVE_SECTORS) * SECTOR)
-assert ARCHIVE_FIRST + ARCHIVE_SECTORS == volume_disk.IMAGE_SECTORS
+# A real sector follows the range (the portal's scope probe must not be refused
+# by the device capacity instead), and the largest v1 archive fits it.
+assert ARCHIVE_FIRST + ARCHIVE_SECTORS < volume_disk.IMAGE_SECTORS
 assert volume_disk.FIRST + volume_disk.VOLUME_SECTORS <= ARCHIVE_FIRST
+assert (volume_archive.HEADER + volume_archive.TRAILER + volume_archive.COLLECTIONS * volume_archive.COLLECTION_RECORD
+        + volume_archive.OBJECTS * (volume_archive.OBJECT_RECORD + volume_archive.MAX_LENGTH)
+        <= ARCHIVE_SECTORS * SECTOR)
 RESTORED = ("archive-restore", "archive-corrupt")
 
 # Expected final state of the normal fixture: object -> (revision, content
@@ -312,10 +317,10 @@ def check_archive(case: str, before: bytes, after: bytes, evidence):
             item = oracle["objects"][source["slot"]]
             version = current(item)
             found = (source["name"], source["length"], source["collection"], source["revision"],
-                     source["tags"], source["kind"], source["content"])
+                     source["tags"], source["kind"], source["created"], source["modified"], source["content"])
             want = (version["name"], version["length"], item["collection"], item["revision"], item["tags"],
-                    item["kind"], volume_disk.fixture(source["slot"], version["content_revision"],
-                                                      version["length"]))
+                    item["kind"], item["created"], item["modified"],
+                    volume_disk.fixture(source["slot"], version["content_revision"], version["length"]))
             if found != want:
                 raise ValueError(f"archive object {source['slot']} differs from the volume")
         names = {c["index"]: c["name"] for c in oracle["collections"] if c["domain"] == 0 and c["present"]}
@@ -354,7 +359,10 @@ def check_archive(case: str, before: bytes, after: bytes, evidence):
                     source["tags"], source["kind"], source["content"])
             if found != want:
                 raise ValueError(f"restored object {item['object']} differs from the archive: {found[:7]}")
-        check_collections(oracle, {(0, index): name for index, name in archive["collections"].items()})
+        # Restore creates a collection only for an object that refers to it.
+        used = {item["collection"] for item in archive["objects"]}
+        check_collections(oracle, {(0, index): name for index, name in archive["collections"].items()
+                                   if index in used})
         if [evidence["VOLUME:A:DIGEST:"], evidence["VOLUME:B:DIGEST:"]] != oracle["digests"]:
             raise ValueError("guest-reported digests differ from the disk oracle")
     oracle["archive"] = {"length": len(data), "sha256": hashlib.sha256(data).hexdigest(), "io": counts}

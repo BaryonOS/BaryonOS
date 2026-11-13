@@ -46,6 +46,24 @@ SAMPLE = encode([(1, "Werk".encode()), (3, "Privé".encode())],
                 [(0, "Leeg".encode(), 0, 0, 0, 1, b""),
                  (2, "Notitie ✓".encode(), 3, 4, 0x11, 2, bytes(range(200))),
                  (7, b"Laatste", 1, 0, 0, 9, b"x" * 513)])
+# (offset, size) of the header, the two collection records and the three object records.
+HEADER_AT, COLLECTION_AT, OBJECT_AT = 0, va.HEADER, va.HEADER + 2 * va.COLLECTION_RECORD
+SPANS = [(HEADER_AT, va.HEADER), (COLLECTION_AT, va.COLLECTION_RECORD),
+         (COLLECTION_AT + va.COLLECTION_RECORD, va.COLLECTION_RECORD), (OBJECT_AT, va.OBJECT_RECORD),
+         (OBJECT_AT + va.OBJECT_RECORD, va.OBJECT_RECORD), (OBJECT_AT + 2 * va.OBJECT_RECORD + 200, va.OBJECT_RECORD)]
+
+
+def reseal(data: bytes, at: int, size: int, mutate, seal_record: bool = True) -> bytes:
+    """Mutate one record, then reseal it (optionally) and the trailer, so only the targeted check can refuse.
+
+    Without this every tamper is caught by the trailer checksum alone, which would hide a missing field check.
+    """
+    out = bytearray(data)
+    record = bytearray(out[at:at + size])
+    mutate(record)
+    out[at:at + size] = seal(record) if seal_record else record
+    struct.pack_into("<Q", out, len(out) - 8, fnv(bytes(out[:-va.TRAILER])))
+    return bytes(out)
 
 
 class ArchiveReaderTests(unittest.TestCase):
@@ -56,9 +74,56 @@ class ArchiveReaderTests(unittest.TestCase):
                          (7, 713, len(SAMPLE)))
         self.assertEqual(archive["collections"], {1: "Werk", 3: "Privé"})
         self.assertEqual([(o["slot"], o["name"], o["collection"], o["kind"], o["tags"], o["revision"],
-                           o["content"]) for o in archive["objects"]],
-                         [(0, "Leeg", 0, 0, 0, 1, b""), (2, "Notitie ✓", 3, 4, 0x11, 2, bytes(range(200))),
-                          (7, "Laatste", 1, 0, 0, 9, b"x" * 513)])
+                           o["created"], o["modified"], o["content"]) for o in archive["objects"]],
+                         [(0, "Leeg", 0, 0, 0, 1, 1, 2, b""),
+                          (2, "Notitie ✓", 3, 4, 0x11, 2, 1, 2, bytes(range(200))),
+                          (7, "Laatste", 1, 0, 0, 9, 1, 2, b"x" * 513)])
+
+    def test_resealing_helper_keeps_a_valid_archive_valid(self):
+        for at, size in SPANS:
+            self.assertEqual(va.parse(reseal(SAMPLE, at, size, lambda record: None)), va.parse(SAMPLE))
+
+    def test_record_seals_and_content_sums_are_checked_under_a_valid_trailer(self):
+        for at, size in SPANS:
+            for offset in range(size):
+                with self.assertRaises(ValueError, msg=f"record {at} byte {offset}"):
+                    va.parse(reseal(SAMPLE, at, size, lambda r: r.__setitem__(offset, r[offset] ^ 1), False))
+        content = OBJECT_AT + 2 * va.OBJECT_RECORD  # first byte of slot 2's content
+        with self.assertRaises(ValueError):
+            va.parse(reseal(SAMPLE, content, 1, lambda r: r.__setitem__(0, r[0] ^ 1), False))
+
+    def test_resealed_reserved_and_padding_bytes_are_refused(self):
+        reserved = {HEADER_AT: [*range(10, 12), *range(14, 16), *range(32, 56)],
+                    COLLECTION_AT: [*range(2, 8), *range(8 + len("Werk"), 40)],
+                    OBJECT_AT: [3, 6, 7, *range(48 + len("Leeg"), 80), *range(80, 88)]}
+        sizes = dict(SPANS)
+        for at, offsets in reserved.items():
+            for offset in offsets:
+                with self.assertRaises(ValueError, msg=f"record {at} byte {offset}"):
+                    va.parse(reseal(SAMPLE, at, sizes[at], lambda r: r.__setitem__(offset, 1)))
+
+    def test_resealed_header_and_record_limits_are_refused(self):
+        u16 = lambda at, value: lambda r: struct.pack_into("<H", r, at, value)  # noqa: E731
+        u32 = lambda at, value: lambda r: struct.pack_into("<I", r, at, value)  # noqa: E731
+        u64 = lambda at, value: lambda r: struct.pack_into("<Q", r, at, value)  # noqa: E731
+        byte = lambda at, value: lambda r: r.__setitem__(at, value)  # noqa: E731
+        cases = {
+            "magic": (HEADER_AT, byte(7, 2)),
+            "version": (HEADER_AT, u16(8, 2)),
+            "object count": (HEADER_AT, byte(12, va.OBJECTS + 1)),
+            "collection count": (HEADER_AT, byte(13, va.COLLECTIONS + 1)),
+            "content above count limit": (HEADER_AT, u64(24, 3 * va.MAX_LENGTH + 1)),
+            "content total too high": (HEADER_AT, u64(24, 714)),
+            "content total too low": (HEADER_AT, u64(24, 712)),
+            "collection name length": (COLLECTION_AT, byte(1, va.NAME + 1)),
+            "object name length": (OBJECT_AT, byte(1, va.NAME + 1)),
+            "object length": (OBJECT_AT, u32(12, va.MAX_LENGTH + 1)),
+            "object kind reserved": (OBJECT_AT, u16(6, 1)),
+        }
+        sizes = dict(SPANS)
+        for label, (at, mutate) in cases.items():
+            with self.assertRaises(ValueError, msg=label):
+                va.parse(reseal(SAMPLE, at, sizes[at], mutate))
 
     def test_every_single_bit_flip_is_refused(self):
         for at in range(len(SAMPLE)):

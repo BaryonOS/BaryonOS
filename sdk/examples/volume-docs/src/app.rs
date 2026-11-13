@@ -50,7 +50,7 @@ const ARCHIVE_CORRUPT: u64 = 9;
 #[cfg(feature = "archive-portal")]
 const ARCHIVE_HANDLE: u64 = 504;
 #[cfg(feature = "archive-portal")]
-const ARCHIVE_SECTORS: u64 = 1048;
+const ARCHIVE_SECTORS: u64 = 1040;
 /// Private, zeroed 64 KiB RW/NX heap the kernel maps for every process
 /// before entry; the portal's only use is the archive content scratch.
 #[cfg(feature = "archive-portal")]
@@ -793,6 +793,24 @@ fn recover_cut(app: &mut App) {
     app.report(30);
 }
 
+/// The portal's verify-then-restore flow (spec: the trailer follows the last
+/// object, so restore may only run on bytes that `verify` accepted).
+#[cfg(feature = "archive-portal")]
+fn verified_restore(
+    disk: &mut NativeDisk,
+    scratch: &mut [u8; MAX_LENGTH],
+    app: &mut App,
+) -> Result<Report, (Status, Report)> {
+    archive::verify(&mut DiskSource::new(disk, ARCHIVE_SECTORS), scratch)
+        .map_err(|status| (status, Report::default()))?;
+    archive::restore(
+        &mut DiskSource::new(disk, ARCHIVE_SECTORS),
+        scratch,
+        &mut app.client,
+        0,
+    )
+}
+
 /// S09 backup portal: the only process with a capability on the archive
 /// range, plus a volume client bound to domain 0 like any app.
 #[cfg(feature = "archive-portal")]
@@ -839,15 +857,7 @@ fn portal(app: &mut App, case: u64) {
         ARCHIVE_RESTORE => {
             // Source loss: a fresh volume whose domain starts empty.
             check(app.list(0, 720).1 == 0, 721);
-            archive::verify(&mut DiskSource::new(&mut disk, ARCHIVE_SECTORS), scratch)
-                .unwrap_or_else(|_| fail(722));
-            let report = archive::restore(
-                &mut DiskSource::new(&mut disk, ARCHIVE_SECTORS),
-                scratch,
-                &mut app.client,
-                0,
-            )
-            .unwrap_or_else(|_| fail(723));
+            let report = verified_restore(&mut disk, scratch, app).unwrap_or_else(|_| fail(723));
             let all = FINAL_A.iter().fold(0u8, |mask, item| mask | 1 << item.0);
             check(
                 report
@@ -870,11 +880,12 @@ fn portal(app: &mut App, case: u64) {
             check(app.list(0, 736).1 == FINAL_A.len(), 737);
         }
         _ => {
-            // Corrupt archive: refused by verify, so nothing is restored.
+            // Corrupt archive: the same flow as restore refuses it at verify,
+            // so restore never runs and nothing is restored.
             check(app.list(0, 738).1 == 0, 739);
             check(
-                archive::verify(&mut DiskSource::new(&mut disk, ARCHIVE_SECTORS), scratch)
-                    == Err(Status::Corrupt),
+                verified_restore(&mut disk, scratch, app)
+                    == Err((Status::Corrupt, Report::default())),
                 740,
             );
             check(app.list(0, 741).1 == 0, 742);

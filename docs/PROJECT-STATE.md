@@ -5,7 +5,7 @@
 **Source:** branch `feat/s09-native-archive`, draft PR #318 (no auto-merge). Tested commit `f3d0e03e` (source-v3 `4ffa8c5e8b2b1209b5618372218182d8aaaece1c7abb923f87b713dec498443c`); later commits change documentation and evidence only.
 
 **Done:**
-- Kernel volume profile cases 7–9 (`test-volume-archive-export|restore|corrupt`). The slot-1 portal alone gets the archive range (device 0, sectors 1000..2048, disjoint from the volume 4..584): READ|WRITE|FLUSH for export, READ only otherwise.
+- Kernel volume profile cases 7–9 (`test-volume-archive-export|restore|corrupt`). The slot-1 portal alone gets the archive range (device 0, sectors 1000..2040, disjoint from the volume 4..584): READ|WRITE|FLUSH for export, READ only otherwise.
 - During export the volume service is READ-only. Archive I/O is counted per capability object, and an object-key escape check covers the service and slot 2.
 - Portal build `volume-app --features archive-portal`; the normal `volume-service` build is unchanged.
 - An independent Python reader of format v1 (`tools/volume_archive.py`) plus unit tests.

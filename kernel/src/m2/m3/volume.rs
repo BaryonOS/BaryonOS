@@ -25,9 +25,12 @@ const TABLE_REGION: u64 = 68;
 /// Whole-run budget in 100 Hz timer ticks; the host also bounds wall time.
 const RUN_TICKS: u64 = 60_000;
 /// S09 archive fixtures only: a disjoint range of the same disposable test
-/// image (sectors 1000..2048), granted to the slot-1 backup portal alone.
+/// image (sectors 1000..2040), granted to the slot-1 backup portal alone. It
+/// ends below the 2048-sector image so the portal's past-the-end probe hits
+/// a real sector and only the capability scope can refuse it. The largest v1
+/// archive (525 328 bytes) needs 1027 sectors.
 const ARCHIVE_FIRST_SECTOR: u64 = 1000;
-const ARCHIVE_SECTORS: u64 = 1048;
+const ARCHIVE_SECTORS: u64 = 1040;
 const _: () = assert!(FIRST_SECTOR + SECTORS <= ARCHIVE_FIRST_SECTOR);
 
 #[derive(Clone, Copy)]
@@ -483,9 +486,27 @@ fn archive_grant(s: &mut State, e: &mut Engine, service: u64, clients: [u64; 2],
     } else {
         BLOCK_READ
     };
+    let handles = |e: &Engine| {
+        [service, clients[0], clients[1]].map(|pid| e.process_usage(pid).unwrap().handles)
+    };
+    let (before, held) = (e.stats(), handles(e));
     let handle = e
         .create_block_device_with_rights(clients[0], scope, rights)
         .unwrap();
+    // No handle enumeration exists, so count instead: exactly one new block
+    // object, node and handle, and that handle sits in the portal; service
+    // and slot 2 hold exactly what they held, so neither can reach it.
+    let after = e.stats();
+    if (after.block_objects, after.nodes, after.handles)
+        != (
+            before.block_objects + 1,
+            before.nodes + 1,
+            before.handles + 1,
+        )
+        || handles(e) != [held[0], held[1] + 1, held[2]]
+    {
+        fail(b"ARCHIVE_ESCAPE");
+    }
     let auth = e.check_block(clients[0], handle, rights).unwrap();
     if auth.scope() != scope {
         fail(b"ARCHIVE_SCOPE");
@@ -496,17 +517,12 @@ fn archive_grant(s: &mut State, e: &mut Engine, service: u64, clients: [u64; 2],
     {
         fail(b"ARCHIVE_READONLY_RIGHTS");
     }
-    // Handle numbers are per process, so compare the object reached, not
-    // the number: neither the service nor slot 2 may reach the archive.
-    let key = auth.object_key();
-    for (pid, h) in [(service, handle), (service, block), (clients[1], handle)] {
-        if e.check_block(pid, h, 0)
-            .is_ok_and(|other| other.object_key() == key)
-        {
-            fail(b"ARCHIVE_ESCAPE");
-        }
+    if e.check_block(service, block, 0)
+        .is_ok_and(|volume| volume.object_key() == auth.object_key())
+    {
+        fail(b"ARCHIVE_ESCAPE");
     }
-    runtime().archive_key = Some(key);
+    runtime().archive_key = Some(auth.object_key());
     put(s, 1, 504, handle);
 }
 
@@ -572,15 +588,25 @@ pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
         Ok(v) => (0, v),
         Err(code) => {
             // Apps hold no volume block capability: every app call to it
-            // fails at the authority check before any device effect (the
-            // S09 portal's own archive range is accounted separately).
+            // fails at the authority check before any device effect. Calls
+            // on the S09 portal's own archive object (pending polls, its
+            // scope probe) are not authority denials and are not counted.
             #[cfg(not(feature = "native-system"))]
-            if slot > 0 {
+            if slot > 0 && !on_archive(s, slot, a[0]) {
                 runtime().app_device_denials[slot - 1] += 1;
             }
             (code, 0)
         }
     }
+}
+
+#[cfg(not(feature = "native-system"))]
+fn on_archive(s: &State, slot: usize, handle: u64) -> bool {
+    runtime().archive_key.is_some_and(|key| {
+        m4::engine()
+            .check_block(s.processes[slot].pid, handle, 0)
+            .is_ok_and(|auth| auth.object_key() == key)
+    })
 }
 
 /// Generic broker: authority, scope, ticket binding and bounded copies only.
