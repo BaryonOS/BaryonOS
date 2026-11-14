@@ -5,7 +5,9 @@
 //! from the app-reported evidence AND the independent host disk oracle.
 //! Single CPU, IF0; owned snapshots, no retained userspace pointer or DMA alias.
 use super::*;
-use capability_core::{BlockScope, Message, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE, RECV, SEND};
+use capability_core::{
+    BlockScope, Engine, Message, BLOCK_FLUSH, BLOCK_READ, BLOCK_WRITE, RECV, SEND,
+};
 use virtio_blk_driver::{Device, Discovery, DmaPool};
 use virtio_core::{Binding, Completion, Operation, Phase, Policy};
 
@@ -22,6 +24,18 @@ const SECTORS: u64 = 580;
 const TABLE_REGION: u64 = 68;
 /// Whole-run budget in 100 Hz timer ticks; the host also bounds wall time.
 const RUN_TICKS: u64 = 60_000;
+/// S09 archive fixtures only: a disjoint range of the same disposable test
+/// image (sectors 1000..2040), granted to the slot-1 backup portal alone. It
+/// ends below the 2048-sector image so the portal's past-the-end probe hits
+/// a real sector and only the capability scope can refuse it. The largest v1
+/// archive (525 328 bytes) needs 1027 sectors.
+const ARCHIVE_FIRST_SECTOR: u64 = 1000;
+const ARCHIVE_SECTORS: u64 = 1040;
+const _: () = assert!(FIRST_SECTOR + SECTORS <= ARCHIVE_FIRST_SECTOR);
+/// Full-target case: the portal's archive scope is cut to fewer sectors than
+/// the exported fixture archive needs (180).
+const FULL_SECTORS: u64 = 100;
+const _: () = assert!(FULL_SECTORS < ARCHIVE_SECTORS);
 
 #[derive(Clone, Copy)]
 struct AppEvidence {
@@ -88,6 +102,9 @@ struct Runtime {
     apps: [AppEvidence; 2],
     service_startup: u64,
     finish: bool,
+    /// Block object of the portal's archive range (archive fixtures only).
+    archive_key: Option<u64>,
+    archive_ops: [u64; 3],
 }
 static mut RUNTIME: Runtime = Runtime {
     info: None,
@@ -126,6 +143,8 @@ static mut RUNTIME: Runtime = Runtime {
     apps: [NO_APP; 2],
     service_startup: 0,
     finish: false,
+    archive_key: None,
+    archive_ops: [0; 3],
 };
 fn runtime() -> &'static mut Runtime {
     // SAFETY: Entered with KERNEL held and IF0 on the permanent kernel stack.
@@ -213,12 +232,28 @@ fn case() -> u64 {
         5
     } else if cfg!(feature = "test-volume-cut-txn") {
         6
+    } else if cfg!(feature = "test-volume-archive-export") {
+        7
+    } else if cfg!(feature = "test-volume-archive-restore") {
+        8
+    } else if cfg!(feature = "test-volume-archive-corrupt") {
+        9
+    } else if cfg!(feature = "test-volume-archive-conflict") {
+        10
+    } else if cfg!(feature = "test-volume-archive-full") {
+        11
     } else {
         0
     }
 }
+/// Device-level read-only mount (emulator, virtio negotiation and service).
 fn read_only() -> bool {
     cfg!(feature = "test-system-recover") || matches!(case(), 1 | 4 | 5)
+}
+/// Archive export (also into a too-small target) writes only the archive
+/// range: the device stays writable, but the volume service receives READ alone.
+fn service_read_only() -> bool {
+    read_only() || matches!(case(), 7 | 11)
 }
 fn marker() -> &'static [u8] {
     match case() {
@@ -226,6 +261,11 @@ fn marker() -> &'static [u8] {
         1 => b"VOLUME:CASE:RECOVER:PASS\n",
         4 => b"VOLUME:CASE:RECOVER_CUT:PASS\n",
         5 => b"VOLUME:CASE:CORRUPT:PASS\n",
+        7 => b"VOLUME:CASE:ARCHIVE_EXPORT:PASS\n",
+        8 => b"VOLUME:CASE:ARCHIVE_RESTORE:PASS\n",
+        9 => b"VOLUME:CASE:ARCHIVE_CORRUPT:PASS\n",
+        10 => b"VOLUME:CASE:ARCHIVE_CONFLICT:PASS\n",
+        11 => b"VOLUME:CASE:ARCHIVE_FULL:PASS\n",
         _ => b"VOLUME:FAIL:CUT_NOT_OBSERVED\n",
     }
 }
@@ -365,7 +405,7 @@ pub fn manifest(s: &mut State) {
     }
     // Recovery fixtures mount the same image read-only at the emulator, the
     // virtio feature negotiation and this capability; only READ is granted.
-    let rights = if read_only() {
+    let rights = if service_read_only() {
         BLOCK_READ
     } else {
         BLOCK_READ | BLOCK_WRITE | BLOCK_FLUSH
@@ -402,7 +442,7 @@ pub fn manifest(s: &mut State) {
         (80, r.roots[1]),
         (88, r.replies[0]),
         (72, r.replies[1]),
-        (120, u64::from(read_only())),
+        (120, u64::from(service_read_only())),
         (192, 0),
         (232, 0),
     ] {
@@ -423,11 +463,14 @@ pub fn manifest(s: &mut State) {
             fail(b"APP_RECV_ON_SEND");
         }
     }
-    if read_only()
+    if service_read_only()
         && (e.check_block(service, block, BLOCK_WRITE).is_ok()
             || e.check_block(service, block, BLOCK_FLUSH).is_ok())
     {
         fail(b"READONLY_RIGHTS");
+    }
+    if matches!(case(), 7..=11) {
+        archive_grant(s, e, service, clients, block);
     }
     if !e.check_invariants() {
         fail(b"MANIFEST_ENGINE");
@@ -437,6 +480,66 @@ pub fn manifest(s: &mut State) {
         .checked_add(releasable_frames(s))
         .unwrap_or_else(|| fail(b"FRAME_BASELINE_OVERFLOW"));
     serial::write(b"VOLUME:MANIFEST:PASS\n");
+}
+
+/// S09 fixture grant: the slot-1 portal alone receives the archive range;
+/// export READ|WRITE|FLUSH; restore, corrupt and conflict READ only; the
+/// full-target export READ|WRITE|FLUSH on the first FULL_SECTORS only. The
+/// service and slot 2 keep exactly their earlier authority.
+fn archive_grant(s: &mut State, e: &mut Engine, service: u64, clients: [u64; 2], block: u64) {
+    let writes = matches!(case(), 7 | 11);
+    let scope = BlockScope {
+        device: 0,
+        first_sector: ARCHIVE_FIRST_SECTOR,
+        sector_count: if case() == 11 {
+            FULL_SECTORS
+        } else {
+            ARCHIVE_SECTORS
+        },
+    };
+    let rights = if writes {
+        BLOCK_READ | BLOCK_WRITE | BLOCK_FLUSH
+    } else {
+        BLOCK_READ
+    };
+    let handles = |e: &Engine| {
+        [service, clients[0], clients[1]].map(|pid| e.process_usage(pid).unwrap().handles)
+    };
+    let (before, held) = (e.stats(), handles(e));
+    let handle = e
+        .create_block_device_with_rights(clients[0], scope, rights)
+        .unwrap();
+    // No handle enumeration exists, so count instead: exactly one new block
+    // object, node and handle, and that handle sits in the portal; service
+    // and slot 2 hold exactly what they held, so neither can reach it.
+    let after = e.stats();
+    if (after.block_objects, after.nodes, after.handles)
+        != (
+            before.block_objects + 1,
+            before.nodes + 1,
+            before.handles + 1,
+        )
+        || handles(e) != [held[0], held[1] + 1, held[2]]
+    {
+        fail(b"ARCHIVE_ESCAPE");
+    }
+    let auth = e.check_block(clients[0], handle, rights).unwrap();
+    if auth.scope() != scope {
+        fail(b"ARCHIVE_SCOPE");
+    }
+    if !writes
+        && (e.check_block(clients[0], handle, BLOCK_WRITE).is_ok()
+            || e.check_block(clients[0], handle, BLOCK_FLUSH).is_ok())
+    {
+        fail(b"ARCHIVE_READONLY_RIGHTS");
+    }
+    if e.check_block(service, block, 0)
+        .is_ok_and(|volume| volume.object_key() == auth.object_key())
+    {
+        fail(b"ARCHIVE_ESCAPE");
+    }
+    runtime().archive_key = Some(auth.object_key());
+    put(s, 1, 504, handle);
 }
 
 fn err(e: virtio_core::Error) -> i64 {
@@ -500,15 +603,26 @@ pub fn syscall(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> (i64, u64) {
     match device_call(s, slot, n, a) {
         Ok(v) => (0, v),
         Err(code) => {
-            // Apps hold no block capability at all: every app block call
-            // must fail at the authority check before any device effect.
+            // Apps hold no volume block capability: every app call to it
+            // fails at the authority check before any device effect. Calls
+            // on the S09 portal's own archive object (pending polls, its
+            // scope probe) are not authority denials and are not counted.
             #[cfg(not(feature = "native-system"))]
-            if slot > 0 {
+            if slot > 0 && !on_archive(s, slot, a[0]) {
                 runtime().app_device_denials[slot - 1] += 1;
             }
             (code, 0)
         }
     }
+}
+
+#[cfg(not(feature = "native-system"))]
+fn on_archive(s: &State, slot: usize, handle: u64) -> bool {
+    runtime().archive_key.is_some_and(|key| {
+        m4::engine()
+            .check_block(s.processes[slot].pid, handle, 0)
+            .is_ok_and(|auth| auth.object_key() == key)
+    })
 }
 
 /// Generic broker: authority, scope, ticket binding and bounded copies only.
@@ -641,6 +755,9 @@ fn device_call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i
         .publish_prepared(suppress)
         .unwrap();
     r.publications[operation_index(op)] += 1;
+    if r.archive_key == Some(binding.object_key) {
+        r.archive_ops[operation_index(op)] += 1;
+    }
     r.published_at = s.ticks;
     Ok(request.ticket)
 }
@@ -762,6 +879,10 @@ fn advance(s: &State) {
                 .complete(request.epoch, request.ticket, Completion::Success)
                 .unwrap();
             if let Operation::Write { sector } = request.operation {
+                // Archive sectors are neither volume table nor content writes.
+                if r.archive_key == Some(request.binding.object_key) {
+                    return;
+                }
                 let relative = sector - FIRST_SECTOR;
                 if relative < TABLE_REGION {
                     r.table_writes += 1;
@@ -865,7 +986,8 @@ pub fn observe_fault(_s: &mut State, slot: usize, _context: &[u64; 22]) {
 }
 
 fn barriers(s: &State) {
-    // Fixture-only ordering of the quota/full phases. Gates carry no
+    // Fixture-only ordering of the quota/full phases, and in the S09 archive
+    // cases of slot 2 after the portal's archive I/O. Gates carry no
     // authority: the service still authorizes every request by endpoint.
     for slot in 1..3 {
         if s.processes[slot].status != Status::Dead {
@@ -961,6 +1083,22 @@ fn finish(s: &mut State) -> ! {
         if read_only() && r.publications[1..] != [0, 0] {
             fail(b"READONLY_MUTATED");
         }
+        // Export: every write and flush went to the archive range and the
+        // portal read the archive back; restore, corrupt and conflict only
+        // read it. Full target: as many archive writes as the cut scope has
+        // sectors, no flush, and at least one archive read (the portal's
+        // verify reads the header and refuses it); the host compares the
+        // written sectors byte for byte.
+        let a = r.archive_ops;
+        let archive = match case() {
+            7 => a[0] > 0 && a[1] > 0 && a[2] > 0 && r.publications[1..] == a[1..],
+            8..=10 => a[0] > 0 && a[1..] == [0, 0],
+            11 => a[0] > 0 && a[1..] == [FULL_SECTORS, 0] && r.publications[1..] == a[1..],
+            _ => a == [0; 3],
+        };
+        if !archive {
+            fail(b"ARCHIVE_IO");
+        }
         if r.app_device_denials.iter().any(|count| *count == 0) {
             fail(b"APP_DEVICE_DENIAL_NOT_OBSERVED");
         }
@@ -1030,6 +1168,11 @@ fn finish(s: &mut State) -> ! {
     print_number(b"VOLUME:BROKER:FLUSHES:", r.publications[2]);
     print_number(b"VOLUME:BROKER:TABLE_SECTOR_WRITES:", r.table_writes);
     print_number(b"VOLUME:BROKER:DATA_SECTOR_WRITES:", r.data_writes);
+    if matches!(case(), 7..=11) {
+        print_number(b"VOLUME:ARCHIVE:READS:", r.archive_ops[0]);
+        print_number(b"VOLUME:ARCHIVE:WRITES:", r.archive_ops[1]);
+        print_number(b"VOLUME:ARCHIVE:FLUSHES:", r.archive_ops[2]);
+    }
     print_number(
         b"VOLUME:APP_DEVICE_DENIALS:",
         r.app_device_denials[0] + r.app_device_denials[1],

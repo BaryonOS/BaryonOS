@@ -22,7 +22,10 @@ M6B_TIMEOUT_CASES = ("write-timeout", "flush-timeout", "reset-timeout", "write-p
 M6B_FAULT_CASES = ("write-error", "flush-error") + M6B_TIMEOUT_CASES
 M6B_CASES = ("recover", "errors", "full", "corrupt", "vm-cut-before-ack", "vm-cut-after-flush") + M6B_FAULT_CASES
 M6C_CASES = ("recover", "errors", "full", "corrupt", "legacy", "vm-cut-before-rename", "vm-cut-after-rename") + M6C_FAULT_CASES
-VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "foreign", "cut-txn")
+VOLUME_ARCHIVE_CASES = ("archive-export", "archive-restore", "archive-corrupt", "archive-conflict",
+                        "archive-full")
+VOLUME_CASES = ("recover", "cut-data", "cut-table", "recover-cut", "corrupt", "foreign", "cut-txn",
+                *VOLUME_ARCHIVE_CASES)
 VOLUME_FEATURES = ("native-volume", *(f"test-volume-{case}" for case in VOLUME_CASES))
 SUPERVISOR_CASES = ("crash", "denied", "parent-exit", "quota", "wait")
 SUPERVISOR_FEATURES = ("native-supervisor", *(f"test-supervisor-{case}" for case in SUPERVISOR_CASES),
@@ -302,6 +305,13 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
                    "build-volume-docs", extra_env={"CARGO_TARGET_DIR": str(volume_target)})
         app = volume_target / "x86_64-unknown-none/release/volume-app"
         service = volume_target / "x86_64-unknown-none/release/volume-service"
+        if kernel_feature in (f"test-volume-{case}" for case in VOLUME_ARCHIVE_CASES):
+            # S09 portal app (separate target dir); the service stays the normal build.
+            portal_target = TARGET / "volume-docs-portal"
+            run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/volume-docs/build.py"),
+                        "--archive-portal"], "build-volume-docs-portal",
+                       extra_env={"CARGO_TARGET_DIR": str(portal_target)})
+            app = portal_target / "x86_64-unknown-none/release/volume-app"
         qsim_report = {
             "app_sha256": sha256(app), "app_elf": inspect_user(app),
             "service_sha256": sha256(service), "service_elf": inspect_user(service),

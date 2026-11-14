@@ -8,63 +8,15 @@
 #[cfg(not(all(target_arch = "x86_64", target_os = "none")))]
 compile_error!("volume-service is only for the Nieuw OS x86_64-unknown-none target");
 
+mod disk;
 mod support;
 
+use disk::{status, tick, NativeDisk, POLL_LIMIT};
 use nieuw_os_sdk_runtime::{
-    block::READ_MAX, native, supports_ipc_wait, BlockDevice, Error, Handle, Outgoing,
-    ReceiveEndpoint, SendEndpoint, WaitCondition, IPC_WAIT_HORIZON_TICKS,
+    native, supports_ipc_wait, BlockDevice, Handle, Outgoing, ReceiveEndpoint, SendEndpoint,
+    WaitCondition, IPC_WAIT_HORIZON_TICKS,
 };
-use volume_core::{service::Service, upload, wire, Disk, Status, SECTOR};
-
-const POLL_LIMIT: usize = 200_000;
-
-fn tick() {
-    support::put(8, support::word(8).wrapping_add(1));
-}
-
-fn status(error: Error) -> Status {
-    match error {
-        Error::Kernel(code) => Status::from_code(code),
-        _ => Status::Protocol,
-    }
-}
-
-struct NativeDisk {
-    device: BlockDevice,
-}
-
-impl Disk for NativeDisk {
-    fn read(&mut self, sector: u64, buffer: &mut [u8; SECTOR]) -> Result<(), Status> {
-        for part in 0..SECTOR / READ_MAX {
-            tick();
-            let ticket = native::block_read(
-                self.device,
-                sector,
-                (part * READ_MAX) as u64,
-                READ_MAX as u64,
-            )
-            .map_err(status)?;
-            native::block_wait(
-                self.device,
-                ticket,
-                &mut buffer[part * READ_MAX..(part + 1) * READ_MAX],
-                POLL_LIMIT,
-            )
-            .map_err(status)?;
-        }
-        Ok(())
-    }
-    fn write(&mut self, sector: u64, buffer: &[u8; SECTOR]) -> Result<(), Status> {
-        tick();
-        let ticket = native::block_write(self.device, sector, buffer).map_err(status)?;
-        native::block_wait(self.device, ticket, &mut [], POLL_LIMIT).map_err(status)
-    }
-    fn flush(&mut self) -> Result<(), Status> {
-        tick();
-        let ticket = native::block_flush(self.device).map_err(status)?;
-        native::block_wait(self.device, ticket, &mut [], POLL_LIMIT).map_err(status)
-    }
-}
+use volume_core::{service::Service, upload, wire, Status};
 
 fn evidence(service: &Service) {
     let c = service.counters;

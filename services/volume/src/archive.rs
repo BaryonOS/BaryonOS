@@ -15,8 +15,8 @@
 use crate::client::{Client, CollectionInfo, Transport};
 use crate::wire::ListEntry;
 use crate::{
-    checksum_update, get16, get32, get64, put16, put32, put64, valid_name, Status, COLLECTIONS,
-    DOMAINS, FNV_OFFSET, MAX_LENGTH, NAME, PER_DOMAIN,
+    checksum_update, get16, get32, get64, put16, put32, put64, valid_name, Disk, Status,
+    COLLECTIONS, DOMAINS, FNV_OFFSET, MAX_LENGTH, NAME, PER_DOMAIN, SECTOR,
 };
 
 pub const MAGIC: [u8; 8] = *b"NOSBAK\x00\x01";
@@ -494,5 +494,135 @@ pub fn restore<S: Source, T: Transport>(
     match walked {
         Ok(_) => Ok(report),
         Err(status) => Err((status, report)),
+    }
+}
+
+/// Archive stream stored from sector 0 of a dedicated raw block range (the
+/// S09 native portal target). The range carries no further framing: the
+/// stored length follows from the header counts and `verify` stays the only
+/// acceptance gate. Sectors after the archive keep their previous bytes.
+pub struct DiskSink<'a, D: Disk> {
+    disk: &'a mut D,
+    sectors: u64,
+    next: u64,
+    buffer: [u8; SECTOR],
+    filled: usize,
+    written: u64,
+}
+
+impl<'a, D: Disk> DiskSink<'a, D> {
+    pub fn new(disk: &'a mut D, sectors: u64) -> Self {
+        Self {
+            disk,
+            sectors,
+            next: 0,
+            buffer: [0; SECTOR],
+            filled: 0,
+            written: 0,
+        }
+    }
+
+    /// Write the zero-padded last sector and flush; returns the archive
+    /// length. The archive is durable only after this returns `Ok`.
+    pub fn finish(mut self) -> Result<u64, Status> {
+        if self.filled != 0 {
+            self.buffer[self.filled..].fill(0);
+            self.write_sector()?;
+        }
+        self.disk.flush()?;
+        Ok(self.written)
+    }
+
+    fn write_sector(&mut self) -> Result<(), Status> {
+        if self.next >= self.sectors {
+            return Err(Status::Full);
+        }
+        self.disk.write(self.next, &self.buffer)?;
+        self.next += 1;
+        self.filled = 0;
+        Ok(())
+    }
+}
+
+impl<D: Disk> Sink for DiskSink<'_, D> {
+    fn put(&mut self, mut bytes: &[u8]) -> Result<(), Status> {
+        while !bytes.is_empty() {
+            let take = (SECTOR - self.filled).min(bytes.len());
+            self.buffer[self.filled..self.filled + take].copy_from_slice(&bytes[..take]);
+            self.filled += take;
+            self.written += take as u64;
+            bytes = &bytes[take..];
+            if self.filled == SECTOR {
+                self.write_sector()?;
+            }
+        }
+        Ok(())
+    }
+}
+
+/// Reads an archive written by `DiskSink`. The range is untrusted: a header
+/// whose counts imply more bytes than the range holds is `Corrupt`; any other
+/// deviation is left to `walk`.
+pub struct DiskSource<'a, D: Disk> {
+    disk: &'a mut D,
+    sectors: u64,
+    length: Option<u64>,
+    position: u64,
+    buffer: [u8; SECTOR],
+    loaded: Option<u64>,
+}
+
+impl<'a, D: Disk> DiskSource<'a, D> {
+    pub fn new(disk: &'a mut D, sectors: u64) -> Self {
+        Self {
+            disk,
+            sectors,
+            length: None,
+            position: 0,
+            buffer: [0; SECTOR],
+            loaded: None,
+        }
+    }
+
+    fn load(&mut self, sector: u64) -> Result<(), Status> {
+        if self.loaded != Some(sector) {
+            self.loaded = None;
+            self.disk.read(sector, &mut self.buffer)?;
+            self.loaded = Some(sector);
+        }
+        Ok(())
+    }
+}
+
+impl<D: Disk> Source for DiskSource<'_, D> {
+    fn get(&mut self, out: &mut [u8]) -> Result<usize, Status> {
+        let length = match self.length {
+            Some(length) => length,
+            None => {
+                if self.sectors == 0 {
+                    return Err(Status::Corrupt);
+                }
+                self.load(0)?;
+                let header = &self.buffer;
+                let records = u64::from(header[13]) * COLLECTION_RECORD as u64
+                    + u64::from(header[12]) * OBJECT_RECORD as u64;
+                let length = ((HEADER + TRAILER) as u64 + records)
+                    .checked_add(get64(header, 24))
+                    .filter(|length| *length <= self.sectors.saturating_mul(SECTOR as u64))
+                    .ok_or(Status::Corrupt)?;
+                self.length = Some(length);
+                length
+            }
+        };
+        let take = (length - self.position).min(out.len() as u64) as usize;
+        if take == 0 {
+            return Ok(0);
+        }
+        self.load(self.position / SECTOR as u64)?;
+        let at = (self.position % SECTOR as u64) as usize;
+        let take = take.min(SECTOR - at);
+        out[..take].copy_from_slice(&self.buffer[at..at + take]);
+        self.position += take as u64;
+        Ok(take)
     }
 }

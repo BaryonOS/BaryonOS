@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-13",
-    "source_commit": "2225c0b16df684a21153d639e88490bb4bb48071",
+    "date": "2026-11-14",
+    "source_commit": "915cc4312b29de1bfb28588072bcfa024186314d",
     "assessment_basis": "source_commit",
-    "branch": "claude/hopeful-dijkstra-2as6p1",
-    "task": "Enforce the per-mode harness deadline of ADR-WINDOW-SCALE2-DEADLINE-20261112 in the window runner",
+    "branch": "ccr-cf45024e-q0nrg9",
+    "task": "Resolve PR #316 against main 2c72e282ca80fd3dd6bf377b3f71e2eced4a4499 while preserving the per-mode native window harness deadline",
     "previous_score": 41,
-    "summary": "41/100 stays 41/100. CI harness hardening only, stacked on #316 2225c0b1: run() now accepts up to 2700 s only for the scale-2 clipboard/workspace gate, and every other mode, including scale-2 switcher part gates, keeps 1800 s, so the ADR bound no longer depends on the workflow alone. A negative runner test pins the scale-2 switcher case; no phase, assertion or product criterion changes."
+    "summary": "41/100 stays 41/100. The progress-assessment conflict is resolved against current main without changing any criterion, status or evidence. PR #316 retains the 1800-second default and permits 2700 seconds only for the scale-2 clipboard/workspace gate. The existing design checkpoint and all other main changes are retained. This integration establishes no new native runtime or product acceptance; verification and execution limits are recorded in docs/PROJECT-STATE.md."
   },
   "tracks": [
     {

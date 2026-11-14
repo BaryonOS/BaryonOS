@@ -1,0 +1,166 @@
+{
+ "scores": [
+  {
+   "code": "L",
+   "L": 7,
+   "F": 7,
+   "C": 7,
+   "H": 6,
+   "D": 7,
+   "strengths": "Squarish, rounded-rectangle forms (O, o, B bowls, flat-topped a) keep the techno flavour of the original. Medium weight sits well against the mark's bonds in both themes. The two-tone OS (grey-blue on dark, slate on light) works as in the original. At 20 px the words read cleanly, and the grey OS separates them.",
+   "defects": [
+    "Proportions are semi-condensed where the original is extended, so at 96 px 'Baryon' looks narrower and more generic-tech than the reference.",
+    "At 14 px (small-1x, both themes) the narrow letters with tight internal spacing look smaller and denser than Inter-based candidates at the same size; the 'ry' pair starts to clump.",
+    "Beside the 15 px panel text it reads as a different, narrower voice; the heading looks compressed next to the rounder UI text."
+   ]
+  },
+  {
+   "code": "M",
+   "L": 9,
+   "F": 6,
+   "C": 2,
+   "H": 9,
+   "D": 2,
+   "strengths": "Very legible at 20 and 14 px in both themes thanks to a large x-height and open counters. Visually identical in voice to the panel's 15 px interface text, so the panel feels completely unified. The grey OS separates the words clearly.",
+   "defects": [
+    "Reads as a default interface-font label: no brand character at any size.",
+    "Tight default tracking at 96 px makes 'Baryon' dense, and the word space before OS at 14 px is narrow (separation relies on colour alone).",
+    "Loses all of the original's squarish, extended character.",
+    "Semibold weight with round geometry feels a little soft next to the mark's sharp wedge-shaped bonds."
+   ]
+  },
+  {
+   "code": "N",
+   "L": 9,
+   "F": 7,
+   "C": 3,
+   "H": 8,
+   "D": 3,
+   "strengths": "The bold weight balances the heavy dark bonds of the mark better than M, especially in the light theme. Added positive tracking gives clean, open spacing at 20 and 14 px; 'Baryon' and 'OS' stay clearly separate. Still harmonious with the UI text family.",
+   "defects": [
+    "Still recognisably the interface face; tracking and weight alone do not make it ownable.",
+    "Bold plus tracking makes the 96 px lockup quite wide and heavy; it dominates the mark slightly in the light theme.",
+    "No continuity with the original's squarish letterforms; round O and S.",
+    "In the panel the bold heading is noticeably heavier than the 15 px body text and the 'Updates zoeken' button text."
+   ]
+  },
+  {
+   "code": "P",
+   "L": 8,
+   "F": 7,
+   "C": 6,
+   "H": 7,
+   "D": 6,
+   "strengths": "Semi-squarish rounded letterforms (squared O, angular a and n shoulders) echo the original's techno character in a softer, more readable way. Clean at 20 px in both themes; at 14 px 'Baryon' remains distinct. Medium-semibold weight pairs naturally with the mark. Sits comfortably beside the 15 px UI text without clashing.",
+   "defects": [
+    "Narrower than the original, so the extended, confident stance of the reference is lost.",
+    "At 14 px in the dark theme the grey OS appears lighter or thinner than 'Baryon' and slightly recedes.",
+    "The face feels like a familiar off-the-shelf techno sans, so only moderately ownable.",
+    "The 'y' tail curves softly, a small departure from the original's straighter, squarer y."
+   ]
+  },
+  {
+   "code": "Q",
+   "L": 6,
+   "F": 5,
+   "C": 4,
+   "H": 5,
+   "D": 8,
+   "strengths": "The extended width recalls the original's wide stance, and the bold/thin weight split is distinctive and memorable at 96 and 40 px. Very ownable compared with interface-font options.",
+   "defects": [
+    "'OS' is set in a hairline-thin weight in the same colour; at 14 px (small-1x, especially the light theme) it turns faint and spindly and nearly disappears.",
+    "Bold 'Baryon' is wider and heavier than the mark's bonds, while the thin OS is far lighter than the bonds and nodes, so the lockup has two weights that both disagree with the mark.",
+    "Drops the original's two-tone grey OS and its squarish letterforms; continuity only in width.",
+    "Most display-like option beside the 15 px panel text; the wide, high-contrast heading feels like a different system from the UI.",
+    "Takes the most horizontal room in the panel and on the boot line."
+   ]
+  },
+  {
+   "code": "R",
+   "L": 7,
+   "F": 8,
+   "C": 9,
+   "H": 6,
+   "D": 8,
+   "strengths": "Closest to the original: extended proportions, rounded-rectangle O and S, squarish B, a and n, and a grey second word. Reads as a refined, more open version of the reference. The width and squared geometry suit the angular triangle mark and its heavy bonds very well, especially at 96 and 40 px. Generous tracking keeps 'Baryon' and 'OS' clearly apart at 20 px. Distinct and brand-like.",
+   "defects": [
+    "At 14 px in the dark theme the grey OS has low contrast and its squared O sits close to a rounded D shape; still readable but the weakest part of the small lockup.",
+    "Wide tracking makes the 14 and 20 px lockups long; in the panel the heading runs noticeably further than the other candidates.",
+    "Beside the 15 px Inter-like panel text its wide techno voice clearly differs; it reads as a brand moment rather than part of the UI.",
+    "The extended squarish style risks a slightly dated 'tech' feel if not tuned (for example, tracking reduced at large sizes)."
+   ]
+  },
+  {
+   "code": "S",
+   "L": 8,
+   "F": 6,
+   "C": 2,
+   "H": 8,
+   "D": 4,
+   "strengths": "Clean weight-contrast lockup (semibold 'Baryon', light 'OS') gives clear word separation at every size without needing colour. Very legible at 20 px in both themes. Matches the UI text family in the panel.",
+   "defects": [
+    "At 14 px the light-weight OS gets thin, especially white-on-dark, and slightly recedes.",
+    "The bold/light weight-split lockup is a very common pattern; with the interface face it remains close to a default label.",
+    "No continuity with the original's squarish extended forms or its grey-OS colour treatment (OS is the same colour here).",
+    "The light OS is much thinner than the mark's bonds, so the right end of the lockup looks weak next to the mark."
+   ]
+  }
+ ],
+ "ranking": [
+  "R",
+  "L",
+  "P",
+  "N",
+  "S",
+  "Q",
+  "M"
+ ],
+ "closest_to_original": "R",
+ "recognised_faces": "M, N and S appear to be Inter (semibold for M; bold with added tracking for N; semibold plus light for S). Confidence is high, because they match the 15 px panel interface text exactly. P resembles Exo 2 (moderate confidence). L resembles a Saira-style squarish techno sans at normal width (low-moderate confidence). R resembles a semi-expanded member of the same Saira-like squarish family (low-moderate confidence). Q is an extended grotesk in the manner of Archivo Expanded or Syne (low confidence). The reference original is an extended squarish techno sans in the Saira Expanded / Audiowide genre (low confidence).",
+ "files_viewed": [
+  "reference-original-wordmark.png",
+  "L-dark.png",
+  "L-dark-small-1x.png",
+  "L-dark-context-1x.png",
+  "L-light.png",
+  "L-light-small-1x.png",
+  "L-light-context-1x.png",
+  "M-dark.png",
+  "M-dark-small-1x.png",
+  "M-dark-context-1x.png",
+  "M-light.png",
+  "M-light-small-1x.png",
+  "M-light-context-1x.png",
+  "N-dark.png",
+  "N-dark-small-1x.png",
+  "N-dark-context-1x.png",
+  "N-light.png",
+  "N-light-small-1x.png",
+  "N-light-context-1x.png",
+  "P-dark.png",
+  "P-dark-small-1x.png",
+  "P-dark-context-1x.png",
+  "P-light.png",
+  "P-light-small-1x.png",
+  "P-light-context-1x.png",
+  "Q-dark.png",
+  "Q-dark-small-1x.png",
+  "Q-dark-context-1x.png",
+  "Q-light.png",
+  "Q-light-small-1x.png",
+  "Q-light-context-1x.png",
+  "R-dark.png",
+  "R-dark-small-1x.png",
+  "R-dark-context-1x.png",
+  "R-light.png",
+  "R-light-small-1x.png",
+  "R-light-context-1x.png",
+  "S-dark.png",
+  "S-dark-small-1x.png",
+  "S-dark-context-1x.png",
+  "S-light.png",
+  "S-light-small-1x.png",
+  "S-light-context-1x.png"
+ ],
+ "viewing_limitations": "All 43 files opened. Small-size legibility was judged from the 1:1 small-1x crops, not from the full sheets. The full 1400x900 sheets seemed to display at or near native size, but slight scaling by the viewer cannot be ruled out, so fine stroke detail at 14 px was taken from the crops only. The reference original is a single dark-theme image at one large size, so continuity was judged at large size only. Hinting, subpixel rendering and native (non-browser) rasterisation could not be assessed. Typeface identification is visual only, with no tooling."
+}
