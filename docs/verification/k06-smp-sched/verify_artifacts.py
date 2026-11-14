@@ -56,11 +56,10 @@ def main():
     require(re.fullmatch(r"[0-9a-f]{64}", args.source_sha256), "invalid expected source hash")
     repo = repository_path(args.repository)
     sys.path.insert(0, str(repo / "tools"))
-    from run_smp import CASES, evaluate, GUEST_TIMEOUT_S, SOAK_TIMEOUT_S, duplicate_madt, BOOT, FORBIDDEN, required_end
     import run_smp
-    IPC_TIMEOUT_S = getattr(run_smp, "IPC_TIMEOUT_S", GUEST_TIMEOUT_S)  # absent before the R3-5 addendum
-    LOAD_TIMEOUT_S = getattr(run_smp, "LOAD_TIMEOUT_S", GUEST_TIMEOUT_S)  # absent before ADR-082 D5
-    require(len(CASES) == 74, "oracle does not define the required 74 cases")
+    IPC_TIMEOUT_S = getattr(run_smp, "IPC_TIMEOUT_S", run_smp.GUEST_TIMEOUT_S)  # absent before the R3-5 addendum
+    LOAD_TIMEOUT_S = getattr(run_smp, "LOAD_TIMEOUT_S", run_smp.GUEST_TIMEOUT_S)  # absent before ADR-082 D5
+    require(len(run_smp.CASES) == 74, "oracle does not define the required 74 cases")
     oracle_hashes = {}
     for name in ("tools/run_smp.py", "tools/run.py", "tools/common.py", "tools/gate_contract.py"):
         frozen = subprocess.run(["git", "show", f"{args.commit}:{name}"], cwd=repo,
@@ -121,8 +120,8 @@ def main():
             reps = report.get("repetitions")
             require(isinstance(reps, dict) and len(reps) == 1, "report must contain exactly one case")
             case = next(iter(reps))
-            require(case in CASES, "unknown case")
-            profile, cpus, threads, outcome = CASES[case]
+            require(case in run_smp.CASES, "unknown case")
+            profile, cpus, threads, outcome = run_smp.CASES[case]
             artifact = report_path.relative_to(root).parts[0]
             probe = artifact in ("runner-environment-probe", "runner-environment-probe-reports")
             require(not probe or (case == "m4-quotas-four" and not probe_checked), "invalid/duplicate environment probe")
@@ -206,12 +205,12 @@ def main():
                     require(guest.get("base_commit") == args.commit
                             and guest.get("source_fingerprint_version") == 3
                             and guest.get("source_sha256") == args.source_sha256, "guest commit/source mismatch")
-                    require(guest.get("required_markers") == list(BOOT + required_end(outcome))
-                            and guest.get("forbidden_markers") == list(FORBIDDEN)
+                    require(guest.get("required_markers") == list(run_smp.BOOT + run_smp.required_end(outcome))
+                            and guest.get("forbidden_markers") == list(run_smp.FORBIDDEN)
                             and guest.get("expected_exit") == 33,
                             "stored harness acceptance contract differs")
                     if case == "duplicate-madt":
-                        require(item.get("acpi_table_sha256") == digest(duplicate_madt()),
+                        require(item.get("acpi_table_sha256") == digest(run_smp.duplicate_madt()),
                                 "duplicate MADT fixture hash differs")
                     require(guest.get("artifact_binding_passed") is True
                             and guest.get("expected_artifact_sha256") == expected_artifacts
@@ -233,8 +232,8 @@ def main():
                                        ("-accel", f"tcg,thread={threads}"), ("-smp", str(cpus)),
                                        ("-m", "256M"), ("-nic", "none")):
                         require(option(key) == value, f"QEMU {key} differs")
-                    deadline = SOAK_TIMEOUT_S if case == SOAK else {
-                        "m3-ipc": IPC_TIMEOUT_S, "m3-load": LOAD_TIMEOUT_S}.get(outcome, GUEST_TIMEOUT_S)
+                    deadline = run_smp.SOAK_TIMEOUT_S if case == SOAK else {
+                        "m3-ipc": IPC_TIMEOUT_S, "m3-load": LOAD_TIMEOUT_S}.get(outcome, run_smp.GUEST_TIMEOUT_S)
                     duration = guest.get("duration_s")
                     require(guest.get("timed_out") is False and guest.get("timeout_s") == deadline
                             and type(duration) in (int, float) and math.isfinite(duration)
@@ -245,7 +244,7 @@ def main():
                             and watchdog.get("measured_over_deadline") == duration / deadline,
                             "host watchdog accounting differs")
                     # Re-run the exact strict serial oracle over every archived guest.
-                    observed_now = evaluate(case, serial, guest.get("raw_qemu_exit"), guest.get("timed_out"))
+                    observed_now = run_smp.evaluate(case, serial, guest.get("raw_qemu_exit"), guest.get("timed_out"))
                     require(observed_now == item.get("observed"), "recomputed oracle evidence differs")
                     if case == SOAK:
                         soak_durations.append(validate_soak(serial))
@@ -288,8 +287,8 @@ def main():
         all_errors.extend(f"{relative}: {message}" for message in shard_errors)
 
     require(shards, "no SMP reports found")
-    missing_cases = sorted(set(CASES) - set(observed))
-    for case in CASES:
+    missing_cases = sorted(set(run_smp.CASES) - set(observed))
+    for case in run_smp.CASES:
         found = observed[case]
         need = 10 if case == SOAK else 1
         if len(found) != need or counts[case] != 50:
@@ -310,7 +309,7 @@ def main():
             require(aggregate.get("passed") is True and aggregate.get("case_count") == 74
                     and aggregate.get("guest_run_count") == 3700 and aggregate.get("repetitions_per_case") == 50
                     and aggregate.get("source_sha256") == args.source_sha256, "aggregate totals/source/pass mismatch")
-            require(set(aggregate.get("cases", {})) == set(CASES), "aggregate case set differs")
+            require(set(aggregate.get("cases", {})) == set(run_smp.CASES), "aggregate case set differs")
             require(all(x.get("attempted") == 50 and x.get("passed") == 50 for x in aggregate["cases"].values()),
                     "aggregate contains a case below 50/50")
             aggregate_ok = True

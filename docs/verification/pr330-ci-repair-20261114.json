@@ -1,0 +1,304 @@
+{
+  "pr": 330,
+  "source_parent": "bfc48abbf246426cea476981736ffa3967061b17",
+  "branch": "fix/python-code-quality-20261114",
+  "edited_files": [
+    "tests/test_m1_artifact_binding.py"
+  ],
+  "repair": "Patch only the three consumed fixture bindings: runner.ROOT, runner.BUILD and m1_gate.BUILD. Preserve strict patch.object behavior and every existing test assertion; do not restore unused production imports.",
+  "before_sha256": {
+    "tests/test_m1_artifact_binding.py": "5d8d44ae6c5430f389499a5f20fe0cb677744367f4793b57e1edd0fab8f6bf26"
+  },
+  "after_sha256": {
+    "tests/test_m1_artifact_binding.py": "ed0ff2d0577fcfeb24b7ea9565c273531ae8546ca6ecfd7ba83779279edc04ce"
+  },
+  "all_module_ast_except_setup_unchanged": true,
+  "runtime_source_v3": "f7eb12dec45b176ffa8550110dbeae7ae966476c73c9eb6f2e15343cdcffd5a4",
+  "runtime_source_matches_previous_native_gate": true,
+  "checks": [
+    {
+      "label": "red_reproduction",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_m1_artifact_binding.py"
+      ],
+      "exit_code": 1,
+      "duration_seconds": 0.164,
+      "local_log": "build/tokenguard/run-wwae_kb7.log",
+      "raw_log_sha256": "09d58f01c5042d56f883413ad1b9c41a4ec3893334775fa1a5043e1c6ffedf21",
+      "raw_log_bytes": 9361,
+      "receipt": "build/tokenguard/run-wwae_kb7.json",
+      "test_count": 8,
+      "errors": 8,
+      "cause": "AttributeError: tools/test.py has no ROOT attribute; shared fixture patched an unused import removed by the quality repair."
+    },
+    {
+      "label": "green_targeted",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_m1_artifact_binding.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.164,
+      "local_log": "build/tokenguard/run-8h68v5fj.log",
+      "raw_log_sha256": "6ff8cb6673e52248481ba0fa0eca3657ce430b443dbc93e93c7a3e25938b7877",
+      "raw_log_bytes": 106,
+      "receipt": "build/tokenguard/run-8h68v5fj.json",
+      "test_count": 8
+    },
+    {
+      "label": "runner_ci_initial_missing_coverage",
+      "command": [
+        "bash",
+        "--noprofile",
+        "--norc",
+        "-e",
+        "-o",
+        "pipefail",
+        "-c",
+        "for pattern in test_common.py test_preflight.py test_build_paths.py test_guest_harness.py test_m1_artifact_binding.py 'test_m6c_*.py'; do\n  coverage run --parallel-mode -m unittest discover -s tests -p \"$pattern\"\ndone"
+      ],
+      "exit_code": 127,
+      "duration_seconds": 0.004,
+      "local_log": "build/tokenguard/run-m2z1ma76.log",
+      "raw_log_sha256": "8de0648abffc4c866df1475c2100acc8dec00b800f59759ae8e10906d411e0a5",
+      "raw_log_bytes": 42,
+      "receipt": "build/tokenguard/run-m2z1ma76.json"
+    },
+    {
+      "label": "install_pinned_coverage_in_ignored_directory",
+      "command": [
+        "python3",
+        "-m",
+        "pip",
+        "install",
+        "--disable-pip-version-check",
+        "--only-binary=:all:",
+        "--no-deps",
+        "--target",
+        "build/pr330-acceptance-repair/coverage-runtime",
+        "coverage==7.11.3"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 12.912,
+      "local_log": "build/tokenguard/run-7xxrly_y.log",
+      "raw_log_sha256": "c0b9d3323b4895261b360b20f7e5e442818685e65ac11612ba8fe0e2456e4438",
+      "raw_log_bytes": 346,
+      "receipt": "build/tokenguard/run-7xxrly_y.json"
+    },
+    {
+      "label": "exact_runner_ci_block",
+      "command": [
+        "bash",
+        "--noprofile",
+        "--norc",
+        "-e",
+        "-o",
+        "pipefail",
+        "-c",
+        "for pattern in test_common.py test_preflight.py test_build_paths.py test_guest_harness.py test_m1_artifact_binding.py 'test_m6c_*.py'; do\n  coverage run --parallel-mode -m unittest discover -s tests -p \"$pattern\"\ndone"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.871,
+      "local_log": "build/tokenguard/run-t5iwqvqv.log",
+      "raw_log_sha256": "72f1ad4fd62cbed8025d86df96aac3ebf93e5ff74ca0586c1d687442c2ddcf5b",
+      "raw_log_bytes": 750,
+      "receipt": "build/tokenguard/run-t5iwqvqv.json",
+      "test_count": 101,
+      "pattern_counts": {
+        "test_common.py": 10,
+        "test_preflight.py": 24,
+        "test_build_paths.py": 3,
+        "test_guest_harness.py": 7,
+        "test_m1_artifact_binding.py": 8,
+        "test_m6c_*.py": 49
+      },
+      "host_only": true
+    },
+    {
+      "label": "whitespace",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.008,
+      "local_log": "build/tokenguard/run-d3sk_4z1.log",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_log_bytes": 0,
+      "receipt": "build/tokenguard/run-d3sk_4z1.json"
+    }
+  ],
+  "environment": {
+    "runtime_environment_file": "/tmp/baryon43-env.json",
+    "additional_environment": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "/workspace/scratch/50245a9a5a0d/pr330/build/pr330-acceptance-repair/coverage-runtime",
+      "PATH_prefix": "/workspace/scratch/50245a9a5a0d/pr330/build/pr330-acceptance-repair/coverage-runtime/bin"
+    },
+    "coverage_version": "7.11.3",
+    "coverage_version_source": ".github/workflows/ci.yml"
+  },
+  "related_mock_review": {
+    "hosted_graphify_commit": "3c79778bf9e8793bfc9eaaea755d21b41f755bae",
+    "graphify_symbol": "tools_test_snapshot_build",
+    "current_source_confirmed": "tools/test.py uses BUILD, not ROOT; tools/run.py uses both ROOT and BUILD.",
+    "direct_mock_scan": {
+      "removed_top_level_imports": {
+        "preflight": [
+          "sys"
+        ],
+        "run": [
+          "LOCAL"
+        ],
+        "run_network_service": [
+          "sys"
+        ],
+        "run_random": [
+          "subprocess"
+        ],
+        "run_session_preview": [
+          "json"
+        ],
+        "run_update": [
+          "os"
+        ],
+        "run_volume": [
+          "VOLUME_FEATURES",
+          "os"
+        ],
+        "test": [
+          "ROOT",
+          "sys"
+        ],
+        "test_m6": [
+          "ROOT"
+        ],
+        "test_m6b": [
+          "json"
+        ],
+        "test_m6c": [
+          "json"
+        ],
+        "test_milestones": [
+          "ROOT",
+          "json"
+        ],
+        "test_resource_pressure": [
+          "shutil"
+        ],
+        "test_smp": [
+          "BUILD"
+        ],
+        "test_update": [
+          "ORDER",
+          "STAGES",
+          "json"
+        ],
+        "test_volume": [
+          "json"
+        ],
+        "test_materiaal_preview": [
+          "BOOT",
+          "READY",
+          "verify_frame",
+          "verify_ready_transcript"
+        ],
+        "test_materiaal_probe": [
+          "json"
+        ],
+        "test_smp_serial": [
+          "CASES",
+          "MAX_CPUS",
+          "SERIAL_LINES",
+          "duplicate_madt",
+          "evaluate"
+        ],
+        "test_window_latency": [
+          "Evidence"
+        ]
+      },
+      "direct_mock_candidates": [],
+      "coverage_limit": "Static direct patch.object targets in tests/, tools/tests/, and .agents/skills/os-dev/tests; dynamic targets require scoped inspection. The M1 dynamic fixture was inspected and repaired separately."
+    },
+    "dynamic_root_candidates": [
+      {
+        "path": "tests/test_m1_artifact_binding.py",
+        "result": "Invalid m1_gate.ROOT binding repaired."
+      },
+      {
+        "path": "tests/test_m6_capture.py",
+        "result": "ROOT belongs to capture_m6 in this fixture, not test_m6; no change required."
+      }
+    ],
+    "scoped_literal_search": "Only test_m1_artifact_binding imports tools/test.py in the inspected test roots; no remaining test.ROOT/test.sys/run.LOCAL/mock alias use found.",
+    "limitation": "Static scans and targeted fixture inspection do not prove arbitrary dynamic consumers outside the inspected roots."
+  },
+  "limits": [
+    "The 101-test runner block is host-only; its synthetic M6 capture output is not new guest evidence.",
+    "The earlier 61 tests and native gate remain tied to identical production/runtime source; native gates were not repeated for a fixture-only edit.",
+    "The first Python CI block and the historical 678-test set were not repeated for this repair; only the newly failing runner block changed.",
+    "No current-remote-head CI success or fresh main Code Quality result is claimed.",
+    "No commit, push, comment, acceptance release or merge performed by this agent."
+  ],
+  "date": "2026-11-14",
+  "failed_hosted_job": "https://github.com/BaryonOS/BaryonOS/actions/runs/43604660166/job/132476600791",
+  "standard_gate": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-xe_e_icj.log",
+      "log_sha256": "719469da85c1f5d305a318d2a4cb5ba6ae278152cd4b106d60d8f4ca77e39cbe",
+      "duration_seconds": 0.265
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-b5sw3tm1.log",
+      "log_sha256": "7ea5f37f0f283f59a8fd5af019f4175634e50d89df1c1ba53e569bb343347bb8",
+      "duration_seconds": 0.315
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/run.py",
+        "--smoke"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-buxm80kp.log",
+      "log_sha256": "360e22f1a2389f8a5a0e629ef10e535867f559736d790cf84e63f82da9ed9d44",
+      "duration_seconds": 1.774
+    }
+  ],
+  "hosted_verification": "Current-head CI is required after publication; the failed original run is retained, and no future hosted pass is claimed here.",
+  "progress": {
+    "previous_score": 41,
+    "current_score": 41,
+    "criteria_unchanged": true
+  }
+}

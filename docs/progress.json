@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "a77b3c33f9c2676b781bcdee2300c3b7497a5088",
+    "source_commit": "408007064b82ef5b56bc9f44f50811bf8cbfdd8a",
     "assessment_basis": "parent_commit",
     "branch": "feat/token-guard-20261114",
-    "task": "Clarify PR #331 exception handling and verify the review repair",
+    "task": "Integrate accepted PR #330 into PR #331 before final acceptance",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Four explanatory comments resolve the empty-handler review findings without changing the Python AST. The helper/workflow tests and standard native gate pass; source hashes and scope are recorded in docs/verification/pr331-review-20261114.json. Current-head hosted checks remain required before the authorized acceptance decision. No criterion, native-client activation or provider savings claim is added."
+    "summary": "41/100 remains 41/100. PR #331 integrates accepted main dce783f6ae41e30082452d258fc2cc8ee51637df while preserving both status histories, Token Guard 1.1.1 and the accepted Python quality/M1 fixture changes. All 87 targeted host tests and the strict preflight/build/smoke gate pass. Source and preservation evidence is recorded in docs/verification/pr331-final-integration-20261114.json. Current-head hosted checks remain required before acceptance. No criterion, client-activation or savings claim is added."
   },
   "tracks": [
     {

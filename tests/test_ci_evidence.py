@@ -229,7 +229,7 @@ class EvidenceTests(unittest.TestCase):
         receipt = self.collect(f"build/\nlinked-directory/*.json\n../outside/report.json\n{outside}/report.json")
         self.assertEqual([item["path"] for item in receipt["retained"]], ["build/ok.json"])
         reasons = set(receipt["omitted_reason_counts"])
-        self.assertTrue({"binary-control-bytes", "not-utf8-text", "not-compact-report-type", "hidden-path", "sensitive-name", "symlink", "credential-like-content"} <= reasons)
+        self.assertLessEqual({"binary-control-bytes", "not-utf8-text", "not-compact-report-type", "hidden-path", "sensitive-name", "symlink", "credential-like-content"}, reasons)
         self.assertNotIn("not-for-any-upload", self.console.getvalue())
         self.assertNotIn("secret bytes", self.console.getvalue())
         self.assertNotIn('"outside":true', self.console.getvalue())

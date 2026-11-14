@@ -1,5 +1,6 @@
 """Host tests of the synthetic TCP SERVER, never native client acceptance."""
 from __future__ import annotations
+from contextlib import suppress
 
 import hashlib
 from pathlib import Path
@@ -212,10 +213,8 @@ class ParserTests(unittest.TestCase):
         generator = random.Random(0x544350)
         for size in range(0, 1600):
             packet = generator.randbytes(size)
-            try:
+            with suppress(peer.ProtocolError):
                 peer.parse_tcp(packet)
-            except peer.ProtocolError:
-                pass
 
 
 class ConversationTests(unittest.TestCase):

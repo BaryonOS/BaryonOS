@@ -11,7 +11,7 @@ import sys
 from zoneinfo import ZoneInfo
 
 from build import build
-from common import BUILD, ROOT, save_json, source_hash
+from common import ROOT, save_json, source_hash
 from run import MILESTONE_MARKERS, run_gate_case, run_guest
 from run_smp_legacy import run_smp
 

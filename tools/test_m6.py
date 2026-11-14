@@ -3,7 +3,7 @@
 from __future__ import annotations
 from datetime import datetime, timezone
 import sys
-from common import ROOT, BUILD, run_logged, save_json, source_hash
+from common import BUILD, run_logged, save_json, source_hash
 from build import build, M6A_CASES
 from run import run_guest
 from run_m6 import run_m6, UNKNOWN
