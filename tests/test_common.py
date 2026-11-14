@@ -17,9 +17,8 @@ class QuantumSourceBinding(unittest.TestCase):
     def test_windows_and_posix_path_order_bind_the_same_source_bytes(self):
         # Model pathlib's Windows case-insensitive ordering while reading the
         # same actual files. This reproduced a real Windows/WSL mismatch.
-        class WindowsOrderedPath(type(Path())):
-            def __lt__(self, other):
-                return tuple(p.casefold() for p in self.parts) < tuple(p.casefold() for p in other.parts)
+        def windows_less(left, right):
+            return tuple(p.casefold() for p in left.parts) < tuple(p.casefold() for p in right.parts)
 
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -29,12 +28,12 @@ class QuantumSourceBinding(unittest.TestCase):
                 path.write_bytes(relative.encode("ascii"))
             with patch.object(common, "ROOT", root):
                 posix = common.source_hash()
-            with patch.object(common, "ROOT", WindowsOrderedPath(directory)):
-                windows = common.source_hash()
-            self.assertEqual(posix, windows)
-            (root / "boot/a.rs").write_bytes(b"changed")
-            with patch.object(common, "ROOT", WindowsOrderedPath(directory)):
-                self.assertNotEqual(posix, common.source_hash())
+                with patch.object(type(root), "__lt__", windows_less):
+                    self.assertLess(root / "a", root / "Z")
+                    windows = common.source_hash()
+                    self.assertEqual(posix, windows)
+                    (root / "boot/a.rs").write_bytes(b"changed")
+                    self.assertNotEqual(posix, common.source_hash())
 
     def test_inherited_package_manifest_and_job_codec_are_source_inputs(self):
         with tempfile.TemporaryDirectory() as directory:

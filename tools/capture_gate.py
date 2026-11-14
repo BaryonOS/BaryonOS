@@ -121,7 +121,8 @@ def capture(phase: str, destination: str | None = None):
         if destination is not None:
             raise ValueError("M6a has a dedicated evidence directory")
         from capture_m6 import capture as capture_m6
-        return capture_m6()
+        capture_m6()
+        return
     suite_path = BUILD / ("test-results.json" if phase == "m1" else f"{phase}-test-results.json")
     suite = json.loads(suite_path.read_text(encoding="utf-8"))
     if suite.get("status") != "completed" or suite.get("passed") is not True:

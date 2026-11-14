@@ -2,11 +2,10 @@
 """Acceptance tests: host invariants, three cold boots, corrupt/missing images,
 real stale-map-key retry, kernel panic and a real 60-second guest timeout."""
 import shutil
-import sys
 import uuid
 import json
 from datetime import datetime, timezone
-from common import ROOT, BUILD, run_logged, save_json, sha256
+from common import BUILD, run_logged, save_json, sha256
 from build import build
 from run import run_guest, is_success
 

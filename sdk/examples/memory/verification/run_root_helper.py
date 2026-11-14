@@ -8,7 +8,7 @@ import shutil
 import subprocess
 import time
 import uuid
-from common import ROOT, BUILD, LOCAL, environment, firmware, qemu_machine, save_json, sha256, source_hash
+from common import ROOT, BUILD, environment, firmware, qemu_machine, save_json, sha256, source_hash
 from gate_contract import (
     FAIL_MARKERS as BASE_FAIL_MARKERS,
     MILESTONE_MARKERS as BASE_MILESTONE_MARKERS,

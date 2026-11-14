@@ -14,7 +14,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import run_materiaal_preview as preview
 import run_session_preview as session_preview
 import run_fpu
-from run_materiaal_preview import BOOT, READY, verify_frame, verify_ready_transcript
 
 
 def sent_qcodes(trace):
@@ -89,36 +88,36 @@ class MateriaalPreviewTests(unittest.TestCase):
             self.assertEqual(target.read_text(), '{"passed": true}')
 
     def test_requires_boot_before_manifest_and_each_native_ready_marker(self):
-        transcript = "\n".join(("KS-01:PASS", *BOOT, *READY)).encode()
-        self.assertEqual(verify_ready_transcript(transcript), list((*BOOT, *READY)))
+        transcript = "\n".join(("KS-01:PASS", *preview.BOOT, *preview.READY)).encode()
+        self.assertEqual(preview.verify_ready_transcript(transcript), list((*preview.BOOT, *preview.READY)))
 
     def test_accepts_independent_service_readiness_order(self):
-        transcript = "\n".join((*BOOT, READY[0], READY[2], READY[1], *READY[3:])).encode()
+        transcript = "\n".join((*preview.BOOT, preview.READY[0], preview.READY[2], preview.READY[1], *preview.READY[3:])).encode()
         self.assertEqual(
-            verify_ready_transcript(transcript),
-            list((*BOOT, READY[0], READY[2], READY[1], *READY[3:])),
+            preview.verify_ready_transcript(transcript),
+            list((*preview.BOOT, preview.READY[0], preview.READY[2], preview.READY[1], *preview.READY[3:])),
         )
 
     def test_rejects_missing_or_repeated_ready_markers(self):
-        missing = "\n".join((*BOOT, *READY[:-1])).encode()
-        duplicate = "\n".join((*BOOT, *READY, READY[2])).encode()
+        missing = "\n".join((*preview.BOOT, *preview.READY[:-1])).encode()
+        duplicate = "\n".join((*preview.BOOT, *preview.READY, preview.READY[2])).encode()
         with self.assertRaises(ValueError):
-            verify_ready_transcript(missing)
+            preview.verify_ready_transcript(missing)
         with self.assertRaises(ValueError):
-            verify_ready_transcript(duplicate)
+            preview.verify_ready_transcript(duplicate)
 
     def test_rejects_readiness_before_manifest_or_reordered_boot(self):
         for markers in (
-            (*BOOT, READY[1], READY[0], *READY[2:]),
-            (BOOT[1], BOOT[0], BOOT[2], *READY),
+            (*preview.BOOT, preview.READY[1], preview.READY[0], *preview.READY[2:]),
+            (preview.BOOT[1], preview.BOOT[0], preview.BOOT[2], *preview.READY),
         ):
             with self.assertRaises(ValueError):
-                verify_ready_transcript("\n".join(markers).encode())
+                preview.verify_ready_transcript("\n".join(markers).encode())
 
     def test_rejects_guest_failure_even_after_readiness(self):
-        transcript = "\n".join((*BOOT, *READY, "MATERIAAL:FAIL:TEST")).encode()
+        transcript = "\n".join((*preview.BOOT, *preview.READY, "MATERIAAL:FAIL:TEST")).encode()
         with self.assertRaises(ValueError):
-            verify_ready_transcript(transcript)
+            preview.verify_ready_transcript(transcript)
 
     def test_requires_a_nonblank_native_frame(self):
         pixels = bytearray(800 * 600 * 3)
@@ -126,10 +125,10 @@ class MateriaalPreviewTests(unittest.TestCase):
             color = (index // 3) % 16
             pixels[index:index + 3] = bytes((color, color * 2, color * 3))
         frame = b"P6\n800 600\n255\n" + pixels
-        self.assertEqual(verify_frame(frame)["distinct_colors"], 16)
+        self.assertEqual(preview.verify_frame(frame)["distinct_colors"], 16)
         blank = b"P6\n800 600\n255\n" + bytes(800 * 600 * 3)
         with self.assertRaises(ValueError):
-            verify_frame(blank)
+            preview.verify_frame(blank)
 
 
 def reference_frames():
@@ -289,7 +288,7 @@ class InteractiveInputTests(unittest.TestCase):
         frames = reference_frames()
         with tempfile.TemporaryDirectory() as name:
             directory = Path(name)
-            (directory / "serial.txt").write_bytes("\n".join((*BOOT, *READY)).encode())
+            (directory / "serial.txt").write_bytes("\n".join((*preview.BOOT, *preview.READY)).encode())
             process = Mock()
             process.poll.return_value = None
             control = Mock()
@@ -340,7 +339,7 @@ class InteractiveInputTests(unittest.TestCase):
         changed[-1] ^= 1
         with tempfile.TemporaryDirectory() as name:
             directory = Path(name)
-            (directory / "serial.txt").write_bytes("\n".join((*BOOT, *READY)).encode())
+            (directory / "serial.txt").write_bytes("\n".join((*preview.BOOT, *preview.READY)).encode())
             process = Mock()
             process.poll.return_value = None
             control = Mock()
@@ -440,7 +439,7 @@ class PreviewLifecycleTests(unittest.TestCase):
         stack.enter_context(patch("sys.stdout", new=io.StringIO()))
 
     def start(self, command, **kwargs):
-        (kwargs["cwd"] / "serial.txt").write_bytes("\n".join((*BOOT, *READY)).encode())
+        (kwargs["cwd"] / "serial.txt").write_bytes("\n".join((*preview.BOOT, *preview.READY)).encode())
         return self.process
 
     def connect(self, process, deadline):
@@ -615,7 +614,7 @@ class SessionWalkthroughTests(unittest.TestCase):
         cropped, full = session_frames()
         with tempfile.TemporaryDirectory() as name:
             directory = Path(name)
-            (directory / "serial.txt").write_bytes("\n".join((*BOOT, *READY)).encode())
+            (directory / "serial.txt").write_bytes("\n".join((*preview.BOOT, *preview.READY)).encode())
             process, control = Mock(), Mock()
             process.poll.return_value = None
             control.trace = []
@@ -643,7 +642,7 @@ class SessionWalkthroughTests(unittest.TestCase):
         cropped, full = session_frames()
         with tempfile.TemporaryDirectory() as name:
             directory = Path(name)
-            (directory / "serial.txt").write_bytes("\n".join((*BOOT, *READY)).encode())
+            (directory / "serial.txt").write_bytes("\n".join((*preview.BOOT, *preview.READY)).encode())
             process, control = Mock(), Mock()
             process.poll.return_value = None
             control.trace = []

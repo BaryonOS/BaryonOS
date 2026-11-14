@@ -286,10 +286,7 @@ def safe_write_bytes(
     except FileExistsError as error:
         raise AuditError("state_temporary_exists") from error
     finally:
-        try:
-            temporary.unlink()
-        except FileNotFoundError:
-            pass
+        temporary.unlink(missing_ok=True)
         if reservation is not None and reservation.active and not replaced:
             reservation.cancel_clean()
 
@@ -821,10 +818,7 @@ def run_command_to_file(
     except subprocess.TimeoutExpired as error:
         raise AuditError("local_command_timeout") from error
     finally:
-        try:
-            part.unlink()
-        except FileNotFoundError:
-            pass
+        part.unlink(missing_ok=True)
         if reservation.active and not replaced and not part.exists():
             reservation.cancel_clean()
 
@@ -1060,10 +1054,7 @@ class GitHubApi:
                     replaced = True
                     reservation.commit(size)
                 finally:
-                    try:
-                        part.unlink()
-                    except FileNotFoundError:
-                        pass
+                    part.unlink(missing_ok=True)
                     if reservation.active and not replaced and not part.exists():
                         reservation.cancel_clean()
                 return 200, size

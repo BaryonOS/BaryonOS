@@ -11,7 +11,6 @@ import math
 from pathlib import Path
 import re
 import shutil
-import subprocess
 
 from common import (ROOT, BUILD, TARGET, environment, firmware, qemu_machine, regular_files_below,
                     require_sha256 as hash_value, sha256, sha256_bytes as digest, source_hash)

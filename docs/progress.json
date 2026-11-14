@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "204c4ed51585c4ba500735a90eb1c449863399f7",
-    "assessment_basis": "source_commit",
-    "branch": "feat/s09-ustar-export",
-    "task": "Refresh PR #325 after documentation PR #329 merged as 299f0e39c202d67d1c2f4e31b879cbdd6add262b",
+    "source_commit": "bfc48abbf246426cea476981736ffa3967061b17",
+    "assessment_basis": "parent_commit",
+    "branch": "fix/python-code-quality-20261114",
+    "task": "Repair PR #330 M1 fixture regression before acceptance",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The two status-document conflicts are reconciled by retaining the complete PR #325/S09 handoff and the CodeQL triage checkpoint from PR #329. The criterion register, ustar implementation, per-CPU SMP fix and existing evidence remain unchanged. Current integration checks and source-preservation evidence are recorded in docs/verification/pr325-refresh-20261114.json."
+    "summary": "41/100 remains 41/100. The obsolete M1 fixture patch of tools/test.py ROOT is removed while all assertions and actual path bindings remain intact. The original eight setup errors become eight passes; the exact instrumented CI runner step passes 101 tests, and strict preflight/build/smoke pass with unchanged runtime source. Evidence is in docs/verification/pr330-ci-repair-20261114.json. Current-head hosted CI remains required before acceptance. No criterion or weight changes."
   },
   "tracks": [
     {

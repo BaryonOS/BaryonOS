@@ -6,46 +6,43 @@ import os
 import sys
 import unittest
 from pathlib import Path
-from unittest import mock
+import unittest.mock as mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import project_classification as pc  # noqa: E402
-from project_classification import (  # noqa: E402
-    classify, derive_status, missing_content, proposed_updates,
-)
 
 
 class ClassificationTests(unittest.TestCase):
     def test_trusted_prefixes(self):
         self.assertEqual(
-            classify("feat(veld): integrate workspace", []),
+            pc.classify("feat(veld): integrate workspace", []),
             {"Work Type": "Feature", "Subsystem": "UI"},
         )
         self.assertEqual(
-            classify("docs: update README", []),
+            pc.classify("docs: update README", []),
             {"Work Type": "Documentation", "Subsystem": "Documentation"},
         )
         self.assertEqual(
-            classify("fix(memory): reject invalid mapping", []),
+            pc.classify("fix(memory): reject invalid mapping", []),
             {"Work Type": "Bug", "Subsystem": "Memory"},
         )
 
     def test_only_explicit_priority_and_no_effort_guess(self):
         self.assertEqual(
-            classify("fix(kernel): critical issue", ["priority:p0"]),
+            pc.classify("fix(kernel): critical issue", ["priority:p0"]),
             {"Work Type": "Bug", "Subsystem": "Kernel", "Priority": "P0 Critical"},
         )
-        self.assertNotIn("Priority", classify("fix(kernel): critical issue", []))
-        self.assertNotIn("Effort", classify("feat(kernel): complex rewrite", []))
+        self.assertNotIn("Priority", pc.classify("fix(kernel): critical issue", []))
+        self.assertNotIn("Effort", pc.classify("feat(kernel): complex rewrite", []))
 
     def test_conflicting_signals_are_not_guessed(self):
         self.assertNotIn(
             "Subsystem",
-            classify("feat(kernel): work", ["subsystem:storage"]),
+            pc.classify("feat(kernel): work", ["subsystem:storage"]),
         )
         self.assertNotIn(
             "Work Type",
-            classify("feat(ui): work", ["type:bug"]),
+            pc.classify("feat(ui): work", ["type:bug"]),
         )
 
     def test_do_not_overwrite_existing_values(self):
@@ -61,7 +58,7 @@ class ClassificationTests(unittest.TestCase):
             "Subsystem": {"id": "f2", "options": [{"id": "o2", "name": "UI"}]},
         }
         self.assertEqual(
-            proposed_updates(item, fields),
+            pc.proposed_updates(item, fields),
             [("Subsystem", "UI", "f2", "o2")],
         )
 
@@ -71,7 +68,7 @@ class ClassificationTests(unittest.TestCase):
                         "labels": {"nodes": []}},
             "fieldValues": {"nodes": []},
         }
-        self.assertEqual(proposed_updates(item, {}), [])
+        self.assertEqual(pc.proposed_updates(item, {}), [])
 
 
 STATUS = {"id": "fs", "options": [
@@ -104,7 +101,7 @@ def item(content, status=None, item_id="item"):
 
 
 def status_update(entry, fields=None):
-    updates = proposed_updates(entry, {"Status": STATUS} if fields is None else fields)
+    updates = pc.proposed_updates(entry, {"Status": STATUS} if fields is None else fields)
     return [u[1] for u in updates if u[0] == "Status"]
 
 
@@ -146,8 +143,8 @@ class StatusDerivationTests(unittest.TestCase):
         self.assertEqual(status_update(item(pr()), {}), [])
 
     def test_unknown_content_is_ignored(self):
-        self.assertIsNone(derive_status({"__typename": "DraftIssue"}, [], ""))
-        self.assertEqual(proposed_updates({"content": None}, {"Status": STATUS}), [])
+        self.assertIsNone(pc.derive_status({"__typename": "DraftIssue"}, [], ""))
+        self.assertEqual(pc.proposed_updates({"content": None}, {"Status": STATUS}), [])
 
 
 class FakeGitHub:
@@ -257,7 +254,7 @@ class SynchronisationTests(unittest.TestCase):
     def test_missing_content_deduplicates(self):
         nodes = [{"id": "A", "number": 1}, {"id": "B", "number": 2},
                  {"id": "B", "number": 2}]
-        self.assertEqual(missing_content({"A"}, nodes), [{"id": "B", "number": 2}])
+        self.assertEqual(pc.missing_content({"A"}, nodes), [{"id": "B", "number": 2}])
 
 
 class TokenHandlingTests(unittest.TestCase):

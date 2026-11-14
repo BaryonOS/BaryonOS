@@ -2,7 +2,6 @@
 """M6b native gate: two domains, CRUD, tombstones and actual cold-VM recovery."""
 from __future__ import annotations
 from datetime import datetime, timezone
-import json
 import sys
 from common import ROOT, BUILD, run_logged, save_json, sha256, source_hash
 from build import build, M6B_FAULT_CASES

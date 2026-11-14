@@ -7,7 +7,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from common import BUILD
-from m6_disk import (FIRST, SECTOR, SIZE, Volume, create_volume, digest, next_value,
+from m6_disk import (FIRST, SECTOR, SIZE, Volume, create_volume, next_value,
                      parse_record, record, scan, verify_volume)
 
 

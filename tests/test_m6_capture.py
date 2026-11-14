@@ -84,7 +84,7 @@ class UserArtifactEvidenceProducer(unittest.TestCase):
                 (logs / (stem + '.stderr.txt')).write_text('Synthetic unittest result fixture.\n')
 
             stop = RuntimeError('synthetic stop before any guest execution')
-            with patch.object(gate, 'ROOT', root), patch.object(gate, 'BUILD', build), \
+            with patch.object(gate, 'BUILD', build), \
                     patch.object(gate, 'source_hash', return_value='synthetic-source'), \
                     patch.object(gate, 'run_logged', side_effect=command_double), \
                     patch.object(gate, 'build'), \

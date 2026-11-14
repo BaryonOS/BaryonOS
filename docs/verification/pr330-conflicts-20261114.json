@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "pr": 330,
+  "parents": [
+    "47fe2f79df4c8ee8c3a58cb8fd77b124eaff6332",
+    "3c79778bf9e8793bfc9eaaea755d21b41f755bae"
+  ],
+  "merge_base": "299f0e39c202d67d1c2f4e31b879cbdd6add262b",
+  "conflicted_files": [
+    "docs/PROJECT-STATE.md",
+    "docs/progress.json"
+  ],
+  "resolution": "Preserve both complete current handoffs and main criterion register; no manual executable source or workflow changes.",
+  "source_fingerprint_version": 3,
+  "runtime_source_sha256": "f7eb12dec45b176ffa8550110dbeae7ae966476c73c9eb6f2e15343cdcffd5a4",
+  "preservation": {
+    "pr_files": 56,
+    "main_files": 56,
+    "all_parent_bytes_match": true,
+    "path_blob_map_sha256": "acad68e10b05f6a7d630325138438aabdbe52cb9c34b56c3b9fad7a00a2fd8c1"
+  },
+  "progress": {
+    "previous_score": 41,
+    "current_score": 41,
+    "criterion_register_unchanged": true
+  },
+  "host_tests_passed": 61,
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-c",
+        "import sys,unittest; sys.path.insert(0,\"tests\"); loader=unittest.TestLoader(); suite=unittest.TestSuite(loader.loadTestsFromName(n) for n in [\"test_ci_workflows\",\"test_ci_evidence\",\"test_common\",\"test_quality_runners\"]); r=unittest.TextTestRunner(verbosity=1).run(suite); sys.exit(not r.wasSuccessful())"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-wfnrlf81.log",
+      "log_sha256": "45695de5caa5793bdff778d061946c4b52992cc2d9fa2af017a415b11cae0918",
+      "tests_passed": 61
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-fgbf9qn7.log",
+      "log_sha256": "719469da85c1f5d305a318d2a4cb5ba6ae278152cd4b106d60d8f4ca77e39cbe"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-h30u9yny.log",
+      "log_sha256": "1fa2d287e0abb814685ed112c0d42946fe672d4b62b853dff2ba4f62fee22b4a"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/run.py",
+        "--smoke"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-13uymn99.log",
+      "log_sha256": "f2934006906e7584be6e23b7be3b4708c1326dc152a461be149d4a84322bbe42",
+      "smoke_result": {
+        "kernel_marker": "M1:PASS",
+        "qemu_raw_exit": 33,
+        "timeout": false
+      }
+    }
+  ],
+  "limits": [
+    "The standard native smoke test is not the complete OS acceptance matrix.",
+    "Prior stored evidence remains bound to its recorded source versions.",
+    "GitHub checks on the published merge commit remain separate evidence.",
+    "No merge, auto-merge, criterion acceptance or human audit is authorized by this repair.",
+    "The full earlier 678-test quality suite and a fresh Code Quality scan were not rerun locally."
+  ]
+}

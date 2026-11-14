@@ -8,7 +8,6 @@ import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from run_smp import CASES, MAX_CPUS, SERIAL_LINES, duplicate_madt, evaluate
 import run_smp
 
 PREFIX = ("BdsDxe: starting Boot0002\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\n"
@@ -22,7 +21,7 @@ CLOCK_EDGES = "SMP:CLOCK:EDGES:TICKS=5001:LOST=3:HOST=3:EXTRA=0:SPAN_US=306:US=9
 
 def fixture(cpus):
     """F7: each CPU's numbered lines, interleaved line by line (never torn)."""
-    return [f"SMP:SER:{cpu}:{seq}" for seq in range(SERIAL_LINES) for cpu in range(cpus)]
+    return [f"SMP:SER:{cpu}:{seq}" for seq in range(run_smp.SERIAL_LINES) for cpu in range(cpus)]
 
 
 def transcript(lines, lockdep=True, serial=True):
@@ -40,11 +39,11 @@ def transcript(lines, lockdep=True, serial=True):
 
 # Hand-written expectations, deliberately independent of run_smp.expected_smp.
 def started(cpus):
-    count = min(cpus, MAX_CPUS)
+    count = min(cpus, run_smp.MAX_CPUS)
     lines = [f"SMP:MADT:CPUS={cpus}:DISABLED=0:HOTPLUG=0"]
     lines += [f"SMP:AP:{apic}:ONLINE" for apic in range(1, count)]
-    if cpus > MAX_CPUS:
-        lines.append(f"SMP:SKIPPED:CAPACITY={cpus - MAX_CPUS}")
+    if cpus > run_smp.MAX_CPUS:
+        lines.append(f"SMP:SKIPPED:CAPACITY={cpus - run_smp.MAX_CPUS}")
     return lines + [f"SMP:ONLINE:{count}/{cpus}", RATIO, "SMP:SERIAL:PASS", SYNC_WAIT,
                     f"SMP:SYNC:PASS:CPUS={count}"]
 
@@ -80,7 +79,7 @@ def proc(count):
 
 
 def online(cpus):
-    count = min(cpus, MAX_CPUS)
+    count = min(cpus, run_smp.MAX_CPUS)
     return started(cpus) + [f"SMP:IPI:PASS:ROUNDS=3:CPUS={count}",
                             f"SMP:SHOOTDOWN:PASS:CPUS={count}",
                             f"SMP:SHOOTDOWN:VISIBLE:CPUS={count}",
@@ -94,7 +93,7 @@ def online(cpus):
 
 def m3(cpus, fault=False, ipc=False, migrate=False):
     """Step 5d-2: every self-test, the APs wait, then the M3 phase on each CPU."""
-    count = min(cpus, MAX_CPUS)
+    count = min(cpus, run_smp.MAX_CPUS)
     return (online(cpus)[:-3] + [f"SMP:M3:WAITING:APS={count - 1}", "SMP:LOCKDEP:PASS",
                                  "M2:PASS", f"SMP:M3:GO:CPUS={count}"]
             + (["SMP:M3:FAULT:UD:CPU=2"] if fault else [])
@@ -160,7 +159,7 @@ LOCK_STUCK = started(2) + ["SMP:IPI:PASS:ROUNDS=3:CPUS=2", "SMP:LOCK:STUCK:10:CP
 # ADR-082 fixtures: the boot stops inside the sync phase, so the serial fixture
 # lines of the CPUs that finished are written out here.
 def sync_stopped(writers, terminal):
-    return started(4)[:-3] + [f"SMP:SER:{cpu}:{seq}" for seq in range(SERIAL_LINES)
+    return started(4)[:-3] + [f"SMP:SER:{cpu}:{seq}" for seq in range(run_smp.SERIAL_LINES)
                               for cpu in writers] + [terminal]
 
 
@@ -259,22 +258,22 @@ class SmpSerialOracle(unittest.TestCase):
         }
         for name, lines in mutations.items():
             with self.subTest(name=name), self.assertRaises(ValueError):
-                evaluate("m3-migrate-four", transcript(lines, lockdep=False), 33, False)
+                run_smp.evaluate("m3-migrate-four", transcript(lines, lockdep=False), 33, False)
         for lines in (good, control[:-2] + control[-1:], control + ["SMP:MIGRATE:FROM=2:TO=0"],
                       control + ["SMP:MIGRATE:CANARY:PASS"],
                       control + [next(line for line in good if line.startswith("SMP:FAIR:"))],
                       control[:-1] + ["SMP:MIGRATE:ACTIVE:CPU=2:MASK=4"] + control[-1:],
                       control[:-2] + control[-2:][::-1]):
             with self.subTest(control=lines[-3:]), self.assertRaises(ValueError):
-                evaluate("m3-canary-control", transcript(lines, lockdep=False), 33, False)
+                run_smp.evaluate("m3-canary-control", transcript(lines, lockdep=False), 33, False)
         with self.assertRaises(ValueError):
-            evaluate("m3-migrate-four", transcript(control, lockdep=False), 33, False)
-        self.assertEqual({(cpus, threads) for profile, cpus, threads, _ in CASES.values()
+            run_smp.evaluate("m3-migrate-four", transcript(control, lockdep=False), 33, False)
+        self.assertEqual({(cpus, threads) for profile, cpus, threads, _ in run_smp.CASES.values()
                           if profile == "native-smp-m3-migrate"},
                          {(cpus, threads) for cpus in (4, 8) for threads in ("single", "multi")})
 
     def test_m3_matrix_covers_both_tcg_modes_at_each_cpu_count(self):
-        self.assertEqual({(cpus, threads) for profile, cpus, threads, _ in CASES.values()
+        self.assertEqual({(cpus, threads) for profile, cpus, threads, _ in run_smp.CASES.values()
                           if profile == "native-smp-m3"},
                          {(cpus, threads) for cpus in (1, 2, 4, 8) for threads in ("single", "multi")})
 
@@ -303,12 +302,12 @@ class SmpSerialOracle(unittest.TestCase):
         }
         for name, lines in bad.items():
             with self.subTest(name=name), self.assertRaises(ValueError):
-                evaluate("m3-ipc-four", transcript(lines, lockdep=False), 33, False)
+                run_smp.evaluate("m3-ipc-four", transcript(lines, lockdep=False), 33, False)
         with self.assertRaises(ValueError):
-            evaluate("m3-four", transcript(good, lockdep=False), 33, False)
+            run_smp.evaluate("m3-four", transcript(good, lockdep=False), 33, False)
         boundary = [line.replace("WAIT_MS=1:", "WAIT_MS=400:").replace("DEFERRED=2:", "DEFERRED=40:")
                     for line in good]
-        observed = evaluate("m3-ipc-four", transcript(boundary, lockdep=False), 33, False)
+        observed = run_smp.evaluate("m3-ipc-four", transcript(boundary, lockdep=False), 33, False)
         margins = [margin for margin in observed["deadline_margins"] if "cpu" in margin]
         self.assertEqual(len(margins), 8)
         self.assertEqual({margin["cpu"] for margin in margins}, {0, 1, 2, 3})
@@ -332,7 +331,7 @@ class SmpSerialOracle(unittest.TestCase):
         }
         for name, lines in broken.items():
             with self.subTest(name=name), self.assertRaises(ValueError):
-                evaluate("m3-four", transcript(lines, lockdep=False), 33, False)
+                run_smp.evaluate("m3-four", transcript(lines, lockdep=False), 33, False)
         fault = m3(4, fault=True)
         for name, lines in {
             "no K03": [line for line in fault if line != "SMP:M3:K03:PASS"],
@@ -340,21 +339,21 @@ class SmpSerialOracle(unittest.TestCase):
                                      for line in fault],
             "no fault": m3(4)}.items():
             with self.subTest(name=name), self.assertRaises(ValueError):
-                evaluate("m3-fault-ap2", transcript(lines, lockdep=False), 33, False)
+                run_smp.evaluate("m3-fault-ap2", transcript(lines, lockdep=False), 33, False)
 
     def test_every_case_accepts_its_exact_sequence(self):
         from test_smp_acceptance import ACCEPTANCE_CASES
-        self.assertEqual(set(VALID) | ACCEPTANCE_CASES, set(CASES))
+        self.assertEqual(set(VALID) | ACCEPTANCE_CASES, set(run_smp.CASES))
         for case, lines in VALID.items():
             with self.subTest(case=case):
                 text = transcript(lines)
                 if case == "serial-unlocked-control":
                     text = text.replace("SMP:SER:1:7\nSMP:SER:2:7\n", "SMP:SER:1:SMP:SER:2:7\n7\n")
-                result = evaluate(case, text, 33, False)
-                self.assertEqual(result["outcome"], CASES[case][3])
-        self.assertEqual(evaluate("nine-capacity", transcript(online(9)), 33, False)["online"], 8)
-        self.assertEqual(evaluate("ap-ipi-deaf", transcript(DEAF), 33, False)["online"], 1)
-        self.assertEqual(evaluate("ap-stall", transcript(failed("TIMEOUT")), 33, False)["ap_ids"], [1])
+                result = run_smp.evaluate(case, text, 33, False)
+                self.assertEqual(result["outcome"], run_smp.CASES[case][3])
+        self.assertEqual(run_smp.evaluate("nine-capacity", transcript(online(9)), 33, False)["online"], 8)
+        self.assertEqual(run_smp.evaluate("ap-ipi-deaf", transcript(DEAF), 33, False)["online"], 1)
+        self.assertEqual(run_smp.evaluate("ap-stall", transcript(failed("TIMEOUT")), 33, False)["ap_ids"], [1])
 
     def test_rejects_missing_duplicate_or_overclaimed_output(self):
         four = online(4)
@@ -414,7 +413,7 @@ class SmpSerialOracle(unittest.TestCase):
         for case, transcripts in bad.items():
             for lines in transcripts:
                 with self.subTest(case=case, lines=lines), self.assertRaises(ValueError):
-                    evaluate(case, transcript(lines), 33, False)
+                    run_smp.evaluate(case, transcript(lines), 33, False)
 
     def test_normal_runs_must_prove_preemption(self):
         # Separate from the table above: a second "four" key there would
@@ -423,7 +422,7 @@ class SmpSerialOracle(unittest.TestCase):
                       [line.replace("PREEMPT:PASS:CPUS=4", "PREEMPT:PASS:CPUS=3")
                        for line in online(4)]):
             with self.subTest(lines=lines), self.assertRaises(ValueError):
-                evaluate("four", transcript(lines), 33, False)
+                run_smp.evaluate("four", transcript(lines), 33, False)
 
     def test_normal_runs_must_prove_the_spin_window(self):
         # A normal run must show the spin phase; the deaf control must never
@@ -439,8 +438,8 @@ class SmpSerialOracle(unittest.TestCase):
                                       for line in SPIN_DEAF]),
         ):
             with self.subTest(case=case, lines=lines[-6:]), self.assertRaises(ValueError):
-                evaluate(case, transcript(lines), 33, False)
-        self.assertEqual(evaluate("spin-irq-off-control", transcript(SPIN_DEAF), 33, False)["online"], 1)
+                run_smp.evaluate(case, transcript(lines), 33, False)
+        self.assertEqual(run_smp.evaluate("spin-irq-off-control", transcript(SPIN_DEAF), 33, False)["online"], 1)
 
     def test_switch_with_a_held_lock_is_terminal_and_exact(self):
         # Step 5c: the no-deferral profile must stop at the marker, inside the
@@ -454,8 +453,8 @@ class SmpSerialOracle(unittest.TestCase):
             ("two-single", online(2)[:-4] + ["SMP:LOCKDEP:HELD_ACROSS_SWITCH"] + online(2)[-4:]),
         ):
             with self.subTest(case=case, lines=lines[-4:]), self.assertRaises(ValueError):
-                evaluate(case, transcript(lines), 33, False)
-        self.assertEqual(evaluate("held-across-switch", transcript(HELD_ACROSS), 33, False)["online"], 2)
+                run_smp.evaluate(case, transcript(lines), 33, False)
+        self.assertEqual(run_smp.evaluate("held-across-switch", transcript(HELD_ACROSS), 33, False)["online"], 2)
 
     def test_scheduler_phase_is_required_and_double_run_is_terminal(self):
         # Step 5d-1: a normal run must show the scheduler phase for every CPU;
@@ -470,8 +469,8 @@ class SmpSerialOracle(unittest.TestCase):
             ("double-run", DOUBLE_RUN[:-1] + ["SMP:SCHED:DOUBLE_RUN"]),  # timing, not the push
         ):
             with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
-                evaluate(case, transcript(lines), 33, False)
-        self.assertEqual(evaluate("double-run", transcript(DOUBLE_RUN), 33, False)["online"], 4)
+                run_smp.evaluate(case, transcript(lines), 33, False)
+        self.assertEqual(run_smp.evaluate("double-run", transcript(DOUBLE_RUN), 33, False)["online"], 4)
 
     def test_wake_and_kill_phases_are_required_and_the_deaf_kill_quarantines(self):
         # Audit F16/F17: every run with APs proves ping-pong and kill for all
@@ -496,9 +495,9 @@ class SmpSerialOracle(unittest.TestCase):
                                                          "M1:FAIL:SMP_QUARANTINE_LOCK_HELD"]),
         ):
             with self.subTest(case=case, lines=lines[-6:]), self.assertRaises(ValueError):
-                evaluate(case, transcript(lines), 33, False)
-        self.assertEqual(evaluate("resched-deaf", transcript(RESCHED_DEAF), 33, False)["online"], 1)
-        self.assertEqual(evaluate("quarantine-sched-busy", transcript(SCHED_BUSY), 33, False)["online"], 1)
+                run_smp.evaluate(case, transcript(lines), 33, False)
+        self.assertEqual(run_smp.evaluate("resched-deaf", transcript(RESCHED_DEAF), 33, False)["online"], 1)
+        self.assertEqual(run_smp.evaluate("quarantine-sched-busy", transcript(SCHED_BUSY), 33, False)["online"], 1)
 
     def test_gs_fixture_is_exact_and_its_markers_stay_in_their_profiles(self):
         # Audit F8: the red run (old stubs) must be rejected, FSGSBASE must be
@@ -521,15 +520,15 @@ class SmpSerialOracle(unittest.TestCase):
             ("double-run", GS_IRET),
         ):
             with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
-                evaluate(case, transcript(lines), 33, False)
-        self.assertEqual(evaluate("gs-user", transcript(GS_USER), 33, False)["online"], 4)
+                run_smp.evaluate(case, transcript(lines), 33, False)
+        self.assertEqual(run_smp.evaluate("gs-user", transcript(GS_USER), 33, False)["online"], 4)
 
     def test_scratch_phase_is_required_and_the_crossing_stays_in_its_control(self):
         # Step 5b-2: a normal run must prove the per-CPU slots for every CPU;
         # the shared-slot control must report a crossing and never pass.
         for cpu in range(4):
             lines = SHARED[:-1] + [f"SMP:SCRATCH:CROSS:CPU={cpu}"]
-            self.assertEqual(evaluate("shared-scratch", transcript(lines), 33, False)["online"], 4)
+            self.assertEqual(run_smp.evaluate("shared-scratch", transcript(lines), 33, False)["online"], 4)
         for case, lines in (
             ("four", [line for line in online(4) if "SMP:SCRATCH:" not in line]),
             ("four", [line.replace("SCRATCH:PASS:CPUS=4", "SCRATCH:PASS:CPUS=3")
@@ -545,7 +544,7 @@ class SmpSerialOracle(unittest.TestCase):
             ("shared-scratch", SHARED[:-2] + SHARED[-1:]),              # before KILL:PASS
         ):
             with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
-                evaluate(case, transcript(lines), 33, False)
+                run_smp.evaluate(case, transcript(lines), 33, False)
 
     def test_lock_pair_phase_is_required_and_its_controls_stay_terminal(self):
         # Audit F3/F4: every normal run proves lock_pair on all CPUs; both
@@ -562,7 +561,7 @@ class SmpSerialOracle(unittest.TestCase):
             ("lockpair-order", LOCKPAIR_ORDER + END),
         ):
             with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
-                evaluate(case, transcript(lines), 33, False)
+                run_smp.evaluate(case, transcript(lines), 33, False)
 
     def test_icr_exchange_is_required_and_its_controls_stay_terminal(self):
         # Audit F19/F15: every run with two APs proves the ICR exchange; the race
@@ -587,7 +586,7 @@ class SmpSerialOracle(unittest.TestCase):
             ("ap-ipi-deaf", LOCK_HELD),
         ):
             with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
-                evaluate(case, transcript(lines), 33, False)
+                run_smp.evaluate(case, transcript(lines), 33, False)
 
     def test_bsp_phases_are_required_and_the_bsp_window_control_stays_terminal(self):
         # Step 5c-2: every run proves the clock, a calibrated ratio inside the
@@ -623,17 +622,17 @@ class SmpSerialOracle(unittest.TestCase):
             ("spin-irq-off-control", BSP_SPIN_DEAF),
         ):
             with self.subTest(case=case, lines=lines[-3:]), self.assertRaises(ValueError):
-                evaluate(case, transcript(lines), 33, False)
+                run_smp.evaluate(case, transcript(lines), 33, False)
         for value in ("50000", "75000"):
             lines = mutate(four, RATIO, "SMP:TIMER:RATIO:" + value)
-            self.assertEqual(evaluate("four", transcript(lines), 33, False)["online"], 4)
-        self.assertEqual(evaluate("bsp-spin-irq-off-control", transcript(BSP_SPIN_DEAF), 33,
+            self.assertEqual(run_smp.evaluate("four", transcript(lines), 33, False)["online"], 4)
+        self.assertEqual(run_smp.evaluate("bsp-spin-irq-off-control", transcript(BSP_SPIN_DEAF), 33,
                                   False)["online"], 4)
 
     def test_icr_race_accepts_misrouted_or_lost(self):
         for marker in ("SMP:ICR:MISROUTED", "SMP:ICR:LOST"):
             lines = ICR_RACE[:-1] + [marker]
-            self.assertEqual(evaluate("icr-race-control", transcript(lines), 33, False)["online"], 4)
+            self.assertEqual(run_smp.evaluate("icr-race-control", transcript(lines), 33, False)["online"], 4)
 
     def test_lock_self_test_is_required_and_terminal_order_is_exact(self):
         for case, text in (
@@ -649,8 +648,8 @@ class SmpSerialOracle(unittest.TestCase):
             ("lockdep-order", transcript(LOCKDEP_ORDER + END)),
         ):
             with self.subTest(case=case, text=text[-90:]), self.assertRaises(ValueError):
-                evaluate(case, text, 33, False)
-        self.assertEqual(evaluate("lockdep-order", transcript(LOCKDEP_ORDER), 33, False)["online"], 2)
+                run_smp.evaluate(case, text, 33, False)
+        self.assertEqual(run_smp.evaluate("lockdep-order", transcript(LOCKDEP_ORDER), 33, False)["online"], 2)
 
     def test_rejects_fail_markers_exit_codes_and_changed_acpi_inventory(self):
         good = transcript(online(4))
@@ -661,11 +660,11 @@ class SmpSerialOracle(unittest.TestCase):
             ("SMP:ONLINE:4/4\n" + good, 33, False),
         ):
             with self.subTest(text=text[-80:], raw=raw), self.assertRaises(ValueError):
-                evaluate("four", text, raw, timeout)
+                run_smp.evaluate("four", text, raw, timeout)
         nmi = transcript(NMI)
         for text, raw in ((nmi, 35), (nmi + "M1:FAIL:SMP_AP_NMI_NOT_ON_IST\n", 33)):
             with self.subTest(raw=raw), self.assertRaises(ValueError):
-                evaluate("ap-nmi-ist", text, raw, False)
+                run_smp.evaluate("ap-nmi-ist", text, raw, False)
 
     def test_serial_lines_are_whole_ordered_and_complete(self):
         """F7 (DG-2): one torn, missing, reordered or misplaced line fails the run."""
@@ -686,32 +685,32 @@ class SmpSerialOracle(unittest.TestCase):
             good.replace("SMP:SYNC:PASS", "SMP:SER:0:0\nSMP:SYNC:PASS"),    # after PASS
         ):
             with self.subTest(text=text[-60:]), self.assertRaises(ValueError):
-                evaluate("four", text, 33, False)
+                run_smp.evaluate("four", text, 33, False)
         # Interleaving between whole lines is allowed (the order of CPUs is free).
         swapped = good.replace("SMP:SER:2:7\nSMP:SER:3:7\n", "SMP:SER:3:7\nSMP:SER:2:7\n")
-        self.assertEqual(evaluate("four", swapped, 33, False)["online"], 4)
+        self.assertEqual(run_smp.evaluate("four", swapped, 33, False)["online"], 4)
         # A stopped bring-up leaves only the BSP's lines.
-        self.assertEqual(evaluate("ap-stall", transcript(failed("TIMEOUT")), 33, False)["online"], 1)
+        self.assertEqual(run_smp.evaluate("ap-stall", transcript(failed("TIMEOUT")), 33, False)["online"], 1)
 
     def test_unlocked_control_must_show_a_mixed_line(self):
         """Spec §4 control: without SERIAL a run with only whole lines fails."""
         good = transcript(online(4))
         with self.assertRaises(ValueError):
-            evaluate("serial-unlocked-control", good, 33, False)
+            run_smp.evaluate("serial-unlocked-control", good, 33, False)
         mixed = good.replace("SMP:SER:0:3\nSMP:SER:1:3\n", "SMSMP:SERP:SER:0:3\n:1:3\n")
-        self.assertEqual(evaluate("serial-unlocked-control", mixed, 33, False)["online"], 4)
+        self.assertEqual(run_smp.evaluate("serial-unlocked-control", mixed, 33, False)["online"], 4)
         # Outside the fixture phase the exact sequence still holds.
         with self.assertRaises(ValueError):
-            evaluate("serial-unlocked-control", mixed.replace("SMP:SPIN:PASS:CPUS=4\n", ""), 33, False)
+            run_smp.evaluate("serial-unlocked-control", mixed.replace("SMP:SPIN:PASS:CPUS=4\n", ""), 33, False)
         # The locked profile rejects the same mixed transcript.
         with self.assertRaises(ValueError):
-            evaluate("four", mixed, 33, False)
+            run_smp.evaluate("four", mixed, 33, False)
 
     def test_unlocked_line_may_only_be_the_terminal_marker(self):
         """DG-2: `!` marks a terminal line written without SERIAL."""
         stuck = transcript(LOCK_STUCK)
         bang = stuck.replace("SMP:LOCK:STUCK:10:CPU=1", "!SMP:LOCK:STUCK:10:CPU=1")
-        self.assertEqual(evaluate("lock-stuck", bang, 33, False)["online"], 2)
+        self.assertEqual(run_smp.evaluate("lock-stuck", bang, 33, False)["online"], 2)
         for case, text in (
             ("four", transcript(online(4)).replace("SMP:SYNC:PASS", "!SMP:SYNC:PASS")),
             ("four", transcript(online(4)).replace("M1:PASS", "!M1:PASS")),      # not terminal
@@ -719,14 +718,14 @@ class SmpSerialOracle(unittest.TestCase):
             ("lock-stuck", stuck.replace("SMP:IPI:PASS", "!SMP:IPI:PASS")),
         ):
             with self.subTest(case=case), self.assertRaises(ValueError):
-                evaluate(case, text, 33, False)
+                run_smp.evaluate(case, text, 33, False)
 
     def test_deadline_margins_are_recorded_and_carry_no_verdict(self):
         """AC-3: margin lines leave the sequence and enter the report. Each of these
         waits fails in the guest at its limit, so a line is only checked for shape."""
         def with_margins(*margins):
             return transcript(online(4)[:-2] + list(margins) + END)
-        report = evaluate("four", with_margins("SMP:MARGIN:WAIT:1360:12/2000",
+        report = run_smp.evaluate("four", with_margins("SMP:MARGIN:WAIT:1360:12/2000",
                                                "SMP:MARGIN:LOCK:10:6/400",
                                                "SMP:MARGIN:LOCK:70:431/400",  # waiter descheduled
                                                "SMP:MARGIN:ROUND:0:1/100"), 33, False)
@@ -745,7 +744,7 @@ class SmpSerialOracle(unittest.TestCase):
             ("SMP:MARGIN:LOCK:10:6/400", "SMP:MARGIN:LOCK:10:7/400"),  # one key, one line
         ):
             with self.subTest(margin=margin), self.assertRaises(ValueError):
-                evaluate("four", with_margins(*margin), 33, False)
+                run_smp.evaluate("four", with_margins(*margin), 33, False)
 
     def test_sync_wait_is_required_and_bounded_on_every_profile(self):
         """ADR-082 D1: the guest reports how long the sync wait took; 2 s, pinned here,
@@ -757,7 +756,7 @@ class SmpSerialOracle(unittest.TestCase):
             overcommitted = case in ("eight", "nine-capacity")
             for wait in ("SMP:SYNC:WAIT_MS=0:STALL_MS=0", "SMP:SYNC:WAIT_MS=1990:STALL_MS=1990",
                          *(slow if overcommitted else ())):
-                report = evaluate(case, good.replace(SYNC_WAIT, wait), 33, False)
+                report = run_smp.evaluate(case, good.replace(SYNC_WAIT, wait), 33, False)
                 self.assertEqual(report["guest_waits"]["sync_wait"][1], 2000)
             for bad in (
                 *(() if overcommitted else (good.replace(SYNC_WAIT, wait) for wait in slow)),
@@ -770,7 +769,7 @@ class SmpSerialOracle(unittest.TestCase):
                 good.replace("SMP:SERIAL:PASS\n" + SYNC_WAIT, SYNC_WAIT + "\nSMP:SERIAL:PASS"),
             ):
                 with self.subTest(case=case, bad=bad[-400:]), self.assertRaises(ValueError):
-                    evaluate(case, bad, 33, False)
+                    run_smp.evaluate(case, bad, 33, False)
 
     def test_scratch_wait_is_required_and_bounded_off_the_overcommitted_cases(self):
         """ADR-082 D2: spec 01's 500 ms holds on every profile except the five
@@ -778,14 +777,14 @@ class SmpSerialOracle(unittest.TestCase):
         cap never pass, and the wait fields are not optional."""
         for case, cpus in (("four", 4), ("eight", 8), ("nine-capacity", 9), ("one", 1)):
             good = transcript(online(cpus))
-            count = min(cpus, MAX_CPUS)
+            count = min(cpus, run_smp.MAX_CPUS)
             line = f"SMP:SCRATCH:PASS:CPUS={count}{SCRATCH_WAIT}"
             slow = f"SMP:SCRATCH:PASS:CPUS={count}:WAIT_MS=4990:STALL_MS=490"
             overcommitted = case in ("eight", "nine-capacity")
-            report = evaluate(case, good.replace(line, f"SMP:SCRATCH:PASS:CPUS={count}:WAIT_MS=499:STALL_MS=0"), 33, False)
+            report = run_smp.evaluate(case, good.replace(line, f"SMP:SCRATCH:PASS:CPUS={count}:WAIT_MS=499:STALL_MS=0"), 33, False)
             self.assertEqual(report["guest_waits"]["scratch_wait"], [499, 500])
             if overcommitted:
-                self.assertEqual(evaluate(case, good.replace(line, slow), 33, False)["guest_waits"]
+                self.assertEqual(run_smp.evaluate(case, good.replace(line, slow), 33, False)["guest_waits"]
                                  ["scratch_stall"], [490, 500])
             for bad in (
                 *(() if overcommitted else (slow, f"SMP:SCRATCH:PASS:CPUS={count}:WAIT_MS=500:STALL_MS=0")),
@@ -796,7 +795,7 @@ class SmpSerialOracle(unittest.TestCase):
                 f"SMP:SCRATCH:PASS:CPUS={count}:WAIT_MS=*:STALL_MS=*",
             ):
                 with self.subTest(case=case, bad=bad), self.assertRaises(ValueError):
-                    evaluate(case, good.replace(line, bad), 33, False)
+                    run_smp.evaluate(case, good.replace(line, bad), 33, False)
 
     def test_the_judged_clock_median_is_rechecked_against_the_pit(self):
         """ADR-082 D3: the oracle pins the PIT period and rejects a judged median more
@@ -807,10 +806,10 @@ class SmpSerialOracle(unittest.TestCase):
         for own, passes in ((989_849, True), (1_009_845, True), (989_848, False), (1_009_846, False)):
             text = transcript(four[:at] + [edges.format(own=own)] + four[at + 1:])
             if passes:
-                self.assertEqual(evaluate("four", text, 33, False)["clock_edges"]["own_median_us"], own)
+                self.assertEqual(run_smp.evaluate("four", text, 33, False)["clock_edges"]["own_median_us"], own)
             else:
                 with self.subTest(own=own), self.assertRaises(ValueError):
-                    evaluate("four", text, 33, False)
+                    run_smp.evaluate("four", text, 33, False)
 
     def test_m3_load_host_watchdog_keeps_two_and_a_half_times_the_hosted_maximum(self):
         """ADR-082 D5: 125 s for the m3-load outcome only (48.3 s measured x 2.5)."""
@@ -846,15 +845,15 @@ class SmpSerialOracle(unittest.TestCase):
             ("clock-masked", BEFORE_CLOCK + [EDGES.replace("HOST=2", "HOST=313"), "SMP:CLOCK:DRIFT:KERNEL"]),
         ):
             with self.subTest(case=case, tail=lines[-1]), self.assertRaises(ValueError):
-                evaluate(case, transcript(lines), 33, False)
-        report = evaluate("clock-masked", transcript(CLOCK_MASKED), 33, False)
+                run_smp.evaluate(case, transcript(lines), 33, False)
+        report = run_smp.evaluate("clock-masked", transcript(CLOCK_MASKED), 33, False)
         self.assertEqual(report["clock_edges"], {"ticks": 5000, "lost": 312, "host": 2, "extra": 0,
                                                  "span_us": 3051, "median_us": 1062411,
                                                  "own_median_us": 1062008})
         four = online(4)
         at = four.index(CLOCK_EDGES)
         quiet = EDGES.replace("LOST=312:HOST=2", "LOST=3:HOST=3").replace("1062411", "1000450").replace("1062008", "999850")
-        self.assertEqual(evaluate("four", transcript(four[:at] + [quiet] + four[at + 1:]), 33, False)
+        self.assertEqual(run_smp.evaluate("four", transcript(four[:at] + [quiet] + four[at + 1:]), 33, False)
                          ["clock_edges"]["host"], 3)
         # Review F2: the edge line is required, once, right before the clock verdict,
         # and the loss fixtures must show the injected loss in both medians.
@@ -867,7 +866,7 @@ class SmpSerialOracle(unittest.TestCase):
             ("clock-divisor", BEFORE_CLOCK + [CLOCK_EDGES, "SMP:CLOCK:PIT_COUNT"]),
         ):
             with self.subTest(case=case, tail=lines[-2]), self.assertRaises(ValueError):
-                evaluate(case, transcript(lines), 33, False)
+                run_smp.evaluate(case, transcript(lines), 33, False)
 
     def test_stuck_lock_is_reported_in_its_profile_only(self):
         """F5 (DG-1): the stuck marker ends its own profile and fails all others."""
@@ -879,10 +878,10 @@ class SmpSerialOracle(unittest.TestCase):
                                               "SMP:LOCK:STUCK:10:CPU=1"])),
         ):
             with self.subTest(case=case, text=text[-40:]), self.assertRaises(ValueError):
-                evaluate(case, text, 33, False)
+                run_smp.evaluate(case, text, 33, False)
 
     def test_duplicate_madt_fixture_is_a_valid_checksummed_table(self):
-        table = duplicate_madt()
+        table = run_smp.duplicate_madt()
         self.assertEqual(table[:4], b"APIC")
         self.assertEqual(struct.unpack_from("<I", table, 4)[0], len(table))
         self.assertEqual(sum(table) % 256, 0)
@@ -906,7 +905,7 @@ class SmpSerialOracle(unittest.TestCase):
             ("proc-no-shootdown-control", PROC_STALE[:-1] + ["SMP:UNMAP_RACE:PASS:CPUS=4"] + END),
         ):
             with self.subTest(case=case, lines=lines[-4:]), self.assertRaises(ValueError):
-                evaluate(case, transcript(lines), 33, False)
+                run_smp.evaluate(case, transcript(lines), 33, False)
 
 
 class SmpRepetitionHarness(unittest.TestCase):

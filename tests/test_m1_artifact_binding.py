@@ -43,11 +43,12 @@ class SnapshotArtifactBinding(unittest.TestCase):
                          'expected_loader_sha256': digest(self.loader)}
         self.manifest = {'kernel': {'sha256': digest(self.kernel)},
                          'loader': {'sha256': digest(self.loader)}}
-        for owner in (runner, m1_gate):
-            for name, value in (('ROOT', self.root), ('BUILD', self.build)):
-                patcher = patch.object(owner, name, value)
-                patcher.start()
-                self.addCleanup(patcher.stop)
+        for owner, name, value in ((runner, 'ROOT', self.root),
+                                   (runner, 'BUILD', self.build),
+                                   (m1_gate, 'BUILD', self.build)):
+            patcher = patch.object(owner, name, value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
         for name, value in (('environment', {'PATH': 'synthetic-tool-path'}),
                             ('firmware', (self.code, self.variables)),
                             ('source_hash', 'synthetic-source')):
