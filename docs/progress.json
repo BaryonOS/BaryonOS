@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "0670d72e964369987e7f5c6c2332df888b55db32",
-    "assessment_basis": "source_commit",
-    "branch": "claude/baryon-os-ui-ux-design-152adb",
-    "task": "Design pipeline on draft PR #332: controlled handoff to clean execution sessions after the Orbitaal v2 repair and the S1 repair were interrupted by a session crash",
+    "source_commit": "7f693d73702072fa0db3b99ffc56df3eed6b8fa5",
+    "assessment_basis": "parent_commit",
+    "branch": "test/issue43-n04-helper-isolation",
+    "task": "Verify the native unregistered-helper isolation follow-up after PR #328 squash",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. This checkpoint changes only the design handoff in docs/PROJECT-STATE.md and this assessment. The Orbitaal v2 board, the S0 workspace requirements and the S1 capability matrix stay uncommitted and unreviewed; the S0 recheck rejected the repaired draft, and the v2 and S1 repairs ended unfinished. No native build, QEMU run or criterion evidence is added, so no criterion changes state."
+    "summary": "41/100 remains 41/100. The N04-only follow-up preserves merged main and adds an unregistered native helper negative fixture with causal sender rejection before backend effects. All six native network cases, strict preflight/build/smoke, 92 Python tests, 24 Rust tests, strict service Clippy and formatting pass on local executable source 21a53dd9342988263f7d49e9ef559fb7a2d288cd, whose complete Git tree equals published source 7f693d73702072fa0db3b99ffc56df3eed6b8fa5. Independent AI integration review found no blocker. Current evidence is in docs/verification/n04-helper-20261114/integration.json; earlier mutation/replay receipts retain their original source identities. N04 and issue #43 remain open; no criterion, weight or production permission changes. Hosted checks remain separate."
   },
   "tracks": [
     {
