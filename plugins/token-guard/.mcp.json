@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "token-guard": {
+      "type": "stdio",
+      "command": "python3",
+      "args": [
+        "-B",
+        "${PLUGIN_ROOT}/skills/token-guard/scripts/tokenguard.py",
+        "mcp"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      }
+    }
+  }
+}

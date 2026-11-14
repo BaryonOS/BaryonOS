@@ -10,8 +10,11 @@ from __future__ import annotations
 
 import argparse
 import ast
+from bisect import bisect_right
 from collections import deque
 import hashlib
+import importlib.util
+import io
 import json
 import math
 import os
@@ -32,6 +35,7 @@ SLICE_BYTES = 12_000
 OUTPUT_BYTES = 8_000
 SCAN_BYTES = 16 * 1024 * 1024
 LINE_BYTES = 2_000
+SIGNATURE_BYTES = 4_000
 SELECTION_NOTICE = "[OUTPUT INCOMPLETE: selected excerpt; complete raw log retained]\n"
 SANITIZATION = "UTF-8 replacement decoding; ANSI and control characters removed"
 ANSI = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07\x1b]*(?:\x07|\x1b\\))")
@@ -42,8 +46,13 @@ CODE_LOCATION = re.compile(
     r"^\s*(?:-->|at\s+)?\s*(.+?\.(?:rs|py|pyi|c|h|cc|cpp|hpp|ts|tsx|js|jsx)):(\d+)(?::\d+)?"
 )
 OUTLINE = re.compile(
-    r"^\s*(?:(?:pub(?:\([^)]*\))?|async|unsafe|const|export|default|declare|abstract|static)\s+)*"
-    r"(?:fn|struct|enum|trait|impl|type|mod|class|interface|function|namespace)\b"
+    r"^\s*(?:(?:pub(?:\([^)]*\))?|async|unsafe|const(?=\s+(?:unsafe\s+)?fn\b)|"
+    r'extern(?:\s+"[^"\n]*")?|export|default|declare|abstract)\s+)*'
+    r"(?P<kind>fn|struct|enum|trait|impl|type|mod|class|interface|function|namespace|const|static|let|var)\b"
+)
+CARGO_PROGRESS = re.compile(
+    r"^\s*(?:(?:Compiling|Checking|Downloaded|Fresh) [\w.-]+ v\d[\w.+-]*(?:\s.*)?|"
+    r"Downloading crates\s*\.{3}|Updating (?:crates\.io index|git repository .+))\s*$"
 )
 
 
@@ -98,6 +107,118 @@ def read_slice(root: Path, path: str, start: int, end: int,
     return f"{file.relative_to(root.resolve())} sha256={digest} lines={start}-{end}\n{clean(body)}"
 
 
+def declaration_outline(text: str, rust: bool) -> list[str]:
+    """Bounded navigation hints, not a language parser or complete contract extraction."""
+    quotes = r"'(?:\\(?:u\{[^}\n]+\}|x[0-9a-fA-F]{2}|.)|[^'\\\n])'" if rust else r"'(?:\\.|[^'\\])*'"
+    tokens = re.compile(r'//[^\n]*|/\*|\b(?:br|r)(?P<hash>#{0,16})"[\s\S]*?"(?P=hash)|'
+                        r'"(?:\\.|[^"\\])*"|`(?:\\.|[^`\\])*`|' + quotes)
+    pieces, position = [], 0
+    while match := tokens.search(text, position):
+        start, end = match.span()
+        if match.group() == "/*":
+            depth = 1
+            for comment in re.compile(r"/\*|\*/").finditer(text, end):
+                depth += 1 if comment.group() == "/*" else -1
+                if not depth:
+                    end = comment.end()
+                    break
+            else:
+                end = len(text)
+        pieces.extend((text[position:start], re.sub(r"[^\n]", " ", text[start:end])))
+        position = end
+    masked = "".join(pieces) + text[position:]
+    offsets, stack, pairs = [0], [], {}
+    for index, char in enumerate(masked):
+        if char == "\n":
+            offsets.append(index + 1)
+        if char in "([{":
+            stack.append((char, index))
+        elif char in ")]}":
+            if stack and stack[-1][0] == {')': '(', ']': '[', '}': '{'}[char]:
+                _, opening = stack.pop()
+                pairs[opening] = index
+            else:
+                stack.clear()
+
+    def statement_end(start):
+        index = start
+        while index < len(masked):
+            if masked[index] == ";":
+                return index + 1
+            if masked[index] == "\n":
+                next_end = text.find("\n", index + 1)
+                next_end = len(text) if next_end < 0 else next_end
+                if OUTLINE.match(text[index + 1:next_end]) and masked[index + 1:next_end].strip():
+                    return None  # A new declaration is not a proven semicolon range.
+            index = pairs.get(index, index) + 1
+        return None
+
+    output = []
+    for row, line in enumerate(text.splitlines()):
+        match = OUTLINE.match(line)
+        if not match or not masked[offsets[row]:offsets[row] + len(line)].strip():
+            continue
+        start = offsets[row] + len(line) - len(line.lstrip())
+        kind = match.group("kind")
+        data = kind in {"const", "static", "let", "var"}
+        parens = brackets = braces = angles = size = 0
+        arrow = False
+        note = "signature incomplete; no boundary inferred"
+        end = start
+        for index in range(start, len(masked)):
+            char = masked[index]
+            size += len(text[index].encode("utf-8"))
+            if size > SIGNATURE_BYTES:
+                note = f"signature incomplete; {SIGNATURE_BYTES}-byte scan budget; continue with slice"
+                break
+            end = index + 1
+            top = not (parens or brackets or braces or angles)
+            if top and char == ";":
+                note = ""
+                break
+            if top and data and char == "=" and masked[index:index + 2] != "=>":
+                value = masked[index + 1:index + 1 + SIGNATURE_BYTES].lstrip()
+                arrow = not rust and bool(re.match(r"(?:async\s+)?(?:\(|<|\w+\s*=>)", value))
+                if not arrow:
+                    last = statement_end(index + 1)
+                    if last and "\n" not in text[start:last] and last - start <= 160:
+                        end, note = last, ""
+                    else:
+                        span = f"lines {bisect_right(offsets, index)}-{bisect_right(offsets, last - 1)}" if last else "end not inferred"
+                        note = f"initializer/data omitted: {span} (heuristic)"
+                    break
+            body = top and char == "{" and kind not in {"type", "const", "static", "let", "var"}
+            if body and kind in {"fn", "function"} and masked[start:index].rstrip().endswith((":", "|", "&")):
+                body = False  # TypeScript object return type, not the function body.
+            if top and arrow and masked[index:index + 2] == "=>":
+                end = index + 2
+                opening = end
+                while opening < len(masked) and masked[opening].isspace():
+                    opening += 1
+                last = pairs.get(opening) if masked[opening:opening + 1] == "{" else statement_end(opening)
+                span = f"lines {bisect_right(offsets, opening)}-{bisect_right(offsets, last)}" if last is not None else "end not inferred"
+                note = f"body/expression omitted: {span} (heuristic)"
+                break
+            if body:
+                last = pairs.get(index)
+                span = f"lines {bisect_right(offsets, index)}-{bisect_right(offsets, last)}" if last is not None else "end not inferred"
+                note = f"body omitted: {span} (heuristic)"
+                break
+            parens += (char == "(") - (char == ")")
+            brackets += (char == "[") - (char == "]")
+            braces += (char == "{") - (char == "}")
+            if char == "<" and masked[index:index + 2] != "<=":
+                angles += 1
+            elif char == ">" and angles and masked[index - 1:index] not in {"-", "="}:
+                angles -= 1
+        header = text[start:end].rstrip()
+        output.append(f"{row + 1}-{bisect_right(offsets, max(start, end - 1))}: {header}" + (f"\n  [{note}]" if note else ""))
+        if sum(len(entry.encode("utf-8")) for entry in output) > OUTPUT_BYTES:
+            output.append("[OUTLINE INCOMPLETE: additional declarations remain; use a targeted slice]")
+            break
+    return output
+
+
 def inspect_file(root: Path, path: str) -> str:
     file, text, digest = source(root, path)
     lines = text.splitlines()
@@ -118,15 +239,13 @@ def inspect_file(root: Path, path: str) -> str:
         out = out[:2] + [s for _, s in sorted(out[2:])]
     else:
         # ponytail: this is navigation only; an actual language parser belongs in Graphify.
-        for index, line in enumerate(lines):
-            if OUTLINE.match(line):
-                out.append(f"{index + 1}: {line.strip()}")
+        out.extend(declaration_outline(text, file.suffix == ".rs"))
         if len(out) == 2:
             out.append("No supported declarations found; use a targeted slice or hosted Graphify.")
     return bounded(clean("\n".join(out)), OUTPUT_BYTES)
 
 
-def log_excerpt(path: Path, output: str = "summary") -> tuple[str, list[tuple[str, int]], bool]:
+def log_excerpt(path: Path, output: str = "summary", *, failed: bool = False) -> tuple[str, list[tuple[str, int]], bool]:
     """Sample diagnostics with bounded memory; keep complete original bytes on disk."""
     with path.open("rb") as handle:
         raw = handle.read(OUTPUT_BYTES + 1)
@@ -150,6 +269,11 @@ def log_excerpt(path: Path, output: str = "summary") -> tuple[str, list[tuple[st
     following = 0
     line_number = 0
     sampled_diagnostics = False
+    omit_progress = failed and output == "summary"
+
+    def progress(line):
+        return bool(omit_progress and CARGO_PROGRESS.fullmatch(line) and not DIAGNOSTIC.search(line))
+
     with path.open("rb") as handle:
         while consumed < SCAN_BYTES:
             raw = handle.readline(LINE_BYTES + 1)
@@ -164,6 +288,8 @@ def log_excerpt(path: Path, output: str = "summary") -> tuple[str, list[tuple[st
                 while raw and not raw.endswith(b"\n") and consumed < SCAN_BYTES:
                     raw = handle.readline(LINE_BYTES + 1)
                     consumed += len(raw)
+            if progress(line):
+                continue
             if len(head) < 5:
                 head.append(line)
             tail.append(line)
@@ -188,7 +314,7 @@ def log_excerpt(path: Path, output: str = "summary") -> tuple[str, list[tuple[st
         if omitted_scan:
             handle.seek(max(0, path.stat().st_size - 24_000))
             last = handle.read(24_000).decode("utf-8", errors="replace").splitlines()
-            tail = deque((bounded(clean(x), LINE_BYTES) for x in last[-12:]), maxlen=12)
+            tail = deque((bounded(clean(x), LINE_BYTES) for x in last[-12:] if not progress(clean(x))), maxlen=12)
     sections = [SELECTION_NOTICE.rstrip()]
     if output == "bounded":
         sections.append("[head]\n" + bounded("\n".join(head), 1000))
@@ -252,7 +378,7 @@ def rtk_excerpt(log_path: Path) -> str | None:
     filtered = Path(name)
     try:
         with os.fdopen(descriptor, "wb") as handle:
-            result = subprocess.run([rtk, "log", str(log_path)], stdout=handle,
+            result = subprocess.run([rtk, "log", str(log_path)], stdin=subprocess.DEVNULL, stdout=handle,
                                     stderr=subprocess.DEVNULL, timeout=3, check=False)
         if result.returncode or not filtered.stat().st_size:
             return None
@@ -266,7 +392,7 @@ def rtk_excerpt(log_path: Path) -> str | None:
 
 
 def run_command(root: Path, argv: list[str], timeout: float | None = None,
-                output: str = "summary") -> int:
+                output: str = "summary", *, stdin_null: bool = False) -> int:
     if not argv:
         raise ValueError("run requires a command after --")
     if timeout is not None and (not math.isfinite(timeout) or timeout <= 0):
@@ -296,6 +422,7 @@ def run_command(root: Path, argv: list[str], timeout: float | None = None,
         with os.fdopen(descriptor, "wb") as handle:
             try:
                 process = subprocess.Popen(argv, cwd=root,
+                                           stdin=subprocess.DEVNULL if stdin_null else None,
                                            stdout=handle, stderr=subprocess.STDOUT,
                                            start_new_session=os.name == "posix")
             except FileNotFoundError:
@@ -326,7 +453,7 @@ def run_command(root: Path, argv: list[str], timeout: float | None = None,
         for sig, previous in previous_handlers.items():
             signal.signal(sig, previous)
     duration = round(time.monotonic() - started, 3)
-    excerpt, locations, complete = log_excerpt(log_path, output)
+    excerpt, locations, complete = log_excerpt(log_path, output, failed=bool(code))
     filtered = rtk_excerpt(log_path) if not complete and output == "summary" and code not in (124, 130, 143) else None
     # RTK is presentation only. Original diagnostics and their locations stay visible.
     use_rtk = bool(filtered and not DIAGNOSTIC.search(excerpt) and not RESULT.search(excerpt)
@@ -342,7 +469,7 @@ def run_command(root: Path, argv: list[str], timeout: float | None = None,
         "rtk_used": use_rtk, "emitted_bytes": 0,
         "output_complete": complete, "presentation_scope": "sanitized_text", "sanitization": SANITIZATION,
         "capture_mode": "combined stdout/stderr file; not a transparent TTY",
-        "stdin": "inherited", "timeout_seconds": timeout,
+        "stdin": "DEVNULL" if stdin_null else "inherited", "timeout_seconds": timeout,
         "source_context": context_note if extra else None,
     }
     displayed_fields = ("schema_version", "exit_code", "duration_seconds", "log", "raw_bytes",
@@ -426,12 +553,27 @@ def stats(root: Path) -> str:
     return json.dumps(totals, sort_keys=True)
 
 
+def support_module(name: str):
+    """Load a packaged sibling without depending on the client's import path."""
+    spec = importlib.util.spec_from_file_location(name, Path(__file__).with_name(name + ".py"))
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 def hook() -> int:
     """Rewrite only unambiguous local build/test argv; retain normal permissions."""
-    if os.environ.get("TOKENGUARD_AUTO_WRAP") != "1":
+    if os.environ.get("TOKENGUARD_AUTO_WRAP") != "1" and os.environ.get("TOKENGUARD_READ_GUARD") != "1":
         return 0
     try:
         payload = json.loads(sys.stdin.read(64_001))
+        if os.environ.get("TOKENGUARD_READ_GUARD") == "1":
+            decision = support_module("tokenguard_hook").guard(payload, inspect_file)
+            if decision:
+                return decision
+        if os.environ.get("TOKENGUARD_AUTO_WRAP") != "1":
+            return 0
         if payload.get("hook_event_name") != "PreToolUse" or payload.get("tool_name") != "Bash":
             return 0
         supplied_cwd = Path(payload["cwd"])
@@ -485,11 +627,19 @@ def hook() -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # CLI protocols use UTF-8; importing this module must leave host streams alone.
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        if isinstance(stream, io.TextIOWrapper):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace" if stream is sys.stdin else "backslashreplace")
+            except (OSError, ValueError):
+                continue  # A borrowed or already-read host stream must not be reset or replaced.
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path.cwd())
     sub = parser.add_subparsers(dest="mode", required=True)
     run = sub.add_parser("run", help="Run an argv command, preserve exit status and log bytes")
     run.add_argument("--timeout", type=float, help="Optional explicit command deadline in seconds")
+    run.add_argument("--stdin-null", action="store_true", help="Close command stdin (used by MCP); CLI default inherits stdin")
     run.add_argument("--output", choices=("summary", "bounded"), default="summary")
     run.add_argument("command", nargs=argparse.REMAINDER)
     inspect = sub.add_parser("inspect", help="Show bounded declarations and source fingerprint")
@@ -508,16 +658,27 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("stats", help="Report observed output bytes, not billing tokens")
     sub.add_parser("doctor", help="Report local prerequisites without changing configuration")
     sub.add_parser("hook", help="Conservatively adapt Claude build/test commands")
+    sub.add_parser("mcp", help="Serve bounded local tools over stdio MCP")
+    init = sub.add_parser("init", help="Preview or apply non-destructive workspace MCP entries")
+    init.add_argument("--clients", nargs="+", default=["all"], choices=("all", "claude", "codex", "copilot", "vscode", "opencode"))
+    init.add_argument("--apply", action="store_true", help="Write the validated plan; default is read-only")
     args = parser.parse_args(argv)
     if args.mode == "hook":
         return hook()
     try:
+        if args.mode == "init":
+            # The installer validates the original root, including symlink identity.
+            result = support_module("tokenguard_init").init_workspace(args.root, args.clients, apply=args.apply)
+            print(result)
+            return 0 if json.loads(result).get("ok") is True else 2
         root = args.root.resolve(strict=True)
         if not root.is_dir():
             raise ValueError("--root must be a directory")
         if args.mode == "run":
             command = args.command[1:] if args.command[:1] == ["--"] else args.command
-            return run_command(root, command, args.timeout, args.output)
+            return run_command(root, command, args.timeout, args.output, stdin_null=args.stdin_null)
+        if args.mode == "mcp":
+            return support_module("tokenguard_mcp").serve(root, Path(__file__), inspect_file, read_slice)
         if args.mode == "inspect":
             result = inspect_file(root, args.path)
         elif args.mode == "slice":

@@ -37,6 +37,78 @@ service-restart revocation, physical hardware or human security acceptance.
 N04 through a reviewed production issuer/delegation and durable-revocation
 contract. The earlier H02/network/update handoffs are retained below.
 
+## Supplemental review checkpoint — PR #335 merge repair — 14 November 2026
+
+**Source:** PR #335 head `69b0fbf55ed42f7348e579ebe9c9e8aa28f2ae05`, integrated with main `ce47359fcd9c62abca50da87ac62183026aac91c`.
+
+**Review corrections:** use a consistent `unittest.mock` import in the initializer test and explain both deliberately best-effort cleanup exception handlers. These edits preserve executable behavior and installer rollback rules; the originally tested plugin-package evidence retains its exact recorded source version.
+
+**Integration:** preserve the newer N04 helper checkpoint, native network changes and source-bound receipts on main. Retain the Token Guard 1.2.1 MCP checkpoint and prior OS continuation as historical context. No acceptance criterion or security boundary changes.
+
+**Verification boundary:** 93 Token Guard and 26 workflow regressions passed before this integration. The combined PR head requires fresh hosted checks; native build/QEMU evidence from either parent is not automatically a pass for this merge. Original private plugin release 1.2.1 remains source-bound to the previously published archive; the new comment-only repository revision is not falsely described as a byte-identical account release.
+
+**Progress:** 41/100 → 41/100.
+
+## Previous checkpoint — OS continuation after #328 (before N04) — 14 November 2026
+
+**Source:** merged main `4cd444e08dac820cc66f2750c43845b4139901cc`
+(PR #328). The supplemental Token Guard 1.2.1 tooling checkpoint is recorded below;
+the complete native OS checkpoints and source-bound evidence from main are retained.
+
+**Next OS task:** implement the enforced kernel-owned device-execution/DMA and IRQ
+lifetime boundary before adding xHCI rings and connecting real transfer completions
+to the H02 boot-interface session. Native USB/HID transfer, input/focus integration,
+hotplug/reset/unplug and physical reference acceptance remain open. Preserve the
+existing component contracts and do not enable bus mastering outside its test boundary.
+For #41, the D1–D7 production trust/persistence decisions and approved native transition
+implementation remain required; TEST keys confer no production authority.
+
+**Evidence boundary:** retain the PR #328 integration, H02 boot-session and native
+network/update receipts below with their original source versions and scope. The
+supplemental tooling checks do not replace or extend native OS acceptance evidence.
+
+**Progress:** 41/100 → 41/100; no criterion, weight or acceptance-boundary changes.
+
+## Supplemental tooling checkpoint — Token Guard 1.2.1 MCP — 14 November 2026
+
+**Source:** originally based on main `aba6149fd4473aff73fdcf121c133d4960e3d939`
+(PR #331), now integrated with merged main `4cd444e08dac820cc66f2750c43845b4139901cc`
+(PR #328). The current change is `feat/token-guard-mcp-20261114`; source hashes
+and archive inventory are in [the verification record](verification/token-guard-mcp-20261114.json).
+
+**Result:** native stdio MCP with three tools, legacy/modern protocol handling,
+closed command stdin, finite MCP deadlines and cancellation/EOF cleanup. Native
+CLI stdin/environment and deadline behavior are preserved. The plugin adds
+multiline heuristic outlines, UTF-8 CLI streams, opt-in read guidance and a
+non-destructive client initializer. Mandatory quality rules are inline; hosted
+Graphify, client approval and OS contracts remain unchanged. Portable and Claude
+MCP launch files use their respective variables. Packaging is reproducible and
+runs in host-quality CI. The private account plugin is updated to 1.2.1; all 16 stored files were read back.
+Claude has a dedicated manifest override that survives OpenAI compatibility normalization.
+
+**Evidence:** 93 Token Guard tests and 26 workflow tests pass after integration with main. The official MCP
+Python SDK 1.29.0 initializes, lists tools, inspects a file and executes a command.
+An extracted ZIP outside the repository passes CLI, hook and MCP self-tests.
+Independent AI probes verify child/grandchild cancellation and EOF cleanup;
+installer fault injection reproduces and verifies interrupt/concurrent-write fixes.
+The archive contains 16 components, portable/compatibility MCP files, a dedicated
+Claude override and an executable entrypoint.
+
+**Limits:** native Claude/Copilot/OpenCode/Windows activation, actual RTK, UI/UX
+A/B equivalence and provider billing savings are unverified. Strict preflight
+exits 2 here because Rust/Cargo, QEMU and OVMF are absent; no local build/smoke
+pass is claimed. Hooks are opt-in and cannot enforce native per-file deny rules;
+MCP commands require host authorization. Existing config updates retain an
+optimistic concurrency boundary, with explicit rollback/backups.
+
+**Progress:** 41/100 → 41/100; no OS criterion or weight changes.
+
+**Tooling follow-up:** review the Token Guard 1.2 draft PR and verify activation in the intended
+local client. Do not merge or enable auto-merge without authorization. Continue
+OS work from the preserved queue; do not wait on unrelated CI. Follow
+[TOKEN-GUARD.md](TOKEN-GUARD.md) for setup and [the options review](TOKEN-GUARD-QUALITY.md)
+for adopted, corrected and experimental suggestions.
+
 ## Previous checkpoint — PR #328 integration with main — 14 November 2026
 
 **Source:** PR #328 head `885e128082483ec871831fbbfc757a6e5104e6b4`,
