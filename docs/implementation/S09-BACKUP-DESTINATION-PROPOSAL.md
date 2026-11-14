@@ -128,10 +128,17 @@ model and dependency review.
 - **(c) Plain files without a container.** This needs a destination that
   holds a file system, that is D1 (b).
 
-*Recommendation:* (a). It needs no checksum or compression code and its bytes
-are deterministic. Linux, macOS and current Windows ship a tar reader, but
-only Python's `tarfile` has been tested here. It is an export, not a recovery
-copy: format v1 remains the only format that restores.
+*Recommendation:* (a). It needs only a byte sum per header, with no CRC-32 or
+compression code, and its bytes are deterministic. Linux, macOS and current
+Windows ship a tar reader; only Python's `tarfile` and GNU tar have been
+tested here. It is an export, not a recovery copy: format v1 remains the only
+format that restores.
+
+*Also to decide:* whether the export refuses names that extract differently
+on Windows or macOS (a later `:`, reserved device names, trailing dots or
+spaces, case or normalisation variants). The converter refuses only colliding
+paths and a leading drive form such as `C:`. Refusing more would make some
+domains impossible to export until documents are renamed.
 
 ## What a decision changes
 

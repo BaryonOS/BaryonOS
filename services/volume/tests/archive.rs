@@ -966,6 +966,31 @@ fn tarfile(tar: &[u8]) -> Vec<String> {
         .collect()
 }
 
+/// The system tar (GNU tar 1.35 where this was written) extracts the export
+/// into a fresh directory, as a user would.
+fn tar_extract(tar: &[u8]) -> std::path::PathBuf {
+    use std::io::Write;
+    use std::process::{Command, Stdio};
+    let dir = std::env::temp_dir().join(format!("volume-ustar-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    let mut child = Command::new("tar")
+        .args(["--extract", "--file=-", "--directory"])
+        .arg(&dir)
+        .stdin(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("tar is the second ustar reader; not run is not a pass");
+    child.stdin.take().unwrap().write_all(tar).unwrap();
+    let out = child.wait_with_output().unwrap();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    dir
+}
+
 fn ustar(bytes: &[u8]) -> (Result<archive::Summary, Status>, Vec<u8>) {
     let mut out = Bytes(Vec::new());
     let result = ustar::from_archive(&mut reader(bytes), &mut scratch(), &mut out);
@@ -1006,6 +1031,17 @@ fn ustar_export_opens_with_a_standard_reader() {
             file("Empty", "-", Vec::new()),
         ]
     );
+    let dir = tar_extract(&tar);
+    for (path, data) in [
+        ("Werk/Notes", expected(0, 1, 300)),
+        ("Plan", expected(1, 2, 5000)),
+        ("Notitie ✓", expected(2, 1, 50)),
+        ("Empty", Vec::new()),
+    ] {
+        assert_eq!(std::fs::read(dir.join(path)).unwrap(), data, "{path}");
+    }
+    assert_eq!(std::fs::read_dir(&dir).unwrap().count(), 4);
+    std::fs::remove_dir_all(&dir).unwrap();
     assert_eq!(ustar(&bytes.0).1, tar, "equal archives give equal bytes");
 }
 
@@ -1018,13 +1054,15 @@ fn ustar_export_ends_only_after_the_whole_archive_checked_out() {
     *bad.last_mut().unwrap() ^= 1;
     let (result, partial) = ustar(&bad);
     assert_eq!(result, Err(Status::Corrupt));
-    // Every file was written, but not the end-of-archive blocks. Readers accept
-    // that silently, so callers verify first and discard the output on error.
+    // Every file was written, but not the end-of-archive blocks.
     assert_eq!(partial, good[..good.len() - 2 * ustar::BLOCK]);
+    // A reader accepts that silently, so callers verify first and discard the
+    // output on error.
+    assert_eq!(tarfile(&partial).len(), 3);
 }
 
 #[test]
-fn ustar_export_refuses_paths_that_would_collide() {
+fn ustar_export_refuses_colliding_paths_and_drive_names() {
     let bytes = exported(500);
     let plan = HEADER + 48 + OBJECT_RECORD + 300;
     let rename = |name: &'static [u8], collection: u8| {
@@ -1039,8 +1077,23 @@ fn ustar_export_refuses_paths_that_would_collide() {
         ustar(&rename(b"Plan", 0)).0.is_ok(),
         "an unchanged rename stays exportable"
     );
-    // A file and a directory at "Werk"; two files at "Werk/Notes".
-    for archive in [rename(b"Werk", 0), rename(b"Notes", 1)] {
+    assert!(
+        ustar(&rename(b"Plan:2", 0)).0.is_ok(),
+        "a later colon is kept"
+    );
+    let drive = resealed(bytes.clone(), HEADER, 48, |r| {
+        r[1] = 2;
+        r[8..40].fill(0);
+        r[8..10].copy_from_slice(b"C:");
+    });
+    // A file and a directory at "Werk"; two files at "Werk/Notes"; paths that
+    // Windows reads as drive C: ("C:x" and "C:/Notes").
+    for archive in [
+        rename(b"Werk", 0),
+        rename(b"Notes", 1),
+        rename(b"C:x", 0),
+        drive,
+    ] {
         assert!(archive::verify(&mut reader(&archive), &mut scratch()).is_ok());
         assert_eq!(ustar(&archive).0, Err(Status::Invalid));
     }

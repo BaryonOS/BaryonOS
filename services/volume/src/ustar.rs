@@ -1,5 +1,5 @@
 //! S09 user export (proposed format, host-tested): turn a format-v1 archive
-//! into a POSIX ustar stream that common tools open. Spec:
+//! into a POSIX ustar stream for common tar readers outside Baryon OS. Spec:
 //! `docs/implementation/S09-BACKUP-ARCHIVE.md`, "User export to ustar".
 //!
 //! Per object, in slot order, one regular file `<collection>/<name>` or
@@ -25,8 +25,10 @@ const ZERO: [u8; BLOCK] = [0; BLOCK];
 /// trailer is checked last. The two end-of-archive blocks are written only
 /// after the whole archive checked out; on any error the bytes already
 /// written are not an export and must be discarded. Two objects with one
-/// path, or an uncollected object named like a declared collection (a file
-/// and a directory at one path), give `Invalid`; nothing is renamed.
+/// path, an uncollected object named like a declared collection (a file and
+/// a directory at one path; also refused when that collection is empty), or a
+/// path that starts with an ASCII letter and `:` (Windows reads it as a drive,
+/// outside the extraction directory) give `Invalid`; nothing is renamed.
 pub fn from_archive<S: Source, K: Sink>(
     source: &mut S,
     scratch: &mut [u8; MAX_LENGTH],
@@ -66,18 +68,22 @@ pub fn from_archive<S: Source, K: Sink>(
 fn path(entry: &Entry, collections: &Collections) -> Result<([u8; PATH], usize), Status> {
     let name = entry.name();
     let mut out = [0; PATH];
+    let mut length = 0;
     if entry.collection == 0 {
         if (1..=COLLECTIONS).any(|i| collections.present[i - 1] && collections.name(i) == name) {
             return Err(Status::Invalid);
         }
-        out[..name.len()].copy_from_slice(name);
-        return Ok((out, name.len()));
+    } else {
+        let directory = collections.name(usize::from(entry.collection));
+        out[..directory.len()].copy_from_slice(directory);
+        out[directory.len()] = b'/';
+        length = directory.len() + 1;
     }
-    let directory = collections.name(usize::from(entry.collection));
-    let length = directory.len() + 1 + name.len();
-    out[..directory.len()].copy_from_slice(directory);
-    out[directory.len()] = b'/';
-    out[directory.len() + 1..length].copy_from_slice(name);
+    out[length..length + name.len()].copy_from_slice(name);
+    length += name.len();
+    if out[0].is_ascii_alphabetic() && out[1] == b':' {
+        return Err(Status::Invalid);
+    }
     Ok((out, length))
 }
 
