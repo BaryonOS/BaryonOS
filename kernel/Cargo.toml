@@ -10,6 +10,10 @@ default = []
 test-panic = []
 test-hang = []
 milestone-m2 = []
+# H02: isolated single-CPU QEMU VT-d/xHCI DMA gate; no service/IRQ authority.
+native-xhci-probe = ["milestone-m2", "dep:pci-core", "dep:driver-core", "dep:nieuw-os-xhci"]
+test-xhci-dma-fault = ["native-xhci-probe"]
+test-xhci-no-dmar = ["native-xhci-probe"]
 native-rtc = ["milestone-m2", "dep:nieuw-os-rtc"]
 # H05 step: IF0 M2 profile that ends in a validated ACPI S5 poweroff.
 native-acpi-s5 = ["milestone-m2", "dep:nieuw-os-acpi-power"]
@@ -312,6 +316,9 @@ native-update = ["milestone-m6a"]
 test-update-cut = ["native-update"]
 
 [dependencies]
+pci-core = { path = "../crates/pci-core", optional = true }
+driver-core = { path = "../crates/driver-core", optional = true }
+nieuw-os-xhci = { package = "nieuw-os-xhci-probe", path = "../drivers/xhci", optional = true }
 nieuw-os-tpm-crb = { path = "../drivers/tpm-crb", optional = true }
 nieuw-os-rtc = { path = "../drivers/rtc", optional = true }
 nieuw-os-acpi-power = { path = "../drivers/acpi-power", optional = true }

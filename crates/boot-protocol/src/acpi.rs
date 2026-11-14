@@ -993,6 +993,7 @@ mod tests {
         assert_eq!(discovered.mcfg[0].segment, 0);
         assert_eq!(discovered.dmar_count, 1);
         assert_eq!(discovered.dmar[0].register_base, 0x1000);
+        assert!(discovered.dmar_has_reserved_memory);
         assert!(!discovered.dma_execution_allowed());
     }
 
@@ -1113,6 +1114,23 @@ mod tests {
             );
             assert!(result.native_dma_unit(5, 0).is_none());
         }
+    }
+
+    #[test]
+    fn unsupported_dmar_structures_remain_visible_to_native_profile() {
+        let mut bytes = direct_dma_fixture(&[], 1, 0);
+        // A syntactically bounded future structure is inventoried, not silently
+        // omitted from the narrower native profile's safety decision.
+        bytes.extend_from_slice(&[99, 0, 4, 0]);
+        let mut result = Discovery::empty(Availability::DiscoveryComplete);
+        parse_dmar(&bytes, &mut result).unwrap();
+        assert_eq!(result.dmar_count, 1);
+        assert!(result.dmar_has_other_structures);
+        assert!(result.native_dma_unit(5, 0).is_none());
+        result.reset(Availability::DiscoveryComplete);
+        parse_dmar(&direct_dma_fixture(&[], 1, 0), &mut result).unwrap();
+        assert!(!result.dmar_has_other_structures);
+        assert!(result.native_dma_unit(5, 0).is_some());
     }
 
     #[test]

@@ -346,7 +346,11 @@ impl ControllerCapabilities {
                 return Err(Error::InvalidRegister);
             }
             validate_region(bar_size, offset, 4)?;
-            if ranges_overlap(offset, 4, 0, capability_length)?
+            // CAPLENGTH locates operational registers; the gap after the fixed
+            // capability header may contain extended capabilities (QEMU puts
+            // Supported Protocol headers at 0x20/0x30 before CAPLENGTH=0x40).
+            // It is not part of the architected fixed-register footprint.
+            if ranges_overlap(offset, 4, 0, MINIMUM_CAPABILITY_LENGTH)?
                 || ranges_overlap(offset, 4, operational_offset, operational_bytes)?
                 || ranges_overlap(offset, 4, doorbell_offset, doorbell_bytes)?
                 || ranges_overlap(offset, 4, runtime_offset, runtime_bytes)?

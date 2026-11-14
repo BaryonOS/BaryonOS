@@ -2,6 +2,8 @@
 //! Copies boot input before any frame reuse. The old loader allocations are retained.
 mod acpi;
 mod arch;
+#[cfg(feature = "native-xhci-probe")]
+mod iommu;
 #[cfg(any(feature = "native-smp", feature = "milestone-m3"))]
 pub(crate) mod lock;
 #[cfg(feature = "milestone-m3")]
@@ -13,6 +15,8 @@ pub(crate) mod power;
 mod rtc;
 #[cfg(feature = "native-smp")]
 pub(crate) mod smp;
+#[cfg(feature = "native-xhci-probe")]
+mod xhci;
 use crate::serial;
 use boot_protocol::{BootInfo, MemoryMap, MAP_LIMIT};
 use core::{arch::asm, mem::MaybeUninit, ptr};
@@ -138,7 +142,11 @@ extern "C" fn run() -> ! {
         }
     }
     // Creates the shared scratch PT; `begin_scratch` unmaps it again.
-    #[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
+    #[cfg(any(
+        feature = "milestone-m3",
+        feature = "native-smp",
+        feature = "native-xhci-probe"
+    ))]
     paging.map(frames, paging::SCRATCH, nx_probe(), true, false);
     #[cfg(feature = "framebuffer")]
     crate::framebuffer::map(&mut paging, frames, &map);
@@ -146,10 +154,19 @@ extern "C" fn run() -> ! {
     #[cfg(feature = "native-smp")]
     let smp_prepared = smp::prepare(frames, &mut paging, trampoline);
     paging.prepare_firmware_scratch(frames);
+    #[cfg(feature = "native-xhci-probe")]
+    paging.prepare_native_devices(frames);
     paging.map_tables(frames);
     arch::protection();
     arch::activate(paging.root);
     let _discovery = acpi::discover(info, map_bytes, &mut paging);
+    #[cfg(feature = "native-xhci-probe")]
+    {
+        // Single BSP, IF=0. Activate the existing bounded RAM scratch mapping
+        // before allocating native IOMMU tables under the new CR3.
+        paging.begin_scratch(frames);
+        xhci::run(_discovery, frames, &mut paging);
+    }
     paging.audit(frames);
     assert_eq!(paging.leaf(text_start()) & (2 | (1 << 63)), 0);
     assert_eq!(paging.leaf(nx_probe()) & (2 | (1 << 63)), 2 | (1 << 63));
