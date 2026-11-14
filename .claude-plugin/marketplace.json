@@ -1,0 +1,11 @@
+{
+  "name": "baryon-tools",
+  "owner": { "name": "Simon van Ieperen" },
+  "plugins": [
+    {
+      "name": "token-guard",
+      "source": "./plugins/token-guard",
+      "description": "Compact coding context with preserved command evidence."
+    }
+  ]
+}

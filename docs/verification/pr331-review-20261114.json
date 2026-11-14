@@ -1,0 +1,157 @@
+{
+  "pr": 331,
+  "parent_commit": "a77b3c33f9c2676b781bcdee2300c3b7497a5088",
+  "edited_file": "plugins/token-guard/skills/token-guard/scripts/tokenguard.py",
+  "change": "Four explanatory comment lines only; all concurrent Token Guard1.1.1 behavior retained.",
+  "before_sha256": "efc134b43aad354c43542f611da5de60c7347d3e30a06029e1c4fd6a2564302f",
+  "after_sha256": "593707bd6a2a21b9de80c7a6c07de5bd7de823a6e1b355f5e54248b89d47ec3d",
+  "ast_equivalence": {
+    "method": "ast.dump(ast.parse(source), include_attributes=False)",
+    "equal": true,
+    "ast_sha256": "75c94dab06709939ad8e570a60f50d7c785f2a9d6eaaf421bd5cb6d484574ad7"
+  },
+  "checks": [
+    {
+      "name": "helper_regressions",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_tokenguard.py"
+      ],
+      "exit_code": 0,
+      "test_count": 40,
+      "local_log": "build/tokenguard/run-oz3p6toh.log",
+      "log_sha256": "2ecc1d10e3732a3ffd1f55651d41d70a6de00808814e782d8521199248e5865e",
+      "duration_seconds": 6.245
+    },
+    {
+      "name": "workflow_contracts",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_workflows.py"
+      ],
+      "exit_code": 0,
+      "test_count": 25,
+      "local_log": "build/tokenguard/run-yt2829wy.log",
+      "log_sha256": "54621295b92840ee355d72e29a203802a5227ba7df0eedaa304898455d3d2ac9",
+      "duration_seconds": 0.453
+    }
+  ],
+  "concurrent_upgrade_preserved": {
+    "version": "1.1.1",
+    "new_parent": "a77b3c33f9c2676b781bcdee2300c3b7497a5088",
+    "all_other_tracked_files_unchanged": true,
+    "features": [
+      "40 helper tests",
+      "opt-in hook only",
+      "inherited stdin and environment",
+      "no implicit deadline",
+      "explicit sanitized/selected output and capture limits",
+      "bounded byte-offset replay",
+      "UI/UX quality contract"
+    ]
+  },
+  "reviewed_findings": {
+    "empty_except_process_lookup": "The process group can disappear before killpg; ignoring ProcessLookupError is intentional and requested reaping remains intact.",
+    "empty_except_hook": "Optional rewriting emits no replacement on invalid input or unavailable paths; the original command and permission flow remain authoritative.",
+    "graphify_run_command_coupling": "The command coordinator owns one process lifecycle and its diagnostic/log evidence. The local helper fan-out alone demonstrates no dependency defect; splitting it solely to reduce the metric would add indirection.",
+    "graphify_main_coupling": "The CLI dispatcher chooses mutually exclusive supported handlers; graph out-degree is not simultaneous unbounded execution and does not justify a refactor."
+  },
+  "acceptance_scope": {
+    "required": "Passing current-head checks,40 helper and25 workflow tests, preserved exit-status/permission contracts, source-bound verification.",
+    "client_activation": "Explicit unverified follow-up without a separately defined mandatory pre-merge client activation gate. No end-to-end client activation, real RTK behavior, provider savings or agent-level UI quality equivalence is claimed.",
+    "native_gate": "Strict preflight, build and QEMU smoke executed successfully on this combined source; see standard-gate.json."
+  },
+  "package_boundary": "Original Token Guard1.1.1 nine-file package remains historical at helper SHA efc134b43aad354c43542f611da5de60c7347d3e30a06029e1c4fd6a2564302f and archive SHA 8512dacb37a987df4944cdba544aba65b200d1920123af7f0d213b90ae930d50. The four comment lines change repository bytes only; no private installed package was modified.",
+  "package_version": "1.1.1",
+  "historical_package": {
+    "version": "1.1.1",
+    "file_count": 9,
+    "archive_sha256": "8512dacb37a987df4944cdba544aba65b200d1920123af7f0d213b90ae930d50",
+    "archive_bytes": 21366,
+    "helper_sha256": "efc134b43aad354c43542f611da5de60c7347d3e30a06029e1c4fd6a2564302f",
+    "skill_sha256": "f248dae198e6f49f891f400f37105f463eeba8dc6074d3e14aeb060c65d9f679",
+    "reference_sha256": "66e942081b73798c500fe734f4f2b43842e6f72c3b5c8ebdc24c0d178a21304e",
+    "checks": [
+      "version and identity",
+      "native manifest hooks",
+      "skill frontmatter",
+      "implicit-invocation metadata",
+      "reference path",
+      "Python syntax",
+      "exact archive inventory and bytes",
+      "existing private account manifest metadata retained separately from public repository metadata"
+    ],
+    "private_account_author_metadata_preserved": true,
+    "stored_source_readback_verified": true
+  },
+  "runtime_source_sha256": "fae85a5f8bbc4168422a9cf4e18edf016888cf4b8eccf19cdace76cbadc817f9",
+  "date": "2026-11-14",
+  "standard_gate": [
+    {
+      "name": "strict_preflight",
+      "command": [
+        "python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "exit_code": 0,
+      "test_count": null,
+      "local_log": "build/tokenguard/run-pxi44aqj.log",
+      "log_sha256": "a9c85c1a4e6ce4c95bd29d0aa17edea188efb55b7c8d54b1df294030eeade8f2",
+      "duration_seconds": 0.193
+    },
+    {
+      "name": "build",
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py"
+      ],
+      "exit_code": 0,
+      "test_count": null,
+      "local_log": "build/tokenguard/run-w75b00up.log",
+      "log_sha256": "1a4581de9e627a27635be62584b35d9c82ef5092e278f3ca46e526dab1866026",
+      "duration_seconds": 2.304
+    },
+    {
+      "name": "smoke",
+      "command": [
+        "python3",
+        "-B",
+        "tools/run.py",
+        "--smoke"
+      ],
+      "exit_code": 0,
+      "test_count": null,
+      "local_log": "build/tokenguard/run-h2ka7jk5.log",
+      "log_sha256": "f25458cb10c9f54d228fe3df342a69f163f7a7188d97149009a55a90c9372e6f",
+      "duration_seconds": 1.635,
+      "smoke_result": {
+        "kernel_marker": "M1:PASS",
+        "qemu_raw_exit": 33,
+        "timeout": false
+      }
+    }
+  ],
+  "hosted_verification": "Current-head CI is required after publication; prior hosted results are not claimed for the new commit.",
+  "progress": {
+    "previous_score": 41,
+    "current_score": 41,
+    "criteria_unchanged": true
+  }
+}

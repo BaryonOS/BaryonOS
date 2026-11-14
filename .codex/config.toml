@@ -1,0 +1,4 @@
+# Project plugin configuration; applies only in a trusted checkout.
+# Existing account MCP connections and permission settings remain in force.
+[plugins."token-guard@baryon-tools"]
+enabled = true

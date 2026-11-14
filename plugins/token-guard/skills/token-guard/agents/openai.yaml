@@ -1,0 +1,6 @@
+interface:
+  display_name: "Token Guard"
+  short_description: "Compact coding context with preserved test evidence"
+  default_prompt: "Use $token-guard to complete this coding task with targeted context and verifiable test results."
+policy:
+  allow_implicit_invocation: true
