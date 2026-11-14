@@ -228,6 +228,86 @@ fn exercise(
         yield_now();
     }
 }
+/// N04 negative helper: only test SEND aliases, no registered app identity.
+/// High request numbers would poison each legitimate session if the service
+/// trusted endpoint possession instead of the kernel-authenticated sender.
+fn helper() -> ! {
+    let epoch = support::word(40);
+    check(epoch != 0, 100);
+    let sends = [
+        SendEndpoint::from_handle(h(48)),
+        SendEndpoint::from_handle(h(56)),
+    ];
+    let mut raw = [0; 1514];
+    check(
+        native::net_receive(NetworkSource::from_handle(sends[0].handle()), &mut raw).is_err(),
+        101,
+    );
+    support::put(400, 1);
+    bump(480);
+    let start = tick();
+    for (slot, endpoint) in sends.iter().enumerate() {
+        for (index, operation) in [Operation::OpenTcp, Operation::SendUdp, Operation::Retire]
+            .into_iter()
+            .enumerate()
+        {
+            let body: &[u8] = if operation == Operation::SendUdp {
+                b"unauthorized helper"
+            } else {
+                &[]
+            };
+            let packet = Packet::request(
+                HeaderFields {
+                    operation,
+                    request: u64::MAX - 2 + index as u64,
+                    epoch,
+                    connection: 0,
+                    argument: match operation {
+                        Operation::OpenTcp => 300,
+                        Operation::SendUdp => body.len() as u32,
+                        _ => 0,
+                    },
+                    address: if operation == Operation::Retire {
+                        [0; 4]
+                    } else {
+                        [192, 0, 2, 1]
+                    },
+                    port: match operation {
+                        Operation::OpenTcp => 8080 + slot as u16 * 10,
+                        Operation::SendUdp => 9000 + slot as u16,
+                        _ => 0,
+                    },
+                },
+                body,
+            )
+            .unwrap_or_else(|_| fail(102));
+            let message = Outgoing::new(wire::TAG, packet.bytes()).unwrap_or_else(|_| fail(103));
+            loop {
+                check(tick() - start < 500, 104);
+                match native::send(*endpoint, &message) {
+                    Ok(()) => break,
+                    Err(error) if error.is_again() => yield_now(),
+                    Err(_) => fail(105),
+                }
+            }
+            bump(408);
+        }
+    }
+    support::put(552, tick().max(1));
+    support::put(544, 6);
+    // Exit only after the kernel observes six service-side rejections with
+    // no request/backend effects; the same signal releases the real apps.
+    while support::word(112) == 0 {
+        check(tick() - start < 500, 106);
+        yield_now();
+    }
+    check(support::word(112) == 1, 107);
+    for endpoint in sends {
+        native::close(endpoint.handle()).unwrap_or_else(|_| fail(108));
+    }
+    support::put(528, 1);
+    native::exit(0)
+}
 /// N04 policy authority: a separate process whose only capability is the
 /// service's private control endpoint. It holds no network, entropy or app
 /// endpoint. The kernel test driver writes word 104 once app A is live.
@@ -596,6 +676,9 @@ fn run() -> ! {
     if support::word(32) == u64::from_le_bytes(*b"NETPOL01") {
         policy()
     }
+    if support::word(32) == u64::from_le_bytes(*b"NETHLP01") {
+        helper()
+    }
     check(support::word(32) == u64::from_le_bytes(*b"NETAPP01"), 5);
     let epoch = support::word(40);
     let send = SendEndpoint::from_handle(h(48));
@@ -609,6 +692,14 @@ fn run() -> ! {
         epoch != 0 && peer != 0 && own != 0 && peer != own && slot < 2 && first != 0 && udp != 0,
         9,
     );
+    if support::word(104) == 5 {
+        let start = tick();
+        while support::word(112) == 0 {
+            check(tick() - start < 500, 109);
+            yield_now();
+        }
+        check(support::word(112) == 1, 110);
+    }
     let mut raw = [0; 1514];
     check(
         native::net_receive(NetworkSource::from_handle(send.handle()), &mut raw).is_err(),

@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "8b943aa2c4675c468e6cca9bbb75fbf6f3962bdf",
+    "source_commit": "508a3f816b4ab3fd766567f0923c5b87189537f6",
     "assessment_basis": "parent_commit",
     "branch": "feat/issue41-policy-test",
-    "task": "Recover issue #41 after PR #328 squash and record authorised TEST-only implementation",
+    "task": "Integrate the authorised B03 TEST policy codec and native probe with merged N04 main",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The previously unpublished transition specification/model is recovered on merged main, and ADR-B03K3 records the owner-approved TEST-key/QEMU experiment. Production trust, native transition evidence and the criterion register remain unchanged. The codec/native implementation is in progress; historical model evidence is not promoted to native acceptance."
+    "summary": "41/100 remains 41/100. PR #336 adds the approved TEST policy codec and immutable native authentication probe while preserving merged N04 helper isolation and all historical receipts. Combined-source verification is in progress. Persistent policy transitions, production trust and the criterion register remain unchanged; host/model results are not promoted to native transition acceptance."
   },
   "tracks": [
     {

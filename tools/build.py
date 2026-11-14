@@ -44,7 +44,7 @@ RANDOM_FEATURES = ("native-system-random", "test-system-random-sdk", "test-syste
 IMAGE_FEATURES = ("native-system-images",)
 SYSTEM_CLOCK_FEATURES = ("native-system-clock",)
 POWER_SYSTEM_FEATURES = ("native-system-power", "test-system-power-flush-error", "test-system-power-flush-timeout")
-SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-device-reset", "test-net-service-exhaustion", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
+SYSTEM_FEATURES = ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion", "native-cap-digest-bench", "native-system", "test-system-recover", "native-system-display-input", *NETWORK_SYSTEM_FEATURES, *TCP_SYSTEM_FEATURES, *RANDOM_FEATURES, *IMAGE_FEATURES, *SYSTEM_CLOCK_FEATURES)
 SYSTEM_FEATURES += POWER_SYSTEM_FEATURES
 # PR 154 legacy SMP path (kernel/src/m2_legacy); every name enables native-smp-legacy and
 # needs the smp-handoff loader. K06 native-smp* profiles use the default loader.
@@ -277,7 +277,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             run_logged([sys.executable, "-B", str(ROOT / f"sdk/examples/{probe}/build.py")],
                        "build-system-net-probe", extra_env={"CARGO_TARGET_DIR": str(net_target)})
             binaries["net_probe"] = net_target / f"x86_64-unknown-none/release/{probe}"
-        if kernel_feature in ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-device-reset", "test-net-service-exhaustion"):
+        if kernel_feature in ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion"):
             net_target = TARGET / "network-service"
             run_logged([sys.executable, "-B", str(ROOT / "sdk/examples/network-service/build.py")],
                        "build-network-service", extra_env={"CARGO_TARGET_DIR": str(net_target)})
@@ -408,7 +408,7 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             manifest["supervisor"] = qsim_report
         elif kernel_feature in SYSTEM_FEATURES:
             manifest["system"] = qsim_report
-            if kernel_feature in ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-device-reset", "test-net-service-exhaustion"):
+            if kernel_feature in ("native-net-service", "test-net-service-client-exit", "test-net-service-revoke", "test-net-service-helper", "test-net-service-device-reset", "test-net-service-exhaustion"):
                 manifest["network_service"] = {name: qsim_report[f"network_{name}"]
                                                for name in ("service", "client")}
             if kernel_feature in RANDOM_FEATURES:

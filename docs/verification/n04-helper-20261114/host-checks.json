@@ -1,0 +1,123 @@
+{
+  "task": "HOST43",
+  "repository_head": "1260de8b5b0bb5330422ab9d5a63a64f5e2603b7",
+  "source_sha256_before": {
+    "services/network-service/Cargo.toml": "b1a20dbb3509b5c22bd596e0ac86dea655f4f2c21fad156c77b9406f6953f7ce",
+    "services/network-service/Cargo.lock": "52cec421462c6869ae7abab8ce7d1b14770b21011a9fc51627771d2a5498e9ef",
+    "services/network-service/src/lib.rs": "67e70360df42d179f5ca7c59796316e1e6b85fe65d66ee9945b17e074a3f0865",
+    "services/network-service/protocol/Cargo.toml": "6269d1cc93fce87cd029aad7b0869ba143a1f22218ade9356f90dbcb21f5a465",
+    "services/network-service/protocol/Cargo.lock": "abd50f1faab749f4ce0f4686e71b32a9411070723f44401704f74da979d3dacc",
+    "services/network-service/protocol/src/lib.rs": "e99416de8cf679f45ee43e15c11bcfa1a29817d069fbcf6a41d237218018ecae",
+    "sdk/net-client/Cargo.toml": "3e4a40842f40c36d5f2315705379f7912037db5bb6a53d2effed2d3c8b6ce652",
+    "sdk/net-client/Cargo.lock": "73994fed0885862cc06c4690ff9de0e403f91e352e412a7af08e63743c9195c5",
+    "sdk/net-client/src/lib.rs": "a84c5a8b7accd92031667e1bd0958193b5dadff83b7901568f98f286a89a1074"
+  },
+  "target_dir": "/workspace/scratch/53a47a425cff/BaryonOS/target/issue43-helper-host",
+  "checks": [
+    {
+      "name": "network-service-test",
+      "command": [
+        "rtk",
+        "proxy",
+        "cargo",
+        "+1.91.1",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "services/network-service/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 2.079,
+      "log": "build/issue43-helper-checks/host43-network-service-test.log",
+      "log_sha256": "fa38cf85967c47155c59782eddb7a6a415f792aff217aafe0fd7b9ae4ee28486",
+      "summaries": [
+        "    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.92s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ]
+    },
+    {
+      "name": "network-service-clippy",
+      "command": [
+        "rtk",
+        "proxy",
+        "cargo",
+        "+1.91.1",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "services/network-service/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 1.37,
+      "log": "build/issue43-helper-checks/host43-network-service-clippy.log",
+      "log_sha256": "fb59cc95aa141d66146798deb75f772f1c4f1238e21656e27d7bc79fe86db78c",
+      "summaries": [
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.33s"
+      ]
+    },
+    {
+      "name": "network-protocol-test",
+      "command": [
+        "rtk",
+        "proxy",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "services/network-service/protocol/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.319,
+      "log": "build/issue43-helper-checks/host43-network-protocol-test.log",
+      "log_sha256": "cb8e450d25c0ec15f63a7eb8ffbe2a3819570a60a61a0250acdf00f0387855e8",
+      "summaries": [
+        "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.27s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ]
+    },
+    {
+      "name": "net-client-test",
+      "command": [
+        "rtk",
+        "proxy",
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/net-client/Cargo.toml"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.621,
+      "log": "build/issue43-helper-checks/host43-net-client-test.log",
+      "log_sha256": "8c01ea0836d9ec898043d959dadc4d52a16c9a4624c267eedaf07a0f32a33853",
+      "summaries": [
+        "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.54s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ]
+    }
+  ],
+  "source_sha256_after": {
+    "services/network-service/Cargo.toml": "b1a20dbb3509b5c22bd596e0ac86dea655f4f2c21fad156c77b9406f6953f7ce",
+    "services/network-service/Cargo.lock": "52cec421462c6869ae7abab8ce7d1b14770b21011a9fc51627771d2a5498e9ef",
+    "services/network-service/src/lib.rs": "67e70360df42d179f5ca7c59796316e1e6b85fe65d66ee9945b17e074a3f0865",
+    "services/network-service/protocol/Cargo.toml": "6269d1cc93fce87cd029aad7b0869ba143a1f22218ade9356f90dbcb21f5a465",
+    "services/network-service/protocol/Cargo.lock": "abd50f1faab749f4ce0f4686e71b32a9411070723f44401704f74da979d3dacc",
+    "services/network-service/protocol/src/lib.rs": "e99416de8cf679f45ee43e15c11bcfa1a29817d069fbcf6a41d237218018ecae",
+    "sdk/net-client/Cargo.toml": "3e4a40842f40c36d5f2315705379f7912037db5bb6a53d2effed2d3c8b6ce652",
+    "sdk/net-client/Cargo.lock": "73994fed0885862cc06c4690ff9de0e403f91e352e412a7af08e63743c9195c5",
+    "sdk/net-client/src/lib.rs": "a84c5a8b7accd92031667e1bd0958193b5dadff83b7901568f98f286a89a1074"
+  },
+  "source_unchanged": true
+}

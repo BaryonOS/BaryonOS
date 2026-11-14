@@ -36,7 +36,7 @@ BODIES = (b"Nieuw OS service A\n", b"Nieuw OS service B\n")
 RESPONSES = tuple(b"HTTP/1.1 200 OK\r\nContent-Length: 19\r\nConnection: close\r\n\r\n" + b for b in BODIES)
 UDP_PAYLOADS = (b"Nieuw OS UDP app A", b"Nieuw OS UDP app B")
 CORRUPT_DELAY = 0.25
-CASES = ("normal", "client-exit", "revoke", "device-reset", "exhaustion")
+CASES = ("normal", "client-exit", "revoke", "device-reset", "exhaustion", "helper")
 RESET_PROBE = b"reset-probe"
 PORT_BUDGET = 12_768
 # One SYN/reset pair per allocated port, plus a finite ARP/retry allowance.
@@ -133,8 +133,8 @@ class Machine:
         if case not in CASES or case == "exhaustion":
             raise ValueError("unknown native service peer case")
         self.case = case
-        self.ports = PORTS if case == "normal" else (8084 if case == "client-exit" else 8080, *range(8090, 8095))
-        self.slots = (0, 1) if case == "normal" else (1,)
+        self.ports = PORTS if case in ("normal", "helper") else (8084 if case == "client-exit" else 8080, *range(8090, 8095))
+        self.slots = (0, 1) if case in ("normal", "helper") else (1,)
         if case == "device-reset":
             self.ports, self.slots = (8080,), ()
         self.probes = {}
@@ -439,10 +439,10 @@ class Machine:
         cases = {str(p): dict(phase=c.phase, source=c.source, syns=c.syns, request_bytes=len(c.request),
                              request_sha256=hashlib.sha256(c.request).hexdigest(), data_acked=c.data_acked,
                              fin_sent=c.fin_sent, closed=c.closed) for p, c in self.connections.items()}
-        success_ports = (8080, 8083, 8090, 8093) if self.case == "normal" else (8090, 8093)
+        success_ports = (8080, 8083, 8090, 8093) if self.case in ("normal", "helper") else (8090, 8093)
         owners = len(self.slots)
         complete = (set(self.connections) == set(self.ports) and self.udp == set(self.slots)
-                    and {c.source for c in self.connections.values()} == (set(range(40000, 40010)) if self.case == "normal" else {40000, 40001, 40003, 40005, 40007, 40009})
+                    and {c.source for c in self.connections.values()} == (set(range(40000, 40010)) if self.case in ("normal", "helper") else {40000, 40001, 40003, 40005, 40007, 40009})
                     and all(self.done(c) for c in self.connections.values())
                     and all(self.connections[p].closed and self.connections[p].data_acked
                             for p in success_ports)

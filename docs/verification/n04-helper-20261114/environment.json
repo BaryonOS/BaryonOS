@@ -1,0 +1,102 @@
+{
+  "environment_file": "/workspace/scratch/53a47a425cff/tooling/env.sh",
+  "checks": [
+    {
+      "command": [
+        "/workspace/scratch/53a47a425cff/tooling/bin/qemu-system-x86_64",
+        "--version"
+      ],
+      "exit": 0,
+      "output": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/53a47a425cff/tooling/bin/qemu-system-x86_64",
+        "-machine",
+        "help"
+      ],
+      "exit": 0,
+      "output": "pc-q35-8.2           Standard PC (Q35 + ICH9, 2009)\nq35                  Standard PC (Q35 + ICH9, 2009) (alias of pc-q35-10.0)\npc-q35-10.0          Standard PC (Q35 + ICH9, 2009)"
+    },
+    {
+      "command": [
+        "rustc",
+        "+1.91.1",
+        "--version"
+      ],
+      "exit": 0,
+      "output": "rustc 1.91.1 (ed61e7d7e 2025-11-07)\n"
+    },
+    {
+      "command": [
+        "rustup",
+        "target",
+        "list",
+        "--toolchain",
+        "1.91.1",
+        "--installed"
+      ],
+      "exit": 0,
+      "output": "x86_64-unknown-linux-gnu\nx86_64-unknown-none\n"
+    }
+  ],
+  "artifacts": {
+    "qemu_binary": {
+      "path": "/workspace/scratch/53a47a425cff/tooling/qemu-root/usr/bin/qemu-system-x86_64",
+      "sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067"
+    },
+    "qemu_wrapper": {
+      "path": "/workspace/scratch/53a47a425cff/tooling/bin/qemu-system-x86_64",
+      "sha256": "d8c539cd3f3d60ed387c28fd26aa1e56550ec7bce8276a4d8a74b21ca38a1d5c"
+    },
+    "ovmf_code": {
+      "path": "/workspace/scratch/53a47a425cff/tooling/qemu-root/usr/share/OVMF/OVMF_CODE_4M.fd",
+      "sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0"
+    },
+    "ovmf_vars": {
+      "path": "/workspace/scratch/53a47a425cff/tooling/qemu-root/usr/share/OVMF/OVMF_VARS_4M.fd",
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    },
+    "rtk": {
+      "path": "/workspace/scratch/53a47a425cff/tooling/bin/rtk",
+      "sha256": "4625c86e6eab82911e25a340657450e9d45a3e992871580946e25e7a3f20bca7"
+    },
+    "rustc_1_90_0": {
+      "path": "/workspace/scratch/53a47a425cff/tooling/rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/bin/rustc",
+      "sha256": "e6abf55ab1859e7c990be77fd593f51661ea99fb2fde626ae9f4108aaa34e7fa"
+    },
+    "rustc_1_91_1": {
+      "path": "/workspace/scratch/53a47a425cff/tooling/rustup/toolchains/1.91.1-x86_64-unknown-linux-gnu/bin/rustc",
+      "sha256": "5eadaaf4fe086d76547b17dc3c1ba880d0082b93f7d8bc65612770da8e79fe8e"
+    }
+  },
+  "package_manifest": "/workspace/scratch/53a47a425cff/tooling/qemu-packages.json",
+  "rustup_init_sha256": "b1c8cb14e30889e7e2999e6b69e62d9e9b9ffc0f4df8180564d306d9680e6c55",
+  "debian_signature_log": "/workspace/scratch/53a47a425cff/tooling/debian-signature.log",
+  "rtk_manifest": "/workspace/scratch/53a47a425cff/tooling/rtk-provenance.json",
+  "paused_qemu_initialization": {
+    "succeeded": true,
+    "duration_limit_seconds": 2,
+    "native_guest_executed": false,
+    "stderr": ""
+  },
+  "rtk_exit_propagation": {
+    "observed": 7,
+    "expected": 7
+  },
+  "seabios_data_links": [
+    "vgabios-bochs-display.bin",
+    "vgabios-isavga.bin",
+    "vgabios-ramfb.bin",
+    "vgabios.bin",
+    "vgabios-stdvga.bin",
+    "vgabios-qxl.bin",
+    "bios-microvm.bin",
+    "bios.bin",
+    "bios-256k.bin",
+    "vgabios-cirrus.bin",
+    "vgabios-vmware.bin",
+    "vgabios-virtio.bin",
+    "vgabios-ati.bin"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "review_kind": "independent read-only AI artifact replay; no fresh native execution",
+  "source_commit": "97d23ff603e0932218b893df0b994a8a15f93217",
+  "source_fingerprint_version": 3,
+  "source_sha256": "a0ea5f864712a11f302d8e2f189990eff9e77d96f550c9e28348aa7ad8facb3c",
+  "positive_report": "/workspace/scratch/53a47a425cff/BaryonOS/build/issue43-helper-native/network-service-helper-report.json",
+  "positive_report_sha256": "71733dbfe3fecf6465e9b227d1d3f0d0581fa84368ab9ff05014425a29ed5d07",
+  "checks": {
+    "source_commit_is_current_head": true,
+    "source_fingerprint_matches": true,
+    "run_result_matches_report": true,
+    "serial.txt_hash": true,
+    "serial.txt_bytes": true,
+    "stderr.txt_hash": true,
+    "stderr.txt_bytes": true,
+    "stored_peer_matches_report": true,
+    "serial_and_packet_replay_matches": true,
+    "complete_two_owner_wire_transcript": true,
+    "inspected_elf_manifest_matches": true,
+    "run_esp_matches_manifest": true,
+    "immutable_run_snapshots_match": true,
+    "original_firmware_matches": true,
+    "qemu_command_hash_matches": true,
+    "head_unchanged_during_replay": true,
+    "mutant_serial_hash": true,
+    "mutant_real_guest_failure": true,
+    "mutation_file_hashes": true,
+    "mutation_is_exact_sender_bypass": true,
+    "mutant_source_and_inspected_artifacts_match": true,
+    "mutant_observed_unauthorized_effects": true
+  },
+  "observed": {
+    "raw_qemu_exit": 33,
+    "duration_s": 6.7397806250010035,
+    "helper_fence": {
+      "432": 0,
+      "440": 6,
+      "448": 0,
+      "456": 0,
+      "464": 0,
+      "472": 0,
+      "480": 0,
+      "488": 0,
+      "496": 0,
+      "544": 0
+    },
+    "helper_release_tick": 2,
+    "exit_ticks": {
+      "HELPER": 2,
+      "APP_A": 479,
+      "APP_B": 483
+    },
+    "helper_sent": 6,
+    "service_rejected": 28,
+    "service_opened": 10,
+    "tx_completed": 45,
+    "rx_delivered": 39,
+    "udp_requests": 2
+  },
+  "mutant": {
+    "report": "/workspace/scratch/53a47a425cff/BaryonOS-helper-mutant/build/helper-mutant/network-service-helper-report.json",
+    "report_sha256": "f34812065837887a6681cb5d6c6bf01ed5a4c828693f3cb54a2b82e54c892edb",
+    "source_sha256": "4c2d6995599c79c176e2af8aecfe2c38ecf972a26adcccd5287634c71297a407",
+    "raw_qemu_exit": 35,
+    "duration_s": 2.196580226998776,
+    "failure": "NETSVC:FAIL:HELPER_EARLY_EXIT",
+    "accepted_requests": 6,
+    "opened_sockets": 2,
+    "retired_mask": 3,
+    "sender_rejections": 0
+  },
+  "limits": [
+    "Replays existing actual artifacts; does not execute another VM.",
+    "QEMU command hash may identify its wrapper; toolchain package provenance is recorded separately.",
+    "No physical hardware, production subgrant issuer/regrant-generation or durable service-restart revocation acceptance."
+  ]
+}

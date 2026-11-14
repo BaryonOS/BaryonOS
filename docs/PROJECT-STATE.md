@@ -2,8 +2,8 @@
 
 ## NEXT AGENT HANDOFF — issue #41 TEST policy codec and native probe — 14 November 2026
 
-**Source:** `feat/issue41-policy-test`, recovering local `b8d1afe` and
-integrating main `4cd444e08dac820cc66f2750c43845b4139901cc` after the project
+**Source:** PR #336, `feat/issue41-policy-test`, recovering local `b8d1afe` and
+integrating main `ce47359fcd9c62abca50da87ac62183026aac91c` after the project
 owner squash-merged PR #328. The recovered proposal/model and ADR-B03K3 are
 followed by the explicit `experimental-policy-test` codec in `update-core`.
 
@@ -24,7 +24,7 @@ no remaining defect; it is an AI source review, not a human audit.
 [Host receipt](verification/b03-policy-envelope-20261114/p1-host.json).
 The earlier 92 symbolic checks retain their original source boundary.
 QEMU 10.0.13 and matching OVMF are available for the separate native probe;
-no native policy result is claimed at this checkpoint.
+combined-source native results remain pending at this checkpoint.
 
 **Progress:** 41/100 → 41/100. No criterion changes from this host implementation.
 
@@ -71,6 +71,42 @@ preserve the current 18-stage gate and add native transition evidence.
 B04, production custody and independent review remain open. No merge or
 auto-merge approval is inferred.
 
+## Previous checkpoint — N04 helper follow-up after #328 squash — 14 November 2026
+
+**Source:** branch `test/issue43-n04-helper-isolation`, based on merged main
+`4cd444e08dac820cc66f2750c43845b4139901cc`. Verified executable source:
+`21a53dd9342988263f7d49e9ef559fb7a2d288cd`; source-v3:
+`865b0320b2da88dda92991fdf89de17989ec3807d58fccb0691a8f735f12d7e2`.
+
+**Publication identity:** source commit `7f693d73702072fa0db3b99ffc56df3eed6b8fa5`
+has the identical Git tree `7ad12f6febb30cf66bd3f2c7c7f9bd6b5922ee82` as the
+locally verified source above. The GitHub connector changes commit metadata;
+original execution receipts retain their actual local commit identity.
+
+**Result:** an unregistered fourth process submits six valid requests to the
+two real app ingresses through test-only SEND aliases. Kernel sender identity
+rejects all six before replay/backend or packet effects; both registered apps
+then complete their full normal scenarios. The host checks the causal fence,
+traffic and four-process cleanup. Routine CI includes a separate required helper
+report. Production permissions and authentication are unchanged. The ten-file
+delta retains main's recent Python fixes and all earlier merged work.
+
+**Evidence:** fresh helper/normal/client-exit/revoke/device-reset/exhaustion runs
+pass with raw QEMU exit 33. Strict preflight, standard build and smoke, 92 Python
+tests, 24 Rust tests, strict service Clippy and formatting pass. Separate AI
+integration review found no blocker. The earlier sender-bypass mutation and
+22-check artifact replay retain their original local-source identities.
+[Receipts and limits](verification/n04-helper-20261114/README.md).
+Later evidence/status commits leave executable inputs unchanged.
+
+**Progress:** 41/100 → 41/100; N04 and #43 remain open. PR #328 was squash-merged;
+the former PR's outstanding-merge instructions below are historical. The helper
+test does not establish production delegation, regrant generation, durable
+service-restart revocation, physical hardware or human security acceptance.
+
+**Next:** inspect hosted checks for this bounded follow-up. Continue
+N04 through a reviewed production issuer/delegation and durable-revocation
+contract. The earlier H02/network/update handoffs are retained below.
 
 ## Previous checkpoint — PR #328 integration with main — 14 November 2026
 
