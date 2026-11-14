@@ -310,6 +310,7 @@ test-volume-archive-full = ["native-volume"]
 # service; the kernel's own version comes from the build env NOS_IMAGE_VERSION.
 native-update = ["milestone-m6a"]
 test-update-cut = ["native-update"]
+native-update-policy-probe = ["native-update"]
 
 [dependencies]
 nieuw-os-tpm-crb = { path = "../drivers/tpm-crb", optional = true }

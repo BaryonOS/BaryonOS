@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Build the native B03 update service; this never boots, signs or grants capabilities."""
 from __future__ import annotations
+import argparse
 import json
 from pathlib import Path
 import subprocess
@@ -12,6 +13,10 @@ sys.path.insert(0, str(ROOT / "tools"))
 from common import environment as toolchain_environment
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--policy-envelope-probe", action="store_true",
+                        help="run the read-only public TEST-vector authentication probe")
+    args = parser.parse_args()
     environment = toolchain_environment()
     # Explicit target flags prevent inheriting the parent kernel linker script.
     # Portable curve25519 and SHA-512 backends avoid SIMD dispatch: the ring-3
@@ -24,9 +29,12 @@ def main() -> int:
              "--cfg", 'sha2_backend="soft"']
     environment["CARGO_ENCODED_RUSTFLAGS"] = "\x1f".join(flags)
     environment.setdefault("CARGO_TARGET_DIR", str(ROOT / "build/sdk-update"))
+    features = "native,test-signing-anchors"
+    if args.policy_envelope_probe:
+        features += ",test-policy-envelope-probe"
     command = ["cargo", "build", "--offline", "--locked", "--release",
                "--manifest-path", str(ROOT / "sdk/Cargo.toml"),
-               "-p", "nieuw-os-update-example", "--features", "native,test-signing-anchors",
+               "-p", "nieuw-os-update-example", "--features", features,
                "--bins", "--target", "x86_64-unknown-none"]
     print(json.dumps({"command": command, "target_dir": environment["CARGO_TARGET_DIR"]}), flush=True)
     return subprocess.run(command, cwd=ROOT, env=environment, check=False).returncode

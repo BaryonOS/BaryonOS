@@ -1,6 +1,78 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #328 integration with main — 14 November 2026
+## NEXT AGENT HANDOFF — issue #41 TEST policy codec and native probe — 14 November 2026
+
+**Source:** `feat/issue41-policy-test`, recovering local `b8d1afe` and
+integrating main `4cd444e08dac820cc66f2750c43845b4139901cc` after the project
+owner squash-merged PR #328. The recovered proposal/model and ADR-B03K3 are
+followed by the explicit `experimental-policy-test` codec in `update-core`.
+
+**Decision:** the project owner authorised publication and implementation of
+the reviewed TEST-key/disposable-QEMU experiment. ADR-B03K3 records that scope.
+Production custody, a rollback-resistant backend, B04 and real signing/releases
+remain outside it. No repeated approval is required for the authorised work.
+
+**Result:** the bounded codec authenticates complete policy tables and exact
+policy/manifest bindings with both Ed25519 and ML-DSA-65 signatures. It enforces
+fixed root identity, role/component separation, release windows, image floors,
+strict successor lineage and permanent revocation tombstones. Runtime parsing
+is allocation-free; the experimental feature is disabled by default.
+
+**Evidence:** 31 integrated host tests pass on local source `62bd312ee74efd9e73c0ad3e905edf2188c00867`:
+8 legacy core, 6 pinned-policy, 13 envelope and 4 CLI tests. The P1 review found
+no remaining defect; it is an AI source review, not a human audit.
+[Host receipt](verification/b03-policy-envelope-20261114/p1-host.json).
+The earlier 92 symbolic checks retain their original source boundary.
+QEMU 10.0.13 and matching OVMF are available for the separate native probe;
+no native policy result is claimed at this checkpoint.
+
+**Progress:** 41/100 → 41/100. No criterion changes from this host implementation.
+
+**Native integration:** the explicit read-only TEST probe is integrated. The
+loader and ring-3 service independently execute 26 authenticated-vector cases;
+the builder run passed with both masks complete and no block writes/flushes.
+The phase-order oracle defect found during review was fixed and regression-tested.
+The follow-up PR adds separate CI checks while retaining all 18 existing stages.
+Combined-source verification and its durable receipt are the current next step.
+
+**Next:** run the combined-source native probe, full 18-stage gate and standard
+gates. Freeze native ingress and persistence semantics before wiring a policy
+transition; production prerequisites remain open.
+
+## Previous checkpoint — issue #41 policy transition specification — 14 November 2026
+
+**Source:** existing PR #328, branch `fix/issue43-network-usb-followup`.
+Verified integrated source: `a0599501a624822d93ca60718df24fa70a2582e8`, preserving the
+concurrent #42 continuation `885e128082483ec871831fbbfc757a6e5104e6b4` unchanged.
+Later receipt/status edits are documentation only.
+
+**Result:** the [proposed B03 transition](implementation/B03-POLICY-TRANSITION-PROPOSAL.md)
+specifies policy/image binding, exact resume identity, anchor commit/readback,
+monotonic floors, revocation history and interruption/fallback outcomes.
+All D1–D7 dispositions remain pending. The finite symbolic model now follows
+the actually selected fallback image when protecting the running slot.
+Existing native source, TEST anchors, workflows and the 18-stage gate are
+unchanged by this contribution; the #42 source and prior evidence are preserved.
+
+**Evidence:** 92 symbolic model checks, 15 existing Python update-harness tests,
+progress consistency and the default loader/kernel build pass on the exact
+integrated source. Strict preflight exits 2 because QEMU and OVMF are missing;
+smoke exits 1 before a guest starts. These are not native transition results.
+A separate read-only AI proposal review found no remaining blocker after fixes;
+it is not a human audit. [Commands, hashes and limits](verification/b03-policy-transition-20261114/README.md).
+
+**Progress:** 41/100 → 41/100. B03's existing two points are retained; no new
+criterion is accepted by a proposal or symbolic specification check.
+
+**Next:** record the project owner's disposition of the proposed synthetic
+experiment, separately from unresolved production decisions. Freeze the exact
+native backend/anchor encoding/ingress contract before implementing it; then
+preserve the current 18-stage gate and add native transition evidence.
+B04, production custody and independent review remain open. No merge or
+auto-merge approval is inferred.
+
+
+## Previous checkpoint — PR #328 integration with main — 14 November 2026
 
 **Source:** PR #328 head `885e128082483ec871831fbbfc757a6e5104e6b4`,
 integrated with main `aba6149fd4473aff73fdcf121c133d4960e3d939`.

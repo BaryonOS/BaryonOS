@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "885e128082483ec871831fbbfc757a6e5104e6b4",
+    "source_commit": "8b943aa2c4675c468e6cca9bbb75fbf6f3962bdf",
     "assessment_basis": "parent_commit",
-    "branch": "fix/issue43-network-usb-followup",
-    "task": "Resolve PR #328 conflicts against accepted Python quality and Token Guard changes",
+    "branch": "feat/issue41-policy-test",
+    "task": "Recover issue #41 after PR #328 squash and record authorised TEST-only implementation",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. PR #328 integrates main aba6149fd4473aff73fdcf121c133d4960e3d939 while preserving both status histories, the USB boot-session and network/update work, and accepted main changes. The required JSON import is retained after reproducing nine NameError errors in the automatic merge. All 148 targeted Python host tests, 44 USB component tests, strict preflight, the standard build and QEMU smoke pass. Source and preservation evidence is recorded in docs/verification/pr328-main-integration-20261114.json. Hosted checks and existing acceptance conditions remain separate; no criterion or weight changes."
+    "summary": "41/100 remains 41/100. The previously unpublished transition specification/model is recovered on merged main, and ADR-B03K3 records the owner-approved TEST-key/QEMU experiment. Production trust, native transition evidence and the criterion register remain unchanged. The codec/native implementation is in progress; historical model evidence is not promoted to native acceptance."
   },
   "tracks": [
     {

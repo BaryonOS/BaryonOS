@@ -3556,3 +3556,49 @@ The project owner approved D1–D5 in the direction below, on the condition that
 **Statistics, stated plainly.** Five timing failures in the three full matrices give 1.7 expected failures per matrix (exact 95 % interval 0.5–3.9), a pass probability of about 19 % (2–58 %) for the unchanged contract. A pass probability of 99 % for 3 550 guests needs a per-guest false-failure rate of at most 2.8 × 10⁻⁶; showing that at 95 % confidence takes about 1.06 million failure-free boots, roughly 300 clean matrices, so no available sample can demonstrate it. After D1–D3 the known mechanisms are removed by construction, but the incident history shows a new rare class in almost every full matrix: three classes were seen exactly once in about 9 800 guests, which puts the probability of yet another class at an order of one per matrix (pass probability about 35 %), while the optimistic assumption that the mechanism list is complete gives 85–90 %. The 250 clean hosted boots do not separate these estimates.
 
 **Risks and open items.** The liveness window, the cap, the receptive-span threshold and the host-loss bound are engineering limits, not proofs. TCG results do not transfer to KVM or hardware. The normative step texts live on branch `docs/k06-step-specs` and must receive the approved changes when that branch is integrated. A review by an AI is not an independent human audit.
+
+
+## ADR-B03K3 — Authorised synthetic policy-transition experiment
+
+**Date:** 14 November 2026. **Scope:** issue #41; TEST keys and disposable
+QEMU state only. The project owner authorised publication of the reviewed
+transition work and implementation of the explicitly bounded experiment after
+the proposal and its evidence limits were presented. PR #328 had already been
+squash-merged; missing work therefore continues on `feat/issue41-policy-test`.
+
+**Approved experimental design:** fixed, distinct root/release roles; the
+canonical policy and image-binding envelopes in
+[B03-POLICY-TRANSITION-PROPOSAL.md](implementation/B03-POLICY-TRANSITION-PROPOSAL.md);
+complete operation identity; monotonically enforced policy/image floors;
+permanent revoked-pair tombstones; eligible, policy-bound fallback; and
+fail-closed handling of uncertain durable state. The synthetic experiment may
+use deliberately public TEST seeds. Both signature algorithms remain required.
+
+**Execution order:** first implement and negatively test the bounded `no_std`
+codec with the existing reviewed crypto dependencies, behind an explicit
+`experimental-policy-test` feature. Then execute the same verifier on the
+project's own native path with TEST fixtures. Freeze the exact native ingress,
+anchor encoding, write/flush/readback semantics and fault oracle before wiring
+a persistent policy transition. Retain all 18 existing update acceptance stages
+and the missing-production-policy compiler guards. No new ordinary-app rights,
+implicit kernel policy parser or production-profile activation follows.
+
+**D1–D7 disposition:** the experiment's roles, format, transition rules, fixed
+root, release-version semantics and TEST-only activation scope are approved.
+Production custody/ceremony, a concrete rollback-resistant backend, production
+ingress, B04 enrolment/boot/root recovery, trusted freshness/calendar expiry
+and independent release-chain review remain unresolved. An emulator variable
+or host-controlled anchor can expose behaviour and counterexamples; it cannot
+prove physical persistence or whole-state rollback resistance.
+
+**Evidence:** the preceding 92-check symbolic model is a finite specification
+exercise, not native crypto/storage evidence. Each implementation checkpoint
+records its actual source and executed checks separately. No acceptance point
+is awarded by this approval. Real key generation, production signing, release
+publication and physical-device changes remain outside this authorisation.
+
+**Revision criteria:** reassess after native interruption/replay results, a
+concrete backend or ingress contract, a proposed production trust change, or
+independent review. Never reinterpret experimental success as production
+acceptance. Reverting the experimental feature and its fixtures leaves the
+existing TEST update path and missing-policy guards intact.

@@ -243,6 +243,17 @@ pub extern "C" fn _start() -> ! {
     if native::check_abi().is_err() {
         fail(1, -38);
     }
+    #[cfg(feature = "test-policy-envelope-probe")]
+    {
+        // Independently authenticate immutable public TEST vectors in ring 3.
+        // Evidence only: these words confer no policy or block authority.
+        let report = update_core::policy_envelope::probe::run();
+        support::put(408, report.cases);
+        support::put(416, report.passed_mask);
+        if !report.passed() {
+            fail(17, -20);
+        }
+    }
     let Ok(handle) = Handle::from_raw(support::word(48)) else {
         fail(1, -1);
     };
