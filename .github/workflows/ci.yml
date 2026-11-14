@@ -201,6 +201,8 @@ jobs:
           job-status: ${{ job.status }}
           if-no-files-found: error
           path: build/coverage-raw/rust-cobertura.xml
+          required-paths: build/coverage-raw/rust-cobertura.xml
+          max-file-bytes: '4194304'
       - name: Preserve Python coverage artifact
         if: ${{ always() }}
         uses: ./.github/actions/preserve-evidence

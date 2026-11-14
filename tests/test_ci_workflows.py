@@ -8,6 +8,7 @@ native QEMU acceptance.
 
 import hashlib
 import io
+import json
 import os
 from pathlib import Path
 import re
@@ -307,6 +308,46 @@ class WorkflowContractTests(unittest.TestCase):
         for path, workflow in self.workflows.items():
             for job_id, job in workflow["jobs"].items():
                 yield path, job_id, job
+
+    def test_rust_coverage_report_survives_the_actual_collection_step(self):
+        """Archive a synthetic XML of the observed failing size through CI's shell step."""
+        steps = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]["steps"]
+        caller = next(step for step in steps if step.get("name") == "Preserve Rust coverage artifact")
+        action = self.actions[EVIDENCE_ACTION]
+        inputs = {name: spec.get("default", "") for name, spec in action["inputs"].items()}
+        inputs.update(caller["with"])
+        inputs["job-status"] = "success"
+        collect = next(step for step in action["runs"]["steps"] if step.get("id") == "collect")
+        header, footer = b'<coverage><packages/>', b'</coverage>\n'
+        original = header + b" " * (2349735 - len(header) - len(footer)) + footer
+        with tempfile.TemporaryDirectory(prefix="coverage-evidence-") as directory:
+            root = Path(directory)
+            workspace, runner = root / "workspace", root / "runner"
+            (workspace / "tools").mkdir(parents=True)
+            runner.mkdir()
+            (workspace / "tools/ci_evidence.py").write_bytes((ROOT / "tools/ci_evidence.py").read_bytes())
+            report = workspace / inputs["path"]
+            report.parent.mkdir(parents=True)
+            report.write_bytes(original)
+            env = dict(os.environ, GITHUB_WORKSPACE=str(workspace), RUNNER_TEMP=str(runner),
+                       GITHUB_OUTPUT=str(root / "outputs"), GITHUB_STEP_SUMMARY=str(root / "summary"))
+            for name, expression in collect["env"].items():
+                match = re.fullmatch(r"\$\{\{ inputs\.([\w-]+) \}\}", expression)
+                self.assertIsNotNone(match)
+                env[name] = str(inputs[match.group(1)])
+            result = subprocess.run(["bash", "-e", "-o", "pipefail", "-c", collect["run"]],
+                                    cwd=workspace, env=env, capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            outputs = dict(line.split("=", 1) for line in (root / "outputs").read_text().splitlines())
+            retained = Path(outputs["path"]) / inputs["path"]
+            self.assertTrue(retained.is_file(), "The Rust XML was omitted from compact evidence")
+            self.assertEqual(retained.read_bytes(), original)
+            receipt = json.loads((Path(outputs["path"]) / "_meta/receipt.json").read_text())
+            self.assertEqual(receipt["retained"][0]["sha256"], hashlib.sha256(original).hexdigest())
+            self.assertEqual(receipt["limits"]["file_bytes"], 4 * 1024 * 1024)
+            self.assertEqual(receipt["limits"]["total_bytes_including_receipt"], 8 * 1024 * 1024)
+            self.assertEqual(receipt["required_paths"], [inputs["path"]])
+            self.assertEqual(outputs["required-files"], "true")
 
     def steps(self):
         """Include nested local-action steps in supply-chain and error checks."""
@@ -701,6 +742,45 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
                         "docs.rs", "tools/project_classification.py.orig"):
             with self.subTest(built=changed):
                 self.assertFalse(ignored(changed))
+
+    def test_merge_hold_is_an_unfiltered_live_read_required_gate(self):
+        """The hold must always report, read live state and never be skipped."""
+        path = ".github/workflows/merge-hold.yml"
+        workflow = self.workflows[path]
+        trigger = workflow["on"]["pull_request"]
+        self.assertEqual(set(workflow["on"]), {"pull_request"})
+        self.assertEqual(
+            set(trigger["types"]),
+            {"opened", "synchronize", "reopened", "labeled", "unlabeled"},
+        )
+        for key in ("paths", "paths-ignore", "branches", "branches-ignore"):
+            self.assertNotIn(key, trigger)
+        self.assertNotIn("defaults", workflow)
+        self.assertEqual(list(workflow["jobs"]), ["merge-hold"])
+        job = workflow["jobs"]["merge-hold"]
+        self.assertEqual(job["name"], "merge-hold")
+        self.assertEqual(
+            job["permissions"],
+            {"contents": "read", "issues": "read", "pull-requests": "read"},
+        )
+        for key in ("if", "needs", "continue-on-error", "strategy", "defaults",
+                    "container", "services"):
+            self.assertNotIn(key, job)
+        checkout, decide = job["steps"]
+        self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
+        self.assertEqual(checkout["with"], {"persist-credentials": "false"})
+        for step in (checkout, decide):
+            for key in ("if", "continue-on-error", "working-directory"):
+                self.assertNotIn(key, step)
+        self.assertNotIn("uses", decide)
+        self.assertEqual(decide["shell"], "bash")
+        self.assertEqual(decide["run"].strip(), "python3 -B tools/merge_hold.py")
+        self.assertEqual(decide["env"], {
+            "GH_TOKEN": "${{ github.token }}",
+            "REPO": "${{ github.repository }}",
+            "PR_NUMBER": "${{ github.event.pull_request.number }}",
+            "HEAD_SHA": "${{ github.event.pull_request.head.sha }}",
+        })
 
     def test_only_artifact_uploads_can_tolerate_errors(self):
         """Storage failure may be optional; failed builds, tests and collectors are not."""
