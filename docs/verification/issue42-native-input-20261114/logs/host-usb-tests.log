@@ -1,0 +1,88 @@
+   Compiling nieuw-os-usb-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/drivers/usb)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.58s
+     Running unittests src/lib.rs (build/h02-final-host/debug/deps/nieuw_os_usb_core-65dfc221e0a905a4)
+
+running 8 tests
+test tests::accepts_minimum_and_maximum_encodable_lengths ... ok
+test tests::empty_transfer_has_no_descriptors ... ok
+test boot_session::tests::token_exhaustion_never_wraps_or_restarts_after_reset ... ok
+test tests::parses_borrowed_back_to_back_and_unknown_descriptors ... ok
+test tests::rejects_descriptor_truncated_by_transfer_boundary ... ok
+test tests::never_resynchronizes_after_malformed_descriptor ... ok
+test tests::rejects_incomplete_header_and_then_stops ... ok
+test tests::rejects_lengths_smaller_than_header ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/boot_interface.rs (build/h02-final-host/debug/deps/boot_interface-2d543d419686d7a0)
+
+running 11 tests
+test a_valid_prefix_cannot_hide_a_malformed_tail_or_duplicate_interface ... ok
+test boot_binding_requires_its_own_hid_descriptor_before_endpoints ... ok
+test endpoint_count_duplicate_and_ambiguous_input_are_distinct_failures ... ok
+test endpoint_from_another_interface_cannot_complete_the_selected_interface ... ok
+test selects_interface_level_boot_identity_and_its_own_input_endpoint ... ok
+test malformed_interface_and_endpoint_shapes_are_not_unknown_descriptors ... ok
+test every_endpoint_address_and_attribute_is_bounded_and_direction_is_not_inferred ... ok
+test only_requested_alternate_zero_can_bind_and_endpoints_do_not_bleed_across_alternates ... ok
+test configuration_header_and_all_transfer_cuts_cannot_return_a_partial_match ... ok
+test hid_shape_count_and_report_header_are_bounded ... ok
+test all_packet_words_and_intervals_obey_speed_without_confusing_packets_with_reports ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/boot_reports.rs (build/h02-final-host/debug/deps/boot_reports-6defe0c9a3b1a0ce)
+
+running 9 tests
+test malformed_mouse_reports_preserve_buttons_until_clear_or_valid_report ... ok
+test mouse_button_transitions_and_detach_release_are_per_lifetime ... ok
+test phantom_reports_keep_prior_keys_but_modifiers_continue_and_recovery_releases ... ok
+test unordered_array_is_a_set_not_make_break_or_typematic ... ok
+test truncated_or_extended_keyboard_transfers_cannot_clear_held_keys ... ok
+test all_keyboard_usages_and_slots_are_classified_without_a_legacy_cutoff ... ok
+test duplicate_nonzero_usages_fail_without_changing_prior_state ... ok
+test mouse_is_bounded_ignores_oem_and_decodes_signed_displacements_exactly ... ok
+test keyboard_report_is_exact_and_preserves_every_modifier_and_oem_value ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/boot_session.rs (build/h02-final-host/debug/deps/boot_session-f23e85c0834848a3)
+
+running 12 tests
+test an_independent_session_can_complete_while_another_is_pending_or_reset ... ok
+test detach_during_protocol_is_terminal_even_after_a_late_success ... ok
+test construction_reuses_descriptor_validation_and_bounds_the_single_packet_profile ... ok
+test keyboard_transitions_and_reset_release_the_selected_state_once ... ok
+test mouse_actual_length_cannot_exceed_its_endpoint_even_with_valid_boot_bytes ... ok
+test matching_failed_or_malformed_reports_are_consumed_without_mutating_held_keys ... ok
+test mouse_oem_bytes_are_bounded_and_detach_releases_buttons_without_movement ... ok
+test only_a_matching_successful_zero_data_protocol_completion_enables_input ... ok
+test reattaching_at_the_same_device_identity_requires_a_new_generation ... ok
+test reset_during_control_rejects_the_old_completion_without_losing_the_new_one ... ok
+test reset_with_held_keys_and_pending_input_cannot_revive_old_input ... ok
+test wrong_device_generation_interface_and_kind_cannot_consume_pending_work ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/framing.rs (build/h02-final-host/debug/deps/framing-66e23a0a2e549530)
+
+running 2 tests
+test malformed_framing_never_exposes_a_valid_looking_suffix ... ok
+test every_encodable_length_and_transfer_cut_has_an_exact_boundary_result ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/hid_control.rs (build/h02-final-host/debug/deps/hid_control-920befac73e74853)
+
+running 2 tests
+test boot_protocol_addresses_every_interface_without_a_data_stage ... ok
+test every_idle_duration_preserves_interface_and_uses_high_value_byte ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_usb_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

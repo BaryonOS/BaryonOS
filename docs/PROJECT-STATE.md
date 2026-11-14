@@ -1,6 +1,51 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — N04 helper follow-up after #328 squash — 14 November 2026
+## NEXT AGENT HANDOFF — H02 native USB and protected HID — 14 November 2026
+
+**Source:** draft PR [#333](https://github.com/BaryonOS/BaryonOS/pull/333), branch
+`feat/issue42-native-input`. Verified published native/standard source:
+`36f131fe3ce0fb5e4ad92ef4cf3cab4e86637694`; source-v3:
+`922c0e579e6fed6b03bf94ae320a01350504a334ff4d406a9fc9d050a37e25fe`.
+PR #328's squash at `4cd444e08dac820cc66f2750c43845b4139901cc` preserves its
+implementation. Main's N04 follow-up at `ce47359f` is also retained; prior
+unmerged-#328 instructions below are historical.
+
+**Result:** live DMA pages have opaque lease/record ownership, preventing
+generic free/reallocation and inappropriate aliases. Validated DMAR coverage
+supports actual requester-bound VT-d translation, readback and invalidation.
+A reproduced xHCI extended-capability layout defect is corrected. Actual QEMU
+USB enumeration and keyboard/mouse reports reach the existing Session. Real
+held-key unplug quiesces the endpoint, clears the key once and rejects the old
+token. A mapped read-only DMA write is denied with an unchanged guard.
+
+Protected HID ingress and `hid::Source` additionally pass a separate native
+process/IPC fixture covering focus, reset, detach/reattach and rejection. Its
+reports are synthetic. No production USB-to-UI handoff is claimed.
+
+**Evidence:** all six dedicated native cases and strict preflight, standard
+build and smoke pass on the published source: raw exit 33, no timeout, matching
+source and artifacts. Local QEMU 10.0.13 uses `pc-q35-8.2`. Both dedicated hosted
+H02 workflows pass separately with pinned QEMU 8.2.2. Host checks pass 213 Rust
+and 112 Python tests, formatting and strict Clippy at `b082f836`; the final
+source differs only by two verified local-dependency lock repairs. No package
+version changes. Independent AI review prompted a corrected desktop metadata
+regression and found no remaining blocker in its stated scope.
+[Source-bound reports, commands, raw-log digests and limits](verification/issue42-native-input-20261114/README.md).
+
+**Progress:** 41/100 → 41/100; H02 and issue #42 remain open. No criterion,
+weight, capability or acceptance-boundary changes. DMA pages/tables remain
+retained; the generic bus-master model stays test-only. The fixtures do not
+establish a long-lived driver, IRQ delivery, hardware reset/reattach, general
+hotplug, a physical reference profile or human acceptance.
+
+**Next:** implement an authority-checked completion handoff from the long-lived
+native USB owner to `hid::Source`, with an explicit coexistence contract for
+other DMA consumers. Then exercise actual USB reports through the input/focus
+path. Preserve the bounded polling fixtures and their negative gates; do not
+enable unrestricted bus mastering or combine the current exclusive DMA domain
+with unrelated device drivers. Inspect current PR-head checks separately.
+
+## Previous checkpoint — N04 helper follow-up after #328 squash — 14 November 2026
 
 **Source:** branch `test/issue43-n04-helper-isolation`, based on merged main
 `4cd444e08dac820cc66f2750c43845b4139901cc`. Verified executable source:

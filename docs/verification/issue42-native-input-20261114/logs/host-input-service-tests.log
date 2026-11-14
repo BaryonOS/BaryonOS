@@ -1,0 +1,59 @@
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/services/input-core)
+   Compiling nieuw-os-display-client v0.1.0 (/workspace/scratch/7264b5153599/h02-native/sdk/display-client)
+   Compiling nieuw-os-native-input-service v0.1.0 (/workspace/scratch/7264b5153599/h02-native/sdk/examples/input-service)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.04s
+     Running unittests src/lib.rs (build/h02-final-host/debug/deps/nieuw_os_native_input_service-8400038d31b2ba5c)
+
+running 11 tests
+test hid::tests::source_counter_exhaustion_is_terminal_without_wrapping ... ok
+test source::wait::tests::bounded_plan_deduplicates_exact_conditions_and_keeps_absolute_deadline ... ok
+test source::wait::tests::exact_abi_modes_no_future_or_old_version_guessing ... ok
+test source::wait::tests::critical_unexplained_or_non_lifetime_wait_fault_never_becomes_poll_success ... ok
+test source::wait::tests::source_only_waits_after_observed_block_and_raw_idle_keeps_original_tick ... ok
+test source::wait::tests::only_retained_full_reply_send_is_waited_and_ready_hint_does_not_consume ... ok
+test source::wait::tests::all_eleven_replies_fit_and_closed_condition_is_not_a_positive_mask ... ok
+test source::wait::tests::lifetime_wait_error_revalidates_and_retires_only_the_actual_bad_app_lane ... ok
+test source::wait::tests::idle_policy_plan_is_read_only_and_new_queued_work_is_immediately_visible ... ok
+test source::wait::tests::source_full_request_queue_waits_send_then_receive_without_replay_or_new_deadline ... ok
+test source::wait::tests::blocked_protected_ingress_is_excluded_then_restored_without_lost_work ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/boot.rs (build/h02-final-host/debug/deps/boot-59b8e79180ecccf4)
+
+running 3 tests
+test source_bootstrap_rejects_unknown_generation_reserved_state_and_handle_shape ... ok
+test ready_is_exactly_bound_to_role_service_boot_and_real_raw_epoch ... ok
+test policy_bootstrap_geometry_bindings_four_endpoints_and_unused_triplets_are_checked ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/daemon.rs (build/h02-final-host/debug/deps/daemon-3a6c2cb6209ffa60)
+
+running 17 tests
+test canonical_ack_from_wrong_kernel_sender_cannot_report_source_ready ... ok
+test hid_completion_publication_requires_sync_and_matching_valid_transport_work ... ok
+test actual_wrong_sender_on_source_ingress_cannot_initialize_input ... ok
+test hid_mouse_session_publishes_exact_completed_bytes_through_policy ... ok
+test hid_replayed_ack_remote_error_and_clock_reversal_fail_closed ... ok
+test hid_real_ipc_backpressure_retains_the_original_request_and_deadline ... ok
+test hid_wrong_actual_reply_sender_cannot_acknowledge_sync_or_enable_publication ... ok
+test hid_unexpected_reply_capability_is_closed_before_terminal_rejection ... ok
+test no_request_replay_while_real_reply_waits ... ok
+test hid_detach_invalidates_pending_usb_immediately_and_rejects_reattach_replay ... ok
+test unexpected_actual_delegated_caps_are_closed_once_without_core_mutation ... ok
+test real_send_again_retains_same_source_request_without_reading_samples ... ok
+test pending_peek_survives_backpressure_and_focus_replaces_stale_reply ... ok
+test pipelined_app_cannot_overwrite_pending_or_mutate_protected_routes ... ok
+test raw_loss_and_native_clock_deadline_are_terminal_without_fake_sync ... ok
+test physical_error_ack_requires_real_reset_and_monotone_inp1_ids ... ok
+test policy_state_is_bounded_and_checks_all_four_actual_recv_rights ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests nieuw_os_native_input_service
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,28 @@
+EE
+======================================================================
+ERROR: test_actual_builder_metadata_remains_compatible_with_ordinary_packages (tools.tests.test_package_windows_qemu.WindowsQemuPackageTests.test_actual_builder_metadata_remains_compatible_with_ordinary_packages) (window_session=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/7264b5153599/h02-build-metadata/tools/tests/test_package_windows_qemu.py", line 156, in test_actual_builder_metadata_remains_compatible_with_ordinary_packages
+    _, result = package.validate_build(self.build, verify_source=False)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/7264b5153599/h02-build-metadata/tools/package_windows_qemu.py", line 137, in validate_build
+    raise ValueError("Build must contain the exact non-probe native desktop process manifest")
+ValueError: Build must contain the exact non-probe native desktop process manifest
+
+======================================================================
+ERROR: test_actual_builder_metadata_remains_compatible_with_ordinary_packages (tools.tests.test_package_windows_qemu.WindowsQemuPackageTests.test_actual_builder_metadata_remains_compatible_with_ordinary_packages) (window_session=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/7264b5153599/h02-build-metadata/tools/tests/test_package_windows_qemu.py", line 156, in test_actual_builder_metadata_remains_compatible_with_ordinary_packages
+    _, result = package.validate_build(self.build, verify_source=False)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/7264b5153599/h02-build-metadata/tools/package_windows_qemu.py", line 137, in validate_build
+    raise ValueError("Build must contain the exact non-probe native desktop process manifest")
+ValueError: Build must contain the exact non-probe native desktop process manifest
+
+----------------------------------------------------------------------
+Ran 1 test in 0.020s
+
+FAILED (errors=2)
+EXPECTED_RED: both ordinary builder profiles rejected before 4cdd21f6

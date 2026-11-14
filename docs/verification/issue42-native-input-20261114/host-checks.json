@@ -1,0 +1,714 @@
+{
+  "schema_version": 1,
+  "phase": "host",
+  "source_commit": "b082f836cd8f3969fd144c3a6a9b01c8656d4122",
+  "source_sha256": "606ad2bc02ceaff9ff46f20412c8b874954b6582c3a7d2452ec09f65e2b5e92c",
+  "source_fingerprint_version": 3,
+  "checks": [
+    {
+      "name": "workspace-format",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 1.224,
+      "token_guard": {
+        "duration_seconds": 1.176,
+        "emitted_bytes": 231,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-qwpvy_co.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 0,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "6a4803b02a4999eb4cdaa62aaba08b1accb2caf2f7b5a69fd510ad22f0ca17dd",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "kernel-and-boot-tests",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "-p",
+        "boot-protocol",
+        "-p",
+        "kernel-core"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 1.547,
+      "token_guard": {
+        "duration_seconds": 1.495,
+        "emitted_bytes": 1613,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-2b20iusw.log",
+        "output_complete": false,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 8471,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "4d112674e647f7b60ed3de5dd4cb0b3c7236020f3a861c3577418f34905e5ff3",
+      "log_sha256": "c0306380cc4de43b5bb1860a394563cda7e1df9816f1f2fad0fe4c795f5fdc31"
+    },
+    {
+      "name": "kernel-and-boot-clippy",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--locked",
+        "-p",
+        "boot-protocol",
+        "-p",
+        "kernel-core",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.849,
+      "token_guard": {
+        "duration_seconds": 0.801,
+        "emitted_bytes": 502,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-3l16qhcr.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 268,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "d0b9e7a11a77513827acef4e7b83c4e18eda61be3cf5714e3a9d4302204acfae",
+      "log_sha256": "536d7cc3cd801ed6b95c35fa4d7d6acec283911c1381fbc97f72b69bfb22d84b"
+    },
+    {
+      "name": "xhci-format",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "drivers/xhci/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.093,
+      "token_guard": {
+        "duration_seconds": 0.037,
+        "emitted_bytes": 231,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-1rqgop3l.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 0,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "0871dcfcbfc53b0376ea1974aa942b943a28a875a88127568adaa23f49d459f0",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "xhci-tests",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "drivers/xhci/Cargo.toml"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.583,
+      "token_guard": {
+        "duration_seconds": 0.536,
+        "emitted_bytes": 2124,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-s2imb1eh.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 1888,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "a1086980d5c66ef8178a64a89dd8f5f1cfc2a901450c49af95fdcf4cbd4dfd39",
+      "log_sha256": "de5db0056c6b8ee7cac244ac3cffbc67fca00c41e6df443ffa3638c612e22cc9"
+    },
+    {
+      "name": "xhci-clippy",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "drivers/xhci/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.377,
+      "token_guard": {
+        "duration_seconds": 0.334,
+        "emitted_bytes": 590,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-zefpu1h2.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 356,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "77d1ba5738ca63ea0f85b90905894ecb9978afb2e681787c3c1f126f7218a83f",
+      "log_sha256": "506a9779133fcc9a00d1933dea8fb0641d7839fa6e28779ebc0b409250eed434"
+    },
+    {
+      "name": "usb-format",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "drivers/usb/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.112,
+      "token_guard": {
+        "duration_seconds": 0.053,
+        "emitted_bytes": 231,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-xgztypxl.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 0,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "f0fbc92ec77db8460de61f89d15679817f6012fa8fcd1ce901548484dce0db6f",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "usb-tests",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "drivers/usb/Cargo.toml"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.785,
+      "token_guard": {
+        "duration_seconds": 0.743,
+        "emitted_bytes": 5224,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-no6ri375.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 4988,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "42e6fd5f9e5125eb5a5b53337e3f11cdc777050071890124252b6801127b3280",
+      "log_sha256": "97be5a33aac08a7ae567329727980b62ec5d31945b1bf0183ac454a1b115360f"
+    },
+    {
+      "name": "usb-clippy",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "drivers/usb/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.372,
+      "token_guard": {
+        "duration_seconds": 0.332,
+        "emitted_bytes": 401,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-ka5v_cmg.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 167,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "b7faedce6340660b4fcd681deec97771267e56570b3bac3751338474a13e38c8",
+      "log_sha256": "a039f4814b304cb1e9a4cf5f36a4226d0f89de5cdefdf3805fa55b98e76240df"
+    },
+    {
+      "name": "input-core-format",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "services/input-core/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.094,
+      "token_guard": {
+        "duration_seconds": 0.046,
+        "emitted_bytes": 231,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-4033dn03.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 0,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "096b5b67c8106722a977505e556f55c3c914d007f3e26a0a88043590693fea1f",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "input-core-tests",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "services/input-core/Cargo.toml"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.937,
+      "token_guard": {
+        "duration_seconds": 0.89,
+        "emitted_bytes": 3808,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-fhu099tn.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 3573,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "f5056b61e1eaeaa30c331e877b91586c44abc7cc627d64a6a40838bf464c68c0",
+      "log_sha256": "71b4ff4be0a88586b78cb7b05a307d8653b579434476d0a8443420e2571ed231"
+    },
+    {
+      "name": "input-core-clippy",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "services/input-core/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.53,
+      "token_guard": {
+        "duration_seconds": 0.49,
+        "emitted_bytes": 823,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-1wn0ojdp.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 590,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "f05275308f9e9e89d32eb8159387e16868763251c5e58ec9ee032b0dcb220a7a",
+      "log_sha256": "a686650cf4d301bd702d108b4b4425d1fceb0c2e692489976c298b7b9967ac76"
+    },
+    {
+      "name": "input-service-format",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "sdk/examples/input-service/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.093,
+      "token_guard": {
+        "duration_seconds": 0.051,
+        "emitted_bytes": 231,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-x8lm_2c2.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 0,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "28bdf8bc518903d304ce306dbbb5691ef9def77b2347b9df825954bc2b29257a",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "input-service-tests",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/input-service/Cargo.toml"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 1.141,
+      "token_guard": {
+        "duration_seconds": 1.101,
+        "emitted_bytes": 4120,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-6mcpwgxd.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 3884,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "ae4d231d5007ecbc7f249a79b0df49166181657129d71624499d263a58e37b65",
+      "log_sha256": "cf6afce339164ddadaf70a8603681ebdaca51d92242682739fc6b4436d38603a"
+    },
+    {
+      "name": "input-service-clippy",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--locked",
+        "--manifest-path",
+        "sdk/examples/input-service/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.661,
+      "token_guard": {
+        "duration_seconds": 0.617,
+        "emitted_bytes": 950,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-g_otjtr3.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 716,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "ac532f00fc2bcb0f31c74856d2641d718b88206e518b84f562a22d898c3d8e21",
+      "log_sha256": "56a0f3c4dffa450dad8ffbaa6f02098a857f3b5be3e59d36154ebb2bb0569c2a"
+    },
+    {
+      "name": "test_xhci.py",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_xhci.py"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.136,
+      "token_guard": {
+        "duration_seconds": 0.075,
+        "emitted_bytes": 337,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-xbupvuhq.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 103,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "dfee12118ed916ecba0881c4e83257735f0de0b71d6e69f0b175e94be6798d7f",
+      "log_sha256": "888a0c0ed615e57d32cf72be501b0c355f33b8613c81dfdaa99db33d7959487e"
+    },
+    {
+      "name": "test_usb_hid_probe.py",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_usb_hid_probe.py"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.157,
+      "token_guard": {
+        "duration_seconds": 0.104,
+        "emitted_bytes": 344,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-dx00vz3p.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 110,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "0de796fd4bc9a6e815db252de02dfe256962c43e8b566d134ce9f057eaeb80cc",
+      "log_sha256": "1607edbfae007ff56d6138df5d24d28abfe4b1ef27902563e1bb9ad258e5c4ec"
+    },
+    {
+      "name": "test_hid_input_probe.py",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_hid_input_probe.py"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.172,
+      "token_guard": {
+        "duration_seconds": 0.12,
+        "emitted_bytes": 350,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-vq9r1prf.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 117,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "0d5d3447d363bc18143e3b933d5895e5ed4c7ffa13d9cd9b8b68ac313c8a95c6",
+      "log_sha256": "b0a8dbec0a2e82a419cb3e67cef0daf42dc9f1ebf357bb99df1b36a8a620a67d"
+    },
+    {
+      "name": "test_package_windows_qemu.py",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_package_windows_qemu.py"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.235,
+      "token_guard": {
+        "duration_seconds": 0.193,
+        "emitted_bytes": 355,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-w_ex5swh.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 121,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "d27917d5d2513582c744bc75d3972b3944481d0de36ed54d656d3875ee520b10",
+      "log_sha256": "0b77c68a665e34662d7ffd10ec7602581be2ac8acf46a0ff72d3262824bd5f98"
+    },
+    {
+      "name": "test_guest_harness.py",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_guest_harness.py"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.098,
+      "token_guard": {
+        "duration_seconds": 0.056,
+        "emitted_bytes": 339,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-6gedfrji.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 105,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "b0d3ee5a8c2b68e73f8ab1cdd4b515b663650e4aceaad606af371d038937e82a",
+      "log_sha256": "fe836cbecd3b6b4f70bec51b58d30c3e45ad72ae7fb3cb63421a0f7337e651ae"
+    },
+    {
+      "name": "test_m1_artifact_binding.py",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_m1_artifact_binding.py"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.155,
+      "token_guard": {
+        "duration_seconds": 0.117,
+        "emitted_bytes": 340,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-w9adcs__.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 106,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "8997f93ece7aeb7573d5bdcc405ddd7621654b60526ddecb47c3994b8cb90bb0",
+      "log_sha256": "6ff8cb6673e52248481ba0fa0eca3657ce430b443dbc93e93c7a3e25938b7877"
+    },
+    {
+      "name": "test_build_paths.py",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_build_paths.py"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.165,
+      "token_guard": {
+        "duration_seconds": 0.119,
+        "emitted_bytes": 335,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-n8doa3gm.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 101,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "ed6ce9d65089a01d264f333fb622e1c14ea5b0737443ccfe42df2db89af16d5e",
+      "log_sha256": "edb4e2159c923ea45a32656078835cdf531c3d7b414c670dd786978875cb0678"
+    },
+    {
+      "name": "test_ci_workflows.py",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_workflows.py"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.504,
+      "token_guard": {
+        "duration_seconds": 0.464,
+        "emitted_bytes": 359,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-8pppzwxr.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 125,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "c013ba3cbc5e140cc1aa48a9c4961346798c0214223de435a0b9f98fc248bd79",
+      "log_sha256": "0d0b621d7a909d55bf2a87b575f9e548100c74f2599fefa3e03b880f73c10640"
+    },
+    {
+      "name": "test_ci_evidence_workflow_verifier.py",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_evidence_workflow_verifier.py"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 20.111,
+      "token_guard": {
+        "duration_seconds": 20.069,
+        "emitted_bytes": 347,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-kjx3qrob.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 112,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "4efed9b4ae626a0d4368bf77ce05c12ec3d276a6c65377550fe36836d84d6b86",
+      "log_sha256": "5c33fe7cce3395b9eaeb6fe8d25fbcf9b0aa3810d370a0448335df454529f6aa"
+    }
+  ],
+  "passed": true,
+  "source_unchanged": true
+}

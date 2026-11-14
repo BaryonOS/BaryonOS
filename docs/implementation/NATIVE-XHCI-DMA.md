@@ -1,9 +1,10 @@
 # Native xHCI DMA containment fixture
 
 This opt-in H02 prerequisite exercises the project's kernel against QEMU's
-xHCI and Intel VT-d devices. It is a bounded controller-execution experiment;
-USB enumeration, interrupt delivery, reusable native grants, hotplug and physical
-hardware acceptance remain separate work.
+xHCI and Intel VT-d devices. It is a bounded controller-execution experiment.
+Actual USB enumeration and held-key unplug have a separate
+[native HID transport fixture](NATIVE-USB-HID.md). Interrupt delivery, reusable
+native grants, general hotplug and physical acceptance remain open.
 
 ## Platform and authority
 

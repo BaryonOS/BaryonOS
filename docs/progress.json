@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "7f693d73702072fa0db3b99ffc56df3eed6b8fa5",
+    "source_commit": "36f131fe3ce0fb5e4ad92ef4cf3cab4e86637694",
     "assessment_basis": "parent_commit",
-    "branch": "test/issue43-n04-helper-isolation",
-    "task": "Verify the native unregistered-helper isolation follow-up after PR #328 squash",
+    "branch": "feat/issue42-native-input",
+    "task": "Verify native contained USB HID transport and protected input-policy IPC after PR #328 squash",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The N04-only follow-up preserves merged main and adds an unregistered native helper negative fixture with causal sender rejection before backend effects. All six native network cases, strict preflight/build/smoke, 92 Python tests, 24 Rust tests, strict service Clippy and formatting pass on local executable source 21a53dd9342988263f7d49e9ef559fb7a2d288cd, whose complete Git tree equals published source 7f693d73702072fa0db3b99ffc56df3eed6b8fa5. Independent AI integration review found no blocker. Current evidence is in docs/verification/n04-helper-20261114/integration.json; earlier mutation/replay receipts retain their original source identities. N04 and issue #43 remain open; no criterion, weight or production permission changes. Hosted checks remain separate."
+    "summary": "41/100 remains 41/100. PR #333 preserves the #328 squash and main's N04 helper follow-up. Opaque DMA ownership closes a reproduced generic-free defect; actual VT-d/xHCI gates verify command completion, unmapped and read-only write denial, and missing-DMAR refusal. Actual USB enumeration, keyboard/mouse reports and held-key unplug reach the bounded Session. A separate native IPC fixture verifies protected HID policy behavior with synthetic reports. All six native cases and strict preflight/build/smoke pass on published source 36f131fe3ce0fb5e4ad92ef4cf3cab4e86637694. Host checks pass 213 Rust and 112 Python tests at b082f836; the final delta only repairs two local-dependency locks without upgrades. Both dedicated hosted H02 workflows pass with pinned QEMU 8.2.2. Receipts and source boundaries: docs/verification/issue42-native-input-20261114/integrated.json. H02 remains open: production USB-to-service handoff, IRQ/lifecycle integration and physical acceptance remain pending. No criterion or weight changes."
   },
   "tracks": [
     {
@@ -217,7 +217,9 @@
           "points": 3,
           "status": "open",
           "acceptance": "Common input and USB devices work on the documented reference profile; hotplug and invalid device responses remain bounded.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/issue42-native-input-20261114/README.md"
+          ]
         },
         {
           "id": "H03",
