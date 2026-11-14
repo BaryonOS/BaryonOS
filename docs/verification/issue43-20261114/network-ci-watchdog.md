@@ -63,18 +63,87 @@ A genuinely stalled exhaustion fixture can now take up to the larger
 12,000-tick/150-second bounds to fail. This is an explicit aggregate test
 budget tradeoff, not a product performance claim or relaxed resource quota.
 
-## Verification checkpoint
+## Executed correction checks
 
 On the corrected source, the 25 peer/oracle host tests pass, including
 acceptance at tick 11,999, refusal at 12,000 and 12,001, and preservation of
 the other four profiles' 6,000-tick boundary. Rust formatting and
 `git diff --check` pass. These checks do not execute the guest.
 
-Native exhaustion and regression execution on this correction: **NOT YET
-EXECUTED** at this checkpoint. The parent integration must run its final
-combined-source gates and obtain fresh hosted CI; earlier component and
-local passes do not verify this correction.
+The five native cases then passed on commit
+`6fe4f9957ea47d75c0f18d9cd6a12b29f733f702`, source-v3
+`612fde4baae272d0591419ffc7a427966bcae4d0f20c364ee342078c14e0bd4d`.
+No executable source changed during this matrix. QEMU 10.0.13 ran with
+explicit machine `pc-q35-8.2`, single-CPU TCG and disposable OVMF state.
+This matches the CI machine profile but not CI's QEMU 8.2.2 binary.
+
+| Case | Exit / raw QEMU | QEMU seconds | Recorded host timeout |
+|---|---|---:|---:|
+| exhaustion | 0 / 33 | 56.726 | 150 s |
+| normal | 0 / 33 | 6.808 | 90 s |
+| client-exit | 0 / 33 | 6.546 | 90 s |
+| revoke | 0 / 33 | 6.684 | 90 s |
+| device-reset | 0 / 33 | 2.648 | 90 s |
+
+App A exited at tick 5,491 in the corrected exhaustion run, after B had
+closed/exited at 5,453. All 12,768 pairs and the original cross-owner,
+permission, raw-packet and cleanup checks passed. This local run did not
+cross tick 6,000; the unit tests and source review verify the new exact
+boundary, while a new hosted run must verify completion on the slower CI
+environment. The local pass alone does not establish that the CI failure
+is resolved.
+
+Each case ran `python3 -B -u tools/run_network_service.py --case CASE`, with
+`CARGO_BUILD_JOBS=2`, `NOS_QEMU_MACHINE=pc-q35-8.2`, and separate
+`NOS_BUILD_DIR=build/issue39-ci-CASE`,
+`NOS_TARGET_DIR=target/issue39-ci-CASE` and matching `CARGO_TARGET_DIR`.
+Every directory retains `network-service-CASE-report.json` and the original
+`run/network-service-CASE-*/{result.json,serial.txt,stderr.txt,network-peer.json}`;
+the exhaustion run also retains its raw `network-discard.bin`.
+
+| Original native `result.json` | SHA-256 |
+|---|---|
+| exhaustion | `17637989ff586cd9f779f715cf1a682f43a38a9f3b1883ac0f412681694d53f7` |
+| normal | `185a7a5fd62bed9551a9c31c1f5e450a90aec29349618c2f73c7d55747cd3550` |
+| client-exit | `8ba1ae093b96ccda6c846c6c0b707ba64a70cb995f480f605dead9fe56937323` |
+| revoke | `9eada9da6c0236b763d0aaab1e9077da35df4a43936249aa26f84286a9ffd954` |
+| device-reset | `941b09af2c5f26f0108fbd9611d03683328748665da4f75383e461bcdbc4c755` |
+
+The corrected exhaustion serial hash is
+`b301a7f802d136ec457f674a58b8e816419231c4c01c45501d4c3f55ee8e0f56`;
+its raw stream hash remains
+`7d5e22e621d28ce27dfa3f2ab12d851e07a0632681ede12343d5bc5676f035f2`.
+
+The parent integration must run its final combined-source gates and obtain
+fresh hosted CI. This component matrix is not a full OS gate, a native
+performance guarantee, physical-device evidence or proof of automatic NIC
+recovery. The existing two unrelated kernel warnings remain visible in the
+native build logs.
 
 Local bounded host logs: `build/issue39-ci-watchdog-checks/` in worktree
 `issue39-ci`. The original CI failure remains retained under
 `/tmp/baryon43-ci-exhaustion/` and in the linked GitHub Actions run.
+
+## Integrated and hosted confirmation
+
+The integration and all five component runs have identical runtime source-v3
+`612fde4baae272d0591419ffc7a427966bcae4d0f20c364ee342078c14e0bd4d`.
+Differences from the component commit are documentation only. Strict preflight,
+build, smoke and both TCP loss/cold-recovery stages passed on published
+`e17a32130de29c681336dc0c4dec98c204b46260`.
+
+The pinned QEMU 8.2.2 hosted [network run 43601931863](https://github.com/BaryonOS/BaryonOS/actions/runs/43601931863)
+then passed the complete five-case matrix on merge source
+`9df3d7d0b6f06c1488a0dccedf9581eb1158fa76`, with the same runtime fingerprint.
+The exhaustion guest ran for **100.061 seconds**, released B at tick **9,634**,
+observed B exit at **9,654**, and A exit at **9,684**. All 12,768 pairs, exact
+service counters, original permission checks and cleanup passed with raw exit 33.
+This successful run exceeds both former aggregate limits, confirming why the
+profile-specific correction was needed without claiming a performance guarantee.
+
+The other cases passed with their original 90-second host default. The 150-second
+exhaustion default and strict 12,000-tick deadline remain finite; a genuine stall
+may take longer to report. [Integrated evidence](integrated-final.json) preserves
+report hashes, snapshots, observed counters, the hosted artifact digest and the
+separate original failure. The compact hosted artifact omits raw packet/image
+files; independent local raw-packet validation is a separate evidence layer.

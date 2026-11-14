@@ -2,68 +2,57 @@
 
 ## NEXT AGENT HANDOFF — issues #43, #39, #41 and #42 — 14 November 2026
 
-**Source:** branch `fix/issue43-network-usb-followup`, PR [#328](https://github.com/BaryonOS/BaryonOS/pull/328),
-based on main `b8a7e83658bdbcd4970c26f753dda1b342fce0d4` and integrated with
-main `299f0e39c202d67d1c2f4e31b879cbdd6add262b`, retaining the coverage-evidence
-repair, code-scanning triage and earlier merge-hold. Local checkpoint
-`2009fcf79a6f2f6d542a341e43e6d568cd8932c9` contains the completed exhaustion fixture. The earlier public checkpoint
-`01ec2320d5255e261851fac154665313505d87bf` precedes the reset fixture.
+**Source:** existing PR [#328](https://github.com/BaryonOS/BaryonOS/pull/328),
+branch `fix/issue43-network-usb-followup`; verified executable head
+`e17a32130de29c681336dc0c4dec98c204b46260`, integrated with main
+`299f0e39c202d67d1c2f4e31b879cbdd6add262b`. Runtime source-v3:
+`612fde4baae272d0591419ffc7a427966bcae4d0f20c364ee342078c14e0bd4d`.
+Later receipt/status edits change documentation only.
 
-**Implemented:** regular CI includes live grant revocation, TCP loss/backpressure
-with cold recovery, the new unexpected virtual-NIC reset case, and full per-owner port exhaustion.
-Reset occurs
-with an actual published TX, which ends as Io; old app ingress is refused and
-resource cleanup is checked. Exhaustion consumes all 12,768 even ports while
-another registered owner can still allocate, inspect Connecting state, and close.
-The test composes the existing optional IPC wait implementation; production
-capability/ABI/DMA contracts are unchanged. Only the full-quota exhaustion
-fixture now has a 12,000-tick exclusive deadline and 150-second host default;
-other native cases keep 6,000 ticks/90 seconds, and TCP establishment deadlines
-and SDK retry limits are unchanged.
-The USB selector now also requires a correctly framed HID descriptor before
-its endpoints and exposes its Report length as untrusted metadata. The B03 gate
-checks the actual Rust refusal of missing signing policy in both loader profiles
-and the native update service, paired with explicit TEST-profile controls. The
-[production-policy proposal](implementation/B03-PRODUCTION-POLICY-PROPOSAL.md)
-remains unapproved; no production authority or signing material is introduced.
+**Result:** #39's complete native fault matrix is implemented and verified.
+Routine CI runs normal TCP/UDP, client exit, live grant revocation, unexpected
+NIC reset, and all 12,768 per-owner port allocations/closures with another
+owner's continued allocator/RPC operation and cleanup. TCP loss/backpressure
+and exact-image cold recovery also pass. Reset containment is not automatic
+NIC restart; the exhaustion case does not claim a completed B data transfer.
 
-**Evidence:** the earlier integrated source passed strict preflight, native
-build/smoke, normal/client-exit/revoke and the TCP loss/backpressure normal/cold
-pair. The final network component's five native cases passed on one source fingerprint,
-with independent review, 18 driver and 23 peer/oracle host tests. The integrated
-workflow contracts pass 26 tests and the evidence tooling 34 tests; the USB correction passed 29 component
-tests, fmt, Clippy and a freestanding build. Source boundaries and retained
-failures: [checkpoint](verification/issue43-20261114/README.md) and
-[reset receipt](verification/issue43-20261114/network-reset.md), and
-[exhaustion receipt](verification/issue43-20261114/network-exhaustion.md).
+The initial hosted exhaustion run hit the inherited aggregate watchdog after
+10,867 pairs. Its failure is retained. Only this workload now requires completion
+before tick 12,000 and uses a 150-second host default; other cases retain
+6,000 ticks/90 seconds. Connection-establishment deadlines, retry limits, full
+quota, capabilities, causal checks and cleanup are unchanged. The corrected
+pinned-QEMU run passed at tick 9,684 / 100.061 seconds, beyond both old limits.
 
-**Verified source and CI repair:** all five network cases, the two-stage TCP
-loss/cold-recovery gate, strict preflight, build and smoke passed locally on
-published `438da2efd41f9da7f5dd47dfda70e5f6426f15f7`, source-v3
-`50c59a5c08d78cbd8dfc4e1f409b4ef8306eb9a00108e74e35309077271b7aba`.
-The actual six TEST-policy compiler controls also pass; hosted B03 acceptance
-and the main CI workflow passed on that source. USB has 31 passing component
-tests plus format, strict Clippy and a freestanding build.
+**Evidence:** all five native cases passed locally on one runtime fingerprint;
+the separate integration passed strict preflight, build, smoke and the two-stage
+TCP loss/cold gate on that same fingerprint. Hosted network run
+[43601931863](https://github.com/BaryonOS/BaryonOS/actions/runs/43601931863)
+passed both jobs on the verified executable head. Original reports, hashes,
+CI failure and precise scope are in
+[the final receipt](verification/issue43-20261114/integrated-final.json) and
+[the timing record](verification/issue43-20261114/network-ci-watchdog.md).
+A separate read-only AI review found no blocker; this is not a human audit.
 
-The pinned hosted network job `132465223071` in run `43600849004` then failed
-the exhaustion fixture at tick 6,000 after 10,867 completed service open/close
-pairs. The other four cases passed. Local success does not override that CI
-failure. The original reports and failure are retained in
-[integration evidence](verification/issue43-20261114/integrated-initial-438da2e.json).
-The profile-specific correction is described in
-[the watchdog receipt](verification/issue43-20261114/network-ci-watchdog.md);
-its final-source native and hosted checks remain pending at this checkpoint.
+**Related work:** #41 now has actual positive/negative Rust compiler checks for
+explicit TEST policy in both loader implementations and the update service;
+15 oracle tests and all six compiler controls pass. The existing 18-stage B03
+workflow passed on the initial executable integration. #42 now validates a
+mandatory, correctly framed HID descriptor before endpoint binding, retaining
+the low-speed interval fix. All 31 USB tests, format, strict Clippy and the
+freestanding build pass; no native USB or physical-hardware claim is made.
 
-**Open:** verify the corrected complete network/TCP matrix and current-head CI.
-#41 needs approved trust/persistence decisions and separate production signing
-authorization. #42 still needs native USB/hotplug and physical reference evidence;
-#43's 50/100 target is not met. PR #328 retains `acceptance-pending`; merging
-requires the project owner's explicit approval.
+**Open:** #39 awaits review and authorised merge of this existing PR. #41 still
+needs the D1–D7 production trust/persistence decisions and the approved native
+transition implementation; TEST keys confer no production authority. #42 still
+needs native xHCI/HID transport, enforced DMA/IRQ lifetime, hotplug and physical
+reference evidence. #43 remains below 50/100. Current-head CI must be checked
+when the branch changes; `acceptance-pending` and explicit merge approval remain.
 
-**Progress:** 41/100 → 41/100; no criterion or fixed-weight changes.
+**Progress:** 41/100 → 41/100; no criterion status or fixed-weight changes.
 
-**Next:** verify the corrected native source, retain the failed run, publish the
-final source-bound receipt and update the existing issues and PR.
+**Next:** review PR #328; record the production-policy decisions for #41 and
+implement the native USB execution/enumeration boundary for #42. Retain all
+source and evidence limits when continuing those tracks.
 
 ## Previous checkpoint — Code scanning alert triage — 14 November 2026
 

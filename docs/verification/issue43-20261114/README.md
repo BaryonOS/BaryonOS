@@ -98,3 +98,25 @@ Only this long workload receives a 12,000-tick exclusive deadline and a 150-seco
 host default; the quota, other profiles, connection deadlines, retry budget and
 negative checks remain intact. See [the measured correction](network-ci-watchdog.md).
 Corrected final-source native and hosted verification is pending at this checkpoint.
+
+## Final verified outcome
+
+The corrected executable head is `e17a32130de29c681336dc0c4dec98c204b46260`;
+its runtime source-v3 is
+`612fde4baae272d0591419ffc7a427966bcae4d0f20c364ee342078c14e0bd4d`.
+All five native network cases, strict preflight/build/smoke and TCP
+loss/backpressure normal/cold recovery pass on that runtime source.
+The pinned hosted [network run 43601931863](https://github.com/BaryonOS/BaryonOS/actions/runs/43601931863)
+passes both jobs. The exhaustion guest completes at tick 9,684 after 100.061 s,
+with the original quota and negative oracles intact. Earlier pending entries
+above describe their respective intermediate checkpoints.
+
+[The final receipt](integrated-final.json) binds both local and hosted evidence
+to the runtime source and retains precise archive/revalidation limits. The
+[initial integrated results and failed hosted attempt](integrated-initial-438da2e.json)
+remain separate. Later documentation edits do not change executable inputs.
+
+#39 is implemented and verified in the existing PR, pending review and authorised
+merge. #41 and #42 retain their explicit production-policy/native-hardware work;
+#43 remains at 41/100. No merge, policy approval, physical-device operation or
+new acceptance point follows from this receipt.

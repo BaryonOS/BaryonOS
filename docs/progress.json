@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "438da2efd41f9da7f5dd47dfda70e5f6426f15f7",
+    "source_commit": "e17a32130de29c681336dc0c4dec98c204b46260",
     "assessment_basis": "source_commit",
     "branch": "fix/issue43-network-usb-followup",
-    "task": "Resolve the measured full-quota CI watchdog failure while retaining issue 43 network, USB and signing-policy boundaries",
+    "task": "Complete issue 39 native fault acceptance and advance issues 41/42 on existing PR 328",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The initial integrated source passed all local native network/TCP/standard gates, but pinned CI exhaustion exceeded the inherited aggregate fixture deadline. The measured exhaustion-only 12000-tick/150-second correction preserves quotas, TCP establishment deadlines, retry limits, other profiles and exact negative oracles; corrected native and hosted validation are pending. B03 compiler guards and HID descriptor validation are verified within their component scope. Production-policy decisions, native/physical USB and the 50/100 goal remain open. No criterion or weight changes."
+    "summary": "41/100 remains 41/100. The full native network matrix passes locally and on pinned hosted QEMU, including actual reset and all 12,768 owner-port allocations with isolation/cleanup. The measured exhaustion-only watchdog correction passes beyond the former limits; the original failure is retained. Standard and TCP normal/cold gates pass on the same runtime fingerprint. USB HID descriptor validation and TEST-policy compiler guards are verified within their stated scope. Issue #39 implementation is ready for review/authorised merge; production trust decisions, native/physical USB and the 50/100 goal remain open. No criterion or weight changes."
   },
   "tracks": [
     {
