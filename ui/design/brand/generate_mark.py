@@ -115,7 +115,9 @@ def mark(cx, cy, r, *, ids: str, nodes=(RED, GREEN, BLUE), bond=None,
     )
 
 
-FONT = OUT.parent / "fonts" / "Archivo[wdth,wght].ttf"
+# Wordmark v2: Saira 600 at 125 % width, selected by docs/verification/logotype-review-20261114/.
+# v1 used Archivo[wdth,wght].ttf, "Baryon" 600 + "OS" 300 with no space.
+FONT = OUT.parent / "fonts" / "Saira[wdth,wght].ttf"
 TRACE_SIZE = 800  # px per em while tracing; outlines are simplified to 1.2 px at this size
 
 
@@ -187,18 +189,19 @@ def _simplify(loop: list, eps: float) -> list:
     return dp(loop[: half + 1])[:-1] + dp(loop[half:] + [loop[0]])[:-1]
 
 
-def wordmark(x: float, baseline: float, size: float, fill: str, *, anchor="start") -> str:
-    """'Baryon' semibold + 'OS' light, Archivo at 125 % width, as outlined paths."""
-    bold, bold_adv = _trace("Baryon", 600)
-    light, light_adv = _trace("OS", 300)
+def wordmark(x: float, baseline: float, size: float, fill: str, second: str, *, anchor="start") -> str:
+    """'Baryon OS', Saira 600 at 125 % width with a word space, 'OS' in the second colour, as outlined paths."""
+    first, first_adv = _trace("Baryon", 600)
+    last, last_adv = _trace("OS", 600)
+    _, space = _trace(" ", 600)
     s = size / TRACE_SIZE
-    total = (bold_adv + light_adv) * s
+    total = (first_adv + space + last_adv) * s
     left = x - total / 2 if anchor == "middle" else x
-    def path(contours, dx):
+    def path(contours, dx, colour):
         d = " ".join("M" + " L".join(f"{(px + dx) * s + left:.2f},{py * s + baseline:.2f}"
                                     for px, py in c) + "Z" for c in contours)
-        return f'<path d="{d}"/>'
-    return f'<g fill="{fill}">{path(bold, 0)}{path(light, bold_adv)}</g>'
+        return f'<path fill="{colour}" d="{d}"/>'
+    return path(first, 0, fill) + path(last, first_adv + space, second)
 
 
 def svg(width, height, body, *, background=None, title="BaryonOS") -> str:
@@ -277,17 +280,17 @@ def main() -> None:
         '<stop offset="1" stop-color="#05060A"/></radialGradient></defs>'
         '<rect width="1920" height="1080" fill="url(#sp)"/>'
         + mark(scx, scy + 40, sr, ids="s", glow=True)
-        + wordmark(960, 800, 52, "#E9EDF2", anchor="middle"))
+        + wordmark(960, 800, 52, "#EEF1F8", "#A9B2CB", anchor="middle"))
     files["splash.svg"] = svg(1920, 1080, splash, title="BaryonOS boot splash")
     # Horizontal lockups: mark at cap-height scale, wordmark set on its baseline.
     lr = 92
     lcx, lcy = centre(300, 300, lr)
     files["lockup-dark.svg"] = svg(
-        1200, 300, mark(lcx, lcy, lr, ids="ld") + wordmark(300, 186, 96, "#E9EDF2"),
+        1200, 300, mark(lcx, lcy, lr, ids="ld") + wordmark(300, 186, 96, "#EEF1F8", "#A9B2CB"),
         background=SPACE, title="BaryonOS lockup")
     files["lockup-light.svg"] = svg(
         1200, 300, mark(lcx, lcy, lr, ids="ll", nodes=(LIGHT_RED, LIGHT_GREEN, LIGHT_BLUE), bond=INK)
-        + wordmark(300, 186, 96, INK), background="#F3F5F8", title="BaryonOS lockup")
+        + wordmark(300, 186, 96, "#111726", "#424B62"), background="#F3F5F8", title="BaryonOS lockup")
     files["mark-original.svg"] = ORIGINAL
     for name, text in files.items():
         (OUT / name).write_text(text, encoding="utf-8")

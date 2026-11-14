@@ -1,6 +1,7 @@
 # BaryonOS brand mark
 
-Status: **design**, version 1, 13 November 2026. Branch
+Status: **design**. Mark version 1, 13 November 2026; wordmark version 2,
+14 November 2026 (section 4). Branch
 `claude/baryon-os-ui-ux-design-152adb`. Version 1 is the shared baseline used
 unchanged by all three visual concepts so they can be compared fairly. It is a
 starting point, not a frozen design: after the direction is selected, the mark
@@ -81,12 +82,47 @@ a button that grants a capability.
 
 ## 4. Wordmark
 
-"Baryon" is set in Archivo Semibold (weight 600) and "OS" in Archivo Light
-(weight 300), both at 125 % width. The generator traces the glyphs to outline
-paths at build time, so the SVG files do not depend on an installed font.
-Archivo is OFL-licensed; provenance and hashes are in
-[ui/design/fonts/FONTS.md](../../ui/design/fonts/FONTS.md). The product name
-stays "BaryonOS" ([NAMING-AND-IA.md](NAMING-AND-IA.md)).
+**Version 2, 14 November 2026.** "Baryon OS" is set in Saira SemiBold (weight
+600) at 125 % width, tracking 0, with a word space; "OS" takes the secondary
+text colour. Colours are the Orbitaal v1 text tokens: `#EEF1F8` and `#A9B2CB`
+on dark, `#111726` and `#424B62` on light. The setting was selected by a blind
+AI review of seven candidates under a rule committed before judging
+([logotype review](../verification/logotype-review-20261114/README.md)); it is
+AI judgement, not user testing. It keeps the original artwork's structure:
+wide, squared letterforms, a visible gap and a two-tone "OS". The gap belongs
+to the artwork only; in running text the product name stays "BaryonOS"
+([NAMING-AND-IA.md](NAMING-AND-IA.md)).
+
+This is a departure from the project owner's preference for one family across
+wordmark and interface: the wordmark is Saira, the interface is Inter
+([TYPOGRAPHY.md](TYPOGRAPHY.md)). The project owner can redirect it; the best
+one-family candidate was Inter 700 at +0.03 em (67.50 against 72.75).
+
+The generator traces the glyphs to outline paths at build time, so neither the
+SVG files nor a future native image depend on Saira at run time. Saira is
+OFL-licensed and declares no Reserved Font Name; provenance and hashes are in
+[ui/design/fonts/FONTS.md](../../ui/design/fonts/FONTS.md). Version 1 (Archivo
+600 + 300, no space) is in Git history at `6d5678d0`. The original raster
+wordmark (`ui/design/brand/reference/original-logo.webp`) stays the reference
+and the reversible fallback.
+
+Open items from the review:
+
+- At 14 px on dark the secondary "OS" recedes. Its contrast is 9.38:1, so the
+  cause is stroke weight; a minimum lockup size or a heavier "OS" at small
+  sizes is to be decided.
+- Small lockups and the boot line run long against the mark; the lockup
+  proportion (mark radius 0.96 × wordmark size, inherited from version 1) is to
+  be rechecked for the wider face.
+- Beside 15 px interface text the wordmark reads as a separate brand voice.
+  Use it on brand surfaces (boot, lock screen, About, installer), not as an
+  interface heading.
+- Native: the wordmark is not part of the text atlas. A native lockup needs an
+  outlined or pre-rendered asset per size.
+- The mark's node colours (`#FF4A3D`, `#33C46B`, `#2585FF`) differ from
+  Orbitaal's place colours (`#FF5C50`, `#42D27F`, `#5AA2FF`), where colour
+  means place. Whether the mark is exempt from that rule is a design-system
+  decision.
 
 ## 5. How the mark informs the system
 
@@ -125,4 +161,4 @@ python3 -B ui/design/brand/generate_mark.py
 ```
 
 Requires Python 3 with Pillow and NumPy for the wordmark tracing. The output is
-deterministic for a given font file; the Archivo hash is pinned in FONTS.md.
+deterministic for a given font file; the Saira hash is pinned in FONTS.md.
