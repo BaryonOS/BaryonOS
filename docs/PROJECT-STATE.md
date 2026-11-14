@@ -2,8 +2,9 @@
 
 ## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
 
-**Source:** branch `claude/baryon-os-ui-ux-design-152adb`, merge `6b722911`
-of main `4cd444e0` (#328), assessment in the following commit; draft PR #332
+**Source:** branch `claude/baryon-os-ui-ux-design-152adb` at `0670d72e`
+(merge `6b722911` of main `4cd444e0` (#328) and its assessment), plus the
+clean-session handoff checkpoint that adds this text; draft PR #332
 succeeds the merged #322 (no auto-merge, never merge without the project
 owner). Main's checkpoints below are unchanged apart from the demoted heading
 of main's handoff.
@@ -17,13 +18,13 @@ milestones never enter `docs/progress.json`; every BaryonOS capability is
 
 | ID | Deliverable | Target | Status |
 |---|---|---|---|
-| UX-v2 | Orbitaal v2 board, CONCEPTS.md v2 section | `ui/design/concepts/orbitaal-v2/` | Run `wf_585e63fe-3b8` active (sole writer of the board) |
+| UX-v2 | Orbitaal v2 board, CONCEPTS.md v2 section | `ui/design/concepts/orbitaal-v2/` | Run `wf_585e63fe-3b8`: critique open (1 blocker, 8 major); repair interrupted by a session crash; untracked, unreviewed |
 | UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Workflow script ready; waits for an accepted v2 board and S0 |
 | UX-E | Connected prototype journey (simulation) | `ui/design/prototype/` | Open |
 | UX-F | Visual verification, at most two polish passes | `docs/verification/` | Open |
 | UX-G | Native vertical slice, QEMU screenshots | `ui/native`, `ui/graphics` | Plan done; G0 measured; G1 (licence and packaging) next |
-| S0 | Suite requirements that shape ds-1.0 (colour scope, density, neutral surfaces, region names) | `docs/design/suite/WORKSPACE-REQUIREMENTS.md` | Run `wf_57c7fde8-8f8` verifying a written draft |
-| S1 | Professional application capability matrix | `docs/design/suite/CAPABILITY-MATRIX.md` | Run `wf_8d70459f-b4a` researching |
+| S0 | Suite requirements that shape ds-1.0 (colour scope, density, neutral surfaces, region names) | `docs/design/suite/WORKSPACE-REQUIREMENTS.md` | Draft and repair done (`wf_57c7fde8-8f8`, `wf_3f27cdae-575`); recheck rejected the repair (major in D9); untracked |
+| S1 | Professional application capability matrix | `docs/design/suite/CAPABILITY-MATRIX.md` | Run `wf_8d70459f-b4a`: verifier found 2 blockers; repair interrupted, not re-verified; untracked |
 | S2 | Consumer-to-professional UX maturity model | `docs/design/suite/MATURITY-MODEL.md` | Open |
 | S3 | Named file-format family, at least three naming systems, registry-checked extensions | `docs/design/suite/FILE-FORMATS.md` | Open |
 | S4 | Common native document/object architecture over the existing storage contracts | `docs/design/suite/OBJECT-ARCHITECTURE.md` | Open |
@@ -64,6 +65,21 @@ Compaction: the global `autoCompactWindow` stays 400 000 (no session-scoped
 override is available); the coordinator measured 300 k tokens at 16:25 and
 refreshes this handoff at task boundaries.
 
+**Handoff to clean execution sessions (14 November, 17:05 CET):** at the
+project owner's request, no new product task or design phase was started.
+The session crashed at about 17:02 while the v2 and S1 repair workers were
+writing; both stopped mid-task, and the v2 recheck never ran. No workflow,
+agent, local server or scheduler of this session remains: the only remaining
+external trigger is the PR Auto-fix monitor. **READY_FOR_CLEAR: yes**;
+writership is released.
+
+The detailed checkpoint (handoff #2) lists run IDs, results,
+hashes, briefs, tools and owner decisions:
+`build/design-pipeline-checkpoint/handoff-baryonos-design-pipeline.md`
+(ignored). Untracked work is snapshotted with `SHA256SUMS` in
+`snapshot-untracked-20261114-1704/` beside it and stays uncommitted until
+reviewed.
+
 **G0 (measured, evidence in ignored `build/design-evidence/g0/`):**
 `materiaal-app` `.text` is 157 289 B with Open Sans (6 551 B below the
 163 840 B limit) and 157 881 B with Inter (5 959 B); read-only 293 248 and
@@ -79,9 +95,20 @@ native evidence is default plus high contrast at 100 %; 200 % is host-only.
 
 **Progress:** 41/100 → 41/100. Design work accepts no criterion.
 
-**Next:** when the v2 run reports, verify its renders and the unchanged v1
-pages independently, then commit the board; then run ds-1.0 with the S0
-decisions; G1 (Inter licence and packaging) is the next single writer.
+**Next (UX-v2-R2):** run one fresh worker that finishes the v2 repair from
+the stored critique. A second fresh worker then rechecks the board with
+renders at 100 % and 200 %, in dark, light and high-contrast themes, and
+with reduced motion. The task is complete when:
+- no blocker or major item remains open;
+- `git diff --stat` is empty for the v1 concept folders and
+  `ui/prototype/tokens.css`;
+- the coordinator has committed the board.
+
+After that, in order:
+- S0: fix D9 and recheck it;
+- S1: re-verify;
+- ds-1.0;
+- G1 (Inter licence and packaging).
 
 ## Previous checkpoint — PR #328 integration with main — 14 November 2026
 
