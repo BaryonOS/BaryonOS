@@ -200,12 +200,19 @@ archive. It does not show that a failed export invalidates an older archive
 already in the range; an older archive whose leading sectors equal the new
 stream would still verify as that older archive.
 
-## User export to ustar (proposed format, host-tested, 13 November 2026)
+## User export to ustar (approved format, host-tested, 13 November 2026)
 
-**Status:** proposed for confirmation by the project owner (D6 in
-[S09-BACKUP-DESTINATION-PROPOSAL.md](S09-BACKUP-DESTINATION-PROPOSAL.md));
-host-tested only. It changes no capability. It has no native stage, because
-writing it out needs a destination (D1).
+**Status:** approved by the project owner on 14 November 2026 under
+[ADR-S09-USTAR-20261114](../DECISIONS.md) (D6 (a) in
+[S09-BACKUP-DESTINATION-PROPOSAL.md](S09-BACKUP-DESTINATION-PROPOSAL.md)).
+It is a lossy interchange format, not the native Baryon OS/Materiaal format
+and not a recovery copy; format v1 stays the only recovery format. Approval
+is not implementation: the converter is host-tested only and does not yet
+refuse every name the ADR requires it to refuse (see "Not handled" and
+"Implementation limits" below). It changes no capability. It has no native
+stage yet. The project owner authorised a native test stage that uses the
+existing test-only permissions and storage fixtures; it is a later task,
+adds no production authority and does not decide D1.
 
 `ustar::from_archive` converts a format-v1 archive into a POSIX.1-1988 ustar
 stream, with POSIX.1-2001 pax `path` records for names that are not ASCII.
@@ -250,9 +257,10 @@ Python's `tarfile` module and GNU tar 1.35.
   the extraction directory on POSIX systems, and the drive rule above covers
   the Windows drive form, including drives that are not a letter.
   Bidirectional marks such as U+200E, U+200F and U+061C are allowed.
-- **Not handled (extraction elsewhere).** The following names export
-  unchanged, but extract differently. Whether the export should refuse them
-  is part of D6.
+- **Not handled (extraction elsewhere).** The following names still export
+  unchanged, but extract differently. The ADR requires the export to refuse
+  them and to report each refused name; the name check that does so is not
+  yet built.
   - On Windows, a later `:` names an alternate data stream.
   - On Windows, the reserved device names (for example `NUL`) and names with
     trailing dots or spaces are altered or lost.
@@ -262,6 +270,27 @@ Python's `tarfile` module and GNU tar 1.35.
     against NFD), collide on case-insensitive or normalisation-insensitive file
     systems such as default macOS and Windows volumes. One file then
     overwrites the other.
+
+**Implementation limits (to be built by later tasks).** The ADR fixes what
+the export must refuse; these parts of the name check are not yet built or
+defined:
+- **Allowed character set.** The set of characters that the name check
+  accepts is not yet defined; the S09-NAMES task defines it.
+- **Reserved device names.** The primary list is the one in Microsoft's
+  ["Naming a file"](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file),
+  section "Naming Conventions": CON, PRN, AUX, NUL, COM1–COM9, COM¹, COM²,
+  COM³, LPT1–LPT9, LPT¹, LPT² and LPT³. Four names are conservative
+  additions that are not on that list:
+  - COM0 and LPT0. Source: Microsoft's
+    [`RtlIsDosDeviceName_U`](https://learn.microsoft.com/en-us/windows/win32/devnotes/rtlisdosdevicename_u)
+    documentation lists COMn and LPTn "where n is a digit", which includes 0.
+    CPython's `os.path.isreserved` (a secondary source, not re-checked) does
+    not reserve them.
+  - CONIN$ and CONOUT$. Source: the same `RtlIsDosDeviceName_U`
+    documentation lists both. CPython's
+    [`os.path.isreserved`](https://docs.python.org/3/library/os.path.html#os.path.isreserved),
+    added in Python 3.13, also reserves them (a secondary source, not
+    re-checked).
 
 **Evidence (host).** Three `volume-core` tests in
 `services/volume/tests/archive.rs`. The reader test needs `python3` and `tar`,
@@ -289,8 +318,9 @@ Not checked: bsdtar and Windows `tar` as readers, extraction on Windows or
 macOS, and a native stage.
 
 **Still open for S09:** a user-chosen target behind its own capability (not a
-fixture range on the same disk); confirmation of the proposed ustar export
-(D6) and a native stage that writes it out; the encrypted NAS/provider variant; a user-facing task;
+fixture range on the same disk); the name check that ADR-S09-USTAR-20261114
+requires for the approved ustar export (D6 (a)) and a native test stage that
+writes it out; the encrypted NAS/provider variant; a user-facing task;
 a second simultaneously attached disk (archive and volume
 share one virtual device here). Plaintext archives are used only on
 harness-assigned local test images. The destination and its capability
