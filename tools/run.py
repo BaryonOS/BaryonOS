@@ -5,6 +5,7 @@ import argparse
 from datetime import datetime, timezone
 from pathlib import Path
 import shutil
+import stat
 import subprocess
 import time
 import uuid
@@ -49,7 +50,8 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
               expected_exit=33, forbidden_markers=FAIL_MARKERS, m5_case=None, m5_seed=None,
               expected_kernel_sha256=None, expected_loader_sha256=None, memory_mib=256,
               rtc_base=None, tpm_socket=None, cpus=1, tcg_threads="single",
-              acpi_tables=(), reboot_on_reset=False, xhci_case=None):
+              acpi_tables=(), reboot_on_reset=False, xhci_case=None,
+              hid_input_probe=False, vga_rom=None, usb_hid_case=None):
     # Defaults keep every existing profile byte-identical (-smp 1, single TCG).
     if type(cpus) is not int or not 1 <= cpus <= 16:
         raise ValueError("cpus must be an explicit integer in [1,16]")
@@ -59,8 +61,23 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
             xhci_case not in ("noop", "fault", "no-dmar") or cpus != 1
             or tcg_threads != "single" or memory_mib != 256
             or m5_case is not None or rtc_base is not None or tpm_socket is not None
-            or acpi_tables or reboot_on_reset):
+            or acpi_tables or reboot_on_reset or hid_input_probe or usb_hid_case is not None):
         raise ValueError("xHCI DMA cases require the isolated single-CPU fixture")
+    if type(hid_input_probe) is not bool:
+        raise ValueError("HID input fixture selection must be boolean")
+    if hid_input_probe and (cpus != 1 or tcg_threads != "single" or memory_mib != 256
+            or m5_case is not None or rtc_base is not None or tpm_socket is not None
+            or acpi_tables or reboot_on_reset or xhci_case is not None or vga_rom is None
+            or usb_hid_case is not None):
+        raise ValueError("HID input requires the isolated desktop fixture and explicit VGA ROM")
+    if not hid_input_probe and vga_rom is not None:
+        raise ValueError("VGA ROM belongs only to the HID input fixture")
+    if usb_hid_case is not None and (
+            usb_hid_case not in ("reports", "readonly") or cpus != 1
+            or tcg_threads != "single" or memory_mib != 256 or m5_case is not None
+            or rtc_base is not None or tpm_socket is not None or acpi_tables
+            or reboot_on_reset or xhci_case is not None or hid_input_probe):
+        raise ValueError("USB HID requires the isolated single-CPU xHCI fixture")
     rtc_arguments = []
     if rtc_base is not None:
         # A controlled UTC calendar, never a host wall-clock fallback.
@@ -85,6 +102,17 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
         raise ValueError("ESP must be a generated directory under build/")
     run_dir = BUILD / "run" / f"{label}-{uuid.uuid4().hex[:10]}"
     run_dir.mkdir(parents=True)
+    hid_volume = None
+    if hid_input_probe:
+        from volume_disk import create_image
+        rom = Path(vga_rom)
+        info = rom.lstat()
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or not 0 < info.st_size <= 1 << 20:
+            raise ValueError("HID VGA ROM must be a bounded regular file")
+        shutil.copy2(rom, run_dir / "VGA.rom")
+        hid_volume = run_dir / "volume.img"
+        create_image(hid_volume, "empty")
+        hid_volume_initial = sha256(hid_volume)
     disk_path, disk_info = None, None
     if m5_case is not None:
         from build import M5_CASES
@@ -117,6 +145,17 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
         if xhci_case != "no-dmar":
             args += ["-device", "intel-iommu,caching-mode=on,intremap=off,device-iotlb=off,aw-bits=39"]
         args += ["-device", "qemu-xhci,id=h02-xhci,bus=pcie.0,addr=0x5,p2=1,p3=1"]
+    if usb_hid_case is not None:
+        args += ["-device", "intel-iommu,caching-mode=on,intremap=off,device-iotlb=off,aw-bits=39",
+                 "-device", "qemu-xhci,id=xhci,bus=pcie.0,addr=0x5,p2=2,p3=0",
+                 "-device", "usb-kbd,id=hid-kbd,bus=xhci.0,port=1,usb_version=1",
+                 "-device", "usb-mouse,id=hid-mouse,bus=xhci.0,port=2,usb_version=1"]
+    if hid_input_probe:
+        args += ["-device", f"VGA,vgamem_mb=16,romfile={run_rel}/VGA.rom",
+                 "-object", "rng-random,id=rng0,filename=/dev/urandom",
+                 "-device", "virtio-rng-pci,rng=rng0,id=rng,addr=0x6,disable-legacy=on,max-bytes=1048576,period=1000",
+                 "-drive", f"if=none,id=volume,format=raw,cache=writeback,file={run_rel}/volume.img",
+                 "-device", "virtio-blk-pci,drive=volume,id=volblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-SYSTEM-TEST"]
     if reboot_on_reset:
         # Overrides -no-reboot: a reset re-runs firmware (second EBS marker)
         # instead of exiting 0, so raw exit 0 can only mean guest poweroff.
@@ -144,9 +183,17 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     start = time.monotonic()
     started = datetime.now(timezone.utc).isoformat()
     timed_out = False
+    usb_control = None
     try:
-        result = subprocess.run(args, cwd=ROOT, env=env, capture_output=True, timeout=timeout)
-        rc, out, err = result.returncode, result.stdout, result.stderr
+        if usb_hid_case is not None:
+            from run_usb_hid import controlled_guest
+            usb_control = controlled_guest(args, cwd=ROOT, env=env, timeout=timeout,
+                                           run_dir=run_dir, case=usb_hid_case)
+            rc, out, err = (usb_control["returncode"], usb_control["stdout"], usb_control["stderr"])
+            timed_out = usb_control["timed_out"]
+        else:
+            result = subprocess.run(args, cwd=ROOT, env=env, capture_output=True, timeout=timeout)
+            rc, out, err = result.returncode, result.stdout, result.stderr
     except subprocess.TimeoutExpired as exc:
         timed_out, rc, out, err = True, None, exc.stdout or b"", exc.stderr or b""
     stdout, stderr = out.decode("utf-8", "replace"), err.decode("utf-8", "replace")
@@ -154,6 +201,8 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     (run_dir / "stderr.txt").write_bytes(err)
     artifacts = {path.relative_to(run_dir).as_posix(): sha256(path) for path in (run_dir / "esp").rglob("*") if path.is_file()}
     artifacts.update({"OVMF_CODE.fd": sha256(run_dir / "OVMF_CODE.fd"), "OVMF_VARS.template.fd": sha256(run_dir / "OVMF_VARS.template.fd")})
+    if hid_input_probe:
+        artifacts["VGA.rom"] = sha256(run_dir / "VGA.rom")
     artifact_binding_passed = all(artifacts.get(name) == expected for name, expected in expected_artifacts.items())
     disk_result = None
     if disk_info is not None:
@@ -166,6 +215,13 @@ def run_guest(label="smoke", *, esp=None, timeout=60, required_markers=MARKERS,
     report.update(expected_artifact_sha256=expected_artifacts, artifact_binding_passed=artifact_binding_passed)
     if xhci_case is not None:
         report.update(xhci_case=xhci_case, dma_scope="isolated QEMU requester 00:05.0; no USB device attached")
+    if hid_input_probe:
+        report.update(hid_input_probe=True, input_scope="synthetic HID through native service IPC; no USB device attached",
+                      volume_initial_sha256=hid_volume_initial, volume_final_sha256=sha256(hid_volume))
+    if usb_hid_case is not None:
+        report.update(usb_hid_case=usb_hid_case, usb_control=usb_control and {
+            "trace": usb_control["trace"], "error": usb_control["error"]})
+        report["passed"] = report["passed"] and usb_control is not None and usb_control["error"] is None
     report['passed'] = report['passed'] and artifact_binding_passed
     if disk_result is not None:
         report.update(m5_case=m5_case, disk_oracle=disk_result)

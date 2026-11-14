@@ -4,6 +4,7 @@
 //! Production IO comes from native SDK calls. Host transports test only the
 //! bounded adapter state machine and real capability-engine envelope contract.
 pub mod boot;
+pub mod hid;
 pub mod policy;
 pub mod protocol;
 pub mod source;

@@ -104,6 +104,7 @@ pub(super) fn establish<'a>(
         let permission = match lease.dma_direction(grant).map_err(|_| Error::Grant)? {
             DmaDirection::DeviceReads => 1,
             DmaDirection::DeviceWrites => 2,
+            DmaDirection::DeviceReadsWrites => 3,
         };
         if addresses.is_empty() || addresses.len() > MAX_PAGES - count {
             return Err(Error::Grant);

@@ -18,6 +18,7 @@ name = "nieuw-os-input-core"
 version = "0.1.0"
 dependencies = [
  "nieuw-os-sdk-runtime",
+ "nieuw-os-usb-core",
  "ui-core",
 ]
 
@@ -29,6 +30,7 @@ dependencies = [
  "nieuw-os-display-client",
  "nieuw-os-input-core",
  "nieuw-os-sdk-runtime",
+ "nieuw-os-usb-core",
 ]
 
 [[package]]
@@ -37,6 +39,10 @@ version = "0.1.0"
 dependencies = [
  "zeroize",
 ]
+
+[[package]]
+name = "nieuw-os-usb-core"
+version = "0.1.0"
 
 [[package]]
 name = "ui-core"

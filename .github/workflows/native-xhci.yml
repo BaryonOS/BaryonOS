@@ -1,0 +1,91 @@
+name: Native xHCI DMA and USB HID transport
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', '**.md', '.github/ISSUE_TEMPLATE/**', '.github/DISCUSSION_TEMPLATE/**', '.github/workflows/project-classification.yml', 'tools/project_classification.py', 'tests/test_project_classification.py']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-xhci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  native-xhci:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NOS_QEMU_MACHINE: pc-q35-8.2
+      NOS_BUILD_DIR: ${{ github.workspace }}/build/xhci-native
+      NOS_TARGET_DIR: ${{ github.workspace }}/target/xhci-native
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/xhci-host
+      OS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE_4M.fd
+      OS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS_4M.fd
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Pinned Python
+        uses: ./.github/actions/setup-python
+      - name: Pinned Rust toolchain
+        run: >-
+          python3 -B tools/tokenguard.py run -- rustup toolchain install 1.90.0
+          --profile minimal --component rustfmt,clippy
+          --target x86_64-unknown-none,x86_64-unknown-uefi
+      - name: Pinned QEMU and OVMF
+        uses: ./.github/actions/setup-qemu
+      - name: Host ownership, firmware, xHCI and oracle regressions
+        run: |
+          set -euo pipefail
+          python3 -B tools/tokenguard.py run -- python3 -B tools/preflight.py --strict
+          python3 -B tools/tokenguard.py run -- python3 -B -m unittest discover -s tools/tests -p test_xhci.py -v
+          python3 -B tools/tokenguard.py run -- python3 -B -m unittest discover -s tools/tests -p test_usb_hid_probe.py -v
+          python3 -B tools/tokenguard.py run -- cargo +1.90.0 test --locked -p boot-protocol -p kernel-core
+          python3 -B tools/tokenguard.py run -- cargo +1.90.0 clippy --locked -p boot-protocol -p kernel-core --all-targets -- -D warnings
+          python3 -B tools/tokenguard.py run -- cargo +1.90.0 test --locked --manifest-path drivers/xhci/Cargo.toml
+          python3 -B tools/tokenguard.py run -- cargo +1.90.0 clippy --locked --manifest-path drivers/xhci/Cargo.toml --all-targets -- -D warnings
+          python3 -B tools/tokenguard.py run -- cargo +1.90.0 test --locked --manifest-path drivers/usb/Cargo.toml
+          python3 -B tools/tokenguard.py run -- cargo +1.90.0 clippy --locked --manifest-path drivers/usb/Cargo.toml --all-targets -- -D warnings
+          python3 -B tools/tokenguard.py run -- cargo +1.90.0 fmt --manifest-path drivers/usb/Cargo.toml -- --check
+          python3 -B tools/tokenguard.py run -- cargo +1.90.0 fmt --all -- --check
+      - name: Real command, USB reports, detach and DMA rejection
+        run: |
+          set -euo pipefail
+          for profile in 'noop native-xhci-probe' 'fault test-xhci-dma-fault' 'no-dmar test-xhci-no-dmar'; do
+            read -r case_name feature <<< "$profile"
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/xhci-native/$case_name"
+            python3 -B tools/tokenguard.py run -- python3 -B tools/build.py --kernel-feature "$feature"
+            python3 -B tools/tokenguard.py run -- python3 -B tools/run_xhci.py --case "$case_name"
+          done
+          for profile in 'reports native-usb-hid-probe' 'readonly test-usb-hid-readonly-fault'; do
+            read -r case_name feature <<< "$profile"
+            export NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/xhci-native/usb-$case_name"
+            python3 -B tools/tokenguard.py run -- python3 -B tools/build.py --kernel-feature "$feature"
+            python3 -B tools/tokenguard.py run -- python3 -B tools/run_usb_hid.py --case "$case_name"
+          done
+      - name: Preserve source-bound compact reports
+        if: ${{ always() }}
+        uses: ./.github/actions/preserve-evidence
+        with:
+          job-status: ${{ job.status }}
+          full-evidence: 'false'
+          name: native-xhci-evidence
+          path: build/xhci-native/
+          required-paths: |
+            build/xhci-native/noop/xhci-noop-report.json
+            build/xhci-native/fault/xhci-fault-report.json
+            build/xhci-native/no-dmar/xhci-no-dmar-report.json
+            build/xhci-native/usb-reports/usb-hid-reports-report.json
+            build/xhci-native/usb-readonly/usb-hid-readonly-report.json
+          if-no-files-found: error

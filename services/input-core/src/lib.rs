@@ -1,9 +1,10 @@
 #![no_std]
 #![forbid(unsafe_code)]
-//! Allocation-free input service policy over existing PS/2 and IPC primitives.
+//! Allocation-free input service policy over existing PS/2, boot-HID and IPC primitives.
 //! No device I/O or kernel authority is implemented here. `Received` must come
 //! from the real kernel adapter; parsing bytes on a host proves no provenance.
 
+mod hid;
 pub mod wire;
 use nieuw_os_sdk_runtime::{ReceiveEndpoint, Received};
 use ui_core::{
@@ -126,6 +127,9 @@ pub struct Service {
     clients: [Option<Client>; MAX_CLIENTS],
     keyboard: Set1Keyboard,
     mouse: Ps2Mouse,
+    hid_keyboard: hid::Keyboard,
+    hid_mouse: hid::Mouse,
+    source_profile: Option<u64>,
     cursor: Cursor,
     router: InputRouter,
     queue: [Option<Queued>; QUEUE_CAPACITY],
@@ -187,6 +191,9 @@ impl Service {
             clients,
             keyboard: Set1Keyboard::new(),
             mouse: Ps2Mouse::new(),
+            hid_keyboard: hid::Keyboard::new(),
+            hid_mouse: hid::Mouse::new(),
+            source_profile: None,
             cursor: Cursor::new(c.width, c.height).ok_or(Error::Configuration)?,
             router: InputRouter::new(),
             queue: [None; QUEUE_CAPACITY],
@@ -277,8 +284,14 @@ impl Service {
         let request = Request::decode(message.payload(), self.configuration.epoch)?;
         let allowed = matches!(
             (route, request.operation),
-            (Route::Source, Operation::Sync | Operation::Sample)
-                | (Route::Compositor, Operation::Focus)
+            (
+                Route::Source,
+                Operation::Sync
+                    | Operation::Sample
+                    | Operation::HidKeyboard
+                    | Operation::HidMouse
+                    | Operation::HidDetach
+            ) | (Route::Compositor, Operation::Focus)
                 | (
                     Route::Supervisor,
                     Operation::ClientDead | Operation::SourceDead | Operation::CompositorDead
@@ -410,8 +423,17 @@ impl Service {
             return Err(Error::StaleRequest);
         }
         if request.operation == Operation::Sync {
+            // A source profile is fixed for the entire service epoch. A change
+            // needs fresh bootstrap authority, not a payload-selected decoder.
+            if self
+                .source_profile
+                .is_some_and(|profile| profile != request.arg0)
+            {
+                return Err(Error::Malformed);
+            }
             self.last_source = request.id;
             self.reset_input(CancelReason::Resync, true)?;
+            self.source_profile = Some(request.arg0);
             self.online = true;
             return Ok(());
         }
@@ -422,6 +444,16 @@ impl Service {
         }
         if !contiguous {
             return self.source_fault(Error::StreamLost);
+        }
+        let hid = matches!(
+            request.operation,
+            Operation::HidKeyboard | Operation::HidMouse | Operation::HidDetach
+        );
+        if hid != (self.source_profile == Some(wire::HID_PROFILE)) {
+            return self.source_fault(Error::Malformed);
+        }
+        if hid {
+            return self.hid(request);
         }
         let (status, byte) = (request.arg0 as u8, request.arg1 as u8);
         if status & 1 == 0 || status & 0xc0 != 0 {
@@ -457,6 +489,67 @@ impl Service {
             }
         }
         Ok(())
+    }
+
+    fn route_keys(&mut self, keys: hid::Keys) -> Result<(), Error> {
+        // Apply the complete absolute report before publication can fill the
+        // queue and cancel its generation. Otherwise a mid-batch return could
+        // lose physical releases or assign later presses to the new generation.
+        let mut batch = [None; 20];
+        for (index, input) in keys.events().enumerate() {
+            if let Some(routed) = self.router.route_key(input) {
+                batch[index] = Some((routed.token(), routed.into_event()));
+            }
+        }
+        for (token, input) in batch.into_iter().flatten() {
+            self.enqueue(token, Event::Key(input))?;
+        }
+        Ok(())
+    }
+
+    fn route_mouse(&mut self, input: MouseEvent) -> Result<(), Error> {
+        let (x, y) = self.cursor.apply(input);
+        if let Some(routed) = self.router.route_mouse(input) {
+            self.enqueue(
+                routed.token(),
+                Event::Mouse {
+                    input: routed.into_event(),
+                    x,
+                    y,
+                },
+            )?;
+        }
+        Ok(())
+    }
+
+    fn hid(&mut self, request: Request) -> Result<(), Error> {
+        let bytes = request.arg0.to_le_bytes();
+        match request.operation {
+            Operation::HidKeyboard => match self.hid_keyboard.update(&bytes) {
+                Ok(keys) => self.route_keys(keys),
+                Err(_) => self.source_fault(Error::DecodeFault),
+            },
+            Operation::HidMouse => match self.hid_mouse.update(&bytes[..request.arg1 as usize]) {
+                Ok(input) => self.route_mouse(input),
+                Err(_) => self.source_fault(Error::DecodeFault),
+            },
+            Operation::HidDetach => {
+                // Actual detach cancels delivery before clearing only the lost
+                // device's physical markers. Sync/loss deliberately retain HID
+                // report state so a fresh absolute report can release old holds.
+                self.reset_input(CancelReason::SourceLost, false)?;
+                if request.arg0 & 1 != 0 {
+                    let releases = self.hid_keyboard.detach();
+                    self.route_keys(releases)?;
+                }
+                if request.arg0 & 2 != 0 {
+                    let release = self.hid_mouse.detach();
+                    self.route_mouse(release)?;
+                }
+                Ok(())
+            }
+            _ => Err(Error::WrongRole),
+        }
     }
     fn enqueue(&mut self, token: FocusToken, event: Event) -> Result<(), Error> {
         if self.length == QUEUE_CAPACITY {

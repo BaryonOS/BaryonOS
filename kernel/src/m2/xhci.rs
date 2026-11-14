@@ -1,4 +1,4 @@
-//! H02 isolated QEMU xHCI command-ring/DMA fixture. No USB enumeration or IRQs.
+//! H02 isolated QEMU xHCI DMA fixture; optional bounded USB enumeration, no IRQs.
 //!
 //! Register contracts: Intel xHCI 1.2c §§4.2, 4.6.2, 5.4, 5.5 and 6.4.3.1.
 //! The kernel owns all PCI/MMIO access. Only an established native VT-d domain
@@ -15,6 +15,9 @@ use driver_core::PciAddress;
 use kernel_core::{device_execution as device, Frames, Owner, PAGE};
 use nieuw_os_xhci::{ControllerCapabilities, RegisterAccess};
 use pci_core::{ConfigError, PciConfigAccess};
+
+#[cfg(feature = "native-usb-hid-probe")]
+mod usb;
 
 const MMIO: u64 = 0x3f210000;
 const POLLS: usize = 1_000_000;
@@ -34,6 +37,8 @@ enum Error {
     Event,
     Guard,
     Isolation,
+    #[cfg(feature = "native-usb-hid-probe")]
+    Usb,
 }
 
 /// IF=0 bootstrap-only PCI mechanism 1; no untrusted caller or concurrent CPU.
@@ -534,19 +539,25 @@ pub(super) fn run(
             execute(&controller, discovery, frames, paging, function),
             Err(Error::Isolation)
         );
+        let bus_master_was_clear = Pci
+            .read_u32(controller.address, COMMAND)
+            .is_ok_and(|command| command & u32::from(BUS_MASTER) == 0);
         controller.stop().expect("xHCI absent-DMAR halt");
         assert!(
             rejected,
             "missing DMAR did not reject native DMA establishment"
         );
-        assert_eq!(
-            Pci.read_u32(controller.address, COMMAND).unwrap() & u32::from(BUS_MASTER),
-            0
+        assert!(
+            bus_master_was_clear,
+            "DMA rejection enabled PCI bus mastering"
         );
         paging.audit(frames);
         serial::write(b"XHCI:NO_DMAR:BUS_MASTER_BLOCKED\nXHCI:PASS\n");
         serial::exit(0x10);
     }
+    #[cfg(feature = "native-usb-hid-probe")]
+    let result = usb::execute(&controller, discovery, frames, paging, function);
+    #[cfg(not(feature = "native-usb-hid-probe"))]
     let result = execute(&controller, discovery, frames, paging, function);
     // Both success and error clear BME before a terminal result; failed teardown
     // never turns retained pages back into allocator capacity.

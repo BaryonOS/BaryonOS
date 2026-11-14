@@ -10,11 +10,13 @@ members = ["."]
 
 [features]
 native = []
+hid-probe = ["native"]
 
 [dependencies]
 nieuw-os-sdk-runtime = { path = "../../runtime" }
 nieuw-os-input-core = { path = "../../../services/input-core" }
 nieuw-os-display-client = { path = "../../display-client" }
+nieuw-os-usb-core = { path = "../../../drivers/usb" }
 
 [dev-dependencies]
 capability-core = { path = "../../../crates/capability-core" }
@@ -30,6 +32,13 @@ bench = false
 name = "input-policy"
 path = "src/policy_main.rs"
 required-features = ["native"]
+test = false
+bench = false
+
+[[bin]]
+name = "input-hid-source"
+path = "src/hid_probe_main.rs"
+required-features = ["hid-probe"]
 test = false
 bench = false
 

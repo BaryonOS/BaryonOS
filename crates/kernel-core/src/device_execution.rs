@@ -229,6 +229,9 @@ pub enum Phase {
 pub enum DmaDirection {
     DeviceReads,
     DeviceWrites,
+    /// Hardware-maintained contexts that the device both reads and updates.
+    /// Native domains must map this explicitly; it is not the buffer default.
+    DeviceReadsWrites,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -1469,6 +1472,42 @@ mod tests {
         (1..N)
             .filter(|index| frames.owner(*index as u64 * PAGE) == Ok(Owner::Free))
             .count()
+    }
+
+    #[test]
+    fn bidirectional_context_grant_does_not_change_other_buffer_directions() {
+        let mut registry = LeaseRegistry::<1>::new();
+        let mut lease = registry.lease(function(), MATCH).unwrap();
+        lease.authorize(DRIVER, GENERATION).unwrap();
+        lease.begin_initialization().unwrap();
+        let mut frames = frames::<8>();
+        let read = lease
+            .allocate_dma(&mut frames, 4096, DmaDirection::DeviceReads, |_| {})
+            .unwrap();
+        let write = lease
+            .allocate_dma(&mut frames, 4096, DmaDirection::DeviceWrites, |_| {})
+            .unwrap();
+        let context = lease
+            .allocate_dma(&mut frames, 4096, DmaDirection::DeviceReadsWrites, |_| {})
+            .unwrap();
+        for (grant, direction) in [
+            (&read, DmaDirection::DeviceReads),
+            (&write, DmaDirection::DeviceWrites),
+            (&context, DmaDirection::DeviceReadsWrites),
+        ] {
+            assert_eq!(lease.dma_direction(grant), Ok(direction));
+            let page = lease.dma_pages(grant).unwrap()[0];
+            assert!(matches!(frames.owner(page), Ok(Owner::Dma(_))));
+            assert_eq!(
+                frames.free(page, frames.owner(page).unwrap(), |_| panic!("pinned")),
+                Err(FrameError::Owner)
+            );
+            assert_eq!(frames.map(page, true, false, true), Err(FrameError::Owner));
+            assert_eq!(
+                frames.map(page, false, true, false),
+                Err(FrameError::Permission)
+            );
+        }
     }
 
     #[test]

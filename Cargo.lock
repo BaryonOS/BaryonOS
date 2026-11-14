@@ -447,6 +447,10 @@ name = "nieuw-os-tpm-crb"
 version = "0.1.0"
 
 [[package]]
+name = "nieuw-os-usb-core"
+version = "0.1.0"
+
+[[package]]
 name = "nieuw-os-xhci-probe"
 version = "0.1.0"
 dependencies = [
@@ -482,6 +486,7 @@ dependencies = [
  "nieuw-os-ps2",
  "nieuw-os-rtc",
  "nieuw-os-tpm-crb",
+ "nieuw-os-usb-core",
  "nieuw-os-xhci-probe",
  "object-core",
  "pci-core",
