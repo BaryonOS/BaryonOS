@@ -1,8 +1,9 @@
 # BaryonOS typography
 
-Status: research, measurements and native assessment complete; specimen review,
-selection and token specification follow in sections 6–8. Date: 13 November 2026
-(Europe/Amsterdam). Design study on branch `claude/baryon-os-ui-ux-design-152adb`.
+Status: research, measurements, specimen review, selection (Inter, a judgement the
+project owner can redirect) and token specification `type-1.0` complete; native
+integration not started. Dates: 13–14 November 2026 (Europe/Amsterdam). Design
+study on branch `claude/baryon-os-ui-ux-design-152adb`.
 
 This record keeps four kinds of statement apart and labels each:
 
@@ -186,22 +187,327 @@ does not distinguish humanist from square-grotesque styles.
 - **Native specimens**: `ui/design/typography/native_specimen.py` rasterises
   candidates the way `ui/graphics/scripts/generate_font.py` and `text.rs` draw
   them: per glyph, 16 coverage levels, floored 26.6 advances, no kerning, with
-  the shipping alternates baked in, at 100 % and 200 % in dark and light.
-  Output: `typography/native/`. This is a build-time simulation, not a QEMU
-  capture. `--blind` writes coded copies for review.
+  the shipping alternates baked in, at 100 % and 200 % in dark and light. Each
+  face is set at equal x-height (sizes from `roles()`, as in section 6.2), and
+  the sheets reproduce byte for byte from the same font files. Output:
+  `typography/native/`. This is a build-time simulation, not a QEMU capture.
+  `--blind` writes coded copies for review.
 
 ## 6. Specimen review
 
-Pending: browser captures at 100 % and 200 % (dark and light), and a blind review
-by an independent agent. The review is AI judgement, not user testing.
+Four reviews, each by a separate reviewer agent that saw only coded images. All
+four are AI judgement, not user testing; scores are 1–10 judgements, not
+measurements. The unedited results, the code keys and the stimulus hashes are in
+[`docs/verification/typography-review-20261113/`](../verification/typography-review-20261113/README.md).
+
+### 6.1 Round 1: eight browser specimens and eight native sheets
+
+All eight browser specimens were set at the same pixel size (UI 15 px, reading
+16 px). Inter and Saira had `tnum` and `zero` switched on for whole technical
+lines. The native sheets came from `native_specimen.py --blind` with digit codes.
+
+| Code | Face | Readability | Accessibility | Brand | OS consistency | Wordmark fit |
+|---|---|---:|---:|---:|---:|---:|
+| D | Exo 2 | 7 | 7 | 8 | 8 | 7 |
+| K | Atkinson Hyperlegible Next | 8 | 8 | 4 | 8 | 3 |
+| W | Inter UI, Saira wordmark line | 7 | 8 | 6 | 6 | 9 |
+| R | Inter | 7 | 8 | 4 | 6 | 3 |
+| N | Sora | 6 | 7 | 6 | 5 | 5 |
+| M | Funnel Sans | 6 | 7 | 4 | 8 | 4 |
+| T | Archivo | 6 | 6 | 5 | 6 | 5 |
+| H | Saira | 4 | 5 | 5 | 5 | 9 |
+
+Native legibility at 100 %: Atkinson Hyperlegible Next 7, Inter 6, Sora 6,
+Archivo 5, Funnel Sans 5, Saira 5, Exo 2 5, Space Grotesk 4. Ranking: D, K, W.
+Best wordmark line: H. The reviewer judged a pairing (a legible UI face plus a
+squared display face for the brand line) safer, with D as the exception if one
+family is required.
+
+Disclosures, which limit how much weight round 1 can carry:
+
+- **Blinding leak.** A browser tab list visible to the reviewer showed the URL of
+  code M (`font=funnel`). The reviewer reported it and stated that M's scores rest
+  on the images only. M is not blind.
+- **Recognition.** Low-confidence resemblances, not used for scoring: D
+  "Exo-style", K and R/W "Inter-style". The guess for K was wrong.
+- **Unequal sizes.** At 15 px, Exo 2 (x-height 0.487 em) and Atkinson Hyperlegible
+  Next (0.496 em) fall below the 7.9 px floor of section 2. Their smaller apparent
+  size flattered fit and density.
+- **Feature confound.** Inter's `tnum` on whole lines also made the hyphen
+  tabular, producing strings such as `Thuis - NAS` that the reviewer partly
+  attributed to the face. Saira's zero reading as 8 came from the global `zero`
+  feature, not its default glyph.
+- **Coverage.** Most dark frames were judged from composite strips; three of the
+  200 % quadrants were opened.
+
+### 6.2 Rounds 2 and 2b: three finalists at equal x-height
+
+D, K and R were within the range where the round-1 confounds could change the
+order. They were rendered again under new codes (V Exo 2, Q Inter, J Atkinson
+Hyperlegible Next) with:
+
+- **Equal x-height.** UI size `ceil(7.9 px / x-height)`: Inter 15 px, Atkinson
+  Hyperlegible Next 16 px, Exo 2 17 px; reading text one pixel larger; secondary
+  text at the x-height of 13 px Inter (13, 14 and 15 px).
+- **Shipping features only.** Inter `cv05 cv08 ss01`; tabular figures on digits
+  only; no `zero` anywhere.
+- **Blinding.** Sizes hidden; other browser tabs blank or unrelated; new codes.
+- **Coverage.** All 12 full frames at 100 % and 22 same-region comparisons at
+  200 % (the three faces stacked per region, order rotated).
+
+Round 2 had a capture defect: three of J's four 100 % frames showed the content of
+`J-apps-dark-1x.png`, so J's light and shell surfaces were judged from the 200 %
+comparisons only, and the reviewer saw scaled-down images. The frames were
+recaptured, and a replicate review (round 2b, a fresh agent, every image viewed
+at 1:1) was run on the corrected set.
+
+**Combination rule.** Recorded by the lead before round 2b's scores were read;
+the timing is documented in the session log, not in this repository. Round 2b is
+primary and round 2 corroborates. If the rounds disagree on first place, or the
+leader's margin is under 3 points out of 100, no further review round is run: the
+tie is broken by measured inputs (sections 4, 6.2 and 9) and the owner's stated
+priority, and the choice is listed as one the project owner can redirect.
+
+| Face (code) | Round | Readability | Accessibility | Brand | OS consistency | Wordmark fit | Blind part (of 90) |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Inter (Q) | 2 | 8 | 7.5 | 5 | 8.5 | 4.5 | 65.75 |
+| Inter (Q) | 2b | 8 | 7.5 | 5 | 8.5 | 4.8 | 65.75 |
+| Atkinson Hyperlegible Next (J) | 2 | 7 | 7.5 | 5.5 | 6.5 | 5 | 60.25 |
+| Atkinson Hyperlegible Next (J) | 2b | 7.8 | 8 | 5.8 | 7 | 5.3 | 65.40 |
+| Exo 2 (V) | 2 | 7 | 6.5 | 8.5 | 5.5 | 8.5 | 62.75 |
+| Exo 2 (V) | 2b | 6 | 5.8 | 8.5 | 5.5 | 8.5 | 57.85 |
+
+Both rounds ranked Q, J, V and recommended Q as the single text face but not as
+the source of the logotype; round 2 suggested drawing the logotype with V's forms
+as a basis. Main points of round 2b:
+
+- **Inter**: most compact; calm hierarchy across surfaces; 0 narrower than O;
+  the tightest leading in long text; little relation to the mark.
+- **Atkinson Hyperlegible Next**: the slashed zero removes O/0 ambiguity in
+  identifiers but looks noisy in the clock, dates and prose; the most generous
+  leading; more truncation than Inter in the file table (the measurement below
+  shows equal cell counts).
+- **Exo 2**: closest to the mark; O and 0 nearly identical; the heaviest
+  truncation, orphaned digits and crowding in dense rows.
+
+Both reviewers tentatively recognised Q as Inter and V as an Exo 2-like face, so
+those two codes were blind in name only.
+
+**Measured fit** (apps view, DOM measurement in Chrome; the shell view truncates
+nothing for any of the three):
+
+| Face (size) | Truncated cells | Clipped width |
+|---|---:|---:|
+| Inter (15 px) | 5 | 160 px |
+| Atkinson Hyperlegible Next (16 px) | 5 | 151 px |
+| Exo 2 (17 px) | 7 | 263 px |
+
+At equal x-height Exo 2 is the widest of the three; its round-1 advantage in fit
+came from setting it below its legibility floor.
+
+### 6.3 Native column, judged again
+
+The round-1 native column came from sheets at equal pixel size, so it cannot
+break a tie. Because Inter and Atkinson Hyperlegible Next ended within 3 points,
+the finalists' native sheets were rendered again at equal x-height
+(`native_specimen.py --blind`, digit codes ordered by a hash of the file name,
+reproduced byte for byte) and judged once, blind, by a fresh reviewer agent. Its
+score replaces the round-1 value in the 10-point native column. This fills a
+confounded input; it is not a third specimen round. The rule was recorded before
+the review was launched.
+
+Result: Atkinson Hyperlegible Next 7.6, Exo 2 7.0, Inter 6.7. Main defects named:
+Atkinson's tabular `1` leaves gaps (`1 3 nov`) and its slashed zero can look like
+`Ø` at 100 %; Inter's word space collapses in the 600 line and its O and 0 differ
+only in width; Exo 2's word space collapses in the secondary line and it is the
+widest. The reviewer guessed that Specimen 1 (Atkinson Hyperlegible Next) was
+Inter, which was wrong.
+
+### 6.4 Reviewer claims checked by measurement
+
+`ui/design/typography/finalist_checks.py`; output in the verification folder.
+
+| Claim | From | Result |
+|---|---|---|
+| I and l differ only by height | 2b (Inter, Atkinson); 6.3 (all three) | Not reproduced. With `cv05 cv08` Inter draws a serifed I and a tailed l, as Atkinson Hyperlegible Next does by default; Exo 2 has a bare I and an l with a short tail. The cues are one or two pixels wide at 100 %. |
+| Atkinson's slashed zero appears in the clock and prose | 2, 2b, 6.3 | Reproduced. The default and tabular zeros are both slashed, and the font has no `zero`, `ss` or `cv` feature to change that. |
+| Inter's word space collapses in the 600 line | 6.3 | Reproduced at 15 px: smallest word-space gap 2 px against 3 px inside words. With the space advance 2 px wider: 4 px. At 30 px: 7 px against 4 px. |
+| Exo 2's word space collapses in the secondary line | 6.3 | Reproduced as a tie at 15 px: 2 px against 2 px. |
+| Atkinson's word spacing | 6.3 (no defect named) | Smallest word-space gap at least 1 px wider than the largest gap inside words, in every role at 100 % and 200 %. |
+| Round 2's zero evidence `13 november` | 2 | Not applicable: the string contains no zero. |
+
+Pair distinctness at the token sizes (small and UI size, shipping features):
+Inter mean 0.436, weakest c/e 0.185; Atkinson Hyperlegible Next mean 0.435,
+weakest rn/m 0.236; Exo 2 mean 0.418, weakest 5/S 0.242 and O/0 0.249.
 
 ## 7. Selection and scoring
 
-Pending (after section 6).
+Weights from the brief: readability and recognition 35, accessibility and
+language 20, brand 20, OS consistency 15, native, performance and licensing 10. A
+1–10 score contributes score × weight / 10. Round 2b supplies the first four
+columns and section 6.3 the native column. Wordmark fit is reported but not
+weighted: the logotype is drawn separately (BRAND.md).
+
+| Face | Blind part (of 90) | Native (of 10) | Total | Round 2 blind part |
+|---|---:|---:|---:|---:|
+| Atkinson Hyperlegible Next | 65.40 | 7.6 | 73.00 | 60.25 |
+| Inter | 65.75 | 6.7 | 72.45 | 65.75 |
+| Exo 2 | 57.85 | 7.0 | 64.85 | 62.75 |
+
+Atkinson Hyperlegible Next leads by 0.55 points, under the 3-point threshold,
+while round 2b's blind part puts Inter first. The tie branch of section 6.2
+applies; no further review round was run. The inputs, both ways:
+
+| Input | Inter | Atkinson Hyperlegible Next | Favours | In the first native atlas? |
+|---|---|---|---|---|
+| Readability and accessibility, weighted (2b) | 43.0 | 43.3 | Equal within 0.3 | Judgement |
+| OS consistency (2b) | 8.5 | 7 | Inter | Judgement |
+| Native legibility (6.3) | 6.7 | 7.6 | Atkinson | Simulated atlas output |
+| Pair distinctness, mean / weakest (6.4) | 0.436 / 0.185 | 0.435 / 0.236 | Equal / Atkinson | Yes |
+| Fit: truncated cells / clipped width (6.2) | 5 / 160 px | 5 / 151 px | Equal | Browser measurement |
+| Native word space, 600 at UI size (6.4) | Collapses at 15 px; a 2 px wider space fixes it | No collapse | Atkinson | Inter needs the correction in one record |
+| Zero (6.4) | Unslashed and narrower than O; slashed alternate for code | Slashed everywhere, cannot be switched off | Inter in clock and prose; Atkinson in identifiers | Atkinson's slash: yes. Inter's code zero needs a second glyph: not yet |
+| Language coverage (4) | 21 EU Latin languages, Greek, Cyrillic, ↑↓ | 21 EU Latin languages | Inter | Latin-1 first for both; `›↑↓` can be added for Inter only; Greek and Cyrillic are a later budget decision |
+| Optical size axis | `opsz` 14–32 | None | Inter | Yes: each record is cut at its own optical size |
+| Glyph data, section 8 role set, Latin-1 (9) | 261.6 KiB | 265.5 KiB | Equal | Estimate |
+| Licence | OFL 1.1, no Reserved Font Name | OFL 1.1, no Reserved Font Name | Equal | Yes |
+| Brand / wordmark fit (2b) | 5 / 4.8 | 5.8 / 5.3 | Atkinson; both low | Logotype is drawn |
+
+The rule does not select a face. The measured legibility inputs (weakest pair,
+native legibility, word spacing) lean towards Atkinson Hyperlegible Next. The
+measured language coverage and zero behaviour lean towards Inter. The weighted
+readability and accessibility scores are equal. The selection below is therefore
+a product judgement, and the project owner can redirect it.
+
+**Selected for UI and reading text: Inter 4.001** with `cv05 cv08 ss01`
+(judgement). Reasons:
+
+- One family can cover all 24 official EU languages; with Atkinson Hyperlegible
+  Next, Greek and Cyrillic would need a second face. This is the owner's
+  one-family preference applied to languages, not only to the wordmark.
+- The desktop clock, dates and prose (the most frequent numerals) keep a calm,
+  unslashed zero. Identifiers get a slashed zero through the code feature in the
+  browser now, and natively once a code glyph is added (section 9).
+- An optical size axis and the highest OS-consistency judgement in both rounds.
+
+Costs accepted: a weaker weakest pair (c/e 0.185), a lower native legibility
+judgement (6.7), one atlas correction (word space at 15 px 600) and denser long
+text, answered by the 26 px leading of `type.reading`.
+
+**Atkinson Hyperlegible Next: optional reading face** (Leeslettertype, F1) for
+`type.reading` at its equal-x-height size of 17 px. In the browser prototype now;
+natively it needs four more records (about 86 KiB, Latin-1) and stays
+prototype-only until the read-only budget is measured on the built ELF.
+
+**Redirect to Atkinson Hyperlegible Next** would mean: sizes 16/17/14 px for UI,
+reading and small text; no Greek, Cyrillic or arrows (a fallback face or icons
+needed); a slashed zero everywhere, including the clock; no word-space
+correction.
+
+**Exo 2 is not selected for text.** It had the lowest readability and
+accessibility in both rounds, the most truncation (7 cells, 263 px), O/0 at 0.249
+and the square-grotesque risk of assumption A1. It is recorded as the face with
+the most brand character (brand and wordmark fit 8.5 in both rounds) and is an
+input to the logotype.
+
+**Logotype routes**, decided in BRAND.md v2, not here:
+
+- (a) An optically refined outline drawn from Inter. Unified with the UI and
+  allowed by the brief; reviewers rated Inter's "Baryon OS" line lowest for fit
+  with the mark (4.5–4.8).
+- (b) A geometric outline drawn with Exo 2 or Saira forms as reference, as
+  round 2 suggested. A departure from the one-family preference, recorded as such.
+- (c) The original wordmark, kept as reference and reversible fallback.
 
 ## 8. Typography token specification
 
-Pending (after section 7).
+Version `type-1.0` (14 November 2026). Applies to the shell (Horizon, Orbit,
+Zenit, Signaal, Nebula, Kern, Haven), the first-party apps and the prototype.
+Values are CSS px at 100 % scale. The native renderer uses the same pixel sizes
+(section 9), so the browser and QEMU show the same scale.
+
+### 8.1 Families
+
+| Token | Value | Use |
+|---|---|---|
+| `font.family.ui` | Inter 4.001 (`ui/design/fonts/`) | All interface and reading text |
+| `font.family.wordmark` | Outlined logotype, route chosen in BRAND.md v2 (section 7) | Wordmark only; never typed text |
+| `font.family.reading-alt` | Atkinson Hyperlegible Next, user setting | Optional reading face (F1); prototype-only natively until measured |
+| `font.features.ui` | `cv05 cv08 ss01` | Always on |
+| `font.features.digits` | `tnum` on 0–9 only | Clocks, tables, sizes, dates |
+| `font.features.code` | `zero` (slashed) | Paths, identifiers, hashes; native support open (section 9) |
+| Fallback (browser) | `system-ui, sans-serif` | Prototype only |
+| Fallback (native) | U+FFFD from the same atlas | Characters outside the atlas |
+
+### 8.2 Roles
+
+| Role token | Size / line height | Weight | Tracking | Native record (100 % / 200 %) | Use |
+|---|---|---|---|---|---|
+| `type.caption` | 13 / 18 | 400 | 0 | 13r / 26r | Non-essential metadata only: timestamps, secondary counts, column hints |
+| `type.body` | 15 / 22 (20 in dense rows) | 400 | 0 | 15r / 30r | All UI text: menus, buttons, list rows, settings, fields, notifications |
+| `type.body-strong` | 15 / 22 | 600 | 0 | 15sb / 30sb | Buttons, selected navigation, row titles, labels that carry state |
+| `type.reading` | 16 / 26 | 400 | 0 | 16r / 32r | Documents and long text (Notities, help, licence) |
+| `type.title` | 22 / 28 | 600 | 0 | 22sb / 44sb | Window, page and dialog titles; Signaal group heads |
+| `type.display` | 48 / 56 | 400 | 0 | 48r / 48r magnified 2× | Greeting, clock, boot and sign-in only |
+
+Caption, body and reading sizes are the sizes reviewed in rounds 2, 2b and 6.3.
+Title and display were not part of the specimen review.
+
+Rules:
+
+- Two weights only, 400 and 600 (F6). No light or thin weights, also not for
+  large numerals, and no 700 in UI text.
+- No italic for emphasis (F12); use 600. No all-caps labels: Dutch `IJ`,
+  diacritics and word shapes suffer.
+- Tracking 0 at every text size (F8). The display role tightens through the
+  face's optical size, not through letter spacing.
+- Essential text is never below 15 px (calculation under F7); 13 px is limited to
+  metadata whose loss does not block a task.
+- Reading text: at most 80 characters per line (WCAG 1.4.8), target 60–72; never
+  justified.
+- Hierarchy uses size and weight first, colour second. Secondary text uses the
+  `text.secondary` colour token, never a lighter weight.
+- Native word space: the 15 px 600 record widens the space advance by 2 px
+  (section 6.4). No other record needs it.
+
+### 8.3 States
+
+| State | Treatment |
+|---|---|
+| Normal | Role weight, `text.primary` |
+| Selected | 600 and the selection indicator; never colour alone |
+| Disabled | Same weight, `text.disabled` token (exempt from 1.4.3 but kept at least 3:1) |
+| Focus | Focus ring per the design system (2 px, 3:1, WCAG 2.4.13); text unchanged |
+| Error | `status.error` text plus an icon and a message; never colour alone |
+
+### 8.4 Numbers, dates and paths (nl-NL)
+
+- Numbers `1.234,56`; currency `€ 1.234,56`; sizes `18 MB`, `1,2 GB` (decimal
+  comma, space before the unit).
+- Dates `13 nov. 2026` in lists, `vrijdag 13 november 2026` in headers,
+  `13-11-2026` in tables; time `09:41` (24-hour).
+- All digits tabular, so columns and clocks do not jitter.
+- Paths and identifiers in `type.body` with the code feature; truncate in the
+  middle (`Thuis-NAS › … › Tuin`), never in the file name.
+
+### 8.5 Localisation
+
+- The first native atlas holds Latin-1, `–—‘’“”•…€` and `›↑↓`; EU Latin follows
+  after the read-only budget check; Greek and Cyrillic need a project decision
+  (section 9). Browser coverage follows the face.
+- Allow 30–40 % text expansion (German, Finnish): buttons grow, they do not
+  truncate.
+- Truncation uses `…` (U+2026), with the full text in a tooltip and the
+  accessible name.
+
+### 8.6 Accessibility settings (WCAG 1.4.4, 1.4.8, 1.4.12)
+
+- Text size: 100 % and 200 % natively today; 125 % and 150 % are open (section
+  9, item 7).
+- Ruimere tekst (wider spacing): letter spacing 0.12 em, word spacing 0.16 em,
+  line height 1.5, paragraph spacing 2 em, without loss of content (F9, F10).
+- Leeslettertype (reading face): Inter or Atkinson Hyperlegible Next for
+  `type.reading` (F1). Preference is not evidence of performance (F11).
 
 ## 9. Native rendering and licensing assessment
 
@@ -228,22 +534,36 @@ encoding (glyph data only; the glyph and row tables add more). Measured with
 | Today's seven records | 177.7 KiB | 327.1 KiB | 459.0 KiB |
 | Full proposed scale (20 records) | 558.4 KiB | 1028.3 KiB | 1451.5 KiB |
 | Reduced set (9 records): 12r 15r 15sb 22sb 48r, and 24r 30r 30sb 44sb at 200 % (display magnified) | 215.6 KiB | 396.6 KiB | 559.4 KiB |
+| Section 8 role set (11 records): 13r 15r 15sb 16r 22sb 48r, and 26r 30r 30sb 32r 44sb | 261.6 KiB | 481.0 KiB | 679.1 KiB |
 
-Atkinson Hyperlegible Next and Exo 2 are within about 5 % of Inter.
+The same role set for Atkinson Hyperlegible Next at its own equal-x-height sizes
+(14r 16r 16sb 17r 24sb 52r, and 28r 32r 32sb 34r 48sb) needs 265.5 KiB for
+Latin-1 and 503.0 KiB for EU Latin; it has no Greek or Cyrillic glyphs. Its
+optional reading records alone (17r 17sb 34r 34sb) need 86.2 KiB for Latin-1.
+Reproduce with `atlas_estimate.py FONT [features] weight:px,...`.
 
 **Feasible route** (no browser or webview in the native path):
 
 1. Vendor the selected family's TTF with its OFL text and SHA-256 under
-   `ui/design/fonts/`, and add a provenance entry.
+   `ui/design/fonts/`, and add a provenance entry. Done for Inter 4.001
+   (`ui/design/fonts/FONTS.md`).
 2. Extend the generator to emit a second atlas beside the Open Sans atlas, never
    regenerating `atlas.rs` in place. Veld and the SDK examples keep Open Sans
    until each is migrated and its text-metric oracles are reviewed.
 3. Bake the alternates (`cv05`, `cv08`, `ss01`) and tabular digits into the
    glyph selection, a 1:1 substitution needing no shaping. Tabular figures apply
-   to digits only: in Inter, `tnum` also widens the hyphen.
+   to digits only: in Inter, `tnum` also widens the hyphen. The character set is
+   Latin-1, `–—‘’“”•…€`, U+FFFD and `›↑↓`, which the prototype copy uses.
+   Widen the space advance of the 15 px 600 record by 2 px (section 6.4). The
+   slashed code zero needs a second glyph that the atlas cannot select without
+   shaping: a separate code record or an explicit `text.rs` call, which is an
+   open interface decision.
 4. Keep the token scale equal to the native records, so the browser and QEMU
-   show the same sizes. Start with Latin-1 (fits like today), then measure the
-   EU Latin atlas against the built ELF's read-only segment before adopting it.
+   show the same sizes. Start with Latin-1 (261.6 KiB of glyph data for the
+   section 8 role set, against 188.5 KiB today) and measure it against the built
+   ELF's read-only segment; the Open Sans atlas leaves `ui/native` only if
+   nothing there references it any more. Measure EU Latin the same way before
+   adopting it.
 5. Greek and Cyrillic do not fit the current budget alongside Latin. They need a
    separate, separately reviewed atlas or a revised segment limit, which is a
    project decision.

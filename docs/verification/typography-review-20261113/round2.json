@@ -1,0 +1,149 @@
+{
+ "specimens": [
+  {
+   "code": "V",
+   "readability": 7,
+   "accessibility": 6.5,
+   "brand": 8.5,
+   "os_consistency": 5.5,
+   "wordmark_fit": 8.5,
+   "strengths": [
+    "Wide, open forms with generous leading make the long Dutch paragraph comfortable at 100 % and 200 %, in dark and light (cmp-dark-a4, cmp-light-a4).",
+    "Its geometric, squarish-rounded construction (the O in 'OS', the terminals of a, y, g) is the closest of the three to the reference wordmark. 'Baryon OS' beside the mark reads as one family (cmp-dark-a1, cmp-light-a1).",
+    "The weight steps Regular/Medium/Semibold/Bold are clearly separated, so headings stand out well (Goedemorgen/Tuinplan in V-shell-dark-1x, V-shell-light-1x).",
+    "Muted and disabled text ('Locatie voor Sterrenkaart', 'Definitief verwijderen') stays legible on dark at 100 % because the letters are wide (V-apps-dark-1x)."
+   ],
+   "defects": [
+    {
+     "issue": "Width causes destructive truncation in the file table. The modification time disappears entirely.",
+     "evidence": "V-apps-dark-1x / cmp-light-a3-zoeken-tabel-2x, Gewijzigd column: 'vandaag 0…' and 'gisteren 16…' (Q shows 'gisteren 16:30' in full). Also 'Plattegrond nieuwe w…', 'Huurcontract Spoorst…', 'Wordt bijgewe…'."
+    },
+    {
+     "issue": "O and 0 are hard to tell apart: both are rounded rectangles with nearly the same width.",
+     "evidence": "cmp-dark-a6-menu-technisch-2x / cmp-light-a6, string 'O0o': O and 0 are almost identical. 'BaryonOS is bijgewerkt' in cmp-dark-s4 can be read as 'Baryon0S'."
+    },
+    {
+     "issue": "Wrapping is poor in narrow cards: a single digit is left orphaned on its own line, and dates break.",
+     "evidence": "cmp-dark-s1-bureaublad-2x / V-shell-light-1x, card Tuinplan: 'Vandaag 09:12 · versie' / '4'; card Reisplan Lofoten: 'Woensdag 11' / 'november'. The notification wraps to three lines ('12 bestanden staan' / 'versleuteld op Thuis-NAS.') in cmp-light-s4."
+    },
+    {
+     "issue": "Crowding in settings rows and the Zenit grid: text runs almost into the switch, and labels almost touch each other.",
+     "evidence": "cmp-dark-a5-instellingen-formulier-2x: 'Uit: zoekopdrachten blijven op dit apparaat.' runs up to the toggle. cmp-dark-s3-zenit-menu-2x: 'Instellingen Rekenmachine' with almost no gap, and 'Noor de Vries' is pressed against the 'Vergrendelen' button."
+    },
+    {
+     "issue": "The display character draws attention in dense, calm surfaces such as menus and documents. Squarish forms at small sizes look busier than a neutral grotesque.",
+     "evidence": "cmp-light-s2-notities-2x body text 'Lavendel bij de deur…' and the meta line 'Versie 4 van 4 · opgeslagen…'. The meta line runs the full width and wraps."
+    }
+   ]
+  },
+  {
+   "code": "Q",
+   "readability": 8,
+   "accessibility": 7.5,
+   "brand": 5,
+   "os_consistency": 8.5,
+   "wordmark_fit": 4.5,
+   "strengths": [
+    "The narrowest setting at equal x-height is the only one that keeps 'gisteren 16:30' readable in the table, and it truncates the least overall (cmp-dark-a3-zoeken-tabel-2x, Q-apps-light-1x).",
+    "Calm, neutral forms carry menus, settings, notifications and documents with no stylistic noise. The weight hierarchy is clear (Q-shell-dark-1x, cmp-light-s2-notities-2x).",
+    "Times and percentages align well in tabular columns ('vandaag 09:12 / 09:30 / gisteren 16:30', '64 % / 80 %') in cmp-light-s3 and cmp-light-s4.",
+    "Dutch IJ and the diacritics Größe, Ålesund, Łódź, Șiret all render cleanly (cmp-light-a4-lange-tekst-2x)."
+   ],
+   "defects": [
+    {
+     "issue": "Weak fit with the brand: a neutral grotesque without the geometric, rounded, futuristic character of the mark. 'Baryon OS' next to the mark looks like a different typeface.",
+     "evidence": "cmp-light-a1-merk-klok-melding-2x / Q-apps-dark-1x: the 'Baryon OS' line under the logo panel. A round O and a narrow S contrast with the square, rounded mark letters."
+    },
+    {
+     "issue": "The long text is set more tightly and its lines run longer, so reading comfort is lower than in V. The English muted text is relatively light on dark.",
+     "evidence": "cmp-dark-a4-lange-tekst-2x: the paragraph 'Thuis-NAS is niet bereikbaar…' runs to the right edge ('…geen toegang tot je'), with denser leading than V and J."
+    },
+    {
+     "issue": "Small muted labels are relatively small and thin in the dark theme at 100 %.",
+     "evidence": "Q-apps-dark-1x: 'Uit: zoekopdrachten blijven op dit apparaat.', 'Niet beschikbaar: app niet geïnstalleerd' and the shortcuts 'Shift+Del' / 'Ctrl+Shift+M' in the context menu."
+    },
+    {
+     "issue": "The hyphenated name breaks across two lines with a short last word.",
+     "evidence": "cmp-dark-a1-merk-klok-melding-2x notification: '12 bestanden staan versleuteld op Thuis-' / 'NAS.' (J has the same break, V does not)."
+    }
+   ]
+  },
+  {
+   "code": "J",
+   "readability": 7,
+   "accessibility": 7.5,
+   "brand": 5.5,
+   "os_consistency": 6.5,
+   "wordmark_fit": 5,
+   "strengths": [
+    "The slashed zero in tabular figures makes 0 and O unambiguous in technical strings and data entry (cmp-light-a6-menu-technisch-2x: 'O0o', '0x7F3A', '192.168.1.20'. cmp-dark-a5: 'Thuis-NAS_01').",
+    "Slightly wider and rounder than Q, with comfortable leading in the long text (cmp-dark-a4-lange-tekst-2x).",
+    "Density and truncation sit close to Q: the table keeps 'Wordt bijgewerkt…' and 'Op dit apparaat …' readable (cmp-light-a3-zoeken-tabel-2x).",
+    "IJ and the diacritics are clean (cmp-light-a4: 'IJsselmeer', 'Łódź', 'Șiret')."
+   ],
+   "defects": [
+    {
+     "issue": "The slashed zero also appears in prose, the clock and dates. It is distracting in documents and a desktop clock, where 0/O ambiguity does not matter.",
+     "evidence": "cmp-light-a1-merk-klok-melding-2x clock '09:41' with a slashed zero. cmp-light-s2-notities-2x: '60 cm', '(200 l)', '€ 84,50'. cmp-dark-a3: 'Zaaikalender 2027'. cmp-light-s4: 'Tot 07:00', 'Versie 0.9'."
+    },
+    {
+     "issue": "Figure style is inconsistent: some zeros are slashed and others are not in the same string, which looks restless.",
+     "evidence": "cmp-light-a6-menu-technisch-2x line '13-11-2026 09:41:07 · 100 %' compared with 'gisteren 16:30' and '13 november'. Zeros in tabular contexts differ from the overall impression of the running text."
+    },
+    {
+     "issue": "Limited brand character: neutral grotesque forms do not reflect the geometric, futuristic mark.",
+     "evidence": "cmp-dark-a1-merk-klok-melding-2x / J-apps-dark-1x: 'Baryon OS' under the logo panel uses a round O and a classic S."
+    },
+    {
+     "issue": "Same awkward break of the hyphenated name in the notification as in Q.",
+     "evidence": "cmp-light-a1-merk-klok-melding-2x: '…versleuteld op Thuis-' / 'NAS.'."
+    }
+   ]
+  }
+ ],
+ "ranking": [
+  "Q",
+  "J",
+  "V"
+ ],
+ "recommendation": "Use Q as the single UI text family for the OS (shell, apps, settings, documents). It is the best of the three for readability, density, truncation and hierarchy, and readability and accessibility outrank style. Q is weak on brand, so the brand character should not come from the text face. Draw a dedicated logotype instead, using V's geometric, rounded forms as its basis. V fits the mark best (wordmark_fit 8.5), but it should not carry the UI: it truncates times in tables ('vandaag 0…'), barely separates O from 0, and causes crowding and orphaned line breaks. J ranks second only provisionally. Its slashed zero helps technical strings, but it is distracting in prose and on the clock. If J is reconsidered, apply the slashed zero only to technical or monospace contexts. Its ranking above V may change once its 100 % light and shell frames are actually available. Conditions for Q: (1) pair it with a separately drawn wordmark rather than setting 'Baryon OS' in Q itself; (2) check the leading for long text and the contrast of small muted labels on dark at 100 %; (3) consider a distinct 0 only for technical strings.",
+ "recognized_faces": "V strongly resembles Exo 2: squarish, rounded geometric forms, square O and S. Q strongly resembles Inter (neo-grotesque proportions, apertures and figures). J is not recognised with confidence. It is a neutral grotesque with a slashed zero inside its tabular figures, possibly a recent open-source sans such as Albert Sans or a similar face. This is speculation. All scores are based on what is visible, not on these guesses.",
+ "viewed": [
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind/reference-logo.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/V-apps-dark-1x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/V-apps-light-1x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/V-shell-dark-1x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/V-shell-light-1x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/Q-apps-dark-1x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/Q-apps-light-1x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/Q-shell-dark-1x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/Q-shell-light-1x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/J-apps-dark-1x.png",
+  "J-apps-light-1x.png (opened; content identical to J-apps-dark: dark theme, label 'Donker', apps layout; not judged as a light frame)",
+  "J-shell-dark-1x.png (opened in two tabs and after a cache-bypassing reload; content identical to J-apps-dark; not judged as a shell frame)",
+  "J-shell-light-1x.png (opened; content identical to J-apps-dark; not judged)",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-dark-a1-merk-klok-melding-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-dark-a2-vertrouwd-venster-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-dark-a3-zoeken-tabel-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-dark-a4-lange-tekst-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-dark-a5-instellingen-formulier-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-dark-a6-menu-technisch-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-dark-a7-orbit-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-dark-s1-bureaublad-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-dark-s2-notities-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-dark-s3-zenit-menu-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-dark-s4-snel-meldingen-leeg-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-light-a1-merk-klok-melding-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-light-a2-vertrouwd-venster-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-light-a3-zoeken-tabel-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-light-a4-lange-tekst-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-light-a5-instellingen-formulier-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-light-a6-menu-technisch-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-light-a7-orbit-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-light-s1-bureaublad-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-light-s2-notities-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-light-s3-zenit-menu-2x.png",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/blind2/cmp-light-s4-snel-meldingen-leeg-2x.png"
+ ],
+ "limitations": "1) Stimulus defect: J-apps-light-1x.png, J-shell-dark-1x.png and J-shell-light-1x.png all showed the content of J-apps-dark-1x.png (dark theme, 'Donker', apps layout). This persisted after a cache-bypassing reload and in a new tab. J therefore has no 100 % evidence for light or for the shell surfaces. J's light and shell judgements rest only on the 200 % comparison images, so J's position (2nd) is provisional and the comparison with V and Q is not equivalent. The J 1x frames should be regenerated and checked again. 2) Viewing method: Chrome shrank the tall comparison images to fit the window (about 30 %), and resize_page had no effect. To see them close to their real size, emulate was used to set the viewport (800/900 x 3138, or 1400 x 318 for the taskbar strips). No evaluate_script, no clicks with effect, no reading of files or HTML. Even so, the screenshots were scaled down to about 82 % for viewing, and wide 1176 px images were shown at about 56 % of 200 %. Fine distinctions (the tail on l, serifs on I, the I/l/1/| row, IJ versus U) could therefore not be assessed with certainty at pixel level. 3) The 1x frames were screenshots of 1440x900 PNGs in a 1920-wide window and were probably not shown exactly 1:1. 4) This is a single AI judgement with no user test, no measured contrast and no low-vision simulation. Accessibility scores are expert estimates, not measurements. 5) Possible recognition of V (Exo 2-like) and Q (Inter-like) may have coloured the judgement, despite deliberately scoring only on visible properties."
+}

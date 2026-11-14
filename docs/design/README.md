@@ -13,7 +13,7 @@ renderer). A design or simulation is never evidence of a working OS feature.
 | [NAMING-AND-IA.md](NAMING-AND-IA.md) | Naming review, recommended names, IA, vocabulary, localisation, old → new mapping | Proposal P-NAMES-1, awaiting project-owner decision |
 | [NATIVE-FEASIBILITY.md](NATIVE-FEASIBILITY.md) | Renderer capabilities, test oracles, plan for the native slice | Analysis |
 | [CONCEPTS.md](CONCEPTS.md) | Three visual directions, rubric critique and selection | Orbitaal selected, v2 revision pending |
-| [TYPOGRAPHY.md](TYPOGRAPHY.md) | Typeface research, measurements, specimens, selection, token specification, native assessment | Selection in progress |
+| [TYPOGRAPHY.md](TYPOGRAPHY.md) | Typeface research, measurements, specimens, selection, token specification, native assessment | Inter selected (owner can redirect); tokens `type-1.0`; native integration open |
 | DESIGN-SYSTEM.md | Tokens, components, motion, themes, accessibility | Pending |
 
 Assets: `ui/design/brand/` (generated mark files), `ui/design/fonts/`
