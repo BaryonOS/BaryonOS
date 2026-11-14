@@ -1,0 +1,318 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14T16:52:01+01:00",
+  "plugin_version": "1.2.1",
+  "base_commit": "4cd444e08dac820cc66f2750c43845b4139901cc",
+  "branch": "feat/token-guard-mcp-20261114",
+  "scope": "Local helper, stdio MCP, conservative hooks, client configuration and deterministic packaging; no OS implementation change.",
+  "checks": [
+    {
+      "check": "Token Guard regressions",
+      "test_count": 93,
+      "exit_code": 0,
+      "duration_seconds": 12.994,
+      "log": "build/tokenguard/run-fg0519eh.log",
+      "log_sha256": "a6ceead334e54b2bb02aace42524ad69e0f038cb94282463b25dcba1d46036d3",
+      "previous_log": "build/tokenguard/run-i_w9omkr.log",
+      "scope": "Rechecked after integration of main 4cd444e (PR #328)."
+    },
+    {
+      "check": "workflow regressions",
+      "test_count": 26,
+      "exit_code": 0,
+      "duration_seconds": 0.471,
+      "log": "build/tokenguard/run-ggow4ojk.log",
+      "log_sha256": "80ebe7deb0ffcfa9513c7485c6ec2fe2570c65846f07ce5e053ce2555623a0f1",
+      "previous_log": "build/tokenguard/run-uxs5oh3w.log",
+      "scope": "Rechecked after integration of main 4cd444e (PR #328)."
+    },
+    {
+      "check": "official MCP Python SDK 1.29.0",
+      "test_count": null,
+      "exit_code": 0,
+      "duration_seconds": 0.666,
+      "log": "build/tokenguard/run-pu_nlq7u.log",
+      "log_sha256": "86532da36a70f7ba941c98e0c45f2df24fc5e370f4f8e1134345c828bbbe63db"
+    },
+    {
+      "check": "extracted archive self-test",
+      "test_count": null,
+      "exit_code": 0,
+      "duration_seconds": 0.315,
+      "log": "build/tokenguard/run-t6n2qoo5.log",
+      "log_sha256": "e84a00e9b22eb3c0e2f1d9fcde4d4a654dfd992b24dc7b71e5f345156098ffaa"
+    },
+    {
+      "check": "deterministic package validation",
+      "test_count": null,
+      "exit_code": 0,
+      "duration_seconds": 0.054,
+      "log": "build/tokenguard/run-bkts60g6.log",
+      "log_sha256": "32b56befe486f0b58f0f60e82cdb2b57103cca4fc7de5f58e04303bfa85fb0b4"
+    },
+    {
+      "check": "YAML/frontmatter/archive modes",
+      "test_count": null,
+      "exit_code": 0,
+      "duration_seconds": 0.048,
+      "log": "build/tokenguard/run-i6innumi.log",
+      "log_sha256": "7c5a3acbcd279dd9b784b5d8899864387f0a48c02d89747cb2f117ef5a649d69"
+    },
+    {
+      "check": "strict preflight inventory",
+      "test_count": null,
+      "exit_code": 2,
+      "duration_seconds": 0.052,
+      "log": "build/tokenguard/run-7mcmc3ew.log",
+      "log_sha256": "18b2f048e6b79c2f88755dd8c7138c9970ba766d9155b9787cf1388093ceada4"
+    },
+    {
+      "check": "Final 1.2.1 extracted portable/Claude override launch via MCP SDK",
+      "test_count": null,
+      "exit_code": 0,
+      "duration_seconds": 0.922,
+      "log": "build/tokenguard/run-yrxfs8lg.log",
+      "log_sha256": "a391129ada90c2c4031c0047bfccd7f60f76161bc4eebd641b6e9c61037c660d",
+      "scope": "Documented config merge simulated; no native host activation claim"
+    },
+    {
+      "check": "progress consistency after main integration",
+      "test_count": null,
+      "exit_code": 0,
+      "duration_seconds": 0.023,
+      "log": "build/tokenguard/run-794dfu_6.log",
+      "log_sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    }
+  ],
+  "source_sha256": {
+    "plugins/token-guard/.claude-plugin/plugin.json": "2f7022ca331b8881ddd69710b5bbb06f086882761f202c4c805042d871031500",
+    "plugins/token-guard/.codex-plugin/plugin.json": "a9a1d89cec5001b2869275a96cd12254c855382112d12311b5a6cc6cc98b1ece",
+    "plugins/token-guard/.mcp.json": "965a2231cbb947770184ca27a28db6399da4edb445d74ccf3489fb20139c5c20",
+    "plugins/token-guard/LICENSE": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+    "plugins/token-guard/README.md": "0b85a7cc3fa61d1a97e8074a4f38228905dbd27bdb8fe0a9edeb1875f3f04e43",
+    "plugins/token-guard/hooks/hooks.json": "9d6d86b78bc781f5083e0806114906be4f5f55a9286d34293485b42f030dc59c",
+    "plugins/token-guard/mcp.json": "e53e0b3d942a7ae560102a39a0c61bcd10fa96806d252032f4b2a7e0ecc12189",
+    "plugins/token-guard/plugin.json": "3587948d4f85747a47ace38e90684ec154172b5cbfeddd68918d7ca0728e9c11",
+    "plugins/token-guard/skills/token-guard/SKILL.md": "07b42fe32e6c7cd596a55d28be850805231afb901aaede446b4da1c6e684ba31",
+    "plugins/token-guard/skills/token-guard/agents/openai.yaml": "4462f838fc1d8dc6bc30141999ed376beba2b1306fd2f7b186cbc4ea494f0453",
+    "plugins/token-guard/skills/token-guard/references/quality-contract.md": "af4462839ad2d61aa159111188e6f2b3b2696f94e80c1a3b181cacd3d3fdae00",
+    "plugins/token-guard/skills/token-guard/scripts/tokenguard.py": "64876b24ddacdc5ee3e92675fd0bc4d67a53ed62a0ae6c2c3cb731ef1352586a",
+    "plugins/token-guard/skills/token-guard/scripts/tokenguard_hook.py": "cb67731e5753bb183f843c0b07f3c77ed74119ad9a3532f71ceb3ee31ce589d7",
+    "plugins/token-guard/skills/token-guard/scripts/tokenguard_init.py": "e7e5b309c608a129ed9b2aae8c30c687c4a1a75fb884cf75d4ab2fb0ccfa054a",
+    "plugins/token-guard/skills/token-guard/scripts/tokenguard_mcp.py": "09f77002f02dbb8a65b2d9a0e9b3556c02aec1d638d6a8a2a44e7ddd0358cca3",
+    "tools/tokenguard.py": "2e0ad096b7c6d4f4c6dc60a4271a15dbdc5f541e8f7c192052a6b67878366ad6",
+    "tools/package_token_guard.py": "ec1baa396d3174eea72446603cc1f3d6a2181125a43cdb558acd7da618467c50",
+    "tests/test_tokenguard.py": "f69c431b3e4e6f9349bbc116b65a2dbd01d648145a2a87445764966f85cb8985",
+    "tests/test_tokenguard_hook.py": "22543759c1cc89bbe64a48224349f42a1c87b0e78b23e7ffc4fab1c85b7b13c9",
+    "tests/test_tokenguard_init.py": "4ed3c3b2cdb079ead25cb82d5ca6bf1a9f9a088217432fe7d5f0d3d0c4704d2b",
+    "tests/test_tokenguard_mcp.py": "ef8e456aa8ee1a0a67f1cb3e88318bf0dab88cda72939675a55233ee259a4ad9",
+    ".github/workflows/ci.yml": "ef78eb39805ee6371c272af386acc688b945e5dab1f672fa3eb66f0ff452cf8a",
+    "plugins/token-guard/config/claude-mcp.json": "5878b35863d72f459729f07f55d36e125e7fd236ae4fc0b68d9ff08f63d3dde1"
+  },
+  "archive": {
+    "name": "plugin.zip",
+    "bytes": 38969,
+    "sha256": "97d94ad3d04a65dbb3dcbd8e1d34ada6a0c7b7bdb8bf60302e37046eff2b9e0e",
+    "file_count": 16,
+    "files": {
+      ".claude-plugin/plugin.json": {
+        "sha256": "2f7022ca331b8881ddd69710b5bbb06f086882761f202c4c805042d871031500",
+        "bytes": 297,
+        "mode": "0644"
+      },
+      ".codex-plugin/plugin.json": {
+        "sha256": "a9a1d89cec5001b2869275a96cd12254c855382112d12311b5a6cc6cc98b1ece",
+        "bytes": 343,
+        "mode": "0644"
+      },
+      ".mcp.json": {
+        "sha256": "965a2231cbb947770184ca27a28db6399da4edb445d74ccf3489fb20139c5c20",
+        "bytes": 323,
+        "mode": "0644"
+      },
+      "LICENSE": {
+        "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+        "bytes": 16726,
+        "mode": "0644"
+      },
+      "README.md": {
+        "sha256": "0b85a7cc3fa61d1a97e8074a4f38228905dbd27bdb8fe0a9edeb1875f3f04e43",
+        "bytes": 2556,
+        "mode": "0644"
+      },
+      "config/claude-mcp.json": {
+        "sha256": "5878b35863d72f459729f07f55d36e125e7fd236ae4fc0b68d9ff08f63d3dde1",
+        "bytes": 358,
+        "mode": "0644"
+      },
+      "hooks/hooks.json": {
+        "sha256": "9d6d86b78bc781f5083e0806114906be4f5f55a9286d34293485b42f030dc59c",
+        "bytes": 323,
+        "mode": "0644"
+      },
+      "mcp.json": {
+        "sha256": "e53e0b3d942a7ae560102a39a0c61bcd10fa96806d252032f4b2a7e0ecc12189",
+        "bytes": 363,
+        "mode": "0644"
+      },
+      "plugin.json": {
+        "sha256": "3587948d4f85747a47ace38e90684ec154172b5cbfeddd68918d7ca0728e9c11",
+        "bytes": 1295,
+        "mode": "0644"
+      },
+      "skills/token-guard/SKILL.md": {
+        "sha256": "07b42fe32e6c7cd596a55d28be850805231afb901aaede446b4da1c6e684ba31",
+        "bytes": 6373,
+        "mode": "0644"
+      },
+      "skills/token-guard/agents/openai.yaml": {
+        "sha256": "4462f838fc1d8dc6bc30141999ed376beba2b1306fd2f7b186cbc4ea494f0453",
+        "bytes": 275,
+        "mode": "0644"
+      },
+      "skills/token-guard/references/quality-contract.md": {
+        "sha256": "af4462839ad2d61aa159111188e6f2b3b2696f94e80c1a3b181cacd3d3fdae00",
+        "bytes": 3956,
+        "mode": "0644"
+      },
+      "skills/token-guard/scripts/tokenguard.py": {
+        "sha256": "64876b24ddacdc5ee3e92675fd0bc4d67a53ed62a0ae6c2c3cb731ef1352586a",
+        "bytes": 34627,
+        "mode": "0755"
+      },
+      "skills/token-guard/scripts/tokenguard_hook.py": {
+        "sha256": "cb67731e5753bb183f843c0b07f3c77ed74119ad9a3532f71ceb3ee31ce589d7",
+        "bytes": 4764,
+        "mode": "0644"
+      },
+      "skills/token-guard/scripts/tokenguard_init.py": {
+        "sha256": "e7e5b309c608a129ed9b2aae8c30c687c4a1a75fb884cf75d4ab2fb0ccfa054a",
+        "bytes": 19654,
+        "mode": "0644"
+      },
+      "skills/token-guard/scripts/tokenguard_mcp.py": {
+        "sha256": "09f77002f02dbb8a65b2d9a0e9b3556c02aec1d638d6a8a2a44e7ddd0358cca3",
+        "bytes": 16529,
+        "mode": "0644"
+      }
+    }
+  },
+  "account_release": {
+    "plugin_id": "plugins_6af8673e732481918fb44bd3ab46966d",
+    "release_id": "pluginrel_6af88448785481919772aee2c5aa547d",
+    "version": "1.2.1",
+    "scope": "private personal",
+    "readback": "All 16 files match tested source; JSON compared semantically after service formatting, other files byte-for-byte. Private author metadata and presentation preserved."
+  },
+  "independent_ai_review": {
+    "process_probe": {
+      "source_sha256": {
+        "tokenguard.py": "b66780cbe2b431aa1d768d3a11a325b1dc441f6fc7486d902c1c0155c4745bce",
+        "tokenguard_hook.py": "c54671c704ffbe0d3211f369513812a55aa58f3f4721f32e3581b2e46b91f244",
+        "tokenguard_mcp.py": "7a380b8b816b73cc90100d7267ea5474f74bd70931fee1820e97d2ecd88411a6"
+      },
+      "review_directory": "/workspace/scratch/5b30ca2975e5/token-guard-mcp/build/tokenguard-review/actual-mcp-20261114-163824",
+      "checks": {
+        "installed_modern_run": {
+          "resultType": "complete",
+          "isError": false,
+          "exit_code": 0,
+          "stdin_closed": true,
+          "argv_preserved": true,
+          "cwd_correct": true,
+          "finite_timeout_seconds": 2.0,
+          "output_complete": true
+        },
+        "cancellation": {
+          "parent_pid": 13,
+          "grandchild_pid": 14,
+          "same_command_group": true,
+          "both_stopped": true,
+          "cancelled_response_absent": true,
+          "server_still_responsive": true,
+          "concurrent_list_seconds": 0.0,
+          "server_exit": 0,
+          "invalid_stdout_lines": [],
+          "late_marker_absent": true
+        },
+        "eof": {
+          "parent_pid": 19,
+          "grandchild_pid": 20,
+          "both_stopped": true,
+          "cancelled_response_absent": true,
+          "server_exit": 0,
+          "shutdown_seconds": 0.114,
+          "invalid_stdout_lines": [],
+          "late_marker_absent": true
+        }
+      },
+      "copied_sources_match": true,
+      "failures": []
+    },
+    "initializer_recheck": {
+      "source_sha256": "e7e5b309c608a129ed9b2aae8c30c687c4a1a75fb884cf75d4ab2fb0ccfa054a",
+      "passed": true,
+      "probes": [
+        {
+          "probe": "interrupt_after_successful_replace",
+          "ok": false,
+          "status": "rolled_back",
+          "original_restored": true,
+          "mode_preserved": true,
+          "backup_matches_original": true
+        },
+        {
+          "probe": "concurrent_create_at_commit",
+          "ok": false,
+          "status": "partial_failure",
+          "concurrent_file_preserved": true,
+          "concurrent_inode_preserved": true,
+          "rollback_conflict_reported": true
+        },
+        {
+          "probe": "same_bytes_concurrent_inode",
+          "ok": false,
+          "status": "partial_failure",
+          "concurrent_file_preserved": true,
+          "concurrent_inode_preserved": true,
+          "rollback_conflict_reported": true
+        }
+      ],
+      "scope": "Only previously reported commit interleavings and equal-content/different-inode creation race; no full-suite rerun."
+    },
+    "resolved_findings": [
+      "hook literal quotes and shell comments",
+      "modern protocol version type and cancellation response races",
+      "initializer interrupt after replacement",
+      "new-file concurrent creation and identical-byte inode distinction",
+      "explicit OpenCode V1 refusal"
+    ]
+  },
+  "limits": [
+    "Native Claude/Copilot/OpenCode/Windows activation not executed; Codex CLI presence is not full integration evidence.",
+    "Real RTK unavailable; its optional integration remains fixture-tested.",
+    "Strict preflight exited 2 because Rust/Cargo, QEMU and OVMF are absent; build/smoke not run in this environment.",
+    "No UI/UX paired agent evaluation, human usability evidence or provider billing measurement.",
+    "Source-producing Claude hooks require explicit trusted-workspace opt-in; they do not evaluate client file deny rules.",
+    "MCP command execution is not a sandbox and does not inherit native shell permission rules.",
+    "Existing config-file updates use optimistic checks, not a portable compare-and-swap against non-cooperating editors. New-file publication requires filesystem hardlink support.",
+    "Process-tree independent probe records its tested intermediate source hashes; final combined regressions cover the integrated source."
+  ],
+  "progress": {
+    "before": 41,
+    "after": 41,
+    "criteria_changed": false
+  },
+  "compatibility_fix": "Observed account service regenerating .mcp.json and Codex mcpServers from portable mcp.json in 1.2.0. Version 1.2.1 explicitly points Claude to config/claude-mcp.json; same-name override follows documented Claude merge order and survives account readback.",
+  "main_integration": {
+    "initial_base": "aba6149fd4473aff73fdcf121c133d4960e3d939",
+    "integrated_main": "4cd444e08dac820cc66f2750c43845b4139901cc",
+    "reason": "PR #328 merged while the plugin release was being validated. Preserve current OS work and status before publication.",
+    "conflict_files": [
+      "docs/PROJECT-STATE.md",
+      "docs/progress.json"
+    ],
+    "plugin_archive_unchanged": true,
+    "plugin_archive_sha256": "97d94ad3d04a65dbb3dcbd8e1d34ada6a0c7b7bdb8bf60302e37046eff2b9e0e"
+  }
+}

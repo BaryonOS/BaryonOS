@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "46957bac8783146c896d1565355cf61e3de5ad2f",
-    "assessment_basis": "source_commit",
-    "branch": "claude/baryon-os-ui-ux-design-152adb",
-    "task": "Design pipeline on draft PR #332: freeze the independently verified ds-1.0 design-system base as an intermediate state and record the project owner's permission decision and design ambitions of 14 November",
+    "source_commit": "ce47359fcd9c62abca50da87ac62183026aac91c",
+    "assessment_basis": "parent_commit",
+    "branch": "feat/token-guard-mcp-20261114",
+    "task": "Integrate PR #335 review corrections with the current N04 main checkpoint",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The branch adds design files only: the ds-1.0 tokens, icons, components, gallery and DESIGN-SYSTEM.md as an intermediate base (independent AI verification 0 blockers, 0 majors, 8 minors; not accepted, because the permission model it was checked against was superseded), plus a DESIGN-AMBITION addition. No native build, QEMU run or criterion evidence is added; design, research and simulation evidence accepts no criterion."
+    "summary": "41/100 remains 41/100. Integrates the Token Guard 1.2.1 review corrections and its preserved plugin-verification checkpoint with main ce47359 (N04 native helper isolation). The test import is normalized, and intentional best-effort cleanup handlers gain explanatory comments without changing runtime behavior. All N04 and USB/network/update source-bound evidence remains at its original tested revisions. The Token Guard 93-test and 26-workflow-test passes belong to the pre-integration source; current-head GitHub CI and native gates must be judged separately. The private 1.2.1 archive remains bound to its earlier exact source. N04, H02 and production trust decisions remain open. No product criterion, score weight, permission or OS contract changes."
   },
   "tracks": [
     {
