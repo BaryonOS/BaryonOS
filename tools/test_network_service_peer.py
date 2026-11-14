@@ -12,7 +12,7 @@ from network_service_peer import (ACK, FIN, PSH, RST, SYN, CLIENT_IP, CLIENT_MAC
                                   PEER_IP, PEER_MAC, REQUESTS, RESPONSES, RESET_PROBE, UDP_PAYLOADS,
                                   FrameDecoder, Machine, DiscardMachine, Peer, ProtocolError, checksum,
                                   framed, validate_transcript)
-from run_network_service import (BOOT, OFFSETS, REVOKE_ROLES, ROLES, ROOT, execute_native,
+from run_network_service import (BOOT, HELPER_FENCE, HELPER_ROLES, OFFSETS, REVOKE_ROLES, ROLES, ROOT, evaluate, execute_native,
                                  native_limits, record_streams, sequence)
 
 
@@ -66,7 +66,7 @@ def transcript(case="normal"):
         feed(client_tcp(port, c.source, c.client_next, c.data_end, ACK))
         feed(client_tcp(port, c.source, c.client_next, c.data_end + 1, ACK))
         feed(client_tcp(port, c.source, c.client_next, c.data_end + 1, FIN | ACK))
-    if case == "normal":
+    if case in ("normal", "helper"):
         # Two owners open before either HTTP transaction completes.
         feed(client_tcp(8080, 40000, 100))
         feed(client_tcp(8090, 40001, 200))
@@ -142,11 +142,13 @@ def native_serial(case="normal"):
     if case == "client-exit":
         service.update({440: 13, 448: 1, 456: 1, 464: 6, 472: 3 * len(REQUESTS[1]),
                         480: 2 * len(RESPONSES[1]), 488: 2, 512: 4, 520: 1, 536: 1})
+    if case == "helper":
+        service[440] = 28
     if case == "revoke":
         service.update({440: 19, 448: 1, 456: 1, 464: 6, 472: 3 * len(REQUESTS[1]) + len(REQUESTS[0]),
                         480: 2 * len(RESPONSES[1]), 488: 3, 512: 4, 520: 1, 544: 1, 552: 10})
     network = {"NET_TX_SUBMITTED": 66, "NET_TX_COMPLETED": 66, "NET_RX_COMPLETED": 65,
-               "NET_RX_DELIVERED": 65, "NET_DENIED": 3 if case == "revoke" else 2, "NET_TX_TIMEOUTS": 0,
+               "NET_RX_DELIVERED": 65, "NET_DENIED": 3 if case in ("revoke", "helper") else 2, "NET_TX_TIMEOUTS": 0,
                "NET_RESETS": 1, "NET_RESET_ACKS": 1}
     if case == "exhaustion":
         service = dict.fromkeys(OFFSETS, 0)
@@ -175,7 +177,11 @@ def native_serial(case="normal"):
         lines.append("NETSVC:REVOKE_TICKS:00000000000000000008")
     if case == "exhaustion":
         lines.append("NETSVC:EXHAUSTION_RELEASE_TICKS:00000000000000000010")
-    for role in (REVOKE_ROLES if case == "revoke" else ROLES):
+    if case == "helper":
+        lines.extend(f"NETSVC:HELPER_FENCE:{offset:020d}:{6 if offset == 440 else 0:020d}" for offset in HELPER_FENCE)
+        lines.append("NETSVC:HELPER_RELEASE_TICKS:00000000000000000010")
+    roles = HELPER_ROLES if case == "helper" else REVOKE_ROLES if case == "revoke" else ROLES
+    for role in roles:
         values = service if role == "SERVICE" else app
         if role == "APP_A" and case == "exhaustion":
             values = dict(app)
@@ -189,11 +195,16 @@ def native_serial(case="normal"):
         if role == "APP_A" and case == "revoke":
             values = dict.fromkeys(OFFSETS, 0)
             values.update({400: 1, 424: 2, 432: 5, 440: 1, 448: 1, 480: 1, 504: 3, 528: 1, 544: 2, 552: 12})
+        if role == "HELPER":
+            values = dict.fromkeys(OFFSETS, 0)
+            values.update({400: 1, 408: 6, 480: 1, 528: 1, 544: 6, 552: 9})
         if role == "POLICY":
             values = dict.fromkeys(OFFSETS, 0)
             values.update({400: 1, 528: 1, 544: 1, 552: 9})
         lines.extend(f"NETSVC:{role}:{offset}:{values[offset]:020d}" for offset in OFFSETS)
     lines.extend(f"SYSTEM:{name}:{value:020d}" for name, value in network.items())
+    if case == "helper":
+        lines.append("NETSVC:HELPER_EXIT_TICKS:00000000000000000020")
     app_a_exit = 60 if case == "device-reset" else 30
     lines.extend([f"NETSVC:APP_A_EXIT_TICKS:{app_a_exit:020d}", "NETSVC:APP_B_EXIT_TICKS:00000000000000000500", "NETSVC:ENTROPY_BYTES:00000000000000000008", "NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS"])
     return "\n".join(lines) + "\n"
@@ -202,7 +213,7 @@ def native_serial(case="normal"):
 class PeerChecks(unittest.TestCase):
     def test_full_quota_budget_is_specific_to_exhaustion(self):
         self.assertEqual(native_limits("exhaustion"), (11_999, 150))
-        for case in ("normal", "client-exit", "revoke", "device-reset"):
+        for case in ("normal", "client-exit", "revoke", "device-reset", "helper"):
             self.assertEqual(native_limits(case), (6000, 90))
             serial = native_serial(case)
             boundary = serial.replace("NETSVC:APP_B_EXIT_TICKS:00000000000000000500",
@@ -382,6 +393,91 @@ else:
                 sequence(bad, "device-reset")
         with self.assertRaises(ValueError):
             sequence(good, "normal")
+
+    def test_helper_peer_preserves_both_owners_and_rejects_extra_traffic(self):
+        evidence = transcript("helper")
+        observed = validate_transcript(evidence, case="helper")
+        self.assertTrue(observed["complete"])
+        self.assertEqual(observed["counts"]["udp_requests"], 2)
+        self.assertEqual(set(observed["cases"]), set(map(str, (*range(8080, 8085), *range(8090, 8095)))))
+        with self.assertRaises(ProtocolError):
+            validate_transcript(evidence, case="normal")
+        # A copied ordinary transcript is not bound to the helper profile.
+        with self.assertRaises(ProtocolError):
+            validate_transcript(transcript(), case="helper")
+        for packet in (client_tcp(8080, 40000, 100), client_tcp(8090, 40001, 200), client_udp(0), client_udp(1)):
+            bad = dict(evidence, actions=list(evidence["actions"]))
+            bad["actions"].append(dict(kind="input", at=bad["actions"][-1]["at"] + .001,
+                                       input=packet.hex(), output=[]))
+            with self.subTest(packet=packet.hex()), self.assertRaises(ProtocolError):
+                validate_transcript(bad, case="helper")
+
+    def test_helper_evaluation_binds_wire_counts_to_actual_serial(self):
+        peer = transcript("helper")
+        tx, rx = (peer["counts"][key] for key in ("client_frames", "server_frames"))
+        serial = native_serial("helper")
+        for key, old, value in (("NETSVC:SERVICE:416", 66, tx), ("NETSVC:SERVICE:424", 65, rx),
+                                ("SYSTEM:NET_TX_SUBMITTED", 66, tx), ("SYSTEM:NET_TX_COMPLETED", 66, tx),
+                                ("SYSTEM:NET_RX_COMPLETED", 65, rx), ("SYSTEM:NET_RX_DELIVERED", 65, rx)):
+            serial = serial.replace(f"{key}:{old:020d}", f"{key}:{value:020d}")
+        report = dict(case="helper", raw_qemu_exit=33, timed_out=False, kernel_feature="test-net-service-helper",
+                      qemu_version="QEMU emulator version host-unit-fixture", duration_s=1, timeout_s=90, stdout=serial)
+        self.assertEqual(evaluate(report, peer, case="helper")["helper_fence"]["440"], 6)
+        for key in ("NETSVC:SERVICE:416", "SYSTEM:NET_TX_SUBMITTED", "SYSTEM:NET_TX_COMPLETED"):
+            serial = serial.replace(f"{key}:{tx:020d}", f"{key}:{tx + 1:020d}")
+        with self.assertRaisesRegex(ValueError, "wire/service/broker"):
+            evaluate(dict(report, stdout=serial), peer, case="helper")
+
+    def test_helper_fence_requires_all_counters_once_before_release(self):
+        good = native_serial("helper")
+        result = sequence(good, "helper")
+        self.assertEqual(result["helper_release_tick"], 10)
+        self.assertEqual(result["helper_fence"], {str(k): 6 if k == 440 else 0 for k in HELPER_FENCE})
+        release = "NETSVC:HELPER_RELEASE_TICKS:00000000000000000010\n"
+        for offset in HELPER_FENCE:
+            fence = f"NETSVC:HELPER_FENCE:{offset:020d}:{6 if offset == 440 else 0:020d}\n"
+            cases = {
+                "missing": good.replace(fence, ""),
+                "duplicate": good.replace(fence, fence + fence),
+                "late": good.replace(fence, "").replace(release, release + fence),
+                "side-effect-or-wrong-denials": good.replace(fence, f"NETSVC:HELPER_FENCE:{offset:020d}:{7 if offset == 440 else 1:020d}\n"),
+            }
+            for name, bad in cases.items():
+                with self.subTest(offset=offset, mutation=name), self.assertRaises(ValueError):
+                    sequence(bad, "helper")
+        for bad in (good.replace(release, ""), good.replace(release, release * 2),
+                    good.replace(release, "").replace("NETSVC:MANIFEST:PASS\n", "NETSVC:MANIFEST:PASS\n" + release)):
+            with self.assertRaises(ValueError):
+                sequence(bad, "helper")
+        with self.assertRaises(ValueError):
+            sequence(good, "normal")
+
+    def test_helper_snapshot_and_causal_exit_evidence_are_mandatory(self):
+        good = native_serial("helper")
+        sequence(good, "helper")
+        mutations = [
+            ("NETSVC:HELPER:408:00000000000000000006", "NETSVC:HELPER:408:00000000000000000005"),
+            ("NETSVC:HELPER:480:00000000000000000001", "NETSVC:HELPER:480:00000000000000000000"),
+            ("NETSVC:HELPER:544:00000000000000000006", "NETSVC:HELPER:544:00000000000000000005"),
+            ("NETSVC:HELPER:552:00000000000000000009", "NETSVC:HELPER:552:00000000000000000000"),
+            ("NETSVC:HELPER:552:00000000000000000009", "NETSVC:HELPER:552:00000000000000000011"),
+            ("NETSVC:SERVICE:440:00000000000000000028", "NETSVC:SERVICE:440:00000000000000000027"),
+            ("SYSTEM:NET_DENIED:00000000000000000003", "SYSTEM:NET_DENIED:00000000000000000002"),
+        ]
+        for role, tick in (("HELPER", 20), ("APP_A", 30), ("APP_B", 500)):
+            exit_line = f"NETSVC:{role}_EXIT_TICKS:{tick:020d}"
+            mutations.extend(((exit_line, f"NETSVC:{role}_EXIT_TICKS:{9:020d}"), (exit_line + "\n", "")))
+            # The numeric time alone cannot repair a reordered serial sequence.
+            early = good.replace(exit_line + "\n", "").replace("NETSVC:MANIFEST:PASS\n", "NETSVC:MANIFEST:PASS\n" + exit_line + "\n")
+            with self.subTest(role=role), self.assertRaises(ValueError):
+                sequence(early, "helper")
+        for old, new in mutations:
+            with self.subTest(old=old), self.assertRaises(ValueError):
+                sequence(good.replace(old, new), "helper")
+        for offset in (416, 424, 432, 440, 448, 456, 464, 472, 488, 496, 504, 512, 520, 536):
+            with self.subTest(offset=offset), self.assertRaises(ValueError):
+                sequence(good.replace(f"NETSVC:HELPER:{offset}:00000000000000000000",
+                                      f"NETSVC:HELPER:{offset}:00000000000000000001"), "helper")
 
     def test_revoke_case_requires_reset_probes_and_no_reuse(self):
         value = transcript("revoke")

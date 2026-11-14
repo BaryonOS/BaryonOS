@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""N01 gate: three real ring-3 processes and a causal localhost Ethernet peer.
+"""N01/N04 gate: isolated ring-3 processes and a causal localhost Ethernet peer.
 
 This profile tests a reusable TCP/UDP service, not TLS, real hardware or a
 full Internet policy issuer. Images, user ELFs, firmware and actual serial
@@ -28,7 +28,8 @@ from network_service_peer import (Peer, validate_transcript, REQUESTS, RESPONSES
 
 FEATURE = "native-net-service"
 FEATURES = {"normal": FEATURE, "client-exit": "test-net-service-client-exit", "revoke": "test-net-service-revoke",
-            "device-reset": "test-net-service-device-reset", "exhaustion": "test-net-service-exhaustion"}
+            "device-reset": "test-net-service-device-reset", "exhaustion": "test-net-service-exhaustion",
+            "helper": "test-net-service-helper"}
 # Exhaustion must finish before tick 12,000; the other native cases retain
 # their existing inclusive 6,000-tick boundary and 90-second host default.
 EXHAUSTION_TICK_DEADLINE = 12_000
@@ -36,6 +37,9 @@ BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS"
 OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536, 544, 552)
 ROLES = ("SERVICE", "APP_A", "APP_B")
 REVOKE_ROLES = ROLES + ("POLICY",)
+HELPER_ROLES = ROLES + ("HELPER",)
+# Before normal app release, only the six sender denials may change.
+HELPER_FENCE = (432, 440, 448, 456, 464, 472, 480, 488, 496, 544)
 REQUIRED = BOOT + ("NETSVC:MANIFEST:PASS", "NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS")
 FORBIDDEN = ("FAIL", "PANIC")
 
@@ -229,18 +233,20 @@ def sequence(stdout, case="normal"):
         raise ValueError("Native manifest order differs")
     if lines[-3:] != ["NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS"]:
         raise ValueError("Native clean ending missing")
-    revoke = case == "revoke"
-    found, network = {r: {} for r in (REVOKE_ROLES if revoke else ROLES)}, {}
-    numeric = re.compile(r"NETSVC:(SERVICE|APP_A|APP_B|POLICY):([0-9]+):([0-9]{20})")
-    revoke_ticks, exhaustion_ticks = None, None
+    revoke, helper = case == "revoke", case == "helper"
+    roles = HELPER_ROLES if helper else REVOKE_ROLES if revoke else ROLES
+    found, network = {r: {} for r in roles}, {}
+    numeric = re.compile(r"NETSVC:(SERVICE|APP_A|APP_B|POLICY|HELPER):([0-9]+):([0-9]{20})")
+    revoke_ticks, exhaustion_ticks, helper_ticks = None, None, None
+    helper_fence = {}
     net_numeric = re.compile(r"SYSTEM:(NET_[A-Z_]+):([0-9]{20})")
     entropy, exit_ticks = None, {}
     for line in lines[start + len(BOOT) + 1:-3]:
-        tick_match = re.fullmatch(r"NETSVC:(APP_A|APP_B)_EXIT_TICKS:([0-9]{20})", line)
+        tick_match = re.fullmatch(r"NETSVC:(APP_A|APP_B|HELPER)_EXIT_TICKS:([0-9]{20})", line)
         if tick_match:
             name, value = tick_match.groups()
-            if name in exit_ticks:
-                raise ValueError("Duplicate actual process exit tick")
+            if name in exit_ticks or (helper and helper_ticks is None):
+                raise ValueError("Duplicate actual exit tick or exit before helper release")
             exit_ticks[name] = integer(int(value), 1, last_tick)
             continue
         revoke_match = re.fullmatch(r"NETSVC:REVOKE_TICKS:([0-9]{20})", line) if revoke else None
@@ -255,6 +261,19 @@ def sequence(stdout, case="normal"):
                 raise ValueError("Duplicate or late exhaustion release")
             exhaustion_ticks = integer(int(exhaustion_match.group(1)), 1, last_tick)
             continue
+        fence_match = re.fullmatch(r"NETSVC:HELPER_FENCE:([0-9]{20}):([0-9]{20})", line) if helper else None
+        if fence_match:
+            offset, value = map(int, fence_match.groups())
+            if offset not in HELPER_FENCE or offset in helper_fence or helper_ticks is not None or exit_ticks:
+                raise ValueError("Unknown, duplicate or late helper fence")
+            helper_fence[offset] = integer(value)
+            continue
+        helper_match = re.fullmatch(r"NETSVC:HELPER_RELEASE_TICKS:([0-9]{20})", line) if helper else None
+        if helper_match:
+            if helper_ticks is not None or exit_ticks or set(helper_fence) != set(HELPER_FENCE):
+                raise ValueError("Duplicate/early/late helper release or incomplete fence")
+            helper_ticks = integer(int(helper_match.group(1)), 1, last_tick)
+            continue
         entropy_match = re.fullmatch(r"NETSVC:ENTROPY_BYTES:([0-9]{20})", line)
         if entropy_match:
             if entropy is not None:
@@ -265,7 +284,8 @@ def sequence(stdout, case="normal"):
         if match:
             role, offset, value = match.groups()
             offset, value = int(offset), integer(int(value))
-            if role not in found or offset not in OFFSETS or offset in found[role]:
+            if (role not in found or offset not in OFFSETS or offset in found[role]
+                    or helper and helper_ticks is None):
                 raise ValueError("Unknown/duplicate native process observation")
             found[role][offset] = value
             continue
@@ -277,7 +297,8 @@ def sequence(stdout, case="normal"):
             network[name] = integer(int(value))
             continue
         raise ValueError("Unknown/reordered native evidence: " + line)
-    if set(exit_ticks) != {"APP_A", "APP_B"} or case == "client-exit" and exit_ticks["APP_B"] <= exit_ticks["APP_A"]:
+    expected_exits = {"APP_A", "APP_B", "HELPER"} if helper else {"APP_A", "APP_B"}
+    if set(exit_ticks) != expected_exits or case == "client-exit" and exit_ticks["APP_B"] <= exit_ticks["APP_A"]:
         raise ValueError("Missing actual exit ticks or peer did not survive first app")
     if revoke and (revoke_ticks is None or revoke_ticks >= exit_ticks["APP_A"]):
         raise ValueError("Revocation was not requested while app A was live")
@@ -293,7 +314,7 @@ def sequence(stdout, case="normal"):
     if case == "exhaustion":
         return exhaustion_sequence(found, network, exit_ticks, entropy, exhaustion_ticks)
     service = found["SERVICE"]
-    normal = case == "normal"
+    normal = case in ("normal", "helper")
     owners = 2 if normal else 1
     fixed = {448: owners, 456: owners, 464: 10 if normal else 6,
              472: 3 * sum(map(len, REQUESTS)) if normal else 3 * len(REQUESTS[1]) + revoke * len(REQUESTS[0]),
@@ -304,7 +325,8 @@ def sequence(stdout, case="normal"):
         fixed[552] = 0
     if (any(service[k] != v for k, v in fixed.items()) or service[408] < 1
             # Revoke: app B's client-exit bound minus app A's 2, plus app A's 8.
-            or service[432] < (40 if normal else 20) or service[440] < (22 if normal else 19 if revoke else 13)):
+            or service[432] < (40 if normal else 20)
+            or service[440] < (28 if helper else 22 if normal else 19 if revoke else 13)):
         raise ValueError("Native service reuse/cleanup/authority evidence differs")
     if service[512] < 4 * owners or service[520] < owners:
         raise ValueError("Native fragment/malformed UDP/backpressure proof missing")
@@ -327,6 +349,16 @@ def sequence(stdout, case="normal"):
                      464: 2, 472: 4, 480: 1, 488: 1, 496: 1, 504: 1, 512: 1, 520: 2, 536: 0, 544: 0, 552: 0}
             if any(app[k] != v for k, v in exact.items()) or app[448] < 3:
                 raise ValueError("Native app success/refusal/reopen evidence differs: " + role)
+    if helper:
+        intruder = found["HELPER"]
+        exact = dict.fromkeys(OFFSETS, 0)
+        exact.update({400: 1, 408: 6, 480: 1, 528: 1, 544: 6})
+        if (any(intruder[k] != v for k, v in exact.items() if k != 552)
+                or any(helper_fence[k] != (6 if k == 440 else 0) for k in HELPER_FENCE)):
+            raise ValueError("Helper denial, pre-dispatch fence or authority evidence differs")
+        if (helper_ticks is None or not 1 <= intruder[552] <= helper_ticks
+                or any(tick < helper_ticks for tick in exit_ticks.values())):
+            raise ValueError("Helper sends, fence release and process exits are not causally ordered")
     if revoke:
         policy = found["POLICY"]
         if any(policy[k] != (1 if k in (400, 528, 544) else 0) for k in OFFSETS if k != 552):
@@ -342,12 +374,15 @@ def sequence(stdout, case="normal"):
             or service[416] != network["NET_TX_COMPLETED"]
             or service[424] != network["NET_RX_DELIVERED"]
             or network["NET_RX_COMPLETED"] != network["NET_RX_DELIVERED"]
-            or network["NET_DENIED"] != 2 + revoke or network["NET_TX_TIMEOUTS"] != 0
+            or network["NET_DENIED"] != 2 + revoke + helper or network["NET_TX_TIMEOUTS"] != 0
             or network["NET_RESETS"] != 1 or network["NET_RESET_ACKS"] != 1):
         raise ValueError("Native NIC completion/denial/reset evidence differs")
     integer(service[416], 1, MAX_FRAMES)
     integer(service[424], 1, MAX_FRAMES)
-    return {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()}, "network": network, "entropy_bytes": entropy, "exit_ticks": exit_ticks, "revoke_ticks": revoke_ticks}
+    result = {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()}, "network": network, "entropy_bytes": entropy, "exit_ticks": exit_ticks, "revoke_ticks": revoke_ticks}
+    if helper:
+        result.update(helper_release_tick=helper_ticks, helper_fence={str(k): v for k, v in helper_fence.items()})
+    return result
 
 
 def validate_build(frozen, case="normal"):
@@ -403,8 +438,8 @@ def evaluate(report, peer, *, case="normal"):
         return observed
     if (net["NET_TX_COMPLETED"] != counts["client_frames"]
             or net["NET_RX_DELIVERED"] != counts["server_frames"]
-            or counts["udp_requests"] != (2 if case == "normal" else 1)
-            or any(counts[name] != (2 if case == "normal" else 1) for name in ("udp_corrupt_sent", "udp_wrong_scope_sent", "udp_echo_sent", "udp_overflow_sent"))):
+            or counts["udp_requests"] != (2 if case in ("normal", "helper") else 1)
+            or any(counts[name] != (2 if case in ("normal", "helper") else 1) for name in ("udp_corrupt_sent", "udp_wrong_scope_sent", "udp_echo_sent", "udp_overflow_sent"))):
         raise ValueError("Actual wire/service/broker counts do not agree")
     return observed
 
@@ -450,7 +485,7 @@ def run_network_service(*, case="normal", timeout=None):
     if (Path(qemu).parent / "share").is_dir():
         command += ["-L", str(Path(qemu).parent / "share")]
     report = dict(schema_version=1, passed=False, case=case, kernel_feature=FEATURES[case],
-                  scope=("four" if case == "revoke" else "three") + " actual isolated ring-3 processes; bounded IPC TCP/UDP; synthetic localhost Ethernet; no TLS or physical hardware claim",
+                  scope=("four" if case in ("revoke", "helper") else "three") + " actual isolated ring-3 processes; bounded IPC TCP/UDP; synthetic localhost Ethernet; no TLS or physical hardware claim",
                   source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   source_fingerprint_version=3, source_sha256=frozen, manifest=manifest,
                   run_directory=str(directory), timeout_s=timeout, started_utc=datetime.now(timezone.utc).isoformat(),
