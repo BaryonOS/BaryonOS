@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "508a3f816b4ab3fd766567f0923c5b87189537f6",
+    "source_commit": "f34e96a6a52299097dc09baf285699c6f906d301",
     "assessment_basis": "parent_commit",
     "branch": "feat/issue41-policy-test",
-    "task": "Integrate the authorised B03 TEST policy codec and native probe with merged N04 main",
+    "task": "Verify the approved TEST policy codec and native loader/service authentication probe",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. PR #336 adds the approved TEST policy codec and immutable native authentication probe while preserving merged N04 helper isolation and all historical receipts. Combined-source verification is in progress. Persistent policy transitions, production trust and the criterion register remain unchanged; host/model results are not promoted to native transition acceptance."
+    "summary": "41/100 remains 41/100. PR #336 preserves merged N04 work and adds the opt-in B03 hybrid policy/binding codec and immutable native TEST probe. On published source f34e96a6a52299097dc09baf285699c6f906d301, 32 Rust tests, 8 new and 15 existing oracle/harness tests, all 18 native update stages, six compiler controls and strict preflight/build/smoke pass. Both native consumers execute 26 cases with zero block writes/flushes and unchanged store bytes. Separate AI source review and frozen-artifact replay pass; hosted B03 also passes on a synthetic PR merge with the identical Git tree. Durable receipts are in docs/verification/b03-policy-envelope-20261114/. Persistent policy transitions, production trust and human acceptance remain open. No criterion or weight changes."
   },
   "tracks": [
     {

@@ -1,43 +1,48 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — issue #41 TEST policy codec and native probe — 14 November 2026
+## NEXT AGENT HANDOFF — issue #41 TEST policy/native verification complete — 14 November 2026
 
-**Source:** PR #336, `feat/issue41-policy-test`, recovering local `b8d1afe` and
-integrating main `ce47359fcd9c62abca50da87ac62183026aac91c` after the project
-owner squash-merged PR #328. The recovered proposal/model and ADR-B03K3 are
-followed by the explicit `experimental-policy-test` codec in `update-core`.
+**Source:** [PR #336](https://github.com/BaryonOS/BaryonOS/pull/336), branch
+`feat/issue41-policy-test`. Verified published source:
+`f34e96a6a52299097dc09baf285699c6f906d301`, integrating main
+`ce47359fcd9c62abca50da87ac62183026aac91c` and preserving N04 helper isolation.
+Later receipt/status edits change documentation only.
 
-**Decision:** the project owner authorised publication and implementation of
-the reviewed TEST-key/disposable-QEMU experiment. ADR-B03K3 records that scope.
-Production custody, a rollback-resistant backend, B04 and real signing/releases
-remain outside it. No repeated approval is required for the authorised work.
+**Decision:** ADR-B03K3 records the owner's authorisation to publish and implement
+this TEST-key/disposable-QEMU experiment. That authorisation remains in force.
+Production custody, rollback-resistant storage, B04 and real signing/releases
+remain separate unresolved requirements.
 
-**Result:** the bounded codec authenticates complete policy tables and exact
-policy/manifest bindings with both Ed25519 and ML-DSA-65 signatures. It enforces
-fixed root identity, role/component separation, release windows, image floors,
-strict successor lineage and permanent revocation tombstones. Runtime parsing
-is allocation-free; the experimental feature is disabled by default.
+**Result:** an opt-in, allocation-free hybrid policy/binding codec enforces fixed
+root identity, role/component separation, exact policy/manifest binding, release
+windows, caller-supplied image floors, strict lineage and retained revocation
+tombstones. The loader and native ring-3 service independently execute 26 real
+verification cases. Ordinary profiles retain their existing signing authority.
+[Format and native contract](implementation/B03-TEST-POLICY-ENVELOPES.md).
 
-**Evidence:** 31 integrated host tests pass on local source `62bd312ee74efd9e73c0ad3e905edf2188c00867`:
-8 legacy core, 6 pinned-policy, 13 envelope and 4 CLI tests. The P1 review found
-no remaining defect; it is an AI source review, not a human audit.
-[Host receipt](verification/b03-policy-envelope-20261114/p1-host.json).
-The earlier 92 symbolic checks retain their original source boundary.
-QEMU 10.0.13 and matching OVMF are available for the separate native probe;
-combined-source native results remain pending at this checkpoint.
+**Evidence:** 32 integrated Rust tests, 8 new oracle tests, 15 existing update
+harness tests, 3 build-path tests, 26 workflow-contract tests, strict Clippy and
+root/SDK formatting pass. The native probe reports 26/full-mask/PASS in each
+consumer, zero block writes/flushes and a byte-identical store. All 18 existing
+native update stages, all six compiler controls and strict preflight/build/smoke
+pass. The normal smoke observes `M1:PASS`, raw QEMU exit 33 and no timeout.
+The 92 symbolic checks also pass, without becoming persistence evidence.
 
-**Progress:** 41/100 → 41/100. No criterion changes from this host implementation.
+**Review and CI:** the phase-order oracle defect was fixed and regression-tested.
+Separate AI review and frozen-artifact replay found no remaining blocker; this
+is not a human audit. Hosted B03 run 43614613093 passed on a synthetic merge with
+the same Git tree as the verified source. Local and hosted QEMU versions remain
+explicitly distinguished. [Receipts and limits](verification/b03-policy-envelope-20261114/README.md).
 
-**Native integration:** the explicit read-only TEST probe is integrated. The
-loader and ring-3 service independently execute 26 authenticated-vector cases;
-the builder run passed with both masks complete and no block writes/flushes.
-The phase-order oracle defect found during review was fixed and regression-tested.
-The follow-up PR adds separate CI checks while retaining all 18 existing stages.
-Combined-source verification and its durable receipt are the current next step.
+**Progress:** 41/100 → 41/100. No criterion or production permission changes.
+Issue #41 remains open. The probe authenticates immutable TEST vectors; it does
+not implement policy ingress, persistent commits or interruption/replay recovery.
 
-**Next:** run the combined-source native probe, full 18-stage gate and standard
-gates. Freeze native ingress and persistence semantics before wiring a policy
-transition; production prerequisites remain open.
+**Next:** freeze the bounded storage/ingress layout and trusted current-policy
+handoff, then the complete TEST anchor/operation identity and actual write/readback
+semantics. Implement the authorised native transition and its cut/replay oracle
+within those contracts. Preserve all 18 existing stages and the fixed slot limit;
+ordinary OVMF persistence must not be presented as rollback-resistant storage.
 
 ## Previous checkpoint — issue #41 policy transition specification — 14 November 2026
 
