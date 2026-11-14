@@ -1,0 +1,11 @@
+cargo-fetch	0	2.9	bash -c set -e; cargo +1.90.0 fetch --locked; for m in sdk/Cargo.toml sdk/examples/materiaal/Cargo.toml sdk/examples/input-service/Cargo.toml sdk/examples/window-session/Cargo.toml sdk/examples/calculator/Cargo.toml sdk/examples/desktop-init/Cargo.toml sdk/examples/compositor/Cargo.toml ui/graphics/Cargo.toml ui/native/Cargo.toml ui/surface-protocol/Cargo.toml; do cargo +1.90.0 fetch --locked --manifest-path "$m"; done
+build-session-preview	0	10.3	python3 -B -u tools/build.py --kernel-feature native-system-session-preview
+build-window-probe	0	11.3	python3 -B -u tools/build.py --kernel-feature native-window-session-probe
+build-session-route	0	11.2	python3 -B -u tools/build.py --kernel-feature native-session-route
+prewarm-session-fixture	0	1.0	cargo +1.90.0 test --offline --locked --manifest-path ui/native/Cargo.toml --test desktop_native_fixture --no-run
+run-window-smoke	0	18.9	python3 -B -u tools/run_window_session.py --smoke-only --timeout 600 --bios-rom /usr/share/seabios/bios-256k.bin --vga-rom /usr/share/seabios/vgabios-stdvga.bin
+run-session-preview	0	38.5	python3 -B -u tools/run_session_preview.py --build-dir $R/build/design-audit/session-preview --bios-rom /usr/share/seabios/bios-256k.bin --vga-rom /usr/share/seabios/vgabios-stdvga.bin --machine pc-q35-10.0 --timeout 240
+run-session-route	0	59.8	python3 -B -u tools/run_window_session.py --session-route --timeout 1800 --bios-rom /usr/share/seabios/bios-256k.bin --vga-rom /usr/share/seabios/vgabios-stdvga.bin
+build-window-switcher	0	11.3	python3 -B -u tools/build.py --kernel-feature native-window-session-probe
+run-window-switcher	0	257.2	python3 -B -u tools/run_window_session.py --switcher --scale 1 --timeout 1800 --bios-rom /usr/share/seabios/bios-256k.bin --vga-rom /usr/share/seabios/vgabios-stdvga.bin
+run-window-full	0	377.6	python3 -B -u tools/run_window_session.py --clipboard --workspace --timeout 1800 --bios-rom /usr/share/seabios/bios-256k.bin --vga-rom /usr/share/seabios/vgabios-stdvga.bin
