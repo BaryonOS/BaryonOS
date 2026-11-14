@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "f95bf5b2b4abe0bce1da140c70869eb59e85adef",
+    "source_commit": "2b08e7ef5d836a9cd786d039da575769d52d962b",
     "assessment_basis": "source_commit",
-    "branch": "claude/baryon-os-ui-ux-design-152adb",
-    "task": "Design pipeline checkpoint before a planned reboot: typography review record and type-1.0 tokens, wordmark v2 selected by a pre-registered blind AI review, Orbitaal v2 and the native Inter atlas not yet started",
+    "branch": "code-coverage-agent/setup-code-coverage-reporting",
+    "task": "Resolve PR #302 coverage conflicts against main while preserving K06, security-alerts and CI evidence contracts",
     "previous_score": 41,
-    "summary": "41/100 stays 41/100. The design pipeline on this branch produced design documents, a typography review record with type-1.0 tokens (Inter proposed; a tie under the pre-registered rule, decision by the project owner requested) and a brand wordmark v2 (Saira, selected by a pre-registered blind AI review, redirectable by the project owner). These are design and AI-judgement evidence only: no native renderer, QEMU run or user test changed, so no criterion is accepted. Not met: Orbitaal v2 board, design system, prototype, native Inter atlas and native vertical slice with QEMU evidence."
+    "summary": "41/100 remains 41/100. The integration preserves 31 CI evidence invocations and the coverage upload jobs with narrowly scoped permission exceptions. The focused host tests and actionlint pass; strict preflight, build and smoke are blocked by missing Rust/Cargo, QEMU and OVMF. No product criterion is newly accepted; current-head hosted CI and actual coverage uploads remain unverified. See docs/verification/pr302-coverage-conflicts-20261114.json."
   },
   "tracks": [
     {

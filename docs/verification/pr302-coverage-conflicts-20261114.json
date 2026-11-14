@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "pull_request": "https://github.com/BaryonOS/BaryonOS/pull/302",
+  "source_commit": "175bbac1f3a738128d1e095a16b49b2baf4c9ba8",
+  "source_tree": "0d5cd1f2d7403a5f9fdfd838d4b5b33f51e8ae3d",
+  "original_pr_head": "d4a9cb7170e86407509b721630c11a3beb3f68dd",
+  "integrated_main": "2c72e282ca80fd3dd6bf377b3f71e2eced4a4499",
+  "merge_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+  "resolved_paths": [
+    ".github/actionlint.yaml",
+    ".github/workflows/ci.yml",
+    "tests/test_ci_evidence_workflow_verifier.py"
+  ],
+  "additional_contract_fix": "tests/test_security_alerts_summary.py",
+  "result": "Both parents retained; 31 preservation calls, three coverage permission exceptions, main security-alerts discovery and narrowly scoped actionlint exceptions preserved.",
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_evidence*.py"
+      ],
+      "exit": 0,
+      "tests": 31,
+      "duration_seconds": 8.81,
+      "sha256": "caf3b440ad5a5f5045236ba02cf0c9f5e5fa084998d3557d7953700a78703597",
+      "source_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+      "log_excerpt": "...............................\n----------------------------------------------------------------------\nRan 31 tests in 8.666s\n\nOK",
+      "full_log_sha256": "caf3b440ad5a5f5045236ba02cf0c9f5e5fa084998d3557d7953700a78703597"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_workflows.py"
+      ],
+      "exit": 0,
+      "tests": 23,
+      "duration_seconds": 0.33,
+      "sha256": "809995e6e89497511b09512776bfdb3ab998a2d9c64eb9db49440998804126a5",
+      "source_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+      "log_excerpt": ".......................\n----------------------------------------------------------------------\nRan 23 tests in 0.206s\n\nOK",
+      "full_log_sha256": "809995e6e89497511b09512776bfdb3ab998a2d9c64eb9db49440998804126a5"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_security_alerts_summary.py"
+      ],
+      "exit": 1,
+      "tests": 18,
+      "duration_seconds": 0.15,
+      "sha256": "f9cb2f57fec0b1c0c6525bde0ae763344a99d9674793cf19699ebd3e982586da",
+      "source_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+      "log_excerpt": "...............F..\n======================================================================\nFAIL: test_actionlint_exception_is_one_message_in_one_file (test_security_alerts_summary.WorkflowContractTests.test_actionlint_exception_is_one_message_in_one_file)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<checkout>/tests/test_security_alerts_summary.py\", line 290, in test_actionlint_exception_is_one_message_in_one_file\n    self.assertEqual(config, {\nAssertionError: {'sel[72 chars]lows/ci.yml': {'ignore': ['unknown permission [126 chars]']}}} != {'sel[72 chars]lows/security-alerts.yml': {'ignore': ['unknow[41 chars]']}}}\nDiff is 643 characters long. Set self.maxDiff to None to see it.\n\n----------------------------------------------------------------------\nRan 18 tests in 0.012s\n\nFAILED (failures=1)",
+      "full_log_sha256": "f9cb2f57fec0b1c0c6525bde0ae763344a99d9674793cf19699ebd3e982586da"
+    },
+    {
+      "source_commit": "175bbac1f3a738128d1e095a16b49b2baf4c9ba8",
+      "source_tree": "0d5cd1f2d7403a5f9fdfd838d4b5b33f51e8ae3d",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_security_alerts_summary.py"
+      ],
+      "exit": 0,
+      "tests": 18,
+      "duration_seconds": 0.22,
+      "sha256": "23d5b70966bbba27412bc57b71f1742fe7092ad4c8c74accb0a31bca74d706f0",
+      "log_excerpt": "..................\n----------------------------------------------------------------------\nRan 18 tests in 0.017s\n\nOK",
+      "full_log_sha256": "23d5b70966bbba27412bc57b71f1742fe7092ad4c8c74accb0a31bca74d706f0"
+    }
+  ],
+  "actionlint": {
+    "version": "1.7.12",
+    "source_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+    "command": [
+      "actionlint",
+      "-shellcheck=",
+      "-pyflakes="
+    ],
+    "archive_url": "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz",
+    "verified_archive_sha256": "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8",
+    "exit_code": 0,
+    "full_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "unchanged_input_verification": {
+    "from_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+    "to_commit": "175bbac1f3a738128d1e095a16b49b2baf4c9ba8",
+    "changed_files": [
+      "tests/test_security_alerts_summary.py"
+    ],
+    "command": [
+      "git",
+      "diff",
+      "--name-only",
+      "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+      "175bbac1f3a738128d1e095a16b49b2baf4c9ba8"
+    ],
+    "exit": 0,
+    "prior_ci_evidence_31_tests_inputs_unchanged": true,
+    "prior_ci_workflows_23_tests_inputs_unchanged": true,
+    "prior_actionlint_inputs_unchanged": true,
+    "working_tree_test_tool_workflow_inputs_match_source": true,
+    "not_rerun": [
+      "test_ci_evidence*.py",
+      "test_ci_workflows.py",
+      "actionlint 1.7.12"
+    ]
+  },
+  "review": {
+    "source_commit": "175bbac1f3a738128d1e095a16b49b2baf4c9ba8",
+    "test_contract_change": "Four added lines and one deletion: rename the test and explicitly permit the single ci.yml code-quality diagnostic while retaining exact runner-label and security-alerts mappings. No security assertion weakened.",
+    "initial_finding_resolved": true
+  },
+  "standard_gate_attempts": [
+    {
+      "name": "preflight",
+      "command": [
+        "python3",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "exit_code": 2,
+      "duration_seconds": 0.047,
+      "sha256": "33d76d06c9c365d2b22de96710b079478f000ec79002a338a9699884ac51b646",
+      "source_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+      "log_excerpt": "    \"x86_64-unknown-none\"\n  ],\n  \"firmware_candidates\": [],\n  \"missing\": [\n    \"rustc\",\n    \"cargo\",\n    \"qemu-system-x86_64\",\n    \"OVMF code firmware (supply --firmware if stored elsewhere)\"\n  ],\n  \"host_test_tools\": [\n    \"cc\"\n  ],\n  \"missing_host_test_tools\": [],\n  \"baseline_tools_present\": false,\n  \"next\": \"Compare versions against docs/implementation/BOOT-AND-TOOLCHAIN.md; then build and run the real smoke test.\"\n}",
+      "full_log_sha256": "33d76d06c9c365d2b22de96710b079478f000ec79002a338a9699884ac51b646"
+    },
+    {
+      "name": "build",
+      "command": [
+        "python3",
+        "tools/build.py"
+      ],
+      "exit_code": 1,
+      "duration_seconds": 0.036,
+      "sha256": "b1112052ceabb309e4de857fc9f4a63ccef555a81cc2c8ee7aa1c2d473b78eeb",
+      "source_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+      "log_excerpt": "Traceback (most recent call last):\n  File \"<checkout>/tools/build.py\", line 439, in <module>\n    build(args.loader_feature, args.kernel_feature, args.loader_feature or args.kernel_feature or \"normal\",\n  File \"<checkout>/tools/build.py\", line 375, in build\n    run_logged(args, f\"build-{label}-{package}\", extra_env=extra_env if package == \"os-kernel\" else None)\n  File \"<checkout>/tools/common.py\", line 163, in run_logged\n    result = subprocess.run(args, cwd=cwd, env=env, capture_output=True, text=True, encoding=\"utf-8\", errors=\"replace\", timeout=timeout)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'cargo'",
+      "full_log_sha256": "b1112052ceabb309e4de857fc9f4a63ccef555a81cc2c8ee7aa1c2d473b78eeb"
+    },
+    {
+      "name": "smoke",
+      "command": [
+        "python3",
+        "tools/run.py",
+        "--smoke"
+      ],
+      "exit_code": 1,
+      "duration_seconds": 0.027,
+      "sha256": "1cc440f9e4f1323695ef3cd4ba5bf2ffa80b6c77b4ad06990d159e064b31675a",
+      "source_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+      "log_excerpt": "Traceback (most recent call last):\n  File \"<checkout>/tools/run.py\", line 183, in <module>\n    raise SystemExit(0 if run_guest(required_markers=MILESTONE_MARKERS[args.milestone], m5_case=\"read\" if args.milestone == \"m5\" else None)[\"passed\"] else 1)\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<checkout>/tools/run.py\", line 75, in run_guest\n    raise RuntimeError(\"qemu-system-x86_64 not found\")\nRuntimeError: qemu-system-x86_64 not found",
+      "full_log_sha256": "1cc440f9e4f1323695ef3cd4ba5bf2ffa80b6c77b4ad06990d159e064b31675a"
+    }
+  ],
+  "evidence_limits": [
+    "Rust, Cargo, QEMU and OVMF are unavailable in this executor. The strict preflight, build and smoke commands failed before native verification.",
+    "The successful focused host checks do not verify GitHub coverage uploads, the complete host-quality job or native OS execution.",
+    "Required GitHub checks and review on the published head remain pending."
+  ],
+  "progress": {
+    "previous_score": 41,
+    "new_score": 41,
+    "criterion_statuses_changed": false
+  },
+  "recording_note": "Complete-log SHA-256 values identify local execution logs; compact excerpts are preserved here. The original failed security test is retained above and superseded by its passing follow-up.",
+  "checkpoint_checks": [
+    {
+      "command": [
+        "python3",
+        "tools/progress.py",
+        "--write"
+      ],
+      "exit_code": 0,
+      "output": "Baryon OS: 41/100 points (41%); rubric v1; updated.\nThis checks calculation, references, and generated views; it does not run native tests or assess evidence content."
+    },
+    {
+      "command": [
+        "python3",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": "Baryon OS: 41/100 points (41%); rubric v1; consistent.\nThis checks calculation, references, and generated views; it does not run native tests or assess evidence content."
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "publication_identity": {
+    "published_source_commit": "2b08e7ef5d836a9cd786d039da575769d52d962b",
+    "published_merge_commit": "650f2f661e35acc29a6f6fcf344f0fb16bbc2d4d",
+    "local_source_commit": "175bbac1f3a738128d1e095a16b49b2baf4c9ba8",
+    "local_merge_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+    "verified_equal_source_tree": "0d5cd1f2d7403a5f9fdfd838d4b5b33f51e8ae3d",
+    "verified_equal_merge_tree": "551c0faa3b728898256448102eab90b1e4603853",
+    "explanation": "GitHub commit creation changes author/committer metadata and commit IDs. Both returned tree SHAs equal the locally verified trees; source and test bytes are unchanged."
+  }
+}

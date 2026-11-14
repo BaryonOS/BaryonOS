@@ -1,6 +1,20 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), paused for a planned reboot — 14 November 2026
+## NEXT AGENT HANDOFF — PR #302 coverage conflict resolution — 14 November 2026
+
+**Source:** branch `code-coverage-agent/setup-code-coverage-reporting`; published source `2b08e7ef5d836a9cd786d039da575769d52d962b`. Merge `650f2f661e35acc29a6f6fcf344f0fb16bbc2d4d` integrates PR head `d4a9cb7170e86407509b721630c11a3beb3f68dd` with main `2c72e282ca80fd3dd6bf377b3f71e2eced4a4499` without rewriting either parent. Git tree equality confirms that the published source is identical to locally verified source `175bbac1f3a738128d1e095a16b49b2baf4c9ba8`.
+
+**Result:** the three merge conflicts in the CI workflow, actionlint configuration and evidence-count test are resolved. The 28 main preservation calls and three coverage calls are retained (31 total), together with the security-alerts discovery command, hosted runner configuration and narrowly scoped permission exceptions. The security-alerts contract test explicitly permits the coverage exception while retaining its exact configuration comparison.
+
+**Evidence:** 31 CI-evidence tests, 23 workflow tests and 18 security-alerts tests pass. Checksum-verified actionlint 1.7.12 passes. The initial failing configuration assertion and its successful correction are retained in [the source-bound verification record](verification/pr302-coverage-conflicts-20261114.json); unchanged inputs to previously passing checks were compared before reusing their results.
+
+**Limits:** strict preflight exits 2 because Rust, Cargo, QEMU and OVMF are missing; build and smoke each exit 1 before native execution. Full host-quality, QEMU and GitHub coverage-upload behavior require current-head CI. Historical native evidence is not evidence for this integration.
+
+**Progress:** 41/100 → 41/100; no criterion status changes.
+
+**Next:** evaluate the existing PR's published-head checks and review; resolve any concrete CI failure without relaxing evidence or permission contracts. The design checkpoint below remains separate.
+
+## Previous checkpoint — Design pipeline (Orbitaal UI/UX), paused for a planned reboot — 14 November 2026
 
 **Source:** branch `claude/baryon-os-ui-ux-design-152adb`, draft PR #322 (never merge without the project owner). This section covers the design pipeline only; the S09 checkpoint below belongs to PR #318 and is unchanged apart from its heading.
 
