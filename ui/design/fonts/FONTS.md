@@ -18,7 +18,7 @@ copyright lines below declares a Reserved Font Name.
 | `InstrumentSans[wdth,wght].ttf` | `ofl/instrumentsans/` | `b24f1812584816958afcf22e22d08e44318c5e51651e25d2438efdde389b33b1` | Concept C |
 | `FunnelDisplay[wght].ttf` | `ofl/funneldisplay/` | `b4151c9c4b7b07eb74320096b4ff4156cca8821f5adfab34af9fd9a2d6c1179d` | Concept B (display) |
 | `FunnelSans[wght].ttf` | `ofl/funnelsans/` | `652c9834434bc01835c4e75a73d3c7e42ff2e4beb261cc851cb911e889af6a77` | Concept B (text) |
-| `Inter[opsz,wght].ttf` | `ofl/inter/`, google/fonts commit `29b4ec6d` (`ui/design/typography/fetch_candidates.py`); font version 4.001 | `29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031` | Proposed UI and reading typeface (`docs/design/TYPOGRAPHY.md` sections 7 and 8): tie under the pre-registered rule (Atkinson Hyperlegible Next 73.00, Inter 72.45 of 100); Inter proposed as a judgement; decision by the project owner requested |
+| `Inter[opsz,wght].ttf` | `ofl/inter/`, google/fonts commit `29b4ec6d` (`ui/design/typography/fetch_candidates.py`); font version 4.001 | `29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031` | UI and reading typeface of `type-1.0` (`docs/design/TYPOGRAPHY.md` sections 7 and 8): tie under the decision rule (Atkinson Hyperlegible Next 73.00, Inter 72.45 of 100); lead selection of 14 November 2026 under the project owner's delegation, reversible; the project owner can redirect it |
 | `Saira[wdth,wght].ttf` | `ofl/saira/`, google/fonts commit `29b4ec6d` (`ui/design/typography/fetch_candidates.py`) | `9d050fc5a01c85f74c4257c207d50b55d1e40c37308c642f974a2c5003231dde` | Wordmark v2 (`docs/design/BRAND.md`), traced to outline paths at build time |
 
 | Licence file | SHA-256 |

@@ -1,9 +1,12 @@
 # BaryonOS typography
 
 Status: research, measurements, specimen review and token specification
-`type-1.0` complete. Selection: Tie under the pre-registered rule (Atkinson
-Hyperlegible Next 73.00, Inter 72.45 of 100); Inter proposed as a judgement;
-decision by the project owner requested. Native integration: font vendored
+`type-1.0` complete. Selection: tie under the decision rule of section 6.2
+(Atkinson Hyperlegible Next 73.00, Inter 72.45 of 100; the rule's
+pre-registration cannot be verified from the repository). Inter 4.001 is
+selected for `type-1.0` by the lead under the project owner's delegation of
+14 November 2026, as a reversible judgement (section 7); the project owner can
+redirect it. Native integration: font vendored
 (section 9 step 1); an Inter atlas with nine records is generated behind the
 `inter-atlas` cargo feature, off by default (host evidence only, no QEMU:
 `docs/verification/native-inter-atlas-20261114/`); the default build still
@@ -494,11 +497,11 @@ language coverage favours Inter (natively, for Greek and Cyrillic, only after a
 budget decision), fit is unrecorded, and atlas size and licence are equal. Of
 the other measurements, word spacing and the token-size distinctness are
 inconclusive and the zero divides by context. The judgements are already in the
-total. The proposal below is therefore a product judgement, and the decision
-lies with the project owner.
+total. The proposal below is therefore a product judgement; the lead selection
+that follows it is reversible, and the project owner can redirect it.
 
 **Proposed for UI and reading text: Inter 4.001** with `cv05 cv08 ss01`
-(judgement; decision by the project owner requested). Reasons:
+(judgement; selected by the lead on 14 November 2026, below). Reasons:
 
 - Language coverage (measurement, section 4): Greek, Cyrillic and arrows are in
   the font, so a browser page set in Inter can cover all 24 official EU
@@ -522,6 +525,39 @@ has since chosen a Saira wordmark by blind review
 either UI face the wordmark and the UI are therefore a pairing, which BRAND.md
 records as a departure from this preference that the project owner can
 redirect.
+
+**Lead selection, 14 November 2026: Inter 4.001 for `type-1.0`
+(reversible).** The project owner's continuation instruction of 14 November
+2026 lets the lead resolve ordinary typography decisions, "including Inter
+versus Atkinson", as "a justified, reversible decision" that preserves "the
+recorded tie and uncertainty". The lead design agent (an AI agent) therefore
+selects Inter 4.001 with `cv05 cv08 ss01`. The tie above stands. The selection
+is a judgement, not a measured advantage; it is not the project owner's
+approval (the merge of #322 is not read as one) and not a test of human
+preference. Reasons, beyond the two above:
+
+- The scores do not separate the faces, so the cost of each choice decides.
+  The `type-1.0` sizes and features, the only built native atlas (section 9),
+  the finalist checks and the Orbitaal v2 board are specific to Inter. Choosing
+  Atkinson Hyperlegible Next would redo the scale at 16/17/14 px and the atlas
+  for no measured gain.
+- With readability tied, the elegance half of the owner's priority is judged on
+  the recorded rows that bear on calm everyday text: the unslashed zero in prose
+  and the clock, the time kept in the file table, and the higher
+  OS-consistency judgement (8.5 against 7). This weighting is the lead's
+  judgement.
+- Accepted costs, carried as open items: the lower native-legibility and
+  accessibility judgements (6.7 against 7.6; 7.5 against 8), soft 13 and 15 px
+  native text, O and 0 that differ only in width until the `zero` code glyph
+  exists, and the deviations of the built atlas (section 8.2).
+
+Reversal: the project owner can redirect to Atkinson Hyperlegible Next at any
+time; that redoes `type-1.0` at 16/17/14 px, regenerates the atlas and reruns
+the finalist checks. Reverting the commit that records this selection restores
+the proposal status. The native default does not change with it: the
+`inter-atlas` feature stays off by default until QEMU evidence, the oracle
+review and the `ui/native` licence and package entries justify a change
+(section 10).
 
 **Choosing Inter or Atkinson Hyperlegible Next: gains and costs**, on the same
 rows:
@@ -585,7 +621,7 @@ specific to Inter; a redirect (section 7) changes them.
 
 | Token | Value | Use |
 |---|---|---|
-| `font.family.ui` | Inter 4.001 (`ui/design/fonts/`), proposed; decision by the project owner requested (section 7) | All interface and reading text |
+| `font.family.ui` | Inter 4.001 (`ui/design/fonts/`); lead selection of 14 November 2026, reversible; the project owner can redirect it (section 7) | All interface and reading text |
 | `font.family.wordmark` | Outlined logotype traced from Saira 600 at 125 % width (BRAND.md v2, section 7) | Wordmark only; never typed text |
 | `font.features.ui` | `cv05 cv08 ss01` | Always on |
 | `font.features.digits` | `tnum` on 0–9 only | Every digit: the native atlas cannot select by context, so prose digits are tabular too |
@@ -732,7 +768,7 @@ Cutting 200 % records at the 100 % optical size is an open choice.
 
 1. Vendor the chosen family's TTF with its OFL text and SHA-256 under
    `ui/design/fonts/`, and add a provenance entry. Done for Inter 4.001, the
-   proposed face (`ui/design/fonts/FONTS.md`).
+   selected face (`ui/design/fonts/FONTS.md`).
 2. Extend the generator to emit a second atlas beside the Open Sans atlas, never
    regenerating `atlas.rs` in place. Veld and the SDK examples keep Open Sans
    until each is migrated and its text-metric oracles are reviewed. Done for
@@ -787,8 +823,8 @@ purpose: this is a conservative reading, not legal advice.
 
 ## 10. Open items
 
-- Decision by the project owner between Inter and Atkinson Hyperlegible Next
-  (section 7). Beyond section 1 (readability and accessibility over decorative
+- Confirmation or redirect by the project owner of the lead's reversible Inter
+  selection (section 7). Beyond section 1 (readability and accessibility over decorative
   styling), the project owner's continuation instruction of 14 November 2026
   states "Prioritize readability and elegance equally"; section 7 applies it,
   and it does not decide the tie.
@@ -819,9 +855,6 @@ purpose: this is a conservative reading, not legal advice.
   package entries and the Open Sans pixel-hash oracle.
 - Wider spacing (Ruimere tekst): not implemented in any prototype, and
   `text.rs` has no spacing parameter (section 8.6).
-- `docs/design/BRAND.md` (section on the wordmark) and `docs/design/CONCEPTS.md`
-  (v2 board) still describe Inter as the interface face or "the typeface
-  selected"; they need the tie status above.
 - Tooling outside this record: `measure_fonts.py` to measure `cv11` and 15 px;
   `atlas_estimate.py` to cover the ten extra characters and the row tables;
   pair distinctness with tabular digits and 4-bit coverage as the atlas draws
