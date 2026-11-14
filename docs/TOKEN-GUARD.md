@@ -1,85 +1,149 @@
 # Token Guard
 
-Token Guard reduces unnecessary source reads and command output while preserving
-the command's exit status and access to its complete log. One plugin contains
-the shared skill, a standard-library Python CLI and a native Claude hook.
-Repository architecture, capability contracts and required gates remain binding.
-
-Version 1.1 makes quality precedence explicit, adds an on-demand UI/UX contract,
-preserves short text output and makes automatic Claude wrapping opt-in. Neither
-the helper tests nor smaller logs establish equal model or design quality.
-The [quality and options review](TOKEN-GUARD-QUALITY.md) separates implemented
-mechanisms, host-controlled features, proposals and unverified outcomes.
+Token Guard 1.2 provides one coding workflow, a Python CLI and three native MCP
+tools, while preserving real command exits and complete local logs. The required
+quality contract is inline in the skill. Optional Claude hooks guide reads and
+adapt suitable build/test commands. Hosted Graphify remains the architecture and
+dependency source; no local replacement graph or provider proxy is installed.
+Neither compact output nor helper tests establish equal model or UI/UX quality.
+The [options review](TOKEN-GUARD-QUALITY.md) records implemented and unproven ideas.
 
 ## Components
 
 | Component | Purpose |
 | --- | --- |
-| `plugins/token-guard/` | Portable plugin and Claude compatibility manifest. |
-| `plugins/token-guard/skills/token-guard/SKILL.md` | Canonical workflow. |
-| `.agents/skills/token-guard/SKILL.md` | Codex and OpenCode adapter. |
-| `.github/skills/token-guard/SKILL.md` | Native Copilot skill adapter. |
-| `.claude/skills/token-guard/SKILL.md` | Small adapter linking to the canonical skill. |
-| `AGENTS.md` and `CLAUDE.md` | Existing project rules and Claude's `@AGENTS.md` import. |
-| `.github/copilot-instructions.md` | Existing Copilot instructions and a skill reference. |
-| `tools/tokenguard.py` | Launcher for the plugin's single CLI implementation. |
-| `plugins/token-guard/hooks/hooks.json` | Conservative Claude build/test hook. |
-| `plugins/token-guard/skills/token-guard/references/quality-contract.md` | On-demand UI/UX and comparison requirements. |
-| `build/tokenguard/` | Ignored runtime logs and measurements; not source evidence. |
+| `plugins/token-guard/plugin.json` | Portable Agent Plugins identity and OpenAI presentation. |
+| `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json` inside the plugin | Host-specific compatibility manifests; not identical schemas. |
+| Plugin `mcp.json` | OpenAI portable stdio launch configuration. |
+| Plugin `.mcp.json` | Generated-compatible OpenAI legacy stdio configuration. |
+| Plugin `config/claude-mcp.json` | Explicit Claude override with Claude plugin/project variables. |
+| Plugin `skills/token-guard/SKILL.md` | One canonical workflow with five mandatory quality rules. |
+| Plugin `scripts/tokenguard*.py` inside the skill | Shared command evidence, MCP transport, installer and optional read guidance. |
+| `tools/tokenguard.py` | Repository launcher for the same implementation. |
+| Plugin `hooks/hooks.json` | Claude `Bash|Read|Grep|Glob` matcher; behavior is opt-in. |
+| `.agents/skills`, `.claude/skills`, `.github/skills` adapters | Host-specific discovery of the shared workflow. |
+| Plugin `references/quality-contract.md` inside the skill | Extended explicit audit/evaluation reference; no routine prerequisite read. |
+| `build/tokenguard/` | Ignored local logs and receipts. |
 
-No additional MCP server, provider proxy or local Graphify index is required.
-The hosted Graphify MCP remains the source of code relationships. Its results
-represent `main` and must be checked against the working tree. The CLI does not
-call Graphify or change authentication, sandbox policy or tool permissions.
+Claude automatically discovers its standard skill/hook locations. Its manifest
+explicitly references the dedicated Claude MCP file. Readback of account release
+1.2.0 showed that the OpenAI service regenerates `.mcp.json` from portable
+`mcp.json`; version 1.2.1 keeps Claude's variables in a separate override under
+the same server name. Claude merges its default MCP map first and later definitions
+replace a matching server entry (Anthropic, n.d.-f). Explicitly
+referencing the same default hook file can merge it twice; a small Claude manifest
+is therefore not evidence of an inactive hook. Root portable `plugin.json` must
+not receive unsupported top-level `skills`/`mcpServers` fields. The OpenAI extension
+and Codex overlay deliberately select an empty hook set, preventing Claude's hook
+from being loaded through OpenAI's default hook discovery (Anthropic, n.d.-f;
+OpenAI, n.d.-c). Names, versions and descriptions are synchronized across manifests.
 
-## Client use
+## Client setup
 
-**Codex:** launch in the repository. Codex discovers `AGENTS.md` and repository
-skills under `.agents/skills`; `$token-guard` can select the skill explicitly.
-`allow_implicit_invocation: true` permits automatic selection; it does not
-guarantee that the skill is active on every request.
-The repository's `.agents/plugins/marketplace.json` exposes the complete plugin;
-`.codex/config.toml` enables it when the checkout is already trusted. No trust,
-approval or MCP settings are changed (OpenAI, n.d.-a, n.d.-b, n.d.-c).
+**BaryonOS/Codex:** launch in a trusted checkout. `AGENTS.md` and the skill adapter
+remain authoritative; `$token-guard` selects the skill explicitly. Repository
+marketplace/configuration enables the plugin; current portable clients discover
+`mcp.json`. `allow_implicit_invocation: true` permits selection, not permanent
+activation. The older Codex overlay is retained for skill compatibility; legacy
+MCP loading from that overlay alone is not claimed. Use `init` when needed
+(OpenAI, n.d.-a, n.d.-b, n.d.-c).
 
-**Claude Code:** the existing `CLAUDE.md` imports `AGENTS.md`. The adapter under
-`.claude/skills` exposes `/token-guard` and loads the shared protocol on demand.
-Load the complete plugin with `claude --plugin-dir ./plugins/token-guard` for
-its components and `/token-guard:token-guard` command. The hook is a no-op unless
-`TOKENGUARD_AUTO_WRAP=1` is explicitly set. For persistent installation,
-run `claude plugin marketplace add .` from this checkout, then
-`claude plugin install token-guard@baryon-tools`. The catalog declares one plugin;
-it does not add another runtime or MCP server. The project adapter and installed
-plugin refer to the same protocol; load its body only once (Anthropic, n.d.-a,
-n.d.-b, n.d.-e). The installer does not automatically configure another computer.
+**Claude Code:** use `claude --plugin-dir ./plugins/token-guard` in this checkout,
+then `/token-guard:token-guard`. For persistent installation, run
+`claude plugin marketplace add .`, then `claude plugin install token-guard@baryon-tools`.
+The installed plugin uses absolute plugin/project variables. Existing `CLAUDE.md`
+and `.claude/skills` adapters remain usable; load the canonical skill only once.
+Hooks do nothing by default. Enable `TOKENGUARD_AUTO_WRAP=1` for suitable command
+rewrites and/or `TOKENGUARD_READ_GUARD=1` for bounded-read guidance in a trusted
+workspace (Anthropic, n.d.-a, n.d.-b, n.d.-c, n.d.-e, n.d.-f).
 
-**GitHub Copilot:** repository instructions and a native `.github/skills`
-adapter reference the same skill. Use `/token-guard` where the client supports
-slash invocation. VS Code distinguishes harness-specific skill locations; an
-`.agents/skills` adapter alone is not claimed to register every Copilot client.
-Ordinary inline completion is not evidence that the agent workflow has run
-(GitHub, n.d.; Microsoft, n.d.).
+**GitHub Copilot/VS Code:** the `.github/skills` adapter supplies the workflow.
+Current Copilot workspace MCP and editor-managed VS Code MCP have distinct setup
+targets below; do not assume all Copilot surfaces use the same loader. Inline
+completion is not evidence of agent-workflow execution (GitHub, n.d.; Microsoft, n.d.).
 
-**OpenCode V2:** `AGENTS.md` and `.agents/skills` are discovered natively; the skill
-can be selected as `@token-guard`. Do not add a duplicate `instructions` entry
-for `AGENTS.md`. No new `opencode.json` MCP configuration is required
-(OpenCode, n.d.-a, n.d.-b).
+**OpenCode V2:** `AGENTS.md` and `.agents/skills` provide the workflow. Use the
+`opencode` init target for local MCP tools; do not duplicate `AGENTS.md` in an
+`instructions` array (OpenCode, n.d.-a, n.d.-b, n.d.-c).
 
-**ChatGPT/Codex account plugin:** the private Token Guard package is saved through
-Plugin Creator. Select that plugin for its bundled skill; no separate personal
-skill is needed. Repository files alone do not activate an account plugin.
-Execution requires a checkout, Python 3.10 or newer, and a terminal tool. A chat
-with connector access alone must report local gates as not executed. No local
-MCP process is advertised as a web-accessible service (OpenAI, n.d.-a).
+**ChatGPT/Codex account plugin:** select the saved private Token Guard plugin for
+its bundled skill. Local tools need a checkout, Python and a local executor;
+saving a package does not make a local stdio server accessible to web/mobile.
+Connector access alone is insufficient for local gates. Do not claim activation
+on a user's computer from account storage alone (OpenAI, n.d.-c).
 
-**Other repositories:** the canonical skill already uses the absolute bundled
-helper path supplied by the skill loader when a repository launcher is absent.
-The Claude hook also uses its installed absolute helper path and the payload's
-working directory. An account plugin install does not install local clients.
-For a skill-only Copilot/OpenCode setup, place the complete `skills/token-guard/`
-directory, including `scripts/` and `references/`, in that client's documented
-skill directory. Do not copy only BaryonOS's thin adapter into another project.
-No `init` command or automatic rewriting of existing MCP configuration is provided.
+**Other repositories:** use the complete installed plugin or copy the complete
+`skills/token-guard/` directory into the client's supported skill location.
+Do not copy only BaryonOS's thin adapter. Use the bundled helper's absolute path
+and `--root /absolute/project`; do not assume `tools/tokenguard.py` exists there.
+
+## Preview and apply workspace configuration
+
+Use a stable extracted plugin location. The CLI needs Python 3.10 or newer;
+Codex TOML merging uses Python 3.11's standard `tomllib`. On Windows, the initial
+command may be `py -3` or `python`; generated configs use `sys.executable`.
+
+```sh
+python3 -B tools/tokenguard.py --root /absolute/BaryonOS init --clients claude codex copilot vscode opencode
+python3 -B tools/tokenguard.py --root /absolute/BaryonOS init --clients claude codex copilot vscode opencode --apply
+```
+
+Without `--apply`, this is a read-only plan. Apply validates all selected files
+before writing, preserves hosted Graphify and other entries, and uses staged
+per-file atomic replacement with backups/rollback. This is not a multi-file
+filesystem transaction. Unsupported syntax, duplicate keys, conflicting Token
+Guard entries and path escapes fail without silent overwrites. Existing JSONC
+comments/configuration remain intact. New targets use atomic no-overwrite creation;
+existing-file updates use optimistic snapshot checks and backups. Do not edit the
+same configs concurrently: non-cooperating editors can race between checking and
+replacing an existing file. Legacy OpenCode V1 server maps are refused rather than
+silently mixed with the V2 schema. Re-run setup after relocating a plugin;
+a versioned cache path can disappear after an upgrade. No trust/approval is enabled.
+Do not register the same server through both native plugin and workspace config.
+
+| Target | Configuration |
+| --- | --- |
+| `claude` | Project `.mcp.json`, `mcpServers`; not `.claude/settings.json`. |
+| `copilot` | Current workspace `.mcp.json`, common `mcpServers` stdio entry. |
+| `vscode` | Editor-managed `.vscode/mcp.json`, `servers`. |
+| `codex` | `.codex/config.toml`, `mcp_servers.token-guard`. |
+| `opencode` | Current V2 `opencode.json`/`.jsonc`, `mcp.servers`. |
+
+The shared Claude/Copilot entry contains common stdio fields; outer client
+timeouts still apply. The installer only adds documented timeout settings.
+
+## MCP protocol and execution boundary
+
+`mcp` serves `inspect_file`, `read_slice` and `run_compact` as UTF-8 newline-delimited
+JSON-RPC. Versions `2025-11-25` and `2025-06-18` use `initialize`, id-less
+`notifications/initialized` and `ping`. Version `2026-07-28` uses per-request
+metadata, `server/discover`, `resultType: complete` and list cache hints. Older
+initialization requests negotiate an offered version; pre-June-2025 batch support
+is not advertised. Notifications never execute tools or receive replies.
+Explicit `id: null` is invalid, not a notification (Model Context Protocol, 2026a, 2026b).
+
+`run_compact` accepts a literal **argv array**, such as
+`["python3", "tools/preflight.py", "--strict"]`, without an implicit shell.
+MCP children receive `stdin=DEVNULL` and a finite deadline: 300 seconds by default,
+configurable via `TOKENGUARD_TIMEOUT` or `timeout_seconds`, maximum 3600 per call.
+Native CLI keeps inherited stdin/environment and no implicit deadline. RTK's
+optional post-run filter has its own three-second timeout and closed stdin.
+
+Only one MCP command runs at a time; protocol pings/discovery/read tools remain
+responsive. Cancellation or EOF stops active work and suppresses its response.
+A failed command returns `isError: true` plus its actual exit status and log path;
+malformed requests use JSON-RPC errors. Frames and source reads are bounded.
+
+**Token Guard is not a sandbox.** An argv command can modify files, access network
+or explicitly invoke a shell, and its MCP annotations declare this. Keep host MCP
+approval and sandbox controls; native shell allow/deny rules do not automatically
+transfer to MCP. Use native execution when that permission boundary or execution
+mode is required. Read tools are confined to the configured project root.
+
+Claude supplies `${CLAUDE_PROJECT_DIR}` explicitly. OpenAI portable configuration
+uses `${PLUGIN_ROOT}` for the executable and inherits launch cwd; no undocumented
+Codex project-root variable is assumed. Initialization/discovery reports the actual
+root. Use `init` for an explicit absolute workspace binding when necessary.
 
 ## Run checks and inspect evidence
 
@@ -144,61 +208,67 @@ Keep runtime logs out of commits; record compact, versioned
 evidence in the existing verification documents. Update `PROJECT-STATE.md` at
 the normal checkpoint, including the source version, checks and next action.
 
-## Claude plugin hook
+## Claude hooks
 
-Loading the complete Claude plugin registers a `PreToolUse` hook. By default it
-returns no rewrite. `TOKENGUARD_AUTO_WRAP=1` explicitly enables wrapping for
-suitable foreground text checks; for example, set that environment variable when
-launching Claude after reviewing the capture limits above. The enabled hook returns
-`hookSpecificOutput.updatedInput` to replace a tool's input. It must retain the
-other input fields, use `hookEventName: "PreToolUse"`, and omit
-`permissionDecision` so the normal permission flow remains applicable.
-Claude's auto mode may reject a rewritten call; explicitly using the CLI is
-the fallback, not adding an unconditional allow decision (Anthropic, n.d.-c).
+The optional command hook returns `hookSpecificOutput.updatedInput` while retaining
+all other input fields. It never returns an unconditional permission allow decision.
+It recognizes only unambiguous foreground build/test argv. Git/data commands,
+existing wrappers, substitutions, operators, background/watch/interactive requests
+and unsupported quoting retain native execution. Invalid input produces no rewrite.
+A host refusal must not be bypassed through another tool (Anthropic, n.d.-c).
 
-The hook only wraps unambiguous, simple build/test commands. It leaves
-Git commands, output reads, existing wrappers, shell operators, substitutions,
-environment assignments, background/watch/interactive requests and unsupported
-quoting untouched. It must preserve
-argument boundaries, use the payload's `cwd` for the active worktree and avoid
-running the command itself. Invalid input should produce no rewrite.
-The manifest uses a quoted plugin-root path. It does not run the build inside
-the hook or return an allow decision. Codex, Copilot and OpenCode use the explicit
-CLI workflow; Claude's hook API is not assumed portable to those clients.
-The OpenAI manifests explicitly select an empty hook set, so the Claude hook
-is not accidentally registered through OpenAI's default hook-file discovery.
-The helper has no cache-blocking rule, blanket allow decision, local Graphify
-lookup or MCP-server mode. Registering `tokenguard.py mcp` would not create a server.
+The optional read guard pauses a recognized source file over 150 lines when the
+read has no suitable bound. Exit 2 includes its bounded outline, removing the need
+for a separate inspect call. The blocked call still occurs; this is not literally
+zero turns. `Read` with offset/limit up to 160, instruction Markdown, images, scoped
+dependency queries and exact plugin files remain accessible. Simple literal `cat`
+and `Get-Content` reads inside a Bash payload are recognized; arbitrary shell
+programs are not parsed. This does not intercept a separate native PowerShell tool.
+
+No blanket `token-guard` substring grants a bypass and no absolute plugin-cache
+ban exists. Those approaches would be easy to evade or prevent required instructions
+from loading. Broad generated/cache scans receive guidance only with the opt-in
+guard; targeted reads remain possible. PreToolUse itself can read source before
+normal tool approval, so enable it only in trusted workspaces with authorized
+read access. It is guidance, not access control. Claude hooks are not assumed
+portable to Codex, Copilot or OpenCode.
 
 ## Measurement and limits
 
-`stats` measures locally observed output reduction, not billed provider tokens.
-Compare equivalent tasks, source revisions and test outcomes; record extra reads,
-retries and execution time as well as output size. No fixed saving percentage or
-absence of quality loss is established by smaller logs alone. Small outputs can
-grow because status/evidence metadata costs bytes. Both presentation modes retain
-short sanitized output, including single-line JSON; `--output bounded` never
-applies a generic RTK log filter.
-Large output is explicitly sampled/truncated; the full log remains authoritative.
+`stats` measures raw and helper-output UTF-8 bytes, excluding MCP JSON framing,
+tool definitions and client history. These are not billed tokens, credits, cache
+hits or quality. Compare equivalent tasks, revisions and outcomes, including extra
+reads/retries/time. Small outputs can grow due to evidence metadata. Short output
+is complete sanitized text; large output is selected and always labelled incomplete.
+An outline is navigation: Python uses AST; Rust/TypeScript use a bounded heuristic,
+not macro expansion or full syntax/contract verification. Read needed bodies.
 
-On POSIX, timeouts and handled cancellation stop the command's process group.
-Uncatchable SIGKILL cannot run cleanup. Windows cleanup covers the direct child
-only; descendant cleanup is not verified there. Raw log size is not capped and
-the helper is not a sandbox. No secrets should be deliberately passed to checks.
+POSIX timeouts/cancellation stop the command process group; SIGKILL cannot run
+cleanup. Native CLI Windows cleanup covers the direct child. MCP cancellation
+attempts Windows `taskkill /T`, with direct-process fallback; native Windows
+cleanup is unverified here. Raw logs are uncapped local files and may contain
+command-produced sensitive data. They are not uploaded automatically.
 
-Prompt caching belongs to the provider and client. Claude documents skill
-invocation as an appended message that preserves the existing cached prefix;
-loading a skill does not inherently invalidate the cache (Anthropic, n.d.-d).
-A compact stable protocol can reduce repetition but cannot guarantee a cache hit
-or subscription credit saving. Clearing context after every small change is not
-required; use a checkpoint when changing tasks or handing work over.
+Prompt caching belongs to provider/client. Claude documents skill invocation as
+appending a message while preserving the existing cached prefix; a skill read does
+not inherently destroy a 90% discount (Anthropic, n.d.-d). This plugin does not
+control model routing, hidden reasoning, context windows or subscription charges.
 
-Configuration compatibility is based on the official documentation reviewed on
-14 November 2026. Claude Code, Copilot and OpenCode were not installed in the
-implementation environment. Codex was available, but its presence alone does not
-prove the complete workflow ran. Executed verification and remaining client
-checks belong in the current project checkpoint; do not infer runtime evidence
-from these configuration descriptions.
+Compatibility follows official documentation reviewed on 14 November 2026.
+Protocol/helper tests are not native-client acceptance. Claude, Copilot, OpenCode,
+real RTK and Windows were unavailable in this environment. Codex's installed CLI
+and valid packaging alone do not establish a full client workflow. No paired
+UI/UX agent evaluation, human usability test or provider billing study has run.
+The current verification record identifies the actual tested source and limits.
+
+## Reproduce the package
+
+The reproducible package command is `python3 -B tools/package_token_guard.py`.
+It validates component paths, schema placement, synchronized metadata and runtime
+version, then writes `build/plugin.zip` plus a SHA-256 manifest. The archive uses
+an explicit component allowlist, deterministic metadata and executable entrypoint
+permissions; bytecode, temporary logs and marketplaces are never included. The
+same validation runs in the host-quality CI step.
 
 ## References
 
@@ -214,3 +284,7 @@ from these configuration descriptions.
 - OpenAI. (n.d.-c). *Package your plugin*. Retrieved November 14, 2026, from https://developers.openai.com/plugins/build/plugins
 - OpenCode. (n.d.-a). *Instructions*. Retrieved November 14, 2026, from https://opencode.ai/docs/instructions
 - OpenCode. (n.d.-b). *Skills*. Retrieved November 14, 2026, from https://opencode.ai/docs/skills
+- Anthropic. (n.d.-f). *Plugin manifest reference*. Retrieved November 14, 2026, from https://code.claude.com/docs/en/plugins-reference
+- OpenCode. (n.d.-c). *MCP servers*. Retrieved November 14, 2026, from https://opencode.ai/docs/mcp-servers
+- Model Context Protocol. (2026a). *Base protocol overview (2026-07-28)*. https://modelcontextprotocol.io/specification/2026-07-28/basic
+- Model Context Protocol. (2026b). *Discovery (2026-07-28)*. https://modelcontextprotocol.io/specification/2026-07-28/server/discover

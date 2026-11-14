@@ -1,7 +1,8 @@
 # Quality contract
 
-Load this reference for UI/UX work or an explicit evaluation of Token Guard.
-It is a workflow requirement, not proof of equal model performance.
+Human reference and extended rubric for an explicitly requested audit/evaluation.
+Do not load it during routine tasks: the five mandatory quality rules are inline
+in `SKILL.md`. This reference is not proof of equal model performance.
 
 ## Preserve the assignment
 

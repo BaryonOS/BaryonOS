@@ -1,0 +1,14 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "token-guard": {
+      "type": "stdio",
+      "command": "python3",
+      "args": ["-B", "${PLUGIN_ROOT}/skills/token-guard/scripts/tokenguard.py", "mcp"],
+      "env": {
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      }
+    }
+  }
+}

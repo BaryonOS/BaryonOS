@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "885e128082483ec871831fbbfc757a6e5104e6b4",
+    "source_commit": "4cd444e08dac820cc66f2750c43845b4139901cc",
     "assessment_basis": "parent_commit",
-    "branch": "fix/issue43-network-usb-followup",
-    "task": "Resolve PR #328 conflicts against accepted Python quality and Token Guard changes",
+    "branch": "feat/token-guard-mcp-20261114",
+    "task": "Preserve merged PR #328 OS state and record the supplemental Token Guard 1.2.1 tooling checkpoint",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. PR #328 integrates main aba6149fd4473aff73fdcf121c133d4960e3d939 while preserving both status histories, the USB boot-session and network/update work, and accepted main changes. The required JSON import is retained after reproducing nine NameError errors in the automatic merge. All 148 targeted Python host tests, 44 USB component tests, strict preflight, the standard build and QEMU smoke pass. Source and preservation evidence is recorded in docs/verification/pr328-main-integration-20261114.json. Hosted checks and existing acceptance conditions remain separate; no criterion or weight changes."
+    "summary": "41/100 remains 41/100. Merged main 4cd444e08dac820cc66f2750c43845b4139901cc retains the USB boot-session and native network/update work. PR #328 evidence records 148 targeted Python host tests, 44 USB component tests, strict preflight, the standard build and QEMU smoke on its recorded source in docs/verification/pr328-main-integration-20261114.json; these source boundaries are preserved. Supplemental Token Guard 1.2.1 adds native stdio MCP and client configuration without changing OS acceptance. All 93 Token Guard tests and 26 workflow tests pass after integration; SDK and extracted ZIP self-tests pass. Native preflight in the tooling environment is blocked by missing Rust/Cargo, QEMU and OVMF, so no new build/smoke pass is claimed there. The enforced device-execution/DMA/IRQ boundary and production trust/persistence decisions remain open. Native client activation, UI/UX equivalence and provider savings remain unverified. No criterion or weight changes."
   },
   "tracks": [
     {
