@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "f95bf5b2b4abe0bce1da140c70869eb59e85adef",
+    "source_commit": "915cc4312b29de1bfb28588072bcfa024186314d",
     "assessment_basis": "source_commit",
-    "branch": "claude/baryon-os-ui-ux-design-152adb",
-    "task": "Design pipeline checkpoint before a planned reboot: typography review record and type-1.0 tokens, wordmark v2 selected by a pre-registered blind AI review, Orbitaal v2 and the native Inter atlas not yet started",
+    "branch": "ccr-cf45024e-q0nrg9",
+    "task": "Resolve PR #316 against main 2c72e282ca80fd3dd6bf377b3f71e2eced4a4499 while preserving the per-mode native window harness deadline",
     "previous_score": 41,
-    "summary": "41/100 stays 41/100. The design pipeline on this branch produced design documents, a typography review record with type-1.0 tokens (Inter proposed; a tie under the pre-registered rule, decision by the project owner requested) and a brand wordmark v2 (Saira, selected by a pre-registered blind AI review, redirectable by the project owner). These are design and AI-judgement evidence only: no native renderer, QEMU run or user test changed, so no criterion is accepted. Not met: Orbitaal v2 board, design system, prototype, native Inter atlas and native vertical slice with QEMU evidence."
+    "summary": "41/100 stays 41/100. The progress-assessment conflict is resolved against current main without changing any criterion, status or evidence. PR #316 retains the 1800-second default and permits 2700 seconds only for the scale-2 clipboard/workspace gate. The existing design checkpoint and all other main changes are retained. This integration establishes no new native runtime or product acceptance; verification and execution limits are recorded in docs/PROJECT-STATE.md."
   },
   "tracks": [
     {
