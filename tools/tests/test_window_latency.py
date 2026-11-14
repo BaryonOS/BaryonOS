@@ -6,7 +6,7 @@ from pathlib import Path
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from window_latency import (CONFIRMED_PHASE, MAX_U64, Context, Evidence, Plan,
+from window_latency import (CONFIRMED_PHASE, MAX_U64, Context, Plan,
                             Recorder, SampleToken, Stratum)
 
 

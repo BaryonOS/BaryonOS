@@ -82,7 +82,6 @@ class StorageReplayChecks(unittest.TestCase):
         work = self.workspace()
         with self.assertRaises(subprocess.TimeoutExpired):
             replay.run_logged(work, "timeout", [sys.executable, "-c", "import time;time.sleep(30)"], timeout=0.05)
-        import json
         record = json.loads((work / "logs/timeout.json").read_text())
         self.assertTrue(record["timed_out"])
         self.assertTrue(record["leader_reaped"])

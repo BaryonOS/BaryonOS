@@ -95,6 +95,7 @@ def run_net_system(case: str, volume_dir: Path | None = None, *, timeout: int = 
         with EthernetPeer(timeout=timeout) as peer:
             report, volume_dir = run_system(case, volume_dir, timeout=timeout,
                                             kernel_feature=FEATURE[case], network_port=peer.port)
+        evidence = peer.evidence()
     except Exception as error:
         if report is None:
             raise
@@ -103,7 +104,6 @@ def run_net_system(case: str, volume_dir: Path | None = None, *, timeout: int = 
         report["network_error"] = f"{type(error).__name__}: {error}"
         store_report(report, volume_dir)
         return report, volume_dir
-    evidence = peer.evidence()
     report["network_peer"] = evidence
     report["network_gate"] = False
     try:

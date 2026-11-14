@@ -1,6 +1,41 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Code scanning alert triage — 14 November 2026
+## NEXT AGENT HANDOFF — Python Code Quality repair — 14 November 2026
+
+**Source:** main `299f0e39c202d67d1c2f4e31b879cbdd6add262b`;
+branch `fix/python-code-quality-20261114`.
+
+**Scope:** all 107 Python Standard findings in 17 CodeQL rules were inspected.
+77 findings have targeted code changes. The other 30 occur in 15 deliberately
+preserved historical source files and were dismissed through GitHub's quality
+UI. Their original bytes and recorded hashes remain unchanged; four old API
+callers belong to a documented before-fix checkout. No scanning rule changed.
+GitHub main currently shows 77 open findings in 14 rules; code repairs await
+an owner-approved merge and a new main scan.
+
+**Changes:** unused/mixed imports, precise assertions, explicit returns and
+cleanup behavior were corrected. QMP socket/pipe construction initializes shared
+state and negotiates through private transport methods; public command dispatch
+retains override behavior. Volume execution has a consistent six-field return.
+Network evidence failures retain a failed report. Maintained K06 verifiers were
+updated without rewriting historical acceptance hashes or limitation messages.
+
+**Verification:** 678 host tests across 38 suites pass, including four new
+regression tests. The 16 storage replay tests use byte-identical copies in a
+secure temporary directory because the existing path guard rejects `/workspace`.
+Changed Python files parse. Independent reviews found no blocking regression.
+Strict preflight exits 2; build and smoke exit 1 because Rust/Cargo, QEMU and
+OVMF are unavailable. These are host checks, not native acceptance evidence.
+
+**Evidence:** [all 107 dispositions, source hashes and test receipts](verification/code-quality-20261114.json).
+Local logs: `build/code-quality-20261114/`. Progress remains 41/100; no acceptance
+criterion changed. Generated progress views are regenerated and checked.
+
+**Next:** publish/review the draft PR and inspect its automatic Code Quality
+analysis. Do not claim that main is clear before the owner approves merging and
+GitHub finishes the main scan. No merge or auto-merge is enabled.
+
+## Previous checkpoint — Code scanning alert triage — 14 November 2026
 
 **Source:** reviewed main `2eb7b942cac10db727a184819812634300a8e778`;
 documentation branch `docs/code-scanning-triage-20261114`.

@@ -2,11 +2,10 @@
 import importlib.util
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
 sys.path.insert(0, 'tools')
-from common import ROOT, BUILD, TARGET, run_logged, save_json, sha256
+from common import ROOT, BUILD, run_logged, save_json, sha256
 from build import build
 selected = sys.argv[1]
 assert selected in ('normal', 'nx', 'guard', 'peer', 'oom')

@@ -5,7 +5,6 @@ Original G11 records and binaries are only read. Mutations live in a temporary
 directory and are intentionally labelled host negative fixtures.
 """
 from __future__ import annotations
-import copy
 import hashlib
 import json
 from pathlib import Path

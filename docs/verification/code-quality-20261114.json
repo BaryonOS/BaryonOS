@@ -1,0 +1,1978 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "repository": "BaryonOS/BaryonOS",
+  "source_commit": "299f0e39c202d67d1c2f4e31b879cbdd6add262b",
+  "branch": "fix/python-code-quality-20261114",
+  "scope": {
+    "rules": 17,
+    "findings": 107,
+    "maintainability": 73,
+    "reliability": 34
+  },
+  "resolution": {
+    "code_changes": 77,
+    "dismissed_historical": 30,
+    "preserved_files": 15,
+    "github_main_after_triage": {
+      "rules": 14,
+      "maintainability": 56,
+      "reliability": 21,
+      "open_findings": 77
+    },
+    "main_resolution_requires": "owner-approved merge followed by successful Code Quality scan; no merge or auto-merge enabled"
+  },
+  "verification": {
+    "host_tests": {
+      "source_head": "4fa74b39f15746ef2117262e03f37cf4f0c1025a",
+      "groups": [
+        {
+          "directory": "tests",
+          "patterns": [
+            "test_capture_gate.py",
+            "test_ci_evidence.py",
+            "test_ci_workflows.py",
+            "test_common.py",
+            "test_document_session_harness.py",
+            "test_graphics_capture.py",
+            "test_graphics_harness.py",
+            "test_m6_capture.py",
+            "test_m6_disk.py",
+            "test_m6_harness.py",
+            "test_m6b_capture.py",
+            "test_m6b_gate.py",
+            "test_m6b_harness.py",
+            "test_m6c_capture.py",
+            "test_m6c_harness.py",
+            "test_m6d_m6b_audit.py",
+            "test_net_peer.py",
+            "test_preflight.py",
+            "test_project_classification.py",
+            "test_publication_audit.py",
+            "test_quality_runners.py",
+            "test_system_capture.py",
+            "test_update_harness.py",
+            "test_volume_archive.py",
+            "test_volume_harness.py",
+            "test_volume_runner.py"
+          ],
+          "tests": 445,
+          "exit": 0,
+          "seconds": 8.363,
+          "log": "build/code-quality-20261114/tests.log"
+        },
+        {
+          "directory": "tools/tests",
+          "patterns": [
+            "test_agent_pipeline.py",
+            "test_materiaal_host_count.py",
+            "test_materiaal_preview.py",
+            "test_materiaal_probe.py",
+            "test_random.py",
+            "test_smp_acceptance.py",
+            "test_smp_ci.py",
+            "test_smp_host.py",
+            "test_smp_serial.py",
+            "test_window_latency.py"
+          ],
+          "tests": 196,
+          "exit": 0,
+          "seconds": 14.775,
+          "log": "build/code-quality-20261114/tools__tests.log"
+        },
+        {
+          "directory": "sdk/examples/tcp-probe",
+          "patterns": [
+            "test_peer.py"
+          ],
+          "tests": 21,
+          "exit": 0,
+          "seconds": 0.144,
+          "log": "build/code-quality-20261114/sdk__examples__tcp-probe.log"
+        },
+        {
+          "directory": "tests (secure temporary copy)",
+          "patterns": [
+            "test_storage_backend_replay.py"
+          ],
+          "tests": 16,
+          "exit": 0,
+          "source_sha256": {
+            "tests/test_storage_backend_replay.py": "d63b4c4aedeeec2c2f66c5552ba7e98fc34f3d509538863bec96dd1c4ec42724",
+            "tools/storage_backend_replay.py": "3cb82a4ac393c6c53b30a1e285ac2a5bb8ef662465c64082b1f1aaf875cd01f1",
+            "docs/verification/native-storage-backend-gate/verify_evidence.py": "79827d6e3cd0fe9c62ade15475ac7b7025301c5ecc59be0e5239a234ea9487a2"
+          },
+          "log": "build/code-quality-20261114/storage-replay.log"
+        }
+      ],
+      "total_tests": 678,
+      "suites": 38,
+      "passed": true
+    },
+    "native_gates": [
+      {
+        "name": "preflight",
+        "argv": [
+          "python3",
+          "tools/preflight.py",
+          "--strict"
+        ],
+        "exit": 2,
+        "seconds": 0.092,
+        "log": "build/code-quality-20261114/preflight.log"
+      },
+      {
+        "name": "build",
+        "argv": [
+          "python3",
+          "tools/build.py"
+        ],
+        "exit": 1,
+        "seconds": 0.05,
+        "log": "build/code-quality-20261114/build.log"
+      },
+      {
+        "name": "smoke",
+        "argv": [
+          "python3",
+          "tools/run.py",
+          "--smoke"
+        ],
+        "exit": 1,
+        "seconds": 0.062,
+        "log": "build/code-quality-20261114/smoke.log"
+      }
+    ],
+    "native_result": "blocked: missing rustc/cargo, qemu-system-x86_64 and OVMF; no native success claimed",
+    "syntax_changed_python_files": 55,
+    "maintained_helpers": "Four verifier/helper files parse; both K06 help commands exit0; all five LIMITS strings unchanged. OS-dev script help commands exit0; volume boundary behavior preserved.",
+    "independent_review": "No blocking issue found in maintained verifier/test changes or QMP bootstrap. Protocol-body and six transport bodies preserve their original behavior. Fifteen archived source hashes match.",
+    "code_quality": "pending automatic draft-PR scan",
+    "patched_python_sha256": {
+      ".agents/skills/os-dev/scripts/build_corpus.py": "f95c316b271c2c83ac8e0c3c2395f91330285f73060a8c0d818dd2c120a879a5",
+      ".agents/skills/os-dev/scripts/zoeken.py": "c491c1ab3cebfab1772b53cf9b0f2a7f8283ca8d31c4a0be0da71ce355e185d7",
+      "docs/verification/k06-smp-sched/verify_artifacts.py": "32530aeb8d73894e5db6fb9052ac76ce10f9302f636ca2d4509bf6a9fbf9bccd",
+      "docs/verification/k06-smp-sched/verify_final_gate.py": "50933e2d7de95511c0e3dc0fe1a356b76371b53e0fb05bce7a030960d2ab03f4",
+      "docs/verification/parallel-final-integration/audit.py": "c00bb6c0b3ebea129f71d94e0390aed5b5f760c0cd9ee6ac3cd18e0d227c6bcb",
+      "docs/verification/parallel-i15/compiler_binding_cases.py": "51069e46637fa6d7843b2cc0a6684226446523eab164e0c43365c77a2317285a",
+      "sdk/examples/image-crop/tests/interop.py": "f3ac947ebd729362660dd111c39a5500e80c2920a483a3ce81f591c0fec2d894",
+      "sdk/examples/memory/verification/development_gate.py": "7e259bdb9d73a7fda0f2bc3eb7287e70a9371ace3843d7c08d303a3e1119074f",
+      "sdk/examples/memory/verification/run_root_helper.py": "12b978d7dc095b0bea5a18ee6fc4d761aa120a58166b7ac5a0dbe6085b551941",
+      "sdk/examples/tcp-probe/test_peer.py": "8d1c5467c135c35dc528b46d852befeee3401b01621ab47e294e2fcf538d46a3",
+      "tests/test_ci_evidence.py": "6a75f3c15308013ea2107a5a33bfe5930223abdab094a97fbec3a3c1eb08df23",
+      "tests/test_ci_workflows.py": "1d6702a7494f5c857adc06f5fc2c36bff639c2f91fcb9968bdcfc1ec7cc8a5c9",
+      "tests/test_common.py": "2ac4b13709961d4fd0ab27281dc83c9962e3553d223c4c85507289c833d94caa",
+      "tests/test_document_session_harness.py": "7bae9788b0a8679a0234d84b3c43195d3f677eda6a9a162a7093b1f5b2145d36",
+      "tests/test_m6_capture.py": "ef1e491b0814b0d580bdf1169f44fa0c84265156120bef54e60441409d650914",
+      "tests/test_m6_disk.py": "b888dc1e5a8b084d1042df9e1185cd4aa7cb2b5a7b3a529c93aab69076d184bf",
+      "tests/test_m6d_m6b_audit.py": "2ea63356626e543d0dd4239b2454c7657a3b41f5da9f12b064a8ea7d659c88e8",
+      "tests/test_net_peer.py": "34e6a2f6afa4c96e3edeb697ebe7a9ba9fda7477946fa5c02d1585ba1710023c",
+      "tests/test_project_classification.py": "d8bc058f55cba42ee8f2733398b5ecc4fd406dc9301f43b2b16cde508acb327d",
+      "tests/test_publication_audit.py": "0f26caa4367adf01be345c16626c50d455e74c28d68212cbfc8fa2f9d64f8f48",
+      "tests/test_quality_runners.py": "759daddc16f7904e9a1cfacd2fceced35904c458f3f9851f31b6c659e592d98d",
+      "tests/test_storage_backend_replay.py": "d63b4c4aedeeec2c2f66c5552ba7e98fc34f3d509538863bec96dd1c4ec42724",
+      "tests/test_update_harness.py": "a14e37b416f348ea614d08a51c3d733245994ce73ac2deaa8ec43dffc1440ce0",
+      "tools/capture_gate.py": "0e6abe855d81ffd42935f6a3f4434607ffda259b441a0534c9e703b7bad1bc59",
+      "tools/preflight.py": "5899d378847cf4829c2dc70bcd37454ac64bb1c7c490407ea351dfd7c2877145",
+      "tools/publication_audit.py": "309b7c1079e777b634bec713f514c82a6dbb4e82cd813ef7d6c2628338cc3e0b",
+      "tools/run.py": "18bd018ed6a87850637dd8f24c2f834f7f10df1e35dc3fce561972da4eb0cd61",
+      "tools/run_display_probe.py": "94ad852ec87ba56a93a8ba7f79caee762e34d5b5f73fb1df5dc26e17f29f01f1",
+      "tools/run_graphics.py": "7db219ff603eb9d486c783b9e77f02c46d9bb187f57edf437a11754c70b2e7d0",
+      "tools/run_m6.py": "d9d3228ca920047d44551fd4bd0b18ea1983410804ca21e33d3efb986c44c8dd",
+      "tools/run_m6b.py": "8ad6d24704a9328d2c6b5d9f9e514d8b282ffed868bcf5eebd5b60dd5e7ac9da",
+      "tools/run_m6c.py": "1a66983b84bf8d7eca88b8d44cca2e6238dbe750b9acee18ec15e379cb074362",
+      "tools/run_materiaal_probe.py": "ea699d11b65f43efb0db9cddecd310bf5084a38d73da372df66e2df64fc971d2",
+      "tools/run_net_system.py": "63b8ebe462142324160b01f0e3d4f44d5c610cf71e6ca27bf9abf82ca891b250",
+      "tools/run_network_service.py": "fe0c01a8f80912a71c5bb3139167e8787d4123d8ac21062c777dfe1f3c06a4e7",
+      "tools/run_random.py": "5b1866786a6a51e4383477514b8c9d85839210a960b9ba707b9a2c4bb372f0c4",
+      "tools/run_session_preview.py": "4291e1e7bf11378d3738366ae6448fd4329a3630da9f618a0164fb4a9abaf451",
+      "tools/run_smp_legacy.py": "1cd781774518f287611a56ad3558bfb44a0f625560ecf5e8157eb0921bee039c",
+      "tools/run_update.py": "a4ea7e6d960929ce71bc0c15b615d4a3bd110095012ee3e31fa356cd1a699751",
+      "tools/run_volume.py": "4db620a8a0198281b5cda2b33627b8cd06ba6f26fd64412eee16651606feedfd",
+      "tools/test.py": "cc4704d18550d6dea8090dc09e4837795242ec4e2fbb9e6d718238eec6945b04",
+      "tools/test_m6.py": "759b3f5bf8f4cb88dc4e02b112848e151d03111bd174b6838b79c8bd214da657",
+      "tools/test_m6b.py": "9935db1fad620c6dfe9baa66f3f3a7bb3f8678d1356552c101f3f2f9e4dd657e",
+      "tools/test_m6c.py": "8e472647a54af5007d3806a9d6ec509dbfc5a66767435be928a349d4ba913e8b",
+      "tools/test_milestones.py": "9c0cbdad9073d6175521004aeb20fc77e97c81e2f41a62b922d779f3a3d7e930",
+      "tools/test_resource_pressure.py": "15c3d21f6e0ba71b879ccc10bc0c215b906815bfe5a78a8aae93756ef51f437a",
+      "tools/test_smp.py": "527d36a182b4f1012009d774c4970baf2dfe7f66b3b380a62668c81a2fdf2cf2",
+      "tools/test_update.py": "dbee5551a3c7afebcc68e5deb8513a788820230136ca17803e53cc0029c25df7",
+      "tools/test_volume.py": "c0aa9dc6ccfdcbdab6bc07d3ad100eaa4df11c2b457d17830efb870c2d651904",
+      "tools/tests/test_agent_pipeline.py": "5d054a21c0da84a1c2b5417e95d391a8d92adabe34e6734ead2c55b3dffb4a19",
+      "tools/tests/test_materiaal_preview.py": "1758afb7cb4dea7bb303303683101a93aa56ca0a0c0c75ecfed8f11ac10c2eeb",
+      "tools/tests/test_materiaal_probe.py": "7bd0b4767c0be3cc2b02e06f845b2cf5a2d449066dfdd0c8f530083985e8e954",
+      "tools/tests/test_smp_ci.py": "a6b69cd491e6c75393508fb4ec8713e0ca6f5ada44346d0061dd3896eb062d79",
+      "tools/tests/test_smp_serial.py": "f81da86642cf4c9063b381e46744b9169816dec1fb6bc21cce7ae8041bae3742",
+      "tools/tests/test_window_latency.py": "4ba5a697e380c7849ed92347798a0db32368f1d82d55da322f5c5e2e13820e70"
+    }
+  },
+  "archive_policy": "Historical acceptance/manifest hashes remain unchanged; source cleanup gets separate dated evidence and version linkage.",
+  "archive_dispositions": [
+    {
+      "path": "docs/verification/gui-idle-20261102/windows-harness/tests/test_windows_qmp.py",
+      "prechange_sha256": "862f18a23fa05f50c0710275e4499ae5bb33c3a71dde6444f43f4f14e131a67d",
+      "bytes": 11744,
+      "findings": [
+        {
+          "rule": "Unused import",
+          "line": 4,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/gui-idle-20261102/windows-harness/tests/test_windows_qmp.py#L4-L4"
+        }
+      ],
+      "rationale": "Exact adapter/test bytes used in the historical Windows/WHPX A/B experiment.",
+      "evidence": [
+        {
+          "path": "docs/verification/gui-idle-20261102/windows-harness/manifest.json",
+          "field": "files_sha256.tests/test_windows_qmp.py"
+        },
+        {
+          "path": "docs/verification/gui-idle-20261102/windows-harness/README.md",
+          "lines": [
+            3,
+            3
+          ],
+          "claim": "Byte-identical copies of adapters used for formal A/B; SHA256 bound by manifest."
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "wont_fix"
+    },
+    {
+      "path": "docs/verification/gui-idle-20261102/windows-harness/run_windows_window.py",
+      "prechange_sha256": "9610f3e0995101b17a28afd7a2efbf3aa72b0ee85d013c2c9c3b1d5165df87cd",
+      "bytes": 20012,
+      "findings": [
+        {
+          "rule": "Unused import",
+          "line": 18,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/gui-idle-20261102/windows-harness/run_windows_window.py#L18-L18"
+        },
+        {
+          "rule": "Empty except",
+          "line": 105,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/gui-idle-20261102/windows-harness/run_windows_window.py#L105-L105"
+        }
+      ],
+      "rationale": "Exact adapter bytes used in the historical Windows/WHPX A/B experiment.",
+      "evidence": [
+        {
+          "path": "docs/verification/gui-idle-20261102/windows-harness/manifest.json",
+          "field": "files_sha256.run_windows_window.py"
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "wont_fix"
+    },
+    {
+      "path": "docs/verification/gui-idle-20261102/windows-harness/windows_inputs.py",
+      "prechange_sha256": "90a69663adb6ee517a2b8f2584fca2250010a179bb4216ed3de53d3aaab572f5",
+      "bytes": 8129,
+      "findings": [
+        {
+          "rule": "Module is imported with 'import' and 'import from'",
+          "line": 4,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/gui-idle-20261102/windows-harness/windows_inputs.py#L4-L4"
+        }
+      ],
+      "rationale": "Exact adapter bytes used in the historical Windows/WHPX A/B experiment.",
+      "evidence": [
+        {
+          "path": "docs/verification/gui-idle-20261102/windows-harness/manifest.json",
+          "field": "files_sha256.windows_inputs.py"
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "wont_fix"
+    },
+    {
+      "path": "docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py",
+      "prechange_sha256": "a8bc6da0002910f65966a1d38dd995d9c682b6bda581141cb9f8c5ad49814d0d",
+      "bytes": 11831,
+      "findings": [
+        {
+          "rule": "Module is imported with 'import' and 'import from'",
+          "line": 13,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py#L13-L13"
+        },
+        {
+          "rule": "`__init__` method calls overridden method",
+          "line": 193,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py#L193-L193"
+        },
+        {
+          "rule": "Except block handles 'BaseException'",
+          "line": 155,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py#L155-L155"
+        },
+        {
+          "rule": "Except block handles 'BaseException'",
+          "line": 109,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py#L109-L109"
+        },
+        {
+          "rule": "Missing call to superclass `__init__` during object initialization",
+          "line": 161,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py#L161-L161"
+        }
+      ],
+      "rationale": "Exact transport implementation used by the historical Windows/WHPX A/B. BaseException catches forward worker errors to the owner; do not silently swallow them.",
+      "evidence": [
+        {
+          "path": "docs/verification/gui-idle-20261102/windows-harness/manifest.json",
+          "field": "files_sha256.windows_qmp.py"
+        },
+        {
+          "path": "docs/verification/gui-idle-20261102/windows-harness/README.md",
+          "lines": [
+            3,
+            3
+          ],
+          "claim": "Exact historical adapters; frozen product checkout is separate."
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "wont_fix"
+    },
+    {
+      "path": "docs/verification/gui-idle-20261102/windows-harness/tests/test_windows_driver.py",
+      "prechange_sha256": "fc4c70063d4545a794ae9f3743cbdf68daddbc7afba894d14786b00373841132",
+      "bytes": 11406,
+      "findings": [
+        {
+          "rule": "Module is imported with 'import' and 'import from'",
+          "line": 5,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/gui-idle-20261102/windows-harness/tests/test_windows_driver.py#L5-L5"
+        }
+      ],
+      "rationale": "Exact test bytes accompanying the historical Windows/WHPX A/B adapters.",
+      "evidence": [
+        {
+          "path": "docs/verification/gui-idle-20261102/windows-harness/manifest.json",
+          "field": "files_sha256.tests/test_windows_driver.py"
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "wont_fix"
+    },
+    {
+      "path": "docs/verification/gui-idle-20261102/windows-harness/windows_idle_measure.py",
+      "prechange_sha256": "3833f4e7aa467e043316b6d9eb6926ce4b7b56cf2e1a7f108f87c5a68e96f9e8",
+      "bytes": 16621,
+      "findings": [
+        {
+          "rule": "Module is imported with 'import' and 'import from'",
+          "line": 9,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/gui-idle-20261102/windows-harness/windows_idle_measure.py#L9-L9"
+        }
+      ],
+      "rationale": "Exact measurement helper used in the historical Windows/WHPX A/B experiment.",
+      "evidence": [
+        {
+          "path": "docs/verification/gui-idle-20261102/windows-harness/manifest.json",
+          "field": "files_sha256.windows_idle_measure.py"
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "wont_fix"
+    },
+    {
+      "path": "docs/verification/gui-idle-20261102/windows-harness/run_idle_ab.py",
+      "prechange_sha256": "f49356b98c6e70cdead73091d8618516f603e3caa86aa1e5e5bb8a262378729c",
+      "bytes": 5228,
+      "findings": [
+        {
+          "rule": "Unused import",
+          "line": 3,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/gui-idle-20261102/windows-harness/run_idle_ab.py#L3-L3"
+        }
+      ],
+      "rationale": "Exact A/B driver binding frozen source commits, hashes and historical measurements.",
+      "evidence": [
+        {
+          "path": "docs/verification/gui-idle-20261102/windows-harness/manifest.json",
+          "field": "files_sha256.run_idle_ab.py"
+        },
+        {
+          "path": "docs/verification/gui-idle-20261102/windows-harness/README.md",
+          "lines": [
+            7,
+            7
+          ],
+          "claim": "Driver contains the exact two freezes, source hashes, directories, image hash and bounded commands used in this experiment."
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "wont_fix"
+    },
+    {
+      "path": "docs/verification/windows-qemu-interactive-1/windows_qmp_adapter.py",
+      "prechange_sha256": "469c59a66bcd7ab9f7014b4c352a8f98507ce35b56c1b012f5f2125d29290688",
+      "bytes": 12275,
+      "findings": [
+        {
+          "rule": "Unused import",
+          "line": 13,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/windows-qemu-interactive-1/windows_qmp_adapter.py#L13-L13"
+        }
+      ],
+      "rationale": "One-shot historical Windows adapter; executed source bytes are bound by the result summary.",
+      "evidence": [
+        {
+          "path": "docs/verification/windows-qemu-interactive-1/windows-result-summary.json",
+          "field": "adapter_sha256"
+        },
+        {
+          "path": "docs/verification/windows-qemu-interactive-1/windows_qmp_adapter.py",
+          "lines": [
+            121,
+            121
+          ],
+          "claim": "Runtime records sha256(Path(__file__))."
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "wont_fix"
+    },
+    {
+      "path": "docs/verification/m6c-review/host-log-binding/records/before-fix-test_m6c_capture.py",
+      "prechange_sha256": "fa89d0360acaa84c0db73fb5c46bcc8f54422c2d8caacdcc72363626682cd5cb",
+      "bytes": 17871,
+      "findings": [
+        {
+          "rule": "Wrong number of arguments in a call",
+          "line": 226,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/m6c-review/host-log-binding/records/before-fix-test_m6c_capture.py#L226-L226"
+        },
+        {
+          "rule": "Wrong number of arguments in a call",
+          "line": 239,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/m6c-review/host-log-binding/records/before-fix-test_m6c_capture.py#L239-L239"
+        },
+        {
+          "rule": "Wrong number of arguments in a call",
+          "line": 207,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/m6c-review/host-log-binding/records/before-fix-test_m6c_capture.py#L207-L207"
+        },
+        {
+          "rule": "Wrong number of arguments in a call",
+          "line": 200,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/m6c-review/host-log-binding/records/before-fix-test_m6c_capture.py#L200-L200"
+        }
+      ],
+      "rationale": "Deliberate pre-fix test source for the older baseline API. README requires use in that old checkout; current-API arity analysis does not describe the recorded reproducer.",
+      "evidence": [
+        {
+          "path": "docs/verification/m6c-review/host-log-binding/manifest.json",
+          "field": "before_fix_reproduction.sha256"
+        },
+        {
+          "path": "docs/verification/m6c-review/host-log-binding/manifest.json",
+          "field": "evidence_files.records/before-fix-test_m6c_capture.py.sha256"
+        },
+        {
+          "path": "docs/verification/m6c-review/host-log-binding/README.md",
+          "lines": [
+            65,
+            83
+          ],
+          "claim": "Reproduce in separate b3 baseline checkout; preserved test bytes match the actually executed before-fix run."
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "false_positive"
+    },
+    {
+      "path": "docs/verification/m6d-closeout/diagnostic-helper.original.py",
+      "prechange_sha256": "d55d1682866dd48059217732cd28849caaa0f089e42aa2a96dbca7524463e9bb",
+      "bytes": 4203,
+      "findings": [
+        {
+          "rule": "Unused import",
+          "line": 5,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/m6d-closeout/diagnostic-helper.original.py#L5-L5"
+        }
+      ],
+      "rationale": "Original diagnostic helper retained as a hashed historical evidence artifact.",
+      "evidence": [
+        {
+          "path": "docs/verification/m6d-closeout/summary.json",
+          "field": "files.docs/verification/m6d-closeout/diagnostic-helper.original.py"
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "wont_fix"
+    },
+    {
+      "path": "docs/verification/parallel-final-g0/execute.py",
+      "prechange_sha256": "8715f751c228c400b6b79f56a35a2c0d068ff57854bd73a1725bda95a9777720",
+      "bytes": 2155,
+      "findings": [
+        {
+          "rule": "An assert statement has a side-effect",
+          "line": 9,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/parallel-final-g0/execute.py#L9-L9"
+        },
+        {
+          "rule": "An assert statement has a side-effect",
+          "line": 25,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/parallel-final-g0/execute.py#L25-L25"
+        },
+        {
+          "rule": "Unused import",
+          "line": 1,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/parallel-final-g0/execute.py#L1-L1"
+        },
+        {
+          "rule": "Unused import",
+          "line": 4,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/parallel-final-g0/execute.py#L4-L4"
+        }
+      ],
+      "rationale": "Historical launcher for frozen commit 3e41bbf9 and source 307c828e; preserves the exact original run and its subsequent invalidation.",
+      "evidence": [
+        {
+          "path": "docs/verification/parallel-final-g0/README.md",
+          "lines": [
+            1,
+            8
+          ],
+          "claim": "Original run later invalidated; both observations retained, new isolated runs separate."
+        },
+        {
+          "path": "docs/verification/parallel-final-g0/README.md",
+          "lines": [
+            24,
+            27
+          ],
+          "claim": "execute.py ran the archived G0 execution; original raw outcomes remain unchanged."
+        },
+        {
+          "path": "docs/verification/parallel-final-g0/execute.py",
+          "lines": [
+            7,
+            11
+          ],
+          "claim": "Frozen commit/source guards and exclusive historical output directory."
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "wont_fix"
+    },
+    {
+      "path": "docs/verification/parallel-final-g0-confirmed/execute-attempt.py",
+      "prechange_sha256": "47c4cac0bbadf29d80a7918898abf852fda1f8004f6841d1c940feb29ba6cdfd",
+      "bytes": 2785,
+      "findings": [
+        {
+          "rule": "An assert statement has a side-effect",
+          "line": 9,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/parallel-final-g0-confirmed/execute-attempt.py#L9-L9"
+        },
+        {
+          "rule": "Unused import",
+          "line": 2,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/parallel-final-g0-confirmed/execute-attempt.py#L2-L2"
+        },
+        {
+          "rule": "Unused import",
+          "line": 5,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/parallel-final-g0-confirmed/execute-attempt.py#L5-L5"
+        },
+        {
+          "rule": "Unused import",
+          "line": 6,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/parallel-final-g0-confirmed/execute-attempt.py#L6-L6"
+        }
+      ],
+      "rationale": "Historical driver records the successful pipe run followed by the failed UNIX probe; fixed source and original outcomes must remain intact.",
+      "evidence": [
+        {
+          "path": "docs/verification/parallel-final-g0-confirmed/README.md",
+          "lines": [
+            17,
+            23
+          ],
+          "claim": "Driver exit1 and both raw outcomes retained; only original pipe run accepted."
+        },
+        {
+          "path": "docs/verification/parallel-final-g0-confirmed/execute-attempt.py",
+          "lines": [
+            7,
+            13
+          ],
+          "claim": "Frozen commit/source and exclusive archived output path."
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "wont_fix"
+    },
+    {
+      "path": "docs/verification/parallel-followup-g0/execute_gate.py",
+      "prechange_sha256": "430207edc664b53d936b1502056738ea2cbc4bd6bab8862de80bd4ab0ec87ada",
+      "bytes": 6545,
+      "findings": [
+        {
+          "rule": "An assert statement has a side-effect",
+          "line": 41,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/parallel-followup-g0/execute_gate.py#L41-L41"
+        }
+      ],
+      "rationale": "Exact archived B08 execution driver, including original freeze checks and independent PNG verification.",
+      "evidence": [
+        {
+          "path": "docs/verification/parallel-followup-g0/README.md",
+          "lines": [
+            95,
+            97
+          ],
+          "claim": "Archived execute_gate.py is the exact driver used; original commands/environment/timestamps/statuses in execution.json."
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "wont_fix"
+    },
+    {
+      "path": "docs/verification/parallel-followup-root/execute.py",
+      "prechange_sha256": "e964af0cd54e7cb35dc6f704db38b81b46fe9512b92d34dfae709bcf0ea96e0e",
+      "bytes": 5219,
+      "findings": [
+        {
+          "rule": "Unused import",
+          "line": 1,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/parallel-followup-root/execute.py#L1-L1"
+        },
+        {
+          "rule": "Unused import",
+          "line": 6,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/parallel-followup-root/execute.py#L6-L6"
+        }
+      ],
+      "rationale": "Exact historical launcher intentionally records its original workspace and source freeze. README provides current tools functions as reproduction route.",
+      "evidence": [
+        {
+          "path": "docs/verification/parallel-followup-root/README.md",
+          "lines": [
+            44,
+            47
+          ],
+          "claim": "Preserves exact executed launcher and deliberately fixed workspace/freeze; use documented build/run/capture functions for another checkout."
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "wont_fix"
+    },
+    {
+      "path": "docs/verification/parallel-final-crosscheck-runtime/check_m6b.py",
+      "prechange_sha256": "ccb3c89f522bf08055fc7aa86a1862242ee79fedd38f0a1011cbd549c4ec693a",
+      "bytes": 15000,
+      "findings": [
+        {
+          "rule": "Unused import",
+          "line": 9,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/parallel-final-crosscheck-runtime/check_m6b.py#L9-L9"
+        }
+      ],
+      "rationale": "Hash-bound historical independent crosscheck pinned to its original commit, source and retained artifact paths.",
+      "evidence": [
+        {
+          "path": "docs/verification/parallel-final-crosscheck-runtime/artifact-index.json",
+          "field": "files.check_m6b.py"
+        },
+        {
+          "path": "docs/verification/parallel-final-crosscheck-runtime/check_m6b.py",
+          "lines": [
+            19,
+            22
+          ],
+          "claim": "Fixed old commit/source/archive/build inputs."
+        }
+      ],
+      "current_bytes_match_base": true,
+      "recommended_disposition": "wont_fix"
+    }
+  ],
+  "maintained_verifiers": [
+    {
+      "path": "docs/verification/k06-smp-sched/verify_final_gate.py",
+      "prechange_sha256": "85f9be7d6b183d2b57eaf844ba80dbae2266bbdb4fc5c4d75f7da1aefc735e6c",
+      "bytes": 27125,
+      "findings": [
+        {
+          "rule": "Implicit string concatenation in a list",
+          "line": 41,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/k06-smp-sched/verify_final_gate.py#L41-L42"
+        },
+        {
+          "rule": "Implicit string concatenation in a list",
+          "line": 39,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/k06-smp-sched/verify_final_gate.py#L39-L40"
+        },
+        {
+          "rule": "Implicit string concatenation in a list",
+          "line": 34,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/k06-smp-sched/verify_final_gate.py#L34-L36"
+        },
+        {
+          "rule": "Implicit string concatenation in a list",
+          "line": 37,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/k06-smp-sched/verify_final_gate.py#L37-L38"
+        },
+        {
+          "rule": "Implicit string concatenation in a list",
+          "line": 32,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/k06-smp-sched/verify_final_gate.py#L32-L33"
+        }
+      ],
+      "rationale": "Actively maintained read-only verifier; documented prior post-run correction demonstrates versioned maintenance. Preserve historical acceptance hashes.",
+      "evidence": [
+        {
+          "path": "docs/verification/k06-smp-sched/acceptance-43429991481.json",
+          "field": "verifier_correction"
+        },
+        {
+          "path": "docs/verification/k06-smp-sched/acceptance-43429991481.json",
+          "field": "verification.verify_final_gate.py.verifier_sha256"
+        }
+      ],
+      "repair": "Use explicit concatenation while preserving all five LIMITS strings byte-for-byte."
+    },
+    {
+      "path": "docs/verification/k06-smp-sched/verify_artifacts.py",
+      "prechange_sha256": "e1f7c174f61841e36b1702faa7b610fdb8ff7360c82fdffcc4740fcf90ab8652",
+      "bytes": 22280,
+      "findings": [
+        {
+          "rule": "Module is imported with 'import' and 'import from'",
+          "line": 60,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/k06-smp-sched/verify_artifacts.py#L60-L60"
+        }
+      ],
+      "rationale": "Maintained read-only artifact verifier with explicit checkout argument. Import consolidation preserves runtime lookup and old-version attribute fallbacks; preserve historical acceptance hashes.",
+      "evidence": [
+        {
+          "path": "docs/verification/k06-smp-sched/README.md",
+          "lines": [
+            5,
+            5
+          ],
+          "claim": "Both read-only verifiers tracked for continuation/reproduction."
+        },
+        {
+          "path": "docs/verification/k06-smp-sched/acceptance-43429991481.json",
+          "field": "verification.verify_artifacts.py.verifier_sha256"
+        }
+      ],
+      "repair": "Use import run_smp only and qualify the previously imported oracle symbols."
+    },
+    {
+      "path": "docs/verification/parallel-i15/compiler_binding_cases.py",
+      "prechange_sha256": "8eba0fde598e9b692500cefcbb5ec972d6e2457cc5a1f119310023f202508cf3",
+      "bytes": 4849,
+      "findings": [
+        {
+          "rule": "Unused import",
+          "line": 8,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/parallel-i15/compiler_binding_cases.py#L8-L8"
+        }
+      ],
+      "rationale": "Re-runnable controlled mutation helper with explicit gate and immutable artifact checkout arguments; only an unused stdlib import changes. Recorded evidence bytes/outcomes remain unchanged.",
+      "evidence": [
+        {
+          "path": "docs/verification/parallel-i15/README.md",
+          "lines": [
+            58,
+            79
+          ],
+          "claim": "Documents re-running helper with explicit gate checkout and preserved G11 artifacts."
+        }
+      ],
+      "repair": "Remove unused copy import."
+    },
+    {
+      "path": "docs/verification/parallel-final-integration/audit.py",
+      "prechange_sha256": "f8f8bc7f4c3542b16bb373fe4943edbc2415586a1224493c8056aafc65f6347f",
+      "bytes": 2955,
+      "findings": [
+        {
+          "rule": "Unused import",
+          "line": 2,
+          "url": "https://github.com/BaryonOS/BaryonOS/blob/main/docs/verification/parallel-final-integration/audit.py#L2-L2"
+        }
+      ],
+      "rationale": "Maintained readback audit helper whose current schema correction is distinguished from earlier stored rejection results. Removing unused import preserves audit behavior and all historical outcomes.",
+      "evidence": [
+        {
+          "path": "docs/verification/parallel-final-integration/README.md",
+          "lines": [
+            9,
+            16
+          ],
+          "claim": "Current audit corrected separately from preserved initial schema-rejection evidence."
+        }
+      ],
+      "repair": "Remove unused hashlib import."
+    }
+  ],
+  "findings": [
+    {
+      "rule": "Unused import",
+      "path": "tools/test_volume.py",
+      "original_line": 19,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/test_volume.py#L19-L19",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/run_volume.py",
+      "original_line": 23,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_volume.py#L23-L23",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/run_volume.py",
+      "original_line": 13,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_volume.py#L13-L13",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": ".agents/skills/os-dev/scripts/zoeken.py",
+      "original_line": 4,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/.agents/skills/os-dev/scripts/zoeken.py#L4-L4",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/gui-idle-20261102/windows-harness/tests/test_windows_qmp.py",
+      "original_line": 4,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/gui-idle-20261102/windows-harness/tests/test_windows_qmp.py#L4-L4",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact adapter/test bytes used in the historical Windows/WHPX A/B experiment."
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/windows-qemu-interactive-1/windows_qmp_adapter.py",
+      "original_line": 13,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/windows-qemu-interactive-1/windows_qmp_adapter.py#L13-L13",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "dismissed_historical",
+      "rationale": "One-shot historical Windows adapter; executed source bytes are bound by the result summary."
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/test_update.py",
+      "original_line": 7,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/test_update.py#L7-L7",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/tests/test_window_latency.py",
+      "original_line": 9,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/tests/test_window_latency.py#L9-L10",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/test_resource_pressure.py",
+      "original_line": 8,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/test_resource_pressure.py#L8-L8",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/test_smp.py",
+      "original_line": 14,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/test_smp.py#L14-L14",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/test_milestones.py",
+      "original_line": 7,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/test_milestones.py#L7-L7",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/test_milestones.py",
+      "original_line": 9,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/test_milestones.py#L9-L9",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/test_m6c.py",
+      "original_line": 5,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/test_m6c.py#L5-L5",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/tests/test_materiaal_probe.py",
+      "original_line": 5,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/tests/test_materiaal_probe.py#L5-L5",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/test_m6.py",
+      "original_line": 6,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/test_m6.py#L6-L6",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tests/test_m6_disk.py",
+      "original_line": 10,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_m6_disk.py#L10-L11",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/test_m6b.py",
+      "original_line": 5,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/test_m6b.py#L5-L5",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/gui-idle-20261102/windows-harness/run_windows_window.py",
+      "original_line": 18,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/gui-idle-20261102/windows-harness/run_windows_window.py#L18-L18",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact adapter bytes used in the historical Windows/WHPX A/B experiment."
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/test.py",
+      "original_line": 5,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/test.py#L5-L5",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/test.py",
+      "original_line": 9,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/test.py#L9-L9",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/run_update.py",
+      "original_line": 13,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_update.py#L13-L13",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "sdk/examples/memory/verification/run_root_helper.py",
+      "original_line": 11,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/sdk/examples/memory/verification/run_root_helper.py#L11-L11",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/run_session_preview.py",
+      "original_line": 11,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_session_preview.py#L11-L11",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/run_network_service.py",
+      "original_line": 18,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_network_service.py#L18-L18",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/run_random.py",
+      "original_line": 14,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_random.py#L14-L14",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "tests/test_project_classification.py",
+      "original_line": 7,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_project_classification.py#L7-L7",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "docs/verification/k06-smp-sched/verify_artifacts.py",
+      "original_line": 60,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/k06-smp-sched/verify_artifacts.py#L60-L60",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "tools/tests/test_smp_serial.py",
+      "original_line": 12,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/tests/test_smp_serial.py#L12-L12",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "docs/verification/gui-idle-20261102/windows-harness/windows_inputs.py",
+      "original_line": 4,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/gui-idle-20261102/windows-harness/windows_inputs.py#L4-L4",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact adapter bytes used in the historical Windows/WHPX A/B experiment."
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py",
+      "original_line": 13,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py#L13-L13",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact transport implementation used by the historical Windows/WHPX A/B. BaseException catches forward worker errors to the owner; do not silently swallow them."
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "tests/test_update_harness.py",
+      "original_line": 10,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_update_harness.py#L10-L10",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "docs/verification/gui-idle-20261102/windows-harness/tests/test_windows_driver.py",
+      "original_line": 5,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/gui-idle-20261102/windows-harness/tests/test_windows_driver.py#L5-L5",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact test bytes accompanying the historical Windows/WHPX A/B adapters."
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "docs/verification/gui-idle-20261102/windows-harness/windows_idle_measure.py",
+      "original_line": 9,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/gui-idle-20261102/windows-harness/windows_idle_measure.py#L9-L9",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact measurement helper used in the historical Windows/WHPX A/B experiment."
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "tests/test_publication_audit.py",
+      "original_line": 16,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_publication_audit.py#L16-L16",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "tools/test_update.py",
+      "original_line": 13,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/test_update.py#L13-L13",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "tests/test_document_session_harness.py",
+      "original_line": 15,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_document_session_harness.py#L15-L15",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "tests/test_m6d_m6b_audit.py",
+      "original_line": 12,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_m6d_m6b_audit.py#L12-L12",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "tools/tests/test_materiaal_preview.py",
+      "original_line": 14,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/tests/test_materiaal_preview.py#L14-L14",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "tools/run_m6c.py",
+      "original_line": 30,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_m6c.py#L30-L30",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "tools/tests/test_agent_pipeline.py",
+      "original_line": 6,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/tests/test_agent_pipeline.py#L6-L6",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "tools/run_m6.py",
+      "original_line": 31,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_m6.py#L31-L31",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Module is imported with 'import' and 'import from'",
+      "path": "tools/run_m6b.py",
+      "original_line": 29,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_m6b.py#L29-L29",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimport-and-import-from",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Empty except",
+      "path": "tests/test_net_peer.py",
+      "original_line": 186,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_net_peer.py#L186-L186",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fempty-except",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Empty except",
+      "path": "sdk/examples/tcp-probe/test_peer.py",
+      "original_line": 217,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/sdk/examples/tcp-probe/test_peer.py#L217-L217",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fempty-except",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Empty except",
+      "path": "tools/run_materiaal_probe.py",
+      "original_line": 700,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_materiaal_probe.py#L700-L700",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fempty-except",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Empty except",
+      "path": "docs/verification/gui-idle-20261102/windows-harness/run_windows_window.py",
+      "original_line": 105,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/gui-idle-20261102/windows-harness/run_windows_window.py#L105-L105",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fempty-except",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact adapter bytes used in the historical Windows/WHPX A/B experiment."
+    },
+    {
+      "rule": "Empty except",
+      "path": "tests/test_net_peer.py",
+      "original_line": 179,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_net_peer.py#L179-L179",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fempty-except",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Empty except",
+      "path": "tools/run_display_probe.py",
+      "original_line": 431,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_display_probe.py#L431-L431",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fempty-except",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Empty except",
+      "path": "tools/run_materiaal_probe.py",
+      "original_line": 464,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_materiaal_probe.py#L464-L464",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fempty-except",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Empty except",
+      "path": "tools/run_network_service.py",
+      "original_line": 81,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_network_service.py#L81-L81",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fempty-except",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Empty except",
+      "path": "tools/publication_audit.py",
+      "original_line": 291,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/publication_audit.py#L291-L291",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fempty-except",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Empty except",
+      "path": "tools/publication_audit.py",
+      "original_line": 826,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/publication_audit.py#L826-L826",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fempty-except",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Empty except",
+      "path": "tools/publication_audit.py",
+      "original_line": 1065,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/publication_audit.py#L1065-L1065",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fempty-except",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Empty except",
+      "path": "tools/preflight.py",
+      "original_line": 212,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/preflight.py#L212-L212",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fempty-except",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Implicit string concatenation in a list",
+      "path": "docs/verification/k06-smp-sched/verify_final_gate.py",
+      "original_line": 41,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/k06-smp-sched/verify_final_gate.py#L41-L42",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimplicit-string-concatenation-in-list",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Implicit string concatenation in a list",
+      "path": "docs/verification/k06-smp-sched/verify_final_gate.py",
+      "original_line": 39,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/k06-smp-sched/verify_final_gate.py#L39-L40",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimplicit-string-concatenation-in-list",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Implicit string concatenation in a list",
+      "path": "docs/verification/k06-smp-sched/verify_final_gate.py",
+      "original_line": 34,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/k06-smp-sched/verify_final_gate.py#L34-L36",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimplicit-string-concatenation-in-list",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Implicit string concatenation in a list",
+      "path": "docs/verification/k06-smp-sched/verify_final_gate.py",
+      "original_line": 37,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/k06-smp-sched/verify_final_gate.py#L37-L38",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimplicit-string-concatenation-in-list",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Implicit string concatenation in a list",
+      "path": "docs/verification/k06-smp-sched/verify_final_gate.py",
+      "original_line": 32,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/k06-smp-sched/verify_final_gate.py#L32-L33",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimplicit-string-concatenation-in-list",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Imprecise assert",
+      "path": "tests/test_ci_workflows.py",
+      "original_line": 827,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_ci_workflows.py#L827-L827",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimprecise-assert",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Imprecise assert",
+      "path": "tests/test_ci_workflows.py",
+      "original_line": 890,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_ci_workflows.py#L890-L893",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimprecise-assert",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Imprecise assert",
+      "path": "tests/test_ci_workflows.py",
+      "original_line": 449,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_ci_workflows.py#L449-L449",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimprecise-assert",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Imprecise assert",
+      "path": "tests/test_ci_workflows.py",
+      "original_line": 478,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_ci_workflows.py#L478-L480",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimprecise-assert",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Imprecise assert",
+      "path": "tests/test_ci_evidence.py",
+      "original_line": 232,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_ci_evidence.py#L232-L232",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fimprecise-assert",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Wrong number of arguments in a call",
+      "path": "docs/verification/m6c-review/host-log-binding/records/before-fix-test_m6c_capture.py",
+      "original_line": 226,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/m6c-review/host-log-binding/records/before-fix-test_m6c_capture.py#L226-L226",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fcall%2Fwrong-arguments",
+      "disposition": "dismissed_historical",
+      "rationale": "Deliberate pre-fix test source for the older baseline API. README requires use in that old checkout; current-API arity analysis does not describe the recorded reproducer."
+    },
+    {
+      "rule": "Wrong number of arguments in a call",
+      "path": "docs/verification/m6c-review/host-log-binding/records/before-fix-test_m6c_capture.py",
+      "original_line": 239,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/m6c-review/host-log-binding/records/before-fix-test_m6c_capture.py#L239-L239",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fcall%2Fwrong-arguments",
+      "disposition": "dismissed_historical",
+      "rationale": "Deliberate pre-fix test source for the older baseline API. README requires use in that old checkout; current-API arity analysis does not describe the recorded reproducer."
+    },
+    {
+      "rule": "Wrong number of arguments in a call",
+      "path": "docs/verification/m6c-review/host-log-binding/records/before-fix-test_m6c_capture.py",
+      "original_line": 207,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/m6c-review/host-log-binding/records/before-fix-test_m6c_capture.py#L207-L207",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fcall%2Fwrong-arguments",
+      "disposition": "dismissed_historical",
+      "rationale": "Deliberate pre-fix test source for the older baseline API. README requires use in that old checkout; current-API arity analysis does not describe the recorded reproducer."
+    },
+    {
+      "rule": "Wrong number of arguments in a call",
+      "path": "docs/verification/m6c-review/host-log-binding/records/before-fix-test_m6c_capture.py",
+      "original_line": 200,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/m6c-review/host-log-binding/records/before-fix-test_m6c_capture.py#L200-L200",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fcall%2Fwrong-arguments",
+      "disposition": "dismissed_historical",
+      "rationale": "Deliberate pre-fix test source for the older baseline API. README requires use in that old checkout; current-API arity analysis does not describe the recorded reproducer."
+    },
+    {
+      "rule": "`__init__` method calls overridden method",
+      "path": "tools/run_graphics.py",
+      "original_line": 109,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_graphics.py#L109-L109",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Finit-calls-subclass",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "`__init__` method calls overridden method",
+      "path": "docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py",
+      "original_line": 193,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py#L193-L193",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Finit-calls-subclass",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact transport implementation used by the historical Windows/WHPX A/B. BaseException catches forward worker errors to the owner; do not silently swallow them."
+    },
+    {
+      "rule": "`__init__` method calls overridden method",
+      "path": "tools/run_graphics.py",
+      "original_line": 107,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_graphics.py#L107-L107",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Finit-calls-subclass",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "`__init__` method calls overridden method",
+      "path": "tools/run_graphics.py",
+      "original_line": 105,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_graphics.py#L105-L105",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Finit-calls-subclass",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Explicit returns mixed with implicit (fall through) returns",
+      "path": "tools/tests/test_smp_ci.py",
+      "original_line": 120,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/tests/test_smp_ci.py#L120-L120",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fmixed-returns",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Explicit returns mixed with implicit (fall through) returns",
+      "path": "sdk/examples/image-crop/tests/interop.py",
+      "original_line": 111,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/sdk/examples/image-crop/tests/interop.py#L111-L111",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fmixed-returns",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Explicit returns mixed with implicit (fall through) returns",
+      "path": ".agents/skills/os-dev/scripts/build_corpus.py",
+      "original_line": 103,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/.agents/skills/os-dev/scripts/build_corpus.py#L103-L103",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fmixed-returns",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Explicit returns mixed with implicit (fall through) returns",
+      "path": "tools/capture_gate.py",
+      "original_line": 119,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/capture_gate.py#L119-L119",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fmixed-returns",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "An assert statement has a side-effect",
+      "path": "docs/verification/parallel-final-g0/execute.py",
+      "original_line": 9,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/parallel-final-g0/execute.py#L9-L9",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fside-effect-in-assert",
+      "disposition": "dismissed_historical",
+      "rationale": "Historical launcher for frozen commit 3e41bbf9 and source 307c828e; preserves the exact original run and its subsequent invalidation."
+    },
+    {
+      "rule": "An assert statement has a side-effect",
+      "path": "docs/verification/parallel-final-g0/execute.py",
+      "original_line": 25,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/parallel-final-g0/execute.py#L25-L25",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fside-effect-in-assert",
+      "disposition": "dismissed_historical",
+      "rationale": "Historical launcher for frozen commit 3e41bbf9 and source 307c828e; preserves the exact original run and its subsequent invalidation."
+    },
+    {
+      "rule": "An assert statement has a side-effect",
+      "path": "docs/verification/parallel-followup-g0/execute_gate.py",
+      "original_line": 41,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/parallel-followup-g0/execute_gate.py#L41-L41",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fside-effect-in-assert",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact archived B08 execution driver, including original freeze checks and independent PNG verification."
+    },
+    {
+      "rule": "An assert statement has a side-effect",
+      "path": "docs/verification/parallel-final-g0-confirmed/execute-attempt.py",
+      "original_line": 9,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/parallel-final-g0-confirmed/execute-attempt.py#L9-L9",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fside-effect-in-assert",
+      "disposition": "dismissed_historical",
+      "rationale": "Historical driver records the successful pipe run followed by the failed UNIX probe; fixed source and original outcomes must remain intact."
+    },
+    {
+      "rule": "Except block handles 'BaseException'",
+      "path": "docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py",
+      "original_line": 155,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py#L155-L155",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fcatch-base-exception",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact transport implementation used by the historical Windows/WHPX A/B. BaseException catches forward worker errors to the owner; do not silently swallow them."
+    },
+    {
+      "rule": "Except block handles 'BaseException'",
+      "path": "docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py",
+      "original_line": 109,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py#L109-L109",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fcatch-base-exception",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact transport implementation used by the historical Windows/WHPX A/B. BaseException catches forward worker errors to the owner; do not silently swallow them."
+    },
+    {
+      "rule": "Missing call to superclass `__init__` during object initialization",
+      "path": "docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py",
+      "original_line": 161,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py#L161-L161",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fmissing-call-to-init",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact transport implementation used by the historical Windows/WHPX A/B. BaseException catches forward worker errors to the owner; do not silently swallow them."
+    },
+    {
+      "rule": "Missing call to superclass `__init__` during object initialization",
+      "path": "tools/run_graphics.py",
+      "original_line": 177,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_graphics.py#L177-L177",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fmissing-call-to-init",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Variable defined multiple times",
+      "path": ".agents/skills/os-dev/scripts/build_corpus.py",
+      "original_line": 173,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/.agents/skills/os-dev/scripts/build_corpus.py#L173-L173",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fmultiple-definition",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Variable defined multiple times",
+      "path": ".agents/skills/os-dev/scripts/build_corpus.py",
+      "original_line": 165,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/.agents/skills/os-dev/scripts/build_corpus.py#L165-L165",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fmultiple-definition",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused local variable",
+      "path": "tools/run_materiaal_probe.py",
+      "original_line": 536,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_materiaal_probe.py#L536-L536",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-local-variable",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused local variable",
+      "path": "tools/run_smp_legacy.py",
+      "original_line": 620,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_smp_legacy.py#L620-L620",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-local-variable",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Incomplete ordering",
+      "path": "tests/test_common.py",
+      "original_line": 20,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_common.py#L20-L20",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fincomplete-ordering",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Returning tuples with varying lengths",
+      "path": "tools/run_volume.py",
+      "original_line": 110,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_volume.py#L110-L110",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Fmixed-tuple-returns",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Module is imported more than once",
+      "path": "tests/test_storage_backend_replay.py",
+      "original_line": 85,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tests/test_storage_backend_replay.py#L85-L85",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Frepeated-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unreachable code",
+      "path": "tools/run_net_system.py",
+      "original_line": 101,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run_net_system.py#L101-L101",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funreachable-statement",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/gui-idle-20261102/windows-harness/run_idle_ab.py",
+      "original_line": 3,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/gui-idle-20261102/windows-harness/run_idle_ab.py#L3-L3",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact A/B driver binding frozen source commits, hashes and historical measurements."
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/preflight.py",
+      "original_line": 12,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/preflight.py#L12-L12",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "tools/run.py",
+      "original_line": 11,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/tools/run.py#L11-L11",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/parallel-followup-root/execute.py",
+      "original_line": 1,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/parallel-followup-root/execute.py#L1-L1",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact historical launcher intentionally records its original workspace and source freeze. README provides current tools functions as reproduction route."
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/parallel-followup-root/execute.py",
+      "original_line": 6,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/parallel-followup-root/execute.py#L6-L6",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "dismissed_historical",
+      "rationale": "Exact historical launcher intentionally records its original workspace and source freeze. README provides current tools functions as reproduction route."
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/parallel-final-g0/execute.py",
+      "original_line": 1,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/parallel-final-g0/execute.py#L1-L1",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "dismissed_historical",
+      "rationale": "Historical launcher for frozen commit 3e41bbf9 and source 307c828e; preserves the exact original run and its subsequent invalidation."
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/parallel-final-g0/execute.py",
+      "original_line": 4,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/parallel-final-g0/execute.py#L4-L4",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "dismissed_historical",
+      "rationale": "Historical launcher for frozen commit 3e41bbf9 and source 307c828e; preserves the exact original run and its subsequent invalidation."
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/parallel-final-g0-confirmed/execute-attempt.py",
+      "original_line": 2,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/parallel-final-g0-confirmed/execute-attempt.py#L2-L2",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "dismissed_historical",
+      "rationale": "Historical driver records the successful pipe run followed by the failed UNIX probe; fixed source and original outcomes must remain intact."
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/parallel-final-g0-confirmed/execute-attempt.py",
+      "original_line": 5,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/parallel-final-g0-confirmed/execute-attempt.py#L5-L5",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "dismissed_historical",
+      "rationale": "Historical driver records the successful pipe run followed by the failed UNIX probe; fixed source and original outcomes must remain intact."
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/parallel-final-g0-confirmed/execute-attempt.py",
+      "original_line": 6,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/parallel-final-g0-confirmed/execute-attempt.py#L6-L6",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "dismissed_historical",
+      "rationale": "Historical driver records the successful pipe run followed by the failed UNIX probe; fixed source and original outcomes must remain intact."
+    },
+    {
+      "rule": "Unused import",
+      "path": "sdk/examples/memory/verification/development_gate.py",
+      "original_line": 9,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/sdk/examples/memory/verification/development_gate.py#L9-L9",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/m6d-closeout/diagnostic-helper.original.py",
+      "original_line": 5,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/m6d-closeout/diagnostic-helper.original.py#L5-L5",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "dismissed_historical",
+      "rationale": "Original diagnostic helper retained as a hashed historical evidence artifact."
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/parallel-i15/compiler_binding_cases.py",
+      "original_line": 8,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/parallel-i15/compiler_binding_cases.py#L8-L8",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/parallel-final-crosscheck-runtime/check_m6b.py",
+      "original_line": 9,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/parallel-final-crosscheck-runtime/check_m6b.py#L9-L9",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "dismissed_historical",
+      "rationale": "Hash-bound historical independent crosscheck pinned to its original commit, source and retained artifact paths."
+    },
+    {
+      "rule": "Unused import",
+      "path": "docs/verification/parallel-final-integration/audit.py",
+      "original_line": 2,
+      "source_url": "https://github.com/BaryonOS/BaryonOS/blob/299f0e39c202d67d1c2f4e31b879cbdd6add262b/docs/verification/parallel-final-integration/audit.py#L2-L2",
+      "rule_url": "https://github.com/BaryonOS/BaryonOS/security/quality/rules/py%2Funused-import",
+      "disposition": "code_change_pending_main_scan"
+    }
+  ],
+  "source_hashes": {
+    ".agents/skills/os-dev/scripts/build_corpus.py": {
+      "baseline_sha256": "731ac7898f34a6f3de6bb20d6230b23de358731b9b0543ad83613da33812382b",
+      "patched_sha256": "f95c316b271c2c83ac8e0c3c2395f91330285f73060a8c0d818dd2c120a879a5"
+    },
+    ".agents/skills/os-dev/scripts/zoeken.py": {
+      "baseline_sha256": "8089e26d3d25e54d6167d4305aec7391223c26623b5da172f73497f3e708a967",
+      "patched_sha256": "c491c1ab3cebfab1772b53cf9b0f2a7f8283ca8d31c4a0be0da71ce355e185d7"
+    },
+    "docs/verification/gui-idle-20261102/windows-harness/run_idle_ab.py": {
+      "baseline_sha256": "f49356b98c6e70cdead73091d8618516f603e3caa86aa1e5e5bb8a262378729c",
+      "patched_sha256": "f49356b98c6e70cdead73091d8618516f603e3caa86aa1e5e5bb8a262378729c"
+    },
+    "docs/verification/gui-idle-20261102/windows-harness/run_windows_window.py": {
+      "baseline_sha256": "9610f3e0995101b17a28afd7a2efbf3aa72b0ee85d013c2c9c3b1d5165df87cd",
+      "patched_sha256": "9610f3e0995101b17a28afd7a2efbf3aa72b0ee85d013c2c9c3b1d5165df87cd"
+    },
+    "docs/verification/gui-idle-20261102/windows-harness/tests/test_windows_driver.py": {
+      "baseline_sha256": "fc4c70063d4545a794ae9f3743cbdf68daddbc7afba894d14786b00373841132",
+      "patched_sha256": "fc4c70063d4545a794ae9f3743cbdf68daddbc7afba894d14786b00373841132"
+    },
+    "docs/verification/gui-idle-20261102/windows-harness/tests/test_windows_qmp.py": {
+      "baseline_sha256": "862f18a23fa05f50c0710275e4499ae5bb33c3a71dde6444f43f4f14e131a67d",
+      "patched_sha256": "862f18a23fa05f50c0710275e4499ae5bb33c3a71dde6444f43f4f14e131a67d"
+    },
+    "docs/verification/gui-idle-20261102/windows-harness/windows_idle_measure.py": {
+      "baseline_sha256": "3833f4e7aa467e043316b6d9eb6926ce4b7b56cf2e1a7f108f87c5a68e96f9e8",
+      "patched_sha256": "3833f4e7aa467e043316b6d9eb6926ce4b7b56cf2e1a7f108f87c5a68e96f9e8"
+    },
+    "docs/verification/gui-idle-20261102/windows-harness/windows_inputs.py": {
+      "baseline_sha256": "90a69663adb6ee517a2b8f2584fca2250010a179bb4216ed3de53d3aaab572f5",
+      "patched_sha256": "90a69663adb6ee517a2b8f2584fca2250010a179bb4216ed3de53d3aaab572f5"
+    },
+    "docs/verification/gui-idle-20261102/windows-harness/windows_qmp.py": {
+      "baseline_sha256": "a8bc6da0002910f65966a1d38dd995d9c682b6bda581141cb9f8c5ad49814d0d",
+      "patched_sha256": "a8bc6da0002910f65966a1d38dd995d9c682b6bda581141cb9f8c5ad49814d0d"
+    },
+    "docs/verification/k06-smp-sched/verify_artifacts.py": {
+      "baseline_sha256": "e1f7c174f61841e36b1702faa7b610fdb8ff7360c82fdffcc4740fcf90ab8652",
+      "patched_sha256": "32530aeb8d73894e5db6fb9052ac76ce10f9302f636ca2d4509bf6a9fbf9bccd"
+    },
+    "docs/verification/k06-smp-sched/verify_final_gate.py": {
+      "baseline_sha256": "85f9be7d6b183d2b57eaf844ba80dbae2266bbdb4fc5c4d75f7da1aefc735e6c",
+      "patched_sha256": "50933e2d7de95511c0e3dc0fe1a356b76371b53e0fb05bce7a030960d2ab03f4"
+    },
+    "docs/verification/m6c-review/host-log-binding/records/before-fix-test_m6c_capture.py": {
+      "baseline_sha256": "fa89d0360acaa84c0db73fb5c46bcc8f54422c2d8caacdcc72363626682cd5cb",
+      "patched_sha256": "fa89d0360acaa84c0db73fb5c46bcc8f54422c2d8caacdcc72363626682cd5cb"
+    },
+    "docs/verification/m6d-closeout/diagnostic-helper.original.py": {
+      "baseline_sha256": "d55d1682866dd48059217732cd28849caaa0f089e42aa2a96dbca7524463e9bb",
+      "patched_sha256": "d55d1682866dd48059217732cd28849caaa0f089e42aa2a96dbca7524463e9bb"
+    },
+    "docs/verification/parallel-final-crosscheck-runtime/check_m6b.py": {
+      "baseline_sha256": "ccb3c89f522bf08055fc7aa86a1862242ee79fedd38f0a1011cbd549c4ec693a",
+      "patched_sha256": "ccb3c89f522bf08055fc7aa86a1862242ee79fedd38f0a1011cbd549c4ec693a"
+    },
+    "docs/verification/parallel-final-g0-confirmed/execute-attempt.py": {
+      "baseline_sha256": "47c4cac0bbadf29d80a7918898abf852fda1f8004f6841d1c940feb29ba6cdfd",
+      "patched_sha256": "47c4cac0bbadf29d80a7918898abf852fda1f8004f6841d1c940feb29ba6cdfd"
+    },
+    "docs/verification/parallel-final-g0/execute.py": {
+      "baseline_sha256": "8715f751c228c400b6b79f56a35a2c0d068ff57854bd73a1725bda95a9777720",
+      "patched_sha256": "8715f751c228c400b6b79f56a35a2c0d068ff57854bd73a1725bda95a9777720"
+    },
+    "docs/verification/parallel-final-integration/audit.py": {
+      "baseline_sha256": "f8f8bc7f4c3542b16bb373fe4943edbc2415586a1224493c8056aafc65f6347f",
+      "patched_sha256": "c00bb6c0b3ebea129f71d94e0390aed5b5f760c0cd9ee6ac3cd18e0d227c6bcb"
+    },
+    "docs/verification/parallel-followup-g0/execute_gate.py": {
+      "baseline_sha256": "430207edc664b53d936b1502056738ea2cbc4bd6bab8862de80bd4ab0ec87ada",
+      "patched_sha256": "430207edc664b53d936b1502056738ea2cbc4bd6bab8862de80bd4ab0ec87ada"
+    },
+    "docs/verification/parallel-followup-root/execute.py": {
+      "baseline_sha256": "e964af0cd54e7cb35dc6f704db38b81b46fe9512b92d34dfae709bcf0ea96e0e",
+      "patched_sha256": "e964af0cd54e7cb35dc6f704db38b81b46fe9512b92d34dfae709bcf0ea96e0e"
+    },
+    "docs/verification/parallel-i15/compiler_binding_cases.py": {
+      "baseline_sha256": "8eba0fde598e9b692500cefcbb5ec972d6e2457cc5a1f119310023f202508cf3",
+      "patched_sha256": "51069e46637fa6d7843b2cc0a6684226446523eab164e0c43365c77a2317285a"
+    },
+    "docs/verification/windows-qemu-interactive-1/windows_qmp_adapter.py": {
+      "baseline_sha256": "469c59a66bcd7ab9f7014b4c352a8f98507ce35b56c1b012f5f2125d29290688",
+      "patched_sha256": "469c59a66bcd7ab9f7014b4c352a8f98507ce35b56c1b012f5f2125d29290688"
+    },
+    "sdk/examples/image-crop/tests/interop.py": {
+      "baseline_sha256": "d20952f8cb79286bfefb12a9735efea2cdd6ee8ce3096a6fa83a17ddeb655cb9",
+      "patched_sha256": "f3ac947ebd729362660dd111c39a5500e80c2920a483a3ce81f591c0fec2d894"
+    },
+    "sdk/examples/memory/verification/development_gate.py": {
+      "baseline_sha256": "d3734ae14feff123fc534ae80bb0bcc16a0b3ad4fa3b35b9d1703de0288f9b02",
+      "patched_sha256": "7e259bdb9d73a7fda0f2bc3eb7287e70a9371ace3843d7c08d303a3e1119074f"
+    },
+    "sdk/examples/memory/verification/run_root_helper.py": {
+      "baseline_sha256": "908abb3dbb26b5aa27417ecde15db8feaf77ba990615bd6e7ecd72a3abbd7880",
+      "patched_sha256": "12b978d7dc095b0bea5a18ee6fc4d761aa120a58166b7ac5a0dbe6085b551941"
+    },
+    "sdk/examples/tcp-probe/test_peer.py": {
+      "baseline_sha256": "b06f94c1655bbf4b358c9fbe2272b1bb944f12618cf19158620faffb6bfb8faa",
+      "patched_sha256": "8d1c5467c135c35dc528b46d852befeee3401b01621ab47e294e2fcf538d46a3"
+    },
+    "tests/test_ci_evidence.py": {
+      "baseline_sha256": "bddee72aa79d176ad99a1c8db2097e7bdf1dc901e767ed70aa5e6daed9d52aa4",
+      "patched_sha256": "6a75f3c15308013ea2107a5a33bfe5930223abdab094a97fbec3a3c1eb08df23"
+    },
+    "tests/test_ci_workflows.py": {
+      "baseline_sha256": "eb1ed89d8cc4067308f726a7eba61274551444c46fe560dd3c977bf520595586",
+      "patched_sha256": "1d6702a7494f5c857adc06f5fc2c36bff639c2f91fcb9968bdcfc1ec7cc8a5c9"
+    },
+    "tests/test_common.py": {
+      "baseline_sha256": "a583e6bf97353b99af14c959966b16a0d4b153beb1df5c8e33122b2e6a9665e3",
+      "patched_sha256": "2ac4b13709961d4fd0ab27281dc83c9962e3553d223c4c85507289c833d94caa"
+    },
+    "tests/test_document_session_harness.py": {
+      "baseline_sha256": "c71866a916407fc34052491d187bc25c1027118dc5b6b09f880973cc7d27d381",
+      "patched_sha256": "7bae9788b0a8679a0234d84b3c43195d3f677eda6a9a162a7093b1f5b2145d36"
+    },
+    "tests/test_m6_disk.py": {
+      "baseline_sha256": "aaa587984e9d7a40ffe608341cb47b5b284ed4fdd5a336be78ccaabc82c26faf",
+      "patched_sha256": "b888dc1e5a8b084d1042df9e1185cd4aa7cb2b5a7b3a529c93aab69076d184bf"
+    },
+    "tests/test_m6d_m6b_audit.py": {
+      "baseline_sha256": "b21e2c9a4bc2ba1ddc831ae6af1a7b01d1a496c1da90d36ce9e07167aef23113",
+      "patched_sha256": "2ea63356626e543d0dd4239b2454c7657a3b41f5da9f12b064a8ea7d659c88e8"
+    },
+    "tests/test_net_peer.py": {
+      "baseline_sha256": "302dd2c127a677c648b5f43e1403e828f6012a774e4d459273f3dd738040cb7e",
+      "patched_sha256": "34e6a2f6afa4c96e3edeb697ebe7a9ba9fda7477946fa5c02d1585ba1710023c"
+    },
+    "tests/test_project_classification.py": {
+      "baseline_sha256": "c55ab80a5d55b42df38e0f60255e6d1c0a6249f80f8fa6648a3d7034c8305b80",
+      "patched_sha256": "d8bc058f55cba42ee8f2733398b5ecc4fd406dc9301f43b2b16cde508acb327d"
+    },
+    "tests/test_publication_audit.py": {
+      "baseline_sha256": "9a761a307cfcf5cf8e6771e7bd54b4fa0839ca67f67e7b88d9b18e97e97213a9",
+      "patched_sha256": "0f26caa4367adf01be345c16626c50d455e74c28d68212cbfc8fa2f9d64f8f48"
+    },
+    "tests/test_storage_backend_replay.py": {
+      "baseline_sha256": "c3cb6892f13ed11b683cd5e0a88645160f1f5730260859ffec796051c2e11fe3",
+      "patched_sha256": "d63b4c4aedeeec2c2f66c5552ba7e98fc34f3d509538863bec96dd1c4ec42724"
+    },
+    "tests/test_update_harness.py": {
+      "baseline_sha256": "383435a760fcd82027e0efc0b62d6cfbcf038db7f60be97aba8efcbee1b61494",
+      "patched_sha256": "a14e37b416f348ea614d08a51c3d733245994ce73ac2deaa8ec43dffc1440ce0"
+    },
+    "tools/capture_gate.py": {
+      "baseline_sha256": "8db495bd3c28ab14d1711de4c4685f470593432fed99ab8ae9b2f7bbdc2d5e77",
+      "patched_sha256": "0e6abe855d81ffd42935f6a3f4434607ffda259b441a0534c9e703b7bad1bc59"
+    },
+    "tools/preflight.py": {
+      "baseline_sha256": "8377de75409d81c95dfa3b53307b20c62f6014d75cb018fc2070cc7b836804e5",
+      "patched_sha256": "5899d378847cf4829c2dc70bcd37454ac64bb1c7c490407ea351dfd7c2877145"
+    },
+    "tools/publication_audit.py": {
+      "baseline_sha256": "8add187b0b41cb9a39c01ee3ce57ce464788f987ad23c4e4003c6bcd97aae389",
+      "patched_sha256": "309b7c1079e777b634bec713f514c82a6dbb4e82cd813ef7d6c2628338cc3e0b"
+    },
+    "tools/run.py": {
+      "baseline_sha256": "a227379c96cf6d723fcd6e9b97f4947681f3918c2a7518546940e20766868f25",
+      "patched_sha256": "18bd018ed6a87850637dd8f24c2f834f7f10df1e35dc3fce561972da4eb0cd61"
+    },
+    "tools/run_display_probe.py": {
+      "baseline_sha256": "05347324ef57f5c3893af64694a0a917ee9b8f36396a0b474fd713d09cb566db",
+      "patched_sha256": "94ad852ec87ba56a93a8ba7f79caee762e34d5b5f73fb1df5dc26e17f29f01f1"
+    },
+    "tools/run_graphics.py": {
+      "baseline_sha256": "fd406d0aebb03b04266793cd9d46cb673c691f4fd6a8659bf85405b58ac3e7bd",
+      "patched_sha256": "7db219ff603eb9d486c783b9e77f02c46d9bb187f57edf437a11754c70b2e7d0"
+    },
+    "tools/run_m6.py": {
+      "baseline_sha256": "d8a5b05a1f5ade3a2148387dff1dcabc21a1c85b66892249ff55ba81e9adedf1",
+      "patched_sha256": "d9d3228ca920047d44551fd4bd0b18ea1983410804ca21e33d3efb986c44c8dd"
+    },
+    "tools/run_m6b.py": {
+      "baseline_sha256": "3b15f87db47a0be3325800950f7f3d1e51789c908febdc3be631257aa23d4903",
+      "patched_sha256": "8ad6d24704a9328d2c6b5d9f9e514d8b282ffed868bcf5eebd5b60dd5e7ac9da"
+    },
+    "tools/run_m6c.py": {
+      "baseline_sha256": "514392302ae2f5a82c558fda0d25be8092215d9fbd5fd9000e5e0217bfe94c47",
+      "patched_sha256": "1a66983b84bf8d7eca88b8d44cca2e6238dbe750b9acee18ec15e379cb074362"
+    },
+    "tools/run_materiaal_probe.py": {
+      "baseline_sha256": "1f08b9fc1f1d97c5bb4ea402fb046a8e4285921b6c749804a0238a3c1df479e4",
+      "patched_sha256": "ea699d11b65f43efb0db9cddecd310bf5084a38d73da372df66e2df64fc971d2"
+    },
+    "tools/run_net_system.py": {
+      "baseline_sha256": "bc6f0a1461b218ea50759672687cab35981fae60b2ac960d805640b73d2767cf",
+      "patched_sha256": "63b8ebe462142324160b01f0e3d4f44d5c610cf71e6ca27bf9abf82ca891b250"
+    },
+    "tools/run_network_service.py": {
+      "baseline_sha256": "9cb3e412e67aaa56866847b525818870f3a7dae6d3418c65011691c2387cebea",
+      "patched_sha256": "fe0c01a8f80912a71c5bb3139167e8787d4123d8ac21062c777dfe1f3c06a4e7"
+    },
+    "tools/run_random.py": {
+      "baseline_sha256": "af3de56eee1596fba11e7473fe54a62509a43ec32bba8071b89b2740f2a7858a",
+      "patched_sha256": "5b1866786a6a51e4383477514b8c9d85839210a960b9ba707b9a2c4bb372f0c4"
+    },
+    "tools/run_session_preview.py": {
+      "baseline_sha256": "0b1d626f8a7d726f15ec7efdb8b6182ee5c5c801151af0bbc5b36d9509d68a49",
+      "patched_sha256": "4291e1e7bf11378d3738366ae6448fd4329a3630da9f618a0164fb4a9abaf451"
+    },
+    "tools/run_smp_legacy.py": {
+      "baseline_sha256": "f13ef863688ee79373a5b567b66174f90e3e00bcd029d5f4846f4f94db75ffa5",
+      "patched_sha256": "1cd781774518f287611a56ad3558bfb44a0f625560ecf5e8157eb0921bee039c"
+    },
+    "tools/run_update.py": {
+      "baseline_sha256": "27528ca680b5df85784ede79a4f43a834a820f9a5edb1423d6c87852a7d8b95b",
+      "patched_sha256": "a4ea7e6d960929ce71bc0c15b615d4a3bd110095012ee3e31fa356cd1a699751"
+    },
+    "tools/run_volume.py": {
+      "baseline_sha256": "005a79cf42698340cdbc023ca78e74fd851d9e9b853dad938d09d928ace92f96",
+      "patched_sha256": "4db620a8a0198281b5cda2b33627b8cd06ba6f26fd64412eee16651606feedfd"
+    },
+    "tools/test.py": {
+      "baseline_sha256": "12077da5286c393524574c3c3bd310cad1d3ac4d70a327f9bdeb990824d82a2b",
+      "patched_sha256": "cc4704d18550d6dea8090dc09e4837795242ec4e2fbb9e6d718238eec6945b04"
+    },
+    "tools/test_m6.py": {
+      "baseline_sha256": "7a081d9dda79b5635ca4b8353315fa495245d7a83aec7078616db3e4b3d325b7",
+      "patched_sha256": "759b3f5bf8f4cb88dc4e02b112848e151d03111bd174b6838b79c8bd214da657"
+    },
+    "tools/test_m6b.py": {
+      "baseline_sha256": "5d8a7bfc8b7ae0a82b586dcf96c08ce6e8a88ff839efdad74ae94f350d87f20b",
+      "patched_sha256": "9935db1fad620c6dfe9baa66f3f3a7bb3f8678d1356552c101f3f2f9e4dd657e"
+    },
+    "tools/test_m6c.py": {
+      "baseline_sha256": "58bac60fa7b1482a38c47db7c459cbc32bc31711326bc9016bdaffadd0229bbf",
+      "patched_sha256": "8e472647a54af5007d3806a9d6ec509dbfc5a66767435be928a349d4ba913e8b"
+    },
+    "tools/test_milestones.py": {
+      "baseline_sha256": "3d6c0bf9c91469fdbb5b3a513c04270f047d44fcd2e5d9f82e10b57f2119184a",
+      "patched_sha256": "9c0cbdad9073d6175521004aeb20fc77e97c81e2f41a62b922d779f3a3d7e930"
+    },
+    "tools/test_resource_pressure.py": {
+      "baseline_sha256": "a1a26b38b91b4f0de848fcbe52f06c3603912d2fd19839c54e6b348cd3ed5833",
+      "patched_sha256": "15c3d21f6e0ba71b879ccc10bc0c215b906815bfe5a78a8aae93756ef51f437a"
+    },
+    "tools/test_smp.py": {
+      "baseline_sha256": "265056e67fbbb6980b27dd008e00c3ca6b6abc7879bbf7d5c37016a26e8bb74d",
+      "patched_sha256": "527d36a182b4f1012009d774c4970baf2dfe7f66b3b380a62668c81a2fdf2cf2"
+    },
+    "tools/test_update.py": {
+      "baseline_sha256": "7db3126fca85d6bd551990ed8e69dda4bd6d70c03e781e2a867b6f62dc51cfb5",
+      "patched_sha256": "dbee5551a3c7afebcc68e5deb8513a788820230136ca17803e53cc0029c25df7"
+    },
+    "tools/test_volume.py": {
+      "baseline_sha256": "57261a3ee036bd0f7288e46bbef8ca60f766cebd06e7028f07a6f418a455c460",
+      "patched_sha256": "c0aa9dc6ccfdcbdab6bc07d3ad100eaa4df11c2b457d17830efb870c2d651904"
+    },
+    "tools/tests/test_agent_pipeline.py": {
+      "baseline_sha256": "977b96152a8c8a4c7e76d089fdc0e0d905aefc21b3e3cb7e91d22dba766ce9dd",
+      "patched_sha256": "5d054a21c0da84a1c2b5417e95d391a8d92adabe34e6734ead2c55b3dffb4a19"
+    },
+    "tools/tests/test_materiaal_preview.py": {
+      "baseline_sha256": "fb21f48744bafb99127106f82a29c136e55cae89db0200db0629f0a35224d998",
+      "patched_sha256": "1758afb7cb4dea7bb303303683101a93aa56ca0a0c0c75ecfed8f11ac10c2eeb"
+    },
+    "tools/tests/test_materiaal_probe.py": {
+      "baseline_sha256": "d5bd15acff7825549c1c5df4fdc96ec9cd5105fd86a9932dfd974816392f7176",
+      "patched_sha256": "7bd0b4767c0be3cc2b02e06f845b2cf5a2d449066dfdd0c8f530083985e8e954"
+    },
+    "tools/tests/test_smp_ci.py": {
+      "baseline_sha256": "e4db2378a48e2fe475e471626c1849054807c65203a0919f8497d0b677cb6f55",
+      "patched_sha256": "a6b69cd491e6c75393508fb4ec8713e0ca6f5ada44346d0061dd3896eb062d79"
+    },
+    "tools/tests/test_smp_serial.py": {
+      "baseline_sha256": "431990a87cb21ed2db4eea86eb1ce78ff7ce88a2197f14ce7ff18e77b9e13d1d",
+      "patched_sha256": "f81da86642cf4c9063b381e46744b9169816dec1fb6bc21cce7ae8041bae3742"
+    },
+    "tools/tests/test_window_latency.py": {
+      "baseline_sha256": "adae261a6f154362f8bb65ab4234f12c350f486b5e6c6b34e43dad9a19924716",
+      "patched_sha256": "4ba5a697e380c7849ed92347798a0db32368f1d82d55da322f5c5e2e13820e70"
+    }
+  }
+}

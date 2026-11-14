@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import copy
-from contextlib import redirect_stdout
+from contextlib import redirect_stdout, suppress
 import io
 import json
 from pathlib import Path
@@ -174,17 +174,13 @@ class PacketTests(unittest.TestCase):
         for length in range(0, 1600):
             data = randomizer.randbytes(length)
             for parser in (peer.parse_udp, peer.parse_query, peer.PeerMachine().handle):
-                try:
+                with suppress(peer.ProtocolError):
                     parser(data)
-                except peer.ProtocolError:
-                    pass
         # A valid DNS header forces the hostile name/length parser paths too.
         for length in range(0, 245):
             data = query()[:12] + randomizer.randbytes(length)
-            try:
+            with suppress(peer.ProtocolError):
                 peer.parse_query(data)
-            except peer.ProtocolError:
-                pass
 
 
 class GateTests(unittest.TestCase):

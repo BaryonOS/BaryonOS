@@ -1,5 +1,5 @@
 from pathlib import Path
-import hashlib,json,collections,sys
+import json,collections,sys
 sys.path.insert(0,'tools');from common import ROOT,sha256,source_hash,save_json
 EXPECTED='307c828e9ce7bf49a4e809859ca77ecd332015572dd37e96fb580de98951aa60'
 v=ROOT/'docs/verification';out=v/'parallel-final-integration';out.mkdir(exist_ok=True)

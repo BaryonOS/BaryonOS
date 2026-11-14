@@ -462,7 +462,7 @@ def diagnostic_exit_grace(process, directory: Path) -> None:
     try:
         process.wait(timeout=1.0)
     except subprocess.TimeoutExpired:
-        pass
+        return
 
 
 def guest_diagnostics(raw: bytes) -> dict:
@@ -533,7 +533,7 @@ def replay(report: dict, directory: Path, frozen: str) -> dict:
     inspected_bound(manifest,artifact,directory,frozen)
     raw=serial_bytes(directory)
     require(report.get("stdout") == raw.decode("utf-8","strict"),"Reported serial differs from actual bytes")
-    parsed=transcript(raw,case,final=True);selected=phases(parsed,case,complete=True)
+    parsed=transcript(raw,case,final=True);phases(parsed,case,complete=True)
     validate_qmp(load_json(private_path(directory/"qmp-trace.json",regular=True)),directory,case)
     stages=report.get("stages")
     require(isinstance(stages,list) and [s.get("phase") for s in stages] == list(PHASES[case]),"Missing/extra captured stages")
@@ -697,8 +697,8 @@ def run_materiaal_probe(*,case="normal",build_directory=BUILD,run_root=None,pare
             if diagnostics["guest_timeout"] or diagnostics["guest_failure"]:
                 report["guest_diagnostics"] = diagnostics
             report["timed_out"] |= diagnostics["guest_timeout"] or diagnostics["guest_failure"]
-        except (OSError,ValueError):
-            pass
+        except (OSError,ValueError) as diagnostic_error:
+            report["guest_diagnostics_error"] = f"{type(diagnostic_error).__name__}: {diagnostic_error}"
     finally:
         if process is not None and process.poll() is None:process.kill();process.wait(timeout=10)
         publish_json(directory/"qmp-trace.json",trace)
