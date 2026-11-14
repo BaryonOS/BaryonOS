@@ -1,6 +1,31 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #325 SMP and conflict repair — 14 November 2026
+## NEXT AGENT HANDOFF — PR #325 documentation refresh — 14 November 2026
+
+**Source:** PR #325 head `204c4ed51585c4ba500735a90eb1c449863399f7`, integrated
+with main `299f0e39c202d67d1c2f4e31b879cbdd6add262b` (merged PR #329).
+
+**Result:** the renewed conflicts in `docs/PROJECT-STATE.md` and
+`docs/progress.json` are resolved. The complete PR #325/S09 handoff and
+CodeQL triage checkpoint are retained. PR #329's triage evidence is imported
+unchanged. No source, workflow, criterion or acceptance status changes.
+
+**Evidence:** strict preflight, the standard build and QEMU smoke test pass
+on the combined tree. The source-v3 fingerprint remains
+`4ed35695957d83b8c3bef5194888f6f4c901fdf2670695fb59a120367423bb13`,
+identical to PR #325 commit `204c4ed5`, whose GitHub job
+[132456369436](https://github.com/BaryonOS/BaryonOS/actions/runs/43597947398/job/132456369436)
+passed all 15 legacy SMP profiles. That native matrix is prior execution on
+identical source, not a newly executed matrix. All existing files outside the two
+resolved documents and imported triage evidence remain equal to the PR head.
+Current evidence: [refresh verification](verification/pr325-refresh-20261114.json).
+
+**Progress:** 41/100 → 41/100; the criterion register is unchanged.
+
+**Next:** review the updated PR and its current GitHub checks, then resume
+the preserved S09 work. The PR remains open; merge approval is unchanged.
+
+## Previous checkpoint — PR #325 SMP and conflict repair — 14 November 2026
 
 **Source:** PR #325 head `0d47a6ee29f60270936331111ef542c2a038a36f`,
 integrated with main `2eb7b942cac10db727a184819812634300a8e778`.
@@ -144,6 +169,40 @@ The workflows currently disagree with the gate: `kvm-pilot.yml` expects 9 volume
 5. Gate run 14 with the fingerprint taken before and after, `capture_volume.py`, an evidence note, then update PR #325.
 
 **Progress:** 41/100 → 41/100 (S09 not accepted).
+
+## Previous checkpoint — Code scanning alert triage — 14 November 2026
+
+**Source:** reviewed main `2eb7b942cac10db727a184819812634300a8e778`;
+documentation branch `docs/code-scanning-triage-20261114`.
+
+**Result:** all 23 specified open CodeQL alerts were dismissed in GitHub with
+recorded technical reasons. The filter `is:open branch:main` changed from
+23 open / 10 closed to **0 open / 33 closed** and displayed
+`All alerts are resolved.` The existing ten closed alerts were preserved.
+
+- **Used in tests (14):** #4–#12, #20, #21, #24, #25 and #33.
+- **False positive (9):** #14–#17, #23, #26, #27, #31 and #32.
+  These cover overwritten output buffers, empty password storage, the
+  fast-key-erasure DRBG nonce and guarded live-UEFI output-pointer paths.
+
+**Evidence:** current source, all four pointer dataflows (including all three
+macro-mapped paths of #32), alert-specific/group-specific dismissal comments
+and the final GitHub list were inspected. The disposition and source hashes
+are in [the triage record](verification/code-scanning-triage-20261114.json).
+No executable code, capabilities, scan rules or workflows changed.
+
+**Verification limits:** strict preflight exits 2 because Rust/Cargo, QEMU and
+OVMF are unavailable; build and smoke exit 1 before native execution. This is
+source review and alert-state verification, not a successful native test or
+complete security audit. The pointer conclusions retain the documented
+trusted-firmware boundary; null/alignment checks alone do not prove arbitrary
+pointer validity. Local command logs: `build/code-scanning-triage-20261114/`.
+
+**Progress:** 41/100 → 41/100; no acceptance criterion changes.
+
+**Next:** review the documentation-only draft PR. Alert closure is already
+complete and does not depend on merging that record. Future changes to the
+reviewed contracts require fresh triage; no merge or auto-merge is enabled.
 
 ## Previous checkpoint — PR #302 coverage evidence repair and conflict resolution — 14 November 2026
 
