@@ -1,0 +1,809 @@
+== 1. CIELAB C*ab of v1 chrome and its neutral twins ==
+dark  s0   v1 #070912 C*= 4.4 -> twin #090909 C*=0.00
+dark  s1   v1 #0D1020 C*=11.5 -> twin #111111 C*=0.00
+dark  s2   v1 #12162A C*=15.1 -> twin #171717 C*=0.00
+dark  s3   v1 #1A1F38 C*=18.0 -> twin #212121 C*=0.00
+dark  sin  v1 #080A16 C*= 6.6 -> twin #0B0B0B C*=0.00
+dark  ln   v1 #232A47 C*=20.1 -> twin #2C2C2C C*=0.00
+dark  ln2  v1 #5D6890 C*=24.1 -> twin #696969 C*=0.01 -> provisional #747474 (lifted; pure twin 2.93 on raised)
+dark  tx1  v1 #EEF1F8 C*= 3.7 -> twin #F1F1F1 C*=0.01
+dark  tx2  v1 #A9B2CB C*=13.9 -> twin #B2B2B2 C*=0.01
+dark  tx3  v1 #8C95B2 C*=16.5 -> twin #969696 C*=0.01
+light s0   v1 #E4E9F2 C*= 4.9 -> twin #E9E9E9 C*=0.01
+light s1   v1 #EDF0F7 C*= 3.7 -> twin #F0F0F0 C*=0.01
+light s2   v1 #FBFCFE C*= 1.1 -> twin #FCFCFC C*=0.01
+light s3   v1 #E3E8F1 C*= 4.9 -> twin #E8E8E8 C*=0.01
+light sin  v1 #FFFFFF C*= 0.0 -> twin #FFFFFF C*=0.01
+light ln   v1 #D8DEE9 C*= 6.1 -> twin #DEDEDE C*=0.01
+light ln2  v1 #78819A C*=14.7 -> twin #818181 C*=0.01
+light tx1  v1 #111726 C*=11.5 -> twin #171717 C*=0.00
+light tx2  v1 #424B62 C*=14.8 -> twin #4B4B4B C*=0.00
+light tx3  v1 #58627D C*=16.6 -> twin #626262 C*=0.01
+surround {'dark': '#090909', 'light': '#777777', 'hc': '#000000'} {'dark': 2.5, 'light': 50.0, 'hc': 0.0}
+
+== 2. Twin bound: |v1 ratio - twin ratio| over every fg x bg pair (unfloored) ==
+max difference 0.0894 at light tx1/s0: v1 14.677, twin 14.767
+
+== 3. PROVISIONAL neutral twins: every fg on every allowed base, rest + state fills ==
+states: rest; hov / hov2 = v1 hover fills twinned at v1 alpha; sel = v1 selbg twinned at v1 alpha (D3 rule)
+-- dark: hov ('#BEBEBE', 0.07), hov2 ('#BEBEBE', 0.12), sel ('#A0A0A0', 0.15)
+neutral dark  text.primary    #F1F1F1 on panel(s1)  rest    #111111: 16.71 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on panel(s1)  hov     #1D1D1D: 14.92 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on panel(s1)  hov2    #262626: 13.39 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on panel(s1)  sel     #262626: 13.39 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on window(s2) rest    #171717: 15.87 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on window(s2) hov     #232323: 13.91 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on window(s2) hov2    #2B2B2B: 12.53 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on window(s2) sel     #2C2C2C: 12.36 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on raised(s3) rest    #212121: 14.25 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on raised(s3) hov     #2C2C2C: 12.36 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on raised(s3) hov2    #343434: 11.02 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on raised(s3) sel     #343434: 11.02 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on inset(sin) rest    #0B0B0B: 17.42 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on inset(sin) hov     #181818: 15.72 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on inset(sin) hov2    #202020: 14.42 [4.5] ok
+neutral dark  text.primary    #F1F1F1 on inset(sin) sel     #212121: 14.25 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on panel(s1)  rest    #111111:  8.90 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on panel(s1)  hov     #1D1D1D:  7.95 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on panel(s1)  hov2    #262626:  7.13 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on panel(s1)  sel     #262626:  7.13 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on window(s2) rest    #171717:  8.45 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on window(s2) hov     #232323:  7.41 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on window(s2) hov2    #2B2B2B:  6.67 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on window(s2) sel     #2C2C2C:  6.58 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on raised(s3) rest    #212121:  7.59 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on raised(s3) hov     #2C2C2C:  6.58 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on raised(s3) hov2    #343434:  5.87 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on raised(s3) sel     #343434:  5.87 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on inset(sin) rest    #0B0B0B:  9.28 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on inset(sin) hov     #181818:  8.37 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on inset(sin) hov2    #202020:  7.68 [4.5] ok
+neutral dark  text.secondary  #B2B2B2 on inset(sin) sel     #212121:  7.59 [4.5] ok
+neutral dark  text.tertiary   #969696 on panel(s1)  rest    #111111:  6.38 [4.5] ok
+neutral dark  text.tertiary   #969696 on panel(s1)  hov     #1D1D1D:  5.69 [4.5] ok
+neutral dark  text.tertiary   #969696 on panel(s1)  hov2    #262626:  5.11 [4.5] ok
+neutral dark  text.tertiary   #969696 on panel(s1)  sel     #262626:  5.11 [4.5] ok
+neutral dark  text.tertiary   #969696 on window(s2) rest    #171717:  6.06 [4.5] ok
+neutral dark  text.tertiary   #969696 on window(s2) hov     #232323:  5.31 [4.5] ok
+neutral dark  text.tertiary   #969696 on window(s2) hov2    #2B2B2B:  4.78 [4.5] ok
+neutral dark  text.tertiary   #969696 on window(s2) sel     #2C2C2C:  4.72 [4.5] ok
+neutral dark  text.tertiary   #969696 on raised(s3) rest    #212121:  5.44 [4.5] ok
+neutral dark  text.tertiary   #969696 on raised(s3) hov     #2C2C2C:  4.72 [4.5] ok
+neutral dark  text.tertiary   #969696 on raised(s3) hov2    #343434:  4.20 [4.5] BELOW
+neutral dark  text.tertiary   #969696 on raised(s3) sel     #343434:  4.20 [4.5] BELOW
+neutral dark  text.tertiary   #969696 on inset(sin) rest    #0B0B0B:  6.65 [4.5] ok
+neutral dark  text.tertiary   #969696 on inset(sin) hov     #181818:  6.00 [4.5] ok
+neutral dark  text.tertiary   #969696 on inset(sin) hov2    #202020:  5.50 [4.5] ok
+neutral dark  text.tertiary   #969696 on inset(sin) sel     #212121:  5.44 [4.5] ok
+neutral dark  line.strong     #747474 on panel(s1)  rest    #111111:  4.04 [3.0] ok
+neutral dark  line.strong     #747474 on panel(s1)  hov     #1D1D1D:  3.60 [3.0] ok
+neutral dark  line.strong     #747474 on panel(s1)  hov2    #262626:  3.23 [3.0] ok
+neutral dark  line.strong     #747474 on panel(s1)  sel     #262626:  3.23 [3.0] ok
+neutral dark  line.strong     #747474 on window(s2) rest    #171717:  3.83 [3.0] ok
+neutral dark  line.strong     #747474 on window(s2) hov     #232323:  3.36 [3.0] ok
+neutral dark  line.strong     #747474 on window(s2) hov2    #2B2B2B:  3.02 [3.0] ok
+neutral dark  line.strong     #747474 on window(s2) sel     #2C2C2C:  2.98 [3.0] BELOW
+neutral dark  line.strong     #747474 on raised(s3) rest    #212121:  3.44 [3.0] ok
+neutral dark  line.strong     #747474 on raised(s3) hov     #2C2C2C:  2.98 [3.0] BELOW
+neutral dark  line.strong     #747474 on raised(s3) hov2    #343434:  2.66 [3.0] BELOW
+neutral dark  line.strong     #747474 on raised(s3) sel     #343434:  2.66 [3.0] BELOW
+neutral dark  line.strong     #747474 on inset(sin) rest    #0B0B0B:  4.21 [3.0] ok
+neutral dark  line.strong     #747474 on inset(sin) hov     #181818:  3.79 [3.0] ok
+neutral dark  line.strong     #747474 on inset(sin) hov2    #202020:  3.48 [3.0] ok
+neutral dark  line.strong     #747474 on inset(sin) sel     #212121:  3.44 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on panel(s1)  rest    #111111: 16.71 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on panel(s1)  hov     #1D1D1D: 14.92 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on panel(s1)  hov2    #262626: 13.39 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on panel(s1)  sel     #262626: 13.39 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on window(s2) rest    #171717: 15.87 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on window(s2) hov     #232323: 13.91 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on window(s2) hov2    #2B2B2B: 12.53 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on window(s2) sel     #2C2C2C: 12.36 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on raised(s3) rest    #212121: 14.25 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on raised(s3) hov     #2C2C2C: 12.36 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on raised(s3) hov2    #343434: 11.02 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on raised(s3) sel     #343434: 11.02 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on inset(sin) rest    #0B0B0B: 17.42 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on inset(sin) hov     #181818: 15.72 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on inset(sin) hov2    #202020: 14.42 [3.0] ok
+neutral dark  focus.ring      #F1F1F1 on inset(sin) sel     #212121: 14.25 [3.0] ok
+neutral dark  place.device    #42D27F on panel(s1)  rest    #111111:  9.67 [3.0] ok
+neutral dark  place.device    #42D27F on panel(s1)  hov     #1D1D1D:  8.63 [3.0] ok
+neutral dark  place.device    #42D27F on panel(s1)  hov2    #262626:  7.75 [3.0] ok
+neutral dark  place.device    #42D27F on panel(s1)  sel     #262626:  7.75 [3.0] ok
+neutral dark  place.device    #42D27F on window(s2) rest    #171717:  9.18 [3.0] ok
+neutral dark  place.device    #42D27F on window(s2) hov     #232323:  8.05 [3.0] ok
+neutral dark  place.device    #42D27F on window(s2) hov2    #2B2B2B:  7.25 [3.0] ok
+neutral dark  place.device    #42D27F on window(s2) sel     #2C2C2C:  7.15 [3.0] ok
+neutral dark  place.device    #42D27F on raised(s3) rest    #212121:  8.24 [3.0] ok
+neutral dark  place.device    #42D27F on raised(s3) hov     #2C2C2C:  7.15 [3.0] ok
+neutral dark  place.device    #42D27F on raised(s3) hov2    #343434:  6.37 [3.0] ok
+neutral dark  place.device    #42D27F on raised(s3) sel     #343434:  6.37 [3.0] ok
+neutral dark  place.device    #42D27F on inset(sin) rest    #0B0B0B: 10.08 [3.0] ok
+neutral dark  place.device    #42D27F on inset(sin) hov     #181818:  9.09 [3.0] ok
+neutral dark  place.device    #42D27F on inset(sin) hov2    #202020:  8.34 [3.0] ok
+neutral dark  place.device    #42D27F on inset(sin) sel     #212121:  8.24 [3.0] ok
+neutral dark  place.nas       #5AA2FF on panel(s1)  rest    #111111:  7.23 [3.0] ok
+neutral dark  place.nas       #5AA2FF on panel(s1)  hov     #1D1D1D:  6.45 [3.0] ok
+neutral dark  place.nas       #5AA2FF on panel(s1)  hov2    #262626:  5.79 [3.0] ok
+neutral dark  place.nas       #5AA2FF on panel(s1)  sel     #262626:  5.79 [3.0] ok
+neutral dark  place.nas       #5AA2FF on window(s2) rest    #171717:  6.86 [3.0] ok
+neutral dark  place.nas       #5AA2FF on window(s2) hov     #232323:  6.02 [3.0] ok
+neutral dark  place.nas       #5AA2FF on window(s2) hov2    #2B2B2B:  5.42 [3.0] ok
+neutral dark  place.nas       #5AA2FF on window(s2) sel     #2C2C2C:  5.35 [3.0] ok
+neutral dark  place.nas       #5AA2FF on raised(s3) rest    #212121:  6.17 [3.0] ok
+neutral dark  place.nas       #5AA2FF on raised(s3) hov     #2C2C2C:  5.35 [3.0] ok
+neutral dark  place.nas       #5AA2FF on raised(s3) hov2    #343434:  4.77 [3.0] ok
+neutral dark  place.nas       #5AA2FF on raised(s3) sel     #343434:  4.77 [3.0] ok
+neutral dark  place.nas       #5AA2FF on inset(sin) rest    #0B0B0B:  7.54 [3.0] ok
+neutral dark  place.nas       #5AA2FF on inset(sin) hov     #181818:  6.80 [3.0] ok
+neutral dark  place.nas       #5AA2FF on inset(sin) hov2    #202020:  6.24 [3.0] ok
+neutral dark  place.nas       #5AA2FF on inset(sin) sel     #212121:  6.17 [3.0] ok
+neutral dark  place.internet  #FF5C50 on panel(s1)  rest    #111111:  6.20 [3.0] ok
+neutral dark  place.internet  #FF5C50 on panel(s1)  hov     #1D1D1D:  5.53 [3.0] ok
+neutral dark  place.internet  #FF5C50 on panel(s1)  hov2    #262626:  4.97 [3.0] ok
+neutral dark  place.internet  #FF5C50 on panel(s1)  sel     #262626:  4.97 [3.0] ok
+neutral dark  place.internet  #FF5C50 on window(s2) rest    #171717:  5.88 [3.0] ok
+neutral dark  place.internet  #FF5C50 on window(s2) hov     #232323:  5.16 [3.0] ok
+neutral dark  place.internet  #FF5C50 on window(s2) hov2    #2B2B2B:  4.65 [3.0] ok
+neutral dark  place.internet  #FF5C50 on window(s2) sel     #2C2C2C:  4.58 [3.0] ok
+neutral dark  place.internet  #FF5C50 on raised(s3) rest    #212121:  5.28 [3.0] ok
+neutral dark  place.internet  #FF5C50 on raised(s3) hov     #2C2C2C:  4.58 [3.0] ok
+neutral dark  place.internet  #FF5C50 on raised(s3) hov2    #343434:  4.08 [3.0] ok
+neutral dark  place.internet  #FF5C50 on raised(s3) sel     #343434:  4.08 [3.0] ok
+neutral dark  place.internet  #FF5C50 on inset(sin) rest    #0B0B0B:  6.46 [3.0] ok
+neutral dark  place.internet  #FF5C50 on inset(sin) hov     #181818:  5.83 [3.0] ok
+neutral dark  place.internet  #FF5C50 on inset(sin) hov2    #202020:  5.35 [3.0] ok
+neutral dark  place.internet  #FF5C50 on inset(sin) sel     #212121:  5.28 [3.0] ok
+-- light: hov ('#2F2F2F', 0.05), hov2 ('#2F2F2F', 0.09), sel ('#676767', 0.1)
+neutral light text.primary    #171717 on panel(s1)  rest    #F0F0F0: 15.73 [4.5] ok
+neutral light text.primary    #171717 on panel(s1)  hov     #E6E6E6: 14.36 [4.5] ok
+neutral light text.primary    #171717 on panel(s1)  hov2    #DFDFDF: 13.45 [4.5] ok
+neutral light text.primary    #171717 on panel(s1)  sel     #E2E2E2: 13.83 [4.5] ok
+neutral light text.primary    #171717 on window(s2) rest    #FCFCFC: 17.47 [4.5] ok
+neutral light text.primary    #171717 on window(s2) hov     #F2F2F2: 16.01 [4.5] ok
+neutral light text.primary    #171717 on window(s2) hov2    #EAEAEA: 14.90 [4.5] ok
+neutral light text.primary    #171717 on window(s2) sel     #EDEDED: 15.31 [4.5] ok
+neutral light text.primary    #171717 on raised(s3) rest    #E8E8E8: 14.63 [4.5] ok
+neutral light text.primary    #171717 on raised(s3) hov     #DFDFDF: 13.45 [4.5] ok
+neutral light text.primary    #171717 on raised(s3) hov2    #D7D7D7: 12.45 [4.5] ok
+neutral light text.primary    #171717 on raised(s3) sel     #DBDBDB: 12.94 [4.5] ok
+neutral light text.primary    #171717 on inset(sin) rest    #FFFFFF: 17.92 [4.5] ok
+neutral light text.primary    #171717 on inset(sin) hov     #F5F5F5: 16.44 [4.5] ok
+neutral light text.primary    #171717 on inset(sin) hov2    #ECECEC: 15.17 [4.5] ok
+neutral light text.primary    #171717 on inset(sin) sel     #F0F0F0: 15.73 [4.5] ok
+neutral light text.secondary  #4B4B4B on panel(s1)  rest    #F0F0F0:  7.65 [4.5] ok
+neutral light text.secondary  #4B4B4B on panel(s1)  hov     #E6E6E6:  6.98 [4.5] ok
+neutral light text.secondary  #4B4B4B on panel(s1)  hov2    #DFDFDF:  6.54 [4.5] ok
+neutral light text.secondary  #4B4B4B on panel(s1)  sel     #E2E2E2:  6.73 [4.5] ok
+neutral light text.secondary  #4B4B4B on window(s2) rest    #FCFCFC:  8.50 [4.5] ok
+neutral light text.secondary  #4B4B4B on window(s2) hov     #F2F2F2:  7.79 [4.5] ok
+neutral light text.secondary  #4B4B4B on window(s2) hov2    #EAEAEA:  7.25 [4.5] ok
+neutral light text.secondary  #4B4B4B on window(s2) sel     #EDEDED:  7.45 [4.5] ok
+neutral light text.secondary  #4B4B4B on raised(s3) rest    #E8E8E8:  7.11 [4.5] ok
+neutral light text.secondary  #4B4B4B on raised(s3) hov     #DFDFDF:  6.54 [4.5] ok
+neutral light text.secondary  #4B4B4B on raised(s3) hov2    #D7D7D7:  6.06 [4.5] ok
+neutral light text.secondary  #4B4B4B on raised(s3) sel     #DBDBDB:  6.30 [4.5] ok
+neutral light text.secondary  #4B4B4B on inset(sin) rest    #FFFFFF:  8.72 [4.5] ok
+neutral light text.secondary  #4B4B4B on inset(sin) hov     #F5F5F5:  8.00 [4.5] ok
+neutral light text.secondary  #4B4B4B on inset(sin) hov2    #ECECEC:  7.38 [4.5] ok
+neutral light text.secondary  #4B4B4B on inset(sin) sel     #F0F0F0:  7.65 [4.5] ok
+neutral light text.tertiary   #626262 on panel(s1)  rest    #F0F0F0:  5.35 [4.5] ok
+neutral light text.tertiary   #626262 on panel(s1)  hov     #E6E6E6:  4.88 [4.5] ok
+neutral light text.tertiary   #626262 on panel(s1)  hov2    #DFDFDF:  4.57 [4.5] ok
+neutral light text.tertiary   #626262 on panel(s1)  sel     #E2E2E2:  4.70 [4.5] ok
+neutral light text.tertiary   #626262 on window(s2) rest    #FCFCFC:  5.94 [4.5] ok
+neutral light text.tertiary   #626262 on window(s2) hov     #F2F2F2:  5.44 [4.5] ok
+neutral light text.tertiary   #626262 on window(s2) hov2    #EAEAEA:  5.07 [4.5] ok
+neutral light text.tertiary   #626262 on window(s2) sel     #EDEDED:  5.21 [4.5] ok
+neutral light text.tertiary   #626262 on raised(s3) rest    #E8E8E8:  4.97 [4.5] ok
+neutral light text.tertiary   #626262 on raised(s3) hov     #DFDFDF:  4.57 [4.5] ok
+neutral light text.tertiary   #626262 on raised(s3) hov2    #D7D7D7:  4.23 [4.5] BELOW
+neutral light text.tertiary   #626262 on raised(s3) sel     #DBDBDB:  4.40 [4.5] BELOW
+neutral light text.tertiary   #626262 on inset(sin) rest    #FFFFFF:  6.09 [4.5] ok
+neutral light text.tertiary   #626262 on inset(sin) hov     #F5F5F5:  5.59 [4.5] ok
+neutral light text.tertiary   #626262 on inset(sin) hov2    #ECECEC:  5.16 [4.5] ok
+neutral light text.tertiary   #626262 on inset(sin) sel     #F0F0F0:  5.35 [4.5] ok
+neutral light line.strong     #818181 on panel(s1)  rest    #F0F0F0:  3.41 [3.0] ok
+neutral light line.strong     #818181 on panel(s1)  hov     #E6E6E6:  3.12 [3.0] ok
+neutral light line.strong     #818181 on panel(s1)  hov2    #DFDFDF:  2.92 [3.0] BELOW
+neutral light line.strong     #818181 on panel(s1)  sel     #E2E2E2:  3.00 [3.0] ok
+neutral light line.strong     #818181 on window(s2) rest    #FCFCFC:  3.79 [3.0] ok
+neutral light line.strong     #818181 on window(s2) hov     #F2F2F2:  3.47 [3.0] ok
+neutral light line.strong     #818181 on window(s2) hov2    #EAEAEA:  3.23 [3.0] ok
+neutral light line.strong     #818181 on window(s2) sel     #EDEDED:  3.32 [3.0] ok
+neutral light line.strong     #818181 on raised(s3) rest    #E8E8E8:  3.17 [3.0] ok
+neutral light line.strong     #818181 on raised(s3) hov     #DFDFDF:  2.92 [3.0] BELOW
+neutral light line.strong     #818181 on raised(s3) hov2    #D7D7D7:  2.70 [3.0] BELOW
+neutral light line.strong     #818181 on raised(s3) sel     #DBDBDB:  2.81 [3.0] BELOW
+neutral light line.strong     #818181 on inset(sin) rest    #FFFFFF:  3.89 [3.0] ok
+neutral light line.strong     #818181 on inset(sin) hov     #F5F5F5:  3.57 [3.0] ok
+neutral light line.strong     #818181 on inset(sin) hov2    #ECECEC:  3.29 [3.0] ok
+neutral light line.strong     #818181 on inset(sin) sel     #F0F0F0:  3.41 [3.0] ok
+neutral light focus.ring      #171717 on panel(s1)  rest    #F0F0F0: 15.73 [3.0] ok
+neutral light focus.ring      #171717 on panel(s1)  hov     #E6E6E6: 14.36 [3.0] ok
+neutral light focus.ring      #171717 on panel(s1)  hov2    #DFDFDF: 13.45 [3.0] ok
+neutral light focus.ring      #171717 on panel(s1)  sel     #E2E2E2: 13.83 [3.0] ok
+neutral light focus.ring      #171717 on window(s2) rest    #FCFCFC: 17.47 [3.0] ok
+neutral light focus.ring      #171717 on window(s2) hov     #F2F2F2: 16.01 [3.0] ok
+neutral light focus.ring      #171717 on window(s2) hov2    #EAEAEA: 14.90 [3.0] ok
+neutral light focus.ring      #171717 on window(s2) sel     #EDEDED: 15.31 [3.0] ok
+neutral light focus.ring      #171717 on raised(s3) rest    #E8E8E8: 14.63 [3.0] ok
+neutral light focus.ring      #171717 on raised(s3) hov     #DFDFDF: 13.45 [3.0] ok
+neutral light focus.ring      #171717 on raised(s3) hov2    #D7D7D7: 12.45 [3.0] ok
+neutral light focus.ring      #171717 on raised(s3) sel     #DBDBDB: 12.94 [3.0] ok
+neutral light focus.ring      #171717 on inset(sin) rest    #FFFFFF: 17.92 [3.0] ok
+neutral light focus.ring      #171717 on inset(sin) hov     #F5F5F5: 16.44 [3.0] ok
+neutral light focus.ring      #171717 on inset(sin) hov2    #ECECEC: 15.17 [3.0] ok
+neutral light focus.ring      #171717 on inset(sin) sel     #F0F0F0: 15.73 [3.0] ok
+neutral light place.device    #127A43 on panel(s1)  rest    #F0F0F0:  4.73 [3.0] ok
+neutral light place.device    #127A43 on panel(s1)  hov     #E6E6E6:  4.32 [3.0] ok
+neutral light place.device    #127A43 on panel(s1)  hov2    #DFDFDF:  4.05 [3.0] ok
+neutral light place.device    #127A43 on panel(s1)  sel     #E2E2E2:  4.16 [3.0] ok
+neutral light place.device    #127A43 on window(s2) rest    #FCFCFC:  5.26 [3.0] ok
+neutral light place.device    #127A43 on window(s2) hov     #F2F2F2:  4.82 [3.0] ok
+neutral light place.device    #127A43 on window(s2) hov2    #EAEAEA:  4.48 [3.0] ok
+neutral light place.device    #127A43 on window(s2) sel     #EDEDED:  4.61 [3.0] ok
+neutral light place.device    #127A43 on raised(s3) rest    #E8E8E8:  4.40 [3.0] ok
+neutral light place.device    #127A43 on raised(s3) hov     #DFDFDF:  4.05 [3.0] ok
+neutral light place.device    #127A43 on raised(s3) hov2    #D7D7D7:  3.75 [3.0] ok
+neutral light place.device    #127A43 on raised(s3) sel     #DBDBDB:  3.89 [3.0] ok
+neutral light place.device    #127A43 on inset(sin) rest    #FFFFFF:  5.39 [3.0] ok
+neutral light place.device    #127A43 on inset(sin) hov     #F5F5F5:  4.95 [3.0] ok
+neutral light place.device    #127A43 on inset(sin) hov2    #ECECEC:  4.56 [3.0] ok
+neutral light place.device    #127A43 on inset(sin) sel     #F0F0F0:  4.73 [3.0] ok
+neutral light place.nas       #1061D6 on panel(s1)  rest    #F0F0F0:  4.97 [3.0] ok
+neutral light place.nas       #1061D6 on panel(s1)  hov     #E6E6E6:  4.54 [3.0] ok
+neutral light place.nas       #1061D6 on panel(s1)  hov2    #DFDFDF:  4.25 [3.0] ok
+neutral light place.nas       #1061D6 on panel(s1)  sel     #E2E2E2:  4.37 [3.0] ok
+neutral light place.nas       #1061D6 on window(s2) rest    #FCFCFC:  5.52 [3.0] ok
+neutral light place.nas       #1061D6 on window(s2) hov     #F2F2F2:  5.06 [3.0] ok
+neutral light place.nas       #1061D6 on window(s2) hov2    #EAEAEA:  4.71 [3.0] ok
+neutral light place.nas       #1061D6 on window(s2) sel     #EDEDED:  4.84 [3.0] ok
+neutral light place.nas       #1061D6 on raised(s3) rest    #E8E8E8:  4.62 [3.0] ok
+neutral light place.nas       #1061D6 on raised(s3) hov     #DFDFDF:  4.25 [3.0] ok
+neutral light place.nas       #1061D6 on raised(s3) hov2    #D7D7D7:  3.94 [3.0] ok
+neutral light place.nas       #1061D6 on raised(s3) sel     #DBDBDB:  4.09 [3.0] ok
+neutral light place.nas       #1061D6 on inset(sin) rest    #FFFFFF:  5.67 [3.0] ok
+neutral light place.nas       #1061D6 on inset(sin) hov     #F5F5F5:  5.20 [3.0] ok
+neutral light place.nas       #1061D6 on inset(sin) hov2    #ECECEC:  4.80 [3.0] ok
+neutral light place.nas       #1061D6 on inset(sin) sel     #F0F0F0:  4.97 [3.0] ok
+neutral light place.internet  #CC3328 on panel(s1)  rest    #F0F0F0:  4.52 [3.0] ok
+neutral light place.internet  #CC3328 on panel(s1)  hov     #E6E6E6:  4.13 [3.0] ok
+neutral light place.internet  #CC3328 on panel(s1)  hov2    #DFDFDF:  3.87 [3.0] ok
+neutral light place.internet  #CC3328 on panel(s1)  sel     #E2E2E2:  3.98 [3.0] ok
+neutral light place.internet  #CC3328 on window(s2) rest    #FCFCFC:  5.02 [3.0] ok
+neutral light place.internet  #CC3328 on window(s2) hov     #F2F2F2:  4.60 [3.0] ok
+neutral light place.internet  #CC3328 on window(s2) hov2    #EAEAEA:  4.28 [3.0] ok
+neutral light place.internet  #CC3328 on window(s2) sel     #EDEDED:  4.40 [3.0] ok
+neutral light place.internet  #CC3328 on raised(s3) rest    #E8E8E8:  4.20 [3.0] ok
+neutral light place.internet  #CC3328 on raised(s3) hov     #DFDFDF:  3.87 [3.0] ok
+neutral light place.internet  #CC3328 on raised(s3) hov2    #D7D7D7:  3.58 [3.0] ok
+neutral light place.internet  #CC3328 on raised(s3) sel     #DBDBDB:  3.72 [3.0] ok
+neutral light place.internet  #CC3328 on inset(sin) rest    #FFFFFF:  5.15 [3.0] ok
+neutral light place.internet  #CC3328 on inset(sin) hov     #F5F5F5:  4.73 [3.0] ok
+neutral light place.internet  #CC3328 on inset(sin) hov2    #ECECEC:  4.36 [3.0] ok
+neutral light place.internet  #CC3328 on inset(sin) sel     #F0F0F0:  4.52 [3.0] ok
+
+== 3b. Same, with the unaccepted v2 selection alpha (draft and verifier figures) ==
+v2sel   dark  text.primary    #F1F1F1 on panel(s1)  sel.v2  #252525: 13.57 [4.5] ok
+v2sel   dark  text.primary    #F1F1F1 on window(s2) sel.v2  #2B2B2B: 12.53 [4.5] ok
+v2sel   dark  text.primary    #F1F1F1 on raised(s3) sel.v2  #343434: 11.02 [4.5] ok
+v2sel   dark  text.primary    #F1F1F1 on inset(sin) sel.v2  #202020: 14.42 [4.5] ok
+v2sel   dark  text.secondary  #B2B2B2 on panel(s1)  sel.v2  #252525:  7.22 [4.5] ok
+v2sel   dark  text.secondary  #B2B2B2 on window(s2) sel.v2  #2B2B2B:  6.67 [4.5] ok
+v2sel   dark  text.secondary  #B2B2B2 on raised(s3) sel.v2  #343434:  5.87 [4.5] ok
+v2sel   dark  text.secondary  #B2B2B2 on inset(sin) sel.v2  #202020:  7.68 [4.5] ok
+v2sel   dark  text.tertiary   #969696 on panel(s1)  sel.v2  #252525:  5.18 [4.5] ok
+v2sel   dark  text.tertiary   #969696 on window(s2) sel.v2  #2B2B2B:  4.78 [4.5] ok
+v2sel   dark  text.tertiary   #969696 on raised(s3) sel.v2  #343434:  4.20 [4.5] BELOW
+v2sel   dark  text.tertiary   #969696 on inset(sin) sel.v2  #202020:  5.50 [4.5] ok
+v2sel   dark  line.strong     #747474 on panel(s1)  sel.v2  #252525:  3.27 [3.0] ok
+v2sel   dark  line.strong     #747474 on window(s2) sel.v2  #2B2B2B:  3.02 [3.0] ok
+v2sel   dark  line.strong     #747474 on raised(s3) sel.v2  #343434:  2.66 [3.0] BELOW
+v2sel   dark  line.strong     #747474 on inset(sin) sel.v2  #202020:  3.48 [3.0] ok
+v2sel   dark  focus.ring      #F1F1F1 on panel(s1)  sel.v2  #252525: 13.57 [3.0] ok
+v2sel   dark  focus.ring      #F1F1F1 on window(s2) sel.v2  #2B2B2B: 12.53 [3.0] ok
+v2sel   dark  focus.ring      #F1F1F1 on raised(s3) sel.v2  #343434: 11.02 [3.0] ok
+v2sel   dark  focus.ring      #F1F1F1 on inset(sin) sel.v2  #202020: 14.42 [3.0] ok
+v2sel   light text.primary    #171717 on panel(s1)  sel.v2  #E0E0E0: 13.58 [4.5] ok
+v2sel   light text.primary    #171717 on window(s2) sel.v2  #ECECEC: 15.17 [4.5] ok
+v2sel   light text.primary    #171717 on raised(s3) sel.v2  #D9D9D9: 12.70 [4.5] ok
+v2sel   light text.primary    #171717 on inset(sin) sel.v2  #EEEEEE: 15.45 [4.5] ok
+v2sel   light text.secondary  #4B4B4B on panel(s1)  sel.v2  #E0E0E0:  6.60 [4.5] ok
+v2sel   light text.secondary  #4B4B4B on window(s2) sel.v2  #ECECEC:  7.38 [4.5] ok
+v2sel   light text.secondary  #4B4B4B on raised(s3) sel.v2  #D9D9D9:  6.18 [4.5] ok
+v2sel   light text.secondary  #4B4B4B on inset(sin) sel.v2  #EEEEEE:  7.51 [4.5] ok
+v2sel   light text.tertiary   #626262 on panel(s1)  sel.v2  #E0E0E0:  4.62 [4.5] ok
+v2sel   light text.tertiary   #626262 on window(s2) sel.v2  #ECECEC:  5.16 [4.5] ok
+v2sel   light text.tertiary   #626262 on raised(s3) sel.v2  #D9D9D9:  4.32 [4.5] BELOW
+v2sel   light text.tertiary   #626262 on inset(sin) sel.v2  #EEEEEE:  5.25 [4.5] ok
+v2sel   light line.strong     #818181 on panel(s1)  sel.v2  #E0E0E0:  2.95 [3.0] BELOW
+v2sel   light line.strong     #818181 on window(s2) sel.v2  #ECECEC:  3.29 [3.0] ok
+v2sel   light line.strong     #818181 on raised(s3) sel.v2  #D9D9D9:  2.75 [3.0] BELOW
+v2sel   light line.strong     #818181 on inset(sin) sel.v2  #EEEEEE:  3.35 [3.0] ok
+v2sel   light focus.ring      #171717 on panel(s1)  sel.v2  #E0E0E0: 13.58 [3.0] ok
+v2sel   light focus.ring      #171717 on window(s2) sel.v2  #ECECEC: 15.17 [3.0] ok
+v2sel   light focus.ring      #171717 on raised(s3) sel.v2  #D9D9D9: 12.70 [3.0] ok
+v2sel   light focus.ring      #171717 on inset(sin) sel.v2  #EEEEEE: 15.45 [3.0] ok
+
+== 4. Inherited: Orbitaal v1 as drawn (chromatic), same matrix ==
+v1      dark  text.primary    #EEF1F8 on panel(s1)  rest    #0D1020: 16.70 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on panel(s1)  hov     #181C30: 14.88 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on panel(s1)  hov2    #20253B: 13.36 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on panel(s1)  sel     #192641: 13.31 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on window(s2) rest    #12162A: 15.82 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on window(s2) hov     #1D2239: 13.85 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on window(s2) hov2    #242A44: 12.46 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on window(s2) sel     #1D2B4A: 12.40 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on raised(s3) rest    #1A1F38: 14.31 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on raised(s3) hov     #242A46: 12.42 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on raised(s3) hov2    #2B3250: 11.08 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on raised(s3) sel     #243356: 11.03 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on inset(sin) rest    #080A16: 17.43 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on inset(sin) hov     #131626: 15.86 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on inset(sin) hov2    #1B1F32: 14.41 [4.5] ok
+v1      dark  text.primary    #EEF1F8 on inset(sin) sel     #142139: 14.21 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on panel(s1)  rest    #0D1020:  8.91 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on panel(s1)  hov     #181C30:  7.94 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on panel(s1)  hov2    #20253B:  7.13 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on panel(s1)  sel     #192641:  7.10 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on window(s2) rest    #12162A:  8.44 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on window(s2) hov     #1D2239:  7.40 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on window(s2) hov2    #242A44:  6.65 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on window(s2) sel     #1D2B4A:  6.62 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on raised(s3) rest    #1A1F38:  7.64 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on raised(s3) hov     #242A46:  6.63 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on raised(s3) hov2    #2B3250:  5.92 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on raised(s3) sel     #243356:  5.89 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on inset(sin) rest    #080A16:  9.30 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on inset(sin) hov     #131626:  8.47 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on inset(sin) hov2    #1B1F32:  7.69 [4.5] ok
+v1      dark  text.secondary  #A9B2CB on inset(sin) sel     #142139:  7.59 [4.5] ok
+v1      dark  text.tertiary   #8C95B2 on panel(s1)  rest    #0D1020:  6.34 [4.5] ok
+v1      dark  text.tertiary   #8C95B2 on panel(s1)  hov     #181C30:  5.65 [4.5] ok
+v1      dark  text.tertiary   #8C95B2 on panel(s1)  hov2    #20253B:  5.07 [4.5] ok
+v1      dark  text.tertiary   #8C95B2 on panel(s1)  sel     #192641:  5.05 [4.5] ok
+v1      dark  text.tertiary   #8C95B2 on window(s2) rest    #12162A:  6.01 [4.5] ok
+v1      dark  text.tertiary   #8C95B2 on window(s2) hov     #1D2239:  5.26 [4.5] ok
+v1      dark  text.tertiary   #8C95B2 on window(s2) hov2    #242A44:  4.73 [4.5] ok
+v1      dark  text.tertiary   #8C95B2 on window(s2) sel     #1D2B4A:  4.71 [4.5] ok
+v1      dark  text.tertiary   #8C95B2 on raised(s3) rest    #1A1F38:  5.44 [4.5] ok
+v1      dark  text.tertiary   #8C95B2 on raised(s3) hov     #242A46:  4.72 [4.5] ok
+v1      dark  text.tertiary   #8C95B2 on raised(s3) hov2    #2B3250:  4.21 [4.5] BELOW
+v1      dark  text.tertiary   #8C95B2 on raised(s3) sel     #243356:  4.19 [4.5] BELOW
+v1      dark  text.tertiary   #8C95B2 on inset(sin) rest    #080A16:  6.62 [4.5] ok
+v1      dark  text.tertiary   #8C95B2 on inset(sin) hov     #131626:  6.02 [4.5] ok
+v1      dark  text.tertiary   #8C95B2 on inset(sin) hov2    #1B1F32:  5.47 [4.5] ok
+v1      dark  text.tertiary   #8C95B2 on inset(sin) sel     #142139:  5.40 [4.5] ok
+v1      dark  line.strong     #5D6890 on panel(s1)  rest    #0D1020:  3.46 [3.0] ok
+v1      dark  line.strong     #5D6890 on panel(s1)  hov     #181C30:  3.08 [3.0] ok
+v1      dark  line.strong     #5D6890 on panel(s1)  hov2    #20253B:  2.77 [3.0] BELOW
+v1      dark  line.strong     #5D6890 on panel(s1)  sel     #192641:  2.75 [3.0] BELOW
+v1      dark  line.strong     #5D6890 on window(s2) rest    #12162A:  3.27 [3.0] ok
+v1      dark  line.strong     #5D6890 on window(s2) hov     #1D2239:  2.87 [3.0] BELOW
+v1      dark  line.strong     #5D6890 on window(s2) hov2    #242A44:  2.58 [3.0] BELOW
+v1      dark  line.strong     #5D6890 on window(s2) sel     #1D2B4A:  2.57 [3.0] BELOW
+v1      dark  line.strong     #5D6890 on raised(s3) rest    #1A1F38:  2.96 [3.0] BELOW
+v1      dark  line.strong     #5D6890 on raised(s3) hov     #242A46:  2.57 [3.0] BELOW
+v1      dark  line.strong     #5D6890 on raised(s3) hov2    #2B3250:  2.29 [3.0] BELOW
+v1      dark  line.strong     #5D6890 on raised(s3) sel     #243356:  2.28 [3.0] BELOW
+v1      dark  line.strong     #5D6890 on inset(sin) rest    #080A16:  3.61 [3.0] ok
+v1      dark  line.strong     #5D6890 on inset(sin) hov     #131626:  3.28 [3.0] ok
+v1      dark  line.strong     #5D6890 on inset(sin) hov2    #1B1F32:  2.98 [3.0] BELOW
+v1      dark  line.strong     #5D6890 on inset(sin) sel     #142139:  2.94 [3.0] BELOW
+v1      dark  focus.ring      #A8CAFF on panel(s1)  rest    #0D1020: 11.29 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on panel(s1)  hov     #181C30: 10.06 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on panel(s1)  hov2    #20253B:  9.03 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on panel(s1)  sel     #192641:  9.00 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on window(s2) rest    #12162A: 10.69 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on window(s2) hov     #1D2239:  9.37 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on window(s2) hov2    #242A44:  8.42 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on window(s2) sel     #1D2B4A:  8.39 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on raised(s3) rest    #1A1F38:  9.68 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on raised(s3) hov     #242A46:  8.40 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on raised(s3) hov2    #2B3250:  7.49 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on raised(s3) sel     #243356:  7.46 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on inset(sin) rest    #080A16: 11.78 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on inset(sin) hov     #131626: 10.72 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on inset(sin) hov2    #1B1F32:  9.74 [3.0] ok
+v1      dark  focus.ring      #A8CAFF on inset(sin) sel     #142139:  9.61 [3.0] ok
+v1      dark  place.device    #42D27F on panel(s1)  rest    #0D1020:  9.67 [3.0] ok
+v1      dark  place.device    #42D27F on panel(s1)  hov     #181C30:  8.62 [3.0] ok
+v1      dark  place.device    #42D27F on panel(s1)  hov2    #20253B:  7.74 [3.0] ok
+v1      dark  place.device    #42D27F on panel(s1)  sel     #192641:  7.71 [3.0] ok
+v1      dark  place.device    #42D27F on window(s2) rest    #12162A:  9.16 [3.0] ok
+v1      dark  place.device    #42D27F on window(s2) hov     #1D2239:  8.02 [3.0] ok
+v1      dark  place.device    #42D27F on window(s2) hov2    #242A44:  7.22 [3.0] ok
+v1      dark  place.device    #42D27F on window(s2) sel     #1D2B4A:  7.18 [3.0] ok
+v1      dark  place.device    #42D27F on raised(s3) rest    #1A1F38:  8.29 [3.0] ok
+v1      dark  place.device    #42D27F on raised(s3) hov     #242A46:  7.19 [3.0] ok
+v1      dark  place.device    #42D27F on raised(s3) hov2    #2B3250:  6.42 [3.0] ok
+v1      dark  place.device    #42D27F on raised(s3) sel     #243356:  6.39 [3.0] ok
+v1      dark  place.device    #42D27F on inset(sin) rest    #080A16: 10.09 [3.0] ok
+v1      dark  place.device    #42D27F on inset(sin) hov     #131626:  9.19 [3.0] ok
+v1      dark  place.device    #42D27F on inset(sin) hov2    #1B1F32:  8.34 [3.0] ok
+v1      dark  place.device    #42D27F on inset(sin) sel     #142139:  8.23 [3.0] ok
+v1      dark  place.nas       #5AA2FF on panel(s1)  rest    #0D1020:  7.23 [3.0] ok
+v1      dark  place.nas       #5AA2FF on panel(s1)  hov     #181C30:  6.44 [3.0] ok
+v1      dark  place.nas       #5AA2FF on panel(s1)  hov2    #20253B:  5.79 [3.0] ok
+v1      dark  place.nas       #5AA2FF on panel(s1)  sel     #192641:  5.76 [3.0] ok
+v1      dark  place.nas       #5AA2FF on window(s2) rest    #12162A:  6.85 [3.0] ok
+v1      dark  place.nas       #5AA2FF on window(s2) hov     #1D2239:  6.00 [3.0] ok
+v1      dark  place.nas       #5AA2FF on window(s2) hov2    #242A44:  5.40 [3.0] ok
+v1      dark  place.nas       #5AA2FF on window(s2) sel     #1D2B4A:  5.37 [3.0] ok
+v1      dark  place.nas       #5AA2FF on raised(s3) rest    #1A1F38:  6.20 [3.0] ok
+v1      dark  place.nas       #5AA2FF on raised(s3) hov     #242A46:  5.38 [3.0] ok
+v1      dark  place.nas       #5AA2FF on raised(s3) hov2    #2B3250:  4.80 [3.0] ok
+v1      dark  place.nas       #5AA2FF on raised(s3) sel     #243356:  4.78 [3.0] ok
+v1      dark  place.nas       #5AA2FF on inset(sin) rest    #080A16:  7.55 [3.0] ok
+v1      dark  place.nas       #5AA2FF on inset(sin) hov     #131626:  6.87 [3.0] ok
+v1      dark  place.nas       #5AA2FF on inset(sin) hov2    #1B1F32:  6.24 [3.0] ok
+v1      dark  place.nas       #5AA2FF on inset(sin) sel     #142139:  6.15 [3.0] ok
+v1      dark  place.internet  #FF5C50 on panel(s1)  rest    #0D1020:  6.20 [3.0] ok
+v1      dark  place.internet  #FF5C50 on panel(s1)  hov     #181C30:  5.52 [3.0] ok
+v1      dark  place.internet  #FF5C50 on panel(s1)  hov2    #20253B:  4.96 [3.0] ok
+v1      dark  place.internet  #FF5C50 on panel(s1)  sel     #192641:  4.94 [3.0] ok
+v1      dark  place.internet  #FF5C50 on window(s2) rest    #12162A:  5.87 [3.0] ok
+v1      dark  place.internet  #FF5C50 on window(s2) hov     #1D2239:  5.14 [3.0] ok
+v1      dark  place.internet  #FF5C50 on window(s2) hov2    #242A44:  4.63 [3.0] ok
+v1      dark  place.internet  #FF5C50 on window(s2) sel     #1D2B4A:  4.60 [3.0] ok
+v1      dark  place.internet  #FF5C50 on raised(s3) rest    #1A1F38:  5.31 [3.0] ok
+v1      dark  place.internet  #FF5C50 on raised(s3) hov     #242A46:  4.61 [3.0] ok
+v1      dark  place.internet  #FF5C50 on raised(s3) hov2    #2B3250:  4.11 [3.0] ok
+v1      dark  place.internet  #FF5C50 on raised(s3) sel     #243356:  4.09 [3.0] ok
+v1      dark  place.internet  #FF5C50 on inset(sin) rest    #080A16:  6.47 [3.0] ok
+v1      dark  place.internet  #FF5C50 on inset(sin) hov     #131626:  5.89 [3.0] ok
+v1      dark  place.internet  #FF5C50 on inset(sin) hov2    #1B1F32:  5.35 [3.0] ok
+v1      dark  place.internet  #FF5C50 on inset(sin) sel     #142139:  5.28 [3.0] ok
+v1      light text.primary    #111726 on panel(s1)  rest    #EDF0F7: 15.67 [4.5] ok
+v1      light text.primary    #111726 on panel(s1)  hov     #E2E6EF: 14.30 [4.5] ok
+v1      light text.primary    #111726 on panel(s1)  hov2    #DADEE9: 13.28 [4.5] ok
+v1      light text.primary    #111726 on panel(s1)  sel     #D7E2F4: 13.68 [4.5] ok
+v1      light text.primary    #111726 on window(s2) rest    #FBFCFE: 17.41 [4.5] ok
+v1      light text.primary    #111726 on window(s2) hov     #F0F2F6: 15.95 [4.5] ok
+v1      light text.primary    #111726 on window(s2) hov2    #E7E9F0: 14.74 [4.5] ok
+v1      light text.primary    #111726 on window(s2) sel     #E4ECFA: 15.05 [4.5] ok
+v1      light text.primary    #111726 on raised(s3) rest    #E3E8F1: 14.54 [4.5] ok
+v1      light text.primary    #111726 on raised(s3) hov     #D9DFEA: 13.36 [4.5] ok
+v1      light text.primary    #111726 on raised(s3) hov2    #D1D7E4: 12.39 [4.5] ok
+v1      light text.primary    #111726 on raised(s3) sel     #CEDAEE: 12.67 [4.5] ok
+v1      light text.primary    #111726 on inset(sin) rest    #FFFFFF: 17.88 [4.5] ok
+v1      light text.primary    #111726 on inset(sin) hov     #F3F4F7: 16.25 [4.5] ok
+v1      light text.primary    #111726 on inset(sin) hov2    #EAECF1: 15.12 [4.5] ok
+v1      light text.primary    #111726 on inset(sin) sel     #E7EFFB: 15.44 [4.5] ok
+v1      light text.secondary  #424B62 on panel(s1)  rest    #EDF0F7:  7.62 [4.5] ok
+v1      light text.secondary  #424B62 on panel(s1)  hov     #E2E6EF:  6.95 [4.5] ok
+v1      light text.secondary  #424B62 on panel(s1)  hov2    #DADEE9:  6.46 [4.5] ok
+v1      light text.secondary  #424B62 on panel(s1)  sel     #D7E2F4:  6.65 [4.5] ok
+v1      light text.secondary  #424B62 on window(s2) rest    #FBFCFE:  8.47 [4.5] ok
+v1      light text.secondary  #424B62 on window(s2) hov     #F0F2F6:  7.76 [4.5] ok
+v1      light text.secondary  #424B62 on window(s2) hov2    #E7E9F0:  7.17 [4.5] ok
+v1      light text.secondary  #424B62 on window(s2) sel     #E4ECFA:  7.32 [4.5] ok
+v1      light text.secondary  #424B62 on raised(s3) rest    #E3E8F1:  7.07 [4.5] ok
+v1      light text.secondary  #424B62 on raised(s3) hov     #D9DFEA:  6.49 [4.5] ok
+v1      light text.secondary  #424B62 on raised(s3) hov2    #D1D7E4:  6.02 [4.5] ok
+v1      light text.secondary  #424B62 on raised(s3) sel     #CEDAEE:  6.16 [4.5] ok
+v1      light text.secondary  #424B62 on inset(sin) rest    #FFFFFF:  8.69 [4.5] ok
+v1      light text.secondary  #424B62 on inset(sin) hov     #F3F4F7:  7.90 [4.5] ok
+v1      light text.secondary  #424B62 on inset(sin) hov2    #EAECF1:  7.35 [4.5] ok
+v1      light text.secondary  #424B62 on inset(sin) sel     #E7EFFB:  7.51 [4.5] ok
+v1      light text.tertiary   #58627D on panel(s1)  rest    #EDF0F7:  5.32 [4.5] ok
+v1      light text.tertiary   #58627D on panel(s1)  hov     #E2E6EF:  4.85 [4.5] ok
+v1      light text.tertiary   #58627D on panel(s1)  hov2    #DADEE9:  4.51 [4.5] ok
+v1      light text.tertiary   #58627D on panel(s1)  sel     #D7E2F4:  4.64 [4.5] ok
+v1      light text.tertiary   #58627D on window(s2) rest    #FBFCFE:  5.91 [4.5] ok
+v1      light text.tertiary   #58627D on window(s2) hov     #F0F2F6:  5.41 [4.5] ok
+v1      light text.tertiary   #58627D on window(s2) hov2    #E7E9F0:  5.00 [4.5] ok
+v1      light text.tertiary   #58627D on window(s2) sel     #E4ECFA:  5.11 [4.5] ok
+v1      light text.tertiary   #58627D on raised(s3) rest    #E3E8F1:  4.93 [4.5] ok
+v1      light text.tertiary   #58627D on raised(s3) hov     #D9DFEA:  4.53 [4.5] ok
+v1      light text.tertiary   #58627D on raised(s3) hov2    #D1D7E4:  4.20 [4.5] BELOW
+v1      light text.tertiary   #58627D on raised(s3) sel     #CEDAEE:  4.30 [4.5] BELOW
+v1      light text.tertiary   #58627D on inset(sin) rest    #FFFFFF:  6.07 [4.5] ok
+v1      light text.tertiary   #58627D on inset(sin) hov     #F3F4F7:  5.52 [4.5] ok
+v1      light text.tertiary   #58627D on inset(sin) hov2    #EAECF1:  5.13 [4.5] ok
+v1      light text.tertiary   #58627D on inset(sin) sel     #E7EFFB:  5.24 [4.5] ok
+v1      light line.strong     #78819A on panel(s1)  rest    #EDF0F7:  3.40 [3.0] ok
+v1      light line.strong     #78819A on panel(s1)  hov     #E2E6EF:  3.10 [3.0] ok
+v1      light line.strong     #78819A on panel(s1)  hov2    #DADEE9:  2.88 [3.0] BELOW
+v1      light line.strong     #78819A on panel(s1)  sel     #D7E2F4:  2.97 [3.0] BELOW
+v1      light line.strong     #78819A on window(s2) rest    #FBFCFE:  3.78 [3.0] ok
+v1      light line.strong     #78819A on window(s2) hov     #F0F2F6:  3.46 [3.0] ok
+v1      light line.strong     #78819A on window(s2) hov2    #E7E9F0:  3.20 [3.0] ok
+v1      light line.strong     #78819A on window(s2) sel     #E4ECFA:  3.27 [3.0] ok
+v1      light line.strong     #78819A on raised(s3) rest    #E3E8F1:  3.15 [3.0] ok
+v1      light line.strong     #78819A on raised(s3) hov     #D9DFEA:  2.90 [3.0] BELOW
+v1      light line.strong     #78819A on raised(s3) hov2    #D1D7E4:  2.69 [3.0] BELOW
+v1      light line.strong     #78819A on raised(s3) sel     #CEDAEE:  2.75 [3.0] BELOW
+v1      light line.strong     #78819A on inset(sin) rest    #FFFFFF:  3.88 [3.0] ok
+v1      light line.strong     #78819A on inset(sin) hov     #F3F4F7:  3.53 [3.0] ok
+v1      light line.strong     #78819A on inset(sin) hov2    #EAECF1:  3.28 [3.0] ok
+v1      light line.strong     #78819A on inset(sin) sel     #E7EFFB:  3.35 [3.0] ok
+v1      light focus.ring      #1061D6 on panel(s1)  rest    #EDF0F7:  4.97 [3.0] ok
+v1      light focus.ring      #1061D6 on panel(s1)  hov     #E2E6EF:  4.53 [3.0] ok
+v1      light focus.ring      #1061D6 on panel(s1)  hov2    #DADEE9:  4.21 [3.0] ok
+v1      light focus.ring      #1061D6 on panel(s1)  sel     #D7E2F4:  4.34 [3.0] ok
+v1      light focus.ring      #1061D6 on window(s2) rest    #FBFCFE:  5.52 [3.0] ok
+v1      light focus.ring      #1061D6 on window(s2) hov     #F0F2F6:  5.05 [3.0] ok
+v1      light focus.ring      #1061D6 on window(s2) hov2    #E7E9F0:  4.67 [3.0] ok
+v1      light focus.ring      #1061D6 on window(s2) sel     #E4ECFA:  4.77 [3.0] ok
+v1      light focus.ring      #1061D6 on raised(s3) rest    #E3E8F1:  4.61 [3.0] ok
+v1      light focus.ring      #1061D6 on raised(s3) hov     #D9DFEA:  4.23 [3.0] ok
+v1      light focus.ring      #1061D6 on raised(s3) hov2    #D1D7E4:  3.92 [3.0] ok
+v1      light focus.ring      #1061D6 on raised(s3) sel     #CEDAEE:  4.02 [3.0] ok
+v1      light focus.ring      #1061D6 on inset(sin) rest    #FFFFFF:  5.67 [3.0] ok
+v1      light focus.ring      #1061D6 on inset(sin) hov     #F3F4F7:  5.15 [3.0] ok
+v1      light focus.ring      #1061D6 on inset(sin) hov2    #EAECF1:  4.79 [3.0] ok
+v1      light focus.ring      #1061D6 on inset(sin) sel     #E7EFFB:  4.89 [3.0] ok
+v1      light place.device    #127A43 on panel(s1)  rest    #EDF0F7:  4.73 [3.0] ok
+v1      light place.device    #127A43 on panel(s1)  hov     #E2E6EF:  4.31 [3.0] ok
+v1      light place.device    #127A43 on panel(s1)  hov2    #DADEE9:  4.01 [3.0] ok
+v1      light place.device    #127A43 on panel(s1)  sel     #D7E2F4:  4.13 [3.0] ok
+v1      light place.device    #127A43 on window(s2) rest    #FBFCFE:  5.25 [3.0] ok
+v1      light place.device    #127A43 on window(s2) hov     #F0F2F6:  4.81 [3.0] ok
+v1      light place.device    #127A43 on window(s2) hov2    #E7E9F0:  4.44 [3.0] ok
+v1      light place.device    #127A43 on window(s2) sel     #E4ECFA:  4.54 [3.0] ok
+v1      light place.device    #127A43 on raised(s3) rest    #E3E8F1:  4.38 [3.0] ok
+v1      light place.device    #127A43 on raised(s3) hov     #D9DFEA:  4.03 [3.0] ok
+v1      light place.device    #127A43 on raised(s3) hov2    #D1D7E4:  3.74 [3.0] ok
+v1      light place.device    #127A43 on raised(s3) sel     #CEDAEE:  3.82 [3.0] ok
+v1      light place.device    #127A43 on inset(sin) rest    #FFFFFF:  5.39 [3.0] ok
+v1      light place.device    #127A43 on inset(sin) hov     #F3F4F7:  4.90 [3.0] ok
+v1      light place.device    #127A43 on inset(sin) hov2    #EAECF1:  4.56 [3.0] ok
+v1      light place.device    #127A43 on inset(sin) sel     #E7EFFB:  4.66 [3.0] ok
+v1      light place.nas       #1061D6 on panel(s1)  rest    #EDF0F7:  4.97 [3.0] ok
+v1      light place.nas       #1061D6 on panel(s1)  hov     #E2E6EF:  4.53 [3.0] ok
+v1      light place.nas       #1061D6 on panel(s1)  hov2    #DADEE9:  4.21 [3.0] ok
+v1      light place.nas       #1061D6 on panel(s1)  sel     #D7E2F4:  4.34 [3.0] ok
+v1      light place.nas       #1061D6 on window(s2) rest    #FBFCFE:  5.52 [3.0] ok
+v1      light place.nas       #1061D6 on window(s2) hov     #F0F2F6:  5.05 [3.0] ok
+v1      light place.nas       #1061D6 on window(s2) hov2    #E7E9F0:  4.67 [3.0] ok
+v1      light place.nas       #1061D6 on window(s2) sel     #E4ECFA:  4.77 [3.0] ok
+v1      light place.nas       #1061D6 on raised(s3) rest    #E3E8F1:  4.61 [3.0] ok
+v1      light place.nas       #1061D6 on raised(s3) hov     #D9DFEA:  4.23 [3.0] ok
+v1      light place.nas       #1061D6 on raised(s3) hov2    #D1D7E4:  3.92 [3.0] ok
+v1      light place.nas       #1061D6 on raised(s3) sel     #CEDAEE:  4.02 [3.0] ok
+v1      light place.nas       #1061D6 on inset(sin) rest    #FFFFFF:  5.67 [3.0] ok
+v1      light place.nas       #1061D6 on inset(sin) hov     #F3F4F7:  5.15 [3.0] ok
+v1      light place.nas       #1061D6 on inset(sin) hov2    #EAECF1:  4.79 [3.0] ok
+v1      light place.nas       #1061D6 on inset(sin) sel     #E7EFFB:  4.89 [3.0] ok
+v1      light place.internet  #CC3328 on panel(s1)  rest    #EDF0F7:  4.52 [3.0] ok
+v1      light place.internet  #CC3328 on panel(s1)  hov     #E2E6EF:  4.12 [3.0] ok
+v1      light place.internet  #CC3328 on panel(s1)  hov2    #DADEE9:  3.83 [3.0] ok
+v1      light place.internet  #CC3328 on panel(s1)  sel     #D7E2F4:  3.94 [3.0] ok
+v1      light place.internet  #CC3328 on window(s2) rest    #FBFCFE:  5.02 [3.0] ok
+v1      light place.internet  #CC3328 on window(s2) hov     #F0F2F6:  4.60 [3.0] ok
+v1      light place.internet  #CC3328 on window(s2) hov2    #E7E9F0:  4.25 [3.0] ok
+v1      light place.internet  #CC3328 on window(s2) sel     #E4ECFA:  4.34 [3.0] ok
+v1      light place.internet  #CC3328 on raised(s3) rest    #E3E8F1:  4.19 [3.0] ok
+v1      light place.internet  #CC3328 on raised(s3) hov     #D9DFEA:  3.85 [3.0] ok
+v1      light place.internet  #CC3328 on raised(s3) hov2    #D1D7E4:  3.57 [3.0] ok
+v1      light place.internet  #CC3328 on raised(s3) sel     #CEDAEE:  3.65 [3.0] ok
+v1      light place.internet  #CC3328 on inset(sin) rest    #FFFFFF:  5.15 [3.0] ok
+v1      light place.internet  #CC3328 on inset(sin) hov     #F3F4F7:  4.68 [3.0] ok
+v1      light place.internet  #CC3328 on inset(sin) hov2    #EAECF1:  4.36 [3.0] ok
+v1      light place.internet  #CC3328 on inset(sin) sel     #E7EFFB:  4.45 [3.0] ok
+
+== 5. High contrast (unchanged by neutral mode; state fills inherit from .dk) ==
+hc      hc    text.primary    #FFFFFF on all        rest    #000000: 21.00 [4.5] ok
+hc      hc    text.primary    #FFFFFF on all        hov     #0C0D12: 19.40 [4.5] ok
+hc      hc    text.primary    #FFFFFF on all        hov2    #14171F: 17.91 [4.5] ok
+hc      hc    text.primary    #FFFFFF on all        selbg   #0E1826: 17.83 [4.5] ok
+hc      hc    text.tertiary   #F2F2F2 on all        rest    #000000: 18.75 [4.5] ok
+hc      hc    text.tertiary   #F2F2F2 on all        hov     #0C0D12: 17.33 [4.5] ok
+hc      hc    text.tertiary   #F2F2F2 on all        hov2    #14171F: 16.00 [4.5] ok
+hc      hc    text.tertiary   #F2F2F2 on all        selbg   #0E1826: 15.93 [4.5] ok
+hc      hc    line.strong     #FFFFFF on all        rest    #000000: 21.00 [3.0] ok
+hc      hc    line.strong     #FFFFFF on all        hov     #0C0D12: 19.40 [3.0] ok
+hc      hc    line.strong     #FFFFFF on all        hov2    #14171F: 17.91 [3.0] ok
+hc      hc    line.strong     #FFFFFF on all        selbg   #0E1826: 17.83 [3.0] ok
+hc      hc    focus.ring      #FFE34D on all        rest    #000000: 16.34 [3.0] ok
+hc      hc    focus.ring      #FFE34D on all        hov     #0C0D12: 15.10 [3.0] ok
+hc      hc    focus.ring      #FFE34D on all        hov2    #14171F: 13.94 [3.0] ok
+hc      hc    focus.ring      #FFE34D on all        selbg   #0E1826: 13.88 [3.0] ok
+hc      hc    place.device    #7CF0A8 on all        rest    #000000: 14.88 [3.0] ok
+hc      hc    place.device    #7CF0A8 on all        hov     #0C0D12: 13.75 [3.0] ok
+hc      hc    place.device    #7CF0A8 on all        hov2    #14171F: 12.70 [3.0] ok
+hc      hc    place.device    #7CF0A8 on all        selbg   #0E1826: 12.64 [3.0] ok
+hc      hc    place.nas       #8EC5FF on all        rest    #000000: 11.58 [3.0] ok
+hc      hc    place.nas       #8EC5FF on all        hov     #0C0D12: 10.70 [3.0] ok
+hc      hc    place.nas       #8EC5FF on all        hov2    #14171F:  9.88 [3.0] ok
+hc      hc    place.nas       #8EC5FF on all        selbg   #0E1826:  9.83 [3.0] ok
+hc      hc    place.internet  #FF8A80 on all        rest    #000000:  9.19 [3.0] ok
+hc      hc    place.internet  #FF8A80 on all        hov     #0C0D12:  8.50 [3.0] ok
+hc      hc    place.internet  #FF8A80 on all        hov2    #14171F:  7.84 [3.0] ok
+hc      hc    place.internet  #FF8A80 on all        selbg   #0E1826:  7.81 [3.0] ok
+
+== 6. Surround: only the focus ring, plus the high-contrast canvas edge line ==
+dark  focus.ring #F1F1F1 on surround #090909: 17.62 [3.0]
+light focus.ring #171717 on surround #777777:  4.00 [3.0]
+hc    focus.ring #FFE34D on surround #000000: 16.34 [3.0]
+hc    canvas edge line #FFFFFF on surround #000000: 21.00 [3.0]
+
+== 6b. status.error as TEXT (TYPOGRAPHY 8.3 'status.error text'), 4.5 required ==
+v1 shares the place.internet red; D1 resolves status.error to text.primary instead
+status  dark  red-as-text     #FF5C50 on panel(s1)  rest    #111111:  6.20 [4.5] ok
+status  dark  red-as-text     #FF5C50 on panel(s1)  hov     #1D1D1D:  5.53 [4.5] ok
+status  dark  red-as-text     #FF5C50 on panel(s1)  hov2    #262626:  4.97 [4.5] ok
+status  dark  red-as-text     #FF5C50 on panel(s1)  sel     #262626:  4.97 [4.5] ok
+status  dark  red-as-text     #FF5C50 on window(s2) rest    #171717:  5.88 [4.5] ok
+status  dark  red-as-text     #FF5C50 on window(s2) hov     #232323:  5.16 [4.5] ok
+status  dark  red-as-text     #FF5C50 on window(s2) hov2    #2B2B2B:  4.65 [4.5] ok
+status  dark  red-as-text     #FF5C50 on window(s2) sel     #2C2C2C:  4.58 [4.5] ok
+status  dark  red-as-text     #FF5C50 on raised(s3) rest    #212121:  5.28 [4.5] ok
+status  dark  red-as-text     #FF5C50 on raised(s3) hov     #2C2C2C:  4.58 [4.5] ok
+status  dark  red-as-text     #FF5C50 on raised(s3) hov2    #343434:  4.08 [4.5] BELOW
+status  dark  red-as-text     #FF5C50 on raised(s3) sel     #343434:  4.08 [4.5] BELOW
+status  dark  red-as-text     #FF5C50 on inset(sin) rest    #0B0B0B:  6.46 [4.5] ok
+status  dark  red-as-text     #FF5C50 on inset(sin) hov     #181818:  5.83 [4.5] ok
+status  dark  red-as-text     #FF5C50 on inset(sin) hov2    #202020:  5.35 [4.5] ok
+status  dark  red-as-text     #FF5C50 on inset(sin) sel     #212121:  5.28 [4.5] ok
+dark  status.error = text.primary #F1F1F1: min 11.02 [4.5]
+status  light red-as-text     #CC3328 on panel(s1)  rest    #F0F0F0:  4.52 [4.5] ok
+status  light red-as-text     #CC3328 on panel(s1)  hov     #E6E6E6:  4.13 [4.5] BELOW
+status  light red-as-text     #CC3328 on panel(s1)  hov2    #DFDFDF:  3.87 [4.5] BELOW
+status  light red-as-text     #CC3328 on panel(s1)  sel     #E2E2E2:  3.98 [4.5] BELOW
+status  light red-as-text     #CC3328 on window(s2) rest    #FCFCFC:  5.02 [4.5] ok
+status  light red-as-text     #CC3328 on window(s2) hov     #F2F2F2:  4.60 [4.5] ok
+status  light red-as-text     #CC3328 on window(s2) hov2    #EAEAEA:  4.28 [4.5] BELOW
+status  light red-as-text     #CC3328 on window(s2) sel     #EDEDED:  4.40 [4.5] BELOW
+status  light red-as-text     #CC3328 on raised(s3) rest    #E8E8E8:  4.20 [4.5] BELOW
+status  light red-as-text     #CC3328 on raised(s3) hov     #DFDFDF:  3.87 [4.5] BELOW
+status  light red-as-text     #CC3328 on raised(s3) hov2    #D7D7D7:  3.58 [4.5] BELOW
+status  light red-as-text     #CC3328 on raised(s3) sel     #DBDBDB:  3.72 [4.5] BELOW
+status  light red-as-text     #CC3328 on inset(sin) rest    #FFFFFF:  5.15 [4.5] ok
+status  light red-as-text     #CC3328 on inset(sin) hov     #F5F5F5:  4.73 [4.5] ok
+status  light red-as-text     #CC3328 on inset(sin) hov2    #ECECEC:  4.36 [4.5] BELOW
+status  light red-as-text     #CC3328 on inset(sin) sel     #F0F0F0:  4.52 [4.5] ok
+light status.error = text.primary #171717: min 12.45 [4.5]
+
+== 7. Other v1 values inside the app window: twin at the same alpha, or removed ==
+dark  selbg   #5AA2FF @ 15 % -> twin #A0A0A0 @ 15 %
+dark  hov     #AABCFF @ 7 % -> twin #BEBEBE @ 7 %
+dark  hov2    #AABCFF @ 12 % -> twin #BEBEBE @ 12 %
+dark  rim_a   #E2E9FF @ 46 % -> twin #E9E9E9 @ 46 %
+dark  rim_b   #96A5DC @ 10 % -> twin #A7A7A7 @ 10 %
+dark  rim_c   #96A5DC @ 20 % -> twin #A7A7A7 @ 20 %
+dark  sec_bg  #AABCFF @ 8 % -> twin #BEBEBE @ 8 %
+dark  pill_bg #AABCFF @ 6 % -> twin #BEBEBE @ 6 %
+dark  glowc   #8CB4FF @ 38 % -> removed
+dark  silver  #C9D3E6 -> twin #D2D2D2
+dark  pri_bg   ('#F4F6FA', '#D9DFEA') -> stops ['#F6F6F6', '#DFDFDF']; pri-tx twin #0E0E0E: [17.86, 14.48] [4.5] ok
+dark  pri_bg_h ('#FFFFFF', '#E8ECF4') -> stops ['#FFFFFF', '#ECECEC']; pri-tx twin #0E0E0E: [19.3, 16.34] [4.5] ok
+dark  wsh/wsh-off #000000 @ 58 % / 42 % / 45 % -> twin #000000 at the same alphas (C*ab 0.0 -> 0.00)
+light selbg   #1061D6 @ 10 % -> twin #676767 @ 10 %
+light hov     #182C60 @ 5 % -> twin #2F2F2F @ 5 %
+light hov2    #182C60 @ 9 % -> twin #2F2F2F @ 9 %
+light rim_a   #FFFFFF @ 100 % -> twin #FFFFFF @ 100 %
+light rim_b   #465A8C @ 16 % -> twin #5B5B5B @ 16 %
+light rim_c   #465A8C @ 30 % -> twin #5B5B5B @ 30 %
+light sec_bg  #FFFFFF @ 100 % -> twin #FFFFFF @ 100 %
+light pill_bg #FFFFFF @ 100 % -> twin #FFFFFF @ 100 %
+light glowc   #1061D6 @ 22 % -> removed
+light silver  #5B667F -> twin #666666
+light pri_bg   ('#232B42', '#121828') -> stops ['#2C2C2C', '#181818']; pri-tx twin #FFFFFF: [13.96, 17.75] [4.5] ok
+light pri_bg_h ('#2E3853', '#1A2134') -> stops ['#393939', '#212121']; pri-tx twin #FFFFFF: [11.54, 16.1] [4.5] ok
+light wsh/wsh-off #24366C @ 22 % / 14 % / 16 % -> twin #393939 at the same alphas (C*ab 35.7 -> 0.00)
+
+== 7b. Button fills at rest: --sec-bg / --pill-bg twins (not yet bases of the acceptance check, D3) ==
+hover on a secondary button replaces the fill with --hov2 (index.html line 142), covered in section 3
+dark  sec_bg  over panel(s1)  #1F1F1F: text.primary 14.59, text.secondary 7.77, text.tertiary 5.57, line.strong 3.52, focus.ring 14.59, place.device 8.44, place.nas 6.31, place.internet 5.41
+dark  sec_bg  over window(s2) #242424: text.primary 13.74, text.secondary 7.32, text.tertiary 5.24, line.strong 3.32, focus.ring 13.74, place.device 7.95, place.nas 5.94, place.internet 5.09
+dark  sec_bg  over raised(s3) #2E2E2E: text.primary 12.02, text.secondary 6.40, text.tertiary 4.59, line.strong 2.90 BELOW, focus.ring 12.02, place.device 6.95, place.nas 5.20, place.internet 4.46
+dark  sec_bg  over inset(sin) #191919: text.primary 15.56, text.secondary 8.29, text.tertiary 5.94, line.strong 3.76, focus.ring 15.56, place.device 9.00, place.nas 6.73, place.internet 5.77
+dark  pill_bg over panel(s1)  #1B1B1B: text.primary 15.24, text.secondary 8.12, text.tertiary 5.82, line.strong 3.68, focus.ring 15.24, place.device 8.82, place.nas 6.60, place.internet 5.65
+dark  pill_bg over window(s2) #212121: text.primary 14.25, text.secondary 7.59, text.tertiary 5.44, line.strong 3.44, focus.ring 14.25, place.device 8.24, place.nas 6.17, place.internet 5.28
+dark  pill_bg over raised(s3) #2A2A2A: text.primary 12.70, text.secondary 6.76, text.tertiary 4.85, line.strong 3.07, focus.ring 12.70, place.device 7.35, place.nas 5.49, place.internet 4.71
+dark  pill_bg over inset(sin) #161616: text.primary 16.02, text.secondary 8.53, text.tertiary 6.11, line.strong 3.87, focus.ring 16.02, place.device 9.26, place.nas 6.93, place.internet 5.94
+light sec_bg  over panel(s1)  #FFFFFF: text.primary 17.92, text.secondary 8.72, text.tertiary 6.09, line.strong 3.89, focus.ring 17.92, place.device 5.39, place.nas 5.67, place.internet 5.15
+light sec_bg  over window(s2) #FFFFFF: text.primary 17.92, text.secondary 8.72, text.tertiary 6.09, line.strong 3.89, focus.ring 17.92, place.device 5.39, place.nas 5.67, place.internet 5.15
+light sec_bg  over raised(s3) #FFFFFF: text.primary 17.92, text.secondary 8.72, text.tertiary 6.09, line.strong 3.89, focus.ring 17.92, place.device 5.39, place.nas 5.67, place.internet 5.15
+light sec_bg  over inset(sin) #FFFFFF: text.primary 17.92, text.secondary 8.72, text.tertiary 6.09, line.strong 3.89, focus.ring 17.92, place.device 5.39, place.nas 5.67, place.internet 5.15
+light pill_bg over panel(s1)  #FFFFFF: text.primary 17.92, text.secondary 8.72, text.tertiary 6.09, line.strong 3.89, focus.ring 17.92, place.device 5.39, place.nas 5.67, place.internet 5.15
+light pill_bg over window(s2) #FFFFFF: text.primary 17.92, text.secondary 8.72, text.tertiary 6.09, line.strong 3.89, focus.ring 17.92, place.device 5.39, place.nas 5.67, place.internet 5.15
+light pill_bg over raised(s3) #FFFFFF: text.primary 17.92, text.secondary 8.72, text.tertiary 6.09, line.strong 3.89, focus.ring 17.92, place.device 5.39, place.nas 5.67, place.internet 5.15
+light pill_bg over inset(sin) #FFFFFF: text.primary 17.92, text.secondary 8.72, text.tertiary 6.09, line.strong 3.89, focus.ring 17.92, place.device 5.39, place.nas 5.67, place.internet 5.15
+button-fill BELOW (reported here, outside the 12 of section 10): [('dark', 'sec_bg', 's3', '#2E2E2E', 'line.strong', 2.9)]
+
+== 8. Reproduction of the S0 verifier's figures (asserted) ==
+v1 dark ln2 #5D6890 on v1 raised #1A1F38: 2.96 (verifier 2.96) reproduced
+dark #747474 on sel row over raised #343434: 2.66 (verifier 2.66) reproduced
+light #818181 on sel row over panel #E0E0E0: 2.95 (verifier 2.95) reproduced
+light #818181 on sel row over raised #D9D9D9: 2.75 (verifier 2.75) reproduced
+dark #969696 on sel row over raised #343434: 4.20 (verifier 4.20) reproduced
+light #626262 on sel row over raised #D9D9D9: 4.32 (verifier 4.32) reproduced
+dark #747474 on sel twin #A0A0A0@15% over window #2C2C2C: 2.98 (verifier 2.98) reproduced
+light #818181 on hover twin #2F2F2F@9% over raised #D7D7D7: 2.70 (verifier 2.70) reproduced
+light #626262 on hover twin #2F2F2F@9% over raised #D7D7D7: 4.23 (verifier 4.23) reproduced
+
+== 8b. Rounding sensitivity: every composited fill above, with ties rounded up instead of to even ==
+v1 light fill #1061D6 @ 10 % over #FBFCFE: #E4ECFA -> #E4EDFA
+   text.primary    #111726 15.05 -> 15.15 [4.5] ok
+   text.secondary  #424B62  7.32 ->  7.36 [4.5] ok
+   text.tertiary   #58627D  5.11 ->  5.14 [4.5] ok
+   line.strong     #78819A  3.27 ->  3.29 [3.0] ok
+   focus.ring      #1061D6  4.77 ->  4.80 [3.0] ok
+   place.device    #127A43  4.54 ->  4.57 [3.0] ok
+   place.nas       #1061D6  4.77 ->  4.80 [3.0] ok
+   place.internet  #CC3328  4.34 ->  4.36 [3.0] ok
+v1 light fill #1061D6 @ 10 % over #E3E8F1: #CEDAEE -> #CEDBEE
+   text.primary    #111726 12.67 -> 12.76 [4.5] ok
+   text.secondary  #424B62  6.16 ->  6.20 [4.5] ok
+   text.tertiary   #58627D  4.30 ->  4.33 [4.5] BELOW
+   line.strong     #78819A  2.75 ->  2.77 [3.0] BELOW
+   focus.ring      #1061D6  4.02 ->  4.04 [3.0] ok
+   place.device    #127A43  3.82 ->  3.85 [3.0] ok
+   place.nas       #1061D6  4.02 ->  4.04 [3.0] ok
+   place.internet  #CC3328  3.65 ->  3.68 [3.0] ok
+2 of 75 composited fills move by one 8-bit step; no verdict changes
+
+== 9. Minima per theme and base at rest (PROVISIONAL token table) ==
+dark  text.primary    panel(s1) 16.71 window(s2) 15.87 raised(s3) 14.25 inset(sin) 17.42  min 14.25
+dark  text.secondary  panel(s1)  8.90 window(s2)  8.45 raised(s3)  7.59 inset(sin)  9.28  min  7.59
+dark  text.tertiary   panel(s1)  6.38 window(s2)  6.06 raised(s3)  5.44 inset(sin)  6.65  min  5.44
+dark  line.strong     panel(s1)  4.04 window(s2)  3.83 raised(s3)  3.44 inset(sin)  4.21  min  3.44
+dark  focus.ring      panel(s1) 16.71 window(s2) 15.87 raised(s3) 14.25 inset(sin) 17.42  min 14.25
+light text.primary    panel(s1) 15.73 window(s2) 17.47 raised(s3) 14.63 inset(sin) 17.92  min 14.63
+light text.secondary  panel(s1)  7.65 window(s2)  8.50 raised(s3)  7.11 inset(sin)  8.72  min  7.11
+light text.tertiary   panel(s1)  5.35 window(s2)  5.94 raised(s3)  4.97 inset(sin)  6.09  min  4.97
+light line.strong     panel(s1)  3.41 window(s2)  3.79 raised(s3)  3.17 inset(sin)  3.89  min  3.17
+light focus.ring      panel(s1) 15.73 window(s2) 17.47 raised(s3) 14.63 inset(sin) 17.92  min 14.63
+
+== 10. BELOW rows (failures; none is presented as passing) ==
+-- neutral: 12 BELOW
+   dark  text.tertiary   #969696 on raised(s3) hov2    #343434:  4.20 < 4.5
+   dark  text.tertiary   #969696 on raised(s3) sel     #343434:  4.20 < 4.5
+   dark  line.strong     #747474 on window(s2) sel     #2C2C2C:  2.98 < 3.0
+   dark  line.strong     #747474 on raised(s3) hov     #2C2C2C:  2.98 < 3.0
+   dark  line.strong     #747474 on raised(s3) hov2    #343434:  2.66 < 3.0
+   dark  line.strong     #747474 on raised(s3) sel     #343434:  2.66 < 3.0
+   light text.tertiary   #626262 on raised(s3) hov2    #D7D7D7:  4.23 < 4.5
+   light text.tertiary   #626262 on raised(s3) sel     #DBDBDB:  4.40 < 4.5
+   light line.strong     #818181 on panel(s1)  hov2    #DFDFDF:  2.92 < 3.0
+   light line.strong     #818181 on raised(s3) hov     #DFDFDF:  2.92 < 3.0
+   light line.strong     #818181 on raised(s3) hov2    #D7D7D7:  2.70 < 3.0
+   light line.strong     #818181 on raised(s3) sel     #DBDBDB:  2.81 < 3.0
+-- neutral.v2sel: 5 BELOW
+   dark  text.tertiary   #969696 on raised(s3) sel.v2  #343434:  4.20 < 4.5
+   dark  line.strong     #747474 on raised(s3) sel.v2  #343434:  2.66 < 3.0
+   light text.tertiary   #626262 on raised(s3) sel.v2  #D9D9D9:  4.32 < 4.5
+   light line.strong     #818181 on panel(s1)  sel.v2  #E0E0E0:  2.95 < 3.0
+   light line.strong     #818181 on raised(s3) sel.v2  #D9D9D9:  2.75 < 3.0
+-- v1: 20 BELOW
+   dark  text.tertiary   #8C95B2 on raised(s3) hov2    #2B3250:  4.21 < 4.5
+   dark  text.tertiary   #8C95B2 on raised(s3) sel     #243356:  4.19 < 4.5
+   dark  line.strong     #5D6890 on panel(s1)  hov2    #20253B:  2.77 < 3.0
+   dark  line.strong     #5D6890 on panel(s1)  sel     #192641:  2.75 < 3.0
+   dark  line.strong     #5D6890 on window(s2) hov     #1D2239:  2.87 < 3.0
+   dark  line.strong     #5D6890 on window(s2) hov2    #242A44:  2.58 < 3.0
+   dark  line.strong     #5D6890 on window(s2) sel     #1D2B4A:  2.57 < 3.0
+   dark  line.strong     #5D6890 on raised(s3) rest    #1A1F38:  2.96 < 3.0
+   dark  line.strong     #5D6890 on raised(s3) hov     #242A46:  2.57 < 3.0
+   dark  line.strong     #5D6890 on raised(s3) hov2    #2B3250:  2.29 < 3.0
+   dark  line.strong     #5D6890 on raised(s3) sel     #243356:  2.28 < 3.0
+   dark  line.strong     #5D6890 on inset(sin) hov2    #1B1F32:  2.98 < 3.0
+   dark  line.strong     #5D6890 on inset(sin) sel     #142139:  2.94 < 3.0
+   light text.tertiary   #58627D on raised(s3) hov2    #D1D7E4:  4.20 < 4.5
+   light text.tertiary   #58627D on raised(s3) sel     #CEDAEE:  4.30 < 4.5
+   light line.strong     #78819A on panel(s1)  hov2    #DADEE9:  2.88 < 3.0
+   light line.strong     #78819A on panel(s1)  sel     #D7E2F4:  2.97 < 3.0
+   light line.strong     #78819A on raised(s3) hov     #D9DFEA:  2.90 < 3.0
+   light line.strong     #78819A on raised(s3) hov2    #D1D7E4:  2.69 < 3.0
+   light line.strong     #78819A on raised(s3) sel     #CEDAEE:  2.75 < 3.0
+-- hc: 0 BELOW
+-- status-red-as-text: 12 BELOW
+   dark  red-as-text     #FF5C50 on raised(s3) hov2    #343434:  4.08 < 4.5
+   dark  red-as-text     #FF5C50 on raised(s3) sel     #343434:  4.08 < 4.5
+   light red-as-text     #CC3328 on panel(s1)  hov     #E6E6E6:  4.13 < 4.5
+   light red-as-text     #CC3328 on panel(s1)  hov2    #DFDFDF:  3.87 < 4.5
+   light red-as-text     #CC3328 on panel(s1)  sel     #E2E2E2:  3.98 < 4.5
+   light red-as-text     #CC3328 on window(s2) hov2    #EAEAEA:  4.28 < 4.5
+   light red-as-text     #CC3328 on window(s2) sel     #EDEDED:  4.40 < 4.5
+   light red-as-text     #CC3328 on raised(s3) rest    #E8E8E8:  4.20 < 4.5
+   light red-as-text     #CC3328 on raised(s3) hov     #DFDFDF:  3.87 < 4.5
+   light red-as-text     #CC3328 on raised(s3) hov2    #D7D7D7:  3.58 < 4.5
+   light red-as-text     #CC3328 on raised(s3) sel     #DBDBDB:  3.72 < 4.5
+   light red-as-text     #CC3328 on inset(sin) hov2    #ECECEC:  4.36 < 4.5
+
+SUMMARY twin-bound 0.089; BELOW neutral 12, neutral.v2sel 5, v1 inherited 20, hc 0, red status as text 12. Acceptance check (every pair >= threshold on every allowed base with state fills): FAIL for the provisional v1-derived twins.

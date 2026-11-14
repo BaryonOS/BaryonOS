@@ -117,9 +117,23 @@ The v2 board is set in the typeface selected in [TYPOGRAPHY.md](TYPOGRAPHY.md);
 the Funnel faces on the v1 board were the designer's choice, not a project
 decision.
 
+## Orbitaal v2 board
+
+[`ui/design/concepts/orbitaal-v2/index.html`](../../ui/design/concepts/orbitaal-v2/index.html)
+applies the selection above: the must-fix list (MF1–MF11), the Triade and
+Materie grafts (G1–G8), the `type-1.0` roles with Inter 4.001 (T) and wordmark
+v2 on brand surfaces only (W). The v1 page and the Triade and Materie pages
+stay unchanged as comparison and regression references. An independent AI
+recheck rendered the board at 100 % and 200 %, under reduced motion and with
+keyboard focus, sampled contrast from pixels and accepted it with six open
+minor findings; the record, generator and renders are in
+[docs/verification/orbitaal-v2-20261114](../verification/orbitaal-v2-20261114/README.md).
+The board is a static design, not a working OS, and no participant has tested it.
+
 ## Not verified
 
-- Layouts at 1280 × 720 and at 200 % scale were not rendered for any board.
+- Layouts at 1280 × 720 were not rendered for any board; only the v2 board was
+  rendered at 200 % (device scale factor 2, not a reflow).
 - High contrast was judged only from the reduced miniatures on artboard 6.
 - Motion and the boot convergence were judged from static frames and written
   specifications; no animation was watched or timed.

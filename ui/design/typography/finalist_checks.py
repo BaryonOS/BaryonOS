@@ -3,10 +3,13 @@
 
 Reports, per face: characters of the prototype copy missing from the cmap, glyph
 names of zero variants and rasters of the default and tnum zero, I/l rasters
-at the UI and small token sizes with the shipping features, and word-space gaps
-in the native specimen lines at 100 % and 200 %, also with the space advance
-2 px wider (a proposed atlas correction), all through the same Pillow/raqm
-path and whole-glyph advance placement native_specimen.py uses. Build-time only.
+at the UI and small token sizes with the shipping features, pair distinctness
+at the token sizes (two-size mean, then per size), and word-space gaps at 100 %
+and 200 %, also with the space advance 2 px wider (a proposed atlas
+correction): first each role on its own specimen line, then every role record
+(and Inter's 22sb, 44sb and 48r) on all four specimen lines, with the sites of
+ties and collapses. All through the same Pillow/raqm path and whole-glyph
+advance placement native_specimen.py uses. Build-time only.
 Usage: python3 -I ui/design/typography/finalist_checks.py
 """
 import struct
@@ -27,6 +30,8 @@ FACES = {  # name: (file, UI px at equal x-height, shipping features)
     'Exo 2': ('Exo2[wght].ttf', 17, []),
 }
 COPY = ['ui/design/prototype/strings.js', 'ui/design/prototype/data.js']
+# type-1.0 records outside the specimen roles (TYPOGRAPHY.md section 8.2): 22sb, 44sb, 48r.
+EXTRA_RECORDS = {'Inter': [(600, 22), (600, 44), (400, 48)]}
 
 
 def post_names(data: bytes, t: dict) -> list:
@@ -53,6 +58,12 @@ def raster(font, ch: str, feats: list) -> list:
 def gaps(text: str, font, feats: list, space_px: int = 0) -> tuple:
     """Smallest ink gap across a space and largest ink gap inside a word, in pixels.
     space_px widens the space advance, simulating a corrected atlas record."""
+    g = gap_list(text, font, feats, space_px)
+    return min(d for d, _, s in g if s), max(d for d, _, s in g if not s)
+
+
+def gap_list(text: str, font, feats: list, space_px: int = 0) -> list:
+    """(gap px, characters either side, crosses a space) for each pair of inked neighbours."""
     advance, spans = 0, []
     for ch in text:
         f = feats + (ns.DIGIT_FEATURES if ch.isdigit() else [])
@@ -64,16 +75,23 @@ def gaps(text: str, font, feats: list, space_px: int = 0) -> tuple:
             ink = mask.point(lambda v: 255 if (v + 8) // 17 else 0).getbbox()  # pixels the 4-bit atlas keeps
         spans.append(None if ink is None else (advance // 64 + left + ink[0], advance // 64 + left + ink[2]))
         advance += round(font.getlength(ch, features=f) * 64) + (space_px * 64 if ch == ' ' else 0)
-    word, space = [], []
-    prev, crossed = None, False
-    for span in spans:
+    out, prev, start, crossed = [], None, 0, False
+    for i, span in enumerate(spans):
         if span is None:
             crossed = True
             continue
         if prev is not None:
-            (space if crossed else word).append(span[0] - prev[1])
-        prev, crossed = span, False
-    return min(space), max(word)
+            out.append((span[0] - prev[1], text[start:i + 1], crossed))
+        prev, start, crossed = span, i, False
+    return out
+
+
+def worst(text: str, font, feats: list, space_px: int = 0) -> tuple:
+    """((smallest gap across a space, where), (largest gap inside a word, where))."""
+    g = gap_list(text, font, feats, space_px)
+    sp = min(((d, w) for d, w, s in g if s), key=lambda dw: dw[0])
+    wd = max(((d, w) for d, w, s in g if not s), key=lambda dw: dw[0])
+    return sp, wd
 
 
 def main() -> None:
@@ -119,6 +137,31 @@ def main() -> None:
             print(f'  I | l at {size} px ({role}), 4-bit coverage as characters:')
             for ra, rb in zip(a, b):
                 print(f'    {ra}   {rb}')
+        for s in token_px:  # per size: the two-size mean above hides swings between sizes
+            ds = {f'{a}/{b}': mf.distinctness(path, axes, a, b, s, feats) for a, b in mf.PAIRS}
+            print(f'  pair distinctness at {s} px only: mean {sum(ds.values()) / len(ds):.3f}, weakest '
+                  + ', '.join(f'{k} {v:.3f}' for k, v in sorted(ds.items(), key=lambda kv: kv[1])[:3]))
+        records = [(w, s * scale) for scale in (1, 2) for w, s in (sizes[r] for r, _ in ns.LINES)]
+        records += EXTRA_RECORDS.get(name, [])
+        print('  word space on every specimen line, per record: smallest gap across a space / largest gap '
+              'inside a word (px); "=" tie, "<" collapse; then the same with the space 2 px wider')
+        flagged = {0: [], 2: []}
+        for weight, size in records:
+            font = ns.font_at(path, size, weight)
+            cells = {0: [], 2: []}
+            for role, text in ns.LINES:
+                for extra in (0, 2):
+                    (sp, sw), (wd, ww) = worst(text, font, feats, extra)
+                    mark = '<' if sp < wd else '=' if sp == wd else ' '
+                    cells[extra].append(f'{role} {sp}/{wd}{mark}')
+                    if mark != ' ':
+                        flagged[extra].append(f'{size}{"sb" if weight == 600 else "r"} on the {role} line: '
+                                              f'{sp} px at "{sw}" against {wd} px at "{ww}"')
+            print(f'    {size:2d}{"sb" if weight == 600 else "r ":2}  ' + '  '.join(cells[0])
+                  + '  | +2 px: ' + '  '.join(cells[2]))
+        for extra in (0, 2):
+            print(f'  ties and collapses{" with the space 2 px wider" if extra else ""}:',
+                  ('\n    ' + '\n    '.join(flagged[extra])) if flagged[extra] else 'none')
 
 
 if __name__ == '__main__':

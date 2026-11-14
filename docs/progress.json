@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "7f693d73702072fa0db3b99ffc56df3eed6b8fa5",
-    "assessment_basis": "parent_commit",
-    "branch": "test/issue43-n04-helper-isolation",
-    "task": "Verify the native unregistered-helper isolation follow-up after PR #328 squash",
+    "source_commit": "ea4e033dc180278effc18508bdb01afd5b5d064c",
+    "assessment_basis": "source_commit",
+    "branch": "claude/baryon-os-ui-ux-design-152adb",
+    "task": "Design pipeline on draft PR #332: integrate the accepted Orbitaal v2 board, the S0 suite workspace requirements and the S1 professional capability matrix",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The N04-only follow-up preserves merged main and adds an unregistered native helper negative fixture with causal sender rejection before backend effects. All six native network cases, strict preflight/build/smoke, 92 Python tests, 24 Rust tests, strict service Clippy and formatting pass on local executable source 21a53dd9342988263f7d49e9ef559fb7a2d288cd, whose complete Git tree equals published source 7f693d73702072fa0db3b99ffc56df3eed6b8fa5. Independent AI integration review found no blocker. Current evidence is in docs/verification/n04-helper-20261114/integration.json; earlier mutation/replay receipts retain their original source identities. N04 and issue #43 remain open; no criterion, weight or production permission changes. Hosted checks remain separate."
+    "summary": "41/100 remains 41/100. The branch adds design documents only: the Orbitaal v2 design board (a static board, rendered and rechecked by an independent AI reviewer), the S0 workspace requirements and the S1 capability matrix (14 rows prototyped on the host, 201 proposed, none passed natively). No native build, QEMU run or criterion evidence is added; design, research and simulation evidence accepts no criterion."
   },
   "tracks": [
     {

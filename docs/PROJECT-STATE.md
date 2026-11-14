@@ -1,6 +1,112 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — N04 helper follow-up after #328 squash — 14 November 2026
+## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
+
+**Source:** branch `claude/baryon-os-ui-ux-design-152adb` at `ea4e033d`
+(S0 `b305fa7c`, S1 `8e4abd8d`, v2 board `ea4e033d`) after merge `89e8b1c9` of
+main `ce47359f` (#334); assessment in the following commit; draft PR #332
+succeeds the merged #322 (no auto-merge, never merge without the project
+owner). Main's checkpoints below are unchanged apart from the demoted heading
+of main's handoff.
+
+**Scope:** two work areas under one lead, one plan and this one handoff: the
+UI/UX continuation and the project owner's addendum of 14 November 2026 on a
+professional productivity and creative ecosystem. Suite format names and
+architectures are evidence-backed proposals until an ADR adopts them; suite
+milestones never enter `docs/progress.json`; every BaryonOS capability is
+"proposed" unless stored evidence shows more.
+
+| ID | Deliverable | Target | Status |
+|---|---|---|---|
+| UX-v2 | Orbitaal v2 board, CONCEPTS.md v2 section | `ui/design/concepts/orbitaal-v2/` Accepted (`ea4e033d`): independent rendered AI recheck, 21/21 planner items resolved, 0 blockers or majors, 6 minors open ([record](verification/orbitaal-v2-20261114/README.md)) |
+| UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Workflow script ready; waits for an accepted v2 board and S0 |
+| UX-E | Connected prototype journey (simulation) | `ui/design/prototype/` | Open |
+| UX-F | Visual verification, at most two polish passes | `docs/verification/` | Open |
+| UX-G | Native vertical slice, QEMU screenshots | `ui/native`, `ui/graphics` | Plan done; G0 measured; G1 (licence and packaging) next |
+| S0 | Suite requirements that shape ds-1.0 (colour scope, density, neutral surfaces, region names) | `docs/design/suite/WORKSPACE-REQUIREMENTS.md` Accepted (`b305fa7c`): D9 single-pointer selection routes added; independent AI recheck, 0 blockers or majors, 6 minors open ([record](verification/suite-s0-workspace-20261114/README.md)) |
+| S1 | Professional application capability matrix | `docs/design/suite/CAPABILITY-MATRIX.md` Accepted (`8e4abd8d`): 215 rows, 14 prototyped (host), 201 proposed, 0 native; independent AI verification, 0 blockers or majors, 5 minors open ([record](verification/suite-s1-capability-matrix-20261114/README.md)) |
+| S2 | Consumer-to-professional UX maturity model | `docs/design/suite/MATURITY-MODEL.md` | Open |
+| S3 | Named file-format family, at least three naming systems, registry-checked extensions | `docs/design/suite/FILE-FORMATS.md` | Open |
+| S4 | Common native document/object architecture over the existing storage contracts | `docs/design/suite/OBJECT-ARCHITECTURE.md` | Open |
+| S5 | Interoperability and migration, feature-level compatibility matrix | `docs/design/suite/INTEROPERABILITY.md` | Open |
+| S6 | First-party application concepts for every discipline | `docs/design/suite/APPLICATIONS.md` | Open |
+| S7 | Representative high-fidelity professional designs (document, grid, layered canvas, timeline) | `ui/design/suite/` | Open |
+| S8 | Cross-application Materiaal workflows | `docs/design/suite/WORKFLOWS.md` | Open |
+| S9 | Technical feasibility assessment | `docs/design/suite/FEASIBILITY.md` | Open |
+| S10 | Phased plan with testable milestones; benchmark scenarios labelled proposed, prototyped or passed | `docs/design/suite/IMPLEMENTATION-PLAN.md`, `BENCHMARKS.md` | Open |
+
+**Done (in Git):** the verified typography residuals (`af3d8950`) and the
+lead's reversible selection of Inter 4.001 for `type-1.0` under the project
+owner's delegation (`524df7b0`). The recorded tie (Atkinson Hyperlegible Next
+73.00, Inter 72.45 of 100) is preserved; reverting `524df7b0` alone reopens
+the choice. The cargo feature `inter-atlas` stays off by default, so the
+default native build still draws Open Sans ([TYPOGRAPHY.md](design/TYPOGRAPHY.md)
+section 7, [atlas record](verification/native-inter-atlas-20261114/README.md)).
+
+**Evidence:** `python3 -I ui/design/typography/finalist_checks.py` reproduces
+the stored output byte for byte; an independent AI verifier checked 13 claims
+(12 supported, 1 corrected). The merge result differs from main by exactly
+`git diff 41b94b47 524df7b0`. No native build or QEMU run in this step.
+
+**Order:** UX-v2 → S0 → UX-D → UX-E with S7 and S8 → UX-F → UX-G, with
+S1–S6 and S9–S10 running in free agent slots alongside UX-E to UX-G. The
+native slice follows `docs/design/NATIVE-FEASIBILITY.md` section 4, plus the
+`ui/native` Inter licence and package entries and the high-contrast
+fingerprint review.
+
+**Execution (from 14 November, 17:12 CET):** the project owner's
+clean-session instruction replaces the long-running coordinator chat. A
+serial workflow runner (`build/design-pipeline-checkpoint/runs-20261114/design-runner-wf_4c415199-617.js`,
+lock `RUNNER.lock`) gives every task a fresh writer and a fresh independent
+checker that never sees the writer's self-report, with at most two repair
+rounds; one writer at a time; workers never stage, commit or push. Transcripts
+show each worker starts with only its brief. A worker's fixed base context is
+about 137 k tokens, so the 100 k target cannot be met on this route and
+`--autocompact` is not available to workflow workers; the global 400 000
+window remains the safety net. Run `wf_4c415199-617` accepted UX-v2, S0 and
+S1 (five workers, about 1.24 M subagent tokens, 66 minutes).
+
+The detailed checkpoint lists run IDs, results, hashes, briefs, tools and
+owner decisions: `build/design-pipeline-checkpoint/handoff-baryonos-design-pipeline.md`
+(ignored, section 14 for this session).
+
+**Next:** UX-D (ds-1.0, script `build/design-pipeline-checkpoint/ds-1.0-workflow.js`,
+to be adapted to the runner), then G1 (Inter licence and packaging) as the
+next single writer; S2–S10 in free read-only slots. Blocker at 18:30 CET: the
+account's 5-hour usage window was 97 % used (resets 19:29 CET), so no new
+worker was started.
+
+**G0 (measured, evidence in ignored `build/design-evidence/g0/`):**
+`materiaal-app` `.text` is 157 289 B with Open Sans (6 551 B below the
+163 840 B limit) and 157 881 B with Inter (5 959 B); read-only 293 248 and
+353 736 B. `ui/native` tests: Open Sans exit 0; Inter exit 101, 109 passed and
+one failure, `default_source_fingerprints`, which stays a failure until a
+cfg-gated golden array is legitimately recomputed. The rustup snap proxy
+cannot start here, so the pinned 1.90.0 toolchain binaries were run directly.
+
+**Owner decisions recorded, not requested now:** a native 200 % kernel test
+profile, CI jobs for `inter-atlas` and the session preview, any code-limit
+raise, a native light theme and Inter as the native default. Until then the
+native evidence is default plus high contrast at 100 %; 200 % is host-only.
+
+**Progress:** 41/100 → 41/100. Design work accepts no criterion.
+
+**Next (UX-v2-R2):** run one fresh worker that finishes the v2 repair from
+the stored critique. A second fresh worker then rechecks the board with
+renders at 100 % and 200 %, in dark, light and high-contrast themes, and
+with reduced motion. The task is complete when:
+- no blocker or major item remains open;
+- `git diff --stat` is empty for the v1 concept folders and
+  `ui/prototype/tokens.css`;
+- the coordinator has committed the board.
+
+After that, in order:
+- S0: fix D9 and recheck it;
+- S1: re-verify;
+- ds-1.0;
+- G1 (Inter licence and packaging).
+
+## Previous checkpoint — N04 helper follow-up after #328 squash — 14 November 2026
 
 **Source:** branch `test/issue43-n04-helper-isolation`, based on merged main
 `4cd444e08dac820cc66f2750c43845b4139901cc`. Verified executable source:
