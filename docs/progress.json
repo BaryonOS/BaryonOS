@@ -8,7 +8,7 @@
     "branch": "fix/python-code-quality-20261114",
     "task": "Resolve all 107 Python Code Quality findings under 17 rules while preserving historical evidence",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. 77 findings have targeted code changes; 30 findings in 15 immutable historical source files were dismissed with recorded provenance. 678 host tests in 38 suites pass. Native gates remain blocked by missing tools. Code Quality must confirm the patch; main closure requires owner-approved merge. No acceptance criterion or scanning configuration changes."
+    "summary": "41/100 remains 41/100. 77 findings have targeted code changes; 30 findings in 15 immutable historical source files were dismissed with recorded provenance. 678 host tests in 38 suites pass. Native gates remain blocked by missing tools. Code Quality run 43601148798 passed on the patch in draft PR #330; per-rule result counts remain unavailable, and main closure requires owner-approved merge plus a main scan. No acceptance criterion or scanning configuration changes."
   },
   "tracks": [
     {

@@ -31,9 +31,16 @@ OVMF are unavailable. These are host checks, not native acceptance evidence.
 Local logs: `build/code-quality-20261114/`. Progress remains 41/100; no acceptance
 criterion changed. Generated progress views are regenerated and checked.
 
-**Next:** publish/review the draft PR and inspect its automatic Code Quality
-analysis. Do not claim that main is clear before the owner approves merging and
-GitHub finishes the main scan. No merge or auto-merge is enabled.
+**PR:** [#330](https://github.com/BaryonOS/BaryonOS/pull/330), draft. The automatic
+Code Quality run [43601148798](https://github.com/BaryonOS/BaryonOS/actions/runs/43601148798)
+succeeded on code commit `d4d24bdc504d870e69978dd516837b8af66958f9`; all 17 requested
+Python queries were interpreted and their SARIF uploaded. The logs do not expose
+per-rule result counts, so this does not establish zero remaining main findings.
+
+**Next:** obtain the owner's explicit merge approval, respect the required checks,
+then verify that a new main scan clears the 77 repaired findings. No merge or
+auto-merge is enabled. This follow-up records scan evidence only; Python bytes
+remain identical to the analyzed code commit.
 
 ## Previous checkpoint — Code scanning alert triage — 14 November 2026
 

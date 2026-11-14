@@ -147,7 +147,72 @@
     "syntax_changed_python_files": 55,
     "maintained_helpers": "Four verifier/helper files parse; both K06 help commands exit0; all five LIMITS strings unchanged. OS-dev script help commands exit0; volume boundary behavior preserved.",
     "independent_review": "No blocking issue found in maintained verifier/test changes or QMP bootstrap. Protocol-body and six transport bodies preserve their original behavior. Fifteen archived source hashes match.",
-    "code_quality": "pending automatic draft-PR scan",
+    "code_quality": {
+      "schema_version": 1,
+      "observed_date": "2026-11-14",
+      "pr": 330,
+      "head_sha": "d4d24bdc504d870e69978dd516837b8af66958f9",
+      "run": {
+        "id": 43601148798,
+        "name": "Code Quality: PR #330",
+        "path": "dynamic/github-code-quality/codeql",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/BaryonOS/BaryonOS/actions/runs/43601148798"
+      },
+      "python_job": {
+        "id": 132465962367,
+        "name": "Analyze (python)",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-11-14T13:43:02Z",
+        "completed_at": "2026-11-14T13:44:50Z"
+      },
+      "requested_queries_interpreted": [
+        "py/unused-import",
+        "py/import-and-import-from",
+        "py/empty-except",
+        "py/implicit-string-concatenation-in-list",
+        "py/imprecise-assert",
+        "py/call/wrong-arguments",
+        "py/init-calls-subclass",
+        "py/mixed-returns",
+        "py/side-effect-in-assert",
+        "py/catch-base-exception",
+        "py/missing-call-to-init",
+        "py/multiple-definition",
+        "py/unused-local-variable",
+        "py/incomplete-ordering",
+        "py/mixed-tuple-returns",
+        "py/repeated-import",
+        "py/unreachable-statement"
+      ],
+      "sarif_export_and_upload_log": [
+        "2026-11-14T13:44:43.8999606Z Exporting results to SARIF...",
+        "2026-11-14T13:44:44.0674283Z Exported results to SARIF (168ms).",
+        "2026-11-14T13:44:44.1205715Z Post-processing sarif files: [\"/home/runner/work/BaryonOS/results/python.quality.sarif\"]",
+        "2026-11-14T13:44:44.1382754Z ##[group]Uploading code quality results",
+        "2026-11-14T13:44:45.8307125Z Successfully uploaded results"
+      ],
+      "warning_log": [
+        "2026-11-14T13:43:19.0969757Z [2026-11-14 13:43:19] [build-stdout] [WARN] Failed to find dynload path",
+        "2026-11-14T13:43:19.5300309Z [2026-11-14 13:43:19] [build-stdout] [WARN] [1] Failed to find dynload path",
+        "2026-11-14T13:43:19.5329879Z [2026-11-14 13:43:19] [build-stdout] [WARN] [3] Failed to find dynload path",
+        "2026-11-14T13:43:19.6208674Z [2026-11-14 13:43:19] [build-stdout] [WARN] [2] Failed to find dynload path",
+        "2026-11-14T13:43:19.6469785Z [2026-11-14 13:43:19] [build-stdout] [WARN] [4] Failed to find dynload path"
+      ],
+      "diagnostic_summary": [
+        "2026-11-14T13:44:43.7429773Z Found 6 raw diagnostic messages."
+      ],
+      "downloadable_artifacts": 0,
+      "pr_issue_comments": 0,
+      "pr_review_submissions": 0,
+      "raw_sarif_retrieved": false,
+      "remaining_findings_count": null,
+      "zero_remaining_findings_verified": false,
+      "limitation": "The job log confirms all17 requested queries were interpreted and python.quality.sarif was exported/uploaded. It contains no raw SARIF results or per-rule finding counts, and the workflow has no downloadable artifacts. Six diagnostic messages are extractor diagnostics, not six code-quality findings. Scan success alone does not establish that the77 repaired findings are absent.",
+      "annotation_note": "The visible check annotation is GitHub's ubuntu-latest to Ubuntu26 migration notice, not a quality finding."
+    },
     "patched_python_sha256": {
       ".agents/skills/os-dev/scripts/build_corpus.py": "f95c316b271c2c83ac8e0c3c2395f91330285f73060a8c0d818dd2c120a879a5",
       ".agents/skills/os-dev/scripts/zoeken.py": "c491c1ab3cebfab1772b53cf9b0f2a7f8283ca8d31c4a0be0da71ce355e185d7",
@@ -1974,5 +2039,6 @@
       "baseline_sha256": "adae261a6f154362f8bb65ab4234f12c350f486b5e6c6b34e43dad9a19924716",
       "patched_sha256": "4ba5a697e380c7849ed92347798a0db32368f1d82d55da322f5c5e2e13820e70"
     }
-  }
+  },
+  "pull_request": "https://github.com/BaryonOS/BaryonOS/pull/330"
 }
