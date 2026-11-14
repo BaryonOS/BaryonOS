@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "2eb7b942cac10db727a184819812634300a8e778",
+    "source_commit": "204c4ed51585c4ba500735a90eb1c449863399f7",
     "assessment_basis": "source_commit",
-    "branch": "docs/code-scanning-triage-20261114",
-    "task": "Resolve the 23 specified open CodeQL alerts with source-grounded test-only and false-positive dispositions",
+    "branch": "feat/s09-ustar-export",
+    "task": "Refresh PR #325 after documentation PR #329 merged as 299f0e39c202d67d1c2f4e31b879cbdd6add262b",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. GitHub code scanning now shows 0 open and 33 closed alerts on main after 14 test-only and 9 false-positive dismissals. Only triage evidence and the project checkpoint change; no runtime code, security control, scan configuration or acceptance criterion changes. Native execution was blocked by missing tools."
+    "summary": "41/100 remains 41/100. The two status-document conflicts are reconciled by retaining the complete PR #325/S09 handoff and the CodeQL triage checkpoint from PR #329. The criterion register, ustar implementation, per-CPU SMP fix and existing evidence remain unchanged. Current integration checks and source-preservation evidence are recorded in docs/verification/pr325-refresh-20261114.json."
   },
   "tracks": [
     {
