@@ -1,6 +1,48 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — S09 native archive slice: export, restore, damaged-archive refusal, name-conflict restore and a full target pass the local volume gate (14/14) — 13 November 2026
+## NEXT AGENT HANDOFF — S09 proposed ustar user export: host-tested converter, AI-review fixes and an unchanged 14/14 volume gate — 14 November 2026
+
+**Source:** branch `feat/s09-ustar-export` from main `7d9498a8` (PR #318, merged by the project owner), draft PR #325 (no auto-merge). Tested commit `7191cd02` (source-v3 `854e4d75f83b18399ec3d4c375a8017719c710ed01ecc918478f412a854f1609`); later commits change documentation and evidence only.
+
+**Done:**
+- `volume_core::ustar::from_archive` converts a verified format-v1 archive into a POSIX ustar stream with pax `path` records. It is lossy by design and is not a recovery copy. It refuses three cases:
+  - colliding paths;
+  - an uncollected object named like a declared collection, also when that collection is empty;
+  - a path whose first character is followed by `:`, which Windows reads as a drive, not only for A–Z.
+- Spec: [S09-BACKUP-ARCHIVE.md](implementation/S09-BACKUP-ARCHIVE.md), "User export to ustar".
+- D6 (common export format) is added to the [decision proposal](implementation/S09-BACKUP-DESTINATION-PROPOSAL.md), and the format stays proposed. No capability, trust boundary or security contract changes.
+
+**Evidence:**
+- Host checks:
+  - 81 `volume-core` tests pass, including 3 ustar tests. The independent reader is Python's `tarfile`, and GNU tar 1.35 extraction is also checked.
+  - clippy, fmt and the `no_std` build pass.
+  - Nine converter mutants are killed.
+- Gate: local `tools/test_volume.py` run 13 on `7191cd02` exits 0 with 14/14 stages, in 161 s of wall time (QEMU 106.2 s). The archive hash `d75aa5c8…` is unchanged.
+- Two AI review rounds were run. Details: [USTAR-20261114.md](verification/s09-archive/USTAR-20261114.md).
+
+**Not run:**
+- CI on PR #325 (pending);
+- bsdtar or Windows `tar` as readers;
+- extraction on Windows or macOS;
+- a native stage that writes the export;
+- KVM and hardware;
+- an independent human audit.
+
+Main at `7d9498a8` was not gate-run by itself; run 13 contains it.
+
+**Open for the project owner (workflow files are not changed here):** `.github/workflows/kvm-pilot.yml` expects 9 volume stage reports, and `volume-acceptance.yml` names "9 QEMU runs". The gate has run 14 stages since #318.
+
+**Open (S09 stays open):**
+- decisions D1–D6;
+- a user-chosen target behind its own capability;
+- the encrypted NAS/provider variant (B01);
+- a user task.
+
+**Next:** decisions by the project owner on D1–D6, and review of PR #325. A native stage that writes the ustar export into the existing test-only archive range needs no new trust boundary. It is held until D6 is decided, so that no further work builds on an unconfirmed format.
+
+**Progress:** 41/100 → 41/100 (S09 not accepted).
+
+## Previous checkpoint — S09 native archive slice: export, restore, damaged-archive refusal, name-conflict restore and a full target pass the local volume gate (14/14), merged as #318 — 13 November 2026
 
 **Source:** branch `feat/s09-native-archive`, draft PR #318 (no auto-merge). Tested commit `e88e0ad5` (source-v3 `a924a051f18bb1044526ba641d58023356e19564b5cd3a68823f90a14a1f69af`, which includes the AI-review fixes); later commits change documentation and evidence only.
 
