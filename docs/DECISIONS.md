@@ -26,6 +26,10 @@ cannot hold on all of them.
 - Scale 2 may use up to 2700 s, and the CI gate uses that value only for the
   scale-2 clipboard/workspace run.
 - The switcher part gates and the library walkthroughs keep 1800 s.
+- The runner enforces this per mode, not only the workflow: `run()` accepts
+  up to 2700 s only when scale 2 is combined with both `--clipboard` and
+  `--workspace`, and rejects any other mode above 1800 s, including a manual
+  scale-2 `--switcher` run (follow-up of 13 November 2026).
 
 **Consequences:** this is a harness deadline, not a latency budget. No phase,
 pixel comparison or assertion is removed, and the per-phase timings stay in

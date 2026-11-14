@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-13",
-    "source_commit": "a60425abd67001165228b124b2c761e605121e22",
+    "source_commit": "2225c0b16df684a21153d639e88490bb4bb48071",
     "assessment_basis": "source_commit",
-    "branch": "ccr-cf45024e-q0nrg9",
-    "task": "Per-scale harness deadline for the 200% native window gate (ADR-WINDOW-SCALE2-DEADLINE-20261112)",
+    "branch": "claude/hopeful-dijkstra-2as6p1",
+    "task": "Enforce the per-mode harness deadline of ADR-WINDOW-SCALE2-DEADLINE-20261112 in the window runner",
     "previous_score": 41,
-    "summary": "41/100 stays 41/100. CI harness hardening only: scale 1 keeps the preregistered 1800 s bound and scale 2 may use 2700 s on slower hosted runners, after two scale-2 timeouts on main 49f80b1e (run 43137766280); no phase or assertion changes and no product criterion changes. Merged with main a60425ab (#313, #315, #320; no criterion change)."
+    "summary": "41/100 stays 41/100. CI harness hardening only, stacked on #316 2225c0b1: run() now accepts up to 2700 s only for the scale-2 clipboard/workspace gate, and every other mode, including scale-2 switcher part gates, keeps 1800 s, so the ADR bound no longer depends on the workflow alone. A negative runner test pins the scale-2 switcher case; no phase, assertion or product criterion changes."
   },
   "tracks": [
     {

@@ -108,10 +108,19 @@ class WindowRunnerTests(unittest.TestCase):
                        workspace=True, scale=2)
         with self.assertRaisesRegex(ValueError, r"30\.\.1800 seconds at scale 3"):
             window.run(timeout=2700, bios_rom=None, vga_rom=None, scale=3)
-        # 2700 s passes the deadline check at scale 2 and reaches the next guard.
+        # Scale-2 part gates keep 1800 s: the wider bound belongs to the full
+        # clipboard/workspace gate only, not to every scale-2 run.
+        for timeout in (1801, 2700):
+            with (self.subTest(mode="switcher", timeout=timeout),
+                  self.assertRaisesRegex(ValueError, r"30\.\.1800 seconds at scale 2")):
+                window.run(timeout=timeout, bios_rom=None, vga_rom=None, switcher=True, scale=2)
+        with self.assertRaisesRegex(ValueError, r"30\.\.1800 seconds at scale 2"):
+            window.run(timeout=2700, bios_rom=None, vga_rom=None, workspace=True, scale=2)
+        # 2700 s passes the deadline check for the scale-2 clipboard/workspace
+        # combination and reaches the next guard.
         with self.assertRaisesRegex(ValueError, "require the full native gate"):
             window.run(timeout=2700, bios_rom=None, vga_rom=None, smoke=True,
-                       clipboard=True, scale=2)
+                       clipboard=True, workspace=True, scale=2)
 
     def test_scale200_evidence_requires_the_complete_workspace_gate(self):
         self.assertTrue(window.full_scale200_gate(2, True, False, False))

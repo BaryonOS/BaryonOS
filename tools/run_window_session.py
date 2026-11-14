@@ -481,7 +481,18 @@ def validate_build(frozen: str, feature: str = FEATURE, scale: int = 1) -> dict:
 # the 1280x720 route (docs/implementation/NATIVE-CLIPBOARD.md). The 200% route
 # renders four times the pixels and needs about 1480 s on fast and about 2150 s
 # on slower standard hosted runners (ADR-WINDOW-SCALE2-DEADLINE-20261112).
+# Only that complete scale-2 clipboard/workspace gate may use the wider bound;
+# every other mode, including scale-2 switcher part gates and the library
+# walkthroughs, keeps 1800 s. The runner enforces this itself, so a manual
+# invocation cannot widen a part gate that the workflow keeps at 1800 s.
 MAX_TIMEOUT_BY_SCALE = {1: 1800, 2: 2700}
+
+
+def max_harness_timeout(scale: int, clipboard: bool, workspace: bool) -> int:
+    """Return the harness deadline bound for one run mode."""
+    if scale == 2 and clipboard and workspace:
+        return MAX_TIMEOUT_BY_SCALE[2]
+    return MAX_TIMEOUT_BY_SCALE[1]
 
 
 def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
@@ -490,9 +501,9 @@ def run(*, timeout: int, bios_rom: Path, vga_rom: Path, smoke: bool = False,
         library: bool = False, library_parent: Path | None = None,
         calculator_recall: bool = False, calculator_undo: bool = False,
         calculator_result: bool = False) -> dict:
-    limit = MAX_TIMEOUT_BY_SCALE.get(scale, MAX_TIMEOUT_BY_SCALE[1])
+    limit = max_harness_timeout(scale, clipboard, workspace)
     if not 30 <= timeout <= limit:
-        raise ValueError(f"Timeout must be bounded 30..{limit} seconds at scale {scale}")
+        raise ValueError(f"Timeout must be bounded 30..{limit} seconds at scale {scale} for this mode")
     if smoke and recovery_handshake or (clipboard or workspace) and (smoke or recovery_handshake):
         raise ValueError("Clipboard/workspace require the full native gate; choose one diagnostic mode")
     if switcher and (smoke or recovery_handshake or clipboard or workspace) or scale != 1 and not (switcher or workspace):
