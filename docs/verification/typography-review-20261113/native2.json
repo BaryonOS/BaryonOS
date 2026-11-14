@@ -1,0 +1,100 @@
+{
+ "specimens": [
+  {
+   "code": "Specimen 1",
+   "native_legibility": 7.6,
+   "strengths": [
+    "Slashed zero separates 0 from O and o unambiguously at both 100 % and 200 % (secondary line 'O0o' and '13-11-2026 09:41:07'), in dark and light alike.",
+    "Large x-height with open apertures gives the clearest word shapes of the three in the 1x UI row ('Bestanden Notities Instellingen Op dit apparaat') and the reading row ('Thuis-NAS is niet bereikbaar...').",
+    "The 600 label ('Webvenster wil Tuinplan versturen naar tuinplanner.example') stays distinct from 400 without filling counters; word spaces are clearly preserved at 1x.",
+    "'rn' and 'm' stay separable at 1x; 6/8/5/S/B are distinct; 'Größe Ålesund' shows clean diacritics and the ring on Å clears the cap."
+   ],
+   "defects": [
+    {
+     "issue": "Tabular-width digit 1 leaves a visible gap after '1' because advances are not kerned, so numbers look spaced out.",
+     "evidence": "blind-dark-2x.png and blind-light-2x.png, row 1 (UI text): '09:41 vr 13 nov' reads as '1 3 nov'; row 4 (secondary): '€ 1.234,56' reads as '1 .234' and '13-11-2026' looks loosely spaced. The gap is also visible in blind-dark-1x.png row 1."
+    },
+    {
+     "issue": "At 100 % the slashed zero turns into a busy blob that can look like 'Ø' or 'θ'. This matters next to Scandinavian text on the same line.",
+     "evidence": "blind-light-1x.png and blind-dark-1x.png, row 4 (secondary): '13-11-2026 09:41:07' next to 'Ålesund'; row 1: '09:41'."
+    },
+    {
+     "issue": "I and l separate only by height (cap height against ascender), with no tail or serif, so the pair is weak at 1x.",
+     "evidence": "blind-dark-1x.png, row 4 (secondary): 'Il1|'. The two leading glyphs are nearly identical vertical strokes; the 2x files are only marginally better."
+    }
+   ]
+  },
+  {
+   "code": "Specimen 2",
+   "native_legibility": 6.7,
+   "strengths": [
+    "Neutral grotesque forms with familiar letter shapes. In the 2x files the reading row ('Thuis-NAS is niet bereikbaar. Je werk staat veilig op dit apparaat.') is very even.",
+    "It is the most compact face, so the longest strings fit in the least width. The UI row ends well before Specimen 1 and Specimen 3 at the same x-height.",
+    "The 600 label has good contrast to 400 in both themes, and the umlauts and the ring in 'Größe Ålesund' stay clear at 1x."
+   ],
+   "defects": [
+    {
+     "issue": "A word space collapses at 100 % in the bold label: the advance of the space plus the side bearings of the bold glyphs leaves almost no gap, with no kerning to compensate.",
+     "evidence": "blind-dark-1x.png and blind-light-1x.png, Specimen 2 row 3 (600 label): 'versturen naar tuinplanner.example' reads close to 'naartuinplanner'."
+    },
+    {
+     "issue": "Zero and capital O differ only in width, with no slash or dot, so the distinction is weak in the small secondary line.",
+     "evidence": "blind-dark-1x.png, row 4 (secondary): 'O0o'. Also '13-11-2026 09:41:07' and '09:41 vr 13 nov' in row 1, where the 0 relies on context."
+    },
+    {
+     "issue": "I, l and | are nearly indistinguishable plain vertical strokes. At 1x this is the weakest confusable separation of the three.",
+     "evidence": "blind-dark-1x.png and blind-light-1x.png, row 4 (secondary): 'Il1|'."
+    },
+    {
+     "issue": "The small secondary line appears lighter and smaller than in the other faces, which reduces robustness in light mode at 100 %.",
+     "evidence": "blind-light-1x.png, row 4 (secondary): 'rn m cl d 6 8 5 S B 8'. In 'rn' against 'm' and 'cl' against 'd' the separation is just sufficient but tight."
+    }
+   ]
+  },
+  {
+   "code": "Specimen 3",
+   "native_legibility": 7,
+   "strengths": [
+    "Wide, open, squarish forms read as the largest at an equal x-height. In the 1x files the UI row and the reading row are very easy to recognise, in both dark and light.",
+    "The narrow, rectangular 0 is clearly distinct from the wide O and the small o at 2x ('O0o' in the secondary rows of blind-dark-2x.png and blind-light-2x.png).",
+    "The 600 label is strong and clean, and 6/8/5/S/B are distinct.",
+    "The wide letterfit keeps 'rn' separate from 'm' and 'cl' separate from 'd' even at 1x."
+   ],
+   "defects": [
+    {
+     "issue": "A word space collapses at 100 % in the confusable list because the space advance is too small relative to the wide side bearings.",
+     "evidence": "blind-dark-1x.png and blind-light-1x.png, Specimen 3 row 4 (secondary): '6 8 5 S B 8' reads as '5 S B8'. In the 2x files the gap is present but visibly tighter than the other spaces."
+    },
+    {
+     "issue": "The spaces between groups in the secondary line are uneven, so the date, time and currency groups run together.",
+     "evidence": "blind-dark-1x.png, row 4 (secondary): '€ 1.234,56 13-11-2026 09:41:07 Größe' shows smaller gaps between groups than Specimen 1 and Specimen 2."
+    },
+    {
+     "issue": "The squarish, technical style lowers comfort in running text: round letters such as o, e and a become rectangular and are less familiar at reading size.",
+     "evidence": "blind-light-1x.png and blind-light-2x.png, row 2 (reading): 'Thuis-NAS is niet bereikbaar. Je werk staat veilig op dit apparaat.'"
+    },
+    {
+     "issue": "I and l are only partly differentiated, and at 1x the pair still reads as two near-identical strokes.",
+     "evidence": "blind-dark-1x.png, row 4 (secondary): 'Il1|'."
+    },
+    {
+     "issue": "It is the widest face: the same strings need clearly more horizontal space than Specimen 2, which is a cost in a dense UI.",
+     "evidence": "blind-dark-2x.png, row 1 (UI): 'Bestanden Notities Instellingen Op dit apparaat 09:41 vr 13 nov' ends near x=1068, against about 935 for Specimen 2."
+    }
+   ]
+  }
+ ],
+ "ranking": [
+  "Specimen 1",
+  "Specimen 3",
+  "Specimen 2"
+ ],
+ "recognized_faces": "Tentative guesses only. Specimen 1 resembles Inter, using a slashed-zero alternate and tabular figures. Specimen 3 resembles Exo 2, with its squarish, technical forms. Specimen 2 is a neutral grotesque that I could not identify with confidence; it might be something like Public Sans or a Helvetica-style face. All three were scored only on what is visible.",
+ "viewed": [
+  "http://127.0.0.1:8768/ui/design/typography/candidates/native2/blind-dark-1x.png (viewport 980x884x1; the image is 980x388, shown at 1:1)",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/native2/blind-light-1x.png (viewport 980x884x1; the image is 980x388, shown at 1:1)",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/native2/blind-dark-2x.png (viewport 1960x1768x1; the image is 1960x776, shown at 1:1)",
+  "http://127.0.0.1:8768/ui/design/typography/candidates/native2/blind-light-2x.png (viewport 1960x1768x1; the image is 1960x776, shown at 1:1)"
+ ],
+ "limitations": "This is an AI judgement from screenshots, not user testing. Each image was shown at 1:1 in the browser viewport, but my own visual input downsamples large screenshots, especially the 1960-wide 2x captures. My judgements at pixel level (I against l, the shape of the slashed zero at 1x, exact word-space widths) are therefore approximate and should be checked with a pixel-level crop. I did not zoom or crop, because the rules allow only 1:1 viewing and no scripts. The defects about collapsed spaces ('naartuinplanner' in Specimen 2, 'B8' in Specimen 3) are visual impressions at 100 %, not measured gap widths. Faces are compared at an equal x-height, so the differences in width and apparent size are partly intended by the test. The scores are relative to each other, not absolute benchmarks. I read no repository files, scripts or notes and ran no shell commands. The browser page was closed afterwards."
+}

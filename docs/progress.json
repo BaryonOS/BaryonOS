@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-13",
-    "source_commit": "e88e0ad5e36eca942d0cbf8ca4584f0921fc37cb",
+    "date": "2026-11-14",
+    "source_commit": "f95bf5b2b4abe0bce1da140c70869eb59e85adef",
     "assessment_basis": "source_commit",
-    "branch": "feat/s09-native-archive",
-    "task": "S09 native archive slice: kernel cases 7-11 with a portal-only archive range capability, export/restore/damaged-archive/name-conflict/full-target QEMU stages, an independent format-v1 reader and a destination decision proposal",
+    "branch": "claude/baryon-os-ui-ux-design-152adb",
+    "task": "Design pipeline checkpoint before a planned reboot: typography review record and type-1.0 tokens, wordmark v2 selected by a pre-registered blind AI review, Orbitaal v2 and the native Inter atlas not yet started",
     "previous_score": 41,
-    "summary": "41/100 stays 41/100: S09 (2 points) remains open. On e88e0ad5 (source-v3 a924a051) the local tools/test_volume.py gate passes 14/14 QEMU stages: archive export into a disjoint, portal-only range of the disposable test image (volume service READ-only, 91 801-byte archive, all writes archive I/O); restore from only that range on a fresh image (5 objects byte-identical); refusal of an archive with one flipped byte by both guest and independent reader; restore into a domain with slot and name conflicts, a reused collection and one that keeps another name, checked against an end state derived independently from the spec rule; export into a 100-sector scope that the 180-sector archive does not fit (Full, no flush, verify and the independent reader refuse the range, volume unchanged). Evidence: docs/verification/s09-archive/NATIVE-20261113.md. The user-chosen destination and its capability are a decision proposal for the project owner (docs/implementation/S09-BACKUP-DESTINATION-PROPOSAL.md), not a contract. Not met for S09: a user-chosen target behind its own capability, documented common export formats, the encrypted NAS/provider variant, a user task. Limits: local QEMU/TCG only, CI on this head pending, one virtual disk shared by archive and volume, no hardware, no independent human audit."
+    "summary": "41/100 stays 41/100. The design pipeline on this branch produced design documents, a typography review record with type-1.0 tokens (Inter proposed; a tie under the pre-registered rule, decision by the project owner requested) and a brand wordmark v2 (Saira, selected by a pre-registered blind AI review, redirectable by the project owner). These are design and AI-judgement evidence only: no native renderer, QEMU run or user test changed, so no criterion is accepted. Not met: Orbitaal v2 board, design system, prototype, native Inter atlas and native vertical slice with QEMU evidence."
   },
   "tracks": [
     {

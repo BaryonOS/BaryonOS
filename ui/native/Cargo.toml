@@ -8,6 +8,10 @@ publish = false
 [workspace]
 resolver = "2"
 
+[features]
+# Measurement only: draw system text from the Inter atlas (ui/graphics/README.md).
+inter-atlas = ["nieuw-os-graphics/inter-atlas"]
+
 [dependencies]
 nieuw-os-graphics = { path = "../graphics" }
 ui-core = { path = "../../crates/ui-core" }

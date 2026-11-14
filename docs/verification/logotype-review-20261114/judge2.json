@@ -1,0 +1,165 @@
+{
+ "scores": [
+  {
+   "code": "S",
+   "L": 8,
+   "F": 6,
+   "C": 2,
+   "H": 9,
+   "D": 3,
+   "strengths": "Bold 'Baryon' plus light 'OS' in a neo-grotesk. The weight contrast separates the two words clearly at 20 px and 14 px in both themes. Counters are open and the x-height is generous, so it reads cleanly in the 1:1 small crops. In the settings panel it matches the 15 px interface text exactly, because it appears to be the same family. The bold 'Baryon' at 96 px matches the weight of the mark's bonds.",
+   "defects": [
+    "Light 'OS' is much thinner than the mark's heavy bonds. At 96 px it looks frail beside the mark, and at 14 px on the dark theme the hairline strokes fade.",
+    "It reads as an interface heading set in the system font, not as a wordmark. In the panel, 'Baryon OS' is the same face as 'Versie 0.9.3...' at a larger size.",
+    "Loses every trait of the original: round grotesque letters replace the squared, rounded-corner forms, and the grey same-weight 'OS' becomes a light-weight 'OS' in the same colour.",
+    "On the boot line, the bold/light split makes 'OS' look like an afterthought next to the large mark."
+   ]
+  },
+  {
+   "code": "R",
+   "L": 7,
+   "F": 7,
+   "C": 8,
+   "H": 5,
+   "D": 8,
+   "strengths": "Wide letters with rounded-square bowls (squarish 'o', 'a' and 'O', squared 'S'), semibold weight, and 'OS' in a muted blue-grey at the same weight. That is the original wordmark's structure and character. Wide tracking keeps 20 px and 14 px open and readable, with a clear word gap and a colour change at 'OS'. The squared, technical shapes echo the geometric triangle of the mark. Clearly ownable and recognisably the original brand.",
+   "defects": [
+    "Wide letters plus loose tracking make the lockup long. At 96 px it runs to about x=905, and on the boot line 'Baryon OS' is noticeably wider than the mark above it.",
+    "In the panel, its wide, squared, techno texture clashes with the neutral 15 px interface text below and reads as a separate display or gaming face rather than part of the UI.",
+    "Weight is lighter and tracking looser than the original's tight bold setting, so it is a slightly softened echo of the original.",
+    "On the dark theme at 14 px, the muted 'OS' has reduced contrast against the near-black background."
+   ]
+  },
+  {
+   "code": "Q",
+   "L": 7,
+   "F": 6,
+   "C": 3,
+   "H": 6,
+   "D": 7,
+   "strengths": "Extended grotesque: a heavy, wide 'Baryon' and a light, extended 'OS'. The width keeps letters well apart at 20 px and 14 px, and the weight change separates the words. It has a distinct, premium, contemporary-tech presence at 96 px. As a grotesque, it shares a genre with the interface text.",
+   "defects": [
+    "Longest lockup of the set: at 96 px the wordmark reaches about x=965, which outweighs the mark horizontally and unbalances the lockup.",
+    "Light extended 'OS' is very thin. At 14 px on the dark theme it reads as hairline strokes and looks fragile next to the heavy bonds.",
+    "Little continuity with the original: round 'O' and 'o', no squared corners, and 'OS' differs from 'Baryon' by weight in the same colour, where the original uses a grey at the same weight.",
+    "In the panel, the extended heading over normal-width 15 px text is a visible jump in width and rhythm."
+   ]
+  },
+  {
+   "code": "P",
+   "L": 7,
+   "F": 7,
+   "C": 6,
+   "H": 7,
+   "D": 6,
+   "strengths": "Semibold with semi-squared curves (squarish 'O', 'o' and 'S') and a grey 'OS' at the same weight, which keeps the original's colour split and some of its squared character. Compact width keeps the lockup balanced against the mark at every size. Its proportions sit close to the interface text, so it works as a companion in the panel. The weight balances well with the bonds.",
+   "defects": [
+    "At 14 px, the space between 'Baryon' and 'OS' is tight, and separation depends mostly on the grey colour, which is dim on the dark theme.",
+    "Letterforms are more humanist and narrower than the original's broad rounded squares, so continuity is partial.",
+    "Character is moderate: the style is widely used in tech and gaming branding and less ownable than R.",
+    "At 96 px, some angled terminals (on 'a' and 'y') bring in a slanted detail that the mark does not have."
+   ]
+  },
+  {
+   "code": "N",
+   "L": 9,
+   "F": 8,
+   "C": 4,
+   "H": 9,
+   "D": 2,
+   "strengths": "Bold neo-grotesk for both words, with 'OS' in grey at the same weight, which keeps the original's colour and weight structure. The most robust at 14 px: heavy strokes, open counters, a clear word gap and colour separation in both themes. The bold weight matches the heavy bonds, and the round 'O' and 'o' echo the nodes. In the panel and on the boot line it looks completely native.",
+   "defects": [
+    "Generic: it reads as a bold label in the interface font. Apart from the grey 'OS', nothing makes it ownable.",
+    "None of the original's squared, rounded-corner letterforms survive, so only the colour split carries continuity.",
+    "At 96 px the setting is plain and slightly loose, and the wordmark has less presence than the distinctive mark beside it."
+   ]
+  },
+  {
+   "code": "M",
+   "L": 8,
+   "F": 7,
+   "C": 4,
+   "H": 9,
+   "D": 2,
+   "strengths": "Semibold neo-grotesk with tight display tracking and 'OS' in grey at the same weight, keeping the original's colour split. Compact and well balanced with the mark. At 96 px the tight tracking gives a tidier, more set look than N. Harmony with the panel text is excellent.",
+   "defects": [
+    "Tight tracking carried down to small sizes makes 14 px slightly cramped (r-y-o close together). The word gap is narrower than in N, so separation depends on the grey.",
+    "Semibold is a step lighter than the mark's bonds.",
+    "Generic, with almost no ownable character: it looks like the interface font with negative letter-spacing.",
+    "No squared letterforms from the original survive."
+   ]
+  },
+  {
+   "code": "L",
+   "L": 6,
+   "F": 6,
+   "C": 7,
+   "H": 6,
+   "D": 6,
+   "strengths": "Condensed, squared letters with stadium-shaped 'O' and 'o', a straight-tailed 'y' and a grey 'OS' at the same weight. Recognisably related to the original's squared technical style. The lockup is compact. It has a technical, engineered feel that suits an operating system.",
+   "defects": [
+    "At 14 px the narrow letters and small counters crowd together, and the flat-sided 'O' can read as a zero or 'D' ('0S'), especially in the grey on the dark theme.",
+    "Medium weight and condensed width look weak beside the heavy bonds at 96 px and 40 px. The mark visually outweighs the word.",
+    "Narrower and lighter than the original, so it keeps the squared idea but loses the original's broad, bold stance.",
+    "In the panel, the condensed squared texture is noticeably narrower and more mechanical than the 15 px interface text."
+   ]
+  }
+ ],
+ "ranking": [
+  "R",
+  "P",
+  "N",
+  "L",
+  "M",
+  "Q",
+  "S"
+ ],
+ "closest_to_original": "R",
+ "recognised_faces": "S, M and N appear to be Inter: S in Bold plus Light, M in Semibold with tightened tracking, N in Bold. They also seem to match the interface text in the panels. Confidence: high for S and M, medium-high for N. P resembles Exo 2 SemiBold (medium confidence). L resembles a Rajdhani- or Saira-Condensed-style squared condensed sans (low confidence). R resembles a wide squared sans of the Saira or Exo kind (low confidence; not identified). Q is an extended grotesque, possibly Archivo at expanded width (low confidence). Original reference: a squared, rounded-corner geometric sans; I do not recognise the specific face.",
+ "files_viewed": [
+  "reference-original-wordmark.png",
+  "S-dark.png",
+  "S-light.png",
+  "S-dark-small-1x.png",
+  "S-light-small-1x.png",
+  "S-dark-context-1x.png",
+  "S-light-context-1x.png",
+  "R-dark.png",
+  "R-light.png",
+  "R-dark-small-1x.png",
+  "R-light-small-1x.png",
+  "R-dark-context-1x.png",
+  "R-light-context-1x.png",
+  "Q-dark.png",
+  "Q-light.png",
+  "Q-dark-small-1x.png",
+  "Q-light-small-1x.png",
+  "Q-dark-context-1x.png",
+  "Q-light-context-1x.png",
+  "P-dark.png",
+  "P-light.png",
+  "P-dark-small-1x.png",
+  "P-light-small-1x.png",
+  "P-dark-context-1x.png",
+  "P-light-context-1x.png",
+  "N-dark.png",
+  "N-light.png",
+  "N-dark-small-1x.png",
+  "N-light-small-1x.png",
+  "N-dark-context-1x.png",
+  "N-light-context-1x.png",
+  "M-dark.png",
+  "M-light.png",
+  "M-dark-small-1x.png",
+  "M-light-small-1x.png",
+  "M-dark-context-1x.png",
+  "M-light-context-1x.png",
+  "L-dark.png",
+  "L-light.png",
+  "L-dark-small-1x.png",
+  "L-light-small-1x.png",
+  "L-dark-context-1x.png",
+  "L-light-context-1x.png"
+ ],
+ "viewing_limitations": "All 43 files opened. The full 1400x900 sheets appeared at or near native size, but the viewer may scale them, so I judged small-size legibility only from the *-small-1x crops (520x290). The context crops (1190x250) also appeared unscaled. I could not zoom to pixel level, so judgements on hinting and anti-aliasing at 14 px are approximate. Colour contrast was judged by eye, not measured. The reference image is a single dark-theme render at one large size and was used only for continuity."
+}

@@ -1,4 +1,6 @@
 //! Fixed Latin UI atlas. Glyph fallback never changes stored document bytes.
+//! Default: Open Sans 1.10. Feature `inter-atlas`: Inter 4.001 at the type-1.0
+//! role sizes (13r 15r 15sb 22sb 48r, and 26r 30r 30sb 44sb at 200 %).
 use crate::{atlas, Canvas, Rect};
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Size {
@@ -17,6 +19,9 @@ pub struct Font {
     weight: Weight,
     double: bool,
     magnify: bool,
+    // The Inter display record (48r) has no Size/Weight/double combination.
+    #[cfg(feature = "inter-atlas")]
+    display: bool,
 }
 impl Font {
     pub const fn new(size: Size, weight: Weight, double: bool) -> Self {
@@ -25,17 +30,22 @@ impl Font {
             weight,
             double,
             magnify: false,
+            #[cfg(feature = "inter-atlas")]
+            display: false,
         }
     }
-    /// Fixed display face for clocks: the existing 64-pixel atlas at 100%,
-    /// bounded 2x coverage expansion at 200%. No runtime font parser or asset.
-    /// This is not an optically rerasterized font or general text shaping.
+    /// Fixed display face for clocks: the 64-pixel Open Sans record (48 px
+    /// Inter regular with `inter-atlas`) at 100%, bounded 2x coverage expansion
+    /// at 200%. No runtime font parser or asset. This is not an optically
+    /// rerasterized font or general text shaping.
     pub const fn display(double: bool) -> Self {
         Self {
             size: Size::Title,
             weight: Weight::Semibold,
             double: true,
             magnify: double,
+            #[cfg(feature = "inter-atlas")]
+            display: true,
         }
     }
     const fn factor(self) -> u32 {
@@ -45,6 +55,7 @@ impl Font {
             1
         }
     }
+    #[cfg(not(feature = "inter-atlas"))]
     fn index(self) -> usize {
         match (self.size, self.weight, self.double) {
             (Size::Small, _, false) => 0,
@@ -56,6 +67,24 @@ impl Font {
             // Titles have one deliberate semibold design weight at both scales.
             (Size::Title, _, false) => 5,
             (Size::Title, _, true) => 6,
+        }
+    }
+    /// Inter records: 13r 15r 15sb 22sb 48r 26r 30r 30sb 44sb.
+    #[cfg(feature = "inter-atlas")]
+    fn index(self) -> usize {
+        if self.display {
+            return 4;
+        }
+        match (self.size, self.weight, self.double) {
+            (Size::Small, _, false) => 0,
+            (Size::Small, _, true) => 5,
+            (Size::Body, Weight::Regular, false) => 1,
+            (Size::Body, Weight::Regular, true) => 6,
+            (Size::Body, Weight::Semibold, false) => 2,
+            (Size::Body, Weight::Semibold, true) => 7,
+            // Titles keep one semibold design weight at both scales.
+            (Size::Title, _, false) => 3,
+            (Size::Title, _, true) => 8,
         }
     }
     pub fn height(self) -> u32 {
@@ -194,6 +223,7 @@ mod tests {
             }
         }
     }
+    #[cfg(not(feature = "inter-atlas"))]
     #[test]
     fn proportional_metrics_and_real_double_rasters() {
         let a = Font::new(Size::Body, Weight::Regular, false);
@@ -208,6 +238,7 @@ mod tests {
         let f = Font::new(Size::Body, Weight::Regular, false);
         assert_eq!(f.measure("漢"), f.measure("\u{fffd}"));
     }
+    #[cfg(not(feature = "inter-atlas"))]
     #[test]
     fn display_scale_doubles_metrics_without_changing_regular_faces() {
         let a = Font::display(false);
@@ -244,6 +275,89 @@ mod tests {
             }
             assert_eq!(tile[0], 0x125589);
             assert_eq!(tile[257], 0x125589);
+        }
+    }
+    #[cfg(feature = "inter-atlas")]
+    mod inter {
+        use super::*;
+        const SIZES: [u8; 9] = [13, 15, 15, 22, 48, 26, 30, 30, 44];
+        const LINES: [u8; 9] = [18, 22, 22, 28, 56, 36, 44, 44, 56];
+        fn glyph(record: usize, ch: char) -> crate::Glyph {
+            atlas::GLYPHS[usize::from(atlas::FONTS[record].first) + index(ch)]
+        }
+        #[test]
+        fn chars_sorted_with_replacement_last() {
+            assert_eq!(atlas::GLYPH_COUNT, 204);
+            assert!(atlas::CHARS.windows(2).all(|w| w[0] < w[1]));
+            assert_eq!(atlas::CHARS[atlas::GLYPH_COUNT - 1], 0xfffd);
+            for ch in "–—‘’“”•…€›↑↓ÿ ~".chars() {
+                assert!(atlas::CHARS.binary_search(&(ch as u32)).is_ok(), "{ch}");
+            }
+        }
+        #[test]
+        fn records_follow_type_roles() {
+            assert_eq!(atlas::FONTS.map(|r| r.size), SIZES);
+            assert_eq!(atlas::FONTS.map(|r| r.height), LINES);
+            for (i, r) in atlas::FONTS.iter().enumerate() {
+                assert_eq!(usize::from(r.first), i * atlas::GLYPH_COUNT);
+            }
+            let ems = [Size::Small, Size::Body, Size::Title]
+                .map(|s| [false, true].map(|d| Font::new(s, Weight::Regular, d).em()));
+            assert_eq!(ems, [[13, 26], [15, 30], [22, 44]]);
+            for d in [false, true] {
+                let (r, sb) = (Weight::Regular, Weight::Semibold);
+                assert_eq!(
+                    Font::new(Size::Title, r, d).index(),
+                    Font::new(Size::Title, sb, d).index()
+                );
+                assert!(
+                    Font::new(Size::Body, sb, d).measure("Bestanden")
+                        > Font::new(Size::Body, r, d).measure("Bestanden")
+                );
+            }
+            let (a, b) = (Font::display(false), Font::display(true));
+            assert_eq!((a.index(), b.index()), (4, 4));
+            assert_eq!((a.em(), b.em()), (48, 96));
+            assert_eq!((a.height(), b.height()), (56, 112));
+            assert!(b.measure("09:41").abs_diff(2 * a.measure("09:41")) <= 1);
+            assert_eq!(Font::new(Size::Body, Weight::Semibold, true).height(), 44);
+        }
+        #[test]
+        fn digits_are_tabular_in_every_record() {
+            for record in 0..atlas::FONTS.len() {
+                let zero = glyph(record, '0').advance;
+                assert!(('1'..='9').all(|d| glyph(record, d).advance == zero));
+            }
+        }
+        #[test]
+        fn semibold_body_space_is_widened_by_two_pixels_per_scale() {
+            for record in 0..atlas::FONTS.len() {
+                let extra = match record {
+                    2 => 2 * 64,
+                    7 => 4 * 64,
+                    _ => 0,
+                };
+                assert_eq!(
+                    glyph(record, ' ').advance,
+                    atlas::UNWIDENED_SPACE_64[record] + extra
+                );
+            }
+            let f = Font::new(Size::Body, Weight::Semibold, false);
+            assert_eq!(
+                f.advance(' '),
+                u32::from(atlas::UNWIDENED_SPACE_64[2]) + 128
+            );
+        }
+        #[test]
+        fn unknown_characters_fall_back_to_the_visible_last_slot() {
+            for record in 0..atlas::FONTS.len() {
+                let fallback = glyph(record, '\u{fffd}');
+                assert!(fallback.width > 0 && fallback.height > 0);
+                assert_eq!(glyph(record, '漢').offset, fallback.offset);
+                assert_eq!(glyph(record, '\u{10ffff}').offset, fallback.offset);
+            }
+            let f = Font::new(Size::Small, Weight::Regular, true);
+            assert_eq!(f.measure("漢"), f.measure("\u{fffd}"));
         }
     }
 }
