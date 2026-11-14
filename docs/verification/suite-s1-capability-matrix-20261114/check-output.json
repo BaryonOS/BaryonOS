@@ -1,0 +1,278 @@
+{
+ "rows": 215,
+ "by_level": {
+  "prototyped (host)": 14,
+  "proposed": 201
+ },
+ "by_support": {
+  "with limitations": 10,
+  "unsupported": 193,
+  "lossy": 4,
+  "proprietary research": 8
+ },
+ "by_priority": {
+  "P1": 95,
+  "P0": 13,
+  "P2": 83,
+  "P3": 24
+ },
+ "deps_ranked": [
+  [
+   "Text & font engine",
+   32
+  ],
+  [
+   "Interchange converters",
+   26
+  ],
+  [
+   "Materiaal history",
+   22
+  ],
+  [
+   "GPU compositing",
+   22
+  ],
+  [
+   "Pixel pipeline",
+   22
+  ],
+  [
+   "Asset library & linking",
+   21
+  ],
+  [
+   "Input & command system",
+   21
+  ],
+  [
+   "Calculation engine",
+   19
+  ],
+  [
+   "Low-latency audio",
+   18
+  ],
+  [
+   "2D vector engine",
+   17
+  ],
+  [
+   "PDF & print engine",
+   16
+  ],
+  [
+   "Colour management",
+   16
+  ],
+  [
+   "Search & index",
+   15
+  ],
+  [
+   "Collaboration & sync",
+   15
+  ],
+  [
+   "3D scene engine",
+   15
+  ],
+  [
+   "Media framework",
+   14
+  ],
+  [
+   "Background job queue",
+   13
+  ],
+  [
+   "Node-graph engine",
+   10
+  ],
+  [
+   "Internet protocols",
+   8
+  ],
+  [
+   "Accessibility service",
+   7
+  ],
+  [
+   "Automation runtime",
+   6
+  ],
+  [
+   "Plugin sandbox",
+   6
+  ],
+  [
+   "Signing & identity",
+   6
+  ]
+ ],
+ "unused_deps": [],
+ "non_proposed": [
+  {
+   "id": "WP01",
+   "capability": "WP01 Plain-text document edit, save and reopen",
+   "support": "with limitations",
+   "level": "prototyped (host)",
+   "evidence": "`docs/verification/materiaal-library-20261102/checks/app-host.stdout.txt`; `docs/implementation/NATIVE-MATERIAAL.md` (native QEMU run, criterion U03 open)",
+   "priority": "P1",
+   "deps": [
+    "Materiaal history",
+    "Text & font engine"
+   ]
+  },
+  {
+   "id": "WP17",
+   "capability": "WP17 Version history preview and restore",
+   "support": "with limitations",
+   "level": "prototyped (host)",
+   "evidence": "`docs/verification/materiaal-library-20261102/checks/sdk-host.stdout.txt` and `docs/verification/materiaal-library-20261102/checks/ui-host-corrected.stdout.txt` (passing host tests: read-only preview, restore as a new revision, stale selection cannot restore another revision, restore of a large document; plain text, whole-document revisions, no comparison); `docs/verification/materiaal-library-20261102/README.md` (native QEMU run, criterion U03 open; two history versions)",
+   "priority": "P1",
+   "deps": [
+    "Materiaal history"
+   ]
+  },
+  {
+   "id": "WP22",
+   "capability": "WP22 DOCX import (plain text)",
+   "support": "lossy",
+   "level": "prototyped (host)",
+   "evidence": "`docs/verification/platform-docx-import-20261103.md` (paragraphs and runs to UTF-8 text; mandatory plain-text option drops run formatting; tables, fields, images, links, numbering, tracked changes and headers or footers are rejected)",
+   "priority": "P1",
+   "deps": [
+    "Interchange converters"
+   ]
+  },
+  {
+   "id": "WP23",
+   "capability": "WP23 DOCX export (plain text)",
+   "support": "with limitations",
+   "level": "prototyped (host)",
+   "evidence": "`docs/verification/platform-docx-export-20261103.md` (three fixed parts, plain text; Unicode, tabs and empty paragraphs read back exactly by an independent reader; CR, CRLF, NUL and XML-invalid characters rejected; never opened in an office suite)",
+   "priority": "P1",
+   "deps": [
+    "Interchange converters"
+   ]
+  },
+  {
+   "id": "SS01",
+   "capability": "SS01 CSV table import, cell edit and export",
+   "support": "with limitations",
+   "level": "prototyped (host)",
+   "evidence": "`docs/verification/platform-csv-table-20261103.md` (RFC 4180 profile; 4096 x 256; no inference, no undo)",
+   "priority": "P1",
+   "deps": [
+    "Interchange converters"
+   ]
+  },
+  {
+   "id": "SS02",
+   "capability": "SS02 Formula entry and dependency recalculation",
+   "support": "with limitations",
+   "level": "prototyped (host)",
+   "evidence": "`docs/verification/platform-spreadsheet-recalc-20261103.md` (four operators, 64 cells, decimal arithmetic)",
+   "priority": "P0",
+   "deps": [
+    "Calculation engine"
+   ]
+  },
+  {
+   "id": "PR01",
+   "capability": "PR01 Slide navigation and preview",
+   "support": "with limitations",
+   "level": "prototyped (host)",
+   "evidence": "`docs/verification/platform-presentation-preview-20261103.md` (own text-deck profile; host raster only)",
+   "priority": "P1",
+   "deps": [
+    "GPU compositing",
+    "Text & font engine"
+   ]
+  },
+  {
+   "id": "PR02",
+   "capability": "PR02 Slide raster frame export (PPM)",
+   "support": "with limitations",
+   "level": "prototyped (host)",
+   "evidence": "`docs/verification/platform-presentation-preview-20261103.md` (PPM at 640x360 or 1280x720; no colour-fidelity claim)",
+   "priority": "P2",
+   "deps": [
+    "Pixel pipeline",
+    "Text & font engine"
+   ]
+  },
+  {
+   "id": "NK01",
+   "capability": "NK01 Plain-text notes in collections",
+   "support": "with limitations",
+   "level": "prototyped (host)",
+   "evidence": "`docs/verification/materiaal-library-20261102/checks/sdk-host.stdout.txt` and `docs/verification/materiaal-library-20261102/checks/ui-host-corrected.stdout.txt` (passing host tests: collections with metadata filters, empty-only collection delete, missing or stale collection preserves the document; plain text; no tags or nesting); `docs/verification/materiaal-library-20261102/README.md` (native QEMU run, criterion U03 open; four collections)",
+   "priority": "P1",
+   "deps": [
+    "Materiaal history",
+    "Search & index"
+   ]
+  },
+  {
+   "id": "NK03",
+   "capability": "NK03 Local document-name search",
+   "support": "with limitations",
+   "level": "prototyped (host)",
+   "evidence": "`docs/verification/materiaal-library-20261102/checks/ui-host-corrected.stdout.txt` (passing host test: search reads real document names only; no full-text or metadata search); `docs/verification/materiaal-library-20261102/README.md` (native QEMU run, criterion U03 open)",
+   "priority": "P1",
+   "deps": [
+    "Search & index"
+   ]
+  },
+  {
+   "id": "GR01",
+   "capability": "GR01 Image viewing with orientation, fit, zoom and pan",
+   "support": "with limitations",
+   "level": "prototyped (host)",
+   "evidence": "`docs/verification/platform-m7-exif-viewer-20261103.md` (viewer host-tested; the native VM run tested the decoder only; no colour management)",
+   "priority": "P1",
+   "deps": [
+    "Pixel pipeline",
+    "GPU compositing"
+   ]
+  },
+  {
+   "id": "GR02",
+   "capability": "GR02 Rectangular crop to a new file",
+   "support": "lossy",
+   "level": "prototyped (host)",
+   "evidence": "`docs/verification/platform-image-crop-20261103.md` (PNG or JPEG to a new 8-bit PNG, source unchanged; 16-bit PNG rejected; ICC, gamma and metadata always dropped; crop not re-editable)",
+   "priority": "P1",
+   "deps": [
+    "Pixel pipeline"
+   ]
+  },
+  {
+   "id": "GR03",
+   "capability": "GR03 Raster export to BMP",
+   "support": "lossy",
+   "level": "prototyped (host)",
+   "evidence": "`docs/verification/platform-image-export-20261103.md` (PNG or JPEG to 24-bit BMP only; 16-bit quantised to 8; alpha flattened; no ICC or metadata)",
+   "priority": "P1",
+   "deps": [
+    "Pixel pipeline",
+    "Interchange converters"
+   ]
+  },
+  {
+   "id": "AU01",
+   "capability": "AU01 Sample-exact clip extraction",
+   "support": "lossy",
+   "level": "prototyped (host)",
+   "evidence": "`docs/verification/platform-wav-clip-20261103.md` (PCM16 WAV only; samples, channel order and rate preserved exactly; extra chunks such as cue and loop metadata are dropped only on explicit confirmation, otherwise refused; no playback)",
+   "priority": "P1",
+   "deps": [
+    "Interchange converters",
+    "Media framework"
+   ]
+  }
+ ],
+ "limited_proposed": []
+}
