@@ -18,7 +18,7 @@
   - clippy, fmt and the `no_std` build pass.
   - Nine converter mutants are killed.
 - Gate: local `tools/test_volume.py` run 13 on `7191cd02` exits 0 with 14/14 stages, in 161 s of wall time (QEMU 106.2 s). The archive hash `d75aa5c8…` is unchanged.
-- Two AI review rounds were run. Details: [USTAR-20261114.md](verification/s09-archive/USTAR-20261114.md).
+- Three AI review runs were made; only the last one completed both lenses with verification, and the final drive-form fix was not reviewed again. Details: [USTAR-20261114.md](verification/s09-archive/USTAR-20261114.md).
 
 **Not run:**
 - CI on PR #325 (pending);
@@ -38,7 +38,7 @@ Main at `7d9498a8` was not gate-run by itself; run 13 contains it.
 - the encrypted NAS/provider variant (B01);
 - a user task.
 
-**Next:** decisions by the project owner on D1–D6, and review of PR #325. A native stage that writes the ustar export into the existing test-only archive range needs no new trust boundary. It is held until D6 is decided, so that no further work builds on an unconfirmed format.
+**Next:** decisions by the project owner on D1–D6, and review of PR #325. A native stage that writes the ustar export into the existing test-only archive range needs no new trust boundary. Whether to build it before D6 is decided is a choice put to the project owner, because it would build further on an unconfirmed format.
 
 **Progress:** 41/100 → 41/100 (S09 not accepted).
 

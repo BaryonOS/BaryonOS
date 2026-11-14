@@ -230,10 +230,13 @@ Python's `tarfile` module and GNU tar 1.35.
     the export when that collection is empty, although an empty collection
     gets no directory;
   - a path whose first character, of any kind, is followed by `:`. The Windows
-    path parser takes any UTF-16 code unit followed by `:` as a drive, not
-    only A–Z (`subst` accepts drives such as `+:` and `€:`), so such a path
-    can leave the extraction directory. Python's `ntpath` takes any one
-    character there as a drive, also one outside the Basic Multilingual Plane.
+    path parser takes any single UTF-16 code unit followed by `:` as a drive,
+    not only A–Z. Such a drive exists only once it is created, for example
+    with `subst` (`+:`, `€:`); File Explorer and PowerShell do not accept it
+    ([R. Liptak, "Windows drive letters are not limited to A-Z"](https://www.ryanliptak.com/blog/windows-drive-letters-are-not-limited-to-a-z/)).
+    Where it exists, such a path can leave the extraction directory. Python's
+    `ntpath` takes any one character there as a drive, also one outside the
+    Basic Multilingual Plane, which Win32 does not; the rule refuses both.
     Extraction on Windows was not tested. A later `:` is kept.
 - **Order of checks.** Each file is written while `archive::walk` checks its
   object. The two end-of-archive blocks are written only after the trailer and
