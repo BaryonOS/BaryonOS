@@ -1,6 +1,31 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — issues #43, #39, #41 and #42 — 14 November 2026
+## NEXT AGENT HANDOFF — PR #328 conflict resolution — 14 November 2026
+
+**Source:** PR #328 head `5ab79f11abebbd6e1b6d0546a0b121437e9eca53`,
+integrated with main `3c79778bf9e8793bfc9eaaea755d21b41f755bae`.
+
+**Result:** both documentation conflicts are resolved. The complete issues
+#43/#39/#41/#42 handoff and main's PR #325/S09 handoffs are retained.
+The criterion register remains unchanged; no source conflict required a
+manual resolution. Existing verification evidence remains bound to its
+recorded source versions.
+
+**Evidence:** 114 targeted host tests pass: 26 workflow, 25 network-peer,
+15 update-harness and 48 volume tests. Strict preflight, the standard build
+and the QEMU smoke test pass on the combined source. Existing network and
+volume acceptance matrices below retain their original source boundaries;
+they were not rerun by this conflict repair. Commands, source preservation
+and log hashes are recorded in
+[the verification record](verification/pr328-conflicts-20261114.json).
+
+**Progress:** 41/100 → 41/100; no criterion or acceptance status changes.
+
+**Next:** inspect the updated PR's current-head checks. The issue-specific
+follow-up work remains in the preserved checkpoint below. No merge or
+auto-merge is enabled by this repair.
+
+## Previous checkpoint — issues #43, #39, #41 and #42 — 14 November 2026
 
 **Source:** existing PR [#328](https://github.com/BaryonOS/BaryonOS/pull/328),
 branch `fix/issue43-network-usb-followup`; verified executable head
@@ -53,6 +78,181 @@ when the branch changes; `acceptance-pending` and explicit merge approval remain
 **Next:** review PR #328; record the production-policy decisions for #41 and
 implement the native USB execution/enumeration boundary for #42. Retain all
 source and evidence limits when continuing those tracks.
+
+## Previous checkpoint — PR #325 documentation refresh — 14 November 2026
+
+**Source:** PR #325 head `204c4ed51585c4ba500735a90eb1c449863399f7`, integrated
+with main `299f0e39c202d67d1c2f4e31b879cbdd6add262b` (merged PR #329).
+
+**Result:** the renewed conflicts in `docs/PROJECT-STATE.md` and
+`docs/progress.json` are resolved. The complete PR #325/S09 handoff and
+CodeQL triage checkpoint are retained. PR #329's triage evidence is imported
+unchanged. No source, workflow, criterion or acceptance status changes.
+
+**Evidence:** strict preflight, the standard build and QEMU smoke test pass
+on the combined tree. The source-v3 fingerprint remains
+`4ed35695957d83b8c3bef5194888f6f4c901fdf2670695fb59a120367423bb13`,
+identical to PR #325 commit `204c4ed5`, whose GitHub job
+[132456369436](https://github.com/BaryonOS/BaryonOS/actions/runs/43597947398/job/132456369436)
+passed all 15 legacy SMP profiles. That native matrix is prior execution on
+identical source, not a newly executed matrix. All existing files outside the two
+resolved documents and imported triage evidence remain equal to the PR head.
+Current evidence: [refresh verification](verification/pr325-refresh-20261114.json).
+
+**Progress:** 41/100 → 41/100; the criterion register is unchanged.
+
+**Next:** review the updated PR and its current GitHub checks, then resume
+the preserved S09 work. The owner approved D6(a) with conditions, and the
+ordered steps start with recording it as `ADR-S09-USTAR-20261114`. Both are
+in the "**Next, in order:**" list of the checkpoint "S09 proposed ustar
+user export" below. The PR remains open; merge approval is unchanged. The
+`copilot-pull-request-reviewer` failures come from an exhausted review quota,
+not from this change.
+
+## Previous checkpoint — PR #325 SMP and conflict repair — 14 November 2026
+
+**Source:** PR #325 head `0d47a6ee29f60270936331111ef542c2a038a36f`,
+integrated with main `2eb7b942cac10db727a184819812634300a8e778`.
+
+**Result:** the legacy SMP scheduler now maintains a scan cursor per CPU,
+preventing a pinned peer from repeatedly resetting another CPU's choice and
+starving a ready process. Both status-document conflicts are resolved while
+preserving the complete S09 handoff, D6 approval and pending conditions, and
+main's merge-hold and coverage checkpoints. Original ustar code and evidence
+remain unchanged. Retry bounds, timeouts and capability contracts are retained.
+
+**Evidence:** the final integrated source passes all 15 native SMP profiles,
+the standard strict preflight/build/smoke gate, 223 Rust tests, 23 SMP host
+tests, 48 volume harness tests, 13 IPC artifact tests and formatting. Local
+native execution uses QEMU 10.0.13; the failed CI run used 8.2.2. The old CI
+failure was a guest fixture failure, not a timeout. The shared-cursor
+starvation counterexample is established; its exact occurrence in the old
+run is not proven by that run's limited diagnostics. Full details and raw
+evidence: [PR #325 repair](verification/pr325-smp-repair/README.md).
+
+**Source-v3 fingerprint:** `4ed35695957d83b8c3bef5194888f6f4c901fdf2670695fb59a120367423bb13`.
+
+**Progress:** 41/100 → 41/100. No criterion is accepted by this repair.
+
+**Next:** confirm GitHub Actions on the published head, then resume the ordered
+S09 work in the preserved checkpoint. This repair does not implement those
+follow-up steps or authorize merging the PR.
+
+## Previous checkpoint — PR #325 conflict resolution — 14 November 2026
+
+**Source:** branch `feat/s09-ustar-export`, PR #325 head
+`27781abd61971db8d3ae3865f1ca3c61af3b8be6`, integrated with main
+`2fffffc9c0416dd66fd0a6adb6457c08225c3d7b`.
+
+**Result:** conflicts in `docs/PROJECT-STATE.md` and `docs/progress.json`
+are resolved. The complete S09 handoff below, including the received D6
+approval and its pending implementation conditions, is retained alongside
+main's PR #316 and design checkpoints. The PR's converter, Rust tests,
+specifications and stored evidence are unchanged. No source or workflow
+conflict required a manual resolution.
+
+**Evidence on the combined source:**
+- `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'`: exit 0,
+  48 archive-reader, disk-oracle, runner and harness tests. These tests do not
+  execute the Rust ustar converter.
+- `python3 tools/progress.py --write`, then `--check`: exit 0; 41/100.
+- Byte comparison: all 51 PR-changed files outside the two conflicted documents
+  equal the PR head; all 120 main-changed files outside those documents equal
+  the integrated main commit. A separate read-only AI review found no blocking
+  preservation issue; this is not an independent human audit.
+- `git diff --cached --check MERGE_HEAD`: exit 0 for the full PR diff
+  against main. The check restricted to the two resolved documents also
+  exits 0. Against the old PR head, the unrestricted check exits 2 for
+  pre-existing trailing spaces in seven vendored font-license files imported
+  unchanged from main.
+- Local command logs: `build/pr325-conflict-resolution/` (ignored by Git).
+
+**Execution limits:** `python3 -B tools/preflight.py --strict` returned exit 2:
+Rust, Cargo, QEMU and OVMF are unavailable. `python3 -B tools/build.py`
+returned exit 1 (`cargo` missing); `python3 -B tools/run.py --smoke` returned
+exit 1 (`qemu-system-x86_64` missing). No Rust converter test or native
+runtime pass is claimed on the combined source. Existing evidence below
+remains bound to its recorded source versions.
+
+**Progress:** 41/100 → 41/100; no criterion or acceptance evidence changes.
+
+**Next:** inspect GitHub Actions on the updated PR head. Resume S09
+implementation at the ordered next steps in the preserved S09 checkpoint
+below; the conflict resolution does not implement those follow-up steps.
+
+## Previous checkpoint — S09 proposed ustar user export: host-tested converter, AI-review fixes and an unchanged 14/14 volume gate — 14 November 2026
+
+**Source:** branch `feat/s09-ustar-export` from main `7d9498a8` (PR #318, merged by the project owner), draft PR #325 (no auto-merge). Tested commit `7191cd02` (source-v3 `854e4d75f83b18399ec3d4c375a8017719c710ed01ecc918478f412a854f1609`); later commits change documentation and evidence only.
+
+**Done:**
+- `volume_core::ustar::from_archive` converts a verified format-v1 archive into a POSIX ustar stream with pax `path` records. It is lossy by design and is not a recovery copy. It refuses three cases:
+  - colliding paths;
+  - an uncollected object named like a declared collection, also when that collection is empty;
+  - a path whose first character is followed by `:`, which Windows reads as a drive, not only for A–Z.
+- Spec: [S09-BACKUP-ARCHIVE.md](implementation/S09-BACKUP-ARCHIVE.md), "User export to ustar".
+- D6 (common export format) is added to the [decision proposal](implementation/S09-BACKUP-DESTINATION-PROPOSAL.md), and the format stays proposed. No capability, trust boundary or security contract changes.
+
+**Evidence:**
+- Host checks:
+  - 81 `volume-core` tests pass, including 3 ustar tests. The independent reader is Python's `tarfile`, and GNU tar 1.35 extraction is also checked.
+  - clippy, fmt and the `no_std` build pass.
+  - Nine converter mutants are killed.
+- Gate: local `tools/test_volume.py` run 13 on `7191cd02` exits 0 with 14/14 stages, in 161 s of wall time (QEMU 106.2 s). The archive hash `d75aa5c8…` is unchanged.
+- Three AI review runs were made; only the last one completed both lenses with verification, and the final drive-form fix was not reviewed again. Details: [USTAR-20261114.md](verification/s09-archive/USTAR-20261114.md).
+
+**Not run:**
+- CI on PR #325 (pending);
+- bsdtar or Windows `tar` as readers;
+- extraction on Windows or macOS;
+- a native stage that writes the export;
+- KVM and hardware;
+- an independent human audit.
+
+Main at `7d9498a8` was not gate-run by itself; run 13 contains it.
+
+**Decision received on 14 November 2026, not yet recorded in DECISIONS.md or the proposal.** The project owner approved D6(a), POSIX ustar with pax path records, as the initial interoperable S09 user-export format. The conditions are:
+- It is a lossy interchange format: not the native Materiaal format and not a recovery backup. The verified archive format stays the recovery format.
+- Unsafe or ambiguous cross-platform paths are rejected:
+  - Windows alternate-data-stream syntax;
+  - reserved device names;
+  - invalid characters;
+  - trailing dots or spaces;
+  - names that collide under case folding or Unicode normalisation.
+- Nothing is renamed silently and no overwrite is unintended. Rejected names are reported clearly. A reversible name-mapping mechanism may be proposed separately.
+- Documentation states the metadata loss, the empty-collection limits and the compatibility constraints.
+- D1–D5 stay undecided. The approval grants no new destination capability, trust boundary or encryption architecture.
+
+The owner also authorised:
+- a bounded native ustar-export test stage that uses the existing test-only permissions and fixtures;
+- updating the test orchestration and the workflow stage-count expectations, in coordination with the maintenance session on PR #323. A message listing the files was sent; no reply yet.
+
+The workflows currently disagree with the gate: `kvm-pilot.yml` expects 9 volume stage reports and `volume-acceptance.yml` names "9 QEMU runs", while the gate has run 14 stages since #318 and will run 15 with the new stage.
+
+**Open design choice before code: the collision rule.**
+- **The constraint.** The volume crate and the portal have no allocator. `core` has case mapping but no normalisation data. Every normalisation or case-fold crate checked needs `alloc`.
+- **Options:**
+  - (T1) Refuse all non-ASCII names. Sound, but it refuses "Privé" and "Notitie ✓" in the native fixture.
+  - (c) Allow only U+0020–007E, U+00A0–017F and U+2700–27BF. These blocks contain no marks, jamo or canonical singletons. Use a lower→upper→lower fold from `core`. That fold adds about 31 KB in a minimal binary, against roughly 17.8 KB of `.text` headroom in the portal, which has not been measured.
+  - (T3) A generated table of case- and normalisation-inert code points: 963 ranges on UCD 16.0.0, plus an ASCII fold.
+- **Working notes** (ignored by Git): `build/s09-ustar-notes/` in this worktree. `map-api.md` covers the API and reasons, `map-native.md` the native case 12 file map, `map-runner.md` the host runner and `map-workflows.md` the workflow lines.
+
+**Open (S09 stays open):**
+- D6 recording, D1–D5;
+- a user-chosen target behind its own capability;
+- the encrypted NAS/provider variant (B01);
+- a user task.
+
+**Next, in order:**
+1. Record D6 as `ADR-S09-USTAR-20261114` in `docs/DECISIONS.md`, quoting the conditions above. Mark D6 approved in the proposal, and the spec section as approved rather than proposed.
+2. Choose the collision rule. First measure the portal `.text` size with `core` case mapping linked.
+3. Implement `ustar::check`, which returns per-name reason bits and writes no output for a refused archive, and make `from_archive` take its result. Add host tests and mutants.
+4. Add native case 12, `archive-ustar`:
+   - `kernel/Cargo.toml` feature, the case in `kernel/src/m2/m3/volume.rs`, and the portal arm in `sdk/examples/volume-docs/src/app.rs`;
+   - `tools/build.py`, `tools/run_volume.py` (a `tarfile` oracle) and the `tools/test_volume.py` PLAN;
+   - the stage counts in both workflows, set to 15.
+5. Gate run 14 with the fingerprint taken before and after, `capture_volume.py`, an evidence note, then update PR #325.
+
+**Progress:** 41/100 → 41/100 (S09 not accepted).
 
 ## Previous checkpoint — Code scanning alert triage — 14 November 2026
 
@@ -232,7 +432,7 @@ window scales, before treating the integrated source as natively verified.
 
 **Progress:** 41/100 → 41/100. Design work accepts no criterion.
 
-## Previous checkpoint — S09 native archive slice: export, restore, damaged-archive refusal, name-conflict restore and a full target pass the local volume gate (14/14) — 13 November 2026
+## Previous checkpoint — S09 native archive slice: export, restore, damaged-archive refusal, name-conflict restore and a full target pass the local volume gate (14/14), merged as #318 — 13 November 2026
 
 **Source:** branch `feat/s09-native-archive`, draft PR #318 (no auto-merge). Tested commit `e88e0ad5` (source-v3 `a924a051f18bb1044526ba641d58023356e19564b5cd3a68823f90a14a1f69af`, which includes the AI-review fixes); later commits change documentation and evidence only.
 
