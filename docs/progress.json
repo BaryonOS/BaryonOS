@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "299f0e39c202d67d1c2f4e31b879cbdd6add262b",
-    "assessment_basis": "source_commit",
+    "source_commit": "47fe2f79df4c8ee8c3a58cb8fd77b124eaff6332",
+    "assessment_basis": "parent_commit",
     "branch": "fix/python-code-quality-20261114",
-    "task": "Resolve all 107 Python Code Quality findings under 17 rules while preserving historical evidence",
+    "task": "Resolve PR #330 conflicts against main 3c79778bf9e8793bfc9eaaea755d21b41f755bae",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. 77 findings have targeted code changes; 30 findings in 15 immutable historical source files were dismissed with recorded provenance. 678 host tests in 38 suites pass. Native gates remain blocked by missing tools. Code Quality run 43601148798 passed on the patch in draft PR #330; per-rule result counts remain unavailable, and main closure requires owner-approved merge plus a main scan. No acceptance criterion or scanning configuration changes."
+    "summary": "41/100 remains 41/100. The two documentation conflicts in PR #330 are reconciled by preserving both complete handoffs and the unchanged criterion register. Existing implementation and verification evidence from both parents are retained. This assessment names the PR parent; the combined source and executed checks are documented in docs/verification/pr330-conflicts-20261114.json. No criterion, weight, acceptance status or merge approval changes."
   },
   "tracks": [
     {
