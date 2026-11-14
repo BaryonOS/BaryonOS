@@ -8,7 +8,7 @@
     "branch": "fix/issue43-network-usb-followup",
     "task": "Advance issues #43, #39, #41 and #42 with native negative CI coverage, USB interval correction and a production-policy proposal",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Existing native network revocation and TCP loss/backpressure scenarios are added to routine CI with distinct required evidence. Low-speed USB interrupt descriptors below 10 ms are rejected; the corrected exhaustive regression fails on the old source and all 29 USB tests, formatting, Clippy and the freestanding build pass on the fix. A production-policy proposal makes the remaining #41 decisions reviewable without creating keys or granting authority. Integrated strict preflight and 55 Python workflow/evidence tests pass. Native build/smoke and network scenario runs on this integration are pending; no new criterion is accepted."
+    "summary": "41/100 remains 41/100. Existing native network revocation and TCP loss/backpressure scenarios are added to routine CI with distinct required evidence. Low-speed USB interrupt descriptors below 10 ms are rejected; the corrected exhaustive regression fails on the old source and all 29 USB tests, formatting, Clippy and the freestanding build pass on the fix. A production-policy proposal makes the remaining #41 decisions reviewable without creating keys or granting authority. Integrated strict preflight and 55 Python workflow/evidence tests pass. Native build/smoke and network scenario runs on this integration are pending; no new criterion is accepted. Main 31ccff4983763df0c76583cac1a536cc2a27d9bf is integrated with its merge-hold and explicit merge-approval requirements intact."
   },
   "tracks": [
     {

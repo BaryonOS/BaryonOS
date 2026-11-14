@@ -28,6 +28,42 @@ physical reference evidence. #43's 50/100 target remains open.
 **Next:** run the standard build/smoke and existing native network scenarios,
 review the test-only reset fixture, and record actual results before acceptance.
 
+## Previous checkpoint — PR #321 conflict resolution — 14 November 2026
+
+**Source:** branch `ccr-cf45024e-merge-hold`, PR #321 head
+`56dac1707092d6eae79792f92222bd41ebb352ba`, integrated with main
+`542a008f12377997b2fc55400b98facb5f5a0f77`.
+
+**Result:** the conflicts in `docs/DECISIONS.md` and `docs/progress.json`
+are resolved. Both the SHA-bound merge-hold decision and the independent
+native-window deadline decision are retained. The criterion register and evidence
+match current main outside the assessment metadata. The merge-hold script,
+workflow, tests and explicit merge-approval requirements are unchanged from the
+PR head. All other current main changes and checkpoints are preserved.
+
+**Evidence on the combined source:**
+- `python3 -B tools/tests/test_merge_hold.py`: exit 0, 13 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'`: exit 0, 24 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'`: exit 0, 31 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'`: exit 0, 22 tests (latest main integration).
+- `python3 -B tools/progress.py --write`, then `--check`, and `git diff --check origin/main`: exit 0.
+
+**Execution limits:** `python3 -B tools/preflight.py --strict` returned exit 2:
+Rust/Cargo, QEMU and OVMF are unavailable. `python3 -B tools/build.py` returned
+exit 1 (`cargo` missing); `python3 -B tools/run.py --smoke` returned exit 1
+(`qemu-system-x86_64` missing). No native runtime pass is claimed. The RTK CLI
+is unavailable; command output was captured with bounded summaries under the
+Ponytail workflow. Local logs are in `/tmp/pr321-checks/`.
+The whole-merge `git diff --cached --check` reports inherited whitespace in
+design evidence and font licences imported from main; those files remain
+unchanged. The PR's delta against main passes the whitespace check.
+
+**Progress:** 41/100 → 41/100; no criterion or acceptance evidence changes.
+
+**Next:** inspect GitHub Actions on the updated PR head. Merging and enabling
+auto-merge still require explicit approval from the project owner; no ruleset
+change or release of an acceptance hold is part of this conflict resolution.
+
 ## Previous checkpoint — PR #316 conflict resolution — 14 November 2026
 
 **Source:** branch `ccr-cf45024e-q0nrg9`, PR #316 head
