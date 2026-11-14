@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -B \"${CLAUDE_PLUGIN_ROOT}/skills/token-guard/scripts/tokenguard.py\" hook",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

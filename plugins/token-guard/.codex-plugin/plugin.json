@@ -1,0 +1,9 @@
+{
+  "name": "token-guard",
+  "version": "1.0.0",
+  "description": "Compact coding context with preserved command evidence.",
+  "author": { "name": "Simon van Ieperen" },
+  "license": "MPL-2.0",
+  "skills": "./skills/",
+  "hooks": { "hooks": {} }
+}

@@ -1,4 +1,7 @@
+.agents/plugins/marketplace.json
 .cargo/config.toml
+.claude-plugin/marketplace.json
+.codex/config.toml
 .github/actions/preserve-evidence/action.yml
 .github/actions/setup-python/action.yml
 .github/actions/setup-python/requirements.txt
@@ -203,6 +206,11 @@ kernel/src/m2/smp.rs
 kernel/src/main.rs
 kernel/src/memory.rs
 kernel/src/serial.rs
+plugins/token-guard/.claude-plugin/plugin.json
+plugins/token-guard/.codex-plugin/plugin.json
+plugins/token-guard/hooks/hooks.json
+plugins/token-guard/plugin.json
+plugins/token-guard/skills/token-guard/scripts/tokenguard.py
 rust-toolchain.toml
 sdk/Cargo.toml
 sdk/app-management/Cargo.toml
@@ -672,6 +680,7 @@ tests/test_system_capture.py
 tests/test_system_harness.py
 tests/test_tcp_harness.py
 tests/test_tcp_transcript.py
+tests/test_tokenguard.py
 tests/test_update_harness.py
 tests/test_volume_disk.py
 tests/test_volume_harness.py
@@ -791,6 +800,7 @@ tools/tests/test_system_clock.py
 tools/tests/test_tpm.py
 tools/tests/test_window_latency.py
 tools/tests/test_window_library.py
+tools/tokenguard.py
 tools/update-tool/Cargo.toml
 tools/update-tool/src/main.rs
 tools/update-tool/tests/roundtrip.rs
