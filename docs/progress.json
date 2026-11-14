@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "7191cd02a679d4464e40657f6fb8aeff3363318b",
+    "source_commit": "27781abd61971db8d3ae3865f1ca3c61af3b8be6",
     "assessment_basis": "source_commit",
     "branch": "feat/s09-ustar-export",
-    "task": "S09 proposed ustar user export: a host-tested converter from a verified format-v1 archive to POSIX ustar with pax path records, AI-review fixes and decision D6 in the destination proposal",
+    "task": "Resolve PR #325 against main 2fffffc9c0416dd66fd0a6adb6457c08225c3d7b while preserving the ustar export and both project-status histories",
     "previous_score": 41,
-    "summary": "41/100 stays 41/100: S09 (2 points) remains open. On 7191cd02 (source-v3 854e4d75) volume_core::ustar::from_archive converts a verified format-v1 archive into a POSIX ustar stream with pax path records; it is lossy by design and not a recovery copy, and it refuses colliding paths, an uncollected object named like a declared collection, and any path whose first character is followed by a colon (the Windows drive form). 81 volume-core host tests pass with Python tarfile as the independent reader and GNU tar 1.35 extraction, nine converter mutants are killed, and the local tools/test_volume.py gate still passes 14/14 QEMU stages with an unchanged archive hash. Evidence: docs/verification/s09-archive/USTAR-20261114.md. The format is decision D6 in docs/implementation/S09-BACKUP-DESTINATION-PROPOSAL.md and stays proposed. Not met for S09: a user-chosen target behind its own capability (D1-D5 await the project owner), a confirmed export format and a native stage that writes it, the encrypted NAS/provider variant and a user task."
+    "summary": "41/100 stays 41/100. The project-state and progress-assessment conflicts are resolved without changing criteria, status or acceptance evidence. The PR converter, tests, specifications and stored evidence are preserved, including the S09 handoff recording D6 approval and its pending conditions; the current main checkpoints are retained. S09 remains open. This integration establishes no new native runtime or product acceptance; executed checks and environment limits are recorded in docs/PROJECT-STATE.md."
   },
   "tracks": [
     {

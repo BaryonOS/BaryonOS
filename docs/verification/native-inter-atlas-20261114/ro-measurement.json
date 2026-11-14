@@ -1,0 +1,55 @@
+{
+  "limit_bytes": 524288,
+  "default": {
+    "rlib_ro_bytes_total": 398713,
+    "rlib_ro_bytes": {
+      "zeroize": 167,
+      "nieuw_os_sdk_runtime": 571,
+      "catalog_core": 1279,
+      "nieuw_os_catalog_client": 0,
+      "volume_core": 3584,
+      "ui_core": 2190,
+      "nieuw_os_graphics": 277821,
+      "noto_sans_mono_bitmap": 106400,
+      "nieuw_os_document_session": 159,
+      "nieuw_os_input_core": 602,
+      "nieuw_os_materiaal": 5940
+    },
+    "elf": "build/sdk-materiaal/x86_64-unknown-none/release/materiaal-app",
+    "readonly_pt_load_memsz": [
+      293248
+    ],
+    "atlas_symbols": {
+      "ROWS": 58110,
+      "CHARS": 776,
+      "FONTS": 28,
+      "GLYPHS": 21728
+    }
+  },
+  "inter": {
+    "rlib_ro_bytes_total": 459204,
+    "rlib_ro_bytes": {
+      "zeroize": 167,
+      "nieuw_os_sdk_runtime": 571,
+      "catalog_core": 1279,
+      "nieuw_os_catalog_client": 0,
+      "volume_core": 3584,
+      "ui_core": 2190,
+      "noto_sans_mono_bitmap": 106400,
+      "nieuw_os_graphics": 338312,
+      "nieuw_os_document_session": 159,
+      "nieuw_os_input_core": 602,
+      "nieuw_os_materiaal": 5940
+    },
+    "elf": "build/sdk-materiaal-inter/x86_64-unknown-none/release/materiaal-app",
+    "readonly_pt_load_memsz": [
+      353736
+    ],
+    "atlas_symbols": {
+      "ROWS": 74982,
+      "CHARS": 816,
+      "FONTS": 36,
+      "GLYPHS": 29376
+    }
+  }
+}

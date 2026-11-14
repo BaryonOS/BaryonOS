@@ -1,0 +1,197 @@
+{
+  "font": "Inter",
+  "version": "4.001",
+  "source": "ui/design/fonts/Inter[opsz,wght].ttf",
+  "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
+  "source_record": "ui/design/fonts/FONTS.md (google/fonts commit 29b4ec6d)",
+  "copyright": "Copyright 2020 The Inter Project Authors (https://github.com/rsms/inter)",
+  "license": "OFL-1.1",
+  "license_file": "ui/graphics/licenses/OFL-Inter.txt",
+  "license_sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57",
+  "reserved_font_name": null,
+  "derivative": "Rasterised 4-bit coverage atlas of the font software",
+  "cargo_feature": "inter-atlas",
+  "features": [
+    "cv05",
+    "cv08",
+    "ss01"
+  ],
+  "digit_features": [
+    "tnum"
+  ],
+  "digits": "0123456789",
+  "fallback": "U+FFFD slot; Inter 4.001 maps no U+FFFD, so it holds the font's visible .notdef (\"NO GLYPH\") glyph",
+  "line_height_rule": "FontRecord.height = type-1.0 role line height; glyph top includes floor((height - (ascent + descent)) / 2)",
+  "records": [
+    {
+      "weight": 400,
+      "px": 13,
+      "axes": {
+        "opsz": 14,
+        "wght": 400
+      },
+      "line_height": 18,
+      "ascent": 13,
+      "descent": 4,
+      "baseline_from_line_top": 13,
+      "space_extra_px": 0,
+      "space_advance_64": {
+        "unwidened": 234,
+        "stored": 234
+      }
+    },
+    {
+      "weight": 400,
+      "px": 15,
+      "axes": {
+        "opsz": 15,
+        "wght": 400
+      },
+      "line_height": 22,
+      "ascent": 15,
+      "descent": 4,
+      "baseline_from_line_top": 16,
+      "space_extra_px": 0,
+      "space_advance_64": {
+        "unwidened": 268,
+        "stored": 268
+      }
+    },
+    {
+      "weight": 600,
+      "px": 15,
+      "axes": {
+        "opsz": 15,
+        "wght": 600
+      },
+      "line_height": 22,
+      "ascent": 15,
+      "descent": 4,
+      "baseline_from_line_top": 16,
+      "space_extra_px": 2,
+      "space_advance_64": {
+        "unwidened": 240,
+        "stored": 368
+      }
+    },
+    {
+      "weight": 600,
+      "px": 22,
+      "axes": {
+        "opsz": 22,
+        "wght": 600
+      },
+      "line_height": 28,
+      "ascent": 22,
+      "descent": 6,
+      "baseline_from_line_top": 22,
+      "space_extra_px": 0,
+      "space_advance_64": {
+        "unwidened": 338,
+        "stored": 338
+      }
+    },
+    {
+      "weight": 400,
+      "px": 48,
+      "axes": {
+        "opsz": 32,
+        "wght": 400
+      },
+      "line_height": 56,
+      "ascent": 47,
+      "descent": 12,
+      "baseline_from_line_top": 45,
+      "space_extra_px": 0,
+      "space_advance_64": {
+        "unwidened": 768,
+        "stored": 768
+      }
+    },
+    {
+      "weight": 400,
+      "px": 26,
+      "axes": {
+        "opsz": 26,
+        "wght": 400
+      },
+      "line_height": 36,
+      "ascent": 26,
+      "descent": 7,
+      "baseline_from_line_top": 27,
+      "space_extra_px": 0,
+      "space_advance_64": {
+        "unwidened": 433,
+        "stored": 433
+      }
+    },
+    {
+      "weight": 400,
+      "px": 30,
+      "axes": {
+        "opsz": 30,
+        "wght": 400
+      },
+      "line_height": 44,
+      "ascent": 30,
+      "descent": 8,
+      "baseline_from_line_top": 33,
+      "space_extra_px": 0,
+      "space_advance_64": {
+        "unwidened": 487,
+        "stored": 487
+      }
+    },
+    {
+      "weight": 600,
+      "px": 30,
+      "axes": {
+        "opsz": 30,
+        "wght": 600
+      },
+      "line_height": 44,
+      "ascent": 30,
+      "descent": 8,
+      "baseline_from_line_top": 33,
+      "space_extra_px": 4,
+      "space_advance_64": {
+        "unwidened": 440,
+        "stored": 696
+      }
+    },
+    {
+      "weight": 600,
+      "px": 44,
+      "axes": {
+        "opsz": 32,
+        "wght": 600
+      },
+      "line_height": 56,
+      "ascent": 43,
+      "descent": 11,
+      "baseline_from_line_top": 44,
+      "space_extra_px": 0,
+      "space_advance_64": {
+        "unwidened": 637,
+        "stored": 637
+      }
+    }
+  ],
+  "characters": 204,
+  "glyphs": 1836,
+  "row_offsets": 37491,
+  "data_bytes": 228940,
+  "data_sha256": "18de7e6fe5e2d82eb260683b50fb0525eef3af2ac9bbdb5f407643b6a011424e",
+  "glyph_table_bytes": 29376,
+  "row_table_bytes": 74982,
+  "glyph_bound_px": 96,
+  "encoding": "Rows of (run length minus1) in high nibble and 4bit coverage in low nibble; 16 levels",
+  "native_parser": "None; fixed checked metadata and bounded row decoder",
+  "build_tools": {
+    "pillow": "12.1.1",
+    "freetype2": "2.14.2",
+    "raqm": "0.10.4",
+    "harfbuzz": "12.3.2"
+  },
+  "build_time_only": "Pillow/FreeType/raqm/HarfBuzz; not native dependencies"
+}

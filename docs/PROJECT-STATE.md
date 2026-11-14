@@ -1,6 +1,48 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — S09 proposed ustar user export: host-tested converter, AI-review fixes and an unchanged 14/14 volume gate — 14 November 2026
+## NEXT AGENT HANDOFF — PR #325 conflict resolution — 14 November 2026
+
+**Source:** branch `feat/s09-ustar-export`, PR #325 head
+`27781abd61971db8d3ae3865f1ca3c61af3b8be6`, integrated with main
+`2fffffc9c0416dd66fd0a6adb6457c08225c3d7b`.
+
+**Result:** conflicts in `docs/PROJECT-STATE.md` and `docs/progress.json`
+are resolved. The complete S09 handoff below, including the received D6
+approval and its pending implementation conditions, is retained alongside
+main's PR #316 and design checkpoints. The PR's converter, Rust tests,
+specifications and stored evidence are unchanged. No source or workflow
+conflict required a manual resolution.
+
+**Evidence on the combined source:**
+- `python3 -B -m unittest discover -s tests -p 'test_volume_*.py'`: exit 0,
+  48 archive-reader, disk-oracle, runner and harness tests. These tests do not
+  execute the Rust ustar converter.
+- `python3 tools/progress.py --write`, then `--check`: exit 0; 41/100.
+- Byte comparison: all 51 PR-changed files outside the two conflicted documents
+  equal the PR head; all 120 main-changed files outside those documents equal
+  the integrated main commit. A separate read-only AI review found no blocking
+  preservation issue; this is not an independent human audit.
+- `git diff --cached --check MERGE_HEAD`: exit 0 for the full PR diff
+  against main. The check restricted to the two resolved documents also
+  exits 0. Against the old PR head, the unrestricted check exits 2 for
+  pre-existing trailing spaces in seven vendored font-license files imported
+  unchanged from main.
+- Local command logs: `build/pr325-conflict-resolution/` (ignored by Git).
+
+**Execution limits:** `python3 -B tools/preflight.py --strict` returned exit 2:
+Rust, Cargo, QEMU and OVMF are unavailable. `python3 -B tools/build.py`
+returned exit 1 (`cargo` missing); `python3 -B tools/run.py --smoke` returned
+exit 1 (`qemu-system-x86_64` missing). No Rust converter test or native
+runtime pass is claimed on the combined source. Existing evidence below
+remains bound to its recorded source versions.
+
+**Progress:** 41/100 → 41/100; no criterion or acceptance evidence changes.
+
+**Next:** inspect GitHub Actions on the updated PR head. Resume S09
+implementation at the ordered next steps in the preserved S09 checkpoint
+below; the conflict resolution does not implement those follow-up steps.
+
+## Previous checkpoint — S09 proposed ustar user export: host-tested converter, AI-review fixes and an unchanged 14/14 volume gate — 14 November 2026
 
 **Source:** branch `feat/s09-ustar-export` from main `7d9498a8` (PR #318, merged by the project owner), draft PR #325 (no auto-merge). Tested commit `7191cd02` (source-v3 `854e4d75f83b18399ec3d4c375a8017719c710ed01ecc918478f412a854f1609`); later commits change documentation and evidence only.
 
@@ -73,6 +115,54 @@ The workflows currently disagree with the gate: `kvm-pilot.yml` expects 9 volume
 5. Gate run 14 with the fingerprint taken before and after, `capture_volume.py`, an evidence note, then update PR #325.
 
 **Progress:** 41/100 → 41/100 (S09 not accepted).
+
+## Previous checkpoint — PR #316 conflict resolution — 14 November 2026
+
+**Source:** branch `ccr-cf45024e-q0nrg9`, PR #316 head
+`915cc4312b29de1bfb28588072bcfa024186314d`, integrated with main
+`2c72e282ca80fd3dd6bf377b3f71e2eced4a4499`.
+
+**Result:** the only merge conflict was the assessment in `docs/progress.json`.
+The current main criterion register, evidence, design checkpoint and other changes
+are preserved. The PR retains the 1800-second default; only the scale-2
+clipboard/workspace gate may use 2700 seconds. No source or workflow conflict
+required a manual resolution.
+
+**Evidence on the combined source:**
+- `python3 -B tools/test_window_session.py`: exit 0, 28 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'`: exit 0, 23 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'`: exit 0, 31 tests.
+- `python3 tools/progress.py --write`, then `--check`, and `git diff --check`: exit 0.
+
+**Execution limits:** `python3 -B tools/preflight.py --strict` returned exit 2
+because the native toolchain is unavailable. `python3 -B tools/build.py` returned
+exit 1 (`cargo` missing); `python3 -B tools/run.py --smoke` returned exit 1
+(`qemu-system-x86_64` missing). No local native runtime pass is claimed.
+
+**Progress:** 41/100 → 41/100; no criterion or acceptance evidence changes.
+
+**Next:** inspect GitHub Actions on the updated PR head, including both native
+window scales, before treating the integrated source as natively verified.
+
+## Previous checkpoint — Design pipeline (Orbitaal UI/UX), paused for a planned reboot — 14 November 2026
+
+**Source:** branch `claude/baryon-os-ui-ux-design-152adb`, draft PR #322 (never merge without the project owner). This section covers the design pipeline only; the S09 checkpoint below belongs to PR #318 and is unchanged apart from its heading.
+
+**Done (in Git):**
+- Audit, naming and IA, and three concepts. `ui/design/concepts/{orbitaal,triade,materie}/index.html` are the authoritative visual references and stay read-only. Orbitaal was selected with the Triade and Materie grafts and an 11-item must-fix list ([CONCEPTS.md](design/CONCEPTS.md)).
+- Typography review and the `type-1.0` tokens ([TYPOGRAPHY.md](design/TYPOGRAPHY.md)); Inter 4.001 is vendored.
+- Wordmark v2, Saira 600 at 125 % width, selected by a pre-registered blind AI review ([logotype review](verification/logotype-review-20261114/README.md), [BRAND.md](design/BRAND.md) §4, `f95bf5b2`). The project owner can redirect it to Inter 700.
+
+**Local, not in Git (unverified):** a writer applying the 82 adversarial typography findings was stopped before its verifier ran. Its edits are uncommitted in the worktree (TYPOGRAPHY.md, the typography review README, `finalist_checks.py`, `finalist-checks.txt`, FONTS.md and `docs/design/README.md`) and backed up in the ignored `build/design-pipeline-checkpoint/`, with the findings list and the workflow scripts. The lead decisions D1–D15 are in `typography-findings-apply-*.js` there. The status they introduce is: a tie under the pre-registered rule; Inter proposed as a judgement; the project owner decides.
+
+**Not done:** the Orbitaal v2 board and the native Inter atlas (both workflows were stopped before writing files); the FONTS.md row for Saira; phases D (design system), E (prototype), F (polish) and G (native slice, QEMU); the PR body refresh.
+
+**Next:**
+1. Review the uncommitted diff against D1–D15 and run only the verifier stage on it. Then commit and push, and add the FONTS.md Saira row (`Saira[wdth,wght].ttf`, google/fonts `29b4ec6d`, SHA-256 `9d050fc5…`, `OFL-Saira.txt` `f2665d47…`, wordmark outlines only).
+2. Re-run the Orbitaal v2 workflow (`orbitaal-v2-board-*.js`) with a new evidence directory.
+3. Re-run the native Inter atlas workflow (`native-inter-atlas-*.js`).
+
+**Progress:** 41/100 → 41/100. Design work accepts no criterion.
 
 ## Previous checkpoint — S09 native archive slice: export, restore, damaged-archive refusal, name-conflict restore and a full target pass the local volume gate (14/14), merged as #318 — 13 November 2026
 
@@ -513,7 +603,7 @@ ADR-CI-QEMU-BUNDLE-20261111 and
 **Next:** merge #307 when its required checks are green, merge main into #296
 and rerun the K06 matrix there.
 
-## NEXT AGENT HANDOFF — PR #210 Veld input-ownership repairs — 11 November 2026
+## Previous checkpoint — PR #210 Veld input-ownership repairs — 11 November 2026
 
 **Source:** PR head `a8624b8` merged with `main` `c520703b`, then with `main`
 `1a3feb92` (after #296 and #314). Only `docs/PROJECT-STATE.md` conflicted;

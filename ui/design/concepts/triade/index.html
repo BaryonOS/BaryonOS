@@ -1,0 +1,875 @@
+<!doctype html><html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=1440"><title>BaryonOS concept A: Triade</title><style>@font-face{font-family:"Archivo";src:url("../../fonts/Archivo%5Bwdth,wght%5D.ttf") format("truetype");font-weight:100 900;font-stretch:62% 125%;font-display:block}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{margin:0}
+html{scrollbar-width:none} ::-webkit-scrollbar{display:none}
+body{width:1440px;background:#111;font-family:"Archivo",system-ui,sans-serif;font-stretch:104%;font-size:14px;line-height:20px;font-weight:420;color:#E8ECF1;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision;font-kerning:normal}
+svg{display:block}
+button{font:inherit;color:inherit;background:none;border:0;cursor:default;text-align:left}
+b{font-weight:620}
+
+/* ---------- theme tokens ---------- */
+.dark{--space-1:#0A0F1A;--win:#0C111A;--side:#10161F;--raised:#161D29;--t1:#ECF0F5;--t2:#A7B1BF;--t3:#808B9B;--hair:#1E2734;--strong:#5E697B;--focus:#ECF0F5;--dev:#3DD07A;--nas:#4C9AFF;--net:#FF5D50;--err:#FF5D50;--bond-lit:#8C98AA;--sysinv:#141A24;--rim:rgba(214,226,246,.42);--hair-2:#2A3443;--plate:rgba(220,230,245,.06);--plate-2:rgba(220,230,245,.10);--sel:rgba(220,230,245,.085);--well:rgba(3,6,11,.42);--node-bg:#0B1018;--bond:#3A4556;--orbit-bg:linear-gradient(180deg,rgba(25,32,46,.80),rgba(12,17,27,.88));--orbit-line:rgba(205,216,232,.15);--orbit-top:rgba(255,255,255,.07);--orbit-shadow:0 18px 48px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.35);--shadow-win:0 32px 64px rgba(0,0,0,.58),0 2px 8px rgba(0,0,0,.4);--shadow-win-unf:0 16px 48px rgba(0,0,0,.42);--win-line:rgba(205,216,232,.13);--win-top:rgba(255,255,255,.06);--field:#080C13;--paper:#171E2B;--paper-ink:#3F4A5E;--bp-bg:#E6EBF2;--bp-fg:#0B1018;--bp-hov:#FFFFFF;--t-dis:#5E697B;--dis-bg:rgba(220,230,245,.05);--scrim:rgba(3,5,9,.55);--sys-ring:rgba(255,255,255,0);--ask-line:rgba(255,93,80,.5);--net-text:#FF7A6F;--glass:rgba(10,15,25,.60);--glass-line:rgba(205,216,232,.14)}
+.light{--space-1:#DCE4EE;--win:#F8FAFC;--side:#EDF1F6;--raised:#FFFFFF;--t1:#121821;--t2:#46505E;--t3:#5C6675;--hair:#D8DFE7;--strong:#788394;--focus:#121821;--dev:#14894A;--nas:#1061D6;--net:#D9342A;--err:#C42B22;--bond-lit:#5E697B;--sysinv:#EEF1F5;--rim:rgba(255,255,255,1);--hair-2:#C8D1DC;--plate:rgba(18,24,33,.05);--plate-2:rgba(18,24,33,.08);--sel:rgba(18,24,33,.065);--well:rgba(18,30,48,.045);--node-bg:#F1F4F8;--bond:#AEB8C6;--orbit-bg:linear-gradient(180deg,rgba(252,253,255,.84),rgba(238,242,247,.90));--orbit-line:rgba(20,32,50,.12);--orbit-top:rgba(255,255,255,.95);--orbit-shadow:0 14px 40px rgba(40,56,84,.20),0 1px 3px rgba(40,56,84,.16);--shadow-win:0 28px 60px rgba(38,54,82,.22),0 2px 6px rgba(38,54,82,.14);--shadow-win-unf:0 12px 36px rgba(38,54,82,.14);--win-line:rgba(20,32,50,.14);--win-top:rgba(255,255,255,.95);--field:#FFFFFF;--paper:#FFFFFF;--paper-ink:#C9D1DB;--bp-bg:#121821;--bp-fg:#F4F7FA;--bp-hov:#2A3340;--t-dis:#8A94A2;--dis-bg:rgba(18,24,33,.05);--scrim:rgba(222,229,238,.40);--sys-ring:rgba(255,255,255,0);--ask-line:rgba(217,52,42,.5);--net-text:#B8261D;--glass:rgba(250,252,255,.62);--glass-line:rgba(20,32,50,.10)}
+.dark,.light{color:var(--t1)}
+
+/* ---------- type scale: six atlas cuts ---------- */
+.t12{font-size:12px;line-height:16px;font-weight:560}
+.t14{font-size:14px;line-height:20px;font-weight:420}
+.t14s{font-size:14px;line-height:20px;font-weight:620}
+.t16{font-size:16px;line-height:26px;font-weight:420}
+.d28{font-size:28px;line-height:36px;font-weight:360;font-stretch:125%}
+.d48{font-size:48px;line-height:56px;font-weight:280;font-stretch:125%}
+.c2{color:var(--t2)} .c3{color:var(--t3)}
+
+/* ---------- board scaffolding ---------- */
+.board-head{height:160px;padding:26px 48px 0;display:grid;grid-template-columns:330px 1fr 1fr;gap:40px;background:#111;color:#E4E8EE;overflow:hidden}
+.board-head .bh-name{display:flex;gap:16px;align-items:flex-start}
+.board-head .bh-name svg{width:56px;height:56px;flex:none;margin-top:-4px}
+.board-head h1{font-size:28px;line-height:36px;font-weight:360;font-stretch:125%}
+.board-head h1 + p{font-size:14px;line-height:20px;color:#9AA4B2;margin-top:4px}
+.board-head p{font-size:14px;line-height:20px;color:#C3CAD4}
+.board-head h2{font-size:12px;line-height:16px;font-weight:620;color:#8E98A6;margin-bottom:6px}
+.sec{height:980px}
+.cap{height:40px;line-height:40px;padding:0 48px;font-size:14px;color:#9EA8B6;white-space:nowrap;overflow:hidden;background:#111}
+.cap b{color:#E4E8EE;font-weight:620;margin-right:10px}
+.ab{width:1440px;height:900px;overflow:hidden;position:relative;isolation:isolate}
+.ab.dark{background:var(--space-1)} .ab.light{background:var(--side)}
+.wp{position:absolute;left:0;top:0;width:1440px;height:900px;z-index:0}
+
+/* ---------- icons ---------- */
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:butt;stroke-linejoin:miter;overflow:visible}
+.ic.s14{width:14px;height:14px;stroke-width:2}
+.ic.s16{width:16px;height:16px;stroke-width:1.8}
+.ic.s24{width:24px;height:24px;stroke-width:1.5}
+.mk{display:block;flex:none}
+
+/* ---------- Orbit (dock) ---------- */
+.orbit{position:absolute;left:0;right:0;bottom:16px;margin:0 auto;width:max-content;height:64px;padding:7px 8px;display:flex;align-items:center;gap:4px;border-radius:20px;background:var(--orbit-bg);box-shadow:var(--orbit-shadow);z-index:40}
+.orbit::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px var(--orbit-line),inset 0 1px 0 var(--orbit-top);pointer-events:none}
+.frost{-webkit-backdrop-filter:blur(28px) saturate(1.15);backdrop-filter:blur(28px) saturate(1.15)}
+.ob{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;position:relative;color:var(--t1);flex:none}
+.ob .ic{width:24px;height:24px;stroke-width:1.5}
+.ob.menu .mk{width:30px;height:30px}
+.ob.run::after{content:"";position:absolute;bottom:2px;left:22px;width:4px;height:4px;border-radius:2px;background:var(--t2)}
+.ob.front{background:var(--plate)}
+.ob.front::after{left:18px;width:12px;background:var(--t1)}
+.ob.open{background:var(--plate-2)}
+.ob.open::after{content:"";position:absolute;bottom:2px;left:18px;width:12px;height:2px;border-radius:1px;background:var(--t1)}
+.odiv{width:1px;height:28px;background:var(--hair-2);margin:0 6px;flex:none}
+.clock{height:48px;padding:0 10px 0 12px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;border-radius:12px;white-space:nowrap}
+.clock b{font-size:14px;line-height:18px;font-weight:620}
+.clock span{font-size:12px;line-height:16px;font-weight:560;color:var(--t2)}
+
+/* ---------- the Triade instrument (signature) ---------- */
+.tri{height:48px;display:flex;align-items:center;gap:18px;padding:0 10px 0 14px;border-radius:12px;background:var(--well);box-shadow:inset 0 0 0 1px var(--hair);position:relative}
+.tri-text{display:flex;flex-direction:column;justify-content:center;white-space:nowrap}
+.tri-text b{font-size:14px;line-height:18px;font-weight:620}
+.tri-text span{font-size:12px;line-height:16px;font-weight:560;color:var(--t2)}
+.tri-track{position:relative;display:flex;gap:6px;height:48px}
+.tri-track::before{content:"";position:absolute;left:44px;right:44px;top:12px;height:1px;background:var(--bond)}
+.tri-track::after{content:"";position:absolute;left:44px;width:94px;top:11.5px;height:2px;background:var(--bond-lit)}
+.tri-col{width:88px;display:flex;flex-direction:column;align-items:center;padding-top:6px;gap:6px;position:relative}
+.tri-col .lbl{display:flex;align-items:center;gap:5px;font-size:12px;line-height:16px;font-weight:560;color:var(--t2);white-space:nowrap}
+.tri-col .lbl .ic{width:14px;height:14px;stroke-width:2;color:var(--t2)}
+.tri-col.lit .lbl,.tri-col.lit .lbl .ic{color:var(--t1)}
+.dev{--c:var(--dev)} .nas{--c:var(--nas)} .net{--c:var(--net)}
+.node{width:12px;height:12px;border-radius:50%;position:relative;z-index:1;flex:none;background:var(--node-bg);box-shadow:inset 0 0 0 1.5px var(--t3)}
+.node.on{background:var(--c);box-shadow:0 0 0 3px var(--node-bg),0 0 10px 2px color-mix(in srgb,var(--c) 55%,transparent)}
+.node.link{background:var(--node-bg);box-shadow:inset 0 0 0 1.5px var(--c),0 0 0 3px var(--node-bg)}
+.node.link::after{content:"";position:absolute;left:4px;top:4px;width:4px;height:4px;border-radius:50%;background:var(--c)}
+.node.ask{background:var(--node-bg);box-shadow:inset 0 0 0 2px var(--c),0 0 0 3px var(--node-bg)}
+.node.ask::after{content:"";position:absolute;left:4px;top:4px;width:4px;height:4px;border-radius:50%;background:var(--c)}
+.node.ask::before{content:"";position:absolute;left:-6px;top:-6px;width:24px;height:24px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--c);opacity:.55;animation:halo 2.4s cubic-bezier(.2,.7,.2,1) infinite}
+@keyframes halo{0%{transform:scale(.55);opacity:.7}70%{transform:scale(1.15);opacity:0}100%{transform:scale(1.15);opacity:0}}
+.tri.ask{box-shadow:inset 0 0 0 1px var(--ask-line)}
+.tri .q{font-size:12px;line-height:16px;font-weight:620;color:var(--net-text)}
+
+/* tiny triade glyph: fixed order device / NAS / internet */
+.tg{display:inline-flex;gap:5px;align-items:center;flex:none;background:linear-gradient(var(--bond),var(--bond)) center/100% 1px no-repeat}
+.tg i{width:7px;height:7px;border-radius:50%;background:var(--node-bg);box-shadow:inset 0 0 0 1.25px var(--t3)}
+.tg i.on{background:var(--c);box-shadow:0 0 0 2px var(--node-bg)}
+.tg i.ask{background:var(--node-bg);box-shadow:inset 0 0 0 1.5px var(--c)}
+
+/* ---------- windows ---------- */
+.win{position:absolute;border-radius:12px;background:var(--win);box-shadow:var(--shadow-win);overflow:hidden;display:flex;flex-direction:column;z-index:10}
+.win::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px var(--win-line),inset 0 1px 0 var(--win-top);pointer-events:none;z-index:5}
+.win.unf{box-shadow:var(--shadow-win-unf)}
+.win:not(.unf)::before{content:"";position:absolute;left:12px;right:12px;top:0;height:1px;background:linear-gradient(90deg,transparent,var(--rim) 25%,var(--rim) 75%,transparent);z-index:6;pointer-events:none}
+.wbar{height:56px;flex:none;display:flex;align-items:center;position:relative}
+.wt{display:flex;align-items:center;gap:10px;font-size:14px;line-height:20px;font-weight:620;white-space:nowrap;color:var(--t1)}
+.fn{width:8px;height:8px;border-radius:50%;flex:none;background:var(--t1);box-shadow:0 0 0 3px var(--plate-2)}
+.unf .wt{color:var(--t2)}
+.unf .fn{background:transparent;box-shadow:inset 0 0 0 1.5px var(--t3)}
+.wc{display:flex;gap:2px;margin-left:auto;padding-right:12px}
+.wc span{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--t2)}
+.wc .ic{width:16px;height:16px;stroke-width:1.7}
+.unf .wc span{color:var(--t3)}
+.ibtn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--t2);flex:none}
+.ibtn.dim{color:var(--t3)}
+
+/* sidebar navigation */
+.side{background:var(--side);box-shadow:inset -1px 0 0 var(--hair)}
+.nav{padding:0 12px 12px}
+.nh{font-size:12px;line-height:16px;font-weight:560;color:var(--t3);padding:18px 10px 6px}
+.ni{height:36px;display:flex;align-items:center;gap:10px;padding:0 10px;border-radius:8px;color:var(--t1);position:relative;white-space:nowrap}
+.ni .ic{width:16px;height:16px;stroke-width:1.8;color:var(--t2)}
+.ni.sel{background:var(--sel)}
+.ni.sel::before{content:"";position:absolute;left:-8px;top:15px;width:6px;height:6px;border-radius:50%;background:var(--t1)}
+.ni.sel .ic{color:var(--t1)}
+.ni .aux{margin-left:auto;font-size:12px;line-height:16px;font-weight:560;color:var(--t2);display:flex;align-items:center;gap:6px}
+.ni.two{height:48px}
+.ni.two .stack{display:flex;flex-direction:column}
+.ni.two .stack span{font-size:12px;line-height:16px;font-weight:560;color:var(--t2)}
+
+/* buttons, fields */
+.btn{height:36px;padding:0 14px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;line-height:20px;font-weight:620;white-space:nowrap;flex:none}
+.btn .ic{width:16px;height:16px;stroke-width:1.8}
+.btn.p{background:var(--bp-bg);color:var(--bp-fg)}
+.btn.p.hov{background:var(--bp-hov)}
+.btn.s{box-shadow:inset 0 0 0 1px var(--strong);color:var(--t1)}
+.btn.s.hov{background:var(--plate)}
+.btn.q{color:var(--t1)}
+.btn.q.hov{background:var(--plate-2)}
+.btn.dis{opacity:1;color:var(--t-dis)!important;background:var(--dis-bg)!important;box-shadow:none!important}
+.btn.lg{height:44px;padding:0 20px}
+.fr{outline:2px solid var(--focus);outline-offset:2px}
+.field{height:36px;border-radius:8px;background:var(--field);box-shadow:inset 0 0 0 1px var(--strong);display:flex;align-items:center;gap:8px;padding:0 12px;color:var(--t3);white-space:nowrap}
+.field .ic{width:16px;height:16px;stroke-width:1.8;color:var(--t2)}
+.field.filled{color:var(--t1)}
+.field.err{box-shadow:inset 0 0 0 1.5px var(--err)}
+.caret{display:inline-block;width:1.5px;height:20px;background:var(--t1);vertical-align:middle;margin-left:1px}
+
+/* lists */
+.row{display:flex;align-items:center;position:relative}
+.selrow{background:var(--sel)}
+.selrow::before{content:"";position:absolute;left:8px;top:50%;margin-top:-3px;width:6px;height:6px;border-radius:50%;background:var(--t1)}
+
+/* thumbnails */
+.thumb{flex:none;border-radius:6px;background:var(--paper);box-shadow:inset 0 0 0 1px var(--hair-2);position:relative;overflow:hidden}
+.thumb .ln{position:absolute;height:2px;border-radius:1px;background:var(--paper-ink)}
+
+/* trusted system surface */
+.sys{position:absolute;background:var(--sysinv);color:var(--on-sys);border-radius:16px;box-shadow:0 24px 64px rgba(6,10,18,.42),0 2px 8px rgba(6,10,18,.3),0 0 0 1px var(--sys-ring);z-index:60}
+.scrim{position:absolute;inset:0;background:var(--scrim);z-index:50}
+
+/* high contrast */
+.hc{--space-1:#000;--win:#000;--side:#000;--raised:#000;--plate:#000;--plate-2:#1a1a1a;--t1:#FFFFFF;--t2:#FFFFFF;--t3:#E0E0E0;--hair:#FFFFFF;--hair-2:#FFFFFF;--bond:#FFFFFF;--strong:#FFFFFF;--well:#000;--node-bg:#000;--orbit-bg:#000;--orbit-line:#FFFFFF;--orbit-top:#000;--dev:#5CF08F;--nas:#7DB6FF;--net:#FF8A80;--paper:#000;--paper-ink:#FFFFFF;--glass:#000;--glass-line:#FFFFFF}
+.hc .orbit::after{box-shadow:inset 0 0 0 2px #fff}
+.hc .tri{box-shadow:inset 0 0 0 2px #fff}
+.hc .node.on{box-shadow:0 0 0 2px #fff}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style></head><body><svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
+<defs>
+<!-- Triade icon grammar: 24-unit grid, 1.5 stroke, butt terminals, mitred joins, 60-degree cuts, exactly one solid particle per icon (the assistant carries the triad). -->
+<symbol id="i-zoeken" viewBox="0 0 24 24"><circle cx="9.5" cy="8.5" r="5.5"/><path d="M12.25 13.26 15.25 18.46"/><circle cx="16.4" cy="20.4" r="1.6" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-bestanden" viewBox="0 0 24 24"><path d="M8.5 2.5h6.5l4 6.93V19.5H8.5z"/><path d="M5.5 6v16.5h10"/><circle cx="12.75" cy="13" r="1.6" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-notities" viewBox="0 0 24 24"><path d="M9 3h10v18H5V9.93z"/><path d="M9 11.5h6.5M9 15h6.5M9 18.5h2.75"/><circle cx="14.6" cy="18.5" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-instellingen" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 5V2.5M18.06 15.5l2.17 1.25M5.94 15.5l-2.17 1.25"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-haven" viewBox="0 0 24 24"><path d="M3 11l4 6.93h10L21 11"/><path d="M12 2.5V9"/><circle cx="12" cy="12.6" r="1.75" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-apparaat" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v3.5M8 20h8"/><circle cx="12" cy="10" r="1.75" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-nas" viewBox="0 0 24 24"><path d="M3 10.66l9-5.2 9 5.2"/><path d="M5 9.5v11h14v-11"/><path d="M8 13.5h5.5M8 17h5.5"/><circle cx="16" cy="13.5" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-versies" viewBox="0 0 24 24"><path d="M7 7.6v2.65M7 13.75v3"/><circle cx="7" cy="5.5" r="2" fill="currentColor" stroke="none"/><circle cx="7" cy="12" r="1.75"/><circle cx="7" cy="18.5" r="1.75"/><path d="M11 5.5h9M11 12h7M11 18.5h5"/></symbol>
+<symbol id="i-toegang" viewBox="0 0 24 24"><circle cx="7.5" cy="12" r="4.5"/><path d="M12 12h9M16.5 12v3M19.5 12v2"/><circle cx="7.5" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-internet" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5"/><ellipse cx="12" cy="12" rx="10" ry="3.5" transform="rotate(-25 12 12)"/><circle cx="21.06" cy="7.77" r="1.6" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-aanuit" viewBox="0 0 24 24"><path d="M16.82 7.75A7.5 7.5 0 1 1 7.18 7.75"/><path d="M12 7v5.5"/><circle cx="12" cy="3.6" r="1.6" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-vergrendelen" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10.5" rx="1.5"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/><circle cx="12" cy="15.75" r="1.6" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-assistent" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M2.5 9.5H5M2.5 14.5H5M19 9.5h2.5M19 14.5h2.5M9.5 2.5V5M14.5 2.5V5M9.5 19v2.5M14.5 19v2.5"/><circle cx="12" cy="9.3" r="1.3" fill="currentColor" stroke="none"/><circle cx="14.8" cy="14.1" r="1.3" fill="currentColor" stroke="none"/><circle cx="9.2" cy="14.1" r="1.3" fill="currentColor" stroke="none"/></symbol>
+<!-- window controls -->
+<symbol id="i-min" viewBox="0 0 24 24"><path d="M6 12.5h12"/></symbol>
+<symbol id="i-max" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="1"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="M7 7l10 10M17 7 7 17"/></symbol>
+<!-- support glyphs, same grammar -->
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M14.5 6 8.5 12l6 6"/></symbol>
+<symbol id="i-fwd" viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3.5l9.5 16.45h-19z"/><path d="M12 9.5v4.5"/><circle cx="12" cy="16.9" r="1.2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="M10 7l5 5-5 5"/></symbol>
+<symbol id="i-chevd" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"/></symbol>
+<symbol id="i-locatie" viewBox="0 0 24 24"><path d="M12 21 6.6 12a6.2 6.2 0 1 1 10.8 0z"/><circle cx="12" cy="9" r="2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-klok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3.5 2"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-desk" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="1.5"/><path d="M8 16.5h8"/><circle cx="12" cy="10.5" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l4 6.93V21H6z"/><path d="M9 13h6M9 16.5h3.5"/><circle cx="15" cy="16.5" r="1.2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-beeld" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="1.5"/><path d="M5.5 19l5.25-9.1L16 19"/><circle cx="16.5" cy="9.5" r="1.6" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3.5V13M7.5 9l4.5 4.5L16.5 9"/><path d="M4 15.5V20h16v-4.5"/><circle cx="12" cy="17.5" r="1.2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-coll" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><path d="M12 4.5v3"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-huis" viewBox="0 0 24 24"><path d="M3.5 11.4 12 6.5l8.5 4.9"/><path d="M5.5 10.3V20h13v-9.7"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-archief" viewBox="0 0 24 24"><path d="M3.5 4.5h17V8h-17z"/><path d="M5 8v12h14V8"/><path d="M10 12h4"/><circle cx="12" cy="16" r="1.2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-bin" viewBox="0 0 24 24"><path d="M4.5 7h15M9 7V4.5h6V7M6.5 7l1 13.5h9l1-13.5"/><circle cx="12" cy="14" r="1.3" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-tekening" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="1"/><path d="M3.5 12H11M11 4.5V16M15 12v7.5"/><circle cx="16.5" cy="8" r="1.4" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-lijst" viewBox="0 0 24 24"><path d="M10 7h9M10 12h9M10 17h6"/><circle cx="6" cy="12" r="1.5"/><circle cx="6" cy="17" r="1.5"/><circle cx="6" cy="7" r="1.6" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-web" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="M3 9h18"/><circle cx="6.5" cy="6.75" r=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/><circle cx="12" cy="8.5" r="1.3" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-a11y" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M7.5 9.5h9M12 9.5V14l-2.6 4.5M12 14l2.6 4.5"/><circle cx="12" cy="6.6" r="1.4" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-apps" viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="6" height="6" rx="1"/><rect x="13.5" y="4.5" width="6" height="6" rx="1"/><rect x="4.5" y="13.5" width="6" height="6" rx="1"/><circle cx="16.5" cy="16.5" r="2.2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="15" cy="7" r="1.8" fill="currentColor" stroke="none"/></symbol>
+<symbol id="wp-dark" viewBox="0 0 1440 900"><defs><radialGradient id="wd-base" gradientUnits="userSpaceOnUse" cx="1010" cy="330" r="1180"><stop offset="0" stop-color="#141E35"/><stop offset=".38" stop-color="#0C1324"/><stop offset=".75" stop-color="#070B15"/><stop offset="1" stop-color="#04060C"/></radialGradient><radialGradient id="wd-n1" gradientUnits="userSpaceOnUse" cx="1070" cy="370" r="460"><stop offset="0" stop-color="#2E4F94" stop-opacity=".40"/><stop offset=".55" stop-color="#22386A" stop-opacity=".16"/><stop offset="1" stop-color="#22386A" stop-opacity="0"/></radialGradient><radialGradient id="wd-n2" gradientUnits="userSpaceOnUse" cx="1240" cy="600" r="300"><stop offset="0" stop-color="#5B3C7E" stop-opacity=".16"/><stop offset="1" stop-color="#5B3C7E" stop-opacity="0"/></radialGradient><radialGradient id="wd-n3" gradientUnits="userSpaceOnUse" cx="980" cy="190" r="200"><stop offset="0" stop-color="#8A3E38" stop-opacity=".10"/><stop offset="1" stop-color="#8A3E38" stop-opacity="0"/></radialGradient><radialGradient id="wd-n4" gradientUnits="userSpaceOnUse" cx="240" cy="820" r="520"><stop offset="0" stop-color="#16314F" stop-opacity=".30"/><stop offset="1" stop-color="#16314F" stop-opacity="0"/></radialGradient><radialGradient id="wd-band" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1" gradientTransform="translate(760 470) rotate(-24) scale(980 150)"><stop offset="0" stop-color="#A9BEE3" stop-opacity=".11"/><stop offset=".5" stop-color="#7F95C2" stop-opacity=".045"/><stop offset="1" stop-color="#7F95C2" stop-opacity="0"/></radialGradient><radialGradient id="wd-vig" gradientUnits="userSpaceOnUse" cx="760" cy="420" r="980"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></radialGradient><radialGradient id="wd-halo" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".25" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><radialGradient id="wd-hr" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FF6A5E" stop-opacity=".55"/><stop offset=".3" stop-color="#FF6A5E" stop-opacity=".16"/><stop offset="1" stop-color="#FF6A5E" stop-opacity="0"/></radialGradient><radialGradient id="wd-hb" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#5EA6FF" stop-opacity=".55"/><stop offset=".3" stop-color="#5EA6FF" stop-opacity=".16"/><stop offset="1" stop-color="#5EA6FF" stop-opacity="0"/></radialGradient><radialGradient id="wd-hg" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#4FD88A" stop-opacity=".55"/><stop offset=".3" stop-color="#4FD88A" stop-opacity=".16"/><stop offset="1" stop-color="#4FD88A" stop-opacity="0"/></radialGradient></defs><rect width="1440" height="900" fill="url(#wd-base)"/><rect width="1440" height="900" fill="url(#wd-n4)"/><rect width="1440" height="900" fill="url(#wd-band)"/><rect width="1440" height="900" fill="url(#wd-n1)"/><rect width="1440" height="900" fill="url(#wd-n2)"/><rect width="1440" height="900" fill="url(#wd-n3)"/><g><circle cx="468.7" cy="664.6" r="0.5" fill="#DCE6F5" opacity="0.65"/><circle cx="553.1" cy="652.4" r="0.45" fill="#DCE6F5" opacity="0.70"/><circle cx="31.5" cy="806.1" r="0.9" fill="#FFE6D2" opacity="0.57"/><circle cx="93.1" cy="784.9" r="0.45" fill="#DCE6F5" opacity="0.51"/><circle cx="246.3" cy="660.3" r="0.9" fill="#DCE6F5" opacity="0.60"/><circle cx="881.7" cy="401.6" r="1.15" fill="#DCE6F5" opacity="0.84"/><circle cx="32.7" cy="749.3" r="0.5" fill="#DCE6F5" opacity="0.49"/><circle cx="867.3" cy="400.8" r="0.6" fill="#C9DAFF" opacity="0.46"/><circle cx="615.5" cy="494.4" r="1.0" fill="#DCE6F5" opacity="0.68"/><circle cx="1321.9" cy="313.4" r="0.6" fill="#DCE6F5" opacity="0.23"/><circle cx="837.7" cy="523.1" r="0.7" fill="#DCE6F5" opacity="0.53"/><circle cx="43.6" cy="701.4" r="0.9" fill="#DCE6F5" opacity="0.61"/><circle cx="128.8" cy="729.4" r="0.5" fill="#FFE6D2" opacity="0.62"/><circle cx="1278.2" cy="240.8" r="0.8" fill="#DCE6F5" opacity="0.37"/><circle cx="901.4" cy="332.9" r="0.5" fill="#C9DAFF" opacity="0.72"/><circle cx="1097.7" cy="279.0" r="0.5" fill="#DCE6F5" opacity="0.21"/><circle cx="1076.3" cy="471.4" r="0.7" fill="#DCE6F5" opacity="0.59"/><circle cx="698.4" cy="516.3" r="0.45" fill="#DCE6F5" opacity="0.30"/><circle cx="108.7" cy="793.3" r="0.6" fill="#C9DAFF" opacity="0.41"/><circle cx="1346.8" cy="249.4" r="0.9" fill="#DCE6F5" opacity="0.90"/><circle cx="144.2" cy="769.1" r="0.6" fill="#FFE6D2" opacity="0.19"/><circle cx="209.7" cy="764.8" r="0.7" fill="#DCE6F5" opacity="0.18"/><circle cx="802.7" cy="399.2" r="0.55" fill="#C9DAFF" opacity="0.57"/><circle cx="1035.5" cy="341.9" r="1.15" fill="#DCE6F5" opacity="0.69"/><circle cx="539.0" cy="483.9" r="1.0" fill="#DCE6F5" opacity="0.77"/><circle cx="236.6" cy="785.3" r="0.5" fill="#DCE6F5" opacity="0.37"/><circle cx="45.1" cy="780.4" r="0.55" fill="#DCE6F5" opacity="0.49"/><circle cx="981.2" cy="418.8" r="0.9" fill="#DCE6F5" opacity="0.60"/><circle cx="929.2" cy="357.2" r="1.0" fill="#C9DAFF" opacity="0.90"/><circle cx="727.2" cy="490.7" r="0.7" fill="#DCE6F5" opacity="0.23"/><circle cx="1205.1" cy="266.5" r="0.55" fill="#DCE6F5" opacity="0.47"/><circle cx="832.2" cy="495.9" r="0.45" fill="#DCE6F5" opacity="0.61"/><circle cx="1403.2" cy="163.9" r="0.8" fill="#DCE6F5" opacity="0.70"/><circle cx="1226.0" cy="206.3" r="1.15" fill="#C9DAFF" opacity="0.74"/><circle cx="463.8" cy="625.5" r="0.6" fill="#DCE6F5" opacity="0.64"/><circle cx="1240.8" cy="393.9" r="0.6" fill="#C9DAFF" opacity="0.29"/><circle cx="508.0" cy="600.1" r="0.7" fill="#DCE6F5" opacity="0.45"/><circle cx="1105.9" cy="319.3" r="0.8" fill="#DCE6F5" opacity="0.43"/><circle cx="286.0" cy="721.7" r="0.6" fill="#C9DAFF" opacity="0.37"/><circle cx="1026.3" cy="470.4" r="1.0" fill="#DCE6F5" opacity="0.87"/><circle cx="1264.5" cy="159.3" r="0.5" fill="#DCE6F5" opacity="0.66"/><circle cx="674.2" cy="383.2" r="0.55" fill="#DCE6F5" opacity="0.43"/><circle cx="63.0" cy="895.9" r="1.0" fill="#DCE6F5" opacity="0.69"/><circle cx="1147.4" cy="256.8" r="0.55" fill="#DCE6F5" opacity="0.75"/><circle cx="178.0" cy="843.9" r="0.55" fill="#FFE6D2" opacity="0.53"/><circle cx="1020.4" cy="297.0" r="0.55" fill="#DCE6F5" opacity="0.19"/><circle cx="836.6" cy="513.9" r="0.55" fill="#DCE6F5" opacity="0.43"/><circle cx="1349.3" cy="221.8" r="0.7" fill="#FFE6D2" opacity="0.47"/><circle cx="469.5" cy="656.0" r="1.15" fill="#DCE6F5" opacity="0.70"/><circle cx="990.2" cy="204.2" r="1.15" fill="#C9DAFF" opacity="0.70"/><circle cx="118.5" cy="808.6" r="1.0" fill="#FFE6D2" opacity="0.82"/><circle cx="1310.8" cy="265.5" r="0.5" fill="#DCE6F5" opacity="0.50"/><circle cx="1115.0" cy="388.6" r="1.15" fill="#DCE6F5" opacity="0.74"/><circle cx="33.3" cy="776.2" r="0.5" fill="#FFE6D2" opacity="0.43"/><circle cx="957.2" cy="401.5" r="1.15" fill="#C9DAFF" opacity="0.74"/><circle cx="795.7" cy="512.8" r="0.6" fill="#DCE6F5" opacity="0.58"/><circle cx="654.1" cy="485.0" r="0.9" fill="#C9DAFF" opacity="0.59"/><circle cx="416.2" cy="584.6" r="0.6" fill="#DCE6F5" opacity="0.56"/><circle cx="132.4" cy="725.6" r="0.55" fill="#DCE6F5" opacity="0.32"/><circle cx="285.3" cy="755.1" r="1.0" fill="#DCE6F5" opacity="0.61"/><circle cx="145.4" cy="720.9" r="0.9" fill="#DCE6F5" opacity="0.90"/><circle cx="480.3" cy="617.0" r="0.8" fill="#C9DAFF" opacity="0.19"/><circle cx="709.5" cy="555.7" r="0.45" fill="#C9DAFF" opacity="0.40"/><circle cx="971.5" cy="348.0" r="0.6" fill="#DCE6F5" opacity="0.73"/><circle cx="14.4" cy="799.8" r="0.7" fill="#DCE6F5" opacity="0.20"/><circle cx="369.4" cy="699.0" r="0.7" fill="#C9DAFF" opacity="0.41"/><circle cx="882.6" cy="405.2" r="0.45" fill="#DCE6F5" opacity="0.64"/><circle cx="614.5" cy="503.2" r="0.5" fill="#DCE6F5" opacity="0.33"/><circle cx="1004.5" cy="371.3" r="0.6" fill="#DCE6F5" opacity="0.22"/><circle cx="665.9" cy="481.5" r="0.8" fill="#DCE6F5" opacity="0.75"/><circle cx="823.1" cy="482.0" r="0.6" fill="#DCE6F5" opacity="0.71"/><circle cx="361.4" cy="722.0" r="0.7" fill="#DCE6F5" opacity="0.48"/><circle cx="443.9" cy="772.2" r="1.15" fill="#DCE6F5" opacity="0.79"/><circle cx="507.5" cy="640.2" r="0.45" fill="#C9DAFF" opacity="0.19"/><circle cx="853.9" cy="434.8" r="0.6" fill="#DCE6F5" opacity="0.47"/><circle cx="671.2" cy="597.3" r="1.0" fill="#DCE6F5" opacity="0.74"/><circle cx="294.3" cy="727.2" r="0.6" fill="#DCE6F5" opacity="0.65"/><circle cx="583.9" cy="533.7" r="0.55" fill="#DCE6F5" opacity="0.19"/><circle cx="643.8" cy="542.7" r="0.45" fill="#DCE6F5" opacity="0.23"/><circle cx="1412.4" cy="149.7" r="0.6" fill="#DCE6F5" opacity="0.57"/><circle cx="667.1" cy="456.6" r="0.55" fill="#DCE6F5" opacity="0.33"/><circle cx="410.3" cy="825.4" r="1.15" fill="#DCE6F5" opacity="0.66"/><circle cx="418.2" cy="620.0" r="0.9" fill="#DCE6F5" opacity="0.58"/><circle cx="766.0" cy="470.1" r="0.6" fill="#DCE6F5" opacity="0.32"/><circle cx="33.9" cy="810.7" r="0.45" fill="#DCE6F5" opacity="0.40"/><circle cx="395.0" cy="593.5" r="0.6" fill="#C9DAFF" opacity="0.23"/><circle cx="1426.2" cy="264.2" r="0.9" fill="#C9DAFF" opacity="0.82"/><circle cx="182.2" cy="861.3" r="0.55" fill="#C9DAFF" opacity="0.20"/><circle cx="982.7" cy="356.6" r="0.55" fill="#C9DAFF" opacity="0.70"/><circle cx="830.8" cy="299.1" r="0.45" fill="#FFE6D2" opacity="0.65"/><circle cx="1276.3" cy="193.9" r="0.6" fill="#DCE6F5" opacity="0.23"/><circle cx="34.0" cy="607.4" r="0.8" fill="#DCE6F5" opacity="0.73"/><circle cx="1324.0" cy="118.4" r="1.15" fill="#C9DAFF" opacity="0.79"/><circle cx="322.7" cy="626.0" r="1.0" fill="#C9DAFF" opacity="0.83"/><circle cx="1219.0" cy="316.8" r="1.0" fill="#DCE6F5" opacity="0.64"/><circle cx="1384.3" cy="204.3" r="0.6" fill="#C9DAFF" opacity="0.60"/><circle cx="796.8" cy="581.8" r="0.9" fill="#DCE6F5" opacity="0.58"/><circle cx="1207.7" cy="189.1" r="0.5" fill="#DCE6F5" opacity="0.52"/><circle cx="292.0" cy="604.6" r="0.7" fill="#DCE6F5" opacity="0.53"/><circle cx="1076.4" cy="351.7" r="0.6" fill="#DCE6F5" opacity="0.57"/><circle cx="1126.9" cy="287.6" r="0.5" fill="#C9DAFF" opacity="0.75"/><circle cx="252.6" cy="779.6" r="0.5" fill="#DCE6F5" opacity="0.71"/><circle cx="413.3" cy="705.1" r="1.0" fill="#DCE6F5" opacity="0.90"/><circle cx="256.1" cy="736.4" r="0.6" fill="#DCE6F5" opacity="0.22"/><circle cx="49.0" cy="599.4" r="0.55" fill="#C9DAFF" opacity="0.52"/><circle cx="354.7" cy="621.9" r="0.5" fill="#DCE6F5" opacity="0.58"/><circle cx="776.5" cy="517.3" r="0.55" fill="#C9DAFF" opacity="0.18"/><circle cx="1065.1" cy="280.3" r="0.9" fill="#DCE6F5" opacity="0.66"/><circle cx="599.6" cy="513.7" r="0.8" fill="#DCE6F5" opacity="0.18"/><circle cx="1377.3" cy="222.5" r="0.5" fill="#DCE6F5" opacity="0.72"/><circle cx="1160.6" cy="343.3" r="0.8" fill="#DCE6F5" opacity="0.22"/><circle cx="848.4" cy="324.6" r="0.9" fill="#DCE6F5" opacity="0.81"/><circle cx="404.1" cy="46.5" r="0.7" fill="#DCE6F5" opacity="0.54"/><circle cx="359.0" cy="239.2" r="1.15" fill="#DCE6F5" opacity="0.66"/><circle cx="1130.6" cy="385.0" r="0.45" fill="#DCE6F5" opacity="0.64"/><circle cx="1315.3" cy="846.6" r="1.15" fill="#DCE6F5" opacity="0.62"/><circle cx="71.2" cy="659.1" r="1.0" fill="#DCE6F5" opacity="0.77"/><circle cx="928.1" cy="257.6" r="0.45" fill="#C9DAFF" opacity="0.70"/><circle cx="183.3" cy="425.0" r="0.8" fill="#DCE6F5" opacity="0.34"/><circle cx="1064.2" cy="878.7" r="0.7" fill="#DCE6F5" opacity="0.41"/><circle cx="433.2" cy="501.6" r="0.9" fill="#DCE6F5" opacity="0.59"/><circle cx="108.2" cy="450.5" r="1.0" fill="#C9DAFF" opacity="0.74"/><circle cx="1305.0" cy="896.8" r="1.0" fill="#C9DAFF" opacity="0.70"/><circle cx="277.1" cy="81.6" r="0.8" fill="#DCE6F5" opacity="0.50"/><circle cx="344.3" cy="232.5" r="0.6" fill="#DCE6F5" opacity="0.69"/><circle cx="551.3" cy="671.3" r="0.6" fill="#DCE6F5" opacity="0.39"/><circle cx="1083.0" cy="448.3" r="0.8" fill="#C9DAFF" opacity="0.25"/><circle cx="762.1" cy="711.3" r="0.6" fill="#DCE6F5" opacity="0.23"/><circle cx="553.8" cy="581.2" r="0.9" fill="#DCE6F5" opacity="0.88"/><circle cx="183.2" cy="382.7" r="1.0" fill="#C9DAFF" opacity="0.89"/><circle cx="0.3" cy="352.4" r="1.15" fill="#C9DAFF" opacity="0.85"/><circle cx="357.8" cy="98.1" r="0.55" fill="#DCE6F5" opacity="0.27"/><circle cx="1355.7" cy="649.6" r="1.0" fill="#DCE6F5" opacity="0.58"/><circle cx="2.0" cy="113.1" r="0.45" fill="#DCE6F5" opacity="0.55"/><circle cx="1385.9" cy="563.8" r="1.15" fill="#DCE6F5" opacity="0.77"/><circle cx="143.2" cy="270.3" r="0.6" fill="#DCE6F5" opacity="0.40"/><circle cx="1138.3" cy="1.0" r="1.15" fill="#C9DAFF" opacity="0.66"/><circle cx="401.2" cy="284.7" r="0.6" fill="#DCE6F5" opacity="0.45"/><circle cx="787.7" cy="26.4" r="0.9" fill="#DCE6F5" opacity="0.80"/><circle cx="79.6" cy="174.7" r="0.9" fill="#DCE6F5" opacity="0.58"/><circle cx="961.0" cy="832.6" r="0.6" fill="#DCE6F5" opacity="0.46"/><circle cx="1034.4" cy="326.1" r="0.9" fill="#DCE6F5" opacity="0.62"/><circle cx="1064.3" cy="454.4" r="0.6" fill="#DCE6F5" opacity="0.46"/><circle cx="448.9" cy="738.0" r="0.6" fill="#DCE6F5" opacity="0.45"/><circle cx="1095.1" cy="265.4" r="1.0" fill="#DCE6F5" opacity="0.76"/><circle cx="698.5" cy="819.4" r="0.45" fill="#DCE6F5" opacity="0.72"/><circle cx="1327.6" cy="48.9" r="0.45" fill="#DCE6F5" opacity="0.74"/><circle cx="598.2" cy="638.9" r="0.55" fill="#DCE6F5" opacity="0.40"/><circle cx="1055.1" cy="897.8" r="0.55" fill="#DCE6F5" opacity="0.37"/><circle cx="939.6" cy="472.3" r="1.0" fill="#DCE6F5" opacity="0.56"/><circle cx="1208.3" cy="886.5" r="1.0" fill="#DCE6F5" opacity="0.61"/><circle cx="112.7" cy="72.7" r="0.9" fill="#DCE6F5" opacity="0.88"/><circle cx="808.0" cy="682.9" r="0.9" fill="#DCE6F5" opacity="0.67"/><circle cx="1183.7" cy="389.2" r="0.45" fill="#DCE6F5" opacity="0.58"/><circle cx="536.7" cy="827.6" r="0.6" fill="#C9DAFF" opacity="0.36"/><circle cx="43.6" cy="369.7" r="0.9" fill="#DCE6F5" opacity="0.56"/><circle cx="668.2" cy="723.0" r="0.45" fill="#DCE6F5" opacity="0.33"/><circle cx="1293.9" cy="305.2" r="0.7" fill="#FFE6D2" opacity="0.37"/><circle cx="62.8" cy="671.8" r="0.8" fill="#DCE6F5" opacity="0.71"/><circle cx="5.4" cy="680.1" r="0.5" fill="#DCE6F5" opacity="0.19"/><circle cx="154.5" cy="644.0" r="1.0" fill="#DCE6F5" opacity="0.88"/><circle cx="1137.3" cy="822.2" r="1.0" fill="#C9DAFF" opacity="0.60"/><circle cx="263.4" cy="722.3" r="0.7" fill="#DCE6F5" opacity="0.65"/><circle cx="874.4" cy="295.0" r="0.8" fill="#FFE6D2" opacity="0.44"/><circle cx="113.8" cy="177.6" r="0.55" fill="#DCE6F5" opacity="0.32"/><circle cx="935.3" cy="433.5" r="1.15" fill="#DCE6F5" opacity="0.66"/><circle cx="1272.2" cy="889.0" r="0.7" fill="#DCE6F5" opacity="0.54"/><circle cx="138.8" cy="448.6" r="1.0" fill="#DCE6F5" opacity="0.61"/><circle cx="600.3" cy="558.3" r="0.6" fill="#DCE6F5" opacity="0.61"/><circle cx="1122.8" cy="264.5" r="0.7" fill="#DCE6F5" opacity="0.50"/><circle cx="365.8" cy="234.3" r="1.0" fill="#DCE6F5" opacity="0.64"/><circle cx="339.1" cy="253.2" r="0.6" fill="#DCE6F5" opacity="0.37"/><circle cx="362.4" cy="221.4" r="1.15" fill="#DCE6F5" opacity="0.63"/><circle cx="940.8" cy="891.9" r="0.5" fill="#DCE6F5" opacity="0.18"/><circle cx="1210.4" cy="822.9" r="0.45" fill="#DCE6F5" opacity="0.68"/><circle cx="171.7" cy="170.6" r="0.6" fill="#DCE6F5" opacity="0.71"/><circle cx="738.2" cy="160.0" r="0.7" fill="#DCE6F5" opacity="0.62"/><circle cx="152.3" cy="536.5" r="0.8" fill="#DCE6F5" opacity="0.30"/><circle cx="489.6" cy="39.7" r="0.7" fill="#DCE6F5" opacity="0.20"/><circle cx="1173.2" cy="736.9" r="0.9" fill="#DCE6F5" opacity="0.79"/><circle cx="894.3" cy="70.1" r="0.45" fill="#C9DAFF" opacity="0.63"/><circle cx="696.3" cy="367.4" r="0.9" fill="#DCE6F5" opacity="0.78"/><circle cx="920.4" cy="82.0" r="0.55" fill="#DCE6F5" opacity="0.41"/><circle cx="590.1" cy="255.0" r="0.7" fill="#DCE6F5" opacity="0.42"/><circle cx="449.8" cy="509.9" r="0.8" fill="#DCE6F5" opacity="0.42"/><circle cx="1244.5" cy="897.0" r="0.8" fill="#DCE6F5" opacity="0.55"/><circle cx="1048.4" cy="183.3" r="0.45" fill="#DCE6F5" opacity="0.43"/><circle cx="610.2" cy="738.3" r="0.9" fill="#DCE6F5" opacity="0.75"/><circle cx="663.7" cy="146.3" r="0.45" fill="#DCE6F5" opacity="0.21"/><circle cx="922.6" cy="818.8" r="0.5" fill="#DCE6F5" opacity="0.51"/><circle cx="1061.6" cy="154.5" r="0.8" fill="#C9DAFF" opacity="0.34"/><circle cx="247.4" cy="60.4" r="0.9" fill="#DCE6F5" opacity="0.72"/><circle cx="434.3" cy="753.6" r="0.45" fill="#C9DAFF" opacity="0.74"/><circle cx="452.9" cy="546.9" r="0.9" fill="#FFE6D2" opacity="0.58"/><circle cx="991.0" cy="802.0" r="0.6" fill="#FFE6D2" opacity="0.53"/><circle cx="1218.7" cy="746.3" r="0.55" fill="#DCE6F5" opacity="0.50"/><circle cx="575.6" cy="466.1" r="0.9" fill="#DCE6F5" opacity="0.68"/><circle cx="355.8" cy="652.4" r="0.6" fill="#C9DAFF" opacity="0.20"/><circle cx="1213.2" cy="605.0" r="0.8" fill="#FFE6D2" opacity="0.25"/><circle cx="656.3" cy="764.1" r="0.7" fill="#DCE6F5" opacity="0.55"/><circle cx="839.0" cy="383.2" r="0.8" fill="#C9DAFF" opacity="0.43"/><circle cx="257.4" cy="3.2" r="1.0" fill="#C9DAFF" opacity="0.71"/><circle cx="1099.5" cy="702.0" r="1.0" fill="#C9DAFF" opacity="0.84"/><circle cx="576.5" cy="60.4" r="0.8" fill="#DCE6F5" opacity="0.43"/><circle cx="1155.3" cy="453.9" r="0.45" fill="#DCE6F5" opacity="0.20"/><circle cx="118.4" cy="660.1" r="1.15" fill="#C9DAFF" opacity="0.58"/><circle cx="1288.6" cy="587.5" r="0.55" fill="#DCE6F5" opacity="0.19"/><circle cx="1434.4" cy="658.9" r="0.5" fill="#C9DAFF" opacity="0.29"/><circle cx="414.5" cy="729.9" r="0.55" fill="#DCE6F5" opacity="0.57"/><circle cx="94.3" cy="315.8" r="0.7" fill="#FFE6D2" opacity="0.27"/><circle cx="396.0" cy="734.1" r="0.55" fill="#C9DAFF" opacity="0.32"/><circle cx="300.0" cy="236.6" r="1.15" fill="#DCE6F5" opacity="0.63"/><circle cx="53.0" cy="163.9" r="0.55" fill="#DCE6F5" opacity="0.54"/><circle cx="978.7" cy="805.9" r="0.55" fill="#DCE6F5" opacity="0.63"/><circle cx="165.7" cy="477.6" r="0.8" fill="#C9DAFF" opacity="0.73"/><circle cx="799.5" cy="522.0" r="0.5" fill="#C9DAFF" opacity="0.32"/><circle cx="906.9" cy="354.8" r="0.8" fill="#DCE6F5" opacity="0.33"/><circle cx="831.4" cy="324.2" r="0.5" fill="#DCE6F5" opacity="0.43"/><circle cx="886.1" cy="862.2" r="0.7" fill="#DCE6F5" opacity="0.65"/><circle cx="446.5" cy="869.4" r="0.8" fill="#DCE6F5" opacity="0.60"/><circle cx="319.2" cy="261.9" r="0.9" fill="#DCE6F5" opacity="0.70"/><circle cx="1289.6" cy="118.8" r="0.6" fill="#DCE6F5" opacity="0.53"/><circle cx="32.1" cy="2.4" r="0.8" fill="#C9DAFF" opacity="0.35"/><circle cx="514.3" cy="201.8" r="0.7" fill="#DCE6F5" opacity="0.52"/><circle cx="527.4" cy="745.6" r="0.55" fill="#DCE6F5" opacity="0.26"/><circle cx="1018.8" cy="405.8" r="0.5" fill="#DCE6F5" opacity="0.54"/><circle cx="578.8" cy="237.8" r="0.45" fill="#C9DAFF" opacity="0.21"/><circle cx="1285.5" cy="535.3" r="1.0" fill="#C9DAFF" opacity="0.76"/><circle cx="1056.3" cy="223.6" r="0.45" fill="#C9DAFF" opacity="0.21"/><circle cx="36.3" cy="167.1" r="0.55" fill="#DCE6F5" opacity="0.21"/><circle cx="17.8" cy="495.8" r="0.6" fill="#DCE6F5" opacity="0.26"/><circle cx="746.3" cy="578.4" r="0.9" fill="#DCE6F5" opacity="0.83"/><circle cx="732.3" cy="57.4" r="0.45" fill="#C9DAFF" opacity="0.75"/><circle cx="1030.2" cy="5.7" r="0.9" fill="#C9DAFF" opacity="0.81"/><circle cx="115.9" cy="590.0" r="0.55" fill="#DCE6F5" opacity="0.31"/><circle cx="376.5" cy="579.6" r="0.5" fill="#DCE6F5" opacity="0.37"/><circle cx="1024.8" cy="239.4" r="1.15" fill="#C9DAFF" opacity="0.79"/><circle cx="1399.5" cy="266.1" r="0.6" fill="#C9DAFF" opacity="0.23"/><circle cx="21.9" cy="234.3" r="0.6" fill="#DCE6F5" opacity="0.66"/><circle cx="1360.4" cy="671.5" r="0.8" fill="#DCE6F5" opacity="0.29"/><circle cx="473.1" cy="215.3" r="1.15" fill="#C9DAFF" opacity="0.71"/><circle cx="1004.6" cy="771.8" r="0.9" fill="#DCE6F5" opacity="0.88"/><circle cx="821.3" cy="277.0" r="0.6" fill="#FFE6D2" opacity="0.40"/><circle cx="112.0" cy="819.7" r="0.55" fill="#DCE6F5" opacity="0.20"/><circle cx="153.6" cy="836.1" r="0.8" fill="#DCE6F5" opacity="0.74"/><circle cx="44.5" cy="124.6" r="0.45" fill="#DCE6F5" opacity="0.58"/><circle cx="94.7" cy="531.4" r="0.8" fill="#C9DAFF" opacity="0.29"/><circle cx="1283.4" cy="59.4" r="0.9" fill="#DCE6F5" opacity="0.59"/><circle cx="292.6" cy="30.5" r="0.5" fill="#DCE6F5" opacity="0.65"/><circle cx="687.0" cy="119.4" r="0.6" fill="#DCE6F5" opacity="0.35"/><circle cx="610.2" cy="18.8" r="0.7" fill="#DCE6F5" opacity="0.71"/><circle cx="1030.7" cy="331.2" r="0.8" fill="#FFE6D2" opacity="0.62"/><circle cx="725.4" cy="766.2" r="0.45" fill="#DCE6F5" opacity="0.63"/><circle cx="628.5" cy="695.7" r="0.8" fill="#DCE6F5" opacity="0.45"/><circle cx="774.5" cy="194.9" r="0.5" fill="#DCE6F5" opacity="0.51"/><circle cx="245.3" cy="1.2" r="0.6" fill="#DCE6F5" opacity="0.34"/><circle cx="6.3" cy="441.7" r="1.0" fill="#DCE6F5" opacity="0.79"/><circle cx="1392.7" cy="533.3" r="1.15" fill="#DCE6F5" opacity="0.64"/><circle cx="408.6" cy="193.2" r="0.6" fill="#DCE6F5" opacity="0.46"/><circle cx="1351.7" cy="690.1" r="1.0" fill="#C9DAFF" opacity="0.83"/><circle cx="1133.2" cy="565.1" r="0.8" fill="#DCE6F5" opacity="0.23"/><circle cx="1284.3" cy="670.7" r="0.9" fill="#DCE6F5" opacity="0.86"/><circle cx="535.6" cy="272.8" r="0.9" fill="#C9DAFF" opacity="0.87"/><circle cx="246.4" cy="884.2" r="0.6" fill="#DCE6F5" opacity="0.72"/><circle cx="765.4" cy="679.0" r="0.45" fill="#DCE6F5" opacity="0.38"/><circle cx="751.3" cy="781.2" r="1.0" fill="#DCE6F5" opacity="0.78"/><circle cx="244.2" cy="394.9" r="0.7" fill="#DCE6F5" opacity="0.51"/><circle cx="481.0" cy="578.4" r="0.6" fill="#DCE6F5" opacity="0.47"/><circle cx="434.2" cy="632.8" r="0.55" fill="#DCE6F5" opacity="0.59"/><circle cx="1041.4" cy="542.6" r="0.8" fill="#DCE6F5" opacity="0.27"/><circle cx="1376.3" cy="232.8" r="0.5" fill="#DCE6F5" opacity="0.27"/></g><g><circle cx="728.1" cy="148.7" r="7" fill="url(#wd-halo)" opacity=".7"/><circle cx="728.1" cy="148.7" r="1.3" fill="#EEF3FA"/><circle cx="687.6" cy="257.5" r="7" fill="url(#wd-halo)" opacity=".7"/><circle cx="687.6" cy="257.5" r="1.3" fill="#EEF3FA"/><circle cx="815.8" cy="237.2" r="7" fill="url(#wd-halo)" opacity=".7"/><circle cx="815.8" cy="237.2" r="1.3" fill="#EEF3FA"/><circle cx="654.0" cy="696.2" r="7" fill="url(#wd-halo)" opacity=".7"/><circle cx="654.0" cy="696.2" r="1.3" fill="#EEF3FA"/><circle cx="801.5" cy="677.4" r="7" fill="url(#wd-halo)" opacity=".7"/><circle cx="801.5" cy="677.4" r="1.3" fill="#EEF3FA"/><circle cx="959.0" cy="49.1" r="7" fill="url(#wd-halo)" opacity=".7"/><circle cx="959.0" cy="49.1" r="1.3" fill="#EEF3FA"/><circle cx="1294.7" cy="354.3" r="7" fill="url(#wd-halo)" opacity=".7"/><circle cx="1294.7" cy="354.3" r="1.3" fill="#EEF3FA"/><circle cx="751.3" cy="746.2" r="7" fill="url(#wd-halo)" opacity=".7"/><circle cx="751.3" cy="746.2" r="1.3" fill="#EEF3FA"/><circle cx="814.7" cy="55.9" r="7" fill="url(#wd-halo)" opacity=".7"/><circle cx="814.7" cy="55.9" r="1.3" fill="#EEF3FA"/></g><g><line x1="1036.6" y1="224.2" x2="1216.9" y2="463.4" stroke="#C9D6EA" stroke-opacity=".16" stroke-width="1"/><line x1="1210.6" y1="478.1" x2="913.4" y2="514.6" stroke="#C9D6EA" stroke-opacity=".16" stroke-width="1"/><line x1="903.7" y1="501.9" x2="1020.8" y2="226.1" stroke="#C9D6EA" stroke-opacity=".16" stroke-width="1"/><circle cx="1027.0" cy="211.4" r="34" fill="url(#wd-hr)"/><circle cx="1027.0" cy="211.4" r="9" fill="url(#wd-halo)"/><circle cx="1027.0" cy="211.4" r="2.1" fill="#F6F9FD"/><circle cx="1226.5" cy="476.2" r="34" fill="url(#wd-hb)"/><circle cx="1226.5" cy="476.2" r="9" fill="url(#wd-halo)"/><circle cx="1226.5" cy="476.2" r="2.1" fill="#F6F9FD"/><circle cx="897.5" cy="516.6" r="34" fill="url(#wd-hg)"/><circle cx="897.5" cy="516.6" r="9" fill="url(#wd-halo)"/><circle cx="897.5" cy="516.6" r="2.1" fill="#F6F9FD"/></g><rect width="1440" height="900" fill="url(#wd-vig)"/></symbol><symbol id="wp-light" viewBox="0 0 1440 900"><defs><linearGradient id="wl-base" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="900"><stop offset="0" stop-color="#C3D0E1"/><stop offset=".42" stop-color="#D9E2EC"/><stop offset="1" stop-color="#EDF1F6"/></linearGradient><radialGradient id="wl-sun" gradientUnits="userSpaceOnUse" cx="1120" cy="140" r="760"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".85"/><stop offset=".45" stop-color="#F4F7FB" stop-opacity=".35"/><stop offset="1" stop-color="#F4F7FB" stop-opacity="0"/></radialGradient><radialGradient id="wl-haze" gradientUnits="userSpaceOnUse" cx="180" cy="760" r="620"><stop offset="0" stop-color="#AFC0D6" stop-opacity=".45"/><stop offset="1" stop-color="#AFC0D6" stop-opacity="0"/></radialGradient><radialGradient id="wl-hr" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#D9342A" stop-opacity=".18"/><stop offset="1" stop-color="#D9342A" stop-opacity="0"/></radialGradient><radialGradient id="wl-hb" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#1061D6" stop-opacity=".18"/><stop offset="1" stop-color="#1061D6" stop-opacity="0"/></radialGradient><radialGradient id="wl-hg" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#14894A" stop-opacity=".18"/><stop offset="1" stop-color="#14894A" stop-opacity="0"/></radialGradient></defs><rect width="1440" height="900" fill="url(#wl-base)"/><rect width="1440" height="900" fill="url(#wl-haze)"/><rect width="1440" height="900" fill="url(#wl-sun)"/><g fill="none" stroke="#2B3A4F" stroke-width="1"><circle cx="1560" cy="-320" r="620" stroke-opacity="0.07"/><circle cx="1560" cy="-320" r="840" stroke-opacity="0.06"/><circle cx="1560" cy="-320" r="1060" stroke-opacity="0.05"/><circle cx="1560" cy="-320" r="1280" stroke-opacity="0.04"/><line x1="1560" y1="-320" x2="998.1" y2="1070.8" stroke-opacity=".04"/><line x1="1560" y1="-320" x2="636.5" y2="862.0" stroke-opacity=".04"/><line x1="1560" y1="-320" x2="346.5" y2="561.7" stroke-opacity=".04"/><line x1="1560" y1="-320" x2="150.5" y2="193.0" stroke-opacity=".04"/></g><g><circle cx="651.4" cy="503.8" r="0.9" fill="#24324A" opacity="0.20"/><circle cx="1231.3" cy="170.9" r="1.1" fill="#24324A" opacity="0.20"/><circle cx="884.1" cy="167.6" r="0.9" fill="#24324A" opacity="0.17"/><circle cx="130.6" cy="728.7" r="1.4" fill="#24324A" opacity="0.24"/><circle cx="857.4" cy="356.5" r="0.9" fill="#24324A" opacity="0.24"/><circle cx="886.4" cy="141.7" r="0.6" fill="#24324A" opacity="0.28"/><circle cx="91.0" cy="32.1" r="0.7" fill="#24324A" opacity="0.23"/><circle cx="1120.5" cy="293.7" r="1.1" fill="#24324A" opacity="0.29"/><circle cx="747.5" cy="576.3" r="0.9" fill="#24324A" opacity="0.10"/><circle cx="122.4" cy="589.3" r="0.9" fill="#24324A" opacity="0.32"/><circle cx="1433.8" cy="756.2" r="1.4" fill="#24324A" opacity="0.16"/><circle cx="1091.5" cy="461.6" r="0.6" fill="#24324A" opacity="0.12"/><circle cx="1103.5" cy="360.4" r="0.8" fill="#24324A" opacity="0.19"/><circle cx="1379.6" cy="762.6" r="0.6" fill="#24324A" opacity="0.15"/><circle cx="1334.9" cy="47.1" r="0.9" fill="#24324A" opacity="0.32"/><circle cx="572.3" cy="65.7" r="1.4" fill="#24324A" opacity="0.14"/><circle cx="971.9" cy="303.2" r="0.8" fill="#24324A" opacity="0.17"/><circle cx="1388.3" cy="682.2" r="0.6" fill="#24324A" opacity="0.13"/><circle cx="1018.1" cy="9.9" r="0.9" fill="#24324A" opacity="0.28"/><circle cx="255.9" cy="503.4" r="0.9" fill="#24324A" opacity="0.21"/><circle cx="1418.8" cy="692.6" r="0.9" fill="#24324A" opacity="0.24"/><circle cx="167.8" cy="378.7" r="0.7" fill="#24324A" opacity="0.10"/><circle cx="1244.6" cy="877.4" r="1.1" fill="#24324A" opacity="0.17"/><circle cx="1274.2" cy="189.6" r="0.9" fill="#24324A" opacity="0.32"/><circle cx="866.9" cy="519.3" r="0.6" fill="#24324A" opacity="0.32"/><circle cx="307.1" cy="232.4" r="1.1" fill="#24324A" opacity="0.17"/><circle cx="426.7" cy="66.1" r="0.6" fill="#24324A" opacity="0.15"/><circle cx="916.7" cy="14.0" r="0.8" fill="#24324A" opacity="0.18"/><circle cx="652.6" cy="863.2" r="0.9" fill="#24324A" opacity="0.28"/><circle cx="195.5" cy="347.5" r="1.4" fill="#24324A" opacity="0.13"/><circle cx="1308.1" cy="736.0" r="0.7" fill="#24324A" opacity="0.26"/><circle cx="228.2" cy="566.1" r="1.1" fill="#24324A" opacity="0.14"/><circle cx="1368.2" cy="794.0" r="1.1" fill="#24324A" opacity="0.12"/><circle cx="68.3" cy="98.1" r="1.1" fill="#24324A" opacity="0.31"/><circle cx="343.3" cy="634.1" r="0.8" fill="#24324A" opacity="0.19"/><circle cx="1302.9" cy="441.9" r="1.1" fill="#24324A" opacity="0.14"/><circle cx="1037.3" cy="61.9" r="0.7" fill="#24324A" opacity="0.21"/><circle cx="941.1" cy="554.3" r="0.6" fill="#24324A" opacity="0.16"/><circle cx="1321.0" cy="183.6" r="0.6" fill="#24324A" opacity="0.12"/><circle cx="592.5" cy="224.2" r="0.6" fill="#24324A" opacity="0.14"/><circle cx="531.1" cy="515.0" r="0.7" fill="#24324A" opacity="0.12"/><circle cx="199.3" cy="405.3" r="0.8" fill="#24324A" opacity="0.24"/><circle cx="995.4" cy="526.0" r="0.7" fill="#24324A" opacity="0.23"/><circle cx="1330.0" cy="427.3" r="0.8" fill="#24324A" opacity="0.25"/><circle cx="1386.4" cy="19.1" r="1.4" fill="#24324A" opacity="0.12"/><circle cx="96.9" cy="280.0" r="0.7" fill="#24324A" opacity="0.32"/><circle cx="108.4" cy="491.5" r="1.4" fill="#24324A" opacity="0.11"/><circle cx="1348.2" cy="663.4" r="0.7" fill="#24324A" opacity="0.27"/><circle cx="1317.6" cy="316.7" r="1.4" fill="#24324A" opacity="0.20"/><circle cx="111.8" cy="771.6" r="0.6" fill="#24324A" opacity="0.29"/><circle cx="824.8" cy="562.5" r="0.9" fill="#24324A" opacity="0.18"/><circle cx="17.9" cy="65.0" r="0.6" fill="#24324A" opacity="0.24"/><circle cx="1430.4" cy="791.8" r="1.4" fill="#24324A" opacity="0.17"/><circle cx="1345.3" cy="624.7" r="0.9" fill="#24324A" opacity="0.20"/><circle cx="1207.3" cy="75.4" r="1.1" fill="#24324A" opacity="0.11"/><circle cx="865.9" cy="432.9" r="0.7" fill="#24324A" opacity="0.31"/><circle cx="162.6" cy="702.0" r="1.4" fill="#24324A" opacity="0.30"/><circle cx="368.4" cy="10.2" r="0.8" fill="#24324A" opacity="0.13"/><circle cx="880.9" cy="466.6" r="0.8" fill="#24324A" opacity="0.25"/><circle cx="636.4" cy="802.6" r="0.8" fill="#24324A" opacity="0.19"/><circle cx="360.9" cy="570.8" r="0.7" fill="#24324A" opacity="0.29"/><circle cx="553.6" cy="524.8" r="0.8" fill="#24324A" opacity="0.15"/><circle cx="193.8" cy="315.7" r="0.6" fill="#24324A" opacity="0.26"/><circle cx="1368.0" cy="249.1" r="0.7" fill="#24324A" opacity="0.12"/><circle cx="678.7" cy="833.2" r="0.9" fill="#24324A" opacity="0.18"/><circle cx="748.8" cy="604.9" r="1.4" fill="#24324A" opacity="0.28"/><circle cx="1414.1" cy="407.2" r="0.6" fill="#24324A" opacity="0.28"/><circle cx="400.5" cy="546.8" r="1.4" fill="#24324A" opacity="0.26"/><circle cx="821.6" cy="278.1" r="1.1" fill="#24324A" opacity="0.10"/><circle cx="195.7" cy="409.3" r="0.6" fill="#24324A" opacity="0.27"/><circle cx="383.6" cy="701.3" r="0.6" fill="#24324A" opacity="0.32"/><circle cx="166.0" cy="98.1" r="1.1" fill="#24324A" opacity="0.24"/><circle cx="1162.6" cy="862.6" r="1.4" fill="#24324A" opacity="0.14"/><circle cx="1186.3" cy="230.4" r="1.4" fill="#24324A" opacity="0.10"/><circle cx="680.0" cy="642.8" r="0.7" fill="#24324A" opacity="0.15"/><circle cx="1121.2" cy="485.7" r="1.1" fill="#24324A" opacity="0.21"/><circle cx="1435.4" cy="143.3" r="1.4" fill="#24324A" opacity="0.30"/><circle cx="125.6" cy="839.3" r="1.4" fill="#24324A" opacity="0.19"/><circle cx="648.7" cy="177.2" r="0.6" fill="#24324A" opacity="0.18"/><circle cx="819.1" cy="791.4" r="0.8" fill="#24324A" opacity="0.20"/><circle cx="937.9" cy="184.4" r="1.4" fill="#24324A" opacity="0.29"/><circle cx="1149.6" cy="831.8" r="0.6" fill="#24324A" opacity="0.15"/><circle cx="1296.0" cy="882.4" r="0.8" fill="#24324A" opacity="0.22"/><circle cx="1138.7" cy="288.4" r="1.4" fill="#24324A" opacity="0.29"/><circle cx="501.9" cy="74.5" r="0.9" fill="#24324A" opacity="0.18"/><circle cx="606.8" cy="247.7" r="0.6" fill="#24324A" opacity="0.15"/><circle cx="1249.3" cy="386.0" r="0.6" fill="#24324A" opacity="0.14"/><circle cx="482.4" cy="709.1" r="0.7" fill="#24324A" opacity="0.20"/><circle cx="1439.7" cy="810.5" r="1.1" fill="#24324A" opacity="0.28"/><circle cx="992.7" cy="851.2" r="0.9" fill="#24324A" opacity="0.23"/><circle cx="992.3" cy="682.1" r="0.9" fill="#24324A" opacity="0.22"/><circle cx="417.8" cy="656.0" r="1.4" fill="#24324A" opacity="0.14"/><circle cx="740.5" cy="816.5" r="0.8" fill="#24324A" opacity="0.17"/><circle cx="549.0" cy="760.7" r="1.1" fill="#24324A" opacity="0.15"/><circle cx="1225.1" cy="871.6" r="1.1" fill="#24324A" opacity="0.16"/><circle cx="716.6" cy="370.0" r="0.6" fill="#24324A" opacity="0.21"/><circle cx="871.5" cy="25.0" r="0.6" fill="#24324A" opacity="0.21"/><circle cx="576.8" cy="721.0" r="1.1" fill="#24324A" opacity="0.13"/><circle cx="134.2" cy="150.1" r="1.1" fill="#24324A" opacity="0.20"/><circle cx="1325.9" cy="720.4" r="0.9" fill="#24324A" opacity="0.16"/><circle cx="681.4" cy="114.3" r="0.9" fill="#24324A" opacity="0.30"/><circle cx="1347.4" cy="828.0" r="1.1" fill="#24324A" opacity="0.17"/><circle cx="275.7" cy="556.1" r="0.8" fill="#24324A" opacity="0.13"/><circle cx="1122.2" cy="20.5" r="0.7" fill="#24324A" opacity="0.13"/><circle cx="17.0" cy="255.7" r="1.4" fill="#24324A" opacity="0.18"/><circle cx="892.5" cy="94.4" r="1.4" fill="#24324A" opacity="0.23"/><circle cx="1226.8" cy="561.2" r="1.4" fill="#24324A" opacity="0.14"/><circle cx="763.7" cy="393.1" r="0.9" fill="#24324A" opacity="0.24"/><circle cx="1188.3" cy="554.2" r="1.1" fill="#24324A" opacity="0.14"/><circle cx="909.1" cy="574.6" r="1.1" fill="#24324A" opacity="0.15"/><circle cx="781.8" cy="528.0" r="0.7" fill="#24324A" opacity="0.15"/><circle cx="1066.7" cy="729.5" r="0.7" fill="#24324A" opacity="0.17"/><circle cx="453.6" cy="830.5" r="0.7" fill="#24324A" opacity="0.27"/><circle cx="280.1" cy="87.2" r="0.7" fill="#24324A" opacity="0.13"/><circle cx="126.9" cy="349.1" r="0.9" fill="#24324A" opacity="0.28"/><circle cx="607.1" cy="710.9" r="0.7" fill="#24324A" opacity="0.14"/><circle cx="904.3" cy="719.0" r="0.6" fill="#24324A" opacity="0.14"/><circle cx="982.6" cy="820.2" r="0.8" fill="#24324A" opacity="0.13"/><circle cx="728.2" cy="682.3" r="1.1" fill="#24324A" opacity="0.32"/><circle cx="1199.4" cy="722.6" r="0.9" fill="#24324A" opacity="0.12"/></g><g><line x1="1036.6" y1="224.2" x2="1216.9" y2="463.4" stroke="#2B3A4F" stroke-opacity=".22" stroke-width="1"/><line x1="1210.6" y1="478.1" x2="913.4" y2="514.6" stroke="#2B3A4F" stroke-opacity=".22" stroke-width="1"/><line x1="903.7" y1="501.9" x2="1020.8" y2="226.1" stroke="#2B3A4F" stroke-opacity=".22" stroke-width="1"/><circle cx="1027.0" cy="211.4" r="22" fill="url(#wl-hr)"/><circle cx="1027.0" cy="211.4" r="5" fill="#FFFFFF" stroke="#D9342A" stroke-opacity=".75" stroke-width="1.5"/><circle cx="1027.0" cy="211.4" r="1.8" fill="#D9342A"/><circle cx="1226.5" cy="476.2" r="22" fill="url(#wl-hb)"/><circle cx="1226.5" cy="476.2" r="5" fill="#FFFFFF" stroke="#1061D6" stroke-opacity=".75" stroke-width="1.5"/><circle cx="1226.5" cy="476.2" r="1.8" fill="#1061D6"/><circle cx="897.5" cy="516.6" r="22" fill="url(#wl-hg)"/><circle cx="897.5" cy="516.6" r="5" fill="#FFFFFF" stroke="#14894A" stroke-opacity=".75" stroke-width="1.5"/><circle cx="897.5" cy="516.6" r="1.8" fill="#14894A"/></g></symbol></defs>
+</svg>
+<header class="board-head">
+  <div class="bh-name"><svg class="mk" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><mask id="hd-t-clear" maskUnits="userSpaceOnUse"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="439.67" cy="236.93" r="95.70" fill="#000"/><circle cx="783.66" cy="693.41" r="95.70" fill="#000"/><circle cx="216.34" cy="763.07" r="95.70" fill="#000"/></mask><linearGradient id="hd-t-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".55" stop-color="#D7DCE3"/><stop offset="1" stop-color="#A7B0BC"/></linearGradient></defs><g fill="url(#hd-t-silver)" mask="url(#hd-t-clear)"><path fill-rule="evenodd" d="M447.72,302.44 722.90,667.62 269.05,723.35Z M459.78,400.70 631.77,628.94 348.12,663.77Z"/><polygon points="431.77,242.89 489.75,199.20 718.47,623.35"/><polygon points="782.45,683.59 791.30,755.64 309.61,741.64"/><polygon points="225.45,766.94 158.63,738.57 411.60,328.42"/></g><circle cx="439.67" cy="236.93" r="72.60" fill="#FF4A3D"/><circle cx="783.66" cy="693.41" r="72.60" fill="#2585FF"/><circle cx="216.34" cy="763.07" r="72.60" fill="#33C46B"/></svg><div><h1>A — Triade</h1><p>Precision instrument · observatory</p></div></div>
+  <div><h2>Idea</h2><p>A precision instrument for your own matter. The mark's three bonded nodes become live system semantics: every surface can say where your work lives — this device, Thuis-NAS or the internet. Hairline silver geometry on an 8 px grid, Archivo expanded only for identity moments, a deep field by night and observatory daylight by day.</p></div>
+  <div><h2>Signature</h2><p>The Triade instrument in Orbit: three node-lights with icon and label show where work lives and what is moving. The bonded trio returns as who / what / where in the system question (tethered to the instrument), as versions / access / storage in the inspector, and as the focused window's title node. Colour means place only.</p></div>
+</header>
+<style>
+/* shared artboard pieces */
+.glass{background:var(--glass);border-radius:16px;position:absolute;box-shadow:0 18px 48px rgba(0,0,0,.28)}
+.light .glass{box-shadow:0 14px 40px rgba(40,56,84,.16)}
+.glass::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px var(--glass-line),inset 0 1px 0 var(--orbit-top);pointer-events:none}
+.th{display:block;flex:none}
+</style>
+<section class="sec"><div class="cap"><b>Bureaublad — dark</b>Deep-field wallpaper whose three brightest stars are the mark's own triangle; Orbit carries the Triade instrument; continuity waits quietly on the left.</div><div class="ab dark desk1"><svg class="wp" viewBox="0 0 1440 900" aria-hidden="true"><use href="#wp-dark"/></svg>
+<style>
+.desk1 .greet{position:absolute;left:96px;top:128px;z-index:2}
+.desk1 .greet .d48{color:var(--t1)}
+.desk1 .cont{left:96px;top:224px;width:440px;padding:8px;z-index:2}
+.cont-h{height:44px;display:flex;align-items:center;gap:10px;padding:0 12px;color:var(--t1)}
+.cont-h .ic{color:var(--t2)}
+.ci{height:76px;display:flex;align-items:center;gap:16px;padding:0 12px;border-radius:10px;position:relative}
+.ci + .ci::before{content:"";position:absolute;left:72px;right:12px;top:0;height:1px;background:var(--hair)}
+.ci .tx{flex:1;display:flex;flex-direction:column;min-width:0}
+.ci .tx span{color:var(--t2)}
+.ci.hl{background:var(--plate)}
+.ci.hl::before{display:none}
+.ci.hl + .ci::before{display:none}
+</style>
+<div class="greet"><div class="d48">Goedemiddag, Noor</div></div>
+<section class="cont glass frost" aria-label="Verder waar je was">
+  <div class="cont-h"><svg class="ic s16" aria-hidden="true"><use href="#i-klok"/></svg><b class="t14s">Verder waar je was</b></div>
+  <div class="ci"><svg class="th" width="44" height="56" viewBox="0 0 44 56" aria-hidden="true"><rect x=".5" y=".5" width="43" height="55" rx="4.5" style="fill:var(--paper);stroke:var(--hair-2)"/><rect x="8" y="9" width="21" height="3.2" rx="1" style="fill:var(--t2)"/><rect x="8" y="18" width="28" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="23" width="26" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="28" width="28" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="33" width="22" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="41" width="27" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="46" width="16" height="2" rx="1" style="fill:var(--paper-ink)"/></svg><div class="tx"><b class="t14s">Tuinplan</b><span class="t14">Tekst · Huis · vandaag 09:40</span></div><span class="tg" aria-label="Dit apparaat en Thuis-NAS"><i class="dev on"></i><i class="nas on"></i><i class="net"></i></span></div>
+  <div class="ci"><svg class="th" width="44" height="56" viewBox="0 0 44 56" aria-hidden="true"><rect x=".5" y=".5" width="43" height="55" rx="4.5" style="fill:var(--paper);stroke:var(--hair-2)"/><g fill="none" style="stroke:var(--t3)" stroke-width="1.2"><rect x="7" y="9" width="30" height="38"/><path d="M7 27h13M20 9v12M20 26v21M27 27h10"/><path d="M20 21a5 5 0 0 1 5 5" stroke-width=".9"/></g><circle cx="31" cy="38" r="1.6" style="fill:var(--t2)"/></svg><div class="tx"><b class="t14s">Plattegrond</b><span class="t14">Tekening · Huis · gisteren 18:12</span></div><span class="tg" aria-label="Dit apparaat en Thuis-NAS"><i class="dev on"></i><i class="nas on"></i><i class="net"></i></span></div>
+  <div class="ci"><svg class="th" width="44" height="56" viewBox="0 0 44 56" aria-hidden="true"><rect x=".5" y=".5" width="43" height="55" rx="4.5" style="fill:var(--paper);stroke:var(--hair-2)"/><circle cx="11" cy="15" r="2.2" fill="none" style="stroke:var(--t3)" stroke-width="1.1"/><rect x="16" y="14" width="18" height="2" rx="1" style="fill:var(--paper-ink)"/><circle cx="11" cy="23" r="2.2" fill="none" style="stroke:var(--t3)" stroke-width="1.1"/><rect x="16" y="22" width="20" height="2" rx="1" style="fill:var(--paper-ink)"/><circle cx="11" cy="31" r="2.2" fill="none" style="stroke:var(--t3)" stroke-width="1.1"/><rect x="16" y="30" width="15" height="2" rx="1" style="fill:var(--paper-ink)"/><circle cx="11" cy="39" r="2.2" fill="none" style="stroke:var(--t3)" stroke-width="1.1"/><rect x="16" y="38" width="19" height="2" rx="1" style="fill:var(--paper-ink)"/><circle cx="11" cy="15" r="2.2" style="fill:var(--t2)"/></svg><div class="tx"><b class="t14s">Boodschappen</b><span class="t14">Lijst · Vandaag · 11 nov.</span></div><span class="tg" aria-label="Dit apparaat"><i class="dev on"></i><i class="nas"></i><i class="net"></i></span></div>
+</section>
+<nav class="orbit frost" aria-label="Orbit"><button class="ob menu" aria-label="BaryonOS-menu"><svg class="mk" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><mask id="a1o-c-clear" maskUnits="userSpaceOnUse"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="436.02" cy="220.99" r="135.80" fill="#000"/><circle cx="800.85" cy="705.13" r="135.80" fill="#000"/><circle cx="199.15" cy="779.01" r="135.80" fill="#000"/></mask><linearGradient id="a1o-c-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".55" stop-color="#D7DCE3"/><stop offset="1" stop-color="#A7B0BC"/></linearGradient></defs><g fill="url(#a1o-c-silver)" mask="url(#a1o-c-clear)"><path fill-rule="evenodd" d="M444.55,290.47 736.41,677.78 255.05,736.89Z M465.02,457.21 581.77,612.14 389.23,635.78Z"/></g><circle cx="436.02" cy="220.99" r="103.95" fill="#FF4A3D"/><circle cx="800.85" cy="705.13" r="103.95" fill="#2585FF"/><circle cx="199.15" cy="779.01" r="103.95" fill="#33C46B"/></svg></button><button class="ob" aria-label="Zoeken"><svg class="ic" aria-hidden="true"><use href="#i-zoeken"/></svg></button><span class="odiv"></span><button class="ob" aria-label="Bestanden"><svg class="ic" aria-hidden="true"><use href="#i-bestanden"/></svg></button><button class="ob" aria-label="Notities"><svg class="ic" aria-hidden="true"><use href="#i-notities"/></svg></button><button class="ob" aria-label="Instellingen"><svg class="ic" aria-hidden="true"><use href="#i-instellingen"/></svg></button><span class="odiv"></span><div class="tri" role="status" aria-label="Privacy: Op dit apparaat. Je werk blijft op dit apparaat"><div class="tri-text"><b>Op dit apparaat</b><span>Je werk blijft op dit apparaat</span></div><div class="tri-track"><div class="tri-col dev lit"><i class="node on"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-apparaat"/></svg>Dit apparaat</span></div><div class="tri-col nas"><i class="node link"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-nas"/></svg>Thuis-NAS</span></div><div class="tri-col net"><i class="node off"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-internet"/></svg>Internet</span></div></div></div><span class="odiv"></span><button class="clock" aria-label="Meldingen en snelle instellingen"><b>14:32</b><span>do 13 nov</span></button></nav>
+</div></section><section class="sec"><div class="cap"><b>Menu + Zoeken — dark</b>The launcher rises from the mark, aligned to Orbit's edge; results carry the same storage glyph; the assistant result states that it runs locally.</div>
+<div class="ab dark l2">
+<svg class="wp" viewBox="0 0 1440 900" aria-hidden="true"><use href="#wp-dark"/></svg>
+<style>
+.l2 .dim{position:absolute;inset:0;background:rgba(3,5,9,.38);z-index:1}
+.launch{position:absolute;left:278px;bottom:96px;width:760px;height:624px;border-radius:20px;background:rgba(13,18,28,.93);box-shadow:0 32px 64px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.4);display:flex;flex-direction:column;z-index:30}
+.launch::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px var(--orbit-line),inset 0 1px 0 var(--orbit-top);pointer-events:none}
+.lq{height:80px;flex:none;display:flex;align-items:center;gap:16px;padding:0 28px;box-shadow:inset 0 -1px 0 var(--hair)}
+.lq .ic{color:var(--t2)}
+.lq .d28{display:flex;align-items:center}
+.lq .caret{height:30px;width:2px;margin-left:3px}
+.lb{flex:1;display:grid;grid-template-columns:1fr 288px;min-height:0}
+.lres{padding:8px 12px}
+.gh{height:32px;display:flex;align-items:flex-end;padding:0 0 6px 20px;color:var(--t3)}
+.rr{height:56px;display:flex;align-items:center;gap:14px;padding:0 14px 0 20px;border-radius:10px;position:relative}
+.rr .pl{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;background:var(--plate);color:var(--t2);flex:none}
+.rr .tx{flex:1;display:flex;flex-direction:column;min-width:0}
+.rr .tx span{color:var(--t2)}
+.rr u{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:var(--t2)}
+.rr.foc{background:var(--sel);outline:2px solid var(--focus);outline-offset:-2px}
+.rr.foc::before{content:"";position:absolute;left:8px;top:25px;width:6px;height:6px;border-radius:50%;background:var(--t1)}
+.rr.foc .pl{background:var(--plate-2);color:var(--t1)}
+.ra{height:44px;display:flex;align-items:center;gap:14px;padding:0 14px 0 20px;border-radius:10px}
+.ra .pl{width:36px;display:grid;place-items:center;color:var(--t2);flex:none}
+.lprev{box-shadow:inset 1px 0 0 var(--hair);padding:20px 24px 0;display:flex;flex-direction:column;gap:16px}
+.paper{height:196px;border-radius:10px;background:var(--paper);box-shadow:inset 0 0 0 1px var(--hair-2);padding:18px 20px;overflow:hidden;position:relative}
+.paper b{display:block;margin-bottom:8px}
+.paper p{color:var(--t2);display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.pm{display:flex;flex-direction:column;gap:10px}
+.pm .str{display:flex;gap:10px;align-items:flex-start}
+.pm .str .node{width:8px;height:8px;margin-top:4px}
+.pm .str span{color:var(--t1)}
+.lf{height:64px;flex:none;display:flex;align-items:center;gap:12px;padding:0 12px 0 20px;box-shadow:inset 0 1px 0 var(--hair)}
+.av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#F4F6F9,#A7B0BC);color:#10151D;font-weight:620;font-size:14px}
+.lf .hint{margin-left:auto;margin-right:12px;color:var(--t3)}
+.lf .btn{height:44px}
+.lf .btn .ic{color:var(--t2)}
+</style>
+<div class="dim"></div>
+<section class="launch frost" role="dialog" aria-label="BaryonOS-menu">
+ <div class="lq"><svg class="ic s24" aria-hidden="true"><use href="#i-zoeken"/></svg><span class="d28">tuin<i class="caret"></i></span><span class="sr" style="position:absolute;left:-9999px">Zoek apps, bestanden en instellingen</span></div>
+ <div class="lb">
+  <div class="lres" role="listbox" aria-label="Resultaten">
+   <div class="gh t12">Bestanden</div>
+   <div class="rr foc" role="option" aria-selected="true"><span class="pl"><svg class="ic" aria-hidden="true"><use href="#i-notities"/></svg></span><div class="tx"><b class="t14s"><u>Tuin</u>plan</b><span class="t12">Tekst · Huis · vandaag 09:40</span></div><span class="tg"><i class="dev on"></i><i class="nas on"></i><i class="net"></i></span></div>
+   <div class="rr" role="option"><span class="pl"><svg class="ic" aria-hidden="true"><use href="#i-tekening"/></svg></span><div class="tx"><b class="t14s">Plattegrond</b><span class="t12">Tekening · Huis · bevat ‘tuin’</span></div><span class="tg"><i class="dev on"></i><i class="nas on"></i><i class="net"></i></span></div>
+   <div class="rr" role="option"><span class="pl"><svg class="ic" aria-hidden="true"><use href="#i-beeld"/></svg></span><div class="tx"><b class="t14s">Foto's border</b><span class="t12">24 afbeeldingen · Huis</span></div><span class="tg"><i class="dev"></i><i class="nas on"></i><i class="net"></i></span></div>
+   <div class="gh t12">Acties</div>
+   <div class="ra" role="option"><span class="pl"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></span><span class="t14">Nieuw document ‘tuin’</span></div>
+   <div class="ra" role="option"><span class="pl"><svg class="ic" aria-hidden="true"><use href="#i-zoeken"/></svg></span><span class="t14">Zoek ‘tuin’ in Bestanden</span></div>
+   <div class="gh t12">Assistent op dit apparaat</div>
+   <div class="rr" role="option"><span class="pl"><svg class="ic" aria-hidden="true"><use href="#i-assistent"/></svg></span><div class="tx"><b class="t14s">Vat Tuinplan samen</b><span class="t12">Draait lokaal · geen internet</span></div><span class="tg"><i class="dev on"></i><i class="nas"></i><i class="net"></i></span></div>
+  </div>
+  <aside class="lprev" aria-label="Tuinplan">
+   <div class="paper"><b class="t14s">Tuinplan 2027</b><p class="t12">Voorjaar: de border langs de schutting opnieuw indelen. Lavendel en salie vooraan, daarachter twee rijen vaste planten die tot in oktober bloeien.</p></div>
+   <div class="pm t14">
+    <div class="str"><i class="node on dev"></i><span>Op dit apparaat</span></div>
+    <div class="str"><i class="node on nas"></i><span>Versleutelde kopie op <span style="white-space:nowrap">Thuis-NAS</span> · bijgewerkt 09:41</span></div>
+   </div>
+  </aside>
+ </div>
+ <div class="lf"><span class="av" aria-hidden="true">N</span><b class="t14s">Noor</b><span class="hint t12">Enter opent · ↑↓ kiest · Esc sluit</span><span class="btn q"><svg class="ic" aria-hidden="true"><use href="#i-vergrendelen"/></svg>Vergrendelen</span><span class="btn q"><svg class="ic" aria-hidden="true"><use href="#i-aanuit"/></svg>Aan/uit</span></div>
+</section>
+<nav class="orbit frost" aria-label="Orbit"><button class="ob menu open" aria-label="BaryonOS-menu"><svg class="mk" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><mask id="l2o-c-clear" maskUnits="userSpaceOnUse"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="436.02" cy="220.99" r="135.80" fill="#000"/><circle cx="800.85" cy="705.13" r="135.80" fill="#000"/><circle cx="199.15" cy="779.01" r="135.80" fill="#000"/></mask><linearGradient id="l2o-c-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".55" stop-color="#D7DCE3"/><stop offset="1" stop-color="#A7B0BC"/></linearGradient></defs><g fill="url(#l2o-c-silver)" mask="url(#l2o-c-clear)"><path fill-rule="evenodd" d="M444.55,290.47 736.41,677.78 255.05,736.89Z M465.02,457.21 581.77,612.14 389.23,635.78Z"/></g><circle cx="436.02" cy="220.99" r="103.95" fill="#FF4A3D"/><circle cx="800.85" cy="705.13" r="103.95" fill="#2585FF"/><circle cx="199.15" cy="779.01" r="103.95" fill="#33C46B"/></svg></button><button class="ob" aria-label="Zoeken"><svg class="ic" aria-hidden="true"><use href="#i-zoeken"/></svg></button><span class="odiv"></span><button class="ob" aria-label="Bestanden"><svg class="ic" aria-hidden="true"><use href="#i-bestanden"/></svg></button><button class="ob" aria-label="Notities"><svg class="ic" aria-hidden="true"><use href="#i-notities"/></svg></button><button class="ob" aria-label="Instellingen"><svg class="ic" aria-hidden="true"><use href="#i-instellingen"/></svg></button><span class="odiv"></span><div class="tri" role="status" aria-label="Privacy: Op dit apparaat. Je werk blijft op dit apparaat"><div class="tri-text"><b>Op dit apparaat</b><span>Je werk blijft op dit apparaat</span></div><div class="tri-track"><div class="tri-col dev lit"><i class="node on"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-apparaat"/></svg>Dit apparaat</span></div><div class="tri-col nas"><i class="node link"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-nas"/></svg>Thuis-NAS</span></div><div class="tri-col net"><i class="node off"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-internet"/></svg>Internet</span></div></div></div><span class="odiv"></span><button class="clock" aria-label="Meldingen en snelle instellingen"><b>14:32</b><span>do 13 nov</span></button></nav>
+</div></section>
+<section class="sec"><div class="cap"><b>Bestanden — dark</b>One 56 px title area instead of a toolbar; the focused window carries a node at its title; the inspector reads versions / access / storage as a bonded trio.</div>
+<div class="ab dark f3">
+<svg class="wp" viewBox="0 0 1440 900" aria-hidden="true"><use href="#wp-dark"/></svg>
+<style>
+.fgrid{display:grid;grid-template-columns:208px 1fr 296px;height:100%}
+.f3 .win,.f3 .fmain{background:linear-gradient(180deg,#0F1521 0,#0C111A 240px)}
+.f3 .side,.f3 .finsp{background:linear-gradient(180deg,#121926 0,#10161F 240px)}
+.fside .wbar{padding-left:22px}
+.fmain{display:flex;flex-direction:column;min-width:0;background:var(--win)}
+.fhead{gap:4px;padding:0 16px 0 12px;box-shadow:inset 0 -1px 0 var(--hair)}
+.path{display:flex;align-items:center;gap:8px;margin-left:8px;white-space:nowrap}
+.path .sep{color:var(--t3)}
+.fhead .field{width:208px;margin-left:auto}
+.fhead .btn{margin-left:8px}
+.fcoll{padding:24px 24px 16px;display:flex;align-items:flex-end;justify-content:space-between}
+.fcoll .st{display:flex;align-items:center;gap:8px;color:var(--t2);padding-bottom:6px}
+.fcoll .st .ic{color:var(--t2)}
+.tbl{padding:0 12px}
+.th-row,.tr{display:grid;grid-template-columns:minmax(0,1fr) 112px 100px 208px;align-items:center;padding:0 12px 0 24px;column-gap:12px}
+.th-row{height:36px;color:var(--t3);box-shadow:inset 0 -1px 0 var(--hair)}
+.tr{height:60px;border-radius:10px;position:relative;color:var(--t2)}
+.tr.selrow{box-shadow:inset 0 0 0 1px var(--hair-2)!important}
+.tr + .tr{box-shadow:inset 0 1px 0 var(--hair)}
+.tr.selrow{box-shadow:none;color:var(--t1)}
+.tr.selrow + .tr{box-shadow:none}
+.tr .nm{display:flex;align-items:center;gap:12px;color:var(--t1);white-space:nowrap}
+.tr .nm .pl{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--plate);color:var(--t2);flex:none}
+.tr .op{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.fhead .field{box-shadow:inset 0 0 0 1px var(--hair-2)}
+.finsp{background:var(--side);box-shadow:inset 1px 0 0 var(--hair);display:flex;flex-direction:column}
+.ihead{display:flex;gap:16px;align-items:center;padding:4px 24px 20px}
+.ihead .tx{display:flex;flex-direction:column}
+.ihead .tx span{color:var(--t2)}
+.trio{position:relative;padding:4px 20px 0 24px}
+.trio::before{content:"";position:absolute;left:35.5px;top:28px;bottom:118px;width:1px;background:var(--bond)}
+.tsec{position:relative;padding-bottom:22px}
+.tsh{display:flex;align-items:center;gap:12px;height:24px}
+.ring{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--side);box-shadow:inset 0 0 0 1px var(--strong);color:var(--t1);flex:none;position:relative;z-index:1}
+.ring .ic{width:14px;height:14px;stroke-width:2}
+.tbody{padding:10px 0 0 36px}
+.vr{display:flex;align-items:center;gap:10px;height:28px;color:var(--t2);white-space:nowrap}
+.vr i{width:6px;height:6px;border-radius:50%;box-shadow:inset 0 0 0 1.25px var(--t3);flex:none}
+.vr.now{color:var(--t1)} .vr.now i{background:var(--t1);box-shadow:none}
+.tbody .btn{margin-top:8px;margin-left:2px}
+.acc{display:flex;gap:10px;align-items:flex-start}
+.acc .ic{color:var(--t2);margin-top:2px}
+.acc .tx{display:flex;flex-direction:column}
+.acc .tx span{color:var(--t2)}
+.str{display:flex;gap:10px;align-items:flex-start;padding:4px 0}
+.str .node{margin-top:5px;width:8px;height:8px}
+.str .tx{color:var(--t1)}
+</style>
+<div class="win" style="left:130px;top:36px;width:1180px;height:740px" aria-label="Huis — Bestanden">
+ <div class="fgrid">
+  <aside class="side fside">
+   <div class="wbar"><div class="wt"><i class="fn"></i>Huis — Bestanden</div></div>
+   <nav class="nav" aria-label="Bestanden-navigatie">
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-klok"/></svg>Recent</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-desk"/></svg>Bureaublad</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-doc"/></svg>Documenten</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-beeld"/></svg>Afbeeldingen</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-down"/></svg>Downloads</div>
+    <div class="nh">Collecties</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-coll"/></svg>Vandaag</div>
+    <div class="ni sel" aria-current="true"><svg class="ic" aria-hidden="true"><use href="#i-huis"/></svg>Huis</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-archief"/></svg>Archief</div>
+    <div class="nh">Plaatsen</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-apparaat"/></svg>Dit apparaat<span class="aux"><i class="node on dev" style="width:8px;height:8px"></i></span></div>
+    <div class="ni two"><svg class="ic" aria-hidden="true"><use href="#i-nas"/></svg><div class="stack">Thuis-NAS<span>Gesynchroniseerd</span></div><span class="aux"><i class="node link nas"></i></span></div>
+    <div class="nh" style="padding-top:8px"></div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-bin"/></svg>Prullenbak</div>
+   </nav>
+  </aside>
+  <main class="fmain">
+   <div class="wbar fhead">
+    <span class="ibtn" aria-label="Terug"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></span><span class="ibtn dim" aria-label="Vooruit"><svg class="ic" aria-hidden="true"><use href="#i-fwd"/></svg></span>
+    <div class="path t14"><span class="c2">Collecties</span><span class="sep">›</span><b>Huis</b></div>
+    <div class="field"><svg class="ic" aria-hidden="true"><use href="#i-zoeken"/></svg><span>Zoek in Huis</span></div>
+    <span class="btn p"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Nieuw</span>
+   </div>
+   <div class="fcoll"><div class="d28">Huis</div><div class="st t14"><svg class="ic s16" aria-hidden="true"><use href="#i-check"/></svg>5 items · alles bijgewerkt</div></div>
+   <div class="tbl" role="table">
+    <div class="th-row t12" role="row"><span>Naam</span><span>Soort</span><span>Gewijzigd</span><span>Opslag</span></div>
+    <div class="tr selrow" role="row" aria-selected="true"><span class="nm"><span class="pl"><svg class="ic" aria-hidden="true"><use href="#i-notities"/></svg></span><b class="t14s">Tuinplan</b></span><span>Tekst</span><span>vandaag 09:40</span><span class="op"><span class="tg"><i class="dev on"></i><i class="nas on"></i><i class="net"></i></span>Dit apparaat + Thuis-NAS</span></div>
+    <div class="tr" role="row"><span class="nm"><span class="pl"><svg class="ic" aria-hidden="true"><use href="#i-tekening"/></svg></span>Plattegrond</span><span>Tekening</span><span>gisteren 18:12</span><span class="op"><span class="tg"><i class="dev on"></i><i class="nas on"></i><i class="net"></i></span>Dit apparaat + Thuis-NAS</span></div>
+    <div class="tr" role="row"><span class="nm"><span class="pl"><svg class="ic" aria-hidden="true"><use href="#i-beeld"/></svg></span>Foto's border</span><span>24 afbeeldingen</span><span>10 nov.</span><span class="op"><span class="tg"><i class="dev"></i><i class="nas on"></i><i class="net"></i></span>Thuis-NAS</span></div>
+    <div class="tr" role="row"><span class="nm"><span class="pl"><svg class="ic" aria-hidden="true"><use href="#i-doc"/></svg></span>Offerte schuur</span><span>PDF</span><span>8 nov.</span><span class="op"><span class="tg"><i class="dev on"></i><i class="nas"></i><i class="net"></i></span>Dit apparaat</span></div>
+    <div class="tr" role="row"><span class="nm"><span class="pl"><svg class="ic" aria-hidden="true"><use href="#i-lijst"/></svg></span>Boodschappen</span><span>Lijst</span><span>11 nov.</span><span class="op"><span class="tg"><i class="dev on"></i><i class="nas"></i><i class="net"></i></span>Dit apparaat</span></div>
+   </div>
+  </main>
+  <aside class="finsp" aria-label="Inspector">
+   <div class="wbar"><div class="wc"><span aria-label="Minimaliseren"><svg class="ic" aria-hidden="true"><use href="#i-min"/></svg></span><span aria-label="Maximaliseren"><svg class="ic" aria-hidden="true"><use href="#i-max"/></svg></span><span aria-label="Sluiten"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></span></div></div>
+   <div class="ihead"><svg class="th" width="44" height="56" viewBox="0 0 44 56" aria-hidden="true"><rect x=".5" y=".5" width="43" height="55" rx="4.5" style="fill:var(--paper);stroke:var(--hair-2)"/><rect x="8" y="9" width="21" height="3.2" rx="1" style="fill:var(--t2)"/><rect x="8" y="18" width="28" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="23" width="26" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="28" width="28" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="33" width="22" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="41" width="27" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="46" width="16" height="2" rx="1" style="fill:var(--paper-ink)"/></svg><div class="tx"><div class="d28">Tuinplan</div><span class="t14">Tekst · 1.284 woorden</span></div></div>
+   <div class="trio">
+    <div class="tsec"><div class="tsh"><span class="ring"><svg class="ic" aria-hidden="true"><use href="#i-versies"/></svg></span><b class="t14s">Versies</b></div>
+     <div class="tbody">
+      <div class="vr now t14"><i></i>Nu — vandaag 09:40</div>
+      <div class="vr t14"><i></i>Versie 2 — gisteren 18:12</div>
+      <div class="vr t14"><i></i>Versie 1 — 11 nov. 20:05</div>
+      <span class="btn q">Vergelijken en herstellen</span>
+     </div></div>
+    <div class="tsec"><div class="tsh"><span class="ring"><svg class="ic" aria-hidden="true"><use href="#i-toegang"/></svg></span><b class="t14s">Toegang</b></div>
+     <div class="tbody">
+      <div class="acc"><svg class="ic s16" aria-hidden="true"><use href="#i-notities"/></svg><div class="tx"><span class="t14" style="color:var(--t1)">Notities kan dit document lezen en wijzigen</span><span class="t12">Tot je het sluit</span></div></div>
+      <span class="btn s" style="margin-left:26px;margin-top:12px">Intrekken</span>
+     </div></div>
+    <div class="tsec"><div class="tsh"><span class="ring"><svg class="ic" aria-hidden="true"><use href="#i-apparaat"/></svg></span><b class="t14s">Opslag</b></div>
+     <div class="tbody">
+      <div class="str"><i class="node on dev"></i><div class="tx t14">Op dit apparaat</div></div>
+      <div class="str"><i class="node on nas"></i><div class="tx t14">Versleutelde kopie op <span style="white-space:nowrap">Thuis-NAS</span> · bijgewerkt 09:41</div></div>
+     </div></div>
+   </div>
+  </aside>
+ </div>
+</div>
+<nav class="orbit frost" aria-label="Orbit"><button class="ob menu" aria-label="BaryonOS-menu"><svg class="mk" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><mask id="f3o-c-clear" maskUnits="userSpaceOnUse"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="436.02" cy="220.99" r="135.80" fill="#000"/><circle cx="800.85" cy="705.13" r="135.80" fill="#000"/><circle cx="199.15" cy="779.01" r="135.80" fill="#000"/></mask><linearGradient id="f3o-c-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".55" stop-color="#D7DCE3"/><stop offset="1" stop-color="#A7B0BC"/></linearGradient></defs><g fill="url(#f3o-c-silver)" mask="url(#f3o-c-clear)"><path fill-rule="evenodd" d="M444.55,290.47 736.41,677.78 255.05,736.89Z M465.02,457.21 581.77,612.14 389.23,635.78Z"/></g><circle cx="436.02" cy="220.99" r="103.95" fill="#FF4A3D"/><circle cx="800.85" cy="705.13" r="103.95" fill="#2585FF"/><circle cx="199.15" cy="779.01" r="103.95" fill="#33C46B"/></svg></button><button class="ob" aria-label="Zoeken"><svg class="ic" aria-hidden="true"><use href="#i-zoeken"/></svg></button><span class="odiv"></span><button class="ob run front" aria-label="Bestanden"><svg class="ic" aria-hidden="true"><use href="#i-bestanden"/></svg></button><button class="ob run" aria-label="Notities"><svg class="ic" aria-hidden="true"><use href="#i-notities"/></svg></button><button class="ob" aria-label="Instellingen"><svg class="ic" aria-hidden="true"><use href="#i-instellingen"/></svg></button><span class="odiv"></span><div class="tri" role="status" aria-label="Privacy: Op dit apparaat. Je werk blijft op dit apparaat"><div class="tri-text"><b>Op dit apparaat</b><span>Je werk blijft op dit apparaat</span></div><div class="tri-track"><div class="tri-col dev lit"><i class="node on"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-apparaat"/></svg>Dit apparaat</span></div><div class="tri-col nas"><i class="node link"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-nas"/></svg>Thuis-NAS</span></div><div class="tri-col net"><i class="node off"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-internet"/></svg>Internet</span></div></div></div><span class="odiv"></span><button class="clock" aria-label="Meldingen en snelle instellingen"><b>14:32</b><span>do 13 nov</span></button></nav>
+</div></section>
+<section class="sec"><div class="cap"><b>Vensters + systeemvraag — light</b>Observatory daylight. The trusted question is opaque, inverted to graphite, always anchored above Orbit and tethered to the Triade instrument that shows the same request.</div>
+<div class="ab light w4">
+<svg class="wp" viewBox="0 0 1440 900" aria-hidden="true"><use href="#wp-light"/></svg>
+<style>
+.w4 .orbit{z-index:70}
+.nwin .wbar{padding-left:22px;box-shadow:inset 0 -1px 0 var(--hair)}
+.ndoc{padding:48px 0 0 112px;width:720px}
+.ndoc .d28{margin-bottom:20px}
+.ndoc p{margin-bottom:16px;color:var(--t1)}
+.nstat{position:absolute;left:0;right:0;bottom:0;height:44px;display:flex;align-items:center;gap:10px;padding:0 22px;box-shadow:inset 0 1px 0 var(--hair);color:var(--t2);background:var(--win)}
+.nstat .node{width:8px;height:8px}
+.bwin .wbar{padding-left:22px}
+.bgrid{display:grid;grid-template-columns:200px 1fr;height:100%}
+.bmain{padding:0 12px}
+.bmain .wbar{padding-left:12px;gap:8px}
+.brow{height:48px;display:flex;align-items:center;gap:12px;padding:0 12px 0 24px;color:var(--t2);border-radius:10px;position:relative}
+.brow + .brow{box-shadow:inset 0 1px 0 var(--hair)}
+.brow .nm{color:var(--t1);flex:1}
+.brow .ic{color:var(--t2)}
+/* trusted system question */
+.q4{left:380px;width:680px;bottom:96px}
+.q4 .sqb{padding:28px 32px 24px}
+.q4 h2{font-size:28px;line-height:36px;font-weight:360;font-stretch:125%;color:var(--t1);margin-bottom:24px}
+.btrio{position:relative;margin-bottom:4px}
+.btrio::before{content:"";position:absolute;left:15.5px;top:24px;bottom:24px;width:1px;background:var(--bond)}
+.br{display:grid;grid-template-columns:32px 96px 1fr;column-gap:16px;align-items:center;height:48px;position:relative}
+.bn{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--sysinv);box-shadow:inset 0 0 0 1px var(--strong);color:var(--t1);position:relative;z-index:1}
+.bn .ic{width:16px;height:16px;stroke-width:1.8}
+.br.net .bn{box-shadow:inset 0 0 0 1.5px var(--net);color:var(--net-text)}
+.bl{color:var(--t2)}
+.bv{color:var(--t1)}
+.dur{display:grid;grid-template-columns:32px 96px 1fr;column-gap:16px;align-items:center;height:48px;box-shadow:inset 0 1px 0 var(--hair-2),inset 0 -1px 0 var(--hair-2);margin:8px 0 20px}
+.dur .ic{color:var(--t2);justify-self:center}
+.warn{display:flex;gap:12px;align-items:flex-start;color:var(--t1);margin-bottom:24px}
+.warn .ic{color:var(--net-text);margin-top:0}
+.acts{display:flex;justify-content:flex-end;gap:12px}
+.origin{height:44px;display:flex;align-items:center;gap:10px;padding:0 32px;color:var(--t2);box-shadow:inset 0 1px 0 var(--hair-2);border-radius:0 0 16px 16px;background:rgba(255,255,255,.02)}
+.origin .mk{width:20px;height:20px}
+.tether{position:absolute;width:2px;z-index:65;background:var(--net)}
+.tether::before{content:"";position:absolute;left:-3px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--net)}
+</style>
+<div class="win unf bwin" style="left:760px;top:40px;width:640px;height:500px" aria-label="Huis — Bestanden">
+ <div class="bgrid">
+  <aside class="side">
+   <div class="wbar"><div class="wt"><i class="fn"></i>Huis — Bestanden</div></div>
+   <nav class="nav">
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-klok"/></svg>Recent</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-doc"/></svg>Documenten</div>
+    <div class="nh">Collecties</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-coll"/></svg>Vandaag</div>
+    <div class="ni sel"><svg class="ic" aria-hidden="true"><use href="#i-huis"/></svg>Huis</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-archief"/></svg>Archief</div>
+    <div class="nh">Plaatsen</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-apparaat"/></svg>Dit apparaat</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-nas"/></svg>Thuis-NAS</div>
+   </nav>
+  </aside>
+  <main class="bmain">
+   <div class="wbar"><span class="ibtn dim"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></span><span class="t14 c2">Collecties</span><span class="c3">›</span><b class="t14s">Huis</b><div class="wc" style="padding-right:0"><span><svg class="ic" aria-hidden="true"><use href="#i-min"/></svg></span><span><svg class="ic" aria-hidden="true"><use href="#i-max"/></svg></span><span><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></span></div></div>
+   <div class="brow selrow"><svg class="ic s16" aria-hidden="true"><use href="#i-notities"/></svg><span class="nm t14s">Tuinplan</span><span class="tg"><i class="dev on"></i><i class="nas on"></i><i class="net"></i></span></div>
+   <div class="brow"><svg class="ic s16" aria-hidden="true"><use href="#i-tekening"/></svg><span class="nm">Plattegrond</span><span class="tg"><i class="dev on"></i><i class="nas on"></i><i class="net"></i></span></div>
+   <div class="brow"><svg class="ic s16" aria-hidden="true"><use href="#i-beeld"/></svg><span class="nm">Foto's border</span><span class="tg"><i class="dev"></i><i class="nas on"></i><i class="net"></i></span></div>
+   <div class="brow"><svg class="ic s16" aria-hidden="true"><use href="#i-doc"/></svg><span class="nm">Offerte schuur</span><span class="tg"><i class="dev on"></i><i class="nas"></i><i class="net"></i></span></div>
+   <div class="brow"><svg class="ic s16" aria-hidden="true"><use href="#i-lijst"/></svg><span class="nm">Boodschappen</span><span class="tg"><i class="dev on"></i><i class="nas"></i><i class="net"></i></span></div>
+  </main>
+ </div>
+</div>
+<div class="win nwin" style="left:72px;top:72px;width:880px;height:660px" aria-label="Tuinplan — Notities">
+ <div class="wbar"><div class="wt"><i class="fn"></i>Tuinplan — Notities</div><div class="wc"><span aria-label="Minimaliseren"><svg class="ic" aria-hidden="true"><use href="#i-min"/></svg></span><span aria-label="Maximaliseren"><svg class="ic" aria-hidden="true"><use href="#i-max"/></svg></span><span aria-label="Sluiten"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></span></div></div>
+ <article class="ndoc">
+  <h1 class="d28">Tuinplan 2027</h1>
+  <p class="t16">Voorjaar: de border langs de schutting opnieuw indelen. Lavendel en salie vooraan, daarachter twee rijen vaste planten die tot in oktober bloeien.</p>
+  <p class="t16">Moestuin: vier bakken van 120 × 80 cm, tomaten op het zuiden. De regenton aansluiten op de afvoer van de schuur.<span class="caret" style="height:22px;margin-left:2px"></span></p>
+ </article>
+ <div class="nstat t12"><i class="node on dev"></i><svg class="ic s14" aria-hidden="true"><use href="#i-apparaat"/></svg>Opgeslagen op dit apparaat · versie 3</div>
+</div>
+<div class="scrim"></div>
+<div class="sys dark q4" role="alertdialog" aria-label="Webvenster wil Tuinplan naar internet sturen">
+ <div class="sqb">
+  <h2>Webvenster wil Tuinplan naar internet sturen</h2>
+  <div class="btrio">
+   <div class="br"><span class="bn"><svg class="ic" aria-hidden="true"><use href="#i-web"/></svg></span><span class="bl t14">App</span><span class="bv t14">Webvenster · geïnstalleerd 12 nov.</span></div>
+   <div class="br"><span class="bn"><svg class="ic" aria-hidden="true"><use href="#i-notities"/></svg></span><span class="bl t14">Wat</span><span class="bv t14">Tuinplan, alleen dit document</span></div>
+   <div class="br net"><span class="bn"><svg class="ic" aria-hidden="true"><use href="#i-internet"/></svg></span><span class="bl t14">Waarheen</span><span class="bv t14s">tuinplanner.example</span></div>
+  </div>
+  <div class="dur"><svg class="ic s16" aria-hidden="true"><use href="#i-klok"/></svg><span class="bl t14">Hoe lang</span><span class="bv t14">Eenmalig</span></div>
+  <div class="warn t14"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg><span>Dit programma kan de toegestane inhoud naar een internetdienst sturen.</span></div>
+  <div class="acts"><span class="btn s lg">Eenmalig toestaan</span><span class="btn p lg fr">Annuleren</span></div>
+ </div>
+ <div class="origin t12"><svg class="mk" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><mask id="q4m-c-clear" maskUnits="userSpaceOnUse"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="436.02" cy="220.99" r="135.80" fill="#000"/><circle cx="800.85" cy="705.13" r="135.80" fill="#000"/><circle cx="199.15" cy="779.01" r="135.80" fill="#000"/></mask><linearGradient id="q4m-c-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".55" stop-color="#D7DCE3"/><stop offset="1" stop-color="#A7B0BC"/></linearGradient></defs><g fill="url(#q4m-c-silver)" mask="url(#q4m-c-clear)"><path fill-rule="evenodd" d="M444.55,290.47 736.41,677.78 255.05,736.89Z M465.02,457.21 581.77,612.14 389.23,635.78Z"/></g><circle cx="436.02" cy="220.99" r="103.95" fill="#FF4A3D"/><circle cx="800.85" cy="705.13" r="103.95" fill="#2585FF"/><circle cx="199.15" cy="779.01" r="103.95" fill="#33C46B"/></svg>Vraag van het systeem · getoond boven alle apps</div>
+</div>
+<div class="tether light" style="left:1012.75px;top:804px;height:30px"></div>
+<nav class="orbit frost" aria-label="Orbit"><button class="ob menu" aria-label="BaryonOS-menu"><svg class="mk" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><mask id="w4o-c-clear" maskUnits="userSpaceOnUse"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="436.02" cy="220.99" r="135.80" fill="#000"/><circle cx="800.85" cy="705.13" r="135.80" fill="#000"/><circle cx="199.15" cy="779.01" r="135.80" fill="#000"/></mask><linearGradient id="w4o-c-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".55" stop-color="#D7DCE3"/><stop offset="1" stop-color="#A7B0BC"/></linearGradient></defs><g fill="#1A1F27" mask="url(#w4o-c-clear)"><path fill-rule="evenodd" d="M444.55,290.47 736.41,677.78 255.05,736.89Z M465.02,457.21 581.77,612.14 389.23,635.78Z"/></g><circle cx="436.02" cy="220.99" r="103.95" fill="#D9342A"/><circle cx="800.85" cy="705.13" r="103.95" fill="#1061D6"/><circle cx="199.15" cy="779.01" r="103.95" fill="#14894A"/></svg></button><button class="ob" aria-label="Zoeken"><svg class="ic" aria-hidden="true"><use href="#i-zoeken"/></svg></button><span class="odiv"></span><button class="ob run" aria-label="Bestanden"><svg class="ic" aria-hidden="true"><use href="#i-bestanden"/></svg></button><button class="ob run front" aria-label="Notities"><svg class="ic" aria-hidden="true"><use href="#i-notities"/></svg></button><button class="ob" aria-label="Instellingen"><svg class="ic" aria-hidden="true"><use href="#i-instellingen"/></svg></button><span class="odiv"></span><div class="tri ask" role="status" aria-label="Privacy: Webvenster vraagt internet"><div class="tri-text"><b>Webvenster vraagt internet</b></div><div class="tri-track"><div class="tri-col dev lit"><i class="node on"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-apparaat"/></svg>Dit apparaat</span></div><div class="tri-col nas"><i class="node link"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-nas"/></svg>Thuis-NAS</span></div><div class="tri-col net lit"><i class="node ask"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-internet"/></svg>Internet</span></div></div></div><span class="odiv"></span><button class="clock" aria-label="Meldingen en snelle instellingen"><b>14:32</b><span>do 13 nov</span></button></nav>
+</div></section>
+<section class="sec"><div class="cap"><b>App-familie — light</b>Instellingen and Haven share one window architecture; per-app access reuses the Triade glyph, so what an app may reach reads the same everywhere.</div>
+<div class="ab light s5">
+<svg class="wp" viewBox="0 0 1440 900" aria-hidden="true"><use href="#wp-light"/></svg>
+<style>
+.hwin .wbar{padding-left:22px;gap:6px;box-shadow:inset 0 -1px 0 var(--hair)}
+.hbody{padding:28px 40px 0 40px;display:grid;grid-template-columns:392px 1fr;column-gap:40px}
+.hero{display:flex;gap:20px;align-items:flex-start}
+.hero .tx{display:flex;flex-direction:column;gap:2px}
+.hero .tx .c2{color:var(--t2)}
+.hero .btn{margin-top:14px;align-self:flex-start}
+.perm{margin-top:32px}
+.perm h3{margin-bottom:8px}
+.pr{display:flex;gap:14px;align-items:flex-start;padding:12px 0;box-shadow:inset 0 -1px 0 var(--hair)}
+.pr .ring{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 0 0 1px var(--strong);color:var(--t1);flex:none;background:var(--win)}
+.pr .ring .ic{width:16px;height:16px;stroke-width:1.8}
+.pr.net .ring{box-shadow:inset 0 0 0 1.5px var(--net);color:var(--net)}
+.pr.off .ring{color:var(--t3);box-shadow:inset 0 0 0 1px var(--hair-2)}
+.pr .t14{padding-top:6px;color:var(--t2)}
+.pr .t14 b{color:var(--t1)}
+.note{display:flex;gap:12px;margin-top:20px;color:var(--t1);padding:14px 16px;border-radius:10px;background:var(--side)}
+.note .ic{color:var(--t2)}
+.shots{display:flex;flex-direction:column;gap:16px}
+.shot{height:150px;border-radius:10px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--hair-2)}
+.iwin .igrid{display:grid;grid-template-columns:244px 1fr;height:100%}
+.s5 .ipage{background:linear-gradient(180deg,#FCFDFE 0,#F6F8FB 100%)}
+.s5 .hwin{background:linear-gradient(180deg,#FBFCFE 0,#F5F7FA 100%)}
+.iside{padding-top:10px}
+.iside .field{margin:0 12px 8px;height:36px}
+.iside .top{height:56px;display:flex;align-items:center}
+.iside .top .field{flex:1;margin:0 12px}
+.ipage{display:flex;flex-direction:column;min-width:0}
+.ipage .wbar{padding-left:32px}
+.ipc{padding:16px 32px 0}
+.ipc .d28{margin-bottom:20px}
+.ipc h3{margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.card{box-shadow:inset 0 1px 0 var(--hair-2),inset 0 -1px 0 var(--hair-2);margin-bottom:22px}
+.ar{height:64px;display:flex;align-items:center;gap:14px;padding:0 4px 0 0;position:relative}
+.ar + .ar{box-shadow:inset 0 1px 0 var(--hair)}
+.ar .tile{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;background:var(--side);box-shadow:inset 0 0 0 1px var(--hair-2);color:var(--t1);flex:none}
+.ar .tx{flex:1;display:flex;flex-direction:column;min-width:0}
+.ar .tx span{color:var(--t2);white-space:nowrap}
+.ar .tg{margin:0 6px}
+.ar .btn{height:36px}
+.tgl{width:44px;height:24px;border-radius:12px;background:var(--t1);position:relative;flex:none;margin-right:6px}
+.tgl::after{content:"";position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;background:var(--raised)}
+.sel2{display:flex;align-items:center;gap:8px;height:36px;padding:0 10px 0 12px;border-radius:8px;box-shadow:inset 0 0 0 1px var(--strong);color:var(--t1);white-space:nowrap;background:var(--field)}
+.sel2 .ic{color:var(--t2)}
+</style>
+<div class="win unf hwin" style="left:40px;top:40px;width:800px;height:660px" aria-label="Sterrenkaart — Haven">
+ <div class="wbar"><span class="ibtn dim"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></span><div class="wt" style="margin-left:4px"><i class="fn"></i>Sterrenkaart — Haven</div><div class="wc"><span><svg class="ic" aria-hidden="true"><use href="#i-min"/></svg></span><span><svg class="ic" aria-hidden="true"><use href="#i-max"/></svg></span><span><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></span></div></div>
+ <div class="hbody">
+  <div>
+   <div class="hero">
+    <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true" style="flex:none"><defs><linearGradient id="sk-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22366A"/><stop offset="1" stop-color="#0B1430"/></linearGradient></defs><rect width="96" height="96" rx="22" fill="url(#sk-g)"/><path d="M18 40 32 58 46 44 60 62 76 36" fill="none" stroke="#F2D9A0" stroke-opacity=".55" stroke-width="1.5"/><g fill="#FBEFD0"><circle cx="18" cy="40" r="3"/><circle cx="32" cy="58" r="2.5"/><circle cx="46" cy="44" r="3.2"/><circle cx="60" cy="62" r="2.4"/><circle cx="76" cy="36" r="2.8"/></g><circle cx="70" cy="76" r="1.2" fill="#fff" opacity=".6"/><circle cx="24" cy="20" r="1" fill="#fff" opacity=".6"/></svg>
+    <div class="tx"><div class="d28">Sterrenkaart</div><span class="t14 c2">Open Hemel Stichting</span><span class="t14 c2">Gratis · 18 MB</span><span class="btn p lg">Installeren</span></div>
+   </div>
+   <div class="perm">
+    <h3 class="t14s">Wat deze app kan vragen</h3>
+    <div class="pr"><span class="ring"><svg class="ic" aria-hidden="true"><use href="#i-locatie"/></svg></span><span class="t14"><b>Locatie</b> — alleen als je het toestaat, om de hemel boven jou te tonen</span></div>
+    <div class="pr net"><span class="ring"><svg class="ic" aria-hidden="true"><use href="#i-internet"/></svg></span><span class="t14"><b>Internet</b> — sterrencatalogus bijwerken</span></div>
+    <div class="pr off"><span class="ring"><svg class="ic" aria-hidden="true"><use href="#i-bestanden"/></svg></span><span class="t14" style="color:var(--t1)">Geen toegang tot je bestanden</span></div>
+   </div>
+   <div class="note t14"><svg class="ic s16" aria-hidden="true"><use href="#i-toegang"/></svg><span>Installeren geeft geen toegang. De app vraagt het pas wanneer dat nodig is.</span></div>
+  </div>
+  <div class="shots">
+   <svg class="shot" width="100%" viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="150" fill="#0E1730"/><g fill="none" stroke="#9FB2D9" stroke-opacity=".25"><circle cx="150" cy="260" r="200"/><circle cx="150" cy="260" r="150"/><path d="M150 60V150M60 90 150 150M240 90 150 150"/></g><path d="M70 70 92 88 114 74 136 96 160 64" fill="none" stroke="#F2D9A0" stroke-opacity=".6"/><g fill="#FBEFD0"><circle cx="70" cy="70" r="2.4"/><circle cx="92" cy="88" r="2"/><circle cx="114" cy="74" r="2.6"/><circle cx="136" cy="96" r="2"/><circle cx="160" cy="64" r="2.3"/><circle cx="220" cy="40" r="1.6"/><circle cx="250" cy="76" r="1.2"/><circle cx="200" cy="110" r="1.3"/></g></svg>
+   <svg class="shot" width="100%" viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="300" height="150" fill="#131D38"/><g fill="#E8EEF8"><circle cx="40" cy="40" r="1.2"/><circle cx="80" cy="100" r="1.6"/><circle cx="130" cy="30" r="1"/><circle cx="180" cy="80" r="2.2"/><circle cx="240" cy="50" r="1.4"/><circle cx="270" cy="120" r="1.1"/></g><circle cx="180" cy="80" r="14" fill="none" stroke="#F2D9A0" stroke-opacity=".7"/><rect x="18" y="112" width="96" height="22" rx="6" fill="#fff" fill-opacity=".1"/></svg>
+  </div>
+ </div>
+</div>
+<div class="win iwin" style="left:504px;top:64px;width:904px;height:716px" aria-label="Privacy en beveiliging — Instellingen">
+ <div class="igrid">
+  <aside class="side iside">
+   <div class="top" style="margin-top:-10px"><div class="field"><svg class="ic" aria-hidden="true"><use href="#i-zoeken"/></svg><span>Zoek in Instellingen</span></div></div>
+   <nav class="nav" aria-label="Instellingen-navigatie" style="padding-top:4px">
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-apparaat"/></svg>Systeem</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-desk"/></svg>Apparaten</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-internet"/></svg>Netwerk en internet</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-beeld"/></svg>Weergave</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-apps"/></svg>Apps</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg>Gebruikers</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-nas"/></svg>Opslag en NAS</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-klok"/></svg>Tijd en taal</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-a11y"/></svg>Toegankelijkheid</div>
+    <div class="ni sel" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-toegang"/></svg>Privacy en beveiliging</div>
+    <div class="ni"><svg class="ic" aria-hidden="true"><use href="#i-down"/></svg>Updates</div>
+   </nav>
+  </aside>
+  <main class="ipage">
+   <div class="wbar"><div class="wt"><i class="fn"></i>Privacy en beveiliging — Instellingen</div><div class="wc"><span aria-label="Minimaliseren"><svg class="ic" aria-hidden="true"><use href="#i-min"/></svg></span><span aria-label="Maximaliseren"><svg class="ic" aria-hidden="true"><use href="#i-max"/></svg></span><span aria-label="Sluiten"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></span></div></div>
+   <div class="ipc">
+    <h1 class="d28">Privacy en beveiliging</h1>
+    <h3 class="t14s">Toegang per app</h3>
+    <div class="card">
+     <div class="ar"><span class="tile"><svg class="ic" aria-hidden="true"><use href="#i-notities"/></svg></span><div class="tx"><b class="t14s">Notities</b><span class="t14">Leest en wijzigt documenten die je opent · geen internet</span></div><span class="tg" aria-label="Dit apparaat"><i class="dev on"></i><i class="nas"></i><i class="net"></i></span><span class="btn s">Beheren</span></div>
+     <div class="ar"><span class="tile"><svg class="ic" aria-hidden="true"><use href="#i-web"/></svg></span><div class="tx"><b class="t14s">Webvenster</b><span class="t14">Internet: vraagt elke keer · 1 keer toegestaan vandaag</span></div><span class="tg" aria-label="Internet: vraagt elke keer"><i class="dev"></i><i class="nas"></i><i class="net ask"></i></span><span class="btn s">Beheren</span></div>
+     <div class="ar"><span class="tile"><svg class="ic" aria-hidden="true"><use href="#i-beeld"/></svg></span><div class="tx"><b class="t14s">Foto's</b><span class="t14">Afbeeldingen in Huis · alleen lezen</span></div><span class="tg" aria-label="Dit apparaat en Thuis-NAS"><i class="dev on"></i><i class="nas on"></i><i class="net"></i></span><span class="btn s">Beheren</span></div>
+    </div>
+    <h3 class="t14s">Assistent</h3>
+    <div class="card">
+     <div class="ar"><span class="tile"><svg class="ic" aria-hidden="true"><use href="#i-assistent"/></svg></span><div class="tx"><b class="t14s">Assistent gebruiken</b><span class="t14">Draait alleen op dit apparaat · heeft geen internettoegang</span></div><span class="tgl" role="switch" aria-checked="true" aria-label="Assistent gebruiken"></span></div>
+    </div>
+    <h3 class="t14s">Vergrendelen</h3>
+    <div class="card">
+     <div class="ar" style="height:60px"><span class="tile"><svg class="ic" aria-hidden="true"><use href="#i-vergrendelen"/></svg></span><div class="tx"><span class="sel2 t14" style="align-self:flex-start">Na 5 minuten<svg class="ic s16" aria-hidden="true"><use href="#i-chevd"/></svg></span></div></div>
+     <div class="ar" style="height:60px"><span class="tile"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></span><div class="tx"><span class="t14" style="color:var(--t1)">Herstelcode bewaard op papier · 2 nov.</span></div></div>
+    </div>
+   </div>
+  </main>
+ </div>
+</div>
+<nav class="orbit frost" aria-label="Orbit"><button class="ob menu" aria-label="BaryonOS-menu"><svg class="mk" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><mask id="s5o-c-clear" maskUnits="userSpaceOnUse"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="436.02" cy="220.99" r="135.80" fill="#000"/><circle cx="800.85" cy="705.13" r="135.80" fill="#000"/><circle cx="199.15" cy="779.01" r="135.80" fill="#000"/></mask><linearGradient id="s5o-c-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".55" stop-color="#D7DCE3"/><stop offset="1" stop-color="#A7B0BC"/></linearGradient></defs><g fill="#1A1F27" mask="url(#s5o-c-clear)"><path fill-rule="evenodd" d="M444.55,290.47 736.41,677.78 255.05,736.89Z M465.02,457.21 581.77,612.14 389.23,635.78Z"/></g><circle cx="436.02" cy="220.99" r="103.95" fill="#D9342A"/><circle cx="800.85" cy="705.13" r="103.95" fill="#1061D6"/><circle cx="199.15" cy="779.01" r="103.95" fill="#14894A"/></svg></button><button class="ob" aria-label="Zoeken"><svg class="ic" aria-hidden="true"><use href="#i-zoeken"/></svg></button><span class="odiv"></span><button class="ob run" aria-label="Bestanden"><svg class="ic" aria-hidden="true"><use href="#i-bestanden"/></svg></button><button class="ob run" aria-label="Notities"><svg class="ic" aria-hidden="true"><use href="#i-notities"/></svg></button><button class="ob run front" aria-label="Instellingen"><svg class="ic" aria-hidden="true"><use href="#i-instellingen"/></svg></button><button class="ob run" aria-label="Haven"><svg class="ic" aria-hidden="true"><use href="#i-haven"/></svg></button><span class="odiv"></span><div class="tri" role="status" aria-label="Privacy: Op dit apparaat. Je werk blijft op dit apparaat"><div class="tri-text"><b>Op dit apparaat</b><span>Je werk blijft op dit apparaat</span></div><div class="tri-track"><div class="tri-col dev lit"><i class="node on"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-apparaat"/></svg>Dit apparaat</span></div><div class="tri-col nas"><i class="node link"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-nas"/></svg>Thuis-NAS</span></div><div class="tri-col net"><i class="node off"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-internet"/></svg>Internet</span></div></div></div><span class="odiv"></span><button class="clock" aria-label="Meldingen en snelle instellingen"><b>14:32</b><span>do 13 nov</span></button></nav>
+</div></section>
+<section class="sec"><div class="cap"><b>Systeem</b>Tokens for both themes, the six-cut type scale, components, title areas, icons, depth, high contrast, and the live convergence boot with its loader.</div>
+<div class="ab dark sys6">
+<style>
+.sys6{background:#080C14}
+.blk{position:absolute;border-radius:14px;background:#0C111A;box-shadow:inset 0 0 0 1px #1C2430;padding:14px 16px;overflow:hidden}
+.blk.lt{background:#F4F7FA;box-shadow:inset 0 0 0 1px #D8DFE7}
+.blk h4{font-size:12px;line-height:16px;font-weight:620;color:#8F9AAA;margin-bottom:10px;white-space:nowrap}
+.blk.lt h4{color:#4D5765}
+.ann{font-size:12px;line-height:16px;font-weight:560;color:#8F9AAA}
+.lt .ann{color:#4D5765}
+/* boot */
+.bootblk{background:radial-gradient(120% 90% at 50% 40%,#131D33 0,#0A0F1C 55%,#05070D 100%)}
+.boot{position:absolute;left:50%;top:30px;width:132px;height:132px;margin-left:-66px;overflow:visible}
+.boot *{transform-box:view-box}
+.boot .orbs{opacity:0;transform-origin:479.89px 564.47px;animation:orbs 7s cubic-bezier(.2,.7,.2,1) infinite}
+.boot .q{transform-origin:479.89px 564.47px;animation:conv 7s cubic-bezier(.16,.84,.24,1) infinite}
+.boot .q1{--a:-150deg;animation-delay:0s}.boot .q2{--a:-150deg;animation-delay:.12s}.boot .q3{--a:-150deg;animation-delay:.24s}
+.boot .bond{transform-origin:479.89px 564.47px;animation:bond 7s cubic-bezier(.2,.7,.2,1) infinite}
+.boot .b1{transform-origin:439.67px 236.93px}.boot .b2{transform-origin:783.66px 693.41px}.boot .b3{transform-origin:216.34px 763.07px}
+.boot .bl{animation:blade 7s cubic-bezier(.3,.8,.2,1) infinite}
+.boot .b2{animation-delay:.08s}.boot .b3{animation-delay:.16s}
+@keyframes conv{0%{transform:rotate(var(--a)) scale(2.1);opacity:0}5%{opacity:1}25%{transform:rotate(0deg) scale(1);opacity:1}86%{transform:none;opacity:1}95%,100%{transform:none;opacity:0}}
+@keyframes orbs{0%{opacity:0;transform:rotate(-24deg)}6%{opacity:1}24%{opacity:.6}34%{opacity:0;transform:rotate(12deg)}100%{opacity:0;transform:rotate(12deg)}}
+@keyframes bond{0%,21%{opacity:0;transform:scale(.84)}33%{opacity:1;transform:scale(1)}86%{opacity:1;transform:none}95%,100%{opacity:0;transform:none}}
+@keyframes blade{0%,30%{opacity:0;transform:rotate(-30deg)}42%{opacity:1;transform:rotate(0deg)}86%{opacity:1;transform:none}95%,100%{opacity:0;transform:none}}
+.ldr{width:40px;height:40px}
+.ldr .lg{transform-origin:20px 20px;transform-box:view-box;animation:index 2.4s cubic-bezier(.65,0,.25,1) infinite}
+@keyframes index{0%{transform:rotate(0deg)}24%,33.3%{transform:rotate(120deg)}57%,66.6%{transform:rotate(240deg)}90%,100%{transform:rotate(360deg)}}
+.bootcap{position:absolute;left:16px;right:16px;bottom:12px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.bootcap .ann{color:#AEB8C6}
+/* icons */
+.icg{display:grid;grid-template-columns:repeat(4,1fr);row-gap:6px}
+.icc{height:56px;display:flex;flex-direction:column;align-items:center;gap:6px;color:#E6EBF2;text-align:center}
+.icc .ann{color:#AEB8C6;line-height:14px}
+.icc .mk{width:24px;height:24px}
+/* motion */
+.mn{display:flex;flex-direction:column;gap:5px}
+.mn div{font-size:12px;line-height:16px;font-weight:560;color:#AEB8C6}
+.mn b{color:#E6EBF2;font-weight:620}
+/* type */
+.ts{display:flex;flex-direction:column;gap:3px}
+.ts .r{display:flex;align-items:baseline;gap:12px;white-space:nowrap;overflow:hidden}
+.ts .r .ann{width:96px;flex:none}
+/* buttons */
+.bg{display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;row-gap:8px;align-items:center}
+.bg .ann{text-align:center}
+.bg .btn{padding:0 12px}.bg{column-gap:8px}
+/* fields & rows */
+.fs{display:flex;flex-direction:column;gap:6px}
+.fs .err-msg{display:flex;align-items:center;gap:6px;color:var(--err);margin-top:-2px}
+.lr{height:36px;display:flex;align-items:center;gap:12px;padding:0 12px 0 22px;border-radius:8px;position:relative;color:var(--t1)}
+.lr .ic{color:var(--t2)}
+.lr.hov{background:var(--plate)}
+.lr .ann2{margin-left:auto;font-size:12px;color:var(--t3);font-weight:560}
+/* depth */
+.dp{display:flex;flex-direction:column;gap:7px}.dp .lv{gap:3px!important}
+.dp .lv{flex:1;display:flex;flex-direction:column;gap:6px}
+.dp .sw{height:24px;border-radius:10px;position:relative;overflow:hidden}
+/* titles, pills */
+.tstrip{height:44px;border-radius:10px;display:flex;align-items:center;padding-left:16px;margin-bottom:8px;overflow:hidden}
+.tstrip .wc{padding-right:6px}
+.pills{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border-radius:10px;margin-bottom:8px}.pills + .pills{margin-bottom:0}
+.pill{height:28px;border-radius:14px;display:inline-flex;align-items:center;gap:6px;padding:0 12px 0 9px;box-shadow:inset 0 0 0 1px var(--hair-2);font-size:12px;line-height:16px;font-weight:560;color:var(--t1);white-space:nowrap;background:var(--win)}
+.pill .ic{width:14px;height:14px;stroke-width:2;color:var(--t2)}
+.pill .node{width:8px;height:8px}
+.pill.err{box-shadow:inset 0 0 0 1.5px var(--err);color:var(--t1)}
+.pill.err .ic{color:var(--err)}
+.legend{position:relative;display:grid;grid-template-columns:repeat(4,1fr);padding:10px 4px 8px;border-radius:10px;background:var(--win)}
+.lgtrack{position:absolute;left:12.5%;right:12.5%;top:15px;height:2px;background:var(--bond)}
+.lgtrack .pt{position:absolute;left:0;top:-2px;width:6px;height:6px;border-radius:50%;background:var(--t1);animation:run 1.6s cubic-bezier(.45,0,.2,1) infinite}
+@keyframes run{0%{transform:translateX(0);opacity:0}15%{opacity:1}75%{opacity:1}100%{transform:translateX(68px);opacity:0}}
+.lgc{display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;z-index:1}
+.lgc .ann{color:var(--t2);text-align:center}
+/* tokens */
+.tkh{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tk{display:grid;grid-template-columns:1fr 74px 74px;column-gap:6px;align-items:center;height:22px;font-size:12px;line-height:16px;font-weight:560;color:#C3CBD6;white-space:nowrap}
+.tk .hx{display:flex;align-items:center;gap:5px}
+.tk i{width:12px;height:12px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);flex:none}
+.tk code{font-family:inherit;color:#8F9AAA}
+.tkh3{color:#8F9AAA;height:20px}
+.tkcol h5{font-size:12px;line-height:16px;font-weight:620;color:#E6EBF2;margin-bottom:6px}
+/* hc mini */
+.hcbox{position:absolute;left:16px;top:36px;width:528px;height:330px;overflow:hidden;border-radius:8px;box-shadow:0 0 0 1px #3A4556}
+.hcbox .ab{position:absolute;left:0;top:0;transform:scale(.366667);transform-origin:0 0}
+.hc .wp{display:none}
+.hc .cont{background:#000}
+.hc .glass::after{box-shadow:inset 0 0 0 2px #fff}
+.hcnote{position:absolute;left:560px;top:38px;right:16px}
+</style>
+
+<!-- column A -->
+<div class="blk bootblk" style="left:32px;top:24px;width:300px;height:204px">
+ <h4>Convergence boot (live)</h4>
+ <svg class="boot" viewBox="0 0 1000 1000" role="img" aria-label="BaryonOS"><defs><mask id="bt-clear" maskUnits="userSpaceOnUse"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="439.67" cy="236.93" r="95.70" fill="#000"/><circle cx="783.66" cy="693.41" r="95.70" fill="#000"/><circle cx="216.34" cy="763.07" r="95.70" fill="#000"/></mask><linearGradient id="bt-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".55" stop-color="#D7DCE3"/><stop offset="1" stop-color="#A7B0BC"/></linearGradient></defs><g class="orbs" fill="none" stroke="#C9D6EA" stroke-opacity=".28" stroke-width="4"><ellipse cx="479.89" cy="564.47" rx="470" ry="150" transform="rotate(-7 479.89 564.47)"/><ellipse cx="479.89" cy="564.47" rx="470" ry="150" transform="rotate(53 479.89 564.47)"/><ellipse cx="479.89" cy="564.47" rx="470" ry="150" transform="rotate(113 479.89 564.47)"/></g><g fill="url(#bt-silver)" mask="url(#bt-clear)"><path class="bond" fill-rule="evenodd" d="M447.72,302.44 722.90,667.62 269.05,723.35Z M459.78,400.70 631.77,628.94 348.12,663.77Z"/><polygon class="bl b1" points="431.77,242.89 489.75,199.20 718.47,623.35"/><polygon class="bl b2" points="782.45,683.59 791.30,755.64 309.61,741.64"/><polygon class="bl b3" points="225.45,766.94 158.63,738.57 411.60,328.42"/></g><g class="q q1"><circle cx="439.67" cy="236.93" r="72.60" fill="#FF4A3D"/></g><g class="q q2"><circle cx="783.66" cy="693.41" r="72.60" fill="#2585FF"/></g><g class="q q3"><circle cx="216.34" cy="763.07" r="72.60" fill="#33C46B"/></g></svg>
+ <div class="bootcap"><span class="ann">Nodes arrive from three orbits · bond forms · blades sweep once · 2.9 s, then rest</span><svg class="ldr" viewBox="0 0 40 40" role="img" aria-label="Bezig"><g transform="rotate(-7 20 20)"><g class="lg"><path d="M20 8.5 29.96 25.75H10.04Z" fill="none" stroke="#5E697B" stroke-width="1.2"/><circle cx="20" cy="8.5" r="3.6" fill="#FF4A3D"/><circle cx="29.96" cy="25.75" r="3.6" fill="#2585FF"/><circle cx="10.04" cy="25.75" r="3.6" fill="#33C46B"/></g></g></svg></div>
+</div>
+
+<div class="blk" style="left:1114px;top:516px;width:294px;height:360px">
+ <h4>Icons · 24 grid · 60° cuts · one particle</h4>
+ <div class="icg">
+  <div class="icc"><svg class="mk" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><mask id="icm-c-clear" maskUnits="userSpaceOnUse"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="436.02" cy="220.99" r="135.80" fill="#000"/><circle cx="800.85" cy="705.13" r="135.80" fill="#000"/><circle cx="199.15" cy="779.01" r="135.80" fill="#000"/></mask><linearGradient id="icm-c-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".55" stop-color="#D7DCE3"/><stop offset="1" stop-color="#A7B0BC"/></linearGradient></defs><g fill="url(#icm-c-silver)" mask="url(#icm-c-clear)"><path fill-rule="evenodd" d="M444.55,290.47 736.41,677.78 255.05,736.89Z M465.02,457.21 581.77,612.14 389.23,635.78Z"/></g><circle cx="436.02" cy="220.99" r="103.95" fill="#FF4A3D"/><circle cx="800.85" cy="705.13" r="103.95" fill="#2585FF"/><circle cx="199.15" cy="779.01" r="103.95" fill="#33C46B"/></svg><span class="ann">Menu</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-zoeken"/></svg><span class="ann">Zoeken</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-bestanden"/></svg><span class="ann">Bestanden</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-notities"/></svg><span class="ann">Notities</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-instellingen"/></svg><span class="ann">Instellingen</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-haven"/></svg><span class="ann">Haven</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-apparaat"/></svg><span class="ann">Op dit apparaat</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-nas"/></svg><span class="ann" style="white-space:nowrap">Thuis-NAS</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-versies"/></svg><span class="ann">Versies</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-toegang"/></svg><span class="ann">Toegang</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-internet"/></svg><span class="ann">Internet</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-aanuit"/></svg><span class="ann">Aan/uit</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-vergrendelen"/></svg><span class="ann">Vergrendelen</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-assistent"/></svg><span class="ann">Assistent</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-min"/></svg><span class="ann">Minimise</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-max"/></svg><span class="ann">Maximise</span></div>
+  <div class="icc"><svg class="ic s24" aria-hidden="true"><use href="#i-close"/></svg><span class="ann">Close</span></div>
+ </div>
+</div>
+
+<div class="blk" style="left:32px;top:240px;width:300px;height:252px">
+ <h4>Motion · transform and opacity only</h4>
+ <div class="mn">
+  <div><b>Loader</b> — the triad indexes 120° per 0.8 s, cubic-bezier(.65,0,.25,1), then rests.</div>
+  <div><b>Menu</b> — rises 12 px from Orbit, 180 ms, cubic-bezier(.2,.7,.2,1); closes in 120 ms.</div>
+  <div><b>Focus</b> — title node fills in 120 ms. Trusted surfaces never travel: 90 ms fade, fixed anchor.</div>
+  <div><b>Triade</b> — a particle runs the bond while data moves (600 ms); a request pulses a halo every 2.4 s.</div>
+  <div><b>Reduced motion</b> — one-frame state changes, static double ring, assembled mark.</div>
+ </div>
+</div>
+
+<!-- column B -->
+<div class="blk" style="left:356px;top:24px;width:380px;height:252px">
+ <h4>Type · Archivo · six atlas cuts</h4>
+ <div class="ts">
+  <div class="r"><span class="ann">48 · 280 · 125%</span><span class="d48">Noor</span></div>
+  <div class="r"><span class="ann">28 · 360 · 125%</span><span class="d28">Tuinplan 2027</span></div>
+  <div class="r"><span class="ann">16 · 420 · 104%</span><span class="t16">Lavendel en salie vooraan</span></div>
+  <div class="r"><span class="ann">14 · 620 · 104%</span><span class="t14s">Huis — Bestanden</span></div>
+  <div class="r"><span class="ann">14 · 420 · 104%</span><span class="t14">Tekst · Huis · vandaag 09:40</span></div>
+  <div class="r"><span class="ann">12 · 560 · 104%</span><span class="t12">Je werk blijft op dit apparaat</span></div>
+ </div>
+</div>
+
+<div class="blk" style="left:356px;top:288px;width:380px;height:204px">
+ <h4>Buttons · primary / secondary / quiet</h4>
+ <div class="bg">
+  <span class="ann">default</span><span class="ann">hover</span><span class="ann">focus</span><span class="ann">disabled</span>
+  <span class="btn p">Nieuw</span><span class="btn p hov">Nieuw</span><span class="btn p fr">Nieuw</span><span class="btn p dis">Nieuw</span>
+  <span class="btn s">Beheren</span><span class="btn s hov">Beheren</span><span class="btn s fr">Beheren</span><span class="btn s dis">Beheren</span>
+  <span class="btn q">Aan/uit</span><span class="btn q hov">Aan/uit</span><span class="btn q fr">Aan/uit</span><span class="btn q dis">Aan/uit</span>
+ </div>
+</div>
+
+<div class="blk lt light" style="left:760px;top:528px;width:330px;height:174px">
+ <h4>Text input · empty / filled / error</h4>
+ <div class="fs">
+  <div class="field"><svg class="ic" aria-hidden="true"><use href="#i-zoeken"/></svg><span>Zoek apps, bestanden en instellingen</span></div>
+  <div class="field filled"><svg class="ic" aria-hidden="true"><use href="#i-zoeken"/></svg><span>tuin<i class="caret" style="height:18px"></i></span></div>
+  <div class="field filled err"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg><span>tuinplanner.example</span><span class="ann" style="margin-left:auto;color:var(--err)">Fout</span></div>
+ </div>
+</div>
+
+<div class="blk lt light" style="left:760px;top:714px;width:330px;height:162px">
+ <h4>List row · default / hover / selected</h4>
+ <div class="lr"><svg class="ic s16" aria-hidden="true"><use href="#i-tekening"/></svg><span class="t14">Plattegrond</span><span class="ann2">default</span></div>
+ <div class="lr hov"><svg class="ic s16" aria-hidden="true"><use href="#i-beeld"/></svg><span class="t14">Foto's border</span><span class="ann2">hover</span></div>
+ <div class="lr selrow"><svg class="ic s16" aria-hidden="true"><use href="#i-notities"/></svg><b class="t14s">Tuinplan</b><span class="ann2">selected · node</span></div>
+</div>
+
+<!-- column C -->
+<div class="blk" style="left:760px;top:24px;width:330px;height:262px">
+ <h4>Window title area · focused vs unfocused</h4>
+ <div class="tstrip dark" style="background:var(--side)"><div class="wt"><i class="fn"></i>Tuinplan — Notities</div><div class="wc"><span><svg class="ic" aria-hidden="true"><use href="#i-min"/></svg></span><span><svg class="ic" aria-hidden="true"><use href="#i-max"/></svg></span><span><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></span></div></div>
+ <div class="tstrip dark unf" style="background:var(--side)"><div class="wt"><i class="fn"></i>Huis — Bestanden</div><div class="wc"><span><svg class="ic" aria-hidden="true"><use href="#i-min"/></svg></span><span><svg class="ic" aria-hidden="true"><use href="#i-max"/></svg></span><span><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></span></div></div>
+ <div class="tstrip light" style="background:var(--side)"><div class="wt"><i class="fn"></i>Tuinplan — Notities</div><div class="wc"><span><svg class="ic" aria-hidden="true"><use href="#i-min"/></svg></span><span><svg class="ic" aria-hidden="true"><use href="#i-max"/></svg></span><span><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></span></div></div>
+ <div class="tstrip light unf" style="background:var(--side)"><div class="wt"><i class="fn"></i>Huis — Bestanden</div><div class="wc"><span><svg class="ic" aria-hidden="true"><use href="#i-min"/></svg></span><span><svg class="ic" aria-hidden="true"><use href="#i-max"/></svg></span><span><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></span></div></div>
+</div>
+
+<div class="blk" style="left:760px;top:298px;width:330px;height:218px">
+ <h4>Status pills · Triade node states</h4>
+ <div class="pills dark" style="background:var(--win)">
+  <span class="pill dev"><i class="node on"></i><svg class="ic" aria-hidden="true"><use href="#i-apparaat"/></svg>Op dit apparaat</span><span class="pill nas"><i class="node link"></i><svg class="ic" aria-hidden="true"><use href="#i-nas"/></svg>Thuis-NAS</span><span class="pill net"><i class="node ask"></i><svg class="ic" aria-hidden="true"><use href="#i-internet"/></svg>Internet</span><span class="pill err"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg>Fout</span>
+ </div>
+ <div class="legend light">
+  <div class="lgtrack"><i class="pt"></i></div>
+  <div class="lgc dev"><i class="node on"></i><span class="ann">holds work</span></div>
+  <div class="lgc nas"><i class="node link"></i><span class="ann">paired · idle</span></div>
+  <div class="lgc"><i class="node"></i><span class="ann">no access</span></div>
+  <div class="lgc net"><i class="node ask"></i><span class="ann">asks now</span></div>
+ </div>
+</div>
+
+<!-- column D -->
+<div class="blk" style="left:1114px;top:24px;width:294px;height:480px">
+ <h4>Tokens · both themes</h4>
+ <div class="tkcol"><div class="tk tkh3"><span>semantic</span><span>dark</span><span>light</span></div><div class="tk"><span>surface/space</span><span class="hx"><i style="background:#0A0F1A"></i><code>#0A0F1A</code></span><span class="hx"><i style="background:#DCE4EE"></i><code>#DCE4EE</code></span></div><div class="tk"><span>surface/window</span><span class="hx"><i style="background:#0C111A"></i><code>#0C111A</code></span><span class="hx"><i style="background:#F8FAFC"></i><code>#F8FAFC</code></span></div><div class="tk"><span>surface/side</span><span class="hx"><i style="background:#10161F"></i><code>#10161F</code></span><span class="hx"><i style="background:#EDF1F6"></i><code>#EDF1F6</code></span></div><div class="tk"><span>surface/raised</span><span class="hx"><i style="background:#161D29"></i><code>#161D29</code></span><span class="hx"><i style="background:#FFFFFF"></i><code>#FFFFFF</code></span></div><div class="tk"><span>surface/system</span><span class="hx"><i style="background:#EEF1F5"></i><code>#EEF1F5</code></span><span class="hx"><i style="background:#141A24"></i><code>#141A24</code></span></div><div class="tk"><span>text/primary</span><span class="hx"><i style="background:#ECF0F5"></i><code>#ECF0F5</code></span><span class="hx"><i style="background:#121821"></i><code>#121821</code></span></div><div class="tk"><span>text/secondary</span><span class="hx"><i style="background:#A7B1BF"></i><code>#A7B1BF</code></span><span class="hx"><i style="background:#46505E"></i><code>#46505E</code></span></div><div class="tk"><span>text/tertiary</span><span class="hx"><i style="background:#808B9B"></i><code>#808B9B</code></span><span class="hx"><i style="background:#5C6675"></i><code>#5C6675</code></span></div><div class="tk"><span>line/hair</span><span class="hx"><i style="background:#1E2734"></i><code>#1E2734</code></span><span class="hx"><i style="background:#D8DFE7"></i><code>#D8DFE7</code></span></div><div class="tk"><span>line/strong</span><span class="hx"><i style="background:#5E697B"></i><code>#5E697B</code></span><span class="hx"><i style="background:#788394"></i><code>#788394</code></span></div><div class="tk"><span>focus/ring</span><span class="hx"><i style="background:#ECF0F5"></i><code>#ECF0F5</code></span><span class="hx"><i style="background:#121821"></i><code>#121821</code></span></div><div class="tk"><span>place/device</span><span class="hx"><i style="background:#3DD07A"></i><code>#3DD07A</code></span><span class="hx"><i style="background:#14894A"></i><code>#14894A</code></span></div><div class="tk"><span>place/nas</span><span class="hx"><i style="background:#4C9AFF"></i><code>#4C9AFF</code></span><span class="hx"><i style="background:#1061D6"></i><code>#1061D6</code></span></div><div class="tk"><span>place/internet</span><span class="hx"><i style="background:#FF5D50"></i><code>#FF5D50</code></span><span class="hx"><i style="background:#D9342A"></i><code>#D9342A</code></span></div><div class="tk"><span>status/error</span><span class="hx"><i style="background:#FF5D50"></i><code>#FF5D50</code></span><span class="hx"><i style="background:#C42B22"></i><code>#C42B22</code></span></div></div>
+ <div class="ann" style="margin-top:10px">Colour is bound to place: device green, NAS blue, internet red. Focus, selection and primary actions stay silver / graphite. Trusted surfaces use the opposite theme's material.</div>
+</div>
+
+<div class="blk lt light" style="left:616px;top:504px;width:120px;height:372px">
+ <h4>Depth</h4>
+ <div class="dp">
+  <div class="lv"><div class="sw" style="background:linear-gradient(180deg,#C3D0E1,#EDF1F6)"></div><span class="ann">0 field</span></div>
+  <div class="lv"><div class="sw" style="background:#F8FAFC;box-shadow:0 8px 20px rgba(38,54,82,.22),inset 0 0 0 1px rgba(20,32,50,.14)"></div><span class="ann">1 window</span></div>
+  <div class="lv"><div class="sw" style="background:#FFFFFF;box-shadow:0 10px 24px rgba(38,54,82,.26),inset 0 0 0 1px rgba(20,32,50,.12)"></div><span class="ann">2 float</span></div>
+  <div class="lv"><div class="sw" style="background:linear-gradient(180deg,rgba(252,253,255,.84),rgba(238,242,247,.9)),linear-gradient(180deg,#C3D0E1,#EDF1F6);box-shadow:inset 0 0 0 1px rgba(20,32,50,.12)"></div><span class="ann">3 Orbit</span></div>
+  <div class="lv"><div class="sw" style="background:#141A24;box-shadow:0 10px 24px rgba(6,10,18,.35)"></div><span class="ann">S light theme</span></div>
+  <div class="lv"><div class="sw" style="background:#EEF1F5;box-shadow:0 0 0 1px #C8D1DC"></div><span class="ann">S dark theme</span></div>
+ </div>
+</div>
+<!-- C + D -->
+<div class="blk" style="left:32px;top:504px;width:560px;height:372px">
+ <h4>High contrast · Bureaublad · black field, 2 px white rules, outlined nodes, no glow</h4>
+ <div class="hcbox"><div class="ab dark desk1 hc"><svg class="wp" viewBox="0 0 1440 900" aria-hidden="true"><use href="#wp-dark"/></svg>
+<style>
+.desk1 .greet{position:absolute;left:96px;top:128px;z-index:2}
+.desk1 .greet .d48{color:var(--t1)}
+.desk1 .cont{left:96px;top:224px;width:440px;padding:8px;z-index:2}
+.cont-h{height:44px;display:flex;align-items:center;gap:10px;padding:0 12px;color:var(--t1)}
+.cont-h .ic{color:var(--t2)}
+.ci{height:76px;display:flex;align-items:center;gap:16px;padding:0 12px;border-radius:10px;position:relative}
+.ci + .ci::before{content:"";position:absolute;left:72px;right:12px;top:0;height:1px;background:var(--hair)}
+.ci .tx{flex:1;display:flex;flex-direction:column;min-width:0}
+.ci .tx span{color:var(--t2)}
+.ci.hl{background:var(--plate)}
+.ci.hl::before{display:none}
+.ci.hl + .ci::before{display:none}
+</style>
+<div class="greet"><div class="d48">Goedemiddag, Noor</div></div>
+<section class="cont glass frost" aria-label="Verder waar je was">
+  <div class="cont-h"><svg class="ic s16" aria-hidden="true"><use href="#i-klok"/></svg><b class="t14s">Verder waar je was</b></div>
+  <div class="ci"><svg class="th" width="44" height="56" viewBox="0 0 44 56" aria-hidden="true"><rect x=".5" y=".5" width="43" height="55" rx="4.5" style="fill:var(--paper);stroke:var(--hair-2)"/><rect x="8" y="9" width="21" height="3.2" rx="1" style="fill:var(--t2)"/><rect x="8" y="18" width="28" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="23" width="26" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="28" width="28" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="33" width="22" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="41" width="27" height="2" rx="1" style="fill:var(--paper-ink)"/><rect x="8" y="46" width="16" height="2" rx="1" style="fill:var(--paper-ink)"/></svg><div class="tx"><b class="t14s">Tuinplan</b><span class="t14">Tekst · Huis · vandaag 09:40</span></div><span class="tg" aria-label="Dit apparaat en Thuis-NAS"><i class="dev on"></i><i class="nas on"></i><i class="net"></i></span></div>
+  <div class="ci"><svg class="th" width="44" height="56" viewBox="0 0 44 56" aria-hidden="true"><rect x=".5" y=".5" width="43" height="55" rx="4.5" style="fill:var(--paper);stroke:var(--hair-2)"/><g fill="none" style="stroke:var(--t3)" stroke-width="1.2"><rect x="7" y="9" width="30" height="38"/><path d="M7 27h13M20 9v12M20 26v21M27 27h10"/><path d="M20 21a5 5 0 0 1 5 5" stroke-width=".9"/></g><circle cx="31" cy="38" r="1.6" style="fill:var(--t2)"/></svg><div class="tx"><b class="t14s">Plattegrond</b><span class="t14">Tekening · Huis · gisteren 18:12</span></div><span class="tg" aria-label="Dit apparaat en Thuis-NAS"><i class="dev on"></i><i class="nas on"></i><i class="net"></i></span></div>
+  <div class="ci"><svg class="th" width="44" height="56" viewBox="0 0 44 56" aria-hidden="true"><rect x=".5" y=".5" width="43" height="55" rx="4.5" style="fill:var(--paper);stroke:var(--hair-2)"/><circle cx="11" cy="15" r="2.2" fill="none" style="stroke:var(--t3)" stroke-width="1.1"/><rect x="16" y="14" width="18" height="2" rx="1" style="fill:var(--paper-ink)"/><circle cx="11" cy="23" r="2.2" fill="none" style="stroke:var(--t3)" stroke-width="1.1"/><rect x="16" y="22" width="20" height="2" rx="1" style="fill:var(--paper-ink)"/><circle cx="11" cy="31" r="2.2" fill="none" style="stroke:var(--t3)" stroke-width="1.1"/><rect x="16" y="30" width="15" height="2" rx="1" style="fill:var(--paper-ink)"/><circle cx="11" cy="39" r="2.2" fill="none" style="stroke:var(--t3)" stroke-width="1.1"/><rect x="16" y="38" width="19" height="2" rx="1" style="fill:var(--paper-ink)"/><circle cx="11" cy="15" r="2.2" style="fill:var(--t2)"/></svg><div class="tx"><b class="t14s">Boodschappen</b><span class="t14">Lijst · Vandaag · 11 nov.</span></div><span class="tg" aria-label="Dit apparaat"><i class="dev on"></i><i class="nas"></i><i class="net"></i></span></div>
+</section>
+<nav class="orbit frost" aria-label="Orbit"><button class="ob menu" aria-label="BaryonOS-menu"><svg class="mk" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><mask id="hco-c-clear" maskUnits="userSpaceOnUse"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="436.02" cy="220.99" r="135.80" fill="#000"/><circle cx="800.85" cy="705.13" r="135.80" fill="#000"/><circle cx="199.15" cy="779.01" r="135.80" fill="#000"/></mask><linearGradient id="hco-c-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".55" stop-color="#D7DCE3"/><stop offset="1" stop-color="#A7B0BC"/></linearGradient></defs><g fill="url(#hco-c-silver)" mask="url(#hco-c-clear)"><path fill-rule="evenodd" d="M444.55,290.47 736.41,677.78 255.05,736.89Z M465.02,457.21 581.77,612.14 389.23,635.78Z"/></g><circle cx="436.02" cy="220.99" r="103.95" fill="#FF4A3D"/><circle cx="800.85" cy="705.13" r="103.95" fill="#2585FF"/><circle cx="199.15" cy="779.01" r="103.95" fill="#33C46B"/></svg></button><button class="ob" aria-label="Zoeken"><svg class="ic" aria-hidden="true"><use href="#i-zoeken"/></svg></button><span class="odiv"></span><button class="ob" aria-label="Bestanden"><svg class="ic" aria-hidden="true"><use href="#i-bestanden"/></svg></button><button class="ob" aria-label="Notities"><svg class="ic" aria-hidden="true"><use href="#i-notities"/></svg></button><button class="ob" aria-label="Instellingen"><svg class="ic" aria-hidden="true"><use href="#i-instellingen"/></svg></button><span class="odiv"></span><div class="tri" role="status" aria-label="Privacy: Op dit apparaat. Je werk blijft op dit apparaat"><div class="tri-text"><b>Op dit apparaat</b><span>Je werk blijft op dit apparaat</span></div><div class="tri-track"><div class="tri-col dev lit"><i class="node on"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-apparaat"/></svg>Dit apparaat</span></div><div class="tri-col nas"><i class="node link"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-nas"/></svg>Thuis-NAS</span></div><div class="tri-col net"><i class="node off"></i><span class="lbl"><svg class="ic" aria-hidden="true"><use href="#i-internet"/></svg>Internet</span></div></div></div><span class="odiv"></span><button class="clock" aria-label="Meldingen en snelle instellingen"><b>14:32</b><span>do 13 nov</span></button></nav>
+</div></div>
+</div>
+</div></section>
+</body></html>
