@@ -23,7 +23,12 @@ Current evidence: [refresh verification](verification/pr325-refresh-20261114.jso
 **Progress:** 41/100 → 41/100; the criterion register is unchanged.
 
 **Next:** review the updated PR and its current GitHub checks, then resume
-the preserved S09 work. The PR remains open; merge approval is unchanged.
+the preserved S09 work. The owner approved D6(a) with conditions, and the
+ordered steps start with recording it as `ADR-S09-USTAR-20261114`. Both are
+in the "**Next, in order:**" list of the checkpoint "S09 proposed ustar
+user export" below. The PR remains open; merge approval is unchanged. The
+`copilot-pull-request-reviewer` failures come from an exhausted review quota,
+not from this change.
 
 ## Previous checkpoint — PR #325 SMP and conflict repair — 14 November 2026
 
