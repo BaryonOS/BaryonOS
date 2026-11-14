@@ -17,6 +17,8 @@ graphics-g0 = ["framebuffer"]
 signed-boot = ["dep:update-core"]
 # Explicit test profile; production anchors and release policy are not configured.
 signed-boot-test = ["signed-boot", "update-core/test-signing-anchors"]
+# Read-only authentication probe with public synthetic inputs; no policy activation.
+signed-policy-probe-test = ["signed-boot-test", "update-core/test-policy-envelope-probe"]
 
 [dependencies]
 r-efi = { version = "=7.1.0", default-features = false }

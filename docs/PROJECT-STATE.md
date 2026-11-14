@@ -1,6 +1,82 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — N04 helper follow-up after #328 squash — 14 November 2026
+## NEXT AGENT HANDOFF — issue #41 TEST policy/native verification complete — 14 November 2026
+
+**Source:** [PR #336](https://github.com/BaryonOS/BaryonOS/pull/336), branch
+`feat/issue41-policy-test`. Verified published source:
+`f34e96a6a52299097dc09baf285699c6f906d301`, integrating main
+`ce47359fcd9c62abca50da87ac62183026aac91c` and preserving N04 helper isolation.
+Later receipt/status edits change documentation only.
+
+**Decision:** ADR-B03K3 records the owner's authorisation to publish and implement
+this TEST-key/disposable-QEMU experiment. That authorisation remains in force.
+Production custody, rollback-resistant storage, B04 and real signing/releases
+remain separate unresolved requirements.
+
+**Result:** an opt-in, allocation-free hybrid policy/binding codec enforces fixed
+root identity, role/component separation, exact policy/manifest binding, release
+windows, caller-supplied image floors, strict lineage and retained revocation
+tombstones. The loader and native ring-3 service independently execute 26 real
+verification cases. Ordinary profiles retain their existing signing authority.
+[Format and native contract](implementation/B03-TEST-POLICY-ENVELOPES.md).
+
+**Evidence:** 32 integrated Rust tests, 8 new oracle tests, 15 existing update
+harness tests, 3 build-path tests, 26 workflow-contract tests, strict Clippy and
+root/SDK formatting pass. The native probe reports 26/full-mask/PASS in each
+consumer, zero block writes/flushes and a byte-identical store. All 18 existing
+native update stages, all six compiler controls and strict preflight/build/smoke
+pass. The normal smoke observes `M1:PASS`, raw QEMU exit 33 and no timeout.
+The 92 symbolic checks also pass, without becoming persistence evidence.
+
+**Review and CI:** the phase-order oracle defect was fixed and regression-tested.
+Separate AI review and frozen-artifact replay found no remaining blocker; this
+is not a human audit. Hosted B03 run 43614613093 passed on a synthetic merge with
+the same Git tree as the verified source. Local and hosted QEMU versions remain
+explicitly distinguished. [Receipts and limits](verification/b03-policy-envelope-20261114/README.md).
+
+**Progress:** 41/100 → 41/100. No criterion or production permission changes.
+Issue #41 remains open. The probe authenticates immutable TEST vectors; it does
+not implement policy ingress, persistent commits or interruption/replay recovery.
+
+**Next:** freeze the bounded storage/ingress layout and trusted current-policy
+handoff, then the complete TEST anchor/operation identity and actual write/readback
+semantics. Implement the authorised native transition and its cut/replay oracle
+within those contracts. Preserve all 18 existing stages and the fixed slot limit;
+ordinary OVMF persistence must not be presented as rollback-resistant storage.
+
+## Previous checkpoint — issue #41 policy transition specification — 14 November 2026
+
+**Source:** existing PR #328, branch `fix/issue43-network-usb-followup`.
+Verified integrated source: `a0599501a624822d93ca60718df24fa70a2582e8`, preserving the
+concurrent #42 continuation `885e128082483ec871831fbbfc757a6e5104e6b4` unchanged.
+Later receipt/status edits are documentation only.
+
+**Result:** the [proposed B03 transition](implementation/B03-POLICY-TRANSITION-PROPOSAL.md)
+specifies policy/image binding, exact resume identity, anchor commit/readback,
+monotonic floors, revocation history and interruption/fallback outcomes.
+All D1–D7 dispositions remain pending. The finite symbolic model now follows
+the actually selected fallback image when protecting the running slot.
+Existing native source, TEST anchors, workflows and the 18-stage gate are
+unchanged by this contribution; the #42 source and prior evidence are preserved.
+
+**Evidence:** 92 symbolic model checks, 15 existing Python update-harness tests,
+progress consistency and the default loader/kernel build pass on the exact
+integrated source. Strict preflight exits 2 because QEMU and OVMF are missing;
+smoke exits 1 before a guest starts. These are not native transition results.
+A separate read-only AI proposal review found no remaining blocker after fixes;
+it is not a human audit. [Commands, hashes and limits](verification/b03-policy-transition-20261114/README.md).
+
+**Progress:** 41/100 → 41/100. B03's existing two points are retained; no new
+criterion is accepted by a proposal or symbolic specification check.
+
+**Next:** record the project owner's disposition of the proposed synthetic
+experiment, separately from unresolved production decisions. Freeze the exact
+native backend/anchor encoding/ingress contract before implementing it; then
+preserve the current 18-stage gate and add native transition evidence.
+B04, production custody and independent review remain open. No merge or
+auto-merge approval is inferred.
+
+## Previous checkpoint — N04 helper follow-up after #328 squash — 14 November 2026
 
 **Source:** branch `test/issue43-n04-helper-isolation`, based on merged main
 `4cd444e08dac820cc66f2750c43845b4139901cc`. Verified executable source:

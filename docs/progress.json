@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "7f693d73702072fa0db3b99ffc56df3eed6b8fa5",
+    "source_commit": "f34e96a6a52299097dc09baf285699c6f906d301",
     "assessment_basis": "parent_commit",
-    "branch": "test/issue43-n04-helper-isolation",
-    "task": "Verify the native unregistered-helper isolation follow-up after PR #328 squash",
+    "branch": "feat/issue41-policy-test",
+    "task": "Verify the approved TEST policy codec and native loader/service authentication probe",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The N04-only follow-up preserves merged main and adds an unregistered native helper negative fixture with causal sender rejection before backend effects. All six native network cases, strict preflight/build/smoke, 92 Python tests, 24 Rust tests, strict service Clippy and formatting pass on local executable source 21a53dd9342988263f7d49e9ef559fb7a2d288cd, whose complete Git tree equals published source 7f693d73702072fa0db3b99ffc56df3eed6b8fa5. Independent AI integration review found no blocker. Current evidence is in docs/verification/n04-helper-20261114/integration.json; earlier mutation/replay receipts retain their original source identities. N04 and issue #43 remain open; no criterion, weight or production permission changes. Hosted checks remain separate."
+    "summary": "41/100 remains 41/100. PR #336 preserves merged N04 work and adds the opt-in B03 hybrid policy/binding codec and immutable native TEST probe. On published source f34e96a6a52299097dc09baf285699c6f906d301, 32 Rust tests, 8 new and 15 existing oracle/harness tests, all 18 native update stages, six compiler controls and strict preflight/build/smoke pass. Both native consumers execute 26 cases with zero block writes/flushes and unchanged store bytes. Separate AI source review and frozen-artifact replay pass; hosted B03 also passes on a synthetic PR merge with the identical Git tree. Durable receipts are in docs/verification/b03-policy-envelope-20261114/. Persistent policy transitions, production trust and human acceptance remain open. No criterion or weight changes."
   },
   "tracks": [
     {

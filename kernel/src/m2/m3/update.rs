@@ -641,6 +641,20 @@ fn finish(s: &mut State) -> ! {
     }
     let result = word(s, 0, 256);
     let writes = r.publications[1];
+    #[cfg(feature = "native-update-policy-probe")]
+    {
+        // Test observations, never an authority supplied to the updater. This
+        // profile uses an empty inbox and must not write or flush the slot disk.
+        let count = word(s, 0, 408);
+        let mask = word(s, 0, 416);
+        print_number(b"UPDATE:POLICY_PROBE:COUNT:", count);
+        print_number(b"UPDATE:POLICY_PROBE:MASK:", mask);
+        if count != 26 || mask != 67_108_863 || result != 4 || writes != 0 || r.publications[2] != 0
+        {
+            fail(b"POLICY_PROBE");
+        }
+        serial::write(b"UPDATE:POLICY_PROBE:PASS\n");
+    }
     // Policy outcomes the kernel can check without knowing the format: a
     // rejected, absent or already-current bundle never caused a write; an
     // install wrote the header exactly once and flushed at least three times.

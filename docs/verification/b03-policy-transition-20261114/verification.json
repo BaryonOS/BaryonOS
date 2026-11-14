@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "task": "issue-41-policy-transition-proposal",
+  "date": "2026-11-14",
+  "source_commit": "a0599501a624822d93ca60718df24fa70a2582e8",
+  "source_parent": "0c6dca003e2e4e1dbf3e1a252b99e6be4ab371bf",
+  "parallel_source_preserved": "885e128082483ec871831fbbfc757a6e5104e6b4",
+  "baseline": "1260de8b5b0bb5330422ab9d5a63a64f5e2603b7",
+  "branch": "fix/issue43-network-usb-followup",
+  "pr": 328,
+  "python_version": "3.12.14",
+  "source_hashes": {
+    "docs/implementation/B03-POLICY-TRANSITION-PROPOSAL.md": "708df5d9474fcdb09a93452a06b9a1c837427c4c1a6e8b5019df5bb6c0f62cb9",
+    "docs/implementation/B03-PRODUCTION-POLICY-PROPOSAL.md": "56c4b89c2ce72c491f0a5b83a3d050ff255440d3804a736067d6bee5694e34cf",
+    "docs/verification/b03-policy-transition-20261114/model.py": "427ed6e65ea180f235305a4c6e9a45f6ef2be6ba1b372a4a0b62598ce909d228"
+  },
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "docs/verification/b03-policy-transition-20261114/model.py"
+      ],
+      "source_commit": "a0599501a624822d93ca60718df24fa70a2582e8",
+      "started_utc": "2026-11-14T14:46:49.669368+00:00",
+      "exit_code": 0,
+      "elapsed_seconds": 0.069,
+      "log": "build/issue41-transition/a059950/model.log",
+      "log_sha256": "0e944f111c0b1c9d51632ddafb97bf3c34a30359a08f6f2946a1f9a8d093b569",
+      "environment_adjustments": {
+        "PATH_prefix": "/home/agent/.cargo/bin",
+        "CARGO_HTTP_TIMEOUT": "20",
+        "CARGO_NET_RETRY": "0"
+      },
+      "summary": {
+        "anchor_observations": 5,
+        "artifact_loss_cases": 32,
+        "checks": 92,
+        "durable_cut_cases": 6,
+        "evidence": "finite symbolic proposal model only",
+        "expected_counterexample": "replaying both anchor and disk boots the old image",
+        "floor_write_observations": 5,
+        "not_tested": [
+          "cryptography or byte parsing",
+          "native execution or storage",
+          "physical rollback resistance",
+          "production authority or release chain",
+          "release-window semantics or unbounded state exploration",
+          "all eligible fallbacks beyond the candidate and predecessor image",
+          "separate manifest digest/length fields or actual slot-content placement"
+        ],
+        "status": "PASS"
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_update_harness.py"
+      ],
+      "source_commit": "a0599501a624822d93ca60718df24fa70a2582e8",
+      "started_utc": "2026-11-14T14:46:49.676729+00:00",
+      "exit_code": 0,
+      "elapsed_seconds": 0.776,
+      "log": "build/issue41-transition/a059950/update-harness.log",
+      "log_sha256": "4eb5841a7604d0af6b556b10577cf7ef282940de4af61b72947d5a2d7bd9e9e6",
+      "environment_adjustments": {
+        "PATH_prefix": "/home/agent/.cargo/bin",
+        "CARGO_HTTP_TIMEOUT": "20",
+        "CARGO_NET_RETRY": "0"
+      },
+      "summary": [
+        "Ran 15 tests in 0.583s",
+        "OK"
+      ]
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "source_commit": "a0599501a624822d93ca60718df24fa70a2582e8",
+      "started_utc": "2026-11-14T14:46:49.676640+00:00",
+      "exit_code": 0,
+      "elapsed_seconds": 0.066,
+      "log": "build/issue41-transition/a059950/progress.log",
+      "log_sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f",
+      "environment_adjustments": {
+        "PATH_prefix": "/home/agent/.cargo/bin",
+        "CARGO_HTTP_TIMEOUT": "20",
+        "CARGO_NET_RETRY": "0"
+      },
+      "summary": "Baryon OS: 41/100 points (41%); rubric v1; consistent.\nThis checks calculation, references, and generated views; it does not run native tests or assess evidence content."
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "source_commit": "a0599501a624822d93ca60718df24fa70a2582e8",
+      "started_utc": "2026-11-14T14:46:49.655462+00:00",
+      "exit_code": 2,
+      "elapsed_seconds": 0.316,
+      "log": "build/issue41-transition/a059950/preflight.log",
+      "log_sha256": "a5170a57e1fdd7b45b03d9a91fd432a6e487e11ebd63d6260885d992be745802",
+      "environment_adjustments": {
+        "PATH_prefix": "/home/agent/.cargo/bin",
+        "CARGO_HTTP_TIMEOUT": "20",
+        "CARGO_NET_RETRY": "0"
+      },
+      "summary": {
+        "missing": [
+          "qemu-system-x86_64",
+          "OVMF code firmware (supply --firmware if stored elsewhere)"
+        ],
+        "missing_rust_targets": []
+      }
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py"
+      ],
+      "source_commit": "a0599501a624822d93ca60718df24fa70a2582e8",
+      "started_utc": "2026-11-14T14:46:49.683596+00:00",
+      "exit_code": 0,
+      "elapsed_seconds": 0.516,
+      "log": "build/issue41-transition/a059950/build.log",
+      "log_sha256": "fbf9b9db50339019d39ea0cc8727d288046e80e62c0718120b313f5dd6f9120e",
+      "environment_adjustments": {
+        "PATH_prefix": "/home/agent/.cargo/bin",
+        "CARGO_HTTP_TIMEOUT": "20",
+        "CARGO_NET_RETRY": "0"
+      },
+      "summary": "    = note: `#[warn(dead_code)]` on by default\n\nwarning: `os-kernel` (bin \"os-kernel\") generated 1 warning\n    Finished `release` profile [optimized] target(s) in 0.02s\nBuilt and inspected normal: 3 ELF load segments"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/run.py",
+        "--smoke"
+      ],
+      "source_commit": "a0599501a624822d93ca60718df24fa70a2582e8",
+      "started_utc": "2026-11-14T14:47:35.566444+00:00",
+      "exit_code": 1,
+      "elapsed_seconds": 0.165,
+      "log": "build/issue41-transition/a059950/smoke.log",
+      "log_sha256": "b9cfc6569a3e20184c154a3076cd52572edc175b4728356c4b27937a341aa19c",
+      "environment_adjustments": {
+        "PATH_prefix": "/home/agent/.cargo/bin",
+        "CARGO_HTTP_TIMEOUT": "20",
+        "CARGO_NET_RETRY": "0"
+      },
+      "summary": "    raise RuntimeError(\"qemu-system-x86_64 not found\")\nRuntimeError: qemu-system-x86_64 not found"
+    }
+  ],
+  "preservation": {
+    "contribution_changed_paths": [
+      "docs/PROJECT-STATE.md",
+      "docs/implementation/B03-POLICY-TRANSITION-PROPOSAL.md",
+      "docs/implementation/B03-PRODUCTION-POLICY-PROPOSAL.md",
+      "docs/progress.json",
+      "docs/verification/b03-policy-transition-20261114/README.md",
+      "docs/verification/b03-policy-transition-20261114/model.py"
+    ],
+    "all_changes_under_docs": true,
+    "existing_runtime_workflows_and_native_gate_identical_to_parallel_head": true,
+    "parallel_usb_files_and_prior_evidence_identical": true,
+    "criterion_register_unchanged": true
+  },
+  "review": {
+    "kind": "separate read-only AI review of the proposal; lead integration review of the model",
+    "initial_findings_resolved": [
+      "root/release key-component separation",
+      "all active signers checked against all revoked components",
+      "strict candidate version and root/committed floors",
+      "new-policy bindings required for fallback images",
+      "no continuation of old execution across loader-owned commit",
+      "exact retry does not reduce a later floor",
+      "transition includes destination and expected policy lineage",
+      "running slot follows selected fallback image, not last transition hint"
+    ],
+    "final_proposal_review": "No remaining blocking defect found in the bounded confirmation. This is not an independent human audit."
+  },
+  "not_executed": [
+    "native policy-transition implementation (not implemented)",
+    "the existing 18-stage native update gate in this environment",
+    "cryptographic/parser tests for the proposed new envelopes (not implemented)",
+    "physical rollback-resistant anchor or B04 firmware trust",
+    "production custody/signing or independent human review"
+  ],
+  "approval": {
+    "D1_D7": "pending",
+    "production_authority_added": false,
+    "merge_or_auto_merge_enabled": false
+  },
+  "progress": {
+    "before": 41,
+    "after": 41,
+    "B03_existing_points": 2
+  },
+  "logs_note": "Full command logs are retained in the local ignored build directory; this receipt stores exact commands, exits, summaries and hashes. No guest was started by the smoke command."
+}
