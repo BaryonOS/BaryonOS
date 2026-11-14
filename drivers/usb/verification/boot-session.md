@@ -70,8 +70,23 @@ The complete short [USB test log](../../../docs/verification/issue42-boot-sessio
 is retained. Other raw local logs are under `build/issue42-checks/` in the
 integrating checkout.
 
-The standard preflight/build/QEMU smoke gate on the integrated source is pending
-at this first component checkpoint; no native USB result is claimed.
+### Published-source integration
+
+The complete component checks were repeated on published commit
+`185ad69f30647eb3cdfee18a8cd63a1d9426e57b`: all 44 tests, formatting, strict Clippy
+and the scalar freestanding build pass. On that same commit, strict preflight,
+the standard native build and the ordinary QEMU smoke test pass (exit 0 each).
+QEMU 10.0.13 exits with the expected raw code 33, with `M1:PASS`, no timeout and
+matching artifact hashes. The standard build retains the existing unused
+`serial::hex` warning; USB Clippy reports no warning.
+
+The [integrated receipt](../../../docs/verification/issue42-boot-session-20261114/integrated.json)
+contains exact commands and log hashes; the original
+[smoke report](../../../docs/verification/issue42-boot-session-20261114/smoke-result.json)
+retains serial output, source binding and artifact/firmware hashes. Raw run files
+remain in `build/run/smoke-37e68697a4/` locally. Later receipt changes do not alter
+the source-v3 fingerprint above. The smoke run is a boot regression check and
+executes no native USB session. GitHub checks on the final PR head are separate.
 
 ## Primary source and project policy
 

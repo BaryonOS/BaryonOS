@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "95871d00da8300bd542609930643af7e96e179dd",
-    "assessment_basis": "verified_identical_source_tree",
+    "source_commit": "185ad69f30647eb3cdfee18a8cd63a1d9426e57b",
+    "assessment_basis": "verified_published_source",
     "branch": "fix/issue43-network-usb-followup",
     "task": "Advance issue #42 with bounded HID boot-session completion and lifecycle handling",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The new USB boot-session component passes 44 tests, formatting, strict Clippy and the scalar freestanding build. A separate read-only AI source review found no blocker. The standard integration gate is pending at this checkpoint. Native xHCI/HID execution, enforced DMA/IRQ containment, focus/hotplug and physical reference acceptance remain open; no criterion, weight or capability changes."
+    "summary": "41/100 remains 41/100. The USB boot-session component passes 44 tests, formatting, strict Clippy and the scalar freestanding build on the verified published source. Strict preflight, native build and ordinary QEMU smoke also pass; smoke does not execute USB. A separate read-only AI review found no blocker. Native xHCI/HID execution, enforced DMA/IRQ containment, focus/hotplug and physical reference acceptance remain open; no criterion, weight or capability changes."
   },
   "tracks": [
     {
