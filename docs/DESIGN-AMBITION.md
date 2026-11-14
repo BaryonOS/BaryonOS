@@ -103,6 +103,42 @@ Floor and capability boundaries remain active independently. See
 [implementation/PRODUCT-SPEC.md](implementation/PRODUCT-SPEC.md) and
 [implementation/ENCRYPTED-OBJECT-STORAGE.md](implementation/ENCRYPTED-OBJECT-STORAGE.md).
 
+## Addition of 14 November 2026 — next-generation experience and informed consent
+
+The project owner sharpened the creative ambition for the whole UI/UX
+pipeline. BaryonOS should not feel like a more modern version of an existing
+desktop operating system; it should show how a next generation of operating
+systems can look and work: light, forward-looking, refined, recognisable and
+intuitive. Users should feel at home quickly (the familiar conventions of
+ADR-058 remain) while noticing that the software belongs to a new generation.
+
+- Innovation is welcome where it adds value, including interaction principles
+  that are not yet common or that need technology still to be developed;
+  conventions do not cap better solutions.
+- Innovation must serve comprehension, overview, efficiency, accessibility,
+  user control or delight; decorative effects alone do not count.
+- The Orbitaal and Triade identity is the foundation, not the ceiling, and
+  must hold up in every theme and context of use.
+- Ideas beyond current native technology may be explored and prototyped, each
+  labelled as working now, technically feasible, or future research.
+- Permission requests are a distinctive part of the experience: users make a
+  deliberate, understood decision instead of dismissing a conventional
+  security dialog. Consequences are explained honestly, where helpful through
+  everyday analogies, without exaggeration, trivialisation or manipulation.
+  Allowing, always allowing and denying stay equally easy, and a valid grant
+  is not requested again.
+
+Acceptance of a design also weighs originality, visual refinement, future
+orientation, emotional appeal and recognisable user value. A result that is
+technically correct and accessible but feels conventional or dated is a design
+finding to be addressed within the existing repair rounds. Reviews keep three
+evidence classes apart: objectively checkable quality, reasoned design
+judgement (AI review is opinion, not proven user preference), and user effects
+that still require research with participants. The capability and security
+contracts and the Security Floor are unchanged: this is a design ambition, not
+a change of authorisation. The owner's original Dutch wording is recorded
+verbatim in the design-pipeline checkpoint, which is not versioned.
+
 ## Non-negotiable boundaries
 An independent OS kernel. No silent transition to a Linux distribution or web shell on an existing kernel. OS data remains local or is client-side/end-to-end encrypted on an explicitly paired personal NAS, a NAS belonging to friends/family or—after explicit selection—as opaque ciphertext at an external storage provider. An external provider receives no Baryon OS content key and is not a silent fallback. The NAS administrator manages capacity and deletion; the user manages the content key. On-device AI inference without cloud fallback. External apps with limited permissions. Privacy choices must not disable the Security Floor. Follow LOCAL-PRIVACY-CONTRACT.md.
 

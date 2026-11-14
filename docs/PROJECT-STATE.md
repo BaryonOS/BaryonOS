@@ -19,7 +19,8 @@ milestones never enter `docs/progress.json`; every BaryonOS capability is
 | ID | Deliverable | Target | Status |
 |---|---|---|---|
 | UX-v2 | Orbitaal v2 board, CONCEPTS.md v2 section | `ui/design/concepts/orbitaal-v2/` Accepted (`ea4e033d`): independent rendered AI recheck, 21/21 planner items resolved, 0 blockers or majors, 6 minors open ([record](verification/orbitaal-v2-20261114/README.md)) |
-| UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Workflow script ready; waits for an accepted v2 board and S0 |
+| UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Base frozen 14 Nov, intermediate and **not Accepted**: run `wf_f6f80a6f-a9d`, final independent AI verification 0 blockers or majors, 8 minors, checked against the superseded three-choice permission model ([record](verification/ds-1.0-base-20261114/README.md)). Correction UX-D-C1 pending |
+| UX-C | Informed-consent experience for permission requests (owner ambition, 14 Nov) | research and concepts in ignored `build/design-evidence/uxc/`, then `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | Open; after UX-D-C1, blocks UX-E |
 | UX-E | Connected prototype journey (simulation) | `ui/design/prototype/` | Open |
 | UX-F | Visual verification, at most two polish passes | `docs/verification/` | Open |
 | UX-G | Native vertical slice, QEMU screenshots | `ui/native`, `ui/graphics` | Plan done; G0 measured; G1 (licence and packaging) next |
@@ -48,7 +49,7 @@ the stored output byte for byte; an independent AI verifier checked 13 claims
 (12 supported, 1 corrected). The merge result differs from main by exactly
 `git diff 41b94b47 524df7b0`. No native build or QEMU run in this step.
 
-**Order:** UX-v2 → S0 → UX-D → UX-E with S7 and S8 → UX-F → UX-G, with
+**Order:** UX-v2 → S0 → UX-D (base, then correction C1) → UX-C → UX-E with S7 and S8 → UX-F → UX-G, with
 S1–S6 and S9–S10 running in free agent slots alongside UX-E to UX-G. The
 native slice follows `docs/design/NATIVE-FEASIBILITY.md` section 4, plus the
 `ui/native` Inter licence and package entries and the high-contrast
@@ -70,11 +71,19 @@ The detailed checkpoint lists run IDs, results, hashes, briefs, tools and
 owner decisions: `build/design-pipeline-checkpoint/handoff-baryonos-design-pipeline.md`
 (ignored, section 14 for this session).
 
-**Next:** UX-D (ds-1.0, script `build/design-pipeline-checkpoint/ds-1.0-workflow.js`,
-to be adapted to the runner), then G1 (Inter licence and packaging) as the
-next single writer; S2–S10 in free read-only slots. Blocker at 18:30 CET: the
-account's 5-hour usage window was 97 % used (resets 19:29 CET), so no new
-worker was started.
+**Next:** UX-D-C1, a correction run on the frozen ds-1.0 base (script
+`build/design-pipeline-checkpoint/runs-20261114/uxd-c1-runner.js`, fresh
+writer, fresh independent verifier, at most two repair rounds). It applies the
+project owner's permission decision of 14 November: ongoing app permissions
+offer "Toestaan tot afsluiten", "Altijd toestaan" and "Weigeren"; "Eenmalig
+toestaan" is used only for single actions; every standing grant is revocable
+under Instellingen → Privacy en beveiliging → Appmachtigingen; persistence
+across a restart and native enforcement remain future implementation
+requirements and need an ADR first. Its verifier also reviews ds-1.0 design
+quality under the [DESIGN-AMBITION](DESIGN-AMBITION.md) addition of
+14 November. Then UX-C (informed-consent experience: research, three concepts,
+independent judging, then one build run), UX-E and G1. UX-D is not Accepted
+until the C1 verifier passes.
 
 **G0 (measured, evidence in ignored `build/design-evidence/g0/`):**
 `materiaal-app` `.text` is 157 289 B with Open Sans (6 551 B below the
