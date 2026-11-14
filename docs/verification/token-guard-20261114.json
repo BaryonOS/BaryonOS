@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "base_main": "299f0e39c202d67d1c2f4e31b879cbdd6add262b",
+  "implementation_commit": "c3f08338b6059ce18938149e44e1cd3980d3d8a0",
+  "publication": {
+    "method": "GitHub Git Data API",
+    "local_tested_implementation_commit": "624637c05e86641b67a5e1132e514a04cb6552c0",
+    "identical_implementation_tree": "3e73e74ae9847a6f06b495ed027850ac118520d3"
+  },
+  "branch": "feat/token-guard-20261114",
+  "source_sha256": {
+    ".agents/plugins/marketplace.json": "ae964003429edae3b4448bfcb194fca734ead81c967cec8b6b9d6e3580d779fa",
+    ".agents/skills/token-guard/SKILL.md": "b90e666f22435697ec3fe0efd905d9254e5bedc42631a85fa8aebd5dac56645f",
+    ".claude-plugin/marketplace.json": "6a616b93679baa700e10a1fa772a3cb9acad280603a71d6b404d4b4dade415fc",
+    ".claude/skills/token-guard/SKILL.md": "03350ed51036dcaf034f4af77500c3e661d273166eaac86facfacc2ed9c59140",
+    ".codex/config.toml": "b342cf13335f25423886e2bbce79b5a4feb5f8007c7da9149fa4f398ceaf0a4b",
+    ".github/copilot-instructions.md": "dafb2c4b5509d6e5f31e323ca0b9f1421247a854661872739ed3f138c4b9ebd8",
+    ".github/workflows/ci.yml": "e4f9c551134eac36e336a1683c1a3443034c2d53a80cbe019fcef61f19ae9836",
+    "AGENTS.md": "92c39d175919c37f449b770055eddee6945d5084f4a6f131d5679bdd7210aa85",
+    "CODEX-WORKFLOW.md": "0a69cec96a55902021f0c61dbd94ff0f94ea53fb1e323295c87ea14858abd203",
+    "MPL-2.0-FILES.txt": "3de541dfe1ae3b78fea70bae32e844c7af0d975b672e0974d96de894704170b3",
+    "docs/TOKEN-GUARD.md": "2edfa65f84c10f84060a122889ce3c492b1929ace8ad6bd402765217accb843f",
+    "plugins/token-guard/.claude-plugin/plugin.json": "bb140fb79bcfb48c837edddc110cb66a744a5e9349cfa966d7d88fc5580e73a4",
+    "plugins/token-guard/.codex-plugin/plugin.json": "635ed44591c8b0f1398f5f6a299746f9358e189b0624fc5bbc8d94674367810b",
+    "plugins/token-guard/LICENSE": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+    "plugins/token-guard/hooks/hooks.json": "27378ce40975f805e2e84834ca1d244ad142f53bb6136ad794ed8b3b3b568639",
+    "plugins/token-guard/plugin.json": "5812b255d962308d7098786c604bc09fec70b83dd47c558e1c90cbafba594b17",
+    "plugins/token-guard/skills/token-guard/SKILL.md": "946af89b6528f18fbffd1f97cb8068ea8daaa47e9e33437fb013b49d44e8d7c5",
+    "plugins/token-guard/skills/token-guard/agents/openai.yaml": "4462f838fc1d8dc6bc30141999ed376beba2b1306fd2f7b186cbc4ea494f0453",
+    "plugins/token-guard/skills/token-guard/scripts/tokenguard.py": "a9814be8e20b9ba1c52c5ffed8bf92fbeaf50d00f5b44ae7d49eba7fb7ad0997",
+    "tests/test_tokenguard.py": "99e0ba564a93f939273b7011fab21cda17a1252669f301750059b1f0b6ca81e1",
+    "tools/tokenguard.py": "2e0ad096b7c6d4f4c6dc60a4271a15dbdc5f541e8f7c192052a6b67878366ad6"
+  },
+  "checks": [
+    {
+      "name": "token_guard_regressions",
+      "command_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_tokenguard.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 5.338,
+      "raw_log": "build/tokenguard/run-hn2uuxw0.log",
+      "raw_log_sha256": "80f2cf2b4651227da2e05a2c98363e91e443d69cefae45cc5b4b13ca9341f9e1"
+    },
+    {
+      "name": "workflow_contracts",
+      "command_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_workflows.py"
+      ],
+      "exit_code": 0,
+      "duration_seconds": 0.566,
+      "raw_log": "build/tokenguard/run-ohcuu8ju.log",
+      "raw_log_sha256": "092eb7767e379c7e509f07e5725ef491f38985ca8fa9b248178b2b4d2ac34705"
+    },
+    {
+      "name": "strict_preflight",
+      "command_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "exit_code": 2,
+      "duration_seconds": 0.064,
+      "raw_log": "build/tokenguard/run-xcw6gkzp.log",
+      "raw_log_sha256": "745b25b6dd105f3de1c394aecdbce5cf4995dddc7ce1646d513de493023ebd19"
+    },
+    {
+      "name": "native_build",
+      "command_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "tools/build.py"
+      ],
+      "exit_code": 1,
+      "duration_seconds": 0.064,
+      "raw_log": "build/tokenguard/run-89wmwqwe.log",
+      "raw_log_sha256": "df384a620ac329456ce2c64d98d2d997c4d71d353baf0f09697c72f5514b4ac9"
+    },
+    {
+      "name": "qemu_smoke",
+      "command_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "tools/run.py",
+        "--smoke"
+      ],
+      "exit_code": 1,
+      "duration_seconds": 0.064,
+      "raw_log": "build/tokenguard/run-j6_w66wl.log",
+      "raw_log_sha256": "d132f1d03878afb56ad83533c2784a3a14b9eb10c77d3a4d695d796273c666ae"
+    }
+  ],
+  "regression_test_count": 27,
+  "workflow_test_count": 25,
+  "synthetic_workflow_trial": {
+    "initial_exit": 1,
+    "final_exit": 0,
+    "test_count": 2,
+    "test_file_unchanged_sha256": "7288abe26f5ff88540bb48226f6150ebad199df26cc02aeecec4857fd6fc633e"
+  },
+  "package": {
+    "version": "1.0.0",
+    "file_count": 8,
+    "archive_sha256": "8c2dd98e7f2aa612f48fbb36feb315e5cf2773c72b09adfe3e193cf77485c944",
+    "private_account_save_verified": true,
+    "stored_helper_matches_source": true,
+    "helper_sha256": "a9814be8e20b9ba1c52c5ffed8bf92fbeaf50d00f5b44ae7d49eba7fb7ad0997",
+    "current_chat_discovery": "not present in current cached skill catalog"
+  },
+  "benchmark": {
+    "fixture": "synthetic noisy failed Rust-style diagnostic",
+    "exit_code": 7,
+    "raw_bytes": 136053,
+    "emitted_bytes": 509,
+    "output_reduction_percent": 99.63,
+    "not_measured": [
+      "provider token count",
+      "cost",
+      "quota",
+      "reasoning quality"
+    ],
+    "log": "build/token-guard-benchmark/build/tokenguard/run-awjgk516.log",
+    "reproduce_child_argv": [
+      "python3",
+      "-c",
+      "import sys; print('Compiling unchanged dependency...\\n'*4000); print('error[E0308]: deliberate fixture\\n --> sample.rs:7:1'); sys.exit(7)"
+    ]
+  },
+  "review": {
+    "type": "independent AI source review and focused POSIX probes",
+    "findings_fixed": [
+      "SIGTERM child leak",
+      "signal reentrant wait deadlock",
+      "SIGINT/SIGTERM spawn window",
+      "late diagnostics after warning saturation",
+      "silent middle omission in bounded data"
+    ],
+    "final_terminal_traceback_regression_added_by_lead": true,
+    "human_audit": false
+  },
+  "limits": [
+    "Rust/Cargo, QEMU and OVMF absent: native gates could not execute successfully.",
+    "Claude, Copilot and OpenCode were not installed here.",
+    "Codex CLI version 0.167.0-alpha.4 was present; plugin list --json timed out after 25 seconds, so native discovery is unverified.",
+    "RTK integration used a labelled executable fixture; a real RTK binary was unavailable.",
+    "Current-head hosted CI still required; no merge or auto-merge.",
+    "Byte reduction on synthetic output does not establish token/cost/quota savings or unchanged reasoning quality.",
+    "Cleanup covers handled POSIX signals/process group; SIGKILL, detached descendants and Windows descendants are outside verified scope."
+  ]
+}

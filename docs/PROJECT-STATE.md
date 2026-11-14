@@ -1,6 +1,40 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Code scanning alert triage — 14 November 2026
+## NEXT AGENT HANDOFF — Token Guard plugin — 14 November 2026
+
+**Source:** implementation `c3f08338b6059ce18938149e44e1cd3980d3d8a0` on `feat/token-guard-20261114`,
+based on main `299f0e39c202d67d1c2f4e31b879cbdd6add262b`.
+
+**Result:** one self-contained Token Guard plugin contains the shared workflow,
+Python helper and conservative Claude hook. Codex/ChatGPT use the portable
+manifest; Claude has a native manifest; Copilot/OpenCode use repository skill
+adapters. Existing Graphify connections, project contracts and permission
+settings remain unchanged. The private account package was saved and its helper
+was read back with an identical source digest; activation in this existing chat
+and the user's local clients is not verified.
+
+**Evidence:** 27 helper regression tests and 25 workflow tests pass. An isolated
+workflow trial changed a failing formatter into two passing tests without changing
+the tests. The independent AI review's cancellation, diagnostic-loss and bounded
+output findings were repaired. The final traceback-retention regression also
+passes. The CI host test step now includes the helper suite. Source hashes,
+command exits, package identity and measurement boundaries are recorded in
+[the verification record](verification/token-guard-20261114.json).
+
+**Limits:** strict preflight exits 2; build and smoke each exit 1 because Rust/Cargo,
+QEMU and OVMF are absent. Claude/Copilot/OpenCode were unavailable; native Codex
+plugin discovery timed out. RTK behavior used a labelled test fixture. The noisy
+synthetic fixture reduced displayed output from 136,053 to 509 bytes; provider
+tokens, costs, quota and reasoning quality were not measured. No native OS or
+human-audit evidence is claimed. Local raw logs remain under `build/tokenguard/`.
+
+**Progress:** 41/100 → 41/100; no criterion status or weight changes.
+
+**Next:** review the draft PR and current-head CI; verify the plugin in the user's
+Claude/Codex clients using [the setup guide](TOKEN-GUARD.md). No merge or auto-merge
+is enabled. The existing OS implementation queue remains unchanged.
+
+## Previous checkpoint — Code scanning alert triage — 14 November 2026
 
 **Source:** reviewed main `2eb7b942cac10db727a184819812634300a8e778`;
 documentation branch `docs/code-scanning-triage-20261114`.
