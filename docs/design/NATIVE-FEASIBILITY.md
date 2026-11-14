@@ -71,3 +71,16 @@ of the Open Sans source files, and those files are not on this host. A new
 native typeface therefore needs a reviewed generator change and a provenance
 entry. Until then, native text stays Open Sans while the design system
 specifies the target typeface.
+
+## Addendum, 14 November 2026
+
+Sections 4.5 and 5 describe the state at `c76daf7b`. Since then a separate,
+reviewed generator (`ui/graphics/scripts/generate_inter_atlas.py`) emits an
+Inter 4.001 atlas with nine `type-1.0` records behind the cargo feature
+`inter-atlas`, off by default; it replaces the Open Sans atlas in a build and
+is never linked beside it. The linked `materiaal-app` read-only segment is
+293 248 B by default and 353 736 B with the feature, of 512 KiB. This is host
+evidence only: no QEMU run and no image with the feature. Open items are listed
+in [native-inter-atlas-20261114](../verification/native-inter-atlas-20261114/README.md),
+among them the `ui/native` licence and package entries and the Open Sans
+pixel-hash oracle in `ui/native/tests/high_contrast.rs`.
