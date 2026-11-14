@@ -454,7 +454,7 @@ class WorkflowContractTests(unittest.TestCase):
                 observed[tokens[-1]] = tokens[0]
         self.assertEqual(observed, {
             case: f"NOS_BUILD_DIR=$GITHUB_WORKSPACE/build/n01-ci-{case}"
-            for case in ("normal", "client-exit", "revoke", "device-reset", "exhaustion")
+            for case in ("normal", "client-exit", "revoke", "helper", "device-reset", "exhaustion")
         })
         preserve, = [step for step in service["steps"]
                      if step.get("uses") == "./.github/actions/preserve-evidence"]

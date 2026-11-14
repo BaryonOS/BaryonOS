@@ -101,7 +101,7 @@ jobs:
           cargo +1.90.0 test --offline --locked --manifest-path services/network-service/protocol/Cargo.toml
           cargo +1.90.0 test --offline --locked --manifest-path sdk/net-client/Cargo.toml
           python3 -B -m unittest discover -s tools -p test_network_service_peer.py
-      - name: Native packets lifetimes revocation reset and exhaustion
+      - name: Native packets lifetimes helper isolation revocation reset and exhaustion
         env:
           CARGO_NET_OFFLINE: 'true'
         run: |
@@ -111,6 +111,8 @@ jobs:
             python3 -B -u tools/run_network_service.py --case client-exit
           NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n01-ci-revoke" \
             python3 -B -u tools/run_network_service.py --case revoke
+          NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n01-ci-helper" \
+            python3 -B -u tools/run_network_service.py --case helper
           NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n01-ci-device-reset" \
             python3 -B -u tools/run_network_service.py --case device-reset
           NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n01-ci-exhaustion" \
@@ -130,6 +132,7 @@ jobs:
             build/n01-ci-normal/network-service-normal-report.json
             build/n01-ci-client-exit/network-service-client-exit-report.json
             build/n01-ci-revoke/network-service-revoke-report.json
+            build/n01-ci-helper/network-service-helper-report.json
             build/n01-ci-device-reset/network-service-device-reset-report.json
             build/n01-ci-exhaustion/network-service-exhaustion-report.json
           path: |
