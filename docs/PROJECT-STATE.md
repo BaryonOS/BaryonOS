@@ -2,8 +2,9 @@
 
 ## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
 
-**Source:** branch `claude/baryon-os-ui-ux-design-152adb`, merge `89e8b1c9`
-of main `ce47359f` (#334), assessment in the following commit; draft PR #332
+**Source:** branch `claude/baryon-os-ui-ux-design-152adb` at `ea4e033d`
+(S0 `b305fa7c`, S1 `8e4abd8d`, v2 board `ea4e033d`) after merge `89e8b1c9` of
+main `ce47359f` (#334); assessment in the following commit; draft PR #332
 succeeds the merged #322 (no auto-merge, never merge without the project
 owner). Main's checkpoints below are unchanged apart from the demoted heading
 of main's handoff.
@@ -17,13 +18,13 @@ milestones never enter `docs/progress.json`; every BaryonOS capability is
 
 | ID | Deliverable | Target | Status |
 |---|---|---|---|
-| UX-v2 | Orbitaal v2 board, CONCEPTS.md v2 section | `ui/design/concepts/orbitaal-v2/` | Run `wf_585e63fe-3b8`: critique open (1 blocker, 8 major); repair interrupted by a session crash; untracked, unreviewed |
+| UX-v2 | Orbitaal v2 board, CONCEPTS.md v2 section | `ui/design/concepts/orbitaal-v2/` Accepted (`ea4e033d`): independent rendered AI recheck, 21/21 planner items resolved, 0 blockers or majors, 6 minors open ([record](verification/orbitaal-v2-20261114/README.md)) |
 | UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Workflow script ready; waits for an accepted v2 board and S0 |
 | UX-E | Connected prototype journey (simulation) | `ui/design/prototype/` | Open |
 | UX-F | Visual verification, at most two polish passes | `docs/verification/` | Open |
 | UX-G | Native vertical slice, QEMU screenshots | `ui/native`, `ui/graphics` | Plan done; G0 measured; G1 (licence and packaging) next |
-| S0 | Suite requirements that shape ds-1.0 (colour scope, density, neutral surfaces, region names) | `docs/design/suite/WORKSPACE-REQUIREMENTS.md` | Draft and repair done (`wf_57c7fde8-8f8`, `wf_3f27cdae-575`); recheck rejected the repair (major in D9); untracked |
-| S1 | Professional application capability matrix | `docs/design/suite/CAPABILITY-MATRIX.md` | Run `wf_8d70459f-b4a`: verifier found 2 blockers; repair interrupted, not re-verified; untracked |
+| S0 | Suite requirements that shape ds-1.0 (colour scope, density, neutral surfaces, region names) | `docs/design/suite/WORKSPACE-REQUIREMENTS.md` Accepted (`b305fa7c`): D9 single-pointer selection routes added; independent AI recheck, 0 blockers or majors, 6 minors open ([record](verification/suite-s0-workspace-20261114/README.md)) |
+| S1 | Professional application capability matrix | `docs/design/suite/CAPABILITY-MATRIX.md` Accepted (`8e4abd8d`): 215 rows, 14 prototyped (host), 201 proposed, 0 native; independent AI verification, 0 blockers or majors, 5 minors open ([record](verification/suite-s1-capability-matrix-20261114/README.md)) |
 | S2 | Consumer-to-professional UX maturity model | `docs/design/suite/MATURITY-MODEL.md` | Open |
 | S3 | Named file-format family, at least three naming systems, registry-checked extensions | `docs/design/suite/FILE-FORMATS.md` | Open |
 | S4 | Common native document/object architecture over the existing storage contracts | `docs/design/suite/OBJECT-ARCHITECTURE.md` | Open |
@@ -53,31 +54,27 @@ native slice follows `docs/design/NATIVE-FEASIBILITY.md` section 4, plus the
 `ui/native` Inter licence and package entries and the high-contrast
 fingerprint review.
 
-**Execution:** the project owner's protocol of 14 November 2026 (local copy
-`build/design-pipeline-checkpoint/BaryonOS_Regisseur_Verse_Werkcontexten.md`)
-applies. This conversation coordinates; every new substantial task runs in a
-fresh, non-forked workflow worker that receives only its brief; at most three
-workers run; after the current runs, one write-enabled worker at a time.
-Only the coordinator stages, commits, pushes, integrates main and updates
-progress files. Workers return a compact result and keep logs on disk.
-Compaction: the global `autoCompactWindow` stays 400 000 (no session-scoped
-override is available); the coordinator measured 300 k tokens at 16:25 and
-refreshes this handoff at task boundaries.
+**Execution (from 14 November, 17:12 CET):** the project owner's
+clean-session instruction replaces the long-running coordinator chat. A
+serial workflow runner (`build/design-pipeline-checkpoint/runs-20261114/design-runner-wf_4c415199-617.js`,
+lock `RUNNER.lock`) gives every task a fresh writer and a fresh independent
+checker that never sees the writer's self-report, with at most two repair
+rounds; one writer at a time; workers never stage, commit or push. Transcripts
+show each worker starts with only its brief. A worker's fixed base context is
+about 137 k tokens, so the 100 k target cannot be met on this route and
+`--autocompact` is not available to workflow workers; the global 400 000
+window remains the safety net. Run `wf_4c415199-617` accepted UX-v2, S0 and
+S1 (five workers, about 1.24 M subagent tokens, 66 minutes).
 
-**Handoff to clean execution sessions (14 November, 17:05 CET):** at the
-project owner's request, no new product task or design phase was started.
-The session crashed at about 17:02 while the v2 and S1 repair workers were
-writing; both stopped mid-task, and the v2 recheck never ran. No workflow,
-agent, local server or scheduler of this session remains: the only remaining
-external trigger is the PR Auto-fix monitor. **READY_FOR_CLEAR: yes**;
-writership is released.
+The detailed checkpoint lists run IDs, results, hashes, briefs, tools and
+owner decisions: `build/design-pipeline-checkpoint/handoff-baryonos-design-pipeline.md`
+(ignored, section 14 for this session).
 
-The detailed checkpoint (handoff #2) lists run IDs, results,
-hashes, briefs, tools and owner decisions:
-`build/design-pipeline-checkpoint/handoff-baryonos-design-pipeline.md`
-(ignored). Untracked work is snapshotted with `SHA256SUMS` in
-`snapshot-untracked-20261114-1704/` beside it and stays uncommitted until
-reviewed.
+**Next:** UX-D (ds-1.0, script `build/design-pipeline-checkpoint/ds-1.0-workflow.js`,
+to be adapted to the runner), then G1 (Inter licence and packaging) as the
+next single writer; S2–S10 in free read-only slots. Blocker at 18:30 CET: the
+account's 5-hour usage window was 97 % used (resets 19:29 CET), so no new
+worker was started.
 
 **G0 (measured, evidence in ignored `build/design-evidence/g0/`):**
 `materiaal-app` `.text` is 157 289 B with Open Sans (6 551 B below the
