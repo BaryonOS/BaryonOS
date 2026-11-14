@@ -28,6 +28,7 @@ name = "nieuw-os-input-core"
 version = "0.1.0"
 dependencies = [
  "nieuw-os-sdk-runtime",
+ "nieuw-os-usb-core",
  "ui-core",
 ]
 
@@ -47,6 +48,10 @@ name = "simd-adler32"
 version = "0.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a219298ac11a56ea9a6d2120044824d6f01aeb034955e7af7bc16858527deea"
+
+[[package]]
+name = "nieuw-os-usb-core"
+version = "0.1.0"
 
 [[package]]
 name = "ui-core"

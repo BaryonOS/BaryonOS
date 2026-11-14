@@ -1,0 +1,8 @@
+    Checking nieuw-os-input-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/services/input-core)
+    Checking nieuw-os-display-client v0.1.0 (/workspace/scratch/7264b5153599/h02-native/sdk/display-client)
+    Checking zeroize v1.9.1
+    Checking ui-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/crates/ui-core)
+    Checking nieuw-os-sdk-runtime v0.1.0 (/workspace/scratch/7264b5153599/h02-native/sdk/runtime)
+    Checking nieuw-os-usb-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/drivers/usb)
+    Checking nieuw-os-native-input-service v0.1.0 (/workspace/scratch/7264b5153599/h02-native/sdk/examples/input-service)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.58s

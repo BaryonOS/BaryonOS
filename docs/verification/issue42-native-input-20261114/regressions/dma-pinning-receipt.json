@@ -1,0 +1,47 @@
+{
+  "base": "4cd444e08dac820cc66f2750c43845b4139901cc",
+  "commit": "1f159a11eeb2d8ea55498703fb56d091d0b9b6d7",
+  "files": {
+    "crates/kernel-core/src/lib.rs": "25a17afaa09a728d9676a16cee294a9e93170bdfb2f432c6bb35292dc69f7262",
+    "crates/kernel-core/src/device_execution.rs": "12accf09d3de61886cbe5371f892e14b23f8cc6431921514a7c916983c496bc6"
+  },
+  "checks": [
+    {
+      "name": "baseline-generic-free-regression",
+      "exit": 101,
+      "log": "/workspace/scratch/7264b5153599/h02-pinning/build/tokenguard/run-a6h8tj0c.log",
+      "sha256": "eb6feae811677e22078b38f3d96c35687e82fae62d5d17b764d741ccb91acb2e"
+    },
+    {
+      "name": "tests-58",
+      "exit": 0,
+      "log": "/workspace/scratch/7264b5153599/h02-pinning/build/tokenguard/run-rvuul4kw.log",
+      "sha256": "e121bbaa32faf1fffea0b337b0efa9f966a1d4d5625492b30705f17f95d658fd"
+    },
+    {
+      "name": "clippy",
+      "exit": 0,
+      "log": "/workspace/scratch/7264b5153599/h02-pinning/build/tokenguard/run-05hr8nqt.log",
+      "sha256": "40c9ce4fcc936827efd9d73ece5a8d63a1305818ac3fd9b0a99db16cd81ca015"
+    },
+    {
+      "name": "fmt",
+      "exit": 0,
+      "log": "/workspace/scratch/7264b5153599/h02-pinning/build/tokenguard/run-toy0i6g6.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "freestanding",
+      "exit": 0,
+      "log": "/workspace/scratch/7264b5153599/h02-pinning/build/tokenguard/run-1sdj2uru.log",
+      "sha256": "86824e83278c22c0a74c4db4ff67d9a370dd2e2736209d265387fe3ab6e073bb"
+    },
+    {
+      "name": "diff-check",
+      "exit": 0,
+      "log": "/workspace/scratch/7264b5153599/h02-pinning/build/tokenguard/run-cga62do1.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "scope": "Host kernel-core behavior and freestanding compile only; native preflight/build/smoke are the integrator responsibility. No IOMMU or native device claim."
+}

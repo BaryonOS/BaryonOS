@@ -1,0 +1,118 @@
+{
+  "task": "issue42-hid-input",
+  "date": "2026-11-14",
+  "baseline_commit": "4cd444e08dac820cc66f2750c43845b4139901cc",
+  "boundary": "Host capability-engine IPC model and x86_64-unknown-none library compilation only. Synthetic USB completions; no native execution or physical USB claim.",
+  "target_rustflags": "-C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2",
+  "checks": [
+    {
+      "name": "core-tests",
+      "command": "cargo +1.90.0 test --manifest-path services/input-core/Cargo.toml --locked --offline",
+      "exit_code": 0,
+      "tests_passed": 30,
+      "duration_seconds": 0.053,
+      "raw_log": "build/tokenguard/run-tgbtnttq.log",
+      "raw_sha256": "7915a35c1d10ddb2a7987a237e8ee54ac3015449efaf1ca4874d3c990f0d635a"
+    },
+    {
+      "name": "daemon-tests",
+      "command": "cargo +1.90.0 test --manifest-path sdk/examples/input-service/Cargo.toml --locked --offline",
+      "exit_code": 0,
+      "tests_passed": 31,
+      "duration_seconds": 0.266,
+      "raw_log": "build/tokenguard/run-z0agqeke.log",
+      "raw_sha256": "19f3ea65c74cbfb7c647a73027d85273186d0e5d5b187343b03e2a3fdc145dba"
+    },
+    {
+      "name": "core-clippy",
+      "command": "cargo +1.90.0 clippy --manifest-path services/input-core/Cargo.toml --offline --all-targets -- -D warnings",
+      "exit_code": 0,
+      "tests_passed": null,
+      "duration_seconds": 0.761,
+      "raw_log": "build/tokenguard/run-l0ksysij.log",
+      "raw_sha256": "a7388e788677ae988c514e0cb30cd1c16bd1a10a1f208eda7ac20a8baeab87e4"
+    },
+    {
+      "name": "daemon-clippy",
+      "command": "cargo +1.90.0 clippy --manifest-path sdk/examples/input-service/Cargo.toml --locked --offline --all-targets -- -D warnings",
+      "exit_code": 0,
+      "tests_passed": null,
+      "duration_seconds": 0.348,
+      "raw_log": "build/tokenguard/run-5eq3gmf3.log",
+      "raw_sha256": "09e8a70aa20817cad6f222f8738c1bff9c2af34674fb87db1e82974de82b2a64"
+    },
+    {
+      "name": "core-target",
+      "command": "cargo +1.90.0 build --manifest-path services/input-core/Cargo.toml --offline --release --target x86_64-unknown-none --lib",
+      "exit_code": 0,
+      "tests_passed": null,
+      "duration_seconds": 0.553,
+      "raw_log": "build/tokenguard/run-c0rt039k.log",
+      "raw_sha256": "d0e223d221ec48fd7d8f395c5b336f878413153084993cabb5ffd4ae67588dbd"
+    },
+    {
+      "name": "daemon-target",
+      "command": "cargo +1.90.0 build --manifest-path sdk/examples/input-service/Cargo.toml --offline --release --target x86_64-unknown-none --lib",
+      "exit_code": 0,
+      "tests_passed": null,
+      "duration_seconds": 0.559,
+      "raw_log": "build/tokenguard/run-b_7upa5i.log",
+      "raw_sha256": "26a4f19c8593c291b67ecaef80b757fd590b6be7300fc69d6081ef90c1f7f5f2"
+    },
+    {
+      "name": "core-fmt",
+      "command": "cargo +1.90.0 fmt --manifest-path services/input-core/Cargo.toml -- --check",
+      "exit_code": 0,
+      "tests_passed": null,
+      "duration_seconds": 0.05,
+      "raw_log": "build/tokenguard/run-0_2k_f24.log",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "daemon-fmt",
+      "command": "cargo +1.90.0 fmt --manifest-path sdk/examples/input-service/Cargo.toml -- --check",
+      "exit_code": 0,
+      "tests_passed": null,
+      "duration_seconds": 0.063,
+      "raw_log": "build/tokenguard/run-do5aw8ln.log",
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "overflow-regression-before-fix",
+      "exit_code": 101,
+      "tests_passed": null,
+      "duration_seconds": 0.363,
+      "raw_log": "build/tokenguard/run-q7dcm1dk.log",
+      "raw_sha256": "09f63ab76f695c23ee88985e3007a29b47668ec8a715e8d931ced99418a3b146",
+      "reproduction_command": "cargo +1.90.0 test --manifest-path services/input-core/Cargo.toml --offline --test service hid_batch_overflow_cancels_instead_of_leaking_partial_input_to_new_focus",
+      "command_note": "Exact original argv was not stored by TokenGuard; the focused reproduction command is provided separately."
+    }
+  ],
+  "source_sha256": {
+    "sdk/examples/calculator/Cargo.lock": "84fcadfcc6040b38ff0ef7067b16c27a513d92e0d0b59a67ffcad09263a4f54e",
+    "sdk/examples/compositor/Cargo.lock": "464c575e73ed9327696f49055b6aa0e523a697236b2113d2adf3e82fddb19436",
+    "sdk/examples/desktop-init/Cargo.lock": "5eb238d4389066af411a91a4771fa1d21d3ca22c044cbd9df4b598fc16d4623d",
+    "sdk/examples/image-viewer/Cargo.lock": "25c3c0725edf6e1d6d20ac31a827adbd678f540f22347a0b958a735867c8907a",
+    "sdk/examples/input-service/Cargo.lock": "315d8e5931e58bde5914b17e92a9b65a61fb0a0fcdf4052a94cf69510b1954b0",
+    "sdk/examples/input-service/Cargo.toml": "8c8c60952942cd3e0e5e720f16301035b564d0c0a9e541020a63d8b7bae81e62",
+    "sdk/examples/input-service/HID-INPUT.md": "ee6d58d35c9da636015dcdaa5ccee7e50b6ca24d728b498c2b98194e9b2031d6",
+    "sdk/examples/input-service/src/hid.rs": "9aaa8a4222d79952a00541f6bc739daaa65ce59ffa5e27de9c52f66a37f51d17",
+    "sdk/examples/input-service/src/lib.rs": "7d9d606970d15d5abede90c33324047705f18b2d3b1050b214edc53f32eb7c8c",
+    "sdk/examples/input-service/tests/daemon.rs": "be7a3dad4dce05c73c725b3f5b07f76e7f9771150f0aeaca72720e93a05bcbe2",
+    "sdk/examples/materiaal/Cargo.lock": "cede6a1694b476197867175085adf04ad32b215b66a5a4d736529dcaada608f3",
+    "sdk/examples/spreadsheet/Cargo.lock": "18376f63ce379b247f906e21a50b6c00cda0e63bef80d48d077b3896952a41b7",
+    "sdk/examples/window-session/Cargo.lock": "c189daf2a3f7522d93a02bf06fcf4f017c0bed92e6c5fe427cc52e620e9a0089",
+    "services/input-core/Cargo.lock": "7764fdc237c29469d3f4a279bbaca74c17c1319fd0271a2f1746de5ef482e9ba",
+    "services/input-core/Cargo.toml": "cf4d516d92e105e1f30b5d706907036da8058b0206042dd41d0926ce674cee01",
+    "services/input-core/README.md": "3ff65e8211d8722456cb5720a41167c831de737ba4702e8af0e9d6a68fced124",
+    "services/input-core/src/hid.rs": "78e20d596c259509052cf5abdd785e1c3d2196bdd997104c25217f3930c1f6e7",
+    "services/input-core/src/lib.rs": "b15625108e4da6b37eedece20c08818d2e0c943bc642dbdd115b7518ab9be001",
+    "services/input-core/src/wire.rs": "ab6205090c46e0731e615c8f09ced3a96a6583a60c9f7f7a745c4e9603d2e084",
+    "services/input-core/tests/service.rs": "312d236d22110f8cc3c6eba27d38774c329b3f86d3ad8672ca0e5a2d19a0b96a"
+  },
+  "limitations": [
+    "One trusted source owner serializes one boot keyboard and one boot mouse.",
+    "Owner acknowledges detach before replacement and does not replay old detach.",
+    "Other example lockfiles contain local USB dependency additions only; their complete builds are a separate native integration gate."
+  ]
+}

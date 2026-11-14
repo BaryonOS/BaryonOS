@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "profile": "native-xhci-probe",
+  "kernel_feature": "native-xhci-probe",
+  "loader_feature": null,
+  "source_fingerprint_version": 3,
+  "source_sha256": "922c0e579e6fed6b03bf94ae320a01350504a334ff4d406a9fc9d050a37e25fe",
+  "loader": {
+    "sha256": "7f27a7ee208202c893c9271a940b0de238ed9af10f4ee61fe7e990da1a18c4ac",
+    "format": "AMD64 PE32+",
+    "subsystem": "EFI_APPLICATION",
+    "imports": 0
+  },
+  "kernel": {
+    "sha256": "a86c5a2df64a19d6344a831855a963293ca4acc834b53e56c66909b6055047ff",
+    "entry": 33554432,
+    "segments": [
+      {
+        "flags": 5,
+        "offset": 4096,
+        "address": 33554432,
+        "filesz": 64583,
+        "memsz": 64583,
+        "page_start": 33554432,
+        "page_end": 33619968
+      },
+      {
+        "flags": 4,
+        "offset": 69632,
+        "address": 33619968,
+        "filesz": 8488,
+        "memsz": 8488,
+        "page_start": 33619968,
+        "page_end": 33632256
+      },
+      {
+        "flags": 6,
+        "offset": 81920,
+        "address": 33632256,
+        "filesz": 8712,
+        "memsz": 3641608,
+        "page_start": 33632256,
+        "page_end": 37277696
+      }
+    ],
+    "sections": [
+      {
+        "name": "",
+        "type": 0,
+        "flags": 0,
+        "size": 0
+      },
+      {
+        "name": ".text",
+        "type": 1,
+        "flags": 6,
+        "size": 64583
+      },
+      {
+        "name": ".rodata",
+        "type": 1,
+        "flags": 50,
+        "size": 8488
+      },
+      {
+        "name": ".data",
+        "type": 1,
+        "flags": 3,
+        "size": 8712
+      },
+      {
+        "name": ".bss",
+        "type": 8,
+        "flags": 3,
+        "size": 3629320
+      },
+      {
+        "name": ".symtab",
+        "type": 2,
+        "flags": 0,
+        "size": 5592
+      },
+      {
+        "name": ".shstrtab",
+        "type": 3,
+        "flags": 0,
+        "size": 52
+      },
+      {
+        "name": ".strtab",
+        "type": 3,
+        "flags": 0,
+        "size": 12299
+      }
+    ]
+  },
+  "sdk_runtime": false,
+  "document_session": false
+}

@@ -10,6 +10,12 @@ default = []
 test-panic = []
 test-hang = []
 milestone-m2 = []
+# H02: isolated single-CPU QEMU VT-d/xHCI DMA gate; no service/IRQ authority.
+native-xhci-probe = ["milestone-m2", "dep:pci-core", "dep:driver-core", "dep:nieuw-os-xhci"]
+native-usb-hid-probe = ["native-xhci-probe", "dep:nieuw-os-usb-core"]
+test-usb-hid-readonly-fault = ["native-usb-hid-probe"]
+test-xhci-dma-fault = ["native-xhci-probe"]
+test-xhci-no-dmar = ["native-xhci-probe"]
 native-rtc = ["milestone-m2", "dep:nieuw-os-rtc"]
 # H05 step: IF0 M2 profile that ends in a validated ACPI S5 poweroff.
 native-acpi-s5 = ["milestone-m2", "dep:nieuw-os-acpi-power"]
@@ -86,6 +92,7 @@ native-system-materiaal = ["native-system-display-input", "ipc-wait"]
 native-system-session-preview = ["native-system-materiaal"]
 native-window-session = ["native-system-materiaal"]
 native-window-session-probe = ["native-window-session"]
+native-hid-input-probe = ["native-window-session"]
 native-window-session-hidpi = ["native-window-session"]
 native-window-session-hidpi-probe = ["native-window-session-probe", "native-window-session-hidpi"]
 # Explicit public VM session route, reusing the existing read-only RTC syscall.
@@ -314,6 +321,10 @@ native-update = ["milestone-m6a"]
 test-update-cut = ["native-update"]
 
 [dependencies]
+nieuw-os-usb-core = { path = "../drivers/usb", optional = true }
+pci-core = { path = "../crates/pci-core", optional = true }
+driver-core = { path = "../crates/driver-core", optional = true }
+nieuw-os-xhci = { package = "nieuw-os-xhci-probe", path = "../drivers/xhci", optional = true }
 nieuw-os-tpm-crb = { path = "../drivers/tpm-crb", optional = true }
 nieuw-os-rtc = { path = "../drivers/rtc", optional = true }
 nieuw-os-acpi-power = { path = "../drivers/acpi-power", optional = true }

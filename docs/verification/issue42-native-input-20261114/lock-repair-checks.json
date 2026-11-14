@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "phase": "lock-repair",
+  "source_commit": "36f131fe3ce0fb5e4ad92ef4cf3cab4e86637694",
+  "source_sha256": "922c0e579e6fed6b03bf94ae320a01350504a334ff4d406a9fc9d050a37e25fe",
+  "source_fingerprint_version": 3,
+  "checks": [
+    {
+      "name": "sdk/input-client-locked-fetch",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fetch",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "sdk/input-client/Cargo.toml"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.191,
+      "token_guard": {
+        "duration_seconds": 0.086,
+        "emitted_bytes": 231,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-tcs303by.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 0,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "9293417c535e69b6a830aff3918cac8023331e99111cb1b07e497a82e5c4e069",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "ui/native-locked-fetch",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fetch",
+        "--locked",
+        "--offline",
+        "--manifest-path",
+        "ui/native/Cargo.toml"
+      ],
+      "environment": {},
+      "exit_code": 0,
+      "duration_seconds": 0.118,
+      "token_guard": {
+        "duration_seconds": 0.042,
+        "emitted_bytes": 231,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-ctgkq48w.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 0,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "8098e6c70b2294d8cc7e31e4ccd09f63e176c0621db3c4cdbd1ec4d0ab2548e5",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "passed": true,
+  "source_unchanged": true
+}

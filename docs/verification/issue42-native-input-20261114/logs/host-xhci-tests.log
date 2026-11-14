@@ -1,0 +1,32 @@
+   Compiling driver-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/crates/driver-core)
+   Compiling pci-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/crates/pci-core)
+   Compiling nieuw-os-xhci-probe v0.1.0 (/workspace/scratch/7264b5153599/h02-native/drivers/xhci)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.50s
+     Running unittests src/lib.rs (build/h02-final-host/debug/deps/nieuw_os_xhci_probe-3d925061760a2fd0)
+
+running 16 tests
+test tests::bounds_the_port_register_area_using_max_ports ... ok
+test tests::checks_register_access_ranges_and_mapping_overflow ... ok
+test tests::inspection_reads_only_the_required_capability_registers ... ok
+test tests::parses_and_bounds_a_supported_capability_layout ... ok
+test tests::qemu_extended_protocol_header_can_precede_operational_registers ... ok
+test tests::rejects_doorbell_and_runtime_registers_in_capability_space ... ok
+test tests::rejects_doorbell_runtime_and_extended_capability_ranges_outside_bar ... ok
+test tests::rejects_extended_capability_header_overlapping_advertised_regions ... ok
+test tests::rejects_unaligned_offsets_and_overlapping_register_regions ... ok
+test tests::rejects_unsupported_revision_and_malformed_capability_length ... ok
+test tests::rejects_zero_structural_limits_and_port_register_overlap ... ok
+test tests::accepts_a_32_bit_nonprefetchable_memory_bar ... ok
+test tests::discovers_one_xhci_function_and_keeps_activation_disabled ... ok
+test tests::skips_a_nonresponding_pci_function ... ok
+test tests::rejects_prefetchable_or_io_bar_shapes ... ok
+test tests::safely_skips_non_xhci_and_rejects_multiple_matches ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests nieuw_os_xhci_probe
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -12,6 +12,7 @@ members = ["."]
 native = []
 fault-injection = []
 session-preview = []
+hid-probe = ["native"]
 
 [dependencies]
 nieuw-os-graphics = { path = "../../../ui/graphics" }
@@ -35,6 +36,13 @@ bench = false
 name = "window-init"
 path = "src/init.rs"
 required-features = ["native"]
+test = false
+bench = false
+
+[[bin]]
+name = "window-hid-probe"
+path = "src/hid_probe.rs"
+required-features = ["hid-probe"]
 test = false
 bench = false
 

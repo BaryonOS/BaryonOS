@@ -1,0 +1,347 @@
+{
+  "schema_version": 1,
+  "phase": "native",
+  "source_commit": "36f131fe3ce0fb5e4ad92ef4cf3cab4e86637694",
+  "source_sha256": "922c0e579e6fed6b03bf94ae320a01350504a334ff4d406a9fc9d050a37e25fe",
+  "source_fingerprint_version": 3,
+  "checks": [
+    {
+      "name": "noop-build",
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-xhci-probe"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/noop"
+      },
+      "exit_code": 0,
+      "duration_seconds": 0.446,
+      "token_guard": {
+        "duration_seconds": 0.392,
+        "emitted_bytes": 417,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-2z308585.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 183,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "db59b6efc5dec2dc742ede6b51bd51386f3345b00cb81ef05d53a5c8f1893044",
+      "log_sha256": "39905c1f36b53398e90db49c57418863572807519cb0ac0989c277b0775a8a52"
+    },
+    {
+      "name": "noop-run",
+      "command": [
+        "python3",
+        "-B",
+        "tools/run_xhci.py",
+        "--case",
+        "noop"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/noop"
+      },
+      "exit_code": 0,
+      "duration_seconds": 2.507,
+      "token_guard": {
+        "duration_seconds": 2.466,
+        "emitted_bytes": 1457,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-xsjywmh8.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 1281,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "75c5b5578df0d8b134936897822db06915d84559365743e5c093f0d6bde000ed",
+      "log_sha256": "75125d1317437d3ce239d71e1029a10b83ac033ba57930c6ca4b7c984b54c8fa"
+    },
+    {
+      "name": "fault-build",
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "test-xhci-dma-fault"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/fault"
+      },
+      "exit_code": 0,
+      "duration_seconds": 0.368,
+      "token_guard": {
+        "duration_seconds": 0.321,
+        "emitted_bytes": 419,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-zqh_jrfi.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 185,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "ae404d51990f8fadb09bca683d475f4635330cc7749519fb1e39466448c2a2e9",
+      "log_sha256": "b571ec774bcad3c026e5d0cf635d477d1c105e7f596e29845dd4032f2e75ea3e"
+    },
+    {
+      "name": "fault-run",
+      "command": [
+        "python3",
+        "-B",
+        "tools/run_xhci.py",
+        "--case",
+        "fault"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/fault"
+      },
+      "exit_code": 0,
+      "duration_seconds": 2.346,
+      "token_guard": {
+        "duration_seconds": 2.3,
+        "emitted_bytes": 1827,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-rpueqhil.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 1653,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "8b25344806920c978181b21e5e6c5cc67f343ded5d916baed9d29664250fae64",
+      "log_sha256": "803333943c82c9e27d9c459c6cf2aec9fb4ca713b3cf62797cc9918ace3478f0"
+    },
+    {
+      "name": "no-dmar-build",
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "test-xhci-no-dmar"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/no-dmar"
+      },
+      "exit_code": 0,
+      "duration_seconds": 0.311,
+      "token_guard": {
+        "duration_seconds": 0.264,
+        "emitted_bytes": 417,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-itku6vf5.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 183,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "33e759f1bae9477e2ba7ff7c5f4939ea24d5156114a4487b003a1ebbb3b26f5f",
+      "log_sha256": "d1537a1a6c8751d4781c042bd662c1aba4235076fb48131469d11059c936b27f"
+    },
+    {
+      "name": "no-dmar-run",
+      "command": [
+        "python3",
+        "-B",
+        "tools/run_xhci.py",
+        "--case",
+        "no-dmar"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/no-dmar"
+      },
+      "exit_code": 0,
+      "duration_seconds": 2.31,
+      "token_guard": {
+        "duration_seconds": 2.27,
+        "emitted_bytes": 1349,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-q7fng6y3.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 1174,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "d841b2485152349146ae218fc0f3ca53caf60e2da9ace2ca81d9a9ed1427ae73",
+      "log_sha256": "160d458ad0956ccc6636c8856d8f216b77af866064ea1cc6d3b4350ac7710e8d"
+    },
+    {
+      "name": "usb-reports-build",
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-usb-hid-probe"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/usb-reports"
+      },
+      "exit_code": 0,
+      "duration_seconds": 0.323,
+      "token_guard": {
+        "duration_seconds": 0.282,
+        "emitted_bytes": 420,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-6_fvuiqf.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 186,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "9ea5af797944c4bef3d3bd18547d928f9c082603f7ffeb164cd080cdfb633d27",
+      "log_sha256": "3220b5e839f1ffbbd81ba80ee077096f15fdd4838482fde83b0f650cc2c49400"
+    },
+    {
+      "name": "usb-reports-run",
+      "command": [
+        "python3",
+        "-B",
+        "tools/run_usb_hid.py",
+        "--case",
+        "reports"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/usb-reports"
+      },
+      "exit_code": 0,
+      "duration_seconds": 3.577,
+      "token_guard": {
+        "duration_seconds": 3.534,
+        "emitted_bytes": 1645,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-038y7_p5.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 1469,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "9ff0f6f20442a8a928a0b4bb6cd1191eed4dbb056346c05e800e0c2a5ecf05f1",
+      "log_sha256": "119d629177210ee4cfc53e91936b8bd100114053f69ba321b0b3822908c717a7"
+    },
+    {
+      "name": "usb-readonly-build",
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "test-usb-hid-readonly-fault"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/usb-readonly"
+      },
+      "exit_code": 0,
+      "duration_seconds": 0.332,
+      "token_guard": {
+        "duration_seconds": 0.29,
+        "emitted_bytes": 426,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-1k_r4xbl.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 193,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "7600b9729c7aa5ceb9f29ac87a8a07393dbd6978f595b2e13eda22668fdebe20",
+      "log_sha256": "fc4d92d585a31755afed09f62a07cede5e4b7c7043cf605d9c48a6f62b346d1a"
+    },
+    {
+      "name": "usb-readonly-run",
+      "command": [
+        "python3",
+        "-B",
+        "tools/run_usb_hid.py",
+        "--case",
+        "readonly"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/usb-readonly"
+      },
+      "exit_code": 0,
+      "duration_seconds": 3.454,
+      "token_guard": {
+        "duration_seconds": 3.406,
+        "emitted_bytes": 1861,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-z003fp96.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 1685,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "d48b832a9156b00c3946affb5e82cd2928009f188053000ee6759f2946ff7863",
+      "log_sha256": "3c76922dcd45fb412a061f0edea4161e81f51b8404141d79d8863d37eb5b5f6c"
+    },
+    {
+      "name": "hid-ipc-build",
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py",
+        "--kernel-feature",
+        "native-hid-input-probe"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/hid-ipc"
+      },
+      "exit_code": 0,
+      "duration_seconds": 3.247,
+      "token_guard": {
+        "duration_seconds": 3.199,
+        "emitted_bytes": 2351,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-6t6uoyce.log",
+        "output_complete": false,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 11284,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "a9a2c7865bbae995b7bf186877b1d15f247ab8b8172e495b31c737b705034194",
+      "log_sha256": "f551159816c5f5ef8bd28952b6e5ef090cc6ee09d7c19cf8750a3ff175bdd35a"
+    },
+    {
+      "name": "hid-ipc-run",
+      "command": [
+        "python3",
+        "-B",
+        "tools/run_hid_input.py",
+        "--vga-rom",
+        "/tmp/baryon43-apt/deb-extract/usr/share/seabios/vgabios-stdvga.bin"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/hid-ipc"
+      },
+      "exit_code": 0,
+      "duration_seconds": 2.979,
+      "token_guard": {
+        "duration_seconds": 2.932,
+        "emitted_bytes": 1353,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-vgus9mez.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 1206,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "6494cf699ca875165e709e7c7ccb4f7e9fbba9be0c2220bfa64bfae5a7271d54",
+      "log_sha256": "568b0a4c523f8666d96af49e29f0c99455433ff2148b6b8a38d8fe28816b111b"
+    }
+  ],
+  "passed": true,
+  "source_unchanged": true
+}

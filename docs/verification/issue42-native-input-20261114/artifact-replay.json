@@ -1,0 +1,144 @@
+{
+  "hid_input_app_hash_metadata_and_embedding_replayed": true,
+  "host": {
+    "python_log_counts": {
+      "test_build_paths.py": 3,
+      "test_ci_evidence_workflow_verifier.py": 12,
+      "test_ci_workflows.py": 26,
+      "test_guest_harness.py": 7,
+      "test_hid_input_probe.py": 18,
+      "test_m1_artifact_binding.py": 8,
+      "test_package_windows_qemu.py": 22,
+      "test_usb_hid_probe.py": 11,
+      "test_xhci.py": 5
+    },
+    "python_tests_passed": 112,
+    "reconstructed_source_sha256": "606ad2bc02ceaff9ff46f20412c8b874954b6582c3a7d2452ec09f65e2b5e92c",
+    "rust_log_counts": {
+      "input-core-tests": 30,
+      "input-service-tests": 31,
+      "kernel-and-boot-tests": 92,
+      "usb-tests": 44,
+      "xhci-tests": 16
+    },
+    "rust_tests_passed": 213,
+    "source_commit": "b082f836cd8f3969fd144c3a6a9b01c8656d4122"
+  },
+  "host_to_final_source_delta_verified": [
+    {
+      "added_local_package": {
+        "name": "nieuw-os-usb-core",
+        "version": "0.1.0"
+      },
+      "dependency_edges_added_to": [
+        "nieuw-os-input-core"
+      ],
+      "existing_packages_preserved": 8,
+      "path": "sdk/input-client/Cargo.lock"
+    },
+    {
+      "added_local_package": {
+        "name": "nieuw-os-usb-core",
+        "version": "0.1.0"
+      },
+      "dependency_edges_added_to": [
+        "nieuw-os-input-core",
+        "nieuw-os-native-input-service"
+      ],
+      "existing_packages_preserved": 18,
+      "path": "ui/native/Cargo.lock"
+    }
+  ],
+  "indexed_bytes_verified": 194197,
+  "indexed_files_verified": 81,
+  "integrated_index_sha256": "7c23a4607e76b470f8d56e611c3bf93b10a6e78c31de947e198032dde392079a",
+  "kind": "Independent AI artifact consistency replay",
+  "limits": [
+    "Replays existing captured evidence; it does not independently witness or repeat runtime execution.",
+    "Runtime executable and firmware snapshots were rehashed in the retained local build directories; those binary snapshots are not part of the 81-file indexed evidence bundle.",
+    "Host tests ran at b082f836; the two local-USB Cargo.lock deltas and both reconstructed source fingerprints were verified without rerunning host tests.",
+    "This receipt binds integrated.json and its indexed files; later README or progress-document edits are outside this replay."
+  ],
+  "native_oracles": [
+    {
+      "case": "noop",
+      "copied_transcripts_match": true,
+      "manifest_binding_matches": true,
+      "oracle_replayed": true,
+      "raw_qemu_exit": 33,
+      "retained_artifacts_rehashed": 4,
+      "timed_out": false
+    },
+    {
+      "case": "fault",
+      "copied_transcripts_match": true,
+      "manifest_binding_matches": true,
+      "oracle_replayed": true,
+      "raw_qemu_exit": 33,
+      "retained_artifacts_rehashed": 4,
+      "timed_out": false
+    },
+    {
+      "case": "no-dmar",
+      "copied_transcripts_match": true,
+      "manifest_binding_matches": true,
+      "oracle_replayed": true,
+      "raw_qemu_exit": 33,
+      "retained_artifacts_rehashed": 4,
+      "timed_out": false
+    },
+    {
+      "case": "usb-reports",
+      "copied_transcripts_match": true,
+      "manifest_binding_matches": true,
+      "oracle_replayed": true,
+      "raw_qemu_exit": 33,
+      "retained_artifacts_rehashed": 4,
+      "successful_qmp_actions": 7,
+      "timed_out": false
+    },
+    {
+      "case": "usb-readonly",
+      "copied_transcripts_match": true,
+      "manifest_binding_matches": true,
+      "oracle_replayed": true,
+      "raw_qemu_exit": 33,
+      "retained_artifacts_rehashed": 4,
+      "successful_qmp_actions": 1,
+      "timed_out": false
+    },
+    {
+      "case": "hid-ipc",
+      "copied_transcripts_match": true,
+      "manifest_binding_matches": true,
+      "oracle_replayed": true,
+      "raw_qemu_exit": 33,
+      "retained_artifacts_rehashed": 5,
+      "timed_out": false
+    }
+  ],
+  "passed": true,
+  "phase_receipts_and_log_hashes_verified": {
+    "host": 24,
+    "lock-repair": 2,
+    "native": 12,
+    "standard": 5
+  },
+  "replayed_utc": "2026-11-14T16:37:36.611433+00:00",
+  "retained_runtime_artifacts_rehashed": 29,
+  "schema_version": 1,
+  "scope": {
+    "artifact_consistency_only": true,
+    "h02_acceptance": false,
+    "human_acceptance": false,
+    "physical_hardware": false,
+    "qemu_rerun_performed": false,
+    "rebuild_performed": false,
+    "runtime_executables_in_index": false
+  },
+  "source_commit": "36f131fe3ce0fb5e4ad92ef4cf3cab4e86637694",
+  "source_fingerprint_version": 3,
+  "source_sha256": "922c0e579e6fed6b03bf94ae320a01350504a334ff4d406a9fc9d050a37e25fe",
+  "source_tree": "c5c02eae7619f105debb3a17fef02e2e552c022f",
+  "standard_smoke_oracle_replayed": true
+}

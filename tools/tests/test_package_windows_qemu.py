@@ -8,7 +8,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import build_materiaal
 import package_windows_qemu as package
+import run_fpu
 
 
 class WindowsQemuPackageTests(unittest.TestCase):
@@ -113,6 +115,48 @@ class WindowsQemuPackageTests(unittest.TestCase):
         self.assertEqual(result["kernel_feature"], package.WINDOW_PROFILE)
         self.assertEqual(result["loader_feature"], "desktop-mode")
         self.assertEqual([app["name"] for app in result["materiaal"]["apps"]], list(package.WINDOW_APP_NAMES))
+
+    def test_actual_builder_metadata_remains_compatible_with_ordinary_packages(self):
+        # Exercise the producer and consumer together: an extra false-valued
+        # HID field previously made both ordinary profile manifests invalid.
+        packages = {
+            "desktop-init": "desktop-init",
+            "keyring-service": "keyring",
+            "volume-service": "volume-docs",
+            "materiaal-app": "materiaal",
+            "native-compositor": "compositor",
+            "input-source": "input-service",
+            "input-policy": "input-service",
+            "window-init": "window-session",
+            "window-compositor": "window-session",
+            "calculator-app": "calculator",
+        }
+        target = self.root / "target"
+        for window_session in (False, True):
+            with self.subTest(window_session=window_session):
+                if window_session:
+                    self.window_profile()
+                names = package.WINDOW_APP_NAMES if window_session else package.APP_NAMES
+                for name in names:
+                    source = (target / ("materiaal-" + packages[name])
+                              / "x86_64-unknown-none/release" / name)
+                    source.parent.mkdir(parents=True, exist_ok=True)
+                    source.write_bytes(("app:" + name).encode())
+                with (patch.object(build_materiaal, "ROOT", self.root),
+                      patch.object(build_materiaal, "BUILD", self.build),
+                      patch.object(build_materiaal, "TARGET", target),
+                      patch.object(run_fpu, "ROOT", self.root),
+                      patch.object(build_materiaal, "run_logged"),
+                      patch.object(build_materiaal, "inspect_user",
+                                   side_effect=lambda path: {"name": path.stem})):
+                    _, report = build_materiaal.build_users(window_session=window_session)
+                self.manifest["materiaal"] = report
+                self.save_manifest()
+                with patch.object(package, "inspect_user", side_effect=lambda path: {"name": path.stem}):
+                    _, result = package.validate_build(self.build, verify_source=False)
+                self.assertEqual(result["materiaal"], report)
+                published = json.loads((self.apps_dir / "build-report.json").read_text())
+                self.assertEqual(published, report)
 
     def test_window_profile_rejects_old_loader_missing_app_and_wrong_order(self):
         for mutation in ("loader", "missing", "order"):

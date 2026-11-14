@@ -1,0 +1,55 @@
+   Compiling zeroize v1.9.1
+   Compiling ui-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/crates/ui-core)
+   Compiling nieuw-os-usb-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/drivers/usb)
+   Compiling capability-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/crates/capability-core)
+   Compiling nieuw-os-sdk-runtime v0.1.0 (/workspace/scratch/7264b5153599/h02-native/sdk/runtime)
+   Compiling nieuw-os-input-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/services/input-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.84s
+     Running unittests src/lib.rs (build/h02-final-host/debug/deps/nieuw_os_input_core-39ac8fd49abe83f0)
+
+running 1 test
+test exhaustion_tests::event_counter_exhaustion_never_wraps_or_retains_focus ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/service.rs (build/h02-final-host/debug/deps/service-84676dd3cbf8b7ce)
+
+running 29 tests
+test fixed_wire_is_canonical_and_every_short_or_extra_input_is_rejected ... ok
+test authority_engine_sender_and_ingress_cannot_be_replaced_by_application_payload ... ok
+test application_counter_exhaustion_stops_only_its_own_requests ... ok
+test focus_change_invalidates_prepared_reply_and_suppresses_old_held_key ... ok
+test client_death_removes_focus_and_cannot_be_reversed_by_replayed_requests ... ok
+test configuration_rejects_aliased_roles_duplicate_clients_and_zero_geometry ... ok
+test empty_is_an_observation_and_does_not_hide_a_later_cancellation ... ok
+test hid_aliases_are_one_physical_key_and_ambiguous_reports_fail_closed ... ok
+test hid_batch_overflow_cancels_instead_of_leaking_partial_input_to_new_focus ... ok
+test held_without_focus_survives_resync_and_real_break_rearms_immediately ... ok
+test hid_detaching_keyboard_does_not_rearm_a_still_held_mouse_button ... ok
+test hid_cannot_start_before_sync_or_switch_the_established_source_profile ... ok
+test hid_wire_profiles_lengths_padding_and_detach_masks_are_canonical ... ok
+test hid_payloads_do_not_replace_the_actual_source_sender_or_ingress_role ... ok
+test hid_resync_retains_suppression_until_the_first_absolute_release ... ok
+test hid_detaching_mouse_does_not_rearm_a_still_held_keyboard_chord ... ok
+test hid_mouse_uses_screen_y_convention_and_rejects_invalid_delta_without_movement ... ok
+test hid_held_keys_and_modifiers_cannot_cross_focus_via_repeated_reports ... ok
+test malformed_or_stale_samples_do_not_inject_extra_input_and_memory_is_bounded ... ok
+test negative_reply_stays_on_authenticated_route_with_no_success_or_event_payload ... ok
+test malformed_mouse_packet_stops_stream_and_resync_does_not_inherit_modifier ... ok
+test ps2_mouse_bytes_translate_real_deltas_buttons_and_bounded_coordinates ... ok
+test queue_overflow_has_priority_cancellation_and_no_stuck_repeat ... ok
+test source_and_compositor_death_are_permanent_for_the_bootstrap_lifetime ... ok
+test replayed_focus_or_lifecycle_and_old_epoch_cannot_modify_current_authority ... ok
+test offered_input_is_not_consumed_by_real_ipc_queue_backpressure ... ok
+test source_gap_and_controller_fault_require_explicit_authenticated_resync ... ok
+test stale_ack_cannot_remove_a_new_cancel_or_event ... ok
+test unexpected_delegated_caps_are_rejected_and_adapter_can_close_them_without_leak ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests nieuw_os_input_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

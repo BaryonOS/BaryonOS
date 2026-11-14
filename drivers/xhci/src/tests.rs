@@ -2,6 +2,36 @@ use super::*;
 use std::{cell::RefCell, rc::Rc, vec, vec::Vec};
 
 #[test]
+fn qemu_extended_protocol_header_can_precede_operational_registers() {
+    // QEMU 10 qemu-xhci, p2=1,p3=1: xECP=0x20 and CAPLENGTH=0x40.
+    // Extended capabilities occupy the gap after the fixed 0x20-byte header.
+    let caps = ControllerCapabilities::parse(
+        0x0100_0040,
+        0x0200_1040,
+        0x0008_7001,
+        0x2000,
+        0x1000,
+        0x4000,
+    )
+    .unwrap();
+    assert_eq!(caps.extended_capability_offset, Some(0x20));
+    assert_eq!(caps.operational_offset, 0x40);
+    for offset in [0x1c, 0x40, 0x1000, 0x2000] {
+        assert_eq!(
+            ControllerCapabilities::parse(
+                0x0100_0040,
+                0x0200_1040,
+                ((offset / 4) << 16) | 1,
+                0x2000,
+                0x1000,
+                0x4000,
+            ),
+            Err(Error::InvalidRegister)
+        );
+    }
+}
+
+#[test]
 fn parses_and_bounds_a_supported_capability_layout() {
     let structural = 8 | (2 << 8) | (4 << 24);
     assert_eq!(
@@ -122,7 +152,7 @@ fn bounds_the_port_register_area_using_max_ports() {
 fn rejects_extended_capability_header_overlapping_advertised_regions() {
     let structural = 8 | (2 << 8) | (4 << 24);
     let capability_word = 0x40 | (0x0100 << 16);
-    for capability_params in [0x0008_0000, 0x0014_0000, 0x0400_0000, 0x0800_0000] {
+    for capability_params in [0x0007_0000, 0x0014_0000, 0x0400_0000, 0x0800_0000] {
         assert_eq!(
             ControllerCapabilities::parse(
                 capability_word,

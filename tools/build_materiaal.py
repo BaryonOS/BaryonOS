@@ -6,7 +6,9 @@ from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json
 
 
-def build_users(*, probe=False, window_session=False, fault_injection=False, session_preview=False):
+def build_users(*, probe=False, window_session=False, fault_injection=False, session_preview=False, hid_probe=False):
+    if hid_probe and (not window_session or probe or fault_injection or session_preview):
+        raise ValueError("HID IPC probe requires its separate window-session build profile")
     private_path(BUILD)
     private_path(TARGET)
     output = private_path(BUILD / "users/materiaal")
@@ -26,6 +28,9 @@ def build_users(*, probe=False, window_session=False, fault_injection=False, ses
                            ("calculator","calculator-app","NOS_CALCULATOR_ELF")]
     if probe:
         specifications.append(("desktop-init", "desktop-controller", "NOS_DESKTOP_CONTROLLER_ELF"))
+    if hid_probe:
+        specifications += [("input-service", "input-hid-source", "NOS_HID_SOURCE_ELF"),
+                           ("window-session", "window-hid-probe", "NOS_HID_PROBE_ELF")]
     # Check all destinations before the first external command. In particular,
     # run_logged writes its three files on both success and failure; a later
     # per-component check would already be too late for an earlier linked log.
@@ -45,6 +50,7 @@ def build_users(*, probe=False, window_session=False, fault_injection=False, ses
             command=[sys.executable, "-B", str(ROOT / "sdk/examples" / package / "build.py")]
             if package=="window-session" and fault_injection: command.append("--fault-injection")
             if package=="window-session" and session_preview: command.append("--session-preview")
+            if package in ("input-service", "window-session") and hid_probe: command.append("--hid-probe")
             run_logged(command,
                        "build-materiaal-" + package,
                        extra_env={"CARGO_TARGET_DIR": str(target)})
@@ -57,5 +63,7 @@ def build_users(*, probe=False, window_session=False, fault_injection=False, ses
         extra_env[variable] = str(destination)
     report = {"passed": True, "native_runtime_performed": False,
               "probe_controller": probe, "apps": applications}
+    if hid_probe:
+        report["hid_synthetic_probe"] = True
     publish_json(output / "build-report.json", report)
     return extra_env, report

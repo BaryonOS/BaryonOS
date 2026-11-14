@@ -31,6 +31,8 @@ const SPAWN_FRAME_MARGIN: usize = 64;
 
 #[derive(Clone, Copy)]
 struct Runtime {
+    #[cfg(feature = "native-hid-input-probe")]
+    hid_stage: u64,
     generation: u64,
     surface_epoch: u64,
     input_epoch: u64,
@@ -78,6 +80,8 @@ struct Runtime {
     input_progress: [[u64; 2]; 2],
 }
 static mut RUNTIME: Runtime = Runtime {
+    #[cfg(feature = "native-hid-input-probe")]
+    hid_stage: 0,
     generation: 1,
     surface_epoch: SURFACE_EPOCH,
     input_epoch: INPUT_EPOCH,
@@ -145,6 +149,7 @@ fn put(s: &State, slot: usize, offset: u64, value: u64) {
 fn word(s: &State, slot: usize, offset: u64) -> u64 {
     read_word(s.processes[slot].physical(DATA + offset))
 }
+#[cfg(not(feature = "native-hid-input-probe"))]
 pub(super) fn process_elf(slot: usize) -> &'static [u8] {
     match slot {
         INIT => include_bytes!(env!("NOS_WINDOW_INIT_ELF")),
@@ -156,6 +161,18 @@ pub(super) fn process_elf(slot: usize) -> &'static [u8] {
         POLICY => include_bytes!(env!("NOS_INPUT_POLICY_ELF")),
         CALC => include_bytes!(env!("NOS_CALCULATOR_ELF")),
         _ => panic!("window manifest image outside fixed roles"),
+    }
+}
+#[cfg(feature = "native-hid-input-probe")]
+pub(super) fn process_elf(slot: usize) -> &'static [u8] {
+    match slot {
+        SOURCE => include_bytes!(env!("NOS_HID_SOURCE_ELF")),
+        POLICY => include_bytes!(env!("NOS_INPUT_POLICY_ELF")),
+        // The existing COMP bootstrap owns focus and client100 channels. Other
+        // fixed roles run the same fixture ELF in passive mode, without grants
+        // or a bootstrap identity being inferred from test support words.
+        INIT | KEY | VOLUME | MATERIAL | COMP | CALC => include_bytes!(env!("NOS_HID_PROBE_ELF")),
+        _ => panic!("HID fixture image outside fixed roles"),
     }
 }
 fn channel(e: &mut Engine, owner: u64, sender: u64) -> (u64, u64) {
@@ -315,6 +332,8 @@ pub(super) fn manifest(s: &mut State) {
             .sum::<usize>();
     runtime().kernel_tables = s.kernel.owned_table_count();
     serial::write(b"WINDOW:MANIFEST:PASS\n");
+    #[cfg(feature = "native-hid-input-probe")]
+    serial::write(b"HID:SYNTHETIC_REPORTS:ACTUAL_IPC\n");
 }
 
 /// All group leaves are created from manifest roots. Only the compositor has
@@ -815,6 +834,7 @@ fn snapshots(s: &State) {
         }
     }
 }
+#[cfg(not(feature = "native-hid-input-probe"))]
 pub(super) fn poll(s: &mut State) {
     keyring::broker_tick(s);
     m5::broker_tick(s);
@@ -903,5 +923,109 @@ pub(super) fn poll(s: &mut State) {
     print_number(b"WINDOW:LIVE_PROCESSES:", stats.processes as u64);
     print_number(b"WINDOW:LIVE_HANDLES:", stats.handles as u64);
     serial::write(b"WINDOW:CLEANUP:PASS\nWINDOW:CASE:PASS\nM1:PASS\n");
+    serial::exit(0x10)
+}
+
+/// Test-only observer for actual ring3 source/policy/client IPC. Synthetic
+/// report production and all event/cancellation assertions remain in userspace.
+/// Support words coordinate a fixed script; they never select grants or PIDs.
+#[cfg(feature = "native-hid-input-probe")]
+pub(super) fn poll(s: &mut State) {
+    keyring::broker_tick(s);
+    m5::broker_tick(s);
+    require(!s.unexpected && s.ticks < 2_000, b"HID_TIMEOUT_OR_EVENT");
+    require(
+        s.processes[..8].iter().all(|p| p.status != Status::Dead),
+        b"HID_ACTOR_DIED",
+    );
+    for (slot, at) in [(SOURCE, 792), (COMP, 792), (POLICY, 480)] {
+        require(word(s, slot, at) == 0, b"HID_USER_FAILURE");
+    }
+    let stage = runtime().hid_stage;
+    if stage == 0 {
+        // Both bootstrap parsers run before the observer writes reserved words.
+        if word(s, SOURCE, 784) == 1 && word(s, COMP, 784) == 1 {
+            put(s, COMP, 760, 1);
+        }
+        if word(s, SOURCE, 784) != 1 || word(s, COMP, 784) != 2 || word(s, POLICY, 472) != 1 {
+            return;
+        }
+        serial::write(b"HID:BOOT:PASS\n");
+        runtime().hid_stage = 1;
+        return;
+    }
+    require(stage <= 7, b"HID_STAGE");
+    for slot in [SOURCE, COMP] {
+        let done = word(s, slot, 776);
+        require(
+            done == stage || done.checked_add(1) == Some(stage),
+            b"HID_STAGE_ORDER",
+        );
+        if done != stage {
+            put(s, slot, 768, stage);
+            return;
+        }
+    }
+    // The policy publishes diagnostics after its IPC step. A caller may have
+    // received the final reply before that userspace instruction runs; await
+    // the bounded observation instead of turning scheduling into a false fail.
+    if stage == 7 && word(s, POLICY, 416) < 2 {
+        return;
+    }
+    const MARKERS: [&[u8]; 7] = [
+        b"HID:KEYBOARD:PASS\n",
+        b"HID:MOUSE:PASS\n",
+        b"HID:FOCUS:PASS\n",
+        b"HID:RESET:PASS\n",
+        b"HID:DETACH:PASS\n",
+        b"HID:REATTACH:PASS\n",
+        b"HID:REJECT:PASS\n",
+    ];
+    serial::write(MARKERS[stage as usize - 1]);
+    if stage < 7 {
+        runtime().hid_stage = stage + 1;
+        return;
+    }
+    for (slot, at, expected, label) in [
+        (SOURCE, 800, 11, b"HID:SOURCE_PUBLICATIONS:".as_slice()),
+        (SOURCE, 808, 6, b"HID:SOURCE_REJECTIONS:".as_slice()),
+        (COMP, 800, 10, b"HID:CLIENT_EVENTS:".as_slice()),
+        (COMP, 808, 4, b"HID:CLIENT_CANCELS:".as_slice()),
+        (COMP, 816, 1, b"HID:STALE_ACK:".as_slice()),
+        (COMP, 824, 1, b"HID:ROLE_DENIAL:".as_slice()),
+        // StaleAck and WrongRole are both canonical negative policy replies.
+        (POLICY, 416, 2, b"HID:POLICY_REJECTIONS:".as_slice()),
+        // The production adapter records a four-ingress checked-rights mask.
+        (POLICY, 464, 15, b"HID:POLICY_RECEIVE_RIGHTS:".as_slice()),
+    ] {
+        let actual = word(s, slot, at);
+        print_number(label, actual);
+        require(actual == expected, b"HID_COUNTS");
+    }
+    // Fixed kernel-owned process slots only; no diagnostic word controls death.
+    for slot in 0..8 {
+        m4::engine().process_died(s.processes[slot].pid, PROCESS_KILLED, 0);
+        s.processes[slot].status = Status::Dying;
+        s.cleanup(slot);
+    }
+    let stats = m4::engine().stats();
+    require(
+        stats.processes == 0
+            && stats.handles == 0
+            && stats.queued_messages == 0
+            && m4::engine().check_invariants(),
+        b"HID_ENGINE_CLEANUP",
+    );
+    let r = *runtime();
+    let grown = s
+        .kernel
+        .owned_table_count()
+        .checked_sub(r.kernel_tables)
+        .unwrap();
+    require(
+        s.free_count().checked_add(grown) == Some(r.baseline),
+        b"HID_FRAME_CLEANUP",
+    );
+    serial::write(b"HID:CLEANUP:PASS\nHID:CASE:PASS\nM1:PASS\n");
     serial::exit(0x10)
 }
