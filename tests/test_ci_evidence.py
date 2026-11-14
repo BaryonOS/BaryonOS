@@ -55,13 +55,14 @@ class EvidenceTests(unittest.TestCase):
         return target
 
     def collect(
-        self, paths="build/", status="failure", output=None, required_paths="",
+        self, paths="build/", status="failure", output=None, required_paths="", **options,
     ):
         """Collect isolated fixtures with a failing pre-archive status by default."""
         return evidence.collect(
             name="native-evidence", paths=paths, required_paths=required_paths,
             output=output or self.output,
             status=status, workspace=self.root, environ=self.env, stdout=self.console,
+            **options,
         )
 
     def test_exact_json_bytes_hash_and_prearchive_status(self):
@@ -265,6 +266,33 @@ class EvidenceTests(unittest.TestCase):
         self.assertTrue(all(path.stat().st_size <= evidence.MAX_FILE_BYTES for path in files))
         self.assertIn("total-byte-limit", receipt["omitted_reason_counts"])
         self.assertEqual(sum(item["size_bytes"] for item in receipt["retained"]), receipt["retained_bytes"])
+
+    def test_custom_file_budget_keeps_total_and_required_report_limits(self):
+        """Larger reports cannot consume the receipt reserve or mask a missing report."""
+        for index in range(3):
+            self.write(f"build/report-{index}.txt", b"x" * (3 * 1024 * 1024))
+        with self.assertRaisesRegex(evidence.EvidenceError, "Required evidence path"):
+            self.collect(max_file_bytes=4 * 1024 * 1024, required_paths="build/report-2.txt")
+        receipt = json.loads((self.output / "_meta/receipt.json").read_text())
+        self.assertEqual(receipt["retained_bytes"], 6 * 1024 * 1024)
+        self.assertEqual(receipt["omitted_reason_counts"], {"total-byte-limit": 1})
+        self.assertEqual(receipt["limits"]["total_bytes_including_receipt"], evidence.MAX_TOTAL_BYTES)
+        self.assertLessEqual((self.output / "_meta/receipt.json").stat().st_size, evidence.MAX_FILE_BYTES)
+
+    def test_custom_file_budget_is_bounded_and_integral(self):
+        """Reject invalid overrides before creating output or reading report bytes."""
+        for limit in (-1, 0, True, 1.5, "4194304", evidence.MAX_TOTAL_BYTES):
+            with self.subTest(limit=limit), self.assertRaises(evidence.EvidenceError):
+                self.collect(max_file_bytes=limit)
+        self.assertFalse(self.output.exists())
+
+    def test_custom_file_budget_rechecks_growth_after_stat(self):
+        """A file that grows during collection must not escape its selected limit."""
+        self.write("build/report.xml", "<coverage/>")
+        with patch.object(evidence, "_read_report", return_value=b"x" * 2049):
+            receipt = self.collect(max_file_bytes=2048)
+        self.assertEqual(receipt["retained"], [])
+        self.assertEqual(receipt["omitted_reason_counts"], {"grew-over-per-file-limit": 1})
 
     def test_file_count_budget_includes_receipt(self):
         """Reserve a file slot for the receipt and count omitted excess reports."""

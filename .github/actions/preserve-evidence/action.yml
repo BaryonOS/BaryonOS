@@ -10,6 +10,9 @@ inputs:
   required-paths:
     description: Exact newline-separated paths which compact collection must retain.
     default: ''
+  max-file-bytes:
+    description: Per-report byte limit (1 to 7340032); the 8 MiB total and 1 MiB metadata budgets stay fixed.
+    default: '1048576'
   job-status:
     description: Job status immediately before evidence preservation.
     required: true
@@ -43,12 +46,14 @@ runs:
         EVIDENCE_NAME: ${{ inputs.name }}
         EVIDENCE_PATHS: ${{ inputs.path }}
         EVIDENCE_REQUIRED_PATHS: ${{ inputs.required-paths }}
+        EVIDENCE_MAX_FILE_BYTES: ${{ inputs.max-file-bytes }}
         CI_TEST_STATUS: ${{ inputs.job-status }}
       run: |
         evidence_dir="$(mktemp -d "$RUNNER_TEMP/ci-evidence.XXXXXXXX")"
         python3 -B "$GITHUB_WORKSPACE/tools/ci_evidence.py" collect \
           --name "$EVIDENCE_NAME" --paths "$EVIDENCE_PATHS" \
           --required-paths "$EVIDENCE_REQUIRED_PATHS" \
+          --max-file-bytes "$EVIDENCE_MAX_FILE_BYTES" \
           --output "$evidence_dir" --status "$CI_TEST_STATUS"
     - name: Require evidence when the original workflow required it
       if: ${{ always() && steps.collect.outcome == 'success' && steps.collect.outputs.has-files != 'true' && inputs.if-no-files-found == 'error' }}

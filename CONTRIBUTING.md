@@ -51,6 +51,18 @@ Run at least the targeted tests, formatting, and linting relevant to the change.
 
 A test that was not run is not a passing test. The current repository ruleset requires the `host-quality` and `qemu-smoke` checks before `main` can be updated.
 
+### Code coverage
+
+The `host-quality` job collects line coverage for the host-side test suites and
+publishes Cobertura reports to GitHub's code coverage API on `main` and pull
+requests. Run the same instrumented commands locally when useful:
+
+- Rust (main workspace members): `cargo llvm-cov -p <package> ... --cobertura --output-path build/coverage-raw/rust-cobertura.xml` (requires `cargo install cargo-llvm-cov` and the `llvm-tools` rustup component).
+- Python (`tools`, `.agents/skills/os-dev/scripts`): `coverage run --parallel-mode -m unittest discover ...`, then `coverage combine && coverage xml`. Settings live in `.coveragerc`.
+- Node.js (`ui/prototype`, `services/nas`): `c8 node --test ui/prototype/tests/*.test.mjs services/nas/tests/*.test.mjs`. Settings live in `.c8rc.json`.
+
+Coverage output is written under `build/coverage-raw/`, which is already ignored by Git.
+
 ## Pull requests
 
 - Work on a small, reviewable branch.
@@ -60,6 +72,36 @@ A test that was not run is not a passing test. The current repository ruleset re
 - Describe the goal, scope, security invariant, commands actually run, evidence boundary, risks, and rollback.
 - Bind evidence to the exact source revision; an old green run is not evidence for a new head.
 - The 0–100% progress score increases only when an existing criterion is fully and demonstrably accepted. It may decrease when a previously accepted criterion returns to Open because of a regression, missing evidence, or an earlier claim that proved too broad. Assessment fields are updated after every task, even if the score is unchanged.
+
+### Holding a pull request for native acceptance
+
+Merging requires the project owner's explicit approval. Auto-merge is not
+enabled by sessions (owner decision of 13 November 2026). The `merge-hold`
+check enforces the remaining case: a pull request whose merge condition
+includes acceptance outside the required checks, for example a dispatch-only
+native matrix, soak or final gate. A job skipped by its `if` condition reports
+success and does not block a merge on its own.
+
+- Set the `acceptance-pending` label when the pull request is opened, or
+  before any merge request.
+- After that acceptance has passed, not been skipped, on the current head
+  commit, a participant with write access comments the exact line
+  `acceptance-released: <40-character head SHA>` and re-runs `merge-hold`.
+- A new push changes the head SHA, so the hold applies again until a new
+  release comment names the new head.
+
+The labels can be set through the REST API, which works where GraphQL is
+unavailable:
+
+```sh
+gh api -X POST repos/BaryonOS/BaryonOS/issues/<PR>/labels -f 'labels[]=acceptance-pending'
+gh api -X DELETE repos/BaryonOS/BaryonOS/issues/<PR>/labels/acceptance-pending
+```
+
+A label change made with a workflow's `GITHUB_TOKEN` starts no new
+`merge-hold` run. `merge-hold` becomes a required status check only after its
+workflow is on `main` and verifiably reports on pull requests (see
+ADR-MERGE-HOLD-20261113).
 
 CodeRabbit and other automated review systems are additional review layers. They do not change the acceptance criteria and do not replace required runtime tests or independent human review.
 

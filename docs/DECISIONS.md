@@ -5,6 +5,94 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-MERGE-HOLD-20261113 — SHA-bound required merge hold for out-of-band acceptance
+
+Status: accepted, 13 November 2026, on the project owner's instruction after
+#296 merged before its K06 acceptance matrix had finished.
+
+**Context:**
+- #296 was squash-merged at 2026-11-12 00:15:40 UTC by auto-merge, which had
+  been enabled on 10 November. At that time only the required checks
+  `host-quality` and `qemu-smoke` had passed on head `95bdf4cb`.
+- The SMP matrix that was dispatched on that head later reported failures:
+  `SMP 50/50 (eight)`, `SMP 50/50 (resched-deaf)` and the 65x50 aggregate.
+- Requiring the dispatch-only `SMP final repository gate` directly would not
+  help. On pull request events that job is skipped, and GitHub documents that
+  a job skipped by a conditional reports success.
+- The same day the project owner decided that sessions may create and update
+  draft PRs autonomously, but never merge, or enable auto-merge, without
+  explicit approval.
+
+**Decision:**
+- `.github/workflows/merge-hold.yml` runs `tools/merge_hold.py` on every pull
+  request opened, synchronize, reopened, labeled and unlabeled event. It has
+  no path filter and no `if`, and runs with read-only permissions.
+- The script reads labels and comments live through REST and fails closed on
+  any API or input error.
+- With the `acceptance-pending` label present, the check passes only when a
+  participant whose author association is OWNER, MEMBER or COLLABORATOR has
+  commented the exact line `acceptance-released: <head SHA>`. A new push
+  changes the SHA and re-arms the hold.
+- `merge-hold` is added to the `main` ruleset's required checks, pinned to the
+  GitHub Actions app (integration 15368). This happens only after the workflow
+  is on `main`, its behaviour has been verified on a pull request, and the
+  open pull requests have been notified.
+
+**Consequences and limits:**
+- The hold is opt-in. Owners must set the label; the check does not detect
+  out-of-band acceptance by itself.
+- Between setting the label and the failing run being recorded, an earlier
+  success on the same head still counts. The label is therefore set when the
+  pull request is opened or before any merge request.
+- Like every `pull_request` gate, a pull request can change its own workflow
+  and script. The gate protects against omission, not against a malicious
+  writer; review of `.github/` and `tools/` changes remains necessary.
+- A label change made with a workflow's `GITHUB_TOKEN` starts no new run.
+- Once the check is required, disabling or renaming the workflow or job
+  blocks every pull request to `main`. Roll back by first removing the
+  required check from the ruleset, then reverting the workflow.
+- Unit tests cover the decision, pagination and fail-closed paths. A
+  contract test pins the trigger, the permissions and the absence of `if`,
+  `defaults` and filters.
+
+**Revise when:** a reliable, always-reporting aggregate of out-of-band
+acceptance becomes available, or the merge queue is adopted.
+
+## ADR-WINDOW-SCALE2-DEADLINE-20261112 — Per-scale harness deadline for the native window gate
+
+Status: accepted, 12 November 2026, to repair `main` after #210.
+
+**Context:** after #210 the 200% `native-window-session (2)` gate failed twice
+on `main` `49f80b1e` with "G0 QMP exceeded the shared deadline before send".
+The tree `17de3cba` was byte-identical to PR head `682b2eb`, where the same
+profile passed. The QEMU bundle, runner image and command were also
+identical. Every logged phase was uniformly about 1.45x slower on the failing
+runners: boot 93 s against 65.5 s, `document-menu-high-contrast` 1797 s
+against 1229 s. The 132-phase route needs about 1480 s on a fast standard
+hosted runner and about 2150 s on a slower one, so the shared 1800 s deadline
+cannot hold on all of them.
+
+**Decision:** the runner bounds its harness deadline per scale.
+
+- Scale 1 keeps 1800 s, the bound preregistered for the 1280×720 route in
+  `docs/implementation/NATIVE-CLIPBOARD.md`.
+- Scale 2 may use up to 2700 s, and the CI gate uses that value only for the
+  scale-2 clipboard/workspace run.
+- The switcher part gates and the library walkthroughs keep 1800 s.
+- The runner enforces this per mode, not only the workflow: `run()` accepts
+  up to 2700 s only when scale 2 is combined with both `--clipboard` and
+  `--workspace`, and rejects any other mode above 1800 s, including a manual
+  scale-2 `--switcher` run (follow-up of 13 November 2026).
+
+**Consequences:** this is a harness deadline, not a latency budget. No phase,
+pixel comparison or assertion is removed, and the per-phase timings stay in
+the evidence. Runner tests pin both bounds, and mutations of either bound fail
+them. A slow runner can now spend up to 15 more minutes on scale 2, still
+within the 110-minute job limit.
+
+**Revise when:** measured interaction budgets for the 200% route are
+preregistered, or the route is split into shards that each fit the 1800 s bound.
+
 ## ADR-CI-SECURITY-ALERTS-20261111 — Public-safe summary of open security alerts
 
 Status: accepted, 11 November 2026, on the project owner's instruction to make

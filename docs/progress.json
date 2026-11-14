@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "f95bf5b2b4abe0bce1da140c70869eb59e85adef",
+    "source_commit": "204c4ed51585c4ba500735a90eb1c449863399f7",
     "assessment_basis": "source_commit",
-    "branch": "claude/baryon-os-ui-ux-design-152adb",
-    "task": "Design pipeline checkpoint before a planned reboot: typography review record and type-1.0 tokens, wordmark v2 selected by a pre-registered blind AI review, Orbitaal v2 and the native Inter atlas not yet started",
+    "branch": "feat/s09-ustar-export",
+    "task": "Refresh PR #325 after documentation PR #329 merged as 299f0e39c202d67d1c2f4e31b879cbdd6add262b",
     "previous_score": 41,
-    "summary": "41/100 stays 41/100. The design pipeline on this branch produced design documents, a typography review record with type-1.0 tokens (Inter proposed; a tie under the pre-registered rule, decision by the project owner requested) and a brand wordmark v2 (Saira, selected by a pre-registered blind AI review, redirectable by the project owner). These are design and AI-judgement evidence only: no native renderer, QEMU run or user test changed, so no criterion is accepted. Not met: Orbitaal v2 board, design system, prototype, native Inter atlas and native vertical slice with QEMU evidence."
+    "summary": "41/100 remains 41/100. The two status-document conflicts are reconciled by retaining the complete PR #325/S09 handoff and the CodeQL triage checkpoint from PR #329. The criterion register, ustar implementation, per-CPU SMP fix and existing evidence remain unchanged. Current integration checks and source-preservation evidence are recorded in docs/verification/pr325-refresh-20261114.json."
   },
   "tracks": [
     {

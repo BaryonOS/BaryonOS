@@ -1,0 +1,620 @@
+{
+  "schema_version": 1,
+  "task": "SYSTEM-MATURITY-SMP AP bring-up, M3 scheduling, process exit, and cross-CPU M4 IPC/revoke",
+  "source_fingerprint_version": 3,
+  "source_sha256": "5af1b1a5b6b7ad5eb41242b2bc096636befcc706ef6a3fc863b3e1c8225a3bd1",
+  "source_commit": "0d47a6ee29f60270936331111ef542c2a038a36f",
+  "branch": "fix/pr325-smp-check",
+  "invocation": {
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "-B",
+      "tools/test_smp.py"
+    ],
+    "environment": {
+      "LD_LIBRARY_PATH": null,
+      "OS_OVMF_CODE": "/workspace/scratch/862448678712/toolchains/qemu/usr/share/OVMF/OVMF_CODE_4M.fd",
+      "OS_OVMF_VARS": "/workspace/scratch/862448678712/toolchains/qemu/usr/share/OVMF/OVMF_VARS_4M.fd"
+    },
+    "tool_paths": {
+      "cargo": "/workspace/scratch/862448678712/toolchains/cargo/bin/cargo",
+      "rustc": "/workspace/scratch/862448678712/toolchains/cargo/bin/rustc",
+      "cc": "/usr/bin/cc",
+      "qemu": "/workspace/scratch/862448678712/toolchains/bin/qemu-system-x86_64"
+    }
+  },
+  "date_europe_amsterdam": "2026-11-14",
+  "status": "completed",
+  "passed": true,
+  "host": {
+    "command": [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/tests",
+      "-p",
+      "test_smp_host.py"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ".......................\n----------------------------------------------------------------------\nRan 23 tests in 0.024s\n\nOK\n"
+  },
+  "stages": [
+    {
+      "profile": "single-m2",
+      "kernel_feature": "milestone-m2",
+      "cpu_count": 1,
+      "runner": "m2",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 1.8708262939999258,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/smp-single-19324dd141",
+      "evidence": null,
+      "error": null
+    },
+    {
+      "profile": "two-m2",
+      "kernel_feature": "native-smp-legacy",
+      "cpu_count": 2,
+      "runner": "smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 6.6795679469996685,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/smp-2-60d99eda4f",
+      "evidence": {
+        "cpu_count": 2,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "rendezvous_generations": 64,
+        "workers": 64
+      },
+      "error": null
+    },
+    {
+      "profile": "four-m2",
+      "kernel_feature": "native-smp-legacy",
+      "cpu_count": 4,
+      "runner": "smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 31.4920887520002,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/smp-4-c9ae0b4810",
+      "evidence": {
+        "cpu_count": 4,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "rendezvous_generations": 64,
+        "workers": 64
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-two",
+      "kernel_feature": "native-smp-legacy-m3",
+      "cpu_count": 2,
+      "runner": "m3-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 7.065731591999793,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/smp-2-0e1dab8966",
+      "evidence": {
+        "cpu_count": 2,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "per_cpu_process_selections": [
+          95,
+          80
+        ],
+        "ap_cr0_wp_em_ts": 7
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-exit-two",
+      "kernel_feature": "native-smp-m3-exit",
+      "cpu_count": 2,
+      "runner": "m3-exit-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 6.546056593000685,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/smp-2-d88e1713eb",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            7,
+            4
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "process_cleanup_event": {
+          "slot": 0,
+          "cpu": 1
+        }
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-lock-contention-two",
+      "kernel_feature": "native-smp-m3-lock-contention",
+      "cpu_count": 2,
+      "runner": "m3-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 6.8919695260010485,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/smp-2-4585435124",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            82,
+            94
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "lock_contention_attempts": 44445
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-tlb-reuse-two",
+      "kernel_feature": "native-smp-m3-tlb-reuse",
+      "cpu_count": 2,
+      "runner": "m3-tlb-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 6.275336679000247,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/smp-2-26798bc312",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            7,
+            9
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "process_cleanup_events": [
+          {
+            "slot": 0,
+            "cpu": 1
+          },
+          {
+            "slot": 0,
+            "cpu": 1
+          }
+        ],
+        "stale_mapping_target_retained_until_replacement_exit": true
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-x87-two",
+      "kernel_feature": "native-smp-legacy-m3,test-m3-x87",
+      "cpu_count": 2,
+      "runner": "native-smp-m3-x87",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 6.621138342999984,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/smp-2-4fd6f6fdbf",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            7,
+            4
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "x87_fault_cpu": 1
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-unexpected-ud-two",
+      "kernel_feature": "native-smp-legacy-m3,test-m3-ud",
+      "cpu_count": 2,
+      "runner": "native-smp-m3-unexpected-ud",
+      "passed": true,
+      "raw_qemu_exit": 35,
+      "duration_s": 6.236867992000043,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/smp-2-d44b1ea635",
+      "evidence": {
+        "cpu_count": 2,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "ap_cr0_wp_em_ts": 7,
+        "fault_injection": "unexpected-user-ud",
+        "failure_marker": "M3:FAIL:UNEXPECTED_USER_EVENT",
+        "scheduler_pass": false
+      },
+      "error": null
+    },
+    {
+      "profile": "m3-single-regression",
+      "kernel_feature": "milestone-m3",
+      "cpu_count": 1,
+      "runner": "m3",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 3.4597510160001548,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/m3-single-smp-regression-b13d6c1229",
+      "evidence": null,
+      "error": null
+    },
+    {
+      "profile": "m3-four",
+      "kernel_feature": "native-smp-legacy-m3",
+      "cpu_count": 4,
+      "runner": "m3-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 32.47117066500141,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/smp-4-d1f3e3609c",
+      "evidence": {
+        "cpu_count": 4,
+        "logical_apic_ids": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "per_cpu_process_selections": [
+          77,
+          79,
+          71,
+          74
+        ],
+        "ap_cr0_wp_em_ts": 7
+      },
+      "error": null
+    },
+    {
+      "profile": "m4-two",
+      "kernel_feature": "native-smp-m4",
+      "cpu_count": 2,
+      "runner": "m4-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 6.144680905999849,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/smp-2-b3038045e0",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            30,
+            35
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "ipc_events": [
+          {
+            "operation": "send",
+            "slot": 0,
+            "cpu": 0
+          },
+          {
+            "operation": "recv",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "send",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "recv",
+            "slot": 2,
+            "cpu": 0
+          }
+        ],
+        "cross_cpu_message_pairs": [
+          {
+            "sender_slot": 0,
+            "receiver_slot": 1,
+            "sender_cpu": 0,
+            "receiver_cpu": 1
+          },
+          {
+            "sender_slot": 1,
+            "receiver_slot": 2,
+            "sender_cpu": 1,
+            "receiver_cpu": 0
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "profile": "m4-two-repeat",
+      "kernel_feature": "native-smp-m4",
+      "cpu_count": 2,
+      "runner": "m4-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 6.332225260000996,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/smp-2-f70b1b670d",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            28,
+            34
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "ipc_events": [
+          {
+            "operation": "send",
+            "slot": 0,
+            "cpu": 0
+          },
+          {
+            "operation": "recv",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "send",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "recv",
+            "slot": 2,
+            "cpu": 0
+          }
+        ],
+        "cross_cpu_message_pairs": [
+          {
+            "sender_slot": 0,
+            "receiver_slot": 1,
+            "sender_cpu": 0,
+            "receiver_cpu": 1
+          },
+          {
+            "sender_slot": 1,
+            "receiver_slot": 2,
+            "sender_cpu": 1,
+            "receiver_cpu": 0
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "profile": "m4-lifecycle-two",
+      "kernel_feature": "native-smp-m4,test-m4-lifecycle",
+      "cpu_count": 2,
+      "runner": "m4-lifecycle-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 6.373683596999399,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/smp-2-51f281affa",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            28,
+            5
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "quiescence_rounds": 3,
+        "cleanup_rounds": 3,
+        "process_table_resets": 2
+      },
+      "error": null
+    },
+    {
+      "profile": "m4-revoke-two",
+      "kernel_feature": "native-smp-m4-revoke",
+      "cpu_count": 2,
+      "runner": "m4-revoke-smp",
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "duration_s": 6.150057419999939,
+      "run_directory": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-smp-repair/native-matrix/run/smp-2-2e1c0034f5",
+      "evidence": {
+        "scheduler": {
+          "cpu_count": 2,
+          "logical_apic_ids": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "per_cpu_process_selections": [
+            38,
+            38
+          ],
+          "ap_cr0_wp_em_ts": 7
+        },
+        "events": [
+          {
+            "operation": "send",
+            "slot": 0,
+            "cpu": 0
+          },
+          {
+            "operation": "revoke",
+            "slot": 0,
+            "cpu": 0
+          },
+          {
+            "operation": "send",
+            "slot": 0,
+            "cpu": 0
+          },
+          {
+            "operation": "recv",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "send",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "recv",
+            "slot": 2,
+            "cpu": 0
+          },
+          {
+            "operation": "revoke",
+            "slot": 0,
+            "cpu": 0
+          },
+          {
+            "operation": "revoked",
+            "slot": 1,
+            "cpu": 1
+          },
+          {
+            "operation": "revoked",
+            "slot": 2,
+            "cpu": 0
+          }
+        ],
+        "cross_cpu_revocation": {
+          "revoker_cpu": 0,
+          "receiver_slot": 1,
+          "receiver_cpu": 1
+        }
+      },
+      "error": null
+    }
+  ],
+  "acceptance_boundary": "AP startup, bounded rendezvous, per-CPU M3 process scheduling, and successful process-exit cleanup on an AP plus cross-CPU M4 ring-3 IPC and revoked-capability rejection, including M4 quiescence before cleanup and repeated lifecycle resets; not full K06 remote TLB or general race acceptance."
+}

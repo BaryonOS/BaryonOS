@@ -232,7 +232,7 @@ class Selection:
                 self.missing.append(_path_label(pattern))
 
 
-def _read_report(workspace: Path, relative: str) -> bytes:
+def _read_report(workspace: Path, relative: str, max_file_bytes: int = MAX_FILE_BYTES) -> bytes:
     """Open relative to anchored directory descriptors, refusing symlink races."""
     if not hasattr(os, "O_NOFOLLOW") or os.open not in os.supports_dir_fd:
         raise EvidenceError("Safe no-follow descriptor-relative reads are unavailable")
@@ -248,7 +248,7 @@ def _read_report(workspace: Path, relative: str) -> bytes:
         with os.fdopen(descriptor, "rb") as handle:
             if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
                 raise EvidenceError(f"Input changed to a non-regular file: {relative}")
-            return handle.read(MAX_FILE_BYTES + 1)
+            return handle.read(max_file_bytes + 1)
     finally:
         os.close(directory)
 
@@ -363,12 +363,15 @@ def _summary(receipt: dict) -> str:
 def collect(
     *, name: str, paths: str, output: Path, status: str,
     required_paths: str = "",
+    max_file_bytes: int = MAX_FILE_BYTES,
     workspace: Path | None = None, environ: Mapping[str, str] | None = None,
     stdout: TextIO | None = None,
 ) -> dict:
     """Collect exact small report bytes; return the receipt, never a test verdict."""
     env = os.environ if environ is None else environ
     stream = sys.stdout if stdout is None else stdout
+    if type(max_file_bytes) is not int or not 1 <= max_file_bytes <= MAX_TOTAL_BYTES - MAX_FILE_BYTES:
+        raise EvidenceError("Per-file byte limit must be an integer from 1 to 7340032 (7 MiB)")
     root = (workspace or Path(env.get("GITHUB_WORKSPACE", os.getcwd()))).resolve(strict=True)
     if not root.is_dir():
         raise EvidenceError("Workspace must be a directory")
@@ -405,15 +408,15 @@ def collect(
             selection.omit(path, "path-length-limit", size)
         elif Path(relative).suffix.lower() not in TEXT_SUFFIXES:
             selection.omit(path, "not-compact-report-type", size)
-        elif size > MAX_FILE_BYTES:
+        elif size > max_file_bytes:
             selection.omit(path, "per-file-byte-limit", size)
         elif len(retained) >= MAX_FILES - 1:
             selection.omit(path, "file-count-limit", size)
         elif total + size > MAX_TOTAL_BYTES - MAX_FILE_BYTES:
             selection.omit(path, "total-byte-limit", size)
         else:
-            data = _read_report(root, relative)
-            if len(data) > MAX_FILE_BYTES:
+            data = _read_report(root, relative, max_file_bytes)
+            if len(data) > max_file_bytes:
                 selection.omit(path, "grew-over-per-file-limit", len(data))
                 continue
             if total + len(data) > MAX_TOTAL_BYTES - MAX_FILE_BYTES:
@@ -474,7 +477,7 @@ def collect(
         "omitted": omitted,
         "missing_patterns": selection.missing,
         "warnings": selection.warnings,
-        "limits": {"file_bytes": MAX_FILE_BYTES, "total_bytes_including_receipt": MAX_TOTAL_BYTES, "files_including_receipt": MAX_FILES},
+        "limits": {"file_bytes": max_file_bytes, "total_bytes_including_receipt": MAX_TOTAL_BYTES, "files_including_receipt": MAX_FILES},
         "scope": "Compact reports only; binary/raw-image retention and upload availability are separate.",
     }
     encoded = _receipt_bytes(receipt)
@@ -525,11 +528,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     command.add_argument("--output", type=Path, required=True)
     command.add_argument("--status", choices=sorted(STATUSES), required=True)
+    command.add_argument(
+        "--max-file-bytes", type=int, default=MAX_FILE_BYTES,
+        help="Per-report byte limit (default 1 MiB, at most 7 MiB); total and metadata budgets stay fixed",
+    )
     args = parser.parse_args(argv)
     try:
         collect(
             name=args.name, paths=args.paths, required_paths=args.required_paths,
-            output=args.output, status=args.status,
+            output=args.output, status=args.status, max_file_bytes=args.max_file_bytes,
         )
     except (EvidenceError, OSError) as error:
         sys.stderr.write(_inert(f"COLLECTION ERROR: {error}"))

@@ -1,0 +1,126 @@
+{
+  "task": "PR #302 Rust coverage evidence byte-limit repair and status conflict resolution",
+  "date": "2026-11-14",
+  "source": {
+    "pr_head": "4c224ead119623b3355f30206612bf6097a4eb42",
+    "main": "31ccff4983763df0c76583cac1a536cc2a27d9bf",
+    "binding": "Parent revisions plus exact SHA-256 of verification inputs below."
+  },
+  "observed_failure": {
+    "run_id": 43594581854,
+    "job_id": 132446258992,
+    "artifact_id": 14113783698,
+    "artifact_sha256": "bef7e341c044b3d1b825614d01d548adf7ff55349aabd2fd8b4ad6d76bfbc5e0",
+    "report_path": "build/coverage-raw/rust-cobertura.xml",
+    "report_bytes": 2349735,
+    "reason": "per-file-byte-limit",
+    "old_limit_bytes": 1048576,
+    "tests_and_generation": "The original host-quality tests and coverage generation passed; preservation failed."
+  },
+  "repair": {
+    "rust_file_limit_bytes": 4194304,
+    "other_callers_default_bytes": 1048576,
+    "total_limit_bytes": 8388608,
+    "receipt_reserve_bytes": 1048576,
+    "hard_file_limit_bytes": 7340032,
+    "required_path": "build/coverage-raw/rust-cobertura.xml"
+  },
+  "regression": {
+    "fixture": "Synthetic valid UTF-8 XML matching the observed byte length; not the original coverage data. Executes the current composite action collection shell fragment with its real workflow inputs.",
+    "before_exit": 1,
+    "before_failure": "The Rust XML was omitted from compact evidence",
+    "after_exit": 0,
+    "assertions": [
+      "complete bytes preserved",
+      "SHA-256 matches",
+      "actual file and fixed total limits recorded",
+      "required XML retained"
+    ]
+  },
+  "checks": [
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'",
+      "exit": 0,
+      "tests": 34
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'",
+      "exit": 0,
+      "tests": 25
+    },
+    {
+      "command": "python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'",
+      "exit": 0,
+      "tests": 22
+    },
+    {
+      "command": "python3 -B tools/tests/test_merge_hold.py",
+      "exit": 0,
+      "tests": 13
+    },
+    {
+      "command": "actionlint -shellcheck= -pyflakes=",
+      "version": "1.7.12",
+      "download_sha256": "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8",
+      "exit": 0
+    },
+    {
+      "command": "python3 tools/progress.py --write",
+      "exit": 0
+    },
+    {
+      "command": "python3 tools/progress.py --check",
+      "exit": 0
+    },
+    {
+      "command": "git diff --check origin/main",
+      "exit": 0
+    },
+    {
+      "command": "python3 -B tools/preflight.py --strict",
+      "exit": 2,
+      "limitation": "Rust, Cargo, QEMU and OVMF unavailable"
+    },
+    {
+      "command": "python3 -B tools/build.py",
+      "exit": 1,
+      "limitation": "cargo missing"
+    },
+    {
+      "command": "python3 -B tools/run.py --smoke",
+      "exit": 1,
+      "limitation": "qemu-system-x86_64 missing"
+    }
+  ],
+  "prior_smp_evidence": {
+    "run_id": 43594581829,
+    "job_id": 132446340235,
+    "head": "4c224ead119623b3355f30206612bf6097a4eb42",
+    "conclusion": "success",
+    "scope": "All 15 legacy experimental M3/M4 profiles passed on the previous PR head. No new SMP or native result is claimed for this repair."
+  },
+  "review": "Separate read-only AI review found no blocking issue; not an independent human audit.",
+  "progress": {
+    "previous": 41,
+    "current": 41,
+    "criteria_changed": false
+  },
+  "limits": [
+    "No local Rust or QEMU execution",
+    "No GitHub runner-expression-engine execution in local fixtures",
+    "Updated-head CI and external coverage upload remain to be observed"
+  ],
+  "input_sha256": {
+    "tools/ci_evidence.py": "081e4f63b42a805321fddfb984310efac77281ef4ecee275683c2ac7e236722a",
+    ".github/actions/preserve-evidence/action.yml": "9bd96a8e1c3f4929e6b9ea59d8bd67c6afd16754e75af6ac3426529478cab30d",
+    ".github/workflows/ci.yml": "07024f931741963555f9b3b3bcb3e7434e41341dea236a90b2775ab4015707a4",
+    ".github/actionlint.yaml": "3734af96a1ae177dd5f0834de818d9ae6aa53a1ea1c6caa7329c482e07e6fcca",
+    "tests/test_ci_evidence.py": "bddee72aa79d176ad99a1c8db2097e7bdf1dc901e767ed70aa5e6daed9d52aa4",
+    "tests/test_ci_workflows.py": "eb1ed89d8cc4067308f726a7eba61274551444c46fe560dd3c977bf520595586",
+    "tests/test_ci_evidence_workflow_verifier.py": "3ef12615e5c32f31f494bfccd4565f1b4074989bf6ff6092b47c119c5715f090",
+    "tests/test_security_alerts_summary.py": "7d354696849a85f8b81ac34d9130372951895291b25a990fafc7bb02cd09ba0b",
+    "tools/security_alerts_summary.py": "ff4dcdbdba2fdcf96d0efeb5310a1ce184bc2da45dcaf2a4c62a908c8934db03",
+    "tools/tests/test_merge_hold.py": "924b77ae374caaf5725cbbf43fb43fe6aca60c093287f7d0fadede557e0f9f12",
+    "tools/merge_hold.py": "91cec041cd50ead8e3afc7acb046ab90daedad89bb6cfd408bfbb917d70c79c2"
+  }
+}
