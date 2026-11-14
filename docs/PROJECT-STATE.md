@@ -1,6 +1,40 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #302 coverage evidence repair and conflict resolution — 14 November 2026
+## NEXT AGENT HANDOFF — Code scanning alert triage — 14 November 2026
+
+**Source:** reviewed main `2eb7b942cac10db727a184819812634300a8e778`;
+documentation branch `docs/code-scanning-triage-20261114`.
+
+**Result:** all 23 specified open CodeQL alerts were dismissed in GitHub with
+recorded technical reasons. The filter `is:open branch:main` changed from
+23 open / 10 closed to **0 open / 33 closed** and displayed
+`All alerts are resolved.` The existing ten closed alerts were preserved.
+
+- **Used in tests (14):** #4–#12, #20, #21, #24, #25 and #33.
+- **False positive (9):** #14–#17, #23, #26, #27, #31 and #32.
+  These cover overwritten output buffers, empty password storage, the
+  fast-key-erasure DRBG nonce and guarded live-UEFI output-pointer paths.
+
+**Evidence:** current source, all four pointer dataflows (including all three
+macro-mapped paths of #32), alert-specific/group-specific dismissal comments
+and the final GitHub list were inspected. The disposition and source hashes
+are in [the triage record](verification/code-scanning-triage-20261114.json).
+No executable code, capabilities, scan rules or workflows changed.
+
+**Verification limits:** strict preflight exits 2 because Rust/Cargo, QEMU and
+OVMF are unavailable; build and smoke exit 1 before native execution. This is
+source review and alert-state verification, not a successful native test or
+complete security audit. The pointer conclusions retain the documented
+trusted-firmware boundary; null/alignment checks alone do not prove arbitrary
+pointer validity. Local command logs: `build/code-scanning-triage-20261114/`.
+
+**Progress:** 41/100 → 41/100; no acceptance criterion changes.
+
+**Next:** review the documentation-only draft PR. Alert closure is already
+complete and does not depend on merging that record. Future changes to the
+reviewed contracts require fresh triage; no merge or auto-merge is enabled.
+
+## Previous checkpoint — PR #302 coverage evidence repair and conflict resolution — 14 November 2026
 
 **Source:** branch `code-coverage-agent/setup-code-coverage-reporting`, PR head
 `4c224ead119623b3355f30206612bf6097a4eb42`, integrated with main
