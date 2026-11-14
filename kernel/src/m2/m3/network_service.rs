@@ -10,18 +10,23 @@ const OFFSETS: [u64; 21] = [
 ];
 /// N04 revoke case: a fourth process is the policy authority for the service.
 const REVOKE: bool = cfg!(feature = "test-net-service-revoke");
+const DEVICE_RESET: bool = cfg!(feature = "test-net-service-device-reset");
 pub(super) const PROCESSES: usize = if REVOKE { 4 } else { 3 };
 struct Evidence {
     snapshots: [Option<[u64; 21]>; 4],
     kernel_tables: usize,
     exits: [u64; 4],
     revoke_requested: u64,
+    #[cfg(feature = "test-net-service-device-reset")]
+    reset_armed: bool,
 }
 static mut EVIDENCE: Evidence = Evidence {
     snapshots: [None; 4],
     kernel_tables: 0,
     exits: [0; 4],
     revoke_requested: 0,
+    #[cfg(feature = "test-net-service-device-reset")]
+    reset_armed: false,
 };
 fn evidence() -> &'static mut Evidence {
     // SAFETY: KERNEL held, IF=0; no borrow survives a scheduling point or cleanup.
@@ -118,6 +123,7 @@ pub(super) fn manifest(s: &mut State) {
         (128, 8090),
         (136, 9000),
         (144, 9001),
+        (168, u64::from(DEVICE_RESET)),
     ] {
         put(s, 0, at, value);
     }
@@ -141,7 +147,9 @@ pub(super) fn manifest(s: &mut State) {
             (96, 9000 + index as u64),
             (
                 104,
-                if index != 0 {
+                if DEVICE_RESET {
+                    3
+                } else if index != 0 {
                     0
                 } else if REVOKE {
                     2
@@ -183,6 +191,12 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
         slot < PROCESSES && evidence().snapshots[slot].is_none(),
         b"EXIT_SLOT",
     );
+    if DEVICE_RESET {
+        require(
+            s.last_event.code == u64::from(slot == 0),
+            b"RESET_EXIT_CODE",
+        );
+    }
     let mut values = [0; 21];
     for (i, at) in OFFSETS.iter().enumerate() {
         values[i] = word(s, slot, *at);
@@ -206,7 +220,15 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
         serial::write(b":");
         print_number(b"", value);
     }
-    if s.last_event.code != 0 || values[0] != 0 || values[1] != 1 || values[17] != 1 {
+    let expected_reset_failure = DEVICE_RESET
+        && slot == 0
+        && s.last_event.code == 1
+        && matches!(values[0], 12 | 15)
+        && values[1] == 1
+        && values[17] == 0;
+    if !expected_reset_failure
+        && (s.last_event.code != 0 || values[0] != 0 || values[1] != 1 || values[17] != 1)
+    {
         print_number(b"NETSVC:EXIT_SLOT:", slot as u64);
         fail(b"USER_RESULT");
     }
@@ -229,6 +251,28 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     keyring::broker_tick(s);
     network::broker_tick(s);
     require(!s.unexpected, b"UNEXPECTED_EVENT");
+    #[cfg(feature = "test-net-service-device-reset")]
+    {
+        if !evidence().reset_armed
+            && s.processes[1].status != Status::Dead
+            && s.processes[2].status != Status::Dead
+            && word(s, 1, 544) == 1
+            && word(s, 2, 400) == 1
+        {
+            network::arm_device_reset();
+            evidence().reset_armed = true;
+            put(s, 1, 112, 1);
+        }
+        // A synchronization signal only: clients must still execute a real
+        // syscall and observe their dead ingress capability being rejected.
+        if evidence().snapshots[0].is_some() {
+            for slot in 1..3 {
+                if s.processes[slot].status != Status::Dead {
+                    put(s, slot, 112, 2);
+                }
+            }
+        }
+    }
     // Test driver: once app A reports a live, idle connection, ask the policy
     // process to revoke. The authority itself is the policy's endpoint.
     if REVOKE
@@ -258,7 +302,10 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
         return None;
     }
     let service = evidence().snapshots[0].unwrap();
-    if REVOKE {
+    if DEVICE_RESET {
+        #[cfg(feature = "test-net-service-device-reset")]
+        check_device_reset(&service);
+    } else if REVOKE {
         check_revoke(&service);
     } else {
         check_n01(&service);
@@ -290,6 +337,61 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     print_number(b"NETSVC:ENTROPY_BYTES:", bytes);
     serial::write(b"NETSVC:CLEANUP:PASS\nNETSVC:PASS\nM1:PASS\n");
     serial::exit(0x10)
+}
+
+#[cfg(feature = "test-net-service-device-reset")]
+fn check_device_reset(service: &[u64; 21]) {
+    let e = evidence();
+    let (fault_tick, ticket, rx_errors) = network::device_reset_evidence();
+    require(
+        service[0] == if rx_errors == 1 { 15 } else { 12 },
+        b"RESET_FAILURE_SITE",
+    );
+    require(service[16] == 12 * rx_errors, b"RESET_RX_ERROR");
+    require(
+        e.reset_armed && matches!(service[0], 12 | 15) && service[1] == 1,
+        b"RESET_SERVICE_EXIT",
+    );
+    require(
+        service[14] == service[0] && service[18] >= fault_tick,
+        b"RESET_FAILURE_CAUSE",
+    );
+    require(
+        service[19] == 12 && service[20] == ticket,
+        b"RESET_TERMINAL_TICKET",
+    );
+    require(
+        service[17] == 0 && service[13] == 0,
+        b"RESET_NOT_ORDERLY_RETIRE",
+    );
+    for slot in 1..3 {
+        let app = e.snapshots[slot].unwrap();
+        require(
+            app[0] == 0 && app[1] == 1 && app[17] == 1,
+            b"RESET_APP_FINISHED",
+        );
+        require(
+            app[4] == 1 && app[6] == 1 && app[11] == 1,
+            b"RESET_APP_AUTHORITY",
+        );
+        require(matches!(app[18], 4 | 9 | 10), b"RESET_DEAD_INGRESS");
+        require(
+            app[14] >= service[18] && app[14] <= fault_tick + 500,
+            b"RESET_APP_LATENCY",
+        );
+        require(e.exits[slot] >= app[14], b"RESET_APP_EXIT_ORDER");
+        if slot == 1 {
+            require(
+                app[7] == 2 && app[19] == 1 && app[20] > 0 && app[20] <= fault_tick,
+                b"RESET_LIVE_THEN_PUBLISHED",
+            );
+        } else {
+            require(
+                app[7] == 0 && app[19] == 0 && app[20] == 0,
+                b"RESET_OTHER_APP_SCOPE",
+            );
+        }
+    }
 }
 /// N04: app B keeps its full N01 behaviour; app A saw its live connection end
 /// promptly after the policy revocation and every later use denied.

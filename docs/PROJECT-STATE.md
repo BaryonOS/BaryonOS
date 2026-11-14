@@ -2,31 +2,37 @@
 
 ## NEXT AGENT HANDOFF — issues #43, #39, #41 and #42 — 14 November 2026
 
-**Source:** branch `fix/issue43-network-usb-followup`, based on main
-`b8a7e83658bdbcd4970c26f753dda1b342fce0d4`.
+**Source:** branch `fix/issue43-network-usb-followup`, PR [#328](https://github.com/BaryonOS/BaryonOS/pull/328),
+based on main `b8a7e83658bdbcd4970c26f753dda1b342fce0d4` and integrated with
+main `31ccff4983763df0c76583cac1a536cc2a27d9bf`. The earlier public checkpoint
+`01ec2320d5255e261851fac154665313505d87bf` precedes the reset fixture.
 
-**Implemented:** routine native CI now includes live network grant revocation and
-the TCP loss/backpressure normal/cold pair, preserving separate required reports.
-The USB boot-interface parser rejects low-speed polling intervals below 10 ms.
-The [production-policy proposal](implementation/B03-PRODUCTION-POLICY-PROPOSAL.md)
-records the remaining #41 decisions; it is unapproved and changes no authority.
+**Implemented:** regular CI includes live grant revocation, TCP loss/backpressure
+with cold recovery, and the new unexpected virtual-NIC reset case. Reset occurs
+with an actual published TX, which ends as Io; old app ingress is refused and
+resource cleanup is checked. Production capability/ABI/DMA contracts are unchanged.
+The low-speed USB interval correction and the unapproved
+[production-policy proposal](implementation/B03-PRODUCTION-POLICY-PROPOSAL.md) remain.
 
-**Evidence:** integrated strict preflight and 55 Python workflow/evidence tests
-pass. USB component checks pass: 29 tests, formatting, strict Clippy and a
-freestanding build. The corrected regression fails on the original implementation.
-Native integration build/smoke and scenario runs are **pending** at this checkpoint.
-Full commands and evidence boundaries: [issue checkpoint](verification/issue43-20261114/README.md).
+**Evidence:** the earlier integrated source passed strict preflight, native
+build/smoke, normal/client-exit/revoke and the TCP loss/backpressure normal/cold
+pair. The reset component's four native cases passed on one source fingerprint,
+with independent review, 18 driver and 19 peer/oracle host tests. The integrated
+workflow contracts now pass 25 tests; the USB correction passed 29 component
+tests, fmt, Clippy and a freestanding build. Source boundaries and retained
+failures: [checkpoint](verification/issue43-20261114/README.md) and
+[reset receipt](verification/issue43-20261114/network-reset.md).
 
-**Open:** #39 needs a source-bound unexpected-device-reset and exhaustion matrix;
-a test-only reset-containment profile is being implemented in an isolated worktree.
-#41 requires approved production trust/persistence choices and separately
-authorized production signing. #42 requires native USB execution/hotplug and
-physical reference evidence. #43's 50/100 target remains open.
+**Open:** final combined-source native gates and #39's native per-owner port
+exhaustion fixture. #41 needs approved trust/persistence decisions and separate
+production signing authorization. #42 still needs native USB/hotplug and physical
+reference evidence; #43's 50/100 target is not met. PR #328 retains its
+`acceptance-pending` hold, and merging requires the project owner's explicit approval.
 
-**Progress:** 41/100 → 41/100; no criterion or fixed weight changes.
+**Progress:** 41/100 → 41/100; no criterion or fixed-weight changes.
 
-**Next:** run the standard build/smoke and existing native network scenarios,
-review the test-only reset fixture, and record actual results before acceptance.
+**Next:** integrate the verified exhaustion fixture, run the full network matrix
+on a frozen combined source and record actual final outcomes before acceptance.
 
 ## Previous checkpoint — PR #321 conflict resolution — 14 November 2026
 

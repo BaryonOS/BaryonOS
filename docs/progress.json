@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "b8a7e83658bdbcd4970c26f753dda1b342fce0d4",
+    "source_commit": "01ec2320d5255e261851fac154665313505d87bf",
     "assessment_basis": "source_commit",
     "branch": "fix/issue43-network-usb-followup",
-    "task": "Advance issues #43, #39, #41 and #42 with native negative CI coverage, USB interval correction and a production-policy proposal",
+    "task": "Add native unexpected NIC-reset containment evidence while advancing issues #43, #39, #41 and #42",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Existing native network revocation and TCP loss/backpressure scenarios are added to routine CI with distinct required evidence. Low-speed USB interrupt descriptors below 10 ms are rejected; the corrected exhaustive regression fails on the old source and all 29 USB tests, formatting, Clippy and the freestanding build pass on the fix. A production-policy proposal makes the remaining #41 decisions reviewable without creating keys or granting authority. Integrated strict preflight and 55 Python workflow/evidence tests pass. Native build/smoke and network scenario runs on this integration are pending; no new criterion is accepted. Main 31ccff4983763df0c76583cac1a536cc2a27d9bf is integrated with its merge-hold and explicit merge-approval requirements intact."
+    "summary": "41/100 remains 41/100. The native unexpected device-reset profile passes with normal/client-exit/revoke on one component source fingerprint, and an independent review found no remaining blocking finding. The integrated earlier checkpoint passed strict preflight, native build/smoke, all three existing network cases and the TCP loss/backpressure normal/cold pair. The reset case is now included in routine CI with required evidence. USB correction and the unapproved production-policy proposal are retained. Final integrated native verification and native owner-port exhaustion remain pending. Production signing, physical USB acceptance and the 50/100 target remain open; no criteria or weights change. Main merge-hold and explicit merge-approval requirements remain intact."
   },
   "tracks": [
     {

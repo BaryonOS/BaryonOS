@@ -10,6 +10,19 @@ use tx_state::{Binding, Completion};
 const PART: usize = 320;
 const PARTS: usize = MAX_FRAME_BYTES.div_ceil(PART);
 const RESET_TICKS: u64 = 10;
+#[cfg(feature = "test-net-service-device-reset")]
+struct ResetFault {
+    armed: bool,
+    tick: u64,
+    ticket: u64,
+    submitted: u64,
+    received: u64,
+    status: (u8, u8, bool, bool),
+    terminal_reads: u64,
+    terminal_code: i64,
+    rx_errors: u64,
+    rx_error_code: i64,
+}
 struct Runtime {
     device: Option<Device>,
     owner: Option<(u64, u64, u64)>, // PID, handle, object generation key
@@ -31,6 +44,8 @@ struct Runtime {
     timeouts: u64,
     resets: u64,
     reset_acks: u64,
+    #[cfg(feature = "test-net-service-device-reset")]
+    fault: ResetFault,
 }
 static mut RUNTIME: Runtime = Runtime {
     device: None,
@@ -53,6 +68,19 @@ static mut RUNTIME: Runtime = Runtime {
     timeouts: 0,
     resets: 0,
     reset_acks: 0,
+    #[cfg(feature = "test-net-service-device-reset")]
+    fault: ResetFault {
+        armed: false,
+        tick: 0,
+        ticket: 0,
+        submitted: 0,
+        received: 0,
+        status: (0, 0, false, false),
+        terminal_reads: 0,
+        terminal_code: 0,
+        rx_errors: 0,
+        rx_error_code: 0,
+    },
 };
 fn runtime() -> &'static mut Runtime {
     // SAFETY: KERNEL held, IF=0, permanent service stack. No borrow survives
@@ -218,6 +246,11 @@ pub(super) fn syscall(s: &mut State, slot: usize, number: u64, args: [u64; 6]) -
             if code != -8 {
                 runtime().denied += 1;
             }
+            #[cfg(feature = "test-net-service-device-reset")]
+            if code != -8 && number == 0x72 && runtime().fault.ticket != 0 {
+                runtime().fault.rx_errors += 1;
+                runtime().fault.rx_error_code = code;
+            }
             (code, 0)
         }
     }
@@ -261,6 +294,16 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
             r.next_ticket = next;
             r.pending = Some((pid, key, ticket));
             r.tx_submitted += 1;
+            #[cfg(feature = "test-net-service-device-reset")]
+            if r.fault.armed && r.fault.ticket == 0 {
+                // The normal send has published/notified a real descriptor.
+                // Do not call begin_reset: software still believes it is live.
+                r.fault.status = r.device.as_mut().unwrap().inject_device_reset().unwrap();
+                r.fault.tick = s.ticks;
+                r.fault.ticket = ticket;
+                r.fault.submitted = r.tx_submitted;
+                r.fault.received = r.rx_delivered;
+            }
             Ok(ticket)
         }
         0x71 => {
@@ -271,6 +314,11 @@ fn call(s: &mut State, slot: usize, n: u64, a: [u64; 6]) -> Result<u64, i64> {
             if let Some((binding, result)) = r.completed {
                 if binding != (pid, key, a[1]) {
                     return Err(-1);
+                }
+                #[cfg(feature = "test-net-service-device-reset")]
+                if r.fault.ticket == a[1] {
+                    r.fault.terminal_reads += 1;
+                    r.fault.terminal_code = result.err().unwrap_or(0);
                 }
                 r.completed = None;
                 return result.map(|n| n as u64);
@@ -395,17 +443,78 @@ pub(super) fn finished() -> bool {
         && r.completed.is_none()
         && !r.resetting
         && !r.quarantined
-        && r.reset_acks == 1
+        && if cfg!(feature = "test-net-service-device-reset") {
+            (1..=2).contains(&r.reset_acks) && r.reset_acks == r.resets
+        } else {
+            r.reset_acks == 1
+        }
+}
+#[cfg(feature = "test-net-service-device-reset")]
+pub(super) fn arm_device_reset() {
+    let r = runtime();
+    assert!(!r.fault.armed && r.fault.ticket == 0 && r.offline == 0);
+    r.fault.armed = true;
+}
+#[cfg(feature = "test-net-service-device-reset")]
+pub(super) fn device_reset_evidence() -> (u64, u64, u64) {
+    let r = runtime();
+    assert!(r.fault.armed && r.fault.tick > 0 && r.fault.ticket > 0);
+    assert_eq!(r.fault.status, (15, 0, true, true));
+    assert_eq!(r.fault.terminal_reads, 1);
+    assert_eq!(r.fault.terminal_code, -12);
+    assert!(r.fault.rx_errors <= 1);
+    assert_eq!(
+        r.fault.rx_error_code,
+        if r.fault.rx_errors == 1 { -12 } else { 0 }
+    );
+    // No new publication or delivery after the unexpected status change.
+    assert_eq!(r.tx_submitted, r.fault.submitted);
+    assert_eq!(r.rx_delivered, r.fault.received);
+    for (label, value) in [
+        (&b"SYSTEM:NET_FAULT_TICK:"[..], r.fault.tick),
+        (b"SYSTEM:NET_FAULT_TICKET:", r.fault.ticket),
+        (b"SYSTEM:NET_FAULT_TX:", r.fault.submitted),
+        (b"SYSTEM:NET_FAULT_RX:", r.fault.received),
+        (
+            b"SYSTEM:NET_FAULT_STATUS_BEFORE:",
+            u64::from(r.fault.status.0),
+        ),
+        (
+            b"SYSTEM:NET_FAULT_STATUS_AFTER:",
+            u64::from(r.fault.status.1),
+        ),
+        (b"SYSTEM:NET_FAULT_BME_BEFORE:", u64::from(r.fault.status.2)),
+        (b"SYSTEM:NET_FAULT_BME_AFTER:", u64::from(r.fault.status.3)),
+        (b"SYSTEM:NET_TERMINAL_READS:", r.fault.terminal_reads),
+        (b"SYSTEM:NET_FAULT_RX_ERRORS:", r.fault.rx_errors),
+        (
+            b"SYSTEM:NET_FAULT_RX_ERROR_CODE:",
+            (-r.fault.rx_error_code) as u64,
+        ),
+        (
+            b"SYSTEM:NET_TERMINAL_ERROR:",
+            (-r.fault.terminal_code) as u64,
+        ),
+    ] {
+        print_number(label, value);
+    }
+    (r.fault.tick, r.fault.ticket, r.fault.rx_errors)
 }
 pub(super) fn print_and_check(tx: u64, rx: u64) {
     let r = runtime();
-    assert_eq!(r.tx_submitted, r.tx_completed);
+    assert_eq!(
+        r.tx_submitted,
+        r.tx_completed + u64::from(cfg!(feature = "test-net-service-device-reset"))
+    );
     assert_eq!(tx, r.tx_completed);
     assert_eq!(rx, r.rx_delivered);
     // Only observer expectations differ. Authority checks, owned copy plans,
     // DMA lifetime, finite TX deadlines and reset/quarantine are unchanged.
     if cfg!(feature = "native-system-tcp") {
         assert!(r.tx_completed > 0 && r.rx_delivered > 0 && r.rx_completed >= r.rx_delivered);
+        #[cfg(feature = "test-net-service-device-reset")]
+        assert_eq!(r.denied, 2 + r.fault.terminal_reads + r.fault.rx_errors);
+        #[cfg(not(feature = "test-net-service-device-reset"))]
         assert_eq!(
             r.denied,
             if cfg!(feature = "native-net-service") {
@@ -416,8 +525,15 @@ pub(super) fn print_and_check(tx: u64, rx: u64) {
             }
         );
         assert_eq!(r.timeouts, 0); // Transport blackhole is not a DMA timeout.
-        assert_eq!(r.resets, 1);
-        assert_eq!(r.reset_acks, 1);
+        if cfg!(feature = "test-net-service-device-reset") {
+            // Owner exit may request a second reset after the fault ACK.
+            // Both resets must really acknowledge; quarantine is never a pass.
+            assert!((1..=2).contains(&r.resets));
+            assert_eq!(r.reset_acks, r.resets);
+        } else {
+            assert_eq!(r.resets, 1);
+            assert_eq!(r.reset_acks, 1);
+        }
     } else {
         assert!(r.tx_completed >= 4 && r.rx_delivered >= 5 && r.denied >= 7 && r.timeouts == 0);
     }

@@ -31,14 +31,35 @@ Branch: `fix/issue43-network-usb-followup`. Score: **41/100 → 41/100**.
 Local integration logs: `build/issue43-checks/`; USB logs are recorded in the
 component receipt. Raw logs are not copied into permanent instructions.
 
-## Pending checks and remaining requirements
+## Native checkpoints and remaining requirements
 
-At this intermediate checkpoint `tools/build.py`, `tools/run.py --smoke` and
-the integrated native network scenarios have not yet run. QEMU 10.0.13 and
-OVMF 2025.02-8+deb13u1 have been extracted to disposable local tooling;
-Rust 1.90.0 with both native targets is installed. No physical device is attached.
-The final source checkpoint must record real outcomes and preserve failures.
+The native build/smoke passed on local commit
+`426ed9bca89bb8d490c6f20a9dfb2b0d9aa6a477`, whose complete tree
+`00d2a2021522a38b47413b1ec5d4cfe50ec2d2a8` equals public checkpoint
+`860e3dbcf7417d3231b055ff2ecb284edd96474d`. The GitHub connector changes
+commit metadata; content identity was verified before publication.
 
-The three subordinate issues remain open. Production policy approval and its
-physical trust assumptions, the complete native USB/hotplug path and actual
-reference hardware evidence are not supplied by these component checks.
+Normal/client-exit/revoke all passed on public checkpoint
+`01ec2320d5255e261851fac154665313505d87bf`, source-v3
+`fd03fa148b800552194d500837903b2cfca800c56066a74c5b27d208f7a7c1e6`.
+The TCP loss/backpressure normal/cold pair passed on the identical tree
+`3855efceb00d525022f7306aee4f183be4dc326d` at local merge `acd4d74`.
+Both native TCP stages exited 33; cold recovery retained the normal image hash.
+Two earlier attempts stopped before QEMU because a required Rust 1.91.1
+toolchain and then an uncached SDK dependency were absent. Both setup failures
+remain in `build/issue43-checks/`; no source fix or relaxed test was used.
+
+The new reset profile and normal/client-exit/revoke then passed on the component
+source recorded in [network-reset.md](network-reset.md), with independent review.
+The integrated reset host checks pass: 18 driver tests, 19 peer/oracle tests,
+25 workflow contracts and the build-path checks. Final combined-source native
+gates are still required; this receipt does not relabel old passes as new ones.
+
+QEMU 10.0.13 and OVMF 2025.02-8+deb13u1 run from disposable local tooling.
+Rust 1.90.0 supplies the standard targets; the existing TCP harness additionally
+requires Rust 1.91.1. Tool binaries and firmware hashes are recorded locally in
+`build/issue43-checks/environment.json`. No physical device is attached.
+
+Native owner-port exhaustion remains under implementation. Production policy
+approval, native USB/hotplug, actual reference hardware and the 50/100 goal remain
+open. The updated project merge policy and SHA-bound acceptance hold are retained.

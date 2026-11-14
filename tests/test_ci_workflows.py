@@ -413,7 +413,7 @@ class WorkflowContractTests(unittest.TestCase):
                 observed[tokens[-1]] = tokens[0]
         self.assertEqual(observed, {
             case: f"NOS_BUILD_DIR=$GITHUB_WORKSPACE/build/n01-ci-{case}"
-            for case in ("normal", "client-exit", "revoke")
+            for case in ("normal", "client-exit", "revoke", "device-reset")
         })
         preserve, = [step for step in service["steps"]
                      if step.get("uses") == "./.github/actions/preserve-evidence"]
@@ -435,8 +435,8 @@ class WorkflowContractTests(unittest.TestCase):
         preserve, = [step for step in system["steps"]
                      if step.get("uses") == "./.github/actions/preserve-evidence"]
         required = {"build/tcp-ci/tcp-system-gate.json", "build/tcp-loss-ci/tcp-system-gate.json"}
-        self.assertTrue(required <= set(preserve["with"]["required-paths"].splitlines()))
-        self.assertTrue(required <= set(preserve["with"]["path"].splitlines()))
+        self.assertLessEqual(required, set(preserve["with"]["required-paths"].splitlines()))
+        self.assertLessEqual(required, set(preserve["with"]["path"].splitlines()))
 
     def test_public_prs_keep_minimal_token_permissions(self):
         """Allow narrowly scoped writes only for CodeQL and orphan-run cleanup."""

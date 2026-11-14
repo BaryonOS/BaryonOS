@@ -462,6 +462,24 @@ impl<T: Io> Engine<T> {
         Ok(Some(size))
     }
 
+    /// Fault injection only: reset the actual device without changing the
+    /// driver's ready/posted state. Ordinary health checks must detect it.
+    #[cfg(any(test, feature = "test-device-reset"))]
+    fn inject_device_reset(&mut self) -> Result<(u8, u8, bool, bool), Error> {
+        let before = self.io.read8(self.common + 20);
+        if !self.ready || !self.queues[TX].posted || before != 15 {
+            return Err(Error::Io);
+        }
+        let master_before = self.io.bus_master_enabled();
+        self.io.write8(self.common + 20, 0);
+        Ok((
+            before,
+            self.io.read8(self.common + 20),
+            master_before,
+            self.io.bus_master_enabled(),
+        ))
+    }
+
     fn begin_reset(&mut self) {
         self.ready = false;
         self.io.write8(self.common + 20, 0);
@@ -523,6 +541,11 @@ impl Device {
     }
     pub fn begin_reset(&mut self) {
         self.engine.begin_reset();
+    }
+    /// Native fault fixture only; unavailable in ordinary driver builds.
+    #[cfg(feature = "test-device-reset")]
+    pub fn inject_device_reset(&mut self) -> Result<(u8, u8, bool, bool), Error> {
+        self.engine.inject_device_reset()
     }
     pub fn reset_acknowledged(&self) -> bool {
         self.engine.reset_acknowledged()

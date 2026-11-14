@@ -24,10 +24,11 @@ from common import (ROOT, BUILD, environment, firmware, qemu_machine, sha256,
 from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json, load_json
 from run_system import check_esp, network_arguments
-from network_service_peer import Peer, validate_transcript, REQUESTS, RESPONSES, MAX_FRAMES
+from network_service_peer import Peer, validate_transcript, REQUESTS, RESPONSES, RESET_PROBE, MAX_FRAMES
 
 FEATURE = "native-net-service"
-FEATURES = {"normal": FEATURE, "client-exit": "test-net-service-client-exit", "revoke": "test-net-service-revoke"}
+FEATURES = {"normal": FEATURE, "client-exit": "test-net-service-client-exit", "revoke": "test-net-service-revoke",
+            "device-reset": "test-net-service-device-reset"}
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
 OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536, 544, 552)
 ROLES = ("SERVICE", "APP_A", "APP_B")
@@ -108,6 +109,63 @@ def integer(value, low=0, high=(1 << 64) - 1):
     return value
 
 
+def reset_sequence(found, network, exit_ticks, entropy):
+    """Require a real status fault, terminal ticket, dead ingress and cleanup."""
+    expected = {"NET_TX_SUBMITTED", "NET_TX_COMPLETED", "NET_RX_COMPLETED", "NET_RX_DELIVERED",
+                "NET_DENIED", "NET_TX_TIMEOUTS", "NET_RESETS", "NET_RESET_ACKS",
+                "NET_FAULT_TICK", "NET_FAULT_TICKET", "NET_FAULT_TX", "NET_FAULT_RX",
+                "NET_FAULT_STATUS_BEFORE", "NET_FAULT_STATUS_AFTER", "NET_FAULT_BME_BEFORE",
+                "NET_FAULT_BME_AFTER", "NET_TERMINAL_READS", "NET_TERMINAL_ERROR",
+                "NET_FAULT_RX_ERRORS", "NET_FAULT_RX_ERROR_CODE"}
+    if set(network) != expected:
+        raise ValueError("Missing or unknown native reset observations")
+    tick = integer(network["NET_FAULT_TICK"], 1, 6000)
+    ticket = integer(network["NET_FAULT_TICKET"], 1, MAX_FRAMES)
+    rx_errors = integer(network["NET_FAULT_RX_ERRORS"], 0, 1)
+    fixed = {"NET_FAULT_STATUS_BEFORE": 15, "NET_FAULT_STATUS_AFTER": 0,
+             "NET_FAULT_BME_BEFORE": 1, "NET_FAULT_BME_AFTER": 1,
+             "NET_TERMINAL_READS": 1, "NET_TERMINAL_ERROR": 12,
+             "NET_DENIED": 3 + rx_errors, "NET_TX_TIMEOUTS": 0,
+             "NET_FAULT_RX_ERROR_CODE": 12 * rx_errors}
+    if any(network[k] != v for k, v in fixed.items()):
+        raise ValueError("Reset was not detected through the pending ticket's ordinary Io path")
+    if (network["NET_TX_SUBMITTED"] != network["NET_TX_COMPLETED"] + 1
+            or network["NET_FAULT_TX"] != network["NET_TX_SUBMITTED"]
+            or network["NET_FAULT_RX"] != network["NET_RX_DELIVERED"]
+            or network["NET_RX_COMPLETED"] != network["NET_RX_DELIVERED"]
+            or not 1 <= network["NET_RESETS"] <= 2
+            or network["NET_RESET_ACKS"] != network["NET_RESETS"]):
+        raise ValueError("Uncertain publication replayed, receive continued or reset did not acknowledge")
+    service = found["SERVICE"]
+    fixed_service = {400: 1, 448: 0, 456: 0, 464: 1,
+                     472: len(REQUESTS[0]) + len(RESET_PROBE), 480: 0, 488: 0, 496: 0,
+                     512: 0, 520: 12 * rx_errors, 528: 0, 544: 12, 552: ticket}
+    if (any(service[k] != v for k, v in fixed_service.items())
+            or service[240] != (15 if rx_errors else 12) or service[504] != service[240]
+            or service[416] != network["NET_TX_COMPLETED"]
+            or service[424] != network["NET_RX_DELIVERED"]
+            or not tick <= service[536] <= tick + 500):
+        raise ValueError("Service did not terminate on the original reset ticket")
+    for role in ROLES[1:]:
+        app = found[role]
+        exact = dict.fromkeys(OFFSETS, 0)
+        exact.update({400: 1, 424: 1, 440: 1, 480: 1, 528: 1})
+        if role == "APP_A":
+            exact.update({448: 2, 544: 1})
+            if not 1 <= app[552] <= tick:
+                raise ValueError("No live app connection before device reset")
+        elif app[552] != 0:
+            raise ValueError("Unaffected app claimed the reset connection")
+        if (any(app[k] != v for k, v in exact.items() if k not in (504, 536, 552))
+                or app[536] not in (4, 9, 10)
+                or not service[536] <= app[504] <= tick + 500
+                or exit_ticks[role] < app[504]):
+            raise ValueError("Client did not observe dead ingress within the reset bound")
+    return {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()},
+            "network": network, "entropy_bytes": entropy, "exit_ticks": exit_ticks,
+            "reset_tick": tick}
+
+
 def sequence(stdout, case="normal"):
     if case not in FEATURES:
         raise ValueError("Unknown native service case")
@@ -176,6 +234,8 @@ def sequence(stdout, case="normal"):
         raise ValueError("Actual service entropy acquisition missing")
     if any(set(values) != set(OFFSETS) for values in found.values()):
         raise ValueError("Incomplete native process snapshot")
+    if case == "device-reset":
+        return reset_sequence(found, network, exit_ticks, entropy)
     for role, values in found.items():
         if values[240] != 0 or values[400] != 1 or values[528] != 1:
             raise ValueError("Process failed or did not initialize/cleanly finish: " + role)
@@ -273,6 +333,13 @@ def evaluate(report, peer, *, case="normal"):
     replay = validate_transcript(peer, case=case)
     net = observed["network"]
     counts = replay["counts"]
+    if case == "device-reset":
+        # The reset publication can have reached the peer once before reset;
+        # absence of a completion is not proof that the device sent no bytes.
+        if (net["NET_TX_COMPLETED"] != counts["client_frames"] - counts["device_reset_probes"]
+                or net["NET_RX_DELIVERED"] != counts["server_frames"]):
+            raise ValueError("Reset wire transcript contradicts completed and uncertain publications")
+        return observed
     if (net["NET_TX_COMPLETED"] != counts["client_frames"]
             or net["NET_RX_DELIVERED"] != counts["server_frames"]
             or counts["udp_requests"] != (2 if case == "normal" else 1)

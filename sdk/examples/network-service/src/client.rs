@@ -269,6 +269,109 @@ fn policy() -> ! {
     support::put(528, 1);
     native::exit(0)
 }
+/// N01 device-reset fixture: real connection, uncertain TX and dead ingress.
+fn device_reset(
+    session: &mut Session<NativeTransport>,
+    send: SendEndpoint,
+    receive: ReceiveEndpoint,
+    epoch: u64,
+    slot: usize,
+) -> ! {
+    const PROBE: &[u8] = b"reset-probe";
+    let start = tick();
+    let packet = if slot == 0 {
+        let connection = session
+            .open([192, 0, 2, 1], 8080, 3000)
+            .unwrap_or_else(|_| fail(80));
+        loop {
+            check(tick() - start < 1000, 81);
+            match session.state(connection) {
+                Ok(ConnectionState::Established) => break,
+                Ok(ConnectionState::Connecting) => yield_now(),
+                _ => fail(82),
+            }
+        }
+        check(
+            session.send(connection, REQUEST_A) == Ok(REQUEST_A.len()),
+            83,
+        );
+        bump(448);
+        // The peer requires the complete real handshake/request. The pause
+        // permits its ACK to drain; a short pause cannot fabricate that proof.
+        let queued = tick();
+        while tick() - queued < 50 {
+            yield_now();
+        }
+        check(
+            session.state(connection) == Ok(ConnectionState::Established),
+            84,
+        );
+        support::put(544, 1);
+        support::put(552, tick());
+        while support::word(112) != 1 {
+            check(tick() - start < 1000, 85);
+            yield_now();
+        }
+        let packet = Packet::request(
+            HeaderFields {
+                operation: Operation::SendTcp,
+                request: 1_000_000,
+                epoch,
+                connection: connection.id(),
+                argument: PROBE.len() as u32,
+                address: [0; 4],
+                port: 0,
+            },
+            PROBE,
+        )
+        .unwrap_or_else(|_| fail(86));
+        let message = Outgoing::new(wire::TAG, packet.bytes()).unwrap_or_else(|_| fail(87));
+        loop {
+            check(tick() - start < 1000, 88);
+            match native::send(send, &message) {
+                Ok(()) => break,
+                Err(e) if e.is_again() => yield_now(),
+                _ => fail(89),
+            }
+        }
+        bump(448);
+        packet
+    } else {
+        Packet::request(
+            HeaderFields {
+                operation: Operation::OpenTcp,
+                request: 1_000_000,
+                epoch,
+                connection: 0,
+                argument: 300,
+                address: [192, 0, 2, 1],
+                port: 8090,
+            },
+            &[],
+        )
+        .unwrap_or_else(|_| fail(90))
+    };
+    while support::word(112) != 2 {
+        check(tick() - start < 1500, 91);
+        yield_now();
+    }
+    // This signal is not a success result. Both apps independently attempt
+    // their old ingress and must observe its actual capability rejection.
+    let message = Outgoing::new(wire::TAG, packet.bytes()).unwrap_or_else(|_| fail(92));
+    let denied = match native::send(send, &message) {
+        Err(nieuw_os_sdk_runtime::Error::Kernel(code @ (-4 | -9 | -10))) => (-code) as u64,
+        _ => fail(93),
+    };
+    support::put(536, denied);
+    support::put(504, tick());
+    // A revoked alias may already be invalid; generic process teardown checks
+    // every remaining endpoint, capability and frame independently.
+    let _ = native::close(send.handle());
+    let _ = native::close(receive.handle());
+    support::put(528, 1);
+    native::exit(0)
+}
+
 /// N04 revoke case, app A only: the policy process withdraws this app's grant
 /// while its connection is live. The connection must end promptly and every
 /// later network use must be denied without new traffic on the wire.
@@ -401,6 +504,9 @@ fn run() -> ! {
         19,
     );
     bump(424);
+    if support::word(104) == 3 {
+        device_reset(&mut session, send, receive, epoch, slot)
+    }
     if support::word(104) == 2 {
         check(slot == 0, 60);
         revoked(&mut session)

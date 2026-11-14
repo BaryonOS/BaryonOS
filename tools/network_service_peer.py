@@ -34,7 +34,8 @@ BODIES = (b"Nieuw OS service A\n", b"Nieuw OS service B\n")
 RESPONSES = tuple(b"HTTP/1.1 200 OK\r\nContent-Length: 19\r\nConnection: close\r\n\r\n" + b for b in BODIES)
 UDP_PAYLOADS = (b"Nieuw OS UDP app A", b"Nieuw OS UDP app B")
 CORRUPT_DELAY = 0.25
-CASES = ("normal", "client-exit", "revoke")
+CASES = ("normal", "client-exit", "revoke", "device-reset")
+RESET_PROBE = b"reset-probe"
 # N04 revoke case: inbound SYNs to guest ports nobody listens on. The guest
 # must answer each with RST, never SYN-ACK (no implicit listening port).
 # Port 40000 (app A's aborted local port) is probed only after the revocation.
@@ -124,6 +125,8 @@ class Machine:
         self.case = case
         self.ports = PORTS if case == "normal" else (8084 if case == "client-exit" else 8080, *range(8090, 8095))
         self.slots = (0, 1) if case == "normal" else (1,)
+        if case == "device-reset":
+            self.ports, self.slots = (8080,), ()
         self.probes = {}
         self.connections = {}
         self.events = []
@@ -135,7 +138,7 @@ class Machine:
                  "valid_data_acks", "fins_sent", "client_fins_acked", "udp_requests",
                  "udp_corrupt_sent", "udp_wrong_scope_sent", "udp_echo_sent", "udp_overflow_sent",
                  "udp_fragment_first_sent", "udp_fragment_tail_sent", "probe_syns", "probe_rsts",
-                 "held_requests", "revoke_rsts")
+                 "held_requests", "revoke_rsts", "device_reset_probes")
         self.counts = dict.fromkeys(names, 0)
     def event(self, direction, label, frame, **fields):
         if len(self.events) >= MAX_EVENTS:
@@ -170,7 +173,7 @@ class Machine:
     def done(c):
         return c.closed or c.phase in ("refused", "reset", "blackhole", "revoked")
     def held(self, port):
-        return self.case == "revoke" and port == 8080
+        return self.case in ("revoke", "device-reset") and port == 8080
     def probe(self, guest_port):
         tcp = struct.pack("!HHIIBBHHH", PROBES[guest_port], guest_port, PROBE_ISN + guest_port, 0,
                           5 << 4, SYN, 4096, 0, 0)
@@ -303,6 +306,8 @@ class Machine:
             if self.held(s.target):
                 if c.syns != 1:
                     raise ProtocolError("held connection SYN retransmitted")
+                if self.case == "device-reset":
+                    return [self.syn_ack(c)]
                 return [self.probe(22), self.probe(443), self.syn_ack(c)]
             if case == 0 and c.syns == 1:
                 # Independent fragments precede the handshake so the existing
@@ -313,7 +318,7 @@ class Machine:
             return [self.syn_ack(c)]
         if c is None or s.source != c.source:
             raise ProtocolError("TCP without bound tuple")
-        if s.flags & RST and self.held(s.target):
+        if s.flags & RST and self.case == "revoke" and self.held(s.target):
             # Revocation aborts the live, idle connection: the abort's RST|ACK
             # at the next client sequence, never data, FIN or a new SYN. If the
             # held ACK reaches the guest after the abort, the closed tuple may
@@ -349,6 +354,17 @@ class Machine:
             return []
         if s.seq != c.client_next:
             raise ProtocolError("unexpected client sequence")
+        if self.case == "device-reset" and c.phase in ("held", "reset-probe") and s.payload:
+            # The last publication has an uncertain NIC outcome: it may reach
+            # the wire once before the device reset, but can never be replayed.
+            if (c.phase != "held" or s.payload != RESET_PROBE or s.flags != ACK | PSH
+                    or s.ack != c.server_start):
+                raise ProtocolError("changed or replayed reset publication")
+            c.phase = "reset-probe"
+            self.counts["device_reset_probes"] += 1
+            return []
+        if self.case == "device-reset" and c.phase == "reset-probe":
+            raise ProtocolError("traffic after reset publication")
         if c.phase == "request":
             if s.ack != c.server_start or s.flags & FIN:
                 raise ProtocolError("premature FIN or HTTP acknowledgment")
@@ -425,7 +441,20 @@ class Machine:
                     and self.counts["udp_fragment_first_sent"] == owners
                     and self.counts["udp_fragment_tail_sent"] == owners
                     and self.counts["client_fins_acked"] == 2 * owners)
-        if self.case == "revoke":
+        if self.case == "device-reset":
+            held = self.connections.get(8080)
+            complete = (set(self.connections) == {8080} and not self.udp and not self.probes
+                        and held is not None and held.source == 40000
+                        and held.phase in ("held", "reset-probe")
+                        and bytes(held.request) == REQUESTS[0] and not held.closed and not held.data_acked
+                        and self.counts["syns"] == self.counts["syn_acks"] == 1
+                        and self.counts["http_requests"] == self.counts["held_requests"] == 1
+                        and self.counts["device_reset_probes"] == int(held.phase == "reset-probe")
+                        and self.counts["arp_requests"] >= 1
+                        and not any(self.counts[k] for k in (
+                            "revoke_rsts", "client_fins_acked", "udp_requests", "refusals",
+                            "resets_after_get", "valid_data_sent", "probe_syns", "probe_rsts")))
+        elif self.case == "revoke":
             held = self.connections.get(8080)
             complete = (complete and held is not None and held.phase == "revoked"
                         and bytes(held.request) == REQUESTS[0] and not held.data_acked

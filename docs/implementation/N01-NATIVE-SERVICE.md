@@ -88,6 +88,7 @@ page. The service validates separate handles and different service/app PIDs.
 |120/128|first TCP port A/B; five permitted ports each|
 |136/144|exact UDP port A/B|
 |152/160|optional controllerRECV / actual controllerPID; both 0=absent|
+|168|test-only device-reset terminal observation; 0 in other profiles|
 
 The link profile is the existing NIC profile MAC02:00:00:00:00:07,
 192.0.2.2/24, peer192.0.2.1. The library supports other validated on-link
@@ -98,9 +99,11 @@ authentication.
 
 App offset 32=NETAPP01, 40 epoch, 48 SEND, 56 RECV, 64 servicePID,
 72 slot0/1, 80 actual ownPID, 88 own TCP starting port, 96 own UDP port.
-Offset104=1 selects only the separate client-failure trial for app A; the
-normal manifest writes 0. Both apps use the same ELF; the actual bootstrap
-slot selects their own test data.
+Offset104 selects normal (0), the app A client-failure trial (1), live
+revocation (2), or the device-reset containment trial (3). In the reset trial,
+app offset112 synchronizes injection and observed service exit; both clients
+must still make an actual call on the old ingress handle. Both apps use the
+same ELF; the actual bootstrap slot selects their own test data.
 
 Optional controller tag NETCTL01, payload 16 B: `NETSTOP1`@0, epoch u64@8.
 Only the bound controller may send it, without capabilities. The service
@@ -169,6 +172,8 @@ cargo +1.91.1 test --offline --locked --manifest-path services/network-service/C
 python3 -B -m unittest discover -s tools -p test_network_service_peer.py
 python3 tools/run_network_service.py --case normal
 python3 tools/run_network_service.py --case client-exit
+python3 tools/run_network_service.py --case revoke
+python3 tools/run_network_service.py --case device-reset
 ```
 
 `native-net-service` inherits only existing kernel mechanisms; a separate
@@ -185,6 +190,31 @@ byte-for-byte and decodes only valid UTF-8. It compares serial output, three
 process observations, NIC completions and causally replayed actual packets.
 It checks source, build, ELF, firmware, QEMU and stored-output binding before
 and after execution.
+
+### Unexpected device-reset containment
+
+`test-net-service-device-reset` enables a driver fault hook only for this
+native profile. After a real TCP connection and held HTTP request, the hook
+writes the actual virtio device-status register from 15 to 0 immediately
+after a further TX descriptor has been published. It leaves the software
+pending ticket and bus-master state intact. The ordinary driver health and
+broker paths must detect the fault, disable bus mastering, acknowledge reset and return
+`Io` for that same ticket exactly once. Permanent DMA pinning is unchanged.
+
+The peer permits the uncertain final frame zero or one time and rejects a
+replay. The oracle requires no further TX publication or RX delivery after
+the fault. A receive error may precede the next TX poll: only the reset
+fixture then records the actual RX `Io` and performs one real poll of its
+original pending TX ticket before retaining the existing fatal service exit.
+Service words 520/536/544/552 record the RX error, terminal-observation tick,
+TX error and ticket in this profile. Both clients must observe actual ingress
+closure after service exit, and the unchanged generic cleanup checks must
+pass. A normal or revoked service retains its existing exit contract.
+
+This is a deterministic fault injection into a real QEMU device, not a
+physical-device reset trial or an automatic reconnection/restart guarantee.
+The source-bound execution receipt and the retained first failed run are
+described in [network-reset.md](../verification/issue43-20261114/network-reset.md).
 
 Source orientation: OSDev Network Stack, W002538, revision23577
 (16 April 2019). Existing project drivers/ABI and the checked smoltcp/
