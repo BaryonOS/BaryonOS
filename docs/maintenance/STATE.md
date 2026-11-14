@@ -4,6 +4,51 @@ Branch-local state of the maintenance and security session (Session C). It recor
 evidence and the next step so the work can resume without a repository-wide
 re-triage. It is not a roadmap and does not change any progress criterion.
 
+## Resume checkpoint — 14 November 2026, 09:45 UTC (before a planned host reboot)
+
+All work of this session is committed and pushed; no local-only change exists.
+Heads: #323 `a2b76c19`, #326 `cdde817c` (`fix/nas-store-open-errors`), #327
+`15b1d705` (`fix/security-summary-malformed`); `main` `7d9498a8`. Required checks
+`host-quality` and `qemu-smoke` pass on #326 and #327; native jobs were still
+running. Nothing is approved for merge.
+
+An independent read-only review of #326 and #327 finished (AI review, not a human
+audit). Nothing above low severity was found:
+
+- **F1, low, introduced by #327:** `next_link` splits on `,` and `;` without
+  regard to quoted strings, and `is_next` takes the first `rel`. A `;` or `,`
+  inside a URI or a quoted parameter (for example `title="a; rel=prev"`) now
+  yields a silent stop where `main` raised `FetchError` or followed the link, so
+  a truncated alert count could be reported with exit 0. Not reachable with
+  GitHub's current Link format; the API-root check still guards every URL.
+- **F2, low, also on `main`:** a deeply nested JSON body raises `RecursionError`
+  in `json.load`, outside the `FetchError` handling (fails with a traceback; no
+  data or token leaks).
+- **F3, low, also on `main`:** only the first `Link` header field is read
+  (`headers.get`); `rel="next"` in a second field would stop paging silently.
+- **F7, low, #326 test portability:** with a socket path of 109 bytes or more
+  (`TMPDIR` of 74+ characters) `listen()` succeeds but no socket appears at the
+  marker path, so the socket test fails with `ENOENT` instead of skipping. CI
+  (`/tmp`, 39 bytes) is unaffected and ran the test.
+- Info only: `rel="prev, next"` is not followed (also on `main`); a boolean alert
+  `number` renders as `True`; the growth-test `fstatSync` mock is keyed on a
+  descriptor number that `close()` reuses (assertion unaffected); macOS/BSD may
+  return `EOPNOTSUPP` instead of `ENXIO` for a socket (not verified).
+- Confirmed: all four new #327 tests and the #326 socket test fail against
+  `main`; each #326 test kills its mutant; 28/28 store tests in 5 runs; the full
+  NAS suite has the same 12 N02 failures on branch and `main` (local Node 22).
+
+**Exact next action:** on `fix/security-summary-malformed`, add failing tests
+for the F1 cases, then make Link parsing fail closed (quote-aware splitting, or
+raise `FetchError` when a link-value is malformed or a `next` relation is
+ignored); in the same change catch `RecursionError` (F2) and read every `Link`
+field (F3). Run `python3 -B -m unittest tests/test_security_alerts_summary.py`
+and `tests/test_ci_workflows.py`, push, and update #327. Then on
+`fix/nas-store-open-errors`, make the socket test skip when no socket exists at
+the marker path after `listen()` (F7), run `node --test
+--experimental-test-isolation=none services/nas/tests/store.test.mjs`, push.
+Then record the results here and write the verification report.
+
 ## Session boundaries
 
 - Owned elsewhere, read-only here: branch `claude/baryon-os-ui-ux-design-152adb`
