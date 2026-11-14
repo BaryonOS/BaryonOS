@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "56dac1707092d6eae79792f92222bd41ebb352ba",
+    "source_commit": "4c224ead119623b3355f30206612bf6097a4eb42",
     "assessment_basis": "source_commit",
-    "branch": "ccr-cf45024e-merge-hold",
-    "task": "Resolve PR #321 against main 542a008f12377997b2fc55400b98facb5f5a0f77 while preserving SHA-bound merge hold, merge approval and the native window deadline decision",
+    "branch": "code-coverage-agent/setup-code-coverage-reporting",
+    "task": "Repair the Rust coverage evidence byte-limit failure in PR #302 and resolve status conflicts with main 31ccff4983763df0c76583cac1a536cc2a27d9bf",
     "previous_score": 41,
-    "summary": "41/100 stays 41/100. Both independent decisions are retained, and only assessment metadata changes in the current main criterion register. The SHA-bound merge-hold implementation, workflow and explicit merge-approval requirements remain intact. No OS criterion or native runtime acceptance is added. Verification and execution limits are recorded in docs/PROJECT-STATE.md."
+    "summary": "41/100 remains 41/100. The Rust coverage report exceeds the default compact-evidence per-file limit. A bounded per-call allowance preserves that report without changing other callers or total, receipt, preview and console budgets. Both project histories and the main criterion register are retained. This CI repair does not accept any OS criterion; actual verification and environment limits are recorded in docs/PROJECT-STATE.md."
   },
   "tracks": [
     {

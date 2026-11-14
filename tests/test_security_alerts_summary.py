@@ -337,13 +337,16 @@ class WorkflowContractTests(unittest.TestCase):
                       condition)
         self.assertIn("github.event_name != 'pull_request'", condition)
 
-    def test_actionlint_exception_is_one_message_in_one_file(self):
+    def test_actionlint_exceptions_are_scoped_to_each_workflow(self):
         config = yaml.load((ROOT / ".github/actionlint.yaml").read_text(encoding="utf-8"),
                            Loader=yaml.BaseLoader)
         # The runner-label entry belongs to the K06 matrix (tests/test_ci_workflows.py).
         self.assertEqual(config, {
             "self-hosted-runner": {"labels": ["ubuntu-26.04"]},
             "paths": {
+                ".github/workflows/ci.yml": {
+                    "ignore": ['unknown permission scope "code-quality"'],
+                },
                 ".github/workflows/security-alerts.yml": {
                     "ignore": ['unknown permission scope "vulnerability-alerts"'],
                 },
