@@ -1,6 +1,39 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #325 documentation refresh — 14 November 2026
+## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
+
+**Source:** branch `claude/baryon-os-ui-ux-design-152adb`, merge `45f476de`
+of main `3c79778b`; draft PR #332 succeeds the merged #322 (no auto-merge,
+never merge without the project owner). The PR #325 handoff below is unchanged
+apart from its heading.
+
+**Done (in Git):** the verified typography residuals (`af3d8950`) and the
+lead's reversible selection of Inter 4.001 for `type-1.0` under the project
+owner's delegation (`524df7b0`). The recorded tie (Atkinson Hyperlegible Next
+73.00, Inter 72.45 of 100) is preserved; reverting `524df7b0` alone reopens
+the choice. The cargo feature `inter-atlas` stays off by default, so the
+default native build still draws Open Sans ([TYPOGRAPHY.md](design/TYPOGRAPHY.md)
+section 7, [atlas record](verification/native-inter-atlas-20261114/README.md)).
+
+**Evidence:** `python3 -I ui/design/typography/finalist_checks.py` reproduces
+the stored output byte for byte; an independent AI verifier checked 13 claims
+(12 supported, 1 corrected). The merge result differs from main by exactly
+`git diff 41b94b47 524df7b0`. No native build or QEMU run in this step.
+
+**Open, in order:** the Orbitaal v2 board (workflow running; v2 is still a
+byte copy of v1 until reviewed), `DESIGN-SYSTEM.md` with shared tokens and
+components, the connected prototype journey under `ui/design/prototype/`
+(simulation), visual verification with at most two polish passes, and the
+native vertical slice (`docs/design/NATIVE-FEASIBILITY.md` section 4, plus the
+`ui/native` Inter licence and package entries and the high-contrast
+fingerprint review).
+
+**Progress:** 41/100 → 41/100. Design work accepts no criterion.
+
+**Next:** review the v2 board's renders, confirm the three v1 concept pages
+are unchanged, and commit the board with its screenshots.
+
+## Previous checkpoint — PR #325 documentation refresh — 14 November 2026
 
 **Source:** PR #325 head `204c4ed51585c4ba500735a90eb1c449863399f7`, integrated
 with main `299f0e39c202d67d1c2f4e31b879cbdd6add262b` (merged PR #329).
