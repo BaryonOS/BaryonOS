@@ -1,6 +1,35 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #325 conflict resolution — 14 November 2026
+## NEXT AGENT HANDOFF — PR #325 SMP and conflict repair — 14 November 2026
+
+**Source:** PR #325 head `0d47a6ee29f60270936331111ef542c2a038a36f`,
+integrated with main `2eb7b942cac10db727a184819812634300a8e778`.
+
+**Result:** the legacy SMP scheduler now maintains a scan cursor per CPU,
+preventing a pinned peer from repeatedly resetting another CPU's choice and
+starving a ready process. Both status-document conflicts are resolved while
+preserving the complete S09 handoff, D6 approval and pending conditions, and
+main's merge-hold and coverage checkpoints. Original ustar code and evidence
+remain unchanged. Retry bounds, timeouts and capability contracts are retained.
+
+**Evidence:** the final integrated source passes all 15 native SMP profiles,
+the standard strict preflight/build/smoke gate, 223 Rust tests, 23 SMP host
+tests, 48 volume harness tests, 13 IPC artifact tests and formatting. Local
+native execution uses QEMU 10.0.13; the failed CI run used 8.2.2. The old CI
+failure was a guest fixture failure, not a timeout. The shared-cursor
+starvation counterexample is established; its exact occurrence in the old
+run is not proven by that run's limited diagnostics. Full details and raw
+evidence: [PR #325 repair](verification/pr325-smp-repair/README.md).
+
+**Source-v3 fingerprint:** `4ed35695957d83b8c3bef5194888f6f4c901fdf2670695fb59a120367423bb13`.
+
+**Progress:** 41/100 → 41/100. No criterion is accepted by this repair.
+
+**Next:** confirm GitHub Actions on the published head, then resume the ordered
+S09 work in the preserved checkpoint. This repair does not implement those
+follow-up steps or authorize merging the PR.
+
+## Previous checkpoint — PR #325 conflict resolution — 14 November 2026
 
 **Source:** branch `feat/s09-ustar-export`, PR #325 head
 `27781abd61971db8d3ae3865f1ca3c61af3b8be6`, integrated with main
@@ -115,6 +144,102 @@ The workflows currently disagree with the gate: `kvm-pilot.yml` expects 9 volume
 5. Gate run 14 with the fingerprint taken before and after, `capture_volume.py`, an evidence note, then update PR #325.
 
 **Progress:** 41/100 → 41/100 (S09 not accepted).
+
+## Previous checkpoint — PR #302 coverage evidence repair and conflict resolution — 14 November 2026
+
+**Source:** branch `code-coverage-agent/setup-code-coverage-reporting`, PR head
+`4c224ead119623b3355f30206612bf6097a4eb42`, integrated with main
+`31ccff4983763df0c76583cac1a536cc2a27d9bf`.
+
+**Problem:** CI run `43594581854`, host-quality job `132446258992`, completed
+its tests and generated a 2,349,735-byte Rust Cobertura report. The evidence
+collector omitted that report because its default per-file limit is 1 MiB,
+so the required-evidence step failed. The current experimental SMP job
+`132446340235` in run `43594581829` passed all 15 legacy profiles; this repair
+adds no SMP test or timing claim.
+
+**Result:** the Rust coverage call explicitly permits reports up to 4 MiB
+and requires the exact XML path. Other calls retain the 1 MiB default. The
+8 MiB total, fixed 1 MiB receipt reserve, console, preview, file-count and
+path/content protections remain unchanged. The status and progress conflicts
+retain both PR checkpoints and the main criterion register. No SMP code or
+timeout was changed.
+
+**Evidence on the combined source:**
+- A regression fixture executes the real collector shell step with a synthetic
+  XML of the observed size. Before the repair it fails because the XML is
+  omitted; after the repair it passes with complete bytes and a matching hash.
+- 34 CI-evidence tests, 25 workflow tests, 22 security-alert tests and 13
+  merge-hold tests pass (94 total). The evidence tests also enforce default
+  limits, the fixed receipt reserve, invalid-limit rejection and file growth.
+- Checksum-verified actionlint 1.7.12, progress write/check and the full diff
+  whitespace check against main pass. A separate read-only AI review found
+  no blocking issue; this is not an independent human audit.
+- Source-bound commands, hashes and the original receipt identity:
+  [coverage-size verification](verification/pr302-coverage-size-20261114.json).
+  Local logs: `build/pr302-ci-repair/` (ignored by Git).
+
+**Execution limits:** strict preflight exits 2 because Rust, Cargo, QEMU and
+OVMF are missing; build exits 1 (`cargo` missing), and smoke exits 1
+(`qemu-system-x86_64` missing). The local fixture does not execute GitHub's
+expression engine or the external coverage upload. Current-head hosted CI
+remains required; earlier SMP evidence is not a native pass for this repair.
+
+**Progress:** 41/100 → 41/100; no criterion or acceptance evidence changes.
+
+**Next:** inspect current-head CI and the coverage-upload jobs on the existing
+PR. No merge or auto-merge is authorised by this repair.
+
+## Previous checkpoint — PR #302 coverage conflict resolution — 14 November 2026
+
+**Source:** branch `code-coverage-agent/setup-code-coverage-reporting`; published source `2b08e7ef5d836a9cd786d039da575769d52d962b`. Merge `650f2f661e35acc29a6f6fcf344f0fb16bbc2d4d` integrates PR head `d4a9cb7170e86407509b721630c11a3beb3f68dd` with main `2c72e282ca80fd3dd6bf377b3f71e2eced4a4499` without rewriting either parent. Git tree equality confirms that the published source is identical to locally verified source `175bbac1f3a738128d1e095a16b49b2baf4c9ba8`.
+
+**Result:** the three merge conflicts in the CI workflow, actionlint configuration and evidence-count test are resolved. The 28 main preservation calls and three coverage calls are retained (31 total), together with the security-alerts discovery command, hosted runner configuration and narrowly scoped permission exceptions. The security-alerts contract test explicitly permits the coverage exception while retaining its exact configuration comparison.
+
+**Evidence:** 31 CI-evidence tests, 23 workflow tests and 18 security-alerts tests pass. Checksum-verified actionlint 1.7.12 passes. The initial failing configuration assertion and its successful correction are retained in [the source-bound verification record](verification/pr302-coverage-conflicts-20261114.json); unchanged inputs to previously passing checks were compared before reusing their results.
+
+**Limits:** strict preflight exits 2 because Rust, Cargo, QEMU and OVMF are missing; build and smoke each exit 1 before native execution. Full host-quality, QEMU and GitHub coverage-upload behavior require current-head CI. Historical native evidence is not evidence for this integration.
+
+**Progress:** 41/100 → 41/100; no criterion status changes.
+
+**Next:** evaluate the existing PR's published-head checks and review; resolve any concrete CI failure without relaxing evidence or permission contracts. The PR #316 and design checkpoints below remain separate.
+
+**Base refresh:** main advanced to `5b76934ec3ad7cdad9cbe19f58d7a490a0f99d5e` after the first publication (`25df07f33138dcb24a12ab1c665847d2f7f5867a`). The two new conflicts in this status file and `docs/progress.json` are resolved by preserving both checkpoints and the current main criterion register. PR #316's scale-specific native-window timeout changes are retained. The repeated evidence (31 tests), workflow (23 tests), window-session (28 tests) and actionlint checks all pass; the 18 security-alerts tests retain identical inputs. The verification record includes the integration parents and all 78 checked input hashes.
+## Previous checkpoint — PR #321 conflict resolution — 14 November 2026
+
+**Source:** branch `ccr-cf45024e-merge-hold`, PR #321 head
+`56dac1707092d6eae79792f92222bd41ebb352ba`, integrated with main
+`542a008f12377997b2fc55400b98facb5f5a0f77`.
+
+**Result:** the conflicts in `docs/DECISIONS.md` and `docs/progress.json`
+are resolved. Both the SHA-bound merge-hold decision and the independent
+native-window deadline decision are retained. The criterion register and evidence
+match current main outside the assessment metadata. The merge-hold script,
+workflow, tests and explicit merge-approval requirements are unchanged from the
+PR head. All other current main changes and checkpoints are preserved.
+
+**Evidence on the combined source:**
+- `python3 -B tools/tests/test_merge_hold.py`: exit 0, 13 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'`: exit 0, 24 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'`: exit 0, 31 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'`: exit 0, 22 tests (latest main integration).
+- `python3 -B tools/progress.py --write`, then `--check`, and `git diff --check origin/main`: exit 0.
+
+**Execution limits:** `python3 -B tools/preflight.py --strict` returned exit 2:
+Rust/Cargo, QEMU and OVMF are unavailable. `python3 -B tools/build.py` returned
+exit 1 (`cargo` missing); `python3 -B tools/run.py --smoke` returned exit 1
+(`qemu-system-x86_64` missing). No native runtime pass is claimed. The RTK CLI
+is unavailable; command output was captured with bounded summaries under the
+Ponytail workflow. Local logs are in `/tmp/pr321-checks/`.
+The whole-merge `git diff --cached --check` reports inherited whitespace in
+design evidence and font licences imported from main; those files remain
+unchanged. The PR's delta against main passes the whitespace check.
+
+**Progress:** 41/100 → 41/100; no criterion or acceptance evidence changes.
+
+**Next:** inspect GitHub Actions on the updated PR head. Merging and enabling
+auto-merge still require explicit approval from the project owner; no ruleset
+change or release of an acceptance hold is part of this conflict resolution.
 
 ## Previous checkpoint — PR #316 conflict resolution — 14 November 2026
 

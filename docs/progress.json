@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "27781abd61971db8d3ae3865f1ca3c61af3b8be6",
+    "source_commit": "0d47a6ee29f60270936331111ef542c2a038a36f",
     "assessment_basis": "source_commit",
     "branch": "feat/s09-ustar-export",
-    "task": "Resolve PR #325 against main 2fffffc9c0416dd66fd0a6adb6457c08225c3d7b while preserving the ustar export and both project-status histories",
+    "task": "Repair the PR #325 legacy SMP revocation check and integrate main 2eb7b942cac10db727a184819812634300a8e778 while preserving both project-status histories",
     "previous_score": 41,
-    "summary": "41/100 stays 41/100. The project-state and progress-assessment conflicts are resolved without changing criteria, status or acceptance evidence. The PR converter, tests, specifications and stored evidence are preserved, including the S09 handoff recording D6 approval and its pending conditions; the current main checkpoints are retained. S09 remains open. This integration establishes no new native runtime or product acceptance; executed checks and environment limits are recorded in docs/PROJECT-STATE.md."
+    "summary": "41/100 stays 41/100. PR #325 uses a per-CPU legacy SMP scheduling cursor to remove a pinned-peer starvation counterexample. Both status conflicts retain the S09 handoff, D6 approval and pending conditions alongside the current main merge-hold and coverage checkpoints. The criterion register and original ustar implementation remain unchanged. All 15 native SMP profiles and the standard strict preflight/build/smoke gate pass locally; host checks and the original CI diagnostic limitation are recorded in docs/verification/pr325-smp-repair/README.md. No OS acceptance criterion is added."
   },
   "tracks": [
     {
