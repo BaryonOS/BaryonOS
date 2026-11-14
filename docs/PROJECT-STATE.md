@@ -1,6 +1,29 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #330 conflict resolution — 14 November 2026
+## NEXT AGENT HANDOFF — PR #330 CI fixture repair — 14 November 2026
+
+**Source:** PR #330 parent `bfc48abbf246426cea476981736ffa3967061b17`.
+
+**Problem and repair:** eight M1 artifact-binding tests failed in shared setup
+because the fixture still patched the unused `ROOT` import removed from
+`tools/test.py`. The fixture now patches only the three consumed bindings:
+`runner.ROOT`, `runner.BUILD` and `m1_gate.BUILD`. Production code and all
+test assertions remain unchanged; missing attributes still fail strictly.
+
+**Evidence:** the original eight errors were reproduced; all eight tests pass
+after repair. The exact instrumented CI runner/QEMU-host step passes all
+101 tests across six suites using workflow-pinned coverage 7.11.3. Strict
+preflight, the standard build and QEMU smoke pass. The runtime fingerprint
+is unchanged. Commands, failed attempts, source hashes and scope are in
+[the repair record](verification/pr330-ci-repair-20261114.json).
+
+**Progress:** 41/100 → 41/100; the criterion register is unchanged.
+
+**Next:** verify CI on the new commit before recording the acceptance decision
+authorized by the project owner. Zero remaining main Code Quality findings
+still requires the post-merge main scan; no such result is claimed here.
+
+## Previous checkpoint — PR #330 conflict resolution — 14 November 2026
 
 **Source:** PR #330 head `47fe2f79df4c8ee8c3a58cb8fd77b124eaff6332`,
 integrated with main `3c79778bf9e8793bfc9eaaea755d21b41f755bae`.

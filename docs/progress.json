@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "47fe2f79df4c8ee8c3a58cb8fd77b124eaff6332",
+    "source_commit": "bfc48abbf246426cea476981736ffa3967061b17",
     "assessment_basis": "parent_commit",
     "branch": "fix/python-code-quality-20261114",
-    "task": "Resolve PR #330 conflicts against main 3c79778bf9e8793bfc9eaaea755d21b41f755bae",
+    "task": "Repair PR #330 M1 fixture regression before acceptance",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The two documentation conflicts in PR #330 are reconciled by preserving both complete handoffs and the unchanged criterion register. Existing implementation and verification evidence from both parents are retained. This assessment names the PR parent; the combined source and executed checks are documented in docs/verification/pr330-conflicts-20261114.json. No criterion, weight, acceptance status or merge approval changes."
+    "summary": "41/100 remains 41/100. The obsolete M1 fixture patch of tools/test.py ROOT is removed while all assertions and actual path bindings remain intact. The original eight setup errors become eight passes; the exact instrumented CI runner step passes 101 tests, and strict preflight/build/smoke pass with unchanged runtime source. Evidence is in docs/verification/pr330-ci-repair-20261114.json. Current-head hosted CI remains required before acceptance. No criterion or weight changes."
   },
   "tracks": [
     {
