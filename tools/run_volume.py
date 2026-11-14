@@ -10,7 +10,6 @@ import argparse
 from datetime import datetime, timezone
 import hashlib
 import json
-import os
 from pathlib import Path
 import queue
 import re
@@ -20,7 +19,6 @@ import threading
 import time
 import uuid
 from common import ROOT, BUILD, environment, firmware, qemu_accel, qemu_machine, save_json, sha256, source_hash
-from build import VOLUME_FEATURES
 import volume_archive
 import volume_disk
 
@@ -107,7 +105,7 @@ def controlled(stdout: str) -> list[str]:
             if line in keep or line.startswith(("VOLUME:CASE:", "VOLUME:CUT:"))]
 
 
-def execute(args, env, *, cut_marker=None, timeout=MAX_TIMEOUT, capture_raw_output=False):
+def execute(args, env, *, cut_marker=None, timeout=MAX_TIMEOUT):
     process = subprocess.Popen(args, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err, lines = [], [], queue.Queue()
 
@@ -146,9 +144,8 @@ def execute(args, env, *, cut_marker=None, timeout=MAX_TIMEOUT, capture_raw_outp
     for thread in threads:
         thread.join(timeout=10)
     stdout, stderr = b"".join(out), b"".join(err)
-    result = (process.returncode, stdout.decode("utf-8", "replace"),
-              stderr.decode("utf-8", "replace"), timed_out, killed, running_before_kill)
-    return (*result, stdout, stderr) if capture_raw_output else result
+    return (process.returncode, stdout.decode("utf-8", "replace"),
+            stderr.decode("utf-8", "replace"), timed_out, killed, running_before_kill)
 
 
 def run_volume(case: str, volume_dir: Path | None = None, *, timeout=MAX_TIMEOUT):

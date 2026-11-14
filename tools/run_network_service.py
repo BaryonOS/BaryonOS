@@ -15,7 +15,6 @@ import re
 import shutil
 import stat
 import subprocess
-import sys
 import time
 import threading
 import uuid
@@ -79,7 +78,7 @@ def execute_native(command, env, *, timeout, limit=128 * 1024):
             try:
                 process.wait(timeout=min(0.02, remaining))
             except subprocess.TimeoutExpired:
-                pass
+                continue
         process.wait(timeout=2)
     finally:
         if process.poll() is None:

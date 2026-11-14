@@ -446,7 +446,7 @@ class WorkflowContractTests(unittest.TestCase):
                 permissions = workflow.get("permissions")
                 self.assertIsInstance(permissions, dict)
                 self.assertEqual(permissions.get("contents"), "read")
-                self.assertTrue(set(permissions.values()) <= {"read", "none"})
+                self.assertLessEqual(set(permissions.values()), {"read", "none"})
 
         for path, job_id, job in self.jobs():
             with self.subTest(path=path, job=job_id):
@@ -475,8 +475,8 @@ class WorkflowContractTests(unittest.TestCase):
                         permissions, {"contents": "read", "code-quality": "write"}
                     )
                 else:
-                    self.assertTrue(
-                        set(permissions.values()) <= {"read", "none"}
+                    self.assertLessEqual(
+                        set(permissions.values()), {"read", "none"}
                     )
 
     def test_external_actions_are_pinned_to_full_commits(self):
@@ -824,7 +824,7 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
             trigger = workflow["on"]["pull_request"] or {}
             types = trigger.get("types", ["opened", "synchronize", "reopened"])
             with self.subTest(path=path):
-                self.assertTrue({"opened", "synchronize", "reopened"} <= set(types))
+                self.assertLessEqual({"opened", "synchronize", "reopened"}, set(types))
                 self.assertNotIn("ready_for_review", types)
                 for job in workflow["jobs"].values():
                     self.assertNotIn("draft", job.get("if", ""))
@@ -887,10 +887,10 @@ cp -- "$ACTIONLINT_FIXTURE" "$output"
         workflow = self.workflows[".github/workflows/artifact-store-quality.yml"]
         for event in ("pull_request", "push"):
             with self.subTest(event=event):
-                self.assertTrue({
+                self.assertLessEqual({
                     "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", ".cargo/**",
                     ".github/actions/**", "crates/artifact-store-core/**",
-                } <= set(workflow["on"][event]["paths"]))
+                }, set(workflow["on"][event]["paths"]))
 
 
 if __name__ == "__main__":

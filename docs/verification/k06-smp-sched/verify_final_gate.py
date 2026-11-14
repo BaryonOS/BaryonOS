@@ -30,16 +30,16 @@ M2 = (
 )
 LIMITS = [
     'The artifact omits ELF/EFI/firmware/QEMU bytes. Recorded hashes and build-manifest '
-    'coherence are checked; binaries cannot be independently rehashed or executed.',
+    + 'coherence are checked; binaries cannot be independently rehashed or executed.',
     'K05 raw reports have no base_commit or artifact_binding_passed field. Their '
-    'source-v3 and ESP hashes are checked against source-bound build manifests; '
-    'commit provenance is supplied by the required GitHub run/job records.',
+    + 'source-v3 and ESP hashes are checked against source-bound build manifests; '
+    + 'commit provenance is supplied by the required GitHub run/job records.',
     'Top-level cargo check/test have the combined gate.log and green GitHub step, '
-    'not separate structured execution receipts. Host checks are not rerun by this readback.',
+    + 'not separate structured execution receipts. Host checks are not rerun by this readback.',
     'The existing serial oracles are replayed from the matching local source, not '
-    'a separately implemented hardware model or a human security audit.',
+    + 'a separately implemented hardware model or a human security audit.',
     'A successful final-gate readback does not independently verify the separate '
-    '74x50 matrix artifact; the aggregate job must also be successful.',
+    + '74x50 matrix artifact; the aggregate job must also be successful.',
 ]
 
 

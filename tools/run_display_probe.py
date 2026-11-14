@@ -428,8 +428,8 @@ def run_display_probe(*, build_directory=BUILD, run_root=None, machine=None,
         if (directory / "serial.txt").is_file():
             try:
                 report["stdout"] = serial_bytes(directory).decode("utf-8", "replace")
-            except (OSError, ValueError):
-                pass
+            except (OSError, ValueError) as serial_error:
+                report["serial_error"] = f"{type(serial_error).__name__}: {serial_error}"
         publish_json(directory / "qmp-trace.json", trace)
     finally:
         if process is not None and process.poll() is None:

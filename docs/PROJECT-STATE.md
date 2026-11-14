@@ -4,8 +4,8 @@
 
 **Source:** branch `claude/baryon-os-ui-ux-design-152adb`, merge `45f476de`
 of main `3c79778b`; draft PR #332 succeeds the merged #322 (no auto-merge,
-never merge without the project owner). The PR #325 handoff below is unchanged
-apart from its heading.
+never merge without the project owner). Main's checkpoints below are unchanged
+apart from the demoted heading of main's handoff.
 
 **Done (in Git):** the verified typography residuals (`af3d8950`) and the
 lead's reversible selection of Inter 4.001 for `type-1.0` under the project
@@ -32,6 +32,96 @@ fingerprint review).
 
 **Next:** review the v2 board's renders, confirm the three v1 concept pages
 are unchanged, and commit the board with its screenshots.
+
+## Previous checkpoint — PR #330 CI fixture repair — 14 November 2026
+
+**Source:** PR #330 parent `bfc48abbf246426cea476981736ffa3967061b17`.
+
+**Problem and repair:** eight M1 artifact-binding tests failed in shared setup
+because the fixture still patched the unused `ROOT` import removed from
+`tools/test.py`. The fixture now patches only the three consumed bindings:
+`runner.ROOT`, `runner.BUILD` and `m1_gate.BUILD`. Production code and all
+test assertions remain unchanged; missing attributes still fail strictly.
+
+**Evidence:** the original eight errors were reproduced; all eight tests pass
+after repair. The exact instrumented CI runner/QEMU-host step passes all
+101 tests across six suites using workflow-pinned coverage 7.11.3. Strict
+preflight, the standard build and QEMU smoke pass. The runtime fingerprint
+is unchanged. Commands, failed attempts, source hashes and scope are in
+[the repair record](verification/pr330-ci-repair-20261114.json).
+
+**Progress:** 41/100 → 41/100; the criterion register is unchanged.
+
+**Next:** verify CI on the new commit before recording the acceptance decision
+authorized by the project owner. Zero remaining main Code Quality findings
+still requires the post-merge main scan; no such result is claimed here.
+
+## Previous checkpoint — PR #330 conflict resolution — 14 November 2026
+
+**Source:** PR #330 head `47fe2f79df4c8ee8c3a58cb8fd77b124eaff6332`,
+integrated with main `3c79778bf9e8793bfc9eaaea755d21b41f755bae`.
+
+**Result:** the status-document conflict retains the complete Python Code
+Quality handoff and main's PR #325/S09 checkpoints, including the recorded
+D6 approval, conditions and open work. All 56 PR-changed files outside the
+two conflicted documents and all 56 main-only changed files are byte-identical
+to their respective parents. No code or workflow required a manual resolution.
+
+**Evidence:** 61 targeted host tests pass: 25 workflow, 22 CI-evidence,
+10 common-tool and four QMP/quality regressions. Strict preflight, the standard
+build and QEMU smoke pass on the combined source; smoke reports raw exit 33,
+the expected kernel markers and no timeout. The build retains the existing
+unused `serial::hex` warning. These checks do not rerun the full 678-test quality
+suite or Code Quality scan. Logs are local under `build/tokenguard/`;
+[source-bound verification](verification/pr330-conflicts-20261114.json).
+
+**Progress:** 41/100 → 41/100; this resolution accepts no additional criterion.
+
+**Next:** review the existing PR's current-head checks and, after an explicitly
+approved merge, verify a fresh main Code Quality scan. The previous scan and
+remaining-finding limitations below remain unchanged.
+
+## Previous checkpoint — Python Code Quality repair — 14 November 2026
+
+**Source:** main `299f0e39c202d67d1c2f4e31b879cbdd6add262b`;
+branch `fix/python-code-quality-20261114`.
+
+**Scope:** all 107 Python Standard findings in 17 CodeQL rules were inspected.
+77 findings have targeted code changes. The other 30 occur in 15 deliberately
+preserved historical source files and were dismissed through GitHub's quality
+UI. Their original bytes and recorded hashes remain unchanged; four old API
+callers belong to a documented before-fix checkout. No scanning rule changed.
+GitHub main currently shows 77 open findings in 14 rules; code repairs await
+an owner-approved merge and a new main scan.
+
+**Changes:** unused/mixed imports, precise assertions, explicit returns and
+cleanup behavior were corrected. QMP socket/pipe construction initializes shared
+state and negotiates through private transport methods; public command dispatch
+retains override behavior. Volume execution has a consistent six-field return.
+Network evidence failures retain a failed report. Maintained K06 verifiers were
+updated without rewriting historical acceptance hashes or limitation messages.
+
+**Verification:** 678 host tests across 38 suites pass, including four new
+regression tests. The 16 storage replay tests use byte-identical copies in a
+secure temporary directory because the existing path guard rejects `/workspace`.
+Changed Python files parse. Independent reviews found no blocking regression.
+Strict preflight exits 2; build and smoke exit 1 because Rust/Cargo, QEMU and
+OVMF are unavailable. These are host checks, not native acceptance evidence.
+
+**Evidence:** [all 107 dispositions, source hashes and test receipts](verification/code-quality-20261114.json).
+Local logs: `build/code-quality-20261114/`. Progress remains 41/100; no acceptance
+criterion changed. Generated progress views are regenerated and checked.
+
+**PR:** [#330](https://github.com/BaryonOS/BaryonOS/pull/330), draft. The automatic
+Code Quality run [43601148798](https://github.com/BaryonOS/BaryonOS/actions/runs/43601148798)
+succeeded on code commit `d4d24bdc504d870e69978dd516837b8af66958f9`; all 17 requested
+Python queries were interpreted and their SARIF uploaded. The logs do not expose
+per-rule result counts, so this does not establish zero remaining main findings.
+
+**Next:** obtain the owner's explicit merge approval, respect the required checks,
+then verify that a new main scan clears the 77 repaired findings. No merge or
+auto-merge is enabled. This follow-up records scan evidence only; Python bytes
+remain identical to the analyzed code commit.
 
 ## Previous checkpoint — PR #325 documentation refresh — 14 November 2026
 
@@ -366,7 +456,7 @@ exit 1 (`cargo` missing); `python3 -B tools/run.py --smoke` returned exit 1
 **Next:** inspect GitHub Actions on the updated PR head, including both native
 window scales, before treating the integrated source as natively verified.
 
-## Previous checkpoint — Design pipeline (Orbitaal UI/UX), paused for a planned reboot — 14 November 2026
+## Previous checkpoint — Design pipeline (Orbitaal UI/UX), paused for a planned reboot — 14 November 2026 (superseded by the design handoff at the top)
 
 **Source:** branch `claude/baryon-os-ui-ux-design-152adb`, draft PR #322 (never merge without the project owner). This section covers the design pipeline only; the S09 checkpoint below belongs to PR #318 and is unchanged apart from its heading.
 

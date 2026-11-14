@@ -617,7 +617,7 @@ def run_smp(cpus: int, *, timeout: int = MAX_TIMEOUT, profile: str = "native-smp
         "EFI/BOOT/BOOTX64.EFI": manifest.get("loader", {}).get("sha256"),
     }
     for relative, expected in expected_artifacts.items():
-        artifact = esp_path = BUILD / "esp" / relative
+        artifact = BUILD / "esp" / relative
         if (not isinstance(expected, str) or not re.fullmatch(r"[0-9a-f]{64}", expected)
                 or artifact.is_symlink() or not artifact.is_file() or sha256(artifact) != expected):
             raise ValueError(f"{profile} build artifact mismatch: {relative}")

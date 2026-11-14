@@ -83,9 +83,46 @@ def valid_sequence(stdout, screenshot_width, screenshot_height):
     return controlled == expected
 
 
-class Qmp:
-    def __init__(self, path, deadline, process):
+def _qmp_command(control, name, arguments, read, send):
+    if time.monotonic() >= control.deadline:
+        raise TimeoutError('G0 QMP exceeded the shared deadline before send')
+    control.sequence += 1
+    request = dict(execute=name, id=control.sequence)
+    if arguments is not None:
+        request['arguments'] = arguments
+    send((json.dumps(request)+'\n').encode())
+    for _ in range(1024):
+        reply = read()
+        if time.monotonic() >= control.deadline:
+            raise TimeoutError('G0 QMP exceeded the shared deadline')
+        if ('event' in reply and isinstance(reply['event'], str)
+                and not {'id', 'return', 'error'}.intersection(reply)):
+            continue
+        if (type(reply.get('id')) is not int or reply['id'] != control.sequence
+                or 'event' in reply or ('return' in reply) == ('error' in reply)):
+            raise RuntimeError('Malformed or uncorrelated QMP response')
+        control.trace.append(dict(request=request,response=reply))
+        if 'error' in reply:
+            raise RuntimeError('QMP command failed: '+str(reply['error']))
+        return reply['return']
+    raise RuntimeError('Too many QMP events without the command response')
+
+
+class _QmpProtocol:
+    """Shared protocol state without opening or negotiating any transport."""
+    def __init__(self, deadline):
         self.deadline = deadline
+        self.pending = bytearray()
+        self.sequence = 0
+        self.trace = []
+
+    def command(self, name, arguments=None):
+        return _qmp_command(self, name, arguments, self.read, self.send)
+
+
+class Qmp(_QmpProtocol):
+    def __init__(self, path, deadline, process):
+        super().__init__(deadline)
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         while True:
             try:
@@ -98,18 +135,19 @@ class Qmp:
                 time.sleep(0.02)
         self.socket.settimeout(5)
         self.reader = self.socket.makefile('rb')
-        self.pending = bytearray()
-        self.sequence = 0
-        self.trace = []
         try:
-            if 'QMP' not in self.read():
+            # Bootstrap uses this initialized transport, never subclass methods.
+            if 'QMP' not in self.__read():
                 raise ValueError('Missing QMP greeting')
-            self.command('qmp_capabilities')
+            _qmp_command(self, 'qmp_capabilities', None, self.__read, self.__send)
         except Exception:
-            self.close()
+            self.__close()
             raise
 
     def read(self):
+        return self.__read()
+
+    def __read(self):
         while True:
             remaining = self.deadline-time.monotonic()
             if remaining <= 0:
@@ -138,31 +176,10 @@ class Qmp:
                 raise RuntimeError('Missing or truncated QMP response')
             self.pending.extend(chunk)
 
-    def command(self, name, arguments=None):
-        if time.monotonic() >= self.deadline:
-            raise TimeoutError('G0 QMP exceeded the shared deadline before send')
-        self.sequence += 1
-        request = dict(execute=name, id=self.sequence)
-        if arguments is not None:
-            request['arguments'] = arguments
-        self.send((json.dumps(request)+'\n').encode())
-        for _ in range(1024):
-            reply = self.read()
-            if time.monotonic() >= self.deadline:
-                raise TimeoutError('G0 QMP exceeded the shared deadline')
-            if ('event' in reply and isinstance(reply['event'], str)
-                    and not {'id', 'return', 'error'}.intersection(reply)):
-                continue
-            if (type(reply.get('id')) is not int or reply['id'] != self.sequence
-                    or 'event' in reply or ('return' in reply) == ('error' in reply)):
-                raise RuntimeError('Malformed or uncorrelated QMP response')
-            self.trace.append(dict(request=request,response=reply))
-            if 'error' in reply:
-                raise RuntimeError('QMP command failed: '+str(reply['error']))
-            return reply['return']
-        raise RuntimeError('Too many QMP events without the command response')
-
     def send(self, data):
+        self.__send(data)
+
+    def __send(self, data):
         remaining = self.deadline-time.monotonic()
         if remaining <= 0:
             raise TimeoutError('G0 QMP exceeded the shared deadline before send')
@@ -170,27 +187,30 @@ class Qmp:
         self.socket.sendall(data)
 
     def close(self):
+        self.__close()
+
+    def __close(self):
         self.reader.close()
         self.socket.close()
 
 
-class QmpPipe(Qmp):
+class QmpPipe(_QmpProtocol):
     """The same QMP protocol through private pipes; no socket permission needed."""
     def __init__(self, process, deadline):
-        self.deadline = deadline
+        super().__init__(deadline)
         self.reader, self.writer = process.stdout, process.stdin
-        self.pending = bytearray()
-        self.sequence = 0
-        self.trace = []
         try:
-            if 'QMP' not in self.read():
+            if 'QMP' not in self.__read():
                 raise ValueError('Missing QMP greeting')
-            self.command('qmp_capabilities')
+            _qmp_command(self, 'qmp_capabilities', None, self.__read, self.__send)
         except Exception:
-            self.close()
+            self.__close()
             raise
 
     def read(self):
+        return self.__read()
+
+    def __read(self):
         while True:
             if self.deadline-time.monotonic() <= 0:
                 raise TimeoutError('G0 QMP exceeded the shared deadline')
@@ -215,6 +235,9 @@ class QmpPipe(Qmp):
             self.pending.extend(chunk)
 
     def send(self, data):
+        self.__send(data)
+
+    def __send(self, data):
         # Each write is at most PIPE_BUF: after select reports writable, this
         # private pipe's sole writer cannot block on a larger atomic write.
         descriptor = self.writer.fileno()
@@ -230,6 +253,9 @@ class QmpPipe(Qmp):
             offset += count
 
     def close(self):
+        self.__close()
+
+    def __close(self):
         self.reader.close()
         self.writer.close()
 

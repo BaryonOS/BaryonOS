@@ -116,6 +116,7 @@ def invoke(binary, data, rect, success=True, choices=CHOICES, extra=()):
         assert result.returncode == 0 and not result.stderr, result.stderr
         return result.stdout
     assert result.returncode != 0 and result.stdout == b"" and result.stderr, result
+    return None
 
 
 def main():

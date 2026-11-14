@@ -103,6 +103,7 @@ def iter_api():
 def volume(pid):
     for i,b in enumerate(BOUNDS,1):
         if pid<=b: return i
+    return None
 
 def write_block(path,header,body,anchor):
     path.parent.mkdir(parents=True,exist_ok=True)
@@ -162,7 +163,7 @@ def main():
     ap.add_argument('--book',type=Path)
     ap.add_argument('--download',action='store_true')
     a=ap.parse_args(); root=a.root.resolve(); cache=root/'.source-cache'; cache.mkdir(parents=True,exist_ok=True)
-    xml=a.xml or cache/'osdev-wiki.xml.gz'; book=a.book or cache/'book.pdf'; mode='dump'; wiki_sha=None
+    xml=a.xml or cache/'osdev-wiki.xml.gz'; book=a.book or cache/'book.pdf'; wiki_sha=None
     if a.download and not book.exists(): download(BOOK,book)
     if a.download and not xml.exists():
         try:
@@ -170,7 +171,7 @@ def main():
         except urllib.error.HTTPError as e:
             if e.code != 403: raise
             print('OSDev dump returned HTTP 403; falling back to official MediaWiki API',file=__import__('sys').stderr)
-            xml.unlink(missing_ok=True); mode='api'
+            xml.unlink(missing_ok=True)
     if not book.exists(): raise SystemExit('missing book source')
     if xml.exists():
         wiki_sha=digest(xml.read_bytes()); wiki_iter=list(iter_dump(xml)); mode='dump'

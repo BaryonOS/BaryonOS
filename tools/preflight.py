@@ -9,7 +9,6 @@ import platform
 import re
 import shutil
 import subprocess
-import sys
 from common import environment, firmware
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -204,13 +203,14 @@ def main() -> int:
         Path("/usr/share/edk2/ovmf/OVMF_CODE.fd"),
         Path("/usr/share/qemu/OVMF_CODE.fd"),
     ]
+    firmware_lookup_error = None
     if args.firmware:
         known_firmware.insert(0, args.firmware.expanduser())
     else:
         try:
             known_firmware.insert(0, firmware()[0])
-        except (RuntimeError, OSError):
-            pass
+        except (RuntimeError, OSError) as error:
+            firmware_lookup_error = f"{type(error).__name__}: {error}"
     rust = rust_inventory(tools["rustc"], tools["rustup"])
     installed_targets = [target for target in REQUIRED_TARGETS
                          if rust["targets"].get(target, {}).get("available", False)]
@@ -238,6 +238,7 @@ def main() -> int:
         "installed_rust_targets": installed_targets,
         "missing_rust_targets": missing_targets,
         "firmware_candidates": firmware_candidates,
+        "firmware_lookup_error": firmware_lookup_error,
         "missing": missing,
         "host_test_tools": list(HOST_TEST_TOOLS),
         "missing_host_test_tools": missing_host_test_tools,

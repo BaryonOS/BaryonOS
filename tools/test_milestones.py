@@ -4,9 +4,8 @@ from a feature name or compilation; require exact kernel observations and exit."
 from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
-import json
 import sys
-from common import BUILD, ROOT, run_logged, save_json
+from common import BUILD, run_logged, save_json
 from build import build
 from gate_contract import M3_CASES, M3_NONFAULT_CASES, M4_CASES
 from run import run_gate_case
