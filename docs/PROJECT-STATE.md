@@ -1,6 +1,26 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — S09 native archive slice: export, restore, damaged-archive refusal, name-conflict restore and a full target pass the local volume gate (14/14) — 13 November 2026
+## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), paused for a planned reboot — 14 November 2026
+
+**Source:** branch `claude/baryon-os-ui-ux-design-152adb`, draft PR #322 (never merge without the project owner). This section covers the design pipeline only; the S09 checkpoint below belongs to PR #318 and is unchanged apart from its heading.
+
+**Done (in Git):**
+- Audit, naming and IA, and three concepts. `ui/design/concepts/{orbitaal,triade,materie}/index.html` are the authoritative visual references and stay read-only. Orbitaal was selected with the Triade and Materie grafts and an 11-item must-fix list ([CONCEPTS.md](design/CONCEPTS.md)).
+- Typography review and the `type-1.0` tokens ([TYPOGRAPHY.md](design/TYPOGRAPHY.md)); Inter 4.001 is vendored.
+- Wordmark v2, Saira 600 at 125 % width, selected by a pre-registered blind AI review ([logotype review](verification/logotype-review-20261114/README.md), [BRAND.md](design/BRAND.md) §4, `f95bf5b2`). The project owner can redirect it to Inter 700.
+
+**Local, not in Git (unverified):** a writer applying the 82 adversarial typography findings was stopped before its verifier ran. Its edits are uncommitted in the worktree (TYPOGRAPHY.md, the typography review README, `finalist_checks.py`, `finalist-checks.txt`, FONTS.md and `docs/design/README.md`) and backed up in the ignored `build/design-pipeline-checkpoint/`, with the findings list and the workflow scripts. The lead decisions D1–D15 are in `typography-findings-apply-*.js` there. The status they introduce is: a tie under the pre-registered rule; Inter proposed as a judgement; the project owner decides.
+
+**Not done:** the Orbitaal v2 board and the native Inter atlas (both workflows were stopped before writing files); the FONTS.md row for Saira; phases D (design system), E (prototype), F (polish) and G (native slice, QEMU); the PR body refresh.
+
+**Next:**
+1. Review the uncommitted diff against D1–D15 and run only the verifier stage on it. Then commit and push, and add the FONTS.md Saira row (`Saira[wdth,wght].ttf`, google/fonts `29b4ec6d`, SHA-256 `9d050fc5…`, `OFL-Saira.txt` `f2665d47…`, wordmark outlines only).
+2. Re-run the Orbitaal v2 workflow (`orbitaal-v2-board-*.js`) with a new evidence directory.
+3. Re-run the native Inter atlas workflow (`native-inter-atlas-*.js`).
+
+**Progress:** 41/100 → 41/100. Design work accepts no criterion.
+
+## Previous checkpoint — S09 native archive slice: export, restore, damaged-archive refusal, name-conflict restore and a full target pass the local volume gate (14/14) — 13 November 2026
 
 **Source:** branch `feat/s09-native-archive`, draft PR #318 (no auto-merge). Tested commit `e88e0ad5` (source-v3 `a924a051f18bb1044526ba641d58023356e19564b5cd3a68823f90a14a1f69af`, which includes the AI-review fixes); later commits change documentation and evidence only.
 

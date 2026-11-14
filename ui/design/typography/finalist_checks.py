@@ -13,7 +13,7 @@ import struct
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).parent))
 import measure_fonts as mf  # noqa: E402
