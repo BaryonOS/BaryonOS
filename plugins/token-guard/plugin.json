@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "token-guard",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "A compact coding workflow with bounded context, preserved command evidence and native Claude hooks.",
   "author": { "name": "Simon van Ieperen" },
   "repository": "https://github.com/BaryonOS/BaryonOS",

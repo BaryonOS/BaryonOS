@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -22,6 +23,7 @@ class TokenGuardTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
+        self.env.pop("TOKENGUARD_AUTO_WRAP", None)
 
     def cli(self, *args, stdin=None, env=None):
         return subprocess.run(
@@ -79,6 +81,43 @@ class TokenGuardTests(unittest.TestCase):
         self.assertIn("$HOME", result.stdout)
         self.assertFalse((self.root / "unexpected").exists())
 
+    def test_native_and_wrapped_stdin_environment_and_argv_match(self):
+        names = ("CARGO_TERM_COLOR", "NO_COLOR", "PYTHONDONTWRITEBYTECODE", "RTK_TELEMETRY_DISABLED")
+        env = {k: v for k, v in self.env.items() if k not in names}
+        code = ("import json,os,sys; print(json.dumps({'stdin':sys.stdin.read(),"
+                f"'env':{{k:os.environ.get(k) for k in {names!r}}},'argv':sys.argv[1:]}}))")
+        command = [sys.executable, "-c", code, "literal spaces", "$HOME", "*.rs"]
+        native = subprocess.run(command, cwd=self.root, env=env, input="input π\n",
+                                capture_output=True, text=True, timeout=5)
+        wrapped = self.cli("run", "--", *command, stdin="input π\n", env=env)
+        self.assertEqual(wrapped.returncode, native.returncode, wrapped.stderr)
+        receipt = self.receipt()
+        self.assertEqual((self.root / receipt["log"]).read_bytes(), native.stdout.encode())
+        self.assertEqual(receipt["stdin"], "inherited")
+        self.assertIsNone(receipt["timeout_seconds"])
+        self.assertIn("not a transparent TTY", receipt["capture_mode"])
+
+    def test_installed_helper_operates_outside_project(self):
+        core = CLI.parents[1] / "plugins/token-guard/skills/token-guard/scripts/tokenguard.py"
+        with tempfile.TemporaryDirectory(prefix="installed plugin ") as external:
+            helper = Path(external) / "tokenguard.py"
+            shutil.copyfile(core, helper)
+            result = subprocess.run(
+                [sys.executable, "-B", str(helper), "--root", str(self.root), "run", "--",
+                 sys.executable, "-c", "from pathlib import Path; print(Path.cwd())"],
+                capture_output=True, text=True, timeout=5, env=self.env)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn(str(self.root), result.stdout)
+            self.assertEqual(self.receipt()["exit_code"], 0)
+            payload = {"hook_event_name": "PreToolUse", "tool_name": "Bash", "cwd": str(self.root),
+                       "tool_input": {"command": "python3 -m unittest"}}
+            hooked = subprocess.run([sys.executable, "-B", str(helper), "hook"],
+                                    input=json.dumps(payload), capture_output=True, text=True, timeout=5,
+                                    env={**self.env, "TOKENGUARD_AUTO_WRAP": "1"})
+            argv = shlex.split(json.loads(hooked.stdout)["hookSpecificOutput"]["updatedInput"]["command"])
+            self.assertEqual(argv[2], str(helper))
+            self.assertEqual(argv[argv.index("--root") + 1], str(self.root))
+
     def test_bounded_output_mode_does_not_hide_successful_data(self):
         result = self.run_python("print('tracked change: source.rs')", "--output", "bounded")
         self.assertEqual(result.returncode, 0)
@@ -90,9 +129,54 @@ class TokenGuardTests(unittest.TestCase):
         for n in range(30):
             self.assertEqual(result.stdout.count(f"unique-row-{n:03d}"), 1)
 
+    def test_short_ui_measurements_and_results_are_complete_in_both_modes(self):
+        output = "frame_p95_ms=14.2\ncontrast_ratio=7.1\n" + "UI detail\n" * 30 + "12 passed\n"
+        for mode in ("summary", "bounded"):
+            with self.subTest(mode=mode):
+                result = self.run_python(f"print({output!r}, end='')", "--output", mode)
+                receipt = json.loads(result.stdout.splitlines()[0])
+                self.assertEqual(result.returncode, 0)
+                self.assertIn(output, result.stdout)
+                self.assertTrue(receipt["output_complete"])
+
+    @unittest.skipUnless(os.name == "posix", "executable fixture uses POSIX shebang")
+    def test_short_single_line_json_bypasses_rtk_in_both_modes(self):
+        payload = json.dumps({"data": "x" * 4500, "frame_p95_ms": 14.2, "result": "12 passed"})
+        env = self.fake_rtk_env()
+        for mode in ("summary", "bounded"):
+            with self.subTest(mode=mode):
+                result = self.cli("run", "--output", mode, "--", sys.executable, "-c",
+                                  f"print({payload!r})", env=env)
+                receipt = json.loads(result.stdout.splitlines()[0])
+                self.assertEqual(result.returncode, 0)
+                self.assertIn(payload, result.stdout)
+                self.assertTrue(receipt["output_complete"])
+                self.assertFalse(receipt["rtk_used"])
+                self.assertNotIn("filtered", result.stdout)
+
+    def test_complete_means_sanitized_text_and_raw_bytes_remain_available(self):
+        result = self.run_python("import sys; sys.stdout.buffer.write(b'\\x1b[31mred\\x1b[0m\\x00\\xff')")
+        receipt = self.receipt()
+        self.assertTrue(receipt["output_complete"])
+        self.assertIn("UTF-8 replacement", receipt["sanitization"])
+        self.assertIn("red�", result.stdout)
+        self.assertEqual((self.root / receipt["log"]).read_bytes(), b"\x1b[31mred\x1b[0m\x00\xff")
+        displayed = json.loads(result.stdout.splitlines()[0])
+        self.assertEqual(displayed["presentation_scope"], "sanitized_text")
+        self.assertEqual(displayed["emitted_bytes"], len(result.stdout.encode("utf-8")))
+        self.assertEqual(receipt["emitted_bytes"], displayed["emitted_bytes"])
+
+    def test_large_summary_always_declares_selection(self):
+        result = self.run_python("print('frame_p95_ms=14.2'); print('progress line\\n'*2000); print('12 passed')")
+        receipt = self.receipt()
+        self.assertEqual(result.returncode, 0)
+        self.assertFalse(receipt["output_complete"])
+        self.assertIn("OUTPUT INCOMPLETE", result.stdout)
+        self.assertIn(b"frame_p95_ms=14.2", (self.root / receipt["log"]).read_bytes())
+
     def test_terminal_error_survives_many_early_warnings(self):
         result = self.run_python(
-            "import sys; print('warning: early diagnostic\\n'*90); "
+            "import sys; print('warning: early diagnostic\\n'*400); "
             "print('ERROR: terminal_failure_marker'); sys.exit(9)"
         )
         self.assertEqual(result.returncode, 9)
@@ -115,7 +199,7 @@ class TokenGuardTests(unittest.TestCase):
     @unittest.skipUnless(os.name == "posix", "executable fixture uses POSIX shebang")
     def test_rtk_filter_cannot_change_failed_command_exit(self):
         result = self.cli("run", "--", sys.executable, "-c",
-                          "import sys; print('progress line\\n'*300); sys.exit(9)", env=self.fake_rtk_env())
+                          "import sys; print('progress line\\n'*3000); sys.exit(9)", env=self.fake_rtk_env())
         self.assertEqual(result.returncode, 9)
         self.assertTrue(self.receipt()["rtk_used"])
 
@@ -131,6 +215,13 @@ class TokenGuardTests(unittest.TestCase):
         result = self.run_python("import time; time.sleep(10)", "--timeout", "0.1")
         self.assertEqual(result.returncode, 124)
         self.assertEqual(self.receipt()["exit_code"], 124)
+
+    def test_invalid_explicit_timeouts_do_not_run_the_command(self):
+        for value in ("0", "-1", "nan", "inf"):
+            with self.subTest(timeout=value):
+                result = self.run_python("from pathlib import Path; Path('unexpected').touch()", "--timeout", value)
+                self.assertEqual(result.returncode, 2)
+                self.assertFalse((self.root / "unexpected").exists())
 
     @unittest.skipUnless(os.name == "posix", "POSIX process group contract")
     def test_timeout_stops_descendant_process(self):
@@ -232,12 +323,34 @@ class TokenGuardTests(unittest.TestCase):
     def test_long_traceback_retains_final_exception(self):
         result = self.run_python(
             "import sys; print('Traceback (most recent call last):'); "
-            "print('  nested stack frame\\n'*40); "
+            "print('  nested stack frame\\n'*500); "
             "print('FileNotFoundError: missing-program-marker'); sys.exit(1)"
         )
         self.assertEqual(result.returncode, 1)
         self.assertIn("FileNotFoundError: missing-program-marker", result.stdout)
         self.assertIn("OMITTED", result.stdout)
+
+    def test_oversized_diagnostic_line_number_cannot_replace_command_exit(self):
+        diagnostic = 'File "x.py", line ' + '9' * 5000 + '\n'
+        result = self.run_python(f"import sys; print({diagnostic!r}, end=''); sys.exit(7)")
+        self.assertEqual(result.returncode, 7, result.stderr)
+        receipt = self.receipt()
+        self.assertEqual(receipt["exit_code"], 7)
+        self.assertTrue(receipt["output_complete"])
+        self.assertIn(diagnostic, result.stdout)
+        self.assertEqual((self.root / receipt["log"]).read_text(), diagnostic)
+
+    def test_auto_source_is_labelled_as_post_command_current_file(self):
+        source = self.root / "mutated.rs"
+        source.write_text("before_run = 1\n")
+        result = self.run_python(
+            "from pathlib import Path; import sys; print('error: changed source\\n --> mutated.rs:1:1'); "
+            "Path('mutated.rs').write_text('after_run = 2\\n'); sys.exit(1)"
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("after_run = 2", result.stdout)
+        self.assertIn("post-command/current file; not tested-source identity", result.stdout)
+        self.assertEqual(self.receipt()["source_context"], "post-command/current file; not tested-source identity")
 
     def test_diagnostic_cannot_disclose_source_outside_root(self):
         with tempfile.TemporaryDirectory() as external:
@@ -294,6 +407,36 @@ class TokenGuardTests(unittest.TestCase):
         self.assertLess(len(result.stdout.encode()), 12000)
         self.assertRegex(result.stdout.lower(), "truncat|omitt|limit")
 
+    def test_byte_window_replays_the_end_of_a_giant_line(self):
+        path = self.root / "giant.log"
+        path.write_bytes(b"x" * 1_000_000 + b"END_OF_GIANT_LINE")
+        result = self.cli("log", "giant.log", "--offset", "999997", "--length", "12000")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        metadata = json.loads(result.stdout.splitlines()[0])
+        self.assertIn("xxxEND_OF_GIANT_LINE", result.stdout)
+        self.assertEqual(metadata["offset"], 999997)
+        self.assertEqual(metadata["next_offset"], path.stat().st_size)
+        self.assertEqual(metadata["file_size"], path.stat().st_size)
+        self.assertTrue(metadata["eof"])
+        self.assertEqual(metadata["offset_unit"], "raw bytes")
+        self.assertIn("control characters removed", metadata["sanitization"])
+
+    def test_byte_window_validates_range_mode_and_root(self):
+        (self.root / "small.log").write_bytes(b"12345")
+        cases = [("--offset", "-1"), ("--offset", "6"), ("--length", "0"),
+                 ("--length", "12001"), ("--offset", "0", "--start", "1"),
+                 ("--length", "5", "--lines", "1")]
+        for options in cases:
+            with self.subTest(options=options):
+                self.assertEqual(self.cli("log", "small.log", *options).returncode, 2)
+        with tempfile.TemporaryDirectory() as external:
+            path = Path(external) / "outside.log"
+            path.write_text("outside")
+            self.assertEqual(self.cli("log", str(path), "--offset", "0").returncode, 2)
+            if os.name == "posix":
+                (self.root / "outside-link.log").symlink_to(path)
+                self.assertEqual(self.cli("log", "outside-link.log", "--offset", "0").returncode, 2)
+
     def test_stats_reports_measurements_not_token_guarantees(self):
         self.run_python("print('progress\\n'*200)")
         result = self.cli("stats")
@@ -301,14 +444,21 @@ class TokenGuardTests(unittest.TestCase):
         self.assertIn("bytes", result.stdout)
         self.assertNotIn("tokens saved", result.stdout.lower())
 
-    def hook(self, command, **extra):
+    def hook(self, command, *, enabled=False, **extra):
         payload = {"hook_event_name": "PreToolUse", "tool_name": "Bash",
                    "cwd": str(self.root), "tool_input": {"command": command, "timeout": 12345}}
         payload.update(extra)
-        return self.cli("hook", stdin=json.dumps(payload))
+        env = {**self.env, "TOKENGUARD_AUTO_WRAP": "1"} if enabled else self.env
+        return self.cli("hook", stdin=json.dumps(payload), env=env)
+
+    def test_claude_hook_is_a_noop_without_explicit_opt_in(self):
+        result = self.hook("python3 -B tools/preflight.py --strict")
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(result.stderr, "")
 
     def test_claude_hook_preserves_permissions_arguments_and_tool_fields(self):
-        result = self.hook("python3 -B tools/preflight.py --strict")
+        result = self.hook("python3 -B tools/preflight.py --strict", enabled=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         data = json.loads(result.stdout)
         output = data["hookSpecificOutput"]
@@ -325,14 +475,24 @@ class TokenGuardTests(unittest.TestCase):
                     "python3 -m unittest discover -p 'test_*.py'"]
         for command in commands:
             with self.subTest(command=command):
-                result = self.hook(command)
+                result = self.hook(command, enabled=True)
                 self.assertEqual(result.returncode, 0)
                 self.assertNotIn("updatedInput", result.stdout)
+
+    def test_opted_in_hook_skips_background_watch_and_interactive_commands(self):
+        for command in ("python3 -m pytest --pdb", "python3 -m pytest -s", "cargo test --watch",
+                        "python3 -m pytest --watch=true", "python3 tools/run.py"):
+            with self.subTest(command=command):
+                self.assertEqual(self.hook(command, enabled=True).stdout, "")
+        result = self.hook("cargo test", enabled=True,
+                           tool_input={"command": "cargo test", "run_in_background": True})
+        self.assertEqual(result.stdout, "")
+        self.assertEqual(result.returncode, 0)
 
     def test_malformed_hook_never_blocks_an_operation(self):
         for payload in ("", "{broken", "[]", "null", '{"tool_input": null}'):
             with self.subTest(payload=payload):
-                result = self.cli("hook", stdin=payload)
+                result = self.cli("hook", stdin=payload, env={**self.env, "TOKENGUARD_AUTO_WRAP": "1"})
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertNotIn("permissionDecision", result.stdout)
 
