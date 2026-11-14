@@ -2,10 +2,37 @@
 
 ## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
 
-**Source:** branch `claude/baryon-os-ui-ux-design-152adb`, merge `45f476de`
-of main `3c79778b`; draft PR #332 succeeds the merged #322 (no auto-merge,
-never merge without the project owner). Main's checkpoints below are unchanged
-apart from the demoted heading of main's handoff.
+**Source:** branch `claude/baryon-os-ui-ux-design-152adb`, merge `ff18a2ba`
+of main `dce783f6` (#330), assessment commit `dfed8b74`; draft PR #332
+succeeds the merged #322 (no auto-merge, never merge without the project
+owner). Main's checkpoints below are unchanged apart from the demoted heading
+of main's handoff.
+
+**Scope:** two work areas under one lead, one plan and this one handoff: the
+UI/UX continuation and the project owner's addendum of 14 November 2026 on a
+professional productivity and creative ecosystem. Suite format names and
+architectures are evidence-backed proposals until an ADR adopts them; suite
+milestones never enter `docs/progress.json`; every BaryonOS capability is
+"proposed" unless stored evidence shows more.
+
+| ID | Deliverable | Target | Status |
+|---|---|---|---|
+| UX-v2 | Orbitaal v2 board, CONCEPTS.md v2 section | `ui/design/concepts/orbitaal-v2/` | Workflow running |
+| UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Script ready; waits for v2 and S0 |
+| UX-E | Connected prototype journey (simulation) | `ui/design/prototype/` | Open |
+| UX-F | Visual verification, at most two polish passes | `docs/verification/` | Open |
+| UX-G | Native vertical slice, QEMU screenshots | `ui/native`, `ui/graphics` | Read-only planning |
+| S0 | Suite requirements that shape ds-1.0 (colour scope, density, neutral surfaces, region names) | `docs/design/suite/WORKSPACE-REQUIREMENTS.md` | Starting |
+| S1 | Professional application capability matrix | `docs/design/suite/CAPABILITY-MATRIX.md` | Open |
+| S2 | Consumer-to-professional UX maturity model | `docs/design/suite/MATURITY-MODEL.md` | Open |
+| S3 | Named file-format family, at least three naming systems, registry-checked extensions | `docs/design/suite/FILE-FORMATS.md` | Open |
+| S4 | Common native document/object architecture over the existing storage contracts | `docs/design/suite/OBJECT-ARCHITECTURE.md` | Open |
+| S5 | Interoperability and migration, feature-level compatibility matrix | `docs/design/suite/INTEROPERABILITY.md` | Open |
+| S6 | First-party application concepts for every discipline | `docs/design/suite/APPLICATIONS.md` | Open |
+| S7 | Representative high-fidelity professional designs (document, grid, layered canvas, timeline) | `ui/design/suite/` | Open |
+| S8 | Cross-application Materiaal workflows | `docs/design/suite/WORKFLOWS.md` | Open |
+| S9 | Technical feasibility assessment | `docs/design/suite/FEASIBILITY.md` | Open |
+| S10 | Phased plan with testable milestones; benchmark scenarios labelled proposed, prototyped or passed | `docs/design/suite/IMPLEMENTATION-PLAN.md`, `BENCHMARKS.md` | Open |
 
 **Done (in Git):** the verified typography residuals (`af3d8950`) and the
 lead's reversible selection of Inter 4.001 for `type-1.0` under the project
@@ -20,18 +47,16 @@ the stored output byte for byte; an independent AI verifier checked 13 claims
 (12 supported, 1 corrected). The merge result differs from main by exactly
 `git diff 41b94b47 524df7b0`. No native build or QEMU run in this step.
 
-**Open, in order:** the Orbitaal v2 board (workflow running; v2 is still a
-byte copy of v1 until reviewed), `DESIGN-SYSTEM.md` with shared tokens and
-components, the connected prototype journey under `ui/design/prototype/`
-(simulation), visual verification with at most two polish passes, and the
-native vertical slice (`docs/design/NATIVE-FEASIBILITY.md` section 4, plus the
+**Order:** UX-v2 → S0 → UX-D → UX-E with S7 and S8 → UX-F → UX-G, with
+S1–S6 and S9–S10 running in free agent slots alongside UX-E to UX-G. The
+native slice follows `docs/design/NATIVE-FEASIBILITY.md` section 4, plus the
 `ui/native` Inter licence and package entries and the high-contrast
-fingerprint review).
+fingerprint review.
 
 **Progress:** 41/100 → 41/100. Design work accepts no criterion.
 
 **Next:** review the v2 board's renders, confirm the three v1 concept pages
-are unchanged, and commit the board with its screenshots.
+are unchanged, and commit the board with its screenshots; S0 runs in parallel.
 
 ## Previous checkpoint — PR #330 CI fixture repair — 14 November 2026
 
