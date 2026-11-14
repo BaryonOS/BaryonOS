@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "pr": 325,
+  "head": "204c4ed51585c4ba500735a90eb1c449863399f7",
+  "integrated_main": "299f0e39c202d67d1c2f4e31b879cbdd6add262b",
+  "trigger": "PR #329 documentation merge",
+  "resolved_conflicts": [
+    "docs/PROJECT-STATE.md",
+    "docs/progress.json"
+  ],
+  "source_fingerprint_version": 3,
+  "source_sha256": "4ed35695957d83b8c3bef5194888f6f4c901fdf2670695fb59a120367423bb13",
+  "source_unchanged_from_head": true,
+  "status_bodies_preserved_from_both_parents": true,
+  "imported_triage_blob": "864435add61497de3ccab053497fbc623a90579b",
+  "criterion_register_unchanged": true,
+  "score": 41,
+  "executed": [
+    {
+      "check": "preflight",
+      "command": [
+        "python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict",
+        "--firmware",
+        "/workspace/scratch/862448678712/toolchains/qemu/usr/share/OVMF/OVMF_CODE_4M.fd"
+      ],
+      "exit": 0,
+      "seconds": 0.45,
+      "log": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-refresh/preflight.log"
+    },
+    {
+      "check": "build",
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py"
+      ],
+      "exit": 0,
+      "seconds": 0.45,
+      "log": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-refresh/build.log"
+    },
+    {
+      "check": "smoke",
+      "command": [
+        "python3",
+        "-B",
+        "tools/run.py",
+        "--smoke"
+      ],
+      "exit": 0,
+      "seconds": 1.67,
+      "log": "/workspace/scratch/862448678712/baryonos-pr325-repair/build/pr325-refresh/smoke.log"
+    }
+  ],
+  "prior_identical_source_native_evidence": {
+    "commit": "204c4ed51585c4ba500735a90eb1c449863399f7",
+    "run_id": 43597947398,
+    "job_id": 132456369436,
+    "passed": true,
+    "stages": 15,
+    "rerun_in_this_refresh": false
+  }
+}

@@ -434,8 +434,10 @@ struct State {
     current: usize,
     #[cfg(feature = "native-smp-legacy-m3")]
     cpu_current: [usize; SMP_CPUS],
+    // Keep each CPU's scan position independent: a pinned peer must not reset
+    // another CPU's next candidate and starve its other runnable processes.
     #[cfg(feature = "native-smp-legacy-m3")]
-    round_robin_cursor: usize,
+    cpu_round_robin_cursor: [usize; SMP_CPUS],
     #[cfg(feature = "native-smp-legacy-m3")]
     cpu_selections: [u64; SMP_CPUS],
     #[cfg(feature = "native-smp-m3-tlb-reuse")]
@@ -660,7 +662,7 @@ pub fn start(frames: &'static mut Frames<FRAME_COUNT>, mut kernel: Paging) -> ! 
         #[cfg(feature = "native-smp-legacy-m3")]
         {
             ptr::addr_of_mut!((*state).cpu_current).write([MAX; SMP_CPUS]);
-            ptr::addr_of_mut!((*state).round_robin_cursor).write(0);
+            ptr::addr_of_mut!((*state).cpu_round_robin_cursor).write([0; SMP_CPUS]);
             ptr::addr_of_mut!((*state).cpu_selections).write([0; SMP_CPUS]);
         }
         #[cfg(feature = "native-smp-m3-tlb-reuse")]
@@ -780,7 +782,7 @@ impl State {
         #[cfg(feature = "native-smp-legacy-m3")]
         {
             self.cpu_current = [MAX; SMP_CPUS];
-            self.round_robin_cursor = 0;
+            self.cpu_round_robin_cursor = [0; SMP_CPUS];
             self.cpu_selections = [0; SMP_CPUS];
         }
         #[cfg(feature = "native-smp-m3-tlb-reuse")]
@@ -1303,7 +1305,7 @@ impl State {
         tpm_fixture::poll(self.ticks);
 
         for offset in 0..self.amount {
-            let slot = (self.round_robin_cursor + offset) % self.amount;
+            let slot = (self.cpu_round_robin_cursor[cpu] + offset) % self.amount;
             if self.processes[slot].status != Status::Ready {
                 continue;
             }
@@ -1386,7 +1388,7 @@ impl State {
             }
 
             assert!((0..SMP_CPUS).all(|other| other == cpu || self.cpu_current[other] != slot));
-            self.round_robin_cursor = (slot + 1) % self.amount;
+            self.cpu_round_robin_cursor[cpu] = (slot + 1) % self.amount;
             self.cpu_current[cpu] = slot;
             self.cpu_selections[cpu] = self.cpu_selections[cpu].saturating_add(1);
             self.selections += 1;

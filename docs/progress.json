@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "c3f08338b6059ce18938149e44e1cd3980d3d8a0",
-    "assessment_basis": "source_commit",
+    "source_commit": "30425a53ea84a3e7a2022f598c594f38b009b73a",
+    "assessment_basis": "parent_commit",
     "branch": "feat/token-guard-20261114",
-    "task": "Package and verify the shared Token Guard development plugin for ChatGPT, Codex and Claude",
+    "task": "Resolve PR #331 conflicts against main 3c79778bf9e8793bfc9eaaea755d21b41f755bae",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Token Guard adds bounded developer context, preserved command evidence and portable plugin adapters. All 27 helper regression tests and 25 workflow contract tests pass; a synthetic two-test workflow recovers from failure. Native gates remain unavailable because Rust/Cargo, QEMU and OVMF are absent. No OS acceptance criterion changes."
+    "summary": "41/100 remains 41/100. The two documentation conflicts in PR #331 are reconciled by preserving both complete handoffs and the unchanged criterion register. Existing implementation and verification evidence from both parents are retained. This assessment names the PR parent; the combined source and executed checks are documented in docs/verification/pr331-conflicts-20261114.json. No criterion, weight, acceptance status or merge approval changes."
   },
   "tracks": [
     {
