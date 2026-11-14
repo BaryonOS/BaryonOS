@@ -17,3 +17,24 @@ not a dynamic external library or a claim of current upstream maintenance.
 Pillow/FreeType generated the asset on the host; neither is linked into Nieuw OS.
 All drawing/vector icon code is original project code; no platform icon set or
 existing OS implementation has been copied.
+
+# Inter font data (feature `inter-atlas` only)
+
+Inter, variable font `Inter[opsz,wght].ttf`, version 4.001. Copyright 2020 The
+Inter Project Authors (https://github.com/rsms/inter). Licence: SIL Open Font
+License 1.1 (OFL-1.1); the complete text is in `licenses/OFL-Inter.txt`
+(SHA-256 5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57,
+identical to `ui/design/fonts/OFL-Inter.txt`). The copyright line declares no
+Reserved Font Name.
+
+Source: the vendored `ui/design/fonts/Inter[opsz,wght].ttf`, retrieved from
+google/fonts commit `29b4ec6d` and recorded in `ui/design/fonts/FONTS.md`.
+SHA-256 29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031.
+
+`scripts/generate_inter_atlas.py` rasterises it offline (Pillow, FreeType,
+raqm/HarfBuzz) into `assets/inter-atlas.rle` and `src/atlas_inter.rs`; the
+records, features and tool versions are in `assets/inter-atlas-provenance.json`.
+The atlas is a rasterised derivative of the font software and is distributed
+under the same OFL-1.1 terms; this is a conservative reading, not legal advice.
+It is compiled only with the cargo feature `inter-atlas`; default builds contain
+no Inter data. The TTF is not bundled or parsed at runtime.

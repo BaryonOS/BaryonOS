@@ -4,6 +4,12 @@
 #![forbid(unsafe_code)]
 pub mod damage;
 
+#[cfg(not(feature = "inter-atlas"))]
+mod atlas;
+// Generated compact tables; the generator, not rustfmt, owns their layout.
+#[cfg(feature = "inter-atlas")]
+#[rustfmt::skip]
+#[path = "atlas_inter.rs"]
 mod atlas;
 pub mod icon;
 pub mod mark;
