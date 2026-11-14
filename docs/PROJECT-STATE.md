@@ -1,6 +1,34 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), paused for a planned reboot — 14 November 2026
+## NEXT AGENT HANDOFF — PR #316 conflict resolution — 14 November 2026
+
+**Source:** branch `ccr-cf45024e-q0nrg9`, PR #316 head
+`915cc4312b29de1bfb28588072bcfa024186314d`, integrated with main
+`2c72e282ca80fd3dd6bf377b3f71e2eced4a4499`.
+
+**Result:** the only merge conflict was the assessment in `docs/progress.json`.
+The current main criterion register, evidence, design checkpoint and other changes
+are preserved. The PR retains the 1800-second default; only the scale-2
+clipboard/workspace gate may use 2700 seconds. No source or workflow conflict
+required a manual resolution.
+
+**Evidence on the combined source:**
+- `python3 -B tools/test_window_session.py`: exit 0, 28 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'`: exit 0, 23 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'`: exit 0, 31 tests.
+- `python3 tools/progress.py --write`, then `--check`, and `git diff --check`: exit 0.
+
+**Execution limits:** `python3 -B tools/preflight.py --strict` returned exit 2
+because the native toolchain is unavailable. `python3 -B tools/build.py` returned
+exit 1 (`cargo` missing); `python3 -B tools/run.py --smoke` returned exit 1
+(`qemu-system-x86_64` missing). No local native runtime pass is claimed.
+
+**Progress:** 41/100 → 41/100; no criterion or acceptance evidence changes.
+
+**Next:** inspect GitHub Actions on the updated PR head, including both native
+window scales, before treating the integrated source as natively verified.
+
+## Previous checkpoint — Design pipeline (Orbitaal UI/UX), paused for a planned reboot — 14 November 2026
 
 **Source:** branch `claude/baryon-os-ui-ux-design-152adb`, draft PR #322 (never merge without the project owner). This section covers the design pipeline only; the S09 checkpoint below belongs to PR #318 and is unchanged apart from its heading.
 
