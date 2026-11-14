@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "4c224ead119623b3355f30206612bf6097a4eb42",
+    "source_commit": "2eb7b942cac10db727a184819812634300a8e778",
     "assessment_basis": "source_commit",
-    "branch": "code-coverage-agent/setup-code-coverage-reporting",
-    "task": "Repair the Rust coverage evidence byte-limit failure in PR #302 and resolve status conflicts with main 31ccff4983763df0c76583cac1a536cc2a27d9bf",
+    "branch": "docs/code-scanning-triage-20261114",
+    "task": "Resolve the 23 specified open CodeQL alerts with source-grounded test-only and false-positive dispositions",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The Rust coverage report exceeds the default compact-evidence per-file limit. A bounded per-call allowance preserves that report without changing other callers or total, receipt, preview and console budgets. Both project histories and the main criterion register are retained. This CI repair does not accept any OS criterion; actual verification and environment limits are recorded in docs/PROJECT-STATE.md."
+    "summary": "41/100 remains 41/100. GitHub code scanning now shows 0 open and 33 closed alerts on main after 14 test-only and 9 false-positive dismissals. Only triage evidence and the project checkpoint change; no runtime code, security control, scan configuration or acceptance criterion changes. Native execution was blocked by missing tools."
   },
   "tracks": [
     {

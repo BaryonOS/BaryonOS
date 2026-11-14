@@ -1,0 +1,172 @@
+{
+  "date": "2026-11-14",
+  "repository": "BaryonOS/BaryonOS",
+  "reviewed_source": "2eb7b942cac10db727a184819812634300a8e778",
+  "branch": "docs/code-scanning-triage-20261114",
+  "authorization": "The project owner explicitly requested resolution of the 23 listed code-scanning alerts.",
+  "operation": "GitHub alert dismissals with individual or group-specific reasons and comments; no runtime source or scanning configuration changes.",
+  "ui_observation": {
+    "url": "https://github.com/BaryonOS/BaryonOS/security/code-scanning",
+    "query": "is:open branch:main",
+    "before": {
+      "open": 23,
+      "closed": 10
+    },
+    "after": {
+      "open": 0,
+      "closed": 33
+    },
+    "message": "All alerts are resolved.",
+    "screenshot_sha256": "a269498aa9f32e42ae9d6dc62bbcac69435aae52b50b2be2ba2e5498541b7f43"
+  },
+  "groups": [
+    {
+      "alerts": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        20,
+        21,
+        24,
+        25,
+        33
+      ],
+      "reason": "used in tests",
+      "rationale": "Synthetic session credentials, deterministic key-derivation compatibility inputs/output buffers and authenticated negative record fixtures are confined to integration tests."
+    },
+    {
+      "alerts": [
+        14,
+        15
+      ],
+      "reason": "false positive",
+      "rationale": "Zero-initialized HKDF output arrays are fully overwritten by expand before being assigned to DRBG key state."
+    },
+    {
+      "alerts": [
+        17
+      ],
+      "reason": "false positive",
+      "rationale": "The zero-initialized next-key array receives ChaCha20 keystream before replacing the previous key."
+    },
+    {
+      "alerts": [
+        16
+      ],
+      "reason": "false positive",
+      "rationale": "The fast-key-erasure DRBG reserves the first 32 keystream bytes for the next private key, returns subsequent bytes and replaces the old key after each fill; the fixed nonce does not imply repeated use of a fixed key."
+    },
+    {
+      "alerts": [
+        23
+      ],
+      "reason": "false positive",
+      "rationale": "Password storage starts with len=0. Empty secrets are rejected and only the entered prefix is submitted."
+    },
+    {
+      "alerts": [
+        26
+      ],
+      "reason": "false positive",
+      "rationale": "LocateProtocol success and aligned(protocol), including a non-null check, are required before the reported GOP dereference."
+    },
+    {
+      "alerts": [
+        27
+      ],
+      "reason": "false positive",
+      "rationale": "Firmware::protocol requires HandleProtocol success and a non-null, aligned result before returning Ok. The caller skips failures; the Media pointer is checked separately."
+    },
+    {
+      "alerts": [
+        31
+      ],
+      "reason": "false positive",
+      "rationale": "QueryMode success, non-null/aligned information and sufficient size are required before the record is copied; FreePool occurs after the copy."
+    },
+    {
+      "alerts": [
+        32
+      ],
+      "reason": "false positive",
+      "rationale": "All three macro-mapped flows were inspected. The p and fs paths pass through the checked protocol wrapper; OpenVolume success and aligned(root) guard the root path."
+    }
+  ],
+  "source_sha256": {
+    "services/keyring/src/lib.rs": "b33d080aa3eb73726a90db09d05125985bfac0c211925c938d962cb4c74db324",
+    "services/keyring/tests/kdf_hygiene.rs": "42acaabbf580c0ddda81dc2b4375f2f81aa2d017d882a92bc905fe3b3a0c4c5c",
+    "services/keyring/tests/secure_records.rs": "b7dfefd4467bfcf5a9aff03f7aadde23361866489b916679ba5a111b897f44e8",
+    "ui/native/src/session.rs": "0388858099523e1b538ea5fca846b6003cd0256d31d62070d27072238071cc13",
+    "ui/native/tests/session.rs": "e1f387baca95a0c5fcf625a198f096d42480bb7582bba87b0ad1b9c23a62b970",
+    "boot/loader/src/main.rs": "f7102f5d1a7469a7f034f690762fb23364ec928cede85a9d24240eaa6d77fc1e",
+    "boot/loader/src/main_default.rs": "f66646dd01c7252eb3a0fe9439ce03c397adf637c659d5380e0ca9750f1cdec0",
+    "boot/loader/src/main_legacy.rs": "cec8dfcf8efa63ede28982bfec2cdfb245dd51cce4081526efbfeb96a232e975",
+    "boot/loader/src/graphics.rs": "c2c5857952d874229ae1cfeef8ec1666f7bc14bc7b089263c660b7716f6ee99e",
+    "boot/loader/src/signed.rs": "ca113c183c93bbec7e06ad54808d852edc988a449c9a024fd7654d5ac81c9c50"
+  },
+  "commands": [
+    {
+      "command": "python3 -B tools/preflight.py --strict",
+      "exit_code": 2,
+      "elapsed_seconds": 0.06,
+      "log": "build/code-scanning-triage-20261114/preflight.log"
+    },
+    {
+      "command": "python3 -B tools/build.py",
+      "exit_code": 1,
+      "elapsed_seconds": 0.08,
+      "log": "build/code-scanning-triage-20261114/build.log"
+    },
+    {
+      "command": "python3 -B tools/run.py --smoke",
+      "exit_code": 1,
+      "elapsed_seconds": 0.03,
+      "log": "build/code-scanning-triage-20261114/run.log"
+    }
+  ],
+  "limits": [
+    "A dismissal is a triage disposition, not a source-code repair or complete security audit.",
+    "Pointer findings concern initial-null paths under the documented trusted live-firmware contract; null and alignment checks do not validate arbitrary hostile pointers.",
+    "No Rust unit test or native execution succeeded in this environment; Rust/Cargo, QEMU and OVMF are unavailable.",
+    "Two read-only AI investigations and integrator review are not an independent human audit."
+  ],
+  "progress": {
+    "previous": 41,
+    "current": 41,
+    "criterion_changes": []
+  },
+  "references": [
+    {
+      "author": "GitHub",
+      "date": "n.d.",
+      "title": "Hard-coded cryptographic value - CodeQL query help",
+      "url": "https://codeql.github.com/codeql-query-help/rust/rust-hard-coded-cryptographic-value/"
+    },
+    {
+      "author": "Bernstein, D. J.",
+      "date": "2017-07-23",
+      "title": "Fast-key-erasure random-number generators",
+      "url": "https://blog.cr.yp.to/20170723-random.html"
+    }
+  ],
+  "documentation_checks": [
+    {
+      "command": "python3 -B tools/progress.py --write",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}
