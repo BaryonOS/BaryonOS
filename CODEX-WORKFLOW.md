@@ -29,7 +29,9 @@ evidence boundary**. First check whether the implementation or PR already exists
 ## 2. Targeted feedback first, integration afterwards
 
 Token Guard preserves command exit codes and complete local logs while bounding
-the displayed context. Run the examples below through
+the displayed context. Use it for suitable foreground text checks; interactive,
+protocol, background and TTY-sensitive commands keep their native execution path.
+Run the applicable examples below through
 `python3 -B tools/tokenguard.py run -- <command>`. For Git diffs and other useful
 data, select `run --output bounded --`; inspect any explicitly omitted ranges.
 The shared plugin and client setup are described in `docs/TOKEN-GUARD.md`.

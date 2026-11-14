@@ -4,6 +4,7 @@
 
 This is a presentation helper, not a sandbox, test oracle or token accounting API.
 Only Python outlines use an AST. Other outlines are explicitly heuristic.
+Commands inherit stdin and environment; combined file capture is not a transparent TTY.
 """
 from __future__ import annotations
 
@@ -31,6 +32,8 @@ SLICE_BYTES = 12_000
 OUTPUT_BYTES = 8_000
 SCAN_BYTES = 16 * 1024 * 1024
 LINE_BYTES = 2_000
+SELECTION_NOTICE = "[OUTPUT INCOMPLETE: selected excerpt; complete raw log retained]\n"
+SANITIZATION = "UTF-8 replacement decoding; ANSI and control characters removed"
 ANSI = re.compile(r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07\x1b]*(?:\x07|\x1b\\))")
 DIAGNOSTIC = re.compile(r"\b(error|fatal|failed|failure|panic|exception|traceback|warning)\b", re.I)
 RESULT = re.compile(r"(?:test result:|\bRan \d+ tests?|\b\d+ passed\b|^OK\b|^FAILED\b|\bfinished\b)", re.I)
@@ -123,8 +126,20 @@ def inspect_file(root: Path, path: str) -> str:
     return bounded(clean("\n".join(out)), OUTPUT_BYTES)
 
 
-def log_excerpt(path: Path, output: str = "summary") -> tuple[str, list[tuple[str, int]]]:
+def log_excerpt(path: Path, output: str = "summary") -> tuple[str, list[tuple[str, int]], bool]:
     """Sample diagnostics with bounded memory; keep complete original bytes on disk."""
+    with path.open("rb") as handle:
+        raw = handle.read(OUTPUT_BYTES + 1)
+    text = clean(raw.decode("utf-8", errors="replace"))
+    if len(raw) <= OUTPUT_BYTES and len(text.encode("utf-8")) <= OUTPUT_BYTES:
+        locations = []
+        for line in text.splitlines():
+            match = PY_LOCATION.search(line) or CODE_LOCATION.search(line)
+            if match and len(match.group(2)) <= 10 and len(locations) < 12:
+                value = (match.group(1).strip(), int(match.group(2)))
+                if value not in locations:
+                    locations.append(value)
+        return text, locations, True
     head: list[str] = []
     selected: dict[int, str] = {}
     before: deque[tuple[int, str]] = deque(maxlen=2)
@@ -134,8 +149,6 @@ def log_excerpt(path: Path, output: str = "summary") -> tuple[str, list[tuple[st
     consumed = 0
     following = 0
     line_number = 0
-    complete: list[str] = []
-    complete_bytes = 0
     sampled_diagnostics = False
     with path.open("rb") as handle:
         while consumed < SCAN_BYTES:
@@ -151,16 +164,13 @@ def log_excerpt(path: Path, output: str = "summary") -> tuple[str, list[tuple[st
                 while raw and not raw.endswith(b"\n") and consumed < SCAN_BYTES:
                     raw = handle.readline(LINE_BYTES + 1)
                     consumed += len(raw)
-            complete_bytes += len(line.encode("utf-8")) + 1
-            if complete_bytes <= OUTPUT_BYTES - 100:
-                complete.append(line)
             if len(head) < 5:
                 head.append(line)
             tail.append(line)
             if RESULT.search(line):
                 results.append(line)
             match = PY_LOCATION.search(line) or CODE_LOCATION.search(line)
-            if match and len(locations) < 12:
+            if match and len(match.group(2)) <= 10 and len(locations) < 12:
                 value = (match.group(1).strip(), int(match.group(2)))
                 if value not in locations:
                     locations.append(value)
@@ -179,11 +189,9 @@ def log_excerpt(path: Path, output: str = "summary") -> tuple[str, list[tuple[st
             handle.seek(max(0, path.stat().st_size - 24_000))
             last = handle.read(24_000).decode("utf-8", errors="replace").splitlines()
             tail = deque((bounded(clean(x), LINE_BYTES) for x in last[-12:]), maxlen=12)
-    if output == "bounded" and not omitted_scan and complete_bytes <= OUTPUT_BYTES - 100:
-        return "[output]\n" + "\n".join(complete), locations
-    sections = []
+    sections = [SELECTION_NOTICE.rstrip()]
     if output == "bounded":
-        sections.append("[head]\n" + "\n".join(head))
+        sections.append("[head]\n" + bounded("\n".join(head), 1000))
         sections.append("[MIDDLE OUTPUT OMITTED; complete raw log retained]")
     if selected:
         diagnostics = "\n".join(f"{n}: {s}" for n, s in sorted(selected.items()))
@@ -202,7 +210,7 @@ def log_excerpt(path: Path, output: str = "summary") -> tuple[str, list[tuple[st
         sections.append("[tail]\n" + tail_text)
     if omitted_scan:
         sections.insert(0, f"[SCAN LIMITED to first {SCAN_BYTES} bytes and final 24000 bytes; raw log retained]")
-    return bounded("\n".join(sections), OUTPUT_BYTES), locations
+    return bounded("\n".join(sections), OUTPUT_BYTES), locations, False
 
 
 def snippets(root: Path, locations: list[tuple[str, int]]) -> str:
@@ -255,11 +263,11 @@ def rtk_excerpt(log_path: Path) -> str | None:
         filtered.unlink(missing_ok=True)
 
 
-def run_command(root: Path, argv: list[str], timeout: float = 1800,
+def run_command(root: Path, argv: list[str], timeout: float | None = None,
                 output: str = "summary") -> int:
     if not argv:
         raise ValueError("run requires a command after --")
-    if not math.isfinite(timeout) or timeout <= 0:
+    if timeout is not None and (not math.isfinite(timeout) or timeout <= 0):
         raise ValueError("timeout must be a finite positive number")
     root = root.resolve(strict=True)
     directory = root / "build" / "tokenguard"
@@ -271,11 +279,6 @@ def run_command(root: Path, argv: list[str], timeout: float = 1800,
     descriptor, name = tempfile.mkstemp(prefix="run-", suffix=".log", dir=directory)
     log_path = Path(name)
     started = time.monotonic()
-    env = dict(os.environ)
-    env.setdefault("CARGO_TERM_COLOR", "never")
-    env.setdefault("NO_COLOR", "1")
-    env.setdefault("PYTHONDONTWRITEBYTECODE", "1")
-    env.setdefault("RTK_TELEMETRY_DISABLED", "1")
     process = None
     terminated = 0
 
@@ -290,7 +293,7 @@ def run_command(root: Path, argv: list[str], timeout: float = 1800,
     try:
         with os.fdopen(descriptor, "wb") as handle:
             try:
-                process = subprocess.Popen(argv, cwd=root, env=env, stdin=subprocess.DEVNULL,
+                process = subprocess.Popen(argv, cwd=root,
                                            stdout=handle, stderr=subprocess.STDOUT,
                                            start_new_session=os.name == "posix")
             except FileNotFoundError:
@@ -321,23 +324,30 @@ def run_command(root: Path, argv: list[str], timeout: float = 1800,
         for sig, previous in previous_handlers.items():
             signal.signal(sig, previous)
     duration = round(time.monotonic() - started, 3)
-    excerpt, locations = log_excerpt(log_path, output)
-    filtered = rtk_excerpt(log_path) if output == "summary" and code not in (124, 130, 143) else None
+    excerpt, locations, complete = log_excerpt(log_path, output)
+    filtered = rtk_excerpt(log_path) if not complete and output == "summary" and code not in (124, 130, 143) else None
     # RTK is presentation only. Original diagnostics and their locations stay visible.
     use_rtk = bool(filtered and not DIAGNOSTIC.search(excerpt) and not RESULT.search(excerpt)
                    and len(filtered.encode()) < len(excerpt.encode()))
     if use_rtk:
-        excerpt = filtered
+        excerpt = SELECTION_NOTICE + bounded(filtered, OUTPUT_BYTES - len(SELECTION_NOTICE.encode()))
     extra = snippets(root, locations) if code else ""
-    body = excerpt + ("\n[source context]\n" + extra if extra else "")
+    context_note = "post-command/current file; not tested-source identity"
+    body = excerpt + (f"\n[source context: {context_note}]\n" + extra if extra else "")
     receipt = {
         "schema_version": 1, "exit_code": code, "duration_seconds": duration,
         "log": str(log_path.relative_to(root)), "raw_bytes": log_path.stat().st_size,
         "rtk_used": use_rtk, "emitted_bytes": 0,
+        "output_complete": complete, "presentation_scope": "sanitized_text", "sanitization": SANITIZATION,
+        "capture_mode": "combined stdout/stderr file; not a transparent TTY",
+        "stdin": "inherited", "timeout_seconds": timeout,
+        "source_context": context_note if extra else None,
     }
+    displayed_fields = ("schema_version", "exit_code", "duration_seconds", "log", "raw_bytes",
+                        "rtk_used", "emitted_bytes", "output_complete", "presentation_scope")
     # Include the status line itself in the emitted UTF-8 byte measurement.
     for _ in range(4):
-        status = json.dumps(receipt, sort_keys=True)
+        status = json.dumps({key: receipt[key] for key in displayed_fields}, sort_keys=True)
         emitted = status + "\n" + (body + "\n" if body else "")
         count = len(emitted.encode("utf-8"))
         if receipt["emitted_bytes"] == count:
@@ -375,6 +385,23 @@ def read_log(root: Path, path: str, start: int, count: int) -> str:
     return bounded("\n".join(out), SLICE_BYTES)
 
 
+def read_log_bytes(root: Path, path: str, offset: int, length: int) -> str:
+    if offset < 0 or not 1 <= length <= SLICE_BYTES:
+        raise ValueError(f"require offset >= 0 and 1 <= length <= {SLICE_BYTES}")
+    file = rooted(root, path)
+    with file.open("rb") as handle:
+        size = os.fstat(handle.fileno()).st_size
+        if offset > size:
+            raise ValueError("offset exceeds the log's byte size")
+        handle.seek(offset)
+        data = handle.read(length)
+    next_offset = offset + len(data)
+    metadata = {"offset": offset, "bytes_read": len(data), "next_offset": next_offset,
+                "file_size": size, "eof": next_offset >= size,
+                "sanitization": SANITIZATION, "offset_unit": "raw bytes"}
+    return json.dumps(metadata, sort_keys=True) + "\n" + clean(data.decode("utf-8", errors="replace"))
+
+
 def stats(root: Path) -> str:
     totals = {"runs": 0, "raw_bytes": 0, "emitted_bytes": 0}
     for path in (root / "build" / "tokenguard").glob("run-*.json"):
@@ -399,6 +426,8 @@ def stats(root: Path) -> str:
 
 def hook() -> int:
     """Rewrite only unambiguous local build/test argv; retain normal permissions."""
+    if os.environ.get("TOKENGUARD_AUTO_WRAP") != "1":
+        return 0
     try:
         payload = json.loads(sys.stdin.read(64_001))
         if payload.get("hook_event_name") != "PreToolUse" or payload.get("tool_name") != "Bash":
@@ -411,11 +440,17 @@ def hook() -> int:
             return 0
         helper = Path(__file__).resolve()
         inputs = payload["tool_input"]
+        if inputs.get("run_in_background"):
+            return 0
         command = inputs["command"]
         if not isinstance(command, str) or any(c in command for c in ";|&><\n\r$`*?[~(){}#!"):
             return 0
         words = shlex.split(command)
         if not words or "=" in words[0] or "tokenguard" in command or words[0] == "rtk":
+            return 0
+        interactive = {"--watch", "-w", "--interactive", "-i", "--pdb", "--trace",
+                       "--ui", "--headed", "--looponfail", "-s", "--capture=no"}
+        if any(word in interactive or word.startswith(("--watch=", "--interactive=")) for word in words):
             return 0
         executable = Path(words[0]).name
         arguments = words[1:]
@@ -433,7 +468,8 @@ def hook() -> int:
             elif arguments:
                 script = Path(arguments[0])
                 allowed = script.parent == Path("tools") and script.suffix == ".py" and (
-                    script.stem in {"preflight", "build", "run"} or script.stem.startswith("test_"))
+                    script.stem in {"preflight", "build"} or script.stem.startswith("test_")
+                    or (script.stem == "run" and "--smoke" in arguments))
         if allowed:
             updated = dict(inputs)
             updated["command"] = shlex.join([sys.executable, "-B", str(helper), "--root", str(cwd),
@@ -449,7 +485,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--root", type=Path, default=Path.cwd())
     sub = parser.add_subparsers(dest="mode", required=True)
     run = sub.add_parser("run", help="Run an argv command, preserve exit status and log bytes")
-    run.add_argument("--timeout", type=float, default=1800)
+    run.add_argument("--timeout", type=float, help="Optional explicit command deadline in seconds")
     run.add_argument("--output", choices=("summary", "bounded"), default="summary")
     run.add_argument("command", nargs=argparse.REMAINDER)
     inspect = sub.add_parser("inspect", help="Show bounded declarations and source fingerprint")
@@ -461,8 +497,10 @@ def main(argv: list[str] | None = None) -> int:
     view.add_argument("--expect-sha")
     log = sub.add_parser("log", help="Replay a bounded range from a raw log")
     log.add_argument("path")
-    log.add_argument("--start", type=int, default=1)
-    log.add_argument("--lines", type=int, default=80)
+    log.add_argument("--start", type=int)
+    log.add_argument("--lines", type=int)
+    log.add_argument("--offset", type=int, help="Raw byte offset; excludes --start/--lines")
+    log.add_argument("--length", type=int, help=f"Read at most {SLICE_BYTES} raw bytes (default 4096)")
     sub.add_parser("stats", help="Report observed output bytes, not billing tokens")
     sub.add_parser("doctor", help="Report local prerequisites without changing configuration")
     sub.add_parser("hook", help="Conservatively adapt Claude build/test commands")
@@ -481,7 +519,14 @@ def main(argv: list[str] | None = None) -> int:
         elif args.mode == "slice":
             result = read_slice(root, args.path, args.start, args.end, args.expect_sha)
         elif args.mode == "log":
-            result = read_log(root, args.path, args.start, args.lines)
+            if args.offset is not None or args.length is not None:
+                if args.start is not None or args.lines is not None:
+                    raise ValueError("byte ranges cannot be combined with --start/--lines")
+                result = read_log_bytes(root, args.path, 0 if args.offset is None else args.offset,
+                                        4096 if args.length is None else args.length)
+            else:
+                result = read_log(root, args.path, 1 if args.start is None else args.start,
+                                  80 if args.lines is None else args.lines)
         elif args.mode == "stats":
             result = stats(root)
         else:

@@ -1,6 +1,47 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #331 conflict resolution — 14 November 2026
+## NEXT AGENT HANDOFF — Token Guard quality — 14 November 2026
+
+**Source:** implementation `5771e64abc483480b9f674ae2d704a3bb6f2335a` on
+`feat/token-guard-20261114`, extending PR #331 from
+`30425a53ea84a3e7a2022f598c594f38b009b73a`, integrated with concurrent head
+`973e2f01cc8295a8681a2de9e0a51bdeee5c96af` and main `3c79778bf9e8793bfc9eaaea755d21b41f755bae`.
+
+**Result:** Token Guard 1.1.1 prioritizes the original task and acceptance criteria.
+Automatic Claude rewriting is opt-in; explicit checks inherit stdin/environment
+and have no implicit helper deadline. Short output is preserved as sanitized text;
+selected large output is labelled incomplete and supports bounded byte replay.
+Source context is labelled as the current file after execution. TTY/stream and
+sanitization differences remain explicit; native execution remains available.
+The shared plugin adds an on-demand UI/UX quality contract and the repository
+adds a native Copilot skill adapter. Existing hosted Graphify and permissions
+remain unchanged. The saved private package was read back; helper, skill and
+quality reference match the tested source. Client activation is not verified.
+
+**Evidence:** all 40 helper regression tests pass. Focused independent AI review
+verified the original five findings and found an additional oversized diagnostic
+line-number issue, now fixed and regression-tested. Manifest/skill/archive checks
+pass. The prior PR head's CI succeeded; this does not establish the updated head's
+CI status. Source hashes, command results and limits are recorded in
+[the quality verification record](verification/token-guard-quality-20261114.json).
+
+**Limits:** no paired agent-level UI/UX comparison, human usability evaluation or
+provider billing measurement has been performed. The plugin contract is guidance,
+not a quality oracle. Local Rust/Cargo, QEMU and OVMF remain unavailable; no updated
+native acceptance is claimed. Full client activation and real RTK integration
+remain unverified. Token Guard changes do not modify approved concept boards or OS implementation;
+concurrent main/S09 changes are retained from the newer PR head.
+
+**Progress:** 41/100 → 41/100; no criterion status or weight changes.
+
+**Next:** continue review of PR #331, preserving its existing review status; this
+task enables neither merge nor auto-merge. Use the
+[setup guide](TOKEN-GUARD.md) and [options review](TOKEN-GUARD-QUALITY.md).
+For a quality claim, execute the packaged matched UI evaluation with unchanged
+model, task, design references and acceptance criteria. Continue authorized OS
+work from the preserved implementation queue; do not wait on unrelated CI.
+
+## Previous checkpoint — PR #331 conflict resolution — 14 November 2026
 
 **Source:** branch `feat/token-guard-20261114`, PR #331 head
 `30425a53ea84a3e7a2022f598c594f38b009b73a`, integrated with main

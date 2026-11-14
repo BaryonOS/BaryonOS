@@ -24,11 +24,14 @@ For OS development tasks, use the repository skill `.agents/skills/os-dev/SKILL.
 Use the shared protocol in `plugins/token-guard/skills/token-guard/SKILL.md` for
 coding tasks unless the installed Token Guard plugin has already loaded it.
 The repository launcher is `python3 -B tools/tokenguard.py`: use `run --` for
-checks, `run --output bounded --` for data-producing commands, and targeted
-`inspect`/`slice` reads. Preserve the real exit code and the full local log.
+suitable foreground text checks, `run --output bounded --` for text data, and
+targeted `inspect`/`slice` reads. Interactive, protocol, background and TTY-sensitive
+commands use the native execution tool. Preserve exit codes and full local logs.
 Avoid repeated catalog reads, duplicate wrappers and unchanged historical context.
 Expand reads and checks whenever a contract, trust boundary or failure requires it.
 The plugin does not replace hosted Graphify, native gates or existing permissions.
+Quality and complete acceptance criteria take precedence over context reduction;
+UI/UX tasks retain the approved references and visual, interaction and accessibility checks.
 Client setup and evidence limits are documented in `docs/TOKEN-GUARD.md`.
 
 ## Product ambition

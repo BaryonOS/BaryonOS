@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "30425a53ea84a3e7a2022f598c594f38b009b73a",
-    "assessment_basis": "parent_commit",
+    "source_commit": "5771e64abc483480b9f674ae2d704a3bb6f2335a",
+    "assessment_basis": "source_commit",
     "branch": "feat/token-guard-20261114",
-    "task": "Resolve PR #331 conflicts against main 3c79778bf9e8793bfc9eaaea755d21b41f755bae",
+    "task": "Strengthen Token Guard quality preservation and review token-saving proposals",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The two documentation conflicts in PR #331 are reconciled by preserving both complete handoffs and the unchanged criterion register. Existing implementation and verification evidence from both parents are retained. This assessment names the PR parent; the combined source and executed checks are documented in docs/verification/pr331-conflicts-20261114.json. No criterion, weight, acceptance status or merge approval changes."
+    "summary": "41/100 remains 41/100. Token Guard 1.1.1 adds opt-in capture, complete short output, byte replay and explicit UI/UX acceptance requirements. All 40 helper regressions pass and focused independent AI review is complete. Native client activation, UI A/B equivalence and billed-token savings remain unverified. No OS criterion status or weight changes. Concurrent PR head 973e2f01cc8295a8681a2de9e0a51bdeee5c96af and main 3c79778bf9e8793bfc9eaaea755d21b41f755bae are preserved; their criterion register is unchanged."
   },
   "tracks": [
     {
