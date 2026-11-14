@@ -1,6 +1,30 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Token Guard quality — 14 November 2026
+## NEXT AGENT HANDOFF — PR #331 review clarification — 14 November 2026
+
+**Source:** PR #331 parent `a77b3c33f9c2676b781bcdee2300c3b7497a5088`.
+The concurrent Token Guard 1.1.1 implementation and its evidence are retained.
+
+**Result:** the two intentional empty exception handlers now explain the
+process-exit race and optional hook fallback. Four comment lines changed;
+the Python AST and execution behavior are unchanged. The two Graphify
+coupling advisories were reviewed: command-lifecycle coordination and the
+mutually exclusive CLI dispatcher do not establish a dependency defect.
+
+**Evidence:** 40 helper tests, 25 workflow tests, strict preflight, the standard
+build and QEMU smoke pass. The new helper digest, exact AST comparison,
+commands and log hashes are recorded in
+[the review record](verification/pr331-review-20261114.json).
+The original package receipt remains bound to its original helper digest.
+Native client activation and provider-token savings remain unverified.
+
+**Progress:** 41/100 → 41/100; the criterion register is unchanged.
+
+**Next:** verify the new commit's hosted checks, then record the acceptance
+decision authorized by the project owner. This checkpoint does not itself
+claim a passed future CI run or completed native client activation.
+
+## Previous checkpoint — Token Guard quality — 14 November 2026
 
 **Source:** implementation `5771e64abc483480b9f674ae2d704a3bb6f2335a` on
 `feat/token-guard-20261114`, extending PR #331 from

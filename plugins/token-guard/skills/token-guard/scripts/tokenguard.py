@@ -234,6 +234,8 @@ def stop_process(process: subprocess.Popen, *, reap: bool = True) -> None:
         try:
             os.killpg(process.pid, signal.SIGKILL)
         except ProcessLookupError:
+            # The child may have exited before its process group could be signalled.
+            # Reap it below when requested; an absent group needs no further kill.
             pass
     else:
         # Windows cannot portably kill arbitrary descendant trees with stdlib alone.
@@ -476,6 +478,8 @@ def hook() -> int:
                                               "run", "--", *words])
             print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "updatedInput": updated}}))
     except (OSError, ValueError, TypeError, KeyError, AttributeError):
+        # Rewriting is best-effort; invalid input or an unavailable path needs no override.
+        # The original tool call and its normal permission flow remain unchanged.
         pass
     return 0
 
