@@ -1,0 +1,11 @@
+{
+  "name": "baryon-tools",
+  "interface": { "displayName": "Baryon development tools" },
+  "plugins": [
+    {
+      "name": "token-guard",
+      "source": { "source": "local", "path": "./plugins/token-guard" },
+      "category": "Developer Tools"
+    }
+  ]
+}

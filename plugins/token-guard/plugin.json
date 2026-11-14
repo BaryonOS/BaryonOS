@@ -1,0 +1,27 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "token-guard",
+  "version": "1.1.1",
+  "description": "A compact coding workflow with bounded context, preserved command evidence and native Claude hooks.",
+  "author": { "name": "Simon van Ieperen" },
+  "repository": "https://github.com/BaryonOS/BaryonOS",
+  "license": "MPL-2.0",
+  "keywords": ["coding", "token-efficiency", "verification"],
+  "extensions": {
+    "com.openai": {
+      "hooks": { "hooks": {} },
+      "interface": {
+        "displayName": "Token Guard",
+        "shortDescription": "Compact code, preserved proof",
+        "longDescription": "A shared coding workflow for ChatGPT, Codex and Claude: targeted source reads, compact command output, complete local logs and verifiable test results. Reuses available hosted Graphify and RTK. Execution requires Python and terminal access.",
+        "developerName": "Simon van Ieperen",
+        "category": "Developer Tools",
+        "capabilities": [],
+        "defaultPrompt": [
+          "Complete this coding task with Token Guard while preserving the required checks.",
+          "Resume BaryonOS with targeted context, small changes and verifiable test evidence."
+        ]
+      }
+    }
+  }
+}

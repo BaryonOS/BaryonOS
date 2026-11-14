@@ -19,6 +19,21 @@ Start with the branch, HEAD and `git status --short`; preserve unfinished user w
 For continued work in the same session, compare source versions and read changes and missing context, rather than rereading the entire repository or unchanged historical status. START-CODING.md and FIRST-BATCH.md describe the original implementation baseline; first check what current code and acceptance evidence already provide. An old research assignment is not a new implementation assignment.
 For OS development tasks, use the repository skill `.agents/skills/os-dev/SKILL.md`; retrieve only the relevant OSDev or book passages. Not every client automatically loads nested instructions from the root. Start from source versions and existing code; research proposals are not automatically implemented. Practical test selection, measurement and handoff are in CODEX-WORKFLOW.md; read only the required section.
 
+## Token-efficient execution
+
+Use the shared protocol in `plugins/token-guard/skills/token-guard/SKILL.md` for
+coding tasks unless the installed Token Guard plugin has already loaded it.
+The repository launcher is `python3 -B tools/tokenguard.py`: use `run --` for
+suitable foreground text checks, `run --output bounded --` for text data, and
+targeted `inspect`/`slice` reads. Interactive, protocol, background and TTY-sensitive
+commands use the native execution tool. Preserve exit codes and full local logs.
+Avoid repeated catalog reads, duplicate wrappers and unchanged historical context.
+Expand reads and checks whenever a contract, trust boundary or failure requires it.
+The plugin does not replace hosted Graphify, native gates or existing permissions.
+Quality and complete acceptance criteria take precedence over context reduction;
+UI/UX tasks retain the approved references and visual, interaction and accessibility checks.
+Client setup and evidence limits are documented in `docs/TOKEN-GUARD.md`.
+
 ## Product ambition
 
 Addition of 27 October 2026: privacy must not replace normal connected functionality or a high standard of finish. Internet access, automatic resumption and synchronisation, the same OS experience on clients and NAS devices, and understandable multi-device pairing are product requirements. Request renewed permission for a new trust boundary or consequential action, not for every normal repetition within existing permissions. Temporary probe capabilities and read-only recovery are not permanent product choices. Assess both security and usability under docs/DESIGN-AMBITION.md; do not claim absolute resistance to hacking or already measured parity with existing platforms.
