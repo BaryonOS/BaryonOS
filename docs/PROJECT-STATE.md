@@ -17,13 +17,13 @@ milestones never enter `docs/progress.json`; every BaryonOS capability is
 
 | ID | Deliverable | Target | Status |
 |---|---|---|---|
-| UX-v2 | Orbitaal v2 board, CONCEPTS.md v2 section | `ui/design/concepts/orbitaal-v2/` | Workflow running |
-| UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Script ready; waits for v2 and S0 |
+| UX-v2 | Orbitaal v2 board, CONCEPTS.md v2 section | `ui/design/concepts/orbitaal-v2/` | Run `wf_585e63fe-3b8` active (sole writer of the board) |
+| UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Workflow script ready; waits for an accepted v2 board and S0 |
 | UX-E | Connected prototype journey (simulation) | `ui/design/prototype/` | Open |
 | UX-F | Visual verification, at most two polish passes | `docs/verification/` | Open |
-| UX-G | Native vertical slice, QEMU screenshots | `ui/native`, `ui/graphics` | Read-only planning |
-| S0 | Suite requirements that shape ds-1.0 (colour scope, density, neutral surfaces, region names) | `docs/design/suite/WORKSPACE-REQUIREMENTS.md` | Starting |
-| S1 | Professional application capability matrix | `docs/design/suite/CAPABILITY-MATRIX.md` | Open |
+| UX-G | Native vertical slice, QEMU screenshots | `ui/native`, `ui/graphics` | Plan done; G0 measured; G1 (licence and packaging) next |
+| S0 | Suite requirements that shape ds-1.0 (colour scope, density, neutral surfaces, region names) | `docs/design/suite/WORKSPACE-REQUIREMENTS.md` | Run `wf_57c7fde8-8f8` verifying a written draft |
+| S1 | Professional application capability matrix | `docs/design/suite/CAPABILITY-MATRIX.md` | Run `wf_8d70459f-b4a` researching |
 | S2 | Consumer-to-professional UX maturity model | `docs/design/suite/MATURITY-MODEL.md` | Open |
 | S3 | Named file-format family, at least three naming systems, registry-checked extensions | `docs/design/suite/FILE-FORMATS.md` | Open |
 | S4 | Common native document/object architecture over the existing storage contracts | `docs/design/suite/OBJECT-ARCHITECTURE.md` | Open |
@@ -53,10 +53,35 @@ native slice follows `docs/design/NATIVE-FEASIBILITY.md` section 4, plus the
 `ui/native` Inter licence and package entries and the high-contrast
 fingerprint review.
 
+**Execution:** the project owner's protocol of 14 November 2026 (local copy
+`build/design-pipeline-checkpoint/BaryonOS_Regisseur_Verse_Werkcontexten.md`)
+applies. This conversation coordinates; every new substantial task runs in a
+fresh, non-forked workflow worker that receives only its brief; at most three
+workers run; after the current runs, one write-enabled worker at a time.
+Only the coordinator stages, commits, pushes, integrates main and updates
+progress files. Workers return a compact result and keep logs on disk.
+Compaction: the global `autoCompactWindow` stays 400 000 (no session-scoped
+override is available); the coordinator measured 300 k tokens at 16:25 and
+refreshes this handoff at task boundaries.
+
+**G0 (measured, evidence in ignored `build/design-evidence/g0/`):**
+`materiaal-app` `.text` is 157 289 B with Open Sans (6 551 B below the
+163 840 B limit) and 157 881 B with Inter (5 959 B); read-only 293 248 and
+353 736 B. `ui/native` tests: Open Sans exit 0; Inter exit 101, 109 passed and
+one failure, `default_source_fingerprints`, which stays a failure until a
+cfg-gated golden array is legitimately recomputed. The rustup snap proxy
+cannot start here, so the pinned 1.90.0 toolchain binaries were run directly.
+
+**Owner decisions recorded, not requested now:** a native 200 % kernel test
+profile, CI jobs for `inter-atlas` and the session preview, any code-limit
+raise, a native light theme and Inter as the native default. Until then the
+native evidence is default plus high contrast at 100 %; 200 % is host-only.
+
 **Progress:** 41/100 → 41/100. Design work accepts no criterion.
 
-**Next:** review the v2 board's renders, confirm the three v1 concept pages
-are unchanged, and commit the board with its screenshots; S0 runs in parallel.
+**Next:** when the v2 run reports, verify its renders and the unchanged v1
+pages independently, then commit the board; then run ds-1.0 with the S0
+decisions; G1 (Inter licence and packaging) is the next single writer.
 
 ## Previous checkpoint — PR #331 final integration — 14 November 2026
 
