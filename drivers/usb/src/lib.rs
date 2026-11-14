@@ -7,6 +7,7 @@ use core::iter::FusedIterator;
 
 pub mod boot;
 pub mod boot_interface;
+pub mod boot_session;
 pub mod hid_control;
 
 /// A descriptor borrowed from a validated byte range.
