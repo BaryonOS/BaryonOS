@@ -2,8 +2,8 @@
 
 ## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
 
-**Source:** branch `claude/baryon-os-ui-ux-design-152adb`, merge `6de92a2f`
-of main `aba6149f` (#331), assessment in the following commit; draft PR #332
+**Source:** branch `claude/baryon-os-ui-ux-design-152adb`, merge `6b722911`
+of main `4cd444e0` (#328), assessment in the following commit; draft PR #332
 succeeds the merged #322 (no auto-merge, never merge without the project
 owner). Main's checkpoints below are unchanged apart from the demoted heading
 of main's handoff.
