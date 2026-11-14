@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "7f693d73702072fa0db3b99ffc56df3eed6b8fa5",
+    "source_commit": "ce47359fcd9c62abca50da87ac62183026aac91c",
     "assessment_basis": "parent_commit",
-    "branch": "test/issue43-n04-helper-isolation",
-    "task": "Verify the native unregistered-helper isolation follow-up after PR #328 squash",
+    "branch": "feat/token-guard-mcp-20261114",
+    "task": "Integrate PR #335 review corrections with the current N04 main checkpoint",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The N04-only follow-up preserves merged main and adds an unregistered native helper negative fixture with causal sender rejection before backend effects. All six native network cases, strict preflight/build/smoke, 92 Python tests, 24 Rust tests, strict service Clippy and formatting pass on local executable source 21a53dd9342988263f7d49e9ef559fb7a2d288cd, whose complete Git tree equals published source 7f693d73702072fa0db3b99ffc56df3eed6b8fa5. Independent AI integration review found no blocker. Current evidence is in docs/verification/n04-helper-20261114/integration.json; earlier mutation/replay receipts retain their original source identities. N04 and issue #43 remain open; no criterion, weight or production permission changes. Hosted checks remain separate."
+    "summary": "41/100 remains 41/100. Integrates the Token Guard 1.2.1 review corrections and its preserved plugin-verification checkpoint with main ce47359 (N04 native helper isolation). The test import is normalized, and intentional best-effort cleanup handlers gain explanatory comments without changing runtime behavior. All N04 and USB/network/update source-bound evidence remains at its original tested revisions. The Token Guard 93-test and 26-workflow-test passes belong to the pre-integration source; current-head GitHub CI and native gates must be judged separately. The private 1.2.1 archive remains bound to its earlier exact source. N04, H02 and production trust decisions remain open. No product criterion, score weight, permission or OS contract changes."
   },
   "tracks": [
     {

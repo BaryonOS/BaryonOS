@@ -71,6 +71,25 @@ class TokenGuardTests(unittest.TestCase):
         self.assertIn("7 tests", result.stdout)
         self.assertEqual(self.receipt()["exit_code"], 0)
 
+    def test_only_large_failed_summary_filters_cargo_progress(self):
+        progress = "   Compiling progress_crate v1.2.3\n"
+        diagnostic = "error[E0308]: keep this failure\n   Compiling compiler v1.0.0 warning: retain\n"
+        for mode, code, count in (("summary", 1, 400), ("bounded", 1, 400),
+                                   ("summary", 0, 400), ("summary", 1, 1)):
+            with self.subTest(mode=mode, code=code, count=count):
+                result = self.run_python(f"import sys; print({progress!r}*{count}, end=''); print({diagnostic!r}); sys.exit({code})",
+                                         "--output", mode)
+                receipt = json.loads(result.stdout.splitlines()[0])
+                self.assertEqual(result.returncode, code)
+                self.assertIn("keep this failure", result.stdout)
+                self.assertIn("warning: retain", result.stdout)
+                if mode == "summary" and code and count > 1:
+                    self.assertNotIn("Compiling progress_crate", result.stdout)
+                    self.assertFalse(receipt["output_complete"])
+                else:
+                    self.assertIn("Compiling progress_crate", result.stdout)
+                self.assertIn(progress.encode(), (self.root / receipt["log"]).read_bytes())
+
     def test_literal_arguments_do_not_become_shell_programs(self):
         dangerous = f"; touch {self.root / 'unexpected'}"
         result = self.cli(
@@ -372,11 +391,96 @@ class TokenGuardTests(unittest.TestCase):
         self.assertIn("factor", result.stdout)
         self.assertNotIn("internal_payload_should_not_appear", result.stdout)
 
+    def test_cli_uses_utf8_without_changing_streams_on_import(self):
+        (self.root / "unicode.py").write_text("def π(κ: int) -> str:\n    return 'Unicode'\n", encoding="utf-8")
+        env = {**self.env, "PYTHONIOENCODING": "ascii"}
+        result = subprocess.run([sys.executable, "-B", str(CLI), "--root", str(self.root), "inspect", "unicode.py"],
+                                capture_output=True, timeout=5, env=env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("π(κ: int)", result.stdout.decode("utf-8"))
+        core = CLI.parents[1] / "plugins/token-guard/skills/token-guard/scripts/tokenguard.py"
+        probe = ("import importlib.util,json,sys; "
+                 "before=[s.encoding for s in (sys.stdin,sys.stdout,sys.stderr)]; "
+                 f"spec=importlib.util.spec_from_file_location('core',{str(core)!r}); "
+                 "module=importlib.util.module_from_spec(spec); spec.loader.exec_module(module); "
+                 "print(json.dumps([before,[s.encoding for s in (sys.stdin,sys.stdout,sys.stderr)]]))")
+        imported = subprocess.run([sys.executable, "-B", "-c", probe], capture_output=True, timeout=5, env=env)
+        self.assertEqual(imported.returncode, 0, imported.stderr)
+        before, after = json.loads(imported.stdout)
+        self.assertEqual(before, after)
+        self.assertEqual(before, ["ascii"] * 3)
+
     def test_non_python_outline_is_labelled_heuristic(self):
         (self.root / "sample.rs").write_text("pub fn value() -> u32 { 42 }\n")
         result = self.cli("inspect", "sample.rs")
         self.assertEqual(result.returncode, 0)
         self.assertIn("heuristic", result.stdout.lower())
+
+    def test_rust_multiline_signature_retains_paths_lifetimes_and_where_clause(self):
+        header = (
+            "pub fn process<'a, T>(\n"
+            "    request: crate::ipc::Request<'a, T>,\n"
+            "    capability: &crate::capability::Handle,\n"
+            "    length: usize,\n"
+            "    retries: u8,\n"
+            ") -> Result<crate::types::Reply<T>, crate::errors::Error>\n"
+            "where\n"
+            "    T: core::fmt::Debug + Send,\n"
+            "{"
+        )
+        (self.root / "long.rs").write_text(header + "\n    body_must_not_appear();\n}\n")
+        result = self.cli("inspect", "long.rs")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(header, result.stdout)
+        self.assertIn("1-9:", result.stdout)
+        self.assertIn("body omitted: lines 9-11", result.stdout)
+        self.assertNotIn("body_must_not_appear", result.stdout)
+
+    def test_typescript_multiline_return_type_and_arrow_signature(self):
+        function = ("export async function render<T>(\n"
+                    "    model: Model<T>,\n"
+                    "    options: {\n"
+                    "        theme: string;\n"
+                    "    },\n"
+                    "): {\n"
+                    "    width: number;\n"
+                    "    height: number;\n"
+                    "} {")
+        arrow = "export const choose = async (\n    item: Model,\n    index: number,\n): Promise<Model> =>"
+        (self.root / "long.ts").write_text(function + "\n    function_body_must_not_appear();\n}\n" +
+                                           arrow + " {\n    arrow_body_must_not_appear();\n};\n")
+        result = self.cli("inspect", "long.ts")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(function, result.stdout)
+        self.assertIn(arrow, result.stdout)
+        self.assertIn("body/expression omitted", result.stdout)
+        self.assertNotIn("body_must_not_appear", result.stdout)
+
+    def test_outline_data_ranges_and_nested_comment_delimiters(self):
+        source = ("pub const SMALL: usize = 42;\n"
+                  "pub static DATA: [u8; 50] = [\n" + "    217,  // omitted_data_marker\n" * 50 + "];\n"
+                  "pub const fn read<T: Trait</* outer { /* inner */ } */ Item>>(\n"
+                  "    input: T, // fake opening {\n"
+                  ") -> crate::Result<T> {\n    hidden_function_body();\n}\n")
+        (self.root / "data.rs").write_text(source)
+        result = self.cli("inspect", "data.rs")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("pub const SMALL: usize = 42;", result.stdout)
+        self.assertIn("initializer/data omitted: lines 2-53", result.stdout)
+        self.assertIn(") -> crate::Result<T> {", result.stdout)
+        self.assertNotIn("omitted_data_marker", result.stdout)
+        self.assertNotIn("hidden_function_body", result.stdout)
+
+    def test_outline_marks_signature_budget_exhaustion(self):
+        source = "pub fn oversized(\n" + "    argument: crate::types::LongParameterName,\n" * 200 + ") {\n    body();\n}\n"
+        (self.root / "oversized.rs").write_text(source)
+        result = self.cli("inspect", "oversized.rs")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("signature incomplete", result.stdout)
+        self.assertIn("4000-byte scan budget", result.stdout)
+        self.assertIn("continue with slice", result.stdout)
+        self.assertNotIn("body();", result.stdout)
+        self.assertLess(len(result.stdout.encode()), 8100)
 
     def test_slice_validates_version_and_range(self):
         path = self.root / "source.py"

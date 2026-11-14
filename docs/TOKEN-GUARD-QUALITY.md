@@ -34,21 +34,47 @@ Version 1.1 addresses the avoidable differences and makes remaining limits expli
 - Source snippets explicitly describe the current file after execution. Important
   test evidence must separately identify the tested source; a successful exit is
   not a source-version attestation.
-- UI/UX tasks load the packaged
-  [quality contract](../plugins/token-guard/skills/token-guard/references/quality-contract.md).
-  It preserves reference images/design decisions and requires relevant visual,
-  interaction and accessibility evidence. This is an instruction, not a runtime
-  enforcement mechanism or a completed UI-quality comparison.
+- UI/UX tasks preserve reference images/design decisions and require visual,
+  interaction and accessibility evidence. Since 1.2, the mandatory contract is
+  inline in five skill bullets. The extended reference is only for an explicit
+  audit/evaluation. These are instructions, not completed UI-quality evidence.
+
+## Version 1.2: disposition of the binary-archive audit
+
+The inspected source was the stored 1.1.1 package and merged repository source,
+not an unspecified archive inferred from compressed sizes. File size or unchanged
+hook JSON cannot establish runtime behavior. The earlier helper did not implement
+the audit's `run_compact()`/MCP functions; transport defects in illustrative code
+were therefore new-feature requirements rather than reproduced 1.1.1 defects.
+
+| Audit item | Implemented resolution | Deliberate boundary |
+| --- | --- | --- |
+| Missing native MCP entry | Real stdio server, portable `mcp.json`, root compatibility `.mcp.json` and a dedicated Claude override; three tools use the same helper. | Local execution is required; account storage is not web access to a computer. |
+| Identical explicit manifests | Synchronize identity/version/description, preserve each native schema and default discovery. | Claude merges hook defaults; duplicate references can double-load. Portable manifests prohibit the proposed top-level fields. |
+| Repeated quality reference read | Five mandatory bullets inline; routine tasks do not open the extended reference. | Explicit audits/evaluations may use the full rubric; original task evidence remains required. |
+| Stdin theft and hanging MCP | Isolated command stdin, bounded MCP deadline, responsive protocol loop, cancellation/EOF cleanup. | Native CLI retains inherited stdin and no implicit deadline; TTY/interactive work stays native. |
+| Notifications/ping/errors | Legacy initialization/ping plus modern 2026-07-28 discovery and metadata. Notifications do not reply; actual tool failures are `isError`. | A null ID is invalid, not a notification. Unsupported pre-June-2025 batch versions are not advertised. |
+| Windows Unicode | CLI UTF-8 stream configuration; MCP input reads UTF-8 bytes and emits safe JSON escaping. | Native Windows/client/process-tree behavior remains unverified. Child environment is not globally rewritten. |
+| Multiline signatures/data | Python AST retained; Rust/TS heuristic scans balanced delimiters, where clauses and bounded long headers, with explicit omissions. | A fixed four-line limit or colon delimiter cannot preserve all contracts; no universal AST/100% claim. |
+| Compiler progress | Recognizable Cargo progress filtered only in selected large failed summaries; raw logs/diagnostics retained. | Complete short output and data mode remain intact; 25 lines cannot guarantee every error is represented. |
+| Expanded read hooks | Opt-in Claude `Bash|Read|Grep|Glob`; a blocked large source read includes its outline. | Not a zero-turn guarantee, permission boundary or portable hook API. Bounded/required reads remain available. |
+| Self-block exception | Actual helper invocations do not match the literal-read guard. | No blanket token-guard substring allowlist and no absolute plugin-cache ban. |
+| Client bridges | Explicit targets, dry-run plan, staged validated merges, per-file atomic replace, rollback/backups. | Preserve other servers; fail on conflicting/unsupported config. No multi-file atomicity or global trust changes are claimed. |
+
+The [setup guide](TOKEN-GUARD.md) records actual client shapes and protocol versions.
+Current protocol and manifest primary sources are listed there. Mandatory quality
+rules are never removed to meet a line-count target; adding tool definitions also
+has overhead, so an MCP server alone is not a measured token saving.
 
 ## Original token-saving proposals
 
 | Proposal | Actual integration or disposition | Quality boundary |
 | --- | --- | --- |
-| Compile repeated plugin instructions into one small protocol | Implemented as one canonical skill and thin adapters; task-specific quality material is loaded on demand. | Preserve mandatory project/security/design contracts. The full behavior of separate Ponytail/ECC plugins is not claimed to have been cloned. |
+| Compile repeated plugin instructions into one small protocol | One canonical skill and thin adapters; mandatory quality rules inline, extended audit material only on explicit request. | Preserve mandatory project/security/design contracts. The full behavior of separate Ponytail/ECC plugins is not claimed to have been cloned. |
 | Reduce tool turns and add fault context automatically | Independent reads may be batched by the agent; the helper supplies diagnostic context in the same result. | Dependent steps stay sequential. Current source context is labelled; required follow-up reads remain allowed. |
 | AST body stripping and data masking | Python AST outlines and bounded source reads are implemented. Other-language outlines are explicitly heuristic. Generic data masking is not enabled. | An outline is navigation. Values, labels, dimensions, colors, examples and error details must not be erased when they affect decisions. |
 | One-shot Graphify plus source inspection | The agent may batch independent hosted Graphify and local inspection calls when the host supports it. The helper does not call Graphify itself. | Repository policy requires the hosted graph and current-source checks; no local graph or duplicate authentication route is created. |
-| Hard prohibitions through pre-tool hooks | Not adopted as a general blocker. Only opt-in, narrowly recognized foreground checks can be rewritten. | Cache paths and broad command substrings are not reliable permission or relevance boundaries. Necessary reads remain possible. |
+| Hard prohibitions through pre-tool hooks | Opt-in, narrow foreground wrapping and bounded-read guidance, including immediate source outlines. | Cache paths and command substrings are not permission boundaries; required source/instruction reads remain possible. |
 | Cheap executor plus expensive advisor and system flags | No automatic model/effort downgrade. Platform-specific settings may be evaluated separately. | A test can pass while design, maintainability or reasoning quality deteriorates; escalation cannot depend only on test failure. |
 | RTK/log compression | Optional post-execution filtering for sampled output, with exit codes and original diagnostic evidence preserved. | Complete short output and bounded data bypass RTK; a saved raw log does not mean all its contents were seen by the agent. |
 | YAGNI, minimal diffs and verification loop | Implemented as reuse, limited scope, relevant tests, required gates and correction of concrete failures. | Minimum code size and minimum token count are subordinate to correct behavior and adequate design. |
@@ -67,16 +93,16 @@ n.d.-b; OpenAI, n.d.-b, n.d.-c).
 1. **Plugin path and MCP.** The absolute bundled-script fallback was already in
    the canonical skill; the Claude hook already uses its plugin-root path.
    A regression test exercises the helper installed outside the target project.
-   There is no `mcp` subcommand: adding the proposed `.mcp.json` alone would start
-   an invalid command. A stdio configuration is not a network service for ChatGPT.
-   No additional server is needed for the current terminal-capable workflow.
+   Version 1.2 implements the actual `mcp` subcommand and its native launch files,
+   rather than adding a config for an absent entrypoint. A stdio configuration is
+   not a network service for ChatGPT. The terminal workflow remains available.
 2. **Self-blocking.** The helper never implemented the proposed blanket cache
    blocker. It returns no permission decision and adds no substring-based allow
    exception. A command mentioning the plugin name must not bypass client checks.
 3. **Copilot/OpenCode entry points.** BaryonOS has the shared `.agents/skills`
    adapter; version 1.1 adds `.github/skills/token-guard` for native Copilot
    discovery. OpenCode supports its own and compatibility skill directories.
-   Existing client/MCP configuration is not rewritten. Outside BaryonOS, install
+   Version 1.2 adds explicit, non-destructive workspace MCP merges. Outside BaryonOS, install
    the complete skill directory; an adapter alone lacks its referenced source.
    Native end-to-end activation in unavailable clients remains unverified.
 4. **Hosted Graphify.** Already required by the skill and project. The helper has

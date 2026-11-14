@@ -1,15 +1,23 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "token-guard",
-  "version": "1.1.1",
-  "description": "A compact coding workflow with bounded context, preserved command evidence and native Claude hooks.",
-  "author": { "name": "Simon van Ieperen" },
+  "version": "1.2.1",
+  "description": "Compact coding context with native MCP tools, preserved command evidence and optional Claude read guidance.",
+  "author": {
+    "name": "Simon van Ieperen"
+  },
   "repository": "https://github.com/BaryonOS/BaryonOS",
   "license": "MPL-2.0",
-  "keywords": ["coding", "token-efficiency", "verification"],
+  "keywords": [
+    "coding",
+    "token-efficiency",
+    "verification"
+  ],
   "extensions": {
     "com.openai": {
-      "hooks": { "hooks": {} },
+      "hooks": {
+        "hooks": {}
+      },
       "interface": {
         "displayName": "Token Guard",
         "shortDescription": "Compact code, preserved proof",

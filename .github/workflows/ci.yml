@@ -104,7 +104,8 @@ jobs:
           python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'
           coverage run --parallel-mode -m unittest discover -s tests -p 'test_ci_workflows.py'
           python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'
-          python3 -B -m unittest discover -s tests -p 'test_tokenguard.py'
+          python3 -B -m unittest discover -s tests -p 'test_tokenguard*.py'
+          python3 -B tools/package_token_guard.py
           coverage run --parallel-mode -m unittest discover -s tests -p 'test_document_session_*.py'
           coverage run --parallel-mode -m unittest discover -s tests -p 'test_volume_*.py'
           coverage run --parallel-mode -m unittest discover -s tests -p 'test_system_*.py'
