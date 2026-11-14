@@ -10,17 +10,19 @@ const OFFSETS: [u64; 21] = [
 ];
 /// N04 revoke case: a fourth process is the policy authority for the service.
 const REVOKE: bool = cfg!(feature = "test-net-service-revoke");
+const HELPER: bool = cfg!(feature = "test-net-service-helper");
 const DEVICE_RESET: bool = cfg!(feature = "test-net-service-device-reset");
 const EXHAUSTION: bool = cfg!(feature = "test-net-service-exhaustion");
 // Full 12,768-pair workload: CI QEMU 8.2 reached 10,867 pairs by tick 6,000.
 // This aggregate fixture deadline does not change any socket or IPC deadline.
 const EXHAUSTION_TICK_DEADLINE: u64 = 12_000;
-pub(super) const PROCESSES: usize = if REVOKE { 4 } else { 3 };
+pub(super) const PROCESSES: usize = if REVOKE || HELPER { 4 } else { 3 };
 struct Evidence {
     snapshots: [Option<[u64; 21]>; 4],
     kernel_tables: usize,
     exits: [u64; 4],
     revoke_requested: u64,
+    helper_released: u64,
     exhaustion_released: u64,
     #[cfg(feature = "test-net-service-device-reset")]
     reset_armed: bool,
@@ -30,6 +32,7 @@ static mut EVIDENCE: Evidence = Evidence {
     kernel_tables: 0,
     exits: [0; 4],
     revoke_requested: 0,
+    helper_released: 0,
     exhaustion_released: 0,
     #[cfg(feature = "test-net-service-device-reset")]
     reset_armed: false,
@@ -59,24 +62,37 @@ pub(super) fn process_elf(slot: usize) -> &'static [u8] {
     match slot {
         0 => NETWORK_SERVICE_ELF,
         1 | 2 => NETWORK_CLIENT_ELF,
-        3 if REVOKE => NETWORK_CLIENT_ELF,
-        _ => panic!("N01 starts one service and two clients (plus N04 policy)"),
+        3 if REVOKE || HELPER => NETWORK_CLIENT_ELF,
+        _ => panic!("N01 starts one service and two clients (plus an N04 test process)"),
     }
 }
 // No launch capability is issued in this manifest.
 pub(super) fn image_elf(_: u32) -> Option<&'static [u8]> {
     None
 }
-fn channel(e: &mut capability_core::Engine, receiver: u64, sender: u64) -> (u64, u64) {
+fn channel(
+    e: &mut capability_core::Engine,
+    receiver: u64,
+    sender: u64,
+    helper: Option<u64>,
+) -> (u64, u64, u64) {
     let root = e.create_endpoint(receiver).unwrap();
     let receive = e.derive(receiver, root, RECV).unwrap();
     let send = e.bootstrap_delegate(receiver, root, sender, SEND).unwrap();
+    let alias = helper.map_or(0, |pid| {
+        e.bootstrap_delegate(receiver, root, pid, SEND).unwrap()
+    });
     e.close(receiver, root).unwrap();
-    (receive, send)
+    (receive, send, alias)
 }
 pub(super) fn manifest(s: &mut State) {
     require(
-        s.amount == MAX
+        !(HELPER
+            && (REVOKE
+                || DEVICE_RESET
+                || EXHAUSTION
+                || cfg!(feature = "test-net-service-client-exit")))
+            && s.amount == MAX
             && s.processes[..PROCESSES]
                 .iter()
                 .all(|p| p.status != Status::Dead)
@@ -96,7 +112,7 @@ pub(super) fn manifest(s: &mut State) {
         e.register(policy).unwrap();
         // The policy process's only capability: send on the service's private
         // control endpoint. The service authenticates its kernel PID.
-        let (control, order) = channel(e, service, policy);
+        let (control, order, _) = channel(e, service, policy, None);
         put(s, 0, 152, control);
         put(s, 0, 160, policy);
         for (at, value) in [
@@ -114,6 +130,13 @@ pub(super) fn manifest(s: &mut State) {
                 && e.check_launch(policy, order).is_err(),
             b"POLICY_AUTHORITY",
         );
+    }
+    let helper = HELPER.then_some(s.processes[3].pid);
+    if let Some(pid) = helper {
+        e.register(pid).unwrap();
+        for (at, value) in [(32, u64::from_le_bytes(*b"NETHLP01")), (40, EPOCH)] {
+            put(s, 3, at, value);
+        }
     }
     let network = e.create_network(service).unwrap();
     let key = e.check_network(service, network).unwrap();
@@ -135,8 +158,21 @@ pub(super) fn manifest(s: &mut State) {
     }
     for (index, app) in [app_a, app_b].into_iter().enumerate() {
         let slot = index + 1;
-        let (ingress, send) = channel(e, service, app);
-        let (reply, response) = channel(e, app, service);
+        // The optional alias exists only in this negative fixture. The helper
+        // is not in the service's app registry and receives no reply endpoint.
+        let (ingress, send, alias) = channel(e, service, app, helper);
+        let (reply, response, _) = channel(e, app, service, None);
+        if let Some(pid) = helper {
+            put(s, 3, 48 + index as u64 * 8, alias);
+            require(
+                e.check_network(pid, alias).is_err()
+                    && e.check_entropy(pid, alias).is_err()
+                    && e.check_launch(pid, alias).is_err()
+                    && e.check_block(pid, alias, capability_core::BLOCK_READ)
+                        .is_err(),
+                b"HELPER_AUTHORITY",
+            );
+        }
         let at = 56 + index as u64 * 24;
         for (offset, value) in [(at, ingress), (at + 8, response), (at + 16, app)] {
             put(s, 0, offset, value);
@@ -153,7 +189,9 @@ pub(super) fn manifest(s: &mut State) {
             (96, 9000 + index as u64),
             (
                 104,
-                if EXHAUSTION {
+                if HELPER {
+                    5
+                } else if EXHAUSTION {
                     4
                 } else if DEVICE_RESET {
                     3
@@ -213,20 +251,12 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
         0 => b"NETSVC:SERVICE:",
         1 => b"NETSVC:APP_A:",
         2 => b"NETSVC:APP_B:",
+        _ if HELPER => b"NETSVC:HELPER:",
         _ => b"NETSVC:POLICY:",
     };
     // Snapshot and emit before generic cleanup destroys the process mapping.
     for (at, value) in OFFSETS.iter().zip(values) {
-        serial::write(label);
-        let mut number = *at;
-        let mut bytes = [b'0'; 20];
-        for byte in bytes.iter_mut().rev() {
-            *byte = b'0' + (number % 10) as u8;
-            number /= 10;
-        }
-        serial::write(&bytes);
-        serial::write(b":");
-        print_number(b"", value);
+        print_field(label, *at, value);
     }
     let expected_reset_failure = DEVICE_RESET
         && slot == 0
@@ -249,9 +279,24 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
     if slot == 2 {
         print_number(b"NETSVC:APP_B_EXIT_TICKS:", s.ticks);
     }
+    if HELPER && slot == 3 {
+        print_number(b"NETSVC:HELPER_EXIT_TICKS:", s.ticks);
+    }
     // This records status for runtime-spawned children. The bootstrap
     // processes deliberately have no Process object, so `false` is expected.
     m4::engine().process_died(s.processes[slot].pid, PROCESS_EXITED, 0);
+}
+fn print_field(label: &[u8], at: u64, value: u64) {
+    serial::write(label);
+    let mut number = at;
+    let mut bytes = [b'0'; 20];
+    for byte in bytes.iter_mut().rev() {
+        *byte = b'0' + (number % 10) as u8;
+        number /= 10;
+    }
+    serial::write(&bytes);
+    serial::write(b":");
+    print_number(b"", value);
 }
 pub(super) fn observe_fault(_: &mut State, _: usize, _: &[u64; 22], _: u64) {
     fail(b"USER_FAULT")
@@ -260,6 +305,29 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     keyring::broker_tick(s);
     network::broker_tick(s);
     require(!s.unexpected, b"UNEXPECTED_EVENT");
+    if HELPER && evidence().helper_released == 0 {
+        require(
+            s.processes[..PROCESSES]
+                .iter()
+                .all(|p| p.status != Status::Dead),
+            b"HELPER_EARLY_EXIT",
+        );
+        // Both registered apps are waiting. All six valid requests must be
+        // rejected on the real envelope PID, before replay/backend state moves.
+        if word(s, 3, 544) == 6 && word(s, 0, 440) == 6 {
+            for at in [432, 440, 448, 456, 464, 472, 480, 488, 496, 544] {
+                let value = word(s, 0, at);
+                require(value == if at == 440 { 6 } else { 0 }, b"HELPER_EFFECT");
+                print_field(b"NETSVC:HELPER_FENCE:", at, value);
+            }
+            require(word(s, 0, 416) == 0 && word(s, 0, 424) == 0, b"HELPER_WIRE");
+            evidence().helper_released = s.ticks.max(1);
+            print_number(b"NETSVC:HELPER_RELEASE_TICKS:", s.ticks.max(1));
+            for slot in 1..PROCESSES {
+                put(s, slot, 112, 1);
+            }
+        }
+    }
     // The second owner may allocate only after the first owner has received
     // the real Exhausted reply. Neither this signal nor the observer alters
     // the service allocator, endpoint authority or production port budget.
@@ -355,6 +423,9 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
         check_revoke(&service);
     } else {
         check_n01(&service);
+        if HELPER {
+            check_helper(&service);
+        }
     }
     network::print_and_check(service[3], service[4]);
     let (bytes, denied, healthy) = keyring::broker_summary();
@@ -550,6 +621,26 @@ fn check_exhaustion(service: &[u64; 21]) {
     );
 }
 
+fn check_helper(service: &[u64; 21]) {
+    let e = evidence();
+    let helper = e.snapshots[3].unwrap();
+    for (index, at) in OFFSETS.iter().enumerate() {
+        let expected = match at {
+            400 | 480 | 528 => 1,
+            408 | 544 => 6,
+            552 => continue,
+            _ => 0,
+        };
+        require(helper[index] == expected, b"HELPER_EVIDENCE");
+    }
+    require(service[6] >= 28, b"HELPER_REJECTIONS");
+    require(
+        helper[20] > 0
+            && helper[20] <= e.helper_released
+            && e.exits[1..].iter().all(|tick| *tick >= e.helper_released),
+        b"HELPER_CAUSALITY",
+    );
+}
 fn check_full_app(app: &[u64; 21]) {
     require(
         app[2] == 2
@@ -586,7 +677,7 @@ fn check_n01(service: &[u64; 21]) {
             && service[20] == 0,
         b"SERVICE_EVIDENCE",
     );
-    for (index, app) in evidence().snapshots[1..].iter().flatten().enumerate() {
+    for (index, app) in evidence().snapshots[1..3].iter().flatten().enumerate() {
         if departing && index == 0 {
             require(
                 app[2] == 0

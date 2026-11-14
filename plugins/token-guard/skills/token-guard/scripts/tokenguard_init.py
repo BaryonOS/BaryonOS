@@ -356,12 +356,14 @@ def _apply(root: Path, changes: list[Change]) -> dict[str, Any]:
                 _guard(root, path)
                 path.unlink(missing_ok=True)
             except (OSError, InitError):
+                # Staged-file cleanup is best-effort; retain the original failure result.
                 pass
         for directory in reversed(directories):
             try:
                 _guard(root, directory / ".tokenguard-type-check")
                 directory.rmdir()
             except (OSError, InitError):
+                # Parent cleanup may fail if a directory remains nonempty or changes.
                 pass
 
 

@@ -1,6 +1,55 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — OS continuation — 14 November 2026
+## NEXT AGENT HANDOFF — N04 helper follow-up after #328 squash — 14 November 2026
+
+**Source:** branch `test/issue43-n04-helper-isolation`, based on merged main
+`4cd444e08dac820cc66f2750c43845b4139901cc`. Verified executable source:
+`21a53dd9342988263f7d49e9ef559fb7a2d288cd`; source-v3:
+`865b0320b2da88dda92991fdf89de17989ec3807d58fccb0691a8f735f12d7e2`.
+
+**Publication identity:** source commit `7f693d73702072fa0db3b99ffc56df3eed6b8fa5`
+has the identical Git tree `7ad12f6febb30cf66bd3f2c7c7f9bd6b5922ee82` as the
+locally verified source above. The GitHub connector changes commit metadata;
+original execution receipts retain their actual local commit identity.
+
+**Result:** an unregistered fourth process submits six valid requests to the
+two real app ingresses through test-only SEND aliases. Kernel sender identity
+rejects all six before replay/backend or packet effects; both registered apps
+then complete their full normal scenarios. The host checks the causal fence,
+traffic and four-process cleanup. Routine CI includes a separate required helper
+report. Production permissions and authentication are unchanged. The ten-file
+delta retains main's recent Python fixes and all earlier merged work.
+
+**Evidence:** fresh helper/normal/client-exit/revoke/device-reset/exhaustion runs
+pass with raw QEMU exit 33. Strict preflight, standard build and smoke, 92 Python
+tests, 24 Rust tests, strict service Clippy and formatting pass. Separate AI
+integration review found no blocker. The earlier sender-bypass mutation and
+22-check artifact replay retain their original local-source identities.
+[Receipts and limits](verification/n04-helper-20261114/README.md).
+Later evidence/status commits leave executable inputs unchanged.
+
+**Progress:** 41/100 → 41/100; N04 and #43 remain open. PR #328 was squash-merged;
+the former PR's outstanding-merge instructions below are historical. The helper
+test does not establish production delegation, regrant generation, durable
+service-restart revocation, physical hardware or human security acceptance.
+
+**Next:** inspect hosted checks for this bounded follow-up. Continue
+N04 through a reviewed production issuer/delegation and durable-revocation
+contract. The earlier H02/network/update handoffs are retained below.
+
+## Supplemental review checkpoint — PR #335 merge repair — 14 November 2026
+
+**Source:** PR #335 head `69b0fbf55ed42f7348e579ebe9c9e8aa28f2ae05`, integrated with main `ce47359fcd9c62abca50da87ac62183026aac91c`.
+
+**Review corrections:** use a consistent `unittest.mock` import in the initializer test and explain both deliberately best-effort cleanup exception handlers. These edits preserve executable behavior and installer rollback rules; the originally tested plugin-package evidence retains its exact recorded source version.
+
+**Integration:** preserve the newer N04 helper checkpoint, native network changes and source-bound receipts on main. Retain the Token Guard 1.2.1 MCP checkpoint and prior OS continuation as historical context. No acceptance criterion or security boundary changes.
+
+**Verification boundary:** 93 Token Guard and 26 workflow regressions passed before this integration. The combined PR head requires fresh hosted checks; native build/QEMU evidence from either parent is not automatically a pass for this merge. Original private plugin release 1.2.1 remains source-bound to the previously published archive; the new comment-only repository revision is not falsely described as a byte-identical account release.
+
+**Progress:** 41/100 → 41/100.
+
+## Previous checkpoint — OS continuation after #328 (before N04) — 14 November 2026
 
 **Source:** merged main `4cd444e08dac820cc66f2750c43845b4139901cc`
 (PR #328). The supplemental Token Guard 1.2.1 tooling checkpoint is recorded below;

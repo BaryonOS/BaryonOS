@@ -528,6 +528,7 @@ pub(super) fn print_and_check(tx: u64, rx: u64) {
             if cfg!(feature = "native-net-service") {
                 // Each app, plus the N04 policy process, proves it has no NIC.
                 2 + u64::from(cfg!(feature = "test-net-service-revoke"))
+                    + u64::from(cfg!(feature = "test-net-service-helper"))
             } else {
                 1
             }

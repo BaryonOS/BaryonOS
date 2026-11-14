@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "4cd444e08dac820cc66f2750c43845b4139901cc",
+    "source_commit": "ce47359fcd9c62abca50da87ac62183026aac91c",
     "assessment_basis": "parent_commit",
     "branch": "feat/token-guard-mcp-20261114",
-    "task": "Preserve merged PR #328 OS state and record the supplemental Token Guard 1.2.1 tooling checkpoint",
+    "task": "Integrate PR #335 review corrections with the current N04 main checkpoint",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Merged main 4cd444e08dac820cc66f2750c43845b4139901cc retains the USB boot-session and native network/update work. PR #328 evidence records 148 targeted Python host tests, 44 USB component tests, strict preflight, the standard build and QEMU smoke on its recorded source in docs/verification/pr328-main-integration-20261114.json; these source boundaries are preserved. Supplemental Token Guard 1.2.1 adds native stdio MCP and client configuration without changing OS acceptance. All 93 Token Guard tests and 26 workflow tests pass after integration; SDK and extracted ZIP self-tests pass. Native preflight in the tooling environment is blocked by missing Rust/Cargo, QEMU and OVMF, so no new build/smoke pass is claimed there. The enforced device-execution/DMA/IRQ boundary and production trust/persistence decisions remain open. Native client activation, UI/UX equivalence and provider savings remain unverified. No criterion or weight changes."
+    "summary": "41/100 remains 41/100. Integrates the Token Guard 1.2.1 review corrections and its preserved plugin-verification checkpoint with main ce47359 (N04 native helper isolation). The test import is normalized, and intentional best-effort cleanup handlers gain explanatory comments without changing runtime behavior. All N04 and USB/network/update source-bound evidence remains at its original tested revisions. The Token Guard 93-test and 26-workflow-test passes belong to the pre-integration source; current-head GitHub CI and native gates must be judged separately. The private 1.2.1 archive remains bound to its earlier exact source. N04, H02 and production trust decisions remain open. No product criterion, score weight, permission or OS contract changes."
   },
   "tracks": [
     {
