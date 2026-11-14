@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Typography specimen</title>
+<!-- Identical BaryonOS interface content set in one candidate typeface.
+     ?font=<id>&wm=<id>&theme=dark|light&view=apps|shell&blind=<code>; wm sets the wordmark face
+     separately (default: the UI face). blind replaces the
+     typeface name with a code for unbiased review. Layout and colours are deliberately neutral
+     so the typeface is the only variable. Design study, not product UI. -->
+<style>
+:root{
+  --bg:#0b0e14; --surface:#141922; --raised:#1b212c; --line:#2a3240; --text:#e8ecf2; --muted:#9ba5b4;
+  --faint:#7d8898; --accent:#5b97ff; --accent-ink:#06101f; --select:#1f3459; --danger:#ff8a80; --ok:#5fd38d; --focus:#9cc2ff;
+  --t-cap:12px; --t-small:13px; --t-ui:15px; --t-read:16px; --t-sub:18px; --t-title:22px; --t-head:28px; --t-display:56px;
+}
+:root[data-theme=light]{
+  --bg:#eef1f5; --surface:#ffffff; --raised:#f6f8fb; --line:#d6dce5; --text:#141a23; --muted:#56606f;
+  --faint:#636d7b; --accent:#1d5fd6; --accent-ink:#ffffff; --select:#dbe7fd; --danger:#b3261e; --ok:#17804a; --focus:#1d5fd6;
+}
+@font-face{font-family:sora;src:url(../candidates/Sora[wght].ttf);font-weight:100 800}
+@font-face{font-family:exo2;src:url(../candidates/Exo2[wght].ttf);font-weight:100 900}
+@font-face{font-family:spacegrotesk;src:url(../candidates/SpaceGrotesk[wght].ttf);font-weight:300 700}
+@font-face{font-family:inter;src:url(../candidates/Inter[opsz,wght].ttf);font-weight:100 900}
+@font-face{font-family:atkinson;src:url(../candidates/AtkinsonHyperlegibleNext[wght].ttf);font-weight:200 800}
+@font-face{font-family:saira;src:url(../candidates/Saira[wdth,wght].ttf);font-weight:100 900;font-stretch:50% 125%}
+@font-face{font-family:manrope;src:url(../candidates/Manrope[wght].ttf);font-weight:200 800}
+@font-face{font-family:lexend;src:url(../candidates/Lexend[wght].ttf);font-weight:100 900}
+@font-face{font-family:geist;src:url(../candidates/Geist[wght].ttf);font-weight:100 900}
+@font-face{font-family:oxanium;src:url(../candidates/Oxanium[wght].ttf);font-weight:200 800}
+@font-face{font-family:archivo;src:url(../../fonts/Archivo[wdth,wght].ttf);font-weight:100 900;font-stretch:62% 125%}
+@font-face{font-family:instrument;src:url(../../fonts/InstrumentSans[wdth,wght].ttf);font-weight:400 700;font-stretch:75% 100%}
+@font-face{font-family:funnel;src:url(../../fonts/FunnelSans[wght].ttf);font-weight:300 800}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);color:var(--text)}
+body{font-family:var(--f),sans-serif;font-feature-settings:var(--ui-features);font-size:var(--t-ui);line-height:1.43;width:1440px;height:900px;overflow:hidden;
+  -webkit-font-smoothing:antialiased;font-kerning:normal}
+.tn{font-variant-numeric:tabular-nums} /* digit runs only: a global tnum also widens - : . in some faces */
+.board{display:grid;grid-template-columns:400px 1fr 380px;grid-template-rows:minmax(0,1fr) 60px;gap:14px 16px;padding:18px 20px 12px;height:100%}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel,.trust,.orbit{position:relative}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+[data-s]::before{content:attr(data-s);position:absolute;top:-8px;left:12px;padding:0 6px;background:var(--bg);font:500 10px/14px system-ui,sans-serif;color:var(--faint);letter-spacing:.02em}
+main[hidden]{display:none}
+.label{font-size:var(--t-small);color:var(--muted);font-weight:500;margin-bottom:8px}
+.cap{font-size:var(--t-cap);color:var(--faint)}
+.muted{color:var(--muted)}
+.wm{display:grid;grid-template-columns:1fr;gap:10px}
+.wm img{width:100%;height:96px;object-fit:cover;border-radius:8px;display:block;background:#0f1115}
+.wm .set{font-family:var(--wm-f),sans-serif;display:flex;align-items:baseline;gap:.22em;font-size:40px;line-height:1;letter-spacing:.005em;font-stretch:var(--wm-stretch)}
+.wm .set b{font-weight:var(--wm-weight)}
+.wm .set span{font-weight:400;color:var(--muted)}
+.fontname{display:flex;justify-content:space-between;align-items:baseline}
+.fontname strong{font-size:var(--t-sub);font-weight:600}
+.clock{display:flex;align-items:baseline;gap:14px}
+.clock .t{font-size:var(--t-display);font-weight:400;line-height:1;letter-spacing:-.01em}
+.clock .d{font-size:var(--t-sub);color:var(--muted)}
+.note{display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:start}
+.note .ic{width:32px;height:32px;border-radius:8px;background:var(--raised);border:1px solid var(--line)}
+.note h4{font-size:var(--t-ui);font-weight:600}
+.note p{font-size:var(--t-small);color:var(--muted);margin-top:2px}
+.trust{background:var(--raised);border:1px solid var(--line);border-radius:16px;padding:18px}
+.trust .origin{font-size:var(--t-cap);color:var(--muted);display:flex;gap:6px;align-items:center}
+.trust .origin i{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block}
+.trust h3{font-size:var(--t-sub);font-weight:600;margin:8px 0 12px;line-height:1.3}
+.trust dl{display:grid;grid-template-columns:96px 1fr;gap:6px 12px;font-size:var(--t-ui)}
+.trust dt{color:var(--muted)}
+.btns{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.btn{font:inherit;font-size:var(--t-ui);font-weight:600;height:36px;padding:0 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--text)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn[disabled]{opacity:.45}
+.btn.focus{outline:3px solid var(--focus);outline-offset:2px}
+.search{display:flex;align-items:center;gap:10px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--raised);padding:0 14px;font-size:var(--t-sub)}
+.search .caret{width:1.5px;height:20px;background:var(--text);margin-left:-8px}
+.group{margin-top:12px}
+.group .gh{font-size:var(--t-cap);color:var(--muted);font-weight:600;letter-spacing:.02em;margin-bottom:4px}
+.row{display:flex;justify-content:space-between;align-items:center;height:32px;padding:0 10px;border-radius:8px}
+.row.sel{background:var(--select)}
+.row .k{font-size:var(--t-small);color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:var(--t-ui);table-layout:fixed}
+th:nth-child(1){width:37%}th:nth-child(2){width:22%}th:nth-child(3){width:14%}
+td{overflow:hidden;text-overflow:ellipsis}
+th{font-size:var(--t-small);color:var(--muted);font-weight:500;text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td.num,th.num{text-align:right}
+tr.sel td{background:var(--select)}
+tr.sel td:first-child{font-weight:600}
+.crumbs{font-size:var(--t-small);color:var(--muted);margin-bottom:8px}
+.path{font-size:var(--t-small);color:var(--muted);margin-top:8px}
+.read{font-size:var(--t-read);line-height:1.55;max-width:64ch}
+.read + .read{margin-top:8px}
+.read.en{color:var(--muted)}
+.set-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.set-row:last-child{border:0}
+.set-row .h{font-weight:500}
+.set-row .s{font-size:var(--t-small);color:var(--muted)}
+.set-row.dis{opacity:.45}
+.toggle{width:36px;height:20px;border-radius:10px;background:var(--line);position:relative;flex:none}
+.toggle::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:2px;left:2px}
+.toggle.on{background:var(--accent)}.toggle.on::after{left:18px}
+.toggle.focus{outline:3px solid var(--focus);outline-offset:2px}
+.field label{font-size:var(--t-small);font-weight:500;display:block;margin-bottom:4px}
+.field .in{height:36px;border:1px solid var(--line);border-radius:9px;display:flex;align-items:center;padding:0 10px;background:var(--raised)}
+.field .err{font-size:var(--t-small);color:var(--danger);margin-top:4px}
+.field.bad .in{border-color:var(--danger)}
+.menu .row{height:30px}
+.menu .row.dis{opacity:.45}
+.conf{font-size:13px;letter-spacing:.01em;line-height:1.7}
+.conf.s11{font-size:11px}
+.orbit{grid-column:1/-1;display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:0 14px}
+.orbit .app{font-size:var(--t-small);padding:6px 10px;border-radius:8px}
+.orbit .app.on{background:var(--select);font-weight:600}
+.orbit .sp{flex:1}
+.orbit .priv{font-size:var(--t-small);display:flex;gap:6px;align-items:center;color:var(--muted)}
+.orbit .priv i{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.orbit .ck{font-size:var(--t-ui);font-weight:500;text-align:right;line-height:1.2}
+.orbit .ck small{display:block;font-size:var(--t-cap);color:var(--muted);font-weight:400}
+.weights{display:flex;gap:14px;font-size:var(--t-sub);flex-wrap:wrap}
+.shell{grid-template-columns:1fr 420px 340px}
+.hz{display:flex;flex-direction:column;gap:14px}
+.hz .greet{font-size:var(--t-head);font-weight:600;line-height:1.15}
+.hz .sub{color:var(--muted);font-size:var(--t-read)}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.card{border:1px solid var(--line);background:var(--raised);border-radius:12px;padding:12px}
+.card .a{font-size:var(--t-cap);color:var(--muted);font-weight:600;letter-spacing:.02em}
+.card .n{font-weight:600;margin-top:4px}
+.card .m{font-size:var(--t-small);color:var(--muted);margin-top:2px}
+.doc h1{font-size:var(--t-head);font-weight:700;line-height:1.2}
+.doc .meta{font-size:var(--t-small);color:var(--muted);margin:4px 0 12px}
+.doc h2{font-size:var(--t-sub);font-weight:600;margin:12px 0 4px}
+.doc p,.doc li{font-size:16px;line-height:1.6;max-width:66ch}
+.doc ul{padding-left:1.2em}
+.doc b{font-weight:600}
+.zenit .search{font-size:var(--t-ui);color:var(--muted);height:40px}
+.zenit .h{font-size:var(--t-small);font-weight:600;color:var(--muted);margin:16px 0 8px;display:flex;justify-content:space-between}
+.apps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 6px}
+.apps .ap{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:var(--t-small);text-align:center}
+.apps .ap i{width:44px;height:44px;border-radius:12px;background:var(--raised);border:1px solid var(--line)}
+.apps .ap.sel i{outline:3px solid var(--focus);outline-offset:2px}
+.zenit .row .k{}
+.zenit .foot{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.zenit .who{display:flex;gap:10px;align-items:center;font-weight:500}
+.zenit .who i{width:28px;height:28px;border-radius:50%;background:var(--select);display:grid;place-items:center;font-style:normal;font-size:var(--t-small);font-weight:600}
+.qs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qs .t{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--raised)}
+.qs .t.on{background:var(--select);border-color:transparent}
+.qs .t b{display:block;font-weight:600;font-size:var(--t-ui)}
+.qs .t span{font-size:var(--t-small);color:var(--muted)}
+.slider{display:grid;grid-template-columns:90px 1fr 44px;gap:10px;align-items:center;font-size:var(--t-small);margin-top:10px}
+.slider .bar{height:4px;border-radius:2px;background:linear-gradient(90deg,var(--accent) var(--v),var(--line) var(--v))}
+.slider .pc{text-align:right;color:var(--muted)}
+.nc .hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.nc .hd b{font-size:var(--t-sub);font-weight:600}
+.nc .hd span{font-size:var(--t-small);color:var(--accent);font-weight:600}
+.nc .note + .note{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.empty{text-align:center;color:var(--muted);font-size:var(--t-small);padding:8px 0}
+.empty b{display:block;color:var(--text);font-size:var(--t-ui);font-weight:600}
+</style>
+</head>
+<body>
+<main class="board" id="v-apps">
+  <section class="col">
+    <div class="panel wm" data-s="Merk · woordmerk">
+      <div class="fontname"><strong id="fname">Typeface</strong><span class="cap" id="fmeta"></span></div>
+      <img src="../../brand/reference/original-logo.webp" alt="Oorspronkelijk BaryonOS-logo (referentie)" width="364" height="236">
+      <div class="set"><b>Baryon</b><span>OS</span></div>
+      <div class="weights"><span style="font-weight:400">Regular</span><span style="font-weight:500">Medium</span><span style="font-weight:600">Semibold</span><span style="font-weight:700">Bold</span></div>
+    </div>
+    <div class="panel" data-s="Horizon (Bureaublad) · klok">
+      <div class="clock"><span class="t">09:41</span><span class="d">vrijdag 13 november</span></div>
+    </div>
+    <div class="panel note" data-s="Melding">
+      <span class="ic"></span>
+      <div><h4>Thuis-NAS bijgewerkt</h4><p>12 bestanden staan versleuteld op Thuis-NAS.</p></div>
+      <span class="cap tech">08:30</span>
+    </div>
+    <div class="trust" data-s="Toestemming · vertrouwd systeemvenster">
+      <div class="origin"><i></i>Vraag van het systeem · getoond boven alle apps</div>
+      <h3>Webvenster wil Tuinplan versturen naar tuinplanner.example</h3>
+      <dl><dt>App</dt><dd>Webvenster</dd><dt>Wat</dt><dd>Tuinplan (1 notitie, 2,1 kB)</dd><dt>Waarheen</dt><dd>tuinplanner.example</dd><dt>Hoe lang</dt><dd>Alleen deze keer</dd></dl>
+      <div class="btns"><button class="btn focus">Annuleren</button><button class="btn primary">Eenmalig toestaan</button></div>
+    </div>
+  </section>
+
+  <section class="col">
+    <div class="panel" data-s="Signaal (Zoeken)">
+      <div class="search">tuin<span class="caret"></span></div>
+      <div class="group"><div class="gh">Bestanden</div>
+        <div class="row sel"><span>Tuinplan</span><span class="k">Notitie · vandaag 09:12</span></div>
+        <div class="row"><span>Zaaikalender 2027</span><span class="k">Tabel · do 5 nov</span></div></div>
+      <div class="group"><div class="gh">Assistent op dit apparaat</div>
+        <div class="row"><span>Vraag de assistent over “tuin”</span><span class="k">Zonder internet</span></div></div>
+    </div>
+    <div class="panel" data-s="Nebula (Bestanden) · tabel en pad">
+      <div class="crumbs">Bestanden › Documenten › Verhuizing</div>
+      <table>
+        <thead><tr><th>Naam</th><th>Gewijzigd</th><th class="num">Grootte</th><th>Opslag</th></tr></thead>
+        <tbody class="tech">
+          <tr><td>Plattegrond nieuwe woning</td><td>gisteren 16:30</td><td class="num">1,8 MB</td><td>Op dit apparaat en Thuis-NAS</td></tr>
+          <tr class="sel"><td>Begroting verbouwing</td><td>vandaag 09:30</td><td class="num">48,6 kB</td><td>Wordt bijgewerkt…</td></tr>
+          <tr><td>Huurcontract Spoorstraat 12</td><td>ma 2 nov</td><td class="num">312 kB</td><td>Op Thuis-NAS · versleuteld</td></tr>
+          <tr><td>Offerte keuken 0118-B</td><td>01-11-2026</td><td class="num">96,0 kB</td><td>Op dit apparaat</td></tr>
+        </tbody>
+      </table>
+      <div class="path tech">/Gebruikers/noor/Documenten/Verhuizing/Begroting verbouwing.tabel</div>
+    </div>
+    <div class="panel" data-s="Lange tekst · NL en EN">
+      <p class="read">Thuis-NAS is niet bereikbaar. Je werk staat veilig op dit apparaat en wordt bijgewerkt zodra de NAS terug is. Apps krijgen alleen toegang waar je zelf toestemming voor geeft; installeren geeft geen toegang tot je bestanden, netwerk of locatie.</p>
+      <p class="read en">Home NAS is unreachable. Your work is safe on this device and syncs as soon as the NAS is back. Größe, Ålesund, Łódź, Șiret, IJsselmeer, Ĳsselmeer.</p>
+    </div>
+  </section>
+
+  <section class="col">
+    <div class="panel" data-s="Kern (Instellingen) · schakelaars">
+      <div class="label">Instellingen › Privacy en beveiliging</div>
+      <div class="set-row"><div><div class="h">Zoeken op internet</div><div class="s">Uit: zoekopdrachten blijven op dit apparaat.</div></div><span class="toggle focus"></span></div>
+      <div class="set-row"><div><div class="h">Minder beweging</div><div class="s">Vervangt animaties door korte overgangen.</div></div><span class="toggle on"></span></div>
+      <div class="set-row dis"><div><div class="h">Locatie voor Sterrenkaart</div><div class="s">Niet beschikbaar: app niet geïnstalleerd</div></div><span class="toggle"></span></div>
+    </div>
+    <div class="panel field bad" data-s="Formulier · fout en knoppen">
+      <label>Naam van de NAS</label>
+      <div class="in">Thuis-NAS_01</div>
+      <div class="err">Gebruik alleen letters, cijfers en een streepje.</div>
+      <div class="btns"><button class="btn primary">Opslaan</button><button class="btn">Annuleren</button><button class="btn" disabled>Koppelen</button></div>
+    </div>
+    <div class="panel menu" data-s="Contextmenu">
+      <div class="row sel"><span>Openen</span><span class="k">Enter</span></div>
+      <div class="row"><span>Hernoemen</span><span class="k">F2</span></div>
+      <div class="row"><span>Verplaatsen naar collectie…</span><span class="k">Ctrl+Shift+M</span></div>
+      <div class="row dis"><span>Definitief verwijderen</span><span class="k">Shift+Del</span></div>
+    </div>
+    <div class="panel" data-s="Verwisselbare tekens · technische status">
+      <div class="conf tech">Il1| O0o rn m cl d 6 8 5 S B 8 ĳ IJ<br>€ 1.234,56 · 13-11-2026 09:41:07 · 100 %</div>
+      <div class="conf s11 tech muted">SMP:LOCKDEP:ORDER · build c76daf7b · 0x7F3A · v0.9.3 · 192.168.1.20</div>
+    </div>
+  </section>
+
+  <nav class="orbit" data-s="Orbit">
+    <span class="app on">Bestanden</span><span class="app">Notities</span><span class="app">Browser</span><span class="app">Foto’s</span><span class="app">Haven</span><span class="app">Instellingen</span>
+    <span class="sp"></span>
+    <span class="priv"><i></i>Op dit apparaat</span>
+    <span class="ck">09:41<small>vr 13 nov</small></span>
+  </nav>
+</main>
+<main class="board shell" id="v-shell" hidden>
+  <section class="col">
+    <div class="panel hz" data-s="Horizon (Bureaublad)">
+      <div class="fontname"><span class="greet">Goedemorgen, Noor</span><span class="cap" id="fmeta2"></span></div>
+      <div class="sub">Vrijdag 13 november · 7 °C, lichte regen</div>
+      <div class="label" style="margin:6px 0 0">Verder waar je was</div>
+      <div class="cards">
+        <div class="card"><div class="a">Notities</div><div class="n">Tuinplan</div><div class="m">Vandaag 09:12 · versie 4</div></div>
+        <div class="card"><div class="a">Bestanden</div><div class="n">Begroting verbouwing</div><div class="m">Wordt bijgewerkt…</div></div>
+        <div class="card"><div class="a">Notities</div><div class="n">Reisplan Lofoten</div><div class="m">Woensdag 11 november</div></div>
+      </div>
+    </div>
+    <div class="panel doc" data-s="Notities · document">
+      <h1>Tuinplan</h1>
+      <div class="meta">Versie 4 van 4 · opgeslagen op dit apparaat en Thuis-NAS · Notities mag dit bestand wijzigen tot je het sluit</div>
+      <h2>Moestuin achterin</h2>
+      <ul><li>Tomaten langs het hek (vier planten), 60 cm uit elkaar</li><li>Bonen tegen de schutting; courgette naast de compostbak</li></ul>
+      <h2>Voortuin</h2>
+      <p>Lavendel bij de deur en een vlinderstruik bij het raam. De regenton (200 l) sluiten we aan op de goot vóór 1 maart; de offerte van € 84,50 staat in <b>Begroting verbouwing</b>.</p>
+    </div>
+  </section>
+
+  <section class="col">
+    <div class="panel zenit" data-s="Zenit (Menu)">
+      <div class="search">Zoek apps, bestanden, instellingen en acties</div>
+      <div class="h"><span>Vastgezet</span><span>Alle apps</span></div>
+      <div class="apps">
+        <div class="ap sel"><i></i>Bestanden</div><div class="ap"><i></i>Notities</div><div class="ap"><i></i>Browser</div><div class="ap"><i></i>Foto’s</div>
+        <div class="ap"><i></i>Haven</div><div class="ap"><i></i>Instellingen</div><div class="ap"><i></i>Rekenmachine</div><div class="ap"><i></i>Herstel</div>
+      </div>
+      <div class="h"><span>Verder waar je was</span></div>
+      <div class="row sel"><span>Tuinplan</span><span class="k">vandaag 09:12</span></div>
+      <div class="row"><span>Begroting verbouwing</span><span class="k">vandaag 09:30</span></div>
+      <div class="row"><span>Plattegrond nieuwe woning</span><span class="k">gisteren 16:30</span></div>
+      <div class="row"><span>Huurcontract Spoorstraat 12</span><span class="k">ma 2 nov</span></div>
+      <div class="foot"><span class="who"><i>N</i>Noor de Vries</span><span class="btns" style="margin:0"><button class="btn">Vergrendelen</button><button class="btn">Aan/uit</button></span></div>
+    </div>
+  </section>
+
+  <section class="col">
+    <div class="panel" data-s="Snelle instellingen">
+      <div class="qs">
+        <div class="t on"><b>Wifi</b><span>Thuis</span></div><div class="t"><b>Bluetooth</b><span>Uit</span></div>
+        <div class="t"><b>Niet storen</b><span>Uit</span></div><div class="t on"><b>Nachtlicht</b><span>Tot 07:00</span></div>
+      </div>
+      <div class="slider" style="--v:64%"><span>Volume</span><span class="bar"></span><span class="pc">64 %</span></div>
+      <div class="slider" style="--v:80%"><span>Helderheid</span><span class="bar"></span><span class="pc">80 %</span></div>
+    </div>
+    <div class="panel nc" data-s="Meldingen">
+      <div class="hd"><b>Meldingen</b><span>Alles wissen</span></div>
+      <div class="note"><span class="ic"></span><div><h4>BaryonOS is bijgewerkt</h4><p>Versie 0.9 is geïnstalleerd. Je kunt de vorige versie terugzetten via Herstel.</p></div><span class="cap tech">07:58</span></div>
+      <div class="note"><span class="ic"></span><div><h4>Thuis-NAS bijgewerkt</h4><p>12 bestanden staan versleuteld op Thuis-NAS.</p></div><span class="cap tech">08:30</span></div>
+    </div>
+    <div class="panel" data-s="Lege toestand">
+      <div class="empty"><b>Cursus pottenbakken is leeg</b>Sleep bestanden hierheen of kies Nieuw › Notitie.</div>
+    </div>
+  </section>
+
+  <nav class="orbit" data-s="Orbit">
+    <span class="app">Bestanden</span><span class="app on">Notities</span><span class="app">Browser</span><span class="app">Foto’s</span><span class="app">Haven</span><span class="app">Instellingen</span>
+    <span class="sp"></span>
+    <span class="priv"><i></i>Notities gebruikt Tuinplan</span>
+    <span class="ck">09:41<small>vr 13 nov</small></span>
+  </nav>
+</main>
+<script>
+// id: [display name, CSS family, unused (former technical features), wordmark stretch, wordmark weight, UI features]
+// Every face gets its shipping set: UI features globally, tnum on digit runs only, no global zero.
+const FONTS = {
+  sora: ['Sora', 'sora', '"tnum"', '100%', 700],
+  exo2: ['Exo 2', 'exo2', '"tnum"', '100%', 700],
+  spacegrotesk: ['Space Grotesk', 'spacegrotesk', '"tnum","zero"', '100%', 700],
+  inter: ['Inter', 'inter', '"cv05","cv08","ss01","tnum","zero"', '100%', 700, '"cv05","cv08","ss01"'],
+  atkinson: ['Atkinson Hyperlegible Next', 'atkinson', '"tnum"', '100%', 700],
+  saira: ['Saira', 'saira', '"tnum","zero"', '125%', 700],
+  manrope: ['Manrope', 'manrope', '"tnum"', '100%', 700],
+  lexend: ['Lexend', 'lexend', '"zero"', '100%', 700],
+  geist: ['Geist', 'geist', '"tnum"', '100%', 700],
+  oxanium: ['Oxanium', 'oxanium', '"zero"', '100%', 700],
+  archivo: ['Archivo', 'archivo', '"tnum","zero"', '125%', 700],
+  instrument: ['Instrument Sans', 'instrument', '"tnum"', '100%', 700],
+  funnel: ['Funnel Sans', 'funnel', '"tnum"', '100%', 700],
+}
+const q = new URLSearchParams(location.search)
+const id = FONTS[q.get('font')] ? q.get('font') : 'inter'
+const [name, fam, , , , ui = 'normal'] = FONTS[id]
+const wmId = FONTS[q.get('wm')] ? q.get('wm') : id
+const [wmName, wmFam, , stretch, wmw] = FONTS[wmId]
+const root = document.documentElement
+root.dataset.theme = q.get('theme') === 'light' ? 'light' : 'dark'
+root.style.setProperty('--f', fam)
+root.style.setProperty('--ui-features', ui)
+root.style.setProperty('--wm-f', wmFam)
+root.style.setProperty('--wm-stretch', stretch)
+root.style.setProperty('--wm-weight', wmw)
+const blind = q.get('blind')
+const shown = blind ? `Specimen ${blind.slice(0, 3)}` : name
+const view = q.get('view') === 'shell' ? 'shell' : 'apps'
+document.getElementById('v-apps').hidden = view !== 'apps'
+document.getElementById('v-shell').hidden = view !== 'shell'
+document.getElementById('fname').textContent = shown
+const pairing = wmId !== id && !blind ? ` · woordmerk ${wmName}` : ''
+// Equal x-height, not equal px: UI size = ceil(7.9 px / x-height), the 0.2 degree at 60 cm floor (TYPOGRAPHY.md F7).
+// x-heights (OS/2 sxHeight / unitsPerEm) from measure_fonts.py, TYPOGRAPHY.md section 4; unmeasured faces stay at 15 px.
+const XH = { inter: 0.546, atkinson: 0.496, exo2: 0.487, archivo: 0.526, funnel: 0.500, saira: 0.510, sora: 0.534 }
+document.fonts.load(`16px ${fam}`).then(() => {
+  const xh = XH[id] ?? 7.9 / 15
+  const ui = Math.ceil(7.9 / xh - 1e-9), small = Math.max(12, Math.round(13 * XH.inter / xh)) // small tier keeps 13 px of Inter's x-height
+  root.style.setProperty('--t-ui', `${ui}px`); root.style.setProperty('--t-read', `${ui + 1}px`); root.style.setProperty('--t-small', `${small}px`)
+  root.dataset.xh = xh.toFixed(3)
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: n => /\d/.test(n.data) && !n.parentElement.closest('script,style') ? 1 : 2 })
+  for (const n of [...function* () { let t; while ((t = walk.nextNode())) yield t }()]) {
+    const f = document.createDocumentFragment()
+    n.data.split(/(\d+)/).forEach((part, i) => {
+      if (i % 2) { const d = document.createElement('span'); d.className = 'tn'; d.textContent = part; f.append(d) } else if (part) f.append(part)
+    })
+    n.replaceWith(f)
+  }
+  const sizes = blind ? '' : ` · UI ${ui} px · lezen ${ui + 1} px` // hidden when blind: the size would hint at the face
+  const detail = `${root.dataset.theme === 'light' ? 'Licht' : 'Donker'}${sizes}${pairing}`
+  document.getElementById('fmeta').textContent = detail
+  document.getElementById('fmeta2').textContent = `${shown} · ${detail}`
+  return document.fonts.ready
+}).then(() => { document.body.dataset.ready = '1' })
+document.title = `Typography specimen · ${shown}`
+</script>
+</body>
+</html>

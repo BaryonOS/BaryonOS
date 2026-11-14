@@ -1,6 +1,90 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — S09 native archive slice: export, restore, damaged-archive refusal, name-conflict restore and a full target pass the local volume gate (14/14) — 13 November 2026
+## NEXT AGENT HANDOFF — PR #321 conflict resolution — 14 November 2026
+
+**Source:** branch `ccr-cf45024e-merge-hold`, PR #321 head
+`56dac1707092d6eae79792f92222bd41ebb352ba`, integrated with main
+`542a008f12377997b2fc55400b98facb5f5a0f77`.
+
+**Result:** the conflicts in `docs/DECISIONS.md` and `docs/progress.json`
+are resolved. Both the SHA-bound merge-hold decision and the independent
+native-window deadline decision are retained. The criterion register and evidence
+match current main outside the assessment metadata. The merge-hold script,
+workflow, tests and explicit merge-approval requirements are unchanged from the
+PR head. All other current main changes and checkpoints are preserved.
+
+**Evidence on the combined source:**
+- `python3 -B tools/tests/test_merge_hold.py`: exit 0, 13 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'`: exit 0, 24 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'`: exit 0, 31 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_security_alerts_summary.py'`: exit 0, 22 tests (latest main integration).
+- `python3 -B tools/progress.py --write`, then `--check`, and `git diff --check origin/main`: exit 0.
+
+**Execution limits:** `python3 -B tools/preflight.py --strict` returned exit 2:
+Rust/Cargo, QEMU and OVMF are unavailable. `python3 -B tools/build.py` returned
+exit 1 (`cargo` missing); `python3 -B tools/run.py --smoke` returned exit 1
+(`qemu-system-x86_64` missing). No native runtime pass is claimed. The RTK CLI
+is unavailable; command output was captured with bounded summaries under the
+Ponytail workflow. Local logs are in `/tmp/pr321-checks/`.
+The whole-merge `git diff --cached --check` reports inherited whitespace in
+design evidence and font licences imported from main; those files remain
+unchanged. The PR's delta against main passes the whitespace check.
+
+**Progress:** 41/100 → 41/100; no criterion or acceptance evidence changes.
+
+**Next:** inspect GitHub Actions on the updated PR head. Merging and enabling
+auto-merge still require explicit approval from the project owner; no ruleset
+change or release of an acceptance hold is part of this conflict resolution.
+
+## Previous checkpoint — PR #316 conflict resolution — 14 November 2026
+
+**Source:** branch `ccr-cf45024e-q0nrg9`, PR #316 head
+`915cc4312b29de1bfb28588072bcfa024186314d`, integrated with main
+`2c72e282ca80fd3dd6bf377b3f71e2eced4a4499`.
+
+**Result:** the only merge conflict was the assessment in `docs/progress.json`.
+The current main criterion register, evidence, design checkpoint and other changes
+are preserved. The PR retains the 1800-second default; only the scale-2
+clipboard/workspace gate may use 2700 seconds. No source or workflow conflict
+required a manual resolution.
+
+**Evidence on the combined source:**
+- `python3 -B tools/test_window_session.py`: exit 0, 28 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'`: exit 0, 23 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'`: exit 0, 31 tests.
+- `python3 tools/progress.py --write`, then `--check`, and `git diff --check`: exit 0.
+
+**Execution limits:** `python3 -B tools/preflight.py --strict` returned exit 2
+because the native toolchain is unavailable. `python3 -B tools/build.py` returned
+exit 1 (`cargo` missing); `python3 -B tools/run.py --smoke` returned exit 1
+(`qemu-system-x86_64` missing). No local native runtime pass is claimed.
+
+**Progress:** 41/100 → 41/100; no criterion or acceptance evidence changes.
+
+**Next:** inspect GitHub Actions on the updated PR head, including both native
+window scales, before treating the integrated source as natively verified.
+
+## Previous checkpoint — Design pipeline (Orbitaal UI/UX), paused for a planned reboot — 14 November 2026
+
+**Source:** branch `claude/baryon-os-ui-ux-design-152adb`, draft PR #322 (never merge without the project owner). This section covers the design pipeline only; the S09 checkpoint below belongs to PR #318 and is unchanged apart from its heading.
+
+**Done (in Git):**
+- Audit, naming and IA, and three concepts. `ui/design/concepts/{orbitaal,triade,materie}/index.html` are the authoritative visual references and stay read-only. Orbitaal was selected with the Triade and Materie grafts and an 11-item must-fix list ([CONCEPTS.md](design/CONCEPTS.md)).
+- Typography review and the `type-1.0` tokens ([TYPOGRAPHY.md](design/TYPOGRAPHY.md)); Inter 4.001 is vendored.
+- Wordmark v2, Saira 600 at 125 % width, selected by a pre-registered blind AI review ([logotype review](verification/logotype-review-20261114/README.md), [BRAND.md](design/BRAND.md) §4, `f95bf5b2`). The project owner can redirect it to Inter 700.
+
+**Local, not in Git (unverified):** a writer applying the 82 adversarial typography findings was stopped before its verifier ran. Its edits are uncommitted in the worktree (TYPOGRAPHY.md, the typography review README, `finalist_checks.py`, `finalist-checks.txt`, FONTS.md and `docs/design/README.md`) and backed up in the ignored `build/design-pipeline-checkpoint/`, with the findings list and the workflow scripts. The lead decisions D1–D15 are in `typography-findings-apply-*.js` there. The status they introduce is: a tie under the pre-registered rule; Inter proposed as a judgement; the project owner decides.
+
+**Not done:** the Orbitaal v2 board and the native Inter atlas (both workflows were stopped before writing files); the FONTS.md row for Saira; phases D (design system), E (prototype), F (polish) and G (native slice, QEMU); the PR body refresh.
+
+**Next:**
+1. Review the uncommitted diff against D1–D15 and run only the verifier stage on it. Then commit and push, and add the FONTS.md Saira row (`Saira[wdth,wght].ttf`, google/fonts `29b4ec6d`, SHA-256 `9d050fc5…`, `OFL-Saira.txt` `f2665d47…`, wordmark outlines only).
+2. Re-run the Orbitaal v2 workflow (`orbitaal-v2-board-*.js`) with a new evidence directory.
+3. Re-run the native Inter atlas workflow (`native-inter-atlas-*.js`).
+
+**Progress:** 41/100 → 41/100. Design work accepts no criterion.
+
+## Previous checkpoint — S09 native archive slice: export, restore, damaged-archive refusal, name-conflict restore and a full target pass the local volume gate (14/14) — 13 November 2026
 
 **Source:** branch `feat/s09-native-archive`, draft PR #318 (no auto-merge). Tested commit `e88e0ad5` (source-v3 `a924a051f18bb1044526ba641d58023356e19564b5cd3a68823f90a14a1f69af`, which includes the AI-review fixes); later commits change documentation and evidence only.
 

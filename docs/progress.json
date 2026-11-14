@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-13",
-    "source_commit": "1a99a1d422ebec458febcac69920d2d49a18c6da",
+    "date": "2026-11-14",
+    "source_commit": "56dac1707092d6eae79792f92222bd41ebb352ba",
     "assessment_basis": "source_commit",
     "branch": "ccr-cf45024e-merge-hold",
-    "task": "Add the SHA-bound, live-reading merge-hold required gate and record the owner's no-auto-merge decision (ADR-MERGE-HOLD-20261113)",
+    "task": "Resolve PR #321 against main 542a008f12377997b2fc55400b98facb5f5a0f77 while preserving SHA-bound merge hold, merge approval and the native window deadline decision",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Merge-governance tooling only: merge-hold fails while acceptance-pending is set unless a trusted acceptance-released comment names the current head SHA; no OS functionality, native gate or product criterion changes."
+    "summary": "41/100 stays 41/100. Both independent decisions are retained, and only assessment metadata changes in the current main criterion register. The SHA-bound merge-hold implementation, workflow and explicit merge-approval requirements remain intact. No OS criterion or native runtime acceptance is added. Verification and execution limits are recorded in docs/PROJECT-STATE.md."
   },
   "tracks": [
     {
