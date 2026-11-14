@@ -1,6 +1,37 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #328 conflict resolution — 14 November 2026
+## NEXT AGENT HANDOFF — H02 boot-session completion — 14 November 2026
+
+**Source:** existing PR #328, branch `fix/issue43-network-usb-followup`,
+from `1260de8b5b0bb5330422ab9d5a63a64f5e2603b7`. Published implementation:
+`95871d00da8300bd542609930643af7e96e179dd`; source-v3:
+`b541866d534338fe367e8cdf965504267317f546f24b323f5de27bf5c7074896`.
+
+**Result:** a bounded USB boot-interface session joins existing descriptor
+selection, control encoding and keyboard/mouse state. One pending transfer,
+matching successful protocol completion, nonreused lifetime/sequence tokens,
+actual-length bounds and reset/detach clearing are enforced within the component.
+No device, DMA, IRQ, focus or event-delivery authority is added.
+
+**Evidence:** all 44 USB tests (13 new), formatting, strict Clippy and the scalar
+freestanding build pass on the identical local Git tree. A separate read-only AI source
+review found no blocker; this does not replace a human audit. The standard
+preflight/build/QEMU smoke gate on this source is **not yet run**. Exact commands,
+hashes and evidence limits are in the [session receipt](../drivers/usb/verification/boot-session.md).
+
+**Progress:** 41/100 → 41/100. H02 remains open; the criterion register is unchanged.
+
+**Blocker:** native xHCI execution still requires an enforced kernel-owned DMA/IRQ
+lifecycle. Bus-master enablement remains test-only. Native USB/HID transfer,
+input/focus integration, hotplug/reset/unplug and physical reference acceptance
+are not established by the component or the ordinary boot smoke test.
+
+**Next:** run `python3 tools/preflight.py --strict`, `python3 tools/build.py`
+and `python3 tools/run.py --smoke` on this source and retain the reports. Continue
+native work at the enforced device-execution boundary before adding xHCI rings.
+The existing PR remains the integration route; no merge or auto-merge is enabled.
+
+## Previous checkpoint — PR #328 conflict resolution — 14 November 2026
 
 **Source:** PR #328 head `5ab79f11abebbd6e1b6d0546a0b121437e9eca53`,
 integrated with main `3c79778bf9e8793bfc9eaaea755d21b41f755bae`.

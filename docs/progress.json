@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "5ab79f11abebbd6e1b6d0546a0b121437e9eca53",
-    "assessment_basis": "parent_commit",
+    "source_commit": "95871d00da8300bd542609930643af7e96e179dd",
+    "assessment_basis": "verified_identical_source_tree",
     "branch": "fix/issue43-network-usb-followup",
-    "task": "Resolve PR #328 conflicts against main 3c79778bf9e8793bfc9eaaea755d21b41f755bae",
+    "task": "Advance issue #42 with bounded HID boot-session completion and lifecycle handling",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The two documentation conflicts in PR #328 are reconciled by preserving both complete handoffs and the unchanged criterion register. Existing implementation and verification evidence from both parents are retained. This assessment names the PR parent; the combined source and executed checks are documented in docs/verification/pr328-conflicts-20261114.json. No criterion, weight, acceptance status or merge approval changes."
+    "summary": "41/100 remains 41/100. The new USB boot-session component passes 44 tests, formatting, strict Clippy and the scalar freestanding build. A separate read-only AI source review found no blocker. The standard integration gate is pending at this checkpoint. Native xHCI/HID execution, enforced DMA/IRQ containment, focus/hotplug and physical reference acceptance remain open; no criterion, weight or capability changes."
   },
   "tracks": [
     {
