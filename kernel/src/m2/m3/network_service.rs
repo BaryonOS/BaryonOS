@@ -11,12 +11,14 @@ const OFFSETS: [u64; 21] = [
 /// N04 revoke case: a fourth process is the policy authority for the service.
 const REVOKE: bool = cfg!(feature = "test-net-service-revoke");
 const DEVICE_RESET: bool = cfg!(feature = "test-net-service-device-reset");
+const EXHAUSTION: bool = cfg!(feature = "test-net-service-exhaustion");
 pub(super) const PROCESSES: usize = if REVOKE { 4 } else { 3 };
 struct Evidence {
     snapshots: [Option<[u64; 21]>; 4],
     kernel_tables: usize,
     exits: [u64; 4],
     revoke_requested: u64,
+    exhaustion_released: u64,
     #[cfg(feature = "test-net-service-device-reset")]
     reset_armed: bool,
 }
@@ -25,6 +27,7 @@ static mut EVIDENCE: Evidence = Evidence {
     kernel_tables: 0,
     exits: [0; 4],
     revoke_requested: 0,
+    exhaustion_released: 0,
     #[cfg(feature = "test-net-service-device-reset")]
     reset_armed: false,
 };
@@ -147,7 +150,9 @@ pub(super) fn manifest(s: &mut State) {
             (96, 9000 + index as u64),
             (
                 104,
-                if DEVICE_RESET {
+                if EXHAUSTION {
+                    4
+                } else if DEVICE_RESET {
                     3
                 } else if index != 0 {
                     0
@@ -229,6 +234,7 @@ pub(super) fn observe_exit(s: &mut State, slot: usize, _: u64) {
     if !expected_reset_failure
         && (s.last_event.code != 0 || values[0] != 0 || values[1] != 1 || values[17] != 1)
     {
+        exhaustion_diagnostics(s);
         print_number(b"NETSVC:EXIT_SLOT:", slot as u64);
         fail(b"USER_RESULT");
     }
@@ -251,6 +257,35 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     keyring::broker_tick(s);
     network::broker_tick(s);
     require(!s.unexpected, b"UNEXPECTED_EVENT");
+    // The second owner may allocate only after the first owner has received
+    // the real Exhausted reply. Neither this signal nor the observer alters
+    // the service allocator, endpoint authority or production port budget.
+    if EXHAUSTION
+        && evidence().exhaustion_released == 0
+        && s.processes[1].status != Status::Dead
+        && s.processes[2].status != Status::Dead
+        && word(s, 1, 544) == 1
+    {
+        require(
+            word(s, 1, 408) == 12_768 && word(s, 1, 464) == 12_768,
+            b"EXHAUSTION_PAIR_COUNT",
+        );
+        evidence().exhaustion_released = s.ticks.max(1);
+        put(s, 2, 120, 1);
+        print_number(b"NETSVC:EXHAUSTION_RELEASE_TICKS:", s.ticks.max(1));
+    }
+    if EXHAUSTION && evidence().exhaustion_released != 0 && s.processes[1].status != Status::Dead {
+        let survivor_closed = if let Some(app) = evidence().snapshots[2] {
+            app[19] == 1
+        } else {
+            s.processes[2].status != Status::Dead && word(s, 2, 544) == 1
+        };
+        if survivor_closed {
+            // Keep the exhausted owner registered until the other owner has
+            // actually allocated, observed Connecting and closed its socket.
+            put(s, 1, 120, 2);
+        }
+    }
     #[cfg(feature = "test-net-service-device-reset")]
     {
         if !evidence().reset_armed
@@ -286,6 +321,7 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
         print_number(b"NETSVC:REVOKE_TICKS:", s.ticks);
     }
     if s.ticks > 6000 {
+        exhaustion_diagnostics(s);
         for slot in 0..PROCESSES {
             if s.processes[slot].status != Status::Dead {
                 print_number(b"NETSVC:TIMEOUT_SLOT:", slot as u64);
@@ -305,6 +341,8 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
     if DEVICE_RESET {
         #[cfg(feature = "test-net-service-device-reset")]
         check_device_reset(&service);
+    } else if EXHAUSTION {
+        check_exhaustion(&service);
     } else if REVOKE {
         check_revoke(&service);
     } else {
@@ -441,6 +479,69 @@ fn check_revoke(service: &[u64; 21]) {
         b"REVOKE_ORDER",
     );
 }
+fn exhaustion_diagnostics(s: &State) {
+    if !EXHAUSTION {
+        return;
+    }
+    print_number(b"NETSVC:EXHAUSTION_FAILED_TICK:", s.ticks);
+    if s.processes[1].status != Status::Dead {
+        print_number(b"NETSVC:EXHAUSTION_A_OPENED:", word(s, 1, 408));
+        print_number(b"NETSVC:EXHAUSTION_A_CLOSED:", word(s, 1, 464));
+    }
+    if s.processes[0].status != Status::Dead {
+        print_number(b"NETSVC:EXHAUSTION_SERVICE_REQUESTS:", word(s, 0, 432));
+        print_number(b"NETSVC:EXHAUSTION_SERVICE_OPENED:", word(s, 0, 464));
+        print_number(b"NETSVC:EXHAUSTION_SERVICE_CLOSED:", word(s, 0, 488));
+    }
+}
+
+fn check_exhaustion(service: &[u64; 21]) {
+    require(
+        service[2] > 0
+            && service[4] == 0
+            && service[5] == 25_544
+            && service[6] == 4
+            && service[9] == 12_769
+            && service[12] == 12_769
+            && service[13] == 3
+            && [7, 8, 10, 11, 14, 15, 16, 18, 19, 20]
+                .iter()
+                .all(|i| service[*i] == 0),
+        b"EXHAUSTION_SERVICE",
+    );
+    for slot in 1..3 {
+        let app = evidence().snapshots[slot].unwrap();
+        let pairs = if slot == 1 { 12_768 } else { 1 };
+        require(
+            app[2] == pairs
+                && app[3] == u64::from(slot == 2)
+                && app[4] == 1
+                && app[6] == 1
+                && app[9] == pairs
+                && app[11] == 1
+                && app[19] == 1
+                && (slot == 2 || app[14] == 0)
+                && [5, 7, 8, 10, 12, 13, 15, 16, 18]
+                    .iter()
+                    .all(|i| app[*i] == 0),
+            b"EXHAUSTION_APP",
+        );
+    }
+    let exhausted = evidence().snapshots[1].unwrap()[20];
+    let survivor = evidence().snapshots[2].unwrap()[20];
+    let closed = evidence().snapshots[2].unwrap()[14];
+    let released = evidence().exhaustion_released;
+    require(
+        exhausted > 0
+            && exhausted <= released
+            && released <= survivor
+            && survivor <= closed
+            && closed <= evidence().exits[2]
+            && closed <= evidence().exits[1],
+        b"EXHAUSTION_CAUSALITY",
+    );
+}
+
 fn check_full_app(app: &[u64; 21]) {
     require(
         app[2] == 2

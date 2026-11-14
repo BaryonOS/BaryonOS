@@ -24,11 +24,12 @@ from common import (ROOT, BUILD, environment, firmware, qemu_machine, sha256,
 from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json, load_json
 from run_system import check_esp, network_arguments
-from network_service_peer import Peer, validate_transcript, REQUESTS, RESPONSES, RESET_PROBE, MAX_FRAMES
+from network_service_peer import (Peer, validate_transcript, REQUESTS, RESPONSES, RESET_PROBE,
+                                  MAX_FRAMES, PORT_BUDGET, MAX_EXHAUSTION_FRAMES)
 
 FEATURE = "native-net-service"
 FEATURES = {"normal": FEATURE, "client-exit": "test-net-service-client-exit", "revoke": "test-net-service-revoke",
-            "device-reset": "test-net-service-device-reset"}
+            "device-reset": "test-net-service-device-reset", "exhaustion": "test-net-service-exhaustion"}
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
 OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536, 544, 552)
 ROLES = ("SERVICE", "APP_A", "APP_B")
@@ -166,6 +167,40 @@ def reset_sequence(found, network, exit_ticks, entropy):
             "reset_tick": tick}
 
 
+def exhaustion_sequence(found, network, exit_ticks, entropy, released):
+    service = found["SERVICE"]
+    fixed = {424: 0, 432: 2 * PORT_BUDGET + 8, 440: 4, 448: 0, 456: 0, 464: PORT_BUDGET + 1,
+             472: 0, 480: 0, 488: PORT_BUDGET + 1, 496: 3, 504: 0,
+             512: 0, 520: 0, 536: 0, 544: 0, 552: 0}
+    if any(service[k] != v for k, v in fixed.items()) or service[408] < 1:
+        raise ValueError("Native exhaustion service counts/cleanup differ")
+    for role in ("APP_A", "APP_B"):
+        app = found[role]
+        exact = dict.fromkeys(OFFSETS, 0)
+        exact.update({400: 1, 408: PORT_BUDGET if role == "APP_A" else 1,
+                      416: int(role == "APP_B"), 424: 1, 440: 1,
+                      464: PORT_BUDGET if role == "APP_A" else 1, 480: 1,
+                      528: 1, 544: 1})
+        if any(app[k] != v for k, v in exact.items() if k != 552 and (role != "APP_B" or k != 504)):
+            raise ValueError("Native full port budget / survivor RPC proof differs")
+    exhausted, survivor, closed = found["APP_A"][552], found["APP_B"][552], found["APP_B"][504]
+    if (released is None or not 1 <= exhausted <= released <= survivor <= closed <= exit_ticks["APP_B"]
+            or closed > exit_ticks["APP_A"]):
+        raise ValueError("Survivor allocation was not causally after actual exhaustion")
+    expected_net = {"NET_TX_SUBMITTED", "NET_TX_COMPLETED", "NET_RX_COMPLETED", "NET_RX_DELIVERED",
+                    "NET_DENIED", "NET_TX_TIMEOUTS", "NET_RESETS", "NET_RESET_ACKS"}
+    fixed_net = {"NET_RX_COMPLETED": 0, "NET_RX_DELIVERED": 0, "NET_DENIED": 2,
+                 "NET_TX_TIMEOUTS": 0, "NET_RESETS": 1, "NET_RESET_ACKS": 1}
+    if (set(network) != expected_net or any(network[k] != v for k, v in fixed_net.items())
+            or network["NET_TX_SUBMITTED"] != network["NET_TX_COMPLETED"]
+            or network["NET_TX_COMPLETED"] != service[416]):
+        raise ValueError("Exhaustion completion/authority/reset evidence differs")
+    integer(service[416], 1, MAX_EXHAUSTION_FRAMES)
+    return {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()},
+            "network": network, "entropy_bytes": entropy, "exit_ticks": exit_ticks,
+            "exhaustion_release_tick": released}
+
+
 def sequence(stdout, case="normal"):
     if case not in FEATURES:
         raise ValueError("Unknown native service case")
@@ -187,7 +222,7 @@ def sequence(stdout, case="normal"):
     revoke = case == "revoke"
     found, network = {r: {} for r in (REVOKE_ROLES if revoke else ROLES)}, {}
     numeric = re.compile(r"NETSVC:(SERVICE|APP_A|APP_B|POLICY):([0-9]+):([0-9]{20})")
-    revoke_ticks = None
+    revoke_ticks, exhaustion_ticks = None, None
     net_numeric = re.compile(r"SYSTEM:(NET_[A-Z_]+):([0-9]{20})")
     entropy, exit_ticks = None, {}
     for line in lines[start + len(BOOT) + 1:-3]:
@@ -203,6 +238,12 @@ def sequence(stdout, case="normal"):
             if revoke_ticks is not None or exit_ticks:
                 raise ValueError("Duplicate or late revocation request")
             revoke_ticks = integer(int(revoke_match.group(1)), 1, 6000)
+            continue
+        exhaustion_match = re.fullmatch(r"NETSVC:EXHAUSTION_RELEASE_TICKS:([0-9]{20})", line) if case == "exhaustion" else None
+        if exhaustion_match:
+            if exhaustion_ticks is not None or exit_ticks:
+                raise ValueError("Duplicate or late exhaustion release")
+            exhaustion_ticks = integer(int(exhaustion_match.group(1)), 1, 6000)
             continue
         entropy_match = re.fullmatch(r"NETSVC:ENTROPY_BYTES:([0-9]{20})", line)
         if entropy_match:
@@ -239,6 +280,8 @@ def sequence(stdout, case="normal"):
     for role, values in found.items():
         if values[240] != 0 or values[400] != 1 or values[528] != 1:
             raise ValueError("Process failed or did not initialize/cleanly finish: " + role)
+    if case == "exhaustion":
+        return exhaustion_sequence(found, network, exit_ticks, entropy, exhaustion_ticks)
     service = found["SERVICE"]
     normal = case == "normal"
     owners = 2 if normal else 1
@@ -330,9 +373,17 @@ def evaluate(report, peer, *, case="normal"):
     if (peer.get("passed") is not True or peer.get("connected") is not True
             or peer.get("error") is not None or peer.get("rejected_frame") is not None):
         raise ValueError("Actual synthetic packet peer failed: " + str(peer.get("error")))
+    if case == "exhaustion":
+        raw_path = private_path(Path(report["run_directory"]) / "network-discard.bin", regular=True)
+        if peer.get("raw_path") != str(raw_path):
+            raise ValueError("Discard stream is not bound to the actual run directory")
     replay = validate_transcript(peer, case=case)
     net = observed["network"]
     counts = replay["counts"]
+    if case == "exhaustion":
+        if net["NET_TX_COMPLETED"] != counts["client_frames"] or counts["server_frames"] != 0:
+            raise ValueError("Discarded raw wire frames contradict actual TX completions")
+        return observed
     if case == "device-reset":
         # The reset publication can have reached the peer once before reset;
         # absence of a completion is not proof that the device sent no bytes.
@@ -393,7 +444,8 @@ def run_network_service(*, case="normal", timeout=90):
                   run_directory=str(directory), timeout_s=timeout, started_utc=datetime.now(timezone.utc).isoformat(),
                   qemu_sha256=qemu_hash, firmware_sha256=original_firmware, snapshot_sha256=snapshots,
                   qemu_version=subprocess.check_output([qemu, "--version"], env=env, text=True, timeout=10).strip())
-    with Peer(timeout=timeout, case=case) as peer:
+    raw_path = private_path(directory / "network-discard.bin") if case == "exhaustion" else None
+    with Peer(timeout=timeout, case=case, raw_path=raw_path) as peer:
         command += network_arguments(peer.port)
         begin = time.monotonic()
         rc, stdout_raw, stderr_raw, timed_out, output_overflow = execute_native(command, env, timeout=timeout)

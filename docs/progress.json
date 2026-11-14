@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "01ec2320d5255e261851fac154665313505d87bf",
+    "source_commit": "c0501e1a681c0889b2d9c1b6c025a576afb428db",
     "assessment_basis": "source_commit",
     "branch": "fix/issue43-network-usb-followup",
-    "task": "Add native unexpected NIC-reset containment evidence while advancing issues #43, #39, #41 and #42",
+    "task": "Resume issues #43, #39, #41 and #42: native fault-matrix integration, HID descriptor validation and TEST-policy compiler guards",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The native unexpected device-reset profile passes with normal/client-exit/revoke on one component source fingerprint, and an independent review found no remaining blocking finding. The integrated earlier checkpoint passed strict preflight, native build/smoke, all three existing network cases and the TCP loss/backpressure normal/cold pair. The reset case is now included in routine CI with required evidence. USB correction and the unapproved production-policy proposal are retained. Final integrated native verification and native owner-port exhaustion remain pending. Production signing, physical USB acceptance and the 50/100 target remain open; no criteria or weights change. Main merge-hold and explicit merge-approval requirements remain intact."
+    "summary": "41/100 remains 41/100. The recovered full network exhaustion fixture and latest main are integrated. USB HID descriptor framing is component-tested and actual TEST-policy compiler guards are added without creating production authority. Final combined-source native network/standard gates and current-head CI are pending. Production trust decisions, native USB/hotplug, physical reference evidence and the 50/100 goal remain open. No criterion or weight changes."
   },
   "tracks": [
     {

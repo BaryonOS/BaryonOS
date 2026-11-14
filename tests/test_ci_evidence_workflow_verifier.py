@@ -46,7 +46,7 @@ class WorkflowVerifierTests(unittest.TestCase):
         return VERIFIER.run(self.repo, self.baseline)
 
     def test_integrated_workflows_preserve_all_reporting_cases(self):
-        """A valid baseline retains 18 workflow files and 28 preservation calls."""
+        """A valid baseline retains 18 workflow files and 31 preservation calls."""
         report = self.report()
         self.assertTrue(report["passed"], report["failed_checks"])
         self.assertEqual(report["archive_workflow_count"], 18)
@@ -61,8 +61,10 @@ class WorkflowVerifierTests(unittest.TestCase):
             # H05 retains one workflow with distinct S5 and POWER-system calls.
             # The K06 section 9 matrix adds eight (probe, case, soak, aggregate,
             # final gate, clock diagnostic, margin diagnostic, gate rehearsal).
+            # Code coverage reporting adds three calls in ci.yml (Rust, Python,
+            # JavaScript), each counted by both prefixes.
             self.assertEqual(sum(check["name"].startswith(prefix)
-                                 for check in report["checks"]), 28)
+                                 for check in report["checks"]), 31)
         self.assertEqual(sum(check["name"].startswith("report-shell:")
                              for check in report["checks"]), 28)
         self.assertEqual(sum(check["name"].startswith("package-check:")

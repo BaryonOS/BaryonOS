@@ -8,16 +8,137 @@ fn configuration(body: &[u8]) -> Vec<u8> {
 }
 
 const KEYBOARD: [u8; 9] = [9, 4, 0, 0, 1, 3, 1, 1, 0];
+const HID: [u8; 9] = [9, 0x21, 0x11, 1, 0, 1, 0x22, 63, 0];
 const INPUT: [u8; 7] = [7, 5, 0x81, 3, 8, 0, 10];
+
+#[test]
+fn boot_binding_requires_its_own_hid_descriptor_before_endpoints() {
+    let missing = configuration(&[KEYBOARD.as_slice(), INPUT.as_slice()].concat());
+    assert!(select(&missing, 0, Speed::Full).is_err());
+
+    let mut other = KEYBOARD;
+    other[2] = 1;
+    for body in [
+        [KEYBOARD.as_slice(), INPUT.as_slice(), HID.as_slice()].concat(),
+        [
+            KEYBOARD.as_slice(),
+            HID.as_slice(),
+            HID.as_slice(),
+            INPUT.as_slice(),
+        ]
+        .concat(),
+        [
+            other.as_slice(),
+            HID.as_slice(),
+            INPUT.as_slice(),
+            KEYBOARD.as_slice(),
+            INPUT.as_slice(),
+        ]
+        .concat(),
+    ] {
+        assert_eq!(
+            select(&configuration(&body), 0, Speed::Full),
+            Err(Error::HidDescriptor)
+        );
+    }
+
+    let mut alternate = KEYBOARD;
+    alternate[3] = 1;
+    let body = [
+        alternate.as_slice(),
+        HID.as_slice(),
+        INPUT.as_slice(),
+        KEYBOARD.as_slice(),
+        INPUT.as_slice(),
+    ]
+    .concat();
+    assert_eq!(
+        select(&configuration(&body), 0, Speed::Full),
+        Err(Error::HidDescriptor)
+    );
+}
+
+#[test]
+fn hid_shape_count_and_report_header_are_bounded() {
+    let check = |hid: &[u8]| {
+        select(
+            &configuration(&[KEYBOARD.as_slice(), hid, INPUT.as_slice()].concat()),
+            0,
+            Speed::Full,
+        )
+    };
+    for value in 0..=u8::MAX {
+        let mut hid = HID;
+        hid[5] = value;
+        assert_eq!(
+            check(&hid).map(|_| ()),
+            if value == 1 {
+                Ok(())
+            } else {
+                Err(Error::HidDescriptor)
+            }
+        );
+        hid = HID;
+        hid[6] = value;
+        assert_eq!(
+            check(&hid).map(|_| ()),
+            if value == 0x22 {
+                Ok(())
+            } else {
+                Err(Error::HidDescriptor)
+            }
+        );
+    }
+    for length in 2..=u8::MAX {
+        let mut hid = vec![0; usize::from(length)];
+        hid[0] = length;
+        hid[1] = 0x21;
+        if length >= 9 {
+            hid[2..9].copy_from_slice(&HID[2..9]);
+        }
+        assert_eq!(
+            check(&hid).map(|_| ()),
+            if length == 9 {
+                Ok(())
+            } else {
+                Err(Error::HidDescriptor)
+            }
+        );
+    }
+    for length in 0..=u16::MAX {
+        let mut hid = HID;
+        hid[7..9].copy_from_slice(&length.to_le_bytes());
+        assert_eq!(
+            check(&hid).map(|binding| binding.report_descriptor_length),
+            if length == 0 {
+                Err(Error::HidDescriptor)
+            } else {
+                Ok(length)
+            }
+        );
+    }
+    // Optional class descriptors retain their declared framing. Their contents
+    // and HID version/country policy remain the enumeration owner's concern.
+    for count in 2..=83u8 {
+        let mut hid = HID.to_vec();
+        for _ in 1..count {
+            hid.extend_from_slice(&[0x23, 7, 0]);
+        }
+        hid[0] = u8::try_from(hid.len()).unwrap();
+        hid[5] = count;
+        assert_eq!(check(&hid).unwrap().report_descriptor_length, 63);
+    }
+}
 
 #[test]
 fn selects_interface_level_boot_identity_and_its_own_input_endpoint() {
     let bytes = configuration(
         &[
             KEYBOARD.as_slice(),
-            &[9, 0x21, 0x11, 1, 0, 1, 0x22, 63, 0],
+            HID.as_slice(),
             INPUT.as_slice(),
             &[9, 4, 1, 0, 1, 3, 1, 2, 0],
+            &[9, 0x21, 0x11, 1, 0, 1, 0x22, 50, 0],
             &[7, 5, 0x82, 3, 4, 0, 7],
         ]
         .concat(),
@@ -26,10 +147,12 @@ fn selects_interface_level_boot_identity_and_its_own_input_endpoint() {
     assert_eq!(keyboard.protocol, Protocol::Keyboard);
     assert_eq!(keyboard.input_endpoint, 0x81);
     assert_eq!(keyboard.max_packet_size, 8);
+    assert_eq!(keyboard.report_descriptor_length, 63);
     let mouse = select(&bytes, 1, Speed::Full).unwrap();
     assert_eq!(mouse.protocol, Protocol::Mouse);
     assert_eq!(mouse.input_endpoint, 0x82);
     assert_eq!(mouse.interval_ms, 7);
+    assert_eq!(mouse.report_descriptor_length, 50);
     assert_eq!(select(&bytes, 2, Speed::Full), Err(Error::MissingInterface));
 }
 
@@ -38,6 +161,7 @@ fn endpoint_from_another_interface_cannot_complete_the_selected_interface() {
     let bytes = configuration(
         &[
             KEYBOARD.as_slice(),
+            HID.as_slice(),
             &[9, 4, 1, 0, 1, 3, 1, 2, 0],
             INPUT.as_slice(),
         ]
@@ -48,7 +172,15 @@ fn endpoint_from_another_interface_cannot_complete_the_selected_interface() {
 
 #[test]
 fn a_valid_prefix_cannot_hide_a_malformed_tail_or_duplicate_interface() {
-    let bytes = configuration(&[KEYBOARD.as_slice(), INPUT.as_slice(), &[1, 0xff]].concat());
+    let bytes = configuration(
+        &[
+            KEYBOARD.as_slice(),
+            HID.as_slice(),
+            INPUT.as_slice(),
+            &[1, 0xff],
+        ]
+        .concat(),
+    );
     assert!(matches!(
         select(&bytes, 0, Speed::Full),
         Err(Error::Framing(_))
@@ -56,6 +188,7 @@ fn a_valid_prefix_cannot_hide_a_malformed_tail_or_duplicate_interface() {
     let bytes = configuration(
         &[
             KEYBOARD.as_slice(),
+            HID.as_slice(),
             INPUT.as_slice(),
             KEYBOARD.as_slice(),
             INPUT.as_slice(),
@@ -69,7 +202,7 @@ fn a_valid_prefix_cannot_hide_a_malformed_tail_or_duplicate_interface() {
 }
 
 fn single(interface: &[u8], endpoints: &[u8]) -> Vec<u8> {
-    configuration(&[interface, endpoints].concat())
+    configuration(&[interface, HID.as_slice(), endpoints].concat())
 }
 
 #[test]
@@ -187,6 +320,7 @@ fn only_requested_alternate_zero_can_bind_and_endpoints_do_not_bleed_across_alte
         let bytes = configuration(
             &[
                 KEYBOARD.as_slice(),
+                HID.as_slice(),
                 INPUT.as_slice(),
                 other.as_slice(),
                 &[7, 5, 0x82, 3, 64, 0, 1],
@@ -194,8 +328,15 @@ fn only_requested_alternate_zero_can_bind_and_endpoints_do_not_bleed_across_alte
             .concat(),
         );
         assert_eq!(select(&bytes, 0, Speed::Full).unwrap().input_endpoint, 0x81);
-        let bytes =
-            configuration(&[KEYBOARD.as_slice(), other.as_slice(), INPUT.as_slice()].concat());
+        let bytes = configuration(
+            &[
+                KEYBOARD.as_slice(),
+                HID.as_slice(),
+                other.as_slice(),
+                INPUT.as_slice(),
+            ]
+            .concat(),
+        );
         assert_eq!(select(&bytes, 0, Speed::Full), Err(Error::EndpointCount));
     }
     for field in 5..=7 {
@@ -241,6 +382,7 @@ fn configuration_header_and_all_transfer_cuts_cannot_return_a_partial_match() {
     let bytes = configuration(
         &[
             KEYBOARD.as_slice(),
+            HID.as_slice(),
             INPUT.as_slice(),
             &[9, 2, 9, 0, 1, 1, 0, 0x80, 50],
         ]

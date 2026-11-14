@@ -3,6 +3,7 @@
 eighteen real QEMU stages including key rotation and lifecycle rejections.
 Only the final summary with passed=true counts."""
 from __future__ import annotations
+import argparse
 import hashlib
 import json
 import shutil
@@ -31,6 +32,65 @@ MANIFESTS = {"m1": ("k1", 1, "TEST", "manifest-v1.bin"), "m2": ("k2", 2, "TEST",
 # Correctly signed but not an ELF: the loader must reject it as FORMAT and
 # fall back without raising the floor.
 JUNK_IMAGE = ("kj", "junk-v2.bin", 200_000)
+
+# ADR-B03K2: check the Rust boundary itself, including both loader implementations.
+POLICY_GUARDS = [
+    ("loader", "os-loader", ["-p", "os-loader", "--target", "x86_64-unknown-uefi"],
+     "signed-boot-test", "signed-boot",
+     "signed-boot requires an explicit signing policy; TEST anchors require signed-boot-test"),
+    ("loader-legacy", "os-loader", ["-p", "os-loader", "--target", "x86_64-unknown-uefi"],
+     "signed-boot-test,smp-handoff", "signed-boot,smp-handoff",
+     "signed-boot requires an explicit signing policy; TEST anchors require signed-boot-test"),
+    ("service", "update-service",
+     ["--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-update-example", "--bin", "update-service",
+      "--target", "x86_64-unknown-none"],
+     "native,test-signing-anchors", "native",
+     "the update service requires an explicit signing policy; TEST anchors are test-only"),
+]
+
+
+def check_policy_guards(frozen: str) -> dict:
+    """Cross-compilation only; a compiler failure alone never proves a guard."""
+    report = {"schema_version": 1, "source_fingerprint_version": 3, "source_sha256": frozen,
+              "passed": False, "checks": []}
+    path = BUILD / "update-policy-guards.json"
+    save_json(path, report)
+    env = environment()
+    for name, target, arguments, positive, negative, diagnostic in POLICY_GUARDS:
+        for mode, features in [("positive", positive), ("negative", negative)]:
+            command = ["cargo", "+1.90.0", "check", "--locked", "--no-default-features",
+                       "--message-format=json", *arguments, "--features", features]
+            try:
+                result = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True,
+                                        timeout=300)
+            except (OSError, subprocess.TimeoutExpired) as error:
+                report["checks"].append({"name": f"{name}-{mode}", "command": command,
+                                         "exit": None, "passed": False, "error": str(error)})
+                save_json(path, report)
+                return report
+            errors = []
+            for line in result.stdout.splitlines():
+                try:
+                    item = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if (item.get("reason") == "compiler-message"
+                        and item.get("target", {}).get("name") == target
+                        and item.get("message", {}).get("level") == "error"):
+                    errors.append(item["message"]["message"])
+            passed = (result.returncode == 0 if mode == "positive"
+                      else result.returncode == 101 and diagnostic in errors)
+            report["checks"].append({"name": f"{name}-{mode}", "command": command,
+                                     "exit": result.returncode, "passed": passed,
+                                     "expected_diagnostic": None if mode == "positive" else diagnostic,
+                                     "stdout": result.stdout, "stderr": result.stderr})
+            save_json(path, report)
+            print(f"B03 policy guard {name}-{mode} passed={passed} exit={result.returncode}")
+            if not passed:
+                return report
+    report["passed"] = source_hash() == frozen
+    save_json(path, report)
+    return report
 
 
 def test_inputs() -> dict[str, str]:
@@ -80,13 +140,27 @@ def prepare_images(frozen: str) -> dict:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--policy-guards-only", action="store_true",
+                        help="check TEST-policy compiler guards without running QEMU")
+    args = parser.parse_args()
     frozen = source_hash()
     tests = test_inputs()
     summary = {"schema_version": 1, "source_fingerprint_version": 3, "source_sha256": frozen,
                "test_inputs": tests, "status": "running", "passed": False, "host": [], "images": None,
-               "stages": []}
+               "stages": [], "policy_guards": None}
     path = BUILD / "update-gate.json"
+    if not args.policy_guards_only:
+        save_json(path, summary)
+    guards = check_policy_guards(frozen)
+    if args.policy_guards_only:
+        return 0 if guards["passed"] else 1
+    summary["policy_guards"] = guards
     save_json(path, summary)
+    if not guards["passed"]:
+        summary["status"] = "failed"
+        save_json(path, summary)
+        return 1
     for command in HOST:
         result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True)
         totals = [line for line in (result.stdout + result.stderr).splitlines()

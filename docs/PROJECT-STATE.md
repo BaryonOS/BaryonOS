@@ -4,36 +4,148 @@
 
 **Source:** branch `fix/issue43-network-usb-followup`, PR [#328](https://github.com/BaryonOS/BaryonOS/pull/328),
 based on main `b8a7e83658bdbcd4970c26f753dda1b342fce0d4` and integrated with
-main `31ccff4983763df0c76583cac1a536cc2a27d9bf`. The earlier public checkpoint
+main `299f0e39c202d67d1c2f4e31b879cbdd6add262b`, retaining the coverage-evidence
+repair, code-scanning triage and earlier merge-hold. Local checkpoint
+`2009fcf79a6f2f6d542a341e43e6d568cd8932c9` contains the completed exhaustion fixture. The earlier public checkpoint
 `01ec2320d5255e261851fac154665313505d87bf` precedes the reset fixture.
 
 **Implemented:** regular CI includes live grant revocation, TCP loss/backpressure
-with cold recovery, and the new unexpected virtual-NIC reset case. Reset occurs
+with cold recovery, the new unexpected virtual-NIC reset case, and full per-owner port exhaustion.
+Reset occurs
 with an actual published TX, which ends as Io; old app ingress is refused and
-resource cleanup is checked. Production capability/ABI/DMA contracts are unchanged.
-The low-speed USB interval correction and the unapproved
-[production-policy proposal](implementation/B03-PRODUCTION-POLICY-PROPOSAL.md) remain.
+resource cleanup is checked. Exhaustion consumes all 12,768 even ports while
+another registered owner can still allocate, inspect Connecting state, and close.
+The test composes the existing optional IPC wait implementation; production
+capability/ABI/DMA contracts and the existing time limits are unchanged.
+The USB selector now also requires a correctly framed HID descriptor before
+its endpoints and exposes its Report length as untrusted metadata. The B03 gate
+checks the actual Rust refusal of missing signing policy in both loader profiles
+and the native update service, paired with explicit TEST-profile controls. The
+[production-policy proposal](implementation/B03-PRODUCTION-POLICY-PROPOSAL.md)
+remains unapproved; no production authority or signing material is introduced.
 
 **Evidence:** the earlier integrated source passed strict preflight, native
 build/smoke, normal/client-exit/revoke and the TCP loss/backpressure normal/cold
-pair. The reset component's four native cases passed on one source fingerprint,
-with independent review, 18 driver and 19 peer/oracle host tests. The integrated
-workflow contracts now pass 25 tests; the USB correction passed 29 component
+pair. The final network component's five native cases passed on one source fingerprint,
+with independent review, 18 driver and 23 peer/oracle host tests. The integrated
+workflow contracts pass 26 tests and the evidence tooling 34 tests; the USB correction passed 29 component
 tests, fmt, Clippy and a freestanding build. Source boundaries and retained
 failures: [checkpoint](verification/issue43-20261114/README.md) and
-[reset receipt](verification/issue43-20261114/network-reset.md).
+[reset receipt](verification/issue43-20261114/network-reset.md), and
+[exhaustion receipt](verification/issue43-20261114/network-exhaustion.md).
 
-**Open:** final combined-source native gates and #39's native per-owner port
-exhaustion fixture. #41 needs approved trust/persistence decisions and separate
+**Resume checkpoint:** executable integration `c0501e1a681c0889b2d9c1b6c025a576afb428db`.
+The USB component passed 31 tests, formatting, strict Clippy and a freestanding
+build; its missing-HID regression fails against the original selector. The
+update harness passed 15 tests; actual positive/negative compiler controls and
+final combined-source native verification are running. Earlier evidence remains
+bound to its recorded source and is not relabelled as an integrated pass.
+
+**Open:** final combined-source native gates and hosted CI for #39.
+#41 needs approved trust/persistence decisions and separate
 production signing authorization. #42 still needs native USB/hotplug and physical
 reference evidence; #43's 50/100 target is not met. PR #328 retains its
 `acceptance-pending` hold, and merging requires the project owner's explicit approval.
 
 **Progress:** 41/100 → 41/100; no criterion or fixed-weight changes.
 
-**Next:** integrate the verified exhaustion fixture, run the full network matrix
-on a frozen combined source and record actual final outcomes before acceptance.
+**Next:** run the full network and TCP matrix plus the standard gate on the frozen
+combined source, then record actual final outcomes before acceptance.
 
+## Previous checkpoint — Code scanning alert triage — 14 November 2026
+
+**Source:** reviewed main `2eb7b942cac10db727a184819812634300a8e778`;
+documentation branch `docs/code-scanning-triage-20261114`.
+
+**Result:** all 23 specified open CodeQL alerts were dismissed in GitHub with
+recorded technical reasons. The filter `is:open branch:main` changed from
+23 open / 10 closed to **0 open / 33 closed** and displayed
+`All alerts are resolved.` The existing ten closed alerts were preserved.
+
+- **Used in tests (14):** #4–#12, #20, #21, #24, #25 and #33.
+- **False positive (9):** #14–#17, #23, #26, #27, #31 and #32.
+  These cover overwritten output buffers, empty password storage, the
+  fast-key-erasure DRBG nonce and guarded live-UEFI output-pointer paths.
+
+**Evidence:** current source, all four pointer dataflows (including all three
+macro-mapped paths of #32), alert-specific/group-specific dismissal comments
+and the final GitHub list were inspected. The disposition and source hashes
+are in [the triage record](verification/code-scanning-triage-20261114.json).
+No executable code, capabilities, scan rules or workflows changed.
+
+**Verification limits:** strict preflight exits 2 because Rust/Cargo, QEMU and
+OVMF are unavailable; build and smoke exit 1 before native execution. This is
+source review and alert-state verification, not a successful native test or
+complete security audit. The pointer conclusions retain the documented
+trusted-firmware boundary; null/alignment checks alone do not prove arbitrary
+pointer validity. Local command logs: `build/code-scanning-triage-20261114/`.
+
+**Progress:** 41/100 → 41/100; no acceptance criterion changes.
+
+**Next:** review the documentation-only draft PR. Alert closure is already
+complete and does not depend on merging that record. Future changes to the
+reviewed contracts require fresh triage; no merge or auto-merge is enabled.
+
+## Previous checkpoint — PR #302 coverage evidence repair and conflict resolution — 14 November 2026
+
+**Source:** branch `code-coverage-agent/setup-code-coverage-reporting`, PR head
+`4c224ead119623b3355f30206612bf6097a4eb42`, integrated with main
+`31ccff4983763df0c76583cac1a536cc2a27d9bf`.
+
+**Problem:** CI run `43594581854`, host-quality job `132446258992`, completed
+its tests and generated a 2,349,735-byte Rust Cobertura report. The evidence
+collector omitted that report because its default per-file limit is 1 MiB,
+so the required-evidence step failed. The current experimental SMP job
+`132446340235` in run `43594581829` passed all 15 legacy profiles; this repair
+adds no SMP test or timing claim.
+
+**Result:** the Rust coverage call explicitly permits reports up to 4 MiB
+and requires the exact XML path. Other calls retain the 1 MiB default. The
+8 MiB total, fixed 1 MiB receipt reserve, console, preview, file-count and
+path/content protections remain unchanged. The status and progress conflicts
+retain both PR checkpoints and the main criterion register. No SMP code or
+timeout was changed.
+
+**Evidence on the combined source:**
+- A regression fixture executes the real collector shell step with a synthetic
+  XML of the observed size. Before the repair it fails because the XML is
+  omitted; after the repair it passes with complete bytes and a matching hash.
+- 34 CI-evidence tests, 25 workflow tests, 22 security-alert tests and 13
+  merge-hold tests pass (94 total). The evidence tests also enforce default
+  limits, the fixed receipt reserve, invalid-limit rejection and file growth.
+- Checksum-verified actionlint 1.7.12, progress write/check and the full diff
+  whitespace check against main pass. A separate read-only AI review found
+  no blocking issue; this is not an independent human audit.
+- Source-bound commands, hashes and the original receipt identity:
+  [coverage-size verification](verification/pr302-coverage-size-20261114.json).
+  Local logs: `build/pr302-ci-repair/` (ignored by Git).
+
+**Execution limits:** strict preflight exits 2 because Rust, Cargo, QEMU and
+OVMF are missing; build exits 1 (`cargo` missing), and smoke exits 1
+(`qemu-system-x86_64` missing). The local fixture does not execute GitHub's
+expression engine or the external coverage upload. Current-head hosted CI
+remains required; earlier SMP evidence is not a native pass for this repair.
+
+**Progress:** 41/100 → 41/100; no criterion or acceptance evidence changes.
+
+**Next:** inspect current-head CI and the coverage-upload jobs on the existing
+PR. No merge or auto-merge is authorised by this repair.
+
+## Previous checkpoint — PR #302 coverage conflict resolution — 14 November 2026
+
+**Source:** branch `code-coverage-agent/setup-code-coverage-reporting`; published source `2b08e7ef5d836a9cd786d039da575769d52d962b`. Merge `650f2f661e35acc29a6f6fcf344f0fb16bbc2d4d` integrates PR head `d4a9cb7170e86407509b721630c11a3beb3f68dd` with main `2c72e282ca80fd3dd6bf377b3f71e2eced4a4499` without rewriting either parent. Git tree equality confirms that the published source is identical to locally verified source `175bbac1f3a738128d1e095a16b49b2baf4c9ba8`.
+
+**Result:** the three merge conflicts in the CI workflow, actionlint configuration and evidence-count test are resolved. The 28 main preservation calls and three coverage calls are retained (31 total), together with the security-alerts discovery command, hosted runner configuration and narrowly scoped permission exceptions. The security-alerts contract test explicitly permits the coverage exception while retaining its exact configuration comparison.
+
+**Evidence:** 31 CI-evidence tests, 23 workflow tests and 18 security-alerts tests pass. Checksum-verified actionlint 1.7.12 passes. The initial failing configuration assertion and its successful correction are retained in [the source-bound verification record](verification/pr302-coverage-conflicts-20261114.json); unchanged inputs to previously passing checks were compared before reusing their results.
+
+**Limits:** strict preflight exits 2 because Rust, Cargo, QEMU and OVMF are missing; build and smoke each exit 1 before native execution. Full host-quality, QEMU and GitHub coverage-upload behavior require current-head CI. Historical native evidence is not evidence for this integration.
+
+**Progress:** 41/100 → 41/100; no criterion status changes.
+
+**Next:** evaluate the existing PR's published-head checks and review; resolve any concrete CI failure without relaxing evidence or permission contracts. The PR #316 and design checkpoints below remain separate.
+
+**Base refresh:** main advanced to `5b76934ec3ad7cdad9cbe19f58d7a490a0f99d5e` after the first publication (`25df07f33138dcb24a12ab1c665847d2f7f5867a`). The two new conflicts in this status file and `docs/progress.json` are resolved by preserving both checkpoints and the current main criterion register. PR #316's scale-specific native-window timeout changes are retained. The repeated evidence (31 tests), workflow (23 tests), window-session (28 tests) and actionlint checks all pass; the 18 security-alerts tests retain identical inputs. The verification record includes the integration parents and all 78 checked input hashes.
 ## Previous checkpoint — PR #321 conflict resolution — 14 November 2026
 
 **Source:** branch `ccr-cf45024e-merge-hold`, PR #321 head
@@ -557,7 +669,7 @@ ADR-CI-QEMU-BUNDLE-20261111 and
 **Next:** merge #307 when its required checks are green, merge main into #296
 and rerun the K06 matrix there.
 
-## NEXT AGENT HANDOFF — PR #210 Veld input-ownership repairs — 11 November 2026
+## Previous checkpoint — PR #210 Veld input-ownership repairs — 11 November 2026
 
 **Source:** PR head `a8624b8` merged with `main` `c520703b`, then with `main`
 `1a3feb92` (after #296 and #314). Only `docs/PROJECT-STATE.md` conflicted;

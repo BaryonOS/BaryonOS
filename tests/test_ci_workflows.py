@@ -8,6 +8,7 @@ native QEMU acceptance.
 
 import hashlib
 import io
+import json
 import os
 from pathlib import Path
 import re
@@ -308,6 +309,46 @@ class WorkflowContractTests(unittest.TestCase):
             for job_id, job in workflow["jobs"].items():
                 yield path, job_id, job
 
+    def test_rust_coverage_report_survives_the_actual_collection_step(self):
+        """Archive a synthetic XML of the observed failing size through CI's shell step."""
+        steps = self.workflows[".github/workflows/ci.yml"]["jobs"]["host-quality"]["steps"]
+        caller = next(step for step in steps if step.get("name") == "Preserve Rust coverage artifact")
+        action = self.actions[EVIDENCE_ACTION]
+        inputs = {name: spec.get("default", "") for name, spec in action["inputs"].items()}
+        inputs.update(caller["with"])
+        inputs["job-status"] = "success"
+        collect = next(step for step in action["runs"]["steps"] if step.get("id") == "collect")
+        header, footer = b'<coverage><packages/>', b'</coverage>\n'
+        original = header + b" " * (2349735 - len(header) - len(footer)) + footer
+        with tempfile.TemporaryDirectory(prefix="coverage-evidence-") as directory:
+            root = Path(directory)
+            workspace, runner = root / "workspace", root / "runner"
+            (workspace / "tools").mkdir(parents=True)
+            runner.mkdir()
+            (workspace / "tools/ci_evidence.py").write_bytes((ROOT / "tools/ci_evidence.py").read_bytes())
+            report = workspace / inputs["path"]
+            report.parent.mkdir(parents=True)
+            report.write_bytes(original)
+            env = dict(os.environ, GITHUB_WORKSPACE=str(workspace), RUNNER_TEMP=str(runner),
+                       GITHUB_OUTPUT=str(root / "outputs"), GITHUB_STEP_SUMMARY=str(root / "summary"))
+            for name, expression in collect["env"].items():
+                match = re.fullmatch(r"\$\{\{ inputs\.([\w-]+) \}\}", expression)
+                self.assertIsNotNone(match)
+                env[name] = str(inputs[match.group(1)])
+            result = subprocess.run(["bash", "-e", "-o", "pipefail", "-c", collect["run"]],
+                                    cwd=workspace, env=env, capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            outputs = dict(line.split("=", 1) for line in (root / "outputs").read_text().splitlines())
+            retained = Path(outputs["path"]) / inputs["path"]
+            self.assertTrue(retained.is_file(), "The Rust XML was omitted from compact evidence")
+            self.assertEqual(retained.read_bytes(), original)
+            receipt = json.loads((Path(outputs["path"]) / "_meta/receipt.json").read_text())
+            self.assertEqual(receipt["retained"][0]["sha256"], hashlib.sha256(original).hexdigest())
+            self.assertEqual(receipt["limits"]["file_bytes"], 4 * 1024 * 1024)
+            self.assertEqual(receipt["limits"]["total_bytes_including_receipt"], 8 * 1024 * 1024)
+            self.assertEqual(receipt["required_paths"], [inputs["path"]])
+            self.assertEqual(outputs["required-files"], "true")
+
     def steps(self):
         """Include nested local-action steps in supply-chain and error checks."""
         for path, job_id, job in self.jobs():
@@ -413,13 +454,15 @@ class WorkflowContractTests(unittest.TestCase):
                 observed[tokens[-1]] = tokens[0]
         self.assertEqual(observed, {
             case: f"NOS_BUILD_DIR=$GITHUB_WORKSPACE/build/n01-ci-{case}"
-            for case in ("normal", "client-exit", "revoke", "device-reset")
+            for case in ("normal", "client-exit", "revoke", "device-reset", "exhaustion")
         })
         preserve, = [step for step in service["steps"]
                      if step.get("uses") == "./.github/actions/preserve-evidence"]
         self.assertEqual(set(preserve["with"]["required-paths"].splitlines()), {
             f"build/n01-ci-{case}/network-service-{case}-report.json" for case in observed
         })
+        self.assertIn("build/n01-ci-*/run/network-service-*/network-discard.bin",
+                      preserve["with"]["path"].splitlines())
 
         system = self.workflows[".github/workflows/native-system.yml"]["jobs"]["native-system"]
         tcp_steps = [step for step in system["steps"]
@@ -439,7 +482,7 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertLessEqual(required, set(preserve["with"]["path"].splitlines()))
 
     def test_public_prs_keep_minimal_token_permissions(self):
-        """Allow narrowly scoped writes only for CodeQL and orphan-run cleanup."""
+        """Allow narrowly scoped writes only for CodeQL, orphan-run cleanup and coverage uploads."""
         for path, workflow in self.workflows.items():
             with self.subTest(path=path):
                 self.assertNotIn("pull_request_target", workflow["on"])
@@ -466,6 +509,14 @@ class WorkflowContractTests(unittest.TestCase):
                     ".github/workflows/clear-stale-actions.yml", "cancel-orphans"
                 ):
                     self.assertEqual(permissions, {"actions": "write"})
+                elif (path, job_id) in (
+                    (".github/workflows/ci.yml", "upload-coverage-rust"),
+                    (".github/workflows/ci.yml", "upload-coverage-python"),
+                    (".github/workflows/ci.yml", "upload-coverage-javascript"),
+                ):
+                    self.assertEqual(
+                        permissions, {"contents": "read", "code-quality": "write"}
+                    )
                 else:
                     self.assertTrue(
                         set(permissions.values()) <= {"read", "none"}

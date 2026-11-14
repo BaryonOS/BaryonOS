@@ -27,7 +27,14 @@ explicitly selected existing evidence and performs the following steps:
    written remains available.
 
 The collector limits the preserved collection to 8 MiB and 500 files,
-including its own receipt; an individual report is at most 1 MiB.
+including its own receipt; an individual report defaults to at most 1 MiB.
+The Rust Cobertura report in `ci.yml` explicitly uses `max-file-bytes: '4194304'`
+(4 MiB) and is a required exact path. Run `43594581854` generated a
+2,349,735-byte report that exceeded the default. This allowance preserves the
+complete XML; it does not truncate the report or change coverage measurements.
+Other callers keep the 1 MiB default. The collector accepts per-call limits
+up to 7 MiB, always reserving a fixed 1 MiB for the receipt within the unchanged
+8 MiB total budget. Receipt metadata records the actual selected file limit.
 The console contains small JSON reports and labelled log excerpts, with a
 combined output budget of approximately 256 KiB. Truncated excerpts are
 explicitly marked. Hidden files, symlinks and paths outside the checkout are

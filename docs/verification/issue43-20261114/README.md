@@ -7,7 +7,8 @@ Branch: `fix/issue43-network-usb-followup`. Score: **41/100 → 41/100**.
 
 - #39: existing `--case revoke` and `--scenario loss-backpressure` now run in
   routine native CI. Separate reports are mandatory and their raw evidence is
-  retained. This does not establish the missing unexpected-reset/exhaustion cases.
+  retained. New unexpected-reset and owner-port exhaustion profiles have separately
+  passed the native component matrix; final integrated verification remains pending.
 - #42: low-speed `bInterval` 1–9 is rejected under USB 2.0 §5.7.4; full-speed
   retains 1–255. The existing exhaustive interval test was corrected, and fails
   on the old production implementation. Component commands and source/log hashes
@@ -60,6 +61,29 @@ Rust 1.90.0 supplies the standard targets; the existing TCP harness additionally
 requires Rust 1.91.1. Tool binaries and firmware hashes are recorded locally in
 `build/issue43-checks/environment.json`. No physical device is attached.
 
-Native owner-port exhaustion remains under implementation. Production policy
+The full 12,768-port exhaustion fixture passes within the existing 6,000-tick
+watchdog and 90-second host limit; its wait-capable profile proves actual owner
+allocation isolation, not a completed post-exhaustion TCP handshake. See the
+[exhaustion receipt](network-exhaustion.md), including three retained failed
+attempts and replayable actual frame bytes. All five component cases pass on
+one source fingerprint. Production policy
 approval, native USB/hotplug, actual reference hardware and the 50/100 goal remain
 open. The updated project merge policy and SHA-bound acceptance hold are retained.
+
+## Resumed integration checkpoint
+
+The unpublished exhaustion checkpoint `2009fcf79a6f2f6d542a341e43e6d568cd8932c9`
+was recovered intact. Main `299f0e39c202d67d1c2f4e31b879cbdd6add262b` was
+integrated while retaining both status histories and the unchanged criterion register.
+Executable checkpoint `c0501e1a681c0889b2d9c1b6c025a576afb428db` adds:
+
+- HID descriptor framing before endpoint binding; the advertised Report length
+  remains untrusted metadata. The USB receipt records 31 component tests, fmt,
+  strict Clippy, a freestanding build, and a regression against the original selector.
+- Real positive and negative Cargo checks for the explicit TEST signing-policy
+  boundaries, available through `tools/test_update.py --policy-guards-only` and
+  included in the full existing B03 gate. No production policy is selected.
+
+Combined-source native gates and actual compiler controls are pending at this
+intermediate checkpoint. Component receipts and historical QEMU results do not
+substitute for that final verification.

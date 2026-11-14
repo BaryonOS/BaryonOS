@@ -1,5 +1,63 @@
 # DRV-USB-HID-INTERFACE-BINDING
 
+## Mandatory HID descriptor validation — 14 November 2026
+
+Base: `2009fcf79a6f2f6d542a341e43e6d568cd8932c9`, issue #42.
+
+The selected alternate-zero interface now requires one HID descriptor before
+its endpoints. The descriptor's declared subordinate count must match its
+complete byte length, and its first entry must advertise a nonempty Report
+descriptor. Missing, misplaced, duplicate or malformed HID descriptors return
+`HidDescriptor`; a neighboring interface or alternate cannot supply the entry.
+The returned `report_descriptor_length` is untrusted metadata, not allocation,
+transfer, device-lifetime or input authority. HID version, optional descriptor
+semantics and the actual Report descriptor remain separate validation duties.
+
+Primary source read: USB Implementers Forum. (2001). *Device class definition
+for human interface devices (HID)* (Version 1.11, sections 6.2.1 and 7.1).
+<https://www.usb.org/sites/default/files/hid1_11.pdf>.
+
+The missing-HID regression first failed against the unchanged base selector
+(exit 101). The corrected crate passed **31 tests**, formatting, strict Clippy,
+and the freestanding build. Tests exercise all HID byte lengths, declared
+counts, first descriptor-type values and report-length words; optional-entry
+framing reaches the 255-byte descriptor boundary. Existing endpoint/interval
+tests remain intact. No tests are ignored.
+
+Commands, with Rust 1.90.0 and an isolated
+`CARGO_TARGET_DIR=build/issue42-next-target`:
+
+```sh
+cargo +1.90.0 test --offline --locked --manifest-path drivers/usb/Cargo.toml
+cargo +1.90.0 fmt --manifest-path drivers/usb/Cargo.toml -- --check
+cargo +1.90.0 clippy --offline --locked --manifest-path drivers/usb/Cargo.toml --all-targets -- -D warnings
+cargo +1.90.0 build --offline --locked --manifest-path drivers/usb/Cargo.toml --release --target x86_64-unknown-none --lib
+git diff --check
+```
+
+Tested source SHA-256 hashes:
+
+| File | SHA-256 |
+|---|---|
+| `src/boot_interface.rs` | `343b06ac7f5b2bc75212f57fa4d4c29eaaa32c29727b39802f851e26aa000b29` |
+| `tests/boot_interface.rs` | `de19b7a088caa26ec1ac5a0126d4da965559236284b7d7ee718620aa92708d86` |
+
+Ignored logs under `build/issue42-next-checks/` in the component worktree:
+
+| Log | Exit | SHA-256 |
+|---|---|---|
+| `baseline-missing-hid.log` | 101 (expected) | `1c7920011e94ef4f4d07af66f8b32c91199a6ddd097fd151d3e8e11f83d6b54d` |
+| `usb-tests.log` | 0 | `aea31f833087ee82c534dc456db39816208573ade45d48c59bdcdc7b4aafca1d` |
+| `usb-fmt.log` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+| `usb-clippy.log` | 0 | `841f30a51ade72a3b1f167fde478fb53ffd35e95e4abcdb8e921dbbf162d37ca` |
+| `usb-freestanding.log` | 0 | `1917677c44bb3913ac990dec0776cc102f839ce06dddaba61b9e44cfc251e291` |
+
+This is host/component and cross-compilation evidence. Full-system preflight,
+build/smoke, native USB execution, DMA isolation, unplug/reset/hotplug and
+physical reference-hardware checks were not run in this worktree. H02 remains
+open with no additional acceptance points. Reverting this scoped change restores
+the earlier selector contract; the low-speed interval repair is preserved.
+
 ## Low-speed interval correction — 14 November 2026
 
 Base: `b8a7e83658bdbcd4970c26f753dda1b342fce0d4`, issue #42.

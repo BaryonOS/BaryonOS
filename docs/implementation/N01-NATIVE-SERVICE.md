@@ -100,10 +100,12 @@ authentication.
 App offset 32=NETAPP01, 40 epoch, 48 SEND, 56 RECV, 64 servicePID,
 72 slot0/1, 80 actual ownPID, 88 own TCP starting port, 96 own UDP port.
 Offset104 selects normal (0), the app A client-failure trial (1), live
-revocation (2), or the device-reset containment trial (3). In the reset trial,
+revocation (2), device-reset containment (3), or full port exhaustion (4). In the reset trial,
 app offset112 synchronizes injection and observed service exit; both clients
 must still make an actual call on the old ingress handle. Both apps use the
 same ELF; the actual bootstrap slot selects their own test data.
+In the exhaustion trial, offset120 releases B after A observes `Exhausted`,
+then releases A to retire only after B has successfully closed its socket.
 
 Optional controller tag NETCTL01, payload 16 B: `NETSTOP1`@0, epoch u64@8.
 Only the bound controller may send it, without capabilities. The service
@@ -174,6 +176,7 @@ python3 tools/run_network_service.py --case normal
 python3 tools/run_network_service.py --case client-exit
 python3 tools/run_network_service.py --case revoke
 python3 tools/run_network_service.py --case device-reset
+python3 tools/run_network_service.py --case exhaustion
 ```
 
 `native-net-service` inherits only existing kernel mechanisms; a separate
@@ -215,6 +218,41 @@ This is a deterministic fault injection into a real QEMU device, not a
 physical-device reset trial or an automatic reconnection/restart guarantee.
 The source-bound execution receipt and the retained first failed run are
 described in [network-reset.md](../verification/issue43-20261114/network-reset.md).
+
+### Full per-owner port exhaustion
+
+`test-net-service-exhaustion` uses the unchanged production service allocator
+and all 12,768 non-reused local ports for owner A. Every open/close pair is
+an actual NET1 request/reply; the next open must return `Exhausted`. Only
+then may owner B successfully open, observe `Connecting` and close. A stays
+registered until B has closed, so owner retirement cannot account for B's
+remaining allocation capacity. Both owners then retire and the ordinary
+service, capability, object, process, frame and NIC cleanup checks apply.
+
+This fixture composes the existing optional `ipc-wait` feature and checks
+its advertised ABI before use. An exhaustion-only SDK transport waits on
+the same authorized endpoint after a real `Again`, then performs another
+real syscall. Queue readiness is advisory; it never substitutes a reply or
+resends an already enqueued request. The other profiles retain their existing
+transport. The kernel watchdog remains 6,000 ticks, the host limit 90 seconds
+and every open retains its 300-tick connection deadline.
+
+The bounded peer discards all input without replies. It streams actual framed
+bytes to `network-discard.bin`; independent rereading checks frame bounds,
+source/destination scope, count, size and SHA-256. Only this profile permits
+zero RX. Native service evidence requires exactly 25,544 decoded requests,
+12,769 opens and closes, four recorded rejections and retired mask 3.
+The two malformed requests are not decoded requests; the production
+`Exhausted` early return does not increment the rejection counter.
+
+In this profile, app words 408/464 count completed open/close calls, word 544
+records A's actual `Exhausted` or B's completed close, and word 552 records A's
+exhaustion or B's successful open tick. B word 416 records `Connecting` and
+word 504 records its close tick. The kernel records B's release and both app
+exit ticks independently. This proves native allocation, exhaustion and
+owner isolation; full packet exchanges remain the separate normal/revoke
+profiles. Source-bound results, earlier failures and captured bytes are in
+[network-exhaustion.md](../verification/issue43-20261114/network-exhaustion.md).
 
 Source orientation: OSDev Network Stack, W002538, revision23577
 (16 April 2019). Existing project drivers/ABI and the checked smoltcp/

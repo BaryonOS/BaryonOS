@@ -1,0 +1,421 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "pull_request": "https://github.com/BaryonOS/BaryonOS/pull/302",
+  "source_commit": "175bbac1f3a738128d1e095a16b49b2baf4c9ba8",
+  "source_tree": "0d5cd1f2d7403a5f9fdfd838d4b5b33f51e8ae3d",
+  "original_pr_head": "d4a9cb7170e86407509b721630c11a3beb3f68dd",
+  "integrated_main": "2c72e282ca80fd3dd6bf377b3f71e2eced4a4499",
+  "merge_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+  "resolved_paths": [
+    ".github/actionlint.yaml",
+    ".github/workflows/ci.yml",
+    "tests/test_ci_evidence_workflow_verifier.py"
+  ],
+  "additional_contract_fix": "tests/test_security_alerts_summary.py",
+  "result": "Both parents retained; 31 preservation calls, three coverage permission exceptions, main security-alerts discovery and narrowly scoped actionlint exceptions preserved.",
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_evidence*.py"
+      ],
+      "exit": 0,
+      "tests": 31,
+      "duration_seconds": 8.81,
+      "sha256": "caf3b440ad5a5f5045236ba02cf0c9f5e5fa084998d3557d7953700a78703597",
+      "source_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+      "log_excerpt": "...............................\n----------------------------------------------------------------------\nRan 31 tests in 8.666s\n\nOK",
+      "full_log_sha256": "caf3b440ad5a5f5045236ba02cf0c9f5e5fa084998d3557d7953700a78703597"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_workflows.py"
+      ],
+      "exit": 0,
+      "tests": 23,
+      "duration_seconds": 0.33,
+      "sha256": "809995e6e89497511b09512776bfdb3ab998a2d9c64eb9db49440998804126a5",
+      "source_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+      "log_excerpt": ".......................\n----------------------------------------------------------------------\nRan 23 tests in 0.206s\n\nOK",
+      "full_log_sha256": "809995e6e89497511b09512776bfdb3ab998a2d9c64eb9db49440998804126a5"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_security_alerts_summary.py"
+      ],
+      "exit": 1,
+      "tests": 18,
+      "duration_seconds": 0.15,
+      "sha256": "f9cb2f57fec0b1c0c6525bde0ae763344a99d9674793cf19699ebd3e982586da",
+      "source_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+      "log_excerpt": "...............F..\n======================================================================\nFAIL: test_actionlint_exception_is_one_message_in_one_file (test_security_alerts_summary.WorkflowContractTests.test_actionlint_exception_is_one_message_in_one_file)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<checkout>/tests/test_security_alerts_summary.py\", line 290, in test_actionlint_exception_is_one_message_in_one_file\n    self.assertEqual(config, {\nAssertionError: {'sel[72 chars]lows/ci.yml': {'ignore': ['unknown permission [126 chars]']}}} != {'sel[72 chars]lows/security-alerts.yml': {'ignore': ['unknow[41 chars]']}}}\nDiff is 643 characters long. Set self.maxDiff to None to see it.\n\n----------------------------------------------------------------------\nRan 18 tests in 0.012s\n\nFAILED (failures=1)",
+      "full_log_sha256": "f9cb2f57fec0b1c0c6525bde0ae763344a99d9674793cf19699ebd3e982586da"
+    },
+    {
+      "source_commit": "175bbac1f3a738128d1e095a16b49b2baf4c9ba8",
+      "source_tree": "0d5cd1f2d7403a5f9fdfd838d4b5b33f51e8ae3d",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_security_alerts_summary.py"
+      ],
+      "exit": 0,
+      "tests": 18,
+      "duration_seconds": 0.22,
+      "sha256": "23d5b70966bbba27412bc57b71f1742fe7092ad4c8c74accb0a31bca74d706f0",
+      "log_excerpt": "..................\n----------------------------------------------------------------------\nRan 18 tests in 0.017s\n\nOK",
+      "full_log_sha256": "23d5b70966bbba27412bc57b71f1742fe7092ad4c8c74accb0a31bca74d706f0"
+    }
+  ],
+  "actionlint": {
+    "version": "1.7.12",
+    "source_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+    "command": [
+      "actionlint",
+      "-shellcheck=",
+      "-pyflakes="
+    ],
+    "archive_url": "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz",
+    "verified_archive_sha256": "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8",
+    "exit_code": 0,
+    "full_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "unchanged_input_verification": {
+    "from_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+    "to_commit": "175bbac1f3a738128d1e095a16b49b2baf4c9ba8",
+    "changed_files": [
+      "tests/test_security_alerts_summary.py"
+    ],
+    "command": [
+      "git",
+      "diff",
+      "--name-only",
+      "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+      "175bbac1f3a738128d1e095a16b49b2baf4c9ba8"
+    ],
+    "exit": 0,
+    "prior_ci_evidence_31_tests_inputs_unchanged": true,
+    "prior_ci_workflows_23_tests_inputs_unchanged": true,
+    "prior_actionlint_inputs_unchanged": true,
+    "working_tree_test_tool_workflow_inputs_match_source": true,
+    "not_rerun": [
+      "test_ci_evidence*.py",
+      "test_ci_workflows.py",
+      "actionlint 1.7.12"
+    ]
+  },
+  "review": {
+    "source_commit": "175bbac1f3a738128d1e095a16b49b2baf4c9ba8",
+    "test_contract_change": "Four added lines and one deletion: rename the test and explicitly permit the single ci.yml code-quality diagnostic while retaining exact runner-label and security-alerts mappings. No security assertion weakened.",
+    "initial_finding_resolved": true
+  },
+  "standard_gate_attempts": [
+    {
+      "name": "preflight",
+      "command": [
+        "python3",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "exit_code": 2,
+      "duration_seconds": 0.047,
+      "sha256": "33d76d06c9c365d2b22de96710b079478f000ec79002a338a9699884ac51b646",
+      "source_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+      "log_excerpt": "    \"x86_64-unknown-none\"\n  ],\n  \"firmware_candidates\": [],\n  \"missing\": [\n    \"rustc\",\n    \"cargo\",\n    \"qemu-system-x86_64\",\n    \"OVMF code firmware (supply --firmware if stored elsewhere)\"\n  ],\n  \"host_test_tools\": [\n    \"cc\"\n  ],\n  \"missing_host_test_tools\": [],\n  \"baseline_tools_present\": false,\n  \"next\": \"Compare versions against docs/implementation/BOOT-AND-TOOLCHAIN.md; then build and run the real smoke test.\"\n}",
+      "full_log_sha256": "33d76d06c9c365d2b22de96710b079478f000ec79002a338a9699884ac51b646"
+    },
+    {
+      "name": "build",
+      "command": [
+        "python3",
+        "tools/build.py"
+      ],
+      "exit_code": 1,
+      "duration_seconds": 0.036,
+      "sha256": "b1112052ceabb309e4de857fc9f4a63ccef555a81cc2c8ee7aa1c2d473b78eeb",
+      "source_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+      "log_excerpt": "Traceback (most recent call last):\n  File \"<checkout>/tools/build.py\", line 439, in <module>\n    build(args.loader_feature, args.kernel_feature, args.loader_feature or args.kernel_feature or \"normal\",\n  File \"<checkout>/tools/build.py\", line 375, in build\n    run_logged(args, f\"build-{label}-{package}\", extra_env=extra_env if package == \"os-kernel\" else None)\n  File \"<checkout>/tools/common.py\", line 163, in run_logged\n    result = subprocess.run(args, cwd=cwd, env=env, capture_output=True, text=True, encoding=\"utf-8\", errors=\"replace\", timeout=timeout)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'cargo'",
+      "full_log_sha256": "b1112052ceabb309e4de857fc9f4a63ccef555a81cc2c8ee7aa1c2d473b78eeb"
+    },
+    {
+      "name": "smoke",
+      "command": [
+        "python3",
+        "tools/run.py",
+        "--smoke"
+      ],
+      "exit_code": 1,
+      "duration_seconds": 0.027,
+      "sha256": "1cc440f9e4f1323695ef3cd4ba5bf2ffa80b6c77b4ad06990d159e064b31675a",
+      "source_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+      "log_excerpt": "Traceback (most recent call last):\n  File \"<checkout>/tools/run.py\", line 183, in <module>\n    raise SystemExit(0 if run_guest(required_markers=MILESTONE_MARKERS[args.milestone], m5_case=\"read\" if args.milestone == \"m5\" else None)[\"passed\"] else 1)\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<checkout>/tools/run.py\", line 75, in run_guest\n    raise RuntimeError(\"qemu-system-x86_64 not found\")\nRuntimeError: qemu-system-x86_64 not found",
+      "full_log_sha256": "1cc440f9e4f1323695ef3cd4ba5bf2ffa80b6c77b4ad06990d159e064b31675a"
+    }
+  ],
+  "evidence_limits": [
+    "Rust, Cargo, QEMU and OVMF are unavailable in this executor. The strict preflight, build and smoke commands failed before native verification.",
+    "The successful focused host checks do not verify GitHub coverage uploads, the complete host-quality job or native OS execution.",
+    "Required GitHub checks and review on the published head remain pending."
+  ],
+  "progress": {
+    "previous_score": 41,
+    "new_score": 41,
+    "criterion_statuses_changed": false
+  },
+  "recording_note": "Complete-log SHA-256 values identify local execution logs; compact excerpts are preserved here. The original failed security test is retained above and superseded by its passing follow-up.",
+  "checkpoint_checks": [
+    {
+      "command": [
+        "python3",
+        "tools/progress.py",
+        "--write"
+      ],
+      "exit_code": 0,
+      "output": "Baryon OS: 41/100 points (41%); rubric v1; updated.\nThis checks calculation, references, and generated views; it does not run native tests or assess evidence content."
+    },
+    {
+      "command": [
+        "python3",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": "Baryon OS: 41/100 points (41%); rubric v1; consistent.\nThis checks calculation, references, and generated views; it does not run native tests or assess evidence content."
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "publication_identity": {
+    "published_source_commit": "2b08e7ef5d836a9cd786d039da575769d52d962b",
+    "published_merge_commit": "650f2f661e35acc29a6f6fcf344f0fb16bbc2d4d",
+    "local_source_commit": "175bbac1f3a738128d1e095a16b49b2baf4c9ba8",
+    "local_merge_commit": "7bb92da55dbc1be8be7625c0b4b7a33801afac9c",
+    "verified_equal_source_tree": "0d5cd1f2d7403a5f9fdfd838d4b5b33f51e8ae3d",
+    "verified_equal_merge_tree": "551c0faa3b728898256448102eab90b1e4603853",
+    "explanation": "GitHub commit creation changes author/committer metadata and commit IDs. Both returned tree SHAs equal the locally verified trees; source and test bytes are unchanged."
+  },
+  "latest_base_refresh": {
+    "source": {
+      "head": "25df07f33138dcb24a12ab1c665847d2f7f5867a",
+      "merge_head": "5b76934ec3ad7cdad9cbe19f58d7a490a0f99d5e",
+      "index_manifest_sha256": "cb2b7a45c2e0ffb6dab25fe25fbcce03f7a2322a0cbc2cb8e75998abcca8fcee",
+      "input_sha256": {
+        ".github/DISCUSSION_TEMPLATE/architecture-and-design.yml": "8b061730ba7ab3a0e562d019fe87e3a7f7e17f1eeada261e93f8160698a04756",
+        ".github/DISCUSSION_TEMPLATE/product-and-user-experience.yml": "b938a67652169757b04cd7a1b91d2a76591c002bcd526ed4087e7510e279d3f2",
+        ".github/DISCUSSION_TEMPLATE/questions-and-help.yml": "f78bebd076d8a9e2e38bf17ea0fc6e878d4d3a84b5bad359b48025081bbc8a3b",
+        ".github/DISCUSSION_TEMPLATE/test-results-and-demos.yml": "3b28c44425e82447a4501bf18b4b15c9332cc4e29c957761e62f76655829425d",
+        ".github/ISSUE_TEMPLATE/bug_report.yml": "68190404b94be9aefb17736a72eb92dc48ff2c56e479fe15fcecd0ce7b1437f1",
+        ".github/ISSUE_TEMPLATE/ci_test_failure.yml": "48824d5683bad37006e982fd1ddb1a2c68ff562d6f7ff5dd4c7ae8618684bde7",
+        ".github/ISSUE_TEMPLATE/config.yml": "57329b295db205d8d67ebe75921d078af402a9355e5db70957176c84e06af9ab",
+        ".github/ISSUE_TEMPLATE/documentation.yml": "b82c3ce7a477ba8a86d433fb0641565de1416b7d6b2d73a22cc2ac91cb025d0e",
+        ".github/ISSUE_TEMPLATE/implementation_task.md": "e6e58491579543aab627f3e1d61e61060e53194c2d364a34202edfd61b457bd6",
+        ".github/actionlint.yaml": "3734af96a1ae177dd5f0834de818d9ae6aa53a1ea1c6caa7329c482e07e6fcca",
+        ".github/actions/preserve-evidence/action.yml": "40241c756a09d4a75cc98f9428a7974163e817204e249c472d6cf053220eecc1",
+        ".github/actions/setup-python/action.yml": "c9a10046050658ab50615af00dd6da8845828eebd85d4575ea817b4e0cbb5419",
+        ".github/actions/setup-python/requirements.txt": "e77583c50ce6dbe4fe69359b171621bc1468d6ab19b4b77d94c8f86c8bf7ce1c",
+        ".github/actions/setup-qemu/action.yml": "7f79f00f8984c0c458fd7b19f0ca66790f99514202d1f7ff296c084ce1f08b86",
+        ".github/agents/os-app-platform-reviewer.agent.md": "8ffa319d73e9fbbc436a26357436201d6821b4a69fb20ab9b68b4d5749c271cf",
+        ".github/agents/os-architect.agent.md": "22e60c610d21ace89b044f877da7f70754c689d3c701d69a33c533d626979f5e",
+        ".github/agents/os-builder.agent.md": "8241fa6c0659e24932dfaf5528246a2410f87fe2740bd40ac2eb1ab6e324e77f",
+        ".github/agents/os-claims-auditor.agent.md": "fe481e8f2916af904e1074f1a2d5a818320459e13976a46271136b0e48c4e595",
+        ".github/agents/os-eu-compliance-reviewer.agent.md": "99092690b3cb6514307cf85c695ae790c85213bd12fa012ae5a41499dc95154d",
+        ".github/agents/os-hardware-driver-architect.agent.md": "ba003bbe2dc40d3958e7d9b37c2cfd4160ced539394b0a4db073168708b5cf12",
+        ".github/agents/os-maturity-auditor.agent.md": "91f8caebf4e7a8f5d2cdc8bc3a6f821dd7da1a0800b1361ca224ad18ab90f67c",
+        ".github/agents/os-network-distributed-reviewer.agent.md": "1f25fa095e492829e99d5c759128d87124c4c4273900989ce1c60c6fca0a4216",
+        ".github/agents/os-performance-energy.agent.md": "a5a8cbdbf6b2e463432d4c4dfa46697e3f2e52d1f6141158d5a281ee5b1989e1",
+        ".github/agents/os-privacy-reviewer.agent.md": "0b060c0771e4bbea249c4dcccccab3ec68820b24a09f9e43d5eff7eda5df2854",
+        ".github/agents/os-red-team.agent.md": "47aeb0c12d04a6f619fe6369edcfbde43bc666262ace56a57f7a9659f8d61803",
+        ".github/agents/os-release-engineer.agent.md": "8a170ab2d401a8044b99c0172210703c44660c25439946851de40400fb2318c6",
+        ".github/agents/os-reliability-recovery.agent.md": "7c1ffe769222d759851d79fbe8d356bdb08e3f6122b06e9c9202ffef9bd587ce",
+        ".github/agents/os-security-reviewer.agent.md": "4ccc6ba3f5a0a71a891f4df418fa8ef79ca9e5d79b1bdeda9123b2d97b6b61c4",
+        ".github/agents/os-ux-accessibility-reviewer.agent.md": "6473bbc52d54c2184a962cb792e6e318036c308a78e8bfb72b2aa2b6de63ab99",
+        ".github/agents/os-verifier.agent.md": "c8ff74a95b7da1422ee9467713baa85ef795456187b6b1c7630a84afadee2ec1",
+        ".github/copilot-instructions.md": "5e56bfb63c452fb291f1e55ab36af9016780a9eb3f934df97f05c24c08071bac",
+        ".github/dependabot.yml": "ae96278b3d3043972ddc5264beca6816717bc96d13302a87447b9ec858fcf706",
+        ".github/pull_request_template.md": "2f0d73c9e87153f62c7c7b6534ef1810db34cc7b7fc6840c3444d190ad521dd6",
+        ".github/workflows/app-management-quality.yml": "ba29fdcaa03c8e61cb3b203e82dfca29edfad9fced7d80c6f4ef3ae5f48c5237",
+        ".github/workflows/artifact-store-quality.yml": "045b8fc2d96301e42e0477e47e294812fe2bef0df0e571fe915895399e033c34",
+        ".github/workflows/ci.yml": "8730c030e8dff95ed51b7d0c0d292d8b8f8d0426dc00f72f739e331c3df2cee7",
+        ".github/workflows/clear-stale-actions.yml": "4b01c7d693383fa18b705e73d4fa8446fddda4ede1f6187335911b1286defe03",
+        ".github/workflows/codeql.yml": "b866c86f5afd477a477b846043aa446c7f660211d3bfbe8b554f367bc649b6af",
+        ".github/workflows/component-leaves.yml": "872269c1fb41fe6ced942d23c96a518b9d18fb90e7be455031284b5640949664",
+        ".github/workflows/copilot-setup-steps.yml": "c4c78f3d77568bed7b857d8a0ee1f3ff2a7ca0f60c6b6ad828ccfb67af265246",
+        ".github/workflows/entropy-keys.yml": "4e7c32c9eb4694fb408f4ecd55ade17b2eec9f8bb1eb43294fca9604d7514428",
+        ".github/workflows/kvm-pilot.yml": "48b3e2546407103205ea2ba30219b901ec57354785049cd79d00ef56854c58f9",
+        ".github/workflows/materiaal-probe.yml": "02b0de0e45ffd23b99b4a5e993c5450a290a7fe8d3443d05e943d33f73206366",
+        ".github/workflows/nas-core.yml": "e9b28f8cddb572a155c6ad96388ea20be232daea2352a7a64d878b95c1510cab",
+        ".github/workflows/native-display-input.yml": "3dd048c4ccc07c703bf53575edd61295458d853777b469a679695be2e90c74d2",
+        ".github/workflows/native-foundation.yml": "374c10ec84229912d07ab874aef76a02bda6bc7d8f0771de8cbac93eca1ace05",
+        ".github/workflows/native-power.yml": "51add054f6fd53b6020c697e531292ba540ba71be288f0664fbbe7db505a7c5a",
+        ".github/workflows/native-rtc.yml": "79070c2588c9311d4b8ba0afa6af3d343456992264ebf86fd0aa4a980d695eb0",
+        ".github/workflows/native-smp.yml": "afdf5017a44f725adef550a0590087cd8223b5aff14d036f1e1e30d0beec4771",
+        ".github/workflows/native-system.yml": "b5b3757bdeff49fbb15da828de6e5d49b635d37a7509f7779068ffdb75072bd7",
+        ".github/workflows/native-window-session.yml": "8a0f8200e48d9ef3deda98c547efecd5e6d46f9792cd927525ad7141b6af4069",
+        ".github/workflows/net-broker-quality.yml": "8922e3f08751b3d13af0136d895599f96f9d3d9a31876461e92a7645b1f01e53",
+        ".github/workflows/net-tls-quality.yml": "31e84756f527621daaea9eceb560f6fee493dcc0424bb591dbc90786a31403c7",
+        ".github/workflows/private-publication-audit.yml": "cffa577457d87c54d8aadae57523ff6114d89dc7f50f8ab827ab991ab13a4964",
+        ".github/workflows/process-management.yml": "2c2e43b8ea4ec8d933c993549c40d5398b74395d2135544d59b41d65bfc11bba",
+        ".github/workflows/project-classification.yml": "c226a0f621c0277ac10149996b7cb148747b05d2df1a68bc137269fbb3932bc2",
+        ".github/workflows/resource-pressure.yml": "953c6d50b13c50837bde4e7c5ecf79e7f4a4e4e7bab01dd0139741fe63afe019",
+        ".github/workflows/security-alerts.yml": "6aa73d71d73575ff040c3d1ee54bf33ef0be7f6d2c1585db3ce80c5e1cd28818",
+        ".github/workflows/signed-updates.yml": "6eaee8e71d7cd6119d5c7808f57a49e7cb066280dc9dd03df35f86070b0898d8",
+        ".github/workflows/storage-resilience.yml": "c33a68d01f2b6ad1f7ad6f34154fb12737a26d7723a90fbb63f26fbef269f6cc",
+        ".github/workflows/volume-acceptance.yml": "cc0f295291a3da4e6db377537516cee34450af41fbc73fef7ee116d3f07162aa",
+        ".github/workflows/windows-qemu-test-version.yml": "16ad69e79300887a7c306e5dd90fce0a7833f53d11167d72deca20c6802b7cc3",
+        "Cargo.toml": "2b853a9bc093f296391c6205724cd6f7a6f696d4516a416948801664b24225c6",
+        "docs/GITHUB-MILESTONES.md": "11dcf3d0d28399b57e40bad93cf6fec4a283a6ad67a45dc4c2f67e47de673c9e",
+        "docs/ROADMAP.md": "5447dd58133008198496d17860d39532d77c9c38a3e928b317a1a51b085cbcc8",
+        "docs/verification/ci-artifact-storage-20261108/verify_workflows.py": "d04c78fe431729c78145915c9f82df6c3abfbe925d687e65ecadde2b7f5210ba",
+        "rust-toolchain.toml": "fdc1c499d524be4dc57534d10a6d41c854fa6340866f63fcc9abdaa22a540437",
+        "tests/test_ci_evidence.py": "895e0dd6b961bc84529ddbb4b02e726589e946a9266416c8ce267f565838edfd",
+        "tests/test_ci_evidence_required_gate.py": "407faea990b271a3622a4435a483a0ecf91025dbc274296402c999dd5b7a2b1f",
+        "tests/test_ci_evidence_selection.py": "db3a197ab1ddec6a40c6f0af27c7e0976688dc0304c31d05aa37ae5828c199c3",
+        "tests/test_ci_evidence_workflow_verifier.py": "3ef12615e5c32f31f494bfccd4565f1b4074989bf6ff6092b47c119c5715f090",
+        "tests/test_ci_workflows.py": "7ddba10e0d8a25276bcb19f87c3a7c4421b6e9b42bd66fbb7b569ac193965ded",
+        "tests/test_security_alerts_summary.py": "21e9cfa49c062f13c67f48f1d8c821b9b05092145b855785bd618016fa1a45aa",
+        "tools/ci_evidence.py": "4de0e94e2ef091292bd3c3f67379ec185f021114083fc66398fc07fdbcaf7c96",
+        "tools/common.py": "69c4d86efc6dd603577c3274b78e9b8625804ccd5e0f2c9a01add50ca223fd0b",
+        "tools/run_window_session.py": "6614f450412e0634e244c420d612e1da8d129ef3b420b13d8441c5c08a8eee66",
+        "tools/security_alerts_summary.py": "55e592d37d3b574db9e1a16f9195001730da9ad64d1788c1a549ef7f06736fb6",
+        "tools/test_window_session.py": "16542b1c37a0090eddfef102657e1e66f3f34206a5530c2556b59142f2f4f89f"
+      }
+    },
+    "checks": [
+      {
+        "name": "ci-evidence-refresh",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_ci_evidence*.py"
+        ],
+        "exit": 0,
+        "tests": 31,
+        "duration_seconds": 8.37,
+        "sha256": "7550ff1711295f5e3493bbf35a0ff7cb69b8ff9f617561e3e9db79bb88a0178f",
+        "log_excerpt": "...............................\n----------------------------------------------------------------------\nRan 31 tests in 8.205s\n\nOK"
+      },
+      {
+        "name": "ci-workflows-refresh",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_ci_workflows.py"
+        ],
+        "exit": 0,
+        "tests": 23,
+        "duration_seconds": 0.3,
+        "sha256": "eda8b76c1ba1ccf05705a0c9f491d0558856d31905d0cf97669402689be08732",
+        "log_excerpt": ".......................\n----------------------------------------------------------------------\nRan 23 tests in 0.208s\n\nOK"
+      },
+      {
+        "name": "actionlint-refresh",
+        "command": [
+          "actionlint",
+          "-shellcheck=",
+          "-pyflakes="
+        ],
+        "exit": 0,
+        "tests": null,
+        "duration_seconds": 0.04,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log_excerpt": ""
+      },
+      {
+        "name": "window-session-refresh",
+        "command": [
+          "python3",
+          "-B",
+          "tools/test_window_session.py"
+        ],
+        "exit": 0,
+        "tests": 28,
+        "duration_seconds": 0.5,
+        "sha256": "ec02d070afca2dc99eed4bb51fb06aa30d77715ce30f0649a925536520e72eaf",
+        "log_excerpt": "............................\n----------------------------------------------------------------------\nRan 28 tests in 0.309s\n\nOK"
+      }
+    ],
+    "inputs_changed_during_checks": [],
+    "security_suite_reuse": {
+      "comparison_source": "2b08e7ef5d836a9cd786d039da575769d52d962b",
+      "command": [
+        "git",
+        "diff",
+        "--name-only",
+        "2b08e7",
+        "--",
+        "tests/test_security_alerts_summary.py",
+        "tools/security_alerts_summary.py",
+        ".github/actionlint.yaml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/security-alerts.yml"
+      ],
+      "exit": 0,
+      "input_paths": [
+        "tests/test_security_alerts_summary.py",
+        "tools/security_alerts_summary.py",
+        ".github/actionlint.yaml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/security-alerts.yml"
+      ],
+      "modified_paths": [],
+      "rerun": false,
+      "prior_passing_tests": 18
+    },
+    "actionlint_binary_sha256": "c872d6db8c6bf83a8eaa704fc93999f027d55dffbc63b8a6abdccb47df5f4cd4",
+    "actionlint_verified_archive_sha256": "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8",
+    "resolved_paths": [
+      "docs/PROJECT-STATE.md",
+      "docs/progress.json"
+    ],
+    "result": "Both status checkpoints and the current main criterion register are retained. All workflow and window-session changes from PR #316 remain intact. The coverage configuration and its 31 preservation invocations are unchanged."
+  }
+}

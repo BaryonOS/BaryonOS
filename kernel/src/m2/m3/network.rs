@@ -511,7 +511,15 @@ pub(super) fn print_and_check(tx: u64, rx: u64) {
     // Only observer expectations differ. Authority checks, owned copy plans,
     // DMA lifetime, finite TX deadlines and reset/quarantine are unchanged.
     if cfg!(feature = "native-system-tcp") {
-        assert!(r.tx_completed > 0 && r.rx_delivered > 0 && r.rx_completed >= r.rx_delivered);
+        if cfg!(feature = "test-net-service-exhaustion") {
+            // The bounded discard peer sends no replies; allocator isolation
+            // is proved through real service RPCs, not a TCP handshake.
+            assert!(r.tx_completed > 0);
+            assert_eq!(r.rx_completed, 0);
+            assert_eq!(r.rx_delivered, 0);
+        } else {
+            assert!(r.tx_completed > 0 && r.rx_delivered > 0 && r.rx_completed >= r.rx_delivered);
+        }
         #[cfg(feature = "test-net-service-device-reset")]
         assert_eq!(r.denied, 2 + r.fault.terminal_reads + r.fault.rx_errors);
         #[cfg(not(feature = "test-net-service-device-reset"))]

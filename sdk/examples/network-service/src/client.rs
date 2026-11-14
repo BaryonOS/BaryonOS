@@ -8,7 +8,8 @@ use nieuw_os_catalog_client::NativeTransport;
 use nieuw_os_net_client::{Connection, ConnectionState, Error, Read, Session, Status, DATA};
 use nieuw_os_network_service::wire::{self, HeaderFields, Operation, Packet};
 use nieuw_os_sdk_runtime::{
-    native, Handle, NetworkSource, Outgoing, ReceiveEndpoint, SendEndpoint,
+    native, Error as RuntimeError, Handle, NetworkSource, Outgoing, ReceiveEndpoint, Received,
+    SendEndpoint, Transport, WaitCondition,
 };
 const REQUEST_A: &[u8] =
     b"GET /app-a HTTP/1.1\r\nHost: fixture.invalid\r\nConnection: close\r\n\r\n";
@@ -269,6 +270,117 @@ fn policy() -> ! {
     support::put(528, 1);
     native::exit(0)
 }
+/// Exhaustion-only transport. Queue readiness neither consumes a reply nor
+/// reserves space: every retry still performs the ordinary authorized syscall.
+struct ExhaustionTransport;
+impl ExhaustionTransport {
+    fn wait(condition: WaitCondition) -> Result<(), RuntimeError> {
+        let now = native::monotonic_ticks()?;
+        native::ipc_wait(&[condition], now.saturating_add(50).min(6000))?;
+        Ok(())
+    }
+}
+impl Transport for ExhaustionTransport {
+    fn send(&mut self, endpoint: SendEndpoint, message: &Outgoing) -> Result<(), RuntimeError> {
+        match native::send(endpoint, message) {
+            Err(error) if error.is_again() => {
+                Self::wait(WaitCondition::send(endpoint))?;
+                native::send(endpoint, message)
+            }
+            result => result,
+        }
+    }
+    fn receive(&mut self, endpoint: ReceiveEndpoint) -> Result<Received, RuntimeError> {
+        match native::receive(endpoint) {
+            Err(error) if error.is_again() => {
+                Self::wait(WaitCondition::receive(endpoint))?;
+                native::receive(endpoint)
+            }
+            result => result,
+        }
+    }
+    fn yield_now(&mut self) -> Result<(), RuntimeError> {
+        native::yield_now()
+    }
+    fn close(&mut self, handle: Handle) -> Result<(), RuntimeError> {
+        native::close(handle)
+    }
+}
+
+/// N01 full per-owner port budget through unchanged production NET1 RPCs.
+fn exhaustion(
+    send: SendEndpoint,
+    receive: ReceiveEndpoint,
+    epoch: u64,
+    peer: u64,
+    slot: usize,
+    first: u16,
+) -> ! {
+    check(
+        nieuw_os_sdk_runtime::supports_ipc_wait(native::abi_info().unwrap_or_else(|_| fail(142))),
+        143,
+    );
+    let mut session = Session::new(ExhaustionTransport, epoch, peer, send, receive, 100_000)
+        .unwrap_or_else(|_| fail(18));
+    support::put(400, 1);
+    check(
+        session.open([192, 0, 2, 1], first + 5, 300) == Err(Error::Service(Status::Access)),
+        19,
+    );
+    bump(424);
+    if slot == 0 {
+        // The production allocator never reuses an owner's local port. Every
+        // pair is a real IPC exchange; no quota override or synthetic count.
+        for turn in 0..12_768 {
+            // The kernel enforces the same deadline on every scheduling
+            // point. This additional fixture clock sample need not be per RPC.
+            if turn % 256 == 0 {
+                check(tick() < 6000, 130);
+            }
+            let connection = session
+                .open([192, 0, 2, 1], first, 300)
+                .unwrap_or_else(|_| fail(131));
+            bump(408);
+            session.close(connection).unwrap_or_else(|_| fail(132));
+            bump(464);
+        }
+        check(
+            session.open([192, 0, 2, 1], first, 300) == Err(Error::Service(Status::Exhausted)),
+            133,
+        );
+        support::put(552, tick());
+        support::put(544, 1);
+    }
+    while support::word(120) == 0 {
+        let now = tick();
+        check(now < 6000, 134);
+        // This owner has no work until the fixture signal. A bounded existing
+        // timed IPC wait avoids competing with the active RPC producer.
+        check(native::ipc_wait(&[], (now + 50).min(6000)) == Ok(0), 141);
+    }
+    check(support::word(120) == if slot == 0 { 2 } else { 1 }, 135);
+    if slot == 1 {
+        let connection = session
+            .open([192, 0, 2, 1], first, 300)
+            .unwrap_or_else(|_| fail(136));
+        bump(408);
+        support::put(552, tick());
+        check(
+            session.state(connection) == Ok(ConnectionState::Connecting),
+            137,
+        );
+        bump(416);
+        session.close(connection).unwrap_or_else(|_| fail(138));
+        bump(464);
+        support::put(504, tick());
+        support::put(544, 1);
+    }
+    session.retire().unwrap_or_else(|_| fail(139));
+    check(session.is_closed(), 140);
+    support::put(528, 1);
+    native::exit(0)
+}
+
 /// N01 device-reset fixture: real connection, uncertain TX and dead ingress.
 fn device_reset(
     session: &mut Session<NativeTransport>,
@@ -496,6 +608,9 @@ fn run() -> ! {
     );
     bump(480);
     malformed(send, receive, peer, epoch);
+    if support::word(104) == 4 {
+        exhaustion(send, receive, epoch, peer, slot, first)
+    }
     let mut session = Session::new(NativeTransport, epoch, peer, send, receive, 100_000)
         .unwrap_or_else(|_| fail(18));
     support::put(400, 1);
