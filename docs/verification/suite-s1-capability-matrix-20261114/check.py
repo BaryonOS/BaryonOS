@@ -26,17 +26,18 @@ HEADER = ["Capability", "Professional expectation", "Beginner path", "Profession
 
 def rows(path):
     in_table = False
-    for n, line in enumerate(open(path, encoding="utf-8"), 1):
-        if not line.startswith("|"):
-            in_table = False
-            continue
-        cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        if cells == HEADER:
-            in_table = True
-            continue
-        if not in_table or set(line.strip()) <= set("|-"):
-            continue
-        yield path, n, cells
+    with open(path, encoding="utf-8") as f:
+        for n, line in enumerate(f, 1):
+            if not line.startswith("|"):
+                in_table = False
+                continue
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if cells == HEADER:
+                in_table = True
+                continue
+            if not in_table or set(line.strip()) <= set("|-"):
+                continue
+            yield path, n, cells
 
 
 def main():

@@ -6,7 +6,8 @@ Byte-identical slices from v1: the mark symbols, the wallpaper symbols, the boot
 Wordmark paths are copied from ui/design/brand/lockup-{dark,light}.svg.
 Measured geometry (tethers, --ty, --tb, kern top) lives in GEO and is rewritten after a render pass.
 """
-import json, os, re, sys
+import json, os, re
+from pathlib import Path
 
 ROOT = os.getcwd()
 V1 = os.path.join(ROOT, 'ui/design/concepts/orbitaal/index.html')
@@ -16,14 +17,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CSS = os.path.join(HERE, 'v2.css')
 GEOF = os.path.join(HERE, 'geo.json')
 
-v1 = open(V1, encoding='utf-8').read()
-css = open(CSS, encoding='utf-8').read()
+v1 = Path(V1).read_text(encoding='utf-8')
+css = Path(CSS).read_text(encoding='utf-8')
 GEO = {  # first-pass guesses; overwritten by geo.json after measuring
     'k4_top': 300, 'k4_left': 560, 'teth4_left': 900, 'teth4_top': 790, 'teth4_h': 38,
     'it3_left': 616, 'it3_top': 71, 'it3_w': 12, 'ty3': 62, 'tb3': 70,
 }
 if os.path.exists(GEOF):
-    GEO.update(json.load(open(GEOF)))
+    GEO.update(json.loads(Path(GEOF).read_text(encoding='utf-8')))
 
 
 def one(hay, needle):
@@ -56,7 +57,7 @@ sprite = rep(sprite, slice_between(sprite, '<symbol id="st-err"', '</symbol>'),
              '<symbol id="st-err" viewBox="0 0 14 14"><rect x="2.5" y="2.5" width="9" height="9" rx="1.5" style="fill:var(--c)"/></symbol>')
 sprite = rep(sprite, '<!-- status shapes: never colour alone (solid = this device, shelled = own NAS, leaving orbit = internet) -->',
              '<!-- G5 place/state shapes, always with an icon and text: solid dot = this device, ring with dot = NAS, open ring = internet, square = error -->')
-tri_src = open(TRI, encoding='utf-8').read()
+tri_src = Path(TRI).read_text(encoding='utf-8')
 lifted = []
 for k in ('coll', 'huis', 'archief', 'web', 'klok', 'apps', 'user', 'a11y'):
     sym = slice_between(tri_src, '<symbol id="i-%s"' % k, '</symbol>')
@@ -69,7 +70,7 @@ sprite = rep(sprite, ' <!-- mark-primary.svg (dark surfaces) -->',
 
 
 def lockup_paths(fn):
-    t = open(os.path.join(ROOT, 'ui/design/brand', fn), encoding='utf-8').read()
+    t = Path(ROOT, 'ui/design/brand', fn).read_text(encoding='utf-8')
     ps = re.findall(r'<path fill="[^"]*" d="[^"]*"/>', t)
     assert len(ps) == 2, fn
     return ps
@@ -765,5 +766,5 @@ assert 'Je werk blijft op dit apparaat' not in html
 for n in range(1, 7):
     assert len(re.sub('<[^>]+>', '', CAP[n])) <= 175, n
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
-open(OUT, 'w', encoding='utf-8').write(html)
+Path(OUT).write_text(html, encoding='utf-8')
 print('wrote', OUT, len(html), 'bytes')
