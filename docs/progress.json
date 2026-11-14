@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "2b08e7ef5d836a9cd786d039da575769d52d962b",
+    "source_commit": "5b76934ec3ad7cdad9cbe19f58d7a490a0f99d5e",
     "assessment_basis": "source_commit",
     "branch": "code-coverage-agent/setup-code-coverage-reporting",
-    "task": "Resolve PR #302 coverage conflicts against main while preserving K06, security-alerts and CI evidence contracts",
+    "task": "Resolve the remaining PR #302 status conflicts after PR #316 advanced main to 5b76934ec3ad7cdad9cbe19f58d7a490a0f99d5e",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The integration preserves 31 CI evidence invocations and the coverage upload jobs with narrowly scoped permission exceptions. The focused host tests and actionlint pass; strict preflight, build and smoke are blocked by missing Rust/Cargo, QEMU and OVMF. No product criterion is newly accepted; current-head hosted CI and actual coverage uploads remain unverified. See docs/verification/pr302-coverage-conflicts-20261114.json."
+    "summary": "41/100 remains 41/100. The current main criterion register and both PR checkpoints are preserved. The integration retains PR #302 coverage reporting and PR #316 scale-specific native-window timeout changes. The repeated 82 host tests and actionlint pass; the prior 18 security-alerts tests retain unchanged inputs. Local native verification remains blocked by unavailable Rust/Cargo, QEMU and OVMF. No criterion is newly accepted. Source versions and verification are recorded in docs/verification/pr302-coverage-conflicts-20261114.json."
   },
   "tracks": [
     {

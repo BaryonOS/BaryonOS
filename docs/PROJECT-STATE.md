@@ -12,7 +12,37 @@
 
 **Progress:** 41/100 → 41/100; no criterion status changes.
 
-**Next:** evaluate the existing PR's published-head checks and review; resolve any concrete CI failure without relaxing evidence or permission contracts. The design checkpoint below remains separate.
+**Next:** evaluate the existing PR's published-head checks and review; resolve any concrete CI failure without relaxing evidence or permission contracts. The PR #316 and design checkpoints below remain separate.
+
+**Base refresh:** main advanced to `5b76934ec3ad7cdad9cbe19f58d7a490a0f99d5e` after the first publication (`25df07f33138dcb24a12ab1c665847d2f7f5867a`). The two new conflicts in this status file and `docs/progress.json` are resolved by preserving both checkpoints and the current main criterion register. PR #316's scale-specific native-window timeout changes are retained. The repeated evidence (31 tests), workflow (23 tests), window-session (28 tests) and actionlint checks all pass; the 18 security-alerts tests retain identical inputs. The verification record includes the integration parents and all 78 checked input hashes.
+
+## Previous checkpoint — PR #316 conflict resolution — 14 November 2026
+
+**Source:** branch `ccr-cf45024e-q0nrg9`, PR #316 head
+`915cc4312b29de1bfb28588072bcfa024186314d`, integrated with main
+`2c72e282ca80fd3dd6bf377b3f71e2eced4a4499`.
+
+**Result:** the only merge conflict was the assessment in `docs/progress.json`.
+The current main criterion register, evidence, design checkpoint and other changes
+are preserved. The PR retains the 1800-second default; only the scale-2
+clipboard/workspace gate may use 2700 seconds. No source or workflow conflict
+required a manual resolution.
+
+**Evidence on the combined source:**
+- `python3 -B tools/test_window_session.py`: exit 0, 28 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'`: exit 0, 23 tests.
+- `python3 -B -m unittest discover -s tests -p 'test_ci_evidence*.py'`: exit 0, 31 tests.
+- `python3 tools/progress.py --write`, then `--check`, and `git diff --check`: exit 0.
+
+**Execution limits:** `python3 -B tools/preflight.py --strict` returned exit 2
+because the native toolchain is unavailable. `python3 -B tools/build.py` returned
+exit 1 (`cargo` missing); `python3 -B tools/run.py --smoke` returned exit 1
+(`qemu-system-x86_64` missing). No local native runtime pass is claimed.
+
+**Progress:** 41/100 → 41/100; no criterion or acceptance evidence changes.
+
+**Next:** inspect GitHub Actions on the updated PR head, including both native
+window scales, before treating the integrated source as natively verified.
 
 ## Previous checkpoint — Design pipeline (Orbitaal UI/UX), paused for a planned reboot — 14 November 2026
 
