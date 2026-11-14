@@ -12,6 +12,9 @@ const OFFSETS: [u64; 21] = [
 const REVOKE: bool = cfg!(feature = "test-net-service-revoke");
 const DEVICE_RESET: bool = cfg!(feature = "test-net-service-device-reset");
 const EXHAUSTION: bool = cfg!(feature = "test-net-service-exhaustion");
+// Full 12,768-pair workload: CI QEMU 8.2 reached 10,867 pairs by tick 6,000.
+// This aggregate fixture deadline does not change any socket or IPC deadline.
+const EXHAUSTION_TICK_DEADLINE: u64 = 12_000;
 pub(super) const PROCESSES: usize = if REVOKE { 4 } else { 3 };
 struct Evidence {
     snapshots: [Option<[u64; 21]>; 4],
@@ -320,7 +323,12 @@ pub(super) fn poll(s: &mut State) -> Option<*const u64> {
         evidence().revoke_requested = s.ticks.max(1);
         print_number(b"NETSVC:REVOKE_TICKS:", s.ticks);
     }
-    if s.ticks > 6000 {
+    let timed_out = if EXHAUSTION {
+        s.ticks >= EXHAUSTION_TICK_DEADLINE
+    } else {
+        s.ticks > 6000
+    };
+    if timed_out {
         exhaustion_diagnostics(s);
         for slot in 0..PROCESSES {
             if s.processes[slot].status != Status::Dead {

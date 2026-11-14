@@ -16,7 +16,10 @@ with an actual published TX, which ends as Io; old app ingress is refused and
 resource cleanup is checked. Exhaustion consumes all 12,768 even ports while
 another registered owner can still allocate, inspect Connecting state, and close.
 The test composes the existing optional IPC wait implementation; production
-capability/ABI/DMA contracts and the existing time limits are unchanged.
+capability/ABI/DMA contracts are unchanged. Only the full-quota exhaustion
+fixture now has a 12,000-tick exclusive deadline and 150-second host default;
+other native cases keep 6,000 ticks/90 seconds, and TCP establishment deadlines
+and SDK retry limits are unchanged.
 The USB selector now also requires a correctly framed HID descriptor before
 its endpoints and exposes its Report length as untrusted metadata. The B03 gate
 checks the actual Rust refusal of missing signing policy in both loader profiles
@@ -34,23 +37,33 @@ failures: [checkpoint](verification/issue43-20261114/README.md) and
 [reset receipt](verification/issue43-20261114/network-reset.md), and
 [exhaustion receipt](verification/issue43-20261114/network-exhaustion.md).
 
-**Resume checkpoint:** executable integration `c0501e1a681c0889b2d9c1b6c025a576afb428db`.
-The USB component passed 31 tests, formatting, strict Clippy and a freestanding
-build; its missing-HID regression fails against the original selector. The
-update harness passed 15 tests; actual positive/negative compiler controls and
-final combined-source native verification are running. Earlier evidence remains
-bound to its recorded source and is not relabelled as an integrated pass.
+**Verified source and CI repair:** all five network cases, the two-stage TCP
+loss/cold-recovery gate, strict preflight, build and smoke passed locally on
+published `438da2efd41f9da7f5dd47dfda70e5f6426f15f7`, source-v3
+`50c59a5c08d78cbd8dfc4e1f409b4ef8306eb9a00108e74e35309077271b7aba`.
+The actual six TEST-policy compiler controls also pass; hosted B03 acceptance
+and the main CI workflow passed on that source. USB has 31 passing component
+tests plus format, strict Clippy and a freestanding build.
 
-**Open:** final combined-source native gates and hosted CI for #39.
-#41 needs approved trust/persistence decisions and separate
-production signing authorization. #42 still needs native USB/hotplug and physical
-reference evidence; #43's 50/100 target is not met. PR #328 retains its
-`acceptance-pending` hold, and merging requires the project owner's explicit approval.
+The pinned hosted network job `132465223071` in run `43600849004` then failed
+the exhaustion fixture at tick 6,000 after 10,867 completed service open/close
+pairs. The other four cases passed. Local success does not override that CI
+failure. The original reports and failure are retained in
+[integration evidence](verification/issue43-20261114/integrated-initial-438da2e.json).
+The profile-specific correction is described in
+[the watchdog receipt](verification/issue43-20261114/network-ci-watchdog.md);
+its final-source native and hosted checks remain pending at this checkpoint.
+
+**Open:** verify the corrected complete network/TCP matrix and current-head CI.
+#41 needs approved trust/persistence decisions and separate production signing
+authorization. #42 still needs native USB/hotplug and physical reference evidence;
+#43's 50/100 target is not met. PR #328 retains `acceptance-pending`; merging
+requires the project owner's explicit approval.
 
 **Progress:** 41/100 → 41/100; no criterion or fixed-weight changes.
 
-**Next:** run the full network and TCP matrix plus the standard gate on the frozen
-combined source, then record actual final outcomes before acceptance.
+**Next:** verify the corrected native source, retain the failed run, publish the
+final source-bound receipt and update the existing issues and PR.
 
 ## Previous checkpoint — Code scanning alert triage — 14 November 2026
 

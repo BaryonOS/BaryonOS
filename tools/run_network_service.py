@@ -30,6 +30,9 @@ from network_service_peer import (Peer, validate_transcript, REQUESTS, RESPONSES
 FEATURE = "native-net-service"
 FEATURES = {"normal": FEATURE, "client-exit": "test-net-service-client-exit", "revoke": "test-net-service-revoke",
             "device-reset": "test-net-service-device-reset", "exhaustion": "test-net-service-exhaustion"}
+# Exhaustion must finish before tick 12,000; the other native cases retain
+# their existing inclusive 6,000-tick boundary and 90-second host default.
+EXHAUSTION_TICK_DEADLINE = 12_000
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
 OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536, 544, 552)
 ROLES = ("SERVICE", "APP_A", "APP_B")
@@ -108,6 +111,13 @@ def integer(value, low=0, high=(1 << 64) - 1):
     if type(value) is not int or not low <= value <= high:
         raise ValueError("Missing/out-of-bound native integer")
     return value
+
+
+def native_limits(case):
+    """Inclusive observation tick ceiling and default host timeout in seconds."""
+    if case not in FEATURES:
+        raise ValueError("Unknown native service case")
+    return (EXHAUSTION_TICK_DEADLINE - 1, 150) if case == "exhaustion" else (6000, 90)
 
 
 def reset_sequence(found, network, exit_ticks, entropy):
@@ -204,6 +214,7 @@ def exhaustion_sequence(found, network, exit_ticks, entropy, released):
 def sequence(stdout, case="normal"):
     if case not in FEATURES:
         raise ValueError("Unknown native service case")
+    last_tick, _ = native_limits(case)
     if not isinstance(stdout, str) or len(stdout) > 128 * 1024 or any(s in stdout for s in FORBIDDEN):
         raise ValueError("Failed/oversized actual native serial")
     stdout = without_acpi_diagnostics(stdout)
@@ -231,7 +242,7 @@ def sequence(stdout, case="normal"):
             name, value = tick_match.groups()
             if name in exit_ticks:
                 raise ValueError("Duplicate actual process exit tick")
-            exit_ticks[name] = integer(int(value), 1, 6000)
+            exit_ticks[name] = integer(int(value), 1, last_tick)
             continue
         revoke_match = re.fullmatch(r"NETSVC:REVOKE_TICKS:([0-9]{20})", line) if revoke else None
         if revoke_match:
@@ -243,7 +254,7 @@ def sequence(stdout, case="normal"):
         if exhaustion_match:
             if exhaustion_ticks is not None or exit_ticks:
                 raise ValueError("Duplicate or late exhaustion release")
-            exhaustion_ticks = integer(int(exhaustion_match.group(1)), 1, 6000)
+            exhaustion_ticks = integer(int(exhaustion_match.group(1)), 1, last_tick)
             continue
         entropy_match = re.fullmatch(r"NETSVC:ENTROPY_BYTES:([0-9]{20})", line)
         if entropy_match:
@@ -399,9 +410,11 @@ def evaluate(report, peer, *, case="normal"):
     return observed
 
 
-def run_network_service(*, case="normal", timeout=90):
+def run_network_service(*, case="normal", timeout=None):
     if case not in FEATURES:
         raise ValueError("Unknown native service run case")
+    if timeout is None:
+        _, timeout = native_limits(case)
     if type(timeout) is not int or not 1 <= timeout <= 180:
         raise ValueError("Native timeout must be bounded 1..180 seconds")
     private_path(BUILD)
@@ -490,7 +503,8 @@ def run_network_service(*, case="normal", timeout=90):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case", choices=tuple(FEATURES), default="normal")
-    parser.add_argument("--timeout", type=int, default=90)
+    parser.add_argument("--timeout", type=int,
+                        help="host timeout seconds (default: exhaustion 150, other cases 90)")
     parser.add_argument("--no-build", action="store_true", help="require an existing source-matching build")
     args = parser.parse_args()
     if not args.no_build:

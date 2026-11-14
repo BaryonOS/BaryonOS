@@ -61,8 +61,8 @@ Rust 1.90.0 supplies the standard targets; the existing TCP harness additionally
 requires Rust 1.91.1. Tool binaries and firmware hashes are recorded locally in
 `build/issue43-checks/environment.json`. No physical device is attached.
 
-The full 12,768-port exhaustion fixture passes within the existing 6,000-tick
-watchdog and 90-second host limit; its wait-capable profile proves actual owner
+The initial component full 12,768-port exhaustion fixture passed within the then
+6,000-tick watchdog and 90-second host limit; its wait-capable profile proves actual owner
 allocation isolation, not a completed post-exhaustion TCP handshake. See the
 [exhaustion receipt](network-exhaustion.md), including three retained failed
 attempts and replayable actual frame bytes. All five component cases pass on
@@ -87,3 +87,14 @@ Executable checkpoint `c0501e1a681c0889b2d9c1b6c025a576afb428db` adds:
 Combined-source native gates and actual compiler controls are pending at this
 intermediate checkpoint. Component receipts and historical QEMU results do not
 substitute for that final verification.
+
+## Hosted timing correction
+
+The first integrated source `438da2efd41f9da7f5dd47dfda70e5f6426f15f7` passed
+all local native network, TCP and standard gates. The pinned hosted emulator
+subsequently reached the exhaustion watchdog at tick 6,000 with 10,867 completed
+service open/close pairs. [Both outcomes are preserved](integrated-initial-438da2e.json).
+Only this long workload receives a 12,000-tick exclusive deadline and a 150-second
+host default; the quota, other profiles, connection deadlines, retry budget and
+negative checks remain intact. See [the measured correction](network-ci-watchdog.md).
+Corrected final-source native and hosted verification is pending at this checkpoint.

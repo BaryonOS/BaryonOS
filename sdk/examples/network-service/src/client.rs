@@ -270,13 +270,18 @@ fn policy() -> ! {
     support::put(528, 1);
     native::exit(0)
 }
+// Aggregate fixture deadline only; per-open deadlines remain 300 ticks.
+const EXHAUSTION_TICK_DEADLINE: u64 = 12_000;
 /// Exhaustion-only transport. Queue readiness neither consumes a reply nor
 /// reserves space: every retry still performs the ordinary authorized syscall.
 struct ExhaustionTransport;
 impl ExhaustionTransport {
     fn wait(condition: WaitCondition) -> Result<(), RuntimeError> {
         let now = native::monotonic_ticks()?;
-        native::ipc_wait(&[condition], now.saturating_add(50).min(6000))?;
+        native::ipc_wait(
+            &[condition],
+            now.saturating_add(50).min(EXHAUSTION_TICK_DEADLINE),
+        )?;
         Ok(())
     }
 }
@@ -335,7 +340,7 @@ fn exhaustion(
             // The kernel enforces the same deadline on every scheduling
             // point. This additional fixture clock sample need not be per RPC.
             if turn % 256 == 0 {
-                check(tick() < 6000, 130);
+                check(tick() < EXHAUSTION_TICK_DEADLINE, 130);
             }
             let connection = session
                 .open([192, 0, 2, 1], first, 300)
@@ -353,10 +358,13 @@ fn exhaustion(
     }
     while support::word(120) == 0 {
         let now = tick();
-        check(now < 6000, 134);
+        check(now < EXHAUSTION_TICK_DEADLINE, 134);
         // This owner has no work until the fixture signal. A bounded existing
         // timed IPC wait avoids competing with the active RPC producer.
-        check(native::ipc_wait(&[], (now + 50).min(6000)) == Ok(0), 141);
+        check(
+            native::ipc_wait(&[], (now + 50).min(EXHAUSTION_TICK_DEADLINE)) == Ok(0),
+            141,
+        );
     }
     check(support::word(120) == if slot == 0 { 2 } else { 1 }, 135);
     if slot == 1 {

@@ -12,7 +12,8 @@ from network_service_peer import (ACK, FIN, PSH, RST, SYN, CLIENT_IP, CLIENT_MAC
                                   PEER_IP, PEER_MAC, REQUESTS, RESPONSES, RESET_PROBE, UDP_PAYLOADS,
                                   FrameDecoder, Machine, DiscardMachine, Peer, ProtocolError, checksum,
                                   framed, validate_transcript)
-from run_network_service import BOOT, OFFSETS, REVOKE_ROLES, ROLES, ROOT, execute_native, record_streams, sequence
+from run_network_service import (BOOT, OFFSETS, REVOKE_ROLES, ROLES, ROOT, execute_native,
+                                 native_limits, record_streams, sequence)
 
 
 def client_ip(payload, protocol=6):
@@ -199,6 +200,39 @@ def native_serial(case="normal"):
 
 
 class PeerChecks(unittest.TestCase):
+    def test_full_quota_budget_is_specific_to_exhaustion(self):
+        self.assertEqual(native_limits("exhaustion"), (11_999, 150))
+        for case in ("normal", "client-exit", "revoke", "device-reset"):
+            self.assertEqual(native_limits(case), (6000, 90))
+            serial = native_serial(case)
+            boundary = serial.replace("NETSVC:APP_B_EXIT_TICKS:00000000000000000500",
+                                      "NETSVC:APP_B_EXIT_TICKS:00000000000000006000")
+            sequence(boundary, case)
+            with self.assertRaises(ValueError):
+                sequence(boundary.replace("NETSVC:APP_B_EXIT_TICKS:00000000000000006000",
+                                          "NETSVC:APP_B_EXIT_TICKS:00000000000000006001"), case)
+        with self.assertRaises(ValueError):
+            native_limits("unknown")
+
+    def test_full_quota_completion_must_precede_aggregate_deadline(self):
+        # Synthetic serial checks the oracle only, never native timing evidence.
+        serial = native_serial("exhaustion")
+        for label, old, new in (
+            ("NETSVC:APP_A:552", 9, 11_995),
+            ("NETSVC:EXHAUSTION_RELEASE_TICKS", 10, 11_996),
+            ("NETSVC:APP_B:552", 11, 11_997),
+            ("NETSVC:APP_B:504", 12, 11_998),
+            ("NETSVC:APP_A_EXIT_TICKS", 30, 11_999),
+            ("NETSVC:APP_B_EXIT_TICKS", 500, 11_999),
+        ):
+            serial = serial.replace(f"{label}:{old:020d}", f"{label}:{new:020d}")
+        self.assertEqual(sequence(serial, "exhaustion")["exit_ticks"]["APP_A"], 11_999)
+        for role in ("APP_A", "APP_B"):
+            for tick in (12_000, 12_001):
+                with self.subTest(role=role, tick=tick), self.assertRaises(ValueError):
+                    sequence(serial.replace(f"NETSVC:{role}_EXIT_TICKS:{11_999:020d}",
+                                            f"NETSVC:{role}_EXIT_TICKS:{tick:020d}"), "exhaustion")
+
     def test_exhaustion_capture_rejects_fifo_without_blocking(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "fifo"

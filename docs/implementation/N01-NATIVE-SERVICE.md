@@ -234,8 +234,14 @@ its advertised ABI before use. An exhaustion-only SDK transport waits on
 the same authorized endpoint after a real `Again`, then performs another
 real syscall. Queue readiness is advisory; it never substitutes a reply or
 resends an already enqueued request. The other profiles retain their existing
-transport. The kernel watchdog remains 6,000 ticks, the host limit 90 seconds
-and every open retains its 300-tick connection deadline.
+transport. The exhaustion workload must finish strictly before tick 12,000 and
+has a 150-second default host limit. The other cases retain the existing
+6,000-tick boundary and 90-second default. Every open retains its 300-tick TCP
+connection-establishment deadline, and the SDK retry budget is unchanged.
+The measured CI run reached 10,867 of 12,768 pairs at tick 6,000; the aggregate
+fixture budget is not a product throughput requirement. A genuinely stalled
+exhaustion fixture can now take longer to fail. The rationale, failed receipt
+and strict boundary tests are recorded in [the timing receipt](../verification/issue43-20261114/network-ci-watchdog.md).
 
 The bounded peer discards all input without replies. It streams actual framed
 bytes to `network-discard.bin`; independent rereading checks frame bounds,
