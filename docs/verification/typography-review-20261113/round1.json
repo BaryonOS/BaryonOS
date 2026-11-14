@@ -1,0 +1,153 @@
+{
+ "specimens": [
+  {
+   "code": "D",
+   "readability_recognition": 7,
+   "accessibility_language": 7,
+   "brand": 8,
+   "os_consistency": 8,
+   "wordmark_fit": 7,
+   "strengths": "Squared-superellipse humanist sans: o/a/e and O/S have rounded-square counters that echo the reference logo, while word shapes stay humanist and calm at 15-16 px. Tailed l and flagged 1 separate I/l/1. rn/m, cl/d, 6/8 and B/8 are clear. Compact widths: the table keeps 'gisteren 16:30' and 'vandaag 09:30' whole, and the long text fits in 4+2 lines. Regular, Medium, Semibold and Bold are clearly stepped. Light and dark render equally well.",
+   "defects": "O vs 0 is unmarked; the zero is only narrower, which is weak in technical strings ('0x7F3A', 'Thuis-NAS_01'). 5 and S are both squarish and similar. Squared curves narrow the c/e apertures slightly at 12-13 px captions.",
+   "evidence": "D-apps-light-1x, D-apps-dark-1x, D-shell-light-1x, D-shell-dark-1x, D-apps-light-2x-q1/q3/q4. Script crops: stress line from 2x-q4, brand line from 2x-q1, long text from apps-light-1x, settings/menu strip from apps-dark-1x. Glyphs: 'Il1|' (l has a right tail), 'O0o' (0 narrower, no mark), '5 S' squarish, '(200 l)' in shell document, 'Größe, Ålesund, Łódź, Șiret' clear.",
+   "hard_to_read_surfaces": "none observed (minor: unmarked zero in technical status strings)"
+  },
+  {
+   "code": "H",
+   "readability_recognition": 4,
+   "accessibility_language": 5,
+   "brand": 5,
+   "os_consistency": 5,
+   "wordmark_fit": 9,
+   "strengths": "Wide squared techno sans. It is the closest UI-face match to the reference wordmark: superelliptic O, flat-sided S, straight-tailed y, strong heavy weights. Readable in prose at 16 px. Dark and light are equal.",
+   "defects": "The barred zero reads as 8 at 1x: 'gisteren 16:38', 'vandaag 89:38', '8118-B', '81-11-2826', '96,8 kB', notification '88:38', status '188 %'. The bar is applied inconsistently: the large clock '09:41' and some shell times are unbarred. I and l are both bare bars. 5/S are squarish near-twins. The wide set truncates 'Plattegrond nieuwe woni…' and 'Huurcontract Spoorstraat…' and pushes the long text to an extra line.",
+   "evidence": "H-apps-light-1x, H-apps-dark-1x, H-shell-dark-1x, H-apps-light-2x-q1/q4. A 2.4x nearest-neighbour crop of the H-apps-light-1x table and the Melding timestamp showed the barred zero reading as 8. Stress-line composite: 'Il1|' (bare I and l), 'O0o' with a horizontal-bar zero.",
+   "hard_to_read_surfaces": "tables (Gewijzigd and Grootte columns: 09:30, 96,0 kB, 0118-B, 01-11-2026 read with 8s), notification timestamps (08:30), technical status line (100 %, 0x7F3A, 192.168.1.20), file-name column truncation"
+  },
+  {
+   "code": "K",
+   "readability_recognition": 8,
+   "accessibility_language": 8,
+   "brand": 4,
+   "os_consistency": 8,
+   "wordmark_fit": 3,
+   "strengths": "Neutral neo-grotesque with strong disambiguation: serifed I, flagged 1, a diagonal-slash zero that never reads as 8. Open apertures, clear diacritics, comfortable long text, and table columns fit. The hierarchy is clear across shell and apps. Light and dark are equal.",
+   "defects": "Generic system-UI look with no link to the reference. The slashed zero is applied in prose and display ('60 cm', '€ 84,50', '(200 l)', 'Versie 0.9', clock 'Ø9:41'), which is noisy in documents and inelegant on the clock. l is a bare bar; only the serifed I makes I/l work.",
+   "evidence": "K-apps-light-1x, K-shell-dark-1x, K-apps-light-2x-q1/q4, and the K table crop from apps-light-1x (zero reads correctly). Composites: stress line 'Il1|' (serifed I), 'O0o' slashed, long text, dark settings/menu strip.",
+   "hard_to_read_surfaces": "documents slightly noisier from slashed zeros in running text; otherwise none observed"
+  },
+  {
+   "code": "M",
+   "readability_recognition": 6,
+   "accessibility_language": 7,
+   "brand": 4,
+   "os_consistency": 8,
+   "wordmark_fit": 4,
+   "strengths": "Clean, slightly geometric neo-grotesque with comfortable reading text and open apertures. Columns fit ('vandaag 09:30' whole). Weight steps are clear. Shell and apps are consistent, and dark and light look the same.",
+   "defects": "I, l and | are near-identical bars ('Il1|'). 0 is unmarked and only slightly narrower than O. No distinctive character, so it reads as generic system UI.",
+   "evidence": "M-apps-light-1x, M-shell-dark-1x, M-apps-light-2x-q1/q4, plus the stress-line, brand-line, long-text and dark-strip composites. '(200 l)' in the shell document reads as '200 I'.",
+   "hard_to_read_surfaces": "technical status and paths (Il1|, 0x7F3A, Thuis-NAS_01) because I/l and O/0 are not distinguished"
+  },
+  {
+   "code": "N",
+   "readability_recognition": 6,
+   "accessibility_language": 7,
+   "brand": 6,
+   "os_consistency": 5,
+   "wordmark_fit": 5,
+   "strengths": "Wide geometric grotesk with a large x-height. Very clear at 12-13 px, with an open, friendly and premium feel and clear diacritics. Strong Bold.",
+   "defects": "Too wide for the layout. The table truncates times ('gisteren 16:…', 'vandaag 09:…'), which loses data. The shell card 'Begroting verbouwing', the dialog title and the empty state wrap. I and l are bare bars and 0 is unmarked. Round geometry does not echo the squared reference.",
+   "evidence": "N-apps-light-1x, N-shell-light-1x, N-apps-light-2x-q1/q4, plus the stress-line ('Il1|' bare, 'O0o' unmarked), long-text (4+3 lines) and dark-strip composites.",
+   "hard_to_read_surfaces": "tables (Gewijzigd column truncated), shell recent-items cards and empty state (wrapping)"
+  },
+  {
+   "code": "R",
+   "readability_recognition": 7,
+   "accessibility_language": 8,
+   "brand": 4,
+   "os_consistency": 6,
+   "wordmark_fit": 3,
+   "strengths": "The strongest glyph disambiguation of the set: serifed I, tailed l, flagged 1, slashed 0. '(200 l)' is unambiguous. Open apertures, generous size, clear diacritics. Comfortable in dark and light.",
+   "defects": "A monospace/tabular numeral style in tables and timestamps widens numbers. The selected row truncates 'vandaag 09:…', and hyphens in text cells get wide spacing ('Thuis - NAS', '01 - 11 - 2026'), giving a mixed texture. The shell card 'Begroting verbouwing' wraps. Generic look.",
+   "evidence": "R-apps-light-1x, R-shell-light-1x, R-apps-light-2x-q1/q2 (table hyphen spacing and truncation), plus the stress-line ('Il1|' fully distinct, 'O0o' slashed), long-text and dark-strip composites.",
+   "hard_to_read_surfaces": "tables (truncated selected-row time, spaced hyphens in Opslag/date cells), shell recent-items card wraps"
+  },
+  {
+   "code": "T",
+   "readability_recognition": 6,
+   "accessibility_language": 6,
+   "brand": 5,
+   "os_consistency": 6,
+   "wordmark_fit": 5,
+   "strengths": "Compact grotesque UI: columns fit and the long text uses few lines. Slashed zero in the stress line. The brand line is set in a separate wide geometric face that looks premium.",
+   "defects": "Tight tracking makes 12-13 px captions, legends and the dialog metadata cramped ('Vraag van het systeem · getoond boven alle apps'). I and l are bare bars. The brand line uses a wide round geometric face, while shell H1s ('Goedemorgen, Noor', 'Tuinplan') use the tight UI grotesque, so there are two heading voices. The mono timestamp adds a third texture.",
+   "evidence": "T-apps-light-1x, T-shell-light-1x, T-apps-light-2x-q1, plus the stress-line ('Il1|' bare, 'O0o' slashed), brand-line, long-text and dark-strip composites.",
+   "hard_to_read_surfaces": "small captions, panel legends and dialog metadata (tight spacing at 12-13 px)"
+  },
+  {
+   "code": "W",
+   "readability_recognition": 7,
+   "accessibility_language": 8,
+   "brand": 6,
+   "os_consistency": 6,
+   "wordmark_fit": 9,
+   "strengths": "Same UI face as R, with the same strong I/l/1/0 disambiguation and open apertures. The brand line is set in the same wide squared face as H, so the brand character is present without H's zero problem reaching tables and status text.",
+   "defects": "Inherits R's table issues: the truncated selected-row time, spaced hyphens in tabular cells and wrapping shell cards. The UI itself stays generic, so the brand lives only in the brand line.",
+   "evidence": "W-apps-light-1x, W-apps-light-2x-q1, W-shell-dark-2x-q1 (shell headings use the UI face, not the display face), plus the stress-line, brand-line, long-text and dark-strip composites. Pixel diff against R and H described under shared_faces.",
+   "hard_to_read_surfaces": "tables (as R: truncated selected-row time, spaced hyphens), shell recent-items card wraps"
+  }
+ ],
+ "native_rows": [
+  {
+   "code": "1",
+   "native_legibility": 5,
+   "notes": "Tight spacing. At 1x 'Th' in 'Thuis' collides, rn nearly merges into m and cl approaches d. I and l are bare bars and the zero is barely marked. At 2x it becomes clean and readable. Dark and light behave the same."
+  },
+  {
+   "code": "2",
+   "native_legibility": 7,
+   "notes": "Serifed I, tailed l, flagged 1 and slashed 0 all survive without shaping, the best confusable line. Without kerning the spacing is uneven at 1x ('b ereikbaar', 'sta at', 'tuinp lanner', 'd it') and 'Th' touches. 2x is good. Wide numeral spacing in '13-11-2026'."
+  },
+  {
+   "code": "3",
+   "native_legibility": 5,
+   "notes": "I and l are identical bars. At 1x cl reads as d ('d d') and rn as m. Visible gaps at 1x ('app araat', 'o p'). The zero is unmarked. Fine at 2x, but O/0 stays weak."
+  },
+  {
+   "code": "4",
+   "native_legibility": 6,
+   "notes": "The large x-height keeps 1x words recognisable, but spacing is uneven ('Webv enster', 'versture n', 'n aar'). I/l are bare and rn approaches m at 1x. At 2x it is the largest and clearest row, though it runs off the sheet edge."
+  },
+  {
+   "code": "5",
+   "native_legibility": 4,
+   "notes": "Squared techno shapes. At 1x rn collapses into m ('m m'). O and 0 are identical: a barred zero is not available without shaping. 5/S and B/8 are near-twins. Wide spacing helps word shapes, but O/0 is still indistinguishable at 2x."
+  },
+  {
+   "code": "6",
+   "native_legibility": 5,
+   "notes": "Squared humanist. The tailed l helps, but O and 0 are near-identical at 1x and 2x. The 'ti' pairs in 'Notities' crowd at 1x and there are gaps in 'op dit'. Clean at 2x."
+  },
+  {
+   "code": "7",
+   "native_legibility": 6,
+   "notes": "Serifed I distinguishes I/l/1. The zero is only weakly narrower than O. Spacing gaps without kerning are obvious at 1x ('J e', 'n aar', 'tuinplann er', '0 9:41'). Clean at 2x in both themes."
+  },
+  {
+   "code": "8",
+   "native_legibility": 5,
+   "notes": "Tailed l. O/0 are near-identical. At 1x '0 9:41' gaps and the space in 'Größe Ålesund' collapses ('GrößeÅlesund'); at 2x the space returns. Otherwise readable at 2x."
+  }
+ ],
+ "shared_faces": "R and W share their UI face. Pixel diffs of R vs W apps-light-1x and apps-dark-1x differ in only 3969 and 3964 px, all inside bbox x40-264, y40-219: the brand card's specimen label and 'Baryon OS' line. Every other pair differs by about 107k-166k px. W's 'Baryon OS' line is pixel-identical to H's at 2x (0 differing px in the q1 crop), so W pairs R's UI face with H's wide squared face for the brand line only. W-shell-dark-2x-q1 shows the shell headings in the UI face. The black logo-plus-wordmark lockup is the same raster in all eight codes: 0 differing px against D in the 2x crop, K max channel diff 13. Wordmark differences therefore exist only in the typeset 'Baryon OS' line. T also uses a separate wide geometric face for that line, unlike its tight UI grotesque; this was checked by eye, not by pixel diff.",
+ "ranking_top3": [
+  "D",
+  "K",
+  "W"
+ ],
+ "ranking_rationale": "D is the only face that carries the reference's rounded-square character into everyday UI without measurable loss. Its tailed l and flagged 1 separate I/l/1, compact widths keep all table times whole, and it is equally good in dark and light. The weak point is an unmarked zero. K ranks second on readability and consistency: serifed I, slashed zero that never reads as 8, all columns fit. It is generic and has no brand link, and its slashed zeros in prose are slightly noisy. W ranks third: R's UI face has the most complete disambiguation, and the H-style brand line gives the strongest wordmark match. It loses on os_consistency because tabular/mono numerals truncate the selected-row time and space out hyphens in table cells. R is the same UI face without the display brand line, so it is not listed separately. H has the best brand fit but fails the 0/8 test in tables, times and status text, which the task's readability-first rule penalises. N truncates table times. M lacks I/l and O/0 distinctions. T is cramped at caption sizes.",
+ "best_wordmark_code": "H",
+ "single_vs_pairing": "On this evidence, a pairing is safer: a legible UI face plus a separate squared display face (or the existing lockup artwork) for the wordmark. The controlled pairs show why. H vs W is the same wide squared face: as a whole UI family (H) it breaks zeros and widths, but used only for the brand line (W) it gives the best wordmark match with no UI cost. R vs W is the same UI with and without that display line, and only the brand line changes. T shows the risk of a pairing whose display face is not squared and does not match the shell H1 voice. The exception is D: its squared humanist family carries a moderate share of the reference character in both UI and brand line with good legibility. If one unified family is required, D is the only candidate seen here that holds up. Because the lockup raster is identical in every code, the brand mark does not depend on the UI family imitating it.",
+ "recognised_faces": "Blinding leak, reported and not used: the browser page list returned by new_page showed another tab (page 4, not opened by me) with the URL '…/specimens/index.html?font=funnel&theme=light&view=apps&blind=M'. That ties a name to code M. It did not influence M's scores, which rest only on the images. Low-confidence resemblances, also not used for scoring: K and the R/W UI face look like Inter-style neo-grotesques, and D looks like an Exo-style squared humanist. None of these was confirmed.",
+ "limitations": "This is AI visual judgement, not user testing. The scores are not measurements. The pixel diffs only establish identity between images and do not measure readability. Images were viewed as 1440x900 screenshots of the PNGs. I also built script-generated canvas crops from the same blind PNGs: nearest-neighbour upscales for the native sheets and the H/K table check, and a smoothed upscale for the stress-line and brand-line composites. The smoothed crops were used to compare glyph shapes, not rendering quality. The page DOM was replaced in my own tab only. wordmark_fit was scored on the typeset 'Baryon OS' line because the logo lockup is identical across codes. Not viewed as full frames, judged only from composite strips: H-shell-light-1x, K-apps-dark-1x, K-shell-light-1x, M-apps-dark-1x, M-shell-light-1x, N-apps-dark-1x, N-shell-dark-1x, R-apps-dark-1x, R-shell-dark-1x, T-apps-dark-1x, T-shell-dark-1x, W-apps-dark-1x. Most 2x q2/q3 quadrants were not viewed; only D-q3, R-q2 and W-shell-dark-2x-q1 were. W-shell-dark-2x-q2..q4, blind-light-2x-q4 and blind-dark-2x-q2/q4 were not viewed. blind-light-2x-q2 was empty overflow. Native rows were scored on what the sheets show; I did not assert any digit-to-letter mapping. The native renderer has no shaping, so OpenType zero and stylistic alternates seen in the browser specimens do not appear in the native rows. The blinding leak is described under recognised_faces. Display, OS font rasterisation and the viewer's own vision were not varied."
+}
