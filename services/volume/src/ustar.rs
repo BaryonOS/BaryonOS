@@ -27,8 +27,9 @@ const ZERO: [u8; BLOCK] = [0; BLOCK];
 /// written are not an export and must be discarded. Two objects with one
 /// path, an uncollected object named like a declared collection (a file and
 /// a directory at one path; also refused when that collection is empty), or a
-/// path that starts with an ASCII letter and `:` (Windows reads it as a drive,
-/// outside the extraction directory) give `Invalid`; nothing is renamed.
+/// path whose first character, of any kind, is followed by `:` (Windows reads
+/// it as a drive, outside the extraction directory) give `Invalid`; nothing is
+/// renamed.
 pub fn from_archive<S: Source, K: Sink>(
     source: &mut S,
     scratch: &mut [u8; MAX_LENGTH],
@@ -81,7 +82,12 @@ fn path(entry: &Entry, collections: &Collections) -> Result<([u8; PATH], usize),
     }
     out[length..length + name.len()].copy_from_slice(name);
     length += name.len();
-    if out[0].is_ascii_alphabetic() && out[1] == b':' {
+    // Windows takes any UTF-16 unit before ':' as a drive (not only A-Z), ntpath any char.
+    let mut chars = core::str::from_utf8(&out[..length])
+        .map_err(|_| Status::Invalid)?
+        .chars();
+    chars.next();
+    if chars.next() == Some(':') {
         return Err(Status::Invalid);
     }
     Ok((out, length))

@@ -229,8 +229,12 @@ Python's `tarfile` module and GNU tar 1.35.
     file and a directory at one path). This conservative rule also refuses
     the export when that collection is empty, although an empty collection
     gets no directory;
-  - a path that starts with an ASCII letter and `:`. Windows reads it as a
-    drive, outside the extraction directory. A later `:` is kept.
+  - a path whose first character, of any kind, is followed by `:`. The Windows
+    path parser takes any UTF-16 code unit followed by `:` as a drive, not
+    only A–Z (`subst` accepts drives such as `+:` and `€:`), so such a path
+    can leave the extraction directory. Python's `ntpath` takes any one
+    character there as a drive, also one outside the Basic Multilingual Plane.
+    Extraction on Windows was not tested. A later `:` is kept.
 - **Order of checks.** Each file is written while `archive::walk` checks its
   object. The two end-of-archive blocks are written only after the trailer and
   the end of the stream have been checked. Python's `tarfile` reads a stream
@@ -241,8 +245,8 @@ Python's `tarfile` module and GNU tar 1.35.
   bidirectional embedding, override and isolate controls U+202A–U+202E and
   U+2066–U+2069; they are never `.` or `..`. A path therefore stays inside
   the extraction directory on POSIX systems, and the drive rule above covers
-  the Windows drive form. Bidirectional marks such as U+200E, U+200F and
-  U+061C are allowed.
+  the Windows drive form, including drives that are not a letter.
+  Bidirectional marks such as U+200E, U+200F and U+061C are allowed.
 - **Not handled (extraction elsewhere).** The following names export
   unchanged, but extract differently. Whether the export should refuse them
   is part of D6.
@@ -257,8 +261,9 @@ Python's `tarfile` module and GNU tar 1.35.
     overwrites the other.
 
 **Evidence (host).** Three `volume-core` tests in
-`services/volume/tests/archive.rs`. They need `python3` and `tar` and fail when
-either is missing:
+`services/volume/tests/archive.rs`. The reader test needs `python3` and `tar`,
+and the end-block test needs `python3`; each fails when its tool is missing. The
+refusal test starts no external tool:
 - Python's standard `tarfile` module is the independent reader. It reads an
   export that contains a collection, a multi-chunk object, an empty object and
   the name `Notitie ✓`. Names, the pax `path` record, type, size, mode, mtime,
@@ -269,12 +274,14 @@ either is missing:
   lacks exactly the two end-of-archive blocks, and `tarfile` still reads its
   three files without an error.
 - Resealed archives that `verify` accepts give `Invalid` when their paths
-  collide or start with `C:` (an uncollected `C:x` and a collection named
-  `C:`). A name with a later colon, `Plan:2`, is still exported.
+  collide or take the drive form: uncollected `C:x`, `1:x`, `é:x` and
+  `😀:x`, and a collection named `C:`. A name with a later colon,
+  `Plan:2`, is still exported.
 
-Eight mutants of the converter were each killed: no pax record, no
-file/directory check, no duplicate check, no drive check, a checksum off by
-one, mode 0600, end blocks before the trailer check, and no content padding.
+Nine mutants of the converter were each killed: no pax record, no
+file/directory check, no duplicate check, no drive check, a drive check for
+ASCII letters only, a checksum off by one, mode 0600, end blocks before the
+trailer check, and no content padding.
 Not checked: bsdtar and Windows `tar` as readers, extraction on Windows or
 macOS, and a native stage.
 

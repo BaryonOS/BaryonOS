@@ -1087,11 +1087,16 @@ fn ustar_export_refuses_colliding_paths_and_drive_names() {
         r[8..10].copy_from_slice(b"C:");
     });
     // A file and a directory at "Werk"; two files at "Werk/Notes"; paths that
-    // Windows reads as drive C: ("C:x" and "C:/Notes").
+    // Windows reads as a drive: "C:x", "C:/Notes", and drives that are not a
+    // letter or not one UTF-8 byte ("1:x", "é:x"), plus a non-BMP character
+    // that Python's ntpath reads as a drive.
     for archive in [
         rename(b"Werk", 0),
         rename(b"Notes", 1),
         rename(b"C:x", 0),
+        rename(b"1:x", 0),
+        rename("é:x".as_bytes(), 0),
+        rename("\u{1F600}:x".as_bytes(), 0),
         drive,
     ] {
         assert!(archive::verify(&mut reader(&archive), &mut scratch()).is_ok());

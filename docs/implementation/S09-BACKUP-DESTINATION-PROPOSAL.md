@@ -120,7 +120,8 @@ model and dependency review.
 ### D6 — Common export format
 
 - **(a) POSIX ustar with pax `path` records** for names that are not ASCII:
-  one file per document, collections as directories. Host-tested as
+  one file per document under a `<collection>/` path prefix. There are no
+  directory entries, so an empty collection is not exported. Host-tested as
   `ustar::from_archive` ([S09-BACKUP-ARCHIVE.md](S09-BACKUP-ARCHIVE.md),
   "User export to ustar").
 - **(b) ZIP.** It is just as widely opened, but needs CRC-32, a central
@@ -137,8 +138,12 @@ format that restores.
 *Also to decide:* whether the export refuses names that extract differently
 on Windows or macOS (a later `:`, reserved device names, trailing dots or
 spaces, case or normalisation variants). The converter refuses only colliding
-paths and a leading drive form such as `C:`. Refusing more would make some
-domains impossible to export until documents are renamed.
+paths, an uncollected document named like a declared collection (also when
+that collection is empty), and a path whose first character is followed by `:`
+(the drive form, such as `C:` or `1:`). The collection rule already makes a
+domain with an empty collection "Werk" and an uncollected document "Werk"
+impossible to export until one of them is renamed; refusing more names would
+do the same for more domains.
 
 ## What a decision changes
 
