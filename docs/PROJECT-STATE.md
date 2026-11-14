@@ -1,6 +1,43 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #328 integration with main — 14 November 2026
+## NEXT AGENT HANDOFF — N04 helper follow-up after #328 squash — 14 November 2026
+
+**Source:** branch `test/issue43-n04-helper-isolation`, based on merged main
+`4cd444e08dac820cc66f2750c43845b4139901cc`. Verified executable source:
+`21a53dd9342988263f7d49e9ef559fb7a2d288cd`; source-v3:
+`865b0320b2da88dda92991fdf89de17989ec3807d58fccb0691a8f735f12d7e2`.
+
+**Publication identity:** source commit `7f693d73702072fa0db3b99ffc56df3eed6b8fa5`
+has the identical Git tree `7ad12f6febb30cf66bd3f2c7c7f9bd6b5922ee82` as the
+locally verified source above. The GitHub connector changes commit metadata;
+original execution receipts retain their actual local commit identity.
+
+**Result:** an unregistered fourth process submits six valid requests to the
+two real app ingresses through test-only SEND aliases. Kernel sender identity
+rejects all six before replay/backend or packet effects; both registered apps
+then complete their full normal scenarios. The host checks the causal fence,
+traffic and four-process cleanup. Routine CI includes a separate required helper
+report. Production permissions and authentication are unchanged. The ten-file
+delta retains main's recent Python fixes and all earlier merged work.
+
+**Evidence:** fresh helper/normal/client-exit/revoke/device-reset/exhaustion runs
+pass with raw QEMU exit 33. Strict preflight, standard build and smoke, 92 Python
+tests, 24 Rust tests, strict service Clippy and formatting pass. Separate AI
+integration review found no blocker. The earlier sender-bypass mutation and
+22-check artifact replay retain their original local-source identities.
+[Receipts and limits](verification/n04-helper-20261114/README.md).
+Later evidence/status commits leave executable inputs unchanged.
+
+**Progress:** 41/100 → 41/100; N04 and #43 remain open. PR #328 was squash-merged;
+the former PR's outstanding-merge instructions below are historical. The helper
+test does not establish production delegation, regrant generation, durable
+service-restart revocation, physical hardware or human security acceptance.
+
+**Next:** inspect hosted checks for this bounded follow-up. Continue
+N04 through a reviewed production issuer/delegation and durable-revocation
+contract. The earlier H02/network/update handoffs are retained below.
+
+## Previous checkpoint — PR #328 integration with main — 14 November 2026
 
 **Source:** PR #328 head `885e128082483ec871831fbbfc757a6e5104e6b4`,
 integrated with main `aba6149fd4473aff73fdcf121c133d4960e3d939`.
