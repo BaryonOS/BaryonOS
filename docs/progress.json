@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "915cc4312b29de1bfb28588072bcfa024186314d",
+    "source_commit": "b8a7e83658bdbcd4970c26f753dda1b342fce0d4",
     "assessment_basis": "source_commit",
-    "branch": "ccr-cf45024e-q0nrg9",
-    "task": "Resolve PR #316 against main 2c72e282ca80fd3dd6bf377b3f71e2eced4a4499 while preserving the per-mode native window harness deadline",
+    "branch": "fix/issue43-network-usb-followup",
+    "task": "Advance issues #43, #39, #41 and #42 with native negative CI coverage, USB interval correction and a production-policy proposal",
     "previous_score": 41,
-    "summary": "41/100 stays 41/100. The progress-assessment conflict is resolved against current main without changing any criterion, status or evidence. PR #316 retains the 1800-second default and permits 2700 seconds only for the scale-2 clipboard/workspace gate. The existing design checkpoint and all other main changes are retained. This integration establishes no new native runtime or product acceptance; verification and execution limits are recorded in docs/PROJECT-STATE.md."
+    "summary": "41/100 remains 41/100. Existing native network revocation and TCP loss/backpressure scenarios are added to routine CI with distinct required evidence. Low-speed USB interrupt descriptors below 10 ms are rejected; the corrected exhaustive regression fails on the old source and all 29 USB tests, formatting, Clippy and the freestanding build pass on the fix. A production-policy proposal makes the remaining #41 decisions reviewable without creating keys or granting authority. Integrated strict preflight and 55 Python workflow/evidence tests pass. Native build/smoke and network scenario runs on this integration are pending; no new criterion is accepted."
   },
   "tracks": [
     {

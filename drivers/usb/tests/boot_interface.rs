@@ -127,10 +127,9 @@ fn all_packet_words_and_intervals_obey_speed_without_confusing_packets_with_repo
             input[6] = interval;
             assert_eq!(
                 select(&single(&KEYBOARD, &input), 0, speed).map(|binding| binding.interval_ms),
-                if interval == 0 {
-                    Err(Error::Endpoint)
-                } else {
-                    Ok(interval)
+                match (speed, interval) {
+                    (_, 0) | (Speed::Low, 1..=9) => Err(Error::Endpoint),
+                    _ => Ok(interval),
                 }
             );
         }

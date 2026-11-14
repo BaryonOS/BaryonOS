@@ -1,6 +1,34 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #316 conflict resolution — 14 November 2026
+## NEXT AGENT HANDOFF — issues #43, #39, #41 and #42 — 14 November 2026
+
+**Source:** branch `fix/issue43-network-usb-followup`, based on main
+`b8a7e83658bdbcd4970c26f753dda1b342fce0d4`.
+
+**Implemented:** routine native CI now includes live network grant revocation and
+the TCP loss/backpressure normal/cold pair, preserving separate required reports.
+The USB boot-interface parser rejects low-speed polling intervals below 10 ms.
+The [production-policy proposal](implementation/B03-PRODUCTION-POLICY-PROPOSAL.md)
+records the remaining #41 decisions; it is unapproved and changes no authority.
+
+**Evidence:** integrated strict preflight and 55 Python workflow/evidence tests
+pass. USB component checks pass: 29 tests, formatting, strict Clippy and a
+freestanding build. The corrected regression fails on the original implementation.
+Native integration build/smoke and scenario runs are **pending** at this checkpoint.
+Full commands and evidence boundaries: [issue checkpoint](verification/issue43-20261114/README.md).
+
+**Open:** #39 needs a source-bound unexpected-device-reset and exhaustion matrix;
+a test-only reset-containment profile is being implemented in an isolated worktree.
+#41 requires approved production trust/persistence choices and separately
+authorized production signing. #42 requires native USB execution/hotplug and
+physical reference evidence. #43's 50/100 target remains open.
+
+**Progress:** 41/100 → 41/100; no criterion or fixed weight changes.
+
+**Next:** run the standard build/smoke and existing native network scenarios,
+review the test-only reset fixture, and record actual results before acceptance.
+
+## Previous checkpoint — PR #316 conflict resolution — 14 November 2026
 
 **Source:** branch `ccr-cf45024e-q0nrg9`, PR #316 head
 `915cc4312b29de1bfb28588072bcfa024186314d`, integrated with main
@@ -877,6 +905,6 @@ SDK monthly Dependabot coverage is retained on current main. The current documen
 
 ## Current development state
 
-The fixed progress score is **39/100**. Detailed accepted and open criteria are maintained only in [PROGRESS.md](PROGRESS.md) and [progress.json](progress.json). Recent source-bound implementation and CI evidence remains available under [verification/](verification/).
+The fixed progress score is **41/100**. Detailed accepted and open criteria are maintained only in [PROGRESS.md](PROGRESS.md) and [progress.json](progress.json). Recent source-bound implementation and CI evidence remains available under [verification/](verification/).
 
 The former checkpoint sequence is preserved in [PROJECT-STATE-through-2026-11-09.md](history/PROJECT-STATE-through-2026-11-09.md). That snapshot is historical context, not a second current-status source.

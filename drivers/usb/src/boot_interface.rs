@@ -63,16 +63,16 @@ impl Selected {
         let address = bytes[2];
         let number = address & 15;
         let packet = u16::from_le_bytes([bytes[4], bytes[5]]);
-        let limit = match speed {
-            Speed::Low => 8,
-            Speed::Full => 64,
+        let (limit, minimum_interval) = match speed {
+            Speed::Low => (8, 10),
+            Speed::Full => (64, 1),
         };
         if number == 0
             || address & 0x70 != 0
             || bytes[3] != 3
             || packet == 0
             || packet > limit
-            || bytes[6] == 0
+            || bytes[6] < minimum_interval
         {
             return Err(Error::Endpoint);
         }

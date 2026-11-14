@@ -101,7 +101,7 @@ jobs:
           cargo +1.90.0 test --offline --locked --manifest-path services/network-service/protocol/Cargo.toml
           cargo +1.90.0 test --offline --locked --manifest-path sdk/net-client/Cargo.toml
           python3 -B -m unittest discover -s tools -p test_network_service_peer.py
-      - name: Actual packets and independent client lifetimes
+      - name: Actual packets independent client lifetimes and live grant revocation
         env:
           CARGO_NET_OFFLINE: 'true'
         run: |
@@ -109,6 +109,8 @@ jobs:
             python3 -B -u tools/run_network_service.py --case normal
           NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n01-ci-client-exit" \
             python3 -B -u tools/run_network_service.py --case client-exit
+          NOS_BUILD_DIR="$GITHUB_WORKSPACE/build/n01-ci-revoke" \
+            python3 -B -u tools/run_network_service.py --case revoke
       - name: Preserve tracked source integrity
         run: |
           git diff --exit-code
@@ -120,6 +122,10 @@ jobs:
           job-status: ${{ job.status }}
           full-evidence: ${{ github.event_name == 'workflow_dispatch' && inputs.full_evidence }}
           name: native-network-service-evidence
+          required-paths: |
+            build/n01-ci-normal/network-service-normal-report.json
+            build/n01-ci-client-exit/network-service-client-exit-report.json
+            build/n01-ci-revoke/network-service-revoke-report.json
           path: |
             build/n01-ci-*/manifest.json
             build/n01-ci-*/network-service-*-report.json
