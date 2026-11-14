@@ -61,3 +61,22 @@ On source commit `f8e7490b1dd8fdeb3cd8e8eb8578535bc49c5cc6` the host tests
 built library are in
 [`verification/usb-descriptor-core-f8e7490/`](../verification/usb-descriptor-core-f8e7490/).
 No native QEMU USB run or physical hardware test has been performed.
+
+## Follow-on boot-interface session — 14 November 2026
+
+`drivers/usb/src/boot_session.rs` coordinates the subsequent interface selector,
+HID setup encoder and boot-report parsers. It permits one pending operation and
+accepts input only after a matching successful, zero-data boot-protocol
+completion. Tokens bind the trusted owner's device lifetime, interface, operation
+kind and a sequence that never wraps. Reset releases held state and requires
+protocol selection again; detach is terminal. Incorrect or stale completions
+cannot consume current work.
+
+The owner still authenticates transport completions, supplies unique lifetime
+identities, restores configuration after reset, quiesces cancelled transfers,
+and enforces DMA/IRQ, buffer, timeout and focus boundaries. This component does
+not supply those native facilities. Its single-packet profile accepts no more
+than eight bytes or the endpoint limit, whichever is lower; smaller-than-report
+endpoints are rejected. The complete contract and source-bound component checks
+are in [the session receipt](../../drivers/usb/verification/boot-session.md).
+H02 remains open.

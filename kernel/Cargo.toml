@@ -172,6 +172,10 @@ native-net-service = ["native-system-tcp"]
 test-net-service-client-exit = ["native-net-service"]
 # N04: a fourth ring-3 policy process revokes one app's live destination grant.
 test-net-service-revoke = ["native-net-service"]
+# N01: actual device-status reset during a published TX, without a new syscall.
+test-net-service-device-reset = ["native-net-service", "virtio-net-driver/test-device-reset"]
+# The idle owner uses the existing bounded wait ABI; other profiles are unchanged.
+test-net-service-exhaustion = ["native-net-service", "ipc-wait"]
 test-system-tcp-recover = ["native-system-tcp", "test-system-recover"]
 # B01 entropy broker + Key Service profile: virtio-rng broker, two services, one app.
 native-keyring = ["milestone-m4", "dep:virtio-rng-driver"]

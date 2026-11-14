@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "pr": 328,
+  "parents": [
+    "5ab79f11abebbd6e1b6d0546a0b121437e9eca53",
+    "3c79778bf9e8793bfc9eaaea755d21b41f755bae"
+  ],
+  "merge_base": "299f0e39c202d67d1c2f4e31b879cbdd6add262b",
+  "conflicted_files": [
+    "docs/PROJECT-STATE.md",
+    "docs/progress.json"
+  ],
+  "resolution": "Preserve both complete current handoffs and main criterion register; no manual executable source or workflow changes.",
+  "source_fingerprint_version": 3,
+  "runtime_source_sha256": "6a276a5534b921a19e5bd4a05c5831576833591f2f309798280fba271715fc36",
+  "preservation": {
+    "pr_files": 30,
+    "main_files": 56,
+    "all_parent_bytes_match": true,
+    "path_blob_map_sha256": "b25bae6b78f2f952fd2312262722c03d417772c15503b623a0de473d414639a2"
+  },
+  "progress": {
+    "previous_score": 41,
+    "current_score": 41,
+    "criterion_register_unchanged": true
+  },
+  "host_tests_passed": 114,
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_workflows.py"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-iuxa4erb.log",
+      "log_sha256": "93fd5052714af778bffc182989ca0d14a3d698eee3ddfb709e14a4805c08a2bf",
+      "tests_passed": 26
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools",
+        "-p",
+        "test_network_service_peer.py"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-196ihcjt.log",
+      "log_sha256": "e6d22a34f61909c04c415d293f1bc229d4825cfea5b5615cc64745d0b38e7894",
+      "tests_passed": 25
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_update_harness.py"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-uxua_tcb.log",
+      "log_sha256": "735f019b7cdb080c90d5712f45cb790e4f149b2de3c38a2ef808e07224dee885",
+      "tests_passed": 15
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_volume_*.py"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-436w20h4.log",
+      "log_sha256": "19403e8c730653ab9bff86e41fb0390383ccd858bcac8e0c12c08f4a0e92cff1",
+      "tests_passed": 48
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-52ody6cb.log",
+      "log_sha256": "65151602d4c59658e0fea2d28a2821d10ed0d190ace3ef184e09df6cabd83f55"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-ym6aw6ai.log",
+      "log_sha256": "04d5327b17ee0347bb4eb4adf47b23f7027149df3fb12252503274fbc8c36e2e"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/run.py",
+        "--smoke"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-p8toii16.log",
+      "log_sha256": "bf3e34d02271670763fa8df73356aa0f889b8fb2c3a3a5c10e98ff2f85da7e73",
+      "smoke_result": {
+        "kernel_marker": "M1:PASS",
+        "qemu_raw_exit": 33,
+        "timeout": false
+      }
+    }
+  ],
+  "limits": [
+    "The standard native smoke test is not the complete OS acceptance matrix.",
+    "Prior stored evidence remains bound to its recorded source versions.",
+    "GitHub checks on the published merge commit remain separate evidence.",
+    "No merge, auto-merge, criterion acceptance or human audit is authorized by this repair.",
+    "The full network and volume native acceptance matrices were not rerun by this conflict repair."
+  ]
+}

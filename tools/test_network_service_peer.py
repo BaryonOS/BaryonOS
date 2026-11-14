@@ -4,14 +4,16 @@ from __future__ import annotations
 import os
 from pathlib import Path
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
 from network_service_peer import (ACK, FIN, PSH, RST, SYN, CLIENT_IP, CLIENT_MAC, PROBES, PROBE_ISN,
-                                  PEER_IP, PEER_MAC, REQUESTS, RESPONSES, UDP_PAYLOADS,
-                                  FrameDecoder, Machine, Peer, ProtocolError, checksum,
+                                  PEER_IP, PEER_MAC, REQUESTS, RESPONSES, RESET_PROBE, UDP_PAYLOADS,
+                                  FrameDecoder, Machine, DiscardMachine, Peer, ProtocolError, checksum,
                                   framed, validate_transcript)
-from run_network_service import BOOT, OFFSETS, REVOKE_ROLES, ROLES, ROOT, execute_native, record_streams, sequence
+from run_network_service import (BOOT, OFFSETS, REVOKE_ROLES, ROLES, ROOT, execute_native,
+                                 native_limits, record_streams, sequence)
 
 
 def client_ip(payload, protocol=6):
@@ -107,6 +109,27 @@ def transcript(case="normal"):
     return result
 
 
+def reset_transcript(published=True):
+    """Synthetic parser fixture; no native reset or DMA evidence."""
+    machine, actions = Machine("device-reset"), []
+    def feed(packet):
+        now = (len(actions) + 1) * 0.001
+        output = machine.handle(packet, now)
+        actions.append(dict(kind="input", at=now, input=packet.hex(), output=[p.hex() for p in output]))
+    arp = (b"\xff" * 6 + CLIENT_MAC + b"\x08\x06" + struct.pack("!HHBBH", 1, 0x800, 6, 4, 1)
+           + CLIENT_MAC + CLIENT_IP + b"\0" * 6 + PEER_IP).ljust(60, b"\0")
+    feed(arp)
+    feed(client_tcp(8080, 40000, 100))
+    c = machine.connections[8080]
+    feed(client_tcp(8080, 40000, c.client_next, c.server_start, ACK))
+    feed(client_tcp(8080, 40000, c.client_next, c.server_start, ACK | PSH, REQUESTS[0]))
+    if published:
+        feed(client_tcp(8080, 40000, c.client_next, c.server_start, ACK | PSH, RESET_PROBE))
+    result = machine.summary()
+    result.update(actions=actions, wire_frames_sent=machine.counts["server_frames"])
+    return result
+
+
 def native_serial(case="normal"):
     service = dict.fromkeys(OFFSETS, 0)
     service.update({400: 1, 408: 10, 416: 66, 424: 65, 432: 100, 440: 22,
@@ -125,11 +148,41 @@ def native_serial(case="normal"):
     network = {"NET_TX_SUBMITTED": 66, "NET_TX_COMPLETED": 66, "NET_RX_COMPLETED": 65,
                "NET_RX_DELIVERED": 65, "NET_DENIED": 3 if case == "revoke" else 2, "NET_TX_TIMEOUTS": 0,
                "NET_RESETS": 1, "NET_RESET_ACKS": 1}
+    if case == "exhaustion":
+        service = dict.fromkeys(OFFSETS, 0)
+        service.update({400: 1, 408: 30_000, 416: 3, 432: 25_544, 440: 4,
+                        464: 12_769, 488: 12_769, 496: 3, 528: 1})
+        app = dict.fromkeys(OFFSETS, 0)
+        app.update({400: 1, 408: 1, 416: 1, 424: 1, 440: 1,
+                    464: 1, 480: 1, 504: 12, 528: 1, 544: 1, 552: 11})
+        network.update({"NET_TX_SUBMITTED": 3, "NET_TX_COMPLETED": 3,
+                        "NET_RX_COMPLETED": 0, "NET_RX_DELIVERED": 0})
+    if case == "device-reset":
+        service = dict.fromkeys(OFFSETS, 0)
+        service.update({240: 12, 400: 1, 408: 10, 416: 4, 424: 3, 432: 20, 440: 4,
+                        464: 1, 472: len(REQUESTS[0]) + len(RESET_PROBE), 504: 12, 536: 52,
+                        544: 12, 552: 5})
+        app = dict.fromkeys(OFFSETS, 0)
+        app.update({400: 1, 424: 1, 440: 1, 480: 1, 504: 53, 528: 1, 536: 9})
+        network.update({"NET_TX_SUBMITTED": 5, "NET_TX_COMPLETED": 4, "NET_RX_COMPLETED": 3,
+                        "NET_RX_DELIVERED": 3, "NET_FAULT_TICK": 50, "NET_FAULT_TICKET": 5,
+                        "NET_FAULT_TX": 5, "NET_FAULT_RX": 3, "NET_FAULT_STATUS_BEFORE": 15,
+                        "NET_FAULT_STATUS_AFTER": 0, "NET_FAULT_BME_BEFORE": 1, "NET_FAULT_BME_AFTER": 1,
+                        "NET_TERMINAL_READS": 1, "NET_TERMINAL_ERROR": 12, "NET_DENIED": 3,
+                        "NET_FAULT_RX_ERRORS": 0, "NET_FAULT_RX_ERROR_CODE": 0})
     lines = [*BOOT, "NETSVC:MANIFEST:PASS"]
     if case == "revoke":
         lines.append("NETSVC:REVOKE_TICKS:00000000000000000008")
+    if case == "exhaustion":
+        lines.append("NETSVC:EXHAUSTION_RELEASE_TICKS:00000000000000000010")
     for role in (REVOKE_ROLES if case == "revoke" else ROLES):
         values = service if role == "SERVICE" else app
+        if role == "APP_A" and case == "exhaustion":
+            values = dict(app)
+            values.update({408: 12_768, 416: 0, 464: 12_768, 504: 0, 544: 1, 552: 9})
+        if role == "APP_A" and case == "device-reset":
+            values = dict(app)
+            values.update({448: 2, 544: 1, 552: 49})
         if role == "APP_A" and case == "client-exit":
             values = dict.fromkeys(OFFSETS, 0)
             values.update({400: 1, 424: 1, 440: 1, 480: 1, 528: 1, 536: 1})
@@ -141,11 +194,195 @@ def native_serial(case="normal"):
             values.update({400: 1, 528: 1, 544: 1, 552: 9})
         lines.extend(f"NETSVC:{role}:{offset}:{values[offset]:020d}" for offset in OFFSETS)
     lines.extend(f"SYSTEM:{name}:{value:020d}" for name, value in network.items())
-    lines.extend(["NETSVC:APP_A_EXIT_TICKS:00000000000000000030", "NETSVC:APP_B_EXIT_TICKS:00000000000000000500", "NETSVC:ENTROPY_BYTES:00000000000000000008", "NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS"])
+    app_a_exit = 60 if case == "device-reset" else 30
+    lines.extend([f"NETSVC:APP_A_EXIT_TICKS:{app_a_exit:020d}", "NETSVC:APP_B_EXIT_TICKS:00000000000000000500", "NETSVC:ENTROPY_BYTES:00000000000000000008", "NETSVC:CLEANUP:PASS", "NETSVC:PASS", "M1:PASS"])
     return "\n".join(lines) + "\n"
 
 
 class PeerChecks(unittest.TestCase):
+    def test_full_quota_budget_is_specific_to_exhaustion(self):
+        self.assertEqual(native_limits("exhaustion"), (11_999, 150))
+        for case in ("normal", "client-exit", "revoke", "device-reset"):
+            self.assertEqual(native_limits(case), (6000, 90))
+            serial = native_serial(case)
+            boundary = serial.replace("NETSVC:APP_B_EXIT_TICKS:00000000000000000500",
+                                      "NETSVC:APP_B_EXIT_TICKS:00000000000000006000")
+            sequence(boundary, case)
+            with self.assertRaises(ValueError):
+                sequence(boundary.replace("NETSVC:APP_B_EXIT_TICKS:00000000000000006000",
+                                          "NETSVC:APP_B_EXIT_TICKS:00000000000000006001"), case)
+        with self.assertRaises(ValueError):
+            native_limits("unknown")
+
+    def test_full_quota_completion_must_precede_aggregate_deadline(self):
+        # Synthetic serial checks the oracle only, never native timing evidence.
+        serial = native_serial("exhaustion")
+        for label, old, new in (
+            ("NETSVC:APP_A:552", 9, 11_995),
+            ("NETSVC:EXHAUSTION_RELEASE_TICKS", 10, 11_996),
+            ("NETSVC:APP_B:552", 11, 11_997),
+            ("NETSVC:APP_B:504", 12, 11_998),
+            ("NETSVC:APP_A_EXIT_TICKS", 30, 11_999),
+            ("NETSVC:APP_B_EXIT_TICKS", 500, 11_999),
+        ):
+            serial = serial.replace(f"{label}:{old:020d}", f"{label}:{new:020d}")
+        self.assertEqual(sequence(serial, "exhaustion")["exit_ticks"]["APP_A"], 11_999)
+        for role in ("APP_A", "APP_B"):
+            for tick in (12_000, 12_001):
+                with self.subTest(role=role, tick=tick), self.assertRaises(ValueError):
+                    sequence(serial.replace(f"NETSVC:{role}_EXIT_TICKS:{11_999:020d}",
+                                            f"NETSVC:{role}_EXIT_TICKS:{tick:020d}"), "exhaustion")
+
+    def test_exhaustion_capture_rejects_fifo_without_blocking(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "fifo"
+            os.mkfifo(path)
+            code = """import sys
+from network_service_peer import ProtocolError, validate_transcript
+try:
+    validate_transcript(dict(case='exhaustion', raw_path=sys.argv[1], actions=[], wire_frames_sent=0))
+except ProtocolError:
+    pass
+else:
+    raise AssertionError('FIFO accepted')
+"""
+            result = subprocess.run([sys.executable, "-c", code, str(path)], timeout=2,
+                                    env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parent)},
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_exhaustion_stream_replays_beyond_normal_frame_limit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "discard.bin"
+            machine = DiscardMachine()
+            arp = (b"\xff" * 6 + CLIENT_MAC + b"\x08\x06" + struct.pack("!HHBBH", 1, 0x800, 6, 4, 1)
+                   + CLIENT_MAC + CLIENT_IP + b"\0" * 6 + PEER_IP).ljust(60, b"\0")
+            frames = [arp] + [client_tcp(8080, 40000 + 2 * i, i + 1) for i in range(300)]
+            frames += [client_tcp(8080, 65534, 999), client_tcp(8090, 65535, 1000)]
+            with path.open("wb") as stream:
+                for frame in frames:
+                    self.assertEqual(machine.handle(frame), [])
+                    stream.write(framed(frame))
+            evidence = machine.summary()
+            evidence.update(raw_path=str(path), actions=[], wire_frames_sent=0)
+            self.assertTrue(validate_transcript(evidence, case="exhaustion")["complete"])
+            self.assertEqual(evidence["capture"]["frames"], 303)
+            self.assertEqual(evidence["capture"]["bytes"], path.stat().st_size)
+            self.assertEqual(evidence["counts"]["server_frames"], 0)
+            with self.assertRaises(ProtocolError):
+                validate_transcript(evidence, case="normal")
+            for key, value in (("frames", 302), ("bytes", 1), ("sha256", "0" * 64)):
+                changed = dict(evidence, capture={**evidence["capture"], key: value})
+                with self.assertRaises(ProtocolError):
+                    validate_transcript(changed)
+            original = path.read_bytes()
+            for changed in (original[:-1], original + b"\0", original + framed(arp), b"\xff" * 4 + original[4:]):
+                path.write_bytes(changed)
+                with self.assertRaises(ProtocolError):
+                    validate_transcript(evidence)
+            path.write_bytes(original)
+            alias = Path(directory) / "alias.bin"
+            alias.symlink_to(path)
+            with self.assertRaises(ProtocolError):
+                validate_transcript(dict(evidence, raw_path=str(alias)))
+
+    def test_exhaustion_peer_rejects_cross_owner_payload_and_frame_overflow(self):
+        for packet in (client_tcp(8080, 40001, 1), client_tcp(8090, 40000, 1),
+                       client_tcp(8081, 40000, 1), client_tcp(8080, 39998, 1),
+                       client_tcp(8080, 40000, 1, flags=ACK | PSH, payload=b"data")):
+            with self.assertRaises(ProtocolError):
+                DiscardMachine().handle(packet)
+        from network_service_peer import MAX_EXHAUSTION_FRAMES
+        machine = DiscardMachine()
+        machine.counts["client_frames"] = MAX_EXHAUSTION_FRAMES
+        with self.assertRaises(ProtocolError):
+            machine.handle(client_tcp(8080, 40000, 1))
+        with self.assertRaises(ProtocolError):
+            Machine().handle(client_tcp(8080, 65534, 1))
+
+    def test_exhaustion_oracle_requires_full_quota_and_causal_survivor(self):
+        serial = native_serial("exhaustion")
+        observed = sequence(serial, "exhaustion")
+        self.assertEqual(observed["processes"]["SERVICE"]["464"], 12_769)
+        for role, offset, old, new in (("SERVICE", 432, 25_544, 25_543),
+                                      ("SERVICE", 464, 12_769, 12_768),
+                                      ("SERVICE", 488, 12_769, 12_768),
+                                      ("SERVICE", 496, 3, 1),
+                                      ("APP_A", 408, 12_768, 12_767),
+                                      ("APP_A", 544, 1, 0),
+                                      ("APP_B", 416, 1, 0),
+                                      ("APP_B", 504, 12, 10),
+                                      ("APP_B", 552, 11, 8)):
+            changed = serial.replace(f"NETSVC:{role}:{offset}:{old:020d}", f"NETSVC:{role}:{offset}:{new:020d}")
+            with self.assertRaises(ValueError):
+                sequence(changed, "exhaustion")
+        for old, new in (("NET_RX_DELIVERED:00000000000000000000", "NET_RX_DELIVERED:00000000000000000001"),
+                         ("NET_DENIED:00000000000000000002", "NET_DENIED:00000000000000000003"),
+                         ("NET_RESET_ACKS:00000000000000000001", "NET_RESET_ACKS:00000000000000000000"),
+                         ("NETSVC:EXHAUSTION_RELEASE_TICKS:00000000000000000010\n", "")):
+            with self.assertRaises(ValueError):
+                sequence(serial.replace(old, new), "exhaustion")
+
+    def test_device_reset_wire_allows_one_uncertain_publication_without_replay(self):
+        for published in (False, True):
+            evidence = reset_transcript(published)
+            self.assertTrue(validate_transcript(evidence, case="device-reset")["complete"])
+            self.assertEqual(evidence["counts"]["device_reset_probes"], int(published))
+            with self.assertRaises(ProtocolError):
+                validate_transcript(evidence, case="normal")
+        for payload in (b"wrong", RESET_PROBE + b"x"):
+            m = Machine("device-reset")
+            for action in reset_transcript(False)["actions"]:
+                m.handle(bytes.fromhex(action["input"]), action["at"])
+            c = m.connections[8080]
+            with self.assertRaises(ProtocolError):
+                m.handle(client_tcp(8080, 40000, c.client_next, c.server_start, ACK | PSH, payload))
+        m = Machine("device-reset")
+        value = reset_transcript(True)
+        for action in value["actions"]:
+            m.handle(bytes.fromhex(action["input"]), action["at"])
+        with self.assertRaises(ProtocolError):
+            m.handle(bytes.fromhex(value["actions"][-1]["input"]), 1.0)
+        m = Machine("device-reset")
+        for action in value["actions"][:2]:
+            m.handle(bytes.fromhex(action["input"]), action["at"])
+        self.assertFalse(m.summary()["complete"])
+
+    def test_device_reset_serial_requires_live_ticket_error_and_containment(self):
+        good = native_serial("device-reset")
+        self.assertEqual(sequence(good, "device-reset")["reset_tick"], 50)
+        rx_first = good
+        for label, old, new in (
+            ("NETSVC:SERVICE:240", 12, 15), ("NETSVC:SERVICE:504", 12, 15),
+            ("NETSVC:SERVICE:520", 0, 12), ("SYSTEM:NET_FAULT_RX_ERRORS", 0, 1),
+            ("SYSTEM:NET_FAULT_RX_ERROR_CODE", 0, 12), ("SYSTEM:NET_DENIED", 3, 4),
+        ):
+            rx_first = rx_first.replace(f"{label}:{old:020d}", f"{label}:{new:020d}")
+        self.assertEqual(sequence(rx_first, "device-reset")["reset_tick"], 50)
+        with self.assertRaises(ValueError):
+            sequence(rx_first.replace("SYSTEM:NET_DENIED:00000000000000000004",
+                                      "SYSTEM:NET_DENIED:00000000000000000003"), "device-reset")
+        for label, old, new in (
+            ("SYSTEM:NET_FAULT_STATUS_BEFORE", 15, 0),
+            ("SYSTEM:NET_FAULT_STATUS_AFTER", 0, 15),
+            ("SYSTEM:NET_FAULT_BME_AFTER", 1, 0),
+            ("SYSTEM:NET_TERMINAL_READS", 1, 0),
+            ("SYSTEM:NET_TERMINAL_ERROR", 12, 14),
+            ("SYSTEM:NET_TX_SUBMITTED", 5, 6),
+            ("SYSTEM:NET_RESET_ACKS", 1, 0),
+            ("NETSVC:SERVICE:552", 5, 6),
+            ("NETSVC:SERVICE:240", 12, 0),
+            ("NETSVC:APP_A:552", 49, 51),
+            ("NETSVC:APP_A:536", 9, 0),
+            ("NETSVC:APP_B:504", 53, 51),
+        ):
+            bad = good.replace(f"{label}:{old:020d}", f"{label}:{new:020d}")
+            self.assertNotEqual(bad, good)
+            with self.subTest(label=label), self.assertRaises(ValueError):
+                sequence(bad, "device-reset")
+        with self.assertRaises(ValueError):
+            sequence(good, "normal")
+
     def test_revoke_case_requires_reset_probes_and_no_reuse(self):
         value = transcript("revoke")
         summary = validate_transcript(value, case="revoke")

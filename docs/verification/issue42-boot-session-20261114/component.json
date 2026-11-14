@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "criterion": "H02",
+  "criterion_status": "open",
+  "base_commit": "1260de8b5b0bb5330422ab9d5a63a64f5e2603b7",
+  "source_commit": "c4cb446ec78bed810df0e2a73cc75d51e3d42df6",
+  "source_v3": "b541866d534338fe367e8cdf965504267317f546f24b323f5de27bf5c7074896",
+  "toolchain": "Rust 1.90.0",
+  "tests_passed": 44,
+  "new_tests": 13,
+  "tests_ignored": 0,
+  "checks": [
+    {
+      "name": "usb-tests",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "drivers/usb/Cargo.toml"
+      ],
+      "source_commit": "c4cb446ec78bed810df0e2a73cc75d51e3d42df6",
+      "source_tree": "e282f702fe09c9871b08e1cf7a3c93d24e5b7e70",
+      "environment_overrides": {
+        "CARGO_TARGET_DIR": "build/issue42-usb-target"
+      },
+      "exit": 0,
+      "duration_s": 0.797,
+      "log": "build/issue42-checks/usb-tests.log",
+      "log_sha256": "344d46c818cee88b4f3af74c9803db6d2d1b1ea00765258d6803b04b8e33e5b7"
+    },
+    {
+      "name": "usb-format",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "fmt",
+        "--manifest-path",
+        "drivers/usb/Cargo.toml",
+        "--",
+        "--check"
+      ],
+      "source_commit": "c4cb446ec78bed810df0e2a73cc75d51e3d42df6",
+      "source_tree": "e282f702fe09c9871b08e1cf7a3c93d24e5b7e70",
+      "environment_overrides": {},
+      "exit": 0,
+      "duration_s": 0.036,
+      "log": "build/issue42-checks/usb-format.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "usb-clippy",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "drivers/usb/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "source_commit": "c4cb446ec78bed810df0e2a73cc75d51e3d42df6",
+      "source_tree": "e282f702fe09c9871b08e1cf7a3c93d24e5b7e70",
+      "environment_overrides": {
+        "CARGO_TARGET_DIR": "build/issue42-usb-target"
+      },
+      "exit": 0,
+      "duration_s": 0.327,
+      "log": "build/issue42-checks/usb-clippy.log",
+      "log_sha256": "bbf023499f1e70a7fb9173830abc4f425580cc2f979ce54d4a6cad5eb846f7d6"
+    },
+    {
+      "name": "usb-freestanding",
+      "command": [
+        "cargo",
+        "+1.90.0",
+        "build",
+        "--offline",
+        "--locked",
+        "--manifest-path",
+        "drivers/usb/Cargo.toml",
+        "--release",
+        "--target",
+        "x86_64-unknown-none",
+        "--lib"
+      ],
+      "source_commit": "c4cb446ec78bed810df0e2a73cc75d51e3d42df6",
+      "source_tree": "e282f702fe09c9871b08e1cf7a3c93d24e5b7e70",
+      "environment_overrides": {
+        "CARGO_TARGET_DIR": "build/issue42-usb-target",
+        "RUSTFLAGS": "-C no-redzone=yes -C target-feature=-sse,-sse2,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2"
+      },
+      "exit": 0,
+      "duration_s": 0.279,
+      "log": "build/issue42-checks/usb-freestanding.log",
+      "log_sha256": "42f7c2cdfd6127247f8e73003cf0ea0a43a99e1333989f40d4e8b510aa781fbe"
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "1260de8b5b0bb5330422ab9d5a63a64f5e2603b7"
+      ],
+      "source_commit": "c4cb446ec78bed810df0e2a73cc75d51e3d42df6",
+      "source_tree": "e282f702fe09c9871b08e1cf7a3c93d24e5b7e70",
+      "environment_overrides": {},
+      "exit": 0,
+      "duration_s": 0.007,
+      "log": "build/issue42-checks/diff-check.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "source_sha256": {
+    "drivers/usb/src/boot_session.rs": "8aa4313c74c279052fe032e84e95cb2d0d674517e53f0ab291031a274d897774",
+    "drivers/usb/src/lib.rs": "648d46de1a2c35b7d6ddd29c92ae86f70b400ce6439509ceb78b5263c370013a",
+    "drivers/usb/tests/boot_session.rs": "9ff737f308166bfee22f15fc64ca3640124c6e2d5b6cfb09203b13b283df9ab0",
+    "drivers/usb/src/boot.rs": "61e7515f7dc22b88303af6681796ceeeff4fa550800bedb21fdf6af6766c5772",
+    "drivers/usb/src/boot_interface.rs": "343b06ac7f5b2bc75212f57fa4d4c29eaaa32c29727b39802f851e26aa000b29",
+    "drivers/usb/src/hid_control.rs": "105e67279e501ba707c383d8bbbf4aa36fef2893a3d46a2f984a11677b9c91c2",
+    "drivers/usb/Cargo.toml": "b6a5fc045d107e9886d2af53d0b61839ec29f79916a79eb6d7f9748e6f302a1d",
+    "drivers/usb/Cargo.lock": "1eeec8ebae789753ec25e7b694359fabd3aa55185ddf39ba51b41bb0815ea5b0"
+  },
+  "review": {
+    "kind": "separate read-only AI source review",
+    "source_commit": "c4cb446ec78bed810df0e2a73cc75d51e3d42df6",
+    "blocking_findings": 0,
+    "human_audit": false
+  },
+  "limits": [
+    "No native USB execution or hardware evidence",
+    "No new device, DMA, IRQ or input authority",
+    "Standard integration gate pending at this checkpoint"
+  ],
+  "retained_test_log": {
+    "path": "docs/verification/issue42-boot-session-20261114/usb-tests.txt",
+    "sha256": "7ad8665b656888957109139d58c912fb3ec5eca4ea8fc1b81b114f6cc0007ce6",
+    "normalization": "Terminal blank lines removed; the command log hash above describes the original bytes."
+  },
+  "published_source_commit": "95871d00da8300bd542609930643af7e96e179dd",
+  "published_source_tree": "e282f702fe09c9871b08e1cf7a3c93d24e5b7e70",
+  "publication_equivalence": "The GitHub connector created a commit with the exact tested local Git tree. Its commit metadata differs; command source_commit values retain the actual local tested commit."
+}

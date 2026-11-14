@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-14",
-    "source_commit": "6de92a2fc399adffdbe2ddc01b6503bc6791ddd7",
-    "assessment_basis": "source_commit",
-    "branch": "claude/baryon-os-ui-ux-design-152adb",
-    "task": "Design pipeline on draft PR #332: integrate main aba6149fd4473aff73fdcf121c133d4960e3d939 (#331, Token Guard 1.1.1) while the Orbitaal v2 board, suite requirements S0 and the native-slice planning are in progress",
+    "source_commit": "885e128082483ec871831fbbfc757a6e5104e6b4",
+    "assessment_basis": "parent_commit",
+    "branch": "fix/issue43-network-usb-followup",
+    "task": "Resolve PR #328 conflicts against accepted Python quality and Token Guard changes",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The merge keeps main's status documents and Token Guard changes verbatim; the branch still adds design documents only (typography record corrections, a reversible Inter selection and the design and ecosystem handoff). The default native build and its feature flags are unchanged, and design, research or simulation evidence accepts no criterion."
+    "summary": "41/100 remains 41/100. PR #328 integrates main aba6149fd4473aff73fdcf121c133d4960e3d939 while preserving both status histories, the USB boot-session and network/update work, and accepted main changes. The required JSON import is retained after reproducing nine NameError errors in the automatic merge. All 148 targeted Python host tests, 44 USB component tests, strict preflight, the standard build and QEMU smoke pass. Source and preservation evidence is recorded in docs/verification/pr328-main-integration-20261114.json. Hosted checks and existing acceptance conditions remain separate; no criterion or weight changes."
   },
   "tracks": [
     {

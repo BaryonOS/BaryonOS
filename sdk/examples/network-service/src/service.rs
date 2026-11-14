@@ -26,6 +26,15 @@ fn bump(offset: u64) {
 fn now() -> u64 {
     native::monotonic_ticks().unwrap_or_else(|_| fail(3))
 }
+fn record_reset_terminal(ticket: u64, error: nieuw_os_sdk_runtime::Error) {
+    let code = match error {
+        nieuw_os_sdk_runtime::Error::Kernel(code) if code < 0 => (-code) as u64,
+        _ => 0,
+    };
+    support::put(544, code);
+    support::put(552, ticket);
+    support::put(536, now());
+}
 struct Pending {
     id: u64,
     ticket: u64,
@@ -51,7 +60,14 @@ impl Bridge {
                     bump(416)
                 }
                 Err(e) if e.is_again() => {}
-                Err(_) => fail(12),
+                Err(error) => {
+                    if support::word(168) == 1 {
+                        // The reset fixture records the actual terminal result
+                        // of this still-bound ticket before the usual failure exit.
+                        record_reset_terminal(p.ticket, error);
+                    }
+                    fail(12)
+                }
             }
         }
         if self.pending.is_none() {
@@ -83,7 +99,24 @@ impl Bridge {
                     bump(424)
                 }
                 Err(e) if e.is_again() => {}
-                Err(_) => fail(15),
+                Err(rx_error) => {
+                    if support::word(168) == 1 {
+                        // A timer can detect the fault between send and receive.
+                        // The fixture reads the real original ticket once before
+                        // retaining the ordinary RX-failure exit; no retry/replay.
+                        let code = match rx_error {
+                            nieuw_os_sdk_runtime::Error::Kernel(code) if code < 0 => (-code) as u64,
+                            _ => 0,
+                        };
+                        support::put(520, code);
+                        if let Some(p) = &self.pending {
+                            if let Err(error) = native::net_poll_tx(self.source, p.ticket) {
+                                record_reset_terminal(p.ticket, error);
+                            }
+                        }
+                    }
+                    fail(15)
+                }
             }
         }
         service.poll(tick).unwrap_or_else(|_| fail(16));
