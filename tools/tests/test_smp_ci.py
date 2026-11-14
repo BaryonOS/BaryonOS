@@ -138,7 +138,7 @@ class SmpCiAggregationTests(unittest.TestCase):
                 if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
                         and node.func.id == "always" and not node.args and not node.keywords):
                     return True
-                self.fail(f"Unsupported workflow condition: {ast.dump(node)}")
+                raise self.failureException(f"Unsupported workflow condition: {ast.dump(node)}")
 
             return visit(ast.parse(expression.strip(), mode="eval").body)
 

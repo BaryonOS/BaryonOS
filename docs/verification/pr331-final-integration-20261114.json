@@ -1,0 +1,185 @@
+{
+  "pr": 331,
+  "parents": [
+    "408007064b82ef5b56bc9f44f50811bf8cbfdd8a",
+    "dce783f6ae41e30082452d258fc2cc8ee51637df"
+  ],
+  "merge_base": "3c79778bf9e8793bfc9eaaea755d21b41f755bae",
+  "runtime_source_sha256": "c7b73ec5eb30c3152e8adf35aff1a13b6e51fd086ddb5401644ac8c49535b5ea",
+  "checks": [
+    {
+      "name": "helper",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_tokenguard.py"
+      ],
+      "exit_code": 0,
+      "test_count": 40,
+      "local_log": "build/pr331-final-integration/helper.log",
+      "log_sha256": "55d209f2d62a30ed082109d4649bf3da6f10c51701f39ce09885331e77ac20a9",
+      "duration_seconds": 6.535,
+      "receipt": "build/pr331-final-integration/helper-receipt.json"
+    },
+    {
+      "name": "workflow",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_workflows.py"
+      ],
+      "exit_code": 0,
+      "test_count": 25,
+      "local_log": "build/pr331-final-integration/workflow.log",
+      "log_sha256": "42c8be4bc8f0199def70b48283cc50ed8d51137c68b71028459c95d9c6dc70ae",
+      "duration_seconds": 0.465,
+      "receipt": "build/pr331-final-integration/workflow-receipt.json"
+    },
+    {
+      "name": "common",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_common.py"
+      ],
+      "exit_code": 0,
+      "test_count": 10,
+      "local_log": "build/pr331-final-integration/common.log",
+      "log_sha256": "006ac55040db8bd82eeb2e5abab682d80dc719e313b23af3bbac2921bafb69a1",
+      "duration_seconds": 0.114,
+      "receipt": "build/pr331-final-integration/common-receipt.json"
+    },
+    {
+      "name": "quality_qmp",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_quality_runners.py"
+      ],
+      "exit_code": 0,
+      "test_count": 4,
+      "local_log": "build/pr331-final-integration/quality_qmp.log",
+      "log_sha256": "d094b1bd2c8318c96097f80c50da282add5b2972970a77046de8db6c8935f6ca",
+      "duration_seconds": 0.164,
+      "receipt": "build/pr331-final-integration/quality_qmp-receipt.json"
+    },
+    {
+      "name": "m1_artifact",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_m1_artifact_binding.py"
+      ],
+      "exit_code": 0,
+      "test_count": 8,
+      "local_log": "build/pr331-final-integration/m1_artifact.log",
+      "log_sha256": "8642a1ac72c63530bbaa2c1f2526767cc3b14a928c117e4bff18cd4c4a88ad42",
+      "duration_seconds": 0.164,
+      "receipt": "build/pr331-final-integration/m1_artifact-receipt.json"
+    }
+  ],
+  "preservation": {
+    "head": "408007064b82ef5b56bc9f44f50811bf8cbfdd8a",
+    "main": "dce783f6ae41e30082452d258fc2cc8ee51637df",
+    "merge_base": "3c79778bf9e8793bfc9eaaea755d21b41f755bae",
+    "checked_nonconflict_paths": 7269,
+    "pr_changed_files": 28,
+    "main_changed_files": 59,
+    "failures": [],
+    "nonconflict_overlaps": [],
+    "preserved_deletions": [],
+    "path_mode_blob_map_sha256": "7553e0877c8d653daf4763ea979930cb1409ff0ee469bacad27606589a46494d"
+  },
+  "scope": "Source integration and regression evidence. Token Guard 1.1.1 and accepted PR #330 are preserved. No new OS criterion, client activation, UI A/B equivalence, real RTK behavior or provider savings is claimed.",
+  "runtime_source_unchanged_during_checks": true,
+  "host_tests_passed": 87,
+  "date": "2026-11-14",
+  "conflict_resolution": {
+    "paths": [
+      "docs/PROJECT-STATE.md",
+      "docs/progress.json"
+    ],
+    "both_status_histories_retained": true,
+    "single_current_handoff": true
+  },
+  "standard_gate": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-i1yvtdvc.log",
+      "log_sha256": "d6bbb8768774dc0a404232b4eee6995d4287bb487aa6976dbded2081ac27af84",
+      "duration_seconds": 0.214
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-ffiu63mw.log",
+      "log_sha256": "7ea5f37f0f283f59a8fd5af019f4175634e50d89df1c1ba53e569bb343347bb8",
+      "duration_seconds": 0.315
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/run.py",
+        "--smoke"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-3kpmlcqz.log",
+      "log_sha256": "9d44ef78bd41c1e3e8b436157f584ea4de7eaf8205d6b3a031375986edc927ad",
+      "duration_seconds": 1.67,
+      "smoke_result": {
+        "kernel_marker": "M1:PASS",
+        "qemu_raw_exit": 33,
+        "timeout": false,
+        "expectation_pass": true
+      }
+    }
+  ],
+  "helper_sha256": "593707bd6a2a21b9de80c7a6c07de5bd7de823a6e1b355f5e54248b89d47ec3d",
+  "progress": {
+    "previous_score": 41,
+    "current_score": 41,
+    "criterion_register_unchanged": true
+  },
+  "hosted_verification": "Current-head host-quality and qemu-smoke checks remain required after publication. Earlier hosted results are not attributed to this integration commit."
+}

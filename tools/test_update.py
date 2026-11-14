@@ -12,7 +12,6 @@ import sys
 from common import BUILD, ROOT, environment, save_json, sha256, source_hash
 from build import build
 import run_update
-from run_update import ORDER, STAGES
 
 TEST_INPUTS = "test_update_*.py"
 HOST = [
@@ -175,8 +174,8 @@ def main() -> int:
     summary["images"] = prepare_images(frozen)
     save_json(path, summary)
     states: dict[str, object] = {}
-    for stage in ORDER:
-        plan = STAGES[stage]
+    for stage in run_update.ORDER:
+        plan = run_update.STAGES[stage]
         state = None if plan["fresh"] else states[plan["sequence"]]
         report, state_dir = run_update.run_update(stage, state)
         states[plan["sequence"]] = state_dir

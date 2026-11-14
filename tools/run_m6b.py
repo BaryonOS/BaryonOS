@@ -26,11 +26,10 @@ WINDOWS_CRASH_EXIT = 0xE06A0001
 def kill_for_crash(process):
     """Terminate only our Popen child, retaining a distinguishable raw status."""
     if os.name == "nt":
-        import ctypes
-        from ctypes import wintypes
+        import ctypes.wintypes
         terminate = ctypes.WinDLL("kernel32", use_last_error=True).TerminateProcess
-        terminate.argtypes = (wintypes.HANDLE, wintypes.UINT)
-        terminate.restype = wintypes.BOOL
+        terminate.argtypes = (ctypes.wintypes.HANDLE, ctypes.wintypes.UINT)
+        terminate.restype = ctypes.wintypes.BOOL
         if not terminate(int(process._handle), WINDOWS_CRASH_EXIT):
             error = ctypes.get_last_error()
             # Windows reports ACCESS_DENIED for an already terminating process;

@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "pr": 331,
+  "parents": [
+    "30425a53ea84a3e7a2022f598c594f38b009b73a",
+    "3c79778bf9e8793bfc9eaaea755d21b41f755bae"
+  ],
+  "merge_base": "299f0e39c202d67d1c2f4e31b879cbdd6add262b",
+  "conflicted_files": [
+    "docs/PROJECT-STATE.md",
+    "docs/progress.json"
+  ],
+  "resolution": "Preserve both complete current handoffs and main criterion register; no manual executable source or workflow changes.",
+  "source_fingerprint_version": 3,
+  "runtime_source_sha256": "fae85a5f8bbc4168422a9cf4e18edf016888cf4b8eccf19cdace76cbadc817f9",
+  "preservation": {
+    "pr_files": 22,
+    "main_files": 56,
+    "all_parent_bytes_match": true,
+    "path_blob_map_sha256": "8d3096ab1c652206682d4b5b082f7eadba63f2c542880ea45f8172707195503f"
+  },
+  "progress": {
+    "previous_score": 41,
+    "current_score": 41,
+    "criterion_register_unchanged": true
+  },
+  "host_tests_passed": 82,
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_tokenguard.py"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-ocju63sc.log",
+      "log_sha256": "eab1dca1d87f272a5d94906d7777305ad5e81973e954a262f4c0b669295d1d57",
+      "tests_passed": 27
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_workflows.py"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-hda2rqn6.log",
+      "log_sha256": "2e6f77f37db87371b2b9e8650720d4c2d81fee88ac9d5bcf1a017b8fe572ff82",
+      "tests_passed": 25
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_evidence.py"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-fk7iwnno.log",
+      "log_sha256": "f39d40445d971a430b93dee110ac3fa0e2e1ceba99c2738dc96999a12f82e8fe",
+      "tests_passed": 22
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_evidence_workflow_verifier.py"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-gv9zjf3e.log",
+      "log_sha256": "8a9fced257b82047fdc73a79f8b06a6149522b07d10c8fcf65817c2a0201f1a6",
+      "tests_passed": 8
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-eblk6wnx.log",
+      "log_sha256": "611dbf3b969b6073fa6146b5cc8e30a9935332e411a00f3e652990932ef3eed7"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-14qan4t4.log",
+      "log_sha256": "03d0259248b7c522351d025713359d859a633c02ed62827e29da4dd51b00f3cb"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/run.py",
+        "--smoke"
+      ],
+      "exit_code": 0,
+      "local_log": "build/tokenguard/run-wmcegkl6.log",
+      "log_sha256": "04825527329dc92d7d9d6a459877443b4679e6b9aa579794323f053f729e36f4",
+      "smoke_result": {
+        "kernel_marker": "M1:PASS",
+        "qemu_raw_exit": 33,
+        "timeout": false
+      }
+    }
+  ],
+  "limits": [
+    "The standard native smoke test is not the complete OS acceptance matrix.",
+    "Prior stored evidence remains bound to its recorded source versions.",
+    "GitHub checks on the published merge commit remain separate evidence.",
+    "No merge, auto-merge, criterion acceptance or human audit is authorized by this repair.",
+    "Claude, Copilot and OpenCode client activation was not verified."
+  ]
+}

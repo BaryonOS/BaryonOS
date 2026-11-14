@@ -13,7 +13,7 @@ import struct
 import sys
 import tempfile
 import unittest
-from unittest import mock
+import unittest.mock as mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
 import test_document_session as gate

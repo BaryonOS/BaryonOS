@@ -1,6 +1,38 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — H02 boot-session completion — 14 November 2026
+## NEXT AGENT HANDOFF — PR #328 integration with main — 14 November 2026
+
+**Source:** PR #328 head `885e128082483ec871831fbbfc757a6e5104e6b4`,
+integrated with main `aba6149fd4473aff73fdcf121c133d4960e3d939`.
+
+**Resolution:** the H02 boot-session and earlier network/update checkpoints
+are retained alongside the accepted Python Code Quality and Token Guard
+history. Main's qualified `run_update.ORDER` and `run_update.STAGES` references
+are preserved. The JSON import remains required by the new compiler-guard
+checks: the otherwise clean automatic merge reproduced nine `NameError`
+errors in the existing update harness before the import was restored.
+
+**Verification:** 148 targeted Python host tests and all 44 USB component
+tests pass. Strict preflight, the standard build and QEMU smoke pass on the
+combined source; smoke observes `M1:PASS`, raw exit 33, matching artifacts and
+no timeout. Independent AI comparison preserves 36 PR-only, 84 main-only and
+7,163 unchanged files, and verifies the intended four-file source/test
+composition. The reproduced import failure, source hashes, commands and log
+digests are recorded in
+[the integration receipt](verification/pr328-main-integration-20261114.json).
+
+**Limits:** local QEMU 10.0.13 uses `pc-q35-8.2`; the hosted QEMU 8.2.2 gate
+remains separate. Ordinary smoke does not execute USB or rerun the full
+native network/update matrix. The AI review is not a human audit.
+
+**Progress:** 41/100 → 41/100; no criterion, weight or acceptance boundary
+changes. Native USB transport and physical reference acceptance remain open.
+The existing PR acceptance hold remains in force.
+
+**Next:** review the updated PR's hosted checks and existing acceptance
+conditions. This conflict repair does not approve merge or auto-merge.
+
+## Previous checkpoint — H02 boot-session completion — 14 November 2026
 
 **Source:** existing PR #328, branch `fix/issue43-network-usb-followup`.
 Published implementation: `95871d00da8300bd542609930643af7e96e179dd`.
@@ -113,6 +145,250 @@ when the branch changes; `acceptance-pending` and explicit merge approval remain
 **Next:** review PR #328; record the production-policy decisions for #41 and
 implement the native USB execution/enumeration boundary for #42. Retain all
 source and evidence limits when continuing those tracks.
+
+## Previous checkpoint — PR #331 final integration — 14 November 2026
+
+**Source:** PR #331 parent `408007064b82ef5b56bc9f44f50811bf8cbfdd8a`
+integrates accepted PR #330 from main
+`dce783f6ae41e30082452d258fc2cc8ee51637df`.
+
+**Resolution:** both status histories are retained. The Token Guard 1.1.1
+implementation and comment-only review repair are combined with the accepted
+Python Code Quality changes and corrected M1 artifact-binding fixture.
+Only the two status documents require conflict resolution.
+
+**Verification:** 87 targeted host tests pass: 40 helper, 25 workflow,
+10 common, four QMP/quality and eight M1 artifact-binding tests. Strict preflight,
+the standard build and QEMU smoke pass; smoke reports `M1:PASS`, raw exit 33
+and no timeout. Independent comparison preserves all 7,269 existing paths
+outside the two conflict documents, including 28 PR changes and 59 main changes.
+Commands, source hashes and log digests are recorded in
+[the integration record](verification/pr331-final-integration-20261114.json).
+Current-head hosted checks remain required before the authorized acceptance
+decision.
+
+**Progress:** 41/100 → 41/100; no criterion or weight is changed. Client
+activation, UI A/B equivalence and provider savings remain unverified.
+
+## Previous checkpoint — PR #331 review clarification — 14 November 2026
+
+**Source:** PR #331 parent `a77b3c33f9c2676b781bcdee2300c3b7497a5088`.
+The concurrent Token Guard 1.1.1 implementation and its evidence are retained.
+
+**Result:** the two intentional empty exception handlers now explain the
+process-exit race and optional hook fallback. Four comment lines changed;
+the Python AST and execution behavior are unchanged. The two Graphify
+coupling advisories were reviewed: command-lifecycle coordination and the
+mutually exclusive CLI dispatcher do not establish a dependency defect.
+
+**Evidence:** 40 helper tests, 25 workflow tests, strict preflight, the standard
+build and QEMU smoke pass. The new helper digest, exact AST comparison,
+commands and log hashes are recorded in
+[the review record](verification/pr331-review-20261114.json).
+The original package receipt remains bound to its original helper digest.
+Native client activation and provider-token savings remain unverified.
+
+**Progress:** 41/100 → 41/100; the criterion register is unchanged.
+
+**Next:** verify the new commit's hosted checks, then record the acceptance
+decision authorized by the project owner. This checkpoint does not itself
+claim a passed future CI run or completed native client activation.
+
+## Previous checkpoint — Token Guard quality — 14 November 2026
+
+**Source:** implementation `5771e64abc483480b9f674ae2d704a3bb6f2335a` on
+`feat/token-guard-20261114`, extending PR #331 from
+`30425a53ea84a3e7a2022f598c594f38b009b73a`, integrated with concurrent head
+`973e2f01cc8295a8681a2de9e0a51bdeee5c96af` and main `3c79778bf9e8793bfc9eaaea755d21b41f755bae`.
+
+**Result:** Token Guard 1.1.1 prioritizes the original task and acceptance criteria.
+Automatic Claude rewriting is opt-in; explicit checks inherit stdin/environment
+and have no implicit helper deadline. Short output is preserved as sanitized text;
+selected large output is labelled incomplete and supports bounded byte replay.
+Source context is labelled as the current file after execution. TTY/stream and
+sanitization differences remain explicit; native execution remains available.
+The shared plugin adds an on-demand UI/UX quality contract and the repository
+adds a native Copilot skill adapter. Existing hosted Graphify and permissions
+remain unchanged. The saved private package was read back; helper, skill and
+quality reference match the tested source. Client activation is not verified.
+
+**Evidence:** all 40 helper regression tests pass. Focused independent AI review
+verified the original five findings and found an additional oversized diagnostic
+line-number issue, now fixed and regression-tested. Manifest/skill/archive checks
+pass. The prior PR head's CI succeeded; this does not establish the updated head's
+CI status. Source hashes, command results and limits are recorded in
+[the quality verification record](verification/token-guard-quality-20261114.json).
+
+**Limits:** no paired agent-level UI/UX comparison, human usability evaluation or
+provider billing measurement has been performed. The plugin contract is guidance,
+not a quality oracle. Local Rust/Cargo, QEMU and OVMF remain unavailable; no updated
+native acceptance is claimed. Full client activation and real RTK integration
+remain unverified. Token Guard changes do not modify approved concept boards or OS implementation;
+concurrent main/S09 changes are retained from the newer PR head.
+
+**Progress:** 41/100 → 41/100; no criterion status or weight changes.
+
+**Next:** continue review of PR #331, preserving its existing review status; this
+task enables neither merge nor auto-merge. Use the
+[setup guide](TOKEN-GUARD.md) and [options review](TOKEN-GUARD-QUALITY.md).
+For a quality claim, execute the packaged matched UI evaluation with unchanged
+model, task, design references and acceptance criteria. Continue authorized OS
+work from the preserved implementation queue; do not wait on unrelated CI.
+
+## Previous checkpoint — PR #331 conflict resolution — 14 November 2026
+
+**Source:** branch `feat/token-guard-20261114`, PR #331 head
+`30425a53ea84a3e7a2022f598c594f38b009b73a`, integrated with main
+`3c79778bf9e8793bfc9eaaea755d21b41f755bae`.
+
+**Result:** the conflicts in `docs/PROJECT-STATE.md` and `docs/progress.json`
+are resolved while retaining the complete Token Guard and PR #325/S09
+checkpoints below. All 22 PR-changed files and all 56 main-changed files outside
+these two documents are byte-identical to their respective parent versions.
+No executable source, workflow or stored verification evidence required a
+manual resolution.
+
+**Evidence on the combined source:** 27 Token Guard tests, 25 workflow tests,
+22 CI-evidence tests and eight workflow-evidence verifier tests pass (82 total).
+Strict preflight, the standard build and QEMU smoke test each exit 0. The smoke
+test observes `M1:PASS` and the expected raw QEMU exit 33 without a timeout.
+The build retains the existing unused `serial::hex` warning. Raw command logs
+and source-preservation results remain in `build/tokenguard/` and
+`build/pr331-conflicts/`; commands and hashes are recorded in
+[the verification record](verification/pr331-conflicts-20261114.json).
+
+**Limits:** the native smoke test does not establish complete OS acceptance.
+Claude/Copilot/OpenCode activation and an independent human audit remain
+unverified. Historical evidence below retains its original source boundaries.
+
+**Progress:** 41/100 → 41/100; no criterion status or weight changes.
+
+**Next:** inspect the updated PR's current-head checks and verify Token Guard
+in the intended native clients. No merge or auto-merge is enabled by this repair.
+
+## Previous checkpoint — Token Guard plugin — 14 November 2026
+
+**Source:** implementation `c3f08338b6059ce18938149e44e1cd3980d3d8a0` on `feat/token-guard-20261114`,
+based on main `299f0e39c202d67d1c2f4e31b879cbdd6add262b`.
+
+**Result:** one self-contained Token Guard plugin contains the shared workflow,
+Python helper and conservative Claude hook. Codex/ChatGPT use the portable
+manifest; Claude has a native manifest; Copilot/OpenCode use repository skill
+adapters. Existing Graphify connections, project contracts and permission
+settings remain unchanged. The private account package was saved and its helper
+was read back with an identical source digest; activation in this existing chat
+and the user's local clients is not verified.
+
+**Evidence:** 27 helper regression tests and 25 workflow tests pass. An isolated
+workflow trial changed a failing formatter into two passing tests without changing
+the tests. The independent AI review's cancellation, diagnostic-loss and bounded
+output findings were repaired. The final traceback-retention regression also
+passes. The CI host test step now includes the helper suite. Source hashes,
+command exits, package identity and measurement boundaries are recorded in
+[the verification record](verification/token-guard-20261114.json).
+
+**Limits:** strict preflight exits 2; build and smoke each exit 1 because Rust/Cargo,
+QEMU and OVMF are absent. Claude/Copilot/OpenCode were unavailable; native Codex
+plugin discovery timed out. RTK behavior used a labelled test fixture. The noisy
+synthetic fixture reduced displayed output from 136,053 to 509 bytes; provider
+tokens, costs, quota and reasoning quality were not measured. No native OS or
+human-audit evidence is claimed. Local raw logs remain under `build/tokenguard/`.
+
+**Progress:** 41/100 → 41/100; no criterion status or weight changes.
+
+**Next:** review the draft PR and current-head CI; verify the plugin in the user's
+Claude/Codex clients using [the setup guide](TOKEN-GUARD.md). No merge or auto-merge
+is enabled. The existing OS implementation queue remains unchanged.
+## Previous checkpoint — PR #330 CI fixture repair — 14 November 2026
+
+**Source:** PR #330 parent `bfc48abbf246426cea476981736ffa3967061b17`.
+
+**Problem and repair:** eight M1 artifact-binding tests failed in shared setup
+because the fixture still patched the unused `ROOT` import removed from
+`tools/test.py`. The fixture now patches only the three consumed bindings:
+`runner.ROOT`, `runner.BUILD` and `m1_gate.BUILD`. Production code and all
+test assertions remain unchanged; missing attributes still fail strictly.
+
+**Evidence:** the original eight errors were reproduced; all eight tests pass
+after repair. The exact instrumented CI runner/QEMU-host step passes all
+101 tests across six suites using workflow-pinned coverage 7.11.3. Strict
+preflight, the standard build and QEMU smoke pass. The runtime fingerprint
+is unchanged. Commands, failed attempts, source hashes and scope are in
+[the repair record](verification/pr330-ci-repair-20261114.json).
+
+**Progress:** 41/100 → 41/100; the criterion register is unchanged.
+
+**Next:** verify CI on the new commit before recording the acceptance decision
+authorized by the project owner. Zero remaining main Code Quality findings
+still requires the post-merge main scan; no such result is claimed here.
+
+## Previous checkpoint — PR #330 conflict resolution — 14 November 2026
+
+**Source:** PR #330 head `47fe2f79df4c8ee8c3a58cb8fd77b124eaff6332`,
+integrated with main `3c79778bf9e8793bfc9eaaea755d21b41f755bae`.
+
+**Result:** the status-document conflict retains the complete Python Code
+Quality handoff and main's PR #325/S09 checkpoints, including the recorded
+D6 approval, conditions and open work. All 56 PR-changed files outside the
+two conflicted documents and all 56 main-only changed files are byte-identical
+to their respective parents. No code or workflow required a manual resolution.
+
+**Evidence:** 61 targeted host tests pass: 25 workflow, 22 CI-evidence,
+10 common-tool and four QMP/quality regressions. Strict preflight, the standard
+build and QEMU smoke pass on the combined source; smoke reports raw exit 33,
+the expected kernel markers and no timeout. The build retains the existing
+unused `serial::hex` warning. These checks do not rerun the full 678-test quality
+suite or Code Quality scan. Logs are local under `build/tokenguard/`;
+[source-bound verification](verification/pr330-conflicts-20261114.json).
+
+**Progress:** 41/100 → 41/100; this resolution accepts no additional criterion.
+
+**Next:** review the existing PR's current-head checks and, after an explicitly
+approved merge, verify a fresh main Code Quality scan. The previous scan and
+remaining-finding limitations below remain unchanged.
+
+## Previous checkpoint — Python Code Quality repair — 14 November 2026
+
+**Source:** main `299f0e39c202d67d1c2f4e31b879cbdd6add262b`;
+branch `fix/python-code-quality-20261114`.
+
+**Scope:** all 107 Python Standard findings in 17 CodeQL rules were inspected.
+77 findings have targeted code changes. The other 30 occur in 15 deliberately
+preserved historical source files and were dismissed through GitHub's quality
+UI. Their original bytes and recorded hashes remain unchanged; four old API
+callers belong to a documented before-fix checkout. No scanning rule changed.
+GitHub main currently shows 77 open findings in 14 rules; code repairs await
+an owner-approved merge and a new main scan.
+
+**Changes:** unused/mixed imports, precise assertions, explicit returns and
+cleanup behavior were corrected. QMP socket/pipe construction initializes shared
+state and negotiates through private transport methods; public command dispatch
+retains override behavior. Volume execution has a consistent six-field return.
+Network evidence failures retain a failed report. Maintained K06 verifiers were
+updated without rewriting historical acceptance hashes or limitation messages.
+
+**Verification:** 678 host tests across 38 suites pass, including four new
+regression tests. The 16 storage replay tests use byte-identical copies in a
+secure temporary directory because the existing path guard rejects `/workspace`.
+Changed Python files parse. Independent reviews found no blocking regression.
+Strict preflight exits 2; build and smoke exit 1 because Rust/Cargo, QEMU and
+OVMF are unavailable. These are host checks, not native acceptance evidence.
+
+**Evidence:** [all 107 dispositions, source hashes and test receipts](verification/code-quality-20261114.json).
+Local logs: `build/code-quality-20261114/`. Progress remains 41/100; no acceptance
+criterion changed. Generated progress views are regenerated and checked.
+
+**PR:** [#330](https://github.com/BaryonOS/BaryonOS/pull/330), draft. The automatic
+Code Quality run [43601148798](https://github.com/BaryonOS/BaryonOS/actions/runs/43601148798)
+succeeded on code commit `d4d24bdc504d870e69978dd516837b8af66958f9`; all 17 requested
+Python queries were interpreted and their SARIF uploaded. The logs do not expose
+per-rule result counts, so this does not establish zero remaining main findings.
+
+**Next:** obtain the owner's explicit merge approval, respect the required checks,
+then verify that a new main scan clears the 77 repaired findings. No merge or
+auto-merge is enabled. This follow-up records scan evidence only; Python bytes
+remain identical to the analyzed code commit.
+
 
 ## Previous checkpoint — PR #325 documentation refresh — 14 November 2026
 

@@ -1,0 +1,457 @@
+{
+  "schema_version": 1,
+  "task": "Resolve PR #328 merge conflicts and the merged update-harness import regression",
+  "created_utc": "2026-11-14T15:29:35.078812+00:00",
+  "repository": "BaryonOS/BaryonOS",
+  "pr": 328,
+  "branch": "fix/issue43-network-usb-followup",
+  "parents": {
+    "pr_head": "885e128082483ec871831fbbfc757a6e5104e6b4",
+    "main": "aba6149fd4473aff73fdcf121c133d4960e3d939",
+    "merge_base": "3c79778bf9e8793bfc9eaaea755d21b41f755bae"
+  },
+  "source_identity": {
+    "basis": "combined working-tree content; documentation updates do not alter source-v3",
+    "source_fingerprint_version": 3,
+    "source_sha256": "707b49454b58f46b2c637e9f79fefdf0366eabeb8023d26bbed749cd0971706a",
+    "overlap_file_sha256": {
+      "tools/test_update.py": "b4173509783f1f1fc06dff86f657a8e8cd7e3ff980ba56f78df31b1ef1893ab8",
+      "tools/run_network_service.py": "188baf90e8f0686a8582bb93059031c7c94a2ba905f5306819a10447766844a0",
+      "tests/test_update_harness.py": "8926e70e3016561d8239b917325caed8cfec7fdd54409e4e49ebde7391f0f423",
+      "tests/test_ci_workflows.py": "77c506806470de79f6bc3ee334c5c86339ff71e561a15b8a4432d645e1913d42"
+    }
+  },
+  "resolution": {
+    "text_conflicts": [
+      "docs/PROJECT-STATE.md",
+      "docs/progress.json"
+    ],
+    "semantic_fix": "Retain import json for check_policy_guards while preserving main's qualified run_update references.",
+    "status_history": "Both parent histories retained; handoff headings demoted, and the PR's existing correction of the current score from 39/100 to 41/100 retained.",
+    "progress_before": 41,
+    "progress_after": 41,
+    "criterion_register_unchanged": true
+  },
+  "preservation": {
+    "base": "3c79778bf9e8793bfc9eaaea755d21b41f755bae",
+    "preservation_counts": {
+      "main_only": 84,
+      "unchanged": 7163,
+      "pr_only": 36
+    },
+    "overlap": [
+      "docs/PROJECT-STATE.md",
+      "docs/progress.json",
+      "tests/test_ci_workflows.py",
+      "tests/test_update_harness.py",
+      "tools/run_network_service.py",
+      "tools/test_update.py"
+    ],
+    "mismatches": []
+  },
+  "overlap_composition": {
+    "tools/test_update.py": true,
+    "tools/run_network_service.py": true,
+    "tests/test_update_harness.py": true,
+    "tests/test_ci_workflows.py": true
+  },
+  "review": {
+    "kind": "separate read-only AI review, not a human audit",
+    "blocking_findings_after_fix": 0,
+    "logs": [
+      {
+        "local_log": "build/tokenguard/run-mw3chs9l.log",
+        "sha256": "9054fbc18e64c0f16194dd8d40ba6d11395776cc083e0e1cddf57ca5affa9ca3"
+      },
+      {
+        "local_log": "build/tokenguard/run-ibz7cow5.log",
+        "sha256": "9c10e48ee55c93cd240757075e2cff7977b651f2b2b3d429859a3442508ec110"
+      },
+      {
+        "local_log": "build/tokenguard/run-cycz3ihu.log",
+        "sha256": "3ab8a291e7b4af1c629f83e75f71d6d7d420f32f03bb945deb04499ec78ecebf"
+      }
+    ]
+  },
+  "verification": {
+    "python_host_tests_passed": 148,
+    "usb_component_tests_passed": 44,
+    "checks": [
+      {
+        "name": "update_harness_before_fix",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_update_harness.py"
+        ],
+        "wrapper": [
+          "python3",
+          "-B",
+          "tools/tokenguard.py",
+          "run",
+          "--"
+        ],
+        "exit_code": 1,
+        "duration_seconds": 0.649,
+        "local_log": "build/tokenguard/run-39o78o4_.log",
+        "log_sha256": "96744ac0a50fc141c70d7d7e351fd27ed7177dc6caec43a35354a0a6ec8adf6c",
+        "test_count": 15,
+        "scope": "automatic merge before restoring the required JSON import",
+        "subtest_errors": 9,
+        "failure": "NameError in check_policy_guards because json was not imported",
+        "failed_source_sha256": "87459dd4e41cb3b32b020457bc61eac48c4f5b236a601214532ef09d82621790"
+      },
+      {
+        "name": "update_harness_after_fix",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_update_harness.py"
+        ],
+        "wrapper": [
+          "python3",
+          "-B",
+          "tools/tokenguard.py",
+          "run",
+          "--"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.744,
+        "local_log": "build/tokenguard/run-t2nex3fz.log",
+        "log_sha256": "50add62802e2831fe3e67e62d35deb2efe465e75444b665f4096153375227c52",
+        "test_count": 15
+      },
+      {
+        "name": "ci_contracts_and_evidence",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_ci_*.py"
+        ],
+        "wrapper": [
+          "python3",
+          "-B",
+          "tools/tokenguard.py",
+          "run",
+          "--"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 9.642,
+        "local_log": "build/tokenguard/run-o6auasi6.log",
+        "log_sha256": "7823e0334c902c7abe0767916ec04bb8cd296d1adb32b174b1282d32d373b346",
+        "test_count": 60
+      },
+      {
+        "name": "m1_artifact_binding",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_m1_artifact_binding.py"
+        ],
+        "wrapper": [
+          "python3",
+          "-B",
+          "tools/tokenguard.py",
+          "run",
+          "--"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.202,
+        "local_log": "build/tokenguard/run-kr7krwjh.log",
+        "log_sha256": "6ff8cb6673e52248481ba0fa0eca3657ce430b443dbc93e93c7a3e25938b7877",
+        "test_count": 8
+      },
+      {
+        "name": "network_peer",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tools",
+          "-p",
+          "test_network_service_peer.py"
+        ],
+        "wrapper": [
+          "python3",
+          "-B",
+          "tools/tokenguard.py",
+          "run",
+          "--"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.377,
+        "local_log": "build/tokenguard/run-3m5qx5ho.log",
+        "log_sha256": "56bef1bf12bbc54d8d74426b291c262462428599d58d604eec6b0e635ef54f63",
+        "test_count": 25
+      },
+      {
+        "name": "token_guard",
+        "command": [
+          "python3",
+          "-B",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_tokenguard.py"
+        ],
+        "wrapper": [
+          "python3",
+          "-B",
+          "tools/tokenguard.py",
+          "run",
+          "--"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 6.516,
+        "local_log": "build/tokenguard/run-ak6_9id0.log",
+        "log_sha256": "b68072833fef44a07c7399d652934eac432f352477b3e675546c1b586a08880d",
+        "test_count": 40
+      },
+      {
+        "name": "usb_component",
+        "command": [
+          "cargo",
+          "+1.90.0",
+          "test",
+          "--locked",
+          "--manifest-path",
+          "drivers/usb/Cargo.toml"
+        ],
+        "wrapper": [
+          "python3",
+          "-B",
+          "tools/tokenguard.py",
+          "run",
+          "--timeout",
+          "180",
+          "--"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.827,
+        "local_log": "build/tokenguard/run-sgaouupr.log",
+        "log_sha256": "64554cab2903ea489561143f3f60973e32089bd3f56c152efef0cc9bbd24e2ad",
+        "test_count": 44
+      },
+      {
+        "name": "strict_preflight",
+        "command": [
+          "python3",
+          "-B",
+          "tools/preflight.py",
+          "--strict"
+        ],
+        "wrapper": [
+          "python3",
+          "-B",
+          "tools/tokenguard.py",
+          "run",
+          "--"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.402,
+        "local_log": "build/tokenguard/run-qv2xfcke.log",
+        "log_sha256": "41de0cba867ddc2e4c88ffec94106bf75a5866ba5f7c787821c48e23c5a12196"
+      },
+      {
+        "name": "standard_build",
+        "command": [
+          "python3",
+          "-B",
+          "tools/build.py"
+        ],
+        "wrapper": [
+          "python3",
+          "-B",
+          "tools/tokenguard.py",
+          "run",
+          "--timeout",
+          "600",
+          "--"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 1.778,
+        "local_log": "build/tokenguard/run-qajuv69m.log",
+        "log_sha256": "0cb9aa712bb0995c6d462bcadacf2760aeda396a30bb5dc6bd697a0e202d42d2"
+      },
+      {
+        "name": "qemu_smoke",
+        "command": [
+          "python3",
+          "-B",
+          "tools/run.py",
+          "--smoke"
+        ],
+        "wrapper": [
+          "python3",
+          "-B",
+          "tools/tokenguard.py",
+          "run",
+          "--timeout",
+          "180",
+          "--"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 1.984,
+        "local_log": "build/tokenguard/run-hhxekzs_.log",
+        "log_sha256": "8d8a459f8b8f060f75aa7e4e43ded4ea5a8bf04c0faefdda21e64b88fd9765f2"
+      },
+      {
+        "name": "progress_write",
+        "command": [
+          "python3",
+          "-B",
+          "tools/progress.py",
+          "--write"
+        ],
+        "wrapper": [
+          "python3",
+          "-B",
+          "tools/tokenguard.py",
+          "run",
+          "--timeout",
+          "180",
+          "--"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.064,
+        "local_log": "build/tokenguard/run-w8up8e3b.log",
+        "log_sha256": "62ebad9bc1b8d27851fbe4be8091c80217e43e64dfa64f554c574c2861a847fc"
+      },
+      {
+        "name": "progress_write_final",
+        "command": [
+          "python3",
+          "-B",
+          "tools/progress.py",
+          "--write"
+        ],
+        "wrapper": [
+          "python3",
+          "-B",
+          "tools/tokenguard.py",
+          "run",
+          "--"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.042,
+        "local_log": "build/tokenguard/run-hlwxntf6.log",
+        "log_sha256": "62ebad9bc1b8d27851fbe4be8091c80217e43e64dfa64f554c574c2861a847fc"
+      },
+      {
+        "name": "progress_check",
+        "command": [
+          "python3",
+          "-B",
+          "tools/progress.py",
+          "--check"
+        ],
+        "wrapper": [
+          "python3",
+          "-B",
+          "tools/tokenguard.py",
+          "run",
+          "--"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.038,
+        "local_log": "build/tokenguard/run-wtq5bf93.log",
+        "log_sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+      },
+      {
+        "name": "staged_whitespace_check",
+        "command": [
+          "git",
+          "diff",
+          "--cached",
+          "--check"
+        ],
+        "wrapper": [
+          "python3",
+          "-B",
+          "tools/tokenguard.py",
+          "run",
+          "--"
+        ],
+        "exit_code": 0,
+        "duration_seconds": 0.033,
+        "local_log": "build/tokenguard/run-pu9lb7vi.log",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "smoke": {
+      "passed": true,
+      "raw_qemu_exit": 33,
+      "expected_exit": 33,
+      "timed_out": false,
+      "required_markers": [
+        "BOOT:EBS_OK",
+        "KERNEL:ENTRY",
+        "BOOTINFO:OK",
+        "M1:PASS"
+      ],
+      "profile": "development-package; pc-q35-8.2/qemu64/TCG/1CPU/256MiB",
+      "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+      "source_fingerprint_version": 3,
+      "source_sha256": "707b49454b58f46b2c637e9f79fefdf0366eabeb8023d26bbed749cd0971706a",
+      "artifact_sha256": {
+        "esp/kernel.elf": "60356c867b3ce554013fcbb7c143c6169d14c58a92ffe6dbe3286f0faa23944d",
+        "esp/EFI/BOOT/BOOTX64.EFI": "a224a5220dfd65bfda6ae62d2bb8764b6e15205af8ab356c8fd164d70a407e89",
+        "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+        "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+      },
+      "expected_artifact_sha256": {},
+      "artifact_binding_passed": true
+    },
+    "smoke_result_sha256": "847860957d5d51b01880fbb5221223476855b81a5f7ee651b5d34e2dbdfd0589",
+    "serial_sha256": "7ab99e0450622976dc359ff44328d05be4590bad79488e69d25a692f4de8a869",
+    "build_warning": "Existing unused serial::hex warning remains."
+  },
+  "environment": {
+    "rust": "1.90.0",
+    "qemu": "10.0.13",
+    "machine": "pc-q35-8.2",
+    "cpu": "qemu64",
+    "acceleration": "TCG",
+    "cpus": 1,
+    "memory_mib": 256,
+    "firmware_code_sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+    "firmware_vars_template_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+  },
+  "limits": [
+    "Local QEMU differs from the hosted pinned QEMU 8.2.2 gate.",
+    "Ordinary boot smoke does not execute USB or rerun the complete native network/update matrices.",
+    "Historical evidence retains its original source boundaries.",
+    "Current-head hosted checks remain separate; existing acceptance hold, merge permissions and open criteria are unchanged.",
+    "Raw command logs remain local; this receipt records their hashes, not a complete raw artifact archive."
+  ]
+}

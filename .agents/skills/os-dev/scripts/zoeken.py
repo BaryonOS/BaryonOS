@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read-only local search over the generated OS development source index."""
 from __future__ import annotations
-import argparse, hashlib, json, re, sys
+import argparse, hashlib, json, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
