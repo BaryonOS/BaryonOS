@@ -30,15 +30,47 @@
 
 Main at `7d9498a8` was not gate-run by itself; run 13 contains it.
 
-**Open for the project owner (workflow files are not changed here):** `.github/workflows/kvm-pilot.yml` expects 9 volume stage reports, and `volume-acceptance.yml` names "9 QEMU runs". The gate has run 14 stages since #318.
+**Decision received on 14 November 2026, not yet recorded in DECISIONS.md or the proposal.** The project owner approved D6(a), POSIX ustar with pax path records, as the initial interoperable S09 user-export format. The conditions are:
+- It is a lossy interchange format: not the native Materiaal format and not a recovery backup. The verified archive format stays the recovery format.
+- Unsafe or ambiguous cross-platform paths are rejected:
+  - Windows alternate-data-stream syntax;
+  - reserved device names;
+  - invalid characters;
+  - trailing dots or spaces;
+  - names that collide under case folding or Unicode normalisation.
+- Nothing is renamed silently and no overwrite is unintended. Rejected names are reported clearly. A reversible name-mapping mechanism may be proposed separately.
+- Documentation states the metadata loss, the empty-collection limits and the compatibility constraints.
+- D1–D5 stay undecided. The approval grants no new destination capability, trust boundary or encryption architecture.
+
+The owner also authorised:
+- a bounded native ustar-export test stage that uses the existing test-only permissions and fixtures;
+- updating the test orchestration and the workflow stage-count expectations, in coordination with the maintenance session on PR #323. A message listing the files was sent; no reply yet.
+
+The workflows currently disagree with the gate: `kvm-pilot.yml` expects 9 volume stage reports and `volume-acceptance.yml` names "9 QEMU runs", while the gate has run 14 stages since #318 and will run 15 with the new stage.
+
+**Open design choice before code: the collision rule.**
+- **The constraint.** The volume crate and the portal have no allocator. `core` has case mapping but no normalisation data. Every normalisation or case-fold crate checked needs `alloc`.
+- **Options:**
+  - (T1) Refuse all non-ASCII names. Sound, but it refuses "Privé" and "Notitie ✓" in the native fixture.
+  - (c) Allow only U+0020–007E, U+00A0–017F and U+2700–27BF. These blocks contain no marks, jamo or canonical singletons. Use a lower→upper→lower fold from `core`. That fold adds about 31 KB in a minimal binary, against roughly 17.8 KB of `.text` headroom in the portal, which has not been measured.
+  - (T3) A generated table of case- and normalisation-inert code points: 963 ranges on UCD 16.0.0, plus an ASCII fold.
+- **Working notes** (ignored by Git): `build/s09-ustar-notes/` in this worktree. `map-api.md` covers the API and reasons, `map-native.md` the native case 12 file map, `map-runner.md` the host runner and `map-workflows.md` the workflow lines.
 
 **Open (S09 stays open):**
-- decisions D1–D6;
+- D6 recording, D1–D5;
 - a user-chosen target behind its own capability;
 - the encrypted NAS/provider variant (B01);
 - a user task.
 
-**Next:** decisions by the project owner on D1–D6, and review of PR #325. A native stage that writes the ustar export into the existing test-only archive range needs no new trust boundary. Whether to build it before D6 is decided is a choice put to the project owner, because it would build further on an unconfirmed format.
+**Next, in order:**
+1. Record D6 as `ADR-S09-USTAR-20261114` in `docs/DECISIONS.md`, quoting the conditions above. Mark D6 approved in the proposal, and the spec section as approved rather than proposed.
+2. Choose the collision rule. First measure the portal `.text` size with `core` case mapping linked.
+3. Implement `ustar::check`, which returns per-name reason bits and writes no output for a refused archive, and make `from_archive` take its result. Add host tests and mutants.
+4. Add native case 12, `archive-ustar`:
+   - `kernel/Cargo.toml` feature, the case in `kernel/src/m2/m3/volume.rs`, and the portal arm in `sdk/examples/volume-docs/src/app.rs`;
+   - `tools/build.py`, `tools/run_volume.py` (a `tarfile` oracle) and the `tools/test_volume.py` PLAN;
+   - the stage counts in both workflows, set to 15.
+5. Gate run 14 with the fingerprint taken before and after, `capture_volume.py`, an evidence note, then update PR #325.
 
 **Progress:** 41/100 → 41/100 (S09 not accepted).
 
