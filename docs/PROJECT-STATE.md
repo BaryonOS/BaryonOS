@@ -1,6 +1,152 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #331 final integration — 14 November 2026
+## NEXT AGENT HANDOFF — PR #328 integration with main — 14 November 2026
+
+**Source:** PR #328 head `885e128082483ec871831fbbfc757a6e5104e6b4`,
+integrated with main `aba6149fd4473aff73fdcf121c133d4960e3d939`.
+
+**Resolution:** the H02 boot-session and earlier network/update checkpoints
+are retained alongside the accepted Python Code Quality and Token Guard
+history. Main's qualified `run_update.ORDER` and `run_update.STAGES` references
+are preserved. The JSON import remains required by the new compiler-guard
+checks: the otherwise clean automatic merge reproduced nine `NameError`
+errors in the existing update harness before the import was restored.
+
+**Verification:** 148 targeted Python host tests and all 44 USB component
+tests pass. Strict preflight, the standard build and QEMU smoke pass on the
+combined source; smoke observes `M1:PASS`, raw exit 33, matching artifacts and
+no timeout. Independent AI comparison preserves 36 PR-only, 84 main-only and
+7,163 unchanged files, and verifies the intended four-file source/test
+composition. The reproduced import failure, source hashes, commands and log
+digests are recorded in
+[the integration receipt](verification/pr328-main-integration-20261114.json).
+
+**Limits:** local QEMU 10.0.13 uses `pc-q35-8.2`; the hosted QEMU 8.2.2 gate
+remains separate. Ordinary smoke does not execute USB or rerun the full
+native network/update matrix. The AI review is not a human audit.
+
+**Progress:** 41/100 → 41/100; no criterion, weight or acceptance boundary
+changes. Native USB transport and physical reference acceptance remain open.
+The existing PR acceptance hold remains in force.
+
+**Next:** review the updated PR's hosted checks and existing acceptance
+conditions. This conflict repair does not approve merge or auto-merge.
+
+## Previous checkpoint — H02 boot-session completion — 14 November 2026
+
+**Source:** existing PR #328, branch `fix/issue43-network-usb-followup`.
+Published implementation: `95871d00da8300bd542609930643af7e96e179dd`.
+Verified published source: `185ad69f30647eb3cdfee18a8cd63a1d9426e57b`;
+source-v3: `b541866d534338fe367e8cdf965504267317f546f24b323f5de27bf5c7074896`.
+Later receipt/status changes are documentation only.
+
+**Result:** a bounded USB boot-interface session joins existing descriptor
+selection, control encoding and keyboard/mouse state. One pending transfer,
+matching successful protocol completion, nonreused lifetime/sequence tokens,
+actual-length bounds and reset/detach clearing are enforced within the component.
+No device, DMA, IRQ, focus or event-delivery authority is added.
+
+**Evidence:** all 44 USB tests (13 new), formatting, strict Clippy and the scalar
+freestanding build pass on the verified published source. Strict preflight,
+the standard native build and QEMU smoke also pass (exit 0; raw QEMU exit 33,
+`M1:PASS`, no timeout, matching artifacts). The smoke test does not execute USB.
+A separate read-only AI source review found no blocker; it is not a human audit.
+Exact commands, hashes and limits: [integrated receipt](verification/issue42-boot-session-20261114/integrated.json)
+and [component contract](../drivers/usb/verification/boot-session.md).
+
+**Progress:** 41/100 → 41/100. H02 remains open; the criterion register is unchanged.
+
+**Blocker:** native xHCI execution still requires an enforced kernel-owned DMA/IRQ
+lifecycle. Bus-master enablement remains test-only. Native USB/HID transfer,
+input/focus integration, hotplug/reset/unplug and physical reference acceptance
+remain open. The owner must authenticate completion routing, provide unique
+lifetimes, quiesce cancelled transfers and restore configuration after bus reset.
+
+**Next:** implement the enforced device-execution/DMA containment boundary before
+adding xHCI rings and connecting real transfer completions to this session.
+Confirm GitHub checks on the updated PR head separately. The existing PR remains
+the integration route; no merge or auto-merge is enabled by this continuation.
+
+## Previous checkpoint — PR #328 conflict resolution — 14 November 2026
+
+**Source:** PR #328 head `5ab79f11abebbd6e1b6d0546a0b121437e9eca53`,
+integrated with main `3c79778bf9e8793bfc9eaaea755d21b41f755bae`.
+
+**Result:** both documentation conflicts are resolved. The complete issues
+#43/#39/#41/#42 handoff and main's PR #325/S09 handoffs are retained.
+The criterion register remains unchanged; no source conflict required a
+manual resolution. Existing verification evidence remains bound to its
+recorded source versions.
+
+**Evidence:** 114 targeted host tests pass: 26 workflow, 25 network-peer,
+15 update-harness and 48 volume tests. Strict preflight, the standard build
+and the QEMU smoke test pass on the combined source. Existing network and
+volume acceptance matrices below retain their original source boundaries;
+they were not rerun by this conflict repair. Commands, source preservation
+and log hashes are recorded in
+[the verification record](verification/pr328-conflicts-20261114.json).
+
+**Progress:** 41/100 → 41/100; no criterion or acceptance status changes.
+
+**Next:** inspect the updated PR's current-head checks. The issue-specific
+follow-up work remains in the preserved checkpoint below. No merge or
+auto-merge is enabled by this repair.
+
+## Previous checkpoint — issues #43, #39, #41 and #42 — 14 November 2026
+
+**Source:** existing PR [#328](https://github.com/BaryonOS/BaryonOS/pull/328),
+branch `fix/issue43-network-usb-followup`; verified executable head
+`e17a32130de29c681336dc0c4dec98c204b46260`, integrated with main
+`299f0e39c202d67d1c2f4e31b879cbdd6add262b`. Runtime source-v3:
+`612fde4baae272d0591419ffc7a427966bcae4d0f20c364ee342078c14e0bd4d`.
+Later receipt/status edits change documentation only.
+
+**Result:** #39's complete native fault matrix is implemented and verified.
+Routine CI runs normal TCP/UDP, client exit, live grant revocation, unexpected
+NIC reset, and all 12,768 per-owner port allocations/closures with another
+owner's continued allocator/RPC operation and cleanup. TCP loss/backpressure
+and exact-image cold recovery also pass. Reset containment is not automatic
+NIC restart; the exhaustion case does not claim a completed B data transfer.
+
+The initial hosted exhaustion run hit the inherited aggregate watchdog after
+10,867 pairs. Its failure is retained. Only this workload now requires completion
+before tick 12,000 and uses a 150-second host default; other cases retain
+6,000 ticks/90 seconds. Connection-establishment deadlines, retry limits, full
+quota, capabilities, causal checks and cleanup are unchanged. The corrected
+pinned-QEMU run passed at tick 9,684 / 100.061 seconds, beyond both old limits.
+
+**Evidence:** all five native cases passed locally on one runtime fingerprint;
+the separate integration passed strict preflight, build, smoke and the two-stage
+TCP loss/cold gate on that same fingerprint. Hosted network run
+[43601931863](https://github.com/BaryonOS/BaryonOS/actions/runs/43601931863)
+passed both jobs on the verified executable head. Original reports, hashes,
+CI failure and precise scope are in
+[the final receipt](verification/issue43-20261114/integrated-final.json) and
+[the timing record](verification/issue43-20261114/network-ci-watchdog.md).
+A separate read-only AI review found no blocker; this is not a human audit.
+
+**Related work:** #41 now has actual positive/negative Rust compiler checks for
+explicit TEST policy in both loader implementations and the update service;
+15 oracle tests and all six compiler controls pass. The existing 18-stage B03
+workflow passed on the initial executable integration. #42 now validates a
+mandatory, correctly framed HID descriptor before endpoint binding, retaining
+the low-speed interval fix. All 31 USB tests, format, strict Clippy and the
+freestanding build pass; no native USB or physical-hardware claim is made.
+
+**Open:** #39 awaits review and authorised merge of this existing PR. #41 still
+needs the D1–D7 production trust/persistence decisions and the approved native
+transition implementation; TEST keys confer no production authority. #42 still
+needs native xHCI/HID transport, enforced DMA/IRQ lifetime, hotplug and physical
+reference evidence. #43 remains below 50/100. Current-head CI must be checked
+when the branch changes; `acceptance-pending` and explicit merge approval remain.
+
+**Progress:** 41/100 → 41/100; no criterion status or fixed-weight changes.
+
+**Next:** review PR #328; record the production-policy decisions for #41 and
+implement the native USB execution/enumeration boundary for #42. Retain all
+source and evidence limits when continuing those tracks.
+
+## Previous checkpoint — PR #331 final integration — 14 November 2026
 
 **Source:** PR #331 parent `408007064b82ef5b56bc9f44f50811bf8cbfdd8a`
 integrates accepted PR #330 from main
@@ -242,6 +388,7 @@ per-rule result counts, so this does not establish zero remaining main findings.
 then verify that a new main scan clears the 77 repaired findings. No merge or
 auto-merge is enabled. This follow-up records scan evidence only; Python bytes
 remain identical to the analyzed code commit.
+
 
 ## Previous checkpoint — PR #325 documentation refresh — 14 November 2026
 
@@ -1425,6 +1572,6 @@ SDK monthly Dependabot coverage is retained on current main. The current documen
 
 ## Current development state
 
-The fixed progress score is **39/100**. Detailed accepted and open criteria are maintained only in [PROGRESS.md](PROGRESS.md) and [progress.json](progress.json). Recent source-bound implementation and CI evidence remains available under [verification/](verification/).
+The fixed progress score is **41/100**. Detailed accepted and open criteria are maintained only in [PROGRESS.md](PROGRESS.md) and [progress.json](progress.json). Recent source-bound implementation and CI evidence remains available under [verification/](verification/).
 
 The former checkpoint sequence is preserved in [PROJECT-STATE-through-2026-11-09.md](history/PROJECT-STATE-through-2026-11-09.md). That snapshot is historical context, not a second current-status source.

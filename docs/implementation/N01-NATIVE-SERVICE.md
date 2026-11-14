@@ -88,6 +88,7 @@ page. The service validates separate handles and different service/app PIDs.
 |120/128|first TCP port A/B; five permitted ports each|
 |136/144|exact UDP port A/B|
 |152/160|optional controllerRECV / actual controllerPID; both 0=absent|
+|168|test-only device-reset terminal observation; 0 in other profiles|
 
 The link profile is the existing NIC profile MAC02:00:00:00:00:07,
 192.0.2.2/24, peer192.0.2.1. The library supports other validated on-link
@@ -98,9 +99,13 @@ authentication.
 
 App offset 32=NETAPP01, 40 epoch, 48 SEND, 56 RECV, 64 servicePID,
 72 slot0/1, 80 actual ownPID, 88 own TCP starting port, 96 own UDP port.
-Offset104=1 selects only the separate client-failure trial for app A; the
-normal manifest writes 0. Both apps use the same ELF; the actual bootstrap
-slot selects their own test data.
+Offset104 selects normal (0), the app A client-failure trial (1), live
+revocation (2), device-reset containment (3), or full port exhaustion (4). In the reset trial,
+app offset112 synchronizes injection and observed service exit; both clients
+must still make an actual call on the old ingress handle. Both apps use the
+same ELF; the actual bootstrap slot selects their own test data.
+In the exhaustion trial, offset120 releases B after A observes `Exhausted`,
+then releases A to retire only after B has successfully closed its socket.
 
 Optional controller tag NETCTL01, payload 16 B: `NETSTOP1`@0, epoch u64@8.
 Only the bound controller may send it, without capabilities. The service
@@ -169,6 +174,9 @@ cargo +1.91.1 test --offline --locked --manifest-path services/network-service/C
 python3 -B -m unittest discover -s tools -p test_network_service_peer.py
 python3 tools/run_network_service.py --case normal
 python3 tools/run_network_service.py --case client-exit
+python3 tools/run_network_service.py --case revoke
+python3 tools/run_network_service.py --case device-reset
+python3 tools/run_network_service.py --case exhaustion
 ```
 
 `native-net-service` inherits only existing kernel mechanisms; a separate
@@ -185,6 +193,72 @@ byte-for-byte and decodes only valid UTF-8. It compares serial output, three
 process observations, NIC completions and causally replayed actual packets.
 It checks source, build, ELF, firmware, QEMU and stored-output binding before
 and after execution.
+
+### Unexpected device-reset containment
+
+`test-net-service-device-reset` enables a driver fault hook only for this
+native profile. After a real TCP connection and held HTTP request, the hook
+writes the actual virtio device-status register from 15 to 0 immediately
+after a further TX descriptor has been published. It leaves the software
+pending ticket and bus-master state intact. The ordinary driver health and
+broker paths must detect the fault, disable bus mastering, acknowledge reset and return
+`Io` for that same ticket exactly once. Permanent DMA pinning is unchanged.
+
+The peer permits the uncertain final frame zero or one time and rejects a
+replay. The oracle requires no further TX publication or RX delivery after
+the fault. A receive error may precede the next TX poll: only the reset
+fixture then records the actual RX `Io` and performs one real poll of its
+original pending TX ticket before retaining the existing fatal service exit.
+Service words 520/536/544/552 record the RX error, terminal-observation tick,
+TX error and ticket in this profile. Both clients must observe actual ingress
+closure after service exit, and the unchanged generic cleanup checks must
+pass. A normal or revoked service retains its existing exit contract.
+
+This is a deterministic fault injection into a real QEMU device, not a
+physical-device reset trial or an automatic reconnection/restart guarantee.
+The source-bound execution receipt and the retained first failed run are
+described in [network-reset.md](../verification/issue43-20261114/network-reset.md).
+
+### Full per-owner port exhaustion
+
+`test-net-service-exhaustion` uses the unchanged production service allocator
+and all 12,768 non-reused local ports for owner A. Every open/close pair is
+an actual NET1 request/reply; the next open must return `Exhausted`. Only
+then may owner B successfully open, observe `Connecting` and close. A stays
+registered until B has closed, so owner retirement cannot account for B's
+remaining allocation capacity. Both owners then retire and the ordinary
+service, capability, object, process, frame and NIC cleanup checks apply.
+
+This fixture composes the existing optional `ipc-wait` feature and checks
+its advertised ABI before use. An exhaustion-only SDK transport waits on
+the same authorized endpoint after a real `Again`, then performs another
+real syscall. Queue readiness is advisory; it never substitutes a reply or
+resends an already enqueued request. The other profiles retain their existing
+transport. The exhaustion workload must finish strictly before tick 12,000 and
+has a 150-second default host limit. The other cases retain the existing
+6,000-tick boundary and 90-second default. Every open retains its 300-tick TCP
+connection-establishment deadline, and the SDK retry budget is unchanged.
+The measured CI run reached 10,867 of 12,768 pairs at tick 6,000; the aggregate
+fixture budget is not a product throughput requirement. A genuinely stalled
+exhaustion fixture can now take longer to fail. The rationale, failed receipt
+and strict boundary tests are recorded in [the timing receipt](../verification/issue43-20261114/network-ci-watchdog.md).
+
+The bounded peer discards all input without replies. It streams actual framed
+bytes to `network-discard.bin`; independent rereading checks frame bounds,
+source/destination scope, count, size and SHA-256. Only this profile permits
+zero RX. Native service evidence requires exactly 25,544 decoded requests,
+12,769 opens and closes, four recorded rejections and retired mask 3.
+The two malformed requests are not decoded requests; the production
+`Exhausted` early return does not increment the rejection counter.
+
+In this profile, app words 408/464 count completed open/close calls, word 544
+records A's actual `Exhausted` or B's completed close, and word 552 records A's
+exhaustion or B's successful open tick. B word 416 records `Connecting` and
+word 504 records its close tick. The kernel records B's release and both app
+exit ticks independently. This proves native allocation, exhaustion and
+owner isolation; full packet exchanges remain the separate normal/revoke
+profiles. Source-bound results, earlier failures and captured bytes are in
+[network-exhaustion.md](../verification/issue43-20261114/network-exhaustion.md).
 
 Source orientation: OSDev Network Stack, W002538, revision23577
 (16 April 2019). Existing project drivers/ABI and the checked smoltcp/

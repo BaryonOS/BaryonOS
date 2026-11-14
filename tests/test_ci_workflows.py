@@ -438,6 +438,49 @@ class WorkflowContractTests(unittest.TestCase):
                     (ROOT / other_path).read_text(encoding="utf-8"),
                 )
 
+    def test_native_network_fault_scenarios_preserve_separate_required_reports(self):
+        """Merged revocation and backpressure probes must run without overwriting evidence."""
+        service = self.workflows[".github/workflows/net-broker-quality.yml"]["jobs"]["native-network-service"]
+        packet_step, = [step for step in service["steps"]
+                       if "tools/run_network_service.py" in step.get("run", "")]
+        self.assertNotIn("if", packet_step)
+        commands = packet_step["run"].replace("\\\n", " ").splitlines()
+        observed = {}
+        for command in commands:
+            tokens = shlex.split(command)
+            if tokens:
+                self.assertEqual(tokens[1:-1], ["python3", "-B", "-u", "tools/run_network_service.py", "--case"])
+                self.assertNotIn(tokens[-1], observed)
+                observed[tokens[-1]] = tokens[0]
+        self.assertEqual(observed, {
+            case: f"NOS_BUILD_DIR=$GITHUB_WORKSPACE/build/n01-ci-{case}"
+            for case in ("normal", "client-exit", "revoke", "device-reset", "exhaustion")
+        })
+        preserve, = [step for step in service["steps"]
+                     if step.get("uses") == "./.github/actions/preserve-evidence"]
+        self.assertEqual(set(preserve["with"]["required-paths"].splitlines()), {
+            f"build/n01-ci-{case}/network-service-{case}-report.json" for case in observed
+        })
+        self.assertIn("build/n01-ci-*/run/network-service-*/network-discard.bin",
+                      preserve["with"]["path"].splitlines())
+
+        system = self.workflows[".github/workflows/native-system.yml"]["jobs"]["native-system"]
+        tcp_steps = [step for step in system["steps"]
+                     if "tools/test_tcp_system.py" in step.get("run", "")]
+        self.assertEqual([step["run"] for step in tcp_steps], [
+            "python3 -B -u tools/test_tcp_system.py",
+            "python3 -B -u tools/test_tcp_system.py --scenario loss-backpressure",
+        ])
+        for step in tcp_steps:
+            self.assertNotIn("if", step)
+        for key in ("NOS_BUILD_DIR", "NOS_TARGET_DIR", "CARGO_TARGET_DIR"):
+            self.assertEqual(len({step["env"][key] for step in tcp_steps}), 2)
+        preserve, = [step for step in system["steps"]
+                     if step.get("uses") == "./.github/actions/preserve-evidence"]
+        required = {"build/tcp-ci/tcp-system-gate.json", "build/tcp-loss-ci/tcp-system-gate.json"}
+        self.assertLessEqual(required, set(preserve["with"]["required-paths"].splitlines()))
+        self.assertLessEqual(required, set(preserve["with"]["path"].splitlines()))
+
     def test_public_prs_keep_minimal_token_permissions(self):
         """Allow narrowly scoped writes only for CodeQL, orphan-run cleanup and coverage uploads."""
         for path, workflow in self.workflows.items():

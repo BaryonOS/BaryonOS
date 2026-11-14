@@ -3,6 +3,7 @@ transcripts and stores here are never emulator evidence; they pin that the
 verdict rejects what it must and that the three independent descriptions of
 the store layout (update-core, kernel scope, Python oracle) agree."""
 from __future__ import annotations
+import json
 import re
 import struct
 import sys
@@ -15,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 import build as update_build  # noqa: E402
 import run_update as ru  # noqa: E402
+import test_update as update_gate  # noqa: E402
 import update_disk as disk  # noqa: E402
 
 
@@ -50,6 +52,40 @@ def verdict(stage: str, text: str, rc=33, timed_out=False, killed=False, running
 
 
 class BuildProfiles(unittest.TestCase):
+    def test_compiler_guard_needs_a_working_control_and_exact_target_error(self):
+        # Synthetic Cargo records test the oracle only, not actual compilation.
+        diagnostic = ("signed-boot requires an explicit signing policy; "
+                      "TEST anchors require signed-boot-test")
+
+        def message(text=diagnostic, level="error", target="os-loader"):
+            return json.dumps({"reason": "compiler-message", "target": {"name": target},
+                               "message": {"level": level, "message": text}})
+
+        for label, control_exit, negative_exit, stdout, stderr, final_source, expected in [
+            ("valid", 0, 101, message(), "", "frozen", True),
+            ("broken control", 101, 101, message(), "", "frozen", False),
+            ("unrelated error", 0, 101, message("unrelated compiler failure"), "", "frozen", False),
+            ("stderr text", 0, 101, "", diagnostic, "frozen", False),
+            ("plain text", 0, 101, diagnostic, "", "frozen", False),
+            ("warning", 0, 101, message(level="warning"), "", "frozen", False),
+            ("other target", 0, 101, message(target="dependency"), "", "frozen", False),
+            ("similar text", 0, 101, message(diagnostic + " extra"), "", "frozen", False),
+            ("unexpected success", 0, 0, message(), "", "frozen", False),
+            ("unexpected exit", 0, 1, message(), "", "frozen", False),
+            ("changed source", 0, 101, message(), "", "changed", False),
+        ]:
+            with self.subTest(label=label):
+                results = [mock.Mock(returncode=control_exit, stdout="", stderr=""),
+                           mock.Mock(returncode=negative_exit, stdout=stdout, stderr=stderr)]
+                with (mock.patch.object(update_gate, "POLICY_GUARDS", update_gate.POLICY_GUARDS[:1]),
+                      mock.patch.object(update_gate, "environment", return_value={}),
+                      mock.patch.object(update_gate, "source_hash", return_value=final_source),
+                      mock.patch.object(update_gate, "save_json"),
+                      mock.patch.object(update_gate.subprocess, "run", side_effect=results) as run):
+                    report = update_gate.check_policy_guards("frozen")
+                self.assertEqual(report["passed"], expected)
+                self.assertEqual(run.call_count, 1 if control_exit else 2)
+
     def test_signed_loader_requires_an_explicit_policy_profile(self):
         with self.assertRaisesRegex(ValueError, "no configured policy"):
             update_build.build(loader_feature="signed-boot")

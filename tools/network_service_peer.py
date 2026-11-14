@@ -9,9 +9,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import hashlib
 import importlib.util
+import os
 from pathlib import Path
 import re
 import socket
+import stat
 import struct
 import sys
 import threading
@@ -34,7 +36,12 @@ BODIES = (b"Nieuw OS service A\n", b"Nieuw OS service B\n")
 RESPONSES = tuple(b"HTTP/1.1 200 OK\r\nContent-Length: 19\r\nConnection: close\r\n\r\n" + b for b in BODIES)
 UDP_PAYLOADS = (b"Nieuw OS UDP app A", b"Nieuw OS UDP app B")
 CORRUPT_DELAY = 0.25
-CASES = ("normal", "client-exit", "revoke")
+CASES = ("normal", "client-exit", "revoke", "device-reset", "exhaustion")
+RESET_PROBE = b"reset-probe"
+PORT_BUDGET = 12_768
+# One SYN/reset pair per allocated port, plus a finite ARP/retry allowance.
+# This larger bound applies only to the streaming exhaustion capture.
+MAX_EXHAUSTION_FRAMES = 2 * (PORT_BUDGET + 1) + 256
 # N04 revoke case: inbound SYNs to guest ports nobody listens on. The guest
 # must answer each with RST, never SYN-ACK (no implicit listening port).
 # Port 40000 (app A's aborted local port) is probed only after the revocation.
@@ -47,7 +54,7 @@ def owner(port: int) -> tuple[int, int]:
     return (0, port - 8080) if port < 8090 else (1, port - 8090)
 
 
-def tcp_segment(frame: bytes, probe: bool = False):
+def tcp_segment(frame: bytes, probe: bool = False, *, exhaustion=False):
     if not 54 <= len(frame) <= MAX_FRAME or frame[12:14] != b"\x08\x00":
         raise ProtocolError("not bounded IPv4 TCP")
     if frame[:6] != PEER_MAC or frame[6:12] != CLIENT_MAC:
@@ -66,7 +73,11 @@ def tcp_segment(frame: bytes, probe: bool = False):
             or len(tcp) - size > 1024
             or checksum(CLIENT_IP + PEER_IP + struct.pack("!BBH", 0, 6, len(tcp)) + tcp)):
         raise ProtocolError("invalid TCP checksum, flags or bounds")
-    if probe:
+    if exhaustion:
+        if (probe or target not in (8080, 8090) or not 40000 <= source <= 65535
+                or source % 2 != int(target == 8090)):
+            raise ProtocolError("exhaustion packet outside owner's source-port budget")
+    elif probe:
         if PROBES.get(source) != target:
             raise ProtocolError("probe reply outside probe tuple")
     else:
@@ -119,11 +130,13 @@ class Connection:
 
 class Machine:
     def __init__(self, case="normal"):
-        if case not in CASES:
+        if case not in CASES or case == "exhaustion":
             raise ValueError("unknown native service peer case")
         self.case = case
         self.ports = PORTS if case == "normal" else (8084 if case == "client-exit" else 8080, *range(8090, 8095))
         self.slots = (0, 1) if case == "normal" else (1,)
+        if case == "device-reset":
+            self.ports, self.slots = (8080,), ()
         self.probes = {}
         self.connections = {}
         self.events = []
@@ -135,7 +148,7 @@ class Machine:
                  "valid_data_acks", "fins_sent", "client_fins_acked", "udp_requests",
                  "udp_corrupt_sent", "udp_wrong_scope_sent", "udp_echo_sent", "udp_overflow_sent",
                  "udp_fragment_first_sent", "udp_fragment_tail_sent", "probe_syns", "probe_rsts",
-                 "held_requests", "revoke_rsts")
+                 "held_requests", "revoke_rsts", "device_reset_probes")
         self.counts = dict.fromkeys(names, 0)
     def event(self, direction, label, frame, **fields):
         if len(self.events) >= MAX_EVENTS:
@@ -170,7 +183,7 @@ class Machine:
     def done(c):
         return c.closed or c.phase in ("refused", "reset", "blackhole", "revoked")
     def held(self, port):
-        return self.case == "revoke" and port == 8080
+        return self.case in ("revoke", "device-reset") and port == 8080
     def probe(self, guest_port):
         tcp = struct.pack("!HHIIBBHHH", PROBES[guest_port], guest_port, PROBE_ISN + guest_port, 0,
                           5 << 4, SYN, 4096, 0, 0)
@@ -303,6 +316,8 @@ class Machine:
             if self.held(s.target):
                 if c.syns != 1:
                     raise ProtocolError("held connection SYN retransmitted")
+                if self.case == "device-reset":
+                    return [self.syn_ack(c)]
                 return [self.probe(22), self.probe(443), self.syn_ack(c)]
             if case == 0 and c.syns == 1:
                 # Independent fragments precede the handshake so the existing
@@ -313,7 +328,7 @@ class Machine:
             return [self.syn_ack(c)]
         if c is None or s.source != c.source:
             raise ProtocolError("TCP without bound tuple")
-        if s.flags & RST and self.held(s.target):
+        if s.flags & RST and self.case == "revoke" and self.held(s.target):
             # Revocation aborts the live, idle connection: the abort's RST|ACK
             # at the next client sequence, never data, FIN or a new SYN. If the
             # held ACK reaches the guest after the abort, the closed tuple may
@@ -349,6 +364,17 @@ class Machine:
             return []
         if s.seq != c.client_next:
             raise ProtocolError("unexpected client sequence")
+        if self.case == "device-reset" and c.phase in ("held", "reset-probe") and s.payload:
+            # The last publication has an uncertain NIC outcome: it may reach
+            # the wire once before the device reset, but can never be replayed.
+            if (c.phase != "held" or s.payload != RESET_PROBE or s.flags != ACK | PSH
+                    or s.ack != c.server_start):
+                raise ProtocolError("changed or replayed reset publication")
+            c.phase = "reset-probe"
+            self.counts["device_reset_probes"] += 1
+            return []
+        if self.case == "device-reset" and c.phase == "reset-probe":
+            raise ProtocolError("traffic after reset publication")
         if c.phase == "request":
             if s.ack != c.server_start or s.flags & FIN:
                 raise ProtocolError("premature FIN or HTTP acknowledgment")
@@ -425,7 +451,20 @@ class Machine:
                     and self.counts["udp_fragment_first_sent"] == owners
                     and self.counts["udp_fragment_tail_sent"] == owners
                     and self.counts["client_fins_acked"] == 2 * owners)
-        if self.case == "revoke":
+        if self.case == "device-reset":
+            held = self.connections.get(8080)
+            complete = (set(self.connections) == {8080} and not self.udp and not self.probes
+                        and held is not None and held.source == 40000
+                        and held.phase in ("held", "reset-probe")
+                        and bytes(held.request) == REQUESTS[0] and not held.closed and not held.data_acked
+                        and self.counts["syns"] == self.counts["syn_acks"] == 1
+                        and self.counts["http_requests"] == self.counts["held_requests"] == 1
+                        and self.counts["device_reset_probes"] == int(held.phase == "reset-probe")
+                        and self.counts["arp_requests"] >= 1
+                        and not any(self.counts[k] for k in (
+                            "revoke_rsts", "client_fins_acked", "udp_requests", "refusals",
+                            "resets_after_get", "valid_data_sent", "probe_syns", "probe_rsts")))
+        elif self.case == "revoke":
             held = self.connections.get(8080)
             complete = (complete and held is not None and held.phase == "revoked"
                         and bytes(held.request) == REQUESTS[0] and not held.data_acked
@@ -441,10 +480,84 @@ class Machine:
                     udp_sha256=[hashlib.sha256(r).hexdigest() for r in UDP_PAYLOADS])
 
 
+class DiscardMachine:
+    """No responses or per-connection storage; retain actual bounded input proof."""
+    def __init__(self):
+        self.counts = dict.fromkeys(("client_frames", "server_frames", "arp_requests", "syns", "resets"), 0)
+        self.bytes = 0
+        self.digest = hashlib.sha256()
+
+    def handle(self, frame, now=0.0):
+        if (not 14 <= len(frame) <= MAX_FRAME
+                or self.counts["client_frames"] >= MAX_EXHAUSTION_FRAMES
+                or frame[6:12] != CLIENT_MAC):
+            raise ProtocolError("exhaustion input exceeded frame/identity bound")
+        if frame[12:14] == b"\x08\x06":
+            broadcast = frame[:6] == b"\xff" * 6 and frame[32:38] == b"\xff" * 6
+            if (len(frame) not in (42, 60) or frame[:6] not in (b"\xff" * 6, PEER_MAC)
+                    or frame[14:22] != struct.pack("!HHBBH", 1, 0x800, 6, 4, 1)
+                    or frame[22:28] != CLIENT_MAC or frame[28:32] != CLIENT_IP
+                    or (frame[32:38] not in (b"\0" * 6, PEER_MAC) and not broadcast)
+                    or frame[38:42] != PEER_IP):
+                raise ProtocolError("invalid exhaustion ARP request")
+            self.counts["arp_requests"] += 1
+        else:
+            segment = tcp_segment(frame, exhaustion=True)
+            if segment.payload or segment.flags not in (SYN, RST, RST | ACK):
+                raise ProtocolError("discard profile unexpectedly transmitted TCP data")
+            self.counts["syns" if segment.flags == SYN else "resets"] += 1
+        raw = framed(frame)
+        self.bytes += len(raw)
+        self.digest.update(raw)
+        self.counts["client_frames"] += 1
+        return []
+
+    def poll(self, now):
+        return []
+
+    def summary(self):
+        return dict(case="exhaustion", complete=self.counts["arp_requests"] > 0,
+                    counts=dict(self.counts),
+                    capture=dict(format="qemu-be32-ethernet", frames=self.counts["client_frames"],
+                                 bytes=self.bytes, sha256=self.digest.hexdigest()))
+
+
+def validate_discard(evidence):
+    """Re-read the finite raw stream; summary counters alone cannot pass."""
+    path = evidence.get("raw_path")
+    if not isinstance(path, str) or evidence.get("actions") != [] or evidence.get("wire_frames_sent") != 0:
+        raise ProtocolError("discard capture path/actions/replies differ")
+    machine = DiscardMachine()
+    try:
+        with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), "rb") as stream:
+            info = os.fstat(stream.fileno())
+            if (not stat.S_ISREG(info.st_mode)
+                    or not 18 <= info.st_size <= MAX_EXHAUSTION_FRAMES * (MAX_FRAME + 4)):
+                raise ProtocolError("discard raw capture is not bounded regular data")
+            while prefix := stream.read(4):
+                if len(prefix) != 4:
+                    raise ProtocolError("truncated discard frame prefix")
+                size = struct.unpack("!I", prefix)[0]
+                if not 14 <= size <= MAX_FRAME:
+                    raise ProtocolError("unbounded discard frame length")
+                frame = stream.read(size)
+                if len(frame) != size:
+                    raise ProtocolError("truncated discard frame")
+                machine.handle(frame)
+    except OSError as error:
+        raise ProtocolError("unreadable discard capture") from error
+    summary = machine.summary()
+    if not summary["complete"] or any(evidence.get(k) != v for k, v in summary.items()):
+        raise ProtocolError("raw discard bytes contradict digest/counters")
+    return summary
+
+
 def validate_transcript(evidence, *, case=None):
     selected = evidence.get("case") if case is None else case
     if selected not in CASES or evidence.get("case") != selected:
         raise ProtocolError("peer transcript case binding changed")
+    if selected == "exhaustion":
+        return validate_discard(evidence)
     actions = evidence.get("actions")
     if not isinstance(actions, list) or not 1 <= len(actions) <= MAX_EVENTS:
         raise ProtocolError("missing/bounded raw transcript")
@@ -481,11 +594,15 @@ def validate_transcript(evidence, *, case=None):
 
 
 class Peer:
-    def __init__(self, timeout=180, *, case="normal"):
+    def __init__(self, timeout=180, *, case="normal", raw_path=None):
         if type(timeout) not in (int, float) or not 0 < timeout <= 180:
             raise ValueError("bounded peer lifetime required")
+        if (case == "exhaustion") != (raw_path is not None):
+            raise ValueError("only exhaustion requires a raw streaming capture path")
+        self.raw_path = Path(raw_path) if raw_path is not None else None
         self.timeout, self.port = timeout, 0
-        self.machine, self.actions = Machine(case), []
+        self.machine = DiscardMachine() if case == "exhaustion" else Machine(case)
+        self.actions = []
         self.socket = self.thread = None
         self.stop = threading.Event()
         self.connected, self.error, self.rejected_frame = False, None, None
@@ -503,11 +620,14 @@ class Peer:
         return self
     def _run(self):
         started, connection, decoder = time.monotonic(), None, FrameDecoder()
+        raw_capture = None
         def send(packets):
             for p in packets:
                 connection.sendall(framed(p))
                 self.wire_frames_sent += 1
         try:
+            if self.raw_path is not None:
+                raw_capture = self.raw_path.open("xb")
             while not self.stop.is_set() and time.monotonic() - started < self.timeout:
                 if connection is None:
                     try:
@@ -537,9 +657,12 @@ class Peer:
                     except ProtocolError:
                         self.rejected_frame = dict(length=len(frame), prefix_hex=frame[:128].hex())
                         raise
-                    self.actions.append(dict(kind="input", at=now, input=frame.hex(), output=[p.hex() for p in packets]))
-                    if len(self.actions) > MAX_EVENTS:
-                        raise ProtocolError("action budget exhausted")
+                    if raw_capture is not None:
+                        raw_capture.write(framed(frame))
+                    else:
+                        self.actions.append(dict(kind="input", at=now, input=frame.hex(), output=[p.hex() for p in packets]))
+                        if len(self.actions) > MAX_EVENTS:
+                            raise ProtocolError("action budget exhausted")
                     send(packets)
             decoder.finish()
             if time.monotonic() - started >= self.timeout:
@@ -548,6 +671,8 @@ class Peer:
             if not (self.stop.is_set() and connection is None and isinstance(error, OSError)):
                 self.error = f"{type(error).__name__}: {error}"
         finally:
+            if raw_capture is not None:
+                raw_capture.close()
             if connection is not None:
                 connection.close()
     def close(self):
@@ -564,6 +689,9 @@ class Peer:
         result.update(kind="synthetic Ethernet server; native client evidence required separately",
                       connected=self.connected, error=self.error, rejected_frame=self.rejected_frame,
                       wire_frames_sent=self.wire_frames_sent, actions=list(self.actions), passed=False)
+        if self.raw_path is not None:
+            result.update(kind="synthetic discard peer; native allocator evidence required separately",
+                          raw_path=str(self.raw_path))
         if self.connected and self.error is None and result["complete"]:
             try:
                 validate_transcript(result)

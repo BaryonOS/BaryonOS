@@ -26,6 +26,7 @@ pub enum Error {
     NotBoot,
     MissingInterface,
     DuplicateInterface,
+    HidDescriptor,
     Endpoint,
     EndpointCount,
     DuplicateEndpoint,
@@ -38,6 +39,9 @@ pub struct BootInterface {
     pub configuration_value: u8,
     pub interface_number: u8,
     pub protocol: Protocol,
+    /// Advertised metadata only; this is not a validated Report descriptor or
+    /// permission to allocate/transfer this many bytes.
+    pub report_descriptor_length: u16,
     pub input_endpoint: u8,
     pub max_packet_size: u16,
     pub interval_ms: u8,
@@ -52,7 +56,29 @@ struct Selected {
 }
 
 impl Selected {
+    fn hid_descriptor(&mut self, bytes: &[u8]) -> Result<(), Error> {
+        // HID 1.11 sections 6.2.1 and 7.1: one HID descriptor before the
+        // endpoints, with the mandatory Report descriptor entry first.
+        if self.binding.report_descriptor_length != 0
+            || self.seen != 0
+            || bytes.len() < 9
+            || bytes.len() != 6 + 3 * usize::from(bytes[5])
+            || bytes[6] != 0x22
+        {
+            return Err(Error::HidDescriptor);
+        }
+        let length = u16::from_le_bytes([bytes[7], bytes[8]]);
+        if length == 0 {
+            return Err(Error::HidDescriptor);
+        }
+        self.binding.report_descriptor_length = length;
+        Ok(())
+    }
+
     fn endpoint(&mut self, bytes: &[u8], speed: Speed) -> Result<(), Error> {
+        if self.binding.report_descriptor_length == 0 {
+            return Err(Error::HidDescriptor);
+        }
         if bytes.len() != 7 {
             return Err(Error::Endpoint);
         }
@@ -63,16 +89,16 @@ impl Selected {
         let address = bytes[2];
         let number = address & 15;
         let packet = u16::from_le_bytes([bytes[4], bytes[5]]);
-        let limit = match speed {
-            Speed::Low => 8,
-            Speed::Full => 64,
+        let (limit, minimum_interval) = match speed {
+            Speed::Low => (8, 10),
+            Speed::Full => (64, 1),
         };
         if number == 0
             || address & 0x70 != 0
             || bytes[3] != 3
             || packet == 0
             || packet > limit
-            || bytes[6] == 0
+            || bytes[6] < minimum_interval
         {
             return Err(Error::Endpoint);
         }
@@ -95,6 +121,9 @@ impl Selected {
     }
 
     fn finish(&self) -> Result<BootInterface, Error> {
+        if self.binding.report_descriptor_length == 0 {
+            return Err(Error::HidDescriptor);
+        }
         if self.seen != self.expected {
             return Err(Error::EndpointCount);
         }
@@ -107,7 +136,9 @@ impl Selected {
 
 /// Selects only alternate setting zero of the requested interface. The entire
 /// transfer must equal wTotalLength; malformed tails cannot hide behind an
-/// earlier match. HID/report-descriptor semantics and device identity still
+/// earlier match. A framed HID descriptor with a nonempty Report descriptor
+/// entry must precede this interface's endpoints. HID version, optional class
+/// descriptor semantics, Report descriptor contents and device identity still
 /// need independent validation by the enumeration owner.
 pub fn select(bytes: &[u8], interface_number: u8, speed: Speed) -> Result<BootInterface, Error> {
     if bytes.len() < 9
@@ -154,6 +185,7 @@ pub fn select(bytes: &[u8], interface_number: u8, speed: Speed) -> Result<BootIn
                         configuration_value: bytes[5],
                         interface_number,
                         protocol,
+                        report_descriptor_length: 0,
                         input_endpoint: 0,
                         max_packet_size: 0,
                         interval_ms: 0,
@@ -169,6 +201,10 @@ pub fn select(bytes: &[u8], interface_number: u8, speed: Speed) -> Result<BootIn
                 .as_mut()
                 .ok_or(Error::Interface)?
                 .endpoint(raw, speed)?,
+            0x21 if active => selected
+                .as_mut()
+                .ok_or(Error::Interface)?
+                .hid_descriptor(raw)?,
             _ => {}
         }
     }

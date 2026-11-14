@@ -510,6 +510,24 @@ fn wrapping_queue_indices_do_not_confuse_stale_or_duplicate_completions() {
 }
 
 #[test]
+fn unexpected_status_reset_leaves_pending_software_until_health_detects_it() {
+    let (mut engine, model) = online();
+    assert_eq!(engine.inject_device_reset(), Err(Error::Io));
+    engine.post_rx().unwrap();
+    engine.send(&[0x42; 60], 10, 100).unwrap();
+    let before = model.read_bytes(POOL.tx_bounce, BUFFER_BYTES);
+    assert_eq!(engine.inject_device_reset(), Ok((15, 0, true, true)));
+    assert!(engine.ready && engine.queues[TX].posted && engine.queues[RX].posted);
+    assert!(!engine.reset_acknowledged());
+    assert_eq!(engine.poll_tx(11), Err(Error::Io));
+    assert!(engine.reset_acknowledged());
+    assert!(!model.bus_master_enabled());
+    assert_eq!(engine.send(&[0; 60], 12, 100), Err(Error::Offline));
+    assert_eq!(model.read_bytes(POOL.tx_bounce, BUFFER_BYTES), before);
+    assert_eq!(model.0.borrow().notifications.len(), 2);
+}
+
+#[test]
 fn tx_timeout_and_device_reset_request_fail_closed_with_no_replay() {
     let (mut engine, model) = online();
     engine.send(&[0; 60], 0, 5).unwrap();

@@ -23,10 +23,15 @@ from common import (ROOT, BUILD, environment, firmware, qemu_machine, sha256,
 from build_users import inspect_user
 from run_fpu import private_path, publish, publish_json, load_json
 from run_system import check_esp, network_arguments
-from network_service_peer import Peer, validate_transcript, REQUESTS, RESPONSES, MAX_FRAMES
+from network_service_peer import (Peer, validate_transcript, REQUESTS, RESPONSES, RESET_PROBE,
+                                  MAX_FRAMES, PORT_BUDGET, MAX_EXHAUSTION_FRAMES)
 
 FEATURE = "native-net-service"
-FEATURES = {"normal": FEATURE, "client-exit": "test-net-service-client-exit", "revoke": "test-net-service-revoke"}
+FEATURES = {"normal": FEATURE, "client-exit": "test-net-service-client-exit", "revoke": "test-net-service-revoke",
+            "device-reset": "test-net-service-device-reset", "exhaustion": "test-net-service-exhaustion"}
+# Exhaustion must finish before tick 12,000; the other native cases retain
+# their existing inclusive 6,000-tick boundary and 90-second host default.
+EXHAUSTION_TICK_DEADLINE = 12_000
 BOOT = ("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "KS-01:PASS", "KS-02:PASS", "KS-03:PASS", "M2:PASS")
 OFFSETS = (240, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512, 520, 528, 536, 544, 552)
 ROLES = ("SERVICE", "APP_A", "APP_B")
@@ -107,9 +112,108 @@ def integer(value, low=0, high=(1 << 64) - 1):
     return value
 
 
+def native_limits(case):
+    """Inclusive observation tick ceiling and default host timeout in seconds."""
+    if case not in FEATURES:
+        raise ValueError("Unknown native service case")
+    return (EXHAUSTION_TICK_DEADLINE - 1, 150) if case == "exhaustion" else (6000, 90)
+
+
+def reset_sequence(found, network, exit_ticks, entropy):
+    """Require a real status fault, terminal ticket, dead ingress and cleanup."""
+    expected = {"NET_TX_SUBMITTED", "NET_TX_COMPLETED", "NET_RX_COMPLETED", "NET_RX_DELIVERED",
+                "NET_DENIED", "NET_TX_TIMEOUTS", "NET_RESETS", "NET_RESET_ACKS",
+                "NET_FAULT_TICK", "NET_FAULT_TICKET", "NET_FAULT_TX", "NET_FAULT_RX",
+                "NET_FAULT_STATUS_BEFORE", "NET_FAULT_STATUS_AFTER", "NET_FAULT_BME_BEFORE",
+                "NET_FAULT_BME_AFTER", "NET_TERMINAL_READS", "NET_TERMINAL_ERROR",
+                "NET_FAULT_RX_ERRORS", "NET_FAULT_RX_ERROR_CODE"}
+    if set(network) != expected:
+        raise ValueError("Missing or unknown native reset observations")
+    tick = integer(network["NET_FAULT_TICK"], 1, 6000)
+    ticket = integer(network["NET_FAULT_TICKET"], 1, MAX_FRAMES)
+    rx_errors = integer(network["NET_FAULT_RX_ERRORS"], 0, 1)
+    fixed = {"NET_FAULT_STATUS_BEFORE": 15, "NET_FAULT_STATUS_AFTER": 0,
+             "NET_FAULT_BME_BEFORE": 1, "NET_FAULT_BME_AFTER": 1,
+             "NET_TERMINAL_READS": 1, "NET_TERMINAL_ERROR": 12,
+             "NET_DENIED": 3 + rx_errors, "NET_TX_TIMEOUTS": 0,
+             "NET_FAULT_RX_ERROR_CODE": 12 * rx_errors}
+    if any(network[k] != v for k, v in fixed.items()):
+        raise ValueError("Reset was not detected through the pending ticket's ordinary Io path")
+    if (network["NET_TX_SUBMITTED"] != network["NET_TX_COMPLETED"] + 1
+            or network["NET_FAULT_TX"] != network["NET_TX_SUBMITTED"]
+            or network["NET_FAULT_RX"] != network["NET_RX_DELIVERED"]
+            or network["NET_RX_COMPLETED"] != network["NET_RX_DELIVERED"]
+            or not 1 <= network["NET_RESETS"] <= 2
+            or network["NET_RESET_ACKS"] != network["NET_RESETS"]):
+        raise ValueError("Uncertain publication replayed, receive continued or reset did not acknowledge")
+    service = found["SERVICE"]
+    fixed_service = {400: 1, 448: 0, 456: 0, 464: 1,
+                     472: len(REQUESTS[0]) + len(RESET_PROBE), 480: 0, 488: 0, 496: 0,
+                     512: 0, 520: 12 * rx_errors, 528: 0, 544: 12, 552: ticket}
+    if (any(service[k] != v for k, v in fixed_service.items())
+            or service[240] != (15 if rx_errors else 12) or service[504] != service[240]
+            or service[416] != network["NET_TX_COMPLETED"]
+            or service[424] != network["NET_RX_DELIVERED"]
+            or not tick <= service[536] <= tick + 500):
+        raise ValueError("Service did not terminate on the original reset ticket")
+    for role in ROLES[1:]:
+        app = found[role]
+        exact = dict.fromkeys(OFFSETS, 0)
+        exact.update({400: 1, 424: 1, 440: 1, 480: 1, 528: 1})
+        if role == "APP_A":
+            exact.update({448: 2, 544: 1})
+            if not 1 <= app[552] <= tick:
+                raise ValueError("No live app connection before device reset")
+        elif app[552] != 0:
+            raise ValueError("Unaffected app claimed the reset connection")
+        if (any(app[k] != v for k, v in exact.items() if k not in (504, 536, 552))
+                or app[536] not in (4, 9, 10)
+                or not service[536] <= app[504] <= tick + 500
+                or exit_ticks[role] < app[504]):
+            raise ValueError("Client did not observe dead ingress within the reset bound")
+    return {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()},
+            "network": network, "entropy_bytes": entropy, "exit_ticks": exit_ticks,
+            "reset_tick": tick}
+
+
+def exhaustion_sequence(found, network, exit_ticks, entropy, released):
+    service = found["SERVICE"]
+    fixed = {424: 0, 432: 2 * PORT_BUDGET + 8, 440: 4, 448: 0, 456: 0, 464: PORT_BUDGET + 1,
+             472: 0, 480: 0, 488: PORT_BUDGET + 1, 496: 3, 504: 0,
+             512: 0, 520: 0, 536: 0, 544: 0, 552: 0}
+    if any(service[k] != v for k, v in fixed.items()) or service[408] < 1:
+        raise ValueError("Native exhaustion service counts/cleanup differ")
+    for role in ("APP_A", "APP_B"):
+        app = found[role]
+        exact = dict.fromkeys(OFFSETS, 0)
+        exact.update({400: 1, 408: PORT_BUDGET if role == "APP_A" else 1,
+                      416: int(role == "APP_B"), 424: 1, 440: 1,
+                      464: PORT_BUDGET if role == "APP_A" else 1, 480: 1,
+                      528: 1, 544: 1})
+        if any(app[k] != v for k, v in exact.items() if k != 552 and (role != "APP_B" or k != 504)):
+            raise ValueError("Native full port budget / survivor RPC proof differs")
+    exhausted, survivor, closed = found["APP_A"][552], found["APP_B"][552], found["APP_B"][504]
+    if (released is None or not 1 <= exhausted <= released <= survivor <= closed <= exit_ticks["APP_B"]
+            or closed > exit_ticks["APP_A"]):
+        raise ValueError("Survivor allocation was not causally after actual exhaustion")
+    expected_net = {"NET_TX_SUBMITTED", "NET_TX_COMPLETED", "NET_RX_COMPLETED", "NET_RX_DELIVERED",
+                    "NET_DENIED", "NET_TX_TIMEOUTS", "NET_RESETS", "NET_RESET_ACKS"}
+    fixed_net = {"NET_RX_COMPLETED": 0, "NET_RX_DELIVERED": 0, "NET_DENIED": 2,
+                 "NET_TX_TIMEOUTS": 0, "NET_RESETS": 1, "NET_RESET_ACKS": 1}
+    if (set(network) != expected_net or any(network[k] != v for k, v in fixed_net.items())
+            or network["NET_TX_SUBMITTED"] != network["NET_TX_COMPLETED"]
+            or network["NET_TX_COMPLETED"] != service[416]):
+        raise ValueError("Exhaustion completion/authority/reset evidence differs")
+    integer(service[416], 1, MAX_EXHAUSTION_FRAMES)
+    return {"processes": {r: {str(k): v for k, v in values.items()} for r, values in found.items()},
+            "network": network, "entropy_bytes": entropy, "exit_ticks": exit_ticks,
+            "exhaustion_release_tick": released}
+
+
 def sequence(stdout, case="normal"):
     if case not in FEATURES:
         raise ValueError("Unknown native service case")
+    last_tick, _ = native_limits(case)
     if not isinstance(stdout, str) or len(stdout) > 128 * 1024 or any(s in stdout for s in FORBIDDEN):
         raise ValueError("Failed/oversized actual native serial")
     stdout = without_acpi_diagnostics(stdout)
@@ -128,7 +232,7 @@ def sequence(stdout, case="normal"):
     revoke = case == "revoke"
     found, network = {r: {} for r in (REVOKE_ROLES if revoke else ROLES)}, {}
     numeric = re.compile(r"NETSVC:(SERVICE|APP_A|APP_B|POLICY):([0-9]+):([0-9]{20})")
-    revoke_ticks = None
+    revoke_ticks, exhaustion_ticks = None, None
     net_numeric = re.compile(r"SYSTEM:(NET_[A-Z_]+):([0-9]{20})")
     entropy, exit_ticks = None, {}
     for line in lines[start + len(BOOT) + 1:-3]:
@@ -137,13 +241,19 @@ def sequence(stdout, case="normal"):
             name, value = tick_match.groups()
             if name in exit_ticks:
                 raise ValueError("Duplicate actual process exit tick")
-            exit_ticks[name] = integer(int(value), 1, 6000)
+            exit_ticks[name] = integer(int(value), 1, last_tick)
             continue
         revoke_match = re.fullmatch(r"NETSVC:REVOKE_TICKS:([0-9]{20})", line) if revoke else None
         if revoke_match:
             if revoke_ticks is not None or exit_ticks:
                 raise ValueError("Duplicate or late revocation request")
             revoke_ticks = integer(int(revoke_match.group(1)), 1, 6000)
+            continue
+        exhaustion_match = re.fullmatch(r"NETSVC:EXHAUSTION_RELEASE_TICKS:([0-9]{20})", line) if case == "exhaustion" else None
+        if exhaustion_match:
+            if exhaustion_ticks is not None or exit_ticks:
+                raise ValueError("Duplicate or late exhaustion release")
+            exhaustion_ticks = integer(int(exhaustion_match.group(1)), 1, last_tick)
             continue
         entropy_match = re.fullmatch(r"NETSVC:ENTROPY_BYTES:([0-9]{20})", line)
         if entropy_match:
@@ -175,9 +285,13 @@ def sequence(stdout, case="normal"):
         raise ValueError("Actual service entropy acquisition missing")
     if any(set(values) != set(OFFSETS) for values in found.values()):
         raise ValueError("Incomplete native process snapshot")
+    if case == "device-reset":
+        return reset_sequence(found, network, exit_ticks, entropy)
     for role, values in found.items():
         if values[240] != 0 or values[400] != 1 or values[528] != 1:
             raise ValueError("Process failed or did not initialize/cleanly finish: " + role)
+    if case == "exhaustion":
+        return exhaustion_sequence(found, network, exit_ticks, entropy, exhaustion_ticks)
     service = found["SERVICE"]
     normal = case == "normal"
     owners = 2 if normal else 1
@@ -269,9 +383,24 @@ def evaluate(report, peer, *, case="normal"):
     if (peer.get("passed") is not True or peer.get("connected") is not True
             or peer.get("error") is not None or peer.get("rejected_frame") is not None):
         raise ValueError("Actual synthetic packet peer failed: " + str(peer.get("error")))
+    if case == "exhaustion":
+        raw_path = private_path(Path(report["run_directory"]) / "network-discard.bin", regular=True)
+        if peer.get("raw_path") != str(raw_path):
+            raise ValueError("Discard stream is not bound to the actual run directory")
     replay = validate_transcript(peer, case=case)
     net = observed["network"]
     counts = replay["counts"]
+    if case == "exhaustion":
+        if net["NET_TX_COMPLETED"] != counts["client_frames"] or counts["server_frames"] != 0:
+            raise ValueError("Discarded raw wire frames contradict actual TX completions")
+        return observed
+    if case == "device-reset":
+        # The reset publication can have reached the peer once before reset;
+        # absence of a completion is not proof that the device sent no bytes.
+        if (net["NET_TX_COMPLETED"] != counts["client_frames"] - counts["device_reset_probes"]
+                or net["NET_RX_DELIVERED"] != counts["server_frames"]):
+            raise ValueError("Reset wire transcript contradicts completed and uncertain publications")
+        return observed
     if (net["NET_TX_COMPLETED"] != counts["client_frames"]
             or net["NET_RX_DELIVERED"] != counts["server_frames"]
             or counts["udp_requests"] != (2 if case == "normal" else 1)
@@ -280,9 +409,11 @@ def evaluate(report, peer, *, case="normal"):
     return observed
 
 
-def run_network_service(*, case="normal", timeout=90):
+def run_network_service(*, case="normal", timeout=None):
     if case not in FEATURES:
         raise ValueError("Unknown native service run case")
+    if timeout is None:
+        _, timeout = native_limits(case)
     if type(timeout) is not int or not 1 <= timeout <= 180:
         raise ValueError("Native timeout must be bounded 1..180 seconds")
     private_path(BUILD)
@@ -325,7 +456,8 @@ def run_network_service(*, case="normal", timeout=90):
                   run_directory=str(directory), timeout_s=timeout, started_utc=datetime.now(timezone.utc).isoformat(),
                   qemu_sha256=qemu_hash, firmware_sha256=original_firmware, snapshot_sha256=snapshots,
                   qemu_version=subprocess.check_output([qemu, "--version"], env=env, text=True, timeout=10).strip())
-    with Peer(timeout=timeout, case=case) as peer:
+    raw_path = private_path(directory / "network-discard.bin") if case == "exhaustion" else None
+    with Peer(timeout=timeout, case=case, raw_path=raw_path) as peer:
         command += network_arguments(peer.port)
         begin = time.monotonic()
         rc, stdout_raw, stderr_raw, timed_out, output_overflow = execute_native(command, env, timeout=timeout)
@@ -370,7 +502,8 @@ def run_network_service(*, case="normal", timeout=90):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case", choices=tuple(FEATURES), default="normal")
-    parser.add_argument("--timeout", type=int, default=90)
+    parser.add_argument("--timeout", type=int,
+                        help="host timeout seconds (default: exhaustion 150, other cases 90)")
     parser.add_argument("--no-build", action="store_true", help="require an existing source-matching build")
     args = parser.parse_args()
     if not args.no_build:
