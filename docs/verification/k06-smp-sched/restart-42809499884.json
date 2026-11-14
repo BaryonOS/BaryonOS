@@ -1,0 +1,33 @@
+{
+  "run_id": 42809499884,
+  "run_url": "https://github.com/BaryonOS/BaryonOS/actions/runs/42809499884",
+  "repository_id": 1435549142,
+  "repository": "BaryonOS/BaryonOS",
+  "organization_installation_id": 180498948,
+  "branch": "codex/k06-5f-complete-20261109",
+  "tested_commit": "3dd6194f02231e8f1db61940242d8d90318daf1d",
+  "source_sha256": "05f680b768def10a2495e5958fa3af2fb95b50be19c755cce728f8c850ac887a",
+  "source_fingerprint_version": 3,
+  "created_utc": "2026-11-10T11:41:19Z",
+  "full_matrix": true,
+  "clock_diagnostic": false,
+  "full_evidence": false,
+  "status_at_checkpoint": "in_progress",
+  "accepted": false,
+  "access_checks": [
+    {"command": "git fetch --no-tags https://github.com/BaryonOS/BaryonOS.git refs/heads/codex/k06-5f-complete-20261109", "exit_code": 0},
+    {"command": "git push --dry-run https://github.com/BaryonOS/BaryonOS.git HEAD:refs/heads/codex/k06-5f-complete-20261109", "exit_code": 0},
+    {"command": "gh workflow run native-smp.yml --repo BaryonOS/BaryonOS --ref codex/k06-5f-complete-20261109 -f full_matrix=true -f full_evidence=false -f clock_diagnostic=false", "exit_code": 0}
+  ],
+  "previous_cancelled_run": 42803221546,
+  "previous_cancelled_run_original_zips_verified": 9,
+  "previous_cancelled_run_preservation": "build/k06-handoff/run-42803221546/original-zips",
+  "previous_rejected_run": 42748931069,
+  "reused_acceptance_repetitions": 0,
+  "native_guests_started_locally": 0,
+  "required_matrix_cases": 64,
+  "required_repetitions_per_case": 50,
+  "required_total_guests": 3200,
+  "required_complete_combined_soaks": 50,
+  "required_final_gate": "tools/gate.sh, actually executed after a successful aggregate, with retained log"
+}

@@ -1,0 +1,231 @@
+{
+ "schema_version": 1,
+ "source_sha256": "01daa964ee8c6d0eb6870de1e248f5b57b2fb1a1e6ea2ea68ea92845b2801c1a",
+ "cases": [
+  {
+   "profile": "native-smp",
+   "case": "one",
+   "cpus": 1,
+   "passed": true,
+   "outcome": "online",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "85bf9e7703c3ef3a07e4b9668486ca6c86e4acb65f4b10e6d9fdf4485e74cf30"
+  },
+  {
+   "profile": "native-smp",
+   "case": "two-single",
+   "cpus": 2,
+   "passed": true,
+   "outcome": "online",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "85bf9e7703c3ef3a07e4b9668486ca6c86e4acb65f4b10e6d9fdf4485e74cf30"
+  },
+  {
+   "profile": "native-smp",
+   "case": "four",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "online",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "85bf9e7703c3ef3a07e4b9668486ca6c86e4acb65f4b10e6d9fdf4485e74cf30"
+  },
+  {
+   "profile": "native-smp",
+   "case": "eight",
+   "cpus": 8,
+   "passed": true,
+   "outcome": "online",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "85bf9e7703c3ef3a07e4b9668486ca6c86e4acb65f4b10e6d9fdf4485e74cf30"
+  },
+  {
+   "profile": "native-smp",
+   "case": "nine-capacity",
+   "cpus": 9,
+   "passed": true,
+   "outcome": "online",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "85bf9e7703c3ef3a07e4b9668486ca6c86e4acb65f4b10e6d9fdf4485e74cf30"
+  },
+  {
+   "profile": "native-smp",
+   "case": "duplicate-madt",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "invalid-madt",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "85bf9e7703c3ef3a07e4b9668486ca6c86e4acb65f4b10e6d9fdf4485e74cf30"
+  },
+  {
+   "profile": "test-smp-ap-double-fault",
+   "case": "ap-double-fault-ist",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "df-ist",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "e4565d727d9aff54544d8b1d5baed2147f61575b68e0a0f02f40019a75ffb107"
+  },
+  {
+   "profile": "test-smp-ap-ipi-deaf",
+   "case": "ap-ipi-deaf",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "quarantine",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "839cfaaea2103411e682d7ad7e1a0b578fb10fa7e261cb75cb314c1f2f3a9f30"
+  },
+  {
+   "profile": "test-smp-ap-mismatch",
+   "case": "ap-mismatch",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "mismatch",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "258d6b7ec2f91483bc6c142a1b7bf4c4cdbb3ac725de2cb57fc134cad0953fce"
+  },
+  {
+   "profile": "test-smp-ap-nmi",
+   "case": "ap-nmi-ist",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "nmi-ist",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "2698ec6d52f3427956f117cc1623738551719bef5da3e385d9e0fb745fcd9b0a"
+  },
+  {
+   "profile": "test-smp-ap-shootdown-deaf",
+   "case": "ap-shootdown-deaf",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "shootdown-quarantine",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "0d0f7687e1cbd75ef1735953afbbdd083b2c53e77b5121cca3bf9f337e003bc9"
+  },
+  {
+   "profile": "test-smp-ap-stall",
+   "case": "ap-stall",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "timeout",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "df7b4a5ad59e85f1ba5661bb00130723b492b3479795f7a50e2b5efdaefdcabd"
+  },
+  {
+   "profile": "test-smp-ap-timer-dead",
+   "case": "ap-timer-dead",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "timer-quarantine",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "0f5842c9bc071a2a105da875b11b88ab06ce72d2ed318eab199492246c2745a2"
+  },
+  {
+   "profile": "test-smp-double-run",
+   "case": "double-run",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "double-run",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "c360d6fd8d1aad2b5672ec2d1e3bb911bf8768949a5b9294418627311c256e15"
+  },
+  {
+   "profile": "test-smp-gs-iret-fault",
+   "case": "gs-iret-fault",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "gs-iret-fault",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "7d1435e5dd5a8ed38e6870031aa5d91c43623094dec926e5b6040e97a36e2681"
+  },
+  {
+   "profile": "test-smp-gs-nmi-user",
+   "case": "gs-nmi-user",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "gs-nmi-user",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "85a62c914fdc53db0be12228ffa6d3358e4067dd43a2eb2540e7c5386c0ca670"
+  },
+  {
+   "profile": "test-smp-gs-user",
+   "case": "gs-user",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "gs-user",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "880be54099b47ef5b394e8f0441e909ed509ed73c0797dbf6e3cb0dc3f93a884"
+  },
+  {
+   "profile": "test-smp-held-across-switch",
+   "case": "held-across-switch",
+   "cpus": 2,
+   "passed": true,
+   "outcome": "held-across-switch",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "a66058e78e577d0a0d589026b9a055ae5423fadf6ee5bcbade9b65de1311b0f6"
+  },
+  {
+   "profile": "test-smp-lock-in-handler",
+   "case": "lock-in-handler",
+   "cpus": 2,
+   "passed": true,
+   "outcome": "lock-in-handler",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "ac2e5611f64fcb3c040c25cffd8322023eff88ca4a8c30829fdccdf2d3090d67"
+  },
+  {
+   "profile": "test-smp-lockdep-order",
+   "case": "lockdep-order",
+   "cpus": 2,
+   "passed": true,
+   "outcome": "lockdep-order",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "9c64addeae31d516d3114c2ff887202540b2431aa2e443d1cfb2a9be36c20753"
+  },
+  {
+   "profile": "test-smp-lockpair-order",
+   "case": "lockpair-order",
+   "cpus": 2,
+   "passed": true,
+   "outcome": "lockpair-order",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "935eb3db3930781fad42a9603a993e06d023a68b2eeea3aa97596eb08666144e"
+  },
+  {
+   "profile": "test-smp-resched-deaf",
+   "case": "resched-deaf",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "kill-quarantine",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "fa0b780624c34a96618da599eee11eaf99a32249643127091ecf47a5eb04c923"
+  },
+  {
+   "profile": "test-smp-shared-scratch",
+   "case": "shared-scratch",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "shared-scratch",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "4e1f54b9ba1078d88d73e86dd683d0bd5b4bfb4ec5a46f9ff36eaddc78aea268"
+  },
+  {
+   "profile": "test-smp-shootdown-skipped",
+   "case": "shootdown-skipped-control",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "stale-control",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "5fef2c5273182d4ad9f3b6a66868c668e73430aab271479b12129f7993811443"
+  },
+  {
+   "profile": "test-smp-spin-irq-off",
+   "case": "spin-irq-off-control",
+   "cpus": 4,
+   "passed": true,
+   "outcome": "spin-quarantine",
+   "raw_qemu_exit": 33,
+   "manifest_sha256": "be831d8b10cc6669c4a8557749f54ccd0a761b4d4fa3669e3024f9d38dcd4f5f"
+  }
+ ]
+}

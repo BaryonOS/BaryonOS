@@ -1,0 +1,20 @@
+Source-v3: 727676734c47e4efabedb49831763d71c1cd08c5698704de4e1c12a26e57232b
+ELF SHA-256: 8fe2dbcd8139227c859a340bad5abbd97807365098d4967e3716be8f96f93eb1
+Actual ipi_phase clock-work loop; 64 dependent integer steps, a separate progress increment/store, then PAUSE.
+
+ 20059d0:	be 40 00 00 00       	mov    $0x40,%esi
+ 20059d5:	66 66 2e 0f 1f 84 00 	data16 cs nopw 0x0(%rax,%rax,1)
+ 20059dc:	00 00 00 00
+ 20059e0:	48 0f af c3          	imul   %rbx,%rax
+ 20059e4:	48 c1 c0 11          	rol    $0x11,%rax
+ 20059e8:	48 ff c0             	inc    %rax
+ 20059eb:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+ 20059f0:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
+ 20059f5:	ff ce                	dec    %esi
+ 20059f7:	75 e7                	jne    20059e0 <os_kernel::m2::smp::ipi_phase+0x5f0>
+ 20059f9:	48 ff c2             	inc    %rdx
+ 20059fc:	48 89 11             	mov    %rdx,(%rcx)
+ 20059ff:	f3 90                	pause
+ 2005a01:	0f b6 35 d4 36 32 00 	movzbl 0x3236d4(%rip),%esi        # 23290dc <os_kernel::m2::smp::CLOCK_LOAD>
+ 2005a08:	40 84 f6             	test   %sil,%sil
+ 2005a0b:	75 c3                	jne    20059d0 <os_kernel::m2::smp::ipi_phase+0x5e0>

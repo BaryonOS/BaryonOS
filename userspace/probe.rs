@@ -69,7 +69,11 @@ _start:
     int 0x80
     test rax, rax
     jne .Labi_error
+    mov rax, qword ptr [r12 + 152]
+    test rax, rax
+    jnz 1f
     mov rax, 0x100000000
+1:
     cmp rdx, rax
     jne .Labi_error
     check_preserved 0
@@ -82,6 +86,7 @@ _start:
     jne .Labi_error
 
     // Unknown syscall: ENOSYS=-2 and no result/argument/register corruption.
+    mov qword ptr [r12 + 160], 1
     mov eax, 0xffff
     xor edx, edx
     int 0x80
@@ -92,6 +97,7 @@ _start:
     check_preserved 0
 
     // ABI-info has no arguments: a nonzero unused RSI must be EINVAL=-1.
+    mov qword ptr [r12 + 160], 2
     xor eax, eax
     mov esi, 1
     int 0x80
@@ -101,6 +107,7 @@ _start:
     jne .Labi_error
     check_preserved 1
     xor esi, esi
+    mov qword ptr [r12 + 160], 3
 
 .Lloop:
     cmp qword ptr [r12 + 16], r13
@@ -141,6 +148,10 @@ _start:
     je .Lexit_seven
     cmp rax, 16
     je .Linvalid_return_stack
+    cmp rax, 19
+    je .Lfpu_canary
+    cmp rax, 20
+    je .Lfpu_canary
     mov edi, 0xe2
     jmp .Lexit
 
@@ -157,6 +168,7 @@ _start:
     jne .Labi_error
     test rdx, rdx
     jne .Labi_error
+    check_preserved 0
     jmp .Lloop
 
 .Lexit_after_eight:
@@ -218,6 +230,167 @@ _start:
     xor esp, esp
     int 0x80
     ud2
+
+// K06 5d-2 (R3-3) FPU canary, native-smp-m3 only (eager FXSAVE/FXRSTOR):
+// st0 = the private pattern (exact in the 64-bit significand), xmm0 = the
+// pattern, xmm15 = its complement, loaded once (DATA+128) and checked on
+// every loop pass. Another process's or a lost state ends with int3 (#BP).
+.Lfpu_canary:
+    mov qword ptr [r12 + 160], 4
+    cmp rbx, 0x13579bdf
+    jne .Labi_error
+    cmp rbp, 0x2468ace0
+    jne .Labi_error
+    cmp r14, 0x11223344
+    jne .Labi_error
+    cmp r15, 0x55667788
+    jne .Labi_error
+    mov qword ptr [r12 + 160], 5
+    cmp qword ptr [r12 + 128], 0
+    jne 1f
+    fninit
+    fild qword ptr [r12 + 16]
+    movq xmm0, r13
+    pcmpeqd xmm15, xmm15
+    pxor xmm15, xmm0
+1:
+    movq rax, xmm0
+    cmp rax, r13
+    jne .Lfpu_corrupt
+    movq rax, xmm15
+    not rax
+    cmp rax, r13
+    jne .Lfpu_corrupt
+    fld st(0)
+    fistp qword ptr [rsp - 8]
+    cmp qword ptr [rsp - 8], r13
+    jne .Lfpu_corrupt
+    // Publish readiness only after initialization AND a complete successful
+    // GPR/x87/SSE check. A timer may interrupt any earlier instruction.
+    mov qword ptr [r12 + 128], 1
+    cmp qword ptr [r12], 20
+    je .Lipc
+    // Only the migration fixture requests a yield after all canary checks.
+    cmp qword ptr [r12 + 136], 0
+    jne .Lyield
+    // A runnable CPU hint lets TCG rotate host vCPUs. It neither yields the
+    // guest process nor supplies any of the required real context switches.
+    pause
+    jmp .Lloop
+.Lfpu_corrupt:
+    int3
+    ud2
+
+// Mode 20: real cross-process IPC with readiness waits. Private phase and
+// sequence survive every syscall and CPU handoff; the kernel owns verdicts.
+.Lipc:
+    // Mode 20 branches around the ordinary-canary PAUSE above. Give TCG the
+    // same host-vCPU rotation hint before each real IPC step without yielding
+    // or blocking this guest process; SEND/RECV/WAIT and all 10,000 rounds
+    // remain unchanged.
+    pause
+    cmp qword ptr [r12 + 104], 0
+    jne .Lloop
+    cmp qword ptr [r12 + 120], 0
+    jne 1f
+    mov qword ptr [r12 + 120], 1
+1:
+    mov rax, qword ptr [r12 + 80]
+    xor rax, qword ptr [r12 + 112]
+    test rax, rax
+    jne .Lipc_recv
+.Lipc_send:
+    // The kernel stamps received sender identity; a new send cannot supply it.
+    mov qword ptr [0x60000000], 0
+    mov rax, qword ptr [r12 + 120]
+    mov qword ptr [0x60000040], rax
+    mov rdi, qword ptr [r12 + 64]
+    mov esi, 0x60000000
+    mov edx, 320
+    xor r10d, r10d
+    xor r8d, r8d
+    xor r9d, r9d
+    mov eax, 0x20
+    int 0x80
+    cmp rax, -8
+    je .Lipc_wait_send
+    test rax, rax
+    jne .Lipc_send_error
+    cmp qword ptr [r12 + 80], 0
+    jne .Lipc_round
+    mov qword ptr [r12 + 112], 1
+    jmp .Lloop
+.Lipc_recv:
+    mov rdi, qword ptr [r12 + 72]
+    mov esi, 0x60000000
+    mov edx, 320
+    xor r10d, r10d
+    xor r8d, r8d
+    xor r9d, r9d
+    mov eax, 0x21
+    int 0x80
+    cmp rax, -8
+    je .Lipc_wait_recv
+    test rax, rax
+    jne .Lipc_recv_error
+    mov rax, qword ptr [0x60000040]
+    cmp rax, qword ptr [r12 + 120]
+    jne .Lpattern_error
+    cmp qword ptr [r12 + 80], 0
+    je .Lipc_round
+    mov qword ptr [r12 + 112], 1
+    jmp .Lloop
+.Lipc_round:
+    add qword ptr [r12 + 96], 1
+    mov qword ptr [r12 + 112], 0
+    add qword ptr [r12 + 120], 1
+    mov rax, qword ptr [r12 + 96]
+    cmp rax, qword ptr [r12 + 88]
+    jb .Lloop
+    mov qword ptr [r12 + 104], 1
+    jmp .Lloop
+.Lipc_wait_send:
+    mov rdi, qword ptr [r12 + 64]
+    mov qword ptr [0x60000200], rdi
+    mov qword ptr [0x60000208], 1
+    jmp .Lipc_wait
+.Lipc_wait_recv:
+    mov rdi, qword ptr [r12 + 72]
+    mov qword ptr [0x60000200], rdi
+    mov qword ptr [0x60000208], 2
+.Lipc_wait:
+    mov eax, 3
+    xor edi, edi
+    xor esi, esi
+    xor edx, edx
+    xor r10d, r10d
+    xor r8d, r8d
+    xor r9d, r9d
+    int 0x80
+    test rax, rax
+    jne .Lipc_clock_error
+    add rdx, 1000
+    mov edi, 0x60000200
+    mov esi, 1
+    mov eax, 0x22
+    int 0x80
+    test rax, rax
+    jne .Lipc_wait_error
+    jmp .Lloop
+.Lipc_send_error:
+    mov edi, 0xe4
+    jmp .Lipc_error
+.Lipc_recv_error:
+    mov edi, 0xe5
+    jmp .Lipc_error
+.Lipc_clock_error:
+    mov edi, 0xe7
+    jmp .Lipc_error
+.Lipc_wait_error:
+    mov edi, 0xe6
+.Lipc_error:
+    mov qword ptr [r12 + 144], rax
+    jmp .Lexit
 
 .Labi_error:
     cld

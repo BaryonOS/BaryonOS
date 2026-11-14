@@ -67,14 +67,17 @@ controles herbeoordeeld.
 
 ## Gemeten native codebudget
 
-De eerste gekoppelde bibliotheekversie meet in de echte scalar-linkermap
-131.177 bytes RX-code: 105 bytes boven het eerdere 128-KiB-demobudget.
-Een afzonderlijke `opt-level=z`-proef overschrijdt dat budget eveneens;
-thin LTO is met de gepinde prebuilt-core/code-modelcombinatie niet bruikbaar.
-Beide mislukte proeven blijven diagnostiek, geen geaccepteerde binaries.
+De eerste gekoppelde bibliotheekversie mat in de echte scalar-linkermap
+131.177 bytes RX-code: 105 bytes boven het eerdere 128-KiB-demobudget, waarna
+het budget 144 KiB werd. Een afzonderlijke `opt-level=z`-proef overschreed dat
+eerdere budget eveneens; thin LTO is met de gepinde
+prebuilt-core/code-modelcombinatie niet bruikbaar. Beide mislukte proeven blijven
+diagnostiek, geen geaccepteerde binaries.
 
-Het appspecifieke linkerscript reserveert daarom vast **144 KiB RX** vanaf
-hetzelfde adres `0x400f0000`. Read-only blijft 512 KiB; data/BSS blijft 256 KiB;
+De huidige Veld-versie meet exact 157.161 bytes RX-code (39 pagina's), 9.705
+bytes boven 144 KiB. Het appspecifieke linkerscript reserveert daarom vast
+**160 KiB RX** vanaf hetzelfde adres `0x400f0000`. Read-only blijft 512 KiB;
+data/BSS blijft 256 KiB;
 de drie 64-KiB-documentbuffers, entry/startup-ABI, stack/guards en kernelquota
 blijven gelijk. Geen W+X, capability-, apparaat- of kernel-ABI-uitbreiding.
 De echte ELF wordt opnieuw met dezelfde kernelparser op alle vijf segmenten,

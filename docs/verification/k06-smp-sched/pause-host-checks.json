@@ -1,0 +1,59 @@
+{
+  "accepted": false,
+  "source_sha256": "58f7cc8a20db1c0f3afe30241fb14c125e7c75b62b984c6412056a19923a3eae",
+  "source_fingerprint_version": 3,
+  "assessment_basis": "working_tree",
+  "base_commit": "014fe5771e5dfd0885343f0ef79d96d7cf959a66",
+  "checks": [
+    {
+      "name": "pause-m3-build",
+      "command": "NOS_BUILD_DIR=build/k06-pause-m3 NOS_TARGET_DIR=target/k06-ipc-m3 python3 -B tools/build.py --kernel-feature native-smp-m3",
+      "exit": 0,
+      "log": "pause-m3-build.log.gz",
+      "raw_log_sha256": "60671b091213f07431f9ca969476914d6d0f38184f2e450ea3a5cbd24ff6df3c"
+    },
+    {
+      "name": "pause-soak-build",
+      "command": "NOS_BUILD_DIR=build/k06-pause-soak NOS_TARGET_DIR=target/k06-ipc-soak python3 -B tools/build.py --kernel-feature native-smp-m3-soak",
+      "exit": 0,
+      "log": "pause-soak-build.log.gz",
+      "raw_log_sha256": "ea0668b50ec89c71e25601ff9fba95355526c9928ae2f3e83206f89d1201ceec"
+    },
+    {
+      "name": "pause-supervisor-build",
+      "command": "NOS_BUILD_DIR=build/k06-pause-supervisor NOS_TARGET_DIR=target/k06-ipc-supervisor python3 -B tools/build.py --kernel-feature native-supervisor",
+      "exit": 0,
+      "log": "pause-supervisor-build.log.gz",
+      "raw_log_sha256": "6fea9aadf62be8d1bb640e6905d13fd100dcf356ea9462dde802ff606fde3d60"
+    },
+    {
+      "name": "pause-m3-probe-hosttests",
+      "command": "python3 -B userspace/tests/test_smp_fpu_probe.py --elf build/k06-pause-m3/users/probe.elf",
+      "exit": 0,
+      "log": "pause-m3-probe-hosttests.log.gz",
+      "raw_log_sha256": "a8c975601661deae2019c7666e061751d824529e348d9b5d655dd202944954f0"
+    },
+    {
+      "name": "pause-soak-probe-hosttests",
+      "command": "python3 -B userspace/tests/test_smp_fpu_probe.py --elf build/k06-pause-soak/users/probe.elf",
+      "exit": 0,
+      "log": "pause-soak-probe-hosttests.log.gz",
+      "raw_log_sha256": "a8c975601661deae2019c7666e061751d824529e348d9b5d655dd202944954f0"
+    },
+    {
+      "name": "pause-smp-hosttests",
+      "command": "python3 -B tools/dev.py python3 -B -m unittest discover -s tools/tests -p 'test_smp*.py' -v",
+      "exit": 0,
+      "log": "pause-smp-hosttests.log.gz",
+      "raw_log_sha256": "8d018055907b29e1df502cfc806425131e527e55617c437a0e22513db4d3c7ad"
+    }
+  ],
+  "smp_host_tests": 48,
+  "elf_tests_per_canary_profile": 8,
+  "native_guests_started_locally": 0,
+  "additional_checks": {
+    "rustfmt": "exit0",
+    "git_diff_check": "exit0"
+  },
+  "limits": "One PAUSE changes host-vCPU interleaving only on the fully checked ordinary mode19 canary path. Guest process remains runnable; IPC/migration/legacy paths and actual1000-switch requirement are unchanged. Historical timeout causality, host occupancy and native performance remain unproved; MTTCG BQL overhead is possible."
+}

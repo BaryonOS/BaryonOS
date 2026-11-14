@@ -1,0 +1,29 @@
+{
+  "run_id": 42818153989,
+  "run_url": "https://github.com/BaryonOS/BaryonOS/actions/runs/42818153989",
+  "repository": "BaryonOS/BaryonOS",
+  "repository_id": 1435549142,
+  "branch": "codex/k06-5f-complete-20261109",
+  "tested_commit": "54a9d5c17291b862e30240e49ed4cde0d479315b",
+  "source_sha256": "727676734c47e4efabedb49831763d71c1cd08c5698704de4e1c12a26e57232b",
+  "source_fingerprint_version": 3,
+  "created_utc": "2026-11-10T12:43:16Z",
+  "full_matrix": true,
+  "clock_diagnostic": false,
+  "full_evidence": false,
+  "status_at_checkpoint": "pending; zero jobs; branch concurrency lock behind rejected run42809499884",
+  "accepted": false,
+  "previous_rejected_run_retained": 42809499884,
+  "reused_acceptance_repetitions": 0,
+  "native_guests_started_locally": 0,
+  "requirements": {
+    "ordinary_cases": 63,
+    "combined_soak_cases": 1,
+    "repetitions_per_case": 50,
+    "total_guests": 3200,
+    "complete_soaks": 50,
+    "regular_K07_quotas_and_qsim": true,
+    "aggregate_passed": true,
+    "subsequent_tools_gate_actually_executed": true
+  }
+}

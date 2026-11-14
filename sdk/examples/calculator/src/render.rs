@@ -4,6 +4,7 @@ use crate::{
     decimal::Value,
     model::{Model, Notice, LABELS},
 };
+use nieuw_os_graphics::theme::{self, Palette};
 use nieuw_os_graphics::{Canvas, Font, Rect as GraphicRect, Size, Weight};
 #[path = "../../../../ui/native/src/design.rs"]
 pub mod design;
@@ -231,10 +232,17 @@ pub fn render_tile(
         &mut out[..count],
     )
     .map_err(|_| Error::Tile)?;
-    canvas.clear(d::BACKGROUND);
+    let palette = if model.high_contrast() {
+        theme::HIGH_CONTRAST
+    } else {
+        theme::MATERIAAL
+    };
+    canvas.clear(palette.background);
     let mut paint = Paint {
         canvas,
         scale: view.scale,
+        palette,
+        high_contrast: model.high_contrast(),
     };
     let layout = Layout::new(view);
     let field = paint.physical(layout.expression);
@@ -245,10 +253,21 @@ pub fn render_tile(
     let result_area = paint.physical(layout.result_bounds(view.scale));
     if result_area.intersects(paint.canvas.bounds()) {
         if model.result_selected() {
-            paint.canvas.fill_rect(result_area, d::ACCENT_SOFT);
+            // Preserve default pixels; the contrast palette uses cyan with black text.
+            let fill = if model.high_contrast() {
+                palette.accent_soft
+            } else {
+                d::ACCENT_SOFT
+            };
+            let outline = if model.high_contrast() {
+                palette.accent
+            } else {
+                d::ACCENT
+            };
+            paint.canvas.fill_rect(result_area, fill);
             paint
                 .canvas
-                .stroke_rounded_rect(result_area, 0, view.scale, d::ACCENT);
+                .stroke_rounded_rect(result_area, 0, view.scale, outline);
         }
         let formatted = model
             .answer()
@@ -268,10 +287,12 @@ pub fn render_tile(
             (layout.result_y * view.scale) as i32,
             result,
             font,
-            if stale || model.answer().is_none() {
-                d::MUTED
+            if model.result_selected() && model.high_contrast() {
+                0x000000
+            } else if stale || model.answer().is_none() {
+                palette.muted
             } else {
-                d::TEXT
+                palette.text
             },
         );
         if stale && !layout.compact {
@@ -281,14 +302,15 @@ pub fn render_tile(
                 "Vorig resultaat",
                 Size::Small,
                 Weight::Regular,
-                d::MUTED,
+                palette.muted,
             );
         }
     }
     let status = model.status();
     let color = match model.notice() {
-        Notice::ClipboardCopied => d::ACCENT,
-        Notice::None => d::MUTED,
+        Notice::ClipboardCopied => palette.accent,
+        Notice::None => palette.muted,
+        _ if model.high_contrast() => theme::HIGH_CONTRAST_DANGER,
         _ => d::DANGER,
     };
     paint.notice(layout, status, color);
@@ -299,7 +321,11 @@ pub fn render_tile(
             width: layout.width,
             height: 1,
         },
-        d::LINE,
+        if model.high_contrast() {
+            palette.border
+        } else {
+            d::LINE
+        },
     );
     for (index, original_label) in LABELS.iter().enumerate() {
         let rect = layout.button(index);
@@ -312,21 +338,39 @@ pub fn render_tile(
         let pressed = model.pressed() == Some(index);
         let background = if primary {
             if hover || pressed {
-                d::ACCENT_SOFT
+                palette.accent_soft
             } else {
-                d::ACCENT
+                palette.accent
             }
         } else if hover || pressed || operator {
-            d::ACCENT_SOFT
+            palette.accent_soft
         } else {
-            d::SURFACE
+            palette.surface
         };
         paint.fill(rect, background);
+        if model.high_contrast() {
+            paint
+                .canvas
+                .stroke_rounded_rect(paint.physical(rect), 0, view.scale, palette.border);
+        }
         if model.focus() == index + 1 && model.active() {
             let physical = paint.physical(rect);
             paint
                 .canvas
-                .stroke_rounded_rect(physical, 0, 2 * view.scale, d::ACCENT);
+                .stroke_rounded_rect(physical, 0, 2 * view.scale, palette.accent);
+            if model.high_contrast() {
+                paint.canvas.stroke_rounded_rect(
+                    GraphicRect::new(
+                        physical.x + (2 * view.scale) as i32,
+                        physical.y + (2 * view.scale) as i32,
+                        physical.width.saturating_sub(4 * view.scale),
+                        physical.height.saturating_sub(4 * view.scale),
+                    ),
+                    0,
+                    2 * view.scale,
+                    0,
+                );
+            }
         }
         let label = match index {
             3 => "÷",
@@ -344,12 +388,14 @@ pub fn render_tile(
         let x =
             rect.x * view.scale + (rect.width * view.scale).saturating_sub(font.measure(label)) / 2;
         let y = rect.y * view.scale + (rect.height * view.scale).saturating_sub(font.height()) / 2;
-        let color = if primary && !hover && !pressed {
+        let color = if model.high_contrast() && (primary || hover || pressed || operator) {
+            0
+        } else if primary && !hover && !pressed {
             d::SURFACE
         } else if primary || operator {
-            d::ACCENT
+            palette.accent
         } else {
-            d::TEXT
+            palette.text
         };
         paint.canvas.text(x as i32, y as i32, label, font, color);
     }
@@ -358,6 +404,8 @@ pub fn render_tile(
 struct Paint<'a> {
     canvas: Canvas<'a>,
     scale: u32,
+    palette: Palette,
+    high_contrast: bool,
 }
 impl Paint<'_> {
     fn physical(&self, rect: Rect) -> GraphicRect {
@@ -404,7 +452,7 @@ impl Paint<'_> {
                         ((next / 64) - (advance / 64)) as u32,
                         height - 8 * self.scale,
                     ),
-                    d::ACCENT_SOFT,
+                    self.palette.accent_soft,
                 );
             }
             advance = next;
@@ -416,10 +464,29 @@ impl Paint<'_> {
         let y = top + height.saturating_sub(font.height()) / 2;
         if value.is_empty() {
             self.canvas
-                .text(origin as i32, y as i32, "0", font, d::MUTED);
-        } else {
+                .text(origin as i32, y as i32, "0", font, self.palette.muted);
+        } else if !self.high_contrast {
             self.canvas
-                .text(origin as i32, y as i32, value, font, d::TEXT);
+                .text(origin as i32, y as i32, value, font, self.palette.text);
+        } else {
+            let mut glyph_x = i64::from(origin) * 64;
+            for (relative, ch) in value.char_indices() {
+                let selected = selection.contains(&(start + relative));
+                let color = if self.high_contrast && selected {
+                    0
+                } else {
+                    self.palette.text
+                };
+                let mut encoded = [0; 4];
+                self.canvas.text(
+                    (glyph_x / 64) as i32,
+                    y as i32,
+                    ch.encode_utf8(&mut encoded),
+                    font,
+                    color,
+                );
+                glyph_x += i64::from(font.advance(ch));
+            }
         }
         if model.focus() == 0 && model.active() && !model.result_selected() {
             self.canvas.fill_rect(
@@ -429,7 +496,11 @@ impl Paint<'_> {
                     self.scale,
                     height - 8 * self.scale,
                 ),
-                d::TEXT,
+                if self.high_contrast && selection.contains(&model.caret()) {
+                    0
+                } else {
+                    self.palette.text
+                },
             );
         }
         self.canvas.fill_rect(
@@ -440,9 +511,9 @@ impl Paint<'_> {
                 self.scale,
             ),
             if model.active() && model.focus() == 0 {
-                d::ACCENT
+                self.palette.accent
             } else {
-                d::BORDER
+                self.palette.border
             },
         );
     }

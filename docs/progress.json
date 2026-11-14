@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-11",
-    "source_commit": "f26cd05623368c1a834be538e38a2aa30f5e1df1",
+    "date": "2026-11-14",
+    "source_commit": "f95bf5b2b4abe0bce1da140c70869eb59e85adef",
     "assessment_basis": "source_commit",
-    "branch": "ci/qemu-apt-bundle",
-    "task": "Install pinned CI QEMU/OVMF from a signed package bundle (ADR-CI-QEMU-BUNDLE-20261111)",
-    "previous_score": 39,
-    "summary": "39/100 to 39/100: CI infrastructure only. The QEMU/OVMF setup gains a signed, hash-pinned package bundle with snapshot and archive fallbacks; package versions and checks are unchanged. No OS functionality, native gate or product criterion changes."
+    "branch": "claude/baryon-os-ui-ux-design-152adb",
+    "task": "Design pipeline checkpoint before a planned reboot: typography review record and type-1.0 tokens, wordmark v2 selected by a pre-registered blind AI review, Orbitaal v2 and the native Inter atlas not yet started",
+    "previous_score": 41,
+    "summary": "41/100 stays 41/100. The design pipeline on this branch produced design documents, a typography review record with type-1.0 tokens (Inter proposed; a tie under the pre-registered rule, decision by the project owner requested) and a brand wordmark v2 (Saira, selected by a pre-registered blind AI review, redirectable by the project owner). These are design and AI-judgement evidence only: no native renderer, QEMU run or user test changed, so no criterion is accepted. Not met: Orbitaal v2 board, design system, prototype, native Inter atlas and native vertical slice with QEMU evidence."
   },
   "tracks": [
     {
@@ -75,9 +75,11 @@
           "id": "K06",
           "title": "Multiple processor cores",
           "points": 2,
-          "status": "open",
+          "status": "accepted",
           "acceptance": "SMP scheduling, synchronization, interrupts, and address-space switching work under concurrent load on the supported profile.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/K06-ACCEPTANCE.md"
+          ]
         },
         {
           "id": "K07",

@@ -5,7 +5,7 @@ use common::*;
 use nieuw_os_document_session::{volume::Buffers, EditMode};
 use nieuw_os_input_core::Event;
 use nieuw_os_materiaal::{
-    controller::{Controller, Error, Focus, InputEnvelope, Screen, Status},
+    controller::{Controller, DocumentTool, Error, Focus, InputEnvelope, Screen, Status},
     render::{Frame, Layout, SemanticId, SemanticNode, MAX_SEMANTIC_NODES},
     Scale, Viewport,
 };
@@ -253,6 +253,51 @@ fn history_readonly_preview_does_not_advertise_or_perform_a_restore() {
             .any(|n| n.id == SemanticId::RestoreHistory && !n.enabled && !n.actions.activate));
         assert!(ui.restore_selected_history().is_err());
         assert_eq!(mutations(&host.borrow()), before);
+    });
+}
+
+#[test]
+fn read_tool_history_preview_cannot_restore_through_semantics_or_direct_calls() {
+    run(|| {
+        let host = Host::new();
+        host.borrow_mut().seed_named(0, b"Reis", b"Earlier");
+        host.borrow_mut().seed_named(0, b"Reis", b"Current");
+        let (mut d, mut o, mut s) = ([0; 4096], [0; 4096], [0; 4096]);
+        let mut ui = controller(
+            &host,
+            EditMode::ReadWrite,
+            Buffers {
+                draft: &mut d,
+                original: &mut o,
+                staging: &mut s,
+            },
+        );
+        ui.open(0).unwrap();
+        ui.switch_tool().unwrap();
+        assert_eq!(ui.view().tool, DocumentTool::Read);
+        ui.begin_history().unwrap();
+        assert_eq!(ui.view().screen, Screen::History);
+        assert_eq!(ui.view().workspace.preview(), Some("Earlier"));
+        assert!(!ui.view().can_save);
+
+        let before = mutations(&host.borrow());
+        let mut nodes = [SemanticNode::EMPTY; MAX_SEMANTIC_NODES];
+        let count = Frame::new(ui.view()).semantics(&mut nodes).unwrap();
+        assert!(nodes[..count]
+            .iter()
+            .any(|node| node.id == SemanticId::RestoreHistory
+                && !node.enabled
+                && !node.actions.activate));
+        let generation = ui.view().generation;
+        assert_eq!(
+            ui.activate_semantic(SemanticId::RestoreHistory, generation),
+            Err(Error::InvalidInput)
+        );
+        assert_eq!(ui.restore_selected_history(), Err(Error::InvalidInput));
+        assert_eq!(ui.view().screen, Screen::History);
+        assert_eq!(ui.view().tool, DocumentTool::Read);
+        assert_eq!(mutations(&host.borrow()), before);
+        assert_eq!(host.borrow_mut().bytes(0), b"Current");
     });
 }
 

@@ -1,0 +1,1116 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>BaryonOS — Orbitaal</title>
+<style>
+@font-face{font-family:"Funnel Display";src:url("../../fonts/FunnelDisplay%5Bwght%5D.ttf") format("truetype");font-weight:300 800;font-display:block}
+@font-face{font-family:"Funnel Sans";src:url("../../fonts/FunnelSans%5Bwght%5D.ttf") format("truetype");font-weight:300 800;font-display:block}
+:root{--disp:"Funnel Display",system-ui,sans-serif;--sans:"Funnel Sans",system-ui,sans-serif;--ease:cubic-bezier(.16,.84,.24,1)}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#111}
+body{width:1440px;font-family:var(--sans);font-size:14px;line-height:20px;color:#E9EDF5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:default}
+svg{display:block}
+
+/* ---------- board frame (annotations, English) ---------- */
+.head{height:160px;padding:26px 40px 0;display:grid;grid-template-columns:400px 1fr 420px;gap:40px;background:#111;color:#E9EDF5}
+.head .nm{display:flex;gap:18px;align-items:flex-start}
+.head .nm svg{width:62px;height:62px;flex:none;margin-top:2px}
+.head h1{margin:0;font:300 48px/52px var(--disp)}
+.head .sub{font:500 13px/18px var(--sans);color:#A9B2C8;margin-top:6px}
+.head p{margin:0;font:400 13.5px/20px var(--sans);color:#C9D0E0}
+.head p b{color:#fff;font-weight:600}
+.cap{height:40px;line-height:40px;padding:0 40px;font:500 14px/40px var(--sans);color:#C3CADB;white-space:nowrap;overflow:hidden;background:#111}
+.cap b{color:#fff;font-weight:600}
+.after{height:40px;background:#111}
+.ab{position:relative;width:1440px;height:900px;overflow:hidden}
+
+/* ---------- native type faces (the planned glyph atlas) ---------- */
+.d48{font:300 48px/56px var(--disp)}
+.d28{font:400 28px/36px var(--disp)}
+.d20{font:500 20px/28px var(--disp)}
+.r16{font:400 16px/26px var(--sans)}
+.u14s{font:600 14px/20px var(--sans)}
+.u14{font:400 14px/20px var(--sans)}
+.c12{font:500 12px/16px var(--sans)}
+
+/* ---------- themes ---------- */
+.dk{--s0:#070912;--s1:#0D1020;--s2:#12162A;--s3:#1A1F38;--sin:#080A16;--ln:#232A47;--ln2:#5D6890;
+ --tx1:#EEF1F8;--tx2:#A9B2CB;--tx3:#8C95B2;--red:#FF5C50;--blue:#5AA2FF;--green:#42D27F;--silver:#C9D3E6;--focus:#A8CAFF;
+ --selbg:rgba(90,162,255,.15);--hov:rgba(170,188,255,.07);--hov2:rgba(170,188,255,.12);
+ --rim-a:rgba(226,233,255,.46);--rim-b:rgba(150,165,220,.10);--rim-c:rgba(150,165,220,.20);
+ --wsh:22px 36px 64px rgba(0,0,0,.58),6px 12px 28px rgba(0,0,0,.42);--wsh-off:14px 24px 48px rgba(0,0,0,.45);
+ --dock-bg:linear-gradient(180deg,rgba(32,38,68,.74),rgba(13,16,31,.84));--dock-sh:0 18px 44px rgba(0,0,0,.55),0 2px 0 rgba(0,0,0,.3);
+ --pri-bg:linear-gradient(180deg,#F4F6FA,#D9DFEA);--pri-bg-h:linear-gradient(180deg,#FFFFFF,#E8ECF4);--pri-tx:#0A0D1A;--sec-bg:rgba(170,188,255,.08);
+ --priv-bg:rgba(66,210,127,.08);--pill-bg:rgba(170,188,255,.06);--glowc:rgba(140,180,255,.38);
+ color:var(--tx1)}
+.lt{--s0:#E4E9F2;--s1:#EDF0F7;--s2:#FBFCFE;--s3:#E3E8F1;--sin:#FFFFFF;--ln:#D8DEE9;--ln2:#78819A;
+ --tx1:#111726;--tx2:#424B62;--tx3:#58627D;--red:#CC3328;--blue:#1061D6;--green:#127A43;--silver:#5B667F;--focus:#1061D6;
+ --selbg:rgba(16,97,214,.10);--hov:rgba(24,44,96,.05);--hov2:rgba(24,44,96,.09);
+ --rim-a:#FFFFFF;--rim-b:rgba(70,90,140,.16);--rim-c:rgba(70,90,140,.30);
+ --wsh:22px 36px 64px rgba(36,54,108,.22),6px 12px 28px rgba(36,54,108,.14);--wsh-off:14px 24px 48px rgba(36,54,108,.16);
+ --dock-bg:linear-gradient(180deg,rgba(255,255,255,.80),rgba(240,243,250,.86));--dock-sh:0 18px 44px rgba(36,54,108,.20),0 1px 0 rgba(255,255,255,.9) inset;
+ --pri-bg:linear-gradient(180deg,#232B42,#121828);--pri-bg-h:linear-gradient(180deg,#2E3853,#1A2134);--pri-tx:#FFFFFF;--sec-bg:#FFFFFF;
+ --priv-bg:rgba(18,122,67,.07);--pill-bg:#FFFFFF;--glowc:rgba(16,97,214,.22);
+ color:var(--tx1)}
+.tx2{color:var(--tx2)}.tx3{color:var(--tx3)}
+
+/* ---------- wallpapers ---------- */
+.wall-dk{background:
+ radial-gradient(230px 180px at 64.3% 48.3%,rgba(222,230,255,.11),rgba(222,230,255,0)),
+ radial-gradient(470px 380px at 61% 22%,rgba(255,74,61,.17),rgba(255,74,61,0) 72%),
+ radial-gradient(540px 430px at 90% 53%,rgba(37,133,255,.21),rgba(37,133,255,0) 72%),
+ radial-gradient(500px 400px at 42% 70%,rgba(51,196,107,.12),rgba(51,196,107,0) 72%),
+ radial-gradient(940px 640px at 66% 47%,rgba(40,48,116,.52),rgba(40,48,116,0) 76%),
+ radial-gradient(760px 520px at 8% 6%,rgba(22,28,66,.55),rgba(22,28,66,0) 70%),
+ linear-gradient(176deg,#080A18 0%,#05060E 55%,#03040A 100%)}
+.wall-lt{background:
+ radial-gradient(320px 240px at 64.3% 48.3%,rgba(255,255,255,.9),rgba(255,255,255,0)),
+ radial-gradient(520px 340px at 61% 20%,rgba(255,158,112,.30),rgba(255,158,112,0) 72%),
+ radial-gradient(580px 440px at 90% 53%,rgba(64,140,255,.24),rgba(64,140,255,0) 72%),
+ radial-gradient(540px 420px at 42% 72%,rgba(56,200,120,.15),rgba(56,200,120,0) 72%),
+ radial-gradient(1200px 520px at 50% -8%,rgba(120,160,235,.45),rgba(120,160,235,0) 80%),
+ linear-gradient(180deg,#AFC4EC 0%,#CEDBF3 28%,#E7EDF8 60%,#F5F7FB 100%)}
+.wp{position:absolute;inset:0;width:1440px;height:900px;pointer-events:none}
+
+/* ---------- Orbit (dock) ---------- */
+.orbit{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);height:64px;padding:8px;display:flex;align-items:center;gap:4px;border-radius:22px;z-index:20}
+.orbit::before{content:"";position:absolute;inset:0;border-radius:22px;background:var(--dock-bg);backdrop-filter:blur(24px) saturate(1.4);box-shadow:var(--dock-sh);z-index:0}
+.orbit::after,.rim::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;z-index:2;
+ background:linear-gradient(135deg,var(--rim-a),var(--rim-b) 45%,var(--rim-c));
+ -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.orbit>*{position:relative;z-index:1}
+.orbit>.arc{position:absolute;z-index:-1;top:-18px;width:300px;height:48px}
+.ob{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:var(--tx1);position:relative}
+.ob .ic{width:24px;height:24px}
+.ob.run::after{content:"";position:absolute;bottom:0;left:50%;width:12px;height:3px;margin-left:-6px;border-radius:50%;background:var(--tx2)}
+.ob.act::after{width:20px;margin-left:-10px;background:linear-gradient(90deg,transparent,var(--app) 30%,var(--app) 70%,transparent)}
+.sep{width:1px;height:28px;margin:0 4px;background:var(--ln);flex:none}
+.nuc{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+ background:radial-gradient(120% 120% at 30% 12%,#2C3757 0%,#121A2E 55%,#070911 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(170,188,255,.16),0 4px 10px rgba(0,0,0,.35)}
+.nuc svg{width:31px;height:31px;margin:-1px 0 0 -1px}
+.ob.open{background:var(--hov2)}
+.ob.open .nuc{box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 0 1px rgba(200,214,255,.5),0 4px 10px rgba(0,0,0,.35)}
+.tile{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#DCE3F0;
+ background:radial-gradient(120% 120% at 28% 0%,#2D3858 0%,#131B2F 55%,#080A12 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),inset 0 0 0 1px rgba(170,188,255,.14),0 4px 10px rgba(0,0,0,.28)}
+.tile.s28{width:28px;height:28px;border-radius:8px}
+.tile.s28 .ic{width:18px;height:18px}
+.tile.s32{width:32px;height:32px;border-radius:9px}
+.tile.s32 .ic{width:20px;height:20px}
+.priv{height:48px;display:flex;align-items:center;gap:10px;padding:0 14px 0 10px;border-radius:14px;background:var(--priv-bg);white-space:nowrap}
+.priv .tx{display:flex;flex-direction:column}
+.clock{height:48px;padding:0 10px 0 12px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;white-space:nowrap}
+
+/* ---------- icons ---------- */
+.ic{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic.s20{width:20px;height:20px}.ic.s16{width:16px;height:16px}.ic.s18{width:18px;height:18px}
+
+/* ---------- windows ---------- */
+.win{position:absolute;z-index:1;border-radius:16px;background:var(--s2);box-shadow:var(--wsh);--app:var(--blue)}
+.win.off{box-shadow:var(--wsh-off)}
+.win::after{content:"";position:absolute;inset:0;border-radius:16px;padding:1px;pointer-events:none;z-index:5;
+ background:linear-gradient(135deg,var(--rim-a),color-mix(in srgb,var(--app) 34%,transparent) 16%,var(--rim-b) 46%,var(--rim-c));
+ -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.lt .win::after{background:linear-gradient(135deg,color-mix(in srgb,var(--app) 60%,#FFFFFF),#FFFFFF 16%,rgba(70,90,140,.18) 46%,rgba(70,90,140,.32))}
+.lt .pane,.lt .nt,.lt .spane,.lt .hv{background:linear-gradient(160deg,#FFFFFF 0%,#FAFBFD 55%,#F3F6FA 100%)}
+.win.off::after{background:linear-gradient(135deg,var(--rim-b),var(--rim-b) 50%,var(--rim-c))!important}
+.wb{position:absolute;inset:0;border-radius:16px;overflow:hidden}
+.bar{height:52px;display:flex;align-items:center;gap:10px;padding:0 8px 0 14px;background:var(--s1);position:relative}
+.bar .ttl{white-space:nowrap}
+.win.off .bar .ttl{color:var(--tx3)}
+.wc{margin-left:auto;display:flex;gap:2px;flex:none}
+.wc button{width:40px;height:32px;border-radius:10px;display:grid;place-items:center;color:var(--tx2)}
+.win.off .wc button{color:var(--tx3)}
+.wc .ic{width:16px;height:16px}
+.bl{position:absolute;top:-1px;left:26px;width:380px;height:2px;border-radius:50%;z-index:6;pointer-events:none;
+ background:linear-gradient(90deg,rgba(255,255,255,0),var(--app) 20%,#FFFFFF 40%,var(--app) 64%,rgba(255,255,255,0))}
+.win.on::before{content:"";position:absolute;left:-1px;top:18px;width:2px;height:150px;border-radius:50%;z-index:6;pointer-events:none;opacity:.8;
+ background:linear-gradient(180deg,rgba(255,255,255,0),var(--app) 14%,#FFFFFF 30%,var(--app) 52%,rgba(255,255,255,0))}
+.lt .win.on::before{background:linear-gradient(180deg,rgba(255,255,255,0),var(--app) 18%,var(--app) 45%,rgba(255,255,255,0));opacity:.7}
+.bl::after{content:"";position:absolute;left:6%;right:20%;top:-10px;height:22px;background:radial-gradient(closest-side,color-mix(in srgb,var(--app) 45%,transparent),transparent)}
+.lt .bl{height:2.5px;background:linear-gradient(90deg,rgba(255,255,255,0),var(--app) 22%,color-mix(in srgb,var(--app) 70%,#000) 42%,var(--app) 64%,rgba(255,255,255,0))}
+.lt .bl::after{background:radial-gradient(closest-side,color-mix(in srgb,var(--app) 26%,transparent),transparent)}
+
+/* ---------- controls ---------- */
+.btn{height:36px;padding:0 14px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 14px/20px var(--sans);white-space:nowrap;color:var(--tx1);position:relative}
+.btn .ic{width:18px;height:18px}
+.btn.pri{background:var(--pri-bg);color:var(--pri-tx);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 2px 8px rgba(0,0,0,.18)}
+.btn.pri.h{background:var(--pri-bg-h)}
+.btn.sec{background:var(--sec-bg);box-shadow:inset 0 0 0 1px var(--ln2)}
+.btn.sec.h{background:var(--hov2)}
+.btn.qui{background:transparent}
+.btn.qui.h{background:var(--hov2)}
+.btn.dis{opacity:.38}
+.btn.lg{height:44px;padding:0 18px;border-radius:13px}
+.fx{outline:2px solid var(--focus);outline-offset:2px}
+.inp{height:36px;border-radius:11px;background:var(--sin);box-shadow:inset 0 0 0 1px var(--ln2);padding:0 12px;display:flex;align-items:center;gap:8px;color:var(--tx1);white-space:nowrap}
+.inp .ph{color:var(--tx3)}
+.inp .ic{width:18px;height:18px;color:var(--tx2)}
+.inp.err{box-shadow:inset 0 0 0 2px var(--red)}
+.row{height:44px;border-radius:10px;display:flex;align-items:center;gap:12px;padding:0 12px;position:relative;white-space:nowrap}
+.row.h{background:var(--hov)}
+.row.sel{background:var(--selbg)}
+.sel::before,.selb::before{content:"";position:absolute;left:-1px;top:50%;width:3px;height:26px;margin-top:-13px;border-radius:50%;
+ background:linear-gradient(180deg,transparent,var(--app,var(--blue)) 26%,#FFFFFF 50%,var(--app,var(--blue)) 74%,transparent);z-index:2}
+.lt .sel::before,.lt .selb::before{background:linear-gradient(180deg,transparent,var(--app,var(--blue)) 25%,var(--app,var(--blue)) 75%,transparent)}
+.pill{height:28px;padding:0 11px 0 8px;border-radius:999px;display:inline-flex;align-items:center;gap:7px;font:500 12px/16px var(--sans);background:var(--pill-bg);box-shadow:inset 0 0 0 1px var(--ln);white-space:nowrap;color:var(--tx1)}
+.pill svg{width:14px;height:14px}
+.pill.err{background:var(--red);color:#fff;box-shadow:none}
+.lt .pill.err{color:#fff}
+.dk .pill.err{background:#C9352A}
+
+/* ---------- desktop: Verder waar je was ---------- */
+.cont{position:absolute;left:120px;top:186px;width:460px}
+.traj{position:absolute;left:0;top:156px;width:460px;height:290px}
+.traj svg{position:absolute;left:0;top:0;overflow:visible}
+.it{position:absolute;display:flex;align-items:center;gap:16px;height:76px;padding:0 18px 0 8px;border-radius:16px;width:370px}
+.it .meta{color:var(--tx2)}
+.page{position:relative;width:48px;height:60px;border-radius:7px;flex:none;overflow:hidden;
+ background:linear-gradient(165deg,#FBFCFF 0%,#E7EBF3 100%);box-shadow:0 10px 22px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.7)}
+.page i{position:absolute;left:8px;height:3px;border-radius:2px;background:#B9C1D2}
+.page svg{position:absolute;inset:0}
+
+/* ---------- launcher ---------- */
+.launch{position:absolute;border-radius:24px;overflow:visible;z-index:15}
+.launch .lbg{position:absolute;inset:0;border-radius:24px;background:linear-gradient(180deg,rgba(20,24,46,.86),rgba(11,13,27,.92));backdrop-filter:blur(30px) saturate(1.4);box-shadow:22px 36px 64px rgba(0,0,0,.6)}
+.lsearch{height:68px;display:flex;align-items:center;gap:14px;padding:0 24px;border-bottom:1px solid var(--ln);position:relative}
+.caret{display:inline-block;width:2px;height:26px;border-radius:1px;background:var(--focus);margin-left:2px;vertical-align:-6px}
+.lbody{display:grid;grid-template-columns:520px 1fr;height:476px;position:relative}
+.lres{padding:8px 12px;border-right:1px solid var(--ln)}
+.grp{padding:12px 12px 6px;color:var(--tx3)}
+.lr{height:56px;display:flex;gap:14px;align-items:center;padding:0 14px;border-radius:12px;position:relative;white-space:nowrap;--app:var(--blue)}
+.lr.a{height:44px}
+.lr.f{background:var(--selbg);outline:2px solid var(--focus);outline-offset:-2px}
+.lr .k{margin-left:auto;color:var(--tx3)}
+.lr mark{background:none;color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px;text-decoration-color:var(--blue)}
+.lfoot{height:64px;border-top:1px solid var(--ln);display:flex;align-items:center;gap:12px;padding:0 12px 0 18px;position:relative}
+.ava{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font:600 14px/20px var(--sans);color:#fff;
+ background:radial-gradient(120% 120% at 30% 10%,#3A4670,#161D35 70%);box-shadow:inset 0 0 0 1.5px rgba(214,224,255,.55)}
+
+/* ---------- Bestanden ---------- */
+.fm{position:absolute;inset:0;display:grid;grid-template-columns:248px 1fr;grid-template-rows:52px 1fr;background:var(--s1)}
+.fm>.bar{grid-column:1/-1;background:transparent}
+.fm,.stg{background:radial-gradient(560px 380px at 0% 0%,color-mix(in srgb,var(--app) 10%,transparent),transparent 72%),var(--s1)}
+.hv .bar{background:radial-gradient(520px 200px at 0% 0%,color-mix(in srgb,var(--app) 10%,transparent),transparent 72%),var(--s1)}
+.bz{width:226px;display:flex;align-items:center;gap:10px;flex:none}
+.nb{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--tx2);flex:none}
+.nb .ic{width:18px;height:18px}
+.crumb{display:flex;align-items:center;gap:8px;white-space:nowrap;margin-left:4px}
+.side{padding:4px 12px 12px;position:relative}
+.sr{height:32px;display:flex;align-items:center;gap:11px;padding:0 10px;border-radius:9px;color:var(--tx2);position:relative;white-space:nowrap}
+.sr .ic{width:18px;height:18px}
+.sr.sel{background:var(--selbg);color:var(--tx1)}
+.sh{padding:14px 10px 6px;color:var(--tx3)}
+.dot{width:8px;height:8px;border-radius:50%;margin:0 5px;flex:none}
+.pane{background:var(--s2);border-top-left-radius:14px;position:relative;display:grid;grid-template-columns:1fr 332px;overflow:hidden;box-shadow:inset 1px 1px 0 var(--ln)}
+.cols{display:grid;grid-template-columns:184px 120px 116px 1fr;align-items:center}
+.lh{height:42px;padding:0 24px;color:var(--tx3);border-bottom:1px solid var(--ln)}
+.lrw{height:48px;padding:0 12px;margin:0 12px;border-radius:10px;position:relative;color:var(--tx2);white-space:nowrap}
+.lrw:first-of-type{margin-top:6px}
+.lrw .n{display:flex;align-items:center;gap:10px;color:var(--tx1)}
+.lrw .n .ic{width:20px;height:20px;color:var(--tx2)}
+.lrw.sel{background:var(--selbg)}
+.sbar{position:absolute;left:0;right:0;bottom:0;height:36px;display:flex;align-items:center;gap:8px;padding:0 24px;border-top:1px solid var(--ln);color:var(--tx2)}
+.insp{margin:10px 10px 10px 0;border-radius:14px;padding:20px 20px 0;position:relative;background:linear-gradient(180deg,#181D38,#12162B 70%);box-shadow:-14px 18px 40px rgba(0,0,0,.42)}
+.ish{color:var(--tx3);margin:20px 0 8px}
+.vt{position:relative;padding-left:24px}
+.vt::before{content:"";position:absolute;left:5px;top:16px;bottom:16px;width:1.5px;background:var(--ln2);opacity:.6}
+.vi{height:32px;display:flex;align-items:center;position:relative;white-space:nowrap}
+.vi::before{content:"";position:absolute;left:-24px;top:10px;width:12px;height:12px;border-radius:50%;box-sizing:border-box;border:1.5px solid var(--tx3);background:var(--s2)}
+.vi.now::before{border:0;background:var(--app);outline:3px solid color-mix(in srgb,var(--app) 25%,transparent)}
+.kv{display:flex;gap:10px;align-items:flex-start;padding:6px 0}
+.kv .ic{width:20px;height:20px;margin-top:0;color:var(--tx2)}
+
+/* ---------- Notities ---------- */
+.nt{position:absolute;inset:0;display:grid;grid-template-rows:52px 1fr;background:var(--s2)}
+.nt .bar{background:var(--s2);border-bottom:1px solid var(--ln)}
+.nbody{padding:38px 96px 0 96px;position:relative}
+.nbody p{margin:14px 0 0;max-width:700px}
+.tcaret{display:inline-block;width:2px;height:22px;vertical-align:-5px;margin-left:2px;border-radius:50%;background:linear-gradient(180deg,transparent,var(--app) 20%,var(--app) 80%,transparent)}
+
+/* ---------- trusted system surface (Kern material: opaque, identical in both themes) ---------- */
+.kern{position:absolute;border-radius:20px;background:#0B0E1B;z-index:30;box-shadow:0 34px 64px rgba(6,10,26,.42),0 10px 24px rgba(6,10,26,.30)}
+.kern::after{content:"";position:absolute;inset:0;border-radius:20px;padding:1.5px;pointer-events:none;background:linear-gradient(135deg,#EEF2F8,#9AA5BE 35%,#56607E 70%,#7C88A6);
+ -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.kband{height:44px;display:flex;align-items:center;gap:10px;padding:0 22px;border-bottom:1px solid #262E4C;color:#B3BCD3;white-space:nowrap}
+.kband svg{width:22px;height:22px}
+.kbody{padding:18px 28px 20px}
+.kr{display:grid;grid-template-columns:104px 1fr;min-height:36px;align-items:center;border-top:1px solid #20273F}
+.kr:last-child{border-bottom:1px solid #20273F}
+.kw{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:#22151C;box-shadow:inset 0 0 0 1px rgba(255,108,96,.45);margin-top:14px}
+.tether{position:absolute;width:2px;border-radius:50%;z-index:31;background:linear-gradient(180deg,#F1F4FA,#FF8A7E 55%,rgba(255,92,80,0))}
+.priv.req{background:rgba(204,51,40,.08);box-shadow:inset 0 0 0 1px rgba(204,51,40,.38)}
+.ring{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1.5px solid rgba(204,51,40,.6);outline:4px solid rgba(204,51,40,.10)}
+.scrim{position:absolute;inset:0;background:rgba(24,34,68,.07);z-index:25}
+
+/* ---------- Instellingen + Haven ---------- */
+.stg{position:absolute;inset:0;display:grid;grid-template-columns:240px 1fr;grid-template-rows:52px 1fr;background:var(--s1)}
+.stg>.bar{grid-column:1/-1;background:transparent}
+.snav{padding:4px 12px}
+.ni{height:36px;display:flex;align-items:center;padding:0 12px;border-radius:9px;color:var(--tx2);position:relative;white-space:nowrap}
+.ni.sel{background:var(--selbg);color:var(--tx1)}
+.spane{background:var(--s2);border-top-left-radius:14px;box-shadow:inset 1px 1px 0 var(--ln);padding:26px 40px 0;position:relative}
+.sech{margin:22px 0 10px}
+.card{background:var(--sin);border-radius:14px;box-shadow:inset 0 0 0 1px var(--ln),0 1px 2px rgba(30,45,90,.05)}
+.srow{min-height:60px;display:flex;align-items:center;gap:14px;padding:9px 14px 9px 16px;border-top:1px solid var(--ln);white-space:nowrap}
+.srow:first-child{border-top:0}
+.srow .grow{flex:1;min-width:0}
+.srow .btn{height:34px}
+.tg{width:48px;height:28px;border-radius:14px;background:var(--blue);position:relative;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.tg i{position:absolute;right:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;display:grid;place-items:center;color:var(--blue);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.tg i .ic{width:14px;height:14px;stroke-width:2.2}
+.hv{position:absolute;inset:0;display:grid;grid-template-rows:52px 1fr;background:var(--s2)}
+.hv .bar{background:var(--s1)}
+.hbody{padding:24px 32px 0;position:relative}
+.appic{width:88px;height:88px;border-radius:22px;position:relative;overflow:hidden;
+ background:radial-gradient(120% 120% at 30% 0%,#2B4384 0%,#14224D 50%,#070C1F 100%);box-shadow:0 12px 24px rgba(20,30,70,.3),inset 0 1px 0 rgba(255,255,255,.3)}
+.shot{position:absolute;border-radius:12px;background:radial-gradient(60% 70% at 60% 40%,#1E3A7A,#0A1230 70%);box-shadow:inset 0 0 0 1px var(--ln)}
+
+/* ---------- Systeem board ---------- */
+.sys{background:radial-gradient(900px 600px at 70% 0%,#121730,#090B14 70%);color:#E9EDF5}
+.blk{position:absolute}
+.bh{font:600 14px/20px var(--sans);color:#FFFFFF;margin:0 0 10px;white-space:nowrap}
+.bh span{font-weight:400;color:#A3ACC4;margin-left:8px;font-size:12px}
+.note{font:400 12px/17px var(--sans);color:#B9C1D6}
+.plate{border-radius:16px;position:relative;overflow:hidden}
+.plate.d{background:#0E1122;box-shadow:inset 0 0 0 1px #20263F}
+.plate.l{background:#F4F6FA;box-shadow:inset 0 0 0 1px #DCE1EA}
+.tok{display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:center;height:21px;font:500 12px/16px var(--sans)}
+.tok i{width:18px;height:18px;border-radius:5px;box-shadow:inset 0 0 0 1px rgba(128,140,170,.45)}
+.tok b{font-weight:500;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.mt{display:grid;grid-template-columns:110px 84px 1fr;gap:5px 10px;font:400 12px/16px var(--sans);color:#B9C1D6;align-items:start}
+.mt b{color:#fff;font-weight:600}
+.cg{display:grid;grid-template-columns:62px repeat(4,1fr);gap:6px 8px;align-items:center}
+.cg .btn{width:100%;padding:0 8px;height:32px}
+.lab{font:500 12px/16px var(--sans);color:#A3ACC4}
+.icg{display:grid;grid-template-columns:repeat(6,1fr);gap:6px 4px}
+.icc{display:flex;flex-direction:column;align-items:center;gap:5px;height:62px;text-align:center}
+.icc .bx{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:#151A31;box-shadow:inset 0 0 0 1px #262D4A;color:#E3E8F3}
+.icc .lab{font-size:12px;line-height:14px}
+.tb{height:40px;border-radius:12px 12px 0 0;display:flex;align-items:center;gap:8px;padding:0 4px 0 10px;position:relative}
+.tb .wc button{width:30px;height:28px}
+.dp{width:52px;height:44px;border-radius:10px;position:relative}
+.boot{overflow:visible}
+.boot .g{transform-box:view-box;transform-origin:479.9px 564.5px}
+.boot .bt-or{animation:btOr 6s infinite}.boot .bt-or>g{animation:btOrI 6s infinite}
+.boot .bt-ob{animation:btOb 6s infinite}.boot .bt-ob>g{animation:btObI 6s infinite}
+.boot .bt-og{animation:btOg 6s infinite}.boot .bt-og>g{animation:btOgI 6s infinite}
+.boot .bt-body{animation:btBody 6s infinite}
+.boot .bt-b1{animation:btBl 6s infinite}.boot .bt-b2{animation:btBl 6s infinite;animation-delay:.08s}.boot .bt-b3{animation:btBl 6s infinite;animation-delay:.16s}
+.boot .bt-sw{animation:btSw 6s infinite}
+.boot .bt-guide{animation:btGd 6s infinite}
+@keyframes btOr{0%,50%{transform:rotate(0);opacity:1}54%{transform:rotate(0);opacity:0}55%{transform:rotate(-160deg);opacity:0}57%{transform:rotate(-160deg);opacity:1;animation-timing-function:cubic-bezier(.16,.84,.24,1)}71%,100%{transform:rotate(0);opacity:1}}
+@keyframes btOrI{0%,54%{transform:translate(0,0)}55%,57%{transform:translate(-48px,-393px);animation-timing-function:cubic-bezier(.16,.84,.24,1)}71%,100%{transform:translate(0,0)}}
+@keyframes btOb{0%,50%{transform:rotate(0);opacity:1}54%{transform:rotate(0);opacity:0}55%{transform:rotate(-130deg);opacity:0}58%{transform:rotate(-130deg);opacity:1;animation-timing-function:cubic-bezier(.16,.84,.24,1)}72%,100%{transform:rotate(0);opacity:1}}
+@keyframes btObI{0%,54%{transform:translate(0,0)}55%,58%{transform:translate(425px,180px);animation-timing-function:cubic-bezier(.16,.84,.24,1)}72%,100%{transform:translate(0,0)}}
+@keyframes btOg{0%,50%{transform:rotate(0);opacity:1}54%{transform:rotate(0);opacity:0}55%{transform:rotate(-190deg);opacity:0}59%{transform:rotate(-190deg);opacity:1;animation-timing-function:cubic-bezier(.16,.84,.24,1)}73%,100%{transform:rotate(0);opacity:1}}
+@keyframes btOgI{0%,54%{transform:translate(0,0)}55%,59%{transform:translate(-343px,258px);animation-timing-function:cubic-bezier(.16,.84,.24,1)}73%,100%{transform:translate(0,0)}}
+@keyframes btBody{0%,50%{opacity:1;transform:scale(1)}54%,67%{opacity:0;transform:scale(.88)}76%,100%{opacity:1;transform:scale(1)}}
+@keyframes btBl{0%,50%{opacity:1;transform:rotate(0)}54%,72%{opacity:0;transform:rotate(-16deg)}79%,100%{opacity:1;transform:rotate(0)}}
+@keyframes btSw{0%,76%{opacity:0;transform:rotate(-20deg)}78%{opacity:1;transform:rotate(10deg)}90%{opacity:0;transform:rotate(320deg)}100%{opacity:0;transform:rotate(320deg)}}
+@keyframes btGd{0%,54%{opacity:0}58%,70%{opacity:.55}78%,100%{opacity:0}}
+.ld{animation:ldRot 1.4s linear infinite;transform-box:view-box;transform-origin:16px 16px}
+.ld .bind{animation:ldBind 2.8s ease-in-out infinite;transform-box:view-box;transform-origin:16px 16px}
+@keyframes ldRot{to{transform:rotate(360deg)}}
+@keyframes ldBind{0%,100%{transform:scale(1)}50%{transform:scale(.62)}}
+
+/* ---------- high contrast ---------- */
+.hc{--s1:#000;--s2:#000;--s3:#000;--sin:#000;--ln:#FFFFFF;--ln2:#FFFFFF;--tx1:#FFFFFF;--tx2:#FFFFFF;--tx3:#F2F2F2;--red:#FF8A80;--blue:#8EC5FF;--green:#7CF0A8;--focus:#FFE34D;
+ --priv-bg:#000;--dock-bg:#000;--dock-sh:none;--rim-a:#FFFFFF;--rim-b:#FFFFFF;--rim-c:#FFFFFF;background:#000}
+.hc .orbit::after{padding:2px}
+.hc .tile,.hc .nuc{box-shadow:inset 0 0 0 2px #FFFFFF;background:#000}
+.hc .priv{box-shadow:inset 0 0 0 2px #FFFFFF}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion:reduce){.anim,.anim *{animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ======================= SPRITE: canonical marks (ids renamed per copy), icons, wallpaper overlays ======================= -->
+<svg aria-hidden="true" width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden">
+<defs>
+ <!-- mark-primary.svg (dark surfaces) -->
+ <mask id="sp-p-clear" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="439.67" cy="236.93" r="95.70" fill="#000"/><circle cx="783.66" cy="693.41" r="95.70" fill="#000"/><circle cx="216.34" cy="763.07" r="95.70" fill="#000"/></mask>
+ <linearGradient id="sp-p-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".55" stop-color="#D7DCE3"/><stop offset="1" stop-color="#A7B0BC"/></linearGradient>
+ <symbol id="mk-p" viewBox="0 0 1000 1000"><g fill="url(#sp-p-silver)" mask="url(#sp-p-clear)"><path fill-rule="evenodd" d="M447.72,302.44 722.90,667.62 269.05,723.35Z M459.78,400.70 631.77,628.94 348.12,663.77Z"/><polygon points="431.77,242.89 489.75,199.20 718.47,623.35"/><polygon points="782.45,683.59 791.30,755.64 309.61,741.64"/><polygon points="225.45,766.94 158.63,738.57 411.60,328.42"/></g><circle cx="439.67" cy="236.93" r="72.60" fill="#FF4A3D"/><circle cx="783.66" cy="693.41" r="72.60" fill="#2585FF"/><circle cx="216.34" cy="763.07" r="72.60" fill="#33C46B"/></symbol>
+ <!-- mark-light.svg (light surfaces; background rect omitted) -->
+ <mask id="sp-l-clear" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="439.67" cy="236.93" r="95.70" fill="#000"/><circle cx="783.66" cy="693.41" r="95.70" fill="#000"/><circle cx="216.34" cy="763.07" r="95.70" fill="#000"/></mask>
+ <symbol id="mk-l" viewBox="0 0 1000 1000"><g fill="#1A1F27" mask="url(#sp-l-clear)"><path fill-rule="evenodd" d="M447.72,302.44 722.90,667.62 269.05,723.35Z M459.78,400.70 631.77,628.94 348.12,663.77Z"/><polygon points="431.77,242.89 489.75,199.20 718.47,623.35"/><polygon points="782.45,683.59 791.30,755.64 309.61,741.64"/><polygon points="225.45,766.94 158.63,738.57 411.60,328.42"/></g><circle cx="439.67" cy="236.93" r="72.60" fill="#D9342A"/><circle cx="783.66" cy="693.41" r="72.60" fill="#1061D6"/><circle cx="216.34" cy="763.07" r="72.60" fill="#14894A"/></symbol>
+ <!-- mark-compact.svg (<= 40 px, on dark nucleus) -->
+ <mask id="sp-c-clear" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="436.02" cy="220.99" r="135.80" fill="#000"/><circle cx="800.85" cy="705.13" r="135.80" fill="#000"/><circle cx="199.15" cy="779.01" r="135.80" fill="#000"/></mask>
+ <linearGradient id="sp-c-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".55" stop-color="#D7DCE3"/><stop offset="1" stop-color="#A7B0BC"/></linearGradient>
+ <symbol id="mk-c" viewBox="0 0 1000 1000"><g fill="url(#sp-c-silver)" mask="url(#sp-c-clear)"><path fill-rule="evenodd" d="M444.55,290.47 736.41,677.78 255.05,736.89Z M465.02,457.21 581.77,612.14 389.23,635.78Z"/></g><circle cx="436.02" cy="220.99" r="103.95" fill="#FF4A3D"/><circle cx="800.85" cy="705.13" r="103.95" fill="#2585FF"/><circle cx="199.15" cy="779.01" r="103.95" fill="#33C46B"/></symbol>
+
+ <!-- ===== Orbitaal icon family: 24-unit grid, 1.6 stroke, round terminals, exactly one solid particle per glyph at a structural joint ===== -->
+ <symbol id="i-zoeken" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 18.6 18.6"/><circle cx="19.6" cy="19.6" r="2" style="fill:var(--pc,currentColor);stroke:none"/></symbol>
+ <symbol id="i-bestanden" viewBox="0 0 24 24"><rect x="3.5" y="8.5" width="13.5" height="12" rx="2.5"/><path d="M7 5.5h10.5a3 3 0 0 1 3 3V17"/><circle cx="10.25" cy="14.5" r="2" style="fill:var(--pc,currentColor);stroke:none"/></symbol>
+ <symbol id="i-notities" viewBox="0 0 24 24"><rect x="4.5" y="3.5" width="15" height="17" rx="2.5"/><path d="M8 8.5h8M8 12h8M8 15.5h3.2"/><circle cx="14.6" cy="15.5" r="1.9" style="fill:var(--pc,currentColor);stroke:none"/></symbol>
+ <symbol id="i-instellingen" viewBox="0 0 24 24"><path d="M3.5 6h3.3M11.2 6h9.3M3.5 12h9.3M17.2 12h3.3M3.5 18h5.8M13.7 18h6.8"/><circle cx="9" cy="6" r="2.2"/><circle cx="11.5" cy="18" r="2.2"/><circle cx="15" cy="12" r="2.3" style="fill:var(--pc,currentColor);stroke:none"/></symbol>
+ <symbol id="i-haven" viewBox="0 0 24 24"><path d="M4.5 10v3.5a7.5 7.5 0 0 0 15 0V10"/><path d="M4.5 10h3M19.5 10h-3"/><path d="M9.2 14a2.8 2.8 0 0 0 5.6 0"/><circle cx="12" cy="6" r="2.1" style="fill:var(--pc,currentColor);stroke:none"/></symbol>
+ <symbol id="i-device" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="11.5" rx="2"/><path d="M2.5 19.5h19"/><circle cx="12" cy="10.75" r="2" style="fill:var(--pc,currentColor);stroke:none"/></symbol>
+ <symbol id="i-nas" viewBox="0 0 24 24"><rect x="4" y="3.5" width="16" height="7.5" rx="2"/><rect x="4" y="13" width="16" height="7.5" rx="2"/><path d="M12.5 7.25h4M12.5 16.75h4M7.3 7.25h1"/><circle cx="7.8" cy="16.75" r="1.8" style="fill:var(--pc,currentColor);stroke:none"/></symbol>
+ <symbol id="i-versies" viewBox="0 0 24 24"><path d="M5.2 15.4A7.5 7.5 0 1 0 5.6 8"/><path d="M4.8 4.6 5.6 8l3.4-.7"/><path d="M12 8.2V11"/><circle cx="12" cy="12.6" r="1.9" style="fill:var(--pc,currentColor);stroke:none"/></symbol>
+ <symbol id="i-toegang" viewBox="0 0 24 24"><circle cx="8" cy="15.5" r="4"/><path d="M10.9 12.6 19.5 4M16.3 7.2l2.4 2.4M13.8 9.7l1.7 1.7"/><circle cx="8" cy="15.5" r="1.6" style="fill:var(--pc,currentColor);stroke:none"/></symbol>
+ <symbol id="i-internet" viewBox="0 0 24 24"><circle cx="11.5" cy="12" r="8"/><path d="M11.5 4c-2.2 2.2-3.3 4.9-3.3 8s1.1 5.8 3.3 8c2.2-2.2 3.3-4.9 3.3-8s-1.1-5.8-3.3-8M3.5 12h11.5"/><circle cx="19.5" cy="12" r="2.1" style="fill:var(--pc,currentColor);stroke:none"/></symbol>
+ <symbol id="i-power" viewBox="0 0 24 24"><path d="M7.2 6.6a7.5 7.5 0 1 0 9.6 0"/><path d="M12 3.5v4.3"/><circle cx="12" cy="13" r="2" style="fill:var(--pc,currentColor);stroke:none"/></symbol>
+ <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/><circle cx="12" cy="15.5" r="1.8" style="fill:var(--pc,currentColor);stroke:none"/></symbol>
+ <symbol id="i-assistent" viewBox="0 0 24 24"><ellipse cx="12" cy="11" rx="8.6" ry="3.7" transform="rotate(-20 12 11)"/><path d="M8 20.5h8"/><circle cx="12" cy="11" r="2.3" style="fill:var(--pc,currentColor);stroke:none"/></symbol>
+ <symbol id="i-min" viewBox="0 0 24 24"><path d="M6.5 12h11"/></symbol>
+ <symbol id="i-max" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5"/></symbol>
+ <symbol id="i-close" viewBox="0 0 24 24"><path d="M7.5 7.5l9 9M16.5 7.5l-9 9"/></symbol>
+ <!-- supporting glyphs (same grammar) -->
+ <symbol id="i-back" viewBox="0 0 24 24"><path d="M14.5 6 8.5 12l6 6"/></symbol>
+ <symbol id="i-fwd" viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></symbol>
+ <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13"/></symbol>
+ <symbol id="i-check" viewBox="0 0 24 24"><path d="M5.5 12.5l4 4 9-9"/></symbol>
+ <symbol id="i-recent" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></symbol>
+ <symbol id="i-desk" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="12" rx="2"/><path d="M9 20h6M12 16.5V20"/></symbol>
+ <symbol id="i-doc" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M8.5 9h7M8.5 12.5h7M8.5 16h4"/></symbol>
+ <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="m6.5 16 4-4.5 3 3 2-2 2.5 3.5"/><circle cx="15.5" cy="9" r="1.4"/></symbol>
+ <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v10M8 10l4 4 4-4"/><path d="M4.5 15.5v2.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-2.5"/></symbol>
+ <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l.8 12a1.6 1.6 0 0 0 1.6 1.5h5.2a1.6 1.6 0 0 0 1.6-1.5L17 7"/></symbol>
+ <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4.2 20.6 19H3.4Z"/><path d="M12 10v4"/><circle cx="12" cy="16.6" r=".9" style="fill:currentColor;stroke:none"/></symbol>
+ <symbol id="i-draw" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M4 12h7V4M11 15v5M15 12h5"/></symbol>
+ <symbol id="i-list" viewBox="0 0 24 24"><rect x="4.5" y="5" width="4" height="4" rx="1.2"/><rect x="4.5" y="14.5" width="4" height="4" rx="1.2"/><path d="M11.5 7h8M11.5 16.5h8"/></symbol>
+ <symbol id="i-pdf" viewBox="0 0 24 24"><path d="M6.5 3.5h7.5l4.5 4.5v10a2.5 2.5 0 0 1-2.5 2.5h-9.5A2.5 2.5 0 0 1 4 18V6a2.5 2.5 0 0 1 2.5-2.5Z"/><path d="M13.5 3.8V8.5h4.7"/></symbol>
+ <symbol id="i-loc" viewBox="0 0 24 24"><path d="M12 21s6.5-6 6.5-11a6.5 6.5 0 0 0-13 0c0 5 6.5 11 6.5 11Z"/><circle cx="12" cy="10" r="2.2"/></symbol>
+ <symbol id="i-nofiles" viewBox="0 0 24 24"><rect x="3.5" y="8.5" width="13.5" height="12" rx="2.5"/><path d="M7 5.5h10.5a3 3 0 0 1 3 3V17M3 4l18 17"/></symbol>
+ <symbol id="i-window" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 9h17"/></symbol>
+ <symbol id="i-chev" viewBox="0 0 24 24"><path d="M10 7l5 5-5 5"/></symbol>
+
+ <!-- status shapes: never colour alone (solid = this device, shelled = own NAS, leaving orbit = internet) -->
+ <symbol id="st-dev" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.2" style="fill:var(--c)"/></symbol>
+ <symbol id="st-nas" viewBox="0 0 14 14"><circle cx="7" cy="7" r="2.5" style="fill:var(--c)"/><circle cx="7" cy="7" r="5.6" style="fill:none;stroke:var(--c);stroke-width:1.5"/></symbol>
+ <symbol id="st-net" viewBox="0 0 14 14"><path d="M2.2 10.6C4.8 12.8 9.9 9.6 11.4 5.2" style="fill:none;stroke:var(--c);stroke-width:1.5;stroke-linecap:round"/><circle cx="4.6" cy="8.4" r="2.5" style="fill:var(--c)"/><circle cx="11.6" cy="3.6" r="1.6" style="fill:var(--c)"/></symbol>
+ <symbol id="st-err" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" style="fill:#fff"/><path d="M7 3.8v4" style="stroke:#C42A20;stroke-width:1.8;stroke-linecap:round"/><circle cx="7" cy="10.2" r="1" style="fill:#C42A20"/></symbol>
+
+ <!-- ===== wallpaper overlay "Binding" (dark) ===== -->
+ <linearGradient id="wf-r" gradientUnits="userSpaceOnUse" x1="878" y1="198" x2="926" y2="435"><stop offset="0" stop-color="#FF6A5C" stop-opacity=".62"/><stop offset=".85" stop-color="#FF6A5C" stop-opacity="0"/></linearGradient>
+ <linearGradient id="wf-b" gradientUnits="userSpaceOnUse" x1="1296" y1="477" x2="926" y2="435"><stop offset="0" stop-color="#5AA2FF" stop-opacity=".66"/><stop offset=".85" stop-color="#5AA2FF" stop-opacity="0"/></linearGradient>
+ <linearGradient id="wf-g" gradientUnits="userSpaceOnUse" x1="605" y1="630" x2="926" y2="435"><stop offset="0" stop-color="#42D27F" stop-opacity=".55"/><stop offset=".85" stop-color="#42D27F" stop-opacity="0"/></linearGradient>
+ <radialGradient id="wh-r"><stop offset="0" stop-color="#FF7A6C" stop-opacity=".55"/><stop offset="1" stop-color="#FF7A6C" stop-opacity="0"/></radialGradient>
+ <radialGradient id="wh-b"><stop offset="0" stop-color="#6FB0FF" stop-opacity=".6"/><stop offset="1" stop-color="#6FB0FF" stop-opacity="0"/></radialGradient>
+ <radialGradient id="wh-g"><stop offset="0" stop-color="#5BE095" stop-opacity=".5"/><stop offset="1" stop-color="#5BE095" stop-opacity="0"/></radialGradient>
+ <radialGradient id="wh-w"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".55"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>
+ <symbol id="wp-dk" viewBox="0 0 1440 900" preserveAspectRatio="none">
+  <g><circle cx="470" cy="124" r="0.5" fill="#fff3ec" opacity="0.29"/><circle cx="144" cy="458" r="0.8" fill="#cfdcff" opacity="0.27"/><circle cx="604" cy="194" r="1.1" fill="#fff3ec" opacity="0.29"/><circle cx="186" cy="180" r="0.5" fill="#cfdcff" opacity="0.6"/><circle cx="80" cy="179" r="0.7" fill="#fff" opacity="0.42"/><circle cx="778" cy="449" r="0.7" fill="#fff3ec" opacity="0.31"/><circle cx="917" cy="295" r="0.6" fill="#fff3ec" opacity="0.59"/><circle cx="302" cy="533" r="1.1" fill="#cfdcff" opacity="0.72"/><circle cx="841" cy="358" r="0.9" fill="#fff" opacity="0.4"/><circle cx="1003" cy="196" r="0.9" fill="#dfe6ff" opacity="0.57"/><circle cx="1046" cy="230" r="0.6" fill="#cfdcff" opacity="0.32"/><circle cx="244" cy="272" r="1.3" fill="#fff" opacity="0.5"/><circle cx="1096" cy="450" r="1.0" fill="#dfe6ff" opacity="0.45"/><circle cx="854" cy="456" r="1.3" fill="#fff" opacity="0.29"/><circle cx="1351" cy="374" r="0.6" fill="#dfe6ff" opacity="0.29"/><circle cx="929" cy="775" r="1.3" fill="#cfdcff" opacity="0.42"/><circle cx="1270" cy="276" r="1.3" fill="#fff3ec" opacity="0.46"/><circle cx="176" cy="54" r="0.9" fill="#fff" opacity="0.33"/><circle cx="575" cy="716" r="1.3" fill="#cfdcff" opacity="0.3"/><circle cx="580" cy="222" r="0.7" fill="#fff3ec" opacity="0.74"/><circle cx="405" cy="329" r="1.0" fill="#cfdcff" opacity="0.66"/><circle cx="1370" cy="125" r="0.7" fill="#fff" opacity="0.34"/><circle cx="27" cy="650" r="0.7" fill="#fff" opacity="0.41"/><circle cx="217" cy="421" r="1.0" fill="#fff3ec" opacity="0.82"/><circle cx="1359" cy="514" r="0.5" fill="#fff3ec" opacity="0.52"/><circle cx="567" cy="316" r="0.6" fill="#cfdcff" opacity="0.54"/><circle cx="98" cy="60" r="0.8" fill="#fff" opacity="0.51"/><circle cx="493" cy="49" r="0.5" fill="#fff3ec" opacity="0.59"/><circle cx="154" cy="289" r="0.5" fill="#fff" opacity="0.29"/><circle cx="882" cy="123" r="0.9" fill="#fff3ec" opacity="0.82"/><circle cx="527" cy="103" r="1.3" fill="#cfdcff" opacity="0.85"/><circle cx="692" cy="249" r="0.7" fill="#dfe6ff" opacity="0.31"/><circle cx="1061" cy="377" r="0.7" fill="#fff" opacity="0.56"/><circle cx="1360" cy="416" r="0.7" fill="#fff" opacity="0.66"/><circle cx="1087" cy="238" r="0.6" fill="#dfe6ff" opacity="0.67"/><circle cx="746" cy="709" r="1.0" fill="#fff3ec" opacity="0.71"/><circle cx="779" cy="396" r="0.8" fill="#fff" opacity="0.62"/><circle cx="1155" cy="640" r="0.8" fill="#cfdcff" opacity="0.37"/><circle cx="515" cy="30" r="0.5" fill="#cfdcff" opacity="0.72"/><circle cx="378" cy="543" r="1.0" fill="#dfe6ff" opacity="0.52"/><circle cx="1366" cy="289" r="0.8" fill="#cfdcff" opacity="0.31"/><circle cx="289" cy="166" r="0.5" fill="#dfe6ff" opacity="0.54"/><circle cx="1145" cy="73" r="0.6" fill="#fff" opacity="0.8"/><circle cx="689" cy="146" r="1.0" fill="#cfdcff" opacity="0.3"/><circle cx="668" cy="582" r="0.6" fill="#fff" opacity="0.68"/><circle cx="1420" cy="29" r="1.3" fill="#fff" opacity="0.73"/><circle cx="878" cy="468" r="1.3" fill="#dfe6ff" opacity="0.64"/><circle cx="231" cy="431" r="0.5" fill="#fff" opacity="0.26"/><circle cx="758" cy="729" r="1.1" fill="#fff" opacity="0.84"/><circle cx="1183" cy="171" r="0.9" fill="#fff3ec" opacity="0.38"/><circle cx="352" cy="461" r="0.9" fill="#fff" opacity="0.58"/><circle cx="96" cy="579" r="1.3" fill="#fff3ec" opacity="0.65"/><circle cx="607" cy="716" r="0.7" fill="#fff3ec" opacity="0.57"/><circle cx="735" cy="682" r="0.7" fill="#fff" opacity="0.62"/><circle cx="255" cy="374" r="0.6" fill="#dfe6ff" opacity="0.58"/><circle cx="979" cy="418" r="1.3" fill="#fff" opacity="0.72"/><circle cx="1264" cy="52" r="0.8" fill="#fff" opacity="0.42"/><circle cx="731" cy="442" r="0.6" fill="#fff3ec" opacity="0.52"/><circle cx="1392" cy="476" r="0.8" fill="#cfdcff" opacity="0.67"/><circle cx="732" cy="631" r="0.8" fill="#dfe6ff" opacity="0.67"/><circle cx="1320" cy="697" r="0.8" fill="#fff" opacity="0.75"/><circle cx="602" cy="311" r="1.0" fill="#fff" opacity="0.29"/><circle cx="618" cy="172" r="0.9" fill="#fff" opacity="0.72"/><circle cx="1344" cy="505" r="1.0" fill="#fff" opacity="0.34"/><circle cx="1384" cy="178" r="0.6" fill="#cfdcff" opacity="0.49"/><circle cx="241" cy="524" r="0.8" fill="#cfdcff" opacity="0.35"/><circle cx="1422" cy="320" r="1.1" fill="#dfe6ff" opacity="0.37"/><circle cx="141" cy="291" r="1.0" fill="#cfdcff" opacity="0.58"/><circle cx="1008" cy="305" r="0.9" fill="#fff" opacity="0.56"/><circle cx="170" cy="717" r="0.8" fill="#fff" opacity="0.83"/><circle cx="129" cy="218" r="0.7" fill="#fff" opacity="0.41"/><circle cx="1174" cy="664" r="0.9" fill="#fff3ec" opacity="0.49"/><circle cx="1315" cy="448" r="1.0" fill="#fff" opacity="0.3"/><circle cx="1145" cy="150" r="0.6" fill="#fff" opacity="0.41"/><circle cx="911" cy="627" r="0.6" fill="#fff" opacity="0.61"/><circle cx="105" cy="674" r="1.3" fill="#fff3ec" opacity="0.26"/><circle cx="1342" cy="756" r="0.9" fill="#fff" opacity="0.28"/></g>
+  <g transform="rotate(-7 926 435)" fill="none">
+   <ellipse cx="926" cy="435" rx="600" ry="205" stroke="#AFC0FF" stroke-opacity=".11" stroke-width="1"/>
+   <ellipse cx="926" cy="435" rx="410" ry="136" stroke="#AFC0FF" stroke-opacity=".10" stroke-width="1"/>
+   <ellipse cx="926" cy="435" rx="232" ry="76" stroke="#AFC0FF" stroke-opacity=".09" stroke-width="1"/>
+   <!-- light-blades: tapered by stacked dashes, centred on one point of each orbit -->
+   <ellipse cx="926" cy="435" rx="600" ry="205" pathLength="1000" stroke="#C8D4FF" stroke-opacity=".22" stroke-width="1" stroke-dasharray="220 780" stroke-dashoffset="-543"/>
+   <ellipse cx="926" cy="435" rx="600" ry="205" pathLength="1000" stroke="#DCE5FF" stroke-opacity=".5" stroke-width="1.6" stroke-dasharray="96 904" stroke-dashoffset="-605" stroke-linecap="round"/>
+   <ellipse cx="926" cy="435" rx="600" ry="205" pathLength="1000" stroke="#FFFFFF" stroke-opacity=".95" stroke-width="2.4" stroke-dasharray="30 970" stroke-dashoffset="-638" stroke-linecap="round"/>
+   <ellipse cx="926" cy="435" rx="410" ry="136" pathLength="1000" stroke="#8DBEFF" stroke-opacity=".26" stroke-width="1" stroke-dasharray="170 830" stroke-dashoffset="-26" />
+   <ellipse cx="926" cy="435" rx="410" ry="136" pathLength="1000" stroke="#B9D6FF" stroke-opacity=".6" stroke-width="1.5" stroke-dasharray="70 930" stroke-dashoffset="-76" stroke-linecap="round"/>
+   <ellipse cx="926" cy="435" rx="410" ry="136" pathLength="1000" stroke="#FFFFFF" stroke-opacity=".9" stroke-width="2.2" stroke-dasharray="22 978" stroke-dashoffset="-100" stroke-linecap="round"/>
+   <ellipse cx="926" cy="435" rx="232" ry="76" pathLength="1000" stroke="#FFFFFF" stroke-opacity=".35" stroke-width="1.4" stroke-dasharray="60 940" stroke-dashoffset="-388" stroke-linecap="round"/>
+  </g>
+  <g fill="none" stroke-linecap="round">
+   <path d="M878 198Q975 300 926 435" stroke="url(#wf-r)" stroke-width="1.6"/><path d="M878 198Q975 300 926 435" stroke="url(#wf-r)" stroke-width="5" opacity=".25"/>
+   <path d="M1296 477Q1110 560 926 435" stroke="url(#wf-b)" stroke-width="1.6"/><path d="M1296 477Q1110 560 926 435" stroke="url(#wf-b)" stroke-width="5" opacity=".25"/>
+   <path d="M605 630Q700 470 926 435" stroke="url(#wf-g)" stroke-width="1.6"/><path d="M605 630Q700 470 926 435" stroke="url(#wf-g)" stroke-width="5" opacity=".25"/>
+  </g>
+  <circle cx="878" cy="198" r="34" fill="url(#wh-r)"/><circle cx="878" cy="198" r="2.8" fill="#FFE9E5"/>
+  <circle cx="1296" cy="477" r="38" fill="url(#wh-b)"/><circle cx="1296" cy="477" r="3" fill="#EAF3FF"/>
+  <circle cx="605" cy="630" r="34" fill="url(#wh-g)"/><circle cx="605" cy="630" r="2.8" fill="#E8FFF1"/>
+  <circle cx="926" cy="435" r="46" fill="url(#wh-w)" opacity=".4"/>
+ </symbol>
+
+ <!-- ===== wallpaper overlay "Dageraad" (light: upper atmosphere at dawn) ===== -->
+ <linearGradient id="lf-r" gradientUnits="userSpaceOnUse" x1="878" y1="180" x2="926" y2="435"><stop offset="0" stop-color="#E0523F" stop-opacity=".55"/><stop offset=".85" stop-color="#E0523F" stop-opacity="0"/></linearGradient>
+ <linearGradient id="lf-b" gradientUnits="userSpaceOnUse" x1="1296" y1="477" x2="926" y2="435"><stop offset="0" stop-color="#2D77E6" stop-opacity=".55"/><stop offset=".85" stop-color="#2D77E6" stop-opacity="0"/></linearGradient>
+ <linearGradient id="lf-g" gradientUnits="userSpaceOnUse" x1="605" y1="630" x2="926" y2="435"><stop offset="0" stop-color="#1E9A57" stop-opacity=".5"/><stop offset=".85" stop-color="#1E9A57" stop-opacity="0"/></linearGradient>
+ <radialGradient id="lh-r"><stop offset="0" stop-color="#FF8A70" stop-opacity=".7"/><stop offset="1" stop-color="#FF8A70" stop-opacity="0"/></radialGradient>
+ <radialGradient id="lh-b"><stop offset="0" stop-color="#4C93FF" stop-opacity=".6"/><stop offset="1" stop-color="#4C93FF" stop-opacity="0"/></radialGradient>
+ <radialGradient id="lh-g"><stop offset="0" stop-color="#3CC47D" stop-opacity=".55"/><stop offset="1" stop-color="#3CC47D" stop-opacity="0"/></radialGradient>
+ <symbol id="wp-lt" viewBox="0 0 1440 900" preserveAspectRatio="none">
+  <g transform="rotate(-7 926 435)" fill="none">
+   <ellipse cx="926" cy="435" rx="600" ry="205" stroke="#FFFFFF" stroke-opacity=".7" stroke-width="1.2"/>
+   <ellipse cx="926" cy="435" rx="410" ry="136" stroke="#FFFFFF" stroke-opacity=".6" stroke-width="1.1"/>
+   <ellipse cx="926" cy="435" rx="232" ry="76" stroke="#FFFFFF" stroke-opacity=".55" stroke-width="1"/>
+   <ellipse cx="926" cy="435" rx="600" ry="205" pathLength="1000" stroke="#FFFFFF" stroke-width="2" stroke-dasharray="220 780" stroke-dashoffset="-543"/>
+   <ellipse cx="926" cy="435" rx="600" ry="205" pathLength="1000" stroke="#FFFFFF" stroke-width="3.4" stroke-dasharray="40 960" stroke-dashoffset="-633" stroke-linecap="round"/>
+   <ellipse cx="926" cy="435" rx="410" ry="136" pathLength="1000" stroke="#2D77E6" stroke-opacity=".35" stroke-width="1.4" stroke-dasharray="170 830" stroke-dashoffset="-26"/>
+   <ellipse cx="926" cy="435" rx="410" ry="136" pathLength="1000" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="30 970" stroke-dashoffset="-96" stroke-linecap="round"/>
+  </g>
+  <g fill="none" stroke-linecap="round">
+   <path d="M878 198Q975 300 926 435" stroke="url(#lf-r)" stroke-width="1.8"/>
+   <path d="M1296 477Q1110 560 926 435" stroke="url(#lf-b)" stroke-width="1.8"/>
+   <path d="M605 630Q700 470 926 435" stroke="url(#lf-g)" stroke-width="1.8"/>
+  </g>
+  <circle cx="878" cy="198" r="40" fill="url(#lh-r)"/><circle cx="878" cy="198" r="3.4" fill="#FFFFFF"/>
+  <circle cx="1296" cy="477" r="42" fill="url(#lh-b)"/><circle cx="1296" cy="477" r="3.4" fill="#FFFFFF"/>
+  <circle cx="605" cy="630" r="40" fill="url(#lh-g)"/><circle cx="605" cy="630" r="3.4" fill="#FFFFFF"/>
+ </symbol>
+</defs>
+</svg>
+
+<!-- ======================= BOARD HEADER ======================= -->
+<header class="head">
+ <div>
+  <div class="nm"><svg viewBox="0 0 1000 1000" role="img" aria-label="BaryonOS"><use href="#mk-p"/></svg>
+   <div><h1>Orbitaal</h1><div class="sub">Direction B · BaryonOS 2030 · kinetic, atmospheric, spatial</div></div></div>
+ </div>
+ <p>BaryonOS as a quiet piece of physics. Every surface lives in layered atmospheric depth — nebula indigo at night, upper atmosphere at dawn by day — lit by one rim light from the upper left, along the mark's −7° lean. Colour is rationed: the three charges glow faintly in the wallpaper and bind toward a neutral core, like the mark converging; in the interface they only mark energy, state and the active app. Familiar paths stay intact: dock at the bottom centre, launcher with search, controls on the right.</p>
+ <p><b>Signature — orbital light.</b> The mark's tapered blades become light-blades: one tapered luminous stroke draws focus, selection and the active app, and nothing else. Orbit, the dock, floats under a thin orbital arc whose blade tracks the running app. Trusted questions are opaque, rise from Orbit and are tethered to its privacy indicator.</p>
+</header>
+
+<!-- ======================= 1 · BUREAUBLAD — DARK ======================= -->
+<div class="cap"><b>Bureaublad — dark.</b> Wallpaper "Binding": three charges glow and bind toward a neutral core. Recent work sits on a trajectory; Orbit's arc rests over the mark.</div>
+<section class="ab dk wall-dk" id="ab1">
+ <svg class="wp" viewBox="0 0 1440 900" aria-hidden="true"><use href="#wp-dk"/></svg>
+ <div class="cont">
+  <div class="d48">Goedemiddag, Noor</div>
+  <div class="d20 tx2" style="margin-top:30px">Verder waar je was</div>
+  <div class="traj">
+   <svg width="40" height="290" viewBox="-30 -20 40 290" style="left:-30px;top:-20px" aria-hidden="true">
+    <defs><linearGradient id="a1t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C8D4FF" stop-opacity=".55"/><stop offset="1" stop-color="#C8D4FF" stop-opacity="0"/></linearGradient></defs>
+    <path d="M-22 -14Q34 126 -22 266" fill="none" stroke="url(#a1t)" stroke-width="1.2"/>
+    <circle cx="-7.2" cy="30" r="4" fill="#FFFFFF"/><circle cx="-7.2" cy="30" r="9" fill="#FFFFFF" opacity=".12"/>
+    <circle cx="5.8" cy="114" r="3.2" fill="#C8D4FF" opacity=".8"/>
+    <circle cx="-1.4" cy="198" r="3.2" fill="#C8D4FF" opacity=".6"/>
+   </svg>
+   <a class="it" style="left:14px;top:-8px">
+    <span class="page"><i style="top:9px;width:22px;height:4px;background:#4A5470"></i><i style="top:19px;width:32px"></i><i style="top:26px;width:30px"></i><i style="top:33px;width:32px"></i><i style="top:40px;width:20px"></i></span>
+    <span><div class="d20">Tuinplan</div><div class="u14 meta">Tekst · Huis · vandaag 09:40</div></span>
+   </a>
+   <a class="it" style="left:27px;top:76px">
+    <span class="page"><svg viewBox="0 0 48 60"><g fill="none" stroke="#7B869E" stroke-width="1.2"><rect x="7" y="9" width="34" height="42" rx="1"/><path d="M7 30h15V9M22 38v13M30 30h11M30 30v8"/></g><circle cx="35" cy="17" r="2.2" fill="#2585FF"/></svg></span>
+    <span><div class="d20">Plattegrond</div><div class="u14 meta">Tekening · Huis · gisteren 18:12</div></span>
+   </a>
+   <a class="it" style="left:20px;top:160px">
+    <span class="page"><svg viewBox="0 0 48 60"><g fill="none" stroke="#7B869E" stroke-width="1.2"><rect x="8" y="12" width="6" height="6" rx="1.5"/><rect x="8" y="26" width="6" height="6" rx="1.5"/><rect x="8" y="40" width="6" height="6" rx="1.5"/></g><path d="M9.5 15l1.5 1.5 2.5-3" fill="none" stroke="#14894A" stroke-width="1.4"/><g fill="#B9C1D2"><rect x="18" y="13.5" width="20" height="3" rx="1.5"/><rect x="18" y="27.5" width="16" height="3" rx="1.5"/><rect x="18" y="41.5" width="19" height="3" rx="1.5"/></g></svg></span>
+    <span><div class="d20">Boodschappen</div><div class="u14 meta">Lijst · Vandaag · 11 nov.</div></span>
+   </a>
+  </div>
+ </div>
+
+ <nav class="orbit" aria-label="Orbit">
+  <div class="arc" style="left:-118px" aria-hidden="true">
+   <svg width="300" height="48" viewBox="0 0 300 48"><defs>
+    <linearGradient id="a1-g" x1="0" x2="1"><stop offset=".22" stop-color="#C9D6FF" stop-opacity="0"/><stop offset=".5" stop-color="#C9D6FF" stop-opacity=".3"/><stop offset=".78" stop-color="#C9D6FF" stop-opacity="0"/></linearGradient>
+    <linearGradient id="a1-b" x1="0" x2="1"><stop offset=".1" stop-color="#DCE4FF" stop-opacity="0"/><stop offset=".5" stop-color="#DCE4FF" stop-opacity=".45"/><stop offset=".9" stop-color="#DCE4FF" stop-opacity="0"/></linearGradient>
+    <linearGradient id="a1-c" x1="0" x2="1"><stop offset=".4" stop-color="#FFFFFF" stop-opacity="0"/><stop offset=".5" stop-color="#FFFFFF" stop-opacity=".75"/><stop offset=".6" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient></defs>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a1-g)" stroke-width="7"/>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a1-b)" stroke-width="1"/>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a1-c)" stroke-width="2.2" stroke-linecap="round"/>
+   </svg>
+  </div>
+  <button class="ob" aria-label="BaryonOS-menu"><span class="nuc"><svg viewBox="0 0 1000 1000"><use href="#mk-c"/></svg></span></button>
+  <button class="ob" aria-label="Zoeken"><svg class="ic"><use href="#i-zoeken"/></svg></button>
+  <i class="sep"></i>
+  <button class="ob" aria-label="Bestanden"><span class="tile" style="--pc:#5AA2FF"><svg class="ic"><use href="#i-bestanden"/></svg></span></button>
+  <button class="ob" aria-label="Notities"><span class="tile" style="--pc:#42D27F"><svg class="ic"><use href="#i-notities"/></svg></span></button>
+  <button class="ob" aria-label="Instellingen"><span class="tile" style="--pc:#E6EBF5"><svg class="ic"><use href="#i-instellingen"/></svg></span></button>
+  <i class="sep"></i>
+  <div class="priv" role="status"><svg class="ic" style="--pc:var(--green)"><use href="#i-device"/></svg><span class="tx"><span class="u14s">Op dit apparaat</span><span class="c12 tx2">Je werk blijft op dit apparaat</span></span></div>
+  <div class="clock"><span class="d20">14:32</span><span class="c12 tx2">do 13 nov</span></div>
+ </nav>
+</section>
+<div class="after"></div>
+
+<!-- ======================= 2 · MENU + ZOEKEN — DARK ======================= -->
+<div class="cap"><b>Menu + Zoeken — dark.</b> The launcher rises from the mark. Keyboard focus = 2 px ring + light-blade; the preview shows the object, its place and its copies.</div>
+<section class="ab dk wall-dk" id="ab2">
+ <svg class="wp" viewBox="0 0 1440 900" aria-hidden="true"><use href="#wp-dk"/></svg>
+ <div style="position:absolute;inset:0;background:radial-gradient(900px 620px at 50% 55%,rgba(3,4,10,.55),rgba(3,4,10,.25))"></div>
+
+ <div class="launch rim" style="left:290px;top:190px;width:860px;height:608px" role="dialog" aria-label="BaryonOS-menu">
+  <div class="lbg"></div>
+  <i class="bl" style="--app:#AFC6FF;left:30px;width:420px"></i>
+  <div class="lsearch">
+   <svg class="ic" style="color:var(--tx2)"><use href="#i-zoeken"/></svg>
+   <span class="d20" aria-label="Zoek apps, bestanden en instellingen">tuin<span class="caret"></span></span>
+  </div>
+  <div class="lbody">
+   <div class="lres">
+    <div class="grp c12">Bestanden</div>
+    <div class="lr f selb" style="--app:var(--blue)">
+     <span class="page" style="width:34px;height:42px;border-radius:5px"><i style="left:6px;top:7px;width:15px;height:3px;background:#4A5470"></i><i style="left:6px;top:14px;width:22px;height:2px"></i><i style="left:6px;top:19px;width:20px;height:2px"></i><i style="left:6px;top:24px;width:22px;height:2px"></i></span>
+     <span><div class="u14s"><mark>Tuin</mark>plan</div><div class="u14 tx2">Tekst · Huis · vandaag 09:40</div></span>
+    </div>
+    <div class="lr">
+     <span class="page" style="width:34px;height:42px;border-radius:5px"><svg viewBox="0 0 48 60"><g fill="none" stroke="#7B869E" stroke-width="1.6"><rect x="7" y="9" width="34" height="42" rx="1"/><path d="M7 30h15V9M22 38v13M30 30h11"/></g></svg></span>
+     <span><div class="u14s">Plattegrond</div><div class="u14 tx2">Tekening · Huis · bevat ‘tuin’</div></span>
+    </div>
+    <div class="lr">
+     <span style="width:34px;height:42px;border-radius:5px;flex:none;display:grid;grid-template-columns:1fr 1fr;gap:2px;overflow:hidden;box-shadow:0 6px 14px rgba(0,0,0,.45)"><i style="background:linear-gradient(160deg,#7FB069,#2F5D3A)"></i><i style="background:linear-gradient(160deg,#B68FD8,#5A3E86)"></i><i style="background:linear-gradient(160deg,#CBB4E6,#7FA27A)"></i><i style="background:linear-gradient(160deg,#6E9B5A,#264430)"></i></span>
+     <span><div class="u14s">Foto's border</div><div class="u14 tx2">24 afbeeldingen · Huis</div></span>
+    </div>
+    <div class="grp c12" style="margin-top:6px">Acties</div>
+    <div class="lr a"><svg class="ic s20" style="color:var(--tx2);margin:0 7px"><use href="#i-plus"/></svg><span class="u14">Nieuw document ‘tuin’</span></div>
+    <div class="lr a"><svg class="ic s20" style="color:var(--tx2);margin:0 7px;--pc:var(--blue)"><use href="#i-bestanden"/></svg><span class="u14">Zoek ‘tuin’ in Bestanden</span></div>
+    <div class="grp c12" style="margin-top:6px">Assistent op dit apparaat</div>
+    <div class="lr">
+     <span class="tile s32" style="--pc:#42D27F;margin:0 1px"><svg class="ic"><use href="#i-assistent"/></svg></span>
+     <span><div class="u14s">Vat Tuinplan samen</div><div class="u14 tx2">Draait lokaal · geen internet</div></span>
+     <svg class="k" width="14" height="14" style="--c:var(--green)"><use href="#st-dev"/></svg>
+    </div>
+   </div>
+   <div style="padding:28px 28px 0 30px;position:relative">
+    <div class="page" style="width:172px;height:218px;border-radius:12px;box-shadow:18px 26px 48px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.7)">
+     <div style="position:absolute;left:16px;top:18px;font:500 12px/16px var(--sans);color:#1A2032">Tuinplan 2027</div>
+     <i style="left:16px;top:44px;width:136px"></i><i style="left:16px;top:52px;width:128px"></i><i style="left:16px;top:60px;width:138px"></i><i style="left:16px;top:68px;width:70px"></i>
+     <i style="left:16px;top:84px;width:132px"></i><i style="left:16px;top:92px;width:138px"></i><i style="left:16px;top:100px;width:104px"></i>
+     <i style="left:16px;top:120px;width:80px;height:46px;border-radius:4px;background:linear-gradient(160deg,#CFE6C6,#9CC79E)"></i><i style="left:102px;top:120px;width:52px;height:46px;border-radius:4px;background:linear-gradient(160deg,#E2D6F0,#B9A6D6)"></i>
+     <i style="left:16px;top:178px;width:120px"></i><i style="left:16px;top:186px;width:96px"></i>
+    </div>
+    <div class="d20" style="margin-top:26px">Tuinplan</div>
+    <div class="u14 tx2">Tekst · Huis · vandaag 09:40</div>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+     <span class="pill"><svg style="--c:var(--green)"><use href="#st-dev"/></svg>Op dit apparaat</span>
+     <span class="pill"><svg style="--c:var(--blue)"><use href="#st-nas"/></svg>Thuis-NAS</span>
+    </div>
+   </div>
+  </div>
+  <div class="lfoot">
+   <span class="ava">N</span><span class="u14s">Noor</span>
+   <span class="c12 tx3" style="margin-left:auto;margin-right:8px">Enter opent · ↑↓ kiest · Esc sluit</span>
+   <button class="btn qui lg"><svg class="ic" style="--pc:var(--tx1)"><use href="#i-lock"/></svg>Vergrendelen</button>
+   <button class="btn qui lg"><svg class="ic"><use href="#i-power"/></svg>Aan/uit</button>
+  </div>
+ </div>
+
+ <nav class="orbit" aria-label="Orbit">
+  <div class="arc" style="left:-118px" aria-hidden="true">
+   <svg width="300" height="48" viewBox="0 0 300 48"><defs>
+    <linearGradient id="a2-g" x1="0" x2="1"><stop offset=".2" stop-color="#B9CCFF" stop-opacity="0"/><stop offset=".5" stop-color="#B9CCFF" stop-opacity=".55"/><stop offset=".8" stop-color="#B9CCFF" stop-opacity="0"/></linearGradient>
+    <linearGradient id="a2-b" x1="0" x2="1"><stop offset=".08" stop-color="#DCE4FF" stop-opacity="0"/><stop offset=".5" stop-color="#DCE4FF" stop-opacity=".7"/><stop offset=".92" stop-color="#DCE4FF" stop-opacity="0"/></linearGradient>
+    <linearGradient id="a2-c" x1="0" x2="1"><stop offset=".36" stop-color="#FFFFFF" stop-opacity="0"/><stop offset=".5" stop-color="#FFFFFF"/><stop offset=".64" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient></defs>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a2-g)" stroke-width="8"/>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a2-b)" stroke-width="1"/>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a2-c)" stroke-width="2.6" stroke-linecap="round"/>
+   </svg>
+  </div>
+  <button class="ob open" aria-label="BaryonOS-menu" aria-expanded="true"><span class="nuc"><svg viewBox="0 0 1000 1000"><use href="#mk-c"/></svg></span></button>
+  <button class="ob" aria-label="Zoeken"><svg class="ic"><use href="#i-zoeken"/></svg></button>
+  <i class="sep"></i>
+  <button class="ob" aria-label="Bestanden"><span class="tile" style="--pc:#5AA2FF"><svg class="ic"><use href="#i-bestanden"/></svg></span></button>
+  <button class="ob" aria-label="Notities"><span class="tile" style="--pc:#42D27F"><svg class="ic"><use href="#i-notities"/></svg></span></button>
+  <button class="ob" aria-label="Instellingen"><span class="tile" style="--pc:#E6EBF5"><svg class="ic"><use href="#i-instellingen"/></svg></span></button>
+  <i class="sep"></i>
+  <div class="priv" role="status"><svg class="ic" style="--pc:var(--green)"><use href="#i-device"/></svg><span class="tx"><span class="u14s">Op dit apparaat</span><span class="c12 tx2">Je werk blijft op dit apparaat</span></span></div>
+  <div class="clock"><span class="d20">14:32</span><span class="c12 tx2">do 13 nov</span></div>
+ </nav>
+</section>
+<div class="after"></div>
+
+<!-- ======================= 3 · BESTANDEN — DARK ======================= -->
+<div class="cap"><b>Bestanden — dark.</b> One title area replaces the toolbar. Focus = rim blade on the window edge; selection = blade on the row; the inspector shows versions, access and storage.</div>
+<section class="ab dk wall-dk" id="ab3">
+ <svg class="wp" viewBox="0 0 1440 900" aria-hidden="true"><use href="#wp-dk"/></svg>
+ <div class="win on" style="left:130px;top:52px;width:1180px;height:724px;--app:#5AA2FF" role="dialog" aria-label="Huis — Bestanden">
+  <i class="bl"></i>
+  <div class="wb"><div class="fm">
+   <div class="bar">
+    <div class="bz"><span class="tile s28" style="--pc:#5AA2FF"><svg class="ic"><use href="#i-bestanden"/></svg></span><span class="u14s ttl">Huis — Bestanden</span></div>
+    <button class="nb" aria-label="Terug"><svg class="ic"><use href="#i-back"/></svg></button>
+    <button class="nb" aria-label="Vooruit" style="opacity:.45"><svg class="ic"><use href="#i-fwd"/></svg></button>
+    <div class="crumb"><span class="u14 tx2">Collecties</span><span class="u14 tx3">›</span><span class="u14s">Huis</span></div>
+    <div class="inp" style="margin-left:auto;width:250px;height:34px;box-shadow:inset 0 0 0 1px var(--ln2)"><svg class="ic"><use href="#i-zoeken"/></svg><span class="u14 ph">Zoek in Huis</span></div>
+    <button class="btn" style="background:var(--hov2);height:34px"><svg class="ic" style="width:16px;height:16px"><use href="#i-plus"/></svg>Nieuw</button>
+    <div class="wc" style="margin-left:8px"><button aria-label="Minimaliseren"><svg class="ic"><use href="#i-min"/></svg></button><button aria-label="Maximaliseren"><svg class="ic"><use href="#i-max"/></svg></button><button aria-label="Sluiten"><svg class="ic"><use href="#i-close"/></svg></button></div>
+   </div>
+   <aside class="side">
+    <div class="sr"><svg class="ic"><use href="#i-recent"/></svg><span class="u14">Recent</span></div>
+    <div class="sr"><svg class="ic"><use href="#i-desk"/></svg><span class="u14">Bureaublad</span></div>
+    <div class="sr"><svg class="ic"><use href="#i-doc"/></svg><span class="u14">Documenten</span></div>
+    <div class="sr"><svg class="ic"><use href="#i-image"/></svg><span class="u14">Afbeeldingen</span></div>
+    <div class="sr"><svg class="ic"><use href="#i-download"/></svg><span class="u14">Downloads</span></div>
+    <div class="sh c12">Collecties</div>
+    <div class="sr"><i class="dot" style="background:var(--blue)"></i><span class="u14">Vandaag</span></div>
+    <div class="sr sel" style="--app:#5AA2FF"><i class="dot" style="background:var(--green)"></i><span class="u14s">Huis</span></div>
+    <div class="sr"><i class="dot" style="box-shadow:inset 0 0 0 1.5px var(--tx3)"></i><span class="u14">Archief</span></div>
+    <div class="sh c12">Plaatsen</div>
+    <div class="sr"><svg class="ic" style="--pc:var(--green)"><use href="#i-device"/></svg><span class="u14">Dit apparaat</span></div>
+    <div class="sr" style="height:48px;align-items:flex-start;padding-top:6px"><svg class="ic" style="--pc:var(--blue);margin-top:1px"><use href="#i-nas"/></svg><span><div class="u14">Thuis-NAS</div><div class="c12 tx2" style="display:flex;align-items:center;gap:4px"><svg class="ic" style="width:14px;height:14px;color:var(--green)"><use href="#i-check"/></svg>Gesynchroniseerd</div></span></div>
+    <div class="sr" style="position:absolute;left:12px;right:12px;bottom:14px"><svg class="ic"><use href="#i-trash"/></svg><span class="u14">Prullenbak</span></div>
+   </aside>
+   <div class="pane">
+    <div style="position:relative">
+     <div class="lh cols c12"><span>Naam</span><span>Soort</span><span>Gewijzigd</span><span>Opslag</span></div>
+     <div class="lrw cols sel u14" style="--app:#5AA2FF"><span class="n"><svg class="ic"><use href="#i-doc"/></svg><span class="u14s">Tuinplan</span></span><span>Tekst</span><span>vandaag 09:40</span><span>Dit apparaat + Thuis-NAS</span></div>
+     <div class="lrw cols u14"><span class="n"><svg class="ic"><use href="#i-draw"/></svg>Plattegrond</span><span>Tekening</span><span>gisteren 18:12</span><span>Dit apparaat + Thuis-NAS</span></div>
+     <div class="lrw cols u14"><span class="n"><svg class="ic"><use href="#i-image"/></svg>Foto's border</span><span>24 afbeeldingen</span><span>10 nov.</span><span>Thuis-NAS</span></div>
+     <div class="lrw cols u14"><span class="n"><svg class="ic"><use href="#i-pdf"/></svg>Offerte schuur</span><span>PDF</span><span>8 nov.</span><span>Dit apparaat</span></div>
+     <div class="lrw cols u14"><span class="n"><svg class="ic"><use href="#i-list"/></svg>Boodschappen</span><span>Lijst</span><span>11 nov.</span><span>Dit apparaat</span></div>
+     <div class="sbar c12"><svg class="ic" style="width:14px;height:14px;color:var(--green)"><use href="#i-check"/></svg>5 items · alles bijgewerkt</div>
+    </div>
+    <div class="insp rim" style="--app:#5AA2FF">
+     <div style="display:flex;gap:16px;align-items:center">
+      <span class="page" style="width:52px;height:66px;border-radius:7px"><i style="top:10px;width:22px;height:4px;background:#4A5470"></i><i style="top:20px;width:34px"></i><i style="top:27px;width:32px"></i><i style="top:34px;width:34px"></i><i style="top:41px;width:22px"></i><i style="top:50px;width:30px"></i></span>
+      <div><div class="d20">Tuinplan</div><div class="u14 tx2">Tekst · 1.284 woorden</div></div>
+     </div>
+     <div class="ish c12">Versies</div>
+     <div class="vt">
+      <div class="vi now"><span class="u14s">Nu — vandaag 09:40</span></div>
+      <div class="vi"><span class="u14 tx2">Versie 2 — gisteren 18:12</span></div>
+      <div class="vi"><span class="u14 tx2">Versie 1 — 11 nov. 20:05</span></div>
+     </div>
+     <button class="btn qui" style="margin:6px 0 0 -10px;padding:0 10px"><svg class="ic" style="--pc:var(--blue)"><use href="#i-versies"/></svg>Vergelijken en herstellen</button>
+     <div class="ish c12">Toegang</div>
+     <div class="kv"><span class="tile s28" style="--pc:#42D27F;margin-top:2px"><svg class="ic"><use href="#i-notities"/></svg></span><div><div class="u14">Notities kan dit document lezen en wijzigen</div><div class="c12 tx2" style="margin-top:2px">Tot je het sluit</div></div></div>
+     <button class="btn qui" style="margin:2px 0 0 28px;padding:0 10px"><svg class="ic" style="--pc:var(--red)"><use href="#i-toegang"/></svg>Intrekken</button>
+     <div class="ish c12">Opslag</div>
+     <div class="kv"><svg class="ic" style="--pc:var(--green)"><use href="#i-device"/></svg><div class="u14">Op dit apparaat</div></div>
+     <div class="kv"><svg class="ic" style="--pc:var(--blue)"><use href="#i-nas"/></svg><div class="u14">Versleutelde kopie op Thuis-NAS · bijgewerkt 09:41</div></div>
+    </div>
+   </div>
+  </div></div>
+ </div>
+
+ <nav class="orbit" aria-label="Orbit">
+  <div class="arc" style="left:-1px" aria-hidden="true">
+   <svg width="300" height="48" viewBox="0 0 300 48"><defs>
+    <linearGradient id="a3-g" x1="0" x2="1"><stop offset=".2" stop-color="#5AA2FF" stop-opacity="0"/><stop offset=".5" stop-color="#5AA2FF" stop-opacity=".55"/><stop offset=".8" stop-color="#5AA2FF" stop-opacity="0"/></linearGradient>
+    <linearGradient id="a3-b" x1="0" x2="1"><stop offset=".08" stop-color="#BFD9FF" stop-opacity="0"/><stop offset=".5" stop-color="#BFD9FF" stop-opacity=".7"/><stop offset=".92" stop-color="#BFD9FF" stop-opacity="0"/></linearGradient>
+    <linearGradient id="a3-c" x1="0" x2="1"><stop offset=".36" stop-color="#FFFFFF" stop-opacity="0"/><stop offset=".5" stop-color="#FFFFFF"/><stop offset=".64" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient></defs>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a3-g)" stroke-width="8"/>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a3-b)" stroke-width="1"/>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a3-c)" stroke-width="2.6" stroke-linecap="round"/>
+   </svg>
+  </div>
+  <button class="ob" aria-label="BaryonOS-menu"><span class="nuc"><svg viewBox="0 0 1000 1000"><use href="#mk-c"/></svg></span></button>
+  <button class="ob" aria-label="Zoeken"><svg class="ic"><use href="#i-zoeken"/></svg></button>
+  <i class="sep"></i>
+  <button class="ob run act" style="--app:#5AA2FF" aria-label="Bestanden, actief"><span class="tile" style="--pc:#5AA2FF"><svg class="ic"><use href="#i-bestanden"/></svg></span></button>
+  <button class="ob run" aria-label="Notities, geopend"><span class="tile" style="--pc:#42D27F"><svg class="ic"><use href="#i-notities"/></svg></span></button>
+  <button class="ob" aria-label="Instellingen"><span class="tile" style="--pc:#E6EBF5"><svg class="ic"><use href="#i-instellingen"/></svg></span></button>
+  <i class="sep"></i>
+  <div class="priv" role="status"><svg class="ic" style="--pc:var(--green)"><use href="#i-device"/></svg><span class="tx"><span class="u14s">Op dit apparaat</span><span class="c12 tx2">Je werk blijft op dit apparaat</span></span></div>
+  <div class="clock"><span class="d20">14:32</span><span class="c12 tx2">do 13 nov</span></div>
+ </nav>
+</section>
+<div class="after"></div>
+
+<!-- ======================= 4 · VENSTERS + SYSTEEMVRAAG — LIGHT ======================= -->
+<div class="cap"><b>Vensters + systeemvraag — light.</b> Notities focused, Bestanden behind. The opaque system question always rises from Orbit, tethered to its privacy indicator.</div>
+<section class="ab lt wall-lt" id="ab4">
+ <svg class="wp" viewBox="0 0 1440 900" aria-hidden="true"><use href="#wp-lt"/></svg>
+
+ <div class="win off" style="left:56px;top:40px;width:900px;height:600px;--app:#1061D6" aria-label="Huis — Bestanden">
+  <div class="wb"><div class="fm">
+   <div class="bar">
+    <div class="bz"><span class="tile s28" style="--pc:#5AA2FF"><svg class="ic"><use href="#i-bestanden"/></svg></span><span class="u14s ttl">Huis — Bestanden</span></div>
+    <button class="nb"><svg class="ic"><use href="#i-back"/></svg></button>
+    <div class="crumb"><span class="u14 tx3">Collecties</span><span class="u14 tx3">›</span><span class="u14 tx3">Huis</span></div>
+    <div class="wc"><button><svg class="ic"><use href="#i-min"/></svg></button><button><svg class="ic"><use href="#i-max"/></svg></button><button><svg class="ic"><use href="#i-close"/></svg></button></div>
+   </div>
+   <aside class="side">
+    <div class="sr"><svg class="ic"><use href="#i-recent"/></svg><span class="u14">Recent</span></div>
+    <div class="sr"><svg class="ic"><use href="#i-desk"/></svg><span class="u14">Bureaublad</span></div>
+    <div class="sr"><svg class="ic"><use href="#i-doc"/></svg><span class="u14">Documenten</span></div>
+    <div class="sr"><svg class="ic"><use href="#i-image"/></svg><span class="u14">Afbeeldingen</span></div>
+    <div class="sr"><svg class="ic"><use href="#i-download"/></svg><span class="u14">Downloads</span></div>
+    <div class="sh c12">Collecties</div>
+    <div class="sr"><i class="dot" style="background:var(--blue)"></i><span class="u14">Vandaag</span></div>
+    <div class="sr" style="background:var(--hov2)"><i class="dot" style="background:var(--green)"></i><span class="u14s">Huis</span></div>
+    <div class="sr"><i class="dot" style="box-shadow:inset 0 0 0 1.5px var(--tx3)"></i><span class="u14">Archief</span></div>
+    <div class="sh c12">Plaatsen</div>
+    <div class="sr"><svg class="ic" style="--pc:var(--green)"><use href="#i-device"/></svg><span class="u14">Dit apparaat</span></div>
+    <div class="sr"><svg class="ic" style="--pc:var(--blue)"><use href="#i-nas"/></svg><span class="u14">Thuis-NAS</span></div>
+   </aside>
+   <div class="pane" style="grid-template-columns:1fr">
+    <div>
+     <div class="lh cols c12"><span>Naam</span><span>Soort</span><span>Gewijzigd</span><span>Opslag</span></div>
+     <div class="lrw cols u14" style="background:var(--hov2)"><span class="n"><svg class="ic"><use href="#i-doc"/></svg>Tuinplan</span><span>Tekst</span><span>vandaag 09:40</span><span>Dit apparaat + Thuis-NAS</span></div>
+     <div class="lrw cols u14"><span class="n"><svg class="ic"><use href="#i-draw"/></svg>Plattegrond</span><span>Tekening</span><span>gisteren 18:12</span><span>Dit apparaat + Thuis-NAS</span></div>
+     <div class="lrw cols u14"><span class="n"><svg class="ic"><use href="#i-image"/></svg>Foto's border</span><span>24 afbeeldingen</span><span>10 nov.</span><span>Thuis-NAS</span></div>
+     <div class="lrw cols u14"><span class="n"><svg class="ic"><use href="#i-pdf"/></svg>Offerte schuur</span><span>PDF</span><span>8 nov.</span><span>Dit apparaat</span></div>
+     <div class="lrw cols u14"><span class="n"><svg class="ic"><use href="#i-list"/></svg>Boodschappen</span><span>Lijst</span><span>11 nov.</span><span>Dit apparaat</span></div>
+    </div>
+   </div>
+  </div></div>
+ </div>
+
+ <div class="win on" style="left:404px;top:80px;width:916px;height:640px;--app:#127A43" role="dialog" aria-label="Tuinplan — Notities">
+  <i class="bl"></i>
+  <div class="wb"><div class="nt">
+   <div class="bar">
+    <span class="tile s28" style="--pc:#42D27F"><svg class="ic"><use href="#i-notities"/></svg></span><span class="u14s ttl">Tuinplan — Notities</span>
+    <span class="c12 tx2" style="margin-left:auto;display:flex;align-items:center;gap:7px;white-space:nowrap"><svg width="12" height="12" style="--c:var(--green)"><use href="#st-dev"/></svg>Opgeslagen op dit apparaat · versie 3</span>
+    <div class="wc" style="margin-left:14px"><button aria-label="Minimaliseren"><svg class="ic"><use href="#i-min"/></svg></button><button aria-label="Maximaliseren"><svg class="ic"><use href="#i-max"/></svg></button><button aria-label="Sluiten"><svg class="ic"><use href="#i-close"/></svg></button></div>
+   </div>
+   <div class="nbody">
+    <div class="d28">Tuinplan 2027</div>
+    <p class="r16">Voorjaar: de border langs de schutting opnieuw indelen. Lavendel en salie vooraan, daarachter twee rijen vaste planten die tot in oktober bloeien.</p>
+    <p class="r16">Moestuin: vier bakken van 120 × 80 cm, tomaten op het zuiden. De regenton aansluiten op de afvoer van de schuur.<span class="tcaret"></span></p>
+   </div>
+  </div></div>
+ </div>
+
+
+ <div class="kern dk" style="left:440px;top:376px;width:560px" role="alertdialog" aria-labelledby="k4t">
+  <div class="kband"><svg viewBox="0 0 1000 1000" aria-hidden="true"><use href="#mk-c"/></svg><span class="c12">Vraag van het systeem · getoond boven alle apps</span></div>
+  <div class="kbody">
+   <div style="display:flex;gap:14px;align-items:center">
+    <span style="width:40px;height:40px;border-radius:10px;flex:none;display:grid;place-items:center;background:#D9DDE6;color:#2B3245"><svg class="ic"><use href="#i-window"/></svg></span>
+    <div class="d20" id="k4t">Webvenster wil Tuinplan naar internet sturen</div>
+   </div>
+   <div style="margin-top:18px">
+    <div class="kr"><span class="u14 tx2">App</span><span class="u14s">Webvenster · geïnstalleerd 12 nov.</span></div>
+    <div class="kr"><span class="u14 tx2">Wat</span><span class="u14s">Tuinplan, alleen dit document</span></div>
+    <div class="kr"><span class="u14 tx2">Waarheen</span><span class="u14s" style="display:flex;align-items:center;gap:8px"><svg width="14" height="14" style="--c:#FF7A6E"><use href="#st-net"/></svg>tuinplanner.example</span></div>
+    <div class="kr"><span class="u14 tx2">Hoe lang</span><span class="u14s">Eenmalig</span></div>
+   </div>
+   <div class="kw"><svg class="ic" style="width:20px;height:20px;color:#FF7A6E;margin-top:0"><use href="#i-warn"/></svg><span class="u14">Dit programma kan de toegestane inhoud naar een internetdienst sturen.</span></div>
+   <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:18px">
+    <button class="btn sec lg">Eenmalig toestaan</button>
+    <button class="btn pri lg fx" autofocus>Annuleren</button>
+   </div>
+  </div>
+ </div>
+ <i class="tether" id="teth4" style="left:822px;top:796px;height:28px"></i>
+
+ <nav class="orbit" aria-label="Orbit" style="z-index:35">
+  <div class="arc" style="left:51px" aria-hidden="true">
+   <svg width="300" height="48" viewBox="0 0 300 48"><defs>
+    <linearGradient id="a4-g" x1="0" x2="1"><stop offset=".2" stop-color="#1FA05A" stop-opacity="0"/><stop offset=".5" stop-color="#1FA05A" stop-opacity=".35"/><stop offset=".8" stop-color="#1FA05A" stop-opacity="0"/></linearGradient>
+    <linearGradient id="a4-b" x1="0" x2="1"><stop offset=".08" stop-color="#FFFFFF" stop-opacity="0"/><stop offset=".5" stop-color="#FFFFFF"/><stop offset=".92" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient>
+    <linearGradient id="a4-c" x1="0" x2="1"><stop offset=".36" stop-color="#127A43" stop-opacity="0"/><stop offset=".5" stop-color="#127A43"/><stop offset=".64" stop-color="#127A43" stop-opacity="0"/></linearGradient></defs>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a4-g)" stroke-width="8"/>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a4-b)" stroke-width="1.4"/>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a4-c)" stroke-width="2.6" stroke-linecap="round"/>
+   </svg>
+  </div>
+  <button class="ob" aria-label="BaryonOS-menu"><span class="nuc"><svg viewBox="0 0 1000 1000"><use href="#mk-c"/></svg></span></button>
+  <button class="ob" aria-label="Zoeken"><svg class="ic"><use href="#i-zoeken"/></svg></button>
+  <i class="sep"></i>
+  <button class="ob run" aria-label="Bestanden, geopend"><span class="tile" style="--pc:#5AA2FF"><svg class="ic"><use href="#i-bestanden"/></svg></span></button>
+  <button class="ob run act" style="--app:#127A43" aria-label="Notities, actief"><span class="tile" style="--pc:#42D27F"><svg class="ic"><use href="#i-notities"/></svg></span></button>
+  <button class="ob" aria-label="Instellingen"><span class="tile" style="--pc:#E6EBF5"><svg class="ic"><use href="#i-instellingen"/></svg></span></button>
+  <i class="sep"></i>
+  <div class="priv req" role="status" id="priv4"><span class="ring"><svg class="ic" style="--pc:var(--red);color:var(--tx1)"><use href="#i-internet"/></svg></span><span class="u14s">Webvenster vraagt internet</span></div>
+  <div class="clock"><span class="d20">14:32</span><span class="c12 tx2">do 13 nov</span></div>
+ </nav>
+</section>
+<div class="after"></div>
+
+<!-- ======================= 5 · APP-FAMILIE — LIGHT ======================= -->
+<div class="cap"><b>App-familie — light.</b> Instellingen (focused) and Haven behind share one window architecture. Access is granted per app, explained before install and revocable.</div>
+<section class="ab lt wall-lt" id="ab5">
+ <svg class="wp" viewBox="0 0 1440 900" aria-hidden="true"><use href="#wp-lt"/></svg>
+
+ <div class="win off" style="left:48px;top:34px;width:800px;height:640px;--app:#CC3328" aria-label="Sterrenkaart — Haven">
+  <div class="wb"><div class="hv">
+   <div class="bar">
+    <span class="tile s28" style="--pc:#FF6A5C"><svg class="ic"><use href="#i-haven"/></svg></span><span class="u14s ttl">Sterrenkaart — Haven</span>
+    <div class="wc"><button><svg class="ic"><use href="#i-min"/></svg></button><button><svg class="ic"><use href="#i-max"/></svg></button><button><svg class="ic"><use href="#i-close"/></svg></button></div>
+   </div>
+   <div class="hbody">
+    <div class="appic">
+     <svg viewBox="0 0 88 88" width="88" height="88" style="position:absolute;inset:0"><g stroke="#C9D8FF" stroke-opacity=".7" stroke-width="1.2" fill="none"><path d="M18 60 34 44 50 50 66 26"/><path d="M50 50 58 68"/></g><g fill="#FFFFFF"><circle cx="18" cy="60" r="2.2"/><circle cx="34" cy="44" r="2.6"/><circle cx="50" cy="50" r="2.2"/><circle cx="58" cy="68" r="1.8"/></g><circle cx="66" cy="26" r="4.2" fill="#FFE7A8"/><circle cx="66" cy="26" r="10" fill="#FFE7A8" opacity=".18"/><g fill="#fff" opacity=".5"><circle cx="24" cy="22" r=".9"/><circle cx="72" cy="56" r=".9"/><circle cx="40" cy="70" r=".8"/></g></svg>
+    </div>
+    <div class="d28" style="margin-top:16px">Sterrenkaart</div>
+    <div class="u14 tx2">Open Hemel Stichting</div>
+    <div class="u14 tx2">Gratis · 18 MB</div>
+    <button class="btn pri lg" style="margin-top:16px;min-width:150px">Installeren</button>
+    <div class="u14s" style="margin-top:28px">Wat deze app kan vragen</div>
+    <div style="width:360px;margin-top:6px">
+     <div class="kv"><svg class="ic"><use href="#i-loc"/></svg><span class="u14">Locatie — alleen als je het toestaat, om de hemel boven jou te tonen</span></div>
+     <div class="kv"><svg class="ic" style="--pc:var(--red)"><use href="#i-internet"/></svg><span class="u14">Internet — sterrencatalogus bijwerken</span></div>
+     <div class="kv"><svg class="ic"><use href="#i-nofiles"/></svg><span class="u14">Geen toegang tot je bestanden</span></div>
+    </div>
+    <div class="card" style="width:360px;margin-top:14px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start"><svg class="ic s20" style="color:var(--tx2);--pc:var(--tx2)"><use href="#i-lock"/></svg><span class="u14 tx2">Installeren geeft geen toegang. De app vraagt het pas wanneer dat nodig is.</span></div>
+    <div class="shot" style="left:430px;top:24px;width:330px;height:200px"></div>
+    <div class="shot" style="left:430px;top:236px;width:160px;height:110px;background:radial-gradient(70% 70% at 40% 40%,#2C4C9A,#0A1230 75%)"></div>
+   </div>
+  </div></div>
+ </div>
+
+ <div class="win on" style="left:470px;top:96px;width:920px;height:690px;--app:#1061D6" role="dialog" aria-label="Privacy en beveiliging — Instellingen">
+  <i class="bl"></i>
+  <div class="wb"><div class="stg">
+   <div class="bar">
+    <span class="tile s28" style="--pc:#E6EBF5"><svg class="ic"><use href="#i-instellingen"/></svg></span><span class="u14s ttl">Privacy en beveiliging — Instellingen</span>
+    <div class="wc"><button aria-label="Minimaliseren"><svg class="ic"><use href="#i-min"/></svg></button><button aria-label="Maximaliseren"><svg class="ic"><use href="#i-max"/></svg></button><button aria-label="Sluiten"><svg class="ic"><use href="#i-close"/></svg></button></div>
+   </div>
+   <nav class="snav">
+    <div class="inp" style="margin:0 0 10px"><svg class="ic"><use href="#i-zoeken"/></svg><span class="u14 ph">Zoek in Instellingen</span></div>
+    <div class="ni u14">Systeem</div><div class="ni u14">Apparaten</div><div class="ni u14">Netwerk en internet</div><div class="ni u14">Weergave</div><div class="ni u14">Apps</div><div class="ni u14">Gebruikers</div><div class="ni u14">Opslag en NAS</div><div class="ni u14">Tijd en taal</div><div class="ni u14">Toegankelijkheid</div>
+    <div class="ni sel u14s" style="--app:#1061D6">Privacy en beveiliging</div>
+    <div class="ni u14">Updates</div>
+   </nav>
+   <div class="spane">
+    <div class="d28">Privacy en beveiliging</div>
+    <div class="u14s sech">Toegang per app</div>
+    <div class="card">
+     <div class="srow"><span class="tile s32" style="--pc:#42D27F"><svg class="ic"><use href="#i-notities"/></svg></span><span class="grow"><div class="u14s">Notities</div><div class="u14 tx2" style="display:flex;align-items:center;gap:6px">Leest en wijzigt documenten die je opent · geen internet</div></span><button class="btn sec">Beheren</button></div>
+     <div class="srow"><span style="width:32px;height:32px;border-radius:9px;flex:none;display:grid;place-items:center;background:#D9DDE6;color:#2B3245"><svg class="ic s20"><use href="#i-window"/></svg></span><span class="grow"><div class="u14s">Webvenster</div><div class="u14 tx2" style="display:flex;align-items:center;gap:7px"><svg width="14" height="14" style="--c:var(--red);flex:none"><use href="#st-net"/></svg>Internet: vraagt elke keer · 1 keer toegestaan vandaag</div></span><button class="btn sec">Beheren</button></div>
+     <div class="srow"><span class="tile s32" style="--pc:#FFB86B"><svg class="ic"><use href="#i-image"/></svg></span><span class="grow"><div class="u14s">Foto's</div><div class="u14 tx2">Afbeeldingen in Huis · alleen lezen</div></span><button class="btn sec">Beheren</button></div>
+    </div>
+    <div class="u14s sech">Assistent</div>
+    <div class="card">
+     <div class="srow"><span class="tile s32" style="--pc:#42D27F"><svg class="ic"><use href="#i-assistent"/></svg></span><span class="grow"><div class="u14s">Assistent gebruiken</div><div class="u14 tx2" style="display:flex;align-items:center;gap:7px"><svg width="12" height="12" style="--c:var(--green);flex:none"><use href="#st-dev"/></svg>Draait alleen op dit apparaat · heeft geen internettoegang</div></span><span class="tg" role="switch" aria-checked="true" aria-label="Assistent gebruiken"><i><svg class="ic"><use href="#i-check"/></svg></i></span></div>
+    </div>
+    <div class="u14s sech">Vergrendelen</div>
+    <div class="card">
+     <div class="srow" style="min-height:50px"><svg class="ic" style="color:var(--tx2);--pc:var(--tx2)"><use href="#i-lock"/></svg><span class="grow u14">Na 5 minuten</span><svg class="ic s18" style="color:var(--tx3)"><use href="#i-chev"/></svg></div>
+     <div class="srow" style="min-height:50px"><svg class="ic" style="color:var(--tx2);--pc:var(--tx2)"><use href="#i-toegang"/></svg><span class="grow u14">Herstelcode bewaard op papier · 2 nov.</span><svg class="ic s18" style="color:var(--tx3)"><use href="#i-chev"/></svg></div>
+    </div>
+   </div>
+  </div></div>
+ </div>
+
+ <nav class="orbit" aria-label="Orbit">
+  <div class="arc" style="left:103px" aria-hidden="true">
+   <svg width="300" height="48" viewBox="0 0 300 48"><defs>
+    <linearGradient id="a5-g" x1="0" x2="1"><stop offset=".2" stop-color="#2D77E6" stop-opacity="0"/><stop offset=".5" stop-color="#2D77E6" stop-opacity=".32"/><stop offset=".8" stop-color="#2D77E6" stop-opacity="0"/></linearGradient>
+    <linearGradient id="a5-b" x1="0" x2="1"><stop offset=".08" stop-color="#FFFFFF" stop-opacity="0"/><stop offset=".5" stop-color="#FFFFFF"/><stop offset=".92" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient>
+    <linearGradient id="a5-c" x1="0" x2="1"><stop offset=".36" stop-color="#1061D6" stop-opacity="0"/><stop offset=".5" stop-color="#1061D6"/><stop offset=".64" stop-color="#1061D6" stop-opacity="0"/></linearGradient></defs>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a5-g)" stroke-width="8"/>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a5-b)" stroke-width="1.4"/>
+    <path d="M0 66A150 62 0 0 1 300 66" fill="none" stroke="url(#a5-c)" stroke-width="2.6" stroke-linecap="round"/>
+   </svg>
+  </div>
+  <button class="ob" aria-label="BaryonOS-menu"><span class="nuc"><svg viewBox="0 0 1000 1000"><use href="#mk-c"/></svg></span></button>
+  <button class="ob" aria-label="Zoeken"><svg class="ic"><use href="#i-zoeken"/></svg></button>
+  <i class="sep"></i>
+  <button class="ob run" aria-label="Bestanden, geopend"><span class="tile" style="--pc:#5AA2FF"><svg class="ic"><use href="#i-bestanden"/></svg></span></button>
+  <button class="ob run" aria-label="Notities, geopend"><span class="tile" style="--pc:#42D27F"><svg class="ic"><use href="#i-notities"/></svg></span></button>
+  <button class="ob run act" style="--app:#1061D6" aria-label="Instellingen, actief"><span class="tile" style="--pc:#E6EBF5"><svg class="ic"><use href="#i-instellingen"/></svg></span></button>
+  <i class="sep"></i>
+  <button class="ob run" aria-label="Haven, geopend"><span class="tile" style="--pc:#FF6A5C"><svg class="ic"><use href="#i-haven"/></svg></span></button>
+  <i class="sep"></i>
+  <div class="priv" role="status"><svg class="ic" style="--pc:var(--green)"><use href="#i-device"/></svg><span class="tx"><span class="u14s">Op dit apparaat</span><span class="c12 tx2">Je werk blijft op dit apparaat</span></span></div>
+  <div class="clock"><span class="d20">14:32</span><span class="c12 tx2">do 13 nov</span></div>
+ </nav>
+</section>
+<div class="after"></div>
+
+<!-- ======================= 6 · SYSTEEM ======================= -->
+<div class="cap"><b>Systeem.</b> Tokens for both themes, seven atlas faces, components, 14 icons, title areas, depth, high contrast and motion with the live convergence boot.</div>
+<section class="ab sys" id="ab6">
+
+ <!-- boot convergence (live) -->
+ <div class="blk" style="left:24px;top:16px;width:300px;height:226px">
+  <div class="bh">Convergence boot<span>live · loops with a hold</span></div>
+  <div class="plate d" style="height:196px;background:radial-gradient(220px 160px at 50% 40%,#1A2150,#0A0C1A 80%)">
+   <svg class="boot anim" viewBox="0 0 1000 1000" width="112" height="112" style="position:absolute;left:94px;top:22px" role="img" aria-label="BaryonOS">
+    <defs>
+     <mask id="bt-clear" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="20000"><rect x="-10000" y="-10000" width="20000" height="20000" fill="#fff"/><circle cx="439.67" cy="236.93" r="95.70" fill="#000"/><circle cx="783.66" cy="693.41" r="95.70" fill="#000"/><circle cx="216.34" cy="763.07" r="95.70" fill="#000"/></mask>
+     <linearGradient id="bt-silver" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".55" stop-color="#D7DCE3"/><stop offset="1" stop-color="#A7B0BC"/></linearGradient>
+     <linearGradient id="bt-sweep" x1="0" x2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/><stop offset=".55" stop-color="#FFFFFF"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient>
+    </defs>
+    <g class="bt-guide" fill="none" stroke="#AFC0FF" stroke-width="5" opacity="0"><circle cx="479.9" cy="564.5" r="700"/><circle cx="479.9" cy="564.5" r="560"/><circle cx="479.9" cy="564.5" r="430"/></g>
+    <g class="g bt-body"><g fill="url(#bt-silver)" mask="url(#bt-clear)"><path fill-rule="evenodd" d="M447.72,302.44 722.90,667.62 269.05,723.35Z M459.78,400.70 631.77,628.94 348.12,663.77Z"/><polygon class="g bt-b1" points="431.77,242.89 489.75,199.20 718.47,623.35"/><polygon class="g bt-b2" points="782.45,683.59 791.30,755.64 309.61,741.64"/><polygon class="g bt-b3" points="225.45,766.94 158.63,738.57 411.60,328.42"/></g></g>
+    <g class="g bt-sw" opacity="0"><path d="M30 305A520 520 0 0 1 930 305A560 560 0 0 0 30 305Z" fill="url(#bt-sweep)"/></g>
+    <g class="g bt-or"><g class="g"><circle cx="439.67" cy="236.93" r="72.60" fill="#FF4A3D"/></g></g>
+    <g class="g bt-ob"><g class="g"><circle cx="783.66" cy="693.41" r="72.60" fill="#2585FF"/></g></g>
+    <g class="g bt-og"><g class="g"><circle cx="216.34" cy="763.07" r="72.60" fill="#33C46B"/></g></g>
+   </svg>
+   <div style="position:absolute;right:14px;top:14px;display:flex;flex-direction:column;align-items:center;gap:4px">
+    <svg class="anim" width="32" height="32" viewBox="0 0 32 32" aria-label="Laden"><circle cx="16" cy="16" r="10" fill="none" stroke="#AFC0FF" stroke-opacity=".18" stroke-width="1.2"/><g class="ld"><g class="bind"><path d="M6 16A10 10 0 0 1 11 7.3A11.4 11.4 0 0 0 4.7 16Z" fill="#FFFFFF" opacity=".7"/><circle cx="16" cy="6" r="2.6" fill="#FF4A3D"/><circle cx="24.7" cy="21" r="2.6" fill="#2585FF"/><circle cx="7.3" cy="21" r="2.6" fill="#33C46B"/></g></g></svg>
+    <span class="lab">loader</span>
+   </div>
+   <div style="position:absolute;left:12px;right:12px;bottom:10px;display:flex;justify-content:space-between">
+    <div style="text-align:center"><svg width="40" height="40" viewBox="-250 -250 1500 1500"><g fill="none" stroke="#AFC0FF" stroke-opacity=".35" stroke-width="14"><circle cx="480" cy="565" r="700"/></g><circle cx="80" cy="-60" r="80" fill="#FF4A3D"/><circle cx="1170" cy="560" r="80" fill="#2585FF"/><circle cx="-90" cy="980" r="80" fill="#33C46B"/></svg><div class="lab">orbits</div></div>
+    <div style="text-align:center"><svg width="40" height="40" viewBox="-250 -250 1500 1500"><g fill="none" stroke="#AFC0FF" stroke-opacity=".35" stroke-width="14"><circle cx="480" cy="565" r="480"/></g><circle cx="300" cy="120" r="76" fill="#FF4A3D"/><circle cx="950" cy="640" r="76" fill="#2585FF"/><circle cx="120" cy="860" r="76" fill="#33C46B"/></svg><div class="lab">approach</div></div>
+    <div style="text-align:center"><svg width="40" height="40" viewBox="-250 -250 1500 1500"><use href="#mk-p" width="1000" height="1000" opacity=".35"/><circle cx="439.67" cy="236.93" r="72.6" fill="#FF4A3D"/><circle cx="783.66" cy="693.41" r="72.6" fill="#2585FF"/><circle cx="216.34" cy="763.07" r="72.6" fill="#33C46B"/></svg><div class="lab">bond</div></div>
+    <div style="text-align:center"><svg width="40" height="40" viewBox="-250 -250 1500 1500"><use href="#mk-p" width="1000" height="1000"/></svg><div class="lab">blades</div></div>
+    <div style="text-align:center"><svg width="40" height="40" viewBox="-250 -250 1500 1500"><use href="#mk-p" width="1000" height="1000"/><path d="M30 305A520 520 0 0 1 930 305A560 560 0 0 0 30 305Z" fill="#FFFFFF" opacity=".8" transform="rotate(40 480 565)"/></svg><div class="lab">sweep</div></div>
+   </div>
+  </div>
+ </div>
+
+ <!-- motion notes -->
+ <div class="blk" style="left:340px;top:16px;width:500px;height:226px">
+  <div class="bh">Motion<span>transform + opacity only · orbital-out = cubic-bezier(.16,.84,.24,1)</span></div>
+  <div class="mt">
+   <b>Boot convergence</b><span>1400 ms</span><span>three orbits converge · bond · blades · one sweep</span>
+   <b>Focus blade</b><span>260 ms</span><span>sweeps the top edge from the upper-left corner</span>
+   <b>Orbit arc</b><span>320 ms</span><span>slides (translateX) to the newly active app</span>
+   <b>Selection blade</b><span>160 ms</span><span>grows from the row centre (scaleY), standard</span>
+   <b>Menu</b><span>220 / 140 ms</span><span>rises 12 px from the mark; exit (.4,0,1,1)</span>
+   <b>System question</b><span>240 ms</span><span>rises from Orbit, no overshoot; ring pulses twice</span>
+   <b>Loader</b><span>1400 ms loop</span><span>particles orbit and bind; text status after 10 s</span>
+   <b>Reduced motion</b><span>120 ms</span><span>cross-fades only; static mark; blades in place</span>
+  </div>
+  <div class="note" style="margin-top:8px">Motion only confirms cause and effect; nothing loops for decoration.</div>
+ </div>
+
+ <!-- type -->
+ <div class="blk" style="left:24px;top:252px;width:400px;height:230px">
+  <div class="bh">Type<span>7 atlas faces · Funnel Display + Funnel Sans · no letter-spacing</span></div>
+  <div style="display:grid;grid-template-columns:1fr auto;gap:0 12px;align-items:baseline">
+   <span class="d48" style="line-height:48px">Noor</span><span class="lab">Display 48 / 300 · greeting</span>
+   <span class="d28">Tuinplan 2027</span><span class="lab">Display 28 / 400 · page titles</span>
+   <span class="d20">Huis — Bestanden</span><span class="lab">Display 20 / 500 · titles, clock</span>
+   <span class="r16">Voorjaar: de border</span><span class="lab">Sans 16 / 400 · reading</span>
+   <span class="u14s">Vergelijken en herstellen</span><span class="lab">Sans 14 / 600 · labels</span>
+   <span class="u14">Tekst · Huis · vandaag 09:40</span><span class="lab">Sans 14 / 400 · body</span>
+   <span class="c12">Gesynchroniseerd</span><span class="lab">Sans 12 / 500 · captions</span>
+  </div>
+ </div>
+
+ <!-- icons -->
+ <div class="blk" style="left:440px;top:252px;width:400px;height:230px">
+  <div class="bh">Icons<span>24 grid · 1.6 stroke · one solid particle at a joint</span></div>
+  <div class="icg">
+   <div class="icc"><span class="bx" style="background:transparent;box-shadow:none"><span class="nuc"><svg viewBox="0 0 1000 1000"><use href="#mk-c"/></svg></span></span><span class="lab">Menu</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-zoeken"/></svg></span><span class="lab">Zoeken</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-bestanden"/></svg></span><span class="lab">Bestanden</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-notities"/></svg></span><span class="lab">Notities</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-instellingen"/></svg></span><span class="lab">Instellingen</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-haven"/></svg></span><span class="lab">Haven</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-device"/></svg></span><span class="lab">Op dit apparaat</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-nas"/></svg></span><span class="lab">Thuis-NAS</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-versies"/></svg></span><span class="lab">Versies</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-toegang"/></svg></span><span class="lab">Toegang</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-internet"/></svg></span><span class="lab">Internet</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-power"/></svg></span><span class="lab">Aan/uit</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-lock"/></svg></span><span class="lab">Vergrendelen</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-assistent"/></svg></span><span class="lab">Assistent</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-min"/></svg></span><span class="lab">minimise</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-max"/></svg></span><span class="lab">maximise</span></div>
+   <div class="icc"><span class="bx"><svg class="ic"><use href="#i-close"/></svg></span><span class="lab">close</span></div>
+  </div>
+ </div>
+
+ <!-- components -->
+ <div class="blk dk" style="left:24px;top:490px;width:496px;height:402px">
+  <div class="bh">Components<span>dark shown; light uses the same geometry</span></div>
+  <div class="plate d" style="padding:12px 14px 12px;height:372px">
+   <div class="cg">
+    <span></span><span class="lab">default</span><span class="lab">hover</span><span class="lab">focus</span><span class="lab">disabled</span>
+    <span class="lab">Primary</span><button class="btn pri">Installeren</button><button class="btn pri h">Installeren</button><button class="btn pri fx">Installeren</button><button class="btn pri dis">Installeren</button>
+    <span class="lab">Secondary</span><button class="btn sec">Beheren</button><button class="btn sec h">Beheren</button><button class="btn sec fx">Beheren</button><button class="btn sec dis">Beheren</button>
+    <span class="lab">Quiet</span><button class="btn qui">Intrekken</button><button class="btn qui h">Intrekken</button><button class="btn qui fx">Intrekken</button><button class="btn qui dis">Intrekken</button>
+   </div>
+   <div class="cg" style="grid-template-columns:62px 1fr 1fr;margin-top:8px;gap:6px 8px">
+    <span class="lab">Input</span>
+    <div class="inp" style="grid-column:2/4"><svg class="ic"><use href="#i-zoeken"/></svg><span class="u14 ph">Zoek apps, bestanden en instellingen</span><span class="lab" style="margin-left:auto">empty</span></div>
+    <span class="lab">filled · error</span>
+    <div class="inp fx"><svg class="ic"><use href="#i-zoeken"/></svg><span class="u14">tuin</span><span class="caret" style="height:18px;vertical-align:-4px;margin-left:-6px"></span></div>
+    <div class="inp err"><svg class="ic" style="color:var(--red)"><use href="#i-warn"/></svg><span class="u14">tuinplanner</span></div>
+   </div>
+   <div style="display:grid;grid-template-columns:62px 1fr 150px;gap:8px;margin-top:8px">
+    <span class="lab" style="padding-top:12px">List row</span>
+    <div>
+     <div class="row u14" style="color:var(--tx2);height:36px"><svg class="ic s20"><use href="#i-draw"/></svg><span style="color:var(--tx1)">Plattegrond</span><span class="lab" style="margin-left:auto">default</span></div>
+     <div class="row h u14" style="color:var(--tx2);height:36px"><svg class="ic s20"><use href="#i-pdf"/></svg><span style="color:var(--tx1)">Offerte schuur</span><span class="lab" style="margin-left:auto">hover</span></div>
+     <div class="row sel u14" style="color:var(--tx2);height:36px"><svg class="ic s20"><use href="#i-doc"/></svg><span class="u14s" style="color:var(--tx1)">Tuinplan</span><span class="lab" style="margin-left:auto">selected</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-start">
+     <span class="pill"><svg style="--c:var(--green)"><use href="#st-dev"/></svg>Op dit apparaat</span>
+     <span class="pill"><svg style="--c:var(--blue)"><use href="#st-nas"/></svg>Thuis-NAS</span>
+     <span class="pill"><svg style="--c:var(--red)"><use href="#st-net"/></svg>Internet</span>
+     <span class="pill err"><svg><use href="#st-err"/></svg>Fout</span>
+    </div>
+   </div>
+  </div>
+ </div>
+
+ <!-- title areas + depth -->
+ <div class="blk" style="left:536px;top:490px;width:304px;height:402px">
+  <div class="bh">Title area<span>focused vs unfocused</span></div>
+  <div class="dk" style="--app:#5AA2FF">
+   <div class="tb" style="background:#0D1020;box-shadow:inset 0 0 0 1px #2B3352"><i class="bl" style="left:14px;width:170px"></i><span class="tile s28" style="width:24px;height:24px;--pc:#5AA2FF"><svg class="ic" style="width:16px;height:16px"><use href="#i-bestanden"/></svg></span><span class="u14s">Huis — Bestanden</span><div class="wc"><button><svg class="ic"><use href="#i-min"/></svg></button><button><svg class="ic"><use href="#i-max"/></svg></button><button><svg class="ic"><use href="#i-close"/></svg></button></div></div>
+   <div class="tb" style="background:#0D1020;box-shadow:inset 0 0 0 1px #20263F;margin-top:8px"><span class="tile s28" style="width:24px;height:24px;--pc:#5AA2FF"><svg class="ic" style="width:16px;height:16px"><use href="#i-bestanden"/></svg></span><span class="u14s tx3">Huis — Bestanden</span><div class="wc"><button style="color:var(--tx3)"><svg class="ic"><use href="#i-min"/></svg></button><button style="color:var(--tx3)"><svg class="ic"><use href="#i-max"/></svg></button><button style="color:var(--tx3)"><svg class="ic"><use href="#i-close"/></svg></button></div></div>
+  </div>
+  <div class="lt" style="--app:#127A43;margin-top:8px">
+   <div class="tb" style="background:#FBFCFE;box-shadow:inset 0 0 0 1px #C9D0DD"><i class="bl" style="left:14px;width:170px"></i><span class="tile s28" style="width:24px;height:24px;--pc:#42D27F"><svg class="ic" style="width:16px;height:16px"><use href="#i-notities"/></svg></span><span class="u14s">Tuinplan — Notities</span><div class="wc"><button><svg class="ic"><use href="#i-min"/></svg></button><button><svg class="ic"><use href="#i-max"/></svg></button><button><svg class="ic"><use href="#i-close"/></svg></button></div></div>
+   <div class="tb" style="background:#EDF0F7;box-shadow:inset 0 0 0 1px #D8DEE9;margin-top:8px"><span class="tile s28" style="width:24px;height:24px;--pc:#42D27F"><svg class="ic" style="width:16px;height:16px"><use href="#i-notities"/></svg></span><span class="u14s tx3">Tuinplan — Notities</span><div class="wc"><button style="color:var(--tx3)"><svg class="ic"><use href="#i-min"/></svg></button><button style="color:var(--tx3)"><svg class="ic"><use href="#i-max"/></svg></button><button style="color:var(--tx3)"><svg class="ic"><use href="#i-close"/></svg></button></div></div>
+  </div>
+  <div class="note" style="margin-top:8px">Focused: rim blade in the app's charge, primary title, full shadow. Unfocused: no blade, tertiary title, half shadow.</div>
+  <div class="bh" style="margin-top:14px">Depth<span>material per level</span></div>
+  <div style="display:flex;justify-content:space-between">
+   <div style="text-align:center"><div class="dp wall-dk" style="box-shadow:inset 0 0 0 1px #2B3352"></div><div class="lab" style="margin-top:6px">L0 wall</div></div>
+   <div style="text-align:center"><div class="dp" style="background:#12162A;box-shadow:8px 12px 20px rgba(0,0,0,.6),inset 1px 1px 0 rgba(226,233,255,.4),inset 0 0 0 1px #2B3352"></div><div class="lab" style="margin-top:6px">L1 window</div></div>
+   <div style="text-align:center"><div class="dp" style="background:linear-gradient(180deg,rgba(40,48,90,.8),rgba(16,19,38,.9));box-shadow:10px 16px 24px rgba(0,0,0,.6),inset 1px 1px 0 rgba(226,233,255,.45)"></div><div class="lab" style="margin-top:6px">L2 menu</div></div>
+   <div style="text-align:center"><div class="dp" style="border-radius:14px;background:linear-gradient(180deg,#252B4D,#0F1222);box-shadow:0 10px 22px rgba(0,0,0,.6),inset 0 0 0 1px rgba(200,212,255,.25)"></div><div class="lab" style="margin-top:6px">L3 Orbit</div></div>
+   <div style="text-align:center"><div class="dp" style="background:#0B0E1B;box-shadow:0 12px 26px rgba(0,0,0,.6),inset 0 0 0 1.5px #A9B3C9"></div><div class="lab" style="margin-top:6px">L4 system</div></div>
+  </div>
+ </div>
+
+ <!-- tokens -->
+ <div class="blk dk" style="left:856px;top:20px;width:276px">
+  <div class="bh">Tokens · dark<span>nebula</span></div>
+  <div class="plate d" style="padding:12px 14px">
+   <div class="tok"><i style="background:#05060E"></i><span>surface.wallpaper</span><b>#05060E</b></div>
+   <div class="tok"><i style="background:var(--s1)"></i><span>surface.chrome</span><b>#0D1020</b></div>
+   <div class="tok"><i style="background:var(--s2)"></i><span>surface.window</span><b>#12162A</b></div>
+   <div class="tok"><i style="background:var(--s3)"></i><span>surface.raised</span><b>#1A1F38</b></div>
+   <div class="tok"><i style="background:var(--sin)"></i><span>surface.inset</span><b>#080A16</b></div>
+   <div class="tok"><i style="background:var(--ln)"></i><span>line.hairline</span><b>#232A47</b></div>
+   <div class="tok"><i style="background:var(--ln2)"></i><span>line.boundary</span><b>#5D6890</b></div>
+   <div class="tok"><i style="background:var(--tx1)"></i><span>text.primary</span><b>#EEF1F8</b></div>
+   <div class="tok"><i style="background:var(--tx2)"></i><span>text.secondary</span><b>#A9B2CB</b></div>
+   <div class="tok"><i style="background:var(--tx3)"></i><span>text.tertiary</span><b>#8C95B2</b></div>
+   <div class="tok"><i style="background:var(--red)"></i><span>charge.red</span><b>#FF5C50</b></div>
+   <div class="tok"><i style="background:var(--blue)"></i><span>charge.blue</span><b>#5AA2FF</b></div>
+   <div class="tok"><i style="background:var(--green)"></i><span>charge.green</span><b>#42D27F</b></div>
+   <div class="tok"><i style="background:var(--focus)"></i><span>focus.ring</span><b>#A8CAFF</b></div>
+   <div class="tok"><i style="background:var(--selbg)"></i><span>select.fill</span><b>#5AA2FF 15%</b></div>
+   <div class="tok"><i style="background:var(--green)"></i><span>status.device</span><b>#42D27F</b></div>
+   <div class="tok"><i style="background:var(--blue)"></i><span>status.nas</span><b>#5AA2FF</b></div>
+   <div class="tok"><i style="background:var(--red)"></i><span>status.internet</span><b>#FF5C50</b></div>
+   <div class="tok"><i style="background:#C9352A"></i><span>status.error</span><b>#C9352A</b></div>
+   <div class="tok"><i style="background:#0B0E1B"></i><span>system.kern</span><b>#0B0E1B</b></div>
+  </div>
+ </div>
+ <div class="blk lt" style="left:1140px;top:20px;width:276px">
+  <div class="bh">Tokens · light<span>upper atmosphere at dawn</span></div>
+  <div class="plate l" style="padding:12px 14px;color:#111726">
+   <div class="tok"><i style="background:#CEDBF3"></i><span>surface.wallpaper</span><b>#CEDBF3</b></div>
+   <div class="tok"><i style="background:var(--s1)"></i><span>surface.chrome</span><b>#EDF0F7</b></div>
+   <div class="tok"><i style="background:var(--s2)"></i><span>surface.window</span><b>#FBFCFE</b></div>
+   <div class="tok"><i style="background:var(--s3)"></i><span>surface.raised</span><b>#E3E8F1</b></div>
+   <div class="tok"><i style="background:var(--sin)"></i><span>surface.inset</span><b>#FFFFFF</b></div>
+   <div class="tok"><i style="background:var(--ln)"></i><span>line.hairline</span><b>#D8DEE9</b></div>
+   <div class="tok"><i style="background:var(--ln2)"></i><span>line.boundary</span><b>#78819A</b></div>
+   <div class="tok"><i style="background:var(--tx1)"></i><span>text.primary</span><b>#111726</b></div>
+   <div class="tok"><i style="background:var(--tx2)"></i><span>text.secondary</span><b>#424B62</b></div>
+   <div class="tok"><i style="background:var(--tx3)"></i><span>text.tertiary</span><b>#58627D</b></div>
+   <div class="tok"><i style="background:var(--red)"></i><span>charge.red</span><b>#CC3328</b></div>
+   <div class="tok"><i style="background:var(--blue)"></i><span>charge.blue</span><b>#1061D6</b></div>
+   <div class="tok"><i style="background:var(--green)"></i><span>charge.green</span><b>#127A43</b></div>
+   <div class="tok"><i style="background:var(--focus)"></i><span>focus.ring</span><b>#1061D6</b></div>
+   <div class="tok"><i style="background:var(--selbg)"></i><span>select.fill</span><b>#1061D6 10%</b></div>
+   <div class="tok"><i style="background:var(--green)"></i><span>status.device</span><b>#127A43</b></div>
+   <div class="tok"><i style="background:var(--blue)"></i><span>status.nas</span><b>#1061D6</b></div>
+   <div class="tok"><i style="background:var(--red)"></i><span>status.internet</span><b>#CC3328</b></div>
+   <div class="tok"><i style="background:#CC3328"></i><span>status.error</span><b>#CC3328</b></div>
+   <div class="tok"><i style="background:#0B0E1B"></i><span>system.kern</span><b>#0B0E1B</b></div>
+  </div>
+ </div>
+
+ <!-- high contrast mini rendition of artboard 1 -->
+ <div class="blk" style="left:856px;top:510px;width:560px">
+  <div class="bh">High contrast<span>Bureaublad at 39 % · 2 px boundaries, no glows, yellow focus</span></div>
+  <div style="width:560px;height:350px;overflow:hidden;border-radius:12px;box-shadow:inset 0 0 0 1px #3A4366;position:relative">
+   <div class="dk hc" style="position:absolute;left:0;top:0;width:1440px;height:900px;transform:scale(.38889);transform-origin:0 0">
+    <svg class="wp" viewBox="0 0 1440 900" aria-hidden="true"><g transform="rotate(-7 926 435)" fill="none" stroke="#FFFFFF" stroke-opacity=".55" stroke-width="2"><ellipse cx="926" cy="435" rx="600" ry="205"/><ellipse cx="926" cy="435" rx="410" ry="136"/><ellipse cx="926" cy="435" rx="232" ry="76"/></g><circle cx="878" cy="198" r="9" fill="#FF8A80"/><circle cx="1296" cy="477" r="9" fill="#8EC5FF"/><circle cx="605" cy="630" r="9" fill="#7CF0A8"/></svg>
+    <div class="cont">
+     <div class="d48">Goedemiddag, Noor</div>
+     <div class="d20" style="margin-top:30px">Verder waar je was</div>
+     <div class="traj">
+      <a class="it fx" style="left:14px;top:-8px;box-shadow:inset 0 0 0 2px #fff;outline-width:4px"><span class="page"><i style="top:9px;width:22px;height:4px;background:#000"></i><i style="top:19px;width:32px;background:#000"></i><i style="top:26px;width:30px;background:#000"></i></span><span><div class="d20">Tuinplan</div><div class="u14">Tekst · Huis · vandaag 09:40</div></span></a>
+      <a class="it" style="left:27px;top:84px;box-shadow:inset 0 0 0 2px #fff"><span class="page"></span><span><div class="d20">Plattegrond</div><div class="u14">Tekening · Huis · gisteren 18:12</div></span></a>
+      <a class="it" style="left:20px;top:176px;box-shadow:inset 0 0 0 2px #fff"><span class="page"></span><span><div class="d20">Boodschappen</div><div class="u14">Lijst · Vandaag · 11 nov.</div></span></a>
+     </div>
+    </div>
+    <nav class="orbit" aria-label="Orbit">
+     <button class="ob"><span class="nuc"><svg viewBox="0 0 1000 1000"><use href="#mk-c"/></svg></span></button>
+     <button class="ob"><svg class="ic"><use href="#i-zoeken"/></svg></button>
+     <i class="sep"></i>
+     <button class="ob"><span class="tile" style="--pc:#8EC5FF"><svg class="ic"><use href="#i-bestanden"/></svg></span></button>
+     <button class="ob"><span class="tile" style="--pc:#7CF0A8"><svg class="ic"><use href="#i-notities"/></svg></span></button>
+     <button class="ob"><span class="tile" style="--pc:#FFFFFF"><svg class="ic"><use href="#i-instellingen"/></svg></span></button>
+     <i class="sep"></i>
+     <div class="priv"><svg class="ic" style="--pc:#7CF0A8"><use href="#i-device"/></svg><span class="tx"><span class="u14s">Op dit apparaat</span><span class="c12">Je werk blijft op dit apparaat</span></span></div>
+     <div class="clock"><span class="d20">14:32</span><span class="c12">do 13 nov</span></div>
+    </nav>
+   </div>
+  </div>
+ </div>
+</section>
+<div class="after"></div>
+
+</body>
+</html>

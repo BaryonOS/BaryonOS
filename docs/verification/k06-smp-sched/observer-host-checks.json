@@ -1,0 +1,51 @@
+{
+  "accepted": false,
+  "source_fingerprint_version": 3,
+  "source_sha256": "505c25139b4d23d78aa9da406108aad437ba7a763b1b1c67b0cc6074a4d8f2ae",
+  "base_commit": "8797267b67c078b9537952136bfea847b19156d6",
+  "assessment_basis": "working_tree",
+  "checks": [
+    {
+      "name": "observer-m3-build",
+      "command": "NOS_BUILD_DIR=build/k06-observer-m3 NOS_TARGET_DIR=target/k06-fpu-ready python3 -B tools/build.py --kernel-feature native-smp-m3",
+      "exit": 0,
+      "raw_log_sha256": "f833f203d46cbc619e536b1a29f2b943cdf62956d9d33832b45d709592e5bda5",
+      "log": "observer-m3-build.log.gz"
+    },
+    {
+      "name": "observer-soak-build",
+      "command": "NOS_BUILD_DIR=build/k06-observer-soak NOS_TARGET_DIR=target/k06-fpu-soak-build python3 -B tools/build.py --kernel-feature native-smp-m3-soak",
+      "exit": 0,
+      "raw_log_sha256": "08386adfd91f57c95459ec80f494124bea772de7dfb86cd4e9eb1bfa2fbff151",
+      "log": "observer-soak-build.log.gz"
+    },
+    {
+      "name": "observer-fpu-hosttests",
+      "command": "python3 -B userspace/tests/test_smp_fpu_probe.py --elf build/k06-observer-m3/users/probe.elf",
+      "exit": 0,
+      "raw_log_sha256": "a8c975601661deae2019c7666e061751d824529e348d9b5d655dd202944954f0",
+      "log": "observer-fpu-hosttests.log.gz"
+    },
+    {
+      "name": "observer-soak-fpu-hosttests",
+      "command": "python3 -B userspace/tests/test_smp_fpu_probe.py --elf build/k06-observer-soak/users/probe.elf",
+      "exit": 0,
+      "raw_log_sha256": "a7989d27b64558e5d89d5ad820cda3bef8d36647538f7d1603d75be879e280fe",
+      "log": "observer-soak-fpu-hosttests.log.gz"
+    },
+    {
+      "name": "observer-smp-hosttests",
+      "command": "python3 -B -m unittest discover -s tools/tests -p 'test_smp*.py' -v",
+      "exit": 0,
+      "raw_log_sha256": "d7e40da886a0939928a2c03b16402330607639cfee569b59c4ea9e6474632ef6",
+      "log": "observer-smp-hosttests.log.gz"
+    }
+  ],
+  "additional_checks": {
+    "fmt": "exit 0",
+    "git_diff_check": "exit 0",
+    "progress_check": "exit 0; 41/100"
+  },
+  "native_guests_started_locally": 0,
+  "limits": "Static work reduction and host/crossbuild evidence do not establish runtime speed or timeout recovery. Original limits and a complete fresh matrix remain required."
+}

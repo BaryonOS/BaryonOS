@@ -1,0 +1,50 @@
+diff --git a/docs/PROJECT-STATE.md b/docs/PROJECT-STATE.md
+index 258f416c..566abb2b 100644
+--- a/docs/PROJECT-STATE.md
++++ b/docs/PROJECT-STATE.md
+@@ -1,5 +1,24 @@
+ # Current project status
+ 
++## NEXT AGENT HANDOFF — K06-specificaties conflictintegratie — 10 november 2026
++
++**Bron:** branch `docs/k06-step-specs` op `ba03fa0f`, geïntegreerd met
++`main` `2d17a387`. Zeven conflicten zijn opgelost. De samenvoeging behoudt de
++actuele fail-closed rapportcontroles, de experimentele legacy-SMP-job, de
++Cargo-doelinstellingen uit `.cargo/config.toml` en de negen K06 L0-documenten.
++
++**Validatie:** `python3 tools/progress.py --write` en `--check` slagen op
++39/100. `test_ci_workflows.py` (18 tests), `test_ci_evidence*.py` (21 tests) en
++`test_agent_pipeline.py` (31 tests) slagen; `git diff --check` is schoon.
++Dit zijn workflow-, hulpmiddel- en documentcontroles; **geen native OS-test**
++is voor deze conflictintegratie uitgevoerd.
++
++**Voortgang:** 39/100 blijft 39/100; geen criterium of bewijsniveau wijzigt.
++De negen K06-documenten blijven voorstellen; K06 blijft open. De nieuwe
++specificaties voegen geen kernelimplementatie of native acceptatiebewijs toe.
++
++**Eerstvolgend commando:** `sed -n '1,240p' docs/implementation/k06-steps/01-5b-2-kernel-lock-scratch.md`
++
+ ## NEXT AGENT HANDOFF — PR #257 fail-closed publication inventory — 10 November 2026
+ 
+ **Source:** branch `codex/pr257-rebuild-20261110`, rebuilt on current `main`
+diff --git a/docs/progress.json b/docs/progress.json
+index d8bc7038..4a3c9eee 100644
+--- a/docs/progress.json
++++ b/docs/progress.json
+@@ -3,12 +3,12 @@
+   "rubric_version": 1,
+   "assessment": {
+     "date": "2026-11-10",
+-    "source_commit": "672b9c0b4ccd972665237dcf045eca41d37852cb",
++    "source_commit": "2d17a3870c0f22254af0a749d3f29128fe2e11ae",
+     "assessment_basis": "source_commit",
+-    "branch": "codex/pr257-rebuild-20261110",
+-    "task": "Rebuild PR #257 as a fail-closed snapshot-bound local publication inventory",
++    "branch": "docs/k06-step-specs",
++    "task": "Resolve merge conflicts for the remaining K06 L0 specifications",
+     "previous_score": 39,
+-    "summary": "39/100 to 39/100: the publication inventory, finalization transition, and transferred canonical repository identity are bounded and fail closed, but audit tooling does not add OS functionality or native acceptance. No live publication audit was executed; criterion states, weights, and evidence remain unchanged."
++    "summary": "39/100 remains 39/100. The merge adds no accepted OS functionality or native evidence; the nine K06 documents remain proposals and K06 stays open."
+   },
+   "tracks": [
+     {
