@@ -80,6 +80,9 @@ DENY = ["Bash(git push:*)", "Bash(git commit:*)", "Bash(git reset:*)", "Bash(git
         "Read(~/.claude/.credentials.json)", "Read(~/.ssh/**)", "Read(~/.config/gh/**)",
         "Read(~/.git-credentials)", "Read(//home/claude/**)", "Read(//root/.ccr/**)"]
 PROCESS_TAG = "roadmap-pipeline-"
+READ_ONLY_DISALLOWED = "Edit,Write,MultiEdit,NotebookEdit"
+INIT_ALLOWED_PROBE = "python3 -B tools/progress.py --check"
+INIT_DENY_PROBE = "build/roadmap-pipeline/DENY-PROBE"
 TRAILERS = ("Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"
             "Claude-Session: https://claude.ai/code/session_01TJtT9VANihpE4RzPd4d8su\n")
 
@@ -235,15 +238,15 @@ def allow_rules(task: dict | None, extra_tools: tuple[str, ...] = ()) -> list[st
 
 
 def claude_argv(cfg: Config, name: str, session_id: str, settings: Path, schema: dict,
-                mode: str, budget: float, tools: str | None = None) -> list[str]:
+                mode: str, budget: float, disallowed: str | None = None) -> list[str]:
     """argv for one NEW session; the brief is passed on stdin (no argv size limit)."""
     argv = [cfg.claude, "-p", "--name", name, "--session-id", session_id, "--output-format", "json",
             "--model", cfg.model, "--effort", cfg.effort, "--autocompact", cfg.autocompact,
             "--permission-mode", mode, "--permission-prompts", "none",
             "--settings", str(settings), "--json-schema", json.dumps(schema),
             "--max-budget-usd", f"{budget:.2f}"]
-    if tools is not None:
-        argv += ["--tools", tools]
+    if disallowed:
+        argv.append(f"--disallowedTools={disallowed}")  # `=` form: the flag is variadic
     assert not any(flag in argv for flag in FORBIDDEN_FLAGS), "forbidden session flag"
     return argv
 
@@ -389,7 +392,7 @@ class Controller:
 
     # --- one fresh headless session ---
     def session(self, kind: str, task_id: str, attempt_dir: Path, prompt: str, schema: dict,
-                rules: list[str], mode: str, timeout: int, tools: str | None = None,
+                rules: list[str], mode: str, timeout: int, disallowed: str | None = None,
                 budget: float | None = None) -> dict:
         if self.spent >= self.cfg.total_budget_usd:
             raise Stop(f"cumulative estimated cost {self.spent:.2f} USD reached the cap")
@@ -399,7 +402,7 @@ class Controller:
         brief = attempt_dir / f"{kind}-brief.md"
         atomic_write(brief, prompt)
         argv = claude_argv(self.cfg, f"{PROCESS_TAG}{kind}-{task_id}", session_id, settings, schema, mode,
-                           budget or self.cfg.session_budget_usd, tools)
+                           budget or self.cfg.session_budget_usd, disallowed)
         atomic_write(attempt_dir / f"{kind}-argv.json", json.dumps(argv[:1] + argv[1:], indent=1))
         out, err = attempt_dir / f"{kind}-result.json", attempt_dir / f"{kind}-stderr.log"
         started = time.monotonic()
@@ -462,6 +465,9 @@ class Controller:
                 "first_message_is_brief": isinstance(first, str) and first.strip() == prompt.strip()}
 
     # --- validation owned by the controller ---
+    def tree_fingerprint(self) -> str:
+        return sha256(git("status", "--porcelain", "--untracked-files=all") + git("diff", "HEAD"))
+
     def changed(self) -> list[str]:
         return parse_porcelain(git("status", "--porcelain", "--untracked-files=all"))
 
@@ -611,7 +617,10 @@ file. Report facts only:
    whether BaryonOS/BaryonOS is queryable.
 5. Which of these skills are listed for you: ponytail, verification-loop, token-guard,
    os-dev (or the repository skill .agents/skills/os-dev).
-6. Try `uname -a`; it should be denied by policy. Report what happened.
+6. Policy probes. (a) Run `python3 -B tools/progress.py --check`; it is explicitly
+   allowed. (b) Then try exactly `python3 -c "open('build/roadmap-pipeline/DENY-PROBE','w').write('x')"`;
+   it is not allowed and should be refused without a prompt. Report both outcomes
+   (put (b) in bash_denied_example and (a) in notes). Do not try any workaround.
 Return the structured result.
 """
 
@@ -653,12 +662,15 @@ Return the structured result.
                 else:
                     diff = git("diff", "HEAD")
                     untracked = [p for p in changed if p not in set(git("ls-files", "--", *changed).split())]
+                    before = self.tree_fingerprint()
                     verifier = self.session("verifier", task["id"], adir,
                                             self.verifier_prompt(task, head, diff[:60_000], untracked, checks),
                                             VERIFIER_SCHEMA, allow_rules(None), "default",
-                                            self.cfg.verifier_timeout, tools="Read,Grep,Glob",
+                                            self.cfg.verifier_timeout, disallowed=READ_ONLY_DISALLOWED,
                                             budget=self.cfg.verifier_budget_usd)
                     record["verifier"] = verifier
+                    if self.tree_fingerprint() != before:
+                        raise Stop("the read-only verifier changed the working tree; stopping for review")
                     verdict = verifier.get("output") or {}
                     findings = verdict.get("findings") or []
                     if verifier["exit_code"] == 0 and verdict.get("verdict") == "pass" and not blocking(findings):
@@ -733,11 +745,15 @@ Return the structured result.
         head = self.preflight()
         adir = self.state / "runs" / self.run_id / "INIT-CHECK"
         adir.mkdir(parents=True, exist_ok=True)
+        probe = ROOT / INIT_DENY_PROBE
+        probe.unlink(missing_ok=True)
         record = self.session("init", "INIT-CHECK", adir, self.init_prompt(), INIT_SCHEMA,
-                              allow_rules(None), "default", 15 * 60, tools="Read,Grep,Glob,Bash,ToolSearch",
-                              budget=self.cfg.verifier_budget_usd)
+                              allow_rules(None) + [f"Bash({INIT_ALLOWED_PROBE}:*)"], "default", 15 * 60,
+                              disallowed=READ_ONLY_DISALLOWED, budget=self.cfg.verifier_budget_usd)
         record["head_expected"] = head
         record["checkout_clean_after"] = not self.changed()
+        record["deny_probe_file_absent"] = not probe.exists()  # controller-side oracle
+        probe.unlink(missing_ok=True)
         atomic_write(adir / "init-check.json", json.dumps(record, indent=2))
         return record
 

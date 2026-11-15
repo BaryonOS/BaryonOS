@@ -94,6 +94,8 @@ class Session(unittest.TestCase):
         self.assertIn("--permission-prompts none", joined)
         self.assertIn("--name roadmap-pipeline-worker-T", joined)
         self.assertEqual(argv[1], "-p")
+        ro = rr.claude_argv(cfg, "n", "1", Path("/s.json"), {}, "default", 1.0, rr.READ_ONLY_DISALLOWED)
+        self.assertIn("--disallowedTools=Edit,Write,MultiEdit,NotebookEdit", ro)
 
     def test_allow_rules_are_task_scoped(self):
         t = dict(task("A", checks=["cargo +1.90.0 test --locked -p net-config"]))
