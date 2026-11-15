@@ -1,5 +1,76 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — S09 ustar export runner (separate from the design pipeline) — 15 November 2026
+
+The design-pipeline handoff below remains the authoritative handoff for the UI/UX
+track. This section covers only the S09 track, which runs in its own worktree.
+
+**Source:**
+- Worktree: `/home/simon/projects/BaryonOS-worktrees/s09-native-archive`.
+- Branch: `feat/s09-ustar-name-check`, created from main `d572052b`.
+- Commits:
+  - `1b1ef0fb` (name check);
+  - `464efdb9` (regression test);
+  - this handoff commit.
+- Source-v3 fingerprint of `464efdb9`: `4e8e5ecfee527834ab89182d39d5b0ab66e8baf8e578dc186c8a2ebe8d31218f`. Documentation commits do not change it.
+- No PR is open for this branch yet. The runner opens a draft PR on its next push.
+- The earlier branch `feat/s09-ustar-names` (PR #337) is merged and deleted. Do not reuse it.
+
+**Done (verified):**
+- **D6 recorded.** `ADR-S09-USTAR-20261114` records the owner's D6(a) approval verbatim. PR #337 was merged by the project owner on 15 November 2026 at 00:43Z as squash `d572052b`. Its title also names name validation and a native stage, but it contained only the ADR and documentation status updates.
+- **Name check (S09-NAMES).** `volume_core::ustar::check` reports every refused object or collection name, with reason bits:
+  - CHARACTER: `<>:"|?*`, `/`, `\` and control characters; `:` also covers drive and stream syntax;
+  - RESERVED: Windows device names, including COM/LPT 0–9, superscript digits, CONIN$ and CONOUT$;
+  - TRAILING: a trailing dot or space;
+  - CASE and FILE_AND_DIRECTORY: collisions under a hand-written case fold;
+  - UNCHECKED: characters outside printable ASCII, Latin-1, Latin Extended-A and Dingbats.
+- **No partial export.** `ustar::from_archive` writes nothing when any name is refused, and renames nothing.
+- **Unchanged:** the format-v1 recovery archive, `walk` and `valid_name`.
+- **No normalisation claim.** No Unicode normalisation is claimed; names outside the checked set are refused.
+
+**Evidence:**
+- The runner controller ran these on `978d030d`, which is byte-identical to this branch for every changed file (`git diff --quiet 978d030d 464efdb9 -- services/volume docs/implementation/S09-BACKUP-ARCHIVE.md`). Each exited 0:
+  - `cargo +1.90.0 test --locked -p volume-core`;
+  - `cargo +1.90.0 clippy --locked -p volume-core --all-targets -- -D warnings`;
+  - `cargo +1.90.0 fmt -p volume-core -- --check`;
+  - `cargo +1.90.0 build --locked -p volume-core --target x86_64-unknown-none`.
+- Logs are in the ignored folder `build/s09-ustar-notes/runner/runs/S09-NAMES/1/`.
+- **Not run on `464efdb9`:** the same checks. The shutdown handoff ran no builds. Main's changes since `87be2953` touch none of `services/volume`, the S09 archive specification or the Cargo manifests.
+
+**Open:**
+- **ORACLE:** a Python `unicodedata` oracle and a record of mutants for the name check.
+- **NATIVE-USTAR:** the native `archive-ustar` test stage.
+- **GATE-15:** stage-count expectations in the orchestration and workflows.
+- **REVIEW:** an independent read-only review.
+- **VERIFY:** the full native volume gate, with a fingerprint before and after.
+- **RECORD:** the specification status, this file and the progress assessment.
+- **NEXT:** selection of the next authorised task.
+- **Status:** S09 stays open. No native evidence exists for the export, and the progress score is unchanged.
+- **Untested:** Windows and macOS extraction, 8.3 short names and path-length limits.
+
+**Decisions:**
+- D6(a) is approved: a lossy user export.
+- D1–D5 remain undecided.
+- No new capability, destination, trust boundary or encryption architecture.
+
+**Runner:**
+- **What it is:** a deterministic controller in the ignored folder `build/s09-ustar-notes/runner/`. Each task runs in a fresh `claude -p --session-id` session with `--autocompact 100000`.
+- **Who pushes:** the controller alone, without force. Workers have no push URL and no GitHub token. This protects against accidents only; it is not a security boundary.
+- **State:** stopped, with no process left. It stopped at 00:41Z with exit 4 when the remote branch changed outside the controller.
+- **STOP latch:** set. The queue is preserved and its branch points at this branch.
+- **Withdrawn draft:** a draft that merged GitHub "Update branch" changes automatically was withdrawn after an independent AI review found two blockers. It is kept under `runner/drafts/`.
+
+**Dependencies:**
+- **Heavy gates:** one native gate at a time, host-wide, through `runner/heavy.sh`.
+- **Separate tracks:** the design pipeline (#332, merged) and the open PRs #336 (B03) and #333 (H02) are separate. Their files are not touched.
+
+**Next action:**
+1. Reconcile the state: `git status`, `git ls-remote origin refs/heads/feat/s09-ustar-name-check`, and check that no runner process is left.
+2. Run the four `volume-core` checks above on HEAD. They must exit 0.
+3. Remove `runner/STOP` and relaunch the runner. The command is in `runner/RESUME.md`.
+4. S09-ORACLE runs next.
+
+
 ## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
 
 **Source:** branch `claude/baryon-os-ui-ux-design-152adb` at `ea4e033d`
