@@ -1,6 +1,6 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), draft PR #332 — 15 November 2026 (shutdown checkpoint)
+## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), PR #332 merged; continuation branch pending — 15 November 2026 (shutdown checkpoint)
 
 **Source:** branch `claude/baryon-os-ui-ux-design-152adb` at `ea4e033d`
 (S0 `b305fa7c`, S1 `8e4abd8d`, v2 board `ea4e033d`) after merge `89e8b1c9` of
@@ -73,7 +73,10 @@ The detailed checkpoint lists run IDs, results, hashes, briefs, tools and
 owner decisions: `build/design-pipeline-checkpoint/handoff-baryonos-design-pipeline.md`
 (ignored, section 14 for this session).
 
-**Shutdown checkpoint (15 November 2026, about 02:00 CET):** no workflow,
+**Shutdown checkpoint (15 November 2026, about 02:00 CET):** PR #332 was
+squash-merged by the project owner at 01:34 CET as `8be897c8` (head
+`ec577292`); the shutdown commits after `ec577292` are on the branch but in no
+pull request. No workflow,
 agent or preview server is running; `RUNNER.lock` is released (moved to
 `runs-20261115/RUNNER.lock.uxa11y-r-interrupted`). Run `wf_1c2c1a08-2d1`
 (UX-A11Y-R) was stopped during its synthesis stage; the three researcher
@@ -89,11 +92,14 @@ the superseded 14 November model only
 ([SUPERSEDED.md](verification/ds-1.0-c1-20261115/SUPERSEDED.md)).
 
 **Next:** in a fresh session, first reconcile Git, lock and process state
-(checkpoint section 14, last entry "Shutdown checkpoint"), run
+(checkpoint section 14, last entry "Shutdown checkpoint"). Because #332 is
+merged, create a new branch from `origin/main` in the same worktree,
+cherry-pick the commits after `ec577292`, reassess progress and open one draft
+pull request. Run
 `build/design-pipeline-checkpoint/tools/design-servers.sh start` and `check`,
-then resume UX-A11Y-R from the stored researcher outputs: a continuation run
-with the synthesis writer and the independent verifier of
-`runs-20261115/uxa11y-r-run1.js` (the three researchers are not repeated
+then resume UX-A11Y-R from the stored researcher outputs with
+`runs-20261115/uxa11y-r-run1-resume.js`: the synthesis writer and the
+independent verifier of `runs-20261115/uxa11y-r-run1.js` only (the three researchers are not repeated
 unless the verifier finds a concrete defect in their output). Acceptance: the
 verifier's nine checks pass with no blocker or major after at most two
 repairs. Then UX-A11Y-DS (`runs-20261115/uxa11y-ds-run1.js`, draft), UX-C run 1
