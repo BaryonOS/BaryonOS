@@ -22,7 +22,7 @@
       "criterion": "A02",
       "milestone": "M7",
       "executor": "worker",
-      "status": "ready",
+      "status": "active",
       "title": "Host installer orchestrator binding source verification, artifact commit and catalogue journal",
       "goal": "Add sdk/app-management/src/installer.rs: a bounded no_std orchestrator for install, update and remove that (1) verifies the package only through the existing app_package_core::SourceRegistry::verify_executable (no second verifier, no public self-constructible verified token), (2) derives PackageIdentity crate-internally from the SourceVerifiedExecutable, (3) streams the exact image through store::InstallTransaction and commits it, (4) re-checks the current source generation and revocation state immediately before catalogue prepare/apply so a rotate or revoke between verification and commit fails closed (APP-SOURCE-RECOVERY section 7), (5) applies catalog::InstallCatalog and persists through journal::Journal, and (6) maps store/journal Unknown to a fail-closed state without replay or automatic recommit. The SourceRegistry stays caller-supplied and in memory: no new trust root, anchor, durable source backend or launch capability.",
       "why_now": "A02 is open and every lower layer (package verification, source policy, streaming store, catalogue, journal) is host-tested but unconnected. A single orchestrator is the smallest step that proves the layers compose without authority gaps, and it is the prerequisite for the native installer service (A02-T3) and for A03/A04 app lifecycle work. Covered by an existing CI job.",
@@ -73,7 +73,13 @@
       "evidence_level": "host",
       "rollback": "Revert the task commit; the orchestrator is additive and has no consumer yet.",
       "next": "A02-T3 native installer service after the launch ADR and B02 artifact store.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-15T01:25:49+00:00",
+          "event": "active",
+          "run": "20261115T012528-11476"
+        }
+      ]
     },
     {
       "id": "A03-T1",
