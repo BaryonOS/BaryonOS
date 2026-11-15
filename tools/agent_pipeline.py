@@ -33,9 +33,19 @@ MAX_PARALLEL = 3
 MAX_ATTEMPTS = 4
 LABELS = {"pipeline:serial": "serial", "pipeline:parallel": "parallel"}
 # Agents never change the rules that judge them; such changes need a human PR.
-PROTECTED = (".github/", "tools/agent_gate.py", "tools/agent_pipeline.py", "tools/common.py",
-             "tools/progress.py", "AGENTS.md", "CLAUDE.md", "docs/progress.json",
-             ".codex/config.toml")
+PROTECTED = (
+    ".github/", ".codex/config.toml", "tools/agent_gate.py", "tools/agent_pipeline.py",
+    "tools/roadmap_runner.py", "tools/tests/test_agent_pipeline.py",
+    "tools/tests/test_roadmap_runner.py", "tools/common.py", "tools/progress.py",
+    "AGENTS.md", "CLAUDE.md", "docs/progress.json", "docs/PROJECT-STATE.md",
+    "docs/DECISIONS.md", "docs/PROGRESS.md", "docs/assets/progress.svg", "README.md",
+    "docs/verification/", "docs/history/", "services/keyring/vendor/",
+    "services/image-codec/vendor/", "experiments/quantum/third-party/",
+    ".agents/skills/os-dev/references/", "LICENSE", "plugins/token-guard/LICENSE",
+    "docs/third-party/licenses/", "ui/prototype/tokens.css",
+    "ui/design/system/tokens.css", "CODEX-WORKFLOW.md", "tools/update-keys/TEST-",
+    "build/", "target/", "graphify-out/",
+)
 ALWAYS_ALLOWED = ("Cargo.lock",)
 RATE_LIMIT = re.compile(r"rate.?limit|usage limit|quota|too many requests|\b429\b", re.I)
 # Read-only Graphify tools as the Claude CLI names the claude.ai connector; every other

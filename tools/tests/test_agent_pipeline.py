@@ -150,6 +150,14 @@ class Planning(unittest.TestCase):
                 spec = 'spec\n' + '```json\n' + json.dumps({"targets": [path], "reads": []}) + '\n```'
                 with self.assertRaises(ValueError):
                     ap.parse_spec(spec)
+        for path in ("tools/roadmap_runner.py", "tools/tests/test_agent_pipeline.py",
+                     "docs/PROJECT-STATE.md", "docs/verification/accepted/receipt.json",
+                     "docs/history/file.md", "services/keyring/vendor/locked.rs",
+                     "ui/prototype/tokens.css", "ui/design/system/tokens.css",
+                     "plugins/token-guard/LICENSE", "tools/update-keys/TEST-key",
+                     "CODEX-WORKFLOW.md", "README.md", "build/generated.txt"):
+            with self.subTest(path=path):
+                self.assertTrue(ap.is_protected(path))
         self.assertFalse(ap.is_protected("ui/AGENTS.md.example"))
         self.assertFalse(ap.is_protected("docs/CODEX-PARITY.md"))
 
