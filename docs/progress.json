@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-15",
-    "source_commit": "2142152e3f1f7fb589b98ffceead9ff9299065aa",
+    "source_commit": "ec5772927f7ff9af8db1ea6adf870ec815bad6a6",
     "assessment_basis": "parent_commit",
     "branch": "claude/baryon-os-ui-ux-design-152adb",
-    "task": "Design pipeline on draft PR #332: commit correction UX-D-C1 (owner permission model) as an intermediate state; accessibility research UX-A11Y-R queued",
+    "task": "Design pipeline on draft PR #332: shutdown checkpoint; owner decisions of 15 Nov (accessibility two tiers, simplified permission model) recorded; UX-A11Y-R interrupted after its research stage",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The commit adds the UX-D-C1 correction of the ds-1.0 design system and prototype (owner permission model), a verification record whose run ended with one open design-quality major (UX-D not accepted), and a DESIGN-AMBITION addition on accessibility. No native build, QEMU run or criterion evidence is added; design, research and simulation evidence accepts no criterion."
+    "summary": "41/100 remains 41/100. The commit records a shutdown checkpoint of the design pipeline: PROJECT-STATE rows and next action, a note that the 15 November owner decision supersedes the permission model in DESIGN-SYSTEM.md section 11.1, and a SUPERSEDED.md beside the C1 verification record. The accessibility research run was interrupted after its three researchers; nothing from it is accepted. No native build, QEMU run or criterion evidence is added; design, research and simulation evidence accepts no criterion."
   },
   "tracks": [
     {
