@@ -148,7 +148,7 @@ without this ordering (run 2) failed it with a Busy status instead of
 `Corrupt` (step 740).
 
 **Runner stages** (`tools/run_volume.py`, plan of `tools/test_volume.py`, now
-14 QEMU runs): `archive-export` on the image left by `recover` (volume mounted
+15 QEMU runs): `archive-export` on the image left by `recover` (volume mounted
 read-only, every byte outside the archive range unchanged, zero padding, no
 write past the archive, writes = ⌈length/512⌉); `archive-restore` and
 `archive-corrupt` on a fresh image that holds only the copied archive range
@@ -200,7 +200,44 @@ archive. It does not show that a failed export invalidates an older archive
 already in the range; an older archive whose leading sectors equal the new
 stream would still verify as that older archive.
 
-## User export to ustar (approved format, host-tested, 13 November 2026)
+`archive-ustar` (test-only kernel case 12, feature `test-volume-archive-ustar`)
+writes the approved ustar user export natively. It starts from the export
+stage's input image, like `archive-full`, and uses the same slot-1 portal
+grant as `archive-export`: READ|WRITE|FLUSH on the `ARCHIVE_SECTORS` fixture
+range. It adds no capability, destination or production authority. The portal
+exports the recovered fixture into the lower half of the range, runs
+`ustar::check` on that stored archive and requires a summary equal to the
+export's and no refused name. It then passes `ustar::from_archive` a copy of
+the returned `Names` whose first object name is replaced by `CON` while the
+refusal bits stay clear; the conversion must return `Invalid`. Finally it
+converts the archive with the unchanged `Names` into the upper half and
+reports the stream length. The conversion reuses the portal's existing
+`unsafe` scratch cast of the kernel-mapped heap (one `unsafe` block with its
+SAFETY comment in `sdk/examples/volume-docs/src/app.rs`); this stage adds no
+further `unsafe`. The runner requires that the lower half equals the export
+stage's archive, that the stream starts exactly at the upper half and is
+zero-padded to a sector, and that no other sector changed. Writes must equal
+the archive sectors plus the stream sectors, so the refused conversion wrote
+nothing, and there must be exactly two flushes. Python's `tarfile` is the
+independent reader of the exported bytes (strict UTF-8). `check_ustar` in
+`tools/run_volume.py` compares them with the parsed archive: member names in
+archive order, a pax `path` record exactly for non-ASCII paths, regular-file
+type, ustar magic, mode, uid, gid, mtime, content, zero padding,
+member offsets and exactly two end blocks. `tests/test_volume_ustar_export.py`
+shows that this oracle refuses nine kinds of differing stream. Measured on
+15 November 2026 (gate source fingerprint `0af1c15e…`, all 15 stages passed):
+1,440 reads, 368 writes, 2 flushes and a 96,256-byte stream (sha256
+`13bdbe8d…`) with the five fixture paths, among them `Privé/Notitie ✓` with a
+pax record. The archive in the lower half has the export stage's sha256
+`d75aa5c8…` and 91,801 bytes. The archive portal is built with release
+opt-level `s` for every archive stage, because with the ustar converter linked
+its text at opt-level 3 exceeds the 64 KiB app text bound of its linker
+script. Limits: the native refusal covers only a reserved name in a
+caller-edited `Names`; the other refusal rules are host-tested. The pax output
+is checked by `tarfile`, not compared byte for byte with an independent
+writer. Archive and stream share the one fixture range on the volume's disk.
+
+## User export to ustar (approved format, host-tested and native test stage, 13–15 November 2026)
 
 **Status:** approved by the project owner on 14 November 2026 under
 [ADR-S09-USTAR-20261114](../DECISIONS.md) (D6 (a) in
@@ -208,10 +245,10 @@ stream would still verify as that older archive.
 It is a lossy interchange format, not the native Baryon OS/Materiaal format
 and not a recovery copy; format v1 stays the only recovery format. The
 converter and its name check (S09-NAMES, 15 November 2026) are host-tested
-only. It changes no capability. It has no native stage yet. The project owner
-authorised a native test stage that uses the existing test-only permissions
-and storage fixtures; it is a later task, adds no production authority and
-does not decide D1.
+only. It changes no capability. The native test stage `archive-ustar` (see
+Runner stages above) uses the existing test-only permissions and storage
+fixtures, as the project owner authorised; it adds no production authority
+and does not decide D1.
 
 The export converts a format-v1 archive into a POSIX.1-1988 ustar stream,
 with POSIX.1-2001 pax `path` records for names that are not ASCII. It is meant
@@ -378,11 +415,10 @@ external tool:
     [NAMES-ORACLE-20261115.md](../verification/s09-archive/NAMES-ORACLE-20261115.md).
 
 Not checked: bsdtar and Windows `tar` as readers, extraction on Windows or
-macOS, over-refusal (precision) mutants of the name check, and a native stage.
+macOS, over-refusal (precision) mutants of the name check.
 
 **Still open for S09:** a user-chosen target behind its own capability (not a
-fixture range on the same disk); a native test stage that writes the approved
-ustar export (D6 (a)) out; the encrypted NAS/provider variant; a user-facing task;
+fixture range on the same disk); the encrypted NAS/provider variant; a user-facing task;
 a second simultaneously attached disk (archive and volume
 share one virtual device here). Plaintext archives are used only on
 harness-assigned local test images. The destination and its capability
