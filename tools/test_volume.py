@@ -5,7 +5,8 @@ normal -> cold read-only recover (same image) -> S09 archive export into a
 disjoint range of that image (volume mounted read-only) -> restore of only that
 range on a fresh image, the same range with one damaged byte refused, and a
 restore into a domain that already holds conflicting names and collections,
-and an export into a target too small for the archive that must fail cleanly;
+and an export into a target too small for the archive that must fail cleanly,
+and the D6(a) ustar user export of that archive, read back with Python tarfile;
 cut-data (real kill) -> cold
 recover; cut-table (real kill) -> cold recover; cut-txn (real kill inside a
 multi-object transaction) -> cold recover; corrupt image refused.
