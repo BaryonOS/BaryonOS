@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Complete M6e/S06 gate: host tests, then fourteen real QEMU invocations in order.
+"""Complete M6e/S06 gate: host tests, then fifteen real QEMU invocations in order.
 
 normal -> cold read-only recover (same image) -> S09 archive export into a
 disjoint range of that image (volume mounted read-only) -> restore of only that
@@ -44,6 +44,7 @@ def test_inputs() -> dict[str, str]:
 PLAN = [("normal", None), ("recover", "normal"), ("archive-export", "recover"),
         ("archive-restore", "archive-export"), ("archive-corrupt", "archive-export"),
         ("archive-conflict", "archive-export"), ("archive-full", "archive-export"),
+        ("archive-ustar", "archive-export"),
         ("cut-data", None), ("recover-cut", "cut-data"), ("cut-table", None),
         ("recover-cut", "cut-table"), ("cut-txn", None), ("recover-cut", "cut-txn"), ("corrupt", None)]
 
