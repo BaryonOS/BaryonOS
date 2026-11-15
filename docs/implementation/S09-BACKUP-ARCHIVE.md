@@ -237,7 +237,8 @@ for common tar readers outside Baryon OS; the readers tested are Python's
   the names again (so clearing the bits does not help) and writes nothing
   when any name is refused. The whole export is then refused with `Invalid`
   before its first byte, and the report names every refused name, not only
-  the first. Nothing is renamed.
+  the first. Nothing is renamed. `Names` that claim more objects than a
+  domain holds are refused with `Invalid` as well; no name carries a bit then.
 
 **Names.** The archive format already refuses some names: `archive::walk`
 gives `Corrupt` for a name that is not valid UTF-8, holds a control character
@@ -284,7 +285,8 @@ classifies the names that the format refuses as well. The refusal bits are:
   also applies when the collection is empty, although an empty collection gets
   no directory. Both names are reported.
 - `UNCHECKED`: a character outside the checked set, for which no case fold is
-  defined (for example `中文`, Greek, a combining mark, the soft hyphen
+  defined (for example `中文`, Greek, a combining mark such as the U+0301 in
+  a decomposed (NFD) `é`, the soft hyphen
   U+00AD, `⁴`, an emoji or the bidirectional marks U+200E, U+200F and U+061C).
 
 **Checked set and case fold.** A name is accepted only when every character
@@ -357,8 +359,9 @@ external tool:
   (Rust's `char::to_uppercase`), except that `İ` is also taken as `i`; the
   characters just outside the set are refused.
 - `ustar_export_judges_names_again_and_refuses_another_source`: cleared
-  refusal bits still give `Invalid`; names checked on one archive give
-  `Stale` on another.
+  refusal bits, single-name (`CON`) and pairwise (`CASE`), still give
+  `Invalid`, and so do `Names` that claim more objects than a domain holds;
+  names checked on one archive give `Stale` on another.
 - `ustar_export_ends_only_after_the_whole_archive_checked_out`: an archive
   with a flipped trailer byte gives `Corrupt` from the check pass with no
   output; when the source breaks between the passes, the output lacks exactly

@@ -1389,18 +1389,23 @@ fn ustar_case_fold_matches_unicode_case_within_the_checked_set() {
 #[test]
 fn ustar_export_judges_names_again_and_refuses_another_source() {
     let bytes = exported(500);
-    let bad = renamed(&bytes, PLAN, "CON", 0);
-    let mut cleared = names(&bad);
-    for name in cleared.object.iter_mut().chain(&mut cleared.collection) {
-        name.reasons = 0;
-    }
-    assert!(!cleared.refused());
     let export = |bytes: &[u8], names: &ustar::Names| {
         let mut out = Bytes(Vec::new());
         let result = ustar::from_archive(&mut reader(bytes), &mut scratch(), names, &mut out);
         (result, out.0)
     };
-    assert_eq!(export(&bad, &cleared), (Err(Status::Invalid), Vec::new()));
+    // A single-name refusal and a pairwise one (CASE: "Notes" and "notes").
+    for bad in [
+        renamed(&bytes, PLAN, "CON", 0),
+        renamed(&bytes, PLAN, "notes", 1),
+    ] {
+        let mut cleared = names(&bad);
+        for name in cleared.object.iter_mut().chain(&mut cleared.collection) {
+            name.reasons = 0;
+        }
+        assert!(!cleared.refused());
+        assert_eq!(export(&bad, &cleared), (Err(Status::Invalid), Vec::new()));
+    }
     let mut over = names(&bytes);
     over.objects = 9;
     assert_eq!(export(&bytes, &over), (Err(Status::Invalid), Vec::new()));
