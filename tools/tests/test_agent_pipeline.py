@@ -147,7 +147,7 @@ class Planning(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertTrue(ap.is_protected(path))
                 self.assertIn(path, ap.out_of_scope([path], [path]))
-                spec = 'spec\\n' + '```json\\n' + json.dumps({"targets": [path], "reads": []}) + '\\n```'
+                spec = 'spec\n' + '```json\n' + json.dumps({"targets": [path], "reads": []}) + '\n```'
                 with self.assertRaises(ValueError):
                     ap.parse_spec(spec)
         self.assertFalse(ap.is_protected("ui/AGENTS.md.example"))
