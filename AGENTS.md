@@ -19,6 +19,16 @@ Start with the branch, HEAD and `git status --short`; preserve unfinished user w
 For continued work in the same session, compare source versions and read changes and missing context, rather than rereading the entire repository or unchanged historical status. START-CODING.md and FIRST-BATCH.md describe the original implementation baseline; first check what current code and acceptance evidence already provide. An old research assignment is not a new implementation assignment.
 For OS development tasks, use the repository skill `.agents/skills/os-dev/SKILL.md`; retrieve only the relevant OSDev or book passages. Not every client automatically loads nested instructions from the root. Start from source versions and existing code; research proposals are not automatically implemented. Practical test selection, measurement and handoff are in CODEX-WORKFLOW.md; read only the required section.
 
+## Instruction layers and state
+
+- This file holds durable project rules; `<dir>/AGENTS.md` adds rules for that subtree; personal client files add only a personal working method. Read the `AGENTS.md` of every directory you change, because not every client loads nested files. On a conflict, this file and newer ADRs prevail; report the conflict.
+- No changing context in any `AGENTS.md`. Current tasks, owners, results and decisions live in the `NEXT AGENT HANDOFF` of docs/PROJECT-STATE.md, docs/progress.json, docs/DECISIONS.md, docs/verification/, ignored `build/` (raw logs, pipeline runtime state), GitHub issues/PRs/Actions and hosted Graphify memory.
+- Change an `AGENTS.md` only for a durable command, convention, pitfall or protected path, in a separate `docs(agents):` commit; pipeline workers propose such lessons in their result instead.
+
+## Repository map
+
+`boot/loader` UEFI loader and `kernel/` `no_std` kernel (built only by `tools/build.py`); `crates/` shared core libraries; `drivers/` virtual-first drivers; `services/` userspace services (`services/nas` also a Node.js prototype); `sdk/` app SDK workspace and examples; `userspace/` ring-3 probes; `ui/` native UI, browser prototype and design system; `experiments/` quantum and AI contract; `plugins/token-guard/`; `tools/` build, run, gates, evidence, progress and pipelines; `tests/` Python host tests; `docs/` state, decisions, specifications, evidence; `.github/` CI (source of truth for gate commands); `.cargo/`, `.codex/`, `.agents/` rustflags, Codex config and roles, skills.
+
 ## Token-efficient execution
 
 Use the shared protocol in `plugins/token-guard/skills/token-guard/SKILL.md` for
@@ -33,6 +43,7 @@ The plugin does not replace hosted Graphify, native gates or existing permission
 Quality and complete acceptance criteria take precedence over context reduction;
 UI/UX tasks retain the approved references and visual, interaction and accessibility checks.
 Client setup and evidence limits are documented in `docs/TOKEN-GUARD.md`.
+Client-side tools such as RTK output filtering and the Ponytail minimal-change skill may be used where the client provides them; they do not replace preserved exit codes, hosted Graphify or native gates. Use one output wrapper per command: never wrap `tools/tokenguard.py run` in `rtk` or the reverse.
 
 ## Product ambition
 
@@ -84,7 +95,54 @@ Use short-lived branches/worktrees and small, reviewable diffs. Preserve user wo
 Perform routine research, local file operations and suitable tests autonomously. Publication, paid infrastructure, release signing, erasing real disks or flashing devices requires a concrete explicit instruction.
 Add dependencies only after checking provenance, licensing, maintenance, `no_std` suitability and build scripts. Pin versions; document exceptions.
 
+## Setup, commands and validation
+
+The workflows in `.github/workflows/` are the source of truth for gate commands. List a job's steps with `python3 -B tools/agent_gate.py --job <workflow>.yml#<job> --list`, and run them with the same command without `--list`. The required checks are `ci.yml#host-quality` and `ci.yml#qemu-smoke`. Directory `AGENTS.md` files list their targeted commands.
+
+- **Install** (tools install nothing; details in docs/DEVELOPMENT.md): Rust `1.90.0` per `rust-toolchain.toml` (`1.91.1` for the crates named in `services/AGENTS.md`), QEMU, OVMF, SeaBIOS, a host `cc`, Python 3 with `.github/actions/setup-python/requirements.txt`, Node.js; then `cargo +1.90.0 fetch --locked` per manifest.
+- **Prerequisites:** `python3 -B tools/preflight.py --strict` (read-only; exit 2 names what is missing) and `--strict-host-tests`.
+- **Build and run:** `python3 -B tools/build.py [--kernel-feature <feature>]`, then `python3 -B tools/run.py --smoke [--milestone m1|m2|m3|m4|m5]`: an isolated, networkless QEMU boot that passes only on ordered kernel markers and raw exit 33. M1 acceptance: `python3 -B tools/test.py`. Required smoke: `python3 -B tools/build.py --kernel-feature milestone-m6c && python3 -B tools/run_m6c.py --case normal --smoke`.
+- **Rust tests, lint and format:** `cargo +1.90.0 test --locked -p <package>`, `cargo +1.90.0 clippy --locked -p <package> --all-targets -- -D warnings` and `cargo +1.90.0 fmt --all -- --check`; standalone crates use `--manifest-path <dir>/Cargo.toml`. Default rustfmt and clippy settings apply.
+- **Python and Node:** `python3 -m compileall -q tools tests userspace/tests experiments/quantum/native experiments/quantum/native/job .agents/skills/os-dev` (no Python linter or type checker exists); `unittest` groups as in `ci.yml#host-quality`; `node --test --test-isolation=none <dir>/tests/*.test.mjs` for `ui/prototype` and `services/nas`.
+- **Workflows and progress:** after a `.github/` change run `actionlint -shellcheck= -pyflakes=` and `python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'`. Progress: `python3 tools/progress.py --write`, then `--check`; CI also requires a clean tree.
+- **Environment** (optional, never secrets): `NOS_BUILD_DIR`, `NOS_TARGET_DIR`, `CARGO_TARGET_DIR` isolate runs; `NOS_QEMU_MACHINE` (CI `pc-q35-8.2`); `NOS_QEMU_ACCEL=kvm`; `OS_OVMF_CODE`+`OS_OVMF_VARS` as a pair; `NOS_SDK_RUNTIME`/`NOS_DOCUMENT_SESSION` are `0`/`1`; `NOS_*_ELF` is internal. GitHub tokens come from `gh auth` or CI, never from files.
+- **Fixtures:** harnesses generate disposable images under `$NOS_BUILD_DIR/run/`; committed fixtures sit beside their component. `tools/update-keys/TEST-*` are deliberately public QEMU-only keys.
+- **Manual validation:** browser prototype (`ui/AGENTS.md`); Windows QEMU bundle from `windows-qemu-test-version.yml`; rendered UI quality (evidence V) by an operation trial. Hardware (H) and human audit (A) stay open; agents never claim them.
+- Native suites share `build/` per checkout: run them sequentially or give each its own build and target directories. Only `status: completed` with `passed: true`, plus re-checked raw evidence, counts as a passed gate.
+
+## Conventions
+
+- `cargo +1.90.0 ... --locked`; change `Cargo.lock` files or `rust-toolchain.toml` only with a documented reason.
+- Kernel, boot, drivers, services, SDK and core crates are `#![no_std]` (or `cfg_attr(not(test), no_std)`). Keep existing `#![forbid(unsafe_code)]` and `#![deny(unsafe_op_in_unsafe_fn)]`; every `unsafe` block has a local `// SAFETY:` comment.
+- Tests: Rust `#[cfg(test)]` and `tests/*.rs`; Python `unittest` in `tests/`, `tools/tests/`, `userspace/tests/`; native gates pair a `tools/build.py` profile with a `tools/run_*.py` runner. Run Python as `python3 -B`; reuse existing entry points.
+- Commits use `type(scope): summary`. PRs follow `.github/pull_request_template.md`: a verification table with command, exit status and evidence, plus a Not run list.
+- New ADRs go at the top of docs/DECISIONS.md as `ADR-<TOPIC>-<YYYYMMDD>`. Workflow actions are pinned to a full commit SHA with `persist-credentials: false`. Licensing follows LICENSING.md and MPL-2.0-FILES.txt.
+
+## Protected files
+
+Change these only when the task requires it and the PR says so; never from a pipeline worker:
+- `.github/**`, `tools/agent_gate.py`, `tools/agent_pipeline.py`, `tools/common.py`, `tools/progress.py`, root `AGENTS.md` and `CLAUDE.md`.
+- docs/progress.json and its generated views (README.md progress block, docs/PROGRESS.md rubric block, docs/assets/progress.svg): lead-owned, regenerated by `tools/progress.py --write`.
+- `docs/verification/**` and `docs/history/**`: evidence is never rewritten; capture tools write only to a new child directory.
+- Vendored code and corpora (`services/keyring/vendor/`, `services/image-codec/vendor/`, `experiments/quantum/third-party/`, `.agents/skills/os-dev/references/`) and licence texts (`LICENSE`, `plugins/token-guard/LICENSE`, `docs/third-party/licenses/`).
+- `ui/prototype/tokens.css` (frozen), `ui/design/system/tokens.css` (generated), CODEX-WORKFLOW.md section 4 and its Sources (asserted by `tests/test_ci_workflows.py`), `tools/update-keys/TEST-*` and `.codex/config.toml`.
+- Never commit `.env*`, private keys, `build/`, `target/` or `graphify-out/`.
+
 ## Short development loop
+
+Every agent (Claude, Codex, Copilot and pipeline workers) runs each task through the same loop; a worker performs the steps its role allows and the controller or lead does the rest. Client files may add detail, not other steps.
+1. **Orient:** branch, HEAD and `git status --short`; the state locations above; the relevant directory `AGENTS.md`.
+2. **Select and claim** one task; respect locks, leases and the owners of its write set.
+3. **Context, cheaply:** hosted Graphify first (`recall`, then `graphify_rank_files` or `graphify_find`, `graphify_callers`, `graphify_impact`, `graphify_tests_for`); Token Guard `inspect` and `slice` for large files. With too little context, make a read-only plan before editing.
+4. **Specify:** goal, invariant, write set, acceptance commands and evidence limit.
+5. **Implement** the smallest complete change; reuse existing code; no unrelated cleanup.
+6. **Validate:** targeted tests, then the required gates; quote exit codes; mark anything not executed NOT RUN with its reason.
+7. **Review and iterate:** read the complete diff; fix root causes; never weaken a test. After two identical failures without new evidence, record the diagnosis and choose another task or ask.
+8. **Checkpoint:** state files, commit, push and a draft PR under the rules below.
+9. **Learn:** one Graphify `remember` note per durable pitfall; durable working-method changes go to the right `AGENTS.md` layer.
+10. **Continue or stop:** take the next eligible task, or stop with a written reason and resume step.
+
+Ask instead of guessing: interactively, ask one focused question; unattended, block the task with an `OWNER:` question and continue with other work. Never guess about authorization, ownership, security contracts, cryptography or destructive operations. Loop rules:
 
 - Choose one immediately actionable result on the critical path. Record its goal, write files, dependencies, acceptance commands and evidence limits beforehand; do not start a new general audit without cause.
 - Implement and run the appropriate targeted tests first. Changes to shared interfaces, kernel/permissions or integration require the relevant broader and native gates. Targeted tests do not replace required CI checks.
