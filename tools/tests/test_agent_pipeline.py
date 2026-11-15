@@ -151,13 +151,16 @@ class Planning(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     ap.parse_spec(spec)
         for path in ("tools/roadmap_runner.py", "tools/tests/test_agent_pipeline.py",
-                     "docs/PROJECT-STATE.md", "docs/verification/accepted/receipt.json",
+                     "docs/PROJECT-STATE.md", "docs/history/accepted/receipt.json",
                      "docs/history/file.md", "services/keyring/vendor/locked.rs",
                      "ui/prototype/tokens.css", "ui/design/system/tokens.css",
                      "plugins/token-guard/LICENSE", "tools/update-keys/TEST-key",
                      "CODEX-WORKFLOW.md", "README.md", "build/generated.txt"):
             with self.subTest(path=path):
                 self.assertTrue(ap.is_protected(path))
+        # New task-owned verification children remain writable; accepted evidence is
+        # protected by source-bound review and by using new receipt destinations.
+        self.assertFalse(ap.is_protected("docs/verification/new-receipt/report.json"))
         self.assertFalse(ap.is_protected("ui/AGENTS.md.example"))
         self.assertFalse(ap.is_protected("docs/CODEX-PARITY.md"))
 

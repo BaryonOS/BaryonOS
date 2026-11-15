@@ -48,6 +48,7 @@ class Ledger(unittest.TestCase):
             with self.subTest(ledger=ledger), self.assertRaises(ValueError):
                 rr.validate_ledger(ledger)
         rr.validate_ledger({"tasks": [task("A"), task("B", "blocked", checks=[])]})
+        rr.validate_ledger({"tasks": [task("C", writes=["docs/verification/new-20261115/"])]})
 
     def test_ledger_round_trip_is_atomic_and_validated(self):
         with tempfile.TemporaryDirectory() as tmp:

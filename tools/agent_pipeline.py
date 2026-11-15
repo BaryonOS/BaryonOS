@@ -39,7 +39,7 @@ PROTECTED = (
     "tools/tests/test_roadmap_runner.py", "tools/common.py", "tools/progress.py",
     "AGENTS.md", "CLAUDE.md", "docs/progress.json", "docs/PROJECT-STATE.md",
     "docs/DECISIONS.md", "docs/PROGRESS.md", "docs/assets/progress.svg", "README.md",
-    "docs/verification/", "docs/history/", "services/keyring/vendor/",
+    "docs/history/", "services/keyring/vendor/",
     "services/image-codec/vendor/", "experiments/quantum/third-party/",
     ".agents/skills/os-dev/references/", "LICENSE", "plugins/token-guard/LICENSE",
     "docs/third-party/licenses/", "ui/prototype/tokens.css",
