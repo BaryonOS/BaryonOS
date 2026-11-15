@@ -33,8 +33,10 @@ READY task whose dependencies are verified it:
    skipped permissions. The worker has an allow-listed environment without GitHub,
    cloud or session-ingress credentials, `--permission-prompts none`, file edits
    (`acceptEdits`), read-only git, and exactly the task's check commands.
-   `--autocompact 100000` is the context fail-safe, and `--max-budget-usd` sets a
-   per-session cap on the CLI's cost estimate;
+   A session-scoped `--autocompact` window is the context fail-safe (see the
+   measured limit below), and `--max-budget-usd` sets a per-session cap on the
+   CLI's cost estimate. The controller polls the transcript every minute and stops
+   a session after more than six compactions or at its timeout;
 4. checks the result itself. Changed files must fall inside the task's write set;
    anything else is reverted and reported. Protected files (workflows, the
    pipeline, the progress register and its views, AGENTS.md/CLAUDE.md,
@@ -76,6 +78,12 @@ review; it never resets, cleans or stashes on its own.
   callers, impact, linked tests) before a task enters the ledger and records the
   resulting read set and notes in the task. This matches the AGENTS.md rule that
   pipeline scripts do not call Graphify themselves.
+- **Context window:** a fresh worker starts at about 28k tokens. With the requested
+  100k window, the first real task (A02-T1, session `bc7d4dd4`) compacted 18 times in
+  34 minutes, re-read the same files 87 times and made no edit; the lead stopped it
+  through the STOP file. Workers therefore use a session-scoped 300k window, still
+  as a fail-safe (one task per session remains the normal boundary), plus the
+  compaction-churn stop. Global or user settings are not changed.
 - **Skills:** fresh sessions list `ponytail`, `verification-loop` and `token-guard`;
   the repository skill `.agents/skills/os-dev/SKILL.md` is read as a file.
 - **Cost telemetry:** with subscription authentication, `total_cost_usd` is the CLI's

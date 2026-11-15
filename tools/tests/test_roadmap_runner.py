@@ -2,6 +2,7 @@ import json
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -110,7 +111,7 @@ class Session(unittest.TestCase):
         self.assertNotIn("bypassPermissions", argv)
         joined = " ".join(argv)
         self.assertIn("--session-id 0000", joined)
-        self.assertIn("--autocompact 100000", joined)
+        self.assertIn("--autocompact 300000", joined)
         self.assertIn("--permission-prompts none", joined)
         self.assertIn("--name roadmap-pipeline-worker-T", joined)
         self.assertEqual(argv[1], "-p")
@@ -140,6 +141,25 @@ class Session(unittest.TestCase):
         self.assertIsNone(rr.structured({"result": "no json"}))
         findings = [{"severity": "minor"}, {"severity": "major"}, {"severity": "blocker"}]
         self.assertEqual(len(rr.blocking(findings)), 2)
+
+    def test_transcript_check_counts_compactions_and_proves_a_fresh_start(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            slug = __import__("re").sub(r"[^A-Za-z0-9]", "-", str(rr.ROOT))
+            folder = home / ".claude" / "projects" / slug
+            folder.mkdir(parents=True)
+            lines = [{"type": "user", "sessionId": "s1", "parentUuid": None, "message": {"content": "brief"}},
+                     {"type": "assistant", "sessionId": "s1", "message": {"usage": {"input_tokens": 5,
+                      "cache_read_input_tokens": 100, "output_tokens": 7}}},
+                     {"type": "system", "subtype": "compact_boundary", "sessionId": "s1"},
+                     {"type": "user", "sessionId": "s1", "parentUuid": "x", "message": {"content": "summary"}}]
+            (folder / "s1.jsonl").write_text("\n".join(json.dumps(l) for l in lines))
+            with unittest.mock.patch.object(rr.Path, "home", return_value=home):
+                check = rr.Controller.transcript_check("s1", "brief\n")
+            self.assertTrue(check["first_message_is_brief"])
+            self.assertEqual((check["root_user_messages"], check["compactions"], check["foreign_session_entries"]),
+                             (1, 1, 0))
+            self.assertEqual((check["output_tokens"], check["peak_context_tokens"]), (7, 105))
 
     def test_dead_pid_is_not_alive(self):
         self.assertTrue(rr.pid_alive(1) or True)

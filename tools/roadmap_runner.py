@@ -150,7 +150,11 @@ class Config:
     branch: str = DEFAULT_BRANCH
     model: str = "claude-opus-5-5"
     effort: str = "xhigh"
-    autocompact: str = "100000"
+    # Measured 15 Nov 2026: a worker starts at ~28k tokens; with a 100k window the first real
+    # task (A02-T1) compacted 18 times in 34 minutes without a single edit. 300k stays a
+    # session-scoped fail-safe; the normal end of a session is one completed task.
+    autocompact: str = "300000"
+    max_compactions: int = 6
     worker_timeout: int = 90 * 60
     verifier_timeout: int = 30 * 60
     check_timeout: int = 90 * 60
@@ -369,7 +373,9 @@ class Controller:
                 raise Stop(f"lease owner pid {pid} still alive; refusing to start a second writer")
         dirty = git("status", "--porcelain", "--untracked-files=all")
         task_id = lease.get("task")
-        if task_id and any(t["id"] == task_id and t["status"] == "active" for t in load_ledger()["tasks"]):
+        # 'active' lives only in the lease; a dead owner blocks the leased task.
+        if task_id and any(t["id"] == task_id and t["status"] in ("ready", "active")
+                           for t in load_ledger()["tasks"]):
             update_task(task_id, status="blocked", history={
                 "at": now(), "event": "interrupted", "lease": lease, "dirty_paths": parse_porcelain(dirty)})
         lease_path.unlink()
@@ -425,13 +431,23 @@ class Controller:
             proc = subprocess.Popen(argv, cwd=ROOT, env=worker_env(dict(os.environ)), stdin=stdin,
                                     stdout=stdout, stderr=stderr, start_new_session=True)
             self.heartbeat(task=task_id, phase=kind, worker_pid=proc.pid, session_id=session_id)
-            try:
-                code = proc.wait(timeout=timeout)
-            except subprocess.TimeoutExpired:
-                os.killpg(proc.pid, signal.SIGTERM)
-                with contextlib.suppress(subprocess.TimeoutExpired):
-                    proc.wait(timeout=30)
-                code = -9
+            code, stop_reason = None, None
+            deadline = time.monotonic() + timeout
+            while code is None:
+                try:
+                    code = proc.wait(timeout=60)
+                except subprocess.TimeoutExpired:
+                    live = self.transcript_check(session_id, prompt)
+                    self.heartbeat(compactions=live.get("compactions", 0))
+                    if live.get("compactions", 0) > self.cfg.max_compactions:
+                        stop_reason = f"compaction churn: {live['compactions']} compactions"
+                    elif time.monotonic() > deadline:
+                        stop_reason = f"timeout after {timeout}s"
+                    if stop_reason:
+                        os.killpg(proc.pid, signal.SIGTERM)
+                        with contextlib.suppress(subprocess.TimeoutExpired):
+                            proc.wait(timeout=30)
+                        code = -9
             with contextlib.suppress(ProcessLookupError):
                 os.killpg(proc.pid, signal.SIGKILL)  # no orphan child may keep editing
         self.heartbeat(worker_pid=None)
@@ -444,7 +460,8 @@ class Controller:
         self.spent += cost
         record = {
             "kind": kind, "session_id": session_id, "reported_session_id": result.get("session_id"),
-            "exit_code": code, "duration_s": round(time.monotonic() - started, 1),
+            "exit_code": code, "stopped_by_controller": stop_reason,
+            "duration_s": round(time.monotonic() - started, 1),
             "is_error": bool(result.get("is_error")), "subtype": result.get("subtype"),
             "num_turns": result.get("num_turns"), "est_cost_usd": cost, "usage": result.get("usage"),
             "brief_sha256": sha256(prompt), "transcript": self.transcript_check(session_id, prompt),
@@ -463,20 +480,29 @@ class Controller:
         path = Path.home() / ".claude" / "projects" / slug / f"{session_id}.jsonl"
         if not path.exists():
             return {"found": False}
-        roots, users, foreign = 0, 0, 0
+        roots, users, foreign, compactions, output_tokens, peak_context = 0, 0, 0, 0, 0, 0
         first = None
         for line in path.read_text(errors="replace").splitlines():
             with contextlib.suppress(json.JSONDecodeError):
                 item = json.loads(line)
                 if item.get("sessionId") not in (None, session_id):
                     foreign += 1
+                if item.get("subtype") == "compact_boundary":
+                    compactions += 1
+                if item.get("type") == "assistant":
+                    usage = item.get("message", {}).get("usage") or {}
+                    output_tokens += usage.get("output_tokens", 0)
+                    peak_context = max(peak_context, usage.get("input_tokens", 0)
+                                       + usage.get("cache_read_input_tokens", 0)
+                                       + usage.get("cache_creation_input_tokens", 0))
                 if item.get("type") == "user":
                     users += 1
                     if item.get("parentUuid") is None:
                         roots += 1
                         first = first or item.get("message", {}).get("content")
         return {"found": True, "root_user_messages": roots, "user_entries": users,
-                "foreign_session_entries": foreign,
+                "foreign_session_entries": foreign, "compactions": compactions,
+                "output_tokens": output_tokens, "peak_context_tokens": peak_context,
                 "first_message_is_brief": isinstance(first, str) and first.strip() == prompt.strip()}
 
     # --- validation owned by the controller ---
@@ -539,7 +565,7 @@ class Controller:
     # --- prompts ---
     def worker_prompt(self, task: dict, head: str, feedback: str) -> str:
         fields = {k: task.get(k) for k in ("id", "criterion", "milestone", "title", "goal", "why_now",
-                                           "write_paths", "read_paths", "checks", "acceptance",
+                                           "write_paths", "read_paths", "graph_notes", "checks", "acceptance",
                                            "out_of_scope", "non_claimable", "risk", "evidence_level")}
         text = f"""roadmap-pipeline-task {task['id']} (run {self.run_id})
 
@@ -642,8 +668,8 @@ Return the structured result.
     # --- task lifecycle ---
     def run_task(self, task: dict) -> str:
         head = self.preflight()
+        # The ledger is not touched while a worker runs: 'active' is the lease itself.
         self.heartbeat(task=task["id"], phase="start", base=head)
-        update_task(task["id"], status="active", history={"at": now(), "event": "active", "run": self.run_id})
         task_dir = self.state / "runs" / self.run_id / task["id"]
         feedback, last_fp, attempts = "", None, []
         for attempt in range(1, self.cfg.max_repairs + 2):
@@ -662,7 +688,9 @@ Return the structured result.
                 changed = self.changed()
             out = worker.get("output") or {}
             if worker["exit_code"] != 0 or worker["is_error"]:
-                kind, detail = "session", f"worker session failed (exit {worker['exit_code']}, {worker['subtype']})"
+                kind = "session"
+                detail = (f"worker session failed (exit {worker['exit_code']}, {worker['subtype']}, "
+                          f"{worker.get('stopped_by_controller') or 'no controller stop'})")
             elif out.get("state") == "blocked":
                 self.revert(changed)
                 raise Blocked("worker reported blocked: " + "; ".join(out.get("blockers") or ["(no detail)"]))
@@ -730,8 +758,39 @@ Return the structured result.
                    f"change. Receipt: {rel}\n\n" + TRAILERS)
         git("commit", "-q", "-m", message)
         commit = git("rev-parse", "HEAD").strip()
+        self.record_assessment(task, commit, "verified")
         self.push()
         return commit
+
+    def record_assessment(self, task: dict, commit: str, outcome: str) -> None:
+        """AGENTS.md: reassess after every task, even when the score is unchanged. The
+        controller may only restate the assessment; it never changes a criterion."""
+        path = ROOT / "docs" / "progress.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        before = json.dumps(data["tracks"], sort_keys=True)
+        score = sum(g["points"] for t in data["tracks"] for g in t["gates"] if g["status"] == "accepted")
+        amsterdam = dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=1)  # CET; no DST in November
+        summary = (f"{score}/100 remains {score}/100. Roadmap pipeline task {task['id']} ({task['criterion']}) "
+                   f"{outcome} at evidence level {task.get('evidence_level')}; controller-run checks and an "
+                   "independent read-only session decided. A verified pipeline task is an engineering checkpoint "
+                   "and accepts no criterion; acceptance is recorded only by the lead with the required evidence.")
+        data["assessment"] = {"date": amsterdam.date().isoformat(), "source_commit": commit,
+                              "assessment_basis": "parent_commit", "branch": self.cfg.branch,
+                              "task": f"Roadmap pipeline {task['id']}: {task['title']}"[:200],
+                              "previous_score": score, "summary": summary.replace("|", "/")}
+        if json.dumps(data["tracks"], sort_keys=True) != before:
+            raise Stop("assessment update would change criteria; refusing")
+        atomic_write(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+        for mode in ("--write", "--check"):
+            done = subprocess.run([sys.executable, "-B", "tools/progress.py", mode], cwd=ROOT,
+                                  capture_output=True, text=True)
+            if done.returncode:
+                raise Stop(f"progress.py {mode} failed: {done.stdout[-400:]}{done.stderr[-400:]}")
+        views = ["docs/progress.json", "README.md", "docs/PROGRESS.md", "docs/assets/progress.svg"]
+        git("add", "--", *views)
+        if git("diff", "--cached", "--name-only").strip():
+            git("commit", "-q", "-m", f"progress: assess roadmap task {task['id']} ({score}/100 unchanged)\n\n"
+                f"Assessment of {commit}; no criterion changed.\n\n" + TRAILERS)
 
     def push(self) -> None:
         if not self.cfg.push:
@@ -749,6 +808,8 @@ Return the structured result.
                                                      "reason": reason})
         git("add", "--", str(LEDGER.relative_to(ROOT)))
         git("commit", "-q", "-m", f"roadmap({task_id}): mark {status}\n\n{reason[:900]}\n\n" + TRAILERS)
+        task = next(t for t in load_ledger()["tasks"] if t["id"] == task_id)
+        self.record_assessment(task, git("rev-parse", "HEAD").strip(), status)
         self.push()
 
     def init_check(self) -> dict:
