@@ -85,6 +85,13 @@
           "run": "20261115T012528-11476",
           "session_id": "bc7d4dd4-0ee7-4ac2-ac6a-46ac374e1704",
           "reason": "Compaction churn: 18 compactions in 34 minutes at --autocompact 100000 (base context about 28k tokens), 87 reads and no edit. Worker stopped with SIGTERM (exit 143) through the STOP file; no file changed. Controller now uses a 300k session-scoped window and stops a session after more than 6 compactions."
+        },
+        {
+          "at": "2026-11-15T10:28:58+00:00",
+          "event": "stopped-quota",
+          "run": "20261115T020104-23862",
+          "session_id": "539a48f7-3153-478d-8f8c-dc618d90a5c1",
+          "reason": "Worker reported the 5-hour usage limit after 609 s and 20 turns (0 compactions, peak context 120k, 198k output tokens, estimated 2.42 USD); the controller stopped on the rate-limit guard. No file changed. Resumed after the reset."
         }
       ]
     },

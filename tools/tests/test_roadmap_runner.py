@@ -118,6 +118,15 @@ class Session(unittest.TestCase):
         ro = rr.claude_argv(cfg, "n", "1", Path("/s.json"), {}, "default", 1.0, rr.READ_ONLY_DISALLOWED)
         self.assertIn("--disallowedTools=Edit,Write,MultiEdit,NotebookEdit", ro)
 
+    def test_effort_is_full_for_security_and_routine_otherwise(self):
+        cfg = rr.Config()
+        self.assertEqual(rr.effort_for(cfg, dict(task("A"), risk="security")), "xhigh")
+        self.assertEqual(rr.effort_for(cfg, dict(task("A"), risk="high")), "xhigh")
+        self.assertEqual(rr.effort_for(cfg, dict(task("A"), risk="low")), "high")
+        self.assertEqual(rr.effort_for(cfg, None), "xhigh")
+        argv = rr.claude_argv(cfg, "n", "1", Path("/s.json"), {}, "acceptEdits", 1.0, None, "high")
+        self.assertIn("--effort high", " ".join(argv))
+
     def test_allow_rules_are_task_scoped(self):
         t = dict(task("A", checks=["cargo +1.90.0 test --locked -p net-config"]))
         rules = rr.allow_rules(t, ("Edit",))

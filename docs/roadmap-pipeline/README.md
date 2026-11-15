@@ -84,6 +84,10 @@ review; it never resets, cleans or stashes on its own.
   through the STOP file. Workers therefore use a session-scoped 300k window, still
   as a fail-safe (one task per session remains the normal boundary), plus the
   compaction-churn stop. Global or user settings are not changed.
+- **Reasoning effort and quota:** security and high-risk tasks and their verifiers run at
+  `xhigh`; low- and medium-risk tasks run at `high`. The first runs reached the account's
+  5-hour usage limit within about an hour (inventory plus workers); the controller stops on
+  that message without partial edits, and the lead resumes it after the reset.
 - **Skills:** fresh sessions list `ponytail`, `verification-loop` and `token-guard`;
   the repository skill `.agents/skills/os-dev/SKILL.md` is read as a file.
 - **Cost telemetry:** with subscription authentication, `total_cost_usd` is the CLI's

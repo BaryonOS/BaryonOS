@@ -149,7 +149,8 @@ class Stop(RuntimeError):
 class Config:
     branch: str = DEFAULT_BRANCH
     model: str = "claude-opus-5-5"
-    effort: str = "xhigh"
+    effort: str = "xhigh"          # security and high-risk tasks, and their verifiers
+    routine_effort: str = "high"   # low/medium-risk tasks; quota is finite, depth on security is not cut
     # Measured 15 Nov 2026: a worker starts at ~28k tokens; with a 100k window the first real
     # task (A02-T1) compacted 18 times in 34 minutes without a single edit. 300k stays a
     # session-scoped fail-safe; the normal end of a session is one completed task.
@@ -248,11 +249,18 @@ def allow_rules(task: dict | None, extra_tools: tuple[str, ...] = ()) -> list[st
     return rules
 
 
+def effort_for(cfg: Config, task: dict | None) -> str:
+    """Full effort for security/high-risk work; the configured routine effort otherwise."""
+    if task is None or task.get("risk") in ("security", "high"):
+        return cfg.effort
+    return cfg.routine_effort
+
+
 def claude_argv(cfg: Config, name: str, session_id: str, settings: Path, schema: dict,
-                mode: str, budget: float, disallowed: str | None = None) -> list[str]:
+                mode: str, budget: float, disallowed: str | None = None, effort: str | None = None) -> list[str]:
     """argv for one NEW session; the brief is passed on stdin (no argv size limit)."""
     argv = [cfg.claude, "-p", "--name", name, "--session-id", session_id, "--output-format", "json",
-            "--model", cfg.model, "--effort", cfg.effort, "--autocompact", cfg.autocompact,
+            "--model", cfg.model, "--effort", effort or cfg.effort, "--autocompact", cfg.autocompact,
             "--permission-mode", mode, "--permission-prompts", "none",
             "--settings", str(settings), "--json-schema", json.dumps(schema),
             "--max-budget-usd", f"{budget:.2f}"]
@@ -414,7 +422,7 @@ class Controller:
     # --- one fresh headless session ---
     def session(self, kind: str, task_id: str, attempt_dir: Path, prompt: str, schema: dict,
                 rules: list[str], mode: str, timeout: int, disallowed: str | None = None,
-                budget: float | None = None) -> dict:
+                budget: float | None = None, effort: str | None = None) -> dict:
         if self.spent >= self.cfg.total_budget_usd:
             raise Stop(f"cumulative estimated cost {self.spent:.2f} USD reached the cap")
         session_id = str(uuid.uuid4())
@@ -423,7 +431,7 @@ class Controller:
         brief = attempt_dir / f"{kind}-brief.md"
         atomic_write(brief, prompt)
         argv = claude_argv(self.cfg, f"{PROCESS_TAG}{kind}-{task_id}", session_id, settings, schema, mode,
-                           budget or self.cfg.session_budget_usd, disallowed)
+                           budget or self.cfg.session_budget_usd, disallowed, effort)
         atomic_write(attempt_dir / f"{kind}-argv.json", json.dumps(argv[:1] + argv[1:], indent=1))
         out, err = attempt_dir / f"{kind}-result.json", attempt_dir / f"{kind}-stderr.log"
         started = time.monotonic()
@@ -678,7 +686,7 @@ Return the structured result.
             adir.mkdir(parents=True, exist_ok=True)
             worker = self.session("worker", task["id"], adir, self.worker_prompt(task, head, feedback),
                                   WORKER_SCHEMA, allow_rules(task, ("Edit", "Write", "MultiEdit")),
-                                  "acceptEdits", self.cfg.worker_timeout)
+                                  "acceptEdits", self.cfg.worker_timeout, effort=effort_for(self.cfg, task))
             record = {"attempt": attempt, "worker": worker}
             attempts.append(record)
             changed = self.changed()
@@ -709,7 +717,8 @@ Return the structured result.
                                             self.verifier_prompt(task, head, diff[:60_000], untracked, checks),
                                             VERIFIER_SCHEMA, allow_rules(None), "default",
                                             self.cfg.verifier_timeout, disallowed=READ_ONLY_DISALLOWED,
-                                            budget=self.cfg.verifier_budget_usd)
+                                            budget=self.cfg.verifier_budget_usd,
+                                            effort=effort_for(self.cfg, task))
                     record["verifier"] = verifier
                     if self.tree_fingerprint() != before:
                         raise Stop("the read-only verifier changed the working tree; stopping for review")
@@ -889,7 +898,8 @@ def main() -> int:
     run.add_argument("--total-budget-usd", type=float, default=Config.total_budget_usd)
     run.add_argument("--session-budget-usd", type=float, default=Config.session_budget_usd)
     run.add_argument("--model", default=Config.model)
-    run.add_argument("--effort", default=Config.effort)
+    run.add_argument("--effort", default=Config.effort, help="security/high-risk tasks")
+    run.add_argument("--routine-effort", default=Config.routine_effort, help="low/medium-risk tasks")
     for name in ("status", "stop", "pause", "resume", "validate"):
         sub.add_parser(name)
     args = parser.parse_args()
@@ -910,7 +920,8 @@ def main() -> int:
         print("stop/pause cleared")
         return 0
     cfg = Config(push=not args.no_push, total_budget_usd=args.total_budget_usd,
-                 session_budget_usd=args.session_budget_usd, model=args.model, effort=args.effort)
+                 session_budget_usd=args.session_budget_usd, model=args.model, effort=args.effort,
+                 routine_effort=args.routine_effort)
     if not shutil.which(cfg.claude):
         print("claude CLI not found; fall back to one manually started fresh session per task")
         return 3
