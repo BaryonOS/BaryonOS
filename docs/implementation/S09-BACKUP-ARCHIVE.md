@@ -2,7 +2,8 @@
 
 **Status:** host-implemented in `services/volume/src/archive.rs`, tested in
 `services/volume/tests/archive.rs`; a native fixture portal passes the local
-QEMU gate (see "Native slice"). No user-chosen target, no user task, no
+QEMU gate (see "Native slice"), including the test-only `archive-ustar` stage
+(gate run 14, 15 November 2026). No user-chosen target, no user task, no
 physical disk. S09 remains open.
 
 ## Goal and invariant
@@ -225,8 +226,10 @@ archive order, a pax `path` record exactly for non-ASCII paths, regular-file
 type, ustar magic, mode, uid, gid, mtime, content, zero padding,
 member offsets and exactly two end blocks. `tests/test_volume_ustar_export.py`
 shows that this oracle refuses nine kinds of differing stream. Measured on
-15 November 2026 (gate source fingerprint `0af1c15e…`, all 15 stages passed):
-1,440 reads, 368 writes, 2 flushes and a 96,256-byte stream (sha256
+15 November 2026 in gate run 14 (tested commit `18da1eb9`, source fingerprint
+`36cab793…`, all 15 stages passed, evidence in
+[USTAR-NATIVE-20261115.md](../verification/s09-archive/USTAR-NATIVE-20261115.md);
+an earlier pass at fingerprint `0af1c15e…` was not captured): 1,440 reads, 368 writes, 2 flushes and a 96,256-byte stream (sha256
 `13bdbe8d…`) with the five fixture paths, among them `Privé/Notitie ✓` with a
 pax record. The archive in the lower half has the export stage's sha256
 `d75aa5c8…` and 91,801 bytes. The archive portal is built with release
@@ -244,8 +247,9 @@ writer. Archive and stream share the one fixture range on the volume's disk.
 [S09-BACKUP-DESTINATION-PROPOSAL.md](S09-BACKUP-DESTINATION-PROPOSAL.md)).
 It is a lossy interchange format, not the native Baryon OS/Materiaal format
 and not a recovery copy; format v1 stays the only recovery format. The
-converter and its name check (S09-NAMES, 15 November 2026) are host-tested
-only. It changes no capability. The native test stage `archive-ustar` (see
+converter and its name check (S09-NAMES, 15 November 2026) are host-tested;
+the native `archive-ustar` stage exercises the conversion and one refusal (a
+reserved name in a caller-edited `Names`) only. It changes no capability. The native test stage `archive-ustar` (see
 Runner stages above) uses the existing test-only permissions and storage
 fixtures, as the project owner authorised; it adds no production authority
 and does not decide D1.

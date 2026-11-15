@@ -3,73 +3,33 @@
 ## NEXT AGENT HANDOFF — S09 ustar export runner (separate from the design pipeline) — 15 November 2026
 
 The design-pipeline handoff below remains the authoritative handoff for the UI/UX
-track. This section covers only the S09 track, which runs in its own worktree.
+track. This section covers only the S09 track, which runs in its own worktree. The
+evidence is in the checkpoint "S09 ustar export recorded (S09-RECORD)" below.
 
 **Source:**
-- Worktree: `/home/simon/projects/BaryonOS-worktrees/s09-native-archive`.
-- Branch: `feat/s09-ustar-name-check`, created from main `d572052b`.
-- Commits:
-  - `1b1ef0fb` (name check);
-  - `464efdb9` (regression test);
-  - this handoff commit.
-- Source-v3 fingerprint of `464efdb9`: `4e8e5ecfee527834ab89182d39d5b0ab66e8baf8e578dc186c8a2ebe8d31218f`. Documentation commits do not change it.
-- No PR is open for this branch yet. The runner opens a draft PR on its next push.
-- The earlier branch `feat/s09-ustar-names` (PR #337) is merged and deleted. Do not reuse it.
+- Worktree `/home/simon/projects/BaryonOS-worktrees/s09-native-archive`, branch `feat/s09-ustar-name-check`, created from main `d572052b`. Draft PR #340.
+- Commits `1b1ef0fb` … `2766e636` (14) and the S09-RECORD documentation commit. The last source change is `18da1eb9`.
+- Source-v3 fingerprint of `18da1eb9`: `36cab7938fbbac4e8dbbc71e66e59f5c95a636651d69f5ca2fd1b378aacd54b8`. Later commits change only `docs/`, which the fingerprint excludes; the value was recomputed at `2766e636`.
 
-**Done (verified):**
-- **D6 recorded.** `ADR-S09-USTAR-20261114` records the owner's D6(a) approval verbatim. PR #337 was merged by the project owner on 15 November 2026 at 00:43Z as squash `d572052b`. Its title also names name validation and a native stage, but it contained only the ADR and documentation status updates.
-- **Name check (S09-NAMES).** `volume_core::ustar::check` reports every refused object or collection name, with reason bits:
-  - CHARACTER: `<>:"|?*`, `/`, `\` and control characters; `:` also covers drive and stream syntax;
-  - RESERVED: Windows device names, including COM/LPT 0–9, superscript digits, CONIN$ and CONOUT$;
-  - TRAILING: a trailing dot or space;
-  - CASE and FILE_AND_DIRECTORY: collisions under a hand-written case fold;
-  - UNCHECKED: characters outside printable ASCII, Latin-1, Latin Extended-A and Dingbats.
-- **No partial export.** `ustar::from_archive` writes nothing when any name is refused, and renames nothing.
+**Done (verified locally):**
+- **D6(a):** recorded as `ADR-S09-USTAR-20261114` (#337).
+- **Name check:** `volume_core::ustar::check` refuses with reason bits CHARACTER, RESERVED (Windows device names and, at the export root under case fold, the pax entry name `PaxHeader`), TRAILING, CASE, FILE_AND_DIRECTORY and UNCHECKED. There is no partial export and no rename.
+- **Native stage:** the test-only stage `archive-ustar` runs in the 15-stage volume gate. Local gate run 14 passed at `18da1eb9`.
 - **Unchanged:** the format-v1 recovery archive, `walk` and `valid_name`.
-- **No normalisation claim.** No Unicode normalisation is claimed; names outside the checked set are refused.
-
-**Evidence:**
-- The runner controller ran these on `978d030d`, which is byte-identical to this branch for every changed file (`git diff --quiet 978d030d 464efdb9 -- services/volume docs/implementation/S09-BACKUP-ARCHIVE.md`). Each exited 0:
-  - `cargo +1.90.0 test --locked -p volume-core`;
-  - `cargo +1.90.0 clippy --locked -p volume-core --all-targets -- -D warnings`;
-  - `cargo +1.90.0 fmt -p volume-core -- --check`;
-  - `cargo +1.90.0 build --locked -p volume-core --target x86_64-unknown-none`.
-- Logs are in the ignored folder `build/s09-ustar-notes/runner/runs/S09-NAMES/1/`.
-- **Not run on `464efdb9`:** the same checks. The shutdown handoff ran no builds. Main's changes since `87be2953` touch none of `services/volume`, the S09 archive specification or the Cargo manifests.
 
 **Open:**
-- **ORACLE:** a Python `unicodedata` oracle and a record of mutants for the name check.
-- **NATIVE-USTAR:** the native `archive-ustar` test stage.
-- **GATE-15:** stage-count expectations in the orchestration and workflows.
-- **REVIEW:** an independent read-only review.
-- **VERIFY:** the full native volume gate, with a fingerprint before and after.
-- **RECORD:** the specification status, this file and the progress assessment.
-- **NEXT:** selection of the next authorised task.
-- **Status:** S09 stays open. No native evidence exists for the export, and the progress score is unchanged.
-- **Untested:** Windows and macOS extraction, 8.3 short names and path-length limits.
+- **D1–D5:** BLOCKED on project-owner decisions. The proposal is unchanged.
+- **Portal Clippy:** `clippy::manual_is_multiple_of` at `sdk/examples/volume-docs/src/app.rs:1056` (fix: `length.is_multiple_of(SECTOR as u64)`). It is a source change and needs a gate re-run.
+- **Review findings A, C, D and H** (S09-REVIEW) remain. B is fixed in `18da1eb9`; E, F and G are closed.
+- **Status:** S09 stays open; the score stays 41/100.
 
-**Decisions:**
-- D6(a) is approved: a lossy user export.
-- D1–D5 remain undecided.
-- No new capability, destination, trust boundary or encryption architecture.
+**Runner:** a controller in the ignored folder `build/s09-ustar-notes/runner/`. It alone pushes, without force, and keeps one draft PR. Workers have no push URL or GitHub token; this guards against accidents and is not a security boundary. Queue: S09-D6-ADR to S09-VERIFY done, S09-RECORD is this step, S09-NEXT is ready. One native gate runs at a time, host-wide, through `runner/heavy.sh`.
 
-**Runner:**
-- **What it is:** a deterministic controller in the ignored folder `build/s09-ustar-notes/runner/`. Each task runs in a fresh `claude -p --session-id` session with `--autocompact 100000`.
-- **Who pushes:** the controller alone, without force. Workers have no push URL and no GitHub token. This protects against accidents only; it is not a security boundary.
-- **State:** stopped, with no process left. It stopped at 00:41Z with exit 4 when the remote branch changed outside the controller.
-- **STOP latch:** set. The queue is preserved and its branch points at this branch.
-- **Withdrawn draft:** a draft that merged GitHub "Update branch" changes automatically was withdrawn after an independent AI review found two blockers. It is kept under `runner/drafts/`.
-
-**Dependencies:**
-- **Heavy gates:** one native gate at a time, host-wide, through `runner/heavy.sh`.
-- **Separate tracks:** the design pipeline (#332, merged) and the open PRs #336 (B03) and #333 (H02) are separate. Their files are not touched.
+**Separate tracks:** the design pipeline and the open PRs #336 (B03) and #333 (H02). Their files are not touched.
 
 **Next action:**
-1. Reconcile the state: `git status`, `git ls-remote origin refs/heads/feat/s09-ustar-name-check`, and check that no runner process is left.
-2. Run the four `volume-core` checks above on HEAD. They must exit 0.
-3. Remove `runner/STOP` and relaunch the runner. The command is in `runner/RESUME.md`.
-4. S09-ORACLE runs next.
-
+1. `git status --short` and `git ls-remote origin refs/heads/feat/s09-ustar-name-check`; confirm that the remote holds the S09-RECORD commit.
+2. S09-NEXT selects the next authorised task. Work on D1–D5 waits for the project owner.
 
 ## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
 
@@ -183,6 +143,46 @@ After that, in order:
 - S1: re-verify;
 - ds-1.0;
 - G1 (Inter licence and packaging).
+
+## Previous checkpoint — S09 ustar export recorded (S09-RECORD) — 15 November 2026
+
+**Source:**
+- Branch `feat/s09-ustar-name-check`, draft PR #340. This record is based on `2766e636910a112dc37abf7cb3d2537ba165a001`.
+- Tested source commit `18da1eb9cce655ad2798d8e8601faced3d37c092`, source-v3 fingerprint `36cab7938fbbac4e8dbbc71e66e59f5c95a636651d69f5ca2fd1b378aacd54b8`. The same value was recomputed at `2766e636` in this step (exit 0).
+
+**What the branch adds against main `d572052b`:**
+- `services/volume/src/ustar.rs`: the name check and its reason bits, including the root `PaxHeader` refusal (`18da1eb9`).
+- `services/volume/tests/archive.rs`, `services/volume/tests/ustar-names.txt`, `tests/test_volume_ustar_names.py` and `tests/test_volume_ustar_export.py`: host tests and independent oracles.
+- The test-only native stage `archive-ustar`: kernel feature `test-volume-archive-ustar` (`kernel/Cargo.toml`, `kernel/src/m2/m3/volume.rs`), the portal case in `sdk/examples/volume-docs/src/app.rs`, and the `tarfile` oracle `check_ustar` in `tools/run_volume.py`.
+- Stage-count expectations pinned to the gate PLAN (`tools/test_volume.py`, two workflows and `tests/test_ci_workflows.py`).
+- No capability, destination, trust boundary, encryption architecture or recovery-format byte changes.
+
+**Evidence (local host, not CI):**
+- Native gate run 14: `build/s09-ustar-notes/runner/heavy.sh python3 -B tools/test_volume.py`, exit 0, 164 s, 15/15 stages, QEMU 10.2.1 TCG with one CPU. The fingerprint was identical before and after the run. Record: [USTAR-NATIVE-20261115.md](verification/s09-archive/USTAR-NATIVE-20261115.md); captured stage results: [run14-20261115/](verification/s09-archive/run14-20261115/).
+- `sha256sum -c SHA256SUMS --quiet` on a `git archive` of `run14-20261115/` at `2766e636`: exit 0 (re-run in this step).
+- Host checks at `18da1eb9` (S09-VERIFY), each exit 0: `volume-core` test (93 passed), Clippy, fmt and the `x86_64-unknown-none` build; SDK runtime tests; `test_volume_*.py` (53 tests); `preflight.py --strict`.
+- FAILED, exit 101, and not run by any workflow:
+  - `volume-docs` Clippy with `native,archive-portal` (one lint at `app.rs:1056`, introduced in `8f4c7f3e`);
+  - kernel Clippy with `test-volume-archive-ustar` (14 older errors, none in a changed hunk).
+- Name-check oracles and mutation record: [NAMES-ORACLE-20261115.md](verification/s09-archive/NAMES-ORACLE-20261115.md), 43/43 mutants killed. The record predates the `PaxHeader` guard.
+- Historical: the committed `SHA256SUMS` of `run13-20261114/` does not verify (exit 1, re-run in this step); it is left unchanged.
+
+**Progress:** S09 stays open; 41/100 is unchanged. The assessment is in `docs/progress.json`.
+
+**Open limits:**
+- No user-chosen destination behind its own capability, no B01 encrypted variant and no user task.
+- Not run: KVM, real hardware, CI on this head, Windows or macOS extraction, bsdtar or Windows `tar` as readers, a pax-unaware reader, byte comparison with an independent pax writer, and an independent human audit.
+- 8.3 short-name aliasing and target path-length limits are not handled (see the specification).
+- Review findings A, C, D and H; the portal Clippy lint above.
+
+**Owner decisions, BLOCKED** (unchanged in [S09-BACKUP-DESTINATION-PROPOSAL.md](implementation/S09-BACKUP-DESTINATION-PROPOSAL.md); this record prefers no option):
+- D1 — what the destination is;
+- D2 — who chooses the destination and how the grant is issued;
+- D3 — rights per operation;
+- D4 — which component holds the authority;
+- D5 — encrypted destinations (NAS and provider).
+
+**Next:** the controller pushes this commit. S09-NEXT selects the next authorised task.
 
 ## Previous checkpoint — N04 helper follow-up after #328 squash — 14 November 2026
 

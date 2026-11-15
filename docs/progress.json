@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-15",
-    "source_commit": "2142152e3f1f7fb589b98ffceead9ff9299065aa",
+    "source_commit": "2766e636910a112dc37abf7cb3d2537ba165a001",
     "assessment_basis": "parent_commit",
-    "branch": "claude/baryon-os-ui-ux-design-152adb",
-    "task": "Design pipeline on draft PR #332: commit correction UX-D-C1 (owner permission model) as an intermediate state; accessibility research UX-A11Y-R queued",
+    "branch": "feat/s09-ustar-name-check",
+    "task": "S09-RECORD: record the S09 ustar export state (native archive-ustar stage, gate run 14) on draft PR #340",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The commit adds the UX-D-C1 correction of the ds-1.0 design system and prototype (owner permission model), a verification record whose run ended with one open design-quality major (UX-D not accepted), and a DESIGN-AMBITION addition on accessibility. No native build, QEMU run or criterion evidence is added; design, research and simulation evidence accepts no criterion."
+    "summary": "41/100 remains 41/100. The commit records the S09 ustar user-export state: the name check with the root PaxHeader refusal and the test-only native archive-ustar stage, which passed local QEMU volume gate run 14 (15/15 stages) at source commit 18da1eb9 with an unchanged source fingerprint. S09 stays open: D1-D5 are undecided owner decisions, and there is no user-chosen destination behind its own capability, no B01 encrypted variant and no user task. A test-only fixture portal and host tests accept no criterion."
   },
   "tracks": [
     {
