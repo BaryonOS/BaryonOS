@@ -53,6 +53,7 @@
   .gal-windows { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-6); align-items: start; }
   .gal-maxframe { border: 1px solid var(--color-line); border-radius: var(--radius-tile); overflow: hidden; }
   .gal-menu-card { min-height: 420px; }
+  .gal-asks { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: start; }
   .gal-orbit-wrap { display: flex; justify-content: center; padding: var(--space-6) 0 var(--space-2); border-radius: var(--radius-tile); background: var(--color-surface-panel); }
   .gal-sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: var(--space-3); }
   .gal-sw figure { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: var(--space-2); align-items: center; }
@@ -115,7 +116,7 @@
     <button class="ds-btn" data-variant="primary" data-size="large" value="cancel" data-safe>Annuleren</button>
   </div>
 </dialog>
-<dialog class="ds-dialog" data-variant="ask" id="dlg-ask" aria-labelledby="dlg-ask-t"></dialog>
+<dialog class="ds-dialog" data-variant="ask" id="dlg-ask" role="alertdialog" aria-labelledby="dlg-ask-t"></dialog>
 
 <template id="tpl-panel">
 <div class="gal-grid">
@@ -174,10 +175,10 @@
         <label class="ds-check"><input type="checkbox">Alleen dit document</label>
         <label class="ds-check"><input type="checkbox" disabled>Delen met Sem</label>
       </div>
-      <fieldset class="ds-fieldset"><legend>Hoe lang</legend>
-        <label class="ds-radio"><input type="radio" name="{p}-dur" value="once" checked>Alleen deze keer</label>
-        <label class="ds-radio"><input type="radio" name="{p}-dur" value="session">Tot je de app sluit</label>
-        <label class="ds-radio"><input type="radio" name="{p}-dur" value="always" disabled>Altijd (niet beschikbaar)</label>
+      <fieldset class="ds-fieldset"><legend>Schaal</legend>
+        <label class="ds-radio"><input type="radio" name="{p}-scale" value="1" checked>100 %</label>
+        <label class="ds-radio"><input type="radio" name="{p}-scale" value="2">200 %</label>
+        <label class="ds-radio"><input type="radio" name="{p}-scale" value="1.5" disabled>150 % (niet beschikbaar)</label>
       </fieldset>
     </div>
     <p class="gal-note">Een aangevinkt keuzerondje is een gevulde schijf met een uitgespaard midden; ring-met-stip blijft voorbehouden aan NAS.</p>
@@ -233,10 +234,16 @@
     <p class="gal-note">"Op dit apparaat" en "vraagt internet" volgen het v2-bord; "internet actief" is afgeleid (geen v2-bron): alle drie knooppunten aan, verbindingsbladen tussen aangrenzende actieve plaatsen.</p>
   </div>
 
-  <div class="gal-card w8"><h3>Toestemmingsvraag op Kern <code>.ds-ask role=alertdialog · tegengesteld thema · Eenmalig | Deze sessie | Weigeren = once | session | deny</code></h3>
-    <div data-ask-host></div>
-    <p class="gal-note">Vertrouwd systeemoppervlak boven alle apps, ondoorzichtig, in het tegengestelde thema (hoog contrast blijft hoog contrast). In de dialoog start de focus op Weigeren, de veiligste keuze; Esc betekent ook weigeren.</p>
-    <div class="gal-row" style="margin-top: var(--space-4)"><button class="ds-btn" data-variant="secondary" data-open-ask><i data-icon="lock"></i>Vraag als dialoog openen</button></div>
+  <div class="gal-card w12"><h3>Toestemmingsvraag op Kern <code>.ds-ask role=alertdialog · data-kind ongoing: untilClose | always | deny · data-kind action: once | always | deny · tussentijdse presentatie, UX-C vervangt haar</code></h3>
+    <div class="gal-asks"><div data-ask="ongoing"></div><div data-ask="action"></div></div>
+    <p class="gal-note">Links een doorlopende appmachtiging, rechts een afzonderlijke handeling. Drie gelijkwaardige keuzes onder elkaar (zelfde variant en maat, geen hoofdknop). In de dialoog start de focus op de titel, niet op een keuze: Enter of spatie bij openen doet niets. Esc of sluiten is Weigeren voor dit verzoek en bewaart niets. Een verzoek dat al een geldige machtiging met dezelfde sleutel heeft, opent geen vraag.</p>
+    <div class="gal-row" style="margin-top: var(--space-4)"><button class="ds-btn" data-variant="secondary" data-open-ask="ongoing"><i data-icon="lock"></i>Doorlopende vraag openen</button><button class="ds-btn" data-variant="secondary" data-open-ask="action"><i data-icon="lock"></i>Vraag voor één handeling openen</button><button class="ds-btn" data-variant="quiet" data-close-app>Webvenster sluiten</button></div>
+  </div>
+
+  <div class="gal-card w12"><h3>Appmachtiging <code>.ds-grants · .ds-grant · Instellingen › Privacy en beveiliging › Appmachtigingen · Intrekken · role=status (beleefd)</code></h3>
+    <ul class="ds-grants" aria-label="Appmachtigingen" data-grants></ul>
+    <p class="ds-live" role="status" data-grants-live></p>
+    <p class="gal-note">Eén rij per blijvende machtiging: app, bron, recht en reikwijdte, daaronder het bereik als plaatslabel (vorm + pictogram + tekst; bij versturen of verbinden de bestemming) en de duur als vormchip: gestippeld met klok = tot afsluiten, doorgetrokken met lus = tot je het intrekt (het slot blijft voor de systeemband). De knop Intrekken noemt app, bron, recht en reikwijdte. De machtiging voor zaadruil.example dekt de vraag voor tuinplanner.example niet: elke bestemming is een eigen sleutel. Toestemming voor één handeling vervalt direct en staat hier niet. Ontwerpvoorstel voor UX-E, dat het volledige scherm Appmachtigingen bouwt. Simulatie: niets blijft bewaard na herladen.</p>
   </div>
 
   <div class="gal-card w4"><h3>Orbit-item <code>.ds-taskitem data-state running | active | attention</code></h3>
@@ -298,7 +305,7 @@
         <button class="ds-tab" role="tab" id="{p}-tab-4" aria-controls="{p}-tp-4" aria-selected="false" tabindex="-1">Details</button>
       </div>
       <div class="ds-tabpanel" role="tabpanel" id="{p}-tp-1" aria-labelledby="{p}-tab-1" tabindex="0">Huidige versie: vandaag <span class="ds-num">09:12</span>. Vier versies bewaard.</div>
-      <div class="ds-tabpanel" role="tabpanel" id="{p}-tp-2" aria-labelledby="{p}-tab-2" tabindex="0" hidden>Notities kan dit document lezen en wijzigen · Tot je het sluit</div>
+      <div class="ds-tabpanel" role="tabpanel" id="{p}-tp-2" aria-labelledby="{p}-tab-2" tabindex="0" hidden>Notities kan dit document lezen en wijzigen · Tot je Notities sluit</div>
       <div class="ds-tabpanel" role="tabpanel" id="{p}-tp-3" aria-labelledby="{p}-tab-3" tabindex="0" hidden>Op dit apparaat en Thuis-NAS · Bijgewerkt</div>
       <div class="ds-tabpanel" role="tabpanel" id="{p}-tp-4" aria-labelledby="{p}-tab-4" tabindex="0" hidden>Notitie · collectie Tuin</div>
     </div>
@@ -417,23 +424,54 @@
 </div>
 </template>
 
-<template id="tpl-ask">
-<div class="ds-ask" data-theme="{k}" role="alertdialog" aria-labelledby="{p}-ask-t" aria-describedby="{p}-ask-w">
+<template id="tpl-ask-ongoing">
+<div class="ds-ask" data-theme="{k}" data-kind="ongoing" role="alertdialog" aria-labelledby="{p}-ao-t" aria-describedby="{p}-ao-w">
   <div class="ds-ask-band"><i data-icon="lock"></i>Vraag van het systeem · getoond boven alle apps</div>
   <div class="ds-ask-body">
-    <h3 class="ds-ask-title" id="{p}-ask-t">Webvenster wil Tuinplan naar internet sturen</h3>
+    <h3 class="ds-ask-title" id="{p}-ao-t" tabindex="-1" data-initial-focus>Webvenster wil internet gebruiken</h3>
     <dl class="ds-ask-bond">
       <div class="ds-ask-row"><span class="ds-ask-app" aria-hidden="true"><i data-icon="browser"></i></span><dt>App</dt><dd><strong>Webvenster</strong> · geïnstalleerd <span class="ds-num">12</span> nov. uit Haven</dd></div>
-      <div class="ds-ask-row"><span class="ds-ask-node" aria-hidden="true"><i data-icon="notities"></i></span><dt>Wat</dt><dd>Tuinplan, alleen dit document</dd></div>
+      <div class="ds-ask-row"><span class="ds-ask-node" aria-hidden="true"><i data-icon="toegang"></i></span><dt>Wat</dt><dd>Verbinding maken, alleen met dit domein</dd></div>
       <div class="ds-ask-row" data-place="internet"><span class="ds-ask-node" aria-hidden="true"><i data-icon="internet"></i></span><dt>Waarheen</dt><dd><strong>tuinplanner.example</strong><span class="ds-place" data-place="internet"><i class="ds-node" data-shape="internet" aria-hidden="true"></i><i data-icon="internet"></i>Internet</span></dd></div>
       <div class="ds-ask-row ds-ask-dur"><span class="ds-ask-node" aria-hidden="true"><i data-icon="klok"></i></span><dt>Hoe lang</dt><dd>Jij kiest hieronder</dd></div>
     </dl>
-    <div class="ds-ask-warn" id="{p}-ask-w"><i data-icon="warn"></i><span>Dit programma kan de toegestane inhoud naar een internetdienst sturen.</span></div>
-    <div class="ds-ask-choices" role="group" aria-label="Toestemming">
-      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="once">Eenmalig</button>
-      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="session">Deze sessie</button>
-      <button class="ds-btn" data-variant="primary" data-size="large" data-choice="deny">Weigeren</button>
+    <div class="ds-ask-warn" id="{p}-ao-w"><i data-icon="warn"></i><span>Dit programma kan de toegestane inhoud naar een internetdienst sturen.</span></div>
+    <div class="ds-ask-choices" role="group" aria-label="Kies hoe lang">
+      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="untilClose" aria-describedby="{p}-ao-d0">Toestaan tot afsluiten</button>
+      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="always" aria-describedby="{p}-ao-d1">Altijd toestaan</button>
+      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="deny" aria-describedby="{p}-ao-d2">Weigeren</button>
     </div>
+    <ul class="ds-ask-terms">
+      <li id="{p}-ao-d0"><strong>Toestaan tot afsluiten.</strong> Geldt tot je Webvenster sluit. Afmelden of opnieuw opstarten beëindigt het ook.</li>
+      <li id="{p}-ao-d1"><strong>Altijd toestaan.</strong> Geldt ook als je Webvenster opnieuw opent, tot je het intrekt in Instellingen › Privacy en beveiliging › Appmachtigingen.</li>
+      <li id="{p}-ao-d2"><strong>Weigeren.</strong> Geldt alleen voor dit verzoek. Er wordt niets bewaard; Webvenster kan het later opnieuw vragen.</li>
+    </ul>
+  </div>
+</div>
+</template>
+
+<template id="tpl-ask-action">
+<div class="ds-ask" data-theme="{k}" data-kind="action" role="alertdialog" aria-labelledby="{p}-aa-t" aria-describedby="{p}-aa-w">
+  <div class="ds-ask-band"><i data-icon="lock"></i>Vraag van het systeem · getoond boven alle apps</div>
+  <div class="ds-ask-body">
+    <h3 class="ds-ask-title" id="{p}-aa-t" tabindex="-1" data-initial-focus>Webvenster wil Tuinplan naar internet sturen</h3>
+    <dl class="ds-ask-bond">
+      <div class="ds-ask-row"><span class="ds-ask-app" aria-hidden="true"><i data-icon="browser"></i></span><dt>App</dt><dd><strong>Webvenster</strong> · geïnstalleerd <span class="ds-num">12</span> nov. uit Haven</dd></div>
+      <div class="ds-ask-row"><span class="ds-ask-node" aria-hidden="true"><i data-icon="notities"></i></span><dt>Wat</dt><dd>Een kopie van Tuinplan, alleen dit document</dd></div>
+      <div class="ds-ask-row" data-place="internet"><span class="ds-ask-node" aria-hidden="true"><i data-icon="internet"></i></span><dt>Waarheen</dt><dd><strong>tuinplanner.example</strong><span class="ds-place" data-place="internet"><i class="ds-node" data-shape="internet" aria-hidden="true"></i><i data-icon="internet"></i>Internet</span></dd></div>
+      <div class="ds-ask-row ds-ask-dur"><span class="ds-ask-node" aria-hidden="true"><i data-icon="klok"></i></span><dt>Hoe lang</dt><dd>Jij kiest hieronder</dd></div>
+    </dl>
+    <div class="ds-ask-warn" id="{p}-aa-w"><i data-icon="warn"></i><span>Dit programma kan de toegestane inhoud naar een internetdienst sturen.</span></div>
+    <div class="ds-ask-choices" role="group" aria-label="Kies hoe lang">
+      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="once" aria-describedby="{p}-aa-d0">Eenmalig toestaan</button>
+      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="always" aria-describedby="{p}-aa-d1">Altijd toestaan</button>
+      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="deny" aria-describedby="{p}-aa-d2">Weigeren</button>
+    </div>
+    <ul class="ds-ask-terms">
+      <li id="{p}-aa-d0"><strong>Eenmalig toestaan.</strong> Geldt alleen voor deze ene handeling en vervalt zodra die klaar, mislukt of geannuleerd is. Er wordt niets bewaard.</li>
+      <li id="{p}-aa-d1"><strong>Altijd toestaan.</strong> Geldt ook als je Webvenster opnieuw opent, tot je het intrekt in Instellingen › Privacy en beveiliging › Appmachtigingen.</li>
+      <li id="{p}-aa-d2"><strong>Weigeren.</strong> Geldt alleen voor dit verzoek. Er wordt niets bewaard; Webvenster kan het later opnieuw vragen.</li>
+    </ul>
   </div>
 </div>
 </template>
@@ -454,6 +492,10 @@
     </div>
     <div class="ds-privacy-text" aria-hidden="true"><span>Webvenster vraagt internet</span><span>Wacht op jouw keuze</span></div>
   </div>
+  <div data-ask="ongoing"></div>
+  <div data-ask="action"></div>
+  <ul class="ds-grants" aria-label="Appmachtigingen op 200 %" data-grants></ul>
+  <p class="ds-live" role="status" data-grants-live></p>
 </div>
 </template>
 

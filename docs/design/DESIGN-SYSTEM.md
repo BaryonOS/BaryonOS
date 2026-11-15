@@ -19,6 +19,26 @@ base `[hidden]` rule (§10), a 1 px gap between the contrast-theme focus ring
 and white marks (§10, §13, O-K2), the ask-state privacy instrument in the
 200 % strip (§14), and corrections to §6, §10, §15 and §16. Its evidence is in
 `build/design-evidence/ds-1.0/repair-2/`.
+Task UX-D-C1 (14 November 2026) applied the owner decision on app permissions:
+two prompt kinds with three equal choices, durations defined once, a
+four-field grant key, revocable grant rows and the Appmachtigingen path
+(§11.1); its evidence is in `build/design-evidence/ds-1.0/c1/writer/`. Repair
+round 1 (15 November 2026) added the destination to the grant scope, the grant
+row's reach badge and duration chip (`.ds-grant-reach`, `.ds-grant-until`, a
+760 px list cap), one `alertdialog` on the modal `<dialog>` and a race-free
+prompt resolver; evidence in `build/design-evidence/ds-1.0/c1/repair-1/`.
+UX-D-C1 repair round 2 (15 November 2026; not the ds-1.0 repair round 2
+above, whose evidence is `build/design-evidence/ds-1.0/repair-2/`) made the
+modal prompt scroll inside the viewport at 200 % (§10, §14), named Intrekken
+by all four key fields (§11.1), gave the "Altijd" chip its own glyph `altijd`
+(§8), aligned "herstarten" with the shell's "opnieuw opstarten" and recorded
+open items O-G12 to O-G14; evidence in
+`build/design-evidence/ds-1.0/c1/repair-2/`. Boundary gate for UX-D-C1:
+`git diff --stat HEAD -- <protected paths>` (uncommitted edits; empty) plus
+`git log --oneline 46957bac..HEAD -- <protected paths>`, which lists only the
+merge of main `e186ec1b` (#335, `tools/package_token_guard.py`, not a C1
+change); `git diff --stat 46957bac` over the same paths therefore prints that
+one file (`c1/repair-2/boundary-start.txt`, `boundary-end.txt`).
 
 Requirements input: [WORKSPACE-REQUIREMENTS.md](suite/WORKSPACE-REQUIREMENTS.md)
 (S0, accepted 14 November 2026). ds-1.0 applies its decisions D1 (colour rule
@@ -287,7 +307,13 @@ gradients judged at every stop, worst stop reported). Output:
 (TYPOGRAPHY.md §8.3). `--color-line` is listed for information only: ds-1.0
 uses it for dividers and for the edges of surfaces (window, menu, dialog,
 toast, place badge, info banner) that are identified by fill, icon or text
-rather than by that edge. This is a design judgement, not a measured check.
+rather than by that edge. The final base verifier measured these edges from
+computed styles at 1440 px: 1.27:1 dark (`#232A47` on `#12162A`), 1.31:1 light
+(`#D8DEE9` on `#FBFCFE`), place-badge edges 1.03:1; each of these components
+is identified by its fill, icon or text instead (place badge: node shape,
+icon and label), so the edges are not WCAG 1.4.11 boundaries. The new grant
+row edge measures 1.27:1 dark and 1.32:1 light (identified by its text and
+Intrekken button) and 21:1 in contrast (UX-D-C1 harness).
 
 **Backdrop assumption.** Glass, Orbit material and the translucent launcher are
 composited over `--color-bg`. Their contrast over the real wallpaper is not
@@ -525,10 +551,12 @@ contrast theme, where edges carry separation.
 | Naming | v2 sprite ids without `i-`; app ids, file kinds and places from `ui/design/prototype/data.js`; fallback `dot` | `icons.js` |
 | Markup | No inline style, no `var()`, no colour literals | tokens stage check 2 |
 
-Icon keys (53):
+Icon keys (54; the gallery's `?measure=1` reports 54 keys, all used, none
+unresolved, `c1/repair-2/gallery-measure.json`):
 
 | Group | Keys |
 |---|---|
+| ds-1.0 addition, not in v2 (1) | `altijd` (UX-D-C1 repair-2): a closed loop with the particle on the top of its right lobe (r 2.1, as on `internet`'s edge; on the crossing it merged with the strokes at 16 px), drawn in the v2 stroke style for the "Altijd, tot je het intrekt" grant chip, so `lock` stays reserved for the Kern band and a revocable grant does not read as "locked". Kept in a separate block after the generated object in `icons.js`. That the loop reads as "until revoked" is AI design judgement, untested (O-G13) |
 | v2 sprite (42) | `zoeken` `bestanden` `notities` `instellingen` `haven` `device` `nas` `versies` `toegang` `internet` `power` `lock` `assistent` `min` `max` `close` `back` `fwd` `plus` `check` `recent` `desk` `doc` `image` `download` `trash` `warn` `draw` `list` `pdf` `loc` `nofiles` `window` `chev` `coll` `huis` `archief` `web` `klok` `apps` `user` `a11y` |
 | Drawn for ds-1.0 (4) | `rekenmachine`, `muziek`, `sheet`, `dot` (outlined diamond; a solid dot would read as "device") |
 | Aliases (7) | `browser` = `web`, `fotos` = `image`, `note` = `doc`, `drawing` = `draw`, `desktop` = `desk`, `documents` = `doc`, `downloads` = `download` |
@@ -704,9 +732,23 @@ achromatic except place colours (135 elements, 0 tinted; `build/design-evidence/
 | State | Treatment |
 |---|---|
 | Shown | Kern material in the opposite theme, rim via `padding-box`/`border-box` layers, `--elev-trusted`; rises over `--motion-duration-ask` (none under reduced motion or in contrast) |
-| Choices | `.ds-btn` `data-size="large"`: two secondary, Weigeren primary; their hover, pressed, focus and disabled states are the button's |
+| Choices | Three `.ds-btn` `data-variant="secondary"` `data-size="large"`, full width, stacked; no primary choice (§11.1); hover, pressed, focus and disabled states are the button's. Duration lines `.ds-ask-terms` (caption) are each choice's `aria-describedby` |
+| Title | `tabindex="-1"`, initial focus in the dialog (§11.1); 2 px focus ring. The gallery sets `autofocus` on the title before `showModal()`, so the dialog's own focusing step lands on the title and not on the scrollable body (C1 repair-2) |
+| Modal copy | One `alertdialog`: the `<dialog>` carries `role="alertdialog"`, `aria-labelledby` (title) and `aria-describedby` (internet notice); the inner `.ds-ask` gets `role="none"` without its own name (repair-1; inline specimens keep `role="alertdialog"` on `.ds-ask`) |
+| Modal fit (C1 repair-2) | The `<dialog>` keeps the UA `max-height` and `overflow: visible` (the Kern shadow is not clipped) and is a flex column while `[open]`; `.ds-ask` is a flex column with `overflow: clip` (the scrollbar stays inside the rounded edge); `.ds-ask-body` scrolls (`overflow-y: auto`, `overscroll-behavior: contain`, `scroll-padding-block: var(--space-2)`, `scrollbar-color: var(--material-kern-tx2) var(--material-kern-bg)`) under the fixed band, so the "Vraag van het systeem" band stays in view while Tab scrolls a choice into view. Inline specimens are not scoped and keep their full height |
+
+### App grant row `.ds-grants`, `.ds-grant` (content and rules: §11.1)
+
+| State | Treatment |
+|---|---|
+| Rest | `--color-surface-raised` fill, 1 px `--color-line` edge (2 px in contrast), app tile `.ds-grant-app`, name `.ds-grant-name` "<App> · <bron>" 15/22 600, meta `.ds-grant-meta` "<recht> · <reikwijdte>" 15/22 400 `--color-text-muted`; list at most 760 px wide so Intrekken stays near the row's content |
+| Reach (repair-1, design proposal for UX-E) | `.ds-grant-reach` line: a `.ds-place` badge for where the granted access reaches (node shape + icon + text): "Internet · <bestemming>" for a sending or connecting right, else one badge per place where the resource is kept (Dit apparaat, Thuis-NAS; a collection takes the places of its files) |
+| Duration (repair-1, design proposal for UX-E) | `.ds-grant-until[data-until]` chip, neutral colours: `close` = 1 px dashed `--color-line-strong` edge + `klok` + "Tot je <App> sluit"; `always` = 2 px solid `--color-line-strong` edge + `altijd` (closed loop; `lock` until C1 repair-2, now reserved for the Kern band) + "Altijd, tot je het intrekt". Shape + icon + text; text 14.3:1 (dark), 14.5:1 (light), 21:1 (contrast); edge 4.28:1, 3.74:1, 21:1 over the row |
+| Intrekken | Secondary `.ds-btn`; its hover, pressed and focus states are the button's; accessible name "Intrekken: <App>, <bron>, <recht>, <reikwijdte>" from all four key fields, <bron> with "naar <bestemming>" for a sending right (§11.1, C1 repair-2) |
+| Removed | Row leaves the list; focus moves to the next Intrekken, else the previous one, else `.ds-grant-empty` (`tabindex="-1"`, focus ring); `.ds-live` announces the removal |
+| Empty | `.ds-grant-empty`: "Geen blijvende machtigingen. Apps vragen het je wanneer ze iets nodig hebben." |
+| Loading, error, disabled | — (not designed; UX-E) |
 | Contrast | 2 px white edge |
-| Loading, error | — |
 
 ### Window `.ds-window`, `.ds-window-ctl`
 
@@ -769,7 +811,7 @@ achromatic except place colours (135 elements, 0 tinted; `build/design-evidence/
 |---|---|
 | Open (native `<dialog>` `showModal()`) | `::backdrop` `--color-scrim`; focus starts on the safest action (Annuleren); rises over `--motion-duration-ask` |
 | Static specimen | `.ds-scrim` over an inert stage |
-| `data-variant="ask"` | Transparent shell hosting a `.ds-ask` |
+| `data-variant="ask"` | Transparent shell hosting a `.ds-ask`; the body scrolls inside the viewport under a fixed band (Permission prompt, Modal fit) |
 
 ### Progress `.ds-progress-field`, `.ds-progress`, `.ds-progress-bar`
 
@@ -805,7 +847,8 @@ edge, `--color-text-muted` text. Not focusable.
 |---|---|---|---|
 | Place badge | `.ds-place` | Node shape + icon + storage label (NAMING-AND-IA.md §6) | Static; inside trust surfaces and in file rows |
 | Privacy instrument | `.ds-privacy` (`.ds-privacy-track`, `-col`, `-lbl`, `-text`) | Three columns Dit apparaat, Thuis-NAS, Internet; each column `data-state` `lit`, `ask` or `off`; connectors are light blades between lit columns | `role="status"` with a full sentence `aria-label`. Root `data-state`: `local`, `ask` (internet-place edge `--place-internet-line`, a supplementary cue under 3:1 in dark and light, §10; halo on the internet node) and `internet` (all lit). Only `ask` has a root rule; `internet` is derived, v2 has no such state. |
-| Permission prompt | `.ds-ask` (`-band`, `-body`, `-title`, `-bond`, `-row`, `-app`, `-node`, `-dur`, `-warn`, `-choices`) | Band "Vraag van het systeem · getoond boven alle apps"; title "<App> wil <wat> <actie>"; bonded rows App, Wat, Waarheen, Hoe lang; internet notice "Dit programma kan de toegestane inhoud naar een internetdienst sturen." | `role="alertdialog"`; choices `data-choice` `once`, `session`, `deny` shown as "Eenmalig", "Deze sessie", "Weigeren"; Weigeren is primary and receives initial focus; Escape answers deny; the result is reported in a toast |
+| Permission prompt | `.ds-ask` (`-band`, `-body`, `-title`, `-bond`, `-row`, `-app`, `-node`, `-dur`, `-warn`, `-choices`) | Band "Vraag van het systeem · getoond boven alle apps"; title "<App> wil <wat> <actie>"; bonded rows App, Wat, Waarheen, Hoe lang; internet notice "Dit programma kan de toegestane inhoud naar een internetdienst sturen." | `role="alertdialog"` (in the modal on the `<dialog>`, §10), `data-kind` `ongoing` or `action`; three equal choices per kind (§11.1); initial focus on the title; Escape answers deny; the result is reported in a toast |
+| App grant row | `.ds-grants`, `.ds-grant` (`-app`, `-name`, `-meta`, `-reach`, `-until`, `-empty`), `.ds-place`, `.ds-live` | App, resource, right, scope (with its destination), reach badge and duration chip; "Intrekken" | One revocable standing grant; removal announced in a polite `role="status"` region (§11.1) |
 
 Rules and their sources:
 
@@ -814,13 +857,244 @@ Rules and their sources:
 - **Not proof of authenticity.** An app can imitate pixels; passwords, PINs and administrator passwords are entered only on the session-service surface (DESKTOP-SHELL.md §1; BRAND.md §5).
 - **Separate, visible, revocable permissions.** LOCAL-PRIVACY-CONTRACT.md §4: installation grants nothing; LAN and internet are granted separately; combined permissions are displayed; an app allowed to read a file and contact a server may send that content. The prompt's internet notice states exactly this boundary.
 - **Necessary decision versus explanation.** LOCAL-PRIVACY-CONTRACT.md §4.1: explanations may be turned off; "Privacyuitleg uit" never means "alles toestaan", and a valid grant need not be asked again for each normal repetition.
-- **Location honesty.** LOCAL-PRIVACY-CONTRACT.md §1: an unreachable storage location is visibly paused and files are not forwarded elsewhere; the gallery's warning banner and error empty state use this wording.
+- **Location honesty.** LOCAL-PRIVACY-CONTRACT.md §1: an unreachable storage location is visibly paused and files are not forwarded elsewhere; the gallery's warning banner and error empty state use the NAMING-AND-IA.md §6 sentence, which expresses this behaviour without stating the pause and the non-forwarding explicitly (O-N3).
 
-Conflicts recorded as open items: the prompt labels differ from
-NAMING-AND-IA.md §6 and `ui/design/prototype/strings.js` `trusted.*`
-("Eenmalig toestaan", "Toestaan tot je het sluit", "Niet toestaan"), and the
-session result sentence is not in `ui/design/prototype/strings.js` (O-N2); the Kern band shows the
-`lock` icon where BRAND.md §5 places the compact mark (O-B1).
+The Kern band shows the `lock` icon where BRAND.md §5 places the compact mark
+(O-B1).
+
+### 11.1 Permission model (owner decision of 14 November 2026, task UX-D-C1)
+
+Source: three project-owner messages of 14 November 2026 (verbatim in the
+coordinator checkpoint `owner-decision-uxd-permissions-20261114.md`); message 3
+is the final rule for prompt labels. This is a UX decision. The prompts, the
+grant list and revocation below are design and browser simulation
+(`ui/design/prototype/contract.js`, the gallery); nothing here changes native
+code, the kernel, `docs/implementation/**` or `docs/LOCAL-PRIVACY-CONTRACT.md`.
+
+**Interim presentation.** Task UX-C (owner ambition on informed consent of
+14 November 2026) replaces the prompt's presentation. The `.ds-ask` dialog in
+ds-1.0 is a minimal, neutral carrier for the model, labels, contract, accessible
+names, interactions and revocation defined here; it is not the final consent
+design.
+
+**Two prompt kinds, three visible choices each.**
+
+| Kind | Meaning | Choices (`data-choice`, label) |
+|---|---|---|
+| Ongoing app permission (`data-kind="ongoing"`) | Access that lasts while the app runs: internet, LAN, a named NAS dataset, a folder, camera, microphone | `untilClose` "Toestaan tot afsluiten" · `always` "Altijd toestaan" · `deny` "Weigeren" |
+| Single action (`data-kind="action"`) | One discrete operation whose permission lapses once carried out: exporting or sharing one file, one sensitive system operation | `once` "Eenmalig toestaan" · `always` "Altijd toestaan" · `deny` "Weigeren" |
+
+"Eenmalig toestaan" never appears on an ongoing prompt, and different
+authorisations are never merged into one choice. Labels and durations live
+once in `ui/design/prototype/strings.js` (`trusted.choices`,
+`trusted.duration`, `trusted.result`, `trusted.grant`); the gallery writes the
+button labels and duration lines from there.
+
+**Durations (each defined once).**
+
+| Choice | Validity | Stored as |
+|---|---|---|
+| Toestaan tot afsluiten | Ends when the app closes, so also at logout and system restart (the owner's label; whether "afsluiten" reads as shutdown is open, O-G12) | Standing grant, `until: 'close'` |
+| Eenmalig toestaan | Ends when the single action completes, fails or is cancelled | Never stored |
+| Altijd toestaan | The same key is not asked again; survives closing and reopening the app and, as a future requirement, a system restart, until the user revokes it | Standing grant, `until: 'always'` |
+| Weigeren (also Escape or closing the prompt) | Denies this request only | Nothing stored; the app may ask again |
+
+The prompt text for "Altijd toestaan" says "ook als je <app> opnieuw opent"
+and does not mention restart, because the prototype contract does not simulate
+a restart (a reload loses all state) and no native store exists. The string
+adds restart only when native persistence exists (O-G1).
+
+**Grant key, no repeated consent, no broadening.** A standing grant is keyed
+on four fields: app + resource + capability (right) + scope. The scope
+includes the destination of a right that moves data off the device: "een
+kopie sturen" (`send-copy`) of Tuinplan to tuinplanner.example and to
+andere-dienst.example are two keys, and `ask()` rejects a `send-copy` request
+without a destination (`to`). For "verbinding maken" (`connect`) the resource
+is the destination itself (the domain). `destination()` in `contract.js` is
+the one helper that names it for the key, the grant row and the texts. Treating
+the destination as part of the owner's "reikwijdte" is an interpretation for
+owner confirmation (O-G9); a verifier found that the earlier key without it let
+a grant for one destination cover every destination (repair-1). A request whose
+exact key holds a valid grant (until close while the app runs, or always)
+never prompts again (`ask()` resolves without calling the prompt). A request
+with another key (other resource, broader right, wider scope, other
+destination) prompts again;
+an existing grant never broadens. The prototype matches the exact key only
+(no ordering such as "lezen en wijzigen covers lezen"; O-G3).
+
+**Per-request check.** A grant suppresses the prompt only. The policy service
+still checks capability, object scope and authorisation on every request
+(`docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md`, around line 220).
+Grounding: `docs/LOCAL-PRIVACY-CONTRACT.md` §4 (separate, visible, revocable
+permissions; around line 117) and `docs/DESIGN-AMBITION.md` line 22 (repeated
+granting is not the desired default).
+
+**Contract (`ui/design/prototype/contract.js`).** `ask(request)` takes
+`{ kind: 'ongoing' | 'action', app, resource, right, scope, to? }` (`to` is
+required for `send-copy`) and, when it prompts, resolves to
+`'untilClose' | 'always' | 'deny'` (ongoing) or `'once' | 'always' | 'deny'`
+(action); any other answer, including Escape, becomes `'deny'`. A covered
+request resolves without a prompt to the stored duration, `'untilClose'` or
+`'always'`, whatever its kind: kind is not part of the key, so an ongoing grant
+with the same key also covers an action request. Callers treat every result
+except `'deny'` as permission to proceed. `setPrompt(fn)`
+attaches the prompt UI. `grants.all()`, `grants.covering(request)`,
+`grants.revoke(key)` and `grants.appClosed(app)` work per four-field key;
+`appClosed` ends that app's `close` grants. Data seeds in
+`ui/design/prototype/data.js` (`{app, rights, until}` on a file) are
+normalised to the key on load. Contract test: 48 assertions pass
+(`build/design-evidence/ds-1.0/c1/repair-1/contract-test.mjs` and `.txt`;
+derived from the verifier's test, with destinations, revoking one of two
+destinations and the covered-by-kind result added). The verifier's original
+test (`verify-0/contract-test.mjs`) now stops at its `send-copy` request
+without a destination, which `ask()` rejects by design.
+
+**Initial focus (reviewable design choice).** On open, focus goes to the
+prompt title (`tabindex="-1"`, `data-initial-focus`), not to any choice.
+
+| Option | Stray Enter or Space at open | Screen reader on open | Nudging |
+|---|---|---|---|
+| Title (chosen) | Does nothing | Expected (no screen-reader test, §19): the title, then the bonded rows in order; `aria-describedby` adds the internet notice | No choice is marked as expected |
+| Weigeren | Denies the request the user may have wanted | Expected: the button name and its description only | Mild nudge to refuse; the ring marks one choice as the expected one |
+| First allow choice | Grants access: excluded by the invariants | Expected: button name only | Nudge to allow: excluded |
+
+Measured effort from the title (real keys): first choice Tab + Enter, "Altijd
+toestaan" Tab Tab + Enter, Weigeren Tab Tab Tab + Enter or Escape alone. The
+order follows the owner's list; effort is therefore not identical, and
+Weigeren stays the cheapest through Escape.
+
+Sources (accessed 14 November 2026): the WAI-ARIA APG Dialog (Modal) pattern,
+<https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/>, says focus generally goes to
+the first focusable element, but advises focusing a static element at the
+start of the content (`tabindex="-1"`) when the content has structure that
+would be hard to follow "as a single unbroken string", and the least
+destructive action for steps that are not easily reversible. A prompt grant is
+reversible (revocable in Appmachtigingen), and the prompt is structured
+(rows App, Wat, Waarheen, Hoe lang), so the title fits better than Weigeren.
+The APG Alert and Message Dialogs pattern,
+<https://www.w3.org/WAI/ARIA/apg/patterns/alertdialog/>, refers to the modal
+dialog pattern for its keyboard interaction.
+
+Invariants (checked with real key presses, §15): no single keystroke at open
+grants a standing permission; "Altijd toestaan" is never preselected, never the
+emphasised choice and never triggered by Enter on open; Escape or closing the
+prompt equals Weigeren and stores nothing; Tab from the title reaches the
+choices in their visual order.
+
+**Equal weight.** The three choices use the same button variant
+(`secondary`), size (`large`) and full width, stacked in the owner's order
+(narrow grant, broad grant, deny). No choice is primary, Weigeren included.
+Each has a visible duration line, referenced by `aria-describedby`. Stacking
+keeps the long Dutch labels whole (measured on the inline specimens: 0
+clipped buttons, equal 510 x 44 px, 1018 x 88 px at 200 %). The modal prompt
+did not fit at 200 % until C1 repair-2 (verify-1 step 10: "Altijd toestaan"
+and Weigeren below the viewport); its body now scrolls under the fixed band.
+Measured with real Tab presses at `<html data-scale="2">` in 1440 x 1000 and
+960 x 667 windows, dark, light and contrast, ongoing prompt in all six and
+the action prompt at 960 x 667 in all three themes: every choice is inside
+the viewport after its Tab, the band stays in view, the last duration line is
+reachable at maximum scroll and no horizontal clipping
+(`c1/repair-2/kbd-real-keys.jsonl`; before the fix `kbd-pre-fix.txt`). With
+focus on the title, real ArrowDown, PageDown and End scroll the body to its
+maximum (960 x 667, dark page). At 100 % in the 1440 x 1000 window the body
+does not scroll and the Kern shadow is unchanged; other 100 % window sizes
+were not measured. Sources: the
+owner asks for "eenvoudig en gelijkwaardig" choices
+(`owner-ambition-informed-consent-20261114.md`). That emphasising one choice
+would nudge the decision is design judgement, not a sourced finding; user
+effect is unproven (§19).
+
+**Deviation from the v2 board.** The reviewed Orbitaal v2 board shows the
+buttons once / session / deny ("Eenmalig", "Deze sessie", "Weigeren") with
+Weigeren as primary. ds-1.0 deliberately deviates by this owner decision: two
+kinds, the labels above, no primary choice and title focus. The frozen boards
+under `ui/design/concepts/**` keep their labels.
+
+**Visibility and revocation.** Every standing grant ("Toestaan tot afsluiten"
+while the app runs, and "Altijd toestaan") is listed and revocable under
+Instellingen › Privacy en beveiliging › Appmachtigingen (NAMING-AND-IA.md §5).
+Single-action grants lapse at once and are not listed. ds-1.0 provides the
+grant row `.ds-grants` / `.ds-grant`: app tile, "<App> · <bron>", "<recht> ·
+<reikwijdte>", a reach line and an "Intrekken" button whose accessible name is
+"Intrekken: <App>, <bron>, <recht>, <reikwijdte>", where <bron> adds "naar
+<bestemming>" for a sending right (`trusted.grant.target`). The name carries
+all four key fields (C1 repair-2; before, only app and resource), so no two
+standing grants share a name: for example "Intrekken: Notities, Tuinplan,
+lezen, alleen dit document" and "Intrekken: Notities, Tuinplan, lezen en
+wijzigen, alleen dit document" (`c1/repair-2/revoke-names-test.txt`, 6/6
+pass; in the gallery the four seeded rows have four distinct names).
+Revoking removes the row, moves focus to the next
+row's Intrekken (else the previous one, else the empty message) and announces
+"Machtiging ingetrokken: <App>, <bron>, <recht>, <reikwijdte>. <App> moet het
+opnieuw vragen." in a
+polite `role="status"` region (`.ds-live`) that sits outside the rows. No undo:
+the next request simply prompts again. The full Appmachtigingen screen is
+task UX-E.
+
+The reach line (repair-1) answers the two questions a person judges a grant
+by: where the access can reach and for how long. Reach is the existing
+`.ds-place` badge (node shape + icon + text): "Internet · <bestemming>" for a
+sending or connecting right, otherwise every place where the resource is
+kept ("Dit apparaat", "Thuis-NAS" or both; for a collection, the places of
+its files). It states reach, not a
+promise that data stays local: an app with a read grant and an internet grant
+may combine them (LOCAL-PRIVACY-CONTRACT.md §4), which a later Appmachtigingen
+screen should show per app. Duration is a neutral chip whose shape follows
+`data-until`: a dashed edge with the clock for "Tot je <App> sluit", a solid
+2 px edge with the closed loop `altijd` for "Altijd, tot je het intrekt"
+(C1 repair-2: the lock commonly reads as "locked, cannot change", which works
+against a revocable grant, and it already marks the Kern band; the new glyph
+is a ds-1.0 addition, §8, O-G13). Evidence classes:
+contrast, clipping and names are measured (§19); that the row was too
+conventional, that place and duration chips make grants easier to scan and
+that the loop reads better than the lock are design judgement by an AI
+verifier and writer, not a user finding (U06). No token value of the v2 board
+changes; the chip uses existing neutral tokens.
+
+**Design proposal for UX-E (not built; future research, O-G14).** The ds-1.0
+list repeats the app on every row and gives no overview of where one app can
+reach as a whole (AI design judgement, verify-1). UX-E could group grants
+under one app header (tile and name once) and draw that app's combined reach
+as a compact Orbitaal privacy-instrument strip: the device, NAS and internet
+nodes lit by the union of its grants, built from the existing `.ds-privacy`
+and `.ds-place` (shape + icon + text, colour for place only). The strip would
+answer "where can this app reach" at a glance and display combined
+permissions as LOCAL-PRIVACY-CONTRACT.md §4 asks. It changes the row
+structure, the index-based `data-revoke` and the verified focus order after
+revocation, so it is left to UX-E and needs its own keyboard and
+screen-reader check. Feasibility: works now in the browser prototype;
+natively it depends on the Appmachtigingen screen (UX-E) and the policy
+service's grant list (O-G1).
+
+**Persistent denial (research only; open owner decision O-G2).** No fourth
+prompt choice is added.
+
+| Source (accessed 14 November 2026) | Behaviour |
+|---|---|
+| Android, Request runtime permissions, <https://developer.android.com/training/permissions/requesting> | If the user denies a permission more than once, the system dialog no longer appears; the action is treated as "don't ask again". Apps must accept the preference and not nag. "Only this time" is a one-time grant for location, microphone and camera. |
+| Apple HIG, Privacy, <https://developer.apple.com/design/human-interface-guidelines/privacy> | Not re-verified: the page renders client-side and its body was not retrieved in the verification run (repair-1). The writer's earlier reading (the system shows the request alert; people can update their choice in Settings) is unconfirmed, and no "ask only once" claim is cited (O-G7). |
+| Chromium Blog, Introducing quieter permission UI for notifications (January 2020), <https://blog.chromium.org/2020/01/introducing-quieter-permission-ui-for.html> | Not re-verified: only the publication date (7 January 2020) was confirmed; the post body was not retrieved in the verification run. The writer's earlier reading: Chrome switches to a quieter, non-interrupting notification prompt for users who usually block such requests and for sites with very low acceptance rates (O-G7). |
+| W3C Permissions, Working Draft 26 October 2026, <https://www.w3.org/TR/permissions/> | States `granted`, `denied`, `prompt`; a stored decision is reused until its lifetime ends or the user revokes it. |
+
+Options: (A) as now: Weigeren stores nothing, every new request prompts;
+simple, but a persistent app can nag. (B) Automatic quieting after repeated
+denials (Android, verified by verify-1; the Chrome behaviour is not cited as
+support until the Chromium post body is retrieved and quoted, O-G7): after
+two denials of the same key within the app's
+installation, further requests for that key do not interrupt; the app gets
+`deny` and a quiet, non-modal notice offers the prompt on the user's
+initiative; the denial is listed and clearable in Appmachtigingen. (C) An
+explicit "Altijd weigeren": rejected, because it adds a fourth choice.
+Recommendation: B, keyed on the same four fields, never on the app as a whole,
+cleared by revocation in Appmachtigingen, and visible there, so a denial is as
+inspectable as a grant. This needs an owner decision (O-G2) and, natively, the
+same ADR as persistent grants (O-G1).
+
+**Evidence limits.** Design and prototype simulation only. Persistence across
+a system restart and native enforcement are future implementation
+requirements; native capability and security contracts change only after a
+separate review, and a project ADR is required before native persistent grants
+(O-G1). The browser gallery enforces nothing: any page can draw `.ds-` classes.
 
 ## 12. Motion
 
@@ -853,7 +1127,7 @@ static arc. The gallery exposes a switch for `data-motion`.
 
 ## 13. High contrast
 
-`[data-theme="contrast"]` is a complete theme (opaque, black surfaces, white
+`[data-theme="contrast"]` is a complete theme (opaque surfaces and fills; the decorative row, window, Orbit and privacy-connector blades keep their faded gradient ends over black, with a solid centre at 21:1; black surfaces, white
 text and lines, focus `#FFE34D`). Values come from v2 `.hc` where v2 defines
 them (v2 applies `class="dk hc"`); the 24 names `.hc` leaves undefined are
 derived as opaque, achromatic values anchored on `HIGH_CONTRAST` in
@@ -921,6 +1195,19 @@ Repair round 2 measured the strip with the instrument added: computed zoom 2,
 83 rendered elements (SVG parts included), `#scale-host` scroll width equal to
 its 680 px client width, no element beyond the strip's edges and no clipped
 scroller (`build/design-evidence/ds-1.0/repair-2/flows.json`, `build/design-evidence/ds-1.0/repair-2/shots/scale-strip.png`).
+UX-D-C1 added both permission prompts and the grant rows to the strip: stacked
+choices 1018 x 88 px each, none clipped inside the prompt
+(`build/design-evidence/ds-1.0/c1/writer/harness-result.json`). Those are the
+inline specimens. The modal prompt (`#dlg-ask`, top layer) spilled out of the
+viewport at 200 % (verify-1 step 10; reproduced in
+`c1/repair-2/kbd-pre-fix.txt`: "Altijd toestaan" at 955–1043 and Weigeren at
+1059–1147 in a 1000 px viewport). Since C1 repair-2 its body scrolls under a
+fixed band (§10 Permission prompt, Modal fit): with `<html data-scale="2">`,
+real Tab presses and windows of 1440 x 1000 and 960 x 667 in dark, light and
+contrast, every choice is in view after its Tab, the band stays in view and
+nothing clips horizontally (`c1/repair-2/kbd-real-keys.jsonl`). The page
+behind still scrolls horizontally at 200 % from pre-existing gallery
+elements (verify-1 step 13), not from the prompt or the grant rows.
 
 ## 15. Keyboard rules
 
@@ -950,8 +1237,8 @@ not implement a keymap.
 | Arrow keys (gallery simulation) | Listbox: ArrowUp, ArrowDown, Home, End move and select (Left and Right ignored), Space selects; tabs: ArrowLeft, ArrowRight (also Up and Down), Home, End select and focus (automatic activation); menu: ArrowDown or ArrowUp on the trigger opens on the first or last item, arrows and Home and End move; Right and Left act as Down and Up, since no item opens a submenu. Arrow movement wraps at the ends. |
 | Activation | Space and Enter on native buttons, switch and menu items |
 | Escape | Closes the menu and returns focus to its trigger; closes dialogs and returns focus to the opener; answers a permission prompt with deny; hides a tooltip |
-| Modal focus | Native `showModal()` keeps Tab inside the dialog; Escape always leaves it, so there is no keyboard trap. Tab out of an open menu closes it. |
-| Initial focus | Prompt: Weigeren; delete dialog: Annuleren (the safe choice, NAMING-AND-IA.md §6) |
+| Modal focus | `showModal()` makes the page behind the dialog inert; Tab cycles through the dialog controls and the browser UI, never page content; Escape always closes it, so there is no keyboard trap. Tab out of an open menu closes it. |
+| Initial focus | Permission prompt: the title (`tabindex="-1"`); Enter and Space at open do nothing; Tab reaches the choices in visual order (§11.1; real key presses in `build/design-evidence/ds-1.0/c1/writer/kbd-real-keys.txt`). Delete dialog: Annuleren (the safe choice, NAMING-AND-IA.md §6) |
 | Focus ring | §10: 2 px `--color-focus`, outer or inner. Real keyboard focus (repair-2, 176 Tab stops; repair-1 counted 179, three of them the hidden "Melding opnieuw tonen" buttons that rendered before the `[hidden]` rule): minimum 4.00:1, the light ring `#171717` on the neutral surround `#777777` (S0 D3 predicts 4.00); elsewhere at least 9.83:1 (contrast theme, `#FFE34D` inside a selected row `#333333`); these ratios are computed from styles by `m_focus.js`, not pixel-sampled in repair round 2 (§13 has the contrast-theme ring profiles). The 17 stops over gradient or translucent fills (Kern prompt buttons, Orbit items) were not pixel-sampled again; their markup and focus tokens are unchanged since the verifier's pass. |
 | Shortcut display | `.ds-kbd` keycaps; S0 D5 names this `.ds-keycap` (O-S2) |
 
@@ -1038,7 +1325,7 @@ grid, with no curves, fills or particles. Nearest counterparts only:
 | `instellingen` | `Settings` | `check`, `plus` | `Check`, `Add` |
 | `power`, `lock`, `user`, `apps` | `Power`, `Lock`, `User`, `Apps` | `internet` | `Network` (nearest) |
 
-No native counterpart: the remaining 38 keys (aliases included), among them `device`, `nas`,
+No native counterpart: the remaining 39 keys (aliases and the ds-1.0 addition `altijd` included), among them `device`, `nas`,
 `notities`, `haven`, `versies`, `toegang`, `warn`, `trash`, `dot` and every file
 kind. Native icons without a ds key: `Material`, `Key`, `Fingerprint`,
 `Refresh`, `Shield`.
@@ -1087,8 +1374,62 @@ rules.
   on `<input>`, which Firefox does not render).
 - Colour-vision deficiency simulation of the place colours.
 - 200 % only as CSS `zoom` on one strip; no device scale factor; no reflow at
-  320 CSS px; menu, tabs, permission prompt, dialog, toast, window chrome and
-  the Orbit are not in the strip.
+  320 CSS px; menu, tabs, dialog, toast, window chrome and the Orbit are not
+  in the strip (both permission prompts and the grant rows are, since UX-D-C1).
+  The modal permission prompt was measured at 200 % with `zoom` on `<html>`
+  only since C1 repair-2 (two window sizes, three themes); the delete dialog,
+  menus and toasts were not measured at 200 %.
+- UX-D-C1 (permission model): the contract self-check, the gallery
+  self-measure, a harness for labels, sizes, clipping, contrast and flows, real
+  key presses through the chrome-devtools MCP, and renders
+  (`build/design-evidence/ds-1.0/c1/writer/`). The writer could not view the
+  renders (image reads were blocked in this session); a visual review is
+  outstanding (O-G6). The crops use y-ranges measured in a 1425 px-wide iframe
+  applied to a 1440 px render, so their edges are approximate. The two contrast-ring rules for the Orbit bar and the
+  menu offset were applied without a new pixel profile.
+- UX-D-C1 repair-1 (`build/design-evidence/ds-1.0/c1/repair-1/`): contract
+  test (48 assertions), a writer harness with fixed 80 ms waits (the verify-0
+  failure mode) and a same-task race (answer one prompt and open the next
+  before the first `close` event), reach and duration chips (contrast, 24 px
+  height, no clipping at 1440 px and with the list at 320 px, unique revoke
+  names), real Enter, Escape, Tab, Shift+Tab and Enter-on-a-choice presses and Chrome's accessibility tree through
+  the chrome-devtools MCP (`real-keys-and-a11y.txt`). Expected screen-reader
+  output on open, from that tree and not from a screen reader: "Webvenster wil
+  internet gebruiken, alertdialog" (once), the description "Dit programma kan
+  de toegestane inhoud naar een internetdienst sturen.", then the focused
+  heading; each choice reads its name and its duration line. NVDA, JAWS,
+  VoiceOver and Orca were not run. The writer viewed the dark and contrast
+  grant cards in screenshots; light and 200 % renders of the new rows were
+  checked by measurement only.
+- UX-D-C1 repair-2 (`build/design-evidence/ds-1.0/c1/repair-2/`): real
+  Enter, Tab, Shift+Tab and Escape presses through the chrome-devtools MCP on
+  the modal prompt at 200 % (`kbd-real-keys.jsonl`, 12 runs, all pass; one
+  run repeats the ongoing prompt because the asynchronous `close` event
+  returned focus to its opener, recorded as such; the first four runs predate
+  the `overflow: clip` and `scrollbar-color` lines, and only the last capture
+  run uses the final scrollbar track (`var(--material-kern-bg)`); neither
+  change alters measured geometry. The runs' in-view flags compare each
+  focused choice with the window; their logged rectangles also lie between
+  the band's bottom and the dialog's bottom, and a final check with real Tab
+  presses on the final CSS found every choice inside the `.ds-ask-body`
+  scrollport); a 100 % check (body does
+  not scroll, `--elev-trusted` shadow present, dialog `overflow: visible`);
+  real Enter on an Intrekken button (four distinct names, the announcement
+  names all four fields); `revoke-names-test.txt` (6/6), the verify-1 and
+  repair-1 contract tests (36/36, 48/48), the verify-1 consistency check (no
+  change) and the verify-1 measure harness (re-run on the final CSS and
+  icons: no difference from verify-1, 0 failures, normal and reduced motion);
+  the gallery self-measure (54 icon keys, none unresolved; run before the
+  final particle position, the key count re-checked on the final file); real ArrowDown, PageDown and End with focus on the
+  title scroll the body to its maximum. The writer viewed, in chrome-devtools
+  screenshots, the 200 % prompt in all three themes with focus on Weigeren,
+  the 100 % dark-page prompt, the final-CSS 200 % prompt at 960 x 667 (light
+  page, End pressed: scrollbar inside the rounded edge, band and last line in
+  view) and the grant chips with the final `altijd` glyph in light (100 % and
+  200 %) and contrast (100 %); the dark chip was viewed only with earlier
+  particle positions. Saved captures: `r2-*.png` in the same folder (the
+  `-final` ones use the final CSS and icons). The `altijd` and `klok` glyphs
+  were compared side by side in those screenshots, not in a pixel crop.
 - Animation was not watched or timed; reduced motion was checked by computed
   styles.
 - Contrast theme: the compact place badge, the compact blade end, compact tab
@@ -1122,17 +1463,33 @@ Git; the lead must move what is needed to `docs/verification/` (O-P2).
 | O-T1 | Tabular digits: `.ds-num` spans only in the browser versus every digit in TYPOGRAPHY.md §8.1 and §8.4. |
 | O-S1 | Missing states: pressed on row, tab, menu item, switch, checkbox and radio; disabled on row, tab, Orbit item and window control; loading only on the button and skeleton; checkbox indeterminate; checked menu items; error on switch, checkbox and radio; no dedicated warning-banner rule. |
 | O-S2 | S0 reserved names not implemented: regions (`.ds-workspace`, `.ds-menu-bar`, `.ds-toolbar`, `.ds-tool-rail`, `.ds-canvas`, `.ds-inspector`, `.ds-panel`, `.ds-panel-zone`, `.ds-timeline`, `.ds-data-grid`, `.ds-status-bar`, `.ds-document-tabs`, `.ds-command-palette`) and components (`.ds-panel-header`, `.ds-track`, `.ds-ruler`, `.ds-playhead`, `.ds-cell`, `.ds-number-field`, `.ds-layer-row`, `.ds-expander`, `.ds-export-dialog`, `.ds-object-chip`, `.ds-version-indicator`); S0 names `.ds-keycap` and `.ds-place-badge` where ds-1.0 has `.ds-kbd` and `.ds-place`. |
-| O-S3 | Attributes and hooks beyond the fixed naming list: `data-size`, `data-shape`, `data-demo`, `data-choice`, `--ds-c`, `--ds-value`; sub-classes such as `.ds-status-marker`, `.ds-node`, `.ds-orbit`, `.ds-list`, `.ds-input`. |
+| O-S3 | Attributes and hooks beyond the fixed naming list: `data-kind`, `data-until`, `data-initial-focus`, `data-revoke`, `.ds-live`, `.ds-ask-terms` (UX-D-C1), `data-size`, `data-shape`, `data-demo`, `data-choice`, `--ds-c`, `--ds-value`; sub-classes such as `.ds-status-marker`, `.ds-node`, `.ds-orbit`, `.ds-list`, `.ds-input`. |
 | O-S4 | Submenus: `.ds-menu-sub` is a visual marker only; opening, ARIA (`aria-haspopup`, `aria-expanded`) and keys (ArrowRight opens, ArrowLeft and Escape close) are not specified. |
 | O-K1 | Launcher, search results, switcher, tray, notification centre, quick settings and window move, resize and snap are not designed as components. |
-| O-K2 | Contrast theme, partly closed in repair round 2: tabs and the standard selected row now keep a 1 px gap between the inner ring and white marks (§13); the focused row's blade moves 3 px inward, a repair-2 derivation not in v2. Open: the compact place badge edge (258 junction pixels, lowest 1.06:1), the compact blade end (2 pixels) and compact tab descenders (12 pixels) touch the ring; the Orbit badge is not measured. Compact values are PROVISIONAL (S0 D2). |
+| O-K2 | UX-D-C1 applied the base verifier's two one-line fixes (`.ds-taskitem::after` bottom 4 px and `.ds-menu` 5 px offset in the contrast theme); not re-profiled. Contrast theme, partly closed in repair round 2: tabs and the standard selected row now keep a 1 px gap between the inner ring and white marks (§13); the focused row's blade moves 3 px inward, a repair-2 derivation not in v2. Open: the compact place badge edge (258 junction pixels, lowest 1.06:1), the compact blade end (2 pixels) and compact tab descenders (12 pixels) touch the ring; the Orbit badge is not measured. Compact values are PROVISIONAL (S0 D2). |
 | O-K3 | `.ds-taskitem` shows app icons as bare glyphs; MF9 puts every app on the tile. |
 | O-N1 | "Kern" names the trusted-surface material in ds-1.0 and the Settings app in DESKTOP-SHELL.md §7; P-NAMES-1 awaits the project owner. |
-| O-N2 | Prompt labels "Eenmalig", "Deze sessie", "Weigeren" differ from NAMING-AND-IA.md §6 and `ui/design/prototype/strings.js` `trusted.*`; the session result sentence is not in `strings.js`. |
-| O-B1 | Kern band uses `lock`; BRAND.md §5 places the compact mark on trusted surfaces. |
+| O-N2 | Closed in UX-D-C1: prompt labels, durations and results now come from `strings.js` `trusted.*` and match NAMING-AND-IA.md §6 (§11.1). |
+| O-N3 | The NAS-unreachable sentence implies but does not state "paused" and "not forwarded elsewhere" (LOCAL-PRIVACY-CONTRACT.md §1); adding "en wordt niet naar een andere plek gestuurd" needs a copy decision. |
+| O-N4 | The gallery names the browser app "Webvenster" (v2 board), since C1 repair-2 from `strings.js` `apps.webvenster`; `strings.js` also keeps `apps.browser` "Browser", so the product name of the browser app is still undecided. The prompts' "what" and "done" fragments in `gallery.js` are marked gallery sample data, not `strings.js` copy (O-D1). |
+| O-G1 | A project ADR is required before native persistent grants; persistence of "Altijd toestaan" across a system restart and native enforcement are future implementation requirements. Native capability and security contracts change only after a separate review. When native persistence exists, the "Altijd toestaan" duration line adds restart. |
+| O-G2 | Persistent denial: owner decision on the §11.1 proposal (recommended option B, quieting after two denials of the same key, listed and clearable in Appmachtigingen). |
+| O-G3 | Grant matching is exact on the four-field key; whether a broader existing grant may cover a narrower request (for example read within read and write) needs a policy-service decision. |
+| O-G4 | Interpretation recorded for owner confirmation: message 3 fixes the ongoing labels and restricts "Eenmalig toestaan" to single actions; single actions therefore offer "Eenmalig toestaan", "Altijd toestaan", "Weigeren". |
+| O-G5 | UX-C replaces the prompt's presentation (informed consent); the initial-focus choice, the stacked equal choices and the duration lines are reviewable inputs to UX-C, and their user effect is untested. |
+| O-G6 | The UX-D-C1 writer renders (`build/design-evidence/ds-1.0/c1/writer/c1-*.png`) are stale for the grant rows. In repair-1 the writer viewed the dark and contrast grant cards (chrome-devtools screenshots); the renders `c1/repair-1/r1-gallery-*-top3300.png` and their crops were saved, not viewed (image reads are blocked in the writer session). Visual judgement of light and 200 % is pending. C1 repair-2: the writer viewed the 200 % modal prompt in all three themes, and the grant rows in light (100 % and 200 %), contrast (100 %) and dark (200 %, earlier glyph) in chrome-devtools screenshots (`c1/repair-2/r2-*.png`). The `c1/writer` and `c1/repair-1` renders themselves were not re-viewed, and no independent visual review has been made. |
+| O-B1 | Kern band uses `lock`; BRAND.md §5 places the compact mark on trusted surfaces. Since C1 repair-2 `lock` appears only on the Kern band and the prompt openers in the gallery, not on grant chips. |
 | O-B2 | BRAND.md §5 describes red, green and blue as accents for highlights and app differentiation, and the mark's node colours differ from the place colours (BRAND.md §4); both sit against "colour means place" and need a project-owner decision. |
 | O-I1 | No info or restore icon: the info banner uses `dot` and "Vorige grootte" uses `window`. |
 | O-P1 | `tokens.css` names its generator under ignored `build/`; the generator and mapping must move into the repository for the file to be reproducible. `work/gen_tokens.py` and `work/mapping.tsv` predate repair-1, which edited `tokens.css` by hand; the current mapping is `build/design-evidence/ds-1.0/repair-1/tools/mapping.tsv`. |
 | O-P2 | Move the tokens, components and §4 contrast evidence from `build/design-evidence/ds-1.0/` to `docs/verification/`. |
 | O-P3 | DESKTOP-SHELL.md §7 still describes a mint "Lokaal" privacy light; CONCEPTS.md MF2 removes the mint tint, and ds-1.0 uses the three-node instrument. |
-| O-D1 | Gallery sample data not in `ui/design/prototype/data.js` (file sizes, "Vakantiefoto's Lissabon"). |
+| O-D1 | Gallery sample data not in `ui/design/prototype/data.js` (file sizes, "Vakantiefoto's Lissabon"; the seeded "Altijd" grant Notities · collectie Tuin, created through `ask()` at gallery load; the two prompts' "what" and "done" fragments in `gallery.js`). |
+| O-G7 | The Apple HIG Privacy and Chromium Blog rows in §11.1 are not re-verified (both render client-side; the verifier retrieved only the Chromium date). Apple's "ask once, then redirect to Settings" behaviour named in the task brief is not cited. Quote both from a retrieved copy, or from Apple's API documentation, before relying on them. Since C1 repair-2, option B cites only Android as support. |
+| O-G9 | Interpretation for owner confirmation: the destination of a sending right is part of the scope ("reikwijdte") of the four-field key, carried as `to` in the contract (§11.1). The alternative is a fifth key field; the behaviour is the same. |
+| O-G10 | Contrast theme exception, pre-existing since `46957bac`: the decorative row, window, Orbit and privacy-connector blades keep transparent gradient ends over black (§13), against the "no translucency" rule. Justification: their solid centre carries the cue at 21:1 and the ends are decoration; either confirm the exception or make the ends opaque in `[data-theme="contrast"]` and re-profile the focus-ring gaps (O-K2). |
+| O-G11 | The grant row's reach badge and duration chip are a design proposal for UX-E (§11.1); their scanning benefit is AI judgement, untested with users (U06). |
+| O-G12 | Owner question, label not changed: "Toestaan tot afsluiten" can be read as "until shutdown". The BaryonOS power menu itself uses "Afsluiten" for shutting down (`strings.js` `shell.shutdown`, NAMING-AND-IA.md Power row: "Aan/uit: Slaapstand, Opnieuw opstarten, Afsluiten"), and Windows NL uses the same word (ADR-058). The contract ends the grant earlier, when the app closes; the duration line "Geldt tot je <App> sluit" states this. Under owner rule M3 (no label may suggest another validity) the owner is asked to confirm "afsluiten" or clarify it, for example "Toestaan tot je de app sluit". The verify-1 note that BaryonOS has no internal clash is not correct. |
+| O-G13 | The `altijd` glyph (closed loop) is a ds-1.0 addition, not in the reviewed v2 sprite (§8); it replaces `lock` on the "Altijd" grant chip. Brand review and a user check of its reading are pending. The final form (particle r 2.1 on the top of the right lobe) was viewed at 16 px in light and contrast and at 32 px in light; at 16 px the particle reads as a small dot on the loop, slight but present (AI judgement). |
+| O-G14 | UX-E design proposal, not built: grants grouped per app with a combined-reach privacy strip (§11.1). Needs its own keyboard, focus-after-revoke and screen-reader design. |
+| O-G8 | `docs/verification/suite-s1-capability-matrix-20261114/` may hold a 215-row summary; the matrix now has 216 rows (XC09) and the stored summary was not regenerated (no write access). |

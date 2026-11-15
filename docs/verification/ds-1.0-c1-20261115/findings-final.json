@@ -1,0 +1,65 @@
+{
+ "run": "wf_72e6bcf3-50d",
+ "verifier": "c1-verifier2",
+ "status": "blocked_after_2_repairs",
+ "findings": [
+  {
+   "severity": "minor",
+   "file": "(process) git diff --stat 46957bac -- ... tools",
+   "area": "boundaries",
+   "problem": "Check 8 does not pass as written: the boundary command prints 'tools/package_token_guard.py | 103 +'. The file comes from commit e186ec1b (Token Guard PR #335, contained in origin/main), which was merged into this branch before the C1 work (HEAD 572a943a 'reassess after merging main e186ec1b'). C1 itself is the 9 uncommitted in-scope files. 'git diff --stat HEAD' over every protected path (ui/design/concepts, ui/prototype, ui/design/brand, ui/design/fonts, docs/implementation, docs/LOCAL-PRIVACY-CONTRACT.md, kernel, crates, drivers, ui/native, ui/graphics, sdk, tools) prints nothing, and tokens.css is also unchanged. Classed as a process finding, not a C1 blocker; the orchestrator can overrule.",
+   "fix": "Run the boundary check for a correction round against HEAD or the merge base with main, not against the pre-merge base 46957bac. Alternatively, record the main merge e186ec1b as an accepted boundary exception in the checkpoint."
+  },
+  {
+   "severity": "minor",
+   "file": "ui/design/prototype/contract.js",
+   "area": "contract",
+   "problem": "ask() checks grants.covering() only before 'await present(request)'. Two overlapping ask() calls for the same key, both answered 'always', therefore store two entries. A single grants.revoke(key) then removes only the first, so the request stays covered (contract-overlap-test.txt: 'entries 2; covered after one revoke(key): true'). The gallery cannot reach this because its setPrompt denies a pending prompt when a new one opens, but a future shell that queues prompts would show duplicate Appmachtigingen rows and a revoke that does not end coverage.",
+   "fix": "After 'choice = await present(request)', re-run grants.covering(request) and skip the push when a grant with the same key now exists (or replace it). Alternatively, make revoke(key) remove every entry whose key matches. Add the overlap case to the contract test."
+  },
+  {
+   "severity": "minor",
+   "file": "docs/design/DESIGN-SYSTEM.md",
+   "area": "initial-focus rationale (§11.1)",
+   "problem": "The rationale for focusing the title rather than Weigeren says 'A prompt grant is reversible (revocable in Appmachtigingen)'. That holds for ongoing grants but not for the action kind. 'Eenmalig toestaan' on the sample action sends a copy of Tuinplan to tuinplanner.example, and revoking cannot recall it. That is exactly the case where the APG advises focusing the least destructive action. The implemented behaviour is still safe: real Enter and Space on the focused title do nothing, so no single keystroke grants anything.",
+   "fix": "Qualify the sentence for the action kind: sending is not reversible, and title focus is chosen because no keystroke at open acts. Record 'Weigeren focus for action prompts' as an explicit input to UX-C (O-G5)."
+  },
+  {
+   "severity": "minor",
+   "file": "ui/design/system/components.css",
+   "area": "contrast theme, prompt duration lines",
+   "problem": "In [data-theme=contrast], --material-kern-tx2 equals --material-kern-tx (#FFFFFF), and .ds-ask-terms strong uses caption weight 400. The choice-name prefix ('Toestaan tot afsluiten.') is therefore identical to its description and separated only by a full stop. Dark and light separate them by colour. Contrast passes at 21:1; this is polish.",
+   "fix": "In the contrast theme only, separate the prefix by structure rather than weight, which the type roles constrain. For example, put each choice name on its own line within the li, or add a 1 px underline to the strong in [data-theme=contrast] .ds-ask-terms strong."
+  },
+  {
+   "severity": "minor",
+   "file": "ui/design/system/gallery.js",
+   "area": "gallery simulation, covered request",
+   "problem": "When the request is already covered, the inline prompt specimen stays interactive. Clicking its 'Weigeren' runs request(), which returns before the choice is used and reports 'Webvenster mag al verbinding maken met tuinplanner.example. Er is niets opnieuw gevraagd.' A deny click thus produces a permission message, which can confuse a reviewer of the specimen (around gallery.js line 201).",
+   "fix": "When a specimen click arrives for a covered request, report a specimen-specific line instead, for example 'Deze vraag verschijnt nu niet: Webvenster mag dit al.', or mark the inline specimen as covered. The modal path is correct as is."
+  },
+  {
+   "severity": "minor",
+   "file": "docs/design/suite/CAPABILITY-MATRIX.md",
+   "area": "evidence durability (XC09)",
+   "problem": "The XC09 row and §11.1 cite build/design-evidence/ds-1.0/c1/repair-1/contract-test.mjs as evidence. /build/ is git-ignored (.gitignore line 12), so the evidence cannot be reviewed from the repository. The base already cited build/ 29 times; the pattern is pre-existing.",
+   "fix": "Have the coordinator store a compact contract-test transcript under docs/verification/ (the writer lacks write access, see O-G8) and cite that. Otherwise mark the build/ path as local, non-durable evidence."
+  },
+  {
+   "severity": "major",
+   "file": "ui/design/system/components.css",
+   "area": "design-quality",
+   "problem": "Reasoned design judgement (AI opinion, not user evidence). The empty, loading and error states (.ds-empty, .ds-skeleton) are the gallery's most conventional pattern: a centred outline icon, a headline, a sentence and a button, plus grey placeholder bars. This is the generic web-app template. Unlike the Kern prompt, privacy instrument and grant rows, it carries none of the Orbitaal place and Triade identity, so it reads static and dated.",
+   "fix": "Within ds-1.0 contracts: make the empty state place-aware with existing parts. Show the collection's place with .ds-place node shapes (colour for place only), and let 'Verplaatsen naar collectie' preview the destination place. Shape .ds-skeleton rows like .ds-row with the place-node slot and name/meta line widths, with a static form under reduced motion. No new tokens are needed. Label the result as a design proposal; its user effect needs research."
+  },
+  {
+   "severity": "minor",
+   "file": "ui/design/system/components.css",
+   "area": "design-quality",
+   "problem": "Reasoned design judgement (AI opinion). .ds-progress is a thin, generic bar with a percentage, the same in every OS. It does not use the blade and blade-glow signature that ds-1.0 already uses for the active window edge and Orbit items, so a long-running task does not feel part of the same system.",
+   "fix": "Use the existing --color-blade and --color-blade-glow tokens for the leading edge of the determinate fill (shape + text unchanged, colour not used for state). Keep the static striped 'Bezig' form under reduced motion as documented. Verify the 3:1 fill contrast in all three themes."
+  }
+ ],
+ "owner_conformance": "Ongoing labels exactly 'Toestaan tot afsluiten', 'Altijd toestaan', 'Weigeren': met (strings.js trusted.choices.ongoing, CHOICES.ongoing, all 4 ongoing specimens and the modal, NAMING-AND-IA, DESIGN-SYSTEM §11.1). Single-action labels 'Eenmalig toestaan', 'Altijd toestaan', 'Weigeren': met (all 4 action specimens and the modal). 'Eenmalig toestaan' only on single actions: met (a grep finds it only in the action template, strings action, the docs and the O-G4 note; ask() turns 'once' on an ongoing prompt into deny). 'Toestaan tot afsluiten' as the owner's verbatim label: met. The contract ends the grant when the app closes, the duration line says 'Geldt tot je <app> sluit', and the 'shutdown' reading is recorded as owner question O-G12, not a writer deviation. No label suggests a validity other than the one enforced: met (untilClose is removed by appClosed and not persisted; once is never stored; always survives closing and reopening, and its line deliberately omits restart; deny stores nothing; grant chips read 'Tot je <App> sluit' and 'Altijd, tot je het intrekt'). No remnants: met (no 'Deze sessie', 'Toestaan tot je het sluit', 'Niet toestaan', data-choice=\"session\" or once|session|deny in system, prototype or design docs; DESIGN-SYSTEM line 1008 quotes the v2 labels only as the recorded deviation). Altijd toestaan keyed on app + resource + right + scope, not asked again, survives reopening: met (node test 41/41 and gallery). Restart persistence is labelled a future requirement with an ADR first (O-G1), so this is met within design scope. Visible and revocable via Instellingen › Privacy en beveiliging › Appmachtigingen: met at component level (path in NAMING-AND-IA §5 and DESIGN-SYSTEM §11.1, .ds-grant rows, Intrekken, announced removal); the full screen is deferred to UX-E. Research persistent denial: met (option B recommended, open owner decision O-G2, no fourth choice, Android claims verified). Safe, non-manipulative default: met (title focus, Enter/Space at open do nothing, no primary, identical styles). Avoid repeated consent for authorised actions: met (a covered key resolves without a prompt). Keep native capability and security contracts unchanged: met (no protected or native path changed by C1; per-request policy check stated; simulation and future requirements labelled). Consistent texts, accessible names and interactions: met. One minor contract edge case (overlapping asks create a duplicate entry) is reported as a finding.",
+ "limitations": "Image reads of local PNGs are blocked by a PreToolUse hook. Visual judgement therefore comes from inline chrome-devtools viewport screenshots: the dark prompt and grant cards, the dark window/menu/tabs/toast/banner/dialog/progress/empty sections, the top of light, and the contrast prompt and grant section. The saved PNGs were rendered, not viewed. Light grant rows and the 200 % renders were judged from DOM measurement only. No screen-reader test was run. Accessible names come from the DOM: no aria-label on the choices, aria-labelledby/aria-describedby resolved. Contrast was computed from computed styles. The Kern background is a background-image layer, so prompt ratios use --material-kern-bg (kern-contrast.txt); the in-page FAIL rows from my first pass were measurement artefacts and are excluded. The grant row's own border vs the panel (1.27 dark, 1.32 light) is a non-interactive container edge, so 1.4.11 does not apply; the interactive parts (Intrekken border, chip edge, focus ring) pass. Contrast-theme translucency was scanned for the prompt and grant elements only (none found); the pre-existing O-G10 blade exception was not re-checked. Research: Android (3 claims: denying twice means no further dialog, 'Only this time' for location/microphone/camera, accept the preference and do not nag), W3C Permissions (WD 26 October 2026; states granted/denied/prompt; lifetime) and APG dialog-modal and alertdialog (4 claims) were fetched and confirmed. The W3C and APG quotes came through a summarising fetch. The Apple HIG and Chromium rows remain unretrieved, as the document itself states (O-G7). The base-commit render was not compared for the 200 % horizontal page scroll. I did not read the writer report, writer log or earlier verify/repair outputs. Contract tests: contract-test.mjs gives 41 pass, 0 fail; contract-overlap-test.mjs confirms the overlap defect."
+}

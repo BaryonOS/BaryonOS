@@ -3,7 +3,7 @@
 // theme per MF1), renders icons with contract.js icon(), lists token swatches, and wires keyboard behaviour:
 // Tab/Shift+Tab (native), Space/Enter (native buttons), arrows for tabs, listbox rows and menu (radios are native),
 // Escape closes the menu, dialogs and tooltips. Query: ?only=dark|light|contrast|scale|ref ?motion=reduce ?measure=1
-import { icon, T } from '../prototype/contract.js'
+import { icon, T, ask, setPrompt, grants, files, bus, destination } from '../prototype/contract.js'
 import { ICONS } from './icons.js'
 
 const q = new URLSearchParams(location.search)
@@ -31,11 +31,97 @@ for (const [p, name, k] of THEMES) {
   sec.dataset.theme = p
   sec.setAttribute('aria-labelledby', `h-${p}`)
   sec.innerHTML = `<h2 id="h-${p}">${name} <small>data-theme="${p}" · Kern in "${k}"</small></h2>` + fill('tpl-panel', p, k)
-  $('[data-ask-host]', sec).innerHTML = fill('tpl-ask', p, k)
   host.append(sec)
 }
 $('#scale-host').innerHTML = fill('tpl-scale', 's', 'light')
+const AB = { ongoing: 'ao', action: 'aa' }
+for (const h of $$('[data-ask]')) {
+  const p = h.closest('#scale-host') ? 's' : h.closest('.gal-panel').dataset.theme
+  h.innerHTML = fill(`tpl-ask-${h.dataset.ask}`, p, p === 's' ? 'light' : KERN[p])
+}
 hydrate(document)
+
+// ---------- permission model (contract.js ask/grants; owner decision of 14 November 2026, DESIGN-SYSTEM.md §11) ----------
+const APP = { browser: T.apps.webvenster, notities: T.apps.notities }
+const APP_ICON = { browser: 'browser', notities: 'notities' }
+const REQ = {
+  ongoing: { kind: 'ongoing', app: 'browser', resource: 'tuinplanner.example', right: 'connect', scope: 'domain' },
+  action: { kind: 'action', app: 'browser', resource: 'tuinplan', right: 'send-copy', scope: 'document', to: 'tuinplanner.example' },
+}
+// gallery sample data (not strings.js copy; O-D1): the two requests' "what" and "done" fragments
+const WHAT ={ ongoing: 'verbinding maken met tuinplanner.example', action: 'een kopie van Tuinplan naar tuinplanner.example sturen' }
+const resultText = (kind, c) => {
+  const R = T.trusted.result
+  if (c === 'deny') return R.deny(APP.browser)
+  if (c === 'once') return R.once(APP.browser, 'een kopie van Tuinplan naar tuinplanner.example gestuurd')
+  return R[c](APP.browser, WHAT[kind])
+}
+// labels and durations come from strings.js (each defined once); the template text is the no-script fallback
+function syncAsk(scope) {
+  for (const a of $$('.ds-ask[data-kind]', scope)) {
+    const kind = a.dataset.kind, terms = $$('.ds-ask-terms > li', a)
+    $$('[data-choice]', a).forEach((b, i) => {
+      const c = b.dataset.choice, d = T.trusted.duration[c]
+      b.textContent = T.trusted.choices[kind][c]
+      terms[i].innerHTML = `<strong>${b.textContent}.</strong> ${typeof d === 'function' ? d(APP.browser) : d}`
+    })
+  }
+}
+const collName = (id) => files.collections().find((c) => c.id === id)?.name
+const resName = (id) => files.get(id)?.name ?? (collName(id) ? `collectie ${collName(id)}` : id)
+// reach of a grant (design proposal for UX-E): the destination for a sending or connecting right, else every place where
+// the resource is kept (a collection: the union of its files). It names reach, not a promise: read + internet grants can
+// combine (LOCAL-PRIVACY-CONTRACT §4).
+const KEPT = { local: ['device'], nas: ['nas'], both: ['device', 'nas'] }
+const badge = (place, label) => `<span class="ds-place" data-place="${place}"><i class="ds-node" data-shape="${place}" aria-hidden="true"></i><i data-icon="${place}"></i>${label}</span>`
+function reachBadge(g) {
+  const to = destination(g)
+  if (to) return badge('internet', `${T.instellingen.privacy.internet} · ${to}`)
+  const kept = files.get(g.resource) ? [files.get(g.resource)] : files.list({ collection: g.resource })
+  const places = [...new Set(kept.flatMap((f) => KEPT[f.storage] ?? ['device']))]
+  return (places.length ? places : ['device']).map((p) => badge(p, T.instellingen.opslag[p])).join('')
+}
+// shape + icon + text: dashed chip + klok = ends at closing, solid chip + altijd (loop) = until revoked; the lock stays
+// reserved for the Kern band (C1 repair-2)
+const UNTIL_ICON = { close: 'klok', always: 'altijd' }
+// one grant's labels; Intrekken and the revocation message name all four key fields (strings.js trusted.grant.revokeName)
+function labels(g) {
+  const G = T.trusted.grant, app = APP[g.app] ?? g.app, res = resName(g.resource)
+  return { app, res, key: [app, G.target(res, g.to), G.rights[g.right] ?? g.right, G.scopes[g.scope] ?? g.scope] }
+}
+function renderGrants() {
+  const G = T.trusted.grant, list = grants.all()
+  for (const host of $$('[data-grants]')) {
+    host.innerHTML = list.length ? list.map((g, i) => {
+      const { app, res, key } = labels(g)
+      const until = g.until === 'always' ? G.until.always : G.until.close(app)
+      return `<li class="ds-grant" data-until="${g.until}"><span class="ds-grant-app" aria-hidden="true"><i data-icon="${APP_ICON[g.app] ?? 'dot'}"></i></span>`
+        + `<div><p class="ds-grant-name">${app} · ${res}</p><p class="ds-grant-meta">${key[2]} · ${key[3]}</p>`
+        + `<p class="ds-grant-reach">${reachBadge(g)}<span class="ds-grant-until" data-until="${g.until}"><i data-icon="${UNTIL_ICON[g.until]}"></i>${until}</span></p></div>`
+        + `<button class="ds-btn" data-variant="secondary" data-revoke="${i}" aria-label="${G.revokeName(...key)}">${G.revoke}</button></li>`
+    }).join('') : `<li><p class="ds-grant-empty" tabindex="-1">${G.empty}</p></li>`
+    hydrate(host)
+  }
+}
+// The open prompt's resolver. A choice resolves it at click time; close or Escape resolves 'deny' only while it is still
+// unanswered, and a late 'close' event of an earlier prompt (the dialog is open again) is ignored (verify-0 minor).
+let pending = null, askPanel = null
+const answer = (c) => { const r = pending; pending = null; r?.(c) }
+// gallery specimens: earlier answers so the grant rows show every duration and place, including a send grant for another
+// destination (zaadruil.example) that does not cover the action prompt's tuinplanner.example
+let specimenAnswer = null
+setPrompt((req) => {
+  if (specimenAnswer) { const c = specimenAnswer; specimenAnswer = null; return Promise.resolve(c) }
+  return new Promise((resolve) => { answer('deny'); pending = resolve; openAskDialog(req.kind) })
+})
+for (const [req, c] of [
+  [{ kind: 'ongoing', app: 'notities', resource: 'tuin', right: 'read', scope: 'collection' }, 'always'],
+  [{ kind: 'ongoing', app: 'notities', resource: 'lofoten', right: 'read', scope: 'document' }, 'untilClose'],
+  [{ ...REQ.action, to: 'zaadruil.example' }, 'always'],
+]) { specimenAnswer = c; await ask(req) }
+renderGrants()
+bus.on('grants', renderGrants)
+syncAsk(document)
 
 const SW = {
   'Neutrale rollen': ['bg', 'surface-panel', 'surface', 'surface-raised', 'surface-inset', 'line', 'line-strong', 'text', 'text-muted', 'text-subtle', 'text-disabled', 'focus', 'selection', 'hover', 'hover-strong', 'blade', 'blade-glow', 'well', 'scrim', 'silver', 'rim-a', 'rim-b', 'rim-c', 'button-primary-bg', 'button-primary-bg-hover', 'button-primary-text', 'button-secondary-bg', 'pill-bg'].map(n => `--color-${n}`),
@@ -101,34 +187,48 @@ const step = (list, cur, key) => {
   return { ArrowDown: list[(i + 1) % n], ArrowRight: list[(i + 1) % n], ArrowUp: list[(i - 1 + n) % n], ArrowLeft: list[(i - 1 + n) % n], Home: list[0], End: list[n - 1] }[key]
 }
 
-// permission result: the panel's toast reports what happened (strings.js trusted.*)
-const RESULT = {
-  once: () => T.trusted.allowedOnce('Webvenster', 'tuinplanner.example'),
-  session: () => `Webvenster mag tuinplanner.example gebruiken tot je de app sluit.`,
-  deny: () => T.trusted.denied('Webvenster'),
-}
-function report(panel, choice) {
+// permission result: the panel's toast reports what happened (strings.js trusted.result.*)
+function report(panel, text) {
   const toast = $('.ds-toast', panel)
   if (!toast) return
   $('.ds-toast-title', toast).textContent = 'Systeem'
-  $('.ds-toast-body', toast).textContent = RESULT[choice]()
+  $('.ds-toast-body', toast).textContent = text
   toast.hidden = false
   const show = $('[data-toast-show]', panel); if (show) show.hidden = true
+}
+// a covered request (same app, resource, right and scope) never prompts; answer = a click on an inline specimen
+async function request(kind, panel, given) {
+  if (grants.covering(REQ[kind])) return report(panel, T.trusted.result.covered(APP.browser, WHAT[kind]))
+  askPanel = panel; specimenAnswer = given ?? null
+  const choice = await ask(REQ[kind])
+  report(panel, resultText(kind, choice))
 }
 
 let opener = null
 const askDlg = $('#dlg-ask'), delDlg = $('#dlg-delete')
-function openDialog(dlg, from, theme) {
+function openDialog(dlg, from, theme, focus) {
   opener = from
   dlg.dataset.theme = theme
+  dlg.returnValue = ''
+  focus.autofocus = true // showModal's own focusing step lands here, not on the prompt's scrollable body (C1 repair-2)
   dlg.showModal()
-  // focus starts on the safest choice: Weigeren (deny) or Annuleren
-  ;($('[data-choice="deny"]', dlg) || $('[data-safe]', dlg)).focus()
+  focus.focus()
+}
+function openAskDialog(kind) {
+  const p = askPanel.dataset.theme, id = `m-${p}-${AB[kind]}`
+  askDlg.innerHTML = fill(`tpl-ask-${kind}`, `m-${p}`, KERN[p]); hydrate(askDlg); syncAsk(askDlg)
+  // one alertdialog: the <dialog> carries role, name and description; the template's inner copy becomes presentational
+  const inner = $('.ds-ask', askDlg)
+  inner.setAttribute('role', 'none'); inner.removeAttribute('aria-labelledby'); inner.removeAttribute('aria-describedby')
+  askDlg.setAttribute('aria-labelledby', `${id}-t`); askDlg.setAttribute('aria-describedby', `${id}-w`)
+  // initial focus: the prompt title (tabindex=-1), never a choice (DESIGN-SYSTEM.md §11)
+  openDialog(askDlg, $(`[data-open-ask="${kind}"]`, askPanel), p, $('[data-initial-focus]', askDlg))
 }
 for (const dlg of [askDlg, delDlg]) {
   dlg.addEventListener('cancel', () => { dlg.returnValue = dlg === askDlg ? 'deny' : 'cancel' })
   dlg.addEventListener('close', () => {
-    if (dlg === askDlg && opener) report(opener.closest('.gal-panel'), dlg.returnValue || 'deny')
+    if (dlg.open) return // a late event of an earlier open: this dialog shows a newer prompt
+    if (dlg === askDlg) answer('deny') // no-op when a choice already answered this open
     if (opener) opener.focus()
     opener = null
   })
@@ -156,18 +256,26 @@ document.addEventListener('click', (e) => {
   const choice = t.closest('[data-choice]')
   if (choice) {
     const dlg = choice.closest('dialog')
-    if (dlg) return dlg.close(choice.dataset.choice)
-    return report(choice.closest('.gal-panel'), choice.dataset.choice)
+    if (dlg) { answer(choice.dataset.choice); return dlg.close(choice.dataset.choice) }
+    return request(choice.closest('.ds-ask').dataset.kind, choice.closest('.gal-panel'), choice.dataset.choice)
   }
+  const revoke = t.closest('[data-revoke]')
+  if (revoke) {
+    const host = revoke.closest('[data-grants]'), panel = revoke.closest('.gal-panel'), i = +revoke.dataset.revoke, g = grants.all()[i]
+    const G = T.trusted.grant, { key } = labels(g)
+    grants.revoke(g) // emits 'grants', which re-renders every list
+    const live = $('[data-grants-live]', panel) // looked up before the re-render detached the button
+    live.textContent = ''; setTimeout(() => { live.textContent = G.revoked(...key) }, 30)
+    // focus stays in the list: the next row's Intrekken, else the previous one, else the empty message
+    const btns = $$('[data-revoke]', host)
+    return (btns[Math.min(i, btns.length - 1)] || $('.ds-grant-empty', host)).focus()
+  }
+  if (t.closest('[data-close-app]')) { grants.appClosed('browser'); return report(t.closest('.gal-panel'), T.trusted.result.appClosed(APP.browser)) }
   if (t.closest('dialog button[value]')) return t.closest('dialog').close(t.closest('button').value)
   const openAsk = t.closest('[data-open-ask]')
-  if (openAsk) {
-    const p = openAsk.closest('.gal-panel').dataset.theme
-    askDlg.innerHTML = fill('tpl-ask', `m-${p}`, KERN[p]); hydrate(askDlg)
-    return openDialog(askDlg, openAsk, p)
-  }
+  if (openAsk) return request(openAsk.dataset.openAsk, openAsk.closest('.gal-panel'))
   const openDel = t.closest('[data-open-delete]')
-  if (openDel) return openDialog(delDlg, openDel, openDel.closest('.gal-panel').dataset.theme)
+  if (openDel) return openDialog(delDlg, openDel, openDel.closest('.gal-panel').dataset.theme, $('[data-safe]', delDlg))
   const close = t.closest('[data-toast-close]')
   if (close) {
     const card = close.closest('.gal-card'); close.closest('.ds-toast').hidden = true
@@ -301,7 +409,8 @@ async function measure() {
   out.menu = `ArrowDown->${first} ArrowDown->${second} Escape->hidden=${$('#dark-menu').hidden} focus=${document.activeElement.id}`
   mbtn.click()
   $('#panel-dark [data-open-ask]').click()
-  out.askOpen = `open=${askDlg.open} active=${document.activeElement.dataset.choice} theme=${askDlg.dataset.theme} kern=${$('.ds-ask', askDlg).dataset.theme}`
+  await new Promise(r => setTimeout(r, 50))
+  out.askOpen = `open=${askDlg.open} activeIsTitle=${document.activeElement.matches('[data-initial-focus]')} kind=${$('.ds-ask', askDlg).dataset.kind} theme=${askDlg.dataset.theme} kern=${$('.ds-ask', askDlg).dataset.theme} labelledby=${!!document.getElementById(askDlg.getAttribute('aria-labelledby'))}`
   askDlg.close('deny'); await new Promise(r => setTimeout(r, 50))
   out.askClosed = `open=${askDlg.open} focusBack=${document.activeElement.matches('[data-open-ask]')} toast="${$('#panel-dark .ds-toast-body').textContent}"`
   $('#panel-dark [data-open-delete]').click()

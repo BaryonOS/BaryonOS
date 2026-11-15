@@ -65,3 +65,12 @@ Object.assign(ICONS, {
   documents: ICONS.doc,
   downloads: ICONS.download,
 })
+
+// ds-1.0 additions, NOT in the v2 sprite: drawn by hand in its style (24-unit grid, 1.6 stroke, round caps and joins,
+// one particle at a joint) and kept outside the generated object above (DESIGN-SYSTEM.md §8). C1 repair-2.
+Object.assign(ICONS, {
+  // "Altijd, tot je het intrekt" on the grant duration chip: a closed loop with the particle riding the top of its right
+  // lobe at the r 2.1 of internet's edge particle (on the crossing it merged with the strokes at 16 px), so the lock stays reserved for the Kern band and no
+  // standing grant reads as "locked"
+  altijd: '<path d="M12 12c-1.9-2.5-3.4-4-5.5-4a4 4 0 0 0 0 8c2.1 0 3.6-1.5 5.5-4s3.4-4 5.5-4a4 4 0 0 1 0 8c-2.1 0-3.6-1.5-5.5-4Z"/><circle cx="17.5" cy="8" r="2.1" class="pc" fill="currentColor" stroke="none"/>',
+})

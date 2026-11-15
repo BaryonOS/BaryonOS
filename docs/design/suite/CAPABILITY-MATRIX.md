@@ -72,8 +72,8 @@ to S9 denote addendum deliverables. Numbers in square brackets denote the source
 in section 7. Statements marked "judgement" are the author's assessment, not a
 sourced fact.
 
-**Result in one line.** 215 capability rows; 0 *passed (native)*; 14
-*prototyped (host)*; 201 *proposed*; no row has *full* support. The repository
+**Result in one line.** 216 capability rows; 0 *passed (native)*; 14
+*prototyped (host)*; 202 *proposed*; no row has *full* support. The repository
 proves native OS services that the suite will depend on (section 4), but no
 professional application capability has native acceptance.
 
@@ -471,6 +471,7 @@ shortcuts, clear recovery, accessibility users, students and teachers).
 | XC06 Accessible suite applications | Every editor usable with a screen reader, by keyboard only, at large scale, in high contrast and with reduced motion | System settings apply automatically | Accessible canvases, grids and timelines; keyboard navigation of complex views | Accessibility service; Input & command system | unsupported | proposed | — (an app-local semantic tree has host tests but no screen-reader output; U04 open; see section 4.1) | P1 |
 | XC07 In-app learning and contextual help | Contextual help, guided first tasks and practice material that let existing training transfer | Guided first project | Offline searchable reference for every command | Search & index | unsupported | proposed | — | P2 |
 | XC08 Education and classroom use | Teachers distribute, collect and return work with feedback; students work offline | Hand in a document | Class rosters, deadlines, rubric-based feedback | Collaboration & sync; Signing & identity | unsupported | proposed | — | P3 |
+| XC09 Revocable persistent app permissions | Apps ask for access when they need it; every standing grant is listed per app and revocable; a valid grant is not asked again | Three equal choices per prompt: Toestaan tot afsluiten (ongoing) or Eenmalig toestaan (single action), Altijd toestaan, Weigeren | Grants keyed on app, resource, right and scope (the scope includes the destination of a right that sends data); no broadening, so a grant for one destination never covers another; per-request policy check; revocation under Instellingen › Privacy en beveiliging › Appmachtigingen | Plugin sandbox | unsupported | proposed | Design and browser simulation only, not natively enforced: `docs/design/DESIGN-SYSTEM.md` section 11.1 and `ui/design/prototype/contract.js` (prompt kinds, grant key with destination, revocation; no persistence across a restart; contract test `build/design-evidence/ds-1.0/c1/repair-1/contract-test.mjs`); native persistent grants need a project ADR | P1 |
 
 ## 4. Shared infrastructure summary
 
@@ -505,9 +506,9 @@ AU15, AU16, XC04).
 | 18 | Node-graph engine | 10 | Nothing | MaterialX [30] |
 | 19 | Internet protocols | 8 | N01 accepted (packet and transport stack) | N02–N04 open; IMAP, iCalendar, CalDAV, vCard [19–22] |
 | 20 | Accessibility service | 7 | App-local semantic tree with host tests; its native probe failed (timeout, no save) and the later tree records no native execution; a native keyboard baseline passed on other code without it; no passing native run of the tree | U04 open; WCAG 2.2 [25] |
-| 21 | Automation runtime | 6 | Nothing | A03 open |
-| 21 | Plugin sandbox | 6 | K03, K04, K07 and A01 accepted (isolation, capabilities, resource limits, SDK) | A02, A03 open; CLAP [10], LV2 [11] |
-| 21 | Signing & identity | 6 | B03 accepted (signed updates and rollback) | B01 open |
+| 20 | Plugin sandbox | 7 | K03, K04, K07 and A01 accepted (isolation, capabilities, resource limits, SDK) | A02, A03 open; CLAP [10], LV2 [11] |
+| 22 | Automation runtime | 6 | Nothing | A03 open |
+| 22 | Signing & identity | 6 | B03 accepted (signed updates and rollback) | B01 open |
 
 Sequencing consequence (judgement): four broad engines (text, converters,
 compositing with a path to GPU, Materiaal history) together appear in 102 row mentions across all six disciplines and

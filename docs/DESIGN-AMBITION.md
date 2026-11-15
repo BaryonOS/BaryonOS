@@ -139,6 +139,63 @@ contracts and the Security Floor are unchanged: this is a design ambition, not
 a change of authorisation. The owner's original Dutch wording is recorded
 verbatim in the design-pipeline checkpoint, which is not versioned.
 
+## Addition of 15 November 2026 — accessibility as part of the design identity
+
+The project owner made accessibility a foundation of the whole BaryonOS design
+identity rather than a set of standard features or a separate accessibility
+theme. The aim is an operating system that adapts to people, instead of people
+adapting to the operating system, without losing its futuristic, refined
+identity.
+
+- **Research first.** A systematic, targeted literature review precedes
+  further design elaboration. It uses current WCAG and WAI guidance, relevant
+  ISO and EN standards, peer-reviewed research and recognised scientific and
+  accessibility organisations. It covers at least colour-vision differences;
+  low vision, blindness, magnification and contrast; light sensitivity,
+  migraine and dimmed displays; photosensitive epilepsy, vestibular
+  sensitivity and motion intolerance; dyslexia, dyscalculia and other learning
+  and reading difficulties; ADHD, autism and other cognitive or sensory needs;
+  motor impairments and alternative input; and deaf and hard-of-hearing users.
+  It extends this list where research identifies further needs. For every
+  need it asks which barriers a typical interface causes, which adaptations
+  research or standards support, which popular solutions lack evidence, which
+  preferences differ between individuals, which settings serve several groups
+  without needless complexity, and which safety limits are mandatory whatever
+  the settings. Unproven medical claims are excluded; a special typeface, for
+  example, is not assumed to be a proven remedy for dyslexia or dyscalculia.
+- **Two tiers.** The regular themes remain the primary default experience and
+  are designed in their own right as light, futuristic and refined
+  environments. Universal baseline accessibility and safety (legibility,
+  usable contrast, keyboard access, prevention of hazardous visual effects) is
+  part of every regular theme and is never optional. Additional settings
+  (colour perception, light intensity, contrast, motion, typography, reading
+  support, stimulus load and input methods) can be combined independently as
+  variants of the same identity. They are not rigid profiles per diagnosis and
+  never a separate or visually inferior system. The default is not designed
+  only from the most restrictive needs.
+- **Behaviour.** Essential accessibility works without prior configuration.
+  Existing device or user preferences, such as reduced motion, are respected
+  where possible; essential safety never depends on a manual setting.
+  Preferences are easy to find and to restore, combinations do not switch one
+  another off, and essential information never depends on colour, motion,
+  sound or a visual signal alone. System-wide settings are respected
+  consistently by applications; screen readers, keyboard use, magnification
+  and alternative input are designed in.
+- **Evidence and status.** A checkable accessibility matrix links each need to
+  its evidence quality, proposed adaptation, configuration, implementation
+  status and verification method. Work is labelled as working in the
+  prototype, natively feasible, or future research. Automatic and manual
+  technical checks are run where possible; what still needs testing with
+  people with lived experience is named, and AI review is never presented as
+  proven effectiveness.
+
+Designers keep the creative freedom to explore new interaction principles when
+they are functional, honestly presented and within the safety and
+accessibility requirements. Capability, security, font and architecture
+contracts are unchanged; any extension they need is recorded separately. The
+owner's original Dutch wording (two messages, the second taking precedence) is
+recorded verbatim in the design-pipeline checkpoint, which is not versioned.
+
 ## Non-negotiable boundaries
 An independent OS kernel. No silent transition to a Linux distribution or web shell on an existing kernel. OS data remains local or is client-side/end-to-end encrypted on an explicitly paired personal NAS, a NAS belonging to friends/family or—after explicit selection—as opaque ciphertext at an external storage provider. An external provider receives no Baryon OS content key and is not a silent fallback. The NAS administrator manages capacity and deletion; the user manages the content key. On-device AI inference without cloud fallback. External apps with limited permissions. Privacy choices must not disable the Security Floor. Follow LOCAL-PRIVACY-CONTRACT.md.
 

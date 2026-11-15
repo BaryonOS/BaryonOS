@@ -19,8 +19,10 @@ milestones never enter `docs/progress.json`; every BaryonOS capability is
 | ID | Deliverable | Target | Status |
 |---|---|---|---|
 | UX-v2 | Orbitaal v2 board, CONCEPTS.md v2 section | `ui/design/concepts/orbitaal-v2/` Accepted (`ea4e033d`): independent rendered AI recheck, 21/21 planner items resolved, 0 blockers or majors, 6 minors open ([record](verification/orbitaal-v2-20261114/README.md)) |
-| UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Base frozen 14 Nov, intermediate and **not Accepted**: run `wf_f6f80a6f-a9d`, final independent AI verification 0 blockers or majors, 8 minors, checked against the superseded three-choice permission model ([record](verification/ds-1.0-base-20261114/README.md)). Correction UX-D-C1 pending |
-| UX-C | Informed-consent experience for permission requests (owner ambition, 14 Nov) | research and concepts in ignored `build/design-evidence/uxc/`, then `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | Open; after UX-D-C1, blocks UX-E |
+| UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Intermediate, **not Accepted**: base `46957bac` ([record](verification/ds-1.0-base-20261114/README.md)); correction UX-D-C1 (owner permission model) committed after run `wf_72e6bcf3-50d` ended `blocked_after_2_repairs` with 0 blockers, 1 major (design quality, AI opinion: generic empty, loading and error states) and 7 minors; owner conformance met, contract test 48 assertions passed ([record](verification/ds-1.0-c1-20261115/README.md)). The major is a must-fix of UX-A11Y-DS |
+| UX-A11Y-R | Systematic accessibility literature review and checkable accessibility matrix (owner decision, 15 Nov) | `docs/design/accessibility/`, `docs/verification/a11y-research-20261115/` | Open; next serial run |
+| UX-A11Y-DS | Two-tier accessibility system in ds-1.x: baseline in every regular theme, combinable setting axes as variants of the same identity, coherence across themes and combinations, automatic and manual checks; carries the UX-D design-quality major | `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | Open; after UX-A11Y-R |
+| UX-C | Informed-consent experience for permission requests (owner ambition, 14 Nov) | research and concepts in ignored `build/design-evidence/uxc/`, then `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | Open; after UX-A11Y-DS, blocks UX-E |
 | UX-E | Connected prototype journey (simulation) | `ui/design/prototype/` | Open |
 | UX-F | Visual verification, at most two polish passes | `docs/verification/` | Open |
 | UX-G | Native vertical slice, QEMU screenshots | `ui/native`, `ui/graphics` | Plan done; G0 measured; G1 (licence and packaging) next |
@@ -49,7 +51,7 @@ the stored output byte for byte; an independent AI verifier checked 13 claims
 (12 supported, 1 corrected). The merge result differs from main by exactly
 `git diff 41b94b47 524df7b0`. No native build or QEMU run in this step.
 
-**Order:** UX-v2 → S0 → UX-D (base, then correction C1) → UX-C → UX-E with S7 and S8 → UX-F → UX-G, with
+**Order:** UX-v2 → S0 → UX-D (base, then correction C1) → UX-A11Y-R → UX-A11Y-DS → UX-C → UX-E with S7 and S8 → UX-F → UX-G, with
 S1–S6 and S9–S10 running in free agent slots alongside UX-E to UX-G. The
 native slice follows `docs/design/NATIVE-FEASIBILITY.md` section 4, plus the
 `ui/native` Inter licence and package entries and the high-contrast
@@ -71,19 +73,15 @@ The detailed checkpoint lists run IDs, results, hashes, briefs, tools and
 owner decisions: `build/design-pipeline-checkpoint/handoff-baryonos-design-pipeline.md`
 (ignored, section 14 for this session).
 
-**Next:** UX-D-C1, a correction run on the frozen ds-1.0 base (script
-`build/design-pipeline-checkpoint/runs-20261114/uxd-c1-runner.js`, fresh
-writer, fresh independent verifier, at most two repair rounds). It applies the
-project owner's permission decision of 14 November: ongoing app permissions
-offer "Toestaan tot afsluiten", "Altijd toestaan" and "Weigeren"; "Eenmalig
-toestaan" is used only for single actions; every standing grant is revocable
-under Instellingen → Privacy en beveiliging → Appmachtigingen; persistence
-across a restart and native enforcement remain future implementation
-requirements and need an ADR first. Its verifier also reviews ds-1.0 design
-quality under the [DESIGN-AMBITION](DESIGN-AMBITION.md) addition of
-14 November. Then UX-C (informed-consent experience: research, three concepts,
-independent judging, then one build run), UX-E and G1. UX-D is not Accepted
-until the C1 verifier passes.
+**Next:** UX-A11Y-R, the accessibility research run required by the project
+owner's decision of 15 November 2026 before further design work (script
+`build/design-pipeline-checkpoint/runs-20261115/uxa11y-r-run1.js`: three
+cluster researchers, one synthesis writer, one independent verifier with a
+citation re-resolution audit, at most two repair rounds). It delivers
+`docs/design/accessibility/ACCESSIBILITY-RESEARCH.md`, the checkable
+`ACCESSIBILITY-MATRIX.md` and its `check.py`. UX-A11Y-DS then integrates the
+two-tier system into ds-1.x and fixes the open UX-D major before UX-C starts.
+The preview servers run under `build/design-pipeline-checkpoint/tools/design-servers.sh`.
 
 **G0 (measured, evidence in ignored `build/design-evidence/g0/`):**
 `materiaal-app` `.text` is 157 289 B with Open Sans (6 551 B below the

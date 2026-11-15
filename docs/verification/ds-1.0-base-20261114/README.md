@@ -63,6 +63,8 @@ build, QEMU run or native gate applies to these design files.
 
 ## Hashes
 
-`SHA256SUMS` covers the frozen design files and this record; check with
+`SHA256SUMS` covers the frozen design files at commit `46957bac` and this
+record (later commits such as UX-D-C1 change those files, so check it in a
+checkout of `46957bac`); check with
 `sha256sum -c docs/verification/ds-1.0-base-20261114/SHA256SUMS` from the
 repository root.
