@@ -74,6 +74,9 @@ Kernel Clippy with the stage feature, FAILED (exit 101):
 - Disk: before `19e2fdb3081ed07d54e5f42d152919606aac51ac07cd9dd079769ec011146bb3`, after `8ca0687d95bdec36d317e6268bf47df9574c4a8f192048c7d83c0ded30fcf762`.
 
 **Captured evidence.** [run14-20261115/](run14-20261115/) was written by `tools/capture_volume.py` and holds one directory per stage (`result.json`, `serial.txt`, `stderr.txt`) and `volume-gate.json`. `SHA256SUMS` covers 46 files, and `sha256sum -c` exited 0. `volume-gate.json` has sha256 `c903b97e88769d91761d21006fbdd715062cea06ee92984c08d3b799c8c27304`. Disk images are not stored.
+- The serial logs use mixed CRLF/LF line endings. The first evidence commit, `5376afc1`, stored them under the repository-wide `text=auto eol=lf` rule. That rule rewrote their line endings, so `sha256sum -c` against the committed files exited 1.
+- [.gitattributes](.gitattributes) now marks `run14-20261115/**/serial.txt` as `-text`, following the m6b rule in the root `.gitattributes`. The follow-up commit stores the captured bytes unchanged.
+- Run 13's committed serial logs ([run13-20261114/](run13-20261114/)) fail their own `SHA256SUMS` in the same way, with exit 1. They were left untouched here. The byte-exact originals exist only in this worktree's working copy.
 
 **Not run.**
 - KVM, real hardware and CI on this head;
