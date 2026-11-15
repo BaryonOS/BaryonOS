@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import os
 import subprocess
 import sys
@@ -139,6 +140,18 @@ class Planning(unittest.TestCase):
                     '```json\n{"targets": [".github/workflows/ci.yml"]}\n```'):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 ap.parse_spec(bad)
+
+    def test_instruction_policy_is_protected_at_every_depth(self):
+        for path in ("AGENTS.md", "ui/AGENTS.md", "services/sub/AGENTS.md",
+                     "CLAUDE.md", "tools/CLAUDE.md", ".codex/config.toml"):
+            with self.subTest(path=path):
+                self.assertTrue(ap.is_protected(path))
+                self.assertIn(path, ap.out_of_scope([path], [path]))
+                spec = 'spec\\n' + '```json\\n' + json.dumps({"targets": [path], "reads": []}) + '\\n```'
+                with self.assertRaises(ValueError):
+                    ap.parse_spec(spec)
+        self.assertFalse(ap.is_protected("ui/AGENTS.md.example"))
+        self.assertFalse(ap.is_protected("docs/CODEX-PARITY.md"))
 
     def test_scope_allows_targets_and_lockfile_only(self):
         self.assertEqual(ap.out_of_scope(["a.rs", "Cargo.lock", "b.rs", "AGENTS.md"], ["a.rs", "AGENTS.md"]),

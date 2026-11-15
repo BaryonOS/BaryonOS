@@ -34,7 +34,8 @@ MAX_ATTEMPTS = 4
 LABELS = {"pipeline:serial": "serial", "pipeline:parallel": "parallel"}
 # Agents never change the rules that judge them; such changes need a human PR.
 PROTECTED = (".github/", "tools/agent_gate.py", "tools/agent_pipeline.py", "tools/common.py",
-             "tools/progress.py", "AGENTS.md", "CLAUDE.md", "docs/progress.json")
+             "tools/progress.py", "AGENTS.md", "CLAUDE.md", "docs/progress.json",
+             ".codex/config.toml")
 ALWAYS_ALLOWED = ("Cargo.lock",)
 RATE_LIMIT = re.compile(r"rate.?limit|usage limit|quota|too many requests|\b429\b", re.I)
 # Read-only Graphify tools as the Claude CLI names the claude.ai connector; every other
@@ -116,7 +117,12 @@ def _clean_path(path: object) -> str:
 
 
 def is_protected(path: str) -> bool:
-    return any(path == p or path.startswith(p) for p in PROTECTED)
+    # Agent instruction files are policy at every directory depth, not worker outputs.
+    # A shared guard also protects the roadmap runner's directory write sets.
+    normalized = path.replace("\\", "/")
+    if normalized.rsplit("/", 1)[-1] in {"AGENTS.md", "CLAUDE.md"}:
+        return True
+    return any(normalized == p or normalized.startswith(p) for p in PROTECTED)
 
 
 def parse_spec(text: str) -> tuple[list[str], list[str]]:
