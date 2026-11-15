@@ -1387,6 +1387,79 @@ fn ustar_case_fold_matches_unicode_case_within_the_checked_set() {
 }
 
 #[test]
+fn ustar_case_fold_is_at_least_as_coarse_as_core_case_mapping() {
+    let set: Vec<char> = (' '..='~')
+        .chain('\u{A0}'..='\u{17F}')
+        .chain('\u{2700}'..='\u{27BF}')
+        .filter(|&c| c != '\u{AD}')
+        .collect();
+    let core = |c: char| {
+        c.to_lowercase()
+            .collect::<String>()
+            .to_uppercase()
+            .to_lowercase()
+    };
+    let keys: Vec<String> = set.iter().map(|&c| core(c)).collect();
+    let (mut a, mut b) = ([0; 4], [0; 4]);
+    for (x, kx) in set.iter().zip(&keys) {
+        for (y, ky) in set.iter().zip(&keys) {
+            if kx == ky {
+                assert!(
+                    ustar::collide(
+                        x.encode_utf8(&mut a).as_bytes(),
+                        y.encode_utf8(&mut b).as_bytes()
+                    ),
+                    "{x:?} {y:?}"
+                );
+            }
+        }
+    }
+    // A name spelt as another's key collides with it (this covers "ß" and "ss").
+    let mut outside = Vec::new();
+    for (&c, k) in set.iter().zip(&keys) {
+        if k.chars().all(|k| set.contains(&k)) {
+            assert!(
+                ustar::collide(c.encode_utf8(&mut a).as_bytes(), k.as_bytes()),
+                "{c:?} {k:?}"
+            );
+        } else {
+            outside.push(c);
+        }
+    }
+    // Their keys ("μ", "i̇", "ʼn") are names the check already refuses as unchecked.
+    assert_eq!(outside, ['µ', 'İ', 'ŉ']);
+}
+
+#[test]
+fn ustar_names_agree_with_the_shared_fixture() {
+    let hex = |field: &str| -> Vec<u8> {
+        (0..field.len())
+            .step_by(2)
+            .map(|i| u8::from_str_radix(&field[i..i + 2], 16).expect("hex"))
+            .collect()
+    };
+    let mut checked = 0;
+    for line in include_str!("ustar-names.txt").lines() {
+        let data = line.split('#').next().unwrap_or_default();
+        match data.split_whitespace().collect::<Vec<_>>()[..] {
+            [] => continue,
+            ["name", bits, name] => {
+                assert_eq!(
+                    ustar::reasons(&hex(name)),
+                    bits.parse::<u8>().expect("bits"),
+                    "{line}"
+                )
+            }
+            ["collide", x, y] => assert!(ustar::collide(&hex(x), &hex(y)), "{line}"),
+            ["distinct", x, y] => assert!(!ustar::collide(&hex(x), &hex(y)), "{line}"),
+            _ => panic!("malformed fixture line: {line}"),
+        }
+        checked += 1;
+    }
+    assert_eq!(checked, 107);
+}
+
+#[test]
 fn ustar_export_judges_names_again_and_refuses_another_source() {
     let bytes = exported(500);
     let export = |bytes: &[u8], names: &ustar::Names| {
