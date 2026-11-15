@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="nl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BaryonOS ontwerpsysteem ds-1.0</title>
+<link rel="icon" href="data:,">
+<!-- DESIGN ARTEFACT, 14 November 2026: component gallery of ds-1.0. Not a working OS and not product code.
+     Tokens: tokens.css; components: components.css; behaviour and specimens: gallery.js.
+     Requirements: docs/design/suite/WORKSPACE-REQUIREMENTS.md (S0). Source of truth: ../concepts/orbitaal-v2/index.html.
+     Query: ?only=dark|light|contrast|scale|ref  ?motion=reduce  ?measure=1 (self-check into #out) -->
+<script>window.__errs = []; addEventListener('error', e => __errs.push(String(e.message || e.type) + ' @ ' + (e.filename || (e.target && (e.target.src || e.target.href)) || '')), true); addEventListener('unhandledrejection', e => __errs.push('rejection: ' + e.reason));</script>
+<link rel="stylesheet" href="./tokens.css">
+<link rel="stylesheet" href="./components.css">
+<style>
+  /* gallery layout only (tokens only) */
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--color-bg); color: var(--color-text); font-family: var(--font-family-ui); font-feature-settings: var(--font-features-ui); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, h4, p, figure, dl { margin: 0; }
+  b, strong { font-weight: var(--font-weight-strong); }
+  code, kbd, button, input { font-family: var(--font-family-ui); font-size: inherit; }
+  .gal-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-6); align-items: end; padding: var(--space-10) var(--space-10) var(--space-6); border-bottom: 1px solid var(--color-line); }
+  .gal-head h1 { font-size: var(--type-title-size); line-height: var(--type-title-line); font-weight: var(--type-title-weight); }
+  .gal-head p { color: var(--color-text-muted); max-width: 880px; }
+  .gal-disc { display: inline-flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); font-weight: var(--font-weight-strong); color: var(--color-text); }
+  .gal-disc .icon { width: 18px; height: 18px; }
+  .gal-tools { display: flex; gap: var(--space-6); align-items: center; }
+  .gal-panel { padding: var(--space-8) var(--space-10) var(--space-10); border-bottom: 1px solid var(--color-line); background: var(--color-bg); }
+  .gal-panel > h2 { display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-6); font-size: var(--type-title-size); line-height: var(--type-title-line); font-weight: var(--type-title-weight); }
+  .gal-panel > h2 small { color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+  .gal-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--space-6); }
+  .gal-card { grid-column: span 6; min-width: 0; padding: var(--space-6); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); }
+  .gal-card.w12 { grid-column: span 12; } .gal-card.w8 { grid-column: span 8; } .gal-card.w4 { grid-column: span 4; }
+  .gal-card > h3 { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); margin-bottom: var(--space-4); font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
+  .gal-card > h3 code, .gal-note code { font-family: var(--font-family-ui); color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+  .gal-note { margin-top: var(--space-3); color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); }
+  .gal-row { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; }
+  .gal-col { display: grid; gap: var(--space-4); align-content: start; }
+  .gal-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); }
+  /* S0 D3 specimen scaffolding: the neutral host resolves colour and fill itself (inherited colour is already resolved upstream) */
+  .gal-neutral { display: grid; gap: var(--space-4); align-content: start; padding: var(--space-4); border: 1px solid var(--color-line); border-radius: var(--radius-window); background: var(--color-surface); color: var(--color-text); }
+  .gal-surround { padding: var(--space-6); border-radius: var(--radius-tile); background: var(--color-surface-surround); }
+  [data-theme="contrast"] .gal-surround { box-shadow: inset 0 0 0 1px var(--color-line-strong); }
+  .gal-canvas { height: 96px; border-radius: var(--radius-tile-small); background: linear-gradient(135deg, var(--color-surface-raised), var(--color-silver)); }
+  .gal-canvas:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+  .gal-raised { display: grid; gap: var(--space-3); padding: var(--space-4); border-radius: var(--radius-card); background: var(--color-surface-raised); }
+  .gal-matrix { display: grid; grid-template-columns: 96px repeat(6, minmax(0, 1fr)); gap: var(--space-3) var(--space-2); align-items: center; }
+  .gal-matrix > .gal-lab { color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); }
+  .gal-cell { display: flex; }
+  .gal-stage { position: relative; height: 300px; overflow: hidden; border-radius: var(--radius-tile); border: 1px solid var(--color-line); background: var(--color-surface-panel); }
+  .gal-stage .ds-dialog { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; animation: none; }
+  .gal-stage-text { padding: var(--space-4); color: var(--color-text-muted); }
+  .gal-windows { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-6); align-items: start; }
+  .gal-maxframe { border: 1px solid var(--color-line); border-radius: var(--radius-tile); overflow: hidden; }
+  .gal-menu-card { min-height: 420px; }
+  .gal-asks { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: start; }
+  .gal-orbit-wrap { display: flex; justify-content: center; padding: var(--space-6) 0 var(--space-2); border-radius: var(--radius-tile); background: var(--color-surface-panel); }
+  .gal-sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: var(--space-3); }
+  .gal-sw figure { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: var(--space-2); align-items: center; }
+  .gal-chip { width: 40px; height: 40px; border-radius: var(--radius-tile-small); border: 1px solid var(--color-line-strong); }
+  .gal-sw figcaption { min-width: 0; font-size: var(--type-caption-size); line-height: var(--type-caption-line); overflow-wrap: anywhere; }
+  .gal-sw figcaption span { display: block; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gal-sw-h { grid-column: 1 / -1; margin-top: var(--space-2); color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); }
+  .gal-elev { display: flex; flex-wrap: wrap; gap: var(--space-6); }
+  .gal-elev figure { width: 120px; height: 72px; display: grid; place-items: center; border-radius: var(--radius-tile); border: 1px solid var(--color-line); background: var(--color-surface-raised); font-size: var(--type-caption-size); line-height: var(--type-caption-line); text-align: center; }
+  .gal-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: var(--space-2); }
+  .gal-icons figure { display: grid; justify-items: center; gap: var(--space-1); padding: var(--space-3) var(--space-1); border-radius: var(--radius-tile-small); border: 1px solid var(--color-line); }
+  .gal-icons .icon { width: 24px; height: 24px; }
+  .gal-icons figcaption { font-size: var(--type-caption-size); line-height: var(--type-caption-line); color: var(--color-text-muted); }
+  .gal-type { display: grid; gap: var(--space-4); }
+  .gal-type > div { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: var(--space-4); align-items: baseline; border-bottom: 1px solid var(--color-line); padding-bottom: var(--space-3); }
+  .gal-type .lab { color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); }
+  .gal-scale { overflow: hidden; }
+  .gal-scale [data-scale="2"] { width: 680px; }
+  [data-only] .gal-panel:not([data-show]), [data-only] .gal-ref:not([data-show]) { display: none; }
+  pre#out { display: none; }
+</style>
+</head>
+<body>
+<header class="gal-head">
+  <div>
+    <p class="gal-disc"><i data-icon="warn"></i>Ontwerpartefact, geen werkend besturingssysteem. Alle gegevens zijn fictief.</p>
+    <h1>BaryonOS ontwerpsysteem ds-1.0</h1>
+    <p>Componenten met al hun staten in drie thema's (donker, licht, hoog contrast), een strook op 200 % en de tokens van <code>tokens.css</code>. Kleur betekent alleen plaats: groen dit apparaat, blauw NAS, rood internet; plaats en staat zijn altijd vorm, pictogram en tekst. Gevormd door S0 (<code>docs/design/suite/WORKSPACE-REQUIREMENTS.md</code>): geen statuskleur, fout is een vierkant in tekstkleur.</p>
+  </div>
+  <div class="gal-tools">
+    <button class="ds-switch" role="switch" aria-checked="false" id="motion-toggle"><span class="ds-switch-track" aria-hidden="true"></span>Beweging beperken</button>
+  </div>
+</header>
+
+<main>
+  <div id="panels"></div>
+
+  <section class="gal-panel gal-scale" id="panel-scale" data-theme="dark" aria-labelledby="h-scale">
+    <h2 id="h-scale">Strook op 200 % <small>[data-scale="2"] { zoom: 2 } · alle maten in logische px</small></h2>
+    <div data-scale="2" id="scale-host"></div>
+  </section>
+
+  <section class="gal-panel gal-ref" id="panel-ref" data-theme="dark" aria-labelledby="h-ref">
+    <h2 id="h-ref">Pictogrammen en typografie <small>ICONS uit icons.js, type-1.0</small></h2>
+    <div class="gal-grid">
+      <div class="gal-card w12"><h3>Volledige pictogrammenset <code id="icon-count"></code></h3><div class="gal-icons" id="icon-grid"></div></div>
+      <div class="gal-card w12"><h3>Typeschaal <code>Inter 4.001 · "cv05", "cv08", "ss01" · alleen 400 en 600</code></h3><div class="gal-type" id="type-scale"></div></div>
+    </div>
+  </section>
+</main>
+
+<!-- Live dialogs (top layer; their theme follows the panel that opened them via data-theme set by gallery.js) -->
+<dialog class="ds-dialog" id="dlg-delete" aria-labelledby="dlg-delete-t" aria-describedby="dlg-delete-d">
+  <div class="ds-dialog-body">
+    <h2 class="ds-dialog-title" id="dlg-delete-t">Tuinplan definitief verwijderen?</h2>
+    <p class="ds-dialog-text" id="dlg-delete-d">Tuinplan en alle vier de versies verdwijnen van dit apparaat en van Thuis-NAS. Dit kun je niet ongedaan maken.</p>
+  </div>
+  <div class="ds-dialog-actions">
+    <button class="ds-btn" data-variant="danger" data-size="large" value="delete"><i data-icon="trash"></i>Definitief verwijderen</button>
+    <button class="ds-btn" data-variant="primary" data-size="large" value="cancel" data-safe>Annuleren</button>
+  </div>
+</dialog>
+<dialog class="ds-dialog" data-variant="ask" id="dlg-ask" role="alertdialog" aria-labelledby="dlg-ask-t"></dialog>
+
+<template id="tpl-panel">
+<div class="gal-grid">
+
+  <div class="gal-card w12"><h3>Knop <code>.ds-btn · data-variant primary | secondary | quiet | danger · :hover :active :focus-visible :disabled aria-busy</code></h3>
+    <div class="gal-matrix">
+      <span></span><span class="gal-lab">Standaard (live)</span><span class="gal-lab">Hover</span><span class="gal-lab">Ingedrukt</span><span class="gal-lab">Focus</span><span class="gal-lab">Uitgeschakeld</span><span class="gal-lab">Laden</span>
+      <span class="gal-lab">primary</span>
+      <span class="gal-cell"><button class="ds-btn" data-variant="primary">Opslaan</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="primary" data-demo="hover">Opslaan</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="primary" data-demo="pressed">Opslaan</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="primary" data-demo="focus">Opslaan</button></span>
+      <span class="gal-cell"><button class="ds-btn" data-variant="primary" disabled>Opslaan</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="primary" aria-busy="true"><span class="ds-spinner" aria-hidden="true"></span>Opslaan…</button></span>
+      <span class="gal-lab">secondary</span>
+      <span class="gal-cell"><button class="ds-btn" data-variant="secondary"><i data-icon="versies"></i>Versies</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="secondary" data-demo="hover"><i data-icon="versies"></i>Versies</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="secondary" data-demo="pressed"><i data-icon="versies"></i>Versies</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="secondary" data-demo="focus"><i data-icon="versies"></i>Versies</button></span>
+      <span class="gal-cell"><button class="ds-btn" data-variant="secondary" disabled><i data-icon="versies"></i>Versies</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="secondary" aria-busy="true"><span class="ds-spinner" aria-hidden="true"></span>Bijwerken…</button></span>
+      <span class="gal-lab">quiet</span>
+      <span class="gal-cell"><button class="ds-btn" data-variant="quiet">Openen</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="quiet" data-demo="hover">Openen</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="quiet" data-demo="pressed">Openen</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="quiet" data-demo="focus">Openen</button></span>
+      <span class="gal-cell"><button class="ds-btn" data-variant="quiet" disabled>Openen</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="quiet" aria-busy="true"><span class="ds-spinner" aria-hidden="true"></span>Openen…</button></span>
+      <span class="gal-lab">danger</span>
+      <span class="gal-cell"><button class="ds-btn" data-variant="danger"><i data-icon="trash"></i>Verwijderen</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="danger" data-demo="hover"><i data-icon="trash"></i>Verwijderen</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="danger" data-demo="pressed"><i data-icon="trash"></i>Verwijderen</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="danger" data-demo="focus"><i data-icon="trash"></i>Verwijderen</button></span>
+      <span class="gal-cell"><button class="ds-btn" data-variant="danger" disabled><i data-icon="trash"></i>Verwijderen</button></span>
+      <span class="gal-cell" inert><button class="ds-btn" data-variant="danger" aria-busy="true"><span class="ds-spinner" aria-hidden="true"></span>Verwijderen…</button></span>
+    </div>
+    <p class="gal-note">Gevaar heeft geen rode kleur (S0 D1): een dikke rand in tekstkleur, een prullenbakpictogram en een expliciet werkwoord. Uitgeschakeld is een gestippelde rand, niet alleen een kleur. Specimens met een geforceerde staat zijn inert; de kolom Standaard is live.</p>
+  </div>
+
+  <div class="gal-card"><h3>Tekstveld en zoekveld <code>.ds-field · .ds-input · aria-invalid · :disabled</code></h3>
+    <div class="gal-2">
+      <div class="ds-field"><label class="ds-field-label" for="{p}-name">Naam</label><input class="ds-input" id="{p}-name" value="Tuinplan" aria-describedby="{p}-name-h"><p class="ds-field-hint" id="{p}-name-h">Zichtbaar in Bestanden en op Thuis-NAS.</p></div>
+      <div class="ds-field" data-variant="search"><label class="ds-field-label" for="{p}-search">Zoeken</label><span class="ds-input-wrap"><i data-icon="zoeken"></i><input class="ds-input" type="search" id="{p}-search" placeholder="Zoek apps, bestanden en acties"></span><p class="ds-field-hint">Zoekt alleen op dit apparaat en Thuis-NAS.</p></div>
+      <div class="ds-field"><label class="ds-field-label" for="{p}-ren">Nieuwe naam</label><input class="ds-input" id="{p}-ren" value="Tuin/plan" aria-invalid="true" aria-describedby="{p}-ren-e"><p class="ds-field-error" id="{p}-ren-e"><span class="ds-status-marker" aria-hidden="true"></span><i data-icon="warn"></i>Een naam mag geen / bevatten.</p></div>
+      <div class="ds-field"><label class="ds-field-label" for="{p}-dis">Opslag</label><input class="ds-input" id="{p}-dis" value="Op dit apparaat" disabled aria-describedby="{p}-dis-h"><p class="ds-field-hint" id="{p}-dis-h">Kies eerst een NAS in Opslag en NAS.</p></div>
+    </div>
+  </div>
+
+  <div class="gal-card"><h3>Schakelaar, selectievakje, keuzerondje <code>.ds-switch role=switch · .ds-check · .ds-radio</code></h3>
+    <div class="gal-2">
+      <div class="gal-col">
+        <button class="ds-switch" role="switch" aria-checked="false"><span class="ds-switch-track" aria-hidden="true"></span>Nachtlicht</button>
+        <button class="ds-switch" role="switch" aria-checked="true"><span class="ds-switch-track" aria-hidden="true"></span>Niet storen</button>
+        <button class="ds-switch" role="switch" aria-checked="false" disabled><span class="ds-switch-track" aria-hidden="true"></span>Thuis-NAS offline</button>
+        <label class="ds-check"><input type="checkbox" checked>Favoriet</label>
+        <label class="ds-check"><input type="checkbox">Alleen dit document</label>
+        <label class="ds-check"><input type="checkbox" disabled>Delen met Sem</label>
+      </div>
+      <fieldset class="ds-fieldset"><legend>Schaal</legend>
+        <label class="ds-radio"><input type="radio" name="{p}-scale" value="1" checked>100 %</label>
+        <label class="ds-radio"><input type="radio" name="{p}-scale" value="2">200 %</label>
+        <label class="ds-radio"><input type="radio" name="{p}-scale" value="1.5" disabled>150 % (niet beschikbaar)</label>
+      </fieldset>
+    </div>
+    <p class="gal-note">Een aangevinkt keuzerondje is een gevulde schijf met een uitgespaard midden; ring-met-stip blijft voorbehouden aan NAS.</p>
+  </div>
+
+  <div class="gal-card w8"><h3>Lijstrij (bestand) <code>.ds-row role=option · aria-selected · blad bij selectie · ↑↓ Home End, klik selecteert</code></h3>
+    <div class="ds-list-head" aria-hidden="true"><span></span><span>Naam</span><span>Opslag</span><span style="text-align:right">Grootte</span><span>Gewijzigd</span></div>
+    <div class="ds-list" role="listbox" aria-label="Documenten" id="{p}-list">
+      <div class="ds-row" role="option" aria-selected="true" tabindex="0"><i data-icon="note"></i><span class="ds-row-name">Tuinplan</span><span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span><span class="ds-row-meta">4 kB</span><span class="ds-row-date">Vandaag <span class="ds-num">09:12</span></span></div>
+      <div class="ds-row" role="option" aria-selected="false" tabindex="-1" data-demo="hover"><i data-icon="list"></i><span class="ds-row-name">Boodschappen</span><span class="ds-place" data-place="device"><i class="ds-node" data-shape="device" aria-hidden="true"></i><i data-icon="device"></i>Dit apparaat</span><span class="ds-row-meta">1 kB</span><span class="ds-row-date">Vandaag <span class="ds-num">08:05</span></span></div>
+      <div class="ds-row" role="option" aria-selected="false" tabindex="-1"><i data-icon="pdf"></i><span class="ds-row-name">Huurcontract Spoorstraat 12</span><span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span><span class="ds-row-meta">1,2 MB</span><span class="ds-row-date">ma <span class="ds-num">2</span> nov</span></div>
+      <div class="ds-row" role="option" aria-selected="false" tabindex="-1"><i data-icon="image"></i><span class="ds-row-name">Vakantiefoto's Lissabon</span><span class="ds-place" data-place="internet"><i class="ds-node" data-shape="internet" aria-hidden="true"></i><i data-icon="internet"></i>Internet</span><span class="ds-row-meta">38 MB</span><span class="ds-row-date">zo <span class="ds-num">8</span> nov</span></div>
+    </div>
+    <p class="gal-note">Tuinplan is geselecteerd (blad, vulling, gewicht 600); Boodschappen toont de hover-staat. Groottes en de internetrij zijn fictief en staan niet in data.js.</p>
+  </div>
+
+  <div class="gal-card w4"><h3>Plaatslabel <code>.ds-place data-place · vorm + pictogram + tekst</code></h3>
+    <div class="gal-col">
+      <span class="ds-place" data-place="device"><i class="ds-node" data-shape="device" aria-hidden="true"></i><i data-icon="device"></i>Dit apparaat</span>
+      <span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span>
+      <span class="ds-place" data-place="internet"><i class="ds-node" data-shape="internet" aria-hidden="true"></i><i data-icon="internet"></i>Internet</span>
+    </div>
+    <p class="gal-note">Vormcode: stip = dit apparaat, ring met stip = NAS, open ring = internet, vierkant = fout.</p>
+  </div>
+
+  <div class="gal-card w12"><h3>Privacy-instrument <code>.ds-privacy data-state local | ask | internet · role=status</code></h3>
+    <div class="gal-col">
+      <div class="ds-privacy" data-state="local" role="status" aria-label="Privacy: je werk staat op dit apparaat. Geen NAS, geen internet.">
+        <div class="ds-privacy-track" aria-hidden="true">
+          <div class="ds-privacy-col" data-place="device" data-state="lit"><i class="ds-node" data-shape="device"></i><span class="ds-privacy-lbl"><i data-icon="device"></i>Dit apparaat</span></div>
+          <div class="ds-privacy-col" data-place="nas" data-state="off"><i class="ds-node" data-shape="nas" data-state="off"></i><span class="ds-privacy-lbl"><i data-icon="nas"></i>Thuis-NAS</span></div>
+          <div class="ds-privacy-col" data-place="internet" data-state="off"><i class="ds-node" data-shape="internet" data-state="off"></i><span class="ds-privacy-lbl"><i data-icon="internet"></i>Internet</span></div>
+        </div>
+        <div class="ds-privacy-text" aria-hidden="true"><span>Op dit apparaat</span><span>Geen internet</span></div>
+      </div>
+      <div class="ds-privacy" data-state="ask" role="status" aria-label="Privacy: Webvenster vraagt toegang tot internet. Dit apparaat en Thuis-NAS zijn actief.">
+        <div class="ds-privacy-track" aria-hidden="true">
+          <div class="ds-privacy-col" data-place="device" data-state="lit"><i class="ds-node" data-shape="device"></i><span class="ds-privacy-lbl"><i data-icon="device"></i>Dit apparaat</span></div>
+          <div class="ds-privacy-col" data-place="nas" data-state="lit"><i class="ds-node" data-shape="nas"></i><span class="ds-privacy-lbl"><i data-icon="nas"></i>Thuis-NAS</span></div>
+          <div class="ds-privacy-col" data-place="internet" data-state="ask"><i class="ds-node" data-shape="internet" data-state="ask"></i><span class="ds-privacy-lbl"><i data-icon="internet"></i>Internet</span></div>
+        </div>
+        <div class="ds-privacy-text" aria-hidden="true"><span>Webvenster vraagt internet</span><span>Wacht op jouw keuze</span></div>
+      </div>
+      <div class="ds-privacy" data-state="internet" role="status" aria-label="Privacy: Webvenster gebruikt internet, verbonden met tuinplanner.example. Dit apparaat en Thuis-NAS zijn actief.">
+        <div class="ds-privacy-track" aria-hidden="true">
+          <div class="ds-privacy-col" data-place="device" data-state="lit"><i class="ds-node" data-shape="device"></i><span class="ds-privacy-lbl"><i data-icon="device"></i>Dit apparaat</span></div>
+          <div class="ds-privacy-col" data-place="nas" data-state="lit"><i class="ds-node" data-shape="nas"></i><span class="ds-privacy-lbl"><i data-icon="nas"></i>Thuis-NAS</span></div>
+          <div class="ds-privacy-col" data-place="internet" data-state="lit"><i class="ds-node" data-shape="internet"></i><span class="ds-privacy-lbl"><i data-icon="internet"></i>Internet</span></div>
+        </div>
+        <div class="ds-privacy-text" aria-hidden="true"><span>Webvenster gebruikt internet</span><span>Verbonden met tuinplanner.example</span></div>
+      </div>
+    </div>
+    <p class="gal-note">"Op dit apparaat" en "vraagt internet" volgen het v2-bord; "internet actief" is afgeleid (geen v2-bron): alle drie knooppunten aan, verbindingsbladen tussen aangrenzende actieve plaatsen.</p>
+  </div>
+
+  <div class="gal-card w12"><h3>Toestemmingsvraag op Kern <code>.ds-ask role=alertdialog · data-kind ongoing: untilClose | always | deny · data-kind action: once | always | deny · tussentijdse presentatie, UX-C vervangt haar</code></h3>
+    <div class="gal-asks"><div data-ask="ongoing"></div><div data-ask="action"></div></div>
+    <p class="gal-note">Links een doorlopende appmachtiging, rechts een afzonderlijke handeling. Drie gelijkwaardige keuzes onder elkaar (zelfde variant en maat, geen hoofdknop). In de dialoog start de focus op de titel, niet op een keuze: Enter of spatie bij openen doet niets. Esc of sluiten is Weigeren voor dit verzoek en bewaart niets. Een verzoek dat al een geldige machtiging met dezelfde sleutel heeft, opent geen vraag.</p>
+    <div class="gal-row" style="margin-top: var(--space-4)"><button class="ds-btn" data-variant="secondary" data-open-ask="ongoing"><i data-icon="lock"></i>Doorlopende vraag openen</button><button class="ds-btn" data-variant="secondary" data-open-ask="action"><i data-icon="lock"></i>Vraag voor één handeling openen</button><button class="ds-btn" data-variant="quiet" data-close-app>Webvenster sluiten</button></div>
+  </div>
+
+  <div class="gal-card w12"><h3>Appmachtiging <code>.ds-grants · .ds-grant · Instellingen › Privacy en beveiliging › Appmachtigingen · Intrekken · role=status (beleefd)</code></h3>
+    <ul class="ds-grants" aria-label="Appmachtigingen" data-grants></ul>
+    <p class="ds-live" role="status" data-grants-live></p>
+    <p class="gal-note">Eén rij per blijvende machtiging: app, bron, recht en reikwijdte, daaronder het bereik als plaatslabel (vorm + pictogram + tekst; bij versturen of verbinden de bestemming) en de duur als vormchip: gestippeld met klok = tot afsluiten, doorgetrokken met lus = tot je het intrekt (het slot blijft voor de systeemband). De knop Intrekken noemt app, bron, recht en reikwijdte. De machtiging voor zaadruil.example dekt de vraag voor tuinplanner.example niet: elke bestemming is een eigen sleutel. Toestemming voor één handeling vervalt direct en staat hier niet. Ontwerpvoorstel voor UX-E, dat het volledige scherm Appmachtigingen bouwt. Simulatie: niets blijft bewaard na herladen.</p>
+  </div>
+
+  <div class="gal-card w4"><h3>Orbit-item <code>.ds-taskitem data-state running | active | attention</code></h3>
+    <div class="gal-orbit-wrap">
+      <nav class="ds-orbit" aria-label="Orbit, dock">
+        <button class="ds-taskitem" data-state="active" aria-current="true" aria-label="Bestanden, actief"><i data-icon="bestanden"></i></button>
+        <button class="ds-taskitem" data-state="running" aria-label="Notities, geopend"><i data-icon="notities"></i></button>
+        <button class="ds-taskitem" data-state="attention" aria-label="Browser, geopend, vraagt aandacht: 1 melding"><i data-icon="browser"></i><span class="ds-taskitem-badge" aria-hidden="true">1</span></button>
+        <span class="ds-orbit-sep" aria-hidden="true"></span>
+        <button class="ds-taskitem" aria-label="Rekenmachine"><i data-icon="rekenmachine"></i></button>
+      </nav>
+    </div>
+    <p class="gal-note">Actief: blad in de bovenrand. Geopend: korte balk. Aandacht: brede balk plus genummerd label (geen stip, ring of vierkant) en tekst in de toegankelijke naam.</p>
+  </div>
+
+  <div class="gal-card w12"><h3>Vensterrand <code>.ds-window data-state active | inactive | maximised · .ds-window-ctl</code></h3>
+    <div class="gal-windows">
+      <section class="ds-window" data-state="active" aria-label="Bestanden, actief venster">
+        <header class="ds-window-bar"><i data-icon="bestanden"></i><h4 class="ds-window-title">Bestanden</h4>
+          <div class="ds-window-ctls"><button class="ds-window-ctl" aria-label="Minimaliseren"><i data-icon="min"></i></button><button class="ds-window-ctl" aria-label="Maximaliseren"><i data-icon="max"></i></button><span class="ds-tip-anchor"><button class="ds-window-ctl" aria-label="Sluiten" aria-describedby="{p}-tip-close"><i data-icon="close"></i></button><span class="ds-tip" role="tooltip" id="{p}-tip-close">Sluiten <kbd class="ds-kbd">Alt+F4</kbd></span></span></div></header>
+        <div class="ds-window-body ds-muted">Actief: lichtblad in de bovenrand, volle schaduw.</div>
+      </section>
+      <section class="ds-window" data-state="inactive" aria-label="Notities, inactief venster">
+        <header class="ds-window-bar"><i data-icon="notities"></i><h4 class="ds-window-title">Notities</h4>
+          <div class="ds-window-ctls"><button class="ds-window-ctl" aria-label="Minimaliseren"><i data-icon="min"></i></button><button class="ds-window-ctl" aria-label="Maximaliseren"><i data-icon="max"></i></button><button class="ds-window-ctl" aria-label="Sluiten"><i data-icon="close"></i></button></div></header>
+        <div class="ds-window-body ds-muted">Inactief: gedimde titel, kleinere schaduw, geen blad.</div>
+      </section>
+      <div class="gal-maxframe">
+        <section class="ds-window" data-state="maximised" aria-label="Instellingen, gemaximaliseerd venster">
+          <header class="ds-window-bar"><i data-icon="instellingen"></i><h4 class="ds-window-title">Instellingen</h4>
+            <div class="ds-window-ctls"><button class="ds-window-ctl" aria-label="Minimaliseren"><i data-icon="min"></i></button><button class="ds-window-ctl" aria-label="Vorige grootte"><i data-icon="window"></i></button><button class="ds-window-ctl" aria-label="Sluiten"><i data-icon="close"></i></button></div></header>
+          <div class="ds-window-body ds-muted">Gemaximaliseerd: geen hoeken, geen schaduw; Vorige grootte vervangt Maximaliseren.</div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="gal-card gal-menu-card"><h3>Menu <code>.ds-menu role=menu · .ds-menu-item · .ds-kbd · aria-disabled · submenu · ↑↓ Home End Esc</code></h3>
+    <div class="ds-menu-anchor">
+      <button class="ds-btn" data-variant="secondary" aria-haspopup="menu" aria-expanded="true" aria-controls="{p}-menu" id="{p}-menu-btn">Bestand<i data-icon="chev" class="ds-chev-down"></i></button>
+      <div class="ds-menu" role="menu" id="{p}-menu" aria-labelledby="{p}-menu-btn">
+        <button class="ds-menu-item" role="menuitem" tabindex="-1"><i data-icon="doc"></i><span>Openen</span><kbd class="ds-kbd">Enter</kbd></button>
+        <button class="ds-menu-item" role="menuitem" tabindex="-1"><span></span><span>Hernoemen</span><kbd class="ds-kbd">F2</kbd></button>
+        <button class="ds-menu-item" role="menuitem" tabindex="-1"><span></span><span>Kopiëren</span><kbd class="ds-kbd">Ctrl+C</kbd></button>
+        <button class="ds-menu-item" role="menuitem" tabindex="-1"><i data-icon="coll"></i><span>Verplaatsen naar collectie</span><i data-icon="chev" class="ds-menu-sub"></i></button>
+        <div class="ds-menu-sep" role="separator"></div>
+        <button class="ds-menu-item" role="menuitem" tabindex="-1" aria-disabled="true"><i data-icon="toegang"></i><span>Delen<span class="ds-menu-why">Kan alleen voor bestanden op Thuis-NAS</span></span><span></span></button>
+        <button class="ds-menu-item" role="menuitem" tabindex="-1"><i data-icon="trash"></i><span>Verwijderen</span><kbd class="ds-kbd">Delete</kbd></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="gal-card"><h3>Tabbladen <code>.ds-tablist role=tablist · .ds-tab · ← → Home End</code></h3>
+    <div class="ds-tabs">
+      <div class="ds-tablist" role="tablist" aria-label="Inspector">
+        <button class="ds-tab" role="tab" id="{p}-tab-1" aria-controls="{p}-tp-1" aria-selected="true" tabindex="0">Versies</button>
+        <button class="ds-tab" role="tab" id="{p}-tab-2" aria-controls="{p}-tp-2" aria-selected="false" tabindex="-1">Toegang</button>
+        <button class="ds-tab" role="tab" id="{p}-tab-3" aria-controls="{p}-tp-3" aria-selected="false" tabindex="-1">Opslag</button>
+        <button class="ds-tab" role="tab" id="{p}-tab-4" aria-controls="{p}-tp-4" aria-selected="false" tabindex="-1">Details</button>
+      </div>
+      <div class="ds-tabpanel" role="tabpanel" id="{p}-tp-1" aria-labelledby="{p}-tab-1" tabindex="0">Huidige versie: vandaag <span class="ds-num">09:12</span>. Vier versies bewaard.</div>
+      <div class="ds-tabpanel" role="tabpanel" id="{p}-tp-2" aria-labelledby="{p}-tab-2" tabindex="0" hidden>Notities kan dit document lezen en wijzigen · Tot je Notities sluit</div>
+      <div class="ds-tabpanel" role="tabpanel" id="{p}-tp-3" aria-labelledby="{p}-tab-3" tabindex="0" hidden>Op dit apparaat en Thuis-NAS · Bijgewerkt</div>
+      <div class="ds-tabpanel" role="tabpanel" id="{p}-tp-4" aria-labelledby="{p}-tab-4" tabindex="0" hidden>Notitie · collectie Tuin</div>
+    </div>
+    <h3 style="margin: var(--space-8) 0 var(--space-4)" class="ds-t-body-strong">Toets <code class="ds-t-caption ds-muted">.ds-kbd</code></h3>
+    <div class="gal-row">
+      <span class="ds-kbd-combo"><kbd class="ds-kbd">Ctrl</kbd>+<kbd class="ds-kbd">C</kbd></span>
+      <span class="ds-kbd-combo"><kbd class="ds-kbd">Alt</kbd>+<kbd class="ds-kbd">Tab</kbd></span>
+      <span class="ds-kbd-combo"><kbd class="ds-kbd">Ctrl</kbd>+<kbd class="ds-kbd">Alt</kbd>+<kbd class="ds-kbd">Delete</kbd></span>
+      <kbd class="ds-kbd">Enter</kbd><kbd class="ds-kbd">Esc</kbd>
+    </div>
+  </div>
+
+  <div class="gal-card"><h3>Melding met acties <code>.ds-toast role=status</code></h3>
+    <div class="ds-toast" role="status" id="{p}-toast">
+      <i data-icon="trash"></i>
+      <div><p class="ds-toast-title">Bestanden</p><p class="ds-toast-body">“Tuinplan” is naar de Prullenbak verplaatst.</p></div>
+      <span class="ds-toast-time">09:41</span>
+      <div class="ds-toast-actions"><button class="ds-btn" data-variant="quiet">Ongedaan maken</button><button class="ds-btn" data-variant="quiet" data-shape="icon" aria-label="Melding sluiten" data-toast-close><i data-icon="close"></i></button></div>
+    </div>
+    <div class="gal-row" style="margin-top: var(--space-3)"><button class="ds-btn" data-variant="quiet" data-toast-show hidden>Melding opnieuw tonen</button></div>
+  </div>
+
+  <div class="gal-card"><h3>Banner <code>.ds-banner data-tone info | success | warning | error</code></h3>
+    <div class="gal-col">
+      <div class="ds-banner" data-tone="info"><i data-icon="dot"></i><p><strong>Info.</strong> Zoeken op internet staat uit. Je kunt het aanzetten in Instellingen › Privacy en beveiliging.</p></div>
+      <div class="ds-banner" data-tone="success"><i data-icon="check"></i><p><strong>Gelukt.</strong> Versie van gisteren <span class="ds-num">21:40</span> teruggezet. De vorige versie is bewaard.</p></div>
+      <div class="ds-banner" data-tone="warning"><i data-icon="warn"></i><p><strong>Let op.</strong> Thuis-NAS is niet bereikbaar. Je werk staat veilig op dit apparaat en wordt bijgewerkt zodra de NAS terug is.</p></div>
+      <div class="ds-banner" data-tone="error"><span class="ds-status-marker" aria-hidden="true"></span><i data-icon="warn"></i><p><strong>Fout.</strong> Notities heeft geen toegang meer tot dit document. Open het opnieuw vanuit Bestanden.</p></div>
+    </div>
+  </div>
+
+  <div class="gal-card"><h3>Dialoog met scrim <code>.ds-dialog · ::backdrop / .ds-scrim · Esc sluit</code></h3>
+    <div class="gal-stage" inert aria-label="Voorbeeld: dialoog boven een gedimd venster">
+      <p class="gal-stage-text">Bestanden · Documenten · 6 onderdelen</p>
+      <div class="ds-scrim"></div>
+      <div class="ds-dialog" role="dialog" aria-label="Voorbeeld">
+        <div class="ds-dialog-body"><h4 class="ds-dialog-title">Tuinplan definitief verwijderen?</h4><p class="ds-dialog-text">Dit kun je niet ongedaan maken.</p></div>
+        <div class="ds-dialog-actions"><button class="ds-btn" data-variant="danger"><i data-icon="trash"></i>Definitief verwijderen</button><button class="ds-btn" data-variant="primary" data-demo="focus">Annuleren</button></div>
+      </div>
+    </div>
+    <div class="gal-row" style="margin-top: var(--space-4)"><button class="ds-btn" data-variant="secondary" data-open-delete>Dialoog openen</button></div>
+  </div>
+
+  <div class="gal-card"><h3>Voortgang <code>.ds-progress role=progressbar · determinate · data-state=indeterminate</code></h3>
+    <div class="gal-col">
+      <div class="ds-progress-field"><div class="ds-progress-label"><span id="{p}-pg1">Tuinplan bijwerken op Thuis-NAS</span><span class="ds-num">64 %</span></div>
+        <div class="ds-progress" role="progressbar" aria-labelledby="{p}-pg1" aria-valuemin="0" aria-valuemax="100" aria-valuenow="64" style="--ds-value: 64%"><span class="ds-progress-bar"></span></div></div>
+      <div class="ds-progress-field"><div class="ds-progress-label"><span id="{p}-pg2">Bestanden laden…</span><span>Bezig</span></div>
+        <div class="ds-progress" data-state="indeterminate" role="progressbar" aria-labelledby="{p}-pg2" aria-valuetext="Bezig"><span class="ds-progress-bar"></span></div></div>
+    </div>
+    <p class="gal-note">Onbepaald schuift alleen als beweging mag; met beperkte beweging wordt het een stilstaande gestreepte balk met het woord Bezig.</p>
+  </div>
+
+  <div class="gal-card w12"><h3>Lege staat, laden en fout <code>.ds-empty · .ds-skeleton aria-busy · .ds-empty data-tone=error</code></h3>
+    <div class="gal-windows">
+      <div class="ds-empty"><i data-icon="nofiles"></i><p class="ds-empty-title">Deze collectie is leeg</p><p class="ds-empty-hint">Sleep bestanden hierheen of kies Verplaatsen naar collectie.</p><div class="ds-empty-actions"><button class="ds-btn" data-variant="secondary"><i data-icon="coll"></i>Verplaatsen naar collectie</button></div></div>
+      <div class="ds-skeleton" role="status" aria-busy="true"><span class="ds-vh">Bestanden laden…</span>
+        <div class="ds-skeleton-row" aria-hidden="true"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 70%"></span><span class="ds-skeleton-line"></span></div>
+        <div class="ds-skeleton-row" aria-hidden="true"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 52%"></span><span class="ds-skeleton-line"></span></div>
+        <div class="ds-skeleton-row" aria-hidden="true"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 84%"></span><span class="ds-skeleton-line"></span></div>
+        <div class="ds-skeleton-row" aria-hidden="true"><span class="ds-skeleton-line" data-shape="icon"></span><span class="ds-skeleton-line" style="width: 60%"></span><span class="ds-skeleton-line"></span></div>
+      </div>
+      <div class="ds-empty" data-tone="error" role="alert"><i data-icon="nas"></i><p class="ds-empty-title"><span class="ds-status-marker" aria-hidden="true"></span>Thuis-NAS niet bereikbaar</p><p class="ds-empty-hint">Je werk staat veilig op dit apparaat en wordt bijgewerkt zodra de NAS terug is.</p><div class="ds-empty-actions"><button class="ds-btn" data-variant="primary">Opnieuw proberen</button><button class="ds-btn" data-variant="quiet">Opslag en NAS openen</button></div></div>
+    </div>
+  </div>
+
+  <div class="gal-card"><h3>Tooltip <code>.ds-tip role=tooltip · hover en focus · Esc verbergt</code></h3>
+    <div class="gal-row" style="padding-top: var(--space-10)">
+      <span class="ds-tip-anchor"><button class="ds-btn" data-variant="quiet" data-shape="icon" aria-label="Versies" aria-describedby="{p}-tip-v"><i data-icon="versies"></i></button><span class="ds-tip" role="tooltip" id="{p}-tip-v">Versies vergelijken en terugzetten</span></span>
+      <span class="ds-tip-anchor"><button class="ds-btn" data-variant="quiet" data-shape="icon" aria-label="Zoeken" aria-describedby="{p}-tip-z"><i data-icon="zoeken"></i></button><span class="ds-tip" role="tooltip" id="{p}-tip-z" data-state="open">Zoeken <kbd class="ds-kbd">Ctrl+F</kbd></span></span>
+    </div>
+    <p class="gal-note">De tooltip bij Zoeken staat vast open als specimen; de andere verschijnt bij hover of toetsenbordfocus.</p>
+  </div>
+
+  <div class="gal-card w12"><h3>Compacte dichtheid en neutraal oppervlak <code>data-density="compact" (S0 D2) · data-surface="neutral" (S0 D3) · waarden PROVISIONAL</code></h3>
+    <div class="gal-2">
+      <div class="gal-col" data-density="compact">
+        <div class="gal-row"><button class="ds-btn" data-variant="primary">Opslaan</button><button class="ds-btn" data-variant="secondary"><i data-icon="versies"></i>Versies</button><button class="ds-btn" data-variant="quiet" data-shape="icon" aria-label="Zoeken"><i data-icon="zoeken"></i></button><button class="ds-btn" data-variant="secondary" disabled>Delen</button></div>
+        <div class="ds-field"><label class="ds-field-label" for="{p}-c-name">Naam</label><input class="ds-input" id="{p}-c-name" value="Tuinplan"></div>
+        <div class="gal-row"><button class="ds-switch" role="switch" aria-checked="false"><span class="ds-switch-track" aria-hidden="true"></span>Niet storen</button><label class="ds-check"><input type="checkbox" checked>Favoriet</label><label class="ds-radio"><input type="radio" name="{p}-c-view" checked>Lijst</label><label class="ds-radio"><input type="radio" name="{p}-c-view">Raster</label></div>
+        <div class="ds-tablist" role="tablist" aria-label="Inspector, compact"><button class="ds-tab" role="tab" id="{p}-c-tab-1" aria-controls="{p}-c-tp-1" aria-selected="true" tabindex="0">Versies</button><button class="ds-tab" role="tab" id="{p}-c-tab-2" aria-controls="{p}-c-tp-2" aria-selected="false" tabindex="-1">Toegang</button></div>
+        <div class="ds-tabpanel" role="tabpanel" id="{p}-c-tp-1" aria-labelledby="{p}-c-tab-1" tabindex="0">Vier versies van Tuinplan</div>
+        <div class="ds-tabpanel" role="tabpanel" id="{p}-c-tp-2" aria-labelledby="{p}-c-tab-2" tabindex="0" hidden>Alleen jij</div>
+        <div class="ds-list" role="listbox" aria-label="Documenten, compact">
+        <div class="ds-row" role="option" aria-selected="true" tabindex="0"><i data-icon="note"></i><span class="ds-row-name">Tuinplan</span><span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span><span class="ds-row-meta">4 kB</span><span class="ds-row-date">Vandaag <span class="ds-num">09:12</span></span></div>
+        <div class="ds-row" role="option" aria-selected="false" tabindex="-1" data-demo="hover"><i data-icon="list"></i><span class="ds-row-name">Boodschappen</span><span class="ds-place" data-place="device"><i class="ds-node" data-shape="device" aria-hidden="true"></i><i data-icon="device"></i>Dit apparaat</span><span class="ds-row-meta">1 kB</span><span class="ds-row-date">Vandaag <span class="ds-num">08:05</span></span></div>
+        <div class="ds-row" role="option" aria-selected="false" tabindex="-1"><i data-icon="pdf"></i><span class="ds-row-name">Huurcontract Spoorstraat 12</span><span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span><span class="ds-row-meta">1,2 MB</span><span class="ds-row-date">ma <span class="ds-num">2</span> nov</span></div>
+        </div>
+        <p class="gal-note">Compact: bediening en rijen 24 px hoog (rij = 20 px regel + 2 × 2), raakvlakken minstens 24 × 24. Alleen maat- en ruimtetokens wijzigen.</p>
+      </div>
+      <div class="gal-neutral" data-surface="neutral">
+        <div class="gal-surround"><div class="gal-canvas" tabindex="0" role="img" aria-label="Werkvlak met Vakantiefoto's Lissabon (fictief)"></div></div>
+        <div class="gal-raised">
+          <div class="ds-field"><label class="ds-field-label" for="{p}-n-name">Naam van de export</label><input class="ds-input" id="{p}-n-name" placeholder="Vakantiefoto's Lissabon"></div>
+          <div class="gal-row"><button class="ds-btn" data-variant="secondary">Exporteren</button><button class="ds-btn" data-variant="secondary" data-demo="hover">Vergelijken</button><button class="ds-btn" data-variant="secondary" disabled>Delen</button></div>
+          <div class="ds-list" role="listbox" aria-label="Documenten, neutraal oppervlak">
+          <div class="ds-row" role="option" aria-selected="true" tabindex="0"><i data-icon="note"></i><span class="ds-row-name">Tuinplan</span><span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span><span class="ds-row-meta">4 kB</span><span class="ds-row-date">Vandaag <span class="ds-num">09:12</span></span></div>
+        <div class="ds-row" role="option" aria-selected="false" tabindex="-1" data-demo="hover"><i data-icon="list"></i><span class="ds-row-name">Boodschappen</span><span class="ds-place" data-place="device"><i class="ds-node" data-shape="device" aria-hidden="true"></i><i data-icon="device"></i>Dit apparaat</span><span class="ds-row-meta">1 kB</span><span class="ds-row-date">Vandaag <span class="ds-num">08:05</span></span></div>
+        <div class="ds-row" role="option" aria-selected="false" tabindex="-1"><i data-icon="pdf"></i><span class="ds-row-name">Huurcontract Spoorstraat 12</span><span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span><span class="ds-row-meta">1,2 MB</span><span class="ds-row-date">ma <span class="ds-num">2</span> nov</span></div>
+          </div>
+          <div class="ds-progress-field"><div class="ds-progress-label"><span id="{p}-n-pg">Exporteren naar Thuis-NAS</span><span class="ds-num">40 %</span></div><div class="ds-progress" role="progressbar" aria-labelledby="{p}-n-pg" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="--ds-value: 40%"><span class="ds-progress-bar"></span></div></div>
+        </div>
+        <p class="gal-note">Neutraal: kleurloze tweelingen van oppervlak, lijn, tekst en focus; het werkvlak ligt op <code>--color-surface-surround</code>, dat alleen de focusring draagt (in hoog contrast plus een rand van 1 px). Plaatskleuren blijven.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="gal-card"><h3>Plaatskleuren <code>--place-device · --place-nas · --place-internet</code></h3>
+    <div class="gal-sw" data-swatches="place"></div>
+  </div>
+
+  <div class="gal-card w12"><h3>Kleur- en materiaaltokens <code>waarden zoals dit thema ze oplost</code></h3>
+    <div class="gal-sw" data-swatches="color"></div>
+    <div class="gal-elev" data-swatches="elev" style="margin-top: var(--space-6)"></div>
+  </div>
+</div>
+</template>
+
+<template id="tpl-ask-ongoing">
+<div class="ds-ask" data-theme="{k}" data-kind="ongoing" role="alertdialog" aria-labelledby="{p}-ao-t" aria-describedby="{p}-ao-w">
+  <div class="ds-ask-band"><i data-icon="lock"></i>Vraag van het systeem · getoond boven alle apps</div>
+  <div class="ds-ask-body">
+    <h3 class="ds-ask-title" id="{p}-ao-t" tabindex="-1" data-initial-focus>Webvenster wil internet gebruiken</h3>
+    <dl class="ds-ask-bond">
+      <div class="ds-ask-row"><span class="ds-ask-app" aria-hidden="true"><i data-icon="browser"></i></span><dt>App</dt><dd><strong>Webvenster</strong> · geïnstalleerd <span class="ds-num">12</span> nov. uit Haven</dd></div>
+      <div class="ds-ask-row"><span class="ds-ask-node" aria-hidden="true"><i data-icon="toegang"></i></span><dt>Wat</dt><dd>Verbinding maken, alleen met dit domein</dd></div>
+      <div class="ds-ask-row" data-place="internet"><span class="ds-ask-node" aria-hidden="true"><i data-icon="internet"></i></span><dt>Waarheen</dt><dd><strong>tuinplanner.example</strong><span class="ds-place" data-place="internet"><i class="ds-node" data-shape="internet" aria-hidden="true"></i><i data-icon="internet"></i>Internet</span></dd></div>
+      <div class="ds-ask-row ds-ask-dur"><span class="ds-ask-node" aria-hidden="true"><i data-icon="klok"></i></span><dt>Hoe lang</dt><dd>Jij kiest hieronder</dd></div>
+    </dl>
+    <div class="ds-ask-warn" id="{p}-ao-w"><i data-icon="warn"></i><span>Dit programma kan de toegestane inhoud naar een internetdienst sturen.</span></div>
+    <div class="ds-ask-choices" role="group" aria-label="Kies hoe lang">
+      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="untilClose" aria-describedby="{p}-ao-d0">Toestaan tot afsluiten</button>
+      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="always" aria-describedby="{p}-ao-d1">Altijd toestaan</button>
+      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="deny" aria-describedby="{p}-ao-d2">Weigeren</button>
+    </div>
+    <ul class="ds-ask-terms">
+      <li id="{p}-ao-d0"><strong>Toestaan tot afsluiten.</strong> Geldt tot je Webvenster sluit. Afmelden of opnieuw opstarten beëindigt het ook.</li>
+      <li id="{p}-ao-d1"><strong>Altijd toestaan.</strong> Geldt ook als je Webvenster opnieuw opent, tot je het intrekt in Instellingen › Privacy en beveiliging › Appmachtigingen.</li>
+      <li id="{p}-ao-d2"><strong>Weigeren.</strong> Geldt alleen voor dit verzoek. Er wordt niets bewaard; Webvenster kan het later opnieuw vragen.</li>
+    </ul>
+  </div>
+</div>
+</template>
+
+<template id="tpl-ask-action">
+<div class="ds-ask" data-theme="{k}" data-kind="action" role="alertdialog" aria-labelledby="{p}-aa-t" aria-describedby="{p}-aa-w">
+  <div class="ds-ask-band"><i data-icon="lock"></i>Vraag van het systeem · getoond boven alle apps</div>
+  <div class="ds-ask-body">
+    <h3 class="ds-ask-title" id="{p}-aa-t" tabindex="-1" data-initial-focus>Webvenster wil Tuinplan naar internet sturen</h3>
+    <dl class="ds-ask-bond">
+      <div class="ds-ask-row"><span class="ds-ask-app" aria-hidden="true"><i data-icon="browser"></i></span><dt>App</dt><dd><strong>Webvenster</strong> · geïnstalleerd <span class="ds-num">12</span> nov. uit Haven</dd></div>
+      <div class="ds-ask-row"><span class="ds-ask-node" aria-hidden="true"><i data-icon="notities"></i></span><dt>Wat</dt><dd>Een kopie van Tuinplan, alleen dit document</dd></div>
+      <div class="ds-ask-row" data-place="internet"><span class="ds-ask-node" aria-hidden="true"><i data-icon="internet"></i></span><dt>Waarheen</dt><dd><strong>tuinplanner.example</strong><span class="ds-place" data-place="internet"><i class="ds-node" data-shape="internet" aria-hidden="true"></i><i data-icon="internet"></i>Internet</span></dd></div>
+      <div class="ds-ask-row ds-ask-dur"><span class="ds-ask-node" aria-hidden="true"><i data-icon="klok"></i></span><dt>Hoe lang</dt><dd>Jij kiest hieronder</dd></div>
+    </dl>
+    <div class="ds-ask-warn" id="{p}-aa-w"><i data-icon="warn"></i><span>Dit programma kan de toegestane inhoud naar een internetdienst sturen.</span></div>
+    <div class="ds-ask-choices" role="group" aria-label="Kies hoe lang">
+      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="once" aria-describedby="{p}-aa-d0">Eenmalig toestaan</button>
+      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="always" aria-describedby="{p}-aa-d1">Altijd toestaan</button>
+      <button class="ds-btn" data-variant="secondary" data-size="large" data-choice="deny" aria-describedby="{p}-aa-d2">Weigeren</button>
+    </div>
+    <ul class="ds-ask-terms">
+      <li id="{p}-aa-d0"><strong>Eenmalig toestaan.</strong> Geldt alleen voor deze ene handeling en vervalt zodra die klaar, mislukt of geannuleerd is. Er wordt niets bewaard.</li>
+      <li id="{p}-aa-d1"><strong>Altijd toestaan.</strong> Geldt ook als je Webvenster opnieuw opent, tot je het intrekt in Instellingen › Privacy en beveiliging › Appmachtigingen.</li>
+      <li id="{p}-aa-d2"><strong>Weigeren.</strong> Geldt alleen voor dit verzoek. Er wordt niets bewaard; Webvenster kan het later opnieuw vragen.</li>
+    </ul>
+  </div>
+</div>
+</template>
+
+<template id="tpl-scale">
+<div class="gal-col">
+  <div class="gal-row"><button class="ds-btn" data-variant="primary">Opslaan</button><button class="ds-btn" data-variant="secondary"><i data-icon="versies"></i>Versies</button><button class="ds-btn" data-variant="danger"><i data-icon="trash"></i>Verwijderen</button><button class="ds-switch" role="switch" aria-checked="true"><span class="ds-switch-track" aria-hidden="true"></span>Niet storen</button></div>
+  <div class="ds-field" data-variant="search"><label class="ds-field-label" for="s-search">Zoeken</label><span class="ds-input-wrap"><i data-icon="zoeken"></i><input class="ds-input" type="search" id="s-search" placeholder="Zoek apps, bestanden en acties"></span></div>
+  <div class="ds-list" role="listbox" aria-label="Documenten op 200 %">
+    <div class="ds-row" role="option" aria-selected="true" tabindex="0"><i data-icon="note"></i><span class="ds-row-name">Tuinplan</span><span class="ds-place" data-place="nas"><i class="ds-node" data-shape="nas" aria-hidden="true"></i><i data-icon="nas"></i>Thuis-NAS</span><span class="ds-row-meta">4 kB</span><span class="ds-row-date">Vandaag <span class="ds-num">09:12</span></span></div>
+  </div>
+  <div class="gal-row"><span class="ds-place" data-place="device"><i class="ds-node" data-shape="device" aria-hidden="true"></i><i data-icon="device"></i>Dit apparaat</span><span class="ds-place" data-place="internet"><i class="ds-node" data-shape="internet" aria-hidden="true"></i><i data-icon="internet"></i>Internet</span><span class="ds-kbd-combo"><kbd class="ds-kbd">Ctrl</kbd>+<kbd class="ds-kbd">C</kbd></span><label class="ds-check"><input type="checkbox" checked>Favoriet</label></div>
+  <div class="ds-privacy" data-state="ask" role="status" aria-label="Privacy: Webvenster vraagt toegang tot internet. Dit apparaat en Thuis-NAS zijn actief.">
+    <div class="ds-privacy-track" aria-hidden="true">
+      <div class="ds-privacy-col" data-place="device" data-state="lit"><i class="ds-node" data-shape="device"></i><span class="ds-privacy-lbl"><i data-icon="device"></i>Dit apparaat</span></div>
+      <div class="ds-privacy-col" data-place="nas" data-state="lit"><i class="ds-node" data-shape="nas"></i><span class="ds-privacy-lbl"><i data-icon="nas"></i>Thuis-NAS</span></div>
+      <div class="ds-privacy-col" data-place="internet" data-state="ask"><i class="ds-node" data-shape="internet" data-state="ask"></i><span class="ds-privacy-lbl"><i data-icon="internet"></i>Internet</span></div>
+    </div>
+    <div class="ds-privacy-text" aria-hidden="true"><span>Webvenster vraagt internet</span><span>Wacht op jouw keuze</span></div>
+  </div>
+  <div data-ask="ongoing"></div>
+  <div data-ask="action"></div>
+  <ul class="ds-grants" aria-label="Appmachtigingen op 200 %" data-grants></ul>
+  <p class="ds-live" role="status" data-grants-live></p>
+</div>
+</template>
+
+<pre id="out"></pre>
+<script type="module" src="./gallery.js"></script>
+</body>
+</html>

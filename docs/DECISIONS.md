@@ -5,6 +5,93 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-S09-USTAR-20261114 — POSIX ustar with pax `path` records as the lossy S09 user-export format (D6 (a))
+
+Status: accepted by the project owner on 14 November 2026; recorded on
+15 November 2026. It decides D6 of
+[S09-BACKUP-DESTINATION-PROPOSAL.md](implementation/S09-BACKUP-DESTINATION-PROPOSAL.md)
+only. D1–D5 of that proposal remain undecided.
+
+**Context:**
+- S09 requires that a user can create, verify, restore and export independent
+  recovery copies in documented formats. The destination proposal put six
+  decisions to the project owner; D6 asks which common format a user export
+  uses.
+- `ustar::from_archive` in `services/volume/src/ustar.rs` converts a verified
+  format-v1 archive into a POSIX.1-1988 ustar stream with POSIX.1-2001 pax
+  `path` records. It is host-tested only
+  ([S09-BACKUP-ARCHIVE.md](implementation/S09-BACKUP-ARCHIVE.md), section
+  "User export to ustar"). It refuses colliding paths, a file/collection clash
+  and the drive form, but still exports names that extract differently on
+  Windows or macOS.
+
+**Approval by the project owner (14 November 2026, verbatim):**
+
+> I approve D6(a): POSIX ustar with pax path records as the initial interoperable S09 user-export format.
+> Conditions:
+> * This is a lossy interchange format, not the native BaryonOS/Materiaal format and not a recovery backup.
+> * Preserve the existing verified archive format for recovery.
+> * Reject unsafe or ambiguous cross-platform paths, including Windows alternate-data-stream syntax, reserved device names, invalid characters, trailing dots/spaces, and case-folding or Unicode-normalization collisions.
+> * Never silently rename files or permit unintended overwrites.
+> * Report rejected names clearly. A future explicit, reversible name-mapping mechanism may be proposed separately.
+> * Document metadata loss, empty-collection limitations, and compatibility constraints.
+> * Keep D1–D5 undecided; this approval does not authorize new destination capabilities, trust boundaries, or encryption architecture.
+> After recording D6, autonomously implement the bounded native ustar-export test stage using the existing test-only permissions and storage fixtures.
+> Update the relevant test orchestration and workflow expectations to reflect the actual stage count, coordinating with the maintenance session to avoid conflicting changes.
+> Run targeted checks and the native volume gate, preserve the evidence, and update draft PR #325.
+> Do not merge automatically. Continue autonomously within the approved S09 scope.
+
+The project owner restated the same terms in Dutch on 15 November 2026.
+PR #325 was merged before this record, so "update draft PR #325" can no longer
+be done; the follow-up goes to one new draft PR, with no merge and no
+auto-merge without the project owner's explicit approval
+(ADR-MERGE-HOLD-20261113 and AGENTS.md).
+
+**Decision:**
+- D6 is decided as option (a): POSIX ustar with pax `path` records is the
+  initial interoperable S09 user-export format.
+- The export is a lossy interchange format.
+- The export is not the native Baryon OS/Materiaal format.
+- The export is not a recovery backup; nothing restores from it.
+- The verified archive format v1 (checked by `archive::verify`) stays the only
+  recovery format and is not changed by this decision.
+- The export must refuse unsafe or ambiguous cross-platform names: Windows
+  alternate-data-stream syntax, reserved device names, invalid characters,
+  trailing dots or spaces, and names that collide under case folding or
+  Unicode normalisation. It reports every refused name clearly, never renames
+  a file silently and never permits an unintended overwrite.
+- Metadata loss, the empty-collection limit and the compatibility constraints
+  are documented in S09-BACKUP-ARCHIVE.md, section "User export to ustar".
+
+**Not decided and not authorised:**
+- D1–D5 remain undecided. This decision does not choose a destination, a
+  grant path, per-operation rights, the component that holds the authority or
+  the encrypted NAS/provider variant.
+- No new destination capability, trust boundary or encryption architecture is
+  authorised.
+- A reversible name-mapping mechanism is not part of this decision; it needs a
+  separate proposal.
+- The authorised native ustar-export stage is a test stage only. It uses the
+  existing test-only permissions and storage fixtures and adds no production
+  authority.
+
+**Consequences and limits:**
+- Approval is not implementation. On the recorded source, the converter does
+  not yet refuse the names listed above; the name check, its tests and the
+  native test stage are later, separate tasks. Until they pass, the export
+  does not meet this decision and S09 stays open.
+- The character set that the name check allows is not yet defined, and the
+  reserved-name list includes conservative additions beyond the primary
+  Microsoft list. Both are listed as implementation limits in
+  S09-BACKUP-ARCHIVE.md, section "User export to ustar".
+- The only readers tested are Python's `tarfile` module and GNU tar 1.35.
+  Extraction on Windows or macOS has not been tested.
+- Plaintext archives and exports are written only on disposable test images.
+
+**Revise when:** a reversible name mapping is proposed, a D1–D5 decision
+changes where an export may be written, or a supported reader is shown to
+mishandle pax `path` records.
+
 ## ADR-MERGE-HOLD-20261113 — SHA-bound required merge hold for out-of-band acceptance
 
 Status: accepted, 13 November 2026, on the project owner's instruction after

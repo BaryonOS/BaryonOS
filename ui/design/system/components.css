@@ -1,0 +1,382 @@
+/* BaryonOS design system ds-1.0: components
+   14 November 2026. DESIGN ARTEFACT, not a working OS and not product code.
+   Requires tokens.css (load it first). Every colour, type, radius, motion and elevation value is a var(--...)
+   token from tokens.css; the only other colour keywords are transparent and currentColor. Component-local
+   custom properties (--ds-*) only re-point tokens. Layout sizes (icon boxes, widths) are px on the 4 px grid.
+   Source of truth: ui/design/concepts/orbitaal-v2/index.html (v2 rules named in brackets).
+   Shaped by docs/design/suite/WORKSPACE-REQUIREMENTS.md (S0): D1 no status hue (error = square marker in
+   text colour + icon + message), D2 control height and 24 x 24 targets, D3 neutral surfaces, D9 single-pointer
+   selection. Colour means place only; place and state are always shape + icon + text.
+   States: real pseudo-classes and ARIA; [data-demo~="hover|pressed|focus"] forces a state on a static specimen. */
+
+/* ---------- base ---------- */
+[data-theme] { color: var(--color-text); }
+[data-scale="2"] { zoom: 2; }
+[hidden] { display: none !important; } /* every .ds- class that sets display would otherwise override the UA [hidden] rule */
+:where([class^="ds-"], [class*=" ds-"]) { font-family: var(--font-family-ui); font-feature-settings: var(--font-features-ui); box-sizing: border-box; }
+:where([class^="ds-"], [class*=" ds-"]) *, :where([class^="ds-"], [class*=" ds-"]) *::before, :where([class^="ds-"], [class*=" ds-"]) *::after { box-sizing: border-box; }
+:where(.ds-btn, .ds-switch, .ds-window-ctl, .ds-taskitem, .ds-menu-item, .ds-tab, .ds-input, .ds-kbd) { font-family: var(--font-family-ui); font-feature-settings: var(--font-features-ui); margin: 0; }
+
+/* [v2 .ic] icons: 24-unit grid, 1.6 stroke, round caps and joins; the particle (.pc) follows currentColor unless a place sets it */
+.icon { display: block; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.icon .pc { fill: currentColor; }
+
+/* type roles (type-1.0); tabular figures only on numeral spans */
+.ds-t-caption { font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+.ds-t-body { font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-t-body-dense { font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
+.ds-t-body-strong { font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
+.ds-t-reading { font-size: var(--type-reading-size); line-height: var(--type-reading-line); font-weight: var(--type-reading-weight); }
+.ds-t-title { font-size: var(--type-title-size); line-height: var(--type-title-line); font-weight: var(--type-title-weight); }
+.ds-t-display { font-size: var(--type-display-size); line-height: var(--type-display-line); font-weight: var(--type-display-weight); }
+.ds-num { font-variant-numeric: var(--font-numeric-digits); }
+.ds-muted { color: var(--color-text-muted); }
+.ds-vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* S0 D1: the error mark is a square filled with text.primary (--color-danger), always with an icon and a message */
+.ds-status-marker { display: inline-block; flex: none; width: 10px; height: 10px; background: var(--color-danger); }
+
+/* ---------- focus: one ring, visible in every theme ----------
+   Outer ring (2 px gap shows the base, which is the black separator the contrast theme needs next to white fills);
+   inner ring for items packed in a container (rows, menu items, tabs, window controls, Orbit items). */
+:is(.ds-btn, .ds-input, .ds-switch, .ds-check > input, .ds-radio > input, .ds-tabpanel):is(:focus-visible, [data-demo~="focus"]) { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+:is(.ds-row, .ds-menu-item, .ds-tab, .ds-window-ctl, .ds-taskitem):is(:focus-visible, [data-demo~="focus"]) { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+:is(.ds-btn, .ds-input, .ds-switch, .ds-row, .ds-menu-item, .ds-tab, .ds-window-ctl, .ds-taskitem, .ds-tabpanel):focus:not(:focus-visible):not([data-demo~="focus"]) { outline: none; }
+
+/* ---------- button [v2 .btn] ---------- */
+.ds-btn {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  min-width: var(--space-target-min); min-height: var(--space-target-min); height: var(--space-control-height);
+  padding: 0 var(--space-3); border: 1px solid transparent; border-radius: var(--radius-control);
+  background: transparent; color: var(--color-text); cursor: default; white-space: nowrap; text-decoration: none;
+  font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight);
+  transition: background-color var(--motion-duration-fast) var(--motion-ease-orbital-out), transform var(--motion-duration-fast) var(--motion-ease-orbital-out);
+}
+.ds-btn .icon { width: 18px; height: 18px; }
+.ds-btn[data-size="large"] { height: calc(var(--space-10) + var(--space-1)); padding: 0 var(--space-4); border-radius: var(--radius-control-large); }
+.ds-btn[data-shape="icon"] { width: var(--space-control-height); padding: 0; }
+.ds-btn[data-variant="primary"] { background: var(--color-button-primary-bg); color: var(--color-button-primary-text); }
+.ds-btn[data-variant="primary"]:not(:disabled, [aria-disabled="true"]):is(:hover, [data-demo~="hover"]) { background: var(--color-button-primary-bg-hover); }
+.ds-btn[data-variant="secondary"] { background: var(--color-button-secondary-bg); border-color: var(--color-line-strong); }
+.ds-btn[data-variant="danger"] { border: 2px solid var(--color-danger); color: var(--color-danger); }
+:is(.ds-btn[data-variant="secondary"], .ds-btn[data-variant="quiet"], .ds-btn[data-variant="danger"], .ds-btn:not([data-variant])):not(:disabled, [aria-disabled="true"]):is(:hover, [data-demo~="hover"]) { background: var(--color-hover-strong); }
+.ds-btn:not(:disabled, [aria-disabled="true"]):is(:active, [data-demo~="pressed"], [aria-pressed="true"]) { transform: translateY(1px); }
+:is(.ds-btn[data-variant="secondary"], .ds-btn[data-variant="quiet"], .ds-btn[data-variant="danger"], .ds-btn:not([data-variant])):not(:disabled, [aria-disabled="true"]):is(:active, [data-demo~="pressed"], [aria-pressed="true"]) { background: var(--color-selection); border-color: var(--color-text-muted); }
+.ds-btn[data-variant="primary"]:not(:disabled, [aria-disabled="true"]):is(:active, [data-demo~="pressed"]) { background: var(--color-button-primary-bg); box-shadow: inset 0 0 0 1px var(--color-button-primary-text); }
+/* disabled: shape changes too (dashed edge), never colour or opacity alone */
+.ds-btn:is(:disabled, [aria-disabled="true"]) { background: transparent; border: 1px dashed var(--color-line-strong); color: var(--color-text-disabled); box-shadow: none; transform: none; cursor: not-allowed; }
+/* loading: aria-busy shows the spinner arc; the label stays */
+.ds-btn[aria-busy="true"] { pointer-events: none; }
+.ds-spinner { display: none; flex: none; width: 16px; height: 16px; border-radius: var(--radius-round); border: 2px solid currentColor; border-right-color: transparent; animation: ds-spin var(--motion-duration-loader) var(--motion-ease-linear) infinite; }
+[aria-busy="true"] > .ds-spinner { display: inline-block; }
+
+/* ---------- text and search field [v2 .inp] ---------- */
+.ds-field { display: grid; gap: var(--space-1); min-width: 0; }
+.ds-field-label { font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); color: var(--color-text); }
+.ds-field-hint { margin: 0; font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); color: var(--color-text-muted); }
+.ds-field-error { margin: 0; display: flex; align-items: center; gap: var(--space-2); color: var(--color-danger); font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
+.ds-field-error .icon { width: 16px; height: 16px; }
+.ds-input {
+  width: 100%; height: var(--space-control-height); min-height: var(--space-target-min); padding: 0 var(--space-3);
+  border: 1px solid var(--color-line-strong); border-radius: var(--radius-control); background: var(--color-surface-inset); color: var(--color-text);
+  font-size: var(--type-body-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-weight);
+  transition: border-color var(--motion-duration-fast) var(--motion-ease-orbital-out);
+}
+.ds-input::placeholder { color: var(--color-text-subtle); opacity: 1; }
+.ds-input:is(:hover, [data-demo~="hover"]):not(:disabled) { border-color: var(--color-text-muted); }
+.ds-input[aria-invalid="true"] { border: 2px solid var(--color-danger); }
+.ds-input:disabled { border-style: dashed; color: var(--color-text-disabled); background: transparent; cursor: not-allowed; }
+.ds-input-wrap { position: relative; display: block; }
+.ds-input-wrap > .icon { position: absolute; left: var(--space-3); top: 50%; width: 18px; height: 18px; margin-top: -9px; color: var(--color-text-muted); pointer-events: none; }
+.ds-field[data-variant="search"] .ds-input { padding-left: calc(var(--space-3) + 18px + var(--space-2)); border-radius: var(--radius-pill); }
+.ds-input[type="search"]::-webkit-search-cancel-button { display: none; }
+
+/* ---------- switch, checkbox, radio [v2 .tgl] ---------- */
+.ds-switch { display: inline-flex; align-items: center; gap: var(--space-3); min-height: var(--space-target-min); padding: 0; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--color-text); cursor: default; font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-switch-track { position: relative; flex: none; width: 44px; height: 24px; border-radius: var(--radius-pill); border: 2px solid var(--color-text-muted); background: transparent; transition: background-color var(--motion-duration-selection) var(--motion-ease-orbital-out); }
+.ds-switch-track::after { content: ""; position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; border-radius: var(--radius-round); background: var(--color-text-muted); transition: transform var(--motion-duration-selection) var(--motion-ease-orbital-out); }
+.ds-switch[aria-checked="true"] .ds-switch-track { background: var(--color-text); border-color: var(--color-text); }
+.ds-switch[aria-checked="true"] .ds-switch-track::after { transform: translateX(20px); background: var(--color-surface-inset); }
+.ds-switch:not(:disabled):is(:hover, [data-demo~="hover"]) .ds-switch-track { box-shadow: 0 0 0 4px var(--color-hover-strong); }
+.ds-switch:disabled { color: var(--color-text-disabled); cursor: not-allowed; }
+.ds-switch:disabled .ds-switch-track { border-style: dashed; border-color: var(--color-line-strong); background: transparent; }
+.ds-switch:disabled .ds-switch-track::after { background: var(--color-line-strong); }
+
+.ds-check, .ds-radio { display: inline-flex; align-items: center; gap: var(--space-3); min-height: var(--space-target-min); color: var(--color-text); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-check > input, .ds-radio > input { appearance: none; position: relative; flex: none; width: 20px; height: 20px; margin: 0; border: 2px solid var(--color-text-muted); background: transparent; }
+.ds-check > input { border-radius: var(--radius-keycap); }
+.ds-radio > input { border-radius: var(--radius-round); }
+:is(.ds-check, .ds-radio) > input:not(:disabled):is(:hover, [data-demo~="hover"]) { box-shadow: 0 0 0 4px var(--color-hover-strong); }
+.ds-check > input:checked { background: var(--color-text); border-color: var(--color-text); }
+.ds-check > input:checked::after { content: ""; position: absolute; left: 5px; top: 1px; width: 6px; height: 11px; border: solid var(--color-surface-inset); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+/* a checked radio is a filled disc with a knocked-out centre, not the NAS ring-with-dot (place shapes stay reserved) */
+.ds-radio > input:checked { border-color: var(--color-text); background: radial-gradient(circle, var(--color-surface-inset) 0 3px, var(--color-text) 3.5px); }
+:is(.ds-check, .ds-radio):has(> input:disabled) { color: var(--color-text-disabled); }
+:is(.ds-check, .ds-radio) > input:disabled { border-style: dashed; border-color: var(--color-line-strong); background: transparent; }
+.ds-fieldset { margin: 0; padding: 0; border: 0; display: grid; gap: var(--space-1); }
+.ds-fieldset > legend { padding: 0; margin-bottom: var(--space-1); font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
+
+/* ---------- place badge and shape code [v2 .pill, .ptag, .node] ---------- */
+[data-place="device"] { --ds-c: var(--place-device); }
+[data-place="nas"] { --ds-c: var(--place-nas); }
+[data-place="internet"] { --ds-c: var(--place-internet); }
+.ds-node { position: relative; display: inline-block; flex: none; width: 12px; height: 12px; border-radius: var(--radius-round); }
+.ds-node[data-shape="device"] { background: var(--ds-c); }
+.ds-node[data-shape="nas"] { box-shadow: inset 0 0 0 1.5px var(--ds-c); background: radial-gradient(circle, var(--ds-c) 0 2px, transparent 2.5px); }
+.ds-node[data-shape="internet"] { box-shadow: inset 0 0 0 1.75px var(--ds-c); }
+.ds-node[data-state="off"] { --ds-c: var(--color-text-subtle); }
+.ds-node[data-shape="device"][data-state="off"] { background: none; box-shadow: inset 0 0 0 1.5px var(--ds-c); }
+.ds-node[data-state="ask"] { box-shadow: inset 0 0 0 2px var(--ds-c); }
+/* ask halo [v2 .node.ask::before]: static second ring at rest; it pulses only when motion is allowed */
+.ds-node[data-state="ask"]::before { content: ""; position: absolute; left: -6px; top: -6px; width: 24px; height: 24px; border-radius: var(--radius-round); box-shadow: inset 0 0 0 1.5px var(--ds-c); opacity: .55; animation: ds-halo var(--motion-duration-halo) var(--motion-ease-halo) infinite; }
+.ds-place { display: inline-flex; align-items: center; gap: var(--space-2); height: var(--space-target-min); padding: 0 var(--space-3) 0 var(--space-2); border: 1px solid var(--color-line); border-radius: var(--radius-pill); background: var(--color-pill-bg); color: var(--color-text); white-space: nowrap; font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
+.ds-place .icon { width: 16px; height: 16px; color: var(--color-text-muted); }
+:is(.ds-place, .ds-privacy-col[data-state="lit"], .ds-privacy-col[data-state="ask"], .ds-ask-row) .icon .pc { fill: var(--ds-c, currentColor); }
+
+/* ---------- list row (file row) [v2 .row, .lrw, .sel] ---------- */
+.ds-list { display: grid; gap: 2px; padding: var(--space-1); margin: 0; list-style: none; }
+.ds-list-head { display: grid; grid-template-columns: 20px minmax(0, 1fr) 132px 64px 112px; column-gap: var(--space-3); padding: 0 var(--space-3) var(--space-1); color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+.ds-row {
+  position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr) 132px 64px 112px; column-gap: var(--space-3); align-items: center;
+  min-height: var(--space-control-height); padding: 0 var(--space-3); border-radius: var(--radius-row); color: var(--color-text); cursor: default; white-space: nowrap;
+  font-size: var(--type-body-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-weight);
+  transition: background-color var(--motion-duration-fast) var(--motion-ease-orbital-out);
+}
+.ds-row > .icon { width: 20px; height: 20px; color: var(--color-text-muted); }
+.ds-row-name { overflow: hidden; text-overflow: ellipsis; }
+.ds-row-meta { color: var(--color-text-muted); text-align: right; font-variant-numeric: var(--font-numeric-digits); }
+.ds-row-date { color: var(--color-text-muted); }
+.ds-row .ds-place { justify-self: start; }
+.ds-row:is(:hover, [data-demo~="hover"]) { background: var(--color-hover); }
+.ds-row[aria-selected="true"] { background: var(--color-selection); }
+.ds-row[aria-selected="true"] .ds-row-name { line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); } /* body-strong 15/22/600; fits the 24 px compact row */
+/* MF8a: selection is a neutral tapered blade at the left edge; it grows from the row centre (B1, 160 ms) */
+.ds-row::before { content: ""; position: absolute; left: -1px; top: 50%; width: 3px; height: 20px; margin-top: -10px; border-radius: var(--radius-round); background: linear-gradient(180deg, transparent, var(--color-blade) 26%, var(--color-blade) 74%, transparent); transform: scaleY(0); transition: transform var(--motion-duration-selection) var(--motion-ease-orbital-out); }
+.ds-row[aria-selected="true"]::before { transform: scaleY(1); }
+[data-density="compact"] .ds-place { height: 20px; }
+
+/* ---------- privacy instrument [v2 .tri] ---------- */
+.ds-privacy { position: relative; display: inline-flex; align-items: center; gap: var(--space-4); height: 48px; padding: 0 var(--space-3) 0 var(--space-4); border-radius: var(--radius-tile); background: var(--color-well); border: 1px solid var(--color-line); white-space: nowrap; color: var(--color-text); }
+.ds-privacy[data-state="ask"] { border-color: var(--place-internet-line); }
+.ds-privacy-track { position: relative; display: flex; gap: var(--space-1); height: 48px; }
+.ds-privacy-col { position: relative; width: 120px; display: flex; flex-direction: column; align-items: center; gap: var(--space-1); padding-top: var(--space-2); }
+.ds-privacy-lbl { display: flex; align-items: center; gap: var(--space-1); color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); } /* body, so the lit state is body-strong on the same 22 px line */
+.ds-privacy-lbl .icon { width: 16px; height: 16px; }
+.ds-privacy-col:is([data-state="lit"], [data-state="ask"]) .ds-privacy-lbl { color: var(--color-text); font-weight: var(--type-body-strong-weight); }
+.ds-privacy-col + .ds-privacy-col::before { content: ""; position: absolute; top: 13.5px; left: -54px; width: 104px; height: 1px; background: linear-gradient(90deg, transparent, var(--color-line-strong) 15%, var(--color-line-strong) 85%, transparent); }
+.ds-privacy-col[data-state="lit"] + .ds-privacy-col[data-state="lit"]::before { top: 13px; height: 2px; border-radius: var(--radius-mark); background: linear-gradient(90deg, transparent, var(--color-blade) 18%, var(--color-blade) 82%, transparent); box-shadow: 0 0 6px var(--color-blade-glow); }
+.ds-privacy-text { display: flex; flex-direction: column; justify-content: center; }
+.ds-privacy-text > :first-child { font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
+.ds-privacy-text > :last-child { color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+
+/* ---------- permission prompt on the Kern trusted surface [v2 .kern, .kband, .kbond, .kw] ----------
+   The prompt carries the OPPOSITE theme on its own element (MF1); contrast keeps contrast. Opaque, never glass. */
+.ds-ask { position: relative; width: 560px; max-width: 100%; border: 1.5px solid transparent; border-radius: var(--radius-trusted); color: var(--material-kern-tx);
+  background: linear-gradient(var(--material-kern-bg), var(--material-kern-bg)) padding-box, var(--material-kern-rim) border-box; box-shadow: var(--elev-trusted);
+  animation: ds-rise var(--motion-duration-ask) var(--motion-ease-orbital-out); }
+.ds-ask[data-theme="contrast"], [data-theme="contrast"] .ds-ask:not([data-theme]) { border-width: 2px; }
+.ds-ask-band { display: flex; align-items: center; gap: var(--space-2); height: 44px; padding: 0 var(--space-6); border-bottom: 1px solid var(--material-kern-line); color: var(--material-kern-tx2); font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
+.ds-ask-band .icon { width: 20px; height: 20px; }
+.ds-ask-body { padding: var(--space-4) var(--space-6) var(--space-5); }
+.ds-ask-title { margin: 0; font-size: var(--type-title-size); line-height: var(--type-title-line); font-weight: var(--type-title-weight); color: var(--material-kern-tx); }
+.ds-ask-bond { margin: var(--space-3) 0 0; display: grid; }
+.ds-ask-row { display: grid; grid-template-columns: 32px 96px minmax(0, 1fr); column-gap: var(--space-4); align-items: center; min-height: 48px; }
+.ds-ask-row dt { color: var(--material-kern-tx2); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask-row dd { margin: 0; display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; color: var(--material-kern-tx); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask-row dd strong { font-weight: var(--type-body-strong-weight); }
+.ds-ask-node { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-round); border: 1px solid var(--material-kern-line); color: var(--material-kern-tx); }
+.ds-ask-node .icon { width: 16px; height: 16px; }
+.ds-ask-row[data-place] .ds-ask-node { border: 1.5px solid var(--ds-c); }
+.ds-ask-app { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-tile-small); background: var(--material-tile-bg); box-shadow: var(--material-tile-rim); color: var(--material-tile-fg); }
+.ds-ask-app .icon { width: 20px; height: 20px; }
+.ds-ask-app .icon .pc { fill: var(--material-tile-pc); }
+.ds-ask-dur { border-top: 1px solid var(--material-kern-line); border-bottom: 1px solid var(--material-kern-line); margin: var(--space-2) 0 var(--space-4); }
+.ds-ask-warn { display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3) var(--space-4); border-radius: var(--radius-tile); background: var(--material-kern-warn-bg); border: 1px solid var(--material-kern-warn-line); color: var(--material-kern-tx); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-ask-warn .icon { width: 20px; height: 20px; margin-top: 1px; color: var(--material-kern-warn-ic); }
+.ds-ask-title:focus { outline: none; }
+.ds-ask-title:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-item); }
+/* owner decision 14 Nov 2026: three equal choices (same variant, size and width), stacked in the fixed order
+   narrow grant, broad grant, deny; stacking keeps long Dutch labels whole at any width and at 200 % */
+.ds-ask-choices { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); margin-top: var(--space-5); }
+.ds-ask-choices > .ds-btn { width: 100%; }
+.ds-ask .ds-btn { color: var(--material-kern-tx); }
+.ds-ask-terms { display: grid; gap: var(--space-1); margin: var(--space-3) 0 0; padding: 0; list-style: none; color: var(--material-kern-tx2); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+.ds-ask-terms strong { color: var(--material-kern-tx); font-weight: var(--type-caption-weight); }
+
+/* ---------- app grants (one revocable standing grant per row; Instellingen › Privacy en beveiliging › Appmachtigingen) ---------- */
+.ds-grants { display: grid; gap: var(--space-2); max-width: 760px; margin: 0; padding: 0; list-style: none; } /* a row is one reading unit: Intrekken stays near what it revokes */
+.ds-grant { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; column-gap: var(--space-4); align-items: center; min-height: 64px; padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface-raised); color: var(--color-text); }
+.ds-grant-app { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-tile-small); background: var(--material-tile-bg); box-shadow: var(--material-tile-rim); color: var(--material-tile-fg); }
+.ds-grant-app .icon { width: 20px; height: 20px; }
+.ds-grant-app .icon .pc { fill: var(--material-tile-pc); }
+.ds-grant-name { margin: 0; font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); overflow-wrap: anywhere; }
+.ds-grant-meta { margin: 0; color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+/* UX-D-C1 repair-1 (design proposal for UX-E): reach and duration are shape + icon + text, never colour alone.
+   Reach reuses .ds-place; the duration chip is neutral: dashed edge + klok = ends when the app closes,
+   solid 2 px edge + altijd (closed loop, repair-2; the lock stays on the Kern band) = until revoked. */
+.ds-grant-reach { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: var(--space-2) 0 0; }
+.ds-grant-reach > * { max-width: 100%; height: auto; min-height: var(--space-target-min); white-space: normal; overflow-wrap: anywhere; }
+.ds-grant-until { display: inline-flex; align-items: center; gap: var(--space-2); padding: 0 var(--space-3) 0 var(--space-2); border: 1px dashed var(--color-line-strong); border-radius: var(--radius-pill); color: var(--color-text); font-size: var(--type-body-dense-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-dense-weight); }
+.ds-grant-until[data-until="always"] { border: 2px solid var(--color-line-strong); }
+.ds-grant-until .icon { flex: none; width: 16px; height: 16px; color: var(--color-text-muted); }
+.ds-grant-empty { margin: 0; padding: var(--space-3) var(--space-4); color: var(--color-text-muted); }
+.ds-grant-empty:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-item); }
+/* announcement region: present in the accessibility tree, not drawn */
+.ds-live { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* ---------- window chrome [v2 .win, .bar, .wc, .bl] ---------- */
+.ds-window { position: relative; display: flex; flex-direction: column; min-width: 0; border: 1px solid var(--color-line); border-radius: var(--radius-window); background: var(--color-surface); box-shadow: var(--elev-window); }
+.ds-window-bar { position: relative; display: flex; align-items: center; gap: var(--space-2); height: 52px; padding: 0 var(--space-2) 0 var(--space-4); background: var(--color-surface-panel); border-bottom: 1px solid var(--color-line); border-radius: calc(var(--radius-window) - 1px) calc(var(--radius-window) - 1px) 0 0; }
+.ds-window-bar > .icon { width: 20px; height: 20px; color: var(--color-text-muted); }
+.ds-window-title { margin: 0; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
+.ds-window-ctls { display: flex; gap: 2px; flex: none; }
+.ds-window-ctl { display: grid; place-items: center; width: 40px; height: 32px; padding: 0; border: 0; border-radius: var(--radius-row); background: transparent; color: var(--color-text-muted); cursor: default; transition: background-color var(--motion-duration-fast) var(--motion-ease-orbital-out); }
+.ds-window-ctl .icon { width: 16px; height: 16px; }
+.ds-window-ctl:is(:hover, [data-demo~="hover"]) { background: var(--color-hover-strong); color: var(--color-text); }
+.ds-window-ctl:is(:active, [data-demo~="pressed"]) { background: var(--color-selection); }
+.ds-window-body { flex: 1; padding: var(--space-4); }
+/* active: neutral light-blade on the top edge (focus blade, B1 260 ms) */
+.ds-window:is([data-state="active"], [data-state="maximised"])::before { content: ""; position: absolute; z-index: 2; top: 0; left: var(--space-6); width: min(380px, 60%); height: 2px; border-radius: var(--radius-round); background: linear-gradient(90deg, transparent, var(--color-blade) 20%, var(--color-blade) 64%, transparent); box-shadow: 0 0 8px var(--color-blade-glow); pointer-events: none; }
+.ds-window[data-state="inactive"] { box-shadow: var(--elev-window-inactive); }
+.ds-window[data-state="inactive"] :is(.ds-window-title, .ds-window-ctl, .ds-window-bar > .icon) { color: var(--color-text-subtle); }
+.ds-window[data-state="maximised"] { border-radius: 0; border-width: 0; box-shadow: none; }
+.ds-window[data-state="maximised"] .ds-window-bar { border-radius: 0; }
+
+/* ---------- taskbar item in Orbit [v2 .orbit, .ob, .ob.run, .ob.act] ---------- */
+.ds-orbit { position: relative; display: inline-flex; align-items: center; gap: var(--space-1); height: 64px; padding: var(--space-2); border-radius: var(--radius-orbit); border: 1px solid var(--color-rim-c); background: var(--material-orbit-bg); box-shadow: var(--elev-orbit); backdrop-filter: blur(24px) saturate(1.4); }
+[data-theme="contrast"] .ds-orbit { border-width: 2px; backdrop-filter: none; }
+.ds-orbit-sep { flex: none; width: 1px; height: 28px; margin: 0 var(--space-1); background: var(--color-line-strong); }
+.ds-taskitem { position: relative; display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 0; border-radius: var(--radius-card); background: transparent; color: var(--color-text); cursor: default; transition: background-color var(--motion-duration-fast) var(--motion-ease-orbital-out); }
+.ds-taskitem .icon { width: 24px; height: 24px; }
+.ds-taskitem:is(:hover, [data-demo~="hover"]) { background: var(--color-hover-strong); }
+.ds-taskitem:is(:active, [data-demo~="pressed"]) { background: var(--color-selection); }
+/* running: short bar under the icon; active adds the blade inside Orbit's top edge; attention widens the bar and adds a numbered badge */
+.ds-taskitem:is([data-state="running"], [data-state="active"], [data-state="attention"])::after { content: ""; position: absolute; bottom: 1px; left: 50%; width: 12px; height: 3px; margin-left: -6px; border-radius: var(--radius-pill); background: var(--color-text-muted); }
+.ds-taskitem[data-state="active"]::before { content: ""; position: absolute; left: 50%; top: -7px; width: 36px; height: 2px; margin-left: -18px; border-radius: var(--radius-mark); background: linear-gradient(90deg, transparent, var(--color-blade) 25%, var(--color-blade) 75%, transparent); box-shadow: 0 4px 8px -3px var(--color-blade-glow); pointer-events: none; transition: transform var(--motion-duration-slow) var(--motion-ease-orbital-out); }
+.ds-taskitem[data-state="attention"]::after { width: 24px; margin-left: -12px; background: var(--color-text); }
+.ds-taskitem-badge { position: absolute; top: 2px; right: 2px; min-width: 20px; height: 18px; padding: 0 var(--space-1); border-radius: var(--radius-keycap); background: var(--color-text); color: var(--color-surface-inset); box-shadow: 0 0 0 2px var(--color-surface-raised); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); font-variant-numeric: var(--font-numeric-digits); text-align: center; }
+
+/* ---------- menu ---------- */
+.ds-menu-anchor { position: relative; display: inline-block; }
+.ds-menu { position: absolute; z-index: 20; left: 0; top: calc(100% + var(--space-1)); display: grid; gap: 2px; min-width: 300px; margin: 0; padding: var(--space-1); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface-raised); box-shadow: var(--elev-window-inactive); animation: ds-rise var(--motion-duration-base) var(--motion-ease-orbital-out); }
+.ds-menu-item { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; column-gap: var(--space-3); align-items: center; width: 100%; min-height: var(--space-control-height); padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3); border: 0; border-radius: var(--radius-item); background: transparent; color: var(--color-text); text-align: left; cursor: default; font-size: var(--type-body-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-weight); }
+.ds-menu-item > .icon { width: 18px; height: 18px; color: var(--color-text-muted); }
+.ds-menu-item:not([aria-disabled="true"]):is(:hover, [data-demo~="hover"]), .ds-menu-item:is(:focus-visible, [data-demo~="focus"]) { background: var(--color-hover-strong); }
+.ds-menu-item[aria-disabled="true"] { color: var(--color-text-disabled); cursor: not-allowed; }
+.ds-menu-item[aria-disabled="true"] > .icon { color: var(--color-text-disabled); }
+.ds-menu-why { display: block; color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+.ds-menu-sub { width: 16px; height: 16px; color: var(--color-text-muted); justify-self: end; }
+.ds-menu-sep { height: 1px; margin: var(--space-1) var(--space-2); background: var(--color-line); }
+.ds-chev-down { transform: rotate(90deg); }
+
+/* ---------- keyboard key [v2 .kc, G7] ---------- */
+.ds-kbd { display: inline-flex; align-items: center; min-height: var(--space-target-min); padding: 0 var(--space-2); border-radius: var(--radius-keycap); box-shadow: inset 0 0 0 1px var(--color-text-subtle); background: transparent; color: var(--color-text-muted); white-space: nowrap; font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); }
+.ds-kbd-combo { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); }
+
+/* ---------- tabs ---------- */
+.ds-tablist { display: flex; gap: var(--space-1); border-bottom: 1px solid var(--color-line); }
+.ds-tab { position: relative; min-height: var(--space-control-height); padding: 0 var(--space-3); border: 0; border-radius: var(--radius-item) var(--radius-item) 0 0; background: transparent; color: var(--color-text-muted); cursor: default; font-size: var(--type-body-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-weight); }
+.ds-tab:is(:hover, [data-demo~="hover"]) { background: var(--color-hover); color: var(--color-text); }
+.ds-tab[aria-selected="true"] { color: var(--color-text); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
+.ds-tab[aria-selected="true"]::after { content: ""; position: absolute; left: var(--space-3); right: var(--space-3); bottom: -1px; height: 2px; border-radius: var(--radius-mark); background: var(--color-blade); }
+.ds-tabpanel { padding: var(--space-4) var(--space-1) 0; border-radius: var(--radius-item); color: var(--color-text); font-size: var(--type-body-size); line-height: var(--type-body-line); }
+
+.ds-tabs { display: grid; min-width: 0; }
+
+/* ---------- toast / notification ---------- */
+.ds-toast { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; column-gap: var(--space-3); row-gap: var(--space-2); align-items: start; width: 440px; max-width: 100%; padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4); border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface-raised); box-shadow: var(--elev-window-inactive); color: var(--color-text); animation: ds-rise var(--motion-duration-base) var(--motion-ease-orbital-out); }
+.ds-toast > .icon { width: 20px; height: 20px; margin-top: 2px; color: var(--color-text-muted); }
+.ds-toast-title { margin: 0; font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
+.ds-toast-body { margin: 0; color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-toast-actions { grid-column: 2 / 4; display: flex; gap: var(--space-2); justify-content: flex-end; }
+.ds-toast-time { color: var(--color-text-muted); font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-variant-numeric: var(--font-numeric-digits); }
+
+/* ---------- banner: tone by icon, words and edge; no status hue (S0 D1) ---------- */
+.ds-banner { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-line-strong); border-radius: var(--radius-tile); background: transparent; color: var(--color-text); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-banner > .icon { width: 20px; height: 20px; margin-top: 1px; }
+.ds-banner > .ds-status-marker { margin-top: 6px; }
+.ds-banner p { margin: 0; flex: 1; }
+.ds-banner strong { font-weight: var(--type-body-strong-weight); }
+.ds-banner[data-tone="error"] { border: 2px solid var(--color-danger); }
+.ds-banner[data-tone="success"] { border-style: solid; }
+.ds-banner[data-tone="info"] { border-color: var(--color-line); }
+
+/* ---------- dialog with scrim [v2 .scrim] ---------- */
+.ds-dialog { width: 440px; max-width: calc(100% - var(--space-8)); padding: 0; border: 1px solid var(--color-line); border-radius: var(--radius-window); background: var(--color-surface); color: var(--color-text); box-shadow: var(--elev-window); animation: ds-rise var(--motion-duration-ask) var(--motion-ease-orbital-out); }
+.ds-dialog[data-variant="ask"] { width: fit-content; border: 0; background: transparent; box-shadow: none; overflow: visible; }
+/* C1 repair-2: the modal prompt fits the viewport at 200 % (measured in 1440 x 1000 and 960 x 667 windows; WCAG 1.4.4, 1.4.10). The dialog keeps the
+   UA max-height and overflow: visible (the Kern shadow is not clipped); the body scrolls under the fixed band, so the
+   trusted-surface band stays in view while Tab scrolls a choice into view. Scoped to the dialog: inline specimens keep
+   their full height. */
+.ds-dialog[data-variant="ask"][open] { display: flex; flex-direction: column; }
+.ds-dialog[data-variant="ask"] > .ds-ask { display: flex; flex-direction: column; min-height: 0; overflow: clip; } /* the scrollbar stays inside the rounded edge; the shadow is outside the box */
+.ds-dialog[data-variant="ask"] .ds-ask-band { flex: none; }
+.ds-dialog[data-variant="ask"] .ds-ask-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: var(--space-2); scrollbar-color: var(--material-kern-tx2) var(--material-kern-bg); }
+.ds-dialog::backdrop { background: var(--color-scrim); }
+.ds-scrim { position: absolute; inset: 0; background: var(--color-scrim); }
+.ds-dialog-body { display: grid; gap: var(--space-3); padding: var(--space-6); }
+.ds-dialog-title { margin: 0; font-size: var(--type-title-size); line-height: var(--type-title-line); font-weight: var(--type-title-weight); }
+.ds-dialog-text { margin: 0; color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-dialog-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-3); padding: 0 var(--space-6) var(--space-6); }
+
+/* ---------- progress ---------- */
+.ds-progress-field { display: grid; gap: var(--space-2); }
+.ds-progress-label { display: flex; justify-content: space-between; gap: var(--space-3); font-size: var(--type-body-size); line-height: var(--type-body-dense-line); font-weight: var(--type-body-weight); }
+.ds-progress-label > :last-child { color: var(--color-text-muted); }
+.ds-progress { position: relative; height: 8px; overflow: hidden; border-radius: var(--radius-pill); border: 1px solid var(--color-line-strong); background: var(--color-surface-inset); }
+.ds-progress-bar { position: absolute; left: 0; top: 0; bottom: 0; width: var(--ds-value, 0%); border-radius: var(--radius-pill); background: var(--color-text); transition: width var(--motion-duration-base) var(--motion-ease-orbital-out); }
+.ds-progress[data-state="indeterminate"] .ds-progress-bar { width: 32%; animation: ds-slide var(--motion-duration-loader) var(--motion-ease-in-out) infinite; }
+
+/* ---------- empty, skeleton and error states ---------- */
+.ds-empty { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-8) var(--space-6); text-align: center; color: var(--color-text); }
+.ds-empty > .icon { width: 48px; height: 48px; stroke-width: 1.2; color: var(--color-text-muted); }
+.ds-empty-title { margin: 0; display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--type-body-strong-size); line-height: var(--type-body-strong-line); font-weight: var(--type-body-strong-weight); }
+.ds-empty-hint { margin: 0; max-width: 420px; color: var(--color-text-muted); font-size: var(--type-body-size); line-height: var(--type-body-line); font-weight: var(--type-body-weight); }
+.ds-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin-top: var(--space-2); }
+.ds-empty[data-tone="error"] { border: 2px solid var(--color-danger); border-radius: var(--radius-card); }
+.ds-skeleton { display: grid; gap: var(--space-3); padding: var(--space-2) var(--space-3); }
+.ds-skeleton-row { display: grid; grid-template-columns: 20px minmax(0, 1fr) 96px; gap: var(--space-3); align-items: center; height: var(--space-control-height); }
+.ds-skeleton-line { display: block; height: 12px; border-radius: var(--radius-pill); background: linear-gradient(90deg, var(--color-hover) 0%, var(--color-hover-strong) 50%, var(--color-hover) 100%); background-size: 200% 100%; animation: ds-shimmer var(--motion-duration-loader-pulse) var(--motion-ease-linear) infinite; }
+.ds-skeleton-line[data-shape="icon"] { height: 20px; border-radius: var(--radius-item); }
+[data-theme="contrast"] .ds-skeleton-line { background: transparent; border: 1px dashed var(--color-line-strong); }
+
+/* ---------- tooltip ---------- */
+.ds-tip-anchor { position: relative; display: inline-flex; }
+.ds-tip { position: absolute; z-index: 30; left: 50%; bottom: calc(100% + var(--space-2)); transform: translateX(-50%); display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-2); border-radius: var(--radius-tile-small); background: var(--color-text); color: var(--color-surface-inset); white-space: nowrap; pointer-events: none; visibility: hidden; opacity: 0; font-size: var(--type-caption-size); line-height: var(--type-caption-line); font-weight: var(--type-caption-weight); transition: opacity var(--motion-duration-fast) var(--motion-ease-orbital-out); }
+.ds-tip-anchor:is(:hover, :focus-within):not([data-dismissed]) > .ds-tip, .ds-tip[data-state="open"] { visibility: visible; opacity: 1; }
+.ds-tip .ds-kbd { min-height: 18px; color: inherit; box-shadow: inset 0 0 0 1px currentColor; }
+
+/* ---------- motion ---------- */
+@keyframes ds-halo { 0% { transform: scale(.55); opacity: .7; } 70%, 100% { transform: scale(1.15); opacity: 0; } }
+@keyframes ds-spin { to { transform: rotate(360deg); } }
+@keyframes ds-slide { from { transform: translateX(-100%); } to { transform: translateX(312%); } }
+@keyframes ds-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@keyframes ds-rise { from { opacity: 0; transform: translateY(12px); } }
+/* Reduced motion: durations are already 0 ms (tokens); infinite and entrance animations are removed explicitly and
+   the static form is designed: halo = still double ring, spinner = still arc, indeterminate = full striped track. */
+@media (prefers-reduced-motion: reduce) {
+  :is(.ds-node, .ds-spinner, .ds-progress-bar, .ds-skeleton-line, .ds-menu, .ds-ask, .ds-dialog, .ds-toast), .ds-node::before { animation: none !important; }
+  .ds-progress[data-state="indeterminate"] .ds-progress-bar { width: 100%; transform: none; background: repeating-linear-gradient(90deg, var(--color-text) 0 8px, transparent 8px 16px); }
+  .ds-skeleton-line { background: var(--color-hover-strong); }
+}
+[data-motion="reduce"] :is(.ds-node, .ds-spinner, .ds-progress-bar, .ds-skeleton-line, .ds-menu, .ds-ask, .ds-dialog, .ds-toast), [data-motion="reduce"] .ds-node::before { animation: none !important; }
+[data-motion="reduce"] .ds-progress[data-state="indeterminate"] .ds-progress-bar { width: 100%; transform: none; background: repeating-linear-gradient(90deg, var(--color-text) 0 8px, transparent 8px 16px); }
+[data-motion="reduce"] .ds-skeleton-line { background: var(--color-hover-strong); }
+[data-theme="contrast"] .ds-skeleton-line { background: transparent; }
+
+/* ---------- high contrast: no translucency, edges carry every boundary ---------- */
+[data-theme="contrast"] .ds-row[aria-selected="true"] { box-shadow: inset 0 0 0 2px var(--color-line-strong); }
+[data-theme="contrast"] .ds-node[data-shape="device"]:not([data-state="off"]) { box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 3.5px var(--color-text); }
+[data-theme="contrast"] .ds-privacy { border-width: 2px; }
+[data-theme="contrast"] .ds-tab[aria-selected="true"]::after { height: 3px; }
+/* the ring is #FFE34D (1.28:1 against white): keep a 1 px black or #333333 gap between it and the white underline, tab-list line and row blade */
+[data-theme="contrast"] .ds-tab:is(:focus-visible, [data-demo~="focus"]) { outline-offset: -5px; }
+[data-theme="contrast"] .ds-row:is(:focus-visible, [data-demo~="focus"])::before { left: 3px; }
+/* no translucency in contrast: the ask halo is a solid still ring, entrances and the tooltip appear without fades */
+[data-theme="contrast"] .ds-node[data-state="ask"]::before { opacity: 1; animation: none !important; }
+:is([data-theme="contrast"] :is(.ds-menu, .ds-ask, .ds-dialog, .ds-toast), :is(.ds-ask, .ds-dialog)[data-theme="contrast"]) { animation: none; }
+[data-theme="contrast"] .ds-tip { transition: none; }
+[data-theme="contrast"] .ds-grant { border-width: 2px; }
+/* base verifier minors (ds-1.0 c1): keep a 1 px black gap between the #FFE34D ring and white marks */
+[data-theme="contrast"] .ds-taskitem::after { bottom: 4px; }
+[data-theme="contrast"] .ds-menu { top: calc(100% + 5px); }

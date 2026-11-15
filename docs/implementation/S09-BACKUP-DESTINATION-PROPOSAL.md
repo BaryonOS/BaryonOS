@@ -1,9 +1,11 @@
 # S09 — Backup destination and its capability: decision proposal
 
-**Status: proposal, awaiting a decision by the project owner (13 November
-2026).** This document establishes no security contract and changes no
-existing one. Nothing in it is implemented. Until the project owner decides,
-the only archive authority that exists is the test-fixture grant described in
+**Status: D6 decided as (a) by the project owner on 14 November 2026
+([ADR-S09-USTAR-20261114](../DECISIONS.md)); D1–D5 remain a proposal,
+awaiting a decision by the project owner (13 November 2026).** This document
+establishes no security contract and changes no existing one. Apart from the
+host-tested ustar converter that D6 (a) names, nothing in it is implemented.
+Until the project owner decides D1–D5, the only archive authority that exists is the test-fixture grant described in
 [S09-BACKUP-ARCHIVE.md](S09-BACKUP-ARCHIVE.md), section "Native slice". That
 grant is a fixture, not this design.
 
@@ -117,7 +119,14 @@ destination.
 key path, which the project rules do not allow without a recorded threat
 model and dependency review.
 
-### D6 — Common export format
+### D6 — Common export format (decided: (a), 14 November 2026)
+
+**Decided: (a), by the project owner on 14 November 2026
+([ADR-S09-USTAR-20261114](../DECISIONS.md)).** The export is a lossy
+interchange format, not the native Baryon OS/Materiaal format and not a
+recovery copy; format v1 stays the only recovery format. The decision grants
+no destination capability, trust boundary or encryption architecture. The
+options and the recommendation below are kept as the record of the proposal.
 
 - **(a) POSIX ustar with pax `path` records** for names that are not ASCII:
   one file per document under a `<collection>/` path prefix. There are no
@@ -145,6 +154,12 @@ domain with an empty collection "Werk" and an uncollected document "Werk"
 impossible to export until one of them is renamed; refusing more names would
 do the same for more domains.
 
+*Settled by the decision:* the export must refuse those names as well and
+report every refused name; it never renames a file and never overwrites one.
+The converter does not yet do this. The name check is a later task, and its
+limits are listed in [S09-BACKUP-ARCHIVE.md](S09-BACKUP-ARCHIVE.md), "User
+export to ustar".
+
 ## What a decision changes
 
 - If D1 (a) and D3 are accepted: a native step on a second whole virtual disk
@@ -154,8 +169,9 @@ do the same for more domains.
 - If D1 (b) is accepted: a destination service specification
   (`docs/implementation/`), an ADR, an interface with negative tests, and
   native acceptance come first; the portal changes only its sink and source.
-- Either way, S09 also needs a user-facing task, and the export format (D6)
-  confirmed and written out natively, before it can be accepted.
+- Either way, S09 also needs a user-facing task, and the export format (D6,
+  decided as (a)) checked for unsafe names and written out natively, before
+  it can be accepted.
 
 ## Evidence boundary
 

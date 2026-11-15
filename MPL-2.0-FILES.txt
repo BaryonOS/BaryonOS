@@ -208,9 +208,15 @@ kernel/src/memory.rs
 kernel/src/serial.rs
 plugins/token-guard/.claude-plugin/plugin.json
 plugins/token-guard/.codex-plugin/plugin.json
+plugins/token-guard/.mcp.json
+plugins/token-guard/config/claude-mcp.json
 plugins/token-guard/hooks/hooks.json
+plugins/token-guard/mcp.json
 plugins/token-guard/plugin.json
 plugins/token-guard/skills/token-guard/scripts/tokenguard.py
+plugins/token-guard/skills/token-guard/scripts/tokenguard_hook.py
+plugins/token-guard/skills/token-guard/scripts/tokenguard_init.py
+plugins/token-guard/skills/token-guard/scripts/tokenguard_mcp.py
 rust-toolchain.toml
 sdk/Cargo.toml
 sdk/app-management/Cargo.toml
@@ -681,6 +687,9 @@ tests/test_system_harness.py
 tests/test_tcp_harness.py
 tests/test_tcp_transcript.py
 tests/test_tokenguard.py
+tests/test_tokenguard_hook.py
+tests/test_tokenguard_init.py
+tests/test_tokenguard_mcp.py
 tests/test_update_harness.py
 tests/test_volume_disk.py
 tests/test_volume_harness.py
@@ -716,6 +725,7 @@ tools/materiaal_cold.py
 tools/mutate_volume.py
 tools/net_test_peer.py
 tools/network_service_peer.py
+tools/package_token_guard.py
 tools/package_windows_qemu.py
 tools/preflight.py
 tools/progress.py
