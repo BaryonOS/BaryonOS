@@ -991,10 +991,61 @@ fn tar_extract(tar: &[u8]) -> std::path::PathBuf {
     dir
 }
 
+/// Both passes of the export: check every name, then write.
 fn ustar(bytes: &[u8]) -> (Result<archive::Summary, Status>, Vec<u8>) {
     let mut out = Bytes(Vec::new());
-    let result = ustar::from_archive(&mut reader(bytes), &mut scratch(), &mut out);
+    let result = ustar::check(&mut reader(bytes), &mut scratch()).and_then(|(_, names)| {
+        ustar::from_archive(&mut reader(bytes), &mut scratch(), &names, &mut out)
+    });
     (result, out.0)
+}
+
+fn names(bytes: &[u8]) -> ustar::Names {
+    ustar::check(&mut reader(bytes), &mut scratch()).unwrap().1
+}
+
+/// For a valid archive whose export is refused: no output at all, and every
+/// refused name (objects in slot order, then collections) with its reasons.
+fn report(bytes: &[u8]) -> Vec<(Vec<u8>, u8)> {
+    assert!(archive::verify(&mut reader(bytes), &mut scratch()).is_ok());
+    let (result, tar) = ustar(bytes);
+    assert_eq!(result, Err(Status::Invalid));
+    assert!(tar.is_empty(), "a refused export writes nothing");
+    let names = names(bytes);
+    assert!(names.refused());
+    names.object[..names.objects]
+        .iter()
+        .chain(&names.collection)
+        .filter(|name| name.reasons != 0)
+        .map(|name| (name.name().to_vec(), name.reasons))
+        .collect()
+}
+
+/// Object records of `exported(500)`.
+const NOTES: usize = HEADER + 48;
+const PLAN: usize = NOTES + OBJECT_RECORD + 300;
+
+/// Rename the object record at `at` and move it to `collection`.
+fn renamed(bytes: &[u8], at: usize, name: &str, collection: u8) -> Vec<u8> {
+    resealed(bytes.to_vec(), at, OBJECT_RECORD, |r| {
+        r[1] = name.len() as u8;
+        r[2] = collection;
+        r[48..80].fill(0);
+        r[48..48 + name.len()].copy_from_slice(name.as_bytes());
+    })
+}
+
+/// Rename collection 1 ("Werk", which holds "Notes").
+fn collection_renamed(bytes: &[u8], name: &str) -> Vec<u8> {
+    resealed(bytes.to_vec(), HEADER, 48, |r| {
+        r[1] = name.len() as u8;
+        r[8..40].fill(0);
+        r[8..8 + name.len()].copy_from_slice(name.as_bytes());
+    })
+}
+
+fn only(name: &str, reasons: u8) -> Vec<(Vec<u8>, u8)> {
+    vec![(name.as_bytes().to_vec(), reasons)]
 }
 
 #[test]
@@ -1046,60 +1097,353 @@ fn ustar_export_opens_with_a_standard_reader() {
 }
 
 #[test]
+fn ustar_export_accepts_latin_names_and_dingbats() {
+    let bytes = exported(500);
+    let accepted = renamed(&renamed(&bytes, NOTES, "Privé", 1), PLAN, "Notitie ✓", 0);
+    let (result, tar) = ustar(&accepted);
+    assert_eq!(result.map(|s| s.objects), Ok(3));
+    let paths: Vec<String> = tarfile(&tar)
+        .iter()
+        .map(|row| row.split('\t').next().unwrap().to_owned())
+        .collect();
+    assert_eq!(paths, ["Werk/Privé", "Notitie ✓", "Empty"]);
+    for name in [
+        "Straße",
+        "ŁÓDŹ",
+        "Œuvre ½",
+        "a b",
+        "Plan.txt",
+        "#1 [draft]",
+        "~$x",
+        "CONSOLE",
+        "COM10",
+        "LPT",
+        "xCON",
+        "COM¹0",
+        ".CON",
+        "CON-1",
+        "NUL_",
+    ] {
+        assert_eq!(ustar::reasons(name.as_bytes()), 0, "{name}");
+        assert!(ustar(&renamed(&bytes, PLAN, name, 0)).0.is_ok(), "{name}");
+    }
+}
+
+#[test]
+fn ustar_export_refuses_windows_characters() {
+    let bytes = exported(500);
+    // ":" anywhere also covers drive ("C:x") and alternate stream forms.
+    for name in [
+        "a<b", "a>b", "a\"b", "a|b", "a?b", "a*b", "C:x", "1:x", "é:x", "Plan:2",
+    ] {
+        assert_eq!(
+            report(&renamed(&bytes, PLAN, name, 0)),
+            only(name, ustar::CHARACTER),
+            "{name}"
+        );
+    }
+    let emoji = "\u{1F600}:x";
+    assert_eq!(
+        report(&renamed(&bytes, PLAN, emoji, 0)),
+        only(emoji, ustar::CHARACTER | ustar::UNCHECKED)
+    );
+    assert_eq!(
+        report(&collection_renamed(&bytes, "C:")),
+        only("C:", ustar::CHARACTER)
+    );
+    // The archive format refuses these names already (`walk`: Corrupt).
+    for name in ["a/b", "a\\b", "a\tb", "\0", "a\u{7F}", "a\u{85}b"] {
+        assert_eq!(
+            ustar::reasons(name.as_bytes()),
+            ustar::CHARACTER,
+            "{name:?}"
+        );
+    }
+}
+
+#[test]
+fn ustar_export_refuses_windows_device_names() {
+    let bytes = exported(500);
+    for name in [
+        "CON",
+        "prn",
+        "Aux",
+        "nul.txt",
+        "LPT3.tar.gz",
+        "COM0",
+        "LPT0",
+        "COM¹",
+        "Lpt²",
+        "com³.x",
+        "con .txt",
+        "CONIN$",
+        "conout$.log",
+    ] {
+        assert_eq!(
+            report(&renamed(&bytes, PLAN, name, 0)),
+            only(name, ustar::RESERVED),
+            "{name}"
+        );
+    }
+    assert_eq!(
+        report(&collection_renamed(&bytes, "AUX")),
+        only("AUX", ustar::RESERVED)
+    );
+    assert_eq!(ustar::reasons(b"CON "), ustar::RESERVED | ustar::TRAILING);
+}
+
+#[test]
+fn ustar_export_refuses_trailing_dots_and_spaces() {
+    let bytes = exported(500);
+    for name in ["Plan.", "Plan ", "Plan. .", "x.."] {
+        assert_eq!(
+            report(&renamed(&bytes, PLAN, name, 0)),
+            only(name, ustar::TRAILING),
+            "{name}"
+        );
+    }
+    assert_eq!(
+        report(&collection_renamed(&bytes, "Werk.")),
+        only("Werk.", ustar::TRAILING)
+    );
+    // The archive format refuses these names already (`walk`: Corrupt).
+    for name in [".", ".."] {
+        assert_eq!(ustar::reasons(name.as_bytes()), ustar::TRAILING, "{name}");
+    }
+}
+
+/// Collection 1 "Werk" holds "Notes", collection 2 `second` holds "Plan".
+fn two_collections(second: &[u8]) -> Vec<u8> {
+    let mut disk = SimDisk::new();
+    let mut service = Service::new(EPOCH, Table::EMPTY, false);
+    let mut source = client(&mut service, &mut disk, 0);
+    source.collection(0, 1, 0, b"Werk").unwrap();
+    source.collection(0, 2, 0, second).unwrap();
+    for (object, name, collection) in [(0, &b"Notes"[..], 1), (1, b"Plan", 2)] {
+        let r = source
+            .write(object, 0, name, 10, fill(object, 1))
+            .unwrap()
+            .0;
+        source.meta(object, r, 0, 0, collection).unwrap();
+    }
+    let mut out = Bytes(Vec::new());
+    archive::export(&mut source, 0, &mut out).unwrap();
+    out.0
+}
+
+#[test]
+fn ustar_export_refuses_names_equal_under_case_folding() {
+    let bytes = exported(500);
+    assert_eq!(
+        report(&renamed(&bytes, PLAN, "notes", 1)),
+        [
+            (b"Notes".to_vec(), ustar::CASE),
+            (b"notes".to_vec(), ustar::CASE)
+        ]
+    );
+    let pair = |a: &str, b: &str| report(&renamed(&renamed(&bytes, NOTES, a, 0), PLAN, b, 0));
+    for (a, b) in [
+        ("Plan", "Plan"),
+        ("Straße", "STRASSE"),
+        ("Ærø", "æRØ"),
+        ("ſ", "S"),
+        ("ı", "I"),
+        ("İ", "i"),
+        ("ÿ", "Ÿ"),
+        ("Łódź", "ŁÓDŹ"),
+    ] {
+        let expected = [
+            (a.as_bytes().to_vec(), ustar::CASE),
+            (b.as_bytes().to_vec(), ustar::CASE),
+        ];
+        assert_eq!(pair(a, b), expected, "{a} {b}");
+    }
+    // The same name in different collections is not a collision.
+    assert!(ustar(&renamed(&bytes, PLAN, "Notes", 0)).0.is_ok());
+    // Two collections that hold objects are two directories.
+    assert!(ustar(&two_collections(b"Work")).0.is_ok());
+    assert_eq!(
+        report(&two_collections(b"werk")),
+        [
+            (b"Werk".to_vec(), ustar::CASE),
+            (b"werk".to_vec(), ustar::CASE)
+        ]
+    );
+}
+
+#[test]
+fn ustar_export_refuses_a_file_where_a_directory_is() {
+    let bytes = exported(500);
+    assert_eq!(
+        report(&renamed(&bytes, PLAN, "Werk", 0)),
+        [
+            (b"Werk".to_vec(), ustar::FILE_AND_DIRECTORY),
+            (b"Werk".to_vec(), ustar::FILE_AND_DIRECTORY)
+        ]
+    );
+    // Also against a declared collection without objects, under case folding.
+    let empty = renamed(&renamed(&bytes, NOTES, "Notes", 0), PLAN, "WERK", 0);
+    assert_eq!(
+        report(&empty),
+        [
+            (b"WERK".to_vec(), ustar::FILE_AND_DIRECTORY),
+            (b"Werk".to_vec(), ustar::FILE_AND_DIRECTORY)
+        ]
+    );
+}
+
+#[test]
+fn ustar_export_refuses_characters_outside_the_checked_set() {
+    let bytes = exported(500);
+    // A combining mark, CJK, Greek capital mu (equal to "µ" on NTFS), the
+    // invisible soft hyphen, a superscript four and a non-BMP character.
+    for name in [
+        "e\u{301}",
+        "中文",
+        "\u{39C}",
+        "\u{AD}x",
+        "COM⁴",
+        "\u{1F600}",
+    ] {
+        assert_eq!(
+            report(&renamed(&bytes, PLAN, name, 0)),
+            only(name, ustar::UNCHECKED),
+            "{name}"
+        );
+    }
+    assert_eq!(ustar::reasons(&[0xFF]), ustar::UNCHECKED);
+}
+
+#[test]
+fn ustar_export_reports_every_refused_name_at_once() {
+    let bytes = exported(500);
+    let all = renamed(
+        &renamed(&collection_renamed(&bytes, "Aux"), NOTES, "a?", 1),
+        PLAN,
+        "CON.",
+        0,
+    );
+    assert_eq!(
+        report(&all),
+        [
+            (b"a?".to_vec(), ustar::CHARACTER),
+            (b"CON.".to_vec(), ustar::RESERVED | ustar::TRAILING),
+            (b"Aux".to_vec(), ustar::RESERVED),
+        ]
+    );
+    let names = names(&all);
+    assert_eq!(names.objects, 3);
+    assert_eq!(
+        (
+            names.object[2].name(),
+            names.object[2].slot,
+            names.object[2].reasons
+        ),
+        (&b"Empty"[..], 5, 0)
+    );
+}
+
+#[test]
+fn ustar_case_fold_matches_unicode_case_within_the_checked_set() {
+    let set: Vec<char> = (' '..='~')
+        .chain('\u{A0}'..='\u{17F}')
+        .chain('\u{2700}'..='\u{27BF}')
+        .filter(|&c| c != '\u{AD}')
+        .collect();
+    let mut one = [0; 4];
+    for &c in &set {
+        assert_eq!(
+            ustar::reasons(c.encode_utf8(&mut one).as_bytes()) & ustar::UNCHECKED,
+            0
+        );
+    }
+    for c in ['\u{9F}', '\u{AD}', '\u{180}', '\u{26FF}', '\u{27C0}'] {
+        assert_ne!(
+            ustar::reasons(c.encode_utf8(&mut one).as_bytes()),
+            0,
+            "{c:?}"
+        );
+    }
+    // Equal full upper case, except that "İ" is also taken as "i".
+    let key = |c: char| match c {
+        'İ' => "I".to_owned(),
+        _ => c.to_uppercase().collect::<String>(),
+    };
+    let (mut a, mut b) = ([0; 4], [0; 4]);
+    for &x in &set {
+        for &y in &set {
+            assert_eq!(
+                ustar::collide(
+                    x.encode_utf8(&mut a).as_bytes(),
+                    y.encode_utf8(&mut b).as_bytes()
+                ),
+                key(x) == key(y),
+                "{x:?} {y:?}"
+            );
+        }
+    }
+    assert!(ustar::collide("ß".as_bytes(), b"ss"));
+    assert!(!ustar::collide("ß".as_bytes(), b"s"));
+}
+
+#[test]
+fn ustar_export_judges_names_again_and_refuses_another_source() {
+    let bytes = exported(500);
+    let bad = renamed(&bytes, PLAN, "CON", 0);
+    let mut cleared = names(&bad);
+    for name in cleared.object.iter_mut().chain(&mut cleared.collection) {
+        name.reasons = 0;
+    }
+    assert!(!cleared.refused());
+    let export = |bytes: &[u8], names: &ustar::Names| {
+        let mut out = Bytes(Vec::new());
+        let result = ustar::from_archive(&mut reader(bytes), &mut scratch(), names, &mut out);
+        (result, out.0)
+    };
+    assert_eq!(export(&bad, &cleared), (Err(Status::Invalid), Vec::new()));
+    let mut over = names(&bytes);
+    over.objects = 9;
+    assert_eq!(export(&bytes, &over), (Err(Status::Invalid), Vec::new()));
+    // Names checked on one archive do not export another.
+    let checked = names(&bytes);
+    let renamed_collection = collection_renamed(&bytes, "Work");
+    assert_eq!(
+        export(&renamed_collection, &checked),
+        (Err(Status::Stale), Vec::new())
+    );
+    assert_eq!(
+        export(&renamed(&bytes, PLAN, "Plan2", 0), &checked).0,
+        Err(Status::Stale)
+    );
+    let mut fewer = checked;
+    fewer.objects = 2;
+    assert_eq!(export(&bytes, &fewer).0, Err(Status::Stale));
+    let mut more = checked;
+    // "Notes" moved to the root: a valid name, but not in this archive.
+    more.object[3] = ustar::Name {
+        slot: 6,
+        collection: 0,
+        ..more.object[0]
+    };
+    more.objects = 4;
+    assert_eq!(export(&bytes, &more).0, Err(Status::Stale));
+}
+
+#[test]
 fn ustar_export_ends_only_after_the_whole_archive_checked_out() {
     let bytes = exported(500);
     let (result, good) = ustar(&bytes);
     assert!(result.is_ok());
     let mut bad = bytes.clone();
     *bad.last_mut().unwrap() ^= 1;
-    let (result, partial) = ustar(&bad);
+    // The check pass reads the whole archive before the first byte.
+    assert_eq!(ustar(&bad), (Err(Status::Corrupt), Vec::new()));
+    // A source that breaks between the passes: every file was written, but
+    // not the end-of-archive blocks.
+    let mut out = Bytes(Vec::new());
+    let result = ustar::from_archive(&mut reader(&bad), &mut scratch(), &names(&bytes), &mut out);
     assert_eq!(result, Err(Status::Corrupt));
-    // Every file was written, but not the end-of-archive blocks.
-    assert_eq!(partial, good[..good.len() - 2 * ustar::BLOCK]);
-    // A reader accepts that silently, so callers verify first and discard the
-    // output on error.
-    assert_eq!(tarfile(&partial).len(), 3);
-}
-
-#[test]
-fn ustar_export_refuses_colliding_paths_and_drive_names() {
-    let bytes = exported(500);
-    let plan = HEADER + 48 + OBJECT_RECORD + 300;
-    let rename = |name: &'static [u8], collection: u8| {
-        resealed(bytes.clone(), plan, OBJECT_RECORD, move |r| {
-            r[1] = name.len() as u8;
-            r[2] = collection;
-            r[48..80].fill(0);
-            r[48..48 + name.len()].copy_from_slice(name);
-        })
-    };
-    assert!(
-        ustar(&rename(b"Plan", 0)).0.is_ok(),
-        "an unchanged rename stays exportable"
-    );
-    assert!(
-        ustar(&rename(b"Plan:2", 0)).0.is_ok(),
-        "a later colon is kept"
-    );
-    let drive = resealed(bytes.clone(), HEADER, 48, |r| {
-        r[1] = 2;
-        r[8..40].fill(0);
-        r[8..10].copy_from_slice(b"C:");
-    });
-    // A file and a directory at "Werk"; two files at "Werk/Notes"; paths that
-    // Windows reads as a drive: "C:x", "C:/Notes", and drives that are not a
-    // letter or not one UTF-8 byte ("1:x", "é:x"), plus a non-BMP character
-    // that Python's ntpath reads as a drive.
-    for archive in [
-        rename(b"Werk", 0),
-        rename(b"Notes", 1),
-        rename(b"C:x", 0),
-        rename(b"1:x", 0),
-        rename("é:x".as_bytes(), 0),
-        rename("\u{1F600}:x".as_bytes(), 0),
-        drive,
-    ] {
-        assert!(archive::verify(&mut reader(&archive), &mut scratch()).is_ok());
-        assert_eq!(ustar(&archive).0, Err(Status::Invalid));
-    }
+    assert_eq!(out.0, good[..good.len() - 2 * ustar::BLOCK]);
+    // A reader accepts that silently, so callers discard output on error.
+    assert_eq!(tarfile(&out.0).len(), 3);
 }

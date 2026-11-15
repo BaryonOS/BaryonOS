@@ -206,18 +206,17 @@ stream would still verify as that older archive.
 [ADR-S09-USTAR-20261114](../DECISIONS.md) (D6 (a) in
 [S09-BACKUP-DESTINATION-PROPOSAL.md](S09-BACKUP-DESTINATION-PROPOSAL.md)).
 It is a lossy interchange format, not the native Baryon OS/Materiaal format
-and not a recovery copy; format v1 stays the only recovery format. Approval
-is not implementation: the converter is host-tested only and does not yet
-refuse every name the ADR requires it to refuse (see "Not handled" and
-"Implementation limits" below). It changes no capability. It has no native
-stage yet. The project owner authorised a native test stage that uses the
-existing test-only permissions and storage fixtures; it is a later task,
-adds no production authority and does not decide D1.
+and not a recovery copy; format v1 stays the only recovery format. The
+converter and its name check (S09-NAMES, 15 November 2026) are host-tested
+only. It changes no capability. It has no native stage yet. The project owner
+authorised a native test stage that uses the existing test-only permissions
+and storage fixtures; it is a later task, adds no production authority and
+does not decide D1.
 
-`ustar::from_archive` converts a format-v1 archive into a POSIX.1-1988 ustar
-stream, with POSIX.1-2001 pax `path` records for names that are not ASCII.
-It is meant for common tar readers outside Baryon OS; the readers tested are
-Python's `tarfile` module and GNU tar 1.35.
+The export converts a format-v1 archive into a POSIX.1-1988 ustar stream,
+with POSIX.1-2001 pax `path` records for names that are not ASCII. It is meant
+for common tar readers outside Baryon OS; the readers tested are Python's
+`tarfile` module and GNU tar 1.35.
 - **Layout.** Per object, in slot order, one regular file holding its bytes
   as stored: `<collection>/<name>` for a collected object, `<name>` otherwise.
   There are no directory entries, so an empty collection is not exported.
@@ -230,57 +229,39 @@ Python's `tarfile` module and GNU tar 1.35.
   indices are dropped. The export is for other systems, not a recovery copy,
   and nothing restores from it. Content is not converted: the volume has no
   registry of kinds, so a document is exported as the bytes it holds.
-- **Refusals.** These give `Invalid`, and nothing is renamed:
-  - two objects with one path;
-  - an uncollected object whose name equals a declared collection's name (a
-    file and a directory at one path). This conservative rule also refuses
-    the export when that collection is empty, although an empty collection
-    gets no directory;
-  - a path whose first character, of any kind, is followed by `:`. The Windows
-    path parser takes any single UTF-16 code unit followed by `:` as a drive,
-    not only A–Z. Such a drive exists only once it is created, for example
-    with `subst` (`+:`, `€:`); File Explorer and PowerShell do not accept it
-    ([R. Liptak, "Windows drive letters are not limited to A-Z"](https://www.ryanliptak.com/blog/windows-drive-letters-are-not-limited-to-a-z/)).
-    Where it exists, such a path can leave the extraction directory. Python's
-    `ntpath` takes any one character there as a drive, also one outside the
-    Basic Multilingual Plane, which Win32 does not; the rule refuses both.
-    Extraction on Windows was not tested. A later `:` is kept.
-- **Order of checks.** Each file is written while `archive::walk` checks its
-  object. The two end-of-archive blocks are written only after the trailer and
-  the end of the stream have been checked. Python's `tarfile` reads a stream
-  without those blocks without an error (tested), so the caller verifies the
-  same bytes first and discards the output on any error, as for restore.
-- **Names.** Object and collection names are UTF-8. They hold no control
-  characters (Unicode category Cc), no `/` or `\`, and none of the
-  bidirectional embedding, override and isolate controls U+202A–U+202E and
-  U+2066–U+2069; they are never `.` or `..`. A path therefore stays inside
-  the extraction directory on POSIX systems, and the drive rule above covers
-  the Windows drive form, including drives that are not a letter.
-  Bidirectional marks such as U+200E, U+200F and U+061C are allowed.
-- **Not handled (extraction elsewhere).** The following names still export
-  unchanged, but extract differently. The ADR requires the export to refuse
-  them and to report each refused name; the name check that does so is not
-  yet built.
-  - On Windows, a later `:` names an alternate data stream.
-  - On Windows, the reserved device names (for example `NUL`) and names with
-    trailing dots or spaces are altered or lost.
-  - On Windows, other characters that it forbids, such as `?`, are not
-    accepted.
-  - Names that differ only in case, or only in Unicode normalisation (NFC
-    against NFD), collide on case-insensitive or normalisation-insensitive file
-    systems such as default macOS and Windows volumes. One file then
-    overwrites the other.
+- **Two passes.** A `Source` is read once, so the export reads the archive
+  twice. `ustar::check` walks and checks the whole archive, as
+  `archive::verify` does, and returns `ustar::Names`: every object name in
+  slot order and every collection name, each with its refusal bits.
+  `ustar::from_archive` takes the archive again with those `Names`, judges
+  the names again (so clearing the bits does not help) and writes nothing
+  when any name is refused. The whole export is then refused with `Invalid`
+  before its first byte, and the report names every refused name, not only
+  the first. Nothing is renamed.
 
-**Implementation limits (to be built by later tasks).** The ADR fixes what
-the export must refuse; these parts of the name check are not yet built or
-defined:
-- **Allowed character set.** The set of characters that the name check
-  accepts is not yet defined; the S09-NAMES task defines it.
-- **Reserved device names.** The primary list is the one in Microsoft's
+**Names.** The archive format already refuses some names: `archive::walk`
+gives `Corrupt` for a name that is not valid UTF-8, holds a control character
+(Unicode category Cc), `/` or `\`, or one of the bidirectional embedding,
+override and isolate controls U+202A–U+202E and U+2066–U+2069, or is `.` or
+`..`. The name check judges each object name and each collection name that
+becomes a directory (a collection that holds an object); `ustar::reasons`
+classifies the names that the format refuses as well. The refusal bits are:
+- `CHARACTER`: `< > : " | ? * / \` or a control character. `:` anywhere also
+  covers the Windows drive form and alternate data streams (`name:stream`).
+  The Windows path parser takes any single UTF-16 code unit followed by `:`
+  as a drive, not only A–Z; such a drive exists only once it is created, for
+  example with `subst` (`+:`, `€:`), and can lead a path out of the extraction
+  directory
+  ([R. Liptak, "Windows drive letters are not limited to A-Z"](https://www.ryanliptak.com/blog/windows-drive-letters-are-not-limited-to-a-z/)).
+  macOS Finder shows `:` as `/`.
+- `RESERVED`: a Windows device name, compared with the part before the first
+  `.` after trailing spaces are removed, in any ASCII case (`nul.txt`,
+  `con .txt`, `LPT3.tar.gz`). The primary list is the one in Microsoft's
   ["Naming a file"](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file),
   section "Naming Conventions": CON, PRN, AUX, NUL, COM1–COM9, COM¹, COM²,
-  COM³, LPT1–LPT9, LPT¹, LPT² and LPT³. Four names are conservative
-  additions that are not on that list:
+  COM³, LPT1–LPT9, LPT¹, LPT² and LPT³ (the superscripts as UTF-8 U+00B9,
+  U+00B2 and U+00B3). Four names are conservative additions that are not on
+  that list:
   - COM0 and LPT0. Source: Microsoft's
     [`RtlIsDosDeviceName_U`](https://learn.microsoft.com/en-us/windows/win32/devnotes/rtlisdosdevicename_u)
     documentation lists COMn and LPTn "where n is a digit", which includes 0.
@@ -292,35 +273,103 @@ defined:
     added in Python 3.13, also reserves them (a secondary source, not
     re-checked).
 
-**Evidence (host).** Three `volume-core` tests in
-`services/volume/tests/archive.rs`. The reader test needs `python3` and `tar`,
-and the end-block test needs `python3`; each fails when its tool is missing. The
-refusal test starts no external tool:
-- Python's standard `tarfile` module is the independent reader. It reads an
-  export that contains a collection, a multi-chunk object, an empty object and
-  the name `Notitie ✓`. Names, the pax `path` record, type, size, mode, mtime,
-  uid, gid and content all match. The system tar (GNU tar 1.35 locally)
-  extracts the same stream into a fresh directory with byte-identical files,
-  and a second conversion gives equal bytes.
-- An archive with a flipped trailer byte gives `Corrupt`. The output then
-  lacks exactly the two end-of-archive blocks, and `tarfile` still reads its
-  three files without an error.
-- Resealed archives that `verify` accepts give `Invalid` when their paths
-  collide or take the drive form: uncollected `C:x`, `1:x`, `é:x` and
-  `😀:x`, and a collection named `C:`. A name with a later colon,
-  `Plan:2`, is still exported.
+  Names that only contain a device name, such as `CONSOLE`, `COM10`, `LPT`,
+  `xCON`, `.CON` or `CON-1`, are accepted.
+- `TRAILING`: the name ends in `.` or a space, which Windows strips.
+- `CASE`: the name equals another name in the same directory under the case
+  fold below: two objects in one collection, two uncollected objects, or two
+  collections that hold objects. Both names are reported.
+- `FILE_AND_DIRECTORY`: an uncollected object and a declared collection share
+  one path under the case fold: a file and a directory. This conservative rule
+  also applies when the collection is empty, although an empty collection gets
+  no directory. Both names are reported.
+- `UNCHECKED`: a character outside the checked set, for which no case fold is
+  defined (for example `中文`, Greek, a combining mark, the soft hyphen
+  U+00AD, `⁴`, an emoji or the bidirectional marks U+200E, U+200F and U+061C).
 
-Nine mutants of the converter were each killed: no pax record, no
-file/directory check, no duplicate check, no drive check, a drive check for
-ASCII letters only, a checksum off by one, mode 0600, end blocks before the
-trailer check, and no content padding.
+**Checked set and case fold.** A name is accepted only when every character
+lies in the checked set: printable ASCII U+0020–U+007E, Latin-1 Supplement
+and Latin Extended-A U+00A0–U+017F without the invisible soft hyphen U+00AD,
+and Dingbats U+2700–U+27BF (for example `✓`). `ustar::collide` compares two
+names after a hand-written fold to lower case: the letter pairs of ASCII,
+Latin-1 and Latin Extended-A, and `ß` = `ss`, `ſ` = `s`, `ı` = `İ` = `i` and
+`ÿ` = `Ÿ`. `µ`, `ĸ` and `ŉ` stay as they are, because what they fold to lies
+outside the set. No Unicode normalisation (NFC, NFD or compatibility forms) is
+applied, and none is claimed. The argument that none is needed within the set:
+the set holds no combining mark, so two different names in it are never
+canonically equivalent, and NFC against NFD differences need a character from
+outside the set, which is refused. Some folds over-refuse on some file
+systems: NTFS keeps `ß` and `ss` apart, and keeps `İ` apart from `i`; the
+check refuses them anyway.
+
+**Order of checks.** `ustar::check` reads the whole archive, including the
+trailer and the end of the stream, before `ustar::from_archive` writes its
+first byte. The second walk must meet the same slots, names and collections in
+the same order and the same number of objects as the checked `Names`;
+otherwise it stops with `Stale`. A source that changed or broke between the
+passes (`Stale` or `Corrupt` during the second walk) can leave files already
+written, but never the two end-of-archive blocks: they are written only after
+the whole archive checked out again. Python's `tarfile` reads such a
+truncated stream without an error (tested), so the caller discards the output
+on any error, as for restore.
+
+**Not handled.**
+- Names in other scripts, and any other character outside the checked set,
+  are refused, not exported; a later, separately specified fold could widen
+  the set.
+- Windows 8.3 short names: on a volume that generates short names, a name of
+  the form `PROGRA~1` can equal the short name of another extracted file. The
+  check does not model short names.
+- The length of the extraction directory plus a path of at most 65 bytes can
+  still exceed a Windows path limit; that depends on the target and is not
+  checked.
+- Extraction on Windows or macOS was not tested; the rules above follow the
+  cited documentation and the case fold is checked against Rust's Unicode
+  upper-case mapping, not against NTFS or APFS tables.
+
+**Evidence (host).** `volume-core` tests in `services/volume/tests/archive.rs`.
+The reader test needs `python3` and `tar`, and the end-block test needs
+`python3`; each fails when its tool is missing. The other tests start no
+external tool:
+- `ustar_export_opens_with_a_standard_reader`: Python's standard `tarfile`
+  module is the independent reader. It reads an export that contains a
+  collection, a multi-chunk object, an empty object and the name `Notitie ✓`.
+  Names, the pax `path` record, type, size, mode, mtime, uid, gid and content
+  all match. The system tar (GNU tar 1.35 locally) extracts the same stream
+  into a fresh directory with byte-identical files, and a second conversion
+  gives equal bytes.
+- `ustar_export_accepts_latin_names_and_dingbats`: `Werk/Privé` and
+  `Notitie ✓` are exported, and so are `Straße`, `ŁÓDŹ`, `CONSOLE`, `COM10`
+  and other names next to the refused forms.
+- One test per refusal bit, each on a resealed archive that `verify` accepts:
+  the export gives `Invalid`, writes no byte, and reports exactly the refused
+  names with their bits. `ustar_export_refuses_windows_characters` (also
+  `C:x`, `1:x`, `é:x`, `Plan:2` and a collection `C:`),
+  `ustar_export_refuses_windows_device_names`,
+  `ustar_export_refuses_trailing_dots_and_spaces`,
+  `ustar_export_refuses_names_equal_under_case_folding`,
+  `ustar_export_refuses_a_file_where_a_directory_is` and
+  `ustar_export_refuses_characters_outside_the_checked_set`.
+- `ustar_export_reports_every_refused_name_at_once`: three bad names in one
+  archive (`a?`, `CON.` and a collection `Aux`) are all reported.
+- `ustar_case_fold_matches_unicode_case_within_the_checked_set`: for every
+  pair of characters in the set, `collide` agrees with equal full upper case
+  (Rust's `char::to_uppercase`), except that `İ` is also taken as `i`; the
+  characters just outside the set are refused.
+- `ustar_export_judges_names_again_and_refuses_another_source`: cleared
+  refusal bits still give `Invalid`; names checked on one archive give
+  `Stale` on another.
+- `ustar_export_ends_only_after_the_whole_archive_checked_out`: an archive
+  with a flipped trailer byte gives `Corrupt` from the check pass with no
+  output; when the source breaks between the passes, the output lacks exactly
+  the two end-of-archive blocks, and `tarfile` still reads its three files.
+
 Not checked: bsdtar and Windows `tar` as readers, extraction on Windows or
-macOS, and a native stage.
+macOS, mutation testing of the name check, and a native stage.
 
 **Still open for S09:** a user-chosen target behind its own capability (not a
-fixture range on the same disk); the name check that ADR-S09-USTAR-20261114
-requires for the approved ustar export (D6 (a)) and a native test stage that
-writes it out; the encrypted NAS/provider variant; a user-facing task;
+fixture range on the same disk); a native test stage that writes the approved
+ustar export (D6 (a)) out; the encrypted NAS/provider variant; a user-facing task;
 a second simultaneously attached disk (archive and volume
 share one virtual device here). Plaintext archives are used only on
 harness-assigned local test images. The destination and its capability
