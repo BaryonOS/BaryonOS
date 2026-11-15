@@ -1,0 +1,696 @@
+{
+  "schema": 1,
+  "purpose": "Execution queue of the H/U/N/B/A/P/L/R clean-session roadmap pipeline; child tasks of the fixed criteria in docs/progress.json. Not a second roadmap and not an acceptance register.",
+  "branch": "claude/baryonos-autonomous-pipeline-81tujs",
+  "base": "d572052b731149016dad1a99e2c4ebde90474a96",
+  "score": {
+    "accepted": 41,
+    "of": 100,
+    "source": "docs/progress.json",
+    "rule": "A verified task never changes the score; only the lead records acceptance with the required evidence level and owner/external approvals."
+  },
+  "ranking": "Ledger order is the rank. Criteria: (1) security prerequisites and regression risk, (2) unblocking impact on M7 native daily use, M8 security/network, M9 reference hardware and R release readiness, (3) user/developer utility, (4) strength of evidence obtainable here (host or native QEMU TCG), (5) smallest cohesive change with no path overlap with open PRs #333 and #336, the UI/UX pipeline or the S09 pipeline. Subjective ordering, not a computed score.",
+  "ownership": {
+    "PR #333 (H02 native USB/HID)": "kernel/src/m2/xhci*, iommu.rs, paging.rs, window_session.rs, main.rs, m2.rs, drivers/xhci/, services/input-core/, sdk/examples/input-service/, tools/build.py, tools/run.py, tools/run_*hid*/xhci",
+    "PR #336 (B03 policy envelopes)": "crates/update-core/, boot/loader/src/signed.rs, kernel/src/m2/m3/update.rs, sdk/examples/update/, tools/run_update.py",
+    "UI/UX pipeline": "ui/design/, docs/design/, ui/prototype/tokens.css, planned UX-G in ui/native and ui/graphics",
+    "S09 pipeline": "S09 backup/export/recovery"
+  },
+  "tasks": [
+    {
+      "id": "A02-T1",
+      "criterion": "A02",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "ready",
+      "title": "Host installer orchestrator binding source verification, artifact commit and catalogue journal",
+      "goal": "Add sdk/app-management/src/installer.rs: a bounded no_std orchestrator for install, update and remove that (1) verifies the package only through the existing app_package_core::SourceRegistry::verify_executable (no second verifier, no public self-constructible verified token), (2) derives PackageIdentity crate-internally from the SourceVerifiedExecutable, (3) streams the exact image through store::InstallTransaction and commits it, (4) re-checks the current source generation and revocation state immediately before catalogue prepare/apply so a rotate or revoke between verification and commit fails closed (APP-SOURCE-RECOVERY section 7), (5) applies catalog::InstallCatalog and persists through journal::Journal, and (6) maps store/journal Unknown to a fail-closed state without replay or automatic recommit. The SourceRegistry stays caller-supplied and in memory: no new trust root, anchor, durable source backend or launch capability.",
+      "why_now": "A02 is open and every lower layer (package verification, source policy, streaming store, catalogue, journal) is host-tested but unconnected. A single orchestrator is the smallest step that proves the layers compose without authority gaps, and it is the prerequisite for the native installer service (A02-T3) and for A03/A04 app lifecycle work. Covered by an existing CI job.",
+      "deps": [],
+      "write_paths": [
+        "sdk/app-management/src/installer.rs",
+        "sdk/app-management/src/lib.rs",
+        "sdk/app-management/tests/",
+        "docs/implementation/APP-PACKAGES.md"
+      ],
+      "read_paths": [
+        "crates/app-package-core/src/lib.rs",
+        "crates/artifact-store-core/src/lib.rs",
+        "sdk/app-management/src/store.rs",
+        "sdk/app-management/src/catalog.rs",
+        "sdk/app-management/src/journal.rs",
+        "sdk/app-management/src/protocol.rs",
+        "docs/contracts/APP-SOURCE-RECOVERY.md",
+        "docs/implementation/APP-PACKAGES.md"
+      ],
+      "graph_notes": "Graphify (index d572052): SourceRegistry::verify_executable -> verify_executable_package -> SourceVerifiedExecutable::executable(); InstallCatalog prepare/apply/abort/mark_unknown/restart/reconcile in catalog.rs (tests install_update_remove_are_generation_bound_and_grant_nothing, rollback_source_switch_and_artifact_mixups_are_rejected, unknown_outcome_fails_closed_until_authoritative_reconcile); InstallTransaction begin/append/commit/cancel/outcome in store.rs; Journal format/recover_into/commit in journal.rs. CI: app-management-quality.yml#app-package-quality.",
+      "checks": [
+        "cargo +1.90.0 test --locked --manifest-path sdk/app-management/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path sdk/app-management/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path sdk/app-management/Cargo.toml --all -- --check"
+      ],
+      "gates": [
+        "app-management-quality.yml#app-package-quality"
+      ],
+      "acceptance": [
+        "install, update and remove succeed end to end in host tests over FakeStore-style media, and the installed entry carries zero grants",
+        "negative: either signature invalid, wrong or unknown source, revoked source, stale source generation",
+        "negative: rotate or revoke between verify_executable and catalogue apply fails closed with no catalogue mutation",
+        "negative: downgrade, source switch, artifact length or digest substitution, truncated stream",
+        "negative: store or journal Unknown leaves the catalogue uncertain, blocks replay and recommit until authoritative reconcile",
+        "source revoke rejects new install/update but keeps an already installed app launchable (lookup)",
+        "no unsafe code, no new dependency, no_std preserved, x86_64-unknown-none release build passes",
+        "APP-PACKAGES.md documents the orchestrator and its evidence boundary (host model only)"
+      ],
+      "out_of_scope": [
+        "durable source registry or anchors (A02-T2, owner decision)",
+        "native installer service or kernel launch (A02-T3)",
+        "changes to app-package-core or artifact-store-core"
+      ],
+      "non_claimable": "Native install/update/remove, durable recovery on authenticated storage, physical power-cut behaviour and human security review stay open; A02 is not accepted by this task.",
+      "risk": "security",
+      "size": "M",
+      "evidence_level": "host",
+      "rollback": "Revert the task commit; the orchestrator is additive and has no consumer yet.",
+      "next": "A02-T3 native installer service after the launch ADR and B02 artifact store.",
+      "history": []
+    },
+    {
+      "id": "A03-T1",
+      "criterion": "A03",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "ready",
+      "title": "task-grant-core: time-bounded, revocable per-object task grants (host model)",
+      "goal": "Create sdk/task-grant-core (no_std, forbid(unsafe_code)) and add it to the sdk workspace: grants of (app principal, process epoch) x (object id, revision) x {read, write, export} x {until-close, session}, generation-bound revoke, no delegation or inheritance to helper processes, no capability material in messages, bounded tables. Fail closed on stale epoch, stale generation, overflow and unknown object.",
+      "why_now": "A03 has domain-level volume grants but no task-grant model; it is the policy core that the trusted grant UI (UX-C) and native broker (A03-T3) need. Host-only, covered by the sdk CI step.",
+      "deps": [],
+      "write_paths": [
+        "sdk/task-grant-core/",
+        "sdk/Cargo.toml",
+        "sdk/Cargo.lock"
+      ],
+      "read_paths": [
+        "docs/LOCAL-PRIVACY-CONTRACT.md",
+        "docs/implementation/PRODUCT-SPEC.md",
+        "docs/implementation/VOLUME-DOCUMENT-SESSION.md",
+        "sdk/document-session/"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked",
+        "cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check"
+      ],
+      "acceptance": [
+        "LP-08/09/10/29/31 negatives: new app without grants, internet-only app, old handle after revoke, helper re-use of a parent grant, export without export right",
+        "expiry at close and at session end; revoke invalidates outstanding handles by generation",
+        "table capacity overflow fails closed without evicting live grants"
+      ],
+      "out_of_scope": [
+        "native broker process",
+        "UI",
+        "volume-core per-object enforcement"
+      ],
+      "non_claimable": "Native enforcement and visible UI stay open; A03 is not accepted by this task.",
+      "risk": "security",
+      "size": "M",
+      "evidence_level": "host",
+      "rollback": "Revert the commit and the sdk workspace member line.",
+      "next": "A03-T3 native broker after an ADR for per-object volume grants.",
+      "history": []
+    },
+    {
+      "id": "U05-T1",
+      "criterion": "U05",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "ready",
+      "title": "settings-core: typed, versioned, revertible settings with A/B persistence (host model)",
+      "goal": "Create sdk/settings-core (no_std): typed versioned schema; validate, set and revert; A/B persistence over a media trait with SHA-256 for integrity only; fail closed on corruption or I/O error; never confirm a failed write; add it to the sdk workspace.",
+      "why_now": "U05 needs a real settings service behind the shell's fixed Settings page; this is the smallest host-testable core and has no dependency on open PRs.",
+      "deps": [],
+      "write_paths": [
+        "sdk/settings-core/",
+        "sdk/Cargo.toml",
+        "sdk/Cargo.lock"
+      ],
+      "read_paths": [
+        "docs/implementation/DESKTOP-SHELL.md",
+        "docs/implementation/PROFILES-AND-USERS.md",
+        "sdk/app-management/src/journal.rs"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked",
+        "cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check"
+      ],
+      "acceptance": [
+        "negative: invalid value, unknown schema version, torn write at every byte offset, flush or read error, full medium, both copies corrupt",
+        "revert restores the previous committed value; a failed write is never reported as committed"
+      ],
+      "out_of_scope": [
+        "per-user encryption (B02)",
+        "native service",
+        "UI"
+      ],
+      "non_claimable": "Native settings service, encryption at rest and user tests stay open.",
+      "risk": "medium",
+      "size": "M",
+      "evidence_level": "host",
+      "rollback": "Revert the commit and the sdk workspace member line.",
+      "next": "U05-T3 native service.",
+      "history": []
+    },
+    {
+      "id": "H02-T2",
+      "criterion": "H02",
+      "milestone": "M9",
+      "executor": "worker",
+      "status": "ready",
+      "title": "USB attach/detach generation model with stale-completion rejection (host)",
+      "goal": "Add drivers/usb/src/hotplug.rs: per-port attach generation, rejection of completions from an older generation, bounded re-enumeration attempts and an attach-storm budget; detach during enumeration releases state; no change to the existing boot_session API consumed by PR #333.",
+      "why_now": "H02 requires bounded hotplug; this is a host prerequisite outside the paths PR #333 owns.",
+      "deps": [],
+      "write_paths": [
+        "drivers/usb/src/hotplug.rs",
+        "drivers/usb/src/lib.rs",
+        "drivers/usb/tests/hotplug.rs",
+        "drivers/usb/verification/hotplug.md"
+      ],
+      "read_paths": [
+        "drivers/usb/src/boot_session.rs",
+        "drivers/usb/src/lib.rs",
+        "drivers/usb/verification/boot-session.md",
+        "docs/drivers/HARDWARE-TARGETS.md"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --locked --manifest-path drivers/usb/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path drivers/usb/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path drivers/usb/Cargo.toml -- --check",
+        "cargo +1.90.0 build --locked --release --lib --target x86_64-unknown-none --manifest-path drivers/usb/Cargo.toml"
+      ],
+      "acceptance": [
+        "negative: old-generation completion rejected, attach storm hits its budget, detach during enumeration releases state, generation counter never wraps silently",
+        "existing 44 USB tests still pass unchanged"
+      ],
+      "out_of_scope": [
+        "kernel xHCI wiring (PR #333)",
+        "hubs and isochronous transfers"
+      ],
+      "non_claimable": "Native hotplug, physical devices and the H02 reference profile stay open.",
+      "risk": "medium",
+      "size": "M",
+      "evidence_level": "host",
+      "rollback": "Revert the commit; the module is additive.",
+      "next": "H02-T3 after PR #333 merges.",
+      "history": []
+    },
+    {
+      "id": "H04-T2",
+      "criterion": "H04",
+      "milestone": "M9",
+      "executor": "worker",
+      "status": "ready",
+      "title": "virtio-net link-state transition tracker with flap budget (host)",
+      "goal": "Add drivers/virtio-net/src/link.rs: generation-bound link up/down events derived from FEATURE_STATUS, a flap budget, rejection of a stale 'up' that would resurrect pre-down state, and a link event during reset returning an I/O error; wire only the pure tracker into lib.rs.",
+      "why_now": "H04 needs disconnect/resume paths; the tracker is host-testable and feeds net-config later.",
+      "deps": [],
+      "write_paths": [
+        "drivers/virtio-net/src/link.rs",
+        "drivers/virtio-net/src/lib.rs",
+        "drivers/virtio-net/src/tests.rs"
+      ],
+      "read_paths": [
+        "drivers/virtio-net/src/lib.rs",
+        "services/net-config/src/service.rs",
+        "docs/implementation/VIRTIO-NET.md"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --locked -p virtio-net-driver",
+        "cargo +1.90.0 clippy --locked -p virtio-net-driver --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --all -- --check"
+      ],
+      "acceptance": [
+        "negative: stale generation, flap storm, link event during reset"
+      ],
+      "out_of_scope": [
+        "kernel network service wiring",
+        "real NIC drivers"
+      ],
+      "non_claimable": "Native link loss, physical NICs and Wi-Fi/Bluetooth stay open.",
+      "risk": "medium",
+      "size": "S",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "H04-T3 native link-loss run.",
+      "history": []
+    },
+    {
+      "id": "H05-T1",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "worker",
+      "status": "ready",
+      "title": "ACPI _S3_ sleep-type extraction and FACS validation (host)",
+      "goal": "Extend drivers/acpi-power with _S3_ extraction and FACS validation: FIRMWARE_CTRL/X_FIRMWARE_CTRL resolution and conflict rejection, signature, length >= 64, 64-byte alignment and waking-vector fields; the existing S5 API stays unchanged.",
+      "why_now": "H05 sleep/wake starts with validated firmware tables; host-only, existing component CI.",
+      "deps": [],
+      "write_paths": [
+        "drivers/acpi-power/src/lib.rs",
+        "drivers/acpi-power/tests/",
+        "drivers/acpi-power/README.md",
+        "drivers/acpi-power/verification/"
+      ],
+      "read_paths": [
+        "drivers/acpi-power/src/lib.rs",
+        "docs/verification/h05-acpi-s5/README.md"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --locked --manifest-path drivers/acpi-power/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path drivers/acpi-power/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path drivers/acpi-power/Cargo.toml -- --check",
+        "cargo +1.90.0 build --locked --release --lib --target x86_64-unknown-none --manifest-path drivers/acpi-power/Cargo.toml"
+      ],
+      "acceptance": [
+        "negative: conflicting FIRMWARE_CTRL and X_FIRMWARE_CTRL, misaligned FACS, short FACS, missing _S3_, truncated package",
+        "existing S5 tests unchanged"
+      ],
+      "out_of_scope": [
+        "kernel S3 entry or waking trampoline (H05-T3)"
+      ],
+      "non_claimable": "Native S3, physical sleep/wake, thermal and battery stay open.",
+      "risk": "medium",
+      "size": "M",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "H05-T3 native S3 after PR #333.",
+      "history": []
+    },
+    {
+      "id": "U05-T2",
+      "criterion": "U05",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "ready",
+      "title": "search-index core with grant-scoped results (host model)",
+      "goal": "Create sdk/search-index (no_std): per-domain index of names, collections, metadata and UTF-8 tokens with object/revision identity; update and delete; rebuild from a catalogue snapshot; results only from currently granted domains; bounded memory; add it to the sdk workspace.",
+      "why_now": "U05 local search is a fixed list today; a scoped index is host-testable now.",
+      "deps": [],
+      "write_paths": [
+        "sdk/search-index/",
+        "sdk/Cargo.toml",
+        "sdk/Cargo.lock"
+      ],
+      "read_paths": [
+        "sdk/catalog-client/",
+        "docs/implementation/NATIVE-MATERIAL-LIBRARY.md"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked",
+        "cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check"
+      ],
+      "acceptance": [
+        "negative: foreign-domain object, revoked domain, stale revision, oversize token, invalid UTF-8, corrupt index detected and rebuilt rather than trusted"
+      ],
+      "out_of_scope": [
+        "native service",
+        "content extraction from documents"
+      ],
+      "non_claimable": "Native search and user tests stay open.",
+      "risk": "security",
+      "size": "M",
+      "evidence_level": "host",
+      "rollback": "Revert the commit and the sdk workspace member line.",
+      "next": "U05-T3 native service.",
+      "history": []
+    },
+    {
+      "id": "R03-T1",
+      "criterion": "R03",
+      "milestone": "M11",
+      "executor": "worker",
+      "status": "ready",
+      "title": "Offline deterministic SPDX SBOM generator for all Cargo.lock files",
+      "goal": "Add tools/sbom.py (standard library only) producing SPDX 2.3 JSON for every Cargo.lock, the pinned toolchain and THIRD-PARTY assets; licences from local metadata or NOASSERTION, never guessed; deterministic bytes; fail on missing checksums, unpinned git dependencies and parse errors.",
+      "why_now": "R03 needs licensing/SBOM evidence; this is host-only and independent of all open PRs.",
+      "deps": [],
+      "write_paths": [
+        "tools/sbom.py",
+        "tools/tests/test_sbom.py"
+      ],
+      "read_paths": [
+        "THIRD-PARTY.md",
+        "LICENSING.md",
+        "docs/implementation/EUROPE-AND-RELEASE.md"
+      ],
+      "checks": [
+        "python3 -B -m unittest discover -s tools/tests -p test_sbom.py -v",
+        "python3 -B tools/sbom.py --check"
+      ],
+      "acceptance": [
+        "two runs produce identical bytes",
+        "negative: missing checksum, unpinned git dependency, lockfile parse error each fail",
+        "no network access"
+      ],
+      "out_of_scope": [
+        "release signing",
+        "legal conformity claims"
+      ],
+      "non_claimable": "Independent reproduction, support policy and legal review stay open.",
+      "risk": "low",
+      "size": "M",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "R03-T2 reproducibility check.",
+      "history": []
+    },
+    {
+      "id": "H06-T1",
+      "criterion": "H06",
+      "milestone": "M9",
+      "executor": "worker",
+      "status": "ready",
+      "title": "Machine-checked hardware support matrix with DMA posture per device",
+      "goal": "Add docs/drivers/hardware-matrix.json and tools/hw_matrix.py --check: each profile and device has a driver path, DMA posture (trusted kernel transport, VT-d contained, unsupported), evidence references that must exist, and status; no HW row may be 'supported' without H evidence.",
+      "why_now": "H06 requires an explicit, honest matrix; host-only.",
+      "deps": [],
+      "write_paths": [
+        "docs/drivers/hardware-matrix.json",
+        "tools/hw_matrix.py",
+        "tools/tests/test_hw_matrix.py",
+        "docs/drivers/HARDWARE-TARGETS.md"
+      ],
+      "read_paths": [
+        "docs/drivers/HARDWARE-TARGETS.md",
+        "docs/drivers/DRIVER-ARCHITECTURE.md"
+      ],
+      "checks": [
+        "python3 -B -m unittest discover -s tools/tests -p test_hw_matrix.py -v",
+        "python3 -B tools/hw_matrix.py --check"
+      ],
+      "acceptance": [
+        "negative: missing DMA posture, dangling evidence path, HW row marked supported without evidence",
+        "xHCI row stays pending PR #333"
+      ],
+      "out_of_scope": [
+        "physical configuration selection (owner)"
+      ],
+      "non_claimable": "Physical configurations and their passing runs stay open.",
+      "risk": "low",
+      "size": "S",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "H06-T2 owner selection of reference PCs.",
+      "history": []
+    },
+    {
+      "id": "U03-L1",
+      "criterion": "U03",
+      "milestone": "M7",
+      "executor": "lead",
+      "status": "ready",
+      "title": "Assess U03 acceptance proposal from hosted native library gates on main",
+      "goal": "Check every U03 clause and its FULL-TEST-RELEASE rows against the hosted native-window-session runs on main (library write, cold reopen, clipboard/workspace) and the open #206 follow-ups; prepare an evidence-backed proposal or record precisely what is missing.",
+      "why_now": "History records that U03 stays open only until the native library gates pass on main and the owner confirms; hosted runs on main now exist.",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "risk": "low",
+      "size": "S",
+      "evidence_level": "native-QEMU (hosted)",
+      "non_claimable": "Owner confirmation; any HW-FR profile clause.",
+      "rollback": "Documentation only.",
+      "history": []
+    },
+    {
+      "id": "CI-L1",
+      "criterion": "R03",
+      "milestone": "M11",
+      "executor": "lead",
+      "status": "blocked",
+      "title": "CI coverage for new standalone crates (drivers/intel-hda, drivers/e1000e, power-lifecycle-core)",
+      "goal": "Workers may not edit workflows; the lead adds component-leaves.yml entries when such a crate lands.",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "risk": "low",
+      "size": "S",
+      "evidence_level": "host",
+      "blocker": "Only needed once a task creates such a crate.",
+      "history": []
+    },
+    {
+      "id": "H02-T3",
+      "criterion": "H02",
+      "milestone": "M9",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Native USB hotplug fixture (QMP device_del/add, unplug mid-transfer)",
+      "goal": "Native USB hotplug fixture (QMP device_del/add, unplug mid-transfer)",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "All write paths are owned by open PR #333 (kernel/src/m2/xhci*, tools/run_usb_hid.py, tools/build.py).",
+      "history": []
+    },
+    {
+      "id": "H03-T3",
+      "criterion": "H03",
+      "milestone": "M9",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Native virtio-snd VM-SND-1 gate",
+      "goal": "Native virtio-snd VM-SND-1 gate",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "Owner/release decisions B1, B2, B4 open; kernel wiring and tools/build.py owned by PR #333.",
+      "history": []
+    },
+    {
+      "id": "H04-T3",
+      "criterion": "H04",
+      "milestone": "M9",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Native link-loss/reconnect run",
+      "goal": "Native link-loss/reconnect run",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "Kernel feature wiring in tools/build.py owned by PR #333.",
+      "history": []
+    },
+    {
+      "id": "H05-T3",
+      "criterion": "H05",
+      "milestone": "M9",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Native S3 in QEMU",
+      "goal": "Native S3 in QEMU",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "Kernel and runner paths owned by PR #333; OVMF S3 unverified here.",
+      "history": []
+    },
+    {
+      "id": "H06-T2",
+      "criterion": "H06",
+      "milestone": "M9",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Select physical reference PCs",
+      "goal": "Select physical reference PCs",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "Project owner decision and physical hardware.",
+      "history": []
+    },
+    {
+      "id": "U02-T2",
+      "criterion": "U02",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Preregister U02 interaction budgets",
+      "goal": "Preregister U02 interaction budgets",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "Owner/ADR decision on budgets and reference profile.",
+      "history": []
+    },
+    {
+      "id": "U03-T2",
+      "criterion": "U03",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Close #206 ui/native follow-ups",
+      "goal": "Close #206 ui/native follow-ups",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "ui/native is the UI/UX pipeline's UX-G area; handoff needed.",
+      "history": []
+    },
+    {
+      "id": "U04-T3",
+      "criterion": "U04",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Native screen-reader output",
+      "goal": "Native screen-reader output",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "TTS/braille dependency decision (owner), H03 audio, PR #333.",
+      "history": []
+    },
+    {
+      "id": "U04-T4",
+      "criterion": "U04",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Accessibility user task tests",
+      "goal": "Accessibility user task tests",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "Human participants and owner study approval.",
+      "history": []
+    },
+    {
+      "id": "U05-T4",
+      "criterion": "U05",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Accounts and session management",
+      "goal": "Accounts and session management",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "B01/B02 open: no per-user key state or rollback anchor.",
+      "history": []
+    },
+    {
+      "id": "U06-T1",
+      "criterion": "U06",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Preregistered core-task user study",
+      "goal": "Preregistered core-task user study",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "Human participants and owner approval.",
+      "history": []
+    },
+    {
+      "id": "A02-T2",
+      "criterion": "A02",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Durable source registry",
+      "goal": "Durable source registry",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "Backend/anchor/actor OPEN in APP-SOURCE-RECOVERY.md (owner).",
+      "history": []
+    },
+    {
+      "id": "A02-T3",
+      "criterion": "A02",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Native installer service and dynamic launch",
+      "goal": "Native installer service and dynamic launch",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "Kernel launch ADR, B02 store, PR #333 paths.",
+      "history": []
+    },
+    {
+      "id": "A03-T2",
+      "criterion": "A03",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Trusted grant dialog bound to broker",
+      "goal": "Trusted grant dialog bound to broker",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "UX-C consent design (UI/UX pipeline) not started.",
+      "history": []
+    },
+    {
+      "id": "A04-T2",
+      "criterion": "A04",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Native internet use (browser or controlled port)",
+      "goal": "Native internet use (browser or controlled port)",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "Owner engine decision; N02/N03/N04 open.",
+      "history": []
+    },
+    {
+      "id": "A04-T3",
+      "criterion": "A04",
+      "milestone": "M7",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Native audio playback and file exchange",
+      "goal": "Native audio playback and file exchange",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "H03 open; S09 owned by its pipeline; P01 open.",
+      "history": []
+    },
+    {
+      "id": "R01-T3",
+      "criterion": "R01",
+      "milestone": "M11",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Native GPT boot, preserve/wipe install and recovery",
+      "goal": "Native GPT boot, preserve/wipe install and recovery",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "tools/run.py owned by PR #333; U05 UI.",
+      "history": []
+    },
+    {
+      "id": "R02-L1",
+      "criterion": "R02",
+      "milestone": "M11",
+      "executor": "worker",
+      "status": "blocked",
+      "title": "Freeze R02 performance budgets",
+      "goal": "Freeze R02 performance budgets",
+      "deps": [],
+      "write_paths": [],
+      "checks": [],
+      "blocker": "Owner/release ADR.",
+      "history": []
+    }
+  ]
+}

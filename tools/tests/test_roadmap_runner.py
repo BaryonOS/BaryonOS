@@ -20,6 +20,13 @@ class Ledger(unittest.TestCase):
         ledger["tasks"][0]["status"] = "verified"
         self.assertEqual(rr.select_task(ledger)["id"], "B")
 
+    def test_lead_and_owner_tasks_are_never_selected_for_workers(self):
+        ledger = {"tasks": [dict(task("A"), executor="lead"), dict(task("B"), executor="owner"), task("C")]}
+        self.assertEqual(rr.select_task(ledger)["id"], "C")
+        with self.assertRaises(ValueError):
+            rr.validate_ledger({"tasks": [dict(task("A"), executor="anyone")]})
+        rr.validate_ledger({"tasks": [dict(task("A", checks=[]), executor="lead")]})
+
     def test_no_ready_task_returns_none(self):
         self.assertIsNone(rr.select_task({"tasks": [task("A", "verified"), task("B", "blocked")]}))
 
@@ -47,6 +54,19 @@ class Ledger(unittest.TestCase):
             with self.assertRaises(ValueError):
                 rr.save_ledger({"tasks": [task("A"), task("A")]}, path)
             self.assertEqual(len(rr.load_ledger(path)["tasks"]), 1)
+
+    def test_update_task_rereads_and_keeps_other_edits(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "ledger.json"
+            rr.save_ledger({"tasks": [task("A"), task("B")]}, path)
+            edited = rr.load_ledger(path)
+            edited["tasks"][1]["title"] = "lead edit while paused"
+            rr.save_ledger(edited, path)
+            rr.update_task("A", path, history={"event": "verified"}, status="verified")
+            after = rr.load_ledger(path)["tasks"]
+            self.assertEqual(after[0]["status"], "verified")
+            self.assertEqual(after[0]["history"], [{"event": "verified"}])
+            self.assertEqual(after[1]["title"], "lead edit while paused")
 
     def test_repository_ledger_is_valid(self):
         if rr.LEDGER.exists():

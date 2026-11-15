@@ -52,6 +52,9 @@ RECEIPTS = ROOT / "docs" / "roadmap-pipeline" / "receipts"
 STATE = ROOT / "build" / "roadmap-pipeline"
 DEFAULT_BRANCH = "claude/baryonos-autonomous-pipeline-81tujs"
 STATUSES = ("ready", "active", "verified", "blocked", "superseded")
+# Who may execute a task: fresh worker sessions, or only the lead / project owner
+# (acceptance proposals, owner decisions, workflow edits, human or physical work).
+EXECUTORS = ("worker", "lead", "owner", "external")
 # Workers additionally never edit the pipeline's own state or the shared progress views.
 RUNNER_PROTECTED = ("tools/roadmap_runner.py", "tools/tests/test_roadmap_runner.py",
                     "docs/roadmap-pipeline/", "docs/PROJECT-STATE.md", "docs/PROGRESS.md",
@@ -183,19 +186,23 @@ def validate_ledger(ledger: dict) -> None:
                 raise ValueError(f"{task.get('id')}: missing {key}")
         if task["status"] not in STATUSES:
             raise ValueError(f"{task['id']}: unknown status {task['status']}")
+        if task.get("executor", "worker") not in EXECUTORS:
+            raise ValueError(f"{task['id']}: unknown executor {task.get('executor')}")
         if bad := [d for d in task["deps"] if d not in ids]:
             raise ValueError(f"{task['id']}: unknown dependencies {bad}")
         if bad := [p for p in task["write_paths"] if protected(p.rstrip("*")) or p.startswith("/") or ".." in p]:
             raise ValueError(f"{task['id']}: protected or unsafe write paths {bad}")
-        if task["status"] == "ready" and not (task["checks"] or task.get("gates")):
+        if task["status"] == "ready" and task.get("executor", "worker") == "worker" \
+                and not (task["checks"] or task.get("gates")):
             raise ValueError(f"{task['id']}: a ready task needs at least one check or gate")
 
 
 def select_task(ledger: dict) -> dict | None:
-    """First READY task (ledger order is the documented rank) whose deps are all verified."""
+    """First READY worker task (ledger order is the documented rank) whose deps are verified."""
     done = {t["id"] for t in ledger["tasks"] if t["status"] == "verified"}
     for task in ledger["tasks"]:
-        if task["status"] == "ready" and all(d in done for d in task["deps"]):
+        if task["status"] == "ready" and task.get("executor", "worker") == "worker" \
+                and all(d in done for d in task["deps"]):
             return task
     return None
 
@@ -292,6 +299,18 @@ def save_ledger(ledger: dict, path: Path = LEDGER) -> None:
     atomic_write(path, json.dumps(ledger, indent=2, ensure_ascii=False) + "\n")
 
 
+def update_task(task_id: str, path: Path = LEDGER, history: dict | None = None, **fields) -> dict:
+    """Re-read the ledger and change only this task, so concurrent lead edits made
+    while the controller was paused are never overwritten by a stale copy."""
+    ledger = load_ledger(path)
+    task = next(t for t in ledger["tasks"] if t["id"] == task_id)
+    task.update(fields)
+    if history:
+        task.setdefault("history", []).append(history)
+    save_ledger(ledger, path)
+    return task
+
+
 def pid_alive(pid: int) -> bool:
     try:
         os.kill(pid, 0)
@@ -349,14 +368,10 @@ class Controller:
             if pid and pid != os.getpid() and pid_alive(pid):
                 raise Stop(f"lease owner pid {pid} still alive; refusing to start a second writer")
         dirty = git("status", "--porcelain", "--untracked-files=all")
-        ledger = load_ledger()
-        for task in ledger["tasks"]:
-            if task["id"] == lease.get("task") and task["status"] == "active":
-                task["status"] = "blocked"
-                task.setdefault("history", []).append({
-                    "at": now(), "event": "interrupted", "lease": lease,
-                    "dirty_paths": parse_porcelain(dirty)})
-        save_ledger(ledger)
+        task_id = lease.get("task")
+        if task_id and any(t["id"] == task_id and t["status"] == "active" for t in load_ledger()["tasks"]):
+            update_task(task_id, status="blocked", history={
+                "at": now(), "event": "interrupted", "lease": lease, "dirty_paths": parse_porcelain(dirty)})
         lease_path.unlink()
         if dirty.strip():
             raise Stop("recovered an interrupted lease and the checkout has a partial diff; "
@@ -625,11 +640,10 @@ Return the structured result.
 """
 
     # --- task lifecycle ---
-    def run_task(self, ledger: dict, task: dict) -> str:
+    def run_task(self, task: dict) -> str:
         head = self.preflight()
         self.heartbeat(task=task["id"], phase="start", base=head)
-        task["status"] = "active"
-        save_ledger(ledger)
+        update_task(task["id"], status="active", history={"at": now(), "event": "active", "run": self.run_id})
         task_dir = self.state / "runs" / self.run_id / task["id"]
         feedback, last_fp, attempts = "", None, []
         for attempt in range(1, self.cfg.max_repairs + 2):
@@ -674,7 +688,7 @@ Return the structured result.
                     verdict = verifier.get("output") or {}
                     findings = verdict.get("findings") or []
                     if verifier["exit_code"] == 0 and verdict.get("verdict") == "pass" and not blocking(findings):
-                        return self.checkpoint(ledger, task, head, changed, attempts, adir)
+                        return self.checkpoint(task, head, changed, attempts)
                     kind = "verifier"
                     detail = json.dumps(blocking(findings) or findings or verdict or verifier.get("subtype"), indent=1)
             if bad := record.get("reverted_out_of_scope"):
@@ -689,8 +703,7 @@ Return the structured result.
         self.revert(self.changed())
         raise Blocked(f"not verified after {self.cfg.max_repairs} repair rounds; last failure: {feedback[:600]}")
 
-    def checkpoint(self, ledger: dict, task: dict, head: str, changed: list[str], attempts: list[dict],
-                   adir: Path) -> str:
+    def checkpoint(self, task: dict, head: str, changed: list[str], attempts: list[dict]) -> str:
         receipt = {
             "task": task["id"], "criterion": task["criterion"], "run": self.run_id, "base": head,
             "branch": self.cfg.branch, "verified_at": now(), "files": sorted(changed),
@@ -708,10 +721,8 @@ Return the structured result.
         }
         rel = f"docs/roadmap-pipeline/receipts/{task['id']}.json"
         atomic_write(ROOT / rel, json.dumps(receipt, indent=2, ensure_ascii=False) + "\n")
-        task["status"] = "verified"
-        task.setdefault("history", []).append({"at": now(), "event": "verified", "run": self.run_id,
-                                               "receipt": rel, "attempts": len(attempts)})
-        save_ledger(ledger)
+        update_task(task["id"], status="verified", history={"at": now(), "event": "verified", "run": self.run_id,
+                                                             "receipt": rel, "attempts": len(attempts)})
         git("add", "--", *changed, rel, str(LEDGER.relative_to(ROOT)))
         message = (f"roadmap({task['id']}): {task['title']}\n\n"
                    f"Criterion {task['criterion']}; verified by controller checks and an independent "
@@ -733,12 +744,11 @@ Return the structured result.
                 return
         raise Stop(f"push failed: {done.stderr.strip()[-600:]}")
 
-    def mark(self, ledger: dict, task: dict, status: str, reason: str) -> None:
-        task["status"] = status
-        task.setdefault("history", []).append({"at": now(), "event": status, "run": self.run_id, "reason": reason})
-        save_ledger(ledger)
+    def mark(self, task_id: str, status: str, reason: str) -> None:
+        update_task(task_id, status=status, history={"at": now(), "event": status, "run": self.run_id,
+                                                     "reason": reason})
         git("add", "--", str(LEDGER.relative_to(ROOT)))
-        git("commit", "-q", "-m", f"roadmap({task['id']}): mark {status}\n\n{reason[:900]}\n\n" + TRAILERS)
+        git("commit", "-q", "-m", f"roadmap({task_id}): mark {status}\n\n{reason[:900]}\n\n" + TRAILERS)
         self.push()
 
     def init_check(self) -> dict:
@@ -773,14 +783,13 @@ Return the structured result.
         done = 0
         while done < max_tasks:
             self.check_controls()
-            ledger = load_ledger()
-            task = select_task(ledger)
+            task = select_task(load_ledger())
             if task is None:
                 event(event="stop", reason="no ready task with verified dependencies")
                 return "no-ready-task"
             event(event="start", task=task["id"], title=task["title"])
             try:
-                commit = self.run_task(ledger, task)
+                commit = self.run_task(task)
                 event(event="verified", task=task["id"], commit=commit, spent_usd=round(self.spent, 2))
             except Blocked as error:
                 self.mark_blocked(task["id"], str(error))
@@ -793,9 +802,7 @@ Return the structured result.
     def mark_blocked(self, task_id: str, reason: str) -> None:
         if self.changed():
             raise Stop(f"{task_id} blocked but the checkout is not clean after revert; review needed")
-        ledger = load_ledger()
-        task = next(t for t in ledger["tasks"] if t["id"] == task_id)
-        self.mark(ledger, task, "blocked", reason)
+        self.mark(task_id, "blocked", reason)
 
 
 def status(state: Path = STATE) -> int:
