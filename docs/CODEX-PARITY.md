@@ -15,7 +15,7 @@
 | --- | --- | --- |
 | Three instruction layers exist in repository/client | Root and 12 directory files on PR #341; global home file reported by Claude but inaccessible to this review | PARTIAL |
 | Root/subdirectory instruction loading | Claude reported `codex debug prompt-input` from five directories; no independently retained transcript | REPORTED, NOT REPRODUCED |
-| Tool-safe unattended changes | Protected-path code and regression tests proposed in PR #342 | PENDING HOSTED CHECKS |
+| Tool-safe unattended changes | [PR #342](https://github.com/BaryonOS/BaryonOS/pull/342) merged as `ca50fa8f` after passing required host-quality, qemu-smoke and merge-hold; both controllers share the guarded path policy | REPOSITORY CHECKS PASSED; CODEX CANARY NOT RUN |
 | Hosted Graphify connection inside Codex | No genuine Codex worker transcript | NOT RUN |
 | RTK, Token Guard, Ponytail, ECC active | No end-to-end Codex execution artifact; some repository tool tests previously reported by Claude | NOT RUN |
 | Real task: plan → edit → test → repair → checkpoint | Issue pipeline unit tests and Claude-only runner exist; Codex canary not executed | NOT RUN |
