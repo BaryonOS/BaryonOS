@@ -78,6 +78,18 @@ Kernel Clippy with the stage feature, FAILED (exit 101):
 - [.gitattributes](.gitattributes) now marks `run14-20261115/**/serial.txt` as `-text`, following the m6b rule in the root `.gitattributes`. The follow-up commit stores the captured bytes unchanged.
 - Run 13's committed serial logs ([run13-20261114/](run13-20261114/)) fail their own `SHA256SUMS` in the same way, with exit 1. They were left untouched here. The byte-exact originals exist only in this worktree's working copy.
 
+**Other commands.** These ran from the worktree root. Durations were not recorded for any of them except the gate.
+
+| Command | Exit | s |
+|---|---|---|
+| `python3 -B -c "import sys; sys.path.insert(0,'tools'); from common import source_hash; print(source_hash())"` before the gate | 0 | not recorded |
+| `build/s09-ustar-notes/runner/heavy.sh python3 -B tools/test_volume.py` | 0 | 164 |
+| the same fingerprint command after the gate | 0 | not recorded |
+| `python3 -B tools/capture_volume.py --destination docs/verification/s09-archive/run14-20261115` | 0 | not recorded |
+| `sha256sum -c SHA256SUMS --quiet` in the run folder, working copy | 0 | not recorded |
+| the same, on the files committed in `5376afc1` (`git archive`) | 1 | not recorded |
+| the same, on the files committed in `97dd1b9d` (`git archive`) | 0 | not recorded |
+
 **Not run.**
 - KVM, real hardware and CI on this head;
 - extraction on Windows or macOS, and bsdtar or Windows `tar` as readers;
