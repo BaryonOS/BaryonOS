@@ -92,7 +92,14 @@ them on and chooses a service.
 
 **Instellingen**: Systeem · Apparaten · Netwerk en internet · Weergave · Apps ·
 Gebruikers · Opslag en NAS · Tijd en taal · Toegankelijkheid · Privacy en
-beveiliging · Updates. Against DESKTOP-SHELL §2 this renames Personalization
+beveiliging · Updates. Privacy en beveiliging contains **Appmachtigingen**
+(Instellingen › Privacy en beveiliging › Appmachtigingen): every standing app
+grant, "Toestaan tot afsluiten" while the app runs and "Altijd toestaan", is
+listed there with app, resource, right, scope (including the destination of a
+right that sends data, for example "naar tuinplanner.example"), where the access
+reaches and duration, and can be revoked
+with "Intrekken", whose accessible name names app, resource, right and scope
+(owner decision of 14 November 2026; DESIGN-SYSTEM.md §11.1). Against DESKTOP-SHELL §2 this renames Personalization
 to Weergave and Accounts to Gebruikers (there are no vendor accounts) and adds
 Opslag en NAS (pairing, own NAS, receiving and offering space).
 
@@ -110,12 +117,18 @@ name); Prullenbak. The inspector shows Versies, Toegang and Opslag.
   "<App> gebruikt de microfoon". Always icon plus text, never colour alone.
 - **Permission question**: title "<App> wil <wat> <actie>"; rows App, Wat,
   Waarheen, Hoe lang; origin line "Vraag van het systeem · getoond boven alle
-  apps". Buttons name the consequence: "Eenmalig toestaan",
-  "Toestaan tot je het sluit", "Niet toestaan" or "Annuleren". Never "OK" or
-  "Ja". The safe choice is the default.
+  apps". Buttons name the consequence and its duration. An ongoing app
+  permission offers "Toestaan tot afsluiten", "Altijd toestaan" and
+  "Weigeren"; a single action offers "Eenmalig toestaan", "Altijd toestaan" and
+  "Weigeren" (owner decision of 14 November 2026; DESIGN-SYSTEM.md §11.1).
+  Never "OK" or "Ja". No choice is preselected or emphasised; Escape means
+  Weigeren. Open: "afsluiten" is also the power menu's word for shutting down
+  ("Aan/uit" › "Afsluiten"), while the grant ends when the app closes; the
+  owner is asked to confirm or clarify the label (DESIGN-SYSTEM.md O-G12).
+  Durations say "opnieuw opstarten", as the power menu does, not "herstarten".
 - **Actions** keep one name through a flow: Openen, Opslaan, Nieuw, Hernoemen,
   Verplaatsen, Delen, Verwijderen (to Prullenbak), Definitief verwijderen,
-  Intrekken (access), Toestaan / Niet toestaan.
+  Intrekken (access), Toestaan / Weigeren.
 - **Restore versus recovery**: versions and deleted items are "teruggezet"
   ("Deze versie terugzetten", "Vergelijken en terugzetten"); "Herstel" is
   reserved for the recovery environment and "Herstelcode" for the recovery

@@ -1,0 +1,14 @@
+9a30a1d8854d2d2f4b92e393685469eef1a54190154bff92d296f45f564c655e  ui/design/system/components.css
+263285eb8f530514bcaf0a362a7fa7e2bd5aa971ceeecefeb387491643dfda24  ui/design/system/gallery.js
+9c2db15ff491fb4fc62265680aac500969de82720201010aea78e9b6439d4d20  ui/design/system/icons.js
+61839d078c8d5c20546fdcff12711b41b7e00adb3254cbe09c6b498c48d5e94a  ui/design/system/index.html
+b1b3745788bdc7ef7cde2b69a7ffd3751cf348a9df8ba445078de50768446332  ui/design/system/tokens.css
+220542e3da903c1d7a5c3df3d4e141c90ebf78549ef7cea74069090ed65086f8  ui/design/prototype/icons.js
+1c16883ad7644c38b1d9b1cf9af984e519af9f43841131d741f354e5e00f07d6  docs/design/DESIGN-SYSTEM.md
+905cdc20efd0919826907d07d350643241dbcda2eb35ae3526e69d1055a517fb  docs/verification/ds-1.0-base-20261114/README.md
+fb5bebdb204d04453608102d014915c577614b89ef759169ba3e432a4b492326  docs/verification/ds-1.0-base-20261114/findings-final.json
+f6997ba030bc2612ee7dbf8247ab185e82898ba493cb531c6fb697ac2dbe77cc  docs/verification/ds-1.0-base-20261114/renders/ORIGINAL-PNG-SHA256SUMS
+e604d75a4d869bc9543909aa7080dde730f78b69ad536410612317c67af9b86d  docs/verification/ds-1.0-base-20261114/renders/panel-contrast-1440.webp
+2d9b6af87fc944d3b651c92db280a38e40746b81ff5ceb6824f1673e0bc56636  docs/verification/ds-1.0-base-20261114/renders/panel-dark-1440.webp
+6cd7e0d17a91add8698bc062b367056a881fe5aa209c4ca1c164ba65c2a64829  docs/verification/ds-1.0-base-20261114/renders/panel-light-1440.webp
+f8120457ddaf79f7dba9b85e80704df2282afb00285fe8f7c2b8d3fea3ddbe6c  docs/verification/ds-1.0-base-20261114/renders/scale-strip.webp

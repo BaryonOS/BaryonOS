@@ -1,0 +1,209 @@
+{
+ "task": "UX-v2-RC1",
+ "board": "ui/design/concepts/orbitaal-v2/index.html",
+ "verdict": "ACCEPT",
+ "rendered": true,
+ "render_matrix": [
+  "100 % (DSF 1), full board 1440x6200, motion on: page-100.png",
+  "200 % (DSF 2), full board 2880x12400: page-200.png (device scale factor 2 at a 1440 CSS px viewport, not a 720 CSS px reflow)",
+  "dark artboards ab1-ab3 and ab6, light artboards ab4-ab5, plus ab6 C1 light-on-dark and token pairs: in both page renders",
+  "high contrast: defined only as the ab6 specimen (25 % Bureaublad crop and legend); rendered and sampled; no prefers-contrast or forced-colors theme exists on the board",
+  "reduced motion (--force-prefers-reduced-motion) at virtual time 3.3 s and 6 s: page-100-rm-t3300.png, page-100-rm.png; frames identical to each other and to a 4.5 s RM frame",
+  "keyboard focus: focus({focusVisible:true}) on Orbit Zoeken (ab1), Vergelijken en herstellen (ab3), Installeren (ab5) at 200 %: focus-*.png",
+  "contrast sampling renders: harness-normal-100.png and harness-text-hidden-100.png",
+  "v1 comparison: v1-page-100.png"
+ ],
+ "per_item": [
+  {
+   "id": "MF1",
+   "verdict": "resolved",
+   "evidence": "Rendered: ab4 dark kern on light (labels 10.11:1 p05) and ab6 C1 light kern on dark (min 7.68:1); scrimmed window visible behind C1."
+  },
+  {
+   "id": "MF2",
+   "verdict": "resolved",
+   "evidence": "Well chroma 16-21 vs Orbit 23-24 dark (less chroma, same navy, R-G equal), 6-9 vs 7 light; ab4 ask R-G within 1. No cast."
+  },
+  {
+   "id": "MF3",
+   "verdict": "resolved",
+   "evidence": "Rendered on all six Orbits: dot/ring/open-ring nodes with icon and label; ab4 ask state; ab5 collapsed form with one state line."
+  },
+  {
+   "id": "MF4",
+   "verdict": "resolved",
+   "evidence": "Rendered at 200 %: hull, mast, sail line and particle read as a boat at all three sites; no smiley reading (subjective)."
+  },
+  {
+   "id": "MF5",
+   "verdict": "resolved",
+   "evidence": "Blade on Orbit top edge, centred on the active item, 14.4:1 / 12.3:1. Chroma 15/26 matches plan tokens, misses plan's <=12 (RC-plan-1)."
+  },
+  {
+   "id": "MF6",
+   "verdict": "resolved",
+   "evidence": "Sampled wallpaper and plate pixels (p05): greeting 16.67:1, row titles >=17.1:1, meta >=9.03:1."
+  },
+  {
+   "id": "MF7",
+   "verdict": "resolved",
+   "evidence": "Rendered Vandaag, Huis, Archief icons in ab3/ab4 sidebars; no dots. Icon chroma 34 (tx2 token), judged neutral per G8 <=40 (RC-plan-1)."
+  },
+  {
+   "id": "MF8",
+   "verdict": "resolved",
+   "evidence": "Selection blade peak #FEFFFF (chroma 1), 17.9:1; inspector tether at row centre; ab5 keeps searchable category list per plan (c), place map added."
+  },
+  {
+   "id": "MF9",
+   "verdict": "resolved",
+   "evidence": "Rendered: identical dark tiles on dark and light Orbits; system items untiled; C2 states the rule."
+  },
+  {
+   "id": "MF10",
+   "verdict": "resolved",
+   "evidence": "Only Inter loaded (served file identical to repo); computed sizes 13/15/16/22/48, weights 400/600."
+  },
+  {
+   "id": "MF11",
+   "verdict": "resolved",
+   "evidence": "ab6 specimen pair 'vervaagd' vs 'ondoorzichtig, geen vervaging'; launch.opaque #0F1328/#F4F6FB in token table."
+  },
+  {
+   "id": "G1",
+   "verdict": "resolved",
+   "evidence": "Blades lit between active nodes; ab4 tether attached: centre 871.6 = node centre, top 764 = kern bottom. Contrast note RC-ab4-1."
+  },
+  {
+   "id": "G2",
+   "verdict": "resolved",
+   "evidence": "Window pixel #F0F4F7-#F1F4F7 (plan expects about #F0F3F7); kern and Orbit unveiled; C1 window (6,8,19) darker than plate edge (7,11,25)."
+  },
+  {
+   "id": "G3",
+   "verdict": "resolved",
+   "evidence": "ab4 and C1 show bonded App/Wat/Waarheen rows plus Hoe lang; only Waarheen ring red (6.31:1); grey rings 3.52:1."
+  },
+  {
+   "id": "G4",
+   "verdict": "resolved",
+   "evidence": "Versies/Toegang/Opslag bond rendered; 'gisteren 18:12', '11 nov. 20:05'; blade ends at Opslag node; copy 'bijgewerkt 09:41' restored."
+  },
+  {
+   "id": "G5",
+   "verdict": "resolved",
+   "evidence": "Shapes with icon and text in instrument, pills, place-map cells and legend; place-map shapes 5.16-6.07:1 on white."
+  },
+  {
+   "id": "G6",
+   "verdict": "resolved",
+   "evidence": "ab4/ab5 Orbits: separator labelled 'Apps van derden' before the outlined Webvenster tile; separator 3.5:1 light, 6.1:1 dark."
+  },
+  {
+   "id": "G7",
+   "verdict": "resolved",
+   "evidence": "Enter keycap on focused launcher row; rendered keycap edge 5.07:1, text >=6:1."
+  },
+  {
+   "id": "G8",
+   "verdict": "resolved",
+   "evidence": "Hue scan of app surfaces: only place colours, exempt mark/content imagery and slate #5D6890 boundaries; header states the exemptions."
+  },
+  {
+   "id": "T",
+   "verdict": "resolved",
+   "evidence": "Computed roles 48/56, 22/28, 16/26, 15/22, 15/20, 13/18; cv05 cv08 ss01 declared; .num on two prose counts (RC-ab3-1)."
+  },
+  {
+   "id": "W",
+   "verdict": "resolved",
+   "evidence": "Both wordmark paths byte-identical to lockups, fills #EEF1F8/#A9B2CB and #111726/#424B62; used in boot frame and Instellingen only."
+  }
+ ],
+ "findings": [
+  {
+   "id": "RC-ab4-1",
+   "severity": "minor",
+   "where": "ab4 privacy tether (#teth4, page x 871, y 3992-4056)",
+   "problem": "The red tether (#CC3328) runs through the kern's drop shadow; sampled contrast against the adjacent background is 1.14-2.94:1 along most of its length and 1.89:1 where it fades near the node (4.15:1 only at the node). Not a WCAG failure: the asking node is also marked by its red ring and the text 'Webvenster vraagt internet'.",
+   "fix": "Clear the kern shadow in a 12 px strip under the tether, or give the tether a 1 px light keyline, so it reaches 3:1 over its whole length."
+  },
+  {
+   "id": "RC-ab2-1",
+   "severity": "minor",
+   "where": "ab2 launcher group heads (Bestanden, Acties, Assistent)",
+   "problem": "Group heads use type.title 22/28 600 as TYPOGRAPHY 8.2 prescribes for group heads, so they visually outweigh the 15 px result names (subjective; carried from the earlier critic).",
+   "fix": "Leave to the typography owner; caption 13/18 or body-strong would keep results dominant."
+  },
+  {
+   "id": "RC-ab3-1",
+   "severity": "minor",
+   "where": "ab3 status line '5 items' and ab5 place-map caption '1 keer toegestaan vandaag'",
+   "problem": "Tabular figures (.num) are applied to counts inside prose, beyond clocks, sizes and table dates.",
+   "fix": "Drop .num from those two spans."
+  },
+  {
+   "id": "RC-all-1",
+   "severity": "minor",
+   "where": "all artboards, 85 focusable elements",
+   "problem": "Real keyboard focus shows Chrome's default focus ring (rendered, visible on dark and light), not the designed 2 px --focus ring; the designed ring appears only as static .fx specimens (16-19.8:1).",
+   "fix": "Optionally add :focus-visible{outline:2px solid var(--focus);outline-offset:2px} so live focus matches the specimen."
+  },
+  {
+   "id": "RC-plan-1",
+   "severity": "minor",
+   "where": "planner acceptance for MF5, MF7, MF8 versus its css_tokens_to_change",
+   "problem": "The plan requires chroma <=12 for blades and sidebar icons, but its own tokens render at chroma 15 (#E6EBF5), 26 (#2B3245) and 34 (#A9B2CB). The board follows the tokens; this recheck judged neutrality against G8 (<=40). Carried from the earlier critic.",
+   "fix": "Owner decision in ds-1.0: relax the threshold to <=40 or adopt true neutral greys."
+  },
+  {
+   "id": "RC-ab6-1",
+   "severity": "minor",
+   "where": "ab6 Motion and Title-area blocks",
+   "problem": "Text diff against v1: the Motion table no longer specifies the loader (1400 ms loop, text status after 10 s) or the rule that nothing loops for decoration, and the focused/unfocused title-area explanation is gone. The loader itself is still drawn.",
+   "fix": "Add a Loader row to the Motion table and a one-line focused/unfocused caption under the title-area specimen."
+  }
+ ],
+ "originals_unchanged": true,
+ "checks": [
+  "Originals: git diff --stat on orbitaal, triade, materie and ui/prototype/tokens.css printed nothing (exit 0); git status on those paths plus ui/design/brand and ui/design/fonts is clean.",
+  "Generator: build_v2.py run in a scratch root with symlinked v1/triade/brand reproduced ui/design/concepts/orbitaal-v2/index.html byte-identically (cmp). Inputs differ from pre-r2 snapshot (build_v2.py, v2.css), as expected after repair.",
+  "Text contrast (measured on rendered pixels, 539 text nodes): background from the text-hidden render, foreground the computed colour; every visible active text >=4.5:1 at p05 (lowest 5.32:1, ab5 Haven title). Failures found only for text occluded by other windows; disabled specimens and scrimmed or inert app content are exempt.",
+  "Component contrast (measured at DSF 2): inputs 3.41-3.46:1, secondary-button boundaries 3.17-3.52:1, place nodes >=3.30:1, separators 3.48-6.13:1, toggle 17.9:1, focus rings 16-19.8:1, blades 12-17.9:1; tether below 3:1 (RC-ab4-1).",
+  "Geometry (measure.json): no missing <use> refs; ab3 columns 184/134/124/198 px hold texts of max 136/116/108/181 px; ab5 place-map rows 610 px in a 640 px card; ab6 blocks do not overlap; C1 kern is clipped 20 px by its plate, which is labelled crop.",
+  "Fonts: served Inter[opsz,wght].ttf identical to the repository file; single @font-face.",
+  "Evidence levels: renders were made and viewed by this recheck; contrast values are pixel measurements; icon legibility and hierarchy remarks are subjective judgements, not measurements.",
+  "Reduced motion: with motion on, frames at 3.3 s and 4.5 s differ only at the boot mark (58x57 px); motion-on vs reduced-motion frames also differ at the ab4 ask node (halo). Under reduced motion, frames at 3.3, 4.5 and 6 s are identical; the static frame shows mark, wordmark and a static halo ring.",
+  "Keyboard focus (measured at DSF 2): 85 focusable elements; focused elements match :focus-visible and render Chrome's dual ring, 18.56:1 on the light Haven window and 17.3-18.6:1 on dark; no outline suppression in CSS. Designed .fx specimens exist only on dark surfaces (16-19.8:1).",
+  "v1 comparison: text diff of all six artboards (v1 strings absent from v2): ab1-ab4 only rephrasings of the old privacy pill, version rows and kern header; ab5 strings moved into place-map captions or the toggle's aria-label; ab6 loses the intended Funnel and arc rows plus the loader motion spec and title-area caption (RC-ab6-1). Thumbnails of ab5 and ab6 were also viewed.",
+  "Plan acceptance read in full for MF2, MF5-MF8, G1 and G2: no numeric contrast criterion for the tether; G1 geometry (+-2 px, touching ends) met; MF2 'within 4' met in intent (well is less chromatic than Orbit, same hue)."
+ ],
+ "report_path": "build/design-evidence/orbitaal-v2-r2/recheck-1/report.json",
+ "summary": "All six 1440x900 artboards were rendered at 100 % and 200 %, under reduced motion and with live keyboard focus, and viewed. Text and component contrast was sampled on rendered pixels. Every earlier blocker and major finding is resolved in the render: continuity text 9-17:1 over wallpaper and plate, ab4 tether and ab3 inspector tether attached, columns fit, version days restored, place-map icons and content restored, C1 crop shows window and duration row, ab6 token and component coverage restored. Six minor findings remain: tether contrast through the kern shadow, launcher group-head weight per TYPOGRAPHY, .num on two prose counts, browser-default live focus ring, the plan's chroma threshold contradicting its own tokens, and a thinner ab6 motion spec than v1. Originals are unchanged.",
+ "limitations": [
+  "Layouts at 1280x720 and a true 200 % zoom reflow (720 CSS px viewport) were not rendered.",
+  "High contrast exists only as a 25 % specimen; a full high-contrast theme was not available to render.",
+  "Animation timing was checked by comparing frames at virtual times, not watched in real time.",
+  "This recheck is an AI review, not an independent human audit."
+ ],
+ "evidence_files": [
+  "comp.py",
+  "component-contrast.json",
+  "component-rects.json",
+  "focus-ab1-zoeken-200.png",
+  "focus-ab3-vergelijken-200.png",
+  "focus-ab5-installeren-200.png",
+  "harness-normal-100.png",
+  "harness-text-hidden-100.png",
+  "measure.json",
+  "page-100-rm-t3300.png",
+  "page-100-rm.png",
+  "page-100.png",
+  "page-200.png",
+  "rc1-harness.html",
+  "text-contrast.json",
+  "textcon.py",
+  "tsel.json",
+  "v1-page-100.png"
+ ]
+}

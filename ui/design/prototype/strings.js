@@ -130,18 +130,52 @@ export const T = {
     today: 'Vandaag',
   },
 
+  // Permission prompts: owner decision of 14 November 2026 (docs/design/DESIGN-SYSTEM.md §11). Two kinds,
+  // three equal choices each. Every duration is defined once in `duration` and reused by the prompt's
+  // descriptions, the results, the grant row and the documentation; no label promises another validity.
   trusted: {
     origin: 'Vraag van het systeem · getoond boven alle apps',
     wants: (app, what) => `${app} wil ${what}`,
     rows: { app: 'App', what: 'Wat', where: 'Waarheen', duration: 'Hoe lang' },
-    once: 'Eenmalig toestaan',
-    untilClose: 'Toestaan tot je het sluit',
-    deny: 'Niet toestaan',
+    choicesLabel: 'Kies hoe lang',
+    choices: {
+      ongoing: { untilClose: 'Toestaan tot afsluiten', always: 'Altijd toestaan', deny: 'Weigeren' },
+      action: { once: 'Eenmalig toestaan', always: 'Altijd toestaan', deny: 'Weigeren' },
+    },
+    // untilClose: ends when the app closes (also logout and restart). once: ends when the single action
+    // completes, fails or is cancelled; never stored. always: same app, resource, right and scope (the scope
+    // includes the destination of a right that sends data, contract.js destination()) are not asked again,
+    // also after reopening the app, until revoked. deny: this request only; nothing stored.
+    duration: {
+      untilClose: (app) => `Geldt tot je ${app} sluit. Afmelden of opnieuw opstarten beëindigt het ook.`,
+      once: 'Geldt alleen voor deze ene handeling en vervalt zodra die klaar, mislukt of geannuleerd is. Er wordt niets bewaard.',
+      always: (app) => `Geldt ook als je ${app} opnieuw opent, tot je het intrekt in Instellingen › Privacy en beveiliging › Appmachtigingen.`,
+      deny: (app) => `Geldt alleen voor dit verzoek. Er wordt niets bewaard; ${app} kan het later opnieuw vragen.`,
+    },
+    result: {
+      untilClose: (app, what) => `${app} mag ${what} tot je ${app} sluit.`,
+      always: (app, what) => `${app} mag ${what}, ook na opnieuw openen. Intrekken kan in Appmachtigingen.`,
+      once: (app, done) => `${app} heeft ${done}. De toestemming is daarmee vervallen.`,
+      deny: (app) => `${app} kreeg geen toegang. Er is niets verstuurd en niets bewaard.`,
+      covered: (app, what) => `${app} mag al ${what}. Er is niets opnieuw gevraagd.`,
+      appClosed: (app) => `${app} is gesloten. Wat tot afsluiten was toegestaan, is vervallen.`,
+    },
+    // standing grants as listed in Instellingen › Privacy en beveiliging › Appmachtigingen; also the source of
+    // the file inspector's rights, Intrekken and revocation texts (one vocabulary)
+    grant: {
+      until: { close: (app) => `Tot je ${app} sluit`, always: 'Altijd, tot je het intrekt' },
+      rights: { readWrite: 'lezen en wijzigen', read: 'lezen', connect: 'verbinding maken', 'send-copy': 'een kopie sturen' },
+      scopes: { document: 'alleen dit document', domain: 'alleen dit domein', collection: 'alleen deze collectie' },
+      revoke: 'Intrekken',
+      // a grant's resource as named in Intrekken and the revocation message; a destination keeps two grants apart
+      target: (resource, to) => (to ? `${resource} naar ${to}` : resource),
+      // named by all four key fields (app, resource with destination, right label, scope label), so two standing
+      // grants never share an accessible name (C1 repair-2)
+      revokeName: (app, target, right, scope) => `Intrekken: ${app}, ${target}, ${right}, ${scope}`,
+      revoked: (app, target, right, scope) => `Machtiging ingetrokken: ${app}, ${target}, ${right}, ${scope}. ${app} moet het opnieuw vragen.`,
+      empty: 'Geen blijvende machtigingen. Apps vragen het je wanneer ze iets nodig hebben.',
+    },
     cancel: 'Annuleren',
-    durationOnce: 'Alleen deze keer',
-    durationSession: 'Tot je de app sluit',
-    denied: (app) => `${app} kreeg geen toegang. Er is niets verstuurd.`,
-    allowedOnce: (app, where) => `${app} heeft eenmalig verstuurd naar ${where}.`,
   },
 
   bestanden: {
@@ -194,13 +228,9 @@ export const T = {
     added: 'Toegevoegd',
     removed: 'Verwijderd',
     accessNone: 'Geen enkele app heeft toegang tot dit bestand.',
-    accessRevoke: 'Intrekken',
-    accessRevoked: (app) => `Toegang van ${app} ingetrokken.`,
+    // rights: T.trusted.grant.rights[right]; until: T.trusted.grant.until.close(app) or .always; Intrekken and
+    // the revocation message: T.trusted.grant.revoke / .revokeName(app, target, right, scope) / .revoked(app, target, right, scope) (one vocabulary for grants)
     accessLine: (app, rights, until) => `${app} kan dit document ${rights} · ${until}`,
-    rightsReadWrite: 'lezen en wijzigen',
-    rightsRead: 'lezen',
-    untilClose: 'Tot je het sluit',
-    untilOnce: 'Eenmalig',
     storageLocal: 'Op dit apparaat',
     storageNas: 'Op Thuis-NAS · versleuteld',
     storageBoth: 'Op dit apparaat en Thuis-NAS',
@@ -253,7 +283,8 @@ export const T = {
     },
     privacy: {
       intro: 'Apps krijgen alleen toegang waar je zelf toestemming voor geeft. Installeren geeft geen toegang.',
-      perApp: 'Toegang per app',
+      perApp: 'Appmachtigingen',
+      perAppPath: 'Instellingen › Privacy en beveiliging › Appmachtigingen',
       internet: 'Internet',
       location: 'Locatie',
       files: 'Bestanden',

@@ -52,6 +52,26 @@ Inter (15 px, features ['cv05', 'cv08', 'ss01'])
        .@       .@   
       @@@@@      #@. 
                      
+  pair distinctness at 13 px only: mean 0.452, weakest c/e 0.195, a/o 0.241, 5/S 0.264
+  pair distinctness at 15 px only: mean 0.421, weakest c/e 0.175, I/l 0.202, rn/m 0.262
+  word space on every specimen line, per record: smallest gap across a space / largest gap inside a word (px); "=" tie, "<" collapse; then the same with the space 2 px wider
+    15r   ui 4/2   read 4/2   strong 5/2   small 3/3=  | +2 px: ui 6/2   read 6/2   strong 7/2   small 5/3 
+    16r   ui 4/2   read 4/2   strong 4/2   small 4/3   | +2 px: ui 6/2   read 6/2   strong 6/2   small 6/3 
+    15sb  ui 5/2   read 3/3=  strong 2/3<  small 3/3=  | +2 px: ui 7/2   read 5/3   strong 4/3   small 5/3 
+    13r   ui 4/2   read 4/2   strong 3/2   small 3/2   | +2 px: ui 6/2   read 6/2   strong 5/2   small 5/2 
+    30r   ui 9/4   read 8/4   strong 8/5   small 8/5   | +2 px: ui 11/4   read 10/4   strong 10/5   small 10/5 
+    32r   ui 9/5   read 8/4   strong 9/4   small 10/6   | +2 px: ui 11/5   read 10/4   strong 11/4   small 12/6 
+    30sb  ui 8/4   read 6/4   strong 7/4   small 7/5   | +2 px: ui 10/4   read 8/4   strong 9/4   small 9/5 
+    26r   ui 7/4   read 6/4   strong 6/4   small 7/5   | +2 px: ui 9/4   read 8/4   strong 8/4   small 9/5 
+    22sb  ui 5/4   read 4/3   strong 5/4   small 6/4   | +2 px: ui 7/4   read 6/3   strong 7/4   small 8/4 
+    44sb  ui 12/6   read 10/6   strong 11/5   small 11/9   | +2 px: ui 14/6   read 12/6   strong 13/5   small 13/9 
+    48r   ui 15/7   read 12/6   strong 12/7   small 14/9   | +2 px: ui 17/7   read 14/6   strong 14/7   small 16/9 
+  ties and collapses: 
+    15r on the small line: 3 px at "e Å" against 3 px at ",5"
+    15sb on the read line: 3 px at "k s" against 3 px at "hu"
+    15sb on the strong line: 2 px at "r t" against 3 px at "na"
+    15sb on the small line: 3 px at "e Å" against 3 px at "1|"
+  ties and collapses with the space 2 px wider: none
 
 Atkinson Hyperlegible Next (16 px, features none)
   copy characters missing: ↑↓
@@ -106,6 +126,23 @@ Atkinson Hyperlegible Next (16 px, features none)
      +@@@-     :@.  
                 #@- 
                     
+  pair distinctness at 14 px only: mean 0.444, weakest a/o 0.252, I/1 0.255, 6/8 0.296
+  pair distinctness at 16 px only: mean 0.426, weakest rn/m 0.039, 6/8 0.266, c/e 0.296
+  word space on every specimen line, per record: smallest gap across a space / largest gap inside a word (px); "=" tie, "<" collapse; then the same with the space 2 px wider
+    16r   ui 4/3   read 4/2   strong 5/2   small 3/3=  | +2 px: ui 6/3   read 6/2   strong 7/2   small 5/3 
+    17r   ui 6/3   read 5/3   strong 5/3   small 4/4=  | +2 px: ui 8/3   read 7/3   strong 7/3   small 6/4 
+    16sb  ui 5/3   read 4/3   strong 5/3   small 4/4=  | +2 px: ui 7/3   read 6/3   strong 7/3   small 6/4 
+    14r   ui 3/2   read 3/3=  strong 4/3   small 4/3   | +2 px: ui 5/2   read 5/3   strong 6/3   small 6/3 
+    32r   ui 10/7   read 9/5   strong 9/5   small 9/8   | +2 px: ui 12/7   read 11/5   strong 11/5   small 11/8 
+    34r   ui 11/6   read 10/5   strong 11/6   small 10/7   | +2 px: ui 13/6   read 12/5   strong 13/6   small 12/7 
+    32sb  ui 11/5   read 10/4   strong 10/5   small 10/6   | +2 px: ui 13/5   read 12/4   strong 12/5   small 12/6 
+    28r   ui 9/5   read 7/4   strong 8/4   small 9/6   | +2 px: ui 11/5   read 9/4   strong 10/4   small 11/6 
+  ties and collapses: 
+    16r on the small line: 3 px at "B 8" against 3 px at "11"
+    17r on the small line: 4 px at "e Å" against 4 px at "11"
+    16sb on the small line: 4 px at "e Å" against 4 px at "11"
+    14r on the read line: 3 px at "e w" against 3 px at "ie"
+  ties and collapses with the space 2 px wider: none
 
 Exo 2 (17 px, features none)
   copy characters missing: ↑↓
@@ -164,3 +201,25 @@ Exo 2 (17 px, features none)
       :@      .@+. 
       :@       *@# 
                    
+  pair distinctness at 15 px only: mean 0.369, weakest I/1 0.098, c/e 0.201, 5/S 0.234
+  pair distinctness at 17 px only: mean 0.466, weakest O/0 0.235, 5/S 0.249, 6/8 0.260
+  word space on every specimen line, per record: smallest gap across a space / largest gap inside a word (px); "=" tie, "<" collapse; then the same with the space 2 px wider
+    17r   ui 4/3   read 3/3=  strong 3/3=  small 4/4=  | +2 px: ui 6/3   read 5/3   strong 5/3   small 6/4 
+    18r   ui 4/4=  read 4/4=  strong 4/3   small 4/4=  | +2 px: ui 6/4   read 6/4   strong 6/3   small 6/4 
+    17sb  ui 4/3   read 3/2   strong 3/2   small 3/3=  | +2 px: ui 6/3   read 5/2   strong 5/2   small 5/3 
+    15r   ui 3/2   read 3/2   strong 3/1   small 2/2=  | +2 px: ui 5/2   read 5/2   strong 5/1   small 4/2 
+    34r   ui 9/6   read 9/6   strong 6/6=  small 9/7   | +2 px: ui 11/6   read 11/6   strong 8/6   small 11/7 
+    36r   ui 11/7   read 9/6   strong 9/6   small 10/7   | +2 px: ui 13/7   read 11/6   strong 11/6   small 12/7 
+    34sb  ui 9/6   read 8/6   strong 7/4   small 8/6   | +2 px: ui 11/6   read 10/6   strong 9/4   small 10/6 
+    30r   ui 9/6   read 8/6   strong 6/5   small 8/6   | +2 px: ui 11/6   read 10/6   strong 8/5   small 10/6 
+  ties and collapses: 
+    17r on the read line: 3 px at "t v" against 3 px at "ui"
+    17r on the strong line: 3 px at "r w" against 3 px at "il"
+    17r on the small line: 4 px at "e Å" against 4 px at "-1"
+    18r on the ui line: 4 px at "t a" against 4 px at "13"
+    18r on the read line: 4 px at "t b" against 4 px at "-N"
+    18r on the small line: 4 px at "e Å" against 4 px at "23"
+    17sb on the small line: 3 px at "e Å" against 3 px at "1."
+    15r on the small line: 2 px at "B 8" against 2 px at "l1"
+    34r on the strong line: 6 px at "l T" against 6 px at "il"
+  ties and collapses with the space 2 px wider: none
