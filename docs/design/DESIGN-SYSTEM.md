@@ -877,6 +877,20 @@ ds-1.0 is a minimal, neutral carrier for the model, labels, contract, accessible
 names, interactions and revocation defined here; it is not the final consent
 design.
 
+**Superseded by the owner decision of 15 November 2026.** The project owner
+replaced the prompt choices below with two primary choices, "Toestaan" and
+"Weigeren", plus an optional remember control (owner wording "Keuze
+onthouden") that is off by default and applies to both choices. Without
+remembering, an ongoing permission lasts until the app closes and a single
+action is allowed for that action only; a denial without remembering records
+nothing lasting. With remembering, the allow or deny decision applies to
+future identical requests, keyed on app, right, data, destination and scope.
+Task UX-C researches and verifies this model before it replaces the
+description below. Until then the gallery and `contract.js` show the
+14 November model, and its verification record
+(`docs/verification/ds-1.0-c1-20261115/`) is not evidence for the new
+model. Native persistent grants and remembered denials require an ADR first.
+
 **Two prompt kinds, three visible choices each.**
 
 | Kind | Meaning | Choices (`data-choice`, label) |
