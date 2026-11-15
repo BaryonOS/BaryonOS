@@ -105,6 +105,9 @@ text spacing, scale and widths, fixes the remaining major and the mechanical
 minors, then a fresh verifier runs the ten checks, at most two repairs;
 acceptance is no blocker or major and stored screenshots, and it also closes
 UX-D. If run 2 ends blocked, the residual becomes a concrete owner blocker.
+Run 2 is queued, not started: the plan's weekly usage limit stood at 94 % on
+15 November at 20:40 CET (run 1 used about 1.94 M subagent tokens), and it
+resets on 18 November 2026 at 07:00 CET.
 Then UX-A11Y-A1, UX-C run 1 (`runs-20261115/uxc-run1.js`), UX-C run 2, UX-E,
 UX-F, UX-G and G1.
 
