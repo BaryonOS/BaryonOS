@@ -1,0 +1,135 @@
+{
+ "task": "S0-RC1 independent recheck of build/design-evidence/suite-s0/repair/WORKSPACE-REQUIREMENTS.md (r2 writer, attempt 1)",
+ "worktree_head": "6d27e50b (build/ is git-ignored)",
+ "documents": {
+  "current": "c2d843a80d27b3356f73f7b6312890ea3ffa1f2ad073ffe28a38f86df38064ee (matches r2/repair-1.json)",
+  "pre_r2": "80d20cf68a583e7992e7e0a9a41e06618bfb97eef818baf4b36b4645e9b9de67 (the version the earlier recheck judged, 80d20cf6...)"
+ },
+ "evidence_level": "[ANALYSIS] source reading, diff and script reproduction only; nothing rendered or viewed; no user test",
+ "verdict": "ACCEPT",
+ "rendered": false,
+ "render_matrix": [],
+ "scope": "D9 in full; every hunk of diff -u WORKSPACE-REQUIREMENTS.pre-r2.md WORKSPACE-REQUIREMENTS.md (7 hunks: header line 9, D1 lines 21-36, D3 lines 74-81, D9 lines 166-192, state table line 231, rounding paragraph lines 260-263, open item 2 line 290)",
+ "per_item": [
+  {
+   "id": "F03 (major, D9, SC 2.5.7)",
+   "verdict": "resolved",
+   "evidence": "D9 lines 166-192 (decision from line 168). Arbitrary subset: Toggle selection makes a plain click add or remove one item, so no modifier key is needed. Marquee: Select area by two clicks. Lasso: Polygon lasso by clicked vertices, closed by a click on the first vertex (24 x 24, consistent with D2 line 43) or Close lasso, discarded by Cancel lasso. All six commands sit in menu bar and palette, which D6 lines 129-130 keep at every level. Only freehand strokes remain essential. SC 2.5.7 text and the glossary 'essential' wording ('cannot be achieved in another way that would conform') match the local WCAG 2.2 copy verify/dl/wcag22.html verbatim."
+  },
+  {
+   "id": "recheck minor: --sec-bg/--pill-bg scope gap (D3)",
+   "verdict": "deferred_ok",
+   "evidence": "D3 lines 74-81 and open item 2 (line 290) disclose dark line.strong on the --sec-bg twin over raised as 2.90 FAIL, PROVISIONAL, outside the 12, and assign it to the ds-1.0 tokens stage; contrast.txt section 7b line 693 prints 2.90 BELOW and asserts it is the only button-fill failure. The pair itself stays open by design."
+  },
+  {
+   "id": "recheck minor: splitter non-drag width (D9)",
+   "verdict": "resolved",
+   "evidence": "D9 lines 172-174: Narrow, Standard, Wide, Place splitter (next click sets position) and a width .ds-number-field; Place splitter is a pure single-pointer route."
+  },
+  {
+   "id": "recheck minor: light --wsh/--wsh-off shadows (F07 omission)",
+   "verdict": "resolved",
+   "evidence": "State table line 231. Source orbitaal/index.html line 44 (rgba(0,0,0,.58/.42/.45)) and line 53 (rgba(36,54,108,.22/.14/.16)); independent luminance #24366C 0.04096, #393939 0.04092 (closest grey); contrast.txt lines 674 and 687."
+  },
+  {
+   "id": "recheck minor: error-square fill (D1)",
+   "verdict": "resolved",
+   "evidence": "D1 lines 23-26 fill the square with text.primary, tagged [JUDGEMENT] at lines 33-36; CONCEPTS.md line 92 and TYPOGRAPHY.md line 689 indeed state no fill, so no contradiction. Minima checked in contrast.txt: section 6b dark 11.02 and light 12.45, section 5 hc 17.83, section 9 rest 14.25 / 14.63; all >= 4.5."
+  },
+  {
+   "id": "recheck caveat: rounding mode of v1 4.30 / 2.75",
+   "verdict": "resolved",
+   "evidence": "Header line 9 and contrast.py lines 9-10 state ties rounded to even; float check: 0.1*97+0.9*232 = 218.5 exactly, round() gives 218; section 8b (lines 720-739) gives 4.33 / 2.77 with ties up, 2 of 75 fills move, no verdict changes; document lines 260-263 match."
+  },
+  {
+   "id": "F01 (blocker, regression check)",
+   "verdict": "resolved",
+   "evidence": "Failure table lines 242-253 unchanged (12 rows, all FAIL); SUMMARY line in contrast.txt still BELOW neutral 12, v2sel 5, v1 20, hc 0, red 12; the new 2.90 is labelled FAIL."
+  },
+  {
+   "id": "F06 (major, regression check)",
+   "verdict": "resolved",
+   "evidence": "D1 still bars any red status colour (lines 27-29); error = square + icon + message in text.primary."
+  },
+  {
+   "id": "F07 (major, regression check)",
+   "verdict": "resolved",
+   "evidence": "State table lines 223-233 keeps every earlier row; only the --wsh row was added."
+  },
+  {
+   "id": "F08 (conditional)",
+   "verdict": "deferred_ok",
+   "evidence": "Untouched by r2; docs/verification/suite-s0-workspace-20261114/ still does not exist; the document holds no build/ path; integration precondition for the coordinator."
+  },
+  {
+   "id": "F10 (minor, length)",
+   "verdict": "partial",
+   "evidence": "Measured with wc -w: total 2,913 -> 3,239 words, non-table prose 1,961 -> 2,265. Growth comes from required D9/D3 additions; no cut was made."
+  }
+ ],
+ "findings": [
+  {
+   "id": "RC1-m1",
+   "severity": "minor",
+   "where": "D9 lines 168-170 with D8 lines 155-157",
+   "problem": "[JUDGEMENT] Keyframe and clip-edge positions have only inspector number fields as non-drag route, and D8 gives number fields keyboard stepping and no pointer stepper, so a pointer-only user depends on an on-screen keyboard. The local WCAG 'single pointer' definition neither includes nor excludes typed entry; Understanding 2.5.7 is not among the local copies and network access was not permitted, so it is not cited either way. The earlier recheck treated a typed field as sufficient (its splitter remedy), so this is not raised to major.",
+   "fix": "Add 'Move to playhead' for keyframes and clip edges (the playhead is already placed by a click on the ruler), or a pointer stepper on these fields."
+  },
+  {
+   "id": "RC1-m2",
+   "severity": "minor",
+   "where": "D9 lines 172-182; NATIVE-MATERIAAL.md lines 187-188",
+   "problem": "Pending click-placed states have no stated pointer cancel except the lasso: after the first Select area click or after choosing Place splitter, no Cancel command is named. NATIVE-MATERIAAL ends drag/modifier interaction on focus cancellation and lets a new focus generation inherit no held action; D9 does not say whether these pending states end there.",
+   "fix": "Name one Cancel route for every pending click mode (Select area, Place splitter, Polygon lasso) and state that focus cancellation ends them while keeping the selection."
+  },
+  {
+   "id": "RC1-m3",
+   "severity": "minor",
+   "where": "D9 line 168 versus the enumerated routes",
+   "problem": "The binding first sentence covers every drag, but named routes exist only for keyframes, clip edges, guides, layer/track order, splitters, docking, marquee/lasso and sliders. Moving a whole clip along or between tracks, canvas object move/resize/rotate, canvas pan and bin-to-timeline drag-and-drop have no named route for S7.",
+   "fix": "Add one sentence naming routes, e.g. inspector position fields plus Move to track, Insert at playhead, and scrollbar or navigator clicks."
+  },
+  {
+   "id": "RC1-m4",
+   "severity": "minor",
+   "where": "D9 line 176; D4, D6 line 131, names table line 269, open item 8",
+   "problem": "'tool options' is not a reserved region or term (names table has .ds-toolbar and .ds-tool-rail; D6 says 'contextual toolbar group'). The six new command names are not covered by open item 8, which lists region names only; NAMING-AND-IA section 6 keeps one action name per flow, so the Dutch names need the string table.",
+   "fix": "Use 'contextual toolbar group' and extend open item 8 to the D9 command names."
+  },
+  {
+   "id": "RC1-m5",
+   "severity": "minor",
+   "where": "D3 lines 75-76",
+   "problem": "'on the --sec-bg twin over raised (#2E2E2E)' reads as if raised were #2E2E2E; raised is #212121 (token table line 209) and #2E2E2E is the composite (contrast.txt line 693).",
+   "fix": "Write 'over raised #212121 (composite #2E2E2E)'."
+  },
+  {
+   "id": "RC1-m6",
+   "severity": "minor",
+   "where": "build/design-evidence/suite-s0/repair/resolution.md line 3",
+   "problem": "The F03 row still describes the pre-r2 D9 (marquee by click and modifiers; lassos essential). Outside the reviewed document, but in the same evidence folder.",
+   "fix": "Update the F03 row at integration."
+  }
+ ],
+ "checks": [
+  "diff -u WORKSPACE-REQUIREMENTS.pre-r2.md WORKSPACE-REQUIREMENTS.md: 7 hunks, every changed line reviewed",
+  "sha256sum of both documents: current c2d843a8..., pre-r2 80d20cf6... (equals the hash the earlier recheck judged)",
+  "python3 -I contrast.py > scratch/contrast.rerun.txt: exit 0, empty stderr; cmp against repair/contrast.txt: exit 0",
+  "sha256sum -c SHA256SUMS in repair/: contrast.py OK, contrast.txt OK, exit 0",
+  "ls -a of repair/ before and after the run identical (no __pycache__)",
+  "diff recheck/repair-rerun.txt repair/contrast.txt: 0 removed lines, 43 added lines in 3 blocks (sections 7 shadow lines, 7b, 8b); no previously verified line changed",
+  "Local WCAG 2.2 copy verify/dl/wcag22.html: SC 2.5.7 text, glossary 'dragging movement', 'essential' and 'single pointer' printed and compared",
+  "Float check of the two 8-bit ties (218.5, 236.5) and round() results 218, 236",
+  "Independent luminance of #24366C and #393939",
+  "grep counts: PROVISIONAL 3 -> 4 (all earlier occurrences kept: lines 11, 55, 194); 'consider' 0; 'build/' 0; failure table 12 rows unchanged",
+  "CONCEPTS.md line 92 and TYPOGRAPHY.md line 689 read; NATIVE-MATERIAAL.md lines 68-75 and 184-196 read; NAMING-AND-IA.md section 6 read; DESKTOP-SHELL drag lines 44-45 (shell windows, outside D9 scope)",
+  "git diff --stat HEAD and git status on orbitaal/, triade/, materie/, ui/prototype/tokens.css, docs/progress.json, docs/PROJECT-STATE.md, README.md: empty",
+  "git diff --stat 0670d72e HEAD on CONCEPTS, TYPOGRAPHY, DESKTOP-SHELL, PROFILES-AND-USERS, orbitaal/index.html: empty"
+ ],
+ "not_checked": [
+  "Understanding 2.5.7 (not in the local copies; network beyond 127.0.0.1 not permitted)",
+  "Minors F11-F20 not re-judged (their lines are outside the r2 diff)",
+  "No render, no user test"
+ ],
+ "originals_unchanged": true
+}

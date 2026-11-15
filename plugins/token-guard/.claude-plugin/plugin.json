@@ -1,7 +1,10 @@
 {
   "name": "token-guard",
-  "version": "1.1.1",
-  "description": "Compact coding context with preserved command evidence and conservative build/test hooks.",
-  "author": { "name": "Simon van Ieperen" },
-  "license": "MPL-2.0"
+  "version": "1.2.1",
+  "description": "Compact coding context with native MCP tools, preserved command evidence and optional Claude read guidance.",
+  "author": {
+    "name": "Simon van Ieperen"
+  },
+  "license": "MPL-2.0",
+  "mcpServers": "./config/claude-mcp.json"
 }
