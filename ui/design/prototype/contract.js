@@ -2,7 +2,7 @@
 // state and the file store. Simulation only: state lives in this page and is
 // lost on reload. Apps receive a ctx from the shell (see shell/windows.js):
 //   { open(appId, args), close(), setTitle(s), notify({title, body, actions}),
-//     ask(request) -> Promise<'once'|'session'|'deny'>, files, grants, store, t }
+//     ask(request), files, grants, store, t }   ask: see "Permission prompts" below
 import { T } from './strings.js'
 import { DATA } from './data.js'
 import { ICONS } from './icons.js'
@@ -81,8 +81,9 @@ export const store = {
   },
 }
 
-// Files with versions and per-app grants. Every mutation emits 'files'.
-const state = { files: clone(DATA.files), collections: clone(DATA.collections), trash: [] }
+// Files with versions. Every mutation emits 'files'.
+// grants live in their own store (see Permission prompts); files keep no stale copy
+const state = { files: clone(DATA.files).map(({ grants: _, ...f }) => f), collections: clone(DATA.collections), trash: [] }
 const changed = (detail) => bus.emit('files', detail)
 
 export const files = {
@@ -157,22 +158,76 @@ export const files = {
   },
 }
 
-// Grants are stored on files; this view lists and revokes them per app.
+// Permission prompts (owner decision of 14 November 2026; docs/design/DESIGN-SYSTEM.md §11).
+// Two kinds, three equal choices each:
+//   'ongoing' (access that lasts while the app runs)  -> 'untilClose' | 'always' | 'deny'
+//   'action'  (one discrete operation)                -> 'once'       | 'always' | 'deny'
+// A request is { kind, app, resource, right, scope, to? }. A standing grant is keyed on exactly
+// app + resource + right + scope and carries until 'close' | 'always'. The scope includes the destination
+// of a right that sends data off the device: 'send-copy' requires `to` (for example 'tuinplanner.example'),
+// so a grant for one destination never covers another; for 'connect' the resource is the destination itself
+// (destination() below; open item O-G9). 'close' ends when the app closes (so also at logout and restart);
+// 'once' is consumed by its single action and never stored; 'deny' and Escape store nothing. A request whose
+// exact key holds a standing grant resolves without a prompt to the stored duration ('untilClose' or
+// 'always', whatever the request's kind; callers treat every result except 'deny' as permission); any
+// other key (other resource, broader right, wider scope, other destination) prompts again, and a grant
+// never broadens (shortcut: exact key match, no "readWrite covers read" ordering; open item O-G3).
+// SIMULATION ONLY: ask() suppresses a repeated prompt; it is not the policy service, which must still
+// check capability, object scope and authorisation on every request. Grants live in this page and are
+// lost on reload; persistence of 'always' across a system restart is NOT simulated here (future
+// implementation requirement; native persistent grants need a project ADR first).
+export const CHOICES = { ongoing: ['untilClose', 'always', 'deny'], action: ['once', 'always', 'deny'] }
+const UNTIL = { untilClose: 'close', always: 'always' }
+const KEY = ['app', 'resource', 'right', 'scope']
+const SENDS = new Set(['send-copy']) // rights that move data off the device; their scope names a destination
+const same = (a, b) => KEY.every((k) => a[k] === b[k]) && (SENDS.has(a.right) ? a.to === b.to : true)
+// Where a right can carry data beyond this device: the named destination, the domain itself for 'connect', else null.
+export const destination = (g) => (SENDS.has(g.right) ? g.to : g.right === 'connect' ? g.resource : null)
+// data.js seeds per-file grants as {app, rights, until}; normalise them to the four-field key.
+const standing = DATA.files.flatMap((f) => (f.grants ?? []).map((g) => ({ app: g.app, resource: f.id, right: g.rights, scope: 'document', until: g.until })))
+const grantsChanged = (detail) => bus.emit('grants', detail)
+
 export const grants = {
-  forFile: (id) => files.get(id)?.grants ?? [],
-  all: () => state.files.flatMap((f) => f.grants.map((g) => ({ ...g, file: f.id, name: f.name }))),
-  has: (fileId, app) => grants.forFile(fileId).some((g) => g.app === app),
-  grant(fileId, app, rights = 'readWrite', until = 'close') {
-    const f = files.get(fileId)
-    if (!grants.has(fileId, app)) f.grants.push({ app, rights, until })
-    changed({ id: fileId, op: 'grant', app })
+  all: () => standing.map((g) => ({ ...g })),
+  forFile: (id) => grants.all().filter((g) => g.resource === id),
+  covering: (request) => standing.find((g) => same(g, request)) ?? null,
+  revoke(key) {
+    const i = standing.findIndex((g) => same(g, key))
+    if (i < 0) return null
+    const [g] = standing.splice(i, 1)
+    grantsChanged({ op: 'revoke', grant: { ...g } })
+    bus.emit('grant:revoked', { ...g })
+    return g
   },
-  revoke(fileId, app) {
-    const f = files.get(fileId)
-    f.grants = f.grants.filter((g) => g.app !== app)
-    changed({ id: fileId, op: 'revoke', app })
-    bus.emit('grant:revoked', { file: fileId, app })
+  // The app closed (also logout and restart): its 'close' grants end; 'always' grants stay.
+  appClosed(app) {
+    for (const g of standing.filter((x) => x.app === app && x.until === 'close')) {
+      standing.splice(standing.indexOf(g), 1)
+      grantsChanged({ op: 'expire', grant: { ...g } }) // an expiry, not a user revocation
+    }
   },
+}
+
+// The shell (or the gallery) supplies the prompt UI: present(request) -> Promise<choice>. Without one,
+// every prompt answers 'deny'. ask(request) -> Promise<choice>; 'once' tells the caller to run its action now.
+let present = () => Promise.resolve('deny')
+export const setPrompt = (fn) => { present = fn }
+
+export async function ask(request) {
+  const allowed = CHOICES[request.kind]
+  if (!allowed) throw new TypeError(`ask: kind must be 'ongoing' or 'action', got ${request.kind}`)
+  for (const k of KEY) if (!request[k]) throw new TypeError(`ask: request.${k} is required`)
+  if (SENDS.has(request.right) && !request.to) throw new TypeError(`ask: right '${request.right}' needs request.to (destination)`)
+  const held = grants.covering(request)
+  if (held) return held.until === 'close' ? 'untilClose' : 'always' // covered: no prompt
+  let choice = await present(request)
+  if (!allowed.includes(choice)) choice = 'deny' // Escape, closing or an unknown answer = Weigeren
+  if (UNTIL[choice]) {
+    const g = { ...Object.fromEntries(KEY.map((k) => [k, request[k]])), ...(SENDS.has(request.right) && { to: request.to }), until: UNTIL[choice] }
+    standing.push(g)
+    grantsChanged({ op: 'grant', grant: { ...g } })
+  }
+  return choice
 }
 
 // Time helpers used by every module so motion follows the user's setting.

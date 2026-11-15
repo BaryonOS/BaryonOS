@@ -14,6 +14,11 @@ Base commit `4a52d756`. Built by one agent and checked by an independent
 verifier agent that re-ran every command. Both are AI agents; this is not a
 human review.
 
+Addendum, 14 November 2026 (later the same day): the lead selected Inter for
+`type-1.0` under the project owner's delegation, as a reversible judgement
+([TYPOGRAPHY.md](../../design/TYPOGRAPHY.md) section 7). The results below are
+unchanged, and the feature stays off by default.
+
 ## What changed
 
 | File | Change |
