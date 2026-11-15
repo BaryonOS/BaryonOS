@@ -366,9 +366,19 @@ external tool:
   with a flipped trailer byte gives `Corrupt` from the check pass with no
   output; when the source breaks between the passes, the output lacks exactly
   the two end-of-archive blocks, and `tarfile` still reads its three files.
+- Independent oracles and mutation checks for the name check:
+  - `ustar_case_fold_is_at_least_as_coarse_as_core_case_mapping` shows,
+    exhaustively over the set, that names with equal
+    lower→upper→lower `core` keys collide.
+  - `ustar_names_agree_with_the_shared_fixture` and the Python oracle
+    `tests/test_volume_ustar_names.py` both check the 107 cases in
+    `services/volume/tests/ustar-names.txt`. The Python oracle also shows
+    that the set has no combining marks and that NFD is injective on it.
+  - All 38 mutants that disable a refusal rule are killed. See
+    [NAMES-ORACLE-20261115.md](../verification/s09-archive/NAMES-ORACLE-20261115.md).
 
 Not checked: bsdtar and Windows `tar` as readers, extraction on Windows or
-macOS, mutation testing of the name check, and a native stage.
+macOS, over-refusal (precision) mutants of the name check, and a native stage.
 
 **Still open for S09:** a user-chosen target behind its own capability (not a
 fixture range on the same disk); a native test stage that writes the approved
