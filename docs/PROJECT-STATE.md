@@ -20,7 +20,7 @@ milestones never enter `docs/progress.json`; every BaryonOS capability is
 |---|---|---|---|
 | UX-v2 | Orbitaal v2 board, CONCEPTS.md v2 section | `ui/design/concepts/orbitaal-v2/` Accepted (`ea4e033d`): independent rendered AI recheck, 21/21 planner items resolved, 0 blockers or majors, 6 minors open ([record](verification/orbitaal-v2-20261114/README.md)) |
 | UX-D | Design system ds-1.0 (tokens, icons, components, gallery) | `docs/design/DESIGN-SYSTEM.md`, `ui/design/system/` | Intermediate, **not Accepted**: base `46957bac` ([record](verification/ds-1.0-base-20261114/README.md)); correction UX-D-C1 (owner permission model) committed after run `wf_72e6bcf3-50d` ended `blocked_after_2_repairs` with 0 blockers, 1 major (design quality, AI opinion: generic empty, loading and error states) and 7 minors; owner conformance met, contract test 48 assertions passed ([record](verification/ds-1.0-c1-20261115/README.md)). The major is a must-fix of UX-A11Y-DS. The owner decision of 15 Nov replaced the permission model, so prompt conformance moves to UX-C; UX-D closes when the UX-A11Y-DS verifier passes, including the carried major |
-| UX-A11Y-R | Systematic accessibility literature review and checkable accessibility matrix (owner decision, 15 Nov) | `docs/design/accessibility/`, `docs/verification/a11y-research-20261115/` | **Interrupted** for a planned shutdown (15 Nov 01:56, run `wf_1c2c1a08-2d1`): the three cluster researchers finished (perception 32, cognition 30, interaction 41 rows; 115 sources, 112 resolved) in ignored `build/design-evidence/a11y/research/`; the synthesis writer was stopped before it wrote any tracked file; no verifier ran. Not accepted; resume with synthesis and verification only |
+| UX-A11Y-R | Systematic accessibility literature review and checkable accessibility matrix (owner decision, 15 Nov) | `docs/design/accessibility/`, `docs/verification/a11y-research-20261115/` | **Not accepted.** Run 1 (`wf_4f6a5638-e4a`, 15 Nov 11:36–13:28 CET) wrote the research document, the matrix (92 rows, 110 sources) and `check.py` from the stored researcher outputs and ended `blocked_after_2_repairs`: independent verifier rounds found 5, 2 and 1 majors (each a different defect, 0 blockers); the final round left 1 major (evidence grading) and 6 minors, with 29 references re-resolved. The files stay untracked until accepted (hashes and copies in the checkpoint directory). Run 2 next: targeted repair with one grading-consistency sweep, fresh verifier with wider coverage; if it ends blocked, the residual becomes a concrete owner blocker |
 | UX-A11Y-DS | Two-tier accessibility system in ds-1.x: baseline in every regular theme, combinable setting axes as variants of the same identity, coherence across themes and combinations, automatic and manual checks; carries the UX-D design-quality major | `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | Open; after UX-A11Y-R |
 | UX-C | Informed-consent experience for permission requests (owner ambition, 14 Nov; simplified permission model of 15 Nov: "Toestaan" / "Weigeren" plus an optional remember control, to be researched and verified before adoption; ADR before native persistent grants and remembered denials) | research and concepts in ignored `build/design-evidence/uxc/`, then `ui/design/system/`, `docs/design/DESIGN-SYSTEM.md` | Open; after UX-A11Y-DS, blocks UX-E |
 | UX-E | Connected prototype journey (simulation) | `ui/design/prototype/` | Open |
@@ -92,18 +92,17 @@ the superseded 14 November model only
 ([SUPERSEDED.md](verification/ds-1.0-c1-20261115/SUPERSEDED.md)).
 
 **Next:** in a fresh session, first reconcile Git, lock and process state
-(checkpoint section 14, last entry "Shutdown checkpoint"). Done on
-15 November 2026, 11:35 CET: because #332 is merged, the commits after
-`ec577292` were cherry-picked unchanged onto main `d572052b` as branch
-`claude/baryon-os-design-pipeline-20261115` (one draft pull request, no
-auto-merge). Run
-`build/design-pipeline-checkpoint/tools/design-servers.sh start` and `check`,
-then resume UX-A11Y-R from the stored researcher outputs with
-`runs-20261115/uxa11y-r-run1-resume.js`: the synthesis writer and the
-independent verifier of `runs-20261115/uxa11y-r-run1.js` only (the three researchers are not repeated
-unless the verifier finds a concrete defect in their output). Acceptance: the
-verifier's nine checks pass with no blocker or major after at most two
-repairs. Then UX-A11Y-DS (`runs-20261115/uxa11y-ds-run1.js`, draft), UX-C run 1
+(checkpoint section 14, last entry). The continuation branch
+`claude/baryon-os-design-pipeline-20261115` (draft PR #339, no auto-merge)
+carries the shutdown commits cherry-picked unchanged onto main `d572052b`.
+UX-A11Y-R run 1 (`runs-20261115/uxa11y-r-run1-resume.js`) ended
+`blocked_after_2_repairs` and is not accepted. Run 2
+(`runs-20261115/uxa11y-r-run2.js`, arguments in `uxa11y-r-run2-args.json`)
+repairs the existing deliverables in place with one grading-consistency sweep,
+then a fresh verifier with wider reading and sampling coverage, at most two
+repairs; acceptance is the nine checks with no blocker or major. If run 2 ends
+blocked, the residual is recorded as a concrete owner blocker (no run 3). After
+acceptance: UX-A11Y-DS (`runs-20261115/uxa11y-ds-run1.js`, draft), UX-C run 1
 (`runs-20261115/uxc-run1.js`), UX-C run 2, UX-E, UX-F, UX-G and G1.
 
 **G0 (measured, evidence in ignored `build/design-evidence/g0/`):**
