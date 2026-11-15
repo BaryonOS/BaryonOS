@@ -374,7 +374,7 @@ external tool:
     `tests/test_volume_ustar_names.py` both check the 107 cases in
     `services/volume/tests/ustar-names.txt`. The Python oracle also shows
     that the set has no combining marks and that NFD is injective on it.
-  - All 38 mutants that disable a refusal rule are killed. See
+  - All 43 mutants that disable a refusal rule are killed. See
     [NAMES-ORACLE-20261115.md](../verification/s09-archive/NAMES-ORACLE-20261115.md).
 
 Not checked: bsdtar and Windows `tar` as readers, extraction on Windows or

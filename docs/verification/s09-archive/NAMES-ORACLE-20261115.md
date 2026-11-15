@@ -4,7 +4,7 @@
 
 **Source.**
 - Branch `feat/s09-ustar-name-check`, task base `14d8da04f88568c3356b24ab704fd8cdc7cbe030`.
-- The oracles were added in `ac06aeac`, and that tree was tested.
+- The oracles were added in `ac06aeac17953ef732656ff474f08c968d890daf`. The host checks and the mutation run below used the tree of `a3f1573c6c0dc14be45f56216d79899d2e3e73f8`, which changes only documentation after `ac06aeac`.
 - `ustar.rs` was last changed in `1b1ef0fb2014798893ee3076637102884e4f1473`, with sha256 `56cfb8377eb8346aa40d5509c2bd89189ecfdb95585283be15062dc86d7c36ac`. This hash is the same at HEAD and in the working tree after the mutation run.
 
 **Toolchain.** rustc 1.90.0 uses Unicode 16.0.0 (`char::UNICODE_VERSION`). Python is 3.14.4, with `unicodedata` 16.0.0. Both sides therefore use the same Unicode version.
@@ -55,11 +55,14 @@ Both oracles below read this file. Python does not run the Rust code, so the two
 4. A build exit of 0 shows that the test exit of 101 comes from failing tests, not from a compile error.
 5. After each mutant, a `finally` block writes the HEAD bytes back and asserts that they are equal. The script turns SIGTERM into a normal exit, so the restore also runs if the script is stopped.
 6. At the end, the script runs `git diff --quiet` and stores the result.
+7. `render.py`, in the same folder, renders the table below from the stored `mutants.json`.
 
 **Results.**
 - The unmutated baseline exited 0, with 14 ustar tests passed.
-- All 38 mutants built with exit 0, and every test run exited 101. Every mutant was killed.
-- The whole run took about 16 s.
+- All 43 mutants built with exit 0, and every test run exited 101. Every mutant was killed.
+- The run took about 17 s (2026-11-15 11:08:51Z to 11:09:09Z).
+- The refusals of the re-judge in `from_archive` are covered: J1 and J2 for the verdict, G1 for the object count bound (`Invalid`), and S1 to S3 for a source that differs from the checked names (`Stale`).
+- An earlier run of the first 38 mutants on `ac06aeac` gave the same build exits, test exits and failing tests for those 38. This run of 43 supersedes it.
 - After the run, `git diff --quiet` exited 0, both in the script and in a separate check. The sha256 of `ustar.rs` matched HEAD.
 
 Test labels:
@@ -88,6 +91,7 @@ Test labels:
 | U3 | UNCHECKED: soft hyphen excluded | `&& c != '\u{AD}'` → (removed) | 0 | 101 | FX, OS, UC |
 | U4 | UNCHECKED: Latin Extended-A upper bound | `'\u{A0}'..='\u{17F}'` → `'\u{A0}'..='\u{180}'` | 0 | 101 | FX, UC |
 | U5 | UNCHECKED: Dingbats lower bound | `'\u{2700}'..='\u{27BF}'` → `'\u{26FF}'..='\u{27BF}'` | 0 | 101 | FX, UC |
+| U6 | UNCHECKED: Dingbats upper bound | `'\u{2700}'..='\u{27BF}'` → `'\u{2700}'..='\u{27C0}'` | 0 | 101 | FX, UC |
 | T1 | TRAILING: final space | `text.ends_with(['.', ' '])` → `text.ends_with(['.'])` | 0 | 101 | FX, TS, WD |
 | T2 | TRAILING: final dot | `text.ends_with(['.', ' '])` → `text.ends_with([' '])` | 0 | 101 | EV, FX, TS |
 | R1 | RESERVED: whole rule | `if reserved(text) {` → `if false && reserved(text) {` | 0 | 101 | EV, FX, RJ, WD |
@@ -118,6 +122,10 @@ Test labels:
 | F6 | Fold: Latin-1 capitals | `'A'..='Z' \| '\u{C0}'..='\u{D6}' \| '\u{D8}'..='\u{DE}' =>` → `'A'..='Z' =>` | 0 | 101 | CF, CO, FX, UC |
 | F7 | Fold: Latin Extended-A, capital on even code point | `char::from_u32(code \| 1).unwrap_or(c)` → `c` | 0 | 101 | CO, FX, UC |
 | F8 | Fold: Latin Extended-A, capital on odd code point | `char::from_u32(code + (code & 1)).unwrap_or(c)` → `c` | 0 | 101 | CF, CO, FX, UC |
+| G1 | Re-judge: more objects than a domain holds | `if names.objects > PER_DOMAIN {` → `if false && names.objects > PER_DOMAIN {` | 0 | 101 | RJ |
+| S1 | Stale: object name differs from the checked name | `expected.is_none_or(\|name\| !same(name, &object(entry)))` → `expected.is_none()` | 0 | 101 | RJ |
+| S2 | Stale: collection names differ from the checked ones | `.all(\|(a, b)\| same(a, b))` → `.all(\|_\| true)` | 0 | 101 | RJ |
+| S3 | Stale: fewer objects than checked | `if count != names.objects {` → `if false && count != names.objects {` | 0 | 101 | RJ |
 
 ## Limits
 
