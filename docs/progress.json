@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-15",
-    "source_commit": "8cca1167f3894e6e15af8da9f4afaa3af62e6fa3",
+    "source_commit": "47c2b78d6f7ba3229fb56c5f2c53972d97691de5",
     "assessment_basis": "parent_commit",
     "branch": "claude/baryon-os-design-pipeline-20261115",
-    "task": "UX-A11Y-R accepted (accessibility literature review and two-tier matrix, run 2 wf_baf4e604-27b); UX-A11Y-DS run 1 prepared",
+    "task": "UX-A11Y-DS run 1 (two-tier accessibility system in ds-1.1) ended blocked after two repair rounds; run 2 prepared; owner decisions on flashing media and photosensitivity recorded, amendment UX-A11Y-A1 added",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The accessibility research document, the 92-row two-tier matrix and its structural checker were accepted by an independent AI verification (0 blockers, 0 majors, 10 minors open). This is design research grounded in literature and standards; it accepts no criterion, and no native build, QEMU run, user test or human audit is added."
+    "summary": "41/100 remains 41/100. UX-A11Y-DS run 1 produced design-system changes that are not accepted: the final independent AI verification left 1 major (a layout defect under wider text spacing at 200 %) and 9 minors, and the changes stay uncommitted until a verified run accepts them. Design work in the gallery and AI review accept no criterion; no native build, QEMU run, user test or human audit is added."
   },
   "tracks": [
     {
