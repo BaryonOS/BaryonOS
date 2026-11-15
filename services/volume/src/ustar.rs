@@ -35,7 +35,9 @@ const ZERO: [u8; BLOCK] = [0; BLOCK];
 pub const CHARACTER: u8 = 1;
 /// A Windows device name: `CON`, `PRN`, `AUX`, `NUL`, `COM0`-`COM9`,
 /// `LPT0`-`LPT9` (also with `¹ ² ³`), `CONIN$` or `CONOUT$`, in any ASCII
-/// case, as the part before the first `.` with trailing spaces removed.
+/// case, as the part before the first `.` with trailing spaces removed. Also,
+/// set by [`check`] and not by [`reasons`]: a root object or a collection
+/// holding objects whose name is `PaxHeader` under [`collide`].
 pub const RESERVED: u8 = 2;
 /// Ends in `.` or a space, which Windows strips (this includes `.` and `..`).
 pub const TRAILING: u8 = 4;
@@ -167,7 +169,8 @@ pub fn from_archive<S: Source, K: Sink>(
 }
 
 /// The reasons one name (an object or collection name, not a path) is refused
-/// on its own; [`check`] adds [`CASE`] and [`FILE_AND_DIRECTORY`]. Names that
+/// on its own; [`check`] adds [`CASE`], [`FILE_AND_DIRECTORY`] and the
+/// root-position [`RESERVED`] rule for `PaxHeader`. Names that
 /// the archive format already refuses (`/`, `\`, control characters, `.`,
 /// `..`) are classified too.
 pub fn reasons(name: &[u8]) -> u8 {
@@ -280,11 +283,19 @@ fn judge(names: &mut Names) {
         {
             object.reasons |= FILE_AND_DIRECTORY;
         }
+        // The exporter's own pax entry name: a pax-unaware reader extracts it at the root.
+        if object.collection == 0 && collide(object.name(), b"PaxHeader") {
+            object.reasons |= RESERVED;
+        }
     }
     for (i, collection) in names.collection.iter_mut().enumerate() {
         collection.reasons = 0;
         if used[i] {
             collection.reasons = reasons(collection.name());
+            // The exporter's own pax entry name: a pax-unaware reader extracts it at the root.
+            if collide(collection.name(), b"PaxHeader") {
+                collection.reasons |= RESERVED;
+            }
             if (0..COLLECTIONS)
                 .any(|j| j != i && used[j] && collide(all.collection[j].name(), collection.name()))
             {

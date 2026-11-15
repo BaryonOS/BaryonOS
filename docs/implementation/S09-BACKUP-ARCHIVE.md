@@ -313,6 +313,19 @@ classifies the names that the format refuses as well. The refusal bits are:
 
   Names that only contain a device name, such as `CONSOLE`, `COM10`, `LPT`,
   `xCON`, `.CON` or `CON-1`, are accepted.
+
+  `RESERVED` also marks the exporter's own pax entry name: an uncollected
+  object, or a collection that holds an object, whose name equals `PaxHeader`
+  under the case fold below (`PaxHeader`, `paxheader`, `PAXHEADER`). Every pax
+  `x` header is written under the root ustar name `PaxHeader`, and a reader
+  without pax support extracts it as a regular root file, which would
+  overwrite or clash with the user's name. The rule is positional: an object
+  inside a collection, such as `Docs/PaxHeader`, is accepted, and so is a name
+  that only contains it, such as `PaxHeader.txt`. It applies even when the
+  archive needs no pax record. The judging in `ustar::check` and
+  `ustar::from_archive` sets it, not `ustar::reasons`, so the shared name
+  fixture does not cover it. Evidence is host tests only; no pax-unaware
+  reader has been run.
 - `TRAILING`: the name ends in `.` or a space, which Windows strips.
 - `CASE`: the name equals another name in the same directory under the case
   fold below: two objects in one collection, two uncollected objects, or two

@@ -1293,6 +1293,43 @@ fn ustar_export_refuses_a_file_where_a_directory_is() {
 }
 
 #[test]
+fn ustar_export_refuses_the_pax_entry_name_at_the_root() {
+    /// Counts `put` calls, so a refused export provably wrote nothing.
+    struct Counting(usize);
+    impl Sink for Counting {
+        fn put(&mut self, _: &[u8]) -> Result<(), Status> {
+            self.0 += 1;
+            Ok(())
+        }
+    }
+    let written = |bytes: &[u8], names: &ustar::Names| {
+        let mut sink = Counting(0);
+        let result = ustar::from_archive(&mut reader(bytes), &mut scratch(), names, &mut sink);
+        (result, sink.0)
+    };
+    let bytes = exported(500);
+    // Inside a collection the name cannot meet the root pax entry.
+    let inside = renamed(&collection_renamed(&bytes, "Docs"), NOTES, "PaxHeader", 1);
+    let (result, tar) = ustar(&inside);
+    assert!(result.is_ok());
+    assert!(tar.starts_with(b"Docs/PaxHeader\0"));
+    for (bad, name) in [
+        (renamed(&bytes, PLAN, "PaxHeader", 0), "PaxHeader"),
+        (renamed(&bytes, PLAN, "paxheader", 0), "paxheader"),
+        (collection_renamed(&bytes, "PAXHEADER"), "PAXHEADER"),
+    ] {
+        let mut checked = names(&bad);
+        assert_eq!(written(&bad, &checked), (Err(Status::Invalid), 0), "{name}");
+        assert_eq!(report(&bad), only(name, ustar::RESERVED), "{name}");
+        // The second pass judges again, so cleared bits do not help.
+        for each in checked.object.iter_mut().chain(&mut checked.collection) {
+            each.reasons = 0;
+        }
+        assert_eq!(written(&bad, &checked), (Err(Status::Invalid), 0), "{name}");
+    }
+}
+
+#[test]
 fn ustar_export_refuses_characters_outside_the_checked_set() {
     let bytes = exported(500);
     // A combining mark, CJK, Greek capital mu (equal to "µ" on NTFS), the
