@@ -1,6 +1,6 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), PR #332 merged; continuation branch pending — 15 November 2026 (shutdown checkpoint)
+## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), continuation branch `claude/baryon-os-design-pipeline-20261115` — 15 November 2026
 
 **Source:** branch `claude/baryon-os-ui-ux-design-152adb` at `ea4e033d`
 (S0 `b305fa7c`, S1 `8e4abd8d`, v2 board `ea4e033d`) after merge `89e8b1c9` of
@@ -92,10 +92,11 @@ the superseded 14 November model only
 ([SUPERSEDED.md](verification/ds-1.0-c1-20261115/SUPERSEDED.md)).
 
 **Next:** in a fresh session, first reconcile Git, lock and process state
-(checkpoint section 14, last entry "Shutdown checkpoint"). Because #332 is
-merged, create a new branch from `origin/main` in the same worktree,
-cherry-pick the commits after `ec577292`, reassess progress and open one draft
-pull request. Run
+(checkpoint section 14, last entry "Shutdown checkpoint"). Done on
+15 November 2026, 11:35 CET: because #332 is merged, the commits after
+`ec577292` were cherry-picked unchanged onto main `d572052b` as branch
+`claude/baryon-os-design-pipeline-20261115` (one draft pull request, no
+auto-merge). Run
 `build/design-pipeline-checkpoint/tools/design-servers.sh start` and `check`,
 then resume UX-A11Y-R from the stored researcher outputs with
 `runs-20261115/uxa11y-r-run1-resume.js`: the synthesis writer and the
