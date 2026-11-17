@@ -2,10 +2,12 @@
 
 This record covers two documents, scoped by the project-owner decision of 15 November 2026 on accessibility (two tiers):
 
-- `docs/design/accessibility/ACCESSIBILITY-RESEARCH.md` is a systematic literature review.
+- `docs/design/accessibility/ACCESSIBILITY-RESEARCH.md` is a targeted, abstract-level literature review, as stated in its sections 1.5 and 14.
 - `docs/design/accessibility/ACCESSIBILITY-MATRIX.md` is the matrix: 92 rows, each pairing a need with an adaptation, and 110 sources.
 
 The evidence is literature, standards and an independent AI review. There was no participant testing, no human accessibility audit, no screen-reader run and no native run. An empirical grade summarises published studies; it is not a measured effect of BaryonOS.
+
+**Phase 0 scope correction (17 November 2026):** this is an intermediate research checkpoint. The project owner's systematic-review requirement remains open. The recorded AI acceptance below is preserved as the historical assessment of the submitted documents; it does not establish completion of that requirement. Research content, the matrix and the archived checker output, hashes and review verdict are unchanged.
 
 | File | Content |
 |---|---|
