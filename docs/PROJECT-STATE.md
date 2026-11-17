@@ -1,6 +1,14 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Phase 0 PR343 — 17 November 2026
+## NEXT AGENT HANDOFF — CR-OSS — 17 November 2026
+
+**Source:** parent `95d59ad52761c1f8f0201d934556902b90ce63cb`; branch `codex/coderabbit-oss-config`.
+**Changed:** explicit free-tier support, draft PR reviews and automatic project-guideline discovery; existing quiet feedback, disabled automatic approvals and inherited review tools preserved. Retired docstring check removed; the current vendor schema marks it as having no effect. [Receipt](verification/coderabbit-oss-20261117/README.md).
+**Checks:** official V2 schema, duplicate-key and invalid-boolean negative controls, parent-policy preservation, and progress write/check passed (exit 0); raw logs and hashes are in the receipt. No OS source or gate changes. Progress 41/100 unchanged.
+**Open:** hosted CodeRabbit review not yet executed; account billing is outside repository YAML. Vendor clarification requested separately for contradictory trial/estimated-invoice and EU Agent opt-out states; no no-charge guarantee inferred.
+**Next:** publish one draft PR, verify its remote SHA and inspect the first hosted CodeRabbit review. Owner integration approval remains required. Retained workstreams below keep their existing ownership.
+
+## Retained workstream handoff — Phase 0 PR343 — 17 November 2026
 
 **Source:** parent `1c6842c4c73f42691fa553e76944bc9ebd795186`; existing PR #343 branch.
 **Changed:** bounded artifact-action contract and meaningful negative host oracle; existing native/evidence guards preserved. [Receipt](verification/phase0-pr343-20261117/README.md).
