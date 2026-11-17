@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "1c6842c4c73f42691fa553e76944bc9ebd795186",
+    "source_commit": "57a9e5f3a1abe6c6f2364d340d765fcaa198aa35",
     "assessment_basis": "parent_commit",
-    "branch": "dependabot/github_actions/actions/download-artifact-8.0.2",
-    "task": "Phase 0 PR343: add bounded artifact action contract and negative host oracle",
+    "branch": "dependabot/cargo/r-efi-7.2.0",
+    "task": "Phase 0 PR344: reconcile the audited dependency change with main after PR343",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. CI fixture coverage does not accept a native SMP or other OS criterion. Hosted action runtime and current-head CI are pending."
+    "summary": "41/100 remains 41/100. Both status/evidence streams and the complete fixed criterion register are preserved. Parent provenance/native results remain source-bound; fresh integrated gates and current-head hosted checks are pending. No new criterion or baseline B is accepted."
   },
   "tracks": [
     {
