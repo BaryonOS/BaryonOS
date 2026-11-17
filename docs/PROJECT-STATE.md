@@ -1,6 +1,14 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
+## NEXT AGENT HANDOFF — Phase 0 integration oversight — 17 November 2026
+
+**Source:** main `b718f6bafdfc4927d3b7acfe786e67dcb8f88eec`; branch `codex/phase0-baseline`.
+**Executed:** T0 inventory of 16 local worktrees and six PRs/six issues; all existing WIP preserved. Separate clone created with no hook bypass. #343 requires a bounded action-runtime test; #344 has an open dependency-inventory finding.
+**Ownership:** Orbitaal and S09 retain their own handoffs, claims and owners. This overview does not release their write areas. The retained workstream handoff below remains source-specific.
+**Evidence:** [executed T0 checkpoint](verification/phase0-20261117/README.md). Native acceptance, final integrated security audit and baseline B: **NOT RUN / NOT ESTABLISHED**. No merge or auto-merge performed; governance phases 1–6 not started.
+**Next:** finish #343 verification, then #344 audit-record repair, and present exact source/checks for separate owner merge approval. Continue independent eligible work while decisions are pending.
+
+## Retained workstream handoff — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
 
 **Source:** branch `claude/baryon-os-ui-ux-design-152adb` at `ea4e033d`
 (S0 `b305fa7c`, S1 `8e4abd8d`, v2 board `ea4e033d`) after merge `89e8b1c9` of
