@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+    "source_commit": "38d4cc17687156379677993be9945447591bd4c1",
     "assessment_basis": "parent_commit",
-    "branch": "feat/issue41-policy-test",
-    "task": "Phase 0 PR336: align current review proposal wording with accepted TEST authority",
+    "branch": "codex/phase0-pipeline-isolation",
+    "task": "Phase0: checkpoint default-deny containment while execution isolation is verified",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Review clarifies the existing8-entry bound and approved codec/probe order; completeADR content and established identifier/date retained. No runtime/fixture/test/criterion change. New-head hosted checks and independent editorial review remain required."
+    "summary": "41/100 unchanged. A private development-execution security finding is an active baseline blocker. Temporary branch containment and three no-execution controls pass; complete isolation, legitimate behavior, independent review and current-head CI remain pending. No finding, issue, native/hardware criterion or deployed-main security boundary is marked resolved."
   },
   "tracks": [
     {

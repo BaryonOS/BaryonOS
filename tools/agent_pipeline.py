@@ -44,7 +44,7 @@ PROTECTED = (
     ".agents/skills/os-dev/references/", "LICENSE", "plugins/token-guard/LICENSE",
     "docs/third-party/licenses/", "ui/prototype/tokens.css",
     "ui/design/system/tokens.css", "CODEX-WORKFLOW.md", "tools/update-keys/TEST-",
-    "build/", "target/", "graphify-out/",
+    "build/", "target/", "graphify-out/", "tools/tests/test_agent_execution_hold.py",
 )
 ALWAYS_ALLOWED = ("Cargo.lock",)
 RATE_LIMIT = re.compile(r"rate.?limit|usage limit|quota|too many requests|\b429\b", re.I)
@@ -194,6 +194,7 @@ def snapshot(paths: list[str], ref: str, cwd: Path = ROOT) -> dict[str, str | No
 
 def run_agent(prompt: str, cwd: Path, log: Path, order: list[str]) -> str:
     """Run the prompt with the first available engine; fail over only on rate limits."""
+    raise TaskError("Issue-pipeline execution is suspended pending verified isolation.")
     for name in order:
         command = ENGINES[name]
         if not shutil.which(command[0]):
@@ -246,6 +247,7 @@ def merge_prompt(task: Task, ours: str, theirs: str) -> str:
 
 class Pipeline:
     def __init__(self, engines: list[str], auto_merge_parallel: bool, dry_run: bool):
+        raise TaskError("Issue-pipeline execution is suspended pending verified isolation.")
         self.engines = engines
         self.auto_merge_parallel = auto_merge_parallel
         self.dry_run = dry_run
@@ -439,7 +441,11 @@ def main() -> int:
     engines = [e for e in args.engines.split(",") if e]
     if not engines or any(e not in ENGINES for e in engines):
         raise SystemExit(f"--engines must be a subset of {','.join(ENGINES)}")
-    pipeline = Pipeline(engines, args.auto_merge_parallel, args.dry_run)
+    try:
+        pipeline = Pipeline(engines, args.auto_merge_parallel, args.dry_run)
+    except TaskError as error:
+        print(f"pipeline blocked: {error}", file=sys.stderr)
+        return 2
     while True:
         worked = pipeline.run_once()
         if args.once:

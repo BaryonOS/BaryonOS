@@ -76,6 +76,9 @@ def resolve(refs: list[str], workflows: Path) -> list[tuple[str, str, dict[str, 
 def run_gate(commands: list[tuple[str, str, dict[str, str]]], cwd: Path, log_path: Path,
              base_env: dict[str, str] | None = None) -> int:
     """Run steps in order, stop at the first failure. 0 = pass, 2 = fail."""
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_path.write_text("## BLOCKED: isolated gate execution is not configured\n", encoding="utf-8")
+    return FAIL_EXIT
     env = environment() if base_env is None else dict(base_env)
     host = {k: env[k] for k in HOST_KEYS if k in env}
     for key in CHECKOUT_KEYS:

@@ -1,6 +1,15 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Phase 0 PR336 integration — 17 November 2026
+## NEXT AGENT HANDOFF — Phase 0 execution isolation — 17 November 2026
+
+**Source:** main `38d4cc17687156379677993be9945447591bd4c1`; isolated branch `codex/phase0-pipeline-isolation`.
+**Primary milestone:** 0D security remediation. Integration0B is waiting; baselineB and governance1–6 remain blocked. A private security report requires verification of the development execution boundary. Its sensitive evidence remains outside the public repository.
+**Containment checkpoint:** default issue-agent startup and local gate execution are blocked on this branch before environment discovery or child execution. Three focused default-deny tests pass; no actual issue, agent or gate payload was executed. No affected pipeline/gate process was present in this environment. This is temporary containment, not a complete fix, deployed-main protection or finding resolution.
+**Remaining work:** owner-controlled authorization before L0; credential-free filesystem/network isolation for every untrusted phase; validated source import into separate authenticated publication; preserved required hooks and legitimate controls; independent review and complete current-head CI/security verification. Missing/unsupported isolation blocks execution, with no unsafe fallback. The installed legacy namespace helper is not an accepted backend; verified secure runtime preparation is separate and still incomplete.
+**Ownership and evidence:** original user work, independent UI/S09 workstreams, existing PRs and compiler WIP remain preserved. No original worktree was reset or cleaned. Private managed artifacts retain exact source/commands/limits. Score41/100 is unchanged; no product criterion or security result is accepted by this checkpoint.
+**Next:** complete the isolated boundary and focused negative/positive controls, then obtain independent review and all mandatory gates before a manual squash. Do not run the affected issue pipeline to implement this remediation. Resume the existing integration/modernization work only after the boundary is verified.
+
+## Historical retained handoff — Phase 0 PR336 integration — 17 November 2026
 
 **Source:** PR336 parent `6b2f3d2698cd525904ec69f35ab3081d5cad18d9`, integrating verified main `e7169e43bf772307acf328590b4300fa52a4ad73` after PR343 and PR344 squash merges. The merge is conflict-free; no manual runtime-source edits are made.
 **Preserved:** the opt-in immutable public TEST policy experiment, both signature checks, existing 18-stage update gate, audited r-efi7.2.0, artifact-action contract, all historical evidence and independent workstream handoffs. [Integration record](verification/phase0-pr336-20261117/integration.json).
