@@ -1,77 +1,93 @@
-# OS-gebruikersbehoeften, overstap en ontwerp — fase 2–4
+<a id="os-gebruikersbehoeften-overstap-en-ontwerp--fase-24"></a>
 
-Onderzoeksdatum: **2 november 2026**, Europe/Amsterdam. Status: vastgelegde deskresearch; geen eigen interviews, geen productcode, geen geaccepteerde nieuwe OS-functies. Opdracht: de eerdere repositoryanalyse aanvullen met actueel extern onderzoek, de oorspronkelijke Eurobarometerclaim controleren en dit onderzoek in de repository bewaren.
+# OS user needs, switching and design — phases 2–4
 
-## Kernconclusie
+Research date: **2 November 2026**, Europe/Amsterdam. Status: recorded desk research; no original interviews, no product code, no newly accepted OS functions. Assignment: supplement the earlier repository analysis with current external research, check the original Eurobarometer claim and preserve this research in the repository.
 
-[ANALYSE] Voor nieuw-os is de onderbouwde kans een samenhangende dagelijkse workflow met controle, herstel en een aantoonbaar haalbare overstap. Een nieuwe stijl, Europese herkomst of AI-functie op zichzelf is onvoldoende onderbouwd als overstapreden. De bronnen laten zowel verbeteringen bij gevestigde platformen als blijvende afhankelijkheden zien; “niemand lost dit op” is geen verdedigbaar uitgangspunt.
+<a id="kernconclusie"></a>
 
-**Belangrijkste cijfercontrole:** 58% instemming met overstappen naar een EU-gevestigde digitale dienstverlener, zelfs bij iets hogere kosten, is bevestigd in Special Eurobarometer 572/QB6.4. Dit meet geen OS-migratie. De oorspronkelijke vraag, antwoordverdeling, methode en beperkingen staan in [het adoptierapport](european-adoption-barriers.md) en [de broncontrole](eurobarometer-check.json).
+## Main conclusion
 
-## Onderzoeksvragen
+[ANALYSE] The supported opportunity for nieuw-os is a coherent daily workflow with control, recovery and a demonstrably feasible switch. A new style, European origin or AI function alone is insufficiently supported as a reason to switch. The sources show both improvements in established platforms and persistent dependencies; “niemand lost dit op” (English: “nobody solves this”) is not a defensible premise.
 
-1. Welke dagelijkse fricties en gewenste functies zijn daadwerkelijk beschreven bij Windows, macOS, Linux-desktops en Android?
-2. Welke signalen komen in onafhankelijke bronnen terug, en welke zijn slechts een losse melding of leveranciersclaim?
-3. Welke functionele, sociale, organisatorische en economische barrières verhinderen overstappen?
-4. Wat meet de Eurobarometer precies over Europese diensten en betalen, en wat blijft onbekend over OS-keuze?
-5. Welke OS-ontwerppatronen ontwikkelden zich tussen circa 2011 en 2026, en welk bewijs bestaat voor hun praktische waarde?
-6. Welke bevindingen kunnen op de bestaande onafhankelijke nieuw-os-architectuur aansluiten, zonder een productbesluit of implementatie te veronderstellen?
+**Key numerical check:** 58% agreement with switching to an EU-based digital service provider, even at slightly higher costs, is confirmed in Special Eurobarometer 572/QB6.4. This does not measure OS migration. The original question, response distribution, method and limitations are recorded in [the adoption report](european-adoption-barriers.md) and [the source check](eurobarometer-check.json).
 
-## Dossiers en leesvolgorde
+<a id="onderzoeksvragen"></a>
 
-**Uitbreiding fase 4:** [volledige installatie- en day-one-journey](journey/README.md), met 31 installatieaspecten, 28 dagelijkse taken, mentale modellen en afzonderlijk gelabelde installer-/onboarding-/interactievoorstellen. Geen implementatie. De vergelijking is eerst vastgelegd; daarna is het bestaande productplan begrensd aangevuld.
+## Research questions
 
-| Document | Inhoud |
+1. Which daily frictions and desired functions are actually described for Windows, macOS, Linux desktops and Android?
+2. Which signals recur in independent sources, and which are only an isolated report or vendor claim?
+3. Which functional, social, organizational and economic barriers prevent switching?
+4. What exactly does the Eurobarometer measure about European services and payment, and what remains unknown about OS choice?
+5. Which OS design patterns developed between approximately 2011 and 2026, and what evidence exists for their practical value?
+6. Which findings could fit the existing independent nieuw-os architecture without presuming a product decision or implementation?
+
+<a id="dossiers-en-leesvolgorde"></a>
+
+## Dossiers and reading order
+
+**Phase 4 extension:** [full installation and day-one journey](journey/README.md), with 31 installation aspects, 28 daily tasks, mental models and separately labelled installer/onboarding/interaction proposals. No implementation. The comparison was recorded first; a bounded supplement to the existing product plan followed.
+
+| Document | Content |
 |---|---|
-| [Repositorybasis](repository-baseline.md) | Fase 1 vastgelegd: main, nieuwere ontwikkelbranch en prototype/native-bewijsgrenzen |
-| [Gebruikersbehoeften en synthese](os-user-needs.md) | Vergelijking, herhaling, impact, Europese relevantie en technische ruimte |
-| [Windows en macOS](windows-macos-needs.md) | Aspecten per OS, oorspronkelijke gebruikerssignalen, actuele oplossingen en beperkingen |
-| [Linux en mobiel](linux-mobile-needs.md) | GNOME/KDE/Ubuntu, Android en relevante iOS/ChromeOS-vergelijkingen |
-| [Europese adoptie en barrières](european-adoption-barriers.md) | Eurobarometer, intentie versus gedrag, compatibiliteit, migratie en Europese alternatieven |
-| [OS-ontwerptrends](future-os-design.md) | Tijdlijn, bruikbare patronen, decoratieve risico's en expliciete toekomsthypothesen |
-| [Bronnenregister](sources.md) | Bronfamilies, datums, primaire bronnen en controlebeperkingen |
-| [Eurobarometercontrole](eurobarometer-check.json) | Originele PDF-hashes, paginanummers, cijfers en rekencontrole |
+| [Repository baseline](repository-baseline.md) | Phase 1 recorded: main, newer development branch and prototype/native evidence limits |
+| [User needs and synthesis](os-user-needs.md) | Comparison, recurrence, impact, European relevance and technical possibilities |
+| [Windows and macOS](windows-macos-needs.md) | Aspects per OS, original user signals, current solutions and limitations |
+| [Linux and mobile](linux-mobile-needs.md) | GNOME/KDE/Ubuntu, Android and relevant iOS/ChromeOS comparisons |
+| [European adoption and barriers](european-adoption-barriers.md) | Eurobarometer, intention versus behavior, compatibility, migration and European alternatives |
+| [OS design trends](future-os-design.md) | Timeline, useful patterns, decorative risks and explicit future hypotheses |
+| [Source register](sources.md) | Source families, dates, primary sources and verification limits |
+| [Eurobarometer check](eurobarometer-check.json) | Original PDF hashes, page numbers, figures and arithmetic check |
 
-Dit is een aanvulling op de [verkenningen van 28 oktober](../README.md), geen vervangende productroadmap. Materiaal, privacycontract, volledige releasecriteria en vaste acceptatiegewichten blijven gelden. Fase 5–8 moet eventuele gewijzigde productkeuzes, prioriteiten en implementaties afzonderlijk motiveren. Er is hier geen nieuwe desktoprichting aangenomen.
+This supplements the [explorations of 28 October](../README.md), rather than replacing the product roadmap. Materiaal, the privacy contract, full-release criteria and fixed acceptance weights remain in force. Phases 5–8 must justify any changed product choices, priorities and implementations separately. No new desktop direction has been adopted here.
 
-## Zoek- en selectiestrategie
+<a id="zoek--en-selectiestrategie"></a>
 
-Doelgerichte triangulatie met drie parallelle onderzoeksdossiers en centrale bron-/claimcontrole. Actualiteit: huidige platformdocumentatie en recente bronnen, doorgaans 2024–2026. Oudere originele studies zijn alleen gebruikt waar zij een mechanisme of ontwerphistorie onderbouwen; hun uitkomsten worden niet naar 2026 geëxtrapoleerd. De tijdlijn omvat expliciet oudere releases.
+## Search and selection strategy
 
-Gezocht via webzoekmachine, vervolgens de oorspronkelijke pagina, uitgave, issue of rapport geopend. Zoekclusters omvatten:
+Purposive triangulation used three parallel research dossiers and central source/claim checking. Recency: current platform documentation and recent sources, generally 2024–2026. Older original studies were used only where they support a mechanism or design history; their findings are not extrapolated to 2026. The timeline explicitly includes older releases.
 
-- `Windows 2026 search taskbar updates user feedback`, Microsoft OneDrive bestands-/back-upgedrag, PowerToys-vindbaarheid en NV Access-regressies;
-- macOS window tiling, Spotlight, iPhone Mirroring EU, AppleVis VoiceOver en onderzoek naar OS-interfacegewoonte;
-- GNOME/KDE toegankelijkheid, window management, pakketportalen, oorspronkelijke issues, Ubuntu-hardwarecertificatie;
-- Android privacykeuzes, notificaties, background-processen, adaptive interfaces, update-/back-up- en integriteitsgrenzen;
-- `Eurobarometer 2026 58 EU digital service provider`, oorspronkelijke SP572-vragenlijst, QB6.4, rapport en data-annex;
-- CMA mobile ecosystems switching, originele vzbv-Windows-10-tabellen, Office-VBA, Adobe-vereisten, Valve-Proton en Europese migratiecases;
-- oorspronkelijke introducties van flat/Material/designmaterialen, dynamische kleur, adaptive layouts, semantiek, AI-richtlijnen en studies naar aandacht, contrast en energie.
+A web search engine was used, followed by opening the original page, publication, issue or report. Search clusters included:
 
-Voorkeur voor oorspronkelijke studies en uitgevers, officiële specificaties/support/releasebesluiten, regulatoronderzoek, gevolgd door oorspronkelijke communitymeldingen. Communitybronnen helpen concrete mislukte handelingen en verwachtingen vinden; ze dragen geen algemene marktclaim. Geen automatische telling van zoekresultaten, stemmen of duplicerende nieuwsartikelen. De selectie omvat bewuste tegenvoorbeelden: bestaande oplossingen, verbeterde uitrol en tevredenheid als reden om te blijven.
+- `Windows 2026 search taskbar updates user feedback`, Microsoft OneDrive file/backup behavior, PowerToys discoverability and NV Access regressions;
+- macOS window tiling, Spotlight, iPhone Mirroring EU, AppleVis VoiceOver and research into OS interface habit;
+- GNOME/KDE accessibility, window management, package portals, original issues, Ubuntu hardware certification;
+- Android privacy choices, notifications, background processes, adaptive interfaces, update/backup and integrity limits;
+- `Eurobarometer 2026 58 EU digital service provider`, original SP572 questionnaire, QB6.4, report and data annex;
+- CMA mobile ecosystems switching, original vzbv-Windows-10 tables, Office-VBA, Adobe requirements, Valve-Proton and European migration cases;
+- original introductions of flat/Material/design materials, dynamic color, adaptive layouts, semantics, AI guidelines and studies of attention, contrast and energy.
 
-Opname vereist een benoembare bevinding, directe URL, datum of expliciet onbekende datum, bronsoort en beperking. Afgewezen als algemene onderbouwing: onherleidbare percentages, marketing zonder noemer, een rant als volledige doelgroepstem, onbereikbare fulltext alsof die gelezen was, en een featureaankondiging als bewezen gebruikerseffect. Beta/Insider/roadmap blijft apart van algemene beschikbaarheid. In elk dossier staan de werkelijk gebruikte bronnen; geen volledige zoekgeschiedenis of PRISMA-claim.
+Preference was given to original studies and publishers, official specifications/support/release decisions and regulator research, followed by original community reports. Community sources help identify concrete failed actions and expectations; they do not support a general market claim. Search results, votes and duplicate news articles were not counted automatically. The selection includes deliberate counterexamples: existing solutions, improved rollout and satisfaction as a reason to stay.
 
-## Labels en bewijssterkte
+Inclusion requires an identifiable finding, direct URL, date or explicitly unknown date, source type and limitation. The following were rejected as general support: untraceable percentages, marketing without a denominator, a rant presented as the voice of an entire target group, inaccessible full text treated as if it had been read, and a feature announcement treated as a demonstrated user effect. Beta/Insider/roadmap remains separate from general availability. Each dossier records the sources actually used; no complete search history or PRISMA claim is provided.
 
-- **[BRON]**: wat een gelezen bron beschrijft, meet of officieel ondersteunt; de reikwijdte blijft erbij.
-- **[SIGNAAL]**: een concrete oorspronkelijke melding of communitywens; geen representativiteit.
-- **[ANALYSE]**: de synthese, vergelijking of technische gevolgtrekking binnen dit onderzoek.
-- **[HYPOTHESE]**: een te toetsen behoefte, ontwerpvertaling of toekomstverwachting.
-- **[REPOSITORY]**: aangetroffen broncode of versiegebonden projectbewijs; geen externe marktbevinding.
+<a id="labels-en-bewijssterkte"></a>
 
-Voor de synthese betekent **sterk**: rechtstreeks empirisch bewijs of een expliciet controleerbare technische grens voor de afgebakende claim. **Middel**: meerdere bruikbare primaire aanwijzingen, beperkte doelgroep of overdracht naar nieuw-os. **Zwak/open**: losse signalen, alleen productvoorzieningen of ontbrekende meting. Sterk technisch bewijs kan samengaan met onbekende gebruiksfrequentie.
+## Labels and strength of evidence
 
-“Herhaling” betekent uitsluitend terugkeer in deze doelgerichte bronset. Meerdere Microsoftpagina's tellen bijvoorbeeld als één leveranciersfamilie; persbericht en tabel van dezelfde enquête als één onderzoek. Er wordt geen rangorde van klachtfrequentie onder alle Europese gebruikers gepubliceerd. Impact, haalbaarheid en onderscheid zijn redactionele inschattingen; geen onderzoekspercentages of fase-6-score.
+- **[BRON]**: what a reviewed source describes, measures or officially supports; its scope remains attached.
+- **[SIGNAAL]**: a concrete original report or community request; no representativeness.
+- **[ANALYSE]**: synthesis, comparison or technical inference within this research.
+- **[HYPOTHESE]**: a need, design interpretation or future expectation to test.
+- **[REPOSITORY]**: source code found or version-bound project evidence; no external market finding.
 
-## Doelgroepen en ontbrekende eigen data
+For the synthesis, **strong** means direct empirical evidence or an explicitly verifiable technical boundary for the bounded claim. **Moderate**: several usable primary indications, a limited target group or transfer to nieuw-os. **Weak/open**: isolated signals, product provisions alone or missing measurement. Strong technical evidence can coexist with unknown frequency of use.
 
-Onderzoekssegmenten: mensen met dagelijkse browser-/documenttaken; gevorderde gebruikers met automatisering of maatwerk; gamers; creatieve/professionele gebruikers; mensen die hulptechnologie nodig hebben; beheerders/organisaties. Dit zijn analytische groepen, geen geïnterviewde persona's. Leeftijd, land, technische kennis en beperkingen zijn niet betrouwbaar uit platformkeuze af te leiden.
+“Herhaling” (recurrence) means only recurrence within this purposive source set. For example, several Microsoft pages count as one vendor family; a press release and table from the same survey count as one study. No ranking of complaint frequency among all European users is published. Impact, feasibility and differentiation are editorial assessments, not research percentages or a phase-6 score.
 
-Er zijn geen fictieve namen, citaten, interviews, feedbackscores, mockdata of marktaandeelprognoses toegevoegd. Toekomstig onderzoek moet daadwerkelijke taken en noodzakelijke software/apparaten verzamelen, met deelnemers uit meer dan één vaardigheids- en toegankelijkheidscontext. Aantrekkelijkheid, taakprestatie, proberen, werkelijk overstappen en blijven gebruiken afzonderlijk meten.
+<a id="doelgroepen-en-ontbrekende-eigen-data"></a>
 
-## Grenzen en veilige vervolgroute
+## Target groups and missing original data
 
-De bronset is niet uitputtend, niet preregistreerd en niet representatief voor alle Europeanen. Engelstalige/Nederlandse/Duitse bronnen en technisch actieve communities zijn oververtegenwoordigd. Leveranciers kennen hun product, maar hebben commerciële belangen; gebruikersissues oververtegenwoordigen problemen. Veel platformfeatures verkleinen inmiddels eerdere gaten. Gebrek aan een gevonden bron bewijst geen gebrek aan een behoefte.
+Research segments: people with daily browser/document tasks; advanced users with automation or customization; gamers; creative/professional users; people who need assistive technology; administrators/organizations. These are analytical groups, not interviewed personas. Age, country, technical knowledge and disabilities cannot reliably be inferred from platform choice.
 
-De onderzoeken sluiten geen native, fysieke, menselijke of releasegate. De documentatiebranch op main behoudt 34/100; de apart gecontroleerde nieuwere ontwikkelbranch rapporteert 41/100. Fase 5–6 kan nu probleemgerichte concepten en expliciete experimenten vergelijken. Productcode volgt pas na vastgelegd ontwerp-/implementatieplan binnen de gebruikersopdracht.
+No fictitious names, quotations, interviews, feedback scores, mock data or market-share forecasts have been added. Future research must collect actual tasks and necessary software/devices, with participants from more than one skill and accessibility context. Measure appeal, task performance, trying, actual switching and continued use separately.
+
+<a id="grenzen-en-veilige-vervolgroute"></a>
+
+## Limits and a safe next route
+
+The source set is not exhaustive, preregistered or representative of all Europeans. English, Dutch and German sources and technically active communities are overrepresented. Vendors know their products but have commercial interests; user issues overrepresent problems. Many platform features now narrow earlier gaps. Failure to find a source does not prove the absence of a need.
+
+The studies close no native, physical, human or release gate. The documentation branch on main retains 34/100; the separately checked newer development branch reports 41/100. Phases 5–6 can now compare problem-oriented concepts and explicit experiments. Product code follows only after a recorded design/implementation plan within the user's assignment.
