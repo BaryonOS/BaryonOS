@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "b718f6bafdfc4927d3b7acfe786e67dcb8f88eec",
+    "source_commit": "cece3041187e1b7d08ec7708c36b84c728d6e2d2",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-ci-guide-english",
-    "task": "Phase 0: translate the CI guide while preserving source-bound technical requirements",
+    "task": "Phase 0: translate technical guides and preserve verified main after PR343",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. English CI documentation and source-preservation checks add no native or product acceptance. Issue #274 remains open; full translation, integrated assessment and baseline B are unfinished."
+    "summary": "41/100 remains 41/100. Independent source comparisons preserve the technical requirements, permissions, evidence and historical limitations of four English guides. No runtime or native criterion is accepted. Full issue #274, current-head CI and baseline B remain open."
   },
   "tracks": [
     {

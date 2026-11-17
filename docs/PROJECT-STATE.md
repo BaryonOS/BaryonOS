@@ -1,13 +1,31 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Phase 0 CI guide translation — 17 November 2026
+## NEXT AGENT HANDOFF — Phase 0 English technical guides — 17 November 2026
+
+**Source:** guide comparison parent `cece3041187e1b7d08ec7708c36b84c728d6e2d2`, integrating verified main `95d59ad52761c1f8f0201d934556902b90ce63cb` after PR343. Draft PR346 includes the CI guide, native material-library guide, IPC-wait probe README and native IPC-wait contract.
+**Verified:** independent AI semantic comparisons and exact code/identifier/numeric/anchor preservation pass on all four guide hashes. The CI guide's earlier receipt remains intact. [Native guide receipt](verification/phase0-english-guides-20261117/README.md). Both parent handoffs and independent workstream history are retained below.
+**Gates and limits:** current integrated workflow checks (26 tests), progress write/check and whitespace checks pass (exit 0); current-head hosted checks remain pending. Native tests are NOT RUN for this documentation-only change. Progress remains 41/100; no new implementation or acceptance is claimed. Full issue #274, final integrated assessment and baseline B remain unfinished.
+**Resume:** run/record the local checks, publish this integrated draft and verify its required current-head CI. Eligible Phase 0 squash merges are explicitly authorized after all gates; no auto-merge/bypass. Preserve Orbitaal/S09 WIP, runners, claims and ownership. Governance phases 1–6 have not started.
+
+## Historical pre-integration checkpoints
+
+These records retain their original observations; the current handoff and updated owner Phase 0 authority supersede their pending-check and separate-approval instructions.
+
+### Historical CI guide task — 17 November 2026
 
 **Source:** main `b718f6bafdfc4927d3b7acfe786e67dcb8f88eec`; branch `codex/phase0-ci-guide-english`. The separate integration oversight checkpoint is draft PR #345.
 **Completed:** `docs/CI.md` translated without changing technical requirements, commands or historical evidence. Independent AI semantic review and preservation checks pass; all 26 workflow contract tests pass (exit 0). [Source-bound receipt](verification/phase0-ci-guide-20261117/README.md).
 **Progress and limits:** 41/100 remains 41/100. Issue #274 stays open; full translation and live Wiki consistency are unfinished. Native tests NOT RUN for this documentation-only change. Current-head hosted checks must be checked separately. Baseline B is NOT ESTABLISHED; governance phases 1–6 have NOT STARTED.
 **Authority and resume:** no merge or auto-merge approval is granted by this task. Verify the remote source and required checks, then return to the Phase 0 integration queue. Preserve every existing stream's handoff, WIP, claims and ownership; the retained Orbitaal record below remains independently authoritative for its stream.
 
-## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
+### Historical PR343 — 17 November 2026
+
+**Source:** parent `1c6842c4c73f42691fa553e76944bc9ebd795186`; existing PR #343 branch.
+**Changed:** bounded artifact-action contract and meaningful negative host oracle; existing native/evidence guards preserved. [Receipt](verification/phase0-pr343-20261117/README.md).
+**Checks:** 7 SMP CI tests, 26 workflow tests, 8 evidence-verifier tests and pinned actionlint pass (exit 0). Initial tools-suite failure from snap launchers retained; installed-rustup rerun running. Hosted action/current-head CI pending. Progress 41/100 unchanged; no merge.
+**Next:** verify hosted roundtrip and required jobs, record exact head/merge SHA and request specific owner merge approval. Independent #344 dependency record work can proceed. Orbitaal/S09 ownership remains unchanged. Baseline B not established; governance phases 1–6 not started.
+
+## Retained workstream handoff — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
 
 **Source:** branch `claude/baryon-os-ui-ux-design-152adb` at `ea4e033d`
 (S0 `b305fa7c`, S1 `8e4abd8d`, v2 board `ea4e033d`) after merge `89e8b1c9` of

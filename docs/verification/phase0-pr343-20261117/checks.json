@@ -1,0 +1,51 @@
+{
+  "source_parent": "1c6842c4c73f42691fa553e76944bc9ebd795186",
+  "source_sha256": {
+    ".github/workflows/native-smp.yml": "8d93bb172b105e8265d26aafecb1b95036588a97ec939427ed76473d60f1df4a",
+    ".github/actions/artifact-download-contract/action.yml": "308c294edc2cdbe377f1d9f1d2200b46f41105507ecc461e65ccc54d0af5f0e6",
+    "tools/tests/test_smp_ci.py": "0d12b1e93310632e9cbb17c96e0a12e444967b34af14813e82f264eac7b42282"
+  },
+  "checks": [
+    {
+      "name": "SMP artifact contract and aggregate oracles",
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_smp_ci.py",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-q5ud2bay.log",
+      "log_sha256": "0a473cd6459ef9c03dbd204dd2ca094771b5bed4a0926f66a4531c8ada04881e"
+    },
+    {
+      "name": "workflow contract tests",
+      "command": "python3 -B -m unittest discover -s tests -p test_ci_workflows.py",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-xiqzvwbx.log",
+      "log_sha256": "aae7b044e270f63bc2d7a9bce9d2c8308e17ede6d8f5b739d26552283c13b82e"
+    },
+    {
+      "name": "existing CI evidence preservation",
+      "command": "python3 -B -m unittest discover -s tests -p test_ci_evidence_workflow_verifier.py",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-0w02d6uw.log",
+      "log_sha256": "4908f8d08e0fb8634cfcdb85601cab7afb039bfc3357a096d281a6db51c8faca"
+    },
+    {
+      "name": "pinned actionlint1.7.12",
+      "command": "/tmp/baryonos-phase0-20261117/tools/actionlint -shellcheck= -pyflakes=",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-o27umele.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "initial complete tools suite, snap launcher environment failure",
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_*.py",
+      "exit_code": 1,
+      "log": "build/tokenguard/run-q74pns00.log",
+      "log_sha256": "806b6b6a495f243326f59850982068d535278d9fa96f1c24e53e9787caf7cc58"
+    }
+  ],
+  "independent_review": "Read-only AI review found no blockers on these exact three source hashes; not a human audit.",
+  "not_run": [
+    "Hosted upload/download contract on the published head (pending)",
+    "Full 74x50 native matrix (unchanged guest code, no new K06 acceptance)",
+    "Complete tools rerun with the installed rustup binary (running)"
+  ]
+}

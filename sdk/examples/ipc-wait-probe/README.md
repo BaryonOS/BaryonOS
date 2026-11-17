@@ -1,145 +1,155 @@
-# WAIT-PROBE-1 — twee echte CPL3-processen, één ELF
+<a id="wait-probe-1--twee-echte-cpl3-processen-één-elf"></a>
 
-Zelfstandig `no_std`-acceptatieprogramma voor het opt-in kernelprofiel
-`native-ipc-wait` (ABI **1.10**, niet RTC-revisie 1.9). Geen allocator, nieuwe
-dependencies, privilege-I/O, display, entropy, netwerk of persoonlijke data.
-De integrator levert manifest, schedulerfixture, cleanupcontrole en QEMU-gate.
-Een geslaagde build/hosttest is **geen native runtimebewijs**.
+# WAIT-PROBE-1 — two actual CPL3 processes, one ELF
 
-Bronbasis bij aanvang: `2a596f4df94573a9a8d74e9cbef668dedc30cf38`,
-branch `simon/native-test-version`. De probe hergebruikt
-`../materiaal/linker.ld`: RX-entry op `0x40000000`, private RW-startup op
-`0x40010000`, gescheiden R/RW/RX-segmenten. `_start` doet `cld`, controleert
-SysV-entry `RSP % 16 == 8` en springt zonder extra returnadres naar Rust.
-`support.rs` volgt de bestaande scalair/volatile memory-intrinsics.
+Standalone `no_std` acceptance program for the opt-in kernel profile
+`native-ipc-wait` (ABI **1.10**, not RTC revision 1.9). No allocator, new
+dependencies, privileged I/O, display, entropy, network or personal data.
+The integrator supplies the manifest, scheduler fixture, cleanup check and QEMU gate.
+A successful build/host test is **not native runtime evidence**.
 
-## Startupcontract
+Initial source baseline: `2a596f4df94573a9a8d74e9cbef668dedc30cf38`,
+branch `simon/native-test-version`. The probe reuses
+`../materiaal/linker.ld`: RX entry at `0x40000000`, private RW startup at
+`0x40010000`, separate R/RW/RX segments. `_start` executes `cld`, checks
+SysV entry `RSP % 16 == 8` and jumps to Rust without an additional return address.
+`support.rs` follows the existing scalar/volatile memory intrinsics.
 
-Alle onderstaande getallen zijn **byte-offsets van u64-woorden** vanaf de
-private databasis `0x40010000`, geen woordindices.
+<a id="startupcontract"></a>
 
-| Offset | Invoer door kernel |
+## Startup contract
+
+All numbers below are **byte offsets of u64 words** from the
+private data base address `0x40010000`, not word indices.
+
+| Offset | Kernel input |
 |---|---|
-| 32 | Rol: 0 = initiator/sender, 1 = peer/receiver |
-| 56 | Eigen endpoint-root, `ALL_RIGHTS`; RECV/SEND/DERIVE/REVOKE blijven kernelrechten |
-| 64 | SEND-only afstammeling van het endpoint-root van de peer |
-| 72 | SEND-only afstammeling van het eigen endpoint-root, **geen RECV** |
-| 80 | Niet gelezen; mag nul zijn |
-| 176 | Werkelijke PID van de peer, verplicht niet-nul |
+| 32 | Role: 0 = initiator/sender, 1 = peer/receiver |
+| 56 | Own endpoint root, `ALL_RIGHTS`; RECV/SEND/DERIVE/REVOKE remain kernel permissions |
+| 64 | SEND-only descendant of the peer's endpoint root |
+| 72 | SEND-only descendant of the process's own endpoint root, **no RECV** |
+| 80 | Not read; may be zero |
+| 176 | Actual peer PID, required to be nonzero |
 
-Er worden geen PID's 1/2 aangenomen. Elk peerbericht moet exact de aangeleverde
-sender-PID, tag, payloadlengte, bytes en nul gedelegeerde capabilities hebben.
-Alle gewone handles gaan door `Handle::from_raw`; endpointwrappers claimen
-geen autoriteit. De negatieve raw ABI-tests gebruiken bewust ook handle nul.
-De SEND-only handle op 72 mag niet simpelweg dezelfde ALL_RIGHTS-handle als
-56 zijn: de negatieve RECV-rechtentest moet daarop `-5` krijgen.
+PID values 1/2 are not assumed. Each peer message must exactly match the supplied
+sender PID, tag, payload length, bytes and zero delegated capabilities.
+All ordinary handles pass through `Handle::from_raw`; endpoint wrappers claim
+no authority. The negative raw ABI tests deliberately also use handle zero.
+The SEND-only handle at 72 must not simply be the same ALL_RIGHTS handle as
+56: the negative RECV permission test must receive `-5` for that handle.
 
-## Evidencecontract
+<a id="evidencecontract"></a>
 
-| Offset | Uitvoer |
+## Evidence contract
+
+| Offset | Output |
 |---|---|
-| 8 | Heartbeat, verhoogd bij begin van iedere fase |
-| 400 | `done=1`, **als laatste geschreven**, zowel bij succes als fout |
-| 408 | Aantal geslaagde expliciete assertions |
-| 416 | Foutcode; nul uitsluitend na alle rolfases |
-| 424 | Werkelijk gemeten totale PIT-ticks sinds start, ook bij fout |
-| 432 | Afgerond-fasebitmasker, zie hieronder |
-| 440 | Starttick |
-| 448 | Actieve fase (1–6), 7 na volledige rolacceptatie |
-| 464 | Rol0: gemeten ticks in lege-RECV-wacht |
-| 472 | Rol0: gemeten ticks in volle-SEND-wacht |
-| 480 | Beide rollen: gemeten ticks van gezamenlijke count0-wacht |
-| 488 | Rol0: gemeten ticks in de SEND-wacht die `-10` retourneert |
-| 496 | Rol1: exact 17 geconsumeerde FULL-faseberichten |
-| 504 | Rol1: 16 finale berichten niet gedraind na rootrevoke |
+| 8 | Heartbeat, incremented at the start of each phase |
+| 400 | `done=1`, **written last**, on both success and error |
+| 408 | Number of successful explicit assertions |
+| 416 | Error code; zero only after all role phases |
+| 424 | Actual measured total PIT ticks since start, including on error |
+| 432 | Completed-phase bitmask, see below |
+| 440 | Start tick |
+| 448 | Active phase (1–6), 7 after full role acceptance |
+| 464 | Role0: measured ticks in the empty-RECV wait |
+| 472 | Role0: measured ticks in the full-SEND wait |
+| 480 | Both roles: measured ticks of the shared count0 wait |
+| 488 | Role0: measured ticks in the SEND wait that returns `-10` |
+| 496 | Role1: exactly 17 consumed FULL-phase messages |
+| 504 | Role1: 16 final messages not drained after root revocation |
 
-`432` heeft vaste bits, pas gezet na alle lokale faseassertions:
+`432` has fixed bits, set only after all local phase assertions:
 
-| Bit | Betekenis | Rol0 | Rol1 |
+| Bit | Meaning | Role0 | Role1 |
 |---|---|---|---|
-| 0 (`0x01`) | Negatieve raw-wait-ABI, alle items gevalideerd | Ja | Nee |
-| 1 (`0x02`) | Onmiddellijke readiness en niet-consumerende maskers | Ja | Nee |
-| 2 (`0x04`) | Lege RECV → vertraagde peer-SEND → bytes | Wacht/ontvangt | Vertraagt/verzendt |
-| 3 (`0x08`) | Gezamenlijke absolute count0-timerwacht | Ja | Ja |
-| 4 (`0x10`) | Volle SEND → peerdrain → wake, exacte FIFO zonder replay | Vult/wacht/verzendt | Draint/controleert |
-| 5 (`0x20`) | Volle queue → rootrevoke → sender `-10`, geen drain | Wacht/controleert | Revoke/controleert |
+| 0 (`0x01`) | Negative raw-wait ABI, all items validated | Yes | No |
+| 1 (`0x02`) | Immediate readiness and non-consuming masks | Yes | No |
+| 2 (`0x04`) | Empty RECV → delayed peer-SEND → bytes | Waits/receives | Delays/sends |
+| 3 (`0x08`) | Shared absolute count0 timer wait | Yes | Yes |
+| 4 (`0x10`) | Full SEND → peer drain → wake, exact FIFO without replay | Fills/waits/sends | Drains/checks |
+| 5 (`0x20`) | Full queue → root revocation → sender `-10`, no drain | Waits/checks | Revokes/checks |
 
-**Exact eindmasker rol0: `0x3f`; rol1: `0x3c`.** Het programma controleert
-zelf deze exacte maskers. Succes schrijft `done=1` en roept `exit(0)` aan.
-Elke fout schrijft evidence en roept `exit(nonzero)` aan; paniekcode is 255.
-De kernel moet beide exits, beide exacte maskers, nul foutcodes, assertions,
-ticks, `blocked/wake_ready/wake_timeout/idle_irqs > 0` en lege authority-engine
-na cleanup controleren. Evidence is procesdata, geen vervanging van deze
-kernelobservaties.
+**Exact final mask for role0: `0x3f`; role1: `0x3c`.** The program checks
+these exact masks itself. Success writes `done=1` and calls `exit(0)`.
+Every error writes evidence and calls `exit(nonzero)`; the panic code is 255.
+The kernel must check both exits, both exact masks, zero error codes, assertions,
+ticks, `blocked/wake_ready/wake_timeout/idle_irqs > 0` and an empty authority engine
+after cleanup. Evidence is process data, not a substitute for these
+kernel observations.
 
-## Protocol en syscallbewijs per fase
+<a id="protocol-en-syscallbewijs-per-fase"></a>
 
-Alle berichten zijn SDK `Outgoing`/`Received`, tag `0x5741495450520001`.
-Payload is precies 16 bytes: kind:u8 op 0, drie nulbytes, sequence:u32-LE
-op 4 en at:u64-LE op 8. Er worden geen capabilities in berichten verzonden.
-Fasedeadline is eenmaal `now+200`; preparatie-/drain-/revoke-timers zijn
-`now+40`. Alle berekeningen controleren overflow. Een `EAGAIN` vernieuwt
-**nooit** de deadline. SEND-succes wordt nooit herhaald.
+## Protocol and syscall evidence per phase
 
-1. **Negatieven (rol0, fase1).** Raw `0x22` controleert count17/MAX,
-   count0 met niet-nul pointer, elk gereserveerd argument, deadline buiten
-   horizon: `-1`. Nullpointer, kernelpointer en een 16-byte-record dat de
-   startup-pagegrens op `0x40010ff8` overschrijdt: `-3`. Interests0/3/MAX:
-   `-1`. RECV op eigen SEND-only: `-5`. Eerst ready SEND en daarna handle0
-   moet `-4` blijven; ready SEND gevolgd door onrechtmatige RECV moet `-5`
-   blijven. Beide arrayvolgordes worden getest. Count0 met verstreken
-   deadline retourneert nul; SEND-readiness retourneert SDK-`u16` 1.
-2. **Onmiddellijk (rol0, fase2).** `0x21` geeft eerst `EAGAIN`. `0x20`
-   verstuurt één echt selfbericht. Twee opeenvolgende `0x22`-calls met
-   SEND+RECV leveren allebei masker3: geen reservering/consumptie door
-   wait. Daarna één receive met exacte bytes, vervolgens `EAGAIN`.
-   Zestien ready SEND-items geven `u16::MAX`.
-3. **Lege RECV (beide, fase3).** Rol0 verstuurt EMPTY, controleert lege
-   eigen queue en wacht RECV. Rol1 ontvangt EMPTY, wacht 40 echte ticks
-   met count0 en verstuurt DATA met niet-triviale sequence/payload.
-   Rol0 eist masker1, positief gemeten wachtinterval, exact één DATA en
-   daarna lege queue. Foutcodes160–163/200.
-4. **Allebei Waiting (beide, fase4).** IDLE draagt één gedeelde absolute
-   deadline. Rol1 stuurt IDLE_ACK en doet count0-wait tot die deadline.
-   Rol0 ontvangt ACK en doet dezelfde count0-wait. Beide controleren dat
-   de deadline toekomstig was, masker0 terugkeert en de tickstand minstens
-   de deadline bereikt. Met precies twee processen moet de kernel echt
-   PIT-idle via `sti; hlt` observeren; de app kan die instructie niet zelf
-   certificeren. Foutcodes170/201–203.
-5. **Volle SEND (beide, fase5).** FULL draagt toekomstige drain-tick,
-   rol1 ACKt en slaapt zonder te ontvangen. Rol0 verstuurt sequences0–15,
-   een poging met16 geeft `EAGAIN`; hij wacht SEND vóór de drain-tick.
-   Rol1 draint op die tick. Rol0 eist ready1 en positieve wachtticks,
-   verstuurt sequence16 **precies eenmaal** na wake. Rol1 ontvangt exact
-   0–16 in volgorde, controleert daarna `EAGAIN` en ACKt DRAINED17.
-   Zowel replay, verkeerde bytes als een ontbrekend bericht faalt.
-   Foutcodes150–154/180–185/210–212.
-6. **Revoke zonder drain (beide, fase6; als laatste).** REVOKE/ACK spreken
-   een revoke-tick af. Rol0 vult opnieuw exact16, krijgt `EAGAIN` en
-   wacht SEND. Rol1 slaapt zonder drain, controleert RECV-readiness en
-   doet `0x12(root)`; de root blijft zelf geldig. RECV is erna nog ready;
-   de eigen SEND-afstammeling is nu `-10`. Er volgt **geen receive** op
-   de volle queue. Rol0 eist `-10` van de wacht, positief gemeten ticks,
-   en nogmaals `-10` van zowel SEND als WAIT; nooit ready/vals succes.
-   Rol1 stuurt REVOKED over de nog geldige tegenovergestelde richting.
-   Rol0 ontvangt die bevestiging vóór exit. Rol1 blijft nog 40 ticks
-   leven om root-exit niet als vervanging voor de revoke te gebruiken.
-   De kernel moet de echte wake-error/queue/cleanupobservaties leveren;
-   de 40-tick-houdtijd is geen algemeen scheduler-fairnessbewijs.
-   Foutcodes190–195/220–226.
+All messages are SDK `Outgoing`/`Received`, tag `0x5741495450520001`.
+The payload is exactly 16 bytes: kind:u8 at 0, three zero bytes, sequence:u32-LE
+at 4 and at:u64-LE at 8. No capabilities are sent in messages.
+The phase deadline is set once to `now+200`; preparation/drain/revoke timers are
+`now+40`. All calculations check for overflow. An `EAGAIN` **never** renews
+the deadline. A successful SEND is never repeated.
 
-Algemene fouten: ABI/startup1–8, klok90–91, encoding92,
-bounded SEND100–103, bounded RECV/envelope110–115. De syscallchecks in
-fase1 gebruiken120–138 en onmiddellijke readiness140–148.
+1. **Negative tests (role0, phase1).** Raw `0x22` checks count17/MAX,
+   count0 with a nonzero pointer, each reserved argument and a deadline beyond
+   the horizon: `-1`. A null pointer, a kernel pointer and a 16-byte record crossing
+   the startup page boundary at `0x40010ff8`: `-3`. Interests0/3/MAX:
+   `-1`. RECV on own SEND-only: `-5`. Ready SEND followed by handle0
+   must still return `-4`; ready SEND followed by unauthorized RECV must still
+   return `-5`. Both array orders are tested. Count0 with an expired
+   deadline returns zero; SEND readiness returns SDK `u16` 1.
+2. **Immediate (role0, phase2).** `0x21` first returns `EAGAIN`. `0x20`
+   sends one actual self-message. Two consecutive `0x22` calls with
+   SEND+RECV both return mask3: no reservation/consumption by
+   wait. Then one receive with exact bytes, followed by `EAGAIN`.
+   Sixteen ready SEND items return `u16::MAX`.
+3. **Empty RECV (both, phase3).** Role0 sends EMPTY, checks that its
+   own queue is empty and waits for RECV. Role1 receives EMPTY, waits 40 actual ticks
+   with count0 and sends DATA with a nontrivial sequence/payload.
+   Role0 requires mask1, a positive measured wait interval, exactly one DATA and
+   an empty queue afterward. Error codes 160–163/200.
+4. **Both Waiting (both, phase4).** IDLE carries one shared absolute
+   deadline. Role1 sends IDLE_ACK and performs a count0 wait until that deadline.
+   Role0 receives ACK and performs the same count0 wait. Both check that
+   the deadline was in the future, mask0 is returned and the tick count reaches
+   at least the deadline. With exactly two processes, the kernel must observe actual
+   PIT idle via `sti; hlt`; the app cannot certify that instruction
+   itself. Error codes 170/201–203.
+5. **Full SEND (both, phase5).** FULL carries a future drain tick;
+   role1 ACKs and sleeps without receiving. Role0 sends sequences0–15;
+   an attempt with 16 returns `EAGAIN`; it waits for SEND before the drain tick.
+   Role1 drains at that tick. Role0 requires ready1 and positive wait ticks,
+   and sends sequence16 **exactly once** after wake. Role1 receives exactly
+   0–16 in order, then checks `EAGAIN` and ACKs DRAINED17.
+   Replay, incorrect bytes and a missing message each cause failure.
+   Error codes 150–154/180–185/210–212.
+6. **Revoke without drain (both, phase6; last).** REVOKE/ACK agree on
+   a revoke tick. Role0 again fills exactly 16, receives `EAGAIN` and
+   waits for SEND. Role1 sleeps without draining, checks RECV readiness and
+   executes `0x12(root)`; the root itself remains valid. RECV is still ready
+   afterward; its own SEND descendant is now `-10`. There is **no receive** on
+   the full queue. Role0 requires `-10` from the wait, positive measured ticks,
+   and again `-10` from both SEND and WAIT; never ready/false success.
+   Role1 sends REVOKED over the still-valid opposite direction.
+   Role0 receives that confirmation before exit. Role1 remains alive for another
+   40 ticks to avoid using root exit as a substitute for revocation.
+   The kernel must supply the actual wake-error/queue/cleanup observations;
+   the 40-tick hold time is not general evidence of scheduler fairness.
+   Error codes 190–195/220–226.
 
-De huidige SDK mist een publieke `native::syscall`; daarom zit uitsluitend
-voor negatieve `0x22`-tests een lokale raw int80-wrapper in `main.rs`, met
-hetzelfde registercontract en dezelfde `decode_return` als SDK-native.
-Geen Rust-code dereferentieert de bewust ongeldige testpointers.
+General errors: ABI/startup 1–8, clock 90–91, encoding 92,
+bounded SEND100–103, bounded RECV/envelope 110–115. The syscall checks in
+phase 1 use 120–138 and immediate readiness 140–148.
 
-## Bouwen en controles
+The current SDK lacks a public `native::syscall`; therefore, negative `0x22`
+tests alone use a local raw int80 wrapper in `main.rs`, with
+the same register contract and the same `decode_return` as SDK-native.
+No Rust code dereferences the deliberately invalid test pointers.
 
-Geen toolchain-installatie. Gebruik de bestaande geïsoleerde omgeving:
+<a id="bouwen-en-controles"></a>
+
+## Build and checks
+
+No toolchain installation. Use the existing isolated environment:
 
 ```sh
 export PATH="$PWD/.tools/nieuw-os:$PATH"
@@ -151,38 +161,38 @@ python3 -B tools/dev.py cargo +1.90.0 fmt --manifest-path sdk/examples/ipc-wait-
 python3 -B sdk/examples/ipc-wait-probe/build.py
 ```
 
-`build.py` respecteert een expliciete `CARGO_TARGET_DIR`; relatieve paden
-worden vanaf de repositoryroot opgelost. Zonder die variabele gebruikt het
-`target/ipc-wait-probe-host`. De integrator levert een geïsoleerde per-appmap
-(bijvoorbeeld `$NOS_TARGET_DIR/ipc-wait-app`), nooit een gedeelde Cargo-map.
-De builder gebruikt gepinde compiler1.90.0, bijpassende rust-lld en bestaande
-scalar-flags. Het roept de bestaande
-`tools/build_users.py::inspect_user` aan (ook gebruikt door
-`tools/build_materiaal.py`) en print ELF-segmenten, hash en
+`build.py` respects an explicit `CARGO_TARGET_DIR`; relative paths
+are resolved from the repository root. Without that variable it uses
+`target/ipc-wait-probe-host`. The integrator supplies an isolated per-app directory
+(for example, `$NOS_TARGET_DIR/ipc-wait-app`), never a shared Cargo directory.
+The builder uses pinned compiler 1.90.0, matching rust-lld and the existing
+scalar flags. It calls the existing
+`tools/build_users.py::inspect_user` (also used by
+`tools/build_materiaal.py`) and prints ELF segments, hash and
 `NOS_IPC_WAIT_PROBE_ELF`. Artifact:
 `target/ipc-wait-probe-host/x86_64-unknown-none/release/ipc-wait-probe`.
-Met een expliciete targetmap staat het artifact steeds op
-`$CARGO_TARGET_DIR/x86_64-unknown-none/release/ipc-wait-probe`, en zowel de
-inspectie als `NOS_IPC_WAIT_PROBE_ELF` verwijzen naar datzelfde pad.
-Integratiecontrole met afwijkende targetmap:
+With an explicit target directory the artifact is always at
+`$CARGO_TARGET_DIR/x86_64-unknown-none/release/ipc-wait-probe`, and both the
+inspection and `NOS_IPC_WAIT_PROBE_ELF` refer to that same path.
+Integration check with a different target directory:
 
 ```sh
 CARGO_TARGET_DIR="$PWD/target/ipc-wait-probe-explicit" python3 -B sdk/examples/ipc-wait-probe/build.py
 ```
 
-Dit is een echte native releasebuild plus ELF-inspectie; geen QEMU-run.
-De scalar-buildroute vermijdt SSE/XMM-context; de uitgevoerde ELF-disassemblage
-bevatte geen XMM/YMM/ZMM-registerreferenties.
+This is an actual native release build plus ELF inspection; no QEMU run.
+The scalar build path avoids SSE/XMM context; the ELF disassembly performed
+contained no XMM/YMM/ZMM register references.
 
-Uitgevoerd tijdens implementatie: lockfile via Cargo gegenereerd; hosttests
-3/3, hostcheck, formatter/check, native releasebuild en ELF-inspectie:
-**exit0**. De laatste vier commando's hierboven zijn alle succesvol uitgevoerd.
-Laatste ELF-SHA256:
+Executed during implementation: lockfile generated via Cargo; host tests
+3/3, host check, formatter/check, native release build and ELF inspection:
+**exit0**. The last four commands above were all executed successfully.
+Latest ELF-SHA256:
 `3889333416ba3259853caa345aa0809f51b1f9fe5df0cb6ee51e194005aabf2a`.
-`cargo fmt` kon aanvankelijk niet draaien: component `rustfmt` ontbreekt
-in de aanvankelijk aangeleverde toolchain. Na beschikbaarstelling door de
-omgevingseigenaar is de formatter uitgevoerd en de check herhaald: exit0.
-Geen component toegevoegd door deze taak.
-QEMU/native uitvoering, kernelcleanup en hele-releaseacceptatie:
-**niet uitgevoerd door deze deelagent**. Integrator is eigenaar van
-status/scoreblad; dit bron-/buildresultaat kent geen voortgangspunten toe.
+`cargo fmt` initially could not run: the `rustfmt` component was missing
+from the initially supplied toolchain. After the environment owner made it
+available, the formatter was run and the check repeated: exit0.
+No component was added by this task.
+QEMU/native execution, kernel cleanup and full-release acceptance:
+**not performed by this subagent**. The integrator owns the
+status/score register; this source/build result awards no progress points.

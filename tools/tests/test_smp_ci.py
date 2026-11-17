@@ -1,6 +1,7 @@
 import ast
 import json
 import importlib.util
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -145,7 +146,7 @@ class SmpCiAggregationTests(unittest.TestCase):
         full_jobs = {"smp-environment-probe", "smp-case-50", "smp-soak-50",
                      "smp-matrix-aggregate", "smp-final-gate"}
         for event, full, diagnostic, expected in (
-            ("pull_request", False, False, {"native-smp", "experimental-m3-m4-smp"}),
+            ("pull_request", False, False, {"artifact-download-contract", "native-smp", "experimental-m3-m4-smp"}),
             ("workflow_dispatch", False, False, {"native-smp", "experimental-m3-m4-smp"}),
             ("workflow_dispatch", True, False, full_jobs),
             ("workflow_dispatch", False, True, {"diagnostic-clock"}),
@@ -209,6 +210,49 @@ class SmpCiAggregationTests(unittest.TestCase):
             "874f15a7c9110e78a89db159f0f68fc97e9076b74777520de1c235426f758aa7",
         ):
             self.assertIn(required, script)
+
+    @unittest.skipUnless(HAS_YAML, "PyYAML unavailable")
+    def test_artifact_contract_checks_bytes_layout_and_filtering(self):
+        import yaml
+
+        workflow = yaml.load(
+            (Path(__file__).resolve().parents[2] / ".github/workflows/native-smp.yml")
+            .read_text(encoding="utf-8"), Loader=yaml.BaseLoader,
+        )
+        contract = yaml.load(
+            (Path(__file__).resolve().parents[2] / ".github/actions/artifact-download-contract/action.yml")
+            .read_text(encoding="utf-8"), Loader=yaml.BaseLoader,
+        )["runs"]["steps"]
+        downloads = [s for s in contract if s.get("uses", "").startswith("actions/download-artifact@")]
+        aggregate_download, = [s for s in workflow["jobs"]["smp-matrix-aggregate"]["steps"]
+                               if s.get("uses", "").startswith("actions/download-artifact@")]
+        self.assertEqual(len(downloads), 1)
+        for key in ("uses", "with"):
+            self.assertEqual(downloads[0][key], aggregate_download[key])
+        create, check = [s["run"] for s in contract if "run" in s]
+        for mutation in (None, "bytes", "layout", "nonmatching", "missing"):
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                made = subprocess.run(["bash", "-euo", "pipefail", "-c", create], cwd=root,
+                                      capture_output=True, text=True)
+                self.assertEqual(made.returncode, 0, made.stderr)
+                output = root / "build/k06-smp-artifacts"
+                for name in ("a", "b"):
+                    shutil.copytree(root / "build/action-contract-input" / name,
+                                    output / f"smp-action-contract-{name}")
+                first = output / "smp-action-contract-a/nested/fixture.txt"
+                if mutation == "bytes":
+                    first.write_bytes(b"corrupt")
+                elif mutation == "layout":
+                    first.rename(output / "fixture.txt")
+                elif mutation == "nonmatching":
+                    shutil.copytree(root / "build/action-contract-input/unrelated",
+                                    output / "unrelated-action-contract")
+                elif mutation == "missing":
+                    first.unlink()
+                checked = subprocess.run(["bash", "-euo", "pipefail", "-c", check], cwd=root,
+                                         capture_output=True, text=True)
+                self.assertEqual(checked.returncode == 0, mutation is None, checked.stderr)
 
     def test_rejects_failed_run_hidden_by_summary(self):
         with tempfile.TemporaryDirectory() as directory:
