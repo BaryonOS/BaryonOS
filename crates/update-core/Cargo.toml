@@ -7,6 +7,8 @@ publish = false
 [features]
 default = []
 test-signing-anchors = []
+experimental-policy-test = []
+test-policy-envelope-probe = ["experimental-policy-test", "test-signing-anchors"]
 
 [dependencies]
 ed25519-dalek = { version = "3.0.0", default-features = false }
@@ -21,3 +23,12 @@ hex-literal = "1.0.0"
 name = "key_policy"
 path = "tests/key_policy.rs"
 required-features = ["test-signing-anchors"]
+
+[[test]]
+name = "policy_envelope"
+path = "tests/policy_envelope.rs"
+required-features = ["experimental-policy-test", "test-signing-anchors"]
+
+[[example]]
+name = "policy_probe_fixtures"
+required-features = ["experimental-policy-test", "test-signing-anchors"]
