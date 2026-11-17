@@ -82,6 +82,8 @@ pub struct Paging {
     framebuffer: Option<(u64, u64)>,
     #[cfg(feature = "native-smp")]
     lapic: Option<u64>,
+    #[cfg(feature = "native-xhci-probe")]
+    native_devices: [u64; 64],
 }
 /// Fixed supervisor UC/NX window for the xAPIC register page (native-smp only).
 #[cfg(feature = "native-smp")]
@@ -91,6 +93,46 @@ pub const LAPIC_WINDOW: u64 = 0x3f1c0000;
 #[cfg(feature = "native-smp")]
 pub const SHOOTDOWN_WINDOW: u64 = 0x3f1d0000;
 impl Paging {
+    /// Reserve the entire fixture MMIO page-table path before CR3 activation.
+    /// Later device mappings cannot require an unmapped CPU page-table frame.
+    #[cfg(feature = "native-xhci-probe")]
+    pub(super) fn prepare_native_devices(&mut self, frames: &mut Frames<FRAME_COUNT>) {
+        let mut table = self.root;
+        for shift in [39, 30, 21] {
+            let index = ((0x3f200000u64 >> shift) & 511) as usize;
+            let mut entry = read(table, index);
+            if entry == 0 {
+                entry = self.table(frames) | PRESENT | WRITE;
+                write(table, index, entry);
+            }
+            assert_eq!(entry & (USER | 128 | NX), 0);
+            table = entry & ADDRESS;
+        }
+    }
+    /// Dedicated IF0 fixture MMIO, independent of service mappings. Every leaf
+    /// has an exact physical binding for the page-table audit below.
+    #[cfg(feature = "native-xhci-probe")]
+    pub(super) fn map_native_device(
+        &mut self,
+        frames: &mut Frames<FRAME_COUNT>,
+        va: u64,
+        pa: u64,
+    ) -> Result<(), kernel_core::Error> {
+        if !(0x3f200000..0x3f240000).contains(&va)
+            || !va.is_multiple_of(PAGE)
+            || pa < 0x80000000
+            || !pa.is_multiple_of(PAGE)
+        {
+            return Err(kernel_core::Error::Range);
+        }
+        let index = ((va - 0x3f200000) / PAGE) as usize;
+        if self.native_devices[index] != 0 || self.native_devices.contains(&pa) {
+            return Err(kernel_core::Error::Overlap);
+        }
+        self.map_device_page(frames, va, pa)?;
+        self.native_devices[index] = pa;
+        Ok(())
+    }
     /// Fallible read-only seam before existing scalar map commit. The caller
     /// supplies fresh owned data frames, ordered unique VAs and one exclusive
     /// plan. Every missing path is deduplicated across the complete batch.
@@ -312,7 +354,8 @@ impl Paging {
         feature = "framebuffer",
         feature = "native-keyring",
         feature = "native-tpm-crb",
-        feature = "native-smp"
+        feature = "native-smp",
+        feature = "native-xhci-probe"
     ))]
     fn map_device_page(
         &mut self,
@@ -378,6 +421,8 @@ impl Paging {
             framebuffer: None,
             #[cfg(feature = "native-smp")]
             lapic: None,
+            #[cfg(feature = "native-xhci-probe")]
+            native_devices: [0; 64],
         };
         result.tables[0] = root;
         result
@@ -583,12 +628,18 @@ impl Paging {
             framebuffer: kernel.framebuffer,
             #[cfg(feature = "native-smp")]
             lapic: kernel.lapic,
+            #[cfg(feature = "native-xhci-probe")]
+            native_devices: kernel.native_devices,
         };
         result.tables[0] = root;
         result.tables[1] = pdpt;
         result
     }
-    #[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
+    #[cfg(any(
+        feature = "milestone-m3",
+        feature = "native-smp",
+        feature = "native-xhci-probe"
+    ))]
     pub fn unmap(&mut self, frames: &mut Frames<FRAME_COUNT>, va: u64) {
         let entry = self.clear_leaf(va);
         release_leaf(frames, entry);
@@ -625,7 +676,11 @@ impl Paging {
     }
     /// Clear the leaf at `va` and invalidate it on THIS CPU only; returns the
     /// old entry. Its alias metadata stays until `release_leaf`.
-    #[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
+    #[cfg(any(
+        feature = "milestone-m3",
+        feature = "native-smp",
+        feature = "native-xhci-probe"
+    ))]
     pub(super) fn clear_leaf(&mut self, va: u64) -> u64 {
         let (table, index) = self.location(va);
         let entry = read(table, index);
@@ -640,7 +695,11 @@ impl Paging {
         self.map(frames, pa, pa, false, false);
         invalidate(pa);
     }
-    #[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
+    #[cfg(any(
+        feature = "milestone-m3",
+        feature = "native-smp",
+        feature = "native-xhci-probe"
+    ))]
     fn location(&self, va: u64) -> (u64, usize) {
         let mut table = self.root;
         for shift in [39, 30, 21] {
@@ -653,7 +712,11 @@ impl Paging {
     }
     /// Record every CPU's slot PTE (K-2). Slot 0 was mapped only to create
     /// the shared PT; the other slots' PTEs must be absent.
-    #[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
+    #[cfg(any(
+        feature = "milestone-m3",
+        feature = "native-smp",
+        feature = "native-xhci-probe"
+    ))]
     pub fn begin_scratch(&mut self, frames: &mut Frames<FRAME_COUNT>) {
         let (table, index) = self.location(SCRATCH);
         self.unmap(frames, SCRATCH);
@@ -790,6 +853,17 @@ impl Paging {
                     // walk's own transient alias); every other slot must be empty.
                     continue;
                 }
+                #[cfg(feature = "native-xhci-probe")]
+                if (0x3f200000..0x3f240000).contains(&va) {
+                    let index = ((va - 0x3f200000) / PAGE) as usize;
+                    assert_eq!(
+                        pa, self.native_devices[index],
+                        "native MMIO physical binding"
+                    );
+                    assert!(pa >= 0x80000000 && writable && nx);
+                    assert_eq!(entry & !(ADDRESS | 32 | 64), PRESENT | WRITE | NX | 8 | 16);
+                    continue;
+                }
                 #[cfg(feature = "native-smp")]
                 if va == LAPIC_WINDOW {
                     // MMIO is outside the RAM ownership table; check its exact class.
@@ -860,7 +934,11 @@ fn write(table: u64, index: usize, value: u64) {
 }
 /// Release the alias metadata of a cleared leaf `entry`, once every CPU that
 /// may cache it has invalidated it (locally on one CPU; a round under SMP).
-#[cfg(any(feature = "milestone-m3", feature = "native-smp"))]
+#[cfg(any(
+    feature = "milestone-m3",
+    feature = "native-smp",
+    feature = "native-xhci-probe"
+))]
 pub(super) fn release_leaf(frames: &mut Frames<FRAME_COUNT>, entry: u64) {
     let pa = entry & ADDRESS;
     frames
@@ -966,7 +1044,7 @@ pub fn physical<R>(pa: u64, operation: impl FnOnce(*mut u8) -> R) -> R {
         result
     }
 }
-#[cfg(feature = "milestone-m4")]
+#[cfg(any(feature = "milestone-m4", feature = "native-xhci-probe"))]
 pub fn physical_read<R>(pa: u64, operation: impl FnOnce(*const u8) -> R) -> R {
     assert_eq!(pa % PAGE, 0);
     assert!(pa != 0 && pa < PAGE * FRAME_COUNT as u64);

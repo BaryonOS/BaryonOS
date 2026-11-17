@@ -1,0 +1,24 @@
+{
+  "parent_head": "de793ed7ec83e2c121bf3f02fd0873271f86fe58",
+  "actual_main": "38d4cc17687156379677993be9945447591bd4c1",
+  "manual_conflicts": [
+    "docs/PROJECT-STATE.md",
+    "docs/implementation/B03-POLICY-TRANSITION-PROPOSAL.md",
+    "docs/implementation/B03-PRODUCTION-POLICY-PROPOSAL.md",
+    "docs/progress.json"
+  ],
+  "latest_336_proposals": "Exact main blobs, preserving approved editorial corrections",
+  "adr_duplicate_count_before_resolution": 2,
+  "adr_resolution": "Main copy retained once; exact accepted block content unchanged and all other decision text equal under blank-separator normalization",
+  "adr_block_sha256": "32cf55d02c9c8495008c43d8e956e52d4895fae74b3a153e9a33e56e9622c348",
+  "runtime_changes": [],
+  "native_source_v3": "3c15e8127ce9bf6fc1ca7587fd137fa54d94f51e43dace05ed2ca9a15238ab40",
+  "native_evidence": "Actual passing de793ed7 runs/full logs, reused only after exact relevant-blob/fingerprint proof; not a cache-hit/new-run claim",
+  "independent_reconciliation": "PENDING",
+  "current_head_hosted": "PENDING",
+  "score": 41,
+  "issue42": "OPEN",
+  "remaining_review_item": "Legitimate Minor/P3 ADR alternatives/rationale follow-up remains open; no security finding dismissed",
+  "native_source_v3_recomputed": "3c15e8127ce9bf6fc1ca7587fd137fa54d94f51e43dace05ed2ca9a15238ab40",
+  "all_non_documentation_blobs_unchanged": true
+}

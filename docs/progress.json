@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-17",
-    "source_commit": "20c0fba506b70226a6ae7719cf5a196f08ad96f7",
+    "date": "2026-11-18",
+    "source_commit": "1a2758368bf416205e6e4b2787d7304397ff4daa",
     "assessment_basis": "parent_commit",
     "branch": "claude/baryon-os-design-pipeline-20261115",
-    "task": "Address CodeRabbit review of PR #339: the D3 review criterion of ADR-DESIGN-OWNER-20261115 assesses concurrent flashes on the combined rendered interface, not only per surface",
+    "task": "Merge main (H02 PR333: native USB HID containment and input policy protection) into the design pipeline branch; UX-A11Y-DS run 2 stays queued",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The change corrects one review criterion in the decision register (combined area of concurrent flashes, per WCAG 2.2 and ITU-R BT.1702-3) and accepts no criterion. The ds-1.1 design changes remain uncommitted and unaccepted, UX-A11Y-R is an intermediate research checkpoint, and the successor matrix checker remains an open lead item."
+    "summary": "41/100 remains 41/100. The merge combines main's H02 PR333 work, which adds evidence to H02 while H02 stays open, with the design pipeline state; neither side accepts a criterion. The ds-1.1 design changes remain uncommitted and unaccepted, UX-A11Y-R is an intermediate research checkpoint, and the successor matrix checker remains an open lead item."
   },
   "tracks": [
     {
@@ -217,7 +217,9 @@
           "points": 3,
           "status": "open",
           "acceptance": "Common input and USB devices work on the documented reference profile; hotplug and invalid device responses remain bounded.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/issue42-native-input-20261114/README.md"
+          ]
         },
         {
           "id": "H03",
