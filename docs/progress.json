@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+    "source_commit": "42a7c2dba056ebc828e0086e031e989cd5f200c6",
     "assessment_basis": "parent_commit",
-    "branch": "codex/coderabbit-oss-config",
-    "task": "CR-OSS: free-tier repository reviews and draft PR coverage",
+    "branch": "codex/phase0-pr350-integration",
+    "task": "Phase 0 PR350: reconcile reviewed repository configuration with assigned main",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. CodeRabbit configuration and schema checks provide no new native OS acceptance evidence. Hosted review behavior and billing confirmation remain separate open checks."
+    "summary": "41/100 unchanged. Local integration preserves exact reviewed CodeRabbit YAML/schema evidence and all main/workstream records. No OS criterion or account control is changed. Configuration/schema and parent-preservation checks pass; final actual-main/hosted integration remains a lead gate."
   },
   "tracks": [
     {

@@ -1,15 +1,47 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — CR-OSS — 17 November 2026
+## NEXT AGENT HANDOFF — Phase 0 PR350 local integration — 17 November 2026
 
-**Source:** configuration commit `30e4fb46c8e8e1a957541d5d1000d9cc6bbfee98`, parent `95d59ad52761c1f8f0201d934556902b90ce63cb`; branch `codex/coderabbit-oss-config`, draft [PR #350](https://github.com/BaryonOS/BaryonOS/pull/350).
-**Changed:** explicit free-tier support, draft PR reviews and automatic project-guideline discovery; existing quiet feedback, disabled automatic approvals and inherited review tools preserved. Retired docstring check removed; the current vendor schema marks it as having no effect. [Receipt](verification/coderabbit-oss-20261117/README.md).
-**Checks:** official V2 schema, duplicate-key and invalid-boolean negative controls, parent-policy preservation, and progress write/check passed (exit 0); raw logs and hashes are in the receipt. No OS source or gate changes. Progress 41/100 unchanged.
-**Open:** hosted CodeRabbit review not yet executed; account billing is outside repository YAML. Vendor clarification requested separately for contradictory trial/estimated-invoice and EU Agent opt-out states; no no-charge guarantee inferred.
-**Published:** configuration commit pushed and remote SHA verified; PR is open and draft. Initial hosted CI is running/queued, not passed. No CodeRabbit response was present in the first PR snapshot.
-**Next:** inspect the first hosted CodeRabbit review (manual initiation may be required by small-public-repository eligibility), address concrete findings and obtain owner integration approval. Owner integration approval remains required. Retained workstreams below keep their existing ownership.
+**Source:** reviewed PR350 `42a7c2dba056ebc828e0086e031e989cd5f200c6`, locally integrating assigned main `38d4cc17687156379677993be9945447591bd4c1` on `codex/phase0-pr350-integration`. This prepares a local merge commit only; publication and final reconciliation after PR333 remain with the Phase 0 lead.
+**Preserved:** exact reviewed repository YAML, its original V2 schema receipts and the separate independent configuration review; all main source, accepted ADRs and independent workstream records. [Integration receipt](verification/phase0-pr350-integration-20261117/README.md). The original source checkpoint and both assessments remain [historical data](verification/phase0-pr350-integration-20261117/parent-checkpoints.json).
+**Checks:** exact unchanged config/schema validation and complete parent-content reconciliation pass (exit 0); only the two expected status/assessment conflicts required manual resolution. Progress and whitespace command results are recorded in the integration receipt before handoff. The earlier independent configuration review remains source-bound. No native or hosted result is inferred.
+**Progress and limits:** 41/100 remains 41/100; criteria, weights and acceptance evidence are unchanged. Repository flags do not prove inherited account settings, spending controls or hosted review behavior. No account, support, payment, OS/product/security-policy or permission operation is part of this task. Existing UI/S09 work, runners and ownership remain intact.
+**Next:** complete the bounded local checks and local commit, then hand off to the lead. The lead must reconcile against actual main after PR333, address applicable review findings and obtain real current-head hosted/merge-hold checks before any authorized publication or squash. No push, GitHub update, main merge or auto-merge is performed by this task. The latest owner baseline rule requires resolved integration/security blockers and passing mandatory checks with individually triaged residuals; counts alone do not replace that assessment.
 
-## Retained workstream handoff — Phase 0 PR343 — 17 November 2026
+## Retained main checkpoint and historical workstreams
+
+The assigned-main body below is preserved verbatim except for demoting its former current-handoff heading. Its pending-check, billing, merge-permission and resume statements are historical observations; the current handoff and current owner authority apply. The source350 temporary checkpoint and assessment are retained exactly as historical data in the linked receipt, without duplicating the common workstream body.
+
+### Historical main handoff — Phase 0 PR336 integration — 17 November 2026
+
+**Source:** PR336 parent `6b2f3d2698cd525904ec69f35ab3081d5cad18d9`, integrating verified main `e7169e43bf772307acf328590b4300fa52a4ad73` after PR343 and PR344 squash merges. The merge is conflict-free; no manual runtime-source edits are made.
+**Preserved:** the opt-in immutable public TEST policy experiment, both signature checks, existing 18-stage update gate, audited r-efi7.2.0, artifact-action contract, all historical evidence and independent workstream handoffs. [Integration record](verification/phase0-pr336-20261117/integration.json).
+**Checks:** all fresh integrated c26b0903 host/model/native gates pass; independent source/artifact verification passes. Current-head CodeRabbit summary exposed two proposal ambiguities despite zero inline threads. This editorial checkpoint aligns them with acceptedADR-B03K3, moves its complete unchanged block to the top and preserves its established identifier/date. [Dispositions](verification/phase0-pr336-20261117/coderabbit-dispositions.json). Runtime, fixtures and tests are unchanged; independent editorial review and new-head hosted checks remain required. Score41/100; full issue41 remains open.
+**Next:** publish this checkpoint, run the affected integrated gates and obtain actual current-head CI. Resolve the external CI blocker without changing billing, tests or protection. Squash only after all applicable gates/reviews/merge-hold pass under the explicit Phase 0 owner authority; no auto-merge. Baseline B and the integrated assessment remain outstanding; governance phases 1–6 have not started. Orbitaal/S09 ownership remains intact.
+
+## Retained prior checkpoints
+
+The following observations remain historical; their pending-check and separate-approval wording does not override the current handoff or explicit Phase 0 owner authority.
+
+### Historical PR344 integration — 17 November 2026
+
+**Source:** r-efi branch parent `57a9e5f3a1abe6c6f2364d340d765fcaa198aa35`, integrating verified main `95d59ad52761c1f8f0201d934556902b90ce63cb` after squash merge of PR343. Its source tree is identical to the reviewed/tested PR343 tree.
+**Preserved:** audited r-efi 7.2.0 source/lock/notice records, the artifact-action contract and all main content; both preceding checkpoints and every independent workstream handoff are retained below. Only the two expected status/assessment conflicts required manual resolution. [Integration record](verification/phase0-pr344-20261117/integration.json).
+**Checks:** provenance and the ten loader/M1 groups plus 18 native update stages passed on parent57a9e5f. Fresh integrated host/native gates, independent reconciliation review and current-head hosted CI are pending; pending is not passed. Progress remains 41/100 with unchanged criteria/weights.
+**Next:** push this source checkpoint, run the affected gates, verify all current-head checks/reviews and merge-hold, then squash only when eligible under the updated project-owner Phase 0 authority. No auto-merge or bypass. Orbitaal/S09 ownership remains intact; baseline B and the final integrated assessment remain outstanding, and governance phases 1–6 have not started.
+
+## Historical Phase 0 pre-integration checkpoints
+
+The following statements preserve their original observation. The current handoff above and updated owner Phase 0 authority supersede their pending-check and separate-approval instructions.
+
+### Historical PR344 — 17 November 2026
+
+**Source:** parent `1cfaad3d8259147f05c6a7233ef932c6c2670a72`; existing PR #344 branch.
+**Changed:** current r-efi inventory reconciled with the 7.2.0 package; historical 7.1.0 claims and notice bytes preserved. [Receipt](verification/phase0-pr344-20261117/README.md).
+**Checks:** package/lock/VCS/notice verification, strict preflight, locked loader features and ten native loader/M1 acceptance groups pass (exit 0). Initial snap-launcher preflight failure retained. Native update and current-head hosted checks pending. Progress 41/100 unchanged; no merge.
+**Next:** run existing native update gate, verify hosted current-head CI and resolve the proven inventory review finding. Request separate owner merge approval after preceding eligible integration. Independent PR343 hosted checks continue. Orbitaal/S09 ownership preserved; baseline B not established and governance phases 1–6 not started.
+
+### Historical PR343 — 17 November 2026
 
 **Source:** parent `1c6842c4c73f42691fa553e76944bc9ebd795186`; existing PR #343 branch.
 **Changed:** bounded artifact-action contract and meaningful negative host oracle; existing native/evidence guards preserved. [Receipt](verification/phase0-pr343-20261117/README.md).
@@ -128,6 +160,85 @@ After that, in order:
 - S1: re-verify;
 - ds-1.0;
 - G1 (Inter licence and packaging).
+
+
+## PR #336 — B03 TEST policy/native verification checkpoint — 14 November 2026
+
+**Source:** [PR #336](https://github.com/BaryonOS/BaryonOS/pull/336), branch
+`feat/issue41-policy-test`. Verified published source:
+`f34e96a6a52299097dc09baf285699c6f906d301`, integrating main
+`ce47359fcd9c62abca50da87ac62183026aac91c` and preserving N04 helper isolation.
+Later receipt/status edits change documentation only.
+
+**Decision:** ADR-B03K3 records the owner's authorisation to publish and implement
+this TEST-key/disposable-QEMU experiment. That authorisation remains in force.
+Production custody, rollback-resistant storage, B04 and real signing/releases
+remain separate unresolved requirements.
+
+**Result:** an opt-in, allocation-free hybrid policy/binding codec enforces fixed
+root identity, role/component separation, exact policy/manifest binding, release
+windows, caller-supplied image floors, strict lineage and retained revocation
+tombstones. The loader and native ring-3 service independently execute 26 real
+verification cases. Ordinary profiles retain their existing signing authority.
+[Format and native contract](implementation/B03-TEST-POLICY-ENVELOPES.md).
+
+**Evidence:** 32 integrated Rust tests, 8 new oracle tests, 15 existing update
+harness tests, 3 build-path tests, 26 workflow-contract tests, strict Clippy and
+root/SDK formatting pass. The native probe reports 26/full-mask/PASS in each
+consumer, zero block writes/flushes and a byte-identical store. All 18 existing
+native update stages, all six compiler controls and strict preflight/build/smoke
+pass. The normal smoke observes `M1:PASS`, raw QEMU exit 33 and no timeout.
+The 92 symbolic checks also pass, without becoming persistence evidence.
+
+**Review and CI:** the phase-order oracle defect was fixed and regression-tested.
+Separate AI review and frozen-artifact replay found no remaining blocker; this
+is not a human audit. Hosted B03 run 43614613093 passed on a synthetic merge with
+the same Git tree as the verified source. Local and hosted QEMU versions remain
+explicitly distinguished. [Receipts and limits](verification/b03-policy-envelope-20261114/README.md).
+
+**Progress:** 41/100 → 41/100. No criterion or production permission changes.
+Issue #41 remains open. The probe authenticates immutable TEST vectors; it does
+not implement policy ingress, persistent commits or interruption/replay recovery.
+
+**Next:** freeze the bounded storage/ingress layout and trusted current-policy
+handoff, then the complete TEST anchor/operation identity and actual write/readback
+semantics. Implement the authorised native transition and its cut/replay oracle
+within those contracts. Preserve all 18 existing stages and the fixed slot limit;
+ordinary OVMF persistence must not be presented as rollback-resistant storage.
+
+## Previous checkpoint — issue #41 policy transition specification — 14 November 2026
+
+**Source:** existing PR #328, branch `fix/issue43-network-usb-followup`.
+Verified integrated source: `a0599501a624822d93ca60718df24fa70a2582e8`, preserving the
+concurrent #42 continuation `885e128082483ec871831fbbfc757a6e5104e6b4` unchanged.
+Later receipt/status edits are documentation only.
+
+**Result:** the [proposed B03 transition](implementation/B03-POLICY-TRANSITION-PROPOSAL.md)
+specifies policy/image binding, exact resume identity, anchor commit/readback,
+monotonic floors, revocation history and interruption/fallback outcomes.
+All D1–D7 dispositions remain pending. The finite symbolic model now follows
+the actually selected fallback image when protecting the running slot.
+Existing native source, TEST anchors, workflows and the 18-stage gate are
+unchanged by this contribution; the #42 source and prior evidence are preserved.
+
+**Evidence:** 92 symbolic model checks, 15 existing Python update-harness tests,
+progress consistency and the default loader/kernel build pass on the exact
+integrated source. Strict preflight exits 2 because QEMU and OVMF are missing;
+smoke exits 1 before a guest starts. These are not native transition results.
+A separate read-only AI proposal review found no remaining blocker after fixes;
+it is not a human audit. [Commands, hashes and limits](verification/b03-policy-transition-20261114/README.md).
+
+**Progress:** 41/100 → 41/100. B03's existing two points are retained; no new
+criterion is accepted by a proposal or symbolic specification check.
+
+**Next:** record the project owner's disposition of the proposed synthetic
+experiment, separately from unresolved production decisions. Freeze the exact
+native backend/anchor encoding/ingress contract before implementing it; then
+preserve the current 18-stage gate and add native transition evidence.
+B04, production custody and independent review remain open. No merge or
+auto-merge approval is inferred.
+
+**Merge integration (15 November 2026):** PR #336 was reconciled with main at `524c44b7fbb832b8f85aaeb8b9ad9f65d0ad0b35`, preserving the design-pipeline handoff, ADR-S09 and B03 evidence without changing the 41/100 acceptance score. The B03 native and hosted results are source-bound; this merge has not passed local strict preflight, build, smoke or native TEST-policy probes in the GitHub connector environment. Current-head CI and security review must be checked before any squash merge. No auto-merge authorisation is inferred.
 
 ## Previous checkpoint — N04 helper follow-up after #328 squash — 14 November 2026
 

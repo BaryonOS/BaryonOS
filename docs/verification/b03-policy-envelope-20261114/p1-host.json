@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "source_commit": "62bd312ee74efd9e73c0ad3e905edf2188c00867",
+  "source_tree": "1f8b2deef97aa253602e90f089d54a10f6214ed9",
+  "source_location": "local checkpoint before authenticated connector publication",
+  "command": "cargo +1.90.0 test --locked -p update-core -p update-tool --features update-core/experimental-policy-test,update-core/test-signing-anchors",
+  "exit_code": 0,
+  "passed": {
+    "legacy_core": 8,
+    "pinned_policy": 6,
+    "policy_envelope": 13,
+    "cli": 4,
+    "total": 31
+  },
+  "log": "build/tokenguard/run-u76egb9l.log",
+  "log_sha256": "3f9ebe0097e2193979036da79574ce058f121d5d622ee5c0940e902e1db94fa1",
+  "limitations": [
+    "Host verification only; no native policy-transition, interruption or replay evidence.",
+    "TEST keys and experimental format only; production custody, trusted boot and rollback-resistant storage remain unresolved.",
+    "Read-only AI source review is not independent human audit."
+  ],
+  "progress": {
+    "before": 41,
+    "after": 41
+  }
+}

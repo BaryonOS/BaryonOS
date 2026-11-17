@@ -1,0 +1,323 @@
+{
+  "schema_version": 1,
+  "profile": "native-update-policy-probe",
+  "source_fingerprint_version": 3,
+  "source_sha256": "31b8b8851db624e311836e1d01b9b98c8612802cc662e133118f1054ea410718",
+  "started_utc": "2026-11-14T16:16:51.306036+00:00",
+  "duration_s": 2.726878540997859,
+  "timeout_s": 900,
+  "raw_qemu_exit": 33,
+  "timed_out": false,
+  "host_kill": false,
+  "running_before_kill": false,
+  "command": [
+    "/workspace/scratch/3daca0062c76/qemu-deps/bin/qemu-system-x86_64",
+    "-machine",
+    "pc-q35-10.0",
+    "-accel",
+    "tcg,thread=single",
+    "-cpu",
+    "qemu64",
+    "-smp",
+    "1",
+    "-m",
+    "256M",
+    "-nodefaults",
+    "-display",
+    "none",
+    "-monitor",
+    "none",
+    "-serial",
+    "stdio",
+    "-nic",
+    "none",
+    "-no-reboot",
+    "-drive",
+    "if=pflash,unit=0,format=raw,readonly=on,file=build/run/policy-envelopes-ca02f40943/OVMF_CODE.fd",
+    "-drive",
+    "if=pflash,unit=1,format=raw,file=build/run/policy-envelopes-ca02f40943/OVMF_VARS.fd",
+    "-drive",
+    "if=virtio,index=0,format=raw,readonly=on,file=fat:build/run/policy-envelopes-ca02f40943/esp",
+    "-device",
+    "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    "-drive",
+    "if=none,id=store,format=raw,cache=writeback,file=build/run/policy-envelopes-ca02f40943/store.img",
+    "-device",
+    "virtio-blk-pci,drive=store,id=storeblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-B03-STORE"
+  ],
+  "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+  "firmware_code_sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+  "firmware_template_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+  "vars_after_sha256": "1fe8679917970db21e6f5ed4053b4ba55191a451458ea2a8bea8d52ffbd576f8",
+  "build": {
+    "schema_version": 1,
+    "profile": "policy-envelope-probe",
+    "kernel_feature": "native-update-policy-probe",
+    "loader_feature": "signed-policy-probe-test",
+    "source_fingerprint_version": 3,
+    "source_sha256": "31b8b8851db624e311836e1d01b9b98c8612802cc662e133118f1054ea410718",
+    "loader": {
+      "sha256": "3aab82171e81cba72c7d4f99615a49f39f4c52fe2bf2b5c10747dd4908723176",
+      "format": "AMD64 PE32+",
+      "subsystem": "EFI_APPLICATION",
+      "imports": 0
+    },
+    "kernel": {
+      "sha256": "64dd3b95c0d5bd1d97bb579c0da9fab9027e06af31db3dea0c1296dd9807b182",
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "offset": 4096,
+          "address": 33554432,
+          "filesz": 130423,
+          "memsz": 130423,
+          "page_start": 33554432,
+          "page_end": 33685504
+        },
+        {
+          "flags": 4,
+          "offset": 135168,
+          "address": 33685504,
+          "filesz": 214328,
+          "memsz": 214328,
+          "page_start": 33685504,
+          "page_end": 33902592
+        },
+        {
+          "flags": 6,
+          "offset": 352256,
+          "address": 33902592,
+          "filesz": 1716840,
+          "memsz": 4865664,
+          "page_start": 33902592,
+          "page_end": 38768640
+        }
+      ],
+      "sections": [
+        {
+          "name": "",
+          "type": 0,
+          "flags": 0,
+          "size": 0
+        },
+        {
+          "name": ".text",
+          "type": 1,
+          "flags": 6,
+          "size": 130423
+        },
+        {
+          "name": ".rodata",
+          "type": 1,
+          "flags": 50,
+          "size": 214328
+        },
+        {
+          "name": ".data",
+          "type": 1,
+          "flags": 3,
+          "size": 1716840
+        },
+        {
+          "name": ".bss",
+          "type": 8,
+          "flags": 3,
+          "size": 3145344
+        },
+        {
+          "name": ".symtab",
+          "type": 2,
+          "flags": 0,
+          "size": 8184
+        },
+        {
+          "name": ".shstrtab",
+          "type": 3,
+          "flags": 0,
+          "size": 52
+        },
+        {
+          "name": ".strtab",
+          "type": 3,
+          "flags": 0,
+          "size": 18164
+        }
+      ]
+    },
+    "sdk_runtime": false,
+    "document_session": false,
+    "update": {
+      "service_sha256": "e47f227705492b5d3cffeda116085d362a3585dbdbce3914352759ffa2857e64",
+      "service_elf": {
+        "entry": 1073741824,
+        "segments": [
+          {
+            "flags": 5,
+            "address": 1073741824,
+            "offset": 4096,
+            "filesz": 2389,
+            "memsz": 2389,
+            "page_start": 1073741824,
+            "page_end": 1073745920
+          },
+          {
+            "flags": 6,
+            "address": 1073807360,
+            "offset": 8192,
+            "filesz": 1272,
+            "memsz": 1272,
+            "page_start": 1073807360,
+            "page_end": 1073811456
+          },
+          {
+            "flags": 4,
+            "address": 1073823744,
+            "offset": 12288,
+            "filesz": 54211,
+            "memsz": 54211,
+            "page_start": 1073823744,
+            "page_end": 1073881088
+          },
+          {
+            "flags": 5,
+            "address": 1073938432,
+            "offset": 69632,
+            "filesz": 108695,
+            "memsz": 108695,
+            "page_start": 1073938432,
+            "page_end": 1074049024
+          }
+        ]
+      },
+      "image_version": 1
+    }
+  },
+  "fixture_hashes": {
+    "SHA256SUMS": "537de0d8a274cb4b15ad8b9b8ed2ef7e52ce383fc17dae2ff2d19d7bd245e65c",
+    "binding-expired.bin": "6c89c0fd287b3c9fe15cfb2921dba21a9e99f04d483846a3e8cd70d2ed765867",
+    "binding-premature.bin": "23c556c6d7efb7f507f69a39cb83bb0fd50d8f0efd069b1694f4abd0e0f038ab",
+    "binding-revoked.bin": "cb9d9cbc329156c7379c5c80059f5b56f72a8fc072f026a74b3536f2e9e81f8c",
+    "binding.bin": "3919d4b7803e886cdc5a21203b27e11cb3a2417cbf2daeb1ce6d3ac1ec716808",
+    "manifest.bin": "f76e80557fbcf823e8dfb0878bac0a9ede02484c12c103accd871a5b42c9e3d3",
+    "payload.bin": "ce7ccfd59b8c3d5ca8bb16d35920e9373a5742e0017ca2e2eceafc44324cc657",
+    "policy-expired.bin": "d930d65e3f23d77bea7b2392a65561d78b7e1623fbb11beea66980d6d4996b65",
+    "policy-premature.bin": "e9f47eff57e4d05b85083eed28886d68b5b3d8f97dd01e45d37bcb2172490003",
+    "policy-revoked.bin": "8027247a46a5305d67d64217db3a91c4519e8c559c9227f63194754ea248693b",
+    "policy.bin": "16e39e36198f100ee545bd1f430584556ef98658a77e42f326b1f054209bf1da",
+    "root-ed25519.bin": "b41fd894f96ec8adca19a85feb4f33462fc2eb7d977fdf0113955a54084d08ba",
+    "root-mldsa65.bin": "3ad5baed36f110401f14cadef9d28f5fa4aecb2b0f515257371d74b37fda33f0"
+  },
+  "cases": [
+    "policy-authentic",
+    "binding-image-authentic",
+    "successor-authentic",
+    "policy-ed-tampered",
+    "policy-pq-tampered",
+    "policy-target",
+    "policy-truncated",
+    "policy-length",
+    "policy-root",
+    "root-ed-role",
+    "root-pq-role",
+    "successor-lineage",
+    "binding-ed-tampered",
+    "binding-pq-tampered",
+    "binding-policy-digest",
+    "binding-manifest-digest",
+    "binding-target",
+    "binding-truncated",
+    "image-digest",
+    "image-floor",
+    "signer-revoked",
+    "signer-premature",
+    "signer-expired",
+    "policy-trailing",
+    "policy-domain-confusion",
+    "binding-domain-confusion"
+  ],
+  "expected_mask": 67108863,
+  "store_before_sha256": "e39717e7d3fd62b7762b9bd12c4a272c671181894d573a85dba782780e76262a",
+  "store_after_sha256": "e39717e7d3fd62b7762b9bd12c4a272c671181894d573a85dba782780e76262a",
+  "test_inputs": {
+    "tests/test_policy_envelopes.py": "ab89507c15a9c74dd400fb90154f7c2e45ad13636279983fcbbd58991ac92be9"
+  },
+  "run_directory": "/workspace/scratch/3daca0062c76/baryonos-issue41/build/run/policy-envelopes-ca02f40943",
+  "stdout": "\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01H\u001b[2J\u001b[01;01H\u001b[=3h\u001b[2J\u001b[01;01HBdsDxe: loading Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBdsDxe: starting Boot0001 \"UEFI Misc Device\" from PciRoot(0x0)/Pci(0x1,0x0)\r\nBOOT:POLICY_PROBE:COUNT:26\nBOOT:POLICY_PROBE:MASK:67108863\nBOOT:POLICY_PROBE:PASS\nBOOT:FLOOR:0\nBOOT:SLOT:B:REJECTED:FORMAT\nBOOT:SLOT:A:VERSION:1\nBOOT:SIGNED:OK\nBOOT:EBS_OK\nKERNEL:ENTRY\nBOOTINFO:OK\nKS-01:PASS\nKS-02:PASS\nACPI:UNAVAILABLE:NO_DMAR\nDEVICE-EXECUTION:BLOCKED:ADAPTER_ABSENT\nKS-03:PASS\nM2:PASS\nKERNEL:IMAGE_VERSION:00000000000000000001\nUPDATE:MANIFEST:PASS\nUPDATE:POLICY_PROBE:COUNT:00000000000000000026\nUPDATE:POLICY_PROBE:MASK:00000000000067108863\nUPDATE:POLICY_PROBE:PASS\nUPDATE:READY\nUPDATE:RESULT:00000000000000000004\nUPDATE:HEADER_ACTIVE:00000000000000000000\nUPDATE:HEADER_GENERATION:00000000000000000001\nUPDATE:ACTIVE_VERSION:00000000000000000001\nUPDATE:ACTIVE_REJECT:00000000000000000000\nUPDATE:INBOX_VERSION:00000000000000000000\nUPDATE:INBOX_REJECT:00000000000000000000\nUPDATE:INSTALLED_VERSION:00000000000000000000\nUPDATE:TARGET_SLOT:00000000000000000000\nUPDATE:SERVICE_READS:00000000000000000088\nUPDATE:SERVICE_WRITES:00000000000000000000\nUPDATE:SERVICE_FLUSHES:00000000000000000000\nUPDATE:COPIED_SECTORS:00000000000000000000\nUPDATE:NEW_GENERATION:00000000000000000000\nUPDATE:RESUMED:00000000000000000000\nUPDATE:RUNNING_SLOT:00000000000000000000\nUPDATE:OTHER_VERSION:00000000000000000000\nUPDATE:OTHER_REJECT:00000000000000000001\nUPDATE:CURRENT_VERSION:00000000000000000001\nUPDATE:BROKER:READS:00000000000000000088\nUPDATE:BROKER:WRITES:00000000000000000000\nUPDATE:BROKER:FLUSHES:00000000000000000000\nUPDATE:BROKER:HEADER_WRITES:00000000000000000000\nUPDATE:BROKER:OTHER_WRITES:00000000000000000000\nUPDATE:TICKS:00000000000000000014\nUPDATE:NO_BUNDLE\nUPDATE:RESOURCES:PASS\nUPDATE:PASS\nM1:PASS\n",
+  "stderr": "",
+  "passed": true,
+  "evidence_boundary": "Immutable TEST-vector native authentication only; no policy ingress, commit or rollback-resistance evidence. Existing firmware image floor may advance.",
+  "evidence": {
+    "IMAGE_VERSION": 1,
+    "POLICY_PROBE:COUNT": 26,
+    "POLICY_PROBE:MASK": 67108863,
+    "RESULT": 4,
+    "HEADER_ACTIVE": 0,
+    "HEADER_GENERATION": 1,
+    "ACTIVE_VERSION": 1,
+    "ACTIVE_REJECT": 0,
+    "INBOX_VERSION": 0,
+    "INBOX_REJECT": 0,
+    "INSTALLED_VERSION": 0,
+    "TARGET_SLOT": 0,
+    "SERVICE_READS": 88,
+    "SERVICE_WRITES": 0,
+    "SERVICE_FLUSHES": 0,
+    "COPIED_SECTORS": 0,
+    "NEW_GENERATION": 0,
+    "RESUMED": 0,
+    "RUNNING_SLOT": 0,
+    "OTHER_VERSION": 0,
+    "OTHER_REJECT": 1,
+    "CURRENT_VERSION": 1,
+    "BROKER:READS": 88,
+    "BROKER:WRITES": 0,
+    "BROKER:FLUSHES": 0,
+    "BROKER:HEADER_WRITES": 0,
+    "BROKER:OTHER_WRITES": 0,
+    "TICKS": 14
+  },
+  "oracle": {
+    "header": {
+      "active": 0,
+      "generation": 1
+    },
+    "regions": {
+      "A": {
+        "manifest": {
+          "image_length": 2096008,
+          "version": 1,
+          "min_version": 0,
+          "image_sha256": "64dd3b95c0d5bd1d97bb579c0da9fab9027e06af31db3dea0c1296dd9807b182",
+          "ed25519_key_id": "4bf7d9b716af4045",
+          "mldsa_key_id": "acdf57975753f1eb",
+          "manifest_sha256": "14866c17060aa07cf8cc109e808a2aa8a47f87691f72c236e1d23b793dca7a91"
+        },
+        "manifest_error": null,
+        "manifest_region_sha256": "14866c17060aa07cf8cc109e808a2aa8a47f87691f72c236e1d23b793dca7a91",
+        "image_region_sha256": "6a3a02d012cc4ac94552342671555214e9fddf149ee17e88a2d55150a54f0037",
+        "image_nonzero_sectors": 4057,
+        "image_sha256": "64dd3b95c0d5bd1d97bb579c0da9fab9027e06af31db3dea0c1296dd9807b182",
+        "image_matches_manifest": true
+      },
+      "B": {
+        "manifest": null,
+        "manifest_error": null,
+        "manifest_region_sha256": "35b2040a56c60e04e883349c5f2fd0edc0a8530b798eb9d29268d14ee5a0fc4f",
+        "image_region_sha256": "5647f05ec18958947d32874eeb788fa396a05d0bab7c1b71f112ceb7e9b31eee",
+        "image_nonzero_sectors": 0,
+        "image_sha256": null,
+        "image_matches_manifest": null
+      },
+      "inbox": {
+        "manifest": null,
+        "manifest_error": null,
+        "manifest_region_sha256": "35b2040a56c60e04e883349c5f2fd0edc0a8530b798eb9d29268d14ee5a0fc4f",
+        "image_region_sha256": "5647f05ec18958947d32874eeb788fa396a05d0bab7c1b71f112ceb7e9b31eee",
+        "image_nonzero_sectors": 0,
+        "image_sha256": null,
+        "image_matches_manifest": null
+      }
+    }
+  }
+}

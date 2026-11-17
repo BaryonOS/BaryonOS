@@ -1,0 +1,132 @@
+{
+  "task": "P0-350 bounded local integration",
+  "source_parent": "42a7c2dba056ebc828e0086e031e989cd5f200c6",
+  "main_parent": "38d4cc17687156379677993be9945447591bd4c1",
+  "merge_base": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+  "local_merge_only": true,
+  "initial_merge_exit": 1,
+  "manual_conflict_paths": [
+    "docs/PROJECT-STATE.md",
+    "docs/progress.json"
+  ],
+  "preserved_source_files": [
+    {
+      "path": ".coderabbit.yaml",
+      "source_commit": "42a7c2dba056ebc828e0086e031e989cd5f200c6",
+      "sha256": "0e0747bc87c0c4c649b9032d9f47d7230653598bbbe95f3f551e51424b81d127"
+    },
+    {
+      "path": "docs/verification/coderabbit-oss-20261117/README.md",
+      "source_commit": "42a7c2dba056ebc828e0086e031e989cd5f200c6",
+      "sha256": "7f030e909a9a7e527edb62597d32cbc89417abca4234e875e83c270db8adb55b"
+    },
+    {
+      "path": "docs/verification/coderabbit-oss-20261117/validation.json",
+      "source_commit": "42a7c2dba056ebc828e0086e031e989cd5f200c6",
+      "sha256": "603d42aeecc334688655f5a97b139125e285612efed4a559f206ec7dbdbda8aa"
+    }
+  ],
+  "parent_checkpoint_data_sha256": "2d0eeb847740ad1dd3f29d6cfec1903dac94c075ed472ce835c42144a9113dd0",
+  "existing_independent_review": {
+    "source_head": "42a7c2dba056ebc828e0086e031e989cd5f200c6",
+    "type": "Independent AI configuration review, not human audit",
+    "report_sha256": "4b948487b6c51606df42cb1f2bdbce49dab26ee03259cc83b7e546f29eae76ec",
+    "check_receipt_sha256": "395ea4c39e3655fe2adee275abad25c1e7120aabc27ecbdab3161a1001b2c270",
+    "result": "PASS"
+  },
+  "schema": {
+    "sha256": "7cf74e734250be78c4ec0e37f9ad6275b917997f247081216f98a273ab589eb3",
+    "validator_version": "4.19.2",
+    "fresh_local_validation": "PASS exit 0; same cached official schema and unchanged config",
+    "parser": "PyYAML 6.0.3"
+  },
+  "parent_preservation": {
+    "result": "PASS",
+    "phase": "staged source content before final log-receipt update",
+    "tree": "6e2e2262e3bfece434255020732f8616dfbe06f0",
+    "paths": 7425,
+    "groups": {
+      "equal_parents_preserved": 7359,
+      "source350_change_preserved": 3,
+      "main_change_preserved": 58,
+      "explicit_status_assessment_reconciliation": 2,
+      "new_integration_receipt": 3
+    },
+    "main_decisions_sha256": "ec714cc0118fe58e06457b10a8ccdb710261b134481b22d62e9c96d4f2645899",
+    "adr_B03K3_count": 1,
+    "main_workstream_tail": {
+      "bytes": 167527,
+      "sha256": "3dd624f60f276c81455d7cc7b50682e36437949270858423c04139a44d08100f",
+      "retained_exactly_once": true
+    },
+    "source350_tail": {
+      "bytes": 162205,
+      "sha256": "73ef48060b68a4cdee098f311059ec3ad2c02ab222f5fc86ee4f473c5a76a61c",
+      "all_original_lines_retained_in_main": true,
+      "delta_tags": [
+        "equal",
+        "insert",
+        "equal"
+      ]
+    },
+    "parent_checkpoint_records": "byte-identical prefixes/assessment objects; original full files retained by both Git parents"
+  },
+  "progress": {
+    "previous": 41,
+    "current": 41,
+    "fixed_register": "unchanged"
+  },
+  "checks": [
+    {
+      "name": "exact unchanged config and cached official schema",
+      "exit": 0,
+      "raw": "p0-350-integration-raw/schema-command.json"
+    },
+    {
+      "name": "complete staged parent preservation",
+      "exit": 0,
+      "raw": "p0-350-integration-raw/parent-preservation-staged.json"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--write"
+      ],
+      "exit": 0,
+      "raw": "p0-350-integration-raw/gate-0.log",
+      "raw_sha256": "235ad09ee2dfe109582ce9f63b84d6d6c8ea47593fef7c7af3be5eba829197cc"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "exit": 0,
+      "raw": "p0-350-integration-raw/gate-1.log",
+      "raw_sha256": "e6e72c5384490fed4bfe362e25fcc8cf82229871267a1bda553944641a366203"
+    },
+    {
+      "argv": [
+        "git",
+        "--no-optional-locks",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "raw": "p0-350-integration-raw/gate-2.log",
+      "raw_sha256": "9fa3b6ead7afc298499f30c5b70014c78b6686a8269611537606fa5a7c02b6a2"
+    }
+  ],
+  "publication": "NOT PERFORMED; no push/GitHub/main merge; lead handles actual main after PR333 and hosted gates",
+  "not_run": [
+    "Cargo/build/native/QEMU/hardware",
+    "Actual new-head hosted CI or CodeRabbit behavior",
+    "Account/organization/payment/support control or cost guarantee",
+    "Human audit"
+  ],
+  "final_commit_binding": "The external P0-350-integration-result.md records the actual local merge commit, final tree/parents and post-commit preservation result; no circular final-tree claim is embedded here."
+}

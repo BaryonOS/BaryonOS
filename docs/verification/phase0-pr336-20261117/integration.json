@@ -1,0 +1,26 @@
+{
+  "task": "P0-336",
+  "pr": 336,
+  "parent_head": "6b2f3d2698cd525904ec69f35ab3081d5cad18d9",
+  "integrated_main": "e7169e43bf772307acf328590b4300fa52a4ad73",
+  "merge_conflicts": [],
+  "manual_runtime_source_edits": [],
+  "gates": "Pending fresh host/native/current-head hosted checks and independent integration review",
+  "ci_infrastructure_blocker": {
+    "main": "e7169e43bf772307acf328590b4300fa52a4ad73",
+    "run": 44143910228,
+    "job_ids": [
+      134253737144,
+      134253737267
+    ],
+    "message": "The job was not started because your account is locked due to a billing issue.",
+    "result": "NOT RUN"
+  },
+  "scope_limits": [
+    "Immutable public TEST policy only",
+    "No persistence, production signing/custody or hardware acceptance",
+    "Issue41 remains open; score41 unchanged",
+    "Preserve existing Orbitaal/S09 ownership",
+    "No auto-merge or protection bypass"
+  ]
+}

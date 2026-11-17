@@ -292,6 +292,21 @@ pub fn load(fw: &Firmware, file_address: u64) -> Result<usize> {
 
 fn select(fw: &Firmware, scratch: u64, file_address: u64) -> Result<usize> {
     serial::init();
+    #[cfg(feature = "signed-policy-probe-test")]
+    {
+        // Public immutable TEST inputs only. The probe has no I/O interface and
+        // does not select or install a policy, image, root or firmware floor.
+        let report = update_core::policy_envelope::probe::run();
+        serial::write(b"BOOT:POLICY_PROBE:COUNT:");
+        serial::decimal(report.cases);
+        serial::write(b"\nBOOT:POLICY_PROBE:MASK:");
+        serial::decimal(report.passed_mask);
+        serial::write(b"\n");
+        if !report.passed() {
+            fail(b"POLICY_PROBE");
+        }
+        serial::write(b"BOOT:POLICY_PROBE:PASS\n");
+    }
     let Some(store) = locate(fw, scratch)? else {
         // An unsigned ESP kernel is never an alternative for this loader.
         fail(b"NO_STORE");
