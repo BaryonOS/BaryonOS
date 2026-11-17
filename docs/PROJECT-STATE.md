@@ -1,5 +1,16 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — Phase 0 product guide translations — 17 November 2026
+
+**Source:** main `95d59ad52761c1f8f0201d934556902b90ce63cb`; isolated branch `codex/phase0-product-guides-english`.
+**Changed:** 3 English authored-prose translations within the explicit owner release; exact independent-reviewed versions and preservation evidence are in [docs/verification/phase0-product-guides-english-20261117/verification.json](verification/phase0-product-guides-english-20261117/verification.json). Original quotations, requirements, proposals, dates, evidence limits and old links/anchors remain. The previous checkpoints and all independent workstream handoffs are retained below.
+**Checks:** semantic comparison and preservation pass; lead hash/progress/whitespace checks and current-head hosted CI remain mandatory. No native, hardware, new research, user-trial or human-audit result is claimed. Score remains41/100 and full issue274 remains open.
+**Next:** publish one draft PR, verify current main integration and all required/applicable checks/reviews before any owner-authorized manual squash. The external GitHub billing blocker is recorded by the Phase0 lead; pending checks are not passed. No auto-merge or bypass. Baseline B and governance phases1–6 remain outstanding. Orbitaal/S09 WIP, runners, claims and broader ownership are untouched.
+
+## Retained prior checkpoints
+
+These retain their original source-bound observations. Current owner Phase0 authority and the handoff above govern this task.
+
 ## NEXT AGENT HANDOFF — Phase 0 PR343 — 17 November 2026
 
 **Source:** parent `1c6842c4c73f42691fa553e76944bc9ebd795186`; existing PR #343 branch.
