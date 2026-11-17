@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+    "source_commit": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-ci-guide-english",
-    "task": "Phase 0 issue274: consolidate reviewed English publication changes",
+    "task": "Phase 0 issue274: correct source binding for four new glosses",
     "previous_score": 41,
-    "summary": "41/100 remains41/100. Reviewed translations and evidence are preserved exactly in one integration draft; four small comments/glosses retain technical literals. No new OS criterion or complete issue274 acceptance is claimed."
+    "summary": "41/100 unchanged. Independent review found a parent/first-commit metadata mismatch. The four bindings now resolve to the first actual Git blobs, with the worktree-review parent retained; all39 source/evidence bytes remain unchanged. Independent recheck and hosted gates remain required."
   },
   "tracks": [
     {

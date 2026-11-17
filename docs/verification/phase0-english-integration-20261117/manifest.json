@@ -258,31 +258,39 @@
     },
     {
       "source_pr": 346,
-      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "source_head": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
       "path": "docs/implementation/KERNEL-AND-SECURITY-CONTRACT.md",
       "sha256": "f4f803bebec120cf94ffff262fc14e9ec3db955e51822fa0fb1c68bfc3fb0daa",
-      "kind": "independently reviewed English explanatory comments/glosses"
+      "kind": "independently reviewed English explanatory comments/glosses",
+      "source_parent": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "review_basis": "Separate-worker worktree bytes reviewed on the recorded parent; these exact hashes first exist in the integrated source_head commit."
     },
     {
       "source_pr": 346,
-      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "source_head": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
       "path": "docs/implementation/KEYRING-SDK-CLIENT.md",
       "sha256": "9a955ae2593696154e5dd24cf3e198a824de99bdedf70971be4d43c1fe6b9fa3",
-      "kind": "independently reviewed English explanatory comments/glosses"
+      "kind": "independently reviewed English explanatory comments/glosses",
+      "source_parent": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "review_basis": "Separate-worker worktree bytes reviewed on the recorded parent; these exact hashes first exist in the integrated source_head commit."
     },
     {
       "source_pr": 346,
-      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "source_head": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
       "path": "docs/implementation/B01-ENTROPY-AND-KEYS.md",
       "sha256": "d0f49f3ff812d3a3658c1dc0dc10bc1fb916060e95991bd4e8de76466b09e310",
-      "kind": "independently reviewed English explanatory comments/glosses"
+      "kind": "independently reviewed English explanatory comments/glosses",
+      "source_parent": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "review_basis": "Separate-worker worktree bytes reviewed on the recorded parent; these exact hashes first exist in the integrated source_head commit."
     },
     {
       "source_pr": 346,
-      "source_head": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "source_head": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
       "path": "docs/implementation/B03-SIGNED-UPDATES.md",
       "sha256": "0893c64ce35481348c459e1683926b4bce16b29d12433ca82e831e7e6ffe2e23",
-      "kind": "independently reviewed English explanatory comments/glosses"
+      "kind": "independently reviewed English explanatory comments/glosses",
+      "source_parent": "bc2db3975a773af95acd113e2f59af4cc95300e1",
+      "review_basis": "Separate-worker worktree bytes reviewed on the recorded parent; these exact hashes first exist in the integrated source_head commit."
     }
   ],
   "imported_file_count": 27,
@@ -312,5 +320,12 @@
     "New research/source-validity assessment",
     "Human audit"
   ],
-  "assembly_diagnostic": "Initial helper used an incorrect assumed guide basename and stopped before commit; exact existing346 diff resolved NATIVE-MATERIAL-LIBRARY, contracts/NATIVE-IPC-WAIT and ipc-wait-probe paths. All imported bytes were reverified before resuming, no content lost."
+  "assembly_diagnostic": "Initial helper used an incorrect assumed guide basename and stopped before commit; exact existing346 diff resolved NATIVE-MATERIAL-LIBRARY, contracts/NATIVE-IPC-WAIT and ipc-wait-probe paths. All imported bytes were reverified before resuming, no content lost.",
+  "provenance_correction": {
+    "original_manifest_commit": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
+    "finding": "Four new gloss rows incorrectly used the pre-edit parent as their source_head. The source bytes existed only in the worktree review, not that parent Git blob.",
+    "fix": "Bind those rows to their first actual Git commit, retain source_parent and worktree-review basis. All39 Git-blob hashes now resolve exactly.",
+    "source_text_or_prior_evidence_changes": [],
+    "independent_recheck": "PENDING"
+  }
 }
