@@ -126,7 +126,8 @@ and as structured output in
 unverified research inputs, not accepted evidence. Two owner decisions of
 15 November are recorded verbatim in the checkpoint directory: the
 accessibility decision (two tiers) and the simplified permission model (with
-the owner's approval of the coordinator readings R2–R5). The C1 record covers
+the owner's approval of the coordinator readings R2–R5); the register entry
+is [ADR-DESIGN-OWNER-20261115](DECISIONS.md), D1 and D2. The C1 record covers
 the superseded 14 November model only
 ([SUPERSEDED.md](verification/ds-1.0-c1-20261115/SUPERSEDED.md)).
 
@@ -178,6 +179,7 @@ directory that confines named paths to the repository and pins the mandatory
 baseline rows, with negative self-tests for both cases.
 
 **Owner decisions of 15 November on flashing media and photosensitivity**
+(register entry: [ADR-DESIGN-OWNER-20261115](DECISIONS.md), D3)
 (verbatim, Dutch, in the checkpoint directory:
 `owner-decision-third-party-flash-20261115.md`, its clarification
 `owner-decision-photosensitivity-games-20261115.md`, which takes precedence,
