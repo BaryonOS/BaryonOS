@@ -379,6 +379,9 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
         args = ["cargo", "+1.90.0", "build", "--locked", "--release", "--target-dir", str(TARGET), "-p", package, "--target", target]
         if feature:
             args += ["--features", feature]
+        if package == "os-kernel" and kernel_feature == "native-update-policy-probe":
+            # Omit non-loadable symbols so the TEST probe fits the unchanged signed slot.
+            args += ["--config", 'profile.release.strip="symbols"']
         run_logged(args, f"build-{label}-{package}", extra_env=extra_env if package == "os-kernel" else None)
     loader = TARGET / "x86_64-unknown-uefi/release/os-loader.efi"
     kernel = TARGET / "x86_64-unknown-none/release/os-kernel"

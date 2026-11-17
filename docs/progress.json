@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "b0aac21645d1f9b178dcc076360a4c016ffda8fd",
+    "source_commit": "089eb2e9953a5538a08aefe835933302e4e35e0c",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-pr333-integration",
-    "task": "Phase 0 PR333: preserve native USB/HID/DMA while preparing queued336 integration",
+    "task": "Phase 0 PR333: repair signed TEST probe metadata size within fixed slot",
     "previous_score": 41,
-    "summary": "41/100 remains41/100. All criterion definitions, weights and statuses stay unchanged; the original333 bounded H02 evidence reference is preserved. Predecessor336 is locally tested but unmerged. Fresh integrated/hosted gates and independent review remain required; GitHub billing-blocked jobs are NOT RUN. No fullH02/hardware or baselineB acceptance."
+    "summary": "41/100 unchanged. Integrated policy probe previously failed1 on the true2MiB cap; failure retained. Probe-only Cargo symbol stripping removes no runtime/security requirement. Fresh actual Cargo/native/hosted and independent repair checks remain pending; no criterion or baselineB accepted."
   },
   "tracks": [
     {
