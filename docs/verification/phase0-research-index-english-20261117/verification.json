@@ -1,0 +1,77 @@
+{
+  "task": "P0-274-RESEARCH-INDEX",
+  "source_commit": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+  "authority": "Owner released active Dutch authored prose only in docs/product/ and docs/research/: Alleen deze tekstvertalingen vrijgeven",
+  "files": [
+    {
+      "path": "docs/research/2026-11-02/README.md",
+      "source_sha256": "6786c40abba5a28f353d5e1c586c78fd503a23c094c18e3e7981c6e5d1b5cd8a",
+      "translated_sha256": "2d8630c1ccc2f18affc5ba7aa4f8e6084388fa6cf59cd33e176fb17f908f05d5"
+    },
+    {
+      "path": "docs/research/2026-11-02/journey/README.md",
+      "source_sha256": "571e3af6a1cd71bdfd40abec7b1cf1beb2ad0d266807f8d8eba4e567ca4b91ec",
+      "translated_sha256": "9cec46365824db6240a10c6ec27dad9574c32b6cf8e3c1e288c9832c8cc9dba7"
+    },
+    {
+      "path": "docs/research/README.md",
+      "source_sha256": "453831b359694e86e4af2091f1f19aa82fef66478b51a7486b57765d33e7fb24",
+      "translated_sha256": "060084b4d05b6afdc44bbae811f5e61492053e1cc9909f7518e4a95a03209a1e"
+    },
+    {
+      "path": "docs/research/switching-friction.md",
+      "source_sha256": "d97ea7065d3072961a4ebdfc11954489719bda7f2b650fd40faeb052d07d2b3f",
+      "translated_sha256": "ce571a9fd61432be835f5d8b99147df2fc544aecfd853f8c77b3e15299f50707"
+    }
+  ],
+  "independent_semantic_review": "PASS",
+  "preservation_exit": 0,
+  "legacy_heading_targets_preserved": 25,
+  "reports": {
+    "P0-274-RESEARCH-INDEX-report.md": {
+      "sha256": "09eeb259b1e140f41a54a250e283bf3d298c0ba3315de67c92a0df50c31bdcb4",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-RESEARCH-INDEX-report.md"
+    },
+    "P0-274-RESEARCH-INDEX-independent-review.md": {
+      "sha256": "042bcbff8446c97538e6cc375e491063b557f9976ea938e44df7b75422b5691d",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-RESEARCH-INDEX-independent-review.md"
+    }
+  },
+  "progress": {
+    "previous": 41,
+    "current": 41
+  },
+  "issue274": "OPEN",
+  "required_current_head_hosted": "PENDING",
+  "not_run": [
+    "New research/source-validity assessment",
+    "Runtime/native/hardware",
+    "User trials/rendering",
+    "Human audit"
+  ],
+  "preserved": {
+    "links": 41,
+    "legacy_heading_targets": 25,
+    "original_quotation_fragments": 13,
+    "local_target_errors": 0,
+    "dated_source_snapshots": "byte-identical"
+  },
+  "lead_checks": [
+    {
+      "command": "Final exact independently reviewed document hashes",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --write",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B tools/progress.py --check",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ]
+}

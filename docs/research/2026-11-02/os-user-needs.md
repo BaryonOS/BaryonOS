@@ -1,74 +1,81 @@
-# Gebruikersbehoeften — vergelijkende synthese van fase 2
+<a id="gebruikersbehoeften--vergelijkende-synthese-van-fase-2"></a>
+# User needs — comparative synthesis of phase 2
 
-Datum: 2 november 2026. Status: brononderzoek en analytische weging; geen representatieve klachtenenquête, productbesluit of implementatie. [Methode](README.md), [bronnenregister](sources.md), [repositorybasis](repository-baseline.md).
+Date: 2 November 2026. Status: source research and analytical assessment; no representative complaints survey, product decision or implementation. [Method](README.md), [source register](sources.md), [repository baseline](repository-baseline.md).
 
-## Wat de bronnen gezamenlijk ondersteunen
+<a id="wat-de-bronnen-gezamenlijk-ondersteunen"></a>
+## What the sources jointly support
 
-[ANALYSE] De best verdedigbare onderzoeksrichting is minder onzekerheid tijdens dagelijkse taken: weten waar iets staat, het kunnen terugvinden, toegang en wijziging begrijpen, werk behouden en fouten herstellen. Meerdere bronnen geven hiervoor concrete scenario's. Geen bron bewijst dat één nieuw OS deze combinatie al beter levert, of dat hiermee massale overstap volgt.
+[ANALYSE] The most defensible research direction is less uncertainty during everyday tasks: knowing where something is, being able to find it, understanding access and modification, preserving work and recovering from errors. Multiple sources provide specific scenarios for this. No source establishes that one new OS already delivers this combination better, or that it will lead to mass migration.
 
-[BRON] Gevestigde platformen ontwikkelen deze gebieden zelf: Microsoft erkent feedback over zoeken en onderbrekingen; Apple biedt Spotlight-acties en tiling; GNOME/KDE verbeteren bestandstoestand, toegankelijkheid en taakbediening; Android voegt onder meer meldingsgroepering en adaptieve vensters toe. Een ontbrekende of aangekondigde functie moet per versie, apparaat en regio worden beoordeeld. [WM-03] [WM-19] [WM-20] [LM-01] [LM-03] [LM-11] [LM-12]
+[BRON] Established platforms are developing these areas themselves: Microsoft acknowledges feedback on search and interruptions; Apple offers Spotlight actions and tiling; GNOME/KDE improve file state, accessibility and task controls; Android adds notification grouping and adaptive windows, among other features. A missing or announced feature must be assessed per version, device and region. [WM-03] [WM-19] [WM-20] [LM-01] [LM-03] [LM-11] [LM-12]
 
-De volledige aspectentabellen staan in [Windows/macOS](windows-macos-needs.md) en [Linux/Android](linux-mobile-needs.md). Bron-ID's in deze synthese linken naar hun oorspronkelijke bron; methode en beperkingen blijven in de dossiers staan.
+The complete aspect tables are in [Windows/macOS](windows-macos-needs.md) and [Linux/Android](linux-mobile-needs.md). Source IDs in this synthesis link to their original source; methods and limitations remain in the dossiers.
 
-## Herhaling, impact en relevantie
+<a id="herhaling-impact-en-relevantie"></a>
+## Recurrence, impact and relevance
 
-**Leesregel:** herhaling telt onafhankelijke bronfamilies binnen deze doelgerichte selectie, geen incidenten of gebruikers. “Sterk” kan een technische grens betekenen; de behoeftefrequentie blijft dan onbekend. Alle impact-, haalbaarheids- en onderscheidsoordelen hieronder zijn **[ANALYSE]**, geen gemeten voorkeur of definitieve fase-6-prioriteit.
+**Reading rule:** recurrence counts independent source families within this targeted selection, not incidents or users. “Strong” can refer to a technical boundary; the frequency of the need then remains unknown. All assessments of impact, feasibility and differentiation below are **[ANALYSE]**, not measured preferences or definitive phase-6 priorities.
 
-| Probleem / mogelijke behoefte | Herhaling en onderzoekssterkte | Impact bij optreden | Europese relevantie | Haalbaarheid in nieuw-os | Mogelijk onderscheid |
+| Problem / possible need | Recurrence and strength of research | Impact when it occurs | European relevance | Feasibility in nieuw-os | Possible differentiation |
 |---|---|---|---|---|---|
-| Betrouwbaar terugvinden met zichtbare scope | Microsoft-feedback, Apple-support/gebruikersmelding, onafhankelijke GNOME- en KDE-meldingen. Middel voor frictie; prevalentie onbekend. [WM-03] [WM-09] [WM-10] [LM-04] [LM-05] | Hoog als werk onvindbaar lijkt | Taal, gegevenslocatie en offline bronnen | Scope/status afgebakend; volledige toegangsveilige inhoudsindex is grote dienst | Middel: vooral samenhang en betrouwbaarheid |
-| Bestandslocatie, synchronisatie en back-up begrijpen | Microsoft/Apple-semantiek plus GNOME/Google-herstelvoorwaarden. Sterk voor concrete technische grenzen; slechts één individueel verwarringssignaal, dus zwak/open voor gebruikersbegrip. [WM-05] [WM-06] [WM-13] [WM-14] [LM-13] [LM-20] | Hoog: verlies, onbedoeld wissen of verkeerde herstelverwachting | Overdraagbaarheid, lokaal/NAS/providerkeuze | Uitleg en status klein; volwaardige sync, herstel en export groot | Hoog indien hele keten aantoonbaar werkt |
-| Rechten begrijpen en intrekken zonder taakverlies | Twee originele studies met verschillende teams, plus portals/kiezers. Middel; populaties en meetjaren beperkt. [LM-08] [LM-14] [LM-15] [LM-16] | Hoog voor gevoelige taken | Begrijpelijke gegevensregie; geen complianceclaim | Bestaande capabilitybasis, maar inventaris/issuer/revocationketen vergen native integratie | Middel/hoog door taak, duur en gevolg te verbinden |
-| Werkende toetsenbord-/hulpmiddelenroutes behouden | NV Access, AppleVis, GNOME en W3C zijn verschillende onderhouds-/richtlijnfamilies. Sterk voor concrete regressies/voorwaarden, geen frequentietelling. [WM-08] [WM-11] [DT14] [DT20] | Blokkerend voor getroffen gebruikers | Inclusie, meertaligheid en verschillende invoer | Appsemantiek bestaat; OS-brede screenreader, shaping en invoer zijn groot werk | Kwaliteitsvoorwaarde; geen exclusief nieuw idee |
-| Essentiële apps en apparaten behouden | Adobe, Microsoft, LibreOffice, Valve en migratiecase. Sterk voor genoemde compatibiliteitsgrenzen. [WM-16] [WM-17] [EA-09] [EA-10] [EA-13] | Blokkerend bij een onmisbare taak | Werk, onderwijs, games, toegankelijkheid en levensduur | Zeer groot; zelfstandige kernel erft geen Linux/Windows-ecosysteem | Voorwaarde vóór onderscheid relevant wordt |
-| Updates en onderbrekingen kunnen voorspellen | Windows-feedback, Snap-planning, Pixel-supportbeleid en twee verschillende notificatiestudies. Middel; verschillende uitkomstmaten. [WM-03] [LM-07] [LM-17] [DT17] [DT21] | Middel/hoog, afhankelijk van taak | Controle en langdurig onderhoud | UI-beleid beperkt; herstelbare updates vereisen bestaande slot-/verificatieketen | Laag voor een schakelaar; hoger voor samenhang |
-| Werkplek en taakcontext betrouwbaar hervatten | Eén PowerToys-regressie plus bestaande workspace-/snapfeatures. Zwak als brede wens, concrete casus. [WM-07] [DT07] [DT08] | Middel/hoog voor multitaskers | Verschillende beroepen/invoer; niet specifiek Europees | Twee-appbasis bestaat; dynamische vensters/sessieherstel vragen uitbreiding | Middel indien documentcontext leidend blijft |
-| Herkomst en gevolgen van installatie begrijpen | Apple-notarisatie, Ubuntu-pakketkeuze, Flatpak en Android-verificatie. Sterk voor mechanismen; zwak voor algemene verwarringsfrequentie. [WM-15] [LM-06] [LM-08] [LM-19] | Hoog bij onveilige of niet-werkende installatie | Leverancierskeuze, inspecteerbaarheid en onderhoud | Pakket-/updatecores aanwezig; volledige install/startketen nog open | Kwaliteitsvoorwaarde met open distributie |
-| Optionele contextuele hulp met corrigeerbare acties | HCI-richtlijnvalidatie en bestaande AI-productrichting; geen nieuw-os- of EU-marktvalidatie. Zwak/middel. [DT11] [DT16] | Taakafhankelijk; fouten kunnen hoog uitvallen | Geselecteerde context en lokale verwerking passen bij projectcontract | Echte lokale inference en beperkte actiebroker nog grote afhankelijkheden | Onbewezen; eerst vergelijken met gewone bediening |
+| Reliable retrieval with visible scope | Microsoft feedback, Apple support/user report, independent GNOME and KDE reports. Moderate for friction; prevalence unknown. [WM-03] [WM-09] [WM-10] [LM-04] [LM-05] | High when work appears unfindable | Language, data location and offline sources | Scope/status bounded; a complete index of content that respects access rights is a major service | Moderate: primarily coherence and reliability |
+| Understanding file location, synchronisation and backup | Microsoft/Apple semantics plus GNOME/Google recovery requirements. Strong for specific technical boundaries; only one individual signal of confusion, so weak/open for user understanding. [WM-05] [WM-06] [WM-13] [WM-14] [LM-13] [LM-20] | High: loss, unintended deletion or mistaken recovery expectations | Portability, local/NAS/provider choice | Explanation and status small; full sync, recovery and export large | High if the whole chain demonstrably works |
+| Understanding and revoking permissions without losing the task | Two original studies by different teams, plus portals/pickers. Moderate; populations and measurement years limited. [LM-08] [LM-14] [LM-15] [LM-16] | High for sensitive tasks | Understandable control over data; no compliance claim | Existing capability foundation, but inventory/issuer/revocation chain requires native integration | Moderate/high by connecting task, duration and consequence |
+| Preserving working keyboard/assistive routes | NV Access, AppleVis, GNOME and W3C are different maintenance/guideline families. Strong for specific regressions/requirements, not a frequency count. [WM-08] [WM-11] [DT14] [DT20] | Blocking for affected users | Inclusion, multilingualism and different input methods | App semantics exist; an OS-wide screen reader, shaping and input are substantial work | Quality prerequisite; not an exclusively new idea |
+| Retaining essential apps and devices | Adobe, Microsoft, LibreOffice, Valve and a migration case. Strong for the stated compatibility boundaries. [WM-16] [WM-17] [EA-09] [EA-10] [EA-13] | Blocking for an indispensable task | Work, education, games, accessibility and service life | Very large; an independent kernel does not inherit the Linux/Windows ecosystem | Prerequisite before differentiation becomes relevant |
+| Being able to predict updates and interruptions | Windows feedback, Snap scheduling, Pixel support policy and two different notification studies. Moderate; different outcome measures. [WM-03] [LM-07] [LM-17] [DT17] [DT21] | Moderate/high, depending on the task | Control and long-term maintenance | UI policy limited; recoverable updates require the existing slot/verification chain | Low for a switch; higher for coherence |
+| Reliably resuming workspace and task context | One PowerToys regression plus existing workspace/snap features. Weak as a broad wish, a specific case. [WM-07] [DT07] [DT08] | Moderate/high for multitaskers | Different occupations/input methods; not specifically European | A two-app foundation exists; dynamic windows/session restoration require extension | Moderate if document context remains central |
+| Understanding installation provenance and consequences | Apple notarisation, Ubuntu package choice, Flatpak and Android verification. Strong for mechanisms; weak for the general frequency of confusion. [WM-15] [LM-06] [LM-08] [LM-19] | High for unsafe or non-working installation | Vendor choice, inspectability and maintenance | Package/update cores present; complete installation/start chain still open | Quality prerequisite with open distribution |
+| Optional contextual assistance with correctable actions | HCI guideline validation and existing AI product direction; no nieuw-os or EU market validation. Weak/moderate. [DT11] [DT16] | Task-dependent; errors can have high impact | Selected context and local processing fit the project contract | Actual local inference and a bounded action broker remain major dependencies | Unproven; compare with ordinary controls first |
 
-Geen bovenstaande rij krijgt een objectief “frequentiepercentage”. Een gegenereerde volgorde zou de doelgerichte bronselectie voor een representatieve meting aanzien. Voor fase 6 zijn nog nodig: een gekozen doelgroep, echte taakobservaties, kostenraming, onderhouds-/privacy-/toegankelijkheidseffect en afhankelijkheden per voorstel.
+No row above receives an objective “frequency percentage”. A generated ordering would mistake the targeted source selection for a representative measurement. Phase 6 still requires a chosen target group, actual task observations, cost estimates, maintenance/privacy/accessibility effects and dependencies for each proposal.
 
-## Dekking van de gevraagde onderwerpen
+<a id="dekking-van-de-gevraagde-onderwerpen"></a>
+## Coverage of the requested subjects
 
-| Onderwerp | Gecontroleerde dekking | Wat onbekend blijft |
+| Subject | Verified coverage | What remains unknown |
 |---|---|---|
-| Ontbrekende functies / omslachtige routes / aantal stappen | Zoekscope, indexherstel, Start-afhankelijkheden, installuitzonderingen en sync-stoproutes [WM-03] [WM-04] [WM-09] [WM-15] [LM-04] | Geen uniforme, live taakmeting of vergelijkbaar stappenaantal over vier OS'en |
-| Controle, privacy, account, reclame en telemetrie | Windows-installatie/diagnose, Android-advertentie- en back-upstromen, originele privacybegripsstudies [WM-01] [WM-02] [LM-13] [LM-15] [LM-16] [LM-18] | Geen algemene weerstandsscore; geen uniforme Android-OEM- of Linuxtelemetriepraktijk vastgesteld |
-| Updates | Windows-verbeterplan, Snap hold/planning, Pixelduur, native nieuw-os-updatebouwstenen [WM-03] [LM-07] [LM-17] [RB-01] | Plannen zijn geen brede uitrol; geen dagelijks update-effectonderzoek voor nieuw-os |
-| Zoeken, instellingen en bestandsbeheer | Windows/macOS- en GNOME/KDE-dossiers, afzonderlijke huidige oplossingen | Uniforme representatieve tevredenheidsvergelijking ontbreekt |
-| Multitasking en vensters | Workspace-regressie, GNOME-workspaces, Windows Snap, macOS-tiling, Android-vensters [WM-07] [WM-20] [DT07] [DT08] [LM-11] | Geen bewijs dat één model voor beginners en gevorderden het beste is |
-| Notificaties | Groepering/platformfuncties plus bundel- en uitschakelstudies [LM-02] [LM-12] [DT17] [DT21] | Desktopoverdracht, urgente uitzonderingen en optimale frequentie niet vastgesteld |
-| Back-ups en synchronisatie | OneDrive, iCloud, Time Machine, Pika en Android-herstelvoorwaarden [WM-05] [WM-13] [WM-14] [LM-13] [LM-20] | Geen eigen volledige herstelproef; sync is geen onafhankelijke back-up |
-| Apparaatkoppeling | KDE Connect, Apple Mirroring-regio/account, EU-portabiliteitsroutes [LM-10] [WM-12] [EA-11] | Nieuwe routes/API's bewijzen geen algemene huidige beschikbaarheid of nieuw-os-integratie |
-| Toegankelijkheid | Regressies, semantiek, invoeralternatieven, WCAG/WCAG2ICT en font-/schaalgrenzen [WM-08] [WM-11] [LM-03] [DT10] [DT20] [RB-01] | Menselijke en systeembrede assistieve acceptatie open |
-| Installatie en pakketbeheer | Meerdere bestaande distributiemodellen en rechtenkiezers [WM-15] [LM-06] [LM-08] [LM-19] | Onvoldoende onafhankelijk onderzoek om alle modellen op gebruiksgemak te rangschikken |
-| Gewone versus gevorderde gebruikers | Onderzoekssegmenten, update-/zoekdiagnostiek, sneltoetsen en werkplekherstel [WM-04] [WM-07] [LM-04] [LM-07] | Geen geïnterviewde persona's of veronderstelde voorkeuren uit demografie |
-| Software uit andere platformen overnemen | Bestaande referentiepatronen hieronder; originele individuele wensen waar aanwezig | Geen representatieve lijst “gebruikers willen functie X van OS Y” |
+| Missing features / cumbersome routes / number of steps | Search scope, index recovery, Start dependencies, installation exceptions and routes for stopping sync [WM-03] [WM-04] [WM-09] [WM-15] [LM-04] | No uniform live task measurement or comparable step count across four OSes |
+| Control, privacy, account, advertising and telemetry | Windows installation/diagnostics, Android advertising and backup flows, original studies of privacy understanding [WM-01] [WM-02] [LM-13] [LM-15] [LM-16] [LM-18] | No general resistance score; no uniform Android OEM or Linux telemetry practice established |
+| Updates | Windows improvement plan, Snap hold/scheduling, Pixel support duration, native nieuw-os update building blocks [WM-03] [LM-07] [LM-17] [RB-01] | Plans are not broad rollout; no research into everyday update effects for nieuw-os |
+| Search, settings and file management | Windows/macOS and GNOME/KDE dossiers, separate current solutions | No uniform representative satisfaction comparison |
+| Multitasking and windows | Workspace regression, GNOME workspaces, Windows Snap, macOS tiling, Android windows [WM-07] [WM-20] [DT07] [DT08] [LM-11] | No evidence that one model is best for beginners and advanced users |
+| Notifications | Grouping/platform features plus batching and disabling studies [LM-02] [LM-12] [DT17] [DT21] | Transfer to desktop use, urgent exceptions and optimal frequency not established |
+| Backups and synchronisation | OneDrive, iCloud, Time Machine, Pika and Android recovery requirements [WM-05] [WM-13] [WM-14] [LM-13] [LM-20] | No complete recovery trial conducted by this research; sync is not an independent backup |
+| Device linking | KDE Connect, Apple Mirroring region/account, EU portability routes [LM-10] [WM-12] [EA-11] | New routes/APIs do not establish general current availability or nieuw-os integration |
+| Accessibility | Regressions, semantics, input alternatives, WCAG/WCAG2ICT and font/scale boundaries [WM-08] [WM-11] [LM-03] [DT10] [DT20] [RB-01] | Human and system-wide assistive acceptance remain open |
+| Installation and package management | Multiple existing distribution models and permission pickers [WM-15] [LM-06] [LM-08] [LM-19] | Insufficient independent research to rank all models by usability |
+| Ordinary versus advanced users | Research segments, update/search diagnostics, shortcuts and workspace restoration [WM-04] [WM-07] [LM-04] [LM-07] | No interviewed personas or preferences assumed from demographics |
+| Adopting software from other platforms | Existing reference patterns below; original individual wishes where present | No representative list of “users want feature X from OS Y” |
 
-## Bestaande patronen die als referentie kunnen dienen
+<a id="bestaande-patronen-die-als-referentie-kunnen-dienen"></a>
+## Existing patterns that can serve as references
 
-Dit zijn **[HYPOTHESE] ontwerp-/toetsscenario's**, geen bewezen overnamewensen of opdracht om een OS te kopiëren.
+These are **[HYPOTHESE] design/test scenarios**, not established wishes to adopt features or an instruction to copy an OS.
 
-| Referentiepatroon | Bron en bestaande functie | Te onderzoeken gebruikersresultaat |
+| Reference pattern | Source and existing feature | User outcome to investigate |
 |---|---|---|
-| Vindbare acties naast zoekresultaten | macOS Spotlight-acties [WM-19] | Minder omwegen, met zichtbare context en begrensde gevolgen |
-| Begrijpelijke, selectieve gegevenstoegang | Flatpak-portals en Android-documentkiezer [LM-08] [LM-14] | Eén gekozen object gebruiken zonder algemene bestandsrechten |
-| Zichtbare herstelgeschiedenis | Time Machine en Materiaal als verschillende technische modellen [WM-14] [RB-01] | Weten wat herstelbaar is en een fout ongedaan maken zonder onbedoelde overschrijving |
-| Vensters groeperen en hervatten | Windows Snap/GNOME-workspaces/macOS-tiling [DT07] [DT08] [WM-20] | Twee bronnen vergelijken en de juiste taak terugvinden; ook toetsenbordbediening |
-| Expliciete gekoppelde apparaten | KDE Connect/Handoff [LM-10] [DT04] | Werk op een tweede apparaat voortzetten zonder stille gegevensverruiming |
-| Overzicht van feitelijke toegang | Android-privacydashboard [DT06] | Begrijpen welke app toegang gebruikte en wat intrekken precies stopt |
+| Discoverable actions alongside search results | macOS Spotlight actions [WM-19] | Fewer detours, with visible context and bounded consequences |
+| Understandable, selective data access | Flatpak portals and Android document picker [LM-08] [LM-14] | Using one selected object without general file permissions |
+| Visible recovery history | Time Machine and Materiaal as different technical models [WM-14] [RB-01] | Knowing what is recoverable and undoing an error without unintended overwriting |
+| Grouping and resuming windows | Windows Snap/GNOME workspaces/macOS tiling [DT07] [DT08] [WM-20] | Comparing two sources and finding the correct task again; keyboard operation included |
+| Explicitly linked devices | KDE Connect/Handoff [LM-10] [DT04] | Continuing work on a second device without silently broadening data access |
+| Overview of actual access | Android privacy dashboard [DT06] | Understanding which app used access and exactly what revocation stops |
 
-## Ontwerpvoorwaarden voor de volgende fasen
+<a id="ontwerpvoorwaarden-voor-de-volgende-fasen"></a>
+## Design prerequisites for the next phases
 
-[ANALYSE] Europese waarden worden concreet door begrijpelijke gegevensbestemming, providerwissel/export, lokale kernwerking, herstel, toegankelijke taal/invoer en onderhoud. Europese herkomst alleen bewijst geen van die eigenschappen. Kosten, veiligheid en bruikbaarheid moeten op het werkelijke product worden getoetst. De Eurobarometer is daarvoor een houdingmeting over diensten, geen marktomvang voor nieuw-os. [EA-01–EA-04]
+[ANALYSE] European values become concrete through understandable data destinations, provider switching/export, local core operation, recovery, accessible language/input and maintenance. European origin alone establishes none of those properties. Cost, security and usability must be tested on the actual product. For that purpose, the Eurobarometer measures attitudes towards services, not the market size for nieuw-os. [EA-01–EA-04]
 
-[HYPOTHESE] Voor de latere visie is één keten kansrijk: **vinden → begrijpen waar en met welke rechten → handelen → bewaren → herstellen/hervatten**. Toets die ook zonder AI. Behoud namen, export en vertrouwde basisbediening wanneer die migratie vergemakkelijken. Leg bij ieder concept vast welk deel bronbevinding, ontwerpskeuze, technisch experiment of latere ambitie is.
+[HYPOTHESE] One chain is promising for the later vision: **find → understand where and with which permissions → act → save → recover/resume**. Test it without AI as well. Preserve names, export and familiar basic controls when they ease migration. For each concept, record which part is a source finding, design choice, technical experiment or later ambition.
 
-Nog niet doen op basis van dit onderzoek: decoratieve glaseffecten als waardeclaim, een verplichte assistent, algemene app-/drivercompatibiliteit beloven, een nieuw account/cloudvereiste invoeren, of kleine bestaande proefgrenzen als volwaardige productcapaciteit presenteren. Dit zijn afwijzingen van onvoldoende onderbouwde claims, geen verlaging van de bestaande productambitie.
+Not yet justified by this research: using decorative glass effects as a value claim, a mandatory assistant, promising general app/driver compatibility, introducing a new account/cloud requirement, or presenting small existing experimental boundaries as full product capabilities. These are rejections of insufficiently substantiated claims, not a reduction of the existing product ambition.
 
-## Verwijzingen
+<a id="verwijzingen"></a>
+## References
 
-De WM-/LM-/DT-/EA-ID's verwijzen naar de registers in deze map. De volgende direct gekoppelde selecties maken de synthese zelfstandig navigeerbaar; beperkingen staan steeds in het betreffende dossier.
+The WM/LM/DT/EA IDs refer to the registers in this directory. The following directly linked selections make the synthesis independently navigable; limitations remain in the relevant dossier.
 
 [WM-01]: https://www.microsoft.com/en-us/windows/windows-11-specifications
 [WM-02]: https://support.microsoft.com/en-us/windows/privacy/diagnostics-feedback-and-privacy-in-windows

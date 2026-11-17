@@ -1,6 +1,15 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Phase 0 English technical guides — 17 November 2026
+## NEXT AGENT HANDOFF — Phase 0 English publication integration — 17 November 2026
+
+**Source:** existing346 parent `bc2db3975a773af95acd113e2f59af4cc95300e1`, preserving the reviewed source heads of347–349/351–353. This branch still needs reconciliation with the main resulting from the existing code integration queue.
+**Changed:** the independently reviewed English translations/evidence are consolidated into one issue274 draft, plus four small independently reviewed explanatory comments/glosses. [Source/hash manifest](verification/phase0-english-integration-20261117/manifest.json). Source/evidence hashes and independent workstream handoffs remain preserved. No runtime, policy, security boundary or licensing change.
+**Checks:** exact-source/hash and scoped semantic checks pass. Independent integration review and actual current-head hosted checks remain pending. Score remains41/100; full issue274 is open until actual coverage/publication acceptance. The six source PRs stay open until merge and exact-main preservation proof.
+**Next:** publish/update346, complete its bounded integration review, then reconcile against verified main after the earlier code PRs. Perform manual squash only after all applicable gates/reviews/merge-hold pass. No auto-merge or count-driven closure. BaselineB requires no unresolved integration/security blockers, passing mandatory checks and individually triaged residuals under the latest owner refinement; governance1–6 have not started. Original UI/S09 WIP, runners and ownership remain intact.
+
+## Retained historical checkpoints and workstream records
+
+### Historical source checkpoint — Phase 0 English technical guides — 17 November 2026
 
 **Source:** guide comparison parent `cece3041187e1b7d08ec7708c36b84c728d6e2d2`, integrating verified main `95d59ad52761c1f8f0201d934556902b90ce63cb` after PR343. Draft PR346 includes the CI guide, native material-library guide, IPC-wait probe README and native IPC-wait contract.
 **Verified:** independent AI semantic comparisons and exact code/identifier/numeric/anchor preservation pass on all four guide hashes. The CI guide's earlier receipt remains intact. [Native guide receipt](verification/phase0-english-guides-20261117/README.md). Both parent handoffs and independent workstream history are retained below.
