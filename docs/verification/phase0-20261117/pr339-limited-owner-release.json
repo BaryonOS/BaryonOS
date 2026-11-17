@@ -1,0 +1,28 @@
+{
+  "pr": 339,
+  "source_head": "ca3534f32b8bd80373143542e14b8d3afe0ea298",
+  "owner_reply": "Codex mag deze beperkte claimcorrectie doen",
+  "released_scope": [
+    "Incorrect completion claims in verification README",
+    "Corresponding project status claims",
+    "PR description"
+  ],
+  "required_result": "Intermediate targeted abstract-level checkpoint; systematic-review requirement remains OPEN",
+  "preserve": [
+    "Research and matrix",
+    "Historical verification archives and AI verdicts",
+    "Design WIP",
+    "Runners",
+    "Independent workstream ownership"
+  ],
+  "merge_authorized": false,
+  "implementation_checkout": "/tmp/baryonos-phase0-20261117/pr339-fix",
+  "state": "Published and independently verified bounded correction",
+  "published_head": "7bea10d96348b6d5990f9ed1fb53ab94940b3ae1",
+  "verification_report": "pr339-claim-correction-review.md",
+  "checks_exit_code": 0,
+  "reviewed_sha256": {
+    "docs/verification/a11y-research-20261115/README.md": "9477028ce0f6ece335996eb91bc7b28442d3704f720c4b70f2b9e1aa1b011938",
+    "docs/PROJECT-STATE.md": "afebc250035ed0d0bd7bbc3529788c71413e8b2386930f36a69562640a7a770f"
+  }
+}

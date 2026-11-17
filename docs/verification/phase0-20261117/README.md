@@ -8,9 +8,9 @@
 - No other Claude/Copilot/controller process was visible in this execution environment. This does not release ownership or establish that remote sessions are stopped.
 - Four shared Git post-hooks invoke local Graphify, contrary to repository policy. They were preserved. A separate clone with ordinary Git configuration and no active Git hooks was created; no `--no-verify` or hooksPath override was used. Installed client hooks and required checks are not claimed to be verified by this isolation.
 - Orbitaal (#339) and S09 (#340) remain Claude-owned under the existing handoff. Their source is reviewed read-only until an explicit transfer; a free lock does not grant ownership.
-- The authenticated GitHub inventory remains exactly PRs #333/#336/#339/#340/#343/#344 and issues #41/#42/#43/#274/#277/#283. New unrelated arrivals are post-baseline work.
+- The initial authenticated T0 inventory contained exactly PRs #333/#336/#339/#340/#343/#344 and issues #41/#42/#43/#274/#277/#283. New unrelated arrivals are post-baseline work.
 
-## Integration and issue dispositions
+## Initial T0 integration and issue dispositions
 
 | Order | PR / issue | Current disposition and required next evidence |
 | --- | --- | --- |
@@ -37,18 +37,18 @@ Evidence limit: T0 is inventory, not integrated main acceptance, a completed sec
 ## Logs and resume
 
 Raw sanitized T0 records: `/tmp/baryonos-phase0-20261117/T0-local.json`, `T0-github.json`, `T0-checks-343-344.json`. Their hashes are recorded separately. Full command logs remain outside Git.
-Resume from branch `codex/phase0-baseline` in `/tmp/baryonos-phase0-20261117/repo`; confirm the remote head and existing ownership before writes. Next task: finish and verify #343's bounded action-runtime check, then #344's dependency record. The complete integration/quality assessment and final source freeze remain outstanding.
+Resume from branch `codex/phase0-baseline` in `/tmp/baryonos-phase0-20261117/repo`; confirm the remote head and existing ownership before writes. The current resume section below supersedes the initial T0 next actions. The complete integration/quality assessment and final source freeze remain outstanding.
 
 ## Follow-up execution checkpoint
 
-- PR343 correction published as aa7a0387aa34c2f9ead9a46d9a3ee7df32f5a3a5. All349 tools tests pass with the installed rustup binary (exit0). Hosted artifact contract succeeds; its synthetic checkout has the exact PR-head tree. Other affected/required jobs are individually tracked, not implied passed.
-- PR344 audit correction published as57a9e5f3a1abe6c6f2364d340d765fcaa198aa35. The ten-group loader/M1 gate and all18 native update stages pass locally (exit0). Independent re-review confirms the inventory finding addressed; its thread is resolved. Current-head hosted checks remain separate.
-- PR336 Rust/Python and native TEST-policy probe pass locally (exit0); independent scoped security review found no concrete blocker. Three coupling advisories were independently dispositioned as nonblocking bounded orchestration, with rationale in [the review record](pr336-review-dispositions.json); their threads were resolved. PR333 and336 are BEHIND current main and require reconciliation before merge readiness.
-- PR333's existing xHCI/HID local CI subsets pass (exit0): five USB/xHCI profiles plus the separate synthetic HID IPC probe, with all45 raw child logs retained. [Native receipts](pr333-native.json). Independent scoped security review found no concrete blocker but does not establish H02 or physical acceptance.
+- PR343 correction published as aa7a0387aa34c2f9ead9a46d9a3ee7df32f5a3a5. All 349 tools tests pass with the installed rustup binary (exit 0). Hosted artifact contract succeeds; its synthetic checkout has the exact PR-head tree. Other affected/required jobs are individually tracked, not implied passed.
+- PR344 audit correction published as 57a9e5f3a1abe6c6f2364d340d765fcaa198aa35. The ten-group loader/M1 gate and all 18 native update stages pass locally (exit 0). Independent re-review confirms the inventory finding addressed; its thread is resolved. Current-head hosted checks remain separate.
+- PR336 Rust/Python and native TEST-policy probe pass locally (exit 0); independent scoped security review found no concrete blocker. Three coupling advisories were independently dispositioned as nonblocking bounded orchestration, with rationale in [the review record](pr336-review-dispositions.json); their threads were resolved. PR333 and336 are BEHIND current main and require reconciliation before merge readiness.
+- PR333's existing xHCI/HID local CI subsets pass (exit 0): five USB/xHCI profiles plus the separate synthetic HID IPC probe, with all 45 raw child logs retained. [Native receipts](pr333-native.json). Independent scoped security review found no concrete blocker but does not establish H02 or physical acceptance.
 - [Follow-up raw-code/log receipts](followup-checks.json), [hosted fixture receipt](pr343-hosted-contract.json), [historical PR dispositions](issue283-triage.json), [documentation gaps](documentation-triage.md).
 - Preliminary authenticated read access to CodeQL/dependency alerts works. This is audit readiness, not the fresh final integrated security assessment required after queue processing.
 
-Baseline B is still not established. No merge, auto-merge, issue closure or governance migration has occurred. Exact next step: finish current-head PR343 checks, seek its specific owner approval, and continue disjoint verification/dispositions.
+Baseline B is still not established. No merge, auto-merge, issue closure or governance migration has occurred. Current owner authority and exact resume steps are recorded below.
 
 ## Owner authority and remaining bounded work
 
@@ -58,6 +58,15 @@ The project owner explicitly approved squash merge of PR343 head aa7a0387aa34c2f
 
 ## PR339 published checkpoint verification
 
-On exact head ca3534f3 the read-only checker passes (exit0), output equals the archived result and all five hashes match. The independent harness rejects30 in-memory mutations and two CLI negatives; the known row62 classification gap and ten published minors remain open. [Verification and actual scope finding](pr339-scope-review.json).
+On exact head ca3534f3 the read-only checker passes (exit 0), output equals the archived result and all five hashes match. The independent harness rejects30 in-memory mutations and two CLI negatives; the known row62 classification gap and ten published minors remain open. [Verification and actual scope finding](pr339-scope-review.json).
 
 The verification README calls the work a systematic literature review, but the research explicitly describes a targeted, abstract-level, non-systematic review. Preserve the systematic owner requirement and obtain a source-owner correction or explicit owner disposition; checker success does not establish research completion. The published checkpoint and dirty future design WIP remain distinct. No Orbitaal source, runner or review thread was changed.
+
+## Current resume — 17 November 2026
+
+- PR343: owner approval remains conditional on both window-session jobs passing; the last observed pending job is `(1)`. No merge has occurred. Recheck the exact approved head, base and review/check gates immediately before merging.
+- PR340: the explicitly released two-hunk repair is complete with fresh native evidence. This grants no broader S09 ownership or merge authority.
+- PR339: the owner has now [released only the incorrect completion-claim correction](pr339-limited-owner-release.json). The bounded correction is published as `7bea10d96348b6d5990f9ed1fb53ab94940b3ae1`; independent review, all five hashes and the byte-identical checker output pass (exit 0). [Exact reviewed scope and commands](pr339-claim-correction-review.md). Research/matrix/archives and all design WIP/runners remain untouched. The systematic-review requirement remains open.
+- Draft PR346 (`cece3041187e1b7d08ec7708c36b84c728d6e2d2`) translates only the remaining CI guide as a bounded contribution to the triaged #274 task. Semantic/anchor/command checks and all 26 workflow tests pass. Required current-head hosted checks remain in progress. Full #274 completion is not a baseline-B prerequisite.
+
+Baseline B and the final integrated assessment remain outstanding. Governance phases 1–6 have not started. After PR343, reconcile PR344 with the new main before obtaining its own current-head merge approval; retain the remaining approved queue order and explicit dispositions.
