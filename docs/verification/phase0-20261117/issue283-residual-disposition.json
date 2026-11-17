@@ -1,0 +1,58 @@
+{
+  "source_main": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+  "issue": 283,
+  "state": "OPEN",
+  "historical_pr260": {
+    "head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+    "original_merge_base": "5b2189824c32145ad5c110429517dfcea3f2720f",
+    "files": 170,
+    "added": 60,
+    "modified": 31,
+    "deleted": 79,
+    "insertions": 23982,
+    "deletions": 251846,
+    "deletion_scope": "78 OSDev skill/reference paths and private-publication-audit workflow; no product/runtime source deletion",
+    "all_deleted_paths_preserved_on_assessed_main": true,
+    "decision": "Wholesale export/new-repository implementation rejected; preserve branch/discussion/historical evidence"
+  },
+  "residuals": [
+    {
+      "id": "W001473",
+      "topic": "Historical Monotasking Systems provenance",
+      "source_blob": "fd12be69749831dce85cfc0eb5663fc989e73acc",
+      "original_revision": 11215,
+      "retained_import_revision": 1773,
+      "import_date": "2006-12-03",
+      "current_matches_redacted_historical_span_hashes": true,
+      "original_author_grant": "UNESTABLISHED",
+      "primary_check": "Accessible article/copyright pages do not establish the 2006 grant; original revision/history routes inaccessible",
+      "next": "Obtain verifiable primary original revision/author/grant evidence or an appropriately authorised targeted disposition; do not infer grant or clearance"
+    },
+    {
+      "topic": "Incomplete historical Git/Actions publication-audit coverage",
+      "next": "Preserve unavailable/expired byte-class limits and conduct only source-bound authorised audit; old test/scan counts do not become current evidence"
+    }
+  ],
+  "publication_clearance": false,
+  "not_claimed": [
+    "Infringement finding",
+    "New licence grant/change",
+    "Source purge/history rewrite authority",
+    "New native/software acceptance"
+  ],
+  "reports": {
+    "P0-283-260-disposition-review.md": {
+      "sha256": "3af9973d7432451878186676d6fbd52638f7df6f55b8e1e284ecd18efb479a36",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-283-260-disposition-review.md"
+    },
+    "P0-283-W001473-primary-check.md": {
+      "sha256": "528c8a7c9eeb3b94960628ba7c77195bf061f9026a2f65c68b2adb1596ce9f0e",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-283-W001473-primary-check.md"
+    },
+    "P0-274-remaining-inventory.md": {
+      "sha256": "cf909f42984056959f1ce058e1a90c3549a2e390826639b0f61623cd4c86d19b",
+      "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-remaining-inventory.md"
+    }
+  },
+  "issue_comment": "Evidence and explicit OPEN residual route posted to283"
+}

@@ -6,9 +6,9 @@
     "source_commit": "95d59ad52761c1f8f0201d934556902b90ce63cb",
     "assessment_basis": "verified_main_commit",
     "branch": "codex/phase0-baseline",
-    "task": "Phase 0: verify PR343 squash and complete the existing explanatory Wiki issue277",
+    "task": "Phase 0: checkpoint integrated dependency gates, source-faithful translations and honest historical residuals",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The verified CI-action integration and completed explanatory Wiki add no OS acceptance points. PR344 integration/current-head checks and the final integrated assessment remain pending. Unmet long-term criteria and issues remain open; baseline B is not established."
+    "summary": "41/100 remains 41/100. Fresh loader/update tests and independently reviewed English documentation preserve existing acceptance. Issue #277 is complete; #283 retains a documented historical provenance/audit residual and #274 coverage is unfinished. Hosted integration checks and final baseline B remain outstanding."
   },
   "tracks": [
     {

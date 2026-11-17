@@ -1,0 +1,30 @@
+{
+  "source_head": "64a855754fad55cb0941d9756d7b6b2ca34bb913",
+  "gates": [
+    {
+      "gate": "preflight",
+      "exit_code": 0,
+      "duration": 0.124,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr344/build/tokenguard/run-d0xu3bjq.log",
+      "sha256": "3fd3391223d185d098b69828641d64f188dd8ac92b24f96e697597b5660c16cd"
+    },
+    {
+      "gate": "loader",
+      "exit_code": 0,
+      "duration": 68.218,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr344/build/tokenguard/run-llezcncb.log",
+      "sha256": "4250a2259594227dc15b1e334039ef18b59bbfe44cbde21be9fe835d11979f87"
+    },
+    {
+      "gate": "update",
+      "exit_code": 0,
+      "duration": 50.831,
+      "raw_log": "/tmp/baryonos-phase0-20261117/pr344/build/tokenguard/run-wmlwe8t9.log",
+      "sha256": "fc2b5b411573a679977d8ad171ba50325aebb0d8a85a3bc34576cd2863401f0e"
+    }
+  ],
+  "loader_groups": 10,
+  "update_stages": 18,
+  "independent_review_sha256": "b63ee83de92ebe8c6f2353e8c6cb374ad8131f012afce0d7abbff0b664c5d313",
+  "hosted_current_head": "PENDING"
+}
