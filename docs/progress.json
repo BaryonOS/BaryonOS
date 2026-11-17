@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "3747ba2b2496c89c02fd835161919589b36a5cc9",
+    "source_commit": "c64d81d6bde1a0e649350325db15d87cde11e1cd",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-baseline",
     "task": "Phase0: preserve security and independent WIP checkpoints for verified cloud handoff",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Source-bound PR355 checkpoints and published Rust/PR339 WIP are preserved; required resource/workflow/security and current-head gates remain open. Cloud handoff is prepared, not yet released. No issue, finding, product criterion or baseline B is falsely completed."
+    "summary": "41/100 unchanged. Source-bound PR355 checkpoints and published Rust/PR339 WIP are preserved; required resource/workflow/security and current-head gates remain open. Cloud ownership is released after remote source/handoff verification; local writers stop. No issue, finding, product criterion or baseline B is falsely completed."
   },
   "tracks": [
     {

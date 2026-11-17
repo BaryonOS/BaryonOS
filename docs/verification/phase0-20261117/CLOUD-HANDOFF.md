@@ -1,7 +1,10 @@
 # Phase 0 cloud handoff — 18 November 2026
 
-**Ownership: PREPARED, NOT RELEASED.** A cloud writer must wait for the verified
-release commit on `codex/phase0-baseline`. This handoff transfers Codex work only;
+**Ownership: RELEASED TO THE NEXT CODEX CLOUD TASK.** The prepared handoff
+commit `c64d81d6bde1a0e649350325db15d87cde11e1cd` and listed source commits
+were verified on GitHub before this release. Local Codex writers have stopped.
+The new cloud task must claim one workstream against the current remote SHA.
+This handoff transfers Codex work only;
 it does not transfer the independent Claude UI/UX or S09 workstreams.
 
 ## Source and authority

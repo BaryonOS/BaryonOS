@@ -127,7 +127,7 @@
   },
   {
     "task": "cloud_handoff_20261118",
-    "status": "PREPARED_NOT_RELEASED",
+    "status": "RELEASED_TO_NEXT_CODEX_CLOUD_TASK",
     "source": "aec1fb5f75e6165da82ba81f3f43d7a0d912ab1d",
     "source_branch": "codex/phase0-pipeline-isolation",
     "rust_source": "aa5015378e78783fe6486480be45fdfd44656cfc",
@@ -135,6 +135,7 @@
     "private_evidence_manifest_sha256": "1e7f7fdaf9956f1e003293accc9f397067d5b186697601d9c3d9ec5f6d68d42a",
     "finding": "OPEN",
     "merge": "BLOCKED",
-    "ownership": "Release only after remote source and this handoff are verified; original Claude/user work excluded"
+    "ownership": "Listed Codex work released after GitHub source/handoff verification. Local writers stopped; next cloud task must claim against current remote. Original Claude/user work excluded.",
+    "prepared_commit": "c64d81d6bde1a0e649350325db15d87cde11e1cd"
   }
 ]
