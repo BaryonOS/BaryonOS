@@ -1,13 +1,22 @@
 # B03/B04 production signing policy — decision proposal
 
 Date: 14 November 2026. Source baseline: `b8a7e83658bdbcd4970c26f753dda1b342fce0d4`.
-Status: **PROPOSAL — UNAPPROVED; no implementation or acceptance evidence.**
+Status: **PRODUCTION PROPOSAL — UNAPPROVED; bounded synthetic experiment approved under ADR-B03K3.**
 Tracker: [issue #41](https://github.com/BaryonOS/BaryonOS/issues/41).
 
 This document makes the remaining release-policy choices reviewable. It does not
 change an ADR, grant signing authority, create keys, enable a production profile,
 approve firmware changes or close B03/B04/#41. The Security Floor and explicit
 TEST-feature guards remain binding. B03's existing points are unchanged. [1–4]
+
+The [transition specification](B03-POLICY-TRANSITION-PROPOSAL.md), prepared on
+`1260de8b5b0bb5330422ab9d5a63a64f5e2603b7`, now makes the canonical envelopes,
+exact operation identity, anchor commit/readback, revocation history and cut
+outcomes concrete for review. Its symbolic model is a specification exercise,
+not a native or production implementation. D1–D7 production prerequisites remain
+unresolved. After the initial review, the project owner explicitly
+approved publication and the TEST/QEMU experiment; ADR-B03K3 records that limited
+authorisation. Native implementation and its evidence are separate checkpoints.
 
 ## Existing boundary
 
@@ -56,6 +65,8 @@ v1, TEST fixtures and on-disk layouts are not silently reinterpreted.
    an older policy, an equal version with a different digest, an unknown root,
    malformed tables and any incomplete hybrid signature. A same-version,
    same-digest package may only resume the identical interrupted operation.
+   Identity also binds the predecessor anchor, target, image version/digests,
+   length and destination slot; policy identity alone is insufficient.
 2. Verify the candidate policy and image before activation. A policy that revokes
    the running release key requires an eligible replacement or a separately
    authenticated recovery route; staging bytes alone grants no authority.
@@ -99,10 +110,12 @@ follow from drafting this proposal, increasing test counts or passing host tests
 
 ## Review outcome and sources
 
-The next deliverable is a recorded disposition of D1–D7 and an exact transition
-specification for D2/D3/D4. Unresolved decisions leave production activation
-disabled. Approval and resulting architecture changes belong in `DECISIONS.md`;
-this proposal is not a second roadmap or an approved contract.
+The D2/D3/D4 transition specification is linked above. ADR-B03K3 records the
+bounded synthetic-experiment approval and separates it from outstanding
+D1–D7 production prerequisites. The exact native backend/encoding/ingress contract
+must precede native implementation. Unresolved decisions leave production
+activation disabled. Approval and resulting architecture changes belong in
+`DECISIONS.md`; this proposal is not a second roadmap or an approved contract.
 
 1. Baryon OS. (2026). [Architecture decisions](../DECISIONS.md), ADR-049 decision 6, ADR-B03K1 and ADR-B03K2.
 2. Baryon OS. (2026). [B03 signed updates](B03-SIGNED-UPDATES.md), §2 invariants 7–8, §7 and B03-KEY-POLICY-1 evidence boundary.

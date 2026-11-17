@@ -15,6 +15,8 @@ use ml_dsa::{
 use sha2::{Digest, Sha256};
 
 pub mod policy;
+#[cfg(feature = "experimental-policy-test")]
+pub mod policy_envelope;
 #[cfg(feature = "test-signing-anchors")]
 pub mod test_policy;
 
@@ -163,29 +165,37 @@ pub fn verify_manifest(
     if message[..] != bytes[..SIGNED_LEN] {
         return Err(Reject::Format);
     }
+    verify_hybrid(
+        &message,
+        &bytes[SIGNED_LEN..SIGNED_LEN + ED25519_SIGNATURE + MLDSA65_SIGNATURE],
+        anchors,
+    )?;
+    Ok(manifest)
+}
+
+/// Both existing signature algorithms over precisely the supplied message.
+/// Domain separation and canonical parsing belong to each format's caller.
+fn verify_hybrid(message: &[u8], signatures: &[u8], anchors: &TrustAnchors) -> Result<(), Reject> {
+    if signatures.len() != ED25519_SIGNATURE + MLDSA65_SIGNATURE {
+        return Err(Reject::Format);
+    }
     let ed_key = EdKey::from_bytes(&anchors.ed25519).map_err(|_| Reject::UnknownKey)?;
-    let ed_sig = EdSignature::from_bytes(
-        bytes[SIGNED_LEN..SIGNED_LEN + ED25519_SIGNATURE]
-            .try_into()
-            .unwrap(),
-    );
-    if ed_key.verify_strict(&message, &ed_sig).is_err() {
+    let ed_sig = EdSignature::from_bytes(signatures[..ED25519_SIGNATURE].try_into().unwrap());
+    if ed_key.verify_strict(message, &ed_sig).is_err() {
         return Err(Reject::Signature);
     }
     let encoded_key = EncodedVerifyingKey::<MlDsa65>::try_from(&anchors.mldsa65[..])
         .map_err(|_| Reject::UnknownKey)?;
     let pq_key = PqKey::<MlDsa65>::decode(&encoded_key);
-    let start = SIGNED_LEN + ED25519_SIGNATURE;
-    let encoded_sig =
-        EncodedSignature::<MlDsa65>::try_from(&bytes[start..start + MLDSA65_SIGNATURE])
-            .map_err(|_| Reject::Signature)?;
+    let encoded_sig = EncodedSignature::<MlDsa65>::try_from(&signatures[ED25519_SIGNATURE..])
+        .map_err(|_| Reject::Signature)?;
     let Some(pq_sig) = PqSignature::<MlDsa65>::decode(&encoded_sig) else {
         return Err(Reject::Signature);
     };
-    if !pq_key.verify_with_context(&message, b"", &pq_sig) {
+    if !pq_key.verify_with_context(message, b"", &pq_sig) {
         return Err(Reject::Signature);
     }
-    Ok(manifest)
+    Ok(())
 }
 
 /// Image binding: exact length and SHA-256 as recorded in the manifest.

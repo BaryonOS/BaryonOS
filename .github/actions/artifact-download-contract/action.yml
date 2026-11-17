@@ -1,0 +1,65 @@
+name: Artifact download contract
+description: Verify fixture-only artifact filtering, ZIP extraction, directory layout and exact bytes.
+runs:
+  using: composite
+  steps:
+    - name: Create artifact fixtures (not native SMP evidence)
+      shell: bash
+      run: |
+        python3 -B - <<'PY'
+        from pathlib import Path
+        for name, content in {'a': b'fixture-a\n', 'b': b'fixture-b\n', 'unrelated': b'excluded\n'}.items():
+            path = Path('build/action-contract-input') / name / 'nested' / 'fixture.txt'
+            path.parent.mkdir(parents=True)
+            path.write_bytes(content)
+        PY
+    - name: Upload first matching artifact
+      id: artifact-a
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: smp-action-contract-a
+        path: build/action-contract-input/a/
+        if-no-files-found: error
+        retention-days: 1
+    - name: Upload second matching artifact
+      id: artifact-b
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: smp-action-contract-b
+        path: build/action-contract-input/b/
+        if-no-files-found: error
+        retention-days: 1
+    - name: Upload nonmatching artifact
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: unrelated-action-contract
+        path: build/action-contract-input/unrelated/
+        if-no-files-found: error
+        retention-days: 1
+    - name: Download matching artifacts with aggregate inputs
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        pattern: smp-*
+        path: build/k06-smp-artifacts
+    - name: Check separate directories, exact bytes and excluded artifact
+      env:
+        ARTIFACT_A_ID: ${{ steps.artifact-a.outputs.artifact-id }}
+        ARTIFACT_A_DIGEST: ${{ steps.artifact-a.outputs.artifact-digest }}
+        ARTIFACT_B_ID: ${{ steps.artifact-b.outputs.artifact-id }}
+        ARTIFACT_B_DIGEST: ${{ steps.artifact-b.outputs.artifact-digest }}
+      shell: bash
+      run: |
+        python3 -B - <<'PY'
+        import hashlib
+        import json
+        import os
+        from pathlib import Path
+        root = Path('build/k06-smp-artifacts')
+        expected = {'smp-action-contract-a/nested/fixture.txt': b'fixture-a\n',
+                    'smp-action-contract-b/nested/fixture.txt': b'fixture-b\n'}
+        actual = {p.relative_to(root).as_posix(): p.read_bytes() for p in root.rglob('*') if p.is_file()}
+        assert actual == expected, f'artifact layout or content mismatch: {actual!r}'
+        print(json.dumps({'fixture_only': True, 'source': os.environ.get('GITHUB_SHA'),
+                          'files': {p: hashlib.sha256(data).hexdigest() for p, data in actual.items()},
+                          'artifacts': {k: os.environ.get(k) for k in ('ARTIFACT_A_ID', 'ARTIFACT_A_DIGEST', 'ARTIFACT_B_ID', 'ARTIFACT_B_DIGEST')}}, sort_keys=True))
+        PY

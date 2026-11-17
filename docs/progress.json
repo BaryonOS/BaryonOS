@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-15",
-    "source_commit": "2142152e3f1f7fb589b98ffceead9ff9299065aa",
+    "date": "2026-11-17",
+    "source_commit": "b0aac21645d1f9b178dcc076360a4c016ffda8fd",
     "assessment_basis": "parent_commit",
-    "branch": "claude/baryon-os-ui-ux-design-152adb",
-    "task": "Design pipeline on draft PR #332: commit correction UX-D-C1 (owner permission model) as an intermediate state; accessibility research UX-A11Y-R queued",
+    "branch": "codex/phase0-pr333-integration",
+    "task": "Phase 0 PR333: preserve native USB/HID/DMA while preparing queued336 integration",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The commit adds the UX-D-C1 correction of the ds-1.0 design system and prototype (owner permission model), a verification record whose run ended with one open design-quality major (UX-D not accepted), and a DESIGN-AMBITION addition on accessibility. No native build, QEMU run or criterion evidence is added; design, research and simulation evidence accepts no criterion."
+    "summary": "41/100 remains41/100. All criterion definitions, weights and statuses stay unchanged; the original333 bounded H02 evidence reference is preserved. Predecessor336 is locally tested but unmerged. Fresh integrated/hosted gates and independent review remain required; GitHub billing-blocked jobs are NOT RUN. No fullH02/hardware or baselineB acceptance."
   },
   "tracks": [
     {

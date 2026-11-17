@@ -1,0 +1,5 @@
+# SDK rules
+Read the root instructions. `sdk/Cargo.toml` is a separate workspace with its own `Cargo.lock`; the crates and examples listed under `exclude` there use their own manifests. Installation grants an app no implicit file, NAS, network or administrative rights: every capability is granted per app and must be enforceable natively.
+Workspace: `cargo +1.90.0 test --manifest-path sdk/Cargo.toml --locked`, `cargo +1.90.0 clippy --manifest-path sdk/Cargo.toml --locked --all-targets -- -D warnings` and `cargo +1.90.0 fmt --manifest-path sdk/Cargo.toml --all -- --check`.
+Excluded crates and examples: the same commands with `--manifest-path sdk/<path>/Cargo.toml` (examples add `--target-dir "$PWD/target"`, as in `ci.yml#host-quality`); some examples cross-build with `python3 -B sdk/examples/<example>/build.py`. Find the job that covers a crate with `grep -rl <path> .github/workflows`.
+The native SDK app gate runs in `ci.yml#qemu-smoke` (`tools/run_sdk_app.py --case normal` and `--case denied`).

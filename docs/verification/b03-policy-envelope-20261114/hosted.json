@@ -1,0 +1,331 @@
+{
+  "schema_version": 1,
+  "record_type": "selected-hosted-acceptance-evidence",
+  "observed_at_utc": "2026-11-14T16:21:40Z",
+  "scope": "Selected GitHub Actions metadata, log results and compact-artifact facts. This file is not the full downloaded archive or raw native images.",
+  "repository": "BaryonOS/BaryonOS",
+  "identity": {
+    "requested_head_sha": "f34e96a6a52299097dc09baf285699c6f906d301",
+    "actual_checkout_sha": "b1f611ccf70c728c8902df0a51258ee72b1c34b3",
+    "checkout_kind": "GitHub pull-request synthetic merge",
+    "pull_request": 336,
+    "merge_parents": [
+      "ce47359fcd9c62abca50da87ac62183026aac91c",
+      "f34e96a6a52299097dc09baf285699c6f906d301"
+    ],
+    "head_tree_sha": "66416e79f4c7ed282e02d2d9ef9bf701205334a1",
+    "checkout_tree_sha": "66416e79f4c7ed282e02d2d9ef9bf701205334a1",
+    "checkout_tree_equals_head_tree": true,
+    "source_fingerprint_version": 3,
+    "update_gate_source_sha256": "31b8b8851db624e311836e1d01b9b98c8612802cc662e133118f1054ea410718",
+    "policy_probe_source_sha256": "31b8b8851db624e311836e1d01b9b98c8612802cc662e133118f1054ea410718",
+    "qualification": "The workflow checked out the synthetic merge commit, not the head commit object. GitHub commit metadata confirms identical source trees."
+  },
+  "workflow": {
+    "name": "B03 signed updates acceptance",
+    "path": ".github/workflows/signed-updates.yml",
+    "run_id": 43614613093,
+    "run_number": 1468,
+    "run_attempt": 1,
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "started_at": "2026-11-14T16:15:29Z",
+    "updated_at": "2026-11-14T16:18:57Z",
+    "url": "https://github.com/BaryonOS/BaryonOS/actions/runs/43614613093",
+    "api_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43614613093"
+  },
+  "job": {
+    "id": 132506825514,
+    "name": "b03-native-update",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/BaryonOS/BaryonOS/actions/runs/43614613093/job/132506825514",
+    "all_reported_steps_completed_successfully": true,
+    "selected_steps": [
+      {
+        "name": "Strict preflight",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6
+      },
+      {
+        "name": "Fetch locked dependencies before offline TEST builds",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7
+      },
+      {
+        "name": "Experimental policy codec and probe host tests",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8
+      },
+      {
+        "name": "B03 signed update gate (18 QEMU stages)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9
+      },
+      {
+        "name": "TEST policy authentication in loader and native update service",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10
+      },
+      {
+        "name": "Preserve compact evidence and report archive availability",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11
+      }
+    ]
+  },
+  "experimental_host_tests": {
+    "source": "Job log, step 8",
+    "rust_command": "cargo +1.90.0 test --offline --locked -p update-core -p update-tool --features update-core/test-policy-envelope-probe",
+    "rust_passed": 32,
+    "rust_failed": 0,
+    "rust_groups": {
+      "update_core_unit": 9,
+      "key_policy": 6,
+      "policy_envelope": 13,
+      "update_tool_unit": 4
+    },
+    "oracle_command": "python3 -B -m unittest discover -s tests -p test_policy_envelopes.py",
+    "oracle_passed": 8,
+    "oracle_failed": 0
+  },
+  "update_gate": {
+    "source_member": "build/update-gate.json",
+    "source_member_sha256": "176850cdcba17306e907bd1fc9464471f554b15d52a1f3ac3bff97ab37927931",
+    "command": "python3 -B -u tools/test_update.py",
+    "status": "completed",
+    "passed": true,
+    "stage_count": 18,
+    "stages": [
+      {
+        "stage": "install",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "boot-v2",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "downgrade",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "bad-signature",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "bad-digest",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "bad-elf",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "cut",
+        "passed": true,
+        "raw_qemu_exit": -9,
+        "host_kill": true
+      },
+      {
+        "stage": "cut-resume",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "cut-final",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "no-valid-slot",
+        "passed": true,
+        "raw_qemu_exit": 35,
+        "host_kill": false
+      },
+      {
+        "stage": "inbox-signature",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "inbox-downgrade",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "inbox-key",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "rotate-install",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "rotate-boot",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "key-revoked",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "key-expired",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      },
+      {
+        "stage": "key-not-yet-valid",
+        "passed": true,
+        "raw_qemu_exit": 33,
+        "host_kill": false
+      }
+    ],
+    "exit_qualification": "The deliberate cut stage requires a host kill and exit -9. The no-valid-slot stage requires refusal exit 35. Other stages require normal QEMU debug-exit status 33.",
+    "legacy_rust_host_tests": {
+      "exit": 0,
+      "passed": 18,
+      "failed": 0
+    },
+    "legacy_python_harness_tests": {
+      "exit": 0,
+      "passed": 15,
+      "failed": 0
+    },
+    "policy_compile_guards_passed": true
+  },
+  "native_policy_probe": {
+    "command": "python3 -B -u tools/test_policy_envelopes.py --timeout 900",
+    "profile": "native-update-policy-probe",
+    "source_member": "build/policy-envelopes-summary.json",
+    "source_member_sha256": "8c107e617cfff45ef32751d1a70669a0979570f65b0164ab0252a80345bf19f4",
+    "serial_member": "build/run/policy-envelopes-13a31e3dcd/serial.txt",
+    "serial_member_sha256": "2728d34d3595bb88e29d4339ad202fd29b39e18e7bcb63d21f2a4d207b41d6b9",
+    "passed": true,
+    "raw_qemu_exit": 33,
+    "timed_out": false,
+    "host_kill": false,
+    "running_before_kill": false,
+    "duration_s": 2.928377939000029,
+    "timeout_s": 900,
+    "loader_report": {
+      "cases": 26,
+      "passed_mask": 67108863,
+      "pass_marker": true
+    },
+    "ring3_report": {
+      "cases": 26,
+      "passed_mask": 67108863,
+      "pass_marker": true
+    },
+    "result": 4,
+    "service_writes": 0,
+    "service_flushes": 0,
+    "broker_writes": 0,
+    "broker_flushes": 0,
+    "broker_header_writes": 0,
+    "broker_other_writes": 0,
+    "store_before_sha256": "2fc618ffa79c6ea9b69c68596cf58c77a54cd3bfef03f2b2f52c43243a31272a",
+    "store_after_sha256": "2fc618ffa79c6ea9b69c68596cf58c77a54cd3bfef03f2b2f52c43243a31272a"
+  },
+  "hosted_environment": {
+    "runner_os": "ubuntu-24.04",
+    "rustc": "1.90.0 (1159e78c4 2025-09-14)",
+    "qemu": "8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)",
+    "qemu_machine": "pc-q35-8.2",
+    "firmware_code_sha256": "ad23261d43116abc3747d59a7837fbf578c9586a8993f4eeba064cd07eccb083",
+    "firmware_template_sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+    "qualification": "This record describes hosted QEMU 8.2.2. Separate local QEMU 10.0 results are not included or substituted."
+  },
+  "compact_artifact": {
+    "id": 14121955452,
+    "name": "b03-update-reports-reports",
+    "url": "https://github.com/BaryonOS/BaryonOS/actions/runs/43614613093/artifacts/14121955452",
+    "api_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/artifacts/14121955452",
+    "archive_download_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/artifacts/14121955452/zip",
+    "size_bytes": 108434,
+    "sha256": "c6b1fabcad0283b14268daf7a5fecf7beb2cfa1b06b6996dde655b6deaebddad",
+    "downloaded_zip_digest_verified": true,
+    "retained_entry_sizes_and_sha256_verified": 42,
+    "receipt_checkout_sha": "b1f611ccf70c728c8902df0a51258ee72b1c34b3",
+    "receipt_run_id": "43614613093",
+    "receipt_run_attempt": "1",
+    "receipt_evidence_state": "compact-reports-retained",
+    "omitted_count": 0,
+    "missing_patterns": [],
+    "warnings": [],
+    "raw_img_fd_elf_files_present": false,
+    "expires_at": "2026-11-17T16:18:54Z"
+  },
+  "primary_sources": [
+    {
+      "organization": "GitHub",
+      "title": "B03 signed updates acceptance run 43614613093",
+      "url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43614613093"
+    },
+    {
+      "organization": "GitHub",
+      "title": "Workflow run jobs and step summaries",
+      "url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43614613093/jobs"
+    },
+    {
+      "organization": "GitHub",
+      "title": "Job 132506825514 decoded execution log",
+      "url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/jobs/132506825514/logs"
+    },
+    {
+      "organization": "GitHub",
+      "title": "Head commit metadata",
+      "url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/commits/f34e96a6a52299097dc09baf285699c6f906d301"
+    },
+    {
+      "organization": "GitHub",
+      "title": "Synthetic merge commit metadata",
+      "url": "https://api.github.com/repos/BaryonOS/BaryonOS/git/commits/b1f611ccf70c728c8902df0a51258ee72b1c34b3"
+    },
+    {
+      "organization": "GitHub",
+      "title": "Compact artifact 14121955452",
+      "url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/artifacts/14121955452"
+    }
+  ],
+  "limits": [
+    "Only existing run metadata, decoded logs and downloaded compact reports were inspected; no workflow was rerun.",
+    "Compact artifacts contain reports and serial logs, not raw slot images, firmware variables or ELF files. Hosted raw-byte storage revalidation was not performed by this review.",
+    "The new 26-case probe demonstrates native authentication of immutable public TEST vectors. It does not demonstrate policy ingress, atomic policy commit, persistent rollback resistance, production key custody or B04 boot trust.",
+    "Synthetic PR-merge execution is distinguished from head-commit identity even though the verified trees are equal.",
+    "This selected JSON record does not replace the complete upstream logs and artifact."
+  ]
+}
