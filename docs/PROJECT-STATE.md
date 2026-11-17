@@ -1,6 +1,13 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
+## NEXT AGENT HANDOFF — Phase 0 PR343 — 17 November 2026
+
+**Source:** parent `1c6842c4c73f42691fa553e76944bc9ebd795186`; existing PR #343 branch.
+**Changed:** bounded artifact-action contract and meaningful negative host oracle; existing native/evidence guards preserved. [Receipt](verification/phase0-pr343-20261117/README.md).
+**Checks:** 7 SMP CI tests, 26 workflow tests, 8 evidence-verifier tests and pinned actionlint pass (exit 0). Initial tools-suite failure from snap launchers retained; installed-rustup rerun running. Hosted action/current-head CI pending. Progress 41/100 unchanged; no merge.
+**Next:** verify hosted roundtrip and required jobs, record exact head/merge SHA and request specific owner merge approval. Independent #344 dependency record work can proceed. Orbitaal/S09 ownership remains unchanged. Baseline B not established; governance phases 1–6 not started.
+
+## Retained workstream handoff — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
 
 **Source:** branch `claude/baryon-os-ui-ux-design-152adb` at `ea4e033d`
 (S0 `b305fa7c`, S1 `8e4abd8d`, v2 board `ea4e033d`) after merge `89e8b1c9` of
