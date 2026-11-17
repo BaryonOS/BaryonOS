@@ -153,6 +153,19 @@ historical `SHA256SUMS` in that record binds the matrix as of `4005ca67`
 cells. GitHub Actions started no job for `4005ca67` (account billing lock), so
 no hosted check evidence exists for that head.
 
+**Checker review findings (17 November 2026):** the Graphify review of
+`84b0198f` reported two findings in the archived checker
+`docs/verification/a11y-research-20261115/check.py`, and both are valid.
+`missing_files` does not confine a named path to the repository root, so an
+absolute or `../` path to an existing file outside the repository passes the
+named-file check. A non-safety mandatory baseline row, for example "no keyboard
+trap", that is demoted together with a consistent axis edit also passes; the
+verification record already lists this as known limit 4. The checker is archived
+evidence bound by `SHA256SUMS` and protected under the root `AGENTS.md`, so it is
+not edited in place. Open lead item: a successor checker in a new evidence
+directory that confines named paths to the repository and pins the mandatory
+baseline rows, with negative self-tests for both cases.
+
 **Owner decisions of 15 November on flashing media and photosensitivity**
 (verbatim, Dutch, in the checkpoint directory:
 `owner-decision-third-party-flash-20261115.md`, its clarification
