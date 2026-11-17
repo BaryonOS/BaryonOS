@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "feb9702c6536660b4fef84d8c2643d8ef1f3d1ee",
+    "source_commit": "7aeb23aaec66edb29f9c01fd3326dbfbc3173a0b",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-baseline",
-    "task": "Phase 0: verify PR344 squash, checkpoint PR336 integrated gates and external CI blocker",
+    "task": "Phase 0: correct exact post-merge job classification from raw GitHub annotations",
     "previous_score": 41,
-    "summary": "41/100 remains41/100. Exact reviewed main tree and fresh bounded TEST update gates are recorded. GitHub billing-blocked jobs are NOT RUN; baselineB and governance migration are not accepted. No criteria/weights or issue completion claims changed."
+    "summary": "41/100 unchanged. Main host-quality/qemu-smoke succeeded; two components and three coverage uploads did not start due to billing lock. All49 current336 failure annotations confirm that external cause. No missing test is accepted; baselineB remains unestablished."
   },
   "tracks": [
     {

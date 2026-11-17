@@ -15,5 +15,5 @@
   "premerge_checks": "All64 completed success/skipped/neutral; required/applicable named gates succeeded",
   "premerge_full_diff_sha256": "be58149f2c89720adaed60e574234fd26271da4bc3fceb54c45cc8e8fec3d3cb",
   "independent_reconciliation_review": "PASS b63ee83de92ebe8c6f2353e8c6cb374ad8131f012afce0d7abbff0b664c5d313",
-  "postmerge": "GitHub billing lock prevented two component jobs and the dependent qemu-smoke job from starting; exact current results tracked separately. BaselineB not established"
+  "postmerge": "Main host-quality and qemu-smoke succeeded. Two component jobs and three coverage-upload jobs failed to start with the GitHub account-billing-lock annotation. Other post-merge workflows tracked by exact source. BaselineB not established."
 }
