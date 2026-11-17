@@ -153,8 +153,10 @@ unsolicited content is a research result and is not decided here. The research
 covers the Xbox Accessibility Guidelines, WCAG and the relevant scientific
 literature.
 
-**Review criteria.** No system-drawn surface exceeds the WCAG 2.2 SC 2.3.1 or
-ITU-R BT.1702-3 flash and pattern limits. Blocked unsolicited content has no
+**Review criteria.** The combined rendered system interface stays within the
+WCAG 2.2 SC 2.3.1 and ITU-R BT.1702-3 flash and pattern limits. Flashes on
+separate system-drawn surfaces that occur concurrently are assessed by their
+combined area and flash rate, not only surface by surface. Blocked unsolicited content has no
 "show anyway" control. No document or interface text claims complete automatic
 detection or presents a warning as a guarantee. The decision is revisited when
 validated detection techniques or new evidence change what can be guaranteed.

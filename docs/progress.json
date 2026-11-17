@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "a19affb518d05c5873079e0d8870afb5634d9d1c",
+    "source_commit": "20c0fba506b70226a6ae7719cf5a196f08ad96f7",
     "assessment_basis": "parent_commit",
     "branch": "claude/baryon-os-design-pipeline-20261115",
-    "task": "Address CodeRabbit review of PR #339: record the owner decisions of 15 November 2026 (accessibility tiers, permission prompts, flashing media) in DECISIONS.md as ADR-DESIGN-OWNER-20261115 and link the handoff",
+    "task": "Address CodeRabbit review of PR #339: the D3 review criterion of ADR-DESIGN-OWNER-20261115 assesses concurrent flashes on the combined rendered interface, not only per surface",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The change records three existing owner design decisions in the decision register, with implementation and verification status kept separate, and accepts no criterion. The ds-1.1 design changes remain uncommitted and unaccepted, UX-A11Y-R is an intermediate research checkpoint, and the successor matrix checker remains an open lead item."
+    "summary": "41/100 remains 41/100. The change corrects one review criterion in the decision register (combined area of concurrent flashes, per WCAG 2.2 and ITU-R BT.1702-3) and accepts no criterion. The ds-1.1 design changes remain uncommitted and unaccepted, UX-A11Y-R is an intermediate research checkpoint, and the successor matrix checker remains an open lead item."
   },
   "tracks": [
     {
