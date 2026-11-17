@@ -13,6 +13,7 @@ The repository explicitly enables free-tier features, draft PR reviews and codin
 
 | Command | Exit | Local raw evidence |
 |---|---:|---|
+| `python3 -B tools/tokenguard.py run -- git diff --check` | 0 | `build/tokenguard/run-w_fjff05.log` |
 | `python3 -B tools/tokenguard.py run -- python3 -B build/coderabbit-oss/validate.py` | 0 | `build/tokenguard/run-k4pcrjam.log` |
 | `python3 -B tools/tokenguard.py run -- python3 -B tools/progress.py --write` | 0 | `build/tokenguard/run-ixjdgl5f.log` |
 | `python3 -B tools/tokenguard.py run -- python3 -B tools/progress.py --check` | 0 | `build/tokenguard/run-obodmbmj.log` |
