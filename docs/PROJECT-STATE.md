@@ -1,6 +1,13 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Design pipeline (Orbitaal UI/UX), continuation branch `claude/baryon-os-design-pipeline-20261115` — 15 November 2026
+## NEXT AGENT HANDOFF — Phase 0 PR343 — 17 November 2026
+
+**Source:** parent `1c6842c4c73f42691fa553e76944bc9ebd795186`; existing PR #343 branch.
+**Changed:** bounded artifact-action contract and meaningful negative host oracle; existing native/evidence guards preserved. [Receipt](verification/phase0-pr343-20261117/README.md).
+**Checks:** 7 SMP CI tests, 26 workflow tests, 8 evidence-verifier tests and pinned actionlint pass (exit 0). Initial tools-suite failure from snap launchers retained; installed-rustup rerun running. Hosted action/current-head CI pending. Progress 41/100 unchanged; no merge.
+**Next:** verify hosted roundtrip and required jobs, record exact head/merge SHA and request specific owner merge approval. Independent #344 dependency record work can proceed. Orbitaal/S09 ownership remains unchanged. Baseline B not established; governance phases 1–6 not started.
+
+## Retained workstream handoff — Design pipeline (Orbitaal UI/UX), continuation branch `claude/baryon-os-design-pipeline-20261115` (PR #339) — 15 November 2026
 
 **Phase 0 scope correction (17 November 2026):** published source `ca3534f32b8bd80373143542e14b8d3afe0ea298` provides a targeted, abstract-level research checkpoint. The project owner's systematic-review requirement remains open. The historical independent AI verdict is retained in the [verification record](verification/a11y-research-20261115/README.md); it does not establish completion of that requirement. Design WIP, runners and workstream ownership are unchanged.
 
