@@ -1,6 +1,13 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Phase 0 PR343 — 17 November 2026
+## NEXT AGENT HANDOFF — Phase 0 SMP guide translation — 17 November 2026
+
+**Source:** main `95d59ad52761c1f8f0201d934556902b90ce63cb`; branch `codex/phase0-smp-guide-english`. Only the SMP guide's prose and the lead-owned receipt/status/assessment are changed.
+**Verified:** independent semantic review and preservation checks pass on exact guide SHA `3dba5104d2d57158534c72ae35929751fdb653c1034eff8327e7d13ce26643ad`; the numeric-separator clarification preserves every value. [Source-bound receipt](verification/phase0-smp-guide-english-20261117/README.md).
+**Limits:** no new native/full-matrix/hardware/human evidence or K06 acceptance. The specified future native-report destination is absent on the recorded source; no replacement is inferred. Score remains 41/100 and full #274 remains open. Current-head hosted checks are separate; baseline B and governance phases 1–6 remain unfinished.
+**Resume:** run/record progress and whitespace gates, publish the draft and verify current-head CI. Eligible Phase 0 squash merges are owner-authorized after all gates; no auto-merge/bypass. Existing Orbitaal/S09 WIP, runners, claims and ownership are preserved. The historical checkpoint below retains its earlier observation and is superseded by this source-bound handoff and current owner authority.
+
+## Historical Phase 0 PR343 pre-merge checkpoint — 17 November 2026
 
 **Source:** parent `1c6842c4c73f42691fa553e76944bc9ebd795186`; existing PR #343 branch.
 **Changed:** bounded artifact-action contract and meaningful negative host oracle; existing native/evidence guards preserved. [Receipt](verification/phase0-pr343-20261117/README.md).
