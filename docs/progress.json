@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "0dfcadd17b722cdc8996b50f8e3873d6d37cd9fe",
+    "source_commit": "eb400e81a683b623b2612f87908087ce350ab0a9",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-baseline",
-    "task": "Phase 0: checkpoint six current-source USB/HID native cases and reviewed policy dispositions",
+    "task": "Phase 0: retain specific conditional PR343 approval and source-bound S09 ownership disposition",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Six USB/HID native regression reports and TEST policy verification preserve bounded prior behaviour; full H02/B03/product acceptance remains open. No merge, baseline freeze or governance refactor is claimed."
+    "summary": "41/100 remains 41/100. Specific owner approval does not accept OS criteria, bypass pending checks or transfer S09 ownership. No merge or final baseline is claimed."
   },
   "tracks": [
     {

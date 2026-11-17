@@ -49,3 +49,9 @@ Resume from branch `codex/phase0-baseline` in `/tmp/baryonos-phase0-20261117/rep
 - Preliminary authenticated read access to CodeQL/dependency alerts works. This is audit readiness, not the fresh final integrated security assessment required after queue processing.
 
 Baseline B is still not established. No merge, auto-merge, issue closure or governance migration has occurred. Exact next step: finish current-head PR343 checks, seek its specific owner approval, and continue disjoint verification/dispositions.
+
+## Owner authority and remaining bounded work
+
+The project owner explicitly approved squash merge of PR343 head aa7a0387aa34c2f9ead9a46d9a3ee7df32f5a3a5 **only after the remaining window-session checks are green**. [Exact approval scope](pr343-owner-approval.json). Required checks and the affected artifact/SMP jobs already pass; pending jobs are not reported as passed. Recheck exact head, current base, review status and every approval condition before the atomic head-matched merge. Other PRs and auto-merge are not authorized.
+
+[PR340 read-only ownership/review disposition](pr340-ownership-review.md): retain the S09 owner; a bounded portal-lint repair and fresh fingerprint/gate remain. A separate owner question requests only this limited repair authority; until answered no S09 code, runner or existing worktree is changed. D1–D5 and full product acceptance are not preconditions for that limited D6(a) slice.
