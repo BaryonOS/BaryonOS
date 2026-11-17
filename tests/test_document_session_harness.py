@@ -90,7 +90,7 @@ class CompiledBindingTests(unittest.TestCase):
         rows = [(crate, source, log, 'rlib', f'users/lib{crate}.rlib') for crate, (source, log) in gate.LIBRARIES.items()]
         rows.append(('os_user_m6c_probe', 'userspace/m6c_probe.rs', 'build-users-m6c_probe', 'bin', 'users/m6c_probe.elf'))
         for crate, source, log, kind, output in rows:
-            command = ['/host-fixture/rustc', '+1.90.0', f'--crate-name={crate}', f'--crate-type={kind}',
+            command = ['/host-fixture/rustc', '+1.100.0', f'--crate-name={crate}', f'--crate-type={kind}',
                        '--target=x86_64-unknown-none', '-o', str(self.build / output), str(self.root / source)]
             for value in ('panic=abort', 'code-model=small', 'relocation-model=static', 'no-redzone=yes'):
                 command.extend(['-C', value])

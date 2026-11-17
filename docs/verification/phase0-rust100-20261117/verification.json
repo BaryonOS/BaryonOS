@@ -1,0 +1,631 @@
+{
+  "task": "P0-MOD-RUST100 source checkpoint; compiler compatibility pending",
+  "source_parent": "f5a976f17a3167a08ad513f0328cba8de3dd8a62",
+  "reference_main": "38d4cc17687156379677993be9945447591bd4c1",
+  "map_sha256": "52a725e663c5062e6e40bd21f7b634f2a79afabbccf0208d9c04943b26b7037d",
+  "official_manifest_sha256": "3051e859570f64a8c5acb9d09e87425db52c7d97287c67e8f6d57d7d34ef9258",
+  "named_toolchain": "1.100.0",
+  "installed_receipt_sha256": "04fdf0714eff17590b5d8a11bf7b34c1b6c83162c2b85807925924b0fb606d74",
+  "active_mapped_lines": 312,
+  "additional_escaped_active_guard": {
+    "path": "tools/preflight.py",
+    "line": 150,
+    "before": "^rustc 1\\.90\\.0(?:\\s|$)",
+    "after": "^rustc 1\\.100\\.0(?:\\s|$)",
+    "reason": "Actual positive fixtures failed30 subcases before regex pin update; original log/exit preserved"
+  },
+  "pin_and_dependent_harness_oracle_paths": 80,
+  "existing_on_main38_paths": 80,
+  "queued_only_modified_paths": [],
+  "queued_source_context_paths": [
+    ".github/workflows/kvm-pilot.yml",
+    ".github/workflows/volume-acceptance.yml",
+    "sdk/examples/input-service/build.py",
+    "sdk/examples/window-session/build.py",
+    "tests/test_ci_workflows.py",
+    "tools/build.py",
+    "tools/test_volume.py"
+  ],
+  "true_msrv_manifest_count_unchanged": 58,
+  "synthetic_fixture_paths_unchanged": [
+    "tools/tests/test_agent_pipeline.py",
+    "tools/tests/test_roadmap_runner.py"
+  ],
+  "files": [
+    {
+      "path": ".github/workflows/app-management-quality.yml",
+      "source_sha256": "ba29fdcaa03c8e61cb3b203e82dfca29edfad9fced7d80c6f4ef3ae5f48c5237",
+      "pin_sha256": "aff42bd8e151d09ea1fbbd9ecc9e329034e82cefaee33bb904d9324d64e509ba",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/artifact-store-quality.yml",
+      "source_sha256": "045b8fc2d96301e42e0477e47e294812fe2bef0df0e571fe915895399e033c34",
+      "pin_sha256": "061c1cfdd0b3eed2268cb199cef23cb0999d3f456848bd8e82878e70a791be92",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "source_sha256": "ef78eb39805ee6371c272af386acc688b945e5dab1f672fa3eb66f0ff452cf8a",
+      "pin_sha256": "4b12f3a6d4e43803ab0258b389f635fb81ca12cdb8dee14280cab7339a253722",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/component-leaves.yml",
+      "source_sha256": "872269c1fb41fe6ced942d23c96a518b9d18fb90e7be455031284b5640949664",
+      "pin_sha256": "55357968f7755e93f1509f287e932ff041c324216474e938d7fd167d0bc64cae",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/copilot-setup-steps.yml",
+      "source_sha256": "c4c78f3d77568bed7b857d8a0ee1f3ff2a7ca0f60c6b6ad828ccfb67af265246",
+      "pin_sha256": "0f9fa1457315df88fe168b761c9e1788b780d25b8a7d794b9be90f1562fae583",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/entropy-keys.yml",
+      "source_sha256": "4e7c32c9eb4694fb408f4ecd55ade17b2eec9f8bb1eb43294fca9604d7514428",
+      "pin_sha256": "f07e9a3a3d1e0ba97a5816743ce0acba28f012f8fcbb700cd0db351c694b7d88",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/kvm-pilot.yml",
+      "source_sha256": "999589cfffa2cb584f3cff22de64c23689e8f8036c41fccbf291fc5f2bae49f1",
+      "pin_sha256": "02e95907fc87f45ba7ffacdce2a0182953c0ed9d46fdfed11cf533d000dcf42d",
+      "queued_source_differs_from_main38": true
+    },
+    {
+      "path": ".github/workflows/materiaal-probe.yml",
+      "source_sha256": "02b0de0e45ffd23b99b4a5e993c5450a290a7fe8d3443d05e943d33f73206366",
+      "pin_sha256": "16866f318c43193547d64271641f3b21d9288f6d8c9718cfaa1707de549f58ba",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/nas-core.yml",
+      "source_sha256": "e9b28f8cddb572a155c6ad96388ea20be232daea2352a7a64d878b95c1510cab",
+      "pin_sha256": "9ae1801a3362592658f1073007024b488395248b950c9293c2589529dd59ee86",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/native-display-input.yml",
+      "source_sha256": "3dd048c4ccc07c703bf53575edd61295458d853777b469a679695be2e90c74d2",
+      "pin_sha256": "e5a418796d4b57efb245e82754a84bd2759007a6a9a616a593f6ebebfab09855",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/native-foundation.yml",
+      "source_sha256": "374c10ec84229912d07ab874aef76a02bda6bc7d8f0771de8cbac93eca1ace05",
+      "pin_sha256": "db186259092738e7c5f8724796fd96164ae38cac9a7e2f9c381df44fb8e96a20",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/native-power.yml",
+      "source_sha256": "51add054f6fd53b6020c697e531292ba540ba71be288f0664fbbe7db505a7c5a",
+      "pin_sha256": "14339f8410049b8cac7c40f20a74046e1a3969c3450028e877a2832ed6456c05",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/native-rtc.yml",
+      "source_sha256": "79070c2588c9311d4b8ba0afa6af3d343456992264ebf86fd0aa4a980d695eb0",
+      "pin_sha256": "c23681bac7e0e03d431f0de7abcf6f91e7048a4be85212090df000f0ed71b822",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/native-smp.yml",
+      "source_sha256": "8d93bb172b105e8265d26aafecb1b95036588a97ec939427ed76473d60f1df4a",
+      "pin_sha256": "74fd75341f83b9a1b30a82066d2508515758c4724e0497186f001aa8d7015d44",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/native-system.yml",
+      "source_sha256": "4baf427c2eeebcf732fb5ad5b972885d994a731d5fbe4d5c092e830e0a7b8696",
+      "pin_sha256": "35ca9285729b483fb9cbcf2d1b368257c732fff787e420a54d39c297478f3c91",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/native-window-session.yml",
+      "source_sha256": "8a0f8200e48d9ef3deda98c547efecd5e6d46f9792cd927525ad7141b6af4069",
+      "pin_sha256": "fe78203f8abff2f8d3effc2723be3d3675985fbe2c58e14362aa3e4890f4531d",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/net-broker-quality.yml",
+      "source_sha256": "6cebdcbb800f35092fa6251bcc3a51c7c2f359d2da9a2cc21375c9e47dec0f4d",
+      "pin_sha256": "83f39ce76e90ca00b2b24be95477f99bead04164ee78781b7242f0e72e83b264",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/net-tls-quality.yml",
+      "source_sha256": "31e84756f527621daaea9eceb560f6fee493dcc0424bb591dbc90786a31403c7",
+      "pin_sha256": "deb488df88a3b3b9c6560884f1da5028c14581fb6d7ac63cf8ed500ff8faf202",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/process-management.yml",
+      "source_sha256": "2c2e43b8ea4ec8d933c993549c40d5398b74395d2135544d59b41d65bfc11bba",
+      "pin_sha256": "ff4e18f82f213d12282e6ea35e9794ede8f631cf2d87f0ec6daa58ca5a513142",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/resource-pressure.yml",
+      "source_sha256": "953c6d50b13c50837bde4e7c5ecf79e7f4a4e4e7bab01dd0139741fe63afe019",
+      "pin_sha256": "90b69ed4d56f6b08bcdc9d246b1f463e9a12cf94dcaf3b45ce62d92cf590fa2f",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/signed-updates.yml",
+      "source_sha256": "ff12a5cadd545860a1ecb39ce070af2ea220fa4326ec9f9d4311a0650c1e3b4e",
+      "pin_sha256": "f7df21fd292f732d4d8c85fb1aec7699e1d83ca10d0bada7e0d84ab3cd4dc9b3",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/storage-resilience.yml",
+      "source_sha256": "c33a68d01f2b6ad1f7ad6f34154fb12737a26d7723a90fbb63f26fbef269f6cc",
+      "pin_sha256": "21c8df0b9a194b07171f8f37d2b46b2d0bfc88e391f86f4c7da05ccf9e135bfe",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": ".github/workflows/volume-acceptance.yml",
+      "source_sha256": "f7f769ec57ba1777308aad42123467d8aec39aeea8854cf8dcc56b5d6d92f0e5",
+      "pin_sha256": "9e27a12dd5adac6ec46d3056459b56a9d0da9848d70d3642562db3695ab821a7",
+      "queued_source_differs_from_main38": true
+    },
+    {
+      "path": ".github/workflows/windows-qemu-test-version.yml",
+      "source_sha256": "16ad69e79300887a7c306e5dd90fce0a7833f53d11167d72deca20c6802b7cc3",
+      "pin_sha256": "90301b24c7cb2af8b236577fd7a13e951560cf521b2db1074207a808263bb08e",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "crates/virtio-core/verify_m6.py",
+      "source_sha256": "a2da0c5bd97f4ebb9fad0723389296f1e9e347c9cca0cca9479ef2d05f3e3505",
+      "pin_sha256": "d5b858e17dab7a52a1d20c2c6b820c805d5ecc1c4fb09ab596261d38d4693e10",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "experiments/quantum/native/build.py",
+      "source_sha256": "269d0d6abdfba5385554ec40a992cf7acfcc3de5b70251c58cef8babc59a78fa",
+      "pin_sha256": "c9c47c5c4967810e74b74a8c1d16bebbf20d7cd0c62bc9bdc85bb37a0b03d0e4",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "experiments/quantum/native/job/build.py",
+      "source_sha256": "aaeef4846068ed40112515c7d808fa8f6db1f0c051dff7e4785bdea6978e6c66",
+      "pin_sha256": "7c781028be88e587dd9174fada766f2adb11492d21124099a8957edb72cab56f",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "experiments/quantum/verify.py",
+      "source_sha256": "a6c0756d78b09691ad862a541f03bffac442e51947ba06ab6e96669fc3354fd3",
+      "pin_sha256": "67f898e1a76a2f1c431d0f431d72a3e6975b82d5ae1b288542cc40d484ee1d55",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "rust-toolchain.toml",
+      "source_sha256": "fdc1c499d524be4dc57534d10a6d41c854fa6340866f63fcc9abdaa22a540437",
+      "pin_sha256": "afc50387e1af098a434df95ab2bbc9d046ac76b63cc03152f9c8f6098f0335af",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "sdk/examples/calculator/build.py",
+      "source_sha256": "13bc43253c5ac552db4d2e3a21e2e4e566831a29bf5b1b1b414ebf5a59fb29d8",
+      "pin_sha256": "71123b9e4fa2ac9b9e918ce816b18dd8945ea7a498b230e1395464844542ffdd",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "sdk/examples/compositor/build.py",
+      "source_sha256": "aa4da2640ec5938782326e74abd38dfd5323a2c8e76468779dfa3dc4e357da2e",
+      "pin_sha256": "0b383da4ec4ade3c51bea929ee3b8d41c9c52e2f38f1edfb79994c49ebae0d38",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "sdk/examples/desktop-init/build.py",
+      "source_sha256": "380fcd039c499bfee17762c0bbc40e10576432d9ba31d4252aca523960f1ce48",
+      "pin_sha256": "0b98cbfb8e7ada11700fe3dd8d06c5e31c94b14e0268ad326ad8c4a89cbe63cc",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "sdk/examples/display-input-probe/build.py",
+      "source_sha256": "921652bc3d52eadd09139f249f6b7839b2ec02ff26bf3b15cdb521d75ec4bb4c",
+      "pin_sha256": "d580fea8ae5f4e40b83f00aaa978484258dee3fe60eae489ef65a3b28ad93a12",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "sdk/examples/image-probe/build.py",
+      "source_sha256": "677c6d72bfc7f858be9b6073a62188eea48a213587586fbd0506d5aa0140fb66",
+      "pin_sha256": "21c291045b17be9796de81dbca2a285b030ba188d8f64e1c70737ad335b6dba5",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "sdk/examples/input-service/build.py",
+      "source_sha256": "b95f01531268dff4756076d32b356befdd85d5355f722a5b48d070b86bbcfcc6",
+      "pin_sha256": "83d9d7c06d6589557f2f3fe6b0b74017006585eac9976317b122285b7ce03b90",
+      "queued_source_differs_from_main38": true
+    },
+    {
+      "path": "sdk/examples/ipc-wait-probe/build.py",
+      "source_sha256": "9af0779d2db0424c25581154f1b30891ab34492c78935f9237d998d3c1e3c13e",
+      "pin_sha256": "d2164bd935c04b4c8e5cd9126f0ee476ec2b2b02d327236db8c6b9d9935d5db1",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "sdk/examples/materiaal/build.py",
+      "source_sha256": "2a15917118752bc7eea3adfeee9636c2f9720fb067d34c796733fa891c0631b6",
+      "pin_sha256": "4d1ba327f3a712316994abfe59ba33a816d49ba14e57c7eac483e3dcc609bfca",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "sdk/examples/memory/build.py",
+      "source_sha256": "bca7e31553530fa64dec742554c54b72ca45c20917cebe405e770baaa58911e6",
+      "pin_sha256": "656c0fab721cd73f62d2365ca8e9c1b90c145a62ae1ca8fe8100be0b8eec102a",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "sdk/examples/network-service/build.py",
+      "source_sha256": "946046aa8dde0a03f5c8625f2f3d1e199e08697548664941053bd9d39dd7c2ed",
+      "pin_sha256": "79dcb0e149a5d06fbe4bd2e21518389b8342f8d87d10bbed495f3eb42221cbfb",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "sdk/examples/random-probe/build.py",
+      "source_sha256": "d11beb53f9151f8f18ff154ad6493fdd3ba45e170fb57ee811dd9c9e4d7db2df",
+      "pin_sha256": "bac9c2542c040a8e85d58e8b3bf98a78ae699c56ebcbb625ac0ba383723947ad",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "sdk/examples/tcp-probe/build.py",
+      "source_sha256": "4516c8173419fb9e31a4b66b057446b26dee9565328599fa8763acdaa204bc3d",
+      "pin_sha256": "c1ec6c1062bce1e6fe90179392469783b20e5593bedd1a8a346ae79aa398493e",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "sdk/examples/window-session/build.py",
+      "source_sha256": "7870e917070c8552e2413ce45ca3242e9e24b19856cea0af44d17dab426d7955",
+      "pin_sha256": "bad13edf08e2eea32f06361769223002548d61bddb6259c21b0774b5f354e57c",
+      "queued_source_differs_from_main38": true
+    },
+    {
+      "path": "tests/test_ci_workflows.py",
+      "source_sha256": "1a0adef71981f3ced6b7bb281240e5e3e8a56556c8de673e440e0affdcb69598",
+      "pin_sha256": "7cd94d47410fbb9cf969c79221eb8ac1748417922dc44d3204b4d8fba6b0ef78",
+      "queued_source_differs_from_main38": true
+    },
+    {
+      "path": "tests/test_document_session_harness.py",
+      "source_sha256": "7bae9788b0a8679a0234d84b3c43195d3f677eda6a9a162a7093b1f5b2145d36",
+      "pin_sha256": "b35d575849351ab0f5864a017ec1004d05665da5f5ea4131ece1be4f5d21e7b1",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tests/test_m6b_capture.py",
+      "source_sha256": "7d1345737ddc5bd9f35bfc9eb55e69366c9399de6eb56bec22875181892b1318",
+      "pin_sha256": "cf3d6981cec418508167fc4db8ea61c27381362f40fbde32f5826b5b76654e12",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tests/test_m6c_capture.py",
+      "source_sha256": "24c43507276d239919cb1d1b1551b5310f5a5e8cdd9bca2ac25e68cf496d20f0",
+      "pin_sha256": "ce480e8ea5db930a918a61f9b0ca6bfb9862a46bf7e3ba830091feb2a71794cc",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tests/test_preflight.py",
+      "source_sha256": "e28d034ae081e1d4c0d69f52acb33a644552f4320c7a282da96727514233f21b",
+      "pin_sha256": "9799e0ea04b76c93c07351a183c06a29f02f55c1cd02e6c2720baf171a515a15",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tests/test_system_capture.py",
+      "source_sha256": "26daa6c7fea4db7741fed0ee491e7d2fdb5a2f12afbbcba4c17cda342fabee9d",
+      "pin_sha256": "880f024d75a165f52bd51d0247b5b0b632e764970ff7fd4222f13b6333c4665b",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/build.py",
+      "source_sha256": "418842a5329764e7ae885ced711be944222d91c4bd121f4623f12ecc9da74f62",
+      "pin_sha256": "867278480c1009431caabd7a56ff25b2effb18c7ef03ee77e037dbcb77f9398d",
+      "queued_source_differs_from_main38": true
+    },
+    {
+      "path": "tools/build_users.py",
+      "source_sha256": "b03507c486eb690eb442fef3ce8813612ab3da5b8fc25b161bb0f2f980ee65b7",
+      "pin_sha256": "6a945c058048f01663eb2537dc9e47988fd5e1ad1c1996147bd6ecda053fc82a",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/capture_m6b.py",
+      "source_sha256": "96afe7824e7970b64883e1f4eab856df9404382ee53561a2306af30c09eba1c4",
+      "pin_sha256": "3c89ef54d747fbf917ace757e7b61af6fcded92f67668a162e8e1e5420e730f2",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/capture_m6c.py",
+      "source_sha256": "30dfa2b9b12603e0a891c088cf64eca3f84204736907f053859d570e4ecc4a79",
+      "pin_sha256": "b2b5f8890de041551268b65d287cc83caadfc4542236bd348af534db8368505a",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/capture_system.py",
+      "source_sha256": "2577cd0ce46fe7f1442162b0a19cdfe9a6cb23e12a7c4beaa7b1297dfeb00ea3",
+      "pin_sha256": "01e739cd00317d06625b6c98bc08a4e4cdcc308c9fcbebaef1d9e5d034f7d064",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/common.py",
+      "source_sha256": "69c4d86efc6dd603577c3274b78e9b8625804ccd5e0f2c9a01add50ca223fd0b",
+      "pin_sha256": "4f923aa8bf12d156a380ca09ded99704f14a75fb58629d5351e888dc8a8d8cf7",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/mutate_volume.py",
+      "source_sha256": "becf25a9e1a724b8c373b5722716faa4a2532e1e1ddd0baae1ed572aa0f560ad",
+      "pin_sha256": "8b8be1e5b02cfa6c298918e1406548f06946ef178bf4811a4db22d6846b5cf04",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/preflight.py",
+      "source_sha256": "5899d378847cf4829c2dc70bcd37454ac64bb1c7c490407ea351dfd7c2877145",
+      "pin_sha256": "681f67e7910a0ac8719294a4fa0f648729ec859a7740b62c95b2e5c501baeed2",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/qemu-smoke-test.sh",
+      "source_sha256": "2247d8a86e51598b8ad9759ebdfdf47c00df226e41ce77eb383b8e29ea226c65",
+      "pin_sha256": "c042dd460161a09717abece6c7a5a9f1e4ca6933e82df0c149d742c3538369b3",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/run_fpu.py",
+      "source_sha256": "6616894b01a2736c9facf9569a52e6b11e3e3f3a3751da0a5923bf0ad9c399dd",
+      "pin_sha256": "a3d84fb17e7681d9750db638c965c103a9a01441d042154713be88e861375a7d",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/run_session_preview.py",
+      "source_sha256": "4291e1e7bf11378d3738366ae6448fd4329a3630da9f618a0164fb4a9abaf451",
+      "pin_sha256": "68fa33ab710b10e3907b2e4f6d5369d9d6aa5f15e3baa17bcf0fda2e7534f2ab",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/run_update.py",
+      "source_sha256": "ac9751dbfbbcce71cf0569953001a57e63423c59b0b1bc3333785e38d793ee2b",
+      "pin_sha256": "fc9246e76541c21f618103d8e6acc895cd8540804ed43fac2b6ba98071dc2bac",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/run_window_session.py",
+      "source_sha256": "6614f450412e0634e244c420d612e1da8d129ef3b420b13d8441c5c08a8eee66",
+      "pin_sha256": "f749a4fbba41699d810b73bf1658cf5d7ca6a3918247ed7e4bae847048bad8fb",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test.py",
+      "source_sha256": "cc4704d18550d6dea8090dc09e4837795242ec4e2fbb9e6d718238eec6945b04",
+      "pin_sha256": "29d3755b8bb40d85aae68e97ef5d0aa71621a3172d542afc3417c3e554978a3a",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_document_session.py",
+      "source_sha256": "df021561b945434e43f53fab073221b4f865dee67f167c1e3e2e532b5a05cf3c",
+      "pin_sha256": "c1545eaf70ad4bb744cfe56d9ffb0ea03300505b9e200be9b7c1b9a1a6d2d0b2",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_graphics_helpers.py",
+      "source_sha256": "0e13cc3e30b51672125e1985e4a5081db89a4662b7f100ed84462c388855a54a",
+      "pin_sha256": "a2d95b22a6cb4792f0f6041056cba2ae796fac75bcf878a5c1a517ff65d6aebb",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_keyring.py",
+      "source_sha256": "b56feda8ee232466b460ea3f289d91cfa95a020a149e5760d1f55afaf1f3f98e",
+      "pin_sha256": "d2f7c59f374781a410b52a94ad7ca1f9817387a24d5d2b37c9651fde0478fea1",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_m5.py",
+      "source_sha256": "95cbd825ab11ef02de7c752d94ac0cd5a97d192eadc617dcc358ffc92b30ffaf",
+      "pin_sha256": "805e77076a57d3a9ce200dc3ae1530fff0df45176dc3e92596a821282e2b03d5",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_m6.py",
+      "source_sha256": "759b3f5bf8f4cb88dc4e02b112848e151d03111bd174b6838b79c8bd214da657",
+      "pin_sha256": "ddb33fc1724a4e367046a8f1364811a8541675ca4509d97c8210dee06a5755ce",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_m6b.py",
+      "source_sha256": "9935db1fad620c6dfe9baa66f3f3a7bb3f8678d1356552c101f3f2f9e4dd657e",
+      "pin_sha256": "93ebf87ff3c0eca5183401d936605a63c12a555ebe7a50230817247847cdb77d",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_m6c.py",
+      "source_sha256": "8e472647a54af5007d3806a9d6ec509dbfc5a66767435be928a349d4ba913e8b",
+      "pin_sha256": "0f684684672a1984f9b5b4636f62b4715f461b1c64aaf1a2e722ec788538620e",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_milestones.py",
+      "source_sha256": "9c0cbdad9073d6175521004aeb20fc77e97c81e2f41a62b922d779f3a3d7e930",
+      "pin_sha256": "6743165308e36a2013cc657eab4753d4fecafab4014a03963ca159d01c001117",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_net_system.py",
+      "source_sha256": "0561122db99aa63915cc05121edfc7d49ee7474ea12c8472fe3a8787ae5474cf",
+      "pin_sha256": "749254d12e45bbbfdcaf96edc1c52c15c5b95d84e9daa53c48161025af47d212",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_policy_envelopes.py",
+      "source_sha256": "0181195e9b476de2c1ddf0e95387fc1470d360617c35b93cd77b43a30be31b72",
+      "pin_sha256": "185f0601a3937d597ed523dbbcf550ef83f586d6c339b42501f08ff494e78ccc",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_supervisor.py",
+      "source_sha256": "dfe7c9396fafa59ac2f98b60d06b98567f5849ad949b0b2cb13707d416523561",
+      "pin_sha256": "b6528dd70fc74dfc3e107193a1ae9c7711f823add0ac2cccefdeb1336e4c28de",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_system.py",
+      "source_sha256": "0b83348208e1562d31f46470b0078fa3d72af1e3649ad6df40226c49c4ebdd87",
+      "pin_sha256": "352a1efa629da718e1e1ed6b49fe9a498ceacc07f66a25de2d8d9085416da7c7",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_tcp_system.py",
+      "source_sha256": "0c630f9f0f272a8f2ac8d170209fa5d3f4a70552cb7f19c1044d35430bd9189d",
+      "pin_sha256": "abd4db1488655c85390b27803cb645b822d5a52636014096795bef6d839f6a37",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_update.py",
+      "source_sha256": "b4173509783f1f1fc06dff86f657a8e8cd7e3ff980ba56f78df31b1ef1893ab8",
+      "pin_sha256": "b1bdfd46c898e793cafe3f7631d513b3662eefaac4e6226074c3d38b11609838",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/test_volume.py",
+      "source_sha256": "ae90cc76b83e55a08752169b56263d9bfe31dce125f6f78c05cfaba75c49f70f",
+      "pin_sha256": "e94a2f8b803a76782c234b60d63d210ac21624d025cf3d2311bace9154a5c305",
+      "queued_source_differs_from_main38": true
+    },
+    {
+      "path": "tools/tests/test_kernel_memory.py",
+      "source_sha256": "1530817e678aaa281fb379a18c8e853954d46bbcb1de481c3c78024a49e7a38f",
+      "pin_sha256": "cd714cfb880baaf24d87f469726d1b967c6957ef85a657e3de171c585196a1fe",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "tools/tests/test_snapshot_wipe.py",
+      "source_sha256": "1f4ba888c271da693e6c096397c611d83bc2d178a2ceed521c7c08cb58897c2a",
+      "pin_sha256": "1210165f340669b74eeff1ed93727e3c8bc857ab26a9622bf7bbb7f3c76b7db3",
+      "queued_source_differs_from_main38": false
+    },
+    {
+      "path": "ui/native/verify.py",
+      "source_sha256": "ffd564fa3a43744e3a1a540142a4d52737ab8b8bba175e785b7dd5fb2ffc5c01",
+      "pin_sha256": "bde7cc3a599df17d35c773826335546725f1ee82f0171dead48f4a57dd6a971b",
+      "queued_source_differs_from_main38": false
+    }
+  ],
+  "targeted_tests": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_preflight.py"
+      ],
+      "exit": 0,
+      "raw": "/tmp/baryonos-phase0-20261117/p0-mod-rust100-raw/targeted-after-escaped-pin-test_preflight.py.log"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_ci_workflows.py"
+      ],
+      "exit": 0,
+      "raw": "/tmp/baryonos-phase0-20261117/p0-mod-rust100-raw/targeted-after-escaped-pin-test_ci_workflows.py.log"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_document_session_harness.py"
+      ],
+      "exit": 0,
+      "raw": "/tmp/baryonos-phase0-20261117/p0-mod-rust100-raw/targeted-after-escaped-pin-test_document_session_harness.py.log"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_m6b_capture.py"
+      ],
+      "exit": 0,
+      "raw": "/tmp/baryonos-phase0-20261117/p0-mod-rust100-raw/targeted-after-escaped-pin-test_m6b_capture.py.log"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_m6c_capture.py"
+      ],
+      "exit": 0,
+      "raw": "/tmp/baryonos-phase0-20261117/p0-mod-rust100-raw/targeted-after-escaped-pin-test_m6c_capture.py.log"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_system_capture.py"
+      ],
+      "exit": 0,
+      "raw": "/tmp/baryonos-phase0-20261117/p0-mod-rust100-raw/targeted-after-escaped-pin-test_system_capture.py.log"
+    }
+  ],
+  "initial_failures": [
+    {
+      "check": "original map hash precondition",
+      "exit": 1,
+      "reason": "Inventory owner corrected schema; source pins not yet edited"
+    },
+    {
+      "check": "initial test_preflight.py",
+      "exit": 1,
+      "tests": 24,
+      "subcase_failures": 30,
+      "reason": "Escaped active regex still selected1.90; exact pin corrected, strict assertions preserved"
+    }
+  ],
+  "not_run": [
+    "Rust1.100 host Cargo/Clippy/fmt/target/native acceptance",
+    "Actual post333/current-main reconciliation and hosted CI",
+    "Locked UI/S09 business-logic/crypto/trust decisions",
+    "Upstream runtime security fix proof",
+    "Hardware or human audit"
+  ],
+  "progress": "41/100 unchanged; root owns register/state",
+  "raw_manifest_sha256": "308965ba05bebde181038a00ab7323c7c19c0c122356251d47c8fbcac36c6f48"
+}

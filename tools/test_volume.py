@@ -26,8 +26,8 @@ from run_volume import FEATURE, run_volume
 
 TEST_INPUTS = "test_volume_*.py"
 HOST = [
-    ["cargo", "+1.90.0", "test", "--locked", "-p", "volume-core"],
-    ["cargo", "+1.90.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
+    ["cargo", "+1.100.0", "test", "--locked", "-p", "volume-core"],
+    ["cargo", "+1.100.0", "test", "--locked", "--manifest-path", "sdk/Cargo.toml", "-p", "nieuw-os-sdk-runtime"],
     [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-p", TEST_INPUTS],
 ]
 

@@ -14,7 +14,7 @@ SDK_DEPENDENCY_ID = "registry+https://github.com/rust-lang/crates.io-index#zeroi
 
 def sdk_dependency_command(root, build):
     """Select the runtime's locked graph without features from other SDK apps."""
-    return ["cargo", "+1.90.0", "rustc", "--locked", "--release", "--no-default-features",
+    return ["cargo", "+1.100.0", "rustc", "--locked", "--release", "--no-default-features",
             "--manifest-path", str(root / "sdk/Cargo.toml"), "-p", "nieuw-os-sdk-runtime", "--lib",
             "--target", "x86_64-unknown-none", "--target-dir", str(build / "sdk-dependency-target"),
             "--message-format=json", "--", "-C", "panic=abort", "-C", "opt-level=2",
@@ -101,7 +101,7 @@ def build_users(kind="probe", *, short_poll=False, sdk_runtime=False, document_s
     output.parent.mkdir(parents=True, exist_ok=True)
     source = ROOT / f"userspace/{source_stem}.rs"
     linker = ROOT / f"userspace/{linker_name}"
-    args = ["rustc", "+1.90.0", "--edition=2021", "--crate-type=bin", f"--crate-name=os_user_{stem}",
+    args = ["rustc", "+1.100.0", "--edition=2021", "--crate-type=bin", f"--crate-name=os_user_{stem}",
             "--target=x86_64-unknown-none", "-C", "panic=abort", "-C", "opt-level=2",
             "-C", "code-model=small", "-C", "relocation-model=static", "-C", "no-redzone=yes",
             "-C", "linker=rust-lld", "-C", f"link-arg=-T{linker}", "-C", "link-arg=--no-pie",
@@ -119,7 +119,7 @@ def build_users(kind="probe", *, short_poll=False, sdk_runtime=False, document_s
         if sha256(selected) != sha256(zeroize_library):
             raise ValueError("Zeroize artifact changed while copying")
         runtime = BUILD / "users/libnieuw_os_sdk_runtime.rlib"
-        run_logged(["rustc", "+1.90.0", "--edition=2021", "--crate-name=nieuw_os_sdk_runtime",
+        run_logged(["rustc", "+1.100.0", "--edition=2021", "--crate-name=nieuw_os_sdk_runtime",
                     "--crate-type=rlib", "--target=x86_64-unknown-none", "-C", "panic=abort",
                     "-C", "opt-level=2", "-C", "code-model=small", "-C", "relocation-model=static",
                     "-C", "no-redzone=yes", "--extern", f"zeroize={zeroize_library}",
@@ -138,7 +138,7 @@ def build_users(kind="probe", *, short_poll=False, sdk_runtime=False, document_s
             ("nieuw_os_document_session", "sdk/document-session/src/lib.rs"),
         ):
             library = BUILD / f"users/lib{crate}.rlib"
-            command = ["rustc", "+1.90.0", "--edition=2021", f"--crate-name={crate}",
+            command = ["rustc", "+1.100.0", "--edition=2021", f"--crate-name={crate}",
                        "--crate-type=rlib", "--target=x86_64-unknown-none", "-C", "panic=abort",
                        "-C", "opt-level=2", "-C", "code-model=small", "-C", "relocation-model=static",
                        "-C", "no-redzone=yes", "-L", f"dependency={BUILD / 'users'}"]
