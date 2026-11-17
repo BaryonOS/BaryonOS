@@ -24,7 +24,7 @@
 | — | #274 / #277 | Translation and live Wiki coverage require separate evidence. Complete triage and record access/ownership limitations; do not claim completed coverage. |
 | — | #283 | Classify preserved historical proposals by actual source inclusion, replacement, rejection or deferral. Closed is not merged. |
 
-Each merge requires the project owner's explicit approval for that PR and current verified source, current required checks, merge-hold and review clearance. No merge or auto-merge has been performed. Ready/draft metadata conflicts with several PR descriptions; metadata alone grants no merge authority.
+At initial T0, each merge required separate owner approval. The updated scope-limited Phase 0 authority below supersedes that approval workflow; current verified source, checks, merge-hold and review clearance remain mandatory. No merge or auto-merge has been performed. Ready/draft metadata conflicts with several PR descriptions; metadata alone grants no merge authority.
 
 ## Current task contract
 
@@ -50,9 +50,9 @@ Resume from branch `codex/phase0-baseline` in `/tmp/baryonos-phase0-20261117/rep
 
 Baseline B is still not established. No merge, auto-merge, issue closure or governance migration has occurred. Current owner authority and exact resume steps are recorded below.
 
-## Owner authority and remaining bounded work
+## Earlier bounded owner authority and completed repairs
 
-The project owner explicitly approved squash merge of PR343 head aa7a0387aa34c2f9ead9a46d9a3ee7df32f5a3a5 **only after the remaining window-session checks are green**. [Exact approval scope](pr343-owner-approval.json). Required checks and the affected artifact/SMP jobs already pass; pending jobs are not reported as passed. Recheck exact head, current base, review status and every approval condition before the atomic head-matched merge. Other PRs and auto-merge are not authorized.
+The project owner explicitly approved squash merge of PR343 head aa7a0387aa34c2f9ead9a46d9a3ee7df32f5a3a5 **only after the remaining window-session checks are green**. [Exact approval scope](pr343-owner-approval.json). Required checks and the affected artifact/SMP jobs already pass; pending jobs are not reported as passed. Recheck exact head, current base, review status and every approval condition before the atomic head-matched merge. At that observation, other PR merges had no separate approval. The updated Phase 0 authority below now applies; auto-merge remains prohibited.
 
 [PR340 read-only ownership/review disposition](pr340-ownership-review.md): retain the S09 owner; a bounded portal-lint repair and fresh fingerprint/gate remain. The owner granted only this limited repair authority. Source90816de39460b76e35cd626721d4dac9bde905e2 fixes the portal lint and wording in a separate clone; existing worktrees/WIP/runners and broader S09 ownership remain unchanged. Exact Clippy101→0,93 Rust tests,53 Python tests and the full15-stage native volume gate pass. [New native receipt](pr340-native-receipt.json) and [full bounded report](pr340-volume-gate.json). No merge authority was granted. D1–D5 and full product acceptance are not preconditions for that limited D6(a) slice.
 
@@ -69,4 +69,10 @@ The verification README calls the work a systematic literature review, but the r
 - PR339: the owner has now [released only the incorrect completion-claim correction](pr339-limited-owner-release.json). The bounded correction is published as `7bea10d96348b6d5990f9ed1fb53ab94940b3ae1`; independent review, all five hashes and the byte-identical checker output pass (exit 0). [Exact reviewed scope and commands](pr339-claim-correction-review.md). Research/matrix/archives and all design WIP/runners remain untouched. The systematic-review requirement remains open.
 - Draft PR346 (`cece3041187e1b7d08ec7708c36b84c728d6e2d2`) translates only the remaining CI guide as a bounded contribution to the triaged #274 task. Semantic/anchor/command checks and all 26 workflow tests pass. Required current-head hosted checks remain in progress. Full #274 completion is not a baseline-B prerequisite.
 
-Baseline B and the final integrated assessment remain outstanding. Governance phases 1–6 have not started. After PR343, reconcile PR344 with the new main before obtaining its own current-head merge approval; retain the remaining approved queue order and explicit dispositions.
+Baseline B and the final integrated assessment remain outstanding. Governance phases 1–6 have not started. After PR343, reconcile PR344 with the new main before its own current-head merge verification; retain the remaining approved queue order and explicit dispositions.
+
+## Updated owner-controlled Phase 0 merge authority
+
+The project owner explicitly authorized the lead to independently review and squash-merge eligible original Phase 0 PRs, narrow PRs for the six inventoried issues, and necessary integration/security/quality fixes. [Exact scope and unchanged gates](owner-phase0-merge-authority.json). Separate per-PR approval is no longer required inside that scope. No auto-merge or repository-wide policy change is authorized. New trust/product/architecture decisions, unavailable mandatory evidence, destructive/hardware/key operations and unreconciled ownership still require escalation. PR343 retains its specific outstanding-window-check condition.
+
+After a successful PR343 merge, reconcile PR344 with the new main, verify its complete integrated diff and current-head checks, and merge only when every applicable gate and review thread is clear. No merge has occurred as of this checkpoint.

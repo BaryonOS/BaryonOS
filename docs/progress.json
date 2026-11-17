@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "2814cdb000333a0cae9d6a219b0b059a452b89c4",
+    "source_commit": "158de6b5cc4b248a84d64fe172e046eea84289a9",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-baseline",
-    "task": "Phase 0: record bounded accessibility claim release and independently reviewed CI-guide translation",
+    "task": "Phase 0: record updated owner-controlled autonomous squash-merge authority",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. These documentation corrections accept no native or product criterion. The systematic-review requirement and full translation remain open. PR343 has conditional owner approval only; baseline B, final integrated assessment and governance migration remain pending."
+    "summary": "41/100 remains 41/100. Explicit owner authority now permits eligible Phase 0 squash merges after all required gates and independent verification. Auto-merge and policy weakening remain prohibited. The PR343 outstanding-window condition, workstream ownership and all acceptance criteria remain unchanged; baseline B is not established."
   },
   "tracks": [
     {
