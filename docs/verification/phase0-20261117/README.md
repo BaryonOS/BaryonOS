@@ -1,5 +1,9 @@
 # Phase 0 integration checkpoint — 17 November 2026
 
+## Latest owner refinement — current baseline gate
+
+[Current authority](owner-objective-refinement.json) supersedes the earlier strictzero-countprerequisite below. Zero remains the follow-up target. BaselineB requires no unresolvedintegration/securityblockers, allapplicablemandatorychecksPASS and individuallytriaged residuals with evidence,owner,priority,nextstep. Long-termproductissues,nonblockingquality or unrelatedarrivals alone must notdelay approvedgovernance1–6. Allmerge/security/acceptance/ownershipconditions remain unchanged; no falseclosure or suppressedfinding.
+
 ## Active expanded stabilization target — latest owner instruction
 
 [Strict zero-backlog authority and currentinventory](owner-zero-backlog-authority.json) supersede the originalfinite/disposition-only condition below; accepted technical/security/product/ownership decisions remain.0B is the sole primary active milestone. BaselineB and governance1–6 remain blocked pending genuine0counts and allcurrent-sourcegates. Currentmain e7169e43;343/344 alreadyintegrated, neverrecreate them.
