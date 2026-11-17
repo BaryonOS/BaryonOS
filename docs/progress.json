@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-15",
-    "source_commit": "2766e636910a112dc37abf7cb3d2537ba165a001",
+    "date": "2026-11-17",
+    "source_commit": "93797f3a6075af9cc4fdd533dad288bfa7894ffe",
     "assessment_basis": "parent_commit",
     "branch": "feat/s09-ustar-name-check",
-    "task": "S09-RECORD: record the S09 ustar export state (native archive-ustar stage, gate run 14) on draft PR #340",
+    "task": "Phase0 limited PR340 repair: portal Clippy and bounded name-safety claim",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The commit records the S09 ustar user-export state: the name check with the root PaxHeader refusal and the test-only native archive-ustar stage, which passed local QEMU volume gate run 14 (15/15 stages) at source commit 18da1eb9 with an unchanged source fingerprint. S09 stays open: D1-D5 are undecided owner decisions, and there is no user-chosen destination behind its own capability, no B01 encrypted variant and no user task. A test-only fixture portal and host tests accept no criterion."
+    "summary": "41/100 remains41/100. Explicit limited owner release does not decide D1–D5 or accept S09. Exact portal Clippy changes101→0; existing host oracles pass. Fresh full15-stage native evidence and current-head CI remain pending."
   },
   "tracks": [
     {

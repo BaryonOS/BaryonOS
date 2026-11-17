@@ -1,6 +1,14 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — S09 ustar export runner (separate from the design pipeline) — 15 November 2026
+## NEXT AGENT HANDOFF — Phase0 limited PR340 repair — 17 November2026
+
+**Source:** parent93797f3a6075af9cc4fdd533dad288bfa7894ffe; existing feat/s09-ustar-name-check branch, separate clone.
+**Authority:** project owner released only portal lint/wording and tests/evidence. Other Claude S09 worktrees/WIP/runners and D1–D5 remain unchanged; no merge/auto-merge authorization.
+**Changed:** positive-length/alignment predicate uses the standard is_multiple_of method; name-safety wording is limited to checked rules. [Source-bound receipt](verification/phase0-pr340-20261117/README.md).
+**Checks:** exact portal Clippy101→0;93 volume-core and53 Python host tests pass, independent read-only review has no blocker. Full15-stage native gate/new fingerprint and current-head CI pending. Progress41/100 unchanged.
+**Next:** run the full volume gate on the committed source, retain new reports/hashes, then reconcile main and request separate owner merge approval when eligible. BaselineB not established; governance phases1–6 not started.
+
+## Retained workstream handoff — S09 ustar export runner (separate from the design pipeline) — 15 November 2026
 
 The design-pipeline handoff below remains the authoritative handoff for the UI/UX
 track. This section covers only the S09 track, which runs in its own worktree. The

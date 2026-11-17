@@ -12,9 +12,9 @@
 //!
 //! Two passes, because a [`Source`] is read once: [`check`] walks the whole
 //! archive and judges every name that reaches the export, [`from_archive`]
-//! walks it again and writes. A name that is unsafe or ambiguous on Windows,
-//! macOS or Linux refuses the whole export before its first byte; nothing is
-//! renamed.
+//! walks it again and writes. A name rejected under the checked rules refuses
+//! the whole export before its first byte; nothing is renamed. Platform limits
+//! such as 8.3 aliases and target path lengths remain outside these checks.
 use core::iter::once;
 
 use crate::archive::{walk, Collections, Entry, Sink, Source, Summary};

@@ -1053,7 +1053,7 @@ fn portal(app: &mut App, case: u64) {
                 835,
             );
             let length = out.finish().unwrap_or_else(|_| fail(836));
-            check(length > 0 && length % SECTOR as u64 == 0, 837);
+            check(length > 0 && length.is_multiple_of(SECTOR as u64), 837);
             // The host reads the stream with Python tarfile at this length.
             support::put(512, length);
         }
