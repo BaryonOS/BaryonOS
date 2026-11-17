@@ -20,5 +20,8 @@
     "Unrelated file-prefix siblings",
     "Nested instruction basenames",
     "Intentional TEST- family"
-  ]
+  ],
+  "owner": "Codex governance/pipeline lead",
+  "priority": "P3",
+  "next_step": "Governance2: preserve protections while testing exact protected files, directory descendants, unrelated prefix siblings, nested instruction basenames and intentional TEST- prefix family."
 }

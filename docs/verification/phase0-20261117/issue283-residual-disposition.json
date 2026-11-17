@@ -54,5 +54,241 @@
       "raw_archive": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117/P0-274-remaining-inventory.md"
     }
   },
-  "issue_comment": "Evidence and explicit OPEN residual route posted to283"
+  "issue_comment": "Evidence and explicit OPEN residual route posted to283",
+  "owner": "Codex evidence lead; project owner for rights/disposition authority",
+  "priority": "P1 release/publication provenance",
+  "baseline_disposition": "Open publication/rights/evidence limitation, not a demonstrated new integration/runtime security regression. BaselineB does not grant publication/legal clearance or weaken accepted licensing/release criteria.",
+  "historical_candidate_only_dispositions": [
+    {
+      "path": "docs/PUBLICATION.md",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Obsolete new-private-repository publication instructions",
+      "disposition": "Preserve at original immutable PR/head pointer; do not import obsolete publication route as current instructions",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-20261108/DEPENDENCY-LICENSES.md",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-20261108/PUBLIC-CANDIDATE-LICENSE-REVIEW.md",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-20261108/candidate-secret-triage.json",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-20261108/dependency-license-inventory.redacted.json",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-20261108/public-candidate-authorship.redacted.json",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-20261108/public-candidate-fonts-and-validation.redacted.json",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-20261108/public-candidate-scope-evidence.json",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-candidate-20261108.json",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-final-20261108.json",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108.json",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/ci-integration.json",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/integration-checks.json",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/source-inputs.json",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/test_build_paths.py.log",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/test_ci_evidenceall.py.log",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/test_common.py.log",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/test_guest_harness.py.log",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/test_m1_artifact_binding.py.log",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/test_m6c_all.py.log",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    },
+    {
+      "path": "docs/verification/publication-resume-20261108/test_preflight.py.log",
+      "source_head": "0e2a1ed509989d2adc1fa1a8c61e7815f75692a7",
+      "evidence": "P0-283-260-disposition-review.md coverage of all91 non-deletion paths and F2/F3",
+      "classification": "Immutable historical candidate-bound verification evidence",
+      "disposition": "Preserve at original immutable PR/head pointer; do not promote old host/scan/test counts to current acceptance",
+      "owner": "Codex evidence lead",
+      "priority": "P3 historical reference",
+      "next_step": "Use immutable source pointer only when relevant to historical provenance; actual remaining rights/coverage work is separately tracked below",
+      "baseline_blocker": false
+    }
+  ]
 }

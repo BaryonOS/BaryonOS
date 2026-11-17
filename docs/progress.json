@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "b04d637ccbd78af54d577c6407d46b8d0a8146c8",
+    "source_commit": "b72e686ed71e1895c5fc52da833620e1387bc571",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-baseline",
-    "task": "Phase0: checkpoint verified PR336 squash, actual-main PR333 and independent follow-up gates",
+    "task": "Phase0: bind residual owners, priorities and next actions under finite baseline authority",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Verified main38d4cc17 equals the reviewed PR336 tree; issue41 remains open. PR333 actual-main source is pushed and PR340 preview has11 passing local commands, with fresh hosted acceptance still required. No new OS criterion, hardware, production-policy or human-audit acceptance. Latest finite baseline refinement is authoritative."
+    "summary": "41/100 unchanged. Existing T0 issue/PR dispositions now identify exact remaining rights, product, research, quality and scanner-coverage limits. The21 historical candidate-only paths remain at immutable source pointers and are not imported as current instructions/evidence. No issue, finding or criterion is falsely resolved; current integration and mandatory CI remain required."
   },
   "tracks": [
     {
