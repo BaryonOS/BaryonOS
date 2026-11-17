@@ -533,7 +533,7 @@ fn parse_mcfg(table: &[u8], result: &mut Discovery) -> Result<(), Error> {
     if table.len() < 44 || read_u64(table, 36)? != 0 || !(table.len() - 44).is_multiple_of(16) {
         return Err(Error::Mcfg);
     }
-    for entry in table[44..].chunks_exact(16) {
+    for entry in table[44..].as_chunks::<16>().0 {
         if result.mcfg_count as usize == MAX_MCFG_REGIONS {
             return Err(Error::Capacity);
         }
@@ -644,7 +644,7 @@ fn parse_dmar(table: &[u8], result: &mut Discovery) -> Result<(), Error> {
                 {
                     return Err(Error::Dmar);
                 }
-                for path in remaining[6..size].chunks_exact(2) {
+                for path in remaining[6..size].as_chunks::<2>().0 {
                     if path[0] > 31 || path[1] > 7 {
                         return Err(Error::Dmar);
                     }
