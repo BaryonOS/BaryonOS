@@ -24,5 +24,10 @@
   "reviewed_sha256": {
     "docs/verification/a11y-research-20261115/README.md": "9477028ce0f6ece335996eb91bc7b28442d3704f720c4b70f2b9e1aa1b011938",
     "docs/PROJECT-STATE.md": "afebc250035ed0d0bd7bbc3529788c71413e8b2386930f36a69562640a7a770f"
+  },
+  "review_advisory": {
+    "thread": "PRRT_kwDOVZC91s63txqx",
+    "decision": "Independent review found bounded CLI orchestration; no concrete defect",
+    "state": "Rationale posted and thread resolved under updated Phase0 authority"
   }
 }

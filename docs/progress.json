@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "158de6b5cc4b248a84d64fe172e046eea84289a9",
-    "assessment_basis": "parent_commit",
+    "source_commit": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+    "assessment_basis": "verified_main_commit",
     "branch": "codex/phase0-baseline",
-    "task": "Phase 0: record updated owner-controlled autonomous squash-merge authority",
+    "task": "Phase 0: verify PR343 squash and complete the existing explanatory Wiki issue277",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Explicit owner authority now permits eligible Phase 0 squash merges after all required gates and independent verification. Auto-merge and policy weakening remain prohibited. The PR343 outstanding-window condition, workstream ownership and all acceptance criteria remain unchanged; baseline B is not established."
+    "summary": "41/100 remains 41/100. The verified CI-action integration and completed explanatory Wiki add no OS acceptance points. PR344 integration/current-head checks and the final integrated assessment remain pending. Unmet long-term criteria and issues remain open; baseline B is not established."
   },
   "tracks": [
     {

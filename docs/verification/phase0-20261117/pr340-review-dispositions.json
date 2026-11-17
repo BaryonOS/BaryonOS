@@ -1,0 +1,17 @@
+{
+  "source_head": "90816de39460b76e35cd626721d4dac9bde905e2",
+  "independent_review": "pr340-coupling-review.md",
+  "decision": "Four bounded coupling advisories nonblocking; no metric-only refactor",
+  "resolved_threads": [
+    "PRRT_kwDOVZC91s63tyFF",
+    "PRRT_kwDOVZC91s63tyFG",
+    "PRRT_kwDOVZC91s63tyFI",
+    "PRRT_kwDOVZC91s63tyFJ"
+  ],
+  "resolution": "Rationale posted in each original thread, then explicitly resolved under updated Phase0 owner authority",
+  "preserved_limits": [
+    "Caller discards all partial output on every error",
+    "Names does not prove byte-identical first/second source content",
+    "No full S09, platform extraction, hardware or human acceptance"
+  ]
+}

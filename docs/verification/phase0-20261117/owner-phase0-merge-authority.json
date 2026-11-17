@@ -10,7 +10,20 @@
       343,
       344
     ],
-    "additional": "Narrow PRs for inventoried issues and necessary Phase0 security/quality/integration fixes"
+    "additional": "All narrowly scoped PRs necessary for approved Phase0 integration, issue resolution, security and quality work",
+    "explicit_checkpoint_and_translation_prs": [
+      345,
+      346
+    ],
+    "issues": [
+      41,
+      42,
+      43,
+      274,
+      277,
+      283
+    ],
+    "issue_actions": "Investigate, implement, test, review, resolve and close only after actual acceptance criteria are demonstrably met"
   },
   "merge_method": "squash only, performed explicitly by lead",
   "supersedes": "Separate per-PR owner merge-approval requirement within Phase0 scope",
@@ -25,7 +38,8 @@
     "No unauthorized changes, evidence manipulation, security regression or ownership conflict",
     "No protection/hook/gate bypass",
     "Verify new main SHA and applicable post-merge checks",
-    "Record source-bound merge/tests/evidence/risks/issues"
+    "Record source-bound merge/tests/evidence/risks/issues",
+    "Do not inflate progress; long-term unmet criteria retain precise open status, blocker and next action"
   ],
   "pr343_additional_condition": "Previously outstanding window-session checks must complete successfully; preserve existing conditions",
   "unchanged_separate_authority_boundaries": [

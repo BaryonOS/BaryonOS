@@ -1,0 +1,24 @@
+{
+  "source_commit": "b718f6bafdfc4927d3b7acfe786e67dcb8f88eec",
+  "source_sha256": "f7c12a45b00b1fe3bbc3e848200b3c42c22fc169b36e2fab356d1e268a1edc42",
+  "finding": "Protected exact-file entries also match prefix siblings via startswith; nested basename instruction guard remains exact",
+  "read_only_diagnostic": {
+    "docs/progress.json": true,
+    "docs/progress.json.bak": true,
+    "AGENTS.md": true,
+    "AGENTS.md.notes": true,
+    "services/volume/AGENTS.md": true,
+    "services/volume/AGENTS.md.notes": false
+  },
+  "exit_code": 0,
+  "classification": "P3 conservative overprotection; no instruction-protection bypass demonstrated",
+  "baseline_blocker": false,
+  "preserve": "Existing nested AGENTS/CLAUDE and pipeline guards; intentional tools/update-keys/TEST- prefix family",
+  "future_regression_scope": [
+    "Exact protected files",
+    "Directory descendants",
+    "Unrelated file-prefix siblings",
+    "Nested instruction basenames",
+    "Intentional TEST- family"
+  ]
+}
