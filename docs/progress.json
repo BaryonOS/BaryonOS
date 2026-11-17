@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "6b2f3d2698cd525904ec69f35ab3081d5cad18d9",
+    "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
     "assessment_basis": "parent_commit",
     "branch": "feat/issue41-policy-test",
-    "task": "Phase 0 PR336: reconcile the TEST policy experiment with main after PR343/PR344",
+    "task": "Phase 0 PR336: align current review proposal wording with accepted TEST authority",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Conflict-free integration preserves both parents and fixed criteria. Fresh integrated gates/review/current-head CI remain pending; billing-blocked hosted jobs are NOT RUN. No persistent policy, production custody or baseline B acceptance is claimed."
+    "summary": "41/100 unchanged. Review clarifies the existing8-entry bound and approved codec/probe order; completeADR content and established identifier/date retained. No runtime/fixture/test/criterion change. New-head hosted checks and independent editorial review remain required."
   },
   "tracks": [
     {
