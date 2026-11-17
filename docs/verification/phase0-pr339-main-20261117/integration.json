@@ -61,7 +61,7 @@
       "summary": "41/100 unchanged. Review clarifies the existing8-entry bound and approved codec/probe order; completeADR content and established identifier/date retained. No runtime/fixture/test/criterion change. New-head hosted checks and independent editorial review remain required."
     }
   },
-  "matrix_archive_scope": "Original SHA256SUMS preserved; README pins4005, latest84 changes only two matrix cells. Current matrix hash is separately bound in preserved_blobs. Archive mismatch is recorded, not hidden as a fresh all-green hash pass.",
+  "matrix_archive_scope": "Original SHA256SUMS is preserved; PROJECT-STATE.md retained correction paragraph explicitly identifies4005 as the archived source (not the verification README). Latest84 changes only two matrix cells. The current matrix hash is separately bound in preserved_blobs. Archive mismatch is recorded, not hidden as a fresh all-green hash pass.",
   "acceptance": "Intermediate only; systematic research/design/native/hardware/human acceptance not run or granted. Fresh required hosted checks remain mandatory.",
   "ownership": "Claude UI/UX/S09 and all original WIP/runners unchanged",
   "baseline": "Latest finite baseline refinement;41/100 unchanged"
