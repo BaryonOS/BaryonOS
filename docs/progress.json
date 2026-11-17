@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "cc9e1521586493dd8795745daa140b4f209eebb8",
+    "source_commit": "b04d637ccbd78af54d577c6407d46b8d0a8146c8",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-baseline",
-    "task": "Phase0: apply current owner baseline refinement without resetting execution",
+    "task": "Phase0: checkpoint verified PR336 squash, actual-main PR333 and independent follow-up gates",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Zero remainsa continuingtarget; currentbaselinegate requiresresolvedintegration/securityblockers,mandatorychecks and exacttriagedresiduals beforegovernance. Noacceptedtechnical/product/securitycriteria changed or taskfalselyclosed."
+    "summary": "41/100 unchanged. Verified main38d4cc17 equals the reviewed PR336 tree; issue41 remains open. PR333 actual-main source is pushed and PR340 preview has11 passing local commands, with fresh hosted acceptance still required. No new OS criterion, hardware, production-policy or human-audit acceptance. Latest finite baseline refinement is authoritative."
   },
   "tracks": [
     {

@@ -4,21 +4,29 @@
 
 [Current authority](owner-objective-refinement.json) supersedes the earlier strictzero-countprerequisite below. Zero remains the follow-up target. BaselineB requires no unresolvedintegration/securityblockers, allapplicablemandatorychecksPASS and individuallytriaged residuals with evidence,owner,priority,nextstep. Long-termproductissues,nonblockingquality or unrelatedarrivals alone must notdelay approvedgovernance1–6. Allmerge/security/acceptance/ownershipconditions remain unchanged; no falseclosure or suppressedfinding.
 
-## Active expanded stabilization target — latest owner instruction
+## Current executed snapshot after PR336
 
-[Strict zero-backlog authority and currentinventory](owner-zero-backlog-authority.json) supersede the originalfinite/disposition-only condition below; accepted technical/security/product/ownership decisions remain.0B is the sole primary active milestone. BaselineB and governance1–6 remain blocked pending genuine0counts and allcurrent-sourcegates. Currentmain e7169e43;343/344 alreadyintegrated, neverrecreate them.
+Main `38d4cc17687156379677993be9945447591bd4c1` is the verified #336 squash, with exact reviewed tree and all applicable current-head premerge gates successful. [Receipt](pr336-merge-receipt.json); [legitimate nonblocking P3 follow-up](pr336-nonblocking-review-followup.json). Issue41 stays OPEN. Post-main SMP/window runs are still pending at this snapshot; no baseline acceptance is claimed.
+
+#333 [actual-main reconciliation](pr333-actual-main-reconciliation.json) is pushed, with runtime inputs equal to independently tested repairde793ed7; fresh hosted checks are running. #340 [preview checks](pr340-preintegration-checks.json) pass all11 commands but do not replace its still-required actual-main reconciliation/PR checks. Consolidated #346 head3fda27ac independently passes source preservation; original source PRs remain open pending actual merged inclusion. #339 uses Claude's latest84b0198f, preserving prior authorized claim corrections; no ownership transfer is inferred.
+
+Current count:5 issues and12 PRs.0B is the only primary active milestone;0A complete,0C/0D/B/governance1–6 pending. Use the current owner refinement above, not any historical zero-count or billing observation below. The verified retries on old maine7169e43 cleared the runner block; current main's completed jobs are actually executing. Project5 sync succeeds through its existing automation. Score41/100 remains unchanged.
+
+## Historical strict-zero instruction — superseded by the latest refinement
+
+[Historical strict-zero instruction](owner-zero-backlog-authority.json) is retained for provenance and is superseded by owner-objective-refinement.json. It is not the current baseline gate. The observations in this historical section describe their recorded source versions.
 
 [Project5](project5-sync.json) is synchronized via the existingworkflow. [Initial alertcounts](current-alert-inventory.json) are not finalT1 or proof ofscancoverage; AIanalysisdisabled and delegatedbypasscountNOTVERIFIED remain explicit. The [log-retentionmemory](graphify-memory-submission.json) is a submittedcandidate only. No CodeRabbitaccount/billingdetails arepublished; reuse350 and existingprivateaccountwork without paidactivation or duplicate support.
 
 336 [editorialreview](pr336-review-docs.json) passes; current-headCI/mergehold remain.333 [actual fixed-slot repair](pr333-linker-repair.json) passes native/affected/uniongates and preserves everyloadablebyte. Its earliercapacityfailure and supersededprofilecandidate remain recorded; finalindependentreview/hostedCI and main-after336 reconciliation remain. Allcomplete rawgatelogs now have unique paths; controller PASSsummaries are not represented as completecommandlogs.
 
-## Current executed state — supersedes historical inventory observations
+## Historical executed state at main e7169e43 — superseded by the current handoff
 
 Main `e7169e43bf772307acf328590b4300fa52a4ad73` is the verified squash result of344; its tree equals reviewed head64a85575. [Merge receipt](pr344-merge-receipt.json). PR343's complete main push checks passed. GitHub then refused to start jobs because of an account billing lock. [External CI blocker](ci-infrastructure-blocker.json); unavailable checks remain NOT RUN, and baseline B is not frozen. No paid-infrastructure change, merge exception or bypass is authorized. Main host-quality/qemu-smoke succeeded; the missing CI jobs are coverage uploads plus two components. This corrects the preceding checkpoint's inaccurate qemu-smoke classification. The current336 head has49 verified billing-lock failure-to-start annotations.
 
 PR336 is reconciled conflict-free at `c26b0903627fea59f5d286f8eff4c4887b017b9a`. [Fresh integrated gates](pr336-integrated-local.json) pass, including all18 existing update stages and both consumers'26-case immutable TEST probe. Raw35 and deliberate kill−9 negative stages remain their actual expected values; the probe exits33 with an unchanged slot disk. The first snap-launcher failure46 is retained; corrected runs use the existing rustup installation without relaxing the sandbox. Independent integrated review/current-head hosted acceptance remain mandatory.
 
-English draft PRs346–349 and351–353 have separate semantic/preservation review; full issue274 stays open. The narrow [product/research text release](owner-product-research-text-release.json) preserves broader UI/S09 ownership and QuickLook uncertainty. New unrelated PR350 is recorded as post-baseline work. The original integration order continues336→333→340→339, then eligible narrow follow-ups; no merge merely to reduce counts.
+English draft PRs346–349 and351–353 have separate semantic/preservation review; full issue274 stays open. The narrow [product/research text release](owner-product-research-text-release.json) preserves broader UI/S09 ownership and QuickLook uncertainty. At that snapshot PR350 was recorded as post-baseline; later explicit owner scope includes it. The original integration order continues336→333→340→339, then eligible narrow follow-ups; no merge merely to reduce counts.
 
 ## Executed T0 reconciliation
 
