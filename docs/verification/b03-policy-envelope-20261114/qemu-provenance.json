@@ -1,0 +1,208 @@
+{
+  "verified_utc": "2026-11-14T15:53:46.684165+00:00",
+  "scope": "User-level extraction only; no system installation; no repository QEMU gates run",
+  "sources_config": "/etc/apt/sources.list.d/caas-snapshot.list",
+  "source": "https://snapshot.debian.org/archive/debian/20261103T013555Z/",
+  "qemu": {
+    "path": "/workspace/scratch/3daca0062c76/qemu-deps/root/usr/bin/qemu-system-x86_64",
+    "version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)",
+    "sha256": "d3c1a558ad220e77a4412048c8d96b44f8c2b41c7ad2a4ecfe522a4b122fe067",
+    "machine": "pc-q35-10.0",
+    "machine_help_exit": 0,
+    "ldd_missing": []
+  },
+  "firmware": {
+    "package": "ovmf",
+    "version": "2025.02-8+deb13u1",
+    "code": {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/root/usr/share/OVMF/OVMF_CODE_4M.fd",
+      "sha256": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "bytes": 3653632,
+      "mode": "0444"
+    },
+    "vars_template": {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/root/usr/share/OVMF/OVMF_VARS_4M.fd",
+      "sha256": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e",
+      "bytes": 540672,
+      "usage": "Copy to a new disposable writable test file for each run"
+    }
+  },
+  "environment": {
+    "PATH_prefix": "/workspace/scratch/3daca0062c76/qemu-deps/bin:/workspace/scratch/3daca0062c76/qemu-deps/root/usr/bin",
+    "LD_LIBRARY_PATH_prefix": "/workspace/scratch/3daca0062c76/qemu-deps/root/usr/lib/x86_64-linux-gnu",
+    "OS_OVMF_CODE": "/workspace/scratch/3daca0062c76/qemu-deps/root/usr/share/OVMF/OVMF_CODE_4M.fd",
+    "OS_OVMF_VARS": "/workspace/scratch/3daca0062c76/qemu-deps/root/usr/share/OVMF/OVMF_VARS_4M.fd"
+  },
+  "archives": [
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/ipxe-qemu_1.21.1+git20250501.dad20602+dfsg-1_all.deb",
+      "metadata": [
+        "Package: ipxe-qemu",
+        "Version: 1.21.1+git20250501.dad20602+dfsg-1",
+        "Architecture: all"
+      ],
+      "sha256": "b3b799d90b87ef2d6defa925cd48cf1691a19806f08041733a4f884d4a218b17",
+      "bytes": 1225404
+    },
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/libaio1t64_0.3.113-8+b1_amd64.deb",
+      "metadata": [
+        "Package: libaio1t64",
+        "Version: 0.3.113-8+b1",
+        "Architecture: amd64"
+      ],
+      "sha256": "490c8a2d116001a5f3b0a6d7a7aabf6a7b629366590dc5c3f75b078e931dd129",
+      "bytes": 14888
+    },
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/libcapstone5_5.0.7-1~deb13u1_amd64.deb",
+      "metadata": [
+        "Package: libcapstone5",
+        "Version: 5.0.7-1~deb13u1",
+        "Architecture: amd64"
+      ],
+      "sha256": "775187a7be26bb0b076d1979a02163b943dbc13eb4adb0efc503223a03c75422",
+      "bytes": 778216
+    },
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/libdaxctl1_81-1_amd64.deb",
+      "metadata": [
+        "Package: libdaxctl1",
+        "Version: 81-1",
+        "Architecture: amd64"
+      ],
+      "sha256": "6296eb5c976743ba0defb7a061ef081238ca072cf569c6bb96fd3f9095c58a30",
+      "bytes": 22188
+    },
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/libfdt1_1.7.2-2+b1_amd64.deb",
+      "metadata": [
+        "Package: libfdt1",
+        "Version: 1.7.2-2+b1",
+        "Architecture: amd64"
+      ],
+      "sha256": "8e37034d7864807ae2063efcc82fc79aad59069546212e6e0908ed67f9f7e107",
+      "bytes": 19996
+    },
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/libndctl6_81-1_amd64.deb",
+      "metadata": [
+        "Package: libndctl6",
+        "Version: 81-1",
+        "Architecture: amd64"
+      ],
+      "sha256": "fe60a05d42e61cb9f49a90b872aa5ca569363b13459ee0d405243c37a7de7c93",
+      "bytes": 62312
+    },
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/libpmem1_1.13.1-1.1+b1_amd64.deb",
+      "metadata": [
+        "Package: libpmem1",
+        "Version: 1.13.1-1.1+b1",
+        "Architecture: amd64"
+      ],
+      "sha256": "7d972d6958e915ce602e4b90debc6b4b91a01dfea1fe003d0b013756e7d9d863",
+      "bytes": 91708
+    },
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/libslirp0_4.8.0-1+deb13u1_amd64.deb",
+      "metadata": [
+        "Package: libslirp0",
+        "Version: 4.8.0-1+deb13u1",
+        "Architecture: amd64"
+      ],
+      "sha256": "6125698173f8be0d0de01ff897a0df3c5e50fb09f70238b26dd6574aaa0934e1",
+      "bytes": 66544
+    },
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/liburing2_2.9-1_amd64.deb",
+      "metadata": [
+        "Package: liburing2",
+        "Version: 2.9-1",
+        "Architecture: amd64"
+      ],
+      "sha256": "4b589c00c7a51172aace2cb2fb3d3ff32daf86c644023126dcfcaa840cc941ea",
+      "bytes": 26448
+    },
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/libvdeplug2t64_4.0.1-5.1+b1_amd64.deb",
+      "metadata": [
+        "Package: libvdeplug2t64",
+        "Version: 4.0.1-5.1+b1",
+        "Architecture: amd64"
+      ],
+      "sha256": "01291e2c8e28e91eac6b59c983a3a44e29ad0ddb8622699fbb84cbd5f26334a4",
+      "bytes": 28456
+    },
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/ovmf_2025.02-8+deb13u1_all.deb",
+      "metadata": [
+        "Package: ovmf",
+        "Version: 2025.02-8+deb13u1",
+        "Architecture: all"
+      ],
+      "sha256": "78e0d54df11fc77406cb7a0bc9a39e5bca6d1cbe06556b91d9a73491c52decdf",
+      "bytes": 5779964
+    },
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/qemu-system-common_1%3a10.0.13+ds-0+deb13u1_amd64.deb",
+      "metadata": [
+        "Package: qemu-system-common",
+        "Version: 1:10.0.13+ds-0+deb13u1",
+        "Architecture: amd64"
+      ],
+      "sha256": "3a99dc23c42c66bb7e96dc1f2ba12b1797d154a472fbdb1cfcd822d9fb69e85b",
+      "bytes": 1000628
+    },
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/qemu-system-data_1%3a10.0.13+ds-0+deb13u1_all.deb",
+      "metadata": [
+        "Package: qemu-system-data",
+        "Version: 1:10.0.13+ds-0+deb13u1",
+        "Architecture: all"
+      ],
+      "sha256": "a0e03c526cc09d4c2ab20aa19a8c12e916cdc49a170acb16a6563c28f70eafd3",
+      "bytes": 2144176
+    },
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/qemu-system-x86_1%3a10.0.13+ds-0+deb13u1_amd64.deb",
+      "metadata": [
+        "Package: qemu-system-x86",
+        "Version: 1:10.0.13+ds-0+deb13u1",
+        "Architecture: amd64"
+      ],
+      "sha256": "5e841d0723a657fd8bc2e9e1a085d24f47fcb3e4a0f94762e6c38b429f22fbb1",
+      "bytes": 10278596
+    },
+    {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/packages/seabios_1.16.3-2_all.deb",
+      "metadata": [
+        "Package: seabios",
+        "Version: 1.16.3-2",
+        "Architecture: all"
+      ],
+      "sha256": "2b590534250b940f43222eeab9a8f57f337a9d9a73fc412a43ab8cd07a7e56f6",
+      "bytes": 163272
+    }
+  ],
+  "launcher": {
+    "path": "/workspace/scratch/3daca0062c76/qemu-deps/bin/qemu-system-x86_64",
+    "sha256": "25a51cce45432edce8e15172b8f298e0d24c2a1da9f9e268cf8e2862e1fec843",
+    "purpose": "Add relocated official package data directories; executable, machine and devices unchanged",
+    "additional_arguments": [
+      "-L",
+      "/workspace/scratch/3daca0062c76/qemu-deps/root/usr/share/qemu",
+      "-L",
+      "/workspace/scratch/3daca0062c76/qemu-deps/root/usr/share/seabios"
+    ],
+    "verified_utc": "2026-11-14T16:01:42.261355+00:00",
+    "version_exit": 0,
+    "data_path_help_exit": 0,
+    "kvmvapic": {
+      "path": "/workspace/scratch/3daca0062c76/qemu-deps/root/usr/share/qemu/kvmvapic.bin",
+      "sha256": "8bbe341af0ab06c3008d65b29fb961f21f63a1419297dd4db80632261046cd98",
+      "bytes": 9216,
+      "package": "qemu-system-data 1:10.0.13+ds-0+deb13u1"
+    }
+  }
+}

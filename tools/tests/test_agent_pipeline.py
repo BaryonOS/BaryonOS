@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import os
 import subprocess
 import sys
@@ -139,6 +140,29 @@ class Planning(unittest.TestCase):
                     '```json\n{"targets": [".github/workflows/ci.yml"]}\n```'):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 ap.parse_spec(bad)
+
+    def test_instruction_policy_is_protected_at_every_depth(self):
+        for path in ("AGENTS.md", "ui/AGENTS.md", "services/sub/AGENTS.md",
+                     "CLAUDE.md", "tools/CLAUDE.md", ".codex/config.toml"):
+            with self.subTest(path=path):
+                self.assertTrue(ap.is_protected(path))
+                self.assertIn(path, ap.out_of_scope([path], [path]))
+                spec = 'spec\n' + '```json\n' + json.dumps({"targets": [path], "reads": []}) + '\n```'
+                with self.assertRaises(ValueError):
+                    ap.parse_spec(spec)
+        for path in ("tools/roadmap_runner.py", "tools/tests/test_agent_pipeline.py",
+                     "docs/PROJECT-STATE.md", "docs/history/accepted/receipt.json",
+                     "docs/history/file.md", "services/keyring/vendor/locked.rs",
+                     "ui/prototype/tokens.css", "ui/design/system/tokens.css",
+                     "plugins/token-guard/LICENSE", "tools/update-keys/TEST-key",
+                     "CODEX-WORKFLOW.md", "README.md", "build/generated.txt"):
+            with self.subTest(path=path):
+                self.assertTrue(ap.is_protected(path))
+        # New task-owned verification children remain writable; accepted evidence is
+        # protected by source-bound review and by using new receipt destinations.
+        self.assertFalse(ap.is_protected("docs/verification/new-receipt/report.json"))
+        self.assertFalse(ap.is_protected("ui/AGENTS.md.example"))
+        self.assertFalse(ap.is_protected("docs/CODEX-PARITY.md"))
 
     def test_scope_allows_targets_and_lockfile_only(self):
         self.assertEqual(ap.out_of_scope(["a.rs", "Cargo.lock", "b.rs", "AGENTS.md"], ["a.rs", "AGENTS.md"]),

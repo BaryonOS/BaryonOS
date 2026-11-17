@@ -9,7 +9,7 @@
 //! crate can feed its own probe results and driver table in. They must never
 //! be built from driver-supplied data. The kernel keeps exactly one
 //! `LeaseRegistry`; it is the only way to obtain a `DeviceLease`.
-use crate::{Alias, Error as FrameError, Frames, Owner, PAGE};
+use crate::{Alias, DmaPin, Error as FrameError, Frames, Owner, PAGE};
 use core::sync::atomic::{AtomicU64, Ordering};
 
 pub const MAX_DMA_GRANTS: usize = 16;
@@ -229,6 +229,9 @@ pub enum Phase {
 pub enum DmaDirection {
     DeviceReads,
     DeviceWrites,
+    /// Hardware-maintained contexts that the device both reads and updates.
+    /// Native domains must map this explicitly; it is not the buffer default.
+    DeviceReadsWrites,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -304,9 +307,13 @@ struct DmaRecord {
 }
 
 impl DmaRecord {
-    fn check_unmapped<const N: usize>(&self, frames: &Frames<N>) -> Result<(), Error> {
+    fn check_unmapped<const N: usize>(&self, frames: &Frames<N>, lease: u64) -> Result<(), Error> {
+        let owner = Owner::Dma(DmaPin {
+            lease,
+            record: self.id,
+        });
         for address in &self.pages[..self.page_count as usize] {
-            if frames.owner(*address).map_err(Error::Frame)? != Owner::Kernel
+            if frames.owner(*address).map_err(Error::Frame)? != owner
                 || frames.alias(*address).map_err(Error::Frame)?
                     != (Alias {
                         writable: 0,
@@ -323,11 +330,19 @@ impl DmaRecord {
     fn free<const N: usize>(
         &self,
         frames: &mut Frames<N>,
+        lease: u64,
         mut zero: impl FnMut(u64),
     ) -> Result<(), Error> {
         for address in &self.pages[..self.page_count as usize] {
             frames
-                .free(*address, Owner::Kernel, &mut zero)
+                .free_dma_page(
+                    *address,
+                    DmaPin {
+                        lease,
+                        record: self.id,
+                    },
+                    &mut zero,
+                )
                 .map_err(Error::Frame)?;
         }
         Ok(())
@@ -609,6 +624,11 @@ impl DeviceLease {
         self.function.generation
     }
 
+    /// Read-only requester identity from the kernel's matched PCI snapshot.
+    pub const fn function_address(&self) -> PciAddress {
+        self.function.address
+    }
+
     pub fn authorize(&mut self, driver: DriverId, generation: u64) -> Result<(), Error> {
         if self.phase != Phase::Matched {
             return Err(Error::InvalidState);
@@ -774,18 +794,18 @@ impl DeviceLease {
             .map_err(|_| Error::Hardware)
     }
 
-    /// Allocates zeroed `Owner::Kernel` frames that this lease records as live
-    /// until quiescence. They are ordinary frames in the caller's pool, not
-    /// pinned against other kernel code, so the caller must not free them. The
-    /// direction is only recorded (see `DmaDirection`), and no device
-    /// address-width check is made: the kernel must not hand these pages to a
-    /// device that cannot address them.
+    /// Allocates zeroed, lease/record-pinned frames. Generic free, allocation,
+    /// re-admission and user/executable mapping cannot repurpose live DMA pages.
+    /// Release requires this lease's confirmed quiescence and no tracked CPU
+    /// aliases. Direction is only recorded (see `DmaDirection`); IOMMU mapping,
+    /// completed translation invalidation and device address-width enforcement
+    /// remain the native adapter's duties, not properties of a pin.
     pub fn allocate_dma<const N: usize>(
         &mut self,
         frames: &mut Frames<N>,
         length: usize,
         direction: DmaDirection,
-        mut zero: impl FnMut(u64),
+        zero: impl FnMut(u64),
     ) -> Result<DmaGrant, Error> {
         if length > u32::MAX as usize {
             return Err(Error::Range);
@@ -803,13 +823,19 @@ impl DeviceLease {
             .position(|record| !record.live)
             .ok_or(Error::Exhausted)?;
         let id = self.next_dma_id;
-        self.next_dma_id = self.next_dma_id.checked_add(1).ok_or(Error::Exhausted)?;
+        let next_id = id.checked_add(1).ok_or(Error::Exhausted)?;
         let mut addresses = [0; MAX_DMA_PAGES];
         frames
-            .allocate_many(Owner::Kernel, &mut addresses[..pages], |address| {
-                zero(address)
-            })
+            .allocate_dma_pages(
+                DmaPin {
+                    lease: self.lease,
+                    record: id,
+                },
+                &mut addresses[..pages],
+                zero,
+            )
             .map_err(Error::Frame)?;
+        self.next_dma_id = next_id;
         self.dma[slot] = DmaRecord {
             id,
             pages: addresses,
@@ -1081,8 +1107,8 @@ impl DeviceLease {
             return Err(Error::InvalidState);
         }
         let record = self.record(grant)?;
-        record.check_unmapped(frames)?;
-        record.free(frames, &mut zero)?;
+        record.check_unmapped(frames, self.lease)?;
+        record.free(frames, self.lease, &mut zero)?;
         self.dma[grant.slot as usize] = EMPTY_DMA;
         if self.dma.iter().all(|entry| !entry.live) {
             self.phase = Phase::Released;
@@ -1102,10 +1128,10 @@ impl DeviceLease {
             return Err(Error::InvalidState);
         }
         for record in self.dma.iter().filter(|record| record.live) {
-            record.check_unmapped(frames)?;
+            record.check_unmapped(frames, self.lease)?;
         }
         for record in self.dma.iter_mut().filter(|record| record.live) {
-            record.free(frames, &mut zero)?;
+            record.free(frames, self.lease, &mut zero)?;
             *record = EMPTY_DMA;
         }
         self.phase = Phase::Released;
@@ -1448,6 +1474,184 @@ mod tests {
             .count()
     }
 
+    #[test]
+    fn bidirectional_context_grant_does_not_change_other_buffer_directions() {
+        let mut registry = LeaseRegistry::<1>::new();
+        let mut lease = registry.lease(function(), MATCH).unwrap();
+        lease.authorize(DRIVER, GENERATION).unwrap();
+        lease.begin_initialization().unwrap();
+        let mut frames = frames::<8>();
+        let read = lease
+            .allocate_dma(&mut frames, 4096, DmaDirection::DeviceReads, |_| {})
+            .unwrap();
+        let write = lease
+            .allocate_dma(&mut frames, 4096, DmaDirection::DeviceWrites, |_| {})
+            .unwrap();
+        let context = lease
+            .allocate_dma(&mut frames, 4096, DmaDirection::DeviceReadsWrites, |_| {})
+            .unwrap();
+        for (grant, direction) in [
+            (&read, DmaDirection::DeviceReads),
+            (&write, DmaDirection::DeviceWrites),
+            (&context, DmaDirection::DeviceReadsWrites),
+        ] {
+            assert_eq!(lease.dma_direction(grant), Ok(direction));
+            let page = lease.dma_pages(grant).unwrap()[0];
+            assert!(matches!(frames.owner(page), Ok(Owner::Dma(_))));
+            assert_eq!(
+                frames.free(page, frames.owner(page).unwrap(), |_| panic!("pinned")),
+                Err(FrameError::Owner)
+            );
+            assert_eq!(frames.map(page, true, false, true), Err(FrameError::Owner));
+            assert_eq!(
+                frames.map(page, false, true, false),
+                Err(FrameError::Permission)
+            );
+        }
+    }
+
+    #[test]
+    fn live_dma_cannot_be_freed_reallocated_or_readmitted_by_generic_frame_operations() {
+        let mut registry = LeaseRegistry::<1>::new();
+        let mut lease = registry.lease(function(), MATCH).unwrap();
+        lease.authorize(DRIVER, GENERATION).unwrap();
+        lease.begin_initialization().unwrap();
+        let mut frames = frames::<4>();
+        let grant = lease
+            .allocate_dma(&mut frames, 64, DmaDirection::DeviceWrites, |_| {})
+            .unwrap();
+        let page = lease.dma_pages(&grant).unwrap()[0];
+        let owner = frames.owner(page).unwrap();
+        let zeroed = core::cell::Cell::new(0);
+        assert_eq!(
+            frames.free(page, owner, |_| zeroed.set(zeroed.get() + 1)),
+            Err(FrameError::Owner)
+        );
+        assert_eq!(zeroed.get(), 0);
+        assert_eq!(frames.owner(page), Ok(owner));
+        assert_eq!(
+            frames.free(page, Owner::Kernel, |_| panic!(
+                "wrong owner cannot release DMA"
+            )),
+            Err(FrameError::Owner)
+        );
+        assert_eq!(
+            frames.allocate(owner, |_| panic!("copied DMA owner cannot allocate")),
+            Err(FrameError::Owner)
+        );
+        let mut output = [u64::MAX];
+        assert_eq!(
+            frames.allocate_many(owner, &mut output, |_| panic!("DMA owner cannot allocate")),
+            Err(FrameError::Owner)
+        );
+        assert_eq!(output, [u64::MAX]);
+        frames.admit(Range::pages(0, 4).unwrap(), 7, 8, &[]);
+        assert_eq!(frames.owner(page), Ok(owner));
+        assert_eq!(
+            frames.map(page, false, true, false),
+            Err(FrameError::Permission)
+        );
+        assert_eq!(frames.map(page, true, false, true), Err(FrameError::Owner));
+        frames.map(page, true, false, false).unwrap();
+        lease.revoke().unwrap();
+        let mut control = Control {
+            reset_ack: true,
+            ..Control::default()
+        };
+        lease.quiesce(&mut control).unwrap();
+        assert_eq!(
+            lease.release_dma(&grant, &mut frames, |_| panic!("mapped DMA cannot release")),
+            Err(Error::Frame(FrameError::Owner))
+        );
+        assert_eq!(frames.owner(page), Ok(owner));
+        frames.unmap(page, true, false).unwrap();
+        lease
+            .release_dma(&grant, &mut frames, |_| zeroed.set(zeroed.get() + 1))
+            .unwrap();
+        assert_eq!(zeroed.get(), 1);
+        assert_eq!(frames.owner(page), Ok(Owner::Free));
+        assert_eq!(frames.allocate(Owner::Kernel, |_| {}).unwrap(), page);
+    }
+
+    #[test]
+    fn dma_resource_failure_preserves_existing_pins_records_and_zero_count() {
+        let mut lease = matched();
+        lease.authorize(DRIVER, GENERATION).unwrap();
+        lease.begin_initialization().unwrap();
+        let mut frames = frames::<4>();
+        let kept = lease
+            .allocate_dma(&mut frames, 4097, DmaDirection::DeviceWrites, |_| {})
+            .unwrap();
+        let pages: [u64; 2] = lease.dma_pages(&kept).unwrap().try_into().unwrap();
+        let owners = frames.owners;
+        let aliases = frames.aliases;
+        let records = lease.dma;
+        let next_id = lease.next_dma_id;
+        assert_eq!(
+            lease.allocate_dma(&mut frames, 8192, DmaDirection::DeviceReads, |_| {
+                panic!("resource failure must precede zeroing")
+            }),
+            Err(Error::Frame(FrameError::Exhausted))
+        );
+        assert_eq!(frames.owners, owners);
+        assert_eq!(frames.aliases, aliases);
+        assert_eq!(lease.dma, records);
+        assert_eq!(lease.next_dma_id, next_id);
+        assert_eq!(lease.dma_pages(&kept).unwrap(), &pages);
+        for page in pages {
+            let owner = frames.owner(page).unwrap();
+            assert!(matches!(owner, Owner::Dma(_)));
+            assert_eq!(
+                frames.free(page, owner, |_| panic!()),
+                Err(FrameError::Owner)
+            );
+        }
+    }
+
+    #[test]
+    fn dma_release_checks_record_identity_even_when_frame_addresses_match() {
+        let mut lease = matched();
+        lease.authorize(DRIVER, GENERATION).unwrap();
+        lease.begin_initialization().unwrap();
+        let mut first = frames::<4>();
+        let mut second = frames::<4>();
+        let first_grant = lease
+            .allocate_dma(&mut first, 4096, DmaDirection::DeviceReads, |_| {})
+            .unwrap();
+        let second_grant = lease
+            .allocate_dma(&mut second, 4096, DmaDirection::DeviceReads, |_| {})
+            .unwrap();
+        let page = lease.dma_pages(&first_grant).unwrap()[0];
+        assert_eq!(lease.dma_pages(&second_grant).unwrap(), &[page]);
+        let first_owner = first.owner(page).unwrap();
+        let second_owner = second.owner(page).unwrap();
+        assert_ne!(first_owner, second_owner);
+        lease.revoke().unwrap();
+        lease
+            .quiesce(&mut Control {
+                reset_ack: true,
+                ..Control::default()
+            })
+            .unwrap();
+        assert_eq!(
+            lease.release_dma(&first_grant, &mut second, |_| panic!("wrong record")),
+            Err(Error::Frame(FrameError::Owner))
+        );
+        assert_eq!(
+            lease.release_all_dma(&mut first, |_| panic!("all records must preflight")),
+            Err(Error::Frame(FrameError::Owner))
+        );
+        assert_eq!(first.owner(page), Ok(first_owner));
+        assert_eq!(second.owner(page), Ok(second_owner));
+        lease.release_dma(&first_grant, &mut first, |_| {}).unwrap();
+        lease
+            .release_dma(&second_grant, &mut second, |_| {})
+            .unwrap();
+        assert_eq!(first.owner(page), Ok(Owner::Free));
+        assert_eq!(second.owner(page), Ok(Owner::Free));
+        assert_eq!(lease.phase(), Phase::Released);
+    }
+
     fn initialize<const N: usize>(
         lease: &mut DeviceLease,
         control: &mut Control,
@@ -1484,6 +1688,8 @@ mod tests {
         );
         // A refused match does not claim the function.
         let mut lease = registry.lease(function(), MATCH).unwrap();
+        assert_eq!(lease.function_address(), ADDRESS);
+        assert_eq!(lease.generation(), GENERATION);
         assert_eq!(
             lease.authorize(OTHER_DRIVER, GENERATION),
             Err(Error::Permission)
@@ -1766,6 +1972,8 @@ mod tests {
         let grant = lease
             .allocate_dma(&mut frames, 4096, DmaDirection::DeviceReads, |_| {})
             .unwrap();
+        let page = lease.dma_pages(&grant).unwrap()[0];
+        let owner = frames.owner(page).unwrap();
         let mut control = Control {
             reset_ack: false,
             ..Control::default()
@@ -1779,10 +1987,19 @@ mod tests {
             Err(Error::InvalidState)
         );
         assert_eq!(free_count(&frames), before - 1);
+        assert_eq!(
+            frames.free(page, owner, |_| panic!("quarantined pin")),
+            Err(FrameError::Owner)
+        );
+        assert_eq!(frames.owner(page), Ok(owner));
         control.reset_ack = true;
         control.fail_disable_readback = true;
         assert_eq!(lease.quiesce(&mut control), Err(Error::Quarantined));
         assert_eq!(free_count(&frames), before - 1);
+        assert_eq!(
+            frames.free(page, owner, |_| panic!("unconfirmed disable")),
+            Err(FrameError::Owner)
+        );
         control.fail_disable_readback = false;
         lease.quiesce(&mut control).unwrap();
         lease.release_dma(&grant, &mut frames, |_| {}).unwrap();

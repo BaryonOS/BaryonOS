@@ -19,6 +19,16 @@ Start with the branch, HEAD and `git status --short`; preserve unfinished user w
 For continued work in the same session, compare source versions and read changes and missing context, rather than rereading the entire repository or unchanged historical status. START-CODING.md and FIRST-BATCH.md describe the original implementation baseline; first check what current code and acceptance evidence already provide. An old research assignment is not a new implementation assignment.
 For OS development tasks, use the repository skill `.agents/skills/os-dev/SKILL.md`; retrieve only the relevant OSDev or book passages. Not every client automatically loads nested instructions from the root. Start from source versions and existing code; research proposals are not automatically implemented. Practical test selection, measurement and handoff are in CODEX-WORKFLOW.md; read only the required section.
 
+## Instruction layers and state
+
+- This file holds durable project rules; `<dir>/AGENTS.md` adds rules for its subtree; `~/.codex/AGENTS.md` adds only the personal working method. Read local instruction files for every changed directory; not every client loads them automatically. This root file and newer ADRs prevail on a conflict. The portable Codex starter and its unverified parity checklist are in `docs/CODEX-START.md` and `docs/CODEX-PARITY.md`.
+- No changing context in any `AGENTS.md`. Current tasks, owners, results and decisions live in the `NEXT AGENT HANDOFF` of docs/PROJECT-STATE.md, docs/progress.json, docs/DECISIONS.md, docs/verification/, ignored `build/` (raw logs, pipeline runtime state), GitHub issues/PRs/Actions and hosted Graphify memory.
+- Change an `AGENTS.md` only for a durable command, convention, pitfall or protected path, in a separate `docs(agents):` commit; pipeline workers propose such lessons in their result instead.
+
+## Repository map
+
+`boot/loader` UEFI loader and `kernel/` `no_std` kernel (built only by `tools/build.py`); `crates/` shared core libraries; `drivers/` virtual-first drivers; `services/` userspace services (`services/nas` also a Node.js prototype); `sdk/` app SDK workspace and examples; `userspace/` ring-3 probes; `ui/` native UI, browser prototype and design system; `experiments/` quantum and AI contract; `plugins/token-guard/`; `tools/` build, run, gates, evidence, progress and pipelines; `tests/` Python host tests; `docs/` state, decisions, specifications, evidence; `.github/` CI (source of truth for gate commands); `.cargo/`, `.codex/`, `.agents/` rustflags, Codex config and roles, skills.
+
 ## Token-efficient execution
 
 Use the shared protocol in `plugins/token-guard/skills/token-guard/SKILL.md` for
@@ -33,6 +43,7 @@ The plugin does not replace hosted Graphify, native gates or existing permission
 Quality and complete acceptance criteria take precedence over context reduction;
 UI/UX tasks retain the approved references and visual, interaction and accessibility checks.
 Client setup and evidence limits are documented in `docs/TOKEN-GUARD.md`.
+Client-side tools such as RTK output filtering and the Ponytail minimal-change skill may be used where the client provides them; they do not replace preserved exit codes, hosted Graphify or native gates. Use one output wrapper per command: never wrap `tools/tokenguard.py run` in `rtk` or the reverse.
 
 ## Product ambition
 
@@ -75,7 +86,7 @@ This applies to every AI in this project: Claude, Codex, Copilot and every pipel
 
 Tasks come from open issues labelled `pipeline:serial` or `pipeline:parallel`.
 The body contains `Criterion: <open ID from docs/progress.json>`, `Gate: <workflow>.yml#<job>`
-and optionally `Depends on: #N`. Existing `Criterium:` and `Afhankelijk van:` fields remain accepted for compatibility. There is no separate backlog. Each agent invocation is a new CLI process (`claude -p`, `codex exec` or `copilot -p`) that only edits files. The pipeline executes commands itself. First comes an L0 specification with Graphify MCP, then the executor, then `tools/agent_gate.py`: exactly the `run:` steps of the selected CI jobs plus `progress.py --check`. Only the exit code decides the outcome; rtk only shortens the error log. A `serial` task runs alone and ends as a draft PR for review by the project owner. At most three `parallel` tasks with separate access sets run in their own worktrees. `--auto-merge-parallel` enables squash auto-merge for those PRs and must not be used without the project owner's explicit approval (decision of 13 November 2026). Nothing goes directly to `main`. Agents do not edit workflow, pipeline or progress files.
+and optionally `Depends on: #N`. Existing `Criterium:` and `Afhankelijk van:` fields remain accepted for compatibility. There is no separate backlog. Each agent invocation is a new CLI process (`claude -p`, `codex exec` or `copilot -p`) that only edits files. The pipeline executes commands itself. First comes an L0 specification with Graphify MCP, then the executor, then `tools/agent_gate.py`: applicable local CI check steps (some conditional, setup and composite steps are excluded) plus `progress.py --check`. Raw exit codes determine this local prefilter, not hosted CI acceptance; rtk only shortens displayed errors. A `serial` task runs alone and ends as a draft PR for review by the project owner. At most three `parallel` tasks with separate access sets run in their own worktrees. `--auto-merge-parallel` enables squash auto-merge for those PRs and must not be used without the project owner's explicit approval (decision of 13 November 2026). Nothing goes directly to `main`. Agents do not edit workflow, pipeline or progress files.
 Runtime state is stored in ignored `build/agent-pipeline/`. A blocked task retains its directory there until a human removes it.
 
 ## Execution
@@ -84,15 +95,49 @@ Use short-lived branches/worktrees and small, reviewable diffs. Preserve user wo
 Perform routine research, local file operations and suitable tests autonomously. Publication, paid infrastructure, release signing, erasing real disks or flashing devices requires a concrete explicit instruction.
 Add dependencies only after checking provenance, licensing, maintenance, `no_std` suitability and build scripts. Pin versions; document exceptions.
 
+## Setup, commands and validation
+
+The CI workflows in `.github/workflows/` define the actual hosted gates. `python3 -B tools/agent_gate.py --job <workflow>.yml#<job> --list` shows the local executable subset; omit `--list` to run it. This **does not execute every CI step** (e.g. setup, conditional and composite steps). Required hosted PR checks include `ci.yml#host-quality` and `ci.yml#qemu-smoke`. Directory `AGENTS.md` files specify subsystem checks.
+
+- **Install:** follow `docs/DEVELOPMENT.md`; Rust `1.90.0` (`1.91.1` for the network crates in `services/AGENTS.md`), required Rust cross-targets, QEMU/OVMF/SeaBIOS, C compiler, Python dependencies from `.github/actions/setup-python/requirements.txt` and Node.js. Fetch locked Rust dependencies per manifest with `cargo +1.90.0 fetch --locked`; record unavailable tools instead of assuming success.
+- **Preflight/build/boot:** `python3 -B tools/preflight.py --strict` (also `--strict-host-tests` where needed); `python3 -B tools/build.py [--kernel-feature <feature>]`; `python3 -B tools/run.py --smoke [--milestone m1|m2|m3|m4|m5]`. For M1 use `python3 -B tools/test.py`; for M6c use `python3 -B tools/build.py --kernel-feature milestone-m6c` and `python3 -B tools/run_m6c.py --case normal --smoke`. Only actual kernel markers plus raw exit 33 substantiate a smoke pass.
+- **Targeted quality:** `cargo +1.90.0 test --locked -p <package>`, `clippy --locked -p <package> --all-targets -- -D warnings`, `fmt --all -- --check` (use `--manifest-path` for separate workspaces); Python `unittest` suites and `python3 -m compileall -q`; Node `node --test --test-isolation=none <dir>/tests/*.test.mjs`. Exact suites come from the relevant workflows and directory instructions. No repository-wide Python lint/type gate is defined.
+- **Workflow changes:** `actionlint -shellcheck= -pyflakes=` and `python3 -B -m unittest discover -s tests -p 'test_ci_workflows.py'`. Reassess the score through the lead-owned `python3 tools/progress.py --write`, then `--check`; do not grant untested progress.
+- **Environment:** `NOS_BUILD_DIR`, `NOS_TARGET_DIR`, `CARGO_TARGET_DIR` isolate builds; `NOS_QEMU_MACHINE` (CI: `pc-q35-8.2`), optional `NOS_QEMU_ACCEL=kvm`, paired `OS_OVMF_CODE`/`OS_OVMF_VARS`, and opt-in `NOS_SDK_RUNTIME`/`NOS_DOCUMENT_SESSION`. Internal `NOS_*_ELF` values are not user secrets. Do not commit tokens, keys or `.env*`.
+- **Fixtures/manual checks:** harnesses create disposable images under `$NOS_BUILD_DIR/run/`; committed fixtures reside with their component; `tools/update-keys/TEST-*` are public QEMU-only test keys. Browser keyboard/permission/recovery checks are in `ui/AGENTS.md`; Windows QEMU and human UI trials require separate evidence. Hardware (H) and human audit (A) remain unverified without their own tests.
+- **Isolation/evidence:** run native suites sequentially per checkout or with separate build/target directories. Only a completed passing gate with rechecked raw artifacts is a pass; cache reuse, a mock or a local filtered gate is not native/hosted acceptance.
+
+## Conventions
+
+- `cargo +1.90.0 ... --locked`; change `Cargo.lock` files or `rust-toolchain.toml` only with a documented reason.
+- Kernel, boot, drivers, services, SDK and core crates are `#![no_std]` (or `cfg_attr(not(test), no_std)`). Keep existing `#![forbid(unsafe_code)]` and `#![deny(unsafe_op_in_unsafe_fn)]`; every `unsafe` block has a local `// SAFETY:` comment.
+- Tests: Rust `#[cfg(test)]` and `tests/*.rs`; Python `unittest` in `tests/`, `tools/tests/`, `userspace/tests/`; native gates pair a `tools/build.py` profile with a `tools/run_*.py` runner. Run Python as `python3 -B`; reuse existing entry points.
+- Commits use `type(scope): summary`. PRs follow `.github/pull_request_template.md`: a verification table with command, exit status and evidence, plus a Not run list.
+- New ADRs go at the top of docs/DECISIONS.md as `ADR-<TOPIC>-<YYYYMMDD>`. Workflow actions are pinned to a full commit SHA with `persist-credentials: false`. Licensing follows LICENSING.md and MPL-2.0-FILES.txt.
+
+## Protected files
+
+Unattended pipeline workers must never change policy, their evaluators, or evidence. A lead may change these only in an explicitly scoped, reviewed PR, with relevant tests:
+- Any `AGENTS.md` or `CLAUDE.md` at **any directory depth**, `.codex/config.toml`, `.github/**`, `tools/agent_gate.py`, `tools/agent_pipeline.py`, `tools/roadmap_runner.py`, `tools/common.py`, `tools/progress.py`.
+- `docs/progress.json` and generated `README.md`, `docs/PROGRESS.md`, `docs/assets/progress.svg`; `docs/PROJECT-STATE.md` and `docs/DECISIONS.md` are lead-owned.
+- Historical `docs/verification/**` and `docs/history/**`; new evidence must use a new child directory. Vendored or licensed source: `services/keyring/vendor/`, `services/image-codec/vendor/`, `experiments/quantum/third-party/`, `.agents/skills/os-dev/references/`, `LICENSE`, `plugins/token-guard/LICENSE`, `docs/third-party/licenses/`.
+- `ui/prototype/tokens.css` (frozen), `ui/design/system/tokens.css` (generated), `CODEX-WORKFLOW.md` section 4/Sources, and `tools/update-keys/TEST-*`. Do not commit private keys, `.env*`, `build/`, `target/` or `graphify-out/`.
+
 ## Short development loop
 
-- Choose one immediately actionable result on the critical path. Record its goal, write files, dependencies, acceptance commands and evidence limits beforehand; do not start a new general audit without cause.
-- Implement and run the appropriate targeted tests first. Changes to shared interfaces, kernel/permissions or integration require the relevant broader and native gates. Targeted tests do not replace required CI checks.
-- The lead agent retains responsibility for integration. Give subagents only the necessary context and a bounded task; measure useful deliveries, not agent count. Use separate worktrees and build directories; no shared write files or simultaneous Cargo writers in the same target directory.
-- Reuse the same valid development environment and build cache; avoid routine `cargo clean`, reinstallation or a new session for every small step. Native acceptance retains the prescribed clean images, profiles and target directories.
-- Keep command logs outside the conversation context; on failure, read the relevant error and link the complete log. Measure duration and exit status, and explicitly report checks not executed. A cache hit is never evidence of a passing test.
-- Update status and the existing progress indicator under the rules below. At handoff, maintain one compact `NEXT AGENT HANDOFF` at the top of PROJECT-STATE.md with the source commit, open work, evidence, blocker and next command; do not maintain a second competing roadmap.
-- After completing a step, continue with the next independent result within the available execution. Avoid replanning without new information; report actual limits without implying background work.
+Every agent (Claude, Codex, Copilot and pipeline workers) runs each task through the same loop; a worker performs the steps its role allows and the controller or lead does the rest. Client files may add detail, not other steps.
+1. **Orient:** branch, HEAD and `git status --short`; the state locations above; the relevant directory `AGENTS.md`.
+2. **Select and claim** one task; respect locks, leases and the owners of its write set.
+3. **Context, cheaply:** hosted Graphify first (`recall`, then `graphify_rank_files` or `graphify_find`, `graphify_callers`, `graphify_impact`, `graphify_tests_for`); Token Guard `inspect` and `slice` for large files. With too little context, make a read-only plan before editing.
+4. **Specify:** goal, invariant, write set, acceptance commands and evidence limit.
+5. **Implement** the smallest complete change; reuse existing code; no unrelated cleanup.
+6. **Validate:** targeted tests, then the required gates; quote exit codes; mark anything not executed NOT RUN with its reason.
+7. **Review and iterate:** read the complete diff; fix root causes; never weaken a test. After two identical failures without new evidence, record the diagnosis and choose another task or ask.
+8. **Checkpoint:** state files, commit, push and a draft PR under the rules below.
+9. **Learn:** one Graphify `remember` note per durable pitfall; durable working-method changes go to the right `AGENTS.md` layer.
+10. **Continue or stop:** take the next eligible task, or stop with a written reason and resume step.
+
+Ask instead of guessing: in an interactive session, ask one focused question; unattended, block with a precise `OWNER:` question and continue only disjoint authorized work. Never guess security, authority, cryptography or destructive actions. The lead owns integration and the sole status handoff; workers own disjoint write sets in isolated worktrees, with separate build directories when parallel. Preserve existing build caches, complete raw logs and exit codes; do not routinely reinstall, clean, or re-audit without new evidence. Run targeted checks first and all applicable native/hosted gates for shared interfaces or permissions. A cache hit is never proof. Finish each step with one source-bound checkpoint and continue the next safe task.
 
 ## Definition of done
 
@@ -105,13 +150,9 @@ Block changes that broaden capability permissions without an explicit design, tr
 
 ## Progress on GitHub
 
-Project decision of 13 November 2026, taking precedence over the merge part of the instruction of 28 October and over the auto-merge step below: create draft pull requests automatically after the first coherent, verified checkpoint and keep updating the same pull request; never create duplicates; never merge, and never enable auto-merge, without the project owner's explicit approval. A pull request whose merge condition includes acceptance outside the required checks carries the `acceptance-pending` label (see CONTRIBUTING.md and ADR-MERGE-HOLD-20261113). Explicit instruction from the project owner on 28 October 2026: handle commits, pushes and suitable squash merges autonomously for this project. Create new PRs as drafts first. Check current head/base, content preservation, appropriate tests, evidence and concrete review findings before completion; do not bypass branch rules. Close a superseded PR only after demonstrating that the replacement integration includes the same content. This does not widen hardware, publication, infrastructure or privacy boundaries.
+The binding project-owner decision of **13 November 2026** supersedes 28 October's general delegation of suitable squash merges: automatically commit and push coherent verified steps and open/update one draft PR, but **never merge or enable auto-merge without explicit owner approval**. Honour `ADR-MERGE-HOLD-20261113`, branch rules, acceptance labels, review threads and current HEAD/base; a new head invalidates prior checks. Close superseded PRs only after verifying identical preserved content. This permission does not include production signing, paid infrastructure, destructive device operations or wider security boundaries.
 
-After each bounded implementation step and before lengthy checks, update PROJECT-STATE.md, commit source code, lockfiles, verifiable evidence and open items, and push the working branch. Do not wait until the entire batch is complete. Explicitly label intermediate states and tests not executed. Check that the remote branch contains the local commit ID. Keep generated binaries, caches and secrets out of Git; store compact text and hash reports under docs/verification/.
-
-**Do not wait for CI or open PRs (decision of 5 November 2026).** CI and merge queues do not block work. Push, keep auto-merge disabled (decision of 13 November 2026), allow CI failures to return through Auto-fix or at the next step, and immediately start the next task, stacked or parallel. Do not ask whether to wait for CI first or end a turn solely to await checks or other PRs. Bundling PRs and the strict up-to-date rule are GitHub merge mechanisms, not prerequisites for continuing development. Fix a failing check on a previously pushed step when it arrives. It takes precedence over new work on the same branch, but does not block other work.
-
-Acceptance points follow docs/PROGRESS.md: the indicator applies to the assessed development state. A criterion whose required native gate has demonstrably passed locally or on the PR head, with version-specific evidence, is accepted on that branch. It does not wait for a merge or another CI run on main. A later failing run on main or a regression returns the criterion to `open`.
+Do not block unrelated work waiting for CI (5 November decision). When a submitted head fails, repair it before new work on the same branch; continue independent tasks safely elsewhere. Source changes, exact evidence, status, progress and uncertainty should be checkpointed before lengthy runs. The lead verifies the remote SHA and keeps status/progress files single-writer and consistent. A criterion may be accepted on its source-bound branch when its required native evidence passes; regressions reopen it. A PR merge does not itself prove any criterion.
 
 ## Mandatory progress indicator after every task
 

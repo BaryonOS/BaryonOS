@@ -3,7 +3,7 @@
 M6b adds only the project's own local crate `object-core 0.1.0`: `no_std`,
 no allocator or external dependencies, and `forbid(unsafe_code)` in the core.
 The native adapter uses existing fixed syscall buffers and a justified
-unsafe boundary. Root Cargo.lock retains `r-efi 7.1.0` with the same checksum.
+unsafe boundary. That historical M6b baseline retained `r-efi 7.1.0`. The current loader pin is `r-efi 7.2.0`; its registry checksum, VCS reference, unchanged feature/dependency set and retained MIT notice are recorded in [the current boot dependency inventory](third-party/README.md).
 
 The SDK runtime now directly uses `zeroize 1.9.1` (exactly pinned,
 `default-features = false`) to erase IPC envelopes. This is the same
@@ -89,9 +89,9 @@ M2–M4 add only local project crates: kernel-core 0.1.0 (frames/ELF/copy policy
 and capability-core 0.1.0 (fixed permission/IPC transactions). Both are
 dependency-free/no_std and forbid unsafe in the library. The kernel
 architecture/copy boundary contains justified unsafe/assembly; the project's
-own crates have no external build script. Root Cargo.lock retains r-efi
+own crates have no external build script. At that M2–M4 baseline, root Cargo.lock retained r-efi
 exactly 7.1.0 with the same checksum. No new external runtime library was
-added for M2–M4. Core-source/host/target checks and current test-case limits
+added for M2–M4; the later loader-only 7.2.0 update is recorded above. Core-source/host/target checks and current test-case limits
 are in verification/m2-m4/.
 M5 adds only local project crates `virtio-core 0.1.0`, `virtio-blk-driver 0.1.0`
 and `block-protocol 0.1.0`. Both cores are dependency-free/no_std and forbid

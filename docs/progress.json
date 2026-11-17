@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "93797f3a6075af9cc4fdd533dad288bfa7894ffe",
+    "source_commit": "90816de39460b76e35cd626721d4dac9bde905e2",
     "assessment_basis": "parent_commit",
     "branch": "feat/s09-ustar-name-check",
-    "task": "Phase0 limited PR340 repair: portal Clippy and bounded name-safety claim",
+    "task": "Phase 0 PR340: preserve accepted ustar export while preparing queued code integration",
     "previous_score": 41,
-    "summary": "41/100 remains41/100. Explicit limited owner release does not decide D1–D5 or accept S09. Exact portal Clippy changes101→0; existing host oracles pass. Fresh full15-stage native evidence and current-head CI remain pending."
+    "summary": "41/100 remains41/100. Both source/evidence streams and fixed criterion definitions/statuses/weights are preserved; existing H02 reference remains bounded and open. Queued predecessors are not main. Fresh integrated gates, independent review and hosted checks remain required; no fullS09/D1–D5 or baselineB acceptance."
   },
   "tracks": [
     {
@@ -217,7 +217,9 @@
           "points": 3,
           "status": "open",
           "acceptance": "Common input and USB devices work on the documented reference profile; hotplug and invalid device responses remain bounded.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/issue42-native-input-20261114/README.md"
+          ]
         },
         {
           "id": "H03",

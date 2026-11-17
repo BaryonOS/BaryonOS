@@ -1,0 +1,339 @@
+{
+  "schema_version": 2,
+  "scope": "inventory only; no build, boot, acceleration or ABI validated",
+  "build_launcher_scope": "Shared builds still require a pinned launcher or compatible +1.90.0 wrapper; direct-tool inventory does not validate that build chain.",
+  "workspace": "/workspace/scratch/7264b5153599/h02-native",
+  "host": {
+    "system": "Linux",
+    "architecture": "x86_64",
+    "python": "3.12.14"
+  },
+  "tools": {
+    "git": {
+      "available": true,
+      "path": "/usr/local/bin/git",
+      "version": "git version 2.52.0",
+      "probe_attempts": [
+        {
+          "command": [
+            "/usr/local/bin/git",
+            "--version"
+          ],
+          "exit_code": 0,
+          "stdout": "git version 2.52.0\n",
+          "stderr": ""
+        }
+      ],
+      "probe_exit": 0
+    },
+    "rustc": {
+      "available": true,
+      "path": "/home/agent/.cargo/bin/rustc",
+      "version": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+      "probe_attempts": [
+        {
+          "command": [
+            "/home/agent/.cargo/bin/rustc",
+            "+1.90.0",
+            "--version"
+          ],
+          "exit_code": 0,
+          "stdout": "rustc 1.90.0 (1159e78c4 2025-09-14)\n",
+          "stderr": "",
+          "sysroot_query": {
+            "command": [
+              "/home/agent/.cargo/bin/rustc",
+              "+1.90.0",
+              "--print",
+              "sysroot"
+            ],
+            "exit_code": 0,
+            "stdout": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu\n",
+            "stderr": ""
+          }
+        }
+      ],
+      "selected_toolchain": "1.90.0",
+      "probe_exit": 0,
+      "toolchain_args": [
+        "+1.90.0"
+      ],
+      "invocation_mode": "pinned-selector"
+    },
+    "cargo": {
+      "available": true,
+      "path": "/home/agent/.cargo/bin/cargo",
+      "version": "cargo 1.90.0 (840b83a10 2025-07-30)",
+      "probe_attempts": [
+        {
+          "command": [
+            "/home/agent/.cargo/bin/cargo",
+            "+1.90.0",
+            "--version"
+          ],
+          "exit_code": 0,
+          "stdout": "cargo 1.90.0 (840b83a10 2025-07-30)\n",
+          "stderr": ""
+        }
+      ],
+      "selected_toolchain": "1.90.0",
+      "probe_exit": 0,
+      "toolchain_args": [
+        "+1.90.0"
+      ],
+      "invocation_mode": "pinned-selector"
+    },
+    "rustup": {
+      "available": true,
+      "path": "/home/agent/.cargo/bin/rustup",
+      "version": "rustup 1.29.3 (edbc831ce 2026-11-02)",
+      "probe_attempts": [
+        {
+          "command": [
+            "/home/agent/.cargo/bin/rustup",
+            "--version"
+          ],
+          "exit_code": 0,
+          "stdout": "rustup 1.29.3 (edbc831ce 2026-11-02)\n",
+          "stderr": "info: This is the version for the rustup toolchain manager, not the rustc compiler.\ninfo: the currently active `rustc` version is `rustc 1.90.0 (1159e78c4 2025-09-14)`\n"
+        }
+      ],
+      "probe_exit": 0
+    },
+    "qemu-system-x86_64": {
+      "available": true,
+      "path": "/tmp/baryon43-runtime/bin/qemu-system-x86_64",
+      "version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)",
+      "probe_attempts": [
+        {
+          "command": [
+            "/tmp/baryon43-runtime/bin/qemu-system-x86_64",
+            "--version"
+          ],
+          "exit_code": 0,
+          "stdout": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers\n",
+          "stderr": ""
+        }
+      ],
+      "probe_exit": 0
+    },
+    "ld.lld": {
+      "available": false,
+      "path": null,
+      "version": null
+    },
+    "clang": {
+      "available": false,
+      "path": null,
+      "version": null
+    },
+    "cc": {
+      "available": true,
+      "path": "/usr/bin/cc",
+      "version": "cc (Debian 14.2.0-19) 14.2.0",
+      "probe_attempts": [
+        {
+          "command": [
+            "/usr/bin/cc",
+            "--version"
+          ],
+          "exit_code": 0,
+          "stdout": "cc (Debian 14.2.0-19) 14.2.0\nCopyright (C) 2024 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+          "stderr": ""
+        }
+      ],
+      "probe_exit": 0
+    },
+    "link.exe": {
+      "available": false,
+      "path": null,
+      "version": null
+    },
+    "python3": {
+      "available": true,
+      "path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "version": "Python 3.12.14",
+      "probe_attempts": [
+        {
+          "command": [
+            "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+            "--version"
+          ],
+          "exit_code": 0,
+          "stdout": "Python 3.12.14\n",
+          "stderr": ""
+        }
+      ],
+      "probe_exit": 0
+    }
+  },
+  "rust_toolchain": {
+    "toolchain": "1.90.0",
+    "compiler_valid": true,
+    "sysroot": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu",
+    "targets": {
+      "x86_64-unknown-uefi": {
+        "query": {
+          "command": [
+            "/home/agent/.cargo/bin/rustc",
+            "+1.90.0",
+            "--print",
+            "target-libdir",
+            "--target",
+            "x86_64-unknown-uefi"
+          ],
+          "exit_code": 0,
+          "stdout": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-uefi/lib\n",
+          "stderr": ""
+        },
+        "available": true,
+        "directory": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-uefi/lib",
+        "target_root": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-uefi",
+        "libraries": {
+          "core": {
+            "library": "core",
+            "available": true,
+            "files": [
+              {
+                "path": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-uefi/lib/libcore-3f627e2eea830c64.rlib",
+                "usable_archive": true,
+                "resolved_path": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-uefi/lib/libcore-3f627e2eea830c64.rlib",
+                "size_bytes": 58688758
+              }
+            ]
+          },
+          "alloc": {
+            "library": "alloc",
+            "available": true,
+            "files": [
+              {
+                "path": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-uefi/lib/liballoc-875a2ab97fb3aea7.rlib",
+                "usable_archive": true,
+                "resolved_path": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-uefi/lib/liballoc-875a2ab97fb3aea7.rlib",
+                "size_bytes": 7075468
+              }
+            ]
+          },
+          "compiler_builtins": {
+            "library": "compiler_builtins",
+            "available": true,
+            "files": [
+              {
+                "path": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-uefi/lib/libcompiler_builtins-7904fdebcc4c817c.rlib",
+                "usable_archive": true,
+                "resolved_path": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-uefi/lib/libcompiler_builtins-7904fdebcc4c817c.rlib",
+                "size_bytes": 10477272
+              }
+            ]
+          }
+        }
+      },
+      "x86_64-unknown-none": {
+        "query": {
+          "command": [
+            "/home/agent/.cargo/bin/rustc",
+            "+1.90.0",
+            "--print",
+            "target-libdir",
+            "--target",
+            "x86_64-unknown-none"
+          ],
+          "exit_code": 0,
+          "stdout": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-none/lib\n",
+          "stderr": ""
+        },
+        "available": true,
+        "directory": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-none/lib",
+        "target_root": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-none",
+        "libraries": {
+          "core": {
+            "library": "core",
+            "available": true,
+            "files": [
+              {
+                "path": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-none/lib/libcore-20de545fda0f50c3.rlib",
+                "usable_archive": true,
+                "resolved_path": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-none/lib/libcore-20de545fda0f50c3.rlib",
+                "size_bytes": 59398228
+              }
+            ]
+          },
+          "alloc": {
+            "library": "alloc",
+            "available": true,
+            "files": [
+              {
+                "path": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-none/lib/liballoc-98b5cda8bd8a3b2a.rlib",
+                "usable_archive": true,
+                "resolved_path": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-none/lib/liballoc-98b5cda8bd8a3b2a.rlib",
+                "size_bytes": 7268798
+              }
+            ]
+          },
+          "compiler_builtins": {
+            "library": "compiler_builtins",
+            "available": true,
+            "files": [
+              {
+                "path": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-none/lib/libcompiler_builtins-0a8a88ff7b3a744a.rlib",
+                "usable_archive": true,
+                "resolved_path": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-none/lib/libcompiler_builtins-0a8a88ff7b3a744a.rlib",
+                "size_bytes": 7407144
+              }
+            ]
+          }
+        }
+      }
+    },
+    "rustup_reported_targets": [
+      "x86_64-unknown-linux-gnu",
+      "x86_64-unknown-none",
+      "x86_64-unknown-uefi"
+    ],
+    "scope": "compiler-selected directories and archive presence; no build or ABI validation",
+    "rustup_query": {
+      "command": [
+        "/home/agent/.cargo/bin/rustup",
+        "target",
+        "list",
+        "--installed",
+        "--toolchain",
+        "1.90.0"
+      ],
+      "exit_code": 0,
+      "stdout": "x86_64-unknown-linux-gnu\nx86_64-unknown-none\nx86_64-unknown-uefi\n",
+      "stderr": ""
+    },
+    "compiler_command": [
+      "/home/agent/.cargo/bin/rustc",
+      "+1.90.0"
+    ],
+    "sysroot_query": {
+      "command": [
+        "/home/agent/.cargo/bin/rustc",
+        "+1.90.0",
+        "--print",
+        "sysroot"
+      ],
+      "exit_code": 0,
+      "stdout": "/home/agent/.rustup/toolchains/1.90.0-x86_64-unknown-linux-gnu\n",
+      "stderr": ""
+    }
+  },
+  "installed_rust_targets": [
+    "x86_64-unknown-uefi",
+    "x86_64-unknown-none"
+  ],
+  "missing_rust_targets": [],
+  "firmware_candidates": [
+    "/tmp/baryon43-apt/deb-extract/usr/share/OVMF/OVMF_CODE_4M.fd"
+  ],
+  "firmware_lookup_error": null,
+  "missing": [],
+  "host_test_tools": [
+    "cc"
+  ],
+  "missing_host_test_tools": [],
+  "baseline_tools_present": true,
+  "next": "Compare versions against docs/implementation/BOOT-AND-TOOLCHAIN.md; then build and run the real smoke test."
+}
