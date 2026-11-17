@@ -40,5 +40,23 @@
   ],
   "production_enabled": false,
   "progress_before": 41,
-  "progress_after": 41
+  "progress_after": 41,
+  "ci_followup": {
+    "source_parent": "2c78fb48925220caaec52fd3eeadf7ca94bf9a58",
+    "reason": "First hosted host-quality run rejected the object-only snapshot fixture under runner Git content-filter configuration",
+    "first_failed_run": "https://github.com/BaryonOS/BaryonOS/actions/runs/44193960085",
+    "change": "Keep fixed executable/environment and explicit no-lazy-fetch metadata lookup; preserve mutation/publication callback and hook checks",
+    "source_files_sha256": {
+      "tools/agent_pipeline.py": "cd9e07f67f086e282f2c6723ee10919f73ce258b38540970096e10f994fe2e05",
+      "tools/common.py": "f964b153fedf10698d81947b98fbe24badc3eb904f0dd38023f297bbd0219226",
+      "tools/tests/test_agent_pipeline.py": "f718c7cb559aae8471487f8c2364a3492f6851c4a98b8a1a365ac29798e389fc",
+      "tools/tests/test_agent_isolation.py": "b8645bf25d931d4f4ce7815bbb9aa212cb8ca216d34d0b37389119fa398ef782"
+    },
+    "targeted_command": "BARYON_SANDBOX_TEST_CONFIG=<reviewed-private-fixture> python3 -B -m unittest discover -s tools/tests -p test_agent_*.py",
+    "targeted_tests": 78,
+    "targeted_exit": 0,
+    "targeted_raw_log_sha256": "2db0e17228f0a73f207c581712c14dcbbcb93e0bc2bcd00e2b99d3ee6e4403cb",
+    "current_head_ci": "PENDING AFTER PUSH",
+    "merge_and_enablement": "BLOCKED by independent review; no production client or resource-profile acceptance"
+  }
 }

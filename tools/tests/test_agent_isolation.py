@@ -179,6 +179,7 @@ class SourceBoundary(unittest.TestCase):
             local = common.controller_environment()
             publication = common.controller_environment(authenticated=True)
         self.assertEqual(local["PATH"], "/usr/bin:/bin")
+        self.assertEqual(local["GIT_NO_LAZY_FETCH"], "1")
         self.assertNotIn("GH_TOKEN", local)
         self.assertNotIn("BASH_ENV", publication)
         self.assertEqual(publication["GH_TOKEN"], "synthetic")

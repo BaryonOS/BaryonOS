@@ -2,13 +2,13 @@
   "schema_version": 1,
   "rubric_version": 1,
   "assessment": {
-    "date": "2026-11-17",
-    "source_commit": "5682370eb3c1102284e9ed8456086110fabb702b",
+    "date": "2026-11-18",
+    "source_commit": "2c78fb48925220caaec52fd3eeadf7ca94bf9a58",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-pipeline-isolation",
-    "task": "Phase0: checkpoint isolated execution and independently identified remaining blockers",
+    "task": "Phase0: repair hosted snapshot compatibility and preserve source-bound security/cloud checkpoint",
     "previous_score": 41,
-    "summary": "41/100 unchanged. 406 tools tests pass including actual offline Linux boundary and Git-transaction fixtures. Independent source repairs do not establish merge or production enablement readiness; resource and workflow/client compatibility blockers remain. No finding, issue, native/hardware criterion or deployed-main boundary is marked resolved."
+    "summary": "41/100 unchanged. The source checkpoint passed406 local tools tests; the hosted metadata-fixture failure receives a narrowly scoped regression fix with78 final targeted tests passing, including actual isolation/offline transaction controls. Independent resource and complete workflow/client blockers remain. Required refreshed hosted CI and security verification remain open; no finding, issue, native criterion or deployed-main boundary is accepted."
   },
   "tracks": [
     {

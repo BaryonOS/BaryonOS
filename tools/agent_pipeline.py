@@ -225,7 +225,7 @@ def authorize_source(task: Task, policy: dict, base: str) -> None:
 def verify_controller(cwd: Path = ROOT) -> None:
     """Unsupported executable Git callbacks block instead of running with credentials."""
     env = controller_environment()
-    result = subprocess.run([CONTROLLER_GIT, "config", "--name-only", "--list"], cwd=cwd,
+    result = subprocess.run([CONTROLLER_GIT, "--no-lazy-fetch", "config", "--name-only", "--list"], cwd=cwd,
                             env=env, check=True, capture_output=True, text=True)
     names = result.stdout.lower().splitlines()
     if any(name in {"core.fsmonitor", "core.hookspath", "core.sshcommand", "core.gitproxy", "diff.external",
@@ -235,7 +235,7 @@ def verify_controller(cwd: Path = ROOT) -> None:
                            r"branch\..*\.mergeoptions|remote\..*\.(?:receivepack|uploadpack))", name)
            for name in names):
         raise TaskError("Configured Git callbacks require a separately verified isolated adapter.")
-    hooks = subprocess.run([CONTROLLER_GIT, "rev-parse", "--git-path", "hooks"], cwd=cwd,
+    hooks = subprocess.run([CONTROLLER_GIT, "--no-lazy-fetch", "rev-parse", "--git-path", "hooks"], cwd=cwd,
                            env=env, check=True, capture_output=True, text=True).stdout.strip()
     hook_dir = Path(hooks) if Path(hooks).is_absolute() else cwd / hooks
     if hook_dir.exists() and any(p.is_file() and p.stat().st_mode & 0o111
@@ -277,8 +277,7 @@ def snapshot(paths: list[str], ref: str, cwd: Path = ROOT) -> dict[str, str | No
     """Blob id per path at `ref` (None = absent): the read set of a worker."""
     result: dict[str, str | None] = {}
     for path in paths:
-        verify_controller(cwd)
-        done = subprocess.run([CONTROLLER_GIT, "rev-parse", "--verify", "-q", f"{ref}:{path}"],
+        done = subprocess.run([CONTROLLER_GIT, "--no-lazy-fetch", "rev-parse", "--verify", "-q", f"{ref}:{path}"],
                               cwd=cwd, env=controller_environment(), capture_output=True, text=True)
         result[path] = done.stdout.strip() or None
     return result

@@ -213,6 +213,37 @@ class GitAndEngines(unittest.TestCase):
         self.git("commit", "-qam", "2")
         self.assertEqual(ap.stale(before, ap.snapshot(["a", "missing"], "HEAD", self.tmp)), ["a"])
 
+    def test_object_only_snapshot_does_not_run_configured_content_filters(self):
+        self.git("init", "-q")
+        (self.tmp / "a").write_text("source")
+        self.git("add", "a")
+        self.git("commit", "-qm", "fixture")
+        self.git("config", "filter.fixture.clean", "nonexistent-fixture-helper")
+        self.assertIsNotNone(ap.snapshot(["a"], "HEAD", self.tmp)["a"])
+        with self.assertRaises(ap.TaskError):
+            ap.sh(["git", "status", "--porcelain"], self.tmp)
+
+    def test_missing_promisor_object_cannot_start_a_lazy_fetch(self):
+        self.git("init", "-q")
+        (self.tmp / "a").write_text("source")
+        self.git("add", "a")
+        self.git("commit", "-qm", "fixture")
+        tree = subprocess.run(["/usr/bin/git", "rev-parse", "HEAD^{tree}"], cwd=self.tmp,
+                              check=True, capture_output=True, text=True).stdout.strip()
+        (self.tmp / ".git/objects" / tree[:2] / tree[2:]).unlink()
+        self.git("config", "core.repositoryformatversion", "1")
+        self.git("config", "extensions.partialClone", "origin")
+        self.git("config", "remote.origin.promisor", "true")
+        self.git("config", "remote.origin.url", (self.tmp / "nonexistent-remote").as_uri())
+        trace = self.tmp / "trace.json"
+        env = ap.controller_environment()
+        env.pop("GIT_NO_LAZY_FETCH")  # The explicit option must suffice independently.
+        env["GIT_TRACE2_EVENT"] = str(trace)
+        with mock.patch.object(ap, "controller_environment", return_value=env):
+            self.assertIsNone(ap.snapshot(["a"], "HEAD", self.tmp)["a"])
+        events = [json.loads(line) for line in trace.read_text().splitlines()]
+        self.assertFalse(any(event["event"] == "child_start" for event in events))
+
     def test_fails_over_only_on_rate_limits(self):
         results = {"limited": (1, "rate limit exceeded"), "broken": (1, "syntax error"),
                    "fine": (0, "")}

@@ -138,7 +138,8 @@ def controller_environment(*, authenticated: bool = False) -> dict[str, str]:
     """Fixed tool lookup, preserving configuration checks without ambient exec overrides."""
     if any(key.startswith("GIT_") and key not in {"GIT_TERMINAL_PROMPT", "GIT_PAGER"} for key in os.environ):
         raise ValueError("Git environment overrides require a verified controller adapter")
-    env = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "GIT_TERMINAL_PROMPT": "0", "GIT_PAGER": "/usr/bin/cat"}
+    env = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "GIT_TERMINAL_PROMPT": "0",
+           "GIT_PAGER": "/usr/bin/cat", "GIT_NO_LAZY_FETCH": "1"}
     for key in ("HOME", "XDG_CONFIG_HOME"):
         if key in os.environ:
             if not Path(os.environ[key]).is_absolute():
@@ -178,7 +179,7 @@ def agent_file(root: Path, relative: str) -> Path:
 
 def agent_source_paths(extra: tuple[str, ...] | list[str] = ()) -> list[str]:
     """The controller index supplies source names; no worker Git metadata is read."""
-    result = subprocess.run([CONTROLLER_GIT, "ls-files", "-z"], cwd=ROOT, check=True,
+    result = subprocess.run([CONTROLLER_GIT, "--no-lazy-fetch", "ls-files", "-z"], cwd=ROOT, check=True,
                             env=controller_environment(), capture_output=True, text=True)
     paths = sorted(set(result.stdout.rstrip("\0").split("\0")) | set(extra))
     for path in paths:
