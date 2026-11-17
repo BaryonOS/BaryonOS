@@ -1,0 +1,31 @@
+{
+  "source_head": "ca3534f32b8bd80373143542e14b8d3afe0ea298",
+  "compared_main": "b718f6bafdfc4927d3b7acfe786e67dcb8f88eec",
+  "checker_exit": 0,
+  "independent_harness_exit": 0,
+  "matrix_rows": 92,
+  "references": 110,
+  "safety_rows": 11,
+  "archive_output_byte_equal": true,
+  "archive_hashes_verified": 5,
+  "negative_mutations_rejected": 30,
+  "cli_negative_exits": [
+    1,
+    1
+  ],
+  "known_checker_gap": "Consistent Tier/Axis demotion of row62 is accepted; published minor remains open.",
+  "scope_finding": {
+    "claim_path": "docs/verification/a11y-research-20261115/README.md:5",
+    "claim": "systematic literature review",
+    "contradicting_source": "docs/design/accessibility/ACCESSIBILITY-RESEARCH.md:1334\u20131335",
+    "actual_scope": "targeted abstract-level review, explicitly not systematic",
+    "disposition": "Preserve the owner requirement. Claude must correct the checkpoint terminology or seek an explicit owner scope decision; do not mark systematic research complete."
+  },
+  "coupling_advisory": "Bounded validation orchestration, no concrete defect found.",
+  "ownership": "No Orbitaal source/WIP/runner/claims/threads changed; source correction remains with Claude.",
+  "not_run": [
+    "New citation audit",
+    "Rendering/screenreader/user testing",
+    "Native/hardware/human audit"
+  ]
+}

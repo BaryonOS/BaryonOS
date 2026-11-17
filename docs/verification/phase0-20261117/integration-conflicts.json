@@ -1,0 +1,37 @@
+[
+  {
+    "comparison": "PR343 tree with PR344",
+    "ours": "aa7a0387aa34c2f9ead9a46d9a3ee7df32f5a3a5",
+    "theirs": "57a9e5f3a1abe6c6f2364d340d765fcaa198aa35",
+    "exit_code": 1,
+    "tree_and_conflict_paths": [
+      "2f34d4e2e4e9d43e8cbb48b91c6b04446eed9645",
+      "docs/PROJECT-STATE.md",
+      "docs/progress.json"
+    ],
+    "stderr": "",
+    "scope": "Synthetic tree analysis in the isolated clone; no branch, worktree or main was merged."
+  },
+  {
+    "comparison": "current main with PR336",
+    "ours": "b718f6bafdfc4927d3b7acfe786e67dcb8f88eec",
+    "theirs": "6b2f3d2698cd525904ec69f35ab3081d5cad18d9",
+    "exit_code": 0,
+    "tree_and_conflict_paths": [
+      "d0461d64dd22039eed2fe53a5a980d3fd9534d72"
+    ],
+    "stderr": "",
+    "scope": "Synthetic tree analysis in the isolated clone; no branch, worktree or main was merged."
+  },
+  {
+    "comparison": "current main with PR333",
+    "ours": "b718f6bafdfc4927d3b7acfe786e67dcb8f88eec",
+    "theirs": "b0aac21645d1f9b178dcc076360a4c016ffda8fd",
+    "exit_code": 0,
+    "tree_and_conflict_paths": [
+      "4d42ecfe33f505c16a4ea82c4b59924eabe2e34a"
+    ],
+    "stderr": "",
+    "scope": "Synthetic tree analysis in the isolated clone; no branch, worktree or main was merged."
+  }
+]
