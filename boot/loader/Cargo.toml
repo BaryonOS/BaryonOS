@@ -21,7 +21,7 @@ signed-boot-test = ["signed-boot", "update-core/test-signing-anchors"]
 signed-policy-probe-test = ["signed-boot-test", "update-core/test-policy-envelope-probe"]
 
 [dependencies]
-r-efi = { version = "=7.1.0", default-features = false }
+r-efi = { version = "=7.2.0", default-features = false }
 boot-protocol = { path = "../../crates/boot-protocol" }
 elf-loader-core = { path = "../../crates/elf-loader-core" }
 update-core = { path = "../../crates/update-core", optional = true }
