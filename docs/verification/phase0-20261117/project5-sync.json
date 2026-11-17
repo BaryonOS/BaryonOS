@@ -1,0 +1,26 @@
+{
+  "project": 5,
+  "name": "Baryon OS Development",
+  "existing_workflow": ".github/workflows/project-classification.yml",
+  "existing_classifier": "tools/project_classification.py",
+  "local_rule_tests": {
+    "count": 20,
+    "exit_code": 0
+  },
+  "direct_api": "NOT VERIFIED: existing CLI token lacks read:project; no token scope/secret changed",
+  "workflow_run": 44147464307,
+  "job": 134266403609,
+  "source_main": "e7169e43bf772307acf328590b4300fa52a4ad73",
+  "result": "SUCCESS",
+  "actual_summary": {
+    "scanned": 84,
+    "suggested": 9,
+    "updated": 9,
+    "missing": 0,
+    "added": 0
+  },
+  "scope": "Existing conservative automation applied after actual lifecycle changes, no second project/register",
+  "preserves": "Manual classifications/options/assignees remain; no invented ownership",
+  "ui_status": "Separate bounded UI review confirms21requestedmembers,18openrowsBacklog, closed277/merged343/344Done; blanks are not inferred owners/priorities",
+  "raw_log": "logs/project5-current-run.log"
+}

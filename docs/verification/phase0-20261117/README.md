@@ -1,5 +1,13 @@
 # Phase 0 integration checkpoint — 17 November 2026
 
+## Active expanded stabilization target — latest owner instruction
+
+[Strict zero-backlog authority and currentinventory](owner-zero-backlog-authority.json) supersede the originalfinite/disposition-only condition below; accepted technical/security/product/ownership decisions remain.0B is the sole primary active milestone. BaselineB and governance1–6 remain blocked pending genuine0counts and allcurrent-sourcegates. Currentmain e7169e43;343/344 alreadyintegrated, neverrecreate them.
+
+[Project5](project5-sync.json) is synchronized via the existingworkflow. [Initial alertcounts](current-alert-inventory.json) are not finalT1 or proof ofscancoverage; AIanalysisdisabled and delegatedbypasscountNOTVERIFIED remain explicit. The [log-retentionmemory](graphify-memory-submission.json) is a submittedcandidate only. No CodeRabbitaccount/billingdetails arepublished; reuse350 and existingprivateaccountwork without paidactivation or duplicate support.
+
+336 [editorialreview](pr336-review-docs.json) passes; current-headCI/mergehold remain.333 [actual fixed-slot repair](pr333-linker-repair.json) passes native/affected/uniongates and preserves everyloadablebyte. Its earliercapacityfailure and supersededprofilecandidate remain recorded; finalindependentreview/hostedCI and main-after336 reconciliation remain. Allcomplete rawgatelogs now have unique paths; controller PASSsummaries are not represented as completecommandlogs.
+
 ## Current executed state — supersedes historical inventory observations
 
 Main `e7169e43bf772307acf328590b4300fa52a4ad73` is the verified squash result of344; its tree equals reviewed head64a85575. [Merge receipt](pr344-merge-receipt.json). PR343's complete main push checks passed. GitHub then refused to start jobs because of an account billing lock. [External CI blocker](ci-infrastructure-blocker.json); unavailable checks remain NOT RUN, and baseline B is not frozen. No paid-infrastructure change, merge exception or bypass is authorized. Main host-quality/qemu-smoke succeeded; the missing CI jobs are coverage uploads plus two components. This corrects the preceding checkpoint's inaccurate qemu-smoke classification. The current336 head has49 verified billing-lock failure-to-start annotations.

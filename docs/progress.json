@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "7aeb23aaec66edb29f9c01fd3326dbfbc3173a0b",
+    "source_commit": "ab9a0d126d3d787e700bce3fb61db3a182764f5d",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-baseline",
-    "task": "Phase 0: correct exact post-merge job classification from raw GitHub annotations",
+    "task": "Phase 0: checkpoint expanded zero-backlog authority, real native repair and synchronized tracking",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Main host-quality/qemu-smoke succeeded; two components and three coverage uploads did not start due to billing lock. All49 current336 failure annotations confirm that external cause. No missing test is accepted; baselineB remains unestablished."
+    "summary": "41/100 unchanged. Actualissue/PRacceptance remainsopen; initialalert0counts arebounded, AIanalysisdisabled/bypassqueueNOTVERIFIED. Source-bound repairednativegate and reviews recorded; finalcurrentCI/main/T1/B andgovernance notaccepted."
   },
   "tracks": [
     {
