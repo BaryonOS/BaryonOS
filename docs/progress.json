@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "2c78fb48925220caaec52fd3eeadf7ca94bf9a58",
+    "source_commit": "aec1fb5f75e6165da82ba81f3f43d7a0d912ab1d",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-pipeline-isolation",
-    "task": "Phase0: repair hosted snapshot compatibility and preserve source-bound security/cloud checkpoint",
+    "task": "Phase0: reconcile PR333 main and continue pipeline isolation remediation",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The source checkpoint passed406 local tools tests; the hosted metadata-fixture failure receives a narrowly scoped regression fix with78 final targeted tests passing, including actual isolation/offline transaction controls. Independent resource and complete workflow/client blockers remain. Required refreshed hosted CI and security verification remain open; no finding, issue, native criterion or deployed-main boundary is accepted."
+    "summary": "41/100 unchanged. PR333 is integrated on main with its source-bound evidence and H02 limitations preserved. The security candidate retains78 final targeted tests and its earlier isolation evidence, but independent resource and complete workflow/client blockers remain. Required refreshed hosted CI and security verification remain open; no finding, issue, native criterion or deployed-main boundary is accepted."
   },
   "tracks": [
     {
@@ -217,7 +217,9 @@
           "points": 3,
           "status": "open",
           "acceptance": "Common input and USB devices work on the documented reference profile; hotplug and invalid device responses remain bounded.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/issue42-native-input-20261114/README.md"
+          ]
         },
         {
           "id": "H03",

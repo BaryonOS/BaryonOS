@@ -1,0 +1,4 @@
+qemu-system-x86_64: vtd_iova_to_slpte: detected slpte permission error (iova=0xf000, level=0x1, slpte=0x0, write=1, pasid=0xffffffff)
+qemu-system-x86_64: Interrupt Mask set, irq is not generated
+qemu-system-x86_64: vtd_iommu_translate: detected translation failure (dev=00:05:00, iova=0xf000)
+qemu-system-x86_64: New fault is not recorded due to compression of faults

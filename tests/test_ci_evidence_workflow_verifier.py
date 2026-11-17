@@ -45,12 +45,20 @@ class WorkflowVerifierTests(unittest.TestCase):
         """Inspect the isolated workflow bytes against their committed baseline."""
         return VERIFIER.run(self.repo, self.baseline)
 
+    def manual_compact(self, name):
+        """Observe the specific policy check independently of baseline edits."""
+        key = "manual-default-compact:.github/workflows/" + name
+        return next(check["passed"] for check in self.report()["checks"]
+                    if check["name"] == key)
+
     def test_integrated_workflows_preserve_all_reporting_cases(self):
-        """A valid baseline retains 18 workflow files and 31 preservation calls."""
+        """A valid baseline retains 20 workflow files and 33 preservation calls."""
         report = self.report()
         self.assertTrue(report["passed"], report["failed_checks"])
-        self.assertEqual(report["archive_workflow_count"], 18)
-        self.assertEqual(len(report["archive_workflows"]), 18)
+        self.assertEqual(report["archive_workflow_count"], 20)
+        self.assertEqual(len(report["archive_workflows"]), 20)
+        for name in ("native-xhci.yml", "native-hid-input.yml"):
+            self.assertIn(".github/workflows/" + name, report["archive_workflows"])
         self.assertEqual(report["local_snapshot_baseline"], self.baseline)
         self.assertEqual(report["repository_path"], ".")
         self.assertTrue(all(comparison["status"] == "compared"
@@ -63,12 +71,58 @@ class WorkflowVerifierTests(unittest.TestCase):
             # final gate, clock diagnostic, margin diagnostic, gate rehearsal).
             # Code coverage reporting adds three calls in ci.yml (Rust, Python,
             # JavaScript), each counted by both prefixes.
+            # H02 adds one xHCI and one HID workflow/preservation invocation.
             self.assertEqual(sum(check["name"].startswith(prefix)
-                                 for check in report["checks"]), 31)
+                                 for check in report["checks"]), 33)
         self.assertEqual(sum(check["name"].startswith("report-shell:")
                              for check in report["checks"]), 28)
         self.assertEqual(sum(check["name"].startswith("package-check:")
                              for check in report["checks"]), 6)
+
+    def test_compact_only_accepts_empty_or_absent_manual_trigger(self):
+        """No full-evidence selector is needed when every call fixes it false."""
+        name = "native-hid-input.yml"
+        path = self.repo / ".github/workflows" / name
+        original = path.read_text()
+        for trigger in ("  workflow_dispatch: {}\n", "  workflow_dispatch:\n", ""):
+            with self.subTest(trigger=trigger):
+                path.write_text(original.replace("  workflow_dispatch: {}\n", trigger, 1))
+                self.assertTrue(self.manual_compact(name))
+
+    def test_compact_only_rejects_implicit_dynamic_or_true_full_evidence(self):
+        """Action defaults and expressions cannot stand in for fixed false."""
+        name = "native-hid-input.yml"
+        path = self.repo / ".github/workflows" / name
+        original = path.read_text()
+        for value in ("", "          full-evidence: 'true'\n",
+                      "          full-evidence: ${{ false }}\n"):
+            with self.subTest(value=value):
+                path.write_text(original.replace("          full-evidence: 'false'\n", value, 1))
+                self.assertFalse(self.manual_compact(name))
+
+    def test_compact_only_requires_every_preservation_invocation_to_be_fixed(self):
+        """A second call cannot silently enable the full archive."""
+        name = "native-hid-input.yml"
+        path = self.repo / ".github/workflows" / name
+        original = path.read_text()
+        extra = original[original.index("      - name: Preserve compact source-bound reports only\n"):]
+        path.write_text(original + extra)
+        self.assertTrue(self.manual_compact(name))
+        path.write_text(original + extra.replace("full-evidence: 'false'", "full-evidence: 'true'", 1))
+        self.assertFalse(self.manual_compact(name))
+
+    def test_explicit_selector_still_requires_false_default_even_for_fixed_calls(self):
+        """Fixed calls must not bypass an explicitly unsafe or missing default."""
+        name = "native-hid-input.yml"
+        path = self.repo / ".github/workflows" / name
+        original = path.read_text()
+        header = ("  workflow_dispatch:\n    inputs:\n      full_evidence:\n"
+                  "        description: Full artifact selector\n        type: boolean\n")
+        for default, expected in (("        default: false\n", True),
+                                  ("        default: true\n", False), ("", False)):
+            with self.subTest(default=default):
+                path.write_text(original.replace("  workflow_dispatch: {}\n", header + default, 1))
+                self.assertEqual(self.manual_compact(name), expected)
 
     def test_new_workflow_without_baseline_is_not_reported_as_preserved(self):
         """A newly added workflow cannot inherit an absent comparison as a pass."""

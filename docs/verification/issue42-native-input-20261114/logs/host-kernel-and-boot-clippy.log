@@ -1,0 +1,3 @@
+    Checking boot-protocol v0.1.0 (/workspace/scratch/7264b5153599/h02-native/crates/boot-protocol)
+    Checking kernel-core v0.1.0 (/workspace/scratch/7264b5153599/h02-native/crates/kernel-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.77s
