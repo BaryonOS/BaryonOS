@@ -123,7 +123,8 @@ the superseded 14 November model only
 (checkpoint section 14, last entry). The continuation branch
 `claude/baryon-os-design-pipeline-20261115` (draft PR #339, no auto-merge)
 carries the shutdown commits cherry-picked unchanged onto main `d572052b`.
-UX-A11Y-R is accepted (`8cca1167`, run 2 `wf_baf4e604-27b`). UX-A11Y-DS run 1
+UX-A11Y-R is an intermediate research checkpoint (`8cca1167`, run 2
+`wf_baf4e604-27b`); the systematic-review requirement remains open. UX-A11Y-DS run 1
 ended `blocked_after_2_repairs` and is not accepted; its deliverables are the
 uncommitted changes in the worktree. Next: UX-A11Y-DS run 2
 (`runs-20261115/uxa11y-ds-run2.js`, arguments in `uxa11y-ds-run2-args.json`):
@@ -137,6 +138,20 @@ Run 2 is queued, not started: the plan's weekly usage limit stood at 94 % on
 resets on 18 November 2026 at 07:00 CET.
 Then UX-A11Y-A1, UX-C run 1 (`runs-20261115/uxc-run1.js`), UX-C run 2, UX-E,
 UX-F, UX-G and G1.
+
+**Review correction (17 November 2026):** after CodeRabbit review of
+`4005ca67`, two matrix cells that contradicted the research document were
+corrected. Row 59 (autism and sensory processing) no longer lets `stimulus`
+reduce translucency, which belongs to the `transparency` axis (research section
+7.1). Row 98 (system-wide preference following) now cites EN 301 549 V4.1.1
+clause 11.7 as recorded in research section 2.2 instead of the superseded
+V3.2.1 reading. The structural checker
+`docs/verification/a11y-research-20261115/check.py` gives the same result
+before and after (92 rows, 110 sources, self-test passed, 0 errors). The
+historical `SHA256SUMS` in that record binds the matrix as of `4005ca67`
+(sha256 `26c065ed…`); the current matrix differs from it only in these two
+cells. GitHub Actions started no job for `4005ca67` (account billing lock), so
+no hosted check evidence exists for that head.
 
 **Owner decisions of 15 November on flashing media and photosensitivity**
 (verbatim, Dutch, in the checkpoint directory:

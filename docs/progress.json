@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "9f3cd033d8e1332f5445f46cdfa0a811bd3947fb",
+    "source_commit": "4005ca674313e5637c8293a10627acdd286ab3e1",
     "assessment_basis": "parent_commit",
     "branch": "claude/baryon-os-design-pipeline-20261115",
-    "task": "Merge main (Phase 0 PR344 dependency reconciliation) into the design pipeline branch; UX-A11Y-DS run 2 stays queued pending an owner decision on protected files",
+    "task": "Address CodeRabbit review of PR #339: correct two accessibility-matrix cells (rows 59 and 98) that contradicted the research document; UX-A11Y-DS run 2 stays queued",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The merge combines main's Phase 0 PR344 dependency and evidence work with the design pipeline state; neither side accepts a native or other OS criterion, and main's fresh integrated gates remain pending. The ds-1.1 design changes remain uncommitted and unaccepted, and UX-A11Y-R is an intermediate research checkpoint."
+    "summary": "41/100 remains 41/100. The change corrects two documentation cells in the UX-A11Y-R accessibility matrix (stimulus versus transparency axis; EN 301 549 V4.1.1 clause 11.7) and accepts no criterion. The ds-1.1 design changes remain uncommitted and unaccepted, and UX-A11Y-R is an intermediate research checkpoint. GitHub Actions started no job for the parent head (account billing lock)."
   },
   "tracks": [
     {
