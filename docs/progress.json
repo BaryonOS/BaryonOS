@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "84b0198f64ba520d4b275ffb8d0f461f0762c89f",
+    "source_commit": "23911488051f7f6fdaefa81112d138f5e17a48a8",
     "assessment_basis": "parent_commit",
     "branch": "claude/baryon-os-design-pipeline-20261115",
-    "task": "Address Graphify review of PR #339: record two valid findings in the archived UX-A11Y-R matrix checker as an open lead item (protected, hash-bound evidence is not edited in place)",
+    "task": "Merge main (B03 PR336: TEST policy envelopes verified in loader and native service) into the design pipeline branch; UX-A11Y-DS run 2 stays queued",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The change records two open checker findings (path containment of named files; mandatory non-safety baseline rows not pinned) and accepts no criterion. The ds-1.1 design changes remain uncommitted and unaccepted, and UX-A11Y-R is an intermediate research checkpoint. Hosted CI, CodeQL and merge-hold pass at the parent head."
+    "summary": "41/100 remains 41/100. The merge combines main's B03 PR336 work, which changes no criterion, with the design pipeline state; neither side accepts a criterion. The ds-1.1 design changes remain uncommitted and unaccepted, UX-A11Y-R is an intermediate research checkpoint, and the successor matrix checker remains an open lead item."
   },
   "tracks": [
     {

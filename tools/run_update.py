@@ -380,6 +380,21 @@ def mutate(store: bytearray, steps) -> None:
             raise ValueError(f"unknown mutation {kind}")
 
 
+def qemu_command(qemu: str, run_dir: Path, state_dir: Path) -> list[str]:
+    """The shared disposable B03 machine; callers retain their own test oracle."""
+    rel = run_dir.relative_to(ROOT).as_posix()
+    state_rel = state_dir.relative_to(ROOT).as_posix()
+    return [qemu, "-machine", qemu_machine(), "-accel", "tcg,thread=single", "-cpu", "qemu64",
+            "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none", "-monitor", "none",
+            "-serial", "stdio", "-nic", "none", "-no-reboot",
+            "-drive", f"if=pflash,unit=0,format=raw,readonly=on,file={rel}/OVMF_CODE.fd",
+            "-drive", f"if=pflash,unit=1,format=raw,file={state_rel}/OVMF_VARS.fd",
+            "-drive", f"if=virtio,index=0,format=raw,readonly=on,file=fat:{rel}/esp",
+            "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
+            "-drive", f"if=none,id=store,format=raw,cache=writeback,file={state_rel}/store.img",
+            "-device", "virtio-blk-pci,drive=store,id=storeblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-B03-STORE"]
+
+
 def run_update(stage: str, state_dir: Path | None = None, *, timeout=MAX_TIMEOUT):
     if stage not in STAGES or not 0 < timeout <= MAX_TIMEOUT:
         raise ValueError("unknown B03 stage or invalid timeout")
@@ -427,17 +442,7 @@ def run_update(stage: str, state_dir: Path | None = None, *, timeout=MAX_TIMEOUT
         mutate(store, plan["mutate"])
         store_path.write_bytes(store)
     before = store_path.read_bytes()
-    rel = run_dir.relative_to(ROOT).as_posix()
-    state_rel = state_dir.relative_to(ROOT).as_posix()
-    args = [qemu, "-machine", qemu_machine(), "-accel", "tcg,thread=single", "-cpu", "qemu64",
-            "-smp", "1", "-m", "256M", "-nodefaults", "-display", "none", "-monitor", "none",
-            "-serial", "stdio", "-nic", "none", "-no-reboot",
-            "-drive", f"if=pflash,unit=0,format=raw,readonly=on,file={rel}/OVMF_CODE.fd",
-            "-drive", f"if=pflash,unit=1,format=raw,file={state_rel}/OVMF_VARS.fd",
-            "-drive", f"if=virtio,index=0,format=raw,readonly=on,file=fat:{rel}/esp",
-            "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
-            "-drive", f"if=none,id=store,format=raw,cache=writeback,file={state_rel}/store.img",
-            "-device", "virtio-blk-pci,drive=store,id=storeblk,addr=0x5,disable-legacy=on,num-queues=1,queue-size=8,serial=NOS-B03-STORE"]
+    args = qemu_command(qemu, run_dir, state_dir)
     started = datetime.now(timezone.utc).isoformat()
     start = time.monotonic()
     rc, out, err, timed_out, killed, running = execute(
