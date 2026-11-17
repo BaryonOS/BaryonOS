@@ -225,8 +225,10 @@ including a newly revoked pair; this also checks retained active entries.
 Root-authorised recovery cannot
 waive these rules. Later changes to this policy require a separate decision.
 
-The eight-entry bound includes tombstones. When it is exhausted, reject the
-transition; do not discard revocation history or silently enlarge the bound.
+The eight-entry bound includes tombstones. Reject a transition that would
+require more than eight entries. Revoking an existing entry remains possible
+at capacity, subject to all other transition checks. Do not discard revocation
+history or silently enlarge the bound.
 This is an explicit experiment limit, not a production lifecycle solution.
 Long-term authenticated revocation history remains part of D3/D4 design.
 
@@ -243,10 +245,11 @@ experiment must show both an allowed fallback and this refused fallback.
 
 1. Experimental approval is recorded in ADR-B03K3; the unresolved production
    decisions remain explicit.
-2. Specify the real native adapter, exact anchor/transition encoding and ingress
-   rights before implementation. Preserve the existing TEST compile guards.
-3. Implement parsers and cryptographic checks with malformed-input, role,
-   target, size, equivocation and revocation tests. Run host tests first.
+2. Implement the bounded codec and cryptographic checks behind the existing
+   TEST compile guards, with malformed-input, role, target, size, equivocation
+   and revocation tests. Run host tests before the immutable native probe.
+3. Freeze the real native adapter, exact anchor/transition encoding and ingress
+   rights before implementing a persistent policy transition.
 4. Preserve all existing 18 native update stages. Add independently inspected
    policy/image interruption, restart, replay, exhaustion and refusal cases
    under the selected experimental backend, with source-bound evidence.

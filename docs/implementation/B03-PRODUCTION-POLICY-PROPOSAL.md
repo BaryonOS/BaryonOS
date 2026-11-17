@@ -113,7 +113,8 @@ follow from drafting this proposal, increasing test counts or passing host tests
 The D2/D3/D4 transition specification is linked above. ADR-B03K3 records the
 bounded synthetic-experiment approval and separates it from outstanding
 D1–D7 production prerequisites. The exact native backend/encoding/ingress contract
-must precede native implementation. Unresolved decisions leave production
+must precede persistent-transition implementation; the approved bounded codec
+and immutable native probe may precede that contract. Unresolved decisions leave production
 activation disabled. Approval and resulting architecture changes belong in
 `DECISIONS.md`; this proposal is not a second roadmap or an approved contract.
 

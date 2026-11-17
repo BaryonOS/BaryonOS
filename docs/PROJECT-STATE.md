@@ -1,6 +1,17 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Phase 0 PR333 queued integration — 17 November 2026
+## NEXT AGENT HANDOFF — Phase 0 PR333 actual-main reconciliation — 17 November 2026
+
+**Source:** reviewed333 parent `de793ed7ec83e2c121bf3f02fd0873271f86fe58`, integrating actual main `38d4cc17687156379677993be9945447591bd4c1` after verified336 squash. The new main tree is exactly the tested336 tree; issue41 remains open.
+**Preserved:** all333 runtime/security/TEST-linker-fix blobs and existing native source fingerprint; latest336 proposal clarifications and the single canonical unchanged ADR-B03K3 block at main's top. The squash topology would duplicate the same ADR at top and bottom; its exact main copy is retained once. Historical lead blocks and all independent handoffs remain below. [Reconciliation record](verification/phase0-pr333-main-20261117/integration.json).
+**Checks:** all non-documentation blobs are identical to independently verifiedde793ed7. Existing source-bound native/host/complete raw evidence remains applicable to that exact runtime, without claiming a new execution. Fresh current-head hosted checks, independent bounded reconciliation review and final diff/merge-hold remain mandatory. Score41/100 unchanged; fullH02/hardware/human audit remains open.
+**Next:** publish this actual-main checkpoint, verify new-head CI and preservation, then manual squash only when all conditions pass. Continue340 after actual new main; no auto-merge, source/evidence loss or bypass. The remaining Minor ADR rationale/template item is explicitly open as a nonblockingP3 follow-up. Latest owner refinement gates baselineB on integration/security blockers and mandatory checks, with individually triaged residuals; governance1–6 has not started. Original UI/S09 WIP, runners and ownership remain intact.
+
+## Retained source-bound checkpoints and workstream handoffs
+
+Earlier observations retain their exact source/version; only current Phase0 merge authority supersedes their historical approval wording.
+
+### Historical lead checkpoint — Phase 0 PR333 queued integration — 17 November 2026
 
 **Source:** original333 parent `b0aac21645d1f9b178dcc076360a4c016ffda8fd`, integrating queued locally verified336 `c26b0903627fea59f5d286f8eff4c4887b017b9a`. That predecessor is NOT merged main; verified main remains `e7169e43bf772307acf328590b4300fa52a4ad73`. Approved merge order remains336→333.
 **Preserved:** both source/evidence streams, strict DMA/IOMMU fail-closed ownership/pinning, native USB/HID input boundaries, immutable TEST policy guards, fixed criteria/status/weights and independent workstream handoffs. Only the historical checkpoint overlap required manual resolution; both full blocks are retained below. [Integration receipt](verification/phase0-pr333-20261117/integration.json). The existing bounded H02 evidence reference is preserved without accepting H02.
@@ -16,6 +27,11 @@ These preserve their original source-bound observations; current owner authority
 **Source:** PR336 parent `6b2f3d2698cd525904ec69f35ab3081d5cad18d9`, integrating verified main `e7169e43bf772307acf328590b4300fa52a4ad73` after PR343 and PR344 squash merges. The merge is conflict-free; no manual runtime-source edits are made.
 **Preserved:** the opt-in immutable public TEST policy experiment, both signature checks, existing 18-stage update gate, audited r-efi7.2.0, artifact-action contract, all historical evidence and independent workstream handoffs. [Integration record](verification/phase0-pr336-20261117/integration.json).
 **Checks:** parent host/model/native results remain source-bound. Fresh integrated gates, independent reconciliation review and current-head hosted checks are pending. Main's two component jobs did not start because GitHub reported an account billing lock; they are NOT RUN, not passing. Progress remains 41/100; issue #41 remains open for persistent policy, production custody and its complete acceptance criteria.
+### Historical lead checkpoint — Phase 0 PR336 integration — 17 November 2026
+
+**Source:** PR336 parent `6b2f3d2698cd525904ec69f35ab3081d5cad18d9`, integrating verified main `e7169e43bf772307acf328590b4300fa52a4ad73` after PR343 and PR344 squash merges. The merge is conflict-free; no manual runtime-source edits are made.
+**Preserved:** the opt-in immutable public TEST policy experiment, both signature checks, existing 18-stage update gate, audited r-efi7.2.0, artifact-action contract, all historical evidence and independent workstream handoffs. [Integration record](verification/phase0-pr336-20261117/integration.json).
+**Checks:** all fresh integrated c26b0903 host/model/native gates pass; independent source/artifact verification passes. Current-head CodeRabbit summary exposed two proposal ambiguities despite zero inline threads. This editorial checkpoint aligns them with acceptedADR-B03K3, moves its complete unchanged block to the top and preserves its established identifier/date. [Dispositions](verification/phase0-pr336-20261117/coderabbit-dispositions.json). Runtime, fixtures and tests are unchanged; independent editorial review and new-head hosted checks remain required. Score41/100; full issue41 remains open.
 **Next:** publish this checkpoint, run the affected integrated gates and obtain actual current-head CI. Resolve the external CI blocker without changing billing, tests or protection. Squash only after all applicable gates/reviews/merge-hold pass under the explicit Phase 0 owner authority; no auto-merge. Baseline B and the integrated assessment remain outstanding; governance phases 1–6 have not started. Orbitaal/S09 ownership remains intact.
 
 ## Retained prior checkpoints
