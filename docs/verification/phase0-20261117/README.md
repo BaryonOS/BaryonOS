@@ -38,3 +38,14 @@ Evidence limit: T0 is inventory, not integrated main acceptance, a completed sec
 
 Raw sanitized T0 records: `/tmp/baryonos-phase0-20261117/T0-local.json`, `T0-github.json`, `T0-checks-343-344.json`. Their hashes are recorded separately. Full command logs remain outside Git.
 Resume from branch `codex/phase0-baseline` in `/tmp/baryonos-phase0-20261117/repo`; confirm the remote head and existing ownership before writes. Next task: finish and verify #343's bounded action-runtime check, then #344's dependency record. The complete integration/quality assessment and final source freeze remain outstanding.
+
+## Follow-up execution checkpoint
+
+- PR343 correction published as aa7a0387aa34c2f9ead9a46d9a3ee7df32f5a3a5. All349 tools tests pass with the installed rustup binary (exit0). Hosted artifact contract succeeds; its synthetic checkout has the exact PR-head tree. Other affected/required jobs are individually tracked, not implied passed.
+- PR344 audit correction published as57a9e5f3a1abe6c6f2364d340d765fcaa198aa35. The ten-group loader/M1 gate and all18 native update stages pass locally (exit0). Independent re-review confirms the inventory finding addressed; its thread is resolved. Current-head hosted checks remain separate.
+- PR336 Rust/Python and native TEST-policy probe pass locally (exit0); independent scoped security review found no concrete blocker. Three coupling advisories need an explicit quality disposition. PR333 and336 are BEHIND current main and require reconciliation before merge readiness.
+- PR333's existing xHCI/HID local CI subsets are running in their own worktree; no result asserted. Independent scoped security review found no concrete blocker but does not establish H02 or physical acceptance.
+- [Follow-up raw-code/log receipts](followup-checks.json), [hosted fixture receipt](pr343-hosted-contract.json), [historical PR dispositions](issue283-triage.json), [documentation gaps](documentation-triage.md).
+- Preliminary authenticated read access to CodeQL/dependency alerts works. This is audit readiness, not the fresh final integrated security assessment required after queue processing.
+
+Baseline B is still not established. No merge, auto-merge, issue closure or governance migration has occurred. Exact next step: finish current-head PR343 checks, seek its specific owner approval, and continue disjoint verification/dispositions.

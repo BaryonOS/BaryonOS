@@ -1,0 +1,24 @@
+{
+  "pr_head": "aa7a0387aa34c2f9ead9a46d9a3ee7df32f5a3a5",
+  "checkout_commit": "1041e6e61601f97e47d77bc9b4eca54a564779e8",
+  "identical_tree_sha": "897bb49ae3a8d9cae8aea989338731d985367d52",
+  "workflow_run": 44114356492,
+  "job": 134148215897,
+  "job_conclusion": "success",
+  "raw_log_sha256": "df8dd9207fd633760959fe94e6f2ab44d8c9b007a82ff780b3362c74c94871be",
+  "result": {
+    "artifacts": {
+      "ARTIFACT_A_DIGEST": "5cd05bc92f1f769d2f476accb50d7b2ea5e014df398c2ba40067bc66afa6e0dd",
+      "ARTIFACT_A_ID": "14342600918",
+      "ARTIFACT_B_DIGEST": "49f1138404c2837de4377a0fdd7ab692e355c3e0839967b1bb0cd518d2199347",
+      "ARTIFACT_B_ID": "14341779213"
+    },
+    "files": {
+      "smp-action-contract-a/nested/fixture.txt": "942c8c32a3975bf2f0cb29283849b62be13db96b9fdbee22100c4bd9440cbaff",
+      "smp-action-contract-b/nested/fixture.txt": "7fc7d98df4604d3a1f8cf08272c50af9db60041d4fa5fc2b013be76c84fc008f"
+    },
+    "fixture_only": true,
+    "source": "1041e6e61601f97e47d77bc9b4eca54a564779e8"
+  },
+  "evidence_limit": "Fixture action runtime only; unchanged native/full-matrix acceptance remains separate."
+}

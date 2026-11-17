@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "b718f6bafdfc4927d3b7acfe786e67dcb8f88eec",
+    "source_commit": "a787a0aed69fba9c51c3cbbfc0d33b7d62094fea",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-baseline",
-    "task": "Phase 0: retain executed T0 inventory and integration dispositions",
+    "task": "Phase 0 follow-up: retain current-head action runtime, native update receipts and finite issue triage",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. T0 inventory preserves all accepted criteria, existing WIP and per-workstream ownership. No new native criterion, physical evidence or human audit is accepted; baseline B and governance migration remain pending."
+    "summary": "41/100 remains 41/100. Existing native regressions and CI fixture runtime preserve behaviour without accepting new criteria. Historical PR and documentation triage retain outstanding work; final main baseline and governance migration remain pending."
   },
   "tracks": [
     {

@@ -1,0 +1,51 @@
+[
+  {
+    "worktree": "pr343",
+    "source_commit": "aa7a0387aa34c2f9ead9a46d9a3ee7df32f5a3a5",
+    "command": "PATH=/snap/rustup/current/bin:$PATH python3 -B -m unittest discover -s tools/tests -p test_*.py",
+    "exit_code": 0,
+    "duration_seconds": 15.088,
+    "raw_log": "/tmp/baryonos-phase0-20261117/pr343/build/tokenguard/run-am84x9ve.log",
+    "sha256": "a7bed6bef33c943d56aeb3312ffda3cd4356ae9ca1b12d5e64bc996ce88732a0",
+    "test_summary": [
+      "Ran 349 tests in 14.910s"
+    ]
+  },
+  {
+    "worktree": "pr344",
+    "source_commit": "57a9e5f3a1abe6c6f2364d340d765fcaa198aa35",
+    "command": "PATH=/snap/rustup/current/bin:$PATH python3 -B -u tools/test_update.py",
+    "exit_code": 0,
+    "duration_seconds": 73.304,
+    "raw_log": "/tmp/baryonos-phase0-20261117/pr344/build/tokenguard/run-nzeuxiyl.log",
+    "sha256": "05389640be590068e14e4b988c4ce7d22df08b70626c26cec6fecac1fb7fcffb",
+    "test_summary": [
+      "B03 gate passed=True stages=18"
+    ]
+  },
+  {
+    "worktree": "pr336",
+    "source_commit": "6b2f3d2698cd525904ec69f35ab3081d5cad18d9",
+    "command": "PATH=/snap/rustup/current/bin:$PATH cargo +1.90.0 test --locked -p update-core",
+    "exit_code": 0,
+    "duration_seconds": 2.239,
+    "raw_log": "/tmp/baryonos-phase0-20261117/pr336/build/tokenguard/run-jra8c0wz.log",
+    "sha256": "2b02759c3cb6a077d0e77b5f97d502f24278e06b73d2fb887c42b6c2166d09d7",
+    "test_summary": [
+      "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s",
+      "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    ]
+  },
+  {
+    "worktree": "pr336",
+    "source_commit": "6b2f3d2698cd525904ec69f35ab3081d5cad18d9",
+    "command": "PATH=/snap/rustup/current/bin:$PATH python3 -B -u tools/test_policy_envelopes.py",
+    "exit_code": 0,
+    "duration_seconds": 17.509,
+    "raw_log": "/tmp/baryonos-phase0-20261117/pr336/build/tokenguard/run-3q4vjj35.log",
+    "sha256": "57fc7e21498ffc11d7522923373d3bb5601e88cf07781ee285b132d050e24f11",
+    "test_summary": [
+      "B03 policy envelopes: passed=True raw=33 duration=2.3s /tmp/baryonos-phase0-20261117/pr336/build/run/policy-envelopes-4e8fd5ef52"
+    ]
+  }
+]
