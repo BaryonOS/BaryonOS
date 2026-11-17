@@ -1,0 +1,18 @@
+{
+  "task": "P0-344-INTEGRATE",
+  "parent_pr344": "57a9e5f3a1abe6c6f2364d340d765fcaa198aa35",
+  "integrated_main": "95d59ad52761c1f8f0201d934556902b90ce63cb",
+  "main_tree_verified": "897bb49ae3a8d9cae8aea989338731d985367d52",
+  "manual_conflicts": [
+    "docs/PROJECT-STATE.md",
+    "docs/progress.json"
+  ],
+  "resolution": "Retain both historical handoffs; one current integration handoff; criterion register outside assessment byte-equivalent in parsed structure",
+  "current_integrated_gates": "NOT RUN before this source checkpoint; to be executed after publication",
+  "independent_reconciliation_review": "PENDING",
+  "progress": {
+    "previous": 41,
+    "current": 41
+  },
+  "owner_authority": "Updated explicit project-owner Phase0 authorization; squash after all gates, no auto-merge"
+}

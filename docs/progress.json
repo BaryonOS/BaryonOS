@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "7bea10d96348b6d5990f9ed1fb53ab94940b3ae1",
+    "source_commit": "9f3cd033d8e1332f5445f46cdfa0a811bd3947fb",
     "assessment_basis": "parent_commit",
     "branch": "claude/baryon-os-design-pipeline-20261115",
-    "task": "Merge main (Phase 0 PR343 action contract, agent-instruction layers, dependency bump) into the design pipeline branch; UX-A11Y-DS run 2 stays queued",
+    "task": "Merge main (Phase 0 PR344 dependency reconciliation) into the design pipeline branch; UX-A11Y-DS run 2 stays queued pending an owner decision on protected files",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The merge combines main's Phase 0 CI fixture work with the design pipeline state; neither side accepts a native or other OS criterion. The ds-1.1 design changes remain uncommitted and unaccepted, and UX-A11Y-R is an intermediate research checkpoint."
+    "summary": "41/100 remains 41/100. The merge combines main's Phase 0 PR344 dependency and evidence work with the design pipeline state; neither side accepts a native or other OS criterion, and main's fresh integrated gates remain pending. The ds-1.1 design changes remain uncommitted and unaccepted, and UX-A11Y-R is an intermediate research checkpoint."
   },
   "tracks": [
     {
