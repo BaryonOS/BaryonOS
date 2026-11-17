@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "c7cb95f5be88bf2935d8a1a30dcdaafa98d82126",
+    "source_commit": "3fda27ac6e48a011d11cdec89649c22e6d4e71af",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-ci-guide-english",
-    "task": "Phase 0 issue274: correct source binding for four new glosses",
+    "task": "Phase 0 PR346: reconcile verified English integration with actual main",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Independent review found a parent/first-commit metadata mismatch. The four bindings now resolve to the first actual Git blobs, with the worktree-review parent retained; all39 source/evidence bytes remain unchanged. Independent recheck and hosted gates remain required."
+    "summary": "41/100 unchanged. Local reconciliation with actual main38d4cc1 preserves all39 reviewed source/evidence blobs, accepted main runtime/B03 corrections and complete workstream history. Hash/scope/history assertions, progress write/check and diff checks pass locally. Current-head hosted checks and full issue274 publication/coverage remain required."
   },
   "tracks": [
     {

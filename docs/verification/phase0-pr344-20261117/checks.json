@@ -1,0 +1,47 @@
+{
+  "source_parent": "1cfaad3d8259147f05c6a7233ef932c6c2670a72",
+  "environment": {
+    "rust": "1.90.0",
+    "qemu": "10.2.1",
+    "acceleration": "TCG",
+    "shared_native_lock": "/run/user/1000/baryonos-heavy-native.lock",
+    "images": "disposable checkout build/run images only"
+  },
+  "checks": [
+    {
+      "name": "strict preflight",
+      "command": "PATH=/snap/rustup/current/bin:$PATH python3 -B tools/preflight.py --strict",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-x2zmpv0_.log",
+      "log_sha256": "4619da8d29d9130875a17c73d67587136e05d25ce90cc856e00b05b5b8be5a95"
+    },
+    {
+      "name": "locked loader features",
+      "command": "PATH=/snap/rustup/current/bin:$PATH cargo +1.90.0 tree --locked -p os-loader -e features",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-f8j46p8w.log",
+      "log_sha256": "ed9ad5df6adadf03ba7954438912d3e2fb62076541c8ad3e33934ff1686c7ae6"
+    },
+    {
+      "name": "loader and M1 native regression",
+      "command": "PATH=/snap/rustup/current/bin:$PATH python3 -B tools/test.py",
+      "exit_code": 0,
+      "log": "build/tokenguard/run-nwljle22.log",
+      "log_sha256": "c4d291776555205b81ede7efbe142dc6c96c6d533779d93ce7dd26f0268fc637"
+    },
+    {
+      "name": "initial strict preflight, snap launcher failure",
+      "command": "python3 -B tools/preflight.py --strict",
+      "exit_code": 2,
+      "log": "build/tokenguard/run-u4v1jx96.log",
+      "log_sha256": "d4f3e981cce927e9e16d0520ecf010f4542109c714dcdeae2eb6edba1ba0c35c"
+    }
+  ],
+  "independent_review": "Separate read-only AI package/upstream/licence review; not a human audit.",
+  "not_run": [
+    "Native update regression after this checkpoint",
+    "Current-head hosted CI after publication",
+    "Combined PR336 policy envelopes after integration",
+    "Physical hardware and human audit"
+  ]
+}
