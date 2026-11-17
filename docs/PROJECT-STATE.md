@@ -1,6 +1,12 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Phase 0 PR343 — 17 November 2026
+## NEXT AGENT HANDOFF — Phase 0 module guide translations — 17 November 2026
+
+**Source:** main `95d59ad52761c1f8f0201d934556902b90ce63cb`; branch `codex/phase0-module-guides-english`. The userspace IPC guide and four authored network-notice introduction lines are translated; the entire licence tail remains byte-identical.
+**Verified:** independent semantic review and code/identifier/numeric/anchor/licence preservation checks pass on exact file hashes. [Source-bound receipt](verification/phase0-module-guides-english-20261117/README.md). No original Phase 0 PR owns either target; no code, dependency or licence decision changes.
+**Limits and resume:** no new native/runtime/hardware, legal or human evidence or acceptance points. Score remains 41/100 and full #274 stays open. Run/record progress and whitespace gates, publish the draft and verify applicable current-head CI before any eligible Phase 0 squash. No auto-merge/bypass. All existing workstream WIP/runners/claims/ownership remain intact; baseline B and governance phases 1–6 remain unfinished. The retained historical checkpoint below keeps its earlier observation; current handoff/owner authority supersedes its pending-check and separate-approval instructions.
+
+## Historical Phase 0 PR343 pre-merge checkpoint — 17 November 2026
 
 **Source:** parent `1c6842c4c73f42691fa553e76944bc9ebd795186`; existing PR #343 branch.
 **Changed:** bounded artifact-action contract and meaningful negative host oracle; existing native/evidence guards preserved. [Receipt](verification/phase0-pr343-20261117/README.md).

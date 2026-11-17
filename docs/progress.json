@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "1c6842c4c73f42691fa553e76944bc9ebd795186",
+    "source_commit": "95d59ad52761c1f8f0201d934556902b90ce63cb",
     "assessment_basis": "parent_commit",
-    "branch": "dependabot/github_actions/actions/download-artifact-8.0.2",
-    "task": "Phase 0 PR343: add bounded artifact action contract and negative host oracle",
+    "branch": "codex/phase0-module-guides-english",
+    "task": "Phase 0: translate IPC documentation and authored network-notice prose",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. CI fixture coverage does not accept a native SMP or other OS criterion. Hosted action runtime and current-head CI are pending."
+    "summary": "41/100 remains 41/100. English prose preserves IPC contracts and all third-party licence bytes, without new runtime or criterion evidence. Full issue #274, current-head hosted checks and final baseline B remain open."
   },
   "tracks": [
     {
