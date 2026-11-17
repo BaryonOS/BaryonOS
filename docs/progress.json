@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "a787a0aed69fba9c51c3cbbfc0d33b7d62094fea",
+    "source_commit": "0dfcadd17b722cdc8996b50f8e3873d6d37cd9fe",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-baseline",
-    "task": "Phase 0 follow-up: retain current-head action runtime, native update receipts and finite issue triage",
+    "task": "Phase 0: checkpoint six current-source USB/HID native cases and reviewed policy dispositions",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Existing native regressions and CI fixture runtime preserve behaviour without accepting new criteria. Historical PR and documentation triage retain outstanding work; final main baseline and governance migration remain pending."
+    "summary": "41/100 remains 41/100. Six USB/HID native regression reports and TEST policy verification preserve bounded prior behaviour; full H02/B03/product acceptance remains open. No merge, baseline freeze or governance refactor is claimed."
   },
   "tracks": [
     {

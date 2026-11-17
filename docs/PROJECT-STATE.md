@@ -5,7 +5,7 @@
 **Source:** main b718f6bafdfc4927d3b7acfe786e67dcb8f88eec; branch codex/phase0-baseline. Published PR343 head aa7a0387aa34c2f9ead9a46d9a3ee7df32f5a3a5 and PR344 head57a9e5f3a1abe6c6f2364d340d765fcaa198aa35.
 **Executed:** T0 reconciliation, source-bound independent reviews, PR343 artifact-runtime correction and hosted roundtrip, all349 tools tests, PR344 provenance repair, ten loader/M1 groups and18 native update stages, PR336 TEST policy probe. [Receipts and finite dispositions](verification/phase0-20261117/README.md).
 **Ownership:** all pre-existing WIP preserved. Orbitaal and S09 keep independent handoffs/claims/owners. #274/#277/#283 stay open; no fabricated completion or points. Existing per-workstream handoff below is retained.
-**Open:** affected/current-head CI tracked individually; PR333 native subsets running; PR333/336 need main reconciliation. Final integrated assessment and baseline B NOT ESTABLISHED. Governance phases1–6 NOT STARTED.
+**Open:** affected/current-head CI tracked individually; PR333 native subsets pass locally (six reports,45 raw child logs); PR333/336 need main reconciliation. Final integrated assessment and baseline B NOT ESTABLISHED. Governance phases1–6 NOT STARTED.
 **Next:** finish PR343 gates and present its exact head/evidence for specific owner merge approval. Continue independent verification; no merge or auto-merge without that approval.
 
 ## Retained workstream handoff — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
