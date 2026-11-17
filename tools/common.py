@@ -6,11 +6,14 @@ import os
 from pathlib import Path
 import re
 import shutil
+import stat
 import subprocess
 import time
 from collections.abc import Callable
 
 ROOT = Path(__file__).resolve().parents[1]
+CONTROLLER_GIT = "/usr/bin/git"
+CONTROLLER_GH = "/usr/bin/gh"
 BUILD = Path(os.environ.get("NOS_BUILD_DIR", str(ROOT / "build"))).resolve()
 TARGET = Path(os.environ.get("NOS_TARGET_DIR", str(ROOT / "target"))).resolve()
 LOCAL = Path(os.environ.get("LOCALAPPDATA", str(ROOT / ".tools"))) / "nieuw-os"
@@ -99,6 +102,136 @@ def environment() -> dict[str, str]:
             host = next(line.split(": ", 1)[1] for line in version.stdout.splitlines() if line.startswith("host: "))
             env["PATH"] = str(Path(sysroot.stdout.strip()) / "lib/rustlib" / host / "bin") + os.pathsep + env["PATH"]
     return env
+
+
+def isolated_environment(extra: dict[str, str] | None = None) -> dict[str, str]:
+    """Offline worker defaults; never inspect or inherit the controller environment."""
+    env = {
+        "PATH": "/usr/bin:/bin:/opt/rust/bin", "HOME": "/home/agent", "TMPDIR": "/tmp",
+        "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8", "GITHUB_WORKSPACE": "/workspace",
+        "CARGO_HOME": "/home/agent/.cargo", "CARGO_NET_OFFLINE": "true",
+        "RUSTUP_AUTO_INSTALL": "0", "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONPYCACHEPREFIX": "/usr/.baryonos-pycache",
+        "PYTHONIOENCODING": "utf-8", "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_TERMINAL_PROMPT": "0",
+    }
+    allowed = {
+        "NOS_QEMU_MACHINE", "OS_OVMF_CODE", "OS_OVMF_VARS", "VGA_ROM",
+        "NOS_BUILD_DIR", "NOS_TARGET_DIR", "CARGO_TARGET_DIR", "NODE_V8_COVERAGE",
+        "RUSTFLAGS", "RUST_TOOLCHAIN", "COMPONENT_MANIFEST", "COMPONENT_FEATURES",
+        "ACTIONLINT_VERSION", "ACTIONLINT_SHA256", "MACHINE", "OUT",
+    }
+    for key, value in (extra or {}).items():
+        if not isinstance(value, str) or "\0" in value:
+            raise ValueError("invalid isolated environment value")
+        if key in env:
+            if value != env[key]:
+                raise ValueError(f"isolated environment fixes {key}")
+        elif key not in allowed:
+            raise ValueError(f"environment key is unavailable in isolation: {key}")
+        else:
+            env[key] = value
+    return env
+
+
+def controller_environment(*, authenticated: bool = False) -> dict[str, str]:
+    """Fixed tool lookup, preserving configuration checks without ambient exec overrides."""
+    if any(key.startswith("GIT_") and key not in {"GIT_TERMINAL_PROMPT", "GIT_PAGER"} for key in os.environ):
+        raise ValueError("Git environment overrides require a verified controller adapter")
+    env = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "GIT_TERMINAL_PROMPT": "0", "GIT_PAGER": "/usr/bin/cat"}
+    for key in ("HOME", "XDG_CONFIG_HOME"):
+        if key in os.environ:
+            if not Path(os.environ[key]).is_absolute():
+                raise ValueError("controller configuration directories must be absolute")
+            env[key] = os.environ[key]
+    if authenticated:
+        for key in ("GH_TOKEN", "GITHUB_TOKEN", "GH_CONFIG_DIR"):
+            if key in os.environ:
+                if key == "GH_CONFIG_DIR" and not Path(os.environ[key]).is_absolute():
+                    raise ValueError("GitHub configuration directory must be absolute")
+                env[key] = os.environ[key]
+    return env
+
+
+def agent_relative(value: str) -> Path:
+    """Only literal repository-relative file names cross the worker boundary."""
+    if (not isinstance(value, str) or not value or value.startswith("/")
+            or any(c in value for c in ("\\", ":", "\0", "\n", "\r", "\t"))
+            or any(p in {"", ".", "..", ".git"} for p in value.split("/"))):
+        raise ValueError("invalid worker source path")
+    return Path(value)
+
+
+def agent_file(root: Path, relative: str) -> Path:
+    path = root / agent_relative(relative)
+    for part in (path, *path.parents):
+        if part == root:
+            break
+        if part.is_symlink():
+            raise ValueError("worker source contains a symbolic link")
+    if path.exists():
+        mode = path.stat()
+        if not stat.S_ISREG(mode.st_mode) or mode.st_nlink != 1:
+            raise ValueError("worker source must be a private regular file")
+    return path
+
+
+def agent_source_paths(extra: tuple[str, ...] | list[str] = ()) -> list[str]:
+    """The controller index supplies source names; no worker Git metadata is read."""
+    result = subprocess.run([CONTROLLER_GIT, "ls-files", "-z"], cwd=ROOT, check=True,
+                            env=controller_environment(), capture_output=True, text=True)
+    paths = sorted(set(result.stdout.rstrip("\0").split("\0")) | set(extra))
+    for path in paths:
+        agent_relative(path)
+    return paths
+
+
+def stage_agent_source(source: Path, stage: Path, paths: list[str]) -> None:
+    """Copy reviewed source only, excluding ignored credentials, caches and Git state."""
+    for relative in paths:
+        original = agent_file(source, relative)
+        if not original.exists():
+            continue
+        target = stage / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(original, target, follow_symlinks=False)
+        target.chmod(0o755 if original.stat().st_mode & 0o111 else 0o644)
+
+
+def agent_source_state(root: Path) -> dict[str, tuple[str, int]]:
+    result = {}
+    for parent, directories, files in os.walk(root, followlinks=False):
+        for name in directories:
+            if (Path(parent) / name).is_symlink():
+                raise ValueError("worker output contains a symbolic link")
+        for name in files:
+            relative = (Path(parent) / name).relative_to(root).as_posix()
+            path = agent_file(root, relative)
+            result[relative] = (sha256(path), stat.S_IMODE(path.stat().st_mode))
+    return result
+
+
+def import_agent_changes(stage: Path, destination: Path, before: dict,
+                         allowed: tuple[str, ...] | list[str]) -> list[str]:
+    """Validate the entire delta before importing any task-owned regular file."""
+    after = agent_source_state(stage)
+    changed = sorted(p for p in before.keys() | after.keys() if before.get(p) != after.get(p))
+    if set(changed) - set(allowed):
+        raise ValueError("worker changed files outside the owner-authorized write set")
+    for relative in changed:
+        agent_file(destination, relative)
+        if relative in after and after[relative][1] not in {0o644, 0o755}:
+            raise ValueError("worker output has unsupported permissions")
+    for relative in changed:
+        target = destination / relative
+        if relative not in after:
+            target.unlink()
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        # Both trees are controller-private and no worker process survives Sandbox.run.
+        shutil.copyfile(stage / relative, target, follow_symlinks=False)
+        target.chmod(after[relative][1])
+    return changed
 
 
 def sha256(path: Path) -> str:

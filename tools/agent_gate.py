@@ -8,13 +8,16 @@ pre-filter: GitHub CI and review on the PR remain the real boundary.
 from __future__ import annotations
 
 import argparse
-import shutil
+import hashlib
+import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import ROOT, environment
+from agent_sandbox import Sandbox, SandboxError
+from common import ROOT, agent_source_paths, agent_source_state, isolated_environment, stage_agent_source
 
 # Steps that install the runner environment; locally tools/common.py provides it.
 SETUP_MARKERS = ("rustup ", "apt-get", "sudo ")
@@ -74,42 +77,60 @@ def resolve(refs: list[str], workflows: Path) -> list[tuple[str, str, dict[str, 
 
 
 def run_gate(commands: list[tuple[str, str, dict[str, str]]], cwd: Path, log_path: Path,
-             base_env: dict[str, str] | None = None) -> int:
+             base_env: dict[str, str] | None = None, *, sandbox: Sandbox | None = None,
+             source_paths: list[str] | None = None) -> int:
     """Run steps in order, stop at the first failure. 0 = pass, 2 = fail."""
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    log_path.write_text("## BLOCKED: isolated gate execution is not configured\n", encoding="utf-8")
-    return FAIL_EXIT
-    env = environment() if base_env is None else dict(base_env)
-    host = {k: env[k] for k in HOST_KEYS if k in env}
-    for key in CHECKOUT_KEYS:
-        env.pop(key, None)
-    log_path.parent.mkdir(parents=True, exist_ok=True)
     with log_path.open("w", encoding="utf-8") as log:
-        for name, script, step_env in commands:
-            log.write(f"## step: {name}\n")
-            log.flush()
-            # Env values may reference ${GITHUB_WORKSPACE}; bash expands it in the script,
-            # so values are expanded here the same way.
-            step_env = {k: v.replace("${GITHUB_WORKSPACE}", str(cwd)) for k, v in step_env.items()}
-            code = subprocess.call(["bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", script],
-                                   cwd=cwd, env={**env, **step_env, **host, "GITHUB_WORKSPACE": str(cwd)},
-                                   stdout=log, stderr=subprocess.STDOUT)
-            if code:
-                log.write(f"## FAIL: {name} (exit {code})\n")
-                return FAIL_EXIT
-        log.write("## PASS\n")
+        try:
+            if sandbox is None:
+                policy = json.loads((ROOT / ".github" / "agent-pipeline.json").read_text())
+                if policy.get("schema") != 1 or policy.get("enabled") is not True:
+                    raise SandboxError("isolated gate execution is not authorized")
+                sandbox = Sandbox(policy.get("sandbox", {}))
+            sandbox.verify()
+            # Only firmware overrides have a meaning in the provisioned offline runtime.
+            host = {k: v for k, v in (base_env or {}).items() if k in HOST_KEYS}
+            paths = agent_source_paths() if source_paths is None else source_paths
+            if any(Path(path).parts[0] in {"build", "target"} for path in paths):
+                raise SandboxError("gate output mounts must not mask source inputs")
+            stage = Path(tempfile.mkdtemp(prefix="gate-source-", dir=log_path.parent))
+            stage_agent_source(cwd, stage, paths)
+            fingerprint = hashlib.sha256(json.dumps(agent_source_state(stage), sort_keys=True).encode()).hexdigest()
+            log.write(f"## source SHA256: {fingerprint}\n## retained isolated outputs: {stage.name}\n")
+            for index, (name, script, step_env) in enumerate(commands):
+                log.write(f"## step: {name}\n")
+                log.flush()
+                values = {k: v.replace("${GITHUB_WORKSPACE}", "/workspace") for k, v in step_env.items()}
+                env = isolated_environment({**values, **host})
+                done = sandbox.run(["/bin/bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", script],
+                                   stage, env=env, read_only=True)
+                for stream in ("stdout", "stderr"):
+                    raw = getattr(done, stream + "_bytes", getattr(done, stream).encode())
+                    log_path.with_name(f"{log_path.name}.step-{index}.{stream}.log").write_bytes(raw)
+                log.write(done.stdout + done.stderr)
+                log.write(f"\n## exit: {done.returncode}\n")
+                if done.returncode:
+                    log.write(f"## FAIL: {name} (exit {done.returncode})\n")
+                    return FAIL_EXIT
+            log.write("## PASS\n")
+        except subprocess.TimeoutExpired as error:
+            for stream in ("stdout", "stderr"):
+                raw = getattr(error, stream + "_bytes", (getattr(error, stream) or "").encode())
+                log_path.with_name(f"{log_path.name}.timeout.{stream}.log").write_bytes(raw)
+            log.write(f"{error.stdout or ''}\n{error.stderr or ''}\n## TIMEOUT: {error.timeout}s\n")
+            return FAIL_EXIT
+        except (SandboxError, ValueError, OSError) as error:
+            log.write(f"## BLOCKED: {error}\n")
+            return FAIL_EXIT
     return 0
 
 
 def condensed(log_path: Path, lines: int = 200) -> str:
-    """Failure log for the agent: rtk-filtered when available, else the last lines."""
-    rtk = shutil.which("rtk")
-    text = None
-    if rtk:
-        done = subprocess.run([rtk, "log", str(log_path)], capture_output=True, text=True)
-        text = done.stdout if done.returncode == 0 and done.stdout.strip() else None
-    if text is None:
-        text = log_path.read_text(encoding="utf-8", errors="replace")
+    """Bounded presentation only; no ambient helper executes in the controller."""
+    with log_path.open("rb") as raw:
+        raw.seek(max(0, log_path.stat().st_size - 65536))
+        text = raw.read(65536).decode("utf-8", "replace")
     return "\n".join(text.splitlines()[-lines:])
 
 

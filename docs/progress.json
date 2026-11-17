@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "38d4cc17687156379677993be9945447591bd4c1",
+    "source_commit": "5682370eb3c1102284e9ed8456086110fabb702b",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-pipeline-isolation",
-    "task": "Phase0: checkpoint default-deny containment while execution isolation is verified",
+    "task": "Phase0: checkpoint isolated execution and independently identified remaining blockers",
     "previous_score": 41,
-    "summary": "41/100 unchanged. A private development-execution security finding is an active baseline blocker. Temporary branch containment and three no-execution controls pass; complete isolation, legitimate behavior, independent review and current-head CI remain pending. No finding, issue, native/hardware criterion or deployed-main security boundary is marked resolved."
+    "summary": "41/100 unchanged. 406 tools tests pass including actual offline Linux boundary and Git-transaction fixtures. Independent source repairs do not establish merge or production enablement readiness; resource and workflow/client compatibility blockers remain. No finding, issue, native/hardware criterion or deployed-main boundary is marked resolved."
   },
   "tracks": [
     {

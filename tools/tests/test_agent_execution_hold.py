@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import json
 import sys
 import tempfile
 import unittest
@@ -12,14 +13,20 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import agent_gate
 import agent_pipeline
+import common
 
 
 class ExecutionHoldTests(unittest.TestCase):
     def test_pipeline_stops_before_issue_selection_or_execution(self):
-        with mock.patch.object(sys, "argv", ["agent_pipeline.py", "--once"]), \
+        with tempfile.TemporaryDirectory() as directory, \
+                mock.patch.object(sys, "argv", ["agent_pipeline.py", "--once"]), \
+                mock.patch.object(agent_pipeline, "ROOT", Path(directory)), \
                 mock.patch.object(agent_pipeline, "sh") as controller, \
                 mock.patch.object(agent_pipeline.subprocess, "run") as child, \
                 contextlib.redirect_stderr(io.StringIO()):
+            root = Path(directory)
+            (root / ".github").mkdir()
+            (root / ".github/agent-pipeline.json").write_text(json.dumps({"schema": 1, "enabled": False}))
             self.assertEqual(agent_pipeline.main(), 2)
         controller.assert_not_called()
         child.assert_not_called()
@@ -34,9 +41,12 @@ class ExecutionHoldTests(unittest.TestCase):
 
     def test_gate_stops_before_environment_discovery_or_execution(self):
         with tempfile.TemporaryDirectory() as directory, \
-                mock.patch.object(agent_gate, "environment") as discover, \
-                mock.patch.object(agent_gate.subprocess, "call") as child:
+                mock.patch.object(agent_gate, "ROOT", Path(directory)), \
+                mock.patch.object(common, "environment") as discover, \
+                mock.patch.object(agent_gate.subprocess, "Popen") as child:
             root = Path(directory)
+            (root / ".github").mkdir()
+            (root / ".github/agent-pipeline.json").write_text(json.dumps({"schema": 1, "enabled": False}))
             code = agent_gate.run_gate([], root, root / "gate.log")
             self.assertEqual(code, agent_gate.FAIL_EXIT)
             self.assertTrue((root / "gate.log").is_file())

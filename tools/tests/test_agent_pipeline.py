@@ -46,12 +46,21 @@ class Gate(unittest.TestCase):
         self.workflows.mkdir()
         (self.workflows / "w.yml").write_text(WORKFLOW)
         self.env = {"PATH": os.environ["PATH"]}
+        self.sandbox = mock.Mock()
+        self.sandbox.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+
+    def gate(self, commands, env=None):
+        return agent_gate.run_gate(commands, self.tmp, self.tmp / "g.log", env or self.env,
+                                   sandbox=self.sandbox, source_paths=[])
 
     def test_keeps_only_check_steps_and_expands_workspace(self):
         commands = agent_gate.resolve(["w.yml#check"], self.workflows)
         self.assertEqual([c[0] for c in commands], ["Test", "progress.py --check"])
-        self.assertEqual(agent_gate.run_gate(commands[:1], self.tmp, self.tmp / "g.log", self.env), 0)
-        self.assertEqual((self.tmp / "out.txt").read_text().strip(), f"q35 {self.tmp}/build/x")
+        self.assertEqual(self.gate(commands[:1]), 0)
+        child_env = self.sandbox.run.call_args.kwargs["env"]
+        self.assertEqual(child_env["MACHINE"], "q35")
+        self.assertEqual(child_env["OUT"], "/workspace/build/x")
+        self.assertFalse((self.tmp / "out.txt").exists())
 
     def test_refuses_unknown_context_and_bad_references(self):
         for ref in ("w.yml#bad", "w.yml#missing", "../w.yml#check", "w.yml", "nope.yml#check"):
@@ -60,26 +69,29 @@ class Gate(unittest.TestCase):
 
     def test_failure_is_exit_two_and_stops(self):
         commands = [("one", "exit 3", {}), ("two", "touch two", {})]
-        code = agent_gate.run_gate(commands, self.tmp, self.tmp / "g.log", self.env)
+        self.sandbox.run.return_value = subprocess.CompletedProcess([], 3, "", "failed\n")
+        code = self.gate(commands)
         self.assertEqual(code, agent_gate.FAIL_EXIT)
-        self.assertFalse((self.tmp / "two").exists())
+        self.assertEqual(self.sandbox.run.call_count, 1)
         self.assertIn("## FAIL: one (exit 3)", (self.tmp / "g.log").read_text())
 
     def test_build_dirs_come_from_the_checkout_not_the_caller(self):
         env = dict(self.env, CARGO_TARGET_DIR="/shared", OS_OVMF_CODE="/local/ovmf")
         steps = [("s", 'echo "${CARGO_TARGET_DIR:-unset} $OS_OVMF_CODE" > o', {"OS_OVMF_CODE": "/usr/share/x"})]
-        self.assertEqual(agent_gate.run_gate(steps, self.tmp, self.tmp / "g.log", env), 0)
-        self.assertEqual((self.tmp / "o").read_text().strip(), "unset /local/ovmf")
+        self.assertEqual(self.gate(steps, env), 0)
+        child_env = self.sandbox.run.call_args.kwargs["env"]
+        self.assertNotIn("CARGO_TARGET_DIR", child_env)
+        self.assertEqual(child_env["OS_OVMF_CODE"], "/local/ovmf")
 
-    def test_pipefail_catches_a_failing_producer(self):
-        code = agent_gate.run_gate([("p", "false | cat", {})], self.tmp, self.tmp / "g.log", self.env)
-        self.assertEqual(code, agent_gate.FAIL_EXIT)
+    def test_bash_receives_pipefail_without_a_host_shell(self):
+        self.assertEqual(self.gate([("p", "false | cat", {})]), 0)
+        command = self.sandbox.run.call_args.args[0]
+        self.assertEqual(command, ["/bin/bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", "false | cat"])
 
     def test_condensed_without_rtk_returns_the_tail(self):
         log = self.tmp / "g.log"
         log.write_text("".join(f"line {i}\n" for i in range(300)))
-        with mock.patch.object(agent_gate.shutil, "which", return_value=None):
-            text = agent_gate.condensed(log, lines=5)
+        text = agent_gate.condensed(log, lines=5)
         self.assertEqual(text.splitlines(), [f"line {i}" for i in range(295, 300)])
 
     def test_real_ci_job_matches_the_workflow(self):
@@ -164,9 +176,10 @@ class Planning(unittest.TestCase):
         self.assertFalse(ap.is_protected("ui/AGENTS.md.example"))
         self.assertFalse(ap.is_protected("docs/CODEX-PARITY.md"))
 
-    def test_scope_allows_targets_and_lockfile_only(self):
+    def test_lockfiles_also_need_explicit_owner_authority(self):
         self.assertEqual(ap.out_of_scope(["a.rs", "Cargo.lock", "b.rs", "AGENTS.md"], ["a.rs", "AGENTS.md"]),
-                         ["b.rs", "AGENTS.md"])
+                         ["Cargo.lock", "b.rs", "AGENTS.md"])
+        self.assertEqual(ap.out_of_scope(["Cargo.lock"], ["Cargo.lock"]), [])
 
     def test_parallel_batches_have_disjoint_access_sets(self):
         def task(n, targets, reads=()):
@@ -201,24 +214,27 @@ class GitAndEngines(unittest.TestCase):
         self.assertEqual(ap.stale(before, ap.snapshot(["a", "missing"], "HEAD", self.tmp)), ["a"])
 
     def test_fails_over_only_on_rate_limits(self):
-        bin_dir = self.tmp / "bin"
-        bin_dir.mkdir()
-        scripts = {"limited": "echo 'Error: rate limit exceeded' >&2; exit 1",
-                   "broken": "echo 'syntax error' >&2; exit 1",
-                   "fine": "exit 0"}
-        for name, body in scripts.items():
-            path = bin_dir / name
-            path.write_text(f"#!/bin/sh\n{body}\n")
-            path.chmod(0o755)
+        results = {"limited": (1, "rate limit exceeded"), "broken": (1, "syntax error"),
+                   "fine": (0, "")}
+        sandbox = mock.Mock()
+        sandbox.rootfs = self.tmp / "runtime"
+        (sandbox.rootfs / "usr/bin").mkdir(parents=True)
+        for name in results:
+            (sandbox.rootfs / "usr/bin" / name).write_text("fixture")
+        def run(command, stage):
+            code, error = results[command[0]]
+            return subprocess.CompletedProcess(command, code, "", error)
+        sandbox.run.side_effect = run
         log = self.tmp / "agent.log"
-        engines = {name: [name] for name in scripts} | {"absent": ["no-such-agent-cli"]}
+        engines = {name: [name] for name in (*results, "absent")}
         with mock.patch.dict(ap.ENGINES, engines, clear=True), \
-                mock.patch.dict(os.environ, {"PATH": f"{bin_dir}:{os.environ['PATH']}"}):
-            self.assertEqual(ap.run_agent("p", self.tmp, log, ["absent", "limited", "fine"]), "fine")
+                mock.patch.object(ap, "agent_source_paths", return_value=[]):
+            self.assertEqual(ap.run_agent("p", self.tmp, log, ["absent", "limited", "fine"],
+                                         sandbox=sandbox, writes=["a"]), "fine")
             with self.assertRaises(ap.TaskError):
-                ap.run_agent("p", self.tmp, log, ["broken", "fine"])
+                ap.run_agent("p", self.tmp, log, ["broken", "fine"], sandbox=sandbox, writes=["a"])
             with self.assertRaises(ap.TaskError):
-                ap.run_agent("p", self.tmp, log, ["limited"])
+                ap.run_agent("p", self.tmp, log, ["limited"], sandbox=sandbox, writes=["a"])
 
 
 if __name__ == "__main__":

@@ -20,6 +20,63 @@ recorded only by the lead, with the required evidence level.
 
 ## Controller
 
+### Separate issue-driven controller: default-deny execution
+
+`tools/agent_pipeline.py` is a separate issue-driven controller. Its execution and
+`tools/agent_gate.py` are disabled by the protected
+`.github/agent-pipeline.json` until reviewed authorization and a verified offline
+runtime exist. Labels and model-produced specifications grant no write authority.
+
+The manifest has schema `1`, an `enabled` boolean, a `sandbox` object and a `tasks`
+mapping keyed by issue number. Each task grants exact `targets` and `reads` file
+lists, `criterion`, `mode`, `gates`, a full reviewed `base` SHA and `issue_sha256`
+from `agent_pipeline.issue_digest`. The grant binds the issue's title, body,
+dependencies and execution fields before L0. Between that base and the main commit
+containing its grant, only the manifest may differ. A subsequent source change
+blocks the task until its authorization is renewed. L0 may narrow these sets;
+lockfiles require explicit authority too. Existing ownership and claims still apply.
+
+The sandbox object requires `backend`, `backend_sha256`, `rootfs`,
+`rootfs_sha256` and `timeout_seconds` (1–7200). It binds a nonprivileged, maintained
+bubblewrap release (minimum 0.13.1) and a dedicated credential-free offline Linux
+runtime, fingerprinted by `agent_sandbox.tree_digest`. Runtime provenance,
+licensing, advisories, required tools, dependencies and matching firmware must be
+verified before enablement. The fingerprint establishes integrity; it does not
+establish that runtime content is trustworthy. Host homes, credentials, sockets,
+Git metadata, caches and devices must not be included in that runtime.
+
+Every L0/executor attempt receives a disposable source copy, explicit environment,
+read-only runtime and private user, process, mount and network namespaces. Only
+validated regular-file changes in its frozen write set return to the controller.
+Gates mount source and evaluators read-only, with separate writable `build/` and
+`target/` directories. Outputs and exact stdout/stderr bytes,
+exit codes and source fingerprints remain in the ignored controller task record.
+Native gates require suitable offline tooling and disposable images. Missing
+tools, network access, namespaces or required checks cause failure, never a skip
+or an authenticated fallback. Unsupported active Git hooks or executable helpers
+also block publication; they are not disabled. Authenticated GitHub commands run
+only in the trusted controller checkout after source and head verification.
+
+The offline fixture verifies boundary behavior, not authenticated Claude, Codex,
+Copilot, Graphify or native-client compatibility. Those environments require
+separate evidence and remain unverified until tested. No credential/network broker
+is introduced. The roadmap controller described below retains its own execution
+and ownership model: its direct worker/check commands have not been migrated or
+verified by this change. Its calls to the shared gate now fail closed without an
+approved isolated runtime. The two controllers are not interchangeable.
+
+**Enablement remains blocked.** The committed disabled policy must remain in place
+until a reviewed resource-limiting execution profile and complete selected
+client/gate transactions have been verified. Namespaces and timeouts alone do not
+bound aggregate memory, process count, generated disk usage or captured output.
+This is an explicit follow-up owned by the pipeline maintainer, not an accepted
+availability-risk exception. In particular, `ci.yml#host-quality` currently needs
+network setup and Git metadata that this offline runtime deliberately does not
+provide; it must fail rather than omit those checks. Native fixtures and local
+boundary checks do not establish that workflow's compatibility.
+
+### Roadmap controller
+
 `tools/roadmap_runner.py` is a small deterministic controller. The long-lived part
 is the controller process and the versioned ledger, not a growing chat. For each
 READY task whose dependencies are verified it:
