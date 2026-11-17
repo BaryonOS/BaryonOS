@@ -4,6 +4,12 @@
 
 [Current authority](owner-objective-refinement.json) supersedes the earlier strictzero-countprerequisite below. Zero remains the follow-up target. BaselineB requires no unresolvedintegration/securityblockers, allapplicablemandatorychecksPASS and individuallytriaged residuals with evidence,owner,priority,nextstep. Long-termproductissues,nonblockingquality or unrelatedarrivals alone must notdelay approvedgovernance1–6. Allmerge/security/acceptance/ownershipconditions remain unchanged; no falseclosure or suppressedfinding.
 
+## Latest stable policy and actual modernization work
+
+[Permanent owner authority](owner-latest-stable-policy.json) and accepted ADR-VERSION-POLICY-20261117 establish the current selection rule; [dependency procedures](../../DEPENDENCIES.md#latest-stable-selection-and-exceptions) retain explicit exceptions. [Policy and actual named-toolchain setup](latest-stable-policy-and-rust-setup.json) bind independent policy review, official stable1.100.0/manifest/checksum verification and successful isolated named-version installation with Clippy/rustfmt/none/UEFI targets. Existing global defaults, project pins and other workstreams are preserved.
+
+This is active modernization, not a completed repository upgrade. A separate branch migrates active pins/tests; one targeted stack inventory and independent Cargo advisory applicability review run in parallel. Unsupported old active compilers and urgent confirmed security/compatibility findings must be resolved beforeB. Larger noncritical migrations retain individual evidence/owner/priority/nextstep without delaying governance solely by count. No package, RC exception, security fix, current-source1.100 native gate or full modernization compliance is accepted by the setup receipt alone. RootAGENTS inheritance is updated during governance;41/100 remains unchanged.
+
 ## Current executed snapshot after PR336
 
 Main `38d4cc17687156379677993be9945447591bd4c1` is the verified #336 squash, with exact reviewed tree and all applicable current-head premerge gates successful. [Receipt](pr336-merge-receipt.json); [legitimate nonblocking P3 follow-up](pr336-nonblocking-review-followup.json). Issue41 stays OPEN. Post-main SMP/window runs are still pending at this snapshot; no baseline acceptance is claimed.

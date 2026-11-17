@@ -47,5 +47,82 @@
     "test_summary": [
       "B03 policy envelopes: passed=True raw=33 duration=2.3s /tmp/baryonos-phase0-20261117/pr336/build/run/policy-envelopes-4e8fd5ef52"
     ]
+  },
+  {
+    "kind": "Source-bound local preintegration and residual consistency checkpoint",
+    "records": [
+      {
+        "pr": 339,
+        "local_head": "dd6630ec38b4d9dd3086547667d9c9f27f975926",
+        "main_parent": "38d4cc17687156379677993be9945447591bd4c1",
+        "separate_published_preview": "codex/phase0-pr339-preintegration",
+        "normal_push_exit": 0,
+        "local_result": "PASS bounded source/config/document preservation with existing independent review",
+        "evidence": {
+          "P0-339-current-main-independent-review.md": {
+            "sha256": "9b23e38718daf6cc4da96adb8b0731024269cbfca675ca6c29a21a1ea55704f4",
+            "bytes": 8996
+          },
+          "P0-339-latest-source-review.md": {
+            "sha256": "8fb918efc37f18be6c12038c2f319dd75813df0840e62fe827801e8534c37698",
+            "bytes": 11620
+          }
+        },
+        "actual_pr_head_unchanged": true,
+        "required_next": "Reconcile actual main after preceding core integrations; publish actual PR head only after ownership/source check; fresh hosted checks/reviews/merge-hold remain mandatory",
+        "not_claimed": "Main merge, complete issue acceptance, new native/hardware/human evidence or paid/inherited account controls"
+      },
+      {
+        "pr": 346,
+        "local_head": "04e29181ef7e755eea2db0054c463b9216184671",
+        "main_parent": "38d4cc17687156379677993be9945447591bd4c1",
+        "separate_published_preview": "codex/phase0-pr346-preintegration",
+        "normal_push_exit": 0,
+        "local_result": "PASS bounded source/config/document preservation with existing independent review",
+        "evidence": {
+          "P0-346-current-main-result.md": {
+            "sha256": "0c63ecb9e91d0d85d3d550d8cd9ec81b3fb473bbdb58e61abda42faf3482f4b7",
+            "bytes": 16438
+          },
+          "P0-346-lead-current-main-review.json": {
+            "sha256": "a16714b10759229a3f61188aebad3372919cb7ffb5ae61cb66b180805f5745d9",
+            "bytes": 1016
+          }
+        },
+        "actual_pr_head_unchanged": true,
+        "required_next": "Reconcile actual main after preceding core integrations; publish actual PR head only after ownership/source check; fresh hosted checks/reviews/merge-hold remain mandatory",
+        "not_claimed": "Main merge, complete issue acceptance, new native/hardware/human evidence or paid/inherited account controls"
+      },
+      {
+        "pr": 350,
+        "local_head": "7b4b618e7ef0eee6b2a67ce693afcb9f2f20809c",
+        "main_parent": "38d4cc17687156379677993be9945447591bd4c1",
+        "separate_published_preview": "codex/phase0-pr350-preintegration",
+        "normal_push_exit": 0,
+        "local_result": "PASS bounded source/config/document preservation with existing independent review",
+        "evidence": {
+          "P0-350-integration-result.md": {
+            "sha256": "35abedd8d8fbe3bf0a9846d5f7ba2dcabc63a6a8e82c02be6cfe730de71a4728",
+            "bytes": 12058
+          },
+          "P0-350-lead-integration-review.json": {
+            "sha256": "ec344e6d3ba7e76bca8025f0ea01ad10dd72c80a40b40571417005584f05826b",
+            "bytes": 839
+          }
+        },
+        "actual_pr_head_unchanged": true,
+        "required_next": "Reconcile actual main after preceding core integrations; publish actual PR head only after ownership/source check; fresh hosted checks/reviews/merge-hold remain mandatory",
+        "not_claimed": "Main merge, complete issue acceptance, new native/hardware/human evidence or paid/inherited account controls"
+      }
+    ],
+    "residual_consistency": {
+      "source": "e5149801c5837944aa5746fb84edc7e56305f010",
+      "report": "P0-0C-residual-consistency-review.md",
+      "sha256": "e1c28dc264354ae824da77bfe74f9c34e5d2a16580c0db1f34780a0ac760f047",
+      "result": "PASS within bounded existing five-issue/nine-residual/21historical-path scope; no new B blocker established",
+      "scope": "Does not complete0C/B or replace current-source integration gates/final assessment/T1"
+    },
+    "raw_root": "/home/simon/projects/baryonos-handoffs/claude-to-codex/phase0-20261117",
+    "score": "41/100 unchanged"
   }
 ]
