@@ -1,11 +1,29 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Phase 0 PR344 — 17 November 2026
+## NEXT AGENT HANDOFF — Phase 0 PR344 integration — 17 November 2026
+
+**Source:** r-efi branch parent `57a9e5f3a1abe6c6f2364d340d765fcaa198aa35`, integrating verified main `95d59ad52761c1f8f0201d934556902b90ce63cb` after squash merge of PR343. Its source tree is identical to the reviewed/tested PR343 tree.
+**Preserved:** audited r-efi 7.2.0 source/lock/notice records, the artifact-action contract and all main content; both preceding checkpoints and every independent workstream handoff are retained below. Only the two expected status/assessment conflicts required manual resolution. [Integration record](verification/phase0-pr344-20261117/integration.json).
+**Checks:** provenance and the ten loader/M1 groups plus 18 native update stages passed on parent57a9e5f. Fresh integrated host/native gates, independent reconciliation review and current-head hosted CI are pending; pending is not passed. Progress remains 41/100 with unchanged criteria/weights.
+**Next:** push this source checkpoint, run the affected gates, verify all current-head checks/reviews and merge-hold, then squash only when eligible under the updated project-owner Phase 0 authority. No auto-merge or bypass. Orbitaal/S09 ownership remains intact; baseline B and the final integrated assessment remain outstanding, and governance phases 1–6 have not started.
+
+## Historical Phase 0 pre-integration checkpoints
+
+The following statements preserve their original observation. The current handoff above and updated owner Phase 0 authority supersede their pending-check and separate-approval instructions.
+
+### Historical PR344 — 17 November 2026
 
 **Source:** parent `1cfaad3d8259147f05c6a7233ef932c6c2670a72`; existing PR #344 branch.
 **Changed:** current r-efi inventory reconciled with the 7.2.0 package; historical 7.1.0 claims and notice bytes preserved. [Receipt](verification/phase0-pr344-20261117/README.md).
 **Checks:** package/lock/VCS/notice verification, strict preflight, locked loader features and ten native loader/M1 acceptance groups pass (exit 0). Initial snap-launcher preflight failure retained. Native update and current-head hosted checks pending. Progress 41/100 unchanged; no merge.
 **Next:** run existing native update gate, verify hosted current-head CI and resolve the proven inventory review finding. Request separate owner merge approval after preceding eligible integration. Independent PR343 hosted checks continue. Orbitaal/S09 ownership preserved; baseline B not established and governance phases 1–6 not started.
+
+### Historical PR343 — 17 November 2026
+
+**Source:** parent `1c6842c4c73f42691fa553e76944bc9ebd795186`; existing PR #343 branch.
+**Changed:** bounded artifact-action contract and meaningful negative host oracle; existing native/evidence guards preserved. [Receipt](verification/phase0-pr343-20261117/README.md).
+**Checks:** 7 SMP CI tests, 26 workflow tests, 8 evidence-verifier tests and pinned actionlint pass (exit 0). Initial tools-suite failure from snap launchers retained; installed-rustup rerun running. Hosted action/current-head CI pending. Progress 41/100 unchanged; no merge.
+**Next:** verify hosted roundtrip and required jobs, record exact head/merge SHA and request specific owner merge approval. Independent #344 dependency record work can proceed. Orbitaal/S09 ownership remains unchanged. Baseline B not established; governance phases 1–6 not started.
 
 ## Retained workstream handoff — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
 

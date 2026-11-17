@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "1cfaad3d8259147f05c6a7233ef932c6c2670a72",
+    "source_commit": "57a9e5f3a1abe6c6f2364d340d765fcaa198aa35",
     "assessment_basis": "parent_commit",
     "branch": "dependabot/cargo/r-efi-7.2.0",
-    "task": "Phase 0 PR344: reconcile r-efi dependency audit and verify loader/M1 regression",
+    "task": "Phase 0 PR344: reconcile the audited dependency change with main after PR343",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Dependency provenance and existing loader/M1 regression preserve previously accepted behaviour; no new criterion is accepted. Native update and current-head hosted checks remain pending."
+    "summary": "41/100 remains 41/100. Both status/evidence streams and the complete fixed criterion register are preserved. Parent provenance/native results remain source-bound; fresh integrated gates and current-head hosted checks are pending. No new criterion or baseline B is accepted."
   },
   "tracks": [
     {
