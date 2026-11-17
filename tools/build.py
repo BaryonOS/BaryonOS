@@ -381,7 +381,8 @@ def build(loader_feature=None, kernel_feature=None, label="normal", image_versio
             args += ["--features", feature]
         if package == "os-kernel" and kernel_feature == "native-update-policy-probe":
             # Omit non-loadable symbols so the TEST probe fits the unchanged signed slot.
-            args += ["--config", 'profile.release.strip="symbols"']
+            args[2] = "rustc"
+            args += ["--", "-C", "link-arg=--strip-all"]
         run_logged(args, f"build-{label}-{package}", extra_env=extra_env if package == "os-kernel" else None)
     loader = TARGET / "x86_64-unknown-uefi/release/os-loader.efi"
     kernel = TARGET / "x86_64-unknown-none/release/os-kernel"

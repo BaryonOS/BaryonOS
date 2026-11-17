@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "089eb2e9953a5538a08aefe835933302e4e35e0c",
+    "source_commit": "54bccda9c9c2265964d1719713d4931d613ff77a",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-pr333-integration",
-    "task": "Phase 0 PR333: repair signed TEST probe metadata size within fixed slot",
+    "task": "Phase 0 PR333: preserve loaded bytes with linker-only TEST probe symbol stripping",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Integrated policy probe previously failed1 on the true2MiB cap; failure retained. Probe-only Cargo symbol stripping removes no runtime/security requirement. Fresh actual Cargo/native/hosted and independent repair checks remain pending; no criterion or baselineB accepted."
+    "summary": "41/100 unchanged. True fixed-slot failure and profile-candidate byte-identity failure retained. Linker-only diagnostic preserves every loaded byte; canonical source/native/hosted and independent review still pending. No security/test/criterion change."
   },
   "tracks": [
     {

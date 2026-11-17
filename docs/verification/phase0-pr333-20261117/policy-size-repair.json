@@ -52,5 +52,110 @@
   "fix": "Only os-kernel/native-update-policy-probe Cargo build adds profile.release.strip=\"symbols\"; no external strip tool is required by the repository.",
   "actual_cargo_native_result": "PENDING",
   "slot_limit_changed": false,
-  "security_cases_or_fixtures_changed": false
+  "security_cases_or_fixtures_changed": false,
+  "superseding_fix": "Only the TEST probe kernel uses cargo rustc with -C link-arg=--strip-all; dependency/profile/loader/ordinary build arguments stay unchanged. The existing linker removes non-loadable symbols without a new prerequisite.",
+  "first_candidate": {
+    "head": "54bccda9c9c2265964d1719713d4931d613ff77a",
+    "profile_release_strip": "symbols",
+    "native_gate_exit": 0,
+    "affected_union_gates_exit": 0,
+    "loaded_byte_identity_assertion": "FAIL: Cargo profile change reordered compiled functions/vtable references; do not describe its runtime bytes as unchanged",
+    "disposition": "Superseded by linker-only stripping after exact loaded-byte diagnostic, no gate/failure evidence discarded"
+  },
+  "linker_only_diagnostic": {
+    "command": [
+      "cargo",
+      "+1.90.0",
+      "rustc",
+      "--offline",
+      "--locked",
+      "--release",
+      "--target-dir",
+      "/tmp/baryonos-phase0-20261117/pr333/target",
+      "-p",
+      "os-kernel",
+      "--target",
+      "x86_64-unknown-none",
+      "--features",
+      "native-update-policy-probe",
+      "--",
+      "-C",
+      "link-arg=--strip-all"
+    ],
+    "source": "54bccda9c9c2265964d1719713d4931d613ff77a",
+    "build_exit": 0,
+    "unchanged_profile_and_dependencies": true,
+    "entry_and_all_load_segments_equal": true,
+    "old": {
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "vaddr": 33554432,
+          "paddr": 33554432,
+          "filesz": 131415,
+          "memsz": 131415,
+          "align": 4096,
+          "sha256": "f346caa3c798c16b048e748b37c446e300eac9e8585f20e382c75ec42bbee398"
+        },
+        {
+          "flags": 4,
+          "vaddr": 33689600,
+          "paddr": 33689600,
+          "filesz": 214416,
+          "memsz": 214416,
+          "align": 4096,
+          "sha256": "26eb395dfb70b6ea055f560d83fdf6f45bce9c818720cf15d62c047a6f6bdf89"
+        },
+        {
+          "flags": 6,
+          "vaddr": 33906688,
+          "paddr": 33906688,
+          "filesz": 1716840,
+          "memsz": 5389952,
+          "align": 4096,
+          "sha256": "b0931c1dd2dae52d3e286f83de2d8676c968a05738c6ba321da34217ddf5e26e"
+        }
+      ]
+    },
+    "new": {
+      "entry": 33554432,
+      "segments": [
+        {
+          "flags": 5,
+          "vaddr": 33554432,
+          "paddr": 33554432,
+          "filesz": 131415,
+          "memsz": 131415,
+          "align": 4096,
+          "sha256": "f346caa3c798c16b048e748b37c446e300eac9e8585f20e382c75ec42bbee398"
+        },
+        {
+          "flags": 4,
+          "vaddr": 33689600,
+          "paddr": 33689600,
+          "filesz": 214416,
+          "memsz": 214416,
+          "align": 4096,
+          "sha256": "26eb395dfb70b6ea055f560d83fdf6f45bce9c818720cf15d62c047a6f6bdf89"
+        },
+        {
+          "flags": 6,
+          "vaddr": 33906688,
+          "paddr": 33906688,
+          "filesz": 1716840,
+          "memsz": 5389952,
+          "align": 4096,
+          "sha256": "b0931c1dd2dae52d3e286f83de2d8676c968a05738c6ba321da34217ddf5e26e"
+        }
+      ]
+    },
+    "before_bytes": 2100296,
+    "after_bytes": 2073616,
+    "before_sha256": "2325264f4c41a2b0548a2f63b475472e2272633cf22785e4a63c6bf3cd21e34a",
+    "after_sha256": "703dc09fda97791943377607615ecf23bda496b4ab7a3d783df758f7c520e792",
+    "limit": 2097152,
+    "evidence_limit": "Linker-only diagnostic, not yet canonical source/native acceptance"
+  },
+  "canonical_native_result": "PENDING"
 }
