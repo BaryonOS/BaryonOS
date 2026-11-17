@@ -2,10 +2,10 @@
 
 ## NEXT AGENT HANDOFF — Phase 0 PR339 reconciliation — 17 November 2026
 
-**Source and ownership:** latest Claude head `84b0198f64ba520d4b275ffb8d0f461f0762c89f` reconciled with verified main `38d4cc17687156379677993be9945447591bd4c1`. Prior authorized honesty correction `7bea10d9` is retained. All design, research, checker and historical evidence blobs are unchanged from Claude's latest head. Broader UI/UX, S09, uncommitted ds-1.1 and original runners/worktrees remain Claude-owned and untouched.
+**Source and ownership:** latest Claude head `1a2758368bf416205e6e4b2787d7304397ff4daa` reconciled with verified main `38d4cc17687156379677993be9945447591bd4c1`. Prior authorized honesty correction `7bea10d9` is retained. All design, research, checker and historical evidence blobs are unchanged from Claude's latest head. Broader UI/UX, S09, uncommitted ds-1.1 and original runners/worktrees remain Claude-owned and untouched.
 **Evidence:** fresh structural matrix checker passes92 rows,110 listed sources and11 tagged safety rows, including mutation self-tests. This does not validate the systematic literature review, every source, design acceptance or native OS behavior. The historical SHA256SUMS still pins its documented4005 source; the two later matrix-cell corrections receive a separate current-source hash rather than rewriting history. [Integration receipt](verification/phase0-pr339-main-20261117/integration.json).
 **Acceptance:** intermediate research checkpoint only; systematic review/UX-A11Y-R remains open. Score41/100, fixed criteria and Security Floor are unchanged. Independent reconciliation review and all current-head required hosted checks/merge-hold remain mandatory. No current CI success is inferred from old heads or the cleared historical runner block.
-**Next:** retain this source checkpoint, reconcile later actual-main integrations and obtain current-head gates/review before a manual squash under Phase0 authority. The latest finite baseline refinement permits individually evidenced nonblocking/long-term residuals; no false closure, auto-merge or security exception. Governance phases1–6 have not started. All independent and historical handoffs below remain preserved.
+**Next:** retain this source checkpoint on the Codex-owned preintegration branch; do not overwrite a live Claude writer. The security workstream and cloudhandoff take priority. Then reconcile later actual-main integrations and obtain current-head gates/review before a manual squash under Phase0 authority. The latest finite baseline refinement permits individually evidenced nonblocking/long-term residuals; no false closure, auto-merge or security exception. Governance phases1–6 have not started. All independent and historical handoffs below remain preserved.
 
 ## Historical retained handoff — Phase 0 PR336 integration — 17 November 2026
 
@@ -133,7 +133,8 @@ and as structured output in
 unverified research inputs, not accepted evidence. Two owner decisions of
 15 November are recorded verbatim in the checkpoint directory: the
 accessibility decision (two tiers) and the simplified permission model (with
-the owner's approval of the coordinator readings R2–R5). The C1 record covers
+the owner's approval of the coordinator readings R2–R5); the register entry
+is [ADR-DESIGN-OWNER-20261115](DECISIONS.md), D1 and D2. The C1 record covers
 the superseded 14 November model only
 ([SUPERSEDED.md](verification/ds-1.0-c1-20261115/SUPERSEDED.md)).
 
@@ -171,7 +172,21 @@ historical `SHA256SUMS` in that record binds the matrix as of `4005ca67`
 cells. GitHub Actions started no job for `4005ca67` (account billing lock), so
 no hosted check evidence exists for that head.
 
+**Checker review findings (17 November 2026):** the Graphify review of
+`84b0198f` reported two findings in the archived checker
+`docs/verification/a11y-research-20261115/check.py`, and both are valid.
+`missing_files` does not confine a named path to the repository root, so an
+absolute or `../` path to an existing file outside the repository passes the
+named-file check. A non-safety mandatory baseline row, for example "no keyboard
+trap", that is demoted together with a consistent axis edit also passes; the
+verification record already lists this as known limit 4. The checker is archived
+evidence bound by `SHA256SUMS` and protected under the root `AGENTS.md`, so it is
+not edited in place. Open lead item: a successor checker in a new evidence
+directory that confines named paths to the repository and pins the mandatory
+baseline rows, with negative self-tests for both cases.
+
 **Owner decisions of 15 November on flashing media and photosensitivity**
+(register entry: [ADR-DESIGN-OWNER-20261115](DECISIONS.md), D3)
 (verbatim, Dutch, in the checkpoint directory:
 `owner-decision-third-party-flash-20261115.md`, its clarification
 `owner-decision-photosensitivity-games-20261115.md`, which takes precedence,

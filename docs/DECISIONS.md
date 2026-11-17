@@ -5,6 +5,166 @@ This document distinguishes the decisions and authority of the project owner
 from those of the executing roles. Source quotations retain their original
 wording and speaker.
 
+## ADR-DESIGN-OWNER-20261115 — Owner decisions of 15 November 2026 on accessibility tiers, permission prompts and flashing media
+
+**Date:** decided by the project owner on 15 November 2026; recorded in this
+register on 17 November 2026. **Scope:** the UI/UX design pipeline (Orbitaal
+design system, accessibility research and matrix, permission prompts) on
+branch `claude/baryon-os-design-pipeline-20261115` (PR #339). **Source:** chat
+messages of the project owner in Dutch. The verbatim texts are kept in the
+design pipeline checkpoint (`build/design-pipeline-checkpoint/`, local and not
+versioned); the statements below are an English rendering. The decisions are
+design requirements; the implementation and verification status of each one is
+stated separately.
+
+### D1 — Accessibility in two tiers
+
+**Decision.** Accessibility is a fundamental part of the BaryonOS design
+identity, not a separate accessibility theme. Two tiers apply:
+
+1. *Universal baseline:* every regular theme meets the essential accessibility
+   and safety requirements (legibility, usable contrast, keyboard access,
+   avoidance of hazardous visual effects) without configuration. The baseline
+   is not an optional setting.
+2. *Additional settings:* users adapt the regular themes to their needs (for
+   example colour perception, light intensity, contrast, motion, typography,
+   reading support, stimulus load and input methods), independently or in
+   combination, as variants of the same design identity rather than rigid
+   profiles per diagnosis.
+
+The regular themes remain the primary experience and are not designed only
+from the most restrictive needs. Device and user preferences such as reduced
+motion are respected where possible. Essential safety never depends on a
+manual setting. A systematic, targeted literature review precedes further
+design elaboration, and unproven medical claims (for example a dyslexia font as
+a proven remedy) are avoided. The owner's clarification of 00:15 CET takes
+precedence over the first message of 00:10 CET where they differ.
+
+**Supersedes:** nothing earlier in this register.
+
+**Consequences.** A checkable accessibility matrix links needs, evidence
+quality, adaptations, configuration, implementation status and verification
+method. The design system expresses settings as combinable axes over the
+regular themes. Effectiveness is not claimed on the basis of AI review alone;
+the parts that need user tests are named. Existing capability, security, font
+and architecture contracts are preserved, and required extensions are recorded
+separately.
+
+**Review criteria.** Every regular theme passes the baseline checks with no
+configuration. Settings combine without unintentionally disabling one another.
+No safety property depends on a setting. The decision is revisited where the
+systematic review, user tests or a human audit contradict a baseline or setting
+assignment.
+
+**Status (separate from the decision).** UX-A11Y-R is an intermediate research
+checkpoint (`8cca1167`, AI-verified only); the owner's systematic-review
+requirement remains open. UX-A11Y-DS run 1 ended `blocked_after_2_repairs`; its
+design-system changes are uncommitted and unaccepted, and run 2 is queued. No
+native implementation, user test or human audit exists.
+
+### D2 — Simplified permission prompts
+
+**Decision.** A permission prompt offers two primary choices, Allow and Deny
+("Toestaan", "Weigeren"), with an optional remember control ("Keuze onthouden"
+or a better-fitting wording within the BaryonOS identity). Without remembering, a grant for an ongoing app
+permission lasts until that app closes, and a grant for a single action covers
+only that action, so no separate "allow once" button exists. A denial can also
+be remembered. The remember control is off by default. A remembered choice
+applies only to the clearly described app, right, data, destination and scope;
+a new right requires a new decision. Valid grants cause no repeated prompts, and
+unnecessary repeated prompts after a temporary denial are avoided. Remembered
+choices are visible, changeable and revocable in the privacy settings.
+Irreversible or risky actions may still require additional safety
+confirmation.
+
+Coordinator readings R2–R5, approved by the project owner on 15 November 2026,
+refine the decision. A denial without remembering is held only in volatile
+session state for the identical request until the app closes and is never
+written to lasting storage; a new prompt for that request follows only a new
+deliberate user gesture. The remember control starts unchecked at every prompt.
+The prompt-conformance part of UX-D moves to UX-C. An ADR covers persistent
+grants and remembered denials, the five-field key (app, right, data,
+destination, scope), the until-app-close lifetime of temporary grants and
+denials, storage protection, change and revocation, and the relation to
+capability enforcement and the Security Floor.
+
+**Supersedes:** the prompt-choice rule of the owner decision of 14 November
+2026 ("Toestaan tot afsluiten", "Altijd toestaan", "Weigeren", and "Eenmalig
+toestaan" for single actions: allow until closing, always allow, deny, allow
+once) where they differ. Evidence for the earlier model
+(`docs/verification/ds-1.0-c1-20261115/`, see its `SUPERSEDED.md`) is not
+evidence for this model.
+
+**Consequences.** UX-C researches, judges, builds and verifies the prompt.
+Native security contracts are unchanged. No native code change precedes an
+accepted ADR, and functionality that is not yet enforced is presented only as a
+prototype.
+
+**Review criteria.** Users understand what a choice and remembering mean (UX-C
+research and user tests). Remembered choices are listed, changeable and
+revocable. A remembered choice never widens beyond its five-field key. Temporary
+denials never reach lasting storage. The decision is revisited where UX-C
+research shows the two-choice model to be misunderstood or to weaken informed
+consent.
+
+**Status (separate from the decision).** `docs/design/DESIGN-SYSTEM.md` §11.1
+records the supersession. UX-C has not started, and the ADR on persistent
+authorisation is not yet written. Nothing is enforced natively.
+
+### D3 — Flashing media, photosensitivity and games
+
+**Decision.** The decision of 15 November 2026 on third-party flashing media
+and its clarification on photosensitivity and video games apply, with the
+clarification taking precedence. The owner's correction of the coordinator
+readings F1, F2 and F5 applies; F3 and F4 are confirmed.
+
+- *Per-item bypass:* the option to bypass the protection against hazardous
+  flashes per item stays disabled. Known hazardous flashes are not shown after
+  a simple confirmation.
+- *Three contexts.* (1) The system interface meets the actual flash criteria
+  (WCAG 2.2 SC 2.3.1; the ITU-R BT.1702-3 flash and pattern limits); this
+  baseline is never switchable. The five-second remark of ITU-R BT.1702-3 is an
+  additional risk consideration, not a universal hard limit, and safe animation
+  is not restricted needlessly. (2) Unsolicited content (autoplay, previews,
+  advertisements, notifications, backgrounds) is protected where technically
+  possible; unassessed moving media is not presumed safe, and a static or
+  otherwise safe rendering is used where needed. (3) Deliberately started games
+  and media play normally and are not blocked categorically; optional
+  photosensitivity settings, per-app preferences and appropriate warnings are
+  researched.
+- *Starting versus bypassing:* starting media deliberately remains allowed and
+  is distinct from bypassing a safety block. One click never switches off all
+  protective measures.
+- *Separate preferences:* reduced motion and photosensitivity settings are
+  separate personal preferences; neither weakens the system-interface baseline.
+- *Honest claims:* a warning is not a safety guarantee, and no claim is made
+  that BaryonOS detects or prevents all hazardous flashes without a demonstrably
+  working technique.
+- *Privacy:* apps need not receive medical or raw personal settings where
+  BaryonOS can enforce the presentation itself or pass it through a limited
+  interface.
+
+**Supersedes:** the coordinator's original readings F1, F2 and F5, in
+particular any treatment of the five-second remark as a hard limit.
+
+**Consequences.** UX-A11Y-A1 amends the research document, the matrix and the
+design criteria accordingly. The detection and attenuation mechanism for
+unsolicited content is a research result and is not decided here. The research
+covers the Xbox Accessibility Guidelines, WCAG and the relevant scientific
+literature.
+
+**Review criteria.** The combined rendered system interface stays within the
+WCAG 2.2 SC 2.3.1 and ITU-R BT.1702-3 flash and pattern limits. Flashes on
+separate system-drawn surfaces that occur concurrently are assessed by their
+combined area and flash rate, not only surface by surface. Blocked unsolicited content has no
+"show anyway" control. No document or interface text claims complete automatic
+detection or presents a warning as a guarantee. The decision is revisited when
+validated detection techniques or new evidence change what can be guaranteed.
+
+**Status (separate from the decision).** UX-A11Y-A1 has not started. UX-A11Y-DS
+run 1 documents the five-second remark as a hard limit, and A1 corrects that
+wording. No automatic flash analysis is implemented.
+
 ## ADR-B03K3 — Authorised synthetic policy-transition experiment
 
 **Date:** 14 November 2026. **Scope:** issue #41; TEST keys and disposable

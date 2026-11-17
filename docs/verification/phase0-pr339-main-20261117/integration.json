@@ -64,5 +64,15 @@
   "matrix_archive_scope": "Original SHA256SUMS is preserved; PROJECT-STATE.md retained correction paragraph explicitly identifies4005 as the archived source (not the verification README). Latest84 changes only two matrix cells. The current matrix hash is separately bound in preserved_blobs. Archive mismatch is recorded, not hidden as a fresh all-green hash pass.",
   "acceptance": "Intermediate only; systematic research/design/native/hardware/human acceptance not run or granted. Fresh required hosted checks remain mandatory.",
   "ownership": "Claude UI/UX/S09 and all original WIP/runners unchanged",
-  "baseline": "Latest finite baseline refinement;41/100 unchanged"
+  "baseline": "Latest finite baseline refinement;41/100 unchanged",
+  "latest_claude_reconciliation": {
+    "source_parent": "1a2758368bf416205e6e4b2787d7304397ff4daa",
+    "prior_integration": "dd6630ec38b4d9dd3086547667d9c9f27f975926",
+    "decisions_sha256": "302259f06d5a02af20d72970b657fc48b7ee3cd230c70665d5adede87b7a131b",
+    "scope": "Preserve current Claude decisions byte-for-byte; resolve identical-register assessment metadata only",
+    "criteria_and_weights_equal": true,
+    "systematic_review": "OPEN",
+    "ownership": "UI/UX and ds-1.1 remain Claude-owned; only the authorized claim correction and Codex preintegration checkpoint are transferred",
+    "current_head_ci": "NOT RUN"
+  }
 }

@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "84b0198f64ba520d4b275ffb8d0f461f0762c89f",
+    "source_commit": "1a2758368bf416205e6e4b2787d7304397ff4daa",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-pr339-integration",
-    "task": "Phase0: reconcile latest Claude accessibility checkpoint with verified main, preserving honest research limits",
+    "task": "Phase0: preserve latest Claude decisions while checkpointing the released claim correction for cloud continuation",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Exact latest84b0198f design/research/checker/archive content is preserved and the structural checker passes; the systematic review and uncommitted ds-1.1 remain open. Historical SHA256SUMS pins its original4005 source; a separate current-matrix receipt records the two newer corrections without rewriting archived evidence. Current integrated hosted gates remain required."
+    "summary": "41/100 unchanged. Exact latest1a275836 accepted decisions and design/research/checker/archive content are preserved. The systematic review and uncommitted ds-1.1 remain open and Claude-owned. This integration checkpoint resolves assessment metadata only, retains earlier evidence and requires current-head CI and review. The security workstream remains the primary blocker; no new product or research acceptance is claimed."
   },
   "tracks": [
     {
