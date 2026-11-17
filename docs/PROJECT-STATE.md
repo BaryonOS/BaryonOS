@@ -1,6 +1,12 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Phase 0 PR343 — 17 November 2026
+## NEXT AGENT HANDOFF — Phase 0 release assignment translation — 17 November 2026
+
+**Source:** main `95d59ad52761c1f8f0201d934556902b90ce63cb`; branch `codex/phase0-release-guide-english`. The release guide/matrix is translated; the full hash-bound original owner assignment remains byte-identical with a labelled English equivalent.
+**Verified:** independent semantic comparison of all 62 matrix rows and fourteen assignment sections, source-preservation assertions and exact file hash pass. [Source-bound receipt](verification/phase0-release-guide-english-20261117/README.md). Accepted requirements, Security Floor, evidence levels and stop/resume rules are unchanged.
+**Limits and resume:** no new runtime/native/hardware/human evidence or acceptance points. Score remains 41/100 and full #274 stays open. Run/record progress and whitespace gates, publish the draft and verify required current-head CI before any eligible Phase 0 squash. Current owner authority permits eligible merges after all gates; no auto-merge/bypass. Existing workstream WIP/runners/claims/ownership remain intact. Baseline B and governance phases 1–6 remain unfinished; the historical checkpoint below retains its earlier observation and is superseded by this current handoff and owner authority.
+
+## Historical Phase 0 PR343 pre-merge checkpoint — 17 November 2026
 
 **Source:** parent `1c6842c4c73f42691fa553e76944bc9ebd795186`; existing PR #343 branch.
 **Changed:** bounded artifact-action contract and meaningful negative host oracle; existing native/evidence guards preserved. [Receipt](verification/phase0-pr343-20261117/README.md).
