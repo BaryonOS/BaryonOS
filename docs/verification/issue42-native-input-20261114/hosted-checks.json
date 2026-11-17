@@ -1,0 +1,440 @@
+{
+  "schema_version": 1,
+  "source_commit": "36f131fe3ce0fb5e4ad92ef4cf3cab4e86637694",
+  "observed_utc": "2026-11-14 16:35:14 UTC",
+  "repository": "BaryonOS/BaryonOS",
+  "runs": [
+    {
+      "id": 43616054750,
+      "name": "Merge hold",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 50,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054750/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054750/logs",
+      "workflow_id": 417762933
+    },
+    {
+      "id": 43616054835,
+      "name": "CodeQL Advanced",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_number": 518,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054835/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054835/logs",
+      "workflow_id": 411533481
+    },
+    {
+      "id": 43616054617,
+      "name": "M6e scalable volume acceptance",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_number": 1080,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054617/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054617/logs",
+      "workflow_id": 399997984
+    },
+    {
+      "id": 43616054843,
+      "name": "FR-I01 joint native system acceptance",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_number": 1503,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054843/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054843/logs",
+      "workflow_id": 401194164
+    },
+    {
+      "id": 43616054808,
+      "name": "Native window session and Windows QEMU bundle",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_number": 1160,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054808/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054808/logs",
+      "workflow_id": 404744090
+    },
+    {
+      "id": 43616054579,
+      "name": "Network TLS adapter quality",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 1230,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054579/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054579/logs",
+      "workflow_id": 402106993
+    },
+    {
+      "id": 43616054675,
+      "name": "App package and artifact quality",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 1234,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054675/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054675/logs",
+      "workflow_id": 402073443
+    },
+    {
+      "id": 43616054654,
+      "name": "Native SMP bring-up (K06 step 1)",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_number": 709,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054654/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054654/logs",
+      "workflow_id": 408007270
+    },
+    {
+      "id": 43616054771,
+      "name": "B03 signed updates acceptance",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_number": 1472,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054771/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054771/logs",
+      "workflow_id": 401656690
+    },
+    {
+      "id": 43616054672,
+      "name": "Artifact store contract quality",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 191,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054672/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054672/logs",
+      "workflow_id": 402066107
+    },
+    {
+      "id": 43616054845,
+      "name": "CI",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_number": 1708,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054845/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054845/logs",
+      "workflow_id": 399693409
+    },
+    {
+      "id": 43616054801,
+      "name": "Resource pressure acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 1442,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054801/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054801/logs",
+      "workflow_id": 399752273
+    },
+    {
+      "id": 43616054769,
+      "name": "Windows QEMU native Materiaal test bundle",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 1397,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054769/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054769/logs",
+      "workflow_id": 401991847
+    },
+    {
+      "id": 43616054593,
+      "name": "Native CMOS RTC acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 1452,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054593/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054593/logs",
+      "workflow_id": 401820680
+    },
+    {
+      "id": 43616054712,
+      "name": "NAS host, target and native normal/cold checks",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 1265,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054712/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054712/logs",
+      "workflow_id": 402053497
+    },
+    {
+      "id": 43616054799,
+      "name": "Native xHCI DMA and USB HID transport",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 2,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054799/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054799/logs",
+      "workflow_id": 418444867
+    },
+    {
+      "id": 43616054737,
+      "name": "Native ACPI S5 poweroff (H05 step)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 321,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054737/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054737/logs",
+      "workflow_id": 408622703
+    },
+    {
+      "id": 43616054826,
+      "name": "K05 process management acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 1525,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054826/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054826/logs",
+      "workflow_id": 401041660
+    },
+    {
+      "id": 43616054631,
+      "name": "B01 entropy and key management acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 1520,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054631/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054631/logs",
+      "workflow_id": 401062482
+    },
+    {
+      "id": 43616054603,
+      "name": "Native HID input IPC (synthetic reports)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 2,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054603/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054603/logs",
+      "workflow_id": 418444869
+    },
+    {
+      "id": 43616054752,
+      "name": "Storage resilience acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 1022,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054752/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054752/logs",
+      "workflow_id": 399756123
+    },
+    {
+      "id": 43616054776,
+      "name": "Component leaf quality",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 1228,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054776/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054776/logs",
+      "workflow_id": 402147033
+    },
+    {
+      "id": 43616054686,
+      "name": "Native display and input acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 1489,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054686/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054686/logs",
+      "workflow_id": 401371461
+    },
+    {
+      "id": 43616054685,
+      "name": "Native RANDOM and image foundation acceptance",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 1481,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054685/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054685/logs",
+      "workflow_id": 401425242
+    },
+    {
+      "id": 43616054636,
+      "name": "Network broker quality",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 1234,
+      "jobs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054636/jobs",
+      "logs_url": "https://api.github.com/repos/BaryonOS/BaryonOS/actions/runs/43616054636/logs",
+      "workflow_id": 402091032
+    }
+  ],
+  "dedicated_jobs": [
+    {
+      "run_id": 43616054799,
+      "jobs": [
+        {
+          "id": 132511234117,
+          "name": "native-xhci",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 43616054799,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Pinned Python",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Pinned Rust toolchain",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Pinned QEMU and OVMF",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Host ownership, firmware, xHCI and oracle regressions",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Real command, USB reports, detach and DMA rejection",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Preserve source-bound compact reports",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Post Pinned Python",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15
+            },
+            {
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 16
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": 43616054603,
+      "jobs": [
+        {
+          "id": 132511233440,
+          "name": "native-hid-input",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 43616054603,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Pinned Python",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Pinned Rust toolchain",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Pinned QEMU and OVMF",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Preflight and fetch locked dependencies for offline builders",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "HID session, policy, publication and oracle regressions",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Actual own-kernel IPC with synthetic HID completions",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Preserve compact source-bound reports only",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Post Pinned Python",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17
+            },
+            {
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "initial_dependency_failure": {
+    "source_commit": "b082f836cd8f3969fd144c3a6a9b01c8656d4122",
+    "run_ids": [
+      43615740391,
+      43615740629,
+      43615740398
+    ],
+    "error": "ui/native/Cargo.lock needs to be updated but --locked was passed to prevent this",
+    "repair_commit": "36f131fe3ce0fb5e4ad92ef4cf3cab4e86637694",
+    "scope": "Exactly two local dependency lockfiles updated; all existing package versions preserved."
+  },
+  "limits": "This is a timestamped API snapshot. Pending unrelated workflows are not recorded as passed. The two dedicated H02 jobs completed every listed step successfully."
+}

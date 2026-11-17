@@ -56,7 +56,7 @@ The machine-readable source of truth is [progress.json](progress.json). `tools/p
 | Criterion | Points | Status | Acceptance and evidence |
 |---|---:|---|---|
 | **H01 — First independent device path** | 1 | Accepted | Custom virtio block transport, bounded DMA/MMIO access, reset behavior, and driver/service crashes are tested natively in QEMU. [evidence 1](../docs/verification/m5/ACCEPTANCE.md) · [evidence 2](../docs/verification/m5/review-repairs.json) |
-| **H02 — Keyboard, mouse, and USB** | 3 | Open | Common input and USB devices work on the documented reference profile; hotplug and invalid device responses remain bounded. |
+| **H02 — Keyboard, mouse, and USB** | 3 | Open | Common input and USB devices work on the documented reference profile; hotplug and invalid device responses remain bounded. [evidence 1](../docs/verification/issue42-native-input-20261114/README.md) |
 | **H03 — Graphics output and audio** | 3 | Open | Native graphics output, required GPU functionality, and audio meet documented usability and latency budgets on physical reference hardware. |
 | **H04 — Network hardware and connections** | 2 | Open | Ethernet, Wi-Fi, and the agreed Bluetooth functions work on supported hardware, including disconnect, resume, and driver-failure paths. |
 | **H05 — Power management and sleep/wake** | 2 | Open | ACPI/power management, sleep/wake, shutdown, and thermal/battery functions are measured and recoverable on supported hardware. |

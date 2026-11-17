@@ -145,8 +145,12 @@ pub struct McfgRegion {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct DmarUnit {
     pub register_base: u64,
+    pub register_bytes: u64,
     pub segment: u16,
     pub include_all: bool,
+    /// Direct endpoint scopes on bus zero. Bridge paths confer no membership.
+    pub direct_bus0: [u64; 4],
+    pub unknown_scopes: bool,
 }
 
 const EMPTY_MCFG: McfgRegion = McfgRegion {
@@ -157,8 +161,11 @@ const EMPTY_MCFG: McfgRegion = McfgRegion {
 };
 const EMPTY_DMAR: DmarUnit = DmarUnit {
     register_base: 0,
+    register_bytes: 0,
     segment: 0,
     include_all: false,
+    direct_bus0: [0; 4],
+    unknown_scopes: false,
 };
 
 /// One enabled processor from the MADT. `apic_id` is the 8-bit xAPIC ID for
@@ -231,6 +238,9 @@ pub struct Discovery {
     pub mcfg_count: u8,
     pub dmar: [DmarUnit; MAX_DMAR_UNITS],
     pub dmar_count: u8,
+    pub dmar_host_address_width: u8,
+    pub dmar_has_reserved_memory: bool,
+    pub dmar_has_other_structures: bool,
     pub madt: Madt,
     /// Physical address of the single FADT (`FACP`) root entry, 0 when absent
     /// or duplicated. Only the header signature is checked here; consumers
@@ -246,6 +256,9 @@ impl Discovery {
             mcfg_count: 0,
             dmar: [EMPTY_DMAR; MAX_DMAR_UNITS],
             dmar_count: 0,
+            dmar_host_address_width: 0,
+            dmar_has_reserved_memory: false,
+            dmar_has_other_structures: false,
             madt: Madt::unavailable(MadtStatus::Missing),
             fadt: 0,
         }
@@ -256,12 +269,49 @@ impl Discovery {
         false
     }
 
+    /// Inventory profile for the opt-in, direct bus-zero native DMA fixture.
+    /// This is not DMA authority: hardware activation and mapped pinned pages
+    /// remain mandatory. QEMU 10 reports explicit scopes, not INCLUDE_PCI_ALL.
+    pub fn native_dma_unit(&self, device: u8, function: u8) -> Option<DmarUnit> {
+        if self.availability != Availability::DiscoveryComplete
+            || self.dmar_count != 1
+            || !(39..=52).contains(&self.dmar_host_address_width)
+            || self.dmar_has_reserved_memory
+            || self.dmar_has_other_structures
+            || device > 31
+            || function > 7
+        {
+            return None;
+        }
+        let unit = self.dmar[0];
+        let devfn = usize::from(device) * 8 + usize::from(function);
+        if unit.segment != 0
+            || unit.unknown_scopes
+            || unit.register_base < 0x8000_0000
+            || !(PAGE_SIZE..=4 * PAGE_SIZE).contains(&unit.register_bytes)
+            || !unit.register_base.is_multiple_of(PAGE_SIZE)
+            || !unit.register_bytes.is_power_of_two()
+            || unit
+                .register_base
+                .checked_add(unit.register_bytes)
+                .is_none_or(|end| end > (1 << 52))
+            || (!unit.include_all && unit.direct_bus0[devfn / 64] & (1 << (devfn % 64)) == 0)
+        {
+            None
+        } else {
+            Some(unit)
+        }
+    }
+
     /// In-place equivalent of `empty`: every count gates its array, so no
     /// stale entry stays observable and no large temporary is built.
     fn reset(&mut self, availability: Availability) {
         self.availability = availability;
         self.mcfg_count = 0;
         self.dmar_count = 0;
+        self.dmar_host_address_width = 0;
+        self.dmar_has_reserved_memory = false;
+        self.dmar_has_other_structures = false;
         self.madt.status = MadtStatus::Missing;
         self.madt.cpu_count = 0;
         self.madt.online_capable = 0;
@@ -543,6 +593,7 @@ fn parse_dmar(table: &[u8], result: &mut Discovery) -> Result<(), Error> {
     {
         return Err(Error::Dmar);
     }
+    result.dmar_host_address_width = table[36] + 1;
     let mut offset = 48;
     while offset < table.len() {
         let kind = read_u16(table, offset)?;
@@ -574,13 +625,44 @@ fn parse_dmar(table: &[u8], result: &mut Discovery) -> Result<(), Error> {
             {
                 return Err(Error::Dmar);
             }
-            result.dmar[result.dmar_count as usize] = DmarUnit {
+            let mut unit = DmarUnit {
                 register_base,
+                register_bytes: aperture,
                 segment: read_u16(structure, 6)?,
                 include_all: structure[4] & 1 != 0,
+                direct_bus0: [0; 4],
+                unknown_scopes: false,
             };
+            let mut scope = 16;
+            while scope < length {
+                let remaining = &structure[scope..];
+                if remaining.len() < 8 {
+                    return Err(Error::Dmar);
+                }
+                let size = usize::from(remaining[1]);
+                if size < 8 || size > remaining.len() || size % 2 != 0 || remaining[2..4] != [0; 2]
+                {
+                    return Err(Error::Dmar);
+                }
+                for path in remaining[6..size].chunks_exact(2) {
+                    if path[0] > 31 || path[1] > 7 {
+                        return Err(Error::Dmar);
+                    }
+                }
+                match remaining[0] {
+                    1 if size == 8 && remaining[5] == 0 => {
+                        let devfn = usize::from(remaining[6]) * 8 + usize::from(remaining[7]);
+                        unit.direct_bus0[devfn / 64] |= 1 << (devfn % 64);
+                    }
+                    1..=4 => {} // Other endpoints, bridges, IOAPIC and HPET are inventory only.
+                    _ => unit.unknown_scopes = true,
+                }
+                scope += size;
+            }
+            result.dmar[result.dmar_count as usize] = unit;
             result.dmar_count += 1;
         } else if kind == 1 {
+            result.dmar_has_reserved_memory = true;
             if length < 24 || read_u16(structure, 4)? != 0 {
                 return Err(Error::Dmar);
             }
@@ -596,6 +678,8 @@ fn parse_dmar(table: &[u8], result: &mut Discovery) -> Result<(), Error> {
             {
                 return Err(Error::Dmar);
             }
+        } else {
+            result.dmar_has_other_structures = true;
         }
         offset += length;
     }
@@ -909,6 +993,7 @@ mod tests {
         assert_eq!(discovered.mcfg[0].segment, 0);
         assert_eq!(discovered.dmar_count, 1);
         assert_eq!(discovered.dmar[0].register_base, 0x1000);
+        assert!(discovered.dmar_has_reserved_memory);
         assert!(!discovered.dma_execution_allowed());
     }
 
@@ -936,6 +1021,116 @@ mod tests {
         let discovered = discover(&handoff, &mut fixture);
         assert_eq!(discovered.availability, Availability::MissingDmar);
         assert!(!discovered.dma_execution_allowed());
+    }
+
+    fn direct_dma_fixture(scopes: &[u8], flags: u8, size: u8) -> Vec<u8> {
+        let mut body = vec![0; 12];
+        body[0] = 38; // 39-bit QEMU address width.
+        let mut unit = vec![0; 16];
+        unit[2..4].copy_from_slice(&(16u16 + scopes.len() as u16).to_le_bytes());
+        unit[4] = flags;
+        unit[5] = size;
+        unit[8..16].copy_from_slice(&0xfed9_0000u64.to_le_bytes());
+        body.extend_from_slice(&unit);
+        body.extend_from_slice(scopes);
+        table(b"DMAR", &body)
+    }
+
+    #[test]
+    fn native_dma_profile_requires_actual_requester_coverage() {
+        let mut result = Discovery::empty(Availability::DiscoveryComplete);
+        let scope = [1, 8, 0, 0, 0, 0, 5, 0];
+        parse_dmar(&direct_dma_fixture(&scope, 0, 0), &mut result).unwrap();
+        let unit = result.native_dma_unit(5, 0).unwrap();
+        assert_eq!(unit.register_bytes, PAGE_SIZE);
+        assert_eq!(unit.register_base, 0xfed9_0000);
+        assert_eq!(result.dmar_host_address_width, 39);
+        assert!(result.native_dma_unit(5, 1).is_none());
+        assert!(result.native_dma_unit(6, 0).is_none());
+        assert!(result.native_dma_unit(32, 0).is_none());
+        assert!(!result.dma_execution_allowed());
+
+        // An endpoint on another bus, a bridge or a nested path is not the
+        // direct bus-zero requester, even when its final device number matches.
+        for scope in [
+            vec![1, 8, 0, 0, 0, 1, 5, 0],
+            vec![2, 8, 0, 0, 0, 0, 5, 0],
+            vec![1, 10, 0, 0, 0, 0, 1, 0, 5, 0],
+        ] {
+            result.reset(Availability::DiscoveryComplete);
+            parse_dmar(&direct_dma_fixture(&scope, 0, 0), &mut result).unwrap();
+            assert!(result.native_dma_unit(5, 0).is_none());
+        }
+    }
+
+    #[test]
+    fn native_dma_profile_rejects_unsupported_or_ambiguous_inventory() {
+        let valid = direct_dma_fixture(&[], 1, 0);
+        let mut result = Discovery::empty(Availability::DiscoveryComplete);
+        parse_dmar(&valid, &mut result).unwrap();
+        assert!(result.native_dma_unit(5, 0).is_some());
+        for mutate in [
+            |d: &mut Discovery| d.dmar_has_reserved_memory = true,
+            |d: &mut Discovery| d.dmar_has_other_structures = true,
+            |d: &mut Discovery| d.dmar_count = 2,
+            |d: &mut Discovery| d.dmar[0].segment = 1,
+            |d: &mut Discovery| d.dmar[0].register_bytes = 8 * PAGE_SIZE,
+            |d: &mut Discovery| d.dmar[0].register_base = 0x1000,
+            |d: &mut Discovery| d.dmar_host_address_width = 38,
+            |d: &mut Discovery| d.dmar_host_address_width = 53,
+            |d: &mut Discovery| d.availability = Availability::InvalidTables,
+        ] {
+            let mut changed = result;
+            mutate(&mut changed);
+            assert!(changed.native_dma_unit(5, 0).is_none());
+        }
+        result.reset(Availability::DiscoveryComplete);
+        parse_dmar(
+            &direct_dma_fixture(&[9, 8, 0, 0, 0, 0, 5, 0], 1, 0),
+            &mut result,
+        )
+        .unwrap();
+        assert!(result.native_dma_unit(5, 0).is_none());
+        result.reset(Availability::MissingHandoff);
+        assert_eq!(result.dmar_host_address_width, 0);
+        assert!(!result.dmar_has_reserved_memory);
+        assert!(!result.dmar_has_other_structures);
+        assert!(result.native_dma_unit(5, 0).is_none());
+    }
+
+    #[test]
+    fn malformed_dmar_scope_never_establishes_requester_coverage() {
+        for scope in [
+            vec![1, 7, 0, 0, 0, 0, 5],
+            vec![1, 10, 0, 0, 0, 0, 5, 0],
+            vec![1, 8, 1, 0, 0, 0, 5, 0],
+            vec![1, 8, 0, 0, 0, 0, 32, 0],
+            vec![1, 8, 0, 0, 0, 0, 5, 8],
+        ] {
+            let mut result = Discovery::empty(Availability::DiscoveryComplete);
+            assert_eq!(
+                parse_dmar(&direct_dma_fixture(&scope, 0, 0), &mut result),
+                Err(Error::Dmar)
+            );
+            assert!(result.native_dma_unit(5, 0).is_none());
+        }
+    }
+
+    #[test]
+    fn unsupported_dmar_structures_remain_visible_to_native_profile() {
+        let mut bytes = direct_dma_fixture(&[], 1, 0);
+        // A syntactically bounded future structure is inventoried, not silently
+        // omitted from the narrower native profile's safety decision.
+        bytes.extend_from_slice(&[99, 0, 4, 0]);
+        let mut result = Discovery::empty(Availability::DiscoveryComplete);
+        parse_dmar(&bytes, &mut result).unwrap();
+        assert_eq!(result.dmar_count, 1);
+        assert!(result.dmar_has_other_structures);
+        assert!(result.native_dma_unit(5, 0).is_none());
+        result.reset(Availability::DiscoveryComplete);
+        parse_dmar(&direct_dma_fixture(&[], 1, 0), &mut result).unwrap();
+        assert!(!result.dmar_has_other_structures);
+        assert!(result.native_dma_unit(5, 0).is_some());
     }
 
     #[test]

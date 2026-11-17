@@ -41,8 +41,9 @@ def main() -> int:
     env.setdefault("CARGO_TARGET_DIR", str(ROOT / "build/sdk-input-service-rust190"))
     target = Path(env["CARGO_TARGET_DIR"])
     env["CARGO_TARGET_DIR"] = str((ROOT / target).resolve())
+    features = "hid-probe" if "--hid-probe" in sys.argv else "native"
     command = ["cargo", f"+{TOOLCHAIN}", "build", "--offline", "--locked", "--release",
-               "--manifest-path", str(EXAMPLE / "Cargo.toml"), "--features", "native",
+               "--manifest-path", str(EXAMPLE / "Cargo.toml"), "--features", features,
                "--bins", "--target", "x86_64-unknown-none"]
     print(json.dumps({"command": command, "target_dir": env["CARGO_TARGET_DIR"],
                       "app_toolchain": TOOLCHAIN, "linker": str(linker)}), flush=True)
@@ -51,7 +52,10 @@ def main() -> int:
         return result.returncode
     from build_users import inspect_user
     binaries = {role: Path(env["CARGO_TARGET_DIR"]).resolve() / ("x86_64-unknown-none/release/input-" + role) for role in ("source", "policy")}
-    print(json.dumps({"passed": True, "native_runtime_performed": False, "extra_env": {"NOS_INPUT_" + role.upper() + "_ELF": str(binary) for role,binary in binaries.items()}, "apps": {role:{"sha256": sha256(binary), "elf": inspect_user(binary)} for role,binary in binaries.items()}}), flush=True)
+    if "--hid-probe" in sys.argv:
+        binaries["hid_source"] = Path(env["CARGO_TARGET_DIR"]).resolve() / "x86_64-unknown-none/release/input-hid-source"
+    extra_env = {("NOS_HID_SOURCE_ELF" if role == "hid_source" else "NOS_INPUT_" + role.upper() + "_ELF"): str(binary) for role, binary in binaries.items()}
+    print(json.dumps({"passed": True, "native_runtime_performed": False, "extra_env": extra_env, "apps": {role:{"sha256": sha256(binary), "elf": inspect_user(binary)} for role,binary in binaries.items()}}), flush=True)
     return 0
 
 

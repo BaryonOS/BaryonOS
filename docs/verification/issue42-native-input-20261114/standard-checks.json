@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "phase": "standard",
+  "source_commit": "36f131fe3ce0fb5e4ad92ef4cf3cab4e86637694",
+  "source_sha256": "922c0e579e6fed6b03bf94ae320a01350504a334ff4d406a9fc9d050a37e25fe",
+  "source_fingerprint_version": 3,
+  "checks": [
+    {
+      "name": "strict-preflight",
+      "command": [
+        "python3",
+        "-B",
+        "tools/preflight.py",
+        "--strict"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/standard"
+      },
+      "exit_code": 0,
+      "duration_seconds": 0.24,
+      "token_guard": {
+        "duration_seconds": 0.192,
+        "emitted_bytes": 683,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-ywdl67ju.log",
+        "output_complete": false,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 11551,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "ff71f05584b1ee6f281ca728597c9999b939fac6071e5f6e49b1a1a9fe2aaefd",
+      "log_sha256": "9214b74f882b29a1fff73d3860a9a4ca967a0f5bce42740657cc51e77e732048"
+    },
+    {
+      "name": "standard-build",
+      "command": [
+        "python3",
+        "-B",
+        "tools/build.py"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/standard"
+      },
+      "exit_code": 0,
+      "duration_seconds": 0.493,
+      "token_guard": {
+        "duration_seconds": 0.444,
+        "emitted_bytes": 741,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-46t0qbo0.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 507,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "54896c618567d0e7b94437002aed5d79a2f00239fa542d086016433a64744f55",
+      "log_sha256": "6ecc9b90e936d7ec0d4125f016995c2bd4c83098bfa02a000ea869ed5b6c87ea"
+    },
+    {
+      "name": "standard-smoke",
+      "command": [
+        "python3",
+        "-B",
+        "tools/run.py",
+        "--smoke"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/standard"
+      },
+      "exit_code": 0,
+      "duration_seconds": 1.737,
+      "token_guard": {
+        "duration_seconds": 1.694,
+        "emitted_bytes": 583,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-9tet3trd.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 409,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "9a338148a8afa416b68e767c0315237e4fc8e69dd3dc4385ee2257e32351e0e5",
+      "log_sha256": "72d95bf4ea610cc0072d4a0af53b1204aaf1b1b9f9ce5439d38b304583b67806"
+    },
+    {
+      "name": "progress-check",
+      "command": [
+        "python3",
+        "-B",
+        "tools/progress.py",
+        "--check"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/standard"
+      },
+      "exit_code": 0,
+      "duration_seconds": 0.076,
+      "token_guard": {
+        "duration_seconds": 0.026,
+        "emitted_bytes": 404,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-z3vnqkqb.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 170,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "554cbb8ff8a0cb21c8ad667201ec78fdb6fd49695aa4fb27daf8d579e74d5133",
+      "log_sha256": "14b305fe38d23ae7244745b59dcbbad1fa41b2ffd4a173070a72a8aca2f3aa5f"
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "environment": {
+        "NOS_BUILD_DIR": "/workspace/scratch/7264b5153599/h02-native/build/h02-final/standard"
+      },
+      "exit_code": 0,
+      "duration_seconds": 0.045,
+      "token_guard": {
+        "duration_seconds": 0.007,
+        "emitted_bytes": 231,
+        "exit_code": 0,
+        "log": "build/tokenguard/run-9z83omoe.log",
+        "output_complete": true,
+        "presentation_scope": "sanitized_text",
+        "raw_bytes": 0,
+        "rtk_used": false,
+        "schema_version": 1
+      },
+      "output_sha256": "091c360d9198beaf55279fda3232f9f445dca03420265895c129a4e0009ae1c6",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "passed": true,
+  "source_unchanged": true
+}

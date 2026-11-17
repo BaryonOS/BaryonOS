@@ -13,6 +13,25 @@ mod m2;
 mod m2;
 mod memory;
 mod serial;
+#[cfg(all(
+    feature = "native-xhci-probe",
+    any(
+        feature = "milestone-m3",
+        feature = "native-smp",
+        feature = "native-smp-legacy",
+        feature = "framebuffer",
+        feature = "native-rtc",
+        feature = "native-acpi-s5"
+    )
+))]
+compile_error!("native-xhci-probe exclusively owns the single-CPU IF0 DMA fixture");
+#[cfg(all(feature = "test-xhci-dma-fault", feature = "test-xhci-no-dmar"))]
+compile_error!("xHCI negative cases require separate boots");
+#[cfg(all(
+    feature = "native-usb-hid-probe",
+    any(feature = "test-xhci-dma-fault", feature = "test-xhci-no-dmar")
+))]
+compile_error!("USB HID and legacy xHCI negative cases require separate boots");
 #[cfg(all(feature = "graphics-g0", feature = "milestone-m3"))]
 compile_error!("graphics-g0 is an IF0 bootstrap, not a ring-3/compositor profile");
 #[cfg(all(

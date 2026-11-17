@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+    "source_commit": "de793ed7ec83e2c121bf3f02fd0873271f86fe58",
     "assessment_basis": "parent_commit",
-    "branch": "feat/issue41-policy-test",
-    "task": "Phase 0 PR336: align current review proposal wording with accepted TEST authority",
+    "branch": "feat/issue42-native-input",
+    "task": "Phase 0 PR333: reconcile actual main after336 without runtime changes",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Review clarifies the existing8-entry bound and approved codec/probe order; completeADR content and established identifier/date retained. No runtime/fixture/test/criterion change. New-head hosted checks and independent editorial review remain required."
+    "summary": "41/100 unchanged. All runtime/source-v3 and native evidence stay identical to reviewedde793ed7; actual336 documentation corrections and one canonicalADR are retained. Fresh current-head hosted gates and bounded independent review remain required; no fullH02/hardware or baselineB acceptance."
   },
   "tracks": [
     {
@@ -217,7 +217,9 @@
           "points": 3,
           "status": "open",
           "acceptance": "Common input and USB devices work on the documented reference profile; hotplug and invalid device responses remain bounded.",
-          "evidence": []
+          "evidence": [
+            "docs/verification/issue42-native-input-20261114/README.md"
+          ]
         },
         {
           "id": "H03",
