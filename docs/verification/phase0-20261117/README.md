@@ -1,5 +1,13 @@
 # Phase 0 integration checkpoint — 17 November 2026
 
+## Current executed state — supersedes historical inventory observations
+
+Main `e7169e43bf772307acf328590b4300fa52a4ad73` is the verified squash result of344; its tree equals reviewed head64a85575. [Merge receipt](pr344-merge-receipt.json). PR343's complete main push checks passed. GitHub then refused to start jobs because of an account billing lock. [External CI blocker](ci-infrastructure-blocker.json); unavailable checks remain NOT RUN, and baseline B is not frozen. No paid-infrastructure change, merge exception or bypass is authorized.
+
+PR336 is reconciled conflict-free at `c26b0903627fea59f5d286f8eff4c4887b017b9a`. [Fresh integrated gates](pr336-integrated-local.json) pass, including all18 existing update stages and both consumers'26-case immutable TEST probe. Raw35 and deliberate kill−9 negative stages remain their actual expected values; the probe exits33 with an unchanged slot disk. The first snap-launcher failure46 is retained; corrected runs use the existing rustup installation without relaxing the sandbox. Independent integrated review/current-head hosted acceptance remain mandatory.
+
+English draft PRs346–349 and351–353 have separate semantic/preservation review; full issue274 stays open. The narrow [product/research text release](owner-product-research-text-release.json) preserves broader UI/S09 ownership and QuickLook uncertainty. New unrelated PR350 is recorded as post-baseline work. The original integration order continues336→333→340→339, then eligible narrow follow-ups; no merge merely to reduce counts.
+
 ## Executed T0 reconciliation
 
 - Task: establish the bounded integration and quality baseline before governance phases 1–6.
@@ -24,7 +32,7 @@
 | — | #274 / #277 | Translation and live Wiki coverage require separate evidence. Complete triage and record access/ownership limitations; do not claim completed coverage. |
 | — | #283 | Classify preserved historical proposals by actual source inclusion, replacement, rejection or deferral. Closed is not merged. |
 
-At initial T0, each merge required separate owner approval. The updated scope-limited Phase 0 authority below supersedes that approval workflow; current verified source, checks, merge-hold and review clearance remain mandatory. No merge or auto-merge has been performed. Ready/draft metadata conflicts with several PR descriptions; metadata alone grants no merge authority.
+Historical T0 observation: at initial T0, each merge required separate owner approval. The updated scope-limited Phase 0 authority below supersedes that approval workflow; current verified source, checks, merge-hold and review clearance remain mandatory. At that initial checkpoint no merge or auto-merge had been performed. Ready/draft metadata conflicts with several PR descriptions; metadata alone grants no merge authority.
 
 ## Current task contract
 

@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "95d59ad52761c1f8f0201d934556902b90ce63cb",
-    "assessment_basis": "verified_main_commit",
+    "source_commit": "feb9702c6536660b4fef84d8c2643d8ef1f3d1ee",
+    "assessment_basis": "parent_commit",
     "branch": "codex/phase0-baseline",
-    "task": "Phase 0: checkpoint integrated dependency gates, source-faithful translations and honest historical residuals",
+    "task": "Phase 0: verify PR344 squash, checkpoint PR336 integrated gates and external CI blocker",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. Fresh loader/update tests and independently reviewed English documentation preserve existing acceptance. Issue #277 is complete; #283 retains a documented historical provenance/audit residual and #274 coverage is unfinished. Hosted integration checks and final baseline B remain outstanding."
+    "summary": "41/100 remains41/100. Exact reviewed main tree and fresh bounded TEST update gates are recorded. GitHub billing-blocked jobs are NOT RUN; baselineB and governance migration are not accepted. No criteria/weights or issue completion claims changed."
   },
   "tracks": [
     {

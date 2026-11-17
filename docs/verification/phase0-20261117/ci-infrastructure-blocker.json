@@ -1,0 +1,28 @@
+{
+  "source": "e7169e43bf772307acf328590b4300fa52a4ad73",
+  "run_id": 44143910228,
+  "jobs": [
+    {
+      "id": 134253737144,
+      "name": "component-quality (table-editor)"
+    },
+    {
+      "id": 134253737267,
+      "name": "component-quality (net-config)"
+    }
+  ],
+  "annotation": "The job was not started because your account is locked due to a billing issue.",
+  "evidence_level": "NOT RUN: GitHub infrastructure billing lock",
+  "owner_notification": "Requested account unlock; no billing/paid infrastructure changes performed",
+  "baseline_B": "not established",
+  "score": 41,
+  "additional_main_job": {
+    "name": "qemu-smoke",
+    "details": "See archived main-ci-current-jobs.json/annotations for exact ID; current source main e7169e43"
+  },
+  "pr336": {
+    "head": "c26b0903627fea59f5d286f8eff4c4887b017b9a",
+    "observed_failed_jobs": 49,
+    "detail": "See archived pr336-check-annotations.json for actual cause per job; no local pass substitutes hosted acceptance"
+  }
+}
