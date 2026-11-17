@@ -1,6 +1,16 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Phase 0 stabilization — 17 November 2026
+## NEXT AGENT HANDOFF — Phase 0 security and cloud transfer — 18 November 2026
+
+**Source:** verified integration main `38d4cc17687156379677993be9945447591bd4c1`; existing PR355 source `aec1fb5f75e6165da82ba81f3f43d7a0d912ab1d`. The owner authorizes completing, verifying, safely squash-merging and resolving the security fix; no additional routine permission is required. Mandatory checks, independent review and security conditions remain binding.
+**Primary milestone:** 0D security remediation. 0A is complete, 0B waits on security, earlier 0C triage is historical, and B/governance1–6 remain unstarted. Score41/100 is unchanged. The latest finite baseline gate supersedes the old strict-zero prerequisite.
+**Verified checkpoint:** 406 complete local tools tests at the initial source;78 final targeted regressions at the current security source. Fresh sandboxed QEMU replay passes the unchanged26-case TEST oracle, rawexit33, with unchanged inputs/store. This is not a guest rebuild, real model-client parity, hardware acceptance or security resolution. The first hosted metadata-fixture failure is preserved and repaired; current-head CI must be re-queried.
+**Open blockers:** resource limits and complete selected client/gate compatibility remain independently blocking; production stays disabled. The Daybreak finding is open and the latest manual scan tested old main38. Advisory quota metadata was not a proven scan-start rejection. No merge/closure is inferred from partial success.
+**Transfer:** [Cloud handoff](verification/phase0-20261117/CLOUD-HANDOFF.md) is prepared but ownership is not yet released. Rust WIP is safely published at PR354 `aa5015378e78783fe6486480be45fdfd44656cfc`; PR339 Codex preview is `bba804996b93d93e82b6fb323cdeea9779f6fe99`, with latest Claude files preserved. Existing PR346/350 canonical branches contain their completed preview integrations; no duplicate PRs.
+**Preservation:** original shared checkout has an independent local main38 merge; original UI/UX/agent-test WIP and Claude S09/design ownership are untouched and not transferred. Private security evidence and local runtime/caches remain outside public Git. A clean worker completion is not project completion.
+**Next:** verify handoff/source commits on GitHub, release only the listed Codex work to the next cloud task, then stop local writes. Cloud continues PR355 blockers first, with no vulnerable pipeline execution, bypass, false closure or premature governance.
+
+## Historical retained handoff — Phase 0 before the security/cloud checkpoint
 
 **Verified main:** `38d4cc17687156379677993be9945447591bd4c1`, after manual squashes #343, #344 and #336. Main's tree exactly matches reviewed #336 head `fd7d9226`. All65 premerge checks completed:56 successful,8 intentional skips and1 neutral; applicable required/native/SMP/window/merge-hold checks passed. No bypass or auto-merge. Issue #41 remains open. The latest post-merge snapshot has16 of18 push workflows successful, with SMP and window-session still running. [Merge receipt](verification/phase0-20261117/pr336-merge-receipt.json).
 
