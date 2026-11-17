@@ -1,0 +1,5 @@
+# PR344 — r-efi 7.2.0 audit-record correction
+
+The original pin left the current dependency register on 7.1.0. The register now matches 7.2.0 and its exact registry checksum/VCS while preserving dated 26/27 October claims. The existing upstream AUTHORS notice is byte-identical and remains unchanged. [Package verification](package.json) checks the registry archive against Cargo.lock, manifest build/feature settings, VCS and notice bytes. Independent read-only upstream review found three new protocols and no changed existing ABI definitions; this is not a full upstream or human audit.
+
+[Commands, real exit statuses and raw-log hashes](checks.json). Strict preflight and locked loader features pass with the already installed rustup binary selected directly. The first snap-launcher preflight failure is retained. The native loader/M1 gate passes all ten acceptance groups with disposable QEMU images under the shared native lock; normal artifacts were restored. Native update regression and current-head hosted CI remain pending. No production key, new OS criterion or general compatibility claim is added.
