@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-17",
-    "source_commit": "4005ca674313e5637c8293a10627acdd286ab3e1",
+    "source_commit": "84b0198f64ba520d4b275ffb8d0f461f0762c89f",
     "assessment_basis": "parent_commit",
-    "branch": "claude/baryon-os-design-pipeline-20261115",
-    "task": "Address CodeRabbit review of PR #339: correct two accessibility-matrix cells (rows 59 and 98) that contradicted the research document; UX-A11Y-DS run 2 stays queued",
+    "branch": "codex/phase0-pr339-integration",
+    "task": "Phase0: reconcile latest Claude accessibility checkpoint with verified main, preserving honest research limits",
     "previous_score": 41,
-    "summary": "41/100 remains 41/100. The change corrects two documentation cells in the UX-A11Y-R accessibility matrix (stimulus versus transparency axis; EN 301 549 V4.1.1 clause 11.7) and accepts no criterion. The ds-1.1 design changes remain uncommitted and unaccepted, and UX-A11Y-R is an intermediate research checkpoint. GitHub Actions started no job for the parent head (account billing lock)."
+    "summary": "41/100 unchanged. Exact latest84b0198f design/research/checker/archive content is preserved and the structural checker passes; the systematic review and uncommitted ds-1.1 remain open. Historical SHA256SUMS pins its original4005 source; a separate current-matrix receipt records the two newer corrections without rewriting archived evidence. Current integrated hosted gates remain required."
   },
   "tracks": [
     {
