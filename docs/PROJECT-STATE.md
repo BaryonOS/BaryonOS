@@ -1,6 +1,19 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
+## NEXT AGENT HANDOFF — L01-T3 reference forward slice
+
+**Claim:** Codex, codex/l01-reference-forward, base fac5a864.
+**Goal:** bounded alloc-free f32 dense/ReLU forward and tensor decode.
+**Invariant:** malformed/nonfinite/over-budget data cannot publish partial output;
+no allocator, unsafe code, dependency, CPU-profile/grant or model installation.
+**Write set:** experiments/ai/reference-forward/; lead state only.
+**Acceptance:** numerical oracle/shape/nonfinite/overflow/output-atomicity tests,
+Rust1.100 Clippy/fmt and no_std scalar target compile if supported.
+**Evidence limit:** host numerical reference; no transformer/model/native inference
+or real-artifact/quality claims. No integration/Claude write paths touched.
+**Next:** implement and publish draft; full L01-T3 remains incomplete.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
 `5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
