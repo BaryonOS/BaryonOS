@@ -260,7 +260,7 @@ def main():
         "first_party_documents": len(record["documents"]),
         "normal_navigation_documents": record["counts"]["normal_navigation_reachable"],
         "compatibility_anchors": len(record["compatibility_anchors"]),
-        "historical_dutch_records_without_equivalent": len(record["historical_dutch_residuals"]),
+        "historical_dutch_original_records_retained": len(record["historical_dutch_residuals"]),
         "historical_records_with_english_entrypoints": len(entrypoints),
         "language_quality_proof": False,
         "full_issue274_acceptance": "NOT COMPLETE",
