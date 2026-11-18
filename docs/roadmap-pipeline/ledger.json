@@ -107,7 +107,7 @@
       "criterion": "B01",
       "milestone": "M8",
       "executor": "worker",
-      "status": "active",
+      "status": "verified",
       "native": true,
       "title": "Native positive management recovery through a manifest-named admin principal (keyring)",
       "goal": "In the native-keyring normal case, add a management-role process (a second instance of the existing keyring-app ELF, named in the manifest as the admin caller and connected to the existing admin ingress words) that performs EXPORT_RECOVERY on service A and RESTORE into service B, after which B unseals a ciphertext sealed by A. Negative cases in the same run: a wrong recovery secret returns Auth; GENERATE on the admin ingress is denied; the ordinary app's test-only SEND alias to the admin ingress is counted as bad_caller with no reply and no state change. Existing APP_RECOVERY_EXPORT_DENIED and APP_RECOVERY_RESTORE_DENIED counters stay 1. Reuse existing ELFs and kernel features only: no tools/build.py edit, no new capability kind, no change to the KEY1 wire.",
@@ -166,6 +166,13 @@
           "owner": "Codex",
           "branch": "codex/b01-management-recovery",
           "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9"
+        },
+        {
+          "at": "2026-11-18T20:06:13+00:00",
+          "event": "verified",
+          "source_commit": "3847e9f2166b71020aa7b78bb82c8f06ae787590",
+          "evidence": "docs/verification/b01-management-recovery-20261118/checks.json",
+          "summary": "Five native cases guest33, required negative control red, host checks pass; no full B01 acceptance."
         }
       ]
     },
@@ -258,7 +265,13 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "B02-T1 native tamper and key-loss cases.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:06:13+00:00",
+          "event": "ownership-block",
+          "reason": "S09-NEXT ownership remains with Claude; owner decision pending."
+        }
+      ]
     },
     {
       "id": "N04-T2",
@@ -828,7 +841,13 @@
       "evidence_level": "host",
       "rollback": "Revert the commit.",
       "next": "B04-T2 reproducibility check.",
-      "history": []
+      "history": [
+        {
+          "at": "2026-11-18T20:06:13+00:00",
+          "event": "ownership-block",
+          "reason": "S09-NEXT ownership remains with Claude; owner decision pending."
+        }
+      ]
     },
     {
       "id": "B04-T2",

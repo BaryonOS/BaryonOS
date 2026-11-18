@@ -19,9 +19,27 @@ a wrong-admin-caller negative control; relevant formatting and progress checks.
 **Evidence limit:** QEMU fixture proof only, no physical entropy, external audit,
 authenticated production recovery or full B01 acceptance inferred.
 
-**Next:** implement the bounded manifest/admin process route, run targeted checks,
-then publish one draft PR. No native matrix for unrelated subsystems and no CI polling.
-A02-T1 remains verified on its own source branch; the score remains 41/100.
+**Result/source:** `3847e9f2166b71020aa7b78bb82c8f06ae787590` implements the normal-only manifest-bound management
+principal and real A-to-B recovery. The ordinary app retains its recovery denials;
+non-normal manifests remain unchanged. [Receipt](verification/b01-management-recovery-20261118/checks.json).
+
+**Executed:** `NOS_QEMU_MACHINE=pc-q35-8.2 python3 -B -u tools/test_keyring.py`, exit 0,
+five real guests exit 33 (`build/tokenguard/run-qx_vt1nl.log`). Its targeted Rust and
+SDK host checks pass. Full Python keyring group: 16 tests, exit 0 (`run-uelmwlng.log`).
+Kernel and SDK formatting pass; strict preflight and Python compilation pass. The
+isolated wrong-caller mutation makes normal red: diagnostic timeout 20 seconds,
+host exit 1, raw guest exit null. One focused read-only AI review found no blocker.
+Worker Snap/launcher and socket-sandbox failures remain in its local raw logs and
+were superseded by successful trusted-lead checks, not treated as passes.
+
+**Limits:** QEMU fixture evidence only; no physical RNG, production authenticated
+recovery or human audit. Full B01 remains open; score **41 → 41/100**. Unsafe
+unattended execution remains disabled. Original WIP, Claude S09/UI and PR362/363
+are preserved. No worker remains after process-group cleanup.
+
+**Next:** publish this bounded draft PR and continue the independent READY task
+N02-T1 (bounded resolver/cache core) in a new isolated worktree. Mandatory hosted
+checks remain pending; no polling loop, merge-readiness or native product claim.
 
 ## Retained checkpoint — PR #355 native test quality — 18 November 2026
 

@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
+    "source_commit": "3847e9f2166b71020aa7b78bb82c8f06ae787590",
     "assessment_basis": "source_commit",
     "branch": "codex/b01-management-recovery",
-    "task": "B01-T1: bounded native management recovery slice",
+    "task": "B01-T1: native management recovery fixture delivered",
     "previous_score": 41,
-    "summary": "41/100 unchanged. B01-T1 is claimed in an isolated worktree for native recovery through the existing manifest-bound management ingress. Source implementation and targeted evidence are pending; no B01/native product acceptance. PR362/363 and Claude S09/UI ownership preserved. Unsafe unattended execution remains disabled and separate from roadmap delivery."
+    "summary": "41/100 unchanged. B01-T1 now demonstrates manifest-bound management export/restore from A to B and ordinary-app unseal with preserved recovery denials. All five QEMU cases return guest33; the isolated wrong-caller mutation makes normal fail. Targeted host checks and formatting pass. This is native fixture evidence, not physical entropy, production recovery, human audit or full B01 acceptance. Unsafe unattended execution stays disabled; PR362/363 and foreign work preserved."
   },
   "tracks": [
     {
