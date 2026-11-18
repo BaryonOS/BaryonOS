@@ -1,6 +1,6 @@
 # Accessibility matrix successor checker — 18 November 2026
 
-Executable source: `64bd09212bfbfb6c878d328d7f4d61886c908869`, based on PR #339
+Executable source: `a2792a2c1ee8e8eeb604549ac8a04272ed70168a`, based on PR #339
 head `5e222780c916205bb9aa4e54ba9ccaa983ce61e7`. This checkpoint repairs two
 structural checker gaps. It does not complete the systematic literature review,
 validate research quality, establish UI conformance or accept a native criterion.
@@ -21,6 +21,14 @@ The recognized suffixes remain CSS, HTML, JS, Rust, Markdown, Python, JSON and T
 Line numbers, selectors, scientific support and the contents of cited files are
 not validated by this structural check.
 
+Independent review found that the first successor candidate could truncate a
+punctuated outside path into an existing inside basename. The correction retains
+whole quoted locations and lexical tokens, and rejects unsafe location prefixes
+before basename lookup. Sixteen added negative cases cover existing absolute and
+parent paths containing `@`, `%`, spaces or parentheses, both quoted and unquoted,
+while a matching inside basename exists. The regression fails on the earlier
+candidate and passes after correction; the unchanged current matrix still passes.
+
 [`baseline-contract.json`](baseline-contract.json) records the exact Need and
 Adaptation identities of all 51 baseline rows in matrix SHA-256
 `e12d566f069a56e1066689e598f5bfbad7ac646c6347e14da2dc94b0a5a6e6b5` at the
@@ -31,14 +39,14 @@ a consistent tier-and-axis demotion is rejected. The contract's own digest is
 pinned in the checker. Future intentional identity changes require a reviewed
 contract and pin update; validation never regenerates the contract from its input.
 
-Fourteen focused tests pass, including demotion and removal of every baseline row
+Fifteen focused tests pass, including demotion and removal of every baseline row
 (102 mutation subtests), real existing outside files, file and directory symlink
 escapes, valid nested paths and bare names, Windows-looking paths, an escaping
 matrix, archive tampering and manifest tampering. The tests also demonstrate that
 the pinned historical validator accepts the outside absolute and parent paths and
 misses some consistent non-safety baseline demotions.
 
-The complete activated tools suite passes 398 tests with no skips. Strict preflight,
+The complete activated tools suite passes 399 tests with no skips. Strict preflight,
 the normal native build and QEMU smoke pass on the committed source; QEMU returns
 33 with the required boot markers. These generic gates provide no new design or
 accessibility acceptance. Python compilation and the protected-source comparison
