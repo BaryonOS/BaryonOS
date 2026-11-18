@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "6dbe373a84929df6c781e5bf2355d61f7b1f39c9",
+    "source_commit": "a53c6eb9642a30b846cff194c30fad0d4eccbcc1",
     "assessment_basis": "source_commit",
     "branch": "codex/phase0-pipeline-isolation",
-    "task": "SEC355-NATIVE-BOUNDARY: verify real cgroup, namespace and capped-scratch enforcement",
+    "task": "SEC355-QUALITY: normalize native test imports without weakening cleanup boundaries",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Exact clean source 6dbe373 passes the canary and 14-test native fixture with verified cgroup v2 receipts, real byte/inode ENOSPC, parallel lease and sibling isolation, payload network/socket/credential separation, bounded devices and scratch, descendant termination and uncertain-cleanup quarantine. The 256/512 MiB agent profile is fixture-only; the normal development gate remains 6/8 GiB. No actual OOM or representative agent/build/QEMU workload was accepted at 512 MiB. Authenticated clients, complete selected-gate compatibility, hosted current-head acceptance and final Daybreak resolution remain open; the execution hold and disabled manifest remain intact."
+    "summary": "41/100 unchanged. Exact clean source a53c6eb normalizes the native test's unittest.mock import and passes all 14 native fixture tests plus 517 tools tests with 15 explicit skips. Source and rootfs hashes remain stable and no scope/cgroup residue remains. Intentional BaseException handling is retained so interrupt and exit paths cannot bypass cleanup or quarantine. The fixture-only 256/512 MiB and normal gate 6/8 GiB profiles are unchanged. Authenticated clients, complete selected-gate compatibility, hosted eventual-head acceptance and final Daybreak resolution remain open; the execution hold stays active and the manifest disabled."
   },
   "tracks": [
     {

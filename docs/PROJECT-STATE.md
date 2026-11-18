@@ -1,5 +1,29 @@
 # Current project status
 
+## NEXT AGENT HANDOFF — PR #355 native test quality — 18 November 2026
+
+**Source and change:** security-quality checkpoint
+`a53c6eb9642a30b846cff194c30fad0d4eccbcc1` extends documented native-evidence
+head `c17f5a526298c82ae58df151d51640a7db005a76`. The only source change
+normalizes the native test's `unittest.mock` import. Two Code Quality reports about
+catching `BaseException` were retained and dispositioned because interrupt and exit
+paths must not bypass scratch cleanup or return uncertain state to the pool. The
+execution hold remains active and the manifest remains disabled.
+
+**Checks:** on the exact clean source, all 14 native tests and all 517 tools tests
+pass; the latter retain fifteen explicit environment skips. Strict preflight, Python
+syntax compilation and the whitespace check pass. The native receipt records
+unchanged source and rootfs hashes, no cleanup error and no residual scope or cgroup.
+[Source-bound receipt](verification/phase0-sec355-code-quality-20261118/README.md).
+
+**Open boundary and resume:** the prior fixture-only 256/512 MiB and normal gate
+6/8 GiB distinctions are unchanged. Authenticated model-client provisioning and the
+complete selected-gate offline runtime require separate pinned trust boundaries;
+neither is fabricated by this quality fix. Await the already-running hosted checks
+for `c17f5a52`, then publish this checkpoint without cancelling that evidence and
+require fresh current-head CI/CodeQL/Code Quality. Score 41/100 is unchanged. No
+Daybreak, issue, baseline or governance acceptance is inferred.
+
 ## NEXT AGENT HANDOFF — PR #355 native resource boundary — 18 November 2026
 
 **Source and change:** security checkpoint
