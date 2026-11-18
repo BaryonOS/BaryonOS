@@ -1,6 +1,23 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
+## NEXT AGENT HANDOFF — U05-T2 scoped search core — 18 November 2026
+
+**Claim:** Codex, codex/u05-search-index, base5a3295b6.
+**Goal:** bounded domain/object/revision-aware name/collection/metadata/UTF8-token
+index with update/delete/catalogue rebuild and currently granted-domain results.
+**Invariant:** default deny, stale/revoked/foreign-domain input never produces
+results; corrupt cached data is refused and rebuilt from trusted catalogue input.
+No index data creates permissions or regrants a retired epoch.
+**Write set:** sdk/search-index/ standalone only; lead state/progress/receipt.
+**Acceptance:** standalone Rust1.90 tests/Clippy/fmt/freestanding build; domain,
+revocation/revision, UTF8/token bounds, capacity and corruption/rebuild negatives.
+**Evidence limit:** host model, no native search/UI/permission enforcement.
+Shared SDK membership deferred because integration PR366 owns manifest/lock.
+Prior settings core1c3696d2/checkpoint0a3b4629 delivered with same membership blocker.
+**Next:** implement core, publish draft, continue independent READY tasks.
+Claude work, prior integration branches and unsafe unattended hold preserved.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
 `5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
@@ -60,7 +77,7 @@ checks before manual squash. Then continue the released roadmap PR queue without
 changing the independently owned UI/UX or active S09 branches.
 Progress **41 → 41/100**, no accepted criterion/weight change.
 
-## NEXT AGENT HANDOFF — PR #350 conflict-only integration — 18 November 2026
+## Retained checkpoint — PR #350 conflict-only integration — 18 November 2026
 
 PR #350 head `aaf01bae291faba593567845dc8da4fe606a7959` is reconciled
 with actual main `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.
@@ -73,7 +90,7 @@ by this reconciliation. Score remains 41/100. Required hosted checks on the new 
 must pass before a manual squash merge; local build/QEMU suites are not repeated
 for this conflict-only correction.
 
-## NEXT AGENT HANDOFF — PR #361 integration and final-read barrier — 18 November 2026
+## Retained checkpoint — PR #361 integration and final-read barrier — 18 November 2026
 
 **Claim/source:** Codex sole writer in `codex/block-order-integration`, PR #361 head
 `fc35563668ae2ba3dc2fc90e6e30575c38b6f578`, merging main `6f29b672`.
