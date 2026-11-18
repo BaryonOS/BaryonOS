@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 import errno
+import fcntl
 import hashlib
 from itertools import chain
 import json
@@ -12,10 +13,12 @@ import re
 import secrets
 import selectors
 import signal
+import shutil
 import stat
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 
 from common import isolated_environment
@@ -29,6 +32,29 @@ class SandboxResourceExceeded(SandboxError):
     pass
 
 
+class ScratchLease:
+    """One controller-owned workspace on a locked, hard-capped filesystem."""
+
+    def __init__(self, owner, root: Path, container: Path, descriptor: int,
+                 token: str, receipt: dict[str, object]):
+        self._owner = owner
+        self.root = root
+        self.container = container
+        self.path = container / "workspace"
+        self._descriptor = descriptor
+        self._token = token
+        self._identity = (self.path.stat().st_dev, self.path.stat().st_ino)
+        self.active = True
+        self.receipt = receipt
+        self.quarantine_reasons: list[str] = []
+
+    def quarantine(self, reason: str) -> None:
+        if reason not in self.quarantine_reasons:
+            self.quarantine_reasons.append(reason)
+        self.receipt["cleaned"] = False
+        self.receipt["quarantined"] = True
+
+
 _LAUNCH_ENV = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8"}
 _MOUNTPOINTS = ("dev", "proc", "sys", "tmp", "run", "home", "root", "workspace")
 _MAX_TIMEOUT = 7200
@@ -36,6 +62,11 @@ _PROFILE_FIELDS = {
     "memory_high_bytes", "memory_max_bytes", "tasks_max", "cpu_quota_percent",
     "output_max_bytes", "open_files_max",
 }
+_SCRATCH_FIELDS = {
+    "roots", "capacity_bytes", "capacity_inodes",
+    "source_max_bytes", "source_max_files", "export_max_bytes", "export_max_files",
+}
+_MAX_SCRATCH_ROOTS = 3
 _EXEC_DESCRIPTOR = (
     "import os,sys; fd=int(sys.argv[1]); os.set_inheritable(fd,False); "
     "os.execve(fd,sys.argv[2:],dict(os.environ))"
@@ -108,6 +139,57 @@ def _absolute_path(value: object, label: str) -> Path:
     except OSError as exc:
         raise SandboxError(f"{label} is unavailable") from exc
     return path
+
+
+def _mount_field(value: str) -> str:
+    try:
+        return re.sub(r"\\([0-7]{3})", lambda match: chr(int(match.group(1), 8)), value)
+    except ValueError as exc:
+        raise SandboxError("scratch mount metadata is invalid") from exc
+
+
+def _scratch_mount(descriptor: int, root: Path, capacity_bytes: int,
+                   capacity_inodes: int) -> dict[str, object]:
+    """Bind an opened directory to one dedicated tmpfs and its exact hard caps."""
+    try:
+        fdinfo = Path(f"/proc/self/fdinfo/{descriptor}").read_text(encoding="utf-8")
+        mount_id = next(line.split(":", 1)[1].strip() for line in fdinfo.splitlines()
+                        if line.startswith("mnt_id:"))
+        records = []
+        for line in Path("/proc/self/mountinfo").read_text(encoding="utf-8").splitlines():
+            fields = line.split()
+            separator = fields.index("-")
+            if fields[0] == mount_id:
+                records.append((fields, separator))
+        if len(records) != 1:
+            raise SandboxError("scratch mount identity is unavailable")
+        fields, separator = records[0]
+        metadata = os.fstat(descriptor)
+        device = f"{os.major(metadata.st_dev)}:{os.minor(metadata.st_dev)}"
+        options = set(fields[5].split(","))
+        super_options = set(fields[separator + 3].split(","))
+        if (fields[2] != device or _mount_field(fields[3]) != "/"
+                or Path(_mount_field(fields[4])) != root
+                or fields[separator + 1] != "tmpfs"
+                or "rw" not in options or "rw" not in super_options):
+            raise SandboxError("scratch root is not its dedicated writable tmpfs")
+        filesystem = os.fstatvfs(descriptor)
+    except (OSError, StopIteration, ValueError, IndexError) as exc:
+        if isinstance(exc, SandboxError):
+            raise
+        raise SandboxError("scratch mount verification failed") from exc
+    total_bytes = filesystem.f_blocks * filesystem.f_frsize
+    if (not stat.S_ISDIR(metadata.st_mode) or metadata.st_uid != os.getuid()
+            or stat.S_IMODE(metadata.st_mode) != 0o700
+            or filesystem.f_flag & os.ST_RDONLY
+            or total_bytes != capacity_bytes or filesystem.f_files != capacity_inodes):
+        raise SandboxError("scratch ownership or hard caps do not match policy")
+    return {
+        "mount_id": mount_id,
+        "device": device,
+        "capacity_bytes": total_bytes,
+        "capacity_inodes": filesystem.f_files,
+    }
 
 
 def _unprivileged(path: Path | int, metadata: os.stat_result) -> None:
@@ -187,6 +269,33 @@ def _validated_profiles(value: object) -> dict[str, dict[str, int]]:
     return profiles
 
 
+def _validated_scratch(value: object) -> dict[str, object]:
+    if not isinstance(value, dict) or set(value) != _SCRATCH_FIELDS:
+        raise SandboxError("explicit complete scratch policy is required")
+    roots = value["roots"]
+    if (not isinstance(roots, list) or not 1 <= len(roots) <= _MAX_SCRATCH_ROOTS
+            or any(not isinstance(root, str) for root in roots)):
+        raise SandboxError("scratch policy requires one to three roots")
+    paths = [_absolute_path(root, "scratch root").resolve() for root in roots]
+    if (len(paths) != len(set(paths))
+            or any(left.is_relative_to(right) or right.is_relative_to(left)
+                   for index, left in enumerate(paths) for right in paths[index + 1:])):
+        raise SandboxError("scratch roots must be distinct dedicated paths")
+    numbers = {name: value[name] for name in _SCRATCH_FIELDS - {"roots"}}
+    if any(type(number) is not int or number < 1 for number in numbers.values()):
+        raise SandboxError("scratch limits require positive integers")
+    if not 64 * 1024 * 1024 <= numbers["capacity_bytes"] <= 64 * 1024 * 1024 * 1024:
+        raise SandboxError("scratch byte capacity is outside the supported bound")
+    if not 4096 <= numbers["capacity_inodes"] <= 4 * 1024 * 1024:
+        raise SandboxError("scratch inode capacity is outside the supported bound")
+    if (numbers["source_max_bytes"] > numbers["capacity_bytes"]
+            or numbers["export_max_bytes"] > numbers["capacity_bytes"]
+            or numbers["source_max_files"] > numbers["capacity_inodes"]
+            or numbers["export_max_files"] > numbers["capacity_inodes"]):
+        raise SandboxError("scratch source or export budget exceeds the hard cap")
+    return {"roots": paths, **numbers}
+
+
 def _communicate_bounded(process: subprocess.Popen, limit: int, timeout: int,
                          terminate) -> tuple[bytes, bytes, bool, bool]:
     """Drain both pipes without unbounded memory or payload-wide file-size limits."""
@@ -200,6 +309,7 @@ def _communicate_bounded(process: subprocess.Popen, limit: int, timeout: int,
     stopped_at = None
     exceeded = False
     timed_out = False
+    retained = 0
     try:
         while selector.get_map() or process.poll() is None:
             now = time.monotonic()
@@ -217,8 +327,9 @@ def _communicate_bounded(process: subprocess.Popen, limit: int, timeout: int,
                     key.fileobj.close()
                     continue
                 output = streams[key.fileobj]
-                remaining = max(0, limit - len(output))
+                remaining = max(0, limit - retained)
                 output.extend(data[:remaining])
+                retained += min(len(data), remaining)
                 if len(data) > remaining and not exceeded:
                     exceeded = True
                     terminate()
@@ -354,6 +465,7 @@ class Sandbox:
             "backend", "backend_sha256", "rootfs", "rootfs_sha256",
             "resource_manager", "resource_manager_sha256",
             "resource_control", "resource_control_sha256", "timeout_seconds", "profiles",
+            "scratch",
         }
         if not isinstance(config, dict) or set(config) != fields:
             raise SandboxError("explicit complete sandbox configuration is required")
@@ -372,6 +484,14 @@ class Sandbox:
         self.resource_manager = _absolute_path(config["resource_manager"], "resource manager")
         self.resource_control = _absolute_path(config["resource_control"], "resource control")
         self.profiles = _validated_profiles(config["profiles"])
+        self.scratch = _validated_scratch(config["scratch"])
+        self.scratch_roots = self.scratch["roots"]
+        protected = (self.rootfs, self.backend, self.resource_manager, self.resource_control)
+        if any(root.is_relative_to(path) or path.is_relative_to(root)
+               for root in self.scratch_roots for path in protected):
+            raise SandboxError("scratch roots must be separate from the trusted runtime")
+        self._lease_lock = threading.Lock()
+        self._leases: dict[str, ScratchLease] = {}
         self.timeout = limit
 
     @contextmanager
@@ -491,20 +611,150 @@ class Sandbox:
             if state.get("LoadState") != "not-found":
                 raise SandboxError("cannot terminate the complete isolated resource scope")
 
+    @staticmethod
+    def _open_scratch_root(root: Path) -> int:
+        try:
+            return os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC)
+        except OSError as exc:
+            raise SandboxError("scratch root cannot be opened safely") from exc
+
+    def _verify_scratch_root(self, descriptor: int, root: Path) -> dict[str, object]:
+        return _scratch_mount(
+            descriptor, root, self.scratch["capacity_bytes"], self.scratch["capacity_inodes"])
+
+    @contextmanager
+    def lease(self):
+        """Acquire one exclusive capped workspace and remove it before releasing the mount."""
+        descriptor = None
+        lease = None
+        with self._lease_lock:
+            for root in self.scratch_roots:
+                candidate = self._open_scratch_root(root)
+                try:
+                    fcntl.flock(candidate, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    os.close(candidate)
+                    continue
+                try:
+                    receipt = self._verify_scratch_root(candidate, root)
+                    if os.listdir(candidate):
+                        fcntl.flock(candidate, fcntl.LOCK_UN)
+                        os.close(candidate)
+                        continue
+                    token = secrets.token_hex(16)
+                    name = f"lease-{token}"
+                    os.mkdir(name, mode=0o700, dir_fd=candidate)
+                    container = root / name
+                    (container / "workspace").mkdir(mode=0o700)
+                    lease = ScratchLease(self, root, container, candidate, token, receipt)
+                    self._leases[token] = lease
+                    descriptor = candidate
+                    break
+                except BaseException:
+                    fcntl.flock(candidate, fcntl.LOCK_UN)
+                    os.close(candidate)
+                    raise
+        if lease is None or descriptor is None:
+            raise SandboxError("no clean exclusive scratch lease is available")
+        primary_error = None
+        try:
+            yield lease
+        except BaseException as exc:
+            primary_error = exc
+        cleanup_error = None
+        try:
+            if self._leases.get(lease._token) is not lease or not lease.active:
+                raise SandboxError("scratch lease ownership changed")
+            filesystem = os.fstatvfs(descriptor)
+            lease.receipt["release_used_bytes"] = (
+                self.scratch["capacity_bytes"] - filesystem.f_bavail * filesystem.f_frsize)
+            lease.receipt["release_used_inodes"] = (
+                self.scratch["capacity_inodes"] - filesystem.f_ffree)
+            if lease.quarantine_reasons:
+                lease.receipt["quarantine_reasons"] = list(lease.quarantine_reasons)
+            else:
+                shutil.rmtree(lease.container)
+                self._verify_scratch_root(descriptor, lease.root)
+                if os.listdir(descriptor):
+                    raise SandboxError("scratch root is not empty after cleanup")
+                lease.receipt["cleaned"] = True
+                lease.receipt["quarantined"] = False
+        except BaseException as exc:
+            lease.quarantine(f"scratch cleanup failed: {exc}")
+            lease.receipt["quarantine_reasons"] = list(lease.quarantine_reasons)
+            cleanup_error = SandboxError(f"scratch cleanup failed: {exc}")
+            cleanup_error.__cause__ = exc
+        finally:
+            lease.active = False
+            self._leases.pop(lease._token, None)
+            fcntl.flock(descriptor, fcntl.LOCK_UN)
+            os.close(descriptor)
+        if cleanup_error is not None:
+            if primary_error is not None:
+                primary_error.add_note(str(cleanup_error))
+                raise primary_error from cleanup_error
+            raise cleanup_error
+        if primary_error is not None:
+            raise primary_error
+
+    @contextmanager
+    def _run_mounts(self, lease: ScratchLease):
+        """Create per-command writable mounts inside the lease and remove them after cleanup."""
+        session = lease.container / f"session-{secrets.token_hex(12)}"
+        primary_error = None
+        try:
+            session.mkdir(mode=0o700)
+            mounts = {}
+            for name in ("run", "home", "root"):
+                mounts[name] = session / name
+                mounts[name].mkdir(mode=0o700)
+            mounts["tmp"] = session / "tmp"
+            mounts["tmp"].mkdir(mode=0o1777)
+            mounts["dev-shm"] = session / "dev-shm"
+            mounts["dev-shm"].mkdir(mode=0o1777)
+            (mounts["home"] / "agent").mkdir(mode=0o700)
+            yield mounts
+        except BaseException as exc:
+            primary_error = exc
+        cleanup_error = None
+        try:
+            shutil.rmtree(session)
+        except OSError as exc:
+            lease.quarantine("sandbox writable-mount cleanup failed")
+            cleanup_error = SandboxError("sandbox writable-mount cleanup failed")
+            cleanup_error.__cause__ = exc
+        if cleanup_error is not None:
+            if primary_error is not None:
+                primary_error.add_note(str(cleanup_error))
+                raise primary_error from cleanup_error
+            raise cleanup_error
+        if primary_error is not None:
+            raise primary_error
+
     def verify(self) -> None:
         """Verify pinned files and the fail-closed host resource prerequisites."""
         with self._verified_backend(), self._verified_resource_tools():
             pass
+        for root in self.scratch_roots:
+            descriptor = self._open_scratch_root(root)
+            try:
+                self._verify_scratch_root(descriptor, root)
+            finally:
+                os.close(descriptor)
 
-    def run(self, argv: list[str], workspace: Path, *, profile: str,
+    def run(self, argv: list[str], lease: ScratchLease, *, profile: str,
             env: dict[str, str] | None = None, timeout: int | None = None,
-            read_only: bool = False) -> subprocess.CompletedProcess:
+            read_only: bool = False, output_limit: int | None = None) -> subprocess.CompletedProcess:
         if (not isinstance(argv, list) or not argv
                 or any(not isinstance(item, str) or "\0" in item for item in argv) or not argv[0]):
             raise SandboxError("sandbox command must be a nonempty argument list")
         if profile not in self.profiles:
             raise SandboxError("an explicit configured resource profile is required")
         limits = self.profiles[profile]
+        capture_limit = limits["output_max_bytes"] if output_limit is None else output_limit
+        if (type(capture_limit) is not int or capture_limit < 0
+                or capture_limit > limits["output_max_bytes"]):
+            raise SandboxError("output capture limit exceeds its resource profile")
         deadline = self.timeout if timeout is None else timeout
         if type(deadline) is not int or not 1 <= deadline <= self.timeout:
             raise SandboxError("command timeout must not exceed the sandbox timeout")
@@ -516,7 +766,15 @@ class Sandbox:
             child_env = isolated_environment(env)
         except (TypeError, ValueError) as exc:
             raise SandboxError("sandbox environment is outside the allowed policy") from exc
-        workspace = _absolute_path(workspace, "workspace")
+        if (not isinstance(lease, ScratchLease) or lease._owner is not self or not lease.active
+                or self._leases.get(lease._token) is not lease):
+            raise SandboxError("sandbox execution requires an active owned scratch lease")
+        self._verify_scratch_root(lease._descriptor, lease.root)
+        workspace = _absolute_path(lease.path, "workspace")
+        metadata = workspace.stat()
+        if (workspace.parent != lease.container or lease.container.parent != lease.root
+                or (metadata.st_dev, metadata.st_ino) != lease._identity):
+            raise SandboxError("scratch lease workspace identity changed")
         if (not workspace.is_dir() or workspace == Path("/") or workspace.name == ".git"
                 or self.rootfs.is_relative_to(workspace) or workspace.is_relative_to(self.rootfs)
                 or self.backend.is_relative_to(workspace)
@@ -535,16 +793,19 @@ class Sandbox:
                 if output.is_symlink() or (output.exists() and not output.is_dir()):
                     raise SandboxError("gate output directory is unsafe")
                 output.mkdir(mode=0o700, exist_ok=True)
-        with self._verified_backend() as descriptor, \
+        with self._run_mounts(lease) as mounts, \
+                self._verified_backend() as descriptor, \
                 self._verified_resource_tools() as (manager, control, resource_environment):
             command = [
                 "--unshare-all", "--unshare-user", "--unshare-cgroup", "--die-with-parent", "--new-session",
                 "--disable-userns", "--assert-userns-disabled", "--cap-drop", "ALL",
                 "--ro-bind", str(self.rootfs), "/", "--proc", "/proc", "--dev", "/dev",
+                "--dir", "/dev/shm", "--remount-ro", "/dev", "--remount-ro", "/dev/pts",
             ]
-            for directory in ("/tmp", "/run", "/home", "/root"):
-                command.extend(("--tmpfs", directory))
-            command.extend(("--dir", "/home/agent", "--ro-bind" if read_only else "--bind",
+            command.extend(("--bind", str(mounts["dev-shm"]), "/dev/shm"))
+            for name in ("tmp", "run", "home", "root"):
+                command.extend(("--bind", str(mounts[name]), f"/{name}"))
+            command.extend(("--ro-bind" if read_only else "--bind",
                             str(workspace), "/workspace"))
             if read_only:
                 for name in ("build", "target"):
@@ -600,7 +861,7 @@ class Sandbox:
                 cleanup_error = None
                 try:
                     stdout, stderr, output_exceeded, timed_out = _communicate_bounded(
-                        process, limits["output_max_bytes"], deadline, stop_scope)
+                        process, capture_limit, deadline, stop_scope)
                 except (Exception, KeyboardInterrupt, SystemExit) as exc:
                     execution_error = exc
                 finally:
@@ -618,35 +879,62 @@ class Sandbox:
                             process.wait(timeout=5)
                         except subprocess.TimeoutExpired as exc:
                             launcher_error = exc
+                    resource_status = {}
                     try:
                         resource_status = self._unit_properties(control, resource_environment, unit)
                         self._cleanup_scope(control, resource_environment, unit, resource_status)
                     except (Exception, KeyboardInterrupt, SystemExit) as exc:
-                        resource_status = {}
                         cleanup_error = exc
-                if cleanup_error is not None:
-                    raise SandboxError(f"isolated resource cleanup failed: {cleanup_error}") from cleanup_error
-                if stop_error is not None:
-                    raise SandboxError(f"isolated resource termination failed: {stop_error}") from stop_error
-                if launcher_error is not None:
-                    raise SandboxError("isolated scope launcher did not stop") from launcher_error
-                if execution_error is not None:
-                    raise execution_error
+                primary_error = execution_error
+                if primary_error is None and output_exceeded:
+                    primary_error = SandboxResourceExceeded(
+                        "captured output exceeded its resource profile")
+                    primary_error.stdout_bytes, primary_error.stderr_bytes = stdout, stderr
+                    primary_error.resource_status = {
+                        "profile": profile, "unit": unit, **resource_status}
+                elif primary_error is None and (timed_out or resource_status.get("Result") == "timeout"):
+                    primary_error = subprocess.TimeoutExpired(argv, deadline, stdout, stderr)
+                    primary_error.stdout_bytes, primary_error.stderr_bytes = stdout, stderr
+                    primary_error.output = stdout.decode("utf-8", "replace")
+                    primary_error.stderr = stderr.decode("utf-8", "replace")
+                    primary_error.resource_status = {
+                        "profile": profile, "unit": unit, **resource_status}
+                boundary_failures = [
+                    ("isolated resource cleanup failed", cleanup_error),
+                    ("isolated resource termination failed", stop_error),
+                    ("isolated scope launcher did not stop", launcher_error),
+                ]
+                boundary_failures = [(reason, error) for reason, error in boundary_failures
+                                     if error is not None]
+                if boundary_failures and primary_error is None and process.returncode:
+                    primary_error = SandboxError(
+                        f"isolated command exited {process.returncode} before boundary cleanup failed")
+                    primary_error.returncode = process.returncode
+                    primary_error.stdout = stdout.decode("utf-8", "replace")
+                    primary_error.stderr = stderr.decode("utf-8", "replace")
+                    primary_error.stdout_bytes, primary_error.stderr_bytes = stdout, stderr
+                    primary_error.resource_status = {
+                        "profile": profile, "unit": unit, **resource_status}
+                if boundary_failures:
+                    for reason, _error in boundary_failures:
+                        lease.quarantine(reason)
+                    boundary_error = SandboxError("; ".join(
+                        f"{reason}: {error}" for reason, error in boundary_failures))
+                    boundary_error.__cause__ = boundary_failures[0][1]
+                    if primary_error is not None:
+                        primary_error.add_note(str(boundary_error))
+                        raise primary_error from boundary_error
+                    raise boundary_error from boundary_failures[0][1]
+                if primary_error is not None:
+                    if isinstance(primary_error, (SandboxResourceExceeded, subprocess.TimeoutExpired)):
+                        try:
+                            verified = _guard_receipt(receipt_file, unit, limits)
+                        except BaseException as receipt_error:
+                            primary_error.add_note(f"resource receipt failed: {receipt_error}")
+                            raise primary_error from receipt_error
+                        primary_error.resource_status["verified"] = verified
+                    raise primary_error
                 verified = _guard_receipt(receipt_file, unit, limits)
-                if output_exceeded:
-                    error = SandboxResourceExceeded("captured output exceeded its resource profile")
-                    error.stdout_bytes, error.stderr_bytes = stdout, stderr
-                    error.resource_status = {"profile": profile, "unit": unit,
-                                             "verified": verified, **resource_status}
-                    raise error
-                if timed_out or resource_status.get("Result") == "timeout":
-                    error = subprocess.TimeoutExpired(argv, deadline, stdout, stderr)
-                    error.stdout_bytes, error.stderr_bytes = stdout, stderr
-                    error.output = stdout.decode("utf-8", "replace")
-                    error.stderr = stderr.decode("utf-8", "replace")
-                    error.resource_status = {"profile": profile, "unit": unit,
-                                             "verified": verified, **resource_status}
-                    raise error
                 result = subprocess.CompletedProcess(argv, process.returncode,
                     stdout.decode("utf-8", "replace"), stderr.decode("utf-8", "replace"))
                 result.stdout_bytes, result.stderr_bytes = stdout, stderr

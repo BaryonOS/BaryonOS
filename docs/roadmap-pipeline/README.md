@@ -38,21 +38,37 @@ grant, only the manifest may differ. A subsequent source change blocks the task 
 its authorization is renewed. L0 may narrow these sets; lockfiles require explicit
 authority too. Existing ownership and claims still apply.
 
-The sandbox object requires `backend`, `backend_sha256`, `rootfs`,
-`rootfs_sha256` and `timeout_seconds` (1–7200). It binds a nonprivileged, maintained
-bubblewrap release (minimum 0.13.1) and a dedicated credential-free offline Linux
-runtime, fingerprinted by `agent_sandbox.tree_digest`. Runtime provenance,
+The sandbox object requires pinned backend, rootfs, user resource-manager and
+resource-control paths and SHA-256 values, `timeout_seconds` (1–7200), complete
+`agent`/`gate` resource profiles and a complete scratch policy. It binds a
+nonprivileged, maintained bubblewrap release (minimum 0.13.1), systemd user resource
+scope and a dedicated credential-free offline Linux runtime, fingerprinted by
+`agent_sandbox.tree_digest`. Runtime provenance,
 licensing, advisories, required tools, dependencies and matching firmware must be
 verified before enablement. The fingerprint establishes integrity; it does not
 establish that runtime content is trustworthy. Host homes, credentials, sockets,
 Git metadata, caches and devices must not be included in that runtime.
 
+The scratch policy names one to three dedicated tmpfs roots and exact total byte and
+inode caps, plus pre-copy source and export byte/file budgets. Each concurrent task
+needs its own root. The controller locks the opened mount directory, binds its mount
+ID and exact caps from kernel metadata, and accepts only an active owned lease as a
+workspace. Source, `build/`, `target/`, `/dev/shm` and per-command temporary/home
+directories stay inside that lease; the remainder of `/dev` is read-only. Missing,
+shared, aliased, non-tmpfs or incorrectly capped roots fail before execution. Cleanup
+failure leaves the root nonempty and therefore unavailable rather than silently
+reusing it; a dirty root does not prevent selection of a later clean pool member.
+
 Every L0/executor attempt receives a disposable source copy, explicit environment,
 read-only runtime and private user, process, mount and network namespaces. Only
 validated regular-file changes in its frozen write set return to the controller.
 Gates mount source and evaluators read-only, with separate writable `build/` and
-`target/` directories. Outputs and exact stdout/stderr bytes,
-exit codes and source fingerprints remain in the ignored controller task record.
+`target/` directories inside the same cap. The disposable tree is removed after
+verified process cleanup. One combined output budget covers stdout and stderr across
+the complete agent transaction or gate plan, including retries, steps and finalizers.
+Captured payload bytes remain once in bounded raw files rather than being duplicated in
+the controller text log; exit codes, source fingerprints and the scratch cleanup receipt
+remain in the ignored controller task record.
 Native gates require suitable offline tooling and disposable images. Missing
 tools, network access, namespaces or required checks cause failure, never a skip
 or an authenticated fallback. Unsupported active Git hooks or executable helpers
@@ -68,11 +84,12 @@ verified by this change. Its calls to the shared gate now fail closed without an
 approved isolated runtime. The two controllers are not interchangeable.
 
 **Enablement remains blocked.** The committed disabled policy must remain in place
-until a reviewed resource-limiting execution profile and complete selected
-client/gate transactions have been verified. Namespaces and timeouts alone do not
-bound aggregate memory, process count, generated disk usage or captured output.
-This is an explicit follow-up owned by the pipeline maintainer, not an accepted
-availability-risk exception. In particular, `ci.yml#host-quality` currently needs
+until real dedicated mounts with measured workload headroom, the complete resource
+profiles and selected client/gate transactions have been verified natively. The
+public contract and mocked host tests do not provision a mount or prove ENOSPC,
+inode-exhaustion, sibling-task or cleanup behavior on the target host. This is an
+explicit follow-up owned by the pipeline maintainer, not an accepted availability-risk
+exception. In particular, `ci.yml#host-quality` currently needs
 network setup and Git metadata that this offline runtime deliberately does not
 provide; it must fail rather than omit those checks. Native fixtures and local
 boundary checks do not establish that workflow's compatibility.

@@ -1,5 +1,6 @@
 """Controller authority and file-import regressions; OS isolation is tested separately."""
 import copy
+from contextlib import contextmanager
 import json
 import os
 from pathlib import Path
@@ -114,6 +115,9 @@ class Authority(unittest.TestCase):
 
 
 class SourceBoundary(unittest.TestCase):
+    MAX_BYTES = 1024
+    MAX_FILES = 16
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
@@ -125,8 +129,36 @@ class SourceBoundary(unittest.TestCase):
         (self.source / "other").write_text("protected")
 
     def stage_source(self):
-        common.stage_agent_source(self.source, self.stage, ["allowed", "other"])
+        common.stage_agent_source(
+            self.source, self.stage, ["allowed", "other"],
+            max_bytes=self.MAX_BYTES, max_files=self.MAX_FILES)
         return common.agent_source_state(self.stage)
+
+    @contextmanager
+    def lease(self):
+        with tempfile.TemporaryDirectory(dir=self.root) as temporary:
+            yield mock.Mock(path=Path(temporary), receipt={"cleaned": True})
+
+    def sandbox(self):
+        isolated = mock.Mock()
+        isolated.rootfs = self.root / "runtime"
+        isolated.scratch = {
+            "source_max_bytes": self.MAX_BYTES, "source_max_files": self.MAX_FILES,
+            "export_max_bytes": self.MAX_BYTES, "export_max_files": self.MAX_FILES,
+        }
+        isolated.profiles = {"agent": {"output_max_bytes": self.MAX_BYTES}}
+        isolated.lease.side_effect = self.lease
+        return isolated
+
+    def test_source_budget_is_checked_before_any_staging(self):
+        for limits in ({"max_bytes": 1, "max_files": self.MAX_FILES},
+                       {"max_bytes": self.MAX_BYTES, "max_files": 1}):
+            target = self.root / f"stage-{limits['max_bytes']}-{limits['max_files']}"
+            target.mkdir()
+            with self.subTest(limits=limits), self.assertRaises(ValueError):
+                common.stage_agent_source(
+                    self.source, target, ["allowed", "other"], **limits)
+            self.assertEqual(list(target.iterdir()), [])
 
     def test_only_explicit_source_names_enter_disposable_tree(self):
         (self.source / "unlisted").write_text("not source")
@@ -138,15 +170,31 @@ class SourceBoundary(unittest.TestCase):
         (self.stage / "allowed").write_text("new")
         (self.stage / "other").write_text("changed")
         with self.assertRaises(ValueError):
-            common.import_agent_changes(self.stage, self.source, before, ["allowed"])
+            common.import_agent_changes(
+                self.stage, self.source, before, ["allowed"],
+                max_bytes=self.MAX_BYTES, max_files=self.MAX_FILES)
         self.assertEqual((self.source / "allowed").read_text(), "original")
+
+    def test_export_budget_is_checked_before_any_controller_change(self):
+        before = self.stage_source()
+        (self.stage / "allowed").write_text("changed")
+        (self.stage / "new").write_text("new")
+        for limits in ({"max_bytes": 1, "max_files": self.MAX_FILES},
+                       {"max_bytes": self.MAX_BYTES, "max_files": 1}):
+            with self.subTest(limits=limits), self.assertRaises(ValueError):
+                common.import_agent_changes(
+                    self.stage, self.source, before, ["allowed", "new"], **limits)
+            self.assertEqual((self.source / "allowed").read_text(), "original")
+            self.assertFalse((self.source / "new").exists())
 
     def test_legitimate_new_update_and_delete_are_imported(self):
         before = self.stage_source()
         (self.stage / "allowed").unlink()
         (self.stage / "new").write_text("new")
         (self.stage / "new").chmod(0o644)
-        changed = common.import_agent_changes(self.stage, self.source, before, ["allowed", "new"])
+        changed = common.import_agent_changes(
+            self.stage, self.source, before, ["allowed", "new"],
+            max_bytes=self.MAX_BYTES, max_files=self.MAX_FILES)
         self.assertEqual(changed, ["allowed", "new"])
         self.assertFalse((self.source / "allowed").exists())
         self.assertEqual((self.source / "new").read_text(), "new")
@@ -165,7 +213,9 @@ class SourceBoundary(unittest.TestCase):
                 else:
                     os.mkfifo(target)
                 with self.assertRaises(ValueError):
-                    common.import_agent_changes(self.stage, self.source, before, ["allowed"])
+                    common.import_agent_changes(
+                        self.stage, self.source, before, ["allowed"],
+                        max_bytes=self.MAX_BYTES, max_files=self.MAX_FILES)
                 target.unlink()
         self.assertEqual((self.source / "allowed").read_text(), "original")
 
@@ -175,16 +225,19 @@ class SourceBoundary(unittest.TestCase):
         (self.source / "allowed").unlink()
         (self.source / "allowed").symlink_to(self.source / "other")
         with self.assertRaises(ValueError):
-            common.import_agent_changes(self.stage, self.source, before, ["allowed"])
+            common.import_agent_changes(
+                self.stage, self.source, before, ["allowed"],
+                max_bytes=self.MAX_BYTES, max_files=self.MAX_FILES)
         self.assertEqual((self.source / "other").read_text(), "protected")
 
     def test_worker_scope_failure_does_not_modify_controller_source(self):
-        sandbox = mock.Mock()
-        sandbox.rootfs = self.root / "runtime"
+        sandbox = self.sandbox()
         (sandbox.rootfs / "usr/bin").mkdir(parents=True)
         (sandbox.rootfs / "usr/bin/codex").write_text("fixture")
-        def run(command, stage, *, profile):
+        def run(command, lease, *, profile, output_limit):
             self.assertEqual(profile, "agent")
+            self.assertEqual(output_limit, self.MAX_BYTES)
+            stage = lease.path
             (stage / "allowed").write_text("new")
             (stage / "other").write_text("out of scope")
             return subprocess.CompletedProcess(command, 0, "", "")
@@ -196,14 +249,15 @@ class SourceBoundary(unittest.TestCase):
         self.assertEqual((self.source / "allowed").read_text(), "original")
 
     def test_failed_engine_output_is_discarded_before_fallback(self):
-        sandbox = mock.Mock()
-        sandbox.rootfs = self.root / "runtime"
+        sandbox = self.sandbox()
         (sandbox.rootfs / "usr/bin").mkdir(parents=True)
         for name in ("limited", "accepted", "broken"):
             (sandbox.rootfs / "usr/bin" / name).write_text("fixture")
 
-        def run(command, stage, *, profile):
+        def run(command, lease, *, profile, output_limit):
             self.assertEqual(profile, "agent")
+            self.assertGreaterEqual(output_limit, 0)
+            stage = lease.path
             self.assertEqual((stage / "allowed").read_text(), "original")
             self.assertEqual((self.source / "allowed").read_text(), "original")
             if command[0] == "accepted":
@@ -225,8 +279,12 @@ class SourceBoundary(unittest.TestCase):
                                          ["limited", "accepted"], sandbox=sandbox, writes=["allowed"]),
                              "accepted")
         self.assertEqual((self.source / "allowed").read_text(), "accepted result")
-        self.assertIn("client error", (self.root / "failed.log").read_text())
-        self.assertIn("rate limit exceeded", (self.root / "retry.log").read_text())
+        self.assertNotIn("client error", (self.root / "failed.log").read_text())
+        self.assertNotIn("rate limit exceeded", (self.root / "retry.log").read_text())
+        failed_raw = b"".join(path.read_bytes() for path in self.root.glob("failed-*.log"))
+        retry_raw = b"".join(path.read_bytes() for path in self.root.glob("retry-*.log"))
+        self.assertEqual(failed_raw.count(b"client error"), 1)
+        self.assertEqual(retry_raw.count(b"rate limit exceeded"), 1)
 
     def test_environment_is_explicit_and_credential_free(self):
         with mock.patch.dict(os.environ, {"EXAMPLE_CONTROLLER_CREDENTIAL": "fixture", "BASH_ENV": "fixture"}):
@@ -252,6 +310,18 @@ class SourceBoundary(unittest.TestCase):
 
 
 class Publication(unittest.TestCase):
+    @contextmanager
+    def lease(self, root):
+        with tempfile.TemporaryDirectory(dir=root) as temporary:
+            yield mock.Mock(path=Path(temporary), receipt={"cleaned": True})
+
+    def sandbox(self, root):
+        backend = mock.Mock()
+        backend.scratch = {"source_max_bytes": 1024, "source_max_files": 16}
+        backend.profiles = {"gate": {"output_max_bytes": 1024}}
+        backend.lease.side_effect = lambda: self.lease(root)
+        return backend
+
     def test_generated_git_lookalikes_are_never_controller_executables(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -275,7 +345,7 @@ class Publication(unittest.TestCase):
     def test_gate_rejects_unsafe_step_environment_before_execution(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            backend = mock.Mock()
+            backend = self.sandbox(root)
             with mock.patch.object(agent_gate, "controller_source_commit", return_value="a" * 40):
                 result = agent_gate.run_gate([("step", "true", {"BASH_ENV": "untrusted"})], root,
                                              root / "gate.log", sandbox=backend, source_paths=[])
@@ -285,7 +355,7 @@ class Publication(unittest.TestCase):
     def test_gate_retains_nontext_raw_output_separately(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            backend = mock.Mock()
+            backend = self.sandbox(root)
             done = subprocess.CompletedProcess([], 0, "replacement", "diagnostic")
             done.stdout_bytes, done.stderr_bytes = b"\xff\0\n", b"\xfe\n"
             backend.run.return_value = done
@@ -294,6 +364,8 @@ class Publication(unittest.TestCase):
                                                     sandbox=backend, source_paths=[]), 0)
             self.assertEqual((root / "gate.log.step-0.stdout.log").read_bytes(), b"\xff\0\n")
             self.assertEqual((root / "gate.log.step-0.stderr.log").read_bytes(), b"\xfe\n")
+            self.assertNotIn("replacement", (root / "gate.log").read_text())
+            self.assertNotIn("diagnostic", (root / "gate.log").read_text())
 
     def test_required_hooks_block_without_execution_or_bypass(self):
         with tempfile.TemporaryDirectory() as temporary:

@@ -8,12 +8,12 @@ pre-filter: GitHub CI and review on the PR remain the real boundary.
 from __future__ import annotations
 
 import argparse
+from contextlib import ExitStack
 import hashlib
 import json
 import time
 import subprocess
 import sys
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -131,6 +131,9 @@ def run_gate(commands: GatePlan | list[GateCommand], cwd: Path, log_path: Path,
     """Run one bounded job; always run its reserved finalizers. 0 = pass, 2 = fail."""
     plan = commands if isinstance(commands, GatePlan) else GatePlan(tuple(commands))
     started = time.monotonic()
+    leases = ExitStack()
+    lease = None
+    result = FAIL_EXIT
     log_path.parent.mkdir(parents=True, exist_ok=True)
     with log_path.open("w", encoding="utf-8") as log:
         try:
@@ -140,6 +143,7 @@ def run_gate(commands: GatePlan | list[GateCommand], cwd: Path, log_path: Path,
                     raise SandboxError("isolated gate execution is not authorized")
                 sandbox = Sandbox(policy.get("sandbox", {}))
             sandbox.verify()
+            lease = leases.enter_context(sandbox.lease())
             # Only firmware overrides have a meaning in the provisioned offline runtime.
             host = {k: v for k, v in (base_env or {}).items() if k in HOST_KEYS}
             paths = agent_source_paths() if source_paths is None else source_paths
@@ -147,8 +151,10 @@ def run_gate(commands: GatePlan | list[GateCommand], cwd: Path, log_path: Path,
                 raise SandboxError("gate output mounts must not mask source inputs")
             commit = controller_source_commit(cwd)
             before = agent_source_selection_state(cwd, paths)
-            stage = Path(tempfile.mkdtemp(prefix="gate-source-", dir=log_path.parent))
-            stage_agent_source(cwd, stage, paths)
+            stage = lease.path
+            stage_agent_source(
+                cwd, stage, paths, max_bytes=sandbox.scratch["source_max_bytes"],
+                max_files=sandbox.scratch["source_max_files"])
             if (agent_source_selection_state(cwd, paths) != before
                     or agent_source_selection_state(stage, paths) != before):
                 raise SandboxError("gate source changed while staging")
@@ -162,7 +168,28 @@ def run_gate(commands: GatePlan | list[GateCommand], cwd: Path, log_path: Path,
             receipt.chmod(0o444)
             fingerprint = hashlib.sha256(json.dumps(agent_source_state(stage), sort_keys=True).encode()).hexdigest()
             log.write(f"## source commit: {commit}\n## source inputs SHA256: {frozen}\n"
-                      f"## staged source SHA256: {fingerprint}\n## retained isolated outputs: {stage.name}\n")
+                      f"## staged source SHA256: {fingerprint}\n## ephemeral scratch: {stage.name}\n")
+            remaining_output = sandbox.profiles["gate"]["output_max_bytes"]
+
+            def retain(outcome, label: str, kind: str = "") -> list[str]:
+                nonlocal remaining_output
+                retained = []
+                for stream in ("stdout", "stderr"):
+                    raw = getattr(outcome, stream + "_bytes", None)
+                    if not isinstance(raw, bytes):
+                        value = getattr(outcome, stream, None)
+                        raw = value if isinstance(value, bytes) \
+                            else value.encode() if isinstance(value, str) else None
+                    if raw is None:
+                        continue
+                    raw = raw[:remaining_output]
+                    remaining_output -= len(raw)
+                    suffix = f".{kind}" if kind else ""
+                    path = log_path.with_name(
+                        f"{log_path.name}.{label}{suffix}.{stream}.log")
+                    path.write_bytes(raw)
+                    retained.append(path.name)
+                return retained
 
             def execute(index: int, command: GateCommand, *, finalizer: bool,
                         status: str) -> bool:
@@ -190,28 +217,23 @@ def run_gate(commands: GatePlan | list[GateCommand], cwd: Path, log_path: Path,
                         sandbox_limit = getattr(sandbox, "timeout", None)
                         if type(sandbox_limit) is int:
                             timeout = min(timeout, sandbox_limit)
-                    kwargs = {"profile": "gate", "env": env, "read_only": True}
+                    kwargs = {"profile": "gate", "env": env, "read_only": True,
+                              "output_limit": remaining_output}
                     if timeout is not None:
                         kwargs["timeout"] = timeout
                     done = sandbox.run(
                         ["/bin/bash", "--noprofile", "--norc", "-eo", "pipefail", "-c", script],
-                        stage, **kwargs)
+                        lease, **kwargs)
                 except subprocess.TimeoutExpired as error:
-                    for stream in ("stdout", "stderr"):
-                        raw = getattr(error, stream + "_bytes", (getattr(error, stream) or "").encode())
-                        log_path.with_name(
-                            f"{log_path.name}.{label}.timeout.{stream}.log").write_bytes(raw)
+                    streams = retain(error, label, "timeout")
                     log.write(f"## resource: {json.dumps(resource_evidence(error), sort_keys=True)}\n"
-                              f"{error.stdout or ''}\n{error.stderr or ''}\n"
+                              f"## bounded raw streams: {', '.join(streams)}\n"
                               f"## TIMEOUT: {error.timeout}s\n")
                     return False
                 except SandboxResourceExceeded as error:
-                    for stream in ("stdout", "stderr"):
-                        raw = getattr(error, stream + "_bytes", None)
-                        if isinstance(raw, bytes):
-                            log_path.with_name(
-                                f"{log_path.name}.{label}.resource.{stream}.log").write_bytes(raw)
+                    streams = retain(error, label, "resource")
                     log.write(f"## resource: {json.dumps(resource_evidence(error), sort_keys=True)}\n"
+                              f"## bounded raw streams: {', '.join(streams)}\n"
                               f"## BLOCKED: {error}\n")
                     return False
                 except SandboxError:
@@ -219,13 +241,11 @@ def run_gate(commands: GatePlan | list[GateCommand], cwd: Path, log_path: Path,
                 except (ValueError, OSError) as error:
                     log.write(f"## BLOCKED: {error}\n")
                     return False
-                for stream in ("stdout", "stderr"):
-                    raw = getattr(done, stream + "_bytes", getattr(done, stream).encode())
-                    log_path.with_name(f"{log_path.name}.{label}.{stream}.log").write_bytes(raw)
+                streams = retain(done, label)
                 evidence = resource_evidence(done)
                 log.write(f"## resource: {json.dumps(evidence, sort_keys=True)}\n")
-                log.write(done.stdout + done.stderr)
-                log.write(f"\n## exit: {done.returncode}\n")
+                log.write(f"## bounded raw streams: {', '.join(streams)}\n"
+                          f"## exit: {done.returncode}\n")
                 resource_result = evidence.get("Result")
                 if done.returncode or resource_result not in (None, "success"):
                     log.write(f"## FAIL: {name} (exit {done.returncode})\n")
@@ -245,8 +265,10 @@ def run_gate(commands: GatePlan | list[GateCommand], cwd: Path, log_path: Path,
                         log.write("## FINALIZER FAIL: primary gate failure preserved\n")
                     failed = True
             if failed:
-                return FAIL_EXIT
-            log.write("## PASS\n")
+                result = FAIL_EXIT
+            else:
+                log.write("## PASS\n")
+                result = 0
         except (SandboxError, ValueError, OSError) as error:
             if isinstance(error, SandboxError):
                 for stream in ("stdout", "stderr"):
@@ -255,8 +277,16 @@ def run_gate(commands: GatePlan | list[GateCommand], cwd: Path, log_path: Path,
                         log_path.with_name(f"{log_path.name}.resource.{stream}.log").write_bytes(raw)
                 log.write(f"## resource: {json.dumps(resource_evidence(error), sort_keys=True)}\n")
             log.write(f"## BLOCKED: {error}\n")
-            return FAIL_EXIT
-    return 0
+            result = FAIL_EXIT
+        finally:
+            try:
+                leases.close()
+            except (SandboxError, ValueError, OSError) as error:
+                log.write(f"## BLOCKED: {error}\n")
+                result = FAIL_EXIT
+            if lease is not None:
+                log.write(f"## scratch: {json.dumps(lease.receipt, sort_keys=True)}\n")
+    return result
 
 
 def condensed(log_path: Path, lines: int = 200) -> str:

@@ -1,4 +1,5 @@
 import importlib.util
+from contextlib import contextmanager
 import json
 import os
 import subprocess
@@ -68,7 +69,15 @@ class Gate(unittest.TestCase):
         (self.workflows / "w.yml").write_text(WORKFLOW)
         self.env = {"PATH": os.environ["PATH"]}
         self.sandbox = mock.Mock()
+        self.sandbox.scratch = {"source_max_bytes": 1024, "source_max_files": 16}
+        self.sandbox.profiles = {"gate": {"output_max_bytes": 1024}}
+        self.sandbox.lease.side_effect = self.lease
         self.sandbox.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+
+    @contextmanager
+    def lease(self):
+        path = Path(tempfile.mkdtemp(prefix="lease-", dir=self.tmp))
+        yield mock.Mock(path=path, receipt={"cleaned": True})
 
     def gate(self, commands, env=None):
         with mock.patch.object(agent_gate, "controller_source_commit", return_value="a" * 40):
@@ -84,7 +93,7 @@ class Gate(unittest.TestCase):
         self.assertEqual(child_env["OUT"], "/workspace/build/x")
         self.assertEqual(child_env["NOS_SOURCE_RECEIPT"],
                          "/workspace/" + agent_gate.SOURCE_RECEIPT_NAME)
-        stage = self.sandbox.run.call_args.args[1]
+        stage = self.sandbox.run.call_args.args[1].path
         receipt = json.loads((stage / agent_gate.SOURCE_RECEIPT_NAME).read_text())
         self.assertEqual(receipt["source_commit"], "a" * 40)
         self.assertEqual(receipt["source_sha256"], agent_gate.source_hash(self.tmp))
@@ -165,6 +174,10 @@ class Gate(unittest.TestCase):
                 self.assertEqual(self.sandbox.run.call_count, 2)
                 self.assertIn("export CI_TEST_STATUS=failure\n",
                               self.sandbox.run.call_args_list[1].args[0][-1])
+                retained = len(error.stdout_bytes) + len(error.stderr_bytes)
+                self.assertEqual(
+                    [call.kwargs["output_limit"] for call in self.sandbox.run.call_args_list],
+                    [1024, 1024 - retained])
 
     def test_finalizer_failure_does_not_replace_the_primary_failure(self):
         self.sandbox.run.side_effect = [
@@ -176,9 +189,47 @@ class Gate(unittest.TestCase):
             timeout_seconds=1800, finalizer_reserve_seconds=60)
         self.assertEqual(self.gate(plan), agent_gate.FAIL_EXIT)
         log = (self.tmp / "g.log").read_text()
-        self.assertLess(log.index("primary"), log.index("finalizer"))
-        self.assertIn("primary", log)
-        self.assertIn("finalizer", log)
+        self.assertLess(log.index("## step:"), log.index("## finalizer:"))
+        self.assertNotIn("primary\n", log)
+        self.assertNotIn("finalizer\n", log)
+        self.assertEqual((self.tmp / "g.log.step-0.stderr.log").read_bytes(), b"primary\n")
+        self.assertEqual((self.tmp / "g.log.finalizer-1.stderr.log").read_bytes(), b"finalizer\n")
+
+    def test_gate_shares_one_output_budget_without_log_duplication(self):
+        first_raw = b"UNTRUSTED_GATE_STDOUT_ONE", b"UNTRUSTED_GATE_STDERR_ONE"
+        second_raw = b"UNTRUSTED_GATE_STDOUT_TWO", b"UNTRUSTED_GATE_STDERR_TWO"
+        total = sum(map(len, (*first_raw, *second_raw)))
+        self.sandbox.profiles["gate"]["output_max_bytes"] = total
+        first = subprocess.CompletedProcess([], 0, *(item.decode() for item in first_raw))
+        first.stdout_bytes, first.stderr_bytes = first_raw
+        second = subprocess.CompletedProcess([], 0, *(item.decode() for item in second_raw))
+        second.stdout_bytes, second.stderr_bytes = second_raw
+        self.sandbox.run.side_effect = [first, second]
+
+        self.assertEqual(self.gate([("one", "true", {}), ("two", "true", {})]), 0)
+        self.assertEqual([call.kwargs["output_limit"] for call in self.sandbox.run.call_args_list],
+                         [total, len(second_raw[0]) + len(second_raw[1])])
+        log = (self.tmp / "g.log").read_text()
+        for payload in (*first_raw, *second_raw):
+            payload = payload.decode()
+            self.assertNotIn(payload, log)
+        self.assertEqual((self.tmp / "g.log.step-0.stdout.log").read_bytes(), first_raw[0])
+        self.assertEqual((self.tmp / "g.log.step-0.stderr.log").read_bytes(), first_raw[1])
+        self.assertEqual((self.tmp / "g.log.step-1.stdout.log").read_bytes(), second_raw[0])
+        self.assertEqual((self.tmp / "g.log.step-1.stderr.log").read_bytes(), second_raw[1])
+
+    def test_exhausted_output_budget_still_runs_a_silent_finalizer(self):
+        self.sandbox.profiles["gate"]["output_max_bytes"] = 6
+        primary = subprocess.CompletedProcess([], 0, "abcdef", "")
+        primary.stdout_bytes, primary.stderr_bytes = b"abcdef", b""
+        self.sandbox.run.side_effect = [primary, subprocess.CompletedProcess([], 0, "", "")]
+        plan = agent_gate.GatePlan(
+            [("one", "true", {})], finalizers=[("collect", "true", {})],
+            timeout_seconds=1800, finalizer_reserve_seconds=60)
+
+        self.assertEqual(self.gate(plan), 0)
+        self.assertEqual([call.kwargs["output_limit"] for call in self.sandbox.run.call_args_list],
+                         [6, 0])
 
     def test_total_deadline_reserves_time_for_the_finalizer(self):
         plan = agent_gate.GatePlan(
@@ -267,8 +318,8 @@ class Gate(unittest.TestCase):
         source.write_text("before")
         copy = agent_gate.stage_agent_source
 
-        def mutate(root, stage, paths):
-            copy(root, stage, paths)
+        def mutate(root, stage, paths, **limits):
+            copy(root, stage, paths, **limits)
             source.write_text("after")
 
         with mock.patch.object(agent_gate, "controller_source_commit", return_value="a" * 40), \
@@ -484,6 +535,22 @@ class GitAndEngines(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
 
+    @contextmanager
+    def lease(self):
+        with tempfile.TemporaryDirectory(dir=self.tmp) as temporary:
+            yield mock.Mock(path=Path(temporary), receipt={"cleaned": True})
+
+    def isolated(self):
+        isolated = mock.Mock()
+        isolated.rootfs = self.tmp / "runtime"
+        isolated.scratch = {
+            "source_max_bytes": 1024, "source_max_files": 16,
+            "export_max_bytes": 1024, "export_max_files": 16,
+        }
+        isolated.profiles = {"agent": {"output_max_bytes": 1024}}
+        isolated.lease.side_effect = self.lease
+        return isolated
+
     def git(self, *args):
         subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t", *args],
                        cwd=self.tmp, check=True, capture_output=True)
@@ -533,13 +600,13 @@ class GitAndEngines(unittest.TestCase):
     def test_fails_over_only_on_rate_limits(self):
         results = {"limited": (1, "rate limit exceeded"), "broken": (1, "syntax error"),
                    "fine": (0, "")}
-        sandbox = mock.Mock()
-        sandbox.rootfs = self.tmp / "runtime"
+        sandbox = self.isolated()
         (sandbox.rootfs / "usr/bin").mkdir(parents=True)
         for name in results:
             (sandbox.rootfs / "usr/bin" / name).write_text("fixture")
-        def run(command, stage, *, profile):
+        def run(command, stage, *, profile, output_limit):
             self.assertEqual(profile, "agent")
+            self.assertGreaterEqual(output_limit, 0)
             code, error = results[command[0]]
             return subprocess.CompletedProcess(command, code, "", error)
         sandbox.run.side_effect = run
@@ -554,9 +621,37 @@ class GitAndEngines(unittest.TestCase):
             with self.assertRaises(ap.TaskError):
                 ap.run_agent("p", self.tmp, log, ["limited"], sandbox=sandbox, writes=["a"])
 
+    def test_agent_fallback_shares_output_budget_without_log_duplication(self):
+        sandbox = self.isolated()
+        sandbox.profiles["agent"]["output_max_bytes"] = 12
+        (sandbox.rootfs / "usr/bin").mkdir(parents=True)
+        for name in ("limited", "fine"):
+            (sandbox.rootfs / "usr/bin" / name).write_text("fixture")
+
+        def run(command, _lease, *, profile, output_limit):
+            self.assertEqual(profile, "agent")
+            if command[0] == "limited":
+                return subprocess.CompletedProcess(command, 1, "", "rate limit")
+            return subprocess.CompletedProcess(command, 0, "ok", "")
+
+        sandbox.run.side_effect = run
+        log = self.tmp / "agent-budget.log"
+        with mock.patch.dict(ap.ENGINES, {name: [name] for name in ("limited", "fine")}, clear=True), \
+                mock.patch.object(ap, "agent_source_paths", return_value=[]):
+            self.assertEqual(ap.run_agent("p", self.tmp, log, ["limited", "fine"],
+                                         sandbox=sandbox, writes=["a"]), "fine")
+
+        self.assertEqual([call.kwargs["output_limit"] for call in sandbox.run.call_args_list],
+                         [12, 2])
+        self.assertNotIn("rate limit", log.read_text())
+        self.assertNotIn("ok", log.read_text())
+        retained = b"".join(path.read_bytes() for path in sorted(self.tmp.glob("agent-budget-*.log"))
+                            if path != log)
+        self.assertEqual(retained.count(b"rate limit"), 1)
+        self.assertEqual(retained.count(b"ok"), 1)
+
     def test_agent_failure_logs_oom_separately_from_ordinary_exit(self):
-        sandbox = mock.Mock()
-        sandbox.rootfs = self.tmp / "runtime"
+        sandbox = self.isolated()
         (sandbox.rootfs / "usr/bin").mkdir(parents=True)
         (sandbox.rootfs / "usr/bin/broken").write_text("fixture")
         (sandbox.rootfs / "usr/bin/fine").write_text("fixture")
@@ -578,8 +673,7 @@ class GitAndEngines(unittest.TestCase):
         self.assertIn('"memory_max": "67108864"', text)
 
     def test_agent_retains_bounded_resource_overflow_streams(self):
-        sandbox = mock.Mock()
-        sandbox.rootfs = self.tmp / "runtime"
+        sandbox = self.isolated()
         (sandbox.rootfs / "usr/bin").mkdir(parents=True)
         (sandbox.rootfs / "usr/bin/broken").write_text("fixture")
         error = SandboxResourceExceeded("captured output exceeded")

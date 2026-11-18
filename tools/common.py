@@ -189,12 +189,20 @@ def agent_source_paths(extra: tuple[str, ...] | list[str] = ()) -> list[str]:
     return paths
 
 
-def stage_agent_source(source: Path, stage: Path, paths: list[str]) -> None:
+def stage_agent_source(source: Path, stage: Path, paths: list[str], *,
+                       max_bytes: int, max_files: int) -> None:
     """Copy reviewed source only, excluding ignored credentials, caches and Git state."""
+    selected = []
+    total = 0
     for relative in paths:
         original = agent_file(source, relative)
         if not original.exists():
             continue
+        selected.append((relative, original))
+        total += original.stat().st_size
+    if len(selected) > max_files or total > max_bytes:
+        raise ValueError("worker source exceeds its owner-authorized staging budget")
+    for relative, original in selected:
         target = stage / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(original, target, follow_symlinks=False)
@@ -225,12 +233,16 @@ def agent_source_state(root: Path) -> dict[str, tuple[str, int]]:
 
 
 def import_agent_changes(stage: Path, destination: Path, before: dict,
-                         allowed: tuple[str, ...] | list[str]) -> list[str]:
+                         allowed: tuple[str, ...] | list[str], *,
+                         max_bytes: int, max_files: int) -> list[str]:
     """Validate the entire delta before importing any task-owned regular file."""
     after = agent_source_state(stage)
     changed = sorted(p for p in before.keys() | after.keys() if before.get(p) != after.get(p))
     if set(changed) - set(allowed):
         raise ValueError("worker changed files outside the owner-authorized write set")
+    exported = sum((stage / relative).stat().st_size for relative in changed if relative in after)
+    if len(changed) > max_files or exported > max_bytes:
+        raise ValueError("worker output exceeds its owner-authorized export budget")
     for relative in changed:
         agent_file(destination, relative)
         if relative in after and after[relative][1] not in {0o644, 0o755}:

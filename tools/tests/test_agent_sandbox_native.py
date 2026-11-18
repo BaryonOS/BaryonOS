@@ -26,12 +26,12 @@ class NativeBoundary(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
-        self.work = self.root / "disposable"
-        self.work.mkdir(mode=0o700)
+        self.lease = self.enterContext(self.sandbox.lease())
+        self.work = self.lease.path
 
     def python(self, code, **options):
         return self.sandbox.run(
-            ["/usr/bin/python3", "-I", "-B", "-c", code], self.work,
+            ["/usr/bin/python3", "-I", "-B", "-c", code], self.lease,
             profile="agent", **options)
 
     def test_credential_environment_and_controller_files_are_absent(self):
@@ -53,6 +53,32 @@ class NativeBoundary(unittest.TestCase):
                 "try: Path('/usr/bin/unaccepted').write_text('x')\n"
                 "except OSError as error: assert error.errno in (errno.EROFS, errno.EACCES)\n"
                 "else: raise AssertionError('writable runtime')\n")
+        done = self.python(code)
+        self.assertEqual(done.returncode, 0, done.stderr)
+
+    def test_devices_are_readonly_and_shared_memory_uses_the_capped_scratch(self):
+        capacity = self.sandbox.scratch["capacity_bytes"]
+        inodes = self.sandbox.scratch["capacity_inodes"]
+        code = ("import errno,os\nfrom pathlib import Path\n"
+                "pts=[line.split() for line in Path('/proc/self/mountinfo').read_text().splitlines() "
+                "if line.split()[4] == '/dev/pts']\n"
+                "assert len(pts) == 1 and 'ro' in pts[0][5].split(',')\n"
+                "try: pty=os.open('/dev/ptmx',os.O_RDWR|os.O_NOCTTY)\n"
+                "except OSError as error:\n"
+                " assert error.errno in (errno.EROFS,errno.EACCES,errno.EPERM,errno.ENODEV,"
+                "errno.ENOENT,errno.EIO,errno.ENXIO)\n"
+                "else:\n os.close(pty)\n raise AssertionError('writable PTY allocator')\n"
+                "try: Path('/dev/unaccepted').write_text('x')\n"
+                "except OSError as error:\n"
+                " assert error.errno in (errno.EROFS,errno.EACCES,errno.EPERM)\n"
+                "else: raise AssertionError('writable device tree')\n"
+                "probe=Path('/dev/shm/probe')\n"
+                "probe.write_text('ok')\n"
+                "assert probe.read_text() == 'ok'\n"
+                "assert os.stat('/dev/shm').st_dev == os.stat('/workspace').st_dev\n"
+                "stats=os.statvfs('/dev/shm')\n"
+                f"assert stats.f_blocks * stats.f_frsize == {capacity}\n"
+                f"assert stats.f_files == {inodes}\n")
         done = self.python(code)
         self.assertEqual(done.returncode, 0, done.stderr)
 
@@ -101,7 +127,7 @@ class NativeBoundary(unittest.TestCase):
                 "except OSError as error: assert error.errno in (errno.EROFS,errno.EACCES)\n"
                 "else: raise AssertionError('mutable interpreter cache')\n")
         done = self.sandbox.run(
-            ["/usr/bin/python3", "-B", "-c", code], self.work,
+            ["/usr/bin/python3", "-B", "-c", code], self.lease,
             profile="gate", read_only=True)
         self.assertEqual(done.returncode, 0, done.stderr)
 
