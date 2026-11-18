@@ -8,7 +8,7 @@
     "branch": "codex/security-pipeline-quarantine",
     "task": "SEC359-EVIDENCE: correct containment evidence scope and bindings",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Source b526c039 binds the repeated negative control to exact overlay inputs, limits independent review to executable containment source, and explicitly marks the writable QEMU variable-store copy unbound while preserving raw evidence. Fresh exact-head hosted checks and actual-main integration remain pending. This completes no product criterion, full PR355/357 isolation, Daybreak finding, issue, baseline B or governance transition."
+    "summary": "41/100 unchanged. Source b526c039 binds a repeated negative control to exact overlay inputs while retaining the original log as historical evidence without source binding, limits independent review to executable containment source, and explicitly marks the writable QEMU variable-store copy unbound. Fresh exact-head hosted checks and actual-main integration remain pending. This completes no product criterion, full PR355/357 isolation, Daybreak finding, issue, baseline B or governance transition."
   },
   "tracks": [
     {

@@ -19,7 +19,8 @@
       "public_log": "logs/negative-control.log.gz",
       "public_log_sha256": "d11caf2682a92b3bf1aff95d9fa3b62b45a720664c3740cc68864c5aff7f7fa7",
       "public_log_derivation": "absolute task worktree path replaced with ${WORKTREE}; raw original retained locally",
-      "source_binding_correction": "../phase0-sec359-evidence-correction-20261118/checks.json#negative_control"
+      "repeat_source_binding": "../phase0-sec359-evidence-correction-20261118/checks.json#negative_control",
+      "original_source_binding": "NOT ESTABLISHED; this original log remains historical evidence only."
     },
     {
       "name": "quarantine",
