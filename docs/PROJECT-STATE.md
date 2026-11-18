@@ -1,6 +1,26 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #361 integration and final-read barrier — 18 November 2026
+## NEXT AGENT HANDOFF — H05-T1 S3/FACS extraction — 18 November 2026
+
+**Claim:** Codex implementation, `codex/h05-s3-facs`, base `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.
+N02-T2 delivered ated44d77c/checkpoint327f659c in draft PR370:58 host tests,
+Clippy/fmt/library build and static SDK check pass; Rust1.91.1 blocker resolved.
+**Goal:** reuse bounded ACPI parser for S3 sleep types and validate a FADT-bound
+FACS snapshot, without changing existing S5 API or executing sleep/wake.
+**Invariant:** firmware bytes/addresses are untrusted observations, never I/O or
+resume authority. Reject inconsistent pointers, misalignment, malformed/truncated
+packages and FACS extents. Preserve S5 validation and all existing tests.
+**Write set:** drivers/acpi-power/{src/lib.rs,tests/,README.md}; lead-owned
+checkpoint/ledger/progress and one receipt. No kernel/trampoline/physical I/O.
+**Acceptance:** Rust1.90 tests/Clippy/fmt/freestanding build; S3 selection/namespace/
+malformed and FACS binding/length/alignment/vector-field negatives.
+**Evidence limit:** host firmware parser/build only; native S3, physical sleep/wake,
+thermal/battery and H05 acceptance stay open. Score41/100.
+**Ownership:** Integration Manager owns prior PRs/closure; Claude S09/UI preserved.
+Unsafe unattended hold unchanged; original dirty main untouched.
+**Next:** one fresh supervised builder implements this bounded slice.
+
+## Retained checkpoint — PR #361 integration and final-read barrier — 18 November 2026
 
 **Claim/source:** Codex sole writer in `codex/block-order-integration`, PR #361 head
 `fc35563668ae2ba3dc2fc90e6e30575c38b6f578`, merging main `6f29b672`.
