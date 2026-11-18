@@ -133,7 +133,6 @@ def run_gate(commands: GatePlan | list[GateCommand], cwd: Path, log_path: Path,
     started = time.monotonic()
     leases = ExitStack()
     lease = None
-    result = FAIL_EXIT
     log_path.parent.mkdir(parents=True, exist_ok=True)
     with log_path.open("w", encoding="utf-8") as log:
         try:

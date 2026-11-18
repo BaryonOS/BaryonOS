@@ -17,7 +17,7 @@ import shutil
 import subprocess
 import time
 
-from common import ROOT, BUILD, TARGET, sha256, source_hash, source_identity
+from common import ROOT, BUILD, TARGET, sha256, source_identity
 from build import build
 from build_users import inspect_user, sdk_dependency_artifact, sdk_dependency_command, SDK_DEPENDENCY_ID
 from capture_m6c import check_run
