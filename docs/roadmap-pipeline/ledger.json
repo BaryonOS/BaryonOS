@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "purpose": "Execution queue of the H/U/N/B/A/P/L/R clean-session roadmap pipeline; child tasks of the fixed criteria in docs/progress.json. Not a second roadmap and not an acceptance register.",
-  "branch": "codex/p02-head-discovery",
-  "base": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
+  "branch": "codex/p02-checkpoint-codec",
+  "base": "ae5ad402b0b65857ea5fd1e25fa2e75d8218307a",
   "score": {
     "accepted": 41,
     "of": 100,
@@ -17,6 +17,53 @@
     "S09 pipeline": "S09 backup/export/recovery"
   },
   "tasks": [
+    {
+      "id": "P02-T2",
+      "criterion": "P02",
+      "milestone": "M8",
+      "executor": "worker",
+      "status": "active",
+      "title": "Canonical versioned client checkpoint encoding with strict validation (host)",
+      "goal": "Add services/nas/native-client/src/checkpoint.rs: canonical, versioned, fixed-length encoding of the client checkpoint with strict decode validation; a restored checkpoint yields only NeedsReconcile; no anti-rollback claim.",
+      "why_now": "Durable offline edits are a P02 condition and the checkpoint is not yet a persistent schema.",
+      "deps": [
+        "P02-T1"
+      ],
+      "write_paths": [
+        "services/nas/native-client/src/checkpoint.rs",
+        "services/nas/native-client/src/lib.rs",
+        "services/nas/native-client/tests/checkpoint.rs",
+        "services/nas/native-client/README.md"
+      ],
+      "read_paths": [
+        "services/nas/native-core/src/snapshot.rs"
+      ],
+      "checks": [
+        "cargo +1.90.0 test --locked --manifest-path services/nas/native-client/Cargo.toml",
+        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-client/Cargo.toml --all-targets -- -D warnings",
+        "cargo +1.90.0 fmt --manifest-path services/nas/native-client/Cargo.toml -- --check"
+      ],
+      "acceptance": [
+        "negative decodes: truncated, wrong magic or version, non-zero reserved bytes, invalid state, length over bound, duplicate slot",
+        "restored checkpoint yields only NeedsReconcile"
+      ],
+      "out_of_scope": [
+        "rollback anchor (B02)"
+      ],
+      "non_claimable": "Anti-rollback and native persistence stay open.",
+      "risk": "medium",
+      "size": "S",
+      "evidence_level": "host",
+      "rollback": "Revert the commit.",
+      "next": "P02-T3 native scenario.",
+      "history": [
+        {
+          "at": "2026-11-18T20:31:37.717049+00:00",
+          "event": "active",
+          "reason": "Sequential lead-owned dependent slice stacked on PR367; no concurrent writer or unrelated Claude paths."
+        }
+      ]
+    },
     {
       "id": "P02-T1",
       "criterion": "P02",
@@ -1048,47 +1095,6 @@
       "evidence_level": "native-QEMU (TCG)",
       "rollback": "Revert the commit.",
       "next": "P04-T1 interrupted purge.",
-      "history": []
-    },
-    {
-      "id": "P02-T2",
-      "criterion": "P02",
-      "milestone": "M8",
-      "executor": "worker",
-      "status": "ready",
-      "title": "Canonical versioned client checkpoint encoding with strict validation (host)",
-      "goal": "Add services/nas/native-client/src/checkpoint.rs: canonical, versioned, fixed-length encoding of the client checkpoint with strict decode validation; a restored checkpoint yields only NeedsReconcile; no anti-rollback claim.",
-      "why_now": "Durable offline edits are a P02 condition and the checkpoint is not yet a persistent schema.",
-      "deps": [
-        "P02-T1"
-      ],
-      "write_paths": [
-        "services/nas/native-client/src/checkpoint.rs",
-        "services/nas/native-client/src/lib.rs",
-        "services/nas/native-client/tests/checkpoint.rs",
-        "services/nas/native-client/README.md"
-      ],
-      "read_paths": [
-        "services/nas/native-core/src/snapshot.rs"
-      ],
-      "checks": [
-        "cargo +1.90.0 test --locked --manifest-path services/nas/native-client/Cargo.toml",
-        "cargo +1.90.0 clippy --locked --manifest-path services/nas/native-client/Cargo.toml --all-targets -- -D warnings",
-        "cargo +1.90.0 fmt --manifest-path services/nas/native-client/Cargo.toml -- --check"
-      ],
-      "acceptance": [
-        "negative decodes: truncated, wrong magic or version, non-zero reserved bytes, invalid state, length over bound, duplicate slot",
-        "restored checkpoint yields only NeedsReconcile"
-      ],
-      "out_of_scope": [
-        "rollback anchor (B02)"
-      ],
-      "non_claimable": "Anti-rollback and native persistence stay open.",
-      "risk": "medium",
-      "size": "S",
-      "evidence_level": "host",
-      "rollback": "Revert the commit.",
-      "next": "P02-T3 native scenario.",
       "history": []
     },
     {

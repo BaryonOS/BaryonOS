@@ -1,6 +1,22 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — P02-T1 NAS revision discovery — 18 November 2026
+## NEXT AGENT HANDOFF — P02-T2 checkpoint codec — 18 November 2026
+
+**Claim:** Codex lead, `codex/p02-checkpoint-codec`, stacked on preserved PR367
+`ae5ad402`. Sequential ownership of native-client; prior delivery branches intact.
+**Goal:** canonical versioned fixed-length encoding of offline ciphertext edits.
+**Invariant:** decoding never restores authority or acknowledged publication; every
+occupied edit becomes NeedsReconcile. Strict bounds, canonical zero padding and
+unique namespace/object pairs. Reject malformed input without partial output.
+**Write set:** native-client checkpoint.rs, lib export/docs, tests/checkpoint.rs,
+README; lead-owned state/progress and one receipt.
+**Acceptance:** client tests/Clippy/fmt plus malformed-length/version/state/padding/
+bounds/duplicate regressions and roundtrip preserving local+remote ciphertext.
+**Evidence limit:** host codec; no authenticated storage, rollback anchor, durable
+save ACK or native persistence. Unsafe runner remains held; score41/100.
+**Next:** implement codec using existing bounded Checkpoint/Edit/Version types.
+
+## Retained checkpoint — P02-T1 NAS revision discovery — 18 November 2026
 
 **Claim:** Codex lead, `codex/p02-head-discovery`, base `6f29b672`.
 Prior delivered branches/PRs 362–366 and Claude S09/UI remain preserved.
