@@ -11,7 +11,7 @@ The checked repository source is
 `4a01b8b2ad2695da509a512ea688007c964f56da` (tree
 `f7bee30ee39abb60da294d48357af5b6c85f2fae`).
 
-[DESIGN.md](DESIGN.md) records the trust boundaries, all 22 finding dispositions,
+[DESIGN.md](DESIGN.md) records the trust boundaries, all 23 finding dispositions,
 reproduction commands and evidence limits. `manifest.json` binds the required
 evidence roles; `hashes.json` covers every retained file except itself.
 
