@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """Autonomous agent pipeline: GitHub issue -> L0 spec -> executor -> gate -> PR.
 
-Task source: open issues labelled `pipeline:serial` or `pipeline:parallel` (only
-maintainers can set labels). Each issue names an open criterion from
+Task source: open issues labelled `pipeline:serial` or `pipeline:parallel`.
+Labels nominate work; a reviewed owner-controlled manifest grants file authority.
+Each issue names an open criterion from
 docs/progress.json and one or more CI gate jobs, so there is no second roadmap.
 Every agent call is a fresh, stateless CLI process. Runtime files (L0 specs,
 logs, worktrees) live in the gitignored build/agent-pipeline/.
 
-Serial tasks run alone and end in a draft PR for human review. Parallel tasks run
-up to three at a time in separate worktrees; only with --auto-merge-parallel are
-their PRs marked ready with squash auto-merge. Nothing is merged to main directly.
+Serial tasks run alone. Parallel tasks run up to three at a time in separate
+worktrees. Every publication is a draft PR; this controller never enables merging.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import shutil
@@ -25,8 +26,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from agent_gate import condensed, resolve, run_gate
-from common import ROOT
+from agent_gate import condensed, policy_authorizes_engines, resolve, run_gate
+from agent_sandbox import Sandbox, SandboxError, resource_evidence
+from common import (ROOT, CONTROLLER_GIT, CONTROLLER_GH, controller_environment,
+                    agent_relative, agent_source_paths, agent_source_state,
+                    import_agent_changes, stage_agent_source)
 
 RUN = ROOT / "build" / "agent-pipeline"
 MAX_PARALLEL = 3
@@ -44,9 +48,12 @@ PROTECTED = (
     ".agents/skills/os-dev/references/", "LICENSE", "plugins/token-guard/LICENSE",
     "docs/third-party/licenses/", "ui/prototype/tokens.css",
     "ui/design/system/tokens.css", "CODEX-WORKFLOW.md", "tools/update-keys/TEST-",
-    "build/", "target/", "graphify-out/",
+    "build/", "target/", "graphify-out/", "tools/tests/test_agent_execution_hold.py",
+    "tools/agent_sandbox.py", "tools/tests/test_agent_sandbox.py",
+    "tools/tests/test_agent_isolation.py", ".git",
+    "tools/tests/test_agent_sandbox_native.py", "docs/roadmap-pipeline/README.md",
+    "tools/tests/test_agent_pipeline_integration.py",
 )
-ALWAYS_ALLOWED = ("Cargo.lock",)
 RATE_LIMIT = re.compile(r"rate.?limit|usage limit|quota|too many requests|\b429\b", re.I)
 # Read-only Graphify tools as the Claude CLI names the claude.ai connector; every other
 # connector and Bash stay denied in headless mode.
@@ -57,7 +64,7 @@ GRAPHIFY_READ = ",".join(f"mcp__claude_ai_Graphify__{tool}" for tool in (
 ENGINES = {
     # `=` form: --allowedTools is variadic and would otherwise swallow the prompt.
     "claude": ["claude", "-p", "--permission-mode", "acceptEdits", f"--allowedTools={GRAPHIFY_READ}"],
-    "codex": ["codex", "exec", "--full-auto"],
+    "codex": ["codex", "exec", "--ephemeral", "--strict-config", "--sandbox", "workspace-write"],
     "copilot": ["copilot", "--allow-tool", "write", "-p"],
 }
 
@@ -89,6 +96,10 @@ class Task:
     targets: list[str] = field(default_factory=list)
     reads: list[str] = field(default_factory=list)
     spec: str = ""
+    authorized_targets: tuple[str, ...] = ()
+    authorized_reads: tuple[str, ...] = ()
+    base: str = ""
+    verified_head: str = ""
 
     @property
     def branch(self) -> str:
@@ -131,17 +142,14 @@ def parse_issue(issue: dict, criteria: set[str]) -> Task:
 
 
 def _clean_path(path: object) -> str:
-    text = str(path).strip().replace("\\", "/")
-    if not text or text.startswith("/") or ".." in text.split("/") or ":" in text:
-        raise ValueError(f"unsafe path in L0 spec: {path!r}")
-    return text
+    return agent_relative(path).as_posix()
 
 
 def is_protected(path: str) -> bool:
     # Agent instruction files are policy at every directory depth, not worker outputs.
     # A shared guard also protects the roadmap runner's directory write sets.
     normalized = path.replace("\\", "/")
-    if normalized.rsplit("/", 1)[-1] in {"AGENTS.md", "CLAUDE.md"}:
+    if normalized.rsplit("/", 1)[-1] in {"AGENTS.md", "CLAUDE.md", ".gitattributes", ".gitmodules"}:
         return True
     return any(normalized == p or normalized.startswith(p) for p in PROTECTED)
 
@@ -152,6 +160,8 @@ def parse_spec(text: str) -> tuple[list[str], list[str]]:
     if not blocks:
         raise ValueError("L0 spec has no closing ```json {targets, reads}``` block")
     data = json.loads(blocks[-1])
+    if not isinstance(data.get("targets"), list) or not isinstance(data.get("reads", []), list):
+        raise ValueError("L0 access sets must be lists")
     targets = [_clean_path(p) for p in data.get("targets", [])]
     reads = [_clean_path(p) for p in data.get("reads", [])]
     if not targets:
@@ -162,14 +172,85 @@ def parse_spec(text: str) -> tuple[list[str], list[str]]:
 
 
 def out_of_scope(changed: list[str], targets: list[str]) -> list[str]:
-    allowed = set(targets) | set(ALWAYS_ALLOWED)
+    allowed = set(targets)
     return [p for p in changed if p not in allowed or is_protected(p)]
 
 
 def conflicts(a: Task, b: Task) -> bool:
     """STORM access sets: a task may not write what another writes or reads."""
-    return bool(set(a.targets) & (set(b.targets) | set(b.reads))
-                or set(b.targets) & set(a.reads))
+    aw, ar = set(a.authorized_targets or a.targets), set(a.authorized_reads or a.reads)
+    bw, br = set(b.authorized_targets or b.targets), set(b.authorized_reads or b.reads)
+    return bool(aw & (bw | br) or bw & ar)
+
+
+def issue_digest(task: Task) -> str:
+    fields = {key: getattr(task, key) for key in
+              ("number", "title", "mode", "criterion", "gates", "deps", "body")}
+    return hashlib.sha256(json.dumps(fields, sort_keys=True).encode()).hexdigest()
+
+
+def load_policy() -> dict:
+    policy = json.loads((ROOT / ".github" / "agent-pipeline.json").read_text(encoding="utf-8"))
+    if (not policy_authorizes_engines(policy, ENGINES)
+            or not isinstance(policy.get("tasks"), dict)):
+        raise TaskError("Issue-pipeline execution requires reviewed owner-controlled authorization.")
+    return policy
+
+
+def authorize(task: Task, policy: dict, base: str) -> None:
+    """Freeze authority before L0; issue/model text cannot grant write access."""
+    grant = policy["tasks"].get(str(task.number))
+    if not isinstance(grant, dict) or any(grant.get(k) != v for k, v in {
+        "base": base, "issue_sha256": issue_digest(task), "criterion": task.criterion,
+        "mode": task.mode, "gates": task.gates,
+    }.items()) or re.fullmatch(r"[0-9a-f]{40}", base) is None:
+        raise TaskError("Task authorization is absent, changed or bound to another main source.")
+    try:
+        writes, reads = grant["targets"], grant["reads"]
+        if not isinstance(writes, list) or not isinstance(reads, list) or not writes:
+            raise ValueError("invalid access sets")
+        targets = tuple(_clean_path(p) for p in writes)
+        dependencies = tuple(_clean_path(p) for p in reads)
+        if any(is_protected(p) for p in targets):
+            raise ValueError("protected target")
+    except (KeyError, TypeError, ValueError) as error:
+        raise TaskError("Owner authorization contains invalid file authority.") from error
+    task.authorized_targets, task.authorized_reads, task.base = targets, dependencies, base
+    task.targets, task.reads = list(targets), list(dependencies)
+
+
+def authorize_source(task: Task, policy: dict, base: str) -> None:
+    grant = policy["tasks"].get(str(task.number))
+    approved = grant.get("base", "") if isinstance(grant, dict) else ""
+    authorize(task, policy, approved)
+    # A versioned grant cannot name its own commit. Only the manifest may change
+    # between its reviewed source base and the main commit containing that grant.
+    if approved != base:
+        delta = sh(["git", "diff", "--name-only", "-z", approved, base, "--"])
+        if set(filter(None, delta.split("\0"))) != {".github/agent-pipeline.json"}:
+            raise TaskError("Source changed beyond its reviewed authorization manifest.")
+    task.base = base
+
+
+def verify_controller(cwd: Path = ROOT) -> None:
+    """Unsupported executable Git callbacks block instead of running with credentials."""
+    env = controller_environment()
+    result = subprocess.run([CONTROLLER_GIT, "--no-lazy-fetch", "config", "--name-only", "--list"], cwd=cwd,
+                            env=env, check=True, capture_output=True, text=True)
+    names = result.stdout.lower().splitlines()
+    if any(name in {"core.fsmonitor", "core.hookspath", "core.sshcommand", "core.gitproxy", "diff.external",
+                    "core.editor", "sequence.editor", "commit.gpgsign", "tag.gpgsign"}
+           or name.startswith(("filter.", "gpg."))
+           or re.fullmatch(r"(?:diff\..*\.(?:command|textconv)|merge\..*\.driver|"
+                           r"branch\..*\.mergeoptions|remote\..*\.(?:receivepack|uploadpack))", name)
+           for name in names):
+        raise TaskError("Configured Git callbacks require a separately verified isolated adapter.")
+    hooks = subprocess.run([CONTROLLER_GIT, "--no-lazy-fetch", "rev-parse", "--git-path", "hooks"], cwd=cwd,
+                           env=env, check=True, capture_output=True, text=True).stdout.strip()
+    hook_dir = Path(hooks) if Path(hooks).is_absolute() else cwd / hooks
+    if hook_dir.exists() and any(p.is_file() and p.stat().st_mode & 0o111
+                                 and not p.name.endswith(".sample") for p in hook_dir.iterdir()):
+        raise TaskError("Active Git hooks require a separately verified isolated adapter; none are bypassed.")
 
 
 def pick_parallel(tasks: list[Task], limit: int = MAX_PARALLEL) -> list[Task]:
@@ -187,7 +268,16 @@ def stale(before: dict[str, str | None], after: dict[str, str | None]) -> list[s
 # ---------- process helpers ----------
 
 def sh(args: list[str], cwd: Path = ROOT, check: bool = True) -> str:
-    done = subprocess.run(args, cwd=cwd, capture_output=True, text=True)
+    executables = {"git": CONTROLLER_GIT, "gh": CONTROLLER_GH}
+    if args[0] not in executables:
+        raise TaskError("Unrecognized controller executable")
+    authenticated = args[0] == "gh" or args[1] in {"fetch", "push", "ls-remote"}
+    if authenticated and cwd != ROOT:
+        raise TaskError("Authenticated operations require the trusted controller checkout")
+    if args[0] == "git":
+        verify_controller(cwd)
+    done = subprocess.run([executables[args[0]], *args[1:]], cwd=cwd,
+                          env=controller_environment(authenticated=authenticated), capture_output=True, text=True)
     if check and done.returncode:
         raise TaskError(f"{' '.join(args[:4])} failed ({done.returncode}): {done.stderr.strip()[-2000:]}")
     return done.stdout
@@ -197,26 +287,96 @@ def snapshot(paths: list[str], ref: str, cwd: Path = ROOT) -> dict[str, str | No
     """Blob id per path at `ref` (None = absent): the read set of a worker."""
     result: dict[str, str | None] = {}
     for path in paths:
-        done = subprocess.run(["git", "rev-parse", "--verify", "-q", f"{ref}:{path}"],
-                              cwd=cwd, capture_output=True, text=True)
+        done = subprocess.run([CONTROLLER_GIT, "--no-lazy-fetch", "rev-parse", "--verify", "-q", f"{ref}:{path}"],
+                              cwd=cwd, env=controller_environment(), capture_output=True, text=True)
         result[path] = done.stdout.strip() or None
     return result
 
 
-def run_agent(prompt: str, cwd: Path, log: Path, order: list[str]) -> str:
+def run_agent(prompt: str, cwd: Path, log: Path, order: list[str], *,
+              sandbox: Sandbox | None = None, writes: tuple[str, ...] | list[str] = ()) -> str:
     """Run the prompt with the first available engine; fail over only on rate limits."""
-    for name in order:
-        command = ENGINES[name]
-        if not shutil.which(command[0]):
-            continue
-        done = subprocess.run([*command, prompt], cwd=cwd, capture_output=True, text=True,
-                              stdin=subprocess.DEVNULL)
+    if sandbox is None or not writes:
+        raise TaskError("Agent execution requires isolated, owner-authorized file access.")
+    remaining_output = sandbox.profiles["agent"]["output_max_bytes"]
+
+    def retain(outcome, prefix: str) -> list[str]:
+        nonlocal remaining_output
+        retained = []
+        for stream in ("stdout", "stderr"):
+            raw = getattr(outcome, stream + "_bytes", None)
+            if not isinstance(raw, bytes):
+                value = getattr(outcome, stream, None)
+                raw = value if isinstance(value, bytes) else value.encode() if isinstance(value, str) else None
+            if raw is None:
+                continue
+            raw = raw[:remaining_output]
+            remaining_output -= len(raw)
+            path = log.parent / f"{prefix}.{stream}.log"
+            path.write_bytes(raw)
+            retained.append(path.name)
+        return retained
+
+    try:
+        paths = agent_source_paths(tuple(writes))
+        for name in order:
+            command = ENGINES[name]
+            if not any((sandbox.rootfs / p / command[0]).is_file() for p in ("usr/bin", "bin")):
+                continue
+            lease = None
+            try:
+                with sandbox.lease() as lease:
+                    stage = lease.path
+                    stage_agent_source(
+                        cwd, stage, paths, max_bytes=sandbox.scratch["source_max_bytes"],
+                        max_files=sandbox.scratch["source_max_files"])
+                    before = agent_source_state(stage)
+                    done = sandbox.run([*command, prompt], lease, profile="agent",
+                                       output_limit=remaining_output)
+                    log.parent.mkdir(parents=True, exist_ok=True)
+                    prefix = f"{log.stem}-{time.time_ns()}-{name}"
+                    streams = retain(done, prefix)
+                    evidence = resource_evidence(done)
+                    with log.open("a", encoding="utf-8") as out:
+                        out.write(f"## engine {name} exit {done.returncode}; raw streams: "
+                                  f"{', '.join(streams)}\n"
+                                  f"## resource: {json.dumps(evidence, sort_keys=True)}\n")
+                    if done.returncode == 0:
+                        # Only a successful candidate may reach controller-owned source.
+                        # Failed attempts and rate-limit fallbacks discard all edits.
+                        import_agent_changes(
+                            stage, cwd, before, writes,
+                            max_bytes=sandbox.scratch["export_max_bytes"],
+                            max_files=sandbox.scratch["export_max_files"])
+                        return name
+                    if evidence.get("Result") == "oom-kill":
+                        raise TaskError(f"engine {name} exceeded its memory profile; see {log}")
+                    if not RATE_LIMIT.search(done.stdout + done.stderr):
+                        raise TaskError(f"engine {name} failed (exit {done.returncode}); see {log}")
+            finally:
+                if lease is not None:
+                    log.parent.mkdir(parents=True, exist_ok=True)
+                    with log.open("a", encoding="utf-8") as out:
+                        out.write(f"## scratch: {json.dumps(lease.receipt, sort_keys=True)}\n")
+    except subprocess.TimeoutExpired as error:
+        log.parent.mkdir(parents=True, exist_ok=True)
+        prefix = f"{log.stem}-timeout-{time.time_ns()}"
+        streams = retain(error, prefix)
         with log.open("a", encoding="utf-8") as out:
-            out.write(f"## engine {name} exit {done.returncode}\n{done.stdout}\n{done.stderr}\n")
-        if done.returncode == 0:
-            return name
-        if not RATE_LIMIT.search(done.stdout + done.stderr):
-            raise TaskError(f"engine {name} failed (exit {done.returncode}); see {log}")
+            out.write(f"## engine timeout after {error.timeout}s\n"
+                      f"## resource: {json.dumps(resource_evidence(error), sort_keys=True)}\n"
+                      f"## bounded raw streams: {', '.join(streams)}\n")
+        raise TaskError("Isolated agent timed out; raw output retained.") from error
+    except (SandboxError, ValueError, OSError) as error:
+        if isinstance(error, SandboxError):
+            log.parent.mkdir(parents=True, exist_ok=True)
+            prefix = f"{log.stem}-resource-{time.time_ns()}"
+            streams = retain(error, prefix)
+            with log.open("a", encoding="utf-8") as out:
+                out.write(f"## resource: {json.dumps(resource_evidence(error), sort_keys=True)}\n")
+                if streams:
+                    out.write(f"## bounded resource streams: {', '.join(streams)}\n")
+        raise TaskError(f"Isolated agent execution blocked: {error}") from error
     raise TaskError(f"no engine available (tried {', '.join(order)})")
 
 
@@ -257,15 +417,25 @@ def merge_prompt(task: Task, ours: str, theirs: str) -> str:
 
 class Pipeline:
     def __init__(self, engines: list[str], auto_merge_parallel: bool, dry_run: bool):
+        self.policy = load_policy()
+        if engines != self.policy["engines"]:
+            raise TaskError("Engine selection and failover order must match owner authorization.")
+        if auto_merge_parallel:
+            raise TaskError("Automatic merging is unavailable; reviewed publication creates draft PRs only.")
+        verify_controller()
+        sh(["git", "fetch", "-q", "origin", "main"])
+        if (sh(["git", "rev-parse", "HEAD"]).strip() != sh(["git", "rev-parse", "origin/main"]).strip()
+                or sh(["git", "status", "--porcelain"]).strip()
+                or json.loads(sh(["git", "show", "origin/main:.github/agent-pipeline.json"])) != self.policy):
+            raise TaskError("Execution requires the clean, approved main policy and controller checkout.")
+        self.sandbox = Sandbox(self.policy.get("sandbox", {}))
+        self.sandbox.verify()
         self.engines = engines
         self.auto_merge_parallel = auto_merge_parallel
         self.dry_run = dry_run
-        self.turn = 0
 
     def order(self) -> list[str]:
-        self.turn += 1
-        k = self.turn % len(self.engines)
-        return self.engines[k:] + self.engines[:k]
+        return list(self.engines)
 
     def ready_tasks(self) -> list[Task]:
         require_pipeline_release()
@@ -274,13 +444,15 @@ class Pipeline:
         issues = json.loads(sh(["gh", "issue", "list", "--state", "open", "--limit", "500",
                                 "--json", "number,title,body,labels"]))
         open_numbers = {i["number"] for i in issues}
+        base = sh(["git", "rev-parse", "origin/main"]).strip()
         tasks = []
         for issue in issues:
             if not any(l["name"] in LABELS for l in issue.get("labels", [])):
                 continue
             try:
                 task = parse_issue(issue, criteria)
-            except ValueError as error:
+                authorize_source(task, self.policy, base)
+            except (ValueError, TaskError) as error:
                 print(f"skip: {error}")
                 continue
             remote = sh(["git", "ls-remote", "--heads", "origin", task.branch])
@@ -292,114 +464,118 @@ class Pipeline:
     def prepare(self, task: Task) -> None:
         """Fresh worktree from origin/main plus the L0 spec (step 1A)."""
         require_pipeline_release()
-        task.dir.mkdir(parents=True)
         sh(["git", "fetch", "-q", "origin", "main"])
+        base = sh(["git", "rev-parse", "origin/main"]).strip()
+        authorize_source(task, self.policy, base)
+        # A manifest-only main update can revoke the cached grant. Re-read the
+        # fetched source and local policy before creating any worktree or L0.
+        if (load_policy() != self.policy
+                or json.loads(sh(["git", "show", f"{base}:.github/agent-pipeline.json"])) != self.policy):
+            raise TaskError("Owner policy changed or was revoked before L0; renew authorization.")
+        task.dir.mkdir(parents=True)
         sh(["git", "worktree", "add", "-q", "-b", task.branch, str(task.worktree), "origin/main"])
         spec_rel = "build/agent-pipeline/L0.md"  # gitignored inside the worktree
-        run_agent(l0_prompt(task, spec_rel), task.worktree, task.dir / "agent.log", self.order())
+        run_agent(l0_prompt(task, spec_rel), task.worktree, task.dir / "agent.log", self.order(),
+                  sandbox=self.sandbox, writes=(spec_rel,))
         spec_file = task.worktree / spec_rel
         if not spec_file.is_file():
             raise TaskError("L0 step wrote no spec")
         task.spec = spec_file.read_text(encoding="utf-8")
         try:
-            task.targets, task.reads = parse_spec(task.spec)
+            targets, reads = parse_spec(task.spec)
+            if (set(targets) - set(task.authorized_targets)
+                    or set(reads) - set(task.authorized_reads)):
+                raise ValueError("L0 exceeded owner-authorized access sets")
+            task.targets, task.reads = targets, reads
         except ValueError as error:
             raise TaskError(str(error)) from error
         shutil.copy(spec_file, task.dir / "L0.md")
-        base = sh(["git", "rev-parse", "origin/main"]).strip()
         (task.dir / "read_snapshot.json").write_text(json.dumps(
             {"base": base, "blobs": snapshot(task.targets + task.reads, base)}, indent=2))
 
     def changed(self, task: Task) -> list[str]:
-        out = sh(["git", "status", "--porcelain", "--untracked-files=all"], task.worktree)
-        return [line[3:].split(" -> ")[-1] for line in out.splitlines()]
+        tracked = sh(["git", "diff", "--name-only", "-z", "--no-renames", task.base, "--"], task.worktree)
+        untracked = sh(["git", "ls-files", "--others", "--exclude-standard", "-z"], task.worktree)
+        return sorted(set(filter(None, (tracked + untracked).split("\0"))))
 
     def execute(self, task: Task, feedback: str = "", allow_unchanged: bool = False) -> None:
         """Step 1B plus the self-healing gate loop (max MAX_ATTEMPTS executor runs)."""
         require_pipeline_release()
-        gate = resolve(task.gates, ROOT / ".github" / "workflows")
+        try:
+            gate = resolve(task.gates, ROOT / ".github" / "workflows")
+        except (KeyError, ValueError) as error:
+            raise TaskError(f"gate blocked: {error}") from error
         for attempt in range(1, MAX_ATTEMPTS + 1):
-            # Gate runs can leave unignored build output; only the agent's own edits count.
-            before = set(self.changed(task))
-            run_agent(exec_prompt(task, feedback), task.worktree, task.dir / "agent.log", self.order())
-            changed = [p for p in self.changed(task) if p not in before]
+            run_agent(exec_prompt(task, feedback), task.worktree, task.dir / "agent.log", self.order(),
+                      sandbox=self.sandbox, writes=task.targets)
+            changed = self.changed(task)
             if bad := out_of_scope(changed, task.targets):
-                for path in bad:  # tracked: restore from HEAD; untracked: remove
-                    sh(["git", "checkout", "HEAD", "--", path], task.worktree, check=False)
-                    sh(["git", "clean", "-fdq", "--", path], task.worktree, check=False)
-                feedback = f"Files outside the targets were changed and reverted: {bad}"
-                continue
-            if changed:
+                raise TaskError("The complete task delta exceeded its authorized targets; retained for review.")
+            dirty = sh(["git", "status", "--porcelain", "--untracked-files=all"], task.worktree).strip()
+            if dirty:
                 sh(["git", "add", "-A", "--", *changed], task.worktree)
                 sh(["git", "commit", "-q", "-m",
                     f"agent(#{task.number}): {task.title} (attempt {attempt})"], task.worktree)
-            elif not allow_unchanged:
+            elif not changed and not allow_unchanged:
                 feedback = "No files were changed; implement the specification."
                 continue
             log = task.dir / f"gate-{attempt}.log"
-            if run_gate(gate, task.worktree, log) == 0:
+            tested_head = sh(["git", "rev-parse", "HEAD"], task.worktree).strip()
+            if run_gate(gate, task.worktree, log, sandbox=self.sandbox,
+                        source_paths=agent_source_paths(task.targets)) == 0:
+                if (out_of_scope(self.changed(task), task.targets)
+                        or sh(["git", "rev-parse", "HEAD"], task.worktree).strip() != tested_head
+                        or sh(["git", "status", "--porcelain"], task.worktree).strip()):
+                    raise TaskError("Task delta changed outside its targets during verification.")
+                task.verified_head = tested_head
                 return
             feedback = condensed(log)
         raise TaskError(f"gate failed after {MAX_ATTEMPTS} attempts; see {task.dir}")
 
     def integrate(self, task: Task) -> None:
-        """STORM stale-dependency check against current main; merger on conflicts."""
+        """A changed main invalidates the frozen authorization, including merger repairs."""
         require_pipeline_release()
-        saved = json.loads((task.dir / "read_snapshot.json").read_text())
-        sh(["git", "fetch", "-q", "origin", "main"], task.worktree)
-        moved = stale(saved["blobs"], snapshot(list(saved["blobs"]), "origin/main", task.worktree))
-        if not moved:
-            return
-        ours = sh(["git", "diff", f"{saved['base']}..HEAD"], task.worktree)
-        theirs = sh(["git", "diff", f"{saved['base']}..origin/main", "--", *moved], task.worktree)
-        merged = subprocess.run(["git", "merge", "-q", "--no-edit", "origin/main"],
-                                cwd=task.worktree, capture_output=True, text=True)
-        if merged.returncode:
-            run_agent(merge_prompt(task, ours, theirs), task.worktree,
-                      task.dir / "agent.log", self.order())
-            if sh(["git", "diff", "--name-only", "--diff-filter=U"], task.worktree).strip() or \
-                    re.search(r"^<{7} ", sh(["git", "diff"], task.worktree), re.M):
-                raise TaskError("merger left conflicts")
-            sh(["git", "add", "-A"], task.worktree)
-            sh(["git", "commit", "-q", "--no-edit"], task.worktree)
-        # One targeted repair round with the refreshed context, then the gate decides.
-        self.execute(task, "These previously read dependencies have since changed on main: "
-                     f"{moved}. Check and repair your change against them; retain it "
-                     "if it is still correct.", allow_unchanged=True)
-        base = sh(["git", "rev-parse", "origin/main"], task.worktree).strip()
-        (task.dir / "read_snapshot.json").write_text(json.dumps(
-            {"base": base, "blobs": snapshot(list(saved["blobs"]), base, task.worktree)}, indent=2))
+        sh(["git", "fetch", "-q", "origin", "main"])
+        if sh(["git", "rev-parse", "origin/main"]).strip() != task.base:
+            raise TaskError("Main changed; retain the task and renew source-bound owner authorization.")
 
     def publish(self, task: Task) -> None:
         require_pipeline_release()
+        self.integrate(task)
+        if (sh(["git", "rev-parse", "HEAD"]).strip() != task.base
+                or sh(["git", "status", "--porcelain"]).strip()
+                or load_policy() != self.policy):
+            raise TaskError("The approved controller checkout or owner policy changed before publication.")
+        if (not task.verified_head
+                or sh(["git", "rev-parse", "HEAD"], task.worktree).strip() != task.verified_head
+                or sh(["git", "status", "--porcelain"], task.worktree).strip()
+                or out_of_scope(self.changed(task), task.targets)):
+            raise TaskError("Publication requires the unchanged, verified task head and complete scope.")
         if self.dry_run:
             print(f"dry-run: #{task.number} ready on {task.branch}; no push or PR")
             return
-        sh(["git", "push", "-q", "-u", "origin", task.branch], task.worktree)
-        body = (f"Closes #{task.number}\n\nCriterion: {task.criterion} · mode: {task.mode} · "
+        # No authenticated command runs in a generated source tree.
+        sh(["git", "push", "-q", "-u", "origin", f"{task.verified_head}:refs/heads/{task.branch}"])
+        body = (f"Refs #{task.number}\n\nCriterion: {task.criterion} · mode: {task.mode} · "
                 f"gate: {' '.join(task.gates)} + progress.py --check (passed locally).\n"
                 "The local gate is a preliminary filter; CI and review determine PR merge readiness. "
                 "Criterion acceptance follows the required native gate passing on this branch "
                 "with source-bound evidence, as defined in AGENTS.md.\n\n"
-                f"<details><summary>L0 specification</summary>\n\n{task.spec}\n</details>\n")
+                f"Verified source: `{task.verified_head}`; authorized base: `{task.base}`.\n"
+                "The L0 specification and complete raw local logs remain in the controller task record.\n")
         url = sh(["gh", "pr", "create", "--draft", "--base", "main", "--head", task.branch,
                   "--title", f"agent(#{task.number}): {task.title}", "--body", body],
-                 task.worktree).strip()
-        if task.mode == "parallel" and self.auto_merge_parallel:
-            sh(["gh", "pr", "ready", url])
-            sh(["gh", "pr", "merge", url, "--auto", "--squash"])
+                 ROOT).strip()
         print(f"#{task.number}: {url}")
 
     def finish(self, task: Task) -> None:
         require_pipeline_release()
-        sh(["git", "worktree", "remove", "--force", str(task.worktree)], check=False)
+        sh(["git", "worktree", "remove", str(task.worktree)], check=False)
 
     def discard(self, task: Task) -> None:
-        """Undo prepare() for a task that did not fit this round; it is re-planned later."""
+        """Keep unused prepared work and its exclusive claim for explicit disposition."""
         require_pipeline_release()
-        self.finish(task)
-        sh(["git", "branch", "-D", task.branch], check=False)
-        shutil.rmtree(task.dir, ignore_errors=True)
+        print(f"#{task.number}: prepared task retained; not selected in this batch")
 
     def work(self, task: Task) -> bool:
         require_pipeline_release()
@@ -451,19 +627,23 @@ def main() -> int:
     parser.add_argument("--engines", default="claude,codex,copilot",
                         help="engine order for failover (comma separated)")
     parser.add_argument("--auto-merge-parallel", action="store_true",
-                        help="mark parallel-task PRs ready with squash auto-merge")
+                        help="unsupported: automatic merging is refused")
     parser.add_argument("--once", action="store_true", help="one round, then stop")
     parser.add_argument("--dry-run", action="store_true", help="no push and no PR")
     parser.add_argument("--idle-seconds", type=int, default=900, help="wait when no task is ready")
     args = parser.parse_args()
-    engines = [e for e in args.engines.split(",") if e]
-    if not engines or any(e not in ENGINES for e in engines):
-        raise SystemExit(f"--engines must be a subset of {','.join(ENGINES)}")
+    engines = args.engines.split(",")
+    if (not engines or any(not engine or engine not in ENGINES for engine in engines)
+            or len(engines) != len(set(engines))):
+        raise SystemExit(f"--engines must be unique names from {','.join(ENGINES)}")
     try:
         require_pipeline_release()
+        pipeline = Pipeline(engines, args.auto_merge_parallel, args.dry_run)
     except TaskError as error:
         parser.exit(2, f"{error}\n")
-    pipeline = Pipeline(engines, args.auto_merge_parallel, args.dry_run)
+    except (SandboxError, ValueError, OSError) as error:
+        print(f"pipeline blocked: {error}", file=sys.stderr)
+        return 2
     while True:
         worked = pipeline.run_once()
         if args.once:

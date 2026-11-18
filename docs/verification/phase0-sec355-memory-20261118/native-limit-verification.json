@@ -1,0 +1,33 @@
+{
+  "argv": [
+    "/usr/bin/systemd-run",
+    "--user",
+    "--scope",
+    "--quiet",
+    "--unit=baryonos-mem355-verify-native-727e9ce5273149c29118c77305898740.scope",
+    "--property=MemoryMax=1G",
+    "--property=MemorySwapMax=0",
+    "--property=TasksMax=128",
+    "--property=RuntimeMaxSec=30s",
+    "--property=OOMPolicy=kill",
+    "--",
+    "/usr/bin/env",
+    "-i",
+    "PATH=${SEC359_WORKTREE}/build/sec355-memory-review-20261118/native-bin:/usr/bin:/bin",
+    "HOME=/home/simon",
+    "LANG=C.UTF-8",
+    "CARGO_NET_OFFLINE=true",
+    "CARGO_BUILD_JOBS=2",
+    "CARGO_TARGET_DIR=${SEC359_WORKTREE}/build/sec355-memory-review-20261118/verify-native-target",
+    "EXPECTED_SCOPE=baryonos-mem355-verify-native-727e9ce5273149c29118c77305898740.scope",
+    "PROBE_RECEIPT=${SEC359_WORKTREE}/build/sec355-memory-review-20261118/native-child-limit.txt",
+    "${SEC359_WORKTREE}/build/sec355-memory-review-20261118/native-bin/cargo",
+    "+1.90.0",
+    "check",
+    "--manifest-path",
+    "build/sec355-memory-review-20261118/containment-probe/Cargo.toml"
+  ],
+  "unit": "baryonos-mem355-verify-native-727e9ce5273149c29118c77305898740.scope",
+  "exit_code": 0,
+  "child_limits": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/baryonos-mem355-verify-native-727e9ce5273149c29118c77305898740.scope\nmemory.max=1073741824\nmemory.high=max\n"
+}

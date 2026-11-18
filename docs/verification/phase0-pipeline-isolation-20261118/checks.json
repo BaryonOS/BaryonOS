@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "date": "2026-11-18",
+  "source_commit": "65ae5bacdee969a6e9da7d10909248d76af07fd8",
+  "parent_commit": "7e406c7c3ec71691939acca6db0c594bb8ce03a9",
+  "integration_main": "366b82b353485207a9b0d6b1ae63dafbbe265bae",
+  "status": "BLOCKED; partial corrections verified; not production acceptance",
+  "authorization_manifest_enabled": false,
+  "source_sha256": {
+    "tools/agent_pipeline.py": "08886f083c5d3dec4c216de3d6e8c19a05cd084ccf389c69b832a9c37537efbd",
+    "tools/agent_gate.py": "4714ea62f36f0fd80c6b9af6190090f6490b28656bd55a6653e76defd3d8b191",
+    "tools/agent_sandbox.py": "1a178d5af9884d2c2cfd86da93fdbe58f1f19094e09efd987bc021e239474721",
+    "tools/tests/test_agent_isolation.py": "6b41fcd6dc76393b3a7f5cc1242c2e5e070ccc208553eb125848e762bd3fdbc0",
+    "tools/tests/test_agent_execution_hold.py": "6a591bd2699325d3a93bf19f5a2499f3d55f935d8dd3a8be62b3b541a5417142",
+    "tools/tests/test_agent_sandbox_native.py": "bc24a21427d246c2c929908ab3de1596ed4f36b10156b1464477544a40e23459",
+    "tools/tests/test_agent_pipeline_integration.py": "b5c45b308a5b387833808a6b2813cb5b501f0074deaa87c25eb359da784cb1d6",
+    ".github/agent-pipeline.json": "b9c1b46f2bb54b682382a7ec685c70209f0b8ff68f4f878821ebd4b814f699e6"
+  },
+  "checks": [
+    {
+      "id": "failed-attempt-regression-red",
+      "command": "python3 -B -m unittest tools.tests.test_agent_isolation.SourceBoundary.test_failed_engine_output_is_discarded_before_fallback",
+      "raw_exit_code": 1,
+      "local_log": "build/tokenguard/run-y1rkfuto.log",
+      "log_sha256": "680a6fbf7a60f0348c70943e47972d7f7bc45c9a966712370c4ceb45ea8ac153"
+    },
+    {
+      "id": "revocation-regression-red",
+      "command": "python3 -B -m unittest tools.tests.test_agent_isolation.Authority.test_owner_revocation_on_main_stops_before_l0",
+      "raw_exit_code": 1,
+      "local_log": "build/tokenguard/run-vlem2nfh.log",
+      "log_sha256": "ac1cf4ac6a70d512ba3bb032d7b507a5de703d7b7ded301f759e447d94b0a84c"
+    },
+    {
+      "id": "targeted-final",
+      "command": "python3 -B -m unittest tools.tests.test_agent_isolation tools.tests.test_agent_execution_hold tools.tests.test_agent_pipeline tools.tests.test_agent_sandbox",
+      "raw_exit_code": 0,
+      "local_log": "build/tokenguard/run-m1p_y814.log",
+      "log_sha256": "91339d95884cb2f9402ff1bd3fc128015caddc203156317626c3188dfd69092b"
+    },
+    {
+      "id": "tools-final-with-native-config",
+      "command": "python3 -B -m unittest discover -s tools/tests -p test_*.py",
+      "raw_exit_code": 0,
+      "local_log": "build/tokenguard/run-tzkb3m9s.log",
+      "log_sha256": "04a58483e382959e5a0d35bdaa18b94a9f8e087e053250db6f6c01cb6f709685"
+    },
+    {
+      "id": "previously-skipped-rust-host-probes",
+      "command": "python3 -B -m unittest tools.tests.test_kernel_memory tools.tests.test_snapshot_wipe",
+      "raw_exit_code": 0,
+      "local_log": "build/tokenguard/run-254jky7u.log",
+      "log_sha256": "50178f29cfa1d11edfb6d2470fbdab3c06f3351fc35d79de849aa2c3d113bb40"
+    },
+    {
+      "id": "strict-preflight-build-smoke-final",
+      "command": "python3 -B tools/preflight.py --strict && python3 -B tools/build.py && python3 -B tools/run.py --smoke",
+      "raw_exit_code": 0,
+      "local_log": "build/tokenguard/run-q9uiky4s.log",
+      "log_sha256": "aa81d5e44a9a7a31aeb05a05a90b87cc28d9c9c45df19a7df9d12a04c262972d"
+    },
+    {
+      "id": "compileall-final",
+      "command": "python3 -B -m compileall -q tools",
+      "raw_exit_code": 0,
+      "local_log": "build/tokenguard/run-3ao9vfs2.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "tools_suite": {
+    "discovered": 445,
+    "passed": 442,
+    "skipped": 3,
+    "separate_skipped_probe_rerun": {
+      "passed": 3,
+      "skipped": 0,
+      "exit_code": 0
+    },
+    "real_linux_boundary_tests": 9,
+    "real_offline_transaction_tests": 1
+  },
+  "fixture_runtime": {
+    "bubblewrap_version": "0.13.1",
+    "official_release_asset": "https://github.com/containers/bubblewrap/releases/download/v0.13.1/bubblewrap-0.13.1.tar.xz",
+    "official_asset_sha256": "0e85c8702248b8dd64144f594147553650cdd0e4c951690345faace79c217c4d",
+    "backend_sha256": "747086cf019813633e8530014cbfbca53512578a021559a1c63b7bb16d091c15",
+    "rootfs_sha256": "11d8e4482930b4cc0fdeb1cab72289691d5e168201e34e3d15d89fba9bb6c065",
+    "debian_packages": [
+      {
+        "Package": "libcap-dev",
+        "Version": "1:2.78-1+b2",
+        "Filename": "pool/main/libc/libcap2/libcap-dev_2.78-1+b2_amd64.deb",
+        "SHA256": "5af75c43f36159a183f54f46bbf64d1a6173be041f05f088057df020f4bede42"
+      },
+      {
+        "Package": "libcap2",
+        "Version": "1:2.78-1+b2",
+        "Filename": "pool/main/libc/libcap2/libcap2_2.78-1+b2_amd64.deb",
+        "SHA256": "a7145898072352a79cf49671bd58ee436157bf83129b56b862c36f3cb7444d01"
+      }
+    ],
+    "scope": "Credential-free deterministic fixture; not authenticated clients or resource-policy acceptance"
+  },
+  "qemu": {
+    "base_commit": "65ae5bacdee969a6e9da7d10909248d76af07fd8",
+    "source_fingerprint_version": 3,
+    "source_sha256": "efb42666a15c497aa063269aa8596bc64d192d94d8417cf47fd7ba7579289719",
+    "raw_qemu_exit": 33,
+    "timed_out": false,
+    "passed": true,
+    "profile": "development-package; pc-q35-10.0/qemu64/TCG/1CPU/256MiB",
+    "qemu_version": "QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1)\nCopyright (c) 2003-2025 Fabrice Bellard and the QEMU Project developers",
+    "required_markers": [
+      "BOOT:EBS_OK",
+      "KERNEL:ENTRY",
+      "BOOTINFO:OK",
+      "M1:PASS"
+    ],
+    "artifact_sha256": {
+      "esp/kernel.elf": "60356c867b3ce554013fcbb7c143c6169d14c58a92ffe6dbe3286f0faa23944d",
+      "esp/EFI/BOOT/BOOTX64.EFI": "02c0c201459ea4b3b5edaa438d31ee1322df62d1b7df745191180424c9a2da36",
+      "OVMF_CODE.fd": "624e06de18b4fa535e90db7160d00d3d07d206422b89999bf1e27d920264e4e0",
+      "OVMF_VARS.template.fd": "5d2ac383371b408398accee7ec27c8c09ea5b74a0de0ceea6513388b15be5d1e"
+    }
+  },
+  "preserved_recovery": {
+    "pr": 357,
+    "head": "8a32bc582790fa16234dbadf37a0a176de620900",
+    "imported_files": [],
+    "disposition": "preserved; not accepted; resource lifecycle and runtime prerequisites unresolved"
+  },
+  "runtime_blockers": {
+    "installed_systemd": "257.13-1~deb13u1",
+    "recovery_requires_systemd_minimum": 259,
+    "private_user_bus_available": false,
+    "writable_delegated_cgroup_available": false,
+    "user_and_network_namespace_probe_exit": 0
+  },
+  "not_verified": [
+    "kernel-enforced complete resource and scratch lifecycle",
+    "complete selected authenticated model-client compatibility and engine allowlist",
+    "complete offline selected CI-gate compatibility",
+    "independent final-candidate review",
+    "current final-head hosted CI",
+    "repaired integrated main",
+    "security finding resolution",
+    "hardware or human audit"
+  ]
+}
