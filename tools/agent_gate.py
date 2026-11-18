@@ -16,7 +16,7 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from agent_sandbox import Sandbox, SandboxError
+from agent_sandbox import Sandbox, SandboxError, SandboxResourceExceeded
 from common import ROOT, agent_source_paths, agent_source_state, isolated_environment, stage_agent_source
 
 # Steps that install the runner environment; locally tools/common.py provides it.
@@ -94,7 +94,7 @@ def run_gate(commands: list[tuple[str, str, dict[str, str]]], cwd: Path, log_pat
             paths = agent_source_paths() if source_paths is None else source_paths
             if any(Path(path).parts[0] in {"build", "target"} for path in paths):
                 raise SandboxError("gate output mounts must not mask source inputs")
-            stage = Path(tempfile.mkdtemp(prefix="gate-source-", dir=log_path.parent))
+            stage = Path(tempfile.mkdtemp(prefix="gate-source-", dir=sandbox.scratch_root))
             stage_agent_source(cwd, stage, paths)
             fingerprint = hashlib.sha256(json.dumps(agent_source_state(stage), sort_keys=True).encode()).hexdigest()
             log.write(f"## source SHA256: {fingerprint}\n## retained isolated outputs: {stage.name}\n")
@@ -119,6 +119,12 @@ def run_gate(commands: list[tuple[str, str, dict[str, str]]], cwd: Path, log_pat
                 raw = getattr(error, stream + "_bytes", (getattr(error, stream) or "").encode())
                 log_path.with_name(f"{log_path.name}.timeout.{stream}.log").write_bytes(raw)
             log.write(f"{error.stdout or ''}\n{error.stderr or ''}\n## TIMEOUT: {error.timeout}s\n")
+            return FAIL_EXIT
+        except SandboxResourceExceeded as error:
+            for stream in ("stdout", "stderr"):
+                raw = getattr(error, stream + "_bytes", b"")
+                log_path.with_name(f"{log_path.name}.resource.{stream}.log").write_bytes(raw)
+            log.write(f"## RESOURCE LIMIT: {error}\n")
             return FAIL_EXIT
         except (SandboxError, ValueError, OSError) as error:
             log.write(f"## BLOCKED: {error}\n")

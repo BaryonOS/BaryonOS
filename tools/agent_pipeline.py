@@ -28,7 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from agent_gate import condensed, resolve, run_gate
-from agent_sandbox import Sandbox, SandboxError
+from agent_sandbox import Sandbox, SandboxError, SandboxResourceExceeded
 from common import (ROOT, CONTROLLER_GIT, CONTROLLER_GH, controller_environment,
                     agent_relative, agent_source_paths, agent_source_state,
                     import_agent_changes, stage_agent_source)
@@ -294,7 +294,7 @@ def run_agent(prompt: str, cwd: Path, log: Path, order: list[str], *,
             command = ENGINES[name]
             if not any((sandbox.rootfs / p / command[0]).is_file() for p in ("usr/bin", "bin")):
                 continue
-            with tempfile.TemporaryDirectory(prefix="agent-source-") as temporary:
+            with tempfile.TemporaryDirectory(prefix="agent-source-", dir=sandbox.scratch_root) as temporary:
                 stage = Path(temporary)
                 stage_agent_source(cwd, stage, paths)
                 before = agent_source_state(stage)
@@ -321,6 +321,14 @@ def run_agent(prompt: str, cwd: Path, log: Path, order: list[str], *,
         with log.open("a", encoding="utf-8") as out:
             out.write(f"## engine timeout after {error.timeout}s\n{error.stdout or ''}\n{error.stderr or ''}\n")
         raise TaskError("Isolated agent timed out; raw output retained.") from error
+    except SandboxResourceExceeded as error:
+        log.parent.mkdir(parents=True, exist_ok=True)
+        for stream in ("stdout", "stderr"):
+            raw = getattr(error, stream + "_bytes", b"")
+            (log.parent / f"{log.stem}-resource-{time.time_ns()}.{stream}.log").write_bytes(raw)
+        with log.open("a", encoding="utf-8") as out:
+            out.write(f"## isolated resource limit: {error}\n")
+        raise TaskError("Isolated agent exceeded its owner-controlled resource policy; raw bounded output retained.") from error
     except (SandboxError, ValueError, OSError) as error:
         raise TaskError(f"Isolated agent execution blocked: {error}") from error
     raise TaskError(f"no engine available (tried {', '.join(order)})")

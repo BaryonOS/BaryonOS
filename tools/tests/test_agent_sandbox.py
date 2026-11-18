@@ -35,38 +35,76 @@ class SandboxTests(unittest.TestCase):
         self.backend = self.directory / "backend"
         self.backend.write_bytes(b"pinned backend fixture\n")
         self.backend.chmod(0o755)
+        self.manager = self.directory / "systemd-run"
+        self.manager.write_bytes(b"pinned resource manager fixture\n")
+        self.manager.chmod(0o755)
         self.config = {
             "backend": str(self.backend),
             "backend_sha256": hashlib.sha256(self.backend.read_bytes()).hexdigest(),
             "rootfs": str(self.rootfs),
             "rootfs_sha256": sandbox.tree_digest(self.rootfs),
+            "resource_manager": str(self.manager),
+            "resource_manager_sha256": hashlib.sha256(self.manager.read_bytes()).hexdigest(),
+            "scratch_root": str(self.directory),
             "timeout_seconds": 60,
+            "memory_max_bytes": 64 * 1024 * 1024,
+            "tasks_max": 16,
+            "cpu_quota_percent": 100,
+            "file_max_bytes": 1024 * 1024,
+            "open_files_max": 256,
+            "workspace_max_bytes": 4 * 1024 * 1024,
+            "workspace_max_entries": 1000,
         }
+        self.backend_version = subprocess.CompletedProcess([], 0, "bubblewrap 0.13.1\n", "")
+        self.manager_version = subprocess.CompletedProcess([], 0, "systemd 259 (259.9)\n", "")
+
+        def version(command, **_options):
+            result = self.manager_version if "systemd-run" in command else self.backend_version
+            if isinstance(result, BaseException):
+                raise result
+            return result
+
         self.version = self.enterContext(mock.patch.object(
-            sandbox.subprocess, "run", return_value=subprocess.CompletedProcess(
-                ["pinned-backend", "--version"], 0, "bubblewrap 0.13.1\n", "")))
+            sandbox.subprocess, "run", side_effect=version))
         self.launch = self.enterContext(mock.patch.object(sandbox.subprocess, "Popen"))
         self.kill = self.enterContext(mock.patch.object(sandbox.os, "killpg"))
+        self.tmpfs = self.enterContext(mock.patch.object(sandbox, "_require_private_tmpfs"))
+        self.resource_env = self.enterContext(mock.patch.object(
+            sandbox, "_resource_environment", return_value={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8",
+                                                              "XDG_RUNTIME_DIR": "/run/user/1000",
+                                                              "DBUS_SESSION_BUS_ADDRESS": "unix:path=/run/user/1000/bus"}))
+        self.output = self.enterContext(mock.patch.object(sandbox, "_read_output"))
 
     def process(self, code=0, stdout="output\n", stderr=""):
         process = mock.MagicMock()
         process.pid = 123456789
         process.returncode = code
-        process.communicate.return_value = (stdout.encode(), stderr.encode())
+        process.poll.return_value = code
+        process.wait.return_value = code
         process.__enter__.return_value = process
         self.launch.return_value = process
+        self.output.side_effect = [(stdout.encode(), False), (stderr.encode(), False)]
         return process
 
     def test_explicit_complete_configuration_and_bounded_timeout_are_required(self):
         malformed = (None, {}, {**self.config, "extra": True},
                      {**self.config, "backend_sha256": "bad"},
-                     {**self.config, "rootfs_sha256": 123})
+                     {**self.config, "rootfs_sha256": 123},
+                     {**self.config, "resource_manager_sha256": "bad"})
         for config in malformed:
             with self.subTest(config=config), self.assertRaises(sandbox.SandboxError):
                 sandbox.Sandbox(config)
         for timeout in (0, -1, 7201, True, 1.5, "60"):
             with self.subTest(timeout=timeout), self.assertRaises(sandbox.SandboxError):
                 sandbox.Sandbox({**self.config, "timeout_seconds": timeout})
+        for field, value in (("memory_max_bytes", 1), ("tasks_max", True),
+                             ("cpu_quota_percent", 1001), ("file_max_bytes", 1),
+                             ("open_files_max", 8), ("workspace_max_bytes", 1),
+                             ("workspace_max_entries", 0)):
+            with self.subTest(field=field), self.assertRaises(sandbox.SandboxError):
+                sandbox.Sandbox({**self.config, field: value})
+        with self.assertRaises(sandbox.SandboxError):
+            sandbox.Sandbox({**self.config, "file_max_bytes": 8 * 1024 * 1024})
         self.version.assert_not_called()
         self.launch.assert_not_called()
 
@@ -131,38 +169,43 @@ class SandboxTests(unittest.TestCase):
             sandbox.Sandbox(self.config).verify()
         self.version.assert_not_called()
 
-    def test_checked_backend_inode_is_used_with_a_minimal_launcher_environment(self):
+    def test_checked_executable_inodes_use_a_minimal_launcher_environment(self):
         descriptors = []
 
         def version(argv, **kwargs):
             descriptor = kwargs["pass_fds"][0]
             descriptors.append(descriptor)
-            self.assertEqual(os.fstat(descriptor).st_ino, self.backend.stat().st_ino)
+            name = argv[7]
+            expected = self.backend if name == "bwrap" else self.manager
+            self.assertEqual(os.fstat(descriptor).st_ino, expected.stat().st_ino)
             self.assertEqual(argv[:5], ["/usr/bin/python3", "-I", "-S", "-B", "-c"])
-            self.assertEqual(argv[6:], [str(descriptor), "bwrap", "--version"])
+            self.assertEqual(argv[6:], [str(descriptor), name, "--version"])
             self.assertIn("os.set_inheritable(fd,False)", argv[5])
             self.assertIn("os.execve(fd,", argv[5])
             self.assertEqual(kwargs["env"], {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8"})
             self.assertEqual(kwargs["stdin"], subprocess.DEVNULL)
-            return subprocess.CompletedProcess(argv, 0, "bubblewrap 0.13.1\n", "")
+            output = "bubblewrap 0.13.1\n" if name == "bwrap" else "systemd 259 (259.9)\n"
+            return subprocess.CompletedProcess(argv, 0, output, "")
 
         self.version.side_effect = version
         sandbox.Sandbox(self.config).verify()
-        with self.assertRaises(OSError):
-            os.fstat(descriptors[0])
+        self.assertEqual(len(descriptors), 2)
+        for descriptor in descriptors:
+            with self.assertRaises(OSError):
+                os.fstat(descriptor)
         self.launch.assert_not_called()
 
     def test_legacy_prerelease_malformed_or_failed_backend_is_unavailable(self):
         for output, code in (("bubblewrap 0.13.0\n", 0), ("bubblewrap 0.13.1-dev\n", 0),
                              ("bubblewrap 0.13.1\nextra\n", 0), ("other 99.1.1\n", 0),
                              ("bubblewrap 0.13.1\n", 1)):
-            self.version.return_value = subprocess.CompletedProcess([], code, output, "diagnostic")
+            self.backend_version = subprocess.CompletedProcess([], code, output, "diagnostic")
             with self.subTest(output=output), self.assertRaises(sandbox.SandboxError):
                 sandbox.Sandbox(self.config).verify()
         self.launch.assert_not_called()
 
     def test_backend_version_timeout_is_a_closed_failure(self):
-        self.version.side_effect = subprocess.TimeoutExpired("backend", 10)
+        self.backend_version = subprocess.TimeoutExpired("backend", 10)
         with self.assertRaises(sandbox.SandboxError):
             sandbox.Sandbox(self.config).verify()
         self.launch.assert_not_called()
