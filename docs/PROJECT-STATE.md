@@ -1,16 +1,17 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — N04-T2 proposed issuer contract — 18 November 2026
+## NEXT AGENT HANDOFF — N04-T2 delivery — 18 November 2026
 
-**Claim:** Codex, `codex/n04-issuer-contract`, base69d82075.
-**Goal:** proposed authentic issuer/helper attenuation/generation/durable deny seam.
-**Invariant:** no new trust root, constructor, capability or automatic regrant;
-existing fences and unsafe runner hold retained.
-**Write set:** docs/implementation/N04-ISSUER-DELEGATION.md and lead state.
-**Acceptance:** cited paths/symbols checked against owning source, progress check.
-**Evidence limit:** design only; owner/security alignment required before code.
-**Next:** publish compact proposal and continue independent READY work.
-H06 draft384, B06 draft383, B02 partial382 and N04 blocked380 preserved.
+**Source:** `8274efb32e885c9337a33eceb025c2ca5e806812`, `codex/n04-issuer-contract`.
+**Delivered:** Compact PROPOSED issuer/helper attenuation/regrant/durable denial contract tied to existing opaque contexts, broker operations and source-bound native helper evidence. Four cited paths/six source symbols and progress check pass; no production interface or authority adopted.
+**Checks:** executed targeted commands and raw exit codes are in the
+[exact command/log receipt](roadmap-pipeline/receipts/N04-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Design only. Production issuer/storage ownership, durable acknowledgement and trusted cold freshness require explicit owner/security alignment before code. No native or hardware acceptance;41/100 unchanged. Existing fences and unattended hold retained.
+**Ownership:** Integration Manager owns PR integration/merges/closure. Earlier
+delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold active.
+**Next:** publish new draft, immediately claim the next independent READY functional
+slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
 

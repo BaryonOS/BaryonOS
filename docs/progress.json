@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "b87436dfd8ef8c277dea1dbde780f2e2229283a9",
+    "source_commit": "8274efb32e885c9337a33eceb025c2ca5e806812",
     "assessment_basis": "parent_commit",
-    "branch": "codex/unified-governance",
-    "task": "GOV-1-6 reconciliation with main 5a3295b6",
+    "branch": "codex/n04-issuer-contract",
+    "task": "N04-T2: Compact PROPOSED issuer/helper attenuation/regrant/durable denial contract tied to existing opaque contexts, broker operations and source-bound native helper evidence. Four cited paths/six source symbols and progress check pass; no production interface or authority adopted.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Shared role and workflow contracts, client adapters and compact continuation are reconciled with actual main after #350. Targeted quarantine (5) and execution-hold (3) regressions remain source-bound; disabled manifest and source hold remain intact. Governance has no zero-open-items/baseline-B prerequisite. Host adapter/protection checks do not establish client runtime parity, Daybreak acceptance, hardware or human audit. No product criterion or weight changes."
+    "summary": "41/100 unchanged. Compact PROPOSED issuer/helper attenuation/regrant/durable denial contract tied to existing opaque contexts, broker operations and source-bound native helper evidence. Four cited paths/six source symbols and progress check pass; no production interface or authority adopted. Design only. Production issuer/storage ownership, durable acknowledgement and trusted cold freshness require explicit owner/security alignment before code. No native or hardware acceptance;41/100 unchanged. Existing fences and unattended hold retained. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {
