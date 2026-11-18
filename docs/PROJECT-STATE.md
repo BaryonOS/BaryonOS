@@ -1,24 +1,27 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — H05-T1 S3/FACS extraction — 18 November 2026
+## NEXT AGENT HANDOFF — H05-T1 S3/FACS delivery — 18 November 2026
 
-**Claim:** Codex implementation, `codex/h05-s3-facs`, base `2eac8ca39ce04753f4f6bef3b09ee9b3610c065f`.
-N02-T2 delivered ated44d77c/checkpoint327f659c in draft PR370:58 host tests,
-Clippy/fmt/library build and static SDK check pass; Rust1.91.1 blocker resolved.
-**Goal:** reuse bounded ACPI parser for S3 sleep types and validate a FADT-bound
-FACS snapshot, without changing existing S5 API or executing sleep/wake.
-**Invariant:** firmware bytes/addresses are untrusted observations, never I/O or
-resume authority. Reject inconsistent pointers, misalignment, malformed/truncated
-packages and FACS extents. Preserve S5 validation and all existing tests.
-**Write set:** drivers/acpi-power/{src/lib.rs,tests/,README.md}; lead-owned
-checkpoint/ledger/progress and one receipt. No kernel/trampoline/physical I/O.
-**Acceptance:** Rust1.90 tests/Clippy/fmt/freestanding build; S3 selection/namespace/
-malformed and FACS binding/length/alignment/vector-field negatives.
-**Evidence limit:** host firmware parser/build only; native S3, physical sleep/wake,
-thermal/battery and H05 acceptance stay open. Score41/100.
-**Ownership:** Integration Manager owns prior PRs/closure; Claude S09/UI preserved.
-Unsafe unattended hold unchanged; original dirty main untouched.
-**Next:** one fresh supervised builder implements this bounded slice.
+**Source:** `7ca7e182cbda15c2d8525fa99c7a8d9f1052596b`, `codex/h05-s3-facs`, base `2eac8ca3`.
+**Delivered:** bounded shared AML/SDT/PM1 parser selects S3 separately from S5;
+validated FACS address discovery and snapshot binding, exact extents/alignment,
+versions2/3, flags and selected waking-vector checks. No firmware writes or I/O.
+Existing S5 public API and test bytes remain unchanged.
+**Checks:**36 host tests pass,1 existing external QEMU-table fixture ignored;
+Clippy/fmt and x86_64-unknown-none library build exit0. Lead source/diff review.
+[Exact commands/log hashes](roadmap-pipeline/receipts/H05-T1.json).
+**Limits:** narrow documented firmware profile; snapshots can change afterward.
+No native S3 entry/trampoline, physical sleep/wake, thermal/battery or H05 acceptance.
+Progress **41 → 41/100**.
+**Prior delivery:** N02-T2 sourceed44d77c/checkpoint327f659c in draft PR370:58
+host tests, Clippy/fmt, library build and locked static SDK native check passed.
+Rust1.91.1 verified; missing unknown-none target installed; global default unchanged.
+**Ownership:** Integration Manager owns prior PR review/merge/closure, including
+PR364–370; no edits to their branches/PRs. Claude S09/UI, original dirty checkout
+and unsafe unattended execution hold preserved.
+**Resume:** publish H05 draft, then select independent READY implementation from
+this ledger (e.g. bounded H02-T2 after checking its write set against integration).
+N02-T3 and H05-T3 retain their concrete native dependencies; do not infer acceptance.
 
 ## Retained checkpoint — PR #361 integration and final-read barrier — 18 November 2026
 
