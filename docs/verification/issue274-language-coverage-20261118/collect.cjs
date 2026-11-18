@@ -9,14 +9,15 @@ fs.mkdirSync(out, {recursive:true});
 const wikiArgument = process.argv.indexOf('--wiki');
 if(wikiArgument < 0 || !process.argv[wikiArgument+1]) throw new Error('Pass --wiki /absolute/path/to/BaryonOS.wiki');
 const wikiRoot = path.resolve(process.argv[wikiArgument+1]);
-const git = (...args) => cp.execFileSync('git', ['-C', root, ...args], {encoding:'utf8'}).trim();
+const gitEnvironment = {...process.env, GIT_NO_LAZY_FETCH: "1", GIT_TERMINAL_PROMPT: "0"};
+const git = (...args) => cp.execFileSync('git', ['-C', root, ...args], {encoding:'utf8',env:gitEnvironment}).trim();
 const sha256 = raw => crypto.createHash('sha256').update(raw).digest('hex');
 const head = git('rev-parse', 'HEAD');
 const oldAudit = JSON.parse(fs.readFileSync(path.join(root, 'docs/verification/english-translation-20261109/postmerge-link-audit.json')));
 const oldLanguage = JSON.parse(fs.readFileSync(path.join(root, 'docs/verification/english-translation-20261109/english-final-readonly-audit.json')));
 const oldPaths = new Set(oldAudit.snapshot.changed_active_paths);
 function tree(ref) {
-  try {const value=cp.execFileSync('git',['-C',root,'ls-tree','-r',ref],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();return new Map(value.split('\n').map(l => {const [meta,p] = l.split('\t'); return [p,meta.split(' ')[2]];}));}
+  try {const value=cp.execFileSync('git',['-C',root,'ls-tree','-r',ref],{encoding:'utf8',stdio:['ignore','pipe','pipe'],env:gitEnvironment}).trim();return new Map(value.split('\n').map(l => {const [meta,p] = l.split('\t'); return [p,meta.split(' ')[2]];}));}
   catch {return new Map();}
 }
 const currentTree = tree(head), oldTree = tree(oldLanguage.head);

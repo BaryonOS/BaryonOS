@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -10,6 +11,7 @@ import tempfile
 
 
 WORDS = r"\b(?:het|een|zijn|wordt|worden|voor|geen|alleen|ook|deze|dit|moet|moeten|zonder|niet|gegevens|gebruiker|bestanden|veiligheid|mogelijk|beschikbaar|toestemming|verplicht|ondersteund|huidige|volgende|bewijs|onderzoek|ontwerp)\b"
+GIT_ENV = {**os.environ, "GIT_NO_LAZY_FETCH": "1", "GIT_TERMINAL_PROMPT": "0"}
 
 
 def candidates(text):
@@ -104,7 +106,7 @@ def main():
     else:
         command += ["ls-files", "--cached", "--", "*.md"]
     actual_paths = {
-        relative for relative in subprocess.check_output(command, text=True).splitlines()
+        relative for relative in subprocess.check_output(command, text=True, env=GIT_ENV).splitlines()
         if relative.endswith(".md") and not protected(relative)
     }
     expected_paths = {item["path"] for item in record["documents"]}
@@ -117,7 +119,7 @@ def main():
         if not target.is_relative_to(root):
             raise ValueError("Path outside repository")
         if args.ref:
-            return subprocess.check_output(["git", "-C", str(root), "show", args.ref + ":" + relative])
+            return subprocess.check_output(["git", "-C", str(root), "show", args.ref + ":" + relative], env=GIT_ENV)
         return target.read_bytes()
 
     changed = []
