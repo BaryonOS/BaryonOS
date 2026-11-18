@@ -1,6 +1,67 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — PR #355 native test quality — 18 November 2026
+## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
+
+**Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
+`6f29b6720b51aecad5714faa48b445afd6e2f5a9`. The project owner authorizes immediate
+governance without a zero-open-items or completed baseline-B prerequisite.
+
+**Goal:** working shared instructions, role contracts, thin client adapters and
+clean-session continuation using existing project state.
+**Invariant:** preserve the independent kernel, Security Floor, unconditional
+issue-pipeline execution hold, disabled manifest, merge protections and foreign WIP.
+**Write set:** root `AGENTS.md`, `CLAUDE.md`, `CODEX-WORKFLOW.md`, shared roles/skills
+under `.agents/`, existing `.codex/agents/` and `.github/agents/` adapters,
+`.github/copilot-instructions.md`, Claude skill/role adapters, `docs/CODEX-START.md`,
+`docs/CODEX-PARITY.md`, `docs/STATUS.md`, this checkpoint, `docs/DECISIONS.md`, progress
+assessment/displays and targeted governance tests in `tools/tests/`. A protection
+change, if required, is limited to `tools/agent_pipeline.py` and its targeted test.
+**Acceptance:** targeted governance and protected-path tests, existing quarantine
+and execution-hold regressions, tools suite, progress generation/check and diff
+review. Full native matrices are not repeated for unchanged OS code.
+**Evidence limit:** repository contracts and host regressions do not prove client
+runtime parity, sandbox activation, Daybreak remediation, hardware or human audit.
+
+**Reconciliation:** remote main equals the base. #359 integrated at `1c10cdb5` and
+#355 at the base. Quarantine 5/5 and execution-hold 3/3 pass, exit 0 (raw logs
+`build/tokenguard/run-425ldpp4.log`, `run-yheavd50.log`). Manifest `enabled: false`.
+No active `agents/independent.md` reference was found. Four real `os_*` roles exist.
+
+**Preserved:** original dirty main checkout; former #355 checkout `sec355-local`
+at `124a679c` with `tools/agent_gate.py`, `tools/tests/test_agent_pipeline.py` and
+untracked offline-QEMU evidence; Claude UI/UX and suite worktrees; S09 worktree.
+No WIP was discarded, staged or published from those checkouts. #357 remains
+recovery-only WIP. Authenticated model clients, offline gate compatibility and
+Daybreak finding acceptance remain open; they do not block this disjoint task.
+
+**Delivered:** shared workflow and four canonical roles; thin Claude/Codex/Copilot
+adapters; guarded shared policy paths; compact overview and recovery; risk-based
+verification and explicit separation from client runtime parity. Root policy is
+changed in a separate `docs(agents):` commit for owner review.
+
+**Checks:** governance 4/4, quarantine 5/5 and hold 3/3 pass. Complete tools suite:
+521 tests, 15 explicit skips, exit 0 (`build/tokenguard/run-wxpuqkrf.log`); this is host
+regression evidence, including mocked harness tests, not a fresh QEMU run.
+`python3 -B -m compileall -q tools`, exit 0 (`run-fwyt6wkl.log`);
+`python3 -B tools/progress.py --write` / `--check`, both exit 0
+(`run-6s7777_y.log`, `run-69_0ev73.log`). Whitespace check exits 0
+(`run-uido1a9x.log`). Full raw logs remain under this worktree's `build/tokenguard/`.
+One read-only `os_security_reviewer` found no P1/P2 issue; the sole P3 wording
+correction now scopes the Copilot allowlist statement to that adapter. AI review
+is not a human audit. Native matrices and client runtime-parity canaries: NOT RUN,
+because OS code is unchanged and these are separate evidence levels.
+
+**Blocker:** no local governance blocker. Hosted current-head checks are pending
+publication; no merge acceptance is inferred. Existing Daybreak/model-client/offline
+runtime gaps remain open, outside governance acceptance. Prefix-sibling overprotection
+remains a nonblocking P3; no protection was relaxed for this task.
+**Next:** publish the draft governance PR, then continue PR #361 integration in a
+separate worktree. Its current head has passing mandatory host/QEMU/merge-hold checks,
+but pending window-session checks and merge conflicts; preserve its runtime evidence
+and resolve only actual integration conflicts before considering manual squash.
+Progress **41 → 41/100**, no accepted criterion/weight change.
+
+## Retained checkpoint — PR #355 native test quality — 18 November 2026
 
 **Source and change:** security-quality checkpoint
 `a53c6eb9642a30b846cff194c30fad0d4eccbcc1` extends documented native-evidence
@@ -24,7 +85,7 @@ for `c17f5a52`, then publish this checkpoint without cancelling that evidence an
 require fresh current-head CI/CodeQL/Code Quality. Score 41/100 is unchanged. No
 Daybreak, issue, baseline or governance acceptance is inferred.
 
-## NEXT AGENT HANDOFF — PR #355 native resource boundary — 18 November 2026
+## Retained checkpoint — PR #355 native resource boundary — 18 November 2026
 
 **Source and change:** security checkpoint
 `6dbe373a84929df6c781e5bf2355d61f7b1f39c9` extends capped-scratch source
@@ -57,7 +118,7 @@ CI/CodeQL/Code Quality and Daybreak acceptance remain open. Keep the manifest
 disabled. Score 41/100 is unchanged; no finding, issue, baseline or governance
 acceptance is inferred.
 
-## NEXT AGENT HANDOFF — PR #355 capped scratch transactions — 18 November 2026
+## Retained checkpoint — PR #355 capped scratch transactions — 18 November 2026
 
 **Source and change:** security checkpoint
 `edd1a6a9af2d80a56848ec500bbf2b702799dced` extends engine-policy evidence head
@@ -92,7 +153,7 @@ selected-gate compatibility, hosted current-head CI/CodeQL and final Daybreak
 acceptance also remain open. Keep the manifest disabled. Score 41/100 is unchanged;
 no finding, issue, baseline or governance acceptance is inferred.
 
-## NEXT AGENT HANDOFF — PR #355 owner-bound engine policy — 18 November 2026
+## Retained checkpoint — PR #355 owner-bound engine policy — 18 November 2026
 
 **Source and change:** security checkpoint
 `47835c4ebc5dad0576c0feaa3ec3654f3679f14d` extends published PR head
@@ -122,7 +183,7 @@ the current published-head native jobs until they finish, then publish this comp
 checkpoint and require fresh CI/review. Score 41/100 is unchanged; no Daybreak
 finding, issue, baseline or governance acceptance is inferred.
 
-## NEXT AGENT HANDOFF — PR #355 bounded gate finalizer — 18 November 2026
+## Retained checkpoint — PR #355 bounded gate finalizer — 18 November 2026
 
 **Source and change:** security checkpoint `364b94964cc7f3fbb8ff2377e87861e858ef03ad`
 extends immutable-receipt evidence head `467e25b6394fcffc97d85a7be025bd5814b0806e`.
@@ -246,7 +307,7 @@ issue closure is authorized. Score 41/100 is unchanged.
 
 **Resume:** continue from published PR #359 containment `9789ce56` pending final hosted native-window acceptance, PR #356 helper correction `eba1bfa7` has three reported CodeQL collector alerts under repair; new-head CI/review is required, and the independent public M6 observer fix. Repair reported failures first. Finite B retains its approved meaning; governance additionally requires strict genuine zero issues/PRs/actionable findings or an explicit project-owner exception. Score 41/100 remains unchanged. No vulnerable issue-pipeline execution, auto-merge, bypass, false closure or governance start.
 
-## NEXT AGENT HANDOFF — Phase 0 execution isolation — 17 November 2026
+## Retained checkpoint — Phase 0 execution isolation — 17 November 2026
 
 **Source:** integrated main `366b82b353485207a9b0d6b1ae63dafbbe265bae` after the authorized PR333 squash; isolated branch `codex/phase0-pipeline-isolation`, security parent `aec1fb5f75e6165da82ba81f3f43d7a0d912ab1d`.
 **Primary milestone:** 0D security remediation. Integration0B is waiting; baselineB and governance1–6 remain blocked. A private security report requires verification of the development execution boundary. Its sensitive evidence remains outside the public repository.
@@ -257,7 +318,7 @@ issue closure is authorized. Score 41/100 is unchanged.
 **Ownership and evidence:** original user work, independent UI/S09 workstreams, existing PRs and compiler WIP remain preserved. No original worktree was reset or cleaned. Private managed artifacts retain exact source/commands/limits. Score41/100 is unchanged; no product criterion or security result is accepted by this checkpoint.
 **Next:** preserve this draft checkpoint, resolve the independently identified blockers, then require current-head CI/security verification before manual squash and source-bound Daybreak closure. Prepare the authorized cloudhandoff after reconciling branches/WIP; ownership is not transferred until remote commits are verified. Do not use the affected issue pipeline for remediation. Resume the existing integration/modernization work only after the boundary is verified.
 
-## NEXT AGENT HANDOFF — Local PR359 containment reconciliation — 18 November 2026
+## Retained checkpoint — Local PR359 containment reconciliation — 18 November 2026
 
 **Authority and ownership:** the project owner approved autonomous local execution and verified manual squash merges. Cloud handoff `88b801ab8cd47f4765ef7d925b161542dbbf684e` releases Codex work only. Local Codex exclusively owns this PR359 reconciliation in an isolated worktree; the original unfinished merge, Claude UI/UX and broader S09 remain untouched.
 
@@ -269,7 +330,7 @@ issue closure is authorized. Score 41/100 is unchanged.
 
 **Next:** independently review and publish the evidence correction, then require a fresh exact-head hosted rollup. Manually squash only when every applicable check and actionable review is satisfied. Verify resulting main before continuing PR355/357 and the remaining security queue. Governance has not started.
 
-## NEXT AGENT HANDOFF — Phase 0 PR339 safe checker and integration — 18 November 2026
+## Retained checkpoint — Phase 0 PR339 safe checker and integration — 18 November 2026
 
 **Actual main:** `67d5859d735836331b6fb971eae89162b7fa8465` after verified manual squash merges #345 and #346. Actual trees equal their independently reviewed candidates. Translation source PRs #347–#349/#351–#353 were closed only after actual-main inclusion proof; original refs remain preserved. Five issues and seven PRs remain open at this cutoff. Project5 synchronization uses the existing workflow.
 

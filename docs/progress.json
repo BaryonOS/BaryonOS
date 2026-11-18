@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "a53c6eb9642a30b846cff194c30fad0d4eccbcc1",
+    "source_commit": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
     "assessment_basis": "source_commit",
-    "branch": "codex/phase0-pipeline-isolation",
-    "task": "SEC355-QUALITY: normalize native test imports without weakening cleanup boundaries",
+    "branch": "codex/unified-governance",
+    "task": "GOV-1-6: shared contracts, thin adapters and risk-based continuation",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Exact clean source a53c6eb normalizes the native test's unittest.mock import and passes all 14 native fixture tests plus 517 tools tests with 15 explicit skips. Source and rootfs hashes remain stable and no scope/cgroup residue remains. Intentional BaseException handling is retained so interrupt and exit paths cannot bypass cleanup or quarantine. The fixture-only 256/512 MiB and normal gate 6/8 GiB profiles are unchanged. Authenticated clients, complete selected-gate compatibility, hosted eventual-head acceptance and final Daybreak resolution remain open; the execution hold stays active and the manifest disabled."
+    "summary": "41/100 unchanged. Shared role and workflow contracts, client adapters and compact continuation are implemented from integrated main after #359/#355. Targeted quarantine (5) and execution-hold (3) regressions pass; disabled manifest and source hold remain intact. Governance has no zero-open-items/baseline-B prerequisite. Host adapter/protection checks do not establish client runtime parity, Daybreak acceptance, hardware or human audit. No product criterion or weight changes."
   },
   "tracks": [
     {
