@@ -1,21 +1,17 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — U05-T2 scoped search core — 18 November 2026
+## NEXT AGENT HANDOFF — U05-T2 delivery — 18 November 2026
 
-**Claim:** Codex, codex/u05-search-index, base5a3295b6.
-**Goal:** bounded domain/object/revision-aware name/collection/metadata/UTF8-token
-index with update/delete/catalogue rebuild and currently granted-domain results.
-**Invariant:** default deny, stale/revoked/foreign-domain input never produces
-results; corrupt cached data is refused and rebuilt from trusted catalogue input.
-No index data creates permissions or regrants a retired epoch.
-**Write set:** sdk/search-index/ standalone only; lead state/progress/receipt.
-**Acceptance:** standalone Rust1.90 tests/Clippy/fmt/freestanding build; domain,
-revocation/revision, UTF8/token bounds, capacity and corruption/rebuild negatives.
-**Evidence limit:** host model, no native search/UI/permission enforcement.
-Shared SDK membership deferred because integration PR366 owns manifest/lock.
-Prior settings core1c3696d2/checkpoint0a3b4629 delivered with same membership blocker.
-**Next:** implement core, publish draft, continue independent READY tasks.
-Claude work, prior integration branches and unsafe unattended hold preserved.
+**Source:** `9bb822db5e2e80c62ca85d7e508567995fb813a8`, `codex/u05-search-index`.
+**Delivered:** Standalone bounded domain/object/revision search index with UTF8 tokens, update/delete tombstones, atomic catalogue rebuild, current grant epochs and accidental-corruption checks.11 host tests pass; bounds precede untrusted text scanning.
+**Checks:** targeted Rust tests, Clippy (-D warnings), formatting and freestanding
+library build exit0; [exact commands/raw-log hashes](roadmap-pipeline/receipts/U05-T2.json).
+Lead source/diff review completed; no duplicate matrix. Progress **41 → 41/100**.
+**Limits:** Full U05-T2 remains BLOCKED on shared SDK membership owned by integration PR366. Host model only; trusted catalogue/service identity and grant authentication remain external, no native search/UI acceptance.
+**Ownership:** Integration Manager owns PR integration/merges/closure. Earlier
+delivery branches and Claude S09/UI remain untouched. Unsafe unattended hold active.
+**Next:** publish new draft, immediately claim the next independent READY functional
+slice from this ledger; no waiting for integration. Prior delivery checkpoints retained.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
 
