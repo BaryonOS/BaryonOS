@@ -26,12 +26,12 @@
       "sha256": "646755e125e761f1f9b5d7bcc393a39911d842c65b2c9fad98b2f662291fdbb0"
     },
     "helpers/self_test.py": {
-      "bytes": 27994,
-      "sha256": "e1b20cd1952d4671183a36e12180395441afee139ca41710272c16cb79c5176a"
+      "bytes": 28338,
+      "sha256": "1c5c1a4431efbfc1d35c6775ce89ba26d5d9056d579ac1264f4deba91f8443d9"
     },
     "helpers/verify.py": {
-      "bytes": 20086,
-      "sha256": "443106db4b807c34733c9b2b75414635d9fb938692dbcc95a2c445e05ee31f4f"
+      "bytes": 20222,
+      "sha256": "4f024300522ca161b4a831a4f7bf19901e0141489f43198be37ac0f378c03a2f"
     },
     "inputs/publication.json": {
       "bytes": 9676,
@@ -63,11 +63,11 @@
     },
     "logs/05-self-test.json": {
       "bytes": 3067,
-      "sha256": "79a24d4124307d80e80f2d88b2f71c568295ddcfeff16a6f16e2902eaf7f6e6f"
+      "sha256": "5c15b54bf10fb1cc3f08a5a3a0405c4b7739ca46fc02df784aeb4749a02f8e92"
     },
     "manifest.json": {
       "bytes": 2939,
-      "sha256": "847a22392a8e552e55e13aab2a36f1b29c3155be339a535c599c8efe06a23507"
+      "sha256": "37809b8984820c1ab0befe7d44121b65d9f83850b310978c26ffc9b76097529b"
     },
     "output/collector.json": {
       "bytes": 39098,

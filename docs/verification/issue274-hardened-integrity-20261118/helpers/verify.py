@@ -106,7 +106,11 @@ def slug(value: str) -> str:
     return value.replace(" ", "-")
 
 
-def strip_inline_code(line: str, preserve_contents: bool = False) -> str:
+def strip_inline_code(
+    line: str,
+    preserve_contents: bool = False,
+    replacement: str | None = None,
+) -> str:
     result: list[str] = []
     index = 0
     marker = "\x60"
@@ -141,6 +145,8 @@ def strip_inline_code(line: str, preserve_contents: bool = False) -> str:
                 if content.startswith(" ") and content.endswith(" ") and content.strip():
                     content = content[1:-1]
                 result.append(content)
+            elif replacement is not None:
+                result.append(replacement)
             index = closing
     return "".join(result)
 
@@ -167,6 +173,7 @@ def inline_destination(value: str) -> str | None:
 
 
 def link_destinations(text: str) -> list[str]:
+    text = rendered_html(text)
     definitions: dict[str, str] = {}
     lines: list[str] = []
     fence: tuple[str, int] | None = None
@@ -183,7 +190,7 @@ def link_destinations(text: str) -> list[str]:
                 continue
         if fence:
             continue
-        rendered = strip_inline_code(line)
+        rendered = strip_inline_code(line, replacement="code")
         definition = re.match(r"^ {0,3}\[([^\]]+)\]:[ \t]*(?:<([^>]+)>|(\S+))", rendered)
         if definition:
             label = " ".join(definition.group(1).lower().split())
@@ -210,12 +217,11 @@ def link_destinations(text: str) -> list[str]:
         destination = definitions.get(" ".join(match.group(1).lower().split()))
         if destination is not None:
             destinations.append(destination)
-    visible_html = rendered_html(body)
     destinations.extend(
         match.group(2)
         for match in re.finditer(
             r"<a\b[^>]*\bhref\s*=\s*([\"'])(.*?)\1",
-            visible_html,
+            body,
             flags=re.IGNORECASE,
         )
     )

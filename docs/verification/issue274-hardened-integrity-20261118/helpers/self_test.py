@@ -152,12 +152,18 @@ def main() -> None:
         raise ValueError("reference-style links were not resolved")
     rendered_link_fixture = "\n".join([
         '[Titled](Target "a title")',
+        '[`Missing`](Missing-page)',
         '<a href="Missing-page#missing">Missing</a>',
         '<!-- <a href="Commented">Commented</a> -->',
+        '<!-- [Commented Markdown](Commented-Markdown) -->',
+        '<!-- [hidden-reference]: Hidden-Reference -->',
+        '[Visible hidden reference][hidden-reference]',
         '`<a href="Inline-code">Inline code</a>`',
+        '`[Inline Markdown](Inline-Markdown)`',
         '<pre><a href="Preformatted">Preformatted</a></pre>',
+        '<pre>[Preformatted Markdown](Preformatted-Markdown)</pre>',
     ])
-    if verifier.link_destinations(rendered_link_fixture) != ["Target", "Missing-page#missing"]:
+    if verifier.link_destinations(rendered_link_fixture) != ["Target", "Missing-page", "Missing-page#missing"]:
         raise ValueError("rendered HTML or titled Markdown link regression")
     cases["rendered_html_and_titled_markdown_links"] = "PASS"
     for tag in ("pre", "code"):
