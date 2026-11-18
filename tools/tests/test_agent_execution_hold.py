@@ -6,9 +6,8 @@ import io
 import json
 import sys
 import tempfile
-import unittest
+import unittest.mock
 from pathlib import Path
-from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import agent_gate
@@ -19,10 +18,10 @@ import common
 class ExecutionHoldTests(unittest.TestCase):
     def test_pipeline_stops_before_issue_selection_or_execution(self):
         with tempfile.TemporaryDirectory() as directory, \
-                mock.patch.object(sys, "argv", ["agent_pipeline.py", "--once"]), \
-                mock.patch.object(agent_pipeline, "ROOT", Path(directory)), \
-                mock.patch.object(agent_pipeline, "sh") as controller, \
-                mock.patch.object(agent_pipeline.subprocess, "run") as child, \
+                unittest.mock.patch.object(sys, "argv", ["agent_pipeline.py", "--once"]), \
+                unittest.mock.patch.object(agent_pipeline, "ROOT", Path(directory)), \
+                unittest.mock.patch.object(agent_pipeline, "sh") as controller, \
+                unittest.mock.patch.object(agent_pipeline.subprocess, "run") as child, \
                 contextlib.redirect_stderr(io.StringIO()):
             root = Path(directory)
             (root / ".github").mkdir()
@@ -33,7 +32,7 @@ class ExecutionHoldTests(unittest.TestCase):
 
     def test_agent_helper_has_no_ambient_execution_fallback(self):
         with tempfile.TemporaryDirectory() as directory, \
-                mock.patch.object(agent_pipeline.subprocess, "run") as child:
+                unittest.mock.patch.object(agent_pipeline.subprocess, "run") as child:
             root = Path(directory)
             with self.assertRaises(agent_pipeline.TaskError):
                 agent_pipeline.run_agent("", root, root / "agent.log", ["claude"])
@@ -41,9 +40,9 @@ class ExecutionHoldTests(unittest.TestCase):
 
     def test_gate_stops_before_environment_discovery_or_execution(self):
         with tempfile.TemporaryDirectory() as directory, \
-                mock.patch.object(agent_gate, "ROOT", Path(directory)), \
-                mock.patch.object(common, "environment") as discover, \
-                mock.patch.object(agent_gate.subprocess, "Popen") as child:
+                unittest.mock.patch.object(agent_gate, "ROOT", Path(directory)), \
+                unittest.mock.patch.object(common, "environment") as discover, \
+                unittest.mock.patch.object(agent_gate.subprocess, "Popen") as child:
             root = Path(directory)
             (root / ".github").mkdir()
             (root / ".github/agent-pipeline.json").write_text(json.dumps({"schema": 1, "enabled": False}))

@@ -130,10 +130,13 @@ class NativeBoundary(unittest.TestCase):
                 marker = self.work / "heartbeat"
                 marker.unlink(missing_ok=True)
                 body = ("from pathlib import Path\nimport time\n"
+                        "Path('heartbeat').write_text(str(time.time_ns()))\n"
+                        "print('ready',flush=True)\n"
                         "while True:\n Path('heartbeat').write_text(str(time.time_ns())); time.sleep(0.02)")
-                code = ("import subprocess,time; subprocess.Popen("
+                code = ("import subprocess,time; child=subprocess.Popen("
                         f"['/usr/bin/python3','-I','-B','-c',{body!r}],"
-                        "stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); "
+                        "stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True); "
+                        "assert child.stdout.readline() == 'ready\\n'; "
                         "print('started',flush=True); time.sleep(" + ("30" if timeout else "0.2") + ")")
                 if timeout:
                     with self.assertRaises(subprocess.TimeoutExpired) as raised:

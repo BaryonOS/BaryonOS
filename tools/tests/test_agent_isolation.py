@@ -72,6 +72,33 @@ class Authority(unittest.TestCase):
             with mock.patch.object(ap, "sh", return_value=delta), self.assertRaises(ap.TaskError):
                 ap.authorize_source(self.task, self.policy, "2" * 40)
 
+    def test_owner_revocation_on_main_stops_before_l0(self):
+        current_base = "2" * 40
+        revoked = copy.deepcopy(self.policy)
+        revoked["tasks"].clear()
+
+        def controller(arguments, *args, **kwargs):
+            if arguments == ["git", "rev-parse", "origin/main"]:
+                return current_base
+            if arguments[:2] == ["git", "diff"]:
+                return ".github/agent-pipeline.json\0"
+            if arguments == ["git", "show", f"{current_base}:.github/agent-pipeline.json"]:
+                return json.dumps(revoked)
+            return ""
+
+        with tempfile.TemporaryDirectory() as temporary, mock.patch.object(ap, "RUN", Path(temporary)), \
+                mock.patch.object(ap, "load_policy", return_value=self.policy), \
+                mock.patch.object(ap, "sh", side_effect=controller), \
+                mock.patch.object(ap, "run_agent") as run:
+            pipeline = ap.Pipeline.__new__(ap.Pipeline)
+            pipeline.policy = self.policy
+            pipeline.sandbox = mock.Mock()
+            pipeline.order = mock.Mock(return_value=["codex"])
+            with self.assertRaises(ap.TaskError):
+                pipeline.prepare(self.task)
+            run.assert_not_called()
+            self.assertFalse(self.task.dir.exists())
+
     def test_unapproved_controller_never_starts_configured_backend(self):
         policy = {"schema": 1, "enabled": True, "tasks": {}, "sandbox": {}}
         with mock.patch.object(ap, "load_policy", return_value=policy), \
@@ -163,6 +190,38 @@ class SourceBoundary(unittest.TestCase):
                 ap.run_agent("untrusted data", self.source, self.root / "agent.log", ["codex"],
                              sandbox=sandbox, writes=["allowed"])
         self.assertEqual((self.source / "allowed").read_text(), "original")
+
+    def test_failed_engine_output_is_discarded_before_fallback(self):
+        sandbox = mock.Mock()
+        sandbox.rootfs = self.root / "runtime"
+        (sandbox.rootfs / "usr/bin").mkdir(parents=True)
+        for name in ("limited", "accepted", "broken"):
+            (sandbox.rootfs / "usr/bin" / name).write_text("fixture")
+
+        def run(command, stage):
+            self.assertEqual((stage / "allowed").read_text(), "original")
+            self.assertEqual((self.source / "allowed").read_text(), "original")
+            if command[0] == "accepted":
+                (stage / "allowed").write_text("accepted result")
+                return subprocess.CompletedProcess(command, 0, "", "")
+            (stage / "allowed").write_text("unfinished failed result")
+            return subprocess.CompletedProcess(command, 1, "", {
+                "limited": "rate limit exceeded", "broken": "client error",
+            }[command[0]])
+
+        sandbox.run.side_effect = run
+        with mock.patch.dict(ap.ENGINES, {name: [name] for name in ("limited", "accepted", "broken")}, clear=True), \
+                mock.patch.object(ap, "agent_source_paths", return_value=["allowed", "other"]):
+            with self.assertRaises(ap.TaskError):
+                ap.run_agent("untrusted data", self.source, self.root / "failed.log", ["broken"],
+                             sandbox=sandbox, writes=["allowed"])
+            self.assertEqual((self.source / "allowed").read_text(), "original")
+            self.assertEqual(ap.run_agent("untrusted data", self.source, self.root / "retry.log",
+                                         ["limited", "accepted"], sandbox=sandbox, writes=["allowed"]),
+                             "accepted")
+        self.assertEqual((self.source / "allowed").read_text(), "accepted result")
+        self.assertIn("client error", (self.root / "failed.log").read_text())
+        self.assertIn("rate limit exceeded", (self.root / "retry.log").read_text())
 
     def test_environment_is_explicit_and_credential_free(self):
         with mock.patch.dict(os.environ, {"EXAMPLE_CONTROLLER_CREDENTIAL": "fixture", "BASH_ENV": "fixture"}):

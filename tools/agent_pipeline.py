@@ -307,9 +307,10 @@ def run_agent(prompt: str, cwd: Path, log: Path, order: list[str], *,
                 with log.open("a", encoding="utf-8") as out:
                     out.write(f"## engine {name} exit {done.returncode}; raw streams: {prefix}\n"
                               f"{done.stdout}\n{done.stderr}\n")
-                # Validate failures too; retries never inherit unauthorized output.
-                import_agent_changes(stage, cwd, before, writes)
                 if done.returncode == 0:
+                    # Only a successful candidate may reach controller-owned source.
+                    # Failed attempts and rate-limit fallbacks discard all edits.
+                    import_agent_changes(stage, cwd, before, writes)
                     return name
                 if not RATE_LIMIT.search(done.stdout + done.stderr):
                     raise TaskError(f"engine {name} failed (exit {done.returncode}); see {log}")
@@ -412,6 +413,11 @@ class Pipeline:
         sh(["git", "fetch", "-q", "origin", "main"])
         base = sh(["git", "rev-parse", "origin/main"]).strip()
         authorize_source(task, self.policy, base)
+        # A manifest-only main update can revoke the cached grant. Re-read the
+        # fetched source and local policy before creating any worktree or L0.
+        if (load_policy() != self.policy
+                or json.loads(sh(["git", "show", f"{base}:.github/agent-pipeline.json"])) != self.policy):
+            raise TaskError("Owner policy changed or was revoked before L0; renew authorization.")
         task.dir.mkdir(parents=True)
         sh(["git", "worktree", "add", "-q", "-b", task.branch, str(task.worktree), "origin/main"])
         spec_rel = "build/agent-pipeline/L0.md"  # gitignored inside the worktree
