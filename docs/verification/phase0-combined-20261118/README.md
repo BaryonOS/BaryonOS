@@ -11,9 +11,9 @@ The final runtime checkpoint at this cutoff is
 `2a08f4a33eff63b354821f6892e1be28f7602c9b`, fingerprint v3
 `25dd6d69621f1d9d4c8ed353633b3db62818562fa6ce50efa4445207505adb44`.
 It combines the reviewed inputs in [inputs.json](inputs.json) against actual
-main `de9b99047138c4fd0015ffc3f874b273b3537484`. Final English coverage and
-documentation-helper repairs are still in progress in #358; final candidate
-review and hosted checks remain separate conditions.
+main `de9b99047138c4fd0015ffc3f874b273b3537484`. The coherent #358 helper/English-route checkpoint is included; independent
+helper review and the final combined language inventory remain pending.
+Final candidate review and hosted checks remain separate conditions.
 
 The predecessor `44f7405003977dbf7f33eb5bca77f8a8f82c6f1c` passed the same
 three local gates. Its separate receipts remain unchanged. The only runtime
@@ -38,6 +38,12 @@ distinct from timeouts or failed cases. The DocumentSession guests both exit
 33. Captured reports bind their actual firmware, QEMU, artifacts, source,
 disk state and serial output. Local QEMU is 10.0.13 with the corresponding
 recorded machine profile; the separately pinned hosted profile must also pass.
+
+The [additional H02 receipt](../issue42-combined-20261118/README.md) records
+six real native cases on the same runtime fingerprint, twelve successful
+build/run commands and six raw exits 33. It preserves the distinction between
+actual USB transport and synthetic HID IPC and does not establish full H02
+or physical-hardware acceptance.
 
 The CPUID cleanup removes the two unnecessary-unsafe warnings. Other existing
 profile-dependent dead-code and dependency warnings remain visible. Required

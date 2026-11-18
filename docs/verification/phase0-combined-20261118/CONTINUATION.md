@@ -59,10 +59,20 @@ Separate original-source receipts and raw logs remain preserved. Final
 language inventory, exact-candidate independent review and current-head hosted
 CI remain required; historical proofs are not relabeled as final-source evidence.
 
+Six additional H02 native cases passed on the same 2a08f4a3 runtime
+fingerprint: all twelve build/run commands returned 0 and all six guests
+returned 33 without timeout. The [separate H02 receipt](../issue42-combined-20261118/README.md)
+preserves 49 verified files and 25 loaded-artifact rehashes. Actual USB
+transport and the synthetic protected-IPC fixture remain separate proofs.
+The long-lived completion/lifetime/DMA coexistence contract is still missing;
+existing bootstrap guards were not removed.
+
 The prepared Wiki was independently reviewed and published by a normal push
 at `4a01b8b2ad2695da509a512ea688007c964f56da`; the repository receipt preserves
-the exact publication and original pages. #358 continues with English routes
-for dated source records. Proper native UI localisation remains incomplete.
+the exact publication and original pages. #358 source `ed4c2992ed60c1e92c4c70aae41b4d5749bfeeba` supplies
+English routes for 34 dated source records and repairs both reproduced
+inventory-helper boundary defects. Independent helper review and the final
+combined inventory remain pending. Proper native UI localisation remains incomplete.
 
 ## Open conditions
 

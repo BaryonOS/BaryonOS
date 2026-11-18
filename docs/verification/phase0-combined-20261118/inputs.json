@@ -1,12 +1,12 @@
 {
   "base_main": "de9b99047138c4fd0015ffc3f874b273b3537484",
   "preserved_preview": "bba804996b93d93e82b6fb323cdeea9779f6fe99",
-  "status": "unaccepted integration in progress",
+  "status": "Unaccepted combined candidate; final inventory, review and hosted CI pending",
   "intended_inputs": {
     "340": "8609a4d1cd91223202b1043f5486ff8746eef583",
     "350": "04e464963cd0d969f8687208404f480f289d54a4",
     "354": "f0b4b6ed1f93012ff4bcfbeec7787de6eaa736da",
-    "358": "87412ce9f4c3eb2e7ba7b5b3bf3ab50e52717118 (further reviewed English coverage work pending)",
+    "358": "ed4c2992ed60c1e92c4c70aae41b4d5749bfeeba",
     "359": "6e72098e58db19d1c72667a4deb06d1d9b3115d8"
   },
   "excluded": [
@@ -19,5 +19,13 @@
   "tested_source_checkpoint": "2a08f4a33eff63b354821f6892e1be28f7602c9b",
   "rust_reconciliation": "f2a6ad4970433b0da8fd648c6eaba45ff919f517",
   "source_fingerprint_version": 3,
-  "source_sha256": "25dd6d69621f1d9d4c8ed353633b3db62818562fa6ce50efa4445207505adb44"
+  "source_sha256": "25dd6d69621f1d9d4c8ed353633b3db62818562fa6ce50efa4445207505adb44",
+  "inclusion_limits": {
+    "340": "Approved D6(a) ustar subset only; later Rust transformations independently reviewed. Full S09 D1-D5 is not accepted.",
+    "350": "Configuration byte-identical to reviewed04e46496 source. No billing/account features changed.",
+    "354": "Published f0b4b6ed plus reviewed current-main conflict resolutions f2a6ad49, active guidance pins and narrow CPUID cleanup2a08f4a3.",
+    "358": "Wiki exact4a01 publication;34 dated-source English routes; inventory helper repairs under independent review. Final combined snapshot pending.",
+    "359": "Disabled issue-controller boundary preserved; not full355 resource isolation or finding resolution."
+  },
+  "h02_receipt": "docs/verification/issue42-combined-20261118/README.md"
 }
