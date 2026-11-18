@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "fc35563668ae2ba3dc2fc90e6e30575c38b6f578",
-    "assessment_basis": "source_commit",
-    "branch": "codex/block-order-integration",
-    "task": "PR361 integration: order terminal error after both final reads",
+    "source_commit": "aaf01bae291faba593567845dc8da4fe606a7959",
+    "assessment_basis": "parent_commit",
+    "branch": "codex/coderabbit-oss-config",
+    "task": "PR350 conflict-only reconciliation with main 2eac8ca3",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Integrated #355/#359 containment and repaired M6c case-2 final-read barrier. Delayed-read native negative fails on the old barrier (guest35); fixed errors/normal pass (guest33) with disk oracles, plus 49 host tests and formatting. Current-head hosted checks remain pending. No product criterion, Daybreak resolution or execution-hold activation."
+    "summary": "41/100 unchanged. The reviewed CodeRabbit free-tier configuration is preserved while current main, including PR #361 containment and final-read ordering, is incorporated. Only the checkpoint and assessment records required manual resolution. Hosted checks on the resulting head remain authoritative; no local build or QEMU acceptance is inferred."
   },
   "tracks": [
     {
