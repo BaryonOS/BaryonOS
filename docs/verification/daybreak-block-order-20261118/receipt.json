@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "base_commit": "1c10cdb5b30df2f3d30bea74430383f59c398931",
+  "finding": "acf_4d7b2e454297c2c851a4b7cadcff2587",
+  "final_source_sha256": "5a6a5cca407e288973e302ae46840c7f851a57db70a848917f552c23821d4fbf",
+  "negative_controls": [
+    {
+      "kind": "pre_active_ordering",
+      "source_sha256": "ee79396eb325bc6fdaaade3efd4d89a9886896172af788e30084d80e67416cf9",
+      "m6b_raw_qemu_exit": -9,
+      "m6c_raw_qemu_exit": -9,
+      "timed_out": true
+    },
+    {
+      "kind": "live_valid_shape_retry",
+      "source_sha256": "49146705dec35fe0299d3defddec03228459f7316f7baf34aba24a10a5250e81",
+      "m6b_raw_qemu_exit": 35,
+      "m6c_raw_qemu_exit": 35,
+      "timed_out": false
+    },
+    {
+      "kind": "live_malformed_retry",
+      "source_sha256": "7bd7751d6b9c8d675ab3ab8c0f16ae40ce4d61dfae52d4f9fcf10b5b33385ca5",
+      "m6b_raw_qemu_exit": 35,
+      "m6c_raw_qemu_exit": 35,
+      "timed_out": false
+    }
+  ],
+  "final": {
+    "m6b": {
+      "errors_result": "build/daybreak-m6b-final4/run/m6b-errors-11bfae1fa4/result.json",
+      "errors_serial_sha256": "6af52f6937850a6f34858c663c0ac1fcbab5da68b6dc0bee7221f7f5dae965b7",
+      "cold_recovery_result": "build/daybreak-m6b-final4/run/m6b-errors-cold-recovery-1894378472/result.json",
+      "cold_recovery_serial_sha256": "f9c077702b29f2dc8d7be618c05fe3516846c553c50c10847873d95139a0562e",
+      "full_suite_groups": 32,
+      "exit_code": 0,
+      "raw_qemu_exit": 33
+    },
+    "m6c": {
+      "errors_result": "build/daybreak-m6c-final4/run/m6c-errors-611dc65b12/result.json",
+      "errors_serial_sha256": "61d5d83b997d9f8c3ad348dd3208e713e97dc524806a06c2fba15ee50793b2a9",
+      "cold_recovery_result": "build/daybreak-m6c-final4/run/m6c-errors-cold-recovery-ff4cbe9c48/result.json",
+      "cold_recovery_serial_sha256": "99b4f75ab1cb0faaef1c9f24170b6ed00e7317ae19c3aff914f5d7d16295c17b",
+      "full_suite_groups": 35,
+      "exit_code": 0,
+      "raw_qemu_exit": 33
+    }
+  },
+  "evidence_limits": [
+    "No physical-hardware result",
+    "No formal proof",
+    "Hosted CI pending publication",
+    "Daybreak finding remains open pending exact-head rescan"
+  ]
+}

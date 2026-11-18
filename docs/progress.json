@@ -3,8 +3,8 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "6f29b6720b51aecad5714faa48b445afd6e2f5a9",
-    "assessment_basis": "source_commit",
+    "source_commit": "b87436dfd8ef8c277dea1dbde780f2e2229283a9",
+    "assessment_basis": "parent_commit",
     "branch": "codex/unified-governance",
     "task": "GOV-1-6: shared contracts, thin adapters and risk-based continuation",
     "previous_score": 41,
