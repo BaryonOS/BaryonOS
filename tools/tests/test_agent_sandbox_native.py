@@ -12,9 +12,9 @@ import sys
 import tempfile
 import time
 import unittest
+import unittest.mock as mock
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
-from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from agent_sandbox import Sandbox, SandboxError
