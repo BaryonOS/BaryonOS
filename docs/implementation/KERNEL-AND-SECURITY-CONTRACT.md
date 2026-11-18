@@ -136,13 +136,13 @@ This is a format description, not an already existing implementation:
 struct IpcCapV1 { handle: u64, rights: u64 }
 #[repr(C)]
 struct IpcMessageV1 {
-    sender_pid: u64,  // offset 0; send moet 0 zijn; receive vult kernel in
-    tag: u64,         // offset 8; vrij appgegeven, geen autorisatie
+    sender_pid: u64,  // offset 0; must be 0 on send; filled by the kernel on receive
+    tag: u64,         // offset 8; free-form app data, not authorization
     len: u32,         // offset 16; 0..=256
     cap_count: u32,   // offset 20; 0..=2
     reserved: u64,    // offset 24; 0
     caps: [IpcCapV1; 2], // offset 32; 32 bytes
-    data: [u8; 256],  // offset 64; totaal 320 bytes, alignment 8
+    data: [u8; 256],  // offset 64; total 320 bytes, alignment 8
 }
 ```
 

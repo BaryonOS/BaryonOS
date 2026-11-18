@@ -1,6 +1,26 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — Autonomous Cloud resumption — 18 November 2026
+## NEXT AGENT HANDOFF — Phase 0 integration after PR345 — 18 November 2026
+
+**Integrated:** PR #345 was manually squash-merged as `55bc7b06d20a3bfdffdc2eb7d8fe42a39f6e59c5`; its actual main tree exactly equals independently reviewed candidate `f14f7c946e10120ad10a34885551f2656f84b059`. All candidate mandatory CI, CodeQL and merge-hold checks passed; main post-merge checks are tracked separately. [Merge receipt](verification/phase0-cloud-20261118/merges/345.json).
+
+**Active:** existing PR #346 is reconciled against that main without changing its reviewed translation content or any runtime source. Original source PRs #347–#349 and #351–#353 remain open until integrated inclusion is proved. PR #350 is independently reviewed and needs current-main reconciliation. PR #340 has a fresh isolated native gate in progress; PR #354 compiler/runtime fixes have separate targeted/native verification.
+
+**Security:** limited PR #355 corrections are independently reviewed at `5b946202c9f7323044913a26d76c96e490f5e0e6`, including fresh pre-L0 grant revocation and failed-candidate isolation. Full resource/scratch/process-lifecycle and selected client/gate compatibility remain blocking. Recovery #357 stays preserved and unaccepted; the issue pipeline remains disabled. Cloud lacks writable cgroup-v2/private systemd-user runtime requirements. No finding is closed. Scanner API categories remain NOT VERIFIED (HTTP403).
+
+**Remaining:** all five issues remain open against their full definitions of done. Score41/100 is unchanged; baseline B and governance1–6 are not established. Root owns integration/state; the successor accessibility checker uses new files and preserves Claude's historical matrix/research. Continue only verified manual squash merges and exact-source evidence, without auto-merge or gate bypass.
+
+## Retained handoff — Phase 0 PR346 cloud reconciliation — 18 November 2026
+
+**Source:** existing PR #346 parent `04e29181ef7e755eea2db0054c463b9216184671`, reconciled with main `366b82b353485207a9b0d6b1ae63dafbbe265bae`. Scope: English documentation. The project owner explicitly resumed autonomous execution on 18 November 2026; current review, protection and gate requirements remain binding.
+
+**Preservation:** current-main source, accepted decisions, historical evidence and independent workstream ownership are retained. Only overlapping checkpoint/assessment text requires conflict resolution. The prior branch checkpoint and assessment are retained as explicitly historical records in [the cloud receipt](verification/phase0-pr346-cloud-20261118/README.md). The two actionable translation review comments receive additive English explanations; the original ABI and installer sequence remain unchanged. No product acceptance criterion or security boundary changes. Score remains 41/100.
+
+**Validation:** source-preservation assertions, progress regeneration/check and whitespace verification are required on the reconciled tree; their actual results are recorded in the receipt. Current-head hosted checks and independent final review remain required before a manual squash merge. Full issue #274, production security acceptance, baseline B and governance phases 1–6 remain open.
+
+## Retained source-bound main checkpoints
+
+## Retained handoff — Autonomous Cloud resumption — 18 November 2026
 
 **Authority and source:** the project owner explicitly resumed the paused execution goal in the current Cloud task, including verified manual squash merges throughout the authorized backlog. The historical pause in [the original handoff](verification/phase0-20261117/CLOUD-HANDOFF.md) is superseded by this resumption; its source and evidence remain unchanged. Main was re-queried at `366b82b353485207a9b0d6b1ae63dafbbe265bae`; PR #345 resumes from `e7752fe03ccde548762dca1c1dc0cc096470730d`.
 
@@ -38,7 +58,7 @@
 
 **Next executable action:** finish #333 exact-head CI and independent reconciliation review; manually squash only when all conditions pass, verify resulting main, then reconcile #340 to that actual source and continue #339/#350/#346/#345. Complete issue-by-issue dispositions and fresh integrated security/quality gates before freezing B. No false closures, suppressed findings, security weakening or progress inflation;41/100 remains unchanged. Raw logs and source-bound resume are in the established handoff archive.
 
-## NEXT AGENT HANDOFF — Phase 0 PR333 actual-main reconciliation — 17 November 2026
+## Retained handoff — Phase 0 PR333 actual-main reconciliation — 17 November 2026
 
 **Source:** reviewed333 parent `de793ed7ec83e2c121bf3f02fd0873271f86fe58`, integrating actual main `38d4cc17687156379677993be9945447591bd4c1` after verified336 squash. The new main tree is exactly the tested336 tree; issue41 remains open.
 **Preserved:** all333 runtime/security/TEST-linker-fix blobs and existing native source fingerprint; latest336 proposal clarifications and the single canonical unchanged ADR-B03K3 block at main's top. The squash topology would duplicate the same ADR at top and bottom; its exact main copy is retained once. Historical lead blocks and all independent handoffs remain below. [Reconciliation record](verification/phase0-pr333-main-20261117/integration.json).
@@ -100,6 +120,33 @@ The following statements preserve their original observation. The current handof
 **Changed:** bounded artifact-action contract and meaningful negative host oracle; existing native/evidence guards preserved. [Receipt](verification/phase0-pr343-20261117/README.md).
 **Checks:** 7 SMP CI tests, 26 workflow tests, 8 evidence-verifier tests and pinned actionlint pass (exit 0). Initial tools-suite failure from snap launchers retained; installed-rustup rerun running. Hosted action/current-head CI pending. Progress 41/100 unchanged; no merge.
 **Next:** verify hosted roundtrip and required jobs, record exact head/merge SHA and request specific owner merge approval. Independent #344 dependency record work can proceed. Orbitaal/S09 ownership remains unchanged. Baseline B not established; governance phases 1–6 not started.
+
+### Historical source checkpoint — Phase 0 English publication integration — 17 November 2026
+
+**Source:** existing346 parent `bc2db3975a773af95acd113e2f59af4cc95300e1`, preserving the reviewed source heads of347–349/351–353. This branch still needs reconciliation with the main resulting from the existing code integration queue.
+**Changed:** the independently reviewed English translations/evidence are consolidated into one issue274 draft, plus four small independently reviewed explanatory comments/glosses. [Source/hash manifest](verification/phase0-english-integration-20261117/manifest.json). Source/evidence hashes and independent workstream handoffs remain preserved. No runtime, policy, security boundary or licensing change.
+**Checks:** independent integration review found four gloss rows bound to their pre-edit parent instead of the first Git commit. Only that metadata is corrected; all39 source/evidence hashes now resolve to the recorded Git blobs. Scoped semantic checks pass; independent recheck and actual current-head hosted checks remain pending. Score remains41/100; full issue274 is open until actual coverage/publication acceptance. The six source PRs stay open until merge and exact-main preservation proof.
+**Next:** publish/update346, complete its bounded integration review, then reconcile against verified main after the earlier code PRs. Perform manual squash only after all applicable gates/reviews/merge-hold pass. No auto-merge or count-driven closure. BaselineB requires no unresolved integration/security blockers, passing mandatory checks and individually triaged residuals under the latest owner refinement; governance1–6 have not started. Original UI/S09 WIP, runners and ownership remain intact.
+
+## Retained historical checkpoints and workstream records
+
+### Historical source checkpoint — Phase 0 English technical guides — 17 November 2026
+
+**Source:** guide comparison parent `cece3041187e1b7d08ec7708c36b84c728d6e2d2`, integrating verified main `95d59ad52761c1f8f0201d934556902b90ce63cb` after PR343. Draft PR346 includes the CI guide, native material-library guide, IPC-wait probe README and native IPC-wait contract.
+**Verified:** independent AI semantic comparisons and exact code/identifier/numeric/anchor preservation pass on all four guide hashes. The CI guide's earlier receipt remains intact. [Native guide receipt](verification/phase0-english-guides-20261117/README.md). Both parent handoffs and independent workstream history are retained below.
+**Gates and limits:** current integrated workflow checks (26 tests), progress write/check and whitespace checks pass (exit 0); current-head hosted checks remain pending. Native tests are NOT RUN for this documentation-only change. Progress remains 41/100; no new implementation or acceptance is claimed. Full issue #274, final integrated assessment and baseline B remain unfinished.
+**Resume:** run/record the local checks, publish this integrated draft and verify its required current-head CI. Eligible Phase 0 squash merges are explicitly authorized after all gates; no auto-merge/bypass. Preserve Orbitaal/S09 WIP, runners, claims and ownership. Governance phases 1–6 have not started.
+
+## Historical pre-integration checkpoints
+
+These records retain their original observations; the current handoff and updated owner Phase 0 authority supersede their pending-check and separate-approval instructions.
+
+### Historical CI guide task — 17 November 2026
+
+**Source:** main `b718f6bafdfc4927d3b7acfe786e67dcb8f88eec`; branch `codex/phase0-ci-guide-english`. The separate integration oversight checkpoint is draft PR #345.
+**Completed:** `docs/CI.md` translated without changing technical requirements, commands or historical evidence. Independent AI semantic review and preservation checks pass; all 26 workflow contract tests pass (exit 0). [Source-bound receipt](verification/phase0-ci-guide-20261117/README.md).
+**Progress and limits:** 41/100 remains 41/100. Issue #274 stays open; full translation and live Wiki consistency are unfinished. Native tests NOT RUN for this documentation-only change. Current-head hosted checks must be checked separately. Baseline B is NOT ESTABLISHED; governance phases 1–6 have NOT STARTED.
+**Authority and resume:** no merge or auto-merge approval is granted by this task. Verify the remote source and required checks, then return to the Phase 0 integration queue. Preserve every existing stream's handoff, WIP, claims and ownership; the retained Orbitaal record below remains independently authoritative for its stream.
 
 ## Retained workstream handoff — Design pipeline (Orbitaal UI/UX), draft PR #332 — 14 November 2026
 

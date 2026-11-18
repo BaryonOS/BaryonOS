@@ -1,55 +1,63 @@
-# Eigen IPC-userfixture U04
+<a id="eigen-ipc-userfixture-u04"></a>
 
-`ipc_probe.rs` is een afzonderlijk synthetisch ring-3-programma voor M4. Het vervangt de M3-probe niet. De fixture voert werkelijke `int 0x80`-syscalls uit; alleen de kernelobserver beslist over KS-09–16. Deze tekst beschrijft de afgesproken fixture-interface en geplande echte cases, geen reeds geslaagde QEMU-proeven.
+# Independent IPC user fixture U04
 
-## Bouwen en controle
+`ipc_probe.rs` is a separate synthetic ring-3 program for M4. It does not replace the M3 probe. The fixture executes actual `int 0x80` syscalls; only the kernel observer determines the KS-09–16 results. This text describes the agreed fixture interface and planned actual cases, not QEMU tests that have already passed.
 
-Root beheert de bestaande buildtool:
+<a id="bouwen-en-controle"></a>
+
+## Build and checks
+
+The root agent manages the existing build tool:
 
 ```powershell
 python tools/build_users.py --kind ipc
 python -B -X utf8 userspace/tests/test_ipc_probe.py --elf build/users/ipc_probe.elf
 ```
 
-Input: `userspace/ipc_probe.rs`, `userspace/ipc_linker.ld`. Output: `build/users/ipc_probe.elf`, `build/users/manifest-ipc.json`. Embedvariabele: `NOS_IPC_ELF`. Directe Rust1.90.0-flags zijn gelijk aan M3: x86_64-unknown-none, no_std, panic=abort, opt-level=2, code-model=small, relocation-model=static, no-redzone=yes, rust-lld, eigen absolute `-T`-linkerpad, --no-pie, --build-id=none, max-page-size=0x1000. Geen dependencies, allocator, hostlibc, netwerk, hostcalls of port-I/O.
+Input: `userspace/ipc_probe.rs`, `userspace/ipc_linker.ld`. Output: `build/users/ipc_probe.elf`, `build/users/manifest-ipc.json`. Embed variable: `NOS_IPC_ELF`. The direct Rust1.90.0 flags match M3: x86_64-unknown-none, no_std, panic=abort, opt-level=2, code-model=small, relocation-model=static, no-redzone=yes, rust-lld, its own absolute `-T` linker path, --no-pie, --build-id=none, max-page-size=0x1000. No dependencies, allocator, host libc, network, hostcalls or port I/O.
 
-## Geheugeninterface
+<a id="geheugeninterface"></a>
 
-| Virtueel bereik | ELF-rechten | Inhoud |
+## Memory interface
+
+| Virtual range | ELF permissions | Contents |
 |---|---|---|
-| `0x40000000` | RX | `_start` en interpreter |
-| `0x40010000–0x40011000` | RW | Controlwoorden, rows en resultaten |
+| `0x40000000` | RX | `_start` and interpreter |
+| `0x40010000–0x40011000` | RW | Control words, rows and results |
 | `0x40011000–0x40012000` | RW | `msg`, 4096 bytes |
 | `0x40012000–0x40013000` | RW | `out`, 4096 bytes |
-| `0x40013000–0x40014000` | R | Nulgevulde RO-testpagina, NX te mappen door kernel |
+| `0x40013000–0x40014000` | R | Zero-filled RO test page, to be mapped NX by the kernel |
 
-Alle bereiken zijn halfopen. Het ELF heeft drie PT_LOAD-segmenten: RX, 12288 bytes RW, 4096 bytes R. ELF-flags bewijzen geen daadwerkelijk ingestelde pagingrechten. Ieder proces krijgt eigen fysieke frames; barriers staan eveneens in afzonderlijke privéframes.
+All ranges are half-open. The ELF has three PT_LOAD segments: RX, 12288 bytes RW, 4096 bytes R. ELF flags do not prove that paging permissions are actually set. Each process receives its own physical frames; barriers are also in separate private frames.
 
-Controlwoorden zijn little-endian u64 op `0x40010000`:
+Control words are little-endian u64 at `0x40010000`:
 
-| Offset | Inhoud |
+| Offset | Contents |
 |---|---|
 | 0 | Mode: 0 worker; 1 copy; 2 wire; 3 snapshot; 4 handles; 5 rights; 6 revoke; 7 quotas; 8 lifecycle |
-| 8 | Privécounter; verhoogd bij iedere syscall en expliciete crashop |
-| 16 | Privépatroon; initiële kopie blijft in r13 en wordt tussendoor gecontroleerd |
-| 24 | Target/scratch, door manifest bepaald |
+| 8 | Private counter; incremented at each syscall and explicit crash operation |
+| 16 | Private pattern; the initial copy remains in r13 and is checked during execution |
+| 24 | Target/scratch, defined by the manifest |
 | 32 | Role: A=0, B=1, C=2 |
-| 40 | Aantal volledig afgeronde rows |
-| 48 | Status: 0 actief, 1 rows afgerond, `0x100+rowindex` fixturefout |
-| 56 | Main: eigen endpointroot, rechten31 |
-| 64 | Aux: initiële lokale capability naar volgende rol, rechten29 (geen RECV) |
-| 72 | Foreign: numerieke peerhandle; geeft geen toegang tot peertabel |
-| 80 | Laatste RAX/diagnose |
-| 88 | Rowaantal, maximaal32 |
-| 96 | Eigen barrierwoord; kernelobserver wijzigt dit pas na geobserveerde echte gebeurtenissen |
-| 104 | Gereserveerd, niet gebruikt door interpreter |
-| 112 | Pogingenteller, maximaal32768 |
+| 40 | Number of fully completed rows |
+| 48 | Status: 0 active, 1 rows completed, `0x100+rowindex` fixture error |
+| 56 | Main: own endpoint root, rights 31 |
+| 64 | Aux: initial local capability to the next role, rights 29 (no RECV) |
+| 72 | Foreign: numeric peer handle; grants no access to the peer table |
+| 80 | Last RAX/diagnostic |
+| 88 | Row count, at most 32 |
+| 96 | Own barrier word; the kernel observer modifies it only after observing actual events |
+| 104 | Reserved, not used by the interpreter |
+| 112 | Attempt counter, at most 32768 |
 
-De interpreter voert vooraf `abi_info(0)` uit en controleert RAX=0/RDX=`1<<32`. Na status1 blijft het proces counter/yield-worker; andere processen kunnen daardoor werkelijk na afronding, exit of fault van een peer voortgang tonen. Bij een fixturefout bewaart de interpreter diagnose/status en doet gewone `exit(0xe4)`. Geen usercode schrijft kernelmarkers of bepaalt het kerneltestresultaat.
+The interpreter first executes `abi_info(0)` and checks RAX=0/RDX=`1<<32`. After status1, the process continues as a counter/yield worker; other processes can therefore demonstrate actual progress after a peer completes, exits or faults. On a fixture error, the interpreter retains the diagnostic/status and performs a normal `exit(0xe4)`. No user code writes kernel markers or determines the kernel test result.
 
-## Rows en werkelijke resultaten
+<a id="rows-en-werkelijke-resultaten"></a>
 
-32 rows beginnen op `0x40010100`; iedere row bevat tien u64's, exact80 bytes:
+## Rows and actual results
+
+32 rows start at `0x40010100`; each row contains ten u64 values, exactly 80 bytes:
 
 ```text
 op @0
@@ -59,61 +67,67 @@ expected_RDX @64
 flags @72
 ```
 
-Negatieve verwachte foutcodes zijn u64-tweecomplementwaarden. Resultslot i staat op `0x40010c00 + 16*i`: werkelijke RAX op+0 en werkelijke RDX op+8. Slots worden door usercode gevuld uit de echte syscallregisters of een gewone `load64` uit eigen ontvangen data. De kernel fabriceert geen syscallresultaten.
+Expected negative error codes are u64 two's-complement values. Result slot i is at `0x40010c00 + 16*i`: actual RAX at +0 and actual RDX at +8. User code fills slots from the actual syscall registers or an ordinary `load64` from its own received data. The kernel does not fabricate syscall results.
 
-| Flags | Betekenis |
+| Flags | Meaning |
 |---|---|
-| Bits0–5 | Het betreffende argument is een resultindex; laad de werkelijke RDX van dat slot |
-| Bit6 | Vergelijk de dynamische RDX niet met een vaste waarde; bewaar haar wel en controleer RAX |
-| Bit7 | `expected_RDX` is zelf een resultindex |
-| Bit8 | Alleen bij EAGAIN: echte yield en dezelfde row opnieuw uitvoeren |
-| Bits32–47 | Herhalingen van dezelfde row, 0 betekent1; maximaal1024 |
-| Overig | Ongeldig; geaccepteerd masker `0x0000ffff000001ff` |
+| Bits0–5 | The corresponding argument is a result index; load the actual RDX from that slot |
+| Bit6 | Do not compare the dynamic RDX with a fixed value; retain it and check RAX |
+| Bit7 | `expected_RDX` is itself a result index |
+| Bit8 | Only on EAGAIN: perform an actual yield and execute the same row again |
+| Bits32–47 | Repetitions of the same row, 0 means 1; at most 1024 |
+| Other | Invalid; accepted mask `0x0000ffff000001ff` |
 
-Iedere herhaling resolveert de argumenten opnieuw en overschrijft uitsluitend de eigen resultslot met de laatste echte uitkomst. Een verwijzing naar de eigen resultslot kan een derivechain voortzetten, nadat een gewone user-write die slot met een echt eerder ontvangen/afgeleid handle heeft geïnitialiseerd. Rowprogress stijgt pas na alle succesvolle herhalingen. EAGAIN- en barrierretries tellen mee in de begrensde pogingenteller.
+Each repetition resolves the arguments again and overwrites only its own result slot with the latest actual outcome. A reference to its own result slot can continue a derive chain after an ordinary user write has initialized that slot with an actual previously received/derived handle. Row progress increases only after all repetitions succeed. EAGAIN and barrier retries count toward the bounded attempt counter.
 
-Voorbeeld van echte handlevervolgactie: `ipc_recv(main,out,320)` → `load64(out+32)` met flag bit6 → schrijf die geladen RDX via bit1 naar `msg+32` → `ipc_send(aux,msg,320)`. Sluit afgeleide handles eveneens via hun werkelijke RDX-resultslot, niet via veronderstelde slot/generationgetallen.
+Example of a follow-up action using an actual handle: `ipc_recv(main,out,320)` → `load64(out+32)` with flag bit6 → write that loaded RDX via bit1 to `msg+32` → `ipc_send(aux,msg,320)`. Also close derived handles via their actual RDX result slot, rather than assumed slot/generation numbers.
 
-## Interpreteroperaties
+<a id="interpreteroperaties"></a>
 
-`op < 0x100` is rechtstreeks het syscallnummer. Argumenten gaan naar RDI/RSI/RDX/R10/R8/R9; RAX/RDX worden daarna vastgelegd. Dit omvat gewone syscalls0/1/2, cap_close10h/cap_derive11h/cap_revoke12h, ipc_send20h/ipc_recv21h en echte onbekende nummers voor ENOSYS-proeven.
+## Interpreter operations
 
-| Fixtureop | Argumenten en effect |
+`op < 0x100` is the syscall number directly. Arguments go to RDI/RSI/RDX/R10/R8/R9; RAX/RDX are then recorded. This includes ordinary syscalls 0/1/2, cap_close10h/cap_derive11h/cap_revoke12h, ipc_send20h/ipc_recv21h and actual unknown numbers for ENOSYS tests.
+
+| Fixture operation | Arguments and effect |
 |---|---|
-| `0x100` WRITE64 | a0=adres, a1=waarde; gewone private 8-byte store |
-| `0x101` FILL | a0=adres, a1=byte0..255, a2=lengte0..4096 |
-| `0x102` ASSERT64 | a0=adres, a1=verwachte waarde; gewone private read/vergelijking |
-| `0x103` LOAD64 | a0=adres; resultaat RDX uit eigen geheugen, RAX=0 |
-| `0x104` WAIT64 | a0=eigen adres, a1=verwachte waarde; anders echte yield en retry |
-| `0x105` UD2 | Expliciete receiverfault voor lifecycleproef; geen normale terugkeer |
+| `0x100` WRITE64 | a0=address, a1=value; ordinary private 8-byte store |
+| `0x101` FILL | a0=address, a1=byte0..255, a2=length0..4096 |
+| `0x102` ASSERT64 | a0=address, a1=expected value; ordinary private read/comparison |
+| `0x103` LOAD64 | a0=address; result RDX from own memory, RAX=0 |
+| `0x104` WAIT64 | a0=own address, a1=expected value; otherwise actual yield and retry |
+| `0x105` UD2 | Explicit receiver fault for the lifecycle test; no normal return |
 
-Writes/FILL mogen uitsluitend resultslots `0x40010c00–0x40010e00` of RW-buffers `0x40011000–0x40013000` raken. Zij kunnen geen rows, status, barrier of mode veranderen. Readops zijn beperkt tot `0x40010000–0x40014000`. Alle lokale optellingen controleren carry; een verkeerd fixturescript resulteert in een fixturefout. Een willekeurige syscallpointer blijft een integer, zodat juist de kernel haar echte bereik/rechten moet controleren. Misalignment is voor deze byte-/x86-geheugenoperaties toegestaan.
+Writes/FILL may touch only result slots `0x40010c00–0x40010e00` or RW buffers `0x40011000–0x40013000`. They cannot change rows, status, barrier or mode. Read operations are limited to `0x40010000–0x40014000`. All local additions check carry; an incorrect fixture script produces a fixture error. An arbitrary syscall pointer remains an integer so that the kernel must check its actual range/permissions. Misalignment is permitted for these byte/x86 memory operations.
 
 ## Message320
 
-Het OS-wirecontract blijft ongewijzigd: sender_pid u64@0 (send0), tag u64@8, len u32@16, cap_count u32@20, reserved u64@24 (0), twee `{handle:u64,rights:u64}`-paren@32/48, data[256]@64. Totaal320 bytes. Een WRITE64 op+16 combineert daarom `len | (cap_count<<32)`. Niet-gebruikte descriptors/payloadbytes blijven nul. De RO-pagina bevat aanvankelijk een geldige lege canonical message; ontvangst daar moet wegens schrijfrechten mislukken.
+The OS wire contract remains unchanged: sender_pid u64@0 (send0), tag u64@8, len u32@16, cap_count u32@20, reserved u64@24 (0), two `{handle:u64,rights:u64}` pairs@32/48, data[256]@64. Total: 320 bytes. A WRITE64 at +16 therefore combines `len | (cap_count<<32)`. Unused descriptors/payload bytes remain zero. The RO page initially contains a valid empty canonical message; reception there must fail because of write permissions.
 
-Bevestigde codes: EMSGSIZE(-11) voor size≠320/len257/capcount3; EINVAL(-1) voor sender/reserved/ongebruikte descriptor/tail of onbekende rightsbit32; EACCESS(-5) voor noSEND/noDERIVE/rechtenvergroting/transfer zonderTRANSFER/transferRECV. Revoked(-10) gaat vóór Closed(-9). Header- en capabilityvalidatie vóór userbuffer is onderdeel van de kernelobserverproef.
+Confirmed codes: EMSGSIZE(-11) for size≠320/len257/capcount3; EINVAL(-1) for sender/reserved/unused descriptor/tail or unknown rightsbit32; EACCESS(-5) for noSEND/noDERIVE/rights escalation/transfer without TRANSFER/transferRECV. Revoked(-10) takes precedence over Closed(-9). Header and capability validation before the user buffer is part of the kernel observer test.
 
-## Afgesproken case-map voor kernelmanifest en observer
+<a id="afgesproken-case-map-voor-kernelmanifest-en-observer"></a>
 
-| Mode / KS | Echte handelingen | Door kernel te bewijzen |
+## Agreed case map for the kernel manifest and observer
+
+| Mode / KS | Actual operations | To be proved by the kernel |
 |---|---|---|
-| 1 / KS09 | Send/recv met null, supervisor, noncanonical, overflow, stack/heap-eindcross; out→RO-cross op `0x40012f80`; misaligned geldige buffers | EFAULT of eerdere EMSGSIZE; volledige output/queue/captable vóór/na gelijk bij mislukking; na geldige recv normale aflevering |
-| 2 / KS10 | Sizes0/319/321/MAX; len257/capcount3; niet-nul sender/reserved/unusedcap/tail; buffers+1 | Exacte foutvolgorde/codes, geen mutatie; geldige misalignment blijft toegestaan |
-| 3 / KS11 | Send bekende bytes; hook verandert originele len/payload pas na snapshot; recv; onbekende thread/shared/unmap-nummers | Alleen originele snapshot wordt gebruikt; ontbrekende API's ENOSYS; geen claim over echte SMP-races |
-| 4 / KS12 | Numerieke peerhandle, slot0/ongeldige gen; derive→close→stale; bewuste lokale collision | Lookup uitsluitend eigen tabel; EBADHANDLE waar ongeldig; collision verleent hoogstens bestaande eigen autoriteit |
-| 5 / KS13 | Minder/zero rights derive; extra32/vergroting/noDERIVE/noSEND; transfer zonder8/metRECV | EINVAL/EACCESS volgens contract, geen nieuwe node/slot/queue bij fout |
-| 6 / KS14 | A maincap13→B via aux; queued revoke vóórBrecv; aparte delivered A→B→C met echte ontvangen handles; A revoke | Queued bericht volledig geannuleerd; afgeleverde B/C-handles EREVOKED; eerdere payload blijft leesbaar |
-| 7 / KS15 | Acht depthderives plus negende; close echte outputs; 253 derives bij init2slots; laatste close/rederive;16send/17e/drain/send | Depth/capslots/queuequota en capaciteitsterugkeer via echte calls; geen gedeeltelijke transacties |
-| 8 / KS16 | Drie rondes: ownerclose; senderexit na queued delegation; receiverUD2 na queued delegation | LaatsteRECV sluit endpoint; issuer-exit revoke/cancel; refs/resources worden opgeruimd, andere processen lopen door |
+| 1 / KS09 | Send/recv with null, supervisor, noncanonical, overflow, stack/heap end crossings; out→RO-cross at `0x40012f80`; misaligned valid buffers | EFAULT or earlier EMSGSIZE; full output/queue/captable identical before/after on failure; normal delivery after valid recv |
+| 2 / KS10 | Sizes0/319/321/MAX; len257/capcount3; nonzero sender/reserved/unusedcap/tail; buffers+1 | Exact error order/codes, no mutation; valid misalignment remains permitted |
+| 3 / KS11 | Send known bytes; hook changes original len/payload only after snapshot; recv; unknown thread/shared/unmap numbers | Only the original snapshot is used; missing APIs return ENOSYS; no claim about actual SMP races |
+| 4 / KS12 | Numeric peer handle, slot0/invalid gen; derive→close→stale; deliberate local collision | Lookup only in own table; EBADHANDLE when invalid; collision grants at most existing own authority |
+| 5 / KS13 | Reduced/zero rights derive; extra32/escalation/noDERIVE/noSEND; transfer without 8/with RECV | EINVAL/EACCESS according to the contract, no new node/slot/queue on error |
+| 6 / KS14 | A maincap13→B via aux; queued revoke before Brecv; separate delivered A→B→C using actual received handles; A revoke | Queued message fully cancelled; delivered B/C handles EREVOKED; earlier payload remains readable |
+| 7 / KS15 | Eight depthderives plus a ninth; close actual outputs; 253 derives with init2slots; final close/rederive; 16 sends/17th send/drain/send | Depth/capslots/queue quotas and capacity recovery through actual calls; no partial transactions |
+| 8 / KS16 | Three rounds: ownerclose; senderexit after queued delegation; receiverUD2 after queued delegation | Last RECV closes the endpoint; issuer-exit revoke/cancel; refs/resources are cleaned up, other processes continue running |
 
-Bij lifecycle receiver-exit kan A.aux EREVOKED opleveren als die bootstrapnode door B is uitgegeven; dat heeft voorrang op ECLOSED. Een gewone owner-close zonder exit geeft de peers ECLOSED. Kernelmanifest en Engine-metadata bepalen het concrete verwachte geval; de userfixture verandert deze precedence niet.
+For a receiver-exit lifecycle case, A.aux can return EREVOKED if that bootstrap node was issued by B; this takes precedence over ECLOSED. A normal owner-close without exit gives peers ECLOSED. The kernel manifest and Engine metadata determine the specific expected case; the user fixture does not change this precedence.
 
-De kernelobserver controleert daadwerkelijke syscallnummers, argumenten en resultaten, volledige relevante outputbytes, FIFO, captables/nodes en resources. Status1 is alleen userfeedback. De globale1024-nodegrens en generationexhaustie worden aanvullend in het hostengine-model getest; zij tellen zonder uitgevoerde extra QEMU-case niet als fysiek afgedwongen gastbewijs.
+The kernel observer checks actual syscall numbers, arguments and results, all relevant output bytes, FIFO, captables/nodes and resources. Status1 is only user feedback. The global 1024-node limit and generation exhaustion are additionally tested in the host engine model; without an additional executed QEMU case, they do not count as evidence of actual enforcement in the guest.
 
-## Uitgevoerd en herstel
+<a id="uitgevoerd-en-herstel"></a>
 
-De rootbouw en afzonderlijke hostartifacttests staan in `verification/U04-HOST-2026-10-27.md` en `verification/ipc-host-evidence.json`. Opcode- en ELF-controle bewijzen geen uitgevoerde syscall. De echte EXCHANGE/caseboots en M2/M3-regressies worden door root/kernelagent uitgevoerd en afzonderlijk vastgelegd.
+## Execution status and recovery
 
-Geen M3-probe, M3-test, roottool of kernelbestand is vanuit U04 gewijzigd. Herstel: neem uitsluitend deze aparte IPC-fixturebestanden en de door root beheerde optionele NOS_IPC_ELF-buildkoppeling terug; de M3-fixture blijft zelfstandig bruikbaar.
+The root build and separate host artifact tests are recorded in `verification/U04-HOST-2026-10-27.md` and `verification/ipc-host-evidence.json`. Opcode and ELF checks do not prove an executed syscall. Actual EXCHANGE/case boots and M2/M3 regressions are run by the root/kernel agent and recorded separately.
+
+No M3 probe, M3 test, root tool or kernel file was changed as part of U04. Recovery: revert only these separate IPC fixture files and the optional NOS_IPC_ELF build connection managed by the root agent; the M3 fixture remains independently usable.

@@ -20,6 +20,8 @@ so that an interruption never affects the last valid slot.
 
 ## 2. Security invariants (first)
 
+In the inequalities below, `huidige` denotes the current version and `vloer` the version floor.
+
 1. **Both signatures or nothing.** A manifest is valid if both the
    Ed25519 signature and the ML-DSA-65 signature over exactly the same
    canonical bytes verify against the pinned anchors. One valid
