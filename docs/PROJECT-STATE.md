@@ -1,15 +1,36 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — B05-T1 proposed contract — 18 November2026
+## NEXT AGENT HANDOFF — continuous roadmap checkpoint —18November2026
 
-**Claim:** Codex, codex/b05-review-scope, basefac5a864830e6c1f88f89015f88f32357fb314c6.
-**Goal:** Write docs/security-review/B05-REVIEW-SCOPE.md with scope.json listing, per boundary (syscalls and usercopy, IPC lengths, capability engine, virtio DMA, DHCP/DNS/ARP/ELF parsers, keyring recovery), files, invariants, tests and evidence links, and tools/b05_scope_check.py that fails on any missing path.
-**Invariant:** PROPOSED; no new trust root, escrow, capability or security-hold change.
-**Write set:** docs/security-review/, tools/b05_scope_check.py, tools/tests/test_b05_scope_check.py; lead state.
-**Acceptance:** cited source paths/symbols and progress/diff checks.
-**Evidence limit:** proposal only; owner/security decisions required before code.
-**Ownership:** no open-PR write overlap; integration/Claude branches preserved.
-**Next:** publish bounded proposal, next independent READY task. Score41/100.
+**Current slice:** B05-T1 source `685d2d50`, `codex/b05-review-scope`,
+base `fac5a864`. Seven proposed review boundaries/37 path references;
+two negative test groups and actual checker/compileall pass, exit0. This is
+path validation only, no audit or new security acceptance.
+[Exact current receipt](roadmap-pipeline/receipts/B05-T1.json).
+
+**Functional delivery retained:** USB hotplug372; safetensors parser374;
+native NAS quota/cancel/offline eviction375; settings core377/search core378
+(shared SDK membership pending integration); reproducible comparator379 reports
+loader/ESP differences honestly; capability exploration381 rejects its deliberate
+revocation mutant; native cold AEAD/wrong-secret refusal382 passes55host tests and
+normal/recover/four negative QEMU cases, raw33 on its exact source.
+N04 full-sweep380 remains blocked on throughput; no native pass inferred.
+B06 checker383/H06 matrix384 pass host structural checks only.
+
+**Supporting proposals:** N04 issuer385, partial TLS evaluation386, NAS seal387,
+device lifecycle388 and local AI389 adopt no new authority or dependency.
+Owner/security/numeric/runtime decisions remain open, score41→41/100.
+Hardware, external human audit and merge readiness are not claimed.
+
+**Next:** do not stop on old ledger PR333/336 ownership text: both are MERGED.
+A read-only targeted source lookup is selecting the smallest independent
+H04-T3/N02-T3 native follow-up without touching integration-owned369/370 source.
+Claim its exact released write set before editing. Rust1.100 is installed;
+no global default change. Do not repeat prior matrices or activate the held runner.
+
+**Ownership:** all existing integration branches/PRs remain with Integration Manager;
+ClaudeS09/UI and original dirty checkout preserved. Mandatory hooks/merge protections
+retained; no CI polling, optional Copilot review or unattended execution.
 
 ## Retained checkpoint — unified governance implementation — 18 November 2026
 

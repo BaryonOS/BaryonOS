@@ -1,9 +1,12 @@
 # Current overview
 
-Updated 18 November 2026. Source baseline: main
-`6f29b6720b51aecad5714faa48b445afd6e2f5a9` (#355), preceded by #359 at `1c10cdb5`.
-Current task branch: `codex/unified-governance`. Details and executable resume step:
-[lead checkpoint](PROJECT-STATE.md#next-agent-handoff--unified-governance-implementation--18-november-2026).
+Updated18November2026. Current development baseline `fac5a864` includes#356;
+Rust1.100 is the current pin. Earlier native evidence retains its exact older
+branch/compiler binding and is not promoted to current-main acceptance.
+Current Codex development: B05 scope checker delivered; native network follow-up
+selection is reconciling the now-merged historical PR333 hold.
+[Single lead checkpoint and continuation](PROJECT-STATE.md).
+Integration/merges/closure remain with the separate Integration Manager.
 
 | Workstream | State and owner | Next boundary |
 |---|---|---|

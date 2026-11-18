@@ -1524,7 +1524,7 @@
       "criterion": "B05",
       "milestone": "M8",
       "executor": "worker",
-      "status": "active",
+      "status": "verified",
       "title": "External security review scope packet and path checker",
       "goal": "Write docs/security-review/B05-REVIEW-SCOPE.md with scope.json listing, per boundary (syscalls and usercopy, IPC lengths, capability engine, virtio DMA, DHCP/DNS/ARP/ELF parsers, keyring recovery), files, invariants, tests and evidence links, and tools/b05_scope_check.py that fails on any missing path.",
       "why_now": "Implementation of the next step is blocked on an owner or review decision that needs an evidence-based basis first.",
@@ -1556,8 +1556,16 @@
           "event": "active",
           "at": "2026-11-18T22:30:16.780496+00:00",
           "reason": "Isolated Codex proposed contract only; no production authority, dependency or trust root adoption."
+        },
+        {
+          "at": "2026-11-18T22:31:07.162230+00:00",
+          "event": "verified",
+          "source_commit": "685d2d50a90dbc00b1ba01c9cefbeb81d7a0117b",
+          "reason": "PROPOSED external-review path inventory covers7 boundaries/37 source,test and evidence-contract references. Checker rejects missing/escaping paths, omitted boundaries and empty invariants. Two adversarial test groups, actual check and compileall pass; no audit commissioned or historical evidence reclassified. Host structural checker and proposed review scope only. No security acceptance, external review, native rerun or hardware claim. Current baselinefac5a864 includesRust1.100; earlier implementation evidence retains its original branch/toolchain bindings.41/100 unchanged; hold preserved."
         }
-      ]
+      ],
+      "source_commit": "685d2d50a90dbc00b1ba01c9cefbeb81d7a0117b",
+      "receipt": "docs/roadmap-pipeline/receipts/B05-T1.json"
     },
     {
       "id": "CI-L1",
@@ -1677,8 +1685,14 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "New keyring case needs tools/build.py (PR #333).",
-      "history": []
+      "blocker": "Historical PR333 ownership hold is obsolete (PR333 merged17November2026). Current exact source dependencies/write ownership require narrow reconciliation before native implementation; no security activation implied.",
+      "history": [
+        {
+          "event": "blocked",
+          "at": "2026-11-18",
+          "reason": "Historical PR333 ownership hold is obsolete (PR333 merged17November2026). Current exact source dependencies/write ownership require narrow reconciliation before native implementation; no security activation implied."
+        }
+      ]
     },
     {
       "id": "B02-T3",
@@ -1775,8 +1789,14 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "Kernel feature wiring in tools/build.py owned by PR #333.",
-      "history": []
+      "blocker": "Historical PR333 ownership hold is obsolete (PR333 merged17November2026). Current exact source dependencies/write ownership require narrow reconciliation before native implementation; no security activation implied.",
+      "history": [
+        {
+          "event": "blocked",
+          "at": "2026-11-18",
+          "reason": "Historical PR333 ownership hold is obsolete (PR333 merged17November2026). Current exact source dependencies/write ownership require narrow reconciliation before native implementation; no security activation implied."
+        }
+      ]
     },
     {
       "id": "H05-T3",
@@ -1845,8 +1865,14 @@
       "deps": [],
       "write_paths": [],
       "checks": [],
-      "blocker": "New kernel feature needs tools/build.py (PR #333).",
-      "history": []
+      "blocker": "Historical PR333 ownership hold is obsolete (PR333 merged17November2026). Current exact source dependencies/write ownership require narrow reconciliation before native implementation; no security activation implied.",
+      "history": [
+        {
+          "event": "blocked",
+          "at": "2026-11-18",
+          "reason": "Historical PR333 ownership hold is obsolete (PR333 merged17November2026). Current exact source dependencies/write ownership require narrow reconciliation before native implementation; no security activation implied."
+        }
+      ]
     },
     {
       "id": "N03-T2",

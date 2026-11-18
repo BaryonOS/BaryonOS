@@ -1,0 +1,51 @@
+{
+  "task": "B05-T1",
+  "source_commit": "685d2d50a90dbc00b1ba01c9cefbeb81d7a0117b",
+  "level": "host/build",
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_b05_scope_check.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-46g2uqfy.log",
+      "sha256": "d9825eacd61059f301e6554ce37cceec11d6d0853a6bd6e56767979ba295a9ef"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/b05_scope_check.py"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-sgmdnc5u.log",
+      "sha256": "5e45e3966d0a1cf39a0b71b3c01d484bd02d3b790ddf08539f21b90681cc8254"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "compileall",
+        "-q",
+        "tools/b05_scope_check.py",
+        "tools/tests/test_b05_scope_check.py"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-mb6_sm82.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "limits": "Host structural checker and proposed review scope only. No security acceptance, external review, native rerun or hardware claim. Current baselinefac5a864 includesRust1.100; earlier implementation evidence retains its original branch/toolchain bindings.41/100 unchanged; hold preserved.",
+  "review": "Lead source/diff review; no native/human acceptance.",
+  "score": "41 -> 41/100"
+}

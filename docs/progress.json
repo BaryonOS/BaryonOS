@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "a863167986910ec127779e80e10743f89b626d8f",
+    "source_commit": "685d2d50a90dbc00b1ba01c9cefbeb81d7a0117b",
     "assessment_basis": "parent_commit",
-    "branch": "codex/phase0-pr339-preintegration",
-    "task": "PR #356 reconciliation with main 69d82075",
+    "branch": "codex/b05-review-scope",
+    "task": "B05-T1: PROPOSED external-review path inventory covers7 boundaries/37 source,test and evidence-contract references. Checker rejects missing/escaping paths, omitted boundaries and empty invariants. Two adversarial test groups, actual check and compileall pass; no audit commissioned or historical evidence reclassified.",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The Phase 0 Rust 1.100, English coverage and retained source-bound evidence candidate is reconciled with main 69d82075. The newer governance contracts, disabled issue controller and unconditional execution hold remain intact. Targeted host regressions pass; mandatory current-head hosted checks remain required. This reconciliation does not establish new native, hardware, human-audit or product-criterion acceptance."
+    "summary": "41/100 unchanged. PROPOSED external-review path inventory covers7 boundaries/37 source,test and evidence-contract references. Checker rejects missing/escaping paths, omitted boundaries and empty invariants. Two adversarial test groups, actual check and compileall pass; no audit commissioned or historical evidence reclassified. Host structural checker and proposed review scope only. No security acceptance, external review, native rerun or hardware claim. Current baselinefac5a864 includesRust1.100; earlier implementation evidence retains its original branch/toolchain bindings.41/100 unchanged; hold preserved. Integration/Claude ownership and execution hold preserved."
   },
   "tracks": [
     {
