@@ -331,13 +331,32 @@ impl Client {
 
     /// Explicit read-only reconciliation. The revision is a hint, NOT trusted
     /// evidence: the existing service validates caller/session/object/revision.
-    /// There is deliberately no new "head/latest" protocol here.
     pub fn reconcile<S: Storage>(
         &mut self,
         slot: usize,
         service: &mut Service<'_, S>,
         caller: Principal,
         revision: u64,
+    ) -> Result<State, Failure> {
+        self.reconcile_at(slot, service, caller, Some(revision))
+    }
+
+    /// Discover the committed head and observe it without replaying a write.
+    pub fn reconcile_latest<S: Storage>(
+        &mut self,
+        slot: usize,
+        service: &mut Service<'_, S>,
+        caller: Principal,
+    ) -> Result<State, Failure> {
+        self.reconcile_at(slot, service, caller, None)
+    }
+
+    fn reconcile_at<S: Storage>(
+        &mut self,
+        slot: usize,
+        service: &mut Service<'_, S>,
+        caller: Principal,
+        revision: Option<u64>,
     ) -> Result<State, Failure> {
         let edit = self.edit_mut(slot)?;
         if matches!(edit.state, State::Published(_) | State::Observed(_)) {
@@ -354,11 +373,21 @@ impl Client {
             }
         };
         let mut bytes = [0; MAX_CIPHERTEXT];
-        let read = service.read(caller, session, edit.object, revision, &mut bytes);
+        let read = (|| {
+            let revision = match revision {
+                Some(revision) => revision,
+                None => service.head(caller, session, edit.object)?,
+            };
+            let length = match service.read(caller, session, edit.object, revision, &mut bytes) {
+                Ok(length) => length,
+                Err(Error::NotFound) if revision == 0 => 0,
+                Err(error) => return Err(error),
+            };
+            Ok((revision, length))
+        })();
         let cleanup = service.close(caller, session).err();
-        let length = match read {
-            Ok(length) => length,
-            Err(Error::NotFound) if revision == 0 => 0,
+        let (revision, length) = match read {
+            Ok(observed) => observed,
             Err(operation) => {
                 edit.state = failed(operation);
                 return Err(Failure { operation, cleanup });
