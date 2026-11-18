@@ -1,0 +1,549 @@
+{
+  "parent_source": "0617b07ccf5f48a7c40c72c87b365c436bfea775",
+  "source_files_sha256": {
+    "docs/verification/issue274-language-coverage-20261118/collect.cjs": "851fb9d110d8755c2295a76fd3a887e8814477d459523edd70d54e37f232beae",
+    "docs/verification/issue274-language-coverage-20261118/check.py": "00a7ecb478318485ce1e6ed5a9d7e1032cb65c721d011005a230daaf3cc467b4",
+    "docs/verification/issue274-wiki-publication-20261118/verify.py": "63d8d540b4ed3d7eebe03351d84263bda7d4aef75b21966b635f3feaa5f0039e",
+    "tools/tests/test_language_coverage_helpers.py": "6bd5125abbd93f9493d6532f3897d0712b44a83f3f09a3a383ade5e7b14a2a0d"
+  },
+  "checks": [
+    {
+      "check": "Python regressions",
+      "receipt": "build/tokenguard/run-oe30j08g.json",
+      "receipt_sha256": "482166a71eeea6a184c8a1c0cea3b4833fae54f1aa41c1814baae60467e910ac",
+      "raw_log": "build/tokenguard/run-oe30j08g.log",
+      "raw_log_sha256": "6316c17e4bd71c0a9dca382c38be39c6cfd793ab1840199c39d0b293a55202d5",
+      "exit_code": 0,
+      "expected_exit": 0,
+      "cwd": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local",
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_language_coverage_helpers.py",
+        "-v"
+      ],
+      "wrapper_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_language_coverage_helpers.py",
+        "-v"
+      ],
+      "environment_overrides": {},
+      "command": "python3 -B tools/tokenguard.py run -- python3 -B -m unittest discover -s tools/tests -p test_language_coverage_helpers.py -v",
+      "source_binding_note": "Historical execution at the documented repair stage; current delivery hashes do not relabel an earlier test as a final-source execution.",
+      "public_log": "logs/run-oe30j08g.log.gz",
+      "public_log_sha256": "757c9fd4efc22655cb7e8794f8bf5269c3eeeae869815d2277fb4c722cc86813"
+    },
+    {
+      "check": "Real collector synthetic path/navigation controls",
+      "receipt": "build/tokenguard/run-fn0ozj1_.json",
+      "receipt_sha256": "03742e848f5fe042fb4e25683aed5e4d05a02c4450feb5b680ded7569979acea",
+      "raw_log": "build/tokenguard/run-fn0ozj1_.log",
+      "raw_log_sha256": "4ff88db966bd7632e98a71ccb2010e9e7e5e1d5c607a46064ee64cc669062991",
+      "exit_code": 0,
+      "expected_exit": 0,
+      "python_c_driver": {
+        "path": "build/sec356-helper-fix/collector-controls-exact.py",
+        "sha256": "5c393c09e9242856a9cb111941e24687709702226ce3db4983ac9a14c7038233",
+        "origin": "Exact Python -c argument retained in the corresponding negative-control raw traceback; identical argument used for the matching positive control."
+      },
+      "cwd": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "import importlib.util,json; from pathlib import Path; root=Path.cwd(); p=root/\"docs/verification/issue274-language-coverage-20261118/check.py\"; spec=importlib.util.spec_from_file_location(\"language\",p); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print(json.dumps(m.path_controls(root,root/\"build/sec356-helper-fix\")))"
+      ],
+      "wrapper_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "-c",
+        "import importlib.util,json; from pathlib import Path; root=Path.cwd(); p=root/\"docs/verification/issue274-language-coverage-20261118/check.py\"; spec=importlib.util.spec_from_file_location(\"language\",p); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print(json.dumps(m.path_controls(root,root/\"build/sec356-helper-fix\")))"
+      ],
+      "environment_overrides": {
+        "NODE_PATH": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/sec356-helper-fix/node/node_modules"
+      },
+      "command": "NODE_PATH=/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/sec356-helper-fix/node/node_modules python3 -B tools/tokenguard.py run -- python3 -B -c 'import importlib.util,json; from pathlib import Path; root=Path.cwd(); p=root/\"docs/verification/issue274-language-coverage-20261118/check.py\"; spec=importlib.util.spec_from_file_location(\"language\",p); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print(json.dumps(m.path_controls(root,root/\"build/sec356-helper-fix\")))'",
+      "source_binding_note": "Historical execution at the documented repair stage; current delivery hashes do not relabel an earlier test as a final-source execution.",
+      "public_log": "logs/run-fn0ozj1_.log.gz",
+      "public_log_sha256": "f778e382bd68ca91acacf49d746cbf52b280df52e6d2409c22ec0133d2b8cca8"
+    },
+    {
+      "check": "Node syntax",
+      "receipt": "build/tokenguard/run-ge6hft6z.json",
+      "receipt_sha256": "4c7c92193e278e81faecd05bb724c0f1977ad3f85c28ad26a6eadd3a5ad9b967",
+      "raw_log": "build/tokenguard/run-ge6hft6z.log",
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "expected_exit": 0,
+      "cwd": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local",
+      "argv": [
+        "node",
+        "--check",
+        "docs/verification/issue274-language-coverage-20261118/collect.cjs"
+      ],
+      "wrapper_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "node",
+        "--check",
+        "docs/verification/issue274-language-coverage-20261118/collect.cjs"
+      ],
+      "environment_overrides": {},
+      "command": "python3 -B tools/tokenguard.py run -- node --check docs/verification/issue274-language-coverage-20261118/collect.cjs",
+      "source_binding_note": "Historical execution at the documented repair stage; current delivery hashes do not relabel an earlier test as a final-source execution.",
+      "public_log": "logs/run-ge6hft6z.log.gz",
+      "public_log_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    {
+      "check": "Immutable source inventory",
+      "receipt": "build/tokenguard/run-8x0tsexc.json",
+      "receipt_sha256": "8c80706555bc85efec845811a7f8c19023ffe91e2e4423016c10ba0fb7ace8a8",
+      "raw_log": "build/tokenguard/run-8x0tsexc.log",
+      "raw_log_sha256": "e58b632b295a167ffc3c06d5df6156fd9500df4a8d41398c844c3036846a227e",
+      "exit_code": 0,
+      "expected_exit": 0,
+      "cwd": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local",
+      "argv": [
+        "python3",
+        "-B",
+        "docs/verification/issue274-language-coverage-20261118/check.py",
+        "--ref",
+        "2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+        "--inventory",
+        "docs/verification/issue274-combined-language-20261118/coverage.json"
+      ],
+      "wrapper_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "docs/verification/issue274-language-coverage-20261118/check.py",
+        "--ref",
+        "2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+        "--inventory",
+        "docs/verification/issue274-combined-language-20261118/coverage.json"
+      ],
+      "environment_overrides": {},
+      "command": "python3 -B tools/tokenguard.py run -- python3 -B docs/verification/issue274-language-coverage-20261118/check.py --ref 2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2 --inventory docs/verification/issue274-combined-language-20261118/coverage.json",
+      "source_binding_note": "Historical execution at the documented repair stage; current delivery hashes do not relabel an earlier test as a final-source execution.",
+      "public_log": "logs/run-8x0tsexc.log.gz",
+      "public_log_sha256": "9aebac4ad4d03e1591dc42b781bf8bb9e35b0224b54db1bac8b8a98c3d4b9032"
+    },
+    {
+      "check": "Original Python source negative control",
+      "receipt": "build/tokenguard/run-aqkrfsmj.json",
+      "receipt_sha256": "35912ed50e99b49e59f6f0d88ec4915246a73afc9d6606cbfa5f7aec1d7409bf",
+      "raw_log": "build/tokenguard/run-aqkrfsmj.log",
+      "raw_log_sha256": "741b9b1d90bfe382825f8e6f8cfd19a5c2037a29b664d0ccd5513da2bf8a3b37",
+      "exit_code": 1,
+      "expected_exit": 1,
+      "cwd": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local",
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "build/sec356-helper-fix/original-source/tools/tests",
+        "-p",
+        "test_language_coverage_helpers.py",
+        "-v"
+      ],
+      "wrapper_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "build/sec356-helper-fix/original-source/tools/tests",
+        "-p",
+        "test_language_coverage_helpers.py",
+        "-v"
+      ],
+      "environment_overrides": {},
+      "command": "python3 -B tools/tokenguard.py run -- python3 -B -m unittest discover -s build/sec356-helper-fix/original-source/tools/tests -p test_language_coverage_helpers.py -v",
+      "source_binding_note": "Historical execution at the documented repair stage; current delivery hashes do not relabel an earlier test as a final-source execution.",
+      "public_log": "logs/run-aqkrfsmj.log.gz",
+      "public_log_sha256": "48edb82e4e1c9bea9fe9923895b03188a36501408576feeddaec99533b54ef7c"
+    },
+    {
+      "check": "Original collector negative control",
+      "receipt": "build/tokenguard/run-3mt85k30.json",
+      "receipt_sha256": "33690fa63d9de81ef4af504eba2539a7ca28faf74f859527991dcd12216b9ef1",
+      "raw_log": "build/tokenguard/run-3mt85k30.log",
+      "raw_log_sha256": "b5b786c6d18f8b0a9b8cda4d10bf8d1adfa60d98cfa85343455119002fed2c41",
+      "exit_code": 1,
+      "expected_exit": 1,
+      "python_c_driver": {
+        "path": "build/sec356-helper-fix/original-collector-controls-exact.py",
+        "sha256": "e33410ef05532ff75e58238406520b6fa61d933576b8d60f5296895cf7f34c12",
+        "origin": "Exact Python -c argument retained in the corresponding negative-control raw traceback; identical argument used for the matching positive control."
+      },
+      "cwd": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "import importlib.util,json; from pathlib import Path; root=Path.cwd(); spec=importlib.util.spec_from_file_location(\"language\",root/\"docs/verification/issue274-language-coverage-20261118/check.py\"); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print(json.dumps(m.path_controls(root/\"build/sec356-helper-fix/original-source\",root/\"build/sec356-helper-fix\")))"
+      ],
+      "wrapper_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "-c",
+        "import importlib.util,json; from pathlib import Path; root=Path.cwd(); spec=importlib.util.spec_from_file_location(\"language\",root/\"docs/verification/issue274-language-coverage-20261118/check.py\"); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print(json.dumps(m.path_controls(root/\"build/sec356-helper-fix/original-source\",root/\"build/sec356-helper-fix\")))"
+      ],
+      "environment_overrides": {
+        "NODE_PATH": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/sec356-helper-fix/node/node_modules"
+      },
+      "command": "NODE_PATH=/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/sec356-helper-fix/node/node_modules python3 -B tools/tokenguard.py run -- python3 -B -c 'import importlib.util,json; from pathlib import Path; root=Path.cwd(); spec=importlib.util.spec_from_file_location(\"language\",root/\"docs/verification/issue274-language-coverage-20261118/check.py\"); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print(json.dumps(m.path_controls(root/\"build/sec356-helper-fix/original-source\",root/\"build/sec356-helper-fix\")))'",
+      "source_binding_note": "Historical execution at the documented repair stage; current delivery hashes do not relabel an earlier test as a final-source execution.",
+      "public_log": "logs/run-3mt85k30.log.gz",
+      "public_log_sha256": "9cf25b66520f9553f6e53f738d3c26d7c8414d9061ce853cf15845cb10f65da1"
+    },
+    {
+      "check": "Pinned existing lexer dependency provisioning",
+      "receipt": "build/tokenguard/run-mqdzj5ai.json",
+      "receipt_sha256": "906c0134220a37f7d685f386294ec84122f6c04d664a683650645870747b305b",
+      "raw_log": "build/tokenguard/run-mqdzj5ai.log",
+      "raw_log_sha256": "b06f9340cf001e91785b8790b8ec869fe4844a21e5cb4e4b32ac0c1a40fa70d5",
+      "exit_code": 0,
+      "expected_exit": 0,
+      "cwd": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local",
+      "argv": [
+        "npm",
+        "install",
+        "--prefix",
+        "build/sec356-helper-fix/node",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--save-exact",
+        "marked@18.2.1"
+      ],
+      "wrapper_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "npm",
+        "install",
+        "--prefix",
+        "build/sec356-helper-fix/node",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--save-exact",
+        "marked@18.2.1"
+      ],
+      "environment_overrides": {},
+      "command": "python3 -B tools/tokenguard.py run -- npm install --prefix build/sec356-helper-fix/node --ignore-scripts --no-audit --no-fund --save-exact marked@18.2.1",
+      "source_binding_note": "Historical execution at the documented repair stage; current delivery hashes do not relabel an earlier test as a final-source execution.",
+      "public_log": "logs/run-mqdzj5ai.log.gz",
+      "public_log_sha256": "c9593afb8a615498364245b0a9da2f9fd8aa45f67b4e1f1b52543983e909e5fa"
+    },
+    {
+      "check": "Pre-review fix: matching-byte Wiki symlink escape negative control",
+      "receipt": "build/tokenguard/run-87g0u3vf.json",
+      "receipt_sha256": "ef4b3b892a0bab433593bfad880d7b164339c9f82730614632b2619553aa9dd7",
+      "raw_log": "build/tokenguard/run-87g0u3vf.log",
+      "raw_log_sha256": "38a5719e7612b5afe3a11994b39791792ce4f7f4befc662fd500301f416d54f7",
+      "exit_code": 1,
+      "expected_exit": 1,
+      "cwd": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local",
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_language_coverage_helpers.py",
+        "-v"
+      ],
+      "wrapper_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_language_coverage_helpers.py",
+        "-v"
+      ],
+      "environment_overrides": {},
+      "command": "python3 -B tools/tokenguard.py run -- python3 -B -m unittest discover -s tools/tests -p test_language_coverage_helpers.py -v",
+      "source_binding_note": "Historical execution at the documented repair stage; current delivery hashes do not relabel an earlier test as a final-source execution.",
+      "public_log": "logs/run-87g0u3vf.log.gz",
+      "public_log_sha256": "5f172b3490cef3f9c07562b3f834817e802f7c014e18e270708dd5dd70d99796"
+    },
+    {
+      "check": "Pre-review fix: published Wiki URL incorrectly accepted source fallback negative control",
+      "receipt": "build/tokenguard/run-3agwgsu_.json",
+      "receipt_sha256": "e5f4f5a91e5e0fbd2045b8257f515eeacf3058737ccfdf8b81b9b8d6e5b9af1f",
+      "raw_log": "build/tokenguard/run-3agwgsu_.log",
+      "raw_log_sha256": "6ee7f9b044a789356e70041c6793d657d4654f1f3bad2798b2765e04051b6352",
+      "exit_code": 1,
+      "expected_exit": 1,
+      "python_c_driver": {
+        "path": "build/sec356-helper-fix/collector-controls-exact.py",
+        "sha256": "5c393c09e9242856a9cb111941e24687709702226ce3db4983ac9a14c7038233",
+        "origin": "Exact Python -c argument retained in the corresponding negative-control raw traceback; identical argument used for the matching positive control."
+      },
+      "cwd": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "import importlib.util,json; from pathlib import Path; root=Path.cwd(); p=root/\"docs/verification/issue274-language-coverage-20261118/check.py\"; spec=importlib.util.spec_from_file_location(\"language\",p); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print(json.dumps(m.path_controls(root,root/\"build/sec356-helper-fix\")))"
+      ],
+      "wrapper_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "-c",
+        "import importlib.util,json; from pathlib import Path; root=Path.cwd(); p=root/\"docs/verification/issue274-language-coverage-20261118/check.py\"; spec=importlib.util.spec_from_file_location(\"language\",p); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print(json.dumps(m.path_controls(root,root/\"build/sec356-helper-fix\")))"
+      ],
+      "environment_overrides": {
+        "NODE_PATH": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/sec356-helper-fix/node/node_modules"
+      },
+      "command": "NODE_PATH=/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/sec356-helper-fix/node/node_modules python3 -B tools/tokenguard.py run -- python3 -B -c 'import importlib.util,json; from pathlib import Path; root=Path.cwd(); p=root/\"docs/verification/issue274-language-coverage-20261118/check.py\"; spec=importlib.util.spec_from_file_location(\"language\",p); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print(json.dumps(m.path_controls(root,root/\"build/sec356-helper-fix\")))'",
+      "source_binding_note": "Historical execution at the documented repair stage; current delivery hashes do not relabel an earlier test as a final-source execution.",
+      "public_log": "logs/run-3agwgsu_.log.gz",
+      "public_log_sha256": "c629f8a8f6795b6454b82bd05d64c605f45450f2ba0ede08aab4276717bd74cf"
+    },
+    {
+      "check": "Reviewed collector controls including missing-live-Wiki and source navigation",
+      "receipt": "build/tokenguard/run-1p1ej69h.json",
+      "receipt_sha256": "7f0411e8bc8c34486ef0f1fada04f5252d9f2e0310c3eeefeb080b7ae668cabf",
+      "raw_log": "build/tokenguard/run-1p1ej69h.log",
+      "raw_log_sha256": "4ff88db966bd7632e98a71ccb2010e9e7e5e1d5c607a46064ee64cc669062991",
+      "exit_code": 0,
+      "expected_exit": 0,
+      "python_c_driver": {
+        "path": "build/sec356-helper-fix/collector-controls-exact.py",
+        "sha256": "5c393c09e9242856a9cb111941e24687709702226ce3db4983ac9a14c7038233",
+        "origin": "Exact Python -c argument retained in the corresponding negative-control raw traceback; identical argument used for the matching positive control."
+      },
+      "cwd": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local",
+      "argv": [
+        "python3",
+        "-B",
+        "-c",
+        "import importlib.util,json; from pathlib import Path; root=Path.cwd(); p=root/\"docs/verification/issue274-language-coverage-20261118/check.py\"; spec=importlib.util.spec_from_file_location(\"language\",p); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print(json.dumps(m.path_controls(root,root/\"build/sec356-helper-fix\")))"
+      ],
+      "wrapper_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "-c",
+        "import importlib.util,json; from pathlib import Path; root=Path.cwd(); p=root/\"docs/verification/issue274-language-coverage-20261118/check.py\"; spec=importlib.util.spec_from_file_location(\"language\",p); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print(json.dumps(m.path_controls(root,root/\"build/sec356-helper-fix\")))"
+      ],
+      "environment_overrides": {
+        "NODE_PATH": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/sec356-helper-fix/node/node_modules"
+      },
+      "command": "NODE_PATH=/home/simon/projects/BaryonOS-worktrees/phase0-combined-local/build/sec356-helper-fix/node/node_modules python3 -B tools/tokenguard.py run -- python3 -B -c 'import importlib.util,json; from pathlib import Path; root=Path.cwd(); p=root/\"docs/verification/issue274-language-coverage-20261118/check.py\"; spec=importlib.util.spec_from_file_location(\"language\",p); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print(json.dumps(m.path_controls(root,root/\"build/sec356-helper-fix\")))'",
+      "source_binding_note": "Historical execution at the documented repair stage; current delivery hashes do not relabel an earlier test as a final-source execution.",
+      "public_log": "logs/run-1p1ej69h.log.gz",
+      "public_log_sha256": "f778e382bd68ca91acacf49d746cbf52b280df52e6d2409c22ec0133d2b8cca8"
+    },
+    {
+      "check": "Reviewed Python regressions including matching-byte Wiki symlink under -O",
+      "receipt": "build/tokenguard/run-8pi3nopo.json",
+      "receipt_sha256": "8c6d3dae3205cecf87f55093acb5535639426d9b50b30485759a079e252a3cc0",
+      "raw_log": "build/tokenguard/run-8pi3nopo.log",
+      "raw_log_sha256": "d1d73374720015724acdf89252aeb054ee1508db40d4556929782ad4fe789b43",
+      "exit_code": 0,
+      "expected_exit": 0,
+      "cwd": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local",
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_language_coverage_helpers.py",
+        "-v"
+      ],
+      "wrapper_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_language_coverage_helpers.py",
+        "-v"
+      ],
+      "environment_overrides": {},
+      "command": "python3 -B tools/tokenguard.py run -- python3 -B -m unittest discover -s tools/tests -p test_language_coverage_helpers.py -v",
+      "source_binding_note": "Historical execution at the documented repair stage; current delivery hashes do not relabel an earlier test as a final-source execution.",
+      "public_log": "logs/run-8pi3nopo.log.gz",
+      "public_log_sha256": "4e54907f44c3a4346b22523b1d44840193f7ed0b28453b4ec3751b6cceaad731"
+    },
+    {
+      "check": "Final immutable inventory reproduction after both review repairs",
+      "receipt": "build/tokenguard/run-r80p050k.json",
+      "receipt_sha256": "4fda8c559561da4e4415e432097e26011227bc5e2042ae2c286ee8e8d9ecf470",
+      "raw_log": "build/tokenguard/run-r80p050k.log",
+      "raw_log_sha256": "e58b632b295a167ffc3c06d5df6156fd9500df4a8d41398c844c3036846a227e",
+      "exit_code": 0,
+      "expected_exit": 0,
+      "cwd": "/home/simon/projects/BaryonOS-worktrees/phase0-combined-local",
+      "argv": [
+        "python3",
+        "-B",
+        "docs/verification/issue274-language-coverage-20261118/check.py",
+        "--ref",
+        "2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+        "--inventory",
+        "docs/verification/issue274-combined-language-20261118/coverage.json"
+      ],
+      "wrapper_argv": [
+        "python3",
+        "-B",
+        "tools/tokenguard.py",
+        "run",
+        "--",
+        "python3",
+        "-B",
+        "docs/verification/issue274-language-coverage-20261118/check.py",
+        "--ref",
+        "2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2",
+        "--inventory",
+        "docs/verification/issue274-combined-language-20261118/coverage.json"
+      ],
+      "environment_overrides": {},
+      "command": "python3 -B tools/tokenguard.py run -- python3 -B docs/verification/issue274-language-coverage-20261118/check.py --ref 2073e4affd8a46a4bd0a1b95bcb06f7c2b0062c2 --inventory docs/verification/issue274-combined-language-20261118/coverage.json",
+      "source_binding_note": "Historical execution at the documented repair stage; current delivery hashes do not relabel an earlier test as a final-source execution.",
+      "public_log": "logs/run-r80p050k.log.gz",
+      "public_log_sha256": "9aebac4ad4d03e1591dc42b781bf8bb9e35b0224b54db1bac8b8a98c3d4b9032"
+    },
+    {
+      "check": "final_complete_tools",
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tools/tests",
+        "-p",
+        "test_*.py"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-ml5br6sr.log",
+      "raw_log_sha256": "cb45e21c98ee4a016154b1bd969b8c387530f09abeefea845e6783c0b4367ea5",
+      "public_log": "logs/final_complete_tools.log.gz",
+      "public_log_sha256": "c32ec99506244a6325017f6b37daf98d0c45c3fa7ec6bc7d7f891f7ccce2e691"
+    },
+    {
+      "check": "real_wiki_optimized",
+      "argv": [
+        "python3",
+        "-B",
+        "-O",
+        "docs/verification/issue274-wiki-publication-20261118/verify.py",
+        "--wiki",
+        "build/issue274-wiki-readonly"
+      ],
+      "exit_code": 0,
+      "raw_log": "build/tokenguard/run-gyhgv9ex.log",
+      "raw_log_sha256": "65c9a547c4ed0bd2e39fa56d2cebfb59449152c4e6b72cfda1d5e53ba94c89ef",
+      "public_log": "logs/real_wiki_optimized.log.gz",
+      "public_log_sha256": "a1cb9d6dbfadbca60ffc116f1efbd3e99b8fbe396acaf97c0b6c76b2a2e3077f"
+    }
+  ],
+  "dependencies": {
+    "purpose": "Execute existing collector synthetic regressions; no repository dependency added.",
+    "node_version": "22.22.1",
+    "marked": {
+      "version": "18.2.1",
+      "resolved": "https://registry.npmjs.org/marked/-/marked-18.2.1.tgz",
+      "integrity": "sha512-ii4bxCTCqqwpT86XZWgJNs+ZnAIZksmLGYMViWA7PDIXYIeNo1x6cDdX3JOip9NM/cI6p8z57FxliACboTruMA==",
+      "bin": {
+        "marked": "bin/marked.js"
+      },
+      "engines": {
+        "node": ">= 20"
+      }
+    },
+    "lock_sha256": "16fb5d1d72fabda0793c7d957fabea94b382b17d98e755628f4ab7bebbab7808",
+    "scripts": "disabled"
+  },
+  "wiki_head": "4a01b8b2ad2695da509a512ea688007c964f56da",
+  "full_tools_tests": 406,
+  "public_log_derivation": "Only absolute task-worktree path replaced with ${WORKTREE}; original raw logs retained locally.",
+  "independent_ai_review": "PASS after seven helper defects were corrected; not human audit. Final import-style-only change retains unittest.mock semantics.",
+  "native_evidence_limit": "Earlier native evidence remains bound to its original sources; this helper-only change and host regression add no native acceptance.",
+  "issue274": "OPEN: native/SDK/prototype localisation and complete final-source coverage remain outside this fix."
+}

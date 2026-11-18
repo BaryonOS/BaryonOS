@@ -39,7 +39,7 @@ def main():
             raise RuntimeError(f"acceptance failed: {name}")
     normal = build()
     normal_esp = snapshot_build(normal, "normal")
-    run_logged(["cargo", "+1.90.0", "test", "--locked", "-p", "boot-protocol", "-p", "elf-loader-core"], "host-tests")
+    run_logged(["cargo", "+1.100.0", "test", "--locked", "-p", "boot-protocol", "-p", "elf-loader-core"], "host-tests")
     record("host-protocol-elf-tests", True, "build/logs/host-tests.stdout.txt")
     # These are harness-only checks; genuine VM evidence is collected below.
     expected = "\n".join(("BOOT:EBS_OK", "KERNEL:ENTRY", "BOOTINFO:OK", "M1:PASS"))

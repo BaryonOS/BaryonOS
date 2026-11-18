@@ -45,7 +45,7 @@ jobs:
         uses: ./.github/actions/setup-python
       - name: Install pinned Rust toolchain and VM firmware
         run: |
-          rustup toolchain install 1.90.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
+          rustup toolchain install 1.100.0 --profile minimal --target x86_64-unknown-none,x86_64-unknown-uefi
       - name: Pinned QEMU and OVMF
         uses: ./.github/actions/setup-qemu
       - name: Ubuntu emulator package diagnostics
@@ -57,12 +57,12 @@ jobs:
         run: python3 -B tools/preflight.py --strict > "$NOS_BUILD_DIR/preflight.json"
       - name: Fetch locked native app dependencies
         run: |
-          cargo +1.90.0 fetch --locked
-          cargo +1.90.0 fetch --locked --manifest-path sdk/Cargo.toml
-          cargo +1.90.0 fetch --locked --manifest-path sdk/examples/desktop-init/Cargo.toml
-          cargo +1.90.0 fetch --locked --manifest-path sdk/examples/materiaal/Cargo.toml
-          cargo +1.90.0 fetch --locked --manifest-path sdk/examples/compositor/Cargo.toml
-          cargo +1.90.0 fetch --locked --manifest-path sdk/examples/input-service/Cargo.toml
+          cargo +1.100.0 fetch --locked
+          cargo +1.100.0 fetch --locked --manifest-path sdk/Cargo.toml
+          cargo +1.100.0 fetch --locked --manifest-path sdk/examples/desktop-init/Cargo.toml
+          cargo +1.100.0 fetch --locked --manifest-path sdk/examples/materiaal/Cargo.toml
+          cargo +1.100.0 fetch --locked --manifest-path sdk/examples/compositor/Cargo.toml
+          cargo +1.100.0 fetch --locked --manifest-path sdk/examples/input-service/Cargo.toml
       - name: Packager and preview verifier host tests
         run: python3 -B -m unittest tools.tests.test_materiaal_preview tools.tests.test_package_windows_qemu
       - name: Build and boot the actual native Materiaal profile

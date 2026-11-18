@@ -32,7 +32,7 @@ HOST_GROUPS = {
     'strict-development-inventory': ('m6c-preflight', 'python',
         ('-B', 'tools/preflight.py', '--strict')),
     'catalog-core-and-wire-host-tests': ('m6c-host-tests', 'cargo',
-        ('+1.90.0', 'test', '--locked', '--offline', '-p', 'catalog-core')),
+        ('+1.100.0', 'test', '--locked', '--offline', '-p', 'catalog-core')),
     'external-oracle-and-crash-harness-tests': ('m6c-harness-tests', 'python',
         ('-B', '-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_m6c_*.py')),
 }
