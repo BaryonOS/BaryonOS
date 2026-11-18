@@ -12,10 +12,11 @@ import sys
 import tempfile
 import time
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from agent_sandbox import Sandbox
+from agent_sandbox import Sandbox, SandboxError
 import agent_gate
 
 
@@ -81,6 +82,70 @@ class NativeBoundary(unittest.TestCase):
                 f"assert stats.f_files == {inodes}\n")
         done = self.python(code)
         self.assertEqual(done.returncode, 0, done.stderr)
+
+    def test_scratch_byte_limit_returns_enospc_and_recovers(self):
+        capacity = self.sandbox.scratch["capacity_bytes"]
+        self.assertLessEqual(capacity, 128 * 1024 * 1024, "fixture byte cap is unsafe for this probe")
+        code = ("import errno,os\nfrom pathlib import Path\n"
+                "path=Path('/workspace/byte-limit-probe')\n"
+                "chunk=b'x'*(1024*1024)\nwritten=0\nfailure=None\n"
+                "try:\n"
+                " with path.open('xb',buffering=0) as output:\n"
+                "  while True:\n"
+                "   try: written += output.write(chunk)\n"
+                "   except OSError as error: failure=error.errno; break\n"
+                " stats=os.statvfs('/workspace')\n"
+                " assert failure == errno.ENOSPC and written > 0 and stats.f_bavail == 0\n"
+                "finally: path.unlink(missing_ok=True)\n"
+                "assert os.statvfs('/workspace').f_bavail > 0\n")
+        done = self.python(code)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertGreater(os.statvfs(self.work).f_bavail, 0)
+
+    def test_scratch_inode_limit_returns_enospc_and_recovers(self):
+        inodes = self.sandbox.scratch["capacity_inodes"]
+        self.assertLessEqual(inodes, 8192, "fixture inode cap is unsafe for this probe")
+        code = ("import errno,os\nfrom pathlib import Path\n"
+                "root=Path('/workspace/inode-limit-probe')\nroot.mkdir()\n"
+                "created=[]\nfailure=None\n"
+                "try:\n"
+                f" for index in range({inodes + 1}):\n"
+                "  path=root/str(index)\n"
+                "  try: descriptor=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)\n"
+                "  except OSError as error: failure=error.errno; break\n"
+                "  else: os.close(descriptor); created.append(path)\n"
+                " stats=os.statvfs('/workspace')\n"
+                " assert failure == errno.ENOSPC and created and stats.f_favail == 0\n"
+                "finally:\n"
+                " for path in created: path.unlink()\n"
+                " root.rmdir()\n"
+                "assert os.statvfs('/workspace').f_favail > 0\n")
+        done = self.python(code)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertGreater(os.statvfs(self.work).f_favail, 0)
+
+    def test_parallel_leases_use_distinct_roots_and_hide_siblings(self):
+        self.assertGreaterEqual(len(self.sandbox.scratch_roots), 2,
+                                "native sibling acceptance requires two scratch roots")
+        with self.sandbox.lease() as sibling:
+            self.assertNotEqual(self.lease.root, sibling.root)
+            self.assertNotEqual(self.lease.receipt["mount_id"], sibling.receipt["mount_id"])
+
+            def run(lease, marker, other_root):
+                code = ("from pathlib import Path\n"
+                        f"assert not Path({str(other_root)!r}).exists()\n"
+                        f"Path('sibling-marker').write_text({marker!r})\n")
+                return self.sandbox.run(
+                    ["/usr/bin/python3", "-I", "-B", "-c", code], lease,
+                    profile="agent")
+
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                first = pool.submit(run, self.lease, "first", sibling.root)
+                second = pool.submit(run, sibling, "second", self.lease.root)
+                self.assertEqual(first.result().returncode, 0)
+                self.assertEqual(second.result().returncode, 0)
+            self.assertEqual((self.lease.path / "sibling-marker").read_text(), "first")
+            self.assertEqual((sibling.path / "sibling-marker").read_text(), "second")
 
     def test_payload_has_no_controller_file_descriptors(self):
         code = ("import os\n"
@@ -180,6 +245,47 @@ class NativeBoundary(unittest.TestCase):
                 first = marker.read_text()
                 time.sleep(0.15)
                 self.assertEqual(marker.read_text(), first)
+
+    # The quarantined mount intentionally persists until the outer fixture exits.
+    def test_z_live_survivor_cleanup_failure_quarantines_the_root(self):
+        marker = self.work / "quarantine-heartbeat"
+        body = ("from pathlib import Path\nimport time\n"
+                "deadline=time.monotonic()+5\n"
+                "Path('quarantine-heartbeat').write_text(str(time.time_ns()))\n"
+                "print('ready',flush=True)\n"
+                "while time.monotonic() < deadline:\n"
+                " Path('quarantine-heartbeat').write_text(str(time.time_ns())); time.sleep(0.02)")
+        code = ("import subprocess; child=subprocess.Popen("
+                f"['/usr/bin/python3','-I','-B','-c',{body!r}],"
+                "stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True); "
+                "assert child.stdout.readline() == 'ready\\n'; print('started',flush=True)")
+        captured = {}
+
+        def uncertain_cleanup(_control, _environment, unit, _state):
+            captured["unit"] = unit
+            raise SandboxError("synthetic cleanup uncertainty")
+
+        try:
+            with mock.patch.object(self.sandbox, "_cleanup_scope", side_effect=uncertain_cleanup), \
+                    self.assertRaisesRegex(SandboxError, "resource cleanup failed"):
+                self.python(code)
+            self.assertTrue(self.lease.receipt["quarantined"])
+            self.assertFalse(self.lease.receipt["cleaned"])
+            self.assertTrue(self.lease.container.exists())
+            self.assertTrue(any(self.lease.root.iterdir()))
+            first = marker.read_text()
+            time.sleep(0.15)
+            self.assertNotEqual(marker.read_text(), first)
+        finally:
+            unit = captured.get("unit")
+            if unit is not None:
+                with self.sandbox._verified_resource_tools() as (_manager, control, environment):
+                    self.sandbox._terminate_scope(control, environment, unit)
+                    state = self.sandbox._unit_properties(control, environment, unit)
+                    self.sandbox._cleanup_scope(control, environment, unit, state)
+        stopped = marker.read_text()
+        time.sleep(0.15)
+        self.assertEqual(marker.read_text(), stopped)
 
 
 if __name__ == "__main__":
