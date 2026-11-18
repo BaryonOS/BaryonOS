@@ -17,7 +17,7 @@ def main() -> int:
     OUTPUT.mkdir(exist_ok=True)
     env = dict(os.environ)
     env["CARGO_TARGET_DIR"] = str(ROOT / "build" / "m6-core-tests")
-    cargo = [sys.executable, "tools/dev.py", "cargo", "+1.90.0"]
+    cargo = [sys.executable, "tools/dev.py", "cargo", "+1.100.0"]
     commands = [
         ("fmt", cargo + ["fmt", "-p", "capability-core", "-p", "virtio-core", "--", "--check"]),
         ("host", cargo + ["test", "-p", "capability-core", "-p", "virtio-core", "--locked", "--offline", "--", "--test-threads=3"]),

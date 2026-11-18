@@ -1,0 +1,8 @@
+usage: progress.py [-h] [--check | --write]
+
+Render the fixed 100-point OS roadmap; check by default, never run OS tests.
+
+options:
+  -h, --help  show this help message and exit
+  --check     Check rubric, evidence references, and generated views (default)
+  --write     Update README, criteria table, and local SVG
