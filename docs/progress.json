@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "a863167986910ec127779e80e10743f89b626d8f",
+    "source_commit": "4a9a44ac4046dcfd69df1abb73f428522e703f65",
     "assessment_basis": "parent_commit",
-    "branch": "codex/phase0-pr339-preintegration",
-    "task": "PR #356 reconciliation with main 69d82075",
+    "branch": "codex/l01-reference-forward",
+    "task": "L01-T3 bounded numerical reference primitives",
     "previous_score": 41,
-    "summary": "41/100 unchanged. The Phase 0 Rust 1.100, English coverage and retained source-bound evidence candidate is reconciled with main 69d82075. The newer governance contracts, disabled issue controller and unconditional execution hold remain intact. Targeted host regressions pass; mandatory current-head hosted checks remain required. This reconciliation does not establish new native, hardware, human-audit or product-criterion acceptance."
+    "summary": "41/100 unchanged. Host numerical primitives and no_std scalar compile; no native inference, model-quality or complete L01 acceptance. Session ending at explicit owner request."
   },
   "tracks": [
     {
