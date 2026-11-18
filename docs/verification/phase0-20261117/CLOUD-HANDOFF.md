@@ -1,17 +1,61 @@
 # Phase 0 cloud handoff — 18 November 2026
 
-**Ownership: RELEASED TO THE NEXT CODEX CLOUD TASK.** The prepared handoff
+**Execution status: PAUSED.** This one-time amendment transfers recoverable WIP
+only. It does not authorize a cloud task to resume Phase 0 until the project
+owner explicitly resumes it.
+
+**Ownership: RELEASED FOR RECOVERY; EXECUTION PAUSED.** The prepared handoff
 commit `c64d81d6bde1a0e649350325db15d87cde11e1cd` and listed source commits
 were verified on GitHub before this release. Local Codex writers have stopped.
-The new cloud task must claim one workstream against the current remote SHA.
+After an explicit owner resumption, a new cloud task must claim one workstream
+against the current remote SHA.
 This handoff transfers Codex work only;
 it does not transfer the independent Claude UI/UX or S09 workstreams.
 
+## One-time WIP transfer amendment
+
+The following remote state was reverified after the original handoff:
+
+- `main`: `366b82b353485207a9b0d6b1ae63dafbbe265bae`.
+- PR **#355**, branch `codex/phase0-pipeline-isolation`:
+  `7e406c7c3ec71691939acca6db0c594bb8ce03a9`. The PR remains open and was not
+  merged or otherwise changed by this transfer.
+- Recovery-only draft PR **#357**, branch
+  `codex/phase0-pr355-resource-wip-untested`:
+  `8a32bc582790fa16234dbadf37a0a176de620900`, whose parent is the PR #355 head.
+  This commit preserves exactly `tools/agent_gate.py`,
+  `tools/agent_pipeline.py`, `tools/agent_sandbox.py` and
+  `tools/tests/test_agent_sandbox.py` as found in the paused worktree.
+
+The recovery commit is **UNTESTED / NOT ACCEPTED**. No tests, runtime probes or
+acceptance gates were run for it. A bounded publication review found no token or
+key material, private scan identifiers, local user paths or exploit procedure;
+`git diff --check` passed. These checks do not establish correctness or security.
+Do not merge or treat this branch as an accepted PR #355 continuation.
+
+Remaining security blockers are unchanged:
+
+1. Resource accounting, bounded output and complete process-tree termination
+   must hold for the full scratch lifecycle; the recovery WIP does not prove or
+   complete those guarantees.
+2. Authenticated model-client interaction must remain outside the credential-free,
+   offline execution and gate boundary, with an owner-controlled engine allowlist
+   and model output treated as untrusted input.
+3. Applicable targeted, native, hosted CI and independent security verification
+   remain required on a coherent current head.
+4. The Daybreak finding remains open pending source-bound verification and the
+   supported resolution workflow.
+
+No unpublished changes remain in the security or handoff transfer worktrees at
+this amendment checkpoint. Private evidence and the unrelated local work listed
+later in this document remain local-only. The inventory below records the
+original handoff context and must be re-queried after an explicit resumption.
+
 ## Source and authority
 
-- Verified integration main: `38d4cc17687156379677993be9945447591bd4c1`.
-- Primary security source: `aec1fb5f75e6165da82ba81f3f43d7a0d912ab1d`,
-  branch `codex/phase0-pipeline-isolation`, existing draft PR **#355**.
+- Verified integration main at this amendment: `366b82b353485207a9b0d6b1ae63dafbbe265bae`.
+- Primary accepted security-source checkpoint: `7e406c7c3ec71691939acca6db0c594bb8ce03a9`,
+  branch `codex/phase0-pipeline-isolation`, existing open PR **#355**.
 - This checkpoint's parent: `3747ba2b2496c89c02fd835161919589b36a5cc9`.
 - Score remains **41/100**. Baseline B is not established. Governance 1–6 have
   not started. Only **0D security remediation** is the primary active milestone;
@@ -75,7 +119,7 @@ resolution mechanism; verify status rather than assuming that a merge closes it.
 
 | PR / purpose | Exact published checkpoint | Disposition |
 | --- | --- | --- |
-| #355 security | `codex/phase0-pipeline-isolation` — `aec1fb5f75e6165da82ba81f3f43d7a0d912ab1d` | Primary; blocked as above. |
+| #355 security / #357 recovery WIP | `codex/phase0-pipeline-isolation` — `7e406c7c3ec71691939acca6db0c594bb8ce03a9`; stacked draft #357 `codex/phase0-pr355-resource-wip-untested` — `8a32bc582790fa16234dbadf37a0a176de620900` | Primary source remains blocked as above. Recovery WIP is untested and not accepted. |
 | #354 Rust 1.100 | `codex/phase0-rust-1-100` — `aa5015378e78783fe6486480be45fdfd44656cfc` | Four compiler-WIP files preserved and formatter checked. Full Clippy/native/current-main acceptance open. Temporary base is `codex/phase0-pr340-preintegration` at `f5a976f17a3167a08ad513f0328cba8de3dd8a62`; retarget/reconcile main before any merge. |
 | #333 native input | `feat/issue42-native-input` — `db4581c11333448ad70e757b41329ef1f67b7b60` | Prior source-bound native/independent evidence retained. Re-query current checks and reconcile resulting main after security. Issue42 remains open. |
 | #340 limited fix | Canonical `feat/s09-ustar-name-check` — `90816de39460b76e35cd626721d4dac9bde905e2`; preview `codex/phase0-pr340-preintegration` — `f5a976f17a3167a08ad513f0328cba8de3dd8a62` | Limited Clippy/name-claim release only. Broader S09/D1–D5 and runners remain Claude-owned. Retain preview because PR354 uses it. |
@@ -118,6 +162,9 @@ project milestone or release their parent workstream. Only the verified release
 commit changes the Codex ownership status above; Claude/user ownership persists.
 
 ## Next executable action in Codex Cloud
+
+Do not execute these steps while the goal remains paused. They apply only after
+the project owner explicitly resumes the work.
 
 1. Fetch this release commit, verify the exact branch/head, read root and relevant
    directory instructions plus this handoff, then record one exclusive claim for
