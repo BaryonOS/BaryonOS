@@ -2,15 +2,31 @@
 
 Use this text as the **initial prompt** in an authenticated Codex session started from a BaryonOS repository checkout. This file is a stable startup guide, not live task state.
 
-Before editing, load the user's global `~/.codex/AGENTS.md`, repository `AGENTS.md` and each applicable directory `AGENTS.md`. Confirm current branch, HEAD, dirty files and existing task owner. Read only `CODEX-WORKFLOW.md`, `PROMPT-VERVOLG.md` and the **latest relevant** `docs/PROJECT-STATE.md` checkpoint first; then follow the applicable ADRs, `docs/ROADMAP.md`, security contracts and focused subsystem skill. Historical directions do not override accepted work or newer owner decisions.
+Read root `AGENTS.md`, applicable directory instructions, `docs/STATUS.md` and
+the latest relevant `docs/PROJECT-STATE.md` checkpoint. Confirm branch, full HEAD,
+short status and exclusive task ownership. Check cross-agent handoffs before writing;
+preserve unrelated dirty work. Load only missing contracts and relevant ADRs.
 
-Find exact definitions and linked tests through the **hosted Graphify MCP** (`recall`, `graphify_rank_files`/`graphify_find`, `graphify_impact`, `graphify_tests_for`) before broad source inspection. Check the Graphify indexed commit against the checkout. If Graphify is unavailable, use small direct source reads, mark the limitation, and do not construct a substitute local index. Never perform broad recursive grep or dump entire logs as routine navigation.
+Execute `.agents/skills/development-loop/SKILL.md`; use the actual roles
+`.codex/agents/os_architect.toml`, `os_builder.toml`, `os_verifier.toml` and
+`os_security_reviewer.toml`, whose contracts are shared under `.agents/roles/`.
+No nonexistent optional role or unfinished parity canary blocks ordinary implementation.
+Default to one primary agent and at most one reviewer when risk warrants it.
 
-Operate each task through the one shared loop: (1) orient, (2) claim one eligible task with exclusive write paths, (3) obtain bounded context, (4) specify invariants and acceptance, (5) make the smallest safe change following Ponytail, (6) run targeted tests then mandated native/hosted checks using a single suitable RTK **or** Token Guard wrapper per command, (7) inspect the entire diff and repair failures, (8) checkpoint branch/commit/test evidence and draft PR, (9) record one durable lesson in the right place, (10) continue the next safe task or leave a precise blocker. Raw exit codes and complete raw logs remain authoritative; do not downgrade acceptance to compensate for missing tools. Keep Git hooks enabled; do not use `--no-verify` or change `core.hooksPath` to bypass them.
+Use hosted Graphify first for targeted navigation, comparing indexed commit with HEAD.
+If unavailable, report it and read the owning source directly; never build a local graph.
+Select RTK or Token Guard when useful, preserving raw logs and exit codes. Use risk-based
+targeted checks and reuse valid source-bound evidence. Required hosted protections and
+security regressions remain mandatory. Do not request optional Copilot reviews while
+quota is exhausted or repeatedly retry external failures.
 
-Keep changing tasks/decisions/logs in `docs/PROJECT-STATE.md`, `docs/DECISIONS.md`, `docs/verification/`, ignored `build/` and GitHub; never in `AGENTS.md`. Only a lead may propose durable instruction updates in a separate reviewed `docs(agents):` change. Do not edit policy files, pipeline evaluators, state registers or other agents' write sets from an ordinary worker. Public repository prose and comments are in professional English.
-
-If context is insufficient, construct a **read-only plan** using hosted Graphify and exact contracts; planning is not a request to change Codex's UI mode automatically. If no safe task remains, or a security/authority decision is missing, record one focused `OWNER:` question and continue only disjoint authorized work. Do not guess or change permissions, production keys, merge controls, disks or device firmware.
+Keep hooks enabled. Legacy local Graphify indexing hooks conflict with hosted-only policy;
+record that conflict and preserve required validation hooks when using a safe hook path.
+Do not silently disable validation hooks or run a forbidden local index.
+Update the existing compact checkpoint and progress assessment; commit/push coherent work
+and open/update a draft PR. Manual squash requires actual mandatory checks and owner
+mandate. Never auto-merge, bypass protections, weaken permissions or disturb foreign WIP.
+Governance does not require zero open items or prove runtime parity/Daybreak remediation.
 
 ## Read-only canary instruction
 
