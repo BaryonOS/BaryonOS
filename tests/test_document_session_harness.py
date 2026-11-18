@@ -166,6 +166,26 @@ class CompiledBindingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'selected Cargo output'):
             self.validate()
 
+    def test_cargo_1100_zeroize_build_path_binds_crate_and_hash(self):
+        artifact = self.dependency_messages[0]
+        release = self.build / 'sdk-dependency-target/x86_64-unknown-none/release'
+        digest = '0123456789abcdef'
+        selected = release / 'build/zeroize' / digest / 'out' / f'libzeroize-{digest}.rlib'
+        artifact['filenames'] = [str(selected)]
+        self.assertEqual(gate.sdk_dependency_artifact(
+            '\n'.join(map(json.dumps, self.dependency_messages)), self.build), selected)
+        for foreign in (
+            release / 'build/zeroize' / ('0' * 16) / 'out' / selected.name,
+            release / 'build/other' / digest / 'out' / selected.name,
+            release / 'build/zeroize' / digest / 'out/subdir' / selected.name,
+            release / 'build/zeroize' / digest / 'out/../out' / selected.name,
+        ):
+            with self.subTest(path=str(foreign)):
+                artifact['filenames'] = [str(foreign)]
+                with self.assertRaisesRegex(ValueError, 'escaped the isolated target'):
+                    gate.sdk_dependency_artifact(
+                        '\n'.join(map(json.dumps, self.dependency_messages)), self.build)
+
     def test_document_and_sdk_flags_must_be_explicit_true_in_both_manifests(self):
         original = copy.deepcopy((self.manifest, self.user))
         for which in (0, 1):

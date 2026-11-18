@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import shutil
 import struct
 from common import ROOT, BUILD, run_logged, save_json, sha256
@@ -37,7 +38,13 @@ def sdk_dependency_artifact(stdout, build):
         raise ValueError("Missing or ambiguous zeroize rlib")
     library = paths[0]
     release = build / "sdk-dependency-target/x86_64-unknown-none/release"
-    if library.parent not in (release, release / "deps") or ".." in library.parts:
+    # Cargo 1.100 stores dependency artifacts under a crate-specific build path.
+    # Bind both the directory and filename to the same Cargo artifact hash.
+    hashed = re.fullmatch(r"libzeroize-([0-9a-f]{16})\.rlib", library.name)
+    parents = (release, release / "deps")
+    if hashed:
+        parents += (release / "build/zeroize" / hashed[1] / "out",)
+    if library.parent not in parents or ".." in library.parts:
         raise ValueError("Zeroize artifact escaped the isolated target")
     if library.name != "libzeroize.rlib" and not (library.name.startswith("libzeroize-")
                                                  and library.name.endswith(".rlib")):
