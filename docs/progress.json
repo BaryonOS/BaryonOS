@@ -3,12 +3,12 @@
   "rubric_version": 1,
   "assessment": {
     "date": "2026-11-18",
-    "source_commit": "bba804996b93d93e82b6fb323cdeea9779f6fe99",
+    "source_commit": "44f7405003977dbf7f33eb5bca77f8a8f82c6f1c",
     "assessment_basis": "parent_commit",
     "branch": "codex/phase0-pr339-preintegration",
-    "task": "Phase 0: prepare one combined current-main integration candidate with preserved source ownership",
+    "task": "Phase 0: validate the preserved combined current-main integration candidate",
     "previous_score": 41,
-    "summary": "41/100 unchanged. Actual339main equals fully verified7213candidate; remaining source PRs are not closed or accepted by this preparation. Complete combined-source host/native/CI and independent review remain required; unfinished355/357 and platform-blocked private kernel WIP are excluded."
+    "summary": "41/100 unchanged. Main de9b9904 contains verified PR345/346/339. Combined source44f74050 incorporates reviewed340/350/354/358/359 inputs; final combined host/native/current-head CI and independent review remain pending. Source PRs remain open. Full355/357 isolation and platform-blocked kernel WIP are excluded."
   },
   "tracks": [
     {

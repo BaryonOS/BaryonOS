@@ -10,6 +10,8 @@
 
 **Acceptance limits:** all5 issues and3Daybreak findings remain open; CodeQL/Dependabot/secret-alert counts are NOT VERIFIED403. Resource/cgroup/user-bus and selected authenticated-client parity block355. Production B03 policy/key custody, physical/general H02 evidence, actual50/100 criteria, complete274 localisation/coverage and283provenance/audit limits remain open. Score41/100; baseline B/governance1–6 are unestablished.
 
+**Continuation receipt:** [combined checkpoint](verification/phase0-combined-20261118/CONTINUATION.md) records exact source heads, ongoing gates, ownership and blockers. Frozen source `44f7405003977dbf7f33eb5bca77f8a8f82c6f1c` is under independent host/native validation; no final combined acceptance is claimed. The versioned English inventory has a reproduced Unicode-path omission under repair in #358; it must not be treated as complete coverage evidence.
+
 ## Retained handoff — Phase 0 PR339 safe checker and integration — 18 November 2026
 
 **Actual main:** `67d5859d735836331b6fb971eae89162b7fa8465` after verified manual squash merges #345 and #346. Actual trees equal their independently reviewed candidates. Translation source PRs #347–#349/#351–#353 were closed only after actual-main inclusion proof; original refs remain preserved. Five issues and seven PRs remain open at this cutoff. Project5 synchronization uses the existing workflow.
