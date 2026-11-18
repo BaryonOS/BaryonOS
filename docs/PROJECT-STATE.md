@@ -1,6 +1,19 @@
 # Current project status
 
-## NEXT AGENT HANDOFF — unified governance implementation — 18 November 2026
+## NEXT AGENT HANDOFF — CI-L1 existing power core coverage —18November2026
+
+**Claim:** Codex lead, `codex/ci-power-lifecycle`, basefac5a864.
+**Goal:** add present standalone power-lifecycle-core to existing component CI.
+**Invariant:** same permissions/pins/maxparallel/mandatory checks; no absent
+component, production OS code or unsafe runner activation.
+**Write set:** .github/workflows/component-leaves.yml; lead state only.
+**Acceptance:** actionlint, existing workflow tests; actual Rust1.100 host
+test/Clippy/fmt/freestanding scalar build using isolated target cache.
+**Evidence limit:** local checks and CI declaration, not hosted/native acceptance.
+**Next:** draft PR. Current native H02/H04/N02 follow-ups need actual pending
+source/interfaces or currently held write paths, not historical PR333/336 holds.
+
+## Retained checkpoint — unified governance implementation — 18 November 2026
 
 **Claim:** GOV-1-6, sole writer Codex in `codex/unified-governance`, base
 `5a3295b6093549f4b5ff6164ab2773ac4c264996`. The project owner authorizes immediate
