@@ -217,6 +217,18 @@ impl<'a> Service<'a> {
         Ok(self.active)
     }
 
+    /// Read-only transport snapshot for the trusted loop; no clock advances here.
+    pub fn transport_snapshot(&self) -> &Stack<'a> {
+        &self.stack
+    }
+
+    /// Trusted integration seam: observe expiry before lending the same Stack.
+    /// The borrower must retain coordinator ownership of DHCP/probe completion.
+    pub fn transport_mut(&mut self, ticks: u64) -> Result<&mut Stack<'a>, Error> {
+        self.now(ticks)?;
+        Ok(&mut self.stack)
+    }
+
     /// Trusted service-loop access to the existing transport, not an app
     /// grant. Every operation observes lease expiry before touching TCP.
     pub fn add_transport_client(
