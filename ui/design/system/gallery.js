@@ -111,7 +111,7 @@ chips.addEventListener('click', (e) => {
   const rest = $$('[data-reset]', chips); (rest[Math.min(i, rest.length - 1)] || $('#a11y-reset')).focus()
   $('#a11y-live').textContent = `${$('legend', f).textContent} staat weer op ${optText(first)}.`
 })
-matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if (!qt) root.dataset.theme = deviceTheme(); if ($('input[name="a11y-theme"]:checked', form)?.value === '') queueAxis('theme', '') }) // the page and Volg apparaat follow the device live (the page unless ?theme= pins it; qt is set before any event runs)
+matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if (!qt) root.dataset.theme = deviceTheme(); $('.gal-sample[data-follow]', form).dataset.theme = deviceTheme(); if ($('input[name="a11y-theme"]:checked', form)?.value === '') queueAxis('theme', '') }) // the page, the Volg apparaat sample (always) and the preview (only while Volg apparaat is chosen) follow the device live; ?theme= pins the page (qt is set before any event runs)
 // liveness of a long busy state after its finite loops end: elapsed time as text every 5 s (not a live region, not motion)
 const t0 = performance.now()
 setInterval(() => { const s = Math.floor((performance.now() - t0) / 5000) * 5; for (const n of $$('[data-elapsed]')) n.textContent = `Nog bezig · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` }, 5000)
